@@ -1,0 +1,25 @@
+{
+  "name": "server-express",
+  "version": "1.0.0",
+  "description": "Back-end application with good practices using node.js and express",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "dev": "nodemon bin/index.js",
+    "test": ""
+  },
+  "author": "Laura Falcon and Johan Garcia",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.19.2",
+    "swagger-jsdoc": "^6.2.8",
+    "swagger-ui-express": "^5.0.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.0",
+    "standard": "^17.1.0"
+  },
+  "eslintConfig": {
+    "extends": "./node_modules/standard/eslintrc.json"
+  }
+}
