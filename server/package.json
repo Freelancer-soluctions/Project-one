@@ -13,11 +13,13 @@
   "dependencies": {
     "express": "^4.19.2",
     "swagger-jsdoc": "^6.2.8",
-    "swagger-ui-express": "^5.0.0"
+    "swagger-ui-express": "^5.0.0",
+    "@prisma/client": "^5.13.0"
   },
   "devDependencies": {
     "nodemon": "^3.1.0",
-    "standard": "^17.1.0"
+    "standard": "^17.1.0",
+    "prisma": "^5.13.0"
   },
   "eslintConfig": {
     "extends": "./node_modules/standard/eslintrc.json"
