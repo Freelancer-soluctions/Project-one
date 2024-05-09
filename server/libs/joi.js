@@ -9,6 +9,8 @@ export const UserStatus = Joi.object({
     users: Joi.array().min(1)
 })
 
+export const UserStatusArray = Joi.array().items(UserStatus).min(1)
+
 export const User = Joi.object({
     email: Joi.string()
         .email({ tlds: false })
@@ -85,6 +87,8 @@ export const NoteStatus = Joi.object({
 
 })
 
+export const NoteStatusArray = Joi.array().items(NoteStatus).min(1)
+
 export const Note = Joi.object({
     note: Joi.string()
         .alphanum()
@@ -118,6 +122,8 @@ export const NewsStatus = Joi.object({
         .required(),
     news: Joi.array().min(1)
 })
+
+export const NewsStatusArray = Joi.array().items(NewsStatus).min(1)
 
 export const News = Joi.object({
     description: Joi.string()

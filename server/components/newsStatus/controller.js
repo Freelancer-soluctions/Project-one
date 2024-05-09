@@ -1,6 +1,6 @@
 import { globalResponse } from '../../utils/globalResponse.js'
 import { handleCatchErrorAsync } from '../../utils/handleCatchErrorAsync.js'
-import * as userStatusService from './service.js'
+import * as newsStatusService from './service.js'
 
 
 /**
@@ -12,7 +12,7 @@ import * as userStatusService from './service.js'
  */
 export const getAll = handleCatchErrorAsync(async (req, res) => {
 
-    const items = await userStatusService.getAll()
+    const items = await newsStatusService.getAll()
     globalResponse(res, 200, items)
 
 })
@@ -28,7 +28,7 @@ export const getAll = handleCatchErrorAsync(async (req, res) => {
 export const getOneById = handleCatchErrorAsync(async (req, res) => {
 
     const { id } = req.params
-    const item = await userStatusService.getOneById(id)
+    const item = await newsStatusService.getOneById(id)
     globalResponse(res, 200, item)
 
 })
@@ -43,7 +43,7 @@ export const getOneById = handleCatchErrorAsync(async (req, res) => {
 export const createOne = handleCatchErrorAsync(async (req, res) => {
 
     const { body } = req
-    await userStatusService.createOne(body)
+    await newsStatusService.createOne(body)
     globalResponse(res, 201, { message: 'Item created successfully' })
 
 })
@@ -60,7 +60,7 @@ export const createMany = async (req, res) => {
 
     const { body } = req
     console.log(body);
-    await userStatusService.createMany(body)
+    await newsStatusService.createMany(body)
     globalResponse(res, 201, { message: 'Items created successfully' })
 
 }
@@ -76,7 +76,7 @@ export const updateById = handleCatchErrorAsync(async (req, res) => {
 
     const { id } = req.params
     const { body } = req
-    await userStatusService.updateById(id, body)
+    await newsStatusService.updateById(id, body)
     globalResponse(res, 200, { message: 'Items updated successfully' })
 
 })
@@ -91,7 +91,7 @@ export const updateById = handleCatchErrorAsync(async (req, res) => {
 export const deleteById = handleCatchErrorAsync(async (req, res) => {
 
     const { id } = req.params
-    await userStatusService.deleteById(id)
+    await newsStatusService.deleteById(id)
     globalResponse(res, 200, { message: 'Items deleted successfully' })
 
 })

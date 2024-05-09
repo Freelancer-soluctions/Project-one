@@ -5,7 +5,7 @@ import swaggerUi from 'swagger-ui-express'
 const options = {
   definition: {
     openapi: '3.1.0',
-    info: { title: 'Crossfit WOD API', version: '1.0.0' }
+    info: { title: 'Inventory API', version: '1.0.0' }
   },
   apis: ['./components/**/routes.js', './docs/schemas.js']
   // ['./api/**/routes.js', './api/**/schema.js']

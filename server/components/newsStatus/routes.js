@@ -1,16 +1,16 @@
 import { Router } from 'express'
-import { UserStatus, UserStatusArray } from '../../libs/joi.js'
+import { NewsStatus, NewsStatusArray } from '../../libs/joi.js'
 import { validateSchema } from '../../middleware/validateSchema.js'
-import * as userStatusController from './controller.js'
+import * as newsStatusController from './controller.js'
 
 const router = Router()
 
 /**
 @openapi
- * /api/v1/userStatus:
+ * /api/v1/newsStatus:
  *   get:
  *     tags:
- *       - UserStatus
+ *       - NewsStatus
  *     parameters:
  *       - in: header
  *         name: x-access-token
@@ -36,25 +36,24 @@ const router = Router()
  *             schema:
  *              $ref: "#/components/schemas/Error"
  *
- *
  */
 
-router.get('/', userStatusController.getAll)
+router.get('/', newsStatusController.getAll)
 
 
 
 /**
 @openapi
- * /api/v1/userStatus/{id}:
+ * /api/v1/newsStatus/{id}:
  *   get:
  *     tags:
- *       - UserStatus
+ *       - NewsStatus
  *     parameters:
  *       - in: path
  *         name: id
  *         schema:
  *           type: int
- *         description: The userStatus identifier
+ *         description: The NewsStatus identifier
  *       - in: header
  *         name: x-access-token
  *         schema:
@@ -75,20 +74,19 @@ router.get('/', userStatusController.getAll)
  *         content:
  *           application/json:
  *             schema:
- *               $ref: "#/components/schemas/Error"
- *
+ *              $ref: "#/components/schemas/Error"
  *
  */
 
-router.get('/:id', userStatusController.getOneById)
+router.get('/:id', newsStatusController.getOneById)
 
 
 /**
  * @openapi
- * /api/v1/userStatus:
+ * /api/v1/newsStatus:
  *   post:
  *     tags:
- *       - UserStatus
+ *       - NewsStatus
  *     parameters:
  *       - in: header
  *         name: x-access-token
@@ -106,25 +104,24 @@ router.get('/:id', userStatusController.getOneById)
  *         content:
  *           application/json:
  *             schema:
- *               $ref: "#/components/schemas/Create"
+ *              $ref: "#/components/schemas/Create"
  *       5XX:
  *         description: FAILED
  *         content:
  *           application/json:
  *             schema:
- *               $ref: "#/components/schemas/Error"
- *
+ *              $ref: "#/components/schemas/Error"
  *
  */
 
-router.post('/', validateSchema(UserStatus), userStatusController.createOne)
+router.post('/', validateSchema(NewsStatus), newsStatusController.createOne)
 
 /**
  * @openapi
- * /api/v1/userStatus/bulk:
+ * /api/v1/newsStatus/bulk:
  *   post:
  *     tags:
- *       - UserStatus
+ *       - NewsStatus
  *     parameters:
  *       - in: header
  *         name: x-access-token
@@ -144,31 +141,30 @@ router.post('/', validateSchema(UserStatus), userStatusController.createOne)
  *         content:
  *           application/json:
  *             schema:
- *               $ref: "#/components/schemas/Create"
+ *              $ref: "#/components/schemas/Create"
  *       5XX:
  *         description: FAILED
  *         content:
  *           application/json:
  *             schema:
- *               $ref: "#/components/schemas/Error"
- *
+ *              $ref: "#/components/schemas/Error"
  *
  */
 
-router.post('/bulk', validateSchema(UserStatusArray), userStatusController.createMany)
+router.post('/bulk', validateSchema(NewsStatusArray), newsStatusController.createMany)
 
 /**
  * @openapi
- * /api/v1/userStatus/{id}:
+ * /api/v1/newsStatus/{id}:
  *   put:
  *     tags:
- *       - UserStatus
+ *       - NewsStatus
  *     parameters:
  *       - in: path
  *         name: id
  *         schema:
  *           type: int
- *         description: The userStatus identifier
+ *         description: The newsStatus identifier
  *       - in: header
  *         name: x-access-token
  *         schema:
@@ -185,31 +181,30 @@ router.post('/bulk', validateSchema(UserStatusArray), userStatusController.creat
  *         content:
  *           application/json:
  *             schema:
- *               $ref: "#/components/schemas/Update"
+ *              $ref: "#/components/schemas/Update"
  *       5XX:
  *         description: FAILED
  *         content:
  *           application/json:
  *             schema:
- *               $ref: "#/components/schemas/Error"
- *
+ *              $ref: "#/components/schemas/Error"
  *
  */
 
-router.put('/:id', validateSchema(UserStatus), userStatusController.updateById)
+router.put('/:id', validateSchema(NewsStatus), newsStatusController.updateById)
 
 /**
  * @openapi
- * /api/v1/userStatus/{id}:
+ * /api/v1/newsStatus/{id}:
  *   delete:
  *     tags:
- *       - UserStatus
+ *       - NewsStatus
  *     parameters:
  *       - in: path
  *         name: id
  *         schema:
  *           type: int
- *         description: The userStatus identifier
+ *         description: The newsStatus identifier
  *       - in: header
  *         name: x-access-token
  *         schema:
@@ -221,15 +216,15 @@ router.put('/:id', validateSchema(UserStatus), userStatusController.updateById)
  *         content:
  *           application/json:
  *             schema:
- *               $ref: "#/components/schemas/Delete"
+ *              $ref: "#/components/schemas/Delete"
  *       5XX:
  *         description: FAILED
  *         content:
  *           application/json:
  *             schema:
- *               $ref: "#/components/schemas/Error"
+ *              $ref: "#/components/schemas/Error"
  */
 
-router.delete('/:id', userStatusController.deleteById)
+router.delete('/:id', newsStatusController.deleteById)
 
 export default router

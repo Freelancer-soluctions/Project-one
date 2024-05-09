@@ -21,7 +21,7 @@ export const getAll = async () => {
  * @returns One row filter by id
  */
 export const getOneById = async (id) => {
-   
+
     const rowId = Number( id )
     return getRows( { where : { id : rowId } } )
 
