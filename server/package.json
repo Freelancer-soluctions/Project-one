@@ -6,20 +6,22 @@
   "type": "module",
   "scripts": {
     "dev": "nodemon bin/index.js",
-    "test": ""
+    "test": "",
+    "prisma-migration": "prisma migrate dev"
   },
   "author": "Laura Falcon and Johan Garcia",
   "license": "ISC",
   "dependencies": {
+    "@prisma/client": "^5.13.0",
     "express": "^4.19.2",
+    "joi": "^17.13.1",
     "swagger-jsdoc": "^6.2.8",
-    "swagger-ui-express": "^5.0.0",
-    "@prisma/client": "^5.13.0"
+    "swagger-ui-express": "^5.0.0"
   },
   "devDependencies": {
     "nodemon": "^3.1.0",
-    "standard": "^17.1.0",
-    "prisma": "^5.13.0"
+    "prisma": "^5.13.0",
+    "standard": "^17.1.0"
   },
   "eslintConfig": {
     "extends": "./node_modules/standard/eslintrc.json"
