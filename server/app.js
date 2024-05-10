@@ -4,7 +4,9 @@ import { errorHandler } from './middleware/errorHandler.js'
 import routes from './routes/index.js'
 
 const app = express()
-
+app.use(
+  express.urlencoded({ limit: '50mb', extended: true, parameterLimit: 50000 })
+)
 app.use(express.json())
 app.use(cors())
 

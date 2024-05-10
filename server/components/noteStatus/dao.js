@@ -17,6 +17,21 @@ export const getRows = async ({  where, include, select } ) =>{
 }
 
 /**
+
+ * @param {*} params :: filter params 
+ *
+ * @returns One row by ID
+ */
+export const getOneRow = async ({ where, include }) => {
+
+    return prisma.noteStatus.findUnique({
+      ...(where && { where }),
+      ...(include && { include })
+    })
+    
+  }
+
+/**
  * 
  * @param {*} data :: Argument to create an item in DB 
  * @returns Created row in db

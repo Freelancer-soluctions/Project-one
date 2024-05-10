@@ -17,7 +17,7 @@ model User {
   lastUpdatedBy        DateTime   @db.Timestamp(3)
   socialSecurity       String     @db.VarChar(9)
   telephone            String     @db.VarChar(13)
-  birthday             DateTime   @db.Time()
+  birthday             DateTime   @db.Timestamp()
   zipcode              String     @db.VarChar(5)
   state                String     @db.VarChar(50)
   city                 String     @db.VarChar(50)
@@ -27,6 +27,7 @@ model User {
   accessNews           Boolean?   @default(false)
   accessConfiguration  Boolean?   @default(false)
   document             String
+  documentId           String
   notesCreated         Note[]     @relation("userNoteCreated")
   notesClosed          Note[]     @relation("userNoteClosed")
   newsCreated          News[]     @relation("userNewsCreated")
@@ -54,6 +55,7 @@ model Note {
   createdAt        DateTime   @default(now()) @db.Timestamp(3)
   closedAt         DateTime   @db.Timestamp(3)
   document         String?
+  documentId       String?
 }
 
 
@@ -84,6 +86,8 @@ model News {
   createdAt       DateTime   @default(now()) @db.Timestamp(3)
   closedAt        DateTime   @db.Timestamp(3)
   document        String?
+  documentId      String?
+
 }
 
 model Question {

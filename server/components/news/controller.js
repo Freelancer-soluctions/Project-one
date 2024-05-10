@@ -1,6 +1,6 @@
 import { globalResponse } from '../../utils/globalResponse.js'
 import { handleCatchErrorAsync } from '../../utils/handleCatchErrorAsync.js'
-import * as noteStatusService from './service.js'
+import * as newsService from './service.js'
 
 
 /**
@@ -12,8 +12,8 @@ import * as noteStatusService from './service.js'
  */
 export const getAll = handleCatchErrorAsync(async (req, res) => {
 
-    const items = await noteStatusService.getAll()
-    globalResponse(res, 200, items)
+    const items = await newsService.getAll();
+    globalResponse(res, 200, items);
 
 })
 
@@ -27,9 +27,9 @@ export const getAll = handleCatchErrorAsync(async (req, res) => {
  */
 export const getOneById = handleCatchErrorAsync(async (req, res) => {
 
-    const { id } = req.params
-    const item = await noteStatusService.getOneById(id)
-    globalResponse(res, 200, item)
+    const { id } = req.params;
+    const item = await newsService.getOneById(id);
+    globalResponse(res, 200, item);
 
 })
 
@@ -42,9 +42,10 @@ export const getOneById = handleCatchErrorAsync(async (req, res) => {
  */
 export const createOne = handleCatchErrorAsync(async (req, res) => {
 
-    const { body } = req
-    await noteStatusService.createOne(body)
-    globalResponse(res, 201, { message: 'Item created successfully' })
+    const { body, file } = req;
+    console.log(body, file);
+    await newsService.createOne({ ...body, file });
+    globalResponse(res, 201, { message: 'Item created successfully' });
 
 })
 
@@ -58,9 +59,9 @@ export const createOne = handleCatchErrorAsync(async (req, res) => {
  */
 export const createMany = async (req, res) => {
 
-    const { body } = req
-    await noteStatusService.createMany(body)
-    globalResponse(res, 201, { message: 'Items created successfully' })
+    const { body } = req;
+    await newsService.createMany(body);
+    globalResponse(res, 201, { message: 'Items created successfully' });
 
 }
 
@@ -73,10 +74,11 @@ export const createMany = async (req, res) => {
  */
 export const updateById = handleCatchErrorAsync(async (req, res) => {
 
-    const { id } = req.params
-    const { body } = req
-    await noteStatusService.updateById(id, body)
-    globalResponse(res, 200, { message: 'Items updated successfully' })
+    const { id } = req.params;
+    const { body, file } = req;
+    console.log(body, file);
+    await newsService.updateById(id, { ...body, file });
+    globalResponse(res, 200, { message: 'Items updated successfully' });
 
 })
 
@@ -89,8 +91,8 @@ export const updateById = handleCatchErrorAsync(async (req, res) => {
  */
 export const deleteById = handleCatchErrorAsync(async (req, res) => {
 
-    const { id } = req.params
-    await noteStatusService.deleteById(id)
-    globalResponse(res, 200, { message: 'Items deleted successfully' })
+    const { id } = req.params;
+    await newsService.deleteById(id);
+    globalResponse(res, 200, { message: 'Items deleted successfully' });
 
 })

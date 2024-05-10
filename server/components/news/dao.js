@@ -8,7 +8,7 @@ import prisma from '../../libs/prisma.js'
 
 export const getRows = async ({  where, include, select } ) =>{
 
-   return  prisma.userStatus.findMany({
+   return  prisma.news.findMany({
         ...(where && { where }),
         ...(include && { include }),
         ...(select && { select })
@@ -16,15 +16,16 @@ export const getRows = async ({  where, include, select } ) =>{
 
 }
 
+
 /**
 
  * @param {*} params :: filter params 
  *
  * @returns One row by ID
  */
-export const getOneRow = async ({ where, include }) => {
+ export const getOneRow = async ({ where, include }) => {
 
-    return prisma.userStatus.findUnique({
+    return prisma.news.findUnique({
       ...(where && { where }),
       ...(include && { include })
     })
@@ -38,7 +39,7 @@ export const getOneRow = async ({ where, include }) => {
  */
 export const createRow = async ( data ) => {
 
-    return prisma.userStatus.create( { data } )
+    return prisma.news.create( { data } )
 }
 
 /**
@@ -49,7 +50,7 @@ export const createRow = async ( data ) => {
 
 export const createManyRows = async ( data ) => {
 
-    return prisma.userStatus.createMany( {
+    return prisma.news.createMany( {
         skipDuplicates : true,
         data
     } )
@@ -63,7 +64,7 @@ export const createManyRows = async ( data ) => {
  */
 export const updateRow = async ( data , where ) => {
 
-    return prisma.userStatus.update( {
+    return prisma.news.update( {
         where,
         data
     } )
@@ -76,6 +77,6 @@ export const updateRow = async ( data , where ) => {
  */
 export const deleteRow = async ( where ) => {
 
-    return prisma.userStatus.delete( { where } )
+    return prisma.news.delete( { where } )
 
 }

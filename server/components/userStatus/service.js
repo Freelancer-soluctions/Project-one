@@ -2,6 +2,7 @@ import {
     createManyRows,
     createRow,
     deleteRow,
+    getOneRow,
     getRows,
     updateRow
 } from './dao.js';
@@ -23,7 +24,7 @@ export const getAll = async () => {
 export const getOneById = async (id) => {
    
     const rowId = Number( id )
-    return getRows( { where : { id : rowId } } )
+    return getOneRow( { where : { id : rowId } } )
 
 }
 

@@ -59,7 +59,6 @@ export const createOne = handleCatchErrorAsync(async (req, res) => {
 export const createMany = async (req, res) => {
 
     const { body } = req
-    console.log(body);
     await newsStatusService.createMany(body)
     globalResponse(res, 201, { message: 'Items created successfully' })
 
