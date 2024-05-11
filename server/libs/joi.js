@@ -139,6 +139,23 @@ export const Note = Joi.object({
 
 })
 
+export const NoteUpdate =  Joi.object({
+    note: Joi.string()
+        .min(3)
+        .max(2000),
+    statusId: Joi.number()
+        .integer(),
+    createdBy: Joi.number()
+        .integer(),
+    closedBy: Joi.number()
+        .integer(),
+    createdAt: Joi.date(),
+    closedAt: Joi.date(),
+    document: Joi.string()
+
+})
+
+
 export const NewsStatus = Joi.object({
     description: Joi.string()
         .min(3)

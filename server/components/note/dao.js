@@ -1,6 +1,6 @@
 import * as prismaService from '../utils/dao.js'
 
-const tableName = 'news'
+const tableName = 'note'
 /**
  * 
  * @param {*} params :: filter params 

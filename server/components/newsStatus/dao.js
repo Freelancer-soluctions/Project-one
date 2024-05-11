@@ -1,44 +1,38 @@
-import prisma from '../../libs/prisma.js' 
+import * as prismaService from '../utils/dao.js'
 
+const tableName = 'newsStatus'
 /**
  * 
  * @param {*} params :: filter params 
  * @returns All rows by filter
  */
 
-export const getRows = async ({  where, include, select } ) =>{
+export const getRows = async ({ where, include, select }) => prismaService.getRows({
+    tableName,
+    where,
+    include,
+    select
+})
 
-   return  prisma.newsStatus.findMany({
-        ...(where && { where }),
-        ...(include && { include }),
-        ...(select && { select })
-      })
-
-}
 
 /**
+
  * @param {*} params :: filter params 
  *
  * @returns One row by ID
  */
-export const getOneRow = async ({ where, include }) => {
-
-    return prisma.newsStatus.findUnique({
-      ...(where && { where }),
-      ...(include && { include })
-    })
-    
-  }
+export const getOneRow = async ({ where, include }) => prismaService.getOneRow({
+    tableName,
+    where,
+    include
+})
 
 /**
  * 
  * @param {*} data :: Argument to create an item in DB 
  * @returns Created row in db
  */
-export const createRow = async ( data ) => {
-
-    return prisma.newsStatus.create( { data } )
-}
+export const createRow = async (data) => prismaService.createRow( tableName, data )
 
 /**
  * 
@@ -46,13 +40,7 @@ export const createRow = async ( data ) => {
  * @returns  Created row in db
  */
 
-export const createManyRows = async ( data ) => {
-
-    return prisma.newsStatus.createMany( {
-        skipDuplicates : true,
-        data
-    } )
-}
+export const createManyRows = async ( data ) => prismaService.createManyRows( tableName, data )
 
 /**
  * 
@@ -60,21 +48,11 @@ export const createManyRows = async ( data ) => {
  * @param {*} where :: DB filter
  * @returns 
  */
-export const updateRow = async ( data , where ) => {
-
-    return prisma.newsStatus.update( {
-        where,
-        data
-    } )
-}
+export const updateRow = async (data, where) => prismaService.updateRow( tableName, data, where )
 
 /**
  * 
  * @param {*} where :: DB filter
  * @returns 
  */
-export const deleteRow = async ( where ) => {
-
-    return prisma.newsStatus.delete( { where } )
-
-}
+export const deleteRow = async (where) => prismaService.deleteRow( tableName, where )

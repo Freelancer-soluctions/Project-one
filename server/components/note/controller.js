@@ -1,6 +1,6 @@
 import { globalResponse } from '../../utils/globalResponse.js'
 import { handleCatchErrorAsync } from '../../utils/handleCatchErrorAsync.js'
-import * as newsService from './service.js'
+import * as noteService from './service.js'
 
 
 /**
@@ -12,7 +12,7 @@ import * as newsService from './service.js'
  */
 export const getAll = handleCatchErrorAsync(async (req, res) => {
 
-    const items = await newsService.getAll();
+    const items = await noteService.getAll();
     globalResponse(res, 200, items);
 
 })
@@ -28,7 +28,7 @@ export const getAll = handleCatchErrorAsync(async (req, res) => {
 export const getOneById = handleCatchErrorAsync(async (req, res) => {
 
     const { id } = req.params;
-    const item = await newsService.getOneById(id);
+    const item = await noteService.getOneById(id);
     globalResponse(res, 200, item);
 
 })
@@ -43,7 +43,7 @@ export const getOneById = handleCatchErrorAsync(async (req, res) => {
 export const createOne = handleCatchErrorAsync(async (req, res) => {
 
     const { body, file } = req;
-    await newsService.createOne({ ...body, file });
+    await noteService.createOne({ ...body, file });
     globalResponse(res, 201, { message: 'Item created successfully' });
 
 })
@@ -59,7 +59,7 @@ export const createOne = handleCatchErrorAsync(async (req, res) => {
 export const createMany = async (req, res) => {
 
     const { body } = req;
-    await newsService.createMany(body);
+    await noteService.createMany(body);
     globalResponse(res, 201, { message: 'Items created successfully' });
 
 }
@@ -75,7 +75,7 @@ export const updateById = handleCatchErrorAsync(async (req, res) => {
 
     const { id } = req.params;
     const { body, file } = req;
-    await newsService.updateById(id, { ...body, file });
+    await noteService.updateById(id, { ...body, file });
     globalResponse(res, 200, { message: 'Items updated successfully' });
 
 })
@@ -90,7 +90,7 @@ export const updateById = handleCatchErrorAsync(async (req, res) => {
 export const deleteById = handleCatchErrorAsync(async (req, res) => {
 
     const { id } = req.params;
-    await newsService.deleteById(id);
+    await noteService.deleteById(id);
     globalResponse(res, 200, { message: 'Items deleted successfully' });
 
 })
