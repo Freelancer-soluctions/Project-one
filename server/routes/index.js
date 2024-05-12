@@ -1,8 +1,7 @@
 import { Router } from 'express'
+import auth from '../components/auth/routes.js'
 
 const router = Router()
-router.use('/user', () => {
-  console.log('Estoy aqui de temporal')
-})
+router.use('/auth', auth)
 
 export default router
