@@ -1,0 +1,99 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+
+model User {
+  id                   Int        @id @default(autoincrement())
+  email                String     @unique @db.VarChar(128)
+  name                 String     @db.VarChar(80)
+  startDate            DateTime   @db.Timestamp(3)
+  lastUpdatedOn        DateTime   @db.Timestamp(3)
+  lastUpdatedBy        DateTime   @db.Timestamp(3)
+  socialSecurity       String     @db.VarChar(9)
+  telephone            String     @db.VarChar(13)
+  birthday             DateTime   @db.Timestamp()
+  zipcode              String     @db.VarChar(5)
+  state                String     @db.VarChar(50)
+  city                 String     @db.VarChar(50)
+  address              String     @db.VarChar(250)
+  isAdmin              Boolean?   @default(false)
+  isManager            Boolean?   @default(false)
+  accessNews           Boolean?   @default(false)
+  accessConfiguration  Boolean?   @default(false)
+  document             String
+  documentId           String
+  notesCreated         Note[]     @relation("userNoteCreated")
+  notesClosed          Note[]     @relation("userNoteClosed")
+  newsCreated          News[]     @relation("userNewsCreated")
+  newsClosed           News[]     @relation("userNewsClosed")
+  status               UserStatus @relation(fields: [statusId], references: [id])
+  statusId             Int
+}
+
+
+model UserStatus {
+  id           Int    @id @default(autoincrement())
+  users        User[]
+  description  String @unique @db.VarChar(8)
+}
+
+model Note {
+  id               Int        @id @default(autoincrement())
+  note             String     @db.VarChar(2000)
+  status           NoteStatus @relation(fields: [statusId], references: [id])
+  statusId         Int
+  userNoteCreated  User       @relation("userNoteCreated",fields: [createdBy], references: [id])
+  createdBy        Int
+  userNoteClosed   User       @relation("userNoteClosed",fields: [closedBy], references: [id])
+  closedBy         Int
+  createdAt        DateTime   @default(now()) @db.Timestamp(3)
+  closedAt         DateTime   @db.Timestamp(3)
+  document         String?
+  documentId       String?
+}
+
+
+model NoteStatus {
+  id           Int    @id @default(autoincrement())
+  notes        Note[]
+  description  String @unique @db.VarChar(10)
+
+}
+
+model NewsStatus {
+  id           Int    @id @default(autoincrement())
+  news         News[]
+  description  String @unique @db.VarChar(10)
+}
+
+
+model News {
+  id              Int        @id @default(autoincrement())
+  description     String     @db.VarChar(400)
+  status          NewsStatus @relation(fields: [statusId], references: [id])
+  statusId        Int
+  questions       Question[]
+  userNewsCreated User       @relation("userNewsCreated",fields: [createdBy], references: [id])
+  createdBy       Int
+  userNewsClosed  User       @relation("userNewsClosed",fields: [closedBy], references: [id])
+  closedBy        Int
+  createdAt       DateTime   @default(now()) @db.Timestamp(3)
+  closedAt        DateTime   @db.Timestamp(3)
+  document        String?
+  documentId      String?
+
+}
+
+model Question {
+  id          Int       @id @default(autoincrement())
+  description String    @db.VarChar(250)
+  answer      Boolean
+  news        News      @relation(fields: [newsId], references: [id])
+  newsId      Int
+}
