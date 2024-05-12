@@ -1,5 +1,5 @@
 import express from 'express'
-import { errorHandler } from './middleware/errorHandler.js'
+import errorHandler from './middleware/errorHandler.js'
 import routes from './routes/index.js'
 
 const app = express()

@@ -1,7 +1,7 @@
 import dontenv from '../../config/dotenv.js'
 import jwt from 'jsonwebtoken'
 
-export const createToken = (userId = '') => {
+const createToken = (userId = '') => {
   return new Promise((resolve, reject) => {
     jwt.sign({ id: userId }, dontenv('SECRETKEY'), {
       expiresIn: '24h'
@@ -14,3 +14,5 @@ export const createToken = (userId = '') => {
     })
   })
 }
+
+export default createToken

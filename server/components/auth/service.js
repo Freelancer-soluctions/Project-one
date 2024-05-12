@@ -1,9 +1,9 @@
 import * as authDao from './dao.js'
-import { encryptPassword, comparePassword } from '../../utils/bcrypt/encrypt.js'
-import { createToken } from '../../utils/jwt/createToken.js'
+import createToken from '../../utils/jwt/createToken.js'
+import ClientError from '../../utils/responses&Errors/errors.js'
 import { rolesCodes } from '../../utils/constants/enums.js'
-import { ClientError } from '../../utils/responses&Errors/errors.js'
 import { getUserRegisteredByEmail, getRoleByCode } from '../users/dao.js'
+import { encryptPassword, comparePassword } from '../../utils/bcrypt/encrypt.js'
 
 /**  sign up
  * @param {object} user
@@ -25,7 +25,7 @@ export const signUp = async (user) => {
   return { token, user: { name: userSaved.name, picture: userSaved.picture, role: userSaved.role } }
 }
 
-/**  sign up
+/**  sign in
  * @param {object} user
 */
 export const signIn = async (user) => {
@@ -51,8 +51,8 @@ export const signIn = async (user) => {
   return { token, user: { id: userExists.id, name: userExists.name, picture: userExists.picture, role: userExists.role } }
 }
 
-/**  sign up
- * @param {object} user
+/**  get session by id
+ * @param {id} id
 */
 export const session = async (id) => {
   const session = await authDao.session(id)
