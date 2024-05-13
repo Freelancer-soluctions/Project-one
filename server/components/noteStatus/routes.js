@@ -1,6 +1,6 @@
 import { Router } from 'express'
-import { NoteStatus, NoteStatusArray } from '../../libs/joi.js'
-import { validateSchema } from '../../middleware/validateSchema.js'
+import { NoteStatus, NoteStatusArray } from '../../utils/joiSchemas/joi.js'
+import validateSchema from '../../middleware/validateSchema.js'
 import * as noteStatusController from './controller.js'
 
 const router = Router()
@@ -40,8 +40,6 @@ const router = Router()
 
 router.get('/', noteStatusController.getAll)
 
-
-
 /**
 @openapi
  * /api/v1/noteStatus/{id}:
@@ -79,7 +77,6 @@ router.get('/', noteStatusController.getAll)
  */
 
 router.get('/:id', noteStatusController.getOneById)
-
 
 /**
  * @openapi
@@ -133,7 +130,7 @@ router.post('/', validateSchema(NoteStatus), noteStatusController.createOne)
  *          application/json:
  *           schema:
  *            type: array
- *            items: 
+ *            items:
  *              $ref: "#/components/schemas/StatusBody"
  *     responses:
  *       200:

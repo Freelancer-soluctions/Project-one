@@ -7,11 +7,11 @@ import noteStatus from '../components/noteStatus/routes.js'
 import userStatus from '../components/userStatus/routes.js'
 
 const router = Router()
-router.use('/news' , news)
-router.use('/note' , note)
-router.use('/newsStatus' , newsStatus)
-router.use('/noteStatus' , noteStatus)
-router.use('/userStatus' , userStatus)
+router.use('/news', news)
+router.use('/note', note)
+router.use('/newsStatus', newsStatus)
+router.use('/noteStatus', noteStatus)
+router.use('/userStatus', userStatus)
 
 router.use('/auth', auth)
 

@@ -1,6 +1,6 @@
 import { Router } from 'express'
-import { NewsStatus, NewsStatusArray } from '../../libs/joi.js'
-import { validateSchema } from '../../middleware/validateSchema.js'
+import { NewsStatus, NewsStatusArray } from '../../utils/joiSchemas/joi.js'
+import validateSchema from '../../middleware/validateSchema.js'
 import * as newsStatusController from './controller.js'
 
 const router = Router()
@@ -40,8 +40,6 @@ const router = Router()
 
 router.get('/', newsStatusController.getAll)
 
-
-
 /**
 @openapi
  * /api/v1/newsStatus/{id}:
@@ -79,7 +77,6 @@ router.get('/', newsStatusController.getAll)
  */
 
 router.get('/:id', newsStatusController.getOneById)
-
 
 /**
  * @openapi
@@ -133,7 +130,7 @@ router.post('/', validateSchema(NewsStatus), newsStatusController.createOne)
  *          application/json:
  *           schema:
  *            type: array
- *            items: 
+ *            items:
  *              $ref: "#/components/schemas/StatusBody"
  *     responses:
  *       200:

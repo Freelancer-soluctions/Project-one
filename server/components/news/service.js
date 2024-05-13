@@ -11,7 +11,7 @@ import {
     handleUpload,
     handleUploadUpdate,
     handleDeleteFile
-} from '../../libs/cloudinary.js';
+} from '../../utils/cloudinary/cloudinary.js';
 /**
  * 
  * @returns All Rows from DB

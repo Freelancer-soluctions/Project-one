@@ -2,6 +2,70 @@
  * @openapi
  * components:
  *   schemas:
+ *     Error:
+ *       type: object
+ *       properties:
+ *        error:
+ *          type: boolean
+ *          example: true
+ *        message:
+ *          type: string
+ *          example: "Some error message"
+ *
+ */
+
+/**
+ * @openapi
+ * components:
+ *   schemas:
+ *     Create:
+ *      type: object
+ *      properties:
+ *       error:
+ *         type: boolean
+ *         example: false
+ *       message:
+ *         type: string
+ *         example: "Item created successfully"
+ *
+ */
+
+/**
+ * @openapi
+ * components:
+ *   schemas:
+ *     Update:
+ *      type: object
+ *      properties:
+ *       error:
+ *         type: boolean
+ *         example: false
+ *       message:
+ *         type: string
+ *         example: "Item updated successfully"
+ *
+ */
+
+/**
+ * @openapi
+ * components:
+ *   schemas:
+ *     Delete:
+ *      type: object
+ *      properties:
+ *       error:
+ *         type: boolean
+ *         example: false
+ *       message:
+ *         type: string
+ *         example: "Item deleted successfully"
+ *
+ */
+
+/**
+ * @openapi
+ * components:
+ *   schemas:
  *     Status:
  *       type: object
  *       properties:
@@ -12,7 +76,6 @@
  *           type: string
  *           example: Available
  */
-
 
 /**
  * @openapi
@@ -80,7 +143,6 @@
  *          example: 2024-02-20
  */
 
-
 /**
  * @openapi
  * components:
@@ -145,7 +207,6 @@
  *          example: 2024-09-09
  */
 
-
 /**
  * @openapi
  * components:
@@ -158,73 +219,7 @@
  *           example: Available
  */
 
-
 /**
- * @openapi
- * components:
- *   schemas:
- *     Error:
- *       type: object
- *       properties:
- *        error:
- *          type: boolean
- *          example: true
- *        message:
- *          type: string
- *          example: "Some error message"
- *
- */
-
-
-/**
- * @openapi
- * components:
- *   schemas:
- *     Create:
- *      type: object
- *      properties:
- *       error:
- *         type: boolean
- *         example: false
- *       message:
- *         type: string
- *         example: "Item created successfully"
- *
- */
-
-
-/**
- * @openapi
- * components:
- *   schemas:
- *     Update:
- *      type: object
- *      properties:
- *       error:
- *         type: boolean
- *         example: false
- *       message:
- *         type: string
- *         example: "Item updated successfully"
- *
- */
-
-
-/**
- * @openapi
- * components:
- *   schemas:
- *     Delete:
- *      type: object
- *      properties:
- *       error:
- *         type: boolean
- *         example: false
- *       message:
- *         type: string
- *         example: "Item deleted successfully"
- *
- *//**
  * @openapi
  * components:
  *   schemas:
@@ -237,6 +232,36 @@
  *         user:
  *           type: object
  *           example:  { "name": "UserName", "picture": null}
+ */
+
+/**
+ * @openapi
+ * components:
+ *   schemas:
+ *     AuthBodySignUp:
+ *       type: object
+ *       properties:
+ *         email:
+ *           type: string
+ *         password:
+ *           type: string
+ *         name:
+ *           type: string
+ *         lastName:
+ *           type: string
+ */
+
+/**
+ * @openapi
+ * components:
+ *   schemas:
+ *     AuthBody:
+ *       type: object
+ *       properties:
+ *         email:
+ *           type: string
+ *         password:
+ *           type: string
  */
 
 /**
