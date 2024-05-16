@@ -6,8 +6,8 @@ import globalResponse from '../../utils/responses&Errors/globalResponse.js'
  * @param {*} res
  * @param {*} req
  */
-export const signUp = handleCatchErrorAsync(async (res, req) => {
-  const body = req.body
+export const signUp = handleCatchErrorAsync(async (req, res) => {
+  const { body } = req
   const user = await authService.signUp(body)
   globalResponse(res, 201, user)
 })

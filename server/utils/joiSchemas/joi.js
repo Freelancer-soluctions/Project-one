@@ -17,6 +17,21 @@ export const UserStatus = Joi.object({
     .min(3)
     .max(8)
     .required(),
+  code: Joi.string()
+    .min(3)
+    .max(3)
+    .required(),
+  users: Joi.array().min(1)
+})
+
+export const UserStatusUpdate = Joi.object({
+  description: Joi.string()
+    .min(3)
+    .max(8)
+    .required(),
+  code: Joi.string()
+    .min(3)
+    .max(3),
   users: Joi.array().min(1)
 })
 
@@ -122,11 +137,54 @@ export const NoteStatus = Joi.object({
     .min(3)
     .max(10)
     .required(),
+  code: Joi.string()
+    .min(3)
+    .max(3)
+    .required(),
+  notes: Joi.array().min(1)
+
+})
+
+export const NoteStatusUpdate = Joi.object({
+  description: Joi.string()
+    .min(3)
+    .max(10)
+    .required(),
+  code: Joi.string()
+    .min(3)
+    .max(3),
   notes: Joi.array().min(1)
 
 })
 
 export const NoteStatusArray = Joi.array().items(NoteStatus).min(1)
+
+export const Role = Joi.object({
+  description: Joi.string()
+    .min(3)
+    .max(50)
+    .required(),
+  code: Joi.string()
+    .min(3)
+    .max(3)
+    .required(),
+  notes: Joi.array().min(1)
+
+})
+
+export const RoleUpdate = Joi.object({
+  description: Joi.string()
+    .min(3)
+    .max(50)
+    .required(),
+  code: Joi.string()
+    .min(3)
+    .max(3),
+  notes: Joi.array().min(1)
+
+})
+
+export const RoleArray = Joi.array().items(Role).min(1)
 
 export const Note = Joi.object({
   note: Joi.string()
@@ -142,8 +200,8 @@ export const Note = Joi.object({
   closedBy: Joi.number()
     .integer()
     .required(),
-  createdAt: Joi.date().required(),
-  closedAt: Joi.date().required(),
+  createdOn: Joi.date().required(),
+  closedOn: Joi.date().required(),
   document: Joi.string()
 
 })
@@ -158,8 +216,8 @@ export const NoteUpdate = Joi.object({
     .integer(),
   closedBy: Joi.number()
     .integer(),
-  createdAt: Joi.date(),
-  closedAt: Joi.date(),
+  createdOn: Joi.date(),
+  closedOn: Joi.date(),
   document: Joi.string()
 
 })
@@ -169,6 +227,21 @@ export const NewsStatus = Joi.object({
     .min(3)
     .max(10)
     .required(),
+  code: Joi.string()
+    .min(3)
+    .max(3)
+    .required(),
+  news: Joi.array().min(1)
+})
+
+export const NewsStatusUpdate = Joi.object({
+  description: Joi.string()
+    .min(3)
+    .max(10)
+    .required(),
+  code: Joi.string()
+    .min(3)
+    .max(3),
   news: Joi.array().min(1)
 })
 
@@ -189,8 +262,8 @@ export const News = Joi.object({
   closedBy: Joi.number()
     .integer()
     .required(),
-  createdAt: Joi.date().required(),
-  closedAt: Joi.date().required(),
+  createdOn: Joi.date().required(),
+  closedOn: Joi.date().required(),
   document: Joi.string()
 })
 
@@ -204,8 +277,8 @@ export const NewsUpdate = Joi.object({
     .integer(),
   closedBy: Joi.number()
     .integer(),
-  createdAt: Joi.date(),
-  closedAt: Joi.date(),
+  createdOn: Joi.date(),
+  closedOn: Joi.date(),
   document: Joi.string()
 })
 
@@ -230,3 +303,5 @@ export const QuestionUpdate = Joi.object({
     .integer()
     .required()
 })
+
+export const QuestionArray = Joi.array().items(Question).min(1)

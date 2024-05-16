@@ -28,6 +28,19 @@ export const getOneById = handleCatchErrorAsync(async (req, res) => {
 })
 
 /**
+ * Get one by code
+ *
+ * @param {*} req
+ * @param {*} res
+ * @returns A message
+ */
+export const getOneByCode = handleCatchErrorAsync(async (req, res) => {
+  const { code } = req.params
+  const item = await noteStatusService.getOneByCode(code)
+  globalResponse(res, 200, item)
+})
+
+/**
  * create One
  *
  * @param {*} req
@@ -68,6 +81,20 @@ export const updateById = handleCatchErrorAsync(async (req, res) => {
 })
 
 /**
+ * Update By Code
+ *
+ * @param {*} req
+ * @param {*} res
+ * @returns  a message
+ */
+export const updateByCode = handleCatchErrorAsync(async (req, res) => {
+  const { code } = req.params
+  const { body } = req
+  await noteStatusService.updateByCode(code, body)
+  globalResponse(res, 200, { message: 'Items updated successfully' })
+})
+
+/**
  * Delete By ID
  *
  * @param {*} req
@@ -77,5 +104,18 @@ export const updateById = handleCatchErrorAsync(async (req, res) => {
 export const deleteById = handleCatchErrorAsync(async (req, res) => {
   const { id } = req.params
   await noteStatusService.deleteById(id)
+  globalResponse(res, 200, { message: 'Items deleted successfully' })
+})
+
+/**
+ * Delete By Code
+ *
+ * @param {*} req
+ * @param {*} res
+ * @returns a message
+ */
+export const deleteByCode = handleCatchErrorAsync(async (req, res) => {
+  const { code } = req.params
+  await noteStatusService.deleteByCode(code)
   globalResponse(res, 200, { message: 'Items deleted successfully' })
 })
