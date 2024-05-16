@@ -28,65 +28,70 @@ model User {
   accessConfiguration  Boolean?   @default(false)
   document             String
   documentId           String
+  statusId             Int
   notesCreated         Note[]     @relation("userNoteCreated")
   notesClosed          Note[]     @relation("userNoteClosed")
   newsCreated          News[]     @relation("userNewsCreated")
   newsClosed           News[]     @relation("userNewsClosed")
   status               UserStatus @relation(fields: [statusId], references: [id])
-  statusId             Int
+
 }
 
 
 model UserStatus {
   id           Int    @id @default(autoincrement())
-  users        User[]
+  code         String @unique @db.VarChar(3)
   description  String @unique @db.VarChar(8)
+  users        User[]
 }
 
 model Note {
   id               Int        @id @default(autoincrement())
   note             String     @db.VarChar(2000)
-  status           NoteStatus @relation(fields: [statusId], references: [id])
+  createdOn        DateTime   @default(now()) @db.Timestamp(3)
+  closedOn         DateTime   @db.Timestamp(3)
+  document         String?
+  // documentId       String?
+  createdBy        Int
+  closedBy         Int
   statusId         Int
   userNoteCreated  User       @relation("userNoteCreated",fields: [createdBy], references: [id])
-  createdBy        Int
   userNoteClosed   User       @relation("userNoteClosed",fields: [closedBy], references: [id])
-  closedBy         Int
-  createdAt        DateTime   @default(now()) @db.Timestamp(3)
-  closedAt         DateTime   @db.Timestamp(3)
-  document         String?
-  documentId       String?
+  status           NoteStatus @relation(fields: [statusId], references: [id])
+
+
 }
 
 
 model NoteStatus {
   id           Int    @id @default(autoincrement())
-  notes        Note[]
   description  String @unique @db.VarChar(10)
-
+  code         String @unique @db.VarChar(3)
+  notes        Note[]
 }
 
 model NewsStatus {
   id           Int    @id @default(autoincrement())
-  news         News[]
   description  String @unique @db.VarChar(10)
+  code         String @unique @db.VarChar(3)
+  news         News[]
 }
 
 
 model News {
   id              Int        @id @default(autoincrement())
   description     String     @db.VarChar(400)
-  status          NewsStatus @relation(fields: [statusId], references: [id])
   statusId        Int
-  questions       Question[]
-  userNewsCreated User       @relation("userNewsCreated",fields: [createdBy], references: [id])
   createdBy       Int
-  userNewsClosed  User       @relation("userNewsClosed",fields: [closedBy], references: [id])
   closedBy        Int
-  createdAt       DateTime   @default(now()) @db.Timestamp(3)
-  closedAt        DateTime   @db.Timestamp(3)
+  createdOn      DateTime   @default(now()) @db.Timestamp(3)
+  closedOn        DateTime   @db.Timestamp(3)
   document        String?
   documentId      String?
+  questions       Question[]
+  userNewsCreated User       @relation("userNewsCreated",fields: [createdBy], references: [id])
+  userNewsClosed  User       @relation("userNewsClosed",fields: [closedBy], references: [id])
+  status          NewsStatus @relation(fields: [statusId], references: [id])
 
 }
 
@@ -94,6 +99,7 @@ model Question {
   id          Int       @id @default(autoincrement())
   description String    @db.VarChar(250)
   answer      Boolean
-  news        News      @relation(fields: [newsId], references: [id])
   newsId      Int
+  news        News      @relation(fields: [newsId], references: [id])
+
 }
