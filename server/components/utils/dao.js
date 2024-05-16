@@ -6,11 +6,18 @@ import prisma from '../../config/db.js'
  * @returns All rows by filter
  */
 
-export const getRows = async ({ tableName, where, include, select }) => {
+export const getRows = async ({
+  tableName,
+  where,
+  include,
+  select,
+  orderBy
+}) => {
   return prisma[tableName].findMany({
     ...(where && { where }),
     ...(include && { include }),
-    ...(select && { select })
+    ...(select && { select }),
+    ...(orderBy && { orderBy })
   })
 }
 
