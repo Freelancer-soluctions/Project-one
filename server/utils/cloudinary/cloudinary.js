@@ -1,9 +1,9 @@
 import { v2 as cloudinary } from 'cloudinary'
-
+import dotenv from '../../config/dotenv.js'
 cloudinary.config({
-  cloud_name: 'dc4kwuipu',
-  api_key: '151292133684892',
-  api_secret: 'NI2trZ7qxEnGIht_VihE0pz_mrU'
+  cloud_name: dotenv('CLOUD_NAME'),
+  api_key: dotenv('CLOUD_API_KEY'),
+  api_secret: dotenv('CLOUD_API_SECRET')
 })
 
 export const handleUpload = async (image) => {
