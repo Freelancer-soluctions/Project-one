@@ -102,4 +102,4 @@ model Question {
   newsId      Int
   news        News      @relation(fields: [newsId], references: [id])
 
-}
+} 
