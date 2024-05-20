@@ -1,4 +1,4 @@
-import dotenv from './dotenv'
+import dotenv from './dotenv.js'
 const corsOptions = {
   // origin: ['http://example1.com', 'http://example2.com'],
   // methods: ['GET', 'POST'],

@@ -1,8 +1,8 @@
-import { Router } from 'express';
-import { Note, NoteUpdate } from '../../libs/joi.js';
-import { validateSchema } from '../../middleware/validateSchema.js';
-import * as noteController from './controller.js';
-import upload from '../../libs/multer.js';
+import { Router } from 'express'
+import { Note, NoteUpdate } from '../../utils/joiSchemas/joi.js'
+import validateSchema from '../../middleware/validateSchema.js'
+import * as noteController from './controller.js'
+import upload from '../../utils/multer/multer.js'
 
 const router = Router()
 
@@ -40,8 +40,6 @@ const router = Router()
  */
 
 router.get('/', noteController.getAll)
-
-
 
 /**
 @openapi
@@ -81,7 +79,6 @@ router.get('/', noteController.getAll)
 
 router.get('/:id', noteController.getOneById)
 
-
 /**
  * @openapi
  * /api/v1/note:
@@ -116,9 +113,9 @@ router.get('/:id', noteController.getOneById)
  */
 
 router.post('/',
-    upload.single("document"),
-    validateSchema(Note),
-    noteController.createOne)
+  upload.single('document'),
+  validateSchema(Note),
+  noteController.createOne)
 
 /**
  * @openapi
@@ -159,9 +156,9 @@ router.post('/',
  */
 
 router.put('/:id',
-    upload.single("document"),
-    validateSchema(NoteUpdate),
-    noteController.updateById)
+  upload.single('document'),
+  validateSchema(NoteUpdate),
+  noteController.updateById)
 
 /**
  * @openapi

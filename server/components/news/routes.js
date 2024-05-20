@@ -1,8 +1,8 @@
-import { Router } from 'express';
-import { News, NewsUpdate } from '../../libs/joi.js';
-import { validateSchema } from '../../middleware/validateSchema.js';
-import * as newsController from './controller.js';
-import upload from '../../libs/multer.js';
+import { Router } from 'express'
+import { News, NewsUpdate } from '../../utils/joiSchemas/joi.js'
+import validateSchema from '../../middleware/validateSchema.js'
+import * as newsController from './controller.js'
+import upload from '../../utils/multer/multer.js'
 
 const router = Router()
 
@@ -40,8 +40,6 @@ const router = Router()
  */
 
 router.get('/', newsController.getAll)
-
-
 
 /**
 @openapi
@@ -81,7 +79,6 @@ router.get('/', newsController.getAll)
 
 router.get('/:id', newsController.getOneById)
 
-
 /**
  * @openapi
  * /api/v1/news:
@@ -116,9 +113,9 @@ router.get('/:id', newsController.getOneById)
  */
 
 router.post('/',
-    upload.single("document"),
-    validateSchema(News),
-    newsController.createOne)
+  upload.single('document'),
+  validateSchema(News),
+  newsController.createOne)
 
 /**
  * @openapi
@@ -159,9 +156,9 @@ router.post('/',
  */
 
 router.put('/:id',
-    upload.single("document"),
-    validateSchema(NewsUpdate),
-    newsController.updateById)
+  upload.single('document'),
+  validateSchema(NewsUpdate),
+  newsController.updateById)
 
 /**
  * @openapi

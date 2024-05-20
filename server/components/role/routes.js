@@ -1,16 +1,16 @@
 import { Router } from 'express'
-import { NewsStatus, NewsStatusArray, NewsStatusUpdate } from '../../utils/joiSchemas/joi.js'
+import { Role, RoleArray, RoleUpdate } from '../../utils/joiSchemas/joi.js'
 import validateSchema from '../../middleware/validateSchema.js'
-import * as newsStatusController from './controller.js'
+import * as roleController from './controller.js'
 
 const router = Router()
 
 /**
 @openapi
- * /api/v1/newsStatus:
+ * /api/v1/role:
  *   get:
  *     tags:
- *       - NewsStatus
+ *       - Role
  *     parameters:
  *       - in: header
  *         name: x-access-token
@@ -28,7 +28,7 @@ const router = Router()
  *                 data:
  *                   type: array
  *                   items:
- *                     $ref: "#/components/schemas/Status"
+ *                     $ref: "#/components/schemas/Role"
  *       5XX:
  *         description: FAILED
  *         content:
@@ -38,20 +38,20 @@ const router = Router()
  *
  */
 
-router.get('/', newsStatusController.getAll)
+router.get('/', roleController.getAll)
 
 /**
 @openapi
- * /api/v1/newsStatus/{id}:
+ * /api/v1/role/{id}:
  *   get:
  *     tags:
- *       - NewsStatus
+ *       - Role
  *     parameters:
  *       - in: path
  *         name: id
  *         schema:
  *           type: int
- *         description: The NewsStatus identifier
+ *         description: The Role identifier
  *       - in: header
  *         name: x-access-token
  *         schema:
@@ -66,7 +66,7 @@ router.get('/', newsStatusController.getAll)
  *               type: object
  *               properties:
  *                 data:
- *                  $ref: "#/components/schemas/Status"
+ *                  $ref: "#/components/schemas/Role"
  *       5XX:
  *         description: FAILED
  *         content:
@@ -76,20 +76,20 @@ router.get('/', newsStatusController.getAll)
  *
  */
 
-router.get('/:id', newsStatusController.getOneById)
+router.get('/:id', roleController.getOneById)
 
 /**
 @openapi
- * /api/v1/newsStatus/code/{code}:
+ * /api/v1/role/code/{code}:
  *   get:
  *     tags:
- *       - NewsStatus
+ *       - Role
  *     parameters:
  *       - in: path
  *         name: code
  *         schema:
  *           type: string
- *         description: The NewsStatus identifier
+ *         description: The Role code identifier
  *       - in: header
  *         name: x-access-token
  *         schema:
@@ -104,7 +104,7 @@ router.get('/:id', newsStatusController.getOneById)
  *               type: object
  *               properties:
  *                 data:
- *                  $ref: "#/components/schemas/Status"
+ *                  $ref: "#/components/schemas/Role"
  *       5XX:
  *         description: FAILED
  *         content:
@@ -114,14 +114,14 @@ router.get('/:id', newsStatusController.getOneById)
  *
  */
 
-router.get('/code/:code', newsStatusController.getOneByCode)
+router.get('/code/:code', roleController.getOneByCode)
 
 /**
  * @openapi
- * /api/v1/newsStatus:
+ * /api/v1/role:
  *   post:
  *     tags:
- *       - NewsStatus
+ *       - Role
  *     parameters:
  *       - in: header
  *         name: x-access-token
@@ -132,7 +132,7 @@ router.get('/code/:code', newsStatusController.getOneByCode)
  *         content:
  *          application/json:
  *           schema:
- *            $ref: "#/components/schemas/StatusBody"
+ *            $ref: "#/components/schemas/RoleBody"
  *     responses:
  *       200:
  *         description: OK
@@ -149,14 +149,14 @@ router.get('/code/:code', newsStatusController.getOneByCode)
  *
  */
 
-router.post('/', validateSchema(NewsStatus), newsStatusController.createOne)
+router.post('/', validateSchema(Role), roleController.createOne)
 
 /**
  * @openapi
- * /api/v1/newsStatus/bulk:
+ * /api/v1/role/bulk:
  *   post:
  *     tags:
- *       - NewsStatus
+ *       - Role
  *     parameters:
  *       - in: header
  *         name: x-access-token
@@ -169,7 +169,7 @@ router.post('/', validateSchema(NewsStatus), newsStatusController.createOne)
  *           schema:
  *            type: array
  *            items:
- *              $ref: "#/components/schemas/StatusBody"
+ *              $ref: "#/components/schemas/RoleBody"
  *     responses:
  *       200:
  *         description: OK
@@ -186,20 +186,20 @@ router.post('/', validateSchema(NewsStatus), newsStatusController.createOne)
  *
  */
 
-router.post('/bulk', validateSchema(NewsStatusArray), newsStatusController.createMany)
+router.post('/bulk', validateSchema(RoleArray), roleController.createMany)
 
 /**
  * @openapi
- * /api/v1/newsStatus/{id}:
+ * /api/v1/role/{id}:
  *   put:
  *     tags:
- *       - NewsStatus
+ *       - Role
  *     parameters:
  *       - in: path
  *         name: id
  *         schema:
  *           type: int
- *         description: The newsStatus identifier
+ *         description: The role identifier
  *       - in: header
  *         name: x-access-token
  *         schema:
@@ -209,7 +209,7 @@ router.post('/bulk', validateSchema(NewsStatusArray), newsStatusController.creat
  *         content:
  *          application/json:
  *           schema:
- *            $ref: "#/components/schemas/StatusBody"
+ *            $ref: "#/components/schemas/RoleBody"
  *     responses:
  *       200:
  *         description: OK
@@ -226,20 +226,20 @@ router.post('/bulk', validateSchema(NewsStatusArray), newsStatusController.creat
  *
  */
 
-router.put('/:id', validateSchema(NewsStatusUpdate), newsStatusController.updateById)
+router.put('/:id', validateSchema(RoleUpdate), roleController.updateById)
 
 /**
  * @openapi
- * /api/v1/newsStatus/code/{code}:
+ * /api/v1/role/code/{code}:
  *   put:
  *     tags:
- *       - NewsStatus
+ *       - Role
  *     parameters:
  *       - in: path
  *         name: code
  *         schema:
  *           type: string
- *         description: The newsStatus code identifier
+ *         description: The role code identifier
  *       - in: header
  *         name: x-access-token
  *         schema:
@@ -249,7 +249,7 @@ router.put('/:id', validateSchema(NewsStatusUpdate), newsStatusController.update
  *         content:
  *          application/json:
  *           schema:
- *            $ref: "#/components/schemas/StatusBody"
+ *            $ref: "#/components/schemas/RoleBody"
  *     responses:
  *       200:
  *         description: OK
@@ -266,20 +266,20 @@ router.put('/:id', validateSchema(NewsStatusUpdate), newsStatusController.update
  *
  */
 
-router.put('/code/:code', validateSchema(NewsStatusUpdate), newsStatusController.updateByCode)
+router.put('/code/:code', validateSchema(RoleUpdate), roleController.updateByCode)
 
 /**
  * @openapi
- * /api/v1/newsStatus/{id}:
+ * /api/v1/role/{id}:
  *   delete:
  *     tags:
- *       - NewsStatus
+ *       - Role
  *     parameters:
  *       - in: path
  *         name: id
  *         schema:
  *           type: int
- *         description: The newsStatus identifier
+ *         description: The role identifier
  *       - in: header
  *         name: x-access-token
  *         schema:
@@ -300,20 +300,20 @@ router.put('/code/:code', validateSchema(NewsStatusUpdate), newsStatusController
  *              $ref: "#/components/schemas/Error"
  */
 
-router.delete('/:id', newsStatusController.deleteById)
+router.delete('/:id', roleController.deleteById)
 
 /**
  * @openapi
- * /api/v1/newsStatus/code/{id}:
+ * /api/v1/role/code/{code}:
  *   delete:
  *     tags:
- *       - NewsStatus
+ *       - Role
  *     parameters:
  *       - in: path
  *         name: code
  *         schema:
  *           type: string
- *         description: The newsStatus code identifier
+ *         description: The role code identifier
  *       - in: header
  *         name: x-access-token
  *         schema:
@@ -334,6 +334,6 @@ router.delete('/:id', newsStatusController.deleteById)
  *              $ref: "#/components/schemas/Error"
  */
 
-router.delete('/code/:code', newsStatusController.deleteByCode)
+router.delete('/code/:code', roleController.deleteByCode)
 
 export default router

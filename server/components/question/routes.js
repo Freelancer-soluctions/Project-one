@@ -1,16 +1,16 @@
 import { Router } from 'express'
-import { UserStatus, UserStatusArray, UserStatusUpdate } from '../../utils/joiSchemas/joi.js'
+import { Question, QuestionArray, QuestionUpdate } from '../../utils/joiSchemas/joi.js'
 import validateSchema from '../../middleware/validateSchema.js'
-import * as userStatusController from './controller.js'
+import * as questionController from './controller.js'
 
 const router = Router()
 
 /**
 @openapi
- * /api/v1/userStatus:
+ * /api/v1/question:
  *   get:
  *     tags:
- *       - UserStatus
+ *       - Question
  *     parameters:
  *       - in: header
  *         name: x-access-token
@@ -28,7 +28,7 @@ const router = Router()
  *                 data:
  *                   type: array
  *                   items:
- *                     $ref: "#/components/schemas/Status"
+ *                     $ref: "#/components/schemas/Question"
  *       5XX:
  *         description: FAILED
  *         content:
@@ -39,20 +39,20 @@ const router = Router()
  *
  */
 
-router.get('/', userStatusController.getAll)
+router.get('/', questionController.getAll)
 
 /**
 @openapi
- * /api/v1/userStatus/{id}:
+ * /api/v1/question/{id}:
  *   get:
  *     tags:
- *       - UserStatus
+ *       - Question
  *     parameters:
  *       - in: path
  *         name: id
  *         schema:
  *           type: int
- *         description: The userStatus identifier
+ *         description: The question identifier
  *       - in: header
  *         name: x-access-token
  *         schema:
@@ -67,7 +67,7 @@ router.get('/', userStatusController.getAll)
  *               type: object
  *               properties:
  *                 data:
- *                  $ref: "#/components/schemas/Status"
+ *                  $ref: "#/components/schemas/Question"
  *       5XX:
  *         description: FAILED
  *         content:
@@ -78,53 +78,14 @@ router.get('/', userStatusController.getAll)
  *
  */
 
-router.get('/:id', userStatusController.getOneById)
-
-/**
-@openapi
- * /api/v1/userStatus/code/{code}:
- *   get:
- *     tags:
- *       - UserStatus
- *     parameters:
- *       - in: path
- *         name: code
- *         schema:
- *           type: string
- *         description: The userStatus identifier
- *       - in: header
- *         name: x-access-token
- *         schema:
- *          type: string
- *         required: true
- *     responses:
- *       200:
- *         description: OK
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 data:
- *                  $ref: "#/components/schemas/Status"
- *       5XX:
- *         description: FAILED
- *         content:
- *           application/json:
- *             schema:
- *               $ref: "#/components/schemas/Error"
- *
- *
- */
-
-router.get('/code/:code', userStatusController.getOneByCode)
+router.get('/:id', questionController.getOneById)
 
 /**
  * @openapi
- * /api/v1/userStatus:
+ * /api/v1/question:
  *   post:
  *     tags:
- *       - UserStatus
+ *       - Question
  *     parameters:
  *       - in: header
  *         name: x-access-token
@@ -135,7 +96,7 @@ router.get('/code/:code', userStatusController.getOneByCode)
  *         content:
  *          application/json:
  *           schema:
- *            $ref: "#/components/schemas/StatusBody"
+ *            $ref: "#/components/schemas/QuestionBody"
  *     responses:
  *       200:
  *         description: OK
@@ -153,14 +114,14 @@ router.get('/code/:code', userStatusController.getOneByCode)
  *
  */
 
-router.post('/', validateSchema(UserStatus), userStatusController.createOne)
+router.post('/', validateSchema(Question), questionController.createOne)
 
 /**
  * @openapi
- * /api/v1/userStatus/bulk:
+ * /api/v1/question/bulk:
  *   post:
  *     tags:
- *       - UserStatus
+ *       - Question
  *     parameters:
  *       - in: header
  *         name: x-access-token
@@ -173,7 +134,7 @@ router.post('/', validateSchema(UserStatus), userStatusController.createOne)
  *           schema:
  *            type: array
  *            items:
- *              $ref: "#/components/schemas/StatusBody"
+ *              $ref: "#/components/schemas/QuestionBody"
  *     responses:
  *       200:
  *         description: OK
@@ -191,20 +152,20 @@ router.post('/', validateSchema(UserStatus), userStatusController.createOne)
  *
  */
 
-router.post('/bulk', validateSchema(UserStatusArray), userStatusController.createMany)
+router.post('/bulk', validateSchema(QuestionArray), questionController.createMany)
 
 /**
  * @openapi
- * /api/v1/userStatus/{id}:
+ * /api/v1/question/{id}:
  *   put:
  *     tags:
- *       - UserStatus
+ *       - Question
  *     parameters:
  *       - in: path
  *         name: id
  *         schema:
  *           type: int
- *         description: The userStatus identifier
+ *         description: The question identifier
  *       - in: header
  *         name: x-access-token
  *         schema:
@@ -214,7 +175,7 @@ router.post('/bulk', validateSchema(UserStatusArray), userStatusController.creat
  *         content:
  *          application/json:
  *           schema:
- *            $ref: "#/components/schemas/StatusBody"
+ *            $ref: "#/components/schemas/QuestionBody"
  *     responses:
  *       200:
  *         description: OK
@@ -232,61 +193,20 @@ router.post('/bulk', validateSchema(UserStatusArray), userStatusController.creat
  *
  */
 
-router.put('/:id', validateSchema(UserStatusUpdate), userStatusController.updateById)
+router.put('/:id', validateSchema(QuestionUpdate), questionController.updateById)
 
 /**
  * @openapi
- * /api/v1/userStatus/code/{code}:
- *   put:
- *     tags:
- *       - UserStatus
- *     parameters:
- *       - in: path
- *         name: code
- *         schema:
- *           type: string
- *         description: The userStatus identifier
- *       - in: header
- *         name: x-access-token
- *         schema:
- *          type: string
- *         required: true
- *     requestBody:
- *         content:
- *          application/json:
- *           schema:
- *            $ref: "#/components/schemas/StatusBody"
- *     responses:
- *       200:
- *         description: OK
- *         content:
- *           application/json:
- *             schema:
- *               $ref: "#/components/schemas/Update"
- *       5XX:
- *         description: FAILED
- *         content:
- *           application/json:
- *             schema:
- *               $ref: "#/components/schemas/Error"
- *
- *
- */
-
-router.put('/code/:code', validateSchema(UserStatusUpdate), userStatusController.updateByCode)
-
-/**
- * @openapi
- * /api/v1/userStatus/{id}:
+ * /api/v1/question/{id}:
  *   delete:
  *     tags:
- *       - UserStatus
+ *       - Question
  *     parameters:
  *       - in: path
  *         name: id
  *         schema:
  *           type: int
- *         description: The userStatus identifier
+ *         description: The question identifier
  *       - in: header
  *         name: x-access-token
  *         schema:
@@ -307,40 +227,6 @@ router.put('/code/:code', validateSchema(UserStatusUpdate), userStatusController
  *               $ref: "#/components/schemas/Error"
  */
 
-router.delete('/:id', userStatusController.deleteById)
-
-/**
- * @openapi
- * /api/v1/userStatus/code/{code}:
- *   delete:
- *     tags:
- *       - UserStatus
- *     parameters:
- *       - in: path
- *         name: code
- *         schema:
- *           type: string
- *         description: The userStatus identifier
- *       - in: header
- *         name: x-access-token
- *         schema:
- *          type: string
- *         required: true
- *     responses:
- *       200:
- *         description: OK
- *         content:
- *           application/json:
- *             schema:
- *               $ref: "#/components/schemas/Delete"
- *       5XX:
- *         description: FAILED
- *         content:
- *           application/json:
- *             schema:
- *               $ref: "#/components/schemas/Error"
- */
-
-router.delete('/code/:code', userStatusController.deleteByCode)
+router.delete('/:id', questionController.deleteById)
 
 export default router
