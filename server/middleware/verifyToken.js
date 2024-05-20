@@ -19,7 +19,6 @@ const verifyToken = async (req, res, next) => {
     // continue with the next function
     next()
   } catch (error) {
-    console.log(error)
     return res.status(401).json({ message: 'Lo sentimos debes iniciar sesión.' })
   }
 }
