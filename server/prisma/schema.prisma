@@ -28,7 +28,7 @@ model User {
   newsCreated          News[]     @relation("userNewsCreated")
   notesClosed          Note[]     @relation("userNoteClosed")
   notesCreated         Note[]     @relation("userNoteCreated")
-  roles                Role   @relation(fields: [roleId], references: [id])
+  roles                Role       @relation(fields: [roleId], references: [id])
   roleId               Int
   socialSecurity       String     @db.VarChar(9)
   startDate            DateTime   @db.Timestamp(3)
