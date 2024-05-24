@@ -12,6 +12,11 @@ const router = Router()
  *   post:
  *     tags:
  *       - Auth
+ *     requestBody:
+ *         content:
+ *          application/json:
+ *           schema:
+ *            $ref: "#/components/schemas/AuthBodySignUp"
  *     responses:
  *       201:
  *         description: OK
@@ -32,14 +37,7 @@ const router = Router()
  *         content:
  *           application/json:
  *             schema:
- *               type: object
- *               properties:
- *                 error:
- *                   type: boolean
- *                   example: true
- *                 message:
- *                   type: string
- *                   example: "Some error message"
+ *              $ref: "#/components/schemas/Error"
  *
  *
  */
@@ -52,6 +50,11 @@ router.post('/signup', validateSchema(signUpSchema), authController.signUp)
  *   post:
  *     tags:
  *       - Auth
+ *     requestBody:
+ *         content:
+ *          application/json:
+ *           schema:
+ *            $ref: "#/components/schemas/AuthBody"
  *     responses:
  *       200:
  *         description: OK
@@ -69,14 +72,7 @@ router.post('/signup', validateSchema(signUpSchema), authController.signUp)
  *         content:
  *           application/json:
  *             schema:
- *               type: object
- *               properties:
- *                 error:
- *                   type: boolean
- *                   example: true
- *                 message:
- *                   type: string
- *                   example: "Some error message"
+ *              $ref: "#/components/schemas/Error"
  *
  *
  */
@@ -105,14 +101,7 @@ router.post('/signin', validateSchema(signInSchema), authController.signIn)
  *         content:
  *           application/json:
  *             schema:
- *               type: object
- *               properties:
- *                 error:
- *                   type: boolean
- *                   example: true
- *                 message:
- *                   type: string
- *                   example: "Some error message"
+ *              $ref: "#/components/schemas/Error"
  *
  *
  */

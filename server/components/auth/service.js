@@ -2,7 +2,9 @@ import * as authDao from './dao.js'
 import createToken from '../../utils/jwt/createToken.js'
 import ClientError from '../../utils/responses&Errors/errors.js'
 import { rolesCodes } from '../../utils/constants/enums.js'
-import { getUserRegisteredByEmail, getRoleByCode } from '../users/dao.js'
+import { getUserRegisteredByEmail } from '../users/dao.js'
+import * as roleService from '../role/service.js'
+
 import { encryptPassword, comparePassword } from '../../utils/bcrypt/encrypt.js'
 
 /**  sign up
@@ -10,13 +12,13 @@ import { encryptPassword, comparePassword } from '../../utils/bcrypt/encrypt.js'
 */
 export const signUp = async (user) => {
   // get the user role id
-  const role = await getRoleByCode(rolesCodes.user)
-  user.roleId = role.id
+  const role = await roleService.getOneByCode(rolesCodes.user)
+  user.roleId = role?.id
   // encryt password
   user.password = encryptPassword(user.password)
   // verify if the email is already registered
   const emailExists = await getUserRegisteredByEmail(user.email)
-  if (emailExists) {
+  if (Object.keys(emailExists).length) {
     throw new ClientError('Este correo ya esta registrado.', 400)
   }
   const userSaved = await authDao.signUp(user)
