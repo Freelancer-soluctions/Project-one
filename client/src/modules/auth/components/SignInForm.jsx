@@ -86,6 +86,60 @@ const SignInForm = () => {
 
             </div>
         </>
+
+
+
+
+
+        // <div className="flex items-center justify-center px-4 min-h-dvh">
+        //     <div className="w-full max-w-md space-y-6">
+        //         <div className="text-center">
+        //             <h1 className="text-3xl font-bold">Welcome back</h1>
+        //             <p className="text-gray-500 dark:text-gray-400">Enter your email and password to sign in.</p>
+        //         </div>
+
+
+
+        //         <form action="" name="signin" onSubmit={handleSubmit(onSubmit)}>
+        //             <Card>
+        //                 <CardContent className="space-y-4">
+        //                     <div className="space-y-2">
+        //                         <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70" htmlFor="email">Email</label>
+        //                         <Input id="email" placeholder="m@example.com" required type="email" />
+        //                     </div>
+        //                     <div className="space-y-2">
+        //                         <div className="flex items-center justify-between">
+        //                             <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70" htmlFor="password">Password</label>
+
+        //                             <Link
+        //                                 className="text-sm font-medium text-gray-900 underline underline-offset-4 hover:text-gray-700 dark:text-gray-50 dark:hover:text-gray-300"
+        //                                 href="#"
+        //                             >
+        //                                 Forgot password?
+        //                             </Link>
+        //                         </div>
+        //                         <Input id="password" required type="password" placeholder="Type your password" />
+        //                     </div>
+        //                 </CardContent>
+        //                 <CardFooter>
+        //                     <Button className="w-full" type="submit">
+        //                         Sign in
+        //                     </Button>
+        //                 </CardFooter>
+        //             </Card>
+        //         </form>
+
+        //         <div className="text-sm text-center text-gray-500 dark:text-gray-400">
+        //            <p>Do not have an account?</p>
+        //             <Link
+        //                 className="font-medium text-gray-900 underline underline-offset-4 hover:text-gray-700 dark:text-gray-50 dark:hover:text-gray-300"
+        //                 href="#"
+        //             >
+        //                 Register
+        //             </Link>
+        //         </div>
+        //     </div>
+        // </div>
     )
 }
 
