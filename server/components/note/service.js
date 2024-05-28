@@ -17,7 +17,13 @@ import {
  * @returns All Rows from DB
  */
 export const getAll = async () => {
-  return getRows({})
+  return getRows({
+    include: {
+      status: true,
+      userNoteClosed: true,
+      userNoteCreated: true
+    }
+  })
 }
 
 /**
