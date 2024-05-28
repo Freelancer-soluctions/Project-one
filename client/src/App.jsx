@@ -18,7 +18,7 @@ const App = () => {
             element: <Login />,
             children:[
                 {
-                
+                    
 
                     element: <Layout />,
                     children: routes
@@ -30,7 +30,7 @@ const App = () => {
         {
             path: "/*",
             element: <NotFound />,
-          },
+        },
 
     ])
 
