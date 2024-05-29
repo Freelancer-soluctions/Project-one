@@ -87,8 +87,26 @@ export const createMany = async (data) => {
  */
 export const updateById = async (id, data) => {
   const rowId = Number(id)
-  const { file, ...newsData } = data
+  const {
+    note,
+    statusId,
+    createdBy,
+    closedBy,
+    createdOn,
+    closedOn,
+    file
+  } = data
 
+  const updateData = {
+
+    note,
+    statusId: Number(statusId),
+    createdBy: Number(createdBy),
+    closedBy: Number(closedBy),
+    createdOn: new Date(createdOn),
+    closedOn: new Date(closedOn)
+
+  }
   if (file) {
     const { documentId } = await getOneById(rowId)
     const baseImage = Buffer.from(file.buffer).toString('base64')
@@ -98,11 +116,11 @@ export const updateById = async (id, data) => {
       await handleUploadUpdate(imageURI, documentId)
     } else {
       const { public_id, secure_url } = await handleUpload(imageURI)
-      newsData.document = secure_url
-      newsData.documentId = public_id
+      updateData.document = secure_url
+      updateData.documentId = public_id
     }
   }
-  return updateRow(newsData, { id: rowId })
+  return updateRow(updateData, { id: rowId })
 }
 /**
  *

@@ -2,7 +2,7 @@ import { parseISO } from 'date-fns';
 import { format, toZonedTime } from 'date-fns-tz';
 import GridActions from "./gridActions";
 
-const columns =  ({ onDelete, onEdit }) => [
+const columns = ({ onDelete, onEdit }) => [
   {
     accessorKey: "note",
     header: "Note",
@@ -64,13 +64,12 @@ const columns =  ({ onDelete, onEdit }) => [
   },
   {
     id: "actions",
-    cell: ({ row }) => { 
+    cell: ({ row }) => {
       return (
-        <GridActions 
-        row={row} 
-        onDelete={onDelete}
-        onEdit={onEdit}
-        
+        <GridActions
+          row={row}
+          onDelete={onDelete}
+          onEdit={onEdit}
         />
       )
     },

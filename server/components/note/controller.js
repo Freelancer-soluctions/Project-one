@@ -36,8 +36,8 @@ export const getOneById = handleCatchErrorAsync(async (req, res) => {
  */
 export const createOne = handleCatchErrorAsync(async (req, res) => {
   const { body, file } = req
-  await noteService.createOne({ ...body, file })
-  globalResponse(res, 201, { message: 'Item created successfully' })
+  const createdNote = await noteService.createOne({ ...body, file })
+  globalResponse(res, 201, createdNote, 'Item created successfully')
 })
 
 /**
