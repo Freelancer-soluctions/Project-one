@@ -9,7 +9,7 @@ const useGetNotes = () => {
      const query = useQuery({
           queryKey: ['notes'],
           queryFn:  () => getMethod(url),
-          initialData: [],
+          initialData: []
      })
      return query;
 

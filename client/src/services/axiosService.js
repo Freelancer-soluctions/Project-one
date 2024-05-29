@@ -21,6 +21,12 @@ export const putMethod = async ({ url, body, config = {} }) => {
     return data;
 }
 
+export const deleteMethod = async ({ url, config = {} }) => {
+
+    const { data } = await api.delete(url, config);
+
+    return data;
+}
 
 export const axiosMethods = async ({ url, method, body, config }) => {
     const { data } = await api({

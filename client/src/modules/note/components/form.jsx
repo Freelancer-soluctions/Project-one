@@ -8,6 +8,7 @@ import {
     FormLabel,
     FormMessage
 } from "@/components/ui/form";
+import { Input } from '@/components/ui/input';
 import {
     Popover,
     PopoverContent,
@@ -21,16 +22,22 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from '@/components/ui/textarea';
-import { format } from "date-fns";
-import { Input } from '@/components/ui/input';
 import validateResolver from "@/lib/avjInstance";
 import { cn } from "@/lib/utils";
+import objectToFormData from "@/utils/objectToFormData";
+import { format } from 'date-fns';
+import PropTypes from "prop-types";
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
+import useCreateNoteMutation from "../hooks/useCreateNoteMutation";
 import defaultValues from "../utils/defaultValues";
 import NoteSchema from "../utils/schema";
+import useUpdateNoteMutation from "../hooks/useUpdateMutation";
 
 
-const NoteForm = () => {
+const NoteForm = ({ note, onOpenChange }) => {
+    const useCreateMutation = useCreateNoteMutation(onOpenChange);
+    const useUpdateMutation = useUpdateNoteMutation(onOpenChange);
     const statusItems = [
 
         {
@@ -64,8 +71,12 @@ const NoteForm = () => {
 
     ]
     const onSubmit = (values) => {
-
-        console.log(values);
+        const formValues = objectToFormData(values)
+        if (!note) {
+            useCreateMutation.mutate(formValues);
+        } else {
+            useUpdateMutation.mutate({formValues, id:note.id})
+        }
 
     }
     const form = useForm({
@@ -78,6 +89,35 @@ const NoteForm = () => {
         defaultValues,
 
     })
+
+    useEffect(() => {
+        if (note) {
+            const {
+                closedOn,
+                createdOn,
+                closedBy,
+                createdBy,
+                document,
+                statusId,
+                note: description,
+            } = note
+            form.setValue('closedOn', new Date(closedOn));
+            form.setValue('createdOn', new Date(createdOn));
+            form.setValue('closedBy', closedBy);
+            form.setValue('createdBy', createdBy);
+            form.setValue('statusId', statusId);
+            form.setValue('note', description);
+            if (document) {
+                const file = new File(["document"], document);
+                form.setValue('document', file);
+            }
+
+
+
+        } else {
+            form.reset();
+        }
+    }, [note, form]);
 
     return (
         <>
@@ -110,7 +150,8 @@ const NoteForm = () => {
                                 <FormItem className="col-span-12  lg:col-span-6">
                                     <FormLabel>Document</FormLabel>
                                     <FormControl>
-                                        <Input type="file"
+                                        <Input
+                                            type="file"
                                             accept=".jpg, .jpeg, .png, .svg"
                                             onChange={(event) => {
                                                 field.onChange(event.target.files ? event.target.files[0] : null)
@@ -127,11 +168,13 @@ const NoteForm = () => {
                             control={form.control}
                             name="statusId"
                             render={({ field }) => (
+
                                 <FormItem className="col-span-12  lg:col-span-6">
-                                    <FormLabel>Status</FormLabel>
+                                    <FormLabel>Status </FormLabel>
                                     <Select
+                                        value={field.value.toString()}
                                         onValueChange={(value) => field.onChange(Number(value))}
-                                        defaultValue={field.value}
+                                        defaultValue={field.value.toString()}
                                     >
                                         <FormControl>
                                             <SelectTrigger>
@@ -162,8 +205,9 @@ const NoteForm = () => {
                                 <FormItem className="col-span-12  lg:col-span-6">
                                     <FormLabel>Created By</FormLabel>
                                     <Select
+                                        value={field.value.toString()}
                                         onValueChange={(value) => field.onChange(Number(value))}
-                                        defaultValue={field.value}
+                                        defaultValue={field.value.toString()}
                                     >
                                         <FormControl>
                                             <SelectTrigger>
@@ -194,8 +238,9 @@ const NoteForm = () => {
                                 <FormItem className="col-span-12  lg:col-span-6">
                                     <FormLabel>Closed By</FormLabel>
                                     <Select
+                                        value={field.value.toString()}
                                         onValueChange={(value) => field.onChange(Number(value))}
-                                        defaultValue={field.value}
+                                        defaultValue={field.value.toString()}
                                     >
                                         <FormControl>
                                             <SelectTrigger>
@@ -311,5 +356,12 @@ const NoteForm = () => {
     )
 
 }
+
+NoteForm.propTypes = {
+
+    note: PropTypes.object,
+    onOpenChange: PropTypes.func
+
+};
 
 export default NoteForm;
