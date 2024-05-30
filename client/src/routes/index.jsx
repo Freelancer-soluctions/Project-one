@@ -7,7 +7,7 @@ const Note = lazy(()=> import('@/modules/note/pages/Note'));
 
 
 const routes = [
-    { index: true, element: <Home/> },
+    // { index: true, element: <Home/> },
     { path: PathConstants.AUTH, element: <Auth /> },
     { path: PathConstants.NOTE, element: <Note/> }
 //     lazy(() => import("./Admin/Users/EditUser")

@@ -17,8 +17,7 @@ const NoteSchema = {
             type: 'integer',
         },
         document: {
-            type: 'object',
-            format: 'binary'
+            type: 'object'
         },
         createdOn: {
             type: 'object',
