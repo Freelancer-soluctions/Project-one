@@ -1,31 +1,32 @@
-import PropTypes from "prop-types";
 import {
     Dialog,
     DialogContent,
     DialogHeader,
     DialogTitle,
 } from "@/components/ui/dialog";
+import PropTypes from "prop-types";
 import NoteForm from "./form";
 
 const NoteDialog = ({
 
-    setShowModal,
-    showModal,
+    isDialogOpen,
+    note,
+    onOpenChange,
     title,
 
 }) => {
-
     return (
         <Dialog
-            onOpenChange={ setShowModal }
-            open={ showModal }
+            onOpenChange={onOpenChange}
+            open={isDialogOpen}
         >
             <DialogContent
+                onInteractOutside={(e) => e.preventDefault()}
                 className="max-w-2xl max-h-full overflow-y-scroll">
                 <DialogHeader>
                     <DialogTitle>{title}</DialogTitle>
                 </DialogHeader>
-                <NoteForm />
+                <NoteForm note={note} onOpenChange={onOpenChange} />
             </DialogContent>
         </Dialog>
     )
@@ -33,10 +34,11 @@ const NoteDialog = ({
 
 NoteDialog.propTypes = {
 
-    setShowModal: PropTypes.func,
-    showModal: PropTypes.bool,
+    onOpenChange: PropTypes.func,
+    isDialogOpen: PropTypes.bool,
     title: PropTypes.string.isRequired,
+    note: PropTypes.object
 
-  };
+};
 
 export default NoteDialog

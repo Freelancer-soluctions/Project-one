@@ -7,25 +7,14 @@ const App = () => {
 
     const router = createBrowserRouter([
 
-            // element: <LandingPage />, para mas adelante
-        // {
-        //     element: <Login />,
-        //     children: routes
-        // }
-        
-          {
-            
+        // element: <LandingPage />, para mas adelante
+        {
+            element: <Layout />,
+            children: routes
+        },
+        {
+            path: "/",
             element: <Login />,
-            children:[
-                {
-                    
-
-                    element: <Layout />,
-                    children: routes
-                }
-              
-            ]
-           
         },
         {
             path: "/*",
@@ -34,7 +23,7 @@ const App = () => {
 
     ])
 
-    return <RouterProvider router={ router } />;
+    return <RouterProvider router={router} />;
 
 }
 
