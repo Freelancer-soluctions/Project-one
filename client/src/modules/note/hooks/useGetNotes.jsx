@@ -8,8 +8,8 @@ const useGetNotes = () => {
 
      const query = useQuery({
           queryKey: ['notes'],
-          queryFn:  () => getMethod(url),
-          initialData: []
+          queryFn: () => getMethod(url),
+          placeholderData: []
      })
      return query;
 

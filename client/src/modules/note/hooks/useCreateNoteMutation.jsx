@@ -44,16 +44,17 @@ const useCreateNoteMutation = (onOpenChange) => {
         onOpenChange(false)
     }
 
-    const onRequestError = (error, variables, context) => {
-        queryClient.setQueryData(['notes'], (oldData) => (
-            oldData.filter(note => note.id !== context.optimisticNote.id)
-        ));
-
+    const onRequestError = (error, variables, context) => {        
         toast({
             variant: "destructive",
             title: "Uh oh! Something went wrong.",
             description: "There was a problem with your request.",
         })
+
+        queryClient.setQueryData(['notes'], (oldData) => (
+            oldData.filter(note => note.id !== context.optimisticNote.id)
+        ))
+        
     };
 
 

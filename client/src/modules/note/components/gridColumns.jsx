@@ -64,6 +64,7 @@ const columns = ({ onDelete, onEdit }) => [
   },
   {
     id: "actions",
+    header: "Actions",
     cell: ({ row }) => {
       return (
         <GridActions
