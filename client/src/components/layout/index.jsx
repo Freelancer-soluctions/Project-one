@@ -3,7 +3,7 @@ import { Suspense } from "react";
 import { Outlet } from "react-router-dom";
 import Footer from "./Footer";
 import Header from "./Header";
-import Loader from "./Loader";
+import Loader from "../loader/Loader";
 
 const Layout = () => { 
 
@@ -12,9 +12,9 @@ const Layout = () => {
         <>
             <Header />
             <main>
-                <Suspense fallback= { <Loader /> }>
+                {/* <Suspense fallback= { <Loader /> }> */}
                     <Outlet />
-                </Suspense>
+                {/* </Suspense> */}
             </main>
             <Footer />
         </>
