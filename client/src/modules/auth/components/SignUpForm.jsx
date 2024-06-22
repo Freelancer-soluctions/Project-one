@@ -18,7 +18,7 @@ import { Button } from "@/components/ui/button"
 
 
 
-const SignInForm = () => {
+const SignUpForm = () => {
 
     const form = useForm({ resolver: zodResolver(loginSchema) })
     const onSubmit = (data) => {
@@ -89,4 +89,4 @@ const SignInForm = () => {
     )
 }
 
-export default SignInForm
+export default SignUpForm
