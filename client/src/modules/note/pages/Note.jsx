@@ -41,7 +41,7 @@ const Note = () => {
           note={selectedNote}
           title="Create Note"
         />
-        {!isFetching && <DataTable columns={gridColumns({ onDelete, onEdit })} data={notes.data} />}
+        {/* {!isFetching && <DataTable columns={gridColumns({ onDelete, onEdit })} data={notes.data} />} */}
 
       </div>
 
