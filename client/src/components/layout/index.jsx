@@ -12,9 +12,9 @@ const Layout = () => {
         <>
             <Header />
             <main>
-                {/* <Suspense fallback= { <Loader /> }> */}
+                <Suspense fallback= { <Loader /> }>
                     <Outlet />
-                {/* </Suspense> */}
+                </Suspense>
             </main>
             <Footer />
         </>
