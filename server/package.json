@@ -7,8 +7,9 @@
   "scripts": {
     "dev": "nodemon bin/index.js",
     "postinstall": "prisma generate",
-    "test": "",
-    "prisma-migration": "prisma migrate dev"
+    "prisma-migration": "prisma migrate dev",
+    "prisma-seed": "prisma db seed",
+    "prisma-push": "prisma db push"
   },
   "author": "Laura Falcon and Johan Garcia",
   "license": "ISC",
