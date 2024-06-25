@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button"
 import { Link } from "react-router-dom"
-import {  MenuIcon, MountainIcon} from "../../../utils/icons/icons";
+import { MenuIcon, MountainIcon} from "../../../utils/icons/icons";
 
  const NavBar = () => {
   return (
