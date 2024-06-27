@@ -15,15 +15,16 @@ model User {
   accessNews           Boolean?   @default(false)
   address              String     @db.VarChar(250)
   birthday             DateTime   @db.Timestamp()
-  city                 String     @db.VarChar(50)
+  city                 String     @db.VarChar(35)
   document             String
   documentId           String
-  email                String     @unique @db.VarChar(128)
+  email                String     @unique @db.VarChar(254)
   isAdmin              Boolean?   @default(false)
   isManager            Boolean?   @default(false)
   lastUpdatedBy        DateTime   @db.Timestamp(3)
   lastUpdatedOn        DateTime   @db.Timestamp(3)
-  name                 String     @db.VarChar(80)
+  firstName            String     @db.VarChar(50)
+  lastName             String     @db.VarChar(50)
   newsClosed           News[]     @relation("userNewsClosed")
   newsCreated          News[]     @relation("userNewsCreated")
   notesClosed          Note[]     @relation("userNoteClosed")
@@ -35,8 +36,9 @@ model User {
   state                String     @db.VarChar(50)
   status               UserStatus @relation(fields: [statusId], references: [id])
   statusId             Int
-  telephone            String     @db.VarChar(13)
-  zipcode              String     @db.VarChar(5)
+  telephone            String     @db.VarChar(15)
+  zipcode              String     @db.VarChar(9)
+  password             String     @db.VarChar(16)
 
 }
 
