@@ -2,13 +2,12 @@
 import PathConstants from "./pathConstants";
 
 const Access = lazy(()=> import('@/modules/access/pages/Access'));
-// const Auth = lazy(()=> import('@/modules/auth/pages/Login'));
- const Note = lazy(() => import("@/modules/note/pages/Note"));
+const Note = lazy(() => import("@/modules/note/pages/Note"));
 
 const routes = [
   // { index: true, element: <Home/> },
   // { path: PathConstants.AUTH, element: <Auth /> },
-  { index: true, element:<Access/>},
+  { index: true, element: <Access/>},
   { path: PathConstants.NOTE, element: <Note /> },
   //     lazy(() => import("./Admin/Users/EditUser")
 ];

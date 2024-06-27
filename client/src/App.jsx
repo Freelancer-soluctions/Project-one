@@ -26,7 +26,7 @@ const App = () => {
       ],
       
 
-      // errorElement:  <NotFound />, // vere diferencia con /*
+      // errorElement:  <NotFound />, // ver diferencia con /*
     },
     {
         path: "/home",
