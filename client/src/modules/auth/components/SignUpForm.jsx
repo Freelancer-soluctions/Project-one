@@ -1,6 +1,6 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { loginSchema } from "../utils/schemas";
+import { signUpSchema } from "../utils/schemas";
 import { Link } from "react-router-dom";
 
 import {
@@ -24,7 +24,7 @@ import { cn } from "@/lib/utils"
 import { format } from "date-fns"
 
 const SignUpForm = () => {
-  const form = useForm({ resolver: zodResolver(loginSchema) });
+  const form = useForm({ resolver: zodResolver(signUpSchema) });
   const onSubmit = (data) => {
     console.log(data);
   };
@@ -59,6 +59,7 @@ const SignUpForm = () => {
                         name="fname"
                         placeholder="Please enter your first name."
                         type="text"
+                        
                         {...field}
                         value={field.value ?? ""}
                       />
