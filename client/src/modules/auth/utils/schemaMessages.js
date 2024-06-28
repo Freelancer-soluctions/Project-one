@@ -4,7 +4,7 @@ const minMaxValues = {
   };
   
 export const AUTH_VALIDATIONS = {
-    name: {
+    firstName: {
       empty: "Por favor ingresa tu nombre.",
       ...minMaxValues,
     },

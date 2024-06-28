@@ -7,98 +7,88 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-
-model User {
-
-  id                   Int        @id @default(autoincrement())
-  accessConfiguration  Boolean?   @default(false)
-  accessNews           Boolean?   @default(false)
-  address              String     @db.VarChar(250)
-  birthday             DateTime   @db.Timestamp()
-  city                 String     @db.VarChar(35)
-  document             String
-  documentId           String
-  email                String     @unique @db.VarChar(254)
-  isAdmin              Boolean?   @default(false)
-  isManager            Boolean?   @default(false)
-  lastUpdatedBy        DateTime   @db.Timestamp(3)
-  lastUpdatedOn        DateTime   @db.Timestamp(3)
-  firstName            String     @db.VarChar(50)
-  lastName             String     @db.VarChar(50)
-  newsClosed           News[]     @relation("userNewsClosed")
-  newsCreated          News[]     @relation("userNewsCreated")
-  notesClosed          Note[]     @relation("userNoteClosed")
-  notesCreated         Note[]     @relation("userNoteCreated")
-  roles                Role       @relation(fields: [roleId], references: [id])
-  roleId               Int
-  socialSecurity       String     @db.VarChar(9)
-  startDate            DateTime   @db.Timestamp(3)
-  state                String     @db.VarChar(50)
-  status               UserStatus @relation(fields: [statusId], references: [id])
-  statusId             Int
-  telephone            String     @db.VarChar(15)
-  zipcode              String     @db.VarChar(9)
-  password             String     @db.VarChar(16)
-
+model Users {
+  id Int @id @default(autoincrement())
+  address        String?     @db.VarChar(250)
+  birthday       DateTime   @db.Timestamp(3)
+  city           String?     @db.VarChar(35)
+  document       String?
+  documentId     String?
+  email          String     @unique @db.VarChar(254)
+  isAdmin        Boolean?   @default(false)
+  lastUpdatedBy  DateTime?   @db.Timestamp(3)
+  lastUpdatedOn  DateTime?   @db.Timestamp(3)
+  firstName      String     @db.VarChar(50)
+  lastName       String     @db.VarChar(50)
+  newsClosed     News[]     @relation("userNewsClosed")
+  newsCreated    News[]     @relation("userNewsCreated")
+  notesClosed    Notes[]     @relation("userNoteClosed")
+  notesCreated   Notes[]     @relation("userNoteCreated")
+  roles          Roles       @relation(fields: [roleId], references: [id])
+  roleId         Int
+  socialSecurity String     @db.VarChar(9)
+  startDate      DateTime   @db.Timestamp(3)
+  state          String     @db.VarChar(50)
+  status         UserStatus @relation(fields: [statusId], references: [id])
+  statusId       Int
+  telephone      String     @db.VarChar(15)
+  zipcode        String     @db.VarChar(9)
+  password       String     @db.VarChar(16)
+  userPermits    UserPermits @relation(fields: [userPermitId], references: [id])
+  userPermitId   Int
 }
 
-model Role {
+model UserPermits {
+  id                  Int      @id @default(autoincrement())
+  accessConfiguration Boolean? @default(false)
+  accessNews          Boolean? @default(false)
+  users               Users[]
+}
 
+model Roles {
   id          Int    @id @default(autoincrement())
   code        String @unique @db.VarChar(3)
   description String @unique @db.VarChar(50)
-  users       User[]
-
+  users       Users[]
 }
 
 model UserStatus {
-
-  id           Int    @id @default(autoincrement())
-  code         String @unique @db.VarChar(3)
-  description  String @unique @db.VarChar(8)
-  users        User[]
-
+  id          Int    @id @default(autoincrement())
+  code        String @unique @db.VarChar(3)
+  description String @unique @db.VarChar(8)
+  users       Users[]
 }
 
-model Note {
-
-  id               Int        @id @default(autoincrement())
-  closedOn         DateTime   @db.Timestamp(3)
-  createdOn        DateTime   @default(now()) @db.Timestamp(3)
-  document         String?
-  documentId       String?
-  note             String     @db.VarChar(2000)
-  status           NoteStatus @relation(fields: [statusId], references: [id])
-  statusId         Int
-  userNoteClosed   User       @relation("userNoteClosed",fields: [closedBy], references: [id])
-  closedBy         Int
-  userNoteCreated  User       @relation("userNoteCreated",fields: [createdBy], references: [id])
-  createdBy        Int
-
+model Notes {
+  id              Int        @id @default(autoincrement())
+  closedOn        DateTime   @db.Timestamp(3)
+  createdOn       DateTime   @default(now()) @db.Timestamp(3)
+  document        String?
+  documentId      String?
+  note            String     @db.VarChar(2000)
+  status          NoteStatus @relation(fields: [statusId], references: [id])
+  statusId        Int
+  userNoteClosed  Users       @relation("userNoteClosed", fields: [closedBy], references: [id])
+  closedBy        Int
+  userNoteCreated Users       @relation("userNoteCreated", fields: [createdBy], references: [id])
+  createdBy       Int
 }
-
 
 model NoteStatus {
-
-  id           Int    @id @default(autoincrement())
-  code         String @unique @db.VarChar(3)
-  description  String @unique @db.VarChar(10)
-  notes        Note[]
-
+  id          Int    @id @default(autoincrement())
+  code        String @unique @db.VarChar(3)
+  description String @unique @db.VarChar(10)
+  notes       Notes[]
 }
 
 model NewsStatus {
-
-  id           Int    @id @default(autoincrement())
-  code         String @unique @db.VarChar(3)
-  description  String @unique @db.VarChar(10)
-  news         News[]
-
+  id          Int    @id @default(autoincrement())
+  code        String @unique @db.VarChar(3)
+  description String @unique @db.VarChar(10)
+  news        News[]
 }
 
-
 model News {
-
   id              Int        @id @default(autoincrement())
   closedOn        DateTime   @db.Timestamp(3)
   createdOn       DateTime   @default(now()) @db.Timestamp(3)
@@ -108,19 +98,16 @@ model News {
   questions       Question[]
   status          NewsStatus @relation(fields: [statusId], references: [id])
   statusId        Int
-  userNewsClosed  User       @relation("userNewsClosed",fields: [closedBy], references: [id])
+  userNewsClosed  Users       @relation("userNewsClosed", fields: [closedBy], references: [id])
   closedBy        Int
-  userNewsCreated User       @relation("userNewsCreated",fields: [createdBy], references: [id])
+  userNewsCreated Users       @relation("userNewsCreated", fields: [createdBy], references: [id])
   createdBy       Int
-
 }
 
 model Question {
-  
-  id          Int       @id @default(autoincrement())
+  id          Int     @id @default(autoincrement())
   answer      Boolean
-  description String    @db.VarChar(250)
-  news        News      @relation(fields: [newsId], references: [id])
+  description String  @db.VarChar(250)
+  news        News    @relation(fields: [newsId], references: [id])
   newsId      Int
-
-} 
+}
