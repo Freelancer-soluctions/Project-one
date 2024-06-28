@@ -3,7 +3,9 @@ import { origenSlice } from "./slices/authSlice";
 
 export default configureStore({
     reducer:{
-        unValor:origenSlice.reducer
+        unValor:origenSlice.reducer,
+      
+
     }
 })
 
