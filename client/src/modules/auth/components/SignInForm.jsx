@@ -1,6 +1,6 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { loginSchema } from "../utils/schemas";
+import { signInSchema } from "../utils/schemas";
 import { Link } from "react-router-dom";
 
 import {
@@ -15,7 +15,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 
 const SignInForm = () => {
-  const form = useForm({ resolver: zodResolver(loginSchema) });
+  const form = useForm({ resolver: zodResolver(signInSchema) });
   const onSubmit = (data) => {
     console.log(data);
   };

@@ -26,12 +26,13 @@ const App = () => {
       ],
       
 
-      // errorElement:  <NotFound />, // ver diferencia con /*
+       errorElement:  <NotFound />, // ver diferencia con /*
     },
     {
         path: "/home",
         element: <Home/>,
         children: routes,
+        // errorElement:  <NotFound />, // ver diferencia con /*
     },
     {
       path: "/*",
