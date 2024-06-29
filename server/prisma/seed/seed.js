@@ -73,6 +73,11 @@ const user = {
   lastName: 'admin',
   email: 'example@gmail.com',
   password: '123456',
+  address: 'Robert Robertson, 1234 NW Bobcat Lane, St. Robert, MO 65584-5678',
+  birthday: '12/03/1990',
+  city: 'Vegas',
+  isAdmin: true,
+
   picture: 'abcd',
   roleId: 1
 }
