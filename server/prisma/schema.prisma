@@ -13,7 +13,7 @@ model Users {
   birthday       DateTime   @db.Timestamp(3)
   city           String?     @db.VarChar(35)
   document       String?
-  documentId     String?
+  documentId     String? // es factible este campo ??
   email          String     @unique @db.VarChar(254)
   isAdmin        Boolean?   @default(false)
   lastUpdatedBy  DateTime?   @db.Timestamp(3)
