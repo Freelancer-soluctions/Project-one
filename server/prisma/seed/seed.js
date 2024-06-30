@@ -77,7 +77,7 @@ const user = {
   birthday: '12/03/1990',
   city: 'Vegas',
   isAdmin: true,
-
+  
   picture: 'abcd',
   roleId: 1
 }
