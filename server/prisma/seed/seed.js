@@ -1,13 +1,5 @@
-import { createMany } from '../utils/service.js'
+import { createMany } from '../../utils/prisma-dinamic-service/service.js'
 import { saveUser } from '../api/user/model.js'
-const categories = [
-  {
-    name: 'Hamburguesa',
-    slug: 'hamburguesa'
-  },
-  { name: 'Postre', slug: 'postre' },
-  { name: 'Bebidas', slug: 'bebidas' }
-]
 
 const roles = [
   {
@@ -71,15 +63,24 @@ const newStatus = [
 const user = {
   firstName: 'admin',
   lastName: 'admin',
-  email: 'example@gmail.com',
+  email: 'admin@gmail.com',
   password: '123456',
   address: 'Robert Robertson, 1234 NW Bobcat Lane, St. Robert, MO 65584-5678',
   birthday: '12/03/1990',
   city: 'Vegas',
   isAdmin: true,
-  
   picture: 'abcd',
-  roleId: 1
+  document: 'Not document',
+  lastUpdatedBy: 1,
+  lastUpdatedOn: '1/07/2024',
+  roleId: 1,
+  socialSecurity: '123456789',
+  startDate: '1/07/2024',
+  state: 'Texas',
+  statusId: 1,
+  telephone: '300456322445565',
+  zipcode: '987654321',
+  userPermitId: 1
 }
 
 const meals = [
@@ -113,7 +114,7 @@ const meals = [
 ]
 
 async function main () {
-  await createMany('category', categories)
+  await createMany('category', userPermits)
   await createMany('roles', roles)
   await saveUser(user)
   await createMany('meal', meals)
