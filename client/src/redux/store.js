@@ -1,17 +1,11 @@
-import { configureStore} from "@reduxjs/toolkit";
-import { origenSlice } from "./slices/authSlice";
+import { configureStore } from '@reduxjs/toolkit'
+import { origenSlice } from './slices/authSlice'
 
 export default configureStore({
-    reducer:{
-        unValor:origenSlice.reducer,
-      
-
-    }
+  reducer: {
+    unValor: origenSlice.reducer
+  }
 })
-
-
-
-
 
 // import { configureStore } from "@reduxjs/toolkit";
 // import todoReducer from "./slice/todo";
