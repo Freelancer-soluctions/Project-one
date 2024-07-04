@@ -1,9 +1,7 @@
-import CardModule from "../components/CardModule"
+import CardModule from '../components/CardModule'
 
 export const Access = () => {
-  return (
-    <CardModule/>
-  )
+  return <CardModule />
 }
 
 export default Access

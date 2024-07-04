@@ -1,5 +1,4 @@
-import { createMany } from '../../utils/prisma-dinamic-service/service.js'
-import { saveUser } from '../api/user/model.js'
+import prisma from '../config/db.js'
 
 const roles = [
   {
@@ -66,16 +65,16 @@ const user = {
   email: 'admin@gmail.com',
   password: '123456',
   address: 'Robert Robertson, 1234 NW Bobcat Lane, St. Robert, MO 65584-5678',
-  birthday: '12/03/1990',
+  birthday: new Date('1990-09-26T07:58:30.996+0200'),
   city: 'Vegas',
   isAdmin: true,
   picture: 'abcd',
   document: 'Not document',
   lastUpdatedBy: 1,
-  lastUpdatedOn: '1/07/2024',
+  lastUpdatedOn: new Date('2024-01-07T07:58:30.996+0200'),
   roleId: 1,
   socialSecurity: '123456789',
-  startDate: '1/07/2024',
+  startDate: new Date('2024-01-07T07:58:30.996+0200'),
   state: 'Texas',
   statusId: 1,
   telephone: '300456322445565',
@@ -83,48 +82,37 @@ const user = {
   userPermitId: 1
 }
 
-const meals = [
-  {
-    title: 'Carne con Queso',
-    slug: 'carne-con-queso',
-    price: 18,
-    quantity: 3,
-    pictures: ['/img/hamburguer.webp'],
-    description: 'Carne con Queso',
-    categoryId: 1
-  },
-  {
-    title: 'Carne con Jamon y Queso',
-    slug: 'carne-con-jamon-y-queso',
-    price: 18,
-    quantity: 5,
-    pictures: ['/img/hamburguer.webp'],
-    description: 'Carne con Jamon y Queso',
-    categoryId: 1
-  },
-  {
-    title: 'Veggie',
-    slug: 'veggie',
-    price: 20,
-    quantity: 10,
-    pictures: ['/img/hamburguer.webp'],
-    description: 'Veggie',
-    categoryId: 1
-  }
-]
+const createVarious = async (tableName, createObjects) => {
+  const createdObjects = await prisma[tableName].createMany({
+    data: createObjects,
+    skipDuplicates: true
+  })
+  return Promise.resolve(createdObjects)
+}
+
+const create = async (tableName, createObject) => {
+  const createdItem = await prisma[tableName].create({
+    data: createObject
+  })
+  return Promise.resolve(createdItem)
+}
 
 async function main () {
-  await createMany('category', userPermits)
-  await createMany('roles', roles)
-  await saveUser(user)
-  await createMany('meal', meals)
+  await createVarious('userPermits', userPermits)
+  await createVarious('userStatus', userStatus)
+  await createVarious('noteStatus', noteStatus)
+  await createVarious('newsStatus', newStatus)
+  await createVarious('roles', roles)
+  await create('users', user)
 }
 
 main()
   .then(async () => {
     console.log('Prisma seaders completed')
+    // await prisma.$disconnect()
   })
   .catch(async (e) => {
     console.error(e, 'An error occurred while performing prisma seeders.')
+    // await prisma.$disconnect()
     process.exit(1)
   })
