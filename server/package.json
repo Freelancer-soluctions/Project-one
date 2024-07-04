@@ -4,6 +4,9 @@
   "description": "Back-end application with good practices using node.js and express",
   "main": "index.js",
   "type": "module",
+  "prisma": {
+    "seed": "node prisma/seed.js"
+  },
   "scripts": {
     "dev": "nodemon bin/index.js",
     "postinstall": "prisma generate",
@@ -14,7 +17,7 @@
   "author": "Laura Falcon and Johan Garcia",
   "license": "ISC",
   "dependencies": {
-    "@prisma/client": "^5.13.0",
+    "@prisma/client": "^5.16.1",
     "bcrypt": "^5.1.1",
     "cloudinary": "^2.2.0",
     "cors": "^2.8.5",
@@ -30,7 +33,7 @@
   },
   "devDependencies": {
     "nodemon": "^3.1.0",
-    "prisma": "^5.13.0",
+    "prisma": "^5.16.1",
     "standard": "^17.1.0",
     "vitest": "^1.6.0"
   },
