@@ -20,9 +20,9 @@ const App = () => {
           path: '/signUp',
           Component: lazy(() => import('@/modules/auth/pages/SignUp'))
         }
-      ],
+      ]
 
-      errorElement: <NotFound /> // ver diferencia con /*
+      // errorElement: <NotFound /> // ver diferencia con /*
     },
     {
       path: '/home',

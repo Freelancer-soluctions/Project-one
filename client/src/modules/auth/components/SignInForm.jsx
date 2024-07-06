@@ -2,6 +2,8 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { signInSchema } from '../utils/schemas'
 import { Link } from 'react-router-dom'
+import { useDispatch, useSelector } from 'react-redux'
+import { fetchTodos, signInFetch } from '@/redux/slices/authSlice'
 
 import {
   Form,
@@ -15,9 +17,12 @@ import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 
 const SignInForm = () => {
+  const dispatch = useDispatch()
+  const state = useSelector(state => state)
   const form = useForm({ resolver: zodResolver(signInSchema) })
   const onSubmit = data => {
-    console.log(data)
+    console.log(state)
+    dispatch(signInFetch(data))
   }
   return (
     <>
