@@ -6,7 +6,7 @@ const corsOptions = {
   //  credentials: true,
   origin: dotenv('ORIGIN_CORS'),
   // Allow specific headers
-  allowedHeaders: ['Content-Type', 'Authorization']
+  allowedHeaders: ['Content-Type', 'Authorization', 'x-access-token']
 }
 
 export default corsOptions

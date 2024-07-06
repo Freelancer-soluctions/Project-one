@@ -17,6 +17,7 @@ export const signUp = handleCatchErrorAsync(async (req, res) => {
  * @param {*} req
  */
 export const signIn = handleCatchErrorAsync(async (res, req) => {
+  console.log('llegue inicio', req.body)
   const body = req.body
   const user = await authService.signIn(body)
   globalResponse(res, 200, user)
