@@ -11,6 +11,7 @@ const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1'
 })
 
-api.defaults.headers.common['x-access-token'] = getToken()
+// eslint-disable-next-line dot-notation
+api.defaults.headers.common['Authorization'] = getToken()
 
 export default api

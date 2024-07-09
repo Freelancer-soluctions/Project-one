@@ -18,11 +18,16 @@ import { Button } from '@/components/ui/button'
 
 const SignInForm = () => {
   const dispatch = useDispatch()
-  const state = useSelector(state => state)
+  // const state = useSelector(state => state) todos los estados
+  const { data, isError, isLoading } = useSelector(state => state.auth)
   const form = useForm({ resolver: zodResolver(signInSchema) })
-  const onSubmit = data => {
-    console.log(state)
-    dispatch(signInFetch(data))
+  const onSubmit = dataForn => {
+    dispatch(signInFetch(dataForn))
+    console.log('state', data)
+  }
+
+  const checkState = () => {
+    console.log('newSate', data)
   }
   return (
     <>
@@ -110,6 +115,10 @@ const SignInForm = () => {
             Register
           </Link>
         </p>
+      </div>
+
+      <div>
+        <button onClick={checkState}>revisar state</button>
       </div>
     </>
   )
