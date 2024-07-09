@@ -1,6 +1,6 @@
 import { createRow, getOneRow } from '../utils/dao.js'
 
-const tableName = 'user'
+const tableName = 'users'
 
 /**  sign up
  * @param {object} user

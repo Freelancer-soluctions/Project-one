@@ -16,8 +16,7 @@ export const signUp = handleCatchErrorAsync(async (req, res) => {
  * @param {*} res
  * @param {*} req
  */
-export const signIn = handleCatchErrorAsync(async (res, req) => {
-  console.log('llegue inicio', req.body)
+export const signIn = handleCatchErrorAsync(async (req, res) => {
   const body = req.body
   const user = await authService.signIn(body)
   globalResponse(res, 200, user)
@@ -27,7 +26,7 @@ export const signIn = handleCatchErrorAsync(async (res, req) => {
  * @param {*} res
  * @param {*} req
  */
-export const session = handleCatchErrorAsync(async (res, req) => {
+export const session = handleCatchErrorAsync(async (req, res) => {
   const userId = req.id
   const userSession = await authService.session(userId)
   globalResponse(res, 200, userSession)
