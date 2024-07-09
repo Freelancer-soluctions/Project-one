@@ -19,6 +19,8 @@ import { SignInApi } from '@/modules/auth/api/auth'
 // // Export the reducer, either as a default or named export
 // export default reducer
 
+import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
+
 // Action
 export const fetchTodos = createAsyncThunk('fetchTodos', async () => {
   const response = await fetch('https://jsonplaceholder.typicode.com/todos')
@@ -26,28 +28,28 @@ export const fetchTodos = createAsyncThunk('fetchTodos', async () => {
 })
 
 export const signInFetch = createAsyncThunk('signInFetch', async (data) => {
-  console.log('data', data)
   const response = await SignInApi(data)
-  return response.json()
+  // console.log(response)
+  return response.data
 })
 
 const authSlice = createSlice({
-  name: 'todo',
+  name: 'auth',
   initialState: {
     isLoading: false,
     data: null,
     isError: false
   },
   extraReducers: (builder) => {
-    builder.addCase(fetchTodos.pending, (state, action) => {
+    builder.addCase(signInFetch.pending, (state, action) => {
       state.isLoading = true
     })
-    builder.addCase(fetchTodos.fulfilled, (state, action) => {
+    builder.addCase(signInFetch.fulfilled, (state, action) => {
       state.isLoading = false
       state.data = action.payload
     })
-    builder.addCase(fetchTodos.rejected, (state, action) => {
-      console.log('Error', action.payload)
+    builder.addCase(signInFetch.rejected, (state, action) => {
+      console.log('Error', action.error.message)
       state.isError = true
     })
   }
