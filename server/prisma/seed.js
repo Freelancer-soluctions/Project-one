@@ -1,4 +1,5 @@
 import prisma from '../config/db.js'
+import { encryptPassword } from '../utils/bcrypt/encrypt.js'
 
 const roles = [
   {
@@ -91,6 +92,7 @@ const createVarious = async (tableName, createObjects) => {
 }
 
 const create = async (tableName, createObject) => {
+  createObject.password = await encryptPassword(createObject.password)
   const createdItem = await prisma[tableName].create({
     data: createObject
   })

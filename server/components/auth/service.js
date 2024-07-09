@@ -24,7 +24,7 @@ export const signUp = async (user) => {
   const userSaved = await authDao.signUp(user)
   // create the token
   const token = await createToken(userSaved.id)
-  return { token, user: { name: userSaved.name, picture: userSaved.picture, role: userSaved.role } }
+  return { token, user: { id: userSaved.id, firstName: userSaved.firstName, picture: userSaved.picture, role: userSaved.roleId } }
 }
 
 /**  sign in
@@ -34,7 +34,7 @@ export const signIn = async (user) => {
   const { email, password } = user
 
   // verify if the user is already registered
-  const userExists = await signIn(email)
+  const userExists = await authDao.signIn(email)
   if (!userExists) {
     throw new ClientError('Este correo no esta registrado.', 400)
   }
@@ -48,9 +48,8 @@ export const signIn = async (user) => {
   if (!validPassword) {
     throw new ClientError('Contraseña invalida.', 400)
   }
-
   const token = await createToken(userExists.id)
-  return { token, user: { id: userExists.id, name: userExists.name, picture: userExists.picture, role: userExists.role } }
+  return { token, user: { id: userExists.id, firstName: userExists.firstName, picture: userExists.picture, roleName: userExists.roles.description, roleId: userExists.roleId } }
 }
 
 /**  get session by id
