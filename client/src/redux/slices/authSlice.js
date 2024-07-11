@@ -27,10 +27,14 @@ export const fetchTodos = createAsyncThunk('fetchTodos', async () => {
   return response.json()
 })
 
-export const signInFetch = createAsyncThunk('signInFetch', async (data) => {
-  const response = await SignInApi(data)
+export const signInFetch = createAsyncThunk('signInFetch', async (args, { rejectWithValue }) => {
+  const response = await SignInApi(args)
+  try {
   // console.log(response)
-  return response.data
+    return response.data
+  } catch (error) {
+    return rejectWithValue(error.response.data)
+  }
 })
 
 const authSlice = createSlice({
