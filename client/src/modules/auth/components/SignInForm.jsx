@@ -21,9 +21,10 @@ const SignInForm = () => {
   // const state = useSelector(state => state) todos los estados
   const { data, isError, isLoading } = useSelector(state => state.auth)
   const form = useForm({ resolver: zodResolver(signInSchema) })
-  const onSubmit = dataForn => {
-    dispatch(signInFetch(dataForn))
-    console.log('state', data)
+  const onSubmit = dataForm => {
+    dispatch(signInFetch(dataForm)).then(() => {
+      console.log('state', data)
+    })
   }
 
   const checkState = () => {
