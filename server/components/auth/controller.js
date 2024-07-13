@@ -27,7 +27,20 @@ export const signIn = handleCatchErrorAsync(async (req, res) => {
  * @param {*} req
  */
 export const session = handleCatchErrorAsync(async (req, res) => {
-  const userId = req.id
+  const userId = req.userId
+  console.log('hola user', userId)
   const userSession = await authService.session(userId)
   globalResponse(res, 200, userSession)
+})
+
+/**
+ * Refresh token
+ * @param {*} res
+ * @param {*} req
+ */
+export const refreshToken = handleCatchErrorAsync(async (req, res) => {
+  const token = req.headers.refresh
+
+  const data = await authService.refreshToken(token)
+  globalResponse(res, 200, token)
 })
