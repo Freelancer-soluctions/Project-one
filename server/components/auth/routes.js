@@ -107,6 +107,8 @@ router.post('/signin', validateSchema(signInSchema), authController.signIn)
  */
 router.get('/session', verifyToken, authController.session)
 
+// router.get('/refresh-token', verifyToken authController.refresh )
+
 export default router
 
 // validar esquemas

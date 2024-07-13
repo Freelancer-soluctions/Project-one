@@ -1,11 +1,12 @@
 import * as authDao from './dao.js'
-import createToken from '../../utils/jwt/createToken.js'
+import { createToken } from '../../utils/jwt/createToken.js'
 import ClientError from '../../utils/responses&Errors/errors.js'
 import { rolesCodes } from '../../utils/constants/enums.js'
 import { getUserRegisteredByEmail } from '../users/dao.js'
 import * as roleService from '../role/service.js'
-
 import { encryptPassword, comparePassword } from '../../utils/bcrypt/encrypt.js'
+import jwt from 'jsonwebtoken'
+import dontenv from '../../config/dotenv.js'
 
 /**  sign up
  * @param {object} user
@@ -62,4 +63,20 @@ export const session = async (id) => {
   }
 
   return { user: { name: session.name, picture: session.picture, role: session.role } }
+}
+
+/**  generate a new access token
+ * @param {string} token
+*/
+export const refreshToken = async (token) => {
+  if (!token) {
+    throw new ClientError('Refresh token no encontrado', 400)
+  }
+
+  const decoded = await jwt.verify(token, dontenv('REFRESHSECRETKEY'))
+  const { userId } = decoded
+  const user = await authDao.getUserById(userId)
+  if (!user) {
+    throw new ClientError('No se ha encontrado al usuario', 400)
+  }
 }

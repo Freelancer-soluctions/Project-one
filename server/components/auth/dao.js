@@ -35,3 +35,16 @@ export const session = async (id) => {
 
   return Promise.resolve(user)
 }
+
+/**  get user by id
+ * @param {id} id
+ */
+export const getUserById = async (id) => {
+  const user = await getOneRow({
+    tableName,
+    where: { id },
+    include: { roles: true }
+  })
+
+  return Promise.resolve(user)
+}
