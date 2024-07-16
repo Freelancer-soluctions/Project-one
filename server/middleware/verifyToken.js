@@ -14,12 +14,21 @@ const verifyToken = async (req, res, next) => {
 
     // decode the token
     const decoded = await jwt.verify(token, dontenv('SECRETKEY'))
+
+    // Validate if the token has no expired
+    // console.log(decoded)
+    // console.log(Date.now(decoded.exp))
+    // if (decoded.exp <= Date.now()) {
+    //   return res
+    //     .status(401)
+    //     .json({ message: 'Token expired' })
+    // }
     // save the token on request object to using on routes
     req.userId = decoded.id
     // continue with the next function
     next()
   } catch (error) {
-    return res.status(401).json({ message: 'Lo sentimos debes iniciar sesión.' })
+    return res.status(401).json({ error: error.message })
   }
 }
 
