@@ -19,6 +19,9 @@ export const signUp = handleCatchErrorAsync(async (req, res) => {
 export const signIn = handleCatchErrorAsync(async (req, res) => {
   const body = req.body
   const user = await authService.signIn(body)
+  // Creates Secure Cookie with refresh token
+  res.cookie('jwt', user.refreshToken, { httpOnly: true, secure: true, sameSite: 'None', maxAge: 24 * 60 * 60 * 1000 })
+  delete user.refreshToken
   globalResponse(res, 200, user)
 })
 
@@ -39,8 +42,7 @@ export const session = handleCatchErrorAsync(async (req, res) => {
  * @param {*} req
  */
 export const refreshToken = handleCatchErrorAsync(async (req, res) => {
-  const token = req.headers.refresh
-
-  const data = await authService.refreshToken(token)
-  globalResponse(res, 200, token)
+  const cookies = req.cookies
+  const data = await authService.refreshToken(cookies)
+  globalResponse(res, 200, data)
 })

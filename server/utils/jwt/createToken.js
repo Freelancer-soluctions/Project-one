@@ -4,7 +4,7 @@ import jwt from 'jsonwebtoken'
 export const createToken = (userId = '') => {
   return new Promise((resolve, reject) => {
     jwt.sign({ id: userId }, dontenv('SECRETKEY'), {
-      expiresIn: '120000'
+      expiresIn: '120000' // 2 min
     }, (err, token) => {
       if (err) {
         reject('token not generated.')
@@ -15,10 +15,10 @@ export const createToken = (userId = '') => {
   })
 }
 
-export const createRfreshToken = (userId) => {
+export const createRefreshToken = (userId) => {
   return new Promise((resolve, reject) => {
     jwt.sign({ id: userId }, dontenv('REFRESHSECRETKEY'), {
-      expiresIn: '30d'
+      expiresIn: '1d'
     }, (err, token) => {
       if (err) {
         reject('refrs token not generated.')

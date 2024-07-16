@@ -107,7 +107,34 @@ router.post('/signin', validateSchema(signInSchema), authController.signIn)
  */
 router.get('/session', verifyToken, authController.session)
 
-// router.get('/refresh-token', verifyToken authController.refresh )
+/**
+ * @openapi
+ * /api/v1/auth/refresh-token:
+ *   get:
+ *     tags:
+ *       - Auth
+ *     responses:
+ *       200:
+ *         description: OK
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     $ref: "#/components/schemas/RefreshToken"
+ *       5XX:
+ *         description: FAILED
+ *         content:
+ *           application/json:
+ *             schema:
+ *              $ref: "#/components/schemas/Error"
+ *
+ *
+ */
+router.get('/refresh-token', authController.refreshToken)
 
 export default router
 
