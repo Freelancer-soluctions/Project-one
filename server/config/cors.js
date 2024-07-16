@@ -5,7 +5,7 @@ const corsOptions = {
   //  credentials: true,
   origin: [dotenv('ORIGIN_CORS'), 'http://localhost:5173'],
   // Allow specific headers
-  allowedHeaders: ['Content-Type', 'Authorization', 'x-access-token']
+  allowedHeaders: ['Content-Type', 'Authorization', 'x-access-token', 'refresh']
 }
 
 export default corsOptions

@@ -31,6 +31,7 @@ model users {
   status         userStatus  @relation(fields: [statusId], references: [id])
   telephone      String      @db.VarChar(15)
   zipcode        String      @db.VarChar(9)
+  refreshToken   String?     @db.VarChar(200)
   userPermitId   Int
   userPermits    userPermits @relation(fields: [userPermitId], references: [id])
   newsClosed     news[]      @relation("userNewsClosed")
