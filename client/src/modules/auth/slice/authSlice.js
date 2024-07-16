@@ -1,14 +1,5 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
 import { SignInApi } from '@/modules/auth/api/auth'
-// export const origenSlice = createSlice({
-//   name: 'unValor',
-//   initialState: { miNombre: 'JAM' },
-//   reducers: {
-//     guardarMiNombre: (state, action) => {
-//       state.miNombre = action.payload
-//     }
-//   }
-// })
 
 // export const { guardarMiNombre } = origenSlice.actions // Cuando se trabaja con slice se obtine actions que hace referencia a los reducers, pero estas son acciones
 // pluginJsxRuntime
@@ -19,30 +10,51 @@ import { SignInApi } from '@/modules/auth/api/auth'
 // // Export the reducer, either as a default or named export
 // export default reducer
 
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
-
 // Action
-export const fetchTodos = createAsyncThunk('fetchTodos', async () => {
-  const response = await fetch('https://jsonplaceholder.typicode.com/todos')
-  return response.json()
-})
+// export const fetchTodos = createAsyncThunk('fetchTodos', async () => {
+//   const response = await fetch('https://jsonplaceholder.typicode.com/todos')
+//   return response.json()
+// })
 
-export const signInFetch = createAsyncThunk('signInFetch', async (args, { rejectWithValue }) => {
-  const response = await SignInApi(args)
+// variation 1
+export const signInFetch = createAsyncThunk('auth/signIn', async (args, { rejectWithValue }) => {
   try {
-  // console.log(response)
+    const response = await SignInApi(args)
     return response.data
   } catch (error) {
     return rejectWithValue(error.response.data)
   }
 })
 
+export const refreshTokenFecth = createAsyncThunk('auth/')
+
+// Variation 2
+// export const signInFetch = createAsyncThunk('auth/signIn', async (_, { getState, rejectWithValue }) => {
+//   try {
+//     const state = getState()
+//     console.log('hola state', state)
+//     const res = await SignInApi({
+//       username: state.auth.username,
+//       password: state.auth.password
+//     })
+
+//     return res.data
+//   } catch (error) {
+//     return rejectWithValue(error.response.data)
+//   }
+// })
+
 const authSlice = createSlice({
   name: 'auth',
   initialState: {
     isLoading: false,
-    data: null,
+    user: null,
     isError: false
+  },
+  reducers: {
+    updateAuthData (state, action) {
+      state.user = action.payload
+    }
   },
   extraReducers: (builder) => {
     builder.addCase(signInFetch.pending, (state, action) => {
@@ -50,13 +62,16 @@ const authSlice = createSlice({
     })
     builder.addCase(signInFetch.fulfilled, (state, action) => {
       state.isLoading = false
-      state.data = action.payload
+      state.user = action.payload
     })
     builder.addCase(signInFetch.rejected, (state, action) => {
       console.log('Error', action.error.message)
+      console.log('Error payload', action.payload.error)
       state.isError = true
     })
   }
 })
+
+export const { updateAuthData } = authSlice.actions
 
 export default authSlice.reducer

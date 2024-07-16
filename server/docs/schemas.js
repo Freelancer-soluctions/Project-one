@@ -347,6 +347,24 @@
  * @openapi
  * components:
  *   schemas:
+ *     RefreshToken:
+ *       type: object
+ *       properties:
+ *         name:
+ *           type: string
+ *           example: "userName"
+ *         picture:
+ *           type: string
+ *           example:  https://res.cloudinary.com/dizfi5qoy/image/upload/v1714082489/xxugyy1gdfdkqazohbr1yo.png
+ *         role:
+ *           type: boolean
+ *           example: true
+ */
+
+/**
+ * @openapi
+ * components:
+ *   schemas:
  *     QuestionBody:
  *       type: object
  *       properties:

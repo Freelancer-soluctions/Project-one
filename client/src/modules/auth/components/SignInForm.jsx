@@ -3,7 +3,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { signInSchema } from '../utils/schemas'
 import { Link } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
-import { fetchTodos, signInFetch } from '@/redux/slices/authSlice'
+import { signInFetch } from '../slice/authSlice'
 
 import {
   Form,
@@ -15,17 +15,24 @@ import {
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
+// import { useCallback } from 'react'
 
 const SignInForm = () => {
   const dispatch = useDispatch()
   // const state = useSelector(state => state) todos los estados
-  const { data, isError, isLoading } = useSelector(state => state.auth)
+  const { user, isError, isLoading } = useSelector(state => state.auth)
+
   const form = useForm({ resolver: zodResolver(signInSchema) })
   const onSubmit = dataForm => {
     dispatch(signInFetch(dataForm)).then(() => {
-      console.log('state', data)
+      console.log('state', user)
     })
   }
+
+  // const handleChangeEmail = useCallback(
+  //   e => dispatch(updateAuthData(e.target.value)),
+  //   [dispatch]
+  // )
 
   const checkState = () => {
     console.log('newSate', data)
@@ -60,6 +67,7 @@ const SignInForm = () => {
                         name='email'
                         placeholder='m@example.com'
                         type='email'
+                        // onChange={handleChangeEmail(event)}
                         {...field}
                         value={field.value ?? ''}
                       />
