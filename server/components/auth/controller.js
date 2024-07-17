@@ -20,8 +20,9 @@ export const signIn = handleCatchErrorAsync(async (req, res) => {
   const body = req.body
   const user = await authService.signIn(body)
   // Creates Secure Cookie with refresh token
-  res.cookie('jwt', user.refreshToken, { httpOnly: true, secure: true, sameSite: 'None', maxAge: 24 * 60 * 60 * 1000 })
-  delete user.refreshToken
+  res.cookie('jwt', user.refreshToken, { httpOnly: true, secure: true, sameSite: 'none', path: '/', maxAge: 24 * 60 * 60 * 1000 })
+  // delete user.refreshToken
+  console.log('232323', user.refreshToken)
   globalResponse(res, 200, user)
 })
 
