@@ -4,7 +4,9 @@ import dontenv from '../config/dotenv.js'
 const verifyToken = async (req, res, next) => {
   try {
     // Get the token from the headers
-    const token = req.headers['x-access-token']
+    const authHeader = req.headers.Authorization
+    const token = authHeader.split(' ')[1]
+
     // if does not exists a token
     if (!token) {
       return res
@@ -12,7 +14,7 @@ const verifyToken = async (req, res, next) => {
         .json({ message: 'Lo sentimos debes iniciar sesión.' })
     }
 
-    // decode the token
+    // decode the token and verify the time
     const decoded = await jwt.verify(token, dontenv('SECRETKEY'))
 
     // Validate if the token has no expired

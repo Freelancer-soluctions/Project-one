@@ -35,7 +35,7 @@ const SignInForm = () => {
   // )
 
   const checkState = () => {
-    console.log('newSate', data)
+    console.log('newSate', user)
   }
   return (
     <>
