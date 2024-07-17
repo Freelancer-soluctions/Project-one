@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
-import { SignInApi } from '@/modules/auth/api/auth'
+import { SignInApi, RefreshTokenApi } from '@/modules/auth/api/auth'
 
 // export const { guardarMiNombre } = origenSlice.actions // Cuando se trabaja con slice se obtine actions que hace referencia a los reducers, pero estas son acciones
 // pluginJsxRuntime
@@ -26,7 +26,14 @@ export const signInFetch = createAsyncThunk('auth/signIn', async (args, { reject
   }
 })
 
-export const refreshTokenFecth = createAsyncThunk('auth/')
+export const refreshTokenFecth = createAsyncThunk('auth/refresh-token', async (args, { rejectWithValue }) => {
+  try {
+    const response = await RefreshTokenApi()
+    return response.data
+  } catch (error) {
+    return rejectWithValue(error.response.data)
+  }
+})
 
 // Variation 2
 // export const signInFetch = createAsyncThunk('auth/signIn', async (_, { getState, rejectWithValue }) => {
@@ -57,6 +64,7 @@ const authSlice = createSlice({
     }
   },
   extraReducers: (builder) => {
+    // sign uo
     builder.addCase(signInFetch.pending, (state, action) => {
       state.isLoading = true
     })
@@ -65,6 +73,19 @@ const authSlice = createSlice({
       state.user = action.payload
     })
     builder.addCase(signInFetch.rejected, (state, action) => {
+      console.log('Error', action.error.message)
+      // console.log('Error payload', action.payload.error)
+      state.isError = true
+    })
+    // refresh
+    builder.addCase(refreshTokenFecth.pending, (state, action) => {
+      state.isLoading = true
+    })
+    builder.addCase(refreshTokenFecth.fulfilled, (state, action) => {
+      state.isLoading = false
+      state.user.accessToken = action.payload.accessToken
+    })
+    builder.addCase(refreshTokenFecth.rejected, (state, action) => {
       console.log('Error', action.error.message)
       console.log('Error payload', action.payload.error)
       state.isError = true
