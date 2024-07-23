@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
-import { SignInApi, RefreshTokenApi } from '@/modules/auth/api/auth'
+import { SignInApi, RefreshTokenApi, newsApi } from '@/modules/auth/api/auth'
 
 // export const { guardarMiNombre } = origenSlice.actions // Cuando se trabaja con slice se obtine actions que hace referencia a los reducers, pero estas son acciones
 // pluginJsxRuntime
@@ -20,6 +20,15 @@ import { SignInApi, RefreshTokenApi } from '@/modules/auth/api/auth'
 export const signInFetch = createAsyncThunk('auth/signIn', async (args, { rejectWithValue }) => {
   try {
     const response = await SignInApi(args)
+    return response.data
+  } catch (error) {
+    return rejectWithValue(error.response.data)
+  }
+})
+
+export const newsFetch = createAsyncThunk('news', async (args, { rejectWithValue }) => {
+  try {
+    const response = await newsApi(args)
     return response.data
   } catch (error) {
     return rejectWithValue(error.response.data)

@@ -192,6 +192,6 @@ router.put('/:id',
  *              $ref: "#/components/schemas/Error"
  */
 
-router.delete('/:id', newsController.deleteById)
+router.delete('deleteNews/:id', newsController.deleteById)
 
 export default router
