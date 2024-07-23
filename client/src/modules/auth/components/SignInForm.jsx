@@ -3,7 +3,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { signInSchema } from '../utils/schemas'
 import { Link } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
-import { signInFetch } from '../slice/authSlice'
+import { signInFetch, newsFetch } from '../slice/authSlice'
 
 import {
   Form,
@@ -35,7 +35,10 @@ const SignInForm = () => {
   // )
 
   const checkState = () => {
-    console.log('newSate', user)
+    // console.log('newSate', user)
+    dispatch(newsFetch(3)).then(() => {
+      console.log('state', user)
+    })
   }
   return (
     <>
