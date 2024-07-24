@@ -1,10 +1,9 @@
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { signInSchema } from '../utils/schemas'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
 import { signInFetch, newsFetch } from '../slice/authSlice'
-
 import {
   Form,
   FormControl,
@@ -15,19 +14,29 @@ import {
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
+import { useCallback, useEffect } from 'react'
 // import { useCallback } from 'react'
 
 const SignInForm = () => {
+  const navigate = useNavigate()
   const dispatch = useDispatch()
   // const state = useSelector(state => state) todos los estados
   const { user, isError, isLoading } = useSelector(state => state.auth)
 
   const form = useForm({ resolver: zodResolver(signInSchema) })
-  const onSubmit = dataForm => {
-    dispatch(signInFetch(dataForm)).then(() => {
-      console.log('state', user)
-    })
+
+  const onSubmit = ({ email, password }) => {
+    dispatch(signInFetch({ email, password }))
   }
+
+  useEffect(() => {
+    console.log('state', user)
+    if (!isError && user && !user?.error) {
+      navigate('/home', { replace: true })
+    } else {
+      //Mostrar mensaje de error
+    }
+  }, [user, isError])
 
   // const handleChangeEmail = useCallback(
   //   e => dispatch(updateAuthData(e.target.value)),
@@ -35,10 +44,7 @@ const SignInForm = () => {
   // )
 
   const checkState = () => {
-    // console.log('newSate', user)
-    dispatch(newsFetch(3)).then(() => {
-      console.log('state', user)
-    })
+    console.log('newSate', user)
   }
   return (
     <>
