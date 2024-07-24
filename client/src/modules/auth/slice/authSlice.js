@@ -73,12 +73,14 @@ const authSlice = createSlice({
     }
   },
   extraReducers: (builder) => {
-    // sign uo
+    // sign up
     builder.addCase(signInFetch.pending, (state, action) => {
       state.isLoading = true
+      state.isError = false
     })
     builder.addCase(signInFetch.fulfilled, (state, action) => {
       state.isLoading = false
+      state.isError = false
       state.user = action.payload
     })
     builder.addCase(signInFetch.rejected, (state, action) => {
@@ -86,12 +88,15 @@ const authSlice = createSlice({
       // console.log('Error payload', action.payload.error)
       state.isError = true
     })
+    
     // refresh
     builder.addCase(refreshTokenFecth.pending, (state, action) => {
       state.isLoading = true
+      state.isError = false
     })
     builder.addCase(refreshTokenFecth.fulfilled, (state, action) => {
       state.isLoading = false
+      state.isError = false
       state.user.accessToken = action.payload.accessToken
     })
     builder.addCase(refreshTokenFecth.rejected, (state, action) => {
