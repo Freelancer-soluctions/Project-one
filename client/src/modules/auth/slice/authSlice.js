@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
-import { SignInApi, RefreshTokenApi, newsApi } from '@/modules/auth/api/auth'
+import { SignInApi, RefreshTokenApi } from '@/modules/auth/api/auth'
 
 // export const { guardarMiNombre } = origenSlice.actions // Cuando se trabaja con slice se obtine actions que hace referencia a los reducers, pero estas son acciones
 // pluginJsxRuntime
@@ -26,14 +26,14 @@ export const signInFetch = createAsyncThunk('auth/signIn', async (args, { reject
   }
 })
 
-export const newsFetch = createAsyncThunk('news', async (args, { rejectWithValue }) => {
-  try {
-    const response = await newsApi(args)
-    return response.data
-  } catch (error) {
-    return rejectWithValue(error.response.data)
-  }
-})
+// export const newsFetch = createAsyncThunk('news', async (args, { rejectWithValue }) => {
+//   try {
+//     const response = await newsApi(args)
+//     return response.data
+//   } catch (error) {
+//     return rejectWithValue(error.response.data)
+//   }
+// })
 
 export const refreshTokenFecth = createAsyncThunk('auth/refresh-token', async (args, { rejectWithValue }) => {
   try {
@@ -65,7 +65,8 @@ const authSlice = createSlice({
   initialState: {
     isLoading: false,
     user: null,
-    isError: false
+    isError: false,
+    isAuth:false
   },
   reducers: {
     updateAuthData (state, action) {
@@ -77,16 +78,19 @@ const authSlice = createSlice({
     builder.addCase(signInFetch.pending, (state, action) => {
       state.isLoading = true
       state.isError = false
+      state.isAuth = false
     })
     builder.addCase(signInFetch.fulfilled, (state, action) => {
       state.isLoading = false
       state.isError = false
+      state.isAuth = true
       state.user = action.payload
     })
     builder.addCase(signInFetch.rejected, (state, action) => {
       console.log('Error', action.error.message)
       // console.log('Error payload', action.payload.error)
       state.isError = true
+      state.isAuth = false
     })
     
     // refresh

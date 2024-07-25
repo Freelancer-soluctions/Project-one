@@ -1,5 +1,6 @@
 import { lazy } from 'react'
 import Layout from './components/layout'
+import ProtectedRoutes from './components/protectedRoutes/ProtectedRoutes'
 import Home from './modules/home/pages/Home'
 
 import NotFound from './components/404/NotFound'
@@ -26,7 +27,11 @@ const App = () => {
     },
     {
       path: '/home',
-      element: <Home />,
+      element: (
+        <ProtectedRoutes>
+          <Home />
+        </ProtectedRoutes>
+      ),
       children: routes
       // errorElement:  <NotFound />, // ver diferencia con /*
     },
