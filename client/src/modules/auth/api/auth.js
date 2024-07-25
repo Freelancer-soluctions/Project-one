@@ -8,9 +8,9 @@ export function SignUpApi (body) {
   return axiosPublic.post('/auth/signup', body)
 }
 
-export function newsApi (id) {
-  return axiosPrivate.delete(`/news/deleteNews/${id}`)
-}
+// export function newsApi (id) {
+//   return axiosPrivate.delete(`/news/deleteNews/${id}`)
+// }
 
 export function RefreshTokenApi () {
   return axiosPublic.get('/auth/refresh-token')

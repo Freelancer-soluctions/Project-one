@@ -3,7 +3,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { signInSchema } from '../utils/schemas'
 import { Link, useNavigate } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
-import { signInFetch, newsFetch } from '../slice/authSlice'
+import { signInFetch } from '../slice/authSlice'
 import {
   Form,
   FormControl,
@@ -14,7 +14,8 @@ import {
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
-import { useCallback, useEffect } from 'react'
+import Spinner from '../../../components/loader/Spinner'
+import { useEffect } from 'react'
 // import { useCallback } from 'react'
 
 const SignInForm = () => {
@@ -134,6 +135,8 @@ const SignInForm = () => {
           </Link>
         </p>
       </div>
+
+      {isLoading && <Spinner />}
 
       <div>
         <button onClick={checkState}>revisar state</button>
