@@ -77,6 +77,7 @@ const SignInForm = () => {
                         name='email'
                         placeholder='m@example.com'
                         type='email'
+                        autoComplete='false'
                         // onChange={handleChangeEmail(event)}
                         {...field}
                         value={field.value ?? ''}
