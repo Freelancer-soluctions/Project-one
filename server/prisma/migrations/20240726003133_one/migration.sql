@@ -1,79 +1,15 @@
-/*
-  Warnings:
-
-  - You are about to drop the `News` table. If the table is not empty, all the data it contains will be lost.
-  - You are about to drop the `NewsStatus` table. If the table is not empty, all the data it contains will be lost.
-  - You are about to drop the `Note` table. If the table is not empty, all the data it contains will be lost.
-  - You are about to drop the `NoteStatus` table. If the table is not empty, all the data it contains will be lost.
-  - You are about to drop the `Question` table. If the table is not empty, all the data it contains will be lost.
-  - You are about to drop the `Role` table. If the table is not empty, all the data it contains will be lost.
-  - You are about to drop the `User` table. If the table is not empty, all the data it contains will be lost.
-  - You are about to drop the `UserStatus` table. If the table is not empty, all the data it contains will be lost.
-
-*/
--- DropForeignKey
-ALTER TABLE "News" DROP CONSTRAINT "News_closedBy_fkey";
-
--- DropForeignKey
-ALTER TABLE "News" DROP CONSTRAINT "News_createdBy_fkey";
-
--- DropForeignKey
-ALTER TABLE "News" DROP CONSTRAINT "News_statusId_fkey";
-
--- DropForeignKey
-ALTER TABLE "Note" DROP CONSTRAINT "Note_closedBy_fkey";
-
--- DropForeignKey
-ALTER TABLE "Note" DROP CONSTRAINT "Note_createdBy_fkey";
-
--- DropForeignKey
-ALTER TABLE "Note" DROP CONSTRAINT "Note_statusId_fkey";
-
--- DropForeignKey
-ALTER TABLE "Question" DROP CONSTRAINT "Question_newsId_fkey";
-
--- DropForeignKey
-ALTER TABLE "User" DROP CONSTRAINT "User_roleId_fkey";
-
--- DropForeignKey
-ALTER TABLE "User" DROP CONSTRAINT "User_statusId_fkey";
-
--- DropTable
-DROP TABLE "News";
-
--- DropTable
-DROP TABLE "NewsStatus";
-
--- DropTable
-DROP TABLE "Note";
-
--- DropTable
-DROP TABLE "NoteStatus";
-
--- DropTable
-DROP TABLE "Question";
-
--- DropTable
-DROP TABLE "Role";
-
--- DropTable
-DROP TABLE "User";
-
--- DropTable
-DROP TABLE "UserStatus";
-
 -- CreateTable
-CREATE TABLE "Users" (
+CREATE TABLE "users" (
     "id" SERIAL NOT NULL,
     "firstName" VARCHAR(50) NOT NULL,
     "lastName" VARCHAR(50) NOT NULL,
     "email" VARCHAR(254) NOT NULL,
-    "password" VARCHAR(16) NOT NULL,
+    "password" VARCHAR(100) NOT NULL,
     "address" VARCHAR(250),
     "birthday" TIMESTAMP(3) NOT NULL,
     "city" VARCHAR(35),
     "isAdmin" BOOLEAN DEFAULT false,
-    "picturte" TEXT,
+    "picture" TEXT,
     "document" TEXT,
     "lastUpdatedBy" INTEGER NOT NULL,
     "lastUpdatedOn" TIMESTAMP(3),
@@ -84,9 +20,10 @@ CREATE TABLE "Users" (
     "statusId" INTEGER NOT NULL,
     "telephone" VARCHAR(15) NOT NULL,
     "zipcode" VARCHAR(9) NOT NULL,
+    "refreshToken" VARCHAR(200),
     "userPermitId" INTEGER NOT NULL,
 
-    CONSTRAINT "Users_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "users_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -175,7 +112,7 @@ CREATE TABLE "questions" (
 );
 
 -- CreateIndex
-CREATE UNIQUE INDEX "Users_email_key" ON "Users"("email");
+CREATE UNIQUE INDEX "users_email_key" ON "users"("email");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "roles_code_key" ON "roles"("code");
@@ -202,31 +139,31 @@ CREATE UNIQUE INDEX "newsStatus_code_key" ON "newsStatus"("code");
 CREATE UNIQUE INDEX "newsStatus_description_key" ON "newsStatus"("description");
 
 -- AddForeignKey
-ALTER TABLE "Users" ADD CONSTRAINT "Users_roleId_fkey" FOREIGN KEY ("roleId") REFERENCES "roles"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "users" ADD CONSTRAINT "users_roleId_fkey" FOREIGN KEY ("roleId") REFERENCES "roles"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Users" ADD CONSTRAINT "Users_statusId_fkey" FOREIGN KEY ("statusId") REFERENCES "userStatus"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "users" ADD CONSTRAINT "users_statusId_fkey" FOREIGN KEY ("statusId") REFERENCES "userStatus"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Users" ADD CONSTRAINT "Users_userPermitId_fkey" FOREIGN KEY ("userPermitId") REFERENCES "userPermits"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "users" ADD CONSTRAINT "users_userPermitId_fkey" FOREIGN KEY ("userPermitId") REFERENCES "userPermits"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "notes" ADD CONSTRAINT "notes_statusId_fkey" FOREIGN KEY ("statusId") REFERENCES "noteStatus"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "notes" ADD CONSTRAINT "notes_closedBy_fkey" FOREIGN KEY ("closedBy") REFERENCES "Users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "notes" ADD CONSTRAINT "notes_closedBy_fkey" FOREIGN KEY ("closedBy") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "notes" ADD CONSTRAINT "notes_createdBy_fkey" FOREIGN KEY ("createdBy") REFERENCES "Users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "notes" ADD CONSTRAINT "notes_createdBy_fkey" FOREIGN KEY ("createdBy") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "news" ADD CONSTRAINT "news_statusId_fkey" FOREIGN KEY ("statusId") REFERENCES "newsStatus"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "news" ADD CONSTRAINT "news_closedBy_fkey" FOREIGN KEY ("closedBy") REFERENCES "Users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "news" ADD CONSTRAINT "news_closedBy_fkey" FOREIGN KEY ("closedBy") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "news" ADD CONSTRAINT "news_createdBy_fkey" FOREIGN KEY ("createdBy") REFERENCES "Users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "news" ADD CONSTRAINT "news_createdBy_fkey" FOREIGN KEY ("createdBy") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "questions" ADD CONSTRAINT "questions_newsId_fkey" FOREIGN KEY ("newsId") REFERENCES "news"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
