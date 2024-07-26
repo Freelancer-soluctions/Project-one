@@ -1,9 +1,9 @@
 import { lazy } from 'react'
 import Layout from './components/layout'
+import ProtectedRoutes from './components/protectedRoutes/ProtectedRoutes'
 import Home from './modules/home/pages/Home'
-
 import NotFound from './components/404/NotFound'
-import routes from './routes'
+import homeChildrenRoutes from './routes'
 import { createBrowserRouter, RouterProvider } from 'react-router-dom'
 const App = () => {
   const router = createBrowserRouter([
@@ -26,8 +26,12 @@ const App = () => {
     },
     {
       path: '/home',
-      element: <Home />,
-      children: routes
+      element: (
+        <ProtectedRoutes redirectTo='/signIn'>
+          <Home />
+        </ProtectedRoutes>
+      ),
+      children: homeChildrenRoutes
       // errorElement:  <NotFound />, // ver diferencia con /*
     },
     {

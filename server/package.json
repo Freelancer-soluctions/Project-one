@@ -12,7 +12,8 @@
     "postinstall": "prisma generate",
     "prisma-migration": "prisma migrate dev",
     "prisma-seed": "prisma db seed",
-    "prisma-push": "prisma db push"
+    "prisma-push": "prisma db push",
+    "prisma-pull": "prisma db pull"
   },
   "author": "Laura Falcon and Johan Garcia",
   "license": "ISC",

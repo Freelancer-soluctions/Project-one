@@ -22,6 +22,20 @@ const CardModule = () => {
 
         <Card>
           <CardHeader className='flex flex-row items-center justify-between pb-2'>
+            <CardTitle className='text-sm font-medium'>News</CardTitle>
+            <DollarSignIcon className='w-4 h-4 text-muted-foreground' />
+          </CardHeader>
+          <CardContent>
+            <Link
+              to={'news'}
+              className='flex items-center gap-2 px-3 py-2 text-sm font-medium transition-colors rounded-md hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground'>
+              Go to news
+            </Link>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className='flex flex-row items-center justify-between pb-2'>
             <CardTitle className='text-sm font-medium'>Notes</CardTitle>
             <DollarSignIcon className='w-4 h-4 text-muted-foreground' />
           </CardHeader>
