@@ -6,8 +6,8 @@ import {
   UsersIcon
 } from '../../../utils/icons/icons'
 import { Link, Outlet } from 'react-router-dom'
-import Loader from '../../../components/loader/Loader'
 import { Suspense } from 'react'
+import Spinner from '../../../components/loader/Spinner'
 
 const SideBar = () => {
   return (
@@ -53,7 +53,7 @@ const SideBar = () => {
       </div>
 
       <main>
-        <Suspense fallback={<Loader />}>
+        <Suspense fallback={<Spinner />}>
           <Outlet />
         </Suspense>
       </main>

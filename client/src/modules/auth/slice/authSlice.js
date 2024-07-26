@@ -26,6 +26,15 @@ export const signInFetch = createAsyncThunk('auth/signIn', async (args, { reject
   }
 })
 
+// export const newsFetch = createAsyncThunk('news', async (args, { rejectWithValue }) => {
+//   try {
+//     const response = await newsApi(args)
+//     return response.data
+//   } catch (error) {
+//     return rejectWithValue(error.response.data)
+//   }
+// })
+
 export const refreshTokenFecth = createAsyncThunk('auth/refresh-token', async (args, { rejectWithValue }) => {
   try {
     const response = await RefreshTokenApi()
@@ -56,7 +65,8 @@ const authSlice = createSlice({
   initialState: {
     isLoading: false,
     user: null,
-    isError: false
+    isError: false,
+    isAuth:false
   },
   reducers: {
     updateAuthData (state, action) {
@@ -64,25 +74,33 @@ const authSlice = createSlice({
     }
   },
   extraReducers: (builder) => {
-    // sign uo
+    // sign up
     builder.addCase(signInFetch.pending, (state, action) => {
       state.isLoading = true
+      state.isError = false
+      state.isAuth = false
     })
     builder.addCase(signInFetch.fulfilled, (state, action) => {
       state.isLoading = false
+      state.isError = false
+      state.isAuth = true
       state.user = action.payload
     })
     builder.addCase(signInFetch.rejected, (state, action) => {
       console.log('Error', action.error.message)
       // console.log('Error payload', action.payload.error)
       state.isError = true
+      state.isAuth = false
     })
+    
     // refresh
     builder.addCase(refreshTokenFecth.pending, (state, action) => {
       state.isLoading = true
+      state.isError = false
     })
     builder.addCase(refreshTokenFecth.fulfilled, (state, action) => {
       state.isLoading = false
+      state.isError = false
       state.user.accessToken = action.payload.accessToken
     })
     builder.addCase(refreshTokenFecth.rejected, (state, action) => {
