@@ -9,7 +9,7 @@ export const axiosPublic = axios.create({
 })
 // Axios instance
 export const axiosPrivate = axios.create({
-  baseURL: 'http://localhost:3000/api/v1',
+  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1',
   headers: {
     'Content-Type': 'application/json'
     // 'Authorization': store?.getState()?.auth?.user?.data
@@ -40,6 +40,29 @@ axiosPrivate.interceptors.request.use(
     return Promise.reject(error)
   }
 )
+// axios basequery for redux tollkit and axiosPrivate
+export const axiosPrivateBaseQuery =
+  ({ baseUrl } = { baseUrl: '' }) =>
+  async ({ url, method, data, params, headers }) => {
+    try {
+      const result = await axiosPrivate({
+        url: baseUrl + url,
+        method,
+        data,
+        params,
+        headers,
+      })
+      return { data: result.data }
+    } catch (axiosError) {
+      const err = axiosError
+      return {
+        error: {
+          status: err.response?.status,
+          data: err.response?.data || err.message,
+        },
+      }
+    }
+  }
 
 // import { getLocalStorage } from '../utils/utils'
 
