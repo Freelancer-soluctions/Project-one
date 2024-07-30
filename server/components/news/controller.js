@@ -10,6 +10,8 @@ import * as newsService from './service.js'
  * @returns A message
  */
 export const getAll = handleCatchErrorAsync(async (req, res) => {
+  const body = req.body
+  console.log('bodynew', body)
   const items = await newsService.getAll()
   globalResponse(res, 200, items)
 })

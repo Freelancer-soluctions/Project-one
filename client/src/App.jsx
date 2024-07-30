@@ -27,9 +27,9 @@ const App = () => {
     {
       path: '/home',
       element: (
-        <ProtectedRoutes redirectTo='/signIn'>
-          <Home />
-        </ProtectedRoutes>
+        // <ProtectedRoutes redirectTo='/signIn'>
+        <Home />
+        // </ProtectedRoutes>
       ),
       children: homeChildrenRoutes
       // errorElement:  <NotFound />, // ver diferencia con /*
