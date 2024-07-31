@@ -12,8 +12,8 @@ import Spinner from '../../../components/loader/Spinner'
 const SideBar = () => {
   return (
     <div className='flex flex-1'>
-      <div className='flex-col hidden p-4 shadow-sm lg:flex bg-background'>
-        <nav className='flex flex-col gap-2'>
+      <div className='flex-col flex-initial hidden w-64 p-4 shadow-sm lg:flex bg-background'>
+        <nav className='flex flex-col gap-2 '>
           <Link
             href='#'
             className='flex items-center gap-2 px-3 py-2 text-sm font-medium transition-colors rounded-md hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground'

@@ -1,7 +1,8 @@
-const validateSchema = (schema) => {
+const validateQueryParams = (schema) => {
   return (req, res, next) => {
-    const { body } = req
-    const { error } = schema.validate(body, { abortEarly: false })
+    const { query } = req
+    // console.log('pruebas', schema, query)
+    const { error } = schema.validate(query, { abortEarly: false })
     if (error) {
       const { details } = error
       const messages = details?.map((errorDetail) => errorDetail.message)
@@ -11,4 +12,4 @@ const validateSchema = (schema) => {
   }
 }
 
-export default validateSchema
+export default validateQueryParams

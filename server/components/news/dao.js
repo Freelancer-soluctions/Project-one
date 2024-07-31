@@ -1,4 +1,5 @@
 import * as prismaService from '../utils/dao.js'
+import prisma from '../../config/db.js'
 
 const tableName = 'news'
 /**
@@ -7,12 +8,23 @@ const tableName = 'news'
  * @returns All rows by filter
  */
 
-export const getRows = async ({ where, include, select }) => prismaService.getRows({
-  tableName,
-  where,
-  include,
-  select
-})
+export const getAllRows = async (description, statusId, toDate, fromDate) => {
+  console.log(description, statusId, toDate, fromDate)
+  const news = await prisma.news.findMany({
+    where: {
+      description,
+
+      createdOn: {
+        lte: toDate, // End of date range
+        gte: fromDate // Start of date range
+
+      }
+    }
+  })
+
+  console.log('resultnews', news)
+  return Promise.resolve(news)
+}
 
 /**
 

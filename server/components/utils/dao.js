@@ -35,6 +35,19 @@ export const getOneRow = async ({ tableName, where, include }) => {
 }
 
 /**
+
+ * @param {*} params :: filter params
+ *
+ * @returns One row by ramdon param
+ */
+export const getRow = async ({ tableName, where, include }) => {
+  return prisma[tableName].findFirst({
+    ...(where && { where }),
+    ...(include && { include })
+  })
+}
+
+/**
  *
  * @param {*} data :: Argument to create an item in DB
  * @returns Created row in db
