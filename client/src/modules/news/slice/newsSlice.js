@@ -11,7 +11,7 @@ const newsApi = createApi({
     endpoints: (builder) => ({
         getAllNews: builder.query({
           query: (args) =>({
-            url: `/`,
+            url: `/news`,
             method: "GET",
             params: {...args}
           }),
@@ -22,6 +22,6 @@ const newsApi = createApi({
 
 // Export hooks for usage in functional components, which are
 // auto-generated based on the defined endpoints
-export const { useGetAllNewsQuery } = newsApi
+export const { useLazyGetAllNewsQuery } = newsApi
 
 export default newsApi

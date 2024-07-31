@@ -22,31 +22,30 @@ import {
   PopoverTrigger
 } from '@/components/ui/popover'
 import { Calendar } from '@/components/ui/calendar'
-import { format } from 'date-fns'
+import { format, formatISO } from 'date-fns'
 import { cn } from '@/lib/utils'
 import { BsCalendar3 } from 'react-icons/bs'
-import { useGetAllNewsQuery } from '../slice/newsSlice'
-import { skipToken } from '@reduxjs/toolkit/query/react'
-
-import { useEffect, useState } from 'react'
+import { useLazyGetAllNewsQuery } from '../slice/newsSlice'
+import { useState } from 'react'
 const News = () => {
   const form = useForm()
   const [open, setOpen] = useState(false)
-  const [isNotSettingfilters, setSettingfilters] = useState(true) //flag to skip redux hook query
-  const [filters, setFilters] = useState({
-    description: '',
-    tdate: '',
-    fdate: ''
-  })
-  const { data, isError, isLoading, isFetching, isSuccess, error } =
-    useGetAllNewsQuery(filters, {
-      skip: isNotSettingfilters
-    })
+
+  const [
+    trigger,
+    { data, isError, isLoading, isFetching, isSuccess, error },
+    lastPromiseInfo
+  ] = useLazyGetAllNewsQuery()
   //form event
-  const onSubmit = ({ description, tdate, fdate }) => {
-    setFilters({ description, tdate, fdate })
-    console.log('323232', isNotSettingfilters)
-    setSettingfilters(false)
+  const onSubmit = ({ description, fdate, tdate }) => {
+    const fromDate = formatISO(new Date(fdate), 'yyyy-MM-dd')
+    const toDate = formatISO(new Date(tdate), 'yyyy-MM-dd')
+    trigger({ description, fromDate, toDate })
+  }
+
+  // pass to utils file
+  const uppercaseFunction = e => {
+    const value = e.target.value.toUpperCase()
   }
 
   return (
@@ -71,8 +70,10 @@ const News = () => {
                       id='description'
                       name='description'
                       placeholder='Enter the description'
-                      type='Description'
+                      type='text'
                       autoComplete='false'
+                      maxLength={30}
+                      // onInput={uppercaseFunction}
                       // onChange={handleChangeEmail(event)}
                       {...field}
                       value={field.value ?? ''}
@@ -113,9 +114,7 @@ const News = () => {
                       mode='single'
                       selected={field.value}
                       onSelect={field.onChange}
-                      disabled={date =>
-                        date > new Date() || date < new Date('1900-01-01')
-                      }
+                      disabled={date => date < new Date('1900-01-01')}
                       initialFocus
                     />
                   </PopoverContent>
@@ -154,9 +153,7 @@ const News = () => {
                       mode='single'
                       selected={field.value}
                       onSelect={field.onChange}
-                      disabled={date =>
-                        date > new Date() || date < new Date('1900-01-01')
-                      }
+                      disabled={date => date < new Date('1900-01-01')}
                       initialFocus
                     />
                   </PopoverContent>

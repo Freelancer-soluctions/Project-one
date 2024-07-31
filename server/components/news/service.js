@@ -3,7 +3,7 @@ import {
   createRow,
   deleteRow,
   getOneRow,
-  getRows,
+  getAllRows,
   updateRow
 } from './dao.js'
 
@@ -16,8 +16,9 @@ import {
  *
  * @returns All Rows from DB
  */
-export const getAll = async () => {
-  return getRows({})
+export const getAllNews = async ({ description, statusId, toDate, fromDate }) => {
+  const data = await getAllRows(description, statusId, toDate, fromDate)
+  return data
 }
 
 /**

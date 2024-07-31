@@ -31,7 +31,6 @@ export const signIn = handleCatchErrorAsync(async (req, res) => {
  */
 export const session = handleCatchErrorAsync(async (req, res) => {
   const userId = req.userId
-  console.log('hola user', userId)
   const userSession = await authService.session(userId)
   globalResponse(res, 200, userSession)
 })
