@@ -54,6 +54,9 @@ export const signIn = async (user) => {
   const refreshToken = await createRefreshToken(userExists.id)
   // save the user with refresh token
   await authDao.saveRefreshToken(refreshToken, userExists.id)
+  console.log('sign accest', token)
+  console.log('sign refresht', refreshToken)
+
   return { accessToken: token, refreshToken, user: { id: userExists.id, firstName: userExists.firstName, picture: userExists.picture, roleName: userExists.roles.description, roleId: userExists.roleId } }
 }
 
@@ -78,7 +81,7 @@ export const refreshToken = async (cookies) => {
   }
   const refreshToken = cookies.jwt
   const user = await authDao.getUserByToken(refreshToken)
-
+  // console.log('user refresh', user)
   if (!user) { throw new ClientError('Forbidden', 403) }
 
   const decoded = await jwt.verify(refreshToken, dontenv('REFRESHSECRETKEY'))
@@ -86,5 +89,7 @@ export const refreshToken = async (cookies) => {
   if (user.id !== id) { throw new ClientError('Forbidden', 403) }
 
   const accessToken = await createToken(user.id)
+  console.log('new-accesst server', accessToken)
+
   return { accessToken, user: { id: user.id, firstName: user.firstName, picture: user.picture, roleName: user.roles.description, roleId: user.roleId } }
 }

@@ -1,4 +1,4 @@
-import { createRow, getOneRow, updateRow } from '../utils/dao.js'
+import { createRow, getOneRow, getRow, updateRow } from '../utils/dao.js'
 
 const tableName = 'users'
 
@@ -70,7 +70,7 @@ export const saveRefreshToken = async (refreshToken, id) => {
  * @returns a uisers
  */
 export const getUserByToken = async (refreshToken) => {
-  const user = await getOneRow({
+  const user = await getRow({
     tableName,
     where: { refreshToken },
     include: { roles: true }

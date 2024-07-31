@@ -1,8 +1,10 @@
 import { Router } from 'express'
-import { News, NewsUpdate } from '../../utils/joiSchemas/joi.js'
-import validateSchema from '../../middleware/validateSchema.js'
+import { News, NewsUpdate, NewsFilters } from '../../utils/joiSchemas/joi.js'
 import * as newsController from './controller.js'
 import upload from '../../utils/multer/multer.js'
+import validateQueryParams from '../../middleware/validateQueryParams.js'
+import validateSchema from '../../middleware/validateSchema.js'
+import verifyToken from '../../middleware/verifyToken.js'
 
 const router = Router()
 
@@ -39,7 +41,7 @@ const router = Router()
  *
  */
 
-router.get('/', newsController.getAll)
+router.get('/', verifyToken, validateQueryParams(NewsFilters), newsController.getAll)
 
 /**
 @openapi
