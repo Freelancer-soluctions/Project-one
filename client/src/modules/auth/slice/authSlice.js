@@ -66,7 +66,8 @@ const authSlice = createSlice({
     isLoading: false,
     user: null,
     isError: false,
-    isAuth:false
+    isAuth:false,
+    errorMessage:''
   },
   reducers: {
     updateAuthData (state, action) {
@@ -91,6 +92,7 @@ const authSlice = createSlice({
       // console.log('Error payload', action.payload.error)
       state.isError = true
       state.isAuth = false
+      state.isLoading = false
     })
     
     // refresh
@@ -101,7 +103,8 @@ const authSlice = createSlice({
     builder.addCase(refreshTokenFecth.fulfilled, (state, action) => {
       state.isLoading = false
       state.isError = false
-      state.user.accessToken = action.payload.accessToken
+      state.user.data.accessToken = action.payload.data.accessToken
+      console.log('new-accesst store', action.payload.data.accessToken)
     })
     builder.addCase(refreshTokenFecth.rejected, (state, action) => {
       console.log('Error', action.error.message)

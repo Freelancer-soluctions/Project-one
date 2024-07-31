@@ -268,6 +268,16 @@ export const News = Joi.object({
   document: Joi.string()
 })
 
+export const NewsFilters = Joi.object({
+  description: Joi.string()
+    .min(1)
+    .max(30),
+  statusId: Joi.number()
+    .integer(),
+  toDate: Joi.date(),
+  fromDate: Joi.date()
+})
+
 export const NewsUpdate = Joi.object({
   description: Joi.string()
     .min(3)

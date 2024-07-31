@@ -4,7 +4,8 @@ import dontenv from '../config/dotenv.js'
 const verifyToken = async (req, res, next) => {
   try {
     // Get the token from the headers
-    const authHeader = req.headers.Authorization
+    const authHeader = req.headers.authorization || req.headers.Authorization
+    // console.log('auth', authHeader)
     const token = authHeader.split(' ')[1]
 
     // if does not exists a token
