@@ -4,7 +4,7 @@ import { useEffect } from 'react'
 const ProtectedRoutes = ({ children, redirectTo }) => {
   const user = store.getState()?.auth?.user
   const navigate = useNavigate()
-  debugger
+
   useEffect(() => {
     if (user === null) {
       navigate(redirectTo, { replace: true })

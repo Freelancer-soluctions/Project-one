@@ -1,23 +1,21 @@
-import {
-  createManyRows,
-  createRow,
-  deleteRow,
-  getOneRow,
-  getAllRows,
-  updateRow
-} from './dao.js'
+import * as newsDao from './dao.js'
 
 import {
   handleUpload,
   handleUploadUpdate,
   handleDeleteFile
 } from '../../utils/cloudinary/cloudinary.js'
+
 /**
  *
- * @returns All Rows from DB
+ * @param {string} description
+ * @param {string} statusCode
+ * @param {Date} toDate
+ * @param {Date} fromDate
+ * @returns all news from db
  */
-export const getAllNews = async ({ description, statusId, toDate, fromDate }) => {
-  const data = await getAllRows(description, statusId, toDate, fromDate)
+export const getAllNews = async ({ description, statusCode, toDate, fromDate }) => {
+  const data = await newsDao.getAllNews(description, statusCode, toDate, fromDate)
   return data
 }
 
@@ -27,7 +25,7 @@ export const getAllNews = async ({ description, statusId, toDate, fromDate }) =>
  */
 export const getOneById = async (id) => {
   const rowId = Number(id)
-  return getOneRow({ where: { id: rowId } })
+  return newsDao.getOneRow({ where: { id: rowId } })
 }
 
 /**
@@ -63,7 +61,7 @@ export const createOne = async ({
     createData.documentId = public_id
   }
 
-  return createRow(createData)
+  return newsDao.createRow(createData)
 }
 
 /**
@@ -72,7 +70,7 @@ export const createOne = async ({
  * @returns Created Rows
  */
 export const createMany = async (data) => {
-  return createManyRows(data)
+  return newsDao.createManyRows(data)
 }
 /**
  *
@@ -97,7 +95,7 @@ export const updateById = async (id, data) => {
       newsData.documentId = public_id
     }
   }
-  return updateRow(newsData, { id: rowId })
+  return newsDao.updateRow(newsData, { id: rowId })
 }
 /**
  *
@@ -112,5 +110,14 @@ export const deleteById = async (id) => {
     await handleDeleteFile(documentId)
   }
 
-  return deleteRow({ id: rowId })
+  return newsDao.deleteRow({ id: rowId })
+}
+
+/**
+ *
+ * @returns All news status list
+ */
+export const getAllNewsStatus = async () => {
+  const data = await newsDao.getAllNewsStatus()
+  return data
 }

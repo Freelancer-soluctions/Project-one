@@ -1,7 +1,7 @@
 import { Router } from 'express'
 import * as authController from './controller.js'
 import verifyToken from '../../middleware/verifyToken.js'
-import { signUpSchema, signInSchema } from '../../utils/joiSchemas/joi.js'
+import { SignUpSchema, SignInSchema } from '../../utils/joiSchemas/joi.js'
 import validateSchema from '../../middleware/validateSchema.js'
 
 const router = Router()
@@ -42,7 +42,7 @@ const router = Router()
  *
  */
 
-router.post('/signup', validateSchema(signUpSchema), authController.signUp)
+router.post('/signup', validateSchema(SignUpSchema), authController.signUp)
 
 /**
  * @openapi
@@ -76,7 +76,7 @@ router.post('/signup', validateSchema(signUpSchema), authController.signUp)
  *
  *
  */
-router.post('/signin', validateSchema(signInSchema), authController.signIn)
+router.post('/signin', validateSchema(SignInSchema), authController.signIn)
 
 /**
  * @openapi

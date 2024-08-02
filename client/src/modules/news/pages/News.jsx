@@ -14,7 +14,8 @@ import {
   CommandEmpty,
   CommandGroup,
   CommandInput,
-  CommandItem
+  CommandItem,
+  CommandList
 } from '@/components/ui/command'
 import {
   Popover,
@@ -25,17 +26,29 @@ import { Calendar } from '@/components/ui/calendar'
 import { format, formatISO } from 'date-fns'
 import { cn } from '@/lib/utils'
 import { BsCalendar3 } from 'react-icons/bs'
-import { useLazyGetAllNewsQuery } from '../slice/newsSlice'
+import { FaSort, FaCheck } from 'react-icons/fa'
+import {
+  useLazyGetAllNewsQuery,
+  useGetAllNewsStatusQuery
+} from '../slice/newsSlice'
 import { useState } from 'react'
 const News = () => {
   const form = useForm()
   const [open, setOpen] = useState(false)
-
+  const {
+    data: datastatus,
+    isError: isErrorStatus,
+    isLoading: isLoadingStatus,
+    isFetching: isFetchingStatus,
+    isSuccess: isSuccessStatus,
+    error: errorStatus
+  } = useGetAllNewsStatusQuery()
   const [
     trigger,
     { data, isError, isLoading, isFetching, isSuccess, error },
     lastPromiseInfo
   ] = useLazyGetAllNewsQuery()
+
   //form event
   const onSubmit = ({ description, fdate, tdate }) => {
     const fromDate = formatISO(new Date(fdate), 'yyyy-MM-dd')
@@ -167,57 +180,60 @@ const News = () => {
             name='status'
             render={({ field }) => {
               return (
-                <FormItem>
+                <FormItem className='flex flex-col'>
                   <FormLabel>Status</FormLabel>
                   <FormControl>
-                    {/* <Popover open={open} onOpenChange={setOpen}>
+                    <Popover>
                       <PopoverTrigger asChild>
-                        <Button
-                          variant='outline'
-                          role='combobox'
-                          aria-expanded={open}
-                          className='w-[200px] justify-between'>
-                          {value
-                            ? frameworks.find(
-                                framework => framework.value === value
-                              )?.label
-                            : 'Select framework...'}
-                          <CaretSortIcon className='w-4 h-4 ml-2 opacity-50 shrink-0' />
-                        </Button>
+                        <FormControl>
+                          <Button
+                            variant='outline'
+                            role='combobox'
+                            className={cn(
+                              'w-[200px] justify-between',
+                              !field.value && 'text-muted-foreground'
+                            )}>
+                            {field.value
+                              ? datastatus?.data.find(
+                                  status => status.description === field.value
+                                )?.description
+                              : 'Select status'}
+                            <FaSort className='w-4 h-4 ml-2 opacity-50 shrink-0' />
+                          </Button>
+                        </FormControl>
                       </PopoverTrigger>
                       <PopoverContent className='w-[200px] p-0'>
                         <Command>
                           <CommandInput
-                            placeholder='Search framework...'
+                            placeholder='Select status...'
                             className='h-9'
                           />
-                          <CommandEmpty>No framework found.</CommandEmpty>
-                          <CommandGroup>
-                            {frameworks.map(framework => (
-                              <CommandItem
-                                key={framework.value}
-                                value={framework.value}
-                                onSelect={currentValue => {
-                                  setValue(
-                                    currentValue === value ? '' : currentValue
-                                  )
-                                  setOpen(false)
-                                }}>
-                                {framework.label}
-                                <CheckIcon
-                                  className={cn(
-                                    'ml-auto h-4 w-4',
-                                    value === framework.value
-                                      ? 'opacity-100'
-                                      : 'opacity-0'
-                                  )}
-                                />
-                              </CommandItem>
-                            ))}
-                          </CommandGroup>
+                          <CommandList>
+                            <CommandEmpty>No status found.</CommandEmpty>
+                            <CommandGroup>
+                              {datastatus?.data.map(status => (
+                                <CommandItem
+                                  value={status.description}
+                                  key={status.id}
+                                  onSelect={() => {
+                                    form.setValue('statusCode', status.id)
+                                  }}>
+                                  {status.description}
+                                  <FaCheck
+                                    className={cn(
+                                      'ml-auto h-4 w-4',
+                                      status.description === field.value
+                                        ? 'opacity-100'
+                                        : 'opacity-0'
+                                    )}
+                                  />
+                                </CommandItem>
+                              ))}
+                            </CommandGroup>
+                          </CommandList>
                         </Command>
                       </PopoverContent>
-                    </Popover> */}
+                    </Popover>
                   </FormControl>
                   <FormMessage />
                 </FormItem>

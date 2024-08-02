@@ -2,29 +2,47 @@ import * as prismaService from '../utils/dao.js'
 import prisma from '../../config/db.js'
 
 const tableName = 'news'
+
+/**
+ *
+ * @param {string} description
+ * @param {string} statusCode
+ * @param {Date} toDate
+ * @param {Date} fromDate
+ * @returns all news from db
+ */
+export const getAllNews = async (description, statusCode, toDate, fromDate) => {
+  const news = await prisma.news.findMany({
+    where: {
+      description: { contains: description },
+      createdOn: {
+        gte: new Date(fromDate),
+        lte: new Date(toDate)
+
+      }
+
+    }
+  })
+
+  return Promise.resolve(news)
+}
+
+export const getAllNewsStatus = async () => {
+  const news = await prisma.newsStatus.findMany()
+  return Promise.resolve(news)
+}
+
 /**
  *
  * @param {*} params :: filter params
  * @returns All rows by filter
  */
 
-export const getAllRows = async (description, statusId, toDate, fromDate) => {
-  console.log(description, statusId, toDate, fromDate)
-  const news = await prisma.news.findMany({
-    where: {
-      description,
-
-      createdOn: {
-        lte: toDate, // End of date range
-        gte: fromDate // Start of date range
-
-      }
-    }
-  })
-
-  console.log('resultnews', news)
-  return Promise.resolve(news)
-}
+export const getAllRows = async ({ where, include }) => prismaService.getRows({
+  tableName,
+  where,
+  include
+})
 
 /**
 

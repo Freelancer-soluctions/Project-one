@@ -1,7 +1,6 @@
 const validateQueryParams = (schema) => {
   return (req, res, next) => {
     const { query } = req
-    // console.log('pruebas', schema, query)
     const { error } = schema.validate(query, { abortEarly: false })
     if (error) {
       const { details } = error
