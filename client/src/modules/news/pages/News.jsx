@@ -9,19 +9,26 @@ import {
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList
-} from '@/components/ui/command'
+// import {
+//   Command,
+//   CommandEmpty,
+//   CommandGroup,
+//   CommandInput,
+//   CommandItem,
+//   CommandList
+// } from '@/components/ui/command'
 import {
   Popover,
   PopoverContent,
   PopoverTrigger
 } from '@/components/ui/popover'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from '@/components/ui/select'
 import { Calendar } from '@/components/ui/calendar'
 import { format, formatISO } from 'date-fns'
 import { cn } from '@/lib/utils'
@@ -50,10 +57,11 @@ const News = () => {
   ] = useLazyGetAllNewsQuery()
 
   //form event
-  const onSubmit = ({ description, fdate, tdate }) => {
-    const fromDate = formatISO(new Date(fdate), 'yyyy-MM-dd')
-    const toDate = formatISO(new Date(tdate), 'yyyy-MM-dd')
-    trigger({ description, fromDate, toDate })
+  const onSubmit = ({ description, fdate, tdate, status: statusCode }) => {
+    const fromDate = fdate && formatISO(new Date(fdate), 'yyyy-MM-dd')
+    const toDate = tdate && formatISO(new Date(tdate), 'yyyy-MM-dd')
+
+    trigger({ description, fromDate, toDate, statusCode })
   }
 
   // pass to utils file
@@ -182,59 +190,22 @@ const News = () => {
               return (
                 <FormItem className='flex flex-col'>
                   <FormLabel>Status</FormLabel>
-                  <FormControl>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <FormControl>
-                          <Button
-                            variant='outline'
-                            role='combobox'
-                            className={cn(
-                              'w-[200px] justify-between',
-                              !field.value && 'text-muted-foreground'
-                            )}>
-                            {field.value
-                              ? datastatus?.data.find(
-                                  status => status.description === field.value
-                                )?.description
-                              : 'Select status'}
-                            <FaSort className='w-4 h-4 ml-2 opacity-50 shrink-0' />
-                          </Button>
-                        </FormControl>
-                      </PopoverTrigger>
-                      <PopoverContent className='w-[200px] p-0'>
-                        <Command>
-                          <CommandInput
-                            placeholder='Select status...'
-                            className='h-9'
-                          />
-                          <CommandList>
-                            <CommandEmpty>No status found.</CommandEmpty>
-                            <CommandGroup>
-                              {datastatus?.data.map(status => (
-                                <CommandItem
-                                  value={status.description}
-                                  key={status.id}
-                                  onSelect={() => {
-                                    form.setValue('statusCode', status.id)
-                                  }}>
-                                  {status.description}
-                                  <FaCheck
-                                    className={cn(
-                                      'ml-auto h-4 w-4',
-                                      status.description === field.value
-                                        ? 'opacity-100'
-                                        : 'opacity-0'
-                                    )}
-                                  />
-                                </CommandItem>
-                              ))}
-                            </CommandGroup>
-                          </CommandList>
-                        </Command>
-                      </PopoverContent>
-                    </Popover>
-                  </FormControl>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder='Select a status' />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {datastatus?.data.map((item, index) => (
+                        <SelectItem value={item.code} key={index}>
+                          {item.description}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                   <FormMessage />
                 </FormItem>
               )

@@ -271,11 +271,10 @@ export const News = Joi.object({
 export const NewsFilters = Joi.object({
   description: Joi.string()
     .min(1)
-    .max(30),
-  statusId: Joi.number()
-    .integer(),
-  toDate: Joi.date(),
-  fromDate: Joi.date()
+    .max(30).allow(''),
+  statusCode: Joi.string().min(3).max(3).allow(''),
+  toDate: Joi.date().allow(''),
+  fromDate: Joi.date().allow('')
 })
 
 export const NewsUpdate = Joi.object({
