@@ -14,8 +14,8 @@ import {
  * @param {Date} fromDate
  * @returns all news from db
  */
-export const getAllNews = async ({ description, statusCode, toDate, fromDate }) => {
-  const data = await newsDao.getAllNews(description, statusCode, toDate, fromDate)
+export const getAllNews = async ({ description, fromDate, toDate, statusCode }) => {
+  const data = await newsDao.getAllNews(description, fromDate, toDate, statusCode)
   return data
 }
 
