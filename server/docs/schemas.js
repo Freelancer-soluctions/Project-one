@@ -172,6 +172,24 @@
  * @openapi
  * components:
  *   schemas:
+ *     NewsStatus:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: integer
+ *           example: 1, 2, 3, 4 etc...
+ *         description:
+ *           type: string
+ *           example: NEWS status description
+ *         code:
+ *          type: string
+ *          example: C01, C02, C03 etc...
+ */
+
+/**
+ * @openapi
+ * components:
+ *   schemas:
  *     Note:
  *       type: object
  *       properties:

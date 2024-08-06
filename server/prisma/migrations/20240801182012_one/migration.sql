@@ -89,7 +89,7 @@ CREATE TABLE "newsStatus" (
 -- CreateTable
 CREATE TABLE "news" (
     "id" SERIAL NOT NULL,
-    "closedOn" TIMESTAMP(3) NOT NULL,
+    "closedOn" TIMESTAMP(3),
     "createdOn" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "description" VARCHAR(400) NOT NULL,
     "document" TEXT,
