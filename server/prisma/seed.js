@@ -61,8 +61,7 @@ const newStatus = [
 ]
 
 const user = {
-  firstName: 'admin',
-  lastName: 'admin',
+  name: 'admin',
   email: 'admin@gmail.com',
   password: '123456',
   address: 'Robert Robertson, 1234 NW Bobcat Lane, St. Robert, MO 65584-5678',
@@ -82,6 +81,18 @@ const user = {
   zipcode: '987654321',
   userPermitId: 1
 }
+
+const news = [{
+  closedOn: null,
+  createdOn: '2024-08-05T00:19:58.867Z',
+  description: 'test1',
+  document: null,
+  documentId: null,
+  statusId: 1,
+  closedBy: 2,
+  createdBy: 2
+
+}]
 
 const createVarious = async (tableName, createObjects) => {
   const createdObjects = await prisma[tableName].createMany({
@@ -105,7 +116,8 @@ async function main () {
   await createVarious('noteStatus', noteStatus)
   await createVarious('newsStatus', newStatus)
   await createVarious('roles', roles)
-  await create('users', user)
+  // await create('users', user)
+  await createVarious('news', news)
 }
 
 main()
