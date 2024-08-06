@@ -11,7 +11,6 @@ import * as newsService from './service.js'
  */
 export const getAllNews = handleCatchErrorAsync(async (req, res) => {
   const queryParams = req.query
-  console.log(queryParams)
   const items = await newsService.getAllNews(queryParams)
   globalResponse(res, 200, items)
 })
