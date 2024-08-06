@@ -1,11 +1,11 @@
 import Joi from 'joi'
 
-export const signInSchema = Joi.object({
+export const SignInSchema = Joi.object({
   email: Joi.string().email({ tlds: false }).required(),
   password: Joi.string().min(6).max(16).required()
 })
 
-export const signUpSchema = Joi.object({
+export const SignUpSchema = Joi.object({
   firstName: Joi.string().min(4).max(50).required(),
   lastName: Joi.string().min(4).max(50).required(),
   birthday: Joi.date().required(),
@@ -271,11 +271,10 @@ export const News = Joi.object({
 export const NewsFilters = Joi.object({
   description: Joi.string()
     .min(1)
-    .max(30),
-  statusId: Joi.number()
-    .integer(),
-  toDate: Joi.date(),
-  fromDate: Joi.date()
+    .max(30).allow(''),
+  statusCode: Joi.string().min(3).max(3).allow(''),
+  toDate: Joi.date().allow(''),
+  fromDate: Joi.date().allow('')
 })
 
 export const NewsUpdate = Joi.object({

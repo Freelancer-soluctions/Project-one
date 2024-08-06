@@ -41,7 +41,43 @@ const router = Router()
  *
  */
 
-router.get('/', verifyToken, validateQueryParams(NewsFilters), newsController.getAll)
+router.get('/', validateQueryParams(NewsFilters), newsController.getAllNews)
+// select: { name: true }, // ...but only select `name` here
+
+/**
+@openapi
+ * /api/v1/news/status:
+ *   get:
+ *     tags:
+ *       - News
+ *     parameters:
+ *       - in: header
+ *         name: x-access-token
+ *         schema:
+ *          type: string
+ *         required: true
+ *     responses:
+ *       200:
+ *         description: OK
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     $ref: "#/components/schemas/NewsStatus"
+ *       5XX:
+ *         description: FAILED
+ *         content:
+ *           application/json:
+ *             schema:
+ *              $ref: "#/components/schemas/Error"
+ *
+ */
+
+router.get('/status', newsController.getAllNewsStatus)
 
 /**
 @openapi
@@ -79,7 +115,7 @@ router.get('/', verifyToken, validateQueryParams(NewsFilters), newsController.ge
  *
  */
 
-router.get('/:id', newsController.getOneById)
+router.get('/:id', verifyToken, newsController.getOneById)
 
 /**
  * @openapi
@@ -114,10 +150,7 @@ router.get('/:id', newsController.getOneById)
  *
  */
 
-router.post('/',
-  upload.single('document'),
-  validateSchema(News),
-  newsController.createOne)
+router.post('/', verifyToken, validateSchema(News), upload.single('document'), newsController.createOne)
 
 /**
  * @openapi
@@ -157,10 +190,7 @@ router.post('/',
  *
  */
 
-router.put('/:id',
-  upload.single('document'),
-  validateSchema(NewsUpdate),
-  newsController.updateById)
+router.put('/:id', verifyToken, validateSchema(NewsUpdate), upload.single('document'), newsController.updateById)
 
 /**
  * @openapi
@@ -194,6 +224,6 @@ router.put('/:id',
  *              $ref: "#/components/schemas/Error"
  */
 
-router.delete('deleteNews/:id', newsController.deleteById)
+router.delete('deleteNews/:id', verifyToken, newsController.deleteById)
 
 export default router
