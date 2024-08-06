@@ -9,8 +9,7 @@ datasource db {
 
 model users {
   id             Int         @id @default(autoincrement())
-  firstName      String      @db.VarChar(50)
-  lastName       String      @db.VarChar(50)
+  name           String      @db.VarChar(100)
   email          String      @unique @db.VarChar(254)
   password       String      @db.VarChar(100)
   address        String?     @db.VarChar(250)
@@ -100,8 +99,8 @@ model news {
   questions       questions[]
   status          newsStatus  @relation(fields: [statusId], references: [id])
   statusId        Int
-  userNewsClosed  users       @relation("userNewsClosed", fields: [closedBy], references: [id])
-  closedBy        Int
+  userNewsClosed  users?      @relation("userNewsClosed", fields: [closedBy], references: [id])
+  closedBy        Int?
   userNewsCreated users       @relation("userNewsCreated", fields: [createdBy], references: [id])
   createdBy       Int
 }

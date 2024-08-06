@@ -1,11 +1,8 @@
-import PropTypes from 'prop-types'
-
 import {
   flexRender,
   getCoreRowModel,
   useReactTable
 } from '@tanstack/react-table'
-
 import {
   Table,
   TableBody,
@@ -15,7 +12,7 @@ import {
   TableRow
 } from '@/components/ui/table'
 
-const DataTable = ({ columns, data }) => {
+const Datatable = ({ columns, data = [] }) => {
   const table = useReactTable({
     data,
     columns,
@@ -23,7 +20,7 @@ const DataTable = ({ columns, data }) => {
   })
 
   return (
-    <div className='rounded-md border'>
+    <div className='border rounded-md'>
       <Table>
         <TableHeader>
           {table.getHeaderGroups().map(headerGroup => (
@@ -69,9 +66,4 @@ const DataTable = ({ columns, data }) => {
   )
 }
 
-DataTable.propTypes = {
-  columns: PropTypes.array,
-  data: PropTypes.array
-}
-
-export default DataTable
+export default Datatable
