@@ -16,7 +16,6 @@ import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import Spinner from '../../../components/loader/Spinner'
 import { useEffect } from 'react'
-// import { useCallback } from 'react'
 
 const SignInForm = () => {
   const navigate = useNavigate()
