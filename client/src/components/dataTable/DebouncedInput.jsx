@@ -1,4 +1,5 @@
 import React from 'react'
+import { Input } from '@/components/ui/input'
 // A typical debounced input react component
 function DebouncedInput({
   value: initialValue,
@@ -21,7 +22,12 @@ function DebouncedInput({
   }, [value])
 
   return (
-    <input {...props} value={value} onChange={e => setValue(e.target.value)} />
+    <Input
+      onChange={e => setValue(e.target.value)}
+      {...props}
+      value={value ?? ''}
+    />
+    // <input {...props} value={value} onChange={} />
   )
 }
 
