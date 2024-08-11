@@ -1,5 +1,6 @@
-import { CaretSortIcon } from '@radix-ui/react-icons'
-import { Button } from '@/components/ui/button'
+// import { CaretSortIcon } from '@radix-ui/react-icons'
+// import { Button } from '@/components/ui/button'
+import { format, parseISO } from 'date-fns'
 
 const columnDefNews = [
   {
@@ -15,7 +16,8 @@ const columnDefNews = [
     //     </Button>
     //   )
     // },
-    cell: info => info.getValue()
+    cell: info => format(info.getValue(), 'dd/MM/yyyy')
+    // formatISO( "yyyy-MM-dd'T'HH:mm:ssXX")
   },
   {
     accessorKey: 'description',
@@ -38,7 +40,9 @@ const columnDefNews = [
   },
   {
     accessorKey: 'closedOn',
-    header: 'Closed On'
+    header: 'Closed On',
+    cell: info =>
+      info.getValue() ? format(info.getValue(), 'dd/MM/yyyy/hh:mm:s aaa') : ''
   }
 ]
 export default columnDefNews

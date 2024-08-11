@@ -1,10 +1,11 @@
 import { Button } from '@/components/ui/button'
 import { Link } from 'react-router-dom'
-import { MenuIcon, MountainIcon } from '../../../utils/icons/icons'
+import { AiOutlineMenu } from 'react-icons/ai'
+import { SiAnalogue } from 'react-icons/si'
 
 const NavBar = () => {
   return (
-    <header className='flex items-center justify-between px-4 py-3 shadow-sm bg-primary text-primary-foreground md:px-6'>
+    <>
       <div className='flex items-center gap-4'>
         <Button
           variant='ghost'
@@ -13,14 +14,14 @@ const NavBar = () => {
           onClick={() => {
             document.querySelector('.lg\\:flex').classList.toggle('hidden')
           }}>
-          <MenuIcon className='w-6 h-6' />
+          <AiOutlineMenu className='w-6 h-6' />
           <span className='sr-only'>Toggle navigation</span>
         </Button>
         <Link
           href='#'
           className='flex items-center gap-2 font-bold'
           prefetch={false}>
-          <MountainIcon className='w-6 h-6' />
+          <SiAnalogue className='w-6 h-6' />
           <span className='sr-only'>Dashboard</span>
         </Link>
       </div>
@@ -36,7 +37,7 @@ const NavBar = () => {
           <span className='sr-only'>User menu</span>
         </Button>
       </div>
-    </header>
+    </>
   )
 }
 
