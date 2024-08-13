@@ -1,11 +1,9 @@
 import NewsFilters from '../components/NewsFilters'
 const News = () => {
   return (
-    <main className='flex flex-col flex-1'>
-      <div className='flex-1 p-8 overflow-auto md:p-6'>
-        <NewsFilters />
-      </div>
-    </main>
+    <div className='grid grid-cols-2 grid-rows-5 gap-4 md:grid-cols-5'>
+      <NewsFilters />
+    </div>
   )
 }
 export default News
