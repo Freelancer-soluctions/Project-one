@@ -53,7 +53,7 @@ const Datatable = ({ columns, data = [] }) => {
   })
 
   return (
-    <div className='block max-w-full p-2 overflow-x-scroll overflow-y-hidden border rounded-md'>
+    <div className=''>
       <Table>
         <TableHeader>
           {table.getHeaderGroups().map(headerGroup => (
