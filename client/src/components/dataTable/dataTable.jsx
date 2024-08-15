@@ -21,7 +21,7 @@ import { useState } from 'react'
 import { CaretSortIcon } from '@radix-ui/react-icons'
 import { MdOutlineArrowDropDown, MdOutlineArrowDropUp } from 'react-icons/md'
 
-const Datatable = ({ columns, data = [] }) => {
+const Datatable = ({ columns, data = [], setSelectedRow, setOpenDialog }) => {
   const [columnFilters, setColumnFilters] = useState([]) //column filters
   const [sorting, setSorting] = useState([]) //sorting
   const [pagination, setPagination] = useState({
@@ -52,9 +52,14 @@ const Datatable = ({ columns, data = [] }) => {
     }
   })
 
+  const handleDialog = row => {
+    setSelectedRow(row.original)
+    setOpenDialog(true)
+  }
+
   return (
-    <div className=''>
-      <Table>
+    <div className='flex-1 max-w-full '>
+      <Table className='rounded-lg border max-h-[25vh] h-svh'>
         <TableHeader>
           {table.getHeaderGroups().map(headerGroup => (
             <TableRow key={headerGroup.id}>
@@ -116,7 +121,12 @@ const Datatable = ({ columns, data = [] }) => {
                 key={row.id}
                 data-state={row.getIsSelected() && 'selected'}>
                 {row.getVisibleCells().map(cell => (
-                  <TableCell key={cell.id} className='p-3'>
+                  <TableCell
+                    key={cell.id}
+                    className='p-1 text-center'
+                    onClick={() => {
+                      handleDialog(row)
+                    }}>
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
                   </TableCell>
                 ))}
@@ -132,7 +142,7 @@ const Datatable = ({ columns, data = [] }) => {
         </TableBody>
       </Table>
       <div className='h-2' />
-      <div className='flex items-center gap-2'>
+      <div className='flex flex-wrap items-center gap-2'>
         <Button
           className='p-1 border rounded'
           onClick={() => table.firstPage()}
