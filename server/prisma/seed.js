@@ -116,7 +116,7 @@ async function main () {
   await createVarious('noteStatus', noteStatus)
   await createVarious('newsStatus', newStatus)
   await createVarious('roles', roles)
-  // await create('users', user)
+  await create('users', user)
   await createVarious('news', news)
 }
 
