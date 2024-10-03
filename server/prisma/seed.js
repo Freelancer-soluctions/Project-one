@@ -89,8 +89,8 @@ const news = [{
   document: null,
   documentId: null,
   statusId: 1,
-  closedBy: 2,
-  createdBy: 2
+  closedBy: 1,
+  createdBy: 1
 
 }]
 
@@ -116,7 +116,7 @@ async function main () {
   await createVarious('noteStatus', noteStatus)
   await createVarious('newsStatus', newStatus)
   await createVarious('roles', roles)
-  // await create('users', user)
+  await create('users', user)
   await createVarious('news', news)
 }
 
