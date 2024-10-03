@@ -10,6 +10,7 @@ import * as newsService from './service.js'
  * @returns A message
  */
 export const getAllNews = handleCatchErrorAsync(async (req, res) => {
+  console.log('hola')
   const queryParams = req.query
   const items = await newsService.getAllNews(queryParams)
   globalResponse(res, 200, items)
@@ -89,7 +90,6 @@ export const deleteById = handleCatchErrorAsync(async (req, res) => {
  * @returns A message
  */
 export const getAllNewsStatus = handleCatchErrorAsync(async (req, res) => {
-  console.log('entre')
   const data = await newsService.getAllNewsStatus()
   globalResponse(res, 200, data)
 })
