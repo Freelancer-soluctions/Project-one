@@ -42,7 +42,6 @@ const router = Router()
  */
 
 router.get('/', validateQueryParams(NewsFilters), newsController.getAllNews)
-// select: { name: true }, // ...but only select `name` here
 
 /**
 @openapi
