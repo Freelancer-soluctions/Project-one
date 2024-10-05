@@ -8,6 +8,9 @@
  *        error:
  *          type: boolean
  *          example: true
+ *        statusCode:
+ *          type: number
+ *          example: 500
  *        message:
  *          type: string
  *          example: "Some error message"
@@ -24,9 +27,12 @@
  *       error:
  *         type: boolean
  *         example: false
+ *       statusCode:
+ *         type: number
+ *         example: 200
  *       message:
  *         type: string
- *         example: "Item created successfully"
+ *         example: "Some success message"
  *
  */
 
