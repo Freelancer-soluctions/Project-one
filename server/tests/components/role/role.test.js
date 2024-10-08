@@ -1,11 +1,9 @@
-import { afterAll, beforeAll, describe, expect, test } from 'vitest'
 import { startServer, stopServer } from '../../test-server'
 import request from 'supertest'
 import prisma from '../../../config/db'
 import { createToken } from '../../../utils/jwt/createToken'
-import { Console } from 'winston/lib/winston/transports'
 
-describe('Role', () => {
+describe('Role endpoint', () => {
   let baseUrl // La URL base del servidor de pruebas
   let server // Variable para almacenar el servidor Supertest
   let token
