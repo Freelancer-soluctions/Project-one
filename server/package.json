@@ -9,7 +9,7 @@
   },
   "scripts": {
     "dev": "nodemon bin/index.js",
-    "postinstall": "prisma generate",
+    "postinstall": "prisma generate ",
     "prisma-migration": "prisma migrate dev",
     "prisma-seed": "prisma db seed",
     "prisma-push": "prisma db push",
