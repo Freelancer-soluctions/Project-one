@@ -11,6 +11,7 @@ const tableName = 'news'
  * @param {Date} fromDate
  * @returns all news from db
  */
+
 export const getAllNews = async (description, fromDate, toDate, statusCode) => {
   const news = await prisma.news.findMany(
     {
