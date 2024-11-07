@@ -153,8 +153,7 @@ export const NoteStatusUpdate = Joi.object({
     .required(),
   code: Joi.string()
     .min(3)
-    .max(3),
-  notes: Joi.array().min(1)
+    .max(3)
 
 })
 
@@ -168,8 +167,7 @@ export const Role = Joi.object({
   code: Joi.string()
     .min(3)
     .max(3)
-    .required(),
-  notes: Joi.array().min(1)
+    .required()
 
 })
 
@@ -180,8 +178,7 @@ export const RoleUpdate = Joi.object({
     .required(),
   code: Joi.string()
     .min(3)
-    .max(3),
-  notes: Joi.array().min(1)
+    .max(3)
 
 })
 
