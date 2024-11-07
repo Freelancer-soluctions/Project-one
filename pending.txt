@@ -1,0 +1,3 @@
+Instalar prettier en back
+Pruebas unitarias
+Pruebas de integracion
