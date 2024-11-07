@@ -2,7 +2,7 @@ import { Router } from 'express'
 import { Role, RoleArray, RoleUpdate } from '../../utils/joiSchemas/joi.js'
 import validateSchema from '../../middleware/validateSchema.js'
 import * as roleController from './controller.js'
-
+import verifyToken from '../../middleware/verifyToken.js'
 const router = Router()
 
 /**
@@ -38,7 +38,7 @@ const router = Router()
  *
  */
 
-router.get('/', roleController.getAll)
+router.get('/', verifyToken, roleController.getAll)
 
 /**
 @openapi
@@ -76,7 +76,7 @@ router.get('/', roleController.getAll)
  *
  */
 
-router.get('/:id', roleController.getOneById)
+router.get('/:id', verifyToken, roleController.getOneById)
 
 /**
 @openapi
@@ -114,7 +114,7 @@ router.get('/:id', roleController.getOneById)
  *
  */
 
-router.get('/code/:code', roleController.getOneByCode)
+router.get('/role-code/:code', verifyToken, roleController.getOneByCode)
 
 /**
  * @openapi
@@ -149,7 +149,7 @@ router.get('/code/:code', roleController.getOneByCode)
  *
  */
 
-router.post('/', validateSchema(Role), roleController.createOne)
+router.post('/', verifyToken, validateSchema(Role), roleController.createOne)
 
 /**
  * @openapi
