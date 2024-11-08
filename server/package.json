@@ -8,7 +8,7 @@
     "seed": "node prisma/seed.js"
   },
   "scripts": {
-    "dev": "nodemon bin/index.js",
+    "dev": "nodemon src/bin/index.js",
     "postinstall": "prisma generate ",
     "prisma-migration": "prisma migrate dev",
     "prisma-seed": "prisma db seed",
