@@ -7,11 +7,18 @@ import {
 import PropTypes from 'prop-types'
 import NoteForm from './form'
 
-const NoteDialog = ({ isDialogOpen, note, onOpenChange, title }) => {
+interface PropsNoteDialog{
+  isDialogOpen:boolean;
+  note: string;
+  onOpenChange:()=> void;
+  title: string;
+}
+
+const NoteDialog = ({ isDialogOpen, note, onOpenChange, title }:PropsNoteDialog) => {
   return (
     <Dialog onOpenChange={onOpenChange} open={isDialogOpen}>
       <DialogContent
-        onInteractOutside={e => e.preventDefault()}
+        onInteractOutside={(e:React.KeyboardEvent<HTMLInputElement> ) => e.preventDefault()}
         className='max-w-2xl max-h-full overflow-y-scroll'>
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>

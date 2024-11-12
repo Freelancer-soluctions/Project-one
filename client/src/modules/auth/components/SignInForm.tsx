@@ -25,7 +25,7 @@ const SignInForm = () => {
 
   const form = useForm({ resolver: zodResolver(signInSchema) })
 
-  const onSubmit = ({ email, password }) => {
+  const onSubmit = ({ email, password }:{email:string, password:string}) => {
     dispatch(signInFetch({ email, password }))
   }
 

@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react'
 
-export function useFetch(url) {
+export function useFetch(url:string) {
   const [data, setData] = useState(null)
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState(null)
-  const [controller, setController] = useState(null)
+  const [loading, setLoading] = useState<boolean>(false)
+  const [error, setError] = useState<null | string>(null)
+  const [controller, setController] = useState<AbortController>()
 
   useEffect(() => {
     const abortController = new AbortController()
@@ -21,7 +21,7 @@ export function useFetch(url) {
           setError(error)
         }
       })
-      .finally(setLoading(false))
+      .finally(()=>{setLoading(false)})
 
     return () => abortController.abort()
   }, [url])

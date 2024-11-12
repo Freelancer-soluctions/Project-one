@@ -3,9 +3,13 @@ import { Button } from '../ui/button'
 
 const NotFound = () => {
   const navigate = useNavigate()
-  const goback = () => {
+
+
+  const goback = ():void => {
     navigate(-1)
   }
+
+
   return (
     <main className='flex min-h-[100dvh] flex-col items-center justify-center bg-gray-100 px-4 py-12 dark:bg-gray-950'>
       <div className='flex flex-col items-center justify-center h-[100dvh] bg-gray-100 dark:bg-gray-900 px-4 md:px-6'>
@@ -20,7 +24,13 @@ const NotFound = () => {
             The page you&apos;re looking for doesn&apos;t exist or has been
             moved.
           </p>
-          <Button onClick={goback}>Go back home</Button>
+          <Button 
+            onClick={goback}
+            variant="secondary" 
+            size="lg"
+          >
+              Go back home
+          </Button>
         </div>
       </div>
     </main>

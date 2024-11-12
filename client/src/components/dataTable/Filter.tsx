@@ -1,6 +1,14 @@
+import { Column, Table } from '@tanstack/react-table'
 import DebouncedInput from './DebouncedInput' // need it to column filtering
 
-function Filter({ column }) {
+
+interface PropsFilter{
+  colum: Column<any[], unknown>
+  table:Table<any>
+}
+
+
+function Filter({ column }:{column:any}) {
   const columnFilterValue = column.getFilterValue()
   const { filterVariant } = column.columnDef.meta ?? {}
 

@@ -34,7 +34,12 @@ import defaultValues from '../utils/defaultValues'
 import NoteSchema from '../utils/schema'
 import useUpdateNoteMutation from '../hooks/useUpdateMutation'
 
-const NoteForm = ({ note, onOpenChange }) => {
+interface PropsNoteForm{
+  note:string;
+  onOpenChange: ()=> void
+}
+
+const NoteForm = ({ note, onOpenChange }:PropsNoteForm) => {
   const useCreateMutation = useCreateNoteMutation(onOpenChange)
   const useUpdateMutation = useUpdateNoteMutation(onOpenChange)
   const statusItems = [

@@ -1,6 +1,6 @@
 const minMaxValues = {
-  minLength: amount => `You must enter at least ${amount} characters.`,
-  maxLength: amount => `You must enter a maximum of ${amount} characters.`
+  minLength: (amount: string) => `You must enter at least ${amount} characters.`,
+  maxLength: (amount: string) => `You must enter a maximum of ${amount} characters.`
 }
 
 export const AUTH_VALIDATIONS = {

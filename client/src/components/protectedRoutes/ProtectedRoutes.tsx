@@ -1,7 +1,13 @@
 import store from '../../redux/store'
 import { useNavigate } from 'react-router-dom'
-import { useEffect } from 'react'
-const ProtectedRoutes = ({ children, redirectTo }) => {
+import React, { useEffect } from 'react'
+
+interface PropsProtectedRoutes{
+  children: React.ReactNode;
+  redirectTo: string;
+};
+
+const ProtectedRoutes = ({ children, redirectTo }:PropsProtectedRoutes) => {
   const user = store.getState()?.auth?.user
   const navigate = useNavigate()
 

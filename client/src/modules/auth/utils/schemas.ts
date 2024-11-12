@@ -9,8 +9,8 @@ export const signInSchema = z.object({
 
   password: z
     .string({ required_error: AUTH_VALIDATIONS.password.empty })
-    .min(6, { message: AUTH_VALIDATIONS.password.minLength(6) })
-    .max(16, { message: AUTH_VALIDATIONS.password.maxLength(16) })
+    .min(6, { message: AUTH_VALIDATIONS.password.minLength('6') })
+    .max(16, { message: AUTH_VALIDATIONS.password.maxLength('16') })
 })
 
 export const signUpSchema = z.object({
@@ -24,8 +24,8 @@ export const signUpSchema = z.object({
 
   password: z
     .string({ required_error: AUTH_VALIDATIONS.password.empty })
-    .min(6, { message: AUTH_VALIDATIONS.password.minLength(6) })
-    .max(16, { message: AUTH_VALIDATIONS.password.maxLength(16) })
+    .min(6, { message: AUTH_VALIDATIONS.password.minLength('6') })
+    .max(16, { message: AUTH_VALIDATIONS.password.maxLength('16') })
 })
 
 // export const loginSchema = Joi.object({

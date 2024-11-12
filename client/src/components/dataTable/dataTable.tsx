@@ -4,7 +4,10 @@ import {
   useReactTable,
   getFilteredRowModel,
   getSortedRowModel,
-  getPaginationRowModel
+  getPaginationRowModel,
+  Row,
+  ColumnDef,
+  PaginationState
 } from '@tanstack/react-table'
 import {
   Table,
@@ -21,96 +24,87 @@ import { useState } from 'react'
 import { CaretSortIcon } from '@radix-ui/react-icons'
 import { MdOutlineArrowDropDown, MdOutlineArrowDropUp } from 'react-icons/md'
 
-const Datatable = ({ columns, data = [], setSelectedRow, setOpenDialog }) => {
-  const [columnFilters, setColumnFilters] = useState([]) //column filters
-  const [sorting, setSorting] = useState([]) //sorting
-  const [pagination, setPagination] = useState({
+interface Data {
+  name: string;
+  age: number;
+}
+
+interface PropsDatatable {
+  columns: ColumnDef<Data>[];
+  data: Data[];
+  setSelectedRow: (row: Data) => void;
+  setOpenDialog: (isOpen: boolean) => void;
+}
+
+const Datatable = ({
+  columns,
+  data = [],
+  setSelectedRow,
+  setOpenDialog
+}: PropsDatatable) => {
+  const [columnFilters, setColumnFilters] = useState<any[]>([]) // Column filters
+  const [sorting, setSorting] = useState<any[]>([]) // Sorting
+  const [pagination, setPagination] = useState<PaginationState>({
     pageIndex: 0,
     pageSize: 20
-  }) //pagination
-  const [density, setDensity] = useState('lg')
+  }) // Pagination
 
-  const table = useReactTable({
-    data,
+  const table = useReactTable<Data>({
+    data, // Use `data` passed as prop
     columns,
+    state: {
+      columnFilters,
+      sorting,
+      pagination,
+    },
     getCoreRowModel: getCoreRowModel(),
-    //column filters
     onColumnFiltersChange: setColumnFilters,
-    getFilteredRowModel: getFilteredRowModel(), //client side filtering
-    // sorting
+    getFilteredRowModel: getFilteredRowModel(),
     onSortingChange: setSorting,
     getSortedRowModel: getSortedRowModel(),
-    // pagination
     getPaginationRowModel: getPaginationRowModel(),
     onPaginationChange: setPagination,
-
-    //state
-    state: {
-      columnFilters, //column filters
-      sorting, // sorting
-      pagination // pagination
-    }
   })
 
-  const handleDialog = row => {
+  const handleDialog = (row: Row<Data>) => {
     setSelectedRow(row.original)
     setOpenDialog(true)
   }
 
   return (
-    <div className='flex-1 max-w-full '>
+    <div className='flex-1 max-w-full'>
       <Table className='rounded-lg border max-h-[25vh] h-svh'>
         <TableHeader>
           {table.getHeaderGroups().map(headerGroup => (
             <TableRow key={headerGroup.id}>
-              {headerGroup.headers.map(header => {
-                return (
-                  <TableHead key={header.id} className='p-3'>
-                    {/* {header.isPlaceholder
-                      ? null
-                      : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext()
-                        )}
-                    {
-                      {
-                        asc: <CaretSortIcon className='w-4 h-3 ml-1' />,
-                        desc: <CaretSortIcon className='w-4 h-4 ml-2' />
-                      }[header.column.getIsSorted() ?? null]
-                    }
-                    {header.column.getCanFilter() ? (
-                      <div>
-                        <Filter column={header.column} />
-                      </div>
-                    ) : null} */}
-
-                    <div
-                      {...{
-                        className: header.column.getCanSort()
-                          ? 'cursor-pointer select-none'
-                          : '',
-                        onClick: header.column.getToggleSortingHandler()
-                      }}>
-                      {flexRender(
-                        header.column.columnDef.header,
-                        header.getContext()
-                      )}
-                      {{
-                        asc: <MdOutlineArrowDropUp className='inline-block' />,
-                        desc: (
-                          <MdOutlineArrowDropDown className='inline-block' />
-                        ),
-                        false: <CaretSortIcon className='inline-block' />
-                      }[header.column.getIsSorted()] ?? null}
+              {headerGroup.headers.map(header => (
+                <TableHead key={header.id} className='p-3'>
+                  <div
+                    {...{
+                      className: header.column.getCanSort()
+                        ? 'cursor-pointer select-none'
+                        : '',
+                      onClick: header.column.getToggleSortingHandler()
+                    }}>
+                    {flexRender(
+                      header.column.columnDef.header,
+                      header.getContext()
+                    )}
+                    {{
+                      asc: <MdOutlineArrowDropUp className='inline-block' />,
+                      desc: (
+                        <MdOutlineArrowDropDown className='inline-block' />
+                      ),
+                      false: <CaretSortIcon className='inline-block' />
+                    }[header.column.getIsSorted()] ?? null}
+                  </div>
+                  {header.column.getCanFilter() ? (
+                    <div className='pt-2'>
+                      <Filter column={header.column} table={table} />
                     </div>
-                    {header.column.getCanFilter() ? (
-                      <div className='pt-2'>
-                        <Filter column={header.column} table={table} />
-                      </div>
-                    ) : null}
-                  </TableHead>
-                )
-              })}
+                  ) : null}
+                </TableHead>
+              ))}
             </TableRow>
           ))}
         </TableHeader>
@@ -178,7 +172,7 @@ const Datatable = ({ columns, data = [], setSelectedRow, setOpenDialog }) => {
           | Go to page:
           <Input
             type='number'
-            min='1'
+            min='2'
             max={table.getPageCount()}
             defaultValue={table.getState().pagination.pageIndex + 1}
             onChange={e => {
@@ -205,7 +199,6 @@ const Datatable = ({ columns, data = [], setSelectedRow, setOpenDialog }) => {
         Showing {table.getRowModel().rows.length.toLocaleString()} of{' '}
         {table.getRowCount().toLocaleString()} Rows
       </div>
-      {/* <pre>{JSON.stringify(table.getState().pagination, null, 2)}</pre> */}
     </div>
   )
 }

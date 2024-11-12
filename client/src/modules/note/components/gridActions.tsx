@@ -10,7 +10,13 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { CiMenuKebab } from 'react-icons/ci'
 
-const GridActions = ({ row, onEdit, onDelete }) => {
+interface PropsGridActions {
+  row: string;
+  onEdit: ()=> void;
+  onDelete: ()=> void
+}
+
+const GridActions = ({ row, onEdit, onDelete }:PropsGridActions) => {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>

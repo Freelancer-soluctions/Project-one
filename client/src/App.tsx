@@ -1,10 +1,18 @@
 import { lazy } from 'react'
-import Layout from './components/layout'
-import ProtectedRoutes from './components/protectedRoutes/ProtectedRoutes'
+// import ProtectedRoutes from './components/protectedRoutes/ProtectedRoutes'
 import Home from './modules/home/pages/Home'
-import NotFound from './components/404/NotFound'
 import homeChildrenRoutes from './routes'
 import { createBrowserRouter, RouterProvider } from 'react-router-dom'
+import Layout from './components/layout'
+import NotFound from './components/404/NotFound'
+
+
+//Types page
+const SignIn = lazy(() => import('@/modules/auth/pages/SignIn'));
+const SignUp = lazy(() => import('@/modules/auth/pages/SignUp'));
+
+
+
 const App = () => {
   const router = createBrowserRouter([
     {
@@ -14,11 +22,11 @@ const App = () => {
         {
           // index: true,
           path: '/signIn',
-          Component: lazy(() => import('@/modules/auth/pages/SignIn'))
+          element: <SignIn/>
         },
         {
           path: '/signUp',
-          Component: lazy(() => import('@/modules/auth/pages/SignUp'))
+          element: <SignUp/>
         }
       ]
 
