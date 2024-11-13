@@ -17,12 +17,12 @@ import {
   TableHeader,
   TableRow
 } from '@/components/ui/table'
-import { Button } from '../ui/button'
 import { Input } from '../ui/input'
 import Filter from './Filter'
 import { useState } from 'react'
 import { CaretSortIcon } from '@radix-ui/react-icons'
 import { MdOutlineArrowDropDown, MdOutlineArrowDropUp } from 'react-icons/md'
+import { Button } from '../ui/button'
 
 interface Data {
   name: string;
@@ -34,6 +34,7 @@ interface PropsDatatable {
   data: Data[];
   setSelectedRow: (row: Data) => void;
   setOpenDialog: (isOpen: boolean) => void;
+  setSelectedRow2: React.Dispatch<React.SetStateAction<null>>;
 }
 
 const Datatable = ({
@@ -90,13 +91,13 @@ const Datatable = ({
                       header.column.columnDef.header,
                       header.getContext()
                     )}
-                    {{
-                      asc: <MdOutlineArrowDropUp className='inline-block' />,
-                      desc: (
-                        <MdOutlineArrowDropDown className='inline-block' />
-                      ),
-                      false: <CaretSortIcon className='inline-block' />
-                    }[header.column.getIsSorted()] ?? null}
+                   {header.column.getIsSorted() === 'asc' ? (
+                      <MdOutlineArrowDropUp className='inline-block' />
+                    ) : header.column.getIsSorted() === 'desc' ? (
+                      <MdOutlineArrowDropDown className='inline-block' />
+                    ) : (
+                      <CaretSortIcon className='inline-block' />
+                    )}
                   </div>
                   {header.column.getCanFilter() ? (
                     <div className='pt-2'>

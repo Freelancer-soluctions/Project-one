@@ -1,6 +1,6 @@
 // import { CaretSortIcon } from '@radix-ui/react-icons'
 // import { Button } from '@/components/ui/button'
-import { format, parseISO } from 'date-fns'
+import { format } from 'date-fns'
 
 const columnDefNews = [
   {
@@ -16,7 +16,7 @@ const columnDefNews = [
     //     </Button>
     //   )
     // },
-    cell: info => format(info.getValue(), 'dd/MM/yyyy')
+    cell: (info: { getValue: () => any }) => format(info.getValue(), 'dd/MM/yyyy')
     // formatISO( "yyyy-MM-dd'T'HH:mm:ssXX")
   },
   {
@@ -24,7 +24,7 @@ const columnDefNews = [
     header: 'Description',
     // sortUndefined: 'last', //force undefined values to the end
     // sortDescFirst: false, //first sort order will be ascending (nullable values can mess up auto detection of sort order)
-    cell: info => info.getValue()
+    cell: (info: { getValue: () => any }) => info.getValue()
   },
   {
     accessorKey: 'status.description',
@@ -41,7 +41,7 @@ const columnDefNews = [
   {
     accessorKey: 'closedOn',
     header: 'Closed On',
-    cell: info =>
+    cell: (info: { getValue: () => any }) =>
       info.getValue() ? format(info.getValue(), 'dd/MM/yyyy/hh:mm:s aaa') : ''
   }
 ]

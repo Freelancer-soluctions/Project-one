@@ -4,8 +4,11 @@ import { Input } from '@/components/ui/input'
 
 interface PropsDebouncedInput{
   value: string;
-  onChange : (value:string)=> void;
-  debounce:number
+  onChange : (value: string) => void
+  debounce?:number;
+  type?:any;
+  placeholder?:any
+  className?: string;
 }
 function DebouncedInput({
   value: initialValue,

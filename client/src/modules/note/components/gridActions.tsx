@@ -1,19 +1,12 @@
 import PropTypes from 'prop-types'
 import { Button } from '@/components/ui/button'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger
-} from '@/components/ui/dropdown-menu'
 import { CiMenuKebab } from 'react-icons/ci'
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@radix-ui/react-dropdown-menu';
 
 interface PropsGridActions {
-  row: string;
-  onEdit: ()=> void;
-  onDelete: ()=> void
+  row: any;
+  onEdit: (row:any)=> void;
+  onDelete: (row:any)=> void
 }
 
 const GridActions = ({ row, onEdit, onDelete }:PropsGridActions) => {

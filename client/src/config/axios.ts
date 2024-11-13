@@ -1,57 +1,83 @@
-import axios from 'axios'
-import store from '../redux/store'
-import { jwtDecode } from 'jwt-decode'
-import { refreshTokenFecth } from '../modules/auth/slice/authSlice'
+import axios, { Method } from 'axios';
+import store from '../redux/store';
+import { jwtDecode } from 'jwt-decode';
+import { refreshTokenFecth } from '../modules/auth/slice/authSlice';
 
-// Axios instance
+// Types for decoded JWT token
+interface DecodedToken {
+  exp: number;
+}
+
+// Types for AxiosBaseQuery parameters
+interface AxiosBaseQueryArgs {
+  url: string;
+  method: Method;
+  data?: any;
+  params?: Record<string, any>;
+  headers?: Record<string, string>;
+}
+
+interface AxiosBaseQueryResponse {
+  data?: any;
+  error?: {
+    status?: number;
+    data?: any;
+  };
+}
+
+// Axios instance for public requests
 export const axiosPublic = axios.create({
   baseURL: import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1',
-  withCredentials: true
-})
-// Axios instance
+  withCredentials: true,
+});
+
+// Axios instance for private requests
 export const axiosPrivate = axios.create({
   baseURL: import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1',
   headers: {
     'Content-Type': 'application/json',
-    // 'Authorization': store?.getState()?.auth?.user?.data.accessToken 
   },
-  withCredentials: true
-})
+  withCredentials: true,
+});
 
-// AxiosPrivate interceptor
+// AxiosPrivate interceptor to handle token refresh
 axiosPrivate.interceptors.request.use(
   async (config) => {
-    const user = store?.getState()?.auth?.user?.data
+    const user = store?.getState()?.auth?.user
 
-    const currentDate = new Date()
+    const currentDate = new Date();
+
     if (user?.accessToken) {
-      const decodedToken = jwtDecode(user?.accessToken)
-      if (decodedToken.exp * 1000 < currentDate.getTime()) {
-        await store.dispatch(refreshTokenFecth())
-        console.log('token save', store?.getState()?.auth?.user?.data.accessToken)
+      const decodedToken: DecodedToken = jwtDecode(user?.accessToken);
 
-        if (config?.headers) {
-          config.headers.Authorization = `Bearer ${
-            store?.getState()?.auth?.user?.data.accessToken
-          }`
+      // If token is expired, refresh the token
+      if (decodedToken.exp * 1000 < currentDate.getTime()) {
+        await store.dispatch(refreshTokenFecth());
+
+        // Update Authorization header with the new access token
+        const updatedUser = store?.getState()?.auth?.user
+        if (config?.headers && updatedUser?.accessToken) {
+          config.headers.Authorization = `Bearer ${updatedUser.accessToken}`;
         }
-      }else{ // temporal quitar este esl de aqui
+      } else {
+        // If token is still valid, set the Authorization header
         if (config?.headers) {
-        config.headers.Authorization = `Bearer ${
-          store?.getState()?.auth?.user?.data.accessToken
-        }`
-      }}
+          config.headers.Authorization = `Bearer ${user.accessToken}`;
+        }
+      }
     }
-    return config
+
+    return config;
   },
   (error) => {
-    return Promise.reject(error)
+    return Promise.reject(error);
   }
-)
-// axios basequery for redux tollkit and axiosPrivate
+);
+
+// Axios basequery for redux toolkit and axiosPrivate
 export const axiosPrivateBaseQuery =
   ({ baseUrl } = { baseUrl: '' }) =>
-  async ({ url, method, data, params, headers }) => {
+  async ({ url, method, data, params, headers }: AxiosBaseQueryArgs): Promise<AxiosBaseQueryResponse> => {
     try {
       const result = await axiosPrivate({
         url: baseUrl + url,
@@ -59,18 +85,19 @@ export const axiosPrivateBaseQuery =
         data,
         params,
         headers,
-      })
-      return { data: result.data }
+      });
+      return { data: result.data };
     } catch (axiosError) {
-      const err = axiosError
+      const err = axiosError as Error & { response?: { status?: number; data?: any } };
       return {
         error: {
           status: err.response?.status,
           data: err.response?.data || err.message,
         },
-      }
+      };
     }
-  }
+  };
+
 
 // import { getLocalStorage } from '../utils/utils'
 

@@ -2,7 +2,12 @@ import { parseISO } from 'date-fns'
 import { format, toZonedTime } from 'date-fns-tz'
 import GridActions from './gridActions'
 
-const columns = ({ onDelete, onEdit }) => [
+
+interface PropsColumn {
+  onEdit: (row:any)=> void;
+  onDelete: (row:any)=> void
+}
+const columns = ({ onDelete, onEdit }:PropsColumn) => [
   {
     accessorKey: 'note',
     header: 'Note'
@@ -10,7 +15,7 @@ const columns = ({ onDelete, onEdit }) => [
   {
     accessorKey: 'status',
     header: 'Status',
-    cell: ({ row }) => {
+    cell: ({ row }:any) => {
       const { description } = row.getValue('status')
       return <span className='text-right'>{description}</span>
     }
@@ -18,7 +23,7 @@ const columns = ({ onDelete, onEdit }) => [
   {
     accessorKey: 'userNoteClosed',
     header: 'Closed By',
-    cell: ({ row }) => {
+    cell: ({ row }:any) => {
       const { email } = row.getValue('userNoteClosed')
       return <span className='text-right'>{email}</span>
     }
@@ -26,7 +31,7 @@ const columns = ({ onDelete, onEdit }) => [
   {
     accessorKey: 'userNoteCreated',
     header: 'Created By',
-    cell: ({ row }) => {
+    cell: ({ row }:any) => {
       const { email } = row.getValue('userNoteCreated')
       return <span className='text-right'>{email}</span>
     }
@@ -34,7 +39,7 @@ const columns = ({ onDelete, onEdit }) => [
   {
     accessorKey: 'createdOn',
     header: 'Created On',
-    cell: ({ row }) => {
+    cell: ({ row }:any) => {
       const date = row.getValue('createdOn')
       return (
         <span className='text-right'>
@@ -48,7 +53,7 @@ const columns = ({ onDelete, onEdit }) => [
   {
     accessorKey: 'closedOn',
     header: 'Closed On',
-    cell: ({ row }) => {
+    cell: ({ row }:any) => {
       const date = row.getValue('closedOn')
       return (
         <span className='text-right'>
@@ -61,7 +66,7 @@ const columns = ({ onDelete, onEdit }) => [
   },
   {
     id: 'actions',
-    cell: ({ row }) => {
+    cell: ({ row }:any) => {
       return <GridActions row={row} onDelete={onDelete} onEdit={onEdit} />
     }
   }

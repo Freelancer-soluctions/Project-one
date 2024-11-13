@@ -6,28 +6,34 @@ const url = 'note'
 const config = {
   headers: { 'content-type': 'multipart/form-data' }
 }
-const useCreateNoteMutation = onOpenChange => {
+
+interface Note {
+  id: number | string;
+  [key: string]: any; // Puedes especificar otros campos según la estructura de tus notas
+}
+
+const useCreateNoteMutation = (onOpenChange: { (): void; (arg0: boolean): void }) => {
   const queryClient = new QueryClient()
 
   const { toast } = useToast()
 
-  const onMutate = async variables => {
+  const onMutate = async (variables: Iterable<readonly [PropertyKey, any]>) => {
     await queryClient.cancelQueries({ queryKey: ['notes'] })
-    const optimisticNote = { id: Date.now(), ...Object.fromEntries(variables) }
-    queryClient.setQueryData(['notes'], oldData => {
+    const optimisticNote:Note = { id: Date.now(), ...Object.fromEntries(variables) }
+    queryClient.setQueryData<Note[]>(['notes'], oldData => {
       console.log(oldData, 'ojito')
       return oldData ? [...oldData, optimisticNote] : [optimisticNote]
     })
     return { optimisticNote }
   }
 
-  const onCreateSuccess = (result, variables, context) => {
+  const onCreateSuccess = (result: { data: any }, variables: any, context: { optimisticNote: { id: any } }) => {
     const { data: createdNote } = result
     console.log(createdNote, context.optimisticNote.id)
-    queryClient.setQueryData(['notes'], oldData => {
+    queryClient.setQueryData<Note[]>(['notes'], oldData => {
       console.log(oldData, 'oldData')
       if (!oldData) return [createdNote]
-      return oldData.map(note => {
+      return oldData.map((note: { id: any }) => {
         console.log(note, 'notemap')
         return note.id === context.optimisticNote.id ? createdNote : note
       })
@@ -38,9 +44,9 @@ const useCreateNoteMutation = onOpenChange => {
     onOpenChange(false)
   }
 
-  const onRequestError = (error, variables, context) => {
-    queryClient.setQueryData(['notes'], oldData =>
-      oldData.filter(note => note.id !== context.optimisticNote.id)
+  const onRequestError = (error: any, _variables: any, context: { optimisticNote: { id: any } }) => {
+    queryClient.setQueryData<unknown>(['notes'], (oldData: any[]) =>
+      oldData.filter((note: { id: any }) => note.id !== context.optimisticNote.id)
     )
 
     toast({
@@ -54,7 +60,8 @@ const useCreateNoteMutation = onOpenChange => {
     mutationFn: newNote => postMethod({ url, body: newNote, config }),
     onMutate,
     onSuccess: onCreateSuccess,
-    onError: onRequestError
+    // Arreglar
+    // onError: onRequestError
   })
 }
 

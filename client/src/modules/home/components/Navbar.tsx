@@ -2,8 +2,15 @@ import { Button } from '@/components/ui/button'
 import { Link } from 'react-router-dom'
 import { AiOutlineMenu } from 'react-icons/ai'
 import { SiAnalogue } from 'react-icons/si'
+import { useState } from 'react'
 
 const NavBar = () => {
+
+  const [isNavOpen, setIsNavOpen] = useState(false);
+
+  const toggleNav = () => {
+    setIsNavOpen(!isNavOpen);
+  };
   return (
     <>
       <div className='flex items-center gap-4'>
@@ -11,16 +18,15 @@ const NavBar = () => {
           variant='ghost'
           size='icon'
           className='lg:hidden'
-          onClick={() => {
-            document.querySelector('.lg\\:flex').classList.toggle('hidden')
-          }}>
+          onClick={toggleNav}
+          >
           <AiOutlineMenu className='w-6 h-6' />
           <span className='sr-only'>Toggle navigation</span>
         </Button>
         <Link
-          href='#'
+          to="/dashboard"
           className='flex items-center gap-2 font-bold'
-          prefetch={false}>
+          >
           <SiAnalogue className='w-6 h-6' />
           <span className='sr-only'>Dashboard</span>
         </Link>

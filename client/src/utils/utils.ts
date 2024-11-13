@@ -96,7 +96,7 @@
  * @returns {object} value numerico, formated valor con puntos de separación
  */
 
-export function ParseNumber (value) {
+export function ParseNumber (value: string) {
   return {
     value: Number(value.replace(/\D/g, '')),
     formated: value.replace(/\B(?=(\d{3})+(?!\d))/g, '.')
@@ -109,7 +109,7 @@ export function ParseNumber (value) {
  * @returns {Array} objeto con propiedades id y label
  */
 
-export function ConvertToList (data) {
+export function ConvertToList (data: any[]) {
   return [
     ...data.map((e) => {
       return {
@@ -129,7 +129,7 @@ export function ConvertToList (data) {
  * @param {Key} token header
  * @returns {item} token en formato json
  */
-export const getLocalStorage = (key) => {
+export const getLocalStorage = (key: string) => {
   const item = localStorage.getItem(key)
 
   if (!item) return
@@ -149,28 +149,30 @@ export const getLocalStorage = (key) => {
  * @returns {string} las queries filtradas y actualizadas
  */
 
-export function getURLQueries (property, value) {
-  const url = new URLSearchParams(window.location.search)
-  const values = {
+export function getURLQueries(property: string, value: string | number | null): string | null {
+  const url = new URLSearchParams(window.location.search);
+  const values: Record<string, string | null> = {
     search: url.get('search'),
     page: url.get('page'),
     limit: url.get('limit'),
-    discount: url.get('discount')
-  }
+    discount: url.get('discount'),
+  };
 
   if (property) {
-    values[property] = value
+    values[property] = value?.toString() ?? null;
   }
 
   for (const key in values) {
     if (values[key] === null) {
-      delete values[key]
+      delete values[key];
     }
   }
-  return new URLSearchParams(values).toString() ? '?' + new URLSearchParams(values).toString() : null
+
+  const queryString = new URLSearchParams(values as Record<string, string>).toString();
+  return queryString ? '?' + queryString : null;
 }
 
-export function getSpecificQuery (property) {
+export function getSpecificQuery (property: string) {
   const url = new URLSearchParams(window.location.search)
   const value = url.get(property) || ''
 

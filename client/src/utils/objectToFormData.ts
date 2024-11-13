@@ -1,4 +1,4 @@
-const objectToFormData = data => {
+const objectToFormData = (data:any) => {
   const formData = new FormData()
   Object.keys(data).forEach(key => {
     if (Array.isArray(data[key])) {

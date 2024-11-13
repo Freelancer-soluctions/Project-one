@@ -1,14 +1,13 @@
-import { Column, Table } from '@tanstack/react-table'
 import DebouncedInput from './DebouncedInput' // need it to column filtering
 
 
 interface PropsFilter{
-  colum: Column<any[], unknown>
-  table:Table<any>
+  column: any
+  table?: any;
 }
 
 
-function Filter({ column }:{column:any}) {
+function Filter({column}:PropsFilter) {
   const columnFilterValue = column.getFilterValue()
   const { filterVariant } = column.columnDef.meta ?? {}
 
@@ -19,14 +18,14 @@ function Filter({ column }:{column:any}) {
         <DebouncedInput
           type='number'
           value={columnFilterValue?.[0] ?? ''}
-          onChange={value => column.setFilterValue(old => [value, old?.[1]])}
+          onChange={value => column.setFilterValue((old:number[]) => [value, old?.[1]])}
           placeholder={`Min`}
           className='w-24 border rounded shadow'
         />
         <DebouncedInput
           type='number'
           value={columnFilterValue?.[1] ?? ''}
-          onChange={value => column.setFilterValue(old => [old?.[0], value])}
+          onChange={value => column.setFilterValue((old:number[]) => [old?.[0], value])}
           placeholder={`Max`}
           className='w-24 border rounded shadow'
         />

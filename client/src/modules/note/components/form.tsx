@@ -8,7 +8,6 @@ import {
   FormLabel,
   FormMessage
 } from '@/components/ui/form'
-import { Input } from '@/components/ui/input'
 import {
   Popover,
   PopoverContent,
@@ -22,21 +21,60 @@ import {
   SelectValue
 } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
-import validateResolver from '@/lib/avjInstance'
+// import validateResolver from '@/lib/avjInstance'
 import { cn } from '@/lib/utils'
 import objectToFormData from '@/utils/objectToFormData'
 import { format } from 'date-fns'
 import PropTypes from 'prop-types'
 import { useEffect } from 'react'
-import { useForm } from 'react-hook-form'
+import { SubmitHandler, useForm } from 'react-hook-form'
 import useCreateNoteMutation from '../hooks/useCreateNoteMutation'
 import defaultValues from '../utils/defaultValues'
 import NoteSchema from '../utils/schema'
 import useUpdateNoteMutation from '../hooks/useUpdateMutation'
+import { Input } from '@/components/ui/input'
 
 interface PropsNoteForm{
-  note:string;
+  note?: Note;
   onOpenChange: ()=> void
+}
+
+interface Note {
+  id: number;
+  closedOn: string | Date;
+  createdOn: string | Date;
+  closedBy: number;
+  createdBy: number;
+  document?: string;
+  statusId: number;
+  note: string;
+}
+
+// interface PropsNoteForm {
+//   note?: Note
+//   onOpenChange: () => void
+// }
+
+
+
+interface FormValues {
+  closedOn: any;
+  createdOn: any;
+  closedBy: number;
+  createdBy: number;
+  statusId: number;
+  note: string;
+  document?: File; 
+}
+
+interface NoteFormValues {
+  note: string;
+  document?: File | null; 
+  statusId: number; 
+  createdBy: number;
+  closedBy?: number; 
+  createdOn: Date; 
+  closedOn?: Date;
 }
 
 const NoteForm = ({ note, onOpenChange }:PropsNoteForm) => {
@@ -71,19 +109,30 @@ const NoteForm = ({ note, onOpenChange }:PropsNoteForm) => {
       name: 'name 3'
     }
   ]
-  const onSubmit = values => {
-    const formValues = objectToFormData(values)
+  const onSubmit: SubmitHandler<NoteFormValues> = (values) => {
+    // Crear el objeto `formValues` que coincida con `NoteFormValues`
+    const formValues: NoteFormValues = {
+      note: values.note,
+      statusId: values.statusId,
+      createdBy: values.createdBy,
+      createdOn: new Date(values.createdOn),  // Asegúrate de que sea un Date
+      closedBy: values.closedBy,
+      closedOn: values.closedOn,
+      document: values.document,
+    };
     if (!note) {
-      useCreateMutation.mutate(formValues)
+      // useCreateMutation.mutate(formValues); // Crear nueva nota
     } else {
-      useUpdateMutation.mutate({ formValues, id: note.id })
+      useUpdateMutation.mutate({ formValues, id: note.id }); // Actualizar nota existente
     }
-  }
-  const form = useForm({
-    resolver: async data => {
-      return validateResolver(NoteSchema, data)
-    },
-    defaultValues
+  };
+
+  const form = useForm<FormValues>({
+    resolver: async (data) => ({
+      values: data,
+      errors: {}
+    }),
+    defaultValues:defaultValues as Record<string, string | number>
   })
 
   useEffect(() => {
@@ -92,17 +141,20 @@ const NoteForm = ({ note, onOpenChange }:PropsNoteForm) => {
         closedOn,
         createdOn,
         closedBy,
-        createdBy,
+        createdBy:createdById,
         document,
         statusId,
         note: description
-      } = note
-      form.setValue('closedOn', new Date(closedOn))
-      form.setValue('createdOn', new Date(createdOn))
-      form.setValue('closedBy', closedBy)
-      form.setValue('createdBy', createdBy)
-      form.setValue('statusId', statusId)
-      form.setValue('note', description)
+      } = note;
+      const closedOnDate = closedOn instanceof Date ? format(closedOn, 'yyyy-MM-dd') : format(new Date(closedOn), 'yyyy-MM-dd');
+      const createdOnDate = createdOn instanceof Date ? format(createdOn, 'yyyy-MM-dd') : format(new Date(createdOn), 'yyyy-MM-dd');
+
+      form.setValue('closedOn', closedOnDate);
+      form.setValue('createdOn', createdOnDate);
+      form.setValue('closedBy', closedBy); 
+      form.setValue('createdBy', createdById);
+      form.setValue('statusId', statusId); 
+      form.setValue('note', description);
       if (document) {
         const file = new File(['document'], document)
         form.setValue('document', file)
@@ -269,7 +321,7 @@ const NoteForm = ({ note, onOpenChange }:PropsNoteForm) => {
                     <PopoverContent className='w-auto p-0' align='start'>
                       <Calendar
                         mode='single'
-                        selected={field.value}
+                        // selected={field.value}
                         onSelect={field.onChange}
                         disabled={date =>
                           date > new Date() || date < new Date('1900-01-01')
@@ -309,7 +361,7 @@ const NoteForm = ({ note, onOpenChange }:PropsNoteForm) => {
                     <PopoverContent className='w-auto p-0' align='start'>
                       <Calendar
                         mode='single'
-                        selected={field.value}
+                        // selected={field.value}
                         onSelect={field.onChange}
                         disabled={date =>
                           date > new Date() || date < new Date('1900-01-01')

@@ -16,16 +16,16 @@ import {
   PopoverContent,
   PopoverTrigger
 } from '@/components/ui/popover'
-import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Calendar } from '@/components/ui/calendar'
 import { CalendarIcon } from '@radix-ui/react-icons'
 import { cn } from '@/lib/utils'
 import { format } from 'date-fns'
+import { Input } from '@/components/ui/input'
 
 const SignUpForm = () => {
   const form = useForm({ resolver: zodResolver(signUpSchema) })
-  const onSubmit = data => {
+  const onSubmit = (data:any) => {
     console.log(data)
   }
   return (
@@ -55,10 +55,10 @@ const SignUpForm = () => {
                     <FormControl>
                       <Input
                         id='fname'
+                        {...field}
                         name='fname'
                         placeholder='Please enter your first name.'
                         type='text'
-                        {...field}
                         value={field.value ?? ''}
                       />
                     </FormControl>
@@ -78,10 +78,10 @@ const SignUpForm = () => {
                     <FormControl>
                       <Input
                         id='lname'
+                        {...field}
                         name='lname'
                         placeholder='Please enter your last name.'
                         type='text'
-                        {...field}
                         value={field.value ?? ''}
                       />
                     </FormControl>
@@ -101,10 +101,10 @@ const SignUpForm = () => {
                     <FormControl>
                       <Input
                         id='email'
+                        {...field}
                         name='email'
                         placeholder='m@example.com.'
                         type='email'
-                        {...field}
                         value={field.value ?? ''}
                       />
                     </FormControl>
@@ -124,11 +124,11 @@ const SignUpForm = () => {
                     <FormControl>
                       <Input
                         id='password'
+                        {...field}
                         name='password'
                         placeholder='Type your password.'
                         // autoComplete="current-password"
                         type='password'
-                        {...field}
                       />
                     </FormControl>
                     <FormMessage />
@@ -146,11 +146,11 @@ const SignUpForm = () => {
                     <FormControl>
                       <Input
                         id='rpassword'
+                        {...field}
                         name='rpassword'
                         placeholder='Confirm password.'
                         // autoComplete="current-password"
                         type='password'
-                        {...field}
                       />
                     </FormControl>
                     <FormMessage />
@@ -203,7 +203,9 @@ const SignUpForm = () => {
 
             <div className='flex items-center justify-between'>
               <p>Remind me</p>
-              <Link className='text-sm font-medium text-gray-900 underline underline-offset-4 hover:text-gray-700 dark:text-gray-50 dark:hover:text-gray-300'>
+              <Link 
+                to="/remind me"
+                className='text-sm font-medium text-gray-900 underline underline-offset-4 hover:text-gray-700 dark:text-gray-50 dark:hover:text-gray-300'>
                 Forgot password?
               </Link>
             </div>
@@ -219,7 +221,9 @@ const SignUpForm = () => {
       <div className='text-sm text-center text-gray-500 dark:text-gray-400'>
         <p>
           Do not have an account?{' '}
-          <Link className='font-medium text-gray-900 underline underline-offset-4 hover:text-gray-700 dark:text-gray-50 dark:hover:text-gray-300'>
+          <Link 
+            to="/crate-count"
+            className='font-medium text-gray-900 underline underline-offset-4 hover:text-gray-700 dark:text-gray-50 dark:hover:text-gray-300'>
             Register
           </Link>
         </p>

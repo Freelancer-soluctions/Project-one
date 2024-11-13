@@ -22,7 +22,7 @@ const useDeleteNoteMutation = () => {
   }
 
   const deleteMutation = useMutation({
-    mutationFn: id => deleteMethod({ url: `${url}/${id}` }),
+    mutationFn: (id:number | string):Promise<void> => deleteMethod({ url: `${url}/${id}` , config:{}}),
     onSuccess: onUpdateSuccess,
     onError: onRequestError
   })

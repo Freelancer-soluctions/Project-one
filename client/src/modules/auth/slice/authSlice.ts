@@ -1,82 +1,84 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
 import { SignInApi, RefreshTokenApi } from '@/modules/auth/api/auth'
 
-// export const { guardarMiNombre } = origenSlice.actions // Cuando se trabaja con slice se obtine actions que hace referencia a los reducers, pero estas son acciones
-// pluginJsxRuntime
-// // Extract the action creators object and the reducer
-// const { actions, reducer } = postsSlice
-// // Extract and export each action creator by name
-// export const { createPost, updatePost, deletePost } = actions
-// // Export the reducer, either as a default or named export
-// export default reducer
+interface SignInArgs {
+  email: string
+  password: string
+}
 
-// Action
-// export const fetchTodos = createAsyncThunk('fetchTodos', async () => {
-//   const response = await fetch('https://jsonplaceholder.typicode.com/todos')
-//   return response.json()
-// })
+interface User {
+  error?: any
+  accessToken: string
+  // otros campos
+}
 
-// variation 1
-export const signInFetch = createAsyncThunk('auth/signIn', async (args, { rejectWithValue }) => {
-  try {
-    const response = await SignInApi(args)
-    return response.data
-  } catch (error) {
-    return rejectWithValue(error.response.data)
+interface AuthState {
+  user: User | null
+  isLoading: boolean
+  isError: boolean
+  isAuth: boolean
+  errorMessage: string
+}
+
+// Tipos para la respuesta de SignInApi
+interface SignInResponse {
+  accessToken: string;
+  error?: any;
+  // otros campos de la respuesta
+}
+
+// Tipos para la respuesta de RefreshTokenApi
+interface RefreshTokenResponse {
+  accessToken: string
+  data: {
+    accessToken: string;
+  };
+}
+
+const initialState: AuthState = {
+  user: null,
+  isLoading: false,
+  isError: false,
+  isAuth: false,
+  errorMessage: '',
+}
+
+// Acción de login
+export const signInFetch = createAsyncThunk<SignInResponse, SignInArgs>(
+  'auth/signIn',
+  async (args, { rejectWithValue }) => {
+    try {
+      const response = await SignInApi(args)
+      return response.data // Asegúrate de que esta respuesta coincida con SignInResponse
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data || error.message)
+    }
   }
-})
+)
 
-// export const newsFetch = createAsyncThunk('news', async (args, { rejectWithValue }) => {
-//   try {
-//     const response = await newsApi(args)
-//     return response.data
-//   } catch (error) {
-//     return rejectWithValue(error.response.data)
-//   }
-// })
-
-export const refreshTokenFecth = createAsyncThunk('auth/refresh-token', async (args, { rejectWithValue }) => {
-  try {
-    const response = await RefreshTokenApi()
-    return response.data
-  } catch (error) {
-    return rejectWithValue(error.response.data)
+// Acción de refresh de token
+export const refreshTokenFecth = createAsyncThunk<RefreshTokenResponse, void>(
+  'auth/refresh-token',
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await RefreshTokenApi()
+      return response.data // Asegúrate de que esta respuesta coincida con RefreshTokenResponse
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data || error.message)
+    }
   }
-})
-
-// Variation 2
-// export const signInFetch = createAsyncThunk('auth/signIn', async (_, { getState, rejectWithValue }) => {
-//   try {
-//     const state = getState()
-//     console.log('hola state', state)
-//     const res = await SignInApi({
-//       username: state.auth.username,
-//       password: state.auth.password
-//     })
-
-//     return res.data
-//   } catch (error) {
-//     return rejectWithValue(error.response.data)
-//   }
-// })
+)
 
 const authSlice = createSlice({
   name: 'auth',
-  initialState: {
-    isLoading: false,
-    user: null,
-    isError: false,
-    isAuth:false,
-    errorMessage:''
-  },
+  initialState,
   reducers: {
-    updateAuthData (state, action) {
+    updateAuthData(state, action) {
       state.user = action.payload
-    }
+    },
   },
   extraReducers: (builder) => {
-    // sign up
-    builder.addCase(signInFetch.pending, (state, action) => {
+    builder.addCase(signInFetch.pending, (state) => {
       state.isLoading = true
       state.isError = false
       state.isAuth = false
@@ -85,35 +87,35 @@ const authSlice = createSlice({
       state.isLoading = false
       state.isError = false
       state.isAuth = true
-      state.user = action.payload
+      state.user = {
+        accessToken:action.payload.accessToken
+      }
     })
     builder.addCase(signInFetch.rejected, (state, action) => {
       console.log('Error', action.error.message)
-      // console.log('Error payload', action.payload.error)
       state.isError = true
       state.isAuth = false
       state.isLoading = false
     })
-    
-    // refresh
-    builder.addCase(refreshTokenFecth.pending, (state, action) => {
+
+    builder.addCase(refreshTokenFecth.pending, (state) => {
       state.isLoading = true
       state.isError = false
     })
     builder.addCase(refreshTokenFecth.fulfilled, (state, action) => {
       state.isLoading = false
       state.isError = false
-      state.user.data.accessToken = action.payload.data.accessToken
-      console.log('new-accesst store', action.payload.data.accessToken)
+      if (state.user) {
+        state.user.accessToken = action.payload.accessToken
+      }
+      console.log('new-access-token store', action.payload.accessToken)
     })
     builder.addCase(refreshTokenFecth.rejected, (state, action) => {
       console.log('Error', action.error.message)
-      console.log('Error payload', action.payload.error)
       state.isError = true
     })
-  }
+  },
 })
 
 export const { updateAuthData } = authSlice.actions
-
 export default authSlice.reducer

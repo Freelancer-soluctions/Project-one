@@ -16,17 +16,21 @@ import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import Spinner from '../../../components/loader/Spinner'
 import { useEffect } from 'react'
+import { AppDispatch, RootState } from '@/redux/store'
+
 
 const SignInForm = () => {
   const navigate = useNavigate()
-  const dispatch = useDispatch()
+  const dispatch = useDispatch<AppDispatch>()
   // const state = useSelector(state => state) todos los estados
-  const { user, isError, isLoading } = useSelector(state => state.auth)
+  const { user, isError, isLoading } = useSelector((state:RootState) => state.auth)
 
   const form = useForm({ resolver: zodResolver(signInSchema) })
 
-  const onSubmit = ({ email, password }:{email:string, password:string}) => {
-    dispatch(signInFetch({ email, password }))
+  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    const { email, password } = form.getValues()  
+    dispatch(signInFetch({ email, password }))  
   }
 
   useEffect(() => {
@@ -46,6 +50,7 @@ const SignInForm = () => {
   const checkState = () => {
     console.log('newSate', user)
   }
+
   return (
     <>
       <div className='text-center'>
@@ -61,7 +66,7 @@ const SignInForm = () => {
             action=''
             id='profile-info-form'
             noValidate
-            onSubmit={form.handleSubmit(onSubmit)}
+            onSubmit={handleSubmit}
             className='w-full p-10 space-y-5 '>
             <FormField
               control={form.control}
@@ -71,16 +76,15 @@ const SignInForm = () => {
                   <FormItem>
                     <FormLabel>Email</FormLabel>
                     <FormControl>
-                      <Input
-                        id='email'
-                        name='email'
-                        placeholder='m@example.com'
-                        type='email'
-                        autoComplete='false'
-                        // onChange={handleChangeEmail(event)}
-                        {...field}
-                        value={field.value ?? ''}
-                      />
+                    <Input
+                      id="email"
+                      {...field}
+                      name={field.name || 'email'}
+                      placeholder="m@example.com"
+                      type="email"
+                      autoComplete="false"
+                      value={field.value ?? ''}
+                    />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -98,11 +102,11 @@ const SignInForm = () => {
                     <FormControl>
                       <Input
                         id='password'
+                        {...field}
                         name='password'
                         placeholder='Type your password'
                         autoComplete='current-password'
                         type='password'
-                        {...field}
                       />
                     </FormControl>
                     <FormMessage />
@@ -112,7 +116,9 @@ const SignInForm = () => {
             />
             <div className='flex items-center justify-between'>
               <p>Remind me</p>
-              <Link className='text-sm font-medium text-gray-900 underline underline-offset-4 hover:text-gray-700 dark:text-gray-50 dark:hover:text-gray-300'>
+              <Link 
+                to="/reset-password"
+                className='text-sm font-medium text-gray-900 underline underline-offset-4 hover:text-gray-700 dark:text-gray-50 dark:hover:text-gray-300'>
                 Forgot password?
               </Link>
             </div>
