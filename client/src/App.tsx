@@ -45,8 +45,9 @@ const App = () => {
     {
       path: '/*',
       element: <NotFound />
-    }
-  ])
+    },
+  ], { future: { v7_relativeSplatPath: true } }
+  )
 
   return <RouterProvider router={router} />
 }

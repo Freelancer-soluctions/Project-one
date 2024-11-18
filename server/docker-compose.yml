@@ -25,4 +25,6 @@ services:
       - ./db/pgadmin:/var/lib/pgadmin
     ports:
       - 8080:80
+    depends_on:
+      - db
       

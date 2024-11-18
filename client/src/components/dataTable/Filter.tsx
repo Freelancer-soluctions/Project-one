@@ -1,4 +1,4 @@
-import DebouncedInput from './DebouncedInput' // need it to column filtering
+import DebouncedInput from './DebouncedInput'
 
 
 interface PropsFilter{
