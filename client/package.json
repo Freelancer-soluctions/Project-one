@@ -15,7 +15,7 @@
     "preview": "vite preview",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",
-    "vitest" : "vitest --ui"
+    "vitest": "vitest --ui"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.1",
