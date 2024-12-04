@@ -1,3 +1,5 @@
 Instalar prettier en back
 Pruebas unitarias
 Pruebas de integracion
+Responder al cliente con una página de error personalizada (Public path desde el servidor)
+Dokerizacion

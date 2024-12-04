@@ -1,7 +1,7 @@
 import { startServer, stopServer } from '../../test-server'
 import request from 'supertest'
-import prisma from '../../../config/db'
-import { createToken } from '../../../utils/jwt/createToken'
+import prisma from '../../../src/config/db'
+import { createToken } from '../../../src/utils/jwt/createToken'
 
 describe('Role endpoint', () => {
   let baseUrl // La URL base del servidor de pruebas

@@ -9,5 +9,7 @@ const server = app.listen(PORT, () => {
 })
 
 // keep alive
-server.keepAliveTimeout = (60 * 1000) + 1000
-server.headersTimeout = (60 * 1000) + 2000
+// Establece el tiempo en milisegundos que el servidor mantendrá una conexión abierta sin actividad
+server.keepAliveTimeout = (60 * 1000) + 1000 // 61 segundos
+// Establece el tiempo máximo para recibir todos los encabezados antes de cerrar la conexión
+server.headersTimeout = (60 * 1000) + 2000 // 62 segundos

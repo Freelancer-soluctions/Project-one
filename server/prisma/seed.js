@@ -1,5 +1,5 @@
-import prisma from '../config/db.js'
-import { encryptPassword } from '../utils/bcrypt/encrypt.js'
+import prisma from '../src/config/db.js'
+import { encryptPassword } from '../src/utils/bcrypt/encrypt.js'
 
 const roles = [
   {
