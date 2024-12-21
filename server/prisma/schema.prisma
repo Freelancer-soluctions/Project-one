@@ -7,93 +7,108 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-
-model User {
-  id                   Int        @id @default(autoincrement())
-  email                String     @unique @db.VarChar(128)
-  name                 String     @db.VarChar(80)
-  startDate            DateTime   @db.Timestamp(3)
-  lastUpdatedOn        DateTime   @db.Timestamp(3)
-  lastUpdatedBy        DateTime   @db.Timestamp(3)
-  socialSecurity       String     @db.VarChar(9)
-  telephone            String     @db.VarChar(13)
-  birthday             DateTime   @db.Timestamp()
-  zipcode              String     @db.VarChar(5)
-  state                String     @db.VarChar(50)
-  city                 String     @db.VarChar(50)
-  address              String     @db.VarChar(250)
-  isAdmin              Boolean?   @default(false)
-  isManager            Boolean?   @default(false)
-  accessNews           Boolean?   @default(false)
-  accessConfiguration  Boolean?   @default(false)
-  document             String
-  documentId           String
-  notesCreated         Note[]     @relation("userNoteCreated")
-  notesClosed          Note[]     @relation("userNoteClosed")
-  newsCreated          News[]     @relation("userNewsCreated")
-  newsClosed           News[]     @relation("userNewsClosed")
-  status               UserStatus @relation(fields: [statusId], references: [id])
-  statusId             Int
+model users {
+  id             Int         @id @default(autoincrement())
+  name           String      @db.VarChar(100)
+  email          String      @unique @db.VarChar(254)
+  password       String      @db.VarChar(100)
+  address        String?     @db.VarChar(250)
+  birthday       DateTime    @db.Timestamp(3)
+  city           String?     @db.VarChar(35)
+  isAdmin        Boolean?    @default(false)
+  picture        String?
+  document       String?
+  // documentId    String? // es factible este campo ??
+  lastUpdatedBy  Int
+  lastUpdatedOn  DateTime?   @db.Timestamp(3)
+  roleId         Int
+  roles          roles       @relation(fields: [roleId], references: [id])
+  socialSecurity String      @db.VarChar(9)
+  startDate      DateTime    @db.Timestamp(3)
+  state          String      @db.VarChar(50)
+  statusId       Int
+  status         userStatus  @relation(fields: [statusId], references: [id])
+  telephone      String      @db.VarChar(15)
+  zipcode        String      @db.VarChar(9)
+  refreshToken   String?     @db.VarChar(200)
+  userPermitId   Int
+  userPermits    userPermits @relation(fields: [userPermitId], references: [id])
+  newsClosed     news[]      @relation("userNewsClosed")
+  newsCreated    news[]      @relation("userNewsCreated")
+  notesClosed    notes[]     @relation("userNoteClosed")
+  notesCreated   notes[]     @relation("userNoteCreated")
 }
 
-
-model UserStatus {
-  id           Int    @id @default(autoincrement())
-  users        User[]
-  description  String @unique @db.VarChar(8)
+model userPermits {
+  id                  Int      @id @default(autoincrement())
+  accessConfiguration Boolean? @default(false)
+  accessNews          Boolean? @default(false)
+  users               users[]
 }
 
-model Note {
-  id               Int        @id @default(autoincrement())
-  note             String     @db.VarChar(2000)
-  status           NoteStatus @relation(fields: [statusId], references: [id])
-  statusId         Int
-  userNoteCreated  User       @relation("userNoteCreated",fields: [createdBy], references: [id])
-  createdBy        Int
-  userNoteClosed   User       @relation("userNoteClosed",fields: [closedBy], references: [id])
-  closedBy         Int
-  createdAt        DateTime   @default(now()) @db.Timestamp(3)
-  closedAt         DateTime   @db.Timestamp(3)
-  document         String?
-  documentId       String?
+model roles {
+  id          Int     @id @default(autoincrement())
+  code        String  @unique @db.VarChar(3)
+  description String  @unique @db.VarChar(50)
+  users       users[]
 }
 
-
-model NoteStatus {
-  id           Int    @id @default(autoincrement())
-  notes        Note[]
-  description  String @unique @db.VarChar(10)
-
+model userStatus {
+  id          Int     @id @default(autoincrement())
+  code        String  @unique @db.VarChar(3)
+  description String  @unique @db.VarChar(8)
+  users       users[]
 }
 
-model NewsStatus {
-  id           Int    @id @default(autoincrement())
-  news         News[]
-  description  String @unique @db.VarChar(10)
-}
-
-
-model News {
+model notes {
   id              Int        @id @default(autoincrement())
-  description     String     @db.VarChar(400)
-  status          NewsStatus @relation(fields: [statusId], references: [id])
-  statusId        Int
-  questions       Question[]
-  userNewsCreated User       @relation("userNewsCreated",fields: [createdBy], references: [id])
-  createdBy       Int
-  userNewsClosed  User       @relation("userNewsClosed",fields: [closedBy], references: [id])
-  closedBy        Int
-  createdAt       DateTime   @default(now()) @db.Timestamp(3)
-  closedAt        DateTime   @db.Timestamp(3)
+  closedOn        DateTime   @db.Timestamp(3)
+  createdOn       DateTime   @default(now()) @db.Timestamp(3)
   document        String?
   documentId      String?
-
+  note            String     @db.VarChar(2000)
+  status          noteStatus @relation(fields: [statusId], references: [id])
+  statusId        Int
+  userNoteClosed  users      @relation("userNoteClosed", fields: [closedBy], references: [id])
+  closedBy        Int
+  userNoteCreated users      @relation("userNoteCreated", fields: [createdBy], references: [id])
+  createdBy       Int
 }
 
-model Question {
-  id          Int       @id @default(autoincrement())
-  description String    @db.VarChar(250)
+model noteStatus {
+  id          Int     @id @default(autoincrement())
+  code        String  @unique @db.VarChar(3)
+  description String  @unique @db.VarChar(10)
+  notes       notes[]
+}
+
+model newsStatus {
+  id          Int    @id @default(autoincrement())
+  code        String @unique @db.VarChar(3)
+  description String @unique @db.VarChar(10)
+  news        news[]
+}
+
+model news {
+  id              Int         @id @default(autoincrement())
+  closedOn        DateTime?   @db.Timestamp(3)
+  createdOn       DateTime    @default(now()) @db.Timestamp(3)
+  description     String      @db.VarChar(400)
+  document        String?
+  documentId      String?
+  questions       questions[]
+  status          newsStatus  @relation(fields: [statusId], references: [id])
+  statusId        Int
+  userNewsClosed  users?      @relation("userNewsClosed", fields: [closedBy], references: [id])
+  closedBy        Int?
+  userNewsCreated users       @relation("userNewsCreated", fields: [createdBy], references: [id])
+  createdBy       Int
+}
+
+model questions {
+  id          Int     @id @default(autoincrement())
   answer      Boolean
-  news        News      @relation(fields: [newsId], references: [id])
+  description String  @db.VarChar(250)
+  news        news    @relation(fields: [newsId], references: [id])
   newsId      Int
 }
