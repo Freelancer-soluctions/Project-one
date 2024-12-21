@@ -1,15 +1,28 @@
-version: '3.8'
+
 services:
-  inventory:
-    image: postgres:10.3
+  db:
+    container_name: project_one_bd
+    image: postgres:17
     restart: always
     environment:
-      - POSTGRES_USER=${POSTGRES_USER}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-      - POSTGRES_DB=${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
     volumes:
-      - inventory:/var/lib/postgresql/data
+      - ./db/postgres:/var/lib/postgresql/data
     ports:
       - '5432:5432'
-volumes:
-  inventory:
+
+  pgAdmin:
+    container_name: project_one_pg
+    image: dpage/pgadmin4
+    restart: always 
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
+      PGADMIN_LISTEN_PORT: ${PGADMIN_LISTEN_PORT}
+    volumes:
+      - ./db/pgadmin:/var/lib/pgadmin
+    ports:
+      - 8080:80
+      
