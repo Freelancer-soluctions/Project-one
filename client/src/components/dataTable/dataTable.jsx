@@ -21,7 +21,7 @@ import { useState } from 'react'
 import { CaretSortIcon } from '@radix-ui/react-icons'
 import { MdOutlineArrowDropDown, MdOutlineArrowDropUp } from 'react-icons/md'
 
-const Datatable = ({ columns, data = [], setSelectedRow, setOpenDialog }) => {
+const Datatable = ({ columns, data = [], setSelectedRow, handleRow }) => {
   const [columnFilters, setColumnFilters] = useState([]) //column filters
   const [sorting, setSorting] = useState([]) //sorting
   const [pagination, setPagination] = useState({
@@ -52,9 +52,9 @@ const Datatable = ({ columns, data = [], setSelectedRow, setOpenDialog }) => {
     }
   })
 
-  const handleDialog = row => {
+  const handleDataRow = row => {
     setSelectedRow(row.original)
-    setOpenDialog(true)
+    handleRow()
   }
 
   return (
@@ -125,7 +125,7 @@ const Datatable = ({ columns, data = [], setSelectedRow, setOpenDialog }) => {
                     key={cell.id}
                     className='p-1 text-center'
                     onClick={() => {
-                      handleDialog(row)
+                      handleDataRow(row)
                     }}>
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
                   </TableCell>

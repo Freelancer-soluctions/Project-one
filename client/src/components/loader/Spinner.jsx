@@ -1,11 +1,9 @@
-import { CgSpinner } from 'react-icons/cg'
+import { TbLoader2 } from 'react-icons/tb'
 
-export default function Spinner() {
+export function Spinner() {
   return (
-    <main className='grid gap-5 place-content-center place-items-center'>
-      {/* <UrbanBurger size='10em' /> */}
-
-      <CgSpinner size='3.25em' className='animate-spin' />
-    </main>
+    <div className='absolute inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm'>
+      <TbLoader2 className='w-8 h-8 animate-spin text-primary' />
+    </div>
   )
 }
