@@ -56,7 +56,7 @@ export const getAllNews = async (description, fromDate, toDate, statusCode) => {
 
       },
       include: {
-        status: { select: { description: true } },
+        status: { select: { id: true, code: true, description: true } },
         userNewsCreated: { select: { name: true } },
         userNewsClosed: { select: { name: true } }
 

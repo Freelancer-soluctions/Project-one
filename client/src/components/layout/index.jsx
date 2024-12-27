@@ -2,7 +2,7 @@ import { Suspense } from 'react'
 import { Outlet } from 'react-router-dom'
 import Footer from './Footer'
 import Header from './Header'
-import Spinner from '../loader/Spinner'
+import { Spinner } from '../loader/Spinner'
 
 const Layout = () => {
   return (
