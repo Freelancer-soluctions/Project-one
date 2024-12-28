@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { newsDialogSchema, adaptQueryStatus } from '../utils'
+import { newsDialogSchema } from '../utils'
+import { useUpdateNewByIdMutation } from '../slice/newsSlice'
 
 import {
   Dialog,
@@ -51,6 +52,8 @@ export const NewsDialog = ({
   datastatus
 }) => {
   const [newId, setNewId] = useState('')
+  const [updateNewById, { isLoading, isError, isSuccess }] =
+    useUpdateNewByIdMutation()
 
   // Configura el formulario
   const formDialog = useForm({
@@ -96,8 +99,22 @@ export const NewsDialog = ({
     }
   }, [selectedRow])
 
-  const onSubmitDialog = () => {
-    console.log('onSubmitDialog', selectedRow)
+  const onSubmitDialog = async values => {
+    console.log('newid', newId)
+
+    if (newId) {
+      console.log('onSubmitDialog', values)
+    } else {
+      try {
+        const result = await updateNewById({
+          id: newId,
+          ...values
+        }).unwrap() // Desenvuelve la respuesta para manejar errores
+        console.log('Update successful:', result)
+      } catch (err) {
+        console.error('Error updating:', err)
+      }
+    }
   }
   return (
     <>
@@ -129,7 +146,7 @@ export const NewsDialog = ({
               id='profile-info-form'
               noValidate
               onSubmit={formDialog.handleSubmit(onSubmitDialog)}>
-              <div className='grid grid-cols-2 grid-rows-4 gap-4 py-4'>
+              <div className='grid grid-cols-2 gap-6 py-4 auto-rows-auto'>
                 <FormField
                   control={formDialog.control}
                   name='document'
@@ -387,6 +404,12 @@ export const NewsDialog = ({
                     Close
                   </Button>
                 </DialogClose>
+                {newId && (
+                  <Button type='submit' variant='destructive'>
+                    Delete
+                  </Button>
+                )}
+
                 <Button type='submit' variant='info'>
                   Save
                 </Button>

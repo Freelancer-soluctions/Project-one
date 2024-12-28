@@ -62,15 +62,6 @@ export const NewsFiltersForm = ({
     trigger({ description, fromDate, toDate, statusCode })
   }
 
-  // const {
-  //   data: datastatus,
-  //   isError: isErrorStatus,
-  //   isLoading: isLoadingStatus,
-  //   isFetching: isFetchingStatus,
-  //   isSuccess: isSuccessStatus,
-  //   error: errorStatus
-  // } = useGetAllNewsStatusQuery()
-
   const handleAddDialog = () => {
     setActionDialog('Add')
     setOpenDialog(true)
