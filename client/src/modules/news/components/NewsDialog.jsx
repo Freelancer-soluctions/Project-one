@@ -104,7 +104,6 @@ export const NewsDialog = ({
 
     if (newId) {
       console.log('onSubmitDialog', values)
-    } else {
       try {
         const result = await updateNewById({
           id: newId,
@@ -114,6 +113,7 @@ export const NewsDialog = ({
       } catch (err) {
         console.error('Error updating:', err)
       }
+    } else {
     }
   }
   return (
