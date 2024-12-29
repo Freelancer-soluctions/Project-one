@@ -7,5 +7,5 @@ export const newsDialogSchema = z.object({
     status: z.string().min(3, {
       message: "You must  select at least one status.",
     }),
-  })
+  }).passthrough(); // Permite otros campos
 
