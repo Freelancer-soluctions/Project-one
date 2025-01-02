@@ -1,7 +1,7 @@
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { signInSchema } from '../utils/schemas'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router'
 import { useDispatch, useSelector } from 'react-redux'
 import { signInFetch } from '../slice/authSlice'
 import {
@@ -14,7 +14,7 @@ import {
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
-import Spinner from '../../../components/loader/Spinner'
+import { Spinner } from '../../../components/loader/Spinner'
 import { useEffect } from 'react'
 
 const SignInForm = () => {
