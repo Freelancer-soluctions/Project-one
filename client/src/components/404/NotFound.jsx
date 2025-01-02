@@ -1,10 +1,11 @@
-import { useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router'
 import { Button } from '../ui/button'
 
-const NotFound = () => {
+const NotFound = ({ link }) => {
   const navigate = useNavigate()
   const goback = () => {
-    navigate(-1)
+    //navigate(-1) // go back
+    navigate(link)
   }
   return (
     <main className='flex min-h-[100dvh] flex-col items-center justify-center bg-gray-100 px-4 py-12 dark:bg-gray-950'>
@@ -20,7 +21,7 @@ const NotFound = () => {
             The page you&apos;re looking for doesn&apos;t exist or has been
             moved.
           </p>
-          <Button onClick={goback}>Go back home</Button>
+          <Button onClick={goback}>Go back</Button>
         </div>
       </div>
     </main>

@@ -1,5 +1,5 @@
 import { GoChevronLeft } from 'react-icons/go'
-import { Link } from 'react-router-dom'
+import { Link } from 'react-router'
 
 export const BackDashBoard = ({ link, moduleName }) => {
   return (
