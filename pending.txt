@@ -1,3 +1,12 @@
 Instalar prettier en back
 Pruebas unitarias
 Pruebas de integracion
+
+Lista de caracteristicas para destacar
+- Logger de errores Tanto en back como front
+-- Front 
+- Error boundary para el front con   react-error-boundary
+-- Back
+
+
+
