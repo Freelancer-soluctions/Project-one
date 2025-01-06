@@ -71,14 +71,15 @@ const ErrorPage = () => {
     </div>
   )
 }
+const Home2 = () => <div>Bienvenido a Home</div>
 const App = () => {
   return (
-    <ErrorBoundary
-      FallbackComponent={InternalServerError}
-      onReset={() => {
-        // Realiza alguna acción para reiniciar el estado de la aplicación
-      }}>
-      <Suspense fallback={<Spinner />}>
+    <Suspense fallback={<Spinner />}>
+      <ErrorBoundary
+        FallbackComponent={InternalServerError}
+        onReset={() => {
+          // Realiza alguna acción para reiniciar el estado de la aplicación
+        }}>
         <Routes>
           {/* Rutas principales */}
           <Route path='/' element={<Layout />} />
@@ -88,8 +89,8 @@ const App = () => {
           {/* Ruta padre con subrutas */}
           <Route path='/home' element={<Home />}>
             <Route index element={<Access />} />
-            <Route path='notes' element={<Note />} />
             <Route path='news' element={<News />} />
+            <Route path='notes' element={<Note />} />
 
             {/* Ruta comodín para manejar 404 en /home */}
             <Route path='*' element={<NotFound link={'/home'} />} />
@@ -98,8 +99,8 @@ const App = () => {
           {/* Ruta global comodín para manejar 404 */}
           <Route path='*' element={<NotFound link={'/'} />} />
         </Routes>
-      </Suspense>
-    </ErrorBoundary>
+      </ErrorBoundary>
+    </Suspense>
   )
 }
 
