@@ -1,8 +1,9 @@
 import { Button } from '@/components/ui/button'
-import { Link } from 'react-router'
+import { Link, useNavigate } from 'react-router'
 import { TbLoader2 } from 'react-icons/tb'
 import { AiOutlineHome } from 'react-icons/ai'
 const InternalServerError = ({ error, resetErrorBoundary }) => {
+  const navigate = useNavigate()
   return (
     <div className='flex items-center justify-center min-h-screen p-4 bg-gray-50'>
       <div className='w-full max-w-3xl'>
@@ -47,14 +48,18 @@ const InternalServerError = ({ error, resetErrorBoundary }) => {
               <TbLoader2 className='w-4 h-4' />
               Intentar de nuevo
             </Button>
-            <Link href='/'>
-              <Button
-                variant='outline'
-                className='flex items-center w-full gap-2 sm:w-auto'>
-                <AiOutlineHome className='w-4 h-4' />
-                Volver al inicio
-              </Button>
-            </Link>
+            {/* <Link to='/home'> */}
+            <Button
+              variant='outline'
+              className='flex items-center w-full gap-2 sm:w-auto'>
+              <AiOutlineHome className='w-4 h-4' />
+              Volver al inicio
+            </Button>
+            <Button onClick={() => navigate('/home')} variant='outline'>
+              <AiOutlineHome className='w-4 h-4' />
+              Volver al inicio
+            </Button>
+            {/* </Link> */}
           </div>
         </div>
 
