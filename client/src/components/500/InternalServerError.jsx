@@ -50,12 +50,9 @@ const InternalServerError = ({ error, resetErrorBoundary }) => {
             </Button>
             {/* <Link to='/home'> */}
             <Button
-              variant='outline'
-              className='flex items-center w-full gap-2 sm:w-auto'>
-              <AiOutlineHome className='w-4 h-4' />
-              Volver al inicio
-            </Button>
-            <Button onClick={() => navigate('/home')} variant='outline'>
+              className='flex items-center w-full gap-2 sm:w-auto'
+              onClick={() => navigate('/home')}
+              variant='outline'>
               <AiOutlineHome className='w-4 h-4' />
               Volver al inicio
             </Button>
