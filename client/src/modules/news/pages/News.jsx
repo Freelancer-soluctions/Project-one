@@ -47,9 +47,9 @@ const News = () => {
         {/* Show spinner when loading or fetching */}
         {(isLoading || isFetching) && <Spinner />}
 
-        <div className='grid grid-cols-2 grid-rows-3 gap-4 md:grid-cols-5'>
+        <div className='grid grid-cols-2 grid-rows-4 gap-4 md:grid-cols-5'>
           {/* filters */}
-          <div className='col-span-2 row-span-1 md:col-span-4'>
+          <div className='col-span-2 row-span-1 md:col-span-5'>
             <NewsFiltersForm
               trigger={trigger}
               setActionDialog={setActionDialog}
@@ -58,7 +58,7 @@ const News = () => {
             />
           </div>
           {/* Datatable */}
-          <div className='flex flex-wrap w-full col-span-2 row-span-2 row-start-2 md:col-span-5'>
+          <div className='flex flex-wrap w-full col-span-2 row-span-3 row-start-2 md:col-span-5'>
             <NewsDatatable
               dataNews={dataNews}
               setSelectedRow={setSelectedRow}

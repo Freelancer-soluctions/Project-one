@@ -35,6 +35,7 @@ model users {
   userPermits    userPermits @relation(fields: [userPermitId], references: [id])
   newsClosed     news[]      @relation("userNewsClosed")
   newsCreated    news[]      @relation("userNewsCreated")
+  newsPending    news[]      @relation("userNewsPending")
   notesClosed    notes[]     @relation("userNoteClosed")
   notesCreated   notes[]     @relation("userNoteCreated")
 }
@@ -90,25 +91,27 @@ model newsStatus {
 }
 
 model news {
-  id              Int         @id @default(autoincrement())
-  closedOn        DateTime?   @db.Timestamp(3)
-  createdOn       DateTime    @default(now()) @db.Timestamp(3)
-  description     String      @db.VarChar(400)
+  id              Int        @id @default(autoincrement())
+  closedOn        DateTime?  @db.Timestamp(3)
+  createdOn       DateTime   @default(now()) @db.Timestamp(3)
+  description     String     @db.VarChar(400)
   document        String?
   documentId      String?
-  questions       questions[]
-  status          newsStatus  @relation(fields: [statusId], references: [id])
+  // questions       questions[]
+  status          newsStatus @relation(fields: [statusId], references: [id])
   statusId        Int
-  userNewsClosed  users?      @relation("userNewsClosed", fields: [closedBy], references: [id])
+  userNewsClosed  users?     @relation("userNewsClosed", fields: [closedBy], references: [id])
   closedBy        Int?
-  userNewsCreated users       @relation("userNewsCreated", fields: [createdBy], references: [id])
+  userNewsPending users?     @relation("userNewsPending", fields: [pendingBy], references: [id])
+  pendingBy       Int?
+  userNewsCreated users      @relation("userNewsCreated", fields: [createdBy], references: [id])
   createdBy       Int
 }
 
-model questions {
-  id          Int     @id @default(autoincrement())
-  answer      Boolean
-  description String  @db.VarChar(250)
-  news        news    @relation(fields: [newsId], references: [id])
-  newsId      Int
-}
+// model questions {
+//   id          Int     @id @default(autoincrement())
+//   answer      Boolean
+//   description String  @db.VarChar(250)
+//   news        news    @relation(fields: [newsId], references: [id])
+//   newsId      Int
+// }

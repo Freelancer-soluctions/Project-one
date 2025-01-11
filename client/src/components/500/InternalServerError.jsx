@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router'
 import { TbLoader2 } from 'react-icons/tb'
 import { AiOutlineHome } from 'react-icons/ai'
 const InternalServerError = ({ error, resetErrorBoundary }) => {
-  const navigate = useNavigate()
+  // const navigate = useNavigate()
   return (
     <div className='flex items-center justify-center min-h-screen p-4 bg-gray-50'>
       <div className='w-full max-w-3xl'>
@@ -40,22 +40,19 @@ const InternalServerError = ({ error, resetErrorBoundary }) => {
           {/* Sección de Acciones */}
           <div className='flex flex-col justify-center gap-4 sm:flex-row'>
             <Button
-              onClick={() => {
-                this.setState({ hasError: false, error: null })
-                window.location.reload()
-              }}
+              onClick={resetErrorBoundary}
               className='flex items-center gap-2'>
-              <TbLoader2 className='w-4 h-4' />
-              Intentar de nuevo
+              <AiOutlineHome className='w-4 h-4' />
+              Volver al inicio
             </Button>
             {/* <Link to='/home'> */}
-            <Button
+            {/* <Button
               className='flex items-center w-full gap-2 sm:w-auto'
               onClick={() => navigate('/home')}
               variant='outline'>
               <AiOutlineHome className='w-4 h-4' />
               Volver al inicio
-            </Button>
+            </Button> */}
             {/* </Link> */}
           </div>
         </div>
@@ -63,10 +60,11 @@ const InternalServerError = ({ error, resetErrorBoundary }) => {
         {/* Footer con Información Adicional */}
         <div className='mt-8 text-center'>
           <p className='text-sm text-muted-foreground'>
-            Si el problema persiste, por favor contacta con nuestro{' '}
-            <Link href='/soporte' className='text-primary hover:underline'>
+            Si el problema persiste, por favor contacta con nuestro equipo de
+            soporte
+            {/* <Link href='/soporte' className='text-primary hover:underline'>
               equipo de soporte
-            </Link>
+            </Link> */}
           </p>
         </div>
       </div>
