@@ -14,9 +14,9 @@ import {
   TableHeader,
   TableRow
 } from '@/components/ui/table'
-import { Button } from '../ui/button'
-import { Input } from '../ui/input'
+
 import Filter from './Filter'
+import Pagination from './Pagination'
 import { useState } from 'react'
 import { CaretSortIcon } from '@radix-ui/react-icons'
 import { MdOutlineArrowDropDown, MdOutlineArrowDropUp } from 'react-icons/md'
@@ -28,7 +28,6 @@ const Datatable = ({ columns, data = [], setSelectedRow, handleRow }) => {
     pageIndex: 0,
     pageSize: 20
   }) //pagination
-  const [density, setDensity] = useState('lg')
 
   const table = useReactTable({
     data,
@@ -59,13 +58,13 @@ const Datatable = ({ columns, data = [], setSelectedRow, handleRow }) => {
 
   return (
     <div className='flex-1 max-w-full '>
-      <Table className='rounded-lg border max-h-[25vh] h-svh'>
+      <Table className='rounded-lg '>
         <TableHeader>
           {table.getHeaderGroups().map(headerGroup => (
             <TableRow key={headerGroup.id}>
               {headerGroup.headers.map(header => {
                 return (
-                  <TableHead key={header.id} className='p-3'>
+                  <TableHead key={header.id} className='p-3 border '>
                     {/* {header.isPlaceholder
                       ? null
                       : flexRender(
@@ -87,7 +86,7 @@ const Datatable = ({ columns, data = [], setSelectedRow, handleRow }) => {
                     <div
                       {...{
                         className: header.column.getCanSort()
-                          ? 'cursor-pointer select-none'
+                          ? 'cursor-pointer select-none text-center'
                           : '',
                         onClick: header.column.getToggleSortingHandler()
                       }}>
@@ -104,7 +103,7 @@ const Datatable = ({ columns, data = [], setSelectedRow, handleRow }) => {
                       }[header.column.getIsSorted()] ?? null}
                     </div>
                     {header.column.getCanFilter() ? (
-                      <div className='pt-2'>
+                      <div className='pt-2 '>
                         <Filter column={header.column} table={table} />
                       </div>
                     ) : null}
@@ -123,7 +122,7 @@ const Datatable = ({ columns, data = [], setSelectedRow, handleRow }) => {
                 {row.getVisibleCells().map(cell => (
                   <TableCell
                     key={cell.id}
-                    className='p-1 text-center'
+                    className='p-2 text-center border cursor-pointer select-none'
                     onClick={() => {
                       handleDataRow(row)
                     }}>
@@ -134,77 +133,16 @@ const Datatable = ({ columns, data = [], setSelectedRow, handleRow }) => {
             ))
           ) : (
             <TableRow>
-              <TableCell colSpan={columns.length} className='h-24 text-center'>
+              <TableCell
+                colSpan={columns.length}
+                className='h-full text-center'>
                 No results.
               </TableCell>
             </TableRow>
           )}
         </TableBody>
       </Table>
-      <div className='h-2' />
-      <div className='flex flex-wrap items-center gap-2'>
-        <Button
-          className='p-1 border rounded'
-          onClick={() => table.firstPage()}
-          disabled={!table.getCanPreviousPage()}>
-          {'<<'}
-        </Button>
-        <Button
-          className='p-1 border rounded'
-          onClick={() => table.previousPage()}
-          disabled={!table.getCanPreviousPage()}>
-          {'<'}
-        </Button>
-        <Button
-          className='p-1 border rounded'
-          onClick={() => table.nextPage()}
-          disabled={!table.getCanNextPage()}>
-          {'>'}
-        </Button>
-        <Button
-          className='p-1 border rounded'
-          onClick={() => table.lastPage()}
-          disabled={!table.getCanNextPage()}>
-          {'>>'}
-        </Button>
-        <span className='flex items-center gap-1'>
-          <div>Page</div>
-          <strong>
-            {table.getState().pagination.pageIndex + 1} of{' '}
-            {table.getPageCount().toLocaleString()}
-          </strong>
-        </span>
-        <span className='flex items-center gap-1'>
-          | Go to page:
-          <Input
-            type='number'
-            min='1'
-            max={table.getPageCount()}
-            defaultValue={table.getState().pagination.pageIndex + 1}
-            onChange={e => {
-              const page = e.target.value ? Number(e.target.value) - 1 : 0
-              table.setPageIndex(page)
-            }}
-            className='w-16 p-1 border rounded'
-          />
-        </span>
-
-        <select
-          value={table.getState().pagination.pageSize}
-          onChange={e => {
-            table.setPageSize(Number(e.target.value))
-          }}>
-          {[10, 20, 30, 40, 50].map(pageSize => (
-            <option key={pageSize} value={pageSize}>
-              Show {pageSize}
-            </option>
-          ))}
-        </select>
-      </div>
-      <div>
-        Showing {table.getRowModel().rows.length.toLocaleString()} of{' '}
-        {table.getRowCount().toLocaleString()} Rows
-      </div>
+      <Pagination table={table} />
       {/* <pre>{JSON.stringify(table.getState().pagination, null, 2)}</pre> */}
     </div>
   )

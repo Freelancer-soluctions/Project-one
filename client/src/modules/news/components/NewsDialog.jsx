@@ -1,8 +1,11 @@
 import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { newsDialogSchema } from '../utils'
-import { useUpdateNewByIdMutation } from '../slice/newsSlice'
+import { newsDialogSchema, NewsStatusCode } from '../utils'
+import {
+  useUpdateNewByIdMutation,
+  useCreateNewMutation
+} from '../slice/newsSlice'
 
 import {
   Dialog,
@@ -52,8 +55,16 @@ export const NewsDialog = ({
   datastatus
 }) => {
   const [newId, setNewId] = useState('')
-  const [updateNewById, { isLoading, isError, isSuccess }] =
-    useUpdateNewByIdMutation()
+
+  const [
+    updateNewById,
+    { isLoading: isLoadingPut, isError: isErrorPut, isSuccess: isSuccessPut }
+  ] = useUpdateNewByIdMutation()
+
+  const [
+    createNew,
+    { isLoading: isLoadingPost, isError: isErrorPost, isSuccess: isSuccessPost }
+  ] = useCreateNewMutation()
 
   // Configura el formulario
   const formDialog = useForm({
@@ -84,7 +95,7 @@ export const NewsDialog = ({
         createdOn: selectedRow.createdOn || '',
         createdBy: selectedRow.createdBy || '',
         closedOn: selectedRow.closedOn || '',
-        status: selectedRow.status?.description || '',
+        status: selectedRow.status || '',
         userNewsCreated: selectedRow.userNewsCreated?.name || '',
         userNewsClosed: selectedRow.userNewsClosed?.name || ''
       }
@@ -114,6 +125,18 @@ export const NewsDialog = ({
         console.error('Error updating:', err)
       }
     } else {
+      try {
+        const dataToSave = {
+          ...values,
+          createdOn: new Date(),
+          createdBy: 1
+          // statusId: values.S
+        }
+        const result = await createNew(dataToSave).unwrap() // Desenvuelve la respuesta para manejar errores
+        console.log('create successful:', result)
+      } catch (err) {
+        console.error('Error Creating:', err)
+      }
     }
   }
   return (
@@ -163,61 +186,48 @@ export const NewsDialog = ({
                   }}
                 />
                 {/* status */}
-                {newId ? (
-                  <FormField
-                    control={formDialog.control}
-                    name='status'
-                    render={({ field }) => {
-                      return (
-                        <FormItem className='flex flex-col flex-auto col-span-1'>
-                          <FormLabel>Status</FormLabel>
+
+                <FormField
+                  control={formDialog.control}
+                  name='status'
+                  render={({ field }) => {
+                    console.log('valor field', field.value)
+                    // extract only the neccessary status
+                    let dataStatus = []
+                    if (!newId) {
+                      dataStatus = datastatus?.data.filter(
+                        item => item.code !== NewsStatusCode.CLOSED
+                      )
+                    } else {
+                      dataStatus = [...datastatus?.data]
+                    }
+
+                    return (
+                      <FormItem className='flex flex-col flex-auto'>
+                        <FormLabel>Status*</FormLabel>
+                        <Select
+                          onValueChange={value => {
+                            field.onChange(value) // Actualiza solo el `code`
+                          }}
+                          value={field.value.code}>
                           <FormControl>
-                            <Input
-                              id='status'
-                              name='status'
-                              type='text'
-                              autoComplete='false'
-                              readOnly={true}
-                              disabled={true}
-                              {...field}
-                              value={field.value ?? ''}
-                            />
+                            <SelectTrigger>
+                              <SelectValue placeholder='Select a status' />
+                            </SelectTrigger>
                           </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )
-                    }}
-                  />
-                ) : (
-                  <FormField
-                    control={formDialog.control}
-                    name='status'
-                    render={({ field }) => {
-                      return (
-                        <FormItem className='flex flex-col flex-auto'>
-                          <FormLabel>Status*</FormLabel>
-                          <Select
-                            onValueChange={field.onChange}
-                            value={field.value}>
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder='Select a status' />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              {datastatus?.data.map((item, index) => (
-                                <SelectItem value={item.code} key={index}>
-                                  {item.description}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )
-                    }}
-                  />
-                )}
+                          <SelectContent>
+                            {dataStatus.map((item, index) => (
+                              <SelectItem value={item} key={index}>
+                                {item.description}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )
+                  }}
+                />
 
                 {/* created by */}
                 {newId && (

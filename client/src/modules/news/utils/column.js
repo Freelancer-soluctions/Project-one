@@ -6,6 +6,7 @@ export const columnDefNews = [
   {
     accessorKey: 'createdOn',
     header: 'Created On',
+     size: 10,
     // header: ({ column }) => {
     //   return (
     //     <Button

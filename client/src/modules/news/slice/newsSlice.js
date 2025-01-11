@@ -28,13 +28,24 @@ const newsApi = createApi({
             method: "PUT",
             body:{...data }
           })
-        })
+        }),
+        createNew: builder.mutation({
+          query(body) {
+            return {
+              url: `/news/`,
+              method: 'POST',
+              body,
+            }
+          },
+     
+        }),
+       
       }),
     
 })
 
 // Export hooks for usage in functional components, which are
 // auto-generated based on the defined endpoints
-export const { useLazyGetAllNewsQuery, useGetAllNewsStatusQuery, useUpdateNewByIdMutation } = newsApi
+export const { useLazyGetAllNewsQuery, useGetAllNewsStatusQuery, useUpdateNewByIdMutation, useCreateNewMutation } = newsApi
 
 export default newsApi
