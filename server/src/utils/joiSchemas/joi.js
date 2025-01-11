@@ -253,16 +253,17 @@ export const News = Joi.object({
   statusId: Joi.number()
     .integer()
     .required(),
-  questions: Joi.array().min(1),
+  // questions: Joi.array().min(1),
   createdBy: Joi.number()
     .integer()
     .required(),
-  closedBy: Joi.number()
-    .integer()
-    .required(),
   createdOn: Joi.date().required(),
-  closedOn: Joi.date().required(),
   document: Joi.string()
+  // closedOn: Joi.date().required(),
+  // closedBy: Joi.number()
+  // .integer()
+  // .required(),
+
 })
 
 export const NewsFilters = Joi.object({

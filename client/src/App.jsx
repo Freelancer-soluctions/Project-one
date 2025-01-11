@@ -56,50 +56,28 @@ const InternalServerError = lazy(
   () => import('@/components/500/InternalServerError')
 )
 
-import { useRouteError } from 'react-router'
-
-const ErrorPage = () => {
-  const error = useRouteError()
-
-  return (
-    <div>
-      <h1>Oops!</h1>
-      <p>Sorry, an unexpected error has occurred.</p>
-      <p>
-        <i>{error.statusText || error.message}</i>
-      </p>
-    </div>
-  )
-}
-const Home2 = () => <div>Bienvenido a Home</div>
 const App = () => {
   return (
     <Suspense fallback={<Spinner />}>
-      <ErrorBoundary
-        FallbackComponent={InternalServerError}
-        onReset={() => {
-          // Realiza alguna acción para reiniciar el estado de la aplicación
-        }}>
-        <Routes>
-          {/* Rutas principales */}
-          <Route path='/' element={<Layout />} />
-          <Route path='/signIn' element={<SignIn />} />
-          <Route path='/signUp' element={<SignUp />} />
+      <Routes>
+        {/* Rutas principales */}
+        <Route path='/' element={<Layout />} />
+        <Route path='/signIn' element={<SignIn />} />
+        <Route path='/signUp' element={<SignUp />} />
 
-          {/* Ruta padre con subrutas */}
-          <Route path='/home' element={<Home />}>
-            <Route index element={<Access />} />
-            <Route path='news' element={<News />} />
-            <Route path='notes' element={<Note />} />
+        {/* Ruta padre con subrutas */}
+        <Route path='/home' element={<Home />}>
+          <Route index element={<Access />} />
+          <Route path='news' element={<News />} />
+          <Route path='notes' element={<Note />} />
 
-            {/* Ruta comodín para manejar 404 en /home */}
-            <Route path='*' element={<NotFound link={'/home'} />} />
-          </Route>
+          {/* Ruta comodín para manejar 404 en /home */}
+          <Route path='*' element={<NotFound link={'/home'} />} />
+        </Route>
 
-          {/* Ruta global comodín para manejar 404 */}
-          <Route path='*' element={<NotFound link={'/'} />} />
-        </Routes>
-      </ErrorBoundary>
+        {/* Ruta global comodín para manejar 404 */}
+        <Route path='*' element={<NotFound link={'/'} />} />
+      </Routes>
     </Suspense>
   )
 }
