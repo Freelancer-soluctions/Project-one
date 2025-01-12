@@ -64,17 +64,19 @@ const App = () => {
         <Route path='/' element={<Layout />} />
         <Route path='/signIn' element={<SignIn />} />
         <Route path='/signUp' element={<SignUp />} />
+        <ProtectedRoutes redirectTo='/signIn'>
+          {/* Ruta padre con subrutas */}
+          <Route path='/home' element={<Home />}>
+            <Route index element={<Access />} />
+            <Route path='news' element={<News />} />
+            <Route path='notes' element={<Note />} />
 
-        {/* Ruta padre con subrutas */}
-        <Route path='/home' element={<Home />}>
-          <Route index element={<Access />} />
-          <Route path='news' element={<News />} />
-          <Route path='notes' element={<Note />} />
-
-          {/* Ruta comodín para manejar 404 en /home */}
-          <Route path='*' element={<NotFound link={'/home'} />} />
-        </Route>
-
+            {/* Ruta comodín para manejar 404 en /home */}
+            <Route path='*' element={<NotFound link={'/home'} />} />
+          </Route>
+          /*{' '}
+        </ProtectedRoutes>{' '}
+        */
         {/* Ruta global comodín para manejar 404 */}
         <Route path='*' element={<NotFound link={'/'} />} />
       </Routes>
