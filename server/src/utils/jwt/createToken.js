@@ -23,7 +23,7 @@ export const createRefreshToken = (userId) => {
       expiresIn: '1d'
     }, (err, token) => {
       if (err) {
-        reject('refrs token not generated.')
+        reject('refresh token not generated.')
       } else {
         resolve(token)
       }
