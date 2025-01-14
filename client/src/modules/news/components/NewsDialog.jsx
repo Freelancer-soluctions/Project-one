@@ -6,6 +6,7 @@ import {
   useUpdateNewByIdMutation,
   useCreateNewMutation
 } from '../slice/newsSlice'
+import { useSelector } from 'react-redux'
 
 import {
   Dialog,
@@ -65,6 +66,9 @@ export const NewsDialog = ({
     createNew,
     { isLoading: isLoadingPost, isError: isErrorPost, isSuccess: isSuccessPost }
   ] = useCreateNewMutation()
+
+  // Accediendo al estado de autenticación
+  const user = useSelector(state => state.auth.user)
 
   // Configura el formulario
   const formDialog = useForm({
@@ -129,7 +133,7 @@ export const NewsDialog = ({
         const dataToSave = {
           ...values,
           createdOn: new Date(),
-          createdBy: 1
+          createdBy: user?.data.user.id
           // statusId: values.S
         }
         const result = await createNew(dataToSave).unwrap() // Desenvuelve la respuesta para manejar errores
@@ -191,25 +195,31 @@ export const NewsDialog = ({
                   control={formDialog.control}
                   name='status'
                   render={({ field }) => {
-                    console.log('valor field', field.value)
-                    // extract only the neccessary status
-                    let dataStatus = []
-                    if (!newId) {
-                      dataStatus = datastatus?.data.filter(
-                        item => item.code !== NewsStatusCode.CLOSED
-                      )
-                    } else {
-                      dataStatus = [...datastatus?.data]
-                    }
+                    console.log('Valor field inicial:', field.value)
+
+                    // Filtrar los estados según la lógica
+                    const dataStatus = !newId
+                      ? datastatus?.data.filter(
+                          item => item.code !== NewsStatusCode.CLOSED
+                        )
+                      : [...datastatus?.data]
 
                     return (
                       <FormItem className='flex flex-col flex-auto'>
                         <FormLabel>Status*</FormLabel>
                         <Select
                           onValueChange={value => {
-                            field.onChange(value) // Actualiza solo el `code`
+                            // Buscar el objeto completo por el `code`
+                            const selectedStatus = dataStatus.find(
+                              item => item.code === value
+                            )
+                            if (selectedStatus) {
+                              field.onChange(selectedStatus) // Asignar el objeto completo
+                            }
+                            console.log('Nuevo valor field:', selectedStatus)
                           }}
-                          value={field.value.code}>
+                          // Usar el `code` del objeto seleccionado para mantener consistencia
+                          value={field.value?.code || ''}>
                           <FormControl>
                             <SelectTrigger>
                               <SelectValue placeholder='Select a status' />
@@ -217,7 +227,7 @@ export const NewsDialog = ({
                           </FormControl>
                           <SelectContent>
                             {dataStatus.map((item, index) => (
-                              <SelectItem value={item} key={index}>
+                              <SelectItem value={item.code} key={index}>
                                 {item.description}
                               </SelectItem>
                             ))}
