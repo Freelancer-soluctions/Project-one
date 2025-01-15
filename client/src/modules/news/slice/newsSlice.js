@@ -7,7 +7,7 @@ import {axiosPrivateBaseQuery} from '@/config/axios'
 // Define a service using a base URL and expected endpoints
 const newsApi = createApi({
     reducerPath:'newsApi',
-    baseQuery:axiosPrivateBaseQuery(),
+    baseQuery:axiosPrivateBaseQuery({ baseUrl: import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1' }),
     endpoints: (builder) => ({
         getAllNews: builder.query({
           query: (args) =>({
@@ -23,7 +23,7 @@ const newsApi = createApi({
           }),
         }),
         updateNewById: builder.mutation({
-          query: ({id, ...data }) =>({
+          query: ({id, data }) =>({
             url: `/news/${id}`,
             method: "PUT",
             body:{...data }
