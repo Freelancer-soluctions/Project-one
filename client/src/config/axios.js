@@ -51,12 +51,12 @@ axiosPrivate.interceptors.request.use(
 // axios basequery for redux tollkit and axiosPrivate
 export const axiosPrivateBaseQuery =
   ({ baseUrl } = { baseUrl: '' }) =>
-  async ({ url, method, data, params, headers }) => {
+  async ({ url, method, body, params, headers }) => {
     try {
       const result = await axiosPrivate({
         url: baseUrl + url,
         method,
-        data,
+        data: body, // data no se puede cambiar el nombre  es obligatorio
         params,
         headers,
       })
