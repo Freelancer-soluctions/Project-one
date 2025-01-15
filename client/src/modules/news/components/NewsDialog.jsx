@@ -122,7 +122,7 @@ export const NewsDialog = ({
       try {
         const result = await updateNewById({
           id: newId,
-          ...values
+          data: { statusId: values.status.id, ...values }
         }).unwrap() // Desenvuelve la respuesta para manejar errores
         console.log('Update successful:', result)
       } catch (err) {
@@ -195,9 +195,8 @@ export const NewsDialog = ({
                   control={formDialog.control}
                   name='status'
                   render={({ field }) => {
-                    console.log('Valor field inicial:', field.value)
-
-                    // Filtrar los estados según la lógica
+                    console.log('valor field', field.value)
+                    // extract only the neccessary status
                     const dataStatus = !newId
                       ? datastatus?.data.filter(
                           item => item.code !== NewsStatusCode.CLOSED
@@ -219,7 +218,13 @@ export const NewsDialog = ({
                             console.log('Nuevo valor field:', selectedStatus)
                           }}
                           // Usar el `code` del objeto seleccionado para mantener consistencia
-                          value={field.value?.code || ''}>
+                          value={field.value?.code}>
+                          {/* <Select
+                          onValueChange={value => {
+                            field.onChange(value) // Actualiza solo el `code`
+                            console.log('valor field nuevo', field.value)
+                          }}
+                          value={field.value.code}> */}
                           <FormControl>
                             <SelectTrigger>
                               <SelectValue placeholder='Select a status' />
