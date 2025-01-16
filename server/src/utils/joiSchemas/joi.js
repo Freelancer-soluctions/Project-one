@@ -246,6 +246,7 @@ export const NewsStatusUpdate = Joi.object({
 export const NewsStatusArray = Joi.array().items(NewsStatus).min(1)
 
 export const News = Joi.object({
+  id: Joi.number().required(),
   description: Joi.string()
     .min(10)
     .max(400)
@@ -276,18 +277,20 @@ export const NewsFilters = Joi.object({
 })
 
 export const NewsUpdate = Joi.object({
+  id: Joi.number().integer().required(),
   description: Joi.string()
     .min(10)
     .max(400).required(),
   statusId: Joi.number().integer().required(),
-  questions: Joi.array().min(1),
+  statusCode: Joi.string().max(3).required(),
+  // questions: Joi.array().min(1),
   createdBy: Joi.number()
-    .integer(),
-  closedBy: Joi.number()
-    .integer(),
-  createdOn: Joi.date(),
-  closedOn: Joi.date(),
-  document: Joi.string()
+    .integer().required(),
+  // closedBy: Joi.number()
+  //   .integer(),
+  createdOn: Joi.date().required(),
+  // closedOn: Joi.date(),
+  document: Joi.string().allow('')
 })
 
 export const Question = Joi.object({
