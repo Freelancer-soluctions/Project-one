@@ -24,8 +24,7 @@ export const getAllNews = async ({ description, fromDate, toDate, statusCode }) 
  * @returns One row filter by id
  */
 export const getOneById = async (id) => {
-  const rowId = Number(id)
-  return newsDao.getOneRow({ where: { id: rowId } })
+  return newsDao.getOneRow({ where: { id } })
 }
 
 /**
@@ -74,28 +73,28 @@ export const createMany = async (data) => {
 }
 /**
  *
- * @param {*} id :: rowId
+ * @param {*} userId :: userId
  * @param {*} data ::
  * @returns Updated row
  */
-export const updateById = async (id, data) => {
+export const updateById = async (userId, data) => {
+  const { id, ...dataWithoutId } = data
   const rowId = Number(id)
-  const { file, ...newsData } = data
 
-  if (file) {
-    const { documentId } = await getOneById(rowId)
-    const baseImage = Buffer.from(file.buffer).toString('base64')
-    const imageURI = `data:${file.mimetype};base64,${baseImage}`
+  // if (data.document) {
+  // const { documentId } = await getOneById(rowId)
+  //   const baseImage = Buffer.from(file.buffer).toString('base64')
+  //   const imageURI = `data:${file.mimetype};base64,${baseImage}`
 
-    if (documentId) {
-      await handleUploadUpdate(imageURI, documentId)
-    } else {
-      const { public_id, secure_url } = await handleUpload(imageURI)
-      newsData.document = secure_url
-      newsData.documentId = public_id
-    }
-  }
-  return newsDao.updateRow(newsData, { id: rowId })
+  //   if (documentId) {
+  //     await handleUploadUpdate(imageURI, documentId)
+  //   } else {
+  //     const { public_id, secure_url } = await handleUpload(imageURI)
+  //     newsData.document = secure_url
+  //     newsData.documentId = public_id
+  //   }
+  // }
+  return newsDao.updateRow(dataWithoutId, { id: rowId })
 }
 /**
  *
