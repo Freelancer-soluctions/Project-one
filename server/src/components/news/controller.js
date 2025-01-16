@@ -62,11 +62,9 @@ export const createMany = async (req, res) => {
  * @returns  a message
  */
 export const updateById = handleCatchErrorAsync(async (req, res) => {
-  // console.log('req', req)
-  const { id } = req.params
-  const { body, file } = req
-  console.log('new update body', body)
-  // await newsService.updateById(id, { ...body, file })
+  const userId = req.userId
+  const { body } = req
+  await newsService.updateById(userId, body)
   globalResponse(res, 200, { message: 'Items updated successfully' })
 })
 

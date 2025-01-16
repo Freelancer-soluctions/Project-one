@@ -115,14 +115,20 @@ export const NewsDialog = ({
   }, [selectedRow])
 
   const onSubmitDialog = async values => {
-    console.log('newid', newId)
-
     if (newId) {
       console.log('onSubmitDialog', values)
       try {
         const result = await updateNewById({
           id: newId,
-          data: { statusId: values.status.id, ...values }
+          data: {
+            id: values.id,
+            description: values.description,
+            statusId: values.status.id,
+            statusCode: values.status.code,
+            createdBy: values.createdBy,
+            createdOn: values.createdOn,
+            document: values.document
+          }
         }).unwrap() // Desenvuelve la respuesta para manejar errores
         console.log('Update successful:', result)
       } catch (err) {
@@ -155,7 +161,7 @@ export const NewsDialog = ({
         {/* <DialogTrigger asChild>
           <Button variant='outline'>Edit Profile</Button>
         </DialogTrigger> */}
-        <DialogContent className=''>
+        <DialogContent>
           <DialogHeader>
             <DialogTitle>
               <PiNewspaperClippingThin className='inline mr-3 w-7 h-7' />
@@ -195,7 +201,6 @@ export const NewsDialog = ({
                   control={formDialog.control}
                   name='status'
                   render={({ field }) => {
-                    console.log('valor field', field.value)
                     // extract only the neccessary status
                     const dataStatus = !newId
                       ? datastatus?.data.filter(
@@ -215,7 +220,6 @@ export const NewsDialog = ({
                             if (selectedStatus) {
                               field.onChange(selectedStatus) // Asignar el objeto completo
                             }
-                            console.log('Nuevo valor field:', selectedStatus)
                           }}
                           // Usar el `code` del objeto seleccionado para mantener consistencia
                           value={field.value?.code}>
