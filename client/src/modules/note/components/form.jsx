@@ -22,7 +22,6 @@ import {
   SelectValue
 } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
-import validateResolver from '@/lib/avjInstance'
 import { cn } from '@/lib/utils'
 import objectToFormData from '@/utils/objectToFormData'
 import { format } from 'date-fns'
@@ -75,9 +74,6 @@ const NoteForm = ({ note, onOpenChange }) => {
     }
   }
   const form = useForm({
-    resolver: async data => {
-      return validateResolver(NoteSchema, data)
-    },
     defaultValues
   })
 
@@ -110,7 +106,7 @@ const NoteForm = ({ note, onOpenChange }) => {
   return (
     <>
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-8 p-4'>
+        <form onSubmit={form.handleSubmit(onSubmit)} className='p-4 space-y-8'>
           <div className='grid grid-cols-12 gap-4'>
             <FormField
               control={form.control}
@@ -134,7 +130,7 @@ const NoteForm = ({ note, onOpenChange }) => {
               control={form.control}
               name='document'
               render={({ field }) => (
-                <FormItem className='col-span-12  lg:col-span-6'>
+                <FormItem className='col-span-12 lg:col-span-6'>
                   <FormLabel>Document</FormLabel>
                   <FormControl>
                     <Input
@@ -156,7 +152,7 @@ const NoteForm = ({ note, onOpenChange }) => {
               control={form.control}
               name='statusId'
               render={({ field }) => (
-                <FormItem className='col-span-12  lg:col-span-6'>
+                <FormItem className='col-span-12 lg:col-span-6'>
                   <FormLabel>Status </FormLabel>
                   <Select
                     value={field.value.toString()}
@@ -186,7 +182,7 @@ const NoteForm = ({ note, onOpenChange }) => {
               control={form.control}
               name='createdBy'
               render={({ field }) => (
-                <FormItem className='col-span-12  lg:col-span-6'>
+                <FormItem className='col-span-12 lg:col-span-6'>
                   <FormLabel>Created By</FormLabel>
                   <Select
                     value={field.value.toString()}
@@ -214,7 +210,7 @@ const NoteForm = ({ note, onOpenChange }) => {
               control={form.control}
               name='closedBy'
               render={({ field }) => (
-                <FormItem className='col-span-12  lg:col-span-6'>
+                <FormItem className='col-span-12 lg:col-span-6'>
                   <FormLabel>Closed By</FormLabel>
                   <Select
                     value={field.value.toString()}
@@ -242,7 +238,7 @@ const NoteForm = ({ note, onOpenChange }) => {
               control={form.control}
               name='createdOn'
               render={({ field }) => (
-                <FormItem className='flex flex-col col-span-12  lg:col-span-6'>
+                <FormItem className='flex flex-col col-span-12 lg:col-span-6'>
                   <FormLabel>Created On</FormLabel>
                   <Popover>
                     <PopoverTrigger asChild>
@@ -282,7 +278,7 @@ const NoteForm = ({ note, onOpenChange }) => {
               control={form.control}
               name='closedOn'
               render={({ field }) => (
-                <FormItem className='flex flex-col col-span-12  lg:col-span-6'>
+                <FormItem className='flex flex-col col-span-12 lg:col-span-6'>
                   <FormLabel>Closed On</FormLabel>
                   <Popover>
                     <PopoverTrigger asChild>

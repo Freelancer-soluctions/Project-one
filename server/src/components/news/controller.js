@@ -10,7 +10,6 @@ import * as newsService from './service.js'
  * @returns A message
  */
 export const getAllNews = handleCatchErrorAsync(async (req, res) => {
-  console.log('hola')
   const queryParams = req.query
   const items = await newsService.getAllNews(queryParams)
   globalResponse(res, 200, items)
@@ -63,9 +62,9 @@ export const createMany = async (req, res) => {
  * @returns  a message
  */
 export const updateById = handleCatchErrorAsync(async (req, res) => {
-  const { id } = req.params
-  const { body, file } = req
-  await newsService.updateById(id, { ...body, file })
+  const userId = req.userId
+  const { body } = req
+  await newsService.updateById(userId, body)
   globalResponse(res, 200, { message: 'Items updated successfully' })
 })
 
