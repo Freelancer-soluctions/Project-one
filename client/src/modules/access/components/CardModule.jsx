@@ -1,5 +1,5 @@
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
-import { Link } from 'react-router-dom'
+import { Link } from 'react-router'
 import { MdNewspaper } from 'react-icons/md'
 import { CgNotes } from 'react-icons/cg'
 const CardModule = () => {
@@ -12,7 +12,7 @@ const CardModule = () => {
         </CardHeader>
         <CardContent>
           <Link
-            to={'note'}
+            to={'notes'}
             className='flex items-center gap-2 px-3 py-2 text-sm font-medium transition-colors rounded-md hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground'>
             Go to notes
           </Link>

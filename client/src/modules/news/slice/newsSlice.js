@@ -7,7 +7,7 @@ import {axiosPrivateBaseQuery} from '@/config/axios'
 // Define a service using a base URL and expected endpoints
 const newsApi = createApi({
     reducerPath:'newsApi',
-    baseQuery:axiosPrivateBaseQuery(),
+    baseQuery:axiosPrivateBaseQuery({ baseUrl: import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1' }),
     endpoints: (builder) => ({
         getAllNews: builder.query({
           query: (args) =>({
@@ -22,12 +22,30 @@ const newsApi = createApi({
             method: "GET",
           }),
         }),
+        updateNewById: builder.mutation({
+          query: ({id, data }) =>({
+            url: `/news/${id}`,
+            method: "PUT",
+            body:{...data }
+          })
+        }),
+        createNew: builder.mutation({
+          query(body) {
+            return {
+              url: `/news/`,
+              method: 'POST',
+              body,
+            }
+          },
+     
+        }),
+       
       }),
     
 })
 
 // Export hooks for usage in functional components, which are
 // auto-generated based on the defined endpoints
-export const { useLazyGetAllNewsQuery, useGetAllNewsStatusQuery } = newsApi
+export const { useLazyGetAllNewsQuery, useGetAllNewsStatusQuery, useUpdateNewByIdMutation, useCreateNewMutation } = newsApi
 
 export default newsApi

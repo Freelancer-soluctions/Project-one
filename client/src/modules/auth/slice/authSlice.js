@@ -93,6 +93,7 @@ const authSlice = createSlice({
       state.isError = true
       state.isAuth = false
       state.isLoading = false
+      state.errorMessage = action.error.message
     })
     
     // refresh
@@ -110,6 +111,9 @@ const authSlice = createSlice({
       console.log('Error', action.error.message)
       console.log('Error payload', action.payload.error)
       state.isError = true
+      state.isAuth = false
+      state.isLoading = false
+      state.errorMessage = action.error.message
     })
   }
 })

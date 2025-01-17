@@ -1,18 +1,12 @@
-import { Suspense } from 'react'
-import { Outlet } from 'react-router-dom'
 import Footer from './Footer'
 import Header from './Header'
-import Spinner from '../loader/Spinner'
+import Main from './Main'
 
 const Layout = () => {
   return (
     <>
       <Header />
-      <main>
-        <Suspense fallback={<Spinner />}>
-          <Outlet />
-        </Suspense>
-      </main>
+      <Main />
       <Footer />
     </>
   )

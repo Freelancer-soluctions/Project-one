@@ -189,7 +189,7 @@ router.post('/', verifyToken, validateSchema(News), upload.single('document'), n
  *
  */
 
-router.put('/:id', verifyToken, validateSchema(NewsUpdate), upload.single('document'), newsController.updateById)
+router.put('/:id', verifyToken, validateSchema(NewsUpdate), newsController.updateById)
 
 /**
  * @openapi

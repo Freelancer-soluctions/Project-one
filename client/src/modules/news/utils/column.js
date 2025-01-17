@@ -2,10 +2,11 @@
 // import { Button } from '@/components/ui/button'
 import { format, parseISO } from 'date-fns'
 
-const columnDefNews = [
+export const columnDefNews = [
   {
     accessorKey: 'createdOn',
     header: 'Created On',
+     size: 10,
     // header: ({ column }) => {
     //   return (
     //     <Button
@@ -45,4 +46,4 @@ const columnDefNews = [
       info.getValue() ? format(info.getValue(), 'dd/MM/yyyy/hh:mm:s aaa') : ''
   }
 ]
-export default columnDefNews
+

@@ -246,23 +246,25 @@ export const NewsStatusUpdate = Joi.object({
 export const NewsStatusArray = Joi.array().items(NewsStatus).min(1)
 
 export const News = Joi.object({
+  id: Joi.number().required(),
   description: Joi.string()
-    .min(3)
+    .min(10)
     .max(400)
     .required(),
   statusId: Joi.number()
     .integer()
     .required(),
-  questions: Joi.array().min(1),
+  // questions: Joi.array().min(1),
   createdBy: Joi.number()
     .integer()
     .required(),
-  closedBy: Joi.number()
-    .integer()
-    .required(),
   createdOn: Joi.date().required(),
-  closedOn: Joi.date().required(),
   document: Joi.string()
+  // closedOn: Joi.date().required(),
+  // closedBy: Joi.number()
+  // .integer()
+  // .required(),
+
 })
 
 export const NewsFilters = Joi.object({
@@ -275,18 +277,20 @@ export const NewsFilters = Joi.object({
 })
 
 export const NewsUpdate = Joi.object({
+  id: Joi.number().integer().required(),
   description: Joi.string()
-    .min(3)
-    .max(400),
-  statusId: Joi.number().integer(),
-  questions: Joi.array().min(1),
+    .min(10)
+    .max(400).required(),
+  statusId: Joi.number().integer().required(),
+  statusCode: Joi.string().max(3).required(),
+  // questions: Joi.array().min(1),
   createdBy: Joi.number()
-    .integer(),
-  closedBy: Joi.number()
-    .integer(),
-  createdOn: Joi.date(),
-  closedOn: Joi.date(),
-  document: Joi.string()
+    .integer().required(),
+  // closedBy: Joi.number()
+  //   .integer(),
+  createdOn: Joi.date().required(),
+  // closedOn: Joi.date(),
+  document: Joi.string().allow('')
 })
 
 export const Question = Joi.object({

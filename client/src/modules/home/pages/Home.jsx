@@ -2,8 +2,8 @@
 import NavBar from '../components/Navbar'
 import SideBar from '../components/SideBar'
 import { Suspense } from 'react'
-import Spinner from '../../../components/loader/Spinner'
-import { Outlet } from 'react-router-dom'
+import { Spinner } from '../../../components/loader/Spinner'
+import { Outlet } from 'react-router'
 
 const Home = () => {
   return (

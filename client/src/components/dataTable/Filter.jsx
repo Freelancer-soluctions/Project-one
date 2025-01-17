@@ -37,7 +37,7 @@ function Filter({ column }) {
     </select>
   ) : (
     <DebouncedInput
-      className='border rounded shadow w-36'
+      className='w-full border rounded shadow'
       onChange={value => column.setFilterValue(value)}
       placeholder={`Search...`}
       type='text'

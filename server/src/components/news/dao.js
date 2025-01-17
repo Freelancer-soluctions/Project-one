@@ -1,7 +1,8 @@
 import * as prismaService from '../utils/dao.js'
+import { tableNames } from '../utils/enums/enums.js'
 import prisma from '../../config/db.js'
 
-const tableName = 'news'
+const tableName = tableNames.NEWS
 
 /**
  *
@@ -56,7 +57,7 @@ export const getAllNews = async (description, fromDate, toDate, statusCode) => {
 
       },
       include: {
-        status: { select: { description: true } },
+        status: { select: { id: true, code: true, description: true } },
         userNewsCreated: { select: { name: true } },
         userNewsClosed: { select: { name: true } }
 
@@ -136,7 +137,24 @@ export const createManyRows = async (data) => prismaService.createManyRows(table
  * @param {*} where :: DB filter
  * @returns
  */
-export const updateRow = async (data, where) => prismaService.updateRow(tableName, data, where)
+export const updateRow = async (data, where) => {
+  const result = await prisma.news.update({
+    where,
+    data: {
+      description: data.description,
+      document: data.document,
+      documentId: data.documentId,
+      closedBy: data.closedBy,
+      closedOn: data.closedOn,
+      status: {
+        connect: {
+          id: data.statusId
+        }
+      }
+    }
+  })
+  return Promise.resolve(result)
+}
 
 /**
  *
