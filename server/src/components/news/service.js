@@ -5,6 +5,7 @@ import {
   handleUploadUpdate,
   handleDeleteFile
 } from '../../utils/cloudinary/cloudinary.js'
+import { NewsStatusCode } from '../utils/enums/enums.js'
 
 /**
  *
@@ -32,33 +33,24 @@ export const getOneById = async (id) => {
  * @param {*} data
  * @returns Created Row
  */
-export const createOne = async ({
-  description,
-  statusId,
-  createdBy,
-  closedBy,
-  createdOn,
-  closedOn,
-  file
-}) => {
+export const createOne = async (userId, data) => {
+  console.log('sdsdsds', userId)
   const createData = {
-
-    description,
-    statusId: Number(statusId),
-    createdBy: Number(createdBy),
-    closedBy: Number(closedBy),
-    createdOn: new Date(createdOn),
-    closedOn: new Date(closedOn)
-
+    description: data.description,
+    statusId: Number(data.statusId),
+    createdBy: Number(userId),
+    createdOn: new Date(),
+    pendingBy: data.statusCode === NewsStatusCode.PENDING ? Number(userId) : null,
+    pendingOn: data.statusCode === NewsStatusCode.PENDING ? new Date() : null
   }
-
-  if (file) {
-    const baseImage = Buffer.from(file.buffer).toString('base64')
-    const imageURI = `data:${file.mimetype};base64,${baseImage}`
-    const { public_id, secure_url } = await handleUpload(imageURI)
-    createData.document = secure_url
-    createData.documentId = public_id
-  }
+  console.log('createData', createData)
+  // if (file) {
+  //   const baseImage = Buffer.from(file.buffer).toString('base64')
+  //   const imageURI = `data:${file.mimetype};base64,${baseImage}`
+  //   const { public_id, secure_url } = await handleUpload(imageURI)
+  //   createData.document = secure_url
+  //   createData.documentId = public_id
+  // }
 
   return newsDao.createRow(createData)
 }
@@ -80,6 +72,16 @@ export const createMany = async (data) => {
 export const updateById = async (userId, data) => {
   const { id, ...dataWithoutId } = data
   const rowId = Number(id)
+
+  if (dataWithoutId.statusCode === NewsStatusCode.CLOSED) {
+    dataWithoutId.closedBy = Number(userId)
+    dataWithoutId.closedOn = new Date()
+  }
+
+  if (dataWithoutId.statusCode === NewsStatusCode.PENDING) {
+    dataWithoutId.pendingBy = Number(userId)
+    dataWithoutId.pendingOn = new Date()
+  }
 
   // if (data.document) {
   // const { documentId } = await getOneById(rowId)
@@ -103,11 +105,11 @@ export const updateById = async (userId, data) => {
  */
 export const deleteById = async (id) => {
   const rowId = Number(id)
-  const { documentId } = await getOneById(rowId)
+  // const { documentId } = await getOneById(rowId)
 
-  if (documentId) {
-    await handleDeleteFile(documentId)
-  }
+  // if (documentId) {
+  //   await handleDeleteFile(documentId)
+  // }
 
   return newsDao.deleteRow({ id: rowId })
 }

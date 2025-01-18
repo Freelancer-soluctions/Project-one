@@ -189,7 +189,7 @@ router.post('/', verifyToken, validateSchema(News), upload.single('document'), n
  *
  */
 
-router.put('/:id', verifyToken, validateSchema(NewsUpdate), newsController.updateById)
+router.put('/:id', verifyToken, validateSchema(NewsUpdate), upload.single('document'), newsController.updateById)
 
 /**
  * @openapi
@@ -223,6 +223,6 @@ router.put('/:id', verifyToken, validateSchema(NewsUpdate), newsController.updat
  *              $ref: "#/components/schemas/Error"
  */
 
-router.delete('deleteNews/:id', verifyToken, newsController.deleteById)
+router.delete('/:id', verifyToken, newsController.deleteById)
 
 export default router

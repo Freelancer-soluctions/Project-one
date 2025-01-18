@@ -6,7 +6,7 @@ export const columnDefNews = [
   {
     accessorKey: 'createdOn',
     header: 'Created On',
-     size: 10,
+    // size: 270, //set column size for this column
     // header: ({ column }) => {
     //   return (
     //     <Button
@@ -23,9 +23,14 @@ export const columnDefNews = [
   {
     accessorKey: 'description',
     header: 'Description',
+    // size: 1170, //set column size for this column
     // sortUndefined: 'last', //force undefined values to the end
     // sortDescFirst: false, //first sort order will be ascending (nullable values can mess up auto detection of sort order)
-    cell: info => info.getValue()
+    cell: info => {
+      const value = info.getValue();
+      return value.length > 30 ? `${value.slice(0, 30)}...` : value;
+    }
+    
   },
   {
     accessorKey: 'status.description',
@@ -33,11 +38,39 @@ export const columnDefNews = [
   },
   {
     accessorKey: 'userNewsCreated.name',
-    header: 'Created By'
+    header: 'Created By',
+    cell: info => {
+      const userNewsCreated = info.row.original.userNewsCreated; // Accede al dato original de la fila
+      return userNewsCreated?.name 
+        ? userNewsCreated.name.toUpperCase() 
+        : null; // Retorna null para mantener la celda vacía
+    }
+  },
+  {
+    accessorKey: 'userNewsPending.name',
+    header: 'Pending By',
+    cell: info => {
+      const userNewsPending = info.row.original.userNewsPending; // Accede al dato original de la fila
+      return userNewsPending?.name 
+        ? userNewsPending.name.toUpperCase() 
+        : null; // Retorna null para mantener la celda vacía
+    }
+  },
+  {
+    accessorKey: 'pendingOn',
+    header: 'Pending On',
+    cell: info =>
+      info.getValue() ? format(info.getValue(), 'dd/MM/yyyy/hh:mm:s aaa') : ''
   },
   {
     accessorKey: 'userNewsClosed.name',
-    header: 'Closed By'
+    header: 'Closed By',
+    cell: info => {
+      const userNewsClosed = info.row.original.userNewsClosed; // Accede al dato original de la fila
+      return userNewsClosed?.name 
+        ? userNewsClosed.name.toUpperCase() 
+        : null; // Retorna null para mantener la celda vacía
+    }
   },
   {
     accessorKey: 'closedOn',

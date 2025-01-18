@@ -94,6 +94,7 @@ model news {
   id              Int        @id @default(autoincrement())
   closedOn        DateTime?  @db.Timestamp(3)
   createdOn       DateTime   @default(now()) @db.Timestamp(3)
+  pendingOn       DateTime?  @db.Timestamp(3)
   description     String     @db.VarChar(400)
   document        String?
   documentId      String?
