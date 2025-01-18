@@ -8,8 +8,8 @@ import store from './redux/store'
 import { Provider } from 'react-redux'
 import App from './App'
 import InternalServerError from '@/components/500/InternalServerError'
-
 import { ErrorBoundary } from 'react-error-boundary'
+import '@/config/i18n'
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>

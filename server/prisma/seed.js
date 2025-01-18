@@ -61,7 +61,7 @@ const newStatus = [
 ]
 
 const user = {
-  name: 'admin',
+  name: 'Admin',
   email: 'admin@gmail.com',
   password: '123456',
   address: 'Robert Robertson, 1234 NW Bobcat Lane, St. Robert, MO 65584-5678',

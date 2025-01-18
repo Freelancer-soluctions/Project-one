@@ -59,7 +59,8 @@ export const getAllNews = async (description, fromDate, toDate, statusCode) => {
       include: {
         status: { select: { id: true, code: true, description: true } },
         userNewsCreated: { select: { name: true } },
-        userNewsClosed: { select: { name: true } }
+        userNewsClosed: { select: { name: true } },
+        userNewsPending: { select: { name: true } }
 
       }
 
@@ -121,7 +122,36 @@ export const getOneRow = async ({ where, include }) => prismaService.getOneRow({
  * @param {*} data :: Argument to create an item in DB
  * @returns Created row in db
  */
-export const createRow = async (data) => prismaService.createRow(tableName, data)
+export const createRow = async (data) => {
+  const result = await prisma.news.create({
+    data: {
+      description: data.description,
+      document: data.document,
+      documentId: data.documentId,
+      createdOn: data.createdOn,
+      userNewsCreated: {
+        connect: {
+          id: data.createdBy
+        }
+      },
+
+      userNewsPending: data.pendingBy
+        ? {
+            connect: {
+              id: data.pendingBy // Si no hay un id, no incluyas esta propiedad
+            }
+          }
+        : undefined,
+      pendingOn: data.pendingOn ? data.pendingOn : undefined,
+      status: {
+        connect: {
+          id: data.statusId
+        }
+      }
+    }
+  })
+  return Promise.resolve(result)
+}
 
 /**
  *
@@ -144,8 +174,22 @@ export const updateRow = async (data, where) => {
       description: data.description,
       document: data.document,
       documentId: data.documentId,
-      closedBy: data.closedBy,
-      closedOn: data.closedOn,
+      pendingOn: data.pendingOn ? data.pendingOn : undefined,
+      userNewsPending: data.pendingBy
+        ? {
+            connect: {
+              id: data.pendingBy
+            }
+          }
+        : undefined,
+      closedOn: data.closedOn ? data.closedOn : undefined,
+      userNewsClosed: data.closedBy
+        ? {
+            connect: {
+              id: data.closedBy
+            }
+          }
+        : undefined,
       status: {
         connect: {
           id: data.statusId
