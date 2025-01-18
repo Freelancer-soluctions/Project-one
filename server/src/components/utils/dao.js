@@ -76,7 +76,6 @@ export const createManyRows = async (tableName, data) => {
  * @returns
  */
 export const updateRow = async (tableName, data, where) => {
-  console.log('params', tableName, data, where)
   return prisma[tableName].update({
     where,
     data
