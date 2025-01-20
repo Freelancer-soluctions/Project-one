@@ -9,12 +9,14 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger
 } from '@/components/ui/alert-dialog'
+import { useTranslation } from 'react-i18next'
 
 const AlertDialogComponent = ({
   openAlertDialog,
   setOpenAlertDialog,
   alertProps
 }) => {
+  const { t } = useTranslation()
   return (
     <AlertDialog
       open={openAlertDialog}
@@ -31,14 +33,16 @@ const AlertDialogComponent = ({
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          {alertProps.cancel && <AlertDialogCancel>Cancel</AlertDialogCancel>}
+          {alertProps.cancel && (
+            <AlertDialogCancel>{t('cancel')}</AlertDialogCancel>
+          )}
           {alertProps.success && (
             <AlertDialogAction
               variant={alertProps.variantSuccess}
               onClick={() => {
                 alertProps.onSuccess()
               }}>
-              Ok
+              {t('ok')}
             </AlertDialogAction>
           )}
           {alertProps.destructive && (
@@ -47,7 +51,7 @@ const AlertDialogComponent = ({
               onClick={() => {
                 alertProps.onDelete()
               }}>
-              Delete
+              {t('delete')}
             </AlertDialogAction>
           )}
         </AlertDialogFooter>
