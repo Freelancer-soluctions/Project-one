@@ -52,6 +52,7 @@ const SignUp = lazy(() => import('@/modules/auth/pages/SignUp'))
 const Access = lazy(() => import('@/modules/access/pages/Access'))
 const Note = lazy(() => import('@/modules/note/pages/Note'))
 const News = lazy(() => import('@/modules/news/pages/News'))
+const Settings = lazy(() => import('@/modules/settings/pages/Settings'))
 // const InternalServerError = lazy(
 //   () => import('@/components/500/InternalServerError')
 // )
@@ -76,6 +77,7 @@ const App = () => {
           <Route index element={<Access />} />
           <Route path='news' element={<News />} />
           <Route path='notes' element={<Note />} />
+          <Route path='settings' element={<Settings />} />
 
           {/* Ruta comodín para manejar 404 en /home */}
           <Route path='*' element={<NotFound link={'/home'} />} />

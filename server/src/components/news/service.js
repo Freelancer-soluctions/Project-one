@@ -34,7 +34,6 @@ export const getOneById = async (id) => {
  * @returns Created Row
  */
 export const createOne = async (userId, data) => {
-  console.log('sdsdsds', userId)
   const createData = {
     description: data.description,
     statusId: Number(data.statusId),
@@ -43,7 +42,7 @@ export const createOne = async (userId, data) => {
     pendingBy: data.statusCode === NewsStatusCode.PENDING ? Number(userId) : null,
     pendingOn: data.statusCode === NewsStatusCode.PENDING ? new Date() : null
   }
-  console.log('createData', createData)
+
   // if (file) {
   //   const baseImage = Buffer.from(file.buffer).toString('base64')
   //   const imageURI = `data:${file.mimetype};base64,${baseImage}`

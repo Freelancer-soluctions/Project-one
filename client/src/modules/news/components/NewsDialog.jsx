@@ -49,6 +49,7 @@ import { Calendar } from '@/components/ui/calendar'
 import AlertDialogComponent from '@/components/alertDialog/AlertDialog'
 
 import { format, formatISO } from 'date-fns'
+import { useTranslation } from 'react-i18next'
 import { cn } from '@/lib/utils'
 
 export const NewsDialog = ({
@@ -59,6 +60,7 @@ export const NewsDialog = ({
   actionDialog,
   datastatus
 }) => {
+  const { t } = useTranslation()
   const [newId, setNewId] = useState('')
   const [statusCodeSaved, setStatusCodeSaved] = useState('')
   const [alertProps, setAlertProps] = useState({})
@@ -136,7 +138,6 @@ export const NewsDialog = ({
 
   const onSubmitDialog = async values => {
     if (newId) {
-      console.log('onSubmitDialog', values)
       try {
         const result = await updateNewById({
           id: newId,
@@ -150,12 +151,11 @@ export const NewsDialog = ({
             document: values.document
           }
         }).unwrap() // Desenvuelve la respuesta para manejar errores
-        console.log('Update successful:', result)
 
         setOpenAlertDialog(true)
         setAlertProps({
-          alertTitle: 'hola mundo',
-          alertMessage: 'New updated successfully',
+          alertTitle: t('update_record'),
+          alertMessage: t('updated_successfully'),
           cancel: false,
           success: true,
           onSuccess: () => {
@@ -174,11 +174,11 @@ export const NewsDialog = ({
           statusCode: values.status.code,
           description: values.description
         }).unwrap() // Desenvuelve la respuesta para manejar errores
-        console.log('create successful:', result)
+
         setOpenAlertDialog(true)
         setAlertProps({
-          alertTitle: 'hola mundo',
-          alertMessage: 'New created successfully',
+          alertTitle: t('add_record'),
+          alertMessage: t('added_successfully'),
           cancel: false,
           success: true,
           onSuccess: () => {
@@ -194,9 +194,8 @@ export const NewsDialog = ({
 
   const onDeleteNewById = async id => {
     setAlertProps({
-      alertTitle: 'Delete New',
-      alertMessage:
-        'Do you want to delete this new? This action cannot be undone.',
+      alertTitle: t('delete_record'),
+      alertMessage: t('request_delete_record'),
       cancel: true,
       success: false,
       destructive: true,
@@ -206,10 +205,10 @@ export const NewsDialog = ({
       onDelete: async () => {
         try {
           await deleteNewById(id).unwrap()
-          console.log('Delete successful')
+
           setAlertProps({
-            alertTitle: 'hola mundo',
-            alertMessage: 'New deleted successfully',
+            alertTitle: '',
+            alertMessage: t('deleted_successfully'),
             cancel: false,
             success: true,
             onSuccess: () => {
@@ -241,10 +240,10 @@ export const NewsDialog = ({
           <DialogHeader>
             <DialogTitle>
               <PiNewspaperClippingThin className='inline mr-3 w-7 h-7' />
-              {actionDialog} new
+              {actionDialog}
             </DialogTitle>
             <DialogDescription>
-              Make changes to new data here. Click save when you're done.
+              {newId ? t('edit_message') : t('add_message')}
             </DialogDescription>
           </DialogHeader>
 
@@ -262,7 +261,7 @@ export const NewsDialog = ({
                   render={({ field }) => {
                     return (
                       <FormItem className='flex flex-col flex-auto col-span-1'>
-                        <FormLabel>Document</FormLabel>
+                        <FormLabel>{t('document')}</FormLabel>
                         <FormControl>
                           <Input
                             id='file'
@@ -292,7 +291,7 @@ export const NewsDialog = ({
 
                     return (
                       <FormItem className='flex flex-col flex-auto'>
-                        <FormLabel>Status*</FormLabel>
+                        <FormLabel>{t('status')}*</FormLabel>
                         <Select
                           disabled={
                             newId && statusCodeSaved === NewsStatusCode.CLOSED
@@ -316,7 +315,7 @@ export const NewsDialog = ({
                           value={field.value.code}> */}
                           <FormControl>
                             <SelectTrigger>
-                              <SelectValue placeholder='Select a status' />
+                              <SelectValue placeholder={t('select_status')} />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
@@ -341,7 +340,7 @@ export const NewsDialog = ({
                     render={({ field }) => {
                       return (
                         <FormItem className='flex flex-col flex-auto col-span-1'>
-                          <FormLabel>Created By</FormLabel>
+                          <FormLabel>{t('created_by')}</FormLabel>
                           <FormControl>
                             <Input
                               id='userNewsCreated'
@@ -368,7 +367,7 @@ export const NewsDialog = ({
                     name='createdOn'
                     render={({ field }) => (
                       <FormItem className='flex flex-col flex-auto'>
-                        <FormLabel>Created On</FormLabel>
+                        <FormLabel>{t('created_on')}</FormLabel>
                         <Popover>
                           <PopoverTrigger asChild>
                             <FormControl>
@@ -409,7 +408,7 @@ export const NewsDialog = ({
                     render={({ field }) => {
                       return (
                         <FormItem className='flex flex-col flex-auto col-span-1'>
-                          <FormLabel>Closed By</FormLabel>
+                          <FormLabel>{t('closed_by')}</FormLabel>
                           <FormControl>
                             <Input
                               id='userNewsClosed'
@@ -436,7 +435,7 @@ export const NewsDialog = ({
                     name='closedOn'
                     render={({ field }) => (
                       <FormItem className='flex flex-col flex-auto'>
-                        <FormLabel>Closed On</FormLabel>
+                        <FormLabel>{t('closed_on')}</FormLabel>
                         <Popover>
                           <PopoverTrigger asChild>
                             <FormControl>
@@ -475,7 +474,7 @@ export const NewsDialog = ({
                   render={({ field }) => {
                     return (
                       <FormItem className='flex flex-col flex-auto col-span-2'>
-                        <FormLabel>Description*</FormLabel>
+                        <FormLabel>{t('description')}*</FormLabel>
                         <FormControl>
                           {/* <Input
                             id='description'
@@ -488,7 +487,7 @@ export const NewsDialog = ({
                             value={field.value ?? ''}
                           /> */}
                           <Textarea
-                            placeholder='Enter the description'
+                            placeholder={t('description_placeholder')}
                             className='resize-none'
                             maxLength={400}
                             disabled={
@@ -516,7 +515,7 @@ export const NewsDialog = ({
                 </Button> */}
                 <DialogClose asChild>
                   <Button type='button' variant='secondary'>
-                    Close
+                    {t('close')}
                   </Button>
                 </DialogClose>
                 {newId && (
@@ -526,13 +525,13 @@ export const NewsDialog = ({
                     onClick={() => {
                       onDeleteNewById(newId)
                     }}>
-                    Delete
+                    {t('delete')}
                   </Button>
                 )}
 
                 {statusCodeSaved !== NewsStatusCode.CLOSED && (
                   <Button type='submit' variant='info'>
-                    Save
+                    {t('save')}
                   </Button>
                 )}
               </DialogFooter>
