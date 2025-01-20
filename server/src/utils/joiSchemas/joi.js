@@ -246,7 +246,7 @@ export const NewsStatusUpdate = Joi.object({
 export const NewsStatusArray = Joi.array().items(NewsStatus).min(1)
 
 export const News = Joi.object({
-  id: Joi.number().required(),
+  // id: Joi.number().required(),
   description: Joi.string()
     .min(10)
     .max(400)
@@ -254,12 +254,14 @@ export const News = Joi.object({
   statusId: Joi.number()
     .integer()
     .required(),
+  statusCode: Joi.string().max(3).required(),
+
   // questions: Joi.array().min(1),
-  createdBy: Joi.number()
-    .integer()
-    .required(),
-  createdOn: Joi.date().required(),
-  document: Joi.string()
+  // createdBy: Joi.number()
+  //   .integer()
+  //   .required(),
+  // createdOn: Joi.date().required(),
+  document: Joi.string().allow('')
   // closedOn: Joi.date().required(),
   // closedBy: Joi.number()
   // .integer()
