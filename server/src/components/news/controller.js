@@ -36,8 +36,9 @@ export const getOneById = handleCatchErrorAsync(async (req, res) => {
  * @returns A message
  */
 export const createOne = handleCatchErrorAsync(async (req, res) => {
-  const { body, file } = req
-  await newsService.createOne({ ...body, file })
+  const userId = req.userId
+  const { body } = req
+  await newsService.createOne(userId, body)
   globalResponse(res, 201, { message: 'Item created successfully' })
 })
 

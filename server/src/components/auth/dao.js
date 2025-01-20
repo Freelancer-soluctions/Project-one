@@ -55,11 +55,13 @@ export const getUserById = async (id) => {
  */
 
 export const saveRefreshToken = async (refreshToken, id) => {
-  const user = await updateRow({
+  const data = { refreshToken }
+  const where = { id }
+  const user = await updateRow(
     tableName,
-    data: { refreshToken },
-    where: { id }
-  })
+    data,
+    where
+  )
 
   return Promise.resolve(user)
 }

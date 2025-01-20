@@ -6,11 +6,12 @@ import {
   useLazyGetAllNewsQuery,
   useGetAllNewsStatusQuery
 } from '../slice/newsSlice'
-
+import { useTranslation } from 'react-i18next'
 const News = () => {
   const [selectedRow, setSelectedRow] = useState({}) //data from datatable
   const [openDialog, setOpenDialog] = useState(false) //dialog open/close
   const [actionDialog, setActionDialog] = useState('') //actionDialog edit / add
+  const { t } = useTranslation() // Accede a las traducciones
 
   // filter form
   const [
@@ -42,7 +43,7 @@ const News = () => {
 
   return (
     <>
-      <BackDashBoard link={'/home'} moduleName={'News'} />
+      <BackDashBoard link={'/home'} moduleName={t('news')} />
       <div className='relative'>
         {/* Show spinner when loading or fetching */}
         {(isLoading || isFetching) && <Spinner />}

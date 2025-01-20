@@ -14,6 +14,12 @@ import {
   TableHeader,
   TableRow
 } from '@/components/ui/table'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger
+} from '@/components/ui/tooltip'
 
 import Filter from './Filter'
 import Pagination from './Pagination'
@@ -30,6 +36,12 @@ const Datatable = ({ columns, data = [], setSelectedRow, handleRow }) => {
   }) //pagination
 
   const table = useReactTable({
+    //override default column sizing
+    // defaultColumn: {
+    //   size: 200, //starting column size
+    //   minSize: 50, //enforced during column resizing
+    //   maxSize: 500 //enforced during column resizing
+    // },
     data,
     columns,
     getCoreRowModel: getCoreRowModel(),
@@ -57,8 +69,8 @@ const Datatable = ({ columns, data = [], setSelectedRow, handleRow }) => {
   }
 
   return (
-    <div className='flex-1 max-w-full '>
-      <Table className='rounded-lg '>
+    <div className='flex-1 max-w-full max-h-[50vh] '>
+      <Table className='overflow-auto rounded-lg'>
         <TableHeader>
           {table.getHeaderGroups().map(headerGroup => (
             <TableRow key={headerGroup.id}>
@@ -113,20 +125,23 @@ const Datatable = ({ columns, data = [], setSelectedRow, handleRow }) => {
             </TableRow>
           ))}
         </TableHeader>
+
         <TableBody>
           {table.getRowModel().rows?.length ? (
             table.getRowModel().rows.map(row => (
               <TableRow
                 key={row.id}
+                className=''
                 data-state={row.getIsSelected() && 'selected'}>
                 {row.getVisibleCells().map(cell => (
                   <TableCell
                     key={cell.id}
-                    className='p-2 text-center border cursor-pointer select-none'
+                    className='p-2 text-center border cursor-pointer select-none '
                     onClick={() => {
                       handleDataRow(row)
                     }}>
-                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                    {renderCellWithTooltip(cell)}
+                    {/* {flexRender(cell.column.columnDef.cell, cell.getContext())} */}
                   </TableCell>
                 ))}
               </TableRow>
@@ -142,10 +157,28 @@ const Datatable = ({ columns, data = [], setSelectedRow, handleRow }) => {
           )}
         </TableBody>
       </Table>
+
       <Pagination table={table} />
       {/* <pre>{JSON.stringify(table.getState().pagination, null, 2)}</pre> */}
     </div>
   )
 }
 
+// Helper function to render cell content with tooltip
+const renderCellWithTooltip = cell => {
+  const content = flexRender(cell.column.columnDef.cell, cell.getContext())
+
+  return (
+    <TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <div className='truncate'>{content}</div>
+        </TooltipTrigger>
+        <TooltipContent>
+          <p className='max-w-xs break-words'>{content}</p>
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
+  )
+}
 export default Datatable

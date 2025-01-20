@@ -1,5 +1,5 @@
 import { useForm } from 'react-hook-form'
-
+import { useTranslation } from 'react-i18next'
 import {
   Form,
   FormControl,
@@ -39,6 +39,7 @@ export const NewsFiltersForm = ({
   setOpenDialog,
   datastatus
 }) => {
+  const { t } = useTranslation() // Accede a las traducciones
   // Configura el formulario
   const formFilter = useForm({
     defaultValues: {
@@ -63,7 +64,7 @@ export const NewsFiltersForm = ({
   }
 
   const handleAddDialog = () => {
-    setActionDialog('Add')
+    setActionDialog(t('add_new'))
     setOpenDialog(true)
   }
 
@@ -89,17 +90,15 @@ export const NewsFiltersForm = ({
               render={({ field }) => {
                 return (
                   <FormItem className='flex flex-col flex-auto'>
-                    <FormLabel>Description</FormLabel>
+                    <FormLabel>{t('description')}</FormLabel>
                     <FormControl>
                       <Input
                         id='description'
                         name='description'
-                        placeholder='Enter the description'
+                        placeholder={t('description_placeholder')}
                         type='text'
                         autoComplete='false'
                         maxLength={50}
-                        // onInput={uppercaseFunction}
-                        // onChange={handleChangeEmail(event)}
                         {...field}
                         value={field.value ?? ''}
                       />
@@ -115,7 +114,7 @@ export const NewsFiltersForm = ({
               name='fdate'
               render={({ field }) => (
                 <FormItem className='flex flex-col flex-auto'>
-                  <FormLabel>From date</FormLabel>
+                  <FormLabel>{t('from_date')}</FormLabel>
                   <Popover>
                     <PopoverTrigger asChild>
                       <FormControl>
@@ -128,7 +127,7 @@ export const NewsFiltersForm = ({
                           {field.value ? (
                             format(field.value, 'PPP')
                           ) : (
-                            <span>Pick a date</span>
+                            <span>{t('pick_date')}</span>
                           )}
                           <CalendarIcon className='w-4 h-4 ml-auto opacity-50' />
                         </Button>
@@ -154,7 +153,7 @@ export const NewsFiltersForm = ({
               name='tdate'
               render={({ field }) => (
                 <FormItem className='flex flex-col flex-auto'>
-                  <FormLabel>To date</FormLabel>
+                  <FormLabel>{t('to_date')}</FormLabel>
                   <Popover>
                     <PopoverTrigger asChild>
                       <FormControl>
@@ -167,7 +166,7 @@ export const NewsFiltersForm = ({
                           {field.value ? (
                             format(field.value, 'PPP')
                           ) : (
-                            <span>Pick a date</span>
+                            <span>{t('pick_date')}</span>
                           )}
                           <CalendarIcon className='w-4 h-4 ml-auto opacity-50' />
                         </Button>
@@ -187,17 +186,18 @@ export const NewsFiltersForm = ({
                 </FormItem>
               )}
             />
+
             <FormField
               control={formFilter.control}
               name='statusNews'
               render={({ field }) => {
                 return (
                   <FormItem className='flex flex-col flex-auto'>
-                    <FormLabel>Status</FormLabel>
+                    <FormLabel>{t('status')}</FormLabel>
                     <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder='Select a status' />
+                          <SelectValue placeholder={t('select_status')} />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
@@ -220,7 +220,7 @@ export const NewsFiltersForm = ({
               type='submit'
               className='flex-1 md:flex-initial md:w-24'
               variant='info'>
-              Sarch
+              {t('search')}
               <MagnifyingGlassIcon className='w-4 h-4 ml-auto opacity-50' />
             </Button>
             <Button
@@ -228,14 +228,14 @@ export const NewsFiltersForm = ({
               className='flex-1 md:flex-initial md:w-24'
               variant='success'
               onClick={() => handleAddDialog()}>
-              Add <PlusIcon className='w-4 h-4 ml-auto opacity-50' />
+              {t('add')} <PlusIcon className='w-4 h-4 ml-auto opacity-50' />
             </Button>
             <Button
               type='button'
               className='flex-1 md:flex-initial md:w-24'
               variant='outline'
               onClick={() => handleResetFilter()}>
-              Clear <EraserIcon className='w-4 h-4 ml-auto opacity-50' />
+              {t('clear')} <EraserIcon className='w-4 h-4 ml-auto opacity-50' />
             </Button>
           </div>
         </form>

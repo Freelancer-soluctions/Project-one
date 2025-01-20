@@ -39,6 +39,13 @@ const newsApi = createApi({
           },
      
         }),
+        deleteNewById: builder.mutation({ 
+          query(id) {
+          return {
+            url: `/news/${id}`,
+            method: 'DELETE',
+          }
+        },})
        
       }),
     
@@ -46,6 +53,6 @@ const newsApi = createApi({
 
 // Export hooks for usage in functional components, which are
 // auto-generated based on the defined endpoints
-export const { useLazyGetAllNewsQuery, useGetAllNewsStatusQuery, useUpdateNewByIdMutation, useCreateNewMutation } = newsApi
+export const { useLazyGetAllNewsQuery, useGetAllNewsStatusQuery, useUpdateNewByIdMutation, useCreateNewMutation, useDeleteNewByIdMutation } = newsApi
 
 export default newsApi
