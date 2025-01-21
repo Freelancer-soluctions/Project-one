@@ -33,6 +33,9 @@
     "cancel": "Cancel",
     "delete": "Delete",
     "close": "Close",
-    "ok": "Ok"
+    "ok": "Ok",
+    "english": "English",
+    "spanish": "Spanish",
+    "language_message_change": "The language change will be applied to the entire application"
   }
 }
