@@ -20,7 +20,7 @@ export const signIn = handleCatchErrorAsync(async (req, res) => {
   const body = req.body
   const user = await authService.signIn(body)
   // Creates Secure Cookie with refresh token
-  res.cookie('jwt', user.refreshToken, { httpOnly: true, secure: true, sameSite: 'none', path: '/', maxAge: 24 * 60 * 60 * 1000 })
+  res.cookie('jwt', user.refreshToken, { httpOnly: true, secure: true, sameSite: 'none', path: '/', maxAge: 24 * 60 * 60 * 1000 /** 24 horas */ })
   delete user.refreshToken
   globalResponse(res, 200, user)
 })
@@ -45,3 +45,14 @@ export const refreshToken = handleCatchErrorAsync(async (req, res) => {
   const data = await authService.refreshToken(cookies)
   globalResponse(res, 200, data)
 })
+
+/**
+ * Log out
+ * @param {*} res
+ * @param {*} req
+ */
+export const logOut = (req, res) => {
+  // Clear the refresh token cookie
+  res.cookie('jwt', '', { httpOnly: true, secure: true, sameSite: 'none', path: '/', expires: new Date(0) })
+  globalResponse(res, 200, { message: 'Logged out successfully' })
+}

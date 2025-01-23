@@ -41,7 +41,7 @@ const router = Router()
  *
  */
 
-router.get('/', validateQueryParams(NewsFilters), newsController.getAllNews)
+router.get('/', verifyToken, validateQueryParams(NewsFilters), newsController.getAllNews)
 
 /**
 @openapi
