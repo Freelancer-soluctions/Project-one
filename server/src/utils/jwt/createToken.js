@@ -6,7 +6,8 @@ export const createToken = (userId = '') => {
     jwt.sign({ id: userId }, dontenv('SECRETKEY'), {
       // expiresIn: '120000' // 2 min
       // expiresIn: '10m'
-      expiresIn: '9000000' // 15 min (900000)
+      // expiresIn: '9000000' // 15 min (900000)
+      expiresIn: '5m'
     }, (err, token) => {
       if (err) {
         reject('token not generated.')
