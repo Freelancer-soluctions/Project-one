@@ -72,6 +72,13 @@ const authSlice = createSlice({
   reducers: {
     updateAuthData (state, action) {
       state.user = action.payload
+    },
+ 
+    logout: (state) => {
+      state.user = null;
+      state.isAuth = false;
+      state.isError = false;
+      state.errorMessage = '';
     }
   },
   extraReducers: (builder) => {
@@ -86,6 +93,8 @@ const authSlice = createSlice({
       state.isError = false
       state.isAuth = true
       state.user = action.payload
+      debugger
+      sessionStorage.setItem('accessToken', state.user.data.accessToken);
     })
     builder.addCase(signInFetch.rejected, (state, action) => {
       console.log('Error', action.error.message)
@@ -95,6 +104,14 @@ const authSlice = createSlice({
       state.isLoading = false
       state.errorMessage = action.error.message
     })
+    // // Redux persist
+    // builder.addCase('auth/rehydrate', (state, action) => {
+    //   const userData = action.payload;
+    //   if (userData) {
+    //     state.user = userData.user;
+    //     state.isAuth = true;
+    //   }
+    // });
     
     // refresh
     builder.addCase(refreshTokenFecth.pending, (state, action) => {
@@ -105,6 +122,7 @@ const authSlice = createSlice({
       state.isLoading = false
       state.isError = false
       state.user.data.accessToken = action.payload.data.accessToken
+      sessionStorage.setItem('accessToken', state.user.data.accessToken);
       console.log('new-accesst store', action.payload.data.accessToken)
     })
     builder.addCase(refreshTokenFecth.rejected, (state, action) => {
@@ -118,6 +136,6 @@ const authSlice = createSlice({
   }
 })
 
-export const { updateAuthData } = authSlice.actions
+export const { updateAuthData, logout } = authSlice.actions
 
 export default authSlice.reducer
