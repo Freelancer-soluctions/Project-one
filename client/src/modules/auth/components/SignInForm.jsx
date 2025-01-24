@@ -17,12 +17,11 @@ import { Button } from '@/components/ui/button'
 import { Spinner } from '../../../components/loader/Spinner'
 import { useEffect } from 'react'
 
-const SignInForm = () => {
+export const SignInForm = () => {
   const navigate = useNavigate()
   const dispatch = useDispatch()
   // const state = useSelector(state => state) todos los estados
   const { user, isError, isLoading } = useSelector(state => state.auth)
-
   const form = useForm({ resolver: zodResolver(signInSchema) })
 
   const onSubmit = ({ email, password }) => {
@@ -48,12 +47,6 @@ const SignInForm = () => {
   }
   return (
     <>
-      <div className='text-center'>
-        <h1 className='text-3xl font-bold'>Welcome back</h1>
-        <p className='text-gray-500 dark:text-gray-400'>
-          Enter your email and password to sign in.
-        </p>
-      </div>
       <div className='border shadow rounded-xl bg-card text-card-foreground'>
         <Form {...form}>
           <form
@@ -125,17 +118,6 @@ const SignInForm = () => {
         </Form>
       </div>
 
-      <div className='text-sm text-center text-gray-500 dark:text-gray-400'>
-        <p>
-          Do not have an account?
-          <Link
-            to='/signUp'
-            className='font-medium text-gray-900 underline underline-offset-4 hover:text-gray-700 dark:text-gray-50 dark:hover:text-gray-300'>
-            Register
-          </Link>
-        </p>
-      </div>
-
       {isLoading && <Spinner />}
 
       <div>
@@ -144,5 +126,3 @@ const SignInForm = () => {
     </>
   )
 }
-
-export default SignInForm

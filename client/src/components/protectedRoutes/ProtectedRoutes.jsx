@@ -17,7 +17,7 @@ const ProtectedRoutes = ({ children, redirectTo }) => {
   // }, [])
 
   useEffect(() => {
-    if (user === null && !user.isAuth) {
+    if (user.user === null && !user.isAuth) {
       navigate(redirectTo, { replace: true })
     }
   }, [navigate, user])

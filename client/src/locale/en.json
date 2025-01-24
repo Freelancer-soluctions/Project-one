@@ -36,6 +36,13 @@
     "ok": "Ok",
     "english": "English",
     "spanish": "Spanish",
-    "language_message_change": "The language change will be applied to the entire application"
+    "language_message_change": "The language change will be applied to the entire application",
+    "welcome_back": "Welcome back",
+    "sign_in_message": "Enter your email and password to sign in.",
+    "sign_up_message": "Create your account by filling in your details, including your name, email, password, and any additional information required.",
+    "do_you_have_an_account": "Do you have an account?",
+    "dont_you_have_an_account": "Don’t have an account?",
+    "sign_in": "Sign in now!",
+    "sign_up": "Sign up now!"
   }
 }
