@@ -22,7 +22,7 @@ const store = configureStore({
   // and other useful features of `rtk-query`.
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({ 
-      serializableCheck: false, // Necesario para redux-persist}
+      serializableCheck: false, // Necesario para redux-persist
     }).concat(newsApi.middleware),
 })
 store.subscribe(() => {

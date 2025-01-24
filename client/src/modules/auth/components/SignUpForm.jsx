@@ -23,19 +23,13 @@ import { CalendarIcon } from '@radix-ui/react-icons'
 import { cn } from '@/lib/utils'
 import { format } from 'date-fns'
 
-const SignUpForm = () => {
+export const SignUpForm = () => {
   const form = useForm({ resolver: zodResolver(signUpSchema) })
   const onSubmit = data => {
     console.log(data)
   }
   return (
     <>
-      <div className='text-center'>
-        <h1 className='text-3xl font-bold'>Welcome back</h1>
-        <p className='text-gray-500 dark:text-gray-400'>
-          Enter your email and password to sign in.
-        </p>
-      </div>
       <div className='border shadow rounded-xl bg-card text-card-foreground'>
         <Form {...form}>
           <form
@@ -201,31 +195,14 @@ const SignUpForm = () => {
               )}
             />
 
-            <div className='flex items-center justify-between'>
-              <p>Remind me</p>
-              <Link className='text-sm font-medium text-gray-900 underline underline-offset-4 hover:text-gray-700 dark:text-gray-50 dark:hover:text-gray-300'>
-                Forgot password?
-              </Link>
-            </div>
             <div className='flex items-center justify-center'>
               <Button type='submit' className='flex-1'>
-                Sign in
+                Sign up
               </Button>
             </div>
           </form>
         </Form>
       </div>
-
-      <div className='text-sm text-center text-gray-500 dark:text-gray-400'>
-        <p>
-          Do not have an account?{' '}
-          <Link className='font-medium text-gray-900 underline underline-offset-4 hover:text-gray-700 dark:text-gray-50 dark:hover:text-gray-300'>
-            Register
-          </Link>
-        </p>
-      </div>
     </>
   )
 }
-
-export default SignUpForm
