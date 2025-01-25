@@ -92,7 +92,7 @@ export const SignInForm = () => {
                       <Input
                         id='password'
                         name='password'
-                        placeholder='Type your password'
+                        placeholder='Type your password1'
                         autoComplete='current-password'
                         type='password'
                         {...field}
