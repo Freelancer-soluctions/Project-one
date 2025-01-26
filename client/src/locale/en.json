@@ -43,6 +43,20 @@
     "do_you_have_an_account": "Do you have an account?",
     "dont_you_have_an_account": "Don’t have an account?",
     "sign_in": "Sign in now!",
-    "sign_up": "Sign up now!"
+    "sign_up": "Sign up now!",
+    "sign_email_placeholder": "m@example.com",
+    "sign_password_placeholder": "Enter your password",
+    "remind_me": "Remind me",
+    "forgot_password": "Forgot password?",
+    "sign_in_button": "Sign in",
+    "sign_up_button": "Sign up",
+    "sign_name_placeholder": "Please enter your first name.",
+    "sign_last_name_placeholder": "Please enter your last name.",
+    "sign_confirm_password_placeholder": "Please confirm your password.",
+    "first_name": "First name",
+    "last_name": "Last name",
+    "email": "email",
+    "password": "Password",
+    "date_of_birth": "Date of birth"
   }
 }
