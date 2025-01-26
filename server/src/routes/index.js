@@ -17,5 +17,6 @@ router.use('/noteStatus', noteStatus)
 router.use('/question', question)
 router.use('/role', role)
 router.use('/userStatus', userStatus)
+router.use('/settings')
 
 export default router
