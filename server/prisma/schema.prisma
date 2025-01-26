@@ -8,36 +8,37 @@ datasource db {
 }
 
 model users {
-  id             Int         @id @default(autoincrement())
-  name           String      @db.VarChar(100)
-  email          String      @unique @db.VarChar(254)
-  password       String      @db.VarChar(100)
-  address        String?     @db.VarChar(250)
-  birthday       DateTime    @db.Timestamp(3)
-  city           String?     @db.VarChar(35)
-  isAdmin        Boolean?    @default(false)
-  picture        String?
-  document       String?
+  id              Int         @id @default(autoincrement())
+  name            String      @db.VarChar(100)
+  email           String      @unique @db.VarChar(254)
+  password        String      @db.VarChar(100)
+  address         String?     @db.VarChar(250)
+  birthday        DateTime    @db.Timestamp(3)
+  city            String?     @db.VarChar(35)
+  isAdmin         Boolean?    @default(false)
+  picture         String?
+  document        String?
   // documentId    String? // es factible este campo ??
-  lastUpdatedBy  Int
-  lastUpdatedOn  DateTime?   @db.Timestamp(3)
-  roleId         Int
-  roles          roles       @relation(fields: [roleId], references: [id])
-  socialSecurity String      @db.VarChar(9)
-  startDate      DateTime    @db.Timestamp(3)
-  state          String      @db.VarChar(50)
-  statusId       Int
-  status         userStatus  @relation(fields: [statusId], references: [id])
-  telephone      String      @db.VarChar(15)
-  zipcode        String      @db.VarChar(9)
-  refreshToken   String?     @db.VarChar(200)
-  userPermitId   Int
-  userPermits    userPermits @relation(fields: [userPermitId], references: [id])
-  newsClosed     news[]      @relation("userNewsClosed")
-  newsCreated    news[]      @relation("userNewsCreated")
-  newsPending    news[]      @relation("userNewsPending")
-  notesClosed    notes[]     @relation("userNoteClosed")
-  notesCreated   notes[]     @relation("userNoteCreated")
+  lastUpdatedBy   Int
+  lastUpdatedOn   DateTime?   @db.Timestamp(3)
+  roleId          Int
+  roles           roles       @relation(fields: [roleId], references: [id])
+  socialSecurity  String      @db.VarChar(9)
+  startDate       DateTime    @db.Timestamp(3)
+  state           String      @db.VarChar(50)
+  statusId        Int
+  status          userStatus  @relation(fields: [statusId], references: [id])
+  telephone       String      @db.VarChar(15)
+  zipcode         String      @db.VarChar(9)
+  refreshToken    String?     @db.VarChar(200)
+  userPermitId    Int
+  userPermits     userPermits @relation(fields: [userPermitId], references: [id])
+  newsClosed      news[]      @relation("userNewsClosed")
+  newsCreated     news[]      @relation("userNewsCreated")
+  newsPending     news[]      @relation("userNewsPending")
+  notesClosed     notes[]     @relation("userNoteClosed")
+  notesCreated    notes[]     @relation("userNoteCreated")
+  settingsCreated settings[]  @relation("userSettingCreated")
 }
 
 model userPermits {
@@ -116,3 +117,10 @@ model news {
 //   news        news    @relation(fields: [newsId], references: [id])
 //   newsId      Int
 // }
+
+model settings {
+  id                 Int    @id @default(autoincrement())
+  language           String @unique @db.VarChar(2)
+  userSettingCreated users  @relation("userSettingCreated", fields: [createdBy], references: [id])
+  createdBy          Int
+}

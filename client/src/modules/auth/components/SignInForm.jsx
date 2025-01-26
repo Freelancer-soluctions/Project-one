@@ -16,6 +16,7 @@ import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Spinner } from '../../../components/loader/Spinner'
 import { useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 
 export const SignInForm = () => {
   const navigate = useNavigate()
@@ -23,6 +24,7 @@ export const SignInForm = () => {
   // const state = useSelector(state => state) todos los estados
   const { user, isError, isLoading } = useSelector(state => state.auth)
   const form = useForm({ resolver: zodResolver(signInSchema) })
+  const { t } = useTranslation()
 
   const onSubmit = ({ email, password }) => {
     dispatch(signInFetch({ email, password }))
@@ -62,12 +64,12 @@ export const SignInForm = () => {
               render={({ field }) => {
                 return (
                   <FormItem>
-                    <FormLabel>Email</FormLabel>
+                    <FormLabel>{t('email')}</FormLabel>
                     <FormControl>
                       <Input
                         id='email'
                         name='email'
-                        placeholder='m@example.com'
+                        placeholder={t('sign_email_placeholder')}
                         type='email'
                         autoComplete='false'
                         // onChange={handleChangeEmail(event)}
@@ -87,12 +89,12 @@ export const SignInForm = () => {
               render={({ field }) => {
                 return (
                   <FormItem>
-                    <FormLabel>Password</FormLabel>
+                    <FormLabel>{t('email')}</FormLabel>
                     <FormControl>
                       <Input
                         id='password'
                         name='password'
-                        placeholder='Type your password1'
+                        placeholder={t('sign_password_placeholder')}
                         autoComplete='current-password'
                         type='password'
                         {...field}
@@ -104,14 +106,14 @@ export const SignInForm = () => {
               }}
             />
             <div className='flex items-center justify-between'>
-              <p>Remind me</p>
+              <p>{t('remind_me')}</p>
               <Link className='text-sm font-medium text-gray-900 underline underline-offset-4 hover:text-gray-700 dark:text-gray-50 dark:hover:text-gray-300'>
-                Forgot password?
+                {t('forgot_password')}
               </Link>
             </div>
             <div className='flex items-center justify-center'>
               <Button type='submit' className='flex-1'>
-                Sign in
+                {t('sign_in')}
               </Button>
             </div>
           </form>

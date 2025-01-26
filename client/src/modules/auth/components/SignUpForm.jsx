@@ -1,7 +1,6 @@
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { signUpSchema } from '../utils/schemas'
-import { Link } from 'react-router'
 
 import {
   Form,
@@ -22,8 +21,10 @@ import { Calendar } from '@/components/ui/calendar'
 import { CalendarIcon } from '@radix-ui/react-icons'
 import { cn } from '@/lib/utils'
 import { format } from 'date-fns'
+import { useTranslation } from 'react-i18next'
 
 export const SignUpForm = () => {
+  const { t } = useTranslation()
   const form = useForm({ resolver: zodResolver(signUpSchema) })
   const onSubmit = data => {
     console.log(data)
@@ -45,12 +46,12 @@ export const SignUpForm = () => {
               render={({ field }) => {
                 return (
                   <FormItem>
-                    <FormLabel>First name</FormLabel>
+                    <FormLabel>{t('first_name')}</FormLabel>
                     <FormControl>
                       <Input
                         id='fname'
                         name='fname'
-                        placeholder='Please enter your first name.'
+                        placeholder={t('sign_name_placeholder')}
                         type='text'
                         {...field}
                         value={field.value ?? ''}
@@ -68,12 +69,12 @@ export const SignUpForm = () => {
               render={({ field }) => {
                 return (
                   <FormItem>
-                    <FormLabel>Last name</FormLabel>
+                    <FormLabel>{t('last_name')}</FormLabel>
                     <FormControl>
                       <Input
                         id='lname'
                         name='lname'
-                        placeholder='Please enter your last name.'
+                        placeholder={t('sign_last_name_placeholder')}
                         type='text'
                         {...field}
                         value={field.value ?? ''}
@@ -91,12 +92,12 @@ export const SignUpForm = () => {
               render={({ field }) => {
                 return (
                   <FormItem>
-                    <FormLabel>Email</FormLabel>
+                    <FormLabel>{t('email')}</FormLabel>
                     <FormControl>
                       <Input
                         id='email'
                         name='email'
-                        placeholder='m@example.com.'
+                        placeholder={t('sign_email_placeholder')}
                         type='email'
                         {...field}
                         value={field.value ?? ''}
@@ -114,12 +115,12 @@ export const SignUpForm = () => {
               render={({ field }) => {
                 return (
                   <FormItem>
-                    <FormLabel>Password</FormLabel>
+                    <FormLabel>{t('password')}</FormLabel>
                     <FormControl>
                       <Input
                         id='password'
                         name='password'
-                        placeholder='Type your password.'
+                        placeholder={t('sign_password_placeholder')}
                         // autoComplete="current-password"
                         type='password'
                         {...field}
@@ -136,12 +137,12 @@ export const SignUpForm = () => {
               render={({ field }) => {
                 return (
                   <FormItem>
-                    <FormLabel>Password</FormLabel>
+                    <FormLabel>{t('password')}</FormLabel>
                     <FormControl>
                       <Input
                         id='rpassword'
                         name='rpassword'
-                        placeholder='Confirm password.'
+                        placeholder={t('sign_confirm_password_placeholder')}
                         // autoComplete="current-password"
                         type='password'
                         {...field}
@@ -158,7 +159,7 @@ export const SignUpForm = () => {
               name='dob'
               render={({ field }) => (
                 <FormItem className='flex flex-col'>
-                  <FormLabel>Date of birth</FormLabel>
+                  <FormLabel>{t('date_of_birth')}</FormLabel>
                   <Popover>
                     <PopoverTrigger asChild>
                       <FormControl>
@@ -171,7 +172,7 @@ export const SignUpForm = () => {
                           {field.value ? (
                             format(field.value, 'PPP')
                           ) : (
-                            <span>Pick a date</span>
+                            <span>{t('pick_date')}</span>
                           )}
                           <CalendarIcon className='w-4 h-4 ml-auto opacity-50' />
                         </Button>
@@ -197,7 +198,7 @@ export const SignUpForm = () => {
 
             <div className='flex items-center justify-center'>
               <Button type='submit' className='flex-1'>
-                Sign up
+                {t('sign_last_name_placeholder')}
               </Button>
             </div>
           </form>
