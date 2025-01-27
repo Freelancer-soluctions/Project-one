@@ -3,7 +3,7 @@ import { createRow, getOneRow, getRow, updateRow } from '../utils/dao.js'
 const tableName = 'users'
 
 /**  sign up
- * @param {object} user
+ * @param {Object} user
  */
 export const signUp = async (user) => {
   const userRes = await createRow(tableName, user)
@@ -11,7 +11,7 @@ export const signUp = async (user) => {
 }
 
 /**  get user by email
- * @param {email} email
+ * @param {string} email
  */
 export const signIn = async (email) => {
   const user = await getOneRow({
@@ -24,7 +24,7 @@ export const signIn = async (email) => {
 }
 
 /**  get session by id
- * @param {id} id
+ * @param {number} id
  */
 export const session = async (id) => {
   const user = await getOneRow({
@@ -37,7 +37,7 @@ export const session = async (id) => {
 }
 
 /**  get user by id
- * @param {id} id
+ * @param {Number} id
  */
 export const getUserById = async (id) => {
   const user = await getOneRow({

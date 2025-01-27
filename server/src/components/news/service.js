@@ -9,8 +9,8 @@ import { NewsStatusCode } from '../utils/enums/enums.js'
 
 /**
  *
- * @param {string} description
- * @param {string} statusCode
+ * @param {String} description
+ * @param {String} statusCode
  * @param {Date} toDate
  * @param {Date} fromDate
  * @returns all news from db
@@ -30,7 +30,7 @@ export const getOneById = async (id) => {
 
 /**
  *
- * @param {*} data
+ * @param {Object} data
  * @returns Created Row
  */
 export const createOne = async (userId, data) => {
@@ -56,7 +56,7 @@ export const createOne = async (userId, data) => {
 
 /**
  *
- * @param {*} data
+ * @param {Object} data
  * @returns Created Rows
  */
 export const createMany = async (data) => {
@@ -64,8 +64,8 @@ export const createMany = async (data) => {
 }
 /**
  *
- * @param {*} userId :: userId
- * @param {*} data ::
+ * @param {*} userId
+ * @param {*} data
  * @returns Updated row
  */
 export const updateById = async (userId, data) => {
@@ -99,7 +99,7 @@ export const updateById = async (userId, data) => {
 }
 /**
  *
- * @param {*} id
+ * @param {number} id
  * @returns Deleted row
  */
 export const deleteById = async (id) => {
