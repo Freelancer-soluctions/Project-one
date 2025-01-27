@@ -9,7 +9,7 @@ import jwt from 'jsonwebtoken'
 import dontenv from '../../config/dotenv.js'
 
 /**  sign up
- * @param {object} user
+ * @param {Object} user
 */
 export const signUp = async (user) => {
   // get the user role id
@@ -29,7 +29,7 @@ export const signUp = async (user) => {
 }
 
 /**  sign in
- * @param {object} user
+ * @param {Object} user
 */
 export const signIn = async (user) => {
   const { email, password } = user
@@ -59,7 +59,7 @@ export const signIn = async (user) => {
 }
 
 /**  get session by id
- * @param {id} id
+ * @param {Int} id
 */
 export const session = async (id) => {
   const session = await authDao.session(id)
@@ -71,7 +71,7 @@ export const session = async (id) => {
 }
 
 /**  generate a new access token
- * @param {string} token
+ * @param {String} token
 */
 export const refreshToken = async (cookies) => {
   if (!cookies.jwt) {
