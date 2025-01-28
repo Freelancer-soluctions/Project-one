@@ -65,7 +65,7 @@ model userStatus {
 model notes {
   id              Int        @id @default(autoincrement())
   closedOn        DateTime   @db.Timestamp(3)
-  createdOn       DateTime   @default(now()) @db.Timestamp(3)
+  createdOn       DateTime   @db.Timestamp(3)
   document        String?
   documentId      String?
   note            String     @db.VarChar(2000)
@@ -94,7 +94,7 @@ model newsStatus {
 model news {
   id              Int        @id @default(autoincrement())
   closedOn        DateTime?  @db.Timestamp(3)
-  createdOn       DateTime   @default(now()) @db.Timestamp(3)
+  createdOn       DateTime   @db.Timestamp(3)
   pendingOn       DateTime?  @db.Timestamp(3)
   description     String     @db.VarChar(400)
   document        String?
@@ -119,8 +119,10 @@ model news {
 // }
 
 model settings {
-  id                 Int    @id @default(autoincrement())
-  language           String @unique @db.VarChar(2)
-  userSettingCreated users  @relation("userSettingCreated", fields: [createdBy], references: [id])
-  createdBy          Int
+  id                 Int       @id @default(autoincrement())
+  language           String    @unique @db.VarChar(2)
+  userSettingCreated users     @relation("userSettingCreated", fields: [userId], references: [id])
+  userId             Int
+  createdOn          DateTime  @default(now()) @db.Timestamp(3)
+  updatedOn          DateTime? @db.Timestamp(3)
 }

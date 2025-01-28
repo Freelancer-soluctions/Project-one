@@ -15,8 +15,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { LuBell, LuUser, LuMoon, LuShield, LuGlobe } from 'react-icons/lu'
 import { Separator } from '@/components/ui/separator'
 import { SettingsLanguage } from '../components/index'
+import { useSelector } from 'react-redux'
 
 export default function Settings() {
+  const {
+    user: { id }
+  } = useSelector(state => state.auth)
+
   return (
     <div className='container max-w-6xl py-10'>
       <div className='space-y-6'>
@@ -52,7 +57,7 @@ export default function Settings() {
               Account
             </TabsTrigger>
           </TabsList>
-          <SettingsLanguage />
+          <SettingsLanguage userId={id} />
           {/* <TabsContent value='profile' className='space-y-6'>
             <Card>
               <CardContent className='p-6 space-y-4'>

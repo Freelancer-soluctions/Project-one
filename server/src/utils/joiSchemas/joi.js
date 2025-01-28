@@ -320,5 +320,7 @@ export const QuestionUpdate = Joi.object({
 export const QuestionArray = Joi.array().items(Question).min(1)
 
 export const SettingsLanguage = Joi.object({
-  language: Joi.string().valid('es', 'en').required()
+  id: Joi.number().integer().optional(),
+  language: Joi.string().valid('es', 'en').required(),
+  userId: Joi.number().integer().optional()
 })
