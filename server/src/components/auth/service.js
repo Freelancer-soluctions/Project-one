@@ -8,9 +8,12 @@ import { encryptPassword, comparePassword } from '../../utils/bcrypt/encrypt.js'
 import jwt from 'jsonwebtoken'
 import dontenv from '../../config/dotenv.js'
 
-/**  sign up
- * @param {Object} user
-*/
+/**
+ * Sign up a new user.
+ *
+ * @param {Object} user - The user object containing user details.
+ * @returns {Promise<Object>} An object containing the access token and user details.
+ */
 export const signUp = async (user) => {
   // get the user role id
   const role = await roleService.getOneByCode(rolesCodes.user)
@@ -28,9 +31,12 @@ export const signUp = async (user) => {
   return { accessToken: token, user: { id: userSaved.id, firstName: userSaved.firstName, picture: userSaved.picture, role: userSaved.roleId } }
 }
 
-/**  sign in
- * @param {Object} user
-*/
+/**
+ * Sign in an existing user.
+ *
+ * @param {Object} user - The user object containing email and password.
+ * @returns {Promise<Object>} An object containing the access token, refresh token, and user details.
+ */
 export const signIn = async (user) => {
   const { email, password } = user
 
@@ -58,9 +64,13 @@ export const signIn = async (user) => {
   return { accessToken: token, refreshToken, user: { id: userExists.id, firstName: userExists.firstName, picture: userExists.picture, roleName: userExists.roles.description, roleId: userExists.roleId } }
 }
 
-/**  get session by id
- * @param {Int} id
-*/
+/**
+ * Retrieve the user session by ID.
+ *
+ * @param {number} id - The user's ID.
+ * @returns {Promise<Object>} An object containing the user's session details.
+ */
+
 export const session = async (id) => {
   const session = await authDao.session(id)
   if (!session) {
@@ -70,9 +80,13 @@ export const session = async (id) => {
   return { user: { name: session.name, picture: session.picture, role: session.role } }
 }
 
-/**  generate a new access token
- * @param {String} token
-*/
+/**
+ * Generate a new access token using the refresh token.
+ *
+ * @param {Object} cookies - The HTTP cookies object containing the refresh token.
+ * @returns {Promise<Object>} An object containing the new access token and user details.
+ */
+
 export const refreshToken = async (cookies) => {
   if (!cookies.jwt) {
     throw new ClientError('Refresh token no encontrado', 400)

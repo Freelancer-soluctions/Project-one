@@ -5,12 +5,13 @@ import prisma from '../../config/db.js'
 const tableName = tableNames.NEWS
 
 /**
+ * Retrieves all news from the database based on the provided filters.
  *
- * @param {string} description
- * @param {string} statusCode
- * @param {Date} toDate
- * @param {Date} fromDate
- * @returns all news from db
+ * @param {string} description - The description to filter news by.
+ * @param {Date} fromDate - The start date to filter news by.
+ * @param {Date} toDate - The end date to filter news by.
+ * @param {string} statusCode - The status code to filter news by.
+ * @returns {Promise<Array>} A list of news matching the filters from the database.
  */
 
 export const getAllNews = async (description, fromDate, toDate, statusCode) => {
@@ -24,9 +25,9 @@ export const getAllNews = async (description, fromDate, toDate, statusCode) => {
                 {
                   description: { contains: description }
                 }
-              // {
-              //   NOT: { description: null }
-              // }
+                // {
+                //   NOT: { description: null }
+                // }
               ]
             }
           : {}),
@@ -47,9 +48,9 @@ export const getAllNews = async (description, fromDate, toDate, statusCode) => {
         ...(statusCode
           ? {
               status:
-                {
-                  code: { equals: statusCode }
-                }
+                  {
+                    code: { equals: statusCode }
+                  }
 
             }
           : {})
@@ -83,6 +84,11 @@ export const getAllNews = async (description, fromDate, toDate, statusCode) => {
   return Promise.resolve(news)
 }
 
+/**
+ * Retrieves all available news statuses from the database.
+ *
+ * @returns {Promise<Array>} A list of news statuses from the database.
+ */
 export const getAllNewsStatus = async () => {
   // const statusId = 1
   const news = await prisma.newsStatus.findMany({
@@ -94,22 +100,12 @@ export const getAllNewsStatus = async () => {
 }
 
 /**
+ * Retrieves one row from the database based on the provided filter parameters.
  *
- * @param {*} params :: filter params
- * @returns All rows by filter
- */
-
-export const getAllRows = async ({ where, include }) => prismaService.getRows({
-  tableName,
-  where,
-  include
-})
-
-/**
-
- * @param {*} params :: filter params
- *
- * @returns One row by ID
+ * @param {Object} params - The filter parameters for retrieving the row.
+ * @param {Object} params.where - The conditions to find the row.
+ * @param {Object} params.include - Additional related data to include.
+ * @returns {Promise<Object>} The requested row from the database.
  */
 export const getOneRow = async ({ where, include }) => prismaService.getOneRow({
   tableName,
@@ -118,9 +114,10 @@ export const getOneRow = async ({ where, include }) => prismaService.getOneRow({
 })
 
 /**
+ * Creates a new row in the database with the provided data.
  *
- * @param {*} data :: Argument to create an item in DB
- * @returns Created row in db
+ * @param {Object} data - The data to insert into the database.
+ * @returns {Promise<Object>} The created row in the database.
  */
 export const createRow = async (data) => {
   const result = await prisma.news.create({
@@ -154,18 +151,11 @@ export const createRow = async (data) => {
 }
 
 /**
+ * Updates an existing row in the database based on the provided filter and data.
  *
- * @param {*} data :: Argument to create many items in Db.
- * @returns  Created row in db
- */
-
-export const createManyRows = async (data) => prismaService.createManyRows(tableName, data)
-
-/**
- *
- * @param {*} data :: Fields to update rows in Db.
- * @param {*} where :: DB filter
- * @returns
+ * @param {Object} data - The fields to update in the row.
+ * @param {Object} where - The conditions to identify the row to update.
+ * @returns {Promise<Object>} The updated row in the database.
  */
 export const updateRow = async (data, where) => {
   const result = await prisma.news.update({
@@ -201,8 +191,9 @@ export const updateRow = async (data, where) => {
 }
 
 /**
+ * Deletes a row from the database based on the provided filter.
  *
- * @param {*} where :: DB filter
- * @returns
+ * @param {Object} where - The filter conditions to identify the row to delete.
+ * @returns {Promise<Object>} The result of the delete operation.
  */
 export const deleteRow = async (where) => prismaService.deleteRow(tableName, where)

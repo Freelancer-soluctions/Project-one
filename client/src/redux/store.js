@@ -1,6 +1,7 @@
 import { configureStore } from '@reduxjs/toolkit'
 import authSlice from '../modules/auth/slice/authSlice'
 import newsApi from '../modules/news/slice/newsSlice'
+import settingsApi from '../modules/settings/slice/settingsSlice'
 import storageSession from 'redux-persist/lib/storage/session';
 import { persistStore, persistReducer } from 'redux-persist';
 
@@ -16,7 +17,8 @@ const persistedReducer = persistReducer(persistConfig, authSlice);
 const store = configureStore({
   reducer: {
     auth: persistedReducer,
-    [newsApi.reducerPath]: newsApi.reducer
+    [newsApi.reducerPath]: newsApi.reducer,
+    [settingsApi.reducerPath]: settingsApi.reducer
   },
   // Adding the api middleware enables caching, invalidation, polling,
   // and other useful features of `rtk-query`.

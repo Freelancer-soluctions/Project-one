@@ -7,6 +7,7 @@ import noteStatus from '../components/noteStatus/routes.js'
 import question from '../components/question/routes.js'
 import role from '../components/role/routes.js'
 import userStatus from '../components/userStatus/routes.js'
+import settings from '../components/settings/routes.js'
 
 const router = Router()
 router.use('/auth', auth)
@@ -17,6 +18,6 @@ router.use('/noteStatus', noteStatus)
 router.use('/question', question)
 router.use('/role', role)
 router.use('/userStatus', userStatus)
-router.use('/settings')
+router.use('/settings', settings)
 
 export default router
