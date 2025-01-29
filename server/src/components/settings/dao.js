@@ -35,9 +35,9 @@ export const createOrUpdateSettingsLanguage = async (id, data) => {
  * @throws {Error} - Throws an error if the database operation fails.
  */
 export const getLanguageById = async (userId) => {
-  const result = await prisma.settings.findUnique({
+  const result = await prisma.settings.findFirst({
     where: {
-      createdby: userId
+      userId
     }
   })
   return Promise.resolve(result)

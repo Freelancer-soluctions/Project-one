@@ -29,6 +29,6 @@ export const createOrUpdateSettingsLanguage = async ({ id, language, userId }) =
  * @throws {Error} - If there is an error during the database operation.
  */
 export const getLanguageById = async (userId) => {
-  const rowId = Number(userId)
+  const rowId = Number(1)
   return await getLanguageByIdDao(rowId)
 }

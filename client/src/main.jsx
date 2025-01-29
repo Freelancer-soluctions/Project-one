@@ -3,7 +3,7 @@ import ReactDOM from 'react-dom/client'
 
 import './index.css'
 import { BrowserRouter } from 'react-router'
-import { store, persistor } from './redux/store'
+import { store } from './redux/store'
 import { Provider } from 'react-redux'
 import App from './App'
 import InternalServerError from '@/components/500/InternalServerError'
@@ -22,13 +22,13 @@ ReactDOM.createRoot(document.getElementById('root')).render(
         // Realiza alguna acción para reiniciar el estado de la aplicación
       }}>
       <Provider store={store}>
-        <PersistGate loading={<Spinner />} persistor={persistor}>
-          <I18nextProvider i18n={i18n}>
-            <BrowserRouter>
-              <App />
-            </BrowserRouter>
-          </I18nextProvider>
-        </PersistGate>
+        {/* <PersistGate loading={<Spinner />} persistor={persistor}> */}
+        <I18nextProvider i18n={i18n}>
+          <BrowserRouter>
+            <App />
+          </BrowserRouter>
+        </I18nextProvider>
+        {/* </PersistGate> */}
       </Provider>
     </ErrorBoundary>
   </React.StrictMode>
