@@ -120,7 +120,7 @@ model news {
 
 model settings {
   id                 Int       @id @default(autoincrement())
-  language           String    @unique @db.VarChar(2)
+  language           String    @db.VarChar(2)
   userSettingCreated users     @relation("userSettingCreated", fields: [userId], references: [id])
   userId             Int
   createdOn          DateTime  @default(now()) @db.Timestamp(3)
