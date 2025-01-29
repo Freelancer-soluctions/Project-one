@@ -9,31 +9,40 @@ import {
   SelectValue
 } from '@/components/ui/select'
 import { useTranslation } from 'react-i18next'
-import {
-  useLazyGetSettingLanguageById,
-  useSaveSettingLanguageMutation
-} from '../slice/settingsSlice'
+import { useSaveSettingLanguageMutation } from '../slice/settingsSlice'
+import { useState } from 'react'
 
-export const SettingsLanguage = ({ userId }) => {
+export const SettingsLanguage = ({ userId, getLanguage, data }) => {
   const {
     t,
     i18n: { changeLanguage, language }
   } = useTranslation()
-  const [getLanguage, { data, isLoading, isError }] =
-    useLazyGetSettingLanguageById()
+
   const [
     saveLanguage,
     { isLoading: isLoadingPost, isError: isErrorPost, isSuccess: isSuccessPost }
   ] = useSaveSettingLanguageMutation()
 
+  // Estado local para forzar un render
+  const [trigger, setTrigger] = useState(false)
+
   const onChangeLanguage = async value => {
-    console.log('values:', value)
     try {
-      await getLanguage({ userId })
+      setTrigger(prev => !prev)
+      // Llamar a getLanguage para obtener los datos más recientes desde el servidor
+      await getLanguage(userId, { preferCacheValue: false })
+
+      // Manipulamos los datos frescos que ya fueron obtenidos
       const lang =
-        data.id && data.language ? { language } : { userId, language }
-      const result = await saveLanguage(lang).unwrap() // Desenvuelve la respuesta para manejar errores
-      changeLanguage(value) // Cambiar el idioma con i18n
+        data?.data?.id && data?.data?.language
+          ? { id: data?.data?.id, language: value }
+          : { userId, language: value }
+
+      // Llamada para guardar el lenguaje seleccionado
+      const result = await saveLanguage(lang).unwrap()
+
+      // Cambiar el idioma usando i18n
+      changeLanguage(value)
     } catch (error) {
       console.error('Error updating:', error)
     }

@@ -46,7 +46,7 @@ const router = Router()
  *               $ref: "#/components/schemas/Error"
  */
 
-router.get('language/:id', verifyToken, settingsController.getLanguageById)
+router.get('/language/:id', verifyToken, settingsController.getLanguageById)
 
 /**
  * @openapi
@@ -85,6 +85,6 @@ router.get('language/:id', verifyToken, settingsController.getLanguageById)
  *               $ref: "#/components/schemas/Error"
  */
 
-router.post('language/', verifyToken, validateSchema(SettingsLanguage), settingsController.createOrUpdateSettingsLanguage)
+router.post('/language/', verifyToken, validateSchema(SettingsLanguage), settingsController.createOrUpdateSettingsLanguage)
 
 export default router

@@ -15,8 +15,8 @@ import * as settingsService from './service.js'
  * @throws {Error} - If there is an error, it will be handled by the catch handler.
  */
 export const createOrUpdateSettingsLanguage = handleCatchErrorAsync(async (req, res) => {
-  console.log('createOrUpdateSettingsLanguage')
   const { body } = req
+  console.log('createOrUpdateSettingsLanguage', body)
   const result = await settingsService.createOrUpdateSettingsLanguage(body)
   globalResponse(res, 200, result)
 })
@@ -34,8 +34,9 @@ export const createOrUpdateSettingsLanguage = handleCatchErrorAsync(async (req, 
  * @throws {Error} - If there is an error, it will be handled by the catch handler.
  */
 export const getLanguageById = handleCatchErrorAsync(async (req, res) => {
-  console.log('getLanguageById')
   const { id } = req.params
+  console.log('getLanguageByIddd', id)
   const result = await settingsService.getLanguageById(id)
+  console.log('getLanguageById', result)
   globalResponse(res, 200, result)
 })

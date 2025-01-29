@@ -8,18 +8,22 @@
    const settingsApi = createApi({
        reducerPath:'settingsApi',
        baseQuery:axiosPrivateBaseQuery({ baseUrl: import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1' }),
+       keepUnusedDataFor: 0,
        endpoints: (builder) => ({
            getSettingLanguageById: builder.query({
-             query: ({id}) =>({
-               url: `/language/${id}`,
+             query: (id) =>({
+               url: `/settings/language/${id}`,
                method: "GET",
-              
+              //  transformResponse: (response) => console.log("datasettings",response.data), // Extraer la data real
+              //  keepUnusedDataFor: 1, // Cache por solo 5 segundos
+              // keepUnusedDataFor: 0, // Cache por solo 0 segundos
              }),
+               
            }),
            saveSettingLanguage: builder.mutation({
              query(body) {
                return {
-                 url: `/language/`,
+                 url: `/settings/language/`,
                  method: 'POST',
                  body,
                }
@@ -34,7 +38,7 @@
    
    // Export hooks for usage in functional components, which are
    // auto-generated based on the defined endpoints
-   export const { useLazyGetSettingLanguageById, useSaveSettingLanguageMutation} = settingsApi
+   export const { useLazyGetSettingLanguageByIdQuery , useSaveSettingLanguageMutation} = settingsApi
    
    export default settingsApi
    
