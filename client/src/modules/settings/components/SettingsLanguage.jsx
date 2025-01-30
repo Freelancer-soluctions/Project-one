@@ -39,7 +39,7 @@ export const SettingsLanguage = ({ userId, getLanguage, data }) => {
           : { userId, language: value }
 
       // Llamada para guardar el lenguaje seleccionado
-      const result = await saveLanguage(lang).unwrap()
+      const result1 = await saveLanguage(lang).unwrap()
 
       // Cambiar el idioma usando i18n
       changeLanguage(value)
