@@ -89,7 +89,7 @@ export const SignInForm = () => {
               render={({ field }) => {
                 return (
                   <FormItem>
-                    <FormLabel>{t('email')}</FormLabel>
+                    <FormLabel>{t('password')}</FormLabel>
                     <FormControl>
                       <Input
                         id='password'

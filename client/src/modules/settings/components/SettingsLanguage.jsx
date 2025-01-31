@@ -9,10 +9,15 @@ import {
   SelectValue
 } from '@/components/ui/select'
 import { useTranslation } from 'react-i18next'
-import { useSaveSettingLanguageMutation } from '../slice/settingsSlice'
-import { useState } from 'react'
+import {
+  useSaveSettingLanguageMutation,
+  useGetSettingLanguageByIdQuery
+} from '../slice/settingsSlice'
+import { useEffect, useState } from 'react'
 
-export const SettingsLanguage = ({ userId, getLanguage, data }) => {
+export const SettingsLanguage = ({ userId }) => {
+  const [languageLoaded, setLanguageLoaded] = useState(false)
+  const [newLanguage, setNewLanguage] = useState('')
   const {
     t,
     i18n: { changeLanguage, language }
@@ -22,24 +27,29 @@ export const SettingsLanguage = ({ userId, getLanguage, data }) => {
     saveLanguage,
     { isLoading: isLoadingPost, isError: isErrorPost, isSuccess: isSuccessPost }
   ] = useSaveSettingLanguageMutation()
-
-  // Estado local para forzar un render
-  const [trigger, setTrigger] = useState(false)
+  const { data, isError, isLoading, isFetching, isSuccess, error, refetch } =
+    useGetSettingLanguageByIdQuery(userId, {
+      skip: !languageLoaded,
+      //refetchOnMountOrArgChange: true, //debe de cambiar el userid para obligar al hook hacer la consulta nuevamente o montarse nuevamente el componente
+      keepUnusedDataFor: 0
+    })
 
   const onChangeLanguage = async value => {
-    try {
-      setTrigger(prev => !prev)
-      // Llamar a getLanguage para obtener los datos más recientes desde el servidor
-      await getLanguage(userId, { preferCacheValue: false })
+    setLanguageLoaded(true) // Cargamos los datos una vez se necesiten
+    setNewLanguage(value)
 
-      // Manipulamos los datos frescos que ya fueron obtenidos
+    try {
+      // Forzar un refetch para obtener los datos frescos desde el servidor
+      await refetch()
+
+      // Aquí manipulas los datos frescos que se han obtenido
       const lang =
         data?.data?.id && data?.data?.language
           ? { id: data?.data?.id, language: value }
           : { userId, language: value }
 
-      // Llamada para guardar el lenguaje seleccionado
-      const result1 = await saveLanguage(lang).unwrap()
+      // Guardar el nuevo idioma
+      await saveLanguage(lang).unwrap()
 
       // Cambiar el idioma usando i18n
       changeLanguage(value)
@@ -47,6 +57,28 @@ export const SettingsLanguage = ({ userId, getLanguage, data }) => {
       console.error('Error updating:', error)
     }
   }
+
+  // useEffect(() => {
+  //   if (languageLoaded && isSuccess) {
+  //     // Definir la función asincrónica dentro del efecto
+  //     async function fetchData() {
+  //       try {
+  //         const lang =
+  //           data?.data?.id && data?.data?.language
+  //             ? { id: data?.data?.id, language: newLanguage }
+  //             : { userId, language: newLanguage }
+  //         const result1 = await saveLanguage(lang).unwrap()
+  //         setLanguageLoaded(false)
+  //       } catch (error) {
+  //         console.error('Error fetching data:', error)
+  //       }
+  //     }
+
+  //     // Llamamos a la función
+  //     fetchData()
+  //   }
+  // }, [languageLoaded, isSuccess])
+
   return (
     <TabsContent value='language' className='space-y-6'>
       <Card>
