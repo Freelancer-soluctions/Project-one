@@ -38,7 +38,7 @@
    
    // Export hooks for usage in functional components, which are
    // auto-generated based on the defined endpoints
-   export const { useLazyGetSettingLanguageByIdQuery , useSaveSettingLanguageMutation} = settingsApi
+   export const { useGetSettingLanguageByIdQuery , useSaveSettingLanguageMutation} = settingsApi
    
    export default settingsApi
    
