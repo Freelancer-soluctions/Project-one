@@ -1,7 +1,8 @@
-import DataTable from '../../../components/dataTable/DataTable'
+import { DataTable } from '@/components/dataTable/index'
 import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { format, parseISO } from 'date-fns'
+import PropTypes from 'prop-types'
 
 export const NewsDatatable = ({
   dataNews,
@@ -10,6 +11,7 @@ export const NewsDatatable = ({
   setActionDialog
 }) => {
   const { t } = useTranslation()
+
   const columnDefNews = [
     {
       accessorKey: 'createdOn',
@@ -82,4 +84,11 @@ export const NewsDatatable = ({
       />
     </>
   )
+}
+
+NewsDatatable.propTypes = {
+  dataNews: PropTypes.object,
+  setSelectedRow: PropTypes.func,
+  setOpenDialog: PropTypes.func,
+  setActionDialog: PropTypes.func
 }

@@ -1,6 +1,6 @@
 import { Button } from '@/components/ui/button'
 import { useState } from 'react'
-import DataTable from '../../../components/dataTable/dataTable'
+import DataTable from '../../../components/dataTable/dataTable1'
 import NoteDialog from '../components/dialog'
 import gridColumns from '../components/gridColumns'
 import useGetNotes from '../hooks/useGetNotes'
