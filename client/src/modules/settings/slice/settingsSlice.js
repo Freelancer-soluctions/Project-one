@@ -18,7 +18,8 @@
               //  keepUnusedDataFor: 1, // Cache por solo 5 segundos
               // keepUnusedDataFor: 0, // Cache por solo 0 segundos
              }),
-               
+             refetchOnMount: false, // This disables caching
+
            }),
            saveSettingLanguage: builder.mutation({
              query(body) {

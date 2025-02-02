@@ -1,6 +1,8 @@
 import { Button } from '../ui/button'
 import { Input } from '../ui/input'
-const Pagination = ({ table }) => {
+import PropTypes from 'prop-types'
+
+export const Pagination = ({ table }) => {
   return (
     <>
       <div className='h-2' />
@@ -71,4 +73,6 @@ const Pagination = ({ table }) => {
     </>
   )
 }
-export default Pagination
+Pagination.propTypes = {
+  table: PropTypes.object.isRequired
+}

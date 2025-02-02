@@ -32,6 +32,7 @@ import {
 import { Calendar } from '@/components/ui/calendar'
 import { format, formatISO } from 'date-fns'
 import { cn } from '@/lib/utils'
+import PropTypes from 'prop-types'
 
 export const NewsFiltersForm = ({
   trigger,
@@ -242,4 +243,11 @@ export const NewsFiltersForm = ({
       </Form>
     </>
   )
+}
+
+NewsFiltersForm.propTypes = {
+  trigger: PropTypes.func,
+  setActionDialog: PropTypes.func,
+  setOpenDialog: PropTypes.func,
+  datastatus: PropTypes.object
 }

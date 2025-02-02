@@ -51,6 +51,7 @@ import AlertDialogComponent from '@/components/alertDialog/AlertDialog'
 import { format, formatISO } from 'date-fns'
 import { useTranslation } from 'react-i18next'
 import { cn } from '@/lib/utils'
+import PropTypes from 'prop-types'
 
 export const NewsDialog = ({
   openDialog,
@@ -137,58 +138,40 @@ export const NewsDialog = ({
   }, [selectedRow])
 
   const onSubmitDialog = async values => {
-    if (newId) {
-      try {
-        const result = await updateNewById({
-          id: newId,
-          data: {
-            id: values.id,
-            description: values.description,
+    try {
+      const result = newId
+        ? await updateNewById({
+            id: newId,
+            data: {
+              id: values.id,
+              description: values.description,
+              statusId: values.status.id,
+              statusCode: values.status.code,
+              createdBy: values.createdBy,
+              createdOn: values.createdOn,
+              document: values.document
+            }
+          }).unwrap()
+        : await createNew({
+            document: values.document,
             statusId: values.status.id,
             statusCode: values.status.code,
-            createdBy: values.createdBy,
-            createdOn: values.createdOn,
-            document: values.document
-          }
-        }).unwrap() // Desenvuelve la respuesta para manejar errores
+            description: values.description
+          }).unwrap()
 
-        setOpenAlertDialog(true)
-        setAlertProps({
-          alertTitle: t('update_record'),
-          alertMessage: t('updated_successfully'),
-          cancel: false,
-          success: true,
-          onSuccess: () => {
-            navigate('/home')
-          },
-          variantSuccess: 'info'
-        })
-      } catch (err) {
-        console.error('Error updating:', err)
-      }
-    } else {
-      try {
-        const result = await createNew({
-          document: values.document,
-          statusId: values.status.id,
-          statusCode: values.status.code,
-          description: values.description
-        }).unwrap() // Desenvuelve la respuesta para manejar errores
-
-        setOpenAlertDialog(true)
-        setAlertProps({
-          alertTitle: t('add_record'),
-          alertMessage: t('added_successfully'),
-          cancel: false,
-          success: true,
-          onSuccess: () => {
-            navigate('/home')
-          },
-          variantSuccess: 'info'
-        })
-      } catch (err) {
-        console.error('Error Creating:', err)
-      }
+      setOpenAlertDialog(true)
+      setAlertProps({
+        alertTitle: t(newId ? 'update_record' : 'add_record'),
+        alertMessage: t(newId ? 'updated_successfully' : 'added_successfully'),
+        cancel: false,
+        success: true,
+        onSuccess: () => {
+          navigate('/home')
+        },
+        variantSuccess: 'info'
+      })
+    } catch (err) {
+      console.error(`Error ${newId ? 'updating' : 'creating'}:`, err)
     }
   }
 
@@ -547,4 +530,13 @@ export const NewsDialog = ({
       />
     </>
   )
+}
+
+NewsDialog.propTypes = {
+  openDialog: PropTypes.bool.isRequired,
+  setSelectedRow: PropTypes.func,
+  selectedRow: PropTypes.object,
+  setOpenDialog: PropTypes.func,
+  actionDialog: PropTypes.string,
+  datastatus: PropTypes.object
 }
