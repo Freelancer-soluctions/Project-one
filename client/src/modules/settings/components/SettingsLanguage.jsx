@@ -9,11 +9,10 @@ import {
   SelectValue
 } from '@/components/ui/select'
 import { useTranslation } from 'react-i18next'
-import {
-  useSaveSettingLanguageMutation,
-  useGetSettingLanguageByIdQuery
-} from '../slice/settingsSlice'
-import { useEffect, useState } from 'react'
+import { useSaveSettingLanguageMutation } from '../slice/settingsSlice'
+import { useGetTranslation } from '@/hooks/useGetTranslation'
+import { useState } from 'react'
+import { Spinner } from '@/components/loader/Spinner'
 
 export const SettingsLanguage = ({ userId }) => {
   const [languageLoaded, setLanguageLoaded] = useState(false)
@@ -27,25 +26,41 @@ export const SettingsLanguage = ({ userId }) => {
     saveLanguage,
     { isLoading: isLoadingPost, isError: isErrorPost, isSuccess: isSuccessPost }
   ] = useSaveSettingLanguageMutation()
-  const { data, isError, isLoading, isFetching, isSuccess, error, refetch } =
-    useGetSettingLanguageByIdQuery(userId, {
-      skip: !languageLoaded,
-      //refetchOnMountOrArgChange: true, //debe de cambiar el userid para obligar al hook hacer la consulta nuevamente o montarse nuevamente el componente
-      keepUnusedDataFor: 0
-    })
+  // const { data, isError, isLoading, isFetching, isSuccess, error, refetch } =
+  //   useGetSettingLanguageByIdQuery(userId, {
+  //     // skip: !languageLoaded, para evitar que se ejecute al montarse el componente
+  //     //refetchOnMountOrArgChange: true, //debe de cambiar el userid para obligar al hook hacer la consulta nuevamente o montarse nuevamente el componente
+  //     keepUnusedDataFor: 0
+  //   })
+
+  const {
+    response,
+    isError,
+    isLoading,
+    isFetching,
+    isSuccess,
+    error,
+    refetch
+  } = useGetTranslation(userId)
 
   const onChangeLanguage = async value => {
     setLanguageLoaded(true) // Cargamos los datos una vez se necesiten
     setNewLanguage(value)
 
     try {
-      // Forzar un refetch para obtener los datos frescos desde el servidor
-      await refetch()
+      let userLanguage
+      if (!response.data) {
+        // Forzar un refetch para obtener los datos frescos desde el servidor
+        const { data: refetchData } = await refetch({ forceRefetch: true })
+        userLanguage = refetchData.data
+      } else {
+        userLanguage = response.data
+      }
 
       // Aquí manipulas los datos frescos que se han obtenido
       const lang =
-        data?.data?.id && data?.data?.language
-          ? { id: data?.data?.id, language: value }
+        userLanguage?.id && userLanguage?.language
+          ? { id: userLanguage.id, language: value }
           : { userId, language: value }
 
       // Guardar el nuevo idioma
@@ -80,26 +95,29 @@ export const SettingsLanguage = ({ userId }) => {
   // }, [languageLoaded, isSuccess])
 
   return (
-    <TabsContent value='language' className='space-y-6'>
-      <Card>
-        <CardContent className='p-6 space-y-4'>
-          <div className='space-y-2'>
-            <Label>{t('app_language')}</Label>
-            <Select value={language} onValueChange={onChangeLanguage}>
-              <SelectTrigger>
-                <SelectValue placeholder={t('select_language_placeholder')} />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value='es'>{t('spanish')}</SelectItem>
-                <SelectItem value='en'>{t('english')}</SelectItem>
-              </SelectContent>
-            </Select>
-            <p className='text-sm text-muted-foreground'>
-              {t('language_message_change')}
-            </p>
-          </div>
-        </CardContent>
-      </Card>
-    </TabsContent>
+    <div className='relative'>
+      {(isLoading || isFetching || isLoadingPost) && <Spinner />}
+      <TabsContent value='language' className='space-y-6'>
+        <Card>
+          <CardContent className='p-6 space-y-4'>
+            <div className='space-y-2'>
+              <Label>{t('app_language')}</Label>
+              <Select value={language} onValueChange={onChangeLanguage}>
+                <SelectTrigger>
+                  <SelectValue placeholder={t('select_language_placeholder')} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value='es'>{t('spanish')}</SelectItem>
+                  <SelectItem value='en'>{t('english')}</SelectItem>
+                </SelectContent>
+              </Select>
+              <p className='text-sm text-muted-foreground'>
+                {t('language_message_change')}
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      </TabsContent>
+    </div>
   )
 }

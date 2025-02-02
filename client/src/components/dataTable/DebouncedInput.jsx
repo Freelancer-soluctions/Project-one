@@ -1,19 +1,20 @@
-import React from 'react'
+import { useState, useEffect } from 'react'
 import { Input } from '@/components/ui/input'
+
 // A typical debounced input react component
-function DebouncedInput({
+export function DebouncedInput({
   value: initialValue,
   onChange,
   debounce = 500,
   ...props
 }) {
-  const [value, setValue] = React.useState(initialValue)
+  const [value, setValue] = useState(initialValue)
 
-  React.useEffect(() => {
+  useEffect(() => {
     setValue(initialValue)
   }, [initialValue])
 
-  React.useEffect(() => {
+  useEffect(() => {
     const timeout = setTimeout(() => {
       onChange(value)
     }, debounce)
@@ -30,5 +31,3 @@ function DebouncedInput({
     // <input {...props} value={value} onChange={} />
   )
 }
-
-export default DebouncedInput

@@ -33,15 +33,15 @@ const userStatus = [
 const noteStatus = [
   {
     code: 'C01',
-    description: 'ACTIVE'
+    description: 'LOW'
   },
   {
     code: 'C02',
-    description: 'PENDING'
+    description: 'MEDIUM'
   },
   {
     code: 'C03',
-    description: 'CLOSED'
+    description: 'HIGH'
   }
 ]
 

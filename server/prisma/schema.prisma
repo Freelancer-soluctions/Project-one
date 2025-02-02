@@ -36,7 +36,6 @@ model users {
   newsClosed      news[]      @relation("userNewsClosed")
   newsCreated     news[]      @relation("userNewsCreated")
   newsPending     news[]      @relation("userNewsPending")
-  notesClosed     notes[]     @relation("userNoteClosed")
   notesCreated    notes[]     @relation("userNoteCreated")
   settingsCreated settings[]  @relation("userSettingCreated")
 }
@@ -64,15 +63,12 @@ model userStatus {
 
 model notes {
   id              Int        @id @default(autoincrement())
-  closedOn        DateTime   @db.Timestamp(3)
+  updatedOn       DateTime   @db.Timestamp(3)
   createdOn       DateTime   @db.Timestamp(3)
-  document        String?
-  documentId      String?
-  note            String     @db.VarChar(2000)
+  title           String?
+  description     String     @db.VarChar(2000)
   status          noteStatus @relation(fields: [statusId], references: [id])
   statusId        Int
-  userNoteClosed  users      @relation("userNoteClosed", fields: [closedBy], references: [id])
-  closedBy        Int
   userNoteCreated users      @relation("userNoteCreated", fields: [createdBy], references: [id])
   createdBy       Int
 }
