@@ -1,7 +1,6 @@
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { signUpSchema } from '../utils/schemas'
-import { Link } from 'react-router'
 
 import {
   Form,
@@ -22,20 +21,16 @@ import { Calendar } from '@/components/ui/calendar'
 import { CalendarIcon } from '@radix-ui/react-icons'
 import { cn } from '@/lib/utils'
 import { format } from 'date-fns'
+import { useTranslation } from 'react-i18next'
 
-const SignUpForm = () => {
+export const SignUpForm = () => {
+  const { t } = useTranslation()
   const form = useForm({ resolver: zodResolver(signUpSchema) })
   const onSubmit = data => {
     console.log(data)
   }
   return (
     <>
-      <div className='text-center'>
-        <h1 className='text-3xl font-bold'>Welcome back</h1>
-        <p className='text-gray-500 dark:text-gray-400'>
-          Enter your email and password to sign in.
-        </p>
-      </div>
       <div className='border shadow rounded-xl bg-card text-card-foreground'>
         <Form {...form}>
           <form
@@ -51,12 +46,12 @@ const SignUpForm = () => {
               render={({ field }) => {
                 return (
                   <FormItem>
-                    <FormLabel>First name</FormLabel>
+                    <FormLabel>{t('first_name')}</FormLabel>
                     <FormControl>
                       <Input
                         id='fname'
                         name='fname'
-                        placeholder='Please enter your first name.'
+                        placeholder={t('sign_name_placeholder')}
                         type='text'
                         {...field}
                         value={field.value ?? ''}
@@ -74,12 +69,12 @@ const SignUpForm = () => {
               render={({ field }) => {
                 return (
                   <FormItem>
-                    <FormLabel>Last name</FormLabel>
+                    <FormLabel>{t('last_name')}</FormLabel>
                     <FormControl>
                       <Input
                         id='lname'
                         name='lname'
-                        placeholder='Please enter your last name.'
+                        placeholder={t('sign_last_name_placeholder')}
                         type='text'
                         {...field}
                         value={field.value ?? ''}
@@ -97,12 +92,12 @@ const SignUpForm = () => {
               render={({ field }) => {
                 return (
                   <FormItem>
-                    <FormLabel>Email</FormLabel>
+                    <FormLabel>{t('email')}</FormLabel>
                     <FormControl>
                       <Input
                         id='email'
                         name='email'
-                        placeholder='m@example.com.'
+                        placeholder={t('sign_email_placeholder')}
                         type='email'
                         {...field}
                         value={field.value ?? ''}
@@ -120,12 +115,12 @@ const SignUpForm = () => {
               render={({ field }) => {
                 return (
                   <FormItem>
-                    <FormLabel>Password</FormLabel>
+                    <FormLabel>{t('password')}</FormLabel>
                     <FormControl>
                       <Input
                         id='password'
                         name='password'
-                        placeholder='Type your password.'
+                        placeholder={t('sign_password_placeholder')}
                         // autoComplete="current-password"
                         type='password'
                         {...field}
@@ -142,12 +137,12 @@ const SignUpForm = () => {
               render={({ field }) => {
                 return (
                   <FormItem>
-                    <FormLabel>Password</FormLabel>
+                    <FormLabel>{t('password')}</FormLabel>
                     <FormControl>
                       <Input
                         id='rpassword'
                         name='rpassword'
-                        placeholder='Confirm password.'
+                        placeholder={t('sign_confirm_password_placeholder')}
                         // autoComplete="current-password"
                         type='password'
                         {...field}
@@ -164,7 +159,7 @@ const SignUpForm = () => {
               name='dob'
               render={({ field }) => (
                 <FormItem className='flex flex-col'>
-                  <FormLabel>Date of birth</FormLabel>
+                  <FormLabel>{t('date_of_birth')}</FormLabel>
                   <Popover>
                     <PopoverTrigger asChild>
                       <FormControl>
@@ -177,7 +172,7 @@ const SignUpForm = () => {
                           {field.value ? (
                             format(field.value, 'PPP')
                           ) : (
-                            <span>Pick a date</span>
+                            <span>{t('pick_date')}</span>
                           )}
                           <CalendarIcon className='w-4 h-4 ml-auto opacity-50' />
                         </Button>
@@ -201,31 +196,14 @@ const SignUpForm = () => {
               )}
             />
 
-            <div className='flex items-center justify-between'>
-              <p>Remind me</p>
-              <Link className='text-sm font-medium text-gray-900 underline underline-offset-4 hover:text-gray-700 dark:text-gray-50 dark:hover:text-gray-300'>
-                Forgot password?
-              </Link>
-            </div>
             <div className='flex items-center justify-center'>
               <Button type='submit' className='flex-1'>
-                Sign in
+                {t('sign_last_name_placeholder')}
               </Button>
             </div>
           </form>
         </Form>
       </div>
-
-      <div className='text-sm text-center text-gray-500 dark:text-gray-400'>
-        <p>
-          Do not have an account?{' '}
-          <Link className='font-medium text-gray-900 underline underline-offset-4 hover:text-gray-700 dark:text-gray-50 dark:hover:text-gray-300'>
-            Register
-          </Link>
-        </p>
-      </div>
     </>
   )
 }
-
-export default SignUpForm

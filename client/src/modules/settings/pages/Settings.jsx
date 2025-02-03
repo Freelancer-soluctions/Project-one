@@ -15,44 +15,51 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { LuBell, LuUser, LuMoon, LuShield, LuGlobe } from 'react-icons/lu'
 import { Separator } from '@/components/ui/separator'
 import { SettingsLanguage } from '../components/index'
+import { useSelector } from 'react-redux'
+import { useTranslation } from 'react-i18next'
 
 export default function Settings() {
+  const { id } = useSelector(state => state.auth.user.data.user)
+  const { t } = useTranslation()
+
+  // const user = useSelector(state => state.auth)
   return (
     <div className='container max-w-6xl py-10'>
       <div className='space-y-6'>
         <div>
-          <h2 className='text-3xl font-bold tracking-tight'>Settings</h2>
+          <h2 className='text-3xl font-bold tracking-tight'>{t('settings')}</h2>
           <p className='text-muted-foreground'>
-            Manage your account settings and preferences.
+            {t('settings_preferences_message')}
           </p>
         </div>
         <Separator />
-        <Tabs defaultValue='profile' className='space-y-6'>
-          <TabsList>
+        <Tabs defaultValue='profile' className='space-y-10'>
+          <TabsList className='flex flex-wrap gap-5 overflow-x-auto md:flex-nowrap'>
             <TabsTrigger value='profile' className='flex items-center gap-2'>
               <LuUser className='w-4 h-4' />
-              Profile
+              {t('profile')}
             </TabsTrigger>
             <TabsTrigger value='appearance' className='flex items-center gap-2'>
               <LuMoon className='w-4 h-4' />
-              Appearance
+              {t('appearance')}
             </TabsTrigger>
             <TabsTrigger value='language' className='flex items-center gap-2'>
               <LuGlobe className='w-4 h-4' />
-              Idioma
+              {t('language')}
             </TabsTrigger>
             <TabsTrigger
               value='notifications'
               className='flex items-center gap-2'>
               <LuBell className='w-4 h-4' />
-              Notifications
+              {t('notifications')}
             </TabsTrigger>
             <TabsTrigger value='account' className='flex items-center gap-2'>
               <LuShield className='w-4 h-4' />
-              Account
+              {t('account')}
             </TabsTrigger>
           </TabsList>
-          <SettingsLanguage />
+
+          <SettingsLanguage userId={id} />
           {/* <TabsContent value='profile' className='space-y-6'>
             <Card>
               <CardContent className='p-6 space-y-4'>

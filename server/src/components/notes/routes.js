@@ -1,8 +1,10 @@
 import { Router } from 'express'
-import { Note, NoteUpdate } from '../../utils/joiSchemas/joi.js'
+import { NoteCreate, NoteUpdate, NotesFilters } from '../../utils/joiSchemas/joi.js'
 import validateSchema from '../../middleware/validateSchema.js'
 import * as noteController from './controller.js'
 import upload from '../../utils/multer/multer.js'
+import validateQueryParams from '../../middleware/validateQueryParams.js'
+import verifyToken from '../../middleware/verifyToken.js'
 
 const router = Router()
 
@@ -39,7 +41,42 @@ const router = Router()
  *
  */
 
-router.get('/', noteController.getAll)
+router.get('/', verifyToken, validateQueryParams(NotesFilters), noteController.getAllNotes)
+
+/**
+ * @openapi
+ * /api/v1/note:
+ *   post:
+ *     tags:
+ *       - Note
+ *     parameters:
+ *       - in: header
+ *         name: x-access-token
+ *         schema:
+ *          type: string
+ *         required: true
+ *     requestBody:
+ *         content:
+ *          multipart/form-data:
+ *           schema:
+ *            $ref: "#/components/schemas/NoteBody"
+ *     responses:
+ *       200:
+ *         description: OK
+ *         content:
+ *           application/json:
+ *             schema:
+ *              $ref: "#/components/schemas/Create"
+ *       5XX:
+ *         description: FAILED
+ *         content:
+ *           application/json:
+ *             schema:
+ *              $ref: "#/components/schemas/Error"
+ *
+ */
+
+router.post('/', verifyToken, validateSchema(NoteCreate), noteController.createNote)
 
 /**
 @openapi
@@ -78,44 +115,6 @@ router.get('/', noteController.getAll)
  */
 
 router.get('/:id', noteController.getOneById)
-
-/**
- * @openapi
- * /api/v1/note:
- *   post:
- *     tags:
- *       - Note
- *     parameters:
- *       - in: header
- *         name: x-access-token
- *         schema:
- *          type: string
- *         required: true
- *     requestBody:
- *         content:
- *          multipart/form-data:
- *           schema:
- *            $ref: "#/components/schemas/NoteBody"
- *     responses:
- *       200:
- *         description: OK
- *         content:
- *           application/json:
- *             schema:
- *              $ref: "#/components/schemas/Create"
- *       5XX:
- *         description: FAILED
- *         content:
- *           application/json:
- *             schema:
- *              $ref: "#/components/schemas/Error"
- *
- */
-
-router.post('/',
-  upload.single('document'),
-  validateSchema(Note),
-  noteController.createOne)
 
 /**
  * @openapi

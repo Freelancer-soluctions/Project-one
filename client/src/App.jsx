@@ -3,61 +3,20 @@ import Layout from './components/layout'
 import ProtectedRoutes from './components/protectedRoutes/ProtectedRoutes'
 import Home from './modules/home/pages/Home'
 import NotFound from './components/404/NotFound'
-
-// import { createBrowserRouter, RouterProvider } from 'react-router-dom'
 import { Routes, Route } from 'react-router'
-// import { ErrorBoundary } from 'react-error-boundary'
 import { Spinner } from './components/loader/Spinner'
-// const App = () => {
-//   const router = createBrowserRouter([
-//     {
-//       path: '/',
-//       element: <Layout />,
-//       children: []
-
-//       // errorElement: <NotFound /> // ver diferencia con /*
-//     },
-//     {
-//       // index: true,
-//       path: '/signIn',
-//       Component: lazy(() => import('@/modules/auth/pages/SignIn'))
-//     },
-//     {
-//       path: '/signUp',
-//       Component: lazy(() => import('@/modules/auth/pages/SignUp'))
-//     },
-//     {
-//       path: '/home',
-//       element: (
-//         // <ProtectedRoutes redirectTo='/signIn'>
-//         <Home />
-//         /* </ProtectedRoutes> */
-//       ),
-//       children: homeChildrenRoutes
-//       // errorElement:  <NotFound />, // ver diferencia con /*
-//     },
-//     {
-//       path: '/*',
-//       element: <NotFound />
-//     }
-//   ])
-
-//   return <RouterProvider router={router} />
-// }
-
-// export default App
+import { useInitializeI18n } from '@/hooks/useInitializeI18n'
 
 const SignIn = lazy(() => import('@/modules/auth/pages/SignIn'))
 const SignUp = lazy(() => import('@/modules/auth/pages/SignUp'))
 const Access = lazy(() => import('@/modules/access/pages/Access'))
-const Note = lazy(() => import('@/modules/note/pages/Note'))
+const Notes = lazy(() => import('@/modules/notes/pages/Notes'))
 const News = lazy(() => import('@/modules/news/pages/News'))
 const Settings = lazy(() => import('@/modules/settings/pages/Settings'))
-// const InternalServerError = lazy(
-//   () => import('@/components/500/InternalServerError')
-// )
+// const Events = lazy(() => import('@/modules/events/pages/events'))
 
 const App = () => {
+  useInitializeI18n() // Inicializa el idioma al cargar la app
   return (
     <Suspense fallback={<Spinner />}>
       <Routes>
@@ -76,8 +35,9 @@ const App = () => {
           }>
           <Route index element={<Access />} />
           <Route path='news' element={<News />} />
-          <Route path='notes' element={<Note />} />
+          <Route path='notes' element={<Notes />} />
           <Route path='settings' element={<Settings />} />
+          {/* <Route path='events' element={<Events />} /> */}
 
           {/* Ruta comodín para manejar 404 en /home */}
           <Route path='*' element={<NotFound link={'/home'} />} />

@@ -1,21 +1,15 @@
 import { Router } from 'express'
 import auth from '../components/auth/routes.js'
 import news from '../components/news/routes.js'
-import newsStatus from '../components/newsStatus/routes.js'
-import note from '../components/note/routes.js'
-import noteStatus from '../components/noteStatus/routes.js'
-import question from '../components/question/routes.js'
+import notes from '../components/notes/routes.js'
 import role from '../components/role/routes.js'
-import userStatus from '../components/userStatus/routes.js'
+import settings from '../components/settings/routes.js'
 
 const router = Router()
 router.use('/auth', auth)
 router.use('/news', news)
-router.use('/newsStatus', newsStatus)
-router.use('/note', note)
-router.use('/noteStatus', noteStatus)
-router.use('/question', question)
+router.use('/settings', settings)
+router.use('/notes', notes)
 router.use('/role', role)
-router.use('/userStatus', userStatus)
 
 export default router
