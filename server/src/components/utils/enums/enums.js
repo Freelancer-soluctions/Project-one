@@ -5,5 +5,7 @@ export const NewsStatusCode = {
 }
 
 export const tableNames = {
-  NEWS: 'news'
+  NEWS: 'news',
+  USERS: 'users',
+  NOTES: 'notes'
 }

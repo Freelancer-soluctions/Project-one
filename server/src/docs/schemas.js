@@ -403,3 +403,39 @@
  *           example: 1
  *
  */
+
+/**
+ * @openapi
+ * components:
+ *   schemas:
+ *     UserSettingLanguage:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: integer
+ *           example: 1
+ *         language:
+ *           type: string
+ *           example: "en"
+ *           description: The language code for the user's settings (e.g., "EN" for English, "ES" for Spanish).
+ */
+
+/**
+ * @openapi
+ * components:
+ *   schemas:
+ *     createOrUpdateSettingLanguage:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: integer
+ *           example: 1
+ *         language:
+ *           type: string
+ *           example: 'en'
+ *         userId:
+ *           type: integer
+ *           example: 101
+ *       required:
+ *         - language
+ */

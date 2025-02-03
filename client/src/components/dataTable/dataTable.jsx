@@ -21,13 +21,19 @@ import {
   TooltipTrigger
 } from '@/components/ui/tooltip'
 
-import Filter from './Filter'
-import Pagination from './Pagination'
+import { Filter } from './Filter'
+import { Pagination } from './Pagination'
 import { useState } from 'react'
 import { CaretSortIcon } from '@radix-ui/react-icons'
 import { MdOutlineArrowDropDown, MdOutlineArrowDropUp } from 'react-icons/md'
+import PropTypes from 'prop-types'
 
-const Datatable = ({ columns, data = [], setSelectedRow, handleRow }) => {
+export const DataTable = ({
+  columns,
+  data = [],
+  setSelectedRow,
+  handleRow
+}) => {
   const [columnFilters, setColumnFilters] = useState([]) //column filters
   const [sorting, setSorting] = useState([]) //sorting
   const [pagination, setPagination] = useState({
@@ -78,22 +84,22 @@ const Datatable = ({ columns, data = [], setSelectedRow, handleRow }) => {
                 return (
                   <TableHead key={header.id} className='p-3 border '>
                     {/* {header.isPlaceholder
-                      ? null
-                      : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext()
-                        )}
-                    {
-                      {
-                        asc: <CaretSortIcon className='w-4 h-3 ml-1' />,
-                        desc: <CaretSortIcon className='w-4 h-4 ml-2' />
-                      }[header.column.getIsSorted() ?? null]
-                    }
-                    {header.column.getCanFilter() ? (
-                      <div>
-                        <Filter column={header.column} />
-                      </div>
-                    ) : null} */}
+                          ? null
+                          : flexRender(
+                              header.column.columnDef.header,
+                              header.getContext()
+                            )}
+                        {
+                          {
+                            asc: <CaretSortIcon className='w-4 h-3 ml-1' />,
+                            desc: <CaretSortIcon className='w-4 h-4 ml-2' />
+                          }[header.column.getIsSorted() ?? null]
+                        }
+                        {header.column.getCanFilter() ? (
+                          <div>
+                            <Filter column={header.column} />
+                          </div>
+                        ) : null} */}
 
                     <div
                       {...{
@@ -164,6 +170,13 @@ const Datatable = ({ columns, data = [], setSelectedRow, handleRow }) => {
   )
 }
 
+DataTable.propTypes = {
+  columns: PropTypes.array.isRequired,
+  data: PropTypes.array,
+  setSelectedRow: PropTypes.func,
+  handleRow: PropTypes.func
+}
+
 // Helper function to render cell content with tooltip
 const renderCellWithTooltip = cell => {
   const content = flexRender(cell.column.columnDef.cell, cell.getContext())
@@ -181,4 +194,6 @@ const renderCellWithTooltip = cell => {
     </TooltipProvider>
   )
 }
-export default Datatable
+renderCellWithTooltip.propTypes = {
+  cell: PropTypes.object.isRequired
+}

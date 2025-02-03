@@ -133,32 +133,6 @@ export const UserUpdate = Joi.object({
 
 })
 
-export const NoteStatus = Joi.object({
-  description: Joi.string()
-    .min(3)
-    .max(10)
-    .required(),
-  code: Joi.string()
-    .min(3)
-    .max(3)
-    .required(),
-  notes: Joi.array().min(1)
-
-})
-
-export const NoteStatusUpdate = Joi.object({
-  description: Joi.string()
-    .min(3)
-    .max(10)
-    .required(),
-  code: Joi.string()
-    .min(3)
-    .max(3)
-
-})
-
-export const NoteStatusArray = Joi.array().items(NoteStatus).min(1)
-
 export const Role = Joi.object({
   description: Joi.string()
     .min(3)
@@ -184,23 +158,28 @@ export const RoleUpdate = Joi.object({
 
 export const RoleArray = Joi.array().items(Role).min(1)
 
-export const Note = Joi.object({
-  note: Joi.string()
-    .min(3)
+export const NotesFilters = Joi.object({
+  description: Joi.string()
+    .min(1)
+    .max(150).allow('')
+
+})
+
+export const NoteCreate = Joi.object({
+  title: Joi.string()
+    .required(),
+  content: Joi.string()
     .max(2000)
     .required(),
-  statusId: Joi.number()
+  color: Joi.string()
+    .max(6)
+    .required(),
+  columnId: Joi.number()
     .integer()
     .required(),
   createdBy: Joi.number()
     .integer()
-    .required(),
-  closedBy: Joi.number()
-    .integer()
-    .required(),
-  createdOn: Joi.date().required(),
-  closedOn: Joi.date().required(),
-  document: Joi.string()
+    .required()
 
 })
 
@@ -318,3 +297,9 @@ export const QuestionUpdate = Joi.object({
 })
 
 export const QuestionArray = Joi.array().items(Question).min(1)
+
+export const SettingsLanguage = Joi.object({
+  id: Joi.number().integer().optional(),
+  language: Joi.string().valid('es', 'en').required(),
+  userId: Joi.number().integer().optional()
+})
