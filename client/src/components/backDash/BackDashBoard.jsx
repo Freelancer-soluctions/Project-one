@@ -1,5 +1,6 @@
 import { GoChevronLeft } from 'react-icons/go'
 import { Link } from 'react-router'
+import PropTypes from 'prop-types'
 
 export const BackDashBoard = ({ link, moduleName }) => {
   return (
@@ -12,4 +13,9 @@ export const BackDashBoard = ({ link, moduleName }) => {
       </Link>
     </div>
   )
+}
+
+BackDashBoard.propTypes = {
+  link: PropTypes.string,
+  moduleName: PropTypes.string
 }

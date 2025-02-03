@@ -51,6 +51,7 @@ import AlertDialogComponent from '@/components/alertDialog/AlertDialog'
 import { format, formatISO } from 'date-fns'
 import { useTranslation } from 'react-i18next'
 import { cn } from '@/lib/utils'
+import PropTypes from 'prop-types'
 
 export const NewsDialog = ({
   openDialog,
@@ -137,58 +138,40 @@ export const NewsDialog = ({
   }, [selectedRow])
 
   const onSubmitDialog = async values => {
-    if (newId) {
-      try {
-        const result = await updateNewById({
-          id: newId,
-          data: {
-            id: values.id,
-            description: values.description,
+    try {
+      const result = newId
+        ? await updateNewById({
+            id: newId,
+            data: {
+              id: values.id,
+              description: values.description,
+              statusId: values.status.id,
+              statusCode: values.status.code,
+              createdBy: values.createdBy,
+              createdOn: values.createdOn,
+              document: values.document
+            }
+          }).unwrap()
+        : await createNew({
+            document: values.document,
             statusId: values.status.id,
             statusCode: values.status.code,
-            createdBy: values.createdBy,
-            createdOn: values.createdOn,
-            document: values.document
-          }
-        }).unwrap() // Desenvuelve la respuesta para manejar errores
+            description: values.description
+          }).unwrap()
 
-        setOpenAlertDialog(true)
-        setAlertProps({
-          alertTitle: t('update_record'),
-          alertMessage: t('updated_successfully'),
-          cancel: false,
-          success: true,
-          onSuccess: () => {
-            navigate('/home')
-          },
-          variantSuccess: 'info'
-        })
-      } catch (err) {
-        console.error('Error updating:', err)
-      }
-    } else {
-      try {
-        const result = await createNew({
-          document: values.document,
-          statusId: values.status.id,
-          statusCode: values.status.code,
-          description: values.description
-        }).unwrap() // Desenvuelve la respuesta para manejar errores
-
-        setOpenAlertDialog(true)
-        setAlertProps({
-          alertTitle: t('add_record'),
-          alertMessage: t('added_successfully'),
-          cancel: false,
-          success: true,
-          onSuccess: () => {
-            navigate('/home')
-          },
-          variantSuccess: 'info'
-        })
-      } catch (err) {
-        console.error('Error Creating:', err)
-      }
+      setOpenAlertDialog(true)
+      setAlertProps({
+        alertTitle: t(newId ? 'update_record' : 'add_record'),
+        alertMessage: t(newId ? 'updated_successfully' : 'added_successfully'),
+        cancel: false,
+        success: true,
+        onSuccess: () => {
+          navigate('/home')
+        },
+        variantSuccess: 'info'
+      })
+    } catch (err) {
+      console.error(`Error ${newId ? 'updating' : 'creating'}:`, err)
     }
   }
 
@@ -261,7 +244,7 @@ export const NewsDialog = ({
                   render={({ field }) => {
                     return (
                       <FormItem className='flex flex-col flex-auto col-span-1'>
-                        <FormLabel>{t('document')}</FormLabel>
+                        <FormLabel htmlFor='file'>{t('document')}</FormLabel>
                         <FormControl>
                           <Input
                             id='file'
@@ -291,8 +274,9 @@ export const NewsDialog = ({
 
                     return (
                       <FormItem className='flex flex-col flex-auto'>
-                        <FormLabel>{t('status')}*</FormLabel>
+                        <FormLabel htmlFor='status'>{t('status')}*</FormLabel>
                         <Select
+                          id='status'
                           disabled={
                             newId && statusCodeSaved === NewsStatusCode.CLOSED
                           }
@@ -340,7 +324,9 @@ export const NewsDialog = ({
                     render={({ field }) => {
                       return (
                         <FormItem className='flex flex-col flex-auto col-span-1'>
-                          <FormLabel>{t('created_by')}</FormLabel>
+                          <FormLabel htmlFor='userNewsCreated'>
+                            {t('created_by')}
+                          </FormLabel>
                           <FormControl>
                             <Input
                               id='userNewsCreated'
@@ -367,11 +353,14 @@ export const NewsDialog = ({
                     name='createdOn'
                     render={({ field }) => (
                       <FormItem className='flex flex-col flex-auto'>
-                        <FormLabel>{t('created_on')}</FormLabel>
+                        <FormLabel htmlFor='createOn'>
+                          {t('created_on')}
+                        </FormLabel>
                         <Popover>
                           <PopoverTrigger asChild>
                             <FormControl>
                               <Button
+                                id='createOn'
                                 disabled={true}
                                 readOnly={true}
                                 variant={'outline'}
@@ -408,7 +397,9 @@ export const NewsDialog = ({
                     render={({ field }) => {
                       return (
                         <FormItem className='flex flex-col flex-auto col-span-1'>
-                          <FormLabel>{t('closed_by')}</FormLabel>
+                          <FormLabel htmlFor='userNewsClosed'>
+                            {t('closed_by')}
+                          </FormLabel>
                           <FormControl>
                             <Input
                               id='userNewsClosed'
@@ -435,11 +426,14 @@ export const NewsDialog = ({
                     name='closedOn'
                     render={({ field }) => (
                       <FormItem className='flex flex-col flex-auto'>
-                        <FormLabel>{t('closed_on')}</FormLabel>
+                        <FormLabel htmlFor='closedOn'>
+                          {t('closed_on')}
+                        </FormLabel>
                         <Popover>
                           <PopoverTrigger asChild>
                             <FormControl>
                               <Button
+                                id='closedOn'
                                 disabled={true}
                                 readOnly={true}
                                 variant={'outline'}
@@ -474,7 +468,9 @@ export const NewsDialog = ({
                   render={({ field }) => {
                     return (
                       <FormItem className='flex flex-col flex-auto col-span-2'>
-                        <FormLabel>{t('description')}*</FormLabel>
+                        <FormLabel htmlFor='description'>
+                          {t('description')}*
+                        </FormLabel>
                         <FormControl>
                           {/* <Input
                             id='description'
@@ -487,6 +483,7 @@ export const NewsDialog = ({
                             value={field.value ?? ''}
                           /> */}
                           <Textarea
+                            id='description'
                             placeholder={t('description_placeholder')}
                             className='resize-none'
                             maxLength={400}
@@ -547,4 +544,13 @@ export const NewsDialog = ({
       />
     </>
   )
+}
+
+NewsDialog.propTypes = {
+  openDialog: PropTypes.bool.isRequired,
+  setSelectedRow: PropTypes.func,
+  selectedRow: PropTypes.object,
+  setOpenDialog: PropTypes.func,
+  actionDialog: PropTypes.string,
+  datastatus: PropTypes.object
 }

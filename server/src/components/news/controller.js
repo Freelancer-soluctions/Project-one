@@ -3,11 +3,11 @@ import handleCatchErrorAsync from '../../utils/responses&Errors/handleCatchError
 import * as newsService from './service.js'
 
 /**
- * Get all
+ * Get all news with query parameters.
  *
- * @param {*} req
- * @param {*} res
- * @returns A message
+ * @param {Object} req - The HTTP request object.
+ * @param {Object} res - The HTTP response object.
+ * @returns {Promise<void>} Sends a response containing the news items.
  */
 export const getAllNews = handleCatchErrorAsync(async (req, res) => {
   const queryParams = req.query
@@ -16,11 +16,11 @@ export const getAllNews = handleCatchErrorAsync(async (req, res) => {
 })
 
 /**
- * Get one by id
+ * Get one news item by its ID.
  *
- * @param {*} req
- * @param {*} res
- * @returns A message
+ * @param {Object} req - The HTTP request object.
+ * @param {Object} res - The HTTP response object.
+ * @returns {Promise<void>} Sends a response containing the news item.
  */
 export const getOneById = handleCatchErrorAsync(async (req, res) => {
   const { id } = req.params
@@ -29,38 +29,25 @@ export const getOneById = handleCatchErrorAsync(async (req, res) => {
 })
 
 /**
- * create One
+ * Create a news item.
  *
- * @param {*} req
- * @param {*} res
- * @returns A message
+ * @param {Object} req - The HTTP request object.
+ * @param {Object} res - The HTTP response object.
+ * @returns {Promise<void>} Sends a response confirming the creation of the news item.
  */
 export const createOne = handleCatchErrorAsync(async (req, res) => {
-  const userId = req.userId
+  const userId = req.userId // viene del token cambiar al body
   const { body } = req
   await newsService.createOne(userId, body)
   globalResponse(res, 201, { message: 'Item created successfully' })
 })
 
 /**
- * create One
+ * Update a news item by its ID.
  *
- * @param {*} req
- * @param {*} res
- * @returns A message
- */
-export const createMany = async (req, res) => {
-  const { body } = req
-  await newsService.createMany(body)
-  globalResponse(res, 201, { message: 'Items created successfully' })
-}
-
-/**
- * Update By ID
- *
- * @param {*} req
- * @param {*} res
- * @returns  a message
+ * @param {Object} req - The HTTP request object.
+ * @param {Object} res - The HTTP response object.
+ * @returns {Promise<void>} Sends a response confirming the update of the news item.
  */
 export const updateById = handleCatchErrorAsync(async (req, res) => {
   const userId = req.userId
@@ -70,11 +57,11 @@ export const updateById = handleCatchErrorAsync(async (req, res) => {
 })
 
 /**
- * Delete By ID
+ * Delete a news item by its ID.
  *
- * @param {*} req
- * @param {*} res
- * @returns a message
+ * @param {Object} req - The HTTP request object.
+ * @param {Object} res - The HTTP response object.
+ * @returns {Promise<void>} Sends a response confirming the deletion of the news item.
  */
 export const deleteById = handleCatchErrorAsync(async (req, res) => {
   const { id } = req.params
@@ -83,11 +70,11 @@ export const deleteById = handleCatchErrorAsync(async (req, res) => {
 })
 
 /**
- * Get all news status
+ * Get the status of all news items.
  *
- * @param {*} req
- * @param {*} res
- * @returns A message
+ * @param {Object} req - The HTTP request object.
+ * @param {Object} res - The HTTP response object.
+ * @returns {Promise<void>} Sends a response containing the status of all news items.
  */
 export const getAllNewsStatus = handleCatchErrorAsync(async (req, res) => {
   const data = await newsService.getAllNewsStatus()

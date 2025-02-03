@@ -1,6 +1,7 @@
-import DebouncedInput from './DebouncedInput' // need it to column filtering
+import { DebouncedInput } from './DebouncedInput' // need it to column filtering
+import PropTypes from 'prop-types'
 
-function Filter({ column }) {
+export function Filter({ column }) {
   const columnFilterValue = column.getFilterValue()
   const { filterVariant } = column.columnDef.meta ?? {}
 
@@ -46,5 +47,6 @@ function Filter({ column }) {
     // See faceted column filters example for datalist search suggestions
   )
 }
-
-export default Filter
+Filter.propTypes = {
+  column: PropTypes.object.isRequired
+}
