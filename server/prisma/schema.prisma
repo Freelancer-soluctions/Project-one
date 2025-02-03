@@ -62,22 +62,23 @@ model userStatus {
 }
 
 model notes {
-  id              Int        @id @default(autoincrement())
-  updatedOn       DateTime   @db.Timestamp(3)
-  createdOn       DateTime   @db.Timestamp(3)
-  title           String?
-  description     String     @db.VarChar(2000)
-  status          noteStatus @relation(fields: [statusId], references: [id])
-  statusId        Int
-  userNoteCreated users      @relation("userNoteCreated", fields: [createdBy], references: [id])
+  id              Int         @id @default(autoincrement())
+  updatedOn       DateTime    @db.Timestamp(3)
+  createdOn       DateTime    @db.Timestamp(3)
+  title           String
+  content         String      @db.VarChar(2000)
+  color           String      @db.VarChar(6)
+  columnId        Int
+  columnStatus    noteColumns @relation(fields: [columnId], references: [id])
+  userNoteCreated users       @relation("userNoteCreated", fields: [createdBy], references: [id])
   createdBy       Int
 }
 
-model noteStatus {
-  id          Int     @id @default(autoincrement())
-  code        String  @unique @db.VarChar(3)
-  description String  @unique @db.VarChar(10)
-  notes       notes[]
+model noteColumns {
+  id    Int     @id @default(autoincrement())
+  title String  @db.VarChar(15)
+  code  String  @unique @db.VarChar(3)
+  notes notes[]
 }
 
 model newsStatus {

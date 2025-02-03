@@ -2,6 +2,7 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { cn } from '@/lib/utils'
 import { NotesCard } from './NotesCard'
+import { useTranslation } from 'react-i18next'
 
 export function NotesColumn({
   column,
@@ -11,6 +12,7 @@ export function NotesColumn({
   onDeleteNote,
   onEditNote
 }) {
+  const { t } = useTranslation()
   return (
     <Card
       className={cn(
@@ -28,7 +30,8 @@ export function NotesColumn({
         )}>
         <span>{column.title}</span>
         <span className='text-sm font-normal'>
-          {column.notes.length} {column.notes.length === 1 ? 'nota' : 'notas'}
+          {column.notes.length}{' '}
+          {column.notes.length === 1 ? t('note') : t('notes')}
         </span>
       </CardHeader>
       <CardContent
@@ -51,7 +54,7 @@ export function NotesColumn({
             </div>
           ) : (
             <div className='flex items-center justify-center h-full italic text-gray-400'>
-              No hay notas que mostrar
+              {t('no_notes')}
             </div>
           )}
         </ScrollArea>
