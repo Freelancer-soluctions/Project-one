@@ -136,7 +136,7 @@ export function NotesGrid() {
         color: 'green',
         columnId: 'col1'
       }
-
+      // La nota se puede crear desde cualquier estado
       return prevColumns.map(column => {
         if (column.id === 'col1') {
           return {
@@ -171,9 +171,9 @@ export function NotesGrid() {
 
   return (
     <div className='w-full space-y-6'>
-      <div className='flex flex-wrap items-center justify-between gap-4'>
-        <NotesSearchBar onSearch={handleSearch} />
+      <div className='flex flex-wrap items-center justify-between gap-4 '>
         <NotesCreateDialog onCreateNote={handleCreateNote} />
+        <NotesSearchBar onSearch={handleSearch} />
       </div>
       <div className='flex flex-col md:flex-row gap-6 p-4 min-h-[700px] w-full'>
         {filteredColumns.map(column => (

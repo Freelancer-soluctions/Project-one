@@ -91,7 +91,9 @@ export const NewsFiltersForm = ({
               render={({ field }) => {
                 return (
                   <FormItem className='flex flex-col flex-auto'>
-                    <FormLabel>{t('description')}</FormLabel>
+                    <FormLabel htmlFor='description'>
+                      {t('description')}
+                    </FormLabel>
                     <FormControl>
                       <Input
                         id='description'
@@ -115,11 +117,12 @@ export const NewsFiltersForm = ({
               name='fdate'
               render={({ field }) => (
                 <FormItem className='flex flex-col flex-auto'>
-                  <FormLabel>{t('from_date')}</FormLabel>
+                  <FormLabel htmlFor='fdate'>{t('from_date')}</FormLabel>
                   <Popover>
                     <PopoverTrigger asChild>
                       <FormControl>
                         <Button
+                          id='fdate'
                           variant={'outline'}
                           className={cn(
                             'pl-3 text-left font-normal',
@@ -154,11 +157,12 @@ export const NewsFiltersForm = ({
               name='tdate'
               render={({ field }) => (
                 <FormItem className='flex flex-col flex-auto'>
-                  <FormLabel>{t('to_date')}</FormLabel>
+                  <FormLabel htmlFor='tdate'>{t('to_date')}</FormLabel>
                   <Popover>
                     <PopoverTrigger asChild>
                       <FormControl>
                         <Button
+                          id='tdate'
                           variant={'outline'}
                           className={cn(
                             'pl-3 text-left font-normal',
@@ -194,9 +198,9 @@ export const NewsFiltersForm = ({
               render={({ field }) => {
                 return (
                   <FormItem className='flex flex-col flex-auto'>
-                    <FormLabel>{t('status')}</FormLabel>
+                    <FormLabel htmlFor='status'>{t('status')}</FormLabel>
                     <Select onValueChange={field.onChange} value={field.value}>
-                      <FormControl>
+                      <FormControl id='status'>
                         <SelectTrigger>
                           <SelectValue placeholder={t('select_status')} />
                         </SelectTrigger>
