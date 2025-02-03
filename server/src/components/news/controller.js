@@ -36,7 +36,7 @@ export const getOneById = handleCatchErrorAsync(async (req, res) => {
  * @returns {Promise<void>} Sends a response confirming the creation of the news item.
  */
 export const createOne = handleCatchErrorAsync(async (req, res) => {
-  const userId = req.userId
+  const userId = req.userId // viene del token cambiar al body
   const { body } = req
   await newsService.createOne(userId, body)
   globalResponse(res, 201, { message: 'Item created successfully' })

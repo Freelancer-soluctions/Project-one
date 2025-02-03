@@ -1,16 +1,26 @@
 import { Input } from '@/components/ui/input'
-import { LuSearch } from 'react-icons/lu'
+import { Label } from '@/components/ui/label'
+import { useTranslation } from 'react-i18next'
+import PropTypes from 'prop-types'
 
 export function NotesSearchBar({ onSearch }) {
+  const { t } = useTranslation()
   return (
     <div className='relative w-full max-w-md mx-auto mb-6'>
-      <LuSearch className='absolute w-4 h-4 text-gray-400 transform -translate-y-1/2 left-3 top-1/2' />
+      <Label htmlFor='textSearch'>{t('search')}</Label>
+
       <Input
+        id='textSearch'
         type='text'
-        placeholder='Buscar notas...'
-        className='py-2 pl-10 pr-4'
+        maxLength={150}
+        placeholder={t('search_notes')}
+        className='py-2 pr-4'
         onChange={e => onSearch(e.target.value)}
       />
     </div>
   )
+}
+
+NotesSearchBar.propTypes = {
+  onSearch: PropTypes.func
 }

@@ -244,7 +244,7 @@ export const NewsDialog = ({
                   render={({ field }) => {
                     return (
                       <FormItem className='flex flex-col flex-auto col-span-1'>
-                        <FormLabel>{t('document')}</FormLabel>
+                        <FormLabel htmlFor='file'>{t('document')}</FormLabel>
                         <FormControl>
                           <Input
                             id='file'
@@ -274,8 +274,9 @@ export const NewsDialog = ({
 
                     return (
                       <FormItem className='flex flex-col flex-auto'>
-                        <FormLabel>{t('status')}*</FormLabel>
+                        <FormLabel htmlFor='status'>{t('status')}*</FormLabel>
                         <Select
+                          id='status'
                           disabled={
                             newId && statusCodeSaved === NewsStatusCode.CLOSED
                           }
@@ -323,7 +324,9 @@ export const NewsDialog = ({
                     render={({ field }) => {
                       return (
                         <FormItem className='flex flex-col flex-auto col-span-1'>
-                          <FormLabel>{t('created_by')}</FormLabel>
+                          <FormLabel htmlFor='userNewsCreated'>
+                            {t('created_by')}
+                          </FormLabel>
                           <FormControl>
                             <Input
                               id='userNewsCreated'
@@ -350,11 +353,14 @@ export const NewsDialog = ({
                     name='createdOn'
                     render={({ field }) => (
                       <FormItem className='flex flex-col flex-auto'>
-                        <FormLabel>{t('created_on')}</FormLabel>
+                        <FormLabel htmlFor='createOn'>
+                          {t('created_on')}
+                        </FormLabel>
                         <Popover>
                           <PopoverTrigger asChild>
                             <FormControl>
                               <Button
+                                id='createOn'
                                 disabled={true}
                                 readOnly={true}
                                 variant={'outline'}
@@ -391,7 +397,9 @@ export const NewsDialog = ({
                     render={({ field }) => {
                       return (
                         <FormItem className='flex flex-col flex-auto col-span-1'>
-                          <FormLabel>{t('closed_by')}</FormLabel>
+                          <FormLabel htmlFor='userNewsClosed'>
+                            {t('closed_by')}
+                          </FormLabel>
                           <FormControl>
                             <Input
                               id='userNewsClosed'
@@ -418,11 +426,14 @@ export const NewsDialog = ({
                     name='closedOn'
                     render={({ field }) => (
                       <FormItem className='flex flex-col flex-auto'>
-                        <FormLabel>{t('closed_on')}</FormLabel>
+                        <FormLabel htmlFor='closedOn'>
+                          {t('closed_on')}
+                        </FormLabel>
                         <Popover>
                           <PopoverTrigger asChild>
                             <FormControl>
                               <Button
+                                id='closedOn'
                                 disabled={true}
                                 readOnly={true}
                                 variant={'outline'}
@@ -457,7 +468,9 @@ export const NewsDialog = ({
                   render={({ field }) => {
                     return (
                       <FormItem className='flex flex-col flex-auto col-span-2'>
-                        <FormLabel>{t('description')}*</FormLabel>
+                        <FormLabel htmlFor='description'>
+                          {t('description')}*
+                        </FormLabel>
                         <FormControl>
                           {/* <Input
                             id='description'
@@ -470,6 +483,7 @@ export const NewsDialog = ({
                             value={field.value ?? ''}
                           /> */}
                           <Textarea
+                            id='description'
                             placeholder={t('description_placeholder')}
                             className='resize-none'
                             maxLength={400}

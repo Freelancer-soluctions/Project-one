@@ -66,6 +66,15 @@
     "appearance": "Appearance",
     "language": "Language",
     "notifications": "Notifications",
-    "account": "Account"
+    "account": "Account",
+    "notes": "Notes",
+    "search_notes": "Search notes...",
+    "no_notes": "There are not notes to show",
+    "edit_note": "Edit note",
+    "title": "Title",
+    "title_placeholder": "Enter the title",
+    "content_placeholder": "Enter the content",
+    "create_note": "Create note",
+    "note": "Note"
   }
 }

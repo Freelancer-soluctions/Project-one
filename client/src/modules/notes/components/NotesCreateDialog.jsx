@@ -11,11 +11,14 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { LuPlusCircle } from 'react-icons/lu'
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
+import PropTypes from 'prop-types'
 
 export function NotesCreateDialog({ onCreateNote }) {
   const [open, setOpen] = useState(false)
   const [title, setTitle] = useState('')
   const [content, setContent] = useState('')
+  const { t } = useTranslation()
 
   const handleSubmit = e => {
     e.preventDefault()
@@ -30,41 +33,45 @@ export function NotesCreateDialog({ onCreateNote }) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className='gap-2'>
-          <LuPlusCircle className='w-5 h-5' />
-          Crear Nota
+        <Button className='gap-2' variant='success'>
+          {t('create_note')}
+          <LuPlusCircle className='w-5 h-5 ml-auto opacity-50' />
         </Button>
       </DialogTrigger>
       <DialogContent className='sm:max-w-[425px]'>
         <DialogHeader>
-          <DialogTitle>Crear Nueva Nota</DialogTitle>
+          <DialogTitle>{t('create_note')}</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className='mt-4 space-y-4'>
           <div className='space-y-2'>
-            <Label htmlFor='title'>Título</Label>
+            <Label htmlFor='title'>{t('title')}</Label>
             <Input
               id='title'
               value={title}
               onChange={e => setTitle(e.target.value)}
-              placeholder='Ingresa el título de la nota'
+              placeholder={t('title_placeholder')}
               required
             />
           </div>
           <div className='space-y-2'>
-            <Label htmlFor='content'>Contenido</Label>
+            <Label htmlFor='content'>{t('content')}</Label>
             <Textarea
               id='content'
               value={content}
               onChange={e => setContent(e.target.value)}
-              placeholder='Ingresa el contenido de la nota'
+              placeholder={t('content_placeholder')}
               required
             />
           </div>
-          <Button type='submit' className='w-full'>
-            Crear Nota
+          <Button type='submit' variant='info' className='w-full'>
+            {t('save')}
           </Button>
         </form>
       </DialogContent>
     </Dialog>
   )
+}
+
+NotesCreateDialog.propTypes = {
+  onCreateNote: PropTypes.func.isRequired
 }
