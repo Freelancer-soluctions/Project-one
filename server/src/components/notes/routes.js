@@ -80,16 +80,11 @@ router.post('/', verifyToken, validateSchema(NoteCreate), noteController.createN
 
 /**
 @openapi
- * /api/v1/note/{id}:
+ * /api/v1/news/status:
  *   get:
  *     tags:
- *       - Note
+ *       - News
  *     parameters:
- *       - in: path
- *         name: id
- *         schema:
- *           type: int
- *         description: The Note identifier
  *       - in: header
  *         name: x-access-token
  *         schema:
@@ -104,7 +99,9 @@ router.post('/', verifyToken, validateSchema(NoteCreate), noteController.createN
  *               type: object
  *               properties:
  *                 data:
- *                  $ref: "#/components/schemas/Note"
+ *                   type: array
+ *                   items:
+ *                     $ref: "#/components/schemas/NewsStatus"
  *       5XX:
  *         description: FAILED
  *         content:
@@ -114,7 +111,7 @@ router.post('/', verifyToken, validateSchema(NoteCreate), noteController.createN
  *
  */
 
-router.get('/:id', noteController.getOneById)
+router.get('/notesColumns', noteController.getAllNotesColumns)
 
 /**
  * @openapi

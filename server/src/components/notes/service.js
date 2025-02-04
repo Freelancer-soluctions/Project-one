@@ -36,6 +36,17 @@ export const createNote = async (data) => {
   return notesDao.createNote(createData)
 }
 
+/**
+ * Get all available notes columns from the database.
+ *
+ * @returns {Promise<Array>} A list of all notes columns.
+ */
+
+export const getAllNotesColumns = async () => {
+  const data = await notesDao.getAllNotesColumns()
+  return data
+}
+
 // /**
 //  *
 //  * @returns One row filter by id

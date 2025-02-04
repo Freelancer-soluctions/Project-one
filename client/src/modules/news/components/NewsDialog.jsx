@@ -107,8 +107,6 @@ export const NewsDialog = ({
     }
   })
 
-  // const { setValue } = formDialog
-
   // Actualiza todos los valores del formulario al cambiar `selectedRow`
   useEffect(() => {
     if (selectedRow) {

@@ -1,7 +1,5 @@
-import { tableNames } from '../utils/enums/enums.js'
 import prisma from '../../config/db.js'
 
-const tableName = tableNames.NOTES
 /**
  * Retrieves all notes from the database based on the provided filters.
  *
@@ -42,7 +40,7 @@ export const createNote = async (data) => {
           id: data.createdBy
         }
       },
-      noteColumns: {
+      columnStatus: {
         connect: {
           id: data.columnId
         }
@@ -52,44 +50,11 @@ export const createNote = async (data) => {
   return Promise.resolve(result)
 }
 
-// /**
-
-//  * @param {*} params :: filter params
-//  *
-//  * @returns One row by ID
-//  */
-// export const getOneRow = async ({ where, include }) => prismaService.getOneRow({
-//   tableName,
-//   where,
-//   include
-// })
-
-// /**
-//  *
-//  * @param {*} data :: Argument to create an item in DB
-//  * @returns Created row in db
-//  */
-// export const createRow = async (data) => prismaService.createRow(tableName, data)
-
-// /**
-//  *
-//  * @param {*} data :: Argument to create many items in Db.
-//  * @returns  Created row in db
-//  */
-
-// export const createManyRows = async (data) => prismaService.createManyRows(tableName, data)
-
-// /**
-//  *
-//  * @param {*} data :: Fields to update rows in Db.
-//  * @param {*} where :: DB filter
-//  * @returns
-//  */
-// export const updateRow = async (data, where) => prismaService.updateRow(tableName, data, where)
-
-// /**
-//  *
-//  * @param {*} where :: DB filter
-//  * @returns
-//  */
-// export const deleteRow = async (where) => prismaService.deleteRow(tableName, where)
+/**
+ * Retrieves all available notes columns from the database.
+ *
+ * @returns {Promise<Array>} A list of notes columns from the database.
+ */
+export const getAllNotesColumns = async () => {
+  return await prisma.noteColumns.findMany()
+}
