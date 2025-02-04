@@ -1,9 +1,5 @@
 import { useState, useMemo } from 'react'
-import {
-  NotesSearchBar,
-  NotesColumn,
-  NotesCreateDialog
-} from '../components/index'
+import { NotesSearchBar, NotesColumn, NotesCreateDialog } from './index'
 
 const initialColumns = [
   {
@@ -127,18 +123,22 @@ export function NotesGrid() {
     setSearchTerm(term)
   }
 
-  const handleCreateNote = (title, content) => {
+  const handleCreateNote = (title, content, columnId) => {
+    let color = 'green'
+    if (columnId === 'col2') color = 'yellow'
+    if (columnId === 'col3') color = 'red'
+
     setColumns(prevColumns => {
       const newNote = {
         id: Date.now().toString(),
         title,
         content,
-        color: 'green',
-        columnId: 'col1'
+        color,
+        columnId
       }
-      // La nota se puede crear desde cualquier estado
+
       return prevColumns.map(column => {
-        if (column.id === 'col1') {
+        if (column.id === columnId) {
           return {
             ...column,
             notes: [newNote, ...column.notes]
@@ -171,7 +171,7 @@ export function NotesGrid() {
 
   return (
     <div className='w-full space-y-6'>
-      <div className='flex flex-wrap items-center justify-between gap-4 '>
+      <div className='flex flex-wrap items-center justify-between gap-4'>
         <NotesCreateDialog onCreateNote={handleCreateNote} />
         <NotesSearchBar onSearch={handleSearch} />
       </div>
