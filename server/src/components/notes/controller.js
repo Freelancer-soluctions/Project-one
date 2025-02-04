@@ -16,19 +16,6 @@ export const getAllNotes = handleCatchErrorAsync(async (req, res) => {
 })
 
 /**
- * Get one by id
- *
- * @param {*} req
- * @param {*} res
- * @returns A message
- */
-export const getOneById = handleCatchErrorAsync(async (req, res) => {
-  const { id } = req.params
-  const item = await noteService.getOneById(id)
-  globalResponse(res, 200, item)
-})
-
-/**
  * Create a note item.
  *
  * @param {Object} req - The HTTP request object.
@@ -39,6 +26,18 @@ export const createNote = handleCatchErrorAsync(async (req, res) => {
   const { body } = req
   const createdNote = await noteService.createNote(body)
   globalResponse(res, 201, createdNote, 'Item created successfully')
+})
+
+/**
+ * Get the status of all notes items.
+ *
+ * @param {Object} req - The HTTP request object.
+ * @param {Object} res - The HTTP response object.
+ * @returns {Promise<void>} Sends a response containing the status of all news items.
+ */
+export const getAllNotesColumns = handleCatchErrorAsync(async (req, res) => {
+  const data = await noteService.getAllNotesColumns()
+  globalResponse(res, 200, data)
 })
 
 /**
