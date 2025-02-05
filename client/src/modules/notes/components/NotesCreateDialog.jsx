@@ -24,12 +24,13 @@ import {
   SelectValue
 } from '@/components/ui/select'
 import { LuPlusCircle } from 'react-icons/lu'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import PropTypes from 'prop-types'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 import { useGetAllNotesColumnsQuery } from '../slice/notesSlice'
+import { notesDialogSchema, StatusColumn } from '../utils/index'
 
 export function NotesCreateDialog({ onCreateNote }) {
   const {
@@ -43,24 +44,36 @@ export function NotesCreateDialog({ onCreateNote }) {
   const [open, setOpen] = useState(false)
   const [title, setTitle] = useState('')
   const [content, setContent] = useState('')
-  // Buscar la primera columna que tenga el código "TODO" por defecto
-  const defaultColumn =
-    dataColumns.find(col => col.code === 'TODO') || dataColumns[0]
-  const [selectedCode, setSelectedCode] = useState(defaultColumn.code) // Usa "TODO" si existe, sino el primero disponible
-  // Obtener el título de la opción seleccionada
-  const selectedColumn = dataColumns.find(col => col.code === selectedCode)
+  const [selectedCode, setSelectedCode] = useState()
+
   const { t } = useTranslation()
+
+  useEffect(() => {
+    if (dataColumns?.data.length > 0) {
+      // Buscar la primera columna que tenga el código "TODO" por defecto
+      const defaultColumn = dataColumns.data.find(
+        col => col.code === StatusColumn.LOW
+      )
+      // Si existe, usar su código; si no, tomar el primer código disponible
+      setSelectedCode(defaultColumn?.code || null)
+      // Obtener el título de la opción seleccionada
+    }
+  }, [dataColumns])
+
+  const selectedColumn = dataColumns?.data.find(
+    col => col.code === selectedCode
+  )
 
   // Configura el formulario
   const formDialog = useForm({
-    resolver: zodResolver(newsDialogSchema),
+    resolver: zodResolver(notesDialogSchema),
     defaultValues: {
       id: '',
       title: '',
       content: '',
       color: '',
       createdBy: '',
-      columnId: '',
+      createdOn: '',
       userNoteCreated: ''
     }
   })
@@ -93,7 +106,8 @@ export function NotesCreateDialog({ onCreateNote }) {
             method='post'
             action=''
             id='profile-info-form'
-            noValidateonSubmit={handleSubmit}
+            noValidate
+            onSubmit={formDialog.handleSubmit(handleSubmit)}
             className='mt-4 space-y-4'>
             <div className='space-y-2'>
               <FormField
@@ -112,7 +126,7 @@ export function NotesCreateDialog({ onCreateNote }) {
                           </SelectValue>
                         </SelectTrigger>
                         <SelectContent>
-                          {dataColumns.map(col => (
+                          {dataColumns?.data.map(col => (
                             <SelectItem key={col.id} value={col.code}>
                               {col.title}
                             </SelectItem>
