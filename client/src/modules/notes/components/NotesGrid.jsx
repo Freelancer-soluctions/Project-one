@@ -126,7 +126,7 @@ export function NotesGrid() {
   const handleCreateNote = (title, content, columnId) => {
     let color = 'green'
     if (columnId === 'col2') color = 'yellow'
-    if (columnId === 'col3') color = 'red'
+    if (columnId === 'col3') color = 'redd'
 
     setColumns(prevColumns => {
       const newNote = {
