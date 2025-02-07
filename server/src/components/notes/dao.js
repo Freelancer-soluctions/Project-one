@@ -31,18 +31,18 @@ export const getAllNotes = async (description) => {
  * @returns {Promise<Object>} The created row in the database.
  */
 
-export const createNote = async (data) => {
-  const result = await prisma.news.create({
+export const createNote = async (data, userId, columnId) => {
+  const result = await prisma.notes.create({
     data: {
       ...data,
       userNoteCreated: {
         connect: {
-          id: data.createdBy
+          id: userId
         }
       },
       columnStatus: {
         connect: {
-          id: data.columnId
+          id: columnId
         }
       }
     }

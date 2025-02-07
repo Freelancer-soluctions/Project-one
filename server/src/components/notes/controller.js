@@ -10,8 +10,9 @@ import * as noteService from './service.js'
  * @returns A message
  */
 export const getAllNotes = handleCatchErrorAsync(async (req, res) => {
+  console.log('getAllNotes')
   const query = req.query
-  const items = await noteService.getAll(query)
+  const items = await noteService.getAllNotes(query)
   globalResponse(res, 200, items)
 })
 
@@ -23,8 +24,9 @@ export const getAllNotes = handleCatchErrorAsync(async (req, res) => {
  * @returns {Promise<void>} Sends a response confirming the creation of the news item.
  */
 export const createNote = handleCatchErrorAsync(async (req, res) => {
+  const userId = req.userId // viene del token
   const { body } = req
-  const createdNote = await noteService.createNote(body)
+  const createdNote = await noteService.createNote(body, userId)
   globalResponse(res, 201, createdNote, 'Item created successfully')
 })
 

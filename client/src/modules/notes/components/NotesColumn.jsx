@@ -3,6 +3,7 @@ import { ScrollArea } from '@/components/ui/scroll-area'
 import { cn } from '@/lib/utils'
 import { NotesCard } from './NotesCard'
 import { useTranslation } from 'react-i18next'
+import { StatusColumn } from '../utils/index'
 
 export function NotesColumn({
   column,
@@ -17,16 +18,18 @@ export function NotesColumn({
     <Card
       className={cn(
         'flex-1 shadow-lg min-w-[280px]',
-        column.id === 'col1' && 'border-green-200 shadow-green-100/50',
-        column.id === 'col2' && 'border-yellow-200 shadow-yellow-100/50',
-        column.id === 'col3' && 'border-red-200 shadow-red-100/50'
+        column.code === StatusColumn.LOW &&
+          'border-green-200 shadow-green-100/50',
+        column.code === StatusColumn.MEDIUM &&
+          'border-yellow-200 shadow-yellow-100/50',
+        column.code === StatusColumn.HIGH && 'border-red-200 shadow-red-100/50'
       )}>
       <CardHeader
         className={cn(
           'text-lg font-bold text-center border-b py-4 flex items-center justify-between',
-          column.id === 'col1' && 'bg-green-50 text-green-700',
-          column.id === 'col2' && 'bg-yellow-50 text-yellow-700',
-          column.id === 'col3' && 'bg-red-50 text-red-700'
+          column.code === StatusColumn.LOW && 'bg-green-50 text-green-700',
+          column.code === StatusColumn.MEDIUM && 'bg-yellow-50 text-yellow-700',
+          column.code === StatusColumn.HIGH && 'bg-red-50 text-red-700'
         )}>
         <span>{column.title}</span>
         <span className='text-sm font-normal'>

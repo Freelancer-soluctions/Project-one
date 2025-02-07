@@ -92,19 +92,7 @@ export const NewsDialog = ({
 
   // Configura el formulario
   const formDialog = useForm({
-    resolver: zodResolver(newsDialogSchema),
-    defaultValues: {
-      id: '',
-      description: '',
-      document: '',
-      createdOn: '',
-      createdBy: '',
-      closedOn: '',
-      status: '',
-      userNewsCreated: '',
-      userNewsClosed: '',
-      userNewsPending: ''
-    }
+    resolver: zodResolver(newsDialogSchema)
   })
 
   // Actualiza todos los valores del formulario al cambiar `selectedRow`
@@ -232,7 +220,7 @@ export const NewsDialog = ({
             <form
               method='post'
               action=''
-              id='profile-info-form'
+              id='news-form'
               noValidate
               onSubmit={formDialog.handleSubmit(onSubmitDialog)}>
               <div className='grid grid-cols-2 gap-6 py-4 auto-rows-auto'>
@@ -490,6 +478,7 @@ export const NewsDialog = ({
                             }
                             {...field}
                             value={field.value ?? ''}
+                            defaultValues={field.value}
                           />
                         </FormControl>
                         <FormMessage />
