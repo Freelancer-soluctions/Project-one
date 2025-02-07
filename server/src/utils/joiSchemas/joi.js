@@ -176,9 +176,6 @@ export const NoteCreate = Joi.object({
     .required(),
   columnId: Joi.number()
     .integer()
-    .required(),
-  createdBy: Joi.number()
-    .integer()
     .required()
 
 })

@@ -2,7 +2,6 @@ import { Router } from 'express'
 import { NoteCreate, NoteUpdate, NotesFilters } from '../../utils/joiSchemas/joi.js'
 import validateSchema from '../../middleware/validateSchema.js'
 import * as noteController from './controller.js'
-import upload from '../../utils/multer/multer.js'
 import validateQueryParams from '../../middleware/validateQueryParams.js'
 import verifyToken from '../../middleware/verifyToken.js'
 
@@ -152,7 +151,7 @@ router.get('/notesColumns', noteController.getAllNotesColumns)
  */
 
 router.put('/:id',
-  upload.single('document'),
+
   validateSchema(NoteUpdate),
   noteController.updateById)
 

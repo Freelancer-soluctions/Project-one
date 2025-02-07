@@ -63,7 +63,7 @@ model userStatus {
 
 model notes {
   id              Int         @id @default(autoincrement())
-  updatedOn       DateTime    @db.Timestamp(3)
+  updatedOn       DateTime?   @db.Timestamp(3)
   createdOn       DateTime    @db.Timestamp(3)
   title           String      @db.VarChar(50)
   content         String      @db.VarChar(2000)
