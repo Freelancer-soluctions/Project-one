@@ -8,6 +8,7 @@ import {axiosPrivateBaseQuery} from '@/config/axios'
 const notesApi = createApi({
     reducerPath:'notesApi',
     baseQuery:axiosPrivateBaseQuery({ baseUrl: import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1' }),
+    tagTypes: ['Notes'], // Agrega un tag identificador
     endpoints: (builder) => ({
         getAllNotes: builder.query({
           query: (args) =>({
@@ -15,6 +16,7 @@ const notesApi = createApi({
             method: "GET",
             params: {...args}
           }),
+          providesTags: ['Notes'], // Indica que este endpoint usa el tag 'Notes'
         }),
         getAllNotesColumns: builder.query({
           query: () =>({
@@ -30,14 +32,12 @@ const notesApi = createApi({
         //   })
         // }),
         createNote: builder.mutation({
-          query(body) {
-            return {
-              url: `/notes/`,
-              method: 'POST',
-              body,
-            }
-          },
-     
+          query: (body) => ({
+            url: `/notes/`,
+            method: 'POST',
+            body,
+          }),
+          invalidatesTags: ['Notes'], // Invalida el cache de 'Notes' para volver a consultar
         }),
         // deleteNewById: builder.mutation({ 
         //   query(id) {
@@ -53,6 +53,6 @@ const notesApi = createApi({
 
 // Export hooks for usage in functional components, which are
 // auto-generated based on the defined endpoints
-export const { useLazyGetAllNotesQuery, useGetAllNotesColumnsQuery, useCreateNotesMutation  } = notesApi
+export const { useGetAllNotesQuery, useGetAllNotesColumnsQuery, useCreateNoteMutation  } = notesApi
 
 export default notesApi

@@ -16,24 +16,17 @@ export const getAllNotes = async ({ description }) => {
  * Create a new notes item in the database.
  *
  * @param {Object} data - The data for the new notes item.
- * @param {number} data.createdBy - The ID of the user creating the notes.
  * @param {string} data.title - The description of the notes item.
+ * @param {string} data.createdOn - The date of the notes item.
  * @param {string} data.content - The description of the notes item.
  * @param {string} data.color - The description of the notes item.
  * @param {number} data.columnId - The ID of the status for the notes item.
  * @returns {Promise<Object>} The created notes item.
  */
-export const createNote = async (data) => {
-  const createData = {
-    title: data.title,
-    content: data.content,
-    color: data.color,
-    columnId: Number(data.columnId),
-    createdBy: Number(data.createdBy),
-    createdOn: new Date()
-  }
-
-  return notesDao.createNote(createData)
+export const createNote = async (data, userId) => {
+  const { columnId, ...dataWithOutForeignKeys } = data
+  dataWithOutForeignKeys.createdOn = new Date()
+  return notesDao.createNote(dataWithOutForeignKeys, Number(userId), Number(columnId))
 }
 
 /**

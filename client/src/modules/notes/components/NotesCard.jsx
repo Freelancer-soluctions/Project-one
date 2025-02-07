@@ -4,6 +4,7 @@ import { LuTrash2, LuPencil } from 'react-icons/lu'
 import { Button } from '@/components/ui/button'
 import { useState } from 'react'
 import { NotesEditDialog } from './NotesEditDialog'
+import { NotesColor } from '../utils/index'
 
 export function NotesCard({
   id,
@@ -24,18 +25,19 @@ export function NotesCard({
         onDragStart={e => onDragStart(e, id, columnId)}
         className={cn(
           'cursor-move transition-all duration-200 hover:shadow-lg group',
-          color === 'yellow' &&
+          color === NotesColor.YELLOW &&
             'bg-yellow-50 hover:bg-yellow-100 border-yellow-200',
-          color === 'green' &&
+          color === NotesColor.GREEN &&
             'bg-green-50 hover:bg-green-100 border-green-200',
-          color === 'red' && 'bg-red-50 hover:bg-red-100 border-red-200'
+          color === NotesColor.RED &&
+            'bg-red-50 hover:bg-red-100 border-red-200'
         )}>
         <CardHeader
           className={cn(
             'font-semibold p-3 flex flex-row items-center justify-between',
-            color === 'yellow' && 'text-yellow-700',
-            color === 'green' && 'text-green-700',
-            color === 'red' && 'text-red-700'
+            color === NotesColor.YELLOW && 'text-yellow-700',
+            color === NotesColor.GREEN && 'text-green-700',
+            color === NotesColor.RED && 'text-red-700'
           )}>
           {title}
           <div className='flex gap-1 transition-opacity opacity-0 group-hover:opacity-100'>
