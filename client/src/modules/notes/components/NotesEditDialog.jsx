@@ -78,7 +78,7 @@ NotesEditDialog.propTypes = {
   open: PropTypes.bool.isRequired,
   onOpenChange: PropTypes.func.isRequired,
   onEditNote: PropTypes.func.isRequired,
-  noteId: PropTypes.string,
+  noteId: PropTypes.number,
   initialTitle: PropTypes.string,
   initialContent: PropTypes.string
 }

@@ -14,7 +14,7 @@ export function NotesCard({
   onDragStart,
   onDelete,
   onEdit,
-  columnId
+  columnCode
 }) {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
 
@@ -22,7 +22,7 @@ export function NotesCard({
     <>
       <Card
         draggable
-        onDragStart={e => onDragStart(e, id, columnId)}
+        onDragStart={e => onDragStart(e, id, columnCode)}
         className={cn(
           'cursor-move transition-all duration-200 hover:shadow-lg group',
           color === NotesColor.YELLOW &&

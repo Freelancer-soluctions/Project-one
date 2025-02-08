@@ -40,7 +40,7 @@ export function NotesColumn({
       <CardContent
         className='p-0'
         onDragOver={onDragOver}
-        onDrop={e => onDrop(e, column.id)}>
+        onDrop={e => onDrop(e, column.code)}>
         <ScrollArea className='h-[600px] p-4'>
           {column.notes.length > 0 ? (
             <div className='pr-4 space-y-4'>
@@ -51,7 +51,7 @@ export function NotesColumn({
                   onDragStart={onDragStart}
                   onDelete={onDeleteNote}
                   onEdit={onEditNote}
-                  columnId={column.id}
+                  columnCode={column.code}
                 />
               ))}
             </div>

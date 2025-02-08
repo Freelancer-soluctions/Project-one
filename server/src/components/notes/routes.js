@@ -1,5 +1,5 @@
 import { Router } from 'express'
-import { NoteCreate, NoteUpdate, NotesFilters } from '../../utils/joiSchemas/joi.js'
+import { NoteCreate, NoteColumnUpdate, NotesFilters } from '../../utils/joiSchemas/joi.js'
 import validateSchema from '../../middleware/validateSchema.js'
 import * as noteController from './controller.js'
 import validateQueryParams from '../../middleware/validateQueryParams.js'
@@ -150,10 +150,7 @@ router.get('/notesColumns', noteController.getAllNotesColumns)
  *
  */
 
-router.put('/:id',
-
-  validateSchema(NoteUpdate),
-  noteController.updateById)
+router.put('/notecolumn', verifyToken, validateSchema(NoteColumnUpdate), noteController.updateNoteColumId)
 
 /**
  * @openapi

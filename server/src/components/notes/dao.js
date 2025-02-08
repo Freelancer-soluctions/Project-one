@@ -58,3 +58,18 @@ export const createNote = async (data, userId, columnId) => {
 export const getAllNotesColumns = async () => {
   return await prisma.noteColumns.findMany()
 }
+
+/**
+ * Updates an existing row in the database based on the provided filter and data.
+ *
+ * @param {Object} data - The fields to update in the row.
+ * @param {Object} where - The conditions to identify the row to update.
+ * @returns {Promise<Object>} The updated row in the database.
+ */
+export const updateNoteColumId = async (id, data) => {
+  const result = await prisma.notes.update({
+    where: { id },
+    data
+  })
+  return Promise.resolve(result)
+}
