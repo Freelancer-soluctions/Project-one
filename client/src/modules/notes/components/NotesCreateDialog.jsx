@@ -31,7 +31,7 @@ import { useTranslation } from 'react-i18next'
 import PropTypes from 'prop-types'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
-import { notesDialogSchema } from '../utils/index'
+import { notesCreateDialogSchema } from '../utils/index'
 
 export function NotesCreateDialog({ onCreateNote, dataStatus }) {
   const [open, setOpen] = useState(false)
@@ -39,7 +39,7 @@ export function NotesCreateDialog({ onCreateNote, dataStatus }) {
 
   // Configura el formulario
   const formNotesDialog = useForm({
-    resolver: zodResolver(notesDialogSchema),
+    resolver: zodResolver(notesCreateDialogSchema),
     defaultValues: {
       title: '',
       content: ''

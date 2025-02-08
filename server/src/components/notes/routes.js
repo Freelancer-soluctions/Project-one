@@ -1,5 +1,5 @@
 import { Router } from 'express'
-import { NoteCreate, NoteColumnUpdate, NotesFilters } from '../../utils/joiSchemas/joi.js'
+import { NoteCreate, NoteColumnUpdate, NotesFilters, NoteUpdate } from '../../utils/joiSchemas/joi.js'
 import validateSchema from '../../middleware/validateSchema.js'
 import * as noteController from './controller.js'
 import validateQueryParams from '../../middleware/validateQueryParams.js'
@@ -154,6 +154,46 @@ router.put('/notecolumn', verifyToken, validateSchema(NoteColumnUpdate), noteCon
 
 /**
  * @openapi
+ * /api/v1/news/{id}:
+ *   put:
+ *     tags:
+ *       - News
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: int
+ *         description: The news identifier
+ *       - in: header
+ *         name: x-access-token
+ *         schema:
+ *          type: string
+ *         required: true
+ *     requestBody:
+ *         content:
+ *          multipart/form-data:
+ *           schema:
+ *            $ref: "#/components/schemas/NewsBody"
+ *     responses:
+ *       200:
+ *         description: OK
+ *         content:
+ *           application/json:
+ *             schema:
+ *              $ref: "#/components/schemas/Update"
+ *       5XX:
+ *         description: FAILED
+ *         content:
+ *           application/json:
+ *             schema:
+ *              $ref: "#/components/schemas/Error"
+ *
+ */
+
+router.put('/:id', verifyToken, validateSchema(NoteUpdate), noteController.updateNoteById)
+
+/**
+ * @openapi
  * /api/v1/note/{id}:
  *   delete:
  *     tags:
@@ -184,6 +224,6 @@ router.put('/notecolumn', verifyToken, validateSchema(NoteColumnUpdate), noteCon
  *              $ref: "#/components/schemas/Error"
  */
 
-router.delete('/:id', noteController.deleteById)
+router.delete('/:id', verifyToken, noteController.deleteById)
 
 export default router

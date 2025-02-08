@@ -6,11 +6,13 @@ import {
   useGetAllNotesColumnsQuery,
   useCreateNoteMutation,
   useUpdateNoteColumIdMutation,
-  useUpdateNoteByIdMutation
+  useUpdateNoteByIdMutation,
+  useDeleteNoteByIdMutation
 } from '../slice/notesSlice'
 import { NotesSearchBar, NotesColumn, NotesCreateDialog } from './index'
 import { StatusColumn, NotesColor } from '../utils/index'
 import AlertDialogComponent from '@/components/alertDialog/AlertDialog'
+import { data } from 'react-router'
 
 const initialColumns = [
   {
@@ -105,6 +107,15 @@ export function NotesGrid() {
     }
   ] = useUpdateNoteByIdMutation()
 
+  const [
+    deleteNoteById,
+    {
+      isLoading: isLoadingDelete,
+      isError: isErrorDelete,
+      isSuccess: isSuccessDelete
+    }
+  ] = useDeleteNoteByIdMutation()
+
   const filteredColumns = useMemo(() => {
     if (!searchTerm) return dataNotes?.data
 
@@ -191,24 +202,19 @@ export function NotesGrid() {
     })
   }
 
-  const handleDeleteNote = noteId => {
-    setColumns(prevColumns =>
-      prevColumns.map(column => ({
-        ...column,
-        notes: column.notes.filter(note => note.id !== noteId)
-      }))
-    )
+  const handleDeleteNote = async noteId => {
+    await deleteNoteById(noteId).unwrap()
   }
 
-  const handleEditNote = (noteId, title, content) => {
-    // setColumns(prevColumns =>
-    //   prevColumns.map(column => ({
-    //     ...column,
-    //     notes: column.notes.map(note =>
-    //       note.id === noteId ? { ...note, title, content } : note
-    //     )
-    //   }))
-    // )
+  const handleEditNote = async note => {
+    const { id, content, title } = note
+    await updateNoteById({
+      id: id,
+      body: {
+        content,
+        title
+      }
+    }).unwrap()
   }
 
   return (

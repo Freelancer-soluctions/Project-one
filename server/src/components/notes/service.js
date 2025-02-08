@@ -54,3 +54,28 @@ export const updateNoteColumId = async (data) => {
   const { id, ...newdata } = data
   return notesDao.updateNoteColumId(id, newdata)
 }
+
+/**
+ * Update an existing column item in the database by its ID.
+ *
+ * @param {Object} data - The updated data for the notes item.
+ * @param {number} id - The ID of the notes item to update.
+ * @param {number} data.title - The ID of the column note item to update.
+ * @param {string} data.content - The column color of the note item.
+ * @returns {Promise<Object>} The updated notes item.
+ */
+export const updateNoteById = async (id, data) => {
+  data.updatedOn = new Date()
+  return notesDao.updateNoteById(Number(id), data)
+}
+
+/**
+ * Delete a note item from the database by its ID.
+ *
+ * @param {number} id - The ID of the note item to delete.
+ * @returns {Promise<Object>} The result of the deletion.
+ */
+export const deleteById = async (id) => {
+  const rowId = Number(id)
+  return notesDao.deleteRow(rowId)
+}

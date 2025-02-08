@@ -129,12 +129,9 @@ export const NewsDialog = ({
         ? await updateNewById({
             id: newId,
             data: {
-              id: values.id,
               description: values.description,
               statusId: values.status.id,
               statusCode: values.status.code,
-              createdBy: values.createdBy,
-              createdOn: values.createdOn,
               document: values.document
             }
           }).unwrap()

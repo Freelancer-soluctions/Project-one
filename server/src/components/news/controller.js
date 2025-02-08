@@ -51,8 +51,9 @@ export const createOne = handleCatchErrorAsync(async (req, res) => {
  */
 export const updateById = handleCatchErrorAsync(async (req, res) => {
   const userId = req.userId
+  const { id } = req.params
   const { body } = req
-  await newsService.updateById(userId, body)
+  await newsService.updateById(userId, id, body)
   globalResponse(res, 200, { message: 'Items updated successfully' })
 })
 

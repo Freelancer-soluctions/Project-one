@@ -73,3 +73,28 @@ export const updateNoteColumId = async (id, data) => {
   })
   return Promise.resolve(result)
 }
+
+/**
+ * Updates an existing row in the database based on the provided filter and data.
+ *
+ * @param {Object} data - The fields to update in the row.
+ * @param {Object} where - The conditions to identify the row to update.
+ * @returns {Promise<Object>} The updated row in the database.
+ */
+export const updateNoteById = async (id, data) => {
+  const result = await prisma.notes.update({
+    where: { id },
+    data
+  })
+  return Promise.resolve(result)
+}
+
+/**
+ * Deletes a row from the database based on the provided filter.
+ *
+ * @param {Object} where - The filter conditions to identify the row to delete.
+ * @returns {Promise<Object>} The result of the delete operation.
+ */
+export const deleteRow = async (id) => {
+  await prisma.notes.delete({ where: { id } })
+}
