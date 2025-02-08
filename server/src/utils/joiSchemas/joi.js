@@ -180,19 +180,37 @@ export const NoteCreate = Joi.object({
 
 })
 
-export const NoteUpdate = Joi.object({
-  note: Joi.string()
+// color
+// :
+// 'green'
+// columnId
+// :
+// 1
+// content
+// :
+// 'Hola mundo feliz'
+// createdBy
+// :
+// 1
+// createdOn
+// :
+// '2025-02-07T01:41:42.897Z'
+// id
+// :
+// 2
+// title
+// :
+// 'test 1 de prueba'
+// updatedOn
+// :
+// null
+export const NoteColumnUpdate = Joi.object({
+  color: Joi.string()
     .min(3)
-    .max(2000),
-  statusId: Joi.number()
-    .integer(),
-  createdBy: Joi.number()
-    .integer(),
-  closedBy: Joi.number()
-    .integer(),
-  createdOn: Joi.date(),
-  closedOn: Joi.date(),
-  document: Joi.string()
+    .max(6).required(),
+  columnId: Joi.number()
+    .integer().required(),
+  id: Joi.number().required()
 
 })
 

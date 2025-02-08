@@ -24,13 +24,22 @@ const notesApi = createApi({
             method: "GET",
           }),
         }),
-        //   query: ({id, data }) =>({
-        // updateNewById: builder.mutation({
-        //     url: `/notes/${id}`,
-        //     method: "PUT",
-        //     body:{...data }
-        //   })
-        // }),
+        updateNoteColumId: builder.mutation({
+          query: ( body ) =>({
+            url: `/notes/noteColumn`,
+            method: "PUT",
+            body
+          }),
+          invalidatesTags: ['Notes'], // Invalida el cache de 'Notes' para volver a consultar
+        }),
+        updateNoteById: builder.mutation({
+          query: ({id, body }) =>({
+            url: `/news/${id}`,
+            method: "PUT",
+            body
+          }),
+          invalidatesTags: ['Notes'], // Invalida el cache de 'Notes' para volver a consultar
+        }),
         createNote: builder.mutation({
           query: (body) => ({
             url: `/notes/`,
@@ -53,6 +62,6 @@ const notesApi = createApi({
 
 // Export hooks for usage in functional components, which are
 // auto-generated based on the defined endpoints
-export const { useGetAllNotesQuery, useGetAllNotesColumnsQuery, useCreateNoteMutation  } = notesApi
+export const { useGetAllNotesQuery, useGetAllNotesColumnsQuery, useCreateNoteMutation, useUpdateNoteColumIdMutation, useUpdateNoteByIdMutation  } = notesApi
 
 export default notesApi
