@@ -166,7 +166,7 @@ export const NotesFilters = Joi.object({
 })
 
 export const NoteCreate = Joi.object({
-  title: Joi.string()
+  title: Joi.string().max(50)
     .required(),
   content: Joi.string()
     .max(2000)
@@ -180,30 +180,14 @@ export const NoteCreate = Joi.object({
 
 })
 
-// color
-// :
-// 'green'
-// columnId
-// :
-// 1
-// content
-// :
-// 'Hola mundo feliz'
-// createdBy
-// :
-// 1
-// createdOn
-// :
-// '2025-02-07T01:41:42.897Z'
-// id
-// :
-// 2
-// title
-// :
-// 'test 1 de prueba'
-// updatedOn
-// :
-// null
+export const NoteUpdate = Joi.object({
+  title: Joi.string().max(50)
+    .required(),
+  content: Joi.string()
+    .max(2000)
+    .required()
+
+})
 export const NoteColumnUpdate = Joi.object({
   color: Joi.string()
     .min(3)
@@ -240,7 +224,6 @@ export const NewsStatusUpdate = Joi.object({
 export const NewsStatusArray = Joi.array().items(NewsStatus).min(1)
 
 export const News = Joi.object({
-  // id: Joi.number().required(),
   description: Joi.string()
     .min(10)
     .max(400)
@@ -249,18 +232,7 @@ export const News = Joi.object({
     .integer()
     .required(),
   statusCode: Joi.string().max(3).required(),
-
-  // questions: Joi.array().min(1),
-  // createdBy: Joi.number()
-  //   .integer()
-  //   .required(),
-  // createdOn: Joi.date().required(),
   document: Joi.string().allow('')
-  // closedOn: Joi.date().required(),
-  // closedBy: Joi.number()
-  // .integer()
-  // .required(),
-
 })
 
 export const NewsFilters = Joi.object({
@@ -273,45 +245,13 @@ export const NewsFilters = Joi.object({
 })
 
 export const NewsUpdate = Joi.object({
-  id: Joi.number().integer().required(),
   description: Joi.string()
     .min(10)
     .max(400).required(),
   statusId: Joi.number().integer().required(),
   statusCode: Joi.string().max(3).required(),
-  // questions: Joi.array().min(1),
-  createdBy: Joi.number()
-    .integer().required(),
-  // closedBy: Joi.number()
-  //   .integer(),
-  createdOn: Joi.date().required(),
-  // closedOn: Joi.date(),
   document: Joi.string().allow('')
 })
-
-export const Question = Joi.object({
-  description: Joi.string()
-    .min(3)
-    .max(250)
-    .required(),
-  answer: Joi.boolean()
-    .required(),
-  newsId: Joi.number()
-    .integer()
-    .required()
-})
-
-export const QuestionUpdate = Joi.object({
-  description: Joi.string()
-    .min(3)
-    .max(250),
-  answer: Joi.boolean(),
-  newsId: Joi.number()
-    .integer()
-    .required()
-})
-
-export const QuestionArray = Joi.array().items(Question).min(1)
 
 export const SettingsLanguage = Joi.object({
   id: Joi.number().integer().optional(),

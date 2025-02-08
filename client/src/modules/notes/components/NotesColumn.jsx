@@ -47,7 +47,7 @@ export function NotesColumn({
               {column.notes.map(note => (
                 <NotesCard
                   key={note.id}
-                  {...note}
+                  note={note}
                   onDragStart={onDragStart}
                   onDelete={onDeleteNote}
                   onEdit={onEditNote}

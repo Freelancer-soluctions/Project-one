@@ -42,7 +42,7 @@ export const getAllNotesColumns = handleCatchErrorAsync(async (req, res) => {
 })
 
 /**
- * Update By ID
+ * Update column By ID
  *
  * @param {*} req
  * @param {*} res
@@ -51,6 +51,21 @@ export const getAllNotesColumns = handleCatchErrorAsync(async (req, res) => {
 export const updateNoteColumId = handleCatchErrorAsync(async (req, res) => {
   const { body } = req
   await noteService.updateNoteColumId(body)
+  globalResponse(res, 200, { message: 'Item updated successfully' })
+})
+
+/**
+ * Update By ID
+ *
+ * @param {*} req
+ * @param {*} res
+ * @returns  a message
+ */
+export const updateNoteById = handleCatchErrorAsync(async (req, res) => {
+  const { body } = req
+  console.log(body)
+  const { id } = req.params
+  await noteService.updateNoteById(id, body)
   globalResponse(res, 200, { message: 'Item updated successfully' })
 })
 
@@ -64,5 +79,5 @@ export const updateNoteColumId = handleCatchErrorAsync(async (req, res) => {
 export const deleteById = handleCatchErrorAsync(async (req, res) => {
   const { id } = req.params
   await noteService.deleteById(id)
-  globalResponse(res, 200, { message: 'Items deleted successfully' })
+  globalResponse(res, 200, { message: 'Item deleted successfully' })
 })
