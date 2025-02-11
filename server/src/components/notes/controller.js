@@ -11,21 +11,8 @@ import * as noteService from './service.js'
  */
 export const getAllNotes = handleCatchErrorAsync(async (req, res) => {
   const query = req.query
-  const items = await noteService.getAll(query)
+  const items = await noteService.getAllNotes(query)
   globalResponse(res, 200, items)
-})
-
-/**
- * Get one by id
- *
- * @param {*} req
- * @param {*} res
- * @returns A message
- */
-export const getOneById = handleCatchErrorAsync(async (req, res) => {
-  const { id } = req.params
-  const item = await noteService.getOneById(id)
-  globalResponse(res, 200, item)
 })
 
 /**
@@ -36,9 +23,35 @@ export const getOneById = handleCatchErrorAsync(async (req, res) => {
  * @returns {Promise<void>} Sends a response confirming the creation of the news item.
  */
 export const createNote = handleCatchErrorAsync(async (req, res) => {
+  const userId = req.userId // viene del token
   const { body } = req
-  const createdNote = await noteService.createNote(body)
+  const createdNote = await noteService.createNote(body, userId)
   globalResponse(res, 201, createdNote, 'Item created successfully')
+})
+
+/**
+ * Get the status of all notes items.
+ *
+ * @param {Object} req - The HTTP request object.
+ * @param {Object} res - The HTTP response object.
+ * @returns {Promise<void>} Sends a response containing the status of all news items.
+ */
+export const getAllNotesColumns = handleCatchErrorAsync(async (req, res) => {
+  const data = await noteService.getAllNotesColumns()
+  globalResponse(res, 200, data)
+})
+
+/**
+ * Update column By ID
+ *
+ * @param {*} req
+ * @param {*} res
+ * @returns  a message
+ */
+export const updateNoteColumId = handleCatchErrorAsync(async (req, res) => {
+  const { body } = req
+  await noteService.updateNoteColumId(body)
+  globalResponse(res, 200, { message: 'Item updated successfully' })
 })
 
 /**
@@ -48,11 +61,12 @@ export const createNote = handleCatchErrorAsync(async (req, res) => {
  * @param {*} res
  * @returns  a message
  */
-export const updateById = handleCatchErrorAsync(async (req, res) => {
+export const updateNoteById = handleCatchErrorAsync(async (req, res) => {
+  const { body } = req
+  console.log(body)
   const { id } = req.params
-  const { body, file } = req
-  await noteService.updateById(id, { ...body, file })
-  globalResponse(res, 200, { message: 'Items updated successfully' })
+  await noteService.updateNoteById(id, body)
+  globalResponse(res, 200, { message: 'Item updated successfully' })
 })
 
 /**
@@ -65,5 +79,5 @@ export const updateById = handleCatchErrorAsync(async (req, res) => {
 export const deleteById = handleCatchErrorAsync(async (req, res) => {
   const { id } = req.params
   await noteService.deleteById(id)
-  globalResponse(res, 200, { message: 'Items deleted successfully' })
+  globalResponse(res, 200, { message: 'Item deleted successfully' })
 })
