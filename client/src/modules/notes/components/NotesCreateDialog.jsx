@@ -25,7 +25,7 @@ import {
   SelectTrigger,
   SelectValue
 } from '@/components/ui/select'
-import { LuPlusCircle } from 'react-icons/lu'
+import { LuPlus } from 'react-icons/lu'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import PropTypes from 'prop-types'
@@ -67,7 +67,7 @@ export function NotesCreateDialog({ onCreateNote, dataStatus }) {
       <DialogTrigger asChild>
         <Button className='gap-2' variant='success'>
           {t('create_note')}
-          <LuPlusCircle className='w-5 h-5 ml-auto opacity-50' />
+          <LuPlus className='w-5 h-5 ml-auto opacity-50' />
         </Button>
       </DialogTrigger>
       <DialogContent className='sm:max-w-[425px]'>

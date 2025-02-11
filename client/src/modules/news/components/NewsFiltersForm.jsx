@@ -22,13 +22,8 @@ import {
 } from '@/components/ui/select'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
+import { LuPlus, LuCalendarDays, LuSearch, LuEraser } from 'react-icons/lu'
 
-import {
-  CalendarIcon,
-  MagnifyingGlassIcon,
-  PlusIcon,
-  EraserIcon
-} from '@radix-ui/react-icons'
 import { Calendar } from '@/components/ui/calendar'
 import { format, formatISO } from 'date-fns'
 import { cn } from '@/lib/utils'
@@ -133,7 +128,7 @@ export const NewsFiltersForm = ({
                           ) : (
                             <span>{t('pick_date')}</span>
                           )}
-                          <CalendarIcon className='w-4 h-4 ml-auto opacity-50' />
+                          <LuCalendarDays className='w-4 h-4 ml-auto opacity-50' />
                         </Button>
                       </FormControl>
                     </PopoverTrigger>
@@ -173,7 +168,7 @@ export const NewsFiltersForm = ({
                           ) : (
                             <span>{t('pick_date')}</span>
                           )}
-                          <CalendarIcon className='w-4 h-4 ml-auto opacity-50' />
+                          <LuCalendarDays className='w-4 h-4 ml-auto opacity-50' />
                         </Button>
                       </FormControl>
                     </PopoverTrigger>
@@ -226,21 +221,21 @@ export const NewsFiltersForm = ({
               className='flex-1 md:flex-initial md:w-24'
               variant='info'>
               {t('search')}
-              <MagnifyingGlassIcon className='w-4 h-4 ml-auto opacity-50' />
+              <LuSearch className='w-4 h-4 ml-auto opacity-50' />
             </Button>
             <Button
               type='button'
               className='flex-1 md:flex-initial md:w-24'
               variant='success'
               onClick={() => handleAddDialog()}>
-              {t('add')} <PlusIcon className='w-4 h-4 ml-auto opacity-50' />
+              {t('add')} <LuPlus className='w-4 h-4 ml-auto opacity-50' />
             </Button>
             <Button
               type='button'
               className='flex-1 md:flex-initial md:w-24'
               variant='outline'
               onClick={() => handleResetFilter()}>
-              {t('clear')} <EraserIcon className='w-4 h-4 ml-auto opacity-50' />
+              {t('clear')} <LuEraser className='w-4 h-4 ml-auto opacity-50' />
             </Button>
           </div>
         </form>

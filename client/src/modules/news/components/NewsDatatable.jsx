@@ -16,7 +16,8 @@ export const NewsDatatable = ({
     {
       accessorKey: 'createdOn',
       header: t('created_on'),
-      cell: info => format(info.getValue(), 'dd/MM/yyyy')
+      cell: info =>
+        info.getValue() ? format(info.getValue(), 'dd/MM/yyyy') : ''
     },
     {
       accessorKey: 'description',
@@ -67,20 +68,19 @@ export const NewsDatatable = ({
         info.getValue() ? format(info.getValue(), 'dd/MM/yyyy/hh:mm:s aaa') : ''
     }
   ]
-  const columns = useMemo(() => columnDefNews, [])
 
-  const handleEditDialog = () => {
+  const handleEditDialog = row => {
     setActionDialog(t('edit_new'))
+    setSelectedRow(row)
     setOpenDialog(true)
   }
 
   return (
     <>
       <DataTable
-        columns={columns}
+        columns={columnDefNews}
         data={dataNews?.data}
-        setSelectedRow={setSelectedRow}
-        handleRow={handleEditDialog}
+        handleRow={row => handleEditDialog(row)}
       />
     </>
   )
