@@ -1,9 +1,18 @@
 import { useState, useMemo } from 'react'
+import { useTranslation } from 'react-i18next'
+// import { useSelector } from 'react-redux'
 import {
-  NotesSearchBar,
-  NotesColumn,
-  NotesCreateDialog
-} from '../components/index'
+  useGetAllNotesQuery,
+  useGetAllNotesColumnsQuery,
+  useCreateNoteMutation,
+  useUpdateNoteColumIdMutation,
+  useUpdateNoteByIdMutation,
+  useDeleteNoteByIdMutation
+} from '../slice/notesSlice'
+import { NotesSearchBar, NotesColumn, NotesCreateDialog } from './index'
+import { StatusColumn, NotesColor } from '../utils/index'
+import AlertDialogComponent from '@/components/alertDialog/AlertDialog'
+import { data } from 'react-router'
 
 const initialColumns = [
   {
@@ -55,13 +64,62 @@ const initialColumns = [
 ]
 
 export function NotesGrid() {
+  const { t } = useTranslation()
   const [columns, setColumns] = useState(initialColumns)
   const [searchTerm, setSearchTerm] = useState('')
+  const [openAlertDialog, setOpenAlertDialog] = useState(false) //alert dialog open/close
+  const [alertProps, setAlertProps] = useState({})
+
+  const {
+    data: dataColumns,
+    isError: isErrorColumns,
+    isLoading: isLoadingColumns,
+    isFetching: isFetchingColumns,
+    isSuccess: isSuccessColumns,
+    error: errorColumns
+  } = useGetAllNotesColumnsQuery()
+
+  const {
+    data: dataNotes = { data: [] },
+    isError: isErrorNotes,
+    isLoading: isLoadingNotes,
+    isFetching: isFetchingNotes,
+    isSuccess: isSuccessNotes,
+    error: errorNotes
+  } = useGetAllNotesQuery()
+
+  const [
+    createNote,
+    { isLoading: isLoadingPost, isError: isErrorPost, isSuccess: isSuccessPost }
+  ] = useCreateNoteMutation()
+
+  const [
+    updateNoteColumId,
+    { isLoading: isLoadingPut, isError: isErrorPut, isSuccess: isSuccessPut }
+  ] = useUpdateNoteColumIdMutation()
+
+  const [
+    updateNoteById,
+    {
+      isLoading: isLoadingPutCard,
+      isError: isErrorPutCard,
+      isSuccess: isSuccessPutCard
+    }
+  ] = useUpdateNoteByIdMutation()
+
+  const [
+    deleteNoteById,
+    {
+      isLoading: isLoadingDelete,
+      isError: isErrorDelete,
+      isSuccess: isSuccessDelete
+    }
+  ] = useDeleteNoteByIdMutation()
 
   const filteredColumns = useMemo(() => {
-    if (!searchTerm) return columns
+    if (!searchTerm) return dataNotes?.data
 
-    return columns.map(column => ({
+    return dataNotes?.data.map(column => ({
       ...column,
       notes: column.notes.filter(note => {
         const searchTermLower = searchTerm.toLowerCase()
@@ -71,12 +129,20 @@ export function NotesGrid() {
         )
       })
     }))
-  }, [columns, searchTerm])
+  }, [dataNotes, searchTerm])
 
-  const handleDragStart = (e, noteId, sourceColumnId) => {
+  const setColor = code => {
+    return code === StatusColumn.MEDIUM
+      ? NotesColor.YELLOW
+      : code === StatusColumn.HIGH
+        ? NotesColor.RED
+        : NotesColor.GREEN
+  }
+
+  const handleDragStart = (e, noteId, sourceColumnCode) => {
     e.dataTransfer.setData(
       'application/json',
-      JSON.stringify({ noteId, sourceColumnId })
+      JSON.stringify({ noteId, sourceColumnCode })
     )
   }
 
@@ -84,95 +150,80 @@ export function NotesGrid() {
     e.preventDefault()
   }
 
-  const handleDrop = (e, targetColumnId) => {
+  const handleDrop = async (e, targetColumnCode) => {
     e.preventDefault()
 
     const data = JSON.parse(e.dataTransfer.getData('application/json'))
-    const { noteId, sourceColumnId } = data
+    const { noteId, sourceColumnCode } = data
 
-    if (sourceColumnId === targetColumnId) return
+    if (sourceColumnCode === targetColumnCode) return
 
-    setColumns(prevColumns => {
-      const sourceColumn = prevColumns.find(col => col.id === sourceColumnId)
-      const noteToMove = sourceColumn?.notes.find(note => note.id === noteId)
+    const newColor = setColor(targetColumnCode)
 
-      if (!noteToMove) return prevColumns
+    const sourceColumn = dataNotes?.data.find(
+      col => col.code === sourceColumnCode
+    )
+    const targetColumn = dataNotes?.data.find(
+      col => col.code === targetColumnCode
+    )
+    const noteToMove = sourceColumn?.notes.find(note => note.id === noteId)
 
-      let newColor = 'green'
-      if (targetColumnId === 'col2') newColor = 'yellow'
-      if (targetColumnId === 'col3') newColor = 'red'
+    if (!noteToMove) return dataNotes?.data
 
-      return prevColumns.map(column => {
-        if (column.id === sourceColumnId) {
-          return {
-            ...column,
-            notes: column.notes.filter(note => note.id !== noteId)
-          }
-        }
-        if (column.id === targetColumnId) {
-          return {
-            ...column,
-            notes: [
-              ...column.notes,
-              { ...noteToMove, columnId: targetColumnId, color: newColor }
-            ]
-          }
-        }
-        return column
-      })
-    })
+    await updateNoteColumId({
+      id: noteToMove.id,
+      columnId: targetColumn.id,
+      color: newColor
+    }).unwrap()
   }
 
   const handleSearch = term => {
     setSearchTerm(term)
   }
 
-  const handleCreateNote = (title, content) => {
-    setColumns(prevColumns => {
-      const newNote = {
-        id: Date.now().toString(),
-        title,
-        content,
-        color: 'green',
-        columnId: 'col1'
-      }
-      // La nota se puede crear desde cualquier estado
-      return prevColumns.map(column => {
-        if (column.id === 'col1') {
-          return {
-            ...column,
-            notes: [newNote, ...column.notes]
-          }
-        }
-        return column
-      })
+  const handleCreateNote = async ({ title, content, status }) => {
+    const color = setColor(status.code)
+
+    const newNote = await createNote({
+      title,
+      content,
+      color,
+      columnId: status.id
+    }).unwrap()
+
+    setOpenAlertDialog(true)
+    setAlertProps({
+      alertTitle: t('add_record'),
+      alertMessage: t('added_successfully'),
+      cancel: false,
+      success: true,
+      onSuccess: () => {},
+      variantSuccess: 'info'
     })
   }
 
-  const handleDeleteNote = noteId => {
-    setColumns(prevColumns =>
-      prevColumns.map(column => ({
-        ...column,
-        notes: column.notes.filter(note => note.id !== noteId)
-      }))
-    )
+  const handleDeleteNote = async noteId => {
+    await deleteNoteById(noteId).unwrap()
   }
 
-  const handleEditNote = (noteId, title, content) => {
-    setColumns(prevColumns =>
-      prevColumns.map(column => ({
-        ...column,
-        notes: column.notes.map(note =>
-          note.id === noteId ? { ...note, title, content } : note
-        )
-      }))
-    )
+  const handleEditNote = async note => {
+    const { id, content, title } = note
+    await updateNoteById({
+      id: id,
+      body: {
+        content,
+        title
+      }
+    }).unwrap()
   }
 
   return (
     <div className='w-full space-y-6'>
-      <div className='flex flex-wrap items-center justify-between gap-4 '>
-        <NotesCreateDialog onCreateNote={handleCreateNote} />
+      <div className='flex flex-wrap items-center justify-between gap-4'>
+        <NotesCreateDialog
+          onCreateNote={handleCreateNote}
+          dataStatus={dataColumns?.data}
+        />
         <NotesSearchBar onSearch={handleSearch} />
       </div>
       <div className='flex flex-col md:flex-row gap-6 p-4 min-h-[700px] w-full'>
@@ -188,6 +239,12 @@ export function NotesGrid() {
           />
         ))}
       </div>
+
+      <AlertDialogComponent
+        openAlertDialog={openAlertDialog}
+        setOpenAlertDialog={setOpenAlertDialog}
+        alertProps={alertProps}
+      />
     </div>
   )
 }

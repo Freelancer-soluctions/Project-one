@@ -15,8 +15,6 @@ import { useState } from 'react'
 import { Spinner } from '@/components/loader/Spinner'
 
 export const SettingsLanguage = ({ userId }) => {
-  const [languageLoaded, setLanguageLoaded] = useState(false)
-  const [newLanguage, setNewLanguage] = useState('')
   const {
     t,
     i18n: { changeLanguage, language }
@@ -26,12 +24,6 @@ export const SettingsLanguage = ({ userId }) => {
     saveLanguage,
     { isLoading: isLoadingPost, isError: isErrorPost, isSuccess: isSuccessPost }
   ] = useSaveSettingLanguageMutation()
-  // const { data, isError, isLoading, isFetching, isSuccess, error, refetch } =
-  //   useGetSettingLanguageByIdQuery(userId, {
-  //     // skip: !languageLoaded, para evitar que se ejecute al montarse el componente
-  //     //refetchOnMountOrArgChange: true, //debe de cambiar el userid para obligar al hook hacer la consulta nuevamente o montarse nuevamente el componente
-  //     keepUnusedDataFor: 0
-  //   })
 
   const {
     response,
@@ -44,9 +36,6 @@ export const SettingsLanguage = ({ userId }) => {
   } = useGetTranslation(userId)
 
   const onChangeLanguage = async value => {
-    setLanguageLoaded(true) // Cargamos los datos una vez se necesiten
-    setNewLanguage(value)
-
     try {
       let userLanguage
       if (!response.data) {
