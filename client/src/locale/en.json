@@ -75,6 +75,13 @@
     "title_placeholder": "Enter the title",
     "content_placeholder": "Enter the content",
     "create_note": "Create note",
-    "note": "Note"
+    "note": "Note",
+    "news_card_msg": "Relevant news",
+    "notes_card_msg": "Personal reminders or key info",
+    "events_card_msg": "Upcoming or important events",
+    "access": "Access",
+    "events": "Events",
+    "home": "Home",
+    "logout": "Logout"
   }
 }

@@ -1,67 +1,82 @@
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardContent,
+  CardDescription
+} from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
 import { Link } from 'react-router'
-import { MdNewspaper } from 'react-icons/md'
 import { CgNotes } from 'react-icons/cg'
+import { LuArrowRight, LuNewspaper, LuCalendarCheck2 } from 'react-icons/lu'
+import { useTranslation } from 'react-i18next'
 const CardModule = () => {
+  const { t } = useTranslation()
   return (
     <div className='grid grid-cols-1 gap-4 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-8'>
-      <Card>
-        <CardHeader className='flex flex-row items-center justify-between pb-2'>
-          <CardTitle className='text-sm font-medium'>Notes</CardTitle>
-          <CgNotes className='w-4 h-4 text-muted-foreground' />
+      <Card className='relative overflow-hidden transition-all group hover:shadow-lg hover:-translate-y-1'>
+        <CardHeader className='p-6'>
+          <div className='flex items-center gap-4'>
+            <LuNewspaper className='w-8 h-8 text-zinc-800' />
+            <div>
+              <CardTitle className='text-xl'>{t('news')}</CardTitle>
+              <CardDescription>{t('news_card_msg')}</CardDescription>
+            </div>
+          </div>
         </CardHeader>
-        <CardContent>
+        <CardContent className='px-6 pb-6'>
           <Link
             to={'notes'}
-            className='flex items-center gap-2 px-3 py-2 text-sm font-medium transition-colors rounded-md hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground'>
-            Go to notes
+            className='flex items-center gap-2 px-3 py-2 text-sm font-medium transition-colors rounded-md hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground'
+            prefetch={false}>
+            {t('access')} <LuArrowRight className='w-4 h-4 ml-2' />
           </Link>
+          {/* <Button
+            variant='ghost'
+            className='transition-transform group-hover:translate-x-1'>
+            {t('access')} <LuArrowRight className='w-4 h-4 ml-2' />
+          </Button> */}
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader className='flex flex-row items-center justify-between pb-2'>
-          <CardTitle className='text-sm font-medium'>News</CardTitle>
-          <MdNewspaper className='w-4 h-4 text-muted-foreground' />
+      <Card className='relative overflow-hidden transition-all group hover:shadow-lg hover:-translate-y-1'>
+        <CardHeader className='p-6'>
+          <div className='flex items-center gap-4'>
+            <CgNotes className='w-8 h-8 text-zinc-800' />
+            <div>
+              <CardTitle className='text-xl'>{t('notes')}</CardTitle>
+              <CardDescription>{t('notes_card_msg')}</CardDescription>
+            </div>
+          </div>
         </CardHeader>
-        <CardContent>
+        <CardContent className='px-6 pb-6'>
           <Link
-            to={'news'}
-            className='flex items-center gap-2 px-3 py-2 text-sm font-medium transition-colors rounded-md hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground'>
-            Go to news
+            to={'notes'}
+            className='flex items-center gap-2 px-3 py-2 text-sm font-medium transition-colors rounded-md hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground'
+            prefetch={false}>
+            {t('access')} <LuArrowRight className='w-4 h-4 ml-2' />
           </Link>
         </CardContent>
       </Card>
-
-      {/* <Card
-          className='p-4 bg-white rounded-lg shadow-md cursor-grab'
-          draggable
-          onDragStart={e => handleCardDragStart(e, card)}>
-          <CardHeader className='flex items-center mb-2'>
-            <CardTitle>cfdfdfdf</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className='text-gray-500'>sdsdsdsdsds</p>
-          </CardContent>
-        </Card> */}
-
-      {/* <Card>
-          <CardHeader className='flex flex-row items-center justify-between pb-2'>
-            <CardTitle className='text-sm font-medium'>Notes</CardTitle>
-            <DollarSignIcon className='w-4 h-4 text-muted-foreground' />
-          </CardHeader>
-          <CardContent>
-            <Link
-              href='#'
-              className='flex items-center gap-2 px-3 py-2 text-sm font-medium transition-colors rounded-md hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground'>
-              Products
-            </Link>
-            <div className='text-2xl font-bold'>$45,231.89</div>
-            <p className='text-xs text-muted-foreground'>
-              +20.1% from last month
-            </p>
-          </CardContent>
-        </Card> */}
+      <Card className='relative overflow-hidden transition-all group hover:shadow-lg hover:-translate-y-1'>
+        <CardHeader className='p-6'>
+          <div className='flex items-center gap-4'>
+            <LuCalendarCheck2 className='w-8 h-8 text-zinc-800' />
+            <div>
+              <CardTitle className='text-xl'>{t('events')}</CardTitle>
+              <CardDescription>{t('events_card_msg')}</CardDescription>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent className='px-6 pb-6'>
+          <Link
+            to={'events'}
+            className='flex items-center gap-2 px-3 py-2 text-sm font-medium transition-colors rounded-md hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground'
+            prefetch={false}>
+            {t('access')} <LuArrowRight className='w-4 h-4 ml-2' />
+          </Link>
+        </CardContent>
+      </Card>
     </div>
   )
 }

@@ -1,14 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
-import { useNavigate } from 'react-router'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { newsDialogSchema, NewsStatusCode } from '../utils'
-import {
-  useUpdateNewByIdMutation,
-  useCreateNewMutation,
-  useDeleteNewByIdMutation
-} from '../slice/newsSlice'
-import { useSelector } from 'react-redux'
 
 import {
   Dialog,
@@ -46,7 +39,6 @@ import { Button } from '@/components/ui/button'
 import { CalendarIcon } from '@radix-ui/react-icons'
 import { PiNewspaperClippingThin } from 'react-icons/pi'
 import { Calendar } from '@/components/ui/calendar'
-import AlertDialogComponent from '@/components/alertDialog/AlertDialog'
 
 import { format, formatISO } from 'date-fns'
 import { useTranslation } from 'react-i18next'
@@ -59,36 +51,13 @@ export const NewsDialog = ({
   selectedRow,
   setOpenDialog,
   actionDialog,
-  datastatus
+  datastatus,
+  onCreateUpdate,
+  onDeleteById
 }) => {
   const { t } = useTranslation()
   const [newId, setNewId] = useState('')
   const [statusCodeSaved, setStatusCodeSaved] = useState('')
-  const [alertProps, setAlertProps] = useState({})
-  const [openAlertDialog, setOpenAlertDialog] = useState(false) //alert dialog open/close
-  const navigate = useNavigate()
-
-  const [
-    updateNewById,
-    { isLoading: isLoadingPut, isError: isErrorPut, isSuccess: isSuccessPut }
-  ] = useUpdateNewByIdMutation()
-
-  const [
-    createNew,
-    { isLoading: isLoadingPost, isError: isErrorPost, isSuccess: isSuccessPost }
-  ] = useCreateNewMutation()
-
-  const [
-    deleteNewById,
-    {
-      isLoading: isLoadingDelete,
-      isError: isErrorDelete,
-      isSuccess: isSuccessDelete
-    }
-  ] = useDeleteNewByIdMutation()
-
-  // Accediendo al estado de autenticación
-  const user = useSelector(state => state.auth.user)
 
   // Configura el formulario
   const formDialog = useForm({
@@ -123,73 +92,14 @@ export const NewsDialog = ({
     }
   }, [selectedRow])
 
-  const onSubmitDialog = async values => {
-    try {
-      const result = newId
-        ? await updateNewById({
-            id: newId,
-            data: {
-              description: values.description,
-              statusId: values.status.id,
-              statusCode: values.status.code,
-              document: values.document
-            }
-          }).unwrap()
-        : await createNew({
-            document: values.document,
-            statusId: values.status.id,
-            statusCode: values.status.code,
-            description: values.description
-          }).unwrap()
-
-      setOpenAlertDialog(true)
-      setAlertProps({
-        alertTitle: t(newId ? 'update_record' : 'add_record'),
-        alertMessage: t(newId ? 'updated_successfully' : 'added_successfully'),
-        cancel: false,
-        success: true,
-        onSuccess: () => {
-          navigate('/home')
-        },
-        variantSuccess: 'info'
-      })
-    } catch (err) {
-      console.error(`Error ${newId ? 'updating' : 'creating'}:`, err)
-    }
+  const onSubmitDialog = values => {
+    onCreateUpdate(values, newId)
   }
 
-  const onDeleteNewById = async id => {
-    setAlertProps({
-      alertTitle: t('delete_record'),
-      alertMessage: t('request_delete_record'),
-      cancel: true,
-      success: false,
-      destructive: true,
-      variantSuccess: '',
-      variantDestructive: 'destructive',
-      onSuccess: () => {},
-      onDelete: async () => {
-        try {
-          await deleteNewById(id).unwrap()
-
-          setAlertProps({
-            alertTitle: '',
-            alertMessage: t('deleted_successfully'),
-            cancel: false,
-            success: true,
-            onSuccess: () => {
-              navigate('/home')
-            },
-            variantSuccess: 'info'
-          })
-          setOpenAlertDialog(true) // Open alert dialog
-        } catch (err) {
-          console.error('Error deleting:', err)
-        }
-      }
-    })
-    setOpenAlertDialog(true) // Open alert dialog
+  const onDeleteNewById = id => {
+    onDeleteById(id)
   }
+
   return (
     <>
       <Dialog
@@ -520,12 +430,6 @@ export const NewsDialog = ({
           </Form>
         </DialogContent>
       </Dialog>
-
-      <AlertDialogComponent
-        openAlertDialog={openAlertDialog}
-        setOpenAlertDialog={setOpenAlertDialog}
-        alertProps={alertProps}
-      />
     </>
   )
 }
