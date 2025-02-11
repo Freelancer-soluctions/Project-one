@@ -71,18 +71,17 @@ export const createOne = async (userId, data) => {
  * @param {string} data.statusCode - The status code of the news item.
  * @returns {Promise<Object>} The updated news item.
  */
-export const updateById = async (userId, data) => {
-  const { id, ...dataWithoutId } = data
-  const rowId = Number(id)
+export const updateById = async (userId, newId, data) => {
+  const rowId = Number(newId)
 
-  if (dataWithoutId.statusCode === NewsStatusCode.CLOSED) {
-    dataWithoutId.closedBy = Number(userId)
-    dataWithoutId.closedOn = new Date()
+  if (data.statusCode === NewsStatusCode.CLOSED) {
+    data.closedBy = Number(userId)
+    data.closedOn = new Date()
   }
 
-  if (dataWithoutId.statusCode === NewsStatusCode.PENDING) {
-    dataWithoutId.pendingBy = Number(userId)
-    dataWithoutId.pendingOn = new Date()
+  if (data.statusCode === NewsStatusCode.PENDING) {
+    data.pendingBy = Number(userId)
+    data.pendingOn = new Date()
   }
 
   // if (data.document) {
@@ -98,7 +97,7 @@ export const updateById = async (userId, data) => {
   //     newsData.documentId = public_id
   //   }
   // }
-  return newsDao.updateRow(dataWithoutId, { id: rowId })
+  return newsDao.updateRow(data, { id: rowId })
 }
 /**
  * Delete a news item from the database by its ID.

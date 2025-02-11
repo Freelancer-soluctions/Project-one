@@ -28,12 +28,7 @@ import { CaretSortIcon } from '@radix-ui/react-icons'
 import { MdOutlineArrowDropDown, MdOutlineArrowDropUp } from 'react-icons/md'
 import PropTypes from 'prop-types'
 
-export const DataTable = ({
-  columns,
-  data = [],
-  setSelectedRow,
-  handleRow
-}) => {
+export const DataTable = ({ columns, data = [], handleRow }) => {
   const [columnFilters, setColumnFilters] = useState([]) //column filters
   const [sorting, setSorting] = useState([]) //sorting
   const [pagination, setPagination] = useState({
@@ -70,8 +65,7 @@ export const DataTable = ({
   })
 
   const handleDataRow = row => {
-    setSelectedRow(row.original)
-    handleRow()
+    handleRow(row.original)
   }
 
   return (
@@ -173,7 +167,6 @@ export const DataTable = ({
 DataTable.propTypes = {
   columns: PropTypes.array.isRequired,
   data: PropTypes.array,
-  setSelectedRow: PropTypes.func,
   handleRow: PropTypes.func
 }
 

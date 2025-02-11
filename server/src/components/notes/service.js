@@ -16,134 +16,66 @@ export const getAllNotes = async ({ description }) => {
  * Create a new notes item in the database.
  *
  * @param {Object} data - The data for the new notes item.
- * @param {number} data.createdBy - The ID of the user creating the notes.
  * @param {string} data.title - The description of the notes item.
+ * @param {string} data.createdOn - The date of the notes item.
  * @param {string} data.content - The description of the notes item.
  * @param {string} data.color - The description of the notes item.
  * @param {number} data.columnId - The ID of the status for the notes item.
  * @returns {Promise<Object>} The created notes item.
  */
-export const createNote = async (data) => {
-  const createData = {
-    title: data.title,
-    content: data.content,
-    color: data.color,
-    columnId: Number(data.columnId),
-    createdBy: Number(data.createdBy),
-    createdOn: new Date()
-  }
-
-  return notesDao.createNote(createData)
+export const createNote = async (data, userId) => {
+  const { columnId, ...dataWithOutForeignKeys } = data
+  dataWithOutForeignKeys.createdOn = new Date()
+  return notesDao.createNote(dataWithOutForeignKeys, Number(userId), Number(columnId))
 }
 
-// /**
-//  *
-//  * @returns One row filter by id
-//  */
-// export const getOneById = async (id) => {
-//   const rowId = Number(id)
-//   return getOneRow({ where: { id: rowId } })
-// }
+/**
+ * Get all available notes columns from the database.
+ *
+ * @returns {Promise<Array>} A list of all notes columns.
+ */
 
-// /**
-//  *
-//  * @param {*} data
-//  * @returns Created Row
-//  */
-// export const createOne = async ({
-//   note,
-//   statusId,
-//   createdBy,
-//   closedBy,
-//   createdOn,
-//   closedOn,
-//   file
-// }) => {
-//   const createData = {
+export const getAllNotesColumns = async () => {
+  const data = await notesDao.getAllNotesColumns()
+  return data
+}
 
-//     note,
-//     statusId: Number(statusId),
-//     createdBy: Number(createdBy),
-//     closedBy: Number(closedBy),
-//     createdOn: new Date(createdOn),
-//     closedOn: new Date(closedOn)
+/**
+ * Update an existing column item in the database by its ID.
+ *
+ * @param {Object} data - The updated data for the notes item.
+ * @param {number} data.id - The ID of the notes item to update.
+ * @param {number} data.columnId - The ID of the column note item to update.
+ * @param {string} data.color - The column color of the note item.
+ * @returns {Promise<Object>} The updated notes item.
+ */
+export const updateNoteColumId = async (data) => {
+  data.updatedOn = new Date()
+  const { id, ...newdata } = data
+  return notesDao.updateNoteColumId(id, newdata)
+}
 
-//   }
+/**
+ * Update an existing column item in the database by its ID.
+ *
+ * @param {Object} data - The updated data for the notes item.
+ * @param {number} id - The ID of the notes item to update.
+ * @param {number} data.title - The ID of the column note item to update.
+ * @param {string} data.content - The column color of the note item.
+ * @returns {Promise<Object>} The updated notes item.
+ */
+export const updateNoteById = async (id, data) => {
+  data.updatedOn = new Date()
+  return notesDao.updateNoteById(Number(id), data)
+}
 
-//   if (file) {
-//     const baseImage = Buffer.from(file.buffer).toString('base64')
-//     const imageURI = `data:${file.mimetype};base64,${baseImage}`
-//     const { public_id, secure_url } = await handleUpload(imageURI)
-//     createData.document = secure_url
-//     createData.documentId = public_id
-//   }
-
-//   return createRow(createData)
-// }
-
-// /**
-//  *
-//  * @param {*} data
-//  * @returns Created Rows
-//  */
-// export const createMany = async (data) => {
-//   return createManyRows(data)
-// }
-// /**
-//  *
-//  * @param {*} id :: rowId
-//  * @param {*} data ::
-//  * @returns Updated row
-//  */
-// export const updateById = async (id, data) => {
-//   const rowId = Number(id)
-//   const {
-//     note,
-//     statusId,
-//     createdBy,
-//     closedBy,
-//     createdOn,
-//     closedOn,
-//     file
-//   } = data
-
-//   const updateData = {
-
-//     note,
-//     statusId: Number(statusId),
-//     createdBy: Number(createdBy),
-//     closedBy: Number(closedBy),
-//     createdOn: new Date(createdOn),
-//     closedOn: new Date(closedOn)
-
-//   }
-//   if (file) {
-//     const { documentId } = await getOneById(rowId)
-//     const baseImage = Buffer.from(file.buffer).toString('base64')
-//     const imageURI = `data:${file.mimetype};base64,${baseImage}`
-
-//     if (documentId) {
-//       await handleUploadUpdate(imageURI, documentId)
-//     } else {
-//       const { public_id, secure_url } = await handleUpload(imageURI)
-//       updateData.document = secure_url
-//       updateData.documentId = public_id
-//     }
-//   }
-//   return updateRow(updateData, { id: rowId })
-// }
-// /**
-//  *
-//  * @param {*} id
-//  * @returns Deleted row
-//  */
-// export const deleteById = async (id) => {
-//   const rowId = Number(id)
-//   const { documentId } = await getOneById(rowId)
-
-//   if (documentId) {
-//     await handleDeleteFile(documentId)
-//   }
-
-//   return deleteRow({ id: rowId })
-// }
+/**
+ * Delete a note item from the database by its ID.
+ *
+ * @param {number} id - The ID of the note item to delete.
+ * @returns {Promise<Object>} The result of the deletion.
+ */
+export const deleteById = async (id) => {
+  const rowId = Number(id)
+  return notesDao.deleteRow(rowId)
+}
