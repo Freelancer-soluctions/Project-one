@@ -1,48 +1,59 @@
+import { CgNotes } from 'react-icons/cg'
 import {
-  AiOutlineHome,
-  AiOutlineSetting,
-  AiOutlineLogout
-} from 'react-icons/ai'
-import { MdNewspaper, MdEventAvailable } from 'react-icons/md'
+  LuNewspaper,
+  LuCalendarCheck2,
+  LuHouse,
+  LuSlidersHorizontal,
+  LuLogOut
+} from 'react-icons/lu'
 import { Link } from 'react-router'
+import { useTranslation } from 'react-i18next'
 
 const SideBar = () => {
+  const { t } = useTranslation()
   return (
     <>
       <Link
         to={'/home'}
         className='flex items-center gap-2 px-3 py-2 text-sm font-medium transition-colors rounded-md hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground'
         prefetch={false}>
-        <AiOutlineHome className='w-5 h-5' />
-        Home
+        <LuHouse className='w-5 h-5' />
+        {t('home')}
       </Link>
       <Link
         to={'news'}
         className='flex items-center gap-2 px-3 py-2 text-sm font-medium transition-colors rounded-md hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground'
         prefetch={false}>
-        <MdNewspaper className='w-5 h-5' />
-        News
+        <LuNewspaper className='w-5 h-5' />
+        {t('news')}
+      </Link>
+      <Link
+        to={'news'}
+        className='flex items-center gap-2 px-3 py-2 text-sm font-medium transition-colors rounded-md hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground'
+        prefetch={false}>
+        <CgNotes className='w-5 h-5' />
+        {t('notes')}
       </Link>
       <Link
         to={'settings'}
         className='flex items-center gap-2 px-3 py-2 text-sm font-medium transition-colors rounded-md hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground'
         prefetch={false}>
-        <AiOutlineSetting className='w-5 h-5' />
-        Settings
+        <LuSlidersHorizontal className='w-5 h-5' />
+        {t('settings')}
       </Link>
       <Link
         href='#'
         className='flex items-center gap-2 px-3 py-2 text-sm font-medium transition-colors rounded-md hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground'
         prefetch={false}>
-        <MdEventAvailable className='w-5 h-5' />
-        Events
+        <LuCalendarCheck2 className='w-5 h-5' />
+        {t('events')}
       </Link>
       <Link
         href='#'
         className='flex items-center gap-2 px-3 py-2 text-sm font-medium transition-colors rounded-md hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground'
         prefetch={false}>
-        <AiOutlineLogout className='w-5 h-5' />
-        Log out
+        <LuLogOut className='w-5 h-5' />
+        {t('logout')}
       </Link>
     </>
   )
