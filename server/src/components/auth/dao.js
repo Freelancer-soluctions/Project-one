@@ -1,7 +1,7 @@
 import { createRow, getOneRow, getRow, updateRow } from '../utils/dao.js'
-import { tableNames } from '../utils/enums/enums.js'
+import { TABLESNAMES } from '../utils/enums/enums.js'
 
-const tableName = tableNames.USERS
+const tableName = TABLESNAMES.USERS
 
 /**
  * Sign up a new user.

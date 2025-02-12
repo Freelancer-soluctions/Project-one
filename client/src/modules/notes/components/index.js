@@ -1,4 +1,4 @@
-export * from './NotesGrid'
+
 export * from './NotesSearchBar'
 export * from './NotesCreateDialog'
 export * from './NotesCard'

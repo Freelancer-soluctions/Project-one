@@ -258,3 +258,12 @@ export const SettingsLanguage = Joi.object({
   language: Joi.string().valid('es', 'en').required(),
   userId: Joi.number().integer().optional()
 })
+
+export const EventsCreate = Joi.object({
+  title: Joi.string().max(50).required(),
+  description: Joi.string().max(200).required(),
+  speaker: Joi.string().max(20).allow(''),
+  startTime: Joi.string().max(5).required(),
+  endTime: Joi.string().max(5).required(),
+  date: Joi.date().required()
+})

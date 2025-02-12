@@ -9,7 +9,7 @@ const router = Router()
 
 /**
 @openapi
- * /api/v1/note:
+ * /api/v1/notes:
  *   get:
  *     tags:
  *       - Note
@@ -44,7 +44,7 @@ router.get('/', verifyToken, validateQueryParams(NotesFilters), noteController.g
 
 /**
  * @openapi
- * /api/v1/note:
+ * /api/v1/notes:
  *   post:
  *     tags:
  *       - Note
@@ -79,10 +79,10 @@ router.post('/', verifyToken, validateSchema(NoteCreate), noteController.createN
 
 /**
 @openapi
- * /api/v1/news/status:
+ * /api/v1/notes/status:
  *   get:
  *     tags:
- *       - News
+ *       - Notes
  *     parameters:
  *       - in: header
  *         name: x-access-token
@@ -114,10 +114,10 @@ router.get('/notesColumns', noteController.getAllNotesColumns)
 
 /**
  * @openapi
- * /api/v1/note/{id}:
+ * /api/v1/notes/{id}:
  *   put:
  *     tags:
- *       - Note
+ *       - Notes
  *     parameters:
  *       - in: path
  *         name: id
@@ -154,10 +154,10 @@ router.put('/notecolumn', verifyToken, validateSchema(NoteColumnUpdate), noteCon
 
 /**
  * @openapi
- * /api/v1/news/{id}:
+ * /api/v1/notes/{id}:
  *   put:
  *     tags:
- *       - News
+ *       - Notes
  *     parameters:
  *       - in: path
  *         name: id
@@ -194,10 +194,10 @@ router.put('/:id', verifyToken, validateSchema(NoteUpdate), noteController.updat
 
 /**
  * @openapi
- * /api/v1/note/{id}:
+ * /api/v1/notes/{id}:
  *   delete:
  *     tags:
- *       - Note
+ *       - Notes
  *     parameters:
  *       - in: path
  *         name: id

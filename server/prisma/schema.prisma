@@ -38,6 +38,7 @@ model users {
   newsPending     news[]      @relation("userNewsPending")
   notesCreated    notes[]     @relation("userNoteCreated")
   settingsCreated settings[]  @relation("userSettingCreated")
+  events          events[]    @relation("userEventCreated")
 }
 
 model userPermits {
@@ -122,4 +123,18 @@ model settings {
   userId             Int
   createdOn          DateTime  @default(now()) @db.Timestamp(3)
   updatedOn          DateTime? @db.Timestamp(3)
+}
+
+model events {
+  id               Int       @id @default(autoincrement())
+  title            String    @db.VarChar(50)
+  description      String    @db.VarChar(200)
+  speaker          String?   @db.VarChar(20)
+  startTime        String    @db.VarChar(5)
+  endTime          String    @db.VarChar(5)
+  date             DateTime  @db.Timestamp(3)
+  userEventCreated users     @relation("userEventCreated", fields: [createdBy], references: [id])
+  createdBy        Int
+  createdOn        DateTime  @db.Timestamp(3)
+  updatedOn        DateTime? @db.Timestamp(3)
 }

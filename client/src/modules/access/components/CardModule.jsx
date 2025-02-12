@@ -26,7 +26,7 @@ const CardModule = () => {
         </CardHeader>
         <CardContent className='px-6 pb-6'>
           <Link
-            to={'notes'}
+            to={'news'}
             className='flex items-center gap-2 px-3 py-2 text-sm font-medium transition-colors rounded-md hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground'
             prefetch={false}>
             {t('access')} <LuArrowRight className='w-4 h-4 ml-2' />
