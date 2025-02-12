@@ -4,6 +4,7 @@ import { cn } from '@/lib/utils'
 import { NotesCard } from './NotesCard'
 import { useTranslation } from 'react-i18next'
 import { StatusColumn } from '../utils/index'
+import PropTypes from 'prop-types'
 
 export function NotesColumn({
   column,
@@ -64,4 +65,13 @@ export function NotesColumn({
       </CardContent>
     </Card>
   )
+}
+
+NotesColumn.propTypes = {
+  column: PropTypes.object.isRequired,
+  onDragStart: PropTypes.func.isRequired,
+  onDragOver: PropTypes.func.isRequired,
+  onDrop: PropTypes.func.isRequired,
+  onDeleteNote: PropTypes.func.isRequired,
+  onEditNote: PropTypes.func.isRequired
 }

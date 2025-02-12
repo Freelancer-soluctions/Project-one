@@ -13,7 +13,7 @@ const Access = lazy(() => import('@/modules/access/pages/Access'))
 const Notes = lazy(() => import('@/modules/notes/pages/Notes'))
 const News = lazy(() => import('@/modules/news/pages/News'))
 const Settings = lazy(() => import('@/modules/settings/pages/Settings'))
-// const Events = lazy(() => import('@/modules/events/pages/events'))
+const Events = lazy(() => import('@/modules/events/pages/Events'))
 
 const App = () => {
   useInitializeI18n() // Inicializa el idioma al cargar la app
@@ -37,7 +37,7 @@ const App = () => {
           <Route path='news' element={<News />} />
           <Route path='notes' element={<Notes />} />
           <Route path='settings' element={<Settings />} />
-          {/* <Route path='events' element={<Events />} /> */}
+          <Route path='events' element={<Events />} />
 
           {/* Ruta comodín para manejar 404 en /home */}
           <Route path='*' element={<NotFound link={'/home'} />} />
