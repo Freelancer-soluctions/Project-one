@@ -3,6 +3,7 @@ import authSlice from '../modules/auth/slice/authSlice'
 import newsApi from '../modules/news/slice/newsSlice'
 import notesApi from '../modules/notes/slice/notesSlice'
 import settingsApi from '../modules/settings/slice/settingsSlice'
+import eventsApi from '@/modules/events/slice/eventsSlice'
 import storageSession from 'redux-persist/lib/storage/session';
 import { persistStore, persistReducer } from 'redux-persist';
 
@@ -18,6 +19,7 @@ const rootReducer = combineReducers({
   auth: authSlice,
   [newsApi.reducerPath]: newsApi.reducer,
   [notesApi.reducerPath]: notesApi.reducer,
+  [eventsApi.reducerPath]: eventsApi.reducer,
   [settingsApi.reducerPath]: settingsApi.reducer
 });
 
@@ -35,7 +37,7 @@ const store = configureStore({
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({ 
       serializableCheck: false, // Necesario para redux-persist
-    }).concat(newsApi.middleware, settingsApi.middleware, notesApi.middleware),
+    }).concat(newsApi.middleware, settingsApi.middleware, notesApi.middleware, eventsApi.middleware),
 })
 // store.subscribe(() => {
 //   console.log('Estado persistido:', store.getState());

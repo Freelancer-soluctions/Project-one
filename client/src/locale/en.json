@@ -82,6 +82,11 @@
     "access": "Access",
     "events": "Events",
     "home": "Home",
-    "logout": "Logout"
+    "logout": "Logout",
+    "speaker_placeholder": "Enter the speaker name",
+    "type": "Type",
+    "select_type": "Select a type",
+    "start_time": "Start time",
+    "end_time": "End time"
   }
 }

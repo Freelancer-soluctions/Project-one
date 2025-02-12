@@ -1,8 +1,8 @@
 import * as prismaService from '../utils/dao.js'
-import { tableNames } from '../utils/enums/enums.js'
+import { TABLESNAMES } from '../utils/enums/enums.js'
 import prisma from '../../config/db.js'
 
-const tableName = tableNames.NEWS
+const tableName = TABLESNAMES.NEWS
 
 /**
  * Retrieves all news from the database based on the provided filters.

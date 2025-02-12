@@ -1,6 +1,6 @@
 import globalResponse from '../../utils/responses&Errors/globalResponse.js'
 import handleCatchErrorAsync from '../../utils/responses&Errors/handleCatchErrorAsync.js'
-import * as noteService from './service.js'
+import * as notesService from './service.js'
 
 /**
  * Get all
@@ -11,7 +11,7 @@ import * as noteService from './service.js'
  */
 export const getAllNotes = handleCatchErrorAsync(async (req, res) => {
   const query = req.query
-  const items = await noteService.getAllNotes(query)
+  const items = await notesService.getAllNotes(query)
   globalResponse(res, 200, items)
 })
 
@@ -25,7 +25,7 @@ export const getAllNotes = handleCatchErrorAsync(async (req, res) => {
 export const createNote = handleCatchErrorAsync(async (req, res) => {
   const userId = req.userId // viene del token
   const { body } = req
-  const createdNote = await noteService.createNote(body, userId)
+  const createdNote = await notesService.createNote(body, userId)
   globalResponse(res, 201, createdNote, 'Item created successfully')
 })
 
@@ -37,7 +37,7 @@ export const createNote = handleCatchErrorAsync(async (req, res) => {
  * @returns {Promise<void>} Sends a response containing the status of all news items.
  */
 export const getAllNotesColumns = handleCatchErrorAsync(async (req, res) => {
-  const data = await noteService.getAllNotesColumns()
+  const data = await notesService.getAllNotesColumns()
   globalResponse(res, 200, data)
 })
 
@@ -50,7 +50,7 @@ export const getAllNotesColumns = handleCatchErrorAsync(async (req, res) => {
  */
 export const updateNoteColumId = handleCatchErrorAsync(async (req, res) => {
   const { body } = req
-  await noteService.updateNoteColumId(body)
+  await notesService.updateNoteColumId(body)
   globalResponse(res, 200, { message: 'Item updated successfully' })
 })
 
@@ -65,7 +65,7 @@ export const updateNoteById = handleCatchErrorAsync(async (req, res) => {
   const { body } = req
   console.log(body)
   const { id } = req.params
-  await noteService.updateNoteById(id, body)
+  await notesService.updateNoteById(id, body)
   globalResponse(res, 200, { message: 'Item updated successfully' })
 })
 
@@ -78,6 +78,6 @@ export const updateNoteById = handleCatchErrorAsync(async (req, res) => {
  */
 export const deleteById = handleCatchErrorAsync(async (req, res) => {
   const { id } = req.params
-  await noteService.deleteById(id)
+  await notesService.deleteById(id)
   globalResponse(res, 200, { message: 'Item deleted successfully' })
 })
