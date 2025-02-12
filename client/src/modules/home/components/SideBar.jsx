@@ -28,7 +28,7 @@ const SideBar = () => {
         {t('news')}
       </Link>
       <Link
-        to={'news'}
+        to={'notes'}
         className='flex items-center gap-2 px-3 py-2 text-sm font-medium transition-colors rounded-md hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground'
         prefetch={false}>
         <CgNotes className='w-5 h-5' />
@@ -42,7 +42,7 @@ const SideBar = () => {
         {t('settings')}
       </Link>
       <Link
-        href='#'
+        to={'events'}
         className='flex items-center gap-2 px-3 py-2 text-sm font-medium transition-colors rounded-md hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground'
         prefetch={false}>
         <LuCalendarCheck2 className='w-5 h-5' />

@@ -192,5 +192,6 @@ export function NotesCreateDialog({ onCreateNote, dataStatus }) {
 }
 
 NotesCreateDialog.propTypes = {
-  onCreateNote: PropTypes.func.isRequired
+  onCreateNote: PropTypes.func.isRequired,
+  dataStatus: PropTypes.array.isRequired
 }
