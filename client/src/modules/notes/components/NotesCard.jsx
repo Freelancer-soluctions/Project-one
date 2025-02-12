@@ -5,9 +5,13 @@ import { Button } from '@/components/ui/button'
 import { useState } from 'react'
 import { NotesEditDialog } from './NotesEditDialog'
 import { NotesColor } from '../utils/index'
+import { useTranslation } from 'react-i18next'
+import { format } from 'date-fns'
+import PropTypes from 'prop-types'
 
 export function NotesCard({ note, onDragStart, onDelete, onEdit, columnCode }) {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
+  const { t } = useTranslation()
 
   return (
     <>
@@ -56,6 +60,9 @@ export function NotesCard({ note, onDragStart, onDelete, onEdit, columnCode }) {
         </CardHeader>
         <CardContent className='p-3 pt-0'>
           <p className='text-sm text-gray-600'>{note.content}</p>
+          <p className='text-sm text-gray-600'>
+            {t('created_on')}: {format(note.createdOn, 'PPP')}
+          </p>
         </CardContent>
       </Card>
 
@@ -67,4 +74,12 @@ export function NotesCard({ note, onDragStart, onDelete, onEdit, columnCode }) {
       />
     </>
   )
+}
+
+NotesCard.propTypes = {
+  note: PropTypes.object.isRequired,
+  onDragStart: PropTypes.func.isRequired,
+  onDelete: PropTypes.func.isRequired,
+  onEdit: PropTypes.func.isRequired,
+  columnCode: PropTypes.string.isRequired
 }

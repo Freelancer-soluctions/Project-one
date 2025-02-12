@@ -439,3 +439,42 @@
  *       required:
  *         - language
  */
+
+/**
+ * @openapi
+ * components:
+ *   schemas:
+ *     EventBody:
+ *       type: object
+ *       properties:
+ *         title:
+ *           type: string
+ *           example: somen random string
+ *         description:
+ *           type: string
+ *           example: somen random string
+ *         speaker:
+ *           type: string
+ *           example: random name string
+ *         startTime:
+ *           type: string
+ *           example: 00:00
+ *         endTime:
+ *           type: string
+ *           example: 00:00
+ *         createdBy:
+ *          type: number
+ *          example: 1
+ *         createdOn:
+ *          type: date
+ *          pattern: '^\d{4}-\d{2}-\d{2}$'
+ *          example: 2020-04-04
+ *         updatedOn:
+ *          type: date
+ *          pattern: '^\d{4}-\d{2}-\d{2}$'
+ *          example: 2024-09-09
+ *         date:
+ *          type: date
+ *          pattern: '^\d{4}-\d{2}-\d{2}$'
+ *          example: 2024-09-09
+ */

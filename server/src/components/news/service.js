@@ -4,7 +4,7 @@ import {
   handleUploadUpdate,
   handleDeleteFile
 } from '../../utils/cloudinary/cloudinary.js'
-import { NewsStatusCode } from '../utils/enums/enums.js'
+import { NEWSSTATUSCODE } from '../utils/enums/enums.js'
 
 /**
  * Get all news from the database with optional filters.
@@ -47,8 +47,8 @@ export const createOne = async (userId, data) => {
     statusId: Number(data.statusId),
     createdBy: Number(userId),
     createdOn: new Date(),
-    pendingBy: data.statusCode === NewsStatusCode.PENDING ? Number(userId) : null,
-    pendingOn: data.statusCode === NewsStatusCode.PENDING ? new Date() : null
+    pendingBy: data.statusCode === NEWSSTATUSCODE.PENDING ? Number(userId) : null,
+    pendingOn: data.statusCode === NEWSSTATUSCODE.PENDING ? new Date() : null
   }
 
   // if (file) {
@@ -74,12 +74,12 @@ export const createOne = async (userId, data) => {
 export const updateById = async (userId, newId, data) => {
   const rowId = Number(newId)
 
-  if (data.statusCode === NewsStatusCode.CLOSED) {
+  if (data.statusCode === NEWSSTATUSCODE.CLOSED) {
     data.closedBy = Number(userId)
     data.closedOn = new Date()
   }
 
-  if (data.statusCode === NewsStatusCode.PENDING) {
+  if (data.statusCode === NEWSSTATUSCODE.PENDING) {
     data.pendingBy = Number(userId)
     data.pendingOn = new Date()
   }
