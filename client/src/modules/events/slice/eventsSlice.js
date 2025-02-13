@@ -10,17 +10,17 @@ const eventsApi = createApi({
     baseQuery:axiosPrivateBaseQuery({ baseUrl: import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1' }),
     tagTypes: ['Events'], // Agrega un tag identificador
     endpoints: (builder) => ({
-        // getAllNotes: builder.query({
-        //   query: (args) =>({
-        //     url: `/events`,
-        //     method: "GET",
-        //     params: {...args}
-        //   }),
-        //   providesTags: ['Notes'], // Indica que este endpoint usa el tag 'Notes'
-        // }),
+        getAllEvents: builder.query({
+          query: (searchQuery) =>({
+            url: `/events`,
+            method: "GET",
+            params: {searchQuery}
+          }),
+          providesTags: ['Events'], // Indica que este endpoint usa el tag 'Notes'
+        }),
         getAllEventTypes: builder.query({
           query: () =>({
-            url: `/events/eventsTypes`,
+            url: `/events/eventTypes`,
             method: "GET",
           }),
         }),
@@ -64,6 +64,6 @@ const eventsApi = createApi({
 
 // Export hooks for usage in functional components, which are
 // auto-generated based on the defined endpoints
-export const {  useCreateEventMutation, useGetAllEventTypesQuery  } = eventsApi
+export const {useGetAllEventsQuery,  useCreateEventMutation, useGetAllEventTypesQuery  } = eventsApi
 
 export default eventsApi
