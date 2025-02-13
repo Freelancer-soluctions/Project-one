@@ -246,14 +246,14 @@ export const NewsDialog = ({
                     name='createdOn'
                     render={({ field }) => (
                       <FormItem className='flex flex-col flex-auto'>
-                        <FormLabel htmlFor='createOn'>
+                        <FormLabel htmlFor='createdOn'>
                           {t('created_on')}
                         </FormLabel>
                         <Popover>
                           <PopoverTrigger asChild>
                             <FormControl>
                               <Button
-                                id='createOn'
+                                id='createdOn'
                                 disabled={true}
                                 readOnly={true}
                                 variant={'outline'}

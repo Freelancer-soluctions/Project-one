@@ -24,22 +24,15 @@ const eventsApi = createApi({
             method: "GET",
           }),
         }),
-        // updateNoteColumId: builder.mutation({
-        //   query: ( body ) =>({
-        //     url: `/events/noteColumn`,
-        //     method: "PUT",
-        //     body
-        //   }),
-        //   invalidatesTags: ['Notes'], // Invalida el cache de 'Events' para volver a consultar
-        // }),
-        // updateNoteById: builder.mutation({
-        //   query: ({id, body }) =>({
-        //     url: `/events/${id}`,
-        //     method: "PUT",
-        //     body
-        //   }),
-        //   invalidatesTags: ['Notes'], // Invalida el cache de 'Events' para volver a consultar
-        // }),
+   
+        updateEventById: builder.mutation({
+          query: ({id, data }) =>({
+            url: `/events/${id}`,
+            method: "PUT",
+            body:{...data}
+          }),
+          invalidatesTags: ['Events'], // Invalida el cache de 'Events' para volver a consultar
+        }),
         createEvent: builder.mutation({
           query: (body) => ({
             url: `/events/`,
@@ -48,15 +41,15 @@ const eventsApi = createApi({
           }),
           invalidatesTags: ['Events'], // Invalida el cache de 'Events' para volver a consultar
         }),
-        // deleteNoteById: builder.mutation({ 
-        //   query(id) {
-        //   return {
-        //     url: `/events/${id}`,
-        //     method: 'DELETE',
-        //   }
-        // },
-        // invalidatesTags: ['Notes'], // Invalida el cache de 'Notes' para volver a consultar
-        // })
+        deleteEventById: builder.mutation({ 
+          query(id) {
+          return {
+            url: `/events/${id}`,
+            method: 'DELETE',
+          }
+        },
+        invalidatesTags: ['Events'], // Invalida el cache de 'Notes' para volver a consultar
+        })
        
       }),
     
@@ -64,6 +57,6 @@ const eventsApi = createApi({
 
 // Export hooks for usage in functional components, which are
 // auto-generated based on the defined endpoints
-export const {useGetAllEventsQuery,  useCreateEventMutation, useGetAllEventTypesQuery  } = eventsApi
+export const {useGetAllEventsQuery,  useCreateEventMutation, useGetAllEventTypesQuery, useUpdateEventByIdMutation, useDeleteEventByIdMutation  } = eventsApi
 
 export default eventsApi
