@@ -3,7 +3,9 @@ import {
   Dialog,
   DialogContent,
   DialogHeader,
-  DialogTitle
+  DialogTitle,
+  DialogFooter,
+  DialogClose
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
@@ -34,6 +36,7 @@ import PropTypes from 'prop-types'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { LuCalendarDays } from 'react-icons/lu'
+import { format } from 'date-fns'
 
 import { eventsDialogSchema } from '../utils'
 import { useTranslation } from 'react-i18next'
@@ -46,8 +49,9 @@ export function EventDialog({
   dataTypes
 }) {
   const { t } = useTranslation()
+  const [isPopoverOpen, setIsPopoverOpen] = useState(false) // date picker popover
   // Configura el formulario
-  const formDialog = useForm({
+  const formEventDialog = useForm({
     resolver: zodResolver(eventsDialogSchema)
   })
 
@@ -59,39 +63,39 @@ export function EventDialog({
         id: event.id || '',
         title: event.title || '',
         description: event.description || '',
+        type: event.type || '',
         speaker: event.speaker || '',
-        createdOn: event.createdOn || '',
-        createdBy: event.createdBy || '',
-        date: event.date || '',
+        eventDate: event.date || '',
         startTime: event.startTime || '',
-        endTime: event.startTime || ''
+        endTime: event.endTime || ''
       }
 
-      formDialog.reset(mappedValues)
+      formEventDialog.reset(mappedValues)
     }
   }, [event])
 
-  const onSubmitDialog = e => {
-    e.preventDefault()
-    onSubmit(formData)
+  const onSubmitDialog = values => {
+    onSubmit(values)
   }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className='sm:max-w-[425px]'>
+      <DialogContent className='sm:max-w-[500px]'>
         <DialogHeader>
-          <DialogTitle>{event ? 'Editar Evento' : 'Nuevo Evento'}</DialogTitle>
+          <DialogTitle>
+            {event.id ? 'Editar Evento' : 'Nuevo Evento'}
+          </DialogTitle>
         </DialogHeader>
-        <Form {...formDialog}>
+        <Form {...formEventDialog}>
           <form
             method='post'
             action=''
-            id='news-form'
+            id='events-form'
             noValidate
-            onSubmit={formDialog.handleSubmit(onSubmitDialog)}>
-            <div className='space-y-2'>
+            onSubmit={formEventDialog.handleSubmit(onSubmitDialog)}>
+            <div className='my-4'>
               <FormField
-                control={formDialog.control}
+                control={formEventDialog.control}
                 name='title'
                 render={({ field }) => {
                   return (
@@ -101,7 +105,7 @@ export function EventDialog({
                         <Input
                           id='title'
                           type='text'
-                          maxlength={50}
+                          maxLength={50}
                           placeholder={t('title_placeholder')}
                           {...field}
                           value={field.value ?? ''}
@@ -114,9 +118,9 @@ export function EventDialog({
               />
             </div>
 
-            <div className='space-y-2'>
+            <div className='my-4'>
               <FormField
-                control={formDialog.control}
+                control={formEventDialog.control}
                 name='speaker'
                 render={({ field }) => {
                   return (
@@ -126,7 +130,7 @@ export function EventDialog({
                         <Input
                           id='speaker'
                           type='text'
-                          maxlength={50}
+                          maxLength={50}
                           placeholder={t('speaker_placeholder')}
                           {...field}
                           value={field.value ?? ''}
@@ -138,9 +142,9 @@ export function EventDialog({
                 }}
               />
             </div>
-            <div className='space-y-2'>
+            <div className='my-4'>
               <FormField
-                control={formDialog.control}
+                control={formEventDialog.control}
                 name='type'
                 render={({ field }) => {
                   return (
@@ -159,7 +163,9 @@ export function EventDialog({
                         </FormControl>
                         <SelectContent>
                           {dataTypes.map((item, index) => (
-                            <SelectItem value={item.id} key={index}>
+                            <SelectItem
+                              value={item.id.toString()}
+                              key={item.id}>
                               {item.description}
                             </SelectItem>
                           ))}
@@ -171,18 +177,21 @@ export function EventDialog({
                 }}
               />
             </div>
-            <div className='space-y-2'>
+            <div className='my-4 '>
               <FormField
-                control={formDialog.control}
-                name='date'
+                control={formEventDialog.control}
+                name='eventDate'
                 render={({ field }) => (
                   <FormItem className='flex flex-col flex-auto'>
-                    <FormLabel htmlFor='date'>{t('date')}</FormLabel>
-                    <Popover>
+                    <FormLabel htmlFor='eventDate'>{t('date')}</FormLabel>
+                    <Popover
+                      modal={true}
+                      open={isPopoverOpen}
+                      onOpenChange={setIsPopoverOpen}>
                       <PopoverTrigger asChild>
                         <FormControl>
                           <Button
-                            id='date'
+                            id='eventDate'
                             variant={'outline'}
                             className={cn(
                               'pl-3 text-left font-normal',
@@ -201,7 +210,10 @@ export function EventDialog({
                         <Calendar
                           mode='single'
                           selected={field.value}
-                          onSelect={field.onChange}
+                          onSelect={value => {
+                            field.onChange(value)
+                          }}
+                          // onSelect={field.onChange}
                           disabled={date => date < new Date('1900-01-01')}
                           initialFocus
                         />
@@ -212,16 +224,15 @@ export function EventDialog({
                 )}
               />
             </div>
-
-            <div className='space-y-2'>
+            <div className='my-4'>
               <FormField
-                control={formDialog.control}
+                control={formEventDialog.control}
                 name='startTime'
                 render={({ field }) => {
                   return (
                     <FormItem className='flex flex-col flex-auto col-span-1'>
                       <FormLabel htmlFor='startTime'>
-                        {t('startTime')}*
+                        {t('start_time')}*
                       </FormLabel>
                       <FormControl>
                         <Input
@@ -237,10 +248,10 @@ export function EventDialog({
                 }}
               />
             </div>
-            <div className='space-y-2'>
+            <div className='my-4'>
               <FormField
-                control={formDialog.control}
-                name='startTime'
+                control={formEventDialog.control}
+                name='endTime'
                 render={({ field }) => {
                   return (
                     <FormItem className='flex flex-col flex-auto col-span-1'>
@@ -259,9 +270,10 @@ export function EventDialog({
                 }}
               />
             </div>
-            <div className='space-y-2'>
+
+            <div className='my-4'>
               <FormField
-                control={formDialog.control}
+                control={formEventDialog.control}
                 name='description'
                 render={({ field }) => {
                   return (
@@ -285,10 +297,16 @@ export function EventDialog({
                 }}
               />
             </div>
-
-            <Button type='submit' className='w-full'>
-              {event ? 'Guardar Cambios' : 'Crear Evento'}
-            </Button>
+            <DialogFooter>
+              <DialogClose asChild>
+                <Button type='button' variant='secondary'>
+                  {t('close')}
+                </Button>
+              </DialogClose>
+              <Button type='submit' variant='info'>
+                {event.id ? t('save_changes') : t('save')}
+              </Button>
+            </DialogFooter>
           </form>
         </Form>
       </DialogContent>

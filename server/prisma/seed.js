@@ -45,6 +45,21 @@ const noteStatus = [
   }
 ]
 
+const eventTypes = [
+  {
+    code: 'C01',
+    description: 'Session'
+  },
+  {
+    code: 'C02',
+    description: 'Conference'
+  },
+  {
+    code: 'C03',
+    description: 'Workshop'
+  }
+]
+
 const newStatus = [
   {
     code: 'C01',
@@ -113,7 +128,9 @@ const createVarious = async (tableName, createObjects) => {
 async function main () {
   // await createVarious('userPermits', userPermits)
   // await createVarious('userStatus', userStatus)
-  await createVarious('noteColumns', noteStatus)
+  // await createVarious('noteColumns', noteStatus)
+  await createVarious('eventTypes', eventTypes)
+
   // await createVarious('newsStatus', newStatus)
   // await createVarious('roles', roles)
   // await create('users', user)

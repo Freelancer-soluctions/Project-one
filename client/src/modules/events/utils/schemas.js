@@ -1,13 +1,15 @@
 import { z } from "zod"
 
 export const eventsDialogSchema = z.object({
-  title: z.string().max(50, "Title must be at most 50 characters." ),
-  description: z.string().max(200, "Description must be at most 400 characters." ),
-  speaker: z.string().max(20, "Speaker must be at most 20 characters." ),
-  startTime: z.string().max(5, "Start time is required." ),
-  endTime: z.string().max(5, "End time is required." ),
-  date: z.date().refine((date) => !isNaN(date.getTime()), {
+  title: z.string().min(1, "Title is required."),
+  description: z.string().min(1, "Description is required."),
+  speaker: z.string().min(1, "Speaker is required."),
+  startTime: z.string().min(5, "StartTIme is required."),
+  endTime: z.string().min(5, "EndTime is required."),
+  eventDate: z.date().refine((date) => !isNaN(date.getTime()), {
     message: 'Invalid date',
   }),
+  type: z.string().min(1, "Type is required"),
+
   }).passthrough(); // Permite otros campos
 

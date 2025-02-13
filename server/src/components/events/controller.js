@@ -2,18 +2,19 @@ import globalResponse from '../../utils/responses&Errors/globalResponse.js'
 import handleCatchErrorAsync from '../../utils/responses&Errors/handleCatchErrorAsync.js'
 import * as eventService from './service.js'
 
-// /**
-//  * Get all events
-//  *
-//  * @param {*} req
-//  * @param {*} res
-//  * @returns A message
-//  */
-// export const getAllEvents = handleCatchErrorAsync(async (req, res) => {
-//   const query = req.query
-//   const items = await eventService.getAllEvents(query)
-//   globalResponse(res, 200, items)
-// })
+/**
+ * Get all events with or without filter.
+ *
+ * @param {Object} req - The HTTP request object.
+ * @param {Object} res - The HTTP response object.
+ * @returns {Promise<void>} Sends a response confirming the creation of the event item.
+ */
+export const getAllEvents = handleCatchErrorAsync(async (req, res) => {
+  const query = req.query
+  console.log(query)
+  const items = await eventService.getAllEvents(query)
+  globalResponse(res, 200, items)
+})
 
 /**
  * Create an event item.
@@ -29,17 +30,17 @@ export const createEvent = handleCatchErrorAsync(async (req, res) => {
   globalResponse(res, 201, createdEvent, 'Item created successfully')
 })
 
-// /**
-//  * Get the status of all event items.
-//  *
-//  * @param {Object} req - The HTTP request object.
-//  * @param {Object} res - The HTTP response object.
-//  * @returns {Promise<void>} Sends a response containing the status of all event items.
-//  */
-// export const getAllEventColumns = handleCatchErrorAsync(async (req, res) => {
-//   const data = await eventService.getAllEventColumns()
-//   globalResponse(res, 200, data)
-// })
+/**
+ * Get the event types.
+ *
+ * @param {Object} req - The HTTP request object.
+ * @param {Object} res - The HTTP response object.
+ * @returns {Promise<void>} Sends a response containing the event types.
+ */
+export const getAllEventTypes = handleCatchErrorAsync(async (req, res) => {
+  const data = await eventService.getAllEventTypes()
+  globalResponse(res, 200, data)
+})
 
 // /**
 //  * Update event column by ID
