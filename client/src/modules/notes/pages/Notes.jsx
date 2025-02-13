@@ -25,7 +25,7 @@ export default function Notes() {
   const [alertProps, setAlertProps] = useState({})
 
   const {
-    data: dataColumns,
+    data: dataColumns = { data: [] },
     isError: isErrorColumns,
     isLoading: isLoadingColumns,
     isFetching: isFetchingColumns,
