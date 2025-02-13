@@ -63,9 +63,9 @@ export function EventDialog({
         id: event.id || '',
         title: event.title || '',
         description: event.description || '',
-        type: event.type || '',
+        type: event.eventTypeId?.toString() || '',
         speaker: event.speaker || '',
-        eventDate: event.date || '',
+        eventDate: event.eventDate ? new Date(event.eventDate) : '',
         startTime: event.startTime || '',
         endTime: event.endTime || ''
       }

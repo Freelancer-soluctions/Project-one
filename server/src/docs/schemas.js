@@ -449,10 +449,10 @@
  *       properties:
  *         title:
  *           type: string
- *           example: somen random string
+ *           example: some random string
  *         description:
  *           type: string
- *           example: somen random string
+ *           example: some random string
  *         speaker:
  *           type: string
  *           example: random name string
@@ -473,7 +473,7 @@
  *          type: date
  *          pattern: '^\d{4}-\d{2}-\d{2}$'
  *          example: 2024-09-09
- *         date:
+ *         eventdate:
  *          type: date
  *          pattern: '^\d{4}-\d{2}-\d{2}$'
  *          example: 2024-09-09

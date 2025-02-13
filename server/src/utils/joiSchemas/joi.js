@@ -259,7 +259,7 @@ export const SettingsLanguage = Joi.object({
   userId: Joi.number().integer().optional()
 })
 
-export const EventsCreate = Joi.object({
+export const EventsCreateUpdate = Joi.object({
   title: Joi.string().max(50).required(),
   description: Joi.string().max(200).required(),
   speaker: Joi.string().max(20).allow(''),
@@ -268,6 +268,7 @@ export const EventsCreate = Joi.object({
   eventDate: Joi.date().required(),
   type: Joi.number().integer().required()
 })
+
 export const EventsFilters = Joi.object({
   searchQuery: Joi.string()
     .min(1)
