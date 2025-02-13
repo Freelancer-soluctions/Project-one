@@ -265,5 +265,12 @@ export const EventsCreate = Joi.object({
   speaker: Joi.string().max(20).allow(''),
   startTime: Joi.string().max(5).required(),
   endTime: Joi.string().max(5).required(),
-  date: Joi.date().required()
+  eventDate: Joi.date().required(),
+  type: Joi.number().integer().required()
+})
+export const EventsFilters = Joi.object({
+  searchQuery: Joi.string()
+    .min(1)
+    .max(30).allow('')
+
 })

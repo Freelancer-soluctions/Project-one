@@ -1,4 +1,4 @@
-import prisma from '../../config/db.js'
+import { prisma } from '../../config/db.js'
 
 export const getUserRegisteredByEmail = async (email) => {
   const userExist = await prisma.user.findUnique({

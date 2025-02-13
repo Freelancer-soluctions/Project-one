@@ -126,15 +126,24 @@ model settings {
 }
 
 model events {
-  id               Int       @id @default(autoincrement())
-  title            String    @db.VarChar(50)
-  description      String    @db.VarChar(200)
-  speaker          String?   @db.VarChar(20)
-  startTime        String    @db.VarChar(5)
-  endTime          String    @db.VarChar(5)
-  date             DateTime  @db.Timestamp(3)
-  userEventCreated users     @relation("userEventCreated", fields: [createdBy], references: [id])
+  id               Int        @id @default(autoincrement())
+  title            String     @db.VarChar(50)
+  description      String     @db.VarChar(200)
+  speaker          String?    @db.VarChar(20)
+  startTime        String     @db.VarChar(5)
+  endTime          String     @db.VarChar(5)
+  eventDate        DateTime   @db.Timestamp(3)
+  userEventCreated users      @relation("userEventCreated", fields: [createdBy], references: [id])
   createdBy        Int
-  createdOn        DateTime  @db.Timestamp(3)
-  updatedOn        DateTime? @db.Timestamp(3)
+  createdOn        DateTime   @db.Timestamp(3)
+  updatedOn        DateTime?  @db.Timestamp(3)
+  eventTypes       eventTypes @relation(fields: [eventTypeId], references: [id])
+  eventTypeId      Int
+}
+
+model eventTypes {
+  id          Int      @id @default(autoincrement())
+  code        String   @unique @db.VarChar(3)
+  description String   @unique @db.VarChar(10)
+  events      events[]
 }
