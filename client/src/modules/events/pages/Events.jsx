@@ -6,7 +6,9 @@ import { Spinner } from '@/components/loader/Spinner'
 import {
   useCreateEventMutation,
   useGetAllEventTypesQuery,
-  useGetAllEventsQuery
+  useGetAllEventsQuery,
+  useUpdateEventByIdMutation,
+  useDeleteEventByIdMutation
 } from '../slice/eventsSlice'
 
 export default function Events() {
@@ -24,6 +26,25 @@ export default function Events() {
       error: errorPost
     }
   ] = useCreateEventMutation()
+
+  const [
+    updateEvent,
+    {
+      isLoading: isLoadingPut,
+      isError: isErrorPut,
+      isSuccess: isSuccessPut,
+      error: errorPut
+    }
+  ] = useUpdateEventByIdMutation()
+  const [
+    deleteEventById,
+    {
+      isLoading: isLoadingDelete,
+      isError: isErrorDelete,
+      isSuccess: isSuccessDelete,
+      error: errorDelete
+    }
+  ] = useDeleteEventByIdMutation()
 
   const {
     data: dataTypes = { data: [] },
@@ -45,9 +66,27 @@ export default function Events() {
 
   const handleAddEvent = async data => {
     data.id
-      ? await updateEvent({ ...data }).unwrap()
-      : (const {id, ...dataToSave} = data
-      await createEvent({ ...dataToSave }).unwrap())
+      ? await updateEvent({
+          id: data.id,
+          data: {
+            title: data.title,
+            speaker: data.speaker,
+            description: data.description,
+            type: data.type,
+            eventDate: data.eventDate,
+            startTime: data.startTime,
+            endTime: data.endTime
+          }
+        }).unwrap()
+      : await createEvent({
+          title: data.title,
+          speaker: data.speaker,
+          description: data.description,
+          type: data.type,
+          eventDate: data.eventDate,
+          startTime: data.startTime,
+          endTime: data.endTime
+        }).unwrap()
     setIsDialogOpen(false)
   }
 
@@ -56,8 +95,8 @@ export default function Events() {
     setIsDialogOpen(true)
   }
 
-  const handleDeleteEvent = id => {
-    setEvents(events.filter(event => event.id !== id))
+  const handleDeleteEvent = async id => {
+    await deleteEventById(id).unwrap()
   }
 
   return (
@@ -67,7 +106,9 @@ export default function Events() {
         {/* Show spinner when loading or fetching */}
         {(isLoadingEvents ||
           isLoadingPost ||
+          isLoadingPut ||
           isLoadingTypes ||
+          isLoadingDelete ||
           isFetchingTypes ||
           isFetchingEvents) && <Spinner />}
         {/* Header fijo */}
