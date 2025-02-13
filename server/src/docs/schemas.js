@@ -478,3 +478,21 @@
  *          pattern: '^\d{4}-\d{2}-\d{2}$'
  *          example: 2024-09-09
  */
+
+/**
+ * @openapi
+ * components:
+ *   schemas:
+ *     EventsTypes:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: integer
+ *           example: 1, 2, 3, 4 etc...
+ *         description:
+ *           type: string
+ *           example: Eevent type description
+ *         code:
+ *          type: string
+ *          example: C01, C02, C03 etc...
+ */

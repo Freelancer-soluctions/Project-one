@@ -1,6 +1,6 @@
 import * as prismaService from '../utils/dao.js'
 import { TABLESNAMES } from '../utils/enums/enums.js'
-import prisma from '../../config/db.js'
+import { prisma } from '../../config/db.js'
 
 const tableName = TABLESNAMES.NEWS
 
