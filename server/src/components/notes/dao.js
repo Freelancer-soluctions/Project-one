@@ -1,4 +1,4 @@
-import prisma from '../../config/db.js'
+import { prisma } from '../../config/db.js'
 
 /**
  * Retrieves all notes from the database based on the provided filters.

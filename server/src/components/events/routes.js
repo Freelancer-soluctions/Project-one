@@ -1,7 +1,6 @@
 import { Router } from 'express'
-import { EventsCreate } from '../../utils/joiSchemas/joi.js'
+import { EventsCreate, EventsFilters } from '../../utils/joiSchemas/joi.js'
 import * as eventsController from './controller.js'
-import upload from '../../utils/multer/multer.js'
 import validateQueryParams from '../../middleware/validateQueryParams.js'
 import validateSchema from '../../middleware/validateSchema.js'
 import verifyToken from '../../middleware/verifyToken.js'
@@ -43,40 +42,75 @@ const router = Router()
 
 router.post('/', verifyToken, validateSchema(EventsCreate), eventsController.createEvent)
 
-// /**
-// @openapi
-//  * /api/v1/news:
-//  *   get:
-//  *     tags:
-//  *       - News
-//  *     parameters:
-//  *       - in: header
-//  *         name: x-access-token
-//  *         schema:
-//  *          type: string
-//  *         required: true
-//  *     responses:
-//  *       200:
-//  *         description: OK
-//  *         content:
-//  *           application/json:
-//  *             schema:
-//  *               type: object
-//  *               properties:
-//  *                 data:
-//  *                   type: array
-//  *                   items:
-//  *                     $ref: "#/components/schemas/News"
-//  *       5XX:
-//  *         description: FAILED
-//  *         content:
-//  *           application/json:
-//  *             schema:
-//  *              $ref: "#/components/schemas/Error"
-//  *
-//  */
+/**
+@openapi
+ * /api/v1/events:
+ *   get:
+ *     tags:
+ *       - Events
+ *     parameters:
+ *       - in: header
+ *         name: x-access-token
+ *         schema:
+ *          type: string
+ *         required: true
+ *     responses:
+ *       200:
+ *         description: OK
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     $ref: "#/components/schemas/EventsTypes"
+ *       5XX:
+ *         description: FAILED
+ *         content:
+ *           application/json:
+ *             schema:
+ *              $ref: "#/components/schemas/Error"
+ *
+ */
 
-// router.get('/', verifyToken, validateQueryParams(NewsFilters), newsController.getAllNews)
+router.get('/eventTypes', eventsController.getAllEventTypes)
+
+/**
+@openapi
+ * /api/v1/news:
+ *   get:
+ *     tags:
+ *       - News
+ *     parameters:
+ *       - in: header
+ *         name: x-access-token
+ *         schema:
+ *          type: string
+ *         required: true
+ *     responses:
+ *       200:
+ *         description: OK
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     $ref: "#/components/schemas/News"
+ *       5XX:
+ *         description: FAILED
+ *         content:
+ *           application/json:
+ *             schema:
+ *              $ref: "#/components/schemas/Error"
+ *
+ */
+
+router.get('/', verifyToken, validateQueryParams(EventsFilters), eventsController.getAllEvents)
 
 // /**
 // @openapi

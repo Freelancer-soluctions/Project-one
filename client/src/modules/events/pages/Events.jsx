@@ -5,7 +5,8 @@ import { BackDashBoard } from '@/components/backDash/BackDashBoard'
 import { Spinner } from '@/components/loader/Spinner'
 import {
   useCreateEventMutation,
-  useGetAllEventTypesQuery
+  useGetAllEventTypesQuery,
+  useGetAllEventsQuery
 } from '../slice/eventsSlice'
 
 export default function Events() {
@@ -13,40 +14,7 @@ export default function Events() {
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [event, setEvent] = useState({})
-  const [events, setEvents] = useState([
-    {
-      id: '1',
-      title: 'Nueva era del Marketing al alcance de todos',
-      description: 'Marketing digital y estrategias modernas',
-      speaker: 'Lola Sánchez',
-      type: 'conference',
-      startTime: '9:00',
-      endTime: '10:00',
-      creationDate: new Date().toISOString()
-    },
-    // Agregamos más eventos de ejemplo para probar el scroll
-    {
-      id: '2',
-      title: 'Tecnologías portátiles de IA para publicidad',
-      description: 'Implementaciones prácticas de IA',
-      speaker: 'Bruno Lago',
-      type: 'workshop',
-      startTime: '10:10',
-      endTime: '10:40',
-      creationDate: new Date().toISOString()
-    },
-    {
-      id: '3',
-      title: 'Aplicaciones de negocio para estar más conectados',
-      description: 'Mejorando la conectividad empresarial',
-      speaker: 'Lucas Villanueva',
-      type: 'session',
-      startTime: '11:00',
-      endTime: '12:35',
-      creationDate: new Date().toISOString()
-    }
-    // ... más eventos para demostrar el scroll
-  ])
+
   const [
     createEvent,
     {
@@ -58,27 +26,28 @@ export default function Events() {
   ] = useCreateEventMutation()
 
   const {
-    data: dataTypes,
+    data: dataTypes = { data: [] },
     isLoading: isLoadingTypes,
     isError: isErrorTypes,
-    isSuccess: isSuccessType,
+    isSuccess: isSuccessTypes,
     isFetching: isFetchingTypes,
     error: errorTypes
   } = useGetAllEventTypesQuery()
 
-  const filteredEvents = useMemo(() => {
-    if (!searchQuery) return events
-    const searchQueryLower = searchQuery.toLowerCase()
+  const {
+    data: dataEvents = { data: [] },
+    isLoading: isLoadingEvents,
+    isError: isErrorEvents,
+    isSuccess: isSuccessEvents,
+    isFetching: isFetchingEvents,
+    error: errorEvents
+  } = useGetAllEventsQuery(searchQuery)
 
-    return events.filter(
-      event =>
-        event.title.toLowerCase().includes(searchQueryLower.toLowerCase()) ||
-        event.speaker.toLowerCase().includes(searchQueryLower.toLowerCase())
-    )
-  }, [events, searchQuery])
-
-  const handleAddEvent = async newEvent => {
-    await createEvent({ ...newEvent })
+  const handleAddEvent = async data => {
+    data.id
+      ? await updateEvent({ ...data }).unwrap()
+      : (const {id, ...dataToSave} = data
+      await createEvent({ ...dataToSave }).unwrap())
     setIsDialogOpen(false)
   }
 
@@ -96,7 +65,11 @@ export default function Events() {
       <BackDashBoard link={'/home'} moduleName={t('events')} />
       <div className='relative flex flex-col h-screen'>
         {/* Show spinner when loading or fetching */}
-        {(isLoadingPost || isLoadingTypes || isFetchingTypes) && <Spinner />}
+        {(isLoadingEvents ||
+          isLoadingPost ||
+          isLoadingTypes ||
+          isFetchingTypes ||
+          isFetchingEvents) && <Spinner />}
         {/* Header fijo */}
         <EventFiltersForm
           setSearchQuery={setSearchQuery}
@@ -107,7 +80,7 @@ export default function Events() {
         {/* Contenedor con scroll */}
         <div className='flex-1 p-4 overflow-y-auto sm:p-6'>
           <EventList
-            events={filteredEvents}
+            events={dataEvents.data}
             onEdit={handleEditEvent}
             onDelete={handleDeleteEvent}
           />
@@ -118,7 +91,7 @@ export default function Events() {
           onOpenChange={setIsDialogOpen}
           onSubmit={handleAddEvent}
           event={event}
-          dataTypes={dataTypes}
+          dataTypes={dataTypes?.data}
         />
       </div>
     </>
