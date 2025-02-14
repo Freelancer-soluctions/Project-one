@@ -1,12 +1,12 @@
 import { z } from "zod"
 
 export const notesCreateDialogSchema = z.object({
-  title: z.string().min(10, {
-      message: "Title must be at least 10 characters.",
-    }).max(50, "Title must be at most 50 characters." ),
-    content: z.string().min(10, {
-      message: "Description must be at least 10 characters.",
-    }).max(400, "Description must be at most 400 characters." ),
+  title: z.string().min(1, {
+      message: "Title is required.",
+    }),
+    content: z.string().min(1, {
+      message: "Description is required.",
+    }),
     status: z
     .object({
       id: z.number(), // No validación de mínimo o máximo
@@ -18,11 +18,11 @@ export const notesCreateDialogSchema = z.object({
   }).passthrough(); // Permite otros campos
 
   export const notesEditDialogSchema = z.object({
-    title: z.string().min(10, {
-        message: "Title must be at least 10 characters.",
-      }).max(50, "Title must be at most 50 characters." ),
-      content: z.string().min(10, {
-        message: "Description must be at least 10 characters.",
-      }).max(400, "Description must be at most 400 characters." ),
+    title: z.string().min(1, {
+        message: "Title is required.",
+      }),
+      content: z.string().min(1, {
+        message: "Description is required.",
+      }),
   
     }).passthrough(); // Permite otros campos
