@@ -3,7 +3,6 @@ import { NewsFiltersForm, NewsDialog, NewsDatatable } from '../components/index'
 import { Spinner } from '@/components/loader/Spinner'
 import { BackDashBoard } from '@/components/backDash/BackDashBoard'
 import AlertDialogComponent from '@/components/alertDialog/AlertDialog'
-import { useNavigate } from 'react-router'
 
 import {
   useLazyGetAllNewsQuery,
@@ -19,7 +18,6 @@ const News = () => {
   const [actionDialog, setActionDialog] = useState('') //actionDialog edit / add
   const [alertProps, setAlertProps] = useState({})
   const [openAlertDialog, setOpenAlertDialog] = useState(false) //alert dialog open/close
-  const navigate = useNavigate()
   const { t } = useTranslation() // Accede a las traducciones
 
   // filter form
@@ -64,11 +62,6 @@ const News = () => {
     }
   ] = useDeleteNewByIdMutation()
 
-  // pass to utils file
-  const uppercaseFunction = e => {
-    const value = e.target.value.toUpperCase()
-  }
-
   const handleSubmit = async (values, newId) => {
     try {
       const result = newId
@@ -94,7 +87,7 @@ const News = () => {
         cancel: false,
         success: true,
         onSuccess: () => {
-          navigate('/home')
+          setOpenDialog(false)
         },
         variantSuccess: 'info'
       })
@@ -125,7 +118,7 @@ const News = () => {
               cancel: false,
               success: true,
               onSuccess: () => {
-                navigate('/home')
+                setOpenDialog(false)
               },
               variantSuccess: 'info'
             })

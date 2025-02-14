@@ -1,21 +1,14 @@
 import { z } from "zod"
 
 export const newsDialogSchema = z.object({
-  description: z.string().min(10, {
-      message: "Description must be at least 10 characters.",
-    }).max(400, "Description must be at most 400 characters." ),
+  description: z.string().min(1, {
+      message: "Description is required.",
+    }),
     status: z
     .object({
-      id: z.number({ message: "Status ID must be a number." }),
-      code: z
-        .string()
-        .min(3, { message: "Code must be at least 3 characters." }),
-      description: z
-        .string()
-        .min(1, { message: "Description is required." }),
+      id: z.number(), // No validación de mínimo o máximo
+      code: z.string(), // No validación de longitud mínima
+      description: z.string(), // No validación de longitud mínima
     })
-    .refine((status) => !!status.id, {
-      message: "You must select a valid status.",
-    }),
-  }).passthrough(); // Permite otros campos
-
+  }).passthrough() // Permite otros campos
+ 
