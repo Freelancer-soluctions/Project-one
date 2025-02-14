@@ -63,7 +63,6 @@ export const updateNoteColumId = handleCatchErrorAsync(async (req, res) => {
  */
 export const updateNoteById = handleCatchErrorAsync(async (req, res) => {
   const { body } = req
-  console.log(body)
   const { id } = req.params
   await notesService.updateNoteById(id, body)
   globalResponse(res, 200, { message: 'Item updated successfully' })
