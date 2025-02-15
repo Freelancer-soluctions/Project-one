@@ -6,6 +6,8 @@ module.exports = {
     './components/**/*.{js,jsx}',
     './app/**/*.{js,jsx}',
     './src/**/*.{js,jsx}',
+    "./stories/**/*.{js,ts,jsx,tsx}", // Asegura que Storybook detecte Tailwind
+    "./.storybook/**/*.{js,ts,jsx,tsx}" // Incluye Storybook en Tailwind
   ],
   prefix: "",
   theme: {
