@@ -225,7 +225,7 @@ export const NewsStatusArray = Joi.array().items(NewsStatus).min(1)
 
 export const News = Joi.object({
   description: Joi.string()
-    .min(10)
+    .min(1)
     .max(400)
     .required(),
   statusId: Joi.number()
@@ -246,7 +246,7 @@ export const NewsFilters = Joi.object({
 
 export const NewsUpdate = Joi.object({
   description: Joi.string()
-    .min(10)
+    .min(1)
     .max(400).required(),
   statusId: Joi.number().integer().required(),
   statusCode: Joi.string().max(3).required(),
@@ -259,7 +259,7 @@ export const SettingsLanguage = Joi.object({
   userId: Joi.number().integer().optional()
 })
 
-export const EventsCreate = Joi.object({
+export const EventsCreateUpdate = Joi.object({
   title: Joi.string().max(50).required(),
   description: Joi.string().max(200).required(),
   speaker: Joi.string().max(20).allow(''),
@@ -268,6 +268,7 @@ export const EventsCreate = Joi.object({
   eventDate: Joi.date().required(),
   type: Joi.number().integer().required()
 })
+
 export const EventsFilters = Joi.object({
   searchQuery: Joi.string()
     .min(1)

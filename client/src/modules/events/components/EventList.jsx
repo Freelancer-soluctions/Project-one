@@ -35,7 +35,7 @@ export function EventList({ events, onEdit, onDelete }) {
     return groups
   }, {})
 
-  return (
+  return events.length > 0 ? (
     <div className='space-y-8'>
       {Object.entries(groupedEvents).map(([date, dateEvents]) => (
         <div key={date} className='space-y-4'>
@@ -83,6 +83,10 @@ export function EventList({ events, onEdit, onDelete }) {
           ))}
         </div>
       ))}
+    </div>
+  ) : (
+    <div className='text-lg text-center text-muted-foreground'>
+      No hay eventos disponibles
     </div>
   )
 }
