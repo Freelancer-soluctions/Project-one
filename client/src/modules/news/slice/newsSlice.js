@@ -8,6 +8,7 @@ import {axiosPrivateBaseQuery} from '@/config/axios'
 const newsApi = createApi({
     reducerPath:'newsApi',
     baseQuery:axiosPrivateBaseQuery({ baseUrl: import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1' }),
+    tagTypes: ['News'], // Agrega un tag identificador
     endpoints: (builder) => ({
         getAllNews: builder.query({
           query: (args) =>({
@@ -15,6 +16,8 @@ const newsApi = createApi({
             method: "GET",
             params: {...args}
           }),
+          providesTags: ['News'], // Indica que este endpoint usa el tag 'Notes'
+
         }),
         getAllNewsStatus: builder.query({
           query: () =>({
@@ -27,7 +30,9 @@ const newsApi = createApi({
             url: `/news/${id}`,
             method: "PUT",
             body:{...data }
-          })
+          }),
+          invalidatesTags: ['News'], // Invalida el cache de 'Notes' para volver a consultar
+
         }),
         createNew: builder.mutation({
           query(body) {
@@ -37,7 +42,8 @@ const newsApi = createApi({
               body,
             }
           },
-     
+          invalidatesTags: ['News'], // Invalida el cache de 'Notes' para volver a consultar
+
         }),
         deleteNewById: builder.mutation({ 
           query(id) {
@@ -45,7 +51,10 @@ const newsApi = createApi({
             url: `/news/${id}`,
             method: 'DELETE',
           }
-        },})
+        },
+        invalidatesTags: ['News'], // Invalida el cache de 'Notes' para volver a consultar
+
+      })
        
       }),
     

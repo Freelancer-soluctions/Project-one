@@ -25,16 +25,15 @@ import {
   SelectTrigger,
   SelectValue
 } from '@/components/ui/select'
-import { LuPlus } from 'react-icons/lu'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { CgNotes } from 'react-icons/cg'
 import PropTypes from 'prop-types'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 import { notesCreateDialogSchema } from '../utils/index'
 
-export function NotesCreateDialog({ onCreateNote, dataStatus }) {
-  const [open, setOpen] = useState(false)
+export function NotesCreateDialog({ onCreateNote, dataStatus, open, setOpen }) {
   const { t } = useTranslation()
 
   // Configura el formulario
@@ -51,6 +50,7 @@ export function NotesCreateDialog({ onCreateNote, dataStatus }) {
     if (values.title.trim() && values.content.trim() && values.status) {
       onCreateNote(values)
       setOpen(false)
+      formNotesDialog.reset()
     }
   }
 
@@ -64,15 +64,18 @@ export function NotesCreateDialog({ onCreateNote, dataStatus }) {
         }
         setOpen(isOpen)
       }}>
-      <DialogTrigger asChild>
+      {/* <DialogTrigger asChild>
         <Button className='gap-2' variant='success'>
           {t('create_note')}
           <LuPlus className='w-5 h-5 ml-auto opacity-50' />
         </Button>
-      </DialogTrigger>
+      </DialogTrigger> */}
       <DialogContent className='sm:max-w-[425px]'>
         <DialogHeader>
-          <DialogTitle>{t('create_note')}</DialogTitle>
+          <DialogTitle>
+            <CgNotes className='inline mr-3 w-7 h-7' />
+            {t('create_note')}
+          </DialogTitle>
         </DialogHeader>
 
         <Form {...formNotesDialog}>
@@ -166,14 +169,6 @@ export function NotesCreateDialog({ onCreateNote, dataStatus }) {
               />
             </div>
             <DialogFooter>
-              {/* <Button
-                  type='button'
-                  variant='secondary'
-                  onClick={() => {
-                    setOpenDialog(false)
-                  }}>
-                  Close
-                </Button> */}
               <DialogClose asChild>
                 <Button type='button' variant='secondary'>
                   {t('close')}

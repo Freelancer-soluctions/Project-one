@@ -1,12 +1,15 @@
 import { useState, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { EventDialog, EventList, EventFiltersForm } from '../components'
+import AlertDialogComponent from '@/components/alertDialog/AlertDialog'
 import { BackDashBoard } from '@/components/backDash/BackDashBoard'
 import { Spinner } from '@/components/loader/Spinner'
 import {
   useCreateEventMutation,
   useGetAllEventTypesQuery,
-  useGetAllEventsQuery
+  useGetAllEventsQuery,
+  useUpdateEventByIdMutation,
+  useDeleteEventByIdMutation
 } from '../slice/eventsSlice'
 
 export default function Events() {
@@ -14,6 +17,8 @@ export default function Events() {
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [event, setEvent] = useState({})
+  const [alertProps, setAlertProps] = useState({})
+  const [openAlertDialog, setOpenAlertDialog] = useState(false) //alert dialog open/close
 
   const [
     createEvent,
@@ -24,6 +29,25 @@ export default function Events() {
       error: errorPost
     }
   ] = useCreateEventMutation()
+
+  const [
+    updateEvent,
+    {
+      isLoading: isLoadingPut,
+      isError: isErrorPut,
+      isSuccess: isSuccessPut,
+      error: errorPut
+    }
+  ] = useUpdateEventByIdMutation()
+  const [
+    deleteEventById,
+    {
+      isLoading: isLoadingDelete,
+      isError: isErrorDelete,
+      isSuccess: isSuccessDelete,
+      error: errorDelete
+    }
+  ] = useDeleteEventByIdMutation()
 
   const {
     data: dataTypes = { data: [] },
@@ -45,9 +69,37 @@ export default function Events() {
 
   const handleAddEvent = async data => {
     data.id
-      ? await updateEvent({ ...data }).unwrap()
-      : (const {id, ...dataToSave} = data
-      await createEvent({ ...dataToSave }).unwrap())
+      ? await updateEvent({
+          id: data.id,
+          data: {
+            title: data.title,
+            speaker: data.speaker,
+            description: data.description,
+            type: data.type,
+            eventDate: data.eventDate,
+            startTime: data.startTime,
+            endTime: data.endTime
+          }
+        }).unwrap()
+      : await createEvent({
+          title: data.title,
+          speaker: data.speaker,
+          description: data.description,
+          type: data.type,
+          eventDate: data.eventDate,
+          startTime: data.startTime,
+          endTime: data.endTime
+        }).unwrap()
+
+    setAlertProps({
+      alertTitle: t(data.id ? 'update_record' : 'add_record'),
+      alertMessage: t(data.id ? 'updated_successfully' : 'added_successfully'),
+      cancel: false,
+      success: true,
+      onSuccess: () => {},
+      variantSuccess: 'info'
+    })
+    setOpenAlertDialog(true)
     setIsDialogOpen(false)
   }
 
@@ -56,8 +108,35 @@ export default function Events() {
     setIsDialogOpen(true)
   }
 
-  const handleDeleteEvent = id => {
-    setEvents(events.filter(event => event.id !== id))
+  const handleDeleteEvent = async id => {
+    setAlertProps({
+      alertTitle: t('delete_record'),
+      alertMessage: t('request_delete_record'),
+      cancel: true,
+      success: false,
+      destructive: true,
+      variantSuccess: '',
+      variantDestructive: 'destructive',
+      onSuccess: () => {},
+      onDelete: async () => {
+        try {
+          await deleteEventById(id).unwrap()
+
+          setAlertProps({
+            alertTitle: '',
+            alertMessage: t('deleted_successfully'),
+            cancel: false,
+            success: true,
+            onSuccess: () => {},
+            variantSuccess: 'info'
+          })
+          setOpenAlertDialog(true) // Open alert dialog
+        } catch (err) {
+          console.error('Error deleting:', err)
+        }
+      }
+    })
+    setOpenAlertDialog(true)
   }
 
   return (
@@ -67,7 +146,9 @@ export default function Events() {
         {/* Show spinner when loading or fetching */}
         {(isLoadingEvents ||
           isLoadingPost ||
+          isLoadingPut ||
           isLoadingTypes ||
+          isLoadingDelete ||
           isFetchingTypes ||
           isFetchingEvents) && <Spinner />}
         {/* Header fijo */}
@@ -92,6 +173,12 @@ export default function Events() {
           onSubmit={handleAddEvent}
           event={event}
           dataTypes={dataTypes?.data}
+        />
+
+        <AlertDialogComponent
+          openAlertDialog={openAlertDialog}
+          setOpenAlertDialog={setOpenAlertDialog}
+          alertProps={alertProps}
         />
       </div>
     </>

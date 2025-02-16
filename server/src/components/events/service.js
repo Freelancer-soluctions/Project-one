@@ -51,48 +51,30 @@ export const getAllEvents = async ({ searchQuery }) => {
   return data
 }
 
-// /**
-//  * Get one event item from the database by its ID.
-//  *
-//  * @param {number} id - The ID of the event item.
-//  * @returns {Promise<Object>} The event item matching the ID.
-//  */
-// export const getOneById = async (id) => {
-//   return eventDao.getOneRow({ where: { id } })
-// }
+/**
+ * Update an existing event item in the database by its ID.
+ *
+ * @param {number} userId - The ID of the user updating the event.
+ * @param {number} eventId - The ID of the event item to update.
+ * @param {Object} data - The updated data for the event item.
+ * @param {string} data.statusCode - The status code of the event item.
+ * @returns {Promise<Object>} The updated event item.
+ */
+export const updateEventById = async (eventId, data) => {
+  const rowId = Number(eventId)
+  data.updatedOn = new Date()
+  const { type, ...dataToSave } = data
+  const foreignKeys = { type: Number(type) }
+  return eventDao.updateEventById(dataToSave, foreignKeys, { id: rowId })
+}
 
-// /**
-//  * Update an existing event item in the database by its ID.
-//  *
-//  * @param {number} userId - The ID of the user updating the event.
-//  * @param {number} eventId - The ID of the event item to update.
-//  * @param {Object} data - The updated data for the event item.
-//  * @param {string} data.statusCode - The status code of the event item.
-//  * @returns {Promise<Object>} The updated event item.
-//  */
-// export const updateById = async (userId, eventId, data) => {
-//   const rowId = Number(eventId)
-
-//   if (data.statusCode === EventStatusCode.CLOSED) {
-//     data.closedBy = Number(userId)
-//     data.closedOn = new Date()
-//   }
-
-//   if (data.statusCode === EventStatusCode.PENDING) {
-//     data.pendingBy = Number(userId)
-//     data.pendingOn = new Date()
-//   }
-
-//   return eventDao.updateRow(data, { id: rowId })
-// }
-
-// /**
-//  * Delete an event item from the database by its ID.
-//  *
-//  * @param {number} id - The ID of the event item to delete.
-//  * @returns {Promise<Object>} The result of the deletion.
-//  */
-// export const deleteById = async (id) => {
-//   const rowId = Number(id)
-//   return eventDao.deleteRow({ id: rowId })
-// }
+/**
+ * Delete an event item from the database by its ID.
+ *
+ * @param {number} id - The ID of the event item to delete.
+ * @returns {Promise<Object>} The result of the deletion.
+ */
+export const deleteEventById = async (id) => {
+  const rowId = Number(id)
+  return eventDao.deleteEventById({ id: rowId })
+}
