@@ -11,7 +11,7 @@ import {
   useDeleteNoteByIdMutation
 } from '../slice/notesSlice'
 import {
-  NotesSearchBar,
+  NotesFilters,
   NotesColumn,
   NotesCreateDialog
 } from '../components/index'
@@ -22,6 +22,8 @@ export default function Notes() {
   const { t } = useTranslation()
   const [searchTerm, setSearchTerm] = useState('')
   const [openAlertDialog, setOpenAlertDialog] = useState(false) //alert dialog open/close
+  const [open, setOpen] = useState(false) //dialog open/close
+
   const [alertProps, setAlertProps] = useState({})
 
   const {
@@ -151,13 +153,44 @@ export default function Notes() {
       alertMessage: t('added_successfully'),
       cancel: false,
       success: true,
-      onSuccess: () => {},
+      onSuccess: () => {
+        setOpenAlertDialog(false)
+      },
       variantSuccess: 'info'
     })
   }
 
   const handleDeleteNote = async noteId => {
-    await deleteNoteById(noteId).unwrap()
+    setAlertProps({
+      alertTitle: t('delete_record'),
+      alertMessage: t('request_delete_record'),
+      cancel: true,
+      success: false,
+      destructive: true,
+      variantSuccess: '',
+      variantDestructive: 'destructive',
+      onSuccess: () => {},
+      onDelete: async () => {
+        try {
+          await deleteNoteById(noteId).unwrap()
+
+          setAlertProps({
+            alertTitle: '',
+            alertMessage: t('deleted_successfully'),
+            cancel: false,
+            success: true,
+            onSuccess: () => {
+              setOpenAlertDialog(false)
+            },
+            variantSuccess: 'info'
+          })
+          setOpenAlertDialog(true) // Open alert dialog
+        } catch (err) {
+          console.error('Error deleting:', err)
+        }
+      }
+    })
+    setOpenAlertDialog(true)
   }
 
   const handleEditNote = async note => {
@@ -169,6 +202,17 @@ export default function Notes() {
         title
       }
     }).unwrap()
+    setOpenAlertDialog(true)
+    setAlertProps({
+      alertTitle: t('update_record'),
+      alertMessage: t('updated_successfully'),
+      cancel: false,
+      success: true,
+      onSuccess: () => {
+        setOpenAlertDialog(false)
+      },
+      variantSuccess: 'info'
+    })
   }
   return (
     <>
@@ -184,12 +228,16 @@ export default function Notes() {
           isFetchingColumns ||
           isFetchingNotes) && <Spinner />}
         <div className='w-full space-y-6'>
+          <div className='flex flex-wrap gap-3'>
+            <NotesFilters onSearch={handleSearch} setOpen={setOpen} />
+          </div>
           <div className='flex flex-wrap items-center justify-between gap-4'>
             <NotesCreateDialog
               onCreateNote={handleCreateNote}
               dataStatus={dataColumns?.data}
+              open={open}
+              setOpen={setOpen}
             />
-            <NotesSearchBar onSearch={handleSearch} />
           </div>
           <div className='flex flex-col md:flex-row gap-6 p-4 min-h-[700px] w-full'>
             {filteredColumns.map(column => (

@@ -1,5 +1,3 @@
-'use client'
-
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -24,6 +22,7 @@ import { useTranslation } from 'react-i18next'
 import PropTypes from 'prop-types'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
+import { CgNotes } from 'react-icons/cg'
 import { notesEditDialogSchema } from '../utils/index'
 
 export function NotesEditDialog({ open, onOpenChange, onEditNote, note }) {
@@ -40,6 +39,7 @@ export function NotesEditDialog({ open, onOpenChange, onEditNote, note }) {
     if (values.title.trim() && values.content.trim()) {
       onEditNote(values)
       onOpenChange(false)
+      formEditNotesDialog.reset()
     }
   }
 
@@ -47,7 +47,10 @@ export function NotesEditDialog({ open, onOpenChange, onEditNote, note }) {
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className='sm:max-w-[425px]'>
         <DialogHeader>
-          <DialogTitle>{t('edit_note')}</DialogTitle>
+          <DialogTitle>
+            <CgNotes className='inline mr-3 w-7 h-7' />
+            {t('edit_note')}
+          </DialogTitle>
         </DialogHeader>
         <Form {...formEditNotesDialog}>
           <form

@@ -37,9 +37,8 @@ import { Textarea } from '@/components/ui/textarea'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { CalendarIcon } from '@radix-ui/react-icons'
-import { PiNewspaperClippingThin } from 'react-icons/pi'
+import { LuNewspaper } from 'react-icons/lu'
 import { Calendar } from '@/components/ui/calendar'
-
 import { format, formatISO } from 'date-fns'
 import { useTranslation } from 'react-i18next'
 import { cn } from '@/lib/utils'
@@ -75,7 +74,7 @@ export const NewsDialog = ({
         createdOn: selectedRow.createdOn || '',
         createdBy: selectedRow.createdBy || '',
         closedOn: selectedRow.closedOn || '',
-        status: selectedRow.status || '',
+        status: selectedRow.status || {},
         userNewsCreated: selectedRow.userNewsCreated?.name || '',
         userNewsClosed: selectedRow.userNewsClosed?.name || '',
         userNewsPending: selectedRow.userNewsPending?.name || ''
@@ -90,7 +89,11 @@ export const NewsDialog = ({
       setNewId(mappedValues.id || '')
       setStatusCodeSaved(mappedValues.status.code || '')
     }
-  }, [selectedRow])
+
+    if (!openDialog) {
+      formDialog.reset()
+    }
+  }, [selectedRow, openDialog])
 
   const onSubmitDialog = values => {
     onCreateUpdate(values, newId)
@@ -115,7 +118,7 @@ export const NewsDialog = ({
         <DialogContent>
           <DialogHeader>
             <DialogTitle>
-              <PiNewspaperClippingThin className='inline mr-3 w-7 h-7' />
+              <LuNewspaper className='inline mr-3 w-7 h-7' />
               {actionDialog}
             </DialogTitle>
             <DialogDescription>
@@ -246,14 +249,14 @@ export const NewsDialog = ({
                     name='createdOn'
                     render={({ field }) => (
                       <FormItem className='flex flex-col flex-auto'>
-                        <FormLabel htmlFor='createOn'>
+                        <FormLabel htmlFor='createdOn'>
                           {t('created_on')}
                         </FormLabel>
                         <Popover>
                           <PopoverTrigger asChild>
                             <FormControl>
                               <Button
-                                id='createOn'
+                                id='createdOn'
                                 disabled={true}
                                 readOnly={true}
                                 variant={'outline'}
@@ -272,7 +275,6 @@ export const NewsDialog = ({
                               selected={field.value}
                               onSelect={field.onChange}
                               disabled={date => date < new Date('1900-01-01')}
-                              initialFocus
                             />
                           </PopoverContent>
                         </Popover>
@@ -345,7 +347,6 @@ export const NewsDialog = ({
                               selected={field.value}
                               onSelect={field.onChange}
                               disabled={date => date < new Date('1900-01-01')}
-                              initialFocus
                             />
                           </PopoverContent>
                         </Popover>
@@ -385,7 +386,6 @@ export const NewsDialog = ({
                             }
                             {...field}
                             value={field.value ?? ''}
-                            defaultValues={field.value}
                           />
                         </FormControl>
                         <FormMessage />

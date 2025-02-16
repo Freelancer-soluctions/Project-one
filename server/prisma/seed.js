@@ -1,4 +1,4 @@
-import prisma from '../src/config/db.js'
+import { prisma } from '../src/config/db.js'
 import { encryptPassword } from '../src/utils/bcrypt/encrypt.js'
 
 const roles = [
@@ -117,24 +117,24 @@ const createVarious = async (tableName, createObjects) => {
   return Promise.resolve(createdObjects)
 }
 
-// const create = async (tableName, createObject) => {
-//   createObject.password = await encryptPassword(createObject.password)
-//   const createdItem = await prisma[tableName].create({
-//     data: createObject
-//   })
-//   return Promise.resolve(createdItem)
-// }
+const create = async (tableName, createObject) => {
+  createObject.password = await encryptPassword(createObject.password)
+  const createdItem = await prisma[tableName].create({
+    data: createObject
+  })
+  return Promise.resolve(createdItem)
+}
 
 async function main () {
-  // await createVarious('userPermits', userPermits)
-  // await createVarious('userStatus', userStatus)
-  // await createVarious('noteColumns', noteStatus)
+  await createVarious('userPermits', userPermits)
+  await createVarious('userStatus', userStatus)
+  await createVarious('noteColumns', noteStatus)
   await createVarious('eventTypes', eventTypes)
 
-  // await createVarious('newsStatus', newStatus)
-  // await createVarious('roles', roles)
-  // await create('users', user)
-  // await createVarious('news', news)
+  await createVarious('newsStatus', newStatus)
+  await createVarious('roles', roles)
+  await create('users', user)
+  await createVarious('news', news)
 }
 
 main()

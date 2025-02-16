@@ -90,64 +90,34 @@ export const getAllEvents = async (searchQuery) => {
 //   return Promise.resolve(events)
 // }
 
-// /**
-//  * Retrieves one row from the database based on the provided filter parameters.
-//  *
-//  * @param {Object} params - The filter parameters for retrieving the row.
-//  * @param {Object} params.where - The conditions to find the row.
-//  * @param {Object} params.include - Additional related data to include.
-//  * @returns {Promise<Object>} The requested row from the database.
-//  */
-// export const getOneRow = async ({ where, include }) => prismaService.getOneRow({
-//   tableName,
-//   where,
-//   include
-// })
+/**
+ * Updates an existing row in the database based on the provided filter and data.
+ *
+ * @param {Object} data - The fields to update in the row.
+ * @param {Object} foreignKeys - fo.
+ * @param {Object} where - The conditions to identify the row to update.
+ * @returns {Promise<Object>} The updated row in the database.
+ */
+export const updateEventById = async (data, foreignKeys, where) => {
+  console.log(data)
+  const result = await prisma.events.update({
+    where,
+    data: {
+      ...data,
+      eventTypes: {
+        connect: {
+          id: foreignKeys.type
+        }
+      }
+    }
+  })
+  return Promise.resolve(result)
+}
 
-// /**
-//  * Updates an existing row in the database based on the provided filter and data.
-//  *
-//  * @param {Object} data - The fields to update in the row.
-//  * @param {Object} where - The conditions to identify the row to update.
-//  * @returns {Promise<Object>} The updated row in the database.
-//  */
-// export const updateRow = async (data, where) => {
-//   const result = await prisma.events.update({
-//     where,
-//     data: {
-//       description: data.description,
-//       document: data.document,
-//       documentId: data.documentId,
-//       pendingOn: data.pendingOn ? data.pendingOn : undefined,
-//       userEventPending: data.pendingBy
-//         ? {
-//             connect: {
-//               id: data.pendingBy
-//             }
-//           }
-//         : undefined,
-//       closedOn: data.closedOn ? data.closedOn : undefined,
-//       userEventClosed: data.closedBy
-//         ? {
-//             connect: {
-//               id: data.closedBy
-//             }
-//           }
-//         : undefined,
-//       status: {
-//         connect: {
-//           id: data.statusId
-//         }
-//       }
-//     }
-//   })
-//   return Promise.resolve(result)
-// }
-
-// /**
-//  * Deletes a row from the database based on the provided filter.
-//  *
-//  * @param {Object} where - The filter conditions to identify the row to delete.
-//  * @returns {Promise<Object>} The result of the delete operation.
-//  */
-// export const deleteRow = async (where) => prismaService.deleteRow(tableName, where)
+/**
+ * Deletes a row from the database based on the provided filter.
+ *
+ * @param {Object} where - The filter conditions to identify the row to delete.
+ * @returns {Promise<Object>} The result of the delete operation.
+ */
+export const deleteEventById = async (where) => prismaService.deleteRow(tableName, where)
