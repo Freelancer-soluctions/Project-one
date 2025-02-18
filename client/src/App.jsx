@@ -39,6 +39,7 @@ const App = () => {
           <Route path='settings' element={<Settings />} />
           <Route path='events' element={<Events />} />
           <Route path='inventory' element={<Events />} />
+          <Route path='expenses' element={<Events />} />
 
           {/* Ruta comodín para manejar 404 en /home */}
           <Route path='*' element={<NotFound link={'/home'} />} />
