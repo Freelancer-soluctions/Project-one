@@ -90,5 +90,6 @@ export const deleteById = handleCatchErrorAsync(async (req, res) => {
  */
 export const getAllNotesCount = handleCatchErrorAsync(async (req, res) => {
   const data = await notesService.getAllNotesCount()
+  console.log('datasdss', data)
   globalResponse(res, 200, data)
 })

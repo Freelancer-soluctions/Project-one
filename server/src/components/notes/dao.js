@@ -106,12 +106,12 @@ export const deleteRow = async (id) => {
  */
 export const getAllNotesCount = async () => {
   const notesCount = await prisma.$queryRaw`
-    SELECT 
-    SUM(CASE WHEN nc.code = 'C01' THEN 1 ELSE 0 END) AS LOW,
-    SUM(CASE WHEN nc.code = 'C02' THEN 1 ELSE 0 END) AS MEDIUM,
-    SUM(CASE WHEN nc.code = 'C03' THEN 1 ELSE 0 END) AS HIGH
-FROM public.notes n
-LEFT JOIN public."noteColumns" nc ON nc.id = n."columnId";
+  SELECT 
+    CAST(COUNT(CASE WHEN nc.code = 'C01' THEN 1 ELSE NULL END) AS INT) AS LOW,
+    CAST(COUNT(CASE WHEN nc.code = 'C02' THEN 1 ELSE NULL END) AS INT) AS MEDIUM,
+    CAST(COUNT(CASE WHEN nc.code = 'C03' THEN 1 ELSE NULL END) AS INT) AS HIGH
+    FROM public.notes n
+    LEFT JOIN public."noteColumns" nc ON nc.id = n."columnId";
    `
 
   return notesCount

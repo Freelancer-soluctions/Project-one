@@ -5,7 +5,7 @@
    
    
    // Define a service using a base URL and expected endpoints
-   const notesApi = createApi({
+   const homeApi = createApi({
        reducerPath:'homeApi',
        baseQuery:axiosPrivateBaseQuery({ baseUrl: import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1' }),
        endpoints: (builder) => ({
@@ -27,7 +27,7 @@
    
    // Export hooks for usage in functional components, which are
    // auto-generated based on the defined endpoints
-   export const { useLazyGetAllNotesQuery } = homeApi
+   export const { useGetAllCountNotesQuery } = homeApi
    
    export default homeApi
    

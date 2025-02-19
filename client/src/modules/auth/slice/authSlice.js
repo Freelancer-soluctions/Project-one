@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
-import { SignInApi, RefreshTokenApi } from '@/modules/auth/api/auth'
+import { SignInApi, RefreshTokenApi } from '@/modules/auth/api/authAPI'
 
 // export const { guardarMiNombre } = origenSlice.actions // Cuando se trabaja con slice se obtine actions que hace referencia a los reducers, pero estas son acciones
 // pluginJsxRuntime
