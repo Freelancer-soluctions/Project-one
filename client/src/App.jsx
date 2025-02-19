@@ -29,9 +29,9 @@ const App = () => {
         <Route
           path='/home'
           element={
-            // <ProtectedRoutes redirectTo='/signIn'>
-            <Home />
-            // </ProtectedRoutes>
+            <ProtectedRoutes redirectTo='/signIn'>
+              <Home />
+            </ProtectedRoutes>
           }>
           <Route index element={<Access />} />
           <Route path='news' element={<News />} />
