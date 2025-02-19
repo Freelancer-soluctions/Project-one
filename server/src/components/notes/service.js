@@ -79,3 +79,14 @@ export const deleteById = async (id) => {
   const rowId = Number(id)
   return notesDao.deleteRow(rowId)
 }
+
+/**
+ * Get all number of  notes from the database.
+ *
+ * @returns {Promise<Array>} A list of all notes columns number.
+ */
+
+export const getAllNotesCount = async () => {
+  const data = await notesDao.getAllNotesCount()
+  return data
+}

@@ -29,17 +29,17 @@ const App = () => {
         <Route
           path='/home'
           element={
-            <ProtectedRoutes redirectTo='/signIn'>
-              <Home />
-            </ProtectedRoutes>
+            // <ProtectedRoutes redirectTo='/signIn'>
+            <Home />
+            // </ProtectedRoutes>
           }>
           <Route index element={<Access />} />
           <Route path='news' element={<News />} />
           <Route path='notes' element={<Notes />} />
           <Route path='settings' element={<Settings />} />
           <Route path='events' element={<Events />} />
-          <Route path='inventory' element={<Events />} />
-          <Route path='expenses' element={<Events />} />
+          {/* <Route path='inventory' element={<Events />} />
+          <Route path='expenses' element={<Events />} /> */}
 
           {/* Ruta comodín para manejar 404 en /home */}
           <Route path='*' element={<NotFound link={'/home'} />} />
