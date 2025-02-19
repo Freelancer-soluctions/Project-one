@@ -80,3 +80,15 @@ export const deleteById = handleCatchErrorAsync(async (req, res) => {
   await notesService.deleteById(id)
   globalResponse(res, 200, { message: 'Item deleted successfully' })
 })
+
+/**
+ * Get the number of all notes items.
+ *
+ * @param {Object} req - The HTTP request object.
+ * @param {Object} res - The HTTP response object.
+ * @returns {Promise<void>} Sends a response containing the number of all news items.
+ */
+export const getAllNotesCount = handleCatchErrorAsync(async (req, res) => {
+  const data = await notesService.getAllNotesCount()
+  globalResponse(res, 200, data)
+})

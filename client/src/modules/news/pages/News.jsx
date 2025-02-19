@@ -10,7 +10,7 @@ import {
   useUpdateNewByIdMutation,
   useCreateNewMutation,
   useDeleteNewByIdMutation
-} from '../slice/newsSlice'
+} from '../api/newsAPI'
 import { useTranslation } from 'react-i18next'
 const News = () => {
   const [selectedRow, setSelectedRow] = useState({}) //data from datatable

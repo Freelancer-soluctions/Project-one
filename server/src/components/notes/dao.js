@@ -98,3 +98,21 @@ export const updateNoteById = async (id, data) => {
 export const deleteRow = async (id) => {
   await prisma.notes.delete({ where: { id } })
 }
+
+/**
+ * Get all number of  notes from the database.
+ *
+ * @returns {Promise<Array>} A list of all notes columns number.
+ */
+export const getAllNotesCount = async () => {
+  const notesCount = await prisma.$queryRaw`
+    SELECT 
+    SUM(CASE WHEN nc.code = 'C01' THEN 1 ELSE 0 END) AS LOW,
+    SUM(CASE WHEN nc.code = 'C02' THEN 1 ELSE 0 END) AS MEDIUM,
+    SUM(CASE WHEN nc.code = 'C03' THEN 1 ELSE 0 END) AS HIGH
+FROM public.notes n
+LEFT JOIN public."noteColumns" nc ON nc.id = n."columnId";
+   `
+
+  return notesCount
+}
