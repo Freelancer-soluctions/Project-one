@@ -90,6 +90,11 @@
     "end_time": "End time",
     "speaker": "Speaker",
     "date": "Date",
-    "save_changes": "Save changes"
+    "save_changes": "Save changes",
+    "status_notes": "Status of notes",
+    "to_do": "Green: To do",
+    "in_progress": "Yellow: In progress",
+    "completed": "Red: Completed",
+    "show_all_notes": "Show all notes"
   }
 }

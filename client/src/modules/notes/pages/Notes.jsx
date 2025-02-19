@@ -9,7 +9,7 @@ import {
   useUpdateNoteColumIdMutation,
   useUpdateNoteByIdMutation,
   useDeleteNoteByIdMutation
-} from '../slice/notesSlice'
+} from '../api/notesAPI'
 import {
   NotesFilters,
   NotesColumn,
