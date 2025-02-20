@@ -226,4 +226,39 @@ router.put('/:id', verifyToken, validateSchema(NoteUpdate), noteController.updat
 
 router.delete('/:id', verifyToken, noteController.deleteById)
 
+/**
+@openapi
+ * /api/v1/notes/notesCount:
+ *   get:
+ *     tags:
+ *       - Notes
+ *     parameters:
+ *       - in: header
+ *         name: x-access-token
+ *         schema:
+ *          type: string
+ *         required: true
+ *     responses:
+ *       200:
+ *         description: OK
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     $ref: "#/components/schemas/notesCount"
+ *       5XX:
+ *         description: FAILED
+ *         content:
+ *           application/json:
+ *             schema:
+ *              $ref: "#/components/schemas/Error"
+ *
+ */
+
+router.get('/notesCount', verifyToken, noteController.getAllNotesCount)
+
 export default router

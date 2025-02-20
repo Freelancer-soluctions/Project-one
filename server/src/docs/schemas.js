@@ -496,3 +496,21 @@
  *          type: string
  *          example: C01, C02, C03 etc...
  */
+
+/**
+ * @openapi
+ * components:
+ *   schemas:
+ *     notesCount:
+ *       type: object
+ *       properties:
+ *         low:
+ *           type: integer
+ *           example: 1, 2, 3, 4 etc...
+ *         medium:
+ *           type: integer
+ *           example: 1, 2, 3, 4 etc...
+ *         high:
+ *          type: integer
+ *           example: 1, 2, 3, 4 etc...
+ */

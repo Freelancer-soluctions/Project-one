@@ -10,7 +10,7 @@ import {
   useGetAllEventsQuery,
   useUpdateEventByIdMutation,
   useDeleteEventByIdMutation
-} from '../slice/eventsSlice'
+} from '../api/eventsAPI'
 
 export default function Events() {
   const { t } = useTranslation()

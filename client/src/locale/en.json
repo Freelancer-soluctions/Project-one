@@ -90,6 +90,11 @@
     "end_time": "End time",
     "speaker": "Speaker",
     "date": "Date",
-    "save_changes": "Save changes"
+    "save_changes": "Save changes",
+    "status_notes": "Status of notes",
+    "low_notes": "Green: Low priority",
+    "medium_notes": "Yellow: Medium priority",
+    "high_notes": "Red: High priority",
+    "show_all_notes": "Show all notes"
   }
 }
