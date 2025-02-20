@@ -9,7 +9,7 @@ import { useInitializeI18n } from '@/hooks/useInitializeI18n'
 
 const SignIn = lazy(() => import('@/modules/auth/pages/SignIn'))
 const SignUp = lazy(() => import('@/modules/auth/pages/SignUp'))
-const Access = lazy(() => import('@/modules/access/pages/Access'))
+const Access = lazy(() => import('@/modules/home/components/AccessCardModules'))
 const Notes = lazy(() => import('@/modules/notes/pages/Notes'))
 const News = lazy(() => import('@/modules/news/pages/News'))
 const Settings = lazy(() => import('@/modules/settings/pages/Settings'))
@@ -38,6 +38,8 @@ const App = () => {
           <Route path='notes' element={<Notes />} />
           <Route path='settings' element={<Settings />} />
           <Route path='events' element={<Events />} />
+          {/* <Route path='inventory' element={<Events />} />
+          <Route path='expenses' element={<Events />} /> */}
 
           {/* Ruta comodín para manejar 404 en /home */}
           <Route path='*' element={<NotFound link={'/home'} />} />

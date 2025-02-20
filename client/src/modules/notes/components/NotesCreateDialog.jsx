@@ -93,7 +93,7 @@ export function NotesCreateDialog({ onCreateNote, dataStatus, open, setOpen }) {
                 render={({ field }) => {
                   return (
                     <FormItem className='flex flex-col flex-auto'>
-                      <FormLabel htmlFor='status'>{t('status')}*</FormLabel>
+                      <FormLabel htmlFor='status'>{t('status')}</FormLabel>
                       <Select
                         onValueChange={code => {
                           // Buscar el objeto completo por el `code`
