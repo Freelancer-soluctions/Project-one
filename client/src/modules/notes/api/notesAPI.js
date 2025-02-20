@@ -10,6 +10,15 @@ const notesApi = createApi({
     baseQuery:axiosPrivateBaseQuery({ baseUrl: import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1' }),
     tagTypes: ['Notes'], // Agrega un tag identificador
     endpoints: (builder) => ({
+        getAllCountNotes: builder.query({
+          query: () =>({
+            url: `/notes/notesCount`,
+            method: "GET",
+          }),
+          providesTags: ['Notes'], // Indica que este endpoint usa el tag 'Notes'
+        }),
+
+    
         getAllNotes: builder.query({
           query: (args) =>({
             url: `/notes`,
@@ -64,6 +73,6 @@ const notesApi = createApi({
 
 // Export hooks for usage in functional components, which are
 // auto-generated based on the defined endpoints
-export const { useGetAllNotesQuery, useGetAllNotesColumnsQuery, useCreateNoteMutation, useUpdateNoteColumIdMutation, useUpdateNoteByIdMutation, useDeleteNoteByIdMutation  } = notesApi
+export const { useGetAllNotesQuery, useGetAllNotesColumnsQuery, useCreateNoteMutation, useUpdateNoteColumIdMutation, useUpdateNoteByIdMutation, useDeleteNoteByIdMutation, useGetAllCountNotesQuery  } = notesApi
 
 export default notesApi
