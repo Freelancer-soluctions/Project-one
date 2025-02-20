@@ -1,7 +1,7 @@
 import { BackDashBoard } from '@/components/backDash/BackDashBoard'
 import { Spinner } from '@/components/loader/Spinner'
 import { useTranslation } from 'react-i18next'
-import { useState, useMemo } from 'react'
+import { useState, useEffect } from 'react'
 import {
   useGetAllNotesQuery,
   useGetAllNotesColumnsQuery,
@@ -17,14 +17,24 @@ import {
 } from '../components/index'
 import { StatusColumn, NotesColor } from '../utils/index'
 import AlertDialogComponent from '@/components/alertDialog/AlertDialog'
+import { useLocation } from 'react-router'
 
 export default function Notes() {
   const { t } = useTranslation()
-  const [searchTerm, setSearchTerm] = useState('')
+  const [filters, setFilters] = useState({ searchTerm: '', statusCode: '' })
   const [openAlertDialog, setOpenAlertDialog] = useState(false) //alert dialog open/close
   const [open, setOpen] = useState(false) //dialog open/close
-
   const [alertProps, setAlertProps] = useState({})
+  const location = useLocation()
+
+  // Capturar el filter al cargar el componente
+  useEffect(() => {
+    if (location.state?.filter) {
+      setFilters(prev => ({ ...prev, statusCode: location.state.filter }))
+    } else {
+      setFilters({ searchTerm: '', statusCode: '' })
+    }
+  }, [location.state])
 
   const {
     data: dataColumns = { data: [] },
@@ -41,8 +51,9 @@ export default function Notes() {
     isLoading: isLoadingNotes,
     isFetching: isFetchingNotes,
     isSuccess: isSuccessNotes,
-    error: errorNotes
-  } = useGetAllNotesQuery()
+    error: errorNotes,
+    refetch: refetchNotes
+  } = useGetAllNotesQuery(filters)
 
   const [
     createNote,
@@ -72,20 +83,20 @@ export default function Notes() {
     }
   ] = useDeleteNoteByIdMutation()
 
-  const filteredColumns = useMemo(() => {
-    if (!searchTerm) return dataNotes?.data
+  // const filteredColumns = useMemo(() => {
+  //   if (!searchTerm) return dataNotes?.data
 
-    return dataNotes?.data.map(column => ({
-      ...column,
-      notes: column.notes.filter(note => {
-        const searchTermLower = searchTerm.toLowerCase()
-        return (
-          note.title.toLowerCase().includes(searchTermLower) ||
-          note.content.toLowerCase().includes(searchTermLower)
-        )
-      })
-    }))
-  }, [dataNotes, searchTerm])
+  //   return dataNotes?.data.map(column => ({
+  //     ...column,
+  //     notes: column.notes.filter(note => {
+  //       const searchTermLower = searchTerm.toLowerCase()
+  //       return (
+  //         note.title.toLowerCase().includes(searchTermLower) ||
+  //         note.content.toLowerCase().includes(searchTermLower)
+  //       )
+  //     })
+  //   }))
+  // }, [dataNotes, searchTerm])
 
   const setColor = code => {
     return code === StatusColumn.MEDIUM
@@ -133,8 +144,16 @@ export default function Notes() {
     }).unwrap()
   }
 
-  const handleSearch = term => {
-    setSearchTerm(term)
+  const handleSearchChange = value => {
+    setFilters(prev => ({ ...prev, searchTerm: value }))
+  }
+
+  const handleStatusChange = value => {
+    setFilters(prev => ({ ...prev, statusCode: value }))
+  }
+
+  const handleReset = () => {
+    setFilters({ searchTerm: '', statusCode: '' })
   }
 
   const handleCreateNote = async ({ title, content, status }) => {
@@ -229,7 +248,14 @@ export default function Notes() {
           isFetchingNotes) && <Spinner />}
         <div className='w-full space-y-6'>
           <div className='flex flex-wrap gap-3'>
-            <NotesFilters onSearch={handleSearch} setOpen={setOpen} />
+            <NotesFilters
+              onSearch={handleSearchChange}
+              onSearchStatus={handleStatusChange}
+              dataStatus={dataColumns?.data}
+              filters={filters}
+              handleReset={handleReset}
+              setOpen={setOpen}
+            />
           </div>
           <div className='flex flex-wrap items-center justify-between gap-4'>
             <NotesCreateDialog
@@ -240,7 +266,7 @@ export default function Notes() {
             />
           </div>
           <div className='flex flex-col md:flex-row gap-6 p-4 min-h-[700px] w-full'>
-            {filteredColumns.map(column => (
+            {dataNotes?.data.map(column => (
               <NotesColumn
                 key={column.id}
                 column={column}

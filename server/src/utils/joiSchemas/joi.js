@@ -159,9 +159,10 @@ export const RoleUpdate = Joi.object({
 export const RoleArray = Joi.array().items(Role).min(1)
 
 export const NotesFilters = Joi.object({
-  description: Joi.string()
+  searchTerm: Joi.string()
     .min(1)
-    .max(150).allow('')
+    .max(150).allow(''),
+  statusCode: Joi.string().min(3).max(3).allow('')
 
 })
 
