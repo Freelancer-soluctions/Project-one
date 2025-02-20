@@ -10,10 +10,9 @@
        baseQuery:axiosPrivateBaseQuery({ baseUrl: import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1' }),
        endpoints: (builder) => ({
            getAllCountNotes: builder.query({
-             query: (args) =>({
+             query: () =>({
                url: `/notes/notesCount`,
                method: "GET",
-               params: {...args}
              }),
           
            }),

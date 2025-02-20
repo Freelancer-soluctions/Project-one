@@ -4,11 +4,13 @@ import * as notesDao from './dao.js'
  * Get all notes from the database with optional filters.
  *
  * @param {Object} params - The parameters for filtering the news.
- * @param {string} params.description - The description filter.
+ * @param {string} params.searchTerm - The searchTerm filter.
+ * @param {string} params.statusCode - The statusCode filter.
+
  * @returns {Promise<Array>} A list of news items matching the filters.
  */
-export const getAllNotes = async ({ description }) => {
-  const data = await notesDao.getAllNotes(description)
+export const getAllNotes = async (searchTerm, statusCode) => {
+  const data = await notesDao.getAllNotes(searchTerm, statusCode)
   return data
 }
 
