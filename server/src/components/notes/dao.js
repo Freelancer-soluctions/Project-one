@@ -7,18 +7,40 @@ import { prisma } from '../../config/db.js'
  * @returns {Promise<Array>} A list of news matching the filters from the database.
  */
 
-export const getAllNotes = async (description) => {
+export const getAllNotes = async (searchTerm, statusCode) => {
   return await prisma.noteColumns.findMany({
     include: {
       notes: {
-        where: description
-          ? {
-              content: {
-                contains: description, // Filtra por contenido si description está presente
-                mode: 'insensitive' // Ignora mayúsculas/minúsculas
-              }
-            }
-          : {} // Si no hay filtro, trae todas las notas
+        where: {
+          AND: [
+            searchTerm
+              ? {
+                  OR: [
+                    { content: { contains: searchTerm, mode: 'insensitive' } },
+                    { title: { contains: searchTerm, mode: 'insensitive' } }
+                  ]
+                }
+              : {}, // Si no hay `searchTerm`, no se aplica este filtro
+
+            statusCode
+              ? { columnStatus: { code: statusCode } } // Aplica el filtro solo si `statusCode` tiene un valor
+              : {} // Si no hay `statusCode`, no se aplica este filtro
+          ]
+        }
+
+        // searchTerm
+        //   ? {
+        //       OR: [
+        //         { content: { contains: searchTerm, mode: 'insensitive' } },
+        //         { title: { contains: searchTerm, mode: 'insensitive' } }
+        //       ]
+
+        //       // content: {
+        //       //   contains: searchTerm, // Filtra por contenido si description está presente
+        //       //   mode: 'insensitive' // Ignora mayúsculas/minúsculas
+        //       // }
+        //     }
+        //   : {} // Si no hay filtro, trae todas las notas
       }
     }
   })
@@ -105,14 +127,31 @@ export const deleteRow = async (id) => {
  * @returns {Promise<Array>} A list of all notes columns number.
  */
 export const getAllNotesCount = async () => {
-  const notesCount = await prisma.$queryRaw`
-  SELECT 
-    CAST(COUNT(CASE WHEN nc.code = 'C01' THEN 1 ELSE NULL END) AS INT) AS LOW,
-    CAST(COUNT(CASE WHEN nc.code = 'C02' THEN 1 ELSE NULL END) AS INT) AS MEDIUM,
-    CAST(COUNT(CASE WHEN nc.code = 'C03' THEN 1 ELSE NULL END) AS INT) AS HIGH
-    FROM public.notes n
-    LEFT JOIN public."noteColumns" nc ON nc.id = n."columnId";
-   `
+  const lowCount = await prisma.notes.count({
+    where: { columnStatus: { code: 'C01' } }
+  })
+
+  const mediumCount = await prisma.notes.count({
+    where: { columnStatus: { code: 'C02' } }
+  })
+
+  const highCount = await prisma.notes.count({
+    where: { columnStatus: { code: 'C03' } }
+  })
+
+  const notesCount = { low: lowCount, medium: mediumCount, high: highCount }
 
   return notesCount
+
+  // Regresa un array lo cual no es optimo en esta ocacion para manejkar en el front end
+  // const notesCount = await prisma.$queryRaw`
+  // SELECT
+  //   CAST(COUNT(CASE WHEN nc.code = 'C01' THEN 1 ELSE NULL END) AS INT) AS LOW,
+  //   CAST(COUNT(CASE WHEN nc.code = 'C02' THEN 1 ELSE NULL END) AS INT) AS MEDIUM,
+  //   CAST(COUNT(CASE WHEN nc.code = 'C03' THEN 1 ELSE NULL END) AS INT) AS HIGH
+  //   FROM public.notes n
+  //   LEFT JOIN public."noteColumns" nc ON nc.id = n."columnId";
+  //  `
+
+  // return notesCount
 }

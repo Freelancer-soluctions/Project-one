@@ -10,8 +10,8 @@ import * as notesService from './service.js'
  * @returns A message
  */
 export const getAllNotes = handleCatchErrorAsync(async (req, res) => {
-  const query = req.query
-  const items = await notesService.getAllNotes(query)
+  const { searchTerm, statusCode } = req.query
+  const items = await notesService.getAllNotes(searchTerm, statusCode)
   globalResponse(res, 200, items)
 })
 
@@ -90,6 +90,5 @@ export const deleteById = handleCatchErrorAsync(async (req, res) => {
  */
 export const getAllNotesCount = handleCatchErrorAsync(async (req, res) => {
   const data = await notesService.getAllNotesCount()
-  console.log('datasdss', data)
   globalResponse(res, 200, data)
 })

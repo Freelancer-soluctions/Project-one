@@ -8,9 +8,9 @@ import {
 } from 'react-icons/lu'
 import { Link } from 'react-router'
 import { useTranslation } from 'react-i18next'
-import { QuickAccessButton } from './QuickAccess'
+import { QuickAccessButton } from '@/components/quickAccess/QuickAccess'
 import { NotesSummary } from './NotesSummary'
-import { useGetAllCountNotesQuery } from '../api/homeAPI'
+import { useGetAllCountNotesQuery } from '@/modules/notes/api/notesAPI'
 
 const SideBar = () => {
   const { t } = useTranslation()
@@ -49,13 +49,13 @@ const SideBar = () => {
         }
       />
 
-      <Link
+      {/* <Link
         to={'notes'}
         className='flex items-center gap-2 px-3 py-2 text-sm font-medium transition-colors rounded-md hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground'
         prefetch={false}>
         <CgNotes className='w-5 h-5' />
         {t('notes')}
-      </Link>
+      </Link> */}
       <Link
         to={'settings'}
         className='flex items-center gap-2 px-3 py-2 text-sm font-medium transition-colors rounded-md hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground'

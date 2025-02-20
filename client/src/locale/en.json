@@ -92,9 +92,9 @@
     "date": "Date",
     "save_changes": "Save changes",
     "status_notes": "Status of notes",
-    "to_do": "Green: To do",
-    "in_progress": "Yellow: In progress",
-    "completed": "Red: Completed",
+    "low_notes": "Green: Low priority",
+    "medium_notes": "Yellow: Medium priority",
+    "high_notes": "Red: High priority",
     "show_all_notes": "Show all notes"
   }
 }
