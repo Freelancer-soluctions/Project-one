@@ -95,6 +95,7 @@
     "low_notes": "Green: Low priority",
     "medium_notes": "Yellow: Medium priority",
     "high_notes": "Red: High priority",
-    "show_all_notes": "Show all notes"
+    "show_all_notes": "Show all notes",
+    "display": "display"
   }
 }

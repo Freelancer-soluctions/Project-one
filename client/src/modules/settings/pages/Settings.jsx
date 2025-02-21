@@ -1,5 +1,7 @@
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
+import { Checkbox } from '@/components/ui/checkbox'
+
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
@@ -12,7 +14,14 @@ import {
 } from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { LuBell, LuUser, LuMoon, LuShield, LuGlobe } from 'react-icons/lu'
+import {
+  LuBell,
+  LuUser,
+  LuMoon,
+  LuShield,
+  LuGlobe,
+  LuLayoutTemplate
+} from 'react-icons/lu'
 import { Separator } from '@/components/ui/separator'
 import { SettingsLanguage } from '../components/index'
 import { useSelector } from 'react-redux'
@@ -52,6 +61,10 @@ export default function Settings() {
               className='flex items-center gap-2'>
               <LuBell className='w-4 h-4' />
               {t('notifications')}
+            </TabsTrigger>
+            <TabsTrigger value='display' className='flex items-center gap-2'>
+              <LuLayoutTemplate className='w-4 h-4' />
+              {t('display')}
             </TabsTrigger>
             <TabsTrigger value='account' className='flex items-center gap-2'>
               <LuShield className='w-4 h-4' />
@@ -237,6 +250,77 @@ export default function Settings() {
               </CardContent>
             </Card>
           </TabsContent> */}
+          <TabsContent value='display' className='space-y-6'>
+            <Card>
+              <CardContent className='p-6 space-y-6'>
+                <div>
+                  <h3 className='mb-2 text-lg font-medium'>Display</h3>
+                  <p className='text-sm text-muted-foreground'>
+                    Turn items on or off to control what's displayed in the app.
+                  </p>
+                </div>
+                <div className='space-y-4'>
+                  <div>
+                    <h4 className='mb-3 text-sm font-medium'>Sidebar</h4>
+                    <p className='mb-4 text-sm text-muted-foreground'>
+                      Select the items you want to display in the sidebar.
+                    </p>
+                    <div className='space-y-3'>
+                      <div className='flex items-center space-x-2'>
+                        <Checkbox id='recents' defaultChecked />
+                        <label
+                          htmlFor='recents'
+                          className='text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70'>
+                          Recents
+                        </label>
+                      </div>
+                      <div className='flex items-center space-x-2'>
+                        <Checkbox id='home' defaultChecked />
+                        <label
+                          htmlFor='home'
+                          className='text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70'>
+                          Home
+                        </label>
+                      </div>
+                      <div className='flex items-center space-x-2'>
+                        <Checkbox id='applications' />
+                        <label
+                          htmlFor='applications'
+                          className='text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70'>
+                          Applications
+                        </label>
+                      </div>
+                      <div className='flex items-center space-x-2'>
+                        <Checkbox id='desktop' />
+                        <label
+                          htmlFor='desktop'
+                          className='text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70'>
+                          Desktop
+                        </label>
+                      </div>
+                      <div className='flex items-center space-x-2'>
+                        <Checkbox id='downloads' />
+                        <label
+                          htmlFor='downloads'
+                          className='text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70'>
+                          Downloads
+                        </label>
+                      </div>
+                      <div className='flex items-center space-x-2'>
+                        <Checkbox id='documents' />
+                        <label
+                          htmlFor='documents'
+                          className='text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70'>
+                          Documents
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+                  <Button className='mt-4'>Update display</Button>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
 
           {/* <TabsContent value='account' className='space-y-6'>
             <Card>

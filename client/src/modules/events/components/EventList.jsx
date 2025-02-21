@@ -2,38 +2,29 @@ import { LuPencil, LuTrash2 } from 'react-icons/lu'
 import { Button } from '@/components/ui/button'
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
-import { EventTypeCodes } from '../utils'
+import { sortedEvents, getEventTypeColor } from '../utils'
+import { useEffect, useState } from 'react'
 
 export function EventList({ events, onEdit, onDelete }) {
-  const getEventTypeColor = type => {
-    switch (type) {
-      case EventTypeCodes.CONFERENCE:
-        return 'bg-emerald-100 text-emerald-800'
-      case EventTypeCodes.WORKSHOP:
-        return 'bg-blue-100 text-blue-800'
-      case EventTypeCodes.SESSION:
-        return 'bg-purple-100 text-purple-800'
-      default:
-        return 'bg-gray-100 text-gray-800'
-    }
-  }
+  const [groupedEvents, setGroupedEvents] = useState([])
 
-  // Sort events by date and time
-  const sortedEvents = [...events].sort((a, b) => {
-    const dateA = new Date(`${a.eventDate}T${a.startTime}`)
-    const dateB = new Date(`${b.eventDate}T${b.startTime}`)
-    return dateA.getTime() - dateB.getTime()
-  })
+  useEffect(() => {
+    if (events.length > 0) {
+      // Group events by date
 
-  // Group events by date
-  const groupedEvents = sortedEvents.reduce((groups, event) => {
-    const date = event.eventDate
-    if (!groups[date]) {
-      groups[date] = []
+      const sorted = sortedEvents(events, false)
+      setGroupedEvents(
+        sorted.reduce((groups, event) => {
+          const date = event.eventDate
+          if (!groups[date]) {
+            groups[date] = []
+          }
+          groups[date].push(event)
+          return groups
+        }, {})
+      )
     }
-    groups[date].push(event)
-    return groups
-  }, {})
+  }, [events])
 
   return events.length > 0 ? (
     <div className='space-y-8'>
