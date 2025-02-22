@@ -24,15 +24,59 @@ import {
 } from 'react-icons/lu'
 import { Separator } from '@/components/ui/separator'
 import { SettingsLanguage } from '../components/index'
-import { useSelector } from 'react-redux'
+import { useSelector, useDispatch } from 'react-redux'
 import { useTranslation } from 'react-i18next'
-
+import { useSearchParams } from 'react-router'
+import { useState, useEffect } from 'react'
+import { saveSettingLanguageFetch } from '../slice/settingsSlice'
 export default function Settings() {
   const { id } = useSelector(state => state.auth.user.data.user)
-  const { t } = useTranslation()
+  const dispatch = useDispatch()
+  const {
+    t,
+    i18n: { changeLanguage }
+  } = useTranslation()
+  const [searchParams] = useSearchParams()
+  const tabFromUrl = searchParams.get('tab') || 'profile' // Si no hay parámetro, usa 'profile
+  const [activeTab, setActiveTab] = useState(tabFromUrl) // Estado local para la pestaña activa
+  // Actualizar el estado cuando cambie el query param
+  useEffect(() => {
+    setActiveTab(tabFromUrl)
+  }, [tabFromUrl]) // Se ejecuta cada vez que cambia `tab` en la URL
 
-  // const user = useSelector(state => state.auth)
+  const { language: languageState } = useSelector(
+    state => state.settings.dataSettings
+  )
+
+  const onChangeLanguage = async value => {
+    try {
+      // let userLanguage
+      // if (!response.data) {
+      //   // Forzar un refetch para obtener los datos frescos desde el servidor
+      //   const { data: refetchData } = await refetch({ forceRefetch: true })
+      //   userLanguage = refetchData.data
+      // } else {
+      //   userLanguage = response.data
+      // }
+
+      // Aquí manipulas los datos frescos que se han obtenido
+      const lang =
+        languageState.data?.id && languageState.data?.language
+          ? { id: languageState.data.id, language: value }
+          : { userId, language: value }
+
+      // Guardar el nuevo idioma
+      dispatch(saveSettingLanguageFetch(lang))
+
+      // Cambiar el idioma usando i18n
+      changeLanguage(value)
+    } catch (error) {
+      console.error('Error updating:', error)
+    }
+  }
   return (
+    // {(isLoading || isFetching || isLoadingPost) && <Spinner />}
+
     <div className='container max-w-6xl py-10'>
       <div className='space-y-6'>
         <div>
@@ -42,7 +86,11 @@ export default function Settings() {
           </p>
         </div>
         <Separator />
-        <Tabs defaultValue='profile' className='space-y-10'>
+        <Tabs
+          defaultValue='profile'
+          value={activeTab}
+          onValueChange={setActiveTab}
+          className='space-y-10'>
           <TabsList className='flex flex-wrap gap-5 overflow-x-auto md:flex-nowrap'>
             <TabsTrigger value='profile' className='flex items-center gap-2'>
               <LuUser className='w-4 h-4' />
@@ -72,7 +120,10 @@ export default function Settings() {
             </TabsTrigger>
           </TabsList>
 
-          <SettingsLanguage userId={id} />
+          <TabsContent value='language' className='space-y-6'>
+            <SettingsLanguage onChangeLanguage={onChangeLanguage} />
+          </TabsContent>
+
           {/* <TabsContent value='profile' className='space-y-6'>
             <Card>
               <CardContent className='p-6 space-y-4'>
@@ -250,77 +301,6 @@ export default function Settings() {
               </CardContent>
             </Card>
           </TabsContent> */}
-          <TabsContent value='display' className='space-y-6'>
-            <Card>
-              <CardContent className='p-6 space-y-6'>
-                <div>
-                  <h3 className='mb-2 text-lg font-medium'>Display</h3>
-                  <p className='text-sm text-muted-foreground'>
-                    Turn items on or off to control what's displayed in the app.
-                  </p>
-                </div>
-                <div className='space-y-4'>
-                  <div>
-                    <h4 className='mb-3 text-sm font-medium'>Sidebar</h4>
-                    <p className='mb-4 text-sm text-muted-foreground'>
-                      Select the items you want to display in the sidebar.
-                    </p>
-                    <div className='space-y-3'>
-                      <div className='flex items-center space-x-2'>
-                        <Checkbox id='recents' defaultChecked />
-                        <label
-                          htmlFor='recents'
-                          className='text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70'>
-                          Recents
-                        </label>
-                      </div>
-                      <div className='flex items-center space-x-2'>
-                        <Checkbox id='home' defaultChecked />
-                        <label
-                          htmlFor='home'
-                          className='text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70'>
-                          Home
-                        </label>
-                      </div>
-                      <div className='flex items-center space-x-2'>
-                        <Checkbox id='applications' />
-                        <label
-                          htmlFor='applications'
-                          className='text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70'>
-                          Applications
-                        </label>
-                      </div>
-                      <div className='flex items-center space-x-2'>
-                        <Checkbox id='desktop' />
-                        <label
-                          htmlFor='desktop'
-                          className='text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70'>
-                          Desktop
-                        </label>
-                      </div>
-                      <div className='flex items-center space-x-2'>
-                        <Checkbox id='downloads' />
-                        <label
-                          htmlFor='downloads'
-                          className='text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70'>
-                          Downloads
-                        </label>
-                      </div>
-                      <div className='flex items-center space-x-2'>
-                        <Checkbox id='documents' />
-                        <label
-                          htmlFor='documents'
-                          className='text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70'>
-                          Documents
-                        </label>
-                      </div>
-                    </div>
-                  </div>
-                  <Button className='mt-4'>Update display</Button>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
 
           {/* <TabsContent value='account' className='space-y-6'>
             <Card>
