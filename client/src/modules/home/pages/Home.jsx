@@ -4,8 +4,21 @@ import SideBar from '../components/SideBar'
 import { Suspense } from 'react'
 import { Spinner } from '../../../components/loader/Spinner'
 import { Outlet } from 'react-router'
+import { useInitializeI18n } from '@/hooks/useInitializeI18n'
+import { useGetAllCountNotesQuery } from '@/modules/notes/api/notesAPI'
 
 const Home = () => {
+  useInitializeI18n() // Inicializa el idioma al cargar la app
+
+  const {
+    data: dataCountNotes = { data: [] },
+    isError: isErrorCountNotes,
+    isLoading: isLoadingCountNotes,
+    isFetching: isFetchingCountNotes,
+    isSuccess: isSuccesCountNotes,
+    error: errorCountNotes
+  } = useGetAllCountNotesQuery()
+
   return (
     <div className='flex flex-col w-full h-screen'>
       <header className='flex items-center justify-between px-4 py-3 shadow-sm bg-primary text-primary-foreground md:px-6'>
@@ -14,7 +27,7 @@ const Home = () => {
       <div className='flex flex-1'>
         <div className='flex-col hidden p-4 shadow-sm lg:flex bg-background'>
           <nav className='flex flex-col gap-2'>
-            <SideBar />
+            <SideBar dataCountNotes={dataCountNotes} />
           </nav>
         </div>
         <div className='flex-1 p-4 overflow-auto md:p-6'>

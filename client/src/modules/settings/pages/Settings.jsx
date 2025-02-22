@@ -1,5 +1,7 @@
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
+import { Checkbox } from '@/components/ui/checkbox'
+
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
@@ -12,18 +14,69 @@ import {
 } from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { LuBell, LuUser, LuMoon, LuShield, LuGlobe } from 'react-icons/lu'
+import {
+  LuBell,
+  LuUser,
+  LuMoon,
+  LuShield,
+  LuGlobe,
+  LuLayoutTemplate
+} from 'react-icons/lu'
 import { Separator } from '@/components/ui/separator'
 import { SettingsLanguage } from '../components/index'
-import { useSelector } from 'react-redux'
+import { useSelector, useDispatch } from 'react-redux'
 import { useTranslation } from 'react-i18next'
-
+import { useSearchParams } from 'react-router'
+import { useState, useEffect } from 'react'
+import { saveSettingLanguageFetch } from '../slice/settingsSlice'
 export default function Settings() {
   const { id } = useSelector(state => state.auth.user.data.user)
-  const { t } = useTranslation()
+  const dispatch = useDispatch()
+  const {
+    t,
+    i18n: { changeLanguage }
+  } = useTranslation()
+  const [searchParams] = useSearchParams()
+  const tabFromUrl = searchParams.get('tab') || 'profile' // Si no hay parámetro, usa 'profile
+  const [activeTab, setActiveTab] = useState(tabFromUrl) // Estado local para la pestaña activa
+  // Actualizar el estado cuando cambie el query param
+  useEffect(() => {
+    setActiveTab(tabFromUrl)
+  }, [tabFromUrl]) // Se ejecuta cada vez que cambia `tab` en la URL
 
-  // const user = useSelector(state => state.auth)
+  const { language: languageState } = useSelector(
+    state => state.settings.dataSettings
+  )
+
+  const onChangeLanguage = async value => {
+    try {
+      // let userLanguage
+      // if (!response.data) {
+      //   // Forzar un refetch para obtener los datos frescos desde el servidor
+      //   const { data: refetchData } = await refetch({ forceRefetch: true })
+      //   userLanguage = refetchData.data
+      // } else {
+      //   userLanguage = response.data
+      // }
+
+      // Aquí manipulas los datos frescos que se han obtenido
+      const lang =
+        languageState.data?.id && languageState.data?.language
+          ? { id: languageState.data.id, language: value }
+          : { userId, language: value }
+
+      // Guardar el nuevo idioma
+      dispatch(saveSettingLanguageFetch(lang))
+
+      // Cambiar el idioma usando i18n
+      changeLanguage(value)
+    } catch (error) {
+      console.error('Error updating:', error)
+    }
+  }
   return (
+    // {(isLoading || isFetching || isLoadingPost) && <Spinner />}
+
     <div className='container max-w-6xl py-10'>
       <div className='space-y-6'>
         <div>
@@ -33,7 +86,11 @@ export default function Settings() {
           </p>
         </div>
         <Separator />
-        <Tabs defaultValue='profile' className='space-y-10'>
+        <Tabs
+          defaultValue='profile'
+          value={activeTab}
+          onValueChange={setActiveTab}
+          className='space-y-10'>
           <TabsList className='flex flex-wrap gap-5 overflow-x-auto md:flex-nowrap'>
             <TabsTrigger value='profile' className='flex items-center gap-2'>
               <LuUser className='w-4 h-4' />
@@ -53,13 +110,20 @@ export default function Settings() {
               <LuBell className='w-4 h-4' />
               {t('notifications')}
             </TabsTrigger>
+            <TabsTrigger value='display' className='flex items-center gap-2'>
+              <LuLayoutTemplate className='w-4 h-4' />
+              {t('display')}
+            </TabsTrigger>
             <TabsTrigger value='account' className='flex items-center gap-2'>
               <LuShield className='w-4 h-4' />
               {t('account')}
             </TabsTrigger>
           </TabsList>
 
-          <SettingsLanguage userId={id} />
+          <TabsContent value='language' className='space-y-6'>
+            <SettingsLanguage onChangeLanguage={onChangeLanguage} />
+          </TabsContent>
+
           {/* <TabsContent value='profile' className='space-y-6'>
             <Card>
               <CardContent className='p-6 space-y-4'>
