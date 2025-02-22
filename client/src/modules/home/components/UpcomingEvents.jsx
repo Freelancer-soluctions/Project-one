@@ -21,10 +21,12 @@ import {
 } from '@/components/ui/collapsible'
 import { useGetAllEventsQuery } from '@/modules/events/api/eventsAPI'
 import { sortedEvents, getEventTypeColor } from '@/modules/events/utils'
+import { useTranslation } from 'react-i18next'
 
 export function UpcomingEventsAlert() {
   const [upcomingEvents, setUpcomingEvents] = useState([])
   const [isOpen, setIsOpen] = useState(false)
+  const { t } = useTranslation()
 
   const plugin = useRef(Autoplay({ delay: 4000, stopOnInteraction: true }))
 
@@ -58,7 +60,7 @@ export function UpcomingEventsAlert() {
                 className='flex items-center justify-between w-full h-auto py-2'>
                 <div className='flex items-center gap-2'>
                   <h2 className='text-lg font-semibold tracking-tight'>
-                    Próximos Eventos
+                    {t('next_events')}
                   </h2>
                   <span className='text-sm text-muted-foreground'>
                     ({upcomingEvents.length})
