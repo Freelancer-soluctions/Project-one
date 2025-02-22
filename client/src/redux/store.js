@@ -8,22 +8,30 @@ import homeApi from '@/modules/home/api/homeAPI'
 
 import storageSession from 'redux-persist/lib/storage/session';
 import { persistStore, persistReducer } from 'redux-persist';
-
+import settingsSlice from '@/modules/settings/slice/settingsSlice';
 
 const persistConfig = {
-  key: 'auth',
+  key: 'root',
   storage: storageSession,
-   whitelist: ['auth'], // Solo persistir el slice 'auth'
-   blacklist: ['settingsApi'], // Excluir el slice de settingsApi de la persistencia
+  whitelist: ['auth', 'settings'], // Agregar 'settings' para persistirlo
+  // blacklist: ['settingsApi'], // Mantener la exclusión de settingsApi
 };
+
+
+// const persistConfig = {
+//   key: 'auth',
+//   storage: storageSession,
+//    whitelist: ['auth'], // Solo persistir el slice 'auth'
+//   //  blacklist: ['settingsApi'], // Excluir el slice de settingsApi de la persistencia
+// };
 
 const rootReducer = combineReducers({
   auth: authSlice,
+  settings: settingsSlice,
   [homeApi.reducerPath]: homeApi.reducer,
   [newsApi.reducerPath]: newsApi.reducer,
   [notesApi.reducerPath]: notesApi.reducer,
   [eventsApi.reducerPath]: eventsApi.reducer,
-  [settingsApi.reducerPath]: settingsApi.reducer
 });
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);
@@ -40,7 +48,7 @@ const store = configureStore({
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({ 
       serializableCheck: false, // Necesario para redux-persist
-    }).concat(newsApi.middleware, settingsApi.middleware, notesApi.middleware, eventsApi.middleware, homeApi.middleware),
+    }).concat(newsApi.middleware, notesApi.middleware, eventsApi.middleware, homeApi.middleware),
 })
 // store.subscribe(() => {
 //   console.log('Estado persistido:', store.getState());
