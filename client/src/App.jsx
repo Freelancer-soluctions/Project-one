@@ -5,7 +5,6 @@ import Home from './modules/home/pages/Home'
 import NotFound from './components/404/NotFound'
 import { Routes, Route } from 'react-router'
 import { Spinner } from './components/loader/Spinner'
-import { useInitializeI18n } from '@/hooks/useInitializeI18n'
 
 const SignIn = lazy(() => import('@/modules/auth/pages/SignIn'))
 const SignUp = lazy(() => import('@/modules/auth/pages/SignUp'))
@@ -16,7 +15,6 @@ const Settings = lazy(() => import('@/modules/settings/pages/Settings'))
 const Events = lazy(() => import('@/modules/events/pages/Events'))
 
 const App = () => {
-  useInitializeI18n() // Inicializa el idioma al cargar la app
   return (
     <Suspense fallback={<Spinner />}>
       <Routes>
