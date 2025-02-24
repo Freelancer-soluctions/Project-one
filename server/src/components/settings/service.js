@@ -1,4 +1,4 @@
-import { getLanguageById as getLanguageByIdDao, createOrUpdateSettingsLanguage as createOrUpdateSettingsLanguageDao } from './dao.js'
+import { getSettingsById as getSettingsByIdDao, createOrUpdateSettingsLanguage as createOrUpdateSettingsLanguageDao } from './dao.js'
 
 /**
  * Create or update language settings based on the provided data.
@@ -28,7 +28,7 @@ export const createOrUpdateSettingsLanguage = async ({ id, language, userId }) =
  * @returns {Object} - The language settings associated with the given user ID.
  * @throws {Error} - If there is an error during the database operation.
  */
-export const getLanguageById = async (userId) => {
+export const getSettingsById = async (userId) => {
   const rowId = Number(userId)
-  return await getLanguageByIdDao(rowId)
+  return await getSettingsByIdDao(rowId)
 }

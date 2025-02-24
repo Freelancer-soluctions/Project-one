@@ -8,8 +8,8 @@ import { axiosPrivate } from '@/config/axios'
 //   return axiosPrivate.post('/auth/signup', body)
 // }
 
-export function GetLanguageByUserIdFetch (id) {
-  return axiosPrivate.get(`/settings/language/${id}`)
+export function GetSettingsByUserIdFetch (id) {
+  return axiosPrivate.get(`/settings/${id}`)
 }
 
 export function SaveLanguage (body) {
