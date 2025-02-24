@@ -4,12 +4,11 @@ import SideBar from '../components/SideBar'
 import { Suspense } from 'react'
 import { Spinner } from '../../../components/loader/Spinner'
 import { Outlet } from 'react-router'
-import { useInitializeI18n } from '@/hooks/useInitializeI18n'
+import { useUserSettings } from '@/hooks'
 import { useGetAllCountNotesQuery } from '@/modules/notes/api/notesAPI'
 
 const Home = () => {
-  useInitializeI18n() // Inicializa el idioma al cargar la app
-
+  const { settings } = useUserSettings()
   const {
     data: dataCountNotes = { data: [] },
     isError: isErrorCountNotes,

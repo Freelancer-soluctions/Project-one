@@ -32,8 +32,8 @@ export const createOrUpdateSettingsLanguage = handleCatchErrorAsync(async (req, 
  * @returns {void} - Sends a response with the status code and the language settings associated with the given ID.
  * @throws {Error} - If there is an error, it will be handled by the catch handler.
  */
-export const getLanguageById = handleCatchErrorAsync(async (req, res) => {
+export const getSettingsById = handleCatchErrorAsync(async (req, res) => {
   const { id } = req.params
-  const result = await settingsService.getLanguageById(id)
+  const result = await settingsService.getSettingsById(id)
   globalResponse(res, 200, result)
 })

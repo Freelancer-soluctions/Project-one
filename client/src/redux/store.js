@@ -2,7 +2,6 @@ import { configureStore, combineReducers } from '@reduxjs/toolkit'
 import authSlice from '../modules/auth/slice/authSlice'
 import newsApi from '../modules/news/api/newsAPI'
 import notesApi from '../modules/notes/api/notesAPI'
-import settingsApi from '../modules/settings/slice/settingsSlice'
 import eventsApi from '@/modules/events/api/eventsAPI'
 import homeApi from '@/modules/home/api/homeAPI'
 

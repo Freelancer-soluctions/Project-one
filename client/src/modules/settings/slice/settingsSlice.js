@@ -45,11 +45,11 @@
    
 
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
-import {GetLanguageByUserIdFetch, SaveLanguage} from '@/modules/settings/api/settingsApi'
+import {GetSettingsByUserIdFetch, SaveLanguage} from '@/modules/settings/api/settingsAPI'
 
-export const getLanguageByUserIdFetch = createAsyncThunk('settings/getLanguageByUserIdFetch', async (args, { rejectWithValue }) => {
+export const getSettingsByUserIdFetch = createAsyncThunk('settings/getSettingsByUserIdFetch', async (args, { rejectWithValue }) => {
   try {
-    const response = await GetLanguageByUserIdFetch(args)
+    const response = await GetSettingsByUserIdFetch(args)
     return response.data
   } catch (error) {
     return rejectWithValue(error.response.data)
@@ -73,7 +73,7 @@ const settingsSlice = createSlice({
   name: 'settings',
   initialState: {
     isLoading: false,
-    dataSettings: {language:null},
+    dataSettings: {userSettings:null},
     isError: false,
     errorMessage:''
   },
@@ -83,16 +83,16 @@ const settingsSlice = createSlice({
   // },
   extraReducers: (builder) => {
     // sign up
-    builder.addCase(getLanguageByUserIdFetch.pending, (state, action) => {
+    builder.addCase(getSettingsByUserIdFetch.pending, (state, action) => {
       state.isLoading = true
       state.isError = false
     })
-    builder.addCase(getLanguageByUserIdFetch.fulfilled, (state, action) => {
+    builder.addCase(getSettingsByUserIdFetch.fulfilled, (state, action) => {
       state.isLoading = false
       state.isError = false
-      state.dataSettings.language = action.payload 
+      state.dataSettings.userSettings = action.payload 
     })
-    builder.addCase(getLanguageByUserIdFetch.rejected, (state, action) => {
+    builder.addCase(getSettingsByUserIdFetch.rejected, (state, action) => {
       console.log('Error', action.error.message)
       // console.log('Error payload', action.payload.error)
       state.isError = true

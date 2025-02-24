@@ -100,6 +100,8 @@
     "next_events": "Next events",
     "turn_off_on_message": "Turn items on or off to control what's displayed in the app.",
     "select_items_display_message": "Select the items you want to display in the sidebar.",
-    "sidebar": "Sidebar"
+    "sidebar": "Sidebar",
+    "reports": "Reports",
+    "payroll": "Payroll"
   }
 }
