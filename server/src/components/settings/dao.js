@@ -34,7 +34,7 @@ export const createOrUpdateSettingsLanguage = async (id, data) => {
  * @returns {Promise<Object>} - Returns the language settings for the specified user.
  * @throws {Error} - Throws an error if the database operation fails.
  */
-export const getLanguageById = async (userId) => {
+export const getSettingsById = async (userId) => {
   const result = await prisma.settings.findFirst({
     where: {
       userId

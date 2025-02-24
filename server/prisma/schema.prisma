@@ -118,6 +118,13 @@ model news {
 
 model settings {
   id                 Int       @id @default(autoincrement())
+  displayEvents      Boolean   @default(false)
+  displayNotes       Boolean   @default(false)
+  displayNews        Boolean   @default(false)
+  displayProfile     Boolean   @default(false)
+  displayLanguage    Boolean   @default(false)
+  displayReports     Boolean   @default(false)
+  displayPayroll     Boolean   @default(false)
   language           String    @db.VarChar(2)
   userSettingCreated users     @relation("userSettingCreated", fields: [userId], references: [id])
   userId             Int

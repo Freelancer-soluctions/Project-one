@@ -46,7 +46,7 @@ const router = Router()
  *               $ref: "#/components/schemas/Error"
  */
 
-router.get('/language/:id', verifyToken, settingsController.getLanguageById)
+router.get('/:id', verifyToken, settingsController.getSettingsById)
 
 /**
  * @openapi
