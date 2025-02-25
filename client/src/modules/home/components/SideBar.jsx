@@ -13,7 +13,7 @@ import { useTranslation } from 'react-i18next'
 import { QuickAccessButton } from '@/components/quickAccess/QuickAccess'
 import { NotesSummary } from './NotesSummary'
 
-const SideBar = ({ dataCountNotes }) => {
+const SideBar = ({ dataCountNotes, displaySettings }) => {
   const { t } = useTranslation()
 
   return (
@@ -25,13 +25,16 @@ const SideBar = ({ dataCountNotes }) => {
         <LuHouse className='w-5 h-5' />
         {t('home')}
       </Link>
-      <Link
-        to={'news'}
-        className='flex items-center gap-2 px-3 py-2 text-sm font-medium transition-colors rounded-md hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground'
-        prefetch={false}>
-        <LuNewspaper className='w-5 h-5' />
-        {t('news')}
-      </Link>
+      {displaySettings?.displayNews && (
+        <Link
+          to={'news'}
+          className='flex items-center gap-2 px-3 py-2 text-sm font-medium transition-colors rounded-md hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground'
+          prefetch={false}>
+          <LuNewspaper className='w-5 h-5' />
+          {t('news')}
+        </Link>
+      )}
+
       <QuickAccessButton
         icon={CgNotes}
         label={t('notes')}
@@ -55,6 +58,7 @@ const SideBar = ({ dataCountNotes }) => {
         <LuCalendarCheck2 className='w-5 h-5' />
         {t('events')}
       </Link>
+      {}
       <Link
         to={'settings?tab=profile'}
         className='flex items-center gap-2 px-3 py-2 text-sm font-medium transition-colors rounded-md hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground'

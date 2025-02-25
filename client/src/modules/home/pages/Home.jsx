@@ -26,7 +26,10 @@ const Home = () => {
       <div className='flex flex-1'>
         <div className='flex-col hidden p-4 shadow-sm lg:flex bg-background'>
           <nav className='flex flex-col gap-2'>
-            <SideBar dataCountNotes={dataCountNotes} />
+            <SideBar
+              dataCountNotes={dataCountNotes}
+              displaySettings={settings}
+            />
           </nav>
         </div>
         <div className='flex-1 p-4 overflow-auto md:p-6'>
