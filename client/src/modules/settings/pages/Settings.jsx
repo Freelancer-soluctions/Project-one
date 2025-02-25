@@ -26,16 +26,24 @@ import { Separator } from '@/components/ui/separator'
 import { SettingsLanguage, SettingsDisplay } from '../components/index'
 import { useSelector } from 'react-redux'
 import { useTranslation } from 'react-i18next'
-import { useChangeLanguage, useActiveTab, useDisplaySettings } from '../hooks'
+import {
+  useChangeLanguage,
+  useActiveTab,
+  useDisplaySettings,
+  useSaveDisplaySettings
+} from '../hooks'
 
 export default function Settings() {
+  const { t } = useTranslation()
   const settings = useSelector(
     state => state.settings.dataSettings?.userSettings?.data
   )
-  const { activeTab, setActiveTab } = useActiveTab('profile')
+  //language
   const { onChangeLanguage } = useChangeLanguage()
+  //display
+  const { activeTab, setActiveTab } = useActiveTab('profile')
   const userDisplaySettings = useDisplaySettings(settings)
-  const { t } = useTranslation()
+  const { onSaveDisplaySettings } = useSaveDisplaySettings(settings)
 
   return (
     // {(isLoading || isFetching || isLoadingPost) && <Spinner />}
@@ -87,7 +95,10 @@ export default function Settings() {
             <SettingsLanguage onChangeLanguage={onChangeLanguage} />
           </TabsContent>
           <TabsContent value='display' className='space-y-6'>
-            <SettingsDisplay userDisplaySettings={userDisplaySettings} />
+            <SettingsDisplay
+              userDisplaySettings={userDisplaySettings}
+              onSaveDisplaySettings={onSaveDisplaySettings}
+            />
           </TabsContent>
 
           {/* <TabsContent value='profile' className='space-y-6'>

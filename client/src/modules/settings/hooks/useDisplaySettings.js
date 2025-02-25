@@ -1,3 +1,4 @@
+import { useMemo } from 'react'
 export function useDisplaySettings(settings) {
   return useMemo(() => {
     if (!settings) return {}

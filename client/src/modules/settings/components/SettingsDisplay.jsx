@@ -1,17 +1,36 @@
-import { Checkbox } from '@/components/ui/checkbox'
 import { Card, CardContent } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
 import { useTranslation } from 'react-i18next'
-import { useEffect, useState } from 'react'
+import { useForm } from 'react-hook-form'
+import { Button } from '@/components/ui/button'
+import { Checkbox } from '@/components/ui/checkbox'
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel
+} from '@/components/ui/form'
 
-export const SettingsDisplay = ({ userDisplaySettings }) => {
+export const SettingsDisplay = ({
+  userDisplaySettings,
+  onSaveDisplaySettings
+}) => {
   const { t } = useTranslation()
-  const { displaySettings, setDisplaySettings } = useState({})
+  const form = useForm({
+    defaultValues: {
+      ...userDisplaySettings
+    }
+  })
+  function onSubmit(data) {
+    onSaveDisplaySettings(data)
+  }
 
-  useEffect(() => {
-    if (!userDisplaySettings) return
-    setDisplaySettings(userDisplaySettings)
-  }, [userDisplaySettings])
+  // useEffect(() => {
+  //   if (userDisplaySettings) {
+  //     setDisplaySettings({ ...userDisplaySettings })
+  //     console.log('dfdfd', displaySettings)
+  //   }
+  // }, [userDisplaySettings])
 
   return (
     <Card>
@@ -28,24 +47,188 @@ export const SettingsDisplay = ({ userDisplaySettings }) => {
             <p className='mb-4 text-sm text-muted-foreground'>
               {t('select_items_display_message')}
             </p>
-            <div className='space-y-3'>
+            <Form {...form}>
+              <form
+                onSubmit={form.handleSubmit(onSubmit)}
+                className='space-y-3'>
+                <FormField
+                  control={form.control}
+                  name='displayNews'
+                  render={({ field }) => (
+                    <FormItem className='flex items-center space-x-2'>
+                      <FormControl>
+                        <Checkbox
+                          className='mt-2'
+                          id='news'
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                      <FormLabel
+                        htmlFor='news'
+                        className='text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70'>
+                        {t('news')}
+                      </FormLabel>
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name='displayNotes'
+                  render={({ field }) => (
+                    <FormItem className='flex items-center space-x-2'>
+                      <FormControl>
+                        <Checkbox
+                          className='mt-2'
+                          id='notes'
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                      <FormLabel
+                        htmlFor='notes'
+                        className='text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70'>
+                        {t('notes')}
+                      </FormLabel>
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name='displayEvents'
+                  render={({ field }) => (
+                    <FormItem className='flex items-center space-x-2'>
+                      <FormControl>
+                        <Checkbox
+                          className='mt-2'
+                          id='events'
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                      <FormLabel
+                        htmlFor='events'
+                        className='text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70'>
+                        {t('events')}
+                      </FormLabel>
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name='displayProfile'
+                  render={({ field }) => (
+                    <FormItem className='flex items-center space-x-2'>
+                      <FormControl>
+                        <Checkbox
+                          className='mt-2'
+                          id='profile'
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                      <FormLabel
+                        htmlFor='profile'
+                        className='text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70'>
+                        {t('profile')}
+                      </FormLabel>
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name='displayLanguage'
+                  render={({ field }) => (
+                    <FormItem className='flex items-center space-x-2'>
+                      <FormControl>
+                        <Checkbox
+                          className='mt-2'
+                          id='language'
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                      <FormLabel
+                        htmlFor='language'
+                        className='text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70'>
+                        {t('language')}
+                      </FormLabel>
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name='displayReports'
+                  render={({ field }) => (
+                    <FormItem className='flex items-center space-x-2'>
+                      <FormControl>
+                        <Checkbox
+                          className='mt-2'
+                          id='reports'
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                      <FormLabel
+                        htmlFor='reports'
+                        className='text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70'>
+                        {t('reports')}
+                      </FormLabel>
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name='displayPayroll'
+                  render={({ field }) => (
+                    <FormItem className='flex items-center space-x-2'>
+                      <FormControl>
+                        <Checkbox
+                          className='mt-2'
+                          id='payroll'
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                      <FormLabel
+                        htmlFor='payroll'
+                        className='text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70'>
+                        {t('payroll')}
+                      </FormLabel>
+                    </FormItem>
+                  )}
+                />
+                <Button type='submit'>Submit</Button>
+              </form>
+            </Form>
+            {/* <div className='space-y-3'>
               <div className='flex items-center space-x-2'>
                 <Checkbox
-                  id='nesw'
-                  value={displaySettings.displayNews}
-                  onchangeValue={setDisplaySettings}
+                  id='news'
+                  checked={userDisplaySettings?.displayNews}
+                  // defaultChecked={displaySettings?.displayEvents}
+                  // value={displaySettings.displayNews}
+                  onCheckedChange={checked =>
+                    setDisplaySettings(prev => ({
+                      ...prev,
+                      displayNews: checked
+                    }))
+                  }
                 />
                 <label
                   htmlFor='news'
-                  className='text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70'>
-                  {t('news')}
-                </label>
+                  className='text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70'></label>
               </div>
               <div className='flex items-center space-x-2'>
                 <Checkbox
                   id='notes'
                   value={displaySettings.displayNotes}
-                  onchangeValue={setDisplaySettings}
+                  onCheckedChange={checked =>
+                    setDisplaySettings(prev => ({
+                      ...prev,
+                      displayNotes: checked
+                    }))
+                  }
                 />
                 <label
                   htmlFor='notes'
@@ -57,7 +240,12 @@ export const SettingsDisplay = ({ userDisplaySettings }) => {
                 <Checkbox
                   id='events'
                   value={displaySettings.displayEvents}
-                  onchangeValue={setDisplaySettings}
+                  onCheckedChange={checked =>
+                    setDisplaySettings(prev => ({
+                      ...prev,
+                      displayEvents: checked
+                    }))
+                  }
                 />
                 <label
                   htmlFor='events'
@@ -69,7 +257,12 @@ export const SettingsDisplay = ({ userDisplaySettings }) => {
                 <Checkbox
                   id='profile'
                   value={displaySettings.displayProfile}
-                  onchangeValue={setDisplaySettings}
+                  onCheckedChange={checked =>
+                    setDisplaySettings(prev => ({
+                      ...prev,
+                      displayProfile: checked
+                    }))
+                  }
                 />
                 <label
                   htmlFor='profile'
@@ -81,7 +274,12 @@ export const SettingsDisplay = ({ userDisplaySettings }) => {
                 <Checkbox
                   id='language'
                   value={displaySettings.displayLanguage}
-                  onchangeValue={setDisplaySettings}
+                  onCheckedChange={checked =>
+                    setDisplaySettings(prev => ({
+                      ...prev,
+                      displayLanguage: checked
+                    }))
+                  }
                 />
                 <label
                   htmlFor='language'
@@ -93,7 +291,12 @@ export const SettingsDisplay = ({ userDisplaySettings }) => {
                 <Checkbox
                   id='resports'
                   value={displaySettings.displayReports}
-                  onchangeValue={setDisplaySettings}
+                  onCheckedChange={checked =>
+                    setDisplaySettings(prev => ({
+                      ...prev,
+                      displayReports: checked
+                    }))
+                  }
                 />
                 <label
                   htmlFor='resports'
@@ -104,8 +307,13 @@ export const SettingsDisplay = ({ userDisplaySettings }) => {
               <div className='flex items-center space-x-2'>
                 <Checkbox
                   id='payroll'
-                  value={displaySettings}
-                  onchangeValue={setDisplaySettings}
+                  value={displaySettings.displayPayroll}
+                  onCheckedChange={checked =>
+                    setDisplaySettings(prev => ({
+                      ...prev,
+                      displayPayroll: checked
+                    }))
+                  }
                 />
                 <label
                   htmlFor='payroll'
@@ -113,9 +321,9 @@ export const SettingsDisplay = ({ userDisplaySettings }) => {
                   {t('payroll')}
                 </label>
               </div>
-            </div>
+            </div> */}
           </div>
-          <Button className='mt-4'>Update display</Button>
+          {/* <Button className='mt-4'>Update display</Button> */}
         </div>
       </CardContent>
     </Card>
