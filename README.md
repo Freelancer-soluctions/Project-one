@@ -5,6 +5,7 @@ Front end
 - Storybook para la documentacion y prueba componentes UI, para la facilitacion entre diseñadores y QA testers
 - Uso de hooks personalizados para organizar y separalar la logica del una pagina para su mejor comprension.
 - Uso de logger para monitoreo y registro de acciones o errores del front end
+- React hook forma para manejo de formularios en combinacion con zod schema validation
 
 Back end
 - Swagger ui para la documentacion y prueba APIs REST
