@@ -198,132 +198,15 @@ export const SettingsDisplay = ({
                     </FormItem>
                   )}
                 />
-                <Button type='submit'>Submit</Button>
+                <Button
+                  type='submit'
+                  variant='info'
+                  className='w-full mt-6 sm:w-auto'>
+                  {t('save')}
+                </Button>
               </form>
             </Form>
-            {/* <div className='space-y-3'>
-              <div className='flex items-center space-x-2'>
-                <Checkbox
-                  id='news'
-                  checked={userDisplaySettings?.displayNews}
-                  // defaultChecked={displaySettings?.displayEvents}
-                  // value={displaySettings.displayNews}
-                  onCheckedChange={checked =>
-                    setDisplaySettings(prev => ({
-                      ...prev,
-                      displayNews: checked
-                    }))
-                  }
-                />
-                <label
-                  htmlFor='news'
-                  className='text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70'></label>
-              </div>
-              <div className='flex items-center space-x-2'>
-                <Checkbox
-                  id='notes'
-                  value={displaySettings.displayNotes}
-                  onCheckedChange={checked =>
-                    setDisplaySettings(prev => ({
-                      ...prev,
-                      displayNotes: checked
-                    }))
-                  }
-                />
-                <label
-                  htmlFor='notes'
-                  className='text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70'>
-                  {t('notes')}
-                </label>
-              </div>
-              <div className='flex items-center space-x-2'>
-                <Checkbox
-                  id='events'
-                  value={displaySettings.displayEvents}
-                  onCheckedChange={checked =>
-                    setDisplaySettings(prev => ({
-                      ...prev,
-                      displayEvents: checked
-                    }))
-                  }
-                />
-                <label
-                  htmlFor='events'
-                  className='text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70'>
-                  {t('events')}
-                </label>
-              </div>
-              <div className='flex items-center space-x-2'>
-                <Checkbox
-                  id='profile'
-                  value={displaySettings.displayProfile}
-                  onCheckedChange={checked =>
-                    setDisplaySettings(prev => ({
-                      ...prev,
-                      displayProfile: checked
-                    }))
-                  }
-                />
-                <label
-                  htmlFor='profile'
-                  className='text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70'>
-                  {t('profile')}
-                </label>
-              </div>
-              <div className='flex items-center space-x-2'>
-                <Checkbox
-                  id='language'
-                  value={displaySettings.displayLanguage}
-                  onCheckedChange={checked =>
-                    setDisplaySettings(prev => ({
-                      ...prev,
-                      displayLanguage: checked
-                    }))
-                  }
-                />
-                <label
-                  htmlFor='language'
-                  className='text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70'>
-                  {t('language')}
-                </label>
-              </div>
-              <div className='flex items-center space-x-2'>
-                <Checkbox
-                  id='resports'
-                  value={displaySettings.displayReports}
-                  onCheckedChange={checked =>
-                    setDisplaySettings(prev => ({
-                      ...prev,
-                      displayReports: checked
-                    }))
-                  }
-                />
-                <label
-                  htmlFor='resports'
-                  className='text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70'>
-                  {t('reports')}
-                </label>
-              </div>
-              <div className='flex items-center space-x-2'>
-                <Checkbox
-                  id='payroll'
-                  value={displaySettings.displayPayroll}
-                  onCheckedChange={checked =>
-                    setDisplaySettings(prev => ({
-                      ...prev,
-                      displayPayroll: checked
-                    }))
-                  }
-                />
-                <label
-                  htmlFor='payroll'
-                  className='text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70'>
-                  {t('payroll')}
-                </label>
-              </div>
-            </div> */}
           </div>
-          {/* <Button className='mt-4'>Update display</Button> */}
         </div>
       </CardContent>
     </Card>
