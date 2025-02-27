@@ -1,31 +1,31 @@
-import Joi from "joi";
+import Joi from 'joi'
 
 export const SignInSchema = Joi.object({
   email: Joi.string().email({ tlds: false }).required(),
-  password: Joi.string().min(6).max(16).required(),
-});
+  password: Joi.string().min(6).max(16).required()
+})
 
 export const SignUpSchema = Joi.object({
   firstName: Joi.string().min(4).max(50).required(),
   lastName: Joi.string().min(4).max(50).required(),
   birthday: Joi.date().required(),
   email: Joi.string().email({ tlds: false }).required(),
-  password: Joi.string().min(6).max(16).required(),
-});
+  password: Joi.string().min(6).max(16).required()
+})
 
 export const UserStatus = Joi.object({
   description: Joi.string().min(3).max(8).required(),
   code: Joi.string().min(3).max(3).required(),
-  users: Joi.array().min(1),
-});
+  users: Joi.array().min(1)
+})
 
 export const UserStatusUpdate = Joi.object({
   description: Joi.string().min(3).max(8).required(),
   code: Joi.string().min(3).max(3),
-  users: Joi.array().min(1),
-});
+  users: Joi.array().min(1)
+})
 
-export const UserStatusArray = Joi.array().items(UserStatus).min(1);
+export const UserStatusArray = Joi.array().items(UserStatus).min(1)
 
 export const User = Joi.object({
   email: Joi.string().email({ tlds: false }).required(),
@@ -49,8 +49,8 @@ export const User = Joi.object({
   notesCreated: Joi.array().min(1),
   notesClosed: Joi.array().min(1),
   newsCreated: Joi.array().min(1),
-  newsClosed: Joi.array().min(1),
-});
+  newsClosed: Joi.array().min(1)
+})
 
 export const UserUpdate = Joi.object({
   email: Joi.string().email({ tlds: false }),
@@ -74,82 +74,68 @@ export const UserUpdate = Joi.object({
   notesCreated: Joi.array().min(1),
   notesClosed: Joi.array().min(1),
   newsCreated: Joi.array().min(1),
-  newsClosed: Joi.array().min(1),
-});
+  newsClosed: Joi.array().min(1)
+})
 
 export const Role = Joi.object({
   description: Joi.string().min(3).max(50).required(),
-  code: Joi.string().min(3).max(3).required(),
-});
+  code: Joi.string().min(3).max(3).required()
+})
 
 export const RoleUpdate = Joi.object({
   description: Joi.string().min(3).max(50).required(),
-  code: Joi.string().min(3).max(3),
-});
+  code: Joi.string().min(3).max(3)
+})
 
-export const RoleArray = Joi.array().items(Role).min(1);
+export const RoleArray = Joi.array().items(Role).min(1)
 
 export const NotesFilters = Joi.object({
-  searchTerm: Joi.string().min(1).max(150).allow(""),
-  statusCode: Joi.string().min(3).max(3).allow(""),
-});
+  searchTerm: Joi.string().min(1).max(150).allow(''),
+  statusCode: Joi.string().min(3).max(3).allow('')
+})
 
 export const NoteCreate = Joi.object({
   title: Joi.string().max(50).required(),
   content: Joi.string().max(2000).required(),
   color: Joi.string().max(6).required(),
-  columnId: Joi.number().integer().required(),
-});
+  columnId: Joi.number().integer().required()
+})
 
 export const NoteUpdate = Joi.object({
   title: Joi.string().max(50).required(),
-  content: Joi.string().max(2000).required(),
-});
+  content: Joi.string().max(2000).required()
+})
 export const NoteColumnUpdate = Joi.object({
   color: Joi.string().min(3).max(6).required(),
   columnId: Joi.number().integer().required(),
-  id: Joi.number().required(),
-});
-
-export const NewsStatus = Joi.object({
-  description: Joi.string().min(3).max(10).required(),
-  code: Joi.string().min(3).max(3).required(),
-  news: Joi.array().min(1),
-});
-
-export const NewsStatusUpdate = Joi.object({
-  description: Joi.string().min(3).max(10).required(),
-  code: Joi.string().min(3).max(3),
-  news: Joi.array().min(1),
-});
-
-export const NewsStatusArray = Joi.array().items(NewsStatus).min(1);
+  id: Joi.number().required()
+})
 
 export const News = Joi.object({
   description: Joi.string().min(1).max(400).required(),
   statusId: Joi.number().integer().required(),
   statusCode: Joi.string().max(3).required(),
-  document: Joi.string().allow(""),
-});
+  document: Joi.string().allow('')
+})
 
 export const NewsFilters = Joi.object({
-  description: Joi.string().min(1).max(30).allow(""),
-  statusCode: Joi.string().min(3).max(3).allow(""),
-  toDate: Joi.date().allow(""),
-  fromDate: Joi.date().allow(""),
-});
+  description: Joi.string().min(1).max(30).allow(''),
+  statusCode: Joi.string().min(3).max(3).allow(''),
+  toDate: Joi.date().allow(''),
+  fromDate: Joi.date().allow('')
+})
 
 export const NewsUpdate = Joi.object({
   description: Joi.string().min(1).max(400).required(),
   statusId: Joi.number().integer().required(),
   statusCode: Joi.string().max(3).required(),
-  document: Joi.string().allow(""),
-});
+  document: Joi.string().allow('')
+})
 
 export const SettingsLanguage = Joi.object({
   id: Joi.number().integer().optional(),
-  language: Joi.string().valid("es", "en").required(),
-});
+  language: Joi.string().valid('es', 'en').required()
+})
 
 export const SettingsDisplay = Joi.object({
   id: Joi.number().integer().optional(),
@@ -160,20 +146,56 @@ export const SettingsDisplay = Joi.object({
     displayProfile: Joi.boolean().required(),
     displayLanguage: Joi.boolean().required(),
     displayReports: Joi.boolean().required(),
-    displayPayroll: Joi.boolean().required(),
-  }),
-});
+    displayPayroll: Joi.boolean().required()
+  })
+})
 
 export const EventsCreateUpdate = Joi.object({
   title: Joi.string().max(50).required(),
   description: Joi.string().max(200).required(),
-  speaker: Joi.string().max(20).allow(""),
+  speaker: Joi.string().max(20).allow(''),
   startTime: Joi.string().max(5).required(),
   endTime: Joi.string().max(5).required(),
   eventDate: Joi.date().required(),
-  type: Joi.number().integer().required(),
-});
+  type: Joi.number().integer().required()
+})
 
 export const EventsFilters = Joi.object({
-  searchQuery: Joi.string().min(1).max(30).allow(""),
-});
+  searchQuery: Joi.string().min(1).max(30).allow('')
+})
+
+export const Products = Joi.object({
+  sku: Joi.string().max(16).required(),
+  name: Joi.string().max(80).required(),
+  productCategoryId: Joi.number().integer().required(),
+  productTypeId: Joi.number().integer().required(),
+  price: Joi.number().precision(2).positive().required(),
+  cost: Joi.number().precision(2).positive().required(),
+  stock: Joi.number().integer().min(0).required(),
+  description: Joi.string().max(2000).required(),
+  productStatusId: Joi.number().integer().required(),
+  barCode: Joi.string().max(25).allow(null, '')
+
+})
+
+export const ProductsFilters = Joi.object({
+  name: Joi.string().min(1).max(80).allow(''),
+  statusCode: Joi.string().min(3).max(3).allow(''),
+  productTypeCode: Joi.string().min(3).max(3).allow(''),
+  productCategoryCode: Joi.string().min(3).max(3).allow('')
+})
+
+export const ProductsUpdate = Joi.object({
+  id: Joi.number().integer().required(),
+  sku: Joi.string().max(16).required(),
+  name: Joi.string().max(80).required(),
+  productCategoryId: Joi.number().integer().required(),
+  productTypeId: Joi.number().integer().required(),
+  price: Joi.number().precision(2).positive().required(),
+  cost: Joi.number().precision(2).positive().required(),
+  stock: Joi.number().integer().min(0).required(),
+  description: Joi.string().max(2000).required(),
+  productStatusId: Joi.number().integer().required(),
+  barCode: Joi.string().max(25).allow(null, '')
+
+})

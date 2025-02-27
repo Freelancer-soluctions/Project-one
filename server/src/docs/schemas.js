@@ -514,3 +514,234 @@
  *          type: integer
  *           example: 1, 2, 3, 4 etc...
  */
+
+/**
+ * @openapi
+/**
+ * @openapi
+ * components:
+ *   schemas:
+ *     Product:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: integer
+ *           example: 1
+ *         sku:
+ *           type: string
+ *           maxLength: 16
+ *           example: "ABC123456789"
+ *         name:
+ *           type: string
+ *           maxLength: 80
+ *           example: "Producto Ejemplo"
+ *         productCategoryId:
+ *           type: integer
+ *           example: 1
+ *         productTypeId:
+ *           type: integer
+ *           example: 2
+ *         price:
+ *           type: number
+ *           format: decimal
+ *           example: 99.99
+ *         cost:
+ *           type: number
+ *           format: decimal
+ *           example: 50.00
+ *         stock:
+ *           type: integer
+ *           example: 100
+ *         description:
+ *           type: string
+ *           maxLength: 2000
+ *           example: "Descripción del producto"
+ *         productStatusId:
+ *           type: integer
+ *           example: 1
+ *         barCode:
+ *           type: string
+ *           maxLength: 25
+ *           nullable: true
+ *           example: "123456789012"
+ *         createdBy:
+ *           type: integer
+ *           example: 1
+ *         createdOn:
+ *           type: string
+ *           format: date-time
+ *           example: "2024-02-26T12:00:00Z"
+ *         updatedBy:
+ *           type: integer
+ *           example: 2
+ *         updatedOn:
+ *           type: string
+ *           format: date-time
+ *           nullable: true
+ *           example: "2024-02-27T15:30:00Z"
+ *
+ *     ProductCategory:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: integer
+ *           example: 1
+ *         code:
+ *           type: string
+ *           maxLength: 3
+ *           example: "ELE"
+ *         description:
+ *           type: string
+ *           maxLength: 10
+ *           example: "Electrónica"
+ *
+ *     ProductType:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: integer
+ *           example: 1
+ *         code:
+ *           type: string
+ *           maxLength: 3
+ *           example: "KIT"
+ *         description:
+ *           type: string
+ *           maxLength: 10
+ *           example: "Kit"
+ *
+ *     ProductStatus:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: integer
+ *           example: 1
+ *         code:
+ *           type: string
+ *           maxLength: 3
+ *           example: "ACT"
+ *         description:
+ *           type: string
+ *           maxLength: 10
+ *           example: "Activo"
+ */
+
+/**
+ * @openapi
+ * components:
+ *   schemas:
+ *     ProductStatus:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: integer
+ *           example: 1
+ *         code:
+ *           type: string
+ *           maxLength: 3
+ *           example: "ACT"
+ *         description:
+ *           type: string
+ *           maxLength: 10
+ *           example: "Activo"
+ */
+
+/**
+ * @openapi
+ * components:
+ *   schemas:
+ *     ProductCategory:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: integer
+ *           example: 1
+ *         code:
+ *           type: string
+ *           maxLength: 3
+ *           example: "ELE"
+ *         description:
+ *           type: string
+ *           maxLength: 10
+ *           example: "Electrónica"
+ */
+
+/**
+ * @openapi
+ * components:
+ *   schemas:
+ *     ProductType:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: integer
+ *           example: 1
+ *         code:
+ *           type: string
+ *           maxLength: 3
+ *           example: "KIT"
+ *         description:
+ *           type: string
+ *           maxLength: 10
+ *           example: "Kit"
+ */
+
+/**
+ * @openapi
+ * components:
+*   schemas:
+*     ProductCreate:
+*       type: object
+*       required:
+*         - sku
+*         - name
+*         - productCategoryId
+*         - productTypeId
+*         - price
+*         - cost
+*         - stock
+*         - description
+*         - productStatusId
+*         - createdBy
+*       properties:
+*         sku:
+*           type: string
+*           maxLength: 16
+*           example: "PROD123456789"
+*         name:
+*           type: string
+*           maxLength: 80
+*           example: "Laptop Dell XPS 15"
+*         productCategoryId:
+*           type: integer
+*           example: 1
+*         productTypeId:
+*           type: integer
+*           example: 2
+*         price:
+*           type: number
+*           format: decimal
+*           example: 999.99
+*         cost:
+*           type: number
+*           format: decimal
+*           example: 750.50
+*         stock:
+*           type: integer
+*           example: 100
+*         description:
+*           type: string
+*           maxLength: 2000
+*           example: "Laptop de alta gama con procesador Intel i7 y 16GB RAM."
+*         productStatusId:
+*           type: integer
+*           example: 1
+*         barCode:
+*           type: string
+*           maxLength: 25
+*           nullable: true
+*           example: "1234567890123"
+*         createdBy:
+*           type: integer
+*           example: 5
+ */
