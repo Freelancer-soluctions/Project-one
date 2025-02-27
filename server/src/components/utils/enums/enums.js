@@ -9,5 +9,11 @@ export const TABLESNAMES = {
   USERS: 'users',
   NOTES: 'notes',
   EVENTS: 'events',
-  SETTINGS: 'settings'
+  SETTINGS: 'settings',
+  PRODUCTS: 'products'
+}
+
+export const PRODUCTSSTATUSCODE = {
+  ACTIVE: 'C01',
+  INACTIVE: 'C02'
 }
