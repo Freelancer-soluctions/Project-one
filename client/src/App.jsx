@@ -13,6 +13,7 @@ const Notes = lazy(() => import('@/modules/notes/pages/Notes'))
 const News = lazy(() => import('@/modules/news/pages/News'))
 const Settings = lazy(() => import('@/modules/settings/pages/Settings'))
 const Events = lazy(() => import('@/modules/events/pages/Events'))
+const Products = lazy(() => import('@/modules/products/pages/Products'))
 
 const App = () => {
   return (
@@ -36,6 +37,7 @@ const App = () => {
           <Route path='notes' element={<Notes />} />
           <Route path='settings' element={<Settings />} />
           <Route path='events' element={<Events />} />
+          <Route path='products' element={<Products />} />
           {/* <Route path='inventory' element={<Events />} />
           <Route path='expenses' element={<Events />} /> */}
 

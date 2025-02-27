@@ -1,555 +1,195 @@
-import Link from 'next/link'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent } from '@/components/ui/card'
+import { useState } from 'react'
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger
-} from '@/components/ui/dropdown-menu'
-import { Input } from '@/components/ui/input'
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow
-} from '@/components/ui/table'
-import {
-  Package,
-  Plus,
-  Search,
-  MoreHorizontal,
-  Edit,
-  Trash2,
-  Filter,
-  Barcode,
-  Box
-} from 'lucide-react'
-import { Badge } from '@/components/ui/badge'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue
-} from '@/components/ui/select'
-
-export default function Products() {
-  return (
-    <div className='flex flex-col min-h-screen'>
-      <main className='container flex-1 py-6'>
-        <div className='flex items-center justify-between mb-6'>
-          <h1 className='text-2xl font-bold tracking-tight'>
-            Gestión de Productos
-          </h1>
-          <Button asChild>
-            <Link href='/products/new'>
-              <Plus className='w-4 h-4 mr-2' /> Nuevo Producto
-            </Link>
-          </Button>
-        </div>
-
-        <Tabs defaultValue='all' className='mb-6'>
-          <div className='flex items-center justify-between'>
-            <TabsList>
-              <TabsTrigger value='all'>Todos</TabsTrigger>
-              <TabsTrigger value='simple'>Simples</TabsTrigger>
-              <TabsTrigger value='composite'>Compuestos</TabsTrigger>
-            </TabsList>
-            <div className='flex items-center gap-2'>
-              <Button variant='outline' size='sm'>
-                <Filter className='w-4 h-4 mr-2' />
-                Filtrar
-              </Button>
-              <Select defaultValue='newest'>
-                <SelectTrigger className='w-[180px]'>
-                  <SelectValue placeholder='Ordenar por' />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value='newest'>Más recientes</SelectItem>
-                  <SelectItem value='oldest'>Más antiguos</SelectItem>
-                  <SelectItem value='name-asc'>Nombre (A-Z)</SelectItem>
-                  <SelectItem value='name-desc'>Nombre (Z-A)</SelectItem>
-                  <SelectItem value='price-asc'>
-                    Precio (menor a mayor)
-                  </SelectItem>
-                  <SelectItem value='price-desc'>
-                    Precio (mayor a menor)
-                  </SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
-          <div className='flex items-center gap-2 my-4'>
-            <Input
-              placeholder='Buscar productos...'
-              className='max-w-sm'
-              prefix={<Search className='w-4 h-4 text-muted-foreground' />}
-            />
-            <Select defaultValue='all-categories'>
-              <SelectTrigger className='w-[180px]'>
-                <SelectValue placeholder='Categoría' />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value='all-categories'>
-                  Todas las categorías
-                </SelectItem>
-                <SelectItem value='electronics'>Electrónica</SelectItem>
-                <SelectItem value='clothing'>Ropa</SelectItem>
-                <SelectItem value='food'>Alimentos</SelectItem>
-                <SelectItem value='furniture'>Muebles</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          <TabsContent value='all' className='mt-0'>
-            <Card>
-              <CardContent className='p-0'>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead className='w-[100px]'>Código</TableHead>
-                      <TableHead>Nombre</TableHead>
-                      <TableHead>Categoría</TableHead>
-                      <TableHead>Tipo</TableHead>
-                      <TableHead className='text-right'>Precio</TableHead>
-                      <TableHead className='text-right'>Stock</TableHead>
-                      <TableHead className='text-right'>Acciones</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    <TableRow>
-                      <TableCell className='font-medium'>PRD001</TableCell>
-                      <TableCell>Laptop HP Pavilion</TableCell>
-                      <TableCell>
-                        <Badge variant='outline'>Electrónica</Badge>
-                      </TableCell>
-                      <TableCell>
-                        <Badge>Simple</Badge>
-                      </TableCell>
-                      <TableCell className='text-right'>$899.99</TableCell>
-                      <TableCell className='text-right'>24</TableCell>
-                      <TableCell className='text-right'>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant='ghost' size='sm'>
-                              <MoreHorizontal className='w-4 h-4' />
-                              <span className='sr-only'>Abrir menú</span>
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align='end'>
-                            <DropdownMenuLabel>Acciones</DropdownMenuLabel>
-                            <DropdownMenuItem>
-                              <Barcode className='w-4 h-4 mr-2' /> Ver código de
-                              barras
-                            </DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem>
-                              <Edit className='w-4 h-4 mr-2' /> Editar
-                            </DropdownMenuItem>
-                            <DropdownMenuItem className='text-destructive'>
-                              <Trash2 className='w-4 h-4 mr-2' /> Eliminar
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </TableCell>
-                    </TableRow>
-                    <TableRow>
-                      <TableCell className='font-medium'>PRD002</TableCell>
-                      <TableCell>Monitor LG 27"</TableCell>
-                      <TableCell>
-                        <Badge variant='outline'>Electrónica</Badge>
-                      </TableCell>
-                      <TableCell>
-                        <Badge>Simple</Badge>
-                      </TableCell>
-                      <TableCell className='text-right'>$249.99</TableCell>
-                      <TableCell className='text-right'>15</TableCell>
-                      <TableCell className='text-right'>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant='ghost' size='sm'>
-                              <MoreHorizontal className='w-4 h-4' />
-                              <span className='sr-only'>Abrir menú</span>
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align='end'>
-                            <DropdownMenuLabel>Acciones</DropdownMenuLabel>
-                            <DropdownMenuItem>
-                              <Barcode className='w-4 h-4 mr-2' /> Ver código de
-                              barras
-                            </DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem>
-                              <Edit className='w-4 h-4 mr-2' /> Editar
-                            </DropdownMenuItem>
-                            <DropdownMenuItem className='text-destructive'>
-                              <Trash2 className='w-4 h-4 mr-2' /> Eliminar
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </TableCell>
-                    </TableRow>
-                    <TableRow>
-                      <TableCell className='font-medium'>PRD003</TableCell>
-                      <TableCell>Kit Gamer Completo</TableCell>
-                      <TableCell>
-                        <Badge variant='outline'>Electrónica</Badge>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant='secondary'>Compuesto</Badge>
-                      </TableCell>
-                      <TableCell className='text-right'>$1,299.99</TableCell>
-                      <TableCell className='text-right'>8</TableCell>
-                      <TableCell className='text-right'>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant='ghost' size='sm'>
-                              <MoreHorizontal className='w-4 h-4' />
-                              <span className='sr-only'>Abrir menú</span>
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align='end'>
-                            <DropdownMenuLabel>Acciones</DropdownMenuLabel>
-                            <DropdownMenuItem>
-                              <Barcode className='w-4 h-4 mr-2' /> Ver código de
-                              barras
-                            </DropdownMenuItem>
-                            <DropdownMenuItem>
-                              <Box className='w-4 h-4 mr-2' /> Ver componentes
-                            </DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem>
-                              <Edit className='w-4 h-4 mr-2' /> Editar
-                            </DropdownMenuItem>
-                            <DropdownMenuItem className='text-destructive'>
-                              <Trash2 className='w-4 h-4 mr-2' /> Eliminar
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </TableCell>
-                    </TableRow>
-                    <TableRow>
-                      <TableCell className='font-medium'>PRD004</TableCell>
-                      <TableCell>Teclado Mecánico RGB</TableCell>
-                      <TableCell>
-                        <Badge variant='outline'>Electrónica</Badge>
-                      </TableCell>
-                      <TableCell>
-                        <Badge>Simple</Badge>
-                      </TableCell>
-                      <TableCell className='text-right'>$89.99</TableCell>
-                      <TableCell className='text-right'>32</TableCell>
-                      <TableCell className='text-right'>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant='ghost' size='sm'>
-                              <MoreHorizontal className='w-4 h-4' />
-                              <span className='sr-only'>Abrir menú</span>
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align='end'>
-                            <DropdownMenuLabel>Acciones</DropdownMenuLabel>
-                            <DropdownMenuItem>
-                              <Barcode className='w-4 h-4 mr-2' /> Ver código de
-                              barras
-                            </DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem>
-                              <Edit className='w-4 h-4 mr-2' /> Editar
-                            </DropdownMenuItem>
-                            <DropdownMenuItem className='text-destructive'>
-                              <Trash2 className='w-4 h-4 mr-2' /> Eliminar
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </TableCell>
-                    </TableRow>
-                    <TableRow>
-                      <TableCell className='font-medium'>PRD005</TableCell>
-                      <TableCell>Combo Oficina</TableCell>
-                      <TableCell>
-                        <Badge variant='outline'>Muebles</Badge>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant='secondary'>Compuesto</Badge>
-                      </TableCell>
-                      <TableCell className='text-right'>$499.99</TableCell>
-                      <TableCell className='text-right'>5</TableCell>
-                      <TableCell className='text-right'>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant='ghost' size='sm'>
-                              <MoreHorizontal className='w-4 h-4' />
-                              <span className='sr-only'>Abrir menú</span>
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align='end'>
-                            <DropdownMenuLabel>Acciones</DropdownMenuLabel>
-                            <DropdownMenuItem>
-                              <Barcode className='w-4 h-4 mr-2' /> Ver código de
-                              barras
-                            </DropdownMenuItem>
-                            <DropdownMenuItem>
-                              <Box className='w-4 h-4 mr-2' /> Ver componentes
-                            </DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem>
-                              <Edit className='w-4 h-4 mr-2' /> Editar
-                            </DropdownMenuItem>
-                            <DropdownMenuItem className='text-destructive'>
-                              <Trash2 className='w-4 h-4 mr-2' /> Eliminar
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </TableCell>
-                    </TableRow>
-                  </TableBody>
-                </Table>
-              </CardContent>
-            </Card>
-          </TabsContent>
-          <TabsContent value='simple' className='mt-0'>
-            <Card>
-              <CardContent className='p-0'>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead className='w-[100px]'>Código</TableHead>
-                      <TableHead>Nombre</TableHead>
-                      <TableHead>Categoría</TableHead>
-                      <TableHead className='text-right'>Precio</TableHead>
-                      <TableHead className='text-right'>Stock</TableHead>
-                      <TableHead className='text-right'>Acciones</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    <TableRow>
-                      <TableCell className='font-medium'>PRD001</TableCell>
-                      <TableCell>Laptop HP Pavilion</TableCell>
-                      <TableCell>
-                        <Badge variant='outline'>Electrónica</Badge>
-                      </TableCell>
-                      <TableCell className='text-right'>$899.99</TableCell>
-                      <TableCell className='text-right'>24</TableCell>
-                      <TableCell className='text-right'>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant='ghost' size='sm'>
-                              <MoreHorizontal className='w-4 h-4' />
-                              <span className='sr-only'>Abrir menú</span>
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align='end'>
-                            <DropdownMenuLabel>Acciones</DropdownMenuLabel>
-                            <DropdownMenuItem>
-                              <Barcode className='w-4 h-4 mr-2' /> Ver código de
-                              barras
-                            </DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem>
-                              <Edit className='w-4 h-4 mr-2' /> Editar
-                            </DropdownMenuItem>
-                            <DropdownMenuItem className='text-destructive'>
-                              <Trash2 className='w-4 h-4 mr-2' /> Eliminar
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </TableCell>
-                    </TableRow>
-                    <TableRow>
-                      <TableCell className='font-medium'>PRD002</TableCell>
-                      <TableCell>Monitor LG 27"</TableCell>
-                      <TableCell>
-                        <Badge variant='outline'>Electrónica</Badge>
-                      </TableCell>
-                      <TableCell className='text-right'>$249.99</TableCell>
-                      <TableCell className='text-right'>15</TableCell>
-                      <TableCell className='text-right'>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant='ghost' size='sm'>
-                              <MoreHorizontal className='w-4 h-4' />
-                              <span className='sr-only'>Abrir menú</span>
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align='end'>
-                            <DropdownMenuLabel>Acciones</DropdownMenuLabel>
-                            <DropdownMenuItem>
-                              <Barcode className='w-4 h-4 mr-2' /> Ver código de
-                              barras
-                            </DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem>
-                              <Edit className='w-4 h-4 mr-2' /> Editar
-                            </DropdownMenuItem>
-                            <DropdownMenuItem className='text-destructive'>
-                              <Trash2 className='w-4 h-4 mr-2' /> Eliminar
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </TableCell>
-                    </TableRow>
-                    <TableRow>
-                      <TableCell className='font-medium'>PRD004</TableCell>
-                      <TableCell>Teclado Mecánico RGB</TableCell>
-                      <TableCell>
-                        <Badge variant='outline'>Electrónica</Badge>
-                      </TableCell>
-                      <TableCell className='text-right'>$89.99</TableCell>
-                      <TableCell className='text-right'>32</TableCell>
-                      <TableCell className='text-right'>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant='ghost' size='sm'>
-                              <MoreHorizontal className='w-4 h-4' />
-                              <span className='sr-only'>Abrir menú</span>
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align='end'>
-                            <DropdownMenuLabel>Acciones</DropdownMenuLabel>
-                            <DropdownMenuItem>
-                              <Barcode className='w-4 h-4 mr-2' /> Ver código de
-                              barras
-                            </DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem>
-                              <Edit className='w-4 h-4 mr-2' /> Editar
-                            </DropdownMenuItem>
-                            <DropdownMenuItem className='text-destructive'>
-                              <Trash2 className='w-4 h-4 mr-2' /> Eliminar
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </TableCell>
-                    </TableRow>
-                  </TableBody>
-                </Table>
-              </CardContent>
-            </Card>
-          </TabsContent>
-          <TabsContent value='composite' className='mt-0'>
-            <Card>
-              <CardContent className='p-0'>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead className='w-[100px]'>Código</TableHead>
-                      <TableHead>Nombre</TableHead>
-                      <TableHead>Categoría</TableHead>
-                      <TableHead className='text-right'>Precio</TableHead>
-                      <TableHead className='text-right'>Stock</TableHead>
-                      <TableHead className='text-right'>Acciones</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    <TableRow>
-                      <TableCell className='font-medium'>PRD003</TableCell>
-                      <TableCell>Kit Gamer Completo</TableCell>
-                      <TableCell>
-                        <Badge variant='outline'>Electrónica</Badge>
-                      </TableCell>
-                      <TableCell className='text-right'>$1,299.99</TableCell>
-                      <TableCell className='text-right'>8</TableCell>
-                      <TableCell className='text-right'>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant='ghost' size='sm'>
-                              <MoreHorizontal className='w-4 h-4' />
-                              <span className='sr-only'>Abrir menú</span>
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align='end'>
-                            <DropdownMenuLabel>Acciones</DropdownMenuLabel>
-                            <DropdownMenuItem>
-                              <Barcode className='w-4 h-4 mr-2' /> Ver código de
-                              barras
-                            </DropdownMenuItem>
-                            <DropdownMenuItem>
-                              <Box className='w-4 h-4 mr-2' /> Ver componentes
-                            </DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem>
-                              <Edit className='w-4 h-4 mr-2' /> Editar
-                            </DropdownMenuItem>
-                            <DropdownMenuItem className='text-destructive'>
-                              <Trash2 className='w-4 h-4 mr-2' /> Eliminar
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </TableCell>
-                    </TableRow>
-                    <TableRow>
-                      <TableCell className='font-medium'>PRD005</TableCell>
-                      <TableCell>Combo Oficina</TableCell>
-                      <TableCell>
-                        <Badge variant='outline'>Muebles</Badge>
-                      </TableCell>
-                      <TableCell className='text-right'>$499.99</TableCell>
-                      <TableCell className='text-right'>5</TableCell>
-                      <TableCell className='text-right'>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant='ghost' size='sm'>
-                              <MoreHorizontal className='w-4 h-4' />
-                              <span className='sr-only'>Abrir menú</span>
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align='end'>
-                            <DropdownMenuLabel>Acciones</DropdownMenuLabel>
-                            <DropdownMenuItem>
-                              <Barcode className='w-4 h-4 mr-2' /> Ver código de
-                              barras
-                            </DropdownMenuItem>
-                            <DropdownMenuItem>
-                              <Box className='w-4 h-4 mr-2' /> Ver componentes
-                            </DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem>
-                              <Edit className='w-4 h-4 mr-2' /> Editar
-                            </DropdownMenuItem>
-                            <DropdownMenuItem className='text-destructive'>
-                              <Trash2 className='w-4 h-4 mr-2' /> Eliminar
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </TableCell>
-                    </TableRow>
-                  </TableBody>
-                </Table>
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
-      </main>
-    </div>
-  )
-}
-
-import { BackDashBoard } from '@/components/backDash/BackDashBoard'
+  ProductsFiltersForm,
+  ProductsDialog,
+  ProductsDatatable
+} from '../components/index'
 import { Spinner } from '@/components/loader/Spinner'
+import { BackDashBoard } from '@/components/backDash/BackDashBoard'
+import AlertDialogComponent from '@/components/alertDialog/AlertDialog'
 
-export const Products = () => {
+import {
+  useLazyGetAllProductsQuery,
+  useGetAllProductsStatusQuery,
+  useUpdateProductByIdMutation,
+  useCreateProductMutation,
+  useDeleteProductByIdMutation
+} from '../api/productsAPI'
+import { useTranslation } from 'react-i18next'
+const Products = () => {
+  const [selectedRow, setSelectedRow] = useState({}) //data from datatable
+  const [openDialog, setOpenDialog] = useState(false) //dialog open/close
+  const [actionDialog, setActionDialog] = useState('') //actionDialog edit / add
+  const [alertProps, setAlertProps] = useState({})
+  const [openAlertDialog, setOpenAlertDialog] = useState(false) //alert dialog open/close
+  const { t } = useTranslation() // Accede a las traducciones
+
+  // filter form
+  const [
+    trigger,
+    {
+      data: dataNews = { data: [] },
+      isError,
+      isLoading,
+      isFetching,
+      isSuccess,
+      error
+    },
+    lastPromiseInfo
+  ] = useLazyGetAllProductsQuery()
+
+  const {
+    data: datastatus,
+    isError: isErrorStatus,
+    isLoading: isLoadingStatus,
+    isFetching: isFetchingStatus,
+    isSuccess: isSuccessStatus,
+    error: errorStatus
+  } = useGetAllProductsStatusQuery()
+
+  const [
+    updateNewById,
+    { isLoading: isLoadingPut, isError: isErrorPut, isSuccess: isSuccessPut }
+  ] = useUpdateProductByIdMutation()
+
+  const [
+    createNew,
+    { isLoading: isLoadingPost, isError: isErrorPost, isSuccess: isSuccessPost }
+  ] = useCreateProductMutation()
+
+  const [
+    deleteNewById,
+    {
+      isLoading: isLoadingDelete,
+      isError: isErrorDelete,
+      isSuccess: isSuccessDelete
+    }
+  ] = useDeleteProductByIdMutation()
+
+  const handleSubmit = async (values, newId) => {
+    try {
+      const result = newId
+        ? await updateNewById({
+            id: newId,
+            data: {
+              description: values.description,
+              statusId: values.status.id,
+              statusCode: values.status.code,
+              document: values.document
+            }
+          }).unwrap()
+        : await createNew({
+            document: values.document,
+            statusId: values.status.id,
+            statusCode: values.status.code,
+            description: values.description
+          }).unwrap()
+
+      setAlertProps({
+        alertTitle: t(newId ? 'update_record' : 'add_record'),
+        alertMessage: t(newId ? 'updated_successfully' : 'added_successfully'),
+        cancel: false,
+        success: true,
+        onSuccess: () => {
+          setOpenDialog(false)
+        },
+        variantSuccess: 'info'
+      })
+      setOpenAlertDialog(true)
+    } catch (err) {
+      console.error('Error:', err)
+    }
+  }
+
+  const handleDelete = async id => {
+    try {
+      setAlertProps({
+        alertTitle: t('delete_record'),
+        alertMessage: t('request_delete_record'),
+        cancel: true,
+        success: false,
+        destructive: true,
+        variantSuccess: '',
+        variantDestructive: 'destructive',
+        onSuccess: () => {},
+        onDelete: async () => {
+          try {
+            await deleteNewById(id).unwrap()
+
+            setAlertProps({
+              alertTitle: '',
+              alertMessage: t('deleted_successfully'),
+              cancel: false,
+              success: true,
+              onSuccess: () => {
+                setOpenDialog(false)
+              },
+              variantSuccess: 'info'
+            })
+            setOpenAlertDialog(true) // Open alert dialog
+          } catch (err) {
+            console.error('Error deleting:', err)
+          }
+        }
+      })
+      setOpenAlertDialog(true)
+    } catch (err) {
+      console.error('Error deleting:', err)
+    }
+  }
+
   return (
     <>
-      <BackDashBoard link={'/home'} moduleName={t('news')} />
+      <BackDashBoard link={'/home'} moduleName={t('products')} />
       <div className='relative'>
         {/* Show spinner when loading or fetching */}
-        {/* {(isLoading ||
+        {(isLoading ||
           isLoadingStatus ||
           isLoadingPut ||
           isLoadingPost ||
           isLoadingDelete ||
           isFetching ||
-          isFetchingStatus) && <Spinner />} */}
-        <div className='flex flex-wrap items-center justify-between'></div>
+          isFetchingStatus) && <Spinner />}
+
+        <div className='grid grid-cols-2 grid-rows-4 gap-4 md:grid-cols-5'>
+          {/* filters */}
+          <div className='col-span-2 row-span-1 md:col-span-5'>
+            <ProductsFiltersForm
+              trigger={trigger}
+              setActionDialog={setActionDialog}
+              setOpenDialog={setOpenDialog}
+              datastatus={datastatus}
+            />
+          </div>
+          {/* Datatable */}
+          <div className='flex flex-wrap w-full col-span-2 row-span-3 row-start-2 md:col-span-5'>
+            <ProductsDatatable
+              dataNews={dataNews}
+              setSelectedRow={setSelectedRow}
+              setOpenDialog={setOpenDialog}
+              setActionDialog={setActionDialog}
+            />
+          </div>
+          {/* Dialog */}
+          <ProductsDialog
+            openDialog={openDialog}
+            setSelectedRow={setSelectedRow}
+            selectedRow={selectedRow}
+            setOpenDialog={setOpenDialog}
+            actionDialog={actionDialog}
+            datastatus={datastatus}
+            onCreateUpdate={handleSubmit}
+            onDeleteById={handleDelete}
+          />
+
+          <AlertDialogComponent
+            openAlertDialog={openAlertDialog}
+            setOpenAlertDialog={setOpenAlertDialog}
+            alertProps={alertProps}
+          />
+        </div>
       </div>
     </>
   )
 }
+export default Products
