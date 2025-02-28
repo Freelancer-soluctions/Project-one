@@ -25,6 +25,18 @@ const productsApi = createApi({
         method: 'GET'
       })
     }),
+    getAllProductCategories: builder.query({
+      query: () => ({
+        url: `/products/category`,
+        method: 'GET'
+      })
+    }),
+    getAllProductTypes: builder.query({
+      query: () => ({
+        url: `/products/types`,
+        method: 'GET'
+      })
+    }),
     updateProductById: builder.mutation({
       query: ({ id, data }) => ({
         url: `/products/${id}`,
@@ -60,6 +72,8 @@ const productsApi = createApi({
 export const {
   useLazyGetAllProductsQuery,
   useGetAllProductsStatusQuery,
+  useGetAllProductCategoriesQuery,
+  useGetAllProductTypesQuery,
   useUpdateProductByIdMutation,
   useCreateProductMutation,
   useDeleteProductByIdMutation

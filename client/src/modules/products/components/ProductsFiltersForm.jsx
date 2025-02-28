@@ -8,11 +8,7 @@ import {
   FormLabel,
   FormMessage
 } from '@/components/ui/form'
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger
-} from '@/components/ui/popover'
+
 import {
   Select,
   SelectContent,
@@ -22,39 +18,36 @@ import {
 } from '@/components/ui/select'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
-import { LuPlus, LuCalendarDays, LuSearch, LuEraser } from 'react-icons/lu'
-
-import { Calendar } from '@/components/ui/calendar'
-import { format, formatISO } from 'date-fns'
-import { cn } from '@/lib/utils'
+import { LuPlus, LuSearch, LuEraser } from 'react-icons/lu'
 import PropTypes from 'prop-types'
 
 export const ProductsFiltersForm = ({
   trigger,
   setActionDialog,
   setOpenDialog,
-  datastatus
+  datastatus,
+  dataCategory,
+  dataTypes
 }) => {
   const { t } = useTranslation() // Accede a las traducciones
   // Configura el formulario
   const formFilter = useForm({
     defaultValues: {
-      description: '',
-      fdate: '',
-      tdate: '',
-      statusNews: ''
+      name: '',
+      category: '',
+      type: '',
+      status: ''
     }
   })
 
   //form event
   const onSubmitFilter = ({
-    description,
-    fdate,
-    tdate,
-    statusNews: statusCode
+    name,
+    category,
+    type,
+    status
   }) => {
-    const fromDate = fdate && formatISO(new Date(fdate), 'yyyy-MM-dd')
-    const toDate = tdate && formatISO(new Date(tdate), 'yyyy-MM-dd')
+   
 
     trigger({ description, fromDate, toDate, statusCode })
   }
@@ -82,16 +75,16 @@ export const ProductsFiltersForm = ({
           <div className='flex flex-wrap flex-1 gap-3'>
             <FormField
               control={formFilter.control}
-              name='description'
+              name='name'
               render={({ field }) => {
                 return (
                   <FormItem className='flex flex-col flex-auto'>
-                    <FormLabel htmlFor='description'>
-                      {t('description')}
+                    <FormLabel htmlFor='name'>
+                      {t('name')}
                     </FormLabel>
                     <FormControl>
                       <Input
-                        id='description'
+                        id='name'
                         name='description'
                         placeholder={t('description_placeholder')}
                         type='text'
@@ -109,87 +102,7 @@ export const ProductsFiltersForm = ({
 
             <FormField
               control={formFilter.control}
-              name='fdate'
-              render={({ field }) => (
-                <FormItem className='flex flex-col flex-auto'>
-                  <FormLabel htmlFor='fdate'>{t('from_date')}</FormLabel>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <FormControl>
-                        <Button
-                          id='fdate'
-                          variant={'outline'}
-                          className={cn(
-                            'pl-3 text-left font-normal',
-                            !field.value && 'text-muted-foreground'
-                          )}>
-                          {field.value ? (
-                            format(field.value, 'PPP')
-                          ) : (
-                            <span>{t('pick_date')}</span>
-                          )}
-                          <LuCalendarDays className='w-4 h-4 ml-auto opacity-50' />
-                        </Button>
-                      </FormControl>
-                    </PopoverTrigger>
-                    <PopoverContent className='w-auto p-0' align='start'>
-                      <Calendar
-                        mode='single'
-                        selected={field.value}
-                        onSelect={field.onChange}
-                        disabled={date => date < new Date('1900-01-01')}
-                        initialFocus
-                      />
-                    </PopoverContent>
-                  </Popover>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={formFilter.control}
-              name='tdate'
-              render={({ field }) => (
-                <FormItem className='flex flex-col flex-auto'>
-                  <FormLabel htmlFor='tdate'>{t('to_date')}</FormLabel>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <FormControl>
-                        <Button
-                          id='tdate'
-                          variant={'outline'}
-                          className={cn(
-                            'pl-3 text-left font-normal',
-                            !field.value && 'text-muted-foreground'
-                          )}>
-                          {field.value ? (
-                            format(field.value, 'PPP')
-                          ) : (
-                            <span>{t('pick_date')}</span>
-                          )}
-                          <LuCalendarDays className='w-4 h-4 ml-auto opacity-50' />
-                        </Button>
-                      </FormControl>
-                    </PopoverTrigger>
-                    <PopoverContent className='w-auto p-0' align='start'>
-                      <Calendar
-                        mode='single'
-                        selected={field.value}
-                        onSelect={field.onChange}
-                        disabled={date => date < new Date('1900-01-01')}
-                        initialFocus
-                      />
-                    </PopoverContent>
-                  </Popover>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={formFilter.control}
-              name='statusNews'
+              name='status'
               render={({ field }) => {
                 return (
                   <FormItem className='flex flex-col flex-auto'>
@@ -206,6 +119,60 @@ export const ProductsFiltersForm = ({
                             {item.description}
                           </SelectItem>
                         ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )
+              }}
+            />
+
+              <FormField
+                control={formFilter.control}
+                name='category'
+                render={({ field }) => {
+                  return (
+                    <FormItem className='flex flex-col flex-auto'>
+                      <FormLabel htmlFor='status'>{t('category')}</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl id='category'>
+                          <SelectTrigger>
+                            <SelectValue placeholder={t('select_category')} />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {dataCategory?.data.map((item, index) => (
+                            <SelectItem value={item.code} key={index}>
+                              {item.description}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )
+                }}
+              />
+
+            <FormField
+              control={formFilter.control}
+              name='type'
+              render={({ field }) => {
+                return (
+                  <FormItem className='flex flex-col flex-auto'>
+                    <FormLabel htmlFor='type'>{t('type')}</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl id='type'>
+                        <SelectTrigger>
+                          <SelectValue placeholder={t('select_type')} />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {dataTypes?.data.map((item, index) => (
+                          <SelectItem value={item.code} key={index}>
+                            {item.description}
+                          </SelectItem>
+                        ))} 
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -244,9 +211,11 @@ export const ProductsFiltersForm = ({
   )
 }
 
-NewsFiltersForm.propTypes = {
+ProductsFiltersForm.propTypes = {
   trigger: PropTypes.func,
   setActionDialog: PropTypes.func,
   setOpenDialog: PropTypes.func,
-  datastatus: PropTypes.object
+  datastatus: PropTypes.object,
+  dataCategory: PropTypes.object,
+  dataTypes: PropTypes.object
 }

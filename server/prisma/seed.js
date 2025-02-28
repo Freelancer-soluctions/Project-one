@@ -75,6 +75,39 @@ const newStatus = [
   }
 ]
 
+const productStatus = [
+  {
+    code: 'C01',
+    description: 'ACTIVE'
+  },
+  {
+    code: 'C02',
+    description: 'INACTIVE'
+  }
+]
+
+const productTypes = [
+  {
+    code: 'C01',
+    description: 'SIMPLE'
+  },
+  {
+    code: 'C02',
+    description: 'COMPOUND'
+  }
+]
+
+const productCategories = [
+  {
+    code: 'C01',
+    description: 'Monitores y Periféricos'
+  },
+  {
+    code: 'C02',
+    description: 'Accesorios (Teclados, Ratones, etc.)'
+  }
+]
+
 const user = {
   name: 'Admin',
   email: 'admin@gmail.com',
@@ -126,15 +159,18 @@ const create = async (tableName, createObject) => {
 }
 
 async function main () {
-  await createVarious('userPermits', userPermits)
-  await createVarious('userStatus', userStatus)
-  await createVarious('noteColumns', noteStatus)
-  await createVarious('eventTypes', eventTypes)
+  // await createVarious('userPermits', userPermits)
+  // await createVarious('userStatus', userStatus)
+  // await createVarious('noteColumns', noteStatus)
+  // await createVarious('eventTypes', eventTypes)
 
-  await createVarious('newsStatus', newStatus)
-  await createVarious('roles', roles)
-  await create('users', user)
-  await createVarious('news', news)
+  // await createVarious('newsStatus', newStatus)
+  // await createVarious('roles', roles)
+  // await create('users', user)
+  // await createVarious('news', news)
+  await createVarious('productStatus', productStatus)
+  await createVarious('productTypes', productTypes)
+  await createVarious('productCategories', productCategories)
 }
 
 main()

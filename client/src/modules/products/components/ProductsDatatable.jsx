@@ -4,14 +4,14 @@ import { format } from 'date-fns'
 import PropTypes from 'prop-types'
 
 export const ProductsDatatable = ({
-  dataNews,
+  dataProducts,
   setSelectedRow,
   setOpenDialog,
   setActionDialog
 }) => {
   const { t } = useTranslation()
 
-  const columnDefNews = [
+  const columnDef = [
     {
       accessorKey: 'createdOn',
       header: t('created_on'),
@@ -19,53 +19,60 @@ export const ProductsDatatable = ({
         info.getValue() ? format(info.getValue(), 'dd/MM/yyyy') : ''
     },
     {
-      accessorKey: 'description',
-      header: t('description'),
+      accessorKey: 'sku',
+      header: t('sku')
+    },
+    {
+      accessorKey: 'name',
+      header: t('name'),
       cell: info => {
         const value = info.getValue()
         return value.length > 30 ? `${value.slice(0, 30)}...` : value
       }
     },
     {
-      accessorKey: 'status.description',
-      header: t('status')
+      accessorKey: 'categoryDescription',
+      header: t('category')
     },
     {
-      accessorKey: 'userNewsCreated.name',
+      accessorKey: 'typeDescription',
+      header: t('type')
+    },
+    {
+      accessorKey: 'price',
+      header: t('price')
+    },
+    {
+      accessorKey: 'cost',
+      header: t('cost')
+    },
+    {
+      accessorKey: 'stock',
+      header: t('stock')
+    },
+    {
+      accessorKey: 'userProductCreatedName',
       header: t('created_by'),
       cell: info => {
-        const userNewsCreated = info.row.original.userNewsCreated // Accede al dato original de la fila
-        return userNewsCreated?.name ? userNewsCreated.name.toUpperCase() : null // Retorna null para mantener la celda vacía
+        const userCreated = info.row.original.userProductCreatedName // Accede al dato original de la fila
+        return userCreated ? userCreated.toUpperCase() : null // Retorna null para mantener la celda vacía
       }
     },
     {
-      accessorKey: 'userNewsPending.name',
-      header: t('pending_by'),
+      accessorKey: 'userProductUpdatedName',
+      header: t('updated_by'),
       cell: info => {
-        const userNewsPending = info.row.original.userNewsPending // Accede al dato original de la fila
-        return userNewsPending?.name ? userNewsPending.name.toUpperCase() : null // Retorna null para mantener la celda vacía
+        const userUpdated = info.row.original.userProductUpdatedName // Accede al dato original de la fila
+        return userUpdated ? userUpdated.toUpperCase() : null // Retorna null para mantener la celda vacía
       }
     },
     {
-      accessorKey: 'pendingOn',
-      header: t('pending_on'),
+      accessorKey: 'updatedOn',
+      header: t('updated_on'),
       cell: info =>
         info.getValue() ? format(info.getValue(), 'dd/MM/yyyy/hh:mm:s aaa') : ''
     },
-    {
-      accessorKey: 'userNewsClosed.name',
-      header: t('closed_by'),
-      cell: info => {
-        const userNewsClosed = info.row.original.userNewsClosed // Accede al dato original de la fila
-        return userNewsClosed?.name ? userNewsClosed.name.toUpperCase() : null // Retorna null para mantener la celda vacía
-      }
-    },
-    {
-      accessorKey: 'closedOn',
-      header: t('closed_on'),
-      cell: info =>
-        info.getValue() ? format(info.getValue(), 'dd/MM/yyyy/hh:mm:s aaa') : ''
-    }
+   
   ]
 
   const handleEditDialog = row => {
@@ -77,16 +84,16 @@ export const ProductsDatatable = ({
   return (
     <>
       <DataTable
-        columns={columnDefNews}
-        data={dataNews?.data}
+        columns={columnDef}
+        data={dataProducts?.data}
         handleRow={row => handleEditDialog(row)}
       />
     </>
   )
 }
 
-NewsDatatable.propTypes = {
-  dataNews: PropTypes.object,
+ProductsDatatable.propTypes = {
+  dataProducts: PropTypes.object,
   setSelectedRow: PropTypes.func,
   setOpenDialog: PropTypes.func,
   setActionDialog: PropTypes.func
