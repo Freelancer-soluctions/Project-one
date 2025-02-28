@@ -1,11 +1,14 @@
-import { Router } from 'express'
-import { SettingsLanguage } from '../../utils/joiSchemas/joi.js'
-import * as settingsController from './controller.js'
+import { Router } from "express";
+import {
+  SettingsLanguage,
+  SettingsDisplay,
+} from "../../utils/joiSchemas/joi.js";
+import * as settingsController from "./controller.js";
 // import validateQueryParams from '../../middleware/validateQueryParams.js'
-import validateSchema from '../../middleware/validateSchema.js'
-import verifyToken from '../../middleware/verifyToken.js'
+import validateSchema from "../../middleware/validateSchema.js";
+import verifyToken from "../../middleware/verifyToken.js";
 
-const router = Router()
+const router = Router();
 
 /**
  * @openapi
@@ -46,7 +49,7 @@ const router = Router()
  *               $ref: "#/components/schemas/Error"
  */
 
-router.get('/language/:id', verifyToken, settingsController.getLanguageById)
+router.get("/:id", verifyToken, settingsController.getSettingsById);
 
 /**
  * @openapi
@@ -85,6 +88,55 @@ router.get('/language/:id', verifyToken, settingsController.getLanguageById)
  *               $ref: "#/components/schemas/Error"
  */
 
-router.post('/language/', verifyToken, validateSchema(SettingsLanguage), settingsController.createOrUpdateSettingsLanguage)
+router.post(
+  "/language/",
+  verifyToken,
+  validateSchema(SettingsLanguage),
+  settingsController.createOrUpdateSettingsLanguage
+);
 
-export default router
+/**
+ * @openapi
+ * /api/v1/settings/language:
+ *   post:
+ *     tags:
+ *       - SettingsLanguage
+ *     parameters:
+ *       - in: header
+ *         name: x-access-token
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: Access token for authorization
+ *     requestBody:
+ *         content:
+ *          multipart/form-data:
+ *           schema:
+ *            $ref: "#/components/schemas/createOrUpdateSettingLanguage"
+ *     responses:
+ *       200:
+ *         description: OK
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 data:
+ *                   type: object
+ *                   $ref: "#/components/schemas/Create"
+ *       5XX:
+ *         description: FAILED
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Error"
+ */
+
+router.post(
+  "/display/",
+  verifyToken,
+  validateSchema(SettingsDisplay),
+  settingsController.createOrUpdateSettingsDisplay
+);
+
+export default router;

@@ -1,6 +1,6 @@
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { signUpSchema } from '../utils/schemas'
+import { signUpSchema } from '../utils/schema'
 
 import {
   Form,
