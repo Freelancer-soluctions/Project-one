@@ -1,3 +1,3 @@
-export * from './schemas'
+export * from './schema'
 export * from './enums'
 export * from './helpers'

@@ -84,7 +84,7 @@ export const getAllProductStatus = async () => {
  * @returns {Promise<Array>} A list of products categories from the database.
  */
 export const getAllProductCategories = async () => {
-  const products = await prisma.productStatus.findMany()
+  const products = await prisma.productCategories.findMany()
   return Promise.resolve(products)
 }
 
@@ -94,7 +94,7 @@ export const getAllProductCategories = async () => {
  * @returns {Promise<Array>} A list of products types from the database.
  */
 export const getAllProductTypes = async () => {
-  const products = await prisma.productStatus.findMany()
+  const products = await prisma.productTypes.findMany()
   return Promise.resolve(products)
 }
 

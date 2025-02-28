@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import {
   ProductsFiltersForm,
-  ProductsDialog,
+  ProductsForms,
   ProductsDatatable
 } from '../components/index'
 import { Spinner } from '@/components/loader/Spinner'
@@ -11,6 +11,8 @@ import AlertDialogComponent from '@/components/alertDialog/AlertDialog'
 import {
   useLazyGetAllProductsQuery,
   useGetAllProductsStatusQuery,
+  useGetAllProductCategoriesQuery,
+  useGetAllProductTypesQuery,
   useUpdateProductByIdMutation,
   useCreateProductMutation,
   useDeleteProductByIdMutation
@@ -24,19 +26,23 @@ const Products = () => {
   const [openAlertDialog, setOpenAlertDialog] = useState(false) //alert dialog open/close
   const { t } = useTranslation() // Accede a las traducciones
 
-  // filter form
-  const [
-    trigger,
-    {
-      data: dataNews = { data: [] },
-      isError,
-      isLoading,
-      isFetching,
-      isSuccess,
-      error
-    },
-    lastPromiseInfo
-  ] = useLazyGetAllProductsQuery()
+  const {
+    data: dataCategory,
+    isError: isErrorCategory,
+    isLoading: isLoadingCategory,
+    isFetching: isFetchingCategory,
+    isSuccess: isSuccessCategory,
+    error: errorCategory
+  } = useGetAllProductCategoriesQuery()
+
+  const {
+    data: dataTypes,
+    isError: isErrorTypes,
+    isLoading: isLoadingTypes,
+    isFetching: isFetchingTypes,
+    isSuccess: isSuccessTypes,
+    error: errorTypes
+  } = useGetAllProductTypesQuery()
 
   const {
     data: datastatus,
@@ -46,6 +52,20 @@ const Products = () => {
     isSuccess: isSuccessStatus,
     error: errorStatus
   } = useGetAllProductsStatusQuery()
+
+  // filter form
+  const [
+    trigger,
+    {
+      data: dataProducts = { data: [] },
+      isError,
+      isLoading,
+      isFetching,
+      isSuccess,
+      error
+    },
+    lastPromiseInfo
+  ] = useLazyGetAllProductsQuery()
 
   const [
     updateNewById,
@@ -66,89 +86,21 @@ const Products = () => {
     }
   ] = useDeleteProductByIdMutation()
 
-  const handleSubmit = async (values, newId) => {
-    try {
-      const result = newId
-        ? await updateNewById({
-            id: newId,
-            data: {
-              description: values.description,
-              statusId: values.status.id,
-              statusCode: values.status.code,
-              document: values.document
-            }
-          }).unwrap()
-        : await createNew({
-            document: values.document,
-            statusId: values.status.id,
-            statusCode: values.status.code,
-            description: values.description
-          }).unwrap()
-
-      setAlertProps({
-        alertTitle: t(newId ? 'update_record' : 'add_record'),
-        alertMessage: t(newId ? 'updated_successfully' : 'added_successfully'),
-        cancel: false,
-        success: true,
-        onSuccess: () => {
-          setOpenDialog(false)
-        },
-        variantSuccess: 'info'
-      })
-      setOpenAlertDialog(true)
-    } catch (err) {
-      console.error('Error:', err)
-    }
-  }
-
-  const handleDelete = async id => {
-    try {
-      setAlertProps({
-        alertTitle: t('delete_record'),
-        alertMessage: t('request_delete_record'),
-        cancel: true,
-        success: false,
-        destructive: true,
-        variantSuccess: '',
-        variantDestructive: 'destructive',
-        onSuccess: () => {},
-        onDelete: async () => {
-          try {
-            await deleteNewById(id).unwrap()
-
-            setAlertProps({
-              alertTitle: '',
-              alertMessage: t('deleted_successfully'),
-              cancel: false,
-              success: true,
-              onSuccess: () => {
-                setOpenDialog(false)
-              },
-              variantSuccess: 'info'
-            })
-            setOpenAlertDialog(true) // Open alert dialog
-          } catch (err) {
-            console.error('Error deleting:', err)
-          }
-        }
-      })
-      setOpenAlertDialog(true)
-    } catch (err) {
-      console.error('Error deleting:', err)
-    }
-  }
-
   return (
     <>
       <BackDashBoard link={'/home'} moduleName={t('products')} />
       <div className='relative'>
         {/* Show spinner when loading or fetching */}
         {(isLoading ||
+          isLoadingCategory ||
+          isLoadingTypes ||
           isLoadingStatus ||
           isLoadingPut ||
           isLoadingPost ||
           isLoadingDelete ||
           isFetching ||
+          isFetchingTypes ||
+          isFetchingCategory ||
           isFetchingStatus) && <Spinner />}
 
         <div className='grid grid-cols-2 grid-rows-4 gap-4 md:grid-cols-5'>
@@ -159,27 +111,23 @@ const Products = () => {
               setActionDialog={setActionDialog}
               setOpenDialog={setOpenDialog}
               datastatus={datastatus}
+              dataCategory={dataCategory}
+              dataTypes={dataTypes}
             />
           </div>
           {/* Datatable */}
           <div className='flex flex-wrap w-full col-span-2 row-span-3 row-start-2 md:col-span-5'>
             <ProductsDatatable
-              dataNews={dataNews}
+              dataProducts={dataProducts}
               setSelectedRow={setSelectedRow}
               setOpenDialog={setOpenDialog}
               setActionDialog={setActionDialog}
             />
           </div>
-          {/* Dialog */}
-          <ProductsDialog
-            openDialog={openDialog}
-            setSelectedRow={setSelectedRow}
-            selectedRow={selectedRow}
-            setOpenDialog={setOpenDialog}
-            actionDialog={actionDialog}
+          <ProductsForms
             datastatus={datastatus}
-            onCreateUpdate={handleSubmit}
-            onDeleteById={handleDelete}
+            dataCategory={dataCategory}
+            dataTypes={dataTypes}
           />
 
           <AlertDialogComponent
