@@ -1,7 +1,7 @@
 
 import { useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
-import {getLanguageByUserIdFetch} from '@/modules/settings/slice/settingsSlice'
+// import {getLanguageByUserIdFetch} from '@/modules/settings/slice/settingsSlice'
 // import { useGetTranslation } from "@/hooks/useGetTranslation";
 import i18n from "@/config/i18n"; // Importamos la instancia de i18n
 

@@ -23,57 +23,28 @@ import {
   LuLayoutTemplate
 } from 'react-icons/lu'
 import { Separator } from '@/components/ui/separator'
-import { SettingsLanguage } from '../components/index'
-import { useSelector, useDispatch } from 'react-redux'
+import { SettingsLanguage, SettingsDisplay } from '../components/index'
+import { useSelector } from 'react-redux'
 import { useTranslation } from 'react-i18next'
-import { useSearchParams } from 'react-router'
-import { useState, useEffect } from 'react'
-import { saveSettingLanguageFetch } from '../slice/settingsSlice'
+import {
+  useChangeLanguage,
+  useActiveTab,
+  useDisplaySettings,
+  useSaveDisplaySettings
+} from '../hooks'
+
 export default function Settings() {
-  const { id } = useSelector(state => state.auth.user.data.user)
-  const dispatch = useDispatch()
-  const {
-    t,
-    i18n: { changeLanguage }
-  } = useTranslation()
-  const [searchParams] = useSearchParams()
-  const tabFromUrl = searchParams.get('tab') || 'profile' // Si no hay parámetro, usa 'profile
-  const [activeTab, setActiveTab] = useState(tabFromUrl) // Estado local para la pestaña activa
-  // Actualizar el estado cuando cambie el query param
-  useEffect(() => {
-    setActiveTab(tabFromUrl)
-  }, [tabFromUrl]) // Se ejecuta cada vez que cambia `tab` en la URL
-
-  const { language: languageState } = useSelector(
-    state => state.settings.dataSettings
+  const { t } = useTranslation()
+  const settings = useSelector(
+    state => state.settings.dataSettings?.userSettings?.data
   )
+  //language
+  const { onChangeLanguage } = useChangeLanguage()
+  //display
+  const { activeTab, setActiveTab } = useActiveTab('profile')
+  const userDisplaySettings = useDisplaySettings(settings)
+  const { onSaveDisplaySettings } = useSaveDisplaySettings(settings)
 
-  const onChangeLanguage = async value => {
-    try {
-      // let userLanguage
-      // if (!response.data) {
-      //   // Forzar un refetch para obtener los datos frescos desde el servidor
-      //   const { data: refetchData } = await refetch({ forceRefetch: true })
-      //   userLanguage = refetchData.data
-      // } else {
-      //   userLanguage = response.data
-      // }
-
-      // Aquí manipulas los datos frescos que se han obtenido
-      const lang =
-        languageState.data?.id && languageState.data?.language
-          ? { id: languageState.data.id, language: value }
-          : { userId, language: value }
-
-      // Guardar el nuevo idioma
-      dispatch(saveSettingLanguageFetch(lang))
-
-      // Cambiar el idioma usando i18n
-      changeLanguage(value)
-    } catch (error) {
-      console.error('Error updating:', error)
-    }
-  }
   return (
     // {(isLoading || isFetching || isLoadingPost) && <Spinner />}
 
@@ -122,6 +93,12 @@ export default function Settings() {
 
           <TabsContent value='language' className='space-y-6'>
             <SettingsLanguage onChangeLanguage={onChangeLanguage} />
+          </TabsContent>
+          <TabsContent value='display' className='space-y-6'>
+            <SettingsDisplay
+              userDisplaySettings={userDisplaySettings}
+              onSaveDisplaySettings={onSaveDisplaySettings}
+            />
           </TabsContent>
 
           {/* <TabsContent value='profile' className='space-y-6'>
