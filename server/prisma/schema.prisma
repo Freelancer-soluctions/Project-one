@@ -168,7 +168,7 @@ model products {
   price              Decimal           @db.Decimal(10, 2)
   cost               Decimal           @db.Decimal(10, 2)
   stock              Int               @db.Integer
-  Description        String            @db.VarChar(2000)
+  Description        String?            @db.VarChar(2000)
   productStatus      productStatus     @relation(fields: [productStatusId], references: [id])
   productStatusId    Int
   barCode            String?           @db.VarChar(25)

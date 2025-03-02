@@ -1,6 +1,6 @@
 import { z } from "zod"
 
-export const newsDialogSchema = z.object({
+export const NewsDialogSchema = z.object({
   description: z.string().min(1, {
       message: "Description is required.",
     }),

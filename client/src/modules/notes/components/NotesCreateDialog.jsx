@@ -25,20 +25,19 @@ import {
   SelectTrigger,
   SelectValue
 } from '@/components/ui/select'
-import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { CgNotes } from 'react-icons/cg'
 import PropTypes from 'prop-types'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
-import { notesCreateDialogSchema } from '../utils/index'
+import { NotesCreateDialogSchema } from '../utils/index'
 
 export function NotesCreateDialog({ onCreateNote, dataStatus, open, setOpen }) {
   const { t } = useTranslation()
 
   // Configura el formulario
   const formNotesDialog = useForm({
-    resolver: zodResolver(notesCreateDialogSchema),
+    resolver: zodResolver(NotesCreateDialogSchema),
     defaultValues: {
       title: '',
       content: ''
