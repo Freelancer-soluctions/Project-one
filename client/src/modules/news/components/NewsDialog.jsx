@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { newsDialogSchema, NewsStatusCode } from '../utils'
+import { NewsDialogSchema, NewsStatusCode } from '../utils'
 
 import {
   Dialog,
@@ -60,7 +60,7 @@ export const NewsDialog = ({
 
   // Configura el formulario
   const formDialog = useForm({
-    resolver: zodResolver(newsDialogSchema)
+    resolver: zodResolver(NewsDialogSchema)
   })
 
   // Actualiza todos los valores del formulario al cambiar `selectedRow`

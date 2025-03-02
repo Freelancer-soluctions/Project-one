@@ -1,9 +1,5 @@
 import { useState } from 'react'
-import {
-  ProductsFiltersForm,
-  ProductsForms,
-  ProductsDatatable
-} from '../components/index'
+import { ProductsFiltersForm, ProductsDatatable } from '../components/index'
 import { Spinner } from '@/components/loader/Spinner'
 import { BackDashBoard } from '@/components/backDash/BackDashBoard'
 import AlertDialogComponent from '@/components/alertDialog/AlertDialog'
@@ -18,6 +14,7 @@ import {
   useDeleteProductByIdMutation
 } from '../api/productsAPI'
 import { useTranslation } from 'react-i18next'
+import { useNavigate } from 'react-router'
 const Products = () => {
   const [selectedRow, setSelectedRow] = useState({}) //data from datatable
   const [openDialog, setOpenDialog] = useState(false) //dialog open/close
@@ -25,6 +22,7 @@ const Products = () => {
   const [alertProps, setAlertProps] = useState({})
   const [openAlertDialog, setOpenAlertDialog] = useState(false) //alert dialog open/close
   const { t } = useTranslation() // Accede a las traducciones
+  const navigate = useNavigate()
 
   const {
     data: dataCategory,
@@ -86,6 +84,10 @@ const Products = () => {
     }
   ] = useDeleteProductByIdMutation()
 
+  const handleProductsForms = row => {
+    navigate('/home/productsForms', { state: { row } })
+  }
+
   return (
     <>
       <BackDashBoard link={'/home'} moduleName={t('products')} />
@@ -108,8 +110,7 @@ const Products = () => {
           <div className='col-span-2 row-span-1 md:col-span-5'>
             <ProductsFiltersForm
               trigger={trigger}
-              setActionDialog={setActionDialog}
-              setOpenDialog={setOpenDialog}
+              onOpenProductsForms={handleProductsForms}
               datastatus={datastatus}
               dataCategory={dataCategory}
               dataTypes={dataTypes}
@@ -124,11 +125,6 @@ const Products = () => {
               setActionDialog={setActionDialog}
             />
           </div>
-          <ProductsForms
-            datastatus={datastatus}
-            dataCategory={dataCategory}
-            dataTypes={dataTypes}
-          />
 
           <AlertDialogComponent
             openAlertDialog={openAlertDialog}

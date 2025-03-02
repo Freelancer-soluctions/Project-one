@@ -1,3 +1,3 @@
 export * from './ProductsFiltersForm'
 export * from './ProductsDatatable'
-export * from './ProductsForms'
+export * from './ProductBasicInfo'
