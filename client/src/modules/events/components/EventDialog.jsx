@@ -38,7 +38,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { LuCalendarDays } from 'react-icons/lu'
 import { format } from 'date-fns'
 
-import { eventsDialogSchema } from '../utils'
+import { EventsDialogSchema } from '../utils'
 import { useTranslation } from 'react-i18next'
 
 export function EventDialog({
@@ -52,7 +52,7 @@ export function EventDialog({
   const [isPopoverOpen, setIsPopoverOpen] = useState(false) // date picker popover
   // Configura el formulario
   const formEventDialog = useForm({
-    resolver: zodResolver(eventsDialogSchema)
+    resolver: zodResolver(EventsDialogSchema)
   })
 
   // Actualiza todos los valores del formulario al cambiar `event`

@@ -2,7 +2,7 @@
 import { useSelector } from 'react-redux'
 import { useNavigate } from 'react-router'
 import { useEffect } from 'react'
-const ProtectedRoutes = ({ children, redirectTo }) => {
+export const ProtectedRoutes = ({ children, redirectTo }) => {
   // Accediendo al estado de autenticación
   const user = useSelector(state => state.auth)
   // const user = store.getState()?.auth?.user
@@ -30,4 +30,4 @@ const ProtectedRoutes = ({ children, redirectTo }) => {
   return children
 }
 
-export default ProtectedRoutes
+
