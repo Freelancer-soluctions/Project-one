@@ -5,9 +5,9 @@ import PropTypes from 'prop-types'
 
 export const ProductsDatatable = ({
   dataProducts,
-  setSelectedRow,
-  setOpenDialog,
-  setActionDialog
+  onOpenProductsForms
+  
+
 }) => {
   const { t } = useTranslation()
 
@@ -76,9 +76,8 @@ export const ProductsDatatable = ({
   ]
 
   const handleEditDialog = row => {
-    setActionDialog(t('edit_new'))
-    setSelectedRow(row)
-    setOpenDialog(true)
+    onOpenProductsForms(row)
+
   }
 
   return (

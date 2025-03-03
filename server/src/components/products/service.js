@@ -62,11 +62,11 @@ export const createOne = async (userId, data) => {
     price: Number(data.price),
     cost: Number(data.cost),
     stock: Number(data.stock),
-    description: String(data.description),
+    description: data.description ? String(data.description) : null,
     productStatusId: Number(data.productStatusId),
     barCode: data.barCode ? String(data.barCode) : null, // Opcional
     createdOn: new Date(),
-    createdBy: Number(data.userId)
+    createdBy: Number(userId)
   }
 
   return productsDao.createRow(newProduct)
@@ -81,33 +81,16 @@ export const createOne = async (userId, data) => {
  * @param {string} data.statusCode - The status code of the products item.
  * @returns {Promise<Object>} The updated products item.
  */
-export const updateById = async (userId, newId, data) => {
-  const rowId = Number(newId)
+export const updateById = async (userId, id, data) => {
+  const rowId = Number(id)
+  const product = {
+    ...data,
+    updatedOn: new Date(),
+    updatedBy: Number(userId)
 
-  if (data.statusCode === NEWSSTATUSCODE.CLOSED) {
-    data.closedBy = Number(userId)
-    data.closedOn = new Date()
   }
 
-  if (data.statusCode === NEWSSTATUSCODE.PENDING) {
-    data.pendingBy = Number(userId)
-    data.pendingOn = new Date()
-  }
-
-  // if (data.document) {
-  // const { documentId } = await getOneById(rowId)
-  //   const baseImage = Buffer.from(file.buffer).toString('base64')
-  //   const imageURI = `data:${file.mimetype};base64,${baseImage}`
-
-  //   if (documentId) {
-  //     await handleUploadUpdate(imageURI, documentId)
-  //   } else {
-  //     const { public_id, secure_url } = await handleUpload(imageURI)
-  //     newsData.document = secure_url
-  //     newsData.documentId = public_id
-  //   }
-  // }
-  return productsDao.updateRow(data, { id: rowId })
+  return productsDao.updateRow(product, { id: rowId })
 }
 /**
  * Delete a products item from the database by its ID.

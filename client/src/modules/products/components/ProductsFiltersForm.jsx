@@ -47,7 +47,10 @@ export const ProductsFiltersForm = ({
     type,
     status
   }) => {
-    trigger({ description, fromDate, toDate, statusCode })
+    trigger({ name,
+      productCategoryCode:category.code,
+    productTypeCode:type.code,
+      statusCode:status.code})
   }
 
   const handleAdd = () => {

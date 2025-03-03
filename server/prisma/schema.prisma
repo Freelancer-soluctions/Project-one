@@ -168,16 +168,16 @@ model products {
   price              Decimal           @db.Decimal(10, 2)
   cost               Decimal           @db.Decimal(10, 2)
   stock              Int               @db.Integer
-  Description        String?            @db.VarChar(2000)
+  description        String?            @db.VarChar(2000)
   productStatus      productStatus     @relation(fields: [productStatusId], references: [id])
   productStatusId    Int
-  barCode            String?           @db.VarChar(25)
+  barCode            String?           @unique @db.VarChar(25)
   userProductCreated users             @relation("userProductCreated", fields: [createdBy], references: [id])
   createdBy          Int
   createdOn          DateTime          @db.Timestamp(3)
   updatedOn          DateTime?         @db.Timestamp(3)
-  userProductUpdated users             @relation("userProductUpdated", fields: [updatedBy], references: [id])
-  updatedBy          Int
+  userProductUpdated users?            @relation("userProductUpdated", fields: [updatedBy], references: [id])
+  updatedBy          Int?
 }
 
 model productCategories {
