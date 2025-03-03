@@ -115,6 +115,7 @@
     "cost": "Cost ($)",
     "stock":"Stock",
     "new_product":"New Product",
+    "edit_product":"Edit Product",
     "basic_information":"Basic Information",
     "attributes":"Attributes",
     "components":"Components",

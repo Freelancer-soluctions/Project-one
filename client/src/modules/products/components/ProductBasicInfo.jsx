@@ -28,7 +28,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { ProductsSchema } from '../utils'
 import { useNavigate } from 'react-router'
 import { useTranslation } from 'react-i18next'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import {
   LuPackage,
   LuArrowLeft,
@@ -40,13 +40,15 @@ import {
 
 export const ProductBasicInfo = ({
   onSubmitCreateEdit,
+  onDelete,
   dataCategory,
   dataTypes,
-  datastatus
+  datastatus,
+  selectedRow
 }) => {
   const navigate = useNavigate()
   const { t } = useTranslation()
-
+  const [id, setId]= useState()
   const generateBarcode = () => {
     // Simulación de generación de código de barras
     const randomCode = Math.floor(Math.random() * 10000000000)
@@ -57,19 +59,45 @@ export const ProductBasicInfo = ({
   
   const form = useForm({
     resolver: zodResolver(ProductsSchema),
-    defaultValues: {
-      name: '',
-      sku: '',
-      description: '',
-      barcode: '',
-    //   category: '',
-    //   type: '',
-    //   status: ''
-    }
+    // defaultValues: {
+    //   id: null,  // Asegura que el ID esté en los valores iniciales
+    //   name: '',
+    //   sku: '',
+    //   description: '',
+    //   barcode: '',
+    //   stock: '',
+    //   price: '',
+    //   cost: '',
+    // //   category: '',
+    // //   type: '',
+    // //   status: ''
+    // }
   })
 
-console.log("dfdfdfd", dataCategory?.data)
-  
+
+  // Actualiza todos los valores del formulario al cambiar `selectedRow`
+  useEffect(() => {
+    if (selectedRow) {
+      form.reset({
+        ...selectedRow,
+        stock: String(selectedRow.stock),
+        status: {id:selectedRow.statusId, code:selectedRow.statusCode, description:selectedRow.statusDescription  },
+        category: {id:selectedRow.categoryId, code:selectedRow.categoryCode, description:selectedRow.categoryDescription  },
+        type: {id:selectedRow.typeId, code:selectedRow.typeCode, description:selectedRow.typeDescription  }
+      })
+      setId(selectedRow.id || '')
+    }
+
+ 
+  }, [selectedRow])
+
+  const submitForm = (data) => {
+    onSubmitCreateEdit(data);
+  };
+
+  const handleDelete = (id) => {
+    onDelete(id)
+  }
   return (
     <Card>
       <CardHeader>
@@ -81,9 +109,9 @@ console.log("dfdfdfd", dataCategory?.data)
           <form
             method='post'
             action=''
-            id='profile-info-form'
+            id='products-info-form'
             noValidate
-            onSubmit={form.handleSubmit(onSubmitCreateEdit)}
+            onSubmit={form.handleSubmit(submitForm)}
             className='flex flex-col flex-wrap gap-5'>
             <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
               <div className='space-y-2'>
@@ -100,7 +128,7 @@ console.log("dfdfdfd", dataCategory?.data)
                             type='text'
                             name='name'
                             maxLength='80'
-                            autoComplete='false'
+                            autoComplete='off'
                             placeholder={t('enter_product_name_placeholder')}
                             {...field}
                             value={field.value ?? ''}
@@ -126,7 +154,7 @@ console.log("dfdfdfd", dataCategory?.data)
                             type='text'
                             name='sku'
                             maxLength="16"
-                            autoComplete='false'
+                            autoComplete='off'
                             placeholder={t(
                               'enter_unique_product_code_placeholder'
                             )}
@@ -151,19 +179,19 @@ console.log("dfdfdfd", dataCategory?.data)
 
                     return (
                       <FormItem>
-                        <FormLabel htmlFor='status'>{t('category')}*</FormLabel>
+                        <FormLabel htmlFor='category'>{t('category')}*</FormLabel>
                         <Select
                         //   onValueChange={field.onChange}
                           onValueChange={code => {
                             // Buscar el objeto completo por el `code`
-                            const selectedStatus = dataCategory.data.find(
+                            const selectedCategory= dataCategory.data.find(
                               item => item.code === code
                             )
-                            if (selectedStatus) {
-                              field.onChange(selectedStatus) // Asignar el objeto completo
+                            if (selectedCategory) {
+                              field.onChange(selectedCategory) // Asignar el objeto completo
                             }
                           }}
-                          value={field.value}>
+                          value={field.value?.code}>
                           <FormControl id='category'>
                             <SelectTrigger>
                               <SelectValue placeholder={t('select_category')} />
@@ -193,8 +221,16 @@ console.log("dfdfdfd", dataCategory?.data)
                       <FormItem>
                         <FormLabel htmlFor='type'>{t('type')}*</FormLabel>
                         <Select
-                          onValueChange={field.onChange}
-                          value={field.value}>
+                                  onValueChange={code => {
+                                    // Buscar el objeto completo por el `code`
+                                    const selectedTypes= dataTypes.data.find(
+                                      item => item.code === code
+                                    )
+                                    if (selectedTypes) {
+                                      field.onChange(selectedTypes) // Asignar el objeto completo
+                                    }
+                                  }}
+                                  value={field.value?.code}>
                           <FormControl id='type'>
                             <SelectTrigger>
                               <SelectValue placeholder={t('select_type')} />
@@ -202,7 +238,7 @@ console.log("dfdfdfd", dataCategory?.data)
                           </FormControl>
                           <SelectContent>
                             {dataTypes?.data.map((item, index) => (
-                              <SelectItem value={item.id} key={index}>
+                              <SelectItem value={item.code} key={index}>
                                 {item.description}
                               </SelectItem>
                             ))}
@@ -223,8 +259,16 @@ console.log("dfdfdfd", dataCategory?.data)
                       <FormItem>
                         <FormLabel htmlFor='status'>{t('status')}*</FormLabel>
                         <Select
-                          onValueChange={field.onChange}
-                          value={field.value}>
+                                   onValueChange={code => {
+                                    // Buscar el objeto completo por el `code`
+                                    const selectedStatus = datastatus.data.find(
+                                      item => item.code === code
+                                    )
+                                    if (selectedStatus) {
+                                      field.onChange(selectedStatus) // Asignar el objeto completo
+                                    }
+                                  }}
+                                  value={field.value?.code}>
                           <FormControl id='status'>
                             <SelectTrigger>
                               <SelectValue placeholder={t('select_status')} />
@@ -232,7 +276,7 @@ console.log("dfdfdfd", dataCategory?.data)
                           </FormControl>
                           <SelectContent>
                             {datastatus?.data.map((item, index) => (
-                              <SelectItem value={item.id} key={index}>
+                              <SelectItem value={item.code} key={index}>
                                 {item.description}
                               </SelectItem>
                             ))}
@@ -258,10 +302,10 @@ console.log("dfdfdfd", dataCategory?.data)
                         <FormControl>
                           <Input
                             id='price'
-                            type='number'
+                            type='text'
                             placeholder='0.00'
                             name='price'
-                            autoComplete='false'
+                            autoComplete='off'
                             {...field}
                             value={field.value ?? ''}
                           />
@@ -286,7 +330,7 @@ console.log("dfdfdfd", dataCategory?.data)
                             type='number'
                             placeholder='0.00'
                             name='cost'
-                            autoComplete='false'
+                            autoComplete='off'
                             {...field}
                             value={field.value ?? ''}
                           />
@@ -313,7 +357,7 @@ console.log("dfdfdfd", dataCategory?.data)
                             type='number'
                             placeholder='0'
                             name='stock'
-                            autoComplete='false'
+                            autoComplete='off'
                             {...field}
                             value={field.value ?? ''}
                           />
@@ -343,7 +387,7 @@ console.log("dfdfdfd", dataCategory?.data)
                             'detailed_product_description_placeholder'
                           )}
                           className='resize-none'
-                          autoComplete='false'
+                          autoComplete='off'
                           maxLength={2000}
                           {...field}
                           value={field.value ?? ''}
@@ -374,7 +418,7 @@ console.log("dfdfdfd", dataCategory?.data)
                               id='barcode'
                               type='text'
                               name='barcode'
-                              autoComplete='false'
+                              autoComplete='off'
                               placeholder={t(
                                 'generate_barcode_automatically_placeholder'
                               )}
@@ -409,6 +453,16 @@ console.log("dfdfdfd", dataCategory?.data)
                 }}>
                 {t('cancel')}
               </Button>
+              {id && (
+                  <Button
+                    type='button'
+                    variant='destructive'
+                    onClick={() => {
+                      handleDelete(id)
+                    }}>
+                    {t('delete')}
+                  </Button>
+                )}
               <Button type='submit' variant='info'>
                 {t('save')}
               </Button>

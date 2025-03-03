@@ -45,7 +45,6 @@ export function NotesCreateDialog({ onCreateNote, dataStatus, open, setOpen }) {
   })
 
   const onSubmitDialog = values => {
-    console.log('onSubmit', values)
     if (values.title.trim() && values.content.trim() && values.status) {
       onCreateNote(values)
       setOpen(false)

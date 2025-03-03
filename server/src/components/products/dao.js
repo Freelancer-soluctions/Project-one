@@ -58,7 +58,7 @@ export const getAllProducts = async (
     uu.name AS "userProductUpdatedName"
     FROM "products" p
     LEFT JOIN "productCategories" pc ON p."productCategoryId" = pc.id
-    LEFT JOIN "productType" pt ON p."productTypeId" = pt.id
+    LEFT JOIN "productTypes" pt ON p."productTypeId" = pt.id
     LEFT JOIN "productStatus" ps ON p."productStatusId" = ps.id
     LEFT JOIN "users" u ON p."createdBy" = u.id
     LEFT JOIN "users" uu ON p."updatedBy" = uu.id
@@ -130,18 +130,23 @@ export const createRow = async (data) => {
       description: data.description,
       barCode: data.barCode,
       createdOn: data.createdOn,
-      createdBy: data.createdBy,
 
       // Claves foráneas
       productCategories: {
         connect: { id: data.productCategoryId }
       },
-      productType: {
+      productTypes: {
         connect: { id: data.productTypeId }
       },
       productStatus: {
         connect: { id: data.productStatusId }
+      },
+      userProductCreated: {
+        connect: {
+          id: data.createdBy
+        }
       }
+
     }
   })
   return Promise.resolve(savedProduct)
@@ -158,28 +163,28 @@ export const updateRow = async (data, where) => {
   const result = await prisma.products.update({
     where,
     data: {
+      sku: data.sku,
+      name: data.name,
+      price: data.price,
+      cost: data.cost,
+      stock: data.stock,
       description: data.description,
-      document: data.document,
-      documentId: data.documentId,
-      pendingOn: data.pendingOn ? data.pendingOn : undefined,
-      userNewsPending: data.pendingBy
-        ? {
-            connect: {
-              id: data.pendingBy
-            }
-          }
-        : undefined,
-      closedOn: data.closedOn ? data.closedOn : undefined,
-      userNewsClosed: data.closedBy
-        ? {
-            connect: {
-              id: data.closedBy
-            }
-          }
-        : undefined,
-      status: {
+      barCode: data.barCode,
+      updatedOn: data.updatedOn,
+
+      // Claves foráneas
+      productCategories: {
+        connect: { id: data.productCategoryId }
+      },
+      productTypes: {
+        connect: { id: data.productTypeId }
+      },
+      productStatus: {
+        connect: { id: data.productStatusId }
+      },
+      userProductUpdated: {
         connect: {
-          id: data.statusId
+          id: data.updatedBy
         }
       }
     }
