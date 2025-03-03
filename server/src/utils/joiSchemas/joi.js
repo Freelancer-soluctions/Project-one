@@ -186,7 +186,6 @@ export const ProductsFilters = Joi.object({
 })
 
 export const ProductsUpdate = Joi.object({
-  id: Joi.number().integer().required(),
   sku: Joi.string().max(16).required(),
   name: Joi.string().max(80).required(),
   productCategoryId: Joi.number().integer().required(),
@@ -194,7 +193,7 @@ export const ProductsUpdate = Joi.object({
   price: Joi.number().precision(2).positive().required(),
   cost: Joi.number().precision(2).positive().required(),
   stock: Joi.number().integer().min(0).required(),
-  description: Joi.string().max(2000).required(),
+  description: Joi.string().max(2000).allow(null, ''),
   productStatusId: Joi.number().integer().required(),
   barCode: Joi.string().max(25).allow(null, '')
 

@@ -5,13 +5,31 @@ import {
   useGetAllProductsStatusQuery,
   useGetAllProductCategoriesQuery,
   useGetAllProductTypesQuery,
-  useCreateProductMutation
+  useCreateProductMutation,
+  useUpdateProductByIdMutation,
+  useDeleteProductByIdMutation
 } from '../api/productsAPI'
 import { Spinner } from '@/components/loader/Spinner'
 import { ProductBasicInfo } from '../components'
+import AlertDialogComponent from '@/components/alertDialog/AlertDialog'
+import { useNavigate, useLocation } from 'react-router'
+import { useState, useEffect } from 'react'
 
 function ProductsForms() {
   const { t } = useTranslation()
+  const navigate = useNavigate()
+  const [selectedRow, setSelectedRow] = useState()
+  const [openAlertDialog, setOpenAlertDialog] = useState(false) //alert dialog open/close
+  const [alertProps, setAlertProps] = useState({})
+  const location = useLocation()
+
+  useEffect(() => {
+    if (location.state?.row) {
+      setSelectedRow(location.state.row)
+    } else {
+      setSelectedRow({})
+    }
+  }, [location.state])
 
   const {
     data: dataCategory,
@@ -44,10 +62,104 @@ function ProductsForms() {
     saveProduct,
     { isLoading: isLoadingPost, isError: isErrorPost, isSuccess: isSuccessPost }
   ] = useCreateProductMutation()
+  const [
+    updateProductById,
+    { isLoading: isLoadingPut, isError: isErrorPut, isSuccess: isSuccessPut }
+  ] = useUpdateProductByIdMutation()
+  const [
+    deleteProductById,
+    {
+      isLoading: isLoadingDelete,
+      isError: isErrorDelete,
+      isSuccess: isSuccessDelete
+    }
+  ] = useDeleteProductByIdMutation()
 
-  const handleSubmitCreateEdit = values => {
-    if (!values) return
-    saveProduct({ ...values })
+  const handleSubmitCreateEdit = async data => {
+    if (!data) return
+
+    if (data.id) {
+     await updateProductById({
+        id: data.id,
+        data: {
+          cost: data.cost,
+          name: data.name,
+          price: data.price,
+          sku: data.sku,
+          stock: data.stock,
+          description: data.description,
+          barCode: data.barCode,
+          productCategoryId: data.category.id,
+          productStatusId: data.status.id,
+          productTypeId: data.type.id
+        }
+      }).unwrap()
+    } else {
+    await saveProduct({
+        cost: data.cost,
+        name: data.name,
+        price: data.price,
+        sku: data.sku,
+        stock: data.stock,
+        description: data.description,
+        barCode: data.barCode,
+        productCategoryId: data.category.id,
+        productStatusId: data.status.id,
+        productTypeId: data.type.id
+      }).unwrap()
+    }
+
+    setOpenAlertDialog(true)
+    setAlertProps({
+      alertTitle: data.id ? t('update_record') : t('add_record'),
+      alertMessage: data.id
+        ? t('updated_successfully')
+        : t('added_successfully'),
+      cancel: false,
+      success: true,
+      onSuccess: () => {
+        navigate('/home/products')
+      },
+      variantSuccess: 'info'
+    })
+  }
+
+  const handleDeleteProductById = async id => {
+    if (!id) return
+    try {
+      setAlertProps({
+        alertTitle: t('delete_record'),
+        alertMessage: t('request_delete_record'),
+        cancel: true,
+        success: false,
+        destructive: true,
+        variantSuccess: '',
+        variantDestructive: 'destructive',
+        onSuccess: () => {},
+        onDelete: async () => {
+          try {
+            await deleteProductById(id).unwrap()
+
+            setAlertProps({
+              alertTitle: '',
+              alertMessage: t('deleted_successfully'),
+              cancel: false,
+              success: true,
+              onSuccess: () => {
+                navigate('/home/products')
+              },
+              variantSuccess: 'info'
+            })
+            setOpenAlertDialog(true) // Open alert dialog
+          } catch (err) {
+            console.error('Error deleting:', err)
+          }
+        }
+      })
+      setOpenAlertDialog(true)
+    } catch (err) {
+      console.error('Error deleting:', err)
+    }
   }
 
   //   const addComponent = () => {
@@ -76,10 +188,15 @@ function ProductsForms() {
 
   return (
     <>
-      <BackDashBoard link={'/home/products'} moduleName={t('new_product')} />
+      <BackDashBoard
+        link={'/home/products'}
+        moduleName={selectedRow?.id ? t('edit_product') : t('new_product')}
+      />
       <div className='relative'>
         {(isLoadingCategory ||
           isLoadingPost ||
+          isLoadingPut ||
+          isLoadingDelete ||
           isLoadingTypes ||
           isLoadingStatus ||
           isFetchingTypes ||
@@ -99,9 +216,11 @@ function ProductsForms() {
               <TabsContent value='info' className='mt-4'>
                 <ProductBasicInfo
                   onSubmitCreateEdit={handleSubmitCreateEdit}
+                  onDelete={handleDeleteProductById}
                   dataCategory={dataCategory}
                   dataTypes={dataTypes}
                   datastatus={datastatus}
+                  selectedRow={selectedRow}
                 />
               </TabsContent>
 
@@ -277,6 +396,11 @@ function ProductsForms() {
         </Card>
       </TabsContent> */}
             </Tabs>
+            <AlertDialogComponent
+              openAlertDialog={openAlertDialog}
+              setOpenAlertDialog={setOpenAlertDialog}
+              alertProps={alertProps}
+            />
           </main>
         </div>
       </div>
