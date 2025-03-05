@@ -49,6 +49,7 @@ const App = () => {
               </ProtectedFormRoute>
             }
           />
+                    <Route path='stock' element={<Products />} />
 
           {/* <Route path='inventory' element={<Events />} />
           <Route path='expenses' element={<Events />} /> */}
