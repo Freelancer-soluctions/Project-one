@@ -46,8 +46,8 @@ export const getAllProductCategories = handleCatchErrorAsync(async (req, res) =>
  * @param {Object} res - The HTTP response object.
  * @returns {Promise<void>} Sends a response containing the types of all products items.
  */
-export const getAllProductTypes = handleCatchErrorAsync(async (req, res) => {
-  const data = await productsService.getAllProductTypes()
+export const getAllProductProviders = handleCatchErrorAsync(async (req, res) => {
+  const data = await productsService.getAllProductProviders()
   globalResponse(res, 200, data)
 })
 

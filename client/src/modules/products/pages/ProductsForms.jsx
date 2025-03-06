@@ -4,7 +4,7 @@ import { BackDashBoard } from '@/components/backDash/BackDashBoard'
 import {
   useGetAllProductsStatusQuery,
   useGetAllProductCategoriesQuery,
-  useGetAllProductTypesQuery,
+  useGetAllProductProvidersQuery,
   useCreateProductMutation,
   useUpdateProductByIdMutation,
   useDeleteProductByIdMutation
@@ -41,13 +41,13 @@ function ProductsForms() {
   } = useGetAllProductCategoriesQuery()
 
   const {
-    data: dataTypes,
-    isError: isErrorTypes,
-    isLoading: isLoadingTypes,
-    isFetching: isFetchingTypes,
-    isSuccess: isSuccessTypes,
-    error: errorTypes
-  } = useGetAllProductTypesQuery()
+    data: dataProviders,
+    isError: isErrorProviders,
+    isLoading: isLoadingProviders,
+    isFetching: isFetchingProviders,
+    isSuccess: isSuccessProviders,
+    error: errorProviders
+  } = useGetAllProductProvidersQuery()
 
   const {
     data: datastatus,
@@ -91,7 +91,7 @@ function ProductsForms() {
           barCode: data.barCode,
           productCategoryId: data.category.id,
           productStatusId: data.status.id,
-          productTypeId: data.type.id
+          productProviderId: data.provider.id
         }
       }).unwrap()
     } else {
@@ -105,7 +105,7 @@ function ProductsForms() {
         barCode: data.barCode,
         productCategoryId: data.category.id,
         productStatusId: data.status.id,
-        productTypeId: data.type.id
+        productProviderId: data.provider.id
       }).unwrap()
     }
 
@@ -197,20 +197,18 @@ function ProductsForms() {
           isLoadingPost ||
           isLoadingPut ||
           isLoadingDelete ||
-          isLoadingTypes ||
+          isLoadingProviders ||
           isLoadingStatus ||
-          isFetchingTypes ||
+          isFetchingProviders ||
           isFetchingCategory ||
           isFetchingStatus) && <Spinner />}
 
         <div className='container flex flex-col min-h-screen'>
           <main className='container flex-1 py-6'>
             <Tabs defaultValue='info' className='mb-6'>
-              <TabsList className='grid w-full grid-cols-4'>
+              <TabsList className='grid w-full grid-cols-2'>
                 <TabsTrigger value='info'>{t('basic_information')}</TabsTrigger>
                 <TabsTrigger value='attributes'>{t('attributes')}</TabsTrigger>
-                <TabsTrigger value='components'>{t('components')}</TabsTrigger>
-                <TabsTrigger value='suppliers'>{t('providers')}</TabsTrigger>
               </TabsList>
 
               <TabsContent value='info' className='mt-4'>
@@ -218,7 +216,7 @@ function ProductsForms() {
                   onSubmitCreateEdit={handleSubmitCreateEdit}
                   onDelete={handleDeleteProductById}
                   dataCategory={dataCategory}
-                  dataTypes={dataTypes}
+                  dataProviders={dataProviders}
                   datastatus={datastatus}
                   selectedRow={selectedRow}
                 />
