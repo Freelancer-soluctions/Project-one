@@ -42,7 +42,7 @@ export const ProductBasicInfo = ({
   onSubmitCreateEdit,
   onDelete,
   dataCategory,
-  dataTypes,
+  dataProviders,
   datastatus,
   selectedRow
 }) => {
@@ -59,19 +59,18 @@ export const ProductBasicInfo = ({
   
   const form = useForm({
     resolver: zodResolver(ProductsSchema),
-    // defaultValues: {
-    //   id: null,  // Asegura que el ID esté en los valores iniciales
-    //   name: '',
-    //   sku: '',
-    //   description: '',
-    //   barcode: '',
-    //   stock: '',
-    //   price: '',
-    //   cost: '',
-    // //   category: '',
-    // //   type: '',
-    // //   status: ''
-    // }
+    defaultValues: {
+      name: '',
+      sku: '',
+      description: '',
+      barcode: '',
+      stock: 0,
+      price: '',
+      cost: '',
+      category: null,
+      provider: null,
+      status: null
+     }
   })
 
 
@@ -83,13 +82,13 @@ export const ProductBasicInfo = ({
         stock: String(selectedRow.stock),
         status: {id:selectedRow.statusId, code:selectedRow.statusCode, description:selectedRow.statusDescription  },
         category: {id:selectedRow.categoryId, code:selectedRow.categoryCode, description:selectedRow.categoryDescription  },
-        type: {id:selectedRow.typeId, code:selectedRow.typeCode, description:selectedRow.typeDescription  }
+        provider: {id:selectedRow.providerId, code:selectedRow.providerCode, description:selectedRow.providerDescription  }
       })
       setId(selectedRow.id || '')
     }
 
  
-  }, [selectedRow])
+  }, [selectedRow, form])
 
   const submitForm = (data) => {
     onSubmitCreateEdit(data);
@@ -215,41 +214,43 @@ export const ProductBasicInfo = ({
               <div className='space-y-2'>
                 <FormField
                   control={form.control}
-                  name='type'
+                  name='provider'
                   render={({ field }) => {
                     return (
                       <FormItem>
-                        <FormLabel htmlFor='type'>{t('type')}*</FormLabel>
+                        <FormLabel htmlFor='provider'>{t('provider')}*</FormLabel>
                         <Select
                                   onValueChange={code => {
                                     // Buscar el objeto completo por el `code`
-                                    const selectedTypes= dataTypes.data.find(
+                                    const selectedProvider= dataProviders.data.find(
                                       item => item.code === code
                                     )
-                                    if (selectedTypes) {
-                                      field.onChange(selectedTypes) // Asignar el objeto completo
+                                    if (selectedProvider) {
+                                      field.onChange(selectedProvider) // Asignar el objeto completo
                                     }
                                   }}
                                   value={field.value?.code}>
-                          <FormControl id='type'>
+                          <FormControl id='provider'>
                             <SelectTrigger>
-                              <SelectValue placeholder={t('select_type')} />
+                              <SelectValue placeholder={t('select_provider')} />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            {dataTypes?.data.map((item, index) => (
+                            {dataProviders?.data.map((item, index) => (
                               <SelectItem value={item.code} key={index}>
                                 {item.description}
                               </SelectItem>
                             ))}
                           </SelectContent>
                         </Select>
+
                         <FormMessage />
                       </FormItem>
                     )
                   }}
                 />
               </div>
+
               <div className='space-x-2'>
                 <FormField
                   control={form.control}
@@ -302,7 +303,7 @@ export const ProductBasicInfo = ({
                         <FormControl>
                           <Input
                             id='price'
-                            type='text'
+                            type='number'
                             placeholder='0.00'
                             name='price'
                             autoComplete='off'

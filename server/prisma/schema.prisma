@@ -163,12 +163,12 @@ model products {
   name               String            @db.VarChar(80)
   productCategories  productCategories @relation(fields: [productCategoryId], references: [id])
   productCategoryId  Int
-  productTypes        productTypes       @relation(fields: [productTypeId], references: [id])
-  productTypeId      Int
+  productProviders   productProviders  @relation(fields: [productProviderId], references: [id])
+  productProviderId  Int
   price              Decimal           @db.Decimal(10, 2)
   cost               Decimal           @db.Decimal(10, 2)
   stock              Int               @db.Integer
-  description        String?            @db.VarChar(2000)
+  description        String?           @db.VarChar(2000)
   productStatus      productStatus     @relation(fields: [productStatusId], references: [id])
   productStatusId    Int
   barCode            String?           @unique @db.VarChar(25)
@@ -187,7 +187,7 @@ model productCategories {
   products    products[]
 }
 
-model productTypes {
+model productProviders {
   id          Int        @id @default(autoincrement())
   code        String     @unique @db.VarChar(3)
   description String     @unique @db.VarChar(20)
