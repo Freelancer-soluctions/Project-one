@@ -168,11 +168,11 @@ export const Products = Joi.object({
   sku: Joi.string().max(16).required(),
   name: Joi.string().max(80).required(),
   productCategoryId: Joi.number().integer().required(),
-  productTypeId: Joi.number().integer().required(),
+  productProviderId: Joi.number().integer().required(),
   price: Joi.number().precision(2).positive().required(),
   cost: Joi.number().precision(2).positive().required(),
   stock: Joi.number().integer().min(0).required(),
-  description: Joi.string().max(2000).required(),
+  description: Joi.string().max(2000).allow(null, ''),
   productStatusId: Joi.number().integer().required(),
   barCode: Joi.string().max(25).allow(null, '')
 
@@ -181,20 +181,19 @@ export const Products = Joi.object({
 export const ProductsFilters = Joi.object({
   name: Joi.string().min(1).max(80).allow(''),
   statusCode: Joi.string().min(3).max(3).allow(''),
-  productTypeCode: Joi.string().min(3).max(3).allow(''),
+  productProviderCode: Joi.string().min(3).max(3).allow(''),
   productCategoryCode: Joi.string().min(3).max(3).allow('')
 })
 
 export const ProductsUpdate = Joi.object({
-  id: Joi.number().integer().required(),
   sku: Joi.string().max(16).required(),
   name: Joi.string().max(80).required(),
   productCategoryId: Joi.number().integer().required(),
-  productTypeId: Joi.number().integer().required(),
+  productProviderId: Joi.number().integer().required(),
   price: Joi.number().precision(2).positive().required(),
   cost: Joi.number().precision(2).positive().required(),
   stock: Joi.number().integer().min(0).required(),
-  description: Joi.string().max(2000).required(),
+  description: Joi.string().max(2000).allow(null, ''),
   productStatusId: Joi.number().integer().required(),
   barCode: Joi.string().max(25).allow(null, '')
 

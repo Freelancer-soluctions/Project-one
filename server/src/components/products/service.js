@@ -1,25 +1,24 @@
 import * as productsDao from './dao.js'
-import { PRODUCTSSTATUSCODE } from '../utils/enums/enums.js'
 
 /**
  * Get all products from the database with optional filters.
  *
  * @param {Object} params - The parameters for filtering the products.
  * @param {string} params.description - The description filter.
- * @param {string} params.productTypeCode - The status type code filter.
+ * @param {string} params.productProviderCode - The status provider code filter.
  * @param {string} params.productCategoryCode - The status category code filter.
  * @param {string} params.statusCode - The status code filter.
  * @returns {Promise<Array>} A list of products items matching the filters.
  */
 export const getAllProducts = async ({
   name,
-  productTypeCode,
+  productProviderCode,
   productCategoryCode,
   statusCode
 }) => {
   const data = await productsDao.getAllProducts(
     name,
-    productTypeCode,
+    productProviderCode,
     productCategoryCode,
     statusCode
   )
@@ -44,7 +43,7 @@ export const getOneById = async (id) => {
  * @param {string} data.sku - The unique SKU of the product (max 16 characters).
  * @param {string} data.name - The name of the product (max 80 characters).
  * @param {number} data.productCategoryId - The ID of the product category.
- * @param {number} data.productTypeId - The ID of the product type.
+ * @param {number} data.productProviderId - The ID of the product provider.
  * @param {number} data.price - The price of the product (decimal with 2 precision).
  * @param {number} data.cost - The cost of the product (decimal with 2 precision).
  * @param {number} data.stock - The initial stock quantity (integer, min 0).
@@ -58,15 +57,15 @@ export const createOne = async (userId, data) => {
     sku: String(data.sku),
     name: String(data.name),
     productCategoryId: Number(data.productCategoryId),
-    productTypeId: Number(data.productTypeId),
+    productProviderId: Number(data.productProviderId),
     price: Number(data.price),
     cost: Number(data.cost),
     stock: Number(data.stock),
-    description: String(data.description),
+    description: data.description ? String(data.description) : null,
     productStatusId: Number(data.productStatusId),
     barCode: data.barCode ? String(data.barCode) : null, // Opcional
     createdOn: new Date(),
-    createdBy: Number(data.userId)
+    createdBy: Number(userId)
   }
 
   return productsDao.createRow(newProduct)
@@ -81,33 +80,16 @@ export const createOne = async (userId, data) => {
  * @param {string} data.statusCode - The status code of the products item.
  * @returns {Promise<Object>} The updated products item.
  */
-export const updateById = async (userId, newId, data) => {
-  const rowId = Number(newId)
+export const updateById = async (userId, id, data) => {
+  const rowId = Number(id)
+  const product = {
+    ...data,
+    updatedOn: new Date(),
+    updatedBy: Number(userId)
 
-  if (data.statusCode === NEWSSTATUSCODE.CLOSED) {
-    data.closedBy = Number(userId)
-    data.closedOn = new Date()
   }
 
-  if (data.statusCode === NEWSSTATUSCODE.PENDING) {
-    data.pendingBy = Number(userId)
-    data.pendingOn = new Date()
-  }
-
-  // if (data.document) {
-  // const { documentId } = await getOneById(rowId)
-  //   const baseImage = Buffer.from(file.buffer).toString('base64')
-  //   const imageURI = `data:${file.mimetype};base64,${baseImage}`
-
-  //   if (documentId) {
-  //     await handleUploadUpdate(imageURI, documentId)
-  //   } else {
-  //     const { public_id, secure_url } = await handleUpload(imageURI)
-  //     newsData.document = secure_url
-  //     newsData.documentId = public_id
-  //   }
-  // }
-  return productsDao.updateRow(data, { id: rowId })
+  return productsDao.updateRow(product, { id: rowId })
 }
 /**
  * Delete a products item from the database by its ID.
@@ -154,7 +136,7 @@ export const getAllProductCategories = async () => {
  * @returns {Promise<Array>} A list of all products statuses.
  */
 
-export const getAllProductTypes = async () => {
-  const data = await productsDao.getAllProductTypes()
+export const getAllProductProviders = async () => {
+  const data = await productsDao.getAllProductProviders()
   return data
 }
