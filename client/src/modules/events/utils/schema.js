@@ -1,6 +1,6 @@
 import { z } from "zod"
 
-export const eventsDialogSchema = z.object({
+export const EventsDialogSchema = z.object({
   title: z.string().min(1, "Title is required."),
   description: z.string().min(1, "Description is required."),
   speaker: z.string().min(1, "Speaker is required."),
