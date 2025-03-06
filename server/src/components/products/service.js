@@ -1,25 +1,24 @@
 import * as productsDao from './dao.js'
-import { PRODUCTSSTATUSCODE } from '../utils/enums/enums.js'
 
 /**
  * Get all products from the database with optional filters.
  *
  * @param {Object} params - The parameters for filtering the products.
  * @param {string} params.description - The description filter.
- * @param {string} params.productTypeCode - The status type code filter.
+ * @param {string} params.productProviderCode - The status provider code filter.
  * @param {string} params.productCategoryCode - The status category code filter.
  * @param {string} params.statusCode - The status code filter.
  * @returns {Promise<Array>} A list of products items matching the filters.
  */
 export const getAllProducts = async ({
   name,
-  productTypeCode,
+  productProviderCode,
   productCategoryCode,
   statusCode
 }) => {
   const data = await productsDao.getAllProducts(
     name,
-    productTypeCode,
+    productProviderCode,
     productCategoryCode,
     statusCode
   )
@@ -44,7 +43,7 @@ export const getOneById = async (id) => {
  * @param {string} data.sku - The unique SKU of the product (max 16 characters).
  * @param {string} data.name - The name of the product (max 80 characters).
  * @param {number} data.productCategoryId - The ID of the product category.
- * @param {number} data.productTypeId - The ID of the product type.
+ * @param {number} data.productProviderId - The ID of the product provider.
  * @param {number} data.price - The price of the product (decimal with 2 precision).
  * @param {number} data.cost - The cost of the product (decimal with 2 precision).
  * @param {number} data.stock - The initial stock quantity (integer, min 0).
@@ -58,7 +57,7 @@ export const createOne = async (userId, data) => {
     sku: String(data.sku),
     name: String(data.name),
     productCategoryId: Number(data.productCategoryId),
-    productTypeId: Number(data.productTypeId),
+    productProviderId: Number(data.productProviderId),
     price: Number(data.price),
     cost: Number(data.cost),
     stock: Number(data.stock),
@@ -137,7 +136,7 @@ export const getAllProductCategories = async () => {
  * @returns {Promise<Array>} A list of all products statuses.
  */
 
-export const getAllProductTypes = async () => {
-  const data = await productsDao.getAllProductTypes()
+export const getAllProductProviders = async () => {
+  const data = await productsDao.getAllProductProviders()
   return data
 }

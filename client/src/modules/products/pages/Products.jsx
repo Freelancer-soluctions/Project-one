@@ -7,7 +7,7 @@ import {
   useLazyGetAllProductsQuery,
   useGetAllProductsStatusQuery,
   useGetAllProductCategoriesQuery,
-  useGetAllProductTypesQuery,
+  useGetAllProductProvidersQuery,
 
 } from '../api/productsAPI'
 import { useTranslation } from 'react-i18next'
@@ -27,13 +27,13 @@ const Products = () => {
   } = useGetAllProductCategoriesQuery()
 
   const {
-    data: dataTypes,
-    isError: isErrorTypes,
-    isLoading: isLoadingTypes,
-    isFetching: isFetchingTypes,
-    isSuccess: isSuccessTypes,
-    error: errorTypes
-  } = useGetAllProductTypesQuery()
+    data: dataProviders,
+    isError: isErrorProviders,
+    isLoading: isLoadingProviders,
+    isFetching: isFetchingProviders,
+    isSuccess: isSuccessProviders,
+    error: errorProviders
+  } = useGetAllProductProvidersQuery()
 
   const {
     data: datastatus,
@@ -70,10 +70,10 @@ const Products = () => {
         {/* Show spinner when loading or fetching */}
         {(isLoading ||
           isLoadingCategory ||
-          isLoadingTypes ||
+          isLoadingProviders ||
           isLoadingStatus ||
           isFetching ||
-          isFetchingTypes ||
+          isFetchingProviders ||
           isFetchingCategory ||
           isFetchingStatus) && <Spinner />}
 
@@ -85,7 +85,7 @@ const Products = () => {
               onOpenProductsForms={handleProductsForms}
               datastatus={datastatus}
               dataCategory={dataCategory}
-              dataTypes={dataTypes}
+              dataProviders={dataProviders}
             />
           </div>
           {/* Datatable */}

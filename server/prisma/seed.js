@@ -86,15 +86,12 @@ const productStatus = [
   }
 ]
 
-const productTypes = [
-  {
-    code: 'C01',
-    description: 'SIMPLE'
-  },
-  {
-    code: 'C02',
-    description: 'COMPOUND'
-  }
+const productProviders = [
+  { code: 'C01', description: 'PROV. SOFTWARE' },
+  { code: 'C02', description: 'PROV. HARDWARE' },
+  { code: 'C03', description: 'PROV. SERV. NUBE' },
+  { code: 'C04', description: 'PROV. INFRA IT' },
+  { code: 'C05', description: 'PROV. SOPORTE' }
 ]
 
 const productCategories = [
@@ -168,9 +165,9 @@ async function main () {
   // await createVarious('roles', roles)
   // await create('users', user)
   // await createVarious('news', news)
-  await createVarious('productStatus', productStatus)
-  await createVarious('productTypes', productTypes)
-  await createVarious('productCategories', productCategories)
+  // await createVarious('productStatus', productStatus)
+  await createVarious('productProviders', productProviders)
+  // await createVarious('productCategories', productCategories)
 }
 
 main()

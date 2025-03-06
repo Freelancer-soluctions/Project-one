@@ -35,8 +35,8 @@ export const ProductsDatatable = ({
       header: t('category')
     },
     {
-      accessorKey: 'typeDescription',
-      header: t('type')
+      accessorKey: 'providerDescription',
+      header: t('provider')
     },
     {
       accessorKey: 'price',
