@@ -595,7 +595,7 @@
  *           maxLength: 10
  *           example: "Electrónica"
  *
- *     ProductType:
+ *     ProductProvider:
  *       type: object
  *       properties:
  *         id:
@@ -670,7 +670,7 @@
  * @openapi
  * components:
  *   schemas:
- *     ProductType:
+ *     ProductProvider:
  *       type: object
  *       properties:
  *         id:

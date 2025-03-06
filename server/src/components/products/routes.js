@@ -123,7 +123,7 @@ router.get('/category', productsController.getAllProductCategories)
 
 /**
 @openapi
- * /api/v1/products/types:
+ * /api/v1/products/provider:
  *   get:
  *     tags:
  *       - Products
@@ -144,7 +144,7 @@ router.get('/category', productsController.getAllProductCategories)
  *                 data:
  *                   type: array
  *                   items:
- *                     $ref: "#/components/schemas/ProductType"
+ *                     $ref: "#/components/schemas/ProductProvider"
  *       5XX:
  *         description: FAILED
  *         content:
@@ -154,7 +154,7 @@ router.get('/category', productsController.getAllProductCategories)
  *
  */
 
-router.get('/types', productsController.getAllProductTypes)
+router.get('/providers', productsController.getAllProductProviders)
 
 /**
  * @openapi

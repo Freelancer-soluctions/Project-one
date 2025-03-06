@@ -8,7 +8,7 @@ const tableName = TABLESNAMES.PRODUCTS
  * Retrieves all products from the database based on the provided filters.
  *
  * @param {string} description - The description to filter products by.
- * @param {string} params.productTypeCode - The status type code filter.
+ * @param {string} params.productProviderCode - The status provider code filter.
  * @param {string} params.productCategoryCode - The status category code filter.
  * @param {string} statusCode - The status code to filter products by.
  * @returns {Promise<Array>} A list of products matching the filters from the database.
@@ -16,7 +16,7 @@ const tableName = TABLESNAMES.PRODUCTS
 
 export const getAllProducts = async (
   name,
-  productTypeCode,
+  productProviderCode,
   productCategoryCode,
   statusCode
 ) => {
@@ -25,8 +25,8 @@ export const getAllProducts = async (
   if (name) {
     whereClauses.push(Prisma.sql`p."name" ILIKE ${'%' + name + '%'}`)
   }
-  if (productTypeCode) {
-    whereClauses.push(Prisma.sql`p."productTypeCode" = ${productTypeCode}`)
+  if (productProviderCode) {
+    whereClauses.push(Prisma.sql`p."productProviderCode" = ${productProviderCode}`)
   }
   if (productCategoryCode) {
     whereClauses.push(
@@ -47,9 +47,9 @@ export const getAllProducts = async (
     pc.code AS "categoryCode",     
     pc.description AS "categoryDescription",
 
-    pt.id AS "typeId", 
-    pt.code AS "typeCode",     
-    pt.description AS "typeDescription",
+    pt.id AS "providerId", 
+    pt.code AS "providerCode",     
+    pt.description AS "providerDescription",
 
     ps.id AS "statusId", 
     ps.code AS "statusCode", 
@@ -58,7 +58,7 @@ export const getAllProducts = async (
     uu.name AS "userProductUpdatedName"
     FROM "products" p
     LEFT JOIN "productCategories" pc ON p."productCategoryId" = pc.id
-    LEFT JOIN "productType" pt ON p."productTypeId" = pt.id
+    LEFT JOIN "productProviders" pt ON p."productProviderId" = pt.id
     LEFT JOIN "productStatus" ps ON p."productStatusId" = ps.id
     LEFT JOIN "users" u ON p."createdBy" = u.id
     LEFT JOIN "users" uu ON p."updatedBy" = uu.id
@@ -93,8 +93,8 @@ export const getAllProductCategories = async () => {
  *
  * @returns {Promise<Array>} A list of products types from the database.
  */
-export const getAllProductTypes = async () => {
-  const products = await prisma.productTypes.findMany()
+export const getAllProductProviders = async () => {
+  const products = await prisma.productProviders.findMany()
   return Promise.resolve(products)
 }
 
@@ -130,18 +130,23 @@ export const createRow = async (data) => {
       description: data.description,
       barCode: data.barCode,
       createdOn: data.createdOn,
-      createdBy: data.createdBy,
 
       // Claves foráneas
       productCategories: {
         connect: { id: data.productCategoryId }
       },
-      productType: {
-        connect: { id: data.productTypeId }
+      productProviders: {
+        connect: { id: data.productProviderId }
       },
       productStatus: {
         connect: { id: data.productStatusId }
+      },
+      userProductCreated: {
+        connect: {
+          id: data.createdBy
+        }
       }
+
     }
   })
   return Promise.resolve(savedProduct)
@@ -155,31 +160,32 @@ export const createRow = async (data) => {
  * @returns {Promise<Object>} The updated row in the database.
  */
 export const updateRow = async (data, where) => {
+  console.log('Updating', data)
   const result = await prisma.products.update({
     where,
     data: {
+      sku: data.sku,
+      name: data.name,
+      price: data.price,
+      cost: data.cost,
+      stock: data.stock,
       description: data.description,
-      document: data.document,
-      documentId: data.documentId,
-      pendingOn: data.pendingOn ? data.pendingOn : undefined,
-      userNewsPending: data.pendingBy
-        ? {
-            connect: {
-              id: data.pendingBy
-            }
-          }
-        : undefined,
-      closedOn: data.closedOn ? data.closedOn : undefined,
-      userNewsClosed: data.closedBy
-        ? {
-            connect: {
-              id: data.closedBy
-            }
-          }
-        : undefined,
-      status: {
+      barCode: data.barCode,
+      updatedOn: data.updatedOn,
+
+      // Claves foráneas
+      productCategories: {
+        connect: { id: data.productCategoryId }
+      },
+      productProviders: {
+        connect: { id: data.productProviderId }
+      },
+      productStatus: {
+        connect: { id: data.productStatusId }
+      },
+      userProductUpdated: {
         connect: {
-          id: data.statusId
+          id: data.updatedBy
         }
       }
     }

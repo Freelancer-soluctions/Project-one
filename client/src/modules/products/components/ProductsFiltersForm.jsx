@@ -23,13 +23,13 @@ import PropTypes from 'prop-types'
 
 export const ProductsFiltersForm = ({
   trigger,
-  setActionDialog,
-  setOpenDialog,
+  onOpenProductsForms,
   datastatus,
   dataCategory,
   dataTypes
 }) => {
   const { t } = useTranslation() // Accede a las traducciones
+
   // Configura el formulario
   const formFilter = useForm({
     defaultValues: {
@@ -41,20 +41,20 @@ export const ProductsFiltersForm = ({
   })
 
   //form event
-  const onSubmitFilter = ({
+  const handleSubmitFilter = ({
     name,
     category,
     type,
     status
   }) => {
-   
-
-    trigger({ description, fromDate, toDate, statusCode })
+    trigger({ name,
+      productCategoryCode:category.code,
+    productTypeCode:type.code,
+      statusCode:status.code})
   }
 
-  const handleAddDialog = () => {
-    setActionDialog(t('add_new'))
-    setOpenDialog(true)
+  const handleAdd = () => {
+    onOpenProductsForms()
   }
 
   const handleResetFilter = () => {
@@ -69,7 +69,7 @@ export const ProductsFiltersForm = ({
           action=''
           id='profile-info-form'
           noValidate
-          onSubmit={formFilter.handleSubmit(onSubmitFilter)}
+          onSubmit={formFilter.handleSubmit(handleSubmitFilter)}
           className='flex flex-col flex-wrap gap-5'>
           {/* inputs */}
           <div className='flex flex-wrap flex-1 gap-3'>
@@ -194,7 +194,7 @@ export const ProductsFiltersForm = ({
               type='button'
               className='flex-1 md:flex-initial md:w-24'
               variant='success'
-              onClick={() => handleAddDialog()}>
+              onClick={() => handleAdd()}>
               {t('add')} <LuPlus className='w-4 h-4 ml-auto opacity-50' />
             </Button>
             <Button

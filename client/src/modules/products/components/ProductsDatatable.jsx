@@ -5,9 +5,9 @@ import PropTypes from 'prop-types'
 
 export const ProductsDatatable = ({
   dataProducts,
-  setSelectedRow,
-  setOpenDialog,
-  setActionDialog
+  onOpenProductsForms
+  
+
 }) => {
   const { t } = useTranslation()
 
@@ -35,8 +35,8 @@ export const ProductsDatatable = ({
       header: t('category')
     },
     {
-      accessorKey: 'typeDescription',
-      header: t('type')
+      accessorKey: 'providerDescription',
+      header: t('provider')
     },
     {
       accessorKey: 'price',
@@ -76,9 +76,8 @@ export const ProductsDatatable = ({
   ]
 
   const handleEditDialog = row => {
-    setActionDialog(t('edit_new'))
-    setSelectedRow(row)
-    setOpenDialog(true)
+    onOpenProductsForms(row)
+
   }
 
   return (

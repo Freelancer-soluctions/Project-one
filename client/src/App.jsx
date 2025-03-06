@@ -1,6 +1,6 @@
 import { lazy, Suspense } from 'react'
 import Layout from './components/layout'
-import ProtectedRoutes from './components/protectedRoutes/ProtectedRoutes'
+import { ProtectedRoutes, ProtectedFormRoute } from './components/guards'
 import Home from './modules/home/pages/Home'
 import NotFound from './components/404/NotFound'
 import { Routes, Route } from 'react-router'
@@ -14,6 +14,9 @@ const News = lazy(() => import('@/modules/news/pages/News'))
 const Settings = lazy(() => import('@/modules/settings/pages/Settings'))
 const Events = lazy(() => import('@/modules/events/pages/Events'))
 const Products = lazy(() => import('@/modules/products/pages/Products'))
+const ProductsForms = lazy(
+  () => import('@/modules/products/pages/ProductsForms')
+)
 
 const App = () => {
   return (
@@ -38,6 +41,16 @@ const App = () => {
           <Route path='settings' element={<Settings />} />
           <Route path='events' element={<Events />} />
           <Route path='products' element={<Products />} />
+          <Route
+            path='productsForms'
+            element={
+              <ProtectedFormRoute>
+                <ProductsForms />
+              </ProtectedFormRoute>
+            }
+          />
+                    <Route path='stock' element={<Products />} />
+
           {/* <Route path='inventory' element={<Events />} />
           <Route path='expenses' element={<Events />} /> */}
 
