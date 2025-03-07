@@ -105,3 +105,16 @@ export const deleteById = handleCatchErrorAsync(async (req, res) => {
   await productsService.deleteById(id)
   globalResponse(res, 200, { message: 'Items deleted successfully' })
 })
+
+/**
+ * Get the status of all products items.
+ *
+ * @param {Object} req - The HTTP request object.
+ * @param {Object} res - The HTTP response object.
+ * @returns {Promise<void>} Sends a response containing the attributes of all products items.
+ */
+export const getAllProductAttributesByProductId = handleCatchErrorAsync(async (req, res) => {
+  const { id } = req.params
+  const data = await productsService.getAllProductAttributesByProductId(id)
+  globalResponse(res, 200, data)
+})

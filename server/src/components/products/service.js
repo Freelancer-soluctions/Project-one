@@ -140,3 +140,15 @@ export const getAllProductProviders = async () => {
   const data = await productsDao.getAllProductProviders()
   return data
 }
+
+/**
+ * Get all available products attributes from the database.
+ *
+ * @returns {Promise<Array>} A list of all products attributes.
+ */
+
+export const getAllProductAttributesByProductId = async (id) => {
+  const rowId = Number(id)
+  const data = await productsDao.getAllProductAttributesByProductId({ id: rowId })
+  return data
+}

@@ -689,6 +689,26 @@
 /**
  * @openapi
  * components:
+ *   schemas:
+ *     ProductAttributes:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: integer
+ *           example: 1
+ *         name:
+ *           type: string
+ *           maxLength: 50
+ *           example: "Sample Name"
+ *         description:
+ *           type: string
+ *           maxLength: 100
+ *           example: "Sample Value"
+ */
+
+/**
+ * @openapi
+ * components:
 *   schemas:
 *     ProductCreate:
 *       type: object
