@@ -110,14 +110,6 @@ model news {
   createdBy       Int
 }
 
-// model questions {
-//   id          Int     @id @default(autoincrement())
-//   answer      Boolean
-//   description String  @db.VarChar(250)
-//   news        news    @relation(fields: [newsId], references: [id])
-//   newsId      Int
-// }
-
 model settings {
   id                 Int       @id @default(autoincrement())
   displayEvents      Boolean?  @default(false)
@@ -158,26 +150,28 @@ model eventTypes {
 }
 
 model products {
-  id                 Int               @id @default(autoincrement())
-  sku                String            @unique @db.VarChar(16)
-  name               String            @db.VarChar(80)
-  productCategories  productCategories @relation(fields: [productCategoryId], references: [id])
+  id                 Int                @id @default(autoincrement())
+  sku                String             @unique @db.VarChar(16)
+  name               String             @db.VarChar(80)
+  productCategories  productCategories  @relation(fields: [productCategoryId], references: [id])
   productCategoryId  Int
-  productProviders   productProviders  @relation(fields: [productProviderId], references: [id])
+  productProviders   productProviders   @relation(fields: [productProviderId], references: [id])
   productProviderId  Int
-  price              Decimal           @db.Decimal(10, 2)
-  cost               Decimal           @db.Decimal(10, 2)
-  stock              Int               @db.Integer
-  description        String?           @db.VarChar(2000)
-  productStatus      productStatus     @relation(fields: [productStatusId], references: [id])
+  price              Decimal            @db.Decimal(10, 2)
+  cost               Decimal            @db.Decimal(10, 2)
+  stock              Int                @db.Integer
+  description        String?            @db.VarChar(2000)
+  productStatus      productStatus      @relation(fields: [productStatusId], references: [id])
   productStatusId    Int
-  barCode            String?           @unique @db.VarChar(25)
-  userProductCreated users             @relation("userProductCreated", fields: [createdBy], references: [id])
+  barCode            String?            @unique @db.VarChar(25)
+  userProductCreated users              @relation("userProductCreated", fields: [createdBy], references: [id])
   createdBy          Int
-  createdOn          DateTime          @db.Timestamp(3)
-  updatedOn          DateTime?         @db.Timestamp(3)
-  userProductUpdated users?            @relation("userProductUpdated", fields: [updatedBy], references: [id])
-  updatedBy          Int?
+  createdOn          DateTime           @db.Timestamp(3)
+  updatedOn          DateTime?          @db.Timestamp(3)
+  userProductUpdated users?             @relation("userProductUpdated", fields: [updatedBy], references: [id])
+  updatedBy          Int?               @db.Integer
+  productAttributes productAttributes[]
+
 }
 
 model productCategories {
@@ -199,4 +193,12 @@ model productStatus {
   code        String     @unique @db.VarChar(3)
   description String     @unique @db.VarChar(10)
   products    products[]
+}
+
+model productAttributes {
+  id          Int        @id @default(autoincrement())
+  name        String     @db.VarChar(50)
+  description String     @db.VarChar(100)
+  productId  Int     // Clave foránea
+  product    products @relation(fields: [productId], references: [id])
 }
