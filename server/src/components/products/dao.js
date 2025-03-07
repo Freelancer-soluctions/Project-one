@@ -201,3 +201,15 @@ export const updateRow = async (data, where) => {
  */
 export const deleteRow = async (where) =>
   prismaService.deleteRow(tableName, where)
+
+/**
+ * Retrieves all available products statuses from the database.
+ *
+ * @returns {Promise<Array>} A list of products types from the database.
+ */
+export const getAllProductAttributesByProductId = async (where) => {
+  const attributes = await prisma.productAttributes.findMany({
+    where
+  })
+  return Promise.resolve(attributes)
+}

@@ -157,6 +157,41 @@ router.get('/category', productsController.getAllProductCategories)
 router.get('/providers', productsController.getAllProductProviders)
 
 /**
+@openapi
+ * /api/v1/products/provider:
+ *   get:
+ *     tags:
+ *       - Products
+ *     parameters:
+ *       - in: header
+ *         name: x-access-token
+ *         schema:
+ *          type: string
+ *         required: true
+ *     responses:
+ *       200:
+ *         description: OK
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     $ref: "#/components/schemas/ProductAttributes"
+ *       5XX:
+ *         description: FAILED
+ *         content:
+ *           application/json:
+ *             schema:
+ *              $ref: "#/components/schemas/Error"
+ *
+ */
+
+router.get('/attributes/:id', productsController.getAllProductAttributesByProductId)
+
+/**
  * @openapi
  * /api/v1/products:
  *   post:
