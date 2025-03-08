@@ -3,6 +3,7 @@ import { TABLESNAMES } from '../utils/enums/enums.js'
 import { prisma, Prisma } from '../../config/db.js'
 
 const tableName = TABLESNAMES.PRODUCTS
+const tableName2 = TABLESNAMES.PRODUCTATTRIBUTES
 
 /**
  * Retrieves all products from the database based on the provided filters.
@@ -160,7 +161,6 @@ export const createRow = async (data) => {
  * @returns {Promise<Object>} The updated row in the database.
  */
 export const updateRow = async (data, where) => {
-  console.log('Updating', data)
   const result = await prisma.products.update({
     where,
     data: {
@@ -211,5 +211,55 @@ export const getAllProductAttributesByProductId = async (where) => {
   const attributes = await prisma.productAttributes.findMany({
     where
   })
+
   return Promise.resolve(attributes)
 }
+
+/**
+ * Guarda o actualiza atributos de producto en la base de datos.
+ *
+ * @param {Array} attributes - Lista de atributos a guardar o actualizar.
+ * @param {number} [attributes[].id] - ID del atributo (si existe, se actualizará; si no, se creará uno nuevo).
+ * @param {number} attributes[].productId - ID del producto al que pertenece el atributo.
+ * @param {string} attributes[].name - Nombre del atributo.
+ * @param {string} attributes[].value - Valor del atributo.
+ * @returns {Promise<Array>} - Promesa que resuelve con los atributos guardados o actualizados.
+ *
+ * @throws {Error} - Lanza un error si la transacción falla.
+ */
+export const saveProductAttributes = async (attributes) => {
+  const transaction = attributes.map((attr) => {
+    if (attr.id) {
+      // Si el atributo tiene ID, actualizarlo
+      return prisma.productAttributes.update({
+        where: { id: attr.id },
+        data: {
+          name: attr.name,
+          description: attr.description
+        }
+      })
+    } else {
+      // Si no tiene ID, crearlo
+      return prisma.productAttributes.create({
+        data: {
+          productId: attr.productId,
+          name: attr.name,
+          description: attr.description,
+          createdOn: attr.createdOn
+        }
+      })
+    }
+  })
+
+  // Ejecutar todo en una transacción
+  return prisma.$transaction(transaction)
+}
+
+/**
+ * Deletes a row from the database based on the provided filter.
+ *
+ * @param {Object} where - The filter conditions to identify the row to delete.
+ * @returns {Promise<Object>} The result of the delete operation.
+ */
+export const deleteProductsAttributeById = async (where) =>
+  prismaService.deleteRow(tableName2, where)

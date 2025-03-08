@@ -118,3 +118,29 @@ export const getAllProductAttributesByProductId = handleCatchErrorAsync(async (r
   const data = await productsService.getAllProductAttributesByProductId(id)
   globalResponse(res, 200, data)
 })
+
+/**
+ * Save a products attributes items.
+ *
+ * @param {Object} req - The HTTP request object.
+ * @param {Object} res - The HTTP response object.
+ * @returns {Promise<void>} Sends a response confirming the creation of the products item.
+ */
+export const saveProductAttributes = handleCatchErrorAsync(async (req, res) => {
+  const { body } = req
+  await productsService.saveProductAttributes(body)
+  globalResponse(res, 201, { message: 'Product Attributes saved successfully' })
+})
+
+/**
+ * Delete a products attribute item by its ID.
+ *
+ * @param {Object} req - The HTTP request object.
+ * @param {Object} res - The HTTP response object.
+ * @returns {Promise<void>} Sends a response confirming the deletion of the products item.
+ */
+export const deleteProductsAttributeById = handleCatchErrorAsync(async (req, res) => {
+  const { id } = req.params
+  await productsService.deleteProductsAttributeById(id)
+  globalResponse(res, 200, { message: 'Item deleted successfully' })
+})

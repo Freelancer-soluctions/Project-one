@@ -2,7 +2,8 @@ import { Router } from 'express'
 import {
   Products,
   ProductsUpdate,
-  ProductsFilters
+  ProductsFilters,
+  ProductAttributes
 } from '../../utils/joiSchemas/joi.js'
 import * as productsController from './controller.js'
 import validateQueryParams from '../../middleware/validateQueryParams.js'
@@ -157,41 +158,6 @@ router.get('/category', productsController.getAllProductCategories)
 router.get('/providers', productsController.getAllProductProviders)
 
 /**
-@openapi
- * /api/v1/products/provider:
- *   get:
- *     tags:
- *       - Products
- *     parameters:
- *       - in: header
- *         name: x-access-token
- *         schema:
- *          type: string
- *         required: true
- *     responses:
- *       200:
- *         description: OK
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 data:
- *                   type: array
- *                   items:
- *                     $ref: "#/components/schemas/ProductAttributes"
- *       5XX:
- *         description: FAILED
- *         content:
- *           application/json:
- *             schema:
- *              $ref: "#/components/schemas/Error"
- *
- */
-
-router.get('/attributes/:id', productsController.getAllProductAttributesByProductId)
-
-/**
  * @openapi
  * /api/v1/products:
  *   post:
@@ -309,5 +275,119 @@ router.put(
  */
 
 router.delete('/:id', verifyToken, productsController.deleteById)
+
+/**
+@openapi
+ * /api/v1/products/provider:
+ *   get:
+ *     tags:
+ *       - Products
+ *     parameters:
+ *       - in: header
+ *         name: x-access-token
+ *         schema:
+ *          type: string
+ *         required: true
+ *     responses:
+ *       200:
+ *         description: OK
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     $ref: "#/components/schemas/ProductAttributes"
+ *       5XX:
+ *         description: FAILED
+ *         content:
+ *           application/json:
+ *             schema:
+ *              $ref: "#/components/schemas/Error"
+ *
+ */
+
+router.get('/attributes/:id', productsController.getAllProductAttributesByProductId)
+
+/**
+ * @openapi
+ * /api/v1/products/attributes/{id}:
+ *   post:
+ *     tags:
+ *       - Products
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: int
+ *         description: The products identifier
+ *       - in: header
+ *         name: x-access-token
+ *         schema:
+ *          type: string
+ *         required: true
+ *     requestBody:
+ *         content:
+ *          multipart/form-data:
+ *           schema:
+ *            $ref: "#/components/schemas/ProductAttributes"
+ *     responses:
+ *       200:
+ *         description: OK
+ *         content:
+ *           application/json:
+ *             schema:
+ *              $ref: "#/components/schemas/Save"
+ *       5XX:
+ *         description: FAILED
+ *         content:
+ *           application/json:
+ *             schema:
+ *              $ref: "#/components/schemas/Error"
+ *
+ */
+
+router.post(
+  '/attributes/',
+  verifyToken,
+  validateSchema(ProductAttributes),
+  productsController.saveProductAttributes
+)
+
+/**
+ * @openapi
+ * /api/v1/products/attributes/{id}:
+ *   delete:
+ *     tags:
+ *       - Products
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: int
+ *         description: The products identifier
+ *       - in: header
+ *         name: x-access-token
+ *         schema:
+ *          type: string
+ *         required: true
+ *     responses:
+ *       200:
+ *         description: OK
+ *         content:
+ *           application/json:
+ *             schema:
+ *              $ref: "#/components/schemas/Delete"
+ *       5XX:
+ *         description: FAILED
+ *         content:
+ *           application/json:
+ *             schema:
+ *              $ref: "#/components/schemas/Error"
+ */
+
+router.delete('/attributes/:id', verifyToken, productsController.deleteProductsAttributeById)
 
 export default router

@@ -99,12 +99,6 @@ export const updateById = async (userId, id, data) => {
  */
 export const deleteById = async (id) => {
   const rowId = Number(id)
-  // const { documentId } = await getOneById(rowId)
-
-  // if (documentId) {
-  //   await handleDeleteFile(documentId)
-  // }
-
   return productsDao.deleteRow({ id: rowId })
 }
 
@@ -149,6 +143,27 @@ export const getAllProductProviders = async () => {
 
 export const getAllProductAttributesByProductId = async (id) => {
   const rowId = Number(id)
-  const data = await productsDao.getAllProductAttributesByProductId({ id: rowId })
+  const data = await productsDao.getAllProductAttributesByProductId({ productId: rowId })
   return data
+}
+
+/**
+ * Create a new product attributes in the database.
+ *
+ * @param {Object} data - The data for the product attributes.
+ * @returns {Promise<Object>} The created product.
+ */
+export const saveProductAttributes = async (data) => {
+  return productsDao.saveProductAttributes(data)
+}
+
+/**
+ * Delete a products item from the database by its ID.
+ *
+ * @param {number} id - The ID of the products item to delete.
+ * @returns {Promise<Object>} The result of the deletion.
+ */
+export const deleteProductsAttributeById = async (id) => {
+  const rowId = Number(id)
+  return productsDao.deleteProductsAttributeById({ id: rowId })
 }

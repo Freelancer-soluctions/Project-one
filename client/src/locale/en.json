@@ -137,6 +137,8 @@
     "add_custom_attributes": "Add custom attributes to the product.",
     "attribute_name": "Attribute Name",
     "add_attribute": "Add Attribute",
-    "value": "Value"
+    "value": "Value",
+    "save_record": "Save record"
+
   }
 }

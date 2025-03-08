@@ -198,3 +198,12 @@ export const ProductsUpdate = Joi.object({
   barCode: Joi.string().max(25).allow(null, '')
 
 })
+export const ProductAttributes = Joi.array().items(
+  Joi.object({
+    id: Joi.number().integer().optional(),
+    name: Joi.string().max(50).required(),
+    description: Joi.string().max(50).required(),
+    createdOn: Joi.date().required(),
+    productId: Joi.number().integer().required()
+  })
+)

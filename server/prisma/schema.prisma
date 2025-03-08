@@ -170,7 +170,7 @@ model products {
   updatedOn          DateTime?          @db.Timestamp(3)
   userProductUpdated users?             @relation("userProductUpdated", fields: [updatedBy], references: [id])
   updatedBy          Int?               @db.Integer
-  productAttributes productAttributes[]
+  productAttributes productAttributes[] @relation("ProductAttributes")
 
 }
 
@@ -199,6 +199,7 @@ model productAttributes {
   id          Int        @id @default(autoincrement())
   name        String     @db.VarChar(50)
   description String     @db.VarChar(100)
+  createdOn          DateTime           @db.Timestamp(3)
   productId  Int     // Clave foránea
-  product    products @relation(fields: [productId], references: [id])
+  product    products @relation("ProductAttributes", fields: [productId], references: [id], onDelete: Cascade)
 }
