@@ -56,6 +56,22 @@
  * @openapi
  * components:
  *   schemas:
+ *     Save:
+ *      type: object
+ *      properties:
+ *       error:
+ *         type: boolean
+ *         example: false
+ *       message:
+ *         type: string
+ *         example: "Item save successfully"
+ *
+ */
+
+/**
+ * @openapi
+ * components:
+ *   schemas:
  *     Delete:
  *      type: object
  *      properties:
@@ -704,6 +720,13 @@
  *           type: string
  *           maxLength: 100
  *           example: "Sample Value"
+ *         createdOn:
+ *           type: string
+ *           format: date
+ *           example: "2020-04-04"
+ *         save:
+ *           type: boolean
+ *           example: true
  */
 
 /**
@@ -761,7 +784,5 @@
 *           maxLength: 25
 *           nullable: true
 *           example: "1234567890123"
-*         createdBy:
-*           type: integer
-*           example: 5
+
  */
