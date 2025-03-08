@@ -10,7 +10,8 @@ export const TABLESNAMES = {
   NOTES: 'notes',
   EVENTS: 'events',
   SETTINGS: 'settings',
-  PRODUCTS: 'products'
+  PRODUCTS: 'products',
+  PRODUCTATTRIBUTES: 'productAttributes'
 }
 
 export const PRODUCTSSTATUSCODE = {

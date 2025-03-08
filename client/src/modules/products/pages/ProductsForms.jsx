@@ -8,7 +8,9 @@ import {
   useLazyGetAllProductAttributesQuery,
   useCreateProductMutation,
   useUpdateProductByIdMutation,
-  useDeleteProductByIdMutation
+  useDeleteProductByIdMutation,
+  useDeleteProductAttributeByIdMutation,
+  useSaveProductAttributesMutation
 } from '../api/productsAPI'
 import { Spinner } from '@/components/loader/Spinner'
 import { ProductBasicInfo, ProductAttributes } from '../components'
@@ -163,7 +165,6 @@ function ProductsForms() {
     }
   }
 
-
   const [
     getProductAttributes,
     {
@@ -176,6 +177,23 @@ function ProductsForms() {
     }
   ] = useLazyGetAllProductAttributesQuery()
 
+  const [
+    deleteProductAttributeById,
+    {
+      isLoading: isLoadingDeleteAttribute,
+      isError: isErrorDeleteAttribute,
+      isSuccess: isSuccessDeleteAttribute
+    }
+  ] = useDeleteProductAttributeByIdMutation()
+
+  const [
+    saveProductAttributes,
+    {
+      isLoading: isLoadingSaveAttributes,
+      isError: isErrorSaveAttributes,
+      isSuccess: isSuccessPutSaveAttributes
+    }
+  ] = useSaveProductAttributesMutation()
 
   useEffect(() => {
     if (selectedRow?.id) {
@@ -184,43 +202,102 @@ function ProductsForms() {
   }, [selectedRow])
 
   useEffect(() => {
-    if (dataAttributes?.data.lenght > 0) {
+    if (dataAttributes?.data.length > 0) {
       setAttributes(dataAttributes.data)
     }
   }, [dataAttributes])
 
-
-
   const [attributes, setAttributes] = useState([])
 
   const handleAddAttribute = () => {
-    setAttributes([...attributes, {id: null, name: '', description: '', save: true }])
-  }
-
-  const handleRemoveAttribute = id => {
-    setAttributes(prev => { const newAttributes = [...prev];
-      const index = newAttributes.findIndex(attr => attr.id === id);
-      if (index !== -1) {
-        newAttributes.splice(index, 1); // Elimina el atributo en el índice encontrado
+    setAttributes([
+      ...attributes,
+      {
+        createdOn: new Date(),
+        name: '',
+        description: '',
+        save: true,
+        productId: selectedRow?.id
       }
-      return newAttributes;}
-     
-    )
-
-    //hacer eliminar aqui
+    ])
   }
 
-  const handleEditAttribute = (id, field, value) => {
+  const updateAttributes = (index) => {
+    setAttributes(prev => {
+      const newAttributes = [...prev]
+      if (index !== -1) {
+        newAttributes.splice(index, 1) // Elimina el atributo en el índice encontrado
+      }
+      return newAttributes
+    })
+  };
+
+
+  const handleRemoveAttribute = async (index, item) => {
+
+    //Eliminacion logica
+    if (item.id) {
+      setAlertProps({
+        alertTitle: t('delete_record'),
+        alertMessage: t('request_delete_record'),
+        cancel: true,
+        success: false,
+        destructive: true,
+        variantSuccess: '',
+        variantDestructive: 'destructive',
+        onSuccess: () => {},
+        onDelete: async () => {
+          try {
+            await deleteProductAttributeById(item.id).unwrap()
+            updateAttributes(index)
+            setAlertProps({
+              alertTitle: '',
+              alertMessage: t('deleted_successfully'),
+              cancel: false,
+              success: true,
+              onSuccess: () => {
+                navigate('/home/products')
+              },
+              variantSuccess: 'info'
+            })
+            setOpenAlertDialog(true) // Open alert dialog
+          } catch (err) {
+            console.error('Error deleting:', err)
+          }
+        }
+      })
+      setOpenAlertDialog(true)
+    } else{updateAttributes(index)}
+  }
+
+  const handleEditAttribute = (index, field, value) => {
     setAttributes(prev =>
-      prev.map(attr =>
-        attr.id === id
-          ? { ...attr, [field]: value, save: true } // Marcamos como editado si no es nuevo
-          : attr
+      prev.map((attr, i) =>
+        i === index ? { ...attr, [field]: value, save: true } : attr
       )
     )
   }
-  const handleSubmitFormAttribute = data => {
-    onSubmitCreateEdit(data)
+  const handleSubmitFormAttribute = async data => {
+    // Filtrar solo los atributos con save: true
+    const attributesToSend = data
+      .filter(attr => attr.save) // Solo los que tienen save: true
+      .map(({ save, ...rest }) => rest) // Eliminar 'save' del objeto
+
+    if (attributesToSend.length > 0) {
+      await saveProductAttributes(attributesToSend).unwrap()
+
+      setOpenAlertDialog(true)
+      setAlertProps({
+        alertTitle: t('save_record'),
+        alertMessage: t('saved_successfully'),
+        cancel: false,
+        success: true,
+        onSuccess: () => {
+          navigate('/home/products')
+        },
+        variantSuccess: 'info'
+      })
+    }
   }
 
   return (
@@ -237,6 +314,7 @@ function ProductsForms() {
           isLoadingProviders ||
           isLoadingStatus ||
           isLoadingAttributes ||
+          isLoadingDeleteAttribute ||
           isFetchingProviders ||
           isFetchingAttributes ||
           isFetchingCategory ||
@@ -266,8 +344,8 @@ function ProductsForms() {
                   onRemoveAttribute={handleRemoveAttribute}
                   onAddAttribute={handleAddAttribute}
                   onEditAttribute={handleEditAttribute}
-                  dataAttributes={attributes}
-                  onSubmitFormAttribute={handleSubmitFormAttribute}
+                  attributes={attributes}
+                  onSubmitFormAttributes={handleSubmitFormAttribute}
                 />
               </TabsContent>
             </Tabs>
