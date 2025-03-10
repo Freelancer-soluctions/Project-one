@@ -138,7 +138,10 @@
     "attribute_name": "Attribute Name",
     "add_attribute": "Add Attribute",
     "value": "Value",
-    "save_record": "Save record"
+    "save_record": "Save record",
+    "saved_successfully": "Saved successfully",
+    "providers_card_msg": "Register and manage your providers effortlessly."
+
 
   }
 }
