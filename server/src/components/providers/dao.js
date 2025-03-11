@@ -2,17 +2,14 @@ import * as prismaService from '../utils/dao.js'
 import { TABLESNAMES } from '../utils/enums/enums.js'
 import { prisma, Prisma } from '../../config/db.js'
 
-const tableName = TABLESNAMES.PRODUCTS
-const tableName2 = TABLESNAMES.PRODUCTATTRIBUTES
+const tableName = TABLESNAMES.PROVIDERS
 
 /**
- * Retrieves all products from the database based on the provided filters.
+ * Retrieves all providers from the database based on optional filters.
  *
- * @param {string} description - The description to filter products by.
- * @param {string} params.productProviderCode - The status provider code filter.
- * @param {string} params.productCategoryCode - The status category code filter.
- * @param {string} statusCode - The status code to filter products by.
- * @returns {Promise<Array>} A list of products matching the filters from the database.
+ * @param {string} [name] - The name filter for providers (partial match).
+ * @param {boolean} [status] - The status filter for providers.
+ * @returns {Promise<Array>} A list of providers matching the filters.
  */
 
 export const getAllProducts = async (
@@ -47,15 +44,24 @@ export const getAllProducts = async (
 }
 
 /**
- * Creates a new row in the database with the provided data.
+ * Creates a new provider in the database.
  *
- * @param {Object} data - The data to insert into the database.
- * @returns {Promise<Object>} The created row in the database.
+ * @param {Object} data - The data for the new provider.
+ * @param {string} data.code - The unique code of the provider (max 3 characters).
+ * @param {string} data.name - The name of the provider (max 100 characters).
+ * @param {boolean} data.status - The status of the provider (active/inactive).
+ * @param {string} [data.contactName] - The contact name of the provider (max 60 characters, optional).
+ * @param {string} [data.contactEmail] - The contact email of the provider (max 80 characters, optional).
+ * @param {string} [data.contactPhone] - The contact phone number of the provider (max 15 characters, optional).
+ * @param {string} [data.address] - The address of the provider (max 120 characters, optional).
+ * @param {Date} data.createdOn - The creation timestamp.
+ * @param {number} data.createdBy - The ID of the user who created the provider.
+ * @returns {Promise<Object>} The created provider.
  */
 export const createProvider = async (data) => {
   const savedProvider = await prisma.products.create({
     data: {
-      ode: data.sku,
+      code: data.code,
       name: data.name,
       status: data.status,
       contactName: data.contactName,
@@ -77,112 +83,51 @@ export const createProvider = async (data) => {
 }
 
 /**
- * Updates an existing row in the database based on the provided filter and data.
+ * Updates an existing provider in the database.
  *
- * @param {Object} data - The fields to update in the row.
- * @param {Object} where - The conditions to identify the row to update.
- * @returns {Promise<Object>} The updated row in the database.
+ * @param {Object} data - The fields to update in the provider.
+ * @param {Object} where - The conditions to identify the provider to update.
+ * @param {string} [data.code] - The unique code of the provider (max 3 characters).
+ * @param {string} [data.name] - The name of the provider (max 100 characters).
+ * @param {boolean} [data.status] - The status of the provider (active/inactive).
+ * @param {string} [data.contactName] - The contact name of the provider (max 60 characters, optional).
+ * @param {string} [data.contactEmail] - The contact email of the provider (max 80 characters, optional).
+ * @param {string} [data.contactPhone] - The contact phone number of the provider (max 15 characters, optional).
+ * @param {string} [data.address] - The address of the provider (max 120 characters, optional).
+ * @param {Date} data.updatedOn - The timestamp of the last update.
+ * @param {number} data.updatedBy - The ID of the user updating the provider.
+ * @returns {Promise<Object>} The updated provider.
  */
 export const updateRow = async (data, where) => {
   const result = await prisma.products.update({
     where,
     data: {
-      sku: data.sku,
+      code: data.code,
       name: data.name,
-      price: data.price,
-      cost: data.cost,
-      stock: data.stock,
-      description: data.description,
-      barCode: data.barCode,
+      status: data.status,
+      contactName: data.contactName,
+      contactEmail: data.contactEmail,
+      contactPhone: data.contactPhone,
+      address: data.address,
       updatedOn: data.updatedOn,
 
       // Claves foráneas
-      productCategories: {
-        connect: { id: data.productCategoryId }
-      },
-      productProviders: {
-        connect: { id: data.productProviderId }
-      },
-      productStatus: {
-        connect: { id: data.productStatusId }
-      },
-      userProductUpdated: {
+      userProvidersUpdated: {
         connect: {
           id: data.updatedBy
         }
       }
+
     }
   })
   return Promise.resolve(result)
 }
 
 /**
- * Deletes a row from the database based on the provided filter.
+ * Deletes a provider from the database based on the provided filter.
  *
- * @param {Object} where - The filter conditions to identify the row to delete.
- * @returns {Promise<Object>} The result of the delete operation.
+ * @param {Object} where - The conditions to identify the provider to delete.
+ * @returns {Promise<Object>} The result of the deletion operation.
  */
 export const deleteRow = async (where) =>
   prismaService.deleteRow(tableName, where)
-
-/**
- * Retrieves all available products statuses from the database.
- *
- * @returns {Promise<Array>} A list of products types from the database.
- */
-export const getAllProductAttributesByProductId = async (where) => {
-  const attributes = await prisma.productAttributes.findMany({
-    where
-  })
-
-  return Promise.resolve(attributes)
-}
-
-/**
- * Guarda o actualiza atributos de producto en la base de datos.
- *
- * @param {Array} attributes - Lista de atributos a guardar o actualizar.
- * @param {number} [attributes[].id] - ID del atributo (si existe, se actualizará; si no, se creará uno nuevo).
- * @param {number} attributes[].productId - ID del producto al que pertenece el atributo.
- * @param {string} attributes[].name - Nombre del atributo.
- * @param {string} attributes[].value - Valor del atributo.
- * @returns {Promise<Array>} - Promesa que resuelve con los atributos guardados o actualizados.
- *
- * @throws {Error} - Lanza un error si la transacción falla.
- */
-export const saveProductAttributes = async (attributes) => {
-  const transaction = attributes.map((attr) => {
-    if (attr.id) {
-      // Si el atributo tiene ID, actualizarlo
-      return prisma.productAttributes.update({
-        where: { id: attr.id },
-        data: {
-          name: attr.name,
-          description: attr.description
-        }
-      })
-    } else {
-      // Si no tiene ID, crearlo
-      return prisma.productAttributes.create({
-        data: {
-          productId: attr.productId,
-          name: attr.name,
-          description: attr.description,
-          createdOn: attr.createdOn
-        }
-      })
-    }
-  })
-
-  // Ejecutar todo en una transacción
-  return prisma.$transaction(transaction)
-}
-
-/**
- * Deletes a row from the database based on the provided filter.
- *
- * @param {Object} where - The filter conditions to identify the row to delete.
- * @returns {Promise<Object>} The result of the delete operation.
- */
-export const deleteProductsAttributeById = async (where) =>
-  prismaService.deleteRow(tableName2, where)

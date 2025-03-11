@@ -11,7 +11,8 @@ export const TABLESNAMES = {
   EVENTS: 'events',
   SETTINGS: 'settings',
   PRODUCTS: 'products',
-  PRODUCTATTRIBUTES: 'productAttributes'
+  PRODUCTATTRIBUTES: 'productAttributes',
+  PROVIDERS: 'providers'
 }
 
 export const PRODUCTSSTATUSCODE = {

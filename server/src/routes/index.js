@@ -1,6 +1,7 @@
 import { Router } from 'express'
 import auth from '../components/auth/routes.js'
 import news from '../components/news/routes.js'
+import providers from '../components/providers/routes.js'
 import notes from '../components/notes/routes.js'
 import role from '../components/role/routes.js'
 import settings from '../components/settings/routes.js'
@@ -14,6 +15,7 @@ router.use('/settings', settings)
 router.use('/notes', notes)
 router.use('/events', events)
 router.use('/products', products)
+router.use('/providers', providers)
 
 router.use('/role', role)
 
