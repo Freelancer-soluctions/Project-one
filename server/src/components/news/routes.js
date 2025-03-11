@@ -9,17 +9,22 @@ import verifyToken from '../../middleware/verifyToken.js'
 const router = Router()
 
 /**
-@openapi
+ * @openapi
  * /api/v1/news:
  *   get:
  *     tags:
  *       - News
+ *     security:
+ *       - bearerAuth: []
+ *     summary: "Obtener news"
+ *     description: "Obtiene la lista de eventos junto con la información del tipo de evento. Se puede filtrar usando 'searchQuery'."
  *     parameters:
- *       - in: header
- *         name: x-access-token
+ *       - in: query
+ *         name: filters
  *         schema:
- *          type: string
- *         required: true
+ *           $ref: "#/components/schemas/NewsFilters"
+ *         required: false
+ *         description: "Filtros opcionales para buscar estados de noticias."
  *     responses:
  *       200:
  *         description: OK
@@ -28,33 +33,43 @@ const router = Router()
  *             schema:
  *               type: object
  *               properties:
+ *                 error:
+ *                   type: boolean
+ *                   example: false
+ *                 statusCode:
+ *                   type: integer
+ *                   example: 200
+ *                 message:
+ *                   type: string
+ *                   example: "Some success message"
  *                 data:
  *                   type: array
  *                   items:
- *                     $ref: "#/components/schemas/News"
- *       5XX:
- *         description: FAILED
+ *                     $ref: "#/components/schemas/ResponseGetNews"
+ *       401:
+ *         description: "Unauthorized"
  *         content:
  *           application/json:
  *             schema:
- *              $ref: "#/components/schemas/Error"
- *
+ *               $ref: "#/components/schemas/Unauthorized"
+ *       5XX:
+ *         description: "Error inesperado"
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Error"
  */
 
 router.get('/', verifyToken, validateQueryParams(NewsFilters), newsController.getAllNews)
 
 /**
-@openapi
+ * @openapi
  * /api/v1/news/status:
  *   get:
+ *     summary: "Obtener estado de noticias"
+ *     description: "Obtiene la lista de estados de noticias disponibles."
  *     tags:
  *       - News
- *     parameters:
- *       - in: header
- *         name: x-access-token
- *         schema:
- *          type: string
- *         required: true
  *     responses:
  *       200:
  *         description: OK
@@ -63,93 +78,79 @@ router.get('/', verifyToken, validateQueryParams(NewsFilters), newsController.ge
  *             schema:
  *               type: object
  *               properties:
+ *                 error:
+ *                   type: boolean
+ *                   example: false
+ *                 statusCode:
+ *                   type: integer
+ *                   example: 200
+ *                 message:
+ *                   type: string
+ *                   example: "Some success message"
  *                 data:
  *                   type: array
  *                   items:
  *                     $ref: "#/components/schemas/NewsStatus"
  *       5XX:
- *         description: FAILED
+ *         description: "Error inesperado"
  *         content:
  *           application/json:
  *             schema:
- *              $ref: "#/components/schemas/Error"
- *
+ *               $ref: "#/components/schemas/Error"
  */
 
 router.get('/status', newsController.getAllNewsStatus)
-
-/**
-@openapi
- * /api/v1/news/{id}:
- *   get:
- *     tags:
- *       - News
- *     parameters:
- *       - in: path
- *         name: id
- *         schema:
- *           type: int
- *         description: The News identifier
- *       - in: header
- *         name: x-access-token
- *         schema:
- *          type: string
- *         required: true
- *     responses:
- *       200:
- *         description: OK
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 data:
- *                  $ref: "#/components/schemas/News"
- *       5XX:
- *         description: FAILED
- *         content:
- *           application/json:
- *             schema:
- *              $ref: "#/components/schemas/Error"
- *
- */
-
-router.get('/:id', verifyToken, newsController.getOneById)
-
 /**
  * @openapi
  * /api/v1/news:
  *   post:
  *     tags:
  *       - News
- *     parameters:
- *       - in: header
- *         name: x-access-token
- *         schema:
- *          type: string
- *         required: true
+ *     security:
+ *       - bearerAuth: []
+ *     summary: "Crea una noticia"
+ *     description: "Este endpoint requiere autenticación. El userId se extrae automáticamente del token JWT."
  *     requestBody:
- *         content:
- *          multipart/form-data:
+ *       required: true
+ *       content:
+ *         application/json:
  *           schema:
- *            $ref: "#/components/schemas/NewsBody"
+ *             $ref: "#/components/schemas/BodyNewsCreate"
  *     responses:
- *       200:
- *         description: OK
+ *       201:
+ *         description: Created
  *         content:
  *           application/json:
  *             schema:
- *              $ref: "#/components/schemas/Create"
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: boolean
+ *                   example: false
+ *                 statusCode:
+ *                   type: integer
+ *                   example: 201
+ *                 message:
+ *                   type: string
+ *                   example: "Some success message"
+ *                 data:
+ *                   $ref: "#/components/schemas/ResponseNewsCreateUpdate"
+
+ *       401:
+ *         description: "Unauthorized"
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Unauthorized"
  *       5XX:
  *         description: FAILED
  *         content:
  *           application/json:
  *             schema:
- *              $ref: "#/components/schemas/Error"
- *
+ *               $ref: "#/components/schemas/Error"
  */
 
-router.post('/', verifyToken, validateSchema(News), upload.single('document'), newsController.createOne)
+router.post('/', verifyToken, validateSchema(News), upload.single('document'), newsController.createNew)
 
 /**
  * @openapi
@@ -157,35 +158,54 @@ router.post('/', verifyToken, validateSchema(News), upload.single('document'), n
  *   put:
  *     tags:
  *       - News
+ *     security:
+ *       - bearerAuth: []
+ *     summary: "Actualiza una noticia"
+ *     description: "Este endpoint requiere autenticación. El userId se extrae automáticamente del token JWT."
  *     parameters:
  *       - in: path
  *         name: id
- *         schema:
- *           type: int
- *         description: The news identifier
- *       - in: header
- *         name: x-access-token
- *         schema:
- *          type: string
  *         required: true
+ *         schema:
+ *           type: integer
+ *         description: "ID de la noticia a actualizar."
  *     requestBody:
- *         content:
- *          multipart/form-data:
+ *       required: true
+ *       content:
+ *         application/json:
  *           schema:
- *            $ref: "#/components/schemas/NewsBody"
+ *             $ref: "#/components/schemas/NewsUpdate"
  *     responses:
  *       200:
  *         description: OK
  *         content:
  *           application/json:
  *             schema:
- *              $ref: "#/components/schemas/Update"
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: boolean
+ *                   example: false
+ *                 statusCode:
+ *                   type: int
+ *                   example: 200
+ *                 message:
+ *                   type: string
+ *                   example: "Some success message"
+ *                 data:
+ *                   $ref: "#/components/schemas/ResponseNewsCreateUpdate"
+ *       401:
+ *         description: "Unauthorized"
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Unauthorized"
  *       5XX:
  *         description: FAILED
  *         content:
  *           application/json:
  *             schema:
- *              $ref: "#/components/schemas/Error"
+ *               $ref: "#/components/schemas/Error"
  *
  */
 
@@ -197,32 +217,39 @@ router.put('/:id', verifyToken, validateSchema(NewsUpdate), upload.single('docum
  *   delete:
  *     tags:
  *       - News
+ *     security:
+ *       - bearerAuth: []
+ *     summary: "Elimina una noticia"
+ *     description: "Este endpoint requiere autenticación. El userId se extrae automáticamente del token JWT."
  *     parameters:
  *       - in: path
  *         name: id
- *         schema:
- *           type: int
- *         description: The news identifier
- *       - in: header
- *         name: x-access-token
- *         schema:
- *          type: string
  *         required: true
+ *         schema:
+ *           type: integer
+ *         description: "ID de la noticia a eliminar."
  *     responses:
  *       200:
  *         description: OK
  *         content:
  *           application/json:
  *             schema:
- *              $ref: "#/components/schemas/Delete"
+ *               $ref: "#/components/schemas/Delete"
+ *       401:
+ *         description: "Unauthorized"
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Unauthorized"
  *       5XX:
  *         description: FAILED
  *         content:
  *           application/json:
  *             schema:
- *              $ref: "#/components/schemas/Error"
+ *               $ref: "#/components/schemas/Error"
  */
-
 router.delete('/:id', verifyToken, newsController.deleteById)
 
 export default router
+
+// eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiaWF0IjoxNzQxNjU4MDk0LCJleHAiOjE3NDE3NDQ0OTR9.gCvtnnndKLvGt0X9VKjo1gtjMkKtuK12syLFg7BNDLo
