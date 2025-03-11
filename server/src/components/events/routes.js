@@ -15,7 +15,7 @@ const router = Router()
  *       - Events
  *     security:
  *       - bearerAuth: []
- *     summary: "Crea un evento"
+ *     summary: "Crea un provider"
  *     description: "Este endpoint requiere autenticación. El userId se extrae automáticamente del token JWT."
  *     requestBody:
  *       required: true
@@ -41,7 +41,7 @@ const router = Router()
  *                   type: string
  *                   example: "Some success message"
  *                 data:
- *                   $ref: "#/components/schemas/ResponseCreateUpdate"
+ *                   $ref: "#/components/schemas/ResponseEventCreateUpdate"
  *       401:
  *         description: "Unauthorized"
  *         content:
@@ -195,7 +195,7 @@ router.get('/', verifyToken, validateQueryParams(EventsFilters), eventsControlle
  *                   type: string
  *                   example: "Some success message"
  *                 data:
- *                   $ref: "#/components/schemas/ResponseCreateUpdate"
+ *                   $ref: "#/components/schemas/ResponseEventCreateUpdate"
  *       401:
  *         description: "Unauthorized"
  *         content:

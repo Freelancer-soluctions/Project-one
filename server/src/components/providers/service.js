@@ -1,14 +1,12 @@
 import * as productsDao from './dao.js'
 
 /**
- * Get all products from the database with optional filters.
+ * Retrieves all providers based on optional filters.
  *
- * @param {Object} params - The parameters for filtering the products.
- * @param {string} params.description - The description filter.
- * @param {string} params.productProviderCode - The status provider code filter.
- * @param {string} params.productCategoryCode - The status category code filter.
- * @param {string} params.statusCode - The status code filter.
- * @returns {Promise<Array>} A list of products items matching the filters.
+ * @param {Object} params - The parameters for filtering the providers.
+ * @param {string} [params.name] - The name filter.
+ * @param {boolean} [params.status] - The status filter.
+ * @returns {Promise<Array>} A list of providers matching the filters.
  */
 export const getAllProviders = async ({
   name,
@@ -22,31 +20,28 @@ export const getAllProviders = async ({
 }
 
 /**
- * Create a new product in the database.
+ * Creates a new provider in the database.
  *
- * @param {number} userId - The ID of the user creating the product.
- * @param {Object} data - The data for the new product.
- * @param {string} data.sku - The unique SKU of the product (max 16 characters).
- * @param {string} data.name - The name of the product (max 80 characters).
- * @param {number} data.productCategoryId - The ID of the product category.
- * @param {number} data.productProviderId - The ID of the product provider.
- * @param {number} data.price - The price of the product (decimal with 2 precision).
- * @param {number} data.cost - The cost of the product (decimal with 2 precision).
- * @param {number} data.stock - The initial stock quantity (integer, min 0).
- * @param {string} data.description - The product description (max 2000 characters).
- * @param {number} data.productStatusId - The ID of the product status.
- * @param {string} [data.barCode] - The optional barcode of the product (max 25 characters).
- * @returns {Promise<Object>} The created product.
+ * @param {number} userId - The ID of the user creating the provider.
+ * @param {Object} data - The data for the new provider.
+ * @param {string} data.code - The unique code of the provider (max 3 characters).
+ * @param {string} data.name - The name of the provider (max 100 characters).
+ * @param {boolean} data.status - The status of the provider (active/inactive).
+ * @param {string} [data.contactName] - The contact name of the provider (max 60 characters, optional).
+ * @param {string} [data.contactEmail] - The contact email of the provider (max 80 characters, optional).
+ * @param {string} [data.contactPhone] - The contact phone number of the provider (max 15 characters, optional).
+ * @param {string} [data.address] - The address of the provider (max 120 characters, optional).
+ * @returns {Promise<Object>} The created provider.
  */
 export const createProvider = async (userId, data) => {
   const newProvider = {
-    code: String(data.sku),
+    code: String(data.code),
     name: String(data.name),
     status: Boolean(data.status),
     contactName: data.contactName ? String(data.contactName) : null,
     contactEmail: data.contactEmail ? String(data.contactEmail) : null,
     contactPhone: data.address ? String(data.contactPhone) : null,
-    address: data.address ? String(data.contactPhone) : null,
+    address: data.address ? String(data.address) : null,
     createdOn: new Date(),
     createdBy: Number(userId)
   }
@@ -55,65 +50,32 @@ export const createProvider = async (userId, data) => {
 }
 
 /**
- * Update an existing products item in the database by its ID.
+ * Updates an existing provider in the database by its ID.
  *
- * @param {number} userId - The ID of the user updating the products.
- * @param {Object} data - The updated data for the products item.
- * @param {number} data.id - The ID of the products item to update.
- * @param {string} data.statusCode - The status code of the products item.
- * @returns {Promise<Object>} The updated products item.
+ * @param {number} userId - The ID of the user updating the provider.
+ * @param {number} id - The ID of the provider to update.
+ * @param {Object} data - The updated data for the provider.
+ * @param {string} [data.statusCode] - The status code of the provider.
+ * @returns {Promise<Object>} The updated provider.
  */
 export const updateById = async (userId, id, data) => {
   const rowId = Number(id)
-  const product = {
+  const provider = {
     ...data,
     updatedOn: new Date(),
     updatedBy: Number(userId)
 
   }
 
-  return productsDao.updateRow(product, { id: rowId })
+  return productsDao.updateRow(provider, { id: rowId })
 }
 /**
- * Delete a products item from the database by its ID.
+ * Deletes a provider from the database by its ID.
  *
- * @param {number} id - The ID of the products item to delete.
+ * @param {number} id - The ID of the provider to delete.
  * @returns {Promise<Object>} The result of the deletion.
  */
 export const deleteById = async (id) => {
   const rowId = Number(id)
   return productsDao.deleteRow({ id: rowId })
-}
-
-/**
- * Get all available products attributes from the database.
- *
- * @returns {Promise<Array>} A list of all products attributes.
- */
-
-export const getAllProductAttributesByProductId = async (id) => {
-  const rowId = Number(id)
-  const data = await productsDao.getAllProductAttributesByProductId({ productId: rowId })
-  return data
-}
-
-/**
- * Create a new product attributes in the database.
- *
- * @param {Object} data - The data for the product attributes.
- * @returns {Promise<Object>} The created product.
- */
-export const saveProductAttributes = async (data) => {
-  return productsDao.saveProductAttributes(data)
-}
-
-/**
- * Delete a products item from the database by its ID.
- *
- * @param {number} id - The ID of the products item to delete.
- * @returns {Promise<Object>} The result of the deletion.
- */
-export const deleteProductsAttributeById = async (id) => {
-  const rowId = Number(id)
-  return productsDao.deleteProductsAttributeById({ id: rowId })
 }
