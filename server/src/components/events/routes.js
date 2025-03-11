@@ -13,47 +13,59 @@ const router = Router()
  *   post:
  *     tags:
  *       - Events
- *     parameters:
- *       - in: header
- *         name: x-access-token
- *         schema:
- *          type: string
- *         required: true
+ *     security:
+ *       - bearerAuth: []
+ *     summary: "Crea un evento"
+ *     description: "Este endpoint requiere autenticación. El userId se extrae automáticamente del token JWT."
  *     requestBody:
- *         content:
- *          multipart/form-data:
+ *       required: true
+ *       content:
+ *         application/json:
  *           schema:
- *            $ref: "#/components/schemas/EventBody"
+ *             $ref: "#/components/schemas/BodyEventCreateUpdate"
  *     responses:
- *       200:
- *         description: OK
+ *       201:
+ *         description: Created
  *         content:
  *           application/json:
  *             schema:
- *              $ref: "#/components/schemas/Create"
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: boolean
+ *                   example: false
+ *                 statusCode:
+ *                   type: integer
+ *                   example: 201
+ *                 message:
+ *                   type: string
+ *                   example: "Some success message"
+ *                 data:
+ *                   $ref: "#/components/schemas/ResponseCreateUpdate"
+ *       401:
+ *         description: "Unauthorized"
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Unauthorized"
  *       5XX:
  *         description: FAILED
  *         content:
  *           application/json:
  *             schema:
- *              $ref: "#/components/schemas/Error"
- *
+ *               $ref: "#/components/schemas/Error"
  */
 
 router.post('/', verifyToken, validateSchema(EventsCreateUpdate), eventsController.createEvent)
 
 /**
-@openapi
- * /api/v1/events:
+ * @openapi
+ * /api/v1/events/eventTypes:
  *   get:
+ *     summary: "Obtener event types"
+ *     description: "Obtiene la lista de eventos disponibles."
  *     tags:
  *       - Events
- *     parameters:
- *       - in: header
- *         name: x-access-token
- *         schema:
- *          type: string
- *         required: true
  *     responses:
  *       200:
  *         description: OK
@@ -62,33 +74,49 @@ router.post('/', verifyToken, validateSchema(EventsCreateUpdate), eventsControll
  *             schema:
  *               type: object
  *               properties:
+ *                 error:
+ *                   type: boolean
+ *                   example: false
+ *                 statusCode:
+ *                   type: integer
+ *                   example: 200
+ *                 message:
+ *                   type: string
+ *                   example: "Some success message"
  *                 data:
  *                   type: array
  *                   items:
- *                     $ref: "#/components/schemas/EventsTypes"
+ *                     $ref: "#/components/schemas/GetEventsTypes"
  *       5XX:
- *         description: FAILED
+ *         description: "Error inesperado"
  *         content:
  *           application/json:
  *             schema:
- *              $ref: "#/components/schemas/Error"
- *
+ *               $ref: "#/components/schemas/Error"
  */
 
 router.get('/eventTypes', eventsController.getAllEventTypes)
 
 /**
-@openapi
- * /api/v1/news:
+ * @openapi
+ * /api/v1/events:
  *   get:
  *     tags:
- *       - News
+ *       - Events
+ *     security:
+ *       - bearerAuth: []
+ *     summary: "Obtener eventos"
+ *     description: "Obtiene la lista de eventos junto con la información del tipo de evento. Se puede filtrar usando 'searchQuery'."
  *     parameters:
- *       - in: header
- *         name: x-access-token
+ *       - in: query
+ *         name: searchQuery
  *         schema:
- *          type: string
- *         required: true
+ *           type: string
+ *           minLength: 1
+ *           maxLength: 30
+ *         required: false
+ *         description: "Texto para buscar en el título o descripción del evento. Puede estar vacío."
+ *         example: "Tech Conference 2025"
  *     responses:
  *       200:
  *         description: OK
@@ -97,17 +125,31 @@ router.get('/eventTypes', eventsController.getAllEventTypes)
  *             schema:
  *               type: object
  *               properties:
+ *                 error:
+ *                   type: boolean
+ *                   example: false
+ *                 statusCode:
+ *                   type: integer
+ *                   example: 200
+ *                 message:
+ *                   type: string
+ *                   example: "Some success message"
  *                 data:
  *                   type: array
  *                   items:
- *                     $ref: "#/components/schemas/News"
- *       5XX:
- *         description: FAILED
+ *                     $ref: "#/components/schemas/ResponseGetEvents"
+ *       401:
+ *         description: "Unauthorized"
  *         content:
  *           application/json:
  *             schema:
- *              $ref: "#/components/schemas/Error"
- *
+ *               $ref: "#/components/schemas/Unauthorized"
+ *       5XX:
+ *         description: "Error inesperado"
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Error"
  */
 
 router.get('/', verifyToken, validateQueryParams(EventsFilters), eventsController.getAllEvents)
@@ -118,70 +160,94 @@ router.get('/', verifyToken, validateQueryParams(EventsFilters), eventsControlle
  *   put:
  *     tags:
  *       - Events
+ *     security:
+ *       - bearerAuth: []
+ *     summary: "Actualiza un evento"
+ *     description: "Este endpoint requiere autenticación. El userId se extrae automáticamente del token JWT."
  *     parameters:
  *       - in: path
  *         name: id
- *         schema:
- *           type: int
- *         description: The news identifier
- *       - in: header
- *         name: x-access-token
- *         schema:
- *          type: string
  *         required: true
+ *         schema:
+ *           type: integer
+ *         description: "ID del evento a actualizar."
  *     requestBody:
- *         content:
- *          multipart/form-data:
+ *       required: true
+ *       content:
+ *         application/json:
  *           schema:
- *            $ref: "#/components/schemas/EventBody"
+ *             $ref: "#/components/schemas/BodyEventCreateUpdate"
  *     responses:
  *       200:
  *         description: OK
  *         content:
  *           application/json:
  *             schema:
- *              $ref: "#/components/schemas/Update"
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: boolean
+ *                   example: false
+ *                 statusCode:
+ *                   type: int
+ *                   example: 200
+ *                 message:
+ *                   type: string
+ *                   example: "Some success message"
+ *                 data:
+ *                   $ref: "#/components/schemas/ResponseCreateUpdate"
+ *       401:
+ *         description: "Unauthorized"
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Unauthorized"
  *       5XX:
  *         description: FAILED
  *         content:
  *           application/json:
  *             schema:
- *              $ref: "#/components/schemas/Error"
+ *               $ref: "#/components/schemas/Error"
  *
  */
-
 router.put('/:id', verifyToken, validateSchema(EventsCreateUpdate), eventsController.updateEventById)
 
 /**
  * @openapi
- * /api/v1/news/{id}:
+ * /api/v1/events/{id}:
  *   delete:
  *     tags:
- *       - News
+ *       - Events
+ *     security:
+ *       - bearerAuth: []
+ *     summary: "Elimina un evento"
+ *     description: "Este endpoint requiere autenticación. El userId se extrae automáticamente del token JWT."
  *     parameters:
  *       - in: path
  *         name: id
- *         schema:
- *           type: int
- *         description: The news identifier
- *       - in: header
- *         name: x-access-token
- *         schema:
- *          type: string
  *         required: true
+ *         schema:
+ *           type: integer
+ *         description: "ID del evento a eliminar."
  *     responses:
  *       200:
  *         description: OK
  *         content:
  *           application/json:
  *             schema:
- *              $ref: "#/components/schemas/Delete"
+ *               $ref: "#/components/schemas/Delete"
+ *       401:
+ *         description: "Unauthorized"
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Unauthorized"
  *       5XX:
  *         description: FAILED
  *         content:
  *           application/json:
  *             schema:
- *              $ref: "#/components/schemas/Error"
+ *               $ref: "#/components/schemas/Error"
  */
 
 router.delete('/:id', verifyToken, eventsController.deleteEventById)

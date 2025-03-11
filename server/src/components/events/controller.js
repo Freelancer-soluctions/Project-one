@@ -51,6 +51,7 @@ export const getAllEventTypes = handleCatchErrorAsync(async (req, res) => {
 export const updateEventById = handleCatchErrorAsync(async (req, res) => {
   const { body } = req
   const { id } = req.params
+  console.log('llega', id)
   await eventService.updateEventById(id, body)
   globalResponse(res, 200, { message: 'Item updated successfully' })
 })

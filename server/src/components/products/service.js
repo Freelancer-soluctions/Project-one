@@ -3,12 +3,12 @@ import * as productsDao from './dao.js'
 /**
  * Get all products from the database with optional filters.
  *
- * @param {Object} params - The parameters for filtering the products.
- * @param {string} params.description - The description filter.
- * @param {string} params.productProviderCode - The status provider code filter.
- * @param {string} params.productCategoryCode - The status category code filter.
- * @param {string} params.statusCode - The status code filter.
- * @returns {Promise<Array>} A list of products items matching the filters.
+ * @param {Object} params - The parameters for filtering products.
+ * @param {string} [params.name] - The name filter.
+ * @param {string} [params.productProviderCode] - The product provider code filter.
+ * @param {string} [params.productCategoryCode] - The product category code filter.
+ * @param {string} [params.statusCode] - The status code filter.
+ * @returns {Promise<Array>} A list of products matching the filters.
  */
 export const getAllProducts = async ({
   name,
@@ -26,16 +26,6 @@ export const getAllProducts = async ({
 }
 
 /**
- * Get one products item from the database by its ID.
- *
- * @param {number} id - The ID of the products item.
- * @returns {Promise<Object>} The products item matching the ID.
- */
-export const getOneById = async (id) => {
-  return productsDao.getOneRow({ where: { id } })
-}
-
-/**
  * Create a new product in the database.
  *
  * @param {number} userId - The ID of the user creating the product.
@@ -44,8 +34,8 @@ export const getOneById = async (id) => {
  * @param {string} data.name - The name of the product (max 80 characters).
  * @param {number} data.productCategoryId - The ID of the product category.
  * @param {number} data.productProviderId - The ID of the product provider.
- * @param {number} data.price - The price of the product (decimal with 2 precision).
- * @param {number} data.cost - The cost of the product (decimal with 2 precision).
+ * @param {number} data.price - The price of the product (decimal with 2 decimal places).
+ * @param {number} data.cost - The cost of the product (decimal with 2 decimal places).
  * @param {number} data.stock - The initial stock quantity (integer, min 0).
  * @param {string} data.description - The product description (max 2000 characters).
  * @param {number} data.productStatusId - The ID of the product status.
@@ -72,14 +62,15 @@ export const createOne = async (userId, data) => {
 }
 
 /**
- * Update an existing products item in the database by its ID.
+ * Update an existing product in the database by its ID.
  *
- * @param {number} userId - The ID of the user updating the products.
- * @param {Object} data - The updated data for the products item.
- * @param {number} data.id - The ID of the products item to update.
- * @param {string} data.statusCode - The status code of the products item.
- * @returns {Promise<Object>} The updated products item.
+ * @param {number} userId - The ID of the user updating the product.
+ * @param {number} id - The ID of the product to update.
+ * @param {Object} data - The updated data for the product.
+ * @param {string} data.statusCode - The updated status code of the product.
+ * @returns {Promise<Object>} The updated product.
  */
+
 export const updateById = async (userId, id, data) => {
   const rowId = Number(id)
   const product = {
@@ -91,21 +82,23 @@ export const updateById = async (userId, id, data) => {
 
   return productsDao.updateRow(product, { id: rowId })
 }
+
 /**
- * Delete a products item from the database by its ID.
+ * Delete a product from the database by its ID.
  *
- * @param {number} id - The ID of the products item to delete.
+ * @param {number} id - The ID of the product to delete.
  * @returns {Promise<Object>} The result of the deletion.
  */
+
 export const deleteById = async (id) => {
   const rowId = Number(id)
   return productsDao.deleteRow({ id: rowId })
 }
 
 /**
- * Get all available products statuses from the database.
+ * Get all available product statuses from the database.
  *
- * @returns {Promise<Array>} A list of all products statuses.
+ * @returns {Promise<Array>} A list of all product statuses.
  */
 
 export const getAllProductStatus = async () => {
@@ -114,9 +107,9 @@ export const getAllProductStatus = async () => {
 }
 
 /**
- * Get all available products categories from the database.
+ * Get all available product categories from the database.
  *
- * @returns {Promise<Array>} A list of all products statuses.
+ * @returns {Promise<Array>} A list of all product categories.
  */
 
 export const getAllProductCategories = async () => {
@@ -125,9 +118,9 @@ export const getAllProductCategories = async () => {
 }
 
 /**
- * Get all available products types from the database.
+ * Get all available product providers from the database.
  *
- * @returns {Promise<Array>} A list of all products statuses.
+ * @returns {Promise<Array>} A list of all product providers.
  */
 
 export const getAllProductProviders = async () => {
@@ -136,9 +129,10 @@ export const getAllProductProviders = async () => {
 }
 
 /**
- * Get all available products attributes from the database.
+ * Get all attributes for a product by its ID.
  *
- * @returns {Promise<Array>} A list of all products attributes.
+ * @param {number} id - The ID of the product.
+ * @returns {Promise<Array>} A list of attributes for the specified product.
  */
 
 export const getAllProductAttributesByProductId = async (id) => {
@@ -148,19 +142,20 @@ export const getAllProductAttributesByProductId = async (id) => {
 }
 
 /**
- * Create a new product attributes in the database.
+ * Create new product attributes in the database.
  *
  * @param {Object} data - The data for the product attributes.
- * @returns {Promise<Object>} The created product.
+ * @returns {Promise<Object>} The created product attributes.
  */
+
 export const saveProductAttributes = async (data) => {
   return productsDao.saveProductAttributes(data)
 }
 
 /**
- * Delete a products item from the database by its ID.
+ * Delete a product attribute from the database by its ID.
  *
- * @param {number} id - The ID of the products item to delete.
+ * @param {number} id - The ID of the product attribute to delete.
  * @returns {Promise<Object>} The result of the deletion.
  */
 export const deleteProductsAttributeById = async (id) => {

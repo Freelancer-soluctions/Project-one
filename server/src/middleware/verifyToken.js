@@ -5,7 +5,7 @@ const verifyToken = async (req, res, next) => {
   try {
     // Get the token from the headers
     const authHeader = req.headers.authorization || req.headers.Authorization
-    // console.log('auth', authHeader)
+    console.log('auth', authHeader)
     if (!authHeader) {
       return res.status(401).json({ message: 'Unauthorized' })
     }

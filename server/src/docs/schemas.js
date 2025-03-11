@@ -1,3 +1,6 @@
+/** --------------------------------------
+ * Sección Global
+ * -------------------------------------- */
 /**
  * @openapi
  * components:
@@ -15,6 +18,437 @@
  *          type: string
  *          example: "Some error message"
  *
+ */
+
+/**
+ * @openapi
+ * components:
+ *   schemas:
+ *     Unauthorized:
+ *       type: object
+ *       properties:
+ *        message:
+ *          type: string
+ *          example: "Unauthorized"
+ *
+ */
+
+/**
+ * @openapi
+ * components:
+ *   schemas:
+ *     Delete:
+ *       type: object
+ *       properties:
+ *         error:
+ *           type: boolean
+ *           example: false
+ *         statusCode:
+ *           type: integer
+ *           example: 200
+ *         data:
+ *           type: object
+ *           properties:
+ *             message:
+ *               type: string
+ *               example: "Item deleted successfully"
+ */
+
+/** --------------------------------------
+ * Sección de Autenticación
+ * -------------------------------------- */
+/**
+ * @openapi
+ * components:
+ *   securitySchemes:
+ *     bearerAuth:
+ *       type: http
+ *       scheme: bearer
+ *       bearerFormat: JWT
+ */
+
+/** --------------------------------------
+ * Sección de Events
+ * -------------------------------------- */
+
+/**
+ * @openapi
+ * components:
+ *   schemas:
+ *     ResponseCreateUpdate:
+ *       type: object
+ *       properties:
+ *         data:
+ *           type: object
+ *           properties:
+ *             id:
+ *               type: integer
+ *               example: 1
+ *             title:
+ *               type: string
+ *               maxLength: 50
+ *               example: "Conference on AI"
+ *             description:
+ *               type: string
+ *               maxLength: 200
+ *               example: "A detailed discussion on the future of AI"
+ *             speaker:
+ *               type: string
+ *               maxLength: 20
+ *               nullable: true
+ *               example: "John Doe"
+ *             startTime:
+ *               type: string
+ *               maxLength: 5
+ *               example: "09:00"
+ *             endTime:
+ *               type: string
+ *               maxLength: 5
+ *               example: "11:00"
+ *             eventDate:
+ *               type: string
+ *               format: date-time
+ *               example: "2025-06-15T00:00:00Z"
+ *             createdBy:
+ *               type: integer
+ *               example: 5
+ *             createdOn:
+ *               type: string
+ *               format: date-time
+ *               example: "2025-03-10T14:30:00Z"
+ *             updatedOn:
+ *               type: string
+ *               format: date-time
+ *               nullable: true
+ *               example: "2025-03-15T18:00:00Z"
+ *             eventTypeId:
+ *               type: integer
+ *               example: 2
+ */
+
+/**
+ * @openapi
+ * components:
+ *   schemas:
+ *     GetEventsTypes:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: integer
+ *           example: 1
+ *         description:
+ *           type: string
+ *           example: "Event type description"
+ *         code:
+ *           type: string
+ *           example: "C01"
+ */
+
+/**
+ * @openapi
+ * components:
+ *   schemas:
+ *     ResponseGetEvents:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: integer
+ *           example: 1
+ *         title:
+ *           type: string
+ *           example: "Tech Conference 2025"
+ *         description:
+ *           type: string
+ *           example: "An annual conference about emerging technologies."
+ *         speaker:
+ *           type: string
+ *           nullable: true
+ *           example: "John Doe"
+ *         startTime:
+ *           type: string
+ *           example: "10:00"
+ *         endTime:
+ *           type: string
+ *           example: "12:00"
+ *         eventDate:
+ *           type: string
+ *           format: date-time
+ *           example: "2025-06-15T00:00:00Z"
+ *         createdBy:
+ *           type: integer
+ *           example: 123
+ *         createdOn:
+ *           type: string
+ *           format: date-time
+ *           example: "2025-01-01T08:00:00Z"
+ *         updatedOn:
+ *           type: string
+ *           format: date-time
+ *           nullable: true
+ *           example: "2025-02-01T10:30:00Z"
+ *         eventTypeId:
+ *           type: integer
+ *           example: 2
+ *         eventTypeCode:
+ *           type: string
+ *           example: "TECH"
+ *         eventTypeDescription:
+ *           type: string
+ *           example: "Eventos relacionados con tecnología"
+ *         userEventCreatedName:
+ *           type: string
+ *           example: "Admin"
+ */
+
+/**
+ * @openapi
+ * components:
+ *   schemas:
+ *     BodyEventCreateUpdate:
+ *       type: object
+ *       properties:
+ *         title:
+ *           type: string
+ *           maxLength: 50
+ *           example: "Tech Conference 2025"
+ *         description:
+ *           type: string
+ *           maxLength: 200
+ *           example: "An annual conference about emerging technologies."
+ *         speaker:
+ *           type: string
+ *           maxLength: 20
+ *           nullable: true
+ *           example: "John Doe"
+ *         startTime:
+ *           type: string
+ *           maxLength: 5
+ *           example: "09:00"
+ *         endTime:
+ *           type: string
+ *           maxLength: 5
+ *           example: "17:00"
+ *         eventDate:
+ *           type: string
+ *           format: date-time
+ *           example: "2025-06-15T14:30:00Z"
+ *           description: "Expected ISO-8601 DateTime (YYYY-MM-DDTHH:MM:SSZ)."
+ *         type:
+ *           type: integer
+ *           format: int32
+ *           example: 1
+ */
+
+/** --------------------------------------
+ * Sección de News
+ * -------------------------------------- */
+
+/**
+ * @openapi
+ * components:
+ *   schemas:
+ *     NewsFilters:
+ *       type: object
+ *       properties:
+ *         description:
+ *           type: string
+ *           minLength: 1
+ *           maxLength: 30
+ *           nullable: true
+ *           example: "test1"
+ *         statusCode:
+ *           type: string
+ *           minLength: 3
+ *           maxLength: 3
+ *           nullable: true
+ *           example: "C01"
+ *         fromDate:
+ *           type: string
+ *           format: date
+ *           nullable: true
+ *           example: "2024-08-05T00:00:00Z"
+ *         toDate:
+ *           type: string
+ *           format: date
+ *           nullable: true
+ *           example: "2024-08-05T00:00:00Z"
+ */
+
+/**
+ * @openapi
+ * components:
+ *   schemas:
+ *     ResponseGetNews:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: integer
+ *           example: 1
+ *         closedOn:
+ *           type: string
+ *           format: date-time
+ *           nullable: true
+ *           example: null
+ *         createdOn:
+ *           type: string
+ *           format: date-time
+ *           example: "2024-08-05T00:19:58.867Z"
+ *         pendingOn:
+ *           type: string
+ *           format: date-time
+ *           nullable: true
+ *           example: null
+ *         description:
+ *           type: string
+ *           example: "test1"
+ *         document:
+ *           type: string
+ *           example: ""
+ *         documentId:
+ *           type: string
+ *           nullable: true
+ *           example: null
+ *         statusId:
+ *           type: integer
+ *           example: 1
+ *         closedBy:
+ *           type: integer
+ *           nullable: true
+ *           example: 1
+ *         pendingBy:
+ *           type: integer
+ *           nullable: true
+ *           example: null
+ *         createdBy:
+ *           type: integer
+ *           example: 1
+ *         status:
+ *           type: object
+ *           properties:
+ *             id:
+ *               type: integer
+ *               example: 1
+ *             code:
+ *               type: string
+ *               example: "C01"
+ *             description:
+ *               type: string
+ *               example: "ACTIVE"
+ *         userNewsCreated:
+ *           type: object
+ *           properties:
+ *             name:
+ *               type: string
+ *               example: "Admin"
+ *         userNewsClosed:
+ *           type: object
+ *           properties:
+ *             name:
+ *               type: string
+ *               example: "Admin"
+ *         userNewsPending:
+ *           type: object
+ *           nullable: true
+ *           example: null
+ */
+
+/**
+ * @openapi
+ * components:
+ *   schemas:
+ *     BodyNewsCreate:
+ *       type: object
+ *       properties:
+ *         description:
+ *           type: string
+ *           minLength: 1
+ *           maxLength: 400
+ *           example: "Noticia de última hora"
+ *         statusId:
+ *           type: integer
+ *           example: 1
+ *         statusCode:
+ *           type: string
+ *           maxLength: 3
+ *           example: "ACTIVE"
+ *         document:
+ *           type: string
+ *           nullable: true
+ *           example: "Base 64"
+ *       required:
+ *         - description
+ *         - statusId
+ *         - statusCode
+ *
+ *     ResponseNewsCreate:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: integer
+ *           example: 123
+ *         description:
+ *           type: string
+ *           example: "Noticia creada exitosamente"
+ *         createdBy:
+ *           type: integer
+ *           example: 1
+ *         createdOn:
+ *           type: string
+ *           format: date-time
+ *           example: "2025-03-09T12:00:00Z"
+ *         document:
+ *           type: string
+ *           nullable: true
+ *           example: "URL del documento"
+ *         statusId:
+ *           type: integer
+ *           example: 1
+ *         closedBy:
+ *           type: integer
+ *           nullable: true
+ *           example: 1
+ *         closedOn:
+ *           type: string
+ *           format: date-time
+ *           nullable: true
+ *           example:  "2025-03-09T12:00:00Z"
+ *         pendingBy:
+ *           type: integer
+ *           nullable: true
+ *           example: 1
+ *         pendingOn:
+ *           type: string
+ *           format: date-time
+ *           nullable: true
+ *           example:  "2025-03-09T12:00:00Z"
+ *         documentId:
+ *           type: string
+ *           nullable: true
+ *           example: null
+ */
+
+/**
+ * @openapi
+ * components:
+ *   schemas:
+ *     NewsStatus:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: integer
+ *           example: 1
+ *         code:
+ *           type: string
+ *           maxLength: 3
+ *           example: "C01"
+ *         description:
+ *           type: string
+ *           maxLength: 10
+ *           example: "ACTIVE"
+ *     NewsStatusArray:
+ *       type: array
+ *       items:
+ *         $ref: "#/components/schemas/NewsStatus"
  */
 
 /**
@@ -72,717 +506,18 @@
  * @openapi
  * components:
  *   schemas:
- *     Delete:
- *      type: object
- *      properties:
- *       error:
- *         type: boolean
- *         example: false
- *       message:
- *         type: string
- *         example: "Item deleted successfully"
- *
- */
-
-/**
- * @openapi
- * components:
- *   schemas:
- *     Status:
+ *     getStatus:
  *       type: object
  *       properties:
- *         id:
- *           type: integer
- *           example: 1, 2, 3, 4 etc...
- *         code:
- *           type: string
- *           example: C01
- *         description:
- *           type: string
- *           example: Active
- */
-
-/**
- * @openapi
- * components:
- *   schemas:
- *     Role:
- *       type: object
- *       properties:
- *         id:
- *           type: integer
- *           example: 1, 2, 3, 4 etc...
- *         code:
- *           type: string
- *           example: C01
- *         description:
- *           type: string
- *           example: ADMIN
- */
-
-/**
- * @openapi
- * components:
- *   schemas:
- *     Question:
- *       type: object
- *       properties:
- *         id:
- *           type: integer
- *           example: 1, 2, 3, 4 etc...
- *         description:
- *           type: string
- *           example: Question 1
- *         answer:
- *          type: boolean
- *          example: true
- *         newsId:
- *           type: integer
- *           example: 1, 2, 3, 4 etc...
- *
- */
-
-/**
- * @openapi
- * components:
- *   schemas:
- *     Auth:
- *       type: object
- *       properties:
- *         token:
- *           type: string
- *           example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MjEsImlhdCI6MTcxNDQwOTk4MCwiZXhwIjoxNzE0NDk2MzgwfQ.tD74QpcBcOT4Ti17pgMMUy3h0mHXPNimyxblA7HnNn4
- *         user:
- *           type: object
- *           example:  { "name": "UserName", "picture": null}
- */
-
-/**
- * @openapi
- * components:
- *   schemas:
- *     News:
- *       type: object
- *       properties:
- *         id:
- *           type: integer
- *           example: 1, 2, 3, 4 etc...
- *         description:
- *           type: string
- *           example: NEWS description
- *         document:
- *           type: string
- *           example: https://res.cloudinary.com/dizfi5qoy/image/upload/v1714082489/xxugyy1gdfdkqazohbr1yo.png
- *         statusId:
- *          type: number
- *          example: 1
- *         createdBy:
- *          type: number
- *          example: 1
- *         closedBy:
- *          type: number
- *          example: 1
- *         createdOn:
- *          type: date
- *          example: 2020-04-04
- *         closedOn:
- *          type: date
- *          example: 2024-02-20
- */
-
-/**
- * @openapi
- * components:
- *   schemas:
- *     NewsStatus:
- *       type: object
- *       properties:
- *         id:
- *           type: integer
- *           example: 1, 2, 3, 4 etc...
- *         description:
- *           type: string
- *           example: NEWS status description
- *         code:
- *          type: string
- *          example: C01, C02, C03 etc...
- */
-
-/**
- * @openapi
- * components:
- *   schemas:
- *     Note:
- *       type: object
- *       properties:
- *         id:
- *           type: integer
- *           example: 1, 2, 3, 4 etc...
- *         note:
- *           type: string
- *           example: Note description
- *         document:
- *           type: string
- *           example: https://res.cloudinary.com/dizfi5qoy/image/upload/v1714082489/xxugyy1gdfdkqazohbr1yo.png
- *         statusId:
- *          type: number
- *          example: 1
- *         createdBy:
- *          type: number
- *          example: 1
- *         closedBy:
- *          type: number
- *          example: 1
- *         createdOn:
- *          type: date
- *          example: 2020-04-04
- *         closedOn:
- *          type: date
- *          example: 2024-02-20
- */
-
-/**
- * @openapi
- * components:
- *   schemas:
- *     NoteBody:
- *       type: object
- *       properties:
- *         note:
- *           type: string
- *           example: Note description
- *         document:
- *           type: string
- *           format: binary
- *         statusId:
- *          type: number
- *          example: 1
- *         createdBy:
- *          type: number
- *          example: 1
- *         closedBy:
- *          type: number
- *          example: 1
- *         createdOn:
- *          type: date
- *          pattern: '^\d{4}-\d{2}-\d{2}$'
- *          example: 2020-04-04
- *         closedOn:
- *          type: date
- *          pattern: '^\d{4}-\d{2}-\d{2}$'
- *          example: 2024-09-09
- */
-
-/**
- * @openapi
- * components:
- *   schemas:
- *     NewsBody:
- *       type: object
- *       properties:
- *         description:
- *           type: string
- *           example: NEWS description
- *         document:
- *           type: string
- *           format: binary
- *         statusId:
- *          type: number
- *          example: 1
- *         createdBy:
- *          type: number
- *          example: 1
- *         closedBy:
- *          type: number
- *          example: 1
- *         createdOn:
- *          type: date
- *          pattern: '^\d{4}-\d{2}-\d{2}$'
- *          example: 2020-04-04
- *         closedOn:
- *          type: date
- *          pattern: '^\d{4}-\d{2}-\d{2}$'
- *          example: 2024-09-09
- */
-
-/**
- * @openapi
- * components:
- *   schemas:
- *     StatusBody:
- *       type: object
- *       properties:
- *         code:
- *           type: string
- *           example: CO1
- *         description:
- *           type: string
- *           example: Active
- */
-
-/**
- * @openapi
- * components:
- *   schemas:
- *     RoleBody:
- *       type: object
- *       properties:
- *         code:
- *           type: string
- *           example: CO1
- *         description:
- *           type: string
- *           example: ADMIN
- */
-
-/**
- * @openapi
- * components:
- *   schemas:
- *     AuthBodySignUp:
- *       type: object
- *       properties:
- *         email:
- *           type: string
- *         password:
- *           type: string
- *         name:
- *           type: string
- *         lastName:
- *           type: string
- */
-
-/**
- * @openapi
- * components:
- *   schemas:
- *     AuthBody:
- *       type: object
- *       properties:
- *         email:
- *           type: string
- *         password:
- *           type: string
- */
-
-/**
- * @openapi
- * components:
- *   schemas:
- *     Session:
- *       type: object
- *       properties:
- *         name:
- *           type: string
- *           example: "userName"
- *         picture:
- *           type: string
- *           example:  https://res.cloudinary.com/dizfi5qoy/image/upload/v1714082489/xxugyy1gdfdkqazohbr1yo.png
- *         role:
+ *         error:
  *           type: boolean
- *           example: true
- */
-
-/**
- * @openapi
- * components:
- *   schemas:
- *     RefreshToken:
- *       type: object
- *       properties:
- *         name:
- *           type: string
- *           example: "userName"
- *         picture:
- *           type: string
- *           example:  https://res.cloudinary.com/dizfi5qoy/image/upload/v1714082489/xxugyy1gdfdkqazohbr1yo.png
- *         role:
- *           type: boolean
- *           example: true
- */
-
-/**
- * @openapi
- * components:
- *   schemas:
- *     QuestionBody:
- *       type: object
- *       properties:
- *         description:
- *           type: string
- *           example: Question 1
- *         answer:
- *          type: boolean
- *          example: true
- *         newsId:
- *           type: integer
- *           example: 1
- *
- */
-
-/**
- * @openapi
- * components:
- *   schemas:
- *     UserSettingLanguage:
- *       type: object
- *       properties:
- *         id:
- *           type: integer
- *           example: 1
- *         language:
- *           type: string
- *           example: "en"
- *           description: The language code for the user's settings (e.g., "EN" for English, "ES" for Spanish).
- */
-
-/**
- * @openapi
- * components:
- *   schemas:
- *     createOrUpdateSettingLanguage:
- *       type: object
- *       properties:
- *         id:
- *           type: integer
- *           example: 1
- *         language:
- *           type: string
- *           example: 'en'
- *         userId:
- *           type: integer
- *           example: 101
- *       required:
- *         - language
- */
-
-/**
- * @openapi
- * components:
- *   schemas:
- *     EventBody:
- *       type: object
- *       properties:
- *         title:
- *           type: string
- *           example: some random string
- *         description:
- *           type: string
- *           example: some random string
- *         speaker:
- *           type: string
- *           example: random name string
- *         startTime:
- *           type: string
- *           example: 00:00
- *         endTime:
- *           type: string
- *           example: 00:00
- *         createdBy:
- *          type: number
- *          example: 1
- *         createdOn:
- *          type: date
- *          pattern: '^\d{4}-\d{2}-\d{2}$'
- *          example: 2020-04-04
- *         updatedOn:
- *          type: date
- *          pattern: '^\d{4}-\d{2}-\d{2}$'
- *          example: 2024-09-09
- *         eventdate:
- *          type: date
- *          pattern: '^\d{4}-\d{2}-\d{2}$'
- *          example: 2024-09-09
- */
-
-/**
- * @openapi
- * components:
- *   schemas:
- *     EventsTypes:
- *       type: object
- *       properties:
- *         id:
- *           type: integer
- *           example: 1, 2, 3, 4 etc...
- *         description:
- *           type: string
- *           example: Eevent type description
- *         code:
- *          type: string
- *          example: C01, C02, C03 etc...
- */
-
-/**
- * @openapi
- * components:
- *   schemas:
- *     notesCount:
- *       type: object
- *       properties:
- *         low:
- *           type: integer
- *           example: 1, 2, 3, 4 etc...
- *         medium:
- *           type: integer
- *           example: 1, 2, 3, 4 etc...
- *         high:
- *          type: integer
- *           example: 1, 2, 3, 4 etc...
- */
-
-/**
- * @openapi
-/**
- * @openapi
- * components:
- *   schemas:
- *     Product:
- *       type: object
- *       properties:
- *         id:
- *           type: integer
- *           example: 1
- *         sku:
- *           type: string
- *           maxLength: 16
- *           example: "ABC123456789"
- *         name:
- *           type: string
- *           maxLength: 80
- *           example: "Producto Ejemplo"
- *         productCategoryId:
- *           type: integer
- *           example: 1
- *         productTypeId:
- *           type: integer
- *           example: 2
- *         price:
+ *           example: false
+ *         statusCode:
  *           type: number
- *           format: decimal
- *           example: 99.99
- *         cost:
- *           type: number
- *           format: decimal
- *           example: 50.00
- *         stock:
- *           type: integer
- *           example: 100
- *         description:
+ *           example: 200
+ *         message:
  *           type: string
- *           maxLength: 2000
- *           example: "Descripción del producto"
- *         productStatusId:
- *           type: integer
- *           example: 1
- *         barCode:
- *           type: string
- *           maxLength: 25
- *           nullable: true
- *           example: "123456789012"
- *         createdBy:
- *           type: integer
- *           example: 1
- *         createdOn:
- *           type: string
- *           format: date-time
- *           example: "2024-02-26T12:00:00Z"
- *         updatedBy:
- *           type: integer
- *           example: 2
- *         updatedOn:
- *           type: string
- *           format: date-time
- *           nullable: true
- *           example: "2024-02-27T15:30:00Z"
- *
- *     ProductCategory:
- *       type: object
- *       properties:
- *         id:
- *           type: integer
- *           example: 1
- *         code:
- *           type: string
- *           maxLength: 3
- *           example: "ELE"
- *         description:
- *           type: string
- *           maxLength: 10
- *           example: "Electrónica"
- *
- *     ProductProvider:
- *       type: object
- *       properties:
- *         id:
- *           type: integer
- *           example: 1
- *         code:
- *           type: string
- *           maxLength: 3
- *           example: "KIT"
- *         description:
- *           type: string
- *           maxLength: 10
- *           example: "Kit"
- *
- *     ProductStatus:
- *       type: object
- *       properties:
- *         id:
- *           type: integer
- *           example: 1
- *         code:
- *           type: string
- *           maxLength: 3
- *           example: "ACT"
- *         description:
- *           type: string
- *           maxLength: 10
- *           example: "Activo"
- */
-
-/**
- * @openapi
- * components:
- *   schemas:
- *     ProductStatus:
- *       type: object
- *       properties:
- *         id:
- *           type: integer
- *           example: 1
- *         code:
- *           type: string
- *           maxLength: 3
- *           example: "ACT"
- *         description:
- *           type: string
- *           maxLength: 10
- *           example: "Activo"
- */
-
-/**
- * @openapi
- * components:
- *   schemas:
- *     ProductCategory:
- *       type: object
- *       properties:
- *         id:
- *           type: integer
- *           example: 1
- *         code:
- *           type: string
- *           maxLength: 3
- *           example: "ELE"
- *         description:
- *           type: string
- *           maxLength: 10
- *           example: "Electrónica"
- */
-
-/**
- * @openapi
- * components:
- *   schemas:
- *     ProductProvider:
- *       type: object
- *       properties:
- *         id:
- *           type: integer
- *           example: 1
- *         code:
- *           type: string
- *           maxLength: 3
- *           example: "KIT"
- *         description:
- *           type: string
- *           maxLength: 10
- *           example: "Kit"
- */
-
-/**
- * @openapi
- * components:
- *   schemas:
- *     ProductAttributes:
- *       type: object
- *       properties:
- *         id:
- *           type: integer
- *           example: 1
- *         name:
- *           type: string
- *           maxLength: 50
- *           example: "Sample Name"
- *         description:
- *           type: string
- *           maxLength: 100
- *           example: "Sample Value"
- *         createdOn:
- *           type: string
- *           format: date
- *           example: "2020-04-04"
- *         save:
- *           type: boolean
- *           example: true
- */
-
-/**
- * @openapi
- * components:
-*   schemas:
-*     ProductCreate:
-*       type: object
-*       required:
-*         - sku
-*         - name
-*         - productCategoryId
-*         - productTypeId
-*         - price
-*         - cost
-*         - stock
-*         - description
-*         - productStatusId
-*         - createdBy
-*       properties:
-*         sku:
-*           type: string
-*           maxLength: 16
-*           example: "PROD123456789"
-*         name:
-*           type: string
-*           maxLength: 80
-*           example: "Laptop Dell XPS 15"
-*         productCategoryId:
-*           type: integer
-*           example: 1
-*         productTypeId:
-*           type: integer
-*           example: 2
-*         price:
-*           type: number
-*           format: decimal
-*           example: 999.99
-*         cost:
-*           type: number
-*           format: decimal
-*           example: 750.50
-*         stock:
-*           type: integer
-*           example: 100
-*         description:
-*           type: string
-*           maxLength: 2000
-*           example: "Laptop de alta gama con procesador Intel i7 y 16GB RAM."
-*         productStatusId:
-*           type: integer
-*           example: 1
-*         barCode:
-*           type: string
-*           maxLength: 25
-*           nullable: true
-*           example: "1234567890123"
-
+ *           example: "Some success message"
+ *         data:
+ *           $ref: "#/components/schemas/EventsTypes"
  */

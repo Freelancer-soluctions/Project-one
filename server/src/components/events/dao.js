@@ -99,7 +99,6 @@ export const getAllEvents = async (searchQuery) => {
  * @returns {Promise<Object>} The updated row in the database.
  */
 export const updateEventById = async (data, foreignKeys, where) => {
-  console.log(data)
   const result = await prisma.events.update({
     where,
     data: {
