@@ -16,29 +16,16 @@ export const getAllNews = handleCatchErrorAsync(async (req, res) => {
 })
 
 /**
- * Get one news item by its ID.
- *
- * @param {Object} req - The HTTP request object.
- * @param {Object} res - The HTTP response object.
- * @returns {Promise<void>} Sends a response containing the news item.
- */
-export const getOneById = handleCatchErrorAsync(async (req, res) => {
-  const { id } = req.params
-  const item = await newsService.getOneById(id)
-  globalResponse(res, 200, item)
-})
-
-/**
  * Create a news item.
  *
  * @param {Object} req - The HTTP request object.
  * @param {Object} res - The HTTP response object.
  * @returns {Promise<void>} Sends a response confirming the creation of the news item.
  */
-export const createOne = handleCatchErrorAsync(async (req, res) => {
+export const createNew = handleCatchErrorAsync(async (req, res) => {
   const userId = req.userId // viene del token cambiar al body
   const { body } = req
-  await newsService.createOne(userId, body)
+  await newsService.createNew(userId, body)
   globalResponse(res, 201, { message: 'Item created successfully' })
 })
 
