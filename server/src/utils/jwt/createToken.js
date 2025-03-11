@@ -7,11 +7,13 @@ export const createToken = (userId = '') => {
       // expiresIn: '120000' // 2 min
       // expiresIn: '10m'
       // expiresIn: '9000000' // 15 min (900000)
-      expiresIn: '5m'
+      // expiresIn: '5m'
+      expiresIn: '1d'
     }, (err, token) => {
       if (err) {
         reject('token not generated.')
       } else {
+        console.log('token generated', token)
         resolve(token)
       }
     })

@@ -8,39 +8,41 @@ datasource db {
 }
 
 model users {
-  id                 Int         @id @default(autoincrement())
-  name               String      @db.VarChar(100)
-  email              String      @unique @db.VarChar(254)
-  password           String      @db.VarChar(100)
-  address            String?     @db.VarChar(250)
-  birthday           DateTime    @db.Timestamp(3)
-  city               String?     @db.VarChar(35)
-  isAdmin            Boolean?    @default(false)
-  picture            String?
-  document           String?
+  id                   Int                @id @default(autoincrement())
+  name                 String             @db.VarChar(100)
+  email                String             @unique @db.VarChar(254)
+  password             String             @db.VarChar(100)
+  address              String?            @db.VarChar(250)
+  birthday             DateTime           @db.Timestamp(3)
+  city                 String?            @db.VarChar(35)
+  isAdmin              Boolean?           @default(false)
+  picture              String?
+  document             String?
   // documentId    String? // es factible este campo ??
-  lastUpdatedBy      Int
-  lastUpdatedOn      DateTime?   @db.Timestamp(3)
-  roleId             Int
-  roles              roles       @relation(fields: [roleId], references: [id])
-  socialSecurity     String      @db.VarChar(9)
-  startDate          DateTime    @db.Timestamp(3)
-  state              String      @db.VarChar(50)
-  statusId           Int
-  status             userStatus  @relation(fields: [statusId], references: [id])
-  telephone          String      @db.VarChar(15)
-  zipcode            String      @db.VarChar(9)
-  refreshToken       String?     @db.VarChar(200)
-  userPermitId       Int
-  userPermits        userPermits @relation(fields: [userPermitId], references: [id])
-  newsClosed         news[]      @relation("userNewsClosed")
-  newsCreated        news[]      @relation("userNewsCreated")
-  newsPending        news[]      @relation("userNewsPending")
-  notesCreated       notes[]     @relation("userNoteCreated")
-  settingsCreated    settings[]  @relation("userSettingCreated")
-  eventsCreated      events[]    @relation("userEventCreated")
-  userProductCreated products[]  @relation("userProductCreated")
-  userProductUpdated products[]  @relation("userProductUpdated")
+  lastUpdatedBy        Int
+  lastUpdatedOn        DateTime?          @db.Timestamp(3)
+  roleId               Int
+  roles                roles              @relation(fields: [roleId], references: [id])
+  socialSecurity       String             @db.VarChar(9)
+  startDate            DateTime           @db.Timestamp(3)
+  state                String             @db.VarChar(50)
+  statusId             Int
+  status               userStatus         @relation(fields: [statusId], references: [id])
+  telephone            String             @db.VarChar(15)
+  zipcode              String             @db.VarChar(9)
+  refreshToken         String?            @db.VarChar(200)
+  userPermitId         Int
+  userPermits          userPermits        @relation(fields: [userPermitId], references: [id])
+  newsClosed           news[]             @relation("userNewsClosed")
+  newsCreated          news[]             @relation("userNewsCreated")
+  newsPending          news[]             @relation("userNewsPending")
+  notesCreated         notes[]            @relation("userNoteCreated")
+  settingsCreated      settings[]         @relation("userSettingCreated")
+  eventsCreated        events[]           @relation("userEventCreated")
+  userProductCreated   products[]         @relation("userProductCreated")
+  userProductUpdated   products[]         @relation("userProductUpdated")
+  userProvidersUpdated productProviders[] @relation("userProvidersUpdated")
+  userProvidersCreated productProviders[] @relation("userProvidersCreated")
 }
 
 model userPermits {
@@ -110,14 +112,6 @@ model news {
   createdBy       Int
 }
 
-// model questions {
-//   id          Int     @id @default(autoincrement())
-//   answer      Boolean
-//   description String  @db.VarChar(250)
-//   news        news    @relation(fields: [newsId], references: [id])
-//   newsId      Int
-// }
-
 model settings {
   id                 Int       @id @default(autoincrement())
   displayEvents      Boolean?  @default(false)
@@ -158,26 +152,27 @@ model eventTypes {
 }
 
 model products {
-  id                 Int               @id @default(autoincrement())
-  sku                String            @unique @db.VarChar(16)
-  name               String            @db.VarChar(80)
-  productCategories  productCategories @relation(fields: [productCategoryId], references: [id])
+  id                 Int                 @id @default(autoincrement())
+  sku                String              @unique @db.VarChar(16)
+  name               String              @db.VarChar(80)
+  productCategories  productCategories   @relation(fields: [productCategoryId], references: [id])
   productCategoryId  Int
-  productProviders   productProviders  @relation(fields: [productProviderId], references: [id])
+  productProviders   productProviders    @relation(fields: [productProviderId], references: [id])
   productProviderId  Int
-  price              Decimal           @db.Decimal(10, 2)
-  cost               Decimal           @db.Decimal(10, 2)
-  stock              Int               @db.Integer
-  description        String?           @db.VarChar(2000)
-  productStatus      productStatus     @relation(fields: [productStatusId], references: [id])
+  price              Decimal             @db.Decimal(10, 2)
+  cost               Decimal             @db.Decimal(10, 2)
+  stock              Int                 @db.Integer
+  description        String?             @db.VarChar(2000)
+  productStatus      productStatus       @relation(fields: [productStatusId], references: [id])
   productStatusId    Int
-  barCode            String?           @unique @db.VarChar(25)
-  userProductCreated users             @relation("userProductCreated", fields: [createdBy], references: [id])
+  barCode            String?             @unique @db.VarChar(25)
+  userProductCreated users               @relation("userProductCreated", fields: [createdBy], references: [id])
   createdBy          Int
-  createdOn          DateTime          @db.Timestamp(3)
-  updatedOn          DateTime?         @db.Timestamp(3)
-  userProductUpdated users?            @relation("userProductUpdated", fields: [updatedBy], references: [id])
-  updatedBy          Int?
+  createdOn          DateTime            @db.Timestamp(3)
+  updatedOn          DateTime?           @db.Timestamp(3)
+  userProductUpdated users?              @relation("userProductUpdated", fields: [updatedBy], references: [id])
+  updatedBy          Int?                @db.Integer
+  productAttributes  productAttributes[] @relation("ProductAttributes")
 }
 
 model productCategories {
@@ -188,10 +183,21 @@ model productCategories {
 }
 
 model productProviders {
-  id          Int        @id @default(autoincrement())
-  code        String     @unique @db.VarChar(3)
-  description String     @unique @db.VarChar(20)
-  products    products[]
+  id                   Int        @id @default(autoincrement())
+  code                 String     @unique @db.VarChar(3)
+  name                 String     @db.VarChar(100)
+  createdOn            DateTime   @db.Timestamp(3)
+  userProvidersCreated users?     @relation("userProvidersCreated", fields: [createdBy], references: [id])
+  createdBy            Int        @db.Integer
+  userProvidersUpdated users?     @relation("userProvidersUpdated", fields: [updatedBy], references: [id])
+  updatedBy            Int?       @db.Integer
+  updatedOn            DateTime?  @db.Timestamp(3)
+  status               Boolean    @default(true)
+  contactName          String?    @db.VarChar(60)
+  contactEmail         String?    @unique @db.VarChar(80)
+  contactPhone         String?    @db.VarChar(15)
+  address              String?    @db.VarChar(120)
+  products             products[]
 }
 
 model productStatus {
@@ -199,4 +205,13 @@ model productStatus {
   code        String     @unique @db.VarChar(3)
   description String     @unique @db.VarChar(10)
   products    products[]
+}
+
+model productAttributes {
+  id          Int      @id @default(autoincrement())
+  name        String   @db.VarChar(50)
+  description String   @db.VarChar(100)
+  createdOn   DateTime @db.Timestamp(3)
+  productId   Int // Clave foránea
+  product     products @relation("ProductAttributes", fields: [productId], references: [id], onDelete: Cascade)
 }

@@ -30,12 +30,7 @@ import { useNavigate } from 'react-router'
 import { useTranslation } from 'react-i18next'
 import { useEffect, useState } from 'react'
 import {
-  LuPackage,
-  LuArrowLeft,
-  LuPlus,
-  LuTrash2,
   LuBarcode,
-  LuSave
 } from 'react-icons/lu'
 
 export const ProductBasicInfo = ({
@@ -183,12 +178,17 @@ export const ProductBasicInfo = ({
                         //   onValueChange={field.onChange}
                           onValueChange={code => {
                             // Buscar el objeto completo por el `code`
-                            const selectedCategory= dataCategory.data.find(
-                              item => item.code === code
-                            )
-                            if (selectedCategory) {
-                              field.onChange(selectedCategory) // Asignar el objeto completo
+
+
+                            if (dataCategory?.data.length > 0){
+                              const selectedCategory= dataCategory.data.find(
+                                item => item.code === code
+                              )
+                              if (selectedCategory) {
+                                field.onChange(selectedCategory) // Asignar el objeto completo
+                              }
                             }
+                          
                           }}
                           value={field.value?.code}>
                           <FormControl id='category'>
@@ -221,13 +221,16 @@ export const ProductBasicInfo = ({
                         <FormLabel htmlFor='provider'>{t('provider')}*</FormLabel>
                         <Select
                                   onValueChange={code => {
-                                    // Buscar el objeto completo por el `code`
+                                    if (dataProviders?.data.length > 0){
+                                      // Buscar el objeto completo por el `code`
                                     const selectedProvider= dataProviders.data.find(
                                       item => item.code === code
                                     )
                                     if (selectedProvider) {
                                       field.onChange(selectedProvider) // Asignar el objeto completo
                                     }
+                                    }
+                                    
                                   }}
                                   value={field.value?.code}>
                           <FormControl id='provider'>
@@ -261,13 +264,16 @@ export const ProductBasicInfo = ({
                         <FormLabel htmlFor='status'>{t('status')}*</FormLabel>
                         <Select
                                    onValueChange={code => {
-                                    // Buscar el objeto completo por el `code`
+                                    if (datastatus?.data.length > 0){
+                                       // Buscar el objeto completo por el `code`
                                     const selectedStatus = datastatus.data.find(
                                       item => item.code === code
                                     )
                                     if (selectedStatus) {
                                       field.onChange(selectedStatus) // Asignar el objeto completo
                                     }
+                                    }
+                                   
                                   }}
                                   value={field.value?.code}>
                           <FormControl id='status'>
