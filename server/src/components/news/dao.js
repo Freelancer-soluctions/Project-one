@@ -100,26 +100,12 @@ export const getAllNewsStatus = async () => {
 }
 
 /**
- * Retrieves one row from the database based on the provided filter parameters.
- *
- * @param {Object} params - The filter parameters for retrieving the row.
- * @param {Object} params.where - The conditions to find the row.
- * @param {Object} params.include - Additional related data to include.
- * @returns {Promise<Object>} The requested row from the database.
- */
-export const getOneRow = async ({ where, include }) => prismaService.getOneRow({
-  tableName,
-  where,
-  include
-})
-
-/**
  * Creates a new row in the database with the provided data.
  *
  * @param {Object} data - The data to insert into the database.
  * @returns {Promise<Object>} The created row in the database.
  */
-export const createRow = async (data) => {
+export const createNew = async (data) => {
   const result = await prisma.news.create({
     data: {
       description: data.description,

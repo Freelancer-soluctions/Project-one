@@ -7,7 +7,7 @@ import * as productsService from './service.js'
  *
  * @param {Object} req - The HTTP request object.
  * @param {Object} res - The HTTP response object.
- * @returns {Promise<void>} Sends a response containing the products items.
+ * @returns {Promise<void>} Sends a response containing the product items.
  */
 export const getAllProducts = handleCatchErrorAsync(async (req, res) => {
   const queryParams = req.query
@@ -16,11 +16,11 @@ export const getAllProducts = handleCatchErrorAsync(async (req, res) => {
 })
 
 /**
- * Get the status of all products items.
+ * Get all product statuses.
  *
  * @param {Object} req - The HTTP request object.
  * @param {Object} res - The HTTP response object.
- * @returns {Promise<void>} Sends a response containing the status of all products items.
+ * @returns {Promise<void>} Sends a response containing the status of all product items.
  */
 export const getAllProductStatus = handleCatchErrorAsync(async (req, res) => {
   const data = await productsService.getAllProductStatus()
@@ -28,11 +28,11 @@ export const getAllProductStatus = handleCatchErrorAsync(async (req, res) => {
 })
 
 /**
- * Get the status of all products items.
+ * Get all product categories.
  *
  * @param {Object} req - The HTTP request object.
  * @param {Object} res - The HTTP response object.
- * @returns {Promise<void>} Sends a response containing the categories of all products items.
+ * @returns {Promise<void>} Sends a response containing the categories of all product items.
  */
 export const getAllProductCategories = handleCatchErrorAsync(async (req, res) => {
   const data = await productsService.getAllProductCategories()
@@ -40,36 +40,24 @@ export const getAllProductCategories = handleCatchErrorAsync(async (req, res) =>
 })
 
 /**
- * Get the status of all products items.
+ * Get all product providers.
  *
  * @param {Object} req - The HTTP request object.
  * @param {Object} res - The HTTP response object.
- * @returns {Promise<void>} Sends a response containing the types of all products items.
+ * @returns {Promise<void>} Sends a response containing the providers of all product items.
  */
+
 export const getAllProductProviders = handleCatchErrorAsync(async (req, res) => {
   const data = await productsService.getAllProductProviders()
   globalResponse(res, 200, data)
 })
 
 /**
- * Get one products item by its ID.
+ * Create a product item.
  *
  * @param {Object} req - The HTTP request object.
  * @param {Object} res - The HTTP response object.
- * @returns {Promise<void>} Sends a response containing the products item.
- */
-export const getOneById = handleCatchErrorAsync(async (req, res) => {
-  const { id } = req.params
-  const item = await productsService.getOneById(id)
-  globalResponse(res, 200, item)
-})
-
-/**
- * Create a products item.
- *
- * @param {Object} req - The HTTP request object.
- * @param {Object} res - The HTTP response object.
- * @returns {Promise<void>} Sends a response confirming the creation of the products item.
+ * @returns {Promise<void>} Sends a response confirming the creation of the product item.
  */
 export const createOne = handleCatchErrorAsync(async (req, res) => {
   const userId = req.userId // viene del token cambiar al body
@@ -79,11 +67,11 @@ export const createOne = handleCatchErrorAsync(async (req, res) => {
 })
 
 /**
- * Update a products item by its ID.
+ * Update a product item by its ID.
  *
  * @param {Object} req - The HTTP request object.
  * @param {Object} res - The HTTP response object.
- * @returns {Promise<void>} Sends a response confirming the update of the products item.
+ * @returns {Promise<void>} Sends a response confirming the update of the product item.
  */
 export const updateById = handleCatchErrorAsync(async (req, res) => {
   const userId = req.userId
@@ -94,12 +82,13 @@ export const updateById = handleCatchErrorAsync(async (req, res) => {
 })
 
 /**
- * Delete a products item by its ID.
+ * Delete a product item by its ID.
  *
  * @param {Object} req - The HTTP request object.
  * @param {Object} res - The HTTP response object.
- * @returns {Promise<void>} Sends a response confirming the deletion of the products item.
+ * @returns {Promise<void>} Sends a response confirming the deletion of the product item.
  */
+
 export const deleteById = handleCatchErrorAsync(async (req, res) => {
   const { id } = req.params
   await productsService.deleteById(id)
@@ -107,11 +96,11 @@ export const deleteById = handleCatchErrorAsync(async (req, res) => {
 })
 
 /**
- * Get the status of all products items.
+ * Get all attributes for a product by its ID.
  *
  * @param {Object} req - The HTTP request object.
  * @param {Object} res - The HTTP response object.
- * @returns {Promise<void>} Sends a response containing the attributes of all products items.
+ * @returns {Promise<void>} Sends a response containing the attributes of the product.
  */
 export const getAllProductAttributesByProductId = handleCatchErrorAsync(async (req, res) => {
   const { id } = req.params
@@ -120,11 +109,11 @@ export const getAllProductAttributesByProductId = handleCatchErrorAsync(async (r
 })
 
 /**
- * Save a products attributes items.
+ * Save product attributes.
  *
  * @param {Object} req - The HTTP request object.
  * @param {Object} res - The HTTP response object.
- * @returns {Promise<void>} Sends a response confirming the creation of the products item.
+ * @returns {Promise<void>} Sends a response confirming the creation of the product attributes.
  */
 export const saveProductAttributes = handleCatchErrorAsync(async (req, res) => {
   const { body } = req
@@ -133,11 +122,11 @@ export const saveProductAttributes = handleCatchErrorAsync(async (req, res) => {
 })
 
 /**
- * Delete a products attribute item by its ID.
+ * Delete a product attribute item by its ID.
  *
  * @param {Object} req - The HTTP request object.
  * @param {Object} res - The HTTP response object.
- * @returns {Promise<void>} Sends a response confirming the deletion of the products item.
+ * @returns {Promise<void>} Sends a response confirming the deletion of the product attribute.
  */
 export const deleteProductsAttributeById = handleCatchErrorAsync(async (req, res) => {
   const { id } = req.params
