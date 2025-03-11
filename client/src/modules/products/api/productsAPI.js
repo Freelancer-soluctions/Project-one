@@ -9,7 +9,7 @@ const productsApi = createApi({
   baseQuery: axiosPrivateBaseQuery({
     baseUrl: import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1'
   }),
-  tagTypes: ['Products'], // Agrega un tag identificador
+  tagTypes: ['Products', 'ProductAttributes'], // Agrega un tag identificador
   endpoints: builder => ({
     getAllProducts: builder.query({
       query: args => ({
@@ -63,7 +63,34 @@ const productsApi = createApi({
         }
       },
       invalidatesTags: ['Products'] // Invalida el cache de 'Notes' para volver a consultar
-    })
+    }),
+    getAllProductAttributes: builder.query({
+      query: (id) => ({
+        url: `/products/attributes/${id}`,
+        method: 'GET'
+      }),
+      //providesTags: ['ProductAttributes'] // no funciona invalidar la cache ya que es un lazy
+
+    }),
+    deleteProductAttributeById: builder.mutation({
+      query(id) {
+        return {
+          url: `/products/attributes/${id}`,
+          method: 'DELETE'
+        }
+      },
+      invalidatesTags: ['ProductAttributes'] // Invalida el cache de 'Notes' para volver a consultar
+    }),
+    saveProductAttributes: builder.mutation({
+      query(body) {
+        return {
+          url: `/products/attributes/`,
+          method: 'POST',
+          body
+        }
+      },
+      invalidatesTags: ['ProductAttributes'] // Invalida el cache de 'Notes' para volver a consultar
+    }),
   })
 })
 
@@ -74,9 +101,14 @@ export const {
   useGetAllProductsStatusQuery,
   useGetAllProductCategoriesQuery,
   useGetAllProductProvidersQuery,
+  useLazyGetAllProductAttributesQuery,
   useUpdateProductByIdMutation,
   useCreateProductMutation,
-  useDeleteProductByIdMutation
+  useDeleteProductByIdMutation,
+  useDeleteProductAttributeByIdMutation,
+  useSaveProductAttributesMutation,
+
+
 } = productsApi
 
 export default productsApi

@@ -5,9 +5,11 @@ import swaggerUi from 'swagger-ui-express'
 const options = {
   definition: {
     openapi: '3.1.0',
-    info: { title: 'Inventory API', version: '1.0.0' }
+    info: { title: 'ERP API', version: '1.0.0' }
   },
-  apis: ['./components/**/routes.js', './docs/schemas.js']
+  apis: ['src/components/**/routes.js', 'src/docs/schemas.js']
+
+  // apis: ['./components/events/routes.js', './docs/schemas.js']
   // ['./api/**/routes.js', './api/**/schema.js']
 
 }

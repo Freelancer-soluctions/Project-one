@@ -30,7 +30,7 @@ export const createEvent = async (data, userId) => {
 }
 
 /**
- * Get all available types from the database.
+ * Get all available event types from the database.
  *
  * @returns {Promise<Array>} A list of all event types.
  */

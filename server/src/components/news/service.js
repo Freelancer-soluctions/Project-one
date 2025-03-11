@@ -22,16 +22,6 @@ export const getAllNews = async ({ description, fromDate, toDate, statusCode }) 
 }
 
 /**
- * Get one news item from the database by its ID.
- *
- * @param {number} id - The ID of the news item.
- * @returns {Promise<Object>} The news item matching the ID.
- */
-export const getOneById = async (id) => {
-  return newsDao.getOneRow({ where: { id } })
-}
-
-/**
  * Create a new news item in the database.
  *
  * @param {number} userId - The ID of the user creating the news.
@@ -41,7 +31,7 @@ export const getOneById = async (id) => {
  * @param {string} data.statusCode - The status code of the news item.
  * @returns {Promise<Object>} The created news item.
  */
-export const createOne = async (userId, data) => {
+export const createNew = async (userId, data) => {
   const createData = {
     description: data.description,
     statusId: Number(data.statusId),
@@ -59,7 +49,7 @@ export const createOne = async (userId, data) => {
   //   createData.documentId = public_id
   // }
 
-  return newsDao.createRow(createData)
+  return newsDao.createNew(createData)
 }
 
 /**

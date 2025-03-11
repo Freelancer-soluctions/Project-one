@@ -40,3 +40,23 @@ export const ProductsSchema = z.object({
 
 }).passthrough();
 
+
+
+
+const attributeSchema = z.object({
+  createdOn: z.date().or(z.string().transform((val) => new Date(val))), // Fecha válida
+  name: z
+    .string()
+    .min(1, "El nombre es obligatorio")
+    .max(50, "El nombre no puede superar los 50 caracteres"),
+  description: z
+    .string()
+    .min(1, "La descripción es obligatoria")
+    .max(100, "La descripción no puede superar los 100 caracteres")
+    , // Puede estar vacío
+  save: z.boolean().optional(), // `save` es opcional
+}).passthrough();
+
+export const attributesSchema = z.object({
+  attributes: z.array(attributeSchema).min(1, "Debe haber al menos un atributo"),
+});
