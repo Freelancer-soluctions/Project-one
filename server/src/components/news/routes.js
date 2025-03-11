@@ -122,7 +122,20 @@ router.get('/status', newsController.getAllNewsStatus)
  *         content:
  *           application/json:
  *             schema:
- *               $ref: "#/components/schemas/ResponseNewsCreate"
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: boolean
+ *                   example: false
+ *                 statusCode:
+ *                   type: integer
+ *                   example: 201
+ *                 message:
+ *                   type: string
+ *                   example: "Some success message"
+ *                 data:
+ *                   $ref: "#/components/schemas/ResponseNewsCreateUpdate"
+
  *       401:
  *         description: "Unauthorized"
  *         content:
@@ -139,8 +152,102 @@ router.get('/status', newsController.getAllNewsStatus)
 
 router.post('/', verifyToken, validateSchema(News), upload.single('document'), newsController.createNew)
 
+/**
+ * @openapi
+ * /api/v1/news/{id}:
+ *   put:
+ *     tags:
+ *       - News
+ *     security:
+ *       - bearerAuth: []
+ *     summary: "Actualiza una noticia"
+ *     description: "Este endpoint requiere autenticación. El userId se extrae automáticamente del token JWT."
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: "ID de la noticia a actualizar."
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: "#/components/schemas/NewsUpdate"
+ *     responses:
+ *       200:
+ *         description: OK
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: boolean
+ *                   example: false
+ *                 statusCode:
+ *                   type: int
+ *                   example: 200
+ *                 message:
+ *                   type: string
+ *                   example: "Some success message"
+ *                 data:
+ *                   $ref: "#/components/schemas/ResponseNewsCreateUpdate"
+ *       401:
+ *         description: "Unauthorized"
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Unauthorized"
+ *       5XX:
+ *         description: FAILED
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Error"
+ *
+ */
+
 router.put('/:id', verifyToken, validateSchema(NewsUpdate), upload.single('document'), newsController.updateById)
 
+/**
+ * @openapi
+ * /api/v1/news/{id}:
+ *   delete:
+ *     tags:
+ *       - News
+ *     security:
+ *       - bearerAuth: []
+ *     summary: "Elimina una noticia"
+ *     description: "Este endpoint requiere autenticación. El userId se extrae automáticamente del token JWT."
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: "ID de la noticia a eliminar."
+ *     responses:
+ *       200:
+ *         description: OK
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Delete"
+ *       401:
+ *         description: "Unauthorized"
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Unauthorized"
+ *       5XX:
+ *         description: FAILED
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Error"
+ */
 router.delete('/:id', verifyToken, newsController.deleteById)
 
 export default router

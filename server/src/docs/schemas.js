@@ -75,7 +75,7 @@
  * @openapi
  * components:
  *   schemas:
- *     ResponseCreateUpdate:
+ *     ResponseEventCreateUpdate:
  *       type: object
  *       properties:
  *         data:
@@ -380,7 +380,7 @@
  *         - statusId
  *         - statusCode
  *
- *     ResponseNewsCreate:
+ *     ResponseNewsCreateUpdate:
  *       type: object
  *       properties:
  *         id:
@@ -399,7 +399,7 @@
  *         document:
  *           type: string
  *           nullable: true
- *           example: "URL del documento"
+ *           example: "Documento adjunto en base64"
  *         statusId:
  *           type: integer
  *           example: 1
@@ -449,6 +449,247 @@
  *       type: array
  *       items:
  *         $ref: "#/components/schemas/NewsStatus"
+ */
+
+/**
+ * @openapi
+ * components:
+ *   schemas:
+ *     NewsUpdate:
+ *       type: object
+ *       required:
+ *         - description
+ *         - statusId
+ *         - statusCode
+ *       properties:
+ *         description:
+ *           type: string
+ *           minLength: 1
+ *           maxLength: 400
+ *           example: "Noticia creada exitosamente"
+ *         statusId:
+ *           type: integer
+ *           example: 1
+ *         statusCode:
+ *           type: string
+ *           maxLength: 3
+ *           example: "C01"
+ *         document:
+ *           type: string
+ *           nullable: true
+ *           example: "Documento adjunto en base64"
+ */
+
+/** --------------------------------------
+ * Sección de Providers
+ * -------------------------------------- */
+/**
+ * @openapi
+ * components:
+ *   schemas:
+ *     ProvidersFilters:
+ *       type: object
+ *       properties:
+ *         name:
+ *           type: string
+ *           minLength: 1
+ *           maxLength: 80
+ *           nullable: true
+ *           example: "Proveedor ABC"
+ *         status:
+ *           type: boolean
+ *           nullable: true
+ *           example: true
+ */
+
+/**
+ * @openapi
+ * components:
+ *   schemas:
+ *     ResponseGetProductProvider:
+ *       type: object
+ *       required:
+ *         - id
+ *         - code
+ *         - name
+ *         - createdOn
+ *         - createdBy
+ *         - status
+ *       properties:
+ *         id:
+ *           type: integer
+ *           example: 1
+ *         code:
+ *           type: string
+ *           maxLength: 3
+ *           example: "P01"
+ *         name:
+ *           type: string
+ *           maxLength: 100
+ *           example: "Proveedor ABC"
+ *         createdOn:
+ *           type: string
+ *           format: date-time
+ *           example: "2024-08-05T00:19:58.867Z"
+ *         createdBy:
+ *           type: integer
+ *           example: 5
+ *         updatedBy:
+ *           type: integer
+ *           nullable: true
+ *           example: null
+ *         updatedOn:
+ *           type: string
+ *           format: date-time
+ *           nullable: true
+ *           example: null
+ *         status:
+ *           type: boolean
+ *           example: true
+ *         contactName:
+ *           type: string
+ *           maxLength: 60
+ *           nullable: true
+ *           example: "Juan Pérez"
+ *         contactEmail:
+ *           type: string
+ *           format: email
+ *           maxLength: 80
+ *           nullable: true
+ *           example: "contacto@proveedor.com"
+ *         contactPhone:
+ *           type: string
+ *           maxLength: 15
+ *           nullable: true
+ *           example: "+123456789"
+ *         address:
+ *           type: string
+ *           maxLength: 120
+ *           nullable: true
+ *           example: "Av. Principal 123, Ciudad"
+ *         userProductCreatedName:
+ *           type: string
+ *           nullable: true
+ *           example: "Admin"
+ *         userProductUpdatedName:
+ *           type: string
+ *           nullable: true
+ *           example: "Editor"
+ */
+
+/**
+ * @openapi
+ * components:
+ *   schemas:
+ *     BodyProviderCreateUpdate:
+ *       type: object
+ *       required:
+ *         - code
+ *         - name
+ *         - status
+ *       properties:
+ *         code:
+ *           type: string
+ *           maxLength: 3
+ *           example: "C01"
+ *         name:
+ *           type: string
+ *           maxLength: 100
+ *           example: "Proveedor ABC"
+ *         status:
+ *           type: boolean
+ *           example: true
+ *         contactName:
+ *           type: string
+ *           maxLength: 60
+ *           nullable: true
+ *           example: "Juan Pérez"
+ *         contactEmail:
+ *           type: string
+ *           maxLength: 80
+ *           nullable: true
+ *           example: "contacto@proveedor.com"
+ *         contactPhone:
+ *           type: string
+ *           maxLength: 15
+ *           nullable: true
+ *           example: "+123456789"
+ *         address:
+ *           type: string
+ *           maxLength: 120
+ *           nullable: true
+ *           example: "Av. Principal 123, Ciudad"
+ */
+
+/**
+ * @openapi
+ * components:
+ *   schemas:
+ *     ResponseProviderCreateUpdate:
+ *       type: object
+ *       required:
+ *         - id
+ *         - code
+ *         - name
+ *         - createdOn
+ *         - createdBy
+ *         - status
+ *       properties:
+ *         id:
+ *           type: integer
+ *           example: 1
+ *         code:
+ *           type: string
+ *           maxLength: 3
+ *           example: "P01"
+ *         name:
+ *           type: string
+ *           maxLength: 100
+ *           example: "Proveedor ABC"
+ *         createdOn:
+ *           type: string
+ *           format: date-time
+ *           example: "2024-08-05T00:19:58.867Z"
+ *         createdBy:
+ *           type: integer
+ *           example: 5
+ *         updatedBy:
+ *           type: integer
+ *           nullable: true
+ *           example: null
+ *         updatedOn:
+ *           type: string
+ *           format: date-time
+ *           nullable: true
+ *           example: null
+ *         status:
+ *           type: boolean
+ *           example: true
+ *         contactName:
+ *           type: string
+ *           maxLength: 60
+ *           nullable: true
+ *           example: "Juan Pérez"
+ *         contactEmail:
+ *           type: string
+ *           format: email
+ *           maxLength: 80
+ *           nullable: true
+ *           example: "contacto@proveedor.com"
+ *         contactPhone:
+ *           type: string
+ *           maxLength: 15
+ *           nullable: true
+ *           example: "+123456789"
+ *         address:
+ *           type: string
+ *           maxLength: 120
+ *           nullable: true
+ *           example: "Av. Principal 123, Ciudad"
+ *         products:
+ *           type: array
+ *           items:
+ *             $ref: "#/components/schemas/Product"
  */
 
 /**
