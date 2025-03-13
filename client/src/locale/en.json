@@ -140,8 +140,20 @@
     "value": "Value",
     "save_record": "Save record",
     "saved_successfully": "Saved successfully",
-    "providers_card_msg": "Register and manage your providers effortlessly."
+    "providers_card_msg": "Register and manage your providers effortlessly.",
+    "provider_name_placeholder": "Enter the provider name",
+    "edit_provider": "Edit provider",
+    "add_provider": "Add provider",
+    "contact_name": "Contact name",
+    "contact_name_placeholder": "Enter the contact name",
+    "contact_email": "Contact email",
+    "contact_email_placeholder": "Enter the contact email",
+    "contact_phone": "Contact phone",
+    "contact_phone_placeholder": "Enter the contact phone",
+    "address": "Address",
+    "address_placeholder": "Enter the address"
 
 
-  }
+
+  } 
 }

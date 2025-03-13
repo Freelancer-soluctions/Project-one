@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { NewsDialogSchema, NewsStatusCode } from '../utils'
+import { ProvidersDialogSchema } from '../utils'
 
 import {
   Dialog,
@@ -33,39 +33,38 @@ import {
   SelectTrigger,
   SelectValue
 } from '@/components/ui/select'
-import { Textarea } from '@/components/ui/textarea'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
-import { CalendarIcon } from '@radix-ui/react-icons'
-import { LuNewspaper } from 'react-icons/lu'
-import { Calendar } from '@/components/ui/calendar'
-import { format, formatISO } from 'date-fns'
+import { LuBuilding2 } from 'react-icons/lu'
 import { useTranslation } from 'react-i18next'
 import { cn } from '@/lib/utils'
 import PropTypes from 'prop-types'
+import { CalendarIcon } from '@radix-ui/react-icons'
+import { Calendar } from '@/components/ui/calendar'
+import { format } from 'date-fns'
 
 export const ProvidersDialog = ({
-  open,
-  onClose,
-  onSubmit,
+  openDialog,
+  onCloseDialog,
   selectedRow,
   dataStatus,
-  isLoadingStatus,
-  isFetchingStatus
+  onSubmit,
+  onDeleteById,
+  actionDialog
 }) => {
   const { t } = useTranslation()
-  const [newId, setNewId] = useState('')
-  const [statusCodeSaved, setStatusCodeSaved] = useState('')
+  const [providerId, setProviderId] = useState('')
 
   // Configura el formulario
   const form = useForm({
-    resolver: zodResolver(NewsDialogSchema),
+    resolver: zodResolver(ProvidersDialogSchema),
     defaultValues: {
-      description: selectedRow?.description || '',
-      status: selectedRow?.status || '',
-      userProvidersCreated: selectedRow?.userProvidersCreated?.name || '',
-      userProvidersClosed: selectedRow?.userProvidersClosed?.name || '',
-      userProvidersPending: selectedRow?.userProvidersPending?.name || ''
+      name: '',
+      status: '',
+      contactName: '',
+      contactEmail: '',
+      contactPhone: '',
+      address: ''
     }
   })
 
@@ -75,33 +74,29 @@ export const ProvidersDialog = ({
       // Filtra y mapea solo los valores necesarios
       const mappedValues = {
         id: selectedRow.id || '',
-        description: selectedRow.description || '',
-        document: selectedRow.document || '',
+        name: selectedRow.name || '',
+        status: selectedRow.status || '',
+        contactName: selectedRow.contactName || '',
+        contactEmail: selectedRow.contactEmail || '',
+        contactPhone: selectedRow.contactPhone || '',
+        address: selectedRow.address || '',
         createdOn: selectedRow.createdOn || '',
-        createdBy: selectedRow.createdBy || '',
-        closedOn: selectedRow.closedOn || '',
-        status: selectedRow.status || {},
-        userProvidersCreated: selectedRow.userProvidersCreated?.name || '',
-        userProvidersClosed: selectedRow.userProvidersClosed?.name || '',
-        userProvidersPending: selectedRow.userProvidersPending?.name || ''
+        updatedOn: selectedRow.updatedOn || '',
+        userProvidersCreatedName: selectedRow.userProvidersCreatedName || '',
+        userProvidersUpdatedName: selectedRow.userProvidersUpdatedName || ''
       }
 
-      // // Usa `setValue` para aplicar todos los valores al formulario
-      // Object.entries(mappedValues).forEach(([key, value]) => {
-      //   setValue(key, value)
-      // })
-
       form.reset(mappedValues)
-      setNewId(mappedValues.id || '')
-      setStatusCodeSaved(mappedValues.status.code || '')
+      setProviderId(mappedValues.id)
     }
 
-    if (!open) {
+    if (!openDialog) {
       form.reset()
     }
-  }, [selectedRow, open])
+  }, [selectedRow, openDialog])
 
   const handleSubmit = data => {
+    // crear una funcion que agrege el valo de code de forma consecutiva
     const formData = {
       ...data,
       id: selectedRow?.id
@@ -109,176 +104,356 @@ export const ProvidersDialog = ({
     onSubmit(formData)
   }
 
+  const handleDeleteById = () => {
+    onDeleteById(providerId)
+  }
+
   return (
-    <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className='sm:max-w-[425px]'>
+    <Dialog
+      open={openDialog}
+      onOpenChange={isOpen => {
+        if (isOpen === true) return
+        onCloseDialog()
+      }}>
+      <DialogContent className='sm:max-w-[600px]'>
         <DialogHeader>
           <DialogTitle className='flex items-center gap-2'>
-            <LuNewspaper className='inline mr-3 w-7 h-7' />
-            {selectedRow ? t('edit_provider') : t('add_provider')}
+            <LuBuilding2 className='inline mr-3 w-7 h-7' />
+            {actionDialog}
           </DialogTitle>
+          <DialogDescription>
+            {providerId ? t('edit_message') : t('add_message')}
+          </DialogDescription>
         </DialogHeader>
         <Form {...form}>
           <form
+            method='post'
+            action=''
             id='providers-form'
             onSubmit={form.handleSubmit(handleSubmit)}
-            className='space-y-8'
-          >
-            <FormField
-              control={form.control}
-              name='description'
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{t('description')}</FormLabel>
-                  <FormControl>
-                    <Textarea
-                      placeholder={t('description')}
-                      className='resize-none'
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name='status'
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{t('status')}</FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                    disabled={
-                      isLoadingStatus ||
-                      isFetchingStatus ||
-                      (selectedRow?.id &&
-                        selectedRow.statusCode === NewsStatusCode.CLOSED)
-                    }
-                  >
-                    <FormControl>
-                      <SelectTrigger
-                        className={cn(
-                          'w-full',
-                          !field.value && 'text-muted-foreground'
-                        )}
-                      >
-                        <SelectValue
-                          placeholder={t('select_status')}
-                          className='w-full'
-                        />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {dataStatus?.data
-                        .filter(
-                          item => item.code !== NewsStatusCode.CLOSED
-                        )
-                        .map(item => (
-                          <SelectItem key={item.id} value={item}>
-                            {item.description}
-                          </SelectItem>
-                        ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            {selectedRow?.id && (
-              <>
-                <FormField
-                  control={form.control}
-                  name='userProvidersCreated'
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel htmlFor='userProvidersCreated'>
-                        {t('created_by')}
-                      </FormLabel>
+            noValidate
+            className='flex flex-col flex-wrap gap-5'>
+            <div className='grid grid-cols-2 gap-6 py-4 auto-rows-auto'>
+              <FormField
+                control={form.control}
+                name='name'
+                render={({ field }) => {
+                  return (
+                    <FormItem >
+                      <FormLabel htmlFor='name'>{t('name')}*</FormLabel>
                       <FormControl>
                         <Input
-                          id='userProvidersCreated'
-                          name='userProvidersCreated'
-                          disabled
+                          id='name'
+                          name='name'
+                          placeholder={t('provider_name_placeholder')}
+                          type='text'
+                          autoComplete='false'
+                          maxLength={80}
                           {...field}
+                          value={field.value ?? ''}
                         />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
-                  )}
-                />
+                  )
+                }}
+              />
 
-                {selectedRow?.id &&
-                  selectedRow.statusCode === NewsStatusCode.CLOSED && (
-                    <FormField
-                      control={form.control}
-                      name='userProvidersClosed'
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel htmlFor='userProvidersClosed'>
-                            {t('closed_by')}
-                          </FormLabel>
-                          <FormControl>
-                            <Input
-                              id='userProvidersClosed'
-                              name='userProvidersClosed'
-                              disabled
-                              {...field}
+
+
+
+              <FormField
+                control={form.control}
+                name='status'
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel htmlFor='status'>{t('status')}*</FormLabel>
+                    <Select
+                      onValueChange={(value) => field.onChange(value === "true")}
+                      value={field.value?.toString()}>
+                      <FormControl>
+                        <SelectTrigger
+                          className={cn(
+                            'w-full',
+                            !field.value && 'text-muted-foreground'
+                          )}>
+                          <SelectValue
+                            placeholder={t('select_status')}
+                            className='w-full'
+                          />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {dataStatus.map((item, index) => (
+                          <SelectItem key={index} value={item.value.toString()}>
+                            {item.description}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name='contactName'
+                render={({ field }) => {
+                  return (
+                    <FormItem className='flex flex-col flex-auto'>
+                      <FormLabel htmlFor='contactName'>
+                        {t('contact_name')}
+                      </FormLabel>
+                      <FormControl>
+                        <Input
+                          id='contactName'
+                          name='contactName'
+                          placeholder={t('contact_name_placeholder')}
+                          type='text'
+                          autoComplete='false'
+                          maxLength={60}
+                          {...field}
+                          value={field.value ?? ''}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )
+                }}
+              />
+
+              <FormField
+                control={form.control}
+                name='contactEmail'
+                render={({ field }) => {
+                  return (
+                    <FormItem className='flex flex-col flex-auto'>
+                      <FormLabel htmlFor='contactEmail'>
+                        {t('contact_email')}
+                      </FormLabel>
+                      <FormControl>
+                        <Input
+                          id='contactEmail'
+                          name='contactEmail'
+                          placeholder={t('contact_email_placeholder')}
+                          type='text'
+                          autoComplete='false'
+                          maxLength={80}
+                          {...field}
+                          value={field.value ?? ''}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )
+                }}
+              />
+              <FormField
+                control={form.control}
+                name='contactPhone'
+                render={({ field }) => {
+                  return (
+                    <FormItem className='flex flex-col flex-auto'>
+                      <FormLabel htmlFor='contactPhone'>
+                        {t('contact_phone')}
+                      </FormLabel>
+                      <FormControl>
+                        <Input
+                          id='contactPhone'
+                          name='contactPhone'
+                          placeholder={t('contact_phone_placeholder')}
+                          type='text'
+                          autoComplete='false'
+                          maxLength={15}
+                          {...field}
+                          value={field.value ?? ''}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )
+                }}
+              />
+              <FormField
+                control={form.control}
+                name='address'
+                render={({ field }) => {
+                  return (
+                    <FormItem className='flex flex-col flex-auto'>
+                      <FormLabel htmlFor='address'>{t('address')}</FormLabel>
+                      <FormControl>
+                        <Input
+                          id='address'
+                          name='address'
+                          placeholder={t('address_placeholder')}
+                          type='text'
+                          autoComplete='false'
+                          maxLength={120}
+                          {...field}
+                          value={field.value ?? ''}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )
+                }}
+              />
+
+              {providerId && (
+                <>
+                  <FormField
+                    control={form.control}
+                    name='userProvidersCreatedName'
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel htmlFor='userProvidersCreatedName'>
+                          {t('created_by')}
+                        </FormLabel>
+                        <FormControl>
+                          <Input
+                            id='userProvidersCreatedName'
+                            name='userProvidersCreatedName'
+                            disabled
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name='createdOn'
+                    render={({ field }) => (
+                      <FormItem className='flex flex-col flex-auto'>
+                        <FormLabel htmlFor='createdOn'>
+                          {t('created_on')}
+                        </FormLabel>
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <FormControl>
+                              <Button
+                                id='createdOn'
+                                disabled={true}
+                                readOnly={true}
+                                variant={'outline'}
+                                className={cn(
+                                  'pl-3 text-left font-normal',
+                                  !field.value && 'text-muted-foreground'
+                                )}>
+                                {field.value && format(field.value, 'PPP')}
+                                <CalendarIcon className='w-4 h-4 ml-auto opacity-50' />
+                              </Button>
+                            </FormControl>
+                          </PopoverTrigger>
+                          <PopoverContent className='w-auto p-0' align='start'>
+                            <Calendar
+                              mode='single'
+                              selected={field.value}
+                              onSelect={field.onChange}
+                              disabled={date => date < new Date('1900-01-01')}
                             />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  )}
+                          </PopoverContent>
+                        </Popover>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-                {selectedRow?.id &&
-                  selectedRow.statusCode === NewsStatusCode.PENDING && (
-                    <FormField
-                      control={form.control}
-                      name='userProvidersPending'
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel htmlFor='userProvidersPending'>
-                            {t('pending_by')}
-                          </FormLabel>
-                          <FormControl>
-                            <Input
-                              id='userProvidersPending'
-                              name='userProvidersPending'
-                              disabled
-                              {...field}
+                  <FormField
+                    control={form.control}
+                    name='userProvidersUpdatedName'
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel htmlFor='userProvidersUpdatedName'>
+                          {t('updated_by')}
+                        </FormLabel>
+                        <FormControl>
+                          <Input
+                            id='userProvidersUpdatedName'
+                            name='userProvidersUpdatedName'
+                            disabled
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name='updatedOn'
+                    render={({ field }) => (
+                      <FormItem className='flex flex-col flex-auto'>
+                        <FormLabel htmlFor='updatedOn'>
+                          {t('updated_on')}
+                        </FormLabel>
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <FormControl>
+                              <Button
+                                id='updatedOn'
+                                disabled={true}
+                                readOnly={true}
+                                variant={'outline'}
+                                className={cn(
+                                  'pl-3 text-left font-normal',
+                                  !field.value && 'text-muted-foreground'
+                                )}>
+                                {field.value && format(field.value, 'PPP')}
+                                <CalendarIcon className='w-4 h-4 ml-auto opacity-50' />
+                              </Button>
+                            </FormControl>
+                          </PopoverTrigger>
+                          <PopoverContent className='w-auto p-0' align='start'>
+                            <Calendar
+                              mode='single'
+                              selected={field.value}
+                              onSelect={field.onChange}
+                              disabled={date => date < new Date('1900-01-01')}
                             />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  )}
-              </>
-            )}
+                          </PopoverContent>
+                        </Popover>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </>
+              )}
 
-            <div className='flex justify-end gap-2'>
-              <Button
-                type='button'
-                variant='secondary'
-                onClick={onClose}
-              >
-                {t('cancel')}
-              </Button>
-              <Button
-                type='submit'
-                disabled={
-                  selectedRow?.id &&
-                  selectedRow.statusCode === NewsStatusCode.CLOSED
-                }
-              >
-                {selectedRow ? t('update') : t('save')}
-              </Button>
+             
             </div>
+                <DialogFooter>
+                  <DialogClose asChild>
+                    <Button
+                      type='button'
+                      variant='secondary'
+                      className='flex-1 md:flex-initial md:w-24'>
+                      {t('cancel')}
+                    </Button>
+                  </DialogClose>
+
+                  {providerId && (
+                    <Button
+                      type='button'
+                      variant='destructive'
+                      className='flex-1 md:flex-initial md:w-24'
+                      onClick={() => {
+                        handleDeleteById()
+                      }}>
+                      {t('delete')}
+                    </Button>
+                  )}
+                  <Button
+                    type='submit'
+                    variant='info'
+                    className='flex-1 md:flex-initial md:w-24'>
+                    {providerId ? t('update') : t('save')}
+                  </Button>
+                </DialogFooter>
           </form>
         </Form>
       </DialogContent>
@@ -287,11 +462,12 @@ export const ProvidersDialog = ({
 }
 
 ProvidersDialog.propTypes = {
-  open: PropTypes.bool.isRequired,
-  onClose: PropTypes.func.isRequired,
-  onSubmit: PropTypes.func.isRequired,
+  openDialog: PropTypes.bool,
+  onCloseDialog: PropTypes.func,
   selectedRow: PropTypes.object,
-  dataStatus: PropTypes.object,
-  isLoadingStatus: PropTypes.bool,
-  isFetchingStatus: PropTypes.bool
+  dataStatus: PropTypes.array,
+  onSubmit: PropTypes.func,
+  onDeleteById: PropTypes.func,
+  actionDialog: PropTypes.string
 }
+export default ProvidersDialog

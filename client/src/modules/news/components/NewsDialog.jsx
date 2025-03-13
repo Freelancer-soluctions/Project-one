@@ -396,14 +396,7 @@ export const NewsDialog = ({
               </div>
 
               <DialogFooter>
-                {/* <Button
-                  type='button'
-                  variant='secondary'
-                  onClick={() => {
-                    setOpenDialog(false)
-                  }}>
-                  Close
-                </Button> */}
+           
                 <DialogClose asChild>
                   <Button type='button' variant='secondary'>
                     {t('close')}

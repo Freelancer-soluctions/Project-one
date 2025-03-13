@@ -27,7 +27,7 @@ export const EventFiltersForm = ({
             onChange={e => setSearchQuery(e.target.value)}
           />
         </div>
-        <div className='flex flex-wrap items-center justify-between gap-3 mt-5 md:justify-normal'>
+        <div className='flex flex-wrap items-center justify-between gap-3 mt-5'>
           <Button
             type='button'
             className='flex-1 md:flex-initial md:w-24'

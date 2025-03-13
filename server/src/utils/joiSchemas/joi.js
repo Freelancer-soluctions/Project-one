@@ -210,7 +210,7 @@ export const ProductAttributes = Joi.array().items(
 
 export const ProvidersFilters = Joi.object({
   name: Joi.string().min(1).max(80).allow(''),
-  status: Joi.boolean().allow(false)
+  status: Joi.boolean().allow(null)
 })
 
 export const Providers = Joi.object({
