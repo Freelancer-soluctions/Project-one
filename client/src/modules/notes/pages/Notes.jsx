@@ -247,7 +247,7 @@ export default function Notes() {
           isFetchingColumns ||
           isFetchingNotes) && <Spinner />}
         <div className='w-full space-y-6'>
-          <div className='flex flex-wrap gap-3'>
+          <div className='col-span-2 row-span-1 md:col-span-5'>
             <NotesFilters
               onSearch={handleSearchChange}
               onSearchStatus={handleStatusChange}

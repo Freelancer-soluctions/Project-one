@@ -1,10 +1,11 @@
-import { z } from "zod"
+import { z } from 'zod'
 
-export const ProvidersDialogSchema = z.object({
-  name: z.string().min(1, {
-      message: "Description is required.",
+export const ProvidersDialogSchema = z
+  .object({
+    name: z.string().min(1, {
+      message: 'Provider name is required.'
     }),
-    status: z.boolean()
-    
-  }).passthrough() // Permite otros campos
- 
+    status: z.boolean(),
+
+  })
+  .passthrough() // Permite otros campos

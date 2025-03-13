@@ -12,3 +12,8 @@ export const ProvidersCodes ={
 
 
 
+export const dataStatus = [
+  { value: true, description: "ACTIVE" },
+  { value: false, description: "INACTIVE" },
+];
+
