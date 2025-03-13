@@ -32,9 +32,9 @@ export const getAllProducts = async (
 
   const providers = await prisma.$queryRaw`
     SELECT p.*, 
-    u.name AS "userProductCreatedName",
-    uu.name AS "userProductUpdatedName"
-    FROM "providers" p
+    u.name AS "userProvidersCreatedName",
+    uu.name AS "userProvidersUpdatedName"
+    FROM "productProviders" p
     LEFT JOIN "users" u ON p."createdBy" = u.id
     LEFT JOIN "users" uu ON p."updatedBy" = uu.id
     ${whereSql}
