@@ -1,24 +1,22 @@
 import { useTranslation } from 'react-i18next'
-import { DataTable } from '@/components/ui/data-table'
+import { DataTable } from '@/components/dataTable'
 import { format } from 'date-fns'
 import PropTypes from 'prop-types'
 
 export const ProvidersDatatable = ({
   dataProviders,
-  isLoadingProviders,
-  isFetchingProviders,
-  onEdit,
-  onDelete
+
+  onEditDialog,
 }) => {
   const { t } = useTranslation()
 
   const columnDefProviders = [
     {
-      accessorKey: 'description',
-      header: t('description')
+      accessorKey: 'name',
+      header: t('name')
     },
     {
-      accessorKey: 'status.description',
+      accessorKey: 'status',
       header: t('status'),
       cell: info => info.getValue()?.toUpperCase()
     },
@@ -28,63 +26,48 @@ export const ProvidersDatatable = ({
       cell: info => format(new Date(info.getValue()), 'PPP')
     },
     {
-      accessorKey: 'userProvidersCreated.name',
+      accessorKey: 'userProvidersCreatedName',
       header: t('created_by'),
       cell: info => {
-        const userProvidersCreated = info.row.original.userProvidersCreated
-        return userProvidersCreated?.name ? userProvidersCreated.name.toUpperCase() : null
+        const userProvidersCreatedName = info.row.original.userProvidersCreated
+        return userProvidersCreatedName ? userProvidersCreatedName.toUpperCase() : null
       }
     },
     {
-      accessorKey: 'userProvidersPending.name',
-      header: t('pending_by'),
+      accessorKey: 'userProvidersUpdatedName',
+      header: t('updated_by'),
       cell: info => {
-        const userProvidersPending = info.row.original.userProvidersPending
-        return userProvidersPending?.name ? userProvidersPending.name.toUpperCase() : null
+        const userProvidersUpdatedName = info.row.original.userProvidersUpdated
+        return userProvidersUpdatedName ? userProvidersUpdatedName.toUpperCase() : null
       }
     },
     {
-      accessorKey: 'pendingOn',
-      header: t('pending_on'),
-      cell: info => {
-        const date = info.getValue()
-        return date ? format(new Date(date), 'PPP') : null
-      }
-    },
-    {
-      accessorKey: 'userProvidersClosed.name',
-      header: t('closed_by'),
-      cell: info => {
-        const userProvidersClosed = info.row.original.userProvidersClosed
-        return userProvidersClosed?.name ? userProvidersClosed.name.toUpperCase() : null
-      }
-    },
-    {
-      accessorKey: 'closedOn',
-      header: t('closed_on'),
+      accessorKey: 'updatedOn',
+      header: t('updated_on'),
       cell: info => {
         const date = info.getValue()
         return date ? format(new Date(date), 'PPP') : null
       }
-    }
+    },
+    
+   
   ]
+
+  const handleEditDialog = row => {
+    onEditDialog(row)
+  }
 
   return (
     <DataTable
       columns={columnDefProviders}
       data={dataProviders.data}
-      isLoading={isLoadingProviders}
-      isFetching={isFetchingProviders}
-      onEdit={onEdit}
-      onDelete={onDelete}
+      handleRow={row => handleEditDialog(row)}
     />
   )
 }
 
 ProvidersDatatable.propTypes = {
   dataProviders: PropTypes.object.isRequired,
-  isLoadingProviders: PropTypes.bool,
-  isFetchingProviders: PropTypes.bool,
   onEdit: PropTypes.func.isRequired,
   onDelete: PropTypes.func.isRequired
 }
