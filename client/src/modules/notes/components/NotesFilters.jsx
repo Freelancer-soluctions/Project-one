@@ -24,7 +24,7 @@ export function NotesFilters({
   const { t } = useTranslation()
 
   return (
-    <>
+    <div className='flex flex-wrap gap-5'>
       <div className='flex-1 max-w-md'>
         <Label htmlFor='textSearch'>{t('search')}</Label>
         <Input
@@ -80,7 +80,7 @@ export function NotesFilters({
           {t('clear')} <LuEraser className='w-4 h-4 ml-auto opacity-50' />
         </Button>
       </div>
-    </>
+    </div>
   )
 }
 
