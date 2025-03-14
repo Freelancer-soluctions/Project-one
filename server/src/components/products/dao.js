@@ -49,7 +49,7 @@ export const getAllProducts = async (
 
     pt.id AS "providerId", 
     pt.code AS "providerCode",     
-    pt.description AS "providerDescription",
+    pt.name AS "providerDescription",
 
     ps.id AS "statusId", 
     ps.code AS "statusCode", 

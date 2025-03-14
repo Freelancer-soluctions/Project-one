@@ -60,7 +60,7 @@ export const ProvidersDialog = ({
     resolver: zodResolver(ProvidersDialogSchema),
     defaultValues: {
       name: '',
-      status: '',
+      status: undefined,
       contactName: '',
       contactEmail: '',
       contactPhone: '',
@@ -76,6 +76,7 @@ export const ProvidersDialog = ({
         id: selectedRow.id || '',
         name: selectedRow.name || '',
         status: selectedRow.status || '',
+        code: selectedRow.code || '',
         contactName: selectedRow.contactName || '',
         contactEmail: selectedRow.contactEmail || '',
         contactPhone: selectedRow.contactPhone || '',
@@ -96,12 +97,7 @@ export const ProvidersDialog = ({
   }, [selectedRow, openDialog])
 
   const handleSubmit = data => {
-    // crear una funcion que agrege el valo de code de forma consecutiva
-    const formData = {
-      ...data,
-      id: selectedRow?.id
-    }
-    onSubmit(formData)
+    onSubmit({ ...data }, providerId)
   }
 
   const handleDeleteById = () => {
@@ -147,7 +143,7 @@ export const ProvidersDialog = ({
                           name='name'
                           placeholder={t('provider_name_placeholder')}
                           type='text'
-                          autoComplete='false'
+                          autoComplete='off'
                           maxLength={80}
                           {...field}
                           value={field.value ?? ''}
@@ -211,7 +207,7 @@ export const ProvidersDialog = ({
                           name='contactName'
                           placeholder={t('contact_name_placeholder')}
                           type='text'
-                          autoComplete='false'
+                          autoComplete='off'
                           maxLength={60}
                           {...field}
                           value={field.value ?? ''}
@@ -237,8 +233,8 @@ export const ProvidersDialog = ({
                           id='contactEmail'
                           name='contactEmail'
                           placeholder={t('contact_email_placeholder')}
-                          type='text'
-                          autoComplete='false'
+                          type='email'
+                          autoComplete='off'
                           maxLength={80}
                           {...field}
                           value={field.value ?? ''}
@@ -264,7 +260,7 @@ export const ProvidersDialog = ({
                           name='contactPhone'
                           placeholder={t('contact_phone_placeholder')}
                           type='text'
-                          autoComplete='false'
+                          autoComplete='off'
                           maxLength={15}
                           {...field}
                           value={field.value ?? ''}
@@ -288,7 +284,7 @@ export const ProvidersDialog = ({
                           name='address'
                           placeholder={t('address_placeholder')}
                           type='text'
-                          autoComplete='false'
+                          autoComplete='off'
                           maxLength={120}
                           {...field}
                           value={field.value ?? ''}

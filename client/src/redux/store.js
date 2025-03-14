@@ -11,7 +11,7 @@ import providersApi from '@/modules/providers/api/providersAPI'
 import storageSession from 'redux-persist/lib/storage/session'
 import { persistStore, persistReducer } from 'redux-persist'
 import settingsSlice from '@/modules/settings/slice/settingsSlice'
-
+import settingsProductCategoriesApi from '@/modules/settingsProductCategories/api/SettingsProductCategoriesAPI'
 const persistConfig = {
   key: 'root',
   storage: storageSession,
@@ -34,7 +34,8 @@ const rootReducer = combineReducers({
   [notesApi.reducerPath]: notesApi.reducer,
   [eventsApi.reducerPath]: eventsApi.reducer,
   [productsApi.reducerPath]: productsApi.reducer,
-  [providersApi.reducerPath]: providersApi.reducer
+  [providersApi.reducerPath]: providersApi.reducer,
+  [settingsProductCategoriesApi.reducerPath]: settingsProductCategoriesApi.reducer
 })
 
 const persistedReducer = persistReducer(persistConfig, rootReducer)
@@ -57,7 +58,8 @@ const store = configureStore({
       eventsApi.middleware,
       homeApi.middleware,
       productsApi.middleware,
-      providersApi.middleware
+      providersApi.middleware,
+      settingsProductCategoriesApi.middleware
     )
 })
 // store.subscribe(() => {
