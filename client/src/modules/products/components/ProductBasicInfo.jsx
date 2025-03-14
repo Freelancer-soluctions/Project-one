@@ -241,7 +241,7 @@ export const ProductBasicInfo = ({
                           <SelectContent>
                             {dataProviders?.data.map((item, index) => (
                               <SelectItem value={item.code} key={index}>
-                                {item.description}
+                                {item.name}
                               </SelectItem>
                             ))}
                           </SelectContent>
