@@ -12,7 +12,7 @@ export const TABLESNAMES = {
   SETTINGS: 'settings',
   PRODUCTS: 'products',
   PRODUCTATTRIBUTES: 'productAttributes',
-  PROVIDERS: 'providers'
+  PROVIDERS: 'productProviders'
 }
 
 export const PRODUCTSSTATUSCODE = {

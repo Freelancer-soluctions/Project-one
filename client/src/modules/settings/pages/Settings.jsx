@@ -20,10 +20,11 @@ import {
   LuMoon,
   LuShield,
   LuGlobe,
-  LuLayoutTemplate
+  LuLayoutTemplate,
+  LuPackage
 } from 'react-icons/lu'
 import { Separator } from '@/components/ui/separator'
-import { SettingsLanguage, SettingsDisplay } from '../components/index'
+import { SettingsLanguage, SettingsDisplay, SettingsProduct } from '../components/index'
 import { useSelector } from 'react-redux'
 import { useTranslation } from 'react-i18next'
 import {
@@ -48,7 +49,7 @@ export default function Settings() {
   return (
     // {(isLoading || isFetching || isLoadingPost) && <Spinner />}
 
-    <div className='container max-w-6xl py-10'>
+    <div className='w-full px-4 py-10'>
       <div className='space-y-6'>
         <div>
           <h2 className='text-3xl font-bold tracking-tight'>{t('settings')}</h2>
@@ -67,13 +68,13 @@ export default function Settings() {
               <LuUser className='w-4 h-4' />
               {t('profile')}
             </TabsTrigger>
-            <TabsTrigger value='appearance' className='flex items-center gap-2'>
-              <LuMoon className='w-4 h-4' />
-              {t('appearance')}
-            </TabsTrigger>
             <TabsTrigger value='language' className='flex items-center gap-2'>
               <LuGlobe className='w-4 h-4' />
               {t('language')}
+            </TabsTrigger>
+            <TabsTrigger value='appearance' className='flex items-center gap-2'>
+              <LuMoon className='w-4 h-4' />
+              {t('appearance')}
             </TabsTrigger>
             <TabsTrigger
               value='notifications'
@@ -84,6 +85,10 @@ export default function Settings() {
             <TabsTrigger value='display' className='flex items-center gap-2'>
               <LuLayoutTemplate className='w-4 h-4' />
               {t('display')}
+            </TabsTrigger>
+            <TabsTrigger value="product" className="flex items-center gap-2">
+              <LuPackage className="w-4 h-4" />
+              {t("product")}
             </TabsTrigger>
             <TabsTrigger value='account' className='flex items-center gap-2'>
               <LuShield className='w-4 h-4' />
@@ -99,6 +104,10 @@ export default function Settings() {
               userDisplaySettings={userDisplaySettings}
               onSaveDisplaySettings={onSaveDisplaySettings}
             />
+          </TabsContent>
+
+          <TabsContent value='product' className='space-y-6'>
+            <SettingsProduct />
           </TabsContent>
 
           {/* <TabsContent value='profile' className='space-y-6'>

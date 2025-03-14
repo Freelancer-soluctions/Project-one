@@ -15,7 +15,8 @@ import {
 import { dataStatus } from '../utils/enums'
 import AlertDialogComponent from '@/components/alertDialog/AlertDialog'
 import { Spinner } from '@/components/loader/Spinner'
-import { generateCode } from '../utils'
+import { generateCode } from '@/utils/helpers'
+import { useEffect } from 'react'
 
 const Providers = () => {
   const { t } = useTranslation()
@@ -33,7 +34,7 @@ const Providers = () => {
       isFetching: isFetchingProviders
     }
   ] = useLazyGetAllProvidersQuery()
-
+  console.log(dataProviders)
   const [
     updateProviderById,
     { isLoading: isLoadingPut, isError: isErrorPut, isSuccess: isSuccessPut }
@@ -52,15 +53,20 @@ const Providers = () => {
     }
   ] = useDeleteProviderByIdMutation()
 
+
+  useEffect(() => {
+    getAllProviders({name:'', status:true}); // Ejecuta la consulta cuando el componente se monta
+  }, []); // <- Se ejecuta una vez al montar el componente
+
   const handleSubmitFilters = data => {
     getAllProviders(data)
   }
 
   const handleSubmit = async (values, providerId) => {
     try {
-      const result = newId
+      const result = providerId
         ? await updateProviderById({
-            id: newId,
+            id: providerId,
             data: {
               name: values.name,
               code: values.code,
@@ -114,30 +120,46 @@ const Providers = () => {
     setSelectedRow(null)
     setOpenDialog(false)
   }
-  /////////////////////////////////////////////
-  const handleDelete = async () => {
+
+  const handleDelete = async id => {
     try {
-      await deleteProviderById(selectedRow.id).unwrap()
-      handleCloseDialogDelete()
-    } catch (error) {
-      console.error('Error deleting provider:', error)
+      setAlertProps({
+        alertTitle: t('delete_record'),
+        alertMessage: t('request_delete_record'),
+        cancel: true,
+        success: false,
+        destructive: true,
+        variantSuccess: '',
+        variantDestructive: 'destructive',
+        onSuccess: () => {},
+        onDelete: async () => {
+          try {
+            await deleteProviderById(id).unwrap()
+
+            setAlertProps({
+              alertTitle: '',
+              alertMessage: t('deleted_successfully'),
+              cancel: false,
+              success: true,
+              onSuccess: () => {
+                setOpenDialog(false)
+              },
+              variantSuccess: 'info'
+            })
+            setOpenAlertDialog(true) // Open alert dialog
+          } catch (err) {
+            console.error('Error deleting:', err)
+          }
+        }
+      })
+      setOpenAlertDialog(true)
+    } catch (err) {
+      console.error('Error deleting:', err)
     }
   }
 
-  const handleOpenDialog = row => {
-    setSelectedRow(row)
-    setOpenDialog(true)
-  }
 
-  const handleOpenDialogDelete = row => {
-    setSelectedRow(row)
-    setOpenDialogDelete(true)
-  }
 
-  const handleCloseDialogDelete = () => {
-    setSelectedRow(null)
-    setOpenDialogDelete(false)
-  }
 
   return (
     <>

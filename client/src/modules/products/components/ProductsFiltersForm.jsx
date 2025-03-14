@@ -26,7 +26,7 @@ export const ProductsFiltersForm = ({
   onOpenProductsForms,
   datastatus,
   dataCategory,
-  dataTypes
+  dataProviders
 }) => {
   const { t } = useTranslation() // Accede a las traducciones
 
@@ -156,21 +156,21 @@ export const ProductsFiltersForm = ({
 
             <FormField
               control={formFilter.control}
-              name='type'
+              name='providers'
               render={({ field }) => {
                 return (
                   <FormItem className='flex flex-col flex-auto'>
-                    <FormLabel htmlFor='type'>{t('type')}</FormLabel>
+                    <FormLabel htmlFor='providers'>{t('providers')}</FormLabel>
                     <Select onValueChange={field.onChange} value={field.value}>
-                      <FormControl id='type'>
+                      <FormControl id='providers'>
                         <SelectTrigger>
-                          <SelectValue placeholder={t('select_type')} />
+                          <SelectValue placeholder={t('select_providers')} />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {dataTypes?.data.map((item, index) => (
+                        {dataProviders?.data.map((item, index) => (
                           <SelectItem value={item.code} key={index}>
-                            {item.description}
+                            {item.name}
                           </SelectItem>
                         ))} 
                       </SelectContent>

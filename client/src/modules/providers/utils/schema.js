@@ -5,7 +5,7 @@ export const ProvidersDialogSchema = z
     name: z.string().min(1, {
       message: 'Provider name is required.'
     }),
-    status: z.boolean(),
+    status: z.boolean({ message: 'Status is required.' }),
 
   })
   .passthrough() // Permite otros campos

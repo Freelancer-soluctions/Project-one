@@ -692,73 +692,192 @@
  *             $ref: "#/components/schemas/Product"
  */
 
-/**
- * @openapi
- * components:
- *   schemas:
- *     Create:
- *      type: object
- *      properties:
- *       error:
- *         type: boolean
- *         example: false
- *       statusCode:
- *         type: number
- *         example: 200
- *       message:
- *         type: string
- *         example: "Some success message"
- *
- */
+/** --------------------------------------
+ * Sección de settings
+ * -------------------------------------- */
 
 /**
- * @openapi
+ * @swagger
  * components:
  *   schemas:
- *     Update:
- *      type: object
- *      properties:
- *       error:
- *         type: boolean
- *         example: false
- *       message:
- *         type: string
- *         example: "Item updated successfully"
+ *     BodyProductCategoryCreate:
+ *       type: object
+ *       required:
+ *         - description
+ *         - code
+ *       properties:
+ *         description:
+ *           type: string
+ *           maxLength: 50
+ *           description: Description of the product category
+ *         code:
+ *           type: string
+ *           maxLength: 3
+ *           description: Code of the product category
  *
- */
-
-/**
- * @openapi
- * components:
- *   schemas:
- *     Save:
- *      type: object
- *      properties:
- *       error:
- *         type: boolean
- *         example: false
- *       message:
- *         type: string
- *         example: "Item save successfully"
- *
- */
-
-/**
- * @openapi
- * components:
- *   schemas:
- *     getStatus:
+ *     BodyProductCategoryUpdate:
  *       type: object
  *       properties:
- *         error:
- *           type: boolean
- *           example: false
- *         statusCode:
- *           type: number
- *           example: 200
- *         message:
+ *         description:
  *           type: string
- *           example: "Some success message"
+ *           maxLength: 50
+ *           description: Description of the product category
+ *         code:
+ *           type: string
+ *           maxLength: 3
+ *           description: Code of the product category
+ *
+ *     ProductCategoryFilters:
+ *       type: object
+ *       properties:
+ *         description:
+ *           type: string
+ *           maxLength: 50
+ *           nullable: true
+ *           description: Name to filter categories by
+ *         code:
+ *           type: string
+ *           maxLength: 3
+ *           nullable: true
+ *           description: Code to filter categories by
+
+ *
+ *     ResponseGetProductCategories:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: integer
+ *           description: Category ID
+ *         code:
+ *           type: string
+ *           maxLength: 3
+ *           description: Category unique code
+ *         description:
+ *           type: string
+ *           maxLength: 50
+ *           description: Category description
+ *         createdOn:
+ *           type: string
+ *           format: date-time
+ *           description: Creation date
+ *         updatedOn:
+ *           type: string
+ *           format: date-time
+ *           description: Last update date
+
+ *
+ *     ResponseProductCategoryCreateUpdate:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: integer
+ *           description: Category ID
+ *         code:
+ *           type: string
+ *           maxLength: 3
+ *           description: Category unique code
+ *         description:
+ *           type: string
+ *           maxLength: 50
+ *           description: Category description
+ *         status:
+ *           type: boolean
+ *           description: Category status
+ *         createdOn:
+ *           type: string
+ *           format: date-time
+ *           description: Creation date
+ *         updatedOn:
+ *           type: string
+ *           format: date-time
+ *           description: Last update date
+ */
+
+/**
+ * @swagger
+ * components:
+ *   schemas:
+ *     Settings:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: integer
+ *           example: 1
+ *           description: Unique identifier for the settings
+ *         displayEvents:
+ *           type: boolean
+ *           default: false
+ *           description: Toggle for events display
+ *         displayNotes:
+ *           type: boolean
+ *           default: false
+ *           description: Toggle for notes display
+ *         displayNews:
+ *           type: boolean
+ *           default: false
+ *           description: Toggle for news display
+ *         displayProfile:
+ *           type: boolean
+ *           default: false
+ *           description: Toggle for profile display
+ *         displayLanguage:
+ *           type: boolean
+ *           default: false
+ *           description: Toggle for language display
+ *         displayReports:
+ *           type: boolean
+ *           default: false
+ *           description: Toggle for reports display
+ *         displayPayroll:
+ *           type: boolean
+ *           default: false
+ *           description: Toggle for payroll display
+ *         language:
+ *           type: string
+ *           maxLength: 2
+ *           example: "en"
+ *           description: Language code (e.g., en, es)
+ *         userId:
+ *           type: integer
+ *           description: ID of the user who owns these settings
+ *         createdOn:
+ *           type: string
+ *           format: date-time
+ *           description: Creation timestamp
+ *         updatedOn:
+ *           type: string
+ *           format: date-time
+ *           nullable: true
+ *           description: Last update timestamp
+ *
+ *     SettingsResponse:
+ *       type: object
+ *       properties:
  *         data:
- *           $ref: "#/components/schemas/EventsTypes"
+ *           type: object
+ *           $ref: "#/components/schemas/Settings"
+ *
+ *     SettingsUpdate:
+ *       type: object
+ *       required:
+ *         - language
+ *       properties:
+ *         displayEvents:
+ *           type: boolean
+ *         displayNotes:
+ *           type: boolean
+ *         displayNews:
+ *           type: boolean
+ *         displayProfile:
+ *           type: boolean
+ *         displayLanguage:
+ *           type: boolean
+ *         displayReports:
+ *           type: boolean
+ *         displayPayroll:
+ *           type: boolean
+ *         language:
+ *           type: string
+ *           maxLength: 2
+ *           example: "en"
  */

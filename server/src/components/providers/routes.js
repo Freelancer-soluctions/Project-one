@@ -55,7 +55,7 @@ const router = Router()
  *             schema:
  *               $ref: "#/components/schemas/Unauthorized"
  *       5XX:
- *         description: "Error inesperado"
+ *         description: "FAILED"
  *         content:
  *           application/json:
  *             schema:

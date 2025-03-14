@@ -22,12 +22,12 @@ import { LuPlus, LuSearch, LuEraser } from 'react-icons/lu'
 
 import PropTypes from 'prop-types'
 
-export const ProvidersFiltersForm = ({ onSubmit, dataStatus, onAddDialog }) => {
+export const SettingsProductCategoriesFiltersForm = ({ onSubmit, onAdd }) => {
   const { t } = useTranslation()
   const form = useForm({
     defaultValues: {
-      name: '',
-      status: true
+      description: '',
+      code: ''
     }
   })
 
@@ -36,7 +36,7 @@ export const ProvidersFiltersForm = ({ onSubmit, dataStatus, onAddDialog }) => {
   }
 
   const handleAdd = () => {
-    onAddDialog()
+    onAdd()
   }
 
   const handleResetFilter = () => {
@@ -48,7 +48,7 @@ export const ProvidersFiltersForm = ({ onSubmit, dataStatus, onAddDialog }) => {
       <form
         method='post'
         action=''
-        id='provider-filters-form'
+        id='category-filters-form'
         noValidate
         onSubmit={form.handleSubmit(handleSubmit)}
         className='flex flex-col flex-wrap gap-5'>
@@ -56,16 +56,16 @@ export const ProvidersFiltersForm = ({ onSubmit, dataStatus, onAddDialog }) => {
         <div className='flex flex-wrap flex-1 gap-3'>
           <FormField
             control={form.control}
-            name='name'
+            name='description'
             render={({ field }) => {
               return (
                 <FormItem className='flex flex-col flex-auto'>
-                  <FormLabel htmlFor='name'>{t('name')}</FormLabel>
+                  <FormLabel htmlFor='description'>{t('description')}</FormLabel>
                   <FormControl>
                     <Input
-                      id='name'
-                      name='name'
-                      placeholder={t('provider_name_placeholder')}
+                      id='description'
+                      name='description'
+                      placeholder={t('category_description_placeholder')}
                       type='text'
                       autoComplete='off'
                       maxLength={80}
@@ -79,34 +79,33 @@ export const ProvidersFiltersForm = ({ onSubmit, dataStatus, onAddDialog }) => {
             }}
           />
 
+
           <FormField
             control={form.control}
-            name='status'
+            name='code'
             render={({ field }) => {
               return (
                 <FormItem className='flex flex-col flex-auto'>
-                  <FormLabel htmlFor='status'>{t('status')}</FormLabel>
-                  <Select  onValueChange={(value) => field.onChange(value === "true")}
-          value={field.value?.toString()} // Asegura que el valor sea string 
-          >
-                    <FormControl id='status'>
-                      <SelectTrigger>
-                        <SelectValue placeholder={t('select_status')} />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {dataStatus.map((item, index) => (
-                        <SelectItem value={item.value.toString()} key={index}>
-                          {item.description}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <FormLabel htmlFor='code'>{t('code')}</FormLabel>
+                  <FormControl>
+                    <Input
+                      id='code'
+                      name='code'
+                      placeholder={t('category_code_placeholder')}
+                      type='text'
+                      autoComplete='off'
+                      maxLength={3}
+                      {...field}
+                      value={field.value ?? ''}
+                    />
+                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )
             }}
           />
+
+    
         </div>
         {/* buttons */}
         <div className='flex flex-wrap items-center justify-between gap-3 mt-5 md:justify-normal'>
@@ -137,8 +136,8 @@ export const ProvidersFiltersForm = ({ onSubmit, dataStatus, onAddDialog }) => {
   )
 }
 
-ProvidersFiltersForm.propTypes = {
+SettingsProductCategoriesFiltersForm.propTypes = {
   onSubmit: PropTypes.func.isRequired,
   dataStatus: PropTypes.array,
   onAddDialog: PropTypes.func
-}
+} 
