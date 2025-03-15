@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { ProvidersDialogSchema } from '../utils'
+import { WarehouseSchema } from '../utils/index'
 
 import {
   Dialog,
@@ -43,7 +43,7 @@ import { CalendarIcon } from '@radix-ui/react-icons'
 import { Calendar } from '@/components/ui/calendar'
 import { format } from 'date-fns'
 
-export const ProvidersDialog = ({
+export const WarehouseDialog = ({
   openDialog,
   onCloseDialog,
   selectedRow,
@@ -53,17 +53,15 @@ export const ProvidersDialog = ({
   actionDialog
 }) => {
   const { t } = useTranslation()
-  const [providerId, setProviderId] = useState('')
+  const [warehouseId, setWarehouseId] = useState('')
 
   // Configura el formulario
   const form = useForm({
-    resolver: zodResolver(ProvidersDialogSchema),
+    resolver: zodResolver(WarehouseSchema),
     defaultValues: {
       name: '',
-      status: undefined,
-      contactName: '',
-      contactEmail: '',
-      contactPhone: '',
+      status: '',
+      description: '',
       address: ''
     }
   })
@@ -76,19 +74,13 @@ export const ProvidersDialog = ({
         id: selectedRow.id || '',
         name: selectedRow.name || '',
         status: selectedRow.status || '',
-        code: selectedRow.code || '',
-        contactName: selectedRow.contactName || '',
-        contactEmail: selectedRow.contactEmail || '',
-        contactPhone: selectedRow.contactPhone || '',
-        address: selectedRow.address || '',
-        createdOn: selectedRow.createdOn || '',
-        updatedOn: selectedRow.updatedOn || '',
-        userProvidersCreatedName: selectedRow.userProvidersCreatedName || '',
-        userProvidersUpdatedName: selectedRow.userProvidersUpdatedName || ''
+        description: selectedRow.description || '',
+        address: selectedRow.address || ''  
+
       }
 
       form.reset(mappedValues)
-      setProviderId(mappedValues.id)
+      setWarehouseId(mappedValues.id)
     }
 
     if (!openDialog) {
@@ -97,11 +89,11 @@ export const ProvidersDialog = ({
   }, [selectedRow, openDialog])
 
   const handleSubmit = data => {
-    onSubmit({ ...data }, providerId)
+    onSubmit({ ...data }, warehouseId)
   }
 
   const handleDeleteById = () => {
-    onDeleteById(providerId)
+    onDeleteById(warehouseId)
   }
 
   return (
@@ -118,14 +110,14 @@ export const ProvidersDialog = ({
             {actionDialog}
           </DialogTitle>
           <DialogDescription>
-            {providerId ? t('edit_message') : t('add_message')}
+            {warehouseId ? t('edit_message') : t('add_message')}
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
           <form
             method='post'
             action=''
-            id='providers-form'
+            id='warehouse-form'
             onSubmit={form.handleSubmit(handleSubmit)}
             noValidate
             className='flex flex-col flex-wrap gap-5'>
@@ -135,16 +127,16 @@ export const ProvidersDialog = ({
                 name='name'
                 render={({ field }) => {
                   return (
-                    <FormItem >
+                    <FormItem>
                       <FormLabel htmlFor='name'>{t('name')}*</FormLabel>
                       <FormControl>
                         <Input
                           id='name'
                           name='name'
-                          placeholder={t('provider_name_placeholder')}
+                          placeholder={t('warehouse_name_placeholder')}
                           type='text'
                           autoComplete='off'
-                          maxLength={80}
+                          maxLength={50}
                           {...field}
                           value={field.value ?? ''}
                         />
@@ -155,9 +147,6 @@ export const ProvidersDialog = ({
                 }}
               />
 
-
-
-
               <FormField
                 control={form.control}
                 name='status'
@@ -165,7 +154,7 @@ export const ProvidersDialog = ({
                   <FormItem>
                     <FormLabel htmlFor='status'>{t('status')}*</FormLabel>
                     <Select
-                      onValueChange={(value) => field.onChange(value === "true")}
+                      onValueChange={value => field.onChange(value === 'true')}
                       value={field.value?.toString()}>
                       <FormControl>
                         <SelectTrigger
@@ -182,7 +171,7 @@ export const ProvidersDialog = ({
                       <SelectContent>
                         {dataStatus.map((item, index) => (
                           <SelectItem key={index} value={item.value.toString()}>
-                            {item.description}
+                            {item.label}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -194,21 +183,21 @@ export const ProvidersDialog = ({
 
               <FormField
                 control={form.control}
-                name='contactName'
+                name='description'
                 render={({ field }) => {
                   return (
                     <FormItem className='flex flex-col flex-auto'>
-                      <FormLabel htmlFor='contactName'>
-                        {t('contact_name')}
+                      <FormLabel htmlFor='description'>
+                        {t('description')}
                       </FormLabel>
                       <FormControl>
                         <Input
-                          id='contactName'
-                          name='contactName'
-                          placeholder={t('contact_name_placeholder')}
+                          id='description'
+                          name='description'
+                          placeholder={t('description_placeholder')}
                           type='text'
                           autoComplete='off'
-                          maxLength={60}
+                          maxLength={120}
                           {...field}
                           value={field.value ?? ''}
                         />
@@ -219,58 +208,7 @@ export const ProvidersDialog = ({
                 }}
               />
 
-              <FormField
-                control={form.control}
-                name='contactEmail'
-                render={({ field }) => {
-                  return (
-                    <FormItem className='flex flex-col flex-auto'>
-                      <FormLabel htmlFor='contactEmail'>
-                        {t('contact_email')}
-                      </FormLabel>
-                      <FormControl>
-                        <Input
-                          id='contactEmail'
-                          name='contactEmail'
-                          placeholder={t('contact_email_placeholder')}
-                          type='email'
-                          autoComplete='off'
-                          maxLength={80}
-                          {...field}
-                          value={field.value ?? ''}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )
-                }}
-              />
-              <FormField
-                control={form.control}
-                name='contactPhone'
-                render={({ field }) => {
-                  return (
-                    <FormItem className='flex flex-col flex-auto'>
-                      <FormLabel htmlFor='contactPhone'>
-                        {t('contact_phone')}
-                      </FormLabel>
-                      <FormControl>
-                        <Input
-                          id='contactPhone'
-                          name='contactPhone'
-                          placeholder={t('contact_phone_placeholder')}
-                          type='text'
-                          autoComplete='off'
-                          maxLength={15}
-                          {...field}
-                          value={field.value ?? ''}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )
-                }}
-              />
+             
               <FormField
                 control={form.control}
                 name='address'
@@ -296,28 +234,9 @@ export const ProvidersDialog = ({
                 }}
               />
 
-              {providerId && (
+              {warehouseId && (
                 <>
-                  <FormField
-                    control={form.control}
-                    name='userProvidersCreatedName'
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel htmlFor='userProvidersCreatedName'>
-                          {t('created_by')}
-                        </FormLabel>
-                        <FormControl>
-                          <Input
-                            id='userProvidersCreatedName'
-                            name='userProvidersCreatedName'
-                            disabled
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+           
 
                   <FormField
                     control={form.control}
@@ -358,26 +277,7 @@ export const ProvidersDialog = ({
                     )}
                   />
 
-                  <FormField
-                    control={form.control}
-                    name='userProvidersUpdatedName'
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel htmlFor='userProvidersUpdatedName'>
-                          {t('updated_by')}
-                        </FormLabel>
-                        <FormControl>
-                          <Input
-                            id='userProvidersUpdatedName'
-                            name='userProvidersUpdatedName'
-                            disabled
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                
 
                   <FormField
                     control={form.control}
@@ -419,37 +319,35 @@ export const ProvidersDialog = ({
                   />
                 </>
               )}
-
-             
             </div>
-                <DialogFooter>
-                  <DialogClose asChild>
-                    <Button
-                      type='button'
-                      variant='secondary'
-                      className='flex-1 md:flex-initial md:w-24'>
-                      {t('cancel')}
-                    </Button>
-                  </DialogClose>
+            <DialogFooter>
+              <DialogClose asChild>
+                <Button
+                  type='button'
+                  variant='secondary'
+                  className='flex-1 md:flex-initial md:w-24'>
+                  {t('cancel')}
+                </Button>
+              </DialogClose>
 
-                  {providerId && (
-                    <Button
-                      type='button'
-                      variant='destructive'
-                      className='flex-1 md:flex-initial md:w-24'
-                      onClick={() => {
-                        handleDeleteById()
-                      }}>
-                      {t('delete')}
-                    </Button>
-                  )}
-                  <Button
-                    type='submit'
-                    variant='info'
-                    className='flex-1 md:flex-initial md:w-24'>
-                    {providerId ? t('update') : t('save')}
-                  </Button>
-                </DialogFooter>
+              {warehouseId && (
+                <Button
+                  type='button'
+                  variant='destructive'
+                  className='flex-1 md:flex-initial md:w-24'
+                  onClick={() => {
+                    handleDeleteById()
+                  }}>
+                  {t('delete')}
+                </Button>
+              )}
+              <Button
+                type='submit'
+                variant='info'
+                className='flex-1 md:flex-initial md:w-24'>
+                {warehouseId ? t('update') : t('save')}
+              </Button>
+            </DialogFooter>
           </form>
         </Form>
       </DialogContent>
@@ -457,7 +355,7 @@ export const ProvidersDialog = ({
   )
 }
 
-ProvidersDialog.propTypes = {
+WarehouseDialog.propTypes = {
   openDialog: PropTypes.bool,
   onCloseDialog: PropTypes.func,
   selectedRow: PropTypes.object,
@@ -466,4 +364,3 @@ ProvidersDialog.propTypes = {
   onDeleteById: PropTypes.func,
   actionDialog: PropTypes.string
 }
-

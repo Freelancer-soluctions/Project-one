@@ -238,3 +238,22 @@ export const SettingsProductCategoryFilters = Joi.object({
   description: Joi.string().max(50).allow(''),
   code: Joi.string().max(3).allow('')
 })
+
+export const warehouseFiltersSchema = Joi.object({
+  name: Joi.string().max(50),
+  status: Joi.string().valid('ACTIVE', 'INACTIVE', 'MAINTENANCE')
+})
+
+export const warehouseCreateSchema = Joi.object({
+  name: Joi.string().max(50).required(),
+  description: Joi.string().max(120),
+  address: Joi.string().max(120),
+  status: Joi.string().valid('ACTIVE', 'INACTIVE', 'MAINTENANCE').required()
+})
+
+export const warehouseUpdateSchema = Joi.object({
+  name: Joi.string().max(50),
+  description: Joi.string().max(120),
+  address: Joi.string().max(120),
+  status: Joi.string().valid('ACTIVE', 'INACTIVE', 'MAINTENANCE')
+})
