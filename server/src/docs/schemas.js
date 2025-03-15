@@ -881,3 +881,141 @@
  *           maxLength: 2
  *           example: "en"
  */
+
+/** --------------------------------------
+ * Sección de Warehouse
+ * -------------------------------------- */
+
+/**
+ * @swagger
+ * components:
+ *   schemas:
+ *     WarehouseFilters:
+ *       type: object
+ *       properties:
+ *         name:
+ *           type: string
+ *           maxLength: 50
+ *           nullable: true
+ *           example: "Main Warehouse"
+ *         status:
+ *           type: string
+ *           enum: [ACTIVE, INACTIVE, MAINTENANCE]
+ *           nullable: true
+ *           example: "ACTIVE"
+ *
+ *     ResponseGetWarehouse:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: integer
+ *           example: 1
+ *         name:
+ *           type: string
+ *           maxLength: 50
+ *           example: "Main Warehouse"
+ *         description:
+ *           type: string
+ *           maxLength: 120
+ *           nullable: true
+ *           example: "Main storage facility"
+ *         address:
+ *           type: string
+ *           maxLength: 120
+ *           nullable: true
+ *           example: "123 Storage St."
+ *         status:
+ *           type: string
+ *           enum: [ACTIVE, INACTIVE, MAINTENANCE]
+ *           example: "ACTIVE"
+ *         createdOn:
+ *           type: string
+ *           format: date-time
+ *           example: "2024-03-15T10:30:00Z"
+ *         updatedOn:
+ *           type: string
+ *           format: date-time
+ *           nullable: true
+ *           example: null
+ *
+ *     BodyWarehouseCreate:
+ *       type: object
+ *       required:
+ *         - name
+ *         - status
+ *       properties:
+ *         name:
+ *           type: string
+ *           maxLength: 50
+ *           example: "Main Warehouse"
+ *         description:
+ *           type: string
+ *           maxLength: 120
+ *           nullable: true
+ *           example: "Main storage facility"
+ *         address:
+ *           type: string
+ *           maxLength: 120
+ *           nullable: true
+ *           example: "123 Storage St."
+ *         status:
+ *           type: string
+ *           enum: [ACTIVE, INACTIVE, MAINTENANCE]
+ *           example: "ACTIVE"
+ *
+ *     BodyWarehouseUpdate:
+ *       type: object
+ *       properties:
+ *         name:
+ *           type: string
+ *           maxLength: 50
+ *           example: "Main Warehouse"
+ *         description:
+ *           type: string
+ *           maxLength: 120
+ *           nullable: true
+ *           example: "Main storage facility"
+ *         address:
+ *           type: string
+ *           maxLength: 120
+ *           nullable: true
+ *           example: "123 Storage St."
+ *         status:
+ *           type: string
+ *           enum: [ACTIVE, INACTIVE, MAINTENANCE]
+ *           example: "ACTIVE"
+ *
+ *     ResponseWarehouseCreateUpdate:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: integer
+ *           example: 1
+ *         name:
+ *           type: string
+ *           maxLength: 50
+ *           example: "Main Warehouse"
+ *         description:
+ *           type: string
+ *           maxLength: 120
+ *           nullable: true
+ *           example: "Main storage facility"
+ *         address:
+ *           type: string
+ *           maxLength: 120
+ *           nullable: true
+ *           example: "123 Storage St."
+ *         status:
+ *           type: string
+ *           enum: [ACTIVE, INACTIVE, MAINTENANCE]
+ *           example: "ACTIVE"
+ *         createdOn:
+ *           type: string
+ *           format: date-time
+ *           example: "2024-03-15T10:30:00Z"
+ *         updatedOn:
+ *           type: string
+ *           format: date-time
+ *           nullable: true
+ *           example: null
+ */
