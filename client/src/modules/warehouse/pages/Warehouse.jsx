@@ -1,24 +1,22 @@
 import {
-  ProvidersFiltersForm,
-  ProvidersDialog,
-  ProvidersDatatable
-} from '../components/index'
+  WarehouseFiltersForm,
+  WarehouseDialog,
+  WarehouseDatatable
+} from '../components'
 import { BackDashBoard } from '@/components/backDash/BackDashBoard'
 import { useTranslation } from 'react-i18next'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import {
-  useLazyGetAllProvidersQuery,
-  useUpdateProviderByIdMutation,
-  useCreateProviderMutation,
-  useDeleteProviderByIdMutation
-} from '../api/providersAPI'
-import { dataStatus } from '../utils/enums'
+  useLazyGetAllWarehousesQuery,
+  useUpdateWarehouseByIdMutation,
+  useCreateWarehouseMutation,
+  useDeleteWarehouseByIdMutation
+} from '../api/warehouseAPI'
+import { dataStatus } from '../utils'
 import AlertDialogComponent from '@/components/alertDialog/AlertDialog'
 import { Spinner } from '@/components/loader/Spinner'
-import { generateCode } from '@/utils/helpers'
-import { useEffect } from 'react'
 
-const Providers = () => {
+const Warehouse = () => {
   const { t } = useTranslation()
   const [selectedRow, setSelectedRow] = useState(null)
   const [openDialog, setOpenDialog] = useState(false)
@@ -27,69 +25,65 @@ const Providers = () => {
   const [actionDialog, setActionDialog] = useState('')
 
   const [
-    getAllProviders,
+    getAllWarehouse,
     {
-      data: dataProviders = { data: [] },
-      isLoading: isLoadingProviders,
-      isFetching: isFetchingProviders
+      data: dataWarehouse = { data: [] },
+      isLoading: isLoadingWarehouse,
+      isFetching: isFetchingWarehouse
     }
-  ] = useLazyGetAllProvidersQuery()
-  const [
-    updateProviderById,
-    { isLoading: isLoadingPut, isError: isErrorPut, isSuccess: isSuccessPut }
-  ] = useUpdateProviderByIdMutation()
+  ] = useLazyGetAllWarehousesQuery()
 
   const [
-    createProvider,
-    { isLoading: isLoadingPost, isError: isErrorPost, isSuccess: isSuccessPost }
-  ] = useCreateProviderMutation()
+    updateWarehouseById,
+    { isLoading: isLoadingPut, isError: isErrorPut, isSuccess: isSuccessPut }
+  ] = useUpdateWarehouseByIdMutation()
+
   const [
-    deleteProviderById,
+    createWarehouse,
+    { isLoading: isLoadingPost, isError: isErrorPost, isSuccess: isSuccessPost }
+  ] = useCreateWarehouseMutation()
+
+  const [
+    deleteWarehouseById,
     {
       isLoading: isLoadingDelete,
       isError: isErrorDelete,
       isSuccess: isSuccessDelete
     }
-  ] = useDeleteProviderByIdMutation()
+  ] = useDeleteWarehouseByIdMutation()
 
 
-  useEffect(() => {
-    getAllProviders({name:'', status:true}); // Ejecuta la consulta cuando el componente se monta
-  }, []); // <- Se ejecuta una vez al montar el componente
+
 
   const handleSubmitFilters = data => {
-    getAllProviders(data)
+    getAllWarehouse({
+      ...data
+    })
   }
 
-  const handleSubmit = async (values, providerId) => {
+  const handleSubmit = async (values, warehouseId) => {
     try {
-      const result = providerId
-        ? await updateProviderById({
-            id: providerId,
+      const result = warehouseId
+        ? await updateWarehouseById({
+            id: warehouseId,
             data: {
               name: values.name,
-              code: values.code,
               status: values.status,
-              contactName: values.contactName,
-              contactEmail: values.contactEmail,
-              contactPhone: values.contactPhone,
+              description: values.description,
               address: values.address
             }
           }).unwrap()
-        : await createProvider({
+        : await createWarehouse({
             name: values.name,
-            code: await generateCode(dataProviders?.data),
             status: values.status,
-            contactName: values.contactName,
-            contactEmail: values.contactEmail,
-            contactPhone: values.contactPhone,
+            description: values.description,
             address: values.address
           }).unwrap()
 
       setAlertProps({
-        alertTitle: t(providerId ? 'update_record' : 'add_record'),
+        alertTitle: t(warehouseId ? 'update_record' : 'add_record'),
         alertMessage: t(
-          providerId ? 'updated_successfully' : 'added_successfully'
+          warehouseId ? 'updated_successfully' : 'added_successfully'
         ),
         cancel: false,
         success: true,
@@ -101,16 +95,16 @@ const Providers = () => {
       setOpenAlertDialog(true)
     } catch (err) {
       console.error('Error:', err)
-    }
+    } 
   }
 
   const handleAddDialog = () => {
-    setActionDialog(t('add_provider'))
+    setActionDialog(t('add_warehouse'))
     setOpenDialog(true)
   }
 
   const handleEditDialog = row => {
-    setActionDialog(t('edit_provider'))
+    setActionDialog(t('edit_warehouse'))
     setOpenDialog(true)
     setSelectedRow(row)
   }
@@ -133,7 +127,7 @@ const Providers = () => {
         onSuccess: () => {},
         onDelete: async () => {
           try {
-            await deleteProviderById(id).unwrap()
+            await deleteWarehouseById(id).unwrap()
 
             setAlertProps({
               alertTitle: '',
@@ -157,24 +151,21 @@ const Providers = () => {
     }
   }
 
-
-
-
   return (
     <>
-      <BackDashBoard link={'/home'} moduleName={t('providers')} />
+      <BackDashBoard link={'/home'} moduleName={t('warehouse')} />
       <div className='relative'>
         {/* Show spinner when loading or fetching */}
-        {(isLoadingProviders ||
+        {(isLoadingWarehouse ||
           isLoadingPut ||
           isLoadingPost ||
           isLoadingDelete ||
-          isFetchingProviders) && <Spinner />}
+          isFetchingWarehouse) && <Spinner />}
 
         <div className='grid grid-cols-2 grid-rows-4 gap-4 md:grid-cols-5'>
           {/* filters */}
           <div className='col-span-2 row-span-1 md:col-span-5'>
-            <ProvidersFiltersForm
+            <WarehouseFiltersForm
               onSubmit={handleSubmitFilters}
               dataStatus={dataStatus}
               onAddDialog={handleAddDialog}
@@ -182,13 +173,13 @@ const Providers = () => {
           </div>
           {/* Datatable */}
           <div className='flex flex-wrap w-full col-span-2 row-span-3 row-start-2 md:col-span-5'>
-            <ProvidersDatatable
-              dataProviders={dataProviders}
+            <WarehouseDatatable
+              dataWarehouse={dataWarehouse}
               onEditDialog={handleEditDialog}
             />
           </div>
           {/* Dialog */}
-          <ProvidersDialog
+          <WarehouseDialog
             openDialog={openDialog}
             onCloseDialog={handleCloseDialog}
             selectedRow={selectedRow}
@@ -209,4 +200,4 @@ const Providers = () => {
   )
 }
 
-export default Providers
+export default Warehouse
