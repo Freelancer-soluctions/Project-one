@@ -43,6 +43,8 @@ model users {
   userProductUpdated   products[]         @relation("userProductUpdated")
   userProvidersUpdated productProviders[] @relation("userProvidersUpdated")
   userProvidersCreated productProviders[] @relation("userProvidersCreated")
+  userStockCreated     stock[]            @relation("userStockCreated")
+  userStockUpdated     stock[]            @relation("userStockUpdated")
 }
 
 model userPermits {
@@ -161,7 +163,6 @@ model products {
   productProviderId  Int
   price              Decimal             @db.Decimal(10, 2)
   cost               Decimal             @db.Decimal(10, 2)
-  //stock              Int                 @db.Integer
   description        String?             @db.VarChar(2000)
   productStatus      productStatus       @relation(fields: [productStatusId], references: [id])
   productStatusId    Int
@@ -173,7 +174,7 @@ model products {
   userProductUpdated users?              @relation("userProductUpdated", fields: [updatedBy], references: [id])
   updatedBy          Int?                @db.Integer
   productAttributes  productAttributes[] @relation("ProductAttributes")
-  stock              Stock[]             @relation("ProductStock")
+  stock              stock[]             @relation("ProductStock")
 }
 
 model productCategories {
@@ -210,8 +211,6 @@ model productStatus {
   products    products[]
 }
 
-
-
 model productAttributes {
   id          Int      @id @default(autoincrement())
   name        String   @db.VarChar(50)
@@ -222,35 +221,52 @@ model productAttributes {
 }
 
 //ALMACEN
-model Warehouse {
-  id      Int     @id @default(autoincrement())
-  name    String  @db.VarChar(50)
-  description String? @db.VarChar(120)
-  address String? @db.VarChar(120)
-  status  WarehouseStatus @default(ACTIVE)
-  createdOn DateTime @db.Timestamp(3)
-  updatedOn DateTime? @db.Timestamp(3)
-  stock   Stock[] @relation("ProductStock")
+model warehouse {
+  id          Int             @id @default(autoincrement())
+  name        String          @db.VarChar(50)
+  description String?         @db.VarChar(120)
+  address     String?         @db.VarChar(120)
+  status      warehouseStatus @default(ACTIVE)
+  createdOn   DateTime        @db.Timestamp(3)
+  updatedOn   DateTime?       @db.Timestamp(3)
+  stock       stock[]         @relation("ProductStock")
 }
+
 //ALMACEN STATUS
-enum WarehouseStatus {
+enum warehouseStatus {
   ACTIVE
   INACTIVE
   MAINTENANCE
 }
 
-model Stock {
+ // quantity * priceUnit = totalCost
+model stock {
   id          Int       @id @default(autoincrement())
-  productId   Int
-  warehouseId Int
   quantity    Int       @default(0)
   minimum     Int       @default(0)
   maximum     Int?
   lot         String?
-  expiration  DateTime?
+  unitMeasure unitMeasureStock @default(PIECES)
+  expirationDate  DateTime?
+  entryDate     DateTime @default(now())
   product     products  @relation("ProductStock", fields: [productId], references: [id])
-  warehouse   Warehouse   @relation("ProductStock", fields: [warehouseId], references: [id])
+  productId   Int
+  warehouse   warehouse @relation("ProductStock", fields: [warehouseId], references: [id])
+  warehouseId Int
+  createdOn   DateTime @default(now())
+  updatedOn   DateTime? @db.Timestamp(3)
+  userStockCreated   users @relation("userStockCreated", fields: [createdBy], references: [id])
+  createdBy   Int 
+  userStockUpdated   users? @relation("userStockUpdated", fields: [updatedBy], references: [id])
+  updatedBy   Int?
 }
 
+
+enum unitMeasureStock {
+  PIECES
+  KILOGRAMS
+  LITERS
+  METERS
+}
 
 

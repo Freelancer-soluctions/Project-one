@@ -75,8 +75,9 @@ export const WarehouseDialog = ({
         name: selectedRow.name || '',
         status: selectedRow.status || '',
         description: selectedRow.description || '',
-        address: selectedRow.address || ''  
-
+        address: selectedRow.address || '',
+        createdOn: selectedRow.createdOn || '',
+        updatedOn: selectedRow.updatedOn || ''
       }
 
       form.reset(mappedValues)
@@ -154,8 +155,9 @@ export const WarehouseDialog = ({
                   <FormItem>
                     <FormLabel htmlFor='status'>{t('status')}*</FormLabel>
                     <Select
-                      onValueChange={value => field.onChange(value === 'true')}
-                      value={field.value?.toString()}>
+                      onValueChange={field.onChange}
+                      value={field.value?.toString()} // Asegura que el valor sea string
+                    >
                       <FormControl>
                         <SelectTrigger
                           className={cn(
@@ -208,7 +210,6 @@ export const WarehouseDialog = ({
                 }}
               />
 
-             
               <FormField
                 control={form.control}
                 name='address'
@@ -236,8 +237,6 @@ export const WarehouseDialog = ({
 
               {warehouseId && (
                 <>
-           
-
                   <FormField
                     control={form.control}
                     name='createdOn'
@@ -276,48 +275,47 @@ export const WarehouseDialog = ({
                       </FormItem>
                     )}
                   />
-
-                
-
-                  <FormField
-                    control={form.control}
-                    name='updatedOn'
-                    render={({ field }) => (
-                      <FormItem className='flex flex-col flex-auto'>
-                        <FormLabel htmlFor='updatedOn'>
-                          {t('updated_on')}
-                        </FormLabel>
-                        <Popover>
-                          <PopoverTrigger asChild>
-                            <FormControl>
-                              <Button
-                                id='updatedOn'
-                                disabled={true}
-                                readOnly={true}
-                                variant={'outline'}
-                                className={cn(
-                                  'pl-3 text-left font-normal',
-                                  !field.value && 'text-muted-foreground'
-                                )}>
-                                {field.value && format(field.value, 'PPP')}
-                                <CalendarIcon className='w-4 h-4 ml-auto opacity-50' />
-                              </Button>
-                            </FormControl>
-                          </PopoverTrigger>
-                          <PopoverContent className='w-auto p-0' align='start'>
-                            <Calendar
-                              mode='single'
-                              selected={field.value}
-                              onSelect={field.onChange}
-                              disabled={date => date < new Date('1900-01-01')}
-                            />
-                          </PopoverContent>
-                        </Popover>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
                 </>
+              )}
+              {warehouseId && selectedRow?.updatedOn && (
+                <FormField
+                  control={form.control}
+                  name='updatedOn'
+                  render={({ field }) => (
+                    <FormItem className='flex flex-col flex-auto'>
+                      <FormLabel htmlFor='updatedOn'>
+                        {t('updated_on')}
+                      </FormLabel>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <FormControl>
+                            <Button
+                              id='updatedOn'
+                              disabled={true}
+                              readOnly={true}
+                              variant={'outline'}
+                              className={cn(
+                                'pl-3 text-left font-normal',
+                                !field.value && 'text-muted-foreground'
+                              )}>
+                              {field.value && format(field.value, 'PPP')}
+                              <CalendarIcon className='w-4 h-4 ml-auto opacity-50' />
+                            </Button>
+                          </FormControl>
+                        </PopoverTrigger>
+                        <PopoverContent className='w-auto p-0' align='start'>
+                          <Calendar
+                            mode='single'
+                            selected={field.value}
+                            onSelect={field.onChange}
+                            disabled={date => date < new Date('1900-01-01')}
+                          />
+                        </PopoverContent>
+                      </Popover>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
               )}
             </div>
             <DialogFooter>

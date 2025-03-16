@@ -240,20 +240,13 @@ export const SettingsProductCategoryFilters = Joi.object({
 })
 
 export const warehouseFiltersSchema = Joi.object({
-  name: Joi.string().max(50),
-  status: Joi.string().valid('ACTIVE', 'INACTIVE', 'MAINTENANCE')
+  name: Joi.string().max(50).allow(''),
+  status: Joi.string().valid('ACTIVE', 'INACTIVE', 'MAINTENANCE').allow('')
 })
 
-export const warehouseCreateSchema = Joi.object({
+export const warehouseCreateUpdateSchema = Joi.object({
   name: Joi.string().max(50).required(),
-  description: Joi.string().max(120),
-  address: Joi.string().max(120),
+  description: Joi.string().max(120).allow(''),
+  address: Joi.string().max(120).allow(''),
   status: Joi.string().valid('ACTIVE', 'INACTIVE', 'MAINTENANCE').required()
-})
-
-export const warehouseUpdateSchema = Joi.object({
-  name: Joi.string().max(50),
-  description: Joi.string().max(120),
-  address: Joi.string().max(120),
-  status: Joi.string().valid('ACTIVE', 'INACTIVE', 'MAINTENANCE')
 })
