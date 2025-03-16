@@ -9,13 +9,29 @@ import { prisma } from '../../config/db.js'
 export const getAllWarehouses = async (name, status) => {
   const warehouses = await prisma.warehouse.findMany({
     where: {
-      name: {
-        contains: name,
-        mode: 'insensitive'
-      },
-      status: status && {
-        equals: status
-      }
+
+      ...(name
+        ? {
+            AND: [
+              {
+                name: {
+                  contains: name,
+                  mode: 'insensitive'
+                }
+              }
+
+            ]
+          }
+        : {}),
+
+      ...(status
+        ? {
+            status: {
+              equals: status
+            }
+
+          }
+        : {})
     },
     orderBy: {
       name: 'asc'

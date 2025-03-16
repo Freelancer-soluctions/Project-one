@@ -1,14 +1,14 @@
 import { Router } from 'express'
 import verifyToken from '../../middleware/verifyToken.js'
 import {
-  getAllWarehouses,
-  createWarehouse,
-  updateWarehouseById,
-  deleteWarehouseById
+  getAllStock,
+  createStock,
+  updateStockById,
+  deleteStockById
 } from './controller.js'
 import {
-  warehouseFiltersSchema,
-  warehouseCreateUpdateSchema
+  stockFiltersSchema,
+  stockCreateUpdateSchema
 } from '../../utils/joiSchemas/joi.js'
 import validateQueryParams from '../../middleware/validateQueryParams.js'
 import validateSchema from '../../middleware/validateSchema.js'
@@ -16,20 +16,20 @@ const router = Router()
 
 /**
  * @openapi
- * /api/v1/warehouse:
+ * /api/v1/stock:
  *   get:
  *     tags:
- *       - Warehouse
- *     summary: Get all warehouses
+ *       - Stock
+ *     summary: Get all stock entries
  *     security:
  *       - bearerAuth: []
  *     parameters:
  *       - in: query
  *         name: filters
  *         schema:
- *           $ref: "#/components/schemas/WarehouseFilters"
+ *           $ref: "#/components/schemas/StockFilters"
  *         required: false
- *         description: "Filtros opcionales para buscar almacenes."
+ *         description: "Optional filters for stock entries"
  *     responses:
  *       200:
  *         description: OK
@@ -50,7 +50,7 @@ const router = Router()
  *                 data:
  *                   type: array
  *                   items:
- *                     $ref: "#/components/schemas/ResponseGetWarehouse"
+ *                     $ref: "#/components/schemas/ResponseGetStock"
  *       401:
  *         description: Unauthorized
  *         content:
@@ -67,17 +67,17 @@ const router = Router()
 router.get(
   '/',
   verifyToken,
-  validateQueryParams(warehouseFiltersSchema),
-  getAllWarehouses
+  validateQueryParams(stockFiltersSchema),
+  getAllStock
 )
 
 /**
  * @openapi
- * /api/v1/warehouse:
+ * /api/v1/stock:
  *   post:
  *     tags:
- *       - Warehouse
- *     summary: Create a new warehouse
+ *       - Stock
+ *     summary: Create a new stock entry
  *     security:
  *       - bearerAuth: []
  *     requestBody:
@@ -85,7 +85,7 @@ router.get(
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/BodyWarehouseCreate'
+ *             $ref: '#/components/schemas/BodyStockCreate'
  *     responses:
  *       201:
  *         description: Created
@@ -104,7 +104,7 @@ router.get(
  *                   type: string
  *                   example: "Some success message"
  *                 data:
- *                   $ref: "#/components/schemas/ResponseWarehouseCreateUpdate"
+ *                   $ref: "#/components/schemas/ResponseStockCreateUpdate"
  *       401:
  *         description: Unauthorized
  *         content:
@@ -121,17 +121,17 @@ router.get(
 router.post(
   '/',
   verifyToken,
-  validateSchema(warehouseCreateUpdateSchema),
-  createWarehouse
+  validateSchema(stockCreateUpdateSchema),
+  createStock
 )
 
 /**
  * @openapi
- * /api/v1/warehouse/{id}:
+ * /api/v1/stock/{id}:
  *   put:
  *     tags:
- *       - Warehouse
- *     summary: Update a warehouse
+ *       - Stock
+ *     summary: Update a stock entry
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -140,13 +140,13 @@ router.post(
  *         required: true
  *         schema:
  *           type: integer
- *         description: Warehouse ID
+ *         description: Stock entry ID
  *     requestBody:
  *       required: true
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/BodyWarehouseUpdate'
+ *             $ref: '#/components/schemas/BodyStockUpdate'
  *     responses:
  *       200:
  *         description: OK
@@ -159,13 +159,13 @@ router.post(
  *                   type: boolean
  *                   example: false
  *                 statusCode:
- *                   type: int
+ *                   type: integer
  *                   example: 200
  *                 message:
  *                   type: string
  *                   example: "Some success message"
  *                 data:
- *                   $ref: "#/components/schemas/ResponseWarehouseCreateUpdate"
+ *                   $ref: "#/components/schemas/ResponseStockCreateUpdate"
  *       401:
  *         description: Unauthorized
  *         content:
@@ -182,17 +182,17 @@ router.post(
 router.put(
   '/:id',
   verifyToken,
-  validateSchema(warehouseCreateUpdateSchema),
-  updateWarehouseById
+  validateSchema(stockCreateUpdateSchema),
+  updateStockById
 )
 
 /**
  * @openapi
- * /api/v1/warehouse/{id}:
+ * /api/v1/stock/{id}:
  *   delete:
  *     tags:
- *       - Warehouse
- *     summary: Delete a warehouse
+ *       - Stock
+ *     summary: Delete a stock entry
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -201,10 +201,10 @@ router.put(
  *         required: true
  *         schema:
  *           type: integer
- *         description: Warehouse ID
+ *         description: Stock entry ID
  *     responses:
  *       200:
- *         description: Warehouse deleted
+ *         description: Stock entry deleted
  *         content:
  *           application/json:
  *             schema:
@@ -222,6 +222,6 @@ router.put(
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.delete('/:id', verifyToken, deleteWarehouseById)
+router.delete('/:id', verifyToken, deleteStockById)
 
 export default router

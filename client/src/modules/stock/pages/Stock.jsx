@@ -1,89 +1,85 @@
-import {
-  WarehouseFiltersForm,
-  WarehouseDialog,
-  WarehouseDatatable
-} from '../components'
+import { StockFiltersForm, StockDialog, StockDatatable } from '../components'
 import { BackDashBoard } from '@/components/backDash/BackDashBoard'
 import { useTranslation } from 'react-i18next'
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import {
-  useLazyGetAllWarehousesQuery,
-  useUpdateWarehouseByIdMutation,
-  useCreateWarehouseMutation,
-  useDeleteWarehouseByIdMutation
-} from '../api/warehouseAPI'
-import { dataStatus } from '../utils'
+  useLazyGetAllStockQuery,
+  useUpdateStockByIdMutation,
+  useCreateStockMutation,
+  useDeleteStockByIdMutation
+} from '../api/stockAPI'
 import AlertDialogComponent from '@/components/alertDialog/AlertDialog'
 import { Spinner } from '@/components/loader/Spinner'
+import {unitMeasures} from '../utils'
 
-const Warehouse = () => {
+
+const Stock = () => {
   const { t } = useTranslation()
-  const [selectedRow, setSelectedRow] = useState({})
+  const [selectedRow, setSelectedRow] = useState(null)
   const [openDialog, setOpenDialog] = useState(false)
   const [openAlertDialog, setOpenAlertDialog] = useState(false)
   const [alertProps, setAlertProps] = useState({})
   const [actionDialog, setActionDialog] = useState('')
 
   const [
-    getAllWarehouse,
+    getAllStock,
     {
-      data: dataWarehouse = { data: [] },
-      isLoading: isLoadingWarehouse,
-      isFetching: isFetchingWarehouse
+      data: dataStock = [],
+      isLoading: isLoadingStock,
+      isFetching: isFetchingStock
     }
-  ] = useLazyGetAllWarehousesQuery()
+  ] = useLazyGetAllStockQuery()
 
   const [
-    updateWarehouseById,
-    { isLoading: isLoadingPut, isError: isErrorPut, isSuccess: isSuccessPut }
-  ] = useUpdateWarehouseByIdMutation()
+    updateStockById,
+    { isLoading: isLoadingPut }
+  ] = useUpdateStockByIdMutation()
 
   const [
-    createWarehouse,
-    { isLoading: isLoadingPost, isError: isErrorPost, isSuccess: isSuccessPost }
-  ] = useCreateWarehouseMutation()
+    createStock,
+    { isLoading: isLoadingPost }
+  ] = useCreateStockMutation()
 
   const [
-    deleteWarehouseById,
-    {
-      isLoading: isLoadingDelete,
-      isError: isErrorDelete,
-      isSuccess: isSuccessDelete
-    }
-  ] = useDeleteWarehouseByIdMutation()
-
-
-
+    deleteStockById,
+    { isLoading: isLoadingDelete }
+  ] = useDeleteStockByIdMutation()
 
   const handleSubmitFilters = data => {
-    getAllWarehouse({
-      ...data
-    })
+    getAllStock(data)
   }
 
-  const handleSubmit = async (values, warehouseId) => {
+  const handleSubmit = async (values, stockId) => {
     try {
-      const result = warehouseId
-        ? await updateWarehouseById({
-            id: warehouseId,
+      const result = stockId
+        ? await updateStockById({
+            id: stockId,
             data: {
-              name: values.name,
-              status: values.status,
-              description: values.description,
-              address: values.address
+              quantity: Number(values.quantity),
+              minimum: Number(values.minimum),
+              maximum: values.maximum ? Number(values.maximum) : null,
+              lot: values.lot,
+              unitMeasure: values.unitMeasure,
+              expirationDate: values.expirationDate,
+              productId: Number(values.productId),
+              warehouseId: Number(values.warehouseId)
             }
           }).unwrap()
-        : await createWarehouse({
-            name: values.name,
-            status: values.status,
-            description: values.description,
-            address: values.address
+        : await createStock({
+            quantity: Number(values.quantity),
+            minimum: Number(values.minimum),
+            maximum: values.maximum ? Number(values.maximum) : null,
+            lot: values.lot,
+            unitMeasure: values.unitMeasure,
+            expirationDate: values.expirationDate,
+            productId: Number(values.productId),
+            warehouseId: Number(values.warehouseId)
           }).unwrap()
 
       setAlertProps({
-        alertTitle: t(warehouseId ? 'update_record' : 'add_record'),
+        alertTitle: t(stockId ? 'update_record' : 'add_record'),
         alertMessage: t(
-          warehouseId ? 'updated_successfully' : 'added_successfully'
+          stockId ? 'updated_successfully' : 'added_successfully'
         ),
         cancel: false,
         success: true,
@@ -95,22 +91,22 @@ const Warehouse = () => {
       setOpenAlertDialog(true)
     } catch (err) {
       console.error('Error:', err)
-    } 
+    }
   }
 
   const handleAddDialog = () => {
-    setActionDialog(t('add_warehouse'))
+    setActionDialog(t('add_stock'))
     setOpenDialog(true)
   }
 
   const handleEditDialog = row => {
-    setActionDialog(t('edit_warehouse'))
+    setActionDialog(t('edit_stock'))
     setOpenDialog(true)
     setSelectedRow(row)
   }
 
   const handleCloseDialog = () => {
-    setSelectedRow({})
+    setSelectedRow(null)
     setOpenDialog(false)
   }
 
@@ -127,7 +123,7 @@ const Warehouse = () => {
         onSuccess: () => {},
         onDelete: async () => {
           try {
-            await deleteWarehouseById(id).unwrap()
+            await deleteStockById(id).unwrap()
 
             setAlertProps({
               alertTitle: '',
@@ -139,7 +135,7 @@ const Warehouse = () => {
               },
               variantSuccess: 'info'
             })
-            setOpenAlertDialog(true) // Open alert dialog
+            setOpenAlertDialog(true)
           } catch (err) {
             console.error('Error deleting:', err)
           }
@@ -153,37 +149,36 @@ const Warehouse = () => {
 
   return (
     <>
-      <BackDashBoard link={'/home'} moduleName={t('warehouse')} />
+      <BackDashBoard link={'/home'} moduleName={t('stock')} />
       <div className='relative'>
-        {/* Show spinner when loading or fetching */}
-        {(isLoadingWarehouse ||
+        {(isLoadingStock ||
           isLoadingPut ||
           isLoadingPost ||
           isLoadingDelete ||
-          isFetchingWarehouse) && <Spinner />}
+          isFetchingStock) && <Spinner />}
 
         <div className='grid grid-cols-2 grid-rows-4 gap-4 md:grid-cols-5'>
           {/* filters */}
           <div className='col-span-2 row-span-1 md:col-span-5'>
-            <WarehouseFiltersForm
+            <StockFiltersForm
               onSubmit={handleSubmitFilters}
-              dataStatus={dataStatus}
               onAddDialog={handleAddDialog}
+              unitMeasures={unitMeasures}
             />
           </div>
           {/* Datatable */}
           <div className='flex flex-wrap w-full col-span-2 row-span-3 row-start-2 md:col-span-5'>
-            <WarehouseDatatable
-              dataWarehouse={dataWarehouse}
+            <StockDatatable
+              dataStock={dataStock}
               onEditDialog={handleEditDialog}
             />
           </div>
           {/* Dialog */}
-          <WarehouseDialog
+          <StockDialog
             openDialog={openDialog}
             onCloseDialog={handleCloseDialog}
             selectedRow={selectedRow}
-            dataStatus={dataStatus}
+            unitMeasures={unitMeasures}
             onSubmit={handleSubmit}
             onDeleteById={handleDelete}
             actionDialog={actionDialog}
@@ -200,4 +195,4 @@ const Warehouse = () => {
   )
 }
 
-export default Warehouse
+export default Stock
