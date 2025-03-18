@@ -104,7 +104,7 @@ router.get(
  *                   type: string
  *                   example: "Some success message"
  *                 data:
- *                   $ref: "#/components/schemas/ResponseWarehouseCreateUpdate"
+ *                   $ref: "#/components/schemas/ResponseWarehouseCreate"
  *       401:
  *         description: Unauthorized
  *         content:
@@ -165,7 +165,7 @@ router.post(
  *                   type: string
  *                   example: "Some success message"
  *                 data:
- *                   $ref: "#/components/schemas/ResponseWarehouseCreateUpdate"
+ *                   $ref: "#/components/schemas/ResponseWarehouseUpdate"
  *       401:
  *         description: Unauthorized
  *         content:

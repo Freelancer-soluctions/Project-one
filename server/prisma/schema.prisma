@@ -8,43 +8,44 @@ datasource db {
 }
 
 model users {
-  id                   Int                @id @default(autoincrement())
-  name                 String             @db.VarChar(100)
-  email                String             @unique @db.VarChar(254)
-  password             String             @db.VarChar(100)
-  address              String?            @db.VarChar(250)
-  birthday             DateTime           @db.Timestamp(3)
-  city                 String?            @db.VarChar(35)
-  isAdmin              Boolean?           @default(false)
+  id                   Int                 @id @default(autoincrement())
+  name                 String              @db.VarChar(100)
+  email                String              @unique @db.VarChar(254)
+  password             String              @db.VarChar(100)
+  address              String?             @db.VarChar(250)
+  birthday             DateTime            @db.Timestamp(3)
+  city                 String?             @db.VarChar(35)
+  isAdmin              Boolean?            @default(false)
   picture              String?
   document             String?
   // documentId    String? // es factible este campo ??
   lastUpdatedBy        Int
-  lastUpdatedOn        DateTime?          @db.Timestamp(3)
+  lastUpdatedOn        DateTime?           @db.Timestamp(3)
   roleId               Int
-  roles                roles              @relation(fields: [roleId], references: [id])
-  socialSecurity       String             @db.VarChar(9)
-  startDate            DateTime           @db.Timestamp(3)
-  state                String             @db.VarChar(50)
+  roles                roles               @relation(fields: [roleId], references: [id])
+  socialSecurity       String              @db.VarChar(9)
+  startDate            DateTime            @db.Timestamp(3)
+  state                String              @db.VarChar(50)
   statusId             Int
-  status               userStatus         @relation(fields: [statusId], references: [id])
-  telephone            String             @db.VarChar(15)
-  zipcode              String             @db.VarChar(9)
-  refreshToken         String?            @db.VarChar(200)
+  status               userStatus          @relation(fields: [statusId], references: [id])
+  telephone            String              @db.VarChar(15)
+  zipcode              String              @db.VarChar(9)
+  refreshToken         String?             @db.VarChar(200)
   userPermitId         Int
-  userPermits          userPermits        @relation(fields: [userPermitId], references: [id])
-  newsClosed           news[]             @relation("userNewsClosed")
-  newsCreated          news[]             @relation("userNewsCreated")
-  newsPending          news[]             @relation("userNewsPending")
-  notesCreated         notes[]            @relation("userNoteCreated")
-  settingsCreated      settings[]         @relation("userSettingCreated")
-  eventsCreated        events[]           @relation("userEventCreated")
-  userProductCreated   products[]         @relation("userProductCreated")
-  userProductUpdated   products[]         @relation("userProductUpdated")
-  userProvidersUpdated productProviders[] @relation("userProvidersUpdated")
-  userProvidersCreated productProviders[] @relation("userProvidersCreated")
-  userStockCreated     stock[]            @relation("userStockCreated")
-  userStockUpdated     stock[]            @relation("userStockUpdated")
+  userPermits          userPermits         @relation(fields: [userPermitId], references: [id])
+  newsClosed           news[]              @relation("userNewsClosed")
+  newsCreated          news[]              @relation("userNewsCreated")
+  newsPending          news[]              @relation("userNewsPending")
+  notesCreated         notes[]             @relation("userNoteCreated")
+  settingsCreated      settings[]          @relation("userSettingCreated")
+  eventsCreated        events[]            @relation("userEventCreated")
+  userProductCreated   products[]          @relation("userProductCreated")
+  userProductUpdated   products[]          @relation("userProductUpdated")
+  userProvidersUpdated productProviders[]  @relation("userProvidersUpdated")
+  userProvidersCreated productProviders[]  @relation("userProvidersCreated")
+  userStockCreated     stock[]             @relation("userStockCreated")
+  userStockUpdated     stock[]             @relation("userStockUpdated")
+  InventoryMovement    InventoryMovement[]
 }
 
 model userPermits {
@@ -175,6 +176,7 @@ model products {
   updatedBy          Int?                @db.Integer
   productAttributes  productAttributes[] @relation("ProductAttributes")
   stock              stock[]             @relation("ProductStock")
+  InventoryMovement  InventoryMovement[]
 }
 
 model productCategories {
@@ -222,14 +224,15 @@ model productAttributes {
 
 //ALMACEN
 model warehouse {
-  id          Int             @id @default(autoincrement())
-  name        String          @db.VarChar(50)
-  description String?         @db.VarChar(120)
-  address     String?         @db.VarChar(120)
-  status      warehouseStatus @default(ACTIVE)
-  createdOn   DateTime        @db.Timestamp(3)
-  updatedOn   DateTime?       @db.Timestamp(3)
-  stock       stock[]         @relation("ProductStock")
+  id                Int                 @id @default(autoincrement())
+  name              String              @db.VarChar(50)
+  description       String?             @db.VarChar(120)
+  address           String?             @db.VarChar(120)
+  status            warehouseStatus     @default(ACTIVE)
+  createdOn         DateTime            @db.Timestamp(3)
+  updatedOn         DateTime?           @db.Timestamp(3)
+  stock             stock[]             @relation("ProductStock")
+  InventoryMovement InventoryMovement[]
 }
 
 //ALMACEN STATUS
@@ -239,28 +242,26 @@ enum warehouseStatus {
   MAINTENANCE
 }
 
- // quantity * priceUnit = totalCost
+// quantity * priceUnit = totalCost
 model stock {
-  id          Int       @id @default(autoincrement())
-  quantity    Int       @default(0)
-  minimum     Int       @default(0)
-  maximum     Int?
-  lot         String?
-  unitMeasure unitMeasureStock @default(PIECES)
-  expirationDate  DateTime?
-  entryDate     DateTime @default(now())
-  product     products  @relation("ProductStock", fields: [productId], references: [id])
-  productId   Int
-  warehouse   warehouse @relation("ProductStock", fields: [warehouseId], references: [id])
-  warehouseId Int
-  createdOn   DateTime @default(now())
-  updatedOn   DateTime? @db.Timestamp(3)
-  userStockCreated   users @relation("userStockCreated", fields: [createdBy], references: [id])
-  createdBy   Int 
-  userStockUpdated   users? @relation("userStockUpdated", fields: [updatedBy], references: [id])
-  updatedBy   Int?
+  id               Int              @id @default(autoincrement())
+  quantity         Int              @default(0)
+  minimum          Int              @default(0)
+  maximum          Int?
+  lot              String?
+  unitMeasure      unitMeasureStock @default(PIECES)
+  expirationDate   DateTime?
+  product          products         @relation("ProductStock", fields: [productId], references: [id])
+  productId        Int
+  warehouse        warehouse        @relation("ProductStock", fields: [warehouseId], references: [id])
+  warehouseId      Int
+  createdOn        DateTime         @db.Timestamp(3)
+  updatedOn        DateTime?        @db.Timestamp(3)
+  userStockCreated users            @relation("userStockCreated", fields: [createdBy], references: [id])
+  createdBy        Int
+  userStockUpdated users?           @relation("userStockUpdated", fields: [updatedBy], references: [id])
+  updatedBy        Int?
 }
-
 
 enum unitMeasureStock {
   PIECES
@@ -269,4 +270,85 @@ enum unitMeasureStock {
   METERS
 }
 
+model InventoryMovement {
+  id          Int          @id @default(autoincrement())
+  cantidad    Int
+  tipo        MovementType
+  motivo      String
+  createdOn   DateTime     @db.Timestamp(3)
+  product     products     @relation(fields: [productId], references: [id])
+  productId   Int
+  warehouse   warehouse    @relation(fields: [warehouseId], references: [id])
+  warehouseId Int
+  user        users        @relation(fields: [createdBy], references: [id])
+  createdBy   Int
+}
 
+enum MovementType {
+  INBOUND
+  OUTBOUND
+  TRANSFER
+  ADJUSTMENT
+}
+
+// 🛒 Compras
+/**
+ * model Compra {
+ * id          String          @id @default(cuid())
+ * proveedorId String
+ * total       Float
+ * fecha       DateTime        @default(now())
+ * productos   CompraDetalle[]
+ * proveedor   Proveedor       @relation(fields: [proveedorId], references: [id])
+ * }
+ * model CompraDetalle {
+ * id         String   @id @default(cuid())
+ * compraId   String
+ * productoId String
+ * cantidad   Int
+ * precio     Float
+ * compra     Compra   @relation(fields: [compraId], references: [id])
+ * producto   Producto @relation(fields: [productoId], references: [id])
+ * }
+ * // 🛍 Ventas
+ * model Venta {
+ * id        String         @id @default(cuid())
+ * cliente   String
+ * total     Float
+ * fecha     DateTime       @default(now())
+ * productos VentaDetalle[]
+ * }
+ * model VentaDetalle {
+ * id         String   @id @default(cuid())
+ * ventaId    String
+ * productoId String
+ * cantidad   Int
+ * precio     Float
+ * venta      Venta    @relation(fields: [ventaId], references: [id])
+ * producto   Producto @relation(fields: [productoId], references: [id])
+ * }
+ * // 📑 Auditoría
+ * model Auditoria {
+ * id        String   @id @default(cuid())
+ * usuarioId String
+ * accion    String
+ * entidad   String
+ * entidadId String
+ * fecha     DateTime @default(now())
+ * usuario   Usuario  @relation(fields: [usuarioId], references: [id])
+ * }
+ * // 👤 Usuarios
+ * model Usuario {
+ * id         String      @id @default(cuid())
+ * nombre     String
+ * email      String      @unique
+ * password   String
+ * rol        Rol
+ * auditorias Auditoria[]
+ * }
+ * enum Rol {
+ * ADMIN
+ * ALMACENISTA
+ * VENDEDOR
+ * }
+ */

@@ -173,6 +173,13 @@
     "warehouse_code_placeholder": "Enter the warehouse code",
     "edit_warehouse": "Edit warehouse",
     "add_warehouse": "Add warehouse",
-    "warehouse_card_msg": "Manage your warehouse efficiently."
+    "warehouse_card_msg": "Manage your warehouse efficiently.",
+    "warehouse_status": "Warehouse Status",
+    "warehouse_status_placeholder": "Select the warehouse status",
+    "warehouse_status_active": "Active",
+    "warehouse_status_inactive": "Inactive",
+    "warehouse_status_closed": "Closed",
+    "warehouse_status_pending": "Pending",
+
   }
 }

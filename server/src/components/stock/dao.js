@@ -9,8 +9,28 @@ import { prisma } from '../../config/db.js'
  * @returns {Promise<Array>} List of stock entries
  */
 export const getAllStock = async (productId, warehouseId, lot, unitMeasure) => {
-  const stock = await prisma.stock.findMany({
-    where: {
+  const providers = await prisma.$queryRaw`
+  SELECT s.*, 
+  u.name AS "userStockCreatedName",
+  uu.name AS "userStockUpdatedName",
+  p.name AS "productName"
+  p.price AS "productPrice"
+  p.cost AS "productCost"
+  
+  FROM "stock" s
+  LEFT JOIN "users" u ON s."createdBy" = u.id
+  LEFT JOIN "users" uu ON s."updatedBy" = uu.id
+  LEFT JOIN "products" p ON s."productId" = p.id
+
+  WHERE 
+(${name} IS NULL OR p."name" ILIKE '%' || ${name} || '%')
+AND 
+(${status} IS NULL OR p."status" = ${status}::BOOLEAN)
+`
+  return providers
+
+  // const stock = await prisma.stock.findMany({
+  /*  where: {
       ...(productId
         ? {
             productId: Number(productId)
@@ -56,7 +76,7 @@ export const getAllStock = async (productId, warehouseId, lot, unitMeasure) => {
     }
   })
 
-  return stock
+  return stock */
 }
 
 /**
