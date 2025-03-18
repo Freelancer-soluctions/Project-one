@@ -936,7 +936,7 @@
  *           type: string
  *           format: date-time
  *           nullable: true
- *           example: null
+ *           example: "2024-03-17T10:30:00Z"
  *
  *     BodyWarehouseCreate:
  *       type: object
@@ -985,7 +985,7 @@
  *           enum: [ACTIVE, INACTIVE, MAINTENANCE]
  *           example: "ACTIVE"
  *
- *     ResponseWarehouseCreateUpdate:
+ *     ResponseWarehouseCreate:
  *       type: object
  *       properties:
  *         id:
@@ -1018,4 +1018,255 @@
  *           format: date-time
  *           nullable: true
  *           example: null
+ *
+ *
+ *     ResponseWarehouseUpdate:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: integer
+ *           example: 1
+ *         name:
+ *           type: string
+ *           maxLength: 50
+ *           example: "Main Warehouse"
+ *         description:
+ *           type: string
+ *           maxLength: 120
+ *           nullable: true
+ *           example: "Main storage facility"
+ *         address:
+ *           type: string
+ *           maxLength: 120
+ *           nullable: true
+ *           example: "123 Storage St."
+ *         status:
+ *           type: string
+ *           enum: [ACTIVE, INACTIVE, MAINTENANCE]
+ *           example: "ACTIVE"
+ *         createdOn:
+ *           type: string
+ *           format: date-time
+ *           example: "2024-03-15T10:30:00Z"
+ *         updatedOn:
+ *           type: string
+ *           format: date-time
+ *           nullable: true
+ *           example: "2024-03-17T10:30:00Z"
+ */
+
+/** --------------------------------------
+ * Sección de Stock
+ * -------------------------------------- */
+
+/**
+ * @swagger
+ * components:
+ *   schemas:
+ *     BodyStockCreateUpdate:
+ *       type: object
+ *       required:
+ *         - quantity
+ *         - minimum
+ *         - unitMeasure
+ *         - productId
+ *         - warehouseId
+ *       properties:
+ *         quantity:
+ *           type: integer
+ *           minimum: 0
+ *           description: Cantidad de stock
+ *         minimum:
+ *           type: integer
+ *           minimum: 0
+ *           description: Cantidad mínima de stock
+ *         maximum:
+ *           type: integer
+ *           minimum: 0
+ *           description: Cantidad máxima de stock
+ *         lot:
+ *           type: string
+ *           maxLength: 50
+ *           description: Número de lote
+ *         unitMeasure:
+ *           type: string
+ *           enum: [PIECES, KILOGRAMS, LITERS, METERS]
+ *           description: Unidad de medida
+ *         expirationDate:
+ *           type: string
+ *           format: date-time
+ *           description: Fecha de expiración
+ *         productId:
+ *           type: integer
+ *           description: ID del producto
+ *         warehouseId:
+ *           type: integer
+ *           description: ID del almacén
+ *         entryDate:
+ *           type: string
+ *           format: date-time
+ *           description: Fecha de entrada
+ *         createdOn:
+ *           type: string
+ *           format: date-time
+ *           description: Fecha de creación
+ *         updatedOn:
+ *           type: string
+ *           format: date-time
+ *           description: Fecha de actualización
+ *         createdBy:
+ *           type: integer
+ *           description: ID del usuario que creó el registro
+ *         updatedBy:
+ *           type: integer
+ *           description: ID del usuario que actualizó el registro
+ *
+ *     StockFilters:
+ *       type: object
+ *       properties:
+ *         productId:
+ *           type: integer
+ *           description: ID del producto para filtrar
+ *         warehouseId:
+ *           type: integer
+ *           description: ID del almacén para filtrar
+ *         lot:
+ *           type: string
+ *           maxLength: 50
+ *           description: Número de lote para filtrar
+ *         unitMeasure:
+ *           type: string
+ *           enum: [PIECES, KILOGRAMS, LITERS, METERS]
+ *           description: Unidad de medida para filtrar
+ *
+ *     StockResponseCreate:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: integer
+ *           description: ID del registro de stock
+ *         quantity:
+ *           type: integer
+ *           minimum: 0
+ *           description: Cantidad de stock
+ *         minimum:
+ *           type: integer
+ *           minimum: 0
+ *           description: Cantidad mínima de stock
+ *         maximum:
+ *           type: integer
+ *           minimum: 0
+ *           description: Cantidad máxima de stock
+ *         lot:
+ *           type: string
+ *           maxLength: 50
+ *           description: Número de lote
+ *         unitMeasure:
+ *           type: string
+ *           enum: [PIECES, KILOGRAMS, LITERS, METERS]
+ *           description: Unidad de medida
+ *         expirationDate:
+ *           type: string
+ *           format: date-time
+ *           description: Fecha de expiración
+ *         entryDate:
+ *           type: string
+ *           format: date-time
+ *           description: Fecha de entrada
+ *         product:
+ *           type: object
+ *           properties:
+ *             id:
+ *               type: integer
+ *             name:
+ *               type: string
+ *             sku:
+ *               type: string
+ *         warehouse:
+ *           type: object
+ *           properties:
+ *             id:
+ *               type: integer
+ *             name:
+ *               type: string
+ *         createdOn:
+ *           type: string
+ *           format: date-time
+ *           description: Fecha de creación
+ *         updatedOn:
+ *           type: string
+ *           format: date-time
+ *           description: Fecha de actualización
+ *         createdBy:
+ *           type: integer
+ *           description: ID del usuario que creó el registro
+ *         updatedBy:
+ *           type: integer
+ *           description: ID del usuario que actualizó el registro
+ *
+ *
+ *     StockResponseUpdate:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: integer
+ *           description: ID del registro de stock
+ *         quantity:
+ *           type: integer
+ *           minimum: 0
+ *           description: Cantidad de stock
+ *         minimum:
+ *           type: integer
+ *           minimum: 0
+ *           description: Cantidad mínima de stock
+ *         maximum:
+ *           type: integer
+ *           minimum: 0
+ *           description: Cantidad máxima de stock
+ *         lot:
+ *           type: string
+ *           maxLength: 50
+ *           description: Número de lote
+ *         unitMeasure:
+ *           type: string
+ *           enum: [PIECES, KILOGRAMS, LITERS, METERS]
+ *           description: Unidad de medida
+ *         expirationDate:
+ *           type: string
+ *           format: date-time
+ *           description: Fecha de expiración
+ *         entryDate:
+ *           type: string
+ *           format: date-time
+ *           description: Fecha de entrada
+ *         product:
+ *           type: object
+ *           properties:
+ *             id:
+ *               type: integer
+ *             name:
+ *               type: string
+ *             sku:
+ *               type: string
+ *         warehouse:
+ *           type: object
+ *           properties:
+ *             id:
+ *               type: integer
+ *             name:
+ *               type: string
+ *         createdOn:
+ *           type: string
+ *           format: date-time
+ *           description: Fecha de creación
+ *         updatedOn:
+ *           type: string
+ *           format: date-time
+ *           description: Fecha de actualización
+ *         createdBy:
+ *           type: integer
+ *           description: ID del usuario que creó el registro
+ *         updatedBy:
+ *           type: integer
+ *           description: ID del usuario que actualizó el registro
  */

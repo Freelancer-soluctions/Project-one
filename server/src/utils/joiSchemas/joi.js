@@ -250,3 +250,21 @@ export const warehouseCreateUpdateSchema = Joi.object({
   address: Joi.string().max(120).allow(''),
   status: Joi.string().valid('ACTIVE', 'INACTIVE', 'MAINTENANCE').required()
 })
+
+export const stockFiltersSchema = Joi.object({
+  productId: Joi.number().integer().allow(''),
+  warehouseId: Joi.number().integer().allow(''),
+  lot: Joi.string().max(50).allow(''),
+  unitMeasure: Joi.string().valid('PIECES', 'KILOGRAMS', 'LITERS', 'METERS').allow('')
+})
+
+export const stockCreateUpdateSchema = Joi.object({
+  quantity: Joi.number().integer().min(0).required(),
+  minimum: Joi.number().integer().min(0).required(),
+  maximum: Joi.number().integer().min(0).allow(null),
+  lot: Joi.string().max(50).allow(''),
+  unitMeasure: Joi.string().valid('PIECES', 'KILOGRAMS', 'LITERS', 'METERS').required(),
+  expirationDate: Joi.date().allow(null),
+  productId: Joi.number().integer().required(),
+  warehouseId: Joi.number().integer().required()
+})
