@@ -89,3 +89,8 @@ Los movimientos de inventario deben estar auditados para garantizar trazabilidad
 Debe permitir la configuración de reglas como stock mínimo, alertas, permisos y roles de usuario.
 Posibilidad de personalizar los campos de los productos y reportes según necesidades del negocio.
 Automatización de compras si el stock baja de un nivel crítico.
+
+
+Quiero que hagas lo siguiente: 1- crea la estructura para stock siguiendo como ejemplo warehouse y el modelo de prisma de stock, 2- usa la misma estructura de codigo, es importante que respetes como esta escrito el codigo lo que quiero es que lo adaptes a stock siguiendo la misma estrutura que esta en warehouse. 3- crealo dentro de modules siguiendo la estructura de archivos.
+
+Quiero que hagas lo siguiente: 1- crea la estructura para stock siguiendo como ejemplo warehouse y el modelo de prisma de stock, 2- usa la misma estructura de codigo, es importante que respetes como esta escrito el codigo lo que quiero es que lo adaptes a stock siguiendo la misma estrutura que esta en warehouse. 3- crealo dentro de components siguiendo la estructura de archivos. reviza el copdigo porque no lo estas haciendo bien quiero que sea exacto yo estoy usando esmodules y tu lo estas haciendo de otra forma, tambien ten presente las HOF que tienen los controladores porque no estoy haciendo uso de try catch
