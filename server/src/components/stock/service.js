@@ -32,9 +32,10 @@ export const getAllStock = async ({ productId, warehouseId, lot, unitMeasure }) 
  * @param {number} data.createdBy - User ID who created the entry
  * @returns {Promise<Object>} Created stock entry
  */
-export const createStock = async (data) => {
+export const createStock = async (userId, data) => {
   const createData = {
     ...data,
+    createdBy: Number(userId),
     createdOn: new Date()
   }
 
@@ -54,9 +55,10 @@ export const createStock = async (data) => {
  * @param {number} data.updatedBy - User ID who updated the entry
  * @returns {Promise<Object>} Updated stock entry
  */
-export const updateStockById = async (stockId, data) => {
+export const updateStockById = async (stockId, data, userId) => {
   const updateData = {
     ...data,
+    updatedBy: Number(userId),
     updatedOn: new Date()
   }
 

@@ -3,13 +3,13 @@ import { DataTable } from '@/components/dataTable'
 import { format } from 'date-fns'
 import PropTypes from 'prop-types'
 
-export const ProvidersDatatable = ({
+export const StockDatatable = ({
   dataStock,
   onEditDialog,
 }) => {
   const { t } = useTranslation()
 
-  const columnDefProviders = [
+  const columnDefStock = [
     {
       accessorKey: 'createdOn',
       header: t('created_on'),
@@ -26,18 +26,40 @@ export const ProvidersDatatable = ({
       cell: info => info.getValue()?.toLocaleString('es-CO', { style: 'currency', currency: 'COP' })
     },
     {
-      accessorKey: 'productCost',
-      header: t('cost'),
+      accessorKey: 'quantity',
+      header: t('quantity'),
+    },
+    {
+      accessorKey: 'totalCost',
+      header: t('total_cost'),
       cell: info => info.getValue()?.toLocaleString('es-CO', { style: 'currency', currency: 'COP' })
     },
     {
       accessorKey: 'warehouseName',
-      header: t('cost'),
+      header: t('warehouse'),
       cell: info => info.getValue()?.toUpperCase()
     },
     {
       accessorKey: 'unitMeasure',
       header: t('unitMeasure'),
+      cell: info => info.getValue()?.toUpperCase()
+    },
+    {
+      accessorKey: 'lot',
+      header: t('lot'),
+      cell: info => info.getValue()?.toUpperCase()
+    },
+    {
+      accessorKey: 'expirationDate',
+      header: t('expiration_date'),
+      cell: info => {
+        const date = info.getValue()
+        return date ? format(new Date(date), 'PPP') : null
+      }
+    },
+    {
+      accessorKey: 'expirationStatus',
+      header: t('expiration_status'),
       cell: info => info.getValue()?.toUpperCase()
     },
 
@@ -62,14 +84,7 @@ export const ProvidersDatatable = ({
         return date ? format(new Date(date), 'PPP') : null
       }
     },
-    {
-      accessorKey: 'expirationDate',
-      header: t('expiration_date'),
-      cell: info => {
-        const date = info.getValue()
-        return date ? format(new Date(date), 'PPP') : null
-      }
-    },
+   
     
    
   ]
@@ -80,14 +95,14 @@ export const ProvidersDatatable = ({
 
   return (
     <DataTable
-      columns={columnDefProviders}
+      columns={columnDefStock}
       data={dataStock.data}
       handleRow={row => handleEditDialog(row)}  
     />
   )
 }
 
-ProvidersDatatable.propTypes = {
+StockDatatable.propTypes = {
   dataStock: PropTypes.object.isRequired,   
   onEditDialog: PropTypes.func.isRequired,
 

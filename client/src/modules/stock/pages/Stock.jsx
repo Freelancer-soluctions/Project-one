@@ -1,13 +1,19 @@
 import { StockFiltersForm, StockDialog, StockDatatable } from '../components'
 import { BackDashBoard } from '@/components/backDash/BackDashBoard'
 import { useTranslation } from 'react-i18next'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import {
   useLazyGetAllStockQuery,
   useUpdateStockByIdMutation,
   useCreateStockMutation,
   useDeleteStockByIdMutation
 } from '../api/stockAPI'
+import {
+  useLazyGetAllProductsQuery,
+} from '@/modules/products/api/productsAPI'
+import {
+  useLazyGetAllWarehousesQuery,
+} from '@/modules/warehouse/api/warehouseAPI'
 import AlertDialogComponent from '@/components/alertDialog/AlertDialog'
 import { Spinner } from '@/components/loader/Spinner'
 import {unitMeasures} from '../utils'
@@ -15,7 +21,7 @@ import {unitMeasures} from '../utils'
 
 const Stock = () => {
   const { t } = useTranslation()
-  const [selectedRow, setSelectedRow] = useState(null)
+  const [selectedRow, setSelectedRow] = useState({})
   const [openDialog, setOpenDialog] = useState(false)
   const [openAlertDialog, setOpenAlertDialog] = useState(false)
   const [alertProps, setAlertProps] = useState({})
@@ -24,12 +30,12 @@ const Stock = () => {
   const [
     getAllStock,
     {
-      data: dataStock = [],
+      data: dataStock = { data: [] },
       isLoading: isLoadingStock,
       isFetching: isFetchingStock
     }
   ] = useLazyGetAllStockQuery()
-
+  
   const [
     updateStockById,
     { isLoading: isLoadingPut }
@@ -44,6 +50,25 @@ const Stock = () => {
     deleteStockById,
     { isLoading: isLoadingDelete }
   ] = useDeleteStockByIdMutation()
+
+  const [
+    getAllProducts,
+    { data: dataProducts = { data: [] }, isLoading: isLoadingProducts }
+  ] = useLazyGetAllProductsQuery()
+
+  const [
+    getAllWarehouses,
+    { data: dataWarehouses = { data: [] }, isLoading: isLoadingWarehouses }
+  ] = useLazyGetAllWarehousesQuery()
+
+  useEffect(() => {
+    getAllProducts({ name: '',
+      productCategoryCode: '',
+      productProviderCode: '',
+      statusCode: ''})
+    getAllWarehouses({name:''})
+  }, [])
+
 
   const handleSubmitFilters = data => {
     getAllStock(data)
@@ -97,6 +122,7 @@ const Stock = () => {
   const handleAddDialog = () => {
     setActionDialog(t('add_stock'))
     setOpenDialog(true)
+    setSelectedRow({})
   }
 
   const handleEditDialog = row => {
@@ -106,7 +132,7 @@ const Stock = () => {
   }
 
   const handleCloseDialog = () => {
-    setSelectedRow(null)
+    setSelectedRow({})
     setOpenDialog(false)
   }
 
@@ -155,7 +181,9 @@ const Stock = () => {
           isLoadingPut ||
           isLoadingPost ||
           isLoadingDelete ||
-          isFetchingStock) && <Spinner />}
+          isFetchingStock ||
+          isLoadingProducts ||
+          isLoadingWarehouses) && <Spinner />}
 
         <div className='grid grid-cols-2 grid-rows-4 gap-4 md:grid-cols-5'>
           {/* filters */}
@@ -164,6 +192,8 @@ const Stock = () => {
               onSubmit={handleSubmitFilters}
               onAddDialog={handleAddDialog}
               unitMeasures={unitMeasures}
+              products={dataProducts.data}
+              warehouses={dataWarehouses.data}
             />
           </div>
           {/* Datatable */}
@@ -179,6 +209,8 @@ const Stock = () => {
             onCloseDialog={handleCloseDialog}
             selectedRow={selectedRow}
             unitMeasures={unitMeasures}
+            products={dataProducts.data}
+            warehouses={dataWarehouses.data}
             onSubmit={handleSubmit}
             onDeleteById={handleDelete}
             actionDialog={actionDialog}

@@ -44,12 +44,9 @@ export const ProductsDatatable = ({
     },
     {
       accessorKey: 'cost',
-      header: t('cost')
+      header: t('cost')   
     },
-    {
-      accessorKey: 'stock',
-      header: t('stock')
-    },
+
     {
       accessorKey: 'userProductCreatedName',
       header: t('created_by'),

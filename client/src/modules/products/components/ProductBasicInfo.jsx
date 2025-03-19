@@ -59,7 +59,6 @@ export const ProductBasicInfo = ({
       sku: '',
       description: '',
       barcode: '',
-      stock: 0,
       price: '',
       cost: '',
       category: null,
@@ -71,15 +70,16 @@ export const ProductBasicInfo = ({
 
   // Actualiza todos los valores del formulario al cambiar `selectedRow`
   useEffect(() => {
-    if (selectedRow) {
+    if (selectedRow?.id) {
       form.reset({
         ...selectedRow,
-        stock: String(selectedRow.stock),
         status: {id:selectedRow.statusId, code:selectedRow.statusCode, description:selectedRow.statusDescription  },
         category: {id:selectedRow.categoryId, code:selectedRow.categoryCode, description:selectedRow.categoryDescription  },
         provider: {id:selectedRow.providerId, code:selectedRow.providerCode, description:selectedRow.providerDescription  }
       })
-      setId(selectedRow.id || '')
+      setId(selectedRow.id)
+    }else{
+      form.reset()
     }
 
  
@@ -337,33 +337,6 @@ export const ProductBasicInfo = ({
                             type='number'
                             placeholder='0.00'
                             name='cost'
-                            autoComplete='off'
-                            {...field}
-                            value={field.value ?? ''}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )
-                  }}
-                />
-              </div>
-              <div className='space-y-2'>
-                <FormField
-                  control={form.control}
-                  name='stock'
-                  render={({ field }) => {
-                    return (
-                      <FormItem>
-                        <FormLabel htmlFor='stock'>
-                          {t('initial_stock')}*
-                        </FormLabel>
-                        <FormControl>
-                          <Input
-                            id='stock'
-                            type='number'
-                            placeholder='0'
-                            name='stock'
                             autoComplete='off'
                             {...field}
                             value={field.value ?? ''}
