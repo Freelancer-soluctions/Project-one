@@ -26,7 +26,8 @@ export const getAllStock = handleCatchErrorAsync(async (req, res) => {
  * @returns {Promise<void>}
  */
 export const createStock = handleCatchErrorAsync(async (req, res) => {
-  await createStockService(req.body)
+  const userId = req.userId
+  await createStockService(userId, req.body)
   globalResponse(res, 201, { message: 'Stock entry created successfully' })
 })
 
@@ -38,7 +39,8 @@ export const createStock = handleCatchErrorAsync(async (req, res) => {
  */
 export const updateStockById = handleCatchErrorAsync(async (req, res) => {
   const { id } = req.params
-  await updateStockByIdService(id, req.body)
+  const userId = req.userId
+  await updateStockByIdService(id, req.body, userId)
   globalResponse(res, 200, { message: 'Stock entry updated successfully' })
 })
 

@@ -34,9 +34,7 @@ export const ProductsSchema = z.object({
       .multipleOf(0.01, "El precio debe tener dos decimales")
   ),
 
-  stock: z.coerce
-  .number({ invalid_type_error: "El stock debe ser un número" }) // Asegura que sea un número
-  .min(0, "El stock no puede ser negativo"), // No permite valores negativos
+
 
 }).passthrough();
 

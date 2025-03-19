@@ -109,7 +109,6 @@ export const getAllProductProviders = async () => {
  * @param {number} data.productProviderId - The ID of the product provider.
  * @param {number} data.price - The price of the product (decimal with 2 decimal places).
  * @param {number} data.cost - The cost of the product (decimal with 2 decimal places).
- * @param {number} data.stock - The initial stock quantity (integer, min 0).
  * @param {string} data.description - The product description (max 2000 characters).
  * @param {string} [data.barCode] - The optional barcode of the product (max 25 characters).
  * @param {string} data.createdOn - The creation timestamp.
@@ -123,7 +122,6 @@ export const createRow = async (data) => {
       name: data.name,
       price: data.price,
       cost: data.cost,
-      stock: data.stock,
       description: data.description,
       barCode: data.barCode,
       createdOn: data.createdOn,
@@ -159,7 +157,6 @@ export const createRow = async (data) => {
  * @param {number} data.productProviderId - The updated product provider ID.
  * @param {number} data.price - The updated price (decimal with 2 decimal places).
  * @param {number} data.cost - The updated cost (decimal with 2 decimal places).
- * @param {number} data.stock - The updated stock quantity (integer, min 0).
  * @param {string} data.description - The updated product description (max 2000 characters).
  * @param {string} [data.barCode] - The updated barcode (max 25 characters).
  * @param {string} data.updatedOn - The update timestamp.
@@ -175,7 +172,6 @@ export const updateRow = async (data, where) => {
       name: data.name,
       price: data.price,
       cost: data.cost,
-      stock: data.stock,
       description: data.description,
       barCode: data.barCode,
       updatedOn: data.updatedOn,

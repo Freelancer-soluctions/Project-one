@@ -9,7 +9,7 @@ import { UpcomingEventsAlert } from './UpcomingEvents'
 import { Button } from '@/components/ui/button'
 import { Link } from 'react-router'
 import { CgNotes } from 'react-icons/cg'
-import { LuArrowRight, LuNewspaper, LuCalendarCheck2, LuPackage, LuBuilding2, LuWarehouse  } from 'react-icons/lu'
+import { LuArrowRight, LuNewspaper, LuCalendarCheck2, LuPackage, LuPackagePlus, LuBuilding2, LuWarehouse  } from 'react-icons/lu'
 import { useTranslation } from 'react-i18next'
 const CardModule = () => {
   const { t } = useTranslation()
@@ -132,6 +132,25 @@ const CardModule = () => {
           <CardContent className='px-6 pb-6'>
             <Link
               to={'warehouse'}
+              className='flex items-center gap-2 px-3 py-2 text-sm font-medium transition-colors rounded-md hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground'
+              prefetch={false}>
+              {t('access')} <LuArrowRight className='w-4 h-4 ml-2' />
+            </Link>
+          </CardContent>
+        </Card>
+        <Card className='relative overflow-hidden transition-all group hover:shadow-lg hover:-translate-y-1'>
+          <CardHeader className='p-6'>
+            <div className='flex items-center gap-4'>
+              <LuPackagePlus  className='w-8 h-8 text-zinc-800' />
+              <div>
+                <CardTitle className='text-xl'>{t('stock')}</CardTitle>
+                <CardDescription>{t('stock_card_msg')}</CardDescription>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent className='px-6 pb-6'>
+            <Link
+              to={'stock'}
               className='flex items-center gap-2 px-3 py-2 text-sm font-medium transition-colors rounded-md hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground'
               prefetch={false}>
               {t('access')} <LuArrowRight className='w-4 h-4 ml-2' />

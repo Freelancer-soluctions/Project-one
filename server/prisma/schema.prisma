@@ -248,9 +248,9 @@ model stock {
   quantity         Int              @default(0)
   minimum          Int              @default(0)
   maximum          Int?
-  lot              String?
+  lot              String?          @db.VarChar(50)
   unitMeasure      unitMeasureStock @default(PIECES)
-  expirationDate   DateTime?
+  expirationDate   DateTime?        @db.Timestamp(3)
   product          products         @relation("ProductStock", fields: [productId], references: [id])
   productId        Int
   warehouse        warehouse        @relation("ProductStock", fields: [warehouseId], references: [id])
@@ -261,6 +261,7 @@ model stock {
   createdBy        Int
   userStockUpdated users?           @relation("userStockUpdated", fields: [updatedBy], references: [id])
   updatedBy        Int?
+  @@unique([productId, warehouseId, lot, expirationDate]) // Permite múltiples registros solo si lote o caducidad es distinto
 }
 
 enum unitMeasureStock {
@@ -272,9 +273,9 @@ enum unitMeasureStock {
 
 model InventoryMovement {
   id          Int          @id @default(autoincrement())
-  cantidad    Int
-  tipo        MovementType
-  motivo      String
+  quantity    Int          @default(0)
+  type        MovementType
+  reason      String?      @db.VarChar(200)
   createdOn   DateTime     @db.Timestamp(3)
   product     products     @relation(fields: [productId], references: [id])
   productId   Int
@@ -291,64 +292,4 @@ enum MovementType {
   ADJUSTMENT
 }
 
-// 🛒 Compras
-/**
- * model Compra {
- * id          String          @id @default(cuid())
- * proveedorId String
- * total       Float
- * fecha       DateTime        @default(now())
- * productos   CompraDetalle[]
- * proveedor   Proveedor       @relation(fields: [proveedorId], references: [id])
- * }
- * model CompraDetalle {
- * id         String   @id @default(cuid())
- * compraId   String
- * productoId String
- * cantidad   Int
- * precio     Float
- * compra     Compra   @relation(fields: [compraId], references: [id])
- * producto   Producto @relation(fields: [productoId], references: [id])
- * }
- * // 🛍 Ventas
- * model Venta {
- * id        String         @id @default(cuid())
- * cliente   String
- * total     Float
- * fecha     DateTime       @default(now())
- * productos VentaDetalle[]
- * }
- * model VentaDetalle {
- * id         String   @id @default(cuid())
- * ventaId    String
- * productoId String
- * cantidad   Int
- * precio     Float
- * venta      Venta    @relation(fields: [ventaId], references: [id])
- * producto   Producto @relation(fields: [productoId], references: [id])
- * }
- * // 📑 Auditoría
- * model Auditoria {
- * id        String   @id @default(cuid())
- * usuarioId String
- * accion    String
- * entidad   String
- * entidadId String
- * fecha     DateTime @default(now())
- * usuario   Usuario  @relation(fields: [usuarioId], references: [id])
- * }
- * // 👤 Usuarios
- * model Usuario {
- * id         String      @id @default(cuid())
- * nombre     String
- * email      String      @unique
- * password   String
- * rol        Rol
- * auditorias Auditoria[]
- * }
- * enum Rol {
- * ADMIN
- * ALMACENISTA
- * VENDEDOR
- * }
- */
+

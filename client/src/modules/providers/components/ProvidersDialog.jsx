@@ -296,7 +296,7 @@ export const ProvidersDialog = ({
                 }}
               />
 
-              {providerId && (
+              {selectedRow?.createdOn && (
                 <>
                   <FormField
                     control={form.control}
@@ -358,7 +358,12 @@ export const ProvidersDialog = ({
                     )}
                   />
 
-                  <FormField
+            
+                </>
+              )}
+              {selectedRow?.updatedOn && (
+                <>
+                      <FormField
                     control={form.control}
                     name='userProvidersUpdatedName'
                     render={({ field }) => (

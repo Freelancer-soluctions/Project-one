@@ -8,7 +8,7 @@ import settings from '../../components/settings/routes.js'
 import events from '../../components/events/routes.js'
 import products from '../../components/products/routes.js'
 import warehouse from '../../components/warehouse/routes.js'
-
+import stock from '../../components/stock/routes.js'
 const router = Router()
 router.use('/auth', auth)
 router.use('/news', news)
@@ -18,6 +18,7 @@ router.use('/events', events)
 router.use('/products', products)
 router.use('/providers', providers)
 router.use('/warehouse', warehouse)
+router.use('/stock', stock)
 
 router.use('/role', role)
 

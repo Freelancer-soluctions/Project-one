@@ -6,7 +6,8 @@ import {
   FormControl,
   FormField,
   FormItem,
-  FormLabel
+  FormLabel,
+  FormMessage
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import {
@@ -16,9 +17,10 @@ import {
   SelectTrigger,
   SelectValue
 } from '@/components/ui/select'
-import { PlusIcon } from '@heroicons/react/24/outline'
+import { LuPlus, LuSearch, LuEraser } from 'react-icons/lu'
+import PropTypes from 'prop-types'
 
-const StockFiltersForm = ({
+export const StockFiltersForm = ({
   onSubmit,
   onAddDialog,
   unitMeasures,
@@ -29,95 +31,124 @@ const StockFiltersForm = ({
 
   const form = useForm({
     defaultValues: {
-      productId: '',
-      warehouseId: '',
+      productId: null,
+      warehouseId: null,
       lot: '',
       unitMeasure: ''
     }
   })
 
+  const handleSubmit = data => {
+    onSubmit(data)
+  }
+
+  const handleAdd = () => {
+    onAddDialog()
+  }
+
+  const handleResetFilter = () => {
+    form.reset()
+  }
+
   return (
-    <div className='p-4 border rounded-lg'>
-      <div className='flex items-center justify-between pb-4'>
-        <h2 className='text-lg font-semibold'>{t('filters')}</h2>
-        <Button onClick={onAddDialog}>
-          <PlusIcon className='w-4 h-4 mr-2' />
-          {t('add')}
-        </Button>
-      </div>
-      <Form {...form}>
-        <form
-          onSubmit={form.handleSubmit(onSubmit)}
-          className='grid grid-cols-1 gap-4 md:grid-cols-4'
-        >
+    <Form {...form}>
+      <form
+        method='post'
+        action=''
+        id='profile-info-form'
+        noValidate
+        onSubmit={form.handleSubmit(handleSubmit)}
+        className='flex flex-col flex-wrap gap-5'>
+        {/* inputs */}
+        <div className='flex flex-wrap flex-1 gap-3'>
           <FormField
             control={form.control}
             name='productId'
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>{t('product')}</FormLabel>
-                <Select onValueChange={field.onChange} value={field.value}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder={t('select_product')} />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value=''>{t('all')}</SelectItem>
-                    {products?.map(product => (
-                      <SelectItem key={product.id} value={product.id.toString()}>
-                        {product.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </FormItem>
-            )}
+            render={({ field }) => {
+              return (
+                <FormItem className='flex flex-col flex-auto'>
+                  <FormLabel htmlFor='productId'>{t('product')}</FormLabel>
+                  <Select
+                    onValueChange={field.onChange}
+                    value={field.value?.toString()} // Asegura que el valor sea string
+                  >
+                    <FormControl id='productId'>
+                      <SelectTrigger>
+                        <SelectValue placeholder={t('select_product')} />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {products.map((item, index) => (
+                        <SelectItem value={item.id.toString()} key={index}>
+                          {item.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )
+            }}
           />
-
           <FormField
             control={form.control}
             name='warehouseId'
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>{t('warehouse')}</FormLabel>
-                <Select onValueChange={field.onChange} value={field.value}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder={t('select_warehouse')} />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value=''>{t('all')}</SelectItem>
-                    {warehouses?.map(warehouse => (
-                      <SelectItem key={warehouse.id} value={warehouse.id.toString()}>
-                        {warehouse.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </FormItem>
-            )}
+            render={({ field }) => {
+              return (
+                <FormItem className='flex flex-col flex-auto'>
+                  <FormLabel htmlFor='warehouseId'>{t('warehouse')}</FormLabel>
+                  <Select
+                    onValueChange={field.onChange}
+                    value={field.value?.toString()} // Asegura que el valor sea string
+                  >
+                    <FormControl id='warehouseId'>
+                      <SelectTrigger>
+                        <SelectValue placeholder={t('select_warehouse')} />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {warehouses.map((item, index) => (
+                        <SelectItem value={item.id.toString()} key={index}>
+                          {item.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )
+            }}
           />
-
           <FormField
             control={form.control}
             name='lot'
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>{t('lot')}</FormLabel>
-                <FormControl>
-                  <Input {...field} placeholder={t('search_by_lot')} />
-                </FormControl>
-              </FormItem>
-            )}
+            render={({ field }) => {
+              return (
+                <FormItem className='flex flex-col flex-auto'>
+                  <FormLabel htmlFor='lot'>{t('lot')}</FormLabel>
+                  <FormControl>
+                    <Input
+                      id='lot'
+                      name='lot'
+                      placeholder={t('search_by_lot')}
+                      type='text'
+                      autoComplete='false'
+                      maxLength={50}
+                      {...field}
+                      value={field.value ?? ''}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )
+            }}
           />
 
           <FormField
             control={form.control}
             name='unitMeasure'
             render={({ field }) => (
-              <FormItem>
+              <FormItem className='flex flex-col flex-auto'>
                 <FormLabel>{t('unit_measure')}</FormLabel>
                 <Select onValueChange={field.onChange} value={field.value}>
                   <FormControl>
@@ -126,10 +157,9 @@ const StockFiltersForm = ({
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value=''>{t('all')}</SelectItem>
-                    {unitMeasures.map(measure => (
-                      <SelectItem key={measure} value={measure}>
-                        {t(measure.toLowerCase())}
+                    {unitMeasures.map((measure, index) => (
+                      <SelectItem key={index} value={measure.value}>
+                        {measure.label}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -137,14 +167,40 @@ const StockFiltersForm = ({
               </FormItem>
             )}
           />
-
-          <Button type='submit' className='md:col-start-4'>
+        </div>
+        {/* buttons */}
+        <div className='flex flex-wrap items-center justify-between gap-3 mt-5 md:justify-normal'>
+          <Button
+            type='submit'
+            className='flex-1 md:flex-initial md:w-24'
+            variant='info'>
             {t('search')}
+            <LuSearch className='w-4 h-4 ml-auto opacity-50' />
           </Button>
-        </form>
-      </Form>
-    </div>
+          <Button
+            type='button'
+            className='flex-1 md:flex-initial md:w-24'
+            variant='success'
+            onClick={() => handleAdd()}>
+            {t('add')} <LuPlus className='w-4 h-4 ml-auto opacity-50' />
+          </Button>
+          <Button
+            type='button'
+            className='flex-1 md:flex-initial md:w-24'
+            variant='outline'
+            onClick={() => handleResetFilter()}>
+            {t('clear')} <LuEraser className='w-4 h-4 ml-auto opacity-50' />
+          </Button>
+        </div>
+      </form>
+    </Form>
   )
 }
 
-export default StockFiltersForm 
+StockFiltersForm.propTypes = {
+  onSubmit: PropTypes.func,
+  onAddDialog: PropTypes.func,
+  unitMeasures: PropTypes.array,
+  products: PropTypes.array,
+  warehouses: PropTypes.array
+}
