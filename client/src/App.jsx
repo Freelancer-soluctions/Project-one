@@ -19,6 +19,7 @@ const ProductsForms = lazy(
 )
 const Providers = lazy(() => import('@/modules/providers/pages/Providers'))
 const Warehouse = lazy(() => import('@/modules/warehouse/pages/Warehouse'))
+const Stock = lazy(() => import('@/modules/stock/pages/Stock'))
 
 const App = () => {
   return (
@@ -53,6 +54,8 @@ const App = () => {
           />
           <Route path='providers' element={<Providers />} />
           <Route path='warehouse' element={<Warehouse />} />
+          <Route path='stock' element={<Stock />} />
+
 
 
           {/* <Route path='inventory' element={<Events />} />

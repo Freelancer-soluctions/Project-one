@@ -171,7 +171,6 @@ export const Products = Joi.object({
   productProviderId: Joi.number().integer().required(),
   price: Joi.number().precision(2).positive().required(),
   cost: Joi.number().precision(2).positive().required(),
-  stock: Joi.number().integer().min(0).required(),
   description: Joi.string().max(2000).allow(null, ''),
   productStatusId: Joi.number().integer().required(),
   barCode: Joi.string().max(25).allow(null, '')
@@ -192,7 +191,6 @@ export const ProductsUpdate = Joi.object({
   productProviderId: Joi.number().integer().required(),
   price: Joi.number().precision(2).positive().required(),
   cost: Joi.number().precision(2).positive().required(),
-  stock: Joi.number().integer().min(0).required(),
   description: Joi.string().max(2000).allow(null, ''),
   productStatusId: Joi.number().integer().required(),
   barCode: Joi.string().max(25).allow(null, '')
@@ -252,10 +250,10 @@ export const warehouseCreateUpdateSchema = Joi.object({
 })
 
 export const stockFiltersSchema = Joi.object({
-  productId: Joi.number().integer().allow(''),
-  warehouseId: Joi.number().integer().allow(''),
-  lot: Joi.string().max(50).allow(''),
-  unitMeasure: Joi.string().valid('PIECES', 'KILOGRAMS', 'LITERS', 'METERS').allow('')
+  productId: Joi.number().integer().allow(null).optional(),
+  warehouseId: Joi.number().integer().allow(null).optional(),
+  lot: Joi.string().max(50).allow('').optional(),
+  unitMeasure: Joi.string().valid('PIECES', 'KILOGRAMS', 'LITERS', 'METERS').allow('').optional()
 })
 
 export const stockCreateUpdateSchema = Joi.object({
