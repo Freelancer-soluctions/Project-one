@@ -1,5 +1,5 @@
 import logger from '../../logger/index.js'
-const globalErrorResponse = (res, statusCode = 500, message, name, stack) => {
+const globalErrorResponse = (res, statusCode = 500, code, message, name, stack) => {
   logger.error({
     message,
     name,
@@ -7,8 +7,8 @@ const globalErrorResponse = (res, statusCode = 500, message, name, stack) => {
   })
   res.status(statusCode).json({
     error: true,
-    statusCode,
-    message
+    message,
+    code
   })
 }
 

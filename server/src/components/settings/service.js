@@ -2,7 +2,11 @@ import {
   getSettingsById as getSettingsByIdDao,
   createOrUpdateSettingsLanguage as createOrUpdateSettingsLanguageDao,
   createOrUpdateSettingsDisplay as createOrUpdateSettingsDisplayDao,
-} from "./dao.js";
+  getAllProductCategories as getAllProductCategoriesDao,
+  createProductCategory as createProductCategoryDao,
+  updateProductCategory as updateProductCategoryByIdDao,
+  deleteProductCategory as deleteProductCategoryByIdDao
+} from './dao.js'
 
 /**
  * Create or update language settings based on the provided data.
@@ -15,19 +19,19 @@ import {
  * @throws {Error} - If there is an error during the database operation.
  */
 export const createOrUpdateSettingsLanguage = async (
-  { id, language },
+  { language, id },
   userId
 ) => {
-  const rowId = Number(id);
-  const user = Number(userId);
-  const timestamp = new Date();
+  const rowId = Number(id)
+  const user = Number(userId)
+  const timestamp = new Date()
 
   const settingsObject = id
     ? { updatedOn: timestamp, language }
-    : { language, createdOn: timestamp };
+    : { language, createdOn: timestamp }
 
-  return await createOrUpdateSettingsLanguageDao(rowId, settingsObject, user);
-};
+  return await createOrUpdateSettingsLanguageDao(rowId, settingsObject, user)
+}
 
 /**
  * Create or update language settings based on the provided data.
@@ -43,16 +47,16 @@ export const createOrUpdateSettingsDisplay = async (
   { id, displayOptions },
   userId
 ) => {
-  const rowId = Number(id);
-  const user = Number(userId);
-  const timestamp = new Date();
+  const rowId = Number(id)
+  const user = Number(userId)
+  const timestamp = new Date()
 
   const settingsObject = rowId
     ? { updatedOn: timestamp, ...displayOptions }
-    : { ...displayOptions, createdOn: timestamp };
+    : { ...displayOptions, createdOn: timestamp }
 
-  return await createOrUpdateSettingsDisplayDao(rowId, settingsObject, user);
-};
+  return await createOrUpdateSettingsDisplayDao(rowId, settingsObject, user)
+}
 
 /**
  * Get the language settings by user ID.
@@ -62,6 +66,62 @@ export const createOrUpdateSettingsDisplay = async (
  * @throws {Error} - If there is an error during the database operation.
  */
 export const getSettingsById = async (userId) => {
-  const rowId = Number(userId);
-  return await getSettingsByIdDao(rowId);
-};
+  const rowId = Number(userId)
+  return await getSettingsByIdDao(rowId)
+}
+
+/**
+ * Get all product categories with optional filters
+ * @param {Object} params - The parameters for filtering categories
+ * @param {string} params.description - Description to filter categories by
+ * @param {string} params.code - Code to filter categories by
+ * @returns {Promise<Array>} A list of categories matching the filters
+ */
+export const getAllProductCategories = async ({ description, code }) => {
+  return getAllProductCategoriesDao(description, code)
+}
+
+/**
+ * Create a new product category
+ * @param {number} userId - The ID of the user creating the category
+ * @param {Object} data - The data for the new category
+ * @param {string} data.code - The code of the category
+ * @param {string} data.description - The description of the category
+ * @returns {Promise<Object>} The created category
+ */
+export const createProductCategory = async (data) => {
+  console.log('data', data)
+  const createData = {
+    code: data.code,
+    description: data.description,
+    createdOn: new Date()
+  }
+
+  return createProductCategoryDao(createData)
+}
+
+/**
+ * Update a product category by ID
+ * @param {number} categoryId - The ID of the category to update
+ * @param {Object} data - The updated data for the category
+ * @param {string} data.description - The updated description of the category
+ * @param {string} data.code - The updated code of the category
+ * @returns {Promise<Object>} The updated category
+ */
+export const updateProductCategoryById = async (categoryId, data) => {
+  const updateData = {
+    ...data,
+    updatedOn: new Date()
+  }
+
+  return updateProductCategoryByIdDao(updateData, { id: Number(categoryId) })
+}
+
+/**
+ * Delete a product category by ID
+ * @param {number} categoryId - The ID of the category to delete
+ * @returns {Promise<void>}
+ */
+export const deleteProductCategoryById = async (categoryId) => {
+  return deleteProductCategoryByIdDao({ id: Number(categoryId) })
+}

@@ -8,11 +8,7 @@ import {
   FormLabel,
   FormMessage
 } from '@/components/ui/form'
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger
-} from '@/components/ui/popover'
+
 import {
   Select,
   SelectContent,
@@ -24,7 +20,6 @@ import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { LuPlus, LuSearch, LuEraser } from 'react-icons/lu'
 
-import { cn } from '@/lib/utils'
 import PropTypes from 'prop-types'
 
 export const ProvidersFiltersForm = ({ onSubmit, dataStatus, onAddDialog }) => {
@@ -32,7 +27,7 @@ export const ProvidersFiltersForm = ({ onSubmit, dataStatus, onAddDialog }) => {
   const form = useForm({
     defaultValues: {
       name: '',
-      statusValue: true
+      status: true
     }
   })
 
@@ -72,7 +67,7 @@ export const ProvidersFiltersForm = ({ onSubmit, dataStatus, onAddDialog }) => {
                       name='name'
                       placeholder={t('provider_name_placeholder')}
                       type='text'
-                      autoComplete='false'
+                      autoComplete='off'
                       maxLength={80}
                       {...field}
                       value={field.value ?? ''}
@@ -86,7 +81,7 @@ export const ProvidersFiltersForm = ({ onSubmit, dataStatus, onAddDialog }) => {
 
           <FormField
             control={form.control}
-            name='statusValue'
+            name='status'
             render={({ field }) => {
               return (
                 <FormItem className='flex flex-col flex-auto'>
@@ -144,6 +139,6 @@ export const ProvidersFiltersForm = ({ onSubmit, dataStatus, onAddDialog }) => {
 
 ProvidersFiltersForm.propTypes = {
   onSubmit: PropTypes.func.isRequired,
-  dataStatus: PropTypes.object,
+  dataStatus: PropTypes.array,
   onAddDialog: PropTypes.func
 }

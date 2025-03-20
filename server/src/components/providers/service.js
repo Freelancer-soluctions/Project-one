@@ -62,6 +62,11 @@ export const updateById = async (userId, id, data) => {
   const rowId = Number(id)
   const provider = {
     ...data,
+    status: Boolean(data.status),
+    contactName: data.contactName ? String(data.contactName) : null,
+    contactEmail: data.contactEmail ? String(data.contactEmail) : null,
+    contactPhone: data.address ? String(data.contactPhone) : null,
+    address: data.address ? String(data.address) : null,
     updatedOn: new Date(),
     updatedBy: Number(userId)
 

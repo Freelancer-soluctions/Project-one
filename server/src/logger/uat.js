@@ -11,8 +11,8 @@ const uatLogger = () => {
     level: 'info',
     format: combine(format.colorize(), label({ label: 'uat' }), timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }), myFormat),
     transports: [
-      new transports.File({ filename: './logger/logs/uat.log', level: 'error' }),
-      new transports.File({ filename: './logger/logs/combined.log' }),
+      new transports.File({ filename: 'src/logger/logs/uat.log', level: 'error' }),
+      new transports.File({ filename: 'src/logger/logs/combined.log' }),
       new transports.Console()
     ]
   })
