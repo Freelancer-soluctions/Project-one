@@ -22,17 +22,17 @@ model users {
   lastUpdatedBy        Int
   lastUpdatedOn        DateTime?           @db.Timestamp(3)
   roleId               Int
-  roles                roles               @relation(fields: [roleId], references: [id])
+  roles                roles               @relation("userRoles", fields: [roleId], references: [id])
   socialSecurity       String              @db.VarChar(9)
   startDate            DateTime            @db.Timestamp(3)
   state                String              @db.VarChar(50)
   statusId             Int
-  status               userStatus          @relation(fields: [statusId], references: [id])
+  status               userStatus          @relation("userStatus", fields: [statusId], references: [id])
   telephone            String              @db.VarChar(15)
   zipcode              String              @db.VarChar(9)
   refreshToken         String?             @db.VarChar(200)
   userPermitId         Int
-  userPermits          userPermits         @relation(fields: [userPermitId], references: [id])
+  userPermits          userPermits         @relation("userPermits", fields: [userPermitId], references: [id])
   newsClosed           news[]              @relation("userNewsClosed")
   newsCreated          news[]              @relation("userNewsCreated")
   newsPending          news[]              @relation("userNewsPending")
@@ -45,28 +45,29 @@ model users {
   userProvidersCreated productProviders[]  @relation("userProvidersCreated")
   userStockCreated     stock[]             @relation("userStockCreated")
   userStockUpdated     stock[]             @relation("userStockUpdated")
-  InventoryMovement    InventoryMovement[]
+  inventoryMovement    inventoryMovement[] @relation("userInventoryMovement")
+  Auditoria            Auditoria[]         @relation("userAuditoria")
 }
 
 model userPermits {
   id                  Int      @id @default(autoincrement())
   accessConfiguration Boolean? @default(false)
   accessNews          Boolean? @default(false)
-  users               users[]
+  users               users[]  @relation("userPermits")
 }
 
 model roles {
   id          Int     @id @default(autoincrement())
   code        String  @unique @db.VarChar(3)
   description String  @unique @db.VarChar(50)
-  users       users[]
+  users       users[] @relation("userRoles")
 }
 
 model userStatus {
   id          Int     @id @default(autoincrement())
   code        String  @unique @db.VarChar(3)
   description String  @unique @db.VarChar(8)
-  users       users[]
+  users       users[] @relation("userStatus")
 }
 
 model notes {
@@ -77,7 +78,7 @@ model notes {
   content         String      @db.VarChar(2000)
   color           String      @db.VarChar(6)
   columnId        Int
-  columnStatus    noteColumns @relation(fields: [columnId], references: [id])
+  columnStatus    noteColumns @relation("noteColumns", fields: [columnId], references: [id])
   userNoteCreated users       @relation("userNoteCreated", fields: [createdBy], references: [id])
   createdBy       Int
 }
@@ -86,14 +87,14 @@ model noteColumns {
   id    Int     @id @default(autoincrement())
   title String  @db.VarChar(15)
   code  String  @unique @db.VarChar(3)
-  notes notes[]
+  notes notes[] @relation("noteColumns")
 }
 
 model newsStatus {
   id          Int    @id @default(autoincrement())
   code        String @unique @db.VarChar(3)
   description String @unique @db.VarChar(10)
-  news        news[]
+  news        news[] @relation("newsStatus")
 }
 
 model news {
@@ -105,7 +106,7 @@ model news {
   document        String?
   documentId      String?
   // questions       questions[]
-  status          newsStatus @relation(fields: [statusId], references: [id])
+  status          newsStatus @relation("newsStatus", fields: [statusId], references: [id])
   statusId        Int
   userNewsClosed  users?     @relation("userNewsClosed", fields: [closedBy], references: [id])
   closedBy        Int?
@@ -124,7 +125,7 @@ model settings {
   displayLanguage    Boolean?  @default(false)
   displayReports     Boolean?  @default(false)
   displayPayroll     Boolean?  @default(false)
-  language           String    @db.VarChar(2)
+  language           String?   @db.VarChar(2)
   userSettingCreated users     @relation("userSettingCreated", fields: [userId], references: [id])
   userId             Int
   createdOn          DateTime  @default(now()) @db.Timestamp(3)
@@ -143,7 +144,7 @@ model events {
   createdBy        Int
   createdOn        DateTime   @db.Timestamp(3)
   updatedOn        DateTime?  @db.Timestamp(3)
-  eventTypes       eventTypes @relation(fields: [eventTypeId], references: [id])
+  eventTypes       eventTypes @relation("eventTypes", fields: [eventTypeId], references: [id])
   eventTypeId      Int
 }
 
@@ -151,21 +152,21 @@ model eventTypes {
   id          Int      @id @default(autoincrement())
   code        String   @unique @db.VarChar(3)
   description String   @unique @db.VarChar(10)
-  events      events[]
+  events      events[] @relation("eventTypes")
 }
 
 model products {
   id                 Int                 @id @default(autoincrement())
   sku                String              @unique @db.VarChar(16)
   name               String              @db.VarChar(80)
-  productCategories  productCategories   @relation(fields: [productCategoryId], references: [id])
+  productCategories  productCategories   @relation("productCategories", fields: [productCategoryId], references: [id])
   productCategoryId  Int
-  productProviders   productProviders    @relation(fields: [productProviderId], references: [id])
+  productProviders   productProviders    @relation("productProviders", fields: [productProviderId], references: [id])
   productProviderId  Int
   price              Decimal             @db.Decimal(10, 2)
   cost               Decimal             @db.Decimal(10, 2)
   description        String?             @db.VarChar(2000)
-  productStatus      productStatus       @relation(fields: [productStatusId], references: [id])
+  productStatus      productStatus       @relation("productStatus", fields: [productStatusId], references: [id])
   productStatusId    Int
   barCode            String?             @unique @db.VarChar(25)
   userProductCreated users               @relation("userProductCreated", fields: [createdBy], references: [id])
@@ -174,9 +175,14 @@ model products {
   updatedOn          DateTime?           @db.Timestamp(3)
   userProductUpdated users?              @relation("userProductUpdated", fields: [updatedBy], references: [id])
   updatedBy          Int?                @db.Integer
-  productAttributes  productAttributes[] @relation("ProductAttributes")
-  stock              stock[]             @relation("ProductStock")
-  InventoryMovement  InventoryMovement[]
+  productAttributes  productAttributes[] @relation("productAttributes")
+  stock              stock[]             @relation("productStock")
+  inventoryMovement  inventoryMovement[] @relation("productInventoryMovement")
+  buy                buy[]               @relation("productBuy")
+  sell               sell[]              @relation("productSell")
+  buyDetail          buyDetail[]         @relation("productBuyDetail")
+  sellDetail         sellDetail[]        @relation("productSellDetail")
+
 }
 
 model productCategories {
@@ -204,6 +210,7 @@ model productProviders {
   contactPhone         String?    @db.VarChar(15)
   address              String?    @db.VarChar(120)
   products             products[]
+  buy                  buy[]
 }
 
 model productStatus {
@@ -214,12 +221,12 @@ model productStatus {
 }
 
 model productAttributes {
-  id          Int      @id @default(autoincrement())
-  name        String   @db.VarChar(50)
-  description String   @db.VarChar(100)
-  createdOn   DateTime @db.Timestamp(3)
+  id          Int       @id @default(autoincrement())
+  name        String    @db.VarChar(50)
+  description String    @db.VarChar(100)
+  createdOn   DateTime  @db.Timestamp(3)
   productId   Int // Clave foránea
-  product     products @relation("ProductAttributes", fields: [productId], references: [id], onDelete: Cascade)
+  product     products  @relation("productAttributes", fields: [productId], references: [id], onDelete: Cascade)
 }
 
 //ALMACEN
@@ -232,7 +239,7 @@ model warehouse {
   createdOn         DateTime            @db.Timestamp(3)
   updatedOn         DateTime?           @db.Timestamp(3)
   stock             stock[]             @relation("ProductStock")
-  InventoryMovement InventoryMovement[]
+  inventoryMovement inventoryMovement[]
 }
 
 //ALMACEN STATUS
@@ -248,12 +255,12 @@ model stock {
   quantity         Int              @default(0)
   minimum          Int              @default(0)
   maximum          Int?
-  lot              String?          @db.VarChar(50)
+  lot              String?          @db.VarChar(50) // identificador
   unitMeasure      unitMeasureStock @default(PIECES)
   expirationDate   DateTime?        @db.Timestamp(3)
-  product          products         @relation("ProductStock", fields: [productId], references: [id])
+  product          products         @relation("productStock", fields: [productId], references: [id])
   productId        Int
-  warehouse        warehouse        @relation("ProductStock", fields: [warehouseId], references: [id])
+  warehouse        warehouse        @relation("productStock", fields: [warehouseId], references: [id])
   warehouseId      Int
   createdOn        DateTime         @db.Timestamp(3)
   updatedOn        DateTime?        @db.Timestamp(3)
@@ -261,7 +268,8 @@ model stock {
   createdBy        Int
   userStockUpdated users?           @relation("userStockUpdated", fields: [updatedBy], references: [id])
   updatedBy        Int?
-  @@unique([productId, warehouseId, lot, expirationDate]) // Permite múltiples registros solo si lote o caducidad es distinto
+
+  @@unique([productId, warehouseId, lot, expirationDate], name: "unique_stock_entry") // Permite múltiples registros solo si lote, producto, almacen y caducidad es distinto
 }
 
 enum unitMeasureStock {
@@ -271,25 +279,83 @@ enum unitMeasureStock {
   METERS
 }
 
-model InventoryMovement {
+model inventoryMovement {
   id          Int          @id @default(autoincrement())
   quantity    Int          @default(0)
-  type        MovementType
+  type        movementType
   reason      String?      @db.VarChar(200)
   createdOn   DateTime     @db.Timestamp(3)
-  product     products     @relation(fields: [productId], references: [id])
+  product     products     @relation("productInventoryMovement", fields: [productId], references: [id])
   productId   Int
-  warehouse   warehouse    @relation(fields: [warehouseId], references: [id])
+  warehouse   warehouse    @relation("productInventoryMovement", fields: [warehouseId], references: [id])
   warehouseId Int
-  user        users        @relation(fields: [createdBy], references: [id])
+  user        users        @relation("userInventoryMovement", fields: [createdBy], references: [id])
   createdBy   Int
+  productsId  Int?
 }
 
-enum MovementType {
+enum movementType {
   INBOUND
   OUTBOUND
   TRANSFER
   ADJUSTMENT
 }
 
+// 🛒 Compras
+model buy {
+  id         Int              @id @default(autoincrement())
+  providerId Int
+  total      Float
+  date       DateTime         @default(now())
+  buyDetails buyDetail[]
+  provider   productProviders @relation("productProvidersBuy", fields: [providerId], references: [id])
+  products   products?        @relation("productBuy", fields: [productId], references: [id])
+  productId  Int?
+}
 
+model buyDetail {
+  id         Int       @id @default(autoincrement())
+  buyId      Int
+  productId  Int
+  quantity   Int
+  price      Float
+  buy        buy       @relation(fields: [buyId], references: [id])
+  producto   products  @relation(fields: [productId], references: [id])
+  products   products? @relation(fields: [productsId], references: [id])
+  productsId Int?
+}
+
+// 🛍 Ventas
+model sell {
+  id          Int          @id @default(autoincrement())
+  client      String
+  total       Float
+  date        DateTime     @default(now())
+  sellDetails sellDetail[]
+  products    products?    @relation(fields: [productsId], references: [id])
+  productsId  Int?
+  products    products?    @relation(fields: [productsId], references: [id])
+}
+
+model sellDetail {
+  id         Int       @id @default(autoincrement())
+  sellId     Int
+  productId  Int
+  quantity   Int
+  price      Float
+  sell       sell      @relation(fields: [sellId], references: [id])
+  product    products  @relation(fields: [productId], references: [id])
+  products   products? @relation(fields: [productsId], references: [id])
+  productsId Int?
+}
+
+// 📑 Auditoría
+model Auditoria {
+  id        Int      @id @default(autoincrement())
+  usuarioId Int
+  accion    String
+  entidad   String
+  entidadId Int
+  fecha     DateTime @default(now())
+  usuario   users    @relation(fields: [usuarioId], references: [id])
+}

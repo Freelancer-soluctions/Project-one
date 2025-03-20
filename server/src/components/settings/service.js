@@ -19,7 +19,7 @@ import {
  * @throws {Error} - If there is an error during the database operation.
  */
 export const createOrUpdateSettingsLanguage = async (
-  { id, language },
+  { language, id },
   userId
 ) => {
   const rowId = Number(id)
