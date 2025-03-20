@@ -171,7 +171,6 @@ export const Products = Joi.object({
   productProviderId: Joi.number().integer().required(),
   price: Joi.number().precision(2).positive().required(),
   cost: Joi.number().precision(2).positive().required(),
-  stock: Joi.number().integer().min(0).required(),
   description: Joi.string().max(2000).allow(null, ''),
   productStatusId: Joi.number().integer().required(),
   barCode: Joi.string().max(25).allow(null, '')
@@ -192,7 +191,6 @@ export const ProductsUpdate = Joi.object({
   productProviderId: Joi.number().integer().required(),
   price: Joi.number().precision(2).positive().required(),
   cost: Joi.number().precision(2).positive().required(),
-  stock: Joi.number().integer().min(0).required(),
   description: Joi.string().max(2000).allow(null, ''),
   productStatusId: Joi.number().integer().required(),
   barCode: Joi.string().max(25).allow(null, '')
@@ -222,4 +220,49 @@ export const Providers = Joi.object({
   contactPhone: Joi.string().max(15).allow(null, ''),
   address: Joi.string().max(120).allow(null, '')
 
+})
+
+export const SettingsProductCategoryCreate = Joi.object({
+  code: Joi.string().max(3).required(),
+  description: Joi.string().max(50).required()
+})
+
+export const SettingsProductCategoryUpdate = Joi.object({
+  description: Joi.string().max(50).allow(''),
+  code: Joi.string().max(3).allow('')
+})
+
+export const SettingsProductCategoryFilters = Joi.object({
+  description: Joi.string().max(50).allow(''),
+  code: Joi.string().max(3).allow('')
+})
+
+export const warehouseFiltersSchema = Joi.object({
+  name: Joi.string().max(50).allow(''),
+  status: Joi.string().valid('ACTIVE', 'INACTIVE', 'MAINTENANCE').allow('')
+})
+
+export const warehouseCreateUpdateSchema = Joi.object({
+  name: Joi.string().max(50).required(),
+  description: Joi.string().max(120).allow(''),
+  address: Joi.string().max(120).allow(''),
+  status: Joi.string().valid('ACTIVE', 'INACTIVE', 'MAINTENANCE').required()
+})
+
+export const stockFiltersSchema = Joi.object({
+  productId: Joi.number().integer().allow(null).optional(),
+  warehouseId: Joi.number().integer().allow(null).optional(),
+  lot: Joi.string().max(50).allow('').optional(),
+  unitMeasure: Joi.string().valid('PIECES', 'KILOGRAMS', 'LITERS', 'METERS').allow('').optional()
+})
+
+export const stockCreateUpdateSchema = Joi.object({
+  quantity: Joi.number().integer().min(0).required(),
+  minimum: Joi.number().integer().min(0).required(),
+  maximum: Joi.number().integer().min(0).allow(null),
+  lot: Joi.string().max(50).allow(''),
+  unitMeasure: Joi.string().valid('PIECES', 'KILOGRAMS', 'LITERS', 'METERS').required(),
+  expirationDate: Joi.date().allow(null),
+  productId: Joi.number().integer().required(),
+  warehouseId: Joi.number().integer().required()
 })

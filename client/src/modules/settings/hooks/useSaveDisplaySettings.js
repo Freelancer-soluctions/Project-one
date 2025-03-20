@@ -6,7 +6,7 @@ export const useSaveDisplaySettings = settings => {
 
   const onSaveDisplaySettings = async values => {
     try {
-      const displaySettings = settings.id
+      const displaySettings = settings?.id
         ? { id: settings.id, displayOptions: { ...values } }
         : { displayOptions: { ...values } }
 

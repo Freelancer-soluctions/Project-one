@@ -5,7 +5,6 @@ import PropTypes from 'prop-types'
 
 export const ProvidersDatatable = ({
   dataProviders,
-
   onEditDialog,
 }) => {
   const { t } = useTranslation()
@@ -13,10 +12,11 @@ export const ProvidersDatatable = ({
   const columnDefProviders = [
     {
       accessorKey: 'name',
-      header: t('name')
+      header: t('name'),
+      cell: info => info.getValue()?.toUpperCase()
     },
     {
-      accessorKey: 'status',
+      accessorKey: 'statusText',
       header: t('status'),
       cell: info => info.getValue()?.toUpperCase()
     },
@@ -28,18 +28,14 @@ export const ProvidersDatatable = ({
     {
       accessorKey: 'userProvidersCreatedName',
       header: t('created_by'),
-      cell: info => {
-        const userProvidersCreatedName = info.row.original.userProvidersCreated
-        return userProvidersCreatedName ? userProvidersCreatedName.toUpperCase() : null
-      }
+      cell: info => info.getValue()?.toUpperCase()
+
+     
     },
     {
       accessorKey: 'userProvidersUpdatedName',
       header: t('updated_by'),
-      cell: info => {
-        const userProvidersUpdatedName = info.row.original.userProvidersUpdated
-        return userProvidersUpdatedName ? userProvidersUpdatedName.toUpperCase() : null
-      }
+      cell: info => info.getValue()?.toUpperCase()
     },
     {
       accessorKey: 'updatedOn',
@@ -68,6 +64,6 @@ export const ProvidersDatatable = ({
 
 ProvidersDatatable.propTypes = {
   dataProviders: PropTypes.object.isRequired,
-  onEdit: PropTypes.func.isRequired,
-  onDelete: PropTypes.func.isRequired
+  onEditDialog: PropTypes.func.isRequired,
+
 }

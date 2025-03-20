@@ -16,30 +16,41 @@ export const getAllProducts = async (
   name,
   status
 ) => {
-  const whereClauses = []
+  // const whereClauses = []
 
-  if (name) {
-    whereClauses.push(Prisma.sql`p."name" ILIKE ${'%' + name + '%'}`)
-  }
+  // if (name) {
+  //  whereClauses.push(Prisma.sql`p."name" ILIKE ${`%${name}%`}`)
+  // }
 
-  if (status) {
-    whereClauses.push(Prisma.sql`p."status" = ${status}`)
-  }
+  // if (status !== undefined) {
+  //  const statusBool = status === 'true'
+  //  whereClauses.push(Prisma.sql`p."status" = ${statusBool}`)
+  // }
 
-  const whereSql = whereClauses.length
-    ? Prisma.sql`WHERE ${Prisma.join(whereClauses, Prisma.sql` AND `)}`
-    : Prisma.empty
+  // Construimos la condición WHERE manualmente sin Prisma.join()
+  // let whereSql = Prisma.empty
+  // if (whereClauses.length === 1) {
+  //  whereSql = Prisma.sql`WHERE ${whereClauses[0]}`
+  // } else if (whereClauses.length > 1) {
+  //  whereSql = Prisma.sql`WHERE ${whereClauses[0]} AND ${whereClauses[1]}`
+  // }
 
   const providers = await prisma.$queryRaw`
     SELECT p.*, 
+    CASE 
+      WHEN p."status" = TRUE THEN 'ACTIVE'
+      ELSE 'INACTIVE' 
+    END AS "statusText",
     u.name AS "userProvidersCreatedName",
     uu.name AS "userProvidersUpdatedName"
     FROM "productProviders" p
     LEFT JOIN "users" u ON p."createdBy" = u.id
     LEFT JOIN "users" uu ON p."updatedBy" = uu.id
-    ${whereSql}
+    WHERE 
+  (${name} IS NULL OR p."name" ILIKE '%' || ${name} || '%')
+  AND 
+  (${status} IS NULL OR p."status" = ${status}::BOOLEAN)
   `
-
   return providers
 }
 
@@ -59,7 +70,7 @@ export const getAllProducts = async (
  * @returns {Promise<Object>} The created provider.
  */
 export const createProvider = async (data) => {
-  const savedProvider = await prisma.products.create({
+  const savedProvider = await prisma.productProviders.create({
     data: {
       code: data.code,
       name: data.name,
@@ -99,7 +110,7 @@ export const createProvider = async (data) => {
  * @returns {Promise<Object>} The updated provider.
  */
 export const updateRow = async (data, where) => {
-  const result = await prisma.products.update({
+  const result = await prisma.productProviders.update({
     where,
     data: {
       code: data.code,
