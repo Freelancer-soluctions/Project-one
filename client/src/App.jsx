@@ -5,6 +5,7 @@ import Home from './modules/home/pages/Home'
 import NotFound from './components/404/NotFound'
 import { Routes, Route } from 'react-router'
 import { Spinner } from './components/loader/Spinner'
+import { Toaster } from './components/ui/toaster'
 
 const SignIn = lazy(() => import('@/modules/auth/pages/SignIn'))
 const SignUp = lazy(() => import('@/modules/auth/pages/SignUp'))
@@ -18,6 +19,8 @@ const ProductsForms = lazy(
   () => import('@/modules/products/pages/ProductsForms')
 )
 const Providers = lazy(() => import('@/modules/providers/pages/Providers'))
+const Warehouse = lazy(() => import('@/modules/warehouse/pages/Warehouse'))
+const Stock = lazy(() => import('@/modules/stock/pages/Stock'))
 
 const App = () => {
   return (
@@ -51,6 +54,10 @@ const App = () => {
             }
           />
           <Route path='providers' element={<Providers />} />
+          <Route path='warehouse' element={<Warehouse />} />
+          <Route path='stock' element={<Stock />} />
+
+
 
           {/* <Route path='inventory' element={<Events />} />
           <Route path='expenses' element={<Events />} /> */}
@@ -62,6 +69,7 @@ const App = () => {
         {/* Ruta global comodín para manejar 404 */}
         <Route path='*' element={<NotFound link={'/'} />} />
       </Routes>
+      <Toaster />
     </Suspense>
   )
 }

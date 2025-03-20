@@ -14,10 +14,24 @@ import dotenv from '../config/dotenv.js'
 // if (process.env.NODE_ENV === 'dev') {
 //   logger = devLogger()
 // }
-const logger = {
+/* const logger = {
   production: productionLogger,
   uat: uatLogger,
   dev: devLogger
 }
 
-export default logger[dotenv('NODE_ENV')]()
+export default logger[dotenv('NODE_ENV')]() */
+
+const loggers = {
+  production: productionLogger,
+  uat: uatLogger,
+  dev: devLogger
+}
+
+const environment = dotenv('NODE_ENV')
+
+if (!loggers[environment]) {
+  console.warn(`Warning: Environment "${environment}" not found. Defaulting to dev logger.`)
+}
+
+export default (loggers[environment] || devLogger)()

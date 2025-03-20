@@ -120,11 +120,10 @@ const settingsSlice = createSlice({
     builder.addCase(saveSettingLanguageFetch.fulfilled, (state, action) => {
       state.isLoading = false
       state.isError = false
-
       // // ✅ Actualizar la configuración del usuario correctamente
-      // if (state.dataSettings.userSettings) {
-      //   state.dataSettings.userSettings.language = action.payload.language
-      // }
+        if (state.dataSettings.userSettings) {
+          state.dataSettings.userSettings = action.payload
+        }
     })
     builder.addCase(saveSettingLanguageFetch.rejected, (state, action) => {
       console.log('Error', action.error.message)
@@ -141,7 +140,6 @@ const settingsSlice = createSlice({
     builder.addCase(saveSettingDisplayFetch.fulfilled, (state, action) => {
       state.isLoading = false
       state.isError = false
-
       // ✅ Actualizar la configuración del usuario correctamente,
       // Los cambios se reflejan de inmediato en Redux.
       // No haces una petición extra al backend, lo que mejora la eficiencia.

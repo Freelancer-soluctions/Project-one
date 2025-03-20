@@ -41,7 +41,7 @@ export const updateProviderById = handleCatchErrorAsync(async (req, res) => {
   const { id } = req.params
   const { body } = req
   await providersService.updateById(userId, id, body)
-  globalResponse(res, 200, { message: 'Items updated successfully' })
+  globalResponse(res, 200, { message: 'Item updated successfully' })
 })
 
 /**
@@ -54,5 +54,5 @@ export const updateProviderById = handleCatchErrorAsync(async (req, res) => {
 export const deleteProviderById = handleCatchErrorAsync(async (req, res) => {
   const { id } = req.params
   await providersService.deleteById(id)
-  globalResponse(res, 200, { message: 'Items deleted successfully' })
+  globalResponse(res, 200, { message: 'Item deleted successfully' })
 })
