@@ -36,15 +36,15 @@ import {
 
 export default function Settings() {
   const { t } = useTranslation()
-  const settings = useSelector(
-    state => state.settings.dataSettings?.userSettings?.data
+  const { data } = useSelector(
+    state => state.settings.dataSettings?.userSettings
   )
   //language
   const { onChangeLanguage } = useChangeLanguage()
   //display
   const { activeTab, setActiveTab } = useActiveTab('profile')
-  const userDisplaySettings = useDisplaySettings(settings)
-  const { onSaveDisplaySettings } = useSaveDisplaySettings(settings)
+  const userDisplaySettings = useDisplaySettings(data)
+  const { onSaveDisplaySettings } = useSaveDisplaySettings(data)
 
   return (
     // {(isLoading || isFetching || isLoadingPost) && <Spinner />}

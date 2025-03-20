@@ -108,7 +108,7 @@ export const createStock = async (data) => {
       }
     }
   })
-
+  console.log('stock creado', stock)
   return stock
 }
 

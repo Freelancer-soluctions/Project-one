@@ -11,8 +11,8 @@ const devLogger = () => {
     level: 'debug',
     format: combine(format.colorize(), label({ label: 'dev' }), timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }), myFormat),
     transports: [
-      new transports.File({ filename: './logger/logs/dev.log', level: 'error' }),
-      new transports.File({ filename: './logger/logs/combined.log' }),
+      new transports.File({ filename: 'src/logger/logs/dev.log', level: 'error' }),
+      new transports.File({ filename: 'src/logger/logs/combined.log' }),
       new transports.Console() // ONLY PRINTING LOGS IN TERMINAL
     ]
   })
