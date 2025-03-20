@@ -156,16 +156,17 @@ const create = async (tableName, createObject) => {
 }
 
 async function main () {
-  // await createVarious('userPermits', userPermits)
-  // await createVarious('userStatus', userStatus)
-  // await createVarious('noteColumns', noteStatus)
-  // await createVarious('eventTypes', eventTypes)
+/*   await createVarious('roles', roles)
+  await createVarious('userPermits', userPermits)
+  await createVarious('userStatus', userStatus)
+  await create('users', user) */
+
+  /*   await createVarious('noteColumns', noteStatus)
+  await createVarious('eventTypes', eventTypes) */
 
   // await createVarious('newsStatus', newStatus)
-  // await createVarious('roles', roles)
-  // await create('users', user)
   // await createVarious('news', news)
-  // await createVarious('productStatus', productStatus)
+  await createVarious('productStatus', productStatus)
   // await createVarious('productProviders', productProviders)
   // await createVarious('productCategories', productCategories)
 }

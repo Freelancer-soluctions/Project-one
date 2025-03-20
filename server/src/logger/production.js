@@ -11,8 +11,8 @@ const productionLogger = () => {
     level: 'warn',
     format: combine(label({ label: 'prod' }), timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }), myFormat),
     transports: [
-      new transports.File({ filename: './logger/logs/production.log', level: 'error' }),
-      new transports.File({ filename: './logger/logs/combined.log' }),
+      new transports.File({ filename: 'src/logger/logs/production.log', level: 'error' }),
+      new transports.File({ filename: 'src/logger/logs/combined.log' }),
       new transports.Console()
     ]
   })

@@ -10,19 +10,33 @@ import {
   FormItem,
   FormLabel
 } from '@/components/ui/form'
-
+import { useToast } from '@/components/ui/use-toast'
 export const SettingsDisplay = ({
   userDisplaySettings,
   onSaveDisplaySettings
 }) => {
   const { t } = useTranslation()
+  const { toast } = useToast()
   const form = useForm({
     defaultValues: {
       ...userDisplaySettings
     }
   })
-  function onSubmit(data) {
-    onSaveDisplaySettings(data)
+  async function onSubmit(data) {
+    try {
+      await onSaveDisplaySettings(data)
+      toast({
+        title: t('settings_display_success'),
+        description: t('settings_display_success_message'),
+        variant: 'success'
+      })
+    } catch (error) {
+      toast({
+        title: t('settings_display_error'),
+        description: error.message || t('settings_display_error_message'),
+        variant: 'destructive'
+      })
+    }
   }
 
   // useEffect(() => {

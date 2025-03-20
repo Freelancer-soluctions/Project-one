@@ -56,7 +56,13 @@ export const StockSchema = z
       .string()
       .min(1, { message: 'Warehouse is required.' })
       .transform((val) => Number(val))
+  }).passthrough() // Permite otros campos
+  .refine((data) => data.minimum <= data.maximum, {
+    message: 'Minimum quantity cannot be greater than maximum quantity',
+    path: ['minimum'] // Esto hará que el error aparezca en el campo minimum
+  }).refine((data) => data.quantity <= data.maximum, {
+    message: 'Quantity cannot be greater than maximum quantity',
+    path: ['quantity'] // Esto hará que el error aparezca en el campo minimum
   })
-.passthrough() // Permite otros campos
 
 

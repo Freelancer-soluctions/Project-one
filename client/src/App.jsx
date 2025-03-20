@@ -5,6 +5,7 @@ import Home from './modules/home/pages/Home'
 import NotFound from './components/404/NotFound'
 import { Routes, Route } from 'react-router'
 import { Spinner } from './components/loader/Spinner'
+import { Toaster } from './components/ui/toaster'
 
 const SignIn = lazy(() => import('@/modules/auth/pages/SignIn'))
 const SignUp = lazy(() => import('@/modules/auth/pages/SignUp'))
@@ -68,6 +69,7 @@ const App = () => {
         {/* Ruta global comodín para manejar 404 */}
         <Route path='*' element={<NotFound link={'/'} />} />
       </Routes>
+      <Toaster />
     </Suspense>
   )
 }

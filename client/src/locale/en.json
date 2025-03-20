@@ -195,6 +195,16 @@
     "edit_stock": "Edit stock",
     "total_cost": "Total cost",
     "expiration_status": "Expiration status",
-    "unitMeasure": "Unit measure"
+    "unitMeasure": "Unit measure",
+    "language_message_change_error": "Error changing language",
+    "language_message_change_error_message": "There was an error changing the language. Please try again.",
+    "settings_display_success": "Display settings saved",
+    "settings_display_success_message": "Your display preferences have been updated successfully",
+    "settings_display_error": "Error saving display settings",
+    "settings_display_error_message": "There was an error saving your display preferences. Please try again.",
+    "language_message_change_success": "Language changed successfully",
+    "language_message_change_success_message": "The language has been changed successfully",
+    "select_type": "Select type",
+    "update": "Update"
   }
 }

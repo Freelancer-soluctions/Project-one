@@ -15,11 +15,10 @@ import * as settingsService from './service.js'
  */
 export const createOrUpdateSettingsLanguage = handleCatchErrorAsync(
   async (req, res) => {
-    const { id } = req.params
-    const { body } = req
+    const { body, userId } = req
     const result = await settingsService.createOrUpdateSettingsLanguage(
       body,
-      id
+      userId
     )
     globalResponse(res, 200, result)
   }
@@ -38,11 +37,10 @@ export const createOrUpdateSettingsLanguage = handleCatchErrorAsync(
  */
 export const createOrUpdateSettingsDisplay = handleCatchErrorAsync(
   async (req, res) => {
-    const { id } = req.params
-    const { body } = req
+    const { body, userId } = req
     const result = await settingsService.createOrUpdateSettingsDisplay(
       body,
-      id
+      userId
     )
     globalResponse(res, 200, result)
   }
