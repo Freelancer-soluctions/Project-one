@@ -97,8 +97,7 @@ router.get('/:id', verifyToken, settingsController.getSettingsById)
  *                   type: string
  *                   example: "Language settings updated successfully"
  *                 data:
- *                   type: object
- *                   description: "Datos de la configuración de idioma"
+ *                   $ref: "#/components/schemas/SettingsResponse"
  *       401:
  *         description: "Unauthorized"
  *         content:
@@ -152,8 +151,7 @@ router.post(
  *                   type: string
  *                   example: "Display settings updated successfully"
  *                 data:
- *                   type: object
- *                   description: "Datos de la configuración de visualización"
+ *                   $ref: "#/components/schemas/SettingsResponse"
  *       401:
  *         description: "Unauthorized"
  *         content:

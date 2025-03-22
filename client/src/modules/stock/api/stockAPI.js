@@ -41,6 +41,13 @@ const stockApi = createApi({
         body: data
       }),
       invalidatesTags: ['Stock']
+    }),
+
+    getStockAlerts: builder.query({
+      query: () => ({
+        url: `/stock/alerts`
+      }),
+      providesTags: ['Stock']
     })
   })
 })
@@ -50,7 +57,8 @@ export const {
   useLazyGetAllStockQuery,
   useUpdateStockByIdMutation,
   useCreateStockMutation,
-  useDeleteStockByIdMutation
+  useDeleteStockByIdMutation,
+  useGetStockAlertsQuery
 } = stockApi
 
 export default stockApi 
