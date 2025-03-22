@@ -4,7 +4,8 @@ import {
   getAllStock,
   createStock,
   updateStockById,
-  deleteStockById
+  deleteStockById,
+  getStockAlerts
 } from './controller.js'
 import {
   stockFiltersSchema,
@@ -20,7 +21,7 @@ const router = Router()
  *   get:
  *     tags:
  *       - Stock
- *     summary: Get all stock entries
+ *     summary: Get all stock alerts
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -30,6 +31,56 @@ const router = Router()
  *           $ref: "#/components/schemas/StockFilters"
  *         required: false
  *         description: "Optional filters for stock entries"
+ *     responses:
+ *       200:
+ *         description: OK
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: boolean
+ *                   example: false
+ *                 statusCode:
+ *                   type: integer
+ *                   example: 200
+ *                 message:
+ *                   type: string
+ *                   example: "Some success message"
+ *                 data:
+ *                   type: object
+ *                   $ref: "#/components/schemas/ResponseGetStockAlerts"
+ *       401:
+ *         description: Unauthorized
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Unauthorized'
+ *       500:
+ *         description: Server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
+router.get(
+  '/',
+  verifyToken,
+  validateQueryParams(stockFiltersSchema),
+  getAllStock
+)
+
+/**
+ * @openapi
+ * /api/v1/stock:
+ *   get:
+ *     tags:
+ *       - Stock
+ *     summary: Get all stock entries
+ *     security:
+ *       - bearerAuth: []
+
  *     responses:
  *       200:
  *         description: OK
@@ -65,10 +116,9 @@ const router = Router()
  *               $ref: '#/components/schemas/Error'
  */
 router.get(
-  '/',
+  '/alerts',
   verifyToken,
-  validateQueryParams(stockFiltersSchema),
-  getAllStock
+  getStockAlerts
 )
 
 /**
@@ -85,7 +135,7 @@ router.get(
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/BodyStockCreate'
+ *             $ref: '#/components/schemas/BodyStockCreateUpdate'
  *     responses:
  *       201:
  *         description: Created
@@ -146,7 +196,7 @@ router.post(
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/BodyStockUpdate'
+ *             $ref: '#/components/schemas/BodyStockCreateUpdate'
  *     responses:
  *       200:
  *         description: OK

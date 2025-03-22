@@ -2,7 +2,8 @@ import {
   getAllStock as getAllStockDao,
   createStock as createStockDao,
   updateStock as updateStockDao,
-  deleteStock as deleteStockDao
+  deleteStock as deleteStockDao,
+  getStockAlerts as getStockAlertsDao
 } from './dao.js'
 
 /**
@@ -14,8 +15,16 @@ import {
  * @param {string} params.unitMeasure - Unit measure to filter by
  * @returns {Promise<Array>} List of stock entries
  */
-export const getAllStock = async ({ productId, warehouseId, lot, unitMeasure }) => {
-  return getAllStockDao(productId, warehouseId, lot, unitMeasure)
+export const getAllStock = async ({ productId, warehouseId, lot, unitMeasure, stocksExpirated, stocksLow }) => {
+  return getAllStockDao(productId, warehouseId, lot, unitMeasure, stocksExpirated, stocksLow)
+}
+
+/**
+ * Get all stock alerts
+ * @returns {Promise<Object>} Stock alerts
+ */
+export const getStockAlerts = async () => {
+  return getStockAlertsDao()
 }
 
 /**

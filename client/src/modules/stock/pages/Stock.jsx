@@ -16,7 +16,8 @@ import {
 } from '@/modules/warehouse/api/warehouseAPI'
 import AlertDialogComponent from '@/components/alertDialog/AlertDialog'
 import { Spinner } from '@/components/loader/Spinner'
-import {unitMeasures} from '../utils'
+import {unitMeasures} from '../utils' 
+import { useLocation } from 'react-router'
 
 
 const Stock = () => {
@@ -26,7 +27,7 @@ const Stock = () => {
   const [openAlertDialog, setOpenAlertDialog] = useState(false)
   const [alertProps, setAlertProps] = useState({})
   const [actionDialog, setActionDialog] = useState('')
-
+  const location = useLocation()
   const [
     getAllStock,
     {
@@ -69,6 +70,12 @@ const Stock = () => {
     getAllWarehouses({name:''})
   }, [])
 
+  useEffect(() => {
+    debugger
+    if (location.state?.filter) {
+      getAllStock({...location.state.filter})
+    }
+  }, [location.state?.filter])
 
   const handleSubmitFilters = data => {
     getAllStock(data)
@@ -136,6 +143,11 @@ const Stock = () => {
     setOpenDialog(false)
   }
 
+
+  const handleCalculateTotalCost = (values) => {
+    const totalCost = values.quantity * values.price
+    return totalCost
+  }
   const handleDelete = async id => {
     try {
       setAlertProps({

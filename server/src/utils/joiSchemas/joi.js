@@ -146,7 +146,8 @@ export const SettingsDisplay = Joi.object({
     displayProfile: Joi.boolean().required(),
     displayLanguage: Joi.boolean().required(),
     displayReports: Joi.boolean().required(),
-    displayPayroll: Joi.boolean().required()
+    displayPayroll: Joi.boolean().required(),
+    displayStock: Joi.boolean().required()
   })
 })
 
@@ -250,10 +251,12 @@ export const warehouseCreateUpdateSchema = Joi.object({
 })
 
 export const stockFiltersSchema = Joi.object({
-  productId: Joi.number().integer().allow(null).optional(),
-  warehouseId: Joi.number().integer().allow(null).optional(),
+  productId: Joi.string().allow('').optional(),
+  warehouseId: Joi.string().allow('').optional(),
   lot: Joi.string().max(50).allow('').optional(),
-  unitMeasure: Joi.string().valid('PIECES', 'KILOGRAMS', 'LITERS', 'METERS').allow('').optional()
+  unitMeasure: Joi.string().valid('PIECES', 'KILOGRAMS', 'LITERS', 'METERS').allow('').optional(),
+  stocksExpirated: Joi.boolean().allow('').optional(),
+  stocksLow: Joi.boolean().allow('').optional()
 })
 
 export const stockCreateUpdateSchema = Joi.object({

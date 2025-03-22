@@ -31,8 +31,8 @@ export const StockFiltersForm = ({
 
   const form = useForm({
     defaultValues: {
-      productId: null,
-      warehouseId: null,
+      productId: '',
+      warehouseId: '',
       lot: '',
       unitMeasure: ''
     }
