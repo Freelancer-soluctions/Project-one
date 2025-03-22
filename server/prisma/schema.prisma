@@ -19,7 +19,7 @@ model users {
   picture              String?
   document             String?
   // documentId    String? // es factible este campo ??
-  lastUpdatedBy        Int
+  lastUpdatedBy        Int                 @db.Integer
   lastUpdatedOn        DateTime?           @db.Timestamp(3)
   roleId               Int
   roles                roles               @relation("userRoles", fields: [roleId], references: [id])
@@ -45,8 +45,16 @@ model users {
   userProvidersCreated productProviders[]  @relation("userProvidersCreated")
   userStockCreated     stock[]             @relation("userStockCreated")
   userStockUpdated     stock[]             @relation("userStockUpdated")
-  inventoryMovement    inventoryMovement[] @relation("userInventoryMovement")
-  Auditoria            Auditoria[]         @relation("userAuditoria")
+  userMovementCreated  inventoryMovement[] @relation("inventoryMovementUserCreated")
+  userMovementUpdated  inventoryMovement[] @relation("inventoryMovementUserUpdated")
+  userPurchaseCreated  purchase[]          @relation("userPurchaseCreated")
+  userPurchaseUpdated  purchase[]          @relation("userPurchaseUpdated")
+  userSaleCreated      sale[]              @relation("userSaleCreated")
+  userSaleUpdated      sale[]              @relation("userSaleUpdated")
+  userClientCreated    clients[]           @relation("userClientCreated")
+  userClientUpdated    clients[]           @relation("userClientUpdated")
+
+
 }
 
 model userPermits {
@@ -77,10 +85,10 @@ model notes {
   title           String      @db.VarChar(50)
   content         String      @db.VarChar(2000)
   color           String      @db.VarChar(6)
-  columnId        Int
+  columnId        Int         @db.Integer
   columnStatus    noteColumns @relation("noteColumns", fields: [columnId], references: [id])
   userNoteCreated users       @relation("userNoteCreated", fields: [createdBy], references: [id])
-  createdBy       Int
+  createdBy       Int         @db.Integer
 }
 
 model noteColumns {
@@ -107,13 +115,13 @@ model news {
   documentId      String?
   // questions       questions[]
   status          newsStatus @relation("newsStatus", fields: [statusId], references: [id])
-  statusId        Int
+  statusId        Int        @db.Integer
   userNewsClosed  users?     @relation("userNewsClosed", fields: [closedBy], references: [id])
-  closedBy        Int?
+  closedBy        Int?       @db.Integer
   userNewsPending users?     @relation("userNewsPending", fields: [pendingBy], references: [id])
-  pendingBy       Int?
+  pendingBy       Int?       @db.Integer
   userNewsCreated users      @relation("userNewsCreated", fields: [createdBy], references: [id])
-  createdBy       Int
+  createdBy       Int        @db.Integer
 }
 
 model settings {
@@ -125,9 +133,10 @@ model settings {
   displayLanguage    Boolean?  @default(false)
   displayReports     Boolean?  @default(false)
   displayPayroll     Boolean?  @default(false)
+  displayStock       Boolean?  @default(false)
   language           String?   @db.VarChar(2)
   userSettingCreated users     @relation("userSettingCreated", fields: [userId], references: [id])
-  userId             Int
+  userId             Int       @db.Integer
   createdOn          DateTime  @default(now()) @db.Timestamp(3)
   updatedOn          DateTime? @db.Timestamp(3)
 }
@@ -141,7 +150,7 @@ model events {
   endTime          String     @db.VarChar(5)
   eventDate        DateTime   @db.Timestamp(3)
   userEventCreated users      @relation("userEventCreated", fields: [createdBy], references: [id])
-  createdBy        Int
+  createdBy        Int        @db.Integer
   createdOn        DateTime   @db.Timestamp(3)
   updatedOn        DateTime?  @db.Timestamp(3)
   eventTypes       eventTypes @relation("eventTypes", fields: [eventTypeId], references: [id])
@@ -160,28 +169,26 @@ model products {
   sku                String              @unique @db.VarChar(16)
   name               String              @db.VarChar(80)
   productCategories  productCategories   @relation("productCategories", fields: [productCategoryId], references: [id])
-  productCategoryId  Int
+  productCategoryId  Int                 @db.Integer
   productProviders   productProviders    @relation("productProviders", fields: [productProviderId], references: [id])
-  productProviderId  Int
+  productProviderId  Int                 @db.Integer
   price              Decimal             @db.Decimal(10, 2)
   cost               Decimal             @db.Decimal(10, 2)
   description        String?             @db.VarChar(2000)
   productStatus      productStatus       @relation("productStatus", fields: [productStatusId], references: [id])
-  productStatusId    Int
+  productStatusId    Int                 @db.Integer
   barCode            String?             @unique @db.VarChar(25)
   userProductCreated users               @relation("userProductCreated", fields: [createdBy], references: [id])
-  createdBy          Int
+  createdBy          Int                 @db.Integer
   createdOn          DateTime            @db.Timestamp(3)
   updatedOn          DateTime?           @db.Timestamp(3)
   userProductUpdated users?              @relation("userProductUpdated", fields: [updatedBy], references: [id])
   updatedBy          Int?                @db.Integer
   productAttributes  productAttributes[] @relation("productAttributes")
-  stock              stock[]             @relation("productStock")
-  inventoryMovement  inventoryMovement[] @relation("productInventoryMovement")
-  buy                buy[]               @relation("productBuy")
-  sell               sell[]              @relation("productSell")
-  buyDetail          buyDetail[]         @relation("productBuyDetail")
-  sellDetail         sellDetail[]        @relation("productSellDetail")
+  stock              stock[]             @relation("stockProduct")
+  inventoryMovement  inventoryMovement[] @relation("inventoryMovementProduct")
+  purchaseDetail     purchaseDetail[]    @relation("purchaseDetailProduct")
+  saleDetail         saleDetail[]        @relation("saleDetailProduct")
 
 }
 
@@ -191,7 +198,7 @@ model productCategories {
   description String     @unique @db.VarChar(50)
   createdOn   DateTime   @db.Timestamp(3)
   updatedOn   DateTime?  @db.Timestamp(3)
-  products    products[]
+  products    products[] @relation("productCategories")
 }
 
 model productProviders {
@@ -209,15 +216,15 @@ model productProviders {
   contactEmail         String?    @unique @db.VarChar(80)
   contactPhone         String?    @db.VarChar(15)
   address              String?    @db.VarChar(120)
-  products             products[]
-  buy                  buy[]
+  products             products[] @relation("productProviders")
+  purchase             purchase[] @relation("purchaseProvider")
 }
 
 model productStatus {
   id          Int        @id @default(autoincrement())
   code        String     @unique @db.VarChar(3)
   description String     @unique @db.VarChar(10)
-  products    products[]
+  products    products[] @relation("productStatus")
 }
 
 model productAttributes {
@@ -238,8 +245,9 @@ model warehouse {
   status            warehouseStatus     @default(ACTIVE)
   createdOn         DateTime            @db.Timestamp(3)
   updatedOn         DateTime?           @db.Timestamp(3)
-  stock             stock[]             @relation("ProductStock")
-  inventoryMovement inventoryMovement[]
+  stock             stock[]             @relation("stockWarehouse")
+  inventoryMovement inventoryMovement[] @relation("inventoryMovementWarehouse")
+
 }
 
 //ALMACEN STATUS
@@ -254,21 +262,20 @@ model stock {
   id               Int              @id @default(autoincrement())
   quantity         Int              @default(0)
   minimum          Int              @default(0)
-  maximum          Int?
+  maximum          Int?             @db.Integer
   lot              String?          @db.VarChar(50) // identificador
   unitMeasure      unitMeasureStock @default(PIECES)
   expirationDate   DateTime?        @db.Timestamp(3)
-  product          products         @relation("productStock", fields: [productId], references: [id])
-  productId        Int
-  warehouse        warehouse        @relation("productStock", fields: [warehouseId], references: [id])
-  warehouseId      Int
+  product          products         @relation("stockProduct", fields: [productId], references: [id])
+  productId        Int              @db.Integer 
+  warehouse        warehouse        @relation("stockWarehouse", fields: [warehouseId], references: [id])
+  warehouseId      Int              @db.Integer
   createdOn        DateTime         @db.Timestamp(3)
   updatedOn        DateTime?        @db.Timestamp(3)
   userStockCreated users            @relation("userStockCreated", fields: [createdBy], references: [id])
-  createdBy        Int
+  createdBy        Int              @db.Integer
   userStockUpdated users?           @relation("userStockUpdated", fields: [updatedBy], references: [id])
-  updatedBy        Int?
-
+  updatedBy        Int?             @db.Integer
   @@unique([productId, warehouseId, lot, expirationDate], name: "unique_stock_entry") // Permite múltiples registros solo si lote, producto, almacen y caducidad es distinto
 }
 
@@ -279,83 +286,99 @@ enum unitMeasureStock {
   METERS
 }
 
+// 🔄 Movimientos de Inventario
 model inventoryMovement {
-  id          Int          @id @default(autoincrement())
-  quantity    Int          @default(0)
+  id          Int   @id @default(autoincrement())
+  productId  Int   @db.Integer
+  warehouseId   Int   @db.Integer
+  quantity    Int   @db.Integer
   type        movementType
-  reason      String?      @db.VarChar(200)
-  createdOn   DateTime     @db.Timestamp(3)
-  product     products     @relation("productInventoryMovement", fields: [productId], references: [id])
-  productId   Int
-  warehouse   warehouse    @relation("productInventoryMovement", fields: [warehouseId], references: [id])
-  warehouseId Int
-  user        users        @relation("userInventoryMovement", fields: [createdBy], references: [id])
-  createdBy   Int
-  productsId  Int?
+  reason      String?  @db.VarChar(200)
+  product    products @relation("inventoryMovementProduct", fields: [productId], references: [id])
+  warehouse     warehouse  @relation("inventoryMovementWarehouse", fields: [warehouseId], references: [id])
+  createdOn    DateTime @db.Timestamp(3)
+  createdBy    Int      @db.Integer
+  userMovementCreated     users  @relation("inventoryMovementUserCreated", fields: [createdBy], references: [id])
+  updatedOn    DateTime? @db.Timestamp(3)
+  updatedBy    Int?     @db.Integer
+  userMovementUpdated     users?  @relation("inventoryMovementUserUpdated", fields: [updatedBy], references: [id])
+  purchase   purchase? @relation("inventoryMovementPurchase", fields: [purchaseId], references: [id])
+  purchaseId Int? @db.Integer
+  sale   sale? @relation("inventoryMovementSale", fields: [saleId], references: [id])
+  saleId Int? @db.Integer
+
 }
 
 enum movementType {
-  INBOUND
-  OUTBOUND
-  TRANSFER
+  ENTRY
+  EXIT
+  TRANSFERENCE
   ADJUSTMENT
 }
 
 // 🛒 Compras
-model buy {
-  id         Int              @id @default(autoincrement())
-  providerId Int
-  total      Float
-  date       DateTime         @default(now())
-  buyDetails buyDetail[]
-  provider   productProviders @relation("productProvidersBuy", fields: [providerId], references: [id])
-  products   products?        @relation("productBuy", fields: [productId], references: [id])
-  productId  Int?
+model purchase {
+  id           Int       @id @default(autoincrement())
+  providerId  Int @db.Integer
+  total        Decimal @db.Decimal(18, 2)
+  createdOn    DateTime @db.Timestamp(3)
+  updatedOn    DateTime? @db.Timestamp(3)
+  purchaseDetail    purchaseDetail[] @relation("purchaseDetail")
+  provider    productProviders    @relation("purchaseProvider", fields: [providerId], references: [id])
+  userPurchaseCreated users @relation("userPurchaseCreated", fields: [createdBy], references: [id])
+  createdBy Int @db.Integer
+  userPurchaseUpdated users? @relation("userPurchaseUpdated", fields: [updatedBy], references: [id])
+  updatedBy Int? @db.Integer
+  inventoryMovement inventoryMovement[] @relation("inventoryMovementPurchase")
 }
 
-model buyDetail {
-  id         Int       @id @default(autoincrement())
-  buyId      Int
-  productId  Int
+model purchaseDetail {
+  id         Int   @id @default(autoincrement())
+  purchaseId   Int
+  productId Int
   quantity   Int
-  price      Float
-  buy        buy       @relation(fields: [buyId], references: [id])
-  producto   products  @relation(fields: [productId], references: [id])
-  products   products? @relation(fields: [productsId], references: [id])
-  productsId Int?
+  price     Decimal @db.Decimal(18, 2)
+  purchase     purchase   @relation("purchaseDetail", fields: [purchaseId], references: [id])
+  product   products @relation("purchaseDetailProduct", fields: [productId], references: [id])
 }
 
 // 🛍 Ventas
-model sell {
-  id          Int          @id @default(autoincrement())
-  client      String
-  total       Float
-  date        DateTime     @default(now())
-  sellDetails sellDetail[]
-  products    products?    @relation(fields: [productsId], references: [id])
-  productsId  Int?
-  products    products?    @relation(fields: [productsId], references: [id])
+model sale {
+  id          Int        @id @default(autoincrement())
+  clientId    Int @db.Integer
+  client     clients @relation("saleClient", fields: [clientId], references: [id])
+  total       Decimal @db.Decimal(18, 2)
+  createdOn    DateTime @db.Timestamp(3)
+  updatedOn    DateTime? @db.Timestamp(3)
+  saleDetail   saleDetail[] @relation("saleDetail")
+  inventoryMovement inventoryMovement[] @relation("inventoryMovementSale")
+  userSaleCreated users @relation("userSaleCreated", fields: [createdBy], references: [id])
+  createdBy Int @db.Integer
+  userSaleUpdated users? @relation("userSaleUpdated", fields: [updatedBy], references: [id])
+  updatedBy Int? @db.Integer
+}
+model clients {
+  id Int @id @default(autoincrement())
+  name String @db.VarChar(100)
+  email String @db.VarChar(100)
+  phone String @db.VarChar(15)
+  address String @db.VarChar(120)
+  createdOn DateTime @db.Timestamp(3)
+  updatedOn DateTime? @db.Timestamp(3)
+  userClientCreated users @relation("userClientCreated", fields: [createdBy], references: [id])
+  createdBy Int @db.Integer
+  userClientUpdated users? @relation("userClientUpdated", fields: [updatedBy], references: [id])
+  updatedBy Int? @db.Integer
+  sale sale[] @relation("saleClient")
 }
 
-model sellDetail {
-  id         Int       @id @default(autoincrement())
-  sellId     Int
-  productId  Int
-  quantity   Int
-  price      Float
-  sell       sell      @relation(fields: [sellId], references: [id])
-  product    products  @relation(fields: [productId], references: [id])
-  products   products? @relation(fields: [productsId], references: [id])
-  productsId Int?
+model saleDetail {
+  id         Int   @id @default(autoincrement())
+  saleId    Int @db.Integer
+  productId Int @db.Integer
+  quantity   Int @db.Integer
+  price     Decimal @db.Decimal(18, 2)
+  sale      sale    @relation("saleDetail", fields: [saleId], references: [id])
+  product   products @relation("saleDetailProduct", fields: [productId], references: [id])
 }
 
-// 📑 Auditoría
-model Auditoria {
-  id        Int      @id @default(autoincrement())
-  usuarioId Int
-  accion    String
-  entidad   String
-  entidadId Int
-  fecha     DateTime @default(now())
-  usuario   users    @relation(fields: [usuarioId], references: [id])
-}

@@ -205,6 +205,10 @@
     "language_message_change_success": "Language changed successfully",
     "language_message_change_success_message": "The language has been changed successfully",
     "select_type": "Select type",
-    "update": "Update"
+    "update": "Update",
+    "stock_alerts": "Stock Alerts",
+    "expired_stock": "Expired Products",
+    "low_stock": "Low Stock Products",
+    "show_all_stock": "View All Stock"
   }
 }
