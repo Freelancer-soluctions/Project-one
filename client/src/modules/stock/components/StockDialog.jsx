@@ -55,7 +55,6 @@ export const StockDialog = ({
 }) => {
   const { t } = useTranslation()
   const [stockId, setStockId] = useState(null)
-  const [totalCost, setTotalCost] = useState({ price: 0, quantity: 0 })
 
   const form = useForm({
     resolver: zodResolver(StockSchema),
@@ -123,7 +122,7 @@ export const StockDialog = ({
   const handleCalculateTotalCost = (price, quantity) => {
     if (price && quantity) {
       const totalCost = price * quantity
-      setTotalCost({ price: totalCost.price, quantity: totalCost.quantity })
+      form.setValue('totalCost', totalCost)
     }
   }
 
@@ -176,12 +175,7 @@ export const StockDialog = ({
                           <SelectItem
                             key={product.id}
                             value={product.id.toString()}
-                            onClick={() => {
-                              setTotalCost({
-                                price: product.price,
-                                quantity: form.getValues('quantity')
-                              })
-                            }}>
+                           >
                             {product.name}
                           </SelectItem>
                         ))}
@@ -306,10 +300,10 @@ export const StockDialog = ({
                           type='number'
                           autoComplete='off'
                           onChange={e => {
-                            setTotalCost({
-                              price: totalCost.price,
-                              quantity: e.target.value
-                            })
+                            handleCalculateTotalCost(
+                              form.getValues('price'),
+                              e.target.value
+                            )
                           }}
                           {...field}
                           value={field.value ?? ''}
@@ -320,10 +314,10 @@ export const StockDialog = ({
                   )
                 }}
               />
-
-              <FormField
-                control={form.control}
-                name='price'
+              {selectedRow?.productId && (
+                <FormField
+                  control={form.control}
+                  name='price'
                 render={({ field }) => {
                   return (
                     <FormItem>
@@ -344,6 +338,8 @@ export const StockDialog = ({
                   )
                 }}
               />
+              )}
+              {selectedRow?.productId && (
               <FormField
                 control={form.control}
                 name='totalCost'
@@ -369,6 +365,7 @@ export const StockDialog = ({
                   )
                 }}
               />
+              )}
               <FormField
                 control={form.control}
                 name='minimum'

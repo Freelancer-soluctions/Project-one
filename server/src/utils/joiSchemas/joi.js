@@ -269,3 +269,75 @@ export const stockCreateUpdateSchema = Joi.object({
   productId: Joi.number().integer().required(),
   warehouseId: Joi.number().integer().required()
 })
+
+// Inventory Movement Schemas
+export const inventoryMovementFiltersSchema = Joi.object({
+  productId: Joi.number().integer().positive().optional(),
+  warehouseId: Joi.number().integer().positive().optional(),
+  type: Joi.string().valid('ENTRY', 'EXIT', 'TRANSFERENCE', 'ADJUSTMENT').optional(),
+  startDate: Joi.date().iso().optional(),
+  endDate: Joi.date().iso().min(Joi.ref('startDate')).optional()
+})
+
+export const inventoryMovementCreateUpdateSchema = Joi.object({
+  productId: Joi.number().integer().positive().required(),
+  warehouseId: Joi.number().integer().positive().required(),
+  quantity: Joi.number().integer().positive().required(),
+  type: Joi.string().valid('ENTRY', 'EXIT', 'TRANSFERENCE', 'ADJUSTMENT').required(),
+  reason: Joi.string().max(200).optional(),
+  purchaseId: Joi.number().integer().positive().optional(),
+  saleId: Joi.number().integer().positive().optional()
+})
+
+export const purchaseFiltersSchema = Joi.object({
+  providerId: Joi.number().integer().optional(),
+  startDate: Joi.date().iso().optional(),
+  endDate: Joi.date().iso().optional(),
+  minTotal: Joi.number().min(0).optional(),
+  maxTotal: Joi.number().min(0).optional()
+})
+
+export const purchaseCreateUpdateSchema = Joi.object({
+  providerId: Joi.number().integer().required(),
+  total: Joi.number().min(0).required(),
+  details: Joi.array().items(
+    Joi.object({
+      productId: Joi.number().integer().required(),
+      quantity: Joi.number().integer().min(1).required(),
+      price: Joi.number().min(0).required()
+    })
+  ).required().min(1)
+})
+
+export const clientFiltersSchema = Joi.object({
+  name: Joi.string().max(100).allow(''),
+  email: Joi.string().email().allow(''),
+  phone: Joi.string().max(15).allow('')
+})
+
+export const clientCreateUpdateSchema = Joi.object({
+  name: Joi.string().max(100).required(),
+  email: Joi.string().email().required(),
+  phone: Joi.string().max(15).required(),
+  address: Joi.string().max(120).required()
+})
+
+export const saleFiltersSchema = Joi.object({
+  clientId: Joi.number().integer().optional(),
+  startDate: Joi.date().iso().optional(),
+  endDate: Joi.date().iso().optional(),
+  minTotal: Joi.number().min(0).optional(),
+  maxTotal: Joi.number().min(0).optional()
+})
+
+export const saleCreateUpdateSchema = Joi.object({
+  clientId: Joi.number().integer().required(),
+  total: Joi.number().min(0).required(),
+  details: Joi.array().items(
+    Joi.object({
+      productId: Joi.number().integer().required(),
+      quantity: Joi.number().integer().min(1).required(),
+      price: Joi.number().min(0).required()
+    })
+  ).required().min(1)
+})
