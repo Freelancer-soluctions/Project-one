@@ -53,6 +53,7 @@ model users {
   userSaleUpdated      sale[]              @relation("userSaleUpdated")
   userClientCreated    clients[]           @relation("userClientCreated")
   userClientUpdated    clients[]           @relation("userClientUpdated")
+  userEmpleadoCreated  employee[]          @relation("userEmpleadoCreated")
 
 
 }
@@ -382,3 +383,92 @@ model saleDetail {
   product   products @relation("saleDetailProduct", fields: [productId], references: [id])
 }
 
+
+model Usuario {
+  id          String   @id @default(uuid())  
+  email       String   @unique
+  password    String
+  role        String   // admin, empleado, gerente, etc.
+  empleado    Empleado? @relation(fields: [empleadoId], references: [id]) // Relación opcional con Empleado
+  empleadoId  String?  // Si el usuario está vinculado a un empleado, se almacena aquí
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Empleado {
+  id          String   @id @default(uuid())
+  nombre      String
+  apellido    String
+  dni         String   @unique
+  telefono    String?
+  email       String   @unique
+  direccion   String?
+  fechaIngreso DateTime
+  cargo       String
+  departamento String
+  salario     Float
+  usuario     Usuario? @relation(fields: [usuarioId], references: [id]) // Relación opcional con Usuario
+  usuarioId   String?  // Si el empleado tiene una cuenta de usuario, se almacena aquí
+  asistencia  Asistencia[]
+  nomina      Nomina[]
+  evaluaciones EvaluacionDesempeno[]
+  vacaciones  Vacacion[]
+  permisos    Permiso[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Asistencia {
+  id          String   @id @default(uuid())
+  empleadoId  String
+  fecha       DateTime
+  horaEntrada DateTime
+  horaSalida  DateTime?
+  horasTrabajadas Float?
+  empleado    Empleado @relation(fields: [empleadoId], references: [id])
+  createdAt   DateTime @default(now())
+}
+
+model Nomina {
+  id          String   @id @default(uuid())
+  empleadoId  String
+  mes         Int
+  anio        Int
+  salarioBase Float
+  horasExtra  Float
+  deducciones Float
+  totalPago   Float
+  empleado    Empleado @relation(fields: [empleadoId], references: [id])
+  createdAt   DateTime @default(now())
+}
+
+model EvaluacionDesempeno {
+  id          String   @id @default(uuid())
+  empleadoId  String
+  fecha       DateTime
+  calificacion Int
+  comentarios String?
+  empleado    Empleado @relation(fields: [empleadoId], references: [id])
+  createdAt   DateTime @default(now())
+}
+
+model Vacacion {
+  id          String   @id @default(uuid())
+  empleadoId  String
+  fechaInicio DateTime
+  fechaFin    DateTime
+  estado      String   // pendiente, aprobada, rechazada
+  empleado    Empleado @relation(fields: [empleadoId], references: [id])
+  createdAt   DateTime @default(now())
+}
+
+model Permiso {
+  id          String   @id @default(uuid())
+  empleadoId  String
+  tipo        String   // Licencia médica, asuntos personales, etc.
+  fechaInicio DateTime
+  fechaFin    DateTime
+  estado      String   // pendiente, aprobado, rechazado
+  empleado    Empleado @relation(fields: [empleadoId], references: [id])
+  createdAt   DateTime @default(now())
+}
