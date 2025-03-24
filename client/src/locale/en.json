@@ -209,6 +209,25 @@
     "stock_alerts": "Stock Alerts",
     "expired_stock": "Expired Products",
     "low_stock": "Low Stock Products",
-    "show_all_stock": "View All Stock"
+    "show_all_stock": "View All Stock",
+    "sales": "Sales",
+    "sales_card_msg": "Manage your sales efficiently.",
+    "clients": "Clients",
+    "clients_card_msg": "Manage your clients efficiently.",
+    "purchases": "Purchases",
+    "purchases_card_msg": "Manage your purchases efficiently.",
+    "inventoryMovement": "Inventory Movement",
+    "inventoryMovement_card_msg": "Manage your inventory movement efficiently.",
+    "employees": "Employees",
+    "employees_card_msg": "Manage your employees efficiently.",
+    "attendance": "Attendance",
+    "attendance_card_msg": "Manage your attendance efficiently.",
+    "performanceEvaluation": "Performance Evaluation",
+    "performanceEvaluation_card_msg": "Manage your performance evaluation efficiently.",
+    "vacations": "Vacations",
+    "vacations_card_msg": "Manage your vacations efficiently.",
+    "permission": "Permission",
+    "permission_card_msg": "Manage your permission efficiently.",
+    "payroll_card_msg": "Manage your payroll efficiently."
   }
 }
