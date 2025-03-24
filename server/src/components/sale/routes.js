@@ -5,8 +5,9 @@ import {
   updateSaleById,
   deleteSaleById
 } from './controller.js'
-import { authenticateToken } from '../../middleware/auth.js'
-import { validateRequest } from '../../middleware/validateRequest.js'
+import verifyToken from '../../middleware/verifyToken.js'
+import validateSchema from '../../middleware/validateSchema.js'
+import validateQueryParams from '../../middleware/validateQueryParams.js'
 import { saleFiltersSchema, saleCreateUpdateSchema } from '../../utils/joiSchemas/joi.js'
 
 const router = express.Router()
@@ -68,7 +69,7 @@ const router = express.Router()
  *       500:
  *         description: Internal server error
  */
-router.get('/', authenticateToken, validateRequest({ query: saleFiltersSchema }), getAllSales)
+router.get('/', verifyToken, validateQueryParams(saleFiltersSchema), getAllSales)
 
 /**
  * @swagger
@@ -105,7 +106,7 @@ router.get('/', authenticateToken, validateRequest({ query: saleFiltersSchema })
  *       500:
  *         description: Internal server error
  */
-router.post('/', authenticateToken, validateRequest({ body: saleCreateUpdateSchema }), createSale)
+router.post('/', verifyToken, validateSchema(saleCreateUpdateSchema), createSale)
 
 /**
  * @swagger
@@ -151,7 +152,7 @@ router.post('/', authenticateToken, validateRequest({ body: saleCreateUpdateSche
  *       500:
  *         description: Internal server error
  */
-router.put('/:id', authenticateToken, validateRequest({ body: saleCreateUpdateSchema }), updateSaleById)
+router.put('/:id', verifyToken, validateSchema(saleCreateUpdateSchema), updateSaleById)
 
 /**
  * @swagger
@@ -189,6 +190,6 @@ router.put('/:id', authenticateToken, validateRequest({ body: saleCreateUpdateSc
  *       500:
  *         description: Internal server error
  */
-router.delete('/:id', authenticateToken, deleteSaleById)
+router.delete('/:id', verifyToken, deleteSaleById)
 
 export default router

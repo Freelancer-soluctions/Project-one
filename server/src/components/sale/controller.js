@@ -4,8 +4,8 @@ import {
   updateSaleById as updateSaleByIdService,
   deleteSaleById as deleteSaleByIdService
 } from './service.js'
-import { handleCatchErrorAsync } from '../../utils/errorHandler.js'
-import { handleSuccessResponse } from '../../utils/responseHandler.js'
+import globalResponse from '../../utils/responses&Errors/globalResponse.js'
+import handleCatchErrorAsync from '../../utils/responses&Errors/handleCatchErrorAsync.js'
 
 /**
  * Get all sales with optional filters
@@ -14,7 +14,7 @@ import { handleSuccessResponse } from '../../utils/responseHandler.js'
  */
 export const getAllSales = handleCatchErrorAsync(async (req, res) => {
   const sales = await getAllSalesService(req.query)
-  handleSuccessResponse(res, sales, 'Sales retrieved successfully')
+  globalResponse(res, 200, sales)
 })
 
 /**
@@ -27,7 +27,7 @@ export const createSale = handleCatchErrorAsync(async (req, res) => {
     ...req.body,
     createdBy: req.user.id
   })
-  handleSuccessResponse(res, sale, 'Sale created successfully')
+  globalResponse(res, 201, sale)
 })
 
 /**
@@ -40,7 +40,7 @@ export const updateSaleById = handleCatchErrorAsync(async (req, res) => {
     ...req.body,
     updatedBy: req.user.id
   })
-  handleSuccessResponse(res, sale, 'Sale updated successfully')
+  globalResponse(res, 200, sale)
 })
 
 /**
@@ -50,5 +50,5 @@ export const updateSaleById = handleCatchErrorAsync(async (req, res) => {
  */
 export const deleteSaleById = handleCatchErrorAsync(async (req, res) => {
   await deleteSaleByIdService(req.params.id)
-  handleSuccessResponse(res, null, 'Sale deleted successfully')
+  globalResponse(res, 200, { message: 'Sale deleted successfully' })
 })

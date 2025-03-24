@@ -16,7 +16,14 @@ import {
   LuPackage,
   LuPackagePlus,
   LuBuilding2,
-  LuWarehouse
+  LuWarehouse,
+  LuShoppingCart ,
+  LuArrowLeftRight,
+  LuDollarSign,
+  LuUsersRound ,
+  LuUsers,
+  LuClock,
+  LuStar
 } from 'react-icons/lu'
 import { useTranslation } from 'react-i18next'
 const CardModule = () => {
@@ -161,6 +168,198 @@ const CardModule = () => {
           <CardContent className='px-6 pb-6'>
             <Link
               to={'stock'}
+              className='flex items-center gap-2 px-3 py-2 text-sm font-medium transition-colors rounded-md hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground'
+              prefetch={false}>
+              {t('access')} <LuArrowRight className='w-4 h-4 ml-2' />
+            </Link>
+          </CardContent>
+        </Card>
+        <Card className='relative overflow-hidden transition-all group hover:shadow-lg hover:-translate-y-1'>
+          <CardHeader className='p-6'>
+            <div className='flex items-center gap-4'>
+              <LuDollarSign className='w-8 h-8 text-zinc-800' />
+              <div>
+                <CardTitle className='text-xl'>{t('sales')}</CardTitle>
+                <CardDescription>{t('sales_card_msg')}</CardDescription>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent className='px-6 pb-6'>
+            <Link
+              to={'sales'}
+              className='flex items-center gap-2 px-3 py-2 text-sm font-medium transition-colors rounded-md hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground'
+              prefetch={false}>
+              {t('access')} <LuArrowRight className='w-4 h-4 ml-2' />
+            </Link>
+          </CardContent>
+        </Card>
+        <Card className='relative overflow-hidden transition-all group hover:shadow-lg hover:-translate-y-1'>
+          <CardHeader className='p-6'>
+            <div className='flex items-center gap-4'>
+              <LuUsersRound className='w-8 h-8 text-zinc-800' />
+              <div>
+                <CardTitle className='text-xl'>{t('clients')}</CardTitle>
+                <CardDescription>{t('clients_card_msg')}</CardDescription>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent className='px-6 pb-6'>
+            <Link
+              to={'clients'}
+              className='flex items-center gap-2 px-3 py-2 text-sm font-medium transition-colors rounded-md hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground'
+              prefetch={false}>
+              {t('access')} <LuArrowRight className='w-4 h-4 ml-2' />
+            </Link>
+          </CardContent>
+        </Card>
+        <Card className='relative overflow-hidden transition-all group hover:shadow-lg hover:-translate-y-1'>
+          <CardHeader className='p-6'>
+            <div className='flex items-center gap-4'>
+              <LuShoppingCart className='w-8 h-8 text-zinc-800' />
+              <div>
+                <CardTitle className='text-xl'>{t('purchases')}</CardTitle>
+                <CardDescription>{t('purchases_card_msg')}</CardDescription>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent className='px-6 pb-6'>
+            <Link
+              to={'purchases'}
+              className='flex items-center gap-2 px-3 py-2 text-sm font-medium transition-colors rounded-md hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground'
+              prefetch={false}>
+              {t('access')} <LuArrowRight className='w-4 h-4 ml-2' />
+            </Link>
+          </CardContent>
+        </Card>
+        <Card className='relative overflow-hidden transition-all group hover:shadow-lg hover:-translate-y-1'>
+          <CardHeader className='p-6'>
+            <div className='flex items-center gap-4'>
+              <LuArrowLeftRight className='w-8 h-8 text-zinc-800' />
+              <div>
+                <CardTitle className='text-xl'>{t('inventoryMovement')}</CardTitle>
+                <CardDescription>{t('inventoryMovement_card_msg')}</CardDescription>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent className='px-6 pb-6'>
+            <Link
+              to={'inventoryMovement'}
+              className='flex items-center gap-2 px-3 py-2 text-sm font-medium transition-colors rounded-md hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground'
+              prefetch={false}>
+              {t('access')} <LuArrowRight className='w-4 h-4 ml-2' />
+            </Link>
+          </CardContent>
+        </Card>
+      </div>
+      <div className='grid grid-cols-1 gap-4 mt-20 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-8'>
+      <Card className='relative overflow-hidden transition-all group hover:shadow-lg hover:-translate-y-1'>
+          <CardHeader className='p-6'>
+            <div className='flex items-center gap-4'>
+              <LuUsers className='w-8 h-8 text-zinc-800' />
+              <div>
+                <CardTitle className='text-xl'>{t('employees')}</CardTitle>
+                <CardDescription>{t('employees_card_msg')}</CardDescription>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent className='px-6 pb-6'>
+            <Link
+              to={'employees'}
+              className='flex items-center gap-2 px-3 py-2 text-sm font-medium transition-colors rounded-md hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground'
+              prefetch={false}>
+              {t('access')} <LuArrowRight className='w-4 h-4 ml-2' />
+            </Link>
+          </CardContent>
+        </Card>
+        <Card className='relative overflow-hidden transition-all group hover:shadow-lg hover:-translate-y-1'>
+          <CardHeader className='p-6'>
+            <div className='flex items-center gap-4'>
+              <LuClock className='w-8 h-8 text-zinc-800' />
+              <div>
+                <CardTitle className='text-xl'>{t('attendance')}</CardTitle>
+                <CardDescription>{t('attendance_card_msg')}</CardDescription>
+              </div>
+            </div>
+          </CardHeader> 
+          <CardContent className='px-6 pb-6'>
+            <Link
+              to={'attendance'}
+              className='flex items-center gap-2 px-3 py-2 text-sm font-medium transition-colors rounded-md hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground'
+              prefetch={false}>
+              {t('access')} <LuArrowRight className='w-4 h-4 ml-2' />
+            </Link>
+          </CardContent>
+        </Card>
+        <Card className='relative overflow-hidden transition-all group hover:shadow-lg hover:-translate-y-1'>
+          <CardHeader className='p-6'>
+            <div className='flex items-center gap-4'>
+              <LuDollarSign className='w-8 h-8 text-zinc-800' />
+              <div>
+                <CardTitle className='text-xl'>{t('payroll')}</CardTitle>
+                <CardDescription>{t('payroll_card_msg')}</CardDescription>
+              </div>
+            </div>
+          </CardHeader> 
+          <CardContent className='px-6 pb-6'>
+            <Link
+              to={'payroll'}
+              className='flex items-center gap-2 px-3 py-2 text-sm font-medium transition-colors rounded-md hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground'
+              prefetch={false}>
+              {t('access')} <LuArrowRight className='w-4 h-4 ml-2' />
+            </Link>
+          </CardContent>
+        </Card>
+        <Card className='relative overflow-hidden transition-all group hover:shadow-lg hover:-translate-y-1'>
+          <CardHeader className='p-6'>
+            <div className='flex items-center gap-4'>
+              <LuStar className='w-8 h-8 text-zinc-800' />
+              <div>
+                <CardTitle className='text-xl'>{t('performanceEvaluation')}</CardTitle>
+                <CardDescription>{t('performanceEvaluation_card_msg')}</CardDescription>
+              </div>
+            </div>
+          </CardHeader> 
+          <CardContent className='px-6 pb-6'>
+            <Link
+              to={'performanceEvaluation'}
+              className='flex items-center gap-2 px-3 py-2 text-sm font-medium transition-colors rounded-md hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground'
+              prefetch={false}>
+              {t('access')} <LuArrowRight className='w-4 h-4 ml-2' />
+            </Link>
+          </CardContent>
+        </Card>
+        <Card className='relative overflow-hidden transition-all group hover:shadow-lg hover:-translate-y-1'>
+          <CardHeader className='p-6'>
+            <div className='flex items-center gap-4'>
+              <LuCalendarCheck2 className='w-8 h-8 text-zinc-800' />
+              <div>
+                <CardTitle className='text-xl'>{t('vacations')}</CardTitle>
+                <CardDescription>{t('vacations_card_msg')}</CardDescription>
+              </div>
+            </div>
+          </CardHeader> 
+          <CardContent className='px-6 pb-6'>
+            <Link
+              to={'vacations'}
+              className='flex items-center gap-2 px-3 py-2 text-sm font-medium transition-colors rounded-md hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground'
+              prefetch={false}>
+              {t('access')} <LuArrowRight className='w-4 h-4 ml-2' />
+            </Link>
+          </CardContent>
+        </Card>
+        <Card className='relative overflow-hidden transition-all group hover:shadow-lg hover:-translate-y-1'>
+          <CardHeader className='p-6'>
+            <div className='flex items-center gap-4'>
+              <LuCalendarCheck2 className='w-8 h-8 text-zinc-800' />
+              <div>
+                <CardTitle className='text-xl'>{t('permission')}</CardTitle>
+                <CardDescription>{t('permission_card_msg')}</CardDescription>
+              </div>
+            </div>
+          </CardHeader> 
+          <CardContent className='px-6 pb-6'>
+            <Link
+              to={'permission'}
               className='flex items-center gap-2 px-3 py-2 text-sm font-medium transition-colors rounded-md hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground'
               prefetch={false}>
               {t('access')} <LuArrowRight className='w-4 h-4 ml-2' />

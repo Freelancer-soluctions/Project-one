@@ -5,8 +5,9 @@ import {
   updateClientById,
   deleteClientById
 } from './controller.js'
-import { verifyToken } from '../../middleware/auth.js'
-import { validateQueryParams, validateSchema } from '../../middleware/validation.js'
+import verifyToken from '../../middleware/verifyToken.js'
+import validateSchema from '../../middleware/validateSchema.js'
+import validateQueryParams from '../../middleware/validateQueryParams.js'
 import { clientFiltersSchema, clientCreateUpdateSchema } from '../../utils/joiSchemas/joi.js'
 
 const router = express.Router()

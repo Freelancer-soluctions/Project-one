@@ -5,8 +5,9 @@ import {
   updatePurchaseById,
   deletePurchaseById
 } from './controller.js'
-import { verifyToken } from '../../middleware/auth.js'
-import { validateQueryParams, validateSchema } from '../../middleware/validation.js'
+import verifyToken from '../../middleware/verifyToken.js'
+import validateQueryParams from '../../middleware/validateQueryParams.js'
+import validateSchema from '../../middleware/validateSchema.js'
 import { purchaseFiltersSchema, purchaseCreateUpdateSchema } from '../../utils/joiSchemas/joi.js'
 
 const router = express.Router()
