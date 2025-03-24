@@ -21,6 +21,18 @@ const ProductsForms = lazy(
 const Providers = lazy(() => import('@/modules/providers/pages/Providers'))
 const Warehouse = lazy(() => import('@/modules/warehouse/pages/Warehouse'))
 const Stock = lazy(() => import('@/modules/stock/pages/Stock'))
+/* const Sales = lazy(() => import('@/modules/sales/pages/Sales')) 
+const Clients = lazy(() => import('@/modules/clients/pages/Clients'))
+const Purchases = lazy(() => import('@/modules/purchases/pages/Purchases'))
+const InventoryMovement = lazy(() => import('@/modules/inventoryMovement/pages/InventoryMovement')) */
+/* const Attendance = lazy(() => import('@/modules/attendance/pages/Attendance'))
+const Payroll = lazy(() => import('@/modules/payroll/pages/Payroll'))
+const PerformanceEvaluation = lazy(() => import('@/modules/performanceEvaluation/pages/PerformanceEvaluation'))
+const Vacations = lazy(() => import('@/modules/vacations/pages/Vacations'))
+const Permission = lazy(() => import('@/modules/permission/pages/Permission')) */
+/* const Employees = lazy(() => import('@/modules/employees/pages/Employees')) */
+
+
 
 const App = () => {
   return (
@@ -56,8 +68,19 @@ const App = () => {
           <Route path='providers' element={<Providers />} />
           <Route path='warehouse' element={<Warehouse />} />
           <Route path='stock' element={<Stock />} />
+ */} 
+    {/*       <Route path='sales' element={<Sales />} />
+          <Route path='clients' element={<Clients />} />
+          <Route path='purchases' element={<Purchases />} />
+          <Route path='inventoryMovement' element={<InventoryMovement />} /> */}
+    {/*       <Route path='attendance' element={<Attendance />} />
+          <Route path='payroll' element={<Payroll />} />
+          <Route path='performanceEvaluation' element={<PerformanceEvaluation />} />
+          <Route path='vacations' element={<Vacations />} />
+          <Route path='permission' element={<Permission />} /> 
+          <Route path='employees' element={<Employees />} />
 
-
+        
 
           {/* <Route path='inventory' element={<Events />} />
           <Route path='expenses' element={<Events />} /> */}

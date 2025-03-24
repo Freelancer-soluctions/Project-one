@@ -4,8 +4,8 @@ import {
   updateClientById as updateClientByIdService,
   deleteClientById as deleteClientByIdService
 } from './service.js'
-import { handleCatchErrorAsync } from '../../utils/errorHandler.js'
-import { handleSuccessResponse } from '../../utils/responseHandler.js'
+import handleCatchErrorAsync from '../../utils/responses&Errors/handleCatchErrorAsync.js'
+import globalResponse from '../../utils/responses&Errors/globalResponse.js'
 
 /**
  * Get all clients with optional filters
@@ -14,7 +14,7 @@ import { handleSuccessResponse } from '../../utils/responseHandler.js'
  */
 export const getAllClients = handleCatchErrorAsync(async (req, res) => {
   const clients = await getAllClientsService(req.query)
-  handleSuccessResponse(res, clients, 'Clients retrieved successfully')
+  globalResponse(res, 200, clients)
 })
 
 /**
@@ -27,7 +27,7 @@ export const createClient = handleCatchErrorAsync(async (req, res) => {
     ...req.body,
     createdBy: req.user.id
   })
-  handleSuccessResponse(res, client, 'Client created successfully')
+  globalResponse(res, 201, client)
 })
 
 /**
@@ -40,7 +40,7 @@ export const updateClientById = handleCatchErrorAsync(async (req, res) => {
     ...req.body,
     updatedBy: req.user.id
   })
-  handleSuccessResponse(res, client, 'Client updated successfully')
+  globalResponse(res, 200, client)
 })
 
 /**
@@ -50,5 +50,5 @@ export const updateClientById = handleCatchErrorAsync(async (req, res) => {
  */
 export const deleteClientById = handleCatchErrorAsync(async (req, res) => {
   await deleteClientByIdService(req.params.id)
-  handleSuccessResponse(res, null, 'Client deleted successfully')
+  globalResponse(res, 200, { message: 'Client deleted successfully' })
 })

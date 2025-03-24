@@ -10,6 +10,10 @@ import products from '../../components/products/routes.js'
 import warehouse from '../../components/warehouse/routes.js'
 import stock from '../../components/stock/routes.js'
 import inventoryMovement from '../../components/inventoryMovement/routes.js'
+import sale from '../../components/sale/routes.js'
+import clients from '../../components/clients/routes.js'
+import purchase from '../../components/purchase/routes.js'
+
 const router = Router()
 router.use('/auth', auth)
 router.use('/news', news)
@@ -21,6 +25,9 @@ router.use('/providers', providers)
 router.use('/warehouse', warehouse)
 router.use('/stock', stock)
 router.use('/inventory-movement', inventoryMovement)
+router.use('/sales', sale)
+router.use('/clients', clients)
+router.use('/purchases', purchase)
 router.use('/role', role)
 
 export default router
