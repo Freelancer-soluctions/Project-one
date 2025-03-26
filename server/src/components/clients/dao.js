@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client'
+import { PrismaClient, Prisma } from '@prisma/client'
 
 const prisma = new PrismaClient()
 
@@ -11,30 +11,32 @@ const prisma = new PrismaClient()
  * @returns {Promise<Array>} List of clients with their related data
  */
 export const getAllClients = async (filters = {}) => {
-  const where = {
-    ...(filters.name && { name: { contains: filters.name } }),
-    ...(filters.email && { email: { contains: filters.email } }),
-    ...(filters.phone && { phone: { contains: filters.phone } })
+  const whereClauses = []
+
+  if (filters.name) {
+    whereClauses.push(Prisma.sql`c."name" ILIKE ${filters.name}`)
   }
 
-  return prisma.clients.findMany({
-    where,
-    include: {
-      userClientCreated: {
-        select: {
-          name: true
-        }
-      },
-      userClientUpdated: {
-        select: {
-          name: true
-        }
-      }
-    },
-    orderBy: {
-      createdOn: 'desc'
-    }
-  })
+  if (filters.email) {
+    whereClauses.push(Prisma.sql`c."email" ILIKE ${filters.email}`)
+  }
+
+  const whereSql = whereClauses.length
+    ? Prisma.sql`WHERE ${Prisma.join(whereClauses, Prisma.sql` AND `)}`
+    : Prisma.empty
+
+  const clients = await prisma.$queryRaw`
+  SELECT 
+     c.*,
+     u.name AS "userClientCreatedName",
+     uu.name AS "userClientUpdatedName"
+   FROM "clients" c
+   LEFT JOIN "users" u ON c."createdBy" = u.id
+   LEFT JOIN "users" uu ON c."updatedBy" = uu.id
+   ${whereSql}
+ `
+
+  return clients
 }
 
 /**
@@ -49,14 +51,19 @@ export const getAllClients = async (filters = {}) => {
  */
 export const createClient = async (data) => {
   return prisma.clients.create({
-    data,
-    include: {
+    data: {
+      name: data.name,
+      email: data.email,
+      phone: data.phone,
+      address: data.address,
+      createdOn: data.createdOn,
       userClientCreated: {
-        select: {
-          name: true
+        connect: {
+          id: data.createdBy
         }
       }
     }
+
   })
 }
 
@@ -74,19 +81,19 @@ export const createClient = async (data) => {
 export const updateClientById = async (id, data) => {
   return prisma.clients.update({
     where: { id },
-    data,
-    include: {
-      userClientCreated: {
-        select: {
-          name: true
-        }
-      },
+    data: {
+      name: data.name,
+      email: data.email,
+      phone: data.phone,
+      address: data.address,
+      updatedOn: data.updatedOn,
       userClientUpdated: {
-        select: {
-          name: true
+        connect: {
+          id: data.updatedBy
         }
       }
     }
+
   })
 }
 

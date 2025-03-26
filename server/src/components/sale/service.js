@@ -20,7 +20,15 @@ export const getAllSales = async (filters) => {
  * @returns {Promise<Object>} Created sale
  */
 export const createSale = async (data) => {
-  return createSaleDao(data)
+  const dataToCreate = {
+    clientId: Number(data.clientId),
+    total: Number(data.total),
+    details: data.details,
+    createdBy: Number(data.createdBy),
+    createdOn: new Date()
+  }
+  console.log(dataToCreate)
+  return createSaleDao(dataToCreate)
 }
 
 /**
@@ -30,7 +38,14 @@ export const createSale = async (data) => {
  * @returns {Promise<Object>} Updated sale
  */
 export const updateSaleById = async (id, data) => {
-  return updateSaleByIdDao(id, data)
+  const dataToUpdate = {
+    clientId: Number(data.clientId),
+    total: Number(data.total),
+    details: data.details,
+    updatedBy: Number(data.updatedBy),
+    updatedOn: new Date()
+  }
+  return updateSaleByIdDao(Number(id), dataToUpdate)
 }
 
 /**
@@ -39,5 +54,5 @@ export const updateSaleById = async (id, data) => {
  * @returns {Promise<Object>} Deleted sale
  */
 export const deleteSaleById = async (id) => {
-  return deleteSaleByIdDao(id)
+  return deleteSaleByIdDao(Number(id))
 }

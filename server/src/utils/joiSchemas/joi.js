@@ -311,8 +311,8 @@ export const purchaseCreateUpdateSchema = Joi.object({
 
 export const clientFiltersSchema = Joi.object({
   name: Joi.string().max(100).allow(''),
-  email: Joi.string().email().allow(''),
-  phone: Joi.string().max(15).allow('')
+  email: Joi.string().email().allow('')
+
 })
 
 export const clientCreateUpdateSchema = Joi.object({
@@ -323,11 +323,11 @@ export const clientCreateUpdateSchema = Joi.object({
 })
 
 export const saleFiltersSchema = Joi.object({
-  clientId: Joi.number().integer().optional(),
-  startDate: Joi.date().iso().optional(),
-  endDate: Joi.date().iso().optional(),
-  minTotal: Joi.number().min(0).optional(),
-  maxTotal: Joi.number().min(0).optional()
+  clientId: Joi.number().integer().optional().allow(''),
+  startDate: Joi.date().iso().optional().allow(''),
+  endDate: Joi.date().iso().optional().allow(''),
+  minTotal: Joi.number().min(0).optional().allow(''),
+  maxTotal: Joi.number().min(0).optional().allow('')
 })
 
 export const saleCreateUpdateSchema = Joi.object({

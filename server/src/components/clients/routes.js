@@ -23,26 +23,14 @@ const router = express.Router()
  *       - bearerAuth: []
  *     parameters:
  *       - in: query
- *         name: name
+ *         name: filters
  *         schema:
- *           type: string
- *           maxLength: 100
- *         description: Filter by client name
- *       - in: query
- *         name: email
- *         schema:
- *           type: string
- *           format: email
- *         description: Filter by client email
- *       - in: query
- *         name: phone
- *         schema:
- *           type: string
- *           maxLength: 15
- *         description: Filter by client phone
+ *           $ref: "#/components/schemas/ClientFilters"
+ *         required: false
+ *         description: "Filtros opcionales para buscar clientes."
  *     responses:
  *       200:
- *         description: List of clients retrieved successfully
+ *         description: OK
  *         content:
  *           application/json:
  *             schema:
@@ -54,14 +42,25 @@ const router = express.Router()
  *                 statusCode:
  *                   type: integer
  *                   example: 200
+ *                 message:
+ *                   type: string
+ *                   example: "Some success message"
  *                 data:
  *                   type: array
  *                   items:
- *                     $ref: '#/components/schemas/ResponseGetClient'
+ *                     $ref: "#/components/schemas/ResponseGetClient"
  *       401:
- *         $ref: '#/components/schemas/Unauthorized'
+ *         description: Unauthorized
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Unauthorized'
  *       500:
- *         $ref: '#/components/schemas/Error'
+ *         description: Server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
  */
 router.get(
   '/',
@@ -84,7 +83,7 @@ router.get(
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/BodyClientCreate'
+ *             $ref: '#/components/schemas/BodyClientCreateUpdate'
  *     responses:
  *       201:
  *         description: Client created successfully
@@ -100,11 +99,19 @@ router.get(
  *                   type: integer
  *                   example: 201
  *                 data:
- *                   $ref: '#/components/schemas/ResponseClientCreate'
+ *                   $ref: '#/components/schemas/ResponseClientCreateUpdate'
  *       401:
- *         $ref: '#/components/schemas/Unauthorized'
+ *         description: Unauthorized
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Unauthorized'
  *       500:
- *         $ref: '#/components/schemas/Error'
+ *         description: Server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
  */
 router.post(
   '/',
@@ -134,7 +141,7 @@ router.post(
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/BodyClientUpdate'
+ *             $ref: '#/components/schemas/BodyClientCreateUpdate'
  *     responses:
  *       200:
  *         description: Client updated successfully
@@ -150,11 +157,19 @@ router.post(
  *                   type: integer
  *                   example: 200
  *                 data:
- *                   $ref: '#/components/schemas/ResponseClientUpdate'
+ *                   $ref: '#/components/schemas/ResponseClientCreateUpdate'
  *       401:
- *         $ref: '#/components/schemas/Unauthorized'
+ *         description: Unauthorized
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Unauthorized'
  *       500:
- *         $ref: '#/components/schemas/Error'
+ *         description: Server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
  */
 router.put(
   '/:id',
@@ -181,11 +196,23 @@ router.put(
  *         description: Client ID
  *     responses:
  *       200:
- *         $ref: '#/components/schemas/Delete'
+ *         description: Client deleted
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Delete'
  *       401:
- *         $ref: '#/components/schemas/Unauthorized'
+ *         description: Unauthorized
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Unauthorized'
  *       500:
- *         $ref: '#/components/schemas/Error'
+ *         description: Server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
  */
 router.delete(
   '/:id',
