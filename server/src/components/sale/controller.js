@@ -25,7 +25,7 @@ export const getAllSales = handleCatchErrorAsync(async (req, res) => {
 export const createSale = handleCatchErrorAsync(async (req, res) => {
   const sale = await createSaleService({
     ...req.body,
-    createdBy: req.user.id
+    createdBy: req.userId
   })
   globalResponse(res, 201, sale)
 })
@@ -38,7 +38,7 @@ export const createSale = handleCatchErrorAsync(async (req, res) => {
 export const updateSaleById = handleCatchErrorAsync(async (req, res) => {
   const sale = await updateSaleByIdService(req.params.id, {
     ...req.body,
-    updatedBy: req.user.id
+    updatedBy: req.userId
   })
   globalResponse(res, 200, sale)
 })

@@ -55,6 +55,16 @@ model users {
   userClientUpdated    clients[]           @relation("userClientUpdated")
   userEmployeeCreated  employees[]          @relation("userEmployeeCreated")
   userEmployeeUpdated  employees[]          @relation("userEmployeeUpdated")
+  userAttendanceCreated attendance[]        @relation("userAttendanceCreated")
+  userAttendanceUpdated attendance[]        @relation("userAttendanceUpdated")
+  userPayrollCreated   payroll[]           @relation("userPayrollCreated")
+  userPayrollUpdated   payroll[]           @relation("userPayrollUpdated")
+  userPerformanceEvaluationCreated performanceEvaluation[] @relation("userPerformanceEvaluationCreated")
+  userPerformanceEvaluationUpdated performanceEvaluation[] @relation("userPerformanceEvaluationUpdated")
+  userVacationCreated  vacation[] @relation("userVacationCreated")
+  userVacationUpdated  vacation[] @relation("userVacationUpdated")
+  userPermissionCreated permission[] @relation("userPermissionCreated")
+  userPermissionUpdated permission[] @relation("userPermissionUpdated")
 }
 
 model userPermits {
@@ -378,7 +388,7 @@ model saleDetail {
   productId Int @db.Integer
   quantity   Int @db.Integer
   price     Decimal @db.Decimal(18, 2)
-  sale      sale    @relation("saleDetail", fields: [saleId], references: [id])
+  sale      sale    @relation("saleDetail", fields: [saleId], references: [id], onDelete: Cascade)
   product   products @relation("saleDetailProduct", fields: [productId], references: [id])
 }
 
@@ -397,8 +407,8 @@ model employees {
   position       String @db.VarChar(100)
   department String @db.VarChar(100)
   salary     Decimal @db.Decimal(18, 2)
-  userEmployeeCreated users? @relation("userEmployeeCreated", fields: [createdBy], references: [id]) // Relación opcional con Usuario
-  createdBy   Int?   @db.Integer // Si el empleado tiene una cuenta de usuario, se almacena aquí
+  userEmployeeCreated users @relation("userEmployeeCreated", fields: [createdBy], references: [id]) // Relación opcional con Usuario
+  createdBy   Int   @db.Integer // Si el empleado tiene una cuenta de usuario, se almacena aquí
   userEmployeeUpdated users? @relation("userEmployeeUpdated", fields: [updatedBy], references: [id]) // Relación opcional con Usuario
   updatedBy   Int?   @db.Integer // Si el empleado tiene una cuenta de usuario, se almacena aquí
   attendance  attendance[] @relation("attendanceEmployee")
@@ -409,7 +419,7 @@ model employees {
   createdOn   DateTime  @db.Timestamp(3)
   updatedOn   DateTime? @db.Timestamp(3)
 }
-
+// asistencia
 model attendance {
   id          Int   @id @default(autoincrement())
   employeeId  Int @db.Integer
@@ -420,12 +430,16 @@ model attendance {
   employee    employees @relation("attendanceEmployee", fields: [employeeId], references: [id])
   createdOn   DateTime @db.Timestamp(3)
   updatedOn   DateTime? @db.Timestamp(3)
+  userAttendanceCreated users @relation("userAttendanceCreated", fields: [createdBy], references: [id])
+  createdBy Int @db.Integer
+  userAttendanceUpdated users? @relation("userAttendanceUpdated", fields: [updatedBy], references: [id])
+  updatedBy Int? @db.Integer
 }
-
+// nomina
 model payroll {
   id          Int   @id @default(autoincrement())
   employeeId  Int @db.Integer
-  month        Int @db.Integer
+  month       Int @db.Integer
   year        Int @db.Integer
   baseSalary  Decimal @db.Decimal(18, 2)
   extraHours  Decimal @db.Decimal(18, 2)
@@ -434,8 +448,12 @@ model payroll {
   employee    employees @relation("payrollEmployee", fields: [employeeId], references: [id])
   createdOn   DateTime @db.Timestamp(3)
   updatedOn   DateTime? @db.Timestamp(3)
+  userPayrollCreated users @relation("userPayrollCreated", fields: [createdBy], references: [id])
+  createdBy Int @db.Integer
+  userPayrollUpdated users? @relation("userPayrollUpdated", fields: [updatedBy], references: [id])
+  updatedBy Int? @db.Integer
 }
-
+// evaluacion de desempeño
 model performanceEvaluation {
   id          Int   @id @default(autoincrement())
   employeeId  Int @db.Integer
@@ -445,6 +463,10 @@ model performanceEvaluation {
   employee    employees @relation("performanceEvaluationEmployee", fields: [employeeId], references: [id])
   createdOn   DateTime @db.Timestamp(3)
   updatedOn   DateTime? @db.Timestamp(3)
+  userPerformanceEvaluationCreated users @relation("userPerformanceEvaluationCreated", fields: [createdBy], references: [id])
+  createdBy Int @db.Integer
+  userPerformanceEvaluationUpdated users? @relation("userPerformanceEvaluationUpdated", fields: [updatedBy], references: [id])
+  updatedBy Int? @db.Integer
 }
 
 model vacation {
@@ -456,6 +478,10 @@ model vacation {
   employee    employees @relation("vacationEmployee", fields: [employeeId], references: [id])
   createdOn   DateTime @db.Timestamp(3)
   updatedOn   DateTime? @db.Timestamp(3)
+  userVacationCreated users @relation("userVacationCreated", fields: [createdBy], references: [id])
+  createdBy Int @db.Integer
+  userVacationUpdated users? @relation("userVacationUpdated", fields: [updatedBy], references: [id])
+  updatedBy Int? @db.Integer
 }
 
 enum vacationStatus {
@@ -463,7 +489,7 @@ enum vacationStatus {
   APPROVED
   REJECTED
 }
-
+// permisos
 model permission {
   id          Int   @id @default(autoincrement())
   employeeId  Int @db.Integer
@@ -473,6 +499,11 @@ model permission {
   status      permissionStatus @default(PENDING)
   employee    employees @relation("permissionEmployee", fields: [employeeId], references: [id])
   createdOn   DateTime @db.Timestamp(3)
+  updatedOn   DateTime? @db.Timestamp(3)
+  userPermissionCreated users @relation("userPermissionCreated", fields: [createdBy], references: [id])
+  createdBy Int @db.Integer
+  userPermissionUpdated users? @relation("userPermissionUpdated", fields: [updatedBy], references: [id])
+  updatedBy Int? @db.Integer
 }
 
 enum permissionStatus {

@@ -1746,11 +1746,7 @@
  *           format: email
  *           nullable: true
  *           example: "john@example.com"
- *         phone:
- *           type: string
- *           maxLength: 15
- *           nullable: true
- *           example: "+1234567890"
+
  *
  *     ResponseGetClient:
  *       type: object
@@ -1798,7 +1794,7 @@
  *           nullable: true
  *           example: "Editor"
  *
- *     BodyClientCreate:
+ *     BodyClientCreateUpdate:
  *       type: object
  *       required:
  *         - name
@@ -1823,60 +1819,8 @@
  *           maxLength: 120
  *           example: "123 Main St"
  *
- *     BodyClientUpdate:
- *       type: object
- *       properties:
- *         name:
- *           type: string
- *           maxLength: 100
- *           example: "John Doe"
- *         email:
- *           type: string
- *           format: email
- *           example: "john@example.com"
- *         phone:
- *           type: string
- *           maxLength: 15
- *           example: "+1234567890"
- *         address:
- *           type: string
- *           maxLength: 120
- *           example: "123 Main St"
  *
- *     ResponseClientCreate:
- *       type: object
- *       properties:
- *         id:
- *           type: integer
- *           example: 1
- *         name:
- *           type: string
- *           maxLength: 100
- *           example: "John Doe"
- *         email:
- *           type: string
- *           format: email
- *           example: "john@example.com"
- *         phone:
- *           type: string
- *           maxLength: 15
- *           example: "+1234567890"
- *         address:
- *           type: string
- *           maxLength: 120
- *           example: "123 Main St"
- *         createdOn:
- *           type: string
- *           format: date-time
- *           example: "2024-03-15T10:30:00Z"
- *         createdBy:
- *           type: integer
- *           example: 1
- *         userClientCreatedName:
- *           type: string
- *           example: "Admin"
- *
- *     ResponseClientUpdate:
+ *     ResponseClientCreateUpdate:
  *       type: object
  *       properties:
  *         id:
@@ -1912,12 +1856,8 @@
  *         updatedBy:
  *           type: integer
  *           example: 1
- *         userClientCreatedName:
- *           type: string
- *           example: "Admin"
- *         userClientUpdatedName:
- *           type: string
- *           example: "Editor"
+ *
+
  */
 
 /** --------------------------------------

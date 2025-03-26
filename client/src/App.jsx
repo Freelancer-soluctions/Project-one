@@ -21,8 +21,9 @@ const ProductsForms = lazy(
 const Providers = lazy(() => import('@/modules/providers/pages/Providers'))
 const Warehouse = lazy(() => import('@/modules/warehouse/pages/Warehouse'))
 const Stock = lazy(() => import('@/modules/stock/pages/Stock'))
-/* const Sales = lazy(() => import('@/modules/sales/pages/Sales')) 
 const Clients = lazy(() => import('@/modules/clients/pages/Clients'))
+const Sales = lazy(() => import('@/modules/sales/pages/Sales'))   
+/* 
 const Purchases = lazy(() => import('@/modules/purchases/pages/Purchases'))
 const InventoryMovement = lazy(() => import('@/modules/inventoryMovement/pages/InventoryMovement')) */
 /* const Attendance = lazy(() => import('@/modules/attendance/pages/Attendance'))
@@ -68,9 +69,11 @@ const App = () => {
           <Route path='providers' element={<Providers />} />
           <Route path='warehouse' element={<Warehouse />} />
           <Route path='stock' element={<Stock />} />
- */} 
-    {/*       <Route path='sales' element={<Sales />} />
           <Route path='clients' element={<Clients />} />
+          <Route path='sales' element={<Sales />} />
+  
+    {/*       
+         
           <Route path='purchases' element={<Purchases />} />
           <Route path='inventoryMovement' element={<InventoryMovement />} /> */}
     {/*       <Route path='attendance' element={<Attendance />} />
