@@ -20,7 +20,11 @@ export const getAllClients = async (filters) => {
  * @returns {Promise<Object>} Created client
  */
 export const createClient = async (data) => {
-  return createClientDao(data)
+  const dataClient = {
+    ...data,
+    createdOn: new Date()
+  }
+  return createClientDao(dataClient)
 }
 
 /**
@@ -30,7 +34,11 @@ export const createClient = async (data) => {
  * @returns {Promise<Object>} Updated client
  */
 export const updateClientById = async (id, data) => {
-  return updateClientByIdDao(id, data)
+  const dataClient = {
+    ...data,
+    updatedOn: new Date()
+  }
+  return updateClientByIdDao(Number(id), dataClient)
 }
 
 /**
@@ -39,5 +47,5 @@ export const updateClientById = async (id, data) => {
  * @returns {Promise<Object>} Deleted client
  */
 export const deleteClientById = async (id) => {
-  return deleteClientByIdDao(id)
+  return deleteClientByIdDao(Number(id))
 }

@@ -23,9 +23,10 @@ export const getAllClients = handleCatchErrorAsync(async (req, res) => {
  * @param {Object} res - Express response object
  */
 export const createClient = handleCatchErrorAsync(async (req, res) => {
+  console.log(req.body)
   const client = await createClientService({
     ...req.body,
-    createdBy: req.user.id
+    createdBy: req.userId
   })
   globalResponse(res, 201, client)
 })
@@ -38,7 +39,7 @@ export const createClient = handleCatchErrorAsync(async (req, res) => {
 export const updateClientById = handleCatchErrorAsync(async (req, res) => {
   const client = await updateClientByIdService(req.params.id, {
     ...req.body,
-    updatedBy: req.user.id
+    updatedBy: req.userId
   })
   globalResponse(res, 200, client)
 })

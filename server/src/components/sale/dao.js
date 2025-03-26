@@ -21,15 +21,11 @@ export const getAllSales = async (filters = {}) => {
     ...(filters.maxTotal && { total: { lte: filters.maxTotal } })
   }
 
-  return prisma.sale.findMany({
+  const sales = await prisma.sale.findMany({
     where,
     include: {
       client: true,
-      details: {
-        include: {
-          product: true
-        }
-      },
+      saleDetail: true,
       userSaleCreated: {
         select: {
           name: true
@@ -45,6 +41,8 @@ export const getAllSales = async (filters = {}) => {
       createdOn: 'desc'
     }
   })
+
+  return sales
 }
 
 /**
@@ -58,26 +56,20 @@ export const getAllSales = async (filters = {}) => {
  */
 export const createSale = async (data) => {
   const { details, ...saleData } = data
-
+  console.log('saleData', saleData)
   return prisma.sale.create({
     data: {
-      ...saleData,
-      details: {
-        create: details
-      }
-    },
-    include: {
-      client: true,
-      details: {
-        include: {
-          product: true
-        }
+      createdOn: saleData.createdOn,
+      total: saleData.total,
+      saleDetail: {
+        create: details.map(detail => ({
+          product: { connect: { id: Number(detail.productId) } }, // Conectar el producto existente
+          quantity: Number(detail.quantity),
+          price: Number(detail.price)
+        }))
       },
-      userSaleCreated: {
-        select: {
-          name: true
-        }
-      }
+      userSaleCreated: { connect: { id: saleData.createdBy } },
+      client: { connect: { id: saleData.clientId } }
     }
   })
 }
@@ -104,29 +96,19 @@ export const updateSaleById = async (id, data) => {
   return prisma.sale.update({
     where: { id },
     data: {
-      ...saleData,
-      details: {
-        create: details
-      }
-    },
-    include: {
-      client: true,
-      details: {
-        include: {
-          product: true
-        }
+      updatedOn: saleData.updatedOn,
+      total: saleData.total,
+      saleDetail: {
+        create: details.map(detail => ({
+          product: { connect: { id: Number(detail.productId) } }, // Conectar el producto existente
+          quantity: Number(detail.quantity),
+          price: Number(detail.price)
+        }))
       },
-      userSaleCreated: {
-        select: {
-          name: true
-        }
-      },
-      userSaleUpdated: {
-        select: {
-          name: true
-        }
-      }
+      userSaleUpdated: { connect: { id: saleData.updatedBy } },
+      client: { connect: { id: saleData.clientId } }
     }
+
   })
 }
 

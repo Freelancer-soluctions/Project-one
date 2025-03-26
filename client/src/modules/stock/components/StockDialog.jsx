@@ -119,12 +119,7 @@ export const StockDialog = ({
     onDeleteById(selectedRow?.id)
   }
 
-  const handleCalculateTotalCost = (price, quantity) => {
-    if (price && quantity) {
-      const totalCost = price * quantity
-      form.setValue('totalCost', totalCost)
-    }
-  }
+
 
   const handleCloseDialog = () => {
     form.reset()
@@ -299,12 +294,7 @@ export const StockDialog = ({
                           placeholder={t('quantity_placeholder')}
                           type='number'
                           autoComplete='off'
-                          onChange={e => {
-                            handleCalculateTotalCost(
-                              form.getValues('price'),
-                              e.target.value
-                            )
-                          }}
+                         
                           {...field}
                           value={field.value ?? ''}
                         />

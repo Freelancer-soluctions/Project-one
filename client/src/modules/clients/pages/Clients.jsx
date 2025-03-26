@@ -1,117 +1,85 @@
-import { StockFiltersForm, StockDialog, StockDatatable } from '../components'
+import {
+  ClientsFiltersForm,
+  ClientsDialog,
+  ClientsDatatable
+} from '../components'
 import { BackDashBoard } from '@/components/backDash/BackDashBoard'
 import { useTranslation } from 'react-i18next'
 import { useState, useEffect } from 'react'
 import {
-  useLazyGetAllStockQuery,
-  useUpdateStockByIdMutation,
-  useCreateStockMutation,
-  useDeleteStockByIdMutation
-} from '../api/stockAPI'
-import {
-  useLazyGetAllProductsQuery,
-} from '@/modules/products/api/productsAPI'
-import {
-  useLazyGetAllWarehousesQuery,
-} from '@/modules/warehouse/api/warehouseAPI'
+  useLazyGetAllClientsQuery,
+  useUpdateClientByIdMutation,
+  useCreateClientMutation,
+  useDeleteClientByIdMutation
+} from '../api/clientsApi'
 import AlertDialogComponent from '@/components/alertDialog/AlertDialog'
 import { Spinner } from '@/components/loader/Spinner'
-import {unitMeasures} from '../utils' 
-import { useLocation } from 'react-router'
 
-
-const Stock = () => {
+const Clients = () => {
   const { t } = useTranslation()
   const [selectedRow, setSelectedRow] = useState({})
   const [openDialog, setOpenDialog] = useState(false)
   const [openAlertDialog, setOpenAlertDialog] = useState(false)
   const [alertProps, setAlertProps] = useState({})
   const [actionDialog, setActionDialog] = useState('')
-  const location = useLocation()
+
   const [
-    getAllStock,
+    getAllClients,
     {
-      data: dataStock = { data: [] },
-      isLoading: isLoadingStock,
-      isFetching: isFetchingStock
+      data: dataClients = { data: [] },
+      isLoading: isLoadingClients,
+      isFetching: isFetchingClients
     }
-  ] = useLazyGetAllStockQuery()
-  
-  const [
-    updateStockById,
-    { isLoading: isLoadingPut }
-  ] = useUpdateStockByIdMutation()
+  ] = useLazyGetAllClientsQuery()
 
   const [
-    createStock,
-    { isLoading: isLoadingPost }
-  ] = useCreateStockMutation()
+    updateClientById,
+    { isLoading: isLoadingPut, isError: isErrorPut, isSuccess: isSuccessPut }
+  ] = useUpdateClientByIdMutation()
 
   const [
-    deleteStockById,
-    { isLoading: isLoadingDelete }
-  ] = useDeleteStockByIdMutation()
+    createClient,
+    { isLoading: isLoadingPost, isError: isErrorPost, isSuccess: isSuccessPost }
+  ] = useCreateClientMutation()
 
   const [
-    getAllProducts,
-    { data: dataProducts = { data: [] }, isLoading: isLoadingProducts }
-  ] = useLazyGetAllProductsQuery()
-
-  const [
-    getAllWarehouses,
-    { data: dataWarehouses = { data: [] }, isLoading: isLoadingWarehouses }
-  ] = useLazyGetAllWarehousesQuery()
-
-  useEffect(() => {
-    getAllProducts({ name: '',
-      productCategoryCode: '',
-      productProviderCode: '',
-      statusCode: ''})
-    getAllWarehouses({name:''})
-  }, [])
-
-  useEffect(() => {
-    debugger
-    if (location.state?.filter) {
-      getAllStock({...location.state.filter})
+    deleteClientById,
+    {
+      isLoading: isLoadingDelete,
+      isError: isErrorDelete,
+      isSuccess: isSuccessDelete
     }
-  }, [location.state?.filter])
+  ] = useDeleteClientByIdMutation()
 
   const handleSubmitFilters = data => {
-    getAllStock(data)
+    getAllClients({
+      ...data
+    })
   }
 
-  const handleSubmit = async (values, stockId) => {
+  const handleSubmit = async (values, clientId) => {
     try {
-      const result = stockId
-        ? await updateStockById({
-            id: stockId,
+      const result = clientId
+        ? await updateClientById({
+            id: clientId,
             data: {
-              quantity: Number(values.quantity),
-              minimum: Number(values.minimum),
-              maximum: values.maximum ? Number(values.maximum) : null,
-              lot: values.lot,
-              unitMeasure: values.unitMeasure,
-              expirationDate: values.expirationDate,
-              productId: Number(values.productId),
-              warehouseId: Number(values.warehouseId)
+              name: values.name,
+              email: values.email,
+              phone: values.phone,
+              address: values.address
             }
           }).unwrap()
-        : await createStock({
-            quantity: Number(values.quantity),
-            minimum: Number(values.minimum),
-            maximum: values.maximum ? Number(values.maximum) : null,
-            lot: values.lot,
-            unitMeasure: values.unitMeasure,
-            expirationDate: values.expirationDate,
-            productId: Number(values.productId),
-            warehouseId: Number(values.warehouseId)
+        : await createClient({
+            name: values.name,
+            email: values.email,
+            phone: values.phone,
+            address: values.address
           }).unwrap()
 
       setAlertProps({
-        alertTitle: t(stockId ? 'update_record' : 'add_record'),
+        alertTitle: t(clientId ? 'update_record' : 'add_record'),
         alertMessage: t(
-          stockId ? 'updated_successfully' : 'added_successfully'
+          clientId ? 'updated_successfully' : 'added_successfully'
         ),
         cancel: false,
         success: true,
@@ -127,13 +95,12 @@ const Stock = () => {
   }
 
   const handleAddDialog = () => {
-    setActionDialog(t('add_stock'))
+    setActionDialog(t('add_client'))
     setOpenDialog(true)
-    setSelectedRow({})
   }
 
   const handleEditDialog = row => {
-    setActionDialog(t('edit_stock'))
+    setActionDialog(t('edit_client'))
     setOpenDialog(true)
     setSelectedRow(row)
   }
@@ -142,8 +109,6 @@ const Stock = () => {
     setSelectedRow({})
     setOpenDialog(false)
   }
-
-
 
   const handleDelete = async id => {
     try {
@@ -158,7 +123,7 @@ const Stock = () => {
         onSuccess: () => {},
         onDelete: async () => {
           try {
-            await deleteStockById(id).unwrap()
+            await deleteClientById(id).unwrap()
 
             setAlertProps({
               alertTitle: '',
@@ -184,42 +149,35 @@ const Stock = () => {
 
   return (
     <>
-      <BackDashBoard link={'/home'} moduleName={t('stock')} />
+      <BackDashBoard link={'/home'} moduleName={t('clients')} />
       <div className='relative'>
-        {(isLoadingStock ||
+        {/* Show spinner when loading or fetching */}
+        {(isLoadingClients ||
           isLoadingPut ||
           isLoadingPost ||
           isLoadingDelete ||
-          isFetchingStock ||
-          isLoadingProducts ||
-          isLoadingWarehouses) && <Spinner />}
+          isFetchingClients) && <Spinner />}
 
         <div className='grid grid-cols-2 grid-rows-4 gap-4 md:grid-cols-5'>
           {/* filters */}
           <div className='col-span-2 row-span-1 md:col-span-5'>
-            <StockFiltersForm
+            <ClientsFiltersForm
               onSubmit={handleSubmitFilters}
               onAddDialog={handleAddDialog}
-              unitMeasures={unitMeasures}
-              products={dataProducts.data}
-              warehouses={dataWarehouses.data}
             />
           </div>
           {/* Datatable */}
           <div className='flex flex-wrap w-full col-span-2 row-span-3 row-start-2 md:col-span-5'>
-            <StockDatatable
-              dataStock={dataStock}
+            <ClientsDatatable
+              dataClients={dataClients}
               onEditDialog={handleEditDialog}
             />
           </div>
           {/* Dialog */}
-          <StockDialog
+          <ClientsDialog
             openDialog={openDialog}
             onCloseDialog={handleCloseDialog}
             selectedRow={selectedRow}
-            unitMeasures={unitMeasures}
-            products={dataProducts.data}
-            warehouses={dataWarehouses.data}
             onSubmit={handleSubmit}
             onDeleteById={handleDelete}
             actionDialog={actionDialog}
@@ -236,4 +194,4 @@ const Stock = () => {
   )
 }
 
-export default Stock
+export default Clients 

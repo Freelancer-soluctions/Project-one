@@ -10,6 +10,8 @@ import settingsSlice from '@/modules/settings/slice/settingsSlice'
 import settingsProductCategoriesApi from '@/modules/settingsProductCategories/api/SettingsProductCategoriesAPI'
 import warehouseApi from '@/modules/warehouse/api/warehouseAPI'
 import stockApi from '@/modules/stock/api/stockAPI'
+import clientsApi from '@/modules/clients/api/clientsApi'
+import salesApi from '@/modules/sales/api/salesAPI'
 import storageSession from 'redux-persist/lib/storage/session'
 import { persistStore, persistReducer } from 'redux-persist'
 
@@ -38,7 +40,9 @@ const rootReducer = combineReducers({
   [providersApi.reducerPath]: providersApi.reducer,
   [settingsProductCategoriesApi.reducerPath]: settingsProductCategoriesApi.reducer,
   [warehouseApi.reducerPath]: warehouseApi.reducer,
-  [stockApi.reducerPath]: stockApi.reducer
+  [stockApi.reducerPath]: stockApi.reducer,
+  [clientsApi.reducerPath]: clientsApi.reducer,
+  [salesApi.reducerPath]: salesApi.reducer
 })
 
 const persistedReducer = persistReducer(persistConfig, rootReducer)
@@ -64,7 +68,9 @@ const store = configureStore({
       providersApi.middleware,
       settingsProductCategoriesApi.middleware,
       warehouseApi.middleware,
-      stockApi.middleware
+      stockApi.middleware,
+      clientsApi.middleware,
+      salesApi.middleware
     )
 })
 // store.subscribe(() => {
