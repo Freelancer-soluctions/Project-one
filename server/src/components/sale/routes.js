@@ -22,32 +22,11 @@ const router = express.Router()
  *       - bearerAuth: []
  *     parameters:
  *       - in: query
- *         name: clientId
+ *         name: filters
  *         schema:
- *           type: integer
- *         description: Filter by client ID
- *       - in: query
- *         name: startDate
- *         schema:
- *           type: string
- *           format: date
- *         description: Filter by start date
- *       - in: query
- *         name: endDate
- *         schema:
- *           type: string
- *           format: date
- *         description: Filter by end date
- *       - in: query
- *         name: minTotal
- *         schema:
- *           type: number
- *         description: Filter by minimum total
- *       - in: query
- *         name: maxTotal
- *         schema:
- *           type: number
- *         description: Filter by maximum total
+ *           $ref: "#/components/schemas/SaleFilters"
+ *         required: false
+ *         description: "Filtros opcionales para buscar ventas."
  *     responses:
  *       200:
  *         description: List of sales
@@ -66,8 +45,16 @@ const router = express.Router()
  *                   type: string
  *       401:
  *         description: Unauthorized
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Unauthorized'
  *       500:
- *         description: Internal server error
+ *         description: Server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
  */
 router.get('/', verifyToken, validateQueryParams(saleFiltersSchema), getAllSales)
 
@@ -84,7 +71,7 @@ router.get('/', verifyToken, validateQueryParams(saleFiltersSchema), getAllSales
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/BodySaleCreate'
+ *             $ref: '#/components/schemas/BodySaleCreateUpdate'
  *     responses:
  *       201:
  *         description: Sale created successfully
@@ -93,18 +80,22 @@ router.get('/', verifyToken, validateQueryParams(saleFiltersSchema), getAllSales
  *             schema:
  *               type: object
  *               properties:
- *                 success:
- *                   type: boolean
  *                 data:
- *                   $ref: '#/components/schemas/ResponseSaleCreate'
+ *                   $ref: '#/components/schemas/ResponseSaleCreateUpdate'
  *                 message:
  *                   type: string
- *       400:
- *         description: Bad request
  *       401:
  *         description: Unauthorized
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Unauthorized'
  *       500:
- *         description: Internal server error
+ *         description: Server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
  */
 router.post('/', verifyToken, validateSchema(saleCreateUpdateSchema), createSale)
 
@@ -128,7 +119,7 @@ router.post('/', verifyToken, validateSchema(saleCreateUpdateSchema), createSale
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/BodySaleUpdate'
+ *             $ref: '#/components/schemas/BodySaleCreateUpdate'
  *     responses:
  *       200:
  *         description: Sale updated successfully
@@ -137,20 +128,22 @@ router.post('/', verifyToken, validateSchema(saleCreateUpdateSchema), createSale
  *             schema:
  *               type: object
  *               properties:
- *                 success:
- *                   type: boolean
  *                 data:
- *                   $ref: '#/components/schemas/ResponseSaleUpdate'
+ *                   $ref: '#/components/schemas/ResponseSaleCreateUpdate'
  *                 message:
  *                   type: string
- *       400:
- *         description: Bad request
  *       401:
  *         description: Unauthorized
- *       404:
- *         description: Sale not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Unauthorized'
  *       500:
- *         description: Internal server error
+ *         description: Server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
  */
 router.put('/:id', verifyToken, validateSchema(saleCreateUpdateSchema), updateSaleById)
 
@@ -171,24 +164,23 @@ router.put('/:id', verifyToken, validateSchema(saleCreateUpdateSchema), updateSa
  *         description: Sale ID
  *     responses:
  *       200:
- *         description: Sale deleted successfully
+ *         description: Sale deleted
  *         content:
  *           application/json:
  *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                 data:
- *                   type: null
- *                 message:
- *                   type: string
+ *               $ref: '#/components/schemas/Delete'
  *       401:
  *         description: Unauthorized
- *       404:
- *         description: Sale not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Unauthorized'
  *       500:
- *         description: Internal server error
+ *         description: Server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
  */
 router.delete('/:id', verifyToken, deleteSaleById)
 
