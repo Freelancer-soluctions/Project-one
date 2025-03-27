@@ -1909,7 +1909,7 @@
  *           minimum: 0
  *           description: Price per unit
  *
- *     BodySaleCreate:
+ *     BodySaleCreateUpdate:
  *       type: object
  *       required:
  *         - clientId
@@ -1966,10 +1966,8 @@
  *                 type: integer
  *               price:
  *                 type: number
- *               product:
- *                 $ref: '#/components/schemas/Product'
  *
- *     ResponseSaleCreate:
+ *     ResponseSaleCreateUpdate:
  *       type: object
  *       properties:
  *         id:
@@ -1998,43 +1996,4 @@
  *                 type: integer
  *               price:
  *                 type: number
- *               product:
- *                 $ref: '#/components/schemas/Product'
- *
- *     ResponseSaleUpdate:
- *       type: object
- *       properties:
- *         id:
- *           type: integer
- *         clientId:
- *           type: integer
- *         total:
- *           type: number
- *         createdOn:
- *           type: string
- *           format: date-time
- *         createdBy:
- *           type: integer
- *         updatedOn:
- *           type: string
- *           format: date-time
- *         updatedBy:
- *           type: integer
- *         client:
- *           $ref: '#/components/schemas/ResponseGetClient'
- *         details:
- *           type: array
- *           items:
- *             type: object
- *             properties:
- *               id:
- *                 type: integer
- *               productId:
- *                 type: integer
- *               quantity:
- *                 type: integer
- *               price:
- *                 type: number
- *               product:
- *                 $ref: '#/components/schemas/Product'
  */
