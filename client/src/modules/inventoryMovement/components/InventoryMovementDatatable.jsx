@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next'
-import { DataTable } from '@/components/ui/data-table'
+import { DataTable } from '@/components/ui/datatable/DataTable'
 import { format } from 'date-fns'
 import PropTypes from 'prop-types'
 
@@ -9,28 +9,23 @@ const InventoryMovementDatatable = ({ dataInventoryMovements, onEditDialog }) =>
   const columnDefInventoryMovements = [
     {
       accessorKey: 'product.name',
-      header: t('product'),
-      cell: ({ row }) => row.original.product.name.toUpperCase()
+      header: t('product')
     },
     {
       accessorKey: 'warehouse.name',
-      header: t('warehouse'),
-      cell: ({ row }) => row.original.warehouse.name.toUpperCase()
+      header: t('warehouse')
     },
     {
       accessorKey: 'quantity',
-      header: t('quantity'),
-      cell: ({ row }) => row.original.quantity
+      header: t('quantity')
     },
     {
       accessorKey: 'type',
-      header: t('movement_type'),
-      cell: ({ row }) => t(row.original.type.toLowerCase())
+      header: t('type')
     },
     {
       accessorKey: 'reason',
-      header: t('reason'),
-      cell: ({ row }) => row.original.reason || '-'
+      header: t('reason')
     },
     {
       accessorKey: 'createdOn',
@@ -40,42 +35,28 @@ const InventoryMovementDatatable = ({ dataInventoryMovements, onEditDialog }) =>
     {
       accessorKey: 'updatedOn',
       header: t('updated_on'),
-      cell: ({ row }) => (row.original.updatedOn ? format(new Date(row.original.updatedOn), 'PPP') : '-')
+      cell: ({ row }) =>
+        row.original.updatedOn
+          ? format(new Date(row.original.updatedOn), 'PPP')
+          : ''
     }
   ]
 
   const handleEditDialog = row => {
-    onEditDialog(row)
+    onEditDialog(row.original)
   }
 
   return (
     <DataTable
       columns={columnDefInventoryMovements}
-      data={dataInventoryMovements}
-      onEditDialog={handleEditDialog}
+      data={dataInventoryMovements.data}
+      onEditRow={handleEditDialog}
     />
   )
 }
 
 InventoryMovementDatatable.propTypes = {
-  dataInventoryMovements: PropTypes.shape({
-    data: PropTypes.arrayOf(
-      PropTypes.shape({
-        id: PropTypes.number.isRequired,
-        product: PropTypes.shape({
-          name: PropTypes.string.isRequired
-        }).isRequired,
-        warehouse: PropTypes.shape({
-          name: PropTypes.string.isRequired
-        }).isRequired,
-        quantity: PropTypes.number.isRequired,
-        type: PropTypes.string.isRequired,
-        reason: PropTypes.string,
-        createdOn: PropTypes.string.isRequired,
-        updatedOn: PropTypes.string
-      })
-    ).isRequired
-  }).isRequired,
+  dataInventoryMovements: PropTypes.object.isRequired,
   onEditDialog: PropTypes.func.isRequired
 }
 

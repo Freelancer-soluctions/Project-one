@@ -1,12 +1,25 @@
 import { useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
-import PropTypes from 'prop-types'
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage
+} from '@/components/ui/form'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Select } from '@/components/ui/select'
+import PropTypes from 'prop-types'
+import { MOVEMENT_TYPES } from '../utils'
 
-const InventoryMovementFiltersForm = ({ onSubmit, onAddDialog, products, warehouses }) => {
+const InventoryMovementFiltersForm = ({
+  onSubmit,
+  onAddDialog,
+  products,
+  warehouses
+}) => {
   const { t } = useTranslation()
   const form = useForm({
     defaultValues: {
@@ -32,115 +45,128 @@ const InventoryMovementFiltersForm = ({ onSubmit, onAddDialog, products, warehou
   }
 
   return (
-    <form onSubmit={form.handleSubmit(handleSubmit)} className='space-y-4'>
-      <div className='grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4'>
-        <div className='space-y-2'>
-          <Label htmlFor='productId'>{t('product')}</Label>
-          <Select
-            value={form.watch('productId')}
-            onValueChange={value => form.setValue('productId', value)}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder={t('select_product')} />
-            </SelectTrigger>
-            <SelectContent>
-              {products?.map(product => (
-                <SelectItem key={product.id} value={product.id.toString()}>
-                  {product.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+    <Form {...form}>
+      <form
+        onSubmit={form.handleSubmit(handleSubmit)}
+        className='p-6 rounded-lg shadow-sm bg-card'
+      >
+        <div className='grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4'>
+          <FormField
+            control={form.control}
+            name='productId'
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>{t('product')}</FormLabel>
+                <Select
+                  onValueChange={field.onChange}
+                  defaultValue={field.value}
+                >
+                  <option value=''>{t('all')}</option>
+                  {products.map(product => (
+                    <option key={product.id} value={product.id}>
+                      {product.name}
+                    </option>
+                  ))}
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
-        <div className='space-y-2'>
-          <Label htmlFor='warehouseId'>{t('warehouse')}</Label>
-          <Select
-            value={form.watch('warehouseId')}
-            onValueChange={value => form.setValue('warehouseId', value)}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder={t('select_warehouse')} />
-            </SelectTrigger>
-            <SelectContent>
-              {warehouses?.map(warehouse => (
-                <SelectItem key={warehouse.id} value={warehouse.id.toString()}>
-                  {warehouse.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+          <FormField
+            control={form.control}
+            name='warehouseId'
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>{t('warehouse')}</FormLabel>
+                <Select
+                  onValueChange={field.onChange}
+                  defaultValue={field.value}
+                >
+                  <option value=''>{t('all')}</option>
+                  {warehouses.map(warehouse => (
+                    <option key={warehouse.id} value={warehouse.id}>
+                      {warehouse.name}
+                    </option>
+                  ))}
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
-        <div className='space-y-2'>
-          <Label htmlFor='type'>{t('movement_type')}</Label>
-          <Select
-            value={form.watch('type')}
-            onValueChange={value => form.setValue('type', value)}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder={t('select_type')} />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value='ENTRY'>{t('entry')}</SelectItem>
-              <SelectItem value='EXIT'>{t('exit')}</SelectItem>
-              <SelectItem value='TRANSFERENCE'>{t('transference')}</SelectItem>
-              <SelectItem value='ADJUSTMENT'>{t('adjustment')}</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
+          <FormField
+            control={form.control}
+            name='type'
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>{t('type')}</FormLabel>
+                <Select
+                  onValueChange={field.onChange}
+                  defaultValue={field.value}
+                >
+                  <option value=''>{t('all')}</option>
+                  {Object.values(MOVEMENT_TYPES).map(type => (
+                    <option key={type} value={type}>
+                      {t(type.toLowerCase())}
+                    </option>
+                  ))}
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
-        <div className='space-y-2'>
-          <Label htmlFor='startDate'>{t('start_date')}</Label>
-          <Input
-            id='startDate'
-            type='date'
-            {...form.register('startDate')}
-            className='w-full'
+          <FormField
+            control={form.control}
+            name='startDate'
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>{t('start_date')}</FormLabel>
+                <FormControl>
+                  <Input type='date' {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name='endDate'
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>{t('end_date')}</FormLabel>
+                <FormControl>
+                  <Input type='date' {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
           />
         </div>
 
-        <div className='space-y-2'>
-          <Label htmlFor='endDate'>{t('end_date')}</Label>
-          <Input
-            id='endDate'
-            type='date'
-            {...form.register('endDate')}
-            className='w-full'
-          />
+        <div className='flex justify-end gap-4 mt-6'>
+          <Button type='submit' variant='default'>
+            {t('filter')}
+          </Button>
+          <Button type='button' variant='outline' onClick={handleResetFilter}>
+            {t('clear')}
+          </Button>
+          <Button type='button' onClick={handleAdd}>
+            {t('add')}
+          </Button>
         </div>
-      </div>
-
-      <div className='flex justify-end space-x-2'>
-        <Button type='submit' variant='default'>
-          {t('search')}
-        </Button>
-        <Button type='button' variant='outline' onClick={handleAdd}>
-          {t('add_movement')}
-        </Button>
-        <Button type='button' variant='destructive' onClick={handleResetFilter}>
-          {t('clear_filters')}
-        </Button>
-      </div>
-    </form>
+      </form>
+    </Form>
   )
 }
 
 InventoryMovementFiltersForm.propTypes = {
   onSubmit: PropTypes.func.isRequired,
   onAddDialog: PropTypes.func.isRequired,
-  products: PropTypes.arrayOf(
-    PropTypes.shape({
-      id: PropTypes.number.isRequired,
-      name: PropTypes.string.isRequired
-    })
-  ),
-  warehouses: PropTypes.arrayOf(
-    PropTypes.shape({
-      id: PropTypes.number.isRequired,
-      name: PropTypes.string.isRequired
-    })
-  )
+  products: PropTypes.array.isRequired,
+  warehouses: PropTypes.array.isRequired
 }
 
 export default InventoryMovementFiltersForm 
