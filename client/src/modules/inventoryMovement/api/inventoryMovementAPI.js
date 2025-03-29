@@ -1,21 +1,21 @@
 import { createApi } from '@reduxjs/toolkit/query/react'
-import { axiosBaseQuery } from '@/lib/axios'
+import { axiosPrivateBaseQuery } from '@/config/axios'
 
 export const inventoryMovementAPI = createApi({
   reducerPath: 'inventoryMovementAPI',
-  baseQuery: axiosBaseQuery(),
+  baseQuery:axiosPrivateBaseQuery({ baseUrl: import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1' }),
   tagTypes: ['InventoryMovement'],
   endpoints: builder => ({
     getAllInventoryMovements: builder.query({
       query: () => ({
-        url: '/v1/inventory-movements',
+        url: '/inventory-movements',
         method: 'GET'
       }),
       providesTags: ['InventoryMovement']
     }),
     createInventoryMovement: builder.mutation({
       query: data => ({
-        url: '/v1/inventory-movements',
+        url: '/inventory-movements',
         method: 'POST',
         data
       }),
@@ -23,7 +23,7 @@ export const inventoryMovementAPI = createApi({
     }),
     updateInventoryMovementById: builder.mutation({
       query: ({ id, data }) => ({
-        url: `/v1/inventory-movements/${id}`,
+        url: `/inventory-movements/${id}`,
         method: 'PUT',
         data
       }),
@@ -31,7 +31,7 @@ export const inventoryMovementAPI = createApi({
     }),
     deleteInventoryMovementById: builder.mutation({
       query: id => ({
-        url: `/v1/inventory-movements/${id}`,
+        url: `/inventory-movements/${id}`,
         method: 'DELETE'
       }),
       invalidatesTags: ['InventoryMovement']

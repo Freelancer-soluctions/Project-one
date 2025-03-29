@@ -1,15 +1,26 @@
 import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
 import { useTranslation } from 'react-i18next'
-import PropTypes from 'prop-types'
-import { useEffect } from 'react'
+import { zodResolver } from '@hookform/resolvers/zod'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle
+} from '@/components/ui/dialog'
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage
+} from '@/components/ui/form'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
-import { InventoryMovementSchema } from '../utils/schema'
+import { Select } from '@/components/ui/select'
+import PropTypes from 'prop-types'
+import { useEffect } from 'react'
+import { InventoryMovementSchema, MOVEMENT_TYPES } from '../utils'
 
 const InventoryMovementDialog = ({
   openDialog,
@@ -22,6 +33,7 @@ const InventoryMovementDialog = ({
   warehouses
 }) => {
   const { t } = useTranslation()
+
   const form = useForm({
     resolver: zodResolver(InventoryMovementSchema),
     defaultValues: {
@@ -29,53 +41,49 @@ const InventoryMovementDialog = ({
       warehouseId: '',
       quantity: '',
       type: '',
-      reason: '',
-      purchaseId: '',
-      saleId: ''
+      reason: ''
     }
   })
 
   useEffect(() => {
     if (selectedRow?.id) {
       const mappedValues = {
-        productId: selectedRow.productId.toString(),
-        warehouseId: selectedRow.warehouseId.toString(),
-        quantity: selectedRow.quantity.toString(),
-        type: selectedRow.type,
-        reason: selectedRow.reason || '',
-        purchaseId: selectedRow.purchaseId?.toString() || '',
-        saleId: selectedRow.saleId?.toString() || ''
+        productId: selectedRow.productId?.toString() ?? '',
+        warehouseId: selectedRow.warehouseId?.toString() ?? '',
+        quantity: selectedRow.quantity?.toString() ?? '',
+        type: selectedRow.type ?? '',
+        reason: selectedRow.reason ?? ''
       }
       form.reset(mappedValues)
-    } else {
-      form.reset({
-        productId: '',
-        warehouseId: '',
-        quantity: '',
-        type: '',
-        reason: '',
-        purchaseId: '',
-        saleId: ''
-      })
     }
   }, [selectedRow, form])
 
-  const handleSubmit = values => {
-    onSubmit(values, selectedRow?.id)
+  const handleSubmit = async data => {
+    await onSubmit(data, selectedRow?.id)
+    handleCloseDialog()
   }
 
-  const handleDelete = () => {
-    onDeleteById(selectedRow.id)
+  const handleCloseDialog = () => {
+    form.reset()
+    onCloseDialog()
+  }
+
+  const handleDelete = async () => {
+    await onDeleteById(selectedRow.id)
+    handleCloseDialog()
   }
 
   return (
-    <Dialog open={openDialog} onOpenChange={onCloseDialog}>
-      <DialogContent className='sm:max-w-[425px]'>
+    <Dialog open={openDialog} onOpenChange={handleCloseDialog}>
+      <DialogContent>
         <DialogHeader>
           <DialogTitle>{actionDialog}</DialogTitle>
         </DialogHeader>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(handleSubmit)} className='space-y-4'>
+          <form
+            onSubmit={form.handleSubmit(handleSubmit)}
+            className='space-y-4'
+          >
             <FormField
               control={form.control}
               name='productId'
@@ -83,22 +91,15 @@ const InventoryMovementDialog = ({
                 <FormItem>
                   <FormLabel>{t('product')}</FormLabel>
                   <Select
-                    value={field.value}
                     onValueChange={field.onChange}
-                    disabled={!!selectedRow?.id}
+                    value={field.value}
                   >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder={t('select_product')} />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {products?.map(product => (
-                        <SelectItem key={product.id} value={product.id.toString()}>
-                          {product.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
+                    <option value=''>{t('select_product')}</option>
+                    {products.map(product => (
+                      <option key={product.id} value={product.id}>
+                        {product.name}
+                      </option>
+                    ))}
                   </Select>
                   <FormMessage />
                 </FormItem>
@@ -112,22 +113,15 @@ const InventoryMovementDialog = ({
                 <FormItem>
                   <FormLabel>{t('warehouse')}</FormLabel>
                   <Select
-                    value={field.value}
                     onValueChange={field.onChange}
-                    disabled={!!selectedRow?.id}
+                    value={field.value}
                   >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder={t('select_warehouse')} />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {warehouses?.map(warehouse => (
-                        <SelectItem key={warehouse.id} value={warehouse.id.toString()}>
-                          {warehouse.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
+                    <option value=''>{t('select_warehouse')}</option>
+                    {warehouses.map(warehouse => (
+                      <option key={warehouse.id} value={warehouse.id}>
+                        {warehouse.name}
+                      </option>
+                    ))}
                   </Select>
                   <FormMessage />
                 </FormItem>
@@ -141,12 +135,7 @@ const InventoryMovementDialog = ({
                 <FormItem>
                   <FormLabel>{t('quantity')}</FormLabel>
                   <FormControl>
-                    <Input
-                      type='number'
-                      placeholder={t('enter_quantity')}
-                      {...field}
-                      disabled={!!selectedRow?.id}
-                    />
+                    <Input type='number' {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -158,23 +147,17 @@ const InventoryMovementDialog = ({
               name='type'
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{t('movement_type')}</FormLabel>
+                  <FormLabel>{t('type')}</FormLabel>
                   <Select
-                    value={field.value}
                     onValueChange={field.onChange}
-                    disabled={!!selectedRow?.id}
+                    value={field.value}
                   >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder={t('select_type')} />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value='ENTRY'>{t('entry')}</SelectItem>
-                      <SelectItem value='EXIT'>{t('exit')}</SelectItem>
-                      <SelectItem value='TRANSFERENCE'>{t('transference')}</SelectItem>
-                      <SelectItem value='ADJUSTMENT'>{t('adjustment')}</SelectItem>
-                    </SelectContent>
+                    <option value=''>{t('select_type')}</option>
+                    {Object.values(MOVEMENT_TYPES).map(type => (
+                      <option key={type} value={type}>
+                        {t(type.toLowerCase())}
+                      </option>
+                    ))}
                   </Select>
                   <FormMessage />
                 </FormItem>
@@ -188,29 +171,28 @@ const InventoryMovementDialog = ({
                 <FormItem>
                   <FormLabel>{t('reason')}</FormLabel>
                   <FormControl>
-                    <Input
-                      type='text'
-                      placeholder={t('enter_reason')}
-                      {...field}
-                      disabled={!!selectedRow?.id}
-                    />
+                    <Input {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
 
-            <div className='flex justify-end space-x-2'>
+            <div className='flex justify-end gap-4 mt-6'>
+              <Button type='submit' variant='default'>
+                {selectedRow?.id ? t('update') : t('add')}
+              </Button>
               {selectedRow?.id && (
-                <Button type='button' variant='destructive' onClick={handleDelete}>
+                <Button
+                  type='button'
+                  variant='destructive'
+                  onClick={handleDelete}
+                >
                   {t('delete')}
                 </Button>
               )}
-              <Button type='button' variant='outline' onClick={onCloseDialog}>
+              <Button type='button' variant='outline' onClick={handleCloseDialog}>
                 {t('cancel')}
-              </Button>
-              <Button type='submit' variant='default'>
-                {t('save')}
               </Button>
             </div>
           </form>
@@ -223,31 +205,12 @@ const InventoryMovementDialog = ({
 InventoryMovementDialog.propTypes = {
   openDialog: PropTypes.bool.isRequired,
   onCloseDialog: PropTypes.func.isRequired,
-  selectedRow: PropTypes.shape({
-    id: PropTypes.number,
-    productId: PropTypes.number,
-    warehouseId: PropTypes.number,
-    quantity: PropTypes.number,
-    type: PropTypes.string,
-    reason: PropTypes.string,
-    purchaseId: PropTypes.number,
-    saleId: PropTypes.number
-  }),
+  selectedRow: PropTypes.object,
   onSubmit: PropTypes.func.isRequired,
   onDeleteById: PropTypes.func.isRequired,
   actionDialog: PropTypes.string.isRequired,
-  products: PropTypes.arrayOf(
-    PropTypes.shape({
-      id: PropTypes.number.isRequired,
-      name: PropTypes.string.isRequired
-    })
-  ),
-  warehouses: PropTypes.arrayOf(
-    PropTypes.shape({
-      id: PropTypes.number.isRequired,
-      name: PropTypes.string.isRequired
-    })
-  )
+  products: PropTypes.array.isRequired,
+  warehouses: PropTypes.array.isRequired
 }
 
 export default InventoryMovementDialog 
