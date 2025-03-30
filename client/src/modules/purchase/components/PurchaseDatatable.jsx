@@ -30,12 +30,27 @@ export const PurchaseDatatable = ({
       header: t('created_on'),
       cell: info => format(new Date(info.getValue()), 'PPP')
     },
+    {accessorKey: 'userPurchaseCreated.name',
+      header: t('created_by'),
+      cell: info => {
+        const userPurchaseCreated = info.row.original.userPurchaseCreated // Accede al dato original de la fila
+        return userPurchaseCreated?.name ? userPurchaseCreated.name.toUpperCase() : null // Retorna null para mantener la celda vacía
+      }
+    },
     {
       accessorKey: 'updatedOn',
       header: t('updated_on'),
       cell: info => {
         const date = info.getValue()
         return date ? format(new Date(date), 'PPP') : null
+      }
+      },
+    {
+      accessorKey: 'userPurchaseUpdated.name',
+      header: t('updated_by'),
+      cell: info => {
+        const userPurchaseUpdated = info.row.original.userPurchaseUpdated // Accede al dato original de la fila
+        return userPurchaseUpdated?.name ? userPurchaseUpdated.name.toUpperCase() : null // Retorna null para mantener la celda vacía
       }
     }
   ]

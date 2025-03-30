@@ -255,8 +255,11 @@
     "price_placeholder": "Enter the price",
     "total_placeholder": "Enter the total",
     "product_already_exists": "Product already exists",
-    "product_already_exists_message": "The product already exists in the sale. Please select another product."
+    "product_already_exists_message": "The product already exists in the sale. Please select another product.",
+    "add_purchase": "Add purchase",
+    "edit_purchase": "Edit purchase"
 
+    
 
 
   }

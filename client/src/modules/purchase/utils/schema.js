@@ -38,4 +38,38 @@ export const PurchaseSchema = z
         )
     }))
   })
-  .passthrough() // Permite otros campos 
+  .passthrough()
+
+export const PurchaseFiltersSchema = z.object({
+  providerId: z.string().optional(),
+  fromDate: z.union([z.date(), z.string()]).optional(),
+  toDate: z.union([z.date(), z.string()]).optional(),
+  minTotal: z.string().optional(),
+  maxTotal: z.string().optional()
+})
+.refine(
+  data => {
+    if (data.fromDate && data.toDate) {
+      const from = data.fromDate instanceof Date ? data.fromDate : new Date(data.fromDate)
+      const to = data.toDate instanceof Date ? data.toDate : new Date(data.toDate)
+      return from <= to
+    }
+    return true
+  },
+  {
+    message: 'From date must be before or equal to to date',
+    path: ['fromDate']
+  }
+)
+.refine(
+  data => {
+    if (data.minTotal && data.maxTotal) {
+      return Number(data.minTotal) <= Number(data.maxTotal)
+    }
+    return true
+  },
+  {
+    message: 'Minimum total must be less than or equal to maximum total',
+    path: ['minTotal']
+  }
+) 

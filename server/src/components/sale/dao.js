@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client'
+import { PrismaClient, Prisma } from '@prisma/client'
 
 const prisma = new PrismaClient()
 
@@ -15,8 +15,8 @@ const prisma = new PrismaClient()
 export const getAllSales = async (filters = {}) => {
   const where = {
     ...(filters.clientId && { clientId: filters.clientId }),
-    ...(filters.startDate && { createdOn: { gte: filters.startDate } }),
-    ...(filters.endDate && { createdOn: { lte: filters.endDate } }),
+    ...(filters.fromDate && { createdOn: { gte: filters.fromDate } }),
+    ...(filters.toDate && { createdOn: { lte: filters.toDate } }),
     ...(filters.minTotal && { total: { gte: filters.minTotal } }),
     ...(filters.maxTotal && { total: { lte: filters.maxTotal } })
   }
@@ -56,7 +56,6 @@ export const getAllSales = async (filters = {}) => {
  */
 export const createSale = async (data) => {
   const { details, ...saleData } = data
-  console.log('saleData', saleData)
   return prisma.sale.create({
     data: {
       createdOn: saleData.createdOn,

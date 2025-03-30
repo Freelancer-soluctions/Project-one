@@ -21,11 +21,7 @@ import {
   FormLabel,
   FormMessage
 } from '@/components/ui/form'
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger
-} from '@/components/ui/popover'
+
 import {
   Select,
   SelectContent,
@@ -36,12 +32,8 @@ import {
 import { Textarea } from '@/components/ui/textarea'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
-import { CalendarIcon } from '@radix-ui/react-icons'
 import { LuNewspaper } from 'react-icons/lu'
-import { Calendar } from '@/components/ui/calendar'
-import { format, formatISO } from 'date-fns'
 import { useTranslation } from 'react-i18next'
-import { cn } from '@/lib/utils'
 import PropTypes from 'prop-types'
 
 export const NewsDialog = ({
@@ -71,9 +63,13 @@ export const NewsDialog = ({
         id: selectedRow.id || '',
         description: selectedRow.description || '',
         document: selectedRow.document || '',
-        createdOn: selectedRow.createdOn || '',
+        createdOn: selectedRow.createdOn
+          ? new Date(selectedRow.createdOn).toISOString().split('T')[0]
+          : '',
         createdBy: selectedRow.createdBy || '',
-        closedOn: selectedRow.closedOn || '',
+        closedOn: selectedRow.closedOn
+          ? new Date(selectedRow.closedOn).toISOString().split('T')[0]
+          : '',
         status: selectedRow.status || {},
         userNewsCreated: selectedRow.userNewsCreated?.name || '',
         userNewsClosed: selectedRow.userNewsClosed?.name || '',
@@ -252,32 +248,16 @@ export const NewsDialog = ({
                         <FormLabel htmlFor='createdOn'>
                           {t('created_on')}
                         </FormLabel>
-                        <Popover>
-                          <PopoverTrigger asChild>
-                            <FormControl>
-                              <Button
-                                id='createdOn'
-                                disabled={true}
-                                readOnly={true}
-                                variant={'outline'}
-                                className={cn(
-                                  'pl-3 text-left font-normal',
-                                  !field.value && 'text-muted-foreground'
-                                )}>
-                                {field.value && format(field.value, 'PPP')}
-                                <CalendarIcon className='w-4 h-4 ml-auto opacity-50' />
-                              </Button>
-                            </FormControl>
-                          </PopoverTrigger>
-                          <PopoverContent className='w-auto p-0' align='start'>
-                            <Calendar
-                              mode='single'
-                              selected={field.value}
-                              onSelect={field.onChange}
-                              disabled={date => date < new Date('1900-01-01')}
-                            />
-                          </PopoverContent>
-                        </Popover>
+                        <FormControl>
+                          <Input
+                            id='createdOn'
+                            name='createdOn'
+                            disabled
+                            type='date'
+                            {...field}
+                            value={field.value}
+                          />
+                        </FormControl>
                         <FormMessage />
                       </FormItem>
                     )}
@@ -324,32 +304,16 @@ export const NewsDialog = ({
                         <FormLabel htmlFor='closedOn'>
                           {t('closed_on')}
                         </FormLabel>
-                        <Popover>
-                          <PopoverTrigger asChild>
-                            <FormControl>
-                              <Button
-                                id='closedOn'
-                                disabled={true}
-                                readOnly={true}
-                                variant={'outline'}
-                                className={cn(
-                                  'pl-3 text-left font-normal',
-                                  !field.value && 'text-muted-foreground'
-                                )}>
-                                {field.value && format(field.value, 'PPP')}
-                                <CalendarIcon className='w-4 h-4 ml-auto opacity-50' />
-                              </Button>
-                            </FormControl>
-                          </PopoverTrigger>
-                          <PopoverContent className='w-auto p-0' align='start'>
-                            <Calendar
-                              mode='single'
-                              selected={field.value}
-                              onSelect={field.onChange}
-                              disabled={date => date < new Date('1900-01-01')}
-                            />
-                          </PopoverContent>
-                        </Popover>
+                        <FormControl>
+                          <Input
+                            id='closedOn'
+                            name='closedOn'
+                            disabled
+                            type='date'
+                            {...field}
+                            value={field.value}
+                          />
+                        </FormControl>
                         <FormMessage />
                       </FormItem>
                     )}
@@ -396,7 +360,6 @@ export const NewsDialog = ({
               </div>
 
               <DialogFooter>
-           
                 <DialogClose asChild>
                   <Button type='button' variant='secondary'>
                     {t('close')}

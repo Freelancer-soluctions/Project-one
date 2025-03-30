@@ -324,8 +324,8 @@ export const clientCreateUpdateSchema = Joi.object({
 
 export const saleFiltersSchema = Joi.object({
   clientId: Joi.number().integer().optional().allow(''),
-  startDate: Joi.date().iso().optional().allow(''),
-  endDate: Joi.date().iso().optional().allow(''),
+  fromDate: Joi.date().iso().optional().allow(''),
+  toDate: Joi.date().iso().optional().allow(''),
   minTotal: Joi.number().min(0).optional().allow(''),
   maxTotal: Joi.number().min(0).optional().allow('')
 })
