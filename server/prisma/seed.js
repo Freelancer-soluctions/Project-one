@@ -164,9 +164,9 @@ async function main () {
   /*   await createVarious('noteColumns', noteStatus)
   await createVarious('eventTypes', eventTypes) */
 
-  // await createVarious('newsStatus', newStatus)
+  await createVarious('newsStatus', newStatus)
   // await createVarious('news', news)
-  await createVarious('productStatus', productStatus)
+  /* await createVarious('productStatus', productStatus)  */
   // await createVarious('productProviders', productProviders)
   // await createVarious('productCategories', productCategories)
 }

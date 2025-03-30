@@ -348,7 +348,7 @@ model purchaseDetail {
   productId Int
   quantity   Int
   price     Decimal @db.Decimal(18, 2)
-  purchase     purchase   @relation("purchaseDetail", fields: [purchaseId], references: [id])
+  purchase     purchase   @relation("purchaseDetail", fields: [purchaseId], references: [id], onDelete: Cascade)
   product   products @relation("purchaseDetailProduct", fields: [productId], references: [id])
 }
 

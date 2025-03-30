@@ -210,10 +210,12 @@ export const PurchaseDialog = ({
   }
 
   return (
-    <Dialog open={openDialog} onOpenChange={isOpen => {
-      if (isOpen === true) return
-      handleCloseDialog()
-    }}>
+    <Dialog
+      open={openDialog}
+      onOpenChange={isOpen => {
+        if (isOpen === true) return
+        handleCloseDialog()
+      }}>
       <DialogContent className='sm:max-w-[800px]'>
         <DialogHeader>
           <DialogTitle className='flex items-center gap-2'>
@@ -287,6 +289,99 @@ export const PurchaseDialog = ({
                   )
                 }}
               />
+              {selectedRow?.createdOn && (
+                <>
+                  <FormField
+                    control={form.control}
+                    name='userPurchaseCreated'
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel htmlFor='userPurchaseCreated'>
+                          {t('created_by')}
+                        </FormLabel>
+                        <FormControl>
+                          <Input
+                            id='userPurchaseCreated'
+                            name='userPurchaseCreated'
+                            disabled
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name='createdOn'
+                    render={({ field }) => (
+                      <FormItem className='flex flex-col flex-auto'>
+                        <FormLabel htmlFor='createdOn'>
+                          {t('created_on')}
+                        </FormLabel>
+                        <FormControl>
+                          <Input
+                            id='createdOn'
+                            name='createdOn'
+                            disabled
+                            type='date'
+                            {...field}
+                            value={field.value}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </>
+              )}
+
+              {selectedRow?.updatedOn && (
+                <>
+                  <FormField
+                    control={form.control}
+                    name='userPurchaseUpdated'
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel htmlFor='userPurchaseUpdated'>
+                          {t('updated_by')}
+                        </FormLabel>
+                        <FormControl>
+                          <Input
+                            id='userPurchaseUpdated'
+                            name='userPurchaseUpdated'
+                            disabled
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name='updatedOn'
+                    render={({ field }) => (
+                      <FormItem className='flex flex-col flex-auto'>
+                        <FormLabel htmlFor='updatedOn'>
+                          {t('updated_on')}
+                        </FormLabel>
+                        <FormControl>
+                          <Input
+                            id='updatedOn'
+                            name='updatedOn'
+                            disabled
+                            type='date'
+                            {...field}
+                            value={field.value}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </>
+              )}
             </div>
             <Separator className='my-4' />
             <div className='space-y-4 overflow-y-auto max-h-80'>
@@ -454,4 +549,4 @@ PurchaseDialog.propTypes = {
   details: PropTypes.array,
   providers: PropTypes.array.isRequired,
   setDetails: PropTypes.func
-} 
+}

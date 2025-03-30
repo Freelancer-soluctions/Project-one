@@ -30,6 +30,13 @@ export const SalesDatatable = ({
       header: t('created_on'),
       cell: info => format(new Date(info.getValue()), 'PPP')
     },
+    {accessorKey: 'userSaleCreated.name',
+      header: t('created_by'),
+      cell: info => {
+        const userSaleCreated = info.row.original.userSaleCreated // Accede al dato original de la fila
+        return userSaleCreated?.name ? userSaleCreated.name.toUpperCase() : null // Retorna null para mantener la celda vacía
+      }
+    },
     {
       accessorKey: 'updatedOn',
       header: t('updated_on'),
@@ -37,7 +44,15 @@ export const SalesDatatable = ({
         const date = info.getValue()
         return date ? format(new Date(date), 'PPP') : null
       }
-    }
+    },
+    {
+      accessorKey: 'userSaleUpdated.name',
+      header: t('updated_by'),
+      cell: info => {
+        const userSaleUpdated = info.row.original.userSaleUpdated // Accede al dato original de la fila
+        return userSaleUpdated?.name ? userSaleUpdated.name.toUpperCase() : null // Retorna null para mantener la celda vacía
+      }
+    } 
   ]
 
   const handleEditDialog = row => {
