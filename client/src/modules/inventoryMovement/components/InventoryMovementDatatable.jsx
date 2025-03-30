@@ -3,7 +3,7 @@ import { DataTable } from '@/components/ui/datatable/DataTable'
 import { format } from 'date-fns'
 import PropTypes from 'prop-types'
 
-const InventoryMovementDatatable = ({ dataInventoryMovements, onEditDialog }) => {
+ export const InventoryMovementDatatable = ({ dataInventoryMovements, onEditDialog }) => {
   const { t } = useTranslation()
 
   const columnDefInventoryMovements = [
@@ -60,4 +60,3 @@ InventoryMovementDatatable.propTypes = {
   onEditDialog: PropTypes.func.isRequired
 }
 
-export default InventoryMovementDatatable 

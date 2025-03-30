@@ -22,7 +22,7 @@ import PropTypes from 'prop-types'
 import { useEffect } from 'react'
 import { InventoryMovementSchema, MOVEMENT_TYPES } from '../utils'
 
-const InventoryMovementDialog = ({
+export const InventoryMovementDialog = ({
   openDialog,
   onCloseDialog,
   selectedRow,
@@ -213,4 +213,3 @@ InventoryMovementDialog.propTypes = {
   warehouses: PropTypes.array.isRequired
 }
 
-export default InventoryMovementDialog 

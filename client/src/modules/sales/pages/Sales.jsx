@@ -60,9 +60,19 @@ const Sales = () => {
     isFetching: isFetchingProducts
   } = useGetAllProductsQuery()
 
-  const handleSubmitFilters = data => {
+  const handleSubmitFilters = ({
+    clientId,
+    fromDate,
+    toDate,
+    minTotal,
+    maxTotal
+  }) => {
     getAllSales({
-      ...data
+      clientId,
+      fromDate,
+      toDate,
+      minTotal,
+      maxTotal
     })
   }
 
@@ -102,6 +112,14 @@ const Sales = () => {
   const handleAddDialog = () => {
     setActionDialog(t('add_sale'))
     setOpenDialog(true)
+    setSelectedRow({})
+    setDetails([
+      {
+        productId: '',
+        quantity: 0,
+        price: 0
+      }
+    ])
   }
 
   const handleEditDialog = row => {
@@ -111,15 +129,7 @@ const Sales = () => {
   }
 
   const handleCloseDialog = () => {
-    setSelectedRow({})
     setOpenDialog(false)
-    setDetails([
-      {
-        productId: '',
-        quantity: 0,
-        price: 0
-      }
-    ])
   }
 
   const handleDelete = async id => {

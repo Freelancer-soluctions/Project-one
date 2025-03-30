@@ -34,7 +34,7 @@ const Purchase = () => {
     data: dataProviders = { data: [] },
     isLoading: isLoadingProviders,
     isFetching: isFetchingProviders
-  } = useGetAllProvidersQuery()
+  } = useGetAllProvidersQuery({name: '', status: true})
 
   const [
     updatePurchaseById,
@@ -61,10 +61,8 @@ const Purchase = () => {
     isFetching: isFetchingProducts
   } = useGetAllProductsQuery()
 
-  const handleSubmitFilters = data => {
-    getAllPurchases({
-      ...data
-    })
+  const handleSubmitFilters = ({ providerId, fromDate, toDate, minTotal, maxTotal }) => {
+    getAllPurchases({ providerId, fromDate, toDate, minTotal, maxTotal })
   }
 
   const handleSubmit = async (values, purchaseId) => {
@@ -103,6 +101,14 @@ const Purchase = () => {
   const handleAddDialog = () => {
     setActionDialog(t('add_purchase'))
     setOpenDialog(true)
+    setDetails([
+      {
+        productId: '',
+        quantity: 0,
+        price: 0
+      }
+    ])
+    setSelectedRow({})
   }
 
   const handleEditDialog = row => {
@@ -112,15 +118,7 @@ const Purchase = () => {
   }
 
   const handleCloseDialog = () => {
-    setSelectedRow({})
     setOpenDialog(false)
-    setDetails([
-      {
-        productId: '',
-        quantity: 0,
-        price: 0
-      }
-    ])
   }
 
   const handleDelete = async id => {

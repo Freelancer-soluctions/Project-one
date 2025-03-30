@@ -14,7 +14,7 @@ import { Select } from '@/components/ui/select'
 import PropTypes from 'prop-types'
 import { MOVEMENT_TYPES } from '../utils'
 
-const InventoryMovementFiltersForm = ({
+ export const InventoryMovementFiltersForm = ({
   onSubmit,
   onAddDialog,
   products,
@@ -169,4 +169,3 @@ InventoryMovementFiltersForm.propTypes = {
   warehouses: PropTypes.array.isRequired
 }
 
-export default InventoryMovementFiltersForm 

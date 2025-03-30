@@ -79,10 +79,10 @@ export const SalesDialog = ({
         id: selectedRow.id,
         clientId: selectedRow.clientId.toString(),
         total: selectedRow.total.toString(),
-        createdOn: selectedRow.createdOn,
-        updatedOn: selectedRow.updatedOn,
-        userSaleCreated: selectedRow.userSaleCreated,
-        userSaleUpdated: selectedRow.userSaleUpdated || '',
+        createdOn: new Date(selectedRow.createdOn).toISOString().split('T')[0],
+        updatedOn: selectedRow.updatedOn ? new Date(selectedRow.updatedOn).toISOString().split('T')[0] : '',
+        userSaleCreatedName: selectedRow.userSaleCreated?.name,
+        userSaleUpdatedName: selectedRow.userSaleUpdated?.name || '',
         details: selectedRow.saleDetail.map(detail => ({
           productId: detail.productId.toString(),
           quantity: detail.quantity.toString(),
@@ -119,6 +119,7 @@ export const SalesDialog = ({
       userSaleCreated: '',
       userSaleUpdated: ''
     })
+  
     setSaleId(null)
   }
   const handleDelete = () => {
@@ -287,6 +288,101 @@ export const SalesDialog = ({
                   )
                 }}
               />
+
+
+{selectedRow?.createdOn && (
+                <>
+                  <FormField
+                    control={form.control}
+                    name='userSaleCreatedName'
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel htmlFor='userSaleCreatedName'>
+                          {t('created_by')}
+                        </FormLabel>
+                        <FormControl>
+                          <Input
+                            id='userSaleCreatedName'
+                            name='userSaleCreatedName'
+                            disabled
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name='createdOn'
+                    render={({ field }) => (
+                      <FormItem className='flex flex-col flex-auto'>
+                        <FormLabel htmlFor='createdOn'>
+                          {t('created_on')}
+                        </FormLabel>
+                        <FormControl>
+                          <Input
+                            id='createdOn'
+                            name='createdOn'
+                            disabled
+                            type='date'
+                            {...field}
+                            value={field.value}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </>
+              )}
+              {selectedRow?.updatedOn && (
+                <>
+                  <FormField
+                    control={form.control}
+                    name='userSaleUpdatedName'
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel htmlFor='userSaleUpdatedName'>
+                          {t('updated_by')}
+                        </FormLabel>
+                        <FormControl>
+                          <Input
+                            id='userSaleUpdatedName'
+                            name='userSaleUpdatedName'
+                            disabled
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name='updatedOn'
+                    render={({ field }) => (
+                      <FormItem className='flex flex-col flex-auto'>
+                        <FormLabel htmlFor='updatedOn'>
+                          {t('updated_on')}
+                        </FormLabel>
+                        <FormControl>
+                          <Input
+                            id='updatedOn'
+                            name='updatedOn'
+                            disabled
+                            type='date'
+                            {...field}
+                            value={field.value}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </>
+              )}
+              
             </div>
             <Separator className='my-4' />
             <div className='space-y-4 overflow-y-auto max-h-80'>
