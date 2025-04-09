@@ -257,7 +257,9 @@
     "product_already_exists": "Product already exists",
     "product_already_exists_message": "The product already exists in the sale. Please select another product.",
     "add_purchase": "Add purchase",
-    "edit_purchase": "Edit purchase"
+    "edit_purchase": "Edit purchase",
+    "inventory_movements": "Inventory Movements",
+    "inventory_movements_card_msg": "Manage your inventory movements efficiently."
 
     
 
