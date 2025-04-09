@@ -56,6 +56,7 @@ const warehouseApi = createApi({
 // auto-generated based on the defined endpoints
 export const { 
   useLazyGetAllWarehousesQuery, 
+  useGetAllWarehousesQuery,
   useUpdateWarehouseByIdMutation, 
   useCreateWarehouseMutation, 
   useDeleteWarehouseByIdMutation 

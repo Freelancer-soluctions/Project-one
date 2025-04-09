@@ -341,3 +341,90 @@ export const saleCreateUpdateSchema = Joi.object({
     })
   ).required().min(1)
 })
+
+export const employeeFiltersSchema = Joi.object({
+  name: Joi.string().max(100).allow(''),
+  lastName: Joi.string().max(100).allow(''),
+  dni: Joi.string().max(10).allow(''),
+  email: Joi.string().email().allow(''),
+  department: Joi.string().max(100).allow(''),
+  position: Joi.string().max(100).allow('')
+})
+
+export const employeeCreateUpdateSchema = Joi.object({
+  name: Joi.string().max(100).required(),
+  lastName: Joi.string().max(100).required(),
+  dni: Joi.string().max(10).required(),
+  email: Joi.string().email().required(),
+  phone: Joi.string().max(15).allow(''),
+  address: Joi.string().max(120).allow(''),
+  startDate: Joi.date().required(),
+  position: Joi.string().max(100).required(),
+  department: Joi.string().max(100).required(),
+  salary: Joi.number().precision(2).positive().required()
+})
+
+export const attendanceFiltersSchema = Joi.object({
+  employeeId: Joi.number().integer().allow(''),
+  date: Joi.date().allow(''),
+  fromDate: Joi.date().allow(''),
+  toDate: Joi.date().allow('')
+})
+
+export const attendanceCreateUpdateSchema = Joi.object({
+  employeeId: Joi.number().integer().required(),
+  date: Joi.date().required(),
+  entryTime: Joi.string().max(5).required(),
+  exitTime: Joi.string().max(5).required(),
+  workedHours: Joi.number().precision(2).positive().required()
+})
+
+export const payrollFiltersSchema = Joi.object({
+  employeeId: Joi.number().integer().allow(''),
+  month: Joi.number().integer().min(1).max(12).allow(''),
+  year: Joi.number().integer().min(1900).max(2100).allow('')
+})
+
+export const payrollCreateUpdateSchema = Joi.object({
+  employeeId: Joi.number().integer().required(),
+  month: Joi.number().integer().min(1).max(12).required(),
+  year: Joi.number().integer().min(1900).max(2100).required(),
+  baseSalary: Joi.number().precision(2).positive().required(),
+  extraHours: Joi.number().precision(2).min(0).required(),
+  deductions: Joi.number().precision(2).min(0).required(),
+  totalPayment: Joi.number().precision(2).positive().required()
+})
+
+export const vacationFiltersSchema = Joi.object({
+  employeeId: Joi.number().integer().allow(''),
+  status: Joi.string().valid('PENDING', 'APPROVED', 'REJECTED').allow(''),
+  fromDate: Joi.date().allow(''),
+  toDate: Joi.date().allow('')
+})
+
+export const vacationCreateUpdateSchema = Joi.object({
+  employeeId: Joi.number().integer().required(),
+  startDate: Joi.date().required(),
+  endDate: Joi.date().required(),
+  status: Joi.string().valid('PENDING', 'APPROVED', 'REJECTED').default('PENDING')
+})
+
+export const permissionFiltersSchema = Joi.object({
+  employeeId: Joi.number().integer().optional(),
+  type: Joi.string().valid('SICK', 'PERSONAL', 'MATERNITY', 'PATERNITY', 'OTHER').optional(),
+  status: Joi.string().valid('PENDING', 'APPROVED', 'REJECTED').optional(),
+  fromDate: Joi.date().iso().optional(),
+  toDate: Joi.date().iso().min(Joi.ref('fromDate')).optional()
+})
+
+export const permissionCreateUpdateSchema = Joi.object({
+  employeeId: Joi.number().integer().required(),
+  type: Joi.string().valid('SICK', 'PERSONAL', 'MATERNITY', 'PATERNITY', 'OTHER').required(),
+  startDate: Joi.date().iso().required(),
+  endDate: Joi.date().iso().min(Joi.ref('startDate')).required(),
+  reason: Joi.string().max(500).required(),
+  status: Joi.string().valid('PENDING', 'APPROVED', 'REJECTED').default('PENDING'),
+  approvedBy: Joi.number().integer().optional(),
+  approvedAt: Joi.date().iso().optional(),
+  comments: Joi.string().max(1000).optional()
+})

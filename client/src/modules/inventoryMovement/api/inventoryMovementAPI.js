@@ -45,3 +45,5 @@ export const {
   useUpdateInventoryMovementByIdMutation,
   useDeleteInventoryMovementByIdMutation
 } = inventoryMovementAPI 
+
+export default inventoryMovementAPI
