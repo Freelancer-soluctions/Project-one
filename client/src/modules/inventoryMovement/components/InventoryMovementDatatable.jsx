@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next'
-import { DataTable } from '@/components/ui/datatable/DataTable'
+import { DataTable } from '@/components/dataTable/index'
 import { format } from 'date-fns'
 import PropTypes from 'prop-types'
 
