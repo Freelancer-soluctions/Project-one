@@ -1,7 +1,7 @@
-import { getAllPayroll, createPayroll, updatePayrollById, deletePayrollById } from './dao.js'
+import * as payrollDao from './dao.js'
 
 export const getAllPayroll = async (filters) => {
-  return await getAllPayroll(filters)
+  return await payrollDao.getAllPayroll(filters)
 }
 
 export const createPayroll = async (data) => {
@@ -9,7 +9,7 @@ export const createPayroll = async (data) => {
     ...data,
     createdOn: new Date()
   }
-  return await createPayroll(payroll)
+  return await payrollDao.createPayroll(payroll)
 }
 
 export const updatePayrollById = async (id, data) => {
@@ -17,9 +17,9 @@ export const updatePayrollById = async (id, data) => {
     ...data,
     updatedOn: new Date()
   }
-  return await updatePayrollById(id, payroll)
+  return await payrollDao.updatePayrollById(id, payroll)
 }
 
 export const deletePayrollById = async (id) => {
-  return await deletePayrollById(id)
-} 
+  return await payrollDao.deletePayrollById(id)
+}

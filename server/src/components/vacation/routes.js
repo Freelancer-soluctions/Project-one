@@ -1,7 +1,7 @@
 import express from 'express'
 import { getAllVacation, createVacation, updateVacationById, deleteVacationById } from './controller.js'
-import { verifyToken } from '../../middleware/auth.js'
-import { validateSchema } from '../../middleware/validateSchema.js'
+import verifyToken from '../../middleware/verifyToken.js'
+import validateSchema from '../../middleware/validateSchema.js'
 import { vacationFiltersSchema, vacationCreateUpdateSchema } from '../../utils/joiSchemas/joi.js'
 
 const router = express.Router()

@@ -4,8 +4,8 @@ import {
   updatePermissionById as updatePermissionByIdService,
   deletePermissionById as deletePermissionByIdService
 } from './service.js'
-import { handleCatchErrorAsync } from '../../utils/handleCatchErrorAsync.js'
-import { globalResponse } from '../../utils/globalResponse.js'
+import handleCatchErrorAsync from '../../utils/responses&Errors/handleCatchErrorAsync.js'
+import globalResponse from '../../utils/responses&Errors/globalResponse.js'
 
 /**
  * @description Get all permissions with optional filters
