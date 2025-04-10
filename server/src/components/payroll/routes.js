@@ -1,7 +1,7 @@
 import express from 'express'
 import { getAllPayroll, createPayroll, updatePayrollById, deletePayrollById } from './controller.js'
-import { verifyToken } from '../../middleware/verifyToken.js'
-import { validateSchema } from '../../middleware/validateSchema.js'
+import verifyToken from '../../middleware/verifyToken.js'
+import validateSchema from '../../middleware/validateSchema.js'
 import { payrollFiltersSchema, payrollCreateUpdateSchema } from '../../utils/joiSchemas/joi.js'
 
 const router = express.Router()
