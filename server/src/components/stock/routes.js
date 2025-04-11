@@ -5,7 +5,8 @@ import {
   createStock,
   updateStockById,
   deleteStockById,
-  getStockAlerts
+  getStockAlerts,
+  getStockByProductId,
 } from './controller.js'
 import {
   stockFiltersSchema,
@@ -21,7 +22,7 @@ const router = Router()
  *   get:
  *     tags:
  *       - Stock
- *     summary: Get all stock alerts
+ *     summary: Get all stock entries
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -49,8 +50,8 @@ const router = Router()
  *                   type: string
  *                   example: "Some success message"
  *                 data:
- *                   type: object
- *                   $ref: "#/components/schemas/ResponseGetStockAlerts"
+ *                   type: array
+ *                   $ref: "#/components/schemas/ResponseGetStock"
  *       401:
  *         description: Unauthorized
  *         content:
@@ -73,6 +74,61 @@ router.get(
 
 /**
  * @openapi
+ * /api/v1/stock/{id}:
+ *   get:
+ *     tags:
+ *       - Stock
+ *     summary: Get stock by productID
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: Product ID
+ *     responses:
+ *       200:
+ *         description: OK
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: boolean
+ *                   example: false
+ *                 statusCode:
+ *                   type: integer
+ *                   example: 200
+ *                 message:
+ *                   type: string
+ *                   example: "Some success message"
+ *                 data:
+ *                   type: object
+ *                   $ref: "#/components/schemas/ResponseGetStockByProductId"
+ *       401:
+ *         description: Unauthorized
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Unauthorized'
+ *       500:
+ *         description: Server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
+router.get(
+  '/',
+  verifyToken,
+  getStockByProductId
+)
+
+/**
+ * @openapi
  * /api/v1/stock:
  *   get:
  *     tags:
@@ -80,7 +136,6 @@ router.get(
  *     summary: Get all stock entries
  *     security:
  *       - bearerAuth: []
-
  *     responses:
  *       200:
  *         description: OK
@@ -101,7 +156,7 @@ router.get(
  *                 data:
  *                   type: array
  *                   items:
- *                     $ref: "#/components/schemas/ResponseGetStock"
+ *                     $ref: "#/components/schemas/ResponseGetStockAlerts"
  *       401:
  *         description: Unauthorized
  *         content:
