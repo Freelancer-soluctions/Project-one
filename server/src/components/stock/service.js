@@ -3,7 +3,8 @@ import {
   createStock as createStockDao,
   updateStock as updateStockDao,
   deleteStock as deleteStockDao,
-  getStockAlerts as getStockAlertsDao
+  getStockAlerts as getStockAlertsDao,
+  getStockByProductId as getStockByProductIdDao
 } from './dao.js'
 
 /**
@@ -17,6 +18,15 @@ import {
  */
 export const getAllStock = async ({ productId, warehouseId, lot, unitMeasure, stocksExpirated, stocksLow }) => {
   return getAllStockDao(productId, warehouseId, lot, unitMeasure, stocksExpirated, stocksLow)
+}
+
+/**
+ * Get stock by product ID
+ * @param {number} id - Product ID
+ * @returns {Promise<Object>} Stock entry
+ */
+export const getStockByProductId = async (id) => {
+  return getStockByProductIdDao(Number(id))
 }
 
 /**
