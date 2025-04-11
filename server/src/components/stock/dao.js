@@ -85,6 +85,17 @@ export const getAllStock = async (
 }
 
 /**
+ * Get stock by product ID
+ * @param {number} id - Product ID
+ * @returns {Promise<Object>} Stock entry
+ */
+export const getStockByProductId = async (id) => {
+  return prisma.stock.findUnique({
+    where: { productId: id }
+  })
+}
+
+/**
  * Get all stock alerts
  * @returns {Promise<Object>} Stock alerts
  */

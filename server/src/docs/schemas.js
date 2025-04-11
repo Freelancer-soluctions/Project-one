@@ -1181,6 +1181,88 @@
  *         updatedBy:
  *           type: integer
  *           description: ID del usuario que actualizó el registro
+ *         userStockCreatedName:
+ *           type: string
+ *           description: Nombre del usuario que creó el registro
+ *         userStockUpdatedName:
+ *           type: string
+ *           description: Nombre del usuario que actualizó el registro
+ *         productName:
+ *           type: string
+ *           description: Nombre del producto
+ *         productPrice:
+ *           type: number
+ *           description: Precio del producto
+ *         productCost:
+ *           type: number
+ *           description: Costo del producto
+ *         warehouseName:
+ *           type: string
+ *           description: Nombre del almacén
+ *         expirationStatus:
+ *           type: string
+ *           enum: [EXPIRED, NOT EXPIRED]
+ *           description: Estado de expiración
+ *         totalCost:
+ *           type: number
+ *           description: Costo total del stock
+ * 
+ *     ResponseGetStockByProductId:
+ *       type: object
+ *       required:
+ *         - quantity
+ *         - minimum
+ *         - unitMeasure
+ *         - productId
+ *         - warehouseId
+ *       properties:
+ *         id:
+ *           type: integer
+ *           description: ID del registro de stock
+ *         quantity:
+ *           type: integer
+ *           minimum: 0
+ *           description: Cantidad de stock
+ *         minimum:
+ *           type: integer
+ *           minimum: 0
+ *           description: Cantidad mínima de stock
+ *         maximum:
+ *           type: integer
+ *           minimum: 0
+ *           description: Cantidad máxima de stock
+ *         lot:
+ *           type: string
+ *           maxLength: 50
+ *           description: Número de lote
+ *         unitMeasure:
+ *           type: string
+ *           enum: [PIECES, KILOGRAMS, LITERS, METERS]
+ *           description: Unidad de medida
+ *         expirationDate:
+ *           type: string
+ *           format: date-time
+ *           description: Fecha de expiración
+ *         productId:
+ *           type: integer
+ *           description: ID del producto
+ *         warehouseId:
+ *           type: integer
+ *           description: ID del almacén
+ *         createdOn:
+ *           type: string
+ *           format: date-time
+ *           description: Fecha de creación
+ *         updatedOn:
+ *           type: string
+ *           format: date-time
+ *           description: Fecha de actualización
+ *         createdBy:
+ *           type: integer
+ *           description: ID del usuario que creó el registro
+ *         updatedBy:
+ *           type: integer
+ *           description: ID del usuario que actualizó el registro
  *
  *     StockFilters:
  *       type: object
