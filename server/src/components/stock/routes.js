@@ -51,7 +51,8 @@ const router = Router()
  *                   example: "Some success message"
  *                 data:
  *                   type: array
- *                   $ref: "#/components/schemas/ResponseGetStock"
+ *                   items:
+ *                     $ref: "#/components/schemas/ResponseGetStock"
  *       401:
  *         description: Unauthorized
  *         content:
@@ -129,11 +130,11 @@ router.get(
 
 /**
  * @openapi
- * /api/v1/stock:
+ * /api/v1/stock/alerts:
  *   get:
  *     tags:
  *       - Stock
- *     summary: Get all stock entries
+ *     summary: Get all stock Alerts
  *     security:
  *       - bearerAuth: []
  *     responses:
