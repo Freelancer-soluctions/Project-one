@@ -74,18 +74,19 @@ export const SalesFiltersForm = ({ onSubmit, onAddDialog, clients }) => {
             name='clientId'
             render={({ field }) => (
               <FormItem className='flex flex-col flex-auto'>
-                <FormLabel>{t('client')}</FormLabel>
+                <FormLabel htmlFor='clientId'>{t('client')}</FormLabel>
                 <Select
                   onValueChange={field.onChange}
-                  defaultValue={field.value}>
-                  <FormControl>
+                  value={field.value?.toString()} // Asegura que el valor sea string
+                  >
+                  <FormControl id='clientId'>
                     <SelectTrigger>
                       <SelectValue placeholder={t('select_client')} />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    {clients?.map(client => (
-                      <SelectItem key={client.id} value={client.id.toString()}>
+                    {clients?.map((client, index) => (
+                      <SelectItem key={index} value={client.id.toString()}>
                         {client.name}
                       </SelectItem>
                     ))}
