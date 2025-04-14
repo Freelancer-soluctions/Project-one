@@ -11,6 +11,12 @@ import {
  * @returns {Promise<Array>} List of sales
  */
 export const getAllSales = async (filters) => {
+  console.log(filters)
+  const formatedFilters ={
+    ...filters,
+    clientId: Number(filters.clientId)
+
+  }
   return getAllSalesDao(filters)
 }
 
