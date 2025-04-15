@@ -11,6 +11,7 @@ const prisma = new PrismaClient()
  * @returns {Promise<Array>} List of clients with their related data
  */
 export const getAllClients = async (filters = {}) => {
+  console.log(filters)
   const whereClauses = []
 
   if (filters.name) {
