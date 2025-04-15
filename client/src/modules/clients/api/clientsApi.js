@@ -14,6 +14,7 @@
            getAllClients: builder.query({
              query: (params) => ({
                url: `/clients`,
+               method: 'GET',
                params
              }),
              providesTags: ['Clients'], // Indica que este endpoint usa el tag 'Notes'

@@ -16,3 +16,10 @@ export const ClientSchema = z
     })
   })
   .passthrough() // Permite otros campos 
+
+  export const ClientsFiltersSchema = z.object({
+    name: z.string().optional(),
+    email: z.string().email({
+      message: 'Invalid email format.'
+    }).optional()
+  })

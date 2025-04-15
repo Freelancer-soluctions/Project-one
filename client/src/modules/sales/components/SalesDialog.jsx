@@ -104,24 +104,10 @@ export const SalesDialog = ({
   }
 
   const clearDialog = () => {
-    form.reset({
-      clientId: '',
-      total: '',
-      details: [
-        {
-          productId: '',
-          quantity: 0,
-          price: 0
-        }
-      ],
-      createdOn: '',
-      updatedOn: '',
-      userSaleCreated: '',
-      userSaleUpdated: ''
-    })
-  
+    form.reset()
     setSaleId(null)
   }
+  
   const handleDelete = () => {
     onDeleteById(saleId)
     // Reset form and details state
