@@ -12,14 +12,13 @@ import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { LuPlus, LuSearch, LuEraser } from 'react-icons/lu'
 import PropTypes from 'prop-types'
+import { ClientsFiltersSchema } from '../utils'
+import { zodResolver } from '@hookform/resolvers/zod'
 
 export const ClientsFiltersForm = ({ onSubmit, onAddDialog }) => {
   const { t } = useTranslation()
   const form = useForm({
-    defaultValues: {
-      name: '',
-      email: ''
-    }
+    resolver: zodResolver(ClientsFiltersSchema)
   })
 
   const handleSubmit = data => {
