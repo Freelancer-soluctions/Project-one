@@ -49,7 +49,7 @@ const Permission = () => {
     { isLoading: isLoadingDelete }
   ] = useDeletePermissionByIdMutation()
 
-  // Fetch initial data
+
   useEffect(() => {
     getAllPermissions({}) // Fetch all initially
   }, [getAllPermissions])
