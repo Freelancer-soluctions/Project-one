@@ -28,6 +28,8 @@ import { Calendar } from '@/components/ui/calendar'
 import { format, formatISO } from 'date-fns'
 import { cn } from '@/lib/utils'
 import PropTypes from 'prop-types'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { NewsFiltersSchema } from '../utils'
 
 export const NewsFiltersForm = ({
   trigger,
@@ -38,6 +40,7 @@ export const NewsFiltersForm = ({
   const { t } = useTranslation() // Accede a las traducciones
   // Configura el formulario
   const formFilter = useForm({
+    resolver: zodResolver(NewsFiltersSchema),
     defaultValues: {
       description: '',
       fdate: '',

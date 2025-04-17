@@ -99,6 +99,7 @@ const productsApi = createApi({
 export const {
   useLazyGetAllProductsQuery,
   useGetAllProductsStatusQuery,
+  useGetAllProductsQuery,
   useGetAllProductCategoriesQuery,
   useGetAllProductProvidersQuery,
   useLazyGetAllProductAttributesQuery,

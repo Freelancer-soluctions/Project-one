@@ -10,7 +10,8 @@ export function useDisplaySettings(settings) {
       displayProfile,
       displayLanguage,
       displayReports,
-      displayPayroll
+      displayPayroll,
+      displayStock
     } = settings
 
     return {
@@ -20,7 +21,8 @@ export function useDisplaySettings(settings) {
       displayProfile,
       displayLanguage,
       displayReports,
-      displayPayroll
+      displayPayroll,
+      displayStock
     }
   }, [settings]) // Solo se recalcula si 'settings' cambia
 }
