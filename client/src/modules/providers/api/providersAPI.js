@@ -48,6 +48,7 @@ const providersApi = createApi({
 // auto-generated based on the defined endpoints
 export const { 
   useLazyGetAllProvidersQuery, 
+  useGetAllProvidersQuery,
   useUpdateProviderByIdMutation, 
   useCreateProviderMutation, 
   useDeleteProviderByIdMutation 

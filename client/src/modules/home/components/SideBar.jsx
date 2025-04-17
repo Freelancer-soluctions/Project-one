@@ -8,14 +8,16 @@ import {
   LuGlobe,
   LuUser,
   LuDollarSign,
-  LuFileSpreadsheet
+  LuFileSpreadsheet,
+  LuPackagePlus
 } from 'react-icons/lu'
 import { Link } from 'react-router'
 import { useTranslation } from 'react-i18next'
 import { QuickAccessButton } from '@/components/quickAccess/QuickAccess'
 import { NotesSummary } from './NotesSummary'
+import { StockSummary } from './StockSummary'
 
-const SideBar = ({ dataCountNotes, displaySettings }) => {
+const SideBar = ({ dataCountNotes, dataCountStock, displaySettings }) => {
   const { t } = useTranslation()
 
   return (
@@ -48,6 +50,20 @@ const SideBar = ({ dataCountNotes, displaySettings }) => {
           }
         />
       )}
+
+      {displaySettings?.displayStock && (
+        <QuickAccessButton
+          icon={LuPackagePlus}
+          label={t('stock')}
+          content={StockSummary}
+          contentProps={{ dataCountStock }}
+          className={
+            'flex items-center justify-start gap-2 px-3 py-2 text-sm font-medium transition-colors rounded-md hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground '
+          }
+        />
+      )}
+
+
 
       <Link
         to={'settings'}

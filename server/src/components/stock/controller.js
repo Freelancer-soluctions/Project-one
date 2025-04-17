@@ -2,7 +2,9 @@ import {
   getAllStock as getAllStockService,
   createStock as createStockService,
   updateStockById as updateStockByIdService,
-  deleteStockById as deleteStockByIdService
+  deleteStockById as deleteStockByIdService,
+  getStockAlerts as getStockAlertsService,
+  getStockByProductId as getStockByProductIdService
 } from './service.js'
 import globalResponse from '../../utils/responses&Errors/globalResponse.js'
 import handleCatchErrorAsync from '../../utils/responses&Errors/handleCatchErrorAsync.js'
@@ -14,9 +16,32 @@ import handleCatchErrorAsync from '../../utils/responses&Errors/handleCatchError
  * @returns {Promise<void>}
  */
 export const getAllStock = handleCatchErrorAsync(async (req, res) => {
-  const { productId, warehouseId, lot, unitMeasure } = req.query
-  const stock = await getAllStockService({ productId, warehouseId, lot, unitMeasure })
+  const { productId, warehouseId, lot, unitMeasure, stocksExpirated, stocksLow } = req.query
+  const stock = await getAllStockService({ productId, warehouseId, lot, unitMeasure, stocksExpirated, stocksLow })
   globalResponse(res, 200, stock)
+})
+
+/**
+ * Get stock by product ID
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object
+ * @returns {Promise<void>}
+ */
+export const getStockByProductId = handleCatchErrorAsync(async (req, res) => {
+  const { id } = req.params
+  const stock = await getStockByProductIdService(id)
+  globalResponse(res, 200, stock)
+})
+
+/**
+ * Get all stock alerts
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object
+ * @returns {Promise<void>}
+ */
+export const getStockAlerts = handleCatchErrorAsync(async (req, res) => {
+  const stockAlerts = await getStockAlertsService()
+  globalResponse(res, 200, stockAlerts)
 })
 
 /**
