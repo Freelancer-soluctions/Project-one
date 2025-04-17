@@ -832,6 +832,10 @@
  *           type: boolean
  *           default: false
  *           description: Toggle for payroll display
+ *         displayStock:
+ *           type: boolean
+ *           default: false
+ *           description: Toggle for stock display
  *         language:
  *           type: string
  *           maxLength: 2
@@ -880,6 +884,64 @@
  *           type: string
  *           maxLength: 2
  *           example: "en"
+ */
+
+/**
+ * @swagger
+ * components:
+ *   schemas:
+ *     SettingsLanguage:
+ *       type: object
+ *       required:
+ *         - language
+ *       properties:
+ *         language:
+ *           type: string
+ *           maxLength: 2
+ *           example: "en"
+ *         id:
+ *           type: integer
+ *           example: 1
+ *           description: Unique identifier for the settings
+ *
+ */
+
+/**
+ * @swagger
+ * components:
+ *   schemas:
+ *     SettingsDisplay:
+ *       type: object
+ *       required:
+ *         - displayEvents
+ *         - displayNotes
+ *         - displayNews
+ *         - displayProfile
+ *         - displayLanguage
+ *         - displayReports
+ *         - displayPayroll
+ *         - displayStock
+ *       properties:
+ *         displayEvents:
+ *           type: boolean
+ *         displayNotes:
+ *           type: boolean
+ *         displayNews:
+ *           type: boolean
+ *         displayProfile:
+ *           type: boolean
+ *         displayLanguage:
+ *           type: boolean
+ *         displayReports:
+ *           type: boolean
+ *         displayPayroll:
+ *           type: boolean
+ *         displayStock:
+ *           type: boolean
+ *         id:
+ *           type: integer
+ *           example: 1
+ *           description: Unique identifier for the settings
  */
 
 /** --------------------------------------
@@ -1063,7 +1125,7 @@
  * @swagger
  * components:
  *   schemas:
- *     BodyStockCreateUpdate:
+ *     ResponseGetStock:
  *       type: object
  *       required:
  *         - quantity
@@ -1072,6 +1134,9 @@
  *         - productId
  *         - warehouseId
  *       properties:
+ *         id:
+ *           type: integer
+ *           description: ID del registro de stock
  *         quantity:
  *           type: integer
  *           minimum: 0
@@ -1102,10 +1167,88 @@
  *         warehouseId:
  *           type: integer
  *           description: ID del almacén
- *         entryDate:
+ *         createdOn:
  *           type: string
  *           format: date-time
- *           description: Fecha de entrada
+ *           description: Fecha de creación
+ *         updatedOn:
+ *           type: string
+ *           format: date-time
+ *           description: Fecha de actualización
+ *         createdBy:
+ *           type: integer
+ *           description: ID del usuario que creó el registro
+ *         updatedBy:
+ *           type: integer
+ *           description: ID del usuario que actualizó el registro
+ *         userStockCreatedName:
+ *           type: string
+ *           description: Nombre del usuario que creó el registro
+ *         userStockUpdatedName:
+ *           type: string
+ *           description: Nombre del usuario que actualizó el registro
+ *         productName:
+ *           type: string
+ *           description: Nombre del producto
+ *         productPrice:
+ *           type: number
+ *           description: Precio del producto
+ *         productCost:
+ *           type: number
+ *           description: Costo del producto
+ *         warehouseName:
+ *           type: string
+ *           description: Nombre del almacén
+ *         expirationStatus:
+ *           type: string
+ *           enum: [EXPIRED, NOT EXPIRED]
+ *           description: Estado de expiración
+ *         totalCost:
+ *           type: number
+ *           description: Costo total del stock
+ * 
+ *     ResponseGetStockByProductId:
+ *       type: object
+ *       required:
+ *         - quantity
+ *         - minimum
+ *         - unitMeasure
+ *         - productId
+ *         - warehouseId
+ *       properties:
+ *         id:
+ *           type: integer
+ *           description: ID del registro de stock
+ *         quantity:
+ *           type: integer
+ *           minimum: 0
+ *           description: Cantidad de stock
+ *         minimum:
+ *           type: integer
+ *           minimum: 0
+ *           description: Cantidad mínima de stock
+ *         maximum:
+ *           type: integer
+ *           minimum: 0
+ *           description: Cantidad máxima de stock
+ *         lot:
+ *           type: string
+ *           maxLength: 50
+ *           description: Número de lote
+ *         unitMeasure:
+ *           type: string
+ *           enum: [PIECES, KILOGRAMS, LITERS, METERS]
+ *           description: Unidad de medida
+ *         expirationDate:
+ *           type: string
+ *           format: date-time
+ *           description: Fecha de expiración
+ *         productId:
+ *           type: integer
+ *           description: ID del producto
+ *         warehouseId:
+ *           type: integer
+ *           description: ID del almacén
  *         createdOn:
  *           type: string
  *           format: date-time
@@ -1125,10 +1268,10 @@
  *       type: object
  *       properties:
  *         productId:
- *           type: integer
+ *           type: string
  *           description: ID del producto para filtrar
  *         warehouseId:
- *           type: integer
+ *           type: string
  *           description: ID del almacén para filtrar
  *         lot:
  *           type: string
@@ -1138,8 +1281,14 @@
  *           type: string
  *           enum: [PIECES, KILOGRAMS, LITERS, METERS]
  *           description: Unidad de medida para filtrar
+ *         stocksExpirated:
+ *           type: boolean
+ *           description: Mostrar productos vencidos
+ *         stocksLow:
+ *           type: boolean
+ *           description: Mostrar productos con stock bajo
  *
- *     StockResponseCreate:
+ *     ResponseStockCreateUpdate:
  *       type: object
  *       properties:
  *         id:
@@ -1169,26 +1318,12 @@
  *           type: string
  *           format: date-time
  *           description: Fecha de expiración
- *         entryDate:
- *           type: string
- *           format: date-time
- *           description: Fecha de entrada
- *         product:
- *           type: object
- *           properties:
- *             id:
- *               type: integer
- *             name:
- *               type: string
- *             sku:
- *               type: string
- *         warehouse:
- *           type: object
- *           properties:
- *             id:
- *               type: integer
- *             name:
- *               type: string
+ *         productId:
+ *           type: integer
+ *           description: ID del producto
+ *         warehouseId:
+ *           type: integer
+ *           description: ID del almacén
  *         createdOn:
  *           type: string
  *           format: date-time
@@ -1204,69 +1339,743 @@
  *           type: integer
  *           description: ID del usuario que actualizó el registro
  *
- *
- *     StockResponseUpdate:
+ *     BodyStockCreateUpdate:
  *       type: object
+ *       required:
+ *         - quantity
+ *         - minimum
+ *         - unitMeasure
+ *         - productId
+ *         - warehouseId
  *       properties:
- *         id:
- *           type: integer
- *           description: ID del registro de stock
  *         quantity:
  *           type: integer
- *           minimum: 0
  *           description: Cantidad de stock
  *         minimum:
  *           type: integer
- *           minimum: 0
  *           description: Cantidad mínima de stock
  *         maximum:
  *           type: integer
- *           minimum: 0
  *           description: Cantidad máxima de stock
  *         lot:
  *           type: string
- *           maxLength: 50
  *           description: Número de lote
- *         unitMeasure:
- *           type: string
- *           enum: [PIECES, KILOGRAMS, LITERS, METERS]
- *           description: Unidad de medida
  *         expirationDate:
  *           type: string
  *           format: date-time
  *           description: Fecha de expiración
- *         entryDate:
+ *         productId:
+ *           type: integer
+ *           description: ID del producto
+ *         warehouseId:
+ *           type: integer
+ *           description: ID del almacén
+ *         unitMeasure:
  *           type: string
- *           format: date-time
- *           description: Fecha de entrada
- *         product:
- *           type: object
- *           properties:
- *             id:
- *               type: integer
- *             name:
- *               type: string
- *             sku:
- *               type: string
- *         warehouse:
- *           type: object
- *           properties:
- *             id:
- *               type: integer
- *             name:
- *               type: string
+ *           enum: [PIECES, KILOGRAMS, LITERS, METERS]
+ *           description: Unidad de medida
+ */
+
+/**
+ * @swagger
+ * components:
+ *   schemas:
+ *     ResponseGetStockAlerts:
+ *       type: object
+ *       properties:
+ *         expired:
+ *           type: integer
+ *           description: Cantidad de productos vencidos
+ *         lowStock:
+ *           type: integer
+ *           description: Cantidad de productos con stock bajo
+ */
+
+/** --------------------------------------
+ * Sección de Inventory Movement
+ * -------------------------------------- */
+/**
+ * @openapi
+ * components:
+ *   schemas:
+ *     Product:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: integer
+ *         sku:
+ *           type: string
+ *         name:
+ *           type: string
+ *         price:
+ *           type: number
+ *         cost:
+ *           type: number
+ *         description:
+ *           type: string
+ *         barCode:
+ *           type: string
+ *         productCategoryId:
+ *           type: integer
+ *         productProviderId:
+ *           type: integer
+ *         productStatusId:
+ *           type: integer
  *         createdOn:
  *           type: string
  *           format: date-time
- *           description: Fecha de creación
  *         updatedOn:
  *           type: string
  *           format: date-time
- *           description: Fecha de actualización
+ *           nullable: true
+ *
+ *     Warehouse:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: integer
+ *         name:
+ *           type: string
+ *         description:
+ *           type: string
+ *         address:
+ *           type: string
+ *         status:
+ *           type: string
+ *           enum: [ACTIVE, INACTIVE, MAINTENANCE]
+ *         createdOn:
+ *           type: string
+ *           format: date-time
+ *         updatedOn:
+ *           type: string
+ *           format: date-time
+ *           nullable: true
+ *
+ *     InventoryMovementFilters:
+ *       type: object
+ *       properties:
+ *         productId:
+ *           type: integer
+ *           description: Filter by product ID
+ *         warehouseId:
+ *           type: integer
+ *           description: Filter by warehouse ID
+ *         type:
+ *           type: string
+ *           enum: [ENTRY, EXIT, TRANSFERENCE, ADJUSTMENT]
+ *           description: Filter by movement type
+ *         startDate:
+ *           type: string
+ *           format: date-time
+ *           description: Filter by start date
+ *         endDate:
+ *           type: string
+ *           format: date-time
+ *           description: Filter by end date
+ *
+ *     BodyInventoryMovementCreate:
+ *       type: object
+ *       required:
+ *         - productId
+ *         - warehouseId
+ *         - quantity
+ *         - type
+ *       properties:
+ *         productId:
+ *           type: integer
+ *           description: ID of the product
+ *         warehouseId:
+ *           type: integer
+ *           description: ID of the warehouse
+ *         quantity:
+ *           type: integer
+ *           description: Quantity of the movement
+ *         type:
+ *           type: string
+ *           enum: [ENTRY, EXIT, TRANSFERENCE, ADJUSTMENT]
+ *           description: Type of movement
+ *         reason:
+ *           type: string
+ *           maxLength: 200
+ *           description: Reason for the movement
+ *         purchaseId:
+ *           type: integer
+ *           description: ID of the related purchase (optional)
+ *         saleId:
+ *           type: integer
+ *           description: ID of the related sale (optional)
+ *
+ *     BodyInventoryMovementUpdate:
+ *       type: object
+ *       properties:
+ *         productId:
+ *           type: integer
+ *           description: ID of the product
+ *         warehouseId:
+ *           type: integer
+ *           description: ID of the warehouse
+ *         quantity:
+ *           type: integer
+ *           description: Quantity of the movement
+ *         type:
+ *           type: string
+ *           enum: [ENTRY, EXIT, TRANSFERENCE, ADJUSTMENT]
+ *           description: Type of movement
+ *         reason:
+ *           type: string
+ *           maxLength: 200
+ *           description: Reason for the movement
+ *         purchaseId:
+ *           type: integer
+ *           description: ID of the related purchase (optional)
+ *         saleId:
+ *           type: integer
+ *           description: ID of the related sale (optional)
+ *
+ *     ResponseGetInventoryMovement:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: integer
+ *         productId:
+ *           type: integer
+ *         warehouseId:
+ *           type: integer
+ *         quantity:
+ *           type: integer
+ *         type:
+ *           type: string
+ *           enum: [ENTRY, EXIT, TRANSFERENCE, ADJUSTMENT]
+ *         reason:
+ *           type: string
+ *         createdOn:
+ *           type: string
+ *           format: date-time
  *         createdBy:
  *           type: integer
- *           description: ID del usuario que creó el registro
+ *         updatedOn:
+ *           type: string
+ *           format: date-time
+ *           nullable: true
  *         updatedBy:
  *           type: integer
- *           description: ID del usuario que actualizó el registro
+ *           nullable: true
+ *         purchaseId:
+ *           type: integer
+ *           nullable: true
+ *         saleId:
+ *           type: integer
+ *           nullable: true
+ *         product:
+ *           $ref: '#/components/schemas/Product'
+ *         warehouse:
+ *           $ref: '#/components/schemas/Warehouse'
+ *
+ *     ResponseInventoryMovementCreate:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: integer
+ *         productId:
+ *           type: integer
+ *         warehouseId:
+ *           type: integer
+ *         quantity:
+ *           type: integer
+ *         type:
+ *           type: string
+ *           enum: [ENTRY, EXIT, TRANSFERENCE, ADJUSTMENT]
+ *         reason:
+ *           type: string
+ *         createdOn:
+ *           type: string
+ *           format: date-time
+ *         createdBy:
+ *           type: integer
+ *         product:
+ *           $ref: '#/components/schemas/Product'
+ *         warehouse:
+ *           $ref: '#/components/schemas/Warehouse'
+ *
+ *     ResponseInventoryMovementUpdate:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: integer
+ *         productId:
+ *           type: integer
+ *         warehouseId:
+ *           type: integer
+ *         quantity:
+ *           type: integer
+ *         type:
+ *           type: string
+ *           enum: [ENTRY, EXIT, TRANSFERENCE, ADJUSTMENT]
+ *         reason:
+ *           type: string
+ *         createdOn:
+ *           type: string
+ *           format: date-time
+ *         createdBy:
+ *           type: integer
+ *         updatedOn:
+ *           type: string
+ *           format: date-time
+ *         updatedBy:
+ *           type: integer
+ *         product:
+ *           $ref: '#/components/schemas/Product'
+ *         warehouse:
+ *           $ref: '#/components/schemas/Warehouse'
+ */
+
+/** --------------------------------------
+ * Sección de Purchase
+ * -------------------------------------- */
+/**
+ * @openapi
+ * components:
+ *   schemas:
+ *     PurchaseFilters:
+ *       type: object
+ *       properties:
+ *         providerId:
+ *           type: integer
+ *           description: Filter by provider ID
+ *         startDate:
+ *           type: string
+ *           format: date-time
+ *           description: Filter by start date
+ *         endDate:
+ *           type: string
+ *           format: date-time
+ *           description: Filter by end date
+ *         minTotal:
+ *           type: number
+ *           minimum: 0
+ *           description: Filter by minimum total
+ *         maxTotal:
+ *           type: number
+ *           minimum: 0
+ *           description: Filter by maximum total
+ *
+ *     PurchaseDetail:
+ *       type: object
+ *       required:
+ *         - productId
+ *         - quantity
+ *         - price
+ *       properties:
+ *         productId:
+ *           type: integer
+ *           description: ID of the product
+ *         quantity:
+ *           type: integer
+ *           minimum: 1
+ *           description: Quantity of the product
+ *         price:
+ *           type: number
+ *           minimum: 0
+ *           description: Price per unit
+ *
+ *     BodyPurchaseCreate:
+ *       type: object
+ *       required:
+ *         - providerId
+ *         - total
+ *         - details
+ *       properties:
+ *         providerId:
+ *           type: integer
+ *           description: ID of the provider
+ *         total:
+ *           type: number
+ *           minimum: 0
+ *           description: Total amount of the purchase
+ *         details:
+ *           type: array
+ *           items:
+ *             $ref: '#/components/schemas/PurchaseDetail'
+ *           minItems: 1
+ *           description: List of purchase details
+ *
+ *     ResponseGetPurchase:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: integer
+ *         providerId:
+ *           type: integer
+ *         total:
+ *           type: number
+ *         createdOn:
+ *           type: string
+ *           format: date-time
+ *         createdBy:
+ *           type: integer
+ *         updatedOn:
+ *           type: string
+ *           format: date-time
+ *           nullable: true
+ *         updatedBy:
+ *           type: integer
+ *           nullable: true
+ *         provider:
+ *           $ref: '#/components/schemas/ProductProvider'
+ *         details:
+ *           type: array
+ *           items:
+ *             type: object
+ *             properties:
+ *               id:
+ *                 type: integer
+ *               productId:
+ *                 type: integer
+ *               quantity:
+ *                 type: integer
+ *               price:
+ *                 type: number
+ *               product:
+ *                 $ref: '#/components/schemas/Product'
+ *
+ *     ResponsePurchaseCreate:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: integer
+ *         providerId:
+ *           type: integer
+ *         total:
+ *           type: number
+ *         createdOn:
+ *           type: string
+ *           format: date-time
+ *         createdBy:
+ *           type: integer
+ *         provider:
+ *           $ref: '#/components/schemas/ProductProvider'
+ *         details:
+ *           type: array
+ *           items:
+ *             type: object
+ *             properties:
+ *               id:
+ *                 type: integer
+ *               productId:
+ *                 type: integer
+ *               quantity:
+ *                 type: integer
+ *               price:
+ *                 type: number
+ *               product:
+ *                 $ref: '#/components/schemas/Product'
+ *
+ *     ResponsePurchaseUpdate:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: integer
+ *         providerId:
+ *           type: integer
+ *         total:
+ *           type: number
+ *         createdOn:
+ *           type: string
+ *           format: date-time
+ *         createdBy:
+ *           type: integer
+ *         updatedOn:
+ *           type: string
+ *           format: date-time
+ *         updatedBy:
+ *           type: integer
+ *         provider:
+ *           $ref: '#/components/schemas/ProductProvider'
+ *         details:
+ *           type: array
+ *           items:
+ *             type: object
+ *             properties:
+ *               id:
+ *                 type: integer
+ *               productId:
+ *                 type: integer
+ *               quantity:
+ *                 type: integer
+ *               price:
+ *                 type: number
+ *               product:
+ *                 $ref: '#/components/schemas/Product'
+ */
+
+/** --------------------------------------
+ * Sección de Clients
+ * -------------------------------------- */
+/**
+ * @openapi
+ * components:
+ *   schemas:
+ *     ClientFilters:
+ *       type: object
+ *       properties:
+ *         name:
+ *           type: string
+ *           maxLength: 100
+ *           nullable: true
+ *           example: "John Doe"
+ *         email:
+ *           type: string
+ *           format: email
+ *           nullable: true
+ *           example: "john@example.com"
+
+ *
+ *     ResponseGetClient:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: integer
+ *           example: 1
+ *         name:
+ *           type: string
+ *           maxLength: 100
+ *           example: "John Doe"
+ *         email:
+ *           type: string
+ *           format: email
+ *           example: "john@example.com"
+ *         phone:
+ *           type: string
+ *           maxLength: 15
+ *           example: "+1234567890"
+ *         address:
+ *           type: string
+ *           maxLength: 120
+ *           example: "123 Main St"
+ *         createdOn:
+ *           type: string
+ *           format: date-time
+ *           example: "2024-03-15T10:30:00Z"
+ *         updatedOn:
+ *           type: string
+ *           format: date-time
+ *           nullable: true
+ *           example: "2024-03-17T10:30:00Z"
+ *         createdBy:
+ *           type: integer
+ *           example: 1
+ *         updatedBy:
+ *           type: integer
+ *           nullable: true
+ *           example: 1
+ *         userClientCreatedName:
+ *           type: string
+ *           example: "Admin"
+ *         userClientUpdatedName:
+ *           type: string
+ *           nullable: true
+ *           example: "Editor"
+ *
+ *     BodyClientCreateUpdate:
+ *       type: object
+ *       required:
+ *         - name
+ *         - email
+ *         - phone
+ *         - address
+ *       properties:
+ *         name:
+ *           type: string
+ *           maxLength: 100
+ *           example: "John Doe"
+ *         email:
+ *           type: string
+ *           format: email
+ *           example: "john@example.com"
+ *         phone:
+ *           type: string
+ *           maxLength: 15
+ *           example: "+1234567890"
+ *         address:
+ *           type: string
+ *           maxLength: 120
+ *           example: "123 Main St"
+ *
+ *
+ *     ResponseClientCreateUpdate:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: integer
+ *           example: 1
+ *         name:
+ *           type: string
+ *           maxLength: 100
+ *           example: "John Doe"
+ *         email:
+ *           type: string
+ *           format: email
+ *           example: "john@example.com"
+ *         phone:
+ *           type: string
+ *           maxLength: 15
+ *           example: "+1234567890"
+ *         address:
+ *           type: string
+ *           maxLength: 120
+ *           example: "123 Main St"
+ *         createdOn:
+ *           type: string
+ *           format: date-time
+ *           example: "2024-03-15T10:30:00Z"
+ *         createdBy:
+ *           type: integer
+ *           example: 1
+ *         updatedOn:
+ *           type: string
+ *           format: date-time
+ *           example: "2024-03-17T10:30:00Z"
+ *         updatedBy:
+ *           type: integer
+ *           example: 1
+ *
+
+ */
+
+/** --------------------------------------
+ * Sección de Sale
+ * -------------------------------------- */
+/**
+ * @openapi
+ * components:
+ *   schemas:
+ *     SaleFilters:
+ *       type: object
+ *       properties:
+ *         clientId:
+ *           type: integer
+ *           description: Filter by client ID
+ *         startDate:
+ *           type: string
+ *           format: date-time
+ *           description: Filter by start date
+ *         endDate:
+ *           type: string
+ *           format: date-time
+ *           description: Filter by end date
+ *         minTotal:
+ *           type: number
+ *           minimum: 0
+ *           description: Filter by minimum total
+ *         maxTotal:
+ *           type: number
+ *           minimum: 0
+ *           description: Filter by maximum total
+ *
+ *     SaleDetail:
+ *       type: object
+ *       required:
+ *         - productId
+ *         - quantity
+ *         - price
+ *       properties:
+ *         productId:
+ *           type: integer
+ *           description: ID of the product
+ *         quantity:
+ *           type: integer
+ *           minimum: 1
+ *           description: Quantity of the product
+ *         price:
+ *           type: number
+ *           minimum: 0
+ *           description: Price per unit
+ *
+ *     BodySaleCreateUpdate:
+ *       type: object
+ *       required:
+ *         - clientId
+ *         - total
+ *         - details
+ *       properties:
+ *         clientId:
+ *           type: integer
+ *           description: ID of the client
+ *         total:
+ *           type: number
+ *           minimum: 0
+ *           description: Total amount of the sale
+ *         details:
+ *           type: array
+ *           items:
+ *             $ref: '#/components/schemas/SaleDetail'
+ *           minItems: 1
+ *           description: List of sale details
+ *
+ *     ResponseGetSale:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: integer
+ *         clientId:
+ *           type: integer
+ *         total:
+ *           type: number
+ *         createdOn:
+ *           type: string
+ *           format: date-time
+ *         createdBy:
+ *           type: integer
+ *         updatedOn:
+ *           type: string
+ *           format: date-time
+ *           nullable: true
+ *         updatedBy:
+ *           type: integer
+ *           nullable: true
+ *         client:
+ *           $ref: '#/components/schemas/ResponseGetClient'
+ *         details:
+ *           type: array
+ *           items:
+ *             type: object
+ *             properties:
+ *               id:
+ *                 type: integer
+ *               productId:
+ *                 type: integer
+ *               quantity:
+ *                 type: integer
+ *               price:
+ *                 type: number
+ *
+ *     ResponseSaleCreateUpdate:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: integer
+ *         clientId:
+ *           type: integer
+ *         total:
+ *           type: number
+ *         createdOn:
+ *           type: string
+ *           format: date-time
+ *         createdBy:
+ *           type: integer
+ *         client:
+ *           $ref: '#/components/schemas/ResponseGetClient'
+ *         details:
+ *           type: array
+ *           items:
+ *             type: object
+ *             properties:
+ *               id:
+ *                 type: integer
+ *               productId:
+ *                 type: integer
+ *               quantity:
+ *                 type: integer
+ *               price:
+ *                 type: number
  */

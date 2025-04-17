@@ -107,6 +107,27 @@ export const SettingsDisplay = ({
                     </FormItem>
                   )}
                 />
+                   <FormField
+                  control={form.control}
+                  name='displayStock'
+                  render={({ field }) => (
+                    <FormItem className='flex items-center space-x-2'>
+                      <FormControl>
+                        <Checkbox
+                          className='mt-2'
+                          id='stock'
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                      <FormLabel
+                        htmlFor='stock'
+                        className='text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70'>
+                        {t('stock')}
+                      </FormLabel>
+                    </FormItem>
+                  )}
+                />
                 <FormField
                   control={form.control}
                   name='displayEvents'

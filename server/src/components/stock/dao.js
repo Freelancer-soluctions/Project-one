@@ -12,7 +12,9 @@ export const getAllStock = async (
   productId = null,
   warehouseId = null,
   lot = '',
-  unitMeasure = ''
+  unitMeasure = '',
+  stocksExpirated = false,
+  stocksLow = false
 ) => {
   /*   const providers = await prisma.$queryRaw`
   SELECT s.*,
@@ -63,16 +65,50 @@ export const getAllStock = async (
     AND (COALESCE($2, NULL) IS NULL OR s."warehouseId" = COALESCE($2::INTEGER, s."warehouseId"))
     AND (COALESCE($3, '') = '' OR s."lot" ILIKE '%' || $3 || '%') 
     AND (COALESCE($4, NULL) IS NULL OR s."unitMeasure" = $4::"unitMeasureStock")
-`
 
+    -- Se aplican los filtros de forma independiente
+  AND (
+        (CAST($5 AS BOOLEAN) = FALSE OR s."expirationDate" IS NULL OR s."expirationDate" < CURRENT_DATE) 
+        AND (CAST($6 AS BOOLEAN) = FALSE OR s."quantity" < s."minimum")
+    )
+`
   const stocks = await prisma.$queryRawUnsafe(
     query,
     productId ? Number(productId) : null,
     warehouseId ? Number(warehouseId) : null,
     lot || '',
-    unitMeasure || null
+    unitMeasure || null,
+    stocksExpirated,
+    stocksLow
   )
   return stocks
+}
+
+/**
+ * Get stock by product ID
+ * @param {number} id - Product ID
+ * @returns {Promise<Object>} Stock entry
+ */
+export const getStockByProductId = async (id) => {
+  return prisma.stock.findUnique({
+    where: { productId: id }
+  })
+}
+
+/**
+ * Get all stock alerts
+ * @returns {Promise<Object>} Stock alerts
+ */
+export const getStockAlerts = async () => {
+  const stockAlerts = await prisma.$queryRaw`
+   SELECT 
+      CAST(COUNT(CASE WHEN s."expirationDate" < CURRENT_DATE THEN 1 END) AS INTEGER) AS "expired",
+      CAST(COUNT(CASE WHEN s."quantity" < s."minimum" THEN 1 END) AS INTEGER) AS "lowStock"  
+    FROM "stock" s
+  `
+
+  const { expired, lowStock } = stockAlerts[0]
+  return { expired, lowStock }
 }
 
 /**
