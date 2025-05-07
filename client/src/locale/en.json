@@ -259,7 +259,12 @@
     "add_purchase": "Add purchase",
     "edit_purchase": "Edit purchase",
     "inventory_movements": "Inventory Movements",
-    "inventory_movements_card_msg": "Manage your inventory movements efficiently."
+    "inventory_movements_card_msg": "Manage your inventory movements efficiently.",
+    "users":"Users",
+    "users_card_msg":"System users",
+    "expenses":"Expenses",
+    "expenses_card_msg":"Manage your expenses movements efficiently.",
+    "reports_card_msg":"Reports"
 
     
 
