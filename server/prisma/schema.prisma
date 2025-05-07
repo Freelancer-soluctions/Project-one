@@ -8,63 +8,67 @@ datasource db {
 }
 
 model users {
-  id                   Int                 @id @default(autoincrement())
-  name                 String              @db.VarChar(100)
-  email                String              @unique @db.VarChar(254)
-  password             String              @db.VarChar(100)
-  address              String?             @db.VarChar(250)
-  birthday             DateTime            @db.Timestamp(3)
-  city                 String?             @db.VarChar(35)
-  isAdmin              Boolean?            @default(false)
-  picture              String?
-  document             String?
+  id                               Int                     @id @default(autoincrement())
+  name                             String                  @db.VarChar(100)
+  email                            String                  @unique @db.VarChar(254)
+  password                         String                  @db.VarChar(100)
+  address                          String?                 @db.VarChar(250)
+  birthday                         DateTime                @db.Timestamp(3)
+  city                             String?                 @db.VarChar(35)
+  isAdmin                          Boolean?                @default(false)
+  picture                          String?
+  document                         String?
   // documentId    String? // es factible este campo ??
-  lastUpdatedBy        Int                 @db.Integer
-  lastUpdatedOn        DateTime?           @db.Timestamp(3)
-  roleId               Int
-  roles                roles               @relation("userRoles", fields: [roleId], references: [id])
-  socialSecurity       String              @db.VarChar(9)
-  startDate            DateTime            @db.Timestamp(3)
-  state                String              @db.VarChar(50)
-  statusId             Int
-  status               userStatus          @relation("userStatus", fields: [statusId], references: [id])
-  telephone            String              @db.VarChar(15)
-  zipcode              String              @db.VarChar(9)
-  refreshToken         String?             @db.VarChar(200)
-  userPermitId         Int
-  userPermits          userPermits         @relation("userPermits", fields: [userPermitId], references: [id])
-  newsClosed           news[]              @relation("userNewsClosed")
-  newsCreated          news[]              @relation("userNewsCreated")
-  newsPending          news[]              @relation("userNewsPending")
-  notesCreated         notes[]             @relation("userNoteCreated")
-  settingsCreated      settings[]          @relation("userSettingCreated")
-  eventsCreated        events[]            @relation("userEventCreated")
-  userProductCreated   products[]          @relation("userProductCreated")
-  userProductUpdated   products[]          @relation("userProductUpdated")
-  userProvidersUpdated productProviders[]  @relation("userProvidersUpdated")
-  userProvidersCreated productProviders[]  @relation("userProvidersCreated")
-  userStockCreated     stock[]             @relation("userStockCreated")
-  userStockUpdated     stock[]             @relation("userStockUpdated")
-  userMovementCreated  inventoryMovement[] @relation("inventoryMovementUserCreated")
-  userMovementUpdated  inventoryMovement[] @relation("inventoryMovementUserUpdated")
-  userPurchaseCreated  purchase[]          @relation("userPurchaseCreated")
-  userPurchaseUpdated  purchase[]          @relation("userPurchaseUpdated")
-  userSaleCreated      sale[]              @relation("userSaleCreated")
-  userSaleUpdated      sale[]              @relation("userSaleUpdated")
-  userClientCreated    clients[]           @relation("userClientCreated")
-  userClientUpdated    clients[]           @relation("userClientUpdated")
-  userEmployeeCreated  employees[]          @relation("userEmployeeCreated")
-  userEmployeeUpdated  employees[]          @relation("userEmployeeUpdated")
-  userAttendanceCreated attendance[]        @relation("userAttendanceCreated")
-  userAttendanceUpdated attendance[]        @relation("userAttendanceUpdated")
-  userPayrollCreated   payroll[]           @relation("userPayrollCreated")
-  userPayrollUpdated   payroll[]           @relation("userPayrollUpdated")
+  lastUpdatedBy                    Int                     @db.Integer
+  lastUpdatedOn                    DateTime?               @db.Timestamp(3)
+  roleId                           Int
+  roles                            roles                   @relation("userRoles", fields: [roleId], references: [id])
+  socialSecurity                   String                  @db.VarChar(9)
+  startDate                        DateTime                @db.Timestamp(3)
+  state                            String                  @db.VarChar(50)
+  statusId                         Int
+  status                           userStatus              @relation("userStatus", fields: [statusId], references: [id])
+  telephone                        String                  @db.VarChar(15)
+  zipcode                          String                  @db.VarChar(9)
+  refreshToken                     String?                 @db.VarChar(200)
+  userPermitId                     Int
+  userPermits                      userPermits             @relation("userPermits", fields: [userPermitId], references: [id])
+  newsClosed                       news[]                  @relation("userNewsClosed")
+  newsCreated                      news[]                  @relation("userNewsCreated")
+  newsPending                      news[]                  @relation("userNewsPending")
+  notesCreated                     notes[]                 @relation("userNoteCreated")
+  settingsCreated                  settings[]              @relation("userSettingCreated")
+  eventsCreated                    events[]                @relation("userEventCreated")
+  userProductCreated               products[]              @relation("userProductCreated")
+  userProductUpdated               products[]              @relation("userProductUpdated")
+  userProvidersUpdated             productProviders[]      @relation("userProvidersUpdated")
+  userProvidersCreated             productProviders[]      @relation("userProvidersCreated")
+  userStockCreated                 stock[]                 @relation("userStockCreated")
+  userStockUpdated                 stock[]                 @relation("userStockUpdated")
+  userMovementCreated              inventoryMovement[]     @relation("inventoryMovementUserCreated")
+  userMovementUpdated              inventoryMovement[]     @relation("inventoryMovementUserUpdated")
+  userPurchaseCreated              purchase[]              @relation("userPurchaseCreated")
+  userPurchaseUpdated              purchase[]              @relation("userPurchaseUpdated")
+  userSaleCreated                  sale[]                  @relation("userSaleCreated")
+  userSaleUpdated                  sale[]                  @relation("userSaleUpdated")
+  userClientCreated                clients[]               @relation("userClientCreated")
+  userClientUpdated                clients[]               @relation("userClientUpdated")
+  userEmployeeCreated              employees[]             @relation("userEmployeeCreated")
+  userEmployeeUpdated              employees[]             @relation("userEmployeeUpdated")
+  userAttendanceCreated            attendance[]            @relation("userAttendanceCreated")
+  userAttendanceUpdated            attendance[]            @relation("userAttendanceUpdated")
+  userPayrollCreated               payroll[]               @relation("userPayrollCreated")
+  userPayrollUpdated               payroll[]               @relation("userPayrollUpdated")
   userPerformanceEvaluationCreated performanceEvaluation[] @relation("userPerformanceEvaluationCreated")
   userPerformanceEvaluationUpdated performanceEvaluation[] @relation("userPerformanceEvaluationUpdated")
-  userVacationCreated  vacation[] @relation("userVacationCreated")
-  userVacationUpdated  vacation[] @relation("userVacationUpdated")
-  userPermissionCreated permission[] @relation("userPermissionCreated")
-  userPermissionUpdated permission[] @relation("userPermissionUpdated")
+  userVacationCreated              vacation[]              @relation("userVacationCreated")
+  userVacationUpdated              vacation[]              @relation("userVacationUpdated")
+  userPermissionCreated            permission[]            @relation("userPermissionCreated")
+  userPermissionUpdated            permission[]            @relation("userPermissionUpdated")
+  userClientOrderUpdated           clientOrder[]           @relation("userClientOrderUpdated")
+  userClientOrderCreated           clientOrder[]           @relation("userClientOrderCreated")
+  userProviderOrderUpdated         providerOrder[]         @relation("userProviderOrderUpdated")
+  userProviderOrderCreated         providerOrder[]         @relation("userProviderOrderCreated")
 }
 
 model userPermits {
@@ -175,31 +179,32 @@ model eventTypes {
 }
 
 model products {
-  id                 Int                 @id @default(autoincrement())
-  sku                String              @unique @db.VarChar(16)
-  name               String              @db.VarChar(80)
-  productCategories  productCategories   @relation("productCategories", fields: [productCategoryId], references: [id])
-  productCategoryId  Int                 @db.Integer
-  productProviders   productProviders    @relation("productProviders", fields: [productProviderId], references: [id])
-  productProviderId  Int                 @db.Integer
-  price              Decimal             @db.Decimal(10, 2)
-  cost               Decimal             @db.Decimal(10, 2)
-  description        String?             @db.VarChar(2000)
-  productStatus      productStatus       @relation("productStatus", fields: [productStatusId], references: [id])
-  productStatusId    Int                 @db.Integer
-  barCode            String?             @unique @db.VarChar(25)
-  userProductCreated users               @relation("userProductCreated", fields: [createdBy], references: [id])
-  createdBy          Int                 @db.Integer
-  createdOn          DateTime            @db.Timestamp(3)
-  updatedOn          DateTime?           @db.Timestamp(3)
-  userProductUpdated users?              @relation("userProductUpdated", fields: [updatedBy], references: [id])
-  updatedBy          Int?                @db.Integer
-  productAttributes  productAttributes[] @relation("productAttributes")
-  stock              stock[]             @relation("stockProduct")
-  inventoryMovement  inventoryMovement[] @relation("inventoryMovementProduct")
-  purchaseDetail     purchaseDetail[]    @relation("purchaseDetailProduct")
-  saleDetail         saleDetail[]        @relation("saleDetailProduct")
-
+  id                  Int                   @id @default(autoincrement())
+  sku                 String                @unique @db.VarChar(16)
+  name                String                @db.VarChar(80)
+  productCategories   productCategories     @relation("productCategories", fields: [productCategoryId], references: [id])
+  productCategoryId   Int                   @db.Integer
+  productProviders    productProviders      @relation("productProviders", fields: [productProviderId], references: [id])
+  productProviderId   Int                   @db.Integer
+  price               Decimal               @db.Decimal(10, 2)
+  cost                Decimal               @db.Decimal(10, 2)
+  description         String?               @db.VarChar(2000)
+  productStatus       productStatus         @relation("productStatus", fields: [productStatusId], references: [id])
+  productStatusId     Int                   @db.Integer
+  barCode             String?               @unique @db.VarChar(25)
+  userProductCreated  users                 @relation("userProductCreated", fields: [createdBy], references: [id])
+  createdBy           Int                   @db.Integer
+  createdOn           DateTime              @db.Timestamp(3)
+  updatedOn           DateTime?             @db.Timestamp(3)
+  userProductUpdated  users?                @relation("userProductUpdated", fields: [updatedBy], references: [id])
+  updatedBy           Int?                  @db.Integer
+  productAttributes   productAttributes[]   @relation("productAttributes")
+  stock               stock[]               @relation("stockProduct")
+  inventoryMovement   inventoryMovement[]   @relation("inventoryMovementProduct")
+  purchaseDetail      purchaseDetail[]      @relation("purchaseDetailProduct")
+  saleDetail          saleDetail[]          @relation("saleDetailProduct")
+  clientOrderDetail   clientOrderDetail[]   @relation("clientOrderDetailProduct")
+  providerOrderDetail providerOrderDetail[] @relation("providerOrderDetailProduct")
 }
 
 model productCategories {
@@ -212,22 +217,23 @@ model productCategories {
 }
 
 model productProviders {
-  id                   Int        @id @default(autoincrement())
-  code                 String     @unique @db.VarChar(3)
-  name                 String     @unique @db.VarChar(100)
-  createdOn            DateTime   @db.Timestamp(3)
-  userProvidersCreated users?     @relation("userProvidersCreated", fields: [createdBy], references: [id])
-  createdBy            Int        @db.Integer
-  userProvidersUpdated users?     @relation("userProvidersUpdated", fields: [updatedBy], references: [id])
-  updatedBy            Int?       @db.Integer
-  updatedOn            DateTime?  @db.Timestamp(3)
-  status               Boolean    @default(true)
-  contactName          String?    @db.VarChar(60)
-  contactEmail         String?    @unique @db.VarChar(80)
-  contactPhone         String?    @db.VarChar(15)
-  address              String?    @db.VarChar(120)
-  products             products[] @relation("productProviders")
-  purchase             purchase[] @relation("purchaseProvider")
+  id                   Int             @id @default(autoincrement())
+  code                 String          @unique @db.VarChar(3)
+  name                 String          @unique @db.VarChar(100)
+  createdOn            DateTime        @db.Timestamp(3)
+  userProvidersCreated users?          @relation("userProvidersCreated", fields: [createdBy], references: [id])
+  createdBy            Int             @db.Integer
+  userProvidersUpdated users?          @relation("userProvidersUpdated", fields: [updatedBy], references: [id])
+  updatedBy            Int?            @db.Integer
+  updatedOn            DateTime?       @db.Timestamp(3)
+  status               Boolean         @default(true)
+  contactName          String?         @db.VarChar(60)
+  contactEmail         String?         @unique @db.VarChar(80)
+  contactPhone         String?         @db.VarChar(15)
+  address              String?         @db.VarChar(120)
+  products             products[]      @relation("productProviders")
+  purchase             purchase[]      @relation("purchaseProvider")
+  providerOrder        providerOrder[] @relation("providerOrder")
 }
 
 model productStatus {
@@ -238,12 +244,12 @@ model productStatus {
 }
 
 model productAttributes {
-  id          Int       @id @default(autoincrement())
-  name        String    @db.VarChar(50)
-  description String    @db.VarChar(100)
-  createdOn   DateTime  @db.Timestamp(3)
+  id          Int      @id @default(autoincrement())
+  name        String   @db.VarChar(50)
+  description String   @db.VarChar(100)
+  createdOn   DateTime @db.Timestamp(3)
   productId   Int // Clave foránea
-  product     products  @relation("productAttributes", fields: [productId], references: [id], onDelete: Cascade)
+  product     products @relation("productAttributes", fields: [productId], references: [id], onDelete: Cascade)
 }
 
 //ALMACEN
@@ -257,7 +263,6 @@ model warehouse {
   updatedOn         DateTime?           @db.Timestamp(3)
   stock             stock[]             @relation("stockWarehouse")
   inventoryMovement inventoryMovement[] @relation("inventoryMovementWarehouse")
-
 }
 
 //ALMACEN STATUS
@@ -277,7 +282,7 @@ model stock {
   unitMeasure      unitMeasureStock @default(PIECES)
   expirationDate   DateTime?        @db.Timestamp(3)
   product          products         @relation("stockProduct", fields: [productId], references: [id])
-  productId        Int              @db.Integer 
+  productId        Int              @db.Integer
   warehouse        warehouse        @relation("stockWarehouse", fields: [warehouseId], references: [id])
   warehouseId      Int              @db.Integer
   createdOn        DateTime         @db.Timestamp(3)
@@ -286,6 +291,7 @@ model stock {
   createdBy        Int              @db.Integer
   userStockUpdated users?           @relation("userStockUpdated", fields: [updatedBy], references: [id])
   updatedBy        Int?             @db.Integer
+
   @@unique([productId, warehouseId, lot, expirationDate], name: "unique_stock_entry") // Permite múltiples registros solo si lote, producto, almacen y caducidad es distinto
 }
 
@@ -298,25 +304,24 @@ enum unitMeasureStock {
 
 // 🔄 Movimientos de Inventario
 model inventoryMovement {
-  id          Int   @id @default(autoincrement())
-  productId  Int   @db.Integer
-  warehouseId   Int   @db.Integer
-  quantity    Int   @db.Integer
-  type        movementType
-  reason      String?  @db.VarChar(200)
-  product    products @relation("inventoryMovementProduct", fields: [productId], references: [id])
-  warehouse     warehouse  @relation("inventoryMovementWarehouse", fields: [warehouseId], references: [id])
-  createdOn    DateTime @db.Timestamp(3)
-  createdBy    Int      @db.Integer
-  userMovementCreated     users  @relation("inventoryMovementUserCreated", fields: [createdBy], references: [id])
-  updatedOn    DateTime? @db.Timestamp(3)
-  updatedBy    Int?     @db.Integer
-  userMovementUpdated     users?  @relation("inventoryMovementUserUpdated", fields: [updatedBy], references: [id])
-  purchase   purchase? @relation("inventoryMovementPurchase", fields: [purchaseId], references: [id])
-  purchaseId Int? @db.Integer
-  sale   sale? @relation("inventoryMovementSale", fields: [saleId], references: [id])
-  saleId Int? @db.Integer
-
+  id                  Int          @id @default(autoincrement())
+  productId           Int          @db.Integer
+  warehouseId         Int          @db.Integer
+  quantity            Int          @db.Integer
+  type                movementType
+  reason              String?      @db.VarChar(200)
+  product             products     @relation("inventoryMovementProduct", fields: [productId], references: [id])
+  warehouse           warehouse    @relation("inventoryMovementWarehouse", fields: [warehouseId], references: [id])
+  createdOn           DateTime     @db.Timestamp(3)
+  createdBy           Int          @db.Integer
+  userMovementCreated users        @relation("inventoryMovementUserCreated", fields: [createdBy], references: [id])
+  updatedOn           DateTime?    @db.Timestamp(3)
+  updatedBy           Int?         @db.Integer
+  userMovementUpdated users?       @relation("inventoryMovementUserUpdated", fields: [updatedBy], references: [id])
+  purchase            purchase?    @relation("inventoryMovementPurchase", fields: [purchaseId], references: [id])
+  purchaseId          Int?         @db.Integer
+  sale                sale?        @relation("inventoryMovementSale", fields: [saleId], references: [id])
+  saleId              Int?         @db.Integer
 }
 
 enum movementType {
@@ -328,160 +333,164 @@ enum movementType {
 
 // 🛒 Compras
 model purchase {
-  id           Int       @id @default(autoincrement())
-  providerId  Int @db.Integer
-  total        Decimal @db.Decimal(18, 2)
-  createdOn    DateTime @db.Timestamp(3)
-  updatedOn    DateTime? @db.Timestamp(3)
-  purchaseDetail    purchaseDetail[] @relation("purchaseDetail")
-  provider    productProviders    @relation("purchaseProvider", fields: [providerId], references: [id])
-  userPurchaseCreated users @relation("userPurchaseCreated", fields: [createdBy], references: [id])
-  createdBy Int @db.Integer
-  userPurchaseUpdated users? @relation("userPurchaseUpdated", fields: [updatedBy], references: [id])
-  updatedBy Int? @db.Integer
-  inventoryMovement inventoryMovement[] @relation("inventoryMovementPurchase")
+  id                  Int                 @id @default(autoincrement())
+  providerId          Int                 @db.Integer
+  total               Decimal             @db.Decimal(18, 2)
+  createdOn           DateTime            @db.Timestamp(3)
+  updatedOn           DateTime?           @db.Timestamp(3)
+  purchaseDetail      purchaseDetail[]    @relation("purchaseDetail")
+  provider            productProviders    @relation("purchaseProvider", fields: [providerId], references: [id])
+  userPurchaseCreated users               @relation("userPurchaseCreated", fields: [createdBy], references: [id])
+  createdBy           Int                 @db.Integer
+  userPurchaseUpdated users?              @relation("userPurchaseUpdated", fields: [updatedBy], references: [id])
+  updatedBy           Int?                @db.Integer
+  inventoryMovement   inventoryMovement[] @relation("inventoryMovementPurchase")
+  providerOrder       providerOrder[]
 }
 
 model purchaseDetail {
-  id         Int   @id @default(autoincrement())
-  purchaseId   Int
-  productId Int
+  id         Int      @id @default(autoincrement())
+  purchaseId Int
+  productId  Int
   quantity   Int
-  price     Decimal @db.Decimal(18, 2)
-  purchase     purchase   @relation("purchaseDetail", fields: [purchaseId], references: [id], onDelete: Cascade)
-  product   products @relation("purchaseDetailProduct", fields: [productId], references: [id])
+  price      Decimal  @db.Decimal(18, 2)
+  purchase   purchase @relation("purchaseDetail", fields: [purchaseId], references: [id], onDelete: Cascade)
+  product    products @relation("purchaseDetailProduct", fields: [productId], references: [id])
 }
 
 // 🛍 Ventas
 model sale {
-  id          Int        @id @default(autoincrement())
-  clientId    Int @db.Integer
-  client     clients @relation("saleClient", fields: [clientId], references: [id])
-  total       Decimal @db.Decimal(18, 2)
-  createdOn    DateTime @db.Timestamp(3)
-  updatedOn    DateTime? @db.Timestamp(3)
-  saleDetail   saleDetail[] @relation("saleDetail")
+  id                Int                 @id @default(autoincrement())
+  clientId          Int                 @db.Integer
+  client            clients             @relation("saleClient", fields: [clientId], references: [id])
+  total             Decimal             @db.Decimal(18, 2)
+  createdOn         DateTime            @db.Timestamp(3)
+  updatedOn         DateTime?           @db.Timestamp(3)
+  saleDetail        saleDetail[]        @relation("saleDetail")
   inventoryMovement inventoryMovement[] @relation("inventoryMovementSale")
-  userSaleCreated users @relation("userSaleCreated", fields: [createdBy], references: [id])
-  createdBy Int @db.Integer
-  userSaleUpdated users? @relation("userSaleUpdated", fields: [updatedBy], references: [id])
-  updatedBy Int? @db.Integer
+  userSaleCreated   users               @relation("userSaleCreated", fields: [createdBy], references: [id])
+  createdBy         Int                 @db.Integer
+  userSaleUpdated   users?              @relation("userSaleUpdated", fields: [updatedBy], references: [id])
+  updatedBy         Int?                @db.Integer
+  clientOrder       clientOrder[]
 }
+
 model clients {
-  id Int @id @default(autoincrement())
-  name String @db.VarChar(100)
-  email String @db.VarChar(100)
-  phone String @db.VarChar(15)
-  address String @db.VarChar(120)
-  createdOn DateTime @db.Timestamp(3)
-  updatedOn DateTime? @db.Timestamp(3)
-  userClientCreated users @relation("userClientCreated", fields: [createdBy], references: [id])
-  createdBy Int @db.Integer
-  userClientUpdated users? @relation("userClientUpdated", fields: [updatedBy], references: [id])
-  updatedBy Int? @db.Integer
-  sale sale[] @relation("saleClient")
+  id                Int           @id @default(autoincrement())
+  name              String        @db.VarChar(100)
+  email             String        @db.VarChar(100)
+  phone             String        @db.VarChar(15)
+  address           String        @db.VarChar(120)
+  createdOn         DateTime      @db.Timestamp(3)
+  updatedOn         DateTime?     @db.Timestamp(3)
+  userClientCreated users         @relation("userClientCreated", fields: [createdBy], references: [id])
+  createdBy         Int           @db.Integer
+  userClientUpdated users?        @relation("userClientUpdated", fields: [updatedBy], references: [id])
+  updatedBy         Int?          @db.Integer
+  sale              sale[]        @relation("saleClient")
+  clientOrder       clientOrder[] @relation("orderClient")
 }
 
 model saleDetail {
-  id         Int   @id @default(autoincrement())
-  saleId    Int @db.Integer
-  productId Int @db.Integer
-  quantity   Int @db.Integer
-  price     Decimal @db.Decimal(18, 2)
-  sale      sale    @relation("saleDetail", fields: [saleId], references: [id], onDelete: Cascade)
+  id        Int      @id @default(autoincrement())
+  saleId    Int      @db.Integer
+  productId Int      @db.Integer
+  quantity  Int      @db.Integer
+  price     Decimal  @db.Decimal(18, 2)
+  sale      sale     @relation("saleDetail", fields: [saleId], references: [id], onDelete: Cascade)
   product   products @relation("saleDetailProduct", fields: [productId], references: [id])
 }
 
-
-
-
 model employees {
-  id          Int   @id @default(autoincrement())
-  name      String @db.VarChar(100)
-  lastName    String @db.VarChar(100)
-  dni         String   @unique @db.VarChar(10)
-  phone    String? @db.VarChar(15)
-  email       String   @unique @db.VarChar(100)
-  address   String? @db.VarChar(120)
-  startDate DateTime @db.Timestamp(3)
-  position       String @db.VarChar(100)
-  department String @db.VarChar(100)
-  salary     Decimal @db.Decimal(18, 2)
-  userEmployeeCreated users @relation("userEmployeeCreated", fields: [createdBy], references: [id]) // Relación opcional con Usuario
-  createdBy   Int   @db.Integer // Si el empleado tiene una cuenta de usuario, se almacena aquí
-  userEmployeeUpdated users? @relation("userEmployeeUpdated", fields: [updatedBy], references: [id]) // Relación opcional con Usuario
-  updatedBy   Int?   @db.Integer // Si el empleado tiene una cuenta de usuario, se almacena aquí
-  attendance  attendance[] @relation("attendanceEmployee")
-  payroll      payroll[] @relation("payrollEmployee")
+  id                     Int                     @id @default(autoincrement())
+  name                   String                  @db.VarChar(100)
+  lastName               String                  @db.VarChar(100)
+  dni                    String                  @unique @db.VarChar(10)
+  phone                  String?                 @db.VarChar(15)
+  email                  String                  @unique @db.VarChar(100)
+  address                String?                 @db.VarChar(120)
+  startDate              DateTime                @db.Timestamp(3)
+  position               String                  @db.VarChar(100)
+  department             String                  @db.VarChar(100)
+  salary                 Decimal                 @db.Decimal(18, 2)
+  userEmployeeCreated    users                   @relation("userEmployeeCreated", fields: [createdBy], references: [id]) // Relación opcional con Usuario
+  createdBy              Int                     @db.Integer // Si el empleado tiene una cuenta de usuario, se almacena aquí
+  userEmployeeUpdated    users?                  @relation("userEmployeeUpdated", fields: [updatedBy], references: [id]) // Relación opcional con Usuario
+  updatedBy              Int?                    @db.Integer // Si el empleado tiene una cuenta de usuario, se almacena aquí
+  attendance             attendance[]            @relation("attendanceEmployee")
+  payroll                payroll[]               @relation("payrollEmployee")
   performanceEvaluations performanceEvaluation[] @relation("performanceEvaluationEmployee")
-  vacations  vacation[] @relation("vacationEmployee")
-  permissions    permission[] @relation("permissionEmployee")
-  createdOn   DateTime  @db.Timestamp(3)
-  updatedOn   DateTime? @db.Timestamp(3)
+  vacations              vacation[]              @relation("vacationEmployee")
+  permissions            permission[]            @relation("permissionEmployee")
+  createdOn              DateTime                @db.Timestamp(3)
+  updatedOn              DateTime?               @db.Timestamp(3)
 }
+
 // asistencia
 model attendance {
-  id          Int   @id @default(autoincrement())
-  employeeId  Int @db.Integer
-  date       DateTime @db.Timestamp(3)
-  entryTime        String     @db.VarChar(5)
-  exitTime          String     @db.VarChar(5)
-  workedHours Decimal @db.Decimal(18, 2)
-  employee    employees @relation("attendanceEmployee", fields: [employeeId], references: [id])
-  createdOn   DateTime @db.Timestamp(3)
-  updatedOn   DateTime? @db.Timestamp(3)
-  userAttendanceCreated users @relation("userAttendanceCreated", fields: [createdBy], references: [id])
-  createdBy Int @db.Integer
-  userAttendanceUpdated users? @relation("userAttendanceUpdated", fields: [updatedBy], references: [id])
-  updatedBy Int? @db.Integer
+  id                    Int       @id @default(autoincrement())
+  employeeId            Int       @db.Integer
+  date                  DateTime  @db.Timestamp(3)
+  entryTime             String    @db.VarChar(5)
+  exitTime              String    @db.VarChar(5)
+  workedHours           Decimal   @db.Decimal(18, 2)
+  employee              employees @relation("attendanceEmployee", fields: [employeeId], references: [id])
+  createdOn             DateTime  @db.Timestamp(3)
+  updatedOn             DateTime? @db.Timestamp(3)
+  userAttendanceCreated users     @relation("userAttendanceCreated", fields: [createdBy], references: [id])
+  createdBy             Int       @db.Integer
+  userAttendanceUpdated users?    @relation("userAttendanceUpdated", fields: [updatedBy], references: [id])
+  updatedBy             Int?      @db.Integer
 }
+
 // nomina
 model payroll {
-  id          Int   @id @default(autoincrement())
-  employeeId  Int @db.Integer
-  month       Int @db.Integer
-  year        Int @db.Integer
-  baseSalary  Decimal @db.Decimal(18, 2)
-  extraHours  Decimal @db.Decimal(18, 2)
-  deductions  Decimal @db.Decimal(18, 2)
-  totalPayment   Decimal @db.Decimal(18, 2)
-  employee    employees @relation("payrollEmployee", fields: [employeeId], references: [id])
-  createdOn   DateTime @db.Timestamp(3)
-  updatedOn   DateTime? @db.Timestamp(3)
-  userPayrollCreated users @relation("userPayrollCreated", fields: [createdBy], references: [id])
-  createdBy Int @db.Integer
-  userPayrollUpdated users? @relation("userPayrollUpdated", fields: [updatedBy], references: [id])
-  updatedBy Int? @db.Integer
+  id                 Int       @id @default(autoincrement())
+  employeeId         Int       @db.Integer
+  month              Int       @db.Integer
+  year               Int       @db.Integer
+  baseSalary         Decimal   @db.Decimal(18, 2)
+  extraHours         Decimal   @db.Decimal(18, 2)
+  deductions         Decimal   @db.Decimal(18, 2)
+  totalPayment       Decimal   @db.Decimal(18, 2)
+  employee           employees @relation("payrollEmployee", fields: [employeeId], references: [id])
+  createdOn          DateTime  @db.Timestamp(3)
+  updatedOn          DateTime? @db.Timestamp(3)
+  userPayrollCreated users     @relation("userPayrollCreated", fields: [createdBy], references: [id])
+  createdBy          Int       @db.Integer
+  userPayrollUpdated users?    @relation("userPayrollUpdated", fields: [updatedBy], references: [id])
+  updatedBy          Int?      @db.Integer
 }
+
 // evaluacion de desempeño
 model performanceEvaluation {
-  id          Int   @id @default(autoincrement())
-  employeeId  Int @db.Integer
-  date       DateTime @db.Timestamp(3)
-  calification Int @db.Integer
-  comments String? @db.VarChar(200)
-  employee    employees @relation("performanceEvaluationEmployee", fields: [employeeId], references: [id])
-  createdOn   DateTime @db.Timestamp(3)
-  updatedOn   DateTime? @db.Timestamp(3)
-  userPerformanceEvaluationCreated users @relation("userPerformanceEvaluationCreated", fields: [createdBy], references: [id])
-  createdBy Int @db.Integer
-  userPerformanceEvaluationUpdated users? @relation("userPerformanceEvaluationUpdated", fields: [updatedBy], references: [id])
-  updatedBy Int? @db.Integer
+  id                               Int       @id @default(autoincrement())
+  employeeId                       Int       @db.Integer
+  date                             DateTime  @db.Timestamp(3)
+  calification                     Int       @db.Integer
+  comments                         String?   @db.VarChar(200)
+  employee                         employees @relation("performanceEvaluationEmployee", fields: [employeeId], references: [id])
+  createdOn                        DateTime  @db.Timestamp(3)
+  updatedOn                        DateTime? @db.Timestamp(3)
+  userPerformanceEvaluationCreated users     @relation("userPerformanceEvaluationCreated", fields: [createdBy], references: [id])
+  createdBy                        Int       @db.Integer
+  userPerformanceEvaluationUpdated users?    @relation("userPerformanceEvaluationUpdated", fields: [updatedBy], references: [id])
+  updatedBy                        Int?      @db.Integer
 }
 
 model vacation {
-  id          Int   @id @default(autoincrement())
-  employeeId  Int @db.Integer
-  startDate  DateTime @db.Timestamp(3)
-  endDate    DateTime @db.Timestamp(3)
-  status      vacationStatus @default(PENDING)
-  employee    employees @relation("vacationEmployee", fields: [employeeId], references: [id])
-  createdOn   DateTime @db.Timestamp(3)
-  updatedOn   DateTime? @db.Timestamp(3)
-  userVacationCreated users @relation("userVacationCreated", fields: [createdBy], references: [id])
-  createdBy Int @db.Integer
-  userVacationUpdated users? @relation("userVacationUpdated", fields: [updatedBy], references: [id])
-  updatedBy Int? @db.Integer
+  id                  Int            @id @default(autoincrement())
+  employeeId          Int            @db.Integer
+  startDate           DateTime       @db.Timestamp(3)
+  endDate             DateTime       @db.Timestamp(3)
+  status              vacationStatus @default(PENDING)
+  employee            employees      @relation("vacationEmployee", fields: [employeeId], references: [id])
+  createdOn           DateTime       @db.Timestamp(3)
+  updatedOn           DateTime?      @db.Timestamp(3)
+  userVacationCreated users          @relation("userVacationCreated", fields: [createdBy], references: [id])
+  createdBy           Int            @db.Integer
+  userVacationUpdated users?         @relation("userVacationUpdated", fields: [updatedBy], references: [id])
+  updatedBy           Int?           @db.Integer
 }
 
 enum vacationStatus {
@@ -489,21 +498,22 @@ enum vacationStatus {
   APPROVED
   REJECTED
 }
+
 // permisos
 model permission {
-  id          Int   @id @default(autoincrement())
-  employeeId  Int @db.Integer
-  type        String @db.VarChar(100) // Licencia médica, asuntos personales, etc.
-  startDate DateTime @db.Timestamp(3)
-  endDate    DateTime @db.Timestamp(3)
-  status      permissionStatus @default(PENDING)
-  employee    employees @relation("permissionEmployee", fields: [employeeId], references: [id])
-  createdOn   DateTime @db.Timestamp(3)
-  updatedOn   DateTime? @db.Timestamp(3)
-  userPermissionCreated users @relation("userPermissionCreated", fields: [createdBy], references: [id])
-  createdBy Int @db.Integer
-  userPermissionUpdated users? @relation("userPermissionUpdated", fields: [updatedBy], references: [id])
-  updatedBy Int? @db.Integer
+  id                    Int              @id @default(autoincrement())
+  employeeId            Int              @db.Integer
+  type                  String           @db.VarChar(100) // Licencia médica, asuntos personales, etc.
+  startDate             DateTime         @db.Timestamp(3)
+  endDate               DateTime         @db.Timestamp(3)
+  status                permissionStatus @default(PENDING)
+  employee              employees        @relation("permissionEmployee", fields: [employeeId], references: [id])
+  createdOn             DateTime         @db.Timestamp(3)
+  updatedOn             DateTime?        @db.Timestamp(3)
+  userPermissionCreated users            @relation("userPermissionCreated", fields: [createdBy], references: [id])
+  createdBy             Int              @db.Integer
+  userPermissionUpdated users?           @relation("userPermissionUpdated", fields: [updatedBy], references: [id])
+  updatedBy             Int?             @db.Integer
 }
 
 enum permissionStatus {
@@ -512,4 +522,65 @@ enum permissionStatus {
   REJECTED
 }
 
+enum orderStatus {
+  PENDING
+  PROCESSING
+  SHIPPED
+  RECEIVED
+  COMPLETED
+  CANCELLED
+}
 
+model clientOrder {
+  id                     Int                 @id @default(autoincrement())
+  clientId               Int                 @db.Integer
+  clients                clients             @relation("orderClient", fields: [clientId], references: [id])
+  createdBy              Int                 @db.Integer
+  userClientOrderCreated users               @relation("userClientOrderCreated", fields: [createdBy], references: [id])
+  updatedBy              Int?                @db.Integer
+  userClientOrderUpdated users?              @relation("userClientOrderUpdated", fields: [updatedBy], references: [id])
+  status                 orderStatus         @default(PENDING)
+  details                clientOrderDetail[]
+  sale                   sale?               @relation(fields: [saleId], references: [id]) // Created when order is confirmed
+  notes                  String?
+  createdOn              DateTime            @db.Timestamp(3)
+  updatedOn              DateTime?           @db.Timestamp(3)
+  saleId                 Int?                @db.Integer
+}
+
+model clientOrderDetail {
+  id                Int         @id @default(autoincrement())
+  orderId           Int         @db.Integer
+  order             clientOrder @relation(fields: [orderId], references: [id])
+  productId         Int         @db.Integer
+  clientOrderDetail products    @relation("clientOrderDetailProduct", fields: [productId], references: [id])
+  quantity          Int         @db.Integer
+  unitPrice         Float
+}
+
+model providerOrder {
+  id                       Int                   @id @default(autoincrement())
+  supplierId               Int                   @db.Integer
+  productOrders            productProviders      @relation("providerOrder", fields: [supplierId], references: [id])
+  createdBy                Int                   @db.Integer
+  userProviderOrderCreated users                 @relation("userProviderOrderCreated", fields: [createdBy], references: [id])
+  updatedBy                Int?                  @db.Integer
+  userProviderOrderUpdated users?                @relation("userProviderOrderUpdated", fields: [updatedBy], references: [id])
+  status                   orderStatus           @default(PENDING)
+  details                  providerOrderDetail[]
+  purchase                 purchase?             @relation(fields: [purchaseId], references: [id]) // Created when order is received
+  notes                    String?
+  createdOn                DateTime              @db.Timestamp(3)
+  updatedOn                DateTime?             @db.Timestamp(3)
+  purchaseId               Int?                  @db.Integer
+}
+
+model providerOrderDetail {
+  id             String        @id @default(cuid())
+  orderId        Int           @db.Integer
+  order          providerOrder @relation(fields: [orderId], references: [id])
+  productId      Int           @db.Integer
+  product        products      @relation("providerOrderDetailProduct", fields: [productId], references: [id])
+  quantity       Int           @db.Integer
+  estimatedPrice Float
+}
