@@ -69,6 +69,8 @@ model users {
   userClientOrderCreated           clientOrder[]           @relation("userClientOrderCreated")
   userProviderOrderUpdated         providerOrder[]         @relation("userProviderOrderUpdated")
   userProviderOrderCreated         providerOrder[]         @relation("userProviderOrderCreated")
+  userExpenseCreated               expenses[]              @relation("userExpenseCreated")
+  userExpenseUpdated               expenses[]              @relation("userExpenseUpdated")
 }
 
 model userPermits {
@@ -576,11 +578,42 @@ model providerOrder {
 }
 
 model providerOrderDetail {
-  id             String        @id @default(cuid())
+  id             Int           @id @default(autoincrement())
   orderId        Int           @db.Integer
   order          providerOrder @relation(fields: [orderId], references: [id])
   productId      Int           @db.Integer
   product        products      @relation("providerOrderDetailProduct", fields: [productId], references: [id])
   quantity       Int           @db.Integer
   estimatedPrice Float
+}
+
+model expenses {
+  id                 Int             @id @default(autoincrement())
+  description        String
+  total              Float
+  category           String
+  createdBy          Int             @db.Integer
+  userExpenseCreated users           @relation("userExpenseCreated", fields: [createdBy], references: [id])
+  updatedBy          Int?            @db.Integer
+  userExpenseUpdated users?          @relation("userExpenseUpdated", fields: [updatedBy], references: [id])
+  createdOn          DateTime        @db.Timestamp(3)
+  updatedOn          DateTime?       @db.Timestamp(3)
+  status             expenseCategory
+}
+
+enum expenseCategory {
+  RENTAL // Alquiler de local, oficinas, depósitos
+  UTILITIES // Agua, electricidad, gas, teléfono
+  SALARIES // Sueldos y beneficios de empleados
+  SUPPLIES // Papelería, insumos, herramientas no inventariables
+  TRANSPORT // Transporte y logística (combustible, fletes)
+  MAINTENANCE // Reparaciones y mantenimiento
+  MARKETING // Publicidad, redes sociales, diseño gráfico
+  SOFTWARE // Suscripciones, licencias, herramientas SaaS
+  PROFESSIONAL_SERVICES // Asesorías legales, contables, etc.
+  TAXES // Impuestos, tasas municipales, tributos
+  BANK_FEES // Comisiones bancarias y financieras
+  TRAVEL // Viáticos, hospedaje, transporte en viajes
+  TRAINING // Capacitación del personal
+  OTHER // Gastos misceláneos o sin categoría fija
 }
