@@ -264,7 +264,11 @@
     "users_card_msg":"System users",
     "expenses":"Expenses",
     "expenses_card_msg":"Manage your expenses movements efficiently.",
-    "reports_card_msg":"Reports"
+    "reports_card_msg":"Reports",
+    "provider_order":"Provider order",
+    "provider_order_card_msg":"Create and administrate providers orders",
+    "client_order":"Provider order",
+    "client_order_card_msg":"Create and administrate clients orders"
 
     
 
