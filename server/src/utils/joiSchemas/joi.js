@@ -1,5 +1,4 @@
 import Joi from 'joi'
-
 export const SignInSchema = Joi.object({
   email: Joi.string().email({ tlds: false }).required(),
   password: Joi.string().min(6).max(16).required()
@@ -289,30 +288,9 @@ export const inventoryMovementCreateUpdateSchema = Joi.object({
   saleId: Joi.number().integer().positive().optional()
 })
 
-export const purchaseFiltersSchema = Joi.object({
-  providerId: Joi.number().integer().optional(),
-  startDate: Joi.date().iso().optional(),
-  endDate: Joi.date().iso().optional(),
-  minTotal: Joi.number().min(0).optional(),
-  maxTotal: Joi.number().min(0).optional()
-})
-
-export const purchaseCreateUpdateSchema = Joi.object({
-  providerId: Joi.number().integer().required(),
-  total: Joi.number().min(0).required(),
-  details: Joi.array().items(
-    Joi.object({
-      productId: Joi.number().integer().required(),
-      quantity: Joi.number().integer().min(1).required(),
-      price: Joi.number().min(0).required()
-    })
-  ).required().min(1)
-})
-
 export const clientFiltersSchema = Joi.object({
   name: Joi.string().max(100).allow(''),
   email: Joi.string().email().allow('')
-
 })
 
 export const clientCreateUpdateSchema = Joi.object({
@@ -427,4 +405,92 @@ export const permissionCreateUpdateSchema = Joi.object({
   approvedBy: Joi.number().integer().optional(),
   approvedAt: Joi.date().iso().optional(),
   comments: Joi.string().max(1000).optional()
+})
+
+// {{ Expense Schemas START }}
+const expenseCategoryEnumValues = [
+  'RENTAL', 'UTILITIES', 'SALARIES', 'SUPPLIES', 'TRANSPORT',
+  'MAINTENANCE', 'MARKETING', 'SOFTWARE', 'PROFESSIONAL_SERVICES',
+  'TAXES', 'BANK_FEES', 'TRAVEL', 'TRAINING', 'OTHER'
+]
+
+export const expenseFiltersSchema = Joi.object({
+  description: Joi.string().max(255).allow('').optional(),
+  category: Joi.string().max(100).allow('').optional(),
+  status: Joi.string().valid(...expenseCategoryEnumValues).allow('').optional(),
+  // Optional date filters
+  fromDate: Joi.date().iso().optional(),
+  toDate: Joi.date().iso().min(Joi.ref('fromDate')).optional(),
+  // Optional total range filters
+  minTotal: Joi.number().min(0).optional(),
+  maxTotal: Joi.number().when('minTotal', {
+    is: Joi.exist(),
+    then: Joi.number().min(Joi.ref('minTotal')),
+    otherwise: Joi.number().min(0)
+  }).optional()
+})
+
+export const expenseCreateUpdateSchema = Joi.object({
+  description: Joi.string().max(255).required(),
+  total: Joi.number().precision(2).positive().required(), // .positive() ensures it's > 0
+  category: Joi.string().max(100).required(),
+  status: Joi.string().valid(...expenseCategoryEnumValues).required()
+})
+// {{ Expense Schemas END }}
+
+export const userFiltersSchema = Joi.object({
+  name: Joi.string().max(100).allow(''),
+  email: Joi.string().email().allow('')
+})
+
+export const userCreateUpdateSchema = Joi.object({
+  name: Joi.string().max(100).required(),
+  email: Joi.string().email().required(),
+  password: Joi.string().min(6).max(100).required(),
+  address: Joi.string().max(250).allow(''),
+  birthday: Joi.date().required(),
+  city: Joi.string().max(35).allow(''),
+  isAdmin: Joi.boolean().default(false),
+  picture: Joi.string().allow(''),
+  document: Joi.string().allow(''),
+  roleId: Joi.number().integer().required(),
+  socialSecurity: Joi.string().max(9).required(),
+  startDate: Joi.date().required(),
+  state: Joi.string().max(50).allow(''),
+  statusId: Joi.number().integer().required(),
+  telephone: Joi.string().max(15).required(),
+  zipcode: Joi.string().max(9).required(),
+  userPermitId: Joi.number().integer().required()
+})
+
+export const clientOrderFiltersSchema = Joi.object({
+  clientId: Joi.number().integer().allow(''),
+  status: Joi.string().allow('')
+})
+
+export const clientOrderCreateUpdateSchema = Joi.object({
+  clientId: Joi.number().integer().required(),
+  status: Joi.string().required(),
+  notes: Joi.string().allow(''),
+  saleId: Joi.number().integer().allow(null)
+})
+
+export const purchaseCreateUpdateSchema = Joi.object({
+  providerId: Joi.number().integer().required(),
+  total: Joi.number().min(0).required(),
+  details: Joi.array().items(
+    Joi.object({
+      productId: Joi.number().integer().required(),
+      quantity: Joi.number().integer().min(1).required(),
+      price: Joi.number().min(0).required()
+    })
+  ).required().min(1)
+})
+
+export const purchaseFiltersSchema = Joi.object({
+  providerId: Joi.number().integer().optional(),
+  startDate: Joi.date().iso().optional(),
+  endDate: Joi.date().iso().optional(),
+  minTotal: Joi.number().min(0).optional(),
+  maxTotal: Joi.number().min(0).optional()
 })

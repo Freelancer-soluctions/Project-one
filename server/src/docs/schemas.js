@@ -2079,3 +2079,789 @@
  *               price:
  *                 type: number
  */
+
+// {{ Expenses Schemas START }}
+/** --------------------------------------
+ * Sección de Expenses
+ * -------------------------------------- */
+/**
+ * @openapi
+ * components:
+ *   schemas:
+ *     ExpenseFilters:
+ *       type: object
+ *       properties:
+ *         description:
+ *           type: string
+ *           maxLength: 255
+ *           nullable: true
+ *           example: "Office Supplies"
+ *         category:
+ *           type: string
+ *           maxLength: 100
+ *           nullable: true
+ *           example: "Stationery"
+ *         status:
+ *           type: string
+ *           enum: [RENTAL, UTILITIES, SALARIES, SUPPLIES, TRANSPORT, MAINTENANCE, MARKETING, SOFTWARE, PROFESSIONAL_SERVICES, TAXES, BANK_FEES, TRAVEL, TRAINING, OTHER]
+ *           nullable: true
+ *           example: "SUPPLIES"
+ *         fromDate:
+ *           type: string
+ *           format: date-time # Or date if only date part is used
+ *           nullable: true
+ *           description: "Filter expenses from this date"
+ *         toDate:
+ *           type: string
+ *           format: date-time # Or date
+ *           nullable: true
+ *           description: "Filter expenses up to this date"
+ *         minTotal:
+ *           type: number
+ *           format: float # Use float for precision
+ *           minimum: 0
+ *           nullable: true
+ *           description: "Minimum total amount for expenses"
+ *         maxTotal:
+ *           type: number
+ *           format: float
+ *           minimum: 0 # Or reference minTotal if supported by OpenAPI spec version for complex validation
+ *           nullable: true
+ *           description: "Maximum total amount for expenses"
+ *
+ *     ResponseGetExpense:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: string
+ *           format: cuid # Indicate CUID format
+ *           example: "clxkj234s0000m9qr8p5hfg8a"
+ *         description:
+ *           type: string
+ *           maxLength: 255
+ *           example: "Monthly Rent Payment"
+ *         total:
+ *           type: number
+ *           format: float
+ *           example: 1200.50
+ *         category:
+ *           type: string
+ *           maxLength: 100
+ *           example: "Office Space"
+ *         status:
+ *           type: string
+ *           enum: [RENTAL, UTILITIES, SALARIES, SUPPLIES, TRANSPORT, MAINTENANCE, MARKETING, SOFTWARE, PROFESSIONAL_SERVICES, TAXES, BANK_FEES, TRAVEL, TRAINING, OTHER]
+ *           example: "RENTAL"
+ *         createdOn:
+ *           type: string
+ *           format: date-time
+ *           example: "2025-04-01T10:00:00Z"
+ *         updatedOn:
+ *           type: string
+ *           format: date-time
+ *           nullable: true
+ *           example: "2025-04-02T11:30:00Z"
+ *         createdBy:
+ *           type: integer
+ *           example: 1
+ *         updatedBy:
+ *           type: integer
+ *           nullable: true
+ *           example: 2
+ *         userExpenseCreatedName:
+ *           type: string
+ *           nullable: true
+ *           example: "John Doe"
+ *         userExpenseUpdatedName:
+ *           type: string
+ *           nullable: true
+ *           example: "Jane Smith"
+ *
+ *     BodyExpenseCreateUpdate:
+ *       type: object
+ *       required:
+ *         - description
+ *         - total
+ *         - category
+ *         - status
+ *       properties:
+ *         description:
+ *           type: string
+ *           maxLength: 255
+ *           example: "New Marketing Campaign"
+ *         total:
+ *           type: number
+ *           format: float
+ *           minimum: 0.01 # Expenses should be positive
+ *           example: 500.75
+ *         category:
+ *           type: string
+ *           maxLength: 100
+ *           example: "Advertising"
+ *         status:
+ *           type: string
+ *           enum: [RENTAL, UTILITIES, SALARIES, SUPPLIES, TRANSPORT, MAINTENANCE, MARKETING, SOFTWARE, PROFESSIONAL_SERVICES, TAXES, BANK_FEES, TRAVEL, TRAINING, OTHER]
+ *           example: "MARKETING"
+ *
+ *     ResponseExpenseCreateUpdate: # Can be the same as ResponseGetExpense if all fields are returned
+ *       allOf: # Or define it explicitly if there are differences
+ *         - $ref: '#/components/schemas/ResponseGetExpense'
+ */
+// {{ Expenses Schemas END }}
+
+/** --------------------------------------
+ * Sección de Users
+ * -------------------------------------- */
+/**
+ * @openapi
+ * components:
+ *   schemas:
+ *     UserFilters:
+ *       type: object
+ *       properties:
+ *         name:
+ *           type: string
+ *           maxLength: 100
+ *           nullable: true
+ *           example: "John Doe"
+ *         email:
+ *           type: string
+ *           format: email
+ *           nullable: true
+ *           example: "john@example.com"
+ */
+
+/**
+ * @openapi
+ * components:
+ *   schemas:
+ *     ResponseGetUser:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: integer
+ *           example: 1
+ *         name:
+ *           type: string
+ *           maxLength: 100
+ *           example: "John Doe"
+ *         email:
+ *           type: string
+ *           format: email
+ *           example: "john@example.com"
+ *         address:
+ *           type: string
+ *           maxLength: 250
+ *           nullable: true
+ *           example: "123 Main St"
+ *         birthday:
+ *           type: string
+ *           format: date-time
+ *           example: "1990-01-01T00:00:00Z"
+ *         city:
+ *           type: string
+ *           maxLength: 35
+ *           nullable: true
+ *           example: "Anytown"
+ *         isAdmin:
+ *           type: boolean
+ *           example: false
+ *         picture:
+ *           type: string
+ *           nullable: true
+ *           example: "url/to/picture"
+ *         document:
+ *           type: string
+ *           nullable: true
+ *           example: "123456789"
+ *         lastUpdatedBy:
+ *           type: integer
+ *           example: 1
+ *         lastUpdatedOn:
+ *           type: string
+ *           format: date-time
+ *           nullable: true
+ *           example: "2025-05-12T00:00:00Z"
+ *         roleId:
+ *           type: integer
+ *           example: 1
+ *         socialSecurity:
+ *           type: string
+ *           maxLength: 9
+ *           example: "123456789"
+ *         startDate:
+ *           type: string
+ *           format: date-time
+ *           example: "2020-01-01T00:00:00Z"
+ *         state:
+ *           type: string
+ *           maxLength: 50
+ *           nullable: true
+ *           example: "CA"
+ *         statusId:
+ *           type: integer
+ *           example: 1
+ *         telephone:
+ *           type: string
+ *           maxLength: 15
+ *           example: "555-123-4567"
+ *         zipcode:
+ *           type: string
+ *           maxLength: 9
+ *           example: "90210"
+ *         userPermitId:
+ *           type: integer
+ *           example: 1
+ *         roleDescription:
+ *           type: string
+ *           example: "Administrator"
+ *         statusDescription:
+ *           type: string
+ *           example: "Active"
+ *         userPermitAccessConfiguration:
+ *           type: boolean
+ *           example: true
+ *         userPermitAccessNews:
+ *           type: boolean
+ *           example: false
+ *         lastUpdatedByName:
+ *           type: string
+ *           example: "Admin User"
+ */
+
+/**
+ * @openapi
+ * components:
+ *   schemas:
+ *     BodyUserCreateUpdate:
+ *       type: object
+ *       required:
+ *         - name
+ *         - email
+ *         - password
+ *         - birthday
+ *         - roleId
+ *         - socialSecurity
+ *         - startDate
+ *         - statusId
+ *         - telephone
+ *         - zipcode
+ *         - userPermitId
+ *       properties:
+ *         name:
+ *           type: string
+ *           maxLength: 100
+ *           example: "John Doe"
+ *         email:
+ *           type: string
+ *           format: email
+ *           example: "john@example.com"
+ *         password:
+ *           type: string
+ *           maxLength: 100
+ *           example: "securePassword"
+ *         address:
+ *           type: string
+ *           maxLength: 250
+ *           nullable: true
+ *           example: "123 Main St"
+ *         birthday:
+ *           type: string
+ *           format: date-time
+ *           example: "1990-01-01T00:00:00Z"
+ *         city:
+ *           type: string
+ *           maxLength: 35
+ *           nullable: true
+ *           example: "Anytown"
+ *         isAdmin:
+ *           type: boolean
+ *           example: false
+ *         picture:
+ *           type: string
+ *           nullable: true
+ *           example: "url/to/picture"
+ *         document:
+ *           type: string
+ *           nullable: true
+ *           example: "123456789"
+ *         roleId:
+ *           type: integer
+ *           example: 1
+ *         socialSecurity:
+ *           type: string
+ *           maxLength: 9
+ *           example: "123456789"
+ *         startDate:
+ *           type: string
+ *           format: date-time
+ *           example: "2020-01-01T00:00:00Z"
+ *         state:
+ *           type: string
+ *           maxLength: 50
+ *           nullable: true
+ *           example: "CA"
+ *         statusId:
+ *           type: integer
+ *           example: 1
+ *         telephone:
+ *           type: string
+ *           maxLength: 15
+ *           example: "555-123-4567"
+ *         zipcode:
+ *           type: string
+ *           maxLength: 9
+ *           example: "90210"
+ *         userPermitId:
+ *           type: integer
+ *           example: 1
+ */
+
+/**
+ * @openapi
+ * components:
+ *   schemas:
+ *     ResponseUserCreateUpdate:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: integer
+ *           example: 1
+ *         name:
+ *           type: string
+ *           maxLength: 100
+ *           example: "John Doe"
+ *         email:
+ *           type: string
+ *           format: email
+ *           example: "john@example.com"
+ *         address:
+ *           type: string
+ *           maxLength: 250
+ *           nullable: true
+ *           example: "123 Main St"
+ *         birthday:
+ *           type: string
+ *           format: date-time
+ *           example: "1990-01-01T00:00:00Z"
+ *         city:
+ *           type: string
+ *           maxLength: 35
+ *           nullable: true
+ *           example: "Anytown"
+ *         isAdmin:
+ *           type: boolean
+ *           example: false
+ *         picture:
+ *           type: string
+ *           nullable: true
+ *           example: "url/to/picture"
+ *         document:
+ *           type: string
+ *           nullable: true
+ *           example: "123456789"
+ *         lastUpdatedBy:
+ *           type: integer
+ *           example: 1
+ *         lastUpdatedOn:
+ *           type: string
+ *           format: date-time
+ *           nullable: true
+ *           example: "2025-05-12T00:00:00Z"
+ *         roleId:
+ *           type: integer
+ *           example: 1
+ *         socialSecurity:
+ *           type: string
+ *           maxLength: 9
+ *           example: "123456789"
+ *         startDate:
+ *           type: string
+ *           format: date-time
+ *           example: "2020-01-01T00:00:00Z"
+ *         state:
+ *           type: string
+ *           maxLength: 50
+ *           nullable: true
+ *           example: "CA"
+ *         statusId:
+ *           type: integer
+ *           example: 1
+ *         telephone:
+ *           type: string
+ *           maxLength: 15
+ *           example: "555-123-4567"
+ *         zipcode:
+ *           type: string
+ *           maxLength: 9
+ *           example: "90210"
+ *         userPermitId:
+ *           type: integer
+ *           example: 1
+ */
+
+
+/** --------------------------------------
+ * Sección de ClientOrder
+ * -------------------------------------- */
+
+/**
+ * @openapi
+ * components:
+ *   schemas:
+ *     clientOrderFiltersSchema:
+ *       type: object
+ *       properties:
+ *         clientId:
+ *           type: integer
+ *           nullable: true
+ *           description: Client ID
+ *         status:
+ *           type: string
+ *           nullable: true
+ *           description: Order Status
+ */
+
+/**
+ * @openapi
+ * components:
+ *   schemas:
+ *     clientOrderCreateUpdateSchema:
+ *       type: object
+ *       properties:
+ *         clientId:
+ *           type: integer
+ *           description: Client ID
+ *         status:
+ *           type: string
+ *           description: Order Status
+ *         notes:
+ *           type: string
+ *           nullable: true
+ *           description: Order Notes
+ *         saleId:
+ *           type: integer
+ *           nullable: true
+ *           description: Sale ID
+ */
+
+/**
+ * @openapi
+ * components:
+ *   schemas:
+ *     ResponseGetClientOrder:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: integer
+ *           description: Client Order ID
+ *         clientId:
+ *           type: integer
+ *           description: Client ID
+ *         status:
+ *           type: string
+ *           description: Order Status
+ *         notes:
+ *           type: string
+ *           nullable: true
+ *           description: Order Notes
+ *         createdOn:
+ *           type: string
+ *           format: date-time
+ *           description: Creation Timestamp
+ *         updatedOn:
+ *           type: string
+ *           format: date-time
+ *           nullable: true
+ *           description: Update Timestamp
+ *         saleId:
+ *            type: integer
+ *            nullable: true
+ *            description: Sale ID
+ */
+ * @openapi
+ * components:
+ *   schemas:
+ *     UserFilters:
+ *       type: object
+ *       properties:
+ *         name:
+ *           type: string
+ *           maxLength: 100
+ *           nullable: true
+ *           example: "John Doe"
+ *         email:
+ *           type: string
+ *           format: email
+ *           nullable: true
+ *           example: "john@example.com"
+ */
+
+/**
+ * @openapi
+ * components:
+ *   schemas:
+ *     ResponseGetUser:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: integer
+ *           example: 1
+ *         name:
+ *           type: string
+ *           maxLength: 100
+ *           example: "John Doe"
+ *         email:
+ *           type: string
+ *           format: email
+ *           example: "john@example.com"
+ *         address:
+ *           type: string
+ *           maxLength: 250
+ *           nullable: true
+ *           example: "123 Main St"
+ *         birthday:
+ *           type: string
+ *           format: date-time
+ *           example: "1990-01-01T00:00:00Z"
+ *         city:
+ *           type: string
+ *           maxLength: 35
+ *           nullable: true
+ *           example: "Anytown"
+ *         isAdmin:
+ *           type: boolean
+ *           example: false
+ *         picture:
+ *           type: string
+ *           nullable: true
+ *           example: "url/to/picture"
+ *         document:
+ *           type: string
+ *           nullable: true
+ *           example: "123456789"
+ *         lastUpdatedBy:
+ *           type: integer
+ *           example: 1
+ *         lastUpdatedOn:
+ *           type: string
+ *           format: date-time
+ *           nullable: true
+ *           example: "2025-05-12T00:00:00Z"
+ *         roleId:
+ *           type: integer
+ *           example: 1
+ *         socialSecurity:
+ *           type: string
+ *           maxLength: 9
+ *           example: "123456789"
+ *         startDate:
+ *           type: string
+ *           format: date-time
+ *           example: "2020-01-01T00:00:00Z"
+ *         state:
+ *           type: string
+ *           maxLength: 50
+ *           nullable: true
+ *           example: "CA"
+ *         statusId:
+ *           type: integer
+ *           example: 1
+ *         telephone:
+ *           type: string
+ *           maxLength: 15
+ *           example: "555-123-4567"
+ *         zipcode:
+ *           type: string
+ *           maxLength: 9
+ *           example: "90210"
+ *         userPermitId:
+ *           type: integer
+ *           example: 1
+ *         roleDescription:
+ *           type: string
+ *           example: "Administrator"
+ *         statusDescription:
+ *           type: string
+ *           example: "Active"
+ *         userPermitAccessConfiguration:
+ *           type: boolean
+ *           example: true
+ *         userPermitAccessNews:
+ *           type: boolean
+ *           example: false
+ *         lastUpdatedByName:
+ *           type: string
+ *           example: "Admin User"
+ */
+
+/**
+ * @openapi
+ * components:
+ *   schemas:
+ *     BodyUserCreateUpdate:
+ *       type: object
+ *       required:
+ *         - name
+ *         - email
+ *         - password
+ *         - birthday
+ *         - roleId
+ *         - socialSecurity
+ *         - startDate
+ *         - statusId
+ *         - telephone
+ *         - zipcode
+ *         - userPermitId
+ *       properties:
+ *         name:
+ *           type: string
+ *           maxLength: 100
+ *           example: "John Doe"
+ *         email:
+ *           type: string
+ *           format: email
+ *           example: "john@example.com"
+ *         password:
+ *           type: string
+ *           maxLength: 100
+ *           example: "securePassword"
+ *         address:
+ *           type: string
+ *           maxLength: 250
+ *           nullable: true
+ *           example: "123 Main St"
+ *         birthday:
+ *           type: string
+ *           format: date-time
+ *           example: "1990-01-01T00:00:00Z"
+ *         city:
+ *           type: string
+ *           maxLength: 35
+ *           nullable: true
+ *           example: "Anytown"
+ *         isAdmin:
+ *           type: boolean
+ *           example: false
+ *         picture:
+ *           type: string
+ *           nullable: true
+ *           example: "url/to/picture"
+ *         document:
+ *           type: string
+ *           nullable: true
+ *           example: "123456789"
+ *         roleId:
+ *           type: integer
+ *           example: 1
+ *         socialSecurity:
+ *           type: string
+ *           maxLength: 9
+ *           example: "123456789"
+ *         startDate:
+ *           type: string
+ *           format: date-time
+ *           example: "2020-01-01T00:00:00Z"
+ *         state:
+ *           type: string
+ *           maxLength: 50
+ *           nullable: true
+ *           example: "CA"
+ *         statusId:
+ *           type: integer
+ *           example: 1
+ *         telephone:
+ *           type: string
+ *           maxLength: 15
+ *           example: "555-123-4567"
+ *         zipcode:
+ *           type: string
+ *           maxLength: 9
+ *           example: "90210"
+ *         userPermitId:
+ *           type: integer
+ *           example: 1
+ */
+
+/**
+ * @openapi
+ * components:
+ *   schemas:
+ *     ResponseUserCreateUpdate:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: integer
+ *           example: 1
+ *         name:
+ *           type: string
+ *           maxLength: 100
+ *           example: "John Doe"
+ *         email:
+ *           type: string
+ *           format: email
+ *           example: "john@example.com"
+ *         address:
+ *           type: string
+ *           maxLength: 250
+ *           nullable: true
+ *           example: "123 Main St"
+ *         birthday:
+ *           type: string
+ *           format: date-time
+ *           example: "1990-01-01T00:00:00Z"
+ *         city:
+ *           type: string
+ *           maxLength: 35
+ *           nullable: true
+ *           example: "Anytown"
+ *         isAdmin:
+ *           type: boolean
+ *           example: false
+ *         picture:
+ *           type: string
+ *           nullable: true
+ *           example: "url/to/picture"
+ *         document:
+ *           type: string
+ *           nullable: true
+ *           example: "123456789"
+ *         lastUpdatedBy:
+ *           type: integer
+ *           example: 1
+ *         lastUpdatedOn:
+ *           type: string
+ *           format: date-time
+ *           nullable: true
+ *           example: "2025-05-12T00:00:00Z"
+ *         roleId:
+ *           type: integer
+ *           example: 1
+ *         socialSecurity:
+ *           type: string
+ *           maxLength: 9
+ *           example: "123456789"
+ *         startDate:
+ *           type: string
+ *           format: date-time
+ *           example: "2020-01-01T00:00:00Z"
+ *         state:
+ *           type: string
+ *           maxLength: 50
+ *           nullable: true
+ *           example: "CA"
+ *         statusId:
+ *           type: integer
+ *           example: 1
+ *         telephone:
+ *           type: string
+ *           maxLength: 15
+ *           example: "555-123-4567"
+ *         zipcode:
+ *           type: string
+ *           maxLength: 9
+ *           example: "90210"
+ *         userPermitId:
+ *           type: integer
+ *           example: 1
+ */
