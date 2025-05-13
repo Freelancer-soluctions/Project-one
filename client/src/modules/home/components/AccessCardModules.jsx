@@ -25,7 +25,8 @@ import {
   LuClock,
   LuStar,
   LuUserSearch,
-  LuWalletMinimal 
+  LuWalletMinimal,
+  LuClipboardPen 
 } from 'react-icons/lu'
 import { useTranslation } from 'react-i18next'
 const CardModule = () => {
@@ -47,7 +48,7 @@ const CardModule = () => {
           </CardHeader>
           <CardContent className='px-6 pb-6'>
             <Link
-              to={'news'}
+              to={'users'}
               className='flex items-center gap-2 px-3 py-2 text-sm font-medium transition-colors rounded-md hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground'
               prefetch={false}>
               {t('access')} <LuArrowRight className='w-4 h-4 ml-2' />
@@ -67,7 +68,7 @@ const CardModule = () => {
           </CardHeader>
           <CardContent className='px-6 pb-6'>
             <Link
-              to={'news'}
+              to={'expenses'}
               className='flex items-center gap-2 px-3 py-2 text-sm font-medium transition-colors rounded-md hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground'
               prefetch={false}>
               {t('access')} <LuArrowRight className='w-4 h-4 ml-2' />
@@ -87,7 +88,7 @@ const CardModule = () => {
           </CardHeader>
           <CardContent className='px-6 pb-6'>
             <Link
-              to={'news'}
+              to={'reports'}
               className='flex items-center gap-2 px-3 py-2 text-sm font-medium transition-colors rounded-md hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground'
               prefetch={false}>
               {t('access')} <LuArrowRight className='w-4 h-4 ml-2' />
@@ -306,6 +307,44 @@ const CardModule = () => {
           <CardContent className='px-6 pb-6'>
             <Link
               to={'inventoryMovement'}
+              className='flex items-center gap-2 px-3 py-2 text-sm font-medium transition-colors rounded-md hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground'
+              prefetch={false}>
+              {t('access')} <LuArrowRight className='w-4 h-4 ml-2' />
+            </Link>
+          </CardContent>
+        </Card>
+        <Card className='relative overflow-hidden transition-all group hover:shadow-lg hover:-translate-y-1'>
+          <CardHeader className='p-6'>
+            <div className='flex items-center gap-4'>
+              <LuClipboardPen  className='w-8 h-8 text-zinc-800' />
+              <div>
+                <CardTitle className='text-xl'>{t('provider_order')}</CardTitle>
+                <CardDescription>{t('provider_order_card_msg')}</CardDescription>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent className='px-6 pb-6'>
+            <Link
+              to={'providerOrder'}
+              className='flex items-center gap-2 px-3 py-2 text-sm font-medium transition-colors rounded-md hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground'
+              prefetch={false}>
+              {t('access')} <LuArrowRight className='w-4 h-4 ml-2' />
+            </Link>
+          </CardContent>
+        </Card>
+        <Card className='relative overflow-hidden transition-all group hover:shadow-lg hover:-translate-y-1'>
+          <CardHeader className='p-6'>
+            <div className='flex items-center gap-4'>
+              <LuClipboardPen  className='w-8 h-8 text-zinc-800' />
+              <div>
+                <CardTitle className='text-xl'>{t('client_order')}</CardTitle>
+                <CardDescription>{t('client_order_card_msg')}</CardDescription>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent className='px-6 pb-6'>
+            <Link
+              to={'clientOrder'}
               className='flex items-center gap-2 px-3 py-2 text-sm font-medium transition-colors rounded-md hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground'
               prefetch={false}>
               {t('access')} <LuArrowRight className='w-4 h-4 ml-2' />
