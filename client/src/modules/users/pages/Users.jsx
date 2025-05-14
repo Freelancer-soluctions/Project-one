@@ -5,7 +5,7 @@ import {
 } from '../components'
 import { BackDashBoard } from '@/components/backDash/BackDashBoard'
 import { useTranslation } from 'react-i18next'
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import {
   useLazyGetAllUsersQuery,
   useUpdateUserByIdMutation,
@@ -118,10 +118,6 @@ const Users = () => {
     }
   }
 
-  const handleAddDialog = () => {
-    setActionDialog(t('add_user'))
-    setOpenDialog(true)
-  }
 
   const handleEditDialog = row => {
     setActionDialog(t('edit_user'))
@@ -187,7 +183,6 @@ const Users = () => {
           <div className='col-span-2 row-span-1 md:col-span-5'>
             <UsersFiltersForm
               onSubmit={handleSubmitFilters}
-              onAddDialog={handleAddDialog}
             />
           </div>
           {/* Datatable */}

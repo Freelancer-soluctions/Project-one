@@ -10,11 +10,10 @@ const prisma = new PrismaClient()
  * @returns {Promise<Array>} List of users with their related data
  */
 export const getAllUsers = async (filters = {}) => {
-  console.log(filters)
   const whereClauses = []
 
   if (filters.name) {
-    whereClauses.push(Prisma.sql`u."name" ILIKE ${filters.name}`)
+    Prisma.sql`c."name" ILIKE ${'%' + filters.name + '%'}`
   }
 
   if (filters.email) {
@@ -26,20 +25,22 @@ export const getAllUsers = async (filters = {}) => {
     : Prisma.empty
 
   const users = await prisma.$queryRaw`
-    SELECT
+   SELECT 
       u.*,
+      up.*,
+      uu.name AS "lastUpdatedByName",
+      s.description AS "statusDescription",
+      s.code AS "statusCode",
+      s.id AS "statusId",
       r.description AS "roleDescription",
-      us.description AS "statusDescription",
-      up."accessConfiguration",
-      up."accessNews",
-      updater.name AS "lastUpdatedByName"
+      r.code AS "roleCode",
+      r.id AS "roleId"
     FROM "users" u
+    LEFT JOIN "users" uu ON u."lastUpdatedBy" = uu.id
+    LEFT JOIN "userStatus" s ON u."statusId" = s.id
     LEFT JOIN "roles" r ON u."roleId" = r.id
-    LEFT JOIN "userStatus" us ON u."statusId" = us.id
     LEFT JOIN "userPermits" up ON u."userPermitId" = up.id
-    LEFT JOIN "users" updater ON u."lastUpdatedBy" = updater.id
     ${whereSql}
-    ORDER BY u.id ASC
   `
   return users
 }

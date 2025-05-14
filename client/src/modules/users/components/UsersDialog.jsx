@@ -48,24 +48,7 @@ export const UsersDialog = ({
 
   const form = useForm({
     resolver: zodResolver(UserSchema),
-    defaultValues: {
-      name: '',
-      email: '',
-      telephone: '',
-      address: '',
-      birthday: '',
-      startDate: '',
-      socialSecurity: '',
-      zipcode: '',
-      state: '',
-      city: '',
-      isAdmin: false,
-      picture: '',
-      document: '',
-      roleId: '',
-      statusId: '',
-      userPermitId: ''
-    }
+    
   })
 
   // Actualiza todos los valores del formulario al cambiar `selectedRow`
@@ -89,7 +72,6 @@ export const UsersDialog = ({
         document: selectedRow.document,
         roleId: selectedRow.roleId,
         statusId: selectedRow.statusId,
-        userPermitId: selectedRow.userPermitId
       }
 
       form.reset(mappedValues)
@@ -113,7 +95,6 @@ export const UsersDialog = ({
         document: '',
         roleId: '',
         statusId: '',
-        userPermitId: ''
       })
       setUserId(null)
     }
@@ -136,7 +117,7 @@ export const UsersDialog = ({
             {actionDialog}
           </DialogTitle>
           <DialogDescription>
-            {userId ? t('edit_message') : t('add_message')}
+            {t('edit_message')}
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
@@ -449,7 +430,7 @@ export const UsersDialog = ({
                           id='picture'
                           name='picture'
                           placeholder={t('user_picture_placeholder')}
-                          type='text'
+                          type='document'
                           autoComplete='off'
                           {...field}
                           value={field.value ?? ''}
@@ -473,7 +454,7 @@ export const UsersDialog = ({
                           id='document'
                           name='document'
                           placeholder={t('user_document_placeholder')}
-                          type='text'
+                          type='document'
                           autoComplete='off'
                           {...field}
                           value={field.value ?? ''}
