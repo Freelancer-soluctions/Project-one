@@ -26,7 +26,7 @@ model users {
   socialSecurity                   String                  @db.VarChar(9)
   startDate                        DateTime                @db.Timestamp(3)
   state                            String                  @db.VarChar(50)
-  statusId                         Int
+  statusId                         Int     @db.Integer
   status                           userStatus              @relation("userStatus", fields: [statusId], references: [id])
   telephone                        String                  @db.VarChar(15)
   zipcode                          String                  @db.VarChar(9)

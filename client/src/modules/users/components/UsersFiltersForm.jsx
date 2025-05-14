@@ -10,12 +10,12 @@ import {
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
-import { LuPlus, LuSearch, LuEraser } from 'react-icons/lu'
+import { LuSearch, LuEraser } from 'react-icons/lu'
 import PropTypes from 'prop-types'
 import { UsersFiltersSchema } from '../utils'
 import { zodResolver } from '@hookform/resolvers/zod'
 
-export const UsersFiltersForm = ({ onSubmit, onAddDialog }) => {
+export const UsersFiltersForm = ({ onSubmit }) => {
   const { t } = useTranslation()
   const form = useForm({
     resolver: zodResolver(UsersFiltersSchema)
@@ -25,9 +25,6 @@ export const UsersFiltersForm = ({ onSubmit, onAddDialog }) => {
     onSubmit(data)
   }
 
-  const handleAdd = () => {
-    onAddDialog()
-  }
 
   const handleResetFilter = () => {
     form.reset()
@@ -103,18 +100,12 @@ export const UsersFiltersForm = ({ onSubmit, onAddDialog }) => {
             {t('search')}
             <LuSearch className='w-4 h-4 ml-auto opacity-50' />
           </Button>
-          <Button
-            type='button'
-            className='flex-1 md:flex-initial md:w-24'
-            variant='success'
-            onClick={handleAdd}>
-            {t('add')} <LuPlus className='w-4 h-4 ml-auto opacity-50' />
-          </Button>
+        
           <Button
             type='button'
             className='flex-1 md:flex-initial md:w-24'
             variant='outline'
-            onClick={() => handleResetFilter()}>
+            onClick={handleResetFilter}>
             {t('clear')} <LuEraser className='w-4 h-4 ml-auto opacity-50' />
           </Button>
         </div>

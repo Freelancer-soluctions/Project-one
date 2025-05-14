@@ -16,6 +16,8 @@ import purchaseApi from '@/modules/purchase/api/purchaseAPI'
 import storageSession from 'redux-persist/lib/storage/session'
 import { persistStore, persistReducer } from 'redux-persist'
 import inventoryMovementApi from '@/modules/inventoryMovement/api/inventoryMovementAPI'
+import usersApi from '@/modules/users/api/usersApi'
+
 const persistConfig = {
   key: 'root',
   storage: storageSession,
@@ -45,7 +47,9 @@ const rootReducer = combineReducers({
   [clientsApi.reducerPath]: clientsApi.reducer,
   [salesApi.reducerPath]: salesApi.reducer,
   [purchaseApi.reducerPath]: purchaseApi.reducer,
-  [inventoryMovementApi.reducerPath]: inventoryMovementApi.reducer
+  [inventoryMovementApi.reducerPath]: inventoryMovementApi.reducer,
+  [usersApi.reducerPath]: usersApi.reducer,
+
 })
 
 const persistedReducer = persistReducer(persistConfig, rootReducer)
@@ -75,7 +79,9 @@ const store = configureStore({
       clientsApi.middleware,
       salesApi.middleware,
       purchaseApi.middleware,
-      inventoryMovementApi.middleware
+      inventoryMovementApi.middleware,
+      usersApi.middleware
+
     )
 })
 // store.subscribe(() => {
