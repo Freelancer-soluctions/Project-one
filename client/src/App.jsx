@@ -36,7 +36,7 @@ const Permission = lazy(() => import('@/modules/permission/pages/Permission'))
 const ClientOrder = lazy(() => import('@/modules/clientOrder/pages/ClientOrder'))
 const ProviderOrder = lazy(() => import('@/modules/providerOrder/pages/ProviderOrders'))
 const UsersForms = lazy(
-  () => import('@/modules/users/pages/sersForms')
+  () => import('@/modules/users/pages/UsersForm')
 )
 
 

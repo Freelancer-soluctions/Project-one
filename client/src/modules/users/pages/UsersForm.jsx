@@ -2,16 +2,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useTranslation } from 'react-i18next'
 import { BackDashBoard } from '@/components/backDash/BackDashBoard'
 import {
-  useGetAllProductsStatusQuery,
-  useGetAllProductCategoriesQuery,
-  useGetAllProductProvidersQuery,
-  useLazyGetAllProductAttributesQuery,
-  useCreateProductMutation,
-  useUpdateProductByIdMutation,
-  useDeleteProductByIdMutation,
-  useDeleteProductAttributeByIdMutation,
-  useSaveProductAttributesMutation
-} from '../api/productsAPI'
+  useUpdateUserByIdMutation,
+  useDeleteUserByIdMutation
+} from '../api/usersApi'
 import { Spinner } from '@/components/loader/Spinner'
 import { UsersBasicInfo, } from '../components'
 import AlertDialogComponent from '@/components/alertDialog/AlertDialog'
@@ -34,81 +27,63 @@ function UsersForms() {
     }
   }, [location.state])
 
-  const {
-    data: dataCategory,
-    isError: isErrorCategory,
-    isLoading: isLoadingCategory,
-    isFetching: isFetchingCategory,
-    isSuccess: isSuccessCategory,
-    error: errorCategory
-  } = useGetAllProductCategoriesQuery()
-
-  const {
-    data: dataProviders,
-    isError: isErrorProviders,
-    isLoading: isLoadingProviders,
-    isFetching: isFetchingProviders,
-    isSuccess: isSuccessProviders,
-    error: errorProviders
-  } = useGetAllProductProvidersQuery()
-
-  const {
-    data: datastatus,
-    isError: isErrorStatus,
-    isLoading: isLoadingStatus,
-    isFetching: isFetchingStatus,
-    isSuccess: isSuccessStatus,
-    error: errorStatus
-  } = useGetAllProductsStatusQuery()
-
   const [
-    saveProduct,
-    { isLoading: isLoadingPost, isError: isErrorPost, isSuccess: isSuccessPost }
-  ] = useCreateProductMutation()
-  const [
-    updateProductById,
+    updateUserById,
     { isLoading: isLoadingPut, isError: isErrorPut, isSuccess: isSuccessPut }
-  ] = useUpdateProductByIdMutation()
+  ] = useUpdateUserByIdMutation()
+
+
+
   const [
-    deleteProductById,
+    deleteUserById,
     {
       isLoading: isLoadingDelete,
       isError: isErrorDelete,
       isSuccess: isSuccessDelete
     }
-  ] = useDeleteProductByIdMutation()
+  ] = useDeleteUserByIdMutation()
 
-  const handleSubmitCreateEdit = async data => {
-    if (!data) return
-
-    if (data.id) {
-      await updateProductById({
-        id: data.id,
-        data: {
-          cost: data.cost,
-          name: data.name,
-          price: data.price,
-          sku: data.sku,
-          description: data.description,
-          barCode: data.barCode,
-          productCategoryId: data.category.id,
-          productStatusId: data.status.id,
-          productProviderId: data.provider.id
-        }
-      }).unwrap()
-    } else {
-      await saveProduct({
-        cost: data.cost,
-        name: data.name,
-        price: data.price,
-        sku: data.sku,
-        description: data.description,
-        barCode: data.barCode,
-        productCategoryId: data.category.id,
-        productStatusId: data.status.id,
-        productProviderId: data.provider.id
-      }).unwrap()
+ const handleSubmit = async (values, userId) => {
+    try {
+      const result = await updateUserById({
+            id: userId,
+            data: {
+              name: values.name,
+              email: values.email,
+              telephone: values.telephone,
+              address: values.address,
+              birthday: values.birthday,
+              startDate: values.startDate,
+              socialSecurity: values.socialSecurity,
+              zipcode: values.zipcode,
+              state: values.state,
+              city: values.city,
+              isAdmin: values.isAdmin,
+              picture: values.picture,
+              document: values.document,
+              roleId: values.roleId,
+              statusId: values.statusId,
+              userPermitId: values.userPermitId
+            }
+          }).unwrap()
+       
+      setAlertProps({
+        alertTitle: t(userId ? 'update_record' : 'add_record'),
+        alertMessage: t(
+          userId ? 'updated_successfully' : 'added_successfully'
+        ),
+        cancel: false,
+        success: true,
+        onSuccess: () => {
+          setOpenDialog(false)
+        },
+        variantSuccess: 'info'
+      })
+      setOpenAlertDialog(true)
+    } catch (err) {
+      console.error('Error:', err)
     }
+  }
 
     setOpenAlertDialog(true)
     setAlertProps({
@@ -125,8 +100,7 @@ function UsersForms() {
     })
   }
 
-  const handleDeleteProductById = async id => {
-    if (!id) return
+  const handleDelete = async id => {
     try {
       setAlertProps({
         alertTitle: t('delete_record'),
@@ -139,7 +113,7 @@ function UsersForms() {
         onSuccess: () => {},
         onDelete: async () => {
           try {
-            await deleteProductById(id).unwrap()
+            await deleteUserById(id).unwrap()
 
             setAlertProps({
               alertTitle: '',
@@ -147,11 +121,11 @@ function UsersForms() {
               cancel: false,
               success: true,
               onSuccess: () => {
-                navigate('/home/products')
+                setOpenDialog(false)
               },
               variantSuccess: 'info'
             })
-            setOpenAlertDialog(true) // Open alert dialog
+            setOpenAlertDialog(true)
           } catch (err) {
             console.error('Error deleting:', err)
           }
@@ -163,140 +137,6 @@ function UsersForms() {
     }
   }
 
-  const [
-    getProductAttributes,
-    {
-      data: dataAttributes = { data: [] },
-      isError: isErrorAttributes,
-      isLoading: isLoadingAttributes,
-      isFetching: isFetchingAttributes,
-      isSuccess: isSuccessAttributes,
-      error: errorAttributes
-    }
-  ] = useLazyGetAllProductAttributesQuery()
-
-  const [
-    deleteProductAttributeById,
-    {
-      isLoading: isLoadingDeleteAttribute,
-      isError: isErrorDeleteAttribute,
-      isSuccess: isSuccessDeleteAttribute
-    }
-  ] = useDeleteProductAttributeByIdMutation()
-
-  const [
-    saveProductAttributes,
-    {
-      isLoading: isLoadingSaveAttributes,
-      isError: isErrorSaveAttributes,
-      isSuccess: isSuccessPutSaveAttributes
-    }
-  ] = useSaveProductAttributesMutation()
-
-  useEffect(() => {
-    if (selectedRow?.id) {
-      getProductAttributes(selectedRow.id)
-    }
-  }, [selectedRow])
-
-  useEffect(() => {
-    if (dataAttributes?.data.length > 0) {
-      setAttributes(dataAttributes.data)
-    }
-  }, [dataAttributes])
-
-  const [attributes, setAttributes] = useState([])
-
-  const handleAddAttribute = () => {
-    setAttributes([
-      ...attributes,
-      {
-        createdOn: new Date(),
-        name: '',
-        description: '',
-        save: true,
-        productId: selectedRow?.id
-      }
-    ])
-  }
-
-  const updateAttributes = (index) => {
-    setAttributes(prev => {
-      const newAttributes = [...prev]
-      if (index !== -1) {
-        newAttributes.splice(index, 1) // Elimina el atributo en el índice encontrado
-      }
-      return newAttributes
-    })
-  };
-
-
-  const handleRemoveAttribute = async (index, item) => {
-
-    //Eliminacion logica
-    if (item.id) {
-      setAlertProps({
-        alertTitle: t('delete_record'),
-        alertMessage: t('request_delete_record'),
-        cancel: true,
-        success: false,
-        destructive: true,
-        variantSuccess: '',
-        variantDestructive: 'destructive',
-        onSuccess: () => {},
-        onDelete: async () => {
-          try {
-            await deleteProductAttributeById(item.id).unwrap()
-            updateAttributes(index)
-            setAlertProps({
-              alertTitle: '',
-              alertMessage: t('deleted_successfully'),
-              cancel: false,
-              success: true,
-              onSuccess: () => {
-                navigate('/home/products')
-              },
-              variantSuccess: 'info'
-            })
-            setOpenAlertDialog(true) // Open alert dialog
-          } catch (err) {
-            console.error('Error deleting:', err)
-          }
-        }
-      })
-      setOpenAlertDialog(true)
-    } else{updateAttributes(index)}
-  }
-
-  const handleEditAttribute = (index, field, value) => {
-    setAttributes(prev =>
-      prev.map((attr, i) =>
-        i === index ? { ...attr, [field]: value, save: true } : attr
-      )
-    )
-  }
-  const handleSubmitFormAttribute = async data => {
-    // Filtrar solo los atributos con save: true
-    const attributesToSend = data
-      .filter(attr => attr.save) // Solo los que tienen save: true
-      .map(({ save, ...rest }) => rest) // Eliminar 'save' del objeto
-
-    if (attributesToSend.length > 0) {
-      await saveProductAttributes(attributesToSend).unwrap()
-
-      setOpenAlertDialog(true)
-      setAlertProps({
-        alertTitle: t('save_record'),
-        alertMessage: t('saved_successfully'),
-        cancel: false,
-        success: true,
-        onSuccess: () => {
-          navigate('/home/products')
-        },
-        variantSuccess: 'info'
-      })
-    }
-  }
 
   return (
     <>
@@ -326,9 +166,9 @@ function UsersForms() {
               </TabsList>
 
               <TabsContent value='info' className='mt-4'>
-                <ProductBasicInfo
-                  onSubmitCreateEdit={handleSubmitCreateEdit}
-                  onDelete={handleDeleteProductById}
+                <UsersBasicInfo
+                  onSubmitCreateEdit={handleSubmit}
+                  onDelete={handleDelete}
                   dataRoles={dataCategory}
                   datastatus={datastatus}
                   selectedRow={selectedRow}
