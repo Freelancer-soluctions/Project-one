@@ -25,7 +25,7 @@ import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { ProductsSchema } from '../utils'
+import { UserSchema } from '../utils'
 import { useNavigate } from 'react-router'
 import { useTranslation } from 'react-i18next'
 import { useEffect, useState } from 'react'
@@ -46,18 +46,8 @@ export const UsersBasicInfo = ({
  
   
   const form = useForm({
-    resolver: zodResolver(ProductsSchema),
-    defaultValues: {
-      name: '',
-      sku: '',
-      description: '',
-      barcode: '',
-      price: '',
-      cost: '',
-      category: null,
-      provider: null,
-      status: null
-     }
+    resolver: zodResolver(UserSchema),
+  
   })
 
 

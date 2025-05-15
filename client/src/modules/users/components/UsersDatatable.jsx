@@ -3,7 +3,7 @@ import { DataTable } from '@/components/dataTable'
 import { format } from 'date-fns'
 import PropTypes from 'prop-types'
 
-export const UsersDatatable = ({ dataUsers, onEditDialog }) => {
+export const UsersDatatable = ({ dataUsers, onOpenUsersForms }) => {
   const { t } = useTranslation()
 
   const columnDefUsers = [
@@ -84,10 +84,11 @@ export const UsersDatatable = ({ dataUsers, onEditDialog }) => {
     }
   ]
 
-  const handleEditDialog = row => {
-    onEditDialog(row)
-  }
 
+   const handleEditDialog = row => {
+    onOpenUsersForms(row)
+  }
+  
   return (
     <DataTable
       columns={columnDefUsers}
@@ -99,5 +100,5 @@ export const UsersDatatable = ({ dataUsers, onEditDialog }) => {
 
 UsersDatatable.propTypes = {
   dataUsers: PropTypes.object.isRequired,
-  onEditDialog: PropTypes.func.isRequired
+  onOpenUsersForms: PropTypes.func.isRequired
 }
