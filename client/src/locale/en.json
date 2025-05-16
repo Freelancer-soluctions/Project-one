@@ -292,6 +292,7 @@
     "status_id": "Status ID",
     "user_status_id_placeholder": "Enter status ID",
     "user_permit_id": "User Permit ID",
-    "user_permit_id_placeholder": "Enter user permit ID"
+    "user_permit_id_placeholder": "Enter user permit ID",
+    "hola_mundo": "Hello world",
   }
 }
