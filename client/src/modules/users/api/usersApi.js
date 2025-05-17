@@ -19,6 +19,13 @@
              }),
              providesTags: ['Users'], // Indica que este endpoint usa el tag 'Notes'
            }),
+            getAllUsersStatus: builder.query({
+             query: () => ({
+               url: `/users/status`,
+               method: 'GET', 
+             }),
+             providesTags: ['Users'], // Indica que este endpoint usa el tag 'Notes'
+           }),
        
            deleteUserById: builder.mutation({
              query: (id) => ({
@@ -57,7 +64,7 @@
    // auto-generated based on the defined endpoints
    export const { 
      useLazyGetAllUsersQuery,
-     useGetAllUsersQuery,
+      useGetAllUsersStatusQuery,
      useUpdateUserByIdMutation, 
      useCreateUserMutation, 
      useDeleteUserByIdMutation 

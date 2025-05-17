@@ -29,50 +29,44 @@ import { UserSchema } from '../utils'
 import { useNavigate } from 'react-router'
 import { useTranslation } from 'react-i18next'
 import { useEffect, useState } from 'react'
-import {
-  LuBarcode,
-} from 'react-icons/lu'
+import { LuBarcode } from 'react-icons/lu'
 
 export const UsersBasicInfo = ({
   onSubmitCreateEdit,
   onDelete,
-  dataRoles,
   dataStatus,
   selectedRow
 }) => {
   const navigate = useNavigate()
   const { t } = useTranslation()
-  const [id, setId]= useState()
- 
-  
-  const form = useForm({
-    resolver: zodResolver(UserSchema),
-  
-  })
+  const [id, setId] = useState()
 
+  const form = useForm({
+    resolver: zodResolver(UserSchema)
+  })
 
   // Actualiza todos los valores del formulario al cambiar `selectedRow`
   useEffect(() => {
     if (selectedRow?.id) {
       form.reset({
         ...selectedRow,
-        status: {id:selectedRow.statusId, code:selectedRow.statusCode, description:selectedRow.statusDescription  },
-        category: {id:selectedRow.categoryId, code:selectedRow.categoryCode, description:selectedRow.categoryDescription  },
-        provider: {id:selectedRow.providerId, code:selectedRow.providerCode, description:selectedRow.providerDescription  }
+        status: {
+          id: selectedRow.statusId,
+          code: selectedRow.statusCode,
+          description: selectedRow.statusDescription
+        }
       })
       setId(selectedRow.id)
-    }else{
+    } else {
       form.reset()
     }
-
- 
   }, [selectedRow, form])
 
-  const submitForm = (data) => {
-    onSubmitCreateEdit(data);
-  };
+  const submitForm = data => {
+    onSubmitCreateEdit(data)
+  }
 
-  const handleDelete = (id) => {
+  const handleDelete = id => {
     onDelete(id)
   }
   return (
@@ -86,272 +80,26 @@ export const UsersBasicInfo = ({
           <form
             method='post'
             action=''
-            id='products-info-form'
+            id='user-form'
             noValidate
-            onSubmit={form.handleSubmit(submitForm)}
+            onSubmit={form.handleSubmit(handleSubmit)}
             className='flex flex-col flex-wrap gap-5'>
-            <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
-              <div className='space-y-2'>
-                <FormField
-                  control={form.control}
-                  name='name'
-                  render={({ field }) => {
-                    return (
-                      <FormItem>
-                        <FormLabel htmlFor='name'>{t('name')}*</FormLabel>
-                        <FormControl>
-                          <Input
-                            id='name'
-                            type='text'
-                            name='name'
-                            maxLength='80'
-                            autoComplete='off'
-                            placeholder={t('enter_product_name_placeholder')}
-                            {...field}
-                            value={field.value ?? ''}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )
-                  }}
-                />
-              </div>
-              <div className='space-y-2'>
-                <FormField
-                  control={form.control}
-                  name='sku'
-                  render={({ field }) => {
-                    return (
-                      <FormItem>
-                        <FormLabel htmlFor='sku'>{t('sku')}*</FormLabel>
-                        <FormControl>
-                          <Input
-                            id='sku'
-                            type='text'
-                            name='sku'
-                            maxLength="16"
-                            autoComplete='off'
-                            placeholder={t(
-                              'enter_unique_product_code_placeholder'
-                            )}
-                            {...field}
-                            value={field.value ?? ''}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )
-                  }}
-                />
-              </div>
-            </div>
-
-            <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
-              <div className='space-y-2'>
-                <FormField
-                  control={form.control}
-                  name='category'
-                  render={({ field }) => {
-
-                    return (
-                      <FormItem>
-                        <FormLabel htmlFor='category'>{t('category')}*</FormLabel>
-                        <Select
-                        //   onValueChange={field.onChange}
-                          onValueChange={code => {
-                            // Buscar el objeto completo por el `code`
-
-
-                            if (dataCategory?.data.length > 0){
-                              const selectedCategory= dataCategory.data.find(
-                                item => item.code === code
-                              )
-                              if (selectedCategory) {
-                                field.onChange(selectedCategory) // Asignar el objeto completo
-                              }
-                            }
-                          
-                          }}
-                          value={field.value?.code}>
-                          <FormControl id='category'>
-                            <SelectTrigger>
-                              <SelectValue placeholder={t('select_category')} />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            {dataCategory?.data.map((item, index) => (
-                              <SelectItem value={item.code} key={index}>
-                                {item.description}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )
-                  }}
-                />
-              </div>
-              
-              <div className='space-y-2'>
-                <FormField
-                  control={form.control}
-                  name='provider'
-                  render={({ field }) => {
-                    return (
-                      <FormItem>
-                        <FormLabel htmlFor='provider'>{t('provider')}*</FormLabel>
-                        <Select
-                                  onValueChange={code => {
-                                    if (dataProviders?.data.length > 0){
-                                      // Buscar el objeto completo por el `code`
-                                    const selectedProvider= dataProviders.data.find(
-                                      item => item.code === code
-                                    )
-                                    if (selectedProvider) {
-                                      field.onChange(selectedProvider) // Asignar el objeto completo
-                                    }
-                                    }
-                                    
-                                  }}
-                                  value={field.value?.code}>
-                          <FormControl id='provider'>
-                            <SelectTrigger>
-                              <SelectValue placeholder={t('select_provider')} />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            {dataProviders?.data.map((item, index) => (
-                              <SelectItem value={item.code} key={index}>
-                                {item.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-
-                        <FormMessage />
-                      </FormItem>
-                    )
-                  }}
-                />
-              </div>
-
-              <div className='space-x-2'>
-                <FormField
-                  control={form.control}
-                  name='status'
-                  render={({ field }) => {
-                    return (
-                      <FormItem>
-                        <FormLabel htmlFor='status'>{t('status')}*</FormLabel>
-                        <Select
-                                   onValueChange={code => {
-                                    if (datastatus?.data.length > 0){
-                                       // Buscar el objeto completo por el `code`
-                                    const selectedStatus = datastatus.data.find(
-                                      item => item.code === code
-                                    )
-                                    if (selectedStatus) {
-                                      field.onChange(selectedStatus) // Asignar el objeto completo
-                                    }
-                                    }
-                                   
-                                  }}
-                                  value={field.value?.code}>
-                          <FormControl id='status'>
-                            <SelectTrigger>
-                              <SelectValue placeholder={t('select_status')} />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            {datastatus?.data.map((item, index) => (
-                              <SelectItem value={item.code} key={index}>
-                                {item.description}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )
-                  }}
-                />
-              </div>
-            </div>
-
-            <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
-              <div className='space-y-2'>
-                <FormField
-                  control={form.control}
-                  name='price'
-                  render={({ field }) => {
-                    return (
-                      <FormItem>
-                        <FormLabel htmlFor='price'>{t('price')}*</FormLabel>
-                        <FormControl>
-                          <Input
-                            id='price'
-                            type='number'
-                            placeholder='0.00'
-                            name='price'
-                            autoComplete='off'
-                            {...field}
-                            value={field.value ?? ''}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )
-                  }}
-                />
-              </div>
-              <div className='space-y-2'>
-                <FormField
-                  control={form.control}
-                  name='cost'
-                  render={({ field }) => {
-                    return (
-                      <FormItem>
-                        <FormLabel htmlFor='price'>{t('cost')}*</FormLabel>
-                        <FormControl>
-                          <Input
-                            id='cost'
-                            type='number'
-                            placeholder='0.00'
-                            name='cost'
-                            autoComplete='off'
-                            {...field}
-                            value={field.value ?? ''}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )
-                  }}
-                />
-              </div>
-            </div>
-
-            <div className='space-y-2'>
+            <div className='grid grid-cols-2 gap-6 py-4 auto-rows-auto'>
               <FormField
                 control={form.control}
-                name='description'
+                name='name'
                 render={({ field }) => {
                   return (
-                    <FormItem className='flex flex-col flex-auto col-span-2'>
-                      <FormLabel htmlFor='description'>
-                        {t('description')}
-                      </FormLabel>
+                    <FormItem>
+                      <FormLabel htmlFor='name'>{t('name')}*</FormLabel>
                       <FormControl>
-                        <Textarea
-                          id='description'
-                          placeholder={t(
-                            'detailed_product_description_placeholder'
-                          )}
-                          className='resize-none'
+                        <Input
+                          id='name'
+                          name='name'
+                          placeholder={t('user_name_placeholder')}
+                          type='text'
                           autoComplete='off'
-                          maxLength={2000}
+                          maxLength={100}
                           {...field}
                           value={field.value ?? ''}
                         />
@@ -361,51 +109,400 @@ export const UsersBasicInfo = ({
                   )
                 }}
               />
-            </div>
 
-            <div className='space-y-2'>
-              <div className='flex gap-2'>
-                <div className='flex-1'>
-                  <FormField
-                    className='flex-initial'
-                    control={form.control}
-                    name='barcode'
-                    render={({ field }) => {
-                      return (
-                        <FormItem>
-                          <FormLabel htmlFor='barcode'>
-                            {t('barcode')}
-                          </FormLabel>
-                          <FormControl>
-                            <Input
-                              id='barcode'
-                              type='text'
-                              name='barcode'
-                              autoComplete='off'
-                              placeholder={t(
-                                'generate_barcode_automatically_placeholder'
-                              )}
-                              {...field}
-                              value={field.value ?? ''}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )
-                    }}
-                  />
-                </div>
-                <div className='space-y-2'>
-                  <Button
-                    className='mt-8'
-                    type='button'
-                    variant='outline'
-                    onClick={generateBarcode}>
-                    <LuBarcode className='w-4 h-4 mr-2' />
-                    {t('generate')}
-                  </Button>
-                </div>
-              </div>
+              <FormField
+                control={form.control}
+                name='email'
+                render={({ field }) => {
+                  return (
+                    <FormItem>
+                      <FormLabel htmlFor='email'>{t('email')}*</FormLabel>
+                      <FormControl>
+                        <Input
+                          id='email'
+                          name='email'
+                          placeholder={t('user_email_placeholder')}
+                          type='email'
+                          autoComplete='off'
+                          maxLength={254}
+                          {...field}
+                          value={field.value ?? ''}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )
+                }}
+              />
+
+              <FormField
+                control={form.control}
+                name='telephone'
+                render={({ field }) => {
+                  return (
+                    <FormItem>
+                      <FormLabel htmlFor='telephone'>
+                        {t('telephone')}*
+                      </FormLabel>
+                      <FormControl>
+                        <Input
+                          id='telephone'
+                          name='telephone'
+                          placeholder={t('user_telephone_placeholder')}
+                          type='tel'
+                          autoComplete='off'
+                          maxLength={15}
+                          {...field}
+                          value={field.value ?? ''}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )
+                }}
+              />
+
+              <FormField
+                control={form.control}
+                name='address'
+                render={({ field }) => {
+                  return (
+                    <FormItem>
+                      <FormLabel htmlFor='address'>{t('address')}</FormLabel>
+                      <FormControl>
+                        <Input
+                          id='address'
+                          name='address'
+                          placeholder={t('user_address_placeholder')}
+                          type='text'
+                          autoComplete='off'
+                          maxLength={250}
+                          {...field}
+                          value={field.value ?? ''}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )
+                }}
+              />
+
+              <FormField
+                control={form.control}
+                name='birthday'
+                render={({ field }) => (
+                  <FormItem className='flex flex-col flex-auto'>
+                    <FormLabel htmlFor='birthday'>{t('birthday')}*</FormLabel>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <FormControl>
+                          <Button
+                            id='birthday'
+                            variant={'outline'}
+                            className={cn(
+                              'pl-3 text-left font-normal',
+                              !field.value && 'text-muted-foreground'
+                            )}>
+                            {field.value && format(field.value, 'PPP')}
+                            <CalendarIcon className='w-4 h-4 ml-auto opacity-50' />
+                          </Button>
+                        </FormControl>
+                      </PopoverTrigger>
+                      <PopoverContent className='w-auto p-0' align='start'>
+                        <Calendar
+                          mode='single'
+                          selected={field.value}
+                          onSelect={field.onChange}
+                          disabled={date => date < new Date('1900-01-01')}
+                        />
+                      </PopoverContent>
+                    </Popover>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name='startDate'
+                render={({ field }) => (
+                  <FormItem className='flex flex-col flex-auto'>
+                    <FormLabel htmlFor='startDate'>
+                      {t('start_date')}*
+                    </FormLabel>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <FormControl>
+                          <Button
+                            id='startDate'
+                            variant={'outline'}
+                            className={cn(
+                              'pl-3 text-left font-normal',
+                              !field.value && 'text-muted-foreground'
+                            )}>
+                            {field.value && format(field.value, 'PPP')}
+                            <CalendarIcon className='w-4 h-4 ml-auto opacity-50' />
+                          </Button>
+                        </FormControl>
+                      </PopoverTrigger>
+                      <PopoverContent className='w-auto p-0' align='start'>
+                        <Calendar
+                          mode='single'
+                          selected={field.value}
+                          onSelect={field.onChange}
+                          disabled={date => date < new Date('1900-01-01')}
+                        />
+                      </PopoverContent>
+                    </Popover>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name='socialSecurity'
+                render={({ field }) => {
+                  return (
+                    <FormItem>
+                      <FormLabel htmlFor='socialSecurity'>
+                        {t('social_security')}*
+                      </FormLabel>
+                      <FormControl>
+                        <Input
+                          id='socialSecurity'
+                          name='socialSecurity'
+                          placeholder={t('user_social_security_placeholder')}
+                          type='text'
+                          autoComplete='off'
+                          maxLength={9}
+                          {...field}
+                          value={field.value ?? ''}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )
+                }}
+              />
+
+              <FormField
+                control={form.control}
+                name='zipcode'
+                render={({ field }) => {
+                  return (
+                    <FormItem>
+                      <FormLabel htmlFor='zipcode'>{t('zipcode')}*</FormLabel>
+                      <FormControl>
+                        <Input
+                          id='zipcode'
+                          name='zipcode'
+                          placeholder={t('user_zipcode_placeholder')}
+                          type='text'
+                          autoComplete='off'
+                          maxLength={9}
+                          {...field}
+                          value={field.value ?? ''}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )
+                }}
+              />
+
+              <FormField
+                control={form.control}
+                name='state'
+                render={({ field }) => {
+                  return (
+                    <FormItem>
+                      <FormLabel htmlFor='state'>{t('state')}</FormLabel>
+                      <FormControl>
+                        <Input
+                          id='state'
+                          name='state'
+                          placeholder={t('user_state_placeholder')}
+                          type='text'
+                          autoComplete='off'
+                          maxLength={50}
+                          {...field}
+                          value={field.value ?? ''}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )
+                }}
+              />
+
+              <FormField
+                control={form.control}
+                name='city'
+                render={({ field }) => {
+                  return (
+                    <FormItem>
+                      <FormLabel htmlFor='city'>{t('city')}</FormLabel>
+                      <FormControl>
+                        <Input
+                          id='city'
+                          name='city'
+                          placeholder={t('user_city_placeholder')}
+                          type='text'
+                          autoComplete='off'
+                          maxLength={35}
+                          {...field}
+                          value={field.value ?? ''}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )
+                }}
+              />
+
+              <FormField
+                control={form.control}
+                name='isAdmin'
+                render={({ field }) => (
+                  <FormItem className='flex items-center space-x-2'>
+                    <FormLabel htmlFor='isAdmin'>{t('is_admin')}</FormLabel>
+                    <FormControl>
+                      <Input
+                        type='checkbox'
+                        id='isAdmin'
+                        checked={field.value}
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name='picture'
+                render={({ field }) => {
+                  return (
+                    <FormItem>
+                      <FormLabel htmlFor='picture'>{t('picture')}</FormLabel>
+                      <FormControl>
+                        <Input
+                          id='picture'
+                          name='picture'
+                          placeholder={t('user_picture_placeholder')}
+                          type='document'
+                          autoComplete='off'
+                          {...field}
+                          value={field.value ?? ''}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )
+                }}
+              />
+
+              <FormField
+                control={form.control}
+                name='document'
+                render={({ field }) => {
+                  return (
+                    <FormItem>
+                      <FormLabel htmlFor='document'>{t('document')}</FormLabel>
+                      <FormControl>
+                        <Input
+                          id='document'
+                          name='document'
+                          placeholder={t('user_document_placeholder')}
+                          type='document'
+                          autoComplete='off'
+                          {...field}
+                          value={field.value ?? ''}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )
+                }}
+              />
+
+              <FormField
+                control={form.control}
+                name='roleId'
+                render={({ field }) => {
+                  return (
+                    <FormItem>
+                      <FormLabel htmlFor='roleId'>{t('role_id')}*</FormLabel>
+                      <FormControl>
+                        <Input
+                          id='roleId'
+                          name='roleId'
+                          placeholder={t('user_role_id_placeholder')}
+                          type='number'
+                          autoComplete='off'
+                          {...field}
+                          value={field.value ?? ''}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )
+                }}
+              />
+
+              <FormField
+                control={form.control}
+                name='statusId'
+                render={({ field }) => {
+                  return (
+                    <FormItem>
+                      <FormLabel htmlFor='statusId'>
+                        {t('status_id')}*
+                      </FormLabel>
+                      <FormControl>
+                        <Input
+                          id='statusId'
+                          name='statusId'
+                          placeholder={t('user_status_id_placeholder')}
+                          type='number'
+                          autoComplete='off'
+                          {...field}
+                          value={field.value ?? ''}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )
+                }}
+              />
+
+              <FormField
+                control={form.control}
+                name='userPermitId'
+                render={({ field }) => {
+                  return (
+                    <FormItem>
+                      <FormLabel htmlFor='userPermitId'>
+                        {t('user_permit_id')}*
+                      </FormLabel>
+                      <FormControl>
+                        <Input
+                          id='userPermitId'
+                          name='userPermitId'
+                          placeholder={t('user_permit_id_placeholder')}
+                          type='number'
+                          autoComplete='off'
+                          {...field}
+                          value={field.value ?? ''}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )
+                }}
+              />
             </div>
             <div className='flex flex-wrap items-center justify-between gap-3 mt-5 md:justify-normal'>
               <Button
@@ -417,15 +514,15 @@ export const UsersBasicInfo = ({
                 {t('cancel')}
               </Button>
               {id && (
-                  <Button
-                    type='button'
-                    variant='destructive'
-                    onClick={() => {
-                      handleDelete(id)
-                    }}>
-                    {t('delete')}
-                  </Button>
-                )}
+                <Button
+                  type='button'
+                  variant='destructive'
+                  onClick={() => {
+                    handleDelete(id)
+                  }}>
+                  {t('delete')}
+                </Button>
+              )}
               <Button type='submit' variant='info'>
                 {t('save')}
               </Button>

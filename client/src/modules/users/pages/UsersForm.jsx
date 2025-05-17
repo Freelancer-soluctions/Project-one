@@ -3,10 +3,11 @@ import { useTranslation } from 'react-i18next'
 import { BackDashBoard } from '@/components/backDash/BackDashBoard'
 import {
   useUpdateUserByIdMutation,
-  useDeleteUserByIdMutation
+  useDeleteUserByIdMutation,
+  useGetAllUsersStatusQuery
 } from '../api/usersApi'
 import { Spinner } from '@/components/loader/Spinner'
-import { UsersBasicInfo, } from '../components'
+import { UsersBasicInfo } from '../components'
 import AlertDialogComponent from '@/components/alertDialog/AlertDialog'
 import { useNavigate, useLocation } from 'react-router'
 import { useState, useEffect } from 'react'
@@ -32,7 +33,11 @@ function UsersForms() {
     { isLoading: isLoadingPut, isError: isErrorPut, isSuccess: isSuccessPut }
   ] = useUpdateUserByIdMutation()
 
-
+    const {
+      data: dataUsersStatus = { data: [] },
+      isLoading: isLoadingStatus,
+      isFetching: isFetchingStatus
+    } = useGetAllUsersStatusQuery()
 
   const [
     deleteUserById,
@@ -43,35 +48,33 @@ function UsersForms() {
     }
   ] = useDeleteUserByIdMutation()
 
- const handleSubmit = async (values, userId) => {
+  const handleSubmit = async (values, userId) => {
     try {
       const result = await updateUserById({
-            id: userId,
-            data: {
-              name: values.name,
-              email: values.email,
-              telephone: values.telephone,
-              address: values.address,
-              birthday: values.birthday,
-              startDate: values.startDate,
-              socialSecurity: values.socialSecurity,
-              zipcode: values.zipcode,
-              state: values.state,
-              city: values.city,
-              isAdmin: values.isAdmin,
-              picture: values.picture,
-              document: values.document,
-              roleId: values.roleId,
-              statusId: values.statusId,
-              userPermitId: values.userPermitId
-            }
-          }).unwrap()
-       
+        id: userId,
+        data: {
+          name: values.name,
+          email: values.email,
+          telephone: values.telephone,
+          address: values.address,
+          birthday: values.birthday,
+          startDate: values.startDate,
+          socialSecurity: values.socialSecurity,
+          zipcode: values.zipcode,
+          state: values.state,
+          city: values.city,
+          isAdmin: values.isAdmin,
+          picture: values.picture,
+          document: values.document,
+          roleId: values.roleId,
+          statusId: values.statusId,
+          userPermitId: values.userPermitId
+        }
+      }).unwrap()
+
       setAlertProps({
         alertTitle: t(userId ? 'update_record' : 'add_record'),
-        alertMessage: t(
-          userId ? 'updated_successfully' : 'added_successfully'
-        ),
+        alertMessage: t(userId ? 'updated_successfully' : 'added_successfully'),
         cancel: false,
         success: true,
         onSuccess: () => {
@@ -83,7 +86,6 @@ function UsersForms() {
     } catch (err) {
       console.error('Error:', err)
     }
-  }
 
     setOpenAlertDialog(true)
     setAlertProps({
@@ -137,25 +139,13 @@ function UsersForms() {
     }
   }
 
-
   return (
     <>
-      <BackDashBoard
-        link={'/home/users'}
-        moduleName={t('edit_product') }
-      />
+      <BackDashBoard link={'/home/users'} moduleName={t('edit_users')} />
       <div className='relative'>
-        {(isLoadingCategory ||
-          isLoadingPost ||
-          isLoadingPut ||
+        {(isLoadingPut ||
           isLoadingDelete ||
-          isLoadingProviders ||
           isLoadingStatus ||
-          isLoadingAttributes ||
-          isLoadingDeleteAttribute ||
-          isFetchingProviders ||
-          isFetchingAttributes ||
-          isFetchingCategory ||
           isFetchingStatus) && <Spinner />}
 
         <div className='container flex flex-col min-h-screen'>
@@ -169,13 +159,10 @@ function UsersForms() {
                 <UsersBasicInfo
                   onSubmitCreateEdit={handleSubmit}
                   onDelete={handleDelete}
-                  dataRoles={dataCategory}
-                  datastatus={datastatus}
+                  dataStatus={dataStatus}
                   selectedRow={selectedRow}
                 />
               </TabsContent>
-
-            
             </Tabs>
             <AlertDialogComponent
               openAlertDialog={openAlertDialog}
