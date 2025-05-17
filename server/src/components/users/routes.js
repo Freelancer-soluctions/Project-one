@@ -4,7 +4,8 @@ import {
   createUser,
   updateUserById,
   deleteUserById,
-  getUserById
+
+  getAllUsersStatus
 } from './controller.js'
 import verifyToken from '../../middleware/verifyToken.js'
 import validateSchema from '../../middleware/validateSchema.js'
@@ -68,60 +69,6 @@ router.get(
   verifyToken,
   validateQueryParams(userFiltersSchema),
   getAllUsers
-)
-
-/**
- * @openapi
- * /v1/users/{id}:
- *   get:
- *     tags:
- *       - Users
- *     summary: Get a user by ID
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: integer
- *         description: User ID
- *     responses:
- *       200:
- *         description: OK
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 error:
- *                   type: boolean
- *                   example: false
- *                 statusCode:
- *                   type: integer
- *                   example: 200
- *                 message:
- *                   type: string
- *                   example: "Some success message"
- *                 data:
- *                   $ref: "#/components/schemas/ResponseGetUser"
- *       401:
- *         description: Unauthorized
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Unauthorized'
- *       500:
- *         description: Server error
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Error'
- */
-router.get(
-  '/:id',
-  verifyToken,
-  getUserById
 )
 
 /**
@@ -274,5 +221,7 @@ router.delete(
   verifyToken,
   deleteUserById
 )
+
+router.get('/status', getAllUsersStatus)
 
 export default router

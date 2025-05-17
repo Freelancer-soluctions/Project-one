@@ -3,7 +3,7 @@ import {
   createUser as createUserService,
   updateUserById as updateUserByIdService,
   deleteUserById as deleteUserByIdService,
-  getUserById as getUserByIdService
+  getAllUsersStatus as getAllUsersStatusService
 } from './service.js'
 import handleCatchErrorAsync from '../../utils/responses&Errors/handleCatchErrorAsync.js'
 import globalResponse from '../../utils/responses&Errors/globalResponse.js'
@@ -20,13 +20,15 @@ export const getAllUsers = handleCatchErrorAsync(async (req, res) => {
 })
 
 /**
- * Get a user by ID
- * @param {Object} req - Express request object
- * @param {Object} res - Express response object
+ * Get all users statuses.
+ *
+ * @param {Object} req - The HTTP request object.
+ * @param {Object} res - The HTTP response object.
+ * @returns {Promise<void>} Sends a response containing the status of all product items.
  */
-export const getUserById = handleCatchErrorAsync(async (req, res) => {
-  const user = await getUserByIdService(req.params.id)
-  globalResponse(res, 200, user)
+export const getAllUsersStatus = handleCatchErrorAsync(async (req, res) => {
+  const data = await getAllUsersStatusService()
+  globalResponse(res, 200, data)
 })
 
 /**

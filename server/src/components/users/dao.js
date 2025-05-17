@@ -20,6 +20,10 @@ export const getAllUsers = async (filters = {}) => {
     whereClauses.push(Prisma.sql`u."email" ILIKE ${filters.email}`)
   }
 
+  if (filters.status) {
+    whereClauses.push(Prisma.sql`s."code" = ${filters.status}`)
+  }
+
   const whereSql = whereClauses.length
     ? Prisma.sql`WHERE ${Prisma.join(whereClauses, Prisma.sql` AND `)}`
     : Prisma.empty
@@ -46,33 +50,14 @@ export const getAllUsers = async (filters = {}) => {
 }
 
 /**
- * Get a single user by their ID with related data.
- * @async
- * @param {number} id - The ID of the user to retrieve.
- * @returns {Promise&lt;object|null&gt;} The user object or null if not found.
+ * Retrieves all available users statuses from the database.
+ *
+ * @returns {Promise<Array>} A list of users statuses.
  */
-export const getUserById = async (id) => {
-  // Ensure id is an integer
-  const userId = parseInt(id, 10)
-  if (isNaN(userId)) {
-    throw new Error('Invalid user ID provided.')
-  }
-  const users = await prisma.$queryRaw`
-    SELECT 
-      u.*,
-      r.description AS "roleDescription",
-      us.description AS "statusDescription",
-      up."accessConfiguration",
-      up."accessNews",
-      updater.name AS "lastUpdatedByName"
-    FROM "users" u
-    LEFT JOIN "roles" r ON u."roleId" = r.id
-    LEFT JOIN "userStatus" us ON u."statusId" = us.id
-    LEFT JOIN "userPermits" up ON u."userPermitId" = up.id
-    LEFT JOIN "users" updater ON u."lastUpdatedBy" = updater.id
-    WHERE u.id = ${userId}
-  `
-  return users[0] || null
+
+export const getAllUsersStatus = async () => {
+  const status = await prisma.userStatus.findMany()
+  return Promise.resolve(status)
 }
 
 /**

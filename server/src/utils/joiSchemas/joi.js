@@ -440,7 +440,8 @@ export const expenseCreateUpdateSchema = Joi.object({
 
 export const userFiltersSchema = Joi.object({
   name: Joi.string().max(100).allow(''),
-  email: Joi.string().email().allow('')
+  email: Joi.string().email().allow(''),
+  status: Joi.string().allow('')
 })
 
 export const userCreateUpdateSchema = Joi.object({

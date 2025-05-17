@@ -8,6 +8,13 @@ import {
   FormLabel,
   FormMessage
 } from '@/components/ui/form'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from '@/components/ui/select'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { LuSearch, LuEraser } from 'react-icons/lu'
@@ -15,10 +22,14 @@ import PropTypes from 'prop-types'
 import { UsersFiltersSchema } from '../utils'
 import { zodResolver } from '@hookform/resolvers/zod'
 
-export const UsersFiltersForm = ({ onSubmit }) => {
+export const UsersFiltersForm = ({ onSubmit, dataStatus }) => {
   const { t } = useTranslation()
   const form = useForm({
-    resolver: zodResolver(UsersFiltersSchema)
+    resolver: zodResolver(UsersFiltersSchema),
+    defaultValues: {
+      name: '',
+      status: ''
+    }
   })
 
   const handleSubmit = data => {
@@ -90,6 +101,33 @@ export const UsersFiltersForm = ({ onSubmit }) => {
               )
             }}
           />
+
+          <FormField
+              control={form.control}
+              name='status'
+              render={({ field }) => {
+                return (
+                  <FormItem className='flex flex-col flex-auto'>
+                    <FormLabel htmlFor='status'>{t('status')}</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl id='status'>
+                        <SelectTrigger>
+                          <SelectValue placeholder={t('select_status')} />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {dataStatus?.data.map((item, index) => (
+                          <SelectItem value={item.code.toString()} key={index}>
+                            {item.description}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )
+              }}
+            />
         </div>
         {/* buttons */}
         <div className='flex flex-wrap items-center justify-between gap-3 mt-5 md:justify-normal'>
@@ -116,5 +154,5 @@ export const UsersFiltersForm = ({ onSubmit }) => {
 
 UsersFiltersForm.propTypes = {
   onSubmit: PropTypes.func.isRequired,
-  onAddDialog: PropTypes.func
+  dataStatus: PropTypes.array.isRequired
 }
