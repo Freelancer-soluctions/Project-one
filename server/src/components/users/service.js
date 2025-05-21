@@ -3,7 +3,8 @@ import {
   createUser as createDao,
   updateUserById as updateDao,
   deleteUserById as deleteDao,
-  getAllUsersStatus as getAllUserStatusDao
+  getAllUsersStatus as getAllUserStatusDao,
+  getAllUsersRoles as getAllUserRolesDao
 } from './dao.js'
 
 /**
@@ -23,6 +24,17 @@ export const getAllUsers = async (filters) => {
 
 export const getAllUsersStatus = async () => {
   const data = await getAllUserStatusDao()
+  return data
+}
+
+/**
+ * Get all available user roles from the database.
+ *
+ * @returns {Promise<Array>} A list of all user roles.
+ */
+
+export const getAllUsersRoles = async () => {
+  const data = await getAllUserRolesDao()
   return data
 }
 

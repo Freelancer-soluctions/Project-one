@@ -3,7 +3,8 @@ import { BackDashBoard } from '@/components/backDash/BackDashBoard'
 import { useTranslation } from 'react-i18next'
 import {
   useLazyGetAllUsersQuery,
-  useGetAllUsersStatusQuery
+  useGetAllUsersStatusQuery,
+  useGetAllUsersRolQuery
 } from '../api/usersApi'
 import { Spinner } from '@/components/loader/Spinner'
 import { useNavigate } from 'react-router'
@@ -27,6 +28,12 @@ const Users = () => {
     isFetching: isFetchingStatus
   } = useGetAllUsersStatusQuery()
 
+    const {
+    data: dataUsersRol = { data: [] },
+    isLoading: isLoadingRol,
+    isFetching: isFetchingRol
+  } = useGetAllUsersRolQuery()
+
   const handleSubmitFilters = data => {
     console.log('data', data)
     getAllUsers({
@@ -46,7 +53,9 @@ const Users = () => {
         {(isLoadingUsers ||
           isFetchingUsers ||
           isLoadingStatus ||
-          isFetchingStatus) && <Spinner />}
+          isFetchingStatus ||
+          isLoadingRol ||
+          isFetchingRol) && <Spinner />}
 
         <div className='grid grid-cols-2 grid-rows-4 gap-4 md:grid-cols-5'>
           {/* filters */}
@@ -54,6 +63,7 @@ const Users = () => {
             <UsersFiltersForm
               onSubmit={handleSubmitFilters}
               dataStatus={dataUsersStatus}
+              dataRol={dataUsersRol}
             />
           </div>
           {/* Datatable */}
