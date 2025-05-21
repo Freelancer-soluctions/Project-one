@@ -4,7 +4,8 @@ import { BackDashBoard } from '@/components/backDash/BackDashBoard'
 import {
   useUpdateUserByIdMutation,
   useDeleteUserByIdMutation,
-  useGetAllUsersStatusQuery
+  useGetAllUsersStatusQuery,
+  useGetAllUsersRolQuery
 } from '../api/usersApi'
 import { Spinner } from '@/components/loader/Spinner'
 import { UsersBasicInfo } from '../components'
@@ -47,6 +48,12 @@ function UsersForms() {
       isSuccess: isSuccessDelete
     }
   ] = useDeleteUserByIdMutation()
+
+      const {
+      data: dataUsersRol = { data: [] },
+      isLoading: isLoadingRol,
+      isFetching: isFetchingRol
+    } = useGetAllUsersRolQuery()
 
   const handleSubmit = async (values, userId) => {
     try {
@@ -146,6 +153,8 @@ function UsersForms() {
         {(isLoadingPut ||
           isLoadingDelete ||
           isLoadingStatus ||
+          isLoadingRol ||
+          isFetchingRol ||
           isFetchingStatus) && <Spinner />}
 
         <div className='container flex flex-col min-h-screen'>
@@ -153,13 +162,16 @@ function UsersForms() {
             <Tabs defaultValue='info' className='mb-6'>
               <TabsList className='grid w-full grid-cols-2'>
                 <TabsTrigger value='info'>{t('basic_information')}</TabsTrigger>
+                <TabsTrigger value='attributes'>{t('users_permits')}</TabsTrigger>
+                
               </TabsList>
 
               <TabsContent value='info' className='mt-4'>
                 <UsersBasicInfo
                   onSubmitCreateEdit={handleSubmit}
                   onDelete={handleDelete}
-                  dataStatus={dataStatus}
+                  dataStatus={dataUsersStatus?.data}
+                  dataRol={dataUsersRol?.data}
                   selectedRow={selectedRow}
                 />
               </TabsContent>

@@ -39,6 +39,8 @@ export const getAllUsers = async (filters = {}) => {
       r.description AS "roleDescription",
       r.code AS "roleCode",
       r.id AS "roleId"
+ 
+
     FROM "users" u
     LEFT JOIN "users" uu ON u."lastUpdatedBy" = uu.id
     LEFT JOIN "userStatus" s ON u."statusId" = s.id
@@ -58,6 +60,17 @@ export const getAllUsers = async (filters = {}) => {
 export const getAllUsersStatus = async () => {
   const status = await prisma.userStatus.findMany()
   return Promise.resolve(status)
+}
+
+/**
+ * Retrieves all available users roles from the database.
+ *
+ * @returns {Promise<Array>} A list of users roles.
+ */
+
+export const getAllUsersRoles = async () => {
+  const roles = await prisma.roles.findMany()
+  return Promise.resolve(roles)
 }
 
 /**
