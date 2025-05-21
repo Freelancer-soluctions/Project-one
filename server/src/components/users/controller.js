@@ -3,7 +3,8 @@ import {
   createUser as createUserService,
   updateUserById as updateUserByIdService,
   deleteUserById as deleteUserByIdService,
-  getAllUsersStatus as getAllUsersStatusService
+  getAllUsersStatus as getAllUsersStatusService,
+  getAllUsersRoles as getAllUsersRolesService
 } from './service.js'
 import handleCatchErrorAsync from '../../utils/responses&Errors/handleCatchErrorAsync.js'
 import globalResponse from '../../utils/responses&Errors/globalResponse.js'
@@ -14,7 +15,6 @@ import globalResponse from '../../utils/responses&Errors/globalResponse.js'
  * @param {Object} res - Express response object
  */
 export const getAllUsers = handleCatchErrorAsync(async (req, res) => {
-  console.log('userquery', req.query)
   const users = await getAllUsersService(req.query)
   globalResponse(res, 200, users)
 })
@@ -28,6 +28,18 @@ export const getAllUsers = handleCatchErrorAsync(async (req, res) => {
  */
 export const getAllUsersStatus = handleCatchErrorAsync(async (req, res) => {
   const data = await getAllUsersStatusService()
+  globalResponse(res, 200, data)
+})
+
+/**
+ * Get all users roles.
+ *
+ * @param {Object} req - The HTTP request object.
+ * @param {Object} res - The HTTP response object.
+ * @returns {Promise<void>} Sends a response containing the status of all product items.
+ */
+export const getAllUsersRoles = handleCatchErrorAsync(async (req, res) => {
+  const data = await getAllUsersRolesService()
   globalResponse(res, 200, data)
 })
 

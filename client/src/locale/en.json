@@ -293,7 +293,9 @@
     "user_status_id_placeholder": "Enter status ID",
     "user_permit_id": "User Permit ID",
     "user_permit_id_placeholder": "Enter user permit ID",
-    "hola_mundo": "Hello world"
+    "users_permits": "Users Permits",
+    "edit_users": "Edit users",
+    "social_security": "Social Security"
     
   }
 }

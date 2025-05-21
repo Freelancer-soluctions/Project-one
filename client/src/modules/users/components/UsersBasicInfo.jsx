@@ -21,20 +21,22 @@ import {
   CardTitle
 } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import { Checkbox } from '@/components/ui/checkbox'
 import { Input } from '@/components/ui/input'
-import { Textarea } from '@/components/ui/textarea'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { UserSchema } from '../utils'
 import { useNavigate } from 'react-router'
 import { useTranslation } from 'react-i18next'
 import { useEffect, useState } from 'react'
-import { LuBarcode } from 'react-icons/lu'
+import { cn } from '@/lib/utils'
+
 
 export const UsersBasicInfo = ({
   onSubmitCreateEdit,
   onDelete,
   dataStatus,
+  dataRol,
   selectedRow
 }) => {
   const navigate = useNavigate()
@@ -50,11 +52,17 @@ export const UsersBasicInfo = ({
     if (selectedRow?.id) {
       form.reset({
         ...selectedRow,
-        status: {
-          id: selectedRow.statusId,
-          code: selectedRow.statusCode,
-          description: selectedRow.statusDescription
-        }
+        birthday: selectedRow.birthday
+          ? new Date(selectedRow.birthday).toISOString().split('T')[0]
+          : '',
+        startDate: selectedRow.startDate
+          ? new Date(selectedRow.startDate).toISOString().split('T')[0]
+          : '',
+        lastUpdatedOn: selectedRow.lastUpdatedOn
+          ? new Date(selectedRow.lastUpdatedOn).toISOString().split('T')[0]
+          : '',
+        status: selectedRow.statusCode,
+        role: selectedRow.roleCode,
       })
       setId(selectedRow.id)
     } else {
@@ -82,7 +90,7 @@ export const UsersBasicInfo = ({
             action=''
             id='user-form'
             noValidate
-            onSubmit={form.handleSubmit(handleSubmit)}
+            onSubmit={form.handleSubmit(submitForm)}
             className='flex flex-col flex-wrap gap-5'>
             <div className='grid grid-cols-2 gap-6 py-4 auto-rows-auto'>
               <FormField
@@ -192,31 +200,17 @@ export const UsersBasicInfo = ({
                 name='birthday'
                 render={({ field }) => (
                   <FormItem className='flex flex-col flex-auto'>
-                    <FormLabel htmlFor='birthday'>{t('birthday')}*</FormLabel>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <FormControl>
-                          <Button
-                            id='birthday'
-                            variant={'outline'}
-                            className={cn(
-                              'pl-3 text-left font-normal',
-                              !field.value && 'text-muted-foreground'
-                            )}>
-                            {field.value && format(field.value, 'PPP')}
-                            <CalendarIcon className='w-4 h-4 ml-auto opacity-50' />
-                          </Button>
-                        </FormControl>
-                      </PopoverTrigger>
-                      <PopoverContent className='w-auto p-0' align='start'>
-                        <Calendar
-                          mode='single'
-                          selected={field.value}
-                          onSelect={field.onChange}
-                          disabled={date => date < new Date('1900-01-01')}
-                        />
-                      </PopoverContent>
-                    </Popover>
+                    <FormLabel htmlFor='birthday'>{t('birthday')}</FormLabel>
+                    <FormControl>
+                      <Input
+                        id='birthday'
+                        name='birthday'
+                        disabled
+                        type='date'
+                        {...field}
+                        value={field.value}
+                      />
+                    </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -227,33 +221,17 @@ export const UsersBasicInfo = ({
                 name='startDate'
                 render={({ field }) => (
                   <FormItem className='flex flex-col flex-auto'>
-                    <FormLabel htmlFor='startDate'>
-                      {t('start_date')}*
-                    </FormLabel>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <FormControl>
-                          <Button
-                            id='startDate'
-                            variant={'outline'}
-                            className={cn(
-                              'pl-3 text-left font-normal',
-                              !field.value && 'text-muted-foreground'
-                            )}>
-                            {field.value && format(field.value, 'PPP')}
-                            <CalendarIcon className='w-4 h-4 ml-auto opacity-50' />
-                          </Button>
-                        </FormControl>
-                      </PopoverTrigger>
-                      <PopoverContent className='w-auto p-0' align='start'>
-                        <Calendar
-                          mode='single'
-                          selected={field.value}
-                          onSelect={field.onChange}
-                          disabled={date => date < new Date('1900-01-01')}
-                        />
-                      </PopoverContent>
-                    </Popover>
+                    <FormLabel htmlFor='startDate'>{t('start_date')}</FormLabel>
+                    <FormControl>
+                      <Input
+                        id='startDate'
+                        name='startDate'
+                        disabled
+                        type='date'
+                        {...field}
+                        value={field.value}
+                      />
+                    </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -363,25 +341,6 @@ export const UsersBasicInfo = ({
 
               <FormField
                 control={form.control}
-                name='isAdmin'
-                render={({ field }) => (
-                  <FormItem className='flex items-center space-x-2'>
-                    <FormLabel htmlFor='isAdmin'>{t('is_admin')}</FormLabel>
-                    <FormControl>
-                      <Input
-                        type='checkbox'
-                        id='isAdmin'
-                        checked={field.value}
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
                 name='picture'
                 render={({ field }) => {
                   return (
@@ -428,20 +387,94 @@ export const UsersBasicInfo = ({
                 }}
               />
 
+          
               <FormField
                 control={form.control}
-                name='roleId'
+                name='role'
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel htmlFor='rol'>{t('rol')}*</FormLabel>
+                    <Select
+                      onValueChange={value => field.onChange(value)}
+                      value={field.value?.toString()}>
+                      <FormControl>
+                        <SelectTrigger
+                          className={cn(
+                            'w-full',
+                            !field.value && 'text-muted-foreground'
+                          )}>
+                          <SelectValue
+                            placeholder={t('select_rol')}
+                            className='w-full'
+                          />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {dataRol.map((item, index) => (
+                          <SelectItem key={index} value={item.code.toString()}>
+                            {item.description}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name='status'
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel htmlFor='status'>{t('status')}*</FormLabel>
+                    <Select
+                      onValueChange={value => field.onChange(value)}
+                      value={field.value?.toString()}>
+                      <FormControl>
+                        <SelectTrigger
+                          className={cn(
+                            'w-full',
+                            !field.value && 'text-muted-foreground'
+                          )}>
+                          <SelectValue
+                            placeholder={t('select_status')}
+                            className='w-full'
+                          />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {dataStatus.map((item, index) => (
+                          <SelectItem key={index} value={item.code.toString()}>
+                            {item.description}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+
+
+              <FormField
+                control={form.control}
+                name='lastUpdatedByName'
                 render={({ field }) => {
                   return (
-                    <FormItem>
-                      <FormLabel htmlFor='roleId'>{t('role_id')}*</FormLabel>
+                    <FormItem className='flex flex-col flex-auto col-span-1'>
+                      <FormLabel htmlFor='lastUpdatedByName'>
+                        {t('updated_by')}
+                      </FormLabel>
                       <FormControl>
                         <Input
-                          id='roleId'
-                          name='roleId'
-                          placeholder={t('user_role_id_placeholder')}
-                          type='number'
-                          autoComplete='off'
+                          id='lastUpdatedByName'
+                          name='lastUpdatedByName'
+                          type='text'
+                          autoComplete='false'
+                          readOnly={true}
+                          disabled={true}
                           {...field}
                           value={field.value ?? ''}
                         />
@@ -454,54 +487,44 @@ export const UsersBasicInfo = ({
 
               <FormField
                 control={form.control}
-                name='statusId'
-                render={({ field }) => {
-                  return (
-                    <FormItem>
-                      <FormLabel htmlFor='statusId'>
-                        {t('status_id')}*
-                      </FormLabel>
-                      <FormControl>
-                        <Input
-                          id='statusId'
-                          name='statusId'
-                          placeholder={t('user_status_id_placeholder')}
-                          type='number'
-                          autoComplete='off'
-                          {...field}
-                          value={field.value ?? ''}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )
-                }}
+                name='lastUpdatedOn'
+                render={({ field }) => (
+                  <FormItem className='flex flex-col flex-auto'>
+                    <FormLabel htmlFor='lastUpdatedOn'>
+                      {t('updated_on')}
+                    </FormLabel>
+                    <FormControl>
+                      <Input
+                        id='lastUpdatedOn'
+                        name='lastUpdatedOn'
+                        disabled
+                        type='date'
+                        {...field}
+                        value={field.value}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
               />
-
               <FormField
                 control={form.control}
-                name='userPermitId'
-                render={({ field }) => {
-                  return (
-                    <FormItem>
-                      <FormLabel htmlFor='userPermitId'>
-                        {t('user_permit_id')}*
-                      </FormLabel>
-                      <FormControl>
-                        <Input
-                          id='userPermitId'
-                          name='userPermitId'
-                          placeholder={t('user_permit_id_placeholder')}
-                          type='number'
-                          autoComplete='off'
-                          {...field}
-                          value={field.value ?? ''}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )
-                }}
+                name='isAdmin'
+                render={({ field }) => (
+                  <FormItem className='flex flex-row items-start p-4 space-x-3 space-y-0 border rounded-md'>
+                    <FormControl>
+                      <Checkbox
+                        id='isAdmin'
+                        name='isAdmin'
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                    <div className='space-y-1 leading-none'>
+                      <FormLabel htmlFor='isAdmin'>{t('is_admin')}</FormLabel>
+                    </div>
+                  </FormItem>
+                )}
               />
             </div>
             <div className='flex flex-wrap items-center justify-between gap-3 mt-5 md:justify-normal'>

@@ -5,7 +5,8 @@ import {
   updateUserById,
   deleteUserById,
 
-  getAllUsersStatus
+  getAllUsersStatus,
+  getAllUsersRoles
 } from './controller.js'
 import verifyToken from '../../middleware/verifyToken.js'
 import validateSchema from '../../middleware/validateSchema.js'
@@ -223,5 +224,6 @@ router.delete(
 )
 
 router.get('/status', getAllUsersStatus)
+router.get('/roles', getAllUsersRoles)
 
 export default router
