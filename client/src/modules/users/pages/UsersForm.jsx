@@ -34,11 +34,11 @@ function UsersForms() {
     { isLoading: isLoadingPut, isError: isErrorPut, isSuccess: isSuccessPut }
   ] = useUpdateUserByIdMutation()
 
-    const {
-      data: dataUsersStatus = { data: [] },
-      isLoading: isLoadingStatus,
-      isFetching: isFetchingStatus
-    } = useGetAllUsersStatusQuery()
+  const {
+    data: dataUsersStatus = { data: [] },
+    isLoading: isLoadingStatus,
+    isFetching: isFetchingStatus
+  } = useGetAllUsersStatusQuery()
 
   const [
     deleteUserById,
@@ -49,16 +49,17 @@ function UsersForms() {
     }
   ] = useDeleteUserByIdMutation()
 
-      const {
-      data: dataUsersRol = { data: [] },
-      isLoading: isLoadingRol,
-      isFetching: isFetchingRol
-    } = useGetAllUsersRolQuery()
+  const {
+    data: dataUsersRol = { data: [] },
+    isLoading: isLoadingRol,
+    isFetching: isFetchingRol
+  } = useGetAllUsersRolQuery()
 
-  const handleSubmit = async (values, userId) => {
+  const handleSubmit = async values => {
+    debugger
     try {
       const result = await updateUserById({
-        id: userId,
+        id: values.id,
         data: {
           name: values.name,
           email: values.email,
@@ -80,12 +81,13 @@ function UsersForms() {
       }).unwrap()
 
       setAlertProps({
-        alertTitle: t(userId ? 'update_record' : 'add_record'),
-        alertMessage: t(userId ? 'updated_successfully' : 'added_successfully'),
+        alertTitle: t('update_record'),
+        alertMessage: t('updated_successfully'),
         cancel: false,
         success: true,
         onSuccess: () => {
           setOpenDialog(false)
+          navigate('/home/users')
         },
         variantSuccess: 'info'
       })
@@ -93,20 +95,6 @@ function UsersForms() {
     } catch (err) {
       console.error('Error:', err)
     }
-
-    setOpenAlertDialog(true)
-    setAlertProps({
-      alertTitle: data.id ? t('update_record') : t('add_record'),
-      alertMessage: data.id
-        ? t('updated_successfully')
-        : t('added_successfully'),
-      cancel: false,
-      success: true,
-      onSuccess: () => {
-        navigate('/home/products')
-      },
-      variantSuccess: 'info'
-    })
   }
 
   const handleDelete = async id => {
@@ -160,15 +148,13 @@ function UsersForms() {
         <div className='container flex flex-col min-h-screen'>
           <main className='container flex-1 py-6'>
             <Tabs defaultValue='info' className='mb-6'>
-              <TabsList className='grid w-full grid-cols-2'>
+              <TabsList className='grid w-full grid-cols-1'>
                 <TabsTrigger value='info'>{t('basic_information')}</TabsTrigger>
-                <TabsTrigger value='attributes'>{t('users_permits')}</TabsTrigger>
-                
               </TabsList>
 
               <TabsContent value='info' className='mt-4'>
                 <UsersBasicInfo
-                  onSubmitCreateEdit={handleSubmit}
+                  onSubmit={handleSubmit}
                   onDelete={handleDelete}
                   dataStatus={dataUsersStatus?.data}
                   dataRol={dataUsersRol?.data}

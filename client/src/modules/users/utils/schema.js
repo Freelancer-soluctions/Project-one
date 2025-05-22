@@ -19,10 +19,12 @@ export const UserSchema = z
       message: 'Birthday date is required.'
     }),
     startDate: z.union([z.date(), z.string()], {
-      message: 'Birthday date is required.'
+      message: 'Start date is required.'
     }),
 
-    socialSecurity: z.string().min(9).max(9, {
+    socialSecurity: z.string().min(9, {
+      message: 'Social Security must be 9 characters.'
+    }).max(9, {
       message: 'Social Security must be 9 characters.'
     }),
     zipcode: z.string().min(5).max(9, {
@@ -30,11 +32,11 @@ export const UserSchema = z
     }),
     state: z.string().min(1, { message: 'State is required' }),
     city: z.string().min(1, { message: 'City is required' }),
-    isAdmin: z.boolean().optional(),
+    isAdmin: z.boolean(),
     picture: z.string().optional(),
     document: z.string().optional(),
-    roleId: z.string().optional(),
-    statusId: z.string().min(1, { message: 'Status is required' })
+    roles: z.string().min(1, { message: 'Rol is required' }),
+    status: z.string().min(1, { message: 'Status is required' })
   })
   .passthrough() // Permite otros campos
 
