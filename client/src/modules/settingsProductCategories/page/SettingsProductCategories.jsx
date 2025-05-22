@@ -5,7 +5,7 @@ import {
 } from '../components/index'
 import { useLazyGetAllCategoriesQuery } from '../api/SettingsProductCategoriesAPI'
 import { Spinner } from '@/components/loader/Spinner'
-import { useState, useEffect } from 'react' 
+import { useState } from 'react' 
 
 export const SettingsProductCategories = () => {
   const [showForm, setShowForm] = useState(false)

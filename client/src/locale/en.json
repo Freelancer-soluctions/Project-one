@@ -293,9 +293,12 @@
     "user_status_id_placeholder": "Enter status ID",
     "user_permit_id": "User Permit ID",
     "user_permit_id_placeholder": "Enter user permit ID",
-    "users_permits": "Users Permits",
+    "user_permits": "User permits",
     "edit_users": "Edit users",
-    "social_security": "Social Security"
+    "social_security": "Social Security",
+    "user_information":"User information",
+    "user_basic_information_msg":"Enter the basic user information."
+    
     
   }
 }
