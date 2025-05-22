@@ -447,21 +447,21 @@ export const userFiltersSchema = Joi.object({
 export const userCreateUpdateSchema = Joi.object({
   name: Joi.string().max(100).required(),
   email: Joi.string().email().required(),
-  password: Joi.string().min(6).max(100).required(),
   address: Joi.string().max(250).allow(''),
   birthday: Joi.date().required(),
   city: Joi.string().max(35).allow(''),
   isAdmin: Joi.boolean().default(false),
   picture: Joi.string().allow(''),
   document: Joi.string().allow(''),
-  roleId: Joi.number().integer().required(),
+  roles: Joi.number().integer().required(),
   socialSecurity: Joi.string().max(9).required(),
   startDate: Joi.date().required(),
   state: Joi.string().max(50).allow(''),
-  statusId: Joi.number().integer().required(),
+  status: Joi.number().integer().required(),
   telephone: Joi.string().max(15).required(),
   zipcode: Joi.string().max(9).required(),
-  userPermitId: Joi.number().integer().required()
+  accessConfiguration: Joi.boolean(),
+  accessNews: Joi.boolean()
 })
 
 export const clientOrderFiltersSchema = Joi.object({
