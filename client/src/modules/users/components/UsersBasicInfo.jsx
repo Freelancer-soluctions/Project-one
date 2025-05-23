@@ -577,21 +577,21 @@ export const UsersBasicInfo = ({
                   <div className='grid grid-cols-3 gap-6 py-4 auto-rows-auto'>
                     <FormField
                       control={form.control}
-                      name='displayNews'
+                      name='accessConfiguration'
                       render={({ field }) => (
                         <FormItem className='flex items-center space-x-2'>
                           <FormControl>
                             <Checkbox
                               className='mt-2'
-                              id='news'
+                              id='accessConfiguration'
                               checked={field.value}
                               onCheckedChange={field.onChange}
                             />
                           </FormControl>
                           <FormLabel
-                            htmlFor='news'
+                            htmlFor='accessConfiguration'
                             className='text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70'>
-                            {t('news')}
+                            {t('access_configuration')}
                           </FormLabel>
                         </FormItem>
                       )}
@@ -599,21 +599,21 @@ export const UsersBasicInfo = ({
 
                     <FormField
                       control={form.control}
-                      name='displayNews'
+                      name='accessNews'
                       render={({ field }) => (
                         <FormItem className='flex items-center space-x-2'>
                           <FormControl>
                             <Checkbox
                               className='mt-2'
-                              id='news'
+                              id='accessNews'
                               checked={field.value}
                               onCheckedChange={field.onChange}
                             />
                           </FormControl>
                           <FormLabel
-                            htmlFor='news'
+                            htmlFor='accessNews'
                             className='text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70'>
-                            {t('news')}
+                            {t('access_news')}
                           </FormLabel>
                         </FormItem>
                       )}
