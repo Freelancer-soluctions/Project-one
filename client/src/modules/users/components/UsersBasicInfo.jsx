@@ -68,8 +68,8 @@ export const UsersBasicInfo = ({
         lastUpdatedOn: selectedRow.lastUpdatedOn
           ? new Date(selectedRow.lastUpdatedOn).toISOString().split('T')[0]
           : '',
-        status: selectedRow.statusCode,
-        roles: selectedRow.roleCode
+        status: {id:selectedRow.statusId, code:selectedRow.statusCode, description:selectedRow.statusDescription  },
+        roles: {id:selectedRow.roleId, code:selectedRow.roleCode, description:selectedRow.roleDescription  },
       })
       setId(selectedRow.id)
     } else {
@@ -426,8 +426,19 @@ export const UsersBasicInfo = ({
                         <FormItem>
                           <FormLabel htmlFor='rol'>{t('rol')}*</FormLabel>
                           <Select
-                            onValueChange={value => field.onChange(value)}
-                            value={field.value?.toString()}>
+                             onValueChange={code => {
+                            // Buscar el objeto completo por el `code`
+                            if (dataRol.length > 0){
+                              const selected= dataRol.find(
+                                item => item.code === code
+                              )
+                              if (selected) {
+                                field.onChange(selected) // Asignar el objeto completo
+                              }
+                            }
+                          
+                          }}
+                          value={field.value?.code}>
                             <FormControl>
                               <SelectTrigger
                                 className={cn(
@@ -435,7 +446,7 @@ export const UsersBasicInfo = ({
                                   !field.value && 'text-muted-foreground'
                                 )}>
                                 <SelectValue
-                                  placeholder={t('select_rol')}
+                                  placeholder={t('select_role')}
                                   className='w-full'
                                 />
                               </SelectTrigger>
@@ -444,7 +455,7 @@ export const UsersBasicInfo = ({
                               {dataRol.map((item, index) => (
                                 <SelectItem
                                   key={index}
-                                  value={item.code.toString()}>
+                                  value={item.code}>
                                   {item.description}
                                 </SelectItem>
                               ))}
@@ -461,9 +472,20 @@ export const UsersBasicInfo = ({
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel htmlFor='status'>{t('status')}*</FormLabel>
-                          <Select
-                            onValueChange={value => field.onChange(value)}
-                            value={field.value?.toString()}>
+                           <Select
+                             onValueChange={code => {
+                            // Buscar el objeto completo por el `code`
+                            if (dataStatus.length > 0){
+                              const selected= dataStatus.find(
+                                item => item.code === code
+                              )
+                              if (selected) {
+                                field.onChange(selected) // Asignar el objeto completo
+                              }
+                            }
+                          
+                          }}
+                          value={field.value?.code}>
                             <FormControl>
                               <SelectTrigger
                                 className={cn(
@@ -480,7 +502,7 @@ export const UsersBasicInfo = ({
                               {dataStatus.map((item, index) => (
                                 <SelectItem
                                   key={index}
-                                  value={item.code.toString()}>
+                                  value={item.code}>
                                   {item.description}
                                 </SelectItem>
                               ))}
@@ -642,7 +664,7 @@ export const UsersBasicInfo = ({
                 </Button>
               )}
               <Button type='submit' variant='info'>
-                {t('save')}
+                {t('edit')}
               </Button>
             </div>
           </form>

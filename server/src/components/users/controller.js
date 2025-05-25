@@ -64,8 +64,7 @@ export const createUser = handleCatchErrorAsync(async (req, res) => {
  */
 export const updateUserById = handleCatchErrorAsync(async (req, res) => {
   const user = await updateUserByIdService(req.params.id, {
-    ...req.body,
-    lastUpdatedBy: req.userId
+    ...req.body
   })
   globalResponse(res, 200, user)
 })
