@@ -31,14 +31,16 @@ export const getAllUsers = async (filters = {}) => {
   const users = await prisma.$queryRaw`
    SELECT 
       u.*,
-      up.*,
       uu.name AS "lastUpdatedByName",
       s.description AS "statusDescription",
       s.code AS "statusCode",
       s.id AS "statusId",
       r.description AS "roleDescription",
       r.code AS "roleCode",
-      r.id AS "roleId"
+      r.id AS "roleId",
+      up."accessConfiguration" AS "accessConfiguration",
+      up."accessNews" AS "accessNews"
+    
  
 
     FROM "users" u
@@ -157,21 +159,43 @@ export const createUser = async (data) => {
  * @param {string} [data.document] - User's document identifier.
  * @param {string} [data.state] - User's state.
  * @param {string} [data.refreshToken] - User's refresh token.
+ * @param {string} [data.accessConfiguration] - User's access configuration.
+ * @param {string} [data.accessNews] - User's access news.
  * @returns {Promise&lt;object&gt;} The updated user object.
  */
 export const updateUserById = async (id, data) => {
+  console.log('Updating user with ID:', id, 'Data:', data)
   return prisma.users.update({
     where: { id: parseInt(id, 10) },
     data: {
-      ...data, // Spread all potential fields from data
-      lastUpdatedOn: new Date()
-      // lastUpdatedBy should be part of the input 'data' object
-    },
-    include: {
-      roles: true,
-      status: true,
-      userPermits: true
+      name: data.name,
+      email: data.email,
+      address: data.address,
+      city: data.city,
+      isAdmin: data.isAdmin,
+      picture: data.picture,
+      document: data.document,
+      lastUpdatedBy: data.lastUpdatedBy,
+      lastUpdatedOn: data.lastUpdatedOn,
+      socialSecurity: data.socialSecurity,
+      state: data.state,
+      telephone: data.telephone,
+      zipcode: data.zipcode,
+      // foreign keys
+      userStatus: {
+        connect: { id: data.statusId }
+      },
+      roles: {
+        connect: { id: data.roleId }
+      },
+      userPermits: {
+        update: {
+          accessConfiguration: data.accessConfiguration,
+          accessNews: data.accessNews
+        }
+      }
     }
+
   })
 }
 

@@ -22,11 +22,14 @@ export const UserSchema = z
       message: 'Start date is required.'
     }),
 
-    socialSecurity: z.string().min(9, {
-      message: 'Social Security must be 9 characters.'
-    }).max(9, {
-      message: 'Social Security must be 9 characters.'
-    }),
+    socialSecurity: z
+      .string()
+      .min(9, {
+        message: 'Social Security must be 9 characters.'
+      })
+      .max(9, {
+        message: 'Social Security must be 9 characters.'
+      }),
     zipcode: z.string().min(5).max(9, {
       message: 'Zipcode must be between 5 and 9 characters.'
     }),
@@ -35,8 +38,12 @@ export const UserSchema = z
     isAdmin: z.boolean(),
     picture: z.string().optional(),
     document: z.string().optional(),
-    roles: z.string().min(1, { message: 'Rol is required' }),
-    status: z.string().min(1, { message: 'Status is required' })
+    status: z.custom(val => val && val.id, {
+      message: 'Status is required'
+    }),
+    roles: z.custom(val => val && val.id, {
+      message: 'Role is required'
+    })
   })
   .passthrough() // Permite otros campos
 
