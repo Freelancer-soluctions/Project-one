@@ -296,9 +296,28 @@
     "user_permits": "User permits",
     "edit_users": "Edit users",
     "social_security": "Social Security",
-    "user_information":"User information",
-    "user_basic_information_msg":"Enter the basic user information."
-    
-    
+    "user_information": "User information",
+    "user_basic_information_msg": "Enter the basic user information.",
+    "access_configuration": "Access configuration",
+    "access_news": "Access news",
+    "edit": "Edit",
+    "select_role": "Select a role",
+    "error_occurred_message": "An error occurred while processing your request. Please try again later.",
+    "operation_failed_message": "The operation could not be completed. Please check your input and try again.",
+    "delete_failed_message": "The record could not be deleted. Please try again later.",
+    "expense_category_rental": "Rental",
+    "expense_category_utilities": "Utilities",
+    "expense_category_salaries": "Salaries",
+    "expense_category_supplies": "Supplies",
+    "expense_category_transportation": "Transportation",
+    "expense_category_maintenance": "Maintenance",
+    "expense_category_marketing": "Marketing",
+    "expense_category_software": "Software",
+    "expense_category_professional_services": "Professional Services",
+    "expense_category_taxes": "Taxes",
+    "expense_category_bank_fees": "Bank Fees",
+    "expense_category_travel": "Travel",
+    "expense_category_other": "Other",
+    "expense_category_training": "Training"
   }
 }

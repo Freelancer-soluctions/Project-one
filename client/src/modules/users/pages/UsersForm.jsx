@@ -74,9 +74,10 @@ function UsersForms() {
           isAdmin: values.isAdmin,
           picture: values.picture,
           document: values.document,
-          roleId: values.roleId,
-          statusId: values.statusId,
-          userPermitId: values.userPermitId
+          roleId: values.roles.id,
+          statusId: values.status.id,
+          accessConfiguration: values.accessConfiguration,
+          accessNews: values.accessNews,
         }
       }).unwrap()
 
@@ -86,7 +87,6 @@ function UsersForms() {
         cancel: false,
         success: true,
         onSuccess: () => {
-          setOpenDialog(false)
           navigate('/home/users')
         },
         variantSuccess: 'info'
@@ -118,7 +118,6 @@ function UsersForms() {
               cancel: false,
               success: true,
               onSuccess: () => {
-                setOpenDialog(false)
               },
               variantSuccess: 'info'
             })

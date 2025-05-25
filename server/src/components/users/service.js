@@ -60,6 +60,7 @@ export const createUser = async (data) => {
 export const updateUserById = async (id, data) => {
   const userData = {
     ...data,
+    lastUpdatedBy: Number(id),
     lastUpdatedOn: new Date()
   }
   return updateDao(Number(id), userData)
