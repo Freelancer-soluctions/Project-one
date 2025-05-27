@@ -54,7 +54,6 @@ export const getAllExpenses = async (filters = {}) => {
  * @param {string} data.description - Expense description
  * @param {number} data.total - Expense total (Float)
  * @param {string} data.category - Expense category
- * @param {string} data.status - Expense status (enum expenseCategory)
  * @param {Date} data.createdOn - Creation date
  * @param {number} data.createdBy - User ID who created the expense
  * @returns {Promise<Object>} Created expense
@@ -66,7 +65,6 @@ export const createExpense = async (data) => {
       description: data.description,
       total: data.total, // Prisma expects Float, ensure data.total is a number
       category: data.category,
-      status: data.status, // This should be a valid value from the expenseCategory enum
       createdOn: data.createdOn,
       userExpenseCreated: { // Relation name from Prisma schema
         connect: {
@@ -84,33 +82,25 @@ export const createExpense = async (data) => {
  * @param {string} [data.description] - Expense description
  * @param {number} [data.total] - Expense total (Float)
  * @param {string} [data.category] - Expense category
- * @param {string} [data.status] - Expense status (enum expenseCategory)
  * @param {Date} data.updatedOn - Update date
  * @param {number} data.updatedBy - User ID who updated the expense
  * @returns {Promise<Object>} Updated expense
  * @async
  */
 export const updateExpenseById = async (id, data) => {
-  const updateData = {
-    description: data.description,
-    total: data.total,
-    category: data.category,
-    status: data.status,
-    updatedOn: data.updatedOn,
-    userExpenseUpdated: undefined
-  }
-
-  if (data.updatedBy) {
-    updateData.userExpenseUpdated = {
-      connect: {
-        id: data.updatedBy
-      }
-    }
-  }
-
   return prisma.expenses.update({
     where: { id }, // id is a string (cuid)
-    data: updateData
+    data: {
+      description: data.description,
+      total: data.total, // Prisma expects Float, ensure data.total is a number
+      category: data.category,
+      updatedOn: data.updatedOn, // Prisma model for expenses has updatedOn DateTime?
+      userExpenseUpdated: {
+        connect: {
+          id: data.updatedBy
+        }
+      }
+    }
   })
 }
 

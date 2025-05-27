@@ -54,14 +54,12 @@ const Expenses = () => {
 
   const handleSubmitFilters = data => {
     getAllExpenses({
-      
       ...data
-      // Ensure backend handles empty strings as "no filter" or adjust here
     })
   }
 
   const handleSubmit = async (values, expenseId) => {
-     expenseId
+     
     try {
       // values already contains { description, total, category, status }
       // total is already a float from ExpensesDialog
@@ -69,7 +67,7 @@ const Expenses = () => {
         ? await updateExpenseById({
             
             id: expenseId, 
-            data: values // Sending all values from dialog form
+            data:{description: values.description, total: values.total, category: values.category} // Sending all values from dialog form
           }).unwrap()
         : await createExpense(values).unwrap() 
 
@@ -85,7 +83,6 @@ const Expenses = () => {
       })
       setOpenAlertDialog(true)
     } catch (err) {
-      console.error('Error:', err)
       // Handle error display, perhaps another AlertDialog
       setAlertProps({
         alertTitle: t('error_occurred_message'),
@@ -142,7 +139,7 @@ const Expenses = () => {
               },
               variantSuccess: 'info'
             })
-        
+         setOpenAlertDialog(true)
           } catch (err) {
             console.error('Error deleting:', err)
             setAlertProps({

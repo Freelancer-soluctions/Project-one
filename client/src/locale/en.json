@@ -309,7 +309,7 @@
     "expense_category_utilities": "Utilities",
     "expense_category_salaries": "Salaries",
     "expense_category_supplies": "Supplies",
-    "expense_category_transportation": "Transportation",
+    "expense_category_transport": "Transportation",
     "expense_category_maintenance": "Maintenance",
     "expense_category_marketing": "Marketing",
     "expense_category_software": "Software",
@@ -318,6 +318,17 @@
     "expense_category_bank_fees": "Bank Fees",
     "expense_category_travel": "Travel",
     "expense_category_other": "Other",
-    "expense_category_training": "Training"
+    "expense_category_training": "Training",
+    "add_expense": "Add expense",
+    "edit_expense": "Edit expense",
+    "add_expense_message": "Fill in the required fields to create a new expense record. Ensure all necessary information is entered correctly.",
+    "select_employee_placeholder": "Select an employee",
+    "employee": "Employee",
+    "add_attendance": "Add attendance",
+    "edit_attendance": "Edit attendance",
+    "entry_time": "Entry time",
+    "exit_time": "Exit time",
+    "worked_hours": "Worked hours",
+    "worked_hours_placeholder": "Enter the worked hours"
   }
 }
