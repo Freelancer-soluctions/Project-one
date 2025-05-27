@@ -15,3 +15,20 @@ export const expenseCategories = [
   { value: 'TRAINING', labelKey: 'expense_category_training' },
   { value: 'OTHER', labelKey: 'expense_category_other' }
 ];
+
+const expenseCategoryEnumValues = [
+  'RENTAL',
+  'UTILITIES',
+  'SALARIES',
+  'SUPPLIES',
+  'TRANSPORT',
+  'MAINTENANCE',
+  'MARKETING',
+  'SOFTWARE',
+  'PROFESSIONAL_SERVICES',
+  'TAXES',
+  'BANK_FEES',
+  'TRAVEL',
+  'TRAINING',
+  'OTHER'
+];

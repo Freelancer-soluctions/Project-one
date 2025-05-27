@@ -30,10 +30,9 @@ export const getAllExpenses = handleCatchErrorAsync(async (req, res) => {
 export const createExpense = handleCatchErrorAsync(async (req, res) => {
   // console.log(req.body); // Keep for debugging if needed
   const expenseData = {
-    ...req.body, // Expected: { description, total, category, status }
-    createdBy: req.userId
+    ...req.body
   }
-  const expense = await createExpenseService(expenseData)
+  const expense = await createExpenseService(expenseData, req.userId)
   globalResponse(res, 201, expense)
 })
 
@@ -46,10 +45,9 @@ export const createExpense = handleCatchErrorAsync(async (req, res) => {
  */
 export const updateExpenseById = handleCatchErrorAsync(async (req, res) => {
   const expenseData = {
-    ...req.body, // Expected: { description, total, category, status }
-    updatedBy: req.userId
+    ...req.body // Expected: { description, total, category, status }
   }
-  const expense = await updateExpenseByIdService(req.params.id, expenseData)
+  const expense = await updateExpenseByIdService(req.params.id, expenseData, req.userId)
   globalResponse(res, 200, expense)
 })
 

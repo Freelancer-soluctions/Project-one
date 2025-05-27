@@ -17,6 +17,9 @@ import storageSession from 'redux-persist/lib/storage/session'
 import { persistStore, persistReducer } from 'redux-persist'
 import inventoryMovementApi from '@/modules/inventoryMovement/api/inventoryMovementAPI'
 import usersApi from '@/modules/users/api/usersApi'
+import expensesApi from '@/modules/expenses/api/expensesApi'
+import attendanceApi from '@/modules/attendance/api/attendanceApi'
+import employeesApi from '@/modules/employees/api/employeesApi'
 
 const persistConfig = {
   key: 'root',
@@ -41,7 +44,8 @@ const rootReducer = combineReducers({
   [eventsApi.reducerPath]: eventsApi.reducer,
   [productsApi.reducerPath]: productsApi.reducer,
   [providersApi.reducerPath]: providersApi.reducer,
-  [settingsProductCategoriesApi.reducerPath]: settingsProductCategoriesApi.reducer,
+  [settingsProductCategoriesApi.reducerPath]:
+  settingsProductCategoriesApi.reducer,
   [warehouseApi.reducerPath]: warehouseApi.reducer,
   [stockApi.reducerPath]: stockApi.reducer,
   [clientsApi.reducerPath]: clientsApi.reducer,
@@ -49,7 +53,9 @@ const rootReducer = combineReducers({
   [purchaseApi.reducerPath]: purchaseApi.reducer,
   [inventoryMovementApi.reducerPath]: inventoryMovementApi.reducer,
   [usersApi.reducerPath]: usersApi.reducer,
-
+  [expensesApi.reducerPath]: expensesApi.reducer,
+  [attendanceApi.reducerPath]: attendanceApi.reducer,
+  [employeesApi.reducerPath]: employeesApi.reducer
 })
 
 const persistedReducer = persistReducer(persistConfig, rootReducer)
@@ -80,8 +86,10 @@ const store = configureStore({
       salesApi.middleware,
       purchaseApi.middleware,
       inventoryMovementApi.middleware,
-      usersApi.middleware
-
+      usersApi.middleware,
+      expensesApi.middleware,
+      attendanceApi.middleware,
+      employeesApi.middleware
     )
 })
 // store.subscribe(() => {

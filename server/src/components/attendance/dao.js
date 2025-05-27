@@ -38,7 +38,7 @@ export const getAllAttendance = async (filters = {}) => {
   SELECT 
      a.*,
      e.name AS "employeeName",
-     e.lastName AS "employeeLastName",
+     e."lastName" AS "employeeLastName",
      u.name AS "userAttendanceCreatedName",
      uu.name AS "userAttendanceUpdatedName"
    FROM "attendance" a
@@ -48,7 +48,6 @@ export const getAllAttendance = async (filters = {}) => {
    ${whereSql}
    ORDER BY a."date" DESC, a."entryTime" DESC
  `
-
   return attendance
 }
 
@@ -66,7 +65,6 @@ export const getAllAttendance = async (filters = {}) => {
 export const createAttendance = async (data) => {
   return prisma.attendance.create({
     data: {
-      employeeId: data.employeeId,
       date: data.date,
       entryTime: data.entryTime,
       exitTime: data.exitTime,
@@ -75,6 +73,11 @@ export const createAttendance = async (data) => {
       userAttendanceCreated: {
         connect: {
           id: data.createdBy
+        }
+      },
+      employee: {
+        connect: {
+          id: data.employeeId
         }
       }
     }
@@ -97,12 +100,16 @@ export const updateAttendanceById = async (id, data) => {
   return prisma.attendance.update({
     where: { id },
     data: {
-      employeeId: data.employeeId,
       date: data.date,
       entryTime: data.entryTime,
       exitTime: data.exitTime,
       workedHours: data.workedHours,
       updatedOn: data.updatedOn,
+      employee: {
+        connect: {
+          id: data.employeeId
+        }
+      },
       userAttendanceUpdated: {
         connect: {
           id: data.updatedBy
