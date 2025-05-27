@@ -1,40 +1,48 @@
 import { useTranslation } from 'react-i18next'
-import { DataTable } from '@/components/dataTable' // Assuming this path is correct
+import { DataTable } from '@/components/dataTable'
 import { format } from 'date-fns'
 import PropTypes from 'prop-types'
 
-export const ExpensesDatatable = ({ // Renamed from ClientsDatatable
-  dataExpenses, // Renamed from dataClients
-  onEditDialog,
-}) => {
+export const ExpensesDatatable = ({ dataExpenses, onEditDialog }) => {
   const { t } = useTranslation()
 
-  const columnDefExpenses = [ // Renamed from columnDefClients
+  const columnDefExpenses = [
     {
-      accessorKey: 'description', // Changed from 'name'
-      header: t('description'), // Changed from t('name')
+      accessorKey: 'description',
+      header: t('description'),
       cell: info => info.getValue()?.toUpperCase()
     },
     {
-      accessorKey: 'total', // Changed from 'email'
-      header: t('total'), // Changed from t('email')
-      // Assuming total is a number, no toUpperCase() needed. Format if necessary.
+      accessorKey: 'total',
+      header: t('total'),
       cell: info => info.getValue()
     },
     {
-      accessorKey: 'category', // Changed from 'phone'
-      header: t('category'), // Changed from t('phone')
+      accessorKey: 'category',
+      header: t('category'),
       cell: info => info.getValue()?.toUpperCase()
     },
     {
-      accessorKey: 'status', // Changed from 'address'
-      header: t('status'), // Changed from t('address'), assuming 'status' is a string representation from the enum
-      cell: info => info.getValue()?.toUpperCase() // Or handle enum display appropriately
+      accessorKey: 'userExpenseCreatedName',
+      header: t('created_by'),
+      cell: info => {
+        const userExpenseCreated = info.row.original.userExpenseCreatedName // Accede al dato original de la fila
+        return userExpenseCreated ? userExpenseCreated.toUpperCase() : null // Retorna null para mantener la celda vacía
+      }
     },
+
     {
       accessorKey: 'createdOn',
       header: t('created_on'),
       cell: info => format(new Date(info.getValue()), 'PPP')
+    },
+    {
+      accessorKey: 'userExpenseUpdatedName',
+      header: t('updated_by'),
+      cell: info => {
+        const userExpenseUpdated = info.row.original.userExpenseUpdatedName // Accede al dato original de la fila
+        return userExpenseUpdated ? userExpenseUpdated.toUpperCase() : null // Retorna null para mantener la celda vacía
+      }
     },
     {
       accessorKey: 'updatedOn',
@@ -52,14 +60,14 @@ export const ExpensesDatatable = ({ // Renamed from ClientsDatatable
 
   return (
     <DataTable
-      columns={columnDefExpenses} // Renamed from columnDefClients
-      data={dataExpenses.data} // Renamed from dataClients.data
+      columns={columnDefExpenses}
+      data={dataExpenses.data}
       handleRow={row => handleEditDialog(row)}
     />
   )
 }
 
-ExpensesDatatable.propTypes = { // Renamed from ClientsDatatable
-  dataExpenses: PropTypes.object.isRequired, // Renamed from dataClients
+ExpensesDatatable.propTypes = {
+  dataExpenses: PropTypes.object.isRequired,
   onEditDialog: PropTypes.func.isRequired
 }

@@ -29,8 +29,7 @@ export const ExpensesFiltersForm = ({ onSubmit, onAddDialog }) => { // Renamed
     resolver: zodResolver(ExpensesFiltersSchema), // Changed schema
     defaultValues: { // Added default values for new filter fields
       description: '',
-      category: '',
-      status: ''
+      category: ''
     }
   })
 
@@ -45,8 +44,7 @@ export const ExpensesFiltersForm = ({ onSubmit, onAddDialog }) => { // Renamed
   const handleResetFilter = () => {
     form.reset({ // Reset to defined defaults
         description: '',
-        category: '',
-        status: ''
+        category: ''
     })
     onSubmit({}); // Submit empty object to clear filters in parent
   }
@@ -61,7 +59,7 @@ export const ExpensesFiltersForm = ({ onSubmit, onAddDialog }) => { // Renamed
         onSubmit={form.handleSubmit(handleSubmit)}
         className='flex flex-col flex-wrap gap-5'>
         {/* inputs */}
-        <div className='grid grid-cols-1 gap-4 md:grid-cols-3'> 
+        <div className='grid grid-cols-1 gap-4 md:grid-cols-2'> 
           <FormField
             control={form.control}
             name='description'
@@ -87,30 +85,7 @@ export const ExpensesFiltersForm = ({ onSubmit, onAddDialog }) => { // Renamed
 
           <FormField
             control={form.control}
-            name='category'
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel htmlFor='category_filter'>{t('category')}</FormLabel> {/* Changed htmlFor and translation key */}
-                <FormControl>
-                  <Input
-                    id='category_filter' // Changed id
-                    name='category'
-                    placeholder={t('filter_by_category_placeholder')} // Changed placeholder
-                    type='text'
-                    autoComplete='off'
-                    maxLength={100} // Example max length
-                    {...field}
-                    value={field.value ?? ''}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name='status' // This is the 'expenseCategory' enum field
+            name='category' 
             render={({ field }) => (
               <FormItem>
                 <FormLabel htmlFor='category'>{t('category')}</FormLabel>
@@ -153,7 +128,7 @@ export const ExpensesFiltersForm = ({ onSubmit, onAddDialog }) => { // Renamed
             type='button'
             className='flex-1 md:flex-initial md:w-24'
             variant='outline'
-            onClick={handleResetFilter}> {/* Changed to call the new reset function */}
+            onClick={handleResetFilter}> 
             {t('clear')} <LuEraser className='w-4 h-4 ml-auto opacity-50' />
           </Button>
         </div>
@@ -162,7 +137,7 @@ export const ExpensesFiltersForm = ({ onSubmit, onAddDialog }) => { // Renamed
   )
 }
 
-ExpensesFiltersForm.propTypes = { // Renamed
+ExpensesFiltersForm.propTypes = { 
   onSubmit: PropTypes.func.isRequired,
   onAddDialog: PropTypes.func
 }

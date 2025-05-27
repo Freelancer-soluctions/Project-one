@@ -7,7 +7,6 @@ import { cn } from '@/lib/utils'
 import PropTypes from 'prop-types'
 
 import { AttendanceSchema } from '../utils' // Import attendance schema
-import { useGetAllEmployeesQuery } from '@/modules/employees/api/employeesApi' // Assuming employee API exists
 
 import {
   Dialog,
@@ -49,14 +48,13 @@ export const AttendanceDialog = ({
   selectedRow,
   onSubmit,
   onDeleteById,
-  actionDialog
+  actionDialog,
+  dataEmployees
 }) => {
   const { t } = useTranslation()
   const [attendanceId, setAttendanceId] = useState('')
 
-  // Fetch employees for the select dropdown
-  const { data: employeesData, isLoading: isLoadingEmployees } = useGetAllEmployeesQuery()
-  const employeesList = employeesData?.data || []
+
 
   const form = useForm({
     resolver: zodResolver(AttendanceSchema),
@@ -66,10 +64,7 @@ export const AttendanceDialog = ({
       entryTime: '',
       exitTime: '',
       workedHours: '',
-      createdOn: '',
-      updatedOn: '',
-      userAttendanceCreatedName: '', // Assuming these fields exist based on pattern
-      userAttendanceUpdatedName: ''
+   
     }
   })
 
@@ -93,14 +88,11 @@ export const AttendanceDialog = ({
     } else {
       form.reset({
         employeeId: '',
-        date: null,
+        date: undefined,
         entryTime: '',
         exitTime: '',
         workedHours: '',
-        createdOn: '',
-        updatedOn: '',
-        userAttendanceCreatedName: '',
-        userAttendanceUpdatedName: ''
+
       })
       setAttendanceId(null)
     }
@@ -128,11 +120,11 @@ export const AttendanceDialog = ({
       <DialogContent className='sm:max-w-[600px]'>
         <DialogHeader>
           <DialogTitle className='flex items-center gap-2'>
-            <ClockIcon className='inline mr-3 w-7 h-7' /> {/* Changed Icon */}
+            <ClockIcon className='inline mr-3 w-7 h-7' /> 
             {actionDialog}
           </DialogTitle>
           <DialogDescription>
-            {attendanceId ? t('edit_attendance_message') : t('add_attendance_message')}
+            {attendanceId ? t('edit_message') : t('add_message')}
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
@@ -154,14 +146,14 @@ export const AttendanceDialog = ({
                     <Select
                       onValueChange={field.onChange}
                       value={field.value?.toString() ?? ''}
-                      disabled={isLoadingEmployees}>
+                     >
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder={t('select_employee_placeholder')} />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {employeesList.map(employee => (
+                        {dataEmployees.map(employee => (
                           <SelectItem key={employee.id} value={employee.id.toString()}>
                             {`${employee.name} ${employee.lastName}`}
                           </SelectItem>
@@ -178,7 +170,7 @@ export const AttendanceDialog = ({
                 control={form.control}
                 name="date"
                 render={({ field }) => (
-                  <FormItem className="flex flex-col">
+                  <FormItem >
                     <FormLabel>{t('date')}*</FormLabel>
                     <Popover>
                       <PopoverTrigger asChild>
@@ -193,7 +185,7 @@ export const AttendanceDialog = ({
                             {field.value ? (
                               format(field.value, "PPP")
                             ) : (
-                              <span>{t('pick_a_date')}</span>
+                              <span>{t('pick_date')}</span>
                             )}
                             <CalendarIcon className="w-4 h-4 ml-auto opacity-50" />
                           </Button>
@@ -454,5 +446,7 @@ AttendanceDialog.propTypes = {
   selectedRow: PropTypes.object,
   onSubmit: PropTypes.func.isRequired,
   onDeleteById: PropTypes.func.isRequired,
-  actionDialog: PropTypes.string.isRequired
+  actionDialog: PropTypes.string.isRequired,
+  dataEmployees: PropTypes.array.isRequired
+  
 } 
