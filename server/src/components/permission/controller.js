@@ -39,8 +39,7 @@ export const getAllPermissions = handleCatchErrorAsync(async (req, res) => {
  * @returns {Promise<Object>} Response with created permission
  */
 export const createPermission = handleCatchErrorAsync(async (req, res) => {
-  console.log('Request Body:', req.body)
-  const permission = await createPermissionService(req.body)
+  const permission = await createPermissionService(req.bod, req.userId)
   return globalResponse(res, 201, permission)
 })
 

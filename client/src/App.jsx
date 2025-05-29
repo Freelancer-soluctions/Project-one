@@ -92,7 +92,7 @@ const App = () => {
           <Route path='attendance' element={<Attendance />} />
           <Route path='payroll' element={<Payroll />} />
           <Route path='performanceEvaluation' element={<PerformanceEvaluation />} />
-          <Route path='vacation' element={<Vacation />} />
+          <Route path='vacations' element={<Vacation />} />
           <Route path='permission' element={<Permission />} />
           <Route path='clientOrder' element={<ClientOrder />} />
           <Route path='providerOrder' element={<ProviderOrder />} />

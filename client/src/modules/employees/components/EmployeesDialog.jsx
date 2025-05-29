@@ -59,10 +59,7 @@ export const EmployeesDialog = ({
       position: '',
       department: '',
       salary: '',
-      createdOn: '',
-      updatedOn: '',
-      userEmployeeCreatedName: '',
-      userEmployeeUpdatedName: ''
+
     }
   })
 
@@ -84,8 +81,8 @@ export const EmployeesDialog = ({
         salary: selectedRow.salary.toString(),
         createdOn: selectedRow.createdOn,
         updatedOn: selectedRow.updatedOn,
-        userEmployeeCreatedName: selectedRow.userEmployeeCreated?.name,
-        userEmployeeUpdatedName: selectedRow.userEmployeeUpdated?.name || ''
+        userEmployeeCreatedName: selectedRow.userEmployeeCreatedName || '',
+        userEmployeeUpdatedName: selectedRow.userEmployeeUpdatedName || ''
       }
 
       form.reset(mappedValues)
@@ -178,7 +175,7 @@ export const EmployeesDialog = ({
                         <Input
                           id='lastName'
                           name='lastName'
-                          placeholder={t('employee_lastname_placeholder')}
+                          placeholder={t('last_name_placeholder')}
                           type='text'
                           autoComplete='off'
                           maxLength={100}
@@ -203,7 +200,7 @@ export const EmployeesDialog = ({
                         <Input
                           id='dni'
                           name='dni'
-                          placeholder={t('employee_dni_placeholder')}
+                          placeholder={t('dni_placeholder')}
                           type='text'
                           autoComplete='off'
                           maxLength={10}
@@ -310,7 +307,7 @@ export const EmployeesDialog = ({
                             {field.value ? (
                               format(field.value, 'PPP')
                             ) : (
-                              <span>{t('pick_a_date')}</span>
+                              <span>{t('pick_date')}</span>
                             )}
                             <CalendarIcon className='w-4 h-4 ml-auto opacity-50' />
                           </Button>

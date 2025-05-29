@@ -3,8 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { format } from 'date-fns'
 import { cn } from '@/lib/utils'
 import PropTypes from 'prop-types'
-
-import { useGetAllEmployeesQuery } from '@/modules/employees/api/employeesApi' // Import employee query
+import {VACATION_STATUS} from '../utils' 
 
 import {
   Form,
@@ -31,14 +30,9 @@ import { Button } from '@/components/ui/button'
 import { CalendarIcon } from '@radix-ui/react-icons'
 import { LuPlus, LuSearch, LuEraser } from 'react-icons/lu'
 
-const VACATION_STATUS = ['PENDING', 'APPROVED', 'REJECTED']
 
-export const VacationFiltersForm = ({ onSubmit, onAddDialog }) => {
+export const VacationFiltersForm = ({ onSubmit, onAddDialog, dataEmployees }) => {
   const { t } = useTranslation()
-
-  // Fetch employees
-  const { data: employeesData, isLoading: isLoadingEmployees } = useGetAllEmployeesQuery()
-  const employeesList = employeesData?.data || []
 
   const form = useForm({
     defaultValues: {
@@ -56,7 +50,6 @@ export const VacationFiltersForm = ({ onSubmit, onAddDialog }) => {
       fromDate: data.fromDate ? format(data.fromDate, 'yyyy-MM-dd') : undefined,
       toDate: data.toDate ? format(data.toDate, 'yyyy-MM-dd') : undefined
     }
-    Object.keys(filters).forEach(key => filters[key] === undefined && delete filters[key])
     onSubmit(filters)
   }
 
@@ -95,15 +88,14 @@ export const VacationFiltersForm = ({ onSubmit, onAddDialog }) => {
                 <Select
                   onValueChange={field.onChange}
                   value={field.value?.toString() ?? ''}
-                  disabled={isLoadingEmployees}>
+                 >
                   <FormControl>
                     <SelectTrigger>
                       <SelectValue placeholder={t('select_employee_placeholder')} />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value="">{t('all_employees')}</SelectItem>
-                    {employeesList.map(employee => (
+                    {dataEmployees.map(employee => (
                       <SelectItem key={employee.id} value={employee.id.toString()}>
                         {`${employee.name} ${employee.lastName}`}
                       </SelectItem>
@@ -128,11 +120,10 @@ export const VacationFiltersForm = ({ onSubmit, onAddDialog }) => {
                     >
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder={t('select_status_placeholder')} />
+                          <SelectValue placeholder={t('select_status')} />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                         <SelectItem value="">{t('all_statuses')}</SelectItem> {/* Option for all */}
                         {VACATION_STATUS.map(status => (
                           <SelectItem key={status} value={status}>
                             {t(`status.${status}`)} {/* Assumes translations like status.PENDING */}
@@ -165,7 +156,7 @@ export const VacationFiltersForm = ({ onSubmit, onAddDialog }) => {
                         {field.value ? (
                           format(field.value, "PPP")
                         ) : (
-                          <span>{t('pick_a_date')}</span>
+                          <span>{t('pick_date')}</span>
                         )}
                         <CalendarIcon className="w-4 h-4 ml-auto opacity-50" />
                       </Button>
@@ -206,7 +197,7 @@ export const VacationFiltersForm = ({ onSubmit, onAddDialog }) => {
                         {field.value ? (
                           format(field.value, "PPP")
                         ) : (
-                          <span>{t('pick_a_date')}</span>
+                          <span>{t('pick_date')}</span>
                         )}
                         <CalendarIcon className="w-4 h-4 ml-auto opacity-50" />
                       </Button>
@@ -260,5 +251,7 @@ export const VacationFiltersForm = ({ onSubmit, onAddDialog }) => {
 
 VacationFiltersForm.propTypes = {
   onSubmit: PropTypes.func.isRequired,
-  onAddDialog: PropTypes.func
+  onAddDialog: PropTypes.func,
+    dataEmployees : PropTypes.array.isRequired
+  
 } 

@@ -27,7 +27,10 @@ import {
   LuUserSearch,
   LuWalletMinimal,
   LuClipboardPen,
-  LuTrendingDown
+  LuTrendingDown,
+  LuFile,
+  LuBackpack,
+  LuClipboard
 } from 'react-icons/lu'
 import { useTranslation } from 'react-i18next'
 const CardModule = () => {
@@ -395,7 +398,7 @@ const CardModule = () => {
         <Card className='relative overflow-hidden transition-all group hover:shadow-lg hover:-translate-y-1'>
           <CardHeader className='p-6'>
             <div className='flex items-center gap-4'>
-              <LuDollarSign className='w-8 h-8 text-zinc-800' />
+              <LuFile className='w-8 h-8 text-zinc-800' />
               <div>
                 <CardTitle className='text-xl'>{t('payroll')}</CardTitle>
                 <CardDescription>{t('payroll_card_msg')}</CardDescription>
@@ -433,7 +436,7 @@ const CardModule = () => {
         <Card className='relative overflow-hidden transition-all group hover:shadow-lg hover:-translate-y-1'>
           <CardHeader className='p-6'>
             <div className='flex items-center gap-4'>
-              <LuCalendarCheck2 className='w-8 h-8 text-zinc-800' />
+              <LuBackpack className='w-8 h-8 text-zinc-800' />
               <div>
                 <CardTitle className='text-xl'>{t('vacations')}</CardTitle>
                 <CardDescription>{t('vacations_card_msg')}</CardDescription>
@@ -452,7 +455,7 @@ const CardModule = () => {
         <Card className='relative overflow-hidden transition-all group hover:shadow-lg hover:-translate-y-1'>
           <CardHeader className='p-6'>
             <div className='flex items-center gap-4'>
-              <LuCalendarCheck2 className='w-8 h-8 text-zinc-800' />
+              <LuClipboard className='w-8 h-8 text-zinc-800' />
               <div>
                 <CardTitle className='text-xl'>{t('permission')}</CardTitle>
                 <CardDescription>{t('permission_card_msg')}</CardDescription>

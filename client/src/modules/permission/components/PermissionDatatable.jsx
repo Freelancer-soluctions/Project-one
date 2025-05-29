@@ -21,12 +21,9 @@ export const PermissionDatatable = ({
 
   const columnDefPermissions = [
     {
-      accessorKey: 'employee',
+      accessorKey: 'employeeName',
       header: t('employee'),
-      cell: info => {
-        const employee = info.getValue()
-        return employee ? `${employee.name} ${employee.lastName}` : ''
-      }
+      cell: info => info.getValue()?.toUpperCase()
     },
     {
       accessorKey: 'type',
@@ -67,10 +64,32 @@ export const PermissionDatatable = ({
         )
       }
     },
+      {
+      accessorKey: 'userPermissionCreatedName',
+      header: t('created_by'),
+      cell: info => {
+        const userPerformanceCreatedName =
+          info.row.original.userPerformanceCreatedName // Accede al dato original de la fila
+        return userPerformanceCreatedName
+          ? userPerformanceCreatedName.toUpperCase()
+          : null // Retorna null para mantener la celda vacía
+      }
+    },
     {
       accessorKey: 'createdOn',
       header: t('created_on'),
       cell: info => format(new Date(info.getValue()), 'PPP')
+    },
+    {
+      accessorKey: 'userPermissionUpdatedName',
+      header: t('created_by'),
+      cell: info => {
+        const userPerformanceUpdatedName =
+          info.row.original.userPerformanceUpdatedName // Accede al dato original de la fila
+        return userPerformanceUpdatedName
+          ? userPerformanceUpdatedName.toUpperCase()
+          : null // Retorna null para mantener la celda vacía
+      }
     },
     {
       accessorKey: 'updatedOn',
@@ -86,20 +105,18 @@ export const PermissionDatatable = ({
     onEditDialog(row)
   }
 
-  const permissionData = Array.isArray(dataPermissions?.data) ? dataPermissions.data : [];
+ 
 
   return (
     <DataTable
       columns={columnDefPermissions}
-      data={permissionData}
+      data={dataPermissions.data }
       handleRow={row => handleEditDialog(row)}
     />
   )
 }
 
 PermissionDatatable.propTypes = {
-  dataPermissions: PropTypes.shape({
-    data: PropTypes.array
-  }),
+  dataPermissions: PropTypes.array.isRequired,
   onEditDialog: PropTypes.func.isRequired
 } 

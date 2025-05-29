@@ -6,8 +6,7 @@ import { format } from 'date-fns'
 import { cn } from '@/lib/utils'
 import PropTypes from 'prop-types'
 
-import { PayrollSchema } from '../utils' // Import payroll schema
-import { useGetAllEmployeesQuery } from '@/modules/employees/api/employeesApi' // Assuming employee API exists
+import { PayrollSchema, months } from '../utils' // Import payroll schema
 
 import {
   Dialog,
@@ -41,7 +40,8 @@ import {
 import { Calendar } from '@/components/ui/calendar' // Keep for potential date fields if needed later
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
-import { CalendarIcon, FileTextIcon } from '@radix-ui/react-icons' // Using FileTextIcon for payroll
+import { CalendarIcon } from '@radix-ui/react-icons' // Using FileTextIcon for payroll
+import { LuFile } from 'react-icons/lu'
 
 export const PayrollDialog = ({
   openDialog,
@@ -54,9 +54,7 @@ export const PayrollDialog = ({
   const { t } = useTranslation()
   const [payrollId, setPayrollId] = useState('')
 
-  // Fetch employees for the select dropdown
-  const { data: employeesData, isLoading: isLoadingEmployees } = useGetAllEmployeesQuery()
-  const employeesList = employeesData?.data || []
+
 
   const form = useForm({
     resolver: zodResolver(PayrollSchema),
@@ -67,23 +65,15 @@ export const PayrollDialog = ({
       baseSalary: '',
       extraHours: '0',
       deductions: '0',
-      totalPayment: '',
-      createdOn: '',
-      updatedOn: '',
-      userPayrollCreatedName: '', // Assuming these fields exist based on pattern
-      userPayrollUpdatedName: ''
+      totalPayment: ''
     }
   })
 
-  // Generate month and year options
-  const currentYear = new Date().getFullYear()
-  const months = Array.from({ length: 12 }, (_, i) => ({
-    value: (i + 1).toString(),
-    label: t(`months.${i + 1}`)
-  })) // Assuming you have month translations like months.1, months.2 etc.
-  const years = Array.from({ length: 10 }, (_, i) => ({
-    value: (currentYear - 5 + i).toString()
-  })) // e.g., last 5 years and next 4 years
+  // // Generate month and year options
+  // const currentYear = new Date().getFullYear()
+  // const years = Array.from({ length: 10 }, (_, i) => ({
+  //   value: (currentYear - 5 + i).toString()
+  // })) // e.g., last 5 years and next 4 years
 
   useEffect(() => {
     if (selectedRow?.id) {
@@ -91,7 +81,7 @@ export const PayrollDialog = ({
         id: selectedRow.id,
         employeeId: selectedRow.employeeId,
         month: selectedRow.month?.toString(), // Ensure string for Select
-        year: selectedRow.year?.toString(),   // Ensure string for Select/Input
+        year: selectedRow.year?.toString(), // Ensure string for Select/Input
         baseSalary: selectedRow.baseSalary,
         extraHours: selectedRow.extraHours ?? '0', // Handle null/undefined
         deductions: selectedRow.deductions ?? '0', // Handle null/undefined
@@ -112,10 +102,7 @@ export const PayrollDialog = ({
         extraHours: '0',
         deductions: '0',
         totalPayment: '',
-        createdOn: '',
-        updatedOn: '',
-        userPayrollCreatedName: '',
-        userPayrollUpdatedName: ''
+    
       })
       setPayrollId(null)
     }
@@ -146,7 +133,7 @@ export const PayrollDialog = ({
       <DialogContent className='sm:max-w-[600px]'>
         <DialogHeader>
           <DialogTitle className='flex items-center gap-2'>
-            <FileTextIcon className='inline mr-3 w-7 h-7' /> {/* Changed Icon */}
+            <LuFile className='inline mr-3 w-7 h-7' />
             {actionDialog}
           </DialogTitle>
           <DialogDescription>
@@ -172,15 +159,19 @@ export const PayrollDialog = ({
                     <Select
                       onValueChange={field.onChange}
                       value={field.value?.toString() ?? ''}
-                      disabled={isLoadingEmployees}>
+                      >
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder={t('select_employee_placeholder')} />
+                          <SelectValue
+                            placeholder={t('select_employee_placeholder')}
+                          />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
                         {employeesList.map(employee => (
-                          <SelectItem key={employee.id} value={employee.id.toString()}>
+                          <SelectItem
+                            key={employee.id}
+                            value={employee.id.toString()}>
                             {`${employee.name} ${employee.lastName}`}
                           </SelectItem>
                         ))}
@@ -206,7 +197,9 @@ export const PayrollDialog = ({
                       value={field.value?.toString() ?? ''}>
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder={t('select_month_placeholder')} />
+                          <SelectValue
+                            placeholder={t('select_month_placeholder')}
+                          />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
@@ -229,32 +222,16 @@ export const PayrollDialog = ({
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>{t('year')}*</FormLabel>
-                     <Input
-                        id="year"
-                        name="year"
-                        placeholder={t('year_placeholder')}
-                        type="number"
-                         min="2000"
-                        {...field}
-                        value={field.value ?? ''}
-                      />
-                    {/* Alternative: Select for Year
-                    <Select
-                      onValueChange={field.onChange}
-                      value={field.value?.toString() ?? ''}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder={t('select_year_placeholder')} />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {years.map(year => (
-                          <SelectItem key={year.value} value={year.value}>
-                            {year.value}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select> */}
+                    <Input
+                      id='year'
+                      name='year'
+                      placeholder={t('year_placeholder')}
+                      type='number'
+                      min='2000'
+                      {...field}
+                      value={field.value ?? ''}
+                    />
+
                     <FormMessage />
                   </FormItem>
                 )}
@@ -266,7 +243,9 @@ export const PayrollDialog = ({
                 name='baseSalary'
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel htmlFor='baseSalary'>{t('base_salary')}*</FormLabel>
+                    <FormLabel htmlFor='baseSalary'>
+                      {t('base_salary')}*
+                    </FormLabel>
                     <FormControl>
                       <Input
                         id='baseSalary'
@@ -284,13 +263,15 @@ export const PayrollDialog = ({
                 )}
               />
 
-               {/* Extra Hours */}
+              {/* Extra Hours */}
               <FormField
                 control={form.control}
                 name='extraHours'
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel htmlFor='extraHours'>{t('extra_hours')}</FormLabel>
+                    <FormLabel htmlFor='extraHours'>
+                      {t('extra_hours')}
+                    </FormLabel>
                     <FormControl>
                       <Input
                         id='extraHours'
@@ -314,7 +295,9 @@ export const PayrollDialog = ({
                 name='deductions'
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel htmlFor='deductions'>{t('deductions')}</FormLabel>
+                    <FormLabel htmlFor='deductions'>
+                      {t('deductions')}
+                    </FormLabel>
                     <FormControl>
                       <Input
                         id='deductions'
@@ -338,7 +321,9 @@ export const PayrollDialog = ({
                 name='totalPayment'
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel htmlFor='totalPayment'>{t('total_payment')}*</FormLabel>
+                    <FormLabel htmlFor='totalPayment'>
+                      {t('total_payment')}*
+                    </FormLabel>
                     <FormControl>
                       <Input
                         id='totalPayment'
@@ -358,133 +343,139 @@ export const PayrollDialog = ({
 
               {/* Created By/On Fields */}
               {selectedRow?.createdOn && payrollId && (
-                 <>
-                   <FormField
-                     control={form.control}
-                     name='userPayrollCreatedName'
-                     render={({ field }) => (
-                       <FormItem>
-                         <FormLabel htmlFor='userPayrollCreatedName'>
-                           {t('created_by')}
-                         </FormLabel>
-                         <FormControl>
-                           <Input
-                             id='userPayrollCreatedName'
-                             name='userPayrollCreatedName'
-                             disabled
-                             {...field}
-                             value={field.value ?? ''}
-                           />
-                         </FormControl>
-                         <FormMessage />
-                       </FormItem>
-                     )}
-                   />
+                <>
+                  <FormField
+                    control={form.control}
+                    name='userPayrollCreatedName'
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel htmlFor='userPayrollCreatedName'>
+                          {t('created_by')}
+                        </FormLabel>
+                        <FormControl>
+                          <Input
+                            id='userPayrollCreatedName'
+                            name='userPayrollCreatedName'
+                            disabled
+                            {...field}
+                            value={field.value ?? ''}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-                   <FormField
-                     control={form.control}
-                     name='createdOn'
-                     render={({ field }) => (
-                       <FormItem className='flex flex-col flex-auto'>
-                         <FormLabel htmlFor='createdOn'>
-                           {t('created_on')}
-                         </FormLabel>
-                         <Popover>
-                           <PopoverTrigger asChild>
-                             <FormControl>
-                               <Button
-                                 id='createdOn'
-                                 disabled={true}
-                                 readOnly={true}
-                                 variant={'outline'}
-                                 className={cn(
-                                   'pl-3 text-left font-normal',
-                                   !field.value && 'text-muted-foreground'
-                                 )}>
-                                 {field.value && format(new Date(field.value), 'PPP')}
-                                 <CalendarIcon className='w-4 h-4 ml-auto opacity-50' />
-                               </Button>
-                             </FormControl>
-                           </PopoverTrigger>
-                           <PopoverContent className='w-auto p-0' align='start'>
-                             <Calendar
-                               mode='single'
-                               selected={field.value ? new Date(field.value) : null}
-                               disabled={true}
-                             />
-                           </PopoverContent>
-                         </Popover>
-                         <FormMessage />
-                       </FormItem>
-                     )}
-                   />
-                 </>
-               )}
+                  <FormField
+                    control={form.control}
+                    name='createdOn'
+                    render={({ field }) => (
+                      <FormItem className='flex flex-col flex-auto'>
+                        <FormLabel htmlFor='createdOn'>
+                          {t('created_on')}
+                        </FormLabel>
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <FormControl>
+                              <Button
+                                id='createdOn'
+                                disabled={true}
+                                readOnly={true}
+                                variant={'outline'}
+                                className={cn(
+                                  'pl-3 text-left font-normal',
+                                  !field.value && 'text-muted-foreground'
+                                )}>
+                                {field.value &&
+                                  format(new Date(field.value), 'PPP')}
+                                <CalendarIcon className='w-4 h-4 ml-auto opacity-50' />
+                              </Button>
+                            </FormControl>
+                          </PopoverTrigger>
+                          <PopoverContent className='w-auto p-0' align='start'>
+                            <Calendar
+                              mode='single'
+                              selected={
+                                field.value ? new Date(field.value) : null
+                              }
+                              disabled={true}
+                            />
+                          </PopoverContent>
+                        </Popover>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </>
+              )}
 
               {/* Updated By/On Fields */}
               {selectedRow?.updatedOn && payrollId && (
-                 <>
-                   <FormField
-                     control={form.control}
-                     name='userPayrollUpdatedName'
-                     render={({ field }) => (
-                       <FormItem>
-                         <FormLabel htmlFor='userPayrollUpdatedName'>
-                           {t('updated_by')}
-                         </FormLabel>
-                         <FormControl>
-                           <Input
-                             id='userPayrollUpdatedName'
-                             name='userPayrollUpdatedName'
-                             disabled
-                             {...field}
-                             value={field.value ?? ''}
-                           />
-                         </FormControl>
-                         <FormMessage />
-                       </FormItem>
-                     )}
-                   />
+                <>
+                  <FormField
+                    control={form.control}
+                    name='userPayrollUpdatedName'
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel htmlFor='userPayrollUpdatedName'>
+                          {t('updated_by')}
+                        </FormLabel>
+                        <FormControl>
+                          <Input
+                            id='userPayrollUpdatedName'
+                            name='userPayrollUpdatedName'
+                            disabled
+                            {...field}
+                            value={field.value ?? ''}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-                   <FormField
-                     control={form.control}
-                     name='updatedOn'
-                     render={({ field }) => (
-                       <FormItem className='flex flex-col flex-auto'>
-                         <FormLabel htmlFor='updatedOn'>
-                           {t('updated_on')}
-                         </FormLabel>
-                         <Popover>
-                           <PopoverTrigger asChild>
-                             <FormControl>
-                               <Button
-                                 id='updatedOn'
-                                 disabled={true}
-                                 readOnly={true}
-                                 variant={'outline'}
-                                 className={cn(
-                                   'pl-3 text-left font-normal',
-                                   !field.value && 'text-muted-foreground'
-                                 )}>
-                                 {field.value && format(new Date(field.value), 'PPP')}
-                                 <CalendarIcon className='w-4 h-4 ml-auto opacity-50' />
-                               </Button>
-                             </FormControl>
-                           </PopoverTrigger>
-                           <PopoverContent className='w-auto p-0' align='start'>
-                             <Calendar
-                               mode='single'
-                               selected={field.value ? new Date(field.value) : null}
-                               disabled={true}
-                             />
-                           </PopoverContent>
-                         </Popover>
-                         <FormMessage />
-                       </FormItem>
-                     )}
-                   />
-                 </>
-               )}
+                  <FormField
+                    control={form.control}
+                    name='updatedOn'
+                    render={({ field }) => (
+                      <FormItem className='flex flex-col flex-auto'>
+                        <FormLabel htmlFor='updatedOn'>
+                          {t('updated_on')}
+                        </FormLabel>
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <FormControl>
+                              <Button
+                                id='updatedOn'
+                                disabled={true}
+                                readOnly={true}
+                                variant={'outline'}
+                                className={cn(
+                                  'pl-3 text-left font-normal',
+                                  !field.value && 'text-muted-foreground'
+                                )}>
+                                {field.value &&
+                                  format(new Date(field.value), 'PPP')}
+                                <CalendarIcon className='w-4 h-4 ml-auto opacity-50' />
+                              </Button>
+                            </FormControl>
+                          </PopoverTrigger>
+                          <PopoverContent className='w-auto p-0' align='start'>
+                            <Calendar
+                              mode='single'
+                              selected={
+                                field.value ? new Date(field.value) : null
+                              }
+                              disabled={true}
+                            />
+                          </PopoverContent>
+                        </Popover>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </>
+              )}
             </div>
 
             <DialogFooter>
@@ -527,4 +518,4 @@ PayrollDialog.propTypes = {
   onSubmit: PropTypes.func.isRequired,
   onDeleteById: PropTypes.func.isRequired,
   actionDialog: PropTypes.string.isRequired
-} 
+}

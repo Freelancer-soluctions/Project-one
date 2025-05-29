@@ -389,7 +389,7 @@ export const vacationCreateUpdateSchema = Joi.object({
 
 export const permissionFiltersSchema = Joi.object({
   employeeId: Joi.number().integer().optional(),
-  type: Joi.string().valid('SICK', 'PERSONAL', 'MATERNITY', 'PATERNITY', 'OTHER').optional(),
+  type: Joi.string().valid('SICK', 'PERSONAL', 'MATERNITY', 'PATERNITY', 'OTHER').optional().allow(''),
   status: Joi.string().valid('PENDING', 'APPROVED', 'REJECTED').optional(),
   fromDate: Joi.date().iso().optional(),
   toDate: Joi.date().iso().min(Joi.ref('fromDate')).optional()
@@ -493,4 +493,16 @@ export const purchaseFiltersSchema = Joi.object({
   endDate: Joi.date().iso().optional(),
   minTotal: Joi.number().min(0).optional(),
   maxTotal: Joi.number().min(0).optional()
+})
+
+export const performanceEvaluationFiltersSchema = Joi.object({
+  employeeId: Joi.number().integer().optional(),
+  fromDate: Joi.date().allow(''),
+  toDate: Joi.date().allow('')
+})
+export const performanceEvaluationCreateUpdateSchema = Joi.object({
+  employeeId: Joi.number().integer().required(),
+  date: Joi.date().iso().required(),
+  calification: Joi.number().integer().min(1).max(10).required(),
+  comments: Joi.string().max(200).optional().allow('')
 })

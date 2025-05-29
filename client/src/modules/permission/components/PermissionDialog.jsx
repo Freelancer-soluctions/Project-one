@@ -6,8 +6,7 @@ import { format } from 'date-fns'
 import { cn } from '@/lib/utils'
 import PropTypes from 'prop-types'
 
-import { PermissionSchema } from '../utils' // Import schema
-import { useGetAllEmployeesQuery } from '@/modules/employees/api/employeesApi' // Import employee query
+import { PermissionSchema, PERMISSION_TYPES, PERMISSION_STATUS } from '../utils' // Import schema
 
 import {
   Dialog,
@@ -42,11 +41,9 @@ import { Calendar } from '@/components/ui/calendar'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea' // Import Textarea
 import { Button } from '@/components/ui/button'
-import { CalendarIcon, ClipboardIcon } from '@radix-ui/react-icons' // Using ClipboardIcon
+import { CalendarIcon } from '@radix-ui/react-icons' // Using ClipboardIcon
+import { LuClipboard } from 'react-icons/lu'
 
-// Define enums based on your backend/schema
-const PERMISSION_TYPES = ['SICK', 'PERSONAL', 'MATERNITY', 'PATERNITY', 'OTHER']
-const PERMISSION_STATUS = ['PENDING', 'APPROVED', 'REJECTED']
 
 export const PermissionDialog = ({
   openDialog,
@@ -54,14 +51,13 @@ export const PermissionDialog = ({
   selectedRow,
   onSubmit,
   onDeleteById,
-  actionDialog
+  actionDialog,
+  dataEmployees
 }) => {
   const { t } = useTranslation()
   const [permissionId, setPermissionId] = useState('')
 
-  // Fetch employees
-  const { data: employeesData, isLoading: isLoadingEmployees } = useGetAllEmployeesQuery()
-  const employeesList = employeesData?.data || []
+
 
   const form = useForm({
     resolver: zodResolver(PermissionSchema),
@@ -73,10 +69,7 @@ export const PermissionDialog = ({
       reason: '',
       status: 'PENDING',
       comments: '',
-      createdOn: '',
-      updatedOn: '',
-      userPermissionCreatedName: '', // Assuming field names
-      userPermissionUpdatedName: ''
+ 
     }
   })
 
@@ -108,10 +101,7 @@ export const PermissionDialog = ({
         reason: '',
         status: 'PENDING',
         comments: '',
-        createdOn: '',
-        updatedOn: '',
-        userPermissionCreatedName: '',
-        userPermissionUpdatedName: ''
+     
       })
       setPermissionId(null)
     }
@@ -138,7 +128,7 @@ export const PermissionDialog = ({
       <DialogContent className='sm:max-w-[750px]'>
         <DialogHeader>
           <DialogTitle className='flex items-center gap-2'>
-            <ClipboardIcon className='inline mr-3 w-7 h-7' /> {/* Changed Icon */}
+            <LuClipboard className='inline mr-3 w-7 h-7' /> {/* Changed Icon */}
             {actionDialog}
           </DialogTitle>
           <DialogDescription>
@@ -165,14 +155,14 @@ export const PermissionDialog = ({
                     <Select
                       onValueChange={field.onChange}
                       value={field.value?.toString() ?? ''}
-                      disabled={isLoadingEmployees}>
+                      >
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder={t('select_employee_placeholder')} />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {employeesList.map(employee => (
+                        {dataEmployees.map(employee => (
                           <SelectItem key={employee.id} value={employee.id.toString()}>
                             {`${employee.name} ${employee.lastName}`}
                           </SelectItem>
@@ -263,7 +253,7 @@ export const PermissionDialog = ({
                             {field.value ? (
                               format(field.value, "PPP")
                             ) : (
-                              <span>{t('pick_a_date')}</span>
+                              <span>{t('pick_date')}</span>
                             )}
                             <CalendarIcon className="w-4 h-4 ml-auto opacity-50" />
                           </Button>
@@ -303,7 +293,7 @@ export const PermissionDialog = ({
                             {field.value ? (
                               format(field.value, "PPP")
                             ) : (
-                              <span>{t('pick_a_date')}</span>
+                              <span>{t('pick_date')}</span>
                             )}
                             <CalendarIcon className="w-4 h-4 ml-auto opacity-50" />
                           </Button>
@@ -550,5 +540,7 @@ PermissionDialog.propTypes = {
   selectedRow: PropTypes.object,
   onSubmit: PropTypes.func.isRequired,
   onDeleteById: PropTypes.func.isRequired,
-  actionDialog: PropTypes.string.isRequired
+  actionDialog: PropTypes.string.isRequired,
+  dataEmployees: PropTypes.array.isRequired
+  
 } 

@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client'
+import { PrismaClient, Prisma } from '@prisma/client'
 
 const prisma = new PrismaClient()
 
@@ -13,45 +13,48 @@ const prisma = new PrismaClient()
  * @returns {Promise<Array>} List of permissions with related employee and approver data
  */
 export const getAllPermissions = async (filters) => {
-  const {
-    employeeId,
-    type,
-    status,
-    fromDate,
-    toDate
-  } = filters
+  const whereClauses = []
 
-  const where = {}
-
-  if (employeeId) {
-    where.employeeId = parseInt(employeeId)
+  if (filters.employeeId) {
+    whereClauses.push(Prisma.sql`pe."employeeId" = ${Number(filters.employeeId)}`)
   }
 
-  if (type) {
-    where.type = type
+  if (filters.startDate) {
+    whereClauses.push(Prisma.sql`pe."createdOn" >= ${filters.startDate}`)
   }
 
-  if (status) {
-    where.status = status
+  if (filters.endDate) {
+    whereClauses.push(Prisma.sql`pe."createdOn" <= ${filters.endDate}`)
   }
 
-  if (fromDate && toDate) {
-    where.startDate = {
-      gte: new Date(fromDate),
-      lte: new Date(toDate)
-    }
+  if (filters.status) {
+    // Using ILIKE for case-insensitive search for description
+    whereClauses.push(Prisma.sql`pe."status" ILIKE ${'%' + filters.status + '%'}`)
+  }
+  if (filters.type) {
+    // Using ILIKE for case-insensitive search for description
+    whereClauses.push(Prisma.sql`pe."type" ILIKE ${'%' + filters.type + '%'}`)
   }
 
-  return await prisma.permission.findMany({
-    where,
-    include: {
-      employee: true,
-      approver: true
-    },
-    orderBy: {
-      createdOn: 'desc'
-    }
-  })
+  const whereSql = whereClauses.length
+    ? Prisma.sql`WHERE ${Prisma.join(whereClauses, Prisma.sql` AND `)}`
+    : Prisma.empty
+
+  const permissions = await prisma.$queryRaw`
+      SELECT 
+        pe.*,
+        e.name AS "employeeName",
+        u.name AS "userPermissionCreatedName",
+        uu.name AS "userPermissionUpdatedName"
+      FROM "permission" pe
+      LEFT JOIN "employees" e ON pe."employeeId" = e.id
+      LEFT JOIN "users" u ON pe."createdBy" = u.id
+      LEFT JOIN "users" uu ON pe."updatedBy" = uu.id
+      ${whereSql}
+      ORDER BY pe."createdOn" DESC
+    `
+
+  return permissions
 }
 
 /**
@@ -69,10 +72,23 @@ export const getAllPermissions = async (filters) => {
  */
 export const createPermission = async (data) => {
   return await prisma.permission.create({
-    data,
+    data: {
+      createdOn: data.createdOn,
+      fromDate: data.startDate,
+      toDate: data.endDate,
+      type: data.type,
+      status: data.status,
+      reason: data.reason,
+      comments: data.comments,
+      employee: {
+        connect: { id: data.employeeId }
+      },
+      userPermissionCreated: {
+        connect: { id: data.createdBy }
+      }
+    },
     include: {
-      employee: true,
-      approver: true
+      employee: true
     }
   })
 }
@@ -93,11 +109,24 @@ export const createPermission = async (data) => {
  */
 export const updatePermissionById = async (id, data) => {
   return await prisma.permission.update({
-    where: { id: parseInt(id) },
-    data,
+    where: { id },
+    data: {
+      updatedOn: data.updatedOn,
+      fromDate: data.startDate,
+      toDate: data.endDate,
+      type: data.type,
+      status: data.status,
+      reason: data.reason,
+      comments: data.comments,
+      employee: {
+        connect: { id: data.employeeId }
+      },
+      userPermissionUpdated: {
+        connect: { id: data.updatedBy }
+      }
+    },
     include: {
-      employee: true,
-      approver: true
+      employee: true
     }
   })
 }
@@ -110,10 +139,6 @@ export const updatePermissionById = async (id, data) => {
  */
 export const deletePermissionById = async (id) => {
   return await prisma.permission.delete({
-    where: { id: parseInt(id) },
-    include: {
-      employee: true,
-      approver: true
-    }
+    where: { id }
   })
 }

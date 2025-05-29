@@ -25,8 +25,5 @@ export const PermissionSchema = z
     // approvedAt: z.date().optional(), // Not typically set via form
     comments: z.string().max(1000, 'Comments cannot exceed 1000 characters.').optional(),
   })
-  .refine((data) => data.endDate >= data.startDate, {
-    message: 'End date cannot be earlier than start date.',
-    path: ['endDate'], // Attach error to endDate field
-  })
+
   .passthrough() // Allows other fields not defined in the schema 

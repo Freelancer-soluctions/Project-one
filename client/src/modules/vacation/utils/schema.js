@@ -16,8 +16,5 @@ export const VacationSchema = z
     }),
     status: VacationStatusEnum.default('PENDING') // Default to PENDING
   })
-  .refine((data) => data.endDate >= data.startDate, {
-    message: 'End date cannot be earlier than start date.',
-    path: ['endDate'], // Attach error to endDate field
-  })
+
   .passthrough() // Allows other fields not defined in the schema 
