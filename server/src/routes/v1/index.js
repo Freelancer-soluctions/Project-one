@@ -20,6 +20,7 @@ import vacation from '../../components/vacation/routes.js'
 import permission from '../../components/permission/routes.js'
 import users from '../../components/users/routes.js'
 import expenses from '../../components/expenses/routes.js'
+import performanceEvaluation from '../../components/performanceEvaluation/routes.js'
 
 const router = Router()
 router.use('/auth', auth)
@@ -43,4 +44,5 @@ router.use('/vacation', vacation)
 router.use('/permission', permission)
 router.use('/users', users)
 router.use('/expenses', expenses)
+router.use('/performance-evaluation', performanceEvaluation)
 export default router

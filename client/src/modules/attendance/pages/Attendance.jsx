@@ -30,7 +30,7 @@ const Attendance = () => {
     isLoading: isLoadingEmployees,
     isFetching: isFetchingEmployees
   } = useGetAllEmployeesQuery()
-  console.log('dataEmployees', dataEmployees) // Debugging line to check employee data
+
   const [
     getAllAttendance,
     {

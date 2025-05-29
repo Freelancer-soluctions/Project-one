@@ -8,13 +8,6 @@ const router = express.Router()
 
 /**
  * @swagger
- * tags:
- *   name: Permissions
- *   description: Permission management endpoints
- */
-
-/**
- * @swagger
  * components:
  *   schemas:
  *     Permission:

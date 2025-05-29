@@ -502,6 +502,7 @@ enum vacationStatus {
 }
 
 // permisos
+// agregar un approvedBy
 model permission {
   id                    Int              @id @default(autoincrement())
   employeeId            Int              @db.Integer

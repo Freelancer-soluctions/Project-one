@@ -50,10 +50,32 @@ export const VacationDatatable = ({
         )
       }
     },
+      {
+      accessorKey: 'userVacationCreatedName',
+      header: t('created_by'),
+      cell: info => {
+        const userPerformanceCreatedName =
+          info.row.original.userPerformanceCreatedName // Accede al dato original de la fila
+        return userPerformanceCreatedName
+          ? userPerformanceCreatedName.toUpperCase()
+          : null // Retorna null para mantener la celda vacía
+      }
+    },
     {
       accessorKey: 'createdOn',
       header: t('created_on'),
       cell: info => format(new Date(info.getValue()), 'PPP')
+    },
+    {
+      accessorKey: 'userVacationUpdatedName',
+      header: t('created_by'),
+      cell: info => {
+        const userPerformanceUpdatedName =
+          info.row.original.userPerformanceUpdatedName // Accede al dato original de la fila
+        return userPerformanceUpdatedName
+          ? userPerformanceUpdatedName.toUpperCase()
+          : null // Retorna null para mantener la celda vacía
+      }
     },
     {
       accessorKey: 'updatedOn',
@@ -69,20 +91,17 @@ export const VacationDatatable = ({
     onEditDialog(row)
   }
 
-  const vacationData = Array.isArray(dataVacations?.data) ? dataVacations.data : [];
 
   return (
     <DataTable
       columns={columnDefVacations}
-      data={vacationData}
+      data={dataVacations.data}
       handleRow={row => handleEditDialog(row)}
     />
   )
 }
 
 VacationDatatable.propTypes = {
-  dataVacations: PropTypes.shape({
-    data: PropTypes.array
-  }),
+  dataVacations: PropTypes.object.isRequired,
   onEditDialog: PropTypes.func.isRequired
 } 

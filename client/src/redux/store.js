@@ -20,6 +20,12 @@ import usersApi from '@/modules/users/api/usersApi'
 import expensesApi from '@/modules/expenses/api/expensesApi'
 import attendanceApi from '@/modules/attendance/api/attendanceApi'
 import employeesApi from '@/modules/employees/api/employeesApi'
+import payrollApi from '@/modules/payroll/api/payrollApi'
+import performanceEvaluationApi from '@/modules/performanceEvaluation/api/performanceEvaluationApi'
+import vacationApi from '@/modules/vacation/api/vacationApi'
+import permissionApi from '@/modules/permission/api/permissionApi'
+
+
 
 const persistConfig = {
   key: 'root',
@@ -55,7 +61,11 @@ const rootReducer = combineReducers({
   [usersApi.reducerPath]: usersApi.reducer,
   [expensesApi.reducerPath]: expensesApi.reducer,
   [attendanceApi.reducerPath]: attendanceApi.reducer,
-  [employeesApi.reducerPath]: employeesApi.reducer
+  [employeesApi.reducerPath]: employeesApi.reducer,
+  [payrollApi.reducerPath]: payrollApi.reducer,
+  [performanceEvaluationApi.reducerPath]: performanceEvaluationApi.reducer,
+  [vacationApi.reducerPath]: vacationApi.reducer,
+  [permissionApi.reducerPath]: permissionApi.reducer
 })
 
 const persistedReducer = persistReducer(persistConfig, rootReducer)
@@ -89,7 +99,12 @@ const store = configureStore({
       usersApi.middleware,
       expensesApi.middleware,
       attendanceApi.middleware,
-      employeesApi.middleware
+      employeesApi.middleware,
+      payrollApi.middleware,
+      performanceEvaluationApi.middleware,
+      vacationApi.middleware,
+      permissionApi.middleware
+      
     )
 })
 // store.subscribe(() => {
