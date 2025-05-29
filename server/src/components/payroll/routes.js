@@ -84,7 +84,7 @@ const router = express.Router()
  *                               lastName:
  *                                 type: string
  */
-router.get('/', verifyToken, validateSchema(payrollFiltersSchema, 'query'), getAllPayroll)
+router.get('/', verifyToken, validateSchema(payrollFiltersSchema), getAllPayroll)
 
 /**
  * @swagger

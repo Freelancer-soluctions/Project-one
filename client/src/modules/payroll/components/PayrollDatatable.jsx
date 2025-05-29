@@ -3,35 +3,21 @@ import { DataTable } from '@/components/dataTable'
 import { format } from 'date-fns'
 import PropTypes from 'prop-types'
 
-export const PayrollDatatable = ({
-  dataPayroll,
-  onEditDialog,
-}) => {
+export const PayrollDatatable = ({ dataPayroll, onEditDialog }) => {
   const { t } = useTranslation()
-
-  // Function to format currency
-  const formatCurrency = (value) => {
-    const number = Number(value);
-    if (isNaN(number)) return value; // Return original value if not a number
-    return new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(number);
-    // Adjust 'es-ES' and 'EUR' based on your locale and currency needs
-  }
-
+console.log('dataPayroll', dataPayroll)
   const columnDefPayroll = [
     {
-      accessorKey: 'employee',
+      accessorKey: 'employeeName',
       header: t('employee'),
-      cell: info => {
-        const employee = info.getValue()
-        return employee ? `${employee.name} ${employee.lastName}` : ''
-      }
+      cell: info => info.getValue()?.toUpperCase()
     },
     {
       accessorKey: 'month',
       header: t('month'),
       cell: info => {
-        const monthNumber = info.getValue();
-        return monthNumber ? t(`months.${monthNumber}`) : ''; // Use translation key
+        const monthNumber = info.getValue()
+        return monthNumber
       }
     },
     {
@@ -42,27 +28,43 @@ export const PayrollDatatable = ({
     {
       accessorKey: 'baseSalary',
       header: t('base_salary'),
-      cell: info => formatCurrency(info.getValue()) // Format as currency
+      cell: info => info.getValue() // Format as currency
     },
     {
       accessorKey: 'extraHours',
       header: t('extra_hours'),
-      cell: info => formatCurrency(info.getValue()) // Format as currency
+      cell: info => info.getValue() // Format as currency
     },
     {
       accessorKey: 'deductions',
       header: t('deductions'),
-      cell: info => formatCurrency(info.getValue()) // Format as currency
+      cell: info => info.getValue() // Format as currency
     },
     {
       accessorKey: 'totalPayment',
       header: t('total_payment'),
-      cell: info => formatCurrency(info.getValue()) // Format as currency
+      cell: info => info.getValue() // Format as currency
+    },
+     {
+      accessorKey: 'userPayrollCreatedName',
+      header: t('created_by'),
+      cell: info => {
+        const userPayrollCreatedName = info.row.original.userPayrollCreatedName // Accede al dato original de la fila
+        return userPayrollCreatedName ? userPayrollCreatedName.toUpperCase() : null // Retorna null para mantener la celda vacía
+      }
     },
     {
       accessorKey: 'createdOn',
       header: t('created_on'),
       cell: info => format(new Date(info.getValue()), 'PPP')
+    },
+     {
+      accessorKey: 'userPayrollUpdatedName',
+      header: t('created_by'),
+      cell: info => {
+        const userPayrollUpdatedName = info.row.original.userPayrollUpdatedName // Accede al dato original de la fila
+        return userPayrollUpdatedName ? userPayrollUpdatedName.toUpperCase() : null // Retorna null para mantener la celda vacía
+      }
     },
     {
       accessorKey: 'updatedOn',
@@ -78,20 +80,16 @@ export const PayrollDatatable = ({
     onEditDialog(row)
   }
 
-  const payrollData = Array.isArray(dataPayroll?.data) ? dataPayroll.data : [];
-
   return (
     <DataTable
       columns={columnDefPayroll}
-      data={payrollData}
+      data={dataPayroll.data}
       handleRow={row => handleEditDialog(row)}
     />
   )
 }
 
 PayrollDatatable.propTypes = {
-  dataPayroll: PropTypes.shape({
-    data: PropTypes.array
-  }),
+  dataPayroll: PropTypes.object.isRequired,
   onEditDialog: PropTypes.func.isRequired
-} 
+}

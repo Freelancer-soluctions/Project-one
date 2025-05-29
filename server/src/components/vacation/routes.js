@@ -79,7 +79,7 @@ const router = express.Router()
  *                               lastName:
  *                                 type: string
  */
-router.get('/', verifyToken, validateSchema(vacationFiltersSchema, 'query'), getAllVacation)
+router.get('/', verifyToken, validateSchema(vacationFiltersSchema), getAllVacation)
 
 /**
  * @swagger

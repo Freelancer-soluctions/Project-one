@@ -24,9 +24,8 @@ export const getAllPerformanceEvaluations = handleCatchErrorAsync(async (req, re
  */
 export const createPerformanceEvaluation = handleCatchErrorAsync(async (req, res) => {
   const evaluation = await createPerformanceEvaluationService({
-    ...req.body,
-    createdBy: req.userId
-  })
+    ...req.body
+  }, req.userId)
   globalResponse(res, 201, evaluation)
 })
 
@@ -37,9 +36,8 @@ export const createPerformanceEvaluation = handleCatchErrorAsync(async (req, res
  */
 export const updatePerformanceEvaluationById = handleCatchErrorAsync(async (req, res) => {
   const evaluation = await updatePerformanceEvaluationByIdService(req.params.id, {
-    ...req.body,
-    updatedBy: req.userId
-  })
+    ...req.body
+  }, req.userId)
   globalResponse(res, 200, evaluation)
 })
 

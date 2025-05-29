@@ -6,8 +6,7 @@ import { format } from 'date-fns'
 import { cn } from '@/lib/utils'
 import PropTypes from 'prop-types'
 
-import { VacationSchema } from '../utils' // Import schema
-import { useGetAllEmployeesQuery } from '@/modules/employees/api/employeesApi' // Import employee query
+import { VacationSchema, VACATION_STATUS } from '../utils' // Import schema
 
 import {
   Dialog,
@@ -41,9 +40,9 @@ import {
 import { Calendar } from '@/components/ui/calendar'
 import { Input } from '@/components/ui/input' // Keep Input for CreatedBy/UpdatedBy
 import { Button } from '@/components/ui/button'
-import { CalendarIcon, BackpackIcon } from '@radix-ui/react-icons' // Using BackpackIcon
+import { CalendarIcon } from '@radix-ui/react-icons' // Using BackpackIcon
+import { LuBackpack } from 'react-icons/lu'
 
-const VACATION_STATUS = ['PENDING', 'APPROVED', 'REJECTED']
 
 export const VacationDialog = ({
   openDialog,
@@ -51,14 +50,13 @@ export const VacationDialog = ({
   selectedRow,
   onSubmit,
   onDeleteById,
-  actionDialog
+  actionDialog,
+  dataEmployees
 }) => {
   const { t } = useTranslation()
   const [vacationId, setVacationId] = useState('')
 
-  // Fetch employees
-  const { data: employeesData, isLoading: isLoadingEmployees } = useGetAllEmployeesQuery()
-  const employeesList = employeesData?.data || []
+
 
   const form = useForm({
     resolver: zodResolver(VacationSchema),
@@ -67,10 +65,7 @@ export const VacationDialog = ({
       startDate: null,
       endDate: null,
       status: 'PENDING',
-      createdOn: '',
-      updatedOn: '',
-      userVacationCreatedName: '', // Assuming field names
-      userVacationUpdatedName: ''
+   
     }
   })
 
@@ -95,10 +90,7 @@ export const VacationDialog = ({
         startDate: null,
         endDate: null,
         status: 'PENDING',
-        createdOn: '',
-        updatedOn: '',
-        userVacationCreatedName: '',
-        userVacationUpdatedName: ''
+    
       })
       setVacationId(null)
     }
@@ -124,7 +116,7 @@ export const VacationDialog = ({
       <DialogContent className='sm:max-w-[600px]'>
         <DialogHeader>
           <DialogTitle className='flex items-center gap-2'>
-            <BackpackIcon className='inline mr-3 w-7 h-7' /> {/* Changed Icon */}
+            <LuBackpack className='inline mr-3 w-7 h-7' /> {/* Changed Icon */}
             {actionDialog}
           </DialogTitle>
           <DialogDescription>
@@ -150,14 +142,14 @@ export const VacationDialog = ({
                     <Select
                       onValueChange={field.onChange}
                       value={field.value?.toString() ?? ''}
-                      disabled={isLoadingEmployees}>
+                      >
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder={t('select_employee_placeholder')} />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {employeesList.map(employee => (
+                        {dataEmployees.map(employee => (
                           <SelectItem key={employee.id} value={employee.id.toString()}>
                             {`${employee.name} ${employee.lastName}`}
                           </SelectItem>
@@ -219,7 +211,7 @@ export const VacationDialog = ({
                             {field.value ? (
                               format(field.value, "PPP")
                             ) : (
-                              <span>{t('pick_a_date')}</span>
+                              <span>{t('pick_date')}</span>
                             )}
                             <CalendarIcon className="w-4 h-4 ml-auto opacity-50" />
                           </Button>
@@ -261,7 +253,7 @@ export const VacationDialog = ({
                             {field.value ? (
                               format(field.value, "PPP")
                             ) : (
-                              <span>{t('pick_a_date')}</span>
+                              <span>{t('pick_date')}</span>
                             )}
                             <CalendarIcon className="w-4 h-4 ml-auto opacity-50" />
                           </Button>
@@ -455,5 +447,6 @@ VacationDialog.propTypes = {
   selectedRow: PropTypes.object,
   onSubmit: PropTypes.func.isRequired,
   onDeleteById: PropTypes.func.isRequired,
-  actionDialog: PropTypes.string.isRequired
+  actionDialog: PropTypes.string.isRequired,
+  dataEmployees: PropTypes.array.isRequired
 } 

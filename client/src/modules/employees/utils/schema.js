@@ -30,3 +30,15 @@ export const EmployeeSchema = z
     })
   })
   .passthrough() // Permite otros campos 
+
+  
+export const EmployeeFiltersSchema = z.object({
+  name: z.string().optional(),
+  dni: z.string().optional(),
+  email: z
+    .string()
+    .email({
+      message: 'Invalid email format.'
+    })
+    .optional(),
+})
