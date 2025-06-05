@@ -1,5 +1,5 @@
 import { Router } from 'express'
-import verifyToken from '../../middleware/verifyToken.js'
+import { verifyToken, validateQueryParams, validateSchema } from '../../middleware'
 import {
   getAllInventoryMovements,
   createInventoryMovement,
@@ -10,10 +10,10 @@ import {
   inventoryMovementFiltersSchema,
   inventoryMovementCreateUpdateSchema
 } from '../../utils/joiSchemas/joi.js'
-import validateQueryParams from '../../middleware/validateQueryParams.js'
-import validateSchema from '../../middleware/validateSchema.js'
 
 const router = Router()
+// uso global de middleware
+router.use(verifyToken)
 
 /**
  * @openapi
@@ -67,7 +67,6 @@ const router = Router()
  */
 router.get(
   '/',
-  verifyToken,
   validateQueryParams(inventoryMovementFiltersSchema),
   getAllInventoryMovements
 )
@@ -121,7 +120,6 @@ router.get(
  */
 router.post(
   '/',
-  verifyToken,
   validateSchema(inventoryMovementCreateUpdateSchema),
   createInventoryMovement
 )
@@ -182,7 +180,6 @@ router.post(
  */
 router.put(
   '/:id',
-  verifyToken,
   validateSchema(inventoryMovementCreateUpdateSchema),
   updateInventoryMovementById
 )
@@ -223,6 +220,6 @@ router.put(
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.delete('/:id', verifyToken, deleteInventoryMovementById)
+router.delete('/:id', deleteInventoryMovementById)
 
 export default router

@@ -5,12 +5,12 @@ import {
   updatePerformanceEvaluationById,
   deletePerformanceEvaluationById
 } from './controller.js'
-import verifyToken from '../../middleware/verifyToken.js'
-import validateSchema from '../../middleware/validateSchema.js'
-import validateQueryParams from '../../middleware/validateQueryParams.js'
+import { verifyToken, validateQueryParams, validateSchema } from '../../middleware'
 import { performanceEvaluationFiltersSchema, performanceEvaluationCreateUpdateSchema } from '../../utils/joiSchemas/joi.js'
 
 const router = express.Router()
+// uso global de middleware
+router.use(verifyToken)
 
 /**
  * @openapi
@@ -52,7 +52,6 @@ const router = express.Router()
  */
 router.get(
   '/',
-  verifyToken,
   validateQueryParams(performanceEvaluationFiltersSchema),
   getAllPerformanceEvaluations
 )
@@ -94,7 +93,6 @@ router.get(
  */
 router.post(
   '/',
-  verifyToken,
   validateSchema(performanceEvaluationCreateUpdateSchema),
   createPerformanceEvaluation
 )
@@ -143,7 +141,6 @@ router.post(
  */
 router.put(
   '/:id',
-  verifyToken,
   validateSchema(performanceEvaluationCreateUpdateSchema),
   updatePerformanceEvaluationById
 )
@@ -184,6 +181,6 @@ router.put(
  *                 data:
  *                   $ref: "#/components/schemas/ResponseGetPerformanceEvaluation"
  */
-router.delete('/:id', verifyToken, deletePerformanceEvaluationById)
+router.delete('/:id', deletePerformanceEvaluationById)
 
 export default router

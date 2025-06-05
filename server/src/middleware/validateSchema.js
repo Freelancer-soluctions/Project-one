@@ -1,4 +1,4 @@
-const validateSchema = (schema) => {
+export const validateSchema = (schema) => {
   return (req, res, next) => {
     const { body } = req
 
@@ -11,5 +11,3 @@ const validateSchema = (schema) => {
     next()
   }
 }
-
-export default validateSchema

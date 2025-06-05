@@ -2,11 +2,11 @@ import { Router } from 'express'
 import { News, NewsUpdate, NewsFilters } from '../../utils/joiSchemas/joi.js'
 import * as newsController from './controller.js'
 import upload from '../../utils/multer/multer.js'
-import validateQueryParams from '../../middleware/validateQueryParams.js'
-import validateSchema from '../../middleware/validateSchema.js'
-import verifyToken from '../../middleware/verifyToken.js'
+import { verifyToken, validateQueryParams, validateSchema } from '../../middleware'
 
 const router = Router()
+// uso global de middleware
+router.use(verifyToken)
 
 /**
  * @openapi
@@ -60,7 +60,7 @@ const router = Router()
  *               $ref: "#/components/schemas/Error"
  */
 
-router.get('/', verifyToken, validateQueryParams(NewsFilters), newsController.getAllNews)
+router.get('/', validateQueryParams(NewsFilters), newsController.getAllNews)
 
 /**
  * @openapi
@@ -150,7 +150,7 @@ router.get('/status', newsController.getAllNewsStatus)
  *               $ref: "#/components/schemas/Error"
  */
 
-router.post('/', verifyToken, validateSchema(News), upload.single('document'), newsController.createNew)
+router.post('/', validateSchema(News), upload.single('document'), newsController.createNew)
 
 /**
  * @openapi
@@ -209,7 +209,7 @@ router.post('/', verifyToken, validateSchema(News), upload.single('document'), n
  *
  */
 
-router.put('/:id', verifyToken, validateSchema(NewsUpdate), upload.single('document'), newsController.updateById)
+router.put('/:id', validateSchema(NewsUpdate), upload.single('document'), newsController.updateById)
 
 /**
  * @openapi
@@ -248,8 +248,6 @@ router.put('/:id', verifyToken, validateSchema(NewsUpdate), upload.single('docum
  *             schema:
  *               $ref: "#/components/schemas/Error"
  */
-router.delete('/:id', verifyToken, newsController.deleteById)
+router.delete('/:id', newsController.deleteById)
 
 export default router
-
-// eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiaWF0IjoxNzQxNjU4MDk0LCJleHAiOjE3NDE3NDQ0OTR9.gCvtnnndKLvGt0X9VKjo1gtjMkKtuK12syLFg7BNDLo

@@ -1,4 +1,4 @@
-const validateQueryParams = (schema) => {
+export const validateQueryParams = (schema) => {
   return (req, res, next) => {
     const { query } = req
     const { error } = schema.validate(query, { abortEarly: false })
@@ -10,5 +10,3 @@ const validateQueryParams = (schema) => {
     next()
   }
 }
-
-export default validateQueryParams
