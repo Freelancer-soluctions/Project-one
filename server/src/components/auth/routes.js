@@ -1,8 +1,7 @@
 import { Router } from 'express'
 import * as authController from './controller.js'
-import verifyToken from '../../middleware/verifyToken.js'
+import { verifyToken, validateSchema } from '../../middleware'
 import { SignUpSchema, SignInSchema } from '../../utils/joiSchemas/joi.js'
-import validateSchema from '../../middleware/validateSchema.js'
 
 const router = Router()
 

@@ -5,12 +5,12 @@ import {
   updateAttendanceById,
   deleteAttendanceById
 } from './controller.js'
-import verifyToken from '../../middleware/verifyToken.js'
-import validateSchema from '../../middleware/validateSchema.js'
-import validateQueryParams from '../../middleware/validateQueryParams.js'
+import { verifyToken, validateSchema, validateQueryParams } from '../../middleware'
 import { attendanceFiltersSchema, attendanceCreateUpdateSchema } from '../../utils/joiSchemas/joi.js'
 
 const router = express.Router()
+// uso global de middleware
+router.use(verifyToken)
 
 /**
  * @openapi
@@ -85,7 +85,6 @@ const router = express.Router()
  */
 router.get(
   '/',
-  verifyToken,
   validateQueryParams(attendanceFiltersSchema),
   getAllAttendance
 )
@@ -136,7 +135,6 @@ router.get(
  */
 router.post(
   '/',
-  verifyToken,
   validateSchema(attendanceCreateUpdateSchema),
   createAttendance
 )
@@ -194,7 +192,6 @@ router.post(
  */
 router.put(
   '/:id',
-  verifyToken,
   validateSchema(attendanceCreateUpdateSchema),
   updateAttendanceById
 )
@@ -237,7 +234,6 @@ router.put(
  */
 router.delete(
   '/:id',
-  verifyToken,
   deleteAttendanceById
 )
 

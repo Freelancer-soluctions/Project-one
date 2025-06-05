@@ -76,5 +76,5 @@ export const updatePermissionById = async (id, data, userId) => {
  * @returns {Promise<Object>} Deleted permission record
  */
 export const deletePermissionById = async (id) => {
-  return await deletePermissionByIdDao(id)
+  return await deletePermissionByIdDao(Number(id))
 }

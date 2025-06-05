@@ -3,7 +3,6 @@ import { createToken, createRefreshToken } from '../../utils/jwt/createToken.js'
 import ClientError from '../../utils/responses&Errors/errors.js'
 import { rolesCodes } from '../../utils/constants/enums.js'
 import { getUserRegisteredByEmail } from '../users/dao.js'
-import * as roleService from '../role/service.js'
 import { encryptPassword, comparePassword } from '../../utils/bcrypt/encrypt.js'
 import jwt from 'jsonwebtoken'
 import dontenv from '../../config/dotenv.js'
@@ -16,7 +15,7 @@ import dontenv from '../../config/dotenv.js'
  */
 export const signUp = async (user) => {
   // get the user role id
-  const role = await roleService.getOneByCode(rolesCodes.user)
+  const role = await authDao.getRolByDescription(rolesCodes.user)
   user.roleId = role?.id
   // encryt password
   user.password = encryptPassword(user.password)
@@ -27,7 +26,7 @@ export const signUp = async (user) => {
   }
   const userSaved = await authDao.signUp(user)
   // create the token
-  const token = await createToken(userSaved.id)
+  const token = await createToken({ id: userSaved.id, rol: userSaved.rol })
   return { accessToken: token, user: { id: userSaved.id, firstName: userSaved.firstName, picture: userSaved.picture, role: userSaved.roleId } }
 }
 
@@ -56,8 +55,8 @@ export const signIn = async (user) => {
     throw new ClientError('Contraseña invalida.', 400)
   }
   // create the token
-  const token = await createToken(userExists.id)
-  const refreshToken = await createRefreshToken(userExists.id)
+  const token = await createToken({ id: userExists.id, rol: userExists.roles.description })
+  const refreshToken = await createRefreshToken({ id: userExists.id, rol: userExists.roles.description })
   // save the user with refresh token
   await authDao.saveRefreshToken(refreshToken, userExists.id)
 
@@ -100,7 +99,7 @@ export const refreshToken = async (cookies) => {
   const { id } = decoded
   if (user.id !== id) { throw new ClientError('Forbidden', 403) }
 
-  const accessToken = await createToken(user.id)
+  const accessToken = await createToken({ id: user.id, rol: user.roles.description })
 
   return { accessToken, user: { id: user.id, firstName: user.firstName, picture: user.picture, roleName: user.roles.description, roleId: user.roleId } }
 }

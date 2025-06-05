@@ -7,11 +7,11 @@ import {
   SettingsProductCategoryUpdate
 } from '../../utils/joiSchemas/joi.js'
 import * as settingsController from './controller.js'
-import validateQueryParams from '../../middleware/validateQueryParams.js'
-import validateSchema from '../../middleware/validateSchema.js'
-import verifyToken from '../../middleware/verifyToken.js'
+import { verifyToken, validateQueryParams, validateSchema } from '../../middleware'
 
 const router = Router()
+// uso global de middleware
+router.use(verifyToken)
 
 /**
  * @openapi
@@ -62,7 +62,7 @@ const router = Router()
  *             schema:
  *               $ref: "#/components/schemas/Error"
  */
-router.get('/:id', verifyToken, settingsController.getSettingsById)
+router.get('/:id', settingsController.getSettingsById)
 /**
  * @openapi
  * /api/v1/settings/language:
@@ -113,7 +113,6 @@ router.get('/:id', verifyToken, settingsController.getSettingsById)
  */
 router.post(
   '/language/',
-  verifyToken,
   validateSchema(SettingsLanguage),
   settingsController.createOrUpdateSettingsLanguage
 )
@@ -167,7 +166,6 @@ router.post(
  */
 router.post(
   '/display/',
-  verifyToken,
   validateSchema(SettingsDisplay),
   settingsController.createOrUpdateSettingsDisplay
 )
@@ -225,7 +223,6 @@ router.post(
  */
 router.get(
   '/product/categories',
-  verifyToken,
   validateQueryParams(SettingsProductCategoryFilters),
   settingsController.getAllProductCategories
 )
@@ -280,7 +277,6 @@ router.get(
  */
 router.post(
   '/product/categories',
-  verifyToken,
   validateSchema(SettingsProductCategoryCreate),
   settingsController.createProductCategory
 )
@@ -343,7 +339,6 @@ router.post(
  */
 router.put(
   '/product/categories/:id',
-  verifyToken,
   validateSchema(SettingsProductCategoryUpdate),
   settingsController.updateProductCategoryById
 )
@@ -387,7 +382,6 @@ router.put(
  */
 router.delete(
   '/product/categories/:id',
-  verifyToken,
   settingsController.deleteProductCategoryById
 )
 

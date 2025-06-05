@@ -5,12 +5,12 @@ import {
   updateSaleById,
   deleteSaleById
 } from './controller.js'
-import verifyToken from '../../middleware/verifyToken.js'
-import validateSchema from '../../middleware/validateSchema.js'
-import validateQueryParams from '../../middleware/validateQueryParams.js'
+import { verifyToken, validateQueryParams, validateSchema } from '../../middleware'
 import { saleFiltersSchema, saleCreateUpdateSchema } from '../../utils/joiSchemas/joi.js'
 
 const router = express.Router()
+// uso global de middleware
+router.use(verifyToken)
 
 /**
  * @swagger
@@ -56,7 +56,7 @@ const router = express.Router()
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.get('/', verifyToken, validateQueryParams(saleFiltersSchema), getAllSales)
+router.get('/', validateQueryParams(saleFiltersSchema), getAllSales)
 
 /**
  * @swagger
@@ -97,7 +97,7 @@ router.get('/', verifyToken, validateQueryParams(saleFiltersSchema), getAllSales
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.post('/', verifyToken, validateSchema(saleCreateUpdateSchema), createSale)
+router.post('/', validateSchema(saleCreateUpdateSchema), createSale)
 
 /**
  * @swagger
@@ -145,7 +145,7 @@ router.post('/', verifyToken, validateSchema(saleCreateUpdateSchema), createSale
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.put('/:id', verifyToken, validateSchema(saleCreateUpdateSchema), updateSaleById)
+router.put('/:id', validateSchema(saleCreateUpdateSchema), updateSaleById)
 
 /**
  * @swagger
@@ -182,6 +182,6 @@ router.put('/:id', verifyToken, validateSchema(saleCreateUpdateSchema), updateSa
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.delete('/:id', verifyToken, deleteSaleById)
+router.delete('/:id', deleteSaleById)
 
 export default router

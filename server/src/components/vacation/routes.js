@@ -1,10 +1,11 @@
 import express from 'express'
 import { getAllVacation, createVacation, updateVacationById, deleteVacationById } from './controller.js'
-import verifyToken from '../../middleware/verifyToken.js'
-import validateSchema from '../../middleware/validateSchema.js'
+import { verifyToken, validateQueryParams, validateSchema } from '../../middleware'
 import { vacationFiltersSchema, vacationCreateUpdateSchema } from '../../utils/joiSchemas/joi.js'
 
 const router = express.Router()
+// uso global de middleware
+router.use(verifyToken)
 
 /**
  * @swagger
@@ -79,7 +80,7 @@ const router = express.Router()
  *                               lastName:
  *                                 type: string
  */
-router.get('/', verifyToken, validateSchema(vacationFiltersSchema), getAllVacation)
+router.get('/', validateSchema(vacationFiltersSchema), getAllVacation)
 
 /**
  * @swagger
@@ -139,7 +140,7 @@ router.get('/', verifyToken, validateSchema(vacationFiltersSchema), getAllVacati
  *                     status:
  *                       type: string
  */
-router.post('/', verifyToken, validateSchema(vacationCreateUpdateSchema), createVacation)
+router.post('/', validateSchema(vacationCreateUpdateSchema), createVacation)
 
 /**
  * @swagger
@@ -189,7 +190,7 @@ router.post('/', verifyToken, validateSchema(vacationCreateUpdateSchema), create
  *                     status:
  *                       type: string
  */
-router.put('/:id', verifyToken, validateSchema(vacationCreateUpdateSchema), updateVacationById)
+router.put('/:id', validateSchema(vacationCreateUpdateSchema), updateVacationById)
 
 /**
  * @swagger
@@ -223,6 +224,6 @@ router.put('/:id', verifyToken, validateSchema(vacationCreateUpdateSchema), upda
  *                     id:
  *                       type: integer
  */
-router.delete('/:id', verifyToken, deleteVacationById)
+router.delete('/:id', deleteVacationById)
 
 export default router

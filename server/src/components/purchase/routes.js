@@ -5,12 +5,12 @@ import {
   updatePurchaseById,
   deletePurchaseById
 } from './controller.js'
-import verifyToken from '../../middleware/verifyToken.js'
-import validateQueryParams from '../../middleware/validateQueryParams.js'
-import validateSchema from '../../middleware/validateSchema.js'
+import { verifyToken, validateQueryParams, validateSchema } from '../../middleware'
 import { purchaseFiltersSchema, purchaseCreateUpdateSchema } from '../../utils/joiSchemas/joi.js'
 
 const router = express.Router()
+// uso global de middleware
+router.use(verifyToken)
 
 /**
  * @openapi
@@ -76,7 +76,6 @@ const router = express.Router()
  */
 router.get(
   '/',
-  verifyToken,
   validateQueryParams(purchaseFiltersSchema),
   getAllPurchases
 )
@@ -119,7 +118,6 @@ router.get(
  */
 router.post(
   '/',
-  verifyToken,
   validateSchema(purchaseCreateUpdateSchema),
   createPurchase
 )
@@ -169,7 +167,6 @@ router.post(
  */
 router.put(
   '/:id',
-  verifyToken,
   validateSchema(purchaseCreateUpdateSchema),
   updatePurchaseById
 )
@@ -200,7 +197,6 @@ router.put(
  */
 router.delete(
   '/:id',
-  verifyToken,
   deletePurchaseById
 )
 

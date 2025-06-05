@@ -15,5 +15,3 @@ export const errorHandler = (err, req, res, next) => {
 
   globalErrorResponse(res, statusCode, code, message, name, stack)
 }
-
-export default errorHandler
