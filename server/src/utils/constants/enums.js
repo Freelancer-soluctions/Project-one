@@ -83,3 +83,25 @@ export const HTTPCodes = [
   { status: '598', message: 'Network read timeout error' },
   { status: '599', message: 'Network connect timeout error' }
 ]
+
+export const NEWSSTATUSCODE = {
+  ACTIVE: 'C01',
+  PENDING: 'C02',
+  CLOSED: 'C03'
+}
+
+export const TABLESNAMES = {
+  NEWS: 'news',
+  USERS: 'users',
+  NOTES: 'notes',
+  EVENTS: 'events',
+  SETTINGS: 'settings',
+  PRODUCTS: 'products',
+  PRODUCTATTRIBUTES: 'productAttributes',
+  PROVIDERS: 'productProviders'
+}
+
+export const PRODUCTSSTATUSCODE = {
+  ACTIVE: 'C01',
+  INACTIVE: 'C02'
+}

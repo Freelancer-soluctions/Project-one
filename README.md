@@ -14,8 +14,9 @@ Back end
 - Documentacion basada en jsdoc
 - Arquitectura layered o capas
 - Uso de prima ORM con sistema de consultas naviva y uso de sql raw para consultas mas complejas.
-- Uso de JWT para la autenticacion y autorizacion de usuarios
+- Uso de JWT para la autenticacion y autorizacion de usuarios en rutas privadas
 - HOF hihg order function para manejo de errores
+
 
 
 

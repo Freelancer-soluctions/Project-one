@@ -6,15 +6,14 @@ import {
   ProductAttributes
 } from '../../utils/joiSchemas/joi.js'
 import * as productsController from './controller.js'
-import validateQueryParams from '../../middleware/validateQueryParams.js'
-import validateSchema from '../../middleware/validateSchema.js'
-import verifyToken from '../../middleware/verifyToken.js'
+import { verifyToken, validateQueryParams, validateSchema } from '../../middleware'
 
 const router = Router()
+// uso global de middleware
+router.use(verifyToken)
 
 router.get(
   '/',
-  verifyToken,
   validateQueryParams(ProductsFilters),
   productsController.getAllProducts
 )
@@ -27,29 +26,26 @@ router.get('/providers', productsController.getAllProductProviders)
 
 router.post(
   '/',
-  verifyToken,
   validateSchema(Products),
   productsController.createOne
 )
 
 router.put(
   '/:id',
-  verifyToken,
   validateSchema(ProductsUpdate),
   productsController.updateById
 )
 
-router.delete('/:id', verifyToken, productsController.deleteById)
+router.delete('/:id', productsController.deleteById)
 
 router.get('/attributes/:id', productsController.getAllProductAttributesByProductId)
 
 router.post(
   '/attributes/',
-  verifyToken,
   validateSchema(ProductAttributes),
   productsController.saveProductAttributes
 )
 
-router.delete('/attributes/:id', verifyToken, productsController.deleteProductsAttributeById)
+router.delete('/attributes/:id', productsController.deleteProductsAttributeById)
 
 export default router

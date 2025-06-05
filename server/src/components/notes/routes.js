@@ -1,24 +1,24 @@
 import { Router } from 'express'
 import { NoteCreate, NoteColumnUpdate, NotesFilters, NoteUpdate } from '../../utils/joiSchemas/joi.js'
-import validateSchema from '../../middleware/validateSchema.js'
 import * as noteController from './controller.js'
-import validateQueryParams from '../../middleware/validateQueryParams.js'
-import verifyToken from '../../middleware/verifyToken.js'
+import { verifyToken, validateQueryParams, validateSchema } from '../../middleware'
 
 const router = Router()
+// uso global de middleware
+router.use(verifyToken)
 
-router.get('/', verifyToken, validateQueryParams(NotesFilters), noteController.getAllNotes)
+router.get('/', validateQueryParams(NotesFilters), noteController.getAllNotes)
 
-router.post('/', verifyToken, validateSchema(NoteCreate), noteController.createNote)
+router.post('/', validateSchema(NoteCreate), noteController.createNote)
 
 router.get('/notesColumns', noteController.getAllNotesColumns)
 
-router.put('/notecolumn', verifyToken, validateSchema(NoteColumnUpdate), noteController.updateNoteColumId)
+router.put('/notecolumn', validateSchema(NoteColumnUpdate), noteController.updateNoteColumId)
 
-router.put('/:id', verifyToken, validateSchema(NoteUpdate), noteController.updateNoteById)
+router.put('/:id', validateSchema(NoteUpdate), noteController.updateNoteById)
 
-router.delete('/:id', verifyToken, noteController.deleteById)
+router.delete('/:id', noteController.deleteById)
 
-router.get('/notesCount', verifyToken, noteController.getAllNotesCount)
+router.get('/notesCount', noteController.getAllNotesCount)
 
 export default router

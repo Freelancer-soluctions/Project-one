@@ -4,11 +4,11 @@ import {
   ProvidersFilters
 } from '../../utils/joiSchemas/joi.js'
 import * as providersController from './controller.js'
-import validateQueryParams from '../../middleware/validateQueryParams.js'
-import validateSchema from '../../middleware/validateSchema.js'
-import verifyToken from '../../middleware/verifyToken.js'
+import { verifyToken, validateQueryParams, validateSchema } from '../../middleware'
 
 const router = Router()
+// uso global de middleware
+router.use(verifyToken)
 
 /**
  * @openapi
@@ -64,7 +64,6 @@ const router = Router()
 
 router.get(
   '/',
-  verifyToken,
   validateQueryParams(ProvidersFilters),
   providersController.getAllProviders
 )
@@ -120,7 +119,6 @@ router.get(
 
 router.post(
   '/',
-  verifyToken,
   validateSchema(Providers),
   providersController.createProvider
 )
@@ -183,7 +181,6 @@ router.post(
  */
 router.put(
   '/:id',
-  verifyToken,
   validateSchema(Providers),
   providersController.updateProviderById
 )
@@ -226,6 +223,6 @@ router.put(
  *               $ref: "#/components/schemas/Error"
  */
 
-router.delete('/:id', verifyToken, providersController.deleteProviderById)
+router.delete('/:id', providersController.deleteProviderById)
 
 export default router

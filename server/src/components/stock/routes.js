@@ -1,20 +1,21 @@
 import { Router } from 'express'
-import verifyToken from '../../middleware/verifyToken.js'
 import {
   getAllStock,
   createStock,
   updateStockById,
   deleteStockById,
   getStockAlerts,
-  getStockByProductId,
+  getStockByProductId
 } from './controller.js'
 import {
   stockFiltersSchema,
   stockCreateUpdateSchema
 } from '../../utils/joiSchemas/joi.js'
-import validateQueryParams from '../../middleware/validateQueryParams.js'
-import validateSchema from '../../middleware/validateSchema.js'
+import { verifyToken, validateQueryParams, validateSchema } from '../../middleware'
+
 const router = Router()
+// uso global de middleware
+router.use(verifyToken)
 
 /**
  * @openapi
@@ -68,7 +69,6 @@ const router = Router()
  */
 router.get(
   '/',
-  verifyToken,
   validateQueryParams(stockFiltersSchema),
   getAllStock
 )
@@ -124,7 +124,6 @@ router.get(
  */
 router.get(
   '/',
-  verifyToken,
   getStockByProductId
 )
 
@@ -173,7 +172,6 @@ router.get(
  */
 router.get(
   '/alerts',
-  verifyToken,
   getStockAlerts
 )
 
@@ -226,7 +224,6 @@ router.get(
  */
 router.post(
   '/',
-  verifyToken,
   validateSchema(stockCreateUpdateSchema),
   createStock
 )
@@ -287,7 +284,6 @@ router.post(
  */
 router.put(
   '/:id',
-  verifyToken,
   validateSchema(stockCreateUpdateSchema),
   updateStockById
 )
@@ -328,6 +324,6 @@ router.put(
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.delete('/:id', verifyToken, deleteStockById)
+router.delete('/:id', deleteStockById)
 
 export default router

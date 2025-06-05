@@ -1,7 +1,7 @@
 import jwt from 'jsonwebtoken'
 import dontenv from '../config/dotenv.js'
 
-const verifyToken = async (req, res, next) => {
+export const verifyToken = async (req, res, next) => {
   try {
     // Get the token from the headers
     const authHeader = req.headers.authorization || req.headers.Authorization
@@ -37,5 +37,3 @@ const verifyToken = async (req, res, next) => {
     return res.status(401).json({ error: error.message })
   }
 }
-
-export default verifyToken

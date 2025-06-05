@@ -5,12 +5,12 @@ import {
   updateEmployeeById,
   deleteEmployeeById
 } from './controller.js'
-import verifyToken from '../../middleware/verifyToken.js'
-import validateSchema from '../../middleware/validateSchema.js'
-import validateQueryParams from '../../middleware/validateQueryParams.js'
+import { verifyToken, validateSchema, validateQueryParams } from '../../middleware'
 import { employeeFiltersSchema, employeeCreateUpdateSchema } from '../../utils/joiSchemas/joi.js'
 
 const router = express.Router()
+// uso global de middleware
+router.use(verifyToken)
 
 /**
  * @openapi
@@ -64,7 +64,6 @@ const router = express.Router()
  */
 router.get(
   '/',
-  verifyToken,
   validateQueryParams(employeeFiltersSchema),
   getAllEmployees
 )
@@ -115,7 +114,6 @@ router.get(
  */
 router.post(
   '/',
-  verifyToken,
   validateSchema(employeeCreateUpdateSchema),
   createEmployee
 )
@@ -173,7 +171,6 @@ router.post(
  */
 router.put(
   '/:id',
-  verifyToken,
   validateSchema(employeeCreateUpdateSchema),
   updateEmployeeById
 )
@@ -216,7 +213,6 @@ router.put(
  */
 router.delete(
   '/:id',
-  verifyToken,
   deleteEmployeeById
 )
 
