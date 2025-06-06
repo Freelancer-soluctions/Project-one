@@ -1,6 +1,6 @@
 import express from 'express'
 import { getAllPermissions, createPermission, updatePermissionById, deletePermissionById } from './controller.js'
-import { verifyToken, validateQueryParams, validateSchema } from '../../middleware'
+import { verifyToken, validateQueryParams, validateSchema } from '../../middleware/index.js'
 
 import { permissionFiltersSchema, permissionCreateUpdateSchema } from '../../utils/joiSchemas/joi.js'
 

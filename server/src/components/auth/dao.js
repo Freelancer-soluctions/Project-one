@@ -1,5 +1,5 @@
-import { createRow, getOneRow, getRow, updateRow } from '../utils/dao.js'
-import { TABLESNAMES } from '../utils/enums/enums.js'
+import { createRow, getOneRow, updateRow } from '../../utils/prisma/dao.js'
+import { TABLESNAMES } from '../../utils/constants/enums.js'
 
 const tableName = TABLESNAMES.USERS
 
@@ -73,22 +73,6 @@ export const saveRefreshToken = async (refreshToken, id) => {
   const data = { refreshToken }
   const where = { id }
   const user = await updateRow(tableName, data, where)
-
-  return Promise.resolve(user)
-}
-
-/**
- * Get user by refresh token.
- *
- * @param {string} refreshToken - The refresh token to search for.
- * @returns {Promise<Object>} The user associated with the token.
- */
-export const getUserByToken = async (refreshToken) => {
-  const user = await getRow({
-    tableName,
-    where: { refreshToken },
-    include: { roles: true }
-  })
 
   return Promise.resolve(user)
 }

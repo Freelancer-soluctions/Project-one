@@ -5,7 +5,7 @@ import {
   updateEmployeeById,
   deleteEmployeeById
 } from './controller.js'
-import { verifyToken, validateSchema, validateQueryParams } from '../../middleware'
+import { verifyToken, validateSchema, validateQueryParams } from '../../middleware/index.js'
 import { employeeFiltersSchema, employeeCreateUpdateSchema } from '../../utils/joiSchemas/joi.js'
 
 const router = express.Router()

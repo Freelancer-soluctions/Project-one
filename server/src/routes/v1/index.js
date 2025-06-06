@@ -3,7 +3,6 @@ import auth from '../../components/auth/routes.js'
 import news from '../../components/news/routes.js'
 import providers from '../../components/providers/routes.js'
 import notes from '../../components/notes/routes.js'
-import role from '../../components/role/routes.js'
 import settings from '../../components/settings/routes.js'
 import events from '../../components/events/routes.js'
 import products from '../../components/products/routes.js'
@@ -36,7 +35,6 @@ router.use('/inventory-movement', inventoryMovement)
 router.use('/sales', sale)
 router.use('/clients', clients)
 router.use('/purchases', purchase)
-router.use('/role', role)
 router.use('/employees', employees)
 router.use('/attendance', attendance)
 router.use('/payroll', payroll)
