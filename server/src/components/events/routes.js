@@ -1,7 +1,7 @@
 import { Router } from 'express'
 import { EventsCreateUpdate, EventsFilters } from '../../utils/joiSchemas/joi.js'
 import * as eventsController from './controller.js'
-import { validateQueryParams, validateSchema, verifyToken } from '../../middleware'
+import { validateQueryParams, validateSchema, verifyToken } from '../../middleware/index.js'
 
 const router = Router()
 // uso global de middleware

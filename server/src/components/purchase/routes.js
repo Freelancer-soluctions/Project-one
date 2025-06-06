@@ -5,7 +5,7 @@ import {
   updatePurchaseById,
   deletePurchaseById
 } from './controller.js'
-import { verifyToken, validateQueryParams, validateSchema } from '../../middleware'
+import { verifyToken, validateQueryParams, validateSchema } from '../../middleware/index.js'
 import { purchaseFiltersSchema, purchaseCreateUpdateSchema } from '../../utils/joiSchemas/joi.js'
 
 const router = express.Router()

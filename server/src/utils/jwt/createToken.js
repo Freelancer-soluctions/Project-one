@@ -1,10 +1,6 @@
 import dontenv from '../../config/dotenv.js'
 import jwt from 'jsonwebtoken'
 
-/**
- *
-
- */
 export const createTokenOld = (payload = {}) => {
   return new Promise((resolve, reject) => {
     jwt.sign({ ...payload }, dontenv('SECRETKEY'), {

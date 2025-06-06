@@ -11,7 +11,7 @@ import {
   stockFiltersSchema,
   stockCreateUpdateSchema
 } from '../../utils/joiSchemas/joi.js'
-import { verifyToken, validateQueryParams, validateSchema } from '../../middleware'
+import { verifyToken, validateQueryParams, validateSchema } from '../../middleware/index.js'
 
 const router = Router()
 // uso global de middleware

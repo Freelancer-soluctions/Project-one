@@ -5,7 +5,7 @@ import {
   updateSaleById,
   deleteSaleById
 } from './controller.js'
-import { verifyToken, validateQueryParams, validateSchema } from '../../middleware'
+import { verifyToken, validateQueryParams, validateSchema } from '../../middleware/index.js'
 import { saleFiltersSchema, saleCreateUpdateSchema } from '../../utils/joiSchemas/joi.js'
 
 const router = express.Router()
