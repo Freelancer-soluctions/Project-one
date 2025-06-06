@@ -1,15 +1,14 @@
-import { getUserById } from '../api/user/model.js'
+import { getUserRoleByCode } from '../components/users/service.js'
 
 export function checkRoleAuth (allowedRoles = []) {
   return async (req, res, next) => {
     try {
-      const user = await getUserById(req.userId)
-
-      if (!user || !user.roles?.description) {
+      const rol = await getUserRoleByCode(req.user.rol.code)
+      if (!rol || !rol?.code) {
         return res.status(403).json({ error: 'No se pudo verificar el rol' })
       }
 
-      const userRole = user.roles.description
+      const userRole = rol.code
 
       if (!allowedRoles.includes(userRole)) {
         return res.status(403).json({ error: 'No tienes permisos suficientes' })

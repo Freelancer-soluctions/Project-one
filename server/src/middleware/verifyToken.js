@@ -1,4 +1,4 @@
-import jwt from 'jsonwebtoken'
+import jwt, { decode } from 'jsonwebtoken'
 import dontenv from '../config/dotenv.js'
 
 export const verifyToken = async (req, res, next) => {
@@ -31,6 +31,7 @@ export const verifyToken = async (req, res, next) => {
     // }
     // save the token on request object to using on routes
     req.userId = decoded.id
+    req.user = decoded
     // continue with the next function
     next()
   } catch (error) {

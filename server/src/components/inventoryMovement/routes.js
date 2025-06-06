@@ -1,5 +1,5 @@
 import { Router } from 'express'
-import { verifyToken, validateQueryParams, validateSchema } from '../../middleware'
+import { verifyToken, validateQueryParams, validateSchema } from '../../middleware/index.js'
 import {
   getAllInventoryMovements,
   createInventoryMovement,

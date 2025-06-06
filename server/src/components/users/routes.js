@@ -8,7 +8,7 @@ import {
   getAllUsersStatus,
   getAllUsersRoles
 } from './controller.js'
-import { verifyToken, validateQueryParams, validateSchema } from '../../middleware'
+import { verifyToken, validateQueryParams, validateSchema } from '../../middleware/index.js'
 import { userFiltersSchema, userCreateUpdateSchema } from '../../utils/joiSchemas/joi.js'
 
 const router = express.Router()

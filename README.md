@@ -17,7 +17,8 @@ Back end
 - Uso de JWT para la autenticacion y autorizacion de usuarios en rutas privadas
 - HOF hihg order function para manejo de errores
 
-
+Global
+- El sistema posee varias capas de seguridad siendo tales como middlewares de control de acceso para verificacion de tokens jwt, roles y permisos, (Broken access control owasp top 10)
 
 
 1️⃣ Módulo de Gestión de Productos 

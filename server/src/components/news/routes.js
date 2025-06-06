@@ -2,7 +2,7 @@ import { Router } from 'express'
 import { News, NewsUpdate, NewsFilters } from '../../utils/joiSchemas/joi.js'
 import * as newsController from './controller.js'
 import upload from '../../utils/multer/multer.js'
-import { verifyToken, validateQueryParams, validateSchema } from '../../middleware'
+import { verifyToken, validateQueryParams, validateSchema } from '../../middleware/index.js'
 
 const router = Router()
 // uso global de middleware

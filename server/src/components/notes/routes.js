@@ -1,7 +1,7 @@
 import { Router } from 'express'
 import { NoteCreate, NoteColumnUpdate, NotesFilters, NoteUpdate } from '../../utils/joiSchemas/joi.js'
 import * as noteController from './controller.js'
-import { verifyToken, validateQueryParams, validateSchema } from '../../middleware'
+import { verifyToken, validateQueryParams, validateSchema } from '../../middleware/index.js'
 
 const router = Router()
 // uso global de middleware

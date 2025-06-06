@@ -1,5 +1,5 @@
-import * as prismaService from '../utils/dao.js'
-import { TABLESNAMES } from '../utils/enums/enums.js'
+import * as prismaService from '../../utils/prisma/dao.js'
+import { TABLESNAMES } from '../../utils/constants/enums.js'
 import { prisma, Prisma } from '../../config/db.js'
 
 const tableName = TABLESNAMES.EVENTS

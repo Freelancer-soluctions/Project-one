@@ -1,6 +1,6 @@
 import express from 'express'
 import { getAllVacation, createVacation, updateVacationById, deleteVacationById } from './controller.js'
-import { verifyToken, validateQueryParams, validateSchema } from '../../middleware'
+import { verifyToken, validateQueryParams, validateSchema } from '../../middleware/index.js'
 import { vacationFiltersSchema, vacationCreateUpdateSchema } from '../../utils/joiSchemas/joi.js'
 
 const router = express.Router()

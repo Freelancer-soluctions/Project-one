@@ -2,7 +2,7 @@ import express from 'express'
 import { getAllPayroll, createPayroll, updatePayrollById, deletePayrollById } from './controller.js'
 
 import { payrollFiltersSchema, payrollCreateUpdateSchema } from '../../utils/joiSchemas/joi.js'
-import { verifyToken, validateQueryParams, validateSchema } from '../../middleware'
+import { verifyToken, validateQueryParams, validateSchema } from '../../middleware/index.js'
 
 const router = express.Router()
 // uso global de middleware

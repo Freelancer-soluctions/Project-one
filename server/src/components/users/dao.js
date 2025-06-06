@@ -242,11 +242,26 @@ export const getUserRegisteredByEmail = async (email) => {
   return userExist ? Promise.resolve(userExist) : Promise.resolve({})
 }
 
-export const getRoleByCode = async (code) => {
-  const rolUser = await prisma.user.findUnique({
+export const getUserRoleByCode = async (code) => {
+  const rolUser = await prisma.roles.findUnique({
     where: {
       code
     }
   })
   return Promise.resolve(rolUser)
+}
+
+/**
+ * Get user by refresh token.
+ *
+ * @param {string} refreshToken - The refresh token to search for.
+ * @returns {Promise<Object>} The user associated with the token.
+ */
+export const getUserByToken = async (refreshToken) => {
+  const user = await prisma.users.findUnique({
+    where: { refreshToken },
+    include: { roles: true }
+  })
+
+  return Promise.resolve(user)
 }

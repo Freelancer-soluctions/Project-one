@@ -5,7 +5,7 @@ import {
   updatePerformanceEvaluationById,
   deletePerformanceEvaluationById
 } from './controller.js'
-import { verifyToken, validateQueryParams, validateSchema } from '../../middleware'
+import { verifyToken, validateQueryParams, validateSchema } from '../../middleware/index.js'
 import { performanceEvaluationFiltersSchema, performanceEvaluationCreateUpdateSchema } from '../../utils/joiSchemas/joi.js'
 
 const router = express.Router()

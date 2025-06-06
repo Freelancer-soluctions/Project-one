@@ -6,11 +6,12 @@ import {
   ProductAttributes
 } from '../../utils/joiSchemas/joi.js'
 import * as productsController from './controller.js'
-import { verifyToken, validateQueryParams, validateSchema } from '../../middleware'
+import { verifyToken, validateQueryParams, validateSchema, checkRoleAuth } from '../../middleware/index.js'
 
 const router = Router()
 // uso global de middleware
 router.use(verifyToken)
+router.use(checkRoleAuth(['C02']))
 
 router.get(
   '/',
