@@ -2,11 +2,13 @@ import { Router } from 'express'
 import { News, NewsUpdate, NewsFilters } from '../../utils/joiSchemas/joi.js'
 import * as newsController from './controller.js'
 import upload from '../../utils/multer/multer.js'
-import { verifyToken, validateQueryParams, validateSchema } from '../../middleware/index.js'
+import { verifyToken, validateQueryParams, validateSchema, checkRoleAuth } from '../../middleware/index.js'
+import { rolesCodes } from '../../utils/constants/enums.js'
 
 const router = Router()
 // uso global de middleware
 router.use(verifyToken)
+router.use(checkRoleAuth([rolesCodes.ADMIN, rolesCodes.MANAGER, rolesCodes.USER]))
 
 /**
  * @openapi
