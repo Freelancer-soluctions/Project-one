@@ -15,7 +15,7 @@ import dontenv from '../../config/dotenv.js'
  */
 export const signUp = async (user) => {
   // get the user role id
-  const role = await getUserRoleByCode(rolesCodes.user)
+  const role = await getUserRoleByCode(rolesCodes.USER)
   user.roleId = role?.id
   // encryt password
   user.password = encryptPassword(user.password)
