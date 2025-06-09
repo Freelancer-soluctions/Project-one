@@ -92,7 +92,31 @@ Debe permitir la configuración de reglas como stock mínimo, alertas, permisos 
 Posibilidad de personalizar los campos de los productos y reportes según necesidades del negocio.
 Automatización de compras si el stock baja de un nivel crítico.
 
-
+Clasificación recomendada por rol:
+Módulo	Admin	Manager	User	Comentario
+Users	✅	❌	❌	Solo Admin debería gestionar usuarios del sistema.
+Expenses	✅	✅	✅	Accesible por todos si el flujo de gastos es compartido.
+Reports	✅	✅	❌	Managers y Admins deberían ver informes.
+News	✅	✅	✅	Módulo de comunicación general, accesible para todos.
+Notes	✅	✅	✅	Notas personales o internas, todos los roles pueden acceder.
+Events	✅	✅	✅	Agenda o eventos, todos pueden visualizar.
+Profile	✅	✅	✅	Módulo personal, todos los roles deberían verlo.
+Language	✅	✅	✅	Preferencias personales.
+Products	✅	✅	❌	Solo managers y admins gestionan productos.
+Providers	✅	✅	❌	Igual que productos.
+Warehouse	✅	✅	❌	Almacén es para administración o gerencia.
+Stock	✅	✅	✅	Todos pueden ver stock, pero quizás editarlo solo managers/admins.
+Sales	✅	✅	✅	Usuarios podrían registrar ventas, managers y admins gestionar.
+Clients	✅	✅	✅	Acceso general, según la lógica de tu negocio.
+Purchases	✅	✅	❌	Generalmente es responsabilidad de managers o admins.
+Inventory Movement	✅	✅	❌	Más orientado a admins/gerentes de almacén.
+Provider order	✅	✅	❌	Creación de órdenes, restringido a managers/admins.
+Employees	✅	✅	❌	Gestión de empleados, solo para roles altos.
+Attendance	✅	✅	✅	Todos deberían registrar o visualizar su asistencia.
+Payroll	✅	✅	❌	Nómina debe ser privada y sensible.
+Performance Evaluation	✅	✅	❌	Evaluación del personal: Admins y Managers.
+Vacations	✅	✅	✅	Todos pueden ver/solicitar vacaciones.
+Permission	✅	✅*	❌	Panel de configuración de permisos. Solo Admin, pero opcionalmente Managers si gestionan áreas.
 
 
 
