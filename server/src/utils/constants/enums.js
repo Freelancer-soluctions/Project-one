@@ -5,9 +5,9 @@ export const roles = {
 }
 
 export const rolesCodes = {
-  admin: 'C01',
-  user: 'C02',
-  manager: 'C03'
+  ADMIN: 'C01',
+  USER: 'C02',
+  MANAGER: 'C03'
 }
 
 export const HTTPCodes = [
