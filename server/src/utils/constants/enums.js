@@ -4,7 +4,7 @@ export const roles = {
   manager: 'manager'
 }
 
-export const rolesCodes = {
+export const ROLESCODES = {
   ADMIN: 'C01',
   USER: 'C02',
   MANAGER: 'C03'
@@ -104,4 +104,56 @@ export const TABLESNAMES = {
 export const PRODUCTSSTATUSCODE = {
   ACTIVE: 'C01',
   INACTIVE: 'C02'
+}
+
+export const PERMISSIONCODES = {
+  canViewDashboard: 'canViewDashboard',
+  canCreateProduct: 'canCreateProduct',
+  canEditProduct: 'canEditProduct',
+  canDeleteProduct: 'canDeleteProduct',
+  canViewProduct: 'canViewProduct',
+  canCreateProvider: 'canCreateProvider',
+  canEditProvider: 'canEditProvider',
+  canDeleteProvider: 'canDeleteProvider',
+  canViewProvider: 'canViewProvider',
+  canCreateInventory: 'canCreateInventory',
+  canEditInventory: 'canEditInventory',
+  canViewInventory: 'canViewInventory',
+  canDeletInventory: 'canDeletInventory',
+  canCreateCategory: 'canCreateCategory',
+  canEditCategory: 'canEditCategory',
+  canViewCategory: 'canViewCategory',
+  canDeletCategory: 'canDeletInventory',
+  canCreateSale: 'canCreateSale',
+  canEditSale: 'canEditSale',
+  canViewSale: 'canViewSale',
+  canCreatePurchase: 'canCreatePurchase',
+  canEditPurchase: 'canEditPurchase',
+  canViewPurchase: 'canViewPurchase',
+  canCreateClient: 'canCreateClient',
+  canEditClient: 'canEditClient',
+  canViewClient: 'canViewClient',
+  canCreateEmployee: 'canCreateEmployee',
+  canEditEmployee: 'canEditEmployee',
+  canViewEmployee: 'canViewEmployee',
+  canEvaluatePerformance: 'canEvaluatePerformance',
+  canViewPerformanceEvaluations: 'canViewPerformanceEvaluations',
+  canCreatePayroll: 'canCreatePayroll',
+  canEditPayroll: 'canEditPayroll',
+  canViewPayroll: 'canViewPayroll',
+  canRecordAttendance: 'canRecordAttendance',
+  canViewAttendance: 'canViewAttendance',
+  canRequestVacation: 'canRequestVacation',
+  canViewVacations: 'canViewVacations',
+  canViewNews: 'canViewNews',
+  canCreateClientOrder: 'canCreateClientOrder',
+  canEditClientOrder: 'canEditClientOrder',
+  canViewClientOrder: 'canViewClientOrder',
+  canCreateProviderOrder: 'canCreateProviderOrder',
+  canEditProviderOrder: 'canEditProviderOrder',
+  canViewProviderOrder: 'canViewProviderOrder',
+  canCreateExpense: 'canCreateExpense',
+  canEditExpense: 'canEditExpense',
+  canViewExpense: 'canViewExpense',
+  canViewReports: 'canViewReports'
 }

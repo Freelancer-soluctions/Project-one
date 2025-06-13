@@ -4,13 +4,12 @@ import {
   ProvidersFilters
 } from '../../utils/joiSchemas/joi.js'
 import * as providersController from './controller.js'
-import { verifyToken, validateQueryParams, validateSchema, checkRoleAuth } from '../../middleware/index.js'
-import { rolesCodes } from '../../utils/constants/enums.js'
+import { verifyToken, validateQueryParams, validateSchema, checkRoleAuthOrPermisssion } from '../../middleware/index.js'
+import { ROLESCODES, PERMISSIONCODES } from '../../utils/constants/enums.js'
 
 const router = Router()
 // uso global de middleware
 router.use(verifyToken)
-router.use(checkRoleAuth([rolesCodes.ADMIN, rolesCodes.MANAGER]))
 
 /**
  * @openapi
@@ -66,6 +65,10 @@ router.use(checkRoleAuth([rolesCodes.ADMIN, rolesCodes.MANAGER]))
 
 router.get(
   '/',
+  checkRoleAuthOrPermisssion({
+    allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER, ROLESCODES.USER],
+    permissions: [PERMISSIONCODES.canViewProvider]
+  }),
   validateQueryParams(ProvidersFilters),
   providersController.getAllProviders
 )
@@ -121,6 +124,10 @@ router.get(
 
 router.post(
   '/',
+  checkRoleAuthOrPermisssion({
+    allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER],
+    permissions: [PERMISSIONCODES.canCreateProvider]
+  }),
   validateSchema(Providers),
   providersController.createProvider
 )
@@ -183,6 +190,10 @@ router.post(
  */
 router.put(
   '/:id',
+  checkRoleAuthOrPermisssion({
+    allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER],
+    permissions: [PERMISSIONCODES.canEditProvider]
+  }),
   validateSchema(Providers),
   providersController.updateProviderById
 )
@@ -225,6 +236,9 @@ router.put(
  *               $ref: "#/components/schemas/Error"
  */
 
-router.delete('/:id', providersController.deleteProviderById)
+router.delete('/:id', checkRoleAuthOrPermisssion({
+  allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER],
+  permissions: [PERMISSIONCODES.canDeleteProvider]
+}), providersController.deleteProviderById)
 
 export default router

@@ -6,14 +6,14 @@ import {
   updateExpenseById,
   deleteExpenseById
 } from './controller.js'
-import { verifyToken, validateSchema, validateQueryParams, checkRoleAuth } from '../../middleware/index.js'
-import { rolesCodes } from '../../utils/constants/enums.js'
+import { verifyToken, validateSchema, validateQueryParams, checkRoleAuthOrPermisssion } from '../../middleware/index.js'
+import { ROLESCODES } from '../../utils/constants/enums.js'
 import { expenseFiltersSchema, expenseCreateUpdateSchema } from '../../utils/joiSchemas/joi.js'
 
 const router = express.Router()
 // uso global de middleware
 router.use(verifyToken)
-router.use(checkRoleAuth([rolesCodes.ADMIN, rolesCodes.MANAGER, rolesCodes.USER]))
+router.use(checkRoleAuthOrPermisssion([ROLESCODES.ADMIN, ROLESCODES.MANAGER, ROLESCODES.USER]))
 
 /**
  * @openapi

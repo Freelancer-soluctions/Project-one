@@ -9,13 +9,13 @@ import {
   warehouseFiltersSchema,
   warehouseCreateUpdateSchema
 } from '../../utils/joiSchemas/joi.js'
-import { verifyToken, validateQueryParams, validateSchema, checkRoleAuth } from '../../middleware/index.js'
-import { rolesCodes } from '../../utils/constants/enums.js'
+import { verifyToken, validateQueryParams, validateSchema, checkRoleAuthOrPermisssion } from '../../middleware/index.js'
+import { ROLESCODES } from '../../utils/constants/enums.js'
 
 const router = Router()
 // uso global de middleware
 router.use(verifyToken)
-router.use(checkRoleAuth([rolesCodes.ADMIN, rolesCodes.MANAGER]))
+router.use(checkRoleAuthOrPermisssion([ROLESCODES.ADMIN, ROLESCODES.MANAGER]))
 
 /**
  * @openapi

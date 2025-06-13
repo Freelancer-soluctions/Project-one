@@ -7,7 +7,8 @@ import {
   SettingsProductCategoryUpdate
 } from '../../utils/joiSchemas/joi.js'
 import * as settingsController from './controller.js'
-import { verifyToken, validateQueryParams, validateSchema } from '../../middleware/index.js'
+import { verifyToken, validateQueryParams, validateSchema, checkRoleAuthOrPermisssion } from '../../middleware/index.js'
+import { ROLESCODES, PERMISSIONCODES } from '../../utils/constants/enums.js'
 
 const router = Router()
 // uso global de middleware
@@ -223,6 +224,10 @@ router.post(
  */
 router.get(
   '/product/categories',
+  checkRoleAuthOrPermisssion({
+    allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER, ROLESCODES.USER],
+    permissions: [PERMISSIONCODES.canViewCategory]
+  }),
   validateQueryParams(SettingsProductCategoryFilters),
   settingsController.getAllProductCategories
 )
@@ -277,6 +282,10 @@ router.get(
  */
 router.post(
   '/product/categories',
+  checkRoleAuthOrPermisssion({
+    allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER],
+    permissions: [PERMISSIONCODES.canCreateCategory]
+  }),
   validateSchema(SettingsProductCategoryCreate),
   settingsController.createProductCategory
 )
@@ -339,6 +348,10 @@ router.post(
  */
 router.put(
   '/product/categories/:id',
+  checkRoleAuthOrPermisssion({
+    allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER],
+    permissions: [PERMISSIONCODES.canEditCategory]
+  }),
   validateSchema(SettingsProductCategoryUpdate),
   settingsController.updateProductCategoryById
 )
@@ -382,6 +395,10 @@ router.put(
  */
 router.delete(
   '/product/categories/:id',
+  checkRoleAuthOrPermisssion({
+    allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER],
+    permissions: [PERMISSIONCODES.canDeleteCategory]
+  }),
   settingsController.deleteProductCategoryById
 )
 

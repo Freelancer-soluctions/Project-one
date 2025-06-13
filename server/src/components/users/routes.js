@@ -8,14 +8,14 @@ import {
   getAllUsersStatus,
   getAllUsersRoles
 } from './controller.js'
-import { verifyToken, validateQueryParams, validateSchema, checkRoleAuth } from '../../middleware/index.js'
-import { rolesCodes } from '../../utils/constants/enums.js'
+import { verifyToken, validateQueryParams, validateSchema, checkRoleAuthOrPermisssion } from '../../middleware/index.js'
+import { ROLESCODES } from '../../utils/constants/enums.js'
 import { userFiltersSchema, userCreateUpdateSchema } from '../../utils/joiSchemas/joi.js'
 
 const router = express.Router()
 // uso global de middleware
 router.use(verifyToken)
-router.use(checkRoleAuth([rolesCodes.ADMIN]))
+router.use(checkRoleAuthOrPermisssion([ROLESCODES.ADMIN]))
 
 /**
  * @openapi
