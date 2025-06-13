@@ -1,13 +1,13 @@
 import { Router } from 'express'
 import { EventsCreateUpdate, EventsFilters } from '../../utils/joiSchemas/joi.js'
 import * as eventsController from './controller.js'
-import { validateQueryParams, validateSchema, verifyToken, checkRoleAuth } from '../../middleware/index.js'
-import { rolesCodes } from '../../utils/constants/enums.js'
+import { validateQueryParams, validateSchema, verifyToken, checkRoleAuthOrPermisssion } from '../../middleware/index.js'
+import { ROLESCODES } from '../../utils/constants/enums.js'
 
 const router = Router()
 // uso global de middleware
 router.use(verifyToken)
-router.use(checkRoleAuth([rolesCodes.ADMIN, rolesCodes.MANAGER, rolesCodes.USER]))
+router.use(checkRoleAuthOrPermisssion([ROLESCODES.ADMIN, ROLESCODES.MANAGER, ROLESCODES.USER]))
 
 /**
  * @openapi

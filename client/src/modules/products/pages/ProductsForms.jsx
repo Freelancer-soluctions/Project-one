@@ -4,7 +4,6 @@ import { BackDashBoard } from '@/components/backDash/BackDashBoard'
 import {
   useGetAllProductsStatusQuery,
   useGetAllProductCategoriesQuery,
-  useGetAllProductProvidersQuery,
   useLazyGetAllProductAttributesQuery,
   useCreateProductMutation,
   useUpdateProductByIdMutation,
@@ -12,6 +11,8 @@ import {
   useDeleteProductAttributeByIdMutation,
   useSaveProductAttributesMutation
 } from '../api/productsAPI'
+import { useGetAllProvidersQuery } from '../../providers/api/providersAPI'
+
 import { Spinner } from '@/components/loader/Spinner'
 import { ProductBasicInfo, ProductAttributes } from '../components'
 import AlertDialogComponent from '@/components/alertDialog/AlertDialog'
@@ -50,7 +51,7 @@ function ProductsForms() {
     isFetching: isFetchingProviders,
     isSuccess: isSuccessProviders,
     error: errorProviders
-  } = useGetAllProductProvidersQuery()
+  } = useGetAllProvidersQuery({name:'', status:true})
 
   const {
     data: datastatus,

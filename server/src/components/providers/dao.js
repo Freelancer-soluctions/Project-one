@@ -12,28 +12,18 @@ const tableName = TABLESNAMES.PROVIDERS
  * @returns {Promise<Array>} A list of providers matching the filters.
  */
 
-export const getAllProducts = async (
-  name,
-  status
-) => {
-  // const whereClauses = []
+export const getAllProducts = async (name, status) => {
+  const whereClauses = []
 
-  // if (name) {
-  //  whereClauses.push(Prisma.sql`p."name" ILIKE ${`%${name}%`}`)
-  // }
-
-  // if (status !== undefined) {
-  //  const statusBool = status === 'true'
-  //  whereClauses.push(Prisma.sql`p."status" = ${statusBool}`)
-  // }
-
-  // Construimos la condición WHERE manualmente sin Prisma.join()
-  // let whereSql = Prisma.empty
-  // if (whereClauses.length === 1) {
-  //  whereSql = Prisma.sql`WHERE ${whereClauses[0]}`
-  // } else if (whereClauses.length > 1) {
-  //  whereSql = Prisma.sql`WHERE ${whereClauses[0]} AND ${whereClauses[1]}`
-  // }
+  if (name) {
+    whereClauses.push(Prisma.sql`p."name" ILIKE ${'%' + name + '%'}`)
+  }
+  if (status !== null) {
+    whereClauses.push(Prisma.sql`p."status" = ${status}::boolean`)
+  }
+  const whereSql = whereClauses.length
+    ? Prisma.sql`WHERE ${Prisma.join(whereClauses, Prisma.sql` AND `)}`
+    : Prisma.empty
 
   const providers = await prisma.$queryRaw`
     SELECT p.*, 
@@ -46,10 +36,8 @@ export const getAllProducts = async (
     FROM "productProviders" p
     LEFT JOIN "users" u ON p."createdBy" = u.id
     LEFT JOIN "users" uu ON p."updatedBy" = uu.id
-    WHERE 
-  (${name} IS NULL OR p."name" ILIKE '%' || ${name} || '%')
-  AND 
-  (${status} IS NULL OR p."status" = ${status}::BOOLEAN)
+    ${whereSql}
+
   `
   return providers
 }
@@ -87,7 +75,6 @@ export const createProvider = async (data) => {
           id: data.createdBy
         }
       }
-
     }
   })
   return Promise.resolve(savedProvider)
@@ -128,7 +115,6 @@ export const updateRow = async (data, where) => {
           id: data.updatedBy
         }
       }
-
     }
   })
   return Promise.resolve(result)

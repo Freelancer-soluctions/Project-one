@@ -2,7 +2,7 @@ import * as authDao from './dao.js'
 import { getUserByToken, getUserRegisteredByEmail, getUserRoleByCode } from '../users/dao.js'
 import { createToken, createRefreshToken } from '../../utils/jwt/createToken.js'
 import ClientError from '../../utils/responses&Errors/errors.js'
-import { rolesCodes } from '../../utils/constants/enums.js'
+import { ROLESCODES } from '../../utils/constants/enums.js'
 import { encryptPassword, comparePassword } from '../../utils/bcrypt/encrypt.js'
 import jwt from 'jsonwebtoken'
 import dontenv from '../../config/dotenv.js'
@@ -15,7 +15,7 @@ import dontenv from '../../config/dotenv.js'
  */
 export const signUp = async (user) => {
   // get the user role id
-  const role = await getUserRoleByCode(rolesCodes.USER)
+  const role = await getUserRoleByCode(ROLESCODES.USER)
   user.roleId = role?.id
   // encryt password
   user.password = encryptPassword(user.password)

@@ -5,14 +5,14 @@ import {
   updatePurchaseById,
   deletePurchaseById
 } from './controller.js'
-import { verifyToken, validateQueryParams, validateSchema, checkRoleAuth } from '../../middleware/index.js'
+import { verifyToken, validateQueryParams, validateSchema, checkRoleAuthOrPermisssion } from '../../middleware/index.js'
 import { purchaseFiltersSchema, purchaseCreateUpdateSchema } from '../../utils/joiSchemas/joi.js'
-import { rolesCodes } from '../../utils/constants/enums.js'
+import { ROLESCODES } from '../../utils/constants/enums.js'
 
 const router = express.Router()
 // uso global de middleware
 router.use(verifyToken)
-router.use(checkRoleAuth([rolesCodes.ADMIN, rolesCodes.MANAGER]))
+router.use(checkRoleAuthOrPermisssion([ROLESCODES.ADMIN, ROLESCODES.MANAGER]))
 
 /**
  * @openapi
