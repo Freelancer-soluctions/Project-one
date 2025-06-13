@@ -5,7 +5,8 @@ import {
   deleteUserById as deleteDao,
   getAllUsersStatus as getAllUserStatusDao,
   getAllUsersRoles as getAllUserRolesDao,
-  getUserRoleByCode as getUserRoleByCodeDao
+  getUserRoleByCode as getUserRoleByCodeDao,
+  getUserRoleByUserId as getUserRoleByUserIdDao
 } from './dao.js'
 
 /**
@@ -78,4 +79,8 @@ export const deleteUserById = async (id) => {
 
 export const getUserRoleByCode = async (code) => {
   return getUserRoleByCodeDao(code)
+}
+
+export const getUserRoleByUserId = async (userId) => {
+  return getUserRoleByUserIdDao(Number(userId))
 }

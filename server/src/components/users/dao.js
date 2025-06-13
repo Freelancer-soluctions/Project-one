@@ -195,7 +195,6 @@ export const updateUserById = async (id, data) => {
         }
       }
     }
-
   })
 }
 
@@ -263,5 +262,26 @@ export const getUserByToken = async (refreshToken) => {
     include: { roles: true }
   })
 
+  return Promise.resolve(user)
+}
+
+export const getUserRoleByUserId = async (id) => {
+  const user = await prisma.users.findUnique({
+    where: {
+      id
+    },
+    include: {
+      roles: {
+        include: {
+          rolePermits: {
+            include: {
+              permissions: true
+            }
+          }
+        }
+      }
+    }
+
+  })
   return Promise.resolve(user)
 }

@@ -5,14 +5,14 @@ import {
   updateEmployeeById,
   deleteEmployeeById
 } from './controller.js'
-import { verifyToken, validateSchema, validateQueryParams, checkRoleAuth } from '../../middleware/index.js'
+import { verifyToken, validateSchema, validateQueryParams, checkRoleAuthOrPermisssion } from '../../middleware/index.js'
 import { employeeFiltersSchema, employeeCreateUpdateSchema } from '../../utils/joiSchemas/joi.js'
-import { rolesCodes } from '../../utils/constants/enums.js'
+import { ROLESCODES } from '../../utils/constants/enums.js'
 
 const router = express.Router()
 // uso global de middleware
 router.use(verifyToken)
-router.use(checkRoleAuth([rolesCodes.ADMIN, rolesCodes.MANAGER]))
+router.use(checkRoleAuthOrPermisssion([ROLESCODES.ADMIN, ROLESCODES.MANAGER]))
 
 /**
  * @openapi

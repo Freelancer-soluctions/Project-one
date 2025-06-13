@@ -1,5 +1,5 @@
 import { Router } from 'express'
-import { verifyToken, validateQueryParams, validateSchema, checkRoleAuth } from '../../middleware/index.js'
+import { verifyToken, validateQueryParams, validateSchema, checkRoleAuthOrPermisssion } from '../../middleware/index.js'
 import {
   getAllInventoryMovements,
   createInventoryMovement,
@@ -10,12 +10,11 @@ import {
   inventoryMovementFiltersSchema,
   inventoryMovementCreateUpdateSchema
 } from '../../utils/joiSchemas/joi.js'
-import { rolesCodes } from '../../utils/constants/enums.js'
+import { ROLESCODES, PERMISSIONCODES } from '../../utils/constants/enums.js'
 
 const router = Router()
 // uso global de middleware
 router.use(verifyToken)
-router.use(checkRoleAuth([rolesCodes.ADMIN, rolesCodes.MANAGER]))
 
 /**
  * @openapi
@@ -68,7 +67,10 @@ router.use(checkRoleAuth([rolesCodes.ADMIN, rolesCodes.MANAGER]))
  *               $ref: '#/components/schemas/Error'
  */
 router.get(
-  '/',
+  '/', checkRoleAuthOrPermisssion({
+    allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER, ROLESCODES.USER],
+    permissions: [PERMISSIONCODES.canViewInventory]
+  }),
   validateQueryParams(inventoryMovementFiltersSchema),
   getAllInventoryMovements
 )
@@ -121,7 +123,10 @@ router.get(
  *               $ref: '#/components/schemas/Error'
  */
 router.post(
-  '/',
+  '/', checkRoleAuthOrPermisssion({
+    allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER],
+    permissions: [PERMISSIONCODES.canCreateInventory]
+  }),
   validateSchema(inventoryMovementCreateUpdateSchema),
   createInventoryMovement
 )
@@ -181,7 +186,10 @@ router.post(
  *               $ref: '#/components/schemas/Error'
  */
 router.put(
-  '/:id',
+  '/:id', checkRoleAuthOrPermisssion({
+    allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER],
+    permissions: [PERMISSIONCODES.canEditInventory]
+  }),
   validateSchema(inventoryMovementCreateUpdateSchema),
   updateInventoryMovementById
 )
@@ -222,6 +230,9 @@ router.put(
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.delete('/:id', deleteInventoryMovementById)
+router.delete('/:id', checkRoleAuthOrPermisssion({
+  allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER],
+  permissions: [PERMISSIONCODES.canDeletInventory]
+}), deleteInventoryMovementById)
 
 export default router
