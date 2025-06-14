@@ -120,7 +120,7 @@ Tabla: Acceso por rol a los módulos del ERP
 
 
 
-Tabla de permisos booleanos por rol (para manager y user)
+Tabla de permisos booleanos por rol (para manager y user) SDSD
 
 | ID  | Código del Permiso              | Descripción                               | Manager | User |
 |-----|----------------------------------|-------------------------------------------|---------|------|
@@ -140,8 +140,7 @@ Tabla de permisos booleanos por rol (para manager y user)
 | 13  | canCreateCategory                | Puede crear categorías                    | ✅      |      |
 | 14  | canEditCategory                  | Puede editar categorías                   | ✅      |      |
 | 15  | canViewCategory                  | Puede ver categorías                      | ✅      | ✅   |
-| -   | canDeleteInventory               | Puede eliminar inventario                 | ✅      |      |
-
+| -   | canDeleteCategory              | Puede eliminar inventario                   | ✅      |      |
 | 16  | canCreateSale                    | Puede crear ventas                        | ✅      | ✅   |
 | 17  | canEditSale                      | Puede editar ventas                       | ✅      |      |
 | 18  | canViewSale                      | Puede ver ventas                          | ✅      | ✅   |
