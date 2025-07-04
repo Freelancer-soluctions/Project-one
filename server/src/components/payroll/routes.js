@@ -3,12 +3,11 @@ import { getAllPayroll, createPayroll, updatePayrollById, deletePayrollById } fr
 
 import { payrollFiltersSchema, payrollCreateUpdateSchema } from '../../utils/joiSchemas/joi.js'
 import { verifyToken, validateQueryParams, validateSchema, checkRoleAuthOrPermisssion } from '../../middleware/index.js'
-import { ROLESCODES } from '../../utils/constants/enums.js'
+import { ROLESCODES, PERMISSIONCODES } from '../../utils/constants/enums.js'
 
 const router = express.Router()
 // uso global de middleware
 router.use(verifyToken)
-router.use(checkRoleAuthOrPermisssion([ROLESCODES.ADMIN, ROLESCODES.MANAGER]))
 
 /**
  * @swagger
@@ -88,7 +87,10 @@ router.use(checkRoleAuthOrPermisssion([ROLESCODES.ADMIN, ROLESCODES.MANAGER]))
  *                               lastName:
  *                                 type: string
  */
-router.get('/', validateSchema(payrollFiltersSchema), getAllPayroll)
+router.get('/', checkRoleAuthOrPermisssion({
+  allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER],
+  permissions: [PERMISSIONCODES.canViewPayroll]
+}), validateSchema(payrollFiltersSchema), getAllPayroll)
 
 /**
  * @swagger
@@ -139,7 +141,10 @@ router.get('/', validateSchema(payrollFiltersSchema), getAllPayroll)
  *       201:
  *         description: Payroll record created successfully
  */
-router.post('/', validateSchema(payrollCreateUpdateSchema), createPayroll)
+router.post('/', checkRoleAuthOrPermisssion({
+  allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER],
+  permissions: [PERMISSIONCODES.canCreatePayroll]
+}), validateSchema(payrollCreateUpdateSchema), createPayroll)
 
 /**
  * @swagger
@@ -166,7 +171,10 @@ router.post('/', validateSchema(payrollCreateUpdateSchema), createPayroll)
  *       200:
  *         description: Payroll record updated successfully
  */
-router.put('/:id', validateSchema(payrollCreateUpdateSchema), updatePayrollById)
+router.put('/:id', checkRoleAuthOrPermisssion({
+  allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER],
+  permissions: [PERMISSIONCODES.canEditPayroll]
+}), validateSchema(payrollCreateUpdateSchema), updatePayrollById)
 
 /**
  * @swagger
@@ -187,6 +195,9 @@ router.put('/:id', validateSchema(payrollCreateUpdateSchema), updatePayrollById)
  *       200:
  *         description: Payroll record deleted successfully
  */
-router.delete('/:id', deletePayrollById)
+router.delete('/:id', checkRoleAuthOrPermisssion({
+  allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER],
+  permissions: [PERMISSIONCODES.canDeletePayroll]
+}), deletePayrollById)
 
 export default router

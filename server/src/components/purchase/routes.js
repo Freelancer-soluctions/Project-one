@@ -7,12 +7,11 @@ import {
 } from './controller.js'
 import { verifyToken, validateQueryParams, validateSchema, checkRoleAuthOrPermisssion } from '../../middleware/index.js'
 import { purchaseFiltersSchema, purchaseCreateUpdateSchema } from '../../utils/joiSchemas/joi.js'
-import { ROLESCODES } from '../../utils/constants/enums.js'
+import { ROLESCODES, PERMISSIONCODES } from '../../utils/constants/enums.js'
 
 const router = express.Router()
 // uso global de middleware
 router.use(verifyToken)
-router.use(checkRoleAuthOrPermisssion([ROLESCODES.ADMIN, ROLESCODES.MANAGER]))
 
 /**
  * @openapi
@@ -77,7 +76,10 @@ router.use(checkRoleAuthOrPermisssion([ROLESCODES.ADMIN, ROLESCODES.MANAGER]))
  *         $ref: '#/components/schemas/Error'
  */
 router.get(
-  '/',
+  '/', checkRoleAuthOrPermisssion({
+    allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER],
+    permissions: [PERMISSIONCODES.canViewPurchase]
+  }),
   validateQueryParams(purchaseFiltersSchema),
   getAllPurchases
 )
@@ -119,7 +121,10 @@ router.get(
  *         $ref: '#/components/schemas/Error'
  */
 router.post(
-  '/',
+  '/', checkRoleAuthOrPermisssion({
+    allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER],
+    permissions: [PERMISSIONCODES.canCreatePurchase]
+  }),
   validateSchema(purchaseCreateUpdateSchema),
   createPurchase
 )
@@ -169,6 +174,10 @@ router.post(
  */
 router.put(
   '/:id',
+  checkRoleAuthOrPermisssion({
+    allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER],
+    permissions: [PERMISSIONCODES.canEditPurchase]
+  }),
   validateSchema(purchaseCreateUpdateSchema),
   updatePurchaseById
 )
@@ -199,6 +208,10 @@ router.put(
  */
 router.delete(
   '/:id',
+  checkRoleAuthOrPermisssion({
+    allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER],
+    permissions: [PERMISSIONCODES.canDeletePurchase]
+  }),
   deletePurchaseById
 )
 
