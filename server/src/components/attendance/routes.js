@@ -7,12 +7,11 @@ import {
 } from './controller.js'
 import { verifyToken, validateSchema, validateQueryParams, checkRoleAuthOrPermisssion } from '../../middleware/index.js'
 import { attendanceFiltersSchema, attendanceCreateUpdateSchema } from '../../utils/joiSchemas/joi.js'
-import { ROLESCODES } from '../../utils/constants/enums.js'
+import { ROLESCODES, PERMISSIONCODES } from '../../utils/constants/enums.js'
 
 const router = express.Router()
 // uso global de middleware
 router.use(verifyToken)
-router.use(checkRoleAuthOrPermisssion({ allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER, ROLESCODES.USER] }))
 
 /**
  * @openapi
@@ -87,6 +86,10 @@ router.use(checkRoleAuthOrPermisssion({ allowedRoles: [ROLESCODES.ADMIN, ROLESCO
  */
 router.get(
   '/',
+  checkRoleAuthOrPermisssion({
+    allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER, ROLESCODES.USER],
+    permissions: [PERMISSIONCODES.canViewAttendance]
+  }),
   validateQueryParams(attendanceFiltersSchema),
   getAllAttendance
 )
@@ -137,6 +140,10 @@ router.get(
  */
 router.post(
   '/',
+  checkRoleAuthOrPermisssion({
+    allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER],
+    permissions: [PERMISSIONCODES.canCreateAttendance]
+  }),
   validateSchema(attendanceCreateUpdateSchema),
   createAttendance
 )
@@ -194,6 +201,10 @@ router.post(
  */
 router.put(
   '/:id',
+  checkRoleAuthOrPermisssion({
+    allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER],
+    permissions: [PERMISSIONCODES.canEditAttendance]
+  }),
   validateSchema(attendanceCreateUpdateSchema),
   updateAttendanceById
 )
@@ -235,7 +246,10 @@ router.put(
  *               $ref: '#/components/schemas/Error'
  */
 router.delete(
-  '/:id',
+  '/:id', checkRoleAuthOrPermisssion({
+    allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER],
+    permissions: [PERMISSIONCODES.canDeleteAttendance]
+  }),
   deleteAttendanceById
 )
 

@@ -140,40 +140,65 @@ Tabla de permisos booleanos por rol (para manager y user) SDSD
 | 13  | canCreateCategory                | Puede crear categorías                    | ✅      |      |
 | 14  | canEditCategory                  | Puede editar categorías                   | ✅      |      |
 | 15  | canViewCategory                  | Puede ver categorías                      | ✅      | ✅   |
-| -   | canDeleteCategory              | Puede eliminar inventario                   | ✅      |      |
+| -   | canDeleteCategory                | Puede eliminar inventario                 | ✅      |      |
 | 16  | canCreateSale                    | Puede crear ventas                        | ✅      | ✅   |
-| 17  | canEditSale                      | Puede editar ventas                       | ✅      |      |
+| 17  | canEditSale                      | Puede editar ventas                       | ✅      | ✅  |
 | 18  | canViewSale                      | Puede ver ventas                          | ✅      | ✅   |
+| -   | canDeleteSale                    | Puede eliminar un sale                    | ✅      |      |
 | 19  | canCreatePurchase                | Puede crear compras                       | ✅      |      |
 | 20  | canEditPurchase                  | Puede editar compras                      | ✅      |      |
 | 21  | canViewPurchase                  | Puede ver compras                         | ✅      |      |
+| -   | canDeletePurchase                | Puede eliminar un compras                 | ✅      |      |
 | 22  | canCreateClient                  | Puede crear clientes                      | ✅      |      |
 | 23  | canEditClient                    | Puede editar clientes                     | ✅      |      |
 | 24  | canViewClient                    | Puede ver clientes                        | ✅      | ✅   |
+| -   | canDeleteClient                  | Puede eliminar un cliente                 | ✅      |      |
 | 25  | canCreateEmployee                | Puede crear empleados                     | ✅      |      |
 | 26  | canEditEmployee                  | Puede editar empleados                    | ✅      |      |
 | 27  | canViewEmployee                  | Puede ver empleados                       | ✅      |      |
-| 28  | canEvaluatePerformance           | Puede evaluar desempeño                   | ✅      |      |
+| -   | canDeleteEmployee                | Puede eliminar un empleados               | ✅      |      |
+
+| 28  | canCreateEvaluatePerformance     | Puede crear evaluar desempeño             | ✅      |      |
+| -   | canEditEvaluatePerformance       | Puede editar evaluar desempeño            | ✅      |      |
+| -   | canDeleteEvaluationPerformance   | Puede eliminar un empleados               | ✅      |      |
 | 29  | canViewPerformanceEvaluations    | Puede ver evaluaciones de desempeño       | ✅      |      |
 | 30  | canCreatePayroll                 | Puede crear nóminas                       | ✅      |      |
 | 31  | canEditPayroll                   | Puede editar nóminas                      | ✅      |      |
 | 32  | canViewPayroll                   | Puede ver nóminas                         | ✅      |      |
-| 33  | canRecordAttendance              | Puede registrar asistencia                | ✅      |      |
+| -   | canDeletePayroll                 | Puede eliminar un empleados               | ✅      |      |
+
+| 33  | canCreateAttendance              | Puede registrar asistencia                | ✅      |      |
+| -   | canEditAttendance                | Puede registrar asistencia                | ✅      |      |
+| -   | canDeleteAttendance              | Puede eliminar un empleados               | ✅      |      |
 | 34  | canViewAttendance                | Puede ver asistencia                      | ✅      | ✅   |
 | 35  | canRequestVacation               | Puede solicitar vacaciones                | ✅      | ✅   |
+| -   | canEditRequestVacation           | Puede solicitar vacaciones                | ✅      | ✅   |
+| -   | canDeleteVacation              | Puede eliminar un empleados               | ✅      |   ✅   |
 | 36  | canViewVacations                 | Puede ver vacaciones                      | ✅      | ✅   |
 | 37  | canViewNews                      | Puede ver noticias                        | ✅      | ✅   |
+| 37  | canCreateNews                      | Puede ver noticias                        | ✅      | ✅   |
+| 37  | canEditNews                      | Puede ver noticias                        | ✅      | ✅   |
+| 37  | canDeleteNews                      | Puede ver noticias                        | ✅      | ✅   |
+
+
+
 | 38  | canCreateClientOrder             | Puede crear órdenes de cliente            | ✅      | ✅   |
 | 39  | canEditClientOrder               | Puede editar órdenes de cliente           | ✅      |      |
 | 40  | canViewClientOrder               | Puede ver órdenes de cliente              | ✅      | ✅   |
+
 | 41  | canCreateProviderOrder           | Puede crear órdenes a proveedores         | ✅      |      |
 | 42  | canEditProviderOrder             | Puede editar órdenes a proveedores        | ✅      |      |
 | 43  | canViewProviderOrder             | Puede ver órdenes a proveedores           | ✅      |      |
+| 37  | canDeleteProviderOrder           | Puede ver noticias                      | ✅      |    |
+
 | 44  | canCreateExpense                 | Puede crear gastos                        | ✅      |      |
 | 45  | canEditExpense                   | Puede editar gastos                       | ✅      |      |
 | 46  | canViewExpense                   | Puede ver gastos                          | ✅      |      |
+| 37  | canDeleteExpense             | Puede ver noticias                      | ✅      |    |
+
 | 47  | canViewReports                   | Puede ver reportes                        | ✅      |      |
 
+No se han aplicado los de client order y reports queda faltando mas modulos
 
 
 Segmentación de Permisos por Funcionalidad

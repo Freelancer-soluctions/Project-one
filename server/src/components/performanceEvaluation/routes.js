@@ -7,12 +7,11 @@ import {
 } from './controller.js'
 import { verifyToken, validateQueryParams, validateSchema, checkRoleAuthOrPermisssion } from '../../middleware/index.js'
 import { performanceEvaluationFiltersSchema, performanceEvaluationCreateUpdateSchema } from '../../utils/joiSchemas/joi.js'
-import { ROLESCODES } from '../../utils/constants/enums.js'
+import { ROLESCODES, PERMISSIONCODES } from '../../utils/constants/enums.js'
 
 const router = express.Router()
 // uso global de middleware
 router.use(verifyToken)
-router.use(checkRoleAuthOrPermisssion([ROLESCODES.ADMIN, ROLESCODES.MANAGER]))
 
 /**
  * @openapi
@@ -54,6 +53,10 @@ router.use(checkRoleAuthOrPermisssion([ROLESCODES.ADMIN, ROLESCODES.MANAGER]))
  */
 router.get(
   '/',
+  checkRoleAuthOrPermisssion({
+    allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER],
+    permissions: [PERMISSIONCODES.canViewPerformanceEvaluations]
+  }),
   validateQueryParams(performanceEvaluationFiltersSchema),
   getAllPerformanceEvaluations
 )
@@ -95,6 +98,10 @@ router.get(
  */
 router.post(
   '/',
+  checkRoleAuthOrPermisssion({
+    allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER],
+    permissions: [PERMISSIONCODES.canCreateEvaluatePerformance]
+  }),
   validateSchema(performanceEvaluationCreateUpdateSchema),
   createPerformanceEvaluation
 )
@@ -143,6 +150,10 @@ router.post(
  */
 router.put(
   '/:id',
+  checkRoleAuthOrPermisssion({
+    allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER],
+    permissions: [PERMISSIONCODES.canEditEvaluatePerformance]
+  }),
   validateSchema(performanceEvaluationCreateUpdateSchema),
   updatePerformanceEvaluationById
 )
@@ -183,6 +194,9 @@ router.put(
  *                 data:
  *                   $ref: "#/components/schemas/ResponseGetPerformanceEvaluation"
  */
-router.delete('/:id', deletePerformanceEvaluationById)
+router.delete('/:id', checkRoleAuthOrPermisssion({
+  allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER],
+  permissions: [PERMISSIONCODES.canDeleteEvaluationPerformance]
+}), deletePerformanceEvaluationById)
 
 export default router

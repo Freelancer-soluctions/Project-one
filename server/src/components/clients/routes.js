@@ -7,12 +7,11 @@ import {
 } from './controller.js'
 import { verifyToken, validateSchema, validateQueryParams, checkRoleAuthOrPermisssion } from '../../middleware/index.js'
 import { clientFiltersSchema, clientCreateUpdateSchema } from '../../utils/joiSchemas/joi.js'
-import { ROLESCODES } from '../../utils/constants/enums.js'
+import { ROLESCODES, PERMISSIONCODES } from '../../utils/constants/enums.js'
 
 const router = express.Router()
 // uso global de middleware
 router.use(verifyToken)
-router.use(checkRoleAuthOrPermisssion([ROLESCODES.ADMIN, ROLESCODES.MANAGER, ROLESCODES.USER]))
 
 /**
  * @openapi
@@ -66,6 +65,10 @@ router.use(checkRoleAuthOrPermisssion([ROLESCODES.ADMIN, ROLESCODES.MANAGER, ROL
  */
 router.get(
   '/',
+  checkRoleAuthOrPermisssion({
+    allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER, ROLESCODES.USER],
+    permissions: [PERMISSIONCODES.canViewClient]
+  }),
   validateQueryParams(clientFiltersSchema),
   getAllClients
 )
@@ -116,6 +119,10 @@ router.get(
  */
 router.post(
   '/',
+  checkRoleAuthOrPermisssion({
+    allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER],
+    permissions: [PERMISSIONCODES.canCreateClient]
+  }),
   validateSchema(clientCreateUpdateSchema),
   createClient
 )
@@ -173,6 +180,10 @@ router.post(
  */
 router.put(
   '/:id',
+  checkRoleAuthOrPermisssion({
+    allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER],
+    permissions: [PERMISSIONCODES.canEditClient]
+  }),
   validateSchema(clientCreateUpdateSchema),
   updateClientById
 )
@@ -215,6 +226,10 @@ router.put(
  */
 router.delete(
   '/:id',
+  checkRoleAuthOrPermisssion({
+    allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER],
+    permissions: [PERMISSIONCODES.canDeleteClient]
+  }),
   deleteClientById
 )
 
