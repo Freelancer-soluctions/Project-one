@@ -6,6 +6,7 @@ const corsOptions = {
   // Allow credentials like cookies
   credentials: true,
   // Allow specific headers
+
   allowedHeaders: ['Content-Type', 'Authorization', 'x-access-token', 'refresh']
 }
 
