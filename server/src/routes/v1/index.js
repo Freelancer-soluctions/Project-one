@@ -3,7 +3,6 @@ import auth from '../../components/auth/routes.js'
 import news from '../../components/news/routes.js'
 import providers from '../../components/providers/routes.js'
 import notes from '../../components/notes/routes.js'
-import role from '../../components/role/routes.js'
 import settings from '../../components/settings/routes.js'
 import events from '../../components/events/routes.js'
 import products from '../../components/products/routes.js'
@@ -18,6 +17,9 @@ import attendance from '../../components/attendance/routes.js'
 import payroll from '../../components/payroll/routes.js'
 import vacation from '../../components/vacation/routes.js'
 import permission from '../../components/permission/routes.js'
+import users from '../../components/users/routes.js'
+import expenses from '../../components/expenses/routes.js'
+import performanceEvaluation from '../../components/performanceEvaluation/routes.js'
 
 const router = Router()
 router.use('/auth', auth)
@@ -33,11 +35,12 @@ router.use('/inventory-movement', inventoryMovement)
 router.use('/sales', sale)
 router.use('/clients', clients)
 router.use('/purchases', purchase)
-router.use('/role', role)
 router.use('/employees', employees)
 router.use('/attendance', attendance)
 router.use('/payroll', payroll)
 router.use('/vacation', vacation)
 router.use('/permission', permission)
-
+router.use('/users', users)
+router.use('/expenses', expenses)
+router.use('/performance-evaluation', performanceEvaluation)
 export default router

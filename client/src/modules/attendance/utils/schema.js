@@ -21,8 +21,5 @@ export const AttendanceSchema = z
       z.number({ required_error: 'Worked hours are required.' }).positive('Worked hours must be positive.')
     )
   })
-  .refine((data) => data.exitTime > data.entryTime, {
-    message: 'Exit time must be after entry time.',
-    path: ['exitTime'], // Set the error path to the exitTime field
-  })
+
   .passthrough() // Allows other fields not defined in the schema 

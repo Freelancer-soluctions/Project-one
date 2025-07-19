@@ -19,10 +19,13 @@ export const getAllPerformanceEvaluations = async (filters) => {
  * @param {Object} data - Performance evaluation data
  * @returns {Promise<Object>} Created performance evaluation
  */
-export const createPerformanceEvaluation = async (data) => {
+export const createPerformanceEvaluation = async (data, userId) => {
   const evaluationData = {
     ...data,
-    createdOn: new Date()
+    createdOn: new Date(),
+    date: new Date(data.date),
+    createdBy: userId
+
   }
   return createPerformanceEvaluationDao(evaluationData)
 }
@@ -33,10 +36,13 @@ export const createPerformanceEvaluation = async (data) => {
  * @param {Object} data - Updated performance evaluation data
  * @returns {Promise<Object>} Updated performance evaluation
  */
-export const updatePerformanceEvaluationById = async (id, data) => {
+export const updatePerformanceEvaluationById = async (id, data, userId) => {
   const evaluationData = {
     ...data,
-    updatedOn: new Date()
+    updatedOn: new Date(),
+    date: new Date(data.date),
+    updatedBy: userId
+
   }
   return updatePerformanceEvaluationByIdDao(Number(id), evaluationData)
 }

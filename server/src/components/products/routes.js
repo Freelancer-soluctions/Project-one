@@ -6,50 +6,76 @@ import {
   ProductAttributes
 } from '../../utils/joiSchemas/joi.js'
 import * as productsController from './controller.js'
-import validateQueryParams from '../../middleware/validateQueryParams.js'
-import validateSchema from '../../middleware/validateSchema.js'
-import verifyToken from '../../middleware/verifyToken.js'
+import { verifyToken, validateQueryParams, validateSchema, checkRoleAuthOrPermisssion } from '../../middleware/index.js'
+import { ROLESCODES, PERMISSIONCODES } from '../../utils/constants/enums.js'
 
 const router = Router()
+// uso global de middleware
+router.use(verifyToken)
 
 router.get(
   '/',
-  verifyToken,
+  checkRoleAuthOrPermisssion({
+    allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER, ROLESCODES.USER],
+    permissions: [PERMISSIONCODES.canViewProduct]
+  }),
   validateQueryParams(ProductsFilters),
   productsController.getAllProducts
 )
 
-router.get('/status', productsController.getAllProductStatus)
+router.get('/status', checkRoleAuthOrPermisssion({
+  allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER, ROLESCODES.USER],
+  permissions: [PERMISSIONCODES.canViewProduct]
+}), productsController.getAllProductStatus)
 
-router.get('/category', productsController.getAllProductCategories)
-
-router.get('/providers', productsController.getAllProductProviders)
+router.get('/category', checkRoleAuthOrPermisssion({
+  allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER, ROLESCODES.USER],
+  permissions: [PERMISSIONCODES.canViewProduct]
+}), productsController.getAllProductCategories)
 
 router.post(
   '/',
-  verifyToken,
+  checkRoleAuthOrPermisssion({
+    allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER],
+    permissions: [PERMISSIONCODES.canCreateProduct]
+  }),
   validateSchema(Products),
   productsController.createOne
 )
 
 router.put(
   '/:id',
-  verifyToken,
+  checkRoleAuthOrPermisssion({
+    allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER],
+    permissions: [PERMISSIONCODES.canEditProduct]
+  }),
   validateSchema(ProductsUpdate),
   productsController.updateById
 )
 
-router.delete('/:id', verifyToken, productsController.deleteById)
+router.delete('/:id', checkRoleAuthOrPermisssion({
+  allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER],
+  permissions: [PERMISSIONCODES.canDeleteProduct]
+}), productsController.deleteById)
 
-router.get('/attributes/:id', productsController.getAllProductAttributesByProductId)
+router.get('/attributes/:id', checkRoleAuthOrPermisssion({
+  allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER, ROLESCODES.USER],
+  permissions: [PERMISSIONCODES.canViewProduct]
+}), productsController.getAllProductAttributesByProductId)
 
 router.post(
   '/attributes/',
-  verifyToken,
+  checkRoleAuthOrPermisssion({
+    allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER],
+    permissions: [PERMISSIONCODES.canCreateProduct]
+  }),
   validateSchema(ProductAttributes),
   productsController.saveProductAttributes
 )
 
-router.delete('/attributes/:id', verifyToken, productsController.deleteProductsAttributeById)
+router.delete('/attributes/:id', checkRoleAuthOrPermisssion({
+  allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER],
+  permissions: [PERMISSIONCODES.canDeleteProduct]
+}), productsController.deleteProductsAttributeById)
 
 export default router

@@ -1,17 +1,13 @@
 import express from 'express'
 import { getAllPermissions, createPermission, updatePermissionById, deletePermissionById } from './controller.js'
-import verifyToken from '../../middleware/verifyToken.js'
-import validateSchema from '../../middleware/validateSchema.js'
+import { verifyToken, validateQueryParams, validateSchema, checkRoleAuthOrPermisssion } from '../../middleware/index.js'
+import { ROLESCODES } from '../../utils/constants/enums.js'
 import { permissionFiltersSchema, permissionCreateUpdateSchema } from '../../utils/joiSchemas/joi.js'
 
 const router = express.Router()
-
-/**
- * @swagger
- * tags:
- *   name: Permissions
- *   description: Permission management endpoints
- */
+// uso global de middleware
+router.use(verifyToken)
+router.use(checkRoleAuthOrPermisssion([ROLESCODES.ADMIN, ROLESCODES.MANAGER]))
 
 /**
  * @swagger
@@ -174,7 +170,7 @@ const router = express.Router()
  *       500:
  *         description: Internal server error
  */
-router.get('/', verifyToken, validateSchema(permissionFiltersSchema, 'query'), getAllPermissions)
+router.get('/', validateSchema(permissionFiltersSchema), getAllPermissions)
 
 /**
  * @swagger
@@ -211,7 +207,7 @@ router.get('/', verifyToken, validateSchema(permissionFiltersSchema, 'query'), g
  *       500:
  *         description: Internal server error
  */
-router.post('/', verifyToken, validateSchema(permissionCreateUpdateSchema), createPermission)
+router.post('/', validateSchema(permissionCreateUpdateSchema), createPermission)
 
 /**
  * @swagger
@@ -257,7 +253,7 @@ router.post('/', verifyToken, validateSchema(permissionCreateUpdateSchema), crea
  *       500:
  *         description: Internal server error
  */
-router.put('/:id', verifyToken, validateSchema(permissionCreateUpdateSchema), updatePermissionById)
+router.put('/:id', validateSchema(permissionCreateUpdateSchema), updatePermissionById)
 
 /**
  * @swagger
@@ -298,6 +294,6 @@ router.put('/:id', verifyToken, validateSchema(permissionCreateUpdateSchema), up
  *       500:
  *         description: Internal server error
  */
-router.delete('/:id', verifyToken, deletePermissionById)
+router.delete('/:id', deletePermissionById)
 
 export default router

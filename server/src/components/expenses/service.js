@@ -22,10 +22,11 @@ export const getAllExpenses = async (filters) => {
  * @returns {Promise<Object>} Created expense
  * @async
  */
-export const createExpense = async (data) => {
+export const createExpense = async (data, userId) => {
   const expenseData = {
     ...data,
-    createdOn: new Date() // Prisma model for expenses has createdOn DateTime
+    createdOn: new Date(),
+    createdBy: userId
   }
   return createExpenseDao(expenseData)
 }
@@ -37,13 +38,14 @@ export const createExpense = async (data) => {
  * @returns {Promise<Object>} Updated expense
  * @async
  */
-export const updateExpenseById = async (id, data) => {
+export const updateExpenseById = async (id, data, userId) => {
   const expenseData = {
     ...data,
-    updatedOn: new Date() // Prisma model for expenses has updatedOn DateTime?
+    updatedOn: new Date(), // Prisma model for expenses has updatedOn DateTime?
+    updatedBy: userId
   }
   // ID is already a string, no Number() conversion needed for CUID
-  return updateExpenseByIdDao(id, expenseData)
+  return updateExpenseByIdDao(Number(id), expenseData)
 }
 
 /**
@@ -54,5 +56,5 @@ export const updateExpenseById = async (id, data) => {
  */
 export const deleteExpenseById = async (id) => {
   // ID is already a string, no Number() conversion needed for CUID
-  return deleteExpenseByIdDao(id)
+  return deleteExpenseByIdDao(Number(id))
 }

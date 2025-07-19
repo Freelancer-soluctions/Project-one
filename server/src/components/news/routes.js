@@ -2,11 +2,12 @@ import { Router } from 'express'
 import { News, NewsUpdate, NewsFilters } from '../../utils/joiSchemas/joi.js'
 import * as newsController from './controller.js'
 import upload from '../../utils/multer/multer.js'
-import validateQueryParams from '../../middleware/validateQueryParams.js'
-import validateSchema from '../../middleware/validateSchema.js'
-import verifyToken from '../../middleware/verifyToken.js'
+import { verifyToken, validateQueryParams, validateSchema, checkRoleAuthOrPermisssion } from '../../middleware/index.js'
+import { ROLESCODES, PERMISSIONCODES } from '../../utils/constants/enums.js'
 
 const router = Router()
+// uso global de middleware
+router.use(verifyToken)
 
 /**
  * @openapi
@@ -60,7 +61,10 @@ const router = Router()
  *               $ref: "#/components/schemas/Error"
  */
 
-router.get('/', verifyToken, validateQueryParams(NewsFilters), newsController.getAllNews)
+router.get('/', checkRoleAuthOrPermisssion({
+  allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER, ROLESCODES.USER],
+  permissions: [PERMISSIONCODES.canViewNews]
+}), validateQueryParams(NewsFilters), newsController.getAllNews)
 
 /**
  * @openapi
@@ -99,7 +103,10 @@ router.get('/', verifyToken, validateQueryParams(NewsFilters), newsController.ge
  *               $ref: "#/components/schemas/Error"
  */
 
-router.get('/status', newsController.getAllNewsStatus)
+router.get('/status', checkRoleAuthOrPermisssion({
+  allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER, ROLESCODES.USER],
+  permissions: [PERMISSIONCODES.canViewNews]
+}), newsController.getAllNewsStatus)
 /**
  * @openapi
  * /api/v1/news:
@@ -150,7 +157,10 @@ router.get('/status', newsController.getAllNewsStatus)
  *               $ref: "#/components/schemas/Error"
  */
 
-router.post('/', verifyToken, validateSchema(News), upload.single('document'), newsController.createNew)
+router.post('/', checkRoleAuthOrPermisssion({
+  allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER, ROLESCODES.USER],
+  permissions: [PERMISSIONCODES.canCreateNews]
+}), validateSchema(News), upload.single('document'), newsController.createNew)
 
 /**
  * @openapi
@@ -209,7 +219,10 @@ router.post('/', verifyToken, validateSchema(News), upload.single('document'), n
  *
  */
 
-router.put('/:id', verifyToken, validateSchema(NewsUpdate), upload.single('document'), newsController.updateById)
+router.put('/:id', checkRoleAuthOrPermisssion({
+  allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER, ROLESCODES.USER],
+  permissions: [PERMISSIONCODES.canEditNews]
+}), validateSchema(NewsUpdate), upload.single('document'), newsController.updateById)
 
 /**
  * @openapi
@@ -248,8 +261,9 @@ router.put('/:id', verifyToken, validateSchema(NewsUpdate), upload.single('docum
  *             schema:
  *               $ref: "#/components/schemas/Error"
  */
-router.delete('/:id', verifyToken, newsController.deleteById)
+router.delete('/:id', checkRoleAuthOrPermisssion({
+  allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER, ROLESCODES.USER],
+  permissions: [PERMISSIONCODES.canDeleteNews]
+}), newsController.deleteById)
 
 export default router
-
-// eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiaWF0IjoxNzQxNjU4MDk0LCJleHAiOjE3NDE3NDQ0OTR9.gCvtnnndKLvGt0X9VKjo1gtjMkKtuK12syLFg7BNDLo
