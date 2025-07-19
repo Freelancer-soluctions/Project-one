@@ -6,8 +6,7 @@ import { format } from 'date-fns'
 import { cn } from '@/lib/utils'
 import PropTypes from 'prop-types'
 
-import { PerformanceEvaluationSchema } from '../utils' // Import schema
-import { useGetAllEmployeesQuery } from '@/modules/employees/api/employeesApi' // Import employee query
+import { PerformanceEvaluationSchema, PerformanceEvaluationCalidation } from '../utils' // Import schema
 
 import {
   Dialog,
@@ -50,35 +49,26 @@ export const PerformanceEvaluationDialog = ({
   selectedRow,
   onSubmit,
   onDeleteById,
-  actionDialog
+  actionDialog,
+  dataEmployees
 }) => {
   const { t } = useTranslation()
   const [evaluationId, setEvaluationId] = useState('')
 
-  // Fetch employees
-  const { data: employeesData, isLoading: isLoadingEmployees } = useGetAllEmployeesQuery()
-  const employeesList = employeesData?.data || []
+
 
   const form = useForm({
     resolver: zodResolver(PerformanceEvaluationSchema),
     defaultValues: {
       employeeId: '',
-      date: null,
+      date: undefined,
       calification: '', // Use string for Select/Input
       comments: '',
-      createdOn: '',
-      updatedOn: '',
-      userPerformanceEvaluationCreatedName: '', // Assuming field names
-      userPerformanceEvaluationUpdatedName: ''
+   
     }
   })
 
-  // Calification options (assuming 1-10)
-  const calificationOptions = Array.from({ length: 10 }, (_, i) => ({
-    value: (i + 1).toString(),
-    label: (i + 1).toString()
-  }))
-
+  
   useEffect(() => {
     if (selectedRow?.id) {
       const mappedValues = {
@@ -89,21 +79,18 @@ export const PerformanceEvaluationDialog = ({
         comments: selectedRow.comments ?? '',
         createdOn: selectedRow.createdOn,
         updatedOn: selectedRow.updatedOn,
-        userPerformanceEvaluationCreatedName: selectedRow.userPerformanceEvaluationCreatedName,
-        userPerformanceEvaluationUpdatedName: selectedRow.userPerformanceEvaluationUpdatedName
+        userPerformanceCreatedName: selectedRow.userPerformanceCreatedName,
+        userPerformanceUpdatedName: selectedRow.userPerformanceUpdatedName
       }
       form.reset(mappedValues)
       setEvaluationId(mappedValues.id)
     } else {
       form.reset({
         employeeId: '',
-        date: null,
+        date: undefined,
         calification: '',
         comments: '',
-        createdOn: '',
-        updatedOn: '',
-        userPerformanceEvaluationCreatedName: '',
-        userPerformanceEvaluationUpdatedName: ''
+  
       })
       setEvaluationId(null)
     }
@@ -155,14 +142,14 @@ export const PerformanceEvaluationDialog = ({
                     <Select
                       onValueChange={field.onChange}
                       value={field.value?.toString() ?? ''}
-                      disabled={isLoadingEmployees}>
+                      >
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder={t('select_employee_placeholder')} />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {employeesList.map(employee => (
+                        {dataEmployees.map(employee => (
                           <SelectItem key={employee.id} value={employee.id.toString()}>
                             {`${employee.name} ${employee.lastName}`}
                           </SelectItem>
@@ -179,7 +166,7 @@ export const PerformanceEvaluationDialog = ({
                 control={form.control}
                 name="date"
                 render={({ field }) => (
-                  <FormItem className="flex flex-col">
+                  <FormItem >
                     <FormLabel>{t('date')}*</FormLabel>
                     <Popover>
                       <PopoverTrigger asChild>
@@ -194,7 +181,7 @@ export const PerformanceEvaluationDialog = ({
                             {field.value ? (
                               format(field.value, "PPP")
                             ) : (
-                              <span>{t('pick_a_date')}</span>
+                              <span>{t('pick_date')}</span>
                             )}
                             <CalendarIcon className="w-4 h-4 ml-auto opacity-50" />
                           </Button>
@@ -234,8 +221,8 @@ export const PerformanceEvaluationDialog = ({
                          </SelectTrigger>
                        </FormControl>
                        <SelectContent>
-                         {calificationOptions.map(option => (
-                           <SelectItem key={option.value} value={option.value}>
+                         {PerformanceEvaluationCalidation.map(option => (
+                           <SelectItem key={option.value} value={option.value.toString()}>
                              {option.label}
                            </SelectItem>
                          ))}
@@ -288,16 +275,16 @@ export const PerformanceEvaluationDialog = ({
                  <>
                    <FormField
                      control={form.control}
-                     name='userPerformanceEvaluationCreatedName'
+                     name='userPerformanceCreatedName'
                      render={({ field }) => (
                        <FormItem>
-                         <FormLabel htmlFor='userPerformanceEvaluationCreatedName'>
+                         <FormLabel htmlFor='userPerformanceCreatedName'>
                            {t('created_by')}
                          </FormLabel>
                          <FormControl>
                            <Input
-                             id='userPerformanceEvaluationCreatedName'
-                             name='userPerformanceEvaluationCreatedName'
+                             id='userPerformanceCreatedName'
+                             name='userPerformanceCreatedName'
                              disabled
                              {...field}
                              value={field.value ?? ''}
@@ -353,16 +340,16 @@ export const PerformanceEvaluationDialog = ({
                  <>
                    <FormField
                      control={form.control}
-                     name='userPerformanceEvaluationUpdatedName'
+                     name='userPerformanceUpdatedName'
                      render={({ field }) => (
                        <FormItem>
-                         <FormLabel htmlFor='userPerformanceEvaluationUpdatedName'>
+                         <FormLabel htmlFor='userPerformanceUpdatedName'>
                            {t('updated_by')}
                          </FormLabel>
                          <FormControl>
                            <Input
-                             id='userPerformanceEvaluationUpdatedName'
-                             name='userPerformanceEvaluationUpdatedName'
+                             id='userPerformanceUpdatedName'
+                             name='userPerformanceUpdatedName'
                              disabled
                              {...field}
                              value={field.value ?? ''}
@@ -453,5 +440,6 @@ PerformanceEvaluationDialog.propTypes = {
   selectedRow: PropTypes.object,
   onSubmit: PropTypes.func.isRequired,
   onDeleteById: PropTypes.func.isRequired,
-  actionDialog: PropTypes.string.isRequired
+  actionDialog: PropTypes.string.isRequired,
+  dataEmployees: PropTypes.array.isRequired // Pass employee data
 } 

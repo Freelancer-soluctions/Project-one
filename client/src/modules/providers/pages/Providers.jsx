@@ -8,6 +8,7 @@ import { useTranslation } from 'react-i18next'
 import { useState } from 'react'
 import {
   useLazyGetAllProvidersQuery,
+  useGetAllProvidersQuery,
   useUpdateProviderByIdMutation,
   useCreateProviderMutation,
   useDeleteProviderByIdMutation

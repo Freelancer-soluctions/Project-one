@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client'
+import { PrismaClient, Prisma } from '@prisma/client'
 
 const prisma = new PrismaClient()
 
@@ -12,24 +12,48 @@ const prisma = new PrismaClient()
  * @returns {Promise<Array>} Array of vacation records with employee information
  */
 export const getAllVacation = async (filters) => {
-  const { employeeId, status, fromDate, toDate } = filters
+  const whereClauses = []
 
-  const where = {}
-  if (employeeId) where.employeeId = parseInt(employeeId)
-  if (status) where.status = status
-  if (fromDate) where.startDate = { gte: new Date(fromDate) }
-  if (toDate) where.endDate = { lte: new Date(toDate) }
+  if (filters.employeeId) {
+    whereClauses.push(Prisma.sql`va."employeeId" = ${Number(filters.employeeId)}`)
+  }
 
-  return await prisma.vacation.findMany({
-    where,
-    include: {
-      employee: {
-        include: {
-          user: true
-        }
-      }
-    }
-  })
+  if (filters.startDate) {
+    whereClauses.push(Prisma.sql`va."createdOn" >= ${filters.fromDate}`)
+  }
+
+  if (filters.endDate) {
+    whereClauses.push(Prisma.sql`va."createdOn" <= ${filters.toDate}`)
+  }
+
+  if (filters.status) {
+    // Using ILIKE for case-insensitive search for description
+    whereClauses.push(Prisma.sql`va."status" ILIKE ${'%' + filters.status + '%'}`)
+  }
+  if (filters.type) {
+    // Using ILIKE for case-insensitive search for description
+    whereClauses.push(Prisma.sql`va."type" ILIKE ${'%' + filters.type + '%'}`)
+  }
+
+  const whereSql = whereClauses.length
+    ? Prisma.sql`WHERE ${Prisma.join(whereClauses, Prisma.sql` AND `)}`
+    : Prisma.empty
+
+  const permissions = await prisma.$queryRaw`
+       SELECT 
+         va.*,
+         e.name AS "employeeName",
+         u.name AS "userVacationCreatedName",
+         uu.name AS "userVacationUpdatedName"
+       FROM "vacation" va
+       LEFT JOIN "employees" e ON va."employeeId" = e.id
+       LEFT JOIN "users" u ON va."createdBy" = u.id
+       LEFT JOIN "users" uu ON va."updatedBy" = uu.id
+       ${whereSql}
+       ORDER BY va."createdOn" DESC
+     `
+
+  return permissions
 }
 
 /**

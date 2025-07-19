@@ -1,21 +1,22 @@
 import {
-  ExpensesFiltersForm, // Changed
-  ExpensesDialog,      // Changed
-  ExpensesDatatable    // Changed
+  ExpensesFiltersForm,
+  ExpensesDialog,
+  ExpensesDatatable
 } from '../components'
 import { BackDashBoard } from '@/components/backDash/BackDashBoard'
 import { useTranslation } from 'react-i18next'
 import { useState } from 'react' // Removed useEffect as it wasn't used for initial fetch in Clients.jsx
 import {
-  useLazyGetAllExpensesQuery,  // Changed
-  useUpdateExpenseByIdMutation, // Changed
-  useCreateExpenseMutation,    // Changed
-  useDeleteExpenseByIdMutation // Changed
-} from '../api/expensesApi'     // Changed
+  useLazyGetAllExpensesQuery,
+  useUpdateExpenseByIdMutation,
+  useCreateExpenseMutation,
+  useDeleteExpenseByIdMutation
+} from '../api/expensesApi'
 import AlertDialogComponent from '@/components/alertDialog/AlertDialog'
 import { Spinner } from '@/components/loader/Spinner'
 
-const Expenses = () => { // Changed component name
+const Expenses = () => {
+
   const { t } = useTranslation()
   const [selectedRow, setSelectedRow] = useState({})
   const [openDialog, setOpenDialog] = useState(false)
@@ -24,56 +25,55 @@ const Expenses = () => { // Changed component name
   const [actionDialog, setActionDialog] = useState('')
 
   const [
-    getAllExpenses, // Changed
+    getAllExpenses, 
     {
-      data: dataExpenses = { data: [] }, // Changed
-      isLoading: isLoadingExpenses,      // Changed
-      isFetching: isFetchingExpenses     // Changed
+      data: dataExpenses = { data: [] }, 
+      isLoading: isLoadingExpenses, 
+      isFetching: isFetchingExpenses 
     }
-  ] = useLazyGetAllExpensesQuery() // Changed
+  ] = useLazyGetAllExpensesQuery() 
 
   const [
-    updateExpenseById, // Changed
+    updateExpenseById, 
     { isLoading: isLoadingPut, isError: isErrorPut, isSuccess: isSuccessPut }
-  ] = useUpdateExpenseByIdMutation() // Changed
+  ] = useUpdateExpenseByIdMutation() 
 
   const [
-    createExpense, // Changed
+    createExpense, 
     { isLoading: isLoadingPost, isError: isErrorPost, isSuccess: isSuccessPost }
-  ] = useCreateExpenseMutation() // Changed
+  ] = useCreateExpenseMutation() 
 
   const [
-    deleteExpenseById, // Changed
+    deleteExpenseById, 
     {
       isLoading: isLoadingDelete,
       isError: isErrorDelete,
       isSuccess: isSuccessDelete
     }
-  ] = useDeleteExpenseByIdMutation() // Changed
+  ] = useDeleteExpenseByIdMutation() 
 
   const handleSubmitFilters = data => {
-    getAllExpenses({ // Changed
+    getAllExpenses({
       ...data
-      // Ensure backend handles empty strings as "no filter" or adjust here
     })
   }
 
-  const handleSubmit = async (values, expenseId) => { // Changed expenseId
+  const handleSubmit = async (values, expenseId) => {
+     
     try {
       // values already contains { description, total, category, status }
       // total is already a float from ExpensesDialog
-      const result = expenseId // Changed
-        ? await updateExpenseById({ // Changed
-            id: expenseId, // Changed
-            data: values // Sending all values from dialog form
+      const result = expenseId 
+        ? await updateExpenseById({
+            
+            id: expenseId, 
+            data:{description: values.description, total: values.total, category: values.category} // Sending all values from dialog form
           }).unwrap()
-        : await createExpense(values).unwrap() // Changed, sending all values
+        : await createExpense(values).unwrap() 
 
       setAlertProps({
-        alertTitle: t(expenseId ? 'update_record' : 'add_record'), // Changed expenseId
-        alertMessage: t(
-          expenseId ? 'updated_successfully' : 'added_successfully' // Changed expenseId
-        ),
+        alertTitle: t(expenseId ? 'update_record' : 'add_record'),  
+        alertMessage: t(expenseId ? 'updated_successfully' : 'added_successfully'),
         cancel: false,
         success: true,
         onSuccess: () => {
@@ -83,27 +83,28 @@ const Expenses = () => { // Changed component name
       })
       setOpenAlertDialog(true)
     } catch (err) {
-      console.error('Error:', err)
       // Handle error display, perhaps another AlertDialog
       setAlertProps({
-        alertTitle: t('error_occurred'),
-        alertMessage: err.data?.message || err.message || t('operation_failed'),
+        alertTitle: t('error_occurred_message'),
+        alertMessage: err.data?.message || err.message || t('operation_failed_message'),
         cancel: false,
         success: true, // To show only one button "OK"
-        onSuccess: () => { /* stay on dialog or close if needed */ },
+        onSuccess: () => {
+          /* stay on dialog or close if needed */
+        },
         variantSuccess: 'destructive' // Show error styling
-      });
-      setOpenAlertDialog(true);
+      })
+      setOpenAlertDialog(true)
     }
   }
 
   const handleAddDialog = () => {
-    setActionDialog(t('add_expense')) // Changed
+    setActionDialog(t('add_expense')) 
     setOpenDialog(true)
   }
 
   const handleEditDialog = row => {
-    setActionDialog(t('edit_expense')) // Changed
+    setActionDialog(t('edit_expense')) 
     setOpenDialog(true)
     setSelectedRow(row)
   }
@@ -126,7 +127,7 @@ const Expenses = () => { // Changed component name
         onSuccess: () => {},
         onDelete: async () => {
           try {
-            await deleteExpenseById(id).unwrap() // Changed
+            await deleteExpenseById(id).unwrap() 
 
             setAlertProps({
               alertTitle: '',
@@ -138,21 +139,19 @@ const Expenses = () => { // Changed component name
               },
               variantSuccess: 'info'
             })
-            // No need to call setOpenAlertDialog(true) here again if already open for confirmation
-            // If the confirmation dialog closes itself, then we might need to show a new success alert.
-            // Assuming the current AlertDialogComponent handles closing and then this sets new props for a new one.
-             setOpenAlertDialog(true)
+         setOpenAlertDialog(true)
           } catch (err) {
             console.error('Error deleting:', err)
             setAlertProps({
-              alertTitle: t('error_occurred'),
-              alertMessage: err.data?.message || err.message || t('delete_failed'),
+              alertTitle: t('error_occurred_message'),
+              alertMessage:
+                err.data?.message || err.message || t('delete_failed_message'),
               cancel: false,
               success: true,
               onSuccess: () => {},
               variantSuccess: 'destructive'
-            });
-            setOpenAlertDialog(true);
+            })
+            setOpenAlertDialog(true)
           }
         }
       })
@@ -166,28 +165,29 @@ const Expenses = () => { // Changed component name
 
   return (
     <>
-      <BackDashBoard link={'/home'} moduleName={t('expenses')} /> {/* Changed */}
+      <BackDashBoard link={'/home'} moduleName={t('expenses')} />
+      {/* Changed */}
       <div className='relative'>
-        {(isLoadingExpenses || // Changed
+        {(isLoadingExpenses || 
           isLoadingPut ||
           isLoadingPost ||
           isLoadingDelete ||
-          isFetchingExpenses) && <Spinner />} {/* Changed */}
-
+          isFetchingExpenses) && <Spinner />}
+        {/* Changed */}
         <div className='grid grid-cols-2 grid-rows-4 gap-4 md:grid-cols-5'>
           <div className='col-span-2 row-span-1 md:col-span-5'>
-            <ExpensesFiltersForm // Changed
+            <ExpensesFiltersForm 
               onSubmit={handleSubmitFilters}
               onAddDialog={handleAddDialog}
             />
           </div>
           <div className='flex flex-wrap w-full col-span-2 row-span-3 row-start-2 md:col-span-5'>
-            <ExpensesDatatable // Changed
-              dataExpenses={dataExpenses} // Changed
+            <ExpensesDatatable 
+              dataExpenses={dataExpenses} 
               onEditDialog={handleEditDialog}
             />
           </div>
-          <ExpensesDialog // Changed
+          <ExpensesDialog 
             openDialog={openDialog}
             onCloseDialog={handleCloseDialog}
             selectedRow={selectedRow}
@@ -207,4 +207,4 @@ const Expenses = () => { // Changed component name
   )
 }
 
-export default Expenses // Changed
+export default Expenses 

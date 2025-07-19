@@ -35,6 +35,9 @@ const Vacation = lazy(() => import('@/modules/vacation/pages/Vacation'))
 const Permission = lazy(() => import('@/modules/permission/pages/Permission'))
 const ClientOrder = lazy(() => import('@/modules/clientOrder/pages/ClientOrder'))
 const ProviderOrder = lazy(() => import('@/modules/providerOrder/pages/ProviderOrders'))
+const UsersForms = lazy(
+  () => import('@/modules/users/pages/UsersForm')
+)
 
 
 const App = () => {
@@ -77,11 +80,19 @@ const App = () => {
           <Route path='inventoryMovement' element={<InventoryMovement />} />
           <Route path='expenses' element={<Expenses />} />
           <Route path='users' element={<Users />} />
+          <Route
+            path='userForm'
+            element={
+              <ProtectedFormRoute>
+                <UsersForms />
+              </ProtectedFormRoute>
+            }
+          />
           <Route path='employees' element={<Employees />} />
           <Route path='attendance' element={<Attendance />} />
           <Route path='payroll' element={<Payroll />} />
           <Route path='performanceEvaluation' element={<PerformanceEvaluation />} />
-          <Route path='vacation' element={<Vacation />} />
+          <Route path='vacations' element={<Vacation />} />
           <Route path='permission' element={<Permission />} />
           <Route path='clientOrder' element={<ClientOrder />} />
           <Route path='providerOrder' element={<ProviderOrder />} />

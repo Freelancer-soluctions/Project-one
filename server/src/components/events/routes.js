@@ -1,11 +1,13 @@
 import { Router } from 'express'
 import { EventsCreateUpdate, EventsFilters } from '../../utils/joiSchemas/joi.js'
 import * as eventsController from './controller.js'
-import validateQueryParams from '../../middleware/validateQueryParams.js'
-import validateSchema from '../../middleware/validateSchema.js'
-import verifyToken from '../../middleware/verifyToken.js'
+import { validateQueryParams, validateSchema, verifyToken, checkRoleAuthOrPermisssion } from '../../middleware/index.js'
+import { ROLESCODES } from '../../utils/constants/enums.js'
 
 const router = Router()
+// uso global de middleware
+router.use(verifyToken)
+router.use(checkRoleAuthOrPermisssion([ROLESCODES.ADMIN, ROLESCODES.MANAGER, ROLESCODES.USER]))
 
 /**
  * @openapi
@@ -56,7 +58,7 @@ const router = Router()
  *               $ref: "#/components/schemas/Error"
  */
 
-router.post('/', verifyToken, validateSchema(EventsCreateUpdate), eventsController.createEvent)
+router.post('/', validateSchema(EventsCreateUpdate), eventsController.createEvent)
 
 /**
  * @openapi
@@ -152,7 +154,7 @@ router.get('/eventTypes', eventsController.getAllEventTypes)
  *               $ref: "#/components/schemas/Error"
  */
 
-router.get('/', verifyToken, validateQueryParams(EventsFilters), eventsController.getAllEvents)
+router.get('/', validateQueryParams(EventsFilters), eventsController.getAllEvents)
 
 /**
  * @openapi
@@ -210,7 +212,7 @@ router.get('/', verifyToken, validateQueryParams(EventsFilters), eventsControlle
  *               $ref: "#/components/schemas/Error"
  *
  */
-router.put('/:id', verifyToken, validateSchema(EventsCreateUpdate), eventsController.updateEventById)
+router.put('/:id', validateSchema(EventsCreateUpdate), eventsController.updateEventById)
 
 /**
  * @openapi
@@ -250,6 +252,6 @@ router.put('/:id', verifyToken, validateSchema(EventsCreateUpdate), eventsContro
  *               $ref: "#/components/schemas/Error"
  */
 
-router.delete('/:id', verifyToken, eventsController.deleteEventById)
+router.delete('/:id', eventsController.deleteEventById)
 
 export default router

@@ -12,6 +12,7 @@ import {
   useCreatePermissionMutation,
   useDeletePermissionByIdMutation
 } from '../api/permissionApi' // Adjusted import path
+import { useGetAllEmployeesQuery } from '@/modules/employees/api/employeesApi' // Import employee query
 import AlertDialogComponent from '@/components/alertDialog/AlertDialog'
 import { Spinner } from '@/components/loader/Spinner'
 
@@ -22,7 +23,12 @@ const Permission = () => {
   const [openAlertDialog, setOpenAlertDialog] = useState(false)
   const [alertProps, setAlertProps] = useState({})
   const [actionDialog, setActionDialog] = useState('')
-  const [currentFilters, setCurrentFilters] = useState({}) // State to hold current filters
+
+  const {
+    data: dataEmployees = { data: [] },
+    isLoading: isLoadingEmployees,
+    isFetching: isFetchingEmployees
+  } = useGetAllEmployeesQuery()
 
   const [
     getAllPermissions,
@@ -34,35 +40,34 @@ const Permission = () => {
     }
   ] = useLazyGetAllPermissionsQuery()
 
-  const [
-    updatePermissionById,
-    { isLoading: isLoadingPut }
-  ] = useUpdatePermissionByIdMutation()
+  const [updatePermissionById, { isLoading: isLoadingPut }] =
+    useUpdatePermissionByIdMutation()
 
-  const [
-    createPermission,
-    { isLoading: isLoadingPost }
-  ] = useCreatePermissionMutation()
+  const [createPermission, { isLoading: isLoadingPost }] =
+    useCreatePermissionMutation()
 
-  const [
-    deletePermissionById,
-    { isLoading: isLoadingDelete }
-  ] = useDeletePermissionByIdMutation()
-
+  const [deletePermissionById, { isLoading: isLoadingDelete }] =
+    useDeletePermissionByIdMutation()
 
   useEffect(() => {
     getAllPermissions({}) // Fetch all initially
   }, [getAllPermissions])
 
-  const handleSubmitFilters = (filters) => {
-    setCurrentFilters(filters)
+  const handleSubmitFilters = filters => {
     getAllPermissions(filters)
   }
 
   const handleSubmit = async (values, permissionId) => {
     try {
       const action = permissionId ? updatePermissionById : createPermission
-      const payload = permissionId ? { id: permissionId, data: values } : values
+      const payload = permissionId ? { id: permissionId, data: { 
+        type: values.type,
+        startDate: values.startDate,
+        endDate: values.endDate,
+        reason: values.reason,
+        employeeId: values.employeeId,
+        status: values.status,
+        comments: values.comments} } : values
 
       await action(payload).unwrap()
 
@@ -75,7 +80,6 @@ const Permission = () => {
         success: true,
         onSuccess: () => {
           setOpenDialog(false)
-          refetch()
         },
         variantSuccess: 'info'
       })
@@ -132,22 +136,21 @@ const Permission = () => {
               success: true,
               onSuccess: () => {
                 setOpenDialog(false)
-                refetch()
               },
               variantSuccess: 'info'
             })
             setOpenAlertDialog(true)
           } catch (err) {
             console.error('Error deleting:', err)
-             setAlertProps({
-               alertTitle: t('error'),
-               alertMessage: t('delete_failed'),
-               cancel: false,
-               success: false,
-               destructive: true,
-               variantDestructive: 'destructive'
-             })
-             setOpenAlertDialog(true)
+            setAlertProps({
+              alertTitle: t('error'),
+              alertMessage: t('delete_failed'),
+              cancel: false,
+              success: false,
+              destructive: true,
+              variantDestructive: 'destructive'
+            })
+            setOpenAlertDialog(true)
           }
         }
       })
@@ -159,25 +162,28 @@ const Permission = () => {
 
   return (
     <>
-      <BackDashBoard link={'/home'} moduleName={t('permission')} /> {/* Adjust module name */}
+      <BackDashBoard link={'/home'} moduleName={t('permission')} />{' '}
+      {/* Adjust module name */}
       <div className='relative'>
         {/* Spinner */}
         {(isLoadingPermissions ||
           isLoadingPut ||
           isLoadingPost ||
           isLoadingDelete ||
+          isLoadingEmployees ||
+          isFetchingEmployees ||
           isFetchingPermissions) && <Spinner />}
 
-        <div className='grid grid-cols-1 gap-4 md:grid-cols-5'>
-          {/* filters */}
-          <div className='col-span-1 md:col-span-5'>
+        <div className='grid grid-cols-2 grid-rows-4 gap-4 md:grid-cols-5'>
+          <div className='col-span-2 row-span-1 md:col-span-5'>
             <PermissionFiltersForm
               onSubmit={handleSubmitFilters}
               onAddDialog={handleAddDialog}
+              dataEmployees={dataEmployees.data} // Pass employee data
             />
           </div>
           {/* Datatable */}
-          <div className='w-full col-span-1 md:col-span-5'>
+          <div className='flex flex-wrap w-full col-span-2 row-span-3 row-start-2 md:col-span-5'>
             <PermissionDatatable
               dataPermissions={dataPermissions} // Pass permission data
               onEditDialog={handleEditDialog}
@@ -191,6 +197,7 @@ const Permission = () => {
             onSubmit={handleSubmit}
             onDeleteById={handleDelete}
             actionDialog={actionDialog}
+            dataEmployees={dataEmployees.data} // Pass employee data
           />
 
           <AlertDialogComponent
@@ -204,4 +211,4 @@ const Permission = () => {
   )
 }
 
-export default Permission 
+export default Permission

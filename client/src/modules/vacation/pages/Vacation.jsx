@@ -12,6 +12,8 @@ import {
   useCreateVacationMutation,
   useDeleteVacationByIdMutation
 } from '../api/vacationApi' // Adjusted import path
+import { useGetAllEmployeesQuery } from '@/modules/employees/api/employeesApi' // Import employee query
+
 import AlertDialogComponent from '@/components/alertDialog/AlertDialog'
 import { Spinner } from '@/components/loader/Spinner'
 
@@ -22,7 +24,12 @@ const Vacation = () => {
   const [openAlertDialog, setOpenAlertDialog] = useState(false)
   const [alertProps, setAlertProps] = useState({})
   const [actionDialog, setActionDialog] = useState('')
-  const [currentFilters, setCurrentFilters] = useState({}) // State to hold current filters
+
+  const {
+    data: dataEmployees = { data: [] },
+    isLoading: isLoadingEmployees,
+    isFetching: isFetchingEmployees
+  } = useGetAllEmployeesQuery()
 
   const [
     getAllVacations,
@@ -34,35 +41,38 @@ const Vacation = () => {
     }
   ] = useLazyGetAllVacationsQuery()
 
-  const [
-    updateVacationById,
-    { isLoading: isLoadingPut }
-  ] = useUpdateVacationByIdMutation()
+  const [updateVacationById, { isLoading: isLoadingPut }] =
+    useUpdateVacationByIdMutation()
 
-  const [
-    createVacation,
-    { isLoading: isLoadingPost }
-  ] = useCreateVacationMutation()
+  const [createVacation, { isLoading: isLoadingPost }] =
+    useCreateVacationMutation()
 
-  const [
-    deleteVacationById,
-    { isLoading: isLoadingDelete }
-  ] = useDeleteVacationByIdMutation()
+  const [deleteVacationById, { isLoading: isLoadingDelete }] =
+    useDeleteVacationByIdMutation()
 
   // Fetch initial data
   useEffect(() => {
     getAllVacations({}) // Fetch all initially
   }, [getAllVacations])
 
-  const handleSubmitFilters = (filters) => {
-    setCurrentFilters(filters)
+  const handleSubmitFilters = filters => {
     getAllVacations(filters)
   }
 
   const handleSubmit = async (values, vacationId) => {
     try {
       const action = vacationId ? updateVacationById : createVacation
-      const payload = vacationId ? { id: vacationId, data: values } : values
+      const payload = vacationId
+        ? {
+            id: vacationId,
+            data: {
+              employeeId: values.employeeId,
+              startDate: values.startDate,
+              endDate: values.endDate,
+              status: values.status
+            }
+          }
+        : values
 
       await action(payload).unwrap()
 
@@ -75,7 +85,6 @@ const Vacation = () => {
         success: true,
         onSuccess: () => {
           setOpenDialog(false)
-          refetch()
         },
         variantSuccess: 'info'
       })
@@ -132,22 +141,21 @@ const Vacation = () => {
               success: true,
               onSuccess: () => {
                 setOpenDialog(false)
-                refetch()
               },
               variantSuccess: 'info'
             })
             setOpenAlertDialog(true)
           } catch (err) {
             console.error('Error deleting:', err)
-             setAlertProps({
-               alertTitle: t('error'),
-               alertMessage: t('delete_failed'),
-               cancel: false,
-               success: false,
-               destructive: true,
-               variantDestructive: 'destructive'
-             })
-             setOpenAlertDialog(true)
+            setAlertProps({
+              alertTitle: t('error'),
+              alertMessage: t('delete_failed'),
+              cancel: false,
+              success: false,
+              destructive: true,
+              variantDestructive: 'destructive'
+            })
+            setOpenAlertDialog(true)
           }
         }
       })
@@ -159,25 +167,28 @@ const Vacation = () => {
 
   return (
     <>
-      <BackDashBoard link={'/home'} moduleName={t('vacation')} /> {/* Adjust module name */}
+      <BackDashBoard link={'/home'} moduleName={t('vacation')} />{' '}
+      {/* Adjust module name */}
       <div className='relative'>
         {/* Spinner */}
         {(isLoadingVacations ||
           isLoadingPut ||
           isLoadingPost ||
           isLoadingDelete ||
+          isLoadingEmployees ||
+          isFetchingEmployees ||
           isFetchingVacations) && <Spinner />}
 
-        <div className='grid grid-cols-1 gap-4 md:grid-cols-5'>
-          {/* filters */}
-          <div className='col-span-1 md:col-span-5'>
+        <div className='grid grid-cols-2 grid-rows-4 gap-4 md:grid-cols-5'>
+          <div className='col-span-2 row-span-1 md:col-span-5'>
             <VacationFiltersForm
               onSubmit={handleSubmitFilters}
               onAddDialog={handleAddDialog}
+              dataEmployees={dataEmployees.data} // Pass employee data
             />
           </div>
           {/* Datatable */}
-          <div className='w-full col-span-1 md:col-span-5'>
+          <div className='flex flex-wrap w-full col-span-2 row-span-3 row-start-2 md:col-span-5'>
             <VacationDatatable
               dataVacations={dataVacations} // Pass vacation data
               onEditDialog={handleEditDialog}
@@ -191,6 +202,7 @@ const Vacation = () => {
             onSubmit={handleSubmit}
             onDeleteById={handleDelete}
             actionDialog={actionDialog}
+            dataEmployees={dataEmployees.data} // Pass employee data
           />
 
           <AlertDialogComponent
@@ -204,4 +216,4 @@ const Vacation = () => {
   )
 }
 
-export default Vacation 
+export default Vacation

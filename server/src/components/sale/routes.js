@@ -5,12 +5,13 @@ import {
   updateSaleById,
   deleteSaleById
 } from './controller.js'
-import verifyToken from '../../middleware/verifyToken.js'
-import validateSchema from '../../middleware/validateSchema.js'
-import validateQueryParams from '../../middleware/validateQueryParams.js'
+import { verifyToken, validateQueryParams, validateSchema, checkRoleAuthOrPermisssion } from '../../middleware/index.js'
 import { saleFiltersSchema, saleCreateUpdateSchema } from '../../utils/joiSchemas/joi.js'
+import { ROLESCODES, PERMISSIONCODES } from '../../utils/constants/enums.js'
 
 const router = express.Router()
+// uso global de middleware
+router.use(verifyToken)
 
 /**
  * @swagger
@@ -56,7 +57,10 @@ const router = express.Router()
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.get('/', verifyToken, validateQueryParams(saleFiltersSchema), getAllSales)
+router.get('/', checkRoleAuthOrPermisssion({
+  allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER, ROLESCODES.USER],
+  permissions: [PERMISSIONCODES.canViewSale]
+}), validateQueryParams(saleFiltersSchema), getAllSales)
 
 /**
  * @swagger
@@ -97,7 +101,10 @@ router.get('/', verifyToken, validateQueryParams(saleFiltersSchema), getAllSales
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.post('/', verifyToken, validateSchema(saleCreateUpdateSchema), createSale)
+router.post('/', checkRoleAuthOrPermisssion({
+  allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER, ROLESCODES.USER],
+  permissions: [PERMISSIONCODES.canCreateSale]
+}), validateSchema(saleCreateUpdateSchema), createSale)
 
 /**
  * @swagger
@@ -145,7 +152,10 @@ router.post('/', verifyToken, validateSchema(saleCreateUpdateSchema), createSale
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.put('/:id', verifyToken, validateSchema(saleCreateUpdateSchema), updateSaleById)
+router.put('/:id', checkRoleAuthOrPermisssion({
+  allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER, ROLESCODES.USER],
+  permissions: [PERMISSIONCODES.canEditSale]
+}), validateSchema(saleCreateUpdateSchema), updateSaleById)
 
 /**
  * @swagger
@@ -182,6 +192,9 @@ router.put('/:id', verifyToken, validateSchema(saleCreateUpdateSchema), updateSa
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.delete('/:id', verifyToken, deleteSaleById)
+router.delete('/:id', checkRoleAuthOrPermisssion({
+  allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER],
+  permissions: [PERMISSIONCODES.canDeleteSale]
+}), deleteSaleById)
 
 export default router

@@ -1,0 +1,1 @@
+export const VACATION_STATUS = ['PENDING', 'APPROVED', 'REJECTED']

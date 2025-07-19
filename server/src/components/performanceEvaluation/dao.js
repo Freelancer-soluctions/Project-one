@@ -33,8 +33,8 @@ export const getAllPerformanceEvaluations = async (filters = {}) => {
     SELECT 
       pe.*,
       e.name AS "employeeName",
-      u.name AS "userEvaluationCreatedName",
-      uu.name AS "userEvaluationUpdatedName"
+      u.name AS "userPerformanceCreatedName",
+      uu.name AS "userPerformanceUpdatedName"
     FROM "performanceEvaluation" pe
     LEFT JOIN "employees" e ON pe."employeeId" = e.id
     LEFT JOIN "users" u ON pe."createdBy" = u.id
@@ -54,15 +54,24 @@ export const getAllPerformanceEvaluations = async (filters = {}) => {
  * @param {number} data.calification - Evaluation score
  * @param {string} data.comments - Evaluation comments
  * @param {number} data.createdBy - User ID who created the evaluation
+ * @param {Date} data.creationOn - Creation timestamp
  * @returns {Promise<Object>} Created performance evaluation with related data
  */
 export const createPerformanceEvaluation = async (data) => {
   const evaluation = await prisma.performanceEvaluation.create({
-    data,
-    include: {
-      employee: true,
-      userPerformanceEvaluationCreated: true
+    data: {
+      date: data.date,
+      calification: data.calification,
+      comments: data.comments,
+      createdOn: data.createdOn,
+      employee: {
+        connect: { id: data.employeeId }
+      },
+      userPerformanceEvaluationCreated: {
+        connect: { id: data.createdBy }
+      }
     }
+
   })
   return evaluation
 }
@@ -76,12 +85,19 @@ export const createPerformanceEvaluation = async (data) => {
 export const updatePerformanceEvaluationById = async (id, data) => {
   const evaluation = await prisma.performanceEvaluation.update({
     where: { id: Number(id) },
-    data,
-    include: {
-      employee: true,
-      userPerformanceEvaluationCreated: true,
-      userPerformanceEvaluationUpdated: true
+    data: {
+      date: data.date,
+      calification: data.calification,
+      comments: data.comments,
+      updatedOn: new Date(),
+      employee: {
+        connect: { id: data.employeeId }
+      },
+      userPerformanceEvaluationUpdated: {
+        connect: { id: data.updatedBy }
+      }
     }
+
   })
   return evaluation
 }
@@ -93,7 +109,7 @@ export const updatePerformanceEvaluationById = async (id, data) => {
  */
 export const deletePerformanceEvaluationById = async (id) => {
   const evaluation = await prisma.performanceEvaluation.delete({
-    where: { id: Number(id) }
+    where: { id }
   })
   return evaluation
 }

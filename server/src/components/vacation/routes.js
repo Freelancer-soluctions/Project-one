@@ -1,10 +1,12 @@
 import express from 'express'
 import { getAllVacation, createVacation, updateVacationById, deleteVacationById } from './controller.js'
-import verifyToken from '../../middleware/verifyToken.js'
-import validateSchema from '../../middleware/validateSchema.js'
+import { verifyToken, validateQueryParams, validateSchema, checkRoleAuthOrPermisssion } from '../../middleware/index.js'
 import { vacationFiltersSchema, vacationCreateUpdateSchema } from '../../utils/joiSchemas/joi.js'
+import { ROLESCODES, PERMISSIONCODES } from '../../utils/constants/enums.js'
 
 const router = express.Router()
+// uso global de middleware
+router.use(verifyToken)
 
 /**
  * @swagger
@@ -79,7 +81,11 @@ const router = express.Router()
  *                               lastName:
  *                                 type: string
  */
-router.get('/', verifyToken, validateSchema(vacationFiltersSchema, 'query'), getAllVacation)
+router.get('/',
+  checkRoleAuthOrPermisssion({
+    allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER, ROLESCODES.USER],
+    permissions: [PERMISSIONCODES.canViewVacations]
+  }), validateSchema(vacationFiltersSchema), getAllVacation)
 
 /**
  * @swagger
@@ -139,7 +145,10 @@ router.get('/', verifyToken, validateSchema(vacationFiltersSchema, 'query'), get
  *                     status:
  *                       type: string
  */
-router.post('/', verifyToken, validateSchema(vacationCreateUpdateSchema), createVacation)
+router.post('/', checkRoleAuthOrPermisssion({
+  allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER, ROLESCODES.USER],
+  permissions: [PERMISSIONCODES.canRequestVacation]
+}), validateSchema(vacationCreateUpdateSchema), createVacation)
 
 /**
  * @swagger
@@ -189,7 +198,10 @@ router.post('/', verifyToken, validateSchema(vacationCreateUpdateSchema), create
  *                     status:
  *                       type: string
  */
-router.put('/:id', verifyToken, validateSchema(vacationCreateUpdateSchema), updateVacationById)
+router.put('/:id', checkRoleAuthOrPermisssion({
+  allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER, ROLESCODES.USER],
+  permissions: [PERMISSIONCODES.canEditRequestVacation]
+}), validateSchema(vacationCreateUpdateSchema), updateVacationById)
 
 /**
  * @swagger
@@ -223,6 +235,9 @@ router.put('/:id', verifyToken, validateSchema(vacationCreateUpdateSchema), upda
  *                     id:
  *                       type: integer
  */
-router.delete('/:id', verifyToken, deleteVacationById)
+router.delete('/:id', checkRoleAuthOrPermisssion({
+  allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER, ROLESCODES.USER],
+  permissions: [PERMISSIONCODES.canDeleteVacation]
+}), deleteVacationById)
 
 export default router

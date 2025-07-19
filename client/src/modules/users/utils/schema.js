@@ -5,35 +5,55 @@ export const UserSchema = z
     name: z.string().min(1, {
       message: 'User name is required.'
     }),
-    email: z.string().email({
-      message: 'Invalid email format.'
-    }),
+    email: z
+      .string()
+      .email({
+        message: 'Invalid email format.'
+      })
+      .min(1, { message: 'User email is required.' }),
     telephone: z.string().min(1, {
       message: 'Telephone is required.'
     }),
     address: z.string().optional(),
-    birthday: z.string().optional(),
-    startDate: z.string().optional(),
-    socialSecurity: z.string().min(9).max(9,{
-      message: 'Social Security must be 9 characters.'
+    birthday: z.union([z.date(), z.string()], {
+      message: 'Birthday date is required.'
     }),
-    zipcode: z.string().min(5).max(9,{
+    startDate: z.union([z.date(), z.string()], {
+      message: 'Start date is required.'
+    }),
+
+    socialSecurity: z
+      .string()
+      .min(9, {
+        message: 'Social Security must be 9 characters.'
+      })
+      .max(9, {
+        message: 'Social Security must be 9 characters.'
+      }),
+    zipcode: z.string().min(5).max(9, {
       message: 'Zipcode must be between 5 and 9 characters.'
     }),
-    state: z.string().optional(),
-    city: z.string().optional(),
-    isAdmin: z.boolean().optional(),
+    state: z.string().min(1, { message: 'State is required' }),
+    city: z.string().min(1, { message: 'City is required' }),
+    isAdmin: z.boolean(),
     picture: z.string().optional(),
     document: z.string().optional(),
-    roleId: z.string().optional(),
-    statusId: z.string().optional(),
-    userPermitId: z.string().optional()
+    status: z.custom(val => val && val.id, {
+      message: 'Status is required'
+    }),
+    roles: z.custom(val => val && val.id, {
+      message: 'Role is required'
+    })
   })
-  .passthrough() // Permite otros campos 
+  .passthrough() // Permite otros campos
 
-  export const UsersFiltersSchema = z.object({
-    name: z.string().optional(),
-    email: z.string().email({
+export const UsersFiltersSchema = z.object({
+  name: z.string().optional(),
+  email: z
+    .string()
+    .email({
       message: 'Invalid email format.'
-    }).optional()
-  })
+    })
+    .optional(),
+  status: z.string().optional()
+})

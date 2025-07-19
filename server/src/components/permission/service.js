@@ -30,9 +30,17 @@ export const getAllPermissions = async (filters) => {
  * @param {string} [data.status] - Permission status (defaults to PENDING)
  * @returns {Promise<Object>} Created permission record
  */
-export const createPermission = async (data) => {
-  data.createdOn = new Date()
-  return await createPermissionDao(data)
+export const createPermission = async (data, userId) => {
+  const permissionData = {
+    ...data,
+    employeeId: Number(data.employeeId),
+    createdOn: new Date(),
+    fromDate: new Date(data.fromDate),
+    toDate: new Date(data.toDate),
+    createdBy: userId
+
+  }
+  return await createPermissionDao(permissionData)
 }
 
 /**
@@ -49,9 +57,17 @@ export const createPermission = async (data) => {
  * @param {string} [data.comments] - Additional comments
  * @returns {Promise<Object>} Updated permission record
  */
-export const updatePermissionById = async (id, data) => {
-  data.updatedOn = new Date()
-  return await updatePermissionByIdDao(id, data)
+export const updatePermissionById = async (id, data, userId) => {
+  const permissionData = {
+    ...data,
+    employeeId: Number(data.employeeId),
+    updatedOn: new Date(),
+    fromDate: new Date(data.fromDate),
+    toDate: new Date(data.toDate),
+    updatedBy: userId
+
+  }
+  return await updatePermissionByIdDao(id, permissionData)
 }
 
 /**
@@ -60,5 +76,5 @@ export const updatePermissionById = async (id, data) => {
  * @returns {Promise<Object>} Deleted permission record
  */
 export const deletePermissionById = async (id) => {
-  return await deletePermissionByIdDao(id)
+  return await deletePermissionByIdDao(Number(id))
 }
