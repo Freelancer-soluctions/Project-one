@@ -90,7 +90,7 @@ const userStatus = [
   }
 ]
 
-const noteStatus = [
+const noteColumns = [
   {
     code: 'C01',
     title: 'LOW'
@@ -236,13 +236,13 @@ const create = async (tableName, createObject) => {
 }
 
 async function main () {
-  await create('users', user1)
+  // await create('users', user1)
 
   /*   await createVarious('roles', roles)
   await createVarious('userPermits', userPermits)
   await createVarious('userStatus', userStatus) */
-
-  /*   await createVarious('noteColumns', noteStatus)
+  await createVarious('noteColumns', noteColumns)
+  /*
   await createVarious('eventTypes', eventTypes) */
 
   // await createVarious('newsStatus', newStatus)
