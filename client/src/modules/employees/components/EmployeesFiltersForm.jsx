@@ -12,13 +12,15 @@ import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { LuPlus, LuSearch, LuEraser } from 'react-icons/lu'
 import PropTypes from 'prop-types'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { EmployeeFiltersSchema } from '../utils'
 
 export const EmployeesFiltersForm = ({ onSubmit, onAddDialog }) => {
   const { t } = useTranslation()
   const form = useForm({
+    resolver: zodResolver(EmployeeFiltersSchema),
     defaultValues: {
       name: '',
-      email: '',
       dni: ''
     }
   })
@@ -107,7 +109,7 @@ export const EmployeesFiltersForm = ({ onSubmit, onAddDialog }) => {
                     <Input
                       id='dni'
                       name='dni'
-                      placeholder={t('employee_dni_placeholder')}
+                      placeholder={t('dni_placeholder')}
                       type='text'
                       autoComplete='off'
                       maxLength={10}

@@ -4,14 +4,18 @@ import {
   createUser,
   updateUserById,
   deleteUserById,
-  getUserById
+
+  getAllUsersStatus,
+  getAllUsersRoles
 } from './controller.js'
-import verifyToken from '../../middleware/verifyToken.js'
-import validateSchema from '../../middleware/validateSchema.js'
-import validateQueryParams from '../../middleware/validateQueryParams.js'
+import { verifyToken, validateQueryParams, validateSchema, checkRoleAuthOrPermisssion } from '../../middleware/index.js'
+import { ROLESCODES } from '../../utils/constants/enums.js'
 import { userFiltersSchema, userCreateUpdateSchema } from '../../utils/joiSchemas/joi.js'
 
 const router = express.Router()
+// uso global de middleware
+router.use(verifyToken)
+router.use(checkRoleAuthOrPermisssion([ROLESCODES.ADMIN]))
 
 /**
  * @openapi
@@ -65,63 +69,8 @@ const router = express.Router()
  */
 router.get(
   '/',
-  verifyToken,
   validateQueryParams(userFiltersSchema),
   getAllUsers
-)
-
-/**
- * @openapi
- * /v1/users/{id}:
- *   get:
- *     tags:
- *       - Users
- *     summary: Get a user by ID
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: integer
- *         description: User ID
- *     responses:
- *       200:
- *         description: OK
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 error:
- *                   type: boolean
- *                   example: false
- *                 statusCode:
- *                   type: integer
- *                   example: 200
- *                 message:
- *                   type: string
- *                   example: "Some success message"
- *                 data:
- *                   $ref: "#/components/schemas/ResponseGetUser"
- *       401:
- *         description: Unauthorized
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Unauthorized'
- *       500:
- *         description: Server error
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Error'
- */
-router.get(
-  '/:id',
-  verifyToken,
-  getUserById
 )
 
 /**
@@ -170,7 +119,6 @@ router.get(
  */
 router.post(
   '/',
-  verifyToken,
   validateSchema(userCreateUpdateSchema),
   createUser
 )
@@ -228,7 +176,6 @@ router.post(
  */
 router.put(
   '/:id',
-  verifyToken,
   validateSchema(userCreateUpdateSchema),
   updateUserById
 )
@@ -271,8 +218,10 @@ router.put(
  */
 router.delete(
   '/:id',
-  verifyToken,
   deleteUserById
 )
+
+router.get('/status', getAllUsersStatus)
+router.get('/roles', getAllUsersRoles)
 
 export default router

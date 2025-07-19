@@ -19,10 +19,13 @@ export const getAllAttendance = async (filters) => {
  * @param {Object} data - Attendance data
  * @returns {Promise<Object>} Created attendance record
  */
-export const createAttendance = async (data) => {
+export const createAttendance = async (data, userId) => {
   const dataAttendance = {
     ...data,
-    createdOn: new Date()
+    employeeId: Number(data.employeeId),
+    date: new Date(data.date),
+    createdOn: new Date(),
+    createdBy: userId
   }
   return createAttendanceDao(dataAttendance)
 }
@@ -33,10 +36,14 @@ export const createAttendance = async (data) => {
  * @param {Object} data - Updated attendance data
  * @returns {Promise<Object>} Updated attendance record
  */
-export const updateAttendanceById = async (id, data) => {
+export const updateAttendanceById = async (id, data, userId) => {
   const dataAttendance = {
     ...data,
-    updatedOn: new Date()
+    updatedOn: new Date(),
+    employeeId: Number(data.employeeId),
+    updatedBy: userId,
+    date: new Date(data.date)
+
   }
   return updateAttendanceByIdDao(Number(id), dataAttendance)
 }

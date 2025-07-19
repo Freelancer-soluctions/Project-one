@@ -10,15 +10,18 @@ const prisma = new PrismaClient()
  * @returns {Promise<Array>} List of users with their related data
  */
 export const getAllUsers = async (filters = {}) => {
-  console.log(filters)
   const whereClauses = []
 
   if (filters.name) {
-    whereClauses.push(Prisma.sql`u."name" ILIKE ${filters.name}`)
+    Prisma.sql`c."name" ILIKE ${'%' + filters.name + '%'}`
   }
 
   if (filters.email) {
     whereClauses.push(Prisma.sql`u."email" ILIKE ${filters.email}`)
+  }
+
+  if (filters.status) {
+    whereClauses.push(Prisma.sql`s."code" = ${filters.status}`)
   }
 
   const whereSql = whereClauses.length
@@ -26,52 +29,50 @@ export const getAllUsers = async (filters = {}) => {
     : Prisma.empty
 
   const users = await prisma.$queryRaw`
-    SELECT
+   SELECT 
       u.*,
+      uu.name AS "lastUpdatedByName",
+      s.description AS "statusDescription",
+      s.code AS "statusCode",
+      s.id AS "statusId",
       r.description AS "roleDescription",
-      us.description AS "statusDescription",
-      up."accessConfiguration",
-      up."accessNews",
-      updater.name AS "lastUpdatedByName"
+      r.code AS "roleCode",
+      r.id AS "roleId",
+      up."accessConfiguration" AS "accessConfiguration",
+      up."accessNews" AS "accessNews"
+    
+ 
+
     FROM "users" u
+    LEFT JOIN "users" uu ON u."lastUpdatedBy" = uu.id
+    LEFT JOIN "userStatus" s ON u."statusId" = s.id
     LEFT JOIN "roles" r ON u."roleId" = r.id
-    LEFT JOIN "userStatus" us ON u."statusId" = us.id
     LEFT JOIN "userPermits" up ON u."userPermitId" = up.id
-    LEFT JOIN "users" updater ON u."lastUpdatedBy" = updater.id
     ${whereSql}
-    ORDER BY u.id ASC
   `
   return users
 }
 
 /**
- * Get a single user by their ID with related data.
- * @async
- * @param {number} id - The ID of the user to retrieve.
- * @returns {Promise&lt;object|null&gt;} The user object or null if not found.
+ * Retrieves all available users statuses from the database.
+ *
+ * @returns {Promise<Array>} A list of users statuses.
  */
-export const getUserById = async (id) => {
-  // Ensure id is an integer
-  const userId = parseInt(id, 10)
-  if (isNaN(userId)) {
-    throw new Error('Invalid user ID provided.')
-  }
-  const users = await prisma.$queryRaw`
-    SELECT 
-      u.*,
-      r.description AS "roleDescription",
-      us.description AS "statusDescription",
-      up."accessConfiguration",
-      up."accessNews",
-      updater.name AS "lastUpdatedByName"
-    FROM "users" u
-    LEFT JOIN "roles" r ON u."roleId" = r.id
-    LEFT JOIN "userStatus" us ON u."statusId" = us.id
-    LEFT JOIN "userPermits" up ON u."userPermitId" = up.id
-    LEFT JOIN "users" updater ON u."lastUpdatedBy" = updater.id
-    WHERE u.id = ${userId}
-  `
-  return users[0] || null
+
+export const getAllUsersStatus = async () => {
+  const status = await prisma.userStatus.findMany()
+  return Promise.resolve(status)
+}
+
+/**
+ * Retrieves all available users roles from the database.
+ *
+ * @returns {Promise<Array>} A list of users roles.
+ */
+
+export const getAllUsersRoles = async () => {
+  const roles = await prisma.roles.findMany()
+  return Promise.resolve(roles)
 }
 
 /**
@@ -158,20 +159,41 @@ export const createUser = async (data) => {
  * @param {string} [data.document] - User's document identifier.
  * @param {string} [data.state] - User's state.
  * @param {string} [data.refreshToken] - User's refresh token.
+ * @param {string} [data.accessConfiguration] - User's access configuration.
+ * @param {string} [data.accessNews] - User's access news.
  * @returns {Promise&lt;object&gt;} The updated user object.
  */
 export const updateUserById = async (id, data) => {
+  console.log('Updating user with ID:', id, 'Data:', data)
   return prisma.users.update({
     where: { id: parseInt(id, 10) },
     data: {
-      ...data, // Spread all potential fields from data
-      lastUpdatedOn: new Date()
-      // lastUpdatedBy should be part of the input 'data' object
-    },
-    include: {
-      roles: true,
-      status: true,
-      userPermits: true
+      name: data.name,
+      email: data.email,
+      address: data.address,
+      city: data.city,
+      isAdmin: data.isAdmin,
+      picture: data.picture,
+      document: data.document,
+      lastUpdatedBy: data.lastUpdatedBy,
+      lastUpdatedOn: data.lastUpdatedOn,
+      socialSecurity: data.socialSecurity,
+      state: data.state,
+      telephone: data.telephone,
+      zipcode: data.zipcode,
+      // foreign keys
+      userStatus: {
+        connect: { id: data.statusId }
+      },
+      roles: {
+        connect: { id: data.roleId }
+      },
+      userPermits: {
+        update: {
+          accessConfiguration: data.accessConfiguration,
+          accessNews: data.accessNews
+        }
+      }
     }
   })
 }
@@ -219,11 +241,47 @@ export const getUserRegisteredByEmail = async (email) => {
   return userExist ? Promise.resolve(userExist) : Promise.resolve({})
 }
 
-export const getRoleByCode = async (code) => {
-  const rolUser = await prisma.user.findUnique({
+export const getUserRoleByCode = async (code) => {
+  const rolUser = await prisma.roles.findUnique({
     where: {
       code
     }
   })
   return Promise.resolve(rolUser)
+}
+
+/**
+ * Get user by refresh token.
+ *
+ * @param {string} refreshToken - The refresh token to search for.
+ * @returns {Promise<Object>} The user associated with the token.
+ */
+export const getUserByToken = async (refreshToken) => {
+  const user = await prisma.users.findUnique({
+    where: { refreshToken },
+    include: { roles: true }
+  })
+
+  return Promise.resolve(user)
+}
+
+export const getUserRoleByUserId = async (id) => {
+  const user = await prisma.users.findUnique({
+    where: {
+      id
+    },
+    include: {
+      roles: {
+        include: {
+          rolePermits: {
+            include: {
+              permissions: true
+            }
+          }
+        }
+      }
+    }
+
+  })
+  return Promise.resolve(user)
 }

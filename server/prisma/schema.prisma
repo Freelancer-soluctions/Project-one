@@ -26,13 +26,12 @@ model users {
   socialSecurity                   String                  @db.VarChar(9)
   startDate                        DateTime                @db.Timestamp(3)
   state                            String                  @db.VarChar(50)
-  statusId                         Int
-  status                           userStatus              @relation("userStatus", fields: [statusId], references: [id])
+  statusId                         Int     @db.Integer
+  userStatus                        userStatus              @relation("userStatus", fields: [statusId], references: [id])
   telephone                        String                  @db.VarChar(15)
   zipcode                          String                  @db.VarChar(9)
   refreshToken                     String?                 @db.VarChar(200)
-  userPermitId                     Int
-  userPermits                      userPermits             @relation("userPermits", fields: [userPermitId], references: [id])
+ 
   newsClosed                       news[]                  @relation("userNewsClosed")
   newsCreated                      news[]                  @relation("userNewsCreated")
   newsPending                      news[]                  @relation("userNewsPending")
@@ -73,18 +72,32 @@ model users {
   userExpenseUpdated               expenses[]              @relation("userExpenseUpdated")
 }
 
-model userPermits {
-  id                  Int      @id @default(autoincrement())
-  accessConfiguration Boolean? @default(false)
-  accessNews          Boolean? @default(false)
-  users               users[]  @relation("userPermits")
+
+model permissions {
+  id          Int            @id @default(autoincrement())
+  code        String         @unique @db.VarChar(50) // Ej: "ACCESS_NEWS", "CREATE_PRODUCTS"
+  description String         @db.VarChar(100)
+  rolePermits rolePermits[] // Relación con roles
 }
+
+model rolePermits {
+  id           Int         @id @default(autoincrement())
+  roleId       Int
+  permissionId Int
+  roles        roles       @relation(fields: [roleId], references: [id])
+  permissions  permissions @relation(fields: [permissionId], references: [id])
+
+  @@unique([roleId, permissionId]) // Un permiso por rol una sola vez
+}
+
 
 model roles {
   id          Int     @id @default(autoincrement())
   code        String  @unique @db.VarChar(3)
   description String  @unique @db.VarChar(50)
   users       users[] @relation("userRoles")
+  rolePermits  rolePermits[] // Relación nueva
+
 }
 
 model userStatus {
@@ -502,6 +515,7 @@ enum vacationStatus {
 }
 
 // permisos
+// agregar un approvedBy
 model permission {
   id                    Int              @id @default(autoincrement())
   employeeId            Int              @db.Integer
@@ -591,14 +605,13 @@ model expenses {
   id                 Int             @id @default(autoincrement())
   description        String
   total              Float
-  category           String
   createdBy          Int             @db.Integer
   userExpenseCreated users           @relation("userExpenseCreated", fields: [createdBy], references: [id])
   updatedBy          Int?            @db.Integer
   userExpenseUpdated users?          @relation("userExpenseUpdated", fields: [updatedBy], references: [id])
   createdOn          DateTime        @db.Timestamp(3)
   updatedOn          DateTime?       @db.Timestamp(3)
-  status             expenseCategory
+  category             expenseCategory
 }
 
 enum expenseCategory {

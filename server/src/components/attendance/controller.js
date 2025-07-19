@@ -23,11 +23,12 @@ export const getAllAttendance = handleCatchErrorAsync(async (req, res) => {
  * @param {Object} res - Express response object
  */
 export const createAttendance = handleCatchErrorAsync(async (req, res) => {
-  console.log(req.body)
-  const attendance = await createAttendanceService({
-    ...req.body,
-    createdBy: req.userId
-  })
+  const attendance = await createAttendanceService(
+    {
+      ...req.body
+    },
+    req.userId
+  )
   globalResponse(res, 201, attendance)
 })
 
@@ -38,9 +39,8 @@ export const createAttendance = handleCatchErrorAsync(async (req, res) => {
  */
 export const updateAttendanceById = handleCatchErrorAsync(async (req, res) => {
   const attendance = await updateAttendanceByIdService(req.params.id, {
-    ...req.body,
-    updatedBy: req.userId
-  })
+    ...req.body
+  }, req.userId)
   globalResponse(res, 200, attendance)
 })
 
@@ -51,5 +51,7 @@ export const updateAttendanceById = handleCatchErrorAsync(async (req, res) => {
  */
 export const deleteAttendanceById = handleCatchErrorAsync(async (req, res) => {
   await deleteAttendanceByIdService(req.params.id)
-  globalResponse(res, 200, { message: 'Attendance record deleted successfully' })
+  globalResponse(res, 200, {
+    message: 'Attendance record deleted successfully'
+  })
 })

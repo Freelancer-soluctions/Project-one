@@ -4,7 +4,7 @@ import {
   handleUploadUpdate,
   handleDeleteFile
 } from '../../utils/cloudinary/cloudinary.js'
-import { NEWSSTATUSCODE } from '../utils/enums/enums.js'
+import { NEWSSTATUSCODE } from '../../utils/constants/enums.js'
 
 /**
  * Get all news from the database with optional filters.

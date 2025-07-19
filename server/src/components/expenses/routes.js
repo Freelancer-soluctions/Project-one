@@ -1,18 +1,18 @@
 // Fully replace the content with the correct version for expenses routes
 import express from 'express'
 import {
-  getAllExpenses, // Renamed
-  createExpense, // Renamed
-  updateExpenseById, // Renamed
-  deleteExpenseById // Renamed
+  getAllExpenses,
+  createExpense,
+  updateExpenseById,
+  deleteExpenseById
 } from './controller.js'
-import verifyToken from '../../middleware/verifyToken.js'
-import validateSchema from '../../middleware/validateSchema.js'
-import validateQueryParams from '../../middleware/validateQueryParams.js'
-// Assuming these schemas will be created in the joi.js file
+import { verifyToken, validateSchema, validateQueryParams, checkRoleAuthOrPermisssion } from '../../middleware/index.js'
+import { ROLESCODES, PERMISSIONCODES } from '../../utils/constants/enums.js'
 import { expenseFiltersSchema, expenseCreateUpdateSchema } from '../../utils/joiSchemas/joi.js'
 
 const router = express.Router()
+// uso global de middleware
+router.use(verifyToken)
 
 /**
  * @openapi
@@ -66,9 +66,12 @@ const router = express.Router()
  */
 router.get(
   '/',
-  verifyToken,
-  validateQueryParams(expenseFiltersSchema), // Renamed schema
-  getAllExpenses // Renamed controller
+  checkRoleAuthOrPermisssion({
+    allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER],
+    permissions: [PERMISSIONCODES.canViewExpense]
+  }),
+  validateQueryParams(expenseFiltersSchema),
+  getAllExpenses
 )
 
 /**
@@ -117,9 +120,12 @@ router.get(
  */
 router.post(
   '/',
-  verifyToken,
-  validateSchema(expenseCreateUpdateSchema), // Renamed schema
-  createExpense // Renamed controller
+  checkRoleAuthOrPermisssion({
+    allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER],
+    permissions: [PERMISSIONCODES.canCreateExpense]
+  }),
+  validateSchema(expenseCreateUpdateSchema),
+  createExpense
 )
 
 /**
@@ -175,9 +181,12 @@ router.post(
  */
 router.put(
   '/:id',
-  verifyToken,
-  validateSchema(expenseCreateUpdateSchema), // Renamed schema
-  updateExpenseById // Renamed controller
+  checkRoleAuthOrPermisssion({
+    allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER],
+    permissions: [PERMISSIONCODES.canEditExpense]
+  }),
+  validateSchema(expenseCreateUpdateSchema),
+  updateExpenseById
 )
 
 /**
@@ -218,9 +227,10 @@ router.put(
  */
 router.delete(
   '/:id',
-  verifyToken,
-  // No schema validation needed for delete by ID typically, only verifyToken
-  deleteExpenseById // Renamed controller
-)
+  checkRoleAuthOrPermisssion({
+    allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER],
+    permissions: [PERMISSIONCODES.canDeleteExpense]
+  }),
+  deleteExpenseById)
 
 export default router

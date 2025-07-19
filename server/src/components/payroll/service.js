@@ -4,10 +4,11 @@ export const getAllPayroll = async (filters) => {
   return await payrollDao.getAllPayroll(filters)
 }
 
-export const createPayroll = async (data) => {
+export const createPayroll = async (data, userId) => {
   const payroll = {
     ...data,
-    createdOn: new Date()
+    createdOn: new Date(),
+    createdBy: userId
   }
   return await payrollDao.createPayroll(payroll)
 }
@@ -21,5 +22,5 @@ export const updatePayrollById = async (id, data) => {
 }
 
 export const deletePayrollById = async (id) => {
-  return await payrollDao.deletePayrollById(id)
+  return await payrollDao.deletePayrollById(Number(id))
 }

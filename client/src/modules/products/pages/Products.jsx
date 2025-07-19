@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import { ProductsFiltersForm, ProductsDatatable } from '../components/index'
 import { Spinner } from '@/components/loader/Spinner'
 import { BackDashBoard } from '@/components/backDash/BackDashBoard'
@@ -6,14 +5,12 @@ import { BackDashBoard } from '@/components/backDash/BackDashBoard'
 import {
   useLazyGetAllProductsQuery,
   useGetAllProductsStatusQuery,
-  useGetAllProductCategoriesQuery,
-  useGetAllProductProvidersQuery,
-
+  useGetAllProductCategoriesQuery
 } from '../api/productsAPI'
+import { useGetAllProvidersQuery } from '../../providers/api/providersAPI'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router'
 const Products = () => {
-
   const { t } = useTranslation() // Accede a las traducciones
   const navigate = useNavigate()
 
@@ -33,7 +30,7 @@ const Products = () => {
     isFetching: isFetchingProviders,
     isSuccess: isSuccessProviders,
     error: errorProviders
-  } = useGetAllProductProvidersQuery()
+  } = useGetAllProvidersQuery({name:'', status:true})
 
   const {
     data: datastatus,
@@ -57,7 +54,6 @@ const Products = () => {
     },
     lastPromiseInfo
   ] = useLazyGetAllProductsQuery()
-
 
   const handleProductsForms = row => {
     navigate('/home/productsForms', { state: { row } })
@@ -92,11 +88,9 @@ const Products = () => {
           <div className='flex flex-wrap w-full col-span-2 row-span-3 row-start-2 md:col-span-5'>
             <ProductsDatatable
               dataProducts={dataProducts}
-              onOpenProductsForms={handleProductsForms}            
+              onOpenProductsForms={handleProductsForms}
             />
           </div>
-
-        
         </div>
       </div>
     </>

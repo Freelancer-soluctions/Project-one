@@ -5,12 +5,13 @@ import {
   updatePerformanceEvaluationById,
   deletePerformanceEvaluationById
 } from './controller.js'
-import verifyToken from '../../middleware/verifyToken.js'
-import validateSchema from '../../middleware/validateSchema.js'
-import validateQueryParams from '../../middleware/validateQueryParams.js'
+import { verifyToken, validateQueryParams, validateSchema, checkRoleAuthOrPermisssion } from '../../middleware/index.js'
 import { performanceEvaluationFiltersSchema, performanceEvaluationCreateUpdateSchema } from '../../utils/joiSchemas/joi.js'
+import { ROLESCODES, PERMISSIONCODES } from '../../utils/constants/enums.js'
 
 const router = express.Router()
+// uso global de middleware
+router.use(verifyToken)
 
 /**
  * @openapi
@@ -52,7 +53,10 @@ const router = express.Router()
  */
 router.get(
   '/',
-  verifyToken,
+  checkRoleAuthOrPermisssion({
+    allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER],
+    permissions: [PERMISSIONCODES.canViewPerformanceEvaluations]
+  }),
   validateQueryParams(performanceEvaluationFiltersSchema),
   getAllPerformanceEvaluations
 )
@@ -94,7 +98,10 @@ router.get(
  */
 router.post(
   '/',
-  verifyToken,
+  checkRoleAuthOrPermisssion({
+    allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER],
+    permissions: [PERMISSIONCODES.canCreateEvaluatePerformance]
+  }),
   validateSchema(performanceEvaluationCreateUpdateSchema),
   createPerformanceEvaluation
 )
@@ -143,7 +150,10 @@ router.post(
  */
 router.put(
   '/:id',
-  verifyToken,
+  checkRoleAuthOrPermisssion({
+    allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER],
+    permissions: [PERMISSIONCODES.canEditEvaluatePerformance]
+  }),
   validateSchema(performanceEvaluationCreateUpdateSchema),
   updatePerformanceEvaluationById
 )
@@ -184,6 +194,9 @@ router.put(
  *                 data:
  *                   $ref: "#/components/schemas/ResponseGetPerformanceEvaluation"
  */
-router.delete('/:id', verifyToken, deletePerformanceEvaluationById)
+router.delete('/:id', checkRoleAuthOrPermisssion({
+  allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER],
+  permissions: [PERMISSIONCODES.canDeleteEvaluationPerformance]
+}), deletePerformanceEvaluationById)
 
 export default router

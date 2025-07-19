@@ -36,7 +36,9 @@ export const ProductsFiltersForm = ({
       name: '',
       category: '',
       type: '',
-      status: ''
+      status: '',
+      providers: ''
+
     }
   })
 

@@ -2,10 +2,14 @@
 import { useSelector } from 'react-redux'
 import { useNavigate } from 'react-router'
 import { useEffect } from 'react'
+import { getUserFromToken } from '../../utils/jwt-decode';
 export const ProtectedRoutes = ({ children, redirectTo }) => {
   // Accediendo al estado de autenticación
   const user = useSelector(state => state.auth)
   // const user = store.getState()?.auth?.user
+
+  //Acceder a ala informacion del token
+  const userToken = getUserFromToken();
   const navigate = useNavigate()
   // useEffect(() => {
   //   if (user !== null) {
@@ -17,7 +21,7 @@ export const ProtectedRoutes = ({ children, redirectTo }) => {
   // }, [])
 
   useEffect(() => {
-    if (user.user === null && !user.isAuth) {
+    if (user.user === null && !user.isAuth && (parseInt(user.user.data.user.id) !== parseInt(userToken.id))) {
       navigate(redirectTo, { replace: true })
     }
   }, [navigate, user])

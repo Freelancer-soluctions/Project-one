@@ -14,9 +14,11 @@ Back end
 - Documentacion basada en jsdoc
 - Arquitectura layered o capas
 - Uso de prima ORM con sistema de consultas naviva y uso de sql raw para consultas mas complejas.
-- Uso de JWT para la autenticacion y autorizacion de usuarios
+- Uso de JWT para la autenticacion y autorizacion de usuarios en rutas privadas
 - HOF hihg order function para manejo de errores
 
+Global
+- El sistema posee varias capas de seguridad siendo tales como middlewares de control de acceso para verificacion de tokens jwt, roles y permisos, (Broken access control owasp top 10)
 
 
 1️⃣ Módulo de Gestión de Productos 
@@ -90,7 +92,135 @@ Debe permitir la configuración de reglas como stock mínimo, alertas, permisos 
 Posibilidad de personalizar los campos de los productos y reportes según necesidades del negocio.
 Automatización de compras si el stock baja de un nivel crítico.
 
+Tabla: Acceso por rol a los módulos del ERP
+| Módulo                  | Admin | Manager | User |
+| ----------------------- | :---: | :-----: | :--: |
+| Dashboard               |   ✅   |    ✅    |   ✅  |
+| Gestión de productos    |   ✅   |    ✅    |  🔲  |
+| Proveedores             |   ✅   |    ✅    |  🔲  |
+| Inventario              |   ✅   |    ✅    |  🔲  |
+| Categorías de productos |   ✅   |    ✅    |  🔲  |
+| Atributos de producto   |   ✅   |    ✅    |  🔲  |
+| Gestión de ventas       |   ✅   |    ✅    |  🔲  |
+| Gestión de compras      |   ✅   |    ✅    |  🔲  |
+| Gestión de clientes     |   ✅   |    ✅    |   ✅  |
+| Gestión de empleados    |   ✅   |    ✅    |  🔲  |
+| Evaluación de desempeño |   ✅   |    ✅    |  🔲  |
+| Nómina                  |   ✅   |    ✅    |  🔲  |
+| Asistencia              |   ✅   |    ✅    |  🔲  |
+| Vacaciones              |   ✅   |    ✅    |  🔲  |
+| Noticias                |   ✅   |    ✅    |   ✅  |
+| Configuración de acceso |   ✅   |    🔲   |  🔲  |
+| Gestión de usuarios     |   ✅   |    🔲   |  🔲  |
+| Órdenes de clientes     |   ✅   |    ✅    |   ✅  |
+| Órdenes de proveedores  |   ✅   |    ✅    |  🔲  |
+| Gastos                  |   ✅   |    ✅    |  🔲  |
+| Reportes / Estadísticas |   ✅   |    ✅    |   ✅  |
 
+
+
+
+Tabla de permisos booleanos por rol (para manager y user) SDSD
+
+| ID  | Código del Permiso              | Descripción                               | Manager | User |
+|-----|----------------------------------|-------------------------------------------|---------|------|
+| 1   | canViewDashboard                 | Puede ver el dashboard                    | ✅      | ✅  |
+| 2   | canCreateProduct                 | Puede crear productos                     | ✅      |      |
+| 3   | canEditProduct                   | Puede editar productos                    | ✅      |      |
+| 4   | canDeleteProduct                 | Puede eliminar productos                  | ✅      |      |
+| 5   | canViewProduct                   | Puede ver productos                       | ✅      | ✅   |
+| 6   | canCreateProvider                | Puede crear proveedores                   | ✅      |      |
+| 7   | canEditProvider                  | Puede editar proveedores                  | ✅      |      |
+| 8   | canDeleteProvider                | Puede eliminar proveedores                | ✅      |      |
+| 9   | canViewProvider                  | Puede ver proveedores                     | ✅      | ✅   |
+| 10  | canCreateInventory               | Puede crear inventario                    | ✅      |      |
+| 11  | canEditInventory                 | Puede editar inventario                   | ✅      |      |
+| 12  | canViewInventory                 | Puede ver inventario                      | ✅      | ✅   |
+| -   | canDeleteInventory               | Puede eliminar inventario                 | ✅      |      |
+| 13  | canCreateCategory                | Puede crear categorías                    | ✅      |      |
+| 14  | canEditCategory                  | Puede editar categorías                   | ✅      |      |
+| 15  | canViewCategory                  | Puede ver categorías                      | ✅      | ✅   |
+| -   | canDeleteCategory                | Puede eliminar inventario                 | ✅      |      |
+| 16  | canCreateSale                    | Puede crear ventas                        | ✅      | ✅   |
+| 17  | canEditSale                      | Puede editar ventas                       | ✅      | ✅  |
+| 18  | canViewSale                      | Puede ver ventas                          | ✅      | ✅   |
+| -   | canDeleteSale                    | Puede eliminar un sale                    | ✅      |      |
+| 19  | canCreatePurchase                | Puede crear compras                       | ✅      |      |
+| 20  | canEditPurchase                  | Puede editar compras                      | ✅      |      |
+| 21  | canViewPurchase                  | Puede ver compras                         | ✅      |      |
+| -   | canDeletePurchase                | Puede eliminar un compras                 | ✅      |      |
+| 22  | canCreateClient                  | Puede crear clientes                      | ✅      |      |
+| 23  | canEditClient                    | Puede editar clientes                     | ✅      |      |
+| 24  | canViewClient                    | Puede ver clientes                        | ✅      | ✅   |
+| -   | canDeleteClient                  | Puede eliminar un cliente                 | ✅      |      |
+| 25  | canCreateEmployee                | Puede crear empleados                     | ✅      |      |
+| 26  | canEditEmployee                  | Puede editar empleados                    | ✅      |      |
+| 27  | canViewEmployee                  | Puede ver empleados                       | ✅      |      |
+| -   | canDeleteEmployee                | Puede eliminar un empleados               | ✅      |      |
+
+| 28  | canCreateEvaluatePerformance     | Puede crear evaluar desempeño             | ✅      |      |
+| -   | canEditEvaluatePerformance       | Puede editar evaluar desempeño            | ✅      |      |
+| -   | canDeleteEvaluationPerformance   | Puede eliminar un empleados               | ✅      |      |
+| 29  | canViewPerformanceEvaluations    | Puede ver evaluaciones de desempeño       | ✅      |      |
+| 30  | canCreatePayroll                 | Puede crear nóminas                       | ✅      |      |
+| 31  | canEditPayroll                   | Puede editar nóminas                      | ✅      |      |
+| 32  | canViewPayroll                   | Puede ver nóminas                         | ✅      |      |
+| -   | canDeletePayroll                 | Puede eliminar un empleados               | ✅      |      |
+
+| 33  | canCreateAttendance              | Puede registrar asistencia                | ✅      |      |
+| -   | canEditAttendance                | Puede registrar asistencia                | ✅      |      |
+| -   | canDeleteAttendance              | Puede eliminar un empleados               | ✅      |      |
+| 34  | canViewAttendance                | Puede ver asistencia                      | ✅      | ✅   |
+| 35  | canRequestVacation               | Puede solicitar vacaciones                | ✅      | ✅   |
+| -   | canEditRequestVacation           | Puede solicitar vacaciones                | ✅      | ✅   |
+| -   | canDeleteVacation              | Puede eliminar un empleados               | ✅      |   ✅   |
+| 36  | canViewVacations                 | Puede ver vacaciones                      | ✅      | ✅   |
+| 37  | canViewNews                      | Puede ver noticias                        | ✅      | ✅   |
+| 37  | canCreateNews                      | Puede ver noticias                        | ✅      | ✅   |
+| 37  | canEditNews                      | Puede ver noticias                        | ✅      | ✅   |
+| 37  | canDeleteNews                      | Puede ver noticias                        | ✅      | ✅   |
+
+
+
+| 38  | canCreateClientOrder             | Puede crear órdenes de cliente            | ✅      | ✅   |
+| 39  | canEditClientOrder               | Puede editar órdenes de cliente           | ✅      |      |
+| 40  | canViewClientOrder               | Puede ver órdenes de cliente              | ✅      | ✅   |
+
+| 41  | canCreateProviderOrder           | Puede crear órdenes a proveedores         | ✅      |      |
+| 42  | canEditProviderOrder             | Puede editar órdenes a proveedores        | ✅      |      |
+| 43  | canViewProviderOrder             | Puede ver órdenes a proveedores           | ✅      |      |
+| 37  | canDeleteProviderOrder           | Puede ver noticias                      | ✅      |    |
+
+| 44  | canCreateExpense                 | Puede crear gastos                        | ✅      |      |
+| 45  | canEditExpense                   | Puede editar gastos                       | ✅      |      |
+| 46  | canViewExpense                   | Puede ver gastos                          | ✅      |      |
+| 37  | canDeleteExpense             | Puede ver noticias                      | ✅      |    |
+
+| 47  | canViewReports                   | Puede ver reportes                        | ✅      |      |
+
+No se han aplicado los de client order y reports queda faltando mas modulos
+
+
+Segmentación de Permisos por Funcionalidad
+Decidiste que el sistema crecerá, por lo tanto optamos por segmentar los permisos en categorías lógicas para mayor claridad y control granular:
+
+Ejemplo de categorías:
+📦 Productos → canCreateProduct, canEditProduct, etc.
+
+👤 Clientes → canCreateClient, canEditClient, etc.
+
+🧾 Órdenes → canCreateClientOrder, canViewProviderOrder, etc.
+
+💼 Recursos Humanos → canViewEmployee, canEditPayroll, etc.
+
+Permisos por Rol (manager y user)
+Creamos una tabla de permisos booleanos para cada rol, donde:
+
+manager tiene acceso total.
+
+user tiene acceso parcial (ver dashboard, clientes, órdenes, etc.).
+
+Esto se convirtió en data semilla para la tabla RolePermit, uniendo cada roleId con los permissionId correspondientes.
 
 
 

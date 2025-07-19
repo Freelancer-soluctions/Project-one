@@ -5,12 +5,13 @@ import {
   updateEmployeeById,
   deleteEmployeeById
 } from './controller.js'
-import verifyToken from '../../middleware/verifyToken.js'
-import validateSchema from '../../middleware/validateSchema.js'
-import validateQueryParams from '../../middleware/validateQueryParams.js'
+import { verifyToken, validateSchema, validateQueryParams, checkRoleAuthOrPermisssion } from '../../middleware/index.js'
 import { employeeFiltersSchema, employeeCreateUpdateSchema } from '../../utils/joiSchemas/joi.js'
+import { ROLESCODES, PERMISSIONCODES } from '../../utils/constants/enums.js'
 
 const router = express.Router()
+// uso global de middleware
+router.use(verifyToken)
 
 /**
  * @openapi
@@ -64,7 +65,10 @@ const router = express.Router()
  */
 router.get(
   '/',
-  verifyToken,
+  checkRoleAuthOrPermisssion({
+    allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER],
+    permissions: [PERMISSIONCODES.canViewEmployee]
+  }),
   validateQueryParams(employeeFiltersSchema),
   getAllEmployees
 )
@@ -115,7 +119,10 @@ router.get(
  */
 router.post(
   '/',
-  verifyToken,
+  checkRoleAuthOrPermisssion({
+    allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER],
+    permissions: [PERMISSIONCODES.canCreateEmployee]
+  }),
   validateSchema(employeeCreateUpdateSchema),
   createEmployee
 )
@@ -173,7 +180,10 @@ router.post(
  */
 router.put(
   '/:id',
-  verifyToken,
+  checkRoleAuthOrPermisssion({
+    allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER],
+    permissions: [PERMISSIONCODES.canEditEmployee]
+  }),
   validateSchema(employeeCreateUpdateSchema),
   updateEmployeeById
 )
@@ -216,7 +226,10 @@ router.put(
  */
 router.delete(
   '/:id',
-  verifyToken,
+  checkRoleAuthOrPermisssion({
+    allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER],
+    permissions: [PERMISSIONCODES.canDeleteEmployee]
+  }),
   deleteEmployeeById
 )
 

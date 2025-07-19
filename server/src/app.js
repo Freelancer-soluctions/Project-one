@@ -1,10 +1,9 @@
 import cors from 'cors'
 import express from 'express'
-import errorHandler from './middleware/errorHandler.js'
-import limiter from './middleware/rateLimit.js'
 import corsOptions from './config/cors.js'
 import routes from './routes/v1/index.js'
 import cookieParser from 'cookie-parser'
+import { limiter, errorHandler } from './middleware/index.js'
 
 const app = express()
 

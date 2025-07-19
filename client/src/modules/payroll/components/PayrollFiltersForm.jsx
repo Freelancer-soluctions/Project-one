@@ -1,9 +1,6 @@
 import { useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 import PropTypes from 'prop-types'
-
-import { useGetAllEmployeesQuery } from '@/modules/employees/api/employeesApi' // Assuming employee API exists
-
 import {
   Form,
   FormControl,
@@ -22,13 +19,11 @@ import {
 import { Input } from '@/components/ui/input' // Using Input for Year filter
 import { Button } from '@/components/ui/button'
 import { LuPlus, LuSearch, LuEraser } from 'react-icons/lu'
+import { months } from '../utils' 
 
-export const PayrollFiltersForm = ({ onSubmit, onAddDialog }) => {
+export const PayrollFiltersForm = ({ onSubmit, onAddDialog, dataEmployees }) => {
   const { t } = useTranslation()
 
-  // Fetch employees for the filter dropdown
-  const { data: employeesData, isLoading: isLoadingEmployees } = useGetAllEmployeesQuery()
-  const employeesList = employeesData?.data || []
 
   const form = useForm({
     defaultValues: {
@@ -38,13 +33,7 @@ export const PayrollFiltersForm = ({ onSubmit, onAddDialog }) => {
     }
   })
 
-  // Generate month and year options for filters
-  const currentYear = new Date().getFullYear()
-  const months = Array.from({ length: 12 }, (_, i) => ({
-    value: (i + 1).toString(),
-    label: t(`months.${i + 1}`) // Ensure you have these translations
-  }))
-  // const years = Array.from({ length: 10 }, (_, i) => ({ value: (currentYear - 5 + i).toString() })); // If using Select for year
+
 
   const handleSubmit = data => {
     const filters = {
@@ -52,8 +41,6 @@ export const PayrollFiltersForm = ({ onSubmit, onAddDialog }) => {
       month: data.month ? Number(data.month) : undefined,
       year: data.year ? Number(data.year) : undefined
     }
-    // Remove undefined filters before submitting
-    Object.keys(filters).forEach(key => filters[key] === undefined && delete filters[key])
     onSubmit(filters)
   }
 
@@ -91,15 +78,14 @@ export const PayrollFiltersForm = ({ onSubmit, onAddDialog }) => {
                 <Select
                   onValueChange={field.onChange}
                   value={field.value?.toString() ?? ''}
-                  disabled={isLoadingEmployees}>
+                 >
                   <FormControl>
                     <SelectTrigger>
                       <SelectValue placeholder={t('select_employee_placeholder')} />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value="">{t('all_employees')}</SelectItem> {/* Option for all */}
-                    {employeesList.map(employee => (
+                    {dataEmployees.map(employee => (
                       <SelectItem key={employee.id} value={employee.id.toString()}>
                         {`${employee.name} ${employee.lastName}`}
                       </SelectItem>
@@ -127,7 +113,6 @@ export const PayrollFiltersForm = ({ onSubmit, onAddDialog }) => {
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                     <SelectItem value="">{t('all_months')}</SelectItem> {/* Option for all */}
                     {months.map(month => (
                       <SelectItem key={month.value} value={month.value}>
                         {month.label}
@@ -194,5 +179,6 @@ export const PayrollFiltersForm = ({ onSubmit, onAddDialog }) => {
 
 PayrollFiltersForm.propTypes = {
   onSubmit: PropTypes.func.isRequired,
-  onAddDialog: PropTypes.func
+  onAddDialog: PropTypes.func,
+  dataEmployees: PropTypes.array.isRequired // Ensure dataEmployees is passed as prop
 } 

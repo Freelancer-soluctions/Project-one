@@ -3,7 +3,10 @@ import {
   createUser as createDao,
   updateUserById as updateDao,
   deleteUserById as deleteDao,
-  getUserById as getUserByIdDao
+  getAllUsersStatus as getAllUserStatusDao,
+  getAllUsersRoles as getAllUserRolesDao,
+  getUserRoleByCode as getUserRoleByCodeDao,
+  getUserRoleByUserId as getUserRoleByUserIdDao
 } from './dao.js'
 
 /**
@@ -16,12 +19,25 @@ export const getAllUsers = async (filters) => {
 }
 
 /**
- * Get a user by ID
- * @param {number} id - User ID
- * @returns {Promise<Object>} User
+ * Get all available user statuses from the database.
+ *
+ * @returns {Promise<Array>} A list of all user statuses.
  */
-export const getUserById = async (id) => {
-  return getUserByIdDao(id)
+
+export const getAllUsersStatus = async () => {
+  const data = await getAllUserStatusDao()
+  return data
+}
+
+/**
+ * Get all available user roles from the database.
+ *
+ * @returns {Promise<Array>} A list of all user roles.
+ */
+
+export const getAllUsersRoles = async () => {
+  const data = await getAllUserRolesDao()
+  return data
 }
 
 /**
@@ -46,6 +62,7 @@ export const createUser = async (data) => {
 export const updateUserById = async (id, data) => {
   const userData = {
     ...data,
+    lastUpdatedBy: Number(id),
     lastUpdatedOn: new Date()
   }
   return updateDao(Number(id), userData)
@@ -58,4 +75,12 @@ export const updateUserById = async (id, data) => {
  */
 export const deleteUserById = async (id) => {
   return deleteDao(Number(id))
+}
+
+export const getUserRoleByCode = async (code) => {
+  return getUserRoleByCodeDao(code)
+}
+
+export const getUserRoleByUserId = async (userId) => {
+  return getUserRoleByUserIdDao(Number(userId))
 }

@@ -48,10 +48,26 @@ export const EmployeesDatatable = ({
         return value ? new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP' }).format(value) : null
       }
     },
+     {
+      accessorKey: 'userEmployeeCreatedName',
+      header: t('created_by'),
+      cell: info => {
+        const userEmployeeCreatedName = info.row.original.userEmployeeCreatedName // Accede al dato original de la fila
+        return userEmployeeCreatedName ? userEmployeeCreatedName.toUpperCase() : null // Retorna null para mantener la celda vacía
+      }
+    },
     {
       accessorKey: 'createdOn',
       header: t('created_on'),
       cell: info => format(new Date(info.getValue()), 'PPP')
+    },
+     {
+      accessorKey: 'userEmployeeUpdatedName',
+      header: t('created_by'),
+      cell: info => {
+        const userEmployeeUpdatedName = info.row.original.userEmployeeUpdatedName // Accede al dato original de la fila
+        return userEmployeeUpdatedName ? userEmployeeUpdatedName.toUpperCase() : null // Retorna null para mantener la celda vacía
+      }
     },
     {
       accessorKey: 'updatedOn',
