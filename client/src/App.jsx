@@ -96,6 +96,7 @@ const App = () => {
           <Route path='permission' element={<Permission />} />
           <Route path='clientOrder' element={<ClientOrder />} />
           <Route path='providerOrder' element={<ProviderOrder />} />
+          <Route path='providerOrder' element={<ProviderOrder />} />
 
 
 
