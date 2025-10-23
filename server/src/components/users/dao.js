@@ -37,9 +37,9 @@ export const getAllUsers = async (filters = {}) => {
       s.id AS "statusId",
       r.description AS "roleDescription",
       r.code AS "roleCode",
-      r.id AS "roleId",
-      up."accessConfiguration" AS "accessConfiguration",
-      up."accessNews" AS "accessNews"
+      r.id AS "roleId"
+      -- up."accessConfiguration" AS "accessConfiguration",
+      -- up."accessNews" AS "accessNews"
     
  
 
@@ -47,7 +47,7 @@ export const getAllUsers = async (filters = {}) => {
     LEFT JOIN "users" uu ON u."lastUpdatedBy" = uu.id
     LEFT JOIN "userStatus" s ON u."statusId" = s.id
     LEFT JOIN "roles" r ON u."roleId" = r.id
-    LEFT JOIN "userPermits" up ON u."userPermitId" = up.id
+    -- LEFT JOIN "userPermits" up ON u."userPermitId" = up.id
     ${whereSql}
   `
   return users

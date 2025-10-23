@@ -107,7 +107,24 @@ export const PRODUCTSSTATUSCODE = {
 }
 
 export const PERMISSIONCODES = {
-  canViewDashboard: 'canViewDashboard',
+  canViewNews: 'canViewNews',
+  canCreateNews: 'canCreateNews',
+  canEditNews: 'canEditNews',
+  canDeleteNews: 'canDeleteNews',
+
+  // canViewSettings: 'canViewSettings',
+  // canEditSettings: 'canEditSettings',
+
+  canCreateCategory: 'canCreateCategory',
+  canEditCategory: 'canEditCategory',
+  canViewCategory: 'canViewCategory',
+  canDeleteCategory: 'canDeleteCategory',
+
+  canCreateEvents: 'canCreateEvents',
+  canEditEvents: 'canEditEvents',
+  canViewEvents: 'canViewEvents',
+  canDeleteEvents: 'canDeleteEvents',
+
   canCreateProduct: 'canCreateProduct',
   canEditProduct: 'canEditProduct',
   canDeleteProduct: 'canDeleteProduct',
@@ -116,17 +133,25 @@ export const PERMISSIONCODES = {
   canEditProvider: 'canEditProvider',
   canDeleteProvider: 'canDeleteProvider',
   canViewProvider: 'canViewProvider',
+  canCreatedWarehouse: 'canCreatedWarehouse',
+  canEditWarehouse: 'canEditWarehouse',
+  canViewWarehouse: 'canViewWarehouse',
+  canDeleteWarehouse: 'canDeleteWarehouse',
+  canViewStock: 'canViewStock',
+  canCreateStock: 'canCreateStock',
+  canEditStock: 'canEditStock',
+  canDeleteStock: 'canDeletStock',
   canCreateInventory: 'canCreateInventory',
   canEditInventory: 'canEditInventory',
   canViewInventory: 'canViewInventory',
-  canDeletInventory: 'canDeletInventory',
-  canCreateCategory: 'canCreateCategory',
-  canEditCategory: 'canEditCategory',
-  canViewCategory: 'canViewCategory',
-  canDeletCategory: 'canDeletInventory',
+  canDeleteInventory: 'canDeleteInventory',
+
   canCreateSale: 'canCreateSale',
   canEditSale: 'canEditSale',
   canViewSale: 'canViewSale',
+
+  canViewDashboard: 'canViewDashboard',
+
   canCreatePurchase: 'canCreatePurchase',
   canEditPurchase: 'canEditPurchase',
   canViewPurchase: 'canViewPurchase',
@@ -145,7 +170,7 @@ export const PERMISSIONCODES = {
   canViewAttendance: 'canViewAttendance',
   canRequestVacation: 'canRequestVacation',
   canViewVacations: 'canViewVacations',
-  canViewNews: 'canViewNews',
+
   canCreateClientOrder: 'canCreateClientOrder',
   canEditClientOrder: 'canEditClientOrder',
   canViewClientOrder: 'canViewClientOrder',

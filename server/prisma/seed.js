@@ -30,53 +30,74 @@ const rolePermissionsMap = {
 }
 
 const permissions = [
-  { id: 1, code: 'canViewDashboard', description: 'Puede ver el dashboard' },
-  { id: 2, code: 'canCreateProduct', description: 'Puede crear productos' },
-  { id: 3, code: 'canEditProduct', description: 'Puede editar productos' },
-  { id: 4, code: 'canDeleteProduct', description: 'Puede eliminar productos' },
-  { id: 5, code: 'canViewProduct', description: 'Puede ver productos' },
-  { id: 6, code: 'canCreateProvider', description: 'Puede crear proveedores' },
-  { id: 7, code: 'canEditProvider', description: 'Puede editar proveedores' },
-  { id: 8, code: 'canDeleteProvider', description: 'Puede eliminar proveedores' },
-  { id: 9, code: 'canViewProvider', description: 'Puede ver proveedores' },
-  { id: 10, code: 'canCreateInventory', description: 'Puede crear inventario' },
-  { id: 11, code: 'canEditInventory', description: 'Puede editar inventario' },
-  { id: 12, code: 'canViewInventory', description: 'Puede ver inventario' },
-  { id: 13, code: 'canCreateCategory', description: 'Puede crear categorías' },
-  { id: 14, code: 'canEditCategory', description: 'Puede editar categorías' },
-  { id: 15, code: 'canViewCategory', description: 'Puede ver categorías' },
-  { id: 16, code: 'canCreateSale', description: 'Puede crear ventas' },
-  { id: 17, code: 'canEditSale', description: 'Puede editar ventas' },
-  { id: 18, code: 'canViewSale', description: 'Puede ver ventas' },
-  { id: 19, code: 'canCreatePurchase', description: 'Puede crear compras' },
-  { id: 20, code: 'canEditPurchase', description: 'Puede editar compras' },
-  { id: 21, code: 'canViewPurchase', description: 'Puede ver compras' },
-  { id: 22, code: 'canCreateClient', description: 'Puede crear clientes' },
-  { id: 23, code: 'canEditClient', description: 'Puede editar clientes' },
-  { id: 24, code: 'canViewClient', description: 'Puede ver clientes' },
-  { id: 25, code: 'canCreateEmployee', description: 'Puede crear empleados' },
-  { id: 26, code: 'canEditEmployee', description: 'Puede editar empleados' },
-  { id: 27, code: 'canViewEmployee', description: 'Puede ver empleados' },
-  { id: 28, code: 'canEvaluatePerformance', description: 'Puede evaluar desempeño' },
-  { id: 29, code: 'canViewPerformanceEvaluations', description: 'Puede ver evaluaciones de desempeño' },
-  { id: 30, code: 'canCreatePayroll', description: 'Puede crear nóminas' },
-  { id: 31, code: 'canEditPayroll', description: 'Puede editar nóminas' },
-  { id: 32, code: 'canViewPayroll', description: 'Puede ver nóminas' },
-  { id: 33, code: 'canRecordAttendance', description: 'Puede registrar asistencia' },
-  { id: 34, code: 'canViewAttendance', description: 'Puede ver asistencia' },
-  { id: 35, code: 'canRequestVacation', description: 'Puede solicitar vacaciones' },
-  { id: 36, code: 'canViewVacations', description: 'Puede ver vacaciones' },
-  { id: 37, code: 'canViewNews', description: 'Puede ver noticias' },
-  { id: 38, code: 'canCreateClientOrder', description: 'Puede crear órdenes de cliente' },
-  { id: 39, code: 'canEditClientOrder', description: 'Puede editar órdenes de cliente' },
-  { id: 40, code: 'canViewClientOrder', description: 'Puede ver órdenes de cliente' },
-  { id: 41, code: 'canCreateProviderOrder', description: 'Puede crear órdenes a proveedores' },
-  { id: 42, code: 'canEditProviderOrder', description: 'Puede editar órdenes a proveedores' },
-  { id: 43, code: 'canViewProviderOrder', description: 'Puede ver órdenes a proveedores' },
-  { id: 44, code: 'canCreateExpense', description: 'Puede crear gastos' },
-  { id: 45, code: 'canEditExpense', description: 'Puede editar gastos' },
-  { id: 46, code: 'canViewExpense', description: 'Puede ver gastos' },
-  { id: 47, code: 'canViewReports', description: 'Puede ver reportes' }
+  { code: 'canViewNews', description: 'Puede ver noticias' },
+  { code: 'canCreateNews', description: 'Puede crear noticias' },
+  { code: 'canEditNews', description: 'Puede editar noticias' },
+  { code: 'canDeleteNews', description: 'Puede eliminar noticias' },
+  { code: 'canCreateCategory', description: 'Puede crear categorías' },
+  { code: 'canEditCategory', description: 'Puede editar categorías' },
+  { code: 'canViewCategory', description: 'Puede ver categorías' },
+  { code: 'canDeleteCategory', description: 'Puede eliminar categorías' },
+
+  { code: 'canCreateEvents', description: 'Puede crear eventos' },
+  { code: 'canEditEvents', description: 'Puede editar eventos' },
+  { code: 'canViewEvents', description: 'Puede ver eventos' },
+  { code: 'canDeleteEvents', description: 'Puede eliminar eventos' },
+  { code: 'canCreateProduct', description: 'Puede crear productos' },
+  { code: 'canEditProduct', description: 'Puede editar productos' },
+  { code: 'canDeleteProduct', description: 'Puede eliminar productos' },
+  { code: 'canViewProduct', description: 'Puede ver productos' },
+  { code: 'canCreateProvider', description: 'Puede crear proveedores' },
+  { code: 'canEditProvider', description: 'Puede editar proveedores' },
+  { code: 'canDeleteProvider', description: 'Puede eliminar proveedores' },
+  { code: 'canViewProvider', description: 'Puede ver proveedores' },
+  { code: 'canCreateWarehouse', description: 'Puede crear almacenes' },
+  { code: 'canEditWarehouse', description: 'Puede editar almacenes' },
+  { code: 'canViewWarehouse', description: 'Puede ver almacenes' },
+  { code: 'canDeleteWarehouse', description: 'Puede eliminar almacenes' },
+  { code: 'canViewStock', description: 'Puede ver stock' },
+  { code: 'canCreateStock', description: 'Puede crear stock' },
+  { code: 'canEditStock', description: 'Puede editar stock' },
+  { code: 'canDeleteStock', description: 'Puede eliminar stock' },
+  { code: 'canCreateInventory', description: 'Puede crear inventario' },
+  { code: 'canEditInventory', description: 'Puede editar inventario' },
+  { code: 'canViewInventory', description: 'Puede ver inventario' },
+  { code: 'canDeleteInventory', description: 'Puede eliminar inventario' },
+  { code: 'canCreateSale', description: 'Puede crear ventas' },
+  { code: 'canEditSale', description: 'Puede editar ventas' },
+  { code: 'canViewSale', description: 'Puede ver ventas' },
+
+  { code: 'canViewDashboard', description: 'Puede ver el dashboard' },
+
+  { code: 'canCreatePurchase', description: 'Puede crear compras' },
+  { code: 'canEditPurchase', description: 'Puede editar compras' },
+  { code: 'canViewPurchase', description: 'Puede ver compras' },
+  { code: 'canCreateClient', description: 'Puede crear clientes' },
+  { code: 'canEditClient', description: 'Puede editar clientes' },
+  { code: 'canViewClient', description: 'Puede ver clientes' },
+  { code: 'canCreateEmployee', description: 'Puede crear empleados' },
+  { code: 'canEditEmployee', description: 'Puede editar empleados' },
+  { code: 'canViewEmployee', description: 'Puede ver empleados' },
+  { code: 'canEvaluatePerformance', description: 'Puede evaluar desempeño' },
+  { code: 'canViewPerformanceEvaluations', description: 'Puede ver evaluaciones de desempeño' },
+  { code: 'canCreatePayroll', description: 'Puede crear nóminas' },
+  { code: 'canEditPayroll', description: 'Puede editar nóminas' },
+  { code: 'canViewPayroll', description: 'Puede ver nóminas' },
+  { code: 'canRecordAttendance', description: 'Puede registrar asistencia' },
+  { code: 'canViewAttendance', description: 'Puede ver asistencia' },
+  { code: 'canRequestVacation', description: 'Puede solicitar vacaciones' },
+  { code: 'canViewVacations', description: 'Puede ver vacaciones' },
+
+  { code: 'canCreateClientOrder', description: 'Puede crear órdenes de cliente' },
+  { code: 'canEditClientOrder', description: 'Puede editar órdenes de cliente' },
+  { code: 'canViewClientOrder', description: 'Puede ver órdenes de cliente' },
+  { code: 'canCreateProviderOrder', description: 'Puede crear órdenes a proveedores' },
+  { code: 'canEditProviderOrder', description: 'Puede editar órdenes a proveedores' },
+  { code: 'canViewProviderOrder', description: 'Puede ver órdenes a proveedores' },
+  { code: 'canCreateExpense', description: 'Puede crear gastos' },
+  { code: 'canEditExpense', description: 'Puede editar gastos' },
+  { code: 'canViewExpense', description: 'Puede ver gastos' },
+  { code: 'canViewReports', description: 'Puede ver reportes' }
 ]
 
 const userStatus = [
@@ -147,11 +168,11 @@ const productStatus = [
 ]
 
 // const productProviders = [
-//   { code: 'C01', description: 'PROV. SOFTWARE' },
-//   { code: 'C02', description: 'PROV. HARDWARE' },
-//   { code: 'C03', description: 'PROV. SERV. NUBE' },
-//   { code: 'C04', description: 'PROV. INFRA IT' },
-//   { code: 'C05', description: 'PROV. SOPORTE' }
+//   { code: 'C01', name: 'PROV. SOFTWARE' },
+//   { code: 'C02', name: 'PROV. HARDWARE' },
+//   { code: 'C03', name: 'PROV. SERV. NUBE' },
+//   { code: 'C04', name: 'PROV. INFRA IT' },
+//   { code: 'C05', name: 'PROV. SOPORTE' }
 // ]
 
 const productCategories = [
@@ -236,14 +257,15 @@ const create = async (tableName, createObject) => {
 }
 
 async function main () {
+  await createVarious('eventTypes', eventTypes)
   // await create('users', user1)
 
   /*   await createVarious('roles', roles)
-  await createVarious('userPermits', userPermits)
+  await createVarious('permissions', permissions)
   await createVarious('userStatus', userStatus) */
-  await createVarious('noteColumns', noteColumns)
+  // await createVarious('noteColumns', noteColumns)
   /*
-  await createVarious('eventTypes', eventTypes) */
+  ) */
 
   // await createVarious('newsStatus', newStatus)
   // await createVarious('news', news)
