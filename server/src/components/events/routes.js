@@ -2,12 +2,11 @@ import { Router } from 'express'
 import { EventsCreateUpdate, EventsFilters } from '../../utils/joiSchemas/joi.js'
 import * as eventsController from './controller.js'
 import { validateQueryParams, validateSchema, verifyToken, checkRoleAuthOrPermisssion } from '../../middleware/index.js'
-import { ROLESCODES } from '../../utils/constants/enums.js'
+import { ROLESCODES, PERMISSIONCODES } from '../../utils/constants/enums.js'
 
 const router = Router()
 // uso global de middleware
 router.use(verifyToken)
-router.use(checkRoleAuthOrPermisssion([ROLESCODES.ADMIN, ROLESCODES.MANAGER, ROLESCODES.USER]))
 
 /**
  * @openapi
@@ -58,7 +57,10 @@ router.use(checkRoleAuthOrPermisssion([ROLESCODES.ADMIN, ROLESCODES.MANAGER, ROL
  *               $ref: "#/components/schemas/Error"
  */
 
-router.post('/', validateSchema(EventsCreateUpdate), eventsController.createEvent)
+router.post('/', checkRoleAuthOrPermisssion({
+  allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER, ROLESCODES.USER],
+  permissions: [PERMISSIONCODES.canCreateEvents]
+}), validateSchema(EventsCreateUpdate), eventsController.createEvent)
 
 /**
  * @openapi
@@ -97,7 +99,10 @@ router.post('/', validateSchema(EventsCreateUpdate), eventsController.createEven
  *               $ref: "#/components/schemas/Error"
  */
 
-router.get('/eventTypes', eventsController.getAllEventTypes)
+router.get('/eventTypes', checkRoleAuthOrPermisssion({
+  allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER, ROLESCODES.USER],
+  permissions: [PERMISSIONCODES.canViewEvents]
+}), eventsController.getAllEventTypes)
 
 /**
  * @openapi
@@ -154,7 +159,10 @@ router.get('/eventTypes', eventsController.getAllEventTypes)
  *               $ref: "#/components/schemas/Error"
  */
 
-router.get('/', validateQueryParams(EventsFilters), eventsController.getAllEvents)
+router.get('/', checkRoleAuthOrPermisssion({
+  allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER, ROLESCODES.USER],
+  permissions: [PERMISSIONCODES.canViewEvents]
+}), validateQueryParams(EventsFilters), eventsController.getAllEvents)
 
 /**
  * @openapi
@@ -212,7 +220,10 @@ router.get('/', validateQueryParams(EventsFilters), eventsController.getAllEvent
  *               $ref: "#/components/schemas/Error"
  *
  */
-router.put('/:id', validateSchema(EventsCreateUpdate), eventsController.updateEventById)
+router.put('/:id', checkRoleAuthOrPermisssion({
+  allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER, ROLESCODES.USER],
+  permissions: [PERMISSIONCODES.canEditEvents]
+}), validateSchema(EventsCreateUpdate), eventsController.updateEventById)
 
 /**
  * @openapi
@@ -252,6 +263,9 @@ router.put('/:id', validateSchema(EventsCreateUpdate), eventsController.updateEv
  *               $ref: "#/components/schemas/Error"
  */
 
-router.delete('/:id', eventsController.deleteEventById)
+router.delete('/:id', checkRoleAuthOrPermisssion({
+  allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER, ROLESCODES.USER],
+  permissions: [PERMISSIONCODES.canDeleteEvents]
+}), eventsController.deleteEventById)
 
 export default router
