@@ -28,6 +28,7 @@ export const getAllUsers = handleCatchErrorAsync(async (req, res) => {
  */
 export const getAllUsersStatus = handleCatchErrorAsync(async (req, res) => {
   const data = await getAllUsersStatusService()
+  console.log('User statuses retrieved:', data)
   globalResponse(res, 200, data)
 })
 
