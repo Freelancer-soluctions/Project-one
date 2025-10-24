@@ -9,13 +9,12 @@ import {
   getAllUsersRoles
 } from './controller.js'
 import { verifyToken, validateQueryParams, validateSchema, checkRoleAuthOrPermisssion } from '../../middleware/index.js'
-import { ROLESCODES } from '../../utils/constants/enums.js'
+import { ROLESCODES, PERMISSIONCODES } from '../../utils/constants/enums.js'
 import { userFiltersSchema, userCreateUpdateSchema } from '../../utils/joiSchemas/joi.js'
 
 const router = express.Router()
 // uso global de middleware
 router.use(verifyToken)
-router.use(checkRoleAuthOrPermisssion([ROLESCODES.ADMIN]))
 
 /**
  * @openapi
@@ -68,7 +67,10 @@ router.use(checkRoleAuthOrPermisssion([ROLESCODES.ADMIN]))
  *               $ref: '#/components/schemas/Error'
  */
 router.get(
-  '/',
+  '/', checkRoleAuthOrPermisssion({
+    allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER],
+    permissions: [PERMISSIONCODES.canViewUser]
+  }),
   validateQueryParams(userFiltersSchema),
   getAllUsers
 )
@@ -119,6 +121,10 @@ router.get(
  */
 router.post(
   '/',
+  checkRoleAuthOrPermisssion({
+    allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER],
+    permissions: [PERMISSIONCODES.canCreateUser]
+  }),
   validateSchema(userCreateUpdateSchema),
   createUser
 )
@@ -175,7 +181,10 @@ router.post(
  *               $ref: '#/components/schemas/Error'
  */
 router.put(
-  '/:id',
+  '/:id', checkRoleAuthOrPermisssion({
+    allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER],
+    permissions: [PERMISSIONCODES.canEditUser]
+  }),
   validateSchema(userCreateUpdateSchema),
   updateUserById
 )
@@ -217,11 +226,21 @@ router.put(
  *               $ref: '#/components/schemas/Error'
  */
 router.delete(
-  '/:id',
+  '/:id', checkRoleAuthOrPermisssion({
+    allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER],
+    permissions: [PERMISSIONCODES.canDeleteUser]
+  }),
   deleteUserById
 )
 
-router.get('/status', getAllUsersStatus)
-router.get('/roles', getAllUsersRoles)
+router.get('/status', checkRoleAuthOrPermisssion({
+  allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER],
+  permissions: [PERMISSIONCODES.canDeleteUser]
+}), getAllUsersStatus)
+
+router.get('/roles', checkRoleAuthOrPermisssion({
+  allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER],
+  permissions: [PERMISSIONCODES.canDeleteUser]
+}), getAllUsersRoles)
 
 export default router
