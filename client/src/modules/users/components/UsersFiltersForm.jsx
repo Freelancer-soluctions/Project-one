@@ -154,5 +154,5 @@ export const UsersFiltersForm = ({ onSubmit, dataStatus }) => {
 
 UsersFiltersForm.propTypes = {
   onSubmit: PropTypes.func.isRequired,
-  dataStatus: PropTypes.array.isRequired
+  dataStatus: PropTypes.object.isRequired
 }
