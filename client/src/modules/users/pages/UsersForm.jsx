@@ -40,6 +40,12 @@ function UsersForms() {
     isFetching: isFetchingStatus
   } = useGetAllUsersStatusQuery()
 
+    const {
+    data: dataUserPermits = { data: [] },
+    isLoading: isLoadingUserPermits,
+    isFetching: isFetchingUserPermits
+  } = useGetAllUserPermitsQuery()
+
   const [
     deleteUserById,
     {

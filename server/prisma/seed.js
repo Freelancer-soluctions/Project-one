@@ -100,22 +100,26 @@ const permissions = [
   { code: 'canEditUser', description: 'Puede editar usuarios' },
   { code: 'canViewUser', description: 'Puede ver usuarios' },
   { code: 'canDeleteUser', description: 'Puede eliminar usuarios' },
-
-  { code: 'canViewDashboard', description: 'Puede ver el dashboard' },
-
-  { code: 'canEvaluatePerformance', description: 'Puede evaluar desempeño' },
-  { code: 'canViewPerformanceEvaluations', description: 'Puede ver evaluaciones de desempeño' },
-
-  { code: 'canCreateClientOrder', description: 'Puede crear órdenes de cliente' },
-  { code: 'canEditClientOrder', description: 'Puede editar órdenes de cliente' },
-  { code: 'canViewClientOrder', description: 'Puede ver órdenes de cliente' },
-  { code: 'canCreateProviderOrder', description: 'Puede crear órdenes a proveedores' },
-  { code: 'canEditProviderOrder', description: 'Puede editar órdenes a proveedores' },
-  { code: 'canViewProviderOrder', description: 'Puede ver órdenes a proveedores' },
   { code: 'canCreateExpense', description: 'Puede crear gastos' },
   { code: 'canEditExpense', description: 'Puede editar gastos' },
   { code: 'canViewExpense', description: 'Puede ver gastos' },
-  { code: 'canViewReports', description: 'Puede ver reportes' }
+  { code: 'canDeleteExpense', description: 'Puede eliminar gastos' },
+  { code: 'canEvaluatePerformance', description: 'Puede evaluar desempeño' },
+  { code: 'canViewPerformanceEvaluations', description: 'Puede ver evaluaciones de desempeño' },
+  { code: 'canCreateEvaluatePerformance', description: 'Puede crear evaluaciones de desempeño' },
+  { code: 'canEditEvaluatePerformance', description: 'Puede editar evaluaciones de desempeño' },
+  { code: 'canDeleteEvaluationPerformance', description: 'Puede eliminar evaluaciones de desempeño' }
+
+  // { code: 'canViewDashboard', description: 'Puede ver el dashboard' },
+
+  // { code: 'canCreateClientOrder', description: 'Puede crear órdenes de cliente' },
+  // { code: 'canEditClientOrder', description: 'Puede editar órdenes de cliente' },
+  // { code: 'canViewClientOrder', description: 'Puede ver órdenes de cliente' },
+  // { code: 'canCreateProviderOrder', description: 'Puede crear órdenes a proveedores' },
+  // { code: 'canEditProviderOrder', description: 'Puede editar órdenes a proveedores' },
+  // { code: 'canViewProviderOrder', description: 'Puede ver órdenes a proveedores' },
+
+  // { code: 'canViewReports', description: 'Puede ver reportes' }
 ]
 
 const userStatus = [
@@ -276,18 +280,18 @@ const create = async (tableName, createObject) => {
 
 async function main () {
   await createVarious('eventTypes', eventTypes)
-  // await create('users', user1)
-
-  /*   await createVarious('roles', roles)
   await createVarious('permissions', permissions)
-  await createVarious('userStatus', userStatus) */
-  // await createVarious('noteColumns', noteColumns)
-  /*
-  ) */
+  await createVarious('roles', roles)
+  await createVarious('userStatus', userStatus)
+  await createVarious('noteColumns', noteColumns)
+  await createVarious('newsStatus', newStatus)
+  await createVarious('productStatus', productStatus)
 
-  // await createVarious('newsStatus', newStatus)
+  await create('users', user)
+
+  // No necesarios por ahora
+
   // await createVarious('news', news)
-  /* await createVarious('productStatus', productStatus)  */
   // await createVarious('productProviders', productProviders)
   // await createVarious('productCategories', productCategories)
 }
