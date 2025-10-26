@@ -31,7 +31,7 @@ export const checkRoleAuthOrPermisssion = ({ allowedRoles = [], permissions = []
 
   try {
     const user = await getUserRoleByUserId(userId)
-    console.log('User Role and Permissions:', user.roles.rolePermits)
+    console.log('User Role and Permissions:', user)
 
     if (!user || !user.roles?.code) {
       return res.status(403).json({ error: 'No se pudo verificar el rol o permisos del usuario' })
