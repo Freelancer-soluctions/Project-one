@@ -235,12 +235,12 @@ router.delete(
 
 router.get('/status', checkRoleAuthOrPermisssion({
   allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER],
-  permissions: [PERMISSIONCODES.canDeleteUser]
+  permissions: [PERMISSIONCODES.canViewUser]
 }), getAllUsersStatus)
 
 router.get('/roles', checkRoleAuthOrPermisssion({
   allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER],
-  permissions: [PERMISSIONCODES.canDeleteUser]
+  permissions: [PERMISSIONCODES.canViewUser]
 }), getAllUsersRoles)
 
 export default router

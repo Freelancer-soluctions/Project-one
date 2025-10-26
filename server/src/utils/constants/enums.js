@@ -169,7 +169,6 @@ export const PERMISSIONCODES = {
   canEditPayroll: 'canEditPayroll',
   canViewPayroll: 'canViewPayroll',
   canDeletePayroll: 'canDeletePayroll',
-
   canRequestVacation: 'canRequestVacation',
   canViewVacations: 'canViewVacations',
   canEditRequestVacation: 'canEditRequestVacation',
@@ -182,20 +181,23 @@ export const PERMISSIONCODES = {
   canCreateUser: 'canCreateUser',
   canEditUser: 'canEditUser',
   canDeleteUser: 'canDeleteUser',
-
-  canViewDashboard: 'canViewDashboard',
-
-  canEvaluatePerformance: 'canEvaluatePerformance',
-  canViewPerformanceEvaluations: 'canViewPerformanceEvaluations',
-
-  canCreateClientOrder: 'canCreateClientOrder',
-  canEditClientOrder: 'canEditClientOrder',
-  canViewClientOrder: 'canViewClientOrder',
-  canCreateProviderOrder: 'canCreateProviderOrder',
-  canEditProviderOrder: 'canEditProviderOrder',
-  canViewProviderOrder: 'canViewProviderOrder',
   canCreateExpense: 'canCreateExpense',
   canEditExpense: 'canEditExpense',
   canViewExpense: 'canViewExpense',
-  canViewReports: 'canViewReports'
+  canDeleteExpense: 'canDeleteExpense',
+  canEvaluatePerformance: 'canEvaluatePerformance',
+  canViewPerformanceEvaluations: 'canViewPerformanceEvaluations',
+  canCreateEvaluatePerformance: 'canCreateEvaluatePerformance',
+  canEditEvaluatePerformance: 'canEditEvaluatePerformance',
+  canDeleteEvaluationPerformance: 'canDeleteEvaluationPerformance'
+
+  // canViewDashboard: 'canViewDashboard',
+
+  // canCreateClientOrder: 'canCreateClientOrder',
+  // canEditClientOrder: 'canEditClientOrder',
+  // canViewClientOrder: 'canViewClientOrder',
+  // canCreateProviderOrder: 'canCreateProviderOrder',
+  // canEditProviderOrder: 'canEditProviderOrder',
+  // canViewProviderOrder: 'canViewProviderOrder',
+  // canViewReports: 'canViewReports'
 }
