@@ -6,7 +6,8 @@ import {
   deleteUserById,
 
   getAllUsersStatus,
-  getAllUsersRoles
+  getAllUsersRoles,
+  getAllUserPermits
 } from './controller.js'
 import { verifyToken, validateQueryParams, validateSchema, checkRoleAuthOrPermisssion } from '../../middleware/index.js'
 import { ROLESCODES, PERMISSIONCODES } from '../../utils/constants/enums.js'
@@ -73,6 +74,14 @@ router.get(
   }),
   validateQueryParams(userFiltersSchema),
   getAllUsers
+)
+
+router.get(
+  '/permits', checkRoleAuthOrPermisssion({
+    allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER],
+    permissions: [PERMISSIONCODES.canViewUser]
+  }),
+  getAllUserPermits
 )
 
 /**

@@ -43,6 +43,7 @@ export const UsersBasicInfo = ({
   onSubmit,
   onDelete,
   dataStatus,
+  dataPermits,
   dataRol,
   selectedRow
 }) => {
@@ -68,8 +69,16 @@ export const UsersBasicInfo = ({
         lastUpdatedOn: selectedRow.lastUpdatedOn
           ? new Date(selectedRow.lastUpdatedOn).toISOString().split('T')[0]
           : '',
-        status: {id:selectedRow.statusId, code:selectedRow.statusCode, description:selectedRow.statusDescription  },
-        roles: {id:selectedRow.roleId, code:selectedRow.roleCode, description:selectedRow.roleDescription  },
+        status: {
+          id: selectedRow.statusId,
+          code: selectedRow.statusCode,
+          description: selectedRow.statusDescription
+        },
+        roles: {
+          id: selectedRow.roleId,
+          code: selectedRow.roleCode,
+          description: selectedRow.roleDescription
+        }
       })
       setId(selectedRow.id)
     } else {
@@ -426,19 +435,18 @@ export const UsersBasicInfo = ({
                         <FormItem>
                           <FormLabel htmlFor='rol'>{t('rol')}*</FormLabel>
                           <Select
-                             onValueChange={code => {
-                            // Buscar el objeto completo por el `code`
-                            if (dataRol.length > 0){
-                              const selected= dataRol.find(
-                                item => item.code === code
-                              )
-                              if (selected) {
-                                field.onChange(selected) // Asignar el objeto completo
+                            onValueChange={code => {
+                              // Buscar el objeto completo por el `code`
+                              if (dataRol.length > 0) {
+                                const selected = dataRol.find(
+                                  item => item.code === code
+                                )
+                                if (selected) {
+                                  field.onChange(selected) // Asignar el objeto completo
+                                }
                               }
-                            }
-                          
-                          }}
-                          value={field.value?.code}>
+                            }}
+                            value={field.value?.code}>
                             <FormControl>
                               <SelectTrigger
                                 className={cn(
@@ -453,9 +461,7 @@ export const UsersBasicInfo = ({
                             </FormControl>
                             <SelectContent>
                               {dataRol.map((item, index) => (
-                                <SelectItem
-                                  key={index}
-                                  value={item.code}>
+                                <SelectItem key={index} value={item.code}>
                                   {item.description}
                                 </SelectItem>
                               ))}
@@ -472,20 +478,19 @@ export const UsersBasicInfo = ({
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel htmlFor='status'>{t('status')}*</FormLabel>
-                           <Select
-                             onValueChange={code => {
-                            // Buscar el objeto completo por el `code`
-                            if (dataStatus.length > 0){
-                              const selected= dataStatus.find(
-                                item => item.code === code
-                              )
-                              if (selected) {
-                                field.onChange(selected) // Asignar el objeto completo
+                          <Select
+                            onValueChange={code => {
+                              // Buscar el objeto completo por el `code`
+                              if (dataStatus.length > 0) {
+                                const selected = dataStatus.find(
+                                  item => item.code === code
+                                )
+                                if (selected) {
+                                  field.onChange(selected) // Asignar el objeto completo
+                                }
                               }
-                            }
-                          
-                          }}
-                          value={field.value?.code}>
+                            }}
+                            value={field.value?.code}>
                             <FormControl>
                               <SelectTrigger
                                 className={cn(
@@ -500,9 +505,7 @@ export const UsersBasicInfo = ({
                             </FormControl>
                             <SelectContent>
                               {dataStatus.map((item, index) => (
-                                <SelectItem
-                                  key={index}
-                                  value={item.code}>
+                                <SelectItem key={index} value={item.code}>
                                   {item.description}
                                 </SelectItem>
                               ))}
@@ -596,50 +599,34 @@ export const UsersBasicInfo = ({
                   </div>
                 </AccordionTrigger>
                 <AccordionContent className='pt-4 pb-2 px-4 max-h-[50vh] overflow-y-auto scrollbar-thin'>
+                
                   <div className='grid grid-cols-3 gap-6 py-4 auto-rows-auto'>
-                    <FormField
-                      control={form.control}
-                      name='accessConfiguration'
-                      render={({ field }) => (
-                        <FormItem className='flex items-center space-x-2'>
-                          <FormControl>
-                            <Checkbox
-                              className='mt-2'
-                              id='accessConfiguration'
-                              checked={field.value}
-                              onCheckedChange={field.onChange}
-                            />
-                          </FormControl>
-                          <FormLabel
-                            htmlFor='accessConfiguration'
-                            className='text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70'>
-                            {t('access_configuration')}
-                          </FormLabel>
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
-                      name='accessNews'
-                      render={({ field }) => (
-                        <FormItem className='flex items-center space-x-2'>
-                          <FormControl>
-                            <Checkbox
-                              className='mt-2'
-                              id='accessNews'
-                              checked={field.value}
-                              onCheckedChange={field.onChange}
-                            />
-                          </FormControl>
-                          <FormLabel
-                            htmlFor='accessNews'
-                            className='text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70'>
-                            {t('access_news')}
-                          </FormLabel>
-                        </FormItem>
-                      )}
-                    />
+                    {dataPermits.map((permit, index) => (
+                      <FormField
+                        control={form.control}
+                        name={index.toString()}
+                        render={({ field }) => (
+                          <FormItem className='flex items-center space-x-2'>
+                            <FormControl>
+                              <Checkbox
+                                className='mt-2'
+                                id='permit.code'
+                                checked={field.value}
+                                // onCheckedChange={field.onChange}
+                                onCheckedChange={(checked) => field.onChange(checked)}
+                              />
+                            </FormControl>
+                            <FormLabel
+                              htmlFor='permit.code'
+                              className='text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70'>
+                              {permit.description} 
+                              
+                            </FormLabel>
+                          </FormItem>
+                        )}
+                      />
+                    ))}
+                   
                   </div>
                 </AccordionContent>
               </AccordionItem>

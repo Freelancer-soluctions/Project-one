@@ -6,7 +6,8 @@ import {
   getAllUsersStatus as getAllUserStatusDao,
   getAllUsersRoles as getAllUserRolesDao,
   getUserRoleByCode as getUserRoleByCodeDao,
-  getUserRoleByUserId as getUserRoleByUserIdDao
+  getUserRoleByUserId as getUserRoleByUserIdDao,
+  getAllUserPermits as getAllUserPermitsDao
 } from './dao.js'
 
 /**
@@ -16,6 +17,25 @@ import {
  */
 export const getAllUsers = async (filters) => {
   return getAllUsersDao(filters)
+}
+
+/**
+ * Get all user permits by ID
+ * @param {number} id - User ID
+ * @returns {Promise<Array>} List of users
+ */
+export const getAllUserPermits = async (id) => {
+  const { allPermissions, user } = await getAllUserPermitsDao(Number(id))
+
+  const rolePermits = user?.roles?.rolePermits || []
+
+  const userPermissionIds = new Set(rolePermits.map(p => p.permissionId))
+  const permissions = allPermissions.map(p => ({
+    ...p,
+    assigned: userPermissionIds.has(p.id) // ✅ marcado si pertenece al usuario
+  }))
+
+  return permissions
 }
 
 /**
