@@ -4,7 +4,8 @@ import {
   updateUserById as updateUserByIdService,
   deleteUserById as deleteUserByIdService,
   getAllUsersStatus as getAllUsersStatusService,
-  getAllUsersRoles as getAllUsersRolesService
+  getAllUsersRoles as getAllUsersRolesService,
+  getAllUserPermits as getAllUserPermitsService
 } from './service.js'
 import handleCatchErrorAsync from '../../utils/responses&Errors/handleCatchErrorAsync.js'
 import globalResponse from '../../utils/responses&Errors/globalResponse.js'
@@ -20,6 +21,17 @@ export const getAllUsers = handleCatchErrorAsync(async (req, res) => {
 })
 
 /**
+ * Get all user permits by ID
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object
+ */
+export const getAllUserPermits = handleCatchErrorAsync(async (req, res) => {
+  const id = req.userId
+  const users = await getAllUserPermitsService(id)
+  globalResponse(res, 200, users)
+})
+
+/**
  * Get all users statuses.
  *
  * @param {Object} req - The HTTP request object.
@@ -28,7 +40,6 @@ export const getAllUsers = handleCatchErrorAsync(async (req, res) => {
  */
 export const getAllUsersStatus = handleCatchErrorAsync(async (req, res) => {
   const data = await getAllUsersStatusService()
-  console.log('User statuses retrieved:', data)
   globalResponse(res, 200, data)
 })
 
@@ -50,7 +61,6 @@ export const getAllUsersRoles = handleCatchErrorAsync(async (req, res) => {
  * @param {Object} res - Express response object
  */
 export const createUser = handleCatchErrorAsync(async (req, res) => {
-  console.log(req.body)
   const user = await createUserService({
     ...req.body,
     lastUpdatedBy: req.userId

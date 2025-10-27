@@ -38,19 +38,42 @@ export const getAllUsers = async (filters = {}) => {
       r.description AS "roleDescription",
       r.code AS "roleCode",
       r.id AS "roleId"
-      -- up."accessConfiguration" AS "accessConfiguration",
-      -- up."accessNews" AS "accessNews"
-    
- 
-
     FROM "users" u
     LEFT JOIN "users" uu ON u."lastUpdatedBy" = uu.id
     LEFT JOIN "userStatus" s ON u."statusId" = s.id
     LEFT JOIN "roles" r ON u."roleId" = r.id
-    -- LEFT JOIN "userPermits" up ON u."userPermitId" = up.id
     ${whereSql}
   `
   return users
+}
+
+/**
+ * Retrieves all available user permissions from the database.
+ *
+ * @returns {Promise<object>} A object of Permissions and user.
+ */
+
+export const getAllUserPermits = async (id) => {
+  const allPermissions = await prisma.permissions.findMany({
+    select: {
+      id: true,
+      description: true,
+      code: true
+    },
+    orderBy: { code: 'asc' }
+  })
+
+  const user = await prisma.users.findUnique({
+    where: { id },
+    include: {
+      roles: {
+        include: {
+          rolePermits: true
+        }
+      }
+    }
+  })
+  return Promise.resolve({ allPermissions, user })
 }
 
 /**
