@@ -5,7 +5,8 @@ import {
   useUpdateUserByIdMutation,
   useDeleteUserByIdMutation,
   useGetAllUsersStatusQuery,
-  useGetAllUsersRolQuery
+  useGetAllUsersRolQuery,
+  useGetAllUserPermitsQuery
 } from '../api/usersApi'
 import { Spinner } from '@/components/loader/Spinner'
 import { UsersBasicInfo } from '../components'
@@ -162,6 +163,7 @@ function UsersForms() {
                   onSubmit={handleSubmit}
                   onDelete={handleDelete}
                   dataStatus={dataUsersStatus?.data}
+                  dataPermits={dataUserPermits?.data}
                   dataRol={dataUsersRol?.data}
                   selectedRow={selectedRow}
                 />
