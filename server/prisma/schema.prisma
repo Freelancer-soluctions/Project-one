@@ -8,30 +8,30 @@ datasource db {
 }
 
 model users {
-  id                               Int                     @id @default(autoincrement())
-  name                             String                  @db.VarChar(100)
-  email                            String                  @unique @db.VarChar(254)
-  password                         String                  @db.VarChar(100)
-  address                          String?                 @db.VarChar(250)
-  birthday                         DateTime                @db.Timestamp(3)
-  city                             String?                 @db.VarChar(35)
-  isAdmin                          Boolean?                @default(false)
-  picture                          String?
-  document                         String?
+  id             Int        @id @default(autoincrement())
+  name           String     @db.VarChar(100)
+  email          String     @unique @db.VarChar(254)
+  password       String     @db.VarChar(100)
+  address        String?    @db.VarChar(250)
+  birthday       DateTime   @db.Timestamp(3)
+  city           String?    @db.VarChar(35)
+  isAdmin        Boolean?   @default(false)
+  picture        String?
+  document       String?
   // documentId    String? // es factible este campo ??
-  lastUpdatedBy                    Int                     @db.Integer
-  lastUpdatedOn                    DateTime?               @db.Timestamp(3)
-  roleId                           Int
-  roles                            roles                   @relation("userRoles", fields: [roleId], references: [id])
-  socialSecurity                   String                  @db.VarChar(9)
-  startDate                        DateTime                @db.Timestamp(3)
-  state                            String                  @db.VarChar(50)
-  statusId                         Int     @db.Integer
-  userStatus                        userStatus              @relation("userStatus", fields: [statusId], references: [id])
-  telephone                        String                  @db.VarChar(15)
-  zipcode                          String                  @db.VarChar(9)
-  refreshToken                     String?                 @db.VarChar(200)
- 
+  lastUpdatedBy  Int        @db.Integer
+  lastUpdatedOn  DateTime?  @db.Timestamp(3)
+  roleId         Int
+  roles          roles      @relation("userRoles", fields: [roleId], references: [id])
+  socialSecurity String     @db.VarChar(9)
+  startDate      DateTime   @db.Timestamp(3)
+  state          String     @db.VarChar(50)
+  statusId       Int        @db.Integer
+  userStatus     userStatus @relation("userStatus", fields: [statusId], references: [id])
+  telephone      String     @db.VarChar(15)
+  zipcode        String     @db.VarChar(9)
+  refreshToken   String?    @db.VarChar(200)
+
   newsClosed                       news[]                  @relation("userNewsClosed")
   newsCreated                      news[]                  @relation("userNewsCreated")
   newsPending                      news[]                  @relation("userNewsPending")
@@ -70,34 +70,43 @@ model users {
   userProviderOrderCreated         providerOrder[]         @relation("userProviderOrderCreated")
   userExpenseCreated               expenses[]              @relation("userExpenseCreated")
   userExpenseUpdated               expenses[]              @relation("userExpenseUpdated")
+  userPermits                      userPermits[]           @relation("userPermissions")
 }
-
 
 model permissions {
-  id          Int            @id @default(autoincrement())
-  code        String         @unique @db.VarChar(50) // Ej: "ACCESS_NEWS", "CREATE_PRODUCTS"
-  description String         @db.VarChar(100)
-  rolePermits rolePermits[] // Relación con roles
+  id          Int           @id @default(autoincrement())
+  code        String        @unique @db.VarChar(50) // Ej: "ACCESS_NEWS", "CREATE_PRODUCTS"
+  description String        @db.VarChar(100)
+  // rolePermits rolePermits[] // Relación con roles
+  userPermits userPermits[] // Relación con usuarios
 }
 
-model rolePermits {
-  id           Int         @id @default(autoincrement())
-  roleId       Int
-  permissionId Int
-  roles        roles       @relation(fields: [roleId], references: [id])
-  permissions  permissions @relation(fields: [permissionId], references: [id])
+// model rolePermits {
+//   id           Int         @id @default(autoincrement())
+//   roleId       Int
+//   permissionId Int
+//   roles        roles       @relation(fields: [roleId], references: [id])
+//   permissions  permissions @relation(fields: [permissionId], references: [id])
 
-  @@unique([roleId, permissionId]) // Un permiso por rol una sola vez
-}
-
+//   @@unique([roleId, permissionId]) // Un permiso por rol una sola vez
+// }
 
 model roles {
   id          Int     @id @default(autoincrement())
   code        String  @unique @db.VarChar(3)
   description String  @unique @db.VarChar(50)
   users       users[] @relation("userRoles")
-  rolePermits  rolePermits[] // Relación nueva
+  // rolePermits  rolePermits[] // Relación nueva
+}
 
+model userPermits {
+  id           Int         @id @default(autoincrement())
+  userId       Int
+  permissionId Int
+  users        users       @relation("userPermissions", fields: [userId], references: [id])
+  permissions  permissions @relation(fields: [permissionId], references: [id])
+
+  @@unique([userId, permissionId]) // Un permiso por rol una sola vez
 }
 
 model userStatus {
@@ -611,7 +620,7 @@ model expenses {
   userExpenseUpdated users?          @relation("userExpenseUpdated", fields: [updatedBy], references: [id])
   createdOn          DateTime        @db.Timestamp(3)
   updatedOn          DateTime?       @db.Timestamp(3)
-  category             expenseCategory
+  category           expenseCategory
 }
 
 enum expenseCategory {

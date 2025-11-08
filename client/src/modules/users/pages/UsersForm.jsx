@@ -5,7 +5,8 @@ import {
   useUpdateUserByIdMutation,
   useDeleteUserByIdMutation,
   useGetAllUsersStatusQuery,
-  useGetAllUsersRolQuery
+  useGetAllUsersRolQuery,
+  useGetAllUserPermitsQuery
 } from '../api/usersApi'
 import { Spinner } from '@/components/loader/Spinner'
 import { UsersBasicInfo } from '../components'
@@ -39,6 +40,12 @@ function UsersForms() {
     isLoading: isLoadingStatus,
     isFetching: isFetchingStatus
   } = useGetAllUsersStatusQuery()
+
+    const {
+    data: dataUserPermits = { data: [] },
+    isLoading: isLoadingUserPermits,
+    isFetching: isFetchingUserPermits
+  } = useGetAllUserPermitsQuery()
 
   const [
     deleteUserById,
@@ -76,8 +83,8 @@ function UsersForms() {
           document: values.document,
           roleId: values.roles.id,
           statusId: values.status.id,
-          accessConfiguration: values.accessConfiguration,
-          accessNews: values.accessNews,
+          permissions: values.selectedPermissions
+       
         }
       }).unwrap()
 
@@ -156,6 +163,7 @@ function UsersForms() {
                   onSubmit={handleSubmit}
                   onDelete={handleDelete}
                   dataStatus={dataUsersStatus?.data}
+                  dataPermits={dataUserPermits?.data}
                   dataRol={dataUsersRol?.data}
                   selectedRow={selectedRow}
                 />
