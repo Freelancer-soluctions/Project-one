@@ -66,11 +66,7 @@ export const getAllUserPermits = async (id) => {
   const user = await prisma.users.findUnique({
     where: { id },
     include: {
-      roles: {
-        include: {
-          rolePermits: true
-        }
-      }
+      userPermits: true
     }
   })
   return Promise.resolve({ allPermissions, user })
@@ -182,8 +178,7 @@ export const createUser = async (data) => {
  * @param {string} [data.document] - User's document identifier.
  * @param {string} [data.state] - User's state.
  * @param {string} [data.refreshToken] - User's refresh token.
- * @param {string} [data.accessConfiguration] - User's access configuration.
- * @param {string} [data.accessNews] - User's access news.
+
  * @returns {Promise&lt;object&gt;} The updated user object.
  */
 export const updateUserById = async (id, data) => {
@@ -211,11 +206,17 @@ export const updateUserById = async (id, data) => {
       roles: {
         connect: { id: data.roleId }
       },
+      // rolePermits: {
+      //   deleteMany: {}, // elimina TODAS las relaciones actuales
+      //   create: data.permissions.map((permissionId) => ({
+      //     permission: { connect: { id: permissionId } }
+      //   }))
+      // }
       userPermits: {
-        update: {
-          accessConfiguration: data.accessConfiguration,
-          accessNews: data.accessNews
-        }
+        deleteMany: {}, // elimina solo los permisos del usuario actual
+        create: data.permissions.map((permissionId) => ({
+          permission: { connect: { id: parseInt(permissionId, 10) } }
+        }))
       }
     }
   })
@@ -294,13 +295,11 @@ export const getUserRoleByUserId = async (id) => {
       id
     },
     include: {
-      roles: {
+      roles: true,
+
+      userPermits: {
         include: {
-          rolePermits: {
-            include: {
-              permissions: true
-            }
-          }
+          permissions: true
         }
       }
     }

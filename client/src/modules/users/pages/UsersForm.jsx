@@ -83,8 +83,8 @@ function UsersForms() {
           document: values.document,
           roleId: values.roles.id,
           statusId: values.status.id,
-          accessConfiguration: values.accessConfiguration,
-          accessNews: values.accessNews,
+          permissions: values.selectedPermissions
+       
         }
       }).unwrap()
 
