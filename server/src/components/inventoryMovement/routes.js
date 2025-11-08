@@ -232,7 +232,7 @@ router.put(
  */
 router.delete('/:id', checkRoleAuthOrPermisssion({
   allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER],
-  permissions: [PERMISSIONCODES.canDeletInventory]
+  permissions: [PERMISSIONCODES.canDeleteInventory]
 }), deleteInventoryMovementById)
 
 export default router

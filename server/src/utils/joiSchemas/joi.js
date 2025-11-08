@@ -459,8 +459,10 @@ export const userCreateUpdateSchema = Joi.object({
   statusId: Joi.number().integer().required(),
   telephone: Joi.string().max(15).required(),
   zipcode: Joi.string().max(9).required(),
-  accessConfiguration: Joi.boolean(),
-  accessNews: Joi.boolean()
+  permissions: Joi.array().items(
+    Joi.number().integer().optional()
+  ).optional()
+
 })
 
 export const clientOrderFiltersSchema = Joi.object({

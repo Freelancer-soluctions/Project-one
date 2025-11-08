@@ -75,7 +75,7 @@ export const UsersDatatable = ({ dataUsers, onOpenUsersForms }) => {
         return value.length > 30 ? `${value.slice(0, 30)}...` : value
       }    },
     {
-      accessorKey: 'updatedOn',
+      accessorKey: 'lastUpdatedOn',
       header: t('updated_on'),
       cell: info => {
         const date = info.getValue()
