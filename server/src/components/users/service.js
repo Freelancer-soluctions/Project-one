@@ -27,9 +27,9 @@ export const getAllUsers = async (filters) => {
 export const getAllUserPermits = async (id) => {
   const { allPermissions, user } = await getAllUserPermitsDao(Number(id))
 
-  const rolePermits = user?.roles?.rolePermits || []
+  const userPermits = user?.userPermits || []
 
-  const userPermissionIds = new Set(rolePermits.map(p => p.permissionId))
+  const userPermissionIds = new Set(userPermits.map(p => p.permissionId))
   const permissions = allPermissions.map(p => ({
     ...p,
     assigned: userPermissionIds.has(p.id) // ✅ marcado si pertenece al usuario

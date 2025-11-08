@@ -1,7 +1,7 @@
 import * as authService from './service.js'
 import handleCatchErrorAsync from '../../utils/responses&Errors/handleCatchErrorAsync.js'
 import globalResponse from '../../utils/responses&Errors/globalResponse.js'
-
+import crypto from 'crypto'
 /**
  * Handle user sign-up.
  *
@@ -27,6 +27,14 @@ export const signIn = handleCatchErrorAsync(async (req, res) => {
   const user = await authService.signIn(body)
   // Creates Secure Cookie with refresh token
   res.cookie('jwt', user.refreshToken, { httpOnly: true, secure: true, sameSite: 'none', path: '/', maxAge: 24 * 60 * 60 * 1000 /** 24 horas */ })
+  // token csrtoken
+  const csrfToken = crypto.randomBytes(32).toString('hex')
+  res.cookie('csrfToken', csrfToken, {
+    httpOnly: false, // accesible por frontend
+    secure: true,
+    sameSite: 'none',
+    path: '/'
+  })
   delete user.refreshToken
   globalResponse(res, 200, user)
 })
