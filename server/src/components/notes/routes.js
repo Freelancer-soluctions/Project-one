@@ -7,7 +7,9 @@ import { ROLESCODES } from '../../utils/constants/enums.js'
 const router = Router()
 // uso global de middleware
 router.use(verifyToken)
-router.use(checkRoleAuthOrPermisssion([ROLESCODES.ADMIN, ROLESCODES.MANAGER, ROLESCODES.USER]))
+router.use(checkRoleAuthOrPermisssion({
+  allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER, ROLESCODES.USER]
+}))
 
 router.get('/', validateQueryParams(NotesFilters), noteController.getAllNotes)
 

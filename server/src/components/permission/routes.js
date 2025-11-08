@@ -1,13 +1,12 @@
 import express from 'express'
 import { getAllPermissions, createPermission, updatePermissionById, deletePermissionById } from './controller.js'
 import { verifyToken, validateQueryParams, validateSchema, checkRoleAuthOrPermisssion } from '../../middleware/index.js'
-import { ROLESCODES } from '../../utils/constants/enums.js'
+import { ROLESCODES, PERMISSIONCODES } from '../../utils/constants/enums.js'
 import { permissionFiltersSchema, permissionCreateUpdateSchema } from '../../utils/joiSchemas/joi.js'
 
 const router = express.Router()
 // uso global de middleware
 router.use(verifyToken)
-router.use(checkRoleAuthOrPermisssion([ROLESCODES.ADMIN, ROLESCODES.MANAGER]))
 
 /**
  * @swagger
@@ -170,7 +169,10 @@ router.use(checkRoleAuthOrPermisssion([ROLESCODES.ADMIN, ROLESCODES.MANAGER]))
  *       500:
  *         description: Internal server error
  */
-router.get('/', validateSchema(permissionFiltersSchema), getAllPermissions)
+router.get('/', checkRoleAuthOrPermisssion({
+  allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER, ROLESCODES.USER],
+  permissions: [PERMISSIONCODES.canViewPermission]
+}), validateSchema(permissionFiltersSchema), getAllPermissions)
 
 /**
  * @swagger
@@ -207,7 +209,10 @@ router.get('/', validateSchema(permissionFiltersSchema), getAllPermissions)
  *       500:
  *         description: Internal server error
  */
-router.post('/', validateSchema(permissionCreateUpdateSchema), createPermission)
+router.post('/', checkRoleAuthOrPermisssion({
+  allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER, ROLESCODES.USER],
+  permissions: [PERMISSIONCODES.canCreatePermission]
+}), validateSchema(permissionCreateUpdateSchema), createPermission)
 
 /**
  * @swagger
@@ -253,7 +258,10 @@ router.post('/', validateSchema(permissionCreateUpdateSchema), createPermission)
  *       500:
  *         description: Internal server error
  */
-router.put('/:id', validateSchema(permissionCreateUpdateSchema), updatePermissionById)
+router.put('/:id', checkRoleAuthOrPermisssion({
+  allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER, ROLESCODES.USER],
+  permissions: [PERMISSIONCODES.canEditPermission]
+}), validateSchema(permissionCreateUpdateSchema), updatePermissionById)
 
 /**
  * @swagger
@@ -294,6 +302,9 @@ router.put('/:id', validateSchema(permissionCreateUpdateSchema), updatePermissio
  *       500:
  *         description: Internal server error
  */
-router.delete('/:id', deletePermissionById)
+router.delete('/:id', checkRoleAuthOrPermisssion({
+  allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER, ROLESCODES.USER],
+  permissions: [PERMISSIONCODES.canDeletePermission]
+}), deletePermissionById)
 
 export default router

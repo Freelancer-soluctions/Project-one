@@ -12,12 +12,11 @@ import {
   stockCreateUpdateSchema
 } from '../../utils/joiSchemas/joi.js'
 import { verifyToken, validateQueryParams, validateSchema, checkRoleAuthOrPermisssion } from '../../middleware/index.js'
-import { ROLESCODES } from '../../utils/constants/enums.js'
+import { ROLESCODES, PERMISSIONCODES } from '../../utils/constants/enums.js'
 
 const router = Router()
 // uso global de middleware
 router.use(verifyToken)
-router.use(checkRoleAuthOrPermisssion([ROLESCODES.ADMIN, ROLESCODES.MANAGER, ROLESCODES.USER]))
 
 /**
  * @openapi
@@ -71,6 +70,10 @@ router.use(checkRoleAuthOrPermisssion([ROLESCODES.ADMIN, ROLESCODES.MANAGER, ROL
  */
 router.get(
   '/',
+  checkRoleAuthOrPermisssion({
+    allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER, ROLESCODES.USER],
+    permissions: [PERMISSIONCODES.canViewStock]
+  }),
   validateQueryParams(stockFiltersSchema),
   getAllStock
 )
@@ -126,6 +129,10 @@ router.get(
  */
 router.get(
   '/',
+  checkRoleAuthOrPermisssion({
+    allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER, ROLESCODES.USER],
+    permissions: [PERMISSIONCODES.canViewStock]
+  }),
   getStockByProductId
 )
 
@@ -174,6 +181,10 @@ router.get(
  */
 router.get(
   '/alerts',
+  checkRoleAuthOrPermisssion({
+    allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER, ROLESCODES.USER],
+    permissions: [PERMISSIONCODES.canViewStock]
+  }),
   getStockAlerts
 )
 
@@ -226,6 +237,10 @@ router.get(
  */
 router.post(
   '/',
+  checkRoleAuthOrPermisssion({
+    allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER, ROLESCODES.USER],
+    permissions: [PERMISSIONCODES.canCreateStock]
+  }),
   validateSchema(stockCreateUpdateSchema),
   createStock
 )
@@ -286,6 +301,10 @@ router.post(
  */
 router.put(
   '/:id',
+  checkRoleAuthOrPermisssion({
+    allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER, ROLESCODES.USER],
+    permissions: [PERMISSIONCODES.canEditStock]
+  }),
   validateSchema(stockCreateUpdateSchema),
   updateStockById
 )
@@ -326,6 +345,9 @@ router.put(
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.delete('/:id', deleteStockById)
+router.delete('/:id', checkRoleAuthOrPermisssion({
+  allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER, ROLESCODES.USER],
+  permissions: [PERMISSIONCODES.canDeleteStock]
+}), deleteStockById)
 
 export default router

@@ -2,6 +2,7 @@ import { Router } from 'express'
 import * as authController from './controller.js'
 import { verifyToken, validateSchema } from '../../middleware/index.js'
 import { SignUpSchema, SignInSchema } from '../../utils/joiSchemas/joi.js'
+import { verifyCsrf } from '../../middleware/verifyCsrf.js'
 
 const router = Router()
 
@@ -11,7 +12,7 @@ router.post('/signin', validateSchema(SignInSchema), authController.signIn)
 
 router.get('/session', verifyToken, authController.session)
 
-router.get('/refresh-token', authController.refreshToken)
+router.get('/refresh-token', verifyCsrf, authController.refreshToken)
 
 export default router
 

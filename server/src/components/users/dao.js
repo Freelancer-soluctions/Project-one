@@ -37,20 +37,39 @@ export const getAllUsers = async (filters = {}) => {
       s.id AS "statusId",
       r.description AS "roleDescription",
       r.code AS "roleCode",
-      r.id AS "roleId",
-      up."accessConfiguration" AS "accessConfiguration",
-      up."accessNews" AS "accessNews"
-    
- 
-
+      r.id AS "roleId"
     FROM "users" u
     LEFT JOIN "users" uu ON u."lastUpdatedBy" = uu.id
     LEFT JOIN "userStatus" s ON u."statusId" = s.id
     LEFT JOIN "roles" r ON u."roleId" = r.id
-    LEFT JOIN "userPermits" up ON u."userPermitId" = up.id
     ${whereSql}
   `
   return users
+}
+
+/**
+ * Retrieves all available user permissions from the database.
+ *
+ * @returns {Promise<object>} A object of Permissions and user.
+ */
+
+export const getAllUserPermits = async (id) => {
+  const allPermissions = await prisma.permissions.findMany({
+    select: {
+      id: true,
+      description: true,
+      code: true
+    },
+    orderBy: { code: 'asc' }
+  })
+
+  const user = await prisma.users.findUnique({
+    where: { id },
+    include: {
+      userPermits: true
+    }
+  })
+  return Promise.resolve({ allPermissions, user })
 }
 
 /**
@@ -159,8 +178,7 @@ export const createUser = async (data) => {
  * @param {string} [data.document] - User's document identifier.
  * @param {string} [data.state] - User's state.
  * @param {string} [data.refreshToken] - User's refresh token.
- * @param {string} [data.accessConfiguration] - User's access configuration.
- * @param {string} [data.accessNews] - User's access news.
+
  * @returns {Promise&lt;object&gt;} The updated user object.
  */
 export const updateUserById = async (id, data) => {
@@ -188,11 +206,17 @@ export const updateUserById = async (id, data) => {
       roles: {
         connect: { id: data.roleId }
       },
+      // rolePermits: {
+      //   deleteMany: {}, // elimina TODAS las relaciones actuales
+      //   create: data.permissions.map((permissionId) => ({
+      //     permission: { connect: { id: permissionId } }
+      //   }))
+      // }
       userPermits: {
-        update: {
-          accessConfiguration: data.accessConfiguration,
-          accessNews: data.accessNews
-        }
+        deleteMany: {}, // elimina solo los permisos del usuario actual
+        create: data.permissions.map((permissionId) => ({
+          permission: { connect: { id: parseInt(permissionId, 10) } }
+        }))
       }
     }
   })
@@ -271,13 +295,11 @@ export const getUserRoleByUserId = async (id) => {
       id
     },
     include: {
-      roles: {
+      roles: true,
+
+      userPermits: {
         include: {
-          rolePermits: {
-            include: {
-              permissions: true
-            }
-          }
+          permissions: true
         }
       }
     }

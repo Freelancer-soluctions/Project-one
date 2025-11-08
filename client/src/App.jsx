@@ -96,8 +96,9 @@ const App = () => {
           <Route path='permission' element={<Permission />} />
           <Route path='clientOrder' element={<ClientOrder />} />
           <Route path='providerOrder' element={<ProviderOrder />} />
+          <Route path='providerOrder' element={<ProviderOrder />} />
 
-
+            <Route path='providerOrder' element={<ProviderOrder />} />
 
           {/* Ruta comodín para manejar 404 en /home */}
           <Route path='*' element={<NotFound link={'/home'} />} />

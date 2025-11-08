@@ -10,12 +10,11 @@ import {
   warehouseCreateUpdateSchema
 } from '../../utils/joiSchemas/joi.js'
 import { verifyToken, validateQueryParams, validateSchema, checkRoleAuthOrPermisssion } from '../../middleware/index.js'
-import { ROLESCODES } from '../../utils/constants/enums.js'
+import { ROLESCODES, PERMISSIONCODES } from '../../utils/constants/enums.js'
 
 const router = Router()
 // uso global de middleware
 router.use(verifyToken)
-router.use(checkRoleAuthOrPermisssion([ROLESCODES.ADMIN, ROLESCODES.MANAGER]))
 
 /**
  * @openapi
@@ -69,6 +68,10 @@ router.use(checkRoleAuthOrPermisssion([ROLESCODES.ADMIN, ROLESCODES.MANAGER]))
  */
 router.get(
   '/',
+  checkRoleAuthOrPermisssion({
+    allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER, ROLESCODES.USER],
+    permissions: [PERMISSIONCODES.canViewWarehouse]
+  }),
   validateQueryParams(warehouseFiltersSchema),
   getAllWarehouses
 )
@@ -122,6 +125,10 @@ router.get(
  */
 router.post(
   '/',
+  checkRoleAuthOrPermisssion({
+    allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER, ROLESCODES.USER],
+    permissions: [PERMISSIONCODES.canCreateWarehouse]
+  }),
   validateSchema(warehouseCreateUpdateSchema),
   createWarehouse
 )
@@ -182,6 +189,10 @@ router.post(
  */
 router.put(
   '/:id',
+  checkRoleAuthOrPermisssion({
+    allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER, ROLESCODES.USER],
+    permissions: [PERMISSIONCODES.canEditWarehouse]
+  }),
   validateSchema(warehouseCreateUpdateSchema),
   updateWarehouseById
 )
@@ -222,6 +233,9 @@ router.put(
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.delete('/:id', deleteWarehouseById)
+router.delete('/:id', checkRoleAuthOrPermisssion({
+  allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER, ROLESCODES.USER],
+  permissions: [PERMISSIONCODES.canDeleteWarehouse]
+}), deleteWarehouseById)
 
 export default router

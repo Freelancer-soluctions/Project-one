@@ -43,6 +43,7 @@ export const UsersBasicInfo = ({
   onSubmit,
   onDelete,
   dataStatus,
+  dataPermits,
   dataRol,
   selectedRow
 }) => {
@@ -51,25 +52,47 @@ export const UsersBasicInfo = ({
   const [id, setId] = useState()
 
   const form = useForm({
-    resolver: zodResolver(UserSchema)
+    resolver: zodResolver(UserSchema),
+    // defaultValues: {
+    //   user: {},
+    //   permissions: []
+    // }
   })
+
 
   // Actualiza todos los valores del formulario al cambiar `selectedRow`
   useEffect(() => {
     if (selectedRow?.id) {
       form.reset({
-        ...selectedRow,
-        birthday: selectedRow.birthday
-          ? new Date(selectedRow.birthday).toISOString().split('T')[0]
-          : '',
-        startDate: selectedRow.startDate
-          ? new Date(selectedRow.startDate).toISOString().split('T')[0]
-          : '',
-        lastUpdatedOn: selectedRow.lastUpdatedOn
-          ? new Date(selectedRow.lastUpdatedOn).toISOString().split('T')[0]
-          : '',
-        status: {id:selectedRow.statusId, code:selectedRow.statusCode, description:selectedRow.statusDescription  },
-        roles: {id:selectedRow.roleId, code:selectedRow.roleCode, description:selectedRow.roleDescription  },
+         user: {
+          ...selectedRow,
+          birthday: selectedRow.birthday
+            ? new Date(selectedRow.birthday).toISOString().split('T')[0]
+            : '',
+          startDate: selectedRow.startDate
+            ? new Date(selectedRow.startDate).toISOString().split('T')[0]
+            : '',
+          lastUpdatedOn: selectedRow.lastUpdatedOn
+            ? new Date(selectedRow.lastUpdatedOn).toISOString().split('T')[0]
+            : '',
+          status: {
+            id: selectedRow.statusId,
+            code: selectedRow.statusCode,
+            description: selectedRow.statusDescription
+          },
+          roles: {
+            id: selectedRow.roleId,
+            code: selectedRow.roleCode,
+            description: selectedRow.roleDescription
+          }
+         },
+
+        permissions: dataPermits.map(p => ({
+          id: p.id,
+          code: p.code,
+          description: p.description,
+          assigned: p.assigned ?? false
+        }))
       })
       setId(selectedRow.id)
     } else {
@@ -78,7 +101,8 @@ export const UsersBasicInfo = ({
   }, [selectedRow, form])
 
   const submitForm = data => {
-    onSubmit(data)
+    const selectedPermissions = data.permissions. filter(item => item.assigned === true).map(item => item.id)
+    onSubmit({...data.user, selectedPermissions})
   }
 
   const handleDelete = id => {
@@ -113,7 +137,7 @@ export const UsersBasicInfo = ({
                   <div className='grid grid-cols-2 gap-6 py-4 auto-rows-auto'>
                     <FormField
                       control={form.control}
-                      name='name'
+                      name='user.name'
                       render={({ field }) => {
                         return (
                           <FormItem>
@@ -138,7 +162,7 @@ export const UsersBasicInfo = ({
 
                     <FormField
                       control={form.control}
-                      name='email'
+                      name='user.email'
                       render={({ field }) => {
                         return (
                           <FormItem>
@@ -163,7 +187,7 @@ export const UsersBasicInfo = ({
 
                     <FormField
                       control={form.control}
-                      name='telephone'
+                      name='user.telephone'
                       render={({ field }) => {
                         return (
                           <FormItem>
@@ -190,7 +214,7 @@ export const UsersBasicInfo = ({
 
                     <FormField
                       control={form.control}
-                      name='address'
+                      name='user.address'
                       render={({ field }) => {
                         return (
                           <FormItem>
@@ -217,7 +241,7 @@ export const UsersBasicInfo = ({
 
                     <FormField
                       control={form.control}
-                      name='birthday'
+                      name='user.birthday'
                       render={({ field }) => (
                         <FormItem className='flex flex-col flex-auto'>
                           <FormLabel htmlFor='birthday'>
@@ -240,7 +264,7 @@ export const UsersBasicInfo = ({
 
                     <FormField
                       control={form.control}
-                      name='startDate'
+                      name='user.startDate'
                       render={({ field }) => (
                         <FormItem className='flex flex-col flex-auto'>
                           <FormLabel htmlFor='startDate'>
@@ -263,7 +287,7 @@ export const UsersBasicInfo = ({
 
                     <FormField
                       control={form.control}
-                      name='socialSecurity'
+                      name='user.socialSecurity'
                       render={({ field }) => {
                         return (
                           <FormItem>
@@ -292,7 +316,7 @@ export const UsersBasicInfo = ({
 
                     <FormField
                       control={form.control}
-                      name='zipcode'
+                      name='user.zipcode'
                       render={({ field }) => {
                         return (
                           <FormItem>
@@ -319,7 +343,7 @@ export const UsersBasicInfo = ({
 
                     <FormField
                       control={form.control}
-                      name='state'
+                      name='user.state'
                       render={({ field }) => {
                         return (
                           <FormItem>
@@ -344,7 +368,7 @@ export const UsersBasicInfo = ({
 
                     <FormField
                       control={form.control}
-                      name='city'
+                      name='user.city'
                       render={({ field }) => {
                         return (
                           <FormItem>
@@ -369,7 +393,7 @@ export const UsersBasicInfo = ({
 
                     <FormField
                       control={form.control}
-                      name='picture'
+                      name='user.picture'
                       render={({ field }) => {
                         return (
                           <FormItem>
@@ -395,7 +419,7 @@ export const UsersBasicInfo = ({
 
                     <FormField
                       control={form.control}
-                      name='document'
+                      name='user.document'
                       render={({ field }) => {
                         return (
                           <FormItem>
@@ -421,24 +445,23 @@ export const UsersBasicInfo = ({
 
                     <FormField
                       control={form.control}
-                      name='roles'
+                      name='user.roles'
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel htmlFor='rol'>{t('rol')}*</FormLabel>
                           <Select
-                             onValueChange={code => {
-                            // Buscar el objeto completo por el `code`
-                            if (dataRol.length > 0){
-                              const selected= dataRol.find(
-                                item => item.code === code
-                              )
-                              if (selected) {
-                                field.onChange(selected) // Asignar el objeto completo
+                            onValueChange={code => {
+                              // Buscar el objeto completo por el `code`
+                              if (dataRol.length > 0) {
+                                const selected = dataRol.find(
+                                  item => item.code === code
+                                )
+                                if (selected) {
+                                  field.onChange(selected) // Asignar el objeto completo
+                                }
                               }
-                            }
-                          
-                          }}
-                          value={field.value?.code}>
+                            }}
+                            value={field.value?.code}>
                             <FormControl>
                               <SelectTrigger
                                 className={cn(
@@ -453,9 +476,7 @@ export const UsersBasicInfo = ({
                             </FormControl>
                             <SelectContent>
                               {dataRol.map((item, index) => (
-                                <SelectItem
-                                  key={index}
-                                  value={item.code}>
+                                <SelectItem key={index} value={item.code}>
                                   {item.description}
                                 </SelectItem>
                               ))}
@@ -468,24 +489,23 @@ export const UsersBasicInfo = ({
 
                     <FormField
                       control={form.control}
-                      name='status'
+                      name='user.status'
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel htmlFor='status'>{t('status')}*</FormLabel>
-                           <Select
-                             onValueChange={code => {
-                            // Buscar el objeto completo por el `code`
-                            if (dataStatus.length > 0){
-                              const selected= dataStatus.find(
-                                item => item.code === code
-                              )
-                              if (selected) {
-                                field.onChange(selected) // Asignar el objeto completo
+                          <Select
+                            onValueChange={code => {
+                              // Buscar el objeto completo por el `code`
+                              if (dataStatus.length > 0) {
+                                const selected = dataStatus.find(
+                                  item => item.code === code
+                                )
+                                if (selected) {
+                                  field.onChange(selected) // Asignar el objeto completo
+                                }
                               }
-                            }
-                          
-                          }}
-                          value={field.value?.code}>
+                            }}
+                            value={field.value?.code}>
                             <FormControl>
                               <SelectTrigger
                                 className={cn(
@@ -500,9 +520,7 @@ export const UsersBasicInfo = ({
                             </FormControl>
                             <SelectContent>
                               {dataStatus.map((item, index) => (
-                                <SelectItem
-                                  key={index}
-                                  value={item.code}>
+                                <SelectItem key={index} value={item.code}>
                                   {item.description}
                                 </SelectItem>
                               ))}
@@ -515,7 +533,7 @@ export const UsersBasicInfo = ({
 
                     <FormField
                       control={form.control}
-                      name='lastUpdatedByName'
+                      name='user.lastUpdatedByName'
                       render={({ field }) => {
                         return (
                           <FormItem className='flex flex-col flex-auto col-span-1'>
@@ -542,7 +560,7 @@ export const UsersBasicInfo = ({
 
                     <FormField
                       control={form.control}
-                      name='lastUpdatedOn'
+                      name='user.lastUpdatedOn'
                       render={({ field }) => (
                         <FormItem className='flex flex-col flex-auto'>
                           <FormLabel htmlFor='lastUpdatedOn'>
@@ -564,7 +582,7 @@ export const UsersBasicInfo = ({
                     />
                     <FormField
                       control={form.control}
-                      name='isAdmin'
+                      name='user.isAdmin'
                       render={({ field }) => (
                         <FormItem className='flex flex-row items-start p-4 space-x-3 space-y-0 border rounded-md'>
                           <FormControl>
@@ -597,49 +615,32 @@ export const UsersBasicInfo = ({
                 </AccordionTrigger>
                 <AccordionContent className='pt-4 pb-2 px-4 max-h-[50vh] overflow-y-auto scrollbar-thin'>
                   <div className='grid grid-cols-3 gap-6 py-4 auto-rows-auto'>
-                    <FormField
-                      control={form.control}
-                      name='accessConfiguration'
-                      render={({ field }) => (
-                        <FormItem className='flex items-center space-x-2'>
-                          <FormControl>
-                            <Checkbox
-                              className='mt-2'
-                              id='accessConfiguration'
-                              checked={field.value}
-                              onCheckedChange={field.onChange}
-                            />
-                          </FormControl>
-                          <FormLabel
-                            htmlFor='accessConfiguration'
-                            className='text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70'>
-                            {t('access_configuration')}
-                          </FormLabel>
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
-                      name='accessNews'
-                      render={({ field }) => (
-                        <FormItem className='flex items-center space-x-2'>
-                          <FormControl>
-                            <Checkbox
-                              className='mt-2'
-                              id='accessNews'
-                              checked={field.value}
-                              onCheckedChange={field.onChange}
-                            />
-                          </FormControl>
-                          <FormLabel
-                            htmlFor='accessNews'
-                            className='text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70'>
-                            {t('access_news')}
-                          </FormLabel>
-                        </FormItem>
-                      )}
-                    />
+                    {form.watch('permissions')?.map((permit, index) => (
+                      <FormField
+                        control={form.control}
+                         name={`permissions.${index}.assigned`}
+                        render={({ field }) => (
+                          <FormItem className='flex items-center space-x-2'>
+                            <FormControl>
+                              <Checkbox
+                                className='mt-2'
+                                id='permit.code'
+                                checked={field.value}
+                                // onCheckedChange={field.onChange}
+                                onCheckedChange={checked =>
+                                  field.onChange(checked)
+                                }
+                              />
+                            </FormControl>
+                            <FormLabel
+                              htmlFor='permit.code'
+                              className='text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70'>
+                              {permit.description}
+                            </FormLabel>
+                          </FormItem>
+                        )}
+                      />
+                    ))}
                   </div>
                 </AccordionContent>
               </AccordionItem>
@@ -649,7 +650,7 @@ export const UsersBasicInfo = ({
                 type='button'
                 variant='secondary'
                 onClick={() => {
-                  navigate('/home', { replace: true })
+                  navigate('/home/users', { replace: true })
                 }}>
                 {t('cancel')}
               </Button>
