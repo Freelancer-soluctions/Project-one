@@ -19,7 +19,11 @@ export const verifyToken = async (req, res, next) => {
     }
 
     // decode the token and verify the time
-    const decoded = await jwt.verify(token, dontenv('SECRETKEY'))
+    const decoded = await jwt.verify(token, dontenv('SECRETKEY'), {
+      algorithms: ['HS256'],
+      issuer: 'mi-api',
+      audience: 'mi-front'
+    })
 
     // Validate if the token has no expired
     // console.log(decoded)

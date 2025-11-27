@@ -78,3 +78,9 @@ export const logOut = (req, res) => {
   res.cookie('jwt', '', { httpOnly: true, secure: true, sameSite: 'none', path: '/', expires: new Date(0) })
   globalResponse(res, 200, { message: 'Logged out successfully' })
 }
+
+/**
+ * Cambio de contraseña
+ *
+ *
+ */
