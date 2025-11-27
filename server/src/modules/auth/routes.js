@@ -12,7 +12,7 @@ router.post('/signin', validateSchema(SignInSchema), authController.signIn)
 
 router.get('/session', verifyToken, authController.session)
 
-router.get('/refresh-token', verifyCsrf, authController.refreshToken)
+router.post('/refresh-token', verifyCsrf, authController.refreshToken)
 
 export default router
 
