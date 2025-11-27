@@ -13,5 +13,10 @@ export function SignUpApi (body) {
 // }
 
 export function RefreshTokenApi () {
-  return axiosPublic.get('/auth/refresh-token')
+  const csrfToken = getCookie('csrfToken');
+  return axiosPublic.get('/auth/refresh-token', {
+    headers: {
+      'CSRF-Token': csrfToken
+    }
+  })
 }
