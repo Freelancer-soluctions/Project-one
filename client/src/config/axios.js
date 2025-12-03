@@ -2,6 +2,8 @@ import axios from 'axios'
 import {store} from '../redux/store'
 import { jwtDecode } from 'jwt-decode'
 import { refreshTokenFecth } from '../modules/auth/slice/authSlice'
+import Cookies from "js-cookie";
+
 
 // Axios instance
 export const axiosPublic = axios.create({
@@ -25,6 +27,18 @@ axiosPrivate.interceptors.request.use(
     if (accessToken) {
       config.headers['Authorization'] = `Bearer ${accessToken}`;
     }
+
+     // Añadir CSRF Token a métodos que lo requieren
+    const csrfToken = Cookies.get('csrfToken');
+    if (csrfToken) {
+      const method = config.method?.toLowerCase();
+
+      // GET no lleva CSRF
+      if (['post', 'put', 'patch', 'delete'].includes(method)) {
+        config.headers['CSRF-Token'] = csrfToken;
+      }
+    }
+
     return config;
   },
   (error) => {

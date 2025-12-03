@@ -1,7 +1,9 @@
 import bcrypt from 'bcrypt'
+import dontenv from '../../config/dotenv.js'
 
 export const encryptPassword = async (password) => {
-  const salt = await bcrypt.genSalt(10)
+  const saltENV = dontenv('BCRYPTSALT')
+  const salt = await bcrypt.genSalt(Number(saltENV))
   return bcrypt.hash(password, salt)
 }
 
