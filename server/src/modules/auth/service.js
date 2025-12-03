@@ -1,11 +1,12 @@
 import * as authDao from './dao.js'
-import { getUserByToken, getUserRegisteredByEmail, getUserRoleByCode } from '../users/dao.js'
-import { createToken, createRefreshToken } from '../../utils/jwt/createToken.js'
+import { getUserRegisteredByEmail, getUserRoleByCode } from '../users/dao.js'
+import { createToken, createRefreshTokenOpaque } from '../../utils/jwt/createToken.js'
+import { createCsrfToken } from '../../utils/csrftoken/csrfToken.js'
 import ClientError from '../../utils/responses&Errors/errors.js'
 import { ROLESCODES } from '../../utils/constants/enums.js'
 import { encryptPassword, comparePassword } from '../../utils/bcrypt/encrypt.js'
-import jwt from 'jsonwebtoken'
-import dontenv from '../../config/dotenv.js'
+// import jwt from 'jsonwebtoken'
+// import dontenv from '../../config/dotenv.js'
 
 /**
  * Sign up a new user.
@@ -41,7 +42,6 @@ export const signIn = async (user) => {
 
   // verify if the user is already registered
   const userExists = await authDao.signIn(email)
-  console.log('signin auth', userExists)
   if (!userExists) {
     throw new ClientError('Este correo no esta registrado.', 400)
   }
@@ -57,11 +57,14 @@ export const signIn = async (user) => {
   }
   // create the token
   const token = await createToken({ id: userExists.id, rol: { ...userExists.roles } })
-  const refreshToken = await createRefreshToken({ id: userExists.id, rol: userExists.roles.description })
-  // save the user with refresh token
-  await authDao.saveRefreshToken(refreshToken, userExists.id)
+  const refreshToken = await createRefreshTokenOpaque()
+  // save the user refresh token
+  await authDao.storeRefreshToken({ token: refreshToken, userId: userExists.id, issuedAt: Date.now() })
 
-  return { accessToken: token, refreshToken, user: { id: userExists.id, firstName: userExists.firstName, picture: userExists.picture, roleName: userExists.roles.description, roleId: userExists.roleId } }
+  // create csrf token
+  const csrfToken = await createCsrfToken()
+
+  return { accessToken: token, refreshToken, csrfToken, user: { id: userExists.id, firstName: userExists.firstName, picture: userExists.picture, roleName: userExists.roles.description, roleId: userExists.roleId } }
 }
 
 /**
@@ -88,19 +91,46 @@ export const session = async (id) => {
  */
 
 export const refreshToken = async (cookies) => {
-  if (!cookies.jwt) {
+  const refreshCookie = cookies?.jwt
+  if (!refreshCookie) {
     throw new ClientError('Refresh token no encontrado', 400)
   }
-  const refreshToken = cookies.jwt
-  const user = await getUserByToken(refreshToken)
-  // console.log('user refresh', user)
-  if (!user) { throw new ClientError('Forbidden', 403) }
 
-  const decoded = await jwt.verify(refreshToken, dontenv('REFRESHSECRETKEY'))
-  const { id } = decoded
-  if (user.id !== id) { throw new ClientError('Forbidden', 403) }
+  const stored = await authDao.findByToken(refreshCookie)
+  if (!stored || stored.revoked) {
+    // posible reuse: revocar todo y forzar login
+    if (stored?.userId) await authDao.revokeAllRefreshTojeForUser(stored.userId)
+    throw new ClientError('Forbidden', 403)
+  }
 
-  const accessToken = await createToken({ id: user.id, rol: user.roles.description })
+  // rotar
+  await authDao.revokeRefreshToken(stored.id) // invalidar el antiguo
+  const newRefresh = await createRefreshTokenOpaque()
+  await authDao.storeRefreshToken({ token: newRefresh, userId: stored.userId, issuedAt: Date.now() })
 
-  return { accessToken, user: { id: user.id, firstName: user.firstName, picture: user.picture, roleName: user.roles.description, roleId: user.roleId } }
+  const accessToken = await createToken({ id: stored.userId })
+  // renovar csrf token también
+  const csrfToken = await createCsrfToken()
+
+  return { accessToken, csrfToken, refreshToken: newRefresh }
 }
+
+// se cambia a una rotacion de refresh token
+// export const refreshToken = async (cookies) => {
+//   if (!cookies.jwt) {
+//     throw new ClientError('Refresh token no encontrado', 400)
+//   }
+
+//   const refreshToken = cookies.jwt
+//   const user = await getUserByToken(refreshToken)
+//   // console.log('user refresh', user)
+//   if (!user) { throw new ClientError('Forbidden', 403) }
+
+//   const decoded = await jwt.verify(refreshToken, dontenv('REFRESHSECRETKEY'))
+//   const { id } = decoded
+//   if (user.id !== id) { throw new ClientError('Forbidden', 403) }
+
+//   const accessToken = await createToken({ id: user.id, rol: user.roles.description })
+
+//   return { accessToken, user: { id: user.id, firstName: user.firstName, picture: user.picture, roleName: user.roles.description, roleId: user.roleId } }
+// }
