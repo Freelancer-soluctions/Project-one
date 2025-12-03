@@ -87,8 +87,8 @@ export const storeRefreshToken = async ({ token, userId, issuedAt }) => {
   })
 }
 
-export const fidByToken = async (refreshToken) => {
-  return prisma.refreshToken.findUnique({ where: refreshToken })
+export const findByToken = async (refreshToken) => {
+  return prisma.refreshToken.findUnique({ where: { token: refreshToken } })
 }
 
 export const revokeRefreshToken = async (id) => {

@@ -1,5 +1,6 @@
 import dontenv from '../../config/dotenv.js'
 import jwt from 'jsonwebtoken'
+import crypto from 'crypto'
 
 export const createTokenOld = (payload = {}) => {
   return new Promise((resolve, reject) => {
@@ -85,7 +86,17 @@ const createTokenWithKey = (payload, secret, expiresIn = '15m', options = SIGN_O
 }
 
 export const createToken = (payload) =>
-  createTokenWithKey(payload, dontenv('SECRETKEY'), '9000000', SIGN_OPTIONS)
+  createTokenWithKey(payload, dontenv('SECRETKEY'), '120000', SIGN_OPTIONS)
 
 export const createRefreshToken = (payload) =>
   createTokenWithKey(payload, dontenv('REFRESHSECRETKEY'), '1d', SIGN_REFRESH_OPTIONS)
+
+export const createRefreshTokenOpaque = () => {
+  return new Promise((resolve, reject) => {
+    try {
+      resolve(crypto.randomBytes(64).toString('hex'))
+    } catch (error) {
+      reject(error.message)
+    }
+  })
+}
