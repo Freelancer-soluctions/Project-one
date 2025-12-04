@@ -58,7 +58,7 @@ export const verifyCsrf = (req, res, next) => {
     return res.status(403).json({ message: 'CSRF validation failed (exception)' })
   }
 }
-
+// rutas excluidas
 const csrfExcludedRoutes = [
   '/auth/signin',
   '/auth/signup',
