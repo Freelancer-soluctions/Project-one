@@ -1,27 +1,29 @@
 import { Router } from 'express'
-import auth from '../../components/auth/routes.js'
-import news from '../../components/news/routes.js'
-import providers from '../../components/providers/routes.js'
-import notes from '../../components/notes/routes.js'
-import settings from '../../components/settings/routes.js'
-import events from '../../components/events/routes.js'
-import products from '../../components/products/routes.js'
-import warehouse from '../../components/warehouse/routes.js'
-import stock from '../../components/stock/routes.js'
-import inventoryMovement from '../../components/inventoryMovement/routes.js'
-import sale from '../../components/sale/routes.js'
-import clients from '../../components/clients/routes.js'
-import purchase from '../../components/purchase/routes.js'
-import employees from '../../components/employees/routes.js'
-import attendance from '../../components/attendance/routes.js'
-import payroll from '../../components/payroll/routes.js'
-import vacation from '../../components/vacation/routes.js'
-import permission from '../../components/permission/routes.js'
-import users from '../../components/users/routes.js'
-import expenses from '../../components/expenses/routes.js'
-import performanceEvaluation from '../../components/performanceEvaluation/routes.js'
+import auth from '../../modules/auth/routes.js'
+import news from '../../modules/news/routes.js'
+import providers from '../../modules/providers/routes.js'
+import notes from '../../modules/notes/routes.js'
+import settings from '../../modules/settings/routes.js'
+import events from '../../modules/events/routes.js'
+import products from '../../modules/products/routes.js'
+import warehouse from '../../modules/warehouse/routes.js'
+import stock from '../../modules/stock/routes.js'
+import inventoryMovement from '../../modules/inventoryMovement/routes.js'
+import sale from '../../modules/sale/routes.js'
+import clients from '../../modules/clients/routes.js'
+import purchase from '../../modules/purchase/routes.js'
+import employees from '../../modules/employees/routes.js'
+import attendance from '../../modules/attendance/routes.js'
+import payroll from '../../modules/payroll/routes.js'
+import vacation from '../../modules/vacation/routes.js'
+import permission from '../../modules/permission/routes.js'
+import users from '../../modules/users/routes.js'
+import expenses from '../../modules/expenses/routes.js'
+import performanceEvaluation from '../../modules/performanceEvaluation/routes.js'
+import security from '../../modules/security/routes.js'
 
 const router = Router()
+
 router.use('/auth', auth)
 router.use('/news', news)
 router.use('/settings', settings)
@@ -43,4 +45,5 @@ router.use('/permission', permission)
 router.use('/users', users)
 router.use('/expenses', expenses)
 router.use('/performance-evaluation', performanceEvaluation)
+router.use('/security', security)
 export default router

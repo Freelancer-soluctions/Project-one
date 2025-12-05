@@ -7,7 +7,8 @@ const corsOptions = {
   credentials: true,
   // Allow specific headers
 
-  allowedHeaders: ['Content-Type', 'Authorization', 'x-access-token', 'refresh']
+  allowedHeaders: ['Content-Type', 'Authorization', 'x-access-token', 'refresh', 'CSRF-Token'],
+  exposedHeaders: ['CSRF-Token']
 }
 
 export default corsOptions

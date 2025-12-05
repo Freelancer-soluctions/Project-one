@@ -1,5 +1,6 @@
 import dontenv from '../../config/dotenv.js'
 import jwt from 'jsonwebtoken'
+import crypto from 'crypto'
 
 export const createTokenOld = (payload = {}) => {
   return new Promise((resolve, reject) => {
@@ -13,7 +14,7 @@ export const createTokenOld = (payload = {}) => {
       if (err) {
         reject('token not generated.')
       } else {
-        console.log('token generated', token)
+        // console.log('token generated', token)
         resolve(token)
       }
     })
@@ -34,6 +35,19 @@ export const createRefreshTokenOld = (payload = {}) => {
   })
 }
 
+/// ------------------------------------------------------------------
+
+const SIGN_OPTIONS = {
+  algorithm: 'HS256',
+  issuer: 'mi-api',
+  audience: 'mi-front'
+}
+
+const SIGN_REFRESH_OPTIONS = {
+  ...SIGN_OPTIONS
+  // refresh puede tener un expiry mayor
+}
+
 function validatePayload (payload) {
   if (
     !payload ||
@@ -45,7 +59,7 @@ function validatePayload (payload) {
   }
 }
 
-const createTokenWithKey = (payload, secret, expiresIn = '1d') => {
+const createTokenWithKey = (payload, secret, expiresIn = '15m', options = SIGN_OPTIONS) => {
   return new Promise((resolve, reject) => {
     try {
       validatePayload(payload)
@@ -54,11 +68,11 @@ const createTokenWithKey = (payload, secret, expiresIn = '1d') => {
         return reject('La clave secreta del token no está definida.')
       }
 
-      jwt.sign(payload, secret, { expiresIn }, (err, token) => {
+      jwt.sign(payload, secret, { ...options, expiresIn }, (err, token) => {
         if (err) {
           return reject('Error generando el token.')
         }
-
+        // solo en desarrollo porque es una vulnerabilidad de cryptographic failures
         if (process.env.NODE_ENV === 'development') {
           console.log('Token generado:', token)
         }
@@ -72,7 +86,17 @@ const createTokenWithKey = (payload, secret, expiresIn = '1d') => {
 }
 
 export const createToken = (payload) =>
-  createTokenWithKey(payload, dontenv('SECRETKEY'), '1d')
+  createTokenWithKey(payload, dontenv('SECRETKEY'), '900000', SIGN_OPTIONS)
 
 export const createRefreshToken = (payload) =>
-  createTokenWithKey(payload, dontenv('REFRESHSECRETKEY'), '1d')
+  createTokenWithKey(payload, dontenv('REFRESHSECRETKEY'), '1d', SIGN_REFRESH_OPTIONS)
+
+export const createRefreshTokenOpaque = () => {
+  return new Promise((resolve, reject) => {
+    try {
+      resolve(crypto.randomBytes(64).toString('hex'))
+    } catch (error) {
+      reject(error.message)
+    }
+  })
+}

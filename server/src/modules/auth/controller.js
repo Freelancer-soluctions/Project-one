@@ -1,7 +1,6 @@
 import * as authService from './service.js'
 import handleCatchErrorAsync from '../../utils/responses&Errors/handleCatchErrorAsync.js'
 import globalResponse from '../../utils/responses&Errors/globalResponse.js'
-import crypto from 'crypto'
 /**
  * Handle user sign-up.
  *
@@ -24,18 +23,26 @@ export const signUp = handleCatchErrorAsync(async (req, res) => {
  */
 export const signIn = handleCatchErrorAsync(async (req, res) => {
   const body = req.body
-  const user = await authService.signIn(body)
+  const user = await authService.signIn(body, req)
   // Creates Secure Cookie with refresh token
-  res.cookie('jwt', user.refreshToken, { httpOnly: true, secure: true, sameSite: 'none', path: '/', maxAge: 24 * 60 * 60 * 1000 /** 24 horas */ })
+  res.cookie('jwt', user.refreshToken, {
+    httpOnly: true,
+    secure: true, // <-- en LOCAL debe ser false, en produccion debe de ser true
+    sameSite: 'none',
+    path: '/',
+    maxAge: 24 * 60 * 60 * 1000 /** 24 horas */
+  })
   // token csrtoken
-  const csrfToken = crypto.randomBytes(32).toString('hex')
-  res.cookie('csrfToken', csrfToken, {
+  res.cookie('csrfToken', user.csrfToken, {
     httpOnly: false, // accesible por frontend
-    secure: true,
+    secure: true, //  <-- en LOCAL debe ser false, en produccion debe de ser true
     sameSite: 'none',
     path: '/'
   })
+  // eliminacion del objeto user antes de enviar una respuesta
   delete user.refreshToken
+  delete user.csrfToken
+
   globalResponse(res, 200, user)
 })
 
@@ -61,8 +68,20 @@ export const session = handleCatchErrorAsync(async (req, res) => {
  */
 export const refreshToken = handleCatchErrorAsync(async (req, res) => {
   const cookies = req.cookies
-  const data = await authService.refreshToken(cookies)
-  globalResponse(res, 200, data)
+  const data = await authService.refreshToken(cookies, req)
+  // Creates Secure Cookie with refresh token
+  res.cookie('jwt', data.refreshToken, { httpOnly: true, secure: true, sameSite: 'none', path: '/', maxAge: 24 * 60 * 60 * 1000 /** 24 horas */ })
+  // token csrtoken
+  res.cookie('csrfToken', data.csrfToken, {
+    httpOnly: false, // accesible por frontend
+    secure: true, // <-- en LOCAL debe ser false, en produccion debe de ser true
+    sameSite: 'none',
+    path: '/'
+  })
+  // eliminacion del objeto user antes de enviar una respuesta
+  delete data.refreshToken
+  delete data.csrfToken
+  globalResponse(res, 200, { accessToken: data.accessToken })
 })
 
 /**
@@ -73,8 +92,17 @@ export const refreshToken = handleCatchErrorAsync(async (req, res) => {
  * @returns {void} Close the user session.
  */
 
-export const logOut = (req, res) => {
+export const logOut = handleCatchErrorAsync(async (req, res) => {
   // Clear the refresh token cookie
+  const cookies = req.cookies
+  // reviocar refresh token
+  await authService.logout(cookies)
   res.cookie('jwt', '', { httpOnly: true, secure: true, sameSite: 'none', path: '/', expires: new Date(0) })
   globalResponse(res, 200, { message: 'Logged out successfully' })
-}
+})
+
+/**
+ * Cambio de contraseña
+ *
+ *
+ */
