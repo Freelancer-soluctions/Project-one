@@ -23,7 +23,7 @@ export const signUp = handleCatchErrorAsync(async (req, res) => {
  */
 export const signIn = handleCatchErrorAsync(async (req, res) => {
   const body = req.body
-  const user = await authService.signIn(body)
+  const user = await authService.signIn(body, req)
   // Creates Secure Cookie with refresh token
   res.cookie('jwt', user.refreshToken, {
     httpOnly: true,
@@ -42,6 +42,7 @@ export const signIn = handleCatchErrorAsync(async (req, res) => {
   // eliminacion del objeto user antes de enviar una respuesta
   delete user.refreshToken
   delete user.csrfToken
+
   globalResponse(res, 200, user)
 })
 
@@ -67,7 +68,7 @@ export const session = handleCatchErrorAsync(async (req, res) => {
  */
 export const refreshToken = handleCatchErrorAsync(async (req, res) => {
   const cookies = req.cookies
-  const data = await authService.refreshToken(cookies)
+  const data = await authService.refreshToken(cookies, req)
   // Creates Secure Cookie with refresh token
   res.cookie('jwt', data.refreshToken, { httpOnly: true, secure: true, sameSite: 'none', path: '/', maxAge: 24 * 60 * 60 * 1000 /** 24 horas */ })
   // token csrtoken
@@ -91,11 +92,14 @@ export const refreshToken = handleCatchErrorAsync(async (req, res) => {
  * @returns {void} Close the user session.
  */
 
-export const logOut = (req, res) => {
+export const logOut = handleCatchErrorAsync(async (req, res) => {
   // Clear the refresh token cookie
+  const cookies = req.cookies
+  // reviocar refresh token
+  await authService.logout(cookies)
   res.cookie('jwt', '', { httpOnly: true, secure: true, sameSite: 'none', path: '/', expires: new Date(0) })
   globalResponse(res, 200, { message: 'Logged out successfully' })
-}
+})
 
 /**
  * Cambio de contraseña

@@ -14,7 +14,7 @@ export const createTokenOld = (payload = {}) => {
       if (err) {
         reject('token not generated.')
       } else {
-        console.log('token generated', token)
+        // console.log('token generated', token)
         resolve(token)
       }
     })
@@ -72,7 +72,7 @@ const createTokenWithKey = (payload, secret, expiresIn = '15m', options = SIGN_O
         if (err) {
           return reject('Error generando el token.')
         }
-
+        // solo en desarrollo porque es una vulnerabilidad de cryptographic failures
         if (process.env.NODE_ENV === 'development') {
           console.log('Token generado:', token)
         }
@@ -86,7 +86,7 @@ const createTokenWithKey = (payload, secret, expiresIn = '15m', options = SIGN_O
 }
 
 export const createToken = (payload) =>
-  createTokenWithKey(payload, dontenv('SECRETKEY'), '120000', SIGN_OPTIONS)
+  createTokenWithKey(payload, dontenv('SECRETKEY'), '900000', SIGN_OPTIONS)
 
 export const createRefreshToken = (payload) =>
   createTokenWithKey(payload, dontenv('REFRESHSECRETKEY'), '1d', SIGN_REFRESH_OPTIONS)
