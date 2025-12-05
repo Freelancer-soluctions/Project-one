@@ -1,6 +1,10 @@
 import { createRow, getOneRow, updateRow } from '../../utils/prisma/dao.js'
 import { TABLESNAMES } from '../../utils/constants/enums.js'
 
+import { PrismaClient } from '@prisma/client'
+
+const prisma = new PrismaClient()
+
 const tableName = TABLESNAMES.USERS
 
 /**
@@ -61,7 +65,7 @@ export const getUserById = async (id) => {
 
   return Promise.resolve(user)
 }
-
+// ya no necesario el token se guarda en una tabla independiente
 /**
  * Save a refresh token for a user.
  *
@@ -75,4 +79,27 @@ export const saveRefreshToken = async (refreshToken, id) => {
   const user = await updateRow(tableName, data, where)
 
   return Promise.resolve(user)
+}
+
+export const storeRefreshToken = async ({ token, userId, issuedAt }) => {
+  return prisma.refreshToken.create({
+    data: { token, userId, issuedAt: new Date(issuedAt) }
+  })
+}
+
+export const findByToken = async (refreshToken) => {
+  return prisma.refreshToken.findUnique({ where: { token: refreshToken } })
+}
+
+export const revokeRefreshToken = async (id) => {
+  return prisma.refreshToken.update({
+    where: { id },
+    data: { revoked: true, revokedAt: new Date() }
+  })
+}
+export const revokeAllRefreshTojeForUser = async (userId) => {
+  return prisma.refreshToken.updateMany({
+    where: { userId },
+    data: { revoked: true, revokedAt: new Date() }
+  })
 }

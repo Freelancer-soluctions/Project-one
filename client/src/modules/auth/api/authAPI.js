@@ -1,4 +1,5 @@
 import { axiosPublic, axiosPrivate } from '@/config/axios'
+import Cookies from "js-cookie";
 
 export function SignInApi (body) {
   return axiosPublic.post('/auth/signin', body)
@@ -13,5 +14,13 @@ export function SignUpApi (body) {
 // }
 
 export function RefreshTokenApi () {
-  return axiosPublic.get('/auth/refresh-token')
+  const csrfToken = Cookies.get('csrfToken');
+  return axiosPublic.post('/auth/refresh-token', {}, // body vacío (si no mandas nada)
+    {
+      withCredentials: true,
+      headers: {
+        'CSRF-Token': csrfToken
+      }
+    }
+  )
 }

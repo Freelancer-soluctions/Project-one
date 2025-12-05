@@ -1,4 +1,4 @@
-import { getUserRoleByUserId } from '../components/users/service.js'
+import { getUserRoleByUserId } from '../modules/users/service.js'
 import { ROLESCODES } from '../utils/constants/enums.js'
 
 export function checkRoleAuth ({ allowedRoles = [] }) {

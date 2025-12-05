@@ -273,21 +273,21 @@ export const getUserRoleByCode = async (code) => {
   })
   return Promise.resolve(rolUser)
 }
+// ya no es necesario se pasa token a una tabla independiente
+// /**
+//  * Get user by refresh token.
+//  *
+//  * @param {string} refreshToken - The refresh token to search for.
+//  * @returns {Promise<Object>} The user associated with the token.
+//  */
+// export const getUserByToken = async (refreshToken) => {
+//   const user = await prisma.users.findUnique({
+//     where: { refreshToken },
+//     include: { roles: true }
+//   })
 
-/**
- * Get user by refresh token.
- *
- * @param {string} refreshToken - The refresh token to search for.
- * @returns {Promise<Object>} The user associated with the token.
- */
-export const getUserByToken = async (refreshToken) => {
-  const user = await prisma.users.findUnique({
-    where: { refreshToken },
-    include: { roles: true }
-  })
-
-  return Promise.resolve(user)
-}
+//   return Promise.resolve(user)
+// }
 
 export const getUserRoleByUserId = async (id) => {
   const user = await prisma.users.findUnique({
