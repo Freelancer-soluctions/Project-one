@@ -4,7 +4,8 @@ import { createToken, createRefreshTokenOpaque } from '../../utils/jwt/createTok
 import { createCsrfToken } from '../../utils/csrftoken/csrfToken.js'
 import ClientError from '../../utils/responses&Errors/errors.js'
 import { ROLESCODES } from '../../utils/constants/enums.js'
-import { encryptPassword, comparePassword } from '../../utils/bcrypt/encrypt.js'
+import { encryptPassword, comparePassword, validatePasswordStrength } from '../../utils/bcrypt/encrypt.js'
+import logger from '../../logger/index.js'
 // import jwt from 'jsonwebtoken'
 // import dontenv from '../../config/dotenv.js'
 
@@ -18,6 +19,11 @@ export const signUp = async (user) => {
   // get the user role id
   const role = await getUserRoleByCode(ROLESCODES.USER)
   user.roleId = role?.id
+
+  // validacion de fuerza en contraseña
+  if (!validatePasswordStrength(user.password)) {
+    throw new ClientError('La contraseña es demasiado débil. Intenta con una más segura.', 400)
+  }
   // encryt password
   user.password = encryptPassword(user.password)
   // verify if the email is already registered
@@ -37,7 +43,7 @@ export const signUp = async (user) => {
  * @param {Object} user - The user object containing email and password.
  * @returns {Promise<Object>} An object containing the access token, refresh token, and user details.
  */
-export const signIn = async (user) => {
+export const signIn = async (user, req) => {
   const { email, password } = user
 
   // verify if the user is already registered
@@ -63,7 +69,13 @@ export const signIn = async (user) => {
 
   // create csrf token
   const csrfToken = await createCsrfToken()
-
+  // Log de login exitoso
+  logger.info('✅ LOGIN EXITOSO', {
+    userId: userExists.id,
+    email: userExists.email,
+    ip: req.ip,
+    userAgent: req.headers['user-agent']
+  })
   return { accessToken: token, refreshToken, csrfToken, user: { id: userExists.id, firstName: userExists.firstName, picture: userExists.picture, roleName: userExists.roles.description, roleId: userExists.roleId } }
 }
 
@@ -90,14 +102,30 @@ export const session = async (id) => {
  * @returns {Promise<Object>} An object containing the new access token and user details.
  */
 
-export const refreshToken = async (cookies) => {
+export const refreshToken = async (cookies, req) => {
   const refreshCookie = cookies?.jwt
   if (!refreshCookie) {
+    // 🚨 LOGGING: Intento sin refresh token
+    logger.warn('⚠️ INTENTO DE REFRESH SIN TOKEN', {
+      ip: req.ip,
+      userAgent: req.headers['user-agent'],
+      timestamp: new Date().toISOString()
+    })
     throw new ClientError('Refresh token no encontrado', 400)
   }
 
   const stored = await authDao.findByToken(refreshCookie)
   if (!stored || stored.revoked) {
+    // 🚨 LOGGING CRÍTICO: Token reuse detectado
+    logger.error('🚨 INTENTO DE REUSO DE REFRESH TOKEN DETECTADO', {
+      ip: req.ip,
+      userId: stored?.userId || 'unknown',
+      token: refreshCookie.substring(0, 10) + '...', // Solo primeros 10 chars
+      revoked: stored?.revoked || false,
+      revokedAt: stored?.revokedAt || null,
+      userAgent: req.headers['user-agent'],
+      timestamp: new Date().toISOString()
+    })
     // posible reuse: revocar todo y forzar login
     if (stored?.userId) await authDao.revokeAllRefreshTojeForUser(stored.userId)
     throw new ClientError('Forbidden', 403)
@@ -134,3 +162,21 @@ export const refreshToken = async (cookies) => {
 
 //   return { accessToken, user: { id: user.id, firstName: user.firstName, picture: user.picture, roleName: user.roles.description, roleId: user.roleId } }
 // }
+
+/**
+ * Revocar refresh token
+ */
+
+export const logout = async (cookies) => {
+  // ✅ Revocar token en BD si existe
+  const refreshCookie = cookies?.jwt
+
+  if (refreshToken) {
+    const stored = await authDao.findByToken(refreshCookie)
+    if (stored && !stored.revoked) {
+      await authDao.revokeRefreshToken(stored.id)
+    }
+  }
+
+  return true
+}
