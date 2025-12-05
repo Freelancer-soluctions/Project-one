@@ -37,7 +37,8 @@
     "multer": "^1.4.5-lts.1",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.0",
-    "winston": "^3.13.0"
+    "winston": "^3.13.0",
+    "zxcvbn": "^4.4.2"
   },
   "devDependencies": {
     "@vitest/coverage-v8": "^1.6.0",
