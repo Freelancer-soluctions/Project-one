@@ -1,6 +1,8 @@
 import * as authService from './service.js'
 import handleCatchErrorAsync from '../../utils/responses&Errors/handleCatchErrorAsync.js'
 import globalResponse from '../../utils/responses&Errors/globalResponse.js'
+import dontenv from '../../config/dotenv.js'
+
 /**
  * Handle user sign-up.
  *
@@ -27,7 +29,7 @@ export const signIn = handleCatchErrorAsync(async (req, res) => {
   // Creates Secure Cookie with refresh token
   res.cookie('jwt', user.refreshToken, {
     httpOnly: true,
-    secure: true, // <-- en LOCAL debe ser false, en produccion debe de ser true
+    secure: dontenv('REFRESHSECRETKEY') === 'production', // <-- en LOCAL debe ser false, en produccion debe de ser true
     sameSite: 'none',
     path: '/',
     maxAge: 24 * 60 * 60 * 1000 /** 24 horas */
