@@ -1,5 +1,5 @@
 import express from 'express'
-import { cspReportHandler } from '../../middleware'
+import { cspReportHandler } from '../../middleware/index.js'
 import logger from '../../logger/index.js'
 
 const router = express.Router()

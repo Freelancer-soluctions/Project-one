@@ -1,6 +1,4 @@
-import { PrismaClient, Prisma } from '@prisma/client'
-
-const prisma = new PrismaClient()
+import { prisma, Prisma } from '../../config/db.js'
 
 /**
  * Get all clientOrders with optional filters
