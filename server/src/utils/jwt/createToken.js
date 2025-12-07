@@ -1,10 +1,10 @@
-import dontenv from '../../config/dotenv.js'
+import dotenv from '../../config/dotenv.js'
 import jwt from 'jsonwebtoken'
 import crypto from 'crypto'
 
 export const createTokenOld = (payload = {}) => {
   return new Promise((resolve, reject) => {
-    jwt.sign({ ...payload }, dontenv('SECRETKEY'), {
+    jwt.sign({ ...payload }, dotenv('SECRETKEY'), {
       // expiresIn: '120000' // 2 min
       // expiresIn: '10m'
       // expiresIn: '9000000' // 15 min (900000)
@@ -23,7 +23,7 @@ export const createTokenOld = (payload = {}) => {
 
 export const createRefreshTokenOld = (payload = {}) => {
   return new Promise((resolve, reject) => {
-    jwt.sign({ ...payload }, dontenv('REFRESHSECRETKEY'), {
+    jwt.sign({ ...payload }, dotenv('REFRESHSECRETKEY'), {
       expiresIn: '1d'
     }, (err, token) => {
       if (err) {
@@ -114,14 +114,14 @@ const createTokenWithKey = (payload, secret, expiresIn = '15m', options = SIGN_O
 // - Expira rápido (900000 ms = 15min)
 // - Usa las SIGN_OPTIONS base
 export const createToken = (payload) =>
-  createTokenWithKey(payload, dontenv('SECRETKEY'), '900000', SIGN_OPTIONS)
+  createTokenWithKey(payload, dotenv('SECRETKEY'), '900000', SIGN_OPTIONS)
 
 // Refresh token:
 // - Se firma con REFRESHSECRETKEY (clave distinta)
 // - Expira más largo (1 día por defecto)
 // - Usa SIGN_REFRESH_OPTIONS para permitir expiraciones largas
 export const createRefreshToken = (payload) =>
-  createTokenWithKey(payload, dontenv('REFRESHSECRETKEY'), '1d', SIGN_REFRESH_OPTIONS)
+  createTokenWithKey(payload, dotenv('REFRESHSECRETKEY'), '1d', SIGN_REFRESH_OPTIONS)
 
 // Refresh token opaco:
 // - No usa JWT, solo genera un string aleatorio criptográficamente seguro.

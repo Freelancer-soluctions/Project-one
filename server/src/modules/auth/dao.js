@@ -1,9 +1,6 @@
 import { createRow, getOneRow, updateRow } from '../../utils/prisma/dao.js'
 import { TABLESNAMES } from '../../utils/constants/enums.js'
-
-import { PrismaClient } from '@prisma/client'
-
-const prisma = new PrismaClient()
+import { prisma } from '../../config/db.js'
 
 const tableName = TABLESNAMES.USERS
 

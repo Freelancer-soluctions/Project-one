@@ -1,6 +1,4 @@
-import { PrismaClient, Prisma } from '@prisma/client'
-
-const prisma = new PrismaClient()
+import { prisma, Prisma } from '../../config/db.js'
 
 export const getAllPayroll = async (filters) => {
   // console.log(filters); // Keep for debugging if needed

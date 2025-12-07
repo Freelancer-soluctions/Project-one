@@ -236,3 +236,7 @@ usar alguna de estas opciones para crear las llaves secretas
 node -e "console.log('SECRETKEY=', require('crypto').randomBytes(32).toString('hex'))"
 node -e "console.log('REFRESHSECRETKEY=', require('crypto').randomBytes(32).toString('hex'))"
 node -e "console.log('SECRETCOOKIEKEY=', require('crypto').randomBytes(32).toString('hex'))"
+
+AESGCM KEY
+node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"
+
