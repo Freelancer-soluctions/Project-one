@@ -122,3 +122,4 @@ export const logOut = handleCatchErrorAsync(async (req, res) => {
  *
  *
  */
+export const changePassword = () => {}
