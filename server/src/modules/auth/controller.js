@@ -31,7 +31,7 @@ export const signIn = handleCatchErrorAsync(async (req, res) => {
   // Creates Secure Cookie with refresh token
   res.cookie('jwt', user.refreshToken, {
     httpOnly: true,
-    secure: isProduction, // <-- en LOCAL debe ser false, en produccion debe de ser true
+    secure: true, // <-- en LOCAL debe ser false, en produccion debe de ser true
     sameSite: 'none',
     path: '/',
     maxAge: 24 * 60 * 60 * 1000 /** 24 horas */
@@ -39,7 +39,7 @@ export const signIn = handleCatchErrorAsync(async (req, res) => {
   // token csrtoken
   res.cookie('csrfToken', user.csrfToken, {
     httpOnly: false, // accesible por frontend
-    secure: isProduction, //  <-- en LOCAL debe ser false, en produccion debe de ser true
+    secure: true, //  <-- en LOCAL debe ser false, en produccion debe de ser true
     sameSite: 'none',
     path: '/'
   })
@@ -75,8 +75,8 @@ export const refreshToken = handleCatchErrorAsync(async (req, res) => {
   const data = await authService.refreshToken(cookies, req)
   // Creates Secure Cookie with refresh token
   res.cookie('jwt', data.refreshToken, {
-    httpOnly: true,
-    secure: isProduction, // <-- en LOCAL debe ser false, en produccion debe de ser true
+    httpOnly: true, // para que no sea accesible por frontend
+    secure: true, // <-- en LOCAL debe ser false, en produccion debe de ser true
     sameSite: 'none',
     path: '/',
     maxAge: 24 * 60 * 60 * 1000 /** 24 horas */
@@ -84,7 +84,7 @@ export const refreshToken = handleCatchErrorAsync(async (req, res) => {
   // token csrtoken
   res.cookie('csrfToken', data.csrfToken, {
     httpOnly: false, // accesible por frontend
-    secure: isProduction, // <-- en LOCAL debe ser false, en produccion debe de ser true
+    secure: true, // <-- en LOCAL debe ser false, en produccion debe de ser true
     sameSite: 'none',
     path: '/'
   })

@@ -240,3 +240,6 @@ node -e "console.log('SECRETCOOKIEKEY=', require('crypto').randomBytes(32).toStr
 AESGCM KEY
 node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"
 
+A02 CRYPTOGRAPHID FAILURES
+Cifrado de datos en campos sensibles (AES-GCM) 
+

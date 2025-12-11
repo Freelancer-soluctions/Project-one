@@ -1,4 +1,6 @@
 import { prisma, Prisma } from '../../config/db.js'
+import { encryptObject, decryptObject } from '../../utils/security/sensitive-transform.js'
+import { hashValue } from '../../common/crypto/index.js'
 
 /**
  * Get all employees with optional filters
@@ -23,7 +25,7 @@ export const getAllEmployees = async (filters = {}) => {
   }
 
   if (filters.dni) {
-    whereClauses.push(Prisma.sql`e."dni" ILIKE ${`%${filters.dni}%`}`)
+    whereClauses.push(Prisma.sql`e."dni_hash" ILIKE ${`%${hashValue(filters.dni)}%`}`)
   }
 
   if (filters.email) {
@@ -52,8 +54,11 @@ export const getAllEmployees = async (filters = {}) => {
    LEFT JOIN "users" uu ON e."updatedBy" = uu.id
    ${whereSql}
  `
+  console.log('Employee data:', employees)
+  console.log('Employee data decryptObject:', decryptObject(employees))
 
-  return employees
+  // A02 cryptographid failures (cifrado de datos sensibles)
+  return decryptObject(employees)
 }
 
 /**
@@ -73,18 +78,21 @@ export const getAllEmployees = async (filters = {}) => {
  * @returns {Promise<Object>} Created employee with related data
  */
 export const createEmployee = async (data) => {
+  // A02 cryptographid failures (cifrado de datos sensibles)
+  const encrypt = encryptObject(data)
   return prisma.employees.create({
     data: {
       name: data.name,
       lastName: data.lastName,
-      dni: data.dni,
+      dni: encrypt.dni,
+      dni_hash: hashValue(data.dni),
       email: data.email,
       phone: data.phone,
       address: data.address,
       startDate: data.startDate,
       position: data.position,
       department: data.department,
-      salary: data.salary,
+      salary: encrypt.salary,
       createdOn: data.createdOn,
       userEmployeeCreated: {
         connect: {
@@ -113,19 +121,22 @@ export const createEmployee = async (data) => {
  * @returns {Promise<Object>} Updated employee with related data
  */
 export const updateEmployeeById = async (id, data) => {
+  // A02 cryptographid failures (cifrado de datos sensibles)
+  const encrypt = encryptObject(data)
   return prisma.employees.update({
     where: { id },
     data: {
       name: data.name,
       lastName: data.lastName,
-      dni: data.dni,
+      dni: encrypt.dni,
+      dni_hash: hashValue(data.dni),
       email: data.email,
       phone: data.phone,
       address: data.address,
       startDate: data.startDate,
       position: data.position,
       department: data.department,
-      salary: data.salary,
+      salary: encrypt.salary,
       updatedOn: data.updatedOn,
       userEmployeeUpdated: {
         connect: {
