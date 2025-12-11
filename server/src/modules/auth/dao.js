@@ -62,6 +62,7 @@ export const getUserById = async (id) => {
 
   return Promise.resolve(user)
 }
+
 // ya no necesario el token se guarda en una tabla independiente
 /**
  * Save a refresh token for a user.
