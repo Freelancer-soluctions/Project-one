@@ -3,17 +3,22 @@ export const SensitiveData = {
     'socialSecurity',
     'document',
     'dni',
-    'salary'
+    'salary',
+    'baseSalary'
+    // 'address',
+    // 'telephone',
+    // 'phone'
 
   ],
   sensitive: [
-    'email',
-    'telephone',
-    'phone',
-    'address'
-
+    'email'
   ]
 }
+
+export const sensitiveFields = [
+  ...SensitiveData.critical
+  // ...SensitiveData.sensitive
+]
 
 // model users {
 //   email          String  // ❌ Email en texto plano

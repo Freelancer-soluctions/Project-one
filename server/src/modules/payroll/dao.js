@@ -1,4 +1,5 @@
 import { prisma, Prisma } from '../../config/db.js'
+import { encryptObject, decryptObject } from '../../utils/security/sensitive-transform.js'
 
 export const getAllPayroll = async (filters) => {
   // console.log(filters); // Keep for debugging if needed
@@ -36,7 +37,8 @@ export const getAllPayroll = async (filters) => {
      ORDER BY p."createdOn" DESC
    `
   console.log(payrolls) // Keep for debugging if needed
-  return payrolls
+
+  return decryptObject(payrolls)
 
   // const { employeeId, month, year } = filters
 
@@ -59,11 +61,14 @@ export const getAllPayroll = async (filters) => {
 
 export const createPayroll = async (data) => {
   console.log('Creating payroll with data:', data)
+
+  // A02 cryptographid failures (cifrado de datos sensibles)
+  const encrypt = encryptObject(data)
   return await prisma.payroll.create({
     data: {
       month: data.month,
       year: data.year,
-      baseSalary: data.baseSalary,
+      baseSalary: encrypt.baseSalary,
       extraHours: data.extraHours,
       deductions: data.deductions,
       totalPayment: data.totalPayment,
@@ -84,12 +89,14 @@ export const createPayroll = async (data) => {
 }
 
 export const updatePayrollById = async (id, data) => {
+  const encrypt = encryptObject(data)
+
   return await prisma.payroll.update({
     where: { id: parseInt(id) },
     data: {
       month: data.month,
       year: data.year,
-      baseSalary: data.baseSalary,
+      baseSalary: encrypt.baseSalary,
       extraHours: data.extraHours,
       deductions: data.deductions,
       totalPayment: data.totalPayment,
