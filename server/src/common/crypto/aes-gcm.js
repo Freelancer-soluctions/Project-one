@@ -1,57 +1,98 @@
 import crypto from 'crypto'
 import dotenv from '../../config/dotenv.js'
 
-// Algoritmo a usar: AES en modo GCM (autenticado)
+// OWASP recomienda: AES-256-GCM
 const ALGORITHM = 'aes-256-gcm'
 
-// Llave de 256 bits (32 bytes) obtenida desde variables de entorno en base64
-const AES_KEY = Buffer.from(dotenv('AES_GCM_KEY'), 'base64') // 32 bytes
-
-// Función para cifrar usando AES-GCM
-export function encryptAESGCM (plainText) {
-  // El IV debe ser único por mensaje. AES-GCM recomienda 12 bytes.
-  const iv = crypto.randomBytes(12)
-
-  // Crear el cifrador con algoritmo, llave y IV
-  const cipher = crypto.createCipheriv(ALGORITHM, AES_KEY, iv)
-
-  // Cifrar el texto plano (update + final)
-  const encrypted = Buffer.concat([
-    cipher.update(plainText, 'utf8'),
-    cipher.final()
-  ])
-
-  // Obtener el Authentication Tag (GCM genera un tag de 16 bytes)
-  const tag = cipher.getAuthTag()
-
-  // Retornar todo junto: IV + TAG + CIPHERTEXT codificado en base64
-  // Esto permite que al descifrar se pueda leer los tres valores
-  return Buffer.concat([iv, tag, encrypted]).toString('base64')
+// Validar clave (debe ser 256 bits = 32 bytes)
+if (!process.env.AES_GCM_KEY) {
+  throw new Error('❌ AES_GCM_KEY no está definida en variables de entorno')
 }
 
-// Función para descifrar usando AES-GCM
+const AES_KEY = Buffer.from(process.env.AES_GCM_KEY, 'base64')
+
+if (AES_KEY.length !== 32) {
+  throw new Error(`❌ AES_KEY debe ser de 32 bytes (256 bits), actual: ${AES_KEY.length} bytes`)
+}
+
+console.log('✅ Clave AES-256-GCM cargada correctamente')
+
+/**
+ * Encripta usando AES-256-GCM (recomendación OWASP)
+ * Cumple con: OWASP Cryptographic Storage Cheat Sheet
+ * - Algoritmo: AES-256-GCM (modo autenticado)
+ * - IV: 12 bytes generados aleatoriamente con CSPRNG
+ * - Authentication Tag: 16 bytes
+ *
+ * @param {string} plainText - Texto a encriptar
+ * @returns {string} Texto encriptado en base64 (IV + TAG + CIPHERTEXT)
+ */
+export function encryptAESGCM (plainText) {
+  if (plainText === null || plainText === undefined) return plainText
+
+  try {
+    // OWASP: IV debe ser único por mensaje (12 bytes para GCM)
+    const iv = crypto.randomBytes(12)
+
+    // Crear cifrador con AES-256-GCM
+    const cipher = crypto.createCipheriv(ALGORITHM, AES_KEY, iv)
+
+    // Cifrar texto
+    const encrypted = Buffer.concat([
+      cipher.update(String(plainText), 'utf8'),
+      cipher.final()
+    ])
+
+    // OWASP: GCM proporciona autenticación integrada via Authentication Tag
+    const tag = cipher.getAuthTag()
+
+    // Formato: IV (12) + TAG (16) + CIPHERTEXT
+    return Buffer.concat([iv, tag, encrypted]).toString('base64')
+  } catch (error) {
+    console.error('❌ Error encriptando:', error.message)
+    throw new Error(`Encriptación falló: ${error.message}`)
+  }
+}
+
+/**
+ * Desencripta usando AES-256-GCM (recomendación OWASP)
+ *
+ * @param {string} cipherText - Texto encriptado en base64
+ * @returns {string} Texto desencriptado
+ */
 export function decryptAESGCM (cipherText) {
-  // Decodificar el base64 para obtener el buffer completo
-  const raw = Buffer.from(cipherText, 'base64')
+  if (cipherText === null || cipherText === undefined) return cipherText
 
-  // Extraer IV (primeros 12 bytes)
-  const iv = raw.subarray(0, 12)
+  try {
+    // Decodificar base64
+    const raw = Buffer.from(cipherText, 'base64')
 
-  // Extraer TAG (siguientes 16 bytes)
-  const tag = raw.subarray(12, 28)
+    // Validar tamaño mínimo (12 IV + 16 TAG = 28 bytes)
+    if (raw.length < 28) {
+      throw new Error(`Datos inválidos: ${raw.length} bytes, mínimo 28`)
+    }
 
-  // El resto es el texto cifrado
-  const encrypted = raw.subarray(28)
+    // Extraer componentes
+    const iv = raw.subarray(0, 12)
+    const tag = raw.subarray(12, 28)
+    const encrypted = raw.subarray(28)
 
-  // Crear el descifrador con algoritmo, llave y IV
-  const decipher = crypto.createDecipheriv(ALGORITHM, AES_KEY, iv)
+    // Crear descifrador
+    const decipher = crypto.createDecipheriv(ALGORITHM, AES_KEY, iv)
 
-  // Establecer el Authentication Tag para validar la integridad
-  decipher.setAuthTag(tag)
+    // OWASP: Verificar Authentication Tag para validar integridad
+    decipher.setAuthTag(tag)
 
-  // Descifrar contenido y retornarlo como texto UTF-8
-  return Buffer.concat([
-    decipher.update(encrypted),
-    decipher.final()
-  ]).toString('utf8')
+    // Descifrar y verificar
+    return Buffer.concat([
+      decipher.update(encrypted),
+      decipher.final()
+    ]).toString('utf8')
+  } catch (error) {
+    console.error('❌ Error desencriptando:', {
+      input: cipherText?.substring(0, 30) + '...',
+      error: error.message
+    })
+    throw new Error(`Desencriptación falló: ${error.message}`)
+  }
 }
