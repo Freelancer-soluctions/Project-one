@@ -22,6 +22,7 @@
   "author": "Laura Falcon and Johan Garcia",
   "license": "ISC",
   "dependencies": {
+    "@aws-sdk/client-secrets-manager": "^3.950.0",
     "@prisma/client": "^5.16.1",
     "bcrypt": "^5.1.1",
     "cloudinary": "^2.2.0",

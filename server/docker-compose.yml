@@ -27,31 +27,28 @@ services:
       - 8080:80
 
 
-    version: "3.8"
+#   api:
+#     build: .
+#     container_name: backend-api
+#     networks:
+#       - aws-local
+#     environment:
+#       # AWS estándar
+#       AWS_REGION: us-east-1
 
+#       # Solo existe en local
+#       AWS_ENDPOINT_URL: http://localstack:4566
 
-  api:
-    build: .
-    container_name: backend-api
-    networks:
-      - aws-local
-    environment:
-      # AWS estándar
-      AWS_REGION: us-east-1
+#       # Credenciales dummy (solo local)
+#       AWS_ACCESS_KEY_ID: test
+#       AWS_SECRET_ACCESS_KEY: test
 
-      # Solo existe en local
-      AWS_ENDPOINT_URL: http://localstack:4566
+#       # App
+#       SECRET_NAME: my-backend-secrets
+#     ports:
+#       - "3000:3000"
 
-      # Credenciales dummy (solo local)
-      AWS_ACCESS_KEY_ID: test
-      AWS_SECRET_ACCESS_KEY: test
-
-      # App
-      SECRET_NAME: my-backend-secrets
-    ports:
-      - "3000:3000"
-
-networks:
-  aws-local:
-    external: true
+# networks:
+#   aws-local:
+#     external: true
 

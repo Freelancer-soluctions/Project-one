@@ -1,5 +1,5 @@
 import { prisma, Prisma } from '../../config/db.js'
-import { encryptObject, decryptObject } from '../../utils/security/sensitive-transform.js'
+// import { decryptSensitiveFields, encryptSensitiveFields } from '../../utils/security/sensitive-transform.js'
 import { hashValue } from '../../common/crypto/index.js'
 
 /**
@@ -54,11 +54,9 @@ export const getAllEmployees = async (filters = {}) => {
    LEFT JOIN "users" uu ON e."updatedBy" = uu.id
    ${whereSql}
  `
-  console.log('Employee data:', employees)
-  console.log('Employee data decryptObject:', decryptObject(employees))
 
   // A02 cryptographid failures (cifrado de datos sensibles)
-  return decryptObject(employees)
+  return employees
 }
 
 /**
@@ -79,12 +77,12 @@ export const getAllEmployees = async (filters = {}) => {
  */
 export const createEmployee = async (data) => {
   // A02 cryptographid failures (cifrado de datos sensibles)
-  const encrypt = encryptObject(data)
+  // const encrypt = encryptSensitiveFields(data)
   return prisma.employees.create({
     data: {
       name: data.name,
       lastName: data.lastName,
-      dni: encrypt.dni,
+      dni: data.dni,
       dni_hash: hashValue(data.dni),
       email: data.email,
       phone: data.phone,
@@ -92,7 +90,7 @@ export const createEmployee = async (data) => {
       startDate: data.startDate,
       position: data.position,
       department: data.department,
-      salary: encrypt.salary,
+      salary: data.salary,
       createdOn: data.createdOn,
       userEmployeeCreated: {
         connect: {
@@ -122,13 +120,13 @@ export const createEmployee = async (data) => {
  */
 export const updateEmployeeById = async (id, data) => {
   // A02 cryptographid failures (cifrado de datos sensibles)
-  const encrypt = encryptObject(data)
+  // const encrypt = encryptObject(data)
   return prisma.employees.update({
     where: { id },
     data: {
       name: data.name,
       lastName: data.lastName,
-      dni: encrypt.dni,
+      dni: data.dni,
       dni_hash: hashValue(data.dni),
       email: data.email,
       phone: data.phone,
@@ -136,7 +134,7 @@ export const updateEmployeeById = async (id, data) => {
       startDate: data.startDate,
       position: data.position,
       department: data.department,
-      salary: encrypt.salary,
+      salary: data.salary,
       updatedOn: data.updatedOn,
       userEmployeeUpdated: {
         connect: {
