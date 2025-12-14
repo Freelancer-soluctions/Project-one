@@ -346,8 +346,6 @@
     "months": "Months",
     "select_month_placeholder": "Select a month",
     "year_placeholder": "Enter the year",
-    "add_payroll_message": "Fill in the required fields to create a new payroll record. Ensure all necessary information is entered correctly.",
-    "edit_payroll_message": "Make the necessary changes to the payroll record. Ensure the information is accurate before saving.",
     "add_payroll": "Add payroll",
     "edit_payroll": "Edit payroll",
     "base_salary_placeholder": "Enter the base salary",

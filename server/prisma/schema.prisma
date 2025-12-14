@@ -487,9 +487,9 @@ model payroll {
   month              Int       @db.Integer
   year               Int       @db.Integer
   baseSalary         String    @db.VarChar(128)
-  extraHours         Decimal   @db.Decimal(18, 2)
-  deductions         Decimal   @db.Decimal(18, 2)
-  totalPayment       Decimal   @db.Decimal(18, 2)
+  extraHours        String    @db.VarChar(128)
+  deductions        String    @db.VarChar(128)
+  totalPayment       String    @db.VarChar(128)
   employee           employees @relation("payrollEmployee", fields: [employeeId], references: [id])
   createdOn          DateTime  @db.Timestamp(3)
   updatedOn          DateTime? @db.Timestamp(3)

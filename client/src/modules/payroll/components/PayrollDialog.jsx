@@ -49,7 +49,9 @@ export const PayrollDialog = ({
   selectedRow,
   onSubmit,
   onDeleteById,
-  actionDialog
+  actionDialog,
+            dataEmployees
+
 }) => {
   const { t } = useTranslation()
   const [payrollId, setPayrollId] = useState('')
@@ -129,7 +131,10 @@ export const PayrollDialog = ({
   }
 
   return (
-    <Dialog open={openDialog} onOpenChange={onCloseDialog}>
+    <Dialog open={openDialog}  onOpenChange={isOpen => {
+        if (isOpen === true) return
+        onCloseDialog()
+      }}>
       <DialogContent className='sm:max-w-[600px]'>
         <DialogHeader>
           <DialogTitle className='flex items-center gap-2'>
@@ -137,7 +142,7 @@ export const PayrollDialog = ({
             {actionDialog}
           </DialogTitle>
           <DialogDescription>
-            {payrollId ? t('edit_payroll_message') : t('add_payroll_message')}
+            {payrollId ? t('edit_message') : t('add_message')}
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
@@ -168,7 +173,7 @@ export const PayrollDialog = ({
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {employeesList.map(employee => (
+                        {dataEmployees.map(employee => (
                           <SelectItem
                             key={employee.id}
                             value={employee.id.toString()}>
@@ -182,9 +187,7 @@ export const PayrollDialog = ({
                 )}
               />
 
-              {/* Spacer - or could put another field here if needed */}
-              <div />
-
+            
               {/* Month Select */}
               <FormField
                 control={form.control}

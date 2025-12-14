@@ -1,5 +1,5 @@
 import { prisma, Prisma } from '../../config/db.js'
-import { encryptObject, decryptObject } from '../../utils/security/sensitive-transform.js'
+// import { decryptSensitiveFields, encryptSensitiveFields } from '../../utils/security/sensitive-transform.js'
 
 export const getAllPayroll = async (filters) => {
   // console.log(filters); // Keep for debugging if needed
@@ -36,9 +36,20 @@ export const getAllPayroll = async (filters) => {
      ${whereSql}
      ORDER BY p."createdOn" DESC
    `
-  console.log(payrolls) // Keep for debugging if needed
+  console.log('📝 Primer registro (encriptado):', payrolls[0])
+  return payrolls
+  // console.log('📦 Payrolls antes de desencriptar:', payrolls.length)
+  // console.log('📝 Primer registro (encriptado):', payrolls[0])
 
-  return decryptObject(payrolls)
+  // try {
+  //   const decrypted = decryptSensitiveFields(payrolls)
+  //   console.log('✅ Desencriptación completada')
+  //   console.log('📝 Primer registro (desencriptado):', decrypted[0])
+  //   return decrypted
+  // } catch (error) {
+  //   console.error('❌ Error general en desencriptación:', error)
+  //   throw error
+  // }
 
   // const { employeeId, month, year } = filters
 
@@ -63,12 +74,12 @@ export const createPayroll = async (data) => {
   console.log('Creating payroll with data:', data)
 
   // A02 cryptographid failures (cifrado de datos sensibles)
-  const encrypt = encryptObject(data)
+  // const encrypt = encryptSensitiveFields(data)
   return await prisma.payroll.create({
     data: {
       month: data.month,
       year: data.year,
-      baseSalary: encrypt.baseSalary,
+      baseSalary: data.baseSalary,
       extraHours: data.extraHours,
       deductions: data.deductions,
       totalPayment: data.totalPayment,
@@ -89,14 +100,14 @@ export const createPayroll = async (data) => {
 }
 
 export const updatePayrollById = async (id, data) => {
-  const encrypt = encryptObject(data)
+  // const encrypt = encryptObject(data)
 
   return await prisma.payroll.update({
     where: { id: parseInt(id) },
     data: {
       month: data.month,
       year: data.year,
-      baseSalary: encrypt.baseSalary,
+      baseSalary: data.baseSalary,
       extraHours: data.extraHours,
       deductions: data.deductions,
       totalPayment: data.totalPayment,

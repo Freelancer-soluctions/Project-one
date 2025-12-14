@@ -1,17 +1,43 @@
 export const SensitiveData = {
   critical: [
+    // Documentos de identidad
     'socialSecurity',
     'document',
     'dni',
+
+    // Información financiera
     'salary',
-    'baseSalary'
-    // 'address',
-    // 'telephone',
-    // 'phone'
+    'baseSalary',
+    'extraHours',
+    'deductions',
+    'totalPayment',
+
+    // Información financiera
+    'salary',
+    'baseSalary',
+    'extraHours',
+    'deductions',
+    'totalPayment'
 
   ],
   sensitive: [
-    'email'
+    // Información personal
+    'email',
+    'contactEmail',
+    'name',
+    'lastName',
+    'contactName',
+
+    // Información demográfica
+    'birthday',
+    'city',
+    'state',
+    'zipcode',
+
+    // Información laboral
+    'startDate',
+    'position',
+    'department'
   ]
 }
 

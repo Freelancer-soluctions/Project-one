@@ -1,64 +1,56 @@
 import { sensitiveFields } from '../../security/data-clasification.js'
 import { encryptAESGCM, decryptAESGCM } from '../../common/crypto/aes-gcm.js'
 
-// Cifra únicamente los campos sensibles de un objeto plano
-export function encryptObject (obj) {
-  // Si no es un objeto válido, se retorna igual
+/**
+ * Encripta campos sensibles de un objeto
+ * OWASP: "Encrypt all sensitive data at rest"
+ */
+export function encryptSensitiveFields (obj) {
   if (!obj || typeof obj !== 'object') return obj
 
-  // Se clona el objeto para no mutar el original
-  const clone = { ...obj }
+  const result = { ...obj }
 
-  // Se recorren todos los campos marcados como sensibles
   for (const field of sensitiveFields) {
-    // Si el campo existe en el objeto, se cifra con AES-GCM
-    if (clone[field] !== undefined) {
-      clone[field] = encryptAESGCM(clone[field])
+    if (result[field] !== undefined && result[field] !== null) {
+      result[field] = encryptAESGCM(String(result[field]))
     }
   }
 
-  // Devuelve el objeto con sus campos sensibles cifrados
-  return clone
+  return result
 }
 
-// Descifra objetos completos recorriendo cualquier estructura anidada
-export function decryptObject (value) {
-  // 1. Si no es objeto ni array, no se procesa
-  if (value === null || value === undefined) return value
-  if (typeof value !== 'object') return value
+/**
+ * Desencripta campos sensibles de forma recursiva
+ * Maneja objetos, arrays y estructuras anidadas
+ */
+export function decryptSensitiveFields (data) {
+  // Casos base
+  if (data === null || data === undefined) return data
+  if (data instanceof Date) return data
+  if (typeof data !== 'object') return data
 
-  // Manejo especial: si es Date, se deja tal cual
-  // Esto evita que el algoritmo intente descifrar fechas, lo que generaría errores
-  if (value instanceof Date) {
-    return value
+  // Arrays
+  if (Array.isArray(data)) {
+    return data.map(item => decryptSensitiveFields(item))
   }
 
-  // 2. Si es array, se descifra cada elemento recursivamente
-  if (Array.isArray(value)) {
-    return value.map(item => decryptObject(item))
-  }
-
-  // 3. Si es un objeto normal, se procesan todas sus claves
+  // Objetos
   const result = {}
 
-  for (const key of Object.keys(value)) {
-    const original = value[key]
-
-    // Si el campo está marcado como sensible y es un string,
-    // se descifra con AES-GCM
-    if (sensitiveFields.includes(key) && typeof original === 'string') {
-      result[key] = decryptAESGCM(original)
-    }
-    // Si es un objeto o array anidado, se procesa recursivamente
-    else if (typeof original === 'object' && original !== null) {
-      result[key] = decryptObject(original)
-    }
-    // Caso contrario, se copia el valor sin modificar
-    else {
-      result[key] = original
+  for (const [key, value] of Object.entries(data)) {
+    if (sensitiveFields.includes(key) && typeof value === 'string') {
+      try {
+        result[key] = decryptAESGCM(value)
+      } catch (error) {
+        console.error(`❌ Error desencriptando campo ${key}:`, error.message)
+        result[key] = '[ERROR: No se pudo desencriptar]'
+      }
+    } else if (typeof value === 'object' && value !== null) {
+      result[key] = decryptSensitiveFields(value)
+    } else {
+      result[key] = value
     }
   }
 
-  // Devuelve el objeto completamente descifrado
   return result
 }
