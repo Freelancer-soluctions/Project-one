@@ -26,8 +26,8 @@ console.log('✅ Encryption middleware cargado correctamente')
 const ENCRYPTED_FIELDS = {
   Payroll: ['baseSalary', 'extraHours', 'deductions', 'totalPayment'],
   payroll: ['baseSalary', 'extraHours', 'deductions', 'totalPayment'],
-  Employee: ['socialSecurity', 'document', 'salary'],
-  employee: ['socialSecurity', 'document', 'salary'],
+  Employees: ['socialSecurity', 'document', 'salary'],
+  employees: ['socialSecurity', 'document', 'salary', 'dni'],
   User: ['email'],
   user: ['email']
 }
