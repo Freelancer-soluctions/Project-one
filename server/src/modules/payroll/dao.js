@@ -1,5 +1,6 @@
 import { prisma, Prisma } from '../../config/db.js'
 // import { decryptSensitiveFields, encryptSensitiveFields } from '../../utils/security/sensitive-transform.js'
+import { decryptResults } from '../../utils/prisma/prisma-query.js'
 
 export const getAllPayroll = async (filters) => {
   // console.log(filters); // Keep for debugging if needed
@@ -37,7 +38,8 @@ export const getAllPayroll = async (filters) => {
      ORDER BY p."createdOn" DESC
    `
   console.log('📝 Primer registro (encriptado):', payrolls[0])
-  return payrolls
+  return decryptResults(payrolls)
+
   // console.log('📦 Payrolls antes de desencriptar:', payrolls.length)
   // console.log('📝 Primer registro (encriptado):', payrolls[0])
 
@@ -73,8 +75,6 @@ export const getAllPayroll = async (filters) => {
 export const createPayroll = async (data) => {
   console.log('Creating payroll with data:', data)
 
-  // A02 cryptographid failures (cifrado de datos sensibles)
-  // const encrypt = encryptSensitiveFields(data)
   return await prisma.payroll.create({
     data: {
       month: data.month,
