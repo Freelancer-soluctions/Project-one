@@ -1,66 +1,73 @@
 // helmet.config.js
-// Archivo centralizado para configurar Helmet con
-// Content Security Policy (CSP) sólido y adaptable,
-// comentado para entender exactamente qué hace cada línea.
+// -----------------------------------------------------------
+// Configuración centralizada de Helmet alineada con OWASP Top 10
+// - A02: Cryptographic Failures
+// - A03: Injection (XSS)
+// - A05: Security Misconfiguration
+//
+// La configuración se adapta automáticamente
+// a desarrollo vs producción.
+// -----------------------------------------------------------
 
 import helmet from 'helmet'
 
 const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173'
+const NODE_ENV = process.env.NODE_ENV || 'development'
+const isProduction = NODE_ENV === 'production'
 
 export const helmetConfig = helmet({
   // -----------------------------------------------------------
   // OCULTAR DETALLES INTERNOS DE EXPRESS
+  // OWASP A05 - Security Misconfiguration
   // -----------------------------------------------------------
-  // Elimina el header "X-Powered-By" para evitar decir
-  // abiertamente que el backend corre sobre Express.
   hidePoweredBy: true,
 
-  // 🚨 Aquí está: reportingEndpoints está AL MISMO NIVEL que contentSecurityPolicy
-  reportingEndpoints: [
-    {
-      name: 'csp-endpoint',
-      url: '/api/v1/security/csp-report'
-    }
-  ],
+  // -----------------------------------------------------------
+  // CSP REPORTING (NAVEGADOR → BACKEND)
+  // OWASP A03 - Detección de XSS reales
+  // -----------------------------------------------------------
+  // Este endpoint NO lo llama el frontend,
+  // lo llama automáticamente el navegador.
+  reportingEndpoints: isProduction
+    ? [
+        {
+          name: 'csp-endpoint',
+          url: '/api/v1/security/csp-report'
+        }
+      ]
+    : undefined,
 
   // -----------------------------------------------------------
-  // CONTROLAR TODAS LAS POLÍTICAS DE SEGURIDAD
+  // CONTENT SECURITY POLICY (CSP)
+  // OWASP A03 - Injection (XSS)
   // -----------------------------------------------------------
   contentSecurityPolicy: {
     useDefaults: true,
 
-    // Aquí se definen todas las fuentes permitidas del frontend.
-    // Si en el futuro React carga imágenes externas, scripts CDN,
-    // iframes o conexiones WebSocket externas, se agregan aquí.
     directives: {
       // -------------------------------------------------------
-      // DEFAULT-SRC
+      // POLÍTICA BASE
       // -------------------------------------------------------
-      // Política base: TODO lo que no tenga una regla más específica
-      // solo podrá cargar desde 'self'.
       defaultSrc: ["'self'"],
 
       // -------------------------------------------------------
-      // SCRIPT-SRC
+      // SCRIPTS
+      // En producción: estricta
+      // En desarrollo: se permite lo necesario para Vite/HMR
       // -------------------------------------------------------
-      // Controla desde dónde pueden cargarse scripts JS.
-      // Como el frontend está en otro dominio, se añade.
-      // IMPORTANTE:
-      // - Si algún día se usan scripts desde un CDN (ej. Google Maps),
-      //   se deben añadir aquí.
-      scriptSrc: [
-        "'self'",
-        FRONTEND_URL
-      ],
+      scriptSrc: isProduction
+        ? ["'self'", FRONTEND_URL]
+        : [
+            "'self'",
+            FRONTEND_URL,
+            "'unsafe-inline'",
+            "'unsafe-eval'" // requerido por Vite / source maps
+          ],
 
       // -------------------------------------------------------
-      // STYLE-SRC
+      // STYLES
+      // unsafe-inline es necesario mientras React genere estilos inline
       // -------------------------------------------------------
-      // Permite cargar estilos solo desde:
-      // - El propio backend
-      // - El dominio del frontend
-      // - 'unsafe-inline' es necesario porque React Vite genera estilos inline.
-      //   Cuando pase a producción con build final, probablemente podrá eliminarse.
       styleSrc: [
         "'self'",
         FRONTEND_URL,
@@ -68,12 +75,8 @@ export const helmetConfig = helmet({
       ],
 
       // -------------------------------------------------------
-      // IMG-SRC
+      // IMÁGENES
       // -------------------------------------------------------
-      // Permite imágenes desde el backend, desde el frontend,
-      // y desde blobs/base64 (React las usa a veces).
-      // - Si en el futuro se cargan imágenes de un CDN (ej. CloudFront),
-      //   se agrega aquí.
       imgSrc: [
         "'self'",
         FRONTEND_URL,
@@ -82,82 +85,83 @@ export const helmetConfig = helmet({
       ],
 
       // -------------------------------------------------------
-      // CONNECT-SRC
+      // FETCH / XHR / WEBSOCKET
       // -------------------------------------------------------
-      // Define quién puede hacer peticiones XHR, fetch, WebSockets
-      // hacia el backend.
-      // Aquí se habilita el frontend actual.
       connectSrc: [
         "'self'",
         FRONTEND_URL
       ],
 
       // -------------------------------------------------------
-      // FRAME-ANCESTORS
+      // CLICKJACKING
       // -------------------------------------------------------
-      // Controla quién puede insertar el sitio dentro de un iframe.
-      // Protege contra clickjacking.
-      // El usuario indicó que NO usa iframes.
-      // Cuando el proyecto tenga dominio propio, reemplazar 'none'
-      // por el dominio deseado.
       frameAncestors: ["'none'"],
 
       // -------------------------------------------------------
-      // BASE-URI
+      // BASE TAG
       // -------------------------------------------------------
-      // Controla dónde puede apuntar la etiqueta <base>.
-      // Mantener siempre 'self' o eliminarla por seguridad.
       baseUri: ["'self'"],
 
       // -------------------------------------------------------
-      // OBJECT-SRC
+      // OBJETOS LEGADOS (Flash, Java)
       // -------------------------------------------------------
-      // Evita cargar Flash, Java applets, etc (deshabilitado totalmente).
       objectSrc: ["'none'"],
 
       // -------------------------------------------------------
-      // MANIFEST-SRC
+      // MANIFEST (PWA FUTURO)
       // -------------------------------------------------------
-      // Permite los archivos manifest (PWA). Por ahora no se usa.
       manifestSrc: ["'self'", FRONTEND_URL],
 
       // -------------------------------------------------------
-      // 📌 AÑADIR REPORTES CSP
+      // REPORTES CSP
+      // SOLO en producción (evita ruido en dev)
       // -------------------------------------------------------
-
-      // Reportes clásicos (mayor compatibilidad)
-      reportUri: ['/api/v1/security/csp-report'], // <<< AÑADIDO PARA ACTIVAR REPORTES CSP >>>
-
-      // Reportes modernos (estándar actual)
-      reportTo: 'csp-endpoint' // <<< AÑADIDO PARA BROWSER MODERNO >>>
+      ...(isProduction && {
+        reportUri: ['/api/v1/security/csp-report'],
+        reportTo: 'csp-endpoint'
+      })
     }
   },
 
   // -----------------------------------------------------------
-  // PERMITE CONTROLAR SI EL NAVEGADOR PUEDE ADIVINAR TIPOS MIME
+  // STRICT-TRANSPORT-SECURITY (HSTS)
+  // OWASP A02 - Cryptographic Failures
+  // -----------------------------------------------------------
+  // ⚠️ SOLO en producción
+  // Obliga al navegador a usar HTTPS
+  hsts: isProduction
+    ? {
+        maxAge: 31536000, // 1 año
+        includeSubDomains: true,
+        preload: true
+      }
+    : false,
+
+  // -----------------------------------------------------------
+  // MIME SNIFFING
+  // OWASP A05
   // -----------------------------------------------------------
   noSniff: true,
 
   // -----------------------------------------------------------
-  // PROTEGE CONTRA CLICKJACKING
+  // CLICKJACKING (HEADER X-FRAME-OPTIONS)
   // -----------------------------------------------------------
   frameguard: {
     action: 'deny'
   },
 
   // -----------------------------------------------------------
-  // CONTROLA LA POLÍTICA DE REFERER
+  // REFERER POLICY
+  // Evita filtrar rutas o tokens en headers
   // -----------------------------------------------------------
-  // Es más privado mandar solo "strict-origin-when-cross-origin".
   referrerPolicy: {
     policy: 'strict-origin-when-cross-origin'
   },
 
   // -----------------------------------------------------------
-  // LIMITA EL USO DE API COMO GEOLOCALIZACIÓN, CÁMARA, ETC.
+  // PERMISSIONS POLICY
+  // OWASP A05
   // -----------------------------------------------------------
-  // Se deja vacío; si en el futuro se usa mapa, cámara o sensores,
-  // se agregan aquí.
   permissionsPolicy: {
     features: {
       camera: "'none'",
@@ -166,12 +170,3 @@ export const helmetConfig = helmet({
     }
   }
 })
-
-// NOTAS
-// Qué cambiar al pasar a producción
-// Caso	Qué modificar
-// El frontend ya no está en localhost:5173	Cambiar FRONTEND_URL a https://tu-dominio.com
-// Si React carga scripts externos (CDN)	Añadir dominio en scriptSrc
-// Si React carga imágenes de un CDN	Añadir dominio en imgSrc
-// Si usará mapas, Stripe, PayPal, reCAPTCHA	Ajustar connectSrc, scriptSrc y frameAncestors
-// Si se usan iFrames	Reemplazar frameAncestors: ["'none'"]
