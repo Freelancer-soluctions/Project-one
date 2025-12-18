@@ -1,3 +1,7 @@
+import { ENVIROMENTS } from '../constants/enums'
+import dotenv from '../../config/dotenv'
+import helmet from 'helmet'
+
 // helmet.config.js
 // -----------------------------------------------------------
 // Configuración centralizada de Helmet alineada con OWASP Top 10
@@ -9,11 +13,9 @@
 // a desarrollo vs producción.
 // -----------------------------------------------------------
 
-import helmet from 'helmet'
-
-const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173'
-const NODE_ENV = process.env.NODE_ENV || 'development'
-const isProduction = NODE_ENV === 'production'
+const FRONTEND_URL = dotenv('FRONTEND_URL')
+const NODE_ENV = dotenv('NODE_ENV')
+const isProduction = NODE_ENV === ENVIROMENTS.PRODUCTION
 
 export const helmetConfig = helmet({
   // -----------------------------------------------------------

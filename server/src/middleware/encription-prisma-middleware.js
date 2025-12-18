@@ -1,17 +1,14 @@
-// ============================================
-// prisma/encryption-middleware.js - CORREGIDO
-// ============================================
-
+import dotenv from '../config/dotenv'
 import crypto from 'crypto'
 
-const ALGORITHM = 'aes-256-gcm'
+const ALGORITHM = dotenv('ALGORITHM')
 
 // Validar que existe la clave
-if (!process.env.AES_GCM_KEY) {
+if (!dotenv('AES_GCM_KEY')) {
   throw new Error('❌ AES_GCM_KEY no está definida en variables de entorno')
 }
 
-const ENCRYPTION_KEY = Buffer.from(process.env.AES_GCM_KEY, 'base64')
+const ENCRYPTION_KEY = Buffer.from(dotenv('AES_GCM_KEY'), 'base64')
 
 if (ENCRYPTION_KEY.length !== 32) {
   throw new Error(`❌ AES_GCM_KEY debe ser de 32 bytes, actual: ${ENCRYPTION_KEY.length}`)
@@ -152,7 +149,7 @@ function decryptFields (model, data) {
 }
 
 // ============================================
-// Middleware de Prisma - CORREGIDO
+// Middleware de Prisma
 // ============================================
 
 export function encryptionMiddleware (prisma) {

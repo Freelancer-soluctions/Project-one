@@ -5,9 +5,10 @@
 
 // Importar la función decrypt del middleware
 import crypto from 'crypto'
+import dotenv from '../../config/dotenv'
 
-const ALGORITHM = 'aes-256-gcm'
-const ENCRYPTION_KEY = Buffer.from(process.env.AES_GCM_KEY, 'base64')
+const ALGORITHM = dotenv('ALGORITHM')
+const ENCRYPTION_KEY = Buffer.from(dotenv('AES_GCM_KEY'), 'base64')
 
 function decrypt (ciphertext) {
   if (!ciphertext || typeof ciphertext !== 'string') return ciphertext
