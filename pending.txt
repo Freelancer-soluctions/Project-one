@@ -9,6 +9,9 @@ Lista de caracteristicas para destacar
 - Error boundary para el front con   react-error-boundary
 -- Back
 
+A02 Cryptographid failures 
+- TLS habilitado (Depende de infraestructura)
+- HTTPS forzado (Debes confirmarlo)
 
 
 
