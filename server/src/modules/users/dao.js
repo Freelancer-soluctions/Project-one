@@ -1,6 +1,5 @@
-import { PrismaClient, Prisma } from '@prisma/client'
-
-const prisma = new PrismaClient()
+import { prisma, Prisma } from '../../config/db.js'
+import { decryptSensitiveFields, encryptSensitiveFields } from '../../utils/security/sensitive-transform.js'
 
 /**
  * Get all users with optional filters
@@ -44,7 +43,9 @@ export const getAllUsers = async (filters = {}) => {
     LEFT JOIN "roles" r ON u."roleId" = r.id
     ${whereSql}
   `
-  return users
+
+  // A02 cryptographid failures (cifrado de datos sensibles)
+  return decryptSensitiveFields(users)
 }
 
 /**
@@ -121,6 +122,8 @@ export const getAllUsersRoles = async () => {
  * @returns {Promise&lt;object&gt;} The created user object.
  */
 export const createUser = async (data) => {
+  // A02 cryptographid failures (cifrado de datos sensibles)
+  const encrypt = encryptSensitiveFields(data)
   return prisma.users.create({
     data: {
       name: data.name,
@@ -131,11 +134,11 @@ export const createUser = async (data) => {
       city: data.city,
       isAdmin: data.isAdmin,
       picture: data.picture,
-      document: data.document,
+      document: encrypt.document,
       lastUpdatedBy: data.lastUpdatedBy,
       lastUpdatedOn: new Date(),
       roleId: data.roleId,
-      socialSecurity: data.socialSecurity,
+      socialSecurity: encrypt.socialSecurity,
       startDate: data.startDate,
       state: data.state,
       statusId: data.statusId,
@@ -182,7 +185,6 @@ export const createUser = async (data) => {
  * @returns {Promise&lt;object&gt;} The updated user object.
  */
 export const updateUserById = async (id, data) => {
-  console.log('Updating user with ID:', id, 'Data:', data)
   return prisma.users.update({
     where: { id: parseInt(id, 10) },
     data: {

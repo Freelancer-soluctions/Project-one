@@ -1,9 +1,6 @@
 import { createRow, getOneRow, updateRow } from '../../utils/prisma/dao.js'
 import { TABLESNAMES } from '../../utils/constants/enums.js'
-
-import { PrismaClient } from '@prisma/client'
-
-const prisma = new PrismaClient()
+import { prisma } from '../../config/db.js'
 
 const tableName = TABLESNAMES.USERS
 
@@ -65,6 +62,7 @@ export const getUserById = async (id) => {
 
   return Promise.resolve(user)
 }
+
 // ya no necesario el token se guarda en una tabla independiente
 /**
  * Save a refresh token for a user.
