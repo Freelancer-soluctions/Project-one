@@ -68,7 +68,7 @@ const csrfExcludedRoutes = [
 export const csrfConditional = (req, res, next) => {
   const isGet = req.method === 'GET'
   const isExcluded = csrfExcludedRoutes.includes(req.path)
-  console.log('entre aqui estoy bien')
+  console.log('entre aqui estoy bien csrf token')
   if (isGet || isExcluded) {
     return next() // no aplicar CSRF
   }

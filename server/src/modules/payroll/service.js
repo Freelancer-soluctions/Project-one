@@ -7,6 +7,10 @@ export const getAllPayroll = async (filters) => {
 export const createPayroll = async (data, userId) => {
   const payroll = {
     ...data,
+    baseSalary: String(data.baseSalary),
+    extraHours: String(data.extraHours),
+    deductions: String(data.deductions),
+    totalPayment: String(data.totalPayment),
     createdOn: new Date(),
     createdBy: userId
   }

@@ -1,6 +1,10 @@
 import * as authService from './service.js'
 import handleCatchErrorAsync from '../../utils/responses&Errors/handleCatchErrorAsync.js'
 import globalResponse from '../../utils/responses&Errors/globalResponse.js'
+import dotenv from '../../config/dotenv.js'
+
+const isProduction = dotenv('NODE_ENV') === 'production'
+
 /**
  * Handle user sign-up.
  *
@@ -70,7 +74,13 @@ export const refreshToken = handleCatchErrorAsync(async (req, res) => {
   const cookies = req.cookies
   const data = await authService.refreshToken(cookies, req)
   // Creates Secure Cookie with refresh token
-  res.cookie('jwt', data.refreshToken, { httpOnly: true, secure: true, sameSite: 'none', path: '/', maxAge: 24 * 60 * 60 * 1000 /** 24 horas */ })
+  res.cookie('jwt', data.refreshToken, {
+    httpOnly: true, // para que no sea accesible por frontend
+    secure: true, // <-- en LOCAL debe ser false, en produccion debe de ser true
+    sameSite: 'none',
+    path: '/',
+    maxAge: 24 * 60 * 60 * 1000 /** 24 horas */
+  })
   // token csrtoken
   res.cookie('csrfToken', data.csrfToken, {
     httpOnly: false, // accesible por frontend
@@ -97,7 +107,13 @@ export const logOut = handleCatchErrorAsync(async (req, res) => {
   const cookies = req.cookies
   // reviocar refresh token
   await authService.logout(cookies)
-  res.cookie('jwt', '', { httpOnly: true, secure: true, sameSite: 'none', path: '/', expires: new Date(0) })
+  res.cookie('jwt', '', {
+    httpOnly: true,
+    secure: isProduction, // <-- en LOCAL debe ser false, en produccion debe de ser true
+    sameSite: 'none',
+    path: '/',
+    expires: new Date(0)
+  })
   globalResponse(res, 200, { message: 'Logged out successfully' })
 })
 
@@ -106,3 +122,4 @@ export const logOut = handleCatchErrorAsync(async (req, res) => {
  *
  *
  */
+export const changePassword = () => {}
