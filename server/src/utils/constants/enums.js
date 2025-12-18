@@ -10,6 +10,13 @@ export const ROLESCODES = {
   MANAGER: 'C03'
 }
 
+export const ENVIROMENTS = {
+  DEVELOMENT: 'dev',
+  QA: 'qa',
+  PRODUCTION: 'production'
+
+}
+
 export const HTTPCodes = [
   { status: '200', message: 'OK' },
   { status: '201', message: 'Created' },

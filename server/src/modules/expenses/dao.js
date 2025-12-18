@@ -1,7 +1,5 @@
 // Fully replace the content with the correct version for expenses DAO
-import { PrismaClient, Prisma } from '@prisma/client'
-
-const prisma = new PrismaClient()
+import { prisma, Prisma } from '../../config/db.js'
 
 /**
  * Get all expenses with optional filters

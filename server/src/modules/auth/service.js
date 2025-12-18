@@ -127,6 +127,7 @@ export const refreshToken = async (cookies, req) => {
       timestamp: new Date().toISOString()
     })
     // posible reuse: revocar todo y forzar login
+    console.log('stored user', stored.userId)
     if (stored?.userId) await authDao.revokeAllRefreshTojeForUser(stored.userId)
     throw new ClientError('Forbidden', 403)
   }
