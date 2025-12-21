@@ -74,24 +74,24 @@ export const updateProviderOrderById = async (id, data) => {
       updatedOn: data.updatedOn,
       productOrders: {
         connect: {
-          id: data.supplierId,
-        },
+          id: data.supplierId
+        }
       },
       userProviderOrderUpdated: {
         connect: {
-          id: data.updatedBy,
-        },
-      },
+          id: data.updatedBy
+        }
+      }
     },
     include: {
       productOrders: true,
       userProviderOrderCreated: true,
       userProviderOrderUpdated: true,
       details: true,
-      purchase: true,
-    },
-  });
-};
+      purchase: true
+    }
+  })
+}
 
 /**
  * Delete a providerOrder by ID
@@ -100,6 +100,6 @@ export const updateProviderOrderById = async (id, data) => {
  */
 export const deleteProviderOrderById = async (id) => {
   return prisma.providerOrder.delete({
-    where: { id },
-  });
-};
+    where: { id }
+  })
+}

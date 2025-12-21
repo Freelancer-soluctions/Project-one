@@ -17,7 +17,7 @@ import {
  * @returns {Promise<Array>} List of stock entries
  */
 export const getAllStock = async ({ productId, warehouseId, lot, unitMeasure, stocksExpirated, stocksLow }) => {
-  return getAllStockDao(productId, warehouseId, lot, unitMeasure, stocksExpirated, stocksLow)
+  return getAllStockDao({ productId, warehouseId, lot, unitMeasure, stocksExpirated, stocksLow })
 }
 
 /**
