@@ -8,7 +8,7 @@ import { prisma, Prisma } from '../../config/db.js'
  * @param {string} unitMeasure - Unit measure to filter by
  * @returns {Promise<Array>} List of stock entries
  */
-export const getStocks = async ({
+export const getAllStock = async ({
   productId,
   warehouseId,
   lot,

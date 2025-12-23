@@ -4,6 +4,7 @@ import {
   updateAttendanceById as updateAttendanceByIdDao,
   deleteAttendanceById as deleteAttendanceByIdDao
 } from './dao.js'
+import { getSafePagination } from '../../utils/pagination/pagination.js'
 
 /**
  * Get all attendance records with optional filters
@@ -11,7 +12,15 @@ import {
  * @returns {Promise<Array>} List of attendance records
  */
 export const getAllAttendance = async (filters) => {
-  return getAllAttendanceDao(filters)
+  const { take, skip } = getSafePagination({
+    page: filters.page,
+    limit: filters.limit
+  })
+
+  if (!take || take <= 0) {
+    throw new Error('Pagination is required')
+  }
+  return getAllAttendanceDao(filters, take, skip)
 }
 
 /**
