@@ -1,5 +1,5 @@
 import { prisma, Prisma } from '../../config/db.js'
-import { decryptSensitiveFields, encryptSensitiveFields } from '../../utils/security/sensitive-transform.js'
+import { decryptResults } from '../../utils/prisma/prisma-query.js'
 
 /**
  * Get all users with optional filters
@@ -45,7 +45,7 @@ export const getAllUsers = async (filters = {}) => {
   `
 
   // A02 cryptographid failures (cifrado de datos sensibles)
-  return decryptSensitiveFields(users)
+  return decryptResults(users)
 }
 
 /**

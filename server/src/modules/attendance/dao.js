@@ -9,7 +9,7 @@ import { prisma, Prisma } from '../../config/db.js'
  * @param {Date} [filters.toDate] - Filter by date range end
  * @returns {Promise<Array>} List of attendance records with their related data
  */
-export const getAllAttendance = async (filters = {}) => {
+export const getAllAttendance = async (filters = {}, take, skip) => {
   const whereClauses = []
 
   if (filters.employeeId) {
@@ -45,6 +45,8 @@ export const getAllAttendance = async (filters = {}) => {
    LEFT JOIN "users" uu ON a."updatedBy" = uu.id
    ${whereSql}
    ORDER BY a."date" DESC, a."entryTime" DESC
+   LIMIT ${take}
+   OFFSET ${skip}
  `
   return attendance
 }

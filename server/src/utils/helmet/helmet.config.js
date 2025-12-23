@@ -1,5 +1,5 @@
-import { ENVIROMENTS } from '../constants/enums'
-import dotenv from '../../config/dotenv'
+import { ENVIROMENTS } from '../constants/enums.js'
+import dotenv from '../../config/dotenv.js'
 import helmet from 'helmet'
 
 // helmet.config.js

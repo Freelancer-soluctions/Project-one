@@ -13,6 +13,8 @@ import globalResponse from '../../utils/responses&Errors/globalResponse.js'
  * @param {Object} res - Express response object
  */
 export const getAllAttendance = handleCatchErrorAsync(async (req, res) => {
+  const { limit, page } = req.query
+  console.log('limit y page', { limit, page })
   const attendance = await getAllAttendanceService(req.query)
   globalResponse(res, 200, attendance)
 })
