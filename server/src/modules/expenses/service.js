@@ -5,6 +5,7 @@ import {
   updateExpenseById as updateExpenseByIdDao, // Renamed
   deleteExpenseById as deleteExpenseByIdDao // Renamed
 } from './dao.js' // Assuming dao.js will be adapted for expenses
+import { getSafePagination } from '../../utils/pagination/pagination.js'
 
 /**
  * Get all expenses with optional filters
@@ -13,7 +14,12 @@ import {
  * @async
  */
 export const getAllExpenses = async (filters) => {
-  return getAllExpensesDao(filters)
+  const { take, skip } = getSafePagination({ page: filters.page, limit: filters.limit })
+
+  if (!take || take <= 0) {
+    throw new Error('Pagination is required')
+  }
+  return getAllExpensesDao(filters, take, skip)
 }
 
 /**

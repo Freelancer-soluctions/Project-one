@@ -1,12 +1,17 @@
 import { getAllVacation as getAllVacationDao, createVacation as createVacationDao, updateVacationById as updateVacationByIdDao, deleteVacationById as deleteVacationByIdDao } from './dao.js'
-
+import { getSafePagination } from '../../utils/pagination/pagination.js'
 /**
  * Get all vacation records with optional filters
  * @param {Object} filters - Filter criteria for vacation records
  * @returns {Promise<Array>} Array of vacation records
  */
 export const getAllVacation = async (filters) => {
-  return await getAllVacationDao(filters)
+  const { take, skip } = getSafePagination({ page: filters.page, limit: filters.limit })
+
+  if (!take || take <= 0) {
+    throw new Error('Pagination is required')
+  }
+  return await getAllVacationDao(filters, take, skip)
 }
 
 /**

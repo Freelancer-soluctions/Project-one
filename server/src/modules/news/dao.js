@@ -11,9 +11,11 @@ const tableName = TABLESNAMES.NEWS
  * @param {Date} [fromDate] - Optional start date to filter news by.
  * @param {Date} [toDate] - Optional end date to filter news by.
  * @param {string} [statusCode] - Optional status code to filter news by.
+ * @param {number} take- take to filter by
+ * @param {number} skip - skip to filter by
  * @returns {Promise<Array>} A list of news records that match the filters.
  */
-export const getAllNews = async (description, fromDate, toDate, statusCode) => {
+export const getAllNews = async (description, fromDate, toDate, statusCode, take, skip) => {
   const news = await prisma.news.findMany(
     {
 
@@ -62,7 +64,9 @@ export const getAllNews = async (description, fromDate, toDate, statusCode) => {
         userNewsClosed: { select: { name: true } },
         userNewsPending: { select: { name: true } }
 
-      }
+      },
+      take,
+      skip
 
       // select: {
       //   id: true,

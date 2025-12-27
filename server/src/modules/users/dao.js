@@ -6,9 +6,12 @@ import { decryptResults } from '../../utils/prisma/prisma-query.js'
  * @param {Object} filters - Optional filters for the query
  * @param {string} [filters.name] - Filter by user name
  * @param {string} [filters.email] - Filter by user email
+ * @param {number} take- take to filter by
+ * @param {number} skip - skip to filter by
  * @returns {Promise<Array>} List of users with their related data
  */
-export const getAllUsers = async (filters = {}) => {
+export const getAllUsers = async (filters = {}, take, skip) => {
+  console.log('take, skip', take, skip)
   const whereClauses = []
 
   if (filters.name) {
@@ -42,6 +45,10 @@ export const getAllUsers = async (filters = {}) => {
     LEFT JOIN "userStatus" s ON u."statusId" = s.id
     LEFT JOIN "roles" r ON u."roleId" = r.id
     ${whereSql}
+    ORDER BY u."startDate" DESC
+    LIMIT ${take}
+    OFFSET ${skip}
+
   `
 
   // A02 cryptographid failures (cifrado de datos sensibles)
@@ -122,8 +129,6 @@ export const getAllUsersRoles = async () => {
  * @returns {Promise&lt;object&gt;} The created user object.
  */
 export const createUser = async (data) => {
-  // A02 cryptographid failures (cifrado de datos sensibles)
-  const encrypt = encryptSensitiveFields(data)
   return prisma.users.create({
     data: {
       name: data.name,
@@ -134,11 +139,11 @@ export const createUser = async (data) => {
       city: data.city,
       isAdmin: data.isAdmin,
       picture: data.picture,
-      document: encrypt.document,
+      document: data.document,
       lastUpdatedBy: data.lastUpdatedBy,
       lastUpdatedOn: new Date(),
       roleId: data.roleId,
-      socialSecurity: encrypt.socialSecurity,
+      socialSecurity: data.socialSecurity,
       startDate: data.startDate,
       state: data.state,
       statusId: data.statusId,

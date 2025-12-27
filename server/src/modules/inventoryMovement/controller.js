@@ -14,8 +14,8 @@ import handleCatchErrorAsync from '../../utils/responses&Errors/handleCatchError
  * @returns {Promise<void>}
  */
 export const getAllInventoryMovements = handleCatchErrorAsync(async (req, res) => {
-  const { productId, warehouseId, type } = req.query
-  const inventoryMovements = await getAllInventoryMovementsService({ productId, warehouseId, type })
+  const { productId, warehouseId, type, limit, page } = req.query
+  const inventoryMovements = await getAllInventoryMovementsService({ productId, warehouseId, type, limit, page })
   globalResponse(res, 200, inventoryMovements)
 })
 

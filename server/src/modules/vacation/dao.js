@@ -7,9 +7,11 @@ import { prisma, Prisma } from '../../config/db.js'
  * @param {string} [filters.status] - Filter by status (PENDING, APPROVED, REJECTED)
  * @param {Date} [filters.fromDate] - Filter by start date (greater than or equal)
  * @param {Date} [filters.toDate] - Filter by end date (less than or equal)
+ * @param {number} take- take to filter by
+ * @param {number} skip - skip to filter by
  * @returns {Promise<Array>} Array of vacation records with employee information
  */
-export const getAllVacation = async (filters) => {
+export const getAllVacation = async (filters, take, skip) => {
   const whereClauses = []
 
   if (filters.employeeId) {
@@ -49,6 +51,8 @@ export const getAllVacation = async (filters) => {
        LEFT JOIN "users" uu ON va."updatedBy" = uu.id
        ${whereSql}
        ORDER BY va."createdOn" DESC
+       LIMIT ${take}
+       OFFSET ${skip}
      `
 
   return permissions
