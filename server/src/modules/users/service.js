@@ -9,14 +9,19 @@ import {
   getUserRoleByUserId as getUserRoleByUserIdDao,
   getAllUserPermits as getAllUserPermitsDao
 } from './dao.js'
-
+import { getSafePagination } from '../../utils/pagination/pagination.js'
 /**
  * Get all users with optional filters
  * @param {Object} filters - Optional filters for the query
  * @returns {Promise<Array>} List of users
  */
 export const getAllUsers = async (filters) => {
-  return getAllUsersDao(filters)
+  const { take, skip } = getSafePagination({ page: filters.page, limit: filters.limit })
+
+  if (!take || take <= 0) {
+    throw new Error('Pagination is required')
+  }
+  return await getAllUsersDao(filters, take, skip)
 }
 
 /**

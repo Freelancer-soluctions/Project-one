@@ -2,11 +2,13 @@ import { prisma, Prisma } from '../../config/db.js'
 
 /**
  * Get all attendance records with optional filters
- * @param {Object} filters - Optional filters for the query
+ * @param {Object} filters - filters for the query
  * @param {number} [filters.employeeId] - Filter by employee ID
  * @param {Date} [filters.date] - Filter by date
  * @param {Date} [filters.fromDate] - Filter by date range start
  * @param {Date} [filters.toDate] - Filter by date range end
+ * @param {number} take- take to filter by
+ * @param {number} skip - skip to filter by
  * @returns {Promise<Array>} List of attendance records with their related data
  */
 export const getAllAttendance = async (filters = {}, take, skip) => {
@@ -48,7 +50,30 @@ export const getAllAttendance = async (filters = {}, take, skip) => {
    LIMIT ${take}
    OFFSET ${skip}
  `
-  return attendance
+
+  const total = await prisma.attendance.count({
+    where: {
+      ...(filters.employeeId && {
+        employeeId: Number(filters.employeeId)
+      }),
+
+      ...(filters.date && {
+        date: new Date(filters.date)
+      }),
+
+      ...((filters.fromDate || filters.toDate) && {
+        date: {
+          ...(filters.fromDate && {
+            gte: new Date(filters.fromDate)
+          }),
+          ...(filters.toDate && {
+            lte: new Date(filters.toDate)
+          })
+        }
+      })
+    }
+  })
+  return { dataList: attendance, total }
 }
 
 /**

@@ -5,16 +5,18 @@ import { decryptResults } from '../../utils/prisma/prisma-query.js'
 
 /**
  * Get all employees with optional filters
- * @param {Object} filters - Optional filters for the query
+ * @param {Object} filters - filters for the query
  * @param {string} [filters.name] - Filter by employee name
  * @param {string} [filters.lastName] - Filter by employee last name
  * @param {string} [filters.dni] - Filter by employee DNI
  * @param {string} [filters.email] - Filter by employee email
  * @param {string} [filters.department] - Filter by employee department
  * @param {string} [filters.position] - Filter by employee position
+ * @param {number} take- take to filter by
+ * @param {number} skip - skip to filter by
  * @returns {Promise<Array>} List of employees with their related data
  */
-export const getAllEmployees = async (filters = {}) => {
+export const getAllEmployees = async (filters = {}, take, skip) => {
   const whereClauses = []
 
   if (filters.name) {
@@ -54,6 +56,9 @@ export const getAllEmployees = async (filters = {}) => {
    LEFT JOIN "users" u ON e."createdBy" = u.id
    LEFT JOIN "users" uu ON e."updatedBy" = uu.id
    ${whereSql}
+   ORDER BY e."createdOn" DESC
+   LIMIT ${take}
+   OFFSET ${skip}
  `
 
   // A02 cryptographid failures (cifrado de datos sensibles)
@@ -77,8 +82,6 @@ export const getAllEmployees = async (filters = {}) => {
  * @returns {Promise<Object>} Created employee with related data
  */
 export const createEmployee = async (data) => {
-  // A02 cryptographid failures (cifrado de datos sensibles)
-  // const encrypt = encryptSensitiveFields(data)
   return prisma.employees.create({
     data: {
       name: data.name,
@@ -120,8 +123,6 @@ export const createEmployee = async (data) => {
  * @returns {Promise<Object>} Updated employee with related data
  */
 export const updateEmployeeById = async (id, data) => {
-  // A02 cryptographid failures (cifrado de datos sensibles)
-  // const encrypt = encryptObject(data)
   return prisma.employees.update({
     where: { id },
     data: {

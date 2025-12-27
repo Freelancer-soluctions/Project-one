@@ -9,10 +9,12 @@ const tableName = TABLESNAMES.PROVIDERS
  *
  * @param {string} [name] - The name filter for providers (partial match).
  * @param {boolean} [status] - The status filter for providers.
+ * @param {number} take- take to filter by
+ * @param {number} skip - skip to filter by
  * @returns {Promise<Array>} A list of providers matching the filters.
  */
 
-export const getAllProducts = async (name, status) => {
+export const getAllProducts = async (name, status, take, skip) => {
   const whereClauses = []
 
   if (name) {
@@ -37,6 +39,10 @@ export const getAllProducts = async (name, status) => {
     LEFT JOIN "users" u ON p."createdBy" = u.id
     LEFT JOIN "users" uu ON p."updatedBy" = uu.id
     ${whereSql}
+    ORDER BY p."createdOn" DESC
+    LIMIT ${take}
+    OFFSET ${skip}
+
 
   `
   return providers

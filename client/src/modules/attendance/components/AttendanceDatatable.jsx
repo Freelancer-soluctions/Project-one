@@ -6,8 +6,12 @@ import PropTypes from 'prop-types'
 export const AttendanceDatatable = ({
   dataAttendance,
   onEditDialog,
+  pagination,
+  onPaginationChange
 }) => {
   const { t } = useTranslation()
+
+  const {dataList, total}= dataAttendance.data
 
   const columnDefAttendance = [
  
@@ -80,13 +84,19 @@ export const AttendanceDatatable = ({
   return (
     <DataTable
       columns={columnDefAttendance}
-      data={dataAttendance.data}
+      data={dataList}
+      totalRows={total}
       handleRow={row => handleEditDialog(row)}
+      pagination={pagination}
+      onPaginationChange={onPaginationChange}
+      
     />
   )
 }
 
 AttendanceDatatable.propTypes = {
   dataAttendance: PropTypes.object.isRequired,
-  onEditDialog: PropTypes.func.isRequired
+  onEditDialog: PropTypes.func.isRequired,
+  pagination: PropTypes.object.isRequired,
+  onPaginationChange: PropTypes.func.isRequired
 } 
