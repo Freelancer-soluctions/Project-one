@@ -4,18 +4,24 @@ import {
   updateInventoryMovementById as updateInventoryMovementByIdDao,
   deleteInventoryMovementById as deleteInventoryMovementByIdDao
 } from './dao.js'
+import { getSafePagination } from '../../utils/pagination/pagination.js'
 
 /**
  * Get all inventory movements with optional filters
- * @param {Object} filters - Filter options
- * @param {string} filters.productId - Product ID to filter by
- * @param {string} filters.warehouseId - Warehouse ID to filter by
- * @param {string} filters.type - Movement type to filter by
+ * @param {string} productId - Product ID to filter by
+ * @param {string} warehouseId - Warehouse ID to filter by
+ * @param {string} type - Movement type to filter by
+ * @param {number} page - The page filter.
+ * @param {number} limit - The limit code filter.
  * @returns {Promise<Array>} List of inventory movements
  */
-export const getAllInventoryMovements = async ({ productId, warehouseId, type }) => {
-  const inventoryMovements = await getAllInventoryMovementsDao({ productId, warehouseId, type })
-  return inventoryMovements
+export const getAllInventoryMovements = async ({ productId, warehouseId, type, limit, page }) => {
+  const { take, skip } = getSafePagination({ page, limit })
+
+  if (!take || take <= 0) {
+    throw new Error('Pagination is required')
+  }
+  return await getAllInventoryMovementsDao({ productId, warehouseId, type, take, skip })
 }
 
 /**

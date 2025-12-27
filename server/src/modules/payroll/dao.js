@@ -1,9 +1,7 @@
 import { prisma, Prisma } from '../../config/db.js'
-// import { decryptSensitiveFields, encryptSensitiveFields } from '../../utils/security/sensitive-transform.js'
 import { decryptResults } from '../../utils/prisma/prisma-query.js'
 
-export const getAllPayroll = async (filters) => {
-  // console.log(filters); // Keep for debugging if needed
+export const getAllPayroll = async (filters, take, skip) => {
   const whereClauses = []
 
   if (filters.employeeId) {
@@ -36,6 +34,8 @@ export const getAllPayroll = async (filters) => {
      LEFT JOIN "employees" e ON p."employeeId" = e.id
      ${whereSql}
      ORDER BY p."createdOn" DESC
+     LIMIT ${take}
+     OFFSET ${skip}
    `
   console.log('📝 Primer registro (encriptado):', payrolls[0])
   return decryptResults(payrolls)
@@ -73,8 +73,6 @@ export const getAllPayroll = async (filters) => {
 }
 
 export const createPayroll = async (data) => {
-  console.log('Creating payroll with data:', data)
-
   return await prisma.payroll.create({
     data: {
       month: data.month,
@@ -100,8 +98,6 @@ export const createPayroll = async (data) => {
 }
 
 export const updatePayrollById = async (id, data) => {
-  // const encrypt = encryptObject(data)
-
   return await prisma.payroll.update({
     where: { id: parseInt(id) },
     data: {

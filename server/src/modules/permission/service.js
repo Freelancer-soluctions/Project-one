@@ -4,6 +4,7 @@ import {
   updatePermissionById as updatePermissionByIdDao,
   deletePermissionById as deletePermissionByIdDao
 } from './dao.js'
+import { getSafePagination } from '../../utils/pagination/pagination.js'
 
 /**
  * @description Retrieve all permissions with optional filters
@@ -13,10 +14,17 @@ import {
  * @param {string} [filters.status] - Filter by status (PENDING, APPROVED, REJECTED)
  * @param {string} [filters.fromDate] - Filter by start date (ISO format)
  * @param {string} [filters.toDate] - Filter by end date (ISO format)
+ * @param {number} [filters.limit] - Filter by limit
+ * @param {number} [filters.page] - Filter by page
  * @returns {Promise<Array>} List of permissions matching the filters
  */
 export const getAllPermissions = async (filters) => {
-  return await getAllPermissionsDao(filters)
+  const { take, skip } = getSafePagination({ page: filters.page, limit: filters.limit })
+
+  if (!take || take <= 0) {
+    throw new Error('Pagination is required')
+  }
+  return await getAllPermissionsDao(filters, take, skip)
 }
 
 /**

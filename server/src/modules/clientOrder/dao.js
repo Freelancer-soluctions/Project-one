@@ -2,13 +2,14 @@ import { prisma, Prisma } from '../../config/db.js'
 
 /**
  * Get all clientOrders with optional filters
- * @param {Object} filters - Optional filters for the query
+ * @param {Object} filters - filters for the query
  * @param {number} [filters.clientId] - Filter by client ID
  * @param {string} [filters.status] - Filter by status
+ * @param {number} take- take to filter by
+ * @param {number} skip - skip to filter by
  * @returns {Promise<Array>} List of clientOrders
  */
-export const getAllClientOrders = async (filters = {}) => {
-  console.log(filters)
+export const getAllClientOrders = async (filters = {}, take, skip) => {
   const whereClauses = []
 
   if (filters.clientId) {
@@ -34,9 +35,27 @@ export const getAllClientOrders = async (filters = {}) => {
     LEFT JOIN "users" u ON co."createdBy" = u.id
     LEFT JOIN "users" uu ON co."updatedBy" = uu.id
     ${whereSql}
+    ORDER BY co."createdOn" DESC
+    LIMIT ${take}
+    OFFSET ${skip}
   `
 
-  return clientOrders
+  const total = await prisma.clientOrder.count({
+    where: {
+      ...(filters.clientId && {
+        clientId: parseInt(filters.clientId, 10)
+      }),
+
+      ...(filters.status && {
+        status: {
+          contains: filters.status,
+          mode: 'insensitive' // equivale a ILIKE en Postgres
+        }
+      })
+    }
+  })
+
+  return { dataList: clientOrders, total }
 }
 
 /**

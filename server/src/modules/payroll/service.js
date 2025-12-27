@@ -1,7 +1,13 @@
 import * as payrollDao from './dao.js'
+import { getSafePagination } from '../../utils/pagination/pagination.js'
 
 export const getAllPayroll = async (filters) => {
-  return await payrollDao.getAllPayroll(filters)
+  const { take, skip } = getSafePagination({ page: filters.page, limit: filters.limit })
+
+  if (!take || take <= 0) {
+    throw new Error('Pagination is required')
+  }
+  return await payrollDao.getAllPayroll(filters, take, skip)
 }
 
 export const createPayroll = async (data, userId) => {

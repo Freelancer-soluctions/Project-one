@@ -4,6 +4,7 @@ import {
   updateSaleById as updateSaleByIdDao,
   deleteSaleById as deleteSaleByIdDao
 } from './dao.js'
+import { getSafePagination } from '../../utils/pagination/pagination.js'
 
 /**
  * Get all sales with optional filters
@@ -11,12 +12,17 @@ import {
  * @returns {Promise<Array>} List of sales
  */
 export const getAllSales = async (filters) => {
-  const formatedFilters ={
+  const formatedFilters = {
     ...filters,
     clientId: Number(filters.clientId)
 
   }
-  return getAllSalesDao(formatedFilters)
+  const { take, skip } = getSafePagination({ page: formatedFilters.page, limit: formatedFilters.limit })
+
+  if (!take || take <= 0) {
+    throw new Error('Pagination is required')
+  }
+  return await getAllSalesDao(formatedFilters, take, skip)
 }
 
 /**

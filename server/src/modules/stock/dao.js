@@ -6,6 +6,8 @@ import { prisma, Prisma } from '../../config/db.js'
  * @param {number} warehouseId - Warehouse ID to filter by
  * @param {string} lot - Lot number to filter by
  * @param {string} unitMeasure - Unit measure to filter by
+ * @param {number} take- take to filter by
+ * @param {number} skip - skip to filter by
  * @returns {Promise<Array>} List of stock entries
  */
 export const getAllStock = async ({
@@ -14,7 +16,8 @@ export const getAllStock = async ({
   lot,
   unitMeasure,
   stocksExpirated,
-  stocksLow
+  stocksLow,
+  take, skip
 }) => {
   const stocks = await prisma.$queryRaw(
     Prisma.sql`
@@ -67,6 +70,9 @@ export const getAllStock = async ({
             OR s."quantity" < s."minimum"
           )
         )
+        ORDER BY s."createdOn" DESC
+        LIMIT ${take}
+        OFFSET ${skip}
     `
   )
 
@@ -133,7 +139,6 @@ export const createStock = async (data) => {
       }
     }
   })
-  console.log('stock creado', stock)
   return stock
 }
 

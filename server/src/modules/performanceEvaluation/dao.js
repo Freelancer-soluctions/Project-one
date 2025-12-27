@@ -6,9 +6,11 @@ import { prisma, Prisma } from '../../config/db.js'
  * @param {string} [filters.employeeId] - Filter by employee ID
  * @param {string} [filters.startDate] - Filter by start date
  * @param {string} [filters.endDate] - Filter by end date
+ * @param {number} take- take to filter by
+ * @param {number} skip - skip to filter by
  * @returns {Promise<Array>} List of performance evaluations with their related data
  */
-export const getAllPerformanceEvaluations = async (filters = {}) => {
+export const getAllPerformanceEvaluations = async (filters = {}, take, skip) => {
   const whereClauses = []
 
   if (filters.employeeId) {
@@ -39,6 +41,8 @@ export const getAllPerformanceEvaluations = async (filters = {}) => {
     LEFT JOIN "users" uu ON pe."updatedBy" = uu.id
     ${whereSql}
     ORDER BY pe."date" DESC
+    LIMIT ${take}
+    OFFSET ${skip}
   `
 
   return evaluations

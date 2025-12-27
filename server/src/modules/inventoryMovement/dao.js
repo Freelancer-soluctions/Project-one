@@ -6,9 +6,11 @@ import { prisma } from '../../config/db.js'
  * @param {string} filters.productId - Product ID to filter by
  * @param {string} filters.warehouseId - Warehouse ID to filter by
  * @param {string} filters.type - Movement type to filter by
+ * @param {number} take- take to filter by
+ * @param {number} skip - skip to filter by
  * @returns {Promise<Array>} List of inventory movements
  */
-export const getAllInventoryMovements = async ({ productId, warehouseId, type }) => {
+export const getAllInventoryMovements = async ({ productId, warehouseId, type, take, skip }) => {
   const inventoryMovements = await prisma.inventoryMovement.findMany({
     where: {
       ...(productId
@@ -39,7 +41,9 @@ export const getAllInventoryMovements = async ({ productId, warehouseId, type })
     },
     orderBy: {
       createdAt: 'desc'
-    }
+    },
+    take,
+    skip
   })
 
   return inventoryMovements

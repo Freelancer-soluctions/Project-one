@@ -6,18 +6,26 @@ import {
   getStockAlerts as getStockAlertsDao,
   getStockByProductId as getStockByProductIdDao
 } from './dao.js'
+import { getSafePagination } from '../../utils/pagination/pagination.js'
 
 /**
  * Get all stock entries with optional filters
  * @param {Object} params - Filter parameters
- * @param {number} params.productId - Product ID to filter by
- * @param {number} params.warehouseId - Warehouse ID to filter by
- * @param {string} params.lot - Lot number to filter by
- * @param {string} params.unitMeasure - Unit measure to filter by
+ * @param {number} productId - Product ID to filter by
+ * @param {number} warehouseId - Warehouse ID to filter by
+ * @param {string} lot - Lot number to filter by
+ * @param {string} unitMeasure - Unit measure to filter by
+ * @param {number} limit - Filter by limit
+ * @param {number} page - Filter by page
  * @returns {Promise<Array>} List of stock entries
  */
-export const getAllStock = async ({ productId, warehouseId, lot, unitMeasure, stocksExpirated, stocksLow }) => {
-  return getAllStockDao({ productId, warehouseId, lot, unitMeasure, stocksExpirated, stocksLow })
+export const getAllStock = async ({ productId, warehouseId, lot, unitMeasure, stocksExpirated, stocksLow, limit, page }) => {
+  const { take, skip } = getSafePagination({ page, limit })
+
+  if (!take || take <= 0) {
+    throw new Error('Pagination is required')
+  }
+  return await getAllStockDao({ productId, warehouseId, lot, unitMeasure, stocksExpirated, stocksLow, take, skip })
 }
 
 /**

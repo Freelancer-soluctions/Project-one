@@ -3,14 +3,16 @@ import { prisma, Prisma } from '../../config/db.js'
 
 /**
  * Get all expenses with optional filters
- * @param {Object} filters - Optional filters for the query
+ * @param {Object} filters - filters for the query
  * @param {string} [filters.description] - Filter by expense description
  * @param {string} [filters.category] - Filter by expense category
  * @param {string} [filters.status] - Filter by expense status (enum expenseCategory)
+ * @param {number} take- take to filter by
+ * @param {number} skip - skip to filter by
  * @returns {Promise<Array>} List of expenses with their related data
  * @async
  */
-export const getAllExpenses = async (filters = {}) => {
+export const getAllExpenses = async (filters = {}, take, skip) => {
   // console.log(filters); // Keep for debugging if needed
   const whereClauses = []
 
@@ -42,6 +44,8 @@ export const getAllExpenses = async (filters = {}) => {
     LEFT JOIN "users" uu ON e."updatedBy" = uu.id
     ${whereSql}
     ORDER BY e."createdOn" DESC
+    LIMIT ${take}
+    OFFSET ${skip}
   `
   return expenses
 }

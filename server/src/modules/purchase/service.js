@@ -4,14 +4,23 @@ import {
   updatePurchaseById as updatePurchaseByIdDao,
   deletePurchaseById as deletePurchaseByIdDao
 } from './dao.js'
+import { getSafePagination } from '../../utils/pagination/pagination.js'
 
 /**
  * Get all purchases with optional filters
  * @param {Object} filters - Optional filters for the query
+ * @param {number} limit - Filter by limit
+ * @param {number} page - Filter by page
+
  * @returns {Promise<Array>} List of purchases
  */
 export const getAllPurchases = async (filters) => {
-  return getAllPurchasesDao(filters)
+  const { take, skip } = getSafePagination({ page: filters.page, limit: filters.limit })
+
+  if (!take || take <= 0) {
+    throw new Error('Pagination is required')
+  }
+  return await getAllPurchasesDao(filters, take, skip)
 }
 
 /**

@@ -3,10 +3,11 @@ import { prisma } from '../../config/db.js'
 /**
  * Get all providerOrders with optional filters
  * @param {Object} filters - Optional filters for the query
+ * @param {number} take- take to filter by
+ * @param {number} skip - skip to filter by
  * @returns {Promise<Array>} List of providerOrders with their related data
  */
-export const getAllProviderOrders = async (filters = {}) => {
-  console.log(filters)
+export const getAllProviderOrders = async (filters = {}, take, skip) => {
   const providerOrders = await prisma.providerOrder.findMany({
     where: filters,
     include: {
@@ -15,7 +16,9 @@ export const getAllProviderOrders = async (filters = {}) => {
       userProviderOrderUpdated: true,
       details: true,
       purchase: true
-    }
+    },
+    take,
+    skip
   })
 
   return providerOrders

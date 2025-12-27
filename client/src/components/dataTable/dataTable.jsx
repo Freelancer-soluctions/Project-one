@@ -28,14 +28,14 @@ import { CaretSortIcon } from '@radix-ui/react-icons'
 import { MdOutlineArrowDropDown, MdOutlineArrowDropUp } from 'react-icons/md'
 import PropTypes from 'prop-types'
 
-export const DataTable = ({ columns, data = [], handleRow }) => {
+export const DataTable = ({ columns, data = [], totalRows, handleRow, pagination, onPaginationChange }) => {
   const [columnFilters, setColumnFilters] = useState([]) //column filters
   const [sorting, setSorting] = useState([]) //sorting
-  const [pagination, setPagination] = useState({
-    pageIndex: 0,
-    pageSize: 20
-  }) //pagination
-
+  // se translada al componente contenedor (Page) para cumplir con el envio de limit y page cumpliendo con A03 OWASP INJECTION
+  // const [pagination, setPagination] = useState({
+  //   pageIndex: 0,
+  //   pageSize: 20
+  // }) //pagination
   const table = useReactTable({
     //override default column sizing
     // defaultColumn: {
@@ -48,14 +48,17 @@ export const DataTable = ({ columns, data = [], handleRow }) => {
     getCoreRowModel: getCoreRowModel(),
     //column filters
     onColumnFiltersChange: setColumnFilters,
-    getFilteredRowModel: getFilteredRowModel(), //client side filtering
+    getFilteredRowModel: getFilteredRowModel(), //client side filtering 
     // sorting
     onSortingChange: setSorting,
     getSortedRowModel: getSortedRowModel(),
     // pagination
-    getPaginationRowModel: getPaginationRowModel(),
-    onPaginationChange: setPagination,
-
+    //getPaginationRowModel: getPaginationRowModel(), // If only doing manual pagination, you don't need this
+    // onPaginationChange: setPagination,
+    onPaginationChange,
+    manualPagination: true,
+    rowCount: totalRows,
+  // pageCount: Math.ceil(totalRows / pageSize),  
     //state
     state: {
       columnFilters, //column filters
@@ -167,6 +170,7 @@ export const DataTable = ({ columns, data = [], handleRow }) => {
 DataTable.propTypes = {
   columns: PropTypes.array.isRequired,
   data: PropTypes.array,
+  totalRows: PropTypes.number,
   handleRow: PropTypes.func
 }
 

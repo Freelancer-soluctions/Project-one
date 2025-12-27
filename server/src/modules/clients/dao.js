@@ -2,14 +2,15 @@ import { prisma, Prisma } from '../../config/db.js'
 
 /**
  * Get all clients with optional filters
- * @param {Object} filters - Optional filters for the query
+ * @param {Object} filters - filters for the query
  * @param {string} [filters.name] - Filter by client name
  * @param {string} [filters.email] - Filter by client email
  * @param {string} [filters.phone] - Filter by client phone
+ * @param {number} take- take to filter by
+ * @param {number} skip - skip to filter by
  * @returns {Promise<Array>} List of clients with their related data
  */
-export const getAllClients = async (filters = {}) => {
-  console.log(filters)
+export const getAllClients = async (filters = {}, take, skip) => {
   const whereClauses = []
 
   if (filters.name) {
@@ -33,9 +34,30 @@ export const getAllClients = async (filters = {}) => {
    LEFT JOIN "users" u ON c."createdBy" = u.id
    LEFT JOIN "users" uu ON c."updatedBy" = uu.id
    ${whereSql}
+   ORDER BY c."createdOn" DESC
+   LIMIT ${take}
+   OFFSET ${skip}
  `
 
-  return clients
+  const total = await prisma.clients.count({
+    where: {
+      ...(filters.name && {
+        name: {
+          contains: filters.name,
+          mode: 'insensitive' // equivalente a ILIKE
+        }
+      }),
+
+      ...(filters.email && {
+        email: {
+          contains: filters.email,
+          mode: 'insensitive' // equivalente a ILIKE
+        }
+      })
+    }
+  })
+
+  return { dataList: clients, total }
 }
 
 /**

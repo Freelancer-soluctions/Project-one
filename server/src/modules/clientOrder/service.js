@@ -4,13 +4,19 @@ import {
   updateClientOrderById as updateClientOrderByIdDao,
   deleteClientOrderById as deleteClientOrderByIdDao
 } from './dao.js'
+import { getSafePagination } from '../../utils/pagination/pagination.js'
 
 /**
- * @param {Object} filters - Optional filters for the query
+ * @param {Object} filters - filters for the query
  * @returns {Promise<Array>} List of clientOrders
  */
 export const getAllClientOrders = async (filters) => {
-  return getAllClientOrdersDao(filters)
+  const { take, skip } = getSafePagination({ page: filters.page, limit: filters.limit })
+
+  if (!take || take <= 0) {
+    throw new Error('Pagination is required')
+  }
+  return getAllClientOrdersDao(filters, take, skip)
 }
 
 /**

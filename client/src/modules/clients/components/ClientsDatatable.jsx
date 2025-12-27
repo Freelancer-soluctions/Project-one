@@ -5,9 +5,12 @@ import PropTypes from 'prop-types'
 
 export const ClientsDatatable = ({
   dataClients,
-  onEditDialog,
+  pagination,
+  onPaginationChange,
+  onEditDialog
 }) => {
   const { t } = useTranslation()
+  const { dataList, total } = dataClients.data
 
   const columnDefClients = [
     {
@@ -52,13 +55,18 @@ export const ClientsDatatable = ({
   return (
     <DataTable
       columns={columnDefClients}
-      data={dataClients.data}
+      data={dataList}
+      totalRows={total}
       handleRow={row => handleEditDialog(row)}
+      pagination={pagination}
+      onPaginationChange={onPaginationChange}
     />
   )
 }
 
 ClientsDatatable.propTypes = {
   dataClients: PropTypes.object.isRequired,
-  onEditDialog: PropTypes.func.isRequired
-} 
+  onEditDialog: PropTypes.func.isRequired,
+  pagination: PropTypes.object.isRequired,
+  onPaginationChange: PropTypes.func.isRequired
+}

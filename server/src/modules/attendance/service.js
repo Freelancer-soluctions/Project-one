@@ -8,10 +8,11 @@ import { getSafePagination } from '../../utils/pagination/pagination.js'
 
 /**
  * Get all attendance records with optional filters
- * @param {Object} filters - Optional filters for the query
+ * @param {Object} filters - filters for the query
  * @returns {Promise<Array>} List of attendance records
  */
 export const getAllAttendance = async (filters) => {
+  console.log('limit y page', { limit: filters.limit, page: filters.page })
   const { take, skip } = getSafePagination({
     page: filters.page,
     limit: filters.limit

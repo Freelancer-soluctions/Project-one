@@ -1,22 +1,33 @@
 import * as productsDao from './dao.js'
+import { getSafePagination } from '../../utils/pagination/pagination.js'
 
 /**
  * Retrieves all providers based on optional filters.
  *
  * @param {Object} params - The parameters for filtering the providers.
- * @param {string} [params.name] - The name filter.
- * @param {boolean} [params.status] - The status filter.
+ * @param {string} name - The name filter.
+ * @param {boolean} status - The status filter.
+ * @param {number} limit - Filter by limit
+ * @param {number} page - Filter by page
  * @returns {Promise<Array>} A list of providers matching the filters.
  */
 export const getAllProviders = async ({
   name,
-  status
+  status,
+  limit,
+  page
 }) => {
-  const data = await productsDao.getAllProducts(
+  const { take, skip } = getSafePagination({ page, limit })
+
+  if (!take || take <= 0) {
+    throw new Error('Pagination is required')
+  }
+  return await productsDao.getAllProducts(
     name,
-    status
+    status,
+    take,
+    skip
   )
-  return data
 }
 
 /**

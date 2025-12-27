@@ -4,16 +4,24 @@ import {
   updateWarehouse as updateWarehouseDao,
   deleteWarehouse as deleteWarehouseDao
 } from './dao.js'
+import { getSafePagination } from '../../utils/pagination/pagination.js'
 
 /**
  * Get all warehouses with optional filters
  * @param {Object} params - Filter parameters
- * @param {string} params.name - Name to filter by
- * @param {boolean} params.status - Status to filter by
+ * @param {string} name - Name to filter by
+ * @param {boolean} status - Status to filter by
+ * @param {number} take- take to filter by
+ * @param {number} skip - skip to filter by
  * @returns {Promise<Array>} List of warehouses
  */
-export const getAllWarehouses = async ({ name, status }) => {
-  return getAllWarehousesDao(name, status)
+export const getAllWarehouses = async ({ name, status, limit, page }) => {
+  const { take, skip } = getSafePagination({ page, limit })
+
+  if (!take || take <= 0) {
+    throw new Error('Pagination is required')
+  }
+  return await getAllWarehousesDao(name, status, take, skip)
 }
 
 /**

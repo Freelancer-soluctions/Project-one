@@ -13,11 +13,7 @@ const attendanceApi = createApi({
     getAllAttendance: builder.query({
       query: (params) => ({
         url: '/attendance',
-        params:{
-          ...params,
-          limit:20,
-          page:1
-        }
+        params
       }),
       providesTags: ['Attendance'],
     }),

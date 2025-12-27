@@ -8,9 +8,11 @@ import { prisma, Prisma } from '../../config/db.js'
  * @param {Date} [filters.endDate] - Filter by end date
  * @param {number} [filters.minTotal] - Filter by minimum total
  * @param {number} [filters.maxTotal] - Filter by maximum total
+ * @param {number} take- take to filter by
+ * @param {number} skip - skip to filter by
  * @returns {Promise<Array>} List of sales with their related data
  */
-export const getAllSales = async (filters = {}) => {
+export const getAllSales = async (filters = {}, take, skip) => {
   const where = {
     ...(filters.clientId && { clientId: filters.clientId }),
     ...(filters.fromDate && { createdOn: { gte: filters.fromDate } }),
@@ -37,7 +39,9 @@ export const getAllSales = async (filters = {}) => {
     },
     orderBy: {
       createdOn: 'desc'
-    }
+    },
+    take,
+    skip
   })
 
   return sales
