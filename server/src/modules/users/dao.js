@@ -11,7 +11,6 @@ import { decryptResults } from '../../utils/prisma/prisma-query.js'
  * @returns {Promise<Array>} List of users with their related data
  */
 export const getAllUsers = async (filters = {}, take, skip) => {
-  console.log('take, skip', take, skip)
   const whereClauses = []
 
   if (filters.name) {
@@ -52,7 +51,32 @@ export const getAllUsers = async (filters = {}, take, skip) => {
   `
 
   // A02 cryptographid failures (cifrado de datos sensibles)
-  return decryptResults(users)
+  const dataList = decryptResults(users)
+
+  const total = await prisma.users.count({
+    where: {
+      ...(filters.name && {
+        name: {
+          contains: filters.name,
+          mode: 'insensitive' // equivale a ILIKE
+        }
+      }),
+
+      ...(filters.email && {
+        email: {
+          contains: filters.email,
+          mode: 'insensitive' // equivale a ILIKE
+        }
+      }),
+
+      ...(filters.status && {
+        status: {
+          code: filters.status
+        }
+      })
+    }
+  })
+  return { dataList, total }
 }
 
 /**

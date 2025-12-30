@@ -1,5 +1,4 @@
 import * as eventDao from './dao.js'
-import { getSafePagination } from '../../utils/pagination/pagination.js'
 /**
  * Create a new event item in the database.
  *
@@ -45,12 +44,7 @@ export const getAllEventTypes = async () => {
  * @returns {Promise<Array>} List of employees
  */
 export const getAllEvents = async ({ searchQuery }) => {
-  const { take, skip } = getSafePagination({ page: searchQuery.page, limit: searchQuery.limit })
-
-  if (!take || take <= 0) {
-    throw new Error('Pagination is required')
-  }
-  return await eventDao.getAllEvents(searchQuery, take, skip)
+  return await eventDao.getAllEvents(searchQuery)
 }
 
 /**

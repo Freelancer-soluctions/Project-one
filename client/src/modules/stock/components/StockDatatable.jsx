@@ -6,8 +6,11 @@ import PropTypes from 'prop-types'
 export const StockDatatable = ({
   dataStock,
   onEditDialog,
+  pagination,
+  onPaginationChange
 }) => {
   const { t } = useTranslation()
+  const { dataList, total } = dataStock.data
 
   const columnDefStock = [
     {
@@ -23,16 +26,22 @@ export const StockDatatable = ({
     {
       accessorKey: 'productPrice',
       header: t('price'),
-      cell: info => info.getValue()?.toLocaleString('es-CO', { style: 'currency', currency: 'COP' })
+      cell: info =>
+        info
+          .getValue()
+          ?.toLocaleString('es-CO', { style: 'currency', currency: 'COP' })
     },
     {
       accessorKey: 'quantity',
-      header: t('quantity'),
+      header: t('quantity')
     },
     {
       accessorKey: 'totalCost',
       header: t('total_cost'),
-      cell: info => info.getValue()?.toLocaleString('es-CO', { style: 'currency', currency: 'COP' })
+      cell: info =>
+        info
+          .getValue()
+          ?.toLocaleString('es-CO', { style: 'currency', currency: 'COP' })
     },
     {
       accessorKey: 'warehouseName',
@@ -63,13 +72,10 @@ export const StockDatatable = ({
       cell: info => info.getValue()?.toUpperCase()
     },
 
-
     {
       accessorKey: 'userStockCreatedName',
       header: t('created_by'),
       cell: info => info.getValue()?.toUpperCase()
-
-     
     },
     {
       accessorKey: 'userStockUpdatedName',
@@ -83,10 +89,7 @@ export const StockDatatable = ({
         const date = info.getValue()
         return date ? format(new Date(date), 'PPP') : null
       }
-    },
-   
-    
-   
+    }
   ]
 
   const handleEditDialog = row => {
@@ -96,14 +99,18 @@ export const StockDatatable = ({
   return (
     <DataTable
       columns={columnDefStock}
-      data={dataStock.data}
-      handleRow={row => handleEditDialog(row)}  
+      data={dataList}
+      totalRows={total}
+      handleRow={row => handleEditDialog(row)}
+      pagination={pagination}
+      onPaginationChange={onPaginationChange}
     />
   )
 }
 
 StockDatatable.propTypes = {
-  dataStock: PropTypes.object.isRequired,   
+  dataStock: PropTypes.object.isRequired,
   onEditDialog: PropTypes.func.isRequired,
-
+  pagination: PropTypes.object.isRequired,
+  onPaginationChange: PropTypes.func.isRequired
 }

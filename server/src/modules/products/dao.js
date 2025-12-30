@@ -72,8 +72,38 @@ export const getAllProducts = async (
     OFFSET ${skip}
 
   `
+  const total = await prisma.products.count({
+    where: {
+      ...(name && {
+        name: {
+          contains: name,
+          mode: 'insensitive' // equivale a ILIKE
+        }
+      }),
 
-  return products
+      ...(productProviderCode && {
+        productProviderCode
+      }),
+
+      ...(productCategoryCode && {
+        productCategoryCode
+      }),
+
+      ...(statusCode && {
+        statusCode
+      })
+    }
+  })
+
+  return { dataList: products, total }
+}
+
+/**
+ * Retrieves all products.
+ * @returns {Promise<Array>} A list of products matching the filters.
+ */
+export const getAllProductsFilters = async () => {
+  return await prisma.products.findMany()
 }
 
 /**

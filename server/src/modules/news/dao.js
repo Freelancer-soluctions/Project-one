@@ -84,7 +84,46 @@ export const getAllNews = async (description, fromDate, toDate, statusCode, take
 
     })
 
-  return Promise.resolve(news)
+  const total = await prisma.news.count({
+    where: {
+      ...(description
+        ? {
+            AND: [
+              {
+                description: {
+                  contains: description
+                }
+              }
+            ]
+          }
+        : {}),
+
+      ...((fromDate && toDate)
+        ? {
+            AND: [
+              {
+                createdOn: {
+                  gte: new Date(fromDate),
+                  lte: new Date(toDate)
+                }
+              }
+            ]
+          }
+        : {}),
+
+      ...(statusCode
+        ? {
+            status: {
+              code: {
+                equals: statusCode
+              }
+            }
+          }
+        : {})
+    }
+  })
+
+  return { dataList: news, total }
 }
 
 /**

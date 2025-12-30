@@ -46,7 +46,33 @@ export const getAllInventoryMovements = async ({ productId, warehouseId, type, t
     skip
   })
 
-  return inventoryMovements
+  const total = await prisma.yourModelName.count({
+    where: {
+      ...(productId
+        ? {
+            productId: {
+              equals: productId
+            }
+          }
+        : {}),
+      ...(warehouseId
+        ? {
+            warehouseId: {
+              equals: warehouseId
+            }
+          }
+        : {}),
+      ...(type
+        ? {
+            type: {
+              equals: type
+            }
+          }
+        : {})
+    }
+  })
+
+  return { dataList: inventoryMovements, total }
 }
 
 /**

@@ -37,39 +37,32 @@ export const getAllPayroll = async (filters, take, skip) => {
      LIMIT ${take}
      OFFSET ${skip}
    `
-  console.log('📝 Primer registro (encriptado):', payrolls[0])
-  return decryptResults(payrolls)
 
-  // console.log('📦 Payrolls antes de desencriptar:', payrolls.length)
-  // console.log('📝 Primer registro (encriptado):', payrolls[0])
+  const dataList = decryptResults(payrolls)
 
-  // try {
-  //   const decrypted = decryptSensitiveFields(payrolls)
-  //   console.log('✅ Desencriptación completada')
-  //   console.log('📝 Primer registro (desencriptado):', decrypted[0])
-  //   return decrypted
-  // } catch (error) {
-  //   console.error('❌ Error general en desencriptación:', error)
-  //   throw error
-  // }
+  const total = await prisma.payroll.count({
+    where: {
+      ...(filters.employeeId && {
+        employeeId: Number(filters.employeeId)
+      }),
 
-  // const { employeeId, month, year } = filters
+      ...(filters.month && {
+        month: {
+          contains: filters.month,
+          mode: 'insensitive' // equivale a ILIKE '%month%'
+        }
+      }),
 
-  // const where = {}
-  // if (employeeId) where.employeeId = parseInt(employeeId)
-  // if (month) where.month = parseInt(month)
-  // if (year) where.year = parseInt(year)
+      ...(filters.year && {
+        year: {
+          contains: filters.year,
+          mode: 'insensitive' // equivale a ILIKE '%year%'
+        }
+      })
+    }
+  })
 
-  // return await prisma.payroll.findMany({
-  //   where,
-  //   include: {
-  //     employee: {
-  //       include: {
-  //         user: true
-  //       }
-  //     }
-  //   }
-  // })
+  return { dataList, total }
 }
 
 export const createPayroll = async (data) => {

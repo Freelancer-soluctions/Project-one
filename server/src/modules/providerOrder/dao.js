@@ -21,7 +21,11 @@ export const getAllProviderOrders = async (filters = {}, take, skip) => {
     skip
   })
 
-  return providerOrders
+  const total = await prisma.providerOrder.count({
+    where: filters
+  })
+
+  return { dataList: providerOrders, total }
 }
 
 /**

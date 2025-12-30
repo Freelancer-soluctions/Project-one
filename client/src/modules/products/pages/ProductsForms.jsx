@@ -11,7 +11,7 @@ import {
   useDeleteProductAttributeByIdMutation,
   useSaveProductAttributesMutation
 } from '../api/productsAPI'
-import { useGetAllProvidersQuery } from '../../providers/api/providersAPI'
+import { useGetAllProvidersFiltersQuery } from '../../providers/api/providersAPI'
 
 import { Spinner } from '@/components/loader/Spinner'
 import { ProductBasicInfo, ProductAttributes } from '../components'
@@ -51,7 +51,7 @@ function ProductsForms() {
     isFetching: isFetchingProviders,
     isSuccess: isSuccessProviders,
     error: errorProviders
-  } = useGetAllProvidersQuery({name:'', status:true})
+  } = useGetAllProvidersFiltersQuery()
 
   const {
     data: datastatus,

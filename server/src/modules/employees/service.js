@@ -1,5 +1,6 @@
 import {
   getAllEmployees as getAllEmployeesDao,
+  getAllEmployeesFilters as getAllEmployeesFiltersDao,
   createEmployee as createEmployeeDao,
   updateEmployeeById as updateEmployeeByIdDao,
   deleteEmployeeById as deleteEmployeeByIdDao
@@ -18,6 +19,14 @@ export const getAllEmployees = async (filters) => {
     throw new Error('Pagination is required')
   }
   return getAllEmployeesDao(filters, take, skip)
+}
+
+/**
+ * Get all employees to ui filters
+ * @returns {Promise<Array>} List of employees
+ */
+export const getAllEmployeesFilters = async () => {
+  return getAllEmployeesFiltersDao()
 }
 
 /**

@@ -7,15 +7,22 @@ import { Badge } from '@/components/ui/badge' // Import Badge for status
 export const VacationDatatable = ({
   dataVacations,
   onEditDialog,
+  pagination,
+  onPaginationChange
 }) => {
   const { t } = useTranslation()
+  const { dataList, total } = dataVacations.data
 
-  const getStatusVariant = (status) => {
+  const getStatusVariant = status => {
     switch (status) {
-      case 'PENDING': return 'warning'
-      case 'APPROVED': return 'success'
-      case 'REJECTED': return 'destructive'
-      default: return 'secondary'
+      case 'PENDING':
+        return 'warning'
+      case 'APPROVED':
+        return 'success'
+      case 'REJECTED':
+        return 'destructive'
+      default:
+        return 'secondary'
     }
   }
 
@@ -42,7 +49,7 @@ export const VacationDatatable = ({
       accessorKey: 'status',
       header: t('status'),
       cell: info => {
-        const status = info.getValue();
+        const status = info.getValue()
         return (
           <Badge variant={getStatusVariant(status)}>
             {t(`status.${status}`)} {/* Assuming status translations */}
@@ -50,7 +57,7 @@ export const VacationDatatable = ({
         )
       }
     },
-      {
+    {
       accessorKey: 'userVacationCreatedName',
       header: t('created_by'),
       cell: info => {
@@ -91,17 +98,21 @@ export const VacationDatatable = ({
     onEditDialog(row)
   }
 
-
   return (
     <DataTable
       columns={columnDefVacations}
-      data={dataVacations.data}
+      data={dataList}
+      totalRows={total}
       handleRow={row => handleEditDialog(row)}
+      pagination={pagination}
+      onPaginationChange={onPaginationChange}
     />
   )
 }
 
 VacationDatatable.propTypes = {
   dataVacations: PropTypes.object.isRequired,
-  onEditDialog: PropTypes.func.isRequired
-} 
+  onEditDialog: PropTypes.func.isRequired,
+  pagination: PropTypes.object.isRequired,
+  onPaginationChange: PropTypes.func.isRequired
+}

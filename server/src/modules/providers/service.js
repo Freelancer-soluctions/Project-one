@@ -31,6 +31,15 @@ export const getAllProviders = async ({
 }
 
 /**
+ * Retrieves all providers.
+ *
+ * @returns {Promise<Array>} A list of providers matching the filters.
+ */
+export const getAllProvidersFilters = async () => {
+  return await productsDao.getAllProvidersFilters()
+}
+
+/**
  * Creates a new provider in the database.
  *
  * @param {number} userId - The ID of the user creating the provider.

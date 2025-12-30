@@ -12,7 +12,7 @@ import {
   useCreateAttendanceMutation,
   useDeleteAttendanceByIdMutation
 } from '../api/attendanceApi' // Adjusted import path
-import { useGetAllEmployeesQuery } from '@/modules/employees/api/employeesApi' // Assuming employee API exists
+import { useGetAllEmployeesFiltersQuery } from '@/modules/employees/api/employeesApi' // Assuming employee API exists
 import AlertDialogComponent from '@/components/alertDialog/AlertDialog'
 import { Spinner } from '@/components/loader/Spinner'
 
@@ -33,7 +33,7 @@ const Attendance = () => {
     data: dataEmployees = { data: [] },
     isLoading: isLoadingEmployees,
     isFetching: isFetchingEmployees
-  } = useGetAllEmployeesQuery()
+  } = useGetAllEmployeesFiltersQuery()
 
   const [
     getAllAttendance,

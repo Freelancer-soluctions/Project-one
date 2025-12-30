@@ -61,6 +61,15 @@ export const getAllClients = async (filters = {}, take, skip) => {
 }
 
 /**
+ * Get all clients.
+ * @returns {Promise<Array>} List of clients with their related data
+ */
+
+export const getAllClientsFilters = async () => {
+  return prisma.clients.findMany()
+}
+
+/**
  * Create a new client
  * @param {Object} data - Client data
  * @param {string} data.name - Client name

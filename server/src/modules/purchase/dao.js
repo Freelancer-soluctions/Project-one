@@ -21,7 +21,7 @@ export const getAllPurchases = async (filters = {}, take, skip) => {
     ...(filters.maxTotal && { total: { lte: filters.maxTotal } })
   }
 
-  return prisma.purchase.findMany({
+  const purchases = await prisma.purchase.findMany({
     where,
     include: {
       provider: true,
@@ -37,6 +37,11 @@ export const getAllPurchases = async (filters = {}, take, skip) => {
     take,
     skip
   })
+
+  const total = await prisma.purchase.count({
+    where
+  })
+  return { dataList: purchases, total }
 }
 
 /**

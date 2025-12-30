@@ -32,7 +32,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { NewsFiltersSchema } from '../utils'
 
 export const NewsFiltersForm = ({
-  trigger,
+  onSubmit,
   setActionDialog,
   setOpenDialog,
   datastatus
@@ -59,7 +59,7 @@ export const NewsFiltersForm = ({
     const fromDate = fdate && formatISO(new Date(fdate), 'yyyy-MM-dd')
     const toDate = tdate && formatISO(new Date(tdate), 'yyyy-MM-dd')
 
-    trigger({ description, fromDate, toDate, statusCode })
+    onSubmit({ description, fromDate, toDate, statusCode })
   }
 
   const handleAddDialog = () => {
