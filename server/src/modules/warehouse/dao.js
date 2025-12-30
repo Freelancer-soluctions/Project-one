@@ -46,6 +46,14 @@ export const getAllWarehouses = async (name, status, take, skip) => {
 }
 
 /**
+ * Get all warehouses.
+ * @returns {Promise<Array>} List of warehouses
+ */
+export const getAllWarehousesFilters = async () => {
+  return await prisma.warehouse.findMany()
+}
+
+/**
  * Create a new warehouse
  * @param {Object} data - Warehouse data
  * @returns {Promise<Object>} Created warehouse

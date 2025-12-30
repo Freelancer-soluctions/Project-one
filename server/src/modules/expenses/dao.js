@@ -13,7 +13,6 @@ import { prisma, Prisma } from '../../config/db.js'
  * @async
  */
 export const getAllExpenses = async (filters = {}, take, skip) => {
-  // console.log(filters); // Keep for debugging if needed
   const whereClauses = []
 
   if (filters.description) {
@@ -47,7 +46,29 @@ export const getAllExpenses = async (filters = {}, take, skip) => {
     LIMIT ${take}
     OFFSET ${skip}
   `
-  return expenses
+
+  const total = await prisma.expenses.count({
+    where: {
+      ...(filters.description && {
+        description: {
+          contains: filters.description,
+          mode: 'insensitive' // equivalente a ILIKE
+        }
+      }),
+
+      ...(filters.category && {
+        category: {
+          contains: filters.category,
+          mode: 'insensitive' // equivalente a ILIKE
+        }
+      }),
+
+      ...(filters.status && {
+        status: filters.status // match exacto (enum)
+      })
+    }
+  })
+  return { dataList: expenses, total }
 }
 
 /**

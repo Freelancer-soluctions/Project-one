@@ -37,6 +37,15 @@ export const getAllProducts = async ({
 }
 
 /**
+ * Get all products.
+ *
+ * @returns {Promise<Array>} A list of products matching the filters.
+ */
+export const getAllProductsFilters = async () => {
+  return await productsDao.getAllProductsFilters()
+}
+
+/**
  * Create a new product in the database.
  *
  * @param {number} userId - The ID of the user creating the product.

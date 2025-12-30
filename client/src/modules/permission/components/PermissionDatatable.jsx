@@ -4,18 +4,21 @@ import { format } from 'date-fns'
 import PropTypes from 'prop-types'
 import { Badge } from '@/components/ui/badge' // Import Badge for status
 
-export const PermissionDatatable = ({
-  dataPermissions,
-  onEditDialog,
-}) => {
+export const PermissionDatatable = ({ dataPermissions, onEditDialog,   pagination,
+  onPaginationChange }) => {
   const { t } = useTranslation()
+  const { dataList, total } = dataPermissions.data
 
-  const getStatusVariant = (status) => {
+  const getStatusVariant = status => {
     switch (status) {
-      case 'PENDING': return 'warning'
-      case 'APPROVED': return 'success'
-      case 'REJECTED': return 'destructive'
-      default: return 'secondary'
+      case 'PENDING':
+        return 'warning'
+      case 'APPROVED':
+        return 'success'
+      case 'REJECTED':
+        return 'destructive'
+      default:
+        return 'secondary'
     }
   }
 
@@ -29,8 +32,8 @@ export const PermissionDatatable = ({
       accessorKey: 'type',
       header: t('type'),
       cell: info => {
-        const type = info.getValue();
-        return type ? t(`permission_type.${type}`) : ''; // Assuming translations
+        const type = info.getValue()
+        return type ? t(`permission_type.${type}`) : '' // Assuming translations
       }
     },
     {
@@ -43,20 +46,20 @@ export const PermissionDatatable = ({
       header: t('end_date'),
       cell: info => format(new Date(info.getValue()), 'PPP')
     },
-     {
+    {
       accessorKey: 'reason',
       header: t('reason'),
       // Optional: Truncate long reasons
       cell: info => {
-          const reason = info.getValue();
-          return reason || ''
+        const reason = info.getValue()
+        return reason || ''
       }
     },
     {
       accessorKey: 'status',
       header: t('status'),
       cell: info => {
-        const status = info.getValue();
+        const status = info.getValue()
         return (
           <Badge variant={getStatusVariant(status)}>
             {t(`status.${status}`)} {/* Assuming status translations */}
@@ -64,7 +67,7 @@ export const PermissionDatatable = ({
         )
       }
     },
-      {
+    {
       accessorKey: 'userPermissionCreatedName',
       header: t('created_by'),
       cell: info => {
@@ -105,18 +108,21 @@ export const PermissionDatatable = ({
     onEditDialog(row)
   }
 
- 
-
   return (
     <DataTable
       columns={columnDefPermissions}
-      data={dataPermissions.data }
+      data={dataList}
+      totalRows={total}
       handleRow={row => handleEditDialog(row)}
+      pagination={pagination}
+      onPaginationChange={onPaginationChange}
     />
   )
 }
 
 PermissionDatatable.propTypes = {
   dataPermissions: PropTypes.array.isRequired,
-  onEditDialog: PropTypes.func.isRequired
-} 
+  onEditDialog: PropTypes.func.isRequired,
+  pagination: PropTypes.object.isRequired,
+  onPaginationChange: PropTypes.func.isRequired
+}

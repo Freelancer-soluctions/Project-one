@@ -3,8 +3,14 @@ import { DataTable } from '@/components/dataTable'
 import { format } from 'date-fns'
 import PropTypes from 'prop-types'
 
-export const UsersDatatable = ({ dataUsers, onOpenUsersForms }) => {
+export const UsersDatatable = ({
+  dataUsers,
+  onOpenUsersForms,
+  pagination,
+  onPaginationChange
+}) => {
   const { t } = useTranslation()
+  const { dataList, total } = dataUsers.data
 
   const columnDefUsers = [
     {
@@ -24,13 +30,11 @@ export const UsersDatatable = ({ dataUsers, onOpenUsersForms }) => {
       accessorKey: 'statusDescription',
       header: t('status'),
       cell: info => info.getValue()?.toUpperCase()
-
     },
     {
       accessorKey: 'roleDescription',
       header: t('rol'),
       cell: info => info.getValue()?.toUpperCase()
-
     },
     {
       accessorKey: 'email',
@@ -66,14 +70,15 @@ export const UsersDatatable = ({ dataUsers, onOpenUsersForms }) => {
       header: t('birthday'),
       cell: info => format(new Date(info.getValue()), 'PPP')
     },
- 
+
     {
       accessorKey: 'lastUpdatedByName',
       header: t('updated_by'),
       cell: info => {
         const value = info.getValue()?.toUpperCase()
         return value.length > 30 ? `${value.slice(0, 30)}...` : value
-      }    },
+      }
+    },
     {
       accessorKey: 'lastUpdatedOn',
       header: t('updated_on'),
@@ -84,21 +89,25 @@ export const UsersDatatable = ({ dataUsers, onOpenUsersForms }) => {
     }
   ]
 
-
-   const handleEditDialog = row => {
+  const handleEditDialog = row => {
     onOpenUsersForms(row)
   }
-  
+
   return (
     <DataTable
       columns={columnDefUsers}
-      data={dataUsers.data}
+      data={dataList}
+      totalRows={total}
       handleRow={row => handleEditDialog(row)}
+      pagination={pagination}
+      onPaginationChange={onPaginationChange}
     />
   )
 }
 
 UsersDatatable.propTypes = {
   dataUsers: PropTypes.object.isRequired,
-  onOpenUsersForms: PropTypes.func.isRequired
+  onOpenUsersForms: PropTypes.func.isRequired,
+  pagination: PropTypes.object.isRequired,
+  onPaginationChange: PropTypes.func.isRequired
 }

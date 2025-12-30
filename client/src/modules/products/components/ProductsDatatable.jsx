@@ -5,11 +5,12 @@ import PropTypes from 'prop-types'
 
 export const ProductsDatatable = ({
   dataProducts,
-  onOpenProductsForms
-  
-
+  onOpenProductsForms,
+  pagination,
+  onPaginationChange
 }) => {
   const { t } = useTranslation()
+  const { dataList, total } = dataProducts.data
 
   const columnDef = [
     {
@@ -44,7 +45,7 @@ export const ProductsDatatable = ({
     },
     {
       accessorKey: 'cost',
-      header: t('cost')   
+      header: t('cost')
     },
 
     {
@@ -68,21 +69,22 @@ export const ProductsDatatable = ({
       header: t('updated_on'),
       cell: info =>
         info.getValue() ? format(info.getValue(), 'dd/MM/yyyy/hh:mm:s aaa') : ''
-    },
-   
+    }
   ]
 
   const handleEditDialog = row => {
     onOpenProductsForms(row)
-
   }
 
   return (
     <>
       <DataTable
         columns={columnDef}
-        data={dataProducts?.data}
+        data={dataList}
+        totalRows={total}
         handleRow={row => handleEditDialog(row)}
+        pagination={pagination}
+        onPaginationChange={onPaginationChange}
       />
     </>
   )
@@ -90,7 +92,7 @@ export const ProductsDatatable = ({
 
 ProductsDatatable.propTypes = {
   dataProducts: PropTypes.object,
-  setSelectedRow: PropTypes.func,
-  setOpenDialog: PropTypes.func,
-  setActionDialog: PropTypes.func
+  onOpenProductsForms: PropTypes.func.isRequired,
+  pagination: PropTypes.object.isRequired,
+  onPaginationChange: PropTypes.func.isRequired
 }

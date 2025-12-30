@@ -45,7 +45,34 @@ export const getAllPerformanceEvaluations = async (filters = {}, take, skip) => 
     OFFSET ${skip}
   `
 
-  return evaluations
+  const total = await prisma.performanceEvaluation.count({
+    where: {
+      ...(filters.employeeId && {
+        employeeId: Number(filters.employeeId)
+      }),
+
+      ...(filters.startDate && {
+        date: {
+          gte: filters.startDate
+        }
+      }),
+
+      ...(filters.endDate && {
+        date: {
+          ...(filters.startDate ? {} : undefined),
+          lte: filters.endDate
+        }
+      }),
+
+      ...(filters.startDate && filters.endDate && {
+        date: {
+          gte: filters.startDate,
+          lte: filters.endDate
+        }
+      })
+    }
+  })
+  return { dataList: evaluations, total }
 }
 
 /**

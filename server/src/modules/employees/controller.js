@@ -1,5 +1,6 @@
 import {
   getAllEmployees as getAllEmployeesService,
+  getAllEmployeesFilters as getAllEmployeesFiltersService,
   createEmployee as createEmployeeService,
   updateEmployeeById as updateEmployeeByIdService,
   deleteEmployeeById as deleteEmployeeByIdService
@@ -14,6 +15,16 @@ import globalResponse from '../../utils/responses&Errors/globalResponse.js'
  */
 export const getAllEmployees = handleCatchErrorAsync(async (req, res) => {
   const employees = await getAllEmployeesService(req.query)
+  globalResponse(res, 200, employees)
+})
+
+/**
+ * Get all employees to ui filters
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object
+ */
+export const getAllEmployeesFilters = handleCatchErrorAsync(async (req, res) => {
+  const employees = await getAllEmployeesFiltersService()
   globalResponse(res, 200, employees)
 })
 

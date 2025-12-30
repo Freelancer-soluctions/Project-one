@@ -42,10 +42,33 @@ export const getAllProducts = async (name, status, take, skip) => {
     ORDER BY p."createdOn" DESC
     LIMIT ${take}
     OFFSET ${skip}
-
-
   `
-  return providers
+
+  const total = await prisma.productProviders.count({
+    where: {
+      ...(name && {
+        name: {
+          contains: name,
+          mode: 'insensitive' // equivalente a ILIKE
+        }
+      }),
+
+      ...(status !== null && {
+        status: Boolean(status)
+      })
+    }
+  })
+
+  return { dataList: providers, total }
+}
+
+/**
+ * Retrieves all providers.
+ * @returns {Promise<Array>} A list of providers matching the filters.
+ */
+
+export const getAllProvidersFilters = async () => {
+  return await prisma.productProviders.findMany()
 }
 
 /**

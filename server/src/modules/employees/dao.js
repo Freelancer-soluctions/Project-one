@@ -62,7 +62,63 @@ export const getAllEmployees = async (filters = {}, take, skip) => {
  `
 
   // A02 cryptographid failures (cifrado de datos sensibles)
-  return decryptResults(employees)
+  const dataList = decryptResults(employees)
+
+  const total = await prisma.employees.count({
+    where: {
+      ...(filters.name && {
+        name: {
+          contains: filters.name,
+          mode: 'insensitive' // equivale a ILIKE
+        }
+      }),
+
+      ...(filters.lastName && {
+        lastName: {
+          contains: filters.lastName,
+          mode: 'insensitive'
+        }
+      }),
+
+      ...(filters.dni && {
+        dni_hash: {
+          contains: hashValue(filters.dni),
+          mode: 'insensitive'
+        }
+      }),
+
+      ...(filters.email && {
+        email: {
+          contains: filters.email,
+          mode: 'insensitive'
+        }
+      }),
+
+      ...(filters.department && {
+        department: {
+          contains: filters.department,
+          mode: 'insensitive'
+        }
+      }),
+
+      ...(filters.position && {
+        position: {
+          contains: filters.position,
+          mode: 'insensitive'
+        }
+      })
+    }
+  })
+
+  return { dataList, total }
+}
+
+/**
+ * Get all employees to ui filters
+ * @returns {Promise<Array>} List of employees with their related data
+ */
+export const getAllEmployeesFilters = async () => {
+  return await prisma.employees.findMany()
 }
 
 /**

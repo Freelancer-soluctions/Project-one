@@ -73,6 +73,15 @@ router.get(
   providersController.getAllProviders
 )
 
+router.get(
+  '/providerFilters',
+  checkRoleAuthOrPermisssion({
+    allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER, ROLESCODES.USER],
+    permissions: [PERMISSIONCODES.canViewProvider]
+  }),
+  providersController.getAllProvidersFilters
+)
+
 /**
  * @openapi
  * /api/v1/providers:

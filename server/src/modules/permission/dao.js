@@ -55,8 +55,44 @@ export const getAllPermissions = async (filters, take, skip) => {
       LIMIT ${take}
       OFFSET ${skip}
     `
+  const total = await prisma.permission.count({
+    where: {
+      ...(filters.employeeId && {
+        employeeId: Number(filters.employeeId)
+      }),
 
-  return permissions
+      ...(filters.startDate && {
+        createdOn: {
+          gte: new Date(filters.startDate)
+        }
+      }),
+
+      ...(filters.endDate && {
+        createdOn: {
+          ...(filters.startDate
+            ? { gte: new Date(filters.startDate) }
+            : {}),
+          lte: new Date(filters.endDate)
+        }
+      }),
+
+      ...(filters.status && {
+        status: {
+          contains: filters.status,
+          mode: 'insensitive' // equivalente a ILIKE
+        }
+      }),
+
+      ...(filters.type && {
+        type: {
+          contains: filters.type,
+          mode: 'insensitive' // equivalente a ILIKE
+        }
+      })
+    }
+  })
+
+  return { dataList: permissions, total }
 }
 
 /**
