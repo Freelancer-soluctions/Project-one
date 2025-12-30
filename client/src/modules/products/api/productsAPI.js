@@ -19,6 +19,13 @@ const productsApi = createApi({
       }),
       providesTags: ['Products'] // Indica que este endpoint usa el tag 'Notes'
     }),
+    getAllProductsFilters: builder.query({
+      query: () => ({
+        url: `/products/productsFilters`,
+        method: 'GET'
+      }),
+      providesTags: ['Products'] // Indica que este endpoint usa el tag 'Notes'
+    }),
     getAllProductsStatus: builder.query({
       query: () => ({
         url: `/products/status`,
@@ -31,7 +38,7 @@ const productsApi = createApi({
         method: 'GET'
       })
     }),
-   
+
     updateProductById: builder.mutation({
       query: ({ id, data }) => ({
         url: `/products/${id}`,
@@ -60,12 +67,11 @@ const productsApi = createApi({
       invalidatesTags: ['Products'] // Invalida el cache de 'Notes' para volver a consultar
     }),
     getAllProductAttributes: builder.query({
-      query: (id) => ({
+      query: id => ({
         url: `/products/attributes/${id}`,
         method: 'GET'
-      }),
+      })
       //providesTags: ['ProductAttributes'] // no funciona invalidar la cache ya que es un lazy
-
     }),
     deleteProductAttributeById: builder.mutation({
       query(id) {
@@ -85,7 +91,7 @@ const productsApi = createApi({
         }
       },
       invalidatesTags: ['ProductAttributes'] // Invalida el cache de 'Notes' para volver a consultar
-    }),
+    })
   })
 })
 
@@ -95,15 +101,14 @@ export const {
   useLazyGetAllProductsQuery,
   useGetAllProductsStatusQuery,
   useGetAllProductsQuery,
+  useGetAllProductsFiltersQuery,
   useGetAllProductCategoriesQuery,
   useLazyGetAllProductAttributesQuery,
   useUpdateProductByIdMutation,
   useCreateProductMutation,
   useDeleteProductByIdMutation,
   useDeleteProductAttributeByIdMutation,
-  useSaveProductAttributesMutation,
-
-
+  useSaveProductAttributesMutation
 } = productsApi
 
 export default productsApi

@@ -7,12 +7,18 @@ import {
   useGetAllProductsStatusQuery,
   useGetAllProductCategoriesQuery
 } from '../api/productsAPI'
-import { useGetAllProvidersQuery } from '../../providers/api/providersAPI'
+import { useGetAllProvidersFiltersQuery } from '../../providers/api/providersAPI'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router'
+import { useState, useEffect } from 'react'
 const Products = () => {
   const { t } = useTranslation() // Accede a las traducciones
   const navigate = useNavigate()
+    const [pagination, setPagination] = useState({
+      pageIndex: 0,
+      pageSize: 20
+    })
+    const [filters, setFilters] = useState({})
 
   const {
     data: dataCategory,
@@ -30,7 +36,7 @@ const Products = () => {
     isFetching: isFetchingProviders,
     isSuccess: isSuccessProviders,
     error: errorProviders
-  } = useGetAllProvidersQuery({name:'', status:true})
+  } = useGetAllProvidersFiltersQuery()
 
   const {
     data: datastatus,
@@ -55,6 +61,47 @@ const Products = () => {
     lastPromiseInfo
   ] = useLazyGetAllProductsQuery()
 
+
+  /**
+   * Este efecto es la única fuente de verdad para disparar
+   * la consulta al backend.
+   *
+   * Se ejecuta automáticamente:
+   * - Al montar el componente (primer render)
+   * - Cuando cambia la página
+   * - Cuando cambia el tamaño de página
+   * - Cuando cambian los filtros
+   *
+   * No se realizan llamadas manuales al backend desde handlers
+   * para evitar duplicación de lógica y estados inconsistentes.
+   */
+  useEffect(() => {
+    trigger({
+      page: pagination.pageIndex + 1,
+      limit: pagination.pageSize,
+      ...filters
+    })
+  }, [pagination.pageIndex, pagination.pageSize, filters])
+
+  /**
+   * Al aplicar nuevos filtros:
+   * - Se resetea la página a la primera (pageIndex = 0)
+   * - Se actualiza el estado de filtros
+   *
+   * No se llama directamente al backend aquí.
+   * El cambio de estado dispara el useEffect, manteniendo
+   * un flujo reactivo y predecible.
+   */
+  const handleSubmitFilters = newFilters => {
+    setPagination(prev => ({
+      ...prev,
+      pageIndex: 0
+    }))
+
+    setFilters(newFilters)
+  }
+
+
   const handleProductsForms = row => {
     navigate('/home/productsForms', { state: { row } })
   }
@@ -77,7 +124,7 @@ const Products = () => {
           {/* filters */}
           <div className='col-span-2 row-span-1 md:col-span-5'>
             <ProductsFiltersForm
-              trigger={trigger}
+              onSubmit={handleSubmitFilters}
               onOpenProductsForms={handleProductsForms}
               datastatus={datastatus}
               dataCategory={dataCategory}
@@ -89,6 +136,8 @@ const Products = () => {
             <ProductsDatatable
               dataProducts={dataProducts}
               onOpenProductsForms={handleProductsForms}
+               pagination={pagination}
+              onPaginationChange={setPagination}
             />
           </div>
         </div>

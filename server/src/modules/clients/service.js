@@ -1,6 +1,7 @@
 import {
   getAllClients as getAllClientsDao,
   createClient as createClientDao,
+  getAllClientsFilters as getAllClientsFiltersDao,
   updateClientById as updateClientByIdDao,
   deleteClientById as deleteClientByIdDao
 } from './dao.js'
@@ -18,6 +19,14 @@ export const getAllClients = async (filters) => {
     throw new Error('Pagination is required')
   }
   return getAllClientsDao(filters, take, skip)
+}
+
+/**
+ * Get all clients.
+ * @returns {Promise<Array>} List of clients
+ */
+export const getAllClientsFilters = async () => {
+  return getAllClientsFiltersDao()
 }
 
 /**

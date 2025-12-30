@@ -48,7 +48,7 @@ export const getAllEventTypes = async () => {
  * @param {number} skip - skip to filter by
  * @returns {Promise<Array>} A list of events matching the filters from the database.
  */
-export const getAllEvents = async (searchQuery, take, skip) => {
+export const getAllEvents = async (searchQuery) => {
   const events = await prisma.$queryRaw`
     SELECT e.*, 
            et.id AS "eventTypeId", et.code AS "eventTypeCode", et.description AS "eventTypeDescription",
@@ -64,8 +64,6 @@ export const getAllEvents = async (searchQuery, take, skip) => {
     `
 : Prisma.empty}
     ORDER BY e."createdOn" DESC
-    LIMIT ${take}
-    OFFSET ${skip}
   `
 
   return events

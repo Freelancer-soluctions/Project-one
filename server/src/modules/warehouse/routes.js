@@ -1,6 +1,7 @@
 import { Router } from 'express'
 import {
   getAllWarehouses,
+  getAllWarehousesFilters,
   createWarehouse,
   updateWarehouseById,
   deleteWarehouseById
@@ -74,6 +75,15 @@ router.get(
   }),
   validateQueryParams(warehouseFiltersSchema),
   getAllWarehouses
+)
+
+router.get(
+  '/warehouseFilters',
+  checkRoleAuthOrPermisssion({
+    allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER, ROLESCODES.USER],
+    permissions: [PERMISSIONCODES.canViewWarehouse]
+  }),
+  getAllWarehousesFilters
 )
 
 /**

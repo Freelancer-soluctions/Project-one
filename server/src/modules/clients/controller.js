@@ -1,5 +1,6 @@
 import {
   getAllClients as getAllClientsService,
+  getAllClientsFilters as getAllClientsFiltersService,
   createClient as createClientService,
   updateClientById as updateClientByIdService,
   deleteClientById as deleteClientByIdService
@@ -13,8 +14,17 @@ import globalResponse from '../../utils/responses&Errors/globalResponse.js'
  * @param {Object} res - Express response object
  */
 export const getAllClients = handleCatchErrorAsync(async (req, res) => {
-  console.log(req.query)
   const clients = await getAllClientsService(req.query)
+  globalResponse(res, 200, clients)
+})
+
+/**
+ * Get all clients.
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object
+ */
+export const getAllClientsFilters = handleCatchErrorAsync(async (req, res) => {
+  const clients = await getAllClientsFiltersService()
   globalResponse(res, 200, clients)
 })
 
@@ -24,7 +34,6 @@ export const getAllClients = handleCatchErrorAsync(async (req, res) => {
  * @param {Object} res - Express response object
  */
 export const createClient = handleCatchErrorAsync(async (req, res) => {
-  console.log(req.body)
   const client = await createClientService({
     ...req.body,
     createdBy: req.userId

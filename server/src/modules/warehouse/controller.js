@@ -1,5 +1,6 @@
 import {
   getAllWarehouses as getAllWarehousesService,
+  getAllWarehousesFilters as getAllWarehousesFiltersService,
   createWarehouse as createWarehouseService,
   updateWarehouseById as updateWarehouseByIdService,
   deleteWarehouseById as deleteWarehouseByIdService
@@ -19,6 +20,16 @@ export const getAllWarehouses = handleCatchErrorAsync(async (req, res) => {
   globalResponse(res, 200, warehouses)
 })
 
+/**
+ * Get all warehouses with optional filters
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object
+ * @returns {Promise<void>}
+ */
+export const getAllWarehousesFilters = handleCatchErrorAsync(async (req, res) => {
+  const warehouses = await getAllWarehousesFiltersService()
+  globalResponse(res, 200, warehouses)
+})
 /**
  * Create a new warehouse
  * @param {Object} req - Express request object

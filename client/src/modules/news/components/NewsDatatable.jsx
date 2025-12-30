@@ -8,9 +8,12 @@ export const NewsDatatable = ({
   dataNews,
   setSelectedRow,
   setOpenDialog,
-  setActionDialog
+  setActionDialog,
+  pagination,
+  onPaginationChange
 }) => {
   const { t } = useTranslation()
+  const { dataList, total } = dataNews.data
 
   const columnDefNews = [
     {
@@ -79,8 +82,11 @@ export const NewsDatatable = ({
     <>
       <DataTable
         columns={columnDefNews}
-        data={dataNews?.data}
+        data={dataList}
+        totalRows={total}
         handleRow={row => handleEditDialog(row)}
+        pagination={pagination}
+        onPaginationChange={onPaginationChange}
       />
     </>
   )
@@ -90,5 +96,7 @@ NewsDatatable.propTypes = {
   dataNews: PropTypes.object,
   setSelectedRow: PropTypes.func,
   setOpenDialog: PropTypes.func,
-  setActionDialog: PropTypes.func
+  setActionDialog: PropTypes.func,
+  pagination: PropTypes.object.isRequired,
+  onPaginationChange: PropTypes.func.isRequired
 }

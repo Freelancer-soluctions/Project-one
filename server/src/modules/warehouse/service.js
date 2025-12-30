@@ -1,5 +1,6 @@
 import {
   getAllWarehouses as getAllWarehousesDao,
+  getAllWarehousesFilters as getAllWarehousesFiltersDao,
   createWarehouse as createWarehouseDao,
   updateWarehouse as updateWarehouseDao,
   deleteWarehouse as deleteWarehouseDao
@@ -22,6 +23,14 @@ export const getAllWarehouses = async ({ name, status, limit, page }) => {
     throw new Error('Pagination is required')
   }
   return await getAllWarehousesDao(name, status, take, skip)
+}
+
+/**
+ * Get all warehouses.
+ * @returns {Promise<Array>} List of warehouses
+ */
+export const getAllWarehousesFilters = async () => {
+  return await getAllWarehousesFiltersDao()
 }
 
 /**

@@ -18,6 +18,13 @@ const providersApi = createApi({
           providesTags: ['Providers'], // Indica que este endpoint usa el tag 'Notes'
         }),
     
+         getAllProvidersFilters: builder.query({
+          query: (params) => ({
+            url: `/providers/providerFilters`,
+            params
+          }),
+          providesTags: ['Providers'], // Indica que este endpoint usa el tag 'Notes'
+        }),
         deleteProviderById: builder.mutation({
           query: (id) => ({
             url: `/providers/${id}`,
@@ -49,6 +56,7 @@ const providersApi = createApi({
 export const { 
   useLazyGetAllProvidersQuery, 
   useGetAllProvidersQuery,
+  useGetAllProvidersFiltersQuery,
   useUpdateProviderByIdMutation, 
   useCreateProviderMutation, 
   useDeleteProviderByIdMutation 

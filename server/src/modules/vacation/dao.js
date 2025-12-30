@@ -39,7 +39,7 @@ export const getAllVacation = async (filters, take, skip) => {
     ? Prisma.sql`WHERE ${Prisma.join(whereClauses, Prisma.sql` AND `)}`
     : Prisma.empty
 
-  const permissions = await prisma.$queryRaw`
+  const vacations = await prisma.$queryRaw`
        SELECT 
          va.*,
          e.name AS "employeeName",
@@ -55,7 +55,42 @@ export const getAllVacation = async (filters, take, skip) => {
        OFFSET ${skip}
      `
 
-  return permissions
+  const total = await prisma.vacation.count({
+    where: {
+      ...(filters.employeeId && {
+        employeeId: Number(filters.employeeId)
+      }),
+
+      ...(filters.startDate || filters.endDate
+        ? {
+            createdOn: {
+              ...(filters.startDate && {
+                gte: new Date(filters.fromDate)
+              }),
+              ...(filters.endDate && {
+                lte: new Date(filters.toDate)
+              })
+            }
+          }
+        : {}),
+
+      ...(filters.status && {
+        status: {
+          contains: filters.status,
+          mode: 'insensitive' // equivalente a ILIKE '%status%'
+        }
+      }),
+
+      ...(filters.type && {
+        type: {
+          contains: filters.type,
+          mode: 'insensitive' // equivalente a ILIKE '%type%'
+        }
+      })
+    }
+  })
+
+  return { vacations, total }
 }
 
 /**
