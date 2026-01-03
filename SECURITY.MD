@@ -244,6 +244,10 @@ Reducción de superficie de ataque desde el input
 * No se construyen queries dinámicas sin control
 
 
+Control de exposición de registros (Data Exposure Control)
+
+La aplicación implementa controles explícitos para evitar la exposición masiva de registros como consecuencia de consultas manipuladas o no acotadas, mitigando escenarios comunes de explotación asociados a A03: Injection. Todas las operaciones de lectura que soportan paginación utilizan valores de limit y offset validados, tipados y acotados previamente, impidiendo que el cliente fuerce consultas sin límites o con rangos arbitrarios. El acceso a datos se realiza exclusivamente mediante ORMs, query builders o consultas parametrizadas, evitando la interpolación directa de valores provenientes del cliente. Adicionalmente, el total de registros (count) requerido para paginación se obtiene mediante consultas controladas y separadas, garantizando que la lógica de conteo no reutilice ni exponga consultas dinámicas no validadas. Este enfoque reduce la superficie de ataque, previene enumeración de datos y asegura que el sistema permanezca resiliente incluso ante intentos de manipulación de parámetros de paginación o filtrado.
+
 ---
 
 ## 5. A04 – Insecure Design
