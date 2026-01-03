@@ -213,6 +213,8 @@ const Warehouse = () => {
             <WarehouseDatatable
               dataWarehouse={dataWarehouse}
               onEditDialog={handleEditDialog}
+                 pagination={pagination}
+              onPaginationChange={setPagination}
             />
           </div>
           {/* Dialog */}
