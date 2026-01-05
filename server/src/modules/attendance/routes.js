@@ -5,7 +5,7 @@ import {
   updateAttendanceById,
   deleteAttendanceById
 } from './controller.js'
-import { verifyToken, validateSchema, validateQueryParams, checkRoleAuthOrPermisssion } from '../../middleware/index.js'
+import { verifyToken, validateSchema, validateQueryParams, checkRoleAuthOrPermisssion, validatePathParam } from '../../middleware/index.js'
 import { attendanceFiltersSchema, attendanceCreateUpdateSchema } from '../../utils/joiSchemas/joi.js'
 import { ROLESCODES, PERMISSIONCODES } from '../../utils/constants/enums.js'
 
@@ -205,6 +205,7 @@ router.put(
     allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER],
     permissions: [PERMISSIONCODES.canEditAttendance]
   }),
+  validatePathParam,
   validateSchema(attendanceCreateUpdateSchema),
   updateAttendanceById
 )

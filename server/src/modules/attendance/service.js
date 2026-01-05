@@ -11,17 +11,17 @@ import { getSafePagination } from '../../utils/pagination/pagination.js'
  * @param {Object} filters - filters for the query
  * @returns {Promise<Array>} List of attendance records
  */
-export const getAllAttendance = async (filters) => {
-  console.log('limit y page', { limit: filters.limit, page: filters.page })
+export const getAllAttendance = async ({ employeeId, fromDate, toDate, limit, page }) => {
   const { take, skip } = getSafePagination({
-    page: filters.page,
-    limit: filters.limit
+    page,
+    limit
   })
 
   if (!take || take <= 0) {
     throw new Error('Pagination is required')
   }
-  return getAllAttendanceDao(filters, take, skip)
+
+  return getAllAttendanceDao({ employeeId, fromDate, toDate }, take, skip)
 }
 
 /**

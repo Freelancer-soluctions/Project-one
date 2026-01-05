@@ -12,28 +12,28 @@ import { prisma, Prisma } from '../../config/db.js'
  * @returns {Promise<Array>} List of attendance records with their related data
  */
 export const getAllAttendance = async (filters = {}, take, skip) => {
+  console.log('filters', filters)
   const whereClauses = []
 
   if (filters.employeeId) {
     whereClauses.push(Prisma.sql`a."employeeId" = ${Number(filters.employeeId)}`)
   }
 
-  if (filters.date) {
-    whereClauses.push(Prisma.sql`a."date" = ${new Date(filters.date)}`)
-  }
-
   if (filters.fromDate && filters.toDate) {
-    whereClauses.push(Prisma.sql`a."date" BETWEEN ${new Date(filters.fromDate)} AND ${new Date(filters.toDate)}`)
+    whereClauses.push(Prisma.sql`a."date" BETWEEN ${filters.fromDate}::timestamp AND ${filters.toDate}::timestamp`)
   } else if (filters.fromDate) {
-    whereClauses.push(Prisma.sql`a."date" >= ${new Date(filters.fromDate)}`)
+    whereClauses.push(Prisma.sql`a."date" >= ${filters.fromDate}::timestamp`)
   } else if (filters.toDate) {
-    whereClauses.push(Prisma.sql`a."date" <= ${new Date(filters.toDate)}`)
+    whereClauses.push(Prisma.sql`a."date" <= ${filters.toDate}::timestamp`)
   }
 
   const whereSql = whereClauses.length
-    ? Prisma.sql`WHERE ${Prisma.join(whereClauses, Prisma.sql` AND `)}`
+    ? Prisma.sql`WHERE ${Prisma.join(whereClauses, ' AND ')}`
     : Prisma.empty
 
+  console.log('whereClauses:', whereClauses)
+  console.log('whereSql:', whereSql)
+  console.log('take:', take, 'skip:', skip)
   const attendance = await prisma.$queryRaw`
   SELECT 
      a.*,
@@ -47,18 +47,14 @@ export const getAllAttendance = async (filters = {}, take, skip) => {
    LEFT JOIN "users" uu ON a."updatedBy" = uu.id
    ${whereSql}
    ORDER BY a."date" DESC, a."entryTime" DESC
-   LIMIT ${take}
-   OFFSET ${skip}
+   LIMIT ${take || 10}
+   OFFSET ${skip || 0}
  `
 
   const total = await prisma.attendance.count({
     where: {
       ...(filters.employeeId && {
         employeeId: Number(filters.employeeId)
-      }),
-
-      ...(filters.date && {
-        date: new Date(filters.date)
       }),
 
       ...((filters.fromDate || filters.toDate) && {
@@ -72,6 +68,7 @@ export const getAllAttendance = async (filters = {}, take, skip) => {
         }
       })
     }
+
   })
   return { dataList: attendance, total }
 }
