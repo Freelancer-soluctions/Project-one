@@ -51,8 +51,8 @@ export const getAllVacation = async (filters, take, skip) => {
        LEFT JOIN "users" uu ON va."updatedBy" = uu.id
        ${whereSql}
        ORDER BY va."createdOn" DESC
-       LIMIT ${take}
-       OFFSET ${skip}
+       LIMIT ${take || 10}
+       OFFSET ${skip || 0}
      `
 
   const total = await prisma.vacation.count({

@@ -360,7 +360,6 @@ export const employeeCreateUpdateSchema = Joi.object({
 
 export const attendanceFiltersSchema = Joi.object({
   employeeId: Joi.number().integer().allow(''),
-  date: Joi.date().allow(''),
   fromDate: Joi.date().allow(''),
   toDate: Joi.date().allow(''),
   limit: Joi.number().integer(),
