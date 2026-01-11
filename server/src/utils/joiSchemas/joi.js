@@ -121,7 +121,9 @@ export const NewsFilters = Joi.object({
   description: Joi.string().min(1).max(30).allow(''),
   statusCode: Joi.string().min(3).max(3).allow(''),
   toDate: Joi.date().allow(''),
-  fromDate: Joi.date().allow('')
+  fromDate: Joi.date().allow(''),
+  limit: Joi.number().integer(),
+  page: Joi.number().integer()
 })
 
 export const NewsUpdate = Joi.object({
@@ -181,7 +183,9 @@ export const ProductsFilters = Joi.object({
   name: Joi.string().min(1).max(80).allow(''),
   statusCode: Joi.string().min(3).max(3).allow(''),
   productProviderCode: Joi.string().min(3).max(3).allow(''),
-  productCategoryCode: Joi.string().min(3).max(3).allow('')
+  productCategoryCode: Joi.string().min(3).max(3).allow(''),
+  limit: Joi.number().integer(),
+  page: Joi.number().integer()
 })
 
 export const ProductsUpdate = Joi.object({
@@ -208,7 +212,9 @@ export const ProductAttributes = Joi.array().items(
 
 export const ProvidersFilters = Joi.object({
   name: Joi.string().min(1).max(80).allow(''),
-  status: Joi.boolean().allow(null)
+  status: Joi.boolean().allow(null),
+  limit: Joi.number().integer(),
+  page: Joi.number().integer()
 })
 
 export const Providers = Joi.object({
@@ -234,12 +240,16 @@ export const SettingsProductCategoryUpdate = Joi.object({
 
 export const SettingsProductCategoryFilters = Joi.object({
   description: Joi.string().max(50).allow(''),
-  code: Joi.string().max(3).allow('')
+  code: Joi.string().max(3).allow(''),
+  limit: Joi.number().integer(),
+  page: Joi.number().integer()
 })
 
 export const warehouseFiltersSchema = Joi.object({
   name: Joi.string().max(50).allow(''),
-  status: Joi.string().valid('ACTIVE', 'INACTIVE', 'MAINTENANCE').allow('')
+  status: Joi.string().valid('ACTIVE', 'INACTIVE', 'MAINTENANCE').allow(''),
+  limit: Joi.number().integer(),
+  page: Joi.number().integer()
 })
 
 export const warehouseCreateUpdateSchema = Joi.object({
@@ -275,7 +285,9 @@ export const inventoryMovementFiltersSchema = Joi.object({
   warehouseId: Joi.number().integer().positive().optional(),
   type: Joi.string().valid('ENTRY', 'EXIT', 'TRANSFERENCE', 'ADJUSTMENT').optional(),
   startDate: Joi.date().iso().optional(),
-  endDate: Joi.date().iso().min(Joi.ref('startDate')).optional()
+  endDate: Joi.date().iso().min(Joi.ref('startDate')).optional(),
+  limit: Joi.number().integer(),
+  page: Joi.number().integer()
 })
 
 export const inventoryMovementCreateUpdateSchema = Joi.object({
@@ -290,7 +302,9 @@ export const inventoryMovementCreateUpdateSchema = Joi.object({
 
 export const clientFiltersSchema = Joi.object({
   name: Joi.string().max(100).allow(''),
-  email: Joi.string().email().allow('')
+  email: Joi.string().email().allow(''),
+  limit: Joi.number().integer(),
+  page: Joi.number().integer()
 })
 
 export const clientCreateUpdateSchema = Joi.object({
@@ -326,7 +340,9 @@ export const employeeFiltersSchema = Joi.object({
   dni: Joi.string().max(10).allow(''),
   email: Joi.string().email().allow(''),
   department: Joi.string().max(100).allow(''),
-  position: Joi.string().max(100).allow('')
+  position: Joi.string().max(100).allow(''),
+  limit: Joi.number().integer(),
+  page: Joi.number().integer()
 })
 
 export const employeeCreateUpdateSchema = Joi.object({
@@ -344,9 +360,10 @@ export const employeeCreateUpdateSchema = Joi.object({
 
 export const attendanceFiltersSchema = Joi.object({
   employeeId: Joi.number().integer().allow(''),
-  date: Joi.date().allow(''),
   fromDate: Joi.date().allow(''),
-  toDate: Joi.date().allow('')
+  toDate: Joi.date().allow(''),
+  limit: Joi.number().integer(),
+  page: Joi.number().integer()
 })
 
 export const attendanceCreateUpdateSchema = Joi.object({
@@ -360,7 +377,9 @@ export const attendanceCreateUpdateSchema = Joi.object({
 export const payrollFiltersSchema = Joi.object({
   employeeId: Joi.number().integer().allow(''),
   month: Joi.number().integer().min(1).max(12).allow(''),
-  year: Joi.number().integer().min(1900).max(2100).allow('')
+  year: Joi.number().integer().min(1900).max(2100).allow(''),
+  limit: Joi.number().integer(),
+  page: Joi.number().integer()
 })
 
 export const payrollCreateUpdateSchema = Joi.object({
@@ -377,7 +396,9 @@ export const vacationFiltersSchema = Joi.object({
   employeeId: Joi.number().integer().allow(''),
   status: Joi.string().valid('PENDING', 'APPROVED', 'REJECTED').allow(''),
   fromDate: Joi.date().allow(''),
-  toDate: Joi.date().allow('')
+  toDate: Joi.date().allow(''),
+  limit: Joi.number().integer(),
+  page: Joi.number().integer()
 })
 
 export const vacationCreateUpdateSchema = Joi.object({
@@ -392,7 +413,9 @@ export const permissionFiltersSchema = Joi.object({
   type: Joi.string().valid('SICK', 'PERSONAL', 'MATERNITY', 'PATERNITY', 'OTHER').optional().allow(''),
   status: Joi.string().valid('PENDING', 'APPROVED', 'REJECTED').optional(),
   fromDate: Joi.date().iso().optional(),
-  toDate: Joi.date().iso().min(Joi.ref('fromDate')).optional()
+  toDate: Joi.date().iso().min(Joi.ref('fromDate')).optional(),
+  limit: Joi.number().integer(),
+  page: Joi.number().integer()
 })
 
 export const permissionCreateUpdateSchema = Joi.object({
@@ -427,7 +450,9 @@ export const expenseFiltersSchema = Joi.object({
     is: Joi.exist(),
     then: Joi.number().min(Joi.ref('minTotal')),
     otherwise: Joi.number().min(0)
-  }).optional()
+  }).optional(),
+  limit: Joi.number().integer(),
+  page: Joi.number().integer()
 })
 
 export const expenseCreateUpdateSchema = Joi.object({
@@ -440,7 +465,9 @@ export const expenseCreateUpdateSchema = Joi.object({
 export const userFiltersSchema = Joi.object({
   name: Joi.string().max(100).allow(''),
   email: Joi.string().email().allow(''),
-  status: Joi.string().allow('')
+  status: Joi.string().allow(''),
+  limit: Joi.number().integer(),
+  page: Joi.number().integer()
 })
 
 export const userCreateUpdateSchema = Joi.object({
@@ -494,13 +521,17 @@ export const purchaseFiltersSchema = Joi.object({
   startDate: Joi.date().iso().optional(),
   endDate: Joi.date().iso().optional(),
   minTotal: Joi.number().min(0).optional(),
-  maxTotal: Joi.number().min(0).optional()
+  maxTotal: Joi.number().min(0).optional(),
+  limit: Joi.number().integer(),
+  page: Joi.number().integer()
 })
 
 export const performanceEvaluationFiltersSchema = Joi.object({
   employeeId: Joi.number().integer().optional(),
   fromDate: Joi.date().allow(''),
-  toDate: Joi.date().allow('')
+  toDate: Joi.date().allow(''),
+  limit: Joi.number().integer(),
+  page: Joi.number().integer()
 })
 export const performanceEvaluationCreateUpdateSchema = Joi.object({
   employeeId: Joi.number().integer().required(),

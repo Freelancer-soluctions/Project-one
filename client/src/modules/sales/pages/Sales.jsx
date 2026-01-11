@@ -8,8 +8,8 @@ import {
   useCreateSaleMutation,
   useDeleteSaleByIdMutation
 } from '../api/salesAPI'
-import { useGetAllProductsQuery } from '@/modules/products/api/productsAPI'
-import { useGetAllClientsQuery } from '@/modules/clients/api/clientsApi'
+import { useGetAllProductsFiltersQuery } from '@/modules/products/api/productsAPI'
+import { useGetAllClientsFiltersQuery } from '@/modules/clients/api/clientsApi'
 import AlertDialogComponent from '@/components/alertDialog/AlertDialog'
 import { Spinner } from '@/components/loader/Spinner'
 
@@ -20,6 +20,11 @@ const Sales = () => {
   const [openAlertDialog, setOpenAlertDialog] = useState(false)
   const [alertProps, setAlertProps] = useState({})
   const [actionDialog, setActionDialog] = useState('')
+    const [pagination, setPagination] = useState({
+    pageIndex: 0,
+    pageSize: 20
+  })
+  const [filters, setFilters] = useState({})
 
   const [
     getAllSales,
@@ -34,7 +39,7 @@ const Sales = () => {
     data: dataClients = { data: [] },
     isLoading: isLoadingClients,
     isFetching: isFetchingClients
-  } = useGetAllClientsQuery()
+  } = useGetAllClientsFiltersQuery()
   const [
     updateSaleById,
     { isLoading: isLoadingPut, isError: isErrorPut, isSuccess: isSuccessPut }
@@ -58,23 +63,49 @@ const Sales = () => {
     data: dataProducts = { data: [] },
     isLoading: isLoadingProducts,
     isFetching: isFetchingProducts
-  } = useGetAllProductsQuery()
+  } = useGetAllProductsFiltersQuery()
 
-  const handleSubmitFilters = ({
-    clientId,
-    fromDate,
-    toDate,
-    minTotal,
-    maxTotal
-  }) => {
+
+  /**
+   * Este efecto es la única fuente de verdad para disparar
+   * la consulta al backend.
+   *
+   * Se ejecuta automáticamente:
+   * - Al montar el componente (primer render)
+   * - Cuando cambia la página
+   * - Cuando cambia el tamaño de página
+   * - Cuando cambian los filtros
+   *
+   * No se realizan llamadas manuales al backend desde handlers
+   * para evitar duplicación de lógica y estados inconsistentes.
+   */
+  useEffect(() => {
     getAllSales({
-      clientId,
-      fromDate,
-      toDate,
-      minTotal,
-      maxTotal
+      page: pagination.pageIndex + 1,
+      limit: pagination.pageSize,
+      ...filters
     })
+  }, [pagination.pageIndex, pagination.pageSize, filters])
+
+  /**
+   * Al aplicar nuevos filtros:
+   * - Se resetea la página a la primera (pageIndex = 0)
+   * - Se actualiza el estado de filtros
+   *
+   * No se llama directamente al backend aquí.
+   * El cambio de estado dispara el useEffect, manteniendo
+   * un flujo reactivo y predecible.
+   */
+  const handleSubmitFilters = newFilters => {
+    setPagination(prev => ({
+      ...prev,
+      pageIndex: 0
+    }))
+
+    setFilters(newFilters)
   }
+
+
 
   const handleSubmit = async (values, saleId) => {
     try {
@@ -279,6 +310,8 @@ const Sales = () => {
             <SalesDatatable
               dataSales={dataSales}
               onEditDialog={handleEditDialog}
+              pagination={pagination}
+              onPaginationChange={setPagination}
             />
           </div>
           {/* Dialog */}

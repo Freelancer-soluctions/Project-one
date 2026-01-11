@@ -16,6 +16,18 @@ export const getAllProducts = handleCatchErrorAsync(async (req, res) => {
 })
 
 /**
+ * Get all products.
+ *
+ * @param {Object} req - The HTTP request object.
+ * @param {Object} res - The HTTP response object.
+ * @returns {Promise<void>} Sends a response containing the product items.
+ */
+export const getAllProductsFilters = handleCatchErrorAsync(async (req, res) => {
+  const items = await productsService.getAllProductsFilters()
+  globalResponse(res, 200, items)
+})
+
+/**
  * Get all product statuses.
  *
  * @param {Object} req - The HTTP request object.

@@ -18,6 +18,14 @@
              }),
              providesTags: ['Employees'], // Indica que este endpoint usa el tag 'Employees'
            }),
+
+           getAllEmployeesFilters: builder.query({
+             query: () => ({
+               url: `/employees/employeeFilters`,
+               
+             }),
+             providesTags: ['Employees'], // Indica que este endpoint usa el tag 'Employees'
+           }),
        
            deleteEmployeeById: builder.mutation({
              query: (id) => ({
@@ -50,6 +58,7 @@
    export const { 
      useLazyGetAllEmployeesQuery,
      useGetAllEmployeesQuery,
+     useGetAllEmployeesFiltersQuery,
      useUpdateEmployeeByIdMutation, 
      useCreateEmployeeMutation, 
      useDeleteEmployeeByIdMutation 

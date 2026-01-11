@@ -3,12 +3,9 @@ import { DataTable } from '@/components/dataTable'
 import { format } from 'date-fns'
 import PropTypes from 'prop-types'
 
-export const ClientOrderDatatable = ({
-  dataClientOrder,
-  onEditDialog,
-}) => {
+export const ClientOrderDatatable = ({ dataClientOrder, onEditDialog }) => {
   const { t } = useTranslation()
-
+  const { dataList, total } = dataClientOrder.data
   const columnDefClientOrder = [
     {
       accessorKey: 'clientId',
@@ -52,13 +49,18 @@ export const ClientOrderDatatable = ({
   return (
     <DataTable
       columns={columnDefClientOrder}
-      data={dataClientOrder.data}
+      data={dataList}
+      totalRows={total}
       handleRow={row => handleEditDialog(row)}
+      pagination={pagination}
+      onPaginationChange={onPaginationChange}
     />
   )
 }
 
 ClientOrderDatatable.propTypes = {
   dataClientOrder: PropTypes.object.isRequired,
-  onEditDialog: PropTypes.func.isRequired
+  onEditDialog: PropTypes.func.isRequired,
+  pagination: PropTypes.object.isRequired,
+  onPaginationChange: PropTypes.func.isRequired
 }

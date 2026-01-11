@@ -40,7 +40,7 @@ export const inventoryMovementAPI = createApi({
 })
 
 export const {
-  useGetAllInventoryMovementsQuery,
+  useLazyGetAllInventoryMovementsQuery,
   useCreateInventoryMovementMutation,
   useUpdateInventoryMovementByIdMutation,
   useDeleteInventoryMovementByIdMutation

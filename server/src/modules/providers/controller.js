@@ -16,6 +16,18 @@ export const getAllProviders = handleCatchErrorAsync(async (req, res) => {
 })
 
 /**
+ * Retrieves all providers.
+ *
+ * @param {Object} req - The HTTP request object.
+ * @param {Object} res - The HTTP response object.
+ * @returns {Promise<void>} Sends a response containing the list of providers.
+ */
+export const getAllProvidersFilters = handleCatchErrorAsync(async (req, res) => {
+  const items = await providersService.getAllProvidersFilters()
+  globalResponse(res, 200, items)
+})
+
+/**
  * Creates a new provider.
  *
  * @param {Object} req - The HTTP request object.

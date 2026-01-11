@@ -40,17 +40,40 @@ export const Pagination = ({ table }) => {
         </span>
         <span className='flex items-center gap-1'>
           | Go to page:
-          <Input
+          {/* <Input
             type='number'
             min='1'
             max={table.getPageCount()}
-            defaultValue={table.getState().pagination.pageIndex + 1}
+            value={table.getState().pagination.pageIndex + 1}
             onChange={e => {
+              // const page = e.target.value ? Number(e.target.value) - 1 : 0
+              // table.setPageIndex(page)
+              const rawValue = Number(e.target.value)
+
+              if (Number.isNaN(rawValue)) return
+
+              const maxPage = table.getPageCount()
+            console.log({
+  pageIndex: table.getState().pagination.pageIndex,
+  pageCount: table.getPageCount(),
+})
+              const clampedPage = Math.min(Math.max(rawValue, 1), maxPage)
+
+              table.setPageIndex(clampedPage - 1)
+            }}
+            className='w-16 p-1 border rounded'
+          /> */}
+          <input
+            type="number"
+            min="1"
+            max={table.getPageCount()}
+            defaultValue={table.getState().pagination.pageIndex + 1}
+            onChange={(e) => {
               const page = e.target.value ? Number(e.target.value) - 1 : 0
               table.setPageIndex(page)
             }}
-            className='w-16 p-1 border rounded'
-          />
+            className="border p-1 rounded w-16"
+          />      
         </span>
 
         <select

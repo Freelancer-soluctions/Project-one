@@ -6,8 +6,12 @@ import PropTypes from 'prop-types'
 export const PerformanceEvaluationDatatable = ({
   dataEvaluations,
   onEditDialog,
+  pagination,
+  onPaginationChange
 }) => {
   const { t } = useTranslation()
+
+  const { dataList, total } = dataEvaluations.data
 
   const columnDefEvaluations = [
     {
@@ -79,13 +83,18 @@ export const PerformanceEvaluationDatatable = ({
   return (
     <DataTable
       columns={columnDefEvaluations}
-      data={dataEvaluations.data}
+      data={dataList}
+      totalRows={total}
       handleRow={row => handleEditDialog(row)}
+      pagination={pagination}
+      onPaginationChange={onPaginationChange}
     />
   )
 }
 
 PerformanceEvaluationDatatable.propTypes = {
   dataEvaluations: PropTypes.object.isRequired,
-  onEditDialog: PropTypes.func.isRequired
+  onEditDialog: PropTypes.func.isRequired,
+  pagination: PropTypes.object.isRequired,
+  onPaginationChange: PropTypes.func.isRequired
 }

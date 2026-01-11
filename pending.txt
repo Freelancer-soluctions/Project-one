@@ -12,6 +12,9 @@ Lista de caracteristicas para destacar
 A02 Cryptographid failures 
 - TLS habilitado (Depende de infraestructura)
 - HTTPS forzado (Debes confirmarlo)
+- Punto 11 de gist
+
+A03 Injection
 
 
 
