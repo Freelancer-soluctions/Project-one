@@ -4,14 +4,24 @@ import {
   updateAttendanceById as updateAttendanceByIdDao,
   deleteAttendanceById as deleteAttendanceByIdDao
 } from './dao.js'
+import { getSafePagination } from '../../utils/pagination/pagination.js'
 
 /**
  * Get all attendance records with optional filters
- * @param {Object} filters - Optional filters for the query
+ * @param {Object} filters - filters for the query
  * @returns {Promise<Array>} List of attendance records
  */
-export const getAllAttendance = async (filters) => {
-  return getAllAttendanceDao(filters)
+export const getAllAttendance = async ({ employeeId, fromDate, toDate, limit, page }) => {
+  const { take, skip } = getSafePagination({
+    page,
+    limit
+  })
+
+  if (!take || take <= 0) {
+    throw new Error('Pagination is required')
+  }
+
+  return getAllAttendanceDao({ employeeId, fromDate, toDate }, take, skip)
 }
 
 /**

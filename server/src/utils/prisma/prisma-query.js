@@ -5,7 +5,7 @@
 
 // Importar la función decrypt del middleware
 import crypto from 'crypto'
-import dotenv from '../../config/dotenv'
+import dotenv from '../../config/dotenv.js'
 
 const ALGORITHM = dotenv('ALGORITHM')
 const ENCRYPTION_KEY = Buffer.from(dotenv('AES_GCM_KEY'), 'base64')

@@ -6,8 +6,12 @@ import PropTypes from 'prop-types'
 export const WarehouseDatatable = ({
   dataWarehouse,
   onEditDialog,
+    pagination,
+  onPaginationChange
 }) => {
   const { t } = useTranslation()
+    const {dataList, total}= dataWarehouse.data
+
 
   const columnDefWarehouse = [
     {
@@ -51,13 +55,18 @@ export const WarehouseDatatable = ({
   return (
     <DataTable
       columns={columnDefWarehouse}
-      data={dataWarehouse.data}
+      data={dataList}
+      totalRows={total}
       handleRow={row => handleEditDialog(row)}
+      pagination={pagination}
+      onPaginationChange={onPaginationChange}
     />
   )
 }
 
 WarehouseDatatable.propTypes = {
   dataWarehouse: PropTypes.object.isRequired,
-  onEditDialog: PropTypes.func.isRequired
+  onEditDialog: PropTypes.func.isRequired,
+    pagination: PropTypes.object.isRequired,
+    onPaginationChange: PropTypes.func.isRequired
 }

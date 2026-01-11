@@ -16,6 +16,8 @@ const router = Router()
 // uso global de middleware
 router.use(verifyToken)
 
+
+// falta los esquemas
 router.get(
   '/',
   checkRoleAuthOrPermisssion({

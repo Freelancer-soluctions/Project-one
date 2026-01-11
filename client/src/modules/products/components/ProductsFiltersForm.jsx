@@ -22,7 +22,7 @@ import { LuPlus, LuSearch, LuEraser } from 'react-icons/lu'
 import PropTypes from 'prop-types'
 
 export const ProductsFiltersForm = ({
-  trigger,
+  onSubmit,
   onOpenProductsForms,
   datastatus,
   dataCategory,
@@ -49,7 +49,7 @@ export const ProductsFiltersForm = ({
     type,
     status
   }) => {
-    trigger({ name,
+    onSubmit({ name,
       productCategoryCode:category.code,
     productTypeCode:type.code,
       statusCode:status.code})

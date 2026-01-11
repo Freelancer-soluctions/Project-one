@@ -43,7 +43,9 @@ export const getAllEventTypes = async () => {
 /**
  * Retrieves all events from the database based on the provided filters.
  *
- * @param {string} searchQuery - The description to filter events by.
+ * @param {string} searchQuery - The description, title or speaker to filter events by.
+ * @param {number} take - Limit to filter by
+ * @param {number} skip - skip to filter by
  * @returns {Promise<Array>} A list of events matching the filters from the database.
  */
 export const getAllEvents = async (searchQuery) => {
@@ -61,6 +63,7 @@ export const getAllEvents = async (searchQuery) => {
          OR e."speaker" ILIKE ${'%' + searchQuery + '%'}
     `
 : Prisma.empty}
+    ORDER BY e."createdOn" DESC
   `
 
   return events

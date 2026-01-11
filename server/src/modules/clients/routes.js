@@ -1,6 +1,7 @@
 import express from 'express'
 import {
   getAllClients,
+  getAllClientsFilters,
   createClient,
   updateClientById,
   deleteClientById
@@ -71,6 +72,15 @@ router.get(
   }),
   validateQueryParams(clientFiltersSchema),
   getAllClients
+)
+
+router.get(
+  '/clientsFilters',
+  checkRoleAuthOrPermisssion({
+    allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER, ROLESCODES.USER],
+    permissions: [PERMISSIONCODES.canViewClient]
+  }),
+  getAllClientsFilters
 )
 
 /**

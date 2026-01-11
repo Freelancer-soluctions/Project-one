@@ -6,8 +6,11 @@ import PropTypes from 'prop-types'
 export const PurchaseDatatable = ({
   dataPurchases,
   onEditDialog,
+  pagination,
+  onPaginationChange
 }) => {
   const { t } = useTranslation()
+  const { dataList, total } = dataPurchases.data
 
   const columnDefPurchases = [
     {
@@ -18,7 +21,10 @@ export const PurchaseDatatable = ({
     {
       accessorKey: 'total',
       header: t('total'),
-      cell: info => info.getValue()?.toLocaleString('es-CO', { style: 'currency', currency: 'COP' })
+      cell: info =>
+        info
+          .getValue()
+          ?.toLocaleString('es-CO', { style: 'currency', currency: 'COP' })
     },
     {
       accessorKey: 'purchaseDetail',
@@ -30,11 +36,14 @@ export const PurchaseDatatable = ({
       header: t('created_on'),
       cell: info => format(new Date(info.getValue()), 'PPP')
     },
-    {accessorKey: 'userPurchaseCreated.name',
+    {
+      accessorKey: 'userPurchaseCreated.name',
       header: t('created_by'),
       cell: info => {
         const userPurchaseCreated = info.row.original.userPurchaseCreated // Accede al dato original de la fila
-        return userPurchaseCreated?.name ? userPurchaseCreated.name.toUpperCase() : null // Retorna null para mantener la celda vacía
+        return userPurchaseCreated?.name
+          ? userPurchaseCreated.name.toUpperCase()
+          : null // Retorna null para mantener la celda vacía
       }
     },
     {
@@ -44,13 +53,15 @@ export const PurchaseDatatable = ({
         const date = info.getValue()
         return date ? format(new Date(date), 'PPP') : null
       }
-      },
+    },
     {
       accessorKey: 'userPurchaseUpdated.name',
       header: t('updated_by'),
       cell: info => {
         const userPurchaseUpdated = info.row.original.userPurchaseUpdated // Accede al dato original de la fila
-        return userPurchaseUpdated?.name ? userPurchaseUpdated.name.toUpperCase() : null // Retorna null para mantener la celda vacía
+        return userPurchaseUpdated?.name
+          ? userPurchaseUpdated.name.toUpperCase()
+          : null // Retorna null para mantener la celda vacía
       }
     }
   ]
@@ -62,13 +73,18 @@ export const PurchaseDatatable = ({
   return (
     <DataTable
       columns={columnDefPurchases}
-      data={dataPurchases.data}
+      data={dataList}
+      totalRows={total}
       handleRow={row => handleEditDialog(row)}
+      pagination={pagination}
+      onPaginationChange={onPaginationChange}
     />
   )
 }
 
 PurchaseDatatable.propTypes = {
   dataPurchases: PropTypes.object.isRequired,
-  onEditDialog: PropTypes.func.isRequired
-} 
+  onEditDialog: PropTypes.func.isRequired,
+  pagination: PropTypes.object.isRequired,
+  onPaginationChange: PropTypes.func.isRequired
+}

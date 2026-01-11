@@ -8,9 +8,11 @@ import { prisma, Prisma } from '../../config/db.js'
  * @param {string} [filters.status] - Filter by status (PENDING, APPROVED, REJECTED)
  * @param {string} [filters.fromDate] - Filter by start date (ISO format)
  * @param {string} [filters.toDate] - Filter by end date (ISO format)
+ * @param {number} take- take to filter by
+ * @param {number} skip - skip to filter by
  * @returns {Promise<Array>} List of permissions with related employee and approver data
  */
-export const getAllPermissions = async (filters) => {
+export const getAllPermissions = async (filters, take, skip) => {
   const whereClauses = []
 
   if (filters.employeeId) {
@@ -50,9 +52,47 @@ export const getAllPermissions = async (filters) => {
       LEFT JOIN "users" uu ON pe."updatedBy" = uu.id
       ${whereSql}
       ORDER BY pe."createdOn" DESC
+      LIMIT ${take}
+      OFFSET ${skip}
     `
+  const total = await prisma.permission.count({
+    where: {
+      ...(filters.employeeId && {
+        employeeId: Number(filters.employeeId)
+      }),
 
-  return permissions
+      ...(filters.startDate && {
+        createdOn: {
+          gte: new Date(filters.startDate)
+        }
+      }),
+
+      ...(filters.endDate && {
+        createdOn: {
+          ...(filters.startDate
+            ? { gte: new Date(filters.startDate) }
+            : {}),
+          lte: new Date(filters.endDate)
+        }
+      }),
+
+      ...(filters.status && {
+        status: {
+          contains: filters.status,
+          mode: 'insensitive' // equivalente a ILIKE
+        }
+      }),
+
+      ...(filters.type && {
+        type: {
+          contains: filters.type,
+          mode: 'insensitive' // equivalente a ILIKE
+        }
+      })
+    }
+  })
+
+  return { dataList: permissions, total }
 }
 
 /**

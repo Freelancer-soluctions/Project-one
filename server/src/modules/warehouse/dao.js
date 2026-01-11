@@ -4,9 +4,11 @@ import { prisma } from '../../config/db.js'
  * Get all warehouses with optional filters
  * @param {string} name - Name to filter by
  * @param {string} status - Status to filter by
+ * @param {number} take- take to filter by
+ * @param {number} skip - skip to filter by
  * @returns {Promise<Array>} List of warehouses
  */
-export const getAllWarehouses = async (name, status) => {
+export const getAllWarehouses = async (name, status, take, skip) => {
   const warehouses = await prisma.warehouse.findMany({
     where: {
 
@@ -35,10 +37,45 @@ export const getAllWarehouses = async (name, status) => {
     },
     orderBy: {
       name: 'asc'
+    },
+    take,
+    skip
+  })
+
+  const total = await prisma.yourModel.count({
+    where: {
+      ...(name
+        ? {
+            AND: [
+              {
+                name: {
+                  contains: name,
+                  mode: 'insensitive'
+                }
+              }
+            ]
+          }
+        : {}),
+
+      ...(status
+        ? {
+            status: {
+              equals: status
+            }
+          }
+        : {})
     }
   })
 
-  return warehouses
+  return { dataList: warehouses, total }
+}
+
+/**
+ * Get all warehouses.
+ * @returns {Promise<Array>} List of warehouses
+ */
+export const getAllWarehousesFilters = async () => {
+  return await prisma.warehouse.findMany()
 }
 
 /**

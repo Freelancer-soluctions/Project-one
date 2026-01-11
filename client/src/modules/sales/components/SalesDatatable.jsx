@@ -6,8 +6,12 @@ import PropTypes from 'prop-types'
 export const SalesDatatable = ({
   dataSales,
   onEditDialog,
+    pagination,
+  onPaginationChange
 }) => {
   const { t } = useTranslation()
+    const {dataList, total}= dataSales.data
+
 
   const columnDefSales = [
     {
@@ -62,13 +66,18 @@ export const SalesDatatable = ({
   return (
     <DataTable
       columns={columnDefSales}
-      data={dataSales.data}
+       data={dataList}
+      totalRows={total}
       handleRow={row => handleEditDialog(row)}
+      pagination={pagination}
+      onPaginationChange={onPaginationChange}
     />
   )
 }
 
 SalesDatatable.propTypes = {
   dataSales: PropTypes.object.isRequired,
-  onEditDialog: PropTypes.func.isRequired
+  onEditDialog: PropTypes.func.isRequired,
+  pagination: PropTypes.object.isRequired,
+    onPaginationChange: PropTypes.func.isRequired
 } 

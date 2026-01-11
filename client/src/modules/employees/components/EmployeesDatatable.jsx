@@ -6,8 +6,11 @@ import PropTypes from 'prop-types'
 export const EmployeesDatatable = ({
   dataEmployees,
   onEditDialog,
+  pagination,
+  onPaginationChange
 }) => {
   const { t } = useTranslation()
+  const { dataList, total } = dataEmployees.data
 
   const columnDefEmployees = [
     {
@@ -45,15 +48,23 @@ export const EmployeesDatatable = ({
       header: t('salary'),
       cell: info => {
         const value = info.getValue()
-        return value ? new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP' }).format(value) : null
+        return value
+          ? new Intl.NumberFormat('es-CO', {
+              style: 'currency',
+              currency: 'COP'
+            }).format(value)
+          : null
       }
     },
-     {
+    {
       accessorKey: 'userEmployeeCreatedName',
       header: t('created_by'),
       cell: info => {
-        const userEmployeeCreatedName = info.row.original.userEmployeeCreatedName // Accede al dato original de la fila
-        return userEmployeeCreatedName ? userEmployeeCreatedName.toUpperCase() : null // Retorna null para mantener la celda vacía
+        const userEmployeeCreatedName =
+          info.row.original.userEmployeeCreatedName // Accede al dato original de la fila
+        return userEmployeeCreatedName
+          ? userEmployeeCreatedName.toUpperCase()
+          : null // Retorna null para mantener la celda vacía
       }
     },
     {
@@ -61,12 +72,15 @@ export const EmployeesDatatable = ({
       header: t('created_on'),
       cell: info => format(new Date(info.getValue()), 'PPP')
     },
-     {
+    {
       accessorKey: 'userEmployeeUpdatedName',
       header: t('created_by'),
       cell: info => {
-        const userEmployeeUpdatedName = info.row.original.userEmployeeUpdatedName // Accede al dato original de la fila
-        return userEmployeeUpdatedName ? userEmployeeUpdatedName.toUpperCase() : null // Retorna null para mantener la celda vacía
+        const userEmployeeUpdatedName =
+          info.row.original.userEmployeeUpdatedName // Accede al dato original de la fila
+        return userEmployeeUpdatedName
+          ? userEmployeeUpdatedName.toUpperCase()
+          : null // Retorna null para mantener la celda vacía
       }
     },
     {
@@ -86,13 +100,18 @@ export const EmployeesDatatable = ({
   return (
     <DataTable
       columns={columnDefEmployees}
-      data={dataEmployees.data}
+      data={dataList}
+      totalRows={total}
       handleRow={row => handleEditDialog(row)}
+      pagination={pagination}
+      onPaginationChange={onPaginationChange}
     />
   )
 }
 
 EmployeesDatatable.propTypes = {
   dataEmployees: PropTypes.object.isRequired,
-  onEditDialog: PropTypes.func.isRequired
-} 
+  onEditDialog: PropTypes.func.isRequired,
+    pagination: PropTypes.object.isRequired,
+    onPaginationChange: PropTypes.func.isRequired
+}

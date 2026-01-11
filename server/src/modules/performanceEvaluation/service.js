@@ -4,6 +4,7 @@ import {
   updatePerformanceEvaluationById as updatePerformanceEvaluationByIdDao,
   deletePerformanceEvaluationById as deletePerformanceEvaluationByIdDao
 } from './dao.js'
+import { getSafePagination } from '../../utils/pagination/pagination.js'
 
 /**
  * Get all performance evaluations with optional filters
@@ -11,7 +12,12 @@ import {
  * @returns {Promise<Array>} List of performance evaluations
  */
 export const getAllPerformanceEvaluations = async (filters) => {
-  return getAllPerformanceEvaluationsDao(filters)
+  const { take, skip } = getSafePagination({ page: filters.page, limit: filters.limit })
+
+  if (!take || take <= 0) {
+    throw new Error('Pagination is required')
+  }
+  return await getAllPerformanceEvaluationsDao(filters, take, skip)
 }
 
 /**

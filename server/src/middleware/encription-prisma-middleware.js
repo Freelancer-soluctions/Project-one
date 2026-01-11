@@ -1,4 +1,4 @@
-import dotenv from '../config/dotenv'
+import dotenv from '../config/dotenv.js'
 import crypto from 'crypto'
 
 const ALGORITHM = dotenv('ALGORITHM')

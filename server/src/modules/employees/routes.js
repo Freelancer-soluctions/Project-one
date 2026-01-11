@@ -1,6 +1,7 @@
 import express from 'express'
 import {
   getAllEmployees,
+  getAllEmployeesFilters,
   createEmployee,
   updateEmployeeById,
   deleteEmployeeById
@@ -72,6 +73,14 @@ router.get(
   validateQueryParams(employeeFiltersSchema),
   getAllEmployees
 )
+
+router.get(
+  '/employeeFilters',
+  checkRoleAuthOrPermisssion({
+    allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER],
+    permissions: [PERMISSIONCODES.canViewEmployee]
+  }),
+  getAllEmployeesFilters)
 
 /**
  * @openapi

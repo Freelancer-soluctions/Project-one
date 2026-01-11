@@ -12,8 +12,7 @@ import {
   useCreateAttendanceMutation,
   useDeleteAttendanceByIdMutation
 } from '../api/attendanceApi' // Adjusted import path
-import { useGetAllEmployeesQuery } from '@/modules/employees/api/employeesApi' // Assuming employee API exists
-
+import { useGetAllEmployeesFiltersQuery } from '@/modules/employees/api/employeesApi' // Assuming employee API exists
 import AlertDialogComponent from '@/components/alertDialog/AlertDialog'
 import { Spinner } from '@/components/loader/Spinner'
 
@@ -24,12 +23,17 @@ const Attendance = () => {
   const [openAlertDialog, setOpenAlertDialog] = useState(false)
   const [alertProps, setAlertProps] = useState({})
   const [actionDialog, setActionDialog] = useState('')
+  const [pagination, setPagination] = useState({
+    pageIndex: 0,
+    pageSize: 20
+  })
+  const [filters, setFilters] = useState({})
 
   const {
     data: dataEmployees = { data: [] },
     isLoading: isLoadingEmployees,
     isFetching: isFetchingEmployees
-  } = useGetAllEmployeesQuery()
+  } = useGetAllEmployeesFiltersQuery()
 
   const [
     getAllAttendance,
@@ -50,13 +54,43 @@ const Attendance = () => {
   const [deleteAttendanceById, { isLoading: isLoadingDelete }] =
     useDeleteAttendanceByIdMutation()
 
-  // Fetch initial data on component mount
+  /**
+   * Este efecto es la única fuente de verdad para disparar
+   * la consulta al backend.
+   *
+   * Se ejecuta automáticamente:
+   * - Al montar el componente (primer render)
+   * - Cuando cambia la página
+   * - Cuando cambia el tamaño de página
+   * - Cuando cambian los filtros
+   *
+   * No se realizan llamadas manuales al backend desde handlers
+   * para evitar duplicación de lógica y estados inconsistentes.
+   */
   useEffect(() => {
-    getAllAttendance({}) // Fetch all attendance records initially
-  }, [getAllAttendance])
+    getAllAttendance({
+      page: pagination.pageIndex + 1,
+      limit: pagination.pageSize,
+      ...filters
+    })
+  }, [pagination.pageIndex, pagination.pageSize, filters])
 
-  const handleSubmitFilters = filters => {
-    getAllAttendance(filters) // Fetch data with new filters
+  /**
+   * Al aplicar nuevos filtros:
+   * - Se resetea la página a la primera (pageIndex = 0)
+   * - Se actualiza el estado de filtros
+   *
+   * No se llama directamente al backend aquí.
+   * El cambio de estado dispara el useEffect, manteniendo
+   * un flujo reactivo y predecible.
+   */
+  const handleSubmitFilters = newFilters => {
+    setPagination(prev => ({
+      ...prev,
+      pageIndex: 0
+    }))
+
+    setFilters(newFilters)
   }
 
   const handleSubmit = async (values, attendanceId) => {
@@ -70,7 +104,7 @@ const Attendance = () => {
               date: values.date,
               entryTime: values.entryTime,
               exitTime: values.exitTime,
-              workedHours: values.workedHours,
+              workedHours: values.workedHours
             }
           }
         : values
@@ -198,6 +232,8 @@ const Attendance = () => {
             <AttendanceDatatable
               dataAttendance={dataAttendance} // Pass attendance data
               onEditDialog={handleEditDialog}
+              pagination={pagination}
+              onPaginationChange={setPagination}
             />
           </div>
           {/* Dialog */}

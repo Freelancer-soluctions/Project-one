@@ -19,7 +19,15 @@
              }),
              providesTags: ['Clients'], // Indica que este endpoint usa el tag 'Notes'
            }),
-       
+
+            getAllClientsFilters: builder.query({
+             query: () => ({
+               url: `/clients/clientsFilters`,
+               method: 'GET', 
+           
+             }),
+             providesTags: ['Clients'], // Indica que este endpoint usa el tag 'Notes'
+           }),
            deleteClientById: builder.mutation({
              query: (id) => ({
                url: `/clients/${id}`,
@@ -58,6 +66,7 @@
    export const { 
      useLazyGetAllClientsQuery,
      useGetAllClientsQuery,
+     useGetAllClientsFiltersQuery,
      useUpdateClientByIdMutation, 
      useCreateClientMutation, 
      useDeleteClientByIdMutation 

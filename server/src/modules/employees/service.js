@@ -1,9 +1,11 @@
 import {
   getAllEmployees as getAllEmployeesDao,
+  getAllEmployeesFilters as getAllEmployeesFiltersDao,
   createEmployee as createEmployeeDao,
   updateEmployeeById as updateEmployeeByIdDao,
   deleteEmployeeById as deleteEmployeeByIdDao
 } from './dao.js'
+import { getSafePagination } from '../../utils/pagination/pagination.js'
 
 /**
  * Get all employees with optional filters
@@ -11,7 +13,20 @@ import {
  * @returns {Promise<Array>} List of employees
  */
 export const getAllEmployees = async (filters) => {
-  return getAllEmployeesDao(filters)
+  const { take, skip } = getSafePagination({ page: filters.page, limit: filters.limit })
+
+  if (!take || take <= 0) {
+    throw new Error('Pagination is required')
+  }
+  return getAllEmployeesDao(filters, take, skip)
+}
+
+/**
+ * Get all employees to ui filters
+ * @returns {Promise<Array>} List of employees
+ */
+export const getAllEmployeesFilters = async () => {
+  return getAllEmployeesFiltersDao()
 }
 
 /**

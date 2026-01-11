@@ -3,10 +3,11 @@ import { prisma } from '../../config/db.js'
 /**
  * Get all providerOrders with optional filters
  * @param {Object} filters - Optional filters for the query
+ * @param {number} take- take to filter by
+ * @param {number} skip - skip to filter by
  * @returns {Promise<Array>} List of providerOrders with their related data
  */
-export const getAllProviderOrders = async (filters = {}) => {
-  console.log(filters)
+export const getAllProviderOrders = async (filters = {}, take, skip) => {
   const providerOrders = await prisma.providerOrder.findMany({
     where: filters,
     include: {
@@ -15,10 +16,16 @@ export const getAllProviderOrders = async (filters = {}) => {
       userProviderOrderUpdated: true,
       details: true,
       purchase: true
-    }
+    },
+    take,
+    skip
   })
 
-  return providerOrders
+  const total = await prisma.providerOrder.count({
+    where: filters
+  })
+
+  return { dataList: providerOrders, total }
 }
 
 /**
@@ -74,24 +81,24 @@ export const updateProviderOrderById = async (id, data) => {
       updatedOn: data.updatedOn,
       productOrders: {
         connect: {
-          id: data.supplierId,
-        },
+          id: data.supplierId
+        }
       },
       userProviderOrderUpdated: {
         connect: {
-          id: data.updatedBy,
-        },
-      },
+          id: data.updatedBy
+        }
+      }
     },
     include: {
       productOrders: true,
       userProviderOrderCreated: true,
       userProviderOrderUpdated: true,
       details: true,
-      purchase: true,
-    },
-  });
-};
+      purchase: true
+    }
+  })
+}
 
 /**
  * Delete a providerOrder by ID
@@ -100,6 +107,6 @@ export const updateProviderOrderById = async (id, data) => {
  */
 export const deleteProviderOrderById = async (id) => {
   return prisma.providerOrder.delete({
-    where: { id },
-  });
-};
+    where: { id }
+  })
+}

@@ -5,20 +5,26 @@ import {
   handleDeleteFile
 } from '../../utils/cloudinary/cloudinary.js'
 import { NEWSSTATUSCODE } from '../../utils/constants/enums.js'
+import { getSafePagination } from '../../utils/pagination/pagination.js'
 
 /**
  * Get all news from the database with optional filters.
  *
- * @param {Object} params - The parameters for filtering the news.
- * @param {string} params.description - The description filter.
- * @param {Date} params.fromDate - The start date filter.
- * @param {Date} params.toDate - The end date filter.
- * @param {string} params.statusCode - The status code filter.
+ * @param {string} description - The description filter.
+ * @param {Date} fromDate - The start date filter.
+ * @param {Date} toDate - The end date filter.
+ * @param {string} statusCode - The status code filter.
+ * @param {number} page - The page filter.
+ * @param {number} limit - The limit code filter.
  * @returns {Promise<Array>} A list of news items matching the filters.
  */
-export const getAllNews = async ({ description, fromDate, toDate, statusCode }) => {
-  const data = await newsDao.getAllNews(description, fromDate, toDate, statusCode)
-  return data
+export const getAllNews = async ({ description, fromDate, toDate, statusCode, page, limit }) => {
+  const { take, skip } = getSafePagination({ page, limit })
+
+  if (!take || take <= 0) {
+    throw new Error('Pagination is required')
+  }
+  return await newsDao.getAllNews(description, fromDate, toDate, statusCode, take, skip)
 }
 
 /**

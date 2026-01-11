@@ -87,10 +87,29 @@ export const getSettingsById = async (userId) => {
  * Get all product categories from the database with optional filters
  * @param {string} description - Description to filter categories by
  * @param {string} code - Code to filter categories by
+ * @param {number} limit - Filter by limit
+ * @param {number} page - Filter by page
  * @returns {Promise<Array>} A list of categories matching the filters
  */
-export const getAllProductCategories = async (description = '', code = '') => {
-  return prisma.productCategories.findMany({
+export const getAllProductCategories = async (description = '', code = '', take, skip) => {
+  const dataList = await prisma.productCategories.findMany({
+    where: {
+      description: {
+        contains: description,
+        mode: 'insensitive'
+      },
+      code: {
+        contains: code,
+        mode: 'insensitive'
+      }
+    },
+    orderBy: {
+      code: 'asc'
+    },
+    take,
+    skip
+  })
+  const total = await prisma.productCategories.count({
     where: {
       description: {
         contains: description,
@@ -104,7 +123,9 @@ export const getAllProductCategories = async (description = '', code = '') => {
     orderBy: {
       code: 'asc'
     }
+
   })
+  return { dataList, total }
 }
 
 /**
