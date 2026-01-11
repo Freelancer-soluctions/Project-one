@@ -1,28 +1,48 @@
 import * as productsDao from './dao.js'
+import { getSafePagination } from '../../utils/pagination/pagination.js'
 
 /**
  * Get all products from the database with optional filters.
  *
  * @param {Object} params - The parameters for filtering products.
- * @param {string} [params.name] - The name filter.
- * @param {string} [params.productProviderCode] - The product provider code filter.
- * @param {string} [params.productCategoryCode] - The product category code filter.
- * @param {string} [params.statusCode] - The status code filter.
+ * @param {string} name - The name filter.
+ * @param {string} productProviderCode - The product provider code filter.
+ * @param {string} productCategoryCode - The product category code filter.
+ * @param {string} statusCode - The status code filter.}
+ * @param {number} limit - Filter by limit
+ * @param {number} page - Filter by page
  * @returns {Promise<Array>} A list of products matching the filters.
  */
 export const getAllProducts = async ({
   name,
   productProviderCode,
   productCategoryCode,
-  statusCode
+  statusCode,
+  limit,
+  page
 }) => {
-  const data = await productsDao.getAllProducts(
+  const { take, skip } = getSafePagination({ page, limit })
+
+  if (!take || take <= 0) {
+    throw new Error('Pagination is required')
+  }
+  return await productsDao.getAllProducts(
     name,
     productProviderCode,
     productCategoryCode,
-    statusCode
+    statusCode,
+    take,
+    skip
   )
-  return data
+}
+
+/**
+ * Get all products.
+ *
+ * @returns {Promise<Array>} A list of products matching the filters.
+ */
+export const getAllProductsFilters = async () => {
+  return await productsDao.getAllProductsFilters()
 }
 
 /**

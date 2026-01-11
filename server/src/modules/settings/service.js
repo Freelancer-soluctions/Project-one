@@ -7,6 +7,7 @@ import {
   updateProductCategory as updateProductCategoryByIdDao,
   deleteProductCategory as deleteProductCategoryByIdDao
 } from './dao.js'
+import { getSafePagination } from '../../utils/pagination/pagination.js'
 
 /**
  * Create or update language settings based on the provided data.
@@ -75,10 +76,17 @@ export const getSettingsById = async (userId) => {
  * @param {Object} params - The parameters for filtering categories
  * @param {string} params.description - Description to filter categories by
  * @param {string} params.code - Code to filter categories by
+ * @param {number} limit - Filter by limit
+ * @param {number} page - Filter by page
  * @returns {Promise<Array>} A list of categories matching the filters
  */
-export const getAllProductCategories = async ({ description, code }) => {
-  return getAllProductCategoriesDao(description, code)
+export const getAllProductCategories = async ({ description, code, limit, page }) => {
+  const { take, skip } = getSafePagination({ page, limit })
+
+  if (!take || take <= 0) {
+    throw new Error('Pagination is required')
+  }
+  return getAllProductCategoriesDao(description, code, take, skip)
 }
 
 /**

@@ -12,7 +12,7 @@ import {
   useCreateVacationMutation,
   useDeleteVacationByIdMutation
 } from '../api/vacationApi' // Adjusted import path
-import { useGetAllEmployeesQuery } from '@/modules/employees/api/employeesApi' // Import employee query
+import { useGetAllEmployeesFiltersQuery } from '@/modules/employees/api/employeesApi' // Import employee query
 
 import AlertDialogComponent from '@/components/alertDialog/AlertDialog'
 import { Spinner } from '@/components/loader/Spinner'
@@ -24,12 +24,17 @@ const Vacation = () => {
   const [openAlertDialog, setOpenAlertDialog] = useState(false)
   const [alertProps, setAlertProps] = useState({})
   const [actionDialog, setActionDialog] = useState('')
+  const [pagination, setPagination] = useState({
+    pageIndex: 0,
+    pageSize: 20
+  })
+  const [filters, setFilters] = useState({})
 
   const {
     data: dataEmployees = { data: [] },
     isLoading: isLoadingEmployees,
     isFetching: isFetchingEmployees
-  } = useGetAllEmployeesQuery()
+  } = useGetAllEmployeesFiltersQuery()
 
   const [
     getAllVacations,
@@ -50,13 +55,43 @@ const Vacation = () => {
   const [deleteVacationById, { isLoading: isLoadingDelete }] =
     useDeleteVacationByIdMutation()
 
-  // Fetch initial data
+  /**
+   * Este efecto es la única fuente de verdad para disparar
+   * la consulta al backend.
+   *
+   * Se ejecuta automáticamente:
+   * - Al montar el componente (primer render)
+   * - Cuando cambia la página
+   * - Cuando cambia el tamaño de página
+   * - Cuando cambian los filtros
+   *
+   * No se realizan llamadas manuales al backend desde handlers
+   * para evitar duplicación de lógica y estados inconsistentes.
+   */
   useEffect(() => {
-    getAllVacations({}) // Fetch all initially
-  }, [getAllVacations])
+    getAllVacations({
+      page: pagination.pageIndex + 1,
+      limit: pagination.pageSize,
+      ...filters
+    })
+  }, [pagination.pageIndex, pagination.pageSize, filters])
 
-  const handleSubmitFilters = filters => {
-    getAllVacations(filters)
+  /**
+   * Al aplicar nuevos filtros:
+   * - Se resetea la página a la primera (pageIndex = 0)
+   * - Se actualiza el estado de filtros
+   *
+   * No se llama directamente al backend aquí.
+   * El cambio de estado dispara el useEffect, manteniendo
+   * un flujo reactivo y predecible.
+   */
+  const handleSubmitFilters = newFilters => {
+    setPagination(prev => ({
+      ...prev,
+      pageIndex: 0
+    }))
+
+    setFilters(newFilters)
   }
 
   const handleSubmit = async (values, vacationId) => {
@@ -192,6 +227,8 @@ const Vacation = () => {
             <VacationDatatable
               dataVacations={dataVacations} // Pass vacation data
               onEditDialog={handleEditDialog}
+              pagination={pagination}
+              onPaginationChange={setPagination}
             />
           </div>
           {/* Dialog */}

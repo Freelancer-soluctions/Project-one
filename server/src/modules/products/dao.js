@@ -11,6 +11,8 @@ const tableName2 = TABLESNAMES.PRODUCTATTRIBUTES
  * @param {string} productProviderCode - The product provider code filter (optional).
  * @param {string} productCategoryCode - The product category code filter (optional).
  * @param {string} statusCode - The status code to filter products by (optional).
+ * @param {number} take- take to filter by
+ * @param {number} skip - skip to filter by
  * @returns {Promise<Array>} A list of products matching the filters.
  */
 
@@ -18,7 +20,9 @@ export const getAllProducts = async (
   name,
   productProviderCode,
   productCategoryCode,
-  statusCode
+  statusCode,
+  take,
+  skip
 ) => {
   const whereClauses = []
 
@@ -63,9 +67,43 @@ export const getAllProducts = async (
     LEFT JOIN "users" u ON p."createdBy" = u.id
     LEFT JOIN "users" uu ON p."updatedBy" = uu.id
     ${whereSql}
-  `
+    ORDER BY p."createdOn" DESC
+    LIMIT ${take}
+    OFFSET ${skip}
 
-  return products
+  `
+  const total = await prisma.products.count({
+    where: {
+      ...(name && {
+        name: {
+          contains: name,
+          mode: 'insensitive' // equivale a ILIKE
+        }
+      }),
+
+      ...(productProviderCode && {
+        productProviderCode
+      }),
+
+      ...(productCategoryCode && {
+        productCategoryCode
+      }),
+
+      ...(statusCode && {
+        statusCode
+      })
+    }
+  })
+
+  return { dataList: products, total }
+}
+
+/**
+ * Retrieves all products.
+ * @returns {Promise<Array>} A list of products matching the filters.
+ */
+export const getAllProductsFilters = async () => {
+  return await prisma.products.findMany()
 }
 
 /**

@@ -6,8 +6,12 @@ import PropTypes from 'prop-types'
 export const ProvidersDatatable = ({
   dataProviders,
   onEditDialog,
+    pagination,
+  onPaginationChange
 }) => {
   const { t } = useTranslation()
+    const {dataList, total}= dataProviders.data
+
 
   const columnDefProviders = [
     {
@@ -56,8 +60,11 @@ export const ProvidersDatatable = ({
   return (
     <DataTable
       columns={columnDefProviders}
-      data={dataProviders.data}
+      data={dataList}
+      totalRows={total}
       handleRow={row => handleEditDialog(row)}
+      pagination={pagination}
+      onPaginationChange={onPaginationChange}
     />
   )
 }
@@ -65,5 +72,7 @@ export const ProvidersDatatable = ({
 ProvidersDatatable.propTypes = {
   dataProviders: PropTypes.object.isRequired,
   onEditDialog: PropTypes.func.isRequired,
+    pagination: PropTypes.object.isRequired,
+    onPaginationChange: PropTypes.func.isRequired
 
 }

@@ -3,9 +3,15 @@ import { DataTable } from '@/components/dataTable'
 import { format } from 'date-fns'
 import PropTypes from 'prop-types'
 
-export const PayrollDatatable = ({ dataPayroll, onEditDialog }) => {
+export const PayrollDatatable = ({
+  dataPayroll,
+  onEditDialog,
+  pagination,
+  onPaginationChange
+}) => {
   const { t } = useTranslation()
-console.log('dataPayroll', dataPayroll)
+  const { dataList, total } = dataPayroll.data
+
   const columnDefPayroll = [
     {
       accessorKey: 'employeeName',
@@ -45,12 +51,14 @@ console.log('dataPayroll', dataPayroll)
       header: t('total_payment'),
       cell: info => info.getValue() // Format as currency
     },
-     {
+    {
       accessorKey: 'userPayrollCreatedName',
       header: t('created_by'),
       cell: info => {
         const userPayrollCreatedName = info.row.original.userPayrollCreatedName // Accede al dato original de la fila
-        return userPayrollCreatedName ? userPayrollCreatedName.toUpperCase() : null // Retorna null para mantener la celda vacía
+        return userPayrollCreatedName
+          ? userPayrollCreatedName.toUpperCase()
+          : null // Retorna null para mantener la celda vacía
       }
     },
     {
@@ -58,12 +66,14 @@ console.log('dataPayroll', dataPayroll)
       header: t('created_on'),
       cell: info => format(new Date(info.getValue()), 'PPP')
     },
-     {
+    {
       accessorKey: 'userPayrollUpdatedName',
       header: t('created_by'),
       cell: info => {
         const userPayrollUpdatedName = info.row.original.userPayrollUpdatedName // Accede al dato original de la fila
-        return userPayrollUpdatedName ? userPayrollUpdatedName.toUpperCase() : null // Retorna null para mantener la celda vacía
+        return userPayrollUpdatedName
+          ? userPayrollUpdatedName.toUpperCase()
+          : null // Retorna null para mantener la celda vacía
       }
     },
     {
@@ -83,13 +93,19 @@ console.log('dataPayroll', dataPayroll)
   return (
     <DataTable
       columns={columnDefPayroll}
-      data={dataPayroll.data}
+      data={dataList}
+      totalRows={total}
       handleRow={row => handleEditDialog(row)}
+      pagination={pagination}
+      onPaginationChange={onPaginationChange}
     />
   )
 }
 
 PayrollDatatable.propTypes = {
   dataPayroll: PropTypes.object.isRequired,
-  onEditDialog: PropTypes.func.isRequired
+  onEditDialog: PropTypes.func.isRequired,
+  pagination: PropTypes.object.isRequired,
+  onPaginationChange: PropTypes.func.isRequired
 }
+    

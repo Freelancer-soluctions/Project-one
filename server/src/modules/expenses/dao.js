@@ -3,15 +3,16 @@ import { prisma, Prisma } from '../../config/db.js'
 
 /**
  * Get all expenses with optional filters
- * @param {Object} filters - Optional filters for the query
+ * @param {Object} filters - filters for the query
  * @param {string} [filters.description] - Filter by expense description
  * @param {string} [filters.category] - Filter by expense category
  * @param {string} [filters.status] - Filter by expense status (enum expenseCategory)
+ * @param {number} take- take to filter by
+ * @param {number} skip - skip to filter by
  * @returns {Promise<Array>} List of expenses with their related data
  * @async
  */
-export const getAllExpenses = async (filters = {}) => {
-  // console.log(filters); // Keep for debugging if needed
+export const getAllExpenses = async (filters = {}, take, skip) => {
   const whereClauses = []
 
   if (filters.description) {
@@ -42,8 +43,32 @@ export const getAllExpenses = async (filters = {}) => {
     LEFT JOIN "users" uu ON e."updatedBy" = uu.id
     ${whereSql}
     ORDER BY e."createdOn" DESC
+    LIMIT ${take}
+    OFFSET ${skip}
   `
-  return expenses
+
+  const total = await prisma.expenses.count({
+    where: {
+      ...(filters.description && {
+        description: {
+          contains: filters.description,
+          mode: 'insensitive' // equivalente a ILIKE
+        }
+      }),
+
+      ...(filters.category && {
+        category: {
+          contains: filters.category,
+          mode: 'insensitive' // equivalente a ILIKE
+        }
+      }),
+
+      ...(filters.status && {
+        status: filters.status // match exacto (enum)
+      })
+    }
+  })
+  return { dataList: expenses, total }
 }
 
 /**

@@ -23,6 +23,15 @@ router.get(
   productsController.getAllProducts
 )
 
+router.get(
+  '/',
+  checkRoleAuthOrPermisssion({
+    allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER, ROLESCODES.USER],
+    permissions: [PERMISSIONCODES.canViewProduct]
+  }),
+  productsController.getAllProductsFilters
+)
+
 router.get('/status', checkRoleAuthOrPermisssion({
   allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER, ROLESCODES.USER],
   permissions: [PERMISSIONCODES.canViewProduct]

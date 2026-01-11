@@ -6,8 +6,12 @@ import PropTypes from 'prop-types'
 export const SettingsProductCategoriesDatatable = ({
   dataCategories,
   onEdit,
+    pagination,
+  onPaginationChange
 }) => {
   const { t } = useTranslation()
+    const {dataList, total}= dataCategories.data
+
 
   const columnDefCategories = [
     {
@@ -42,8 +46,12 @@ export const SettingsProductCategoriesDatatable = ({
   return (
     <DataTable
       columns={columnDefCategories}
-      data={dataCategories.data}
+      data={dataList}
+      totalRows={total}
       handleRow={row => handleEdit(row)}
+      pagination={pagination}
+      onPaginationChange={onPaginationChange}
+      
     />
   )
 }
@@ -51,4 +59,6 @@ export const SettingsProductCategoriesDatatable = ({
 SettingsProductCategoriesDatatable.propTypes = {
   dataCategories: PropTypes.object.isRequired,
   onEdit: PropTypes.func.isRequired,
+  pagination: PropTypes.object.isRequired,
+    onPaginationChange: PropTypes.func.isRequired
 } 

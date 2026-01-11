@@ -3,8 +3,11 @@ import { DataTable } from '@/components/dataTable/index'
 import { format } from 'date-fns'
 import PropTypes from 'prop-types'
 
- export const InventoryMovementDatatable = ({ dataInventoryMovements, onEditDialog }) => {
+ export const InventoryMovementDatatable = ({ dataInventoryMovements, onEditDialog,  pagination,
+  onPaginationChange }) => {
   const { t } = useTranslation()
+    const {dataList, total}= dataInventoryMovements.data
+
 
   const columnDefInventoryMovements = [
     {
@@ -49,14 +52,19 @@ import PropTypes from 'prop-types'
   return (
     <DataTable
       columns={columnDefInventoryMovements}
-      data={dataInventoryMovements.data}
-      onEditRow={handleEditDialog}
+        data={dataList}
+      totalRows={total}
+      handleRow={row => handleEditDialog(row)}
+      pagination={pagination}
+      onPaginationChange={onPaginationChange}
     />
   )
 }
 
 InventoryMovementDatatable.propTypes = {
   dataInventoryMovements: PropTypes.object.isRequired,
-  onEditDialog: PropTypes.func.isRequired
+  onEditDialog: PropTypes.func.isRequired,
+    pagination: PropTypes.object.isRequired,
+    onPaginationChange: PropTypes.func.isRequired
 }
 
