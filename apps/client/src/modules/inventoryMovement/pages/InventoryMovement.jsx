@@ -7,7 +7,8 @@ import { BackDashBoard } from '@/components/backDash/BackDashBoard'
 import { useTranslation } from 'react-i18next'
 import { useState, useEffect } from 'react'
 import {
-useLazyGetAllInventoryMovementsQuery,  useUpdateInventoryMovementByIdMutation,
+  useLazyGetAllInventoryMovementsQuery,
+  useUpdateInventoryMovementByIdMutation,
   useCreateInventoryMovementMutation,
   useDeleteInventoryMovementByIdMutation
 } from '../api/inventoryMovementAPI'
@@ -107,7 +108,6 @@ const InventoryMovement = () => {
 
     setFilters(newFilters)
   }
-
 
   const handleSubmit = async (values, inventoryMovementId) => {
     try {

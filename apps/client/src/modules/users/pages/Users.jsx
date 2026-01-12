@@ -1,4 +1,4 @@
-  import { UsersFiltersForm, UsersDatatable } from '../components'
+import { UsersFiltersForm, UsersDatatable } from '../components'
 import { BackDashBoard } from '@/components/backDash/BackDashBoard'
 import { useTranslation } from 'react-i18next'
 import {
@@ -13,11 +13,11 @@ import { useState, useEffect } from 'react'
 const Users = () => {
   const { t } = useTranslation()
   const navigate = useNavigate()
-    const [pagination, setPagination] = useState({
-      pageIndex: 0,
-      pageSize: 20
-    })
-    const [filters, setFilters] = useState({})
+  const [pagination, setPagination] = useState({
+    pageIndex: 0,
+    pageSize: 20
+  })
+  const [filters, setFilters] = useState({})
 
   const [
     getAllUsers,
@@ -34,15 +34,13 @@ const Users = () => {
     isFetching: isFetchingStatus
   } = useGetAllUsersStatusQuery()
 
-    const {
+  const {
     data: dataUsersRol = { data: [] },
     isLoading: isLoadingRol,
     isFetching: isFetchingRol
   } = useGetAllUsersRolQuery()
 
-
-
-    /**
+  /**
    * Este efecto es la única fuente de verdad para disparar
    * la consulta al backend.
    *
@@ -80,7 +78,6 @@ const Users = () => {
 
     setFilters(newFilters)
   }
-
 
   const handleUsersForms = row => {
     navigate('/home/userForm', { state: { row } })

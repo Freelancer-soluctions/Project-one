@@ -3,7 +3,7 @@ const globalResponse = (res, statusCode, data, message = null) => {
     error: false,
     statusCode,
     data,
-    ...message && { message }
-  })
-}
-export default globalResponse
+    ...(message && { message }),
+  });
+};
+export default globalResponse;

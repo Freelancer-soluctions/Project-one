@@ -25,8 +25,6 @@ import performanceEvaluationApi from '@/modules/performanceEvaluation/api/perfor
 import vacationApi from '@/modules/vacation/api/vacationApi'
 import permissionApi from '@/modules/permission/api/permissionApi'
 
-
-
 const persistConfig = {
   key: 'root',
   storage: storageSession,
@@ -51,7 +49,7 @@ const rootReducer = combineReducers({
   [productsApi.reducerPath]: productsApi.reducer,
   [providersApi.reducerPath]: providersApi.reducer,
   [settingsProductCategoriesApi.reducerPath]:
-  settingsProductCategoriesApi.reducer,
+    settingsProductCategoriesApi.reducer,
   [warehouseApi.reducerPath]: warehouseApi.reducer,
   [stockApi.reducerPath]: stockApi.reducer,
   [clientsApi.reducerPath]: clientsApi.reducer,
@@ -104,7 +102,6 @@ const store = configureStore({
       performanceEvaluationApi.middleware,
       vacationApi.middleware,
       permissionApi.middleware
-      
     )
 })
 // store.subscribe(() => {

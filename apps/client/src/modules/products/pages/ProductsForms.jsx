@@ -221,7 +221,7 @@ function ProductsForms() {
     ])
   }
 
-  const updateAttributes = (index) => {
+  const updateAttributes = index => {
     setAttributes(prev => {
       const newAttributes = [...prev]
       if (index !== -1) {
@@ -229,11 +229,9 @@ function ProductsForms() {
       }
       return newAttributes
     })
-  };
-
+  }
 
   const handleRemoveAttribute = async (index, item) => {
-
     //Eliminacion logica
     if (item.id) {
       setAlertProps({
@@ -266,7 +264,9 @@ function ProductsForms() {
         }
       })
       setOpenAlertDialog(true)
-    } else{updateAttributes(index)}
+    } else {
+      updateAttributes(index)
+    }
   }
 
   const handleEditAttribute = (index, field, value) => {

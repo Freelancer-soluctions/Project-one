@@ -137,14 +137,13 @@ export const ProductAttributes = ({
 
             {/* Botón para agregar nuevo atributo */}
             <div className='flex flex-wrap items-center justify-between gap-3 mt-5 md:justify-normal'>
-            <Button type='button' variant='success' onClick={onAddAttribute}>
+              <Button type='button' variant='success' onClick={onAddAttribute}>
                 <LuPlus className='w-4 h-4 mr-2' />
                 {t('add_attribute')}
               </Button>
               <Button type='submit' variant='info'>
                 {t('save')}
               </Button>
-            
             </div>
           </form>
         </Form>

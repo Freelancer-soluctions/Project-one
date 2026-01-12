@@ -1,9 +1,9 @@
-import * as prismaService from '../../utils/prisma/dao.js'
-import { TABLESNAMES } from '../../utils/constants/enums.js'
-import { prisma, Prisma } from '../../config/db.js'
+import * as prismaService from '../../utils/prisma/dao.js';
+import { TABLESNAMES } from '../../utils/constants/enums.js';
+import { prisma, Prisma } from '../../config/db.js';
 
-const tableName = TABLESNAMES.PRODUCTS
-const tableName2 = TABLESNAMES.PRODUCTATTRIBUTES
+const tableName = TABLESNAMES.PRODUCTS;
+const tableName2 = TABLESNAMES.PRODUCTATTRIBUTES;
 /**
  * Retrieves all products from the database based on the provided filters.
  *
@@ -24,26 +24,28 @@ export const getAllProducts = async (
   take,
   skip
 ) => {
-  const whereClauses = []
+  const whereClauses = [];
 
   if (name) {
-    whereClauses.push(Prisma.sql`p."name" ILIKE ${'%' + name + '%'}`)
+    whereClauses.push(Prisma.sql`p."name" ILIKE ${'%' + name + '%'}`);
   }
   if (productProviderCode) {
-    whereClauses.push(Prisma.sql`p."productProviderCode" = ${productProviderCode}`)
+    whereClauses.push(
+      Prisma.sql`p."productProviderCode" = ${productProviderCode}`
+    );
   }
   if (productCategoryCode) {
     whereClauses.push(
       Prisma.sql`p."productCategoryCode" = ${productCategoryCode}`
-    )
+    );
   }
   if (statusCode) {
-    whereClauses.push(Prisma.sql`p."statusCode" = ${statusCode}`)
+    whereClauses.push(Prisma.sql`p."statusCode" = ${statusCode}`);
   }
 
   const whereSql = whereClauses.length
     ? Prisma.sql`WHERE ${Prisma.join(whereClauses, Prisma.sql` AND `)}`
-    : Prisma.empty
+    : Prisma.empty;
 
   const products = await prisma.$queryRaw`
     SELECT p.*, 
@@ -71,40 +73,40 @@ export const getAllProducts = async (
     LIMIT ${take}
     OFFSET ${skip}
 
-  `
+  `;
   const total = await prisma.products.count({
     where: {
       ...(name && {
         name: {
           contains: name,
-          mode: 'insensitive' // equivale a ILIKE
-        }
+          mode: 'insensitive', // equivale a ILIKE
+        },
       }),
 
       ...(productProviderCode && {
-        productProviderCode
+        productProviderCode,
       }),
 
       ...(productCategoryCode && {
-        productCategoryCode
+        productCategoryCode,
       }),
 
       ...(statusCode && {
-        statusCode
-      })
-    }
-  })
+        statusCode,
+      }),
+    },
+  });
 
-  return { dataList: products, total }
-}
+  return { dataList: products, total };
+};
 
 /**
  * Retrieves all products.
  * @returns {Promise<Array>} A list of products matching the filters.
  */
 export const getAllProductsFilters = async () => {
-  return await prisma.products.findMany()
-}
+  return await prisma.products.findMany();
+};
 
 /**
  * Retrieves all available product statuses from the database.
@@ -113,9 +115,9 @@ export const getAllProductsFilters = async () => {
  */
 
 export const getAllProductStatus = async () => {
-  const products = await prisma.productStatus.findMany()
-  return Promise.resolve(products)
-}
+  const products = await prisma.productStatus.findMany();
+  return Promise.resolve(products);
+};
 
 /**
  * Retrieves all available product categories from the database.
@@ -123,9 +125,9 @@ export const getAllProductStatus = async () => {
  * @returns {Promise<Array>} A list of product categories.
  */
 export const getAllProductCategories = async () => {
-  const products = await prisma.productCategories.findMany()
-  return Promise.resolve(products)
-}
+  const products = await prisma.productCategories.findMany();
+  return Promise.resolve(products);
+};
 
 /**
  * Retrieves all available product providers from the database.
@@ -133,9 +135,9 @@ export const getAllProductCategories = async () => {
  * @returns {Promise<Array>} A list of product providers.
  */
 export const getAllProductProviders = async () => {
-  const products = await prisma.productProviders.findMany()
-  return Promise.resolve(products)
-}
+  const products = await prisma.productProviders.findMany();
+  return Promise.resolve(products);
+};
 
 /**
  * Creates a new product in the database.
@@ -166,24 +168,23 @@ export const createRow = async (data) => {
 
       // Claves foráneas
       productCategories: {
-        connect: { id: data.productCategoryId }
+        connect: { id: data.productCategoryId },
       },
       productProviders: {
-        connect: { id: data.productProviderId }
+        connect: { id: data.productProviderId },
       },
       productStatus: {
-        connect: { id: data.productStatusId }
+        connect: { id: data.productStatusId },
       },
       userProductCreated: {
         connect: {
-          id: data.createdBy
-        }
-      }
-
-    }
-  })
-  return Promise.resolve(savedProduct)
-}
+          id: data.createdBy,
+        },
+      },
+    },
+  });
+  return Promise.resolve(savedProduct);
+};
 
 /**
  * Updates an existing product in the database.
@@ -216,23 +217,23 @@ export const updateRow = async (data, where) => {
 
       // Claves foráneas
       productCategories: {
-        connect: { id: data.productCategoryId }
+        connect: { id: data.productCategoryId },
       },
       productProviders: {
-        connect: { id: data.productProviderId }
+        connect: { id: data.productProviderId },
       },
       productStatus: {
-        connect: { id: data.productStatusId }
+        connect: { id: data.productStatusId },
       },
       userProductUpdated: {
         connect: {
-          id: data.updatedBy
-        }
-      }
-    }
-  })
-  return Promise.resolve(result)
-}
+          id: data.updatedBy,
+        },
+      },
+    },
+  });
+  return Promise.resolve(result);
+};
 
 /**
  * Deletes a product from the database.
@@ -241,7 +242,7 @@ export const updateRow = async (data, where) => {
  * @returns {Promise<Object>} The result of the delete operation.
  */
 export const deleteRow = async (where) =>
-  prismaService.deleteRow(tableName, where)
+  prismaService.deleteRow(tableName, where);
 
 /**
  * Retrieves all attributes for a product by its ID.
@@ -252,11 +253,11 @@ export const deleteRow = async (where) =>
 
 export const getAllProductAttributesByProductId = async (where) => {
   const attributes = await prisma.productAttributes.findMany({
-    where
-  })
+    where,
+  });
 
-  return Promise.resolve(attributes)
-}
+  return Promise.resolve(attributes);
+};
 
 /**
  * Saves or updates product attributes in the database.
@@ -279,9 +280,9 @@ export const saveProductAttributes = async (attributes) => {
         where: { id: attr.id },
         data: {
           name: attr.name,
-          description: attr.description
-        }
-      })
+          description: attr.description,
+        },
+      });
     } else {
       // Si no tiene ID, crearlo
       return prisma.productAttributes.create({
@@ -289,15 +290,15 @@ export const saveProductAttributes = async (attributes) => {
           productId: attr.productId,
           name: attr.name,
           description: attr.description,
-          createdOn: attr.createdOn
-        }
-      })
+          createdOn: attr.createdOn,
+        },
+      });
     }
-  })
+  });
 
   // Ejecutar todo en una transacción
-  return prisma.$transaction(transaction)
-}
+  return prisma.$transaction(transaction);
+};
 
 /**
  * Deletes a product attribute from the database by its ID.
@@ -306,4 +307,4 @@ export const saveProductAttributes = async (attributes) => {
  * @returns {Promise<Object>} The result of the delete operation.
  */
 export const deleteProductsAttributeById = async (where) =>
-  prismaService.deleteRow(tableName2, where)
+  prismaService.deleteRow(tableName2, where);

@@ -58,8 +58,7 @@ export const EmployeesDialog = ({
       startDate: new Date(),
       position: '',
       department: '',
-      salary: '',
-
+      salary: ''
     }
   })
 
@@ -75,7 +74,9 @@ export const EmployeesDialog = ({
         email: selectedRow.email,
         phone: selectedRow.phone || '',
         address: selectedRow.address || '',
-        startDate: selectedRow.startDate ? new Date(selectedRow.startDate) : new Date(),
+        startDate: selectedRow.startDate
+          ? new Date(selectedRow.startDate)
+          : new Date(),
         position: selectedRow.position,
         department: selectedRow.department,
         salary: selectedRow.salary.toString(),
@@ -170,7 +171,9 @@ export const EmployeesDialog = ({
                 render={({ field }) => {
                   return (
                     <FormItem>
-                      <FormLabel htmlFor='lastName'>{t('last_name')}*</FormLabel>
+                      <FormLabel htmlFor='lastName'>
+                        {t('last_name')}*
+                      </FormLabel>
                       <FormControl>
                         <Input
                           id='lastName'
@@ -359,7 +362,9 @@ export const EmployeesDialog = ({
                 render={({ field }) => {
                   return (
                     <FormItem>
-                      <FormLabel htmlFor='department'>{t('department')}*</FormLabel>
+                      <FormLabel htmlFor='department'>
+                        {t('department')}*
+                      </FormLabel>
                       <FormControl>
                         <Input
                           id='department'
@@ -447,7 +452,8 @@ export const EmployeesDialog = ({
                                   'pl-3 text-left font-normal',
                                   !field.value && 'text-muted-foreground'
                                 )}>
-                                {field.value && format(new Date(field.value), 'PPP')}
+                                {field.value &&
+                                  format(new Date(field.value), 'PPP')}
                                 <CalendarIcon className='w-4 h-4 ml-auto opacity-50' />
                               </Button>
                             </FormControl>
@@ -510,7 +516,8 @@ export const EmployeesDialog = ({
                                   'pl-3 text-left font-normal',
                                   !field.value && 'text-muted-foreground'
                                 )}>
-                                {field.value && format(new Date(field.value), 'PPP')}
+                                {field.value &&
+                                  format(new Date(field.value), 'PPP')}
                                 <CalendarIcon className='w-4 h-4 ml-auto opacity-50' />
                               </Button>
                             </FormControl>
@@ -573,4 +580,4 @@ EmployeesDialog.propTypes = {
   onSubmit: PropTypes.func.isRequired,
   onDeleteById: PropTypes.func.isRequired,
   actionDialog: PropTypes.string.isRequired
-} 
+}

@@ -1,4 +1,4 @@
-import { prisma, Prisma } from '../../config/db.js'
+import { prisma, Prisma } from '../../config/db.js';
 
 /**
  * Get all vacation records with optional filters
@@ -12,32 +12,36 @@ import { prisma, Prisma } from '../../config/db.js'
  * @returns {Promise<Array>} Array of vacation records with employee information
  */
 export const getAllVacation = async (filters, take, skip) => {
-  const whereClauses = []
+  const whereClauses = [];
 
   if (filters.employeeId) {
-    whereClauses.push(Prisma.sql`va."employeeId" = ${Number(filters.employeeId)}`)
+    whereClauses.push(
+      Prisma.sql`va."employeeId" = ${Number(filters.employeeId)}`
+    );
   }
 
   if (filters.startDate) {
-    whereClauses.push(Prisma.sql`va."createdOn" >= ${filters.fromDate}`)
+    whereClauses.push(Prisma.sql`va."createdOn" >= ${filters.fromDate}`);
   }
 
   if (filters.endDate) {
-    whereClauses.push(Prisma.sql`va."createdOn" <= ${filters.toDate}`)
+    whereClauses.push(Prisma.sql`va."createdOn" <= ${filters.toDate}`);
   }
 
   if (filters.status) {
     // Using ILIKE for case-insensitive search for description
-    whereClauses.push(Prisma.sql`va."status" ILIKE ${'%' + filters.status + '%'}`)
+    whereClauses.push(
+      Prisma.sql`va."status" ILIKE ${'%' + filters.status + '%'}`
+    );
   }
   if (filters.type) {
     // Using ILIKE for case-insensitive search for description
-    whereClauses.push(Prisma.sql`va."type" ILIKE ${'%' + filters.type + '%'}`)
+    whereClauses.push(Prisma.sql`va."type" ILIKE ${'%' + filters.type + '%'}`);
   }
 
   const whereSql = whereClauses.length
     ? Prisma.sql`WHERE ${Prisma.join(whereClauses, Prisma.sql` AND `)}`
-    : Prisma.empty
+    : Prisma.empty;
 
   const vacations = await prisma.$queryRaw`
        SELECT 
@@ -53,45 +57,45 @@ export const getAllVacation = async (filters, take, skip) => {
        ORDER BY va."createdOn" DESC
        LIMIT ${take || 10}
        OFFSET ${skip || 0}
-     `
+     `;
 
   const total = await prisma.vacation.count({
     where: {
       ...(filters.employeeId && {
-        employeeId: Number(filters.employeeId)
+        employeeId: Number(filters.employeeId),
       }),
 
       ...(filters.startDate || filters.endDate
         ? {
             createdOn: {
               ...(filters.startDate && {
-                gte: new Date(filters.fromDate)
+                gte: new Date(filters.fromDate),
               }),
               ...(filters.endDate && {
-                lte: new Date(filters.toDate)
-              })
-            }
+                lte: new Date(filters.toDate),
+              }),
+            },
           }
         : {}),
 
       ...(filters.status && {
         status: {
           contains: filters.status,
-          mode: 'insensitive' // equivalente a ILIKE '%status%'
-        }
+          mode: 'insensitive', // equivalente a ILIKE '%status%'
+        },
       }),
 
       ...(filters.type && {
         type: {
           contains: filters.type,
-          mode: 'insensitive' // equivalente a ILIKE '%type%'
-        }
-      })
-    }
-  })
+          mode: 'insensitive', // equivalente a ILIKE '%type%'
+        },
+      }),
+    },
+  });
 
-  return { vacations, total }
-}
+  return { vacations, total };
+};
 
 /**
  * Create a new vacation record
@@ -112,10 +116,10 @@ export const createVacation = async (data) => {
       endDate: data.endDate,
       status: data.status,
       createdBy: data.createdBy,
-      createdOn: data.createdOn
-    }
-  })
-}
+      createdOn: data.createdOn,
+    },
+  });
+};
 
 /**
  * Update a vacation record by ID
@@ -138,10 +142,10 @@ export const updateVacationById = async (id, data) => {
       endDate: data.endDate,
       status: data.status,
       updatedBy: data.updatedBy,
-      updatedOn: data.updatedOn
-    }
-  })
-}
+      updatedOn: data.updatedOn,
+    },
+  });
+};
 
 /**
  * Delete a vacation record by ID
@@ -150,6 +154,6 @@ export const updateVacationById = async (id, data) => {
  */
 export const deleteVacationById = async (id) => {
   return await prisma.vacation.delete({
-    where: { id: parseInt(id) }
-  })
-}
+    where: { id: parseInt(id) },
+  });
+};

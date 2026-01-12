@@ -23,7 +23,9 @@ export function StockSummary({ dataCountStock }) {
                 'border-red-200 bg-red-50/50 transition-colors hover:bg-red-100/50 cursor-pointer'
               )}
               onClick={() =>
-                navigate('stock', { state: { filter: { stocksExpirated: true } } })
+                navigate('stock', {
+                  state: { filter: { stocksExpirated: true } }
+                })
               }>
               <AlertDescription className='flex items-center justify-between'>
                 <span>{t('expired_stock')}</span>
@@ -66,4 +68,4 @@ export function StockSummary({ dataCountStock }) {
       </CardContent>
     </Card>
   )
-} 
+}

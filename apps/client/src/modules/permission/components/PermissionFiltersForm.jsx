@@ -30,12 +30,12 @@ import { Button } from '@/components/ui/button'
 import { CalendarIcon } from '@radix-ui/react-icons'
 import { LuPlus, LuSearch, LuEraser } from 'react-icons/lu'
 
-
-
-export const PermissionFiltersForm = ({ onSubmit, onAddDialog, dataEmployees }) => {
+export const PermissionFiltersForm = ({
+  onSubmit,
+  onAddDialog,
+  dataEmployees
+}) => {
   const { t } = useTranslation()
-
-
 
   const form = useForm({
     defaultValues: {
@@ -93,16 +93,19 @@ export const PermissionFiltersForm = ({ onSubmit, onAddDialog, dataEmployees }) 
                 <FormLabel>{t('employee')}</FormLabel>
                 <Select
                   onValueChange={field.onChange}
-                  value={field.value?.toString() ?? ''}
-                  >
+                  value={field.value?.toString() ?? ''}>
                   <FormControl>
                     <SelectTrigger>
-                      <SelectValue placeholder={t('select_employee_placeholder')} />
+                      <SelectValue
+                        placeholder={t('select_employee_placeholder')}
+                      />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
                     {dataEmployees.map(employee => (
-                      <SelectItem key={employee.id} value={employee.id.toString()}>
+                      <SelectItem
+                        key={employee.id}
+                        value={employee.id.toString()}>
                         {`${employee.name} ${employee.lastName}`}
                       </SelectItem>
                     ))}
@@ -113,96 +116,98 @@ export const PermissionFiltersForm = ({ onSubmit, onAddDialog, dataEmployees }) 
             )}
           />
 
-           {/* Type Select Filter */}
-           <FormField
-                control={form.control}
-                name='type'
-                render={({ field }) => (
-                  <FormItem className='flex flex-col flex-auto'>
-                    <FormLabel>{t('type')}</FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      value={field.value ?? ''}
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder={t('select_permission_type_placeholder')} />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {PERMISSION_TYPES.map(type => (
-                          <SelectItem key={type} value={type}>
-                            {t(`permission_type.${type}`)} {/* Assumes translations */}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+          {/* Type Select Filter */}
+          <FormField
+            control={form.control}
+            name='type'
+            render={({ field }) => (
+              <FormItem className='flex flex-col flex-auto'>
+                <FormLabel>{t('type')}</FormLabel>
+                <Select
+                  onValueChange={field.onChange}
+                  value={field.value ?? ''}>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue
+                        placeholder={t('select_permission_type_placeholder')}
+                      />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {PERMISSION_TYPES.map(type => (
+                      <SelectItem key={type} value={type}>
+                        {t(`permission_type.${type}`)}{' '}
+                        {/* Assumes translations */}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
           {/* Status Select Filter */}
-           <FormField
-                control={form.control}
-                name='status'
-                render={({ field }) => (
-                  <FormItem className='flex flex-col flex-auto'>
-                    <FormLabel>{t('status')}</FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      value={field.value ?? ''}
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder={t('select_status')} />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {PERMISSION_STATUS.map(status => (
-                          <SelectItem key={status} value={status}>
-                            {t(`status.${status}`)}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+          <FormField
+            control={form.control}
+            name='status'
+            render={({ field }) => (
+              <FormItem className='flex flex-col flex-auto'>
+                <FormLabel>{t('status')}</FormLabel>
+                <Select
+                  onValueChange={field.onChange}
+                  value={field.value ?? ''}>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder={t('select_status')} />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {PERMISSION_STATUS.map(status => (
+                      <SelectItem key={status} value={status}>
+                        {t(`status.${status}`)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
           {/* From Date Filter */}
           <FormField
             control={form.control}
-            name="fromDate"
+            name='fromDate'
             render={({ field }) => (
-              <FormItem className="flex flex-col flex-auto">
+              <FormItem className='flex flex-col flex-auto'>
                 <FormLabel>{t('from_date')}</FormLabel>
                 <Popover>
                   <PopoverTrigger asChild>
                     <FormControl>
                       <Button
-                        variant={"outline"}
+                        variant={'outline'}
                         className={cn(
-                          "w-full pl-3 text-left font-normal",
-                          !field.value && "text-muted-foreground"
-                        )}
-                      >
+                          'w-full pl-3 text-left font-normal',
+                          !field.value && 'text-muted-foreground'
+                        )}>
                         {field.value ? (
-                          format(field.value, "PPP")
+                          format(field.value, 'PPP')
                         ) : (
                           <span>{t('pick_date')}</span>
                         )}
-                        <CalendarIcon className="w-4 h-4 ml-auto opacity-50" />
+                        <CalendarIcon className='w-4 h-4 ml-auto opacity-50' />
                       </Button>
                     </FormControl>
                   </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
+                  <PopoverContent className='w-auto p-0' align='start'>
                     <Calendar
-                      mode="single"
+                      mode='single'
                       selected={field.value}
                       onSelect={field.onChange}
-                      disabled={(date) => date > new Date() || date < new Date("1900-01-01")}
+                      disabled={date =>
+                        date > new Date() || date < new Date('1900-01-01')
+                      }
                       initialFocus
                     />
                   </PopoverContent>
@@ -215,36 +220,38 @@ export const PermissionFiltersForm = ({ onSubmit, onAddDialog, dataEmployees }) 
           {/* To Date Filter */}
           <FormField
             control={form.control}
-            name="toDate"
+            name='toDate'
             render={({ field }) => (
-              <FormItem className="flex flex-col flex-auto">
+              <FormItem className='flex flex-col flex-auto'>
                 <FormLabel>{t('to_date')}</FormLabel>
                 <Popover>
                   <PopoverTrigger asChild>
                     <FormControl>
                       <Button
-                        variant={"outline"}
+                        variant={'outline'}
                         className={cn(
-                          "w-full pl-3 text-left font-normal",
-                          !field.value && "text-muted-foreground"
-                        )}
-                      >
+                          'w-full pl-3 text-left font-normal',
+                          !field.value && 'text-muted-foreground'
+                        )}>
                         {field.value ? (
-                          format(field.value, "PPP")
+                          format(field.value, 'PPP')
                         ) : (
                           <span>{t('pick_date')}</span>
                         )}
-                        <CalendarIcon className="w-4 h-4 ml-auto opacity-50" />
+                        <CalendarIcon className='w-4 h-4 ml-auto opacity-50' />
                       </Button>
                     </FormControl>
                   </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
+                  <PopoverContent className='w-auto p-0' align='start'>
                     <Calendar
-                      mode="single"
+                      mode='single'
                       selected={field.value}
                       onSelect={field.onChange}
-                      disabled={(date) =>
-                        date > new Date() || date < new Date("1900-01-01") || (form.getValues('fromDate') && date < form.getValues('fromDate'))
+                      disabled={date =>
+                        date > new Date() ||
+                        date < new Date('1900-01-01') ||
+                        (form.getValues('fromDate') &&
+                          date < form.getValues('fromDate'))
                       }
                       initialFocus
                     />
@@ -287,6 +294,5 @@ export const PermissionFiltersForm = ({ onSubmit, onAddDialog, dataEmployees }) 
 PermissionFiltersForm.propTypes = {
   onSubmit: PropTypes.func.isRequired,
   onAddDialog: PropTypes.func,
-    dataEmployees : PropTypes.array.isRequired
-  
-} 
+  dataEmployees: PropTypes.array.isRequired
+}

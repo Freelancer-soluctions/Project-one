@@ -20,7 +20,7 @@ const Sales = () => {
   const [openAlertDialog, setOpenAlertDialog] = useState(false)
   const [alertProps, setAlertProps] = useState({})
   const [actionDialog, setActionDialog] = useState('')
-    const [pagination, setPagination] = useState({
+  const [pagination, setPagination] = useState({
     pageIndex: 0,
     pageSize: 20
   })
@@ -65,7 +65,6 @@ const Sales = () => {
     isFetching: isFetchingProducts
   } = useGetAllProductsFiltersQuery()
 
-
   /**
    * Este efecto es la única fuente de verdad para disparar
    * la consulta al backend.
@@ -104,8 +103,6 @@ const Sales = () => {
 
     setFilters(newFilters)
   }
-
-
 
   const handleSubmit = async (values, saleId) => {
     try {

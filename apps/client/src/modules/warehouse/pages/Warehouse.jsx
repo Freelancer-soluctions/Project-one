@@ -23,11 +23,11 @@ const Warehouse = () => {
   const [openAlertDialog, setOpenAlertDialog] = useState(false)
   const [alertProps, setAlertProps] = useState({})
   const [actionDialog, setActionDialog] = useState('')
-    const [pagination, setPagination] = useState({
-      pageIndex: 0,
-      pageSize: 20
-    })
-    const [filters, setFilters] = useState({})
+  const [pagination, setPagination] = useState({
+    pageIndex: 0,
+    pageSize: 20
+  })
+  const [filters, setFilters] = useState({})
 
   const [
     getAllWarehouse,
@@ -57,7 +57,7 @@ const Warehouse = () => {
     }
   ] = useDeleteWarehouseByIdMutation()
 
-/**
+  /**
    * Este efecto es la única fuente de verdad para disparar
    * la consulta al backend.
    *
@@ -96,8 +96,6 @@ const Warehouse = () => {
     setFilters(newFilters)
   }
 
-
-
   const handleSubmit = async (values, warehouseId) => {
     try {
       const result = warehouseId
@@ -132,7 +130,7 @@ const Warehouse = () => {
       setOpenAlertDialog(true)
     } catch (err) {
       console.error('Error:', err)
-    } 
+    }
   }
 
   const handleAddDialog = () => {
@@ -213,7 +211,7 @@ const Warehouse = () => {
             <WarehouseDatatable
               dataWarehouse={dataWarehouse}
               onEditDialog={handleEditDialog}
-                 pagination={pagination}
+              pagination={pagination}
               onPaginationChange={setPagination}
             />
           </div>

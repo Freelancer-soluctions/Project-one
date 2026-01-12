@@ -1,11 +1,11 @@
-import * as newsDao from './dao.js'
+import * as newsDao from './dao.js';
 import {
   handleUpload,
   handleUploadUpdate,
-  handleDeleteFile
-} from '../../utils/cloudinary/cloudinary.js'
-import { NEWSSTATUSCODE } from '../../utils/constants/enums.js'
-import { getSafePagination } from '../../utils/pagination/pagination.js'
+  handleDeleteFile,
+} from '../../utils/cloudinary/cloudinary.js';
+import { NEWSSTATUSCODE } from '../../utils/constants/enums.js';
+import { getSafePagination } from '../../utils/pagination/pagination.js';
 
 /**
  * Get all news from the database with optional filters.
@@ -18,14 +18,28 @@ import { getSafePagination } from '../../utils/pagination/pagination.js'
  * @param {number} limit - The limit code filter.
  * @returns {Promise<Array>} A list of news items matching the filters.
  */
-export const getAllNews = async ({ description, fromDate, toDate, statusCode, page, limit }) => {
-  const { take, skip } = getSafePagination({ page, limit })
+export const getAllNews = async ({
+  description,
+  fromDate,
+  toDate,
+  statusCode,
+  page,
+  limit,
+}) => {
+  const { take, skip } = getSafePagination({ page, limit });
 
   if (!take || take <= 0) {
-    throw new Error('Pagination is required')
+    throw new Error('Pagination is required');
   }
-  return await newsDao.getAllNews(description, fromDate, toDate, statusCode, take, skip)
-}
+  return await newsDao.getAllNews(
+    description,
+    fromDate,
+    toDate,
+    statusCode,
+    take,
+    skip
+  );
+};
 
 /**
  * Create a new news item in the database.
@@ -43,9 +57,10 @@ export const createNew = async (userId, data) => {
     statusId: Number(data.statusId),
     createdBy: Number(userId),
     createdOn: new Date(),
-    pendingBy: data.statusCode === NEWSSTATUSCODE.PENDING ? Number(userId) : null,
-    pendingOn: data.statusCode === NEWSSTATUSCODE.PENDING ? new Date() : null
-  }
+    pendingBy:
+      data.statusCode === NEWSSTATUSCODE.PENDING ? Number(userId) : null,
+    pendingOn: data.statusCode === NEWSSTATUSCODE.PENDING ? new Date() : null,
+  };
 
   // if (file) {
   //   const baseImage = Buffer.from(file.buffer).toString('base64')
@@ -55,8 +70,8 @@ export const createNew = async (userId, data) => {
   //   createData.documentId = public_id
   // }
 
-  return newsDao.createNew(createData)
-}
+  return newsDao.createNew(createData);
+};
 
 /**
  * Update an existing news item in the database by its ID.
@@ -68,16 +83,16 @@ export const createNew = async (userId, data) => {
  * @returns {Promise<Object>} The updated news item.
  */
 export const updateById = async (userId, newId, data) => {
-  const rowId = Number(newId)
+  const rowId = Number(newId);
 
   if (data.statusCode === NEWSSTATUSCODE.CLOSED) {
-    data.closedBy = Number(userId)
-    data.closedOn = new Date()
+    data.closedBy = Number(userId);
+    data.closedOn = new Date();
   }
 
   if (data.statusCode === NEWSSTATUSCODE.PENDING) {
-    data.pendingBy = Number(userId)
-    data.pendingOn = new Date()
+    data.pendingBy = Number(userId);
+    data.pendingOn = new Date();
   }
 
   // if (data.document) {
@@ -93,8 +108,8 @@ export const updateById = async (userId, newId, data) => {
   //     newsData.documentId = public_id
   //   }
   // }
-  return newsDao.updateRow(data, { id: rowId })
-}
+  return newsDao.updateRow(data, { id: rowId });
+};
 /**
  * Delete a news item from the database by its ID.
  *
@@ -102,15 +117,15 @@ export const updateById = async (userId, newId, data) => {
  * @returns {Promise<Object>} The result of the deletion.
  */
 export const deleteById = async (id) => {
-  const rowId = Number(id)
+  const rowId = Number(id);
   // const { documentId } = await getOneById(rowId)
 
   // if (documentId) {
   //   await handleDeleteFile(documentId)
   // }
 
-  return newsDao.deleteRow({ id: rowId })
-}
+  return newsDao.deleteRow({ id: rowId });
+};
 
 /**
  * Get all available news statuses from the database.
@@ -119,6 +134,6 @@ export const deleteById = async (id) => {
  */
 
 export const getAllNewsStatus = async () => {
-  const data = await newsDao.getAllNewsStatus()
-  return data
-}
+  const data = await newsDao.getAllNewsStatus();
+  return data;
+};

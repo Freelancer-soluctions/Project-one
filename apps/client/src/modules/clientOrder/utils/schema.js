@@ -9,9 +9,9 @@ export const ClientOrderSchema = z
     notes: z.string().optional(),
     saleId: z.string().optional()
   })
-  .passthrough() // Permite otros campos 
+  .passthrough() // Permite otros campos
 
-  export const ClientOrderFiltersSchema = z.object({
-    clientId: z.string().optional(),
-    status: z.string().optional()
-  })
+export const ClientOrderFiltersSchema = z.object({
+  clientId: z.string().optional(),
+  status: z.string().optional()
+})

@@ -2,9 +2,9 @@ import {
   getAllSales as getAllSalesDao,
   createSale as createSaleDao,
   updateSaleById as updateSaleByIdDao,
-  deleteSaleById as deleteSaleByIdDao
-} from './dao.js'
-import { getSafePagination } from '../../utils/pagination/pagination.js'
+  deleteSaleById as deleteSaleByIdDao,
+} from './dao.js';
+import { getSafePagination } from '../../utils/pagination/pagination.js';
 
 /**
  * Get all sales with optional filters
@@ -14,16 +14,18 @@ import { getSafePagination } from '../../utils/pagination/pagination.js'
 export const getAllSales = async (filters) => {
   const formatedFilters = {
     ...filters,
-    clientId: Number(filters.clientId)
-
-  }
-  const { take, skip } = getSafePagination({ page: formatedFilters.page, limit: formatedFilters.limit })
+    clientId: Number(filters.clientId),
+  };
+  const { take, skip } = getSafePagination({
+    page: formatedFilters.page,
+    limit: formatedFilters.limit,
+  });
 
   if (!take || take <= 0) {
-    throw new Error('Pagination is required')
+    throw new Error('Pagination is required');
   }
-  return await getAllSalesDao(formatedFilters, take, skip)
-}
+  return await getAllSalesDao(formatedFilters, take, skip);
+};
 
 /**
  * Create a new sale
@@ -36,10 +38,10 @@ export const createSale = async (data) => {
     total: Number(data.total),
     details: data.details,
     createdBy: Number(data.createdBy),
-    createdOn: new Date()
-  }
-  return createSaleDao(dataToCreate)
-}
+    createdOn: new Date(),
+  };
+  return createSaleDao(dataToCreate);
+};
 
 /**
  * Update a sale by ID
@@ -53,10 +55,10 @@ export const updateSaleById = async (id, data) => {
     total: Number(data.total),
     details: data.details,
     updatedBy: Number(data.updatedBy),
-    updatedOn: new Date()
-  }
-  return updateSaleByIdDao(Number(id), dataToUpdate)
-}
+    updatedOn: new Date(),
+  };
+  return updateSaleByIdDao(Number(id), dataToUpdate);
+};
 
 /**
  * Delete a sale by ID
@@ -64,5 +66,5 @@ export const updateSaleById = async (id, data) => {
  * @returns {Promise<Object>} Deleted sale
  */
 export const deleteSaleById = async (id) => {
-  return deleteSaleByIdDao(Number(id))
-}
+  return deleteSaleByIdDao(Number(id));
+};

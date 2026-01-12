@@ -6,33 +6,35 @@ import { axiosPrivateBaseQuery } from '@/config/axios'
 // Define a service using a base URL and expected endpoints
 const attendanceApi = createApi({
   reducerPath: 'attendanceApi',
-  baseQuery: axiosPrivateBaseQuery({ baseUrl: import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1' }),
+  baseQuery: axiosPrivateBaseQuery({
+    baseUrl: import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1'
+  }),
   tagTypes: ['Attendance'],
   keepUnusedDataFor: 300, // 5 minutos
-  endpoints: (builder) => ({
+  endpoints: builder => ({
     getAllAttendance: builder.query({
-      query: (params) => ({
+      query: params => ({
         url: '/attendance',
         params
       }),
-      providesTags: ['Attendance'],
+      providesTags: ['Attendance']
     }),
 
     deleteAttendanceById: builder.mutation({
-      query: (id) => ({
+      query: id => ({
         url: `/attendance/${id}`,
         method: 'DELETE'
       }),
-      invalidatesTags: ['Attendance'],
+      invalidatesTags: ['Attendance']
     }),
 
     createAttendance: builder.mutation({
-      query: (data) => ({
+      query: data => ({
         url: '/attendance',
         method: 'POST',
-        body: data,
+        body: data
       }),
-      invalidatesTags: ['Attendance'],
+      invalidatesTags: ['Attendance']
     }),
 
     updateAttendanceById: builder.mutation({
@@ -41,8 +43,8 @@ const attendanceApi = createApi({
         method: 'PUT',
         body: data
       }),
-      invalidatesTags: ['Attendance'],
-    }),
+      invalidatesTags: ['Attendance']
+    })
   })
 })
 
@@ -55,4 +57,4 @@ export const {
   useDeleteAttendanceByIdMutation
 } = attendanceApi
 
-export default attendanceApi 
+export default attendanceApi

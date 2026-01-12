@@ -11,11 +11,10 @@ export const AttendanceDatatable = ({
 }) => {
   const { t } = useTranslation()
 
-  const {dataList, total}= dataAttendance.data
+  const { dataList, total } = dataAttendance.data
 
   const columnDefAttendance = [
- 
-       {
+    {
       accessorKey: 'employeeName',
       header: t('employee'),
       cell: info => info.getValue()?.toUpperCase()
@@ -48,8 +47,11 @@ export const AttendanceDatatable = ({
       accessorKey: 'userAttendanceCreatedName',
       header: t('created_by'),
       cell: info => {
-        const userAttendanceCreatedName = info.row.original.userAttendanceCreatedName // Accede al dato original de la fila
-        return userAttendanceCreatedName ? userAttendanceCreatedName.toUpperCase() : null // Retorna null para mantener la celda vacía
+        const userAttendanceCreatedName =
+          info.row.original.userAttendanceCreatedName // Accede al dato original de la fila
+        return userAttendanceCreatedName
+          ? userAttendanceCreatedName.toUpperCase()
+          : null // Retorna null para mantener la celda vacía
       }
     },
     {
@@ -61,8 +63,11 @@ export const AttendanceDatatable = ({
       accessorKey: 'userAttendanceUpdatedName',
       header: t('created_by'),
       cell: info => {
-        const userAttendanceUpdatedName = info.row.original.userAttendanceUpdatedName // Accede al dato original de la fila
-        return userAttendanceUpdatedName ? userAttendanceUpdatedName.toUpperCase() : null // Retorna null para mantener la celda vacía
+        const userAttendanceUpdatedName =
+          info.row.original.userAttendanceUpdatedName // Accede al dato original de la fila
+        return userAttendanceUpdatedName
+          ? userAttendanceUpdatedName.toUpperCase()
+          : null // Retorna null para mantener la celda vacía
       }
     },
     {
@@ -79,8 +84,6 @@ export const AttendanceDatatable = ({
     onEditDialog(row)
   }
 
-
-
   return (
     <DataTable
       columns={columnDefAttendance}
@@ -89,7 +92,6 @@ export const AttendanceDatatable = ({
       handleRow={row => handleEditDialog(row)}
       pagination={pagination}
       onPaginationChange={onPaginationChange}
-      
     />
   )
 }
@@ -99,4 +101,4 @@ AttendanceDatatable.propTypes = {
   onEditDialog: PropTypes.func.isRequired,
   pagination: PropTypes.object.isRequired,
   onPaginationChange: PropTypes.func.isRequired
-} 
+}

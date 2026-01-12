@@ -9,7 +9,7 @@
 export const cspReportHandler = (logger) => {
   return (req, res) => {
     try {
-      const body = req.body
+      const body = req.body;
 
       // ----------------------------------------------------------
       // Detectar si el cuerpo tiene un reporte CSP válido
@@ -18,18 +18,15 @@ export const cspReportHandler = (logger) => {
       //   - "cspReport"    (Chrome, algunos proxies)
       //   - o todo dentro de body
       // ----------------------------------------------------------
-      const report =
-        body?.['csp-report'] ||
-        body?.cspReport ||
-        body
+      const report = body?.['csp-report'] || body?.cspReport || body;
 
       if (!report) {
         // Caso raro: el navegador envió el POST sin datos válidos
         logger.warn('CSP report recibido sin contenido válido', {
           ip: req.ip,
-          body
-        })
-        return res.status(204).end()
+          body,
+        });
+        return res.status(204).end();
       }
 
       // ----------------------------------------------------------
@@ -43,18 +40,18 @@ export const cspReportHandler = (logger) => {
         sourceFile: report['source-file'],
         lineNumber: report['line-number'],
         columnNumber: report['column-number'],
-        userAgent: req.headers['user-agent']
-      })
+        userAgent: req.headers['user-agent'],
+      });
 
       // CSP siempre debe responder 204 “No Content”
-      return res.status(204).end()
+      return res.status(204).end();
     } catch (err) {
       // ----------------------------------------------------------
       // Si hay error interno, se registra.
       // Igual se responde 204 porque es lo que espera el navegador.
       // ----------------------------------------------------------
-      logger.error('Error procesando CSP report', { error: err.message })
-      return res.status(204).end()
+      logger.error('Error procesando CSP report', { error: err.message });
+      return res.status(204).end();
     }
-  }
-}
+  };
+};

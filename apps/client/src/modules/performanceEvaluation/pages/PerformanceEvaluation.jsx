@@ -24,7 +24,7 @@ const PerformanceEvaluation = () => {
   const [openAlertDialog, setOpenAlertDialog] = useState(false)
   const [alertProps, setAlertProps] = useState({})
   const [actionDialog, setActionDialog] = useState('')
-    const [pagination, setPagination] = useState({
+  const [pagination, setPagination] = useState({
     pageIndex: 0,
     pageSize: 20
   })
@@ -61,9 +61,7 @@ const PerformanceEvaluation = () => {
     { isLoading: isLoadingDelete }
   ] = useDeletePerformanceEvaluationByIdMutation()
 
-
-
-/**
+  /**
    * Este efecto es la única fuente de verdad para disparar
    * la consulta al backend.
    *
@@ -238,7 +236,7 @@ const PerformanceEvaluation = () => {
             <PerformanceEvaluationDatatable
               dataEvaluations={dataEvaluations} // Pass evaluation data
               onEditDialog={handleEditDialog}
-               pagination={pagination}
+              pagination={pagination}
               onPaginationChange={setPagination}
             />
           </div>

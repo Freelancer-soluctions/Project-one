@@ -5,7 +5,7 @@ import PropTypes from 'prop-types'
 
 export const ProviderOrdersDatatable = ({
   dataProviderOrders,
-  onEditDialog,
+  onEditDialog
 }) => {
   const { t } = useTranslation()
 

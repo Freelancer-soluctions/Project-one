@@ -8,11 +8,11 @@ Su objetivo es garantizar que cualquier desarrollador pueda identificar informac
 
 # 📌 1. Objetivos del documento
 
-* Definir qué datos son sensibles dentro del proyecto.
-* Clasificar cada tipo de dato según su nivel de criticidad.
-* Determinar qué controles criptográficos se deben aplicar.
-* Evitar filtraciones, exposición accidental y malas prácticas.
-* Crear un estándar interno que todos los desarrolladores deben cumplir.
+- Definir qué datos son sensibles dentro del proyecto.
+- Clasificar cada tipo de dato según su nivel de criticidad.
+- Determinar qué controles criptográficos se deben aplicar.
+- Evitar filtraciones, exposición accidental y malas prácticas.
+- Crear un estándar interno que todos los desarrolladores deben cumplir.
 
 ---
 
@@ -26,9 +26,9 @@ Nuestro proyecto utilizará tres niveles:
 Datos que no requieren protección criptográfica.
 Ejemplos:
 
-* Textos informativos.
-* Contenido estático no sensible.
-* Datos visibles públicamente.
+- Textos informativos.
+- Contenido estático no sensible.
+- Datos visibles públicamente.
 
 **Controles requeridos:** ninguno.
 
@@ -39,17 +39,17 @@ Ejemplos:
 Datos que requieren protección **en tránsito** (HTTPS) y control de acceso.
 Ejemplos:
 
-* Email del usuario.
-* Nombre completo.
-* Preferencias del usuario.
-* Logs técnicos sin información crítica.
+- Email del usuario.
+- Nombre completo.
+- Preferencias del usuario.
+- Logs técnicos sin información crítica.
 
 **Controles requeridos:**
 
-* TLS (HTTPS obligatorio).
-* No loggear estos datos sin una razón válida.
-* No exponerlos a frontend si no es necesario.
-* Validación de entrada.
+- TLS (HTTPS obligatorio).
+- No loggear estos datos sin una razón válida.
+- No exponerlos a frontend si no es necesario.
+- Validación de entrada.
 
 ---
 
@@ -59,22 +59,22 @@ Datos que deben ser protegidos incluso si la base de datos se filtra.
 
 Ejemplos:
 
-* Contraseñas.
-* Refresh tokens.
-* Tokens CSRF.
-* Identificaciones personales.
-* Secretos de API.
-* Credenciales internas.
-* Datos privados del usuario.
+- Contraseñas.
+- Refresh tokens.
+- Tokens CSRF.
+- Identificaciones personales.
+- Secretos de API.
+- Credenciales internas.
+- Datos privados del usuario.
 
 **Controles requeridos:**
 
-* Hashing fuerte → `bcrypt`, `argon2`, `scrypt`.
-* Cifrado AES-GCM para datos que deben ser leídos luego.
-* Cookies HttpOnly + Secure + SameSite.
-* Tokenización si aplica.
-* Rotación de secretos.
-* Nunca loggear estos datos.
+- Hashing fuerte → `bcrypt`, `argon2`, `scrypt`.
+- Cifrado AES-GCM para datos que deben ser leídos luego.
+- Cookies HttpOnly + Secure + SameSite.
+- Tokenización si aplica.
+- Rotación de secretos.
+- Nunca loggear estos datos.
 
 ---
 
@@ -119,9 +119,9 @@ A continuación se identifican los datos sensibles manejados actualmente por el 
 
 ## **4.1 Hashing de contraseñas**
 
-* Usar `bcrypt` con **cost ≥ 12**.
-* Nunca guardar contraseñas en texto plano.
-* No loggear contraseñas (ni valores parciales).
+- Usar `bcrypt` con **cost ≥ 12**.
+- Nunca guardar contraseñas en texto plano.
+- No loggear contraseñas (ni valores parciales).
 
 ---
 
@@ -129,13 +129,13 @@ A continuación se identifican los datos sensibles manejados actualmente por el 
 
 Usar **AES-256-GCM** cuando un dato crítico:
 
-* Deba mostrarse de nuevo al usuario.
-* No pueda ser sustituido por hashing.
+- Deba mostrarse de nuevo al usuario.
+- No pueda ser sustituido por hashing.
 
 Implementación sugerida:
 
-* AES-GCM con IV aleatorio por registro.
-* Clave almacenada en variable de entorno.
+- AES-GCM con IV aleatorio por registro.
+- Clave almacenada en variable de entorno.
 
 ---
 
@@ -143,37 +143,37 @@ Implementación sugerida:
 
 ### Access Token
 
-* Almacenado en `sessionStorage` (no permanente).
-* No marcarlo como HttpOnly para permitir lectura del frontend.
+- Almacenado en `sessionStorage` (no permanente).
+- No marcarlo como HttpOnly para permitir lectura del frontend.
 
 ### Refresh Token
 
-* `HttpOnly: true`
-* `Secure: true` (solo HTTPS)
-* `SameSite: strict`
-* Rotación en cada uso.
-* Asociado a un solo usuario.
+- `HttpOnly: true`
+- `Secure: true` (solo HTTPS)
+- `SameSite: strict`
+- Rotación en cada uso.
+- Asociado a un solo usuario.
 
 ---
 
 ## **4.4 CSRF Protection**
 
-* Token generado con `crypto.randomBytes`.
-* Guardado en cookie HttpOnly.
-* Clonado hacia el header en frontend.
-* Validación con `timingSafeEqual`.
-* Solo requerido para rutas con cookies.
+- Token generado con `crypto.randomBytes`.
+- Guardado en cookie HttpOnly.
+- Clonado hacia el header en frontend.
+- Validación con `timingSafeEqual`.
+- Solo requerido para rutas con cookies.
 
 ---
 
 # 🛑 5. Comportamientos que están prohibidos
 
-* Guardar contraseñas en logs.
-* Guardar refresh tokens en localStorage.
-* Exponer secretos del backend hacia el frontend.
-* Guardar información sensible sin cifrado si debe ser recuperada.
-* Dejar llaves API dentro del repositorio.
-* Permitir `dangerouslySetInnerHTML` sin sanitización.
+- Guardar contraseñas en logs.
+- Guardar refresh tokens en localStorage.
+- Exponer secretos del backend hacia el frontend.
+- Guardar información sensible sin cifrado si debe ser recuperada.
+- Dejar llaves API dentro del repositorio.
+- Permitir `dangerouslySetInnerHTML` sin sanitización.
 
 ---
 
@@ -193,15 +193,15 @@ Siempre que un programador agregue un nuevo campo en base de datos, debe seguir 
 
 # 📦 7. Checklist rápido para desarrolladores
 
-* [ ] ¿El dato está clasificado?
-* [ ] ¿Requiere hashing?
-* [ ] ¿Requiere cifrado?
-* [ ] ¿Requiere token seguro?
-* [ ] ¿Este dato se loggea accidentalmente?
-* [ ] ¿Este dato debe llegar al frontend?
-* [ ] ¿Está protegido por Helmet + CSP?
-* [ ] ¿Está protegido en tránsito con HTTPS?
-* [ ] ¿Se está almacenando más información de la necesaria?
+- [ ] ¿El dato está clasificado?
+- [ ] ¿Requiere hashing?
+- [ ] ¿Requiere cifrado?
+- [ ] ¿Requiere token seguro?
+- [ ] ¿Este dato se loggea accidentalmente?
+- [ ] ¿Este dato debe llegar al frontend?
+- [ ] ¿Está protegido por Helmet + CSP?
+- [ ] ¿Está protegido en tránsito con HTTPS?
+- [ ] ¿Se está almacenando más información de la necesaria?
 
 ---
 
@@ -209,18 +209,18 @@ Siempre que un programador agregue un nuevo campo en base de datos, debe seguir 
 
 Según la revisión actual, el proyecto ya cumple:
 
-* Hashing de contraseñas.
-* Tokens configurados correctamente.
-* CSRF seguro.
-* Helmet + CSP.
-* Logger con formatos seguros.
-* Cookies seguras para refresh token.
+- Hashing de contraseñas.
+- Tokens configurados correctamente.
+- CSRF seguro.
+- Helmet + CSP.
+- Logger con formatos seguros.
+- Cookies seguras para refresh token.
 
 Pendiente por implementar (si aplica a futuro):
 
-* Cifrado AES-GCM para datos altamente sensibles.
-* Clasificación automática en modelos Prisma.
-* Políticas internas para rotación de claves JWT.
+- Cifrado AES-GCM para datos altamente sensibles.
+- Clasificación automática en modelos Prisma.
+- Políticas internas para rotación de claves JWT.
 
 ---
 

@@ -2,10 +2,10 @@ import {
   getAllPermissions as getAllPermissionsService,
   createPermission as createPermissionService,
   updatePermissionById as updatePermissionByIdService,
-  deletePermissionById as deletePermissionByIdService
-} from './service.js'
-import handleCatchErrorAsync from '../../utils/responses&Errors/handleCatchErrorAsync.js'
-import globalResponse from '../../utils/responses&Errors/globalResponse.js'
+  deletePermissionById as deletePermissionByIdService,
+} from './service.js';
+import handleCatchErrorAsync from '../../utils/responses&Errors/handleCatchErrorAsync.js';
+import globalResponse from '../../utils/responses&Errors/globalResponse.js';
 
 /**
  * @description Get all permissions with optional filters
@@ -20,10 +20,10 @@ import globalResponse from '../../utils/responses&Errors/globalResponse.js'
  * @returns {Promise<Object>} Response with list of permissions
  */
 export const getAllPermissions = handleCatchErrorAsync(async (req, res) => {
-  const filters = req.query
-  const permissions = await getAllPermissionsService(filters)
-  return globalResponse(res, 200, permissions)
-})
+  const filters = req.query;
+  const permissions = await getAllPermissionsService(filters);
+  return globalResponse(res, 200, permissions);
+});
 
 /**
  * @description Create a new permission request
@@ -39,9 +39,9 @@ export const getAllPermissions = handleCatchErrorAsync(async (req, res) => {
  * @returns {Promise<Object>} Response with created permission
  */
 export const createPermission = handleCatchErrorAsync(async (req, res) => {
-  const permission = await createPermissionService(req.bod, req.userId)
-  return globalResponse(res, 201, permission)
-})
+  const permission = await createPermissionService(req.bod, req.userId);
+  return globalResponse(res, 201, permission);
+});
 
 /**
  * @description Update an existing permission by ID
@@ -53,10 +53,10 @@ export const createPermission = handleCatchErrorAsync(async (req, res) => {
  * @returns {Promise<Object>} Response with updated permission
  */
 export const updatePermissionById = handleCatchErrorAsync(async (req, res) => {
-  const { id } = req.params
-  const permission = await updatePermissionByIdService(id, req.body)
-  return globalResponse(res, 200, permission)
-})
+  const { id } = req.params;
+  const permission = await updatePermissionByIdService(id, req.body);
+  return globalResponse(res, 200, permission);
+});
 
 /**
  * @description Delete a permission by ID
@@ -67,7 +67,10 @@ export const updatePermissionById = handleCatchErrorAsync(async (req, res) => {
  * @returns {Promise<Object>} Response with deletion confirmation
  */
 export const deletePermissionById = handleCatchErrorAsync(async (req, res) => {
-  const { id } = req.params
-  const permission = await deletePermissionByIdService(id)
-  return globalResponse(res, 200, { message: 'Permission deleted successfully', permission })
-})
+  const { id } = req.params;
+  const permission = await deletePermissionByIdService(id);
+  return globalResponse(res, 200, {
+    message: 'Permission deleted successfully',
+    permission,
+  });
+});

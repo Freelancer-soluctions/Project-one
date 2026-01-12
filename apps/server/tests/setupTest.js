@@ -1,5 +1,5 @@
-import { config } from 'dotenv'
+import { config } from 'dotenv';
 
 config({
-  path: './.env.test'
-})
+  path: './.env.test',
+});

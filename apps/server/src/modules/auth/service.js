@@ -1,11 +1,18 @@
-import * as authDao from './dao.js'
-import { getUserRegisteredByEmail, getUserRoleByCode } from '../users/dao.js'
-import { createToken, createRefreshTokenOpaque } from '../../utils/jwt/createToken.js'
-import { createCsrfToken } from '../../utils/csrftoken/csrfToken.js'
-import ClientError from '../../utils/responses&Errors/errors.js'
-import { ROLESCODES } from '../../utils/constants/enums.js'
-import { encryptPassword, comparePassword, validatePasswordStrength } from '../../utils/bcrypt/encrypt.js'
-import logger from '../../logger/index.js'
+import * as authDao from './dao.js';
+import { getUserRegisteredByEmail, getUserRoleByCode } from '../users/dao.js';
+import {
+  createToken,
+  createRefreshTokenOpaque,
+} from '../../utils/jwt/createToken.js';
+import { createCsrfToken } from '../../utils/csrftoken/csrfToken.js';
+import ClientError from '../../utils/responses&Errors/errors.js';
+import { ROLESCODES } from '../../utils/constants/enums.js';
+import {
+  encryptPassword,
+  comparePassword,
+  validatePasswordStrength,
+} from '../../utils/bcrypt/encrypt.js';
+import logger from '../../logger/index.js';
 // import jwt from 'jsonwebtoken'
 // import dontenv from '../../config/dotenv.js'
 
@@ -17,25 +24,36 @@ import logger from '../../logger/index.js'
  */
 export const signUp = async (user) => {
   // get the user role id
-  const role = await getUserRoleByCode(ROLESCODES.USER)
-  user.roleId = role?.id
+  const role = await getUserRoleByCode(ROLESCODES.USER);
+  user.roleId = role?.id;
 
   // validacion de fuerza en contraseña
   if (!validatePasswordStrength(user.password)) {
-    throw new ClientError('La contraseña es demasiado débil. Intenta con una más segura.', 400)
+    throw new ClientError(
+      'La contraseña es demasiado débil. Intenta con una más segura.',
+      400
+    );
   }
   // encryt password
-  user.password = encryptPassword(user.password)
+  user.password = encryptPassword(user.password);
   // verify if the email is already registered
-  const emailExists = await getUserRegisteredByEmail(user.email)
+  const emailExists = await getUserRegisteredByEmail(user.email);
   if (Object.keys(emailExists).length) {
-    throw new ClientError('Este correo ya esta registrado.', 400)
+    throw new ClientError('Este correo ya esta registrado.', 400);
   }
-  const userSaved = await authDao.signUp(user)
+  const userSaved = await authDao.signUp(user);
   // create the token
-  const token = await createToken({ id: userSaved.id, rol: { ...role } })
-  return { accessToken: token, user: { id: userSaved.id, firstName: userSaved.firstName, picture: userSaved.picture, role: userSaved.roleId } }
-}
+  const token = await createToken({ id: userSaved.id, rol: { ...role } });
+  return {
+    accessToken: token,
+    user: {
+      id: userSaved.id,
+      firstName: userSaved.firstName,
+      picture: userSaved.picture,
+      role: userSaved.roleId,
+    },
+  };
+};
 
 /**
  * Sign in an existing user.
@@ -44,40 +62,55 @@ export const signUp = async (user) => {
  * @returns {Promise<Object>} An object containing the access token, refresh token, and user details.
  */
 export const signIn = async (user, req) => {
-  const { email, password } = user
+  const { email, password } = user;
 
   // verify if the user is already registered
-  const userExists = await authDao.signIn(email)
+  const userExists = await authDao.signIn(email);
   if (!userExists) {
-    throw new ClientError('Este correo no esta registrado.', 400)
+    throw new ClientError('Este correo no esta registrado.', 400);
   }
 
   // comparar el pasword
-  const validPassword = await comparePassword(
-    password,
-    userExists.password
-  )
+  const validPassword = await comparePassword(password, userExists.password);
 
   if (!validPassword) {
-    throw new ClientError('Contraseña invalida.', 400)
+    throw new ClientError('Contraseña invalida.', 400);
   }
   // create the token
-  const token = await createToken({ id: userExists.id, rol: { ...userExists.roles } })
-  const refreshToken = await createRefreshTokenOpaque()
+  const token = await createToken({
+    id: userExists.id,
+    rol: { ...userExists.roles },
+  });
+  const refreshToken = await createRefreshTokenOpaque();
   // save the user refresh token
-  await authDao.storeRefreshToken({ token: refreshToken, userId: userExists.id, issuedAt: Date.now() })
+  await authDao.storeRefreshToken({
+    token: refreshToken,
+    userId: userExists.id,
+    issuedAt: Date.now(),
+  });
 
   // create csrf token
-  const csrfToken = await createCsrfToken()
+  const csrfToken = await createCsrfToken();
   // Log de login exitoso
   logger.info('✅ LOGIN EXITOSO', {
     userId: userExists.id,
     email: userExists.email,
     ip: req.ip,
-    userAgent: req.headers['user-agent']
-  })
-  return { accessToken: token, refreshToken, csrfToken, user: { id: userExists.id, firstName: userExists.firstName, picture: userExists.picture, roleName: userExists.roles.description, roleId: userExists.roleId } }
-}
+    userAgent: req.headers['user-agent'],
+  });
+  return {
+    accessToken: token,
+    refreshToken,
+    csrfToken,
+    user: {
+      id: userExists.id,
+      firstName: userExists.firstName,
+      picture: userExists.picture,
+      roleName: userExists.roles.description,
+      roleId: userExists.roleId,
+    },
+  };
+};
 
 /**
  * Retrieve the user session by ID.
@@ -87,13 +120,15 @@ export const signIn = async (user, req) => {
  */
 
 export const session = async (id) => {
-  const session = await authDao.session(id)
+  const session = await authDao.session(id);
   if (!session) {
-    throw new ClientError('No se ha encontrado al usuario', 400)
+    throw new ClientError('No se ha encontrado al usuario', 400);
   }
 
-  return { user: { name: session.name, picture: session.picture, role: session.role } }
-}
+  return {
+    user: { name: session.name, picture: session.picture, role: session.role },
+  };
+};
 
 /**
  * Generate a new access token using the refresh token.
@@ -103,18 +138,18 @@ export const session = async (id) => {
  */
 
 export const refreshToken = async (cookies, req) => {
-  const refreshCookie = cookies?.jwt
+  const refreshCookie = cookies?.jwt;
   if (!refreshCookie) {
     // 🚨 LOGGING: Intento sin refresh token
     logger.warn('⚠️ INTENTO DE REFRESH SIN TOKEN', {
       ip: req.ip,
       userAgent: req.headers['user-agent'],
-      timestamp: new Date().toISOString()
-    })
-    throw new ClientError('Refresh token no encontrado', 400)
+      timestamp: new Date().toISOString(),
+    });
+    throw new ClientError('Refresh token no encontrado', 400);
   }
 
-  const stored = await authDao.findByToken(refreshCookie)
+  const stored = await authDao.findByToken(refreshCookie);
   if (!stored || stored.revoked) {
     // 🚨 LOGGING CRÍTICO: Token reuse detectado
     logger.error('🚨 INTENTO DE REUSO DE REFRESH TOKEN DETECTADO', {
@@ -124,25 +159,30 @@ export const refreshToken = async (cookies, req) => {
       revoked: stored?.revoked || false,
       revokedAt: stored?.revokedAt || null,
       userAgent: req.headers['user-agent'],
-      timestamp: new Date().toISOString()
-    })
+      timestamp: new Date().toISOString(),
+    });
     // posible reuse: revocar todo y forzar login
-    console.log('stored user', stored.userId)
-    if (stored?.userId) await authDao.revokeAllRefreshTojeForUser(stored.userId)
-    throw new ClientError('Forbidden', 403)
+    console.log('stored user', stored.userId);
+    if (stored?.userId)
+      await authDao.revokeAllRefreshTojeForUser(stored.userId);
+    throw new ClientError('Forbidden', 403);
   }
 
   // rotar
-  await authDao.revokeRefreshToken(stored.id) // invalidar el antiguo
-  const newRefresh = await createRefreshTokenOpaque()
-  await authDao.storeRefreshToken({ token: newRefresh, userId: stored.userId, issuedAt: Date.now() })
+  await authDao.revokeRefreshToken(stored.id); // invalidar el antiguo
+  const newRefresh = await createRefreshTokenOpaque();
+  await authDao.storeRefreshToken({
+    token: newRefresh,
+    userId: stored.userId,
+    issuedAt: Date.now(),
+  });
 
-  const accessToken = await createToken({ id: stored.userId })
+  const accessToken = await createToken({ id: stored.userId });
   // renovar csrf token también
-  const csrfToken = await createCsrfToken()
+  const csrfToken = await createCsrfToken();
 
-  return { accessToken, csrfToken, refreshToken: newRefresh }
-}
+  return { accessToken, csrfToken, refreshToken: newRefresh };
+};
 
 // se cambia a una rotacion de refresh token
 // export const refreshToken = async (cookies) => {
@@ -170,14 +210,14 @@ export const refreshToken = async (cookies, req) => {
 
 export const logout = async (cookies) => {
   // ✅ Revocar token en BD si existe
-  const refreshCookie = cookies?.jwt
+  const refreshCookie = cookies?.jwt;
 
   if (refreshToken) {
-    const stored = await authDao.findByToken(refreshCookie)
+    const stored = await authDao.findByToken(refreshCookie);
     if (stored && !stored.revoked) {
-      await authDao.revokeRefreshToken(stored.id)
+      await authDao.revokeRefreshToken(stored.id);
     }
   }
 
-  return true
-}
+  return true;
+};

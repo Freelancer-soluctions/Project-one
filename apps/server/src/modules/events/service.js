@@ -1,4 +1,4 @@
-import * as eventDao from './dao.js'
+import * as eventDao from './dao.js';
 /**
  * Create a new event item in the database.
  *
@@ -15,18 +15,17 @@ import * as eventDao from './dao.js'
  * @returns {Promise<Object>} The created event item.
  */
 export const createEvent = async (data, userId) => {
-  const { type, ...dataToSave } = data
+  const { type, ...dataToSave } = data;
   const createData = {
     ...dataToSave,
-    createdOn: new Date()
-
-  }
+    createdOn: new Date(),
+  };
   const foreignKeys = {
     type: Number(type),
-    createdBy: Number(userId)
-  }
-  return eventDao.createEvent(createData, foreignKeys)
-}
+    createdBy: Number(userId),
+  };
+  return eventDao.createEvent(createData, foreignKeys);
+};
 
 /**
  * Get all available event types from the database.
@@ -34,9 +33,9 @@ export const createEvent = async (data, userId) => {
  * @returns {Promise<Array>} A list of all event types.
  */
 export const getAllEventTypes = async () => {
-  const data = await eventDao.getAllEventTypes()
-  return data
-}
+  const data = await eventDao.getAllEventTypes();
+  return data;
+};
 
 /**
  * Get all events from the database with optional filters.
@@ -44,8 +43,8 @@ export const getAllEventTypes = async () => {
  * @returns {Promise<Array>} List of employees
  */
 export const getAllEvents = async ({ searchQuery }) => {
-  return await eventDao.getAllEvents(searchQuery)
-}
+  return await eventDao.getAllEvents(searchQuery);
+};
 
 /**
  * Update an existing event item in the database by its ID.
@@ -57,12 +56,12 @@ export const getAllEvents = async ({ searchQuery }) => {
  * @returns {Promise<Object>} The updated event item.
  */
 export const updateEventById = async (eventId, data) => {
-  const rowId = Number(eventId)
-  data.updatedOn = new Date()
-  const { type, ...dataToSave } = data
-  const foreignKeys = { type: Number(type) }
-  return eventDao.updateEventById(dataToSave, foreignKeys, { id: rowId })
-}
+  const rowId = Number(eventId);
+  data.updatedOn = new Date();
+  const { type, ...dataToSave } = data;
+  const foreignKeys = { type: Number(type) };
+  return eventDao.updateEventById(dataToSave, foreignKeys, { id: rowId });
+};
 
 /**
  * Delete an event item from the database by its ID.
@@ -71,6 +70,6 @@ export const updateEventById = async (eventId, data) => {
  * @returns {Promise<Object>} The result of the deletion.
  */
 export const deleteEventById = async (id) => {
-  const rowId = Number(id)
-  return eventDao.deleteEventById({ id: rowId })
-}
+  const rowId = Number(id);
+  return eventDao.deleteEventById({ id: rowId });
+};

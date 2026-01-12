@@ -86,9 +86,10 @@ export const ProvidersFiltersForm = ({ onSubmit, dataStatus, onAddDialog }) => {
               return (
                 <FormItem className='flex flex-col flex-auto'>
                   <FormLabel htmlFor='status'>{t('status')}</FormLabel>
-                  <Select  onValueChange={(value) => field.onChange(value === "true")}
-          value={field.value?.toString()} // Asegura que el valor sea string 
-          >
+                  <Select
+                    onValueChange={value => field.onChange(value === 'true')}
+                    value={field.value?.toString()} // Asegura que el valor sea string
+                  >
                     <FormControl id='status'>
                       <SelectTrigger>
                         <SelectValue placeholder={t('select_status')} />

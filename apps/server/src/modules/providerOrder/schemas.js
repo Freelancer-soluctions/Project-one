@@ -1,4 +1,4 @@
-import Joi from 'joi'
+import Joi from 'joi';
 // Removing unused import
 // import { orderStatus } from '../../utils/enums/enums.js'
 
@@ -31,25 +31,25 @@ import Joi from 'joi'
 export const validateCreateProviderOrder = (req, res, next) => {
   const schema = Joi.object({
     supplierId: Joi.number().integer().required(),
-    notes: Joi.string().optional()
-  })
+    notes: Joi.string().optional(),
+  });
 
-  const { error } = schema.validate(req.body)
+  const { error } = schema.validate(req.body);
   if (error) {
-    return res.status(400).json({ error: error.details[0].message })
+    return res.status(400).json({ error: error.details[0].message });
   }
-  next()
-}
+  next();
+};
 
 export const validateUpdateProviderOrder = (req, res, next) => {
   const schema = Joi.object({
     supplierId: Joi.number().integer().optional(),
-    notes: Joi.string().optional()
-  })
+    notes: Joi.string().optional(),
+  });
 
-  const { error } = schema.validate(req.body)
+  const { error } = schema.validate(req.body);
   if (error) {
-    return res.status(400).json({ error: error.details[0].message })
+    return res.status(400).json({ error: error.details[0].message });
   }
-  next()
-}
+  next();
+};

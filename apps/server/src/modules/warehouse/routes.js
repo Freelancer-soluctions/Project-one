@@ -1,21 +1,26 @@
-import { Router } from 'express'
+import { Router } from 'express';
 import {
   getAllWarehouses,
   getAllWarehousesFilters,
   createWarehouse,
   updateWarehouseById,
-  deleteWarehouseById
-} from './controller.js'
+  deleteWarehouseById,
+} from './controller.js';
 import {
   warehouseFiltersSchema,
-  warehouseCreateUpdateSchema
-} from '../../utils/joiSchemas/joi.js'
-import { verifyToken, validateQueryParams, validateSchema, checkRoleAuthOrPermisssion } from '../../middleware/index.js'
-import { ROLESCODES, PERMISSIONCODES } from '../../utils/constants/enums.js'
+  warehouseCreateUpdateSchema,
+} from '../../utils/joiSchemas/joi.js';
+import {
+  verifyToken,
+  validateQueryParams,
+  validateSchema,
+  checkRoleAuthOrPermisssion,
+} from '../../middleware/index.js';
+import { ROLESCODES, PERMISSIONCODES } from '../../utils/constants/enums.js';
 
-const router = Router()
+const router = Router();
 // uso global de middleware
-router.use(verifyToken)
+router.use(verifyToken);
 
 /**
  * @openapi
@@ -71,20 +76,20 @@ router.get(
   '/',
   checkRoleAuthOrPermisssion({
     allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER, ROLESCODES.USER],
-    permissions: [PERMISSIONCODES.canViewWarehouse]
+    permissions: [PERMISSIONCODES.canViewWarehouse],
   }),
   validateQueryParams(warehouseFiltersSchema),
   getAllWarehouses
-)
+);
 
 router.get(
   '/warehouseFilters',
   checkRoleAuthOrPermisssion({
     allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER, ROLESCODES.USER],
-    permissions: [PERMISSIONCODES.canViewWarehouse]
+    permissions: [PERMISSIONCODES.canViewWarehouse],
   }),
   getAllWarehousesFilters
-)
+);
 
 /**
  * @openapi
@@ -137,11 +142,11 @@ router.post(
   '/',
   checkRoleAuthOrPermisssion({
     allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER, ROLESCODES.USER],
-    permissions: [PERMISSIONCODES.canCreateWarehouse]
+    permissions: [PERMISSIONCODES.canCreateWarehouse],
   }),
   validateSchema(warehouseCreateUpdateSchema),
   createWarehouse
-)
+);
 
 /**
  * @openapi
@@ -201,11 +206,11 @@ router.put(
   '/:id',
   checkRoleAuthOrPermisssion({
     allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER, ROLESCODES.USER],
-    permissions: [PERMISSIONCODES.canEditWarehouse]
+    permissions: [PERMISSIONCODES.canEditWarehouse],
   }),
   validateSchema(warehouseCreateUpdateSchema),
   updateWarehouseById
-)
+);
 
 /**
  * @openapi
@@ -243,9 +248,13 @@ router.put(
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.delete('/:id', checkRoleAuthOrPermisssion({
-  allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER, ROLESCODES.USER],
-  permissions: [PERMISSIONCODES.canDeleteWarehouse]
-}), deleteWarehouseById)
+router.delete(
+  '/:id',
+  checkRoleAuthOrPermisssion({
+    allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER, ROLESCODES.USER],
+    permissions: [PERMISSIONCODES.canDeleteWarehouse],
+  }),
+  deleteWarehouseById
+);
 
-export default router
+export default router;

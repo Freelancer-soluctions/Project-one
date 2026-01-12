@@ -135,7 +135,7 @@ export const ProvidersDialog = ({
                 name='name'
                 render={({ field }) => {
                   return (
-                    <FormItem >
+                    <FormItem>
                       <FormLabel htmlFor='name'>{t('name')}*</FormLabel>
                       <FormControl>
                         <Input
@@ -155,9 +155,6 @@ export const ProvidersDialog = ({
                 }}
               />
 
-
-
-
               <FormField
                 control={form.control}
                 name='status'
@@ -165,7 +162,7 @@ export const ProvidersDialog = ({
                   <FormItem>
                     <FormLabel htmlFor='status'>{t('status')}*</FormLabel>
                     <Select
-                      onValueChange={(value) => field.onChange(value === "true")}
+                      onValueChange={value => field.onChange(value === 'true')}
                       value={field.value?.toString()}>
                       <FormControl>
                         <SelectTrigger
@@ -357,13 +354,11 @@ export const ProvidersDialog = ({
                       </FormItem>
                     )}
                   />
-
-            
                 </>
               )}
               {selectedRow?.updatedOn && (
                 <>
-                      <FormField
+                  <FormField
                     control={form.control}
                     name='userProvidersUpdatedName'
                     render={({ field }) => (
@@ -424,37 +419,35 @@ export const ProvidersDialog = ({
                   />
                 </>
               )}
-
-             
             </div>
-                <DialogFooter>
-                  <DialogClose asChild>
-                    <Button
-                      type='button'
-                      variant='secondary'
-                      className='flex-1 md:flex-initial md:w-24'>
-                      {t('cancel')}
-                    </Button>
-                  </DialogClose>
+            <DialogFooter>
+              <DialogClose asChild>
+                <Button
+                  type='button'
+                  variant='secondary'
+                  className='flex-1 md:flex-initial md:w-24'>
+                  {t('cancel')}
+                </Button>
+              </DialogClose>
 
-                  {providerId && (
-                    <Button
-                      type='button'
-                      variant='destructive'
-                      className='flex-1 md:flex-initial md:w-24'
-                      onClick={() => {
-                        handleDeleteById()
-                      }}>
-                      {t('delete')}
-                    </Button>
-                  )}
-                  <Button
-                    type='submit'
-                    variant='info'
-                    className='flex-1 md:flex-initial md:w-24'>
-                    {providerId ? t('update') : t('save')}
-                  </Button>
-                </DialogFooter>
+              {providerId && (
+                <Button
+                  type='button'
+                  variant='destructive'
+                  className='flex-1 md:flex-initial md:w-24'
+                  onClick={() => {
+                    handleDeleteById()
+                  }}>
+                  {t('delete')}
+                </Button>
+              )}
+              <Button
+                type='submit'
+                variant='info'
+                className='flex-1 md:flex-initial md:w-24'>
+                {providerId ? t('update') : t('save')}
+              </Button>
+            </DialogFooter>
           </form>
         </Form>
       </DialogContent>
@@ -471,4 +464,3 @@ ProvidersDialog.propTypes = {
   onDeleteById: PropTypes.func,
   actionDialog: PropTypes.string
 }
-

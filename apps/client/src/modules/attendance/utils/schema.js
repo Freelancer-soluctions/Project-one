@@ -3,8 +3,11 @@ import { z } from 'zod'
 export const AttendanceSchema = z
   .object({
     employeeId: z.preprocess(
-      (val) => (val === '' ? undefined : Number(val)), // Convert empty string to undefined, otherwise to number
-      z.number({ required_error: 'Employee is required.' }).int().positive('Employee must be selected.')
+      val => (val === '' ? undefined : Number(val)), // Convert empty string to undefined, otherwise to number
+      z
+        .number({ required_error: 'Employee is required.' })
+        .int()
+        .positive('Employee must be selected.')
     ),
     date: z.date({
       required_error: 'Date is required.'
@@ -17,9 +20,11 @@ export const AttendanceSchema = z
     }),
     // workedHours could be calculated or entered, assuming entered as a number here
     workedHours: z.preprocess(
-      (val) => (val === '' ? undefined : Number(val)), // Convert empty string to undefined, otherwise to number
-      z.number({ required_error: 'Worked hours are required.' }).positive('Worked hours must be positive.')
+      val => (val === '' ? undefined : Number(val)), // Convert empty string to undefined, otherwise to number
+      z
+        .number({ required_error: 'Worked hours are required.' })
+        .positive('Worked hours must be positive.')
     )
   })
 
-  .passthrough() // Allows other fields not defined in the schema 
+  .passthrough() // Allows other fields not defined in the schema

@@ -1,8 +1,8 @@
-import * as prismaService from '../../utils/prisma/dao.js'
-import { TABLESNAMES } from '../../utils/constants/enums.js'
-import { prisma } from '../../config/db.js'
+import * as prismaService from '../../utils/prisma/dao.js';
+import { TABLESNAMES } from '../../utils/constants/enums.js';
+import { prisma } from '../../config/db.js';
 
-const tableName = TABLESNAMES.NEWS
+const tableName = TABLESNAMES.NEWS;
 
 /**
  * Retrieves all news records from the database based on the provided filters.
@@ -15,74 +15,73 @@ const tableName = TABLESNAMES.NEWS
  * @param {number} skip - skip to filter by
  * @returns {Promise<Array>} A list of news records that match the filters.
  */
-export const getAllNews = async (description, fromDate, toDate, statusCode, take, skip) => {
-  const news = await prisma.news.findMany(
-    {
+export const getAllNews = async (
+  description,
+  fromDate,
+  toDate,
+  statusCode,
+  take,
+  skip
+) => {
+  const news = await prisma.news.findMany({
+    where: {
+      ...(description
+        ? {
+            AND: [
+              {
+                description: { contains: description },
+              },
+              // {
+              //   NOT: { description: null }
+              // }
+            ],
+          }
+        : {}),
 
-      where: {
-        ...(description
-          ? {
-              AND: [
-                {
-                  description: { contains: description }
-                }
-                // {
-                //   NOT: { description: null }
-                // }
-              ]
-            }
-          : {}),
+      ...(fromDate && toDate
+        ? {
+            AND: [
+              {
+                createdOn: {
+                  gte: new Date(fromDate),
+                  lte: new Date(toDate),
+                },
+              },
+            ],
+          }
+        : {}),
+      ...(statusCode
+        ? {
+            status: {
+              code: { equals: statusCode },
+            },
+          }
+        : {}),
+      // status: { code: { equals: statusCode } }
+    },
+    include: {
+      status: { select: { id: true, code: true, description: true } },
+      userNewsCreated: { select: { name: true } },
+      userNewsClosed: { select: { name: true } },
+      userNewsPending: { select: { name: true } },
+    },
+    take,
+    skip,
 
-        ...((fromDate && toDate)
-          ? {
-              AND: [
-                {
-                  createdOn: {
-                    gte: new Date(fromDate),
-                    lte: new Date(toDate)
+    // select: {
+    //   id: true,
+    //   closedOn: true,
+    //   createdOn: true,
+    //   description: true,
+    //   document: true,
+    //   documentId: true,
+    //   statusId: true,
+    //   closedBy: true,
+    //   createdBy: true,
+    //   status: { select: { description: true } }
 
-                  }
-                }
-              ]
-            }
-          : {}),
-        ...(statusCode
-          ? {
-              status:
-                  {
-                    code: { equals: statusCode }
-                  }
-
-            }
-          : {})
-        // status: { code: { equals: statusCode } }
-
-      },
-      include: {
-        status: { select: { id: true, code: true, description: true } },
-        userNewsCreated: { select: { name: true } },
-        userNewsClosed: { select: { name: true } },
-        userNewsPending: { select: { name: true } }
-
-      },
-      take,
-      skip
-
-      // select: {
-      //   id: true,
-      //   closedOn: true,
-      //   createdOn: true,
-      //   description: true,
-      //   document: true,
-      //   documentId: true,
-      //   statusId: true,
-      //   closedBy: true,
-      //   createdBy: true,
-      //   status: { select: { description: true } }
-
-      // }
-
-    })
+    // }
+  });
 
   const total = await prisma.news.count({
     where: {
@@ -91,23 +90,23 @@ export const getAllNews = async (description, fromDate, toDate, statusCode, take
             AND: [
               {
                 description: {
-                  contains: description
-                }
-              }
-            ]
+                  contains: description,
+                },
+              },
+            ],
           }
         : {}),
 
-      ...((fromDate && toDate)
+      ...(fromDate && toDate
         ? {
             AND: [
               {
                 createdOn: {
                   gte: new Date(fromDate),
-                  lte: new Date(toDate)
-                }
-              }
-            ]
+                  lte: new Date(toDate),
+                },
+              },
+            ],
           }
         : {}),
 
@@ -115,16 +114,16 @@ export const getAllNews = async (description, fromDate, toDate, statusCode, take
         ? {
             status: {
               code: {
-                equals: statusCode
-              }
-            }
+                equals: statusCode,
+              },
+            },
           }
-        : {})
-    }
-  })
+        : {}),
+    },
+  });
 
-  return { dataList: news, total }
-}
+  return { dataList: news, total };
+};
 
 /**
  * Retrieves all available news statuses from the database.
@@ -137,9 +136,9 @@ export const getAllNewsStatus = async () => {
     // include: {
     //   news: { where: { statusId } }
     // }
-  })
-  return Promise.resolve(news)
-}
+  });
+  return Promise.resolve(news);
+};
 
 /**
  * Creates a new news entry in the database.
@@ -164,27 +163,27 @@ export const createNew = async (data) => {
       createdOn: data.createdOn,
       userNewsCreated: {
         connect: {
-          id: data.createdBy
-        }
+          id: data.createdBy,
+        },
       },
 
       userNewsPending: data.pendingBy
         ? {
             connect: {
-              id: data.pendingBy // Si no hay un id, no incluyas esta propiedad
-            }
+              id: data.pendingBy, // Si no hay un id, no incluyas esta propiedad
+            },
           }
         : undefined,
       pendingOn: data.pendingOn ? data.pendingOn : undefined,
       status: {
         connect: {
-          id: data.statusId
-        }
-      }
-    }
-  })
-  return Promise.resolve(result)
-}
+          id: data.statusId,
+        },
+      },
+    },
+  });
+  return Promise.resolve(result);
+};
 
 /**
  * Updates an existing news entry in the database based on the provided conditions.
@@ -212,27 +211,27 @@ export const updateRow = async (data, where) => {
       userNewsPending: data.pendingBy
         ? {
             connect: {
-              id: data.pendingBy
-            }
+              id: data.pendingBy,
+            },
           }
         : undefined,
       closedOn: data.closedOn ? data.closedOn : undefined,
       userNewsClosed: data.closedBy
         ? {
             connect: {
-              id: data.closedBy
-            }
+              id: data.closedBy,
+            },
           }
         : undefined,
       status: {
         connect: {
-          id: data.statusId
-        }
-      }
-    }
-  })
-  return Promise.resolve(result)
-}
+          id: data.statusId,
+        },
+      },
+    },
+  });
+  return Promise.resolve(result);
+};
 
 /**
  * Deletes a news entry from the database based on the provided conditions.
@@ -240,4 +239,5 @@ export const updateRow = async (data, where) => {
  * @param {Object} where - The conditions to identify the news entry to delete.
  * @returns {Promise<Object>} The result of the delete operation.
  */
-export const deleteRow = async (where) => prismaService.deleteRow(tableName, where)
+export const deleteRow = async (where) =>
+  prismaService.deleteRow(tableName, where);

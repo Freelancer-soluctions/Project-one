@@ -52,19 +52,18 @@ export const UsersBasicInfo = ({
   const [id, setId] = useState()
 
   const form = useForm({
-    resolver: zodResolver(UserSchema),
+    resolver: zodResolver(UserSchema)
     // defaultValues: {
     //   user: {},
     //   permissions: []
     // }
   })
 
-
   // Actualiza todos los valores del formulario al cambiar `selectedRow`
   useEffect(() => {
     if (selectedRow?.id) {
       form.reset({
-         user: {
+        user: {
           ...selectedRow,
           birthday: selectedRow.birthday
             ? new Date(selectedRow.birthday).toISOString().split('T')[0]
@@ -85,7 +84,7 @@ export const UsersBasicInfo = ({
             code: selectedRow.roleCode,
             description: selectedRow.roleDescription
           }
-         },
+        },
 
         permissions: dataPermits.map(p => ({
           id: p.id,
@@ -101,8 +100,10 @@ export const UsersBasicInfo = ({
   }, [selectedRow, form])
 
   const submitForm = data => {
-    const selectedPermissions = data.permissions. filter(item => item.assigned === true).map(item => item.id)
-    onSubmit({...data.user, selectedPermissions})
+    const selectedPermissions = data.permissions
+      .filter(item => item.assigned === true)
+      .map(item => item.id)
+    onSubmit({ ...data.user, selectedPermissions })
   }
 
   const handleDelete = id => {
@@ -618,7 +619,7 @@ export const UsersBasicInfo = ({
                     {form.watch('permissions')?.map((permit, index) => (
                       <FormField
                         control={form.control}
-                         name={`permissions.${index}.assigned`}
+                        name={`permissions.${index}.assigned`}
                         render={({ field }) => (
                           <FormItem className='flex items-center space-x-2'>
                             <FormControl>

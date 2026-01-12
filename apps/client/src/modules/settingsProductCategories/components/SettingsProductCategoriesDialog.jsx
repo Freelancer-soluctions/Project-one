@@ -149,7 +149,7 @@ export const SettingsProductCategoriesDialog = ({
                   <FormItem>
                     <FormLabel htmlFor='status'>{t('status')}*</FormLabel>
                     <Select
-                      onValueChange={(value) => field.onChange(value === "true")}
+                      onValueChange={value => field.onChange(value === 'true')}
                       value={field.value?.toString()}>
                       <FormControl>
                         <SelectTrigger
@@ -239,4 +239,4 @@ SettingsProductCategoriesDialog.propTypes = {
   onSubmit: PropTypes.func.isRequired,
   onDeleteById: PropTypes.func.isRequired,
   actionDialog: PropTypes.string.isRequired
-} 
+}

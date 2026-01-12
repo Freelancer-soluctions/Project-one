@@ -1,11 +1,11 @@
 export const StatusColumn = {
-    LOW:'C01',
-    MEDIUM:'C02',
-    HIGH:'C03',
+  LOW: 'C01',
+  MEDIUM: 'C02',
+  HIGH: 'C03'
 }
 
 export const NotesColor = {
-    GREEN:'green',
-    YELLOW:'yellow',
-    RED:'red',
+  GREEN: 'green',
+  YELLOW: 'yellow',
+  RED: 'red'
 }

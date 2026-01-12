@@ -2,9 +2,9 @@ import {
   getAllPermissions as getAllPermissionsDao,
   createPermission as createPermissionDao,
   updatePermissionById as updatePermissionByIdDao,
-  deletePermissionById as deletePermissionByIdDao
-} from './dao.js'
-import { getSafePagination } from '../../utils/pagination/pagination.js'
+  deletePermissionById as deletePermissionByIdDao,
+} from './dao.js';
+import { getSafePagination } from '../../utils/pagination/pagination.js';
 
 /**
  * @description Retrieve all permissions with optional filters
@@ -19,13 +19,16 @@ import { getSafePagination } from '../../utils/pagination/pagination.js'
  * @returns {Promise<Array>} List of permissions matching the filters
  */
 export const getAllPermissions = async (filters) => {
-  const { take, skip } = getSafePagination({ page: filters.page, limit: filters.limit })
+  const { take, skip } = getSafePagination({
+    page: filters.page,
+    limit: filters.limit,
+  });
 
   if (!take || take <= 0) {
-    throw new Error('Pagination is required')
+    throw new Error('Pagination is required');
   }
-  return await getAllPermissionsDao(filters, take, skip)
-}
+  return await getAllPermissionsDao(filters, take, skip);
+};
 
 /**
  * @description Create a new permission record
@@ -45,11 +48,10 @@ export const createPermission = async (data, userId) => {
     createdOn: new Date(),
     fromDate: new Date(data.fromDate),
     toDate: new Date(data.toDate),
-    createdBy: userId
-
-  }
-  return await createPermissionDao(permissionData)
-}
+    createdBy: userId,
+  };
+  return await createPermissionDao(permissionData);
+};
 
 /**
  * @description Update an existing permission record
@@ -72,11 +74,10 @@ export const updatePermissionById = async (id, data, userId) => {
     updatedOn: new Date(),
     fromDate: new Date(data.fromDate),
     toDate: new Date(data.toDate),
-    updatedBy: userId
-
-  }
-  return await updatePermissionByIdDao(id, permissionData)
-}
+    updatedBy: userId,
+  };
+  return await updatePermissionByIdDao(id, permissionData);
+};
 
 /**
  * @description Delete a permission record
@@ -84,5 +85,5 @@ export const updatePermissionById = async (id, data, userId) => {
  * @returns {Promise<Object>} Deleted permission record
  */
 export const deletePermissionById = async (id) => {
-  return await deletePermissionByIdDao(Number(id))
-}
+  return await deletePermissionByIdDao(Number(id));
+};

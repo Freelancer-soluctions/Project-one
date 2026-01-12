@@ -1,17 +1,25 @@
-import express from 'express'
+import express from 'express';
 import {
   getAllSales,
   createSale,
   updateSaleById,
-  deleteSaleById
-} from './controller.js'
-import { verifyToken, validateQueryParams, validateSchema, checkRoleAuthOrPermisssion } from '../../middleware/index.js'
-import { saleFiltersSchema, saleCreateUpdateSchema } from '../../utils/joiSchemas/joi.js'
-import { ROLESCODES, PERMISSIONCODES } from '../../utils/constants/enums.js'
+  deleteSaleById,
+} from './controller.js';
+import {
+  verifyToken,
+  validateQueryParams,
+  validateSchema,
+  checkRoleAuthOrPermisssion,
+} from '../../middleware/index.js';
+import {
+  saleFiltersSchema,
+  saleCreateUpdateSchema,
+} from '../../utils/joiSchemas/joi.js';
+import { ROLESCODES, PERMISSIONCODES } from '../../utils/constants/enums.js';
 
-const router = express.Router()
+const router = express.Router();
 // uso global de middleware
-router.use(verifyToken)
+router.use(verifyToken);
 
 /**
  * @swagger
@@ -57,10 +65,15 @@ router.use(verifyToken)
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.get('/', checkRoleAuthOrPermisssion({
-  allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER, ROLESCODES.USER],
-  permissions: [PERMISSIONCODES.canViewSale]
-}), validateQueryParams(saleFiltersSchema), getAllSales)
+router.get(
+  '/',
+  checkRoleAuthOrPermisssion({
+    allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER, ROLESCODES.USER],
+    permissions: [PERMISSIONCODES.canViewSale],
+  }),
+  validateQueryParams(saleFiltersSchema),
+  getAllSales
+);
 
 /**
  * @swagger
@@ -101,10 +114,15 @@ router.get('/', checkRoleAuthOrPermisssion({
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.post('/', checkRoleAuthOrPermisssion({
-  allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER, ROLESCODES.USER],
-  permissions: [PERMISSIONCODES.canCreateSale]
-}), validateSchema(saleCreateUpdateSchema), createSale)
+router.post(
+  '/',
+  checkRoleAuthOrPermisssion({
+    allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER, ROLESCODES.USER],
+    permissions: [PERMISSIONCODES.canCreateSale],
+  }),
+  validateSchema(saleCreateUpdateSchema),
+  createSale
+);
 
 /**
  * @swagger
@@ -152,10 +170,15 @@ router.post('/', checkRoleAuthOrPermisssion({
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.put('/:id', checkRoleAuthOrPermisssion({
-  allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER, ROLESCODES.USER],
-  permissions: [PERMISSIONCODES.canEditSale]
-}), validateSchema(saleCreateUpdateSchema), updateSaleById)
+router.put(
+  '/:id',
+  checkRoleAuthOrPermisssion({
+    allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER, ROLESCODES.USER],
+    permissions: [PERMISSIONCODES.canEditSale],
+  }),
+  validateSchema(saleCreateUpdateSchema),
+  updateSaleById
+);
 
 /**
  * @swagger
@@ -192,9 +215,13 @@ router.put('/:id', checkRoleAuthOrPermisssion({
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.delete('/:id', checkRoleAuthOrPermisssion({
-  allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER],
-  permissions: [PERMISSIONCODES.canDeleteSale]
-}), deleteSaleById)
+router.delete(
+  '/:id',
+  checkRoleAuthOrPermisssion({
+    allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER],
+    permissions: [PERMISSIONCODES.canDeleteSale],
+  }),
+  deleteSaleById
+);
 
-export default router
+export default router;

@@ -1,4 +1,4 @@
-import * as notesDao from './dao.js'
+import * as notesDao from './dao.js';
 
 /**
  * Get all notes from the database with optional filters.
@@ -10,9 +10,9 @@ import * as notesDao from './dao.js'
  * @returns {Promise<Array>} A list of news items matching the filters.
  */
 export const getAllNotes = async (searchTerm, statusCode) => {
-  const data = await notesDao.getAllNotes(searchTerm, statusCode)
-  return data
-}
+  const data = await notesDao.getAllNotes(searchTerm, statusCode);
+  return data;
+};
 
 /**
  * Create a new notes item in the database.
@@ -26,10 +26,14 @@ export const getAllNotes = async (searchTerm, statusCode) => {
  * @returns {Promise<Object>} The created notes item.
  */
 export const createNote = async (data, userId) => {
-  const { columnId, ...dataWithOutForeignKeys } = data
-  dataWithOutForeignKeys.createdOn = new Date()
-  return notesDao.createNote(dataWithOutForeignKeys, Number(userId), Number(columnId))
-}
+  const { columnId, ...dataWithOutForeignKeys } = data;
+  dataWithOutForeignKeys.createdOn = new Date();
+  return notesDao.createNote(
+    dataWithOutForeignKeys,
+    Number(userId),
+    Number(columnId)
+  );
+};
 
 /**
  * Get all available notes columns from the database.
@@ -38,9 +42,9 @@ export const createNote = async (data, userId) => {
  */
 
 export const getAllNotesColumns = async () => {
-  const data = await notesDao.getAllNotesColumns()
-  return data
-}
+  const data = await notesDao.getAllNotesColumns();
+  return data;
+};
 
 /**
  * Update an existing column item in the database by its ID.
@@ -52,10 +56,10 @@ export const getAllNotesColumns = async () => {
  * @returns {Promise<Object>} The updated notes item.
  */
 export const updateNoteColumId = async (data) => {
-  data.updatedOn = new Date()
-  const { id, ...newdata } = data
-  return notesDao.updateNoteColumId(id, newdata)
-}
+  data.updatedOn = new Date();
+  const { id, ...newdata } = data;
+  return notesDao.updateNoteColumId(id, newdata);
+};
 
 /**
  * Update an existing column item in the database by its ID.
@@ -67,9 +71,9 @@ export const updateNoteColumId = async (data) => {
  * @returns {Promise<Object>} The updated notes item.
  */
 export const updateNoteById = async (id, data) => {
-  data.updatedOn = new Date()
-  return notesDao.updateNoteById(Number(id), data)
-}
+  data.updatedOn = new Date();
+  return notesDao.updateNoteById(Number(id), data);
+};
 
 /**
  * Delete a note item from the database by its ID.
@@ -78,9 +82,9 @@ export const updateNoteById = async (id, data) => {
  * @returns {Promise<Object>} The result of the deletion.
  */
 export const deleteById = async (id) => {
-  const rowId = Number(id)
-  return notesDao.deleteRow(rowId)
-}
+  const rowId = Number(id);
+  return notesDao.deleteRow(rowId);
+};
 
 /**
  * Get all number of  notes from the database.
@@ -89,6 +93,6 @@ export const deleteById = async (id) => {
  */
 
 export const getAllNotesCount = async () => {
-  const data = await notesDao.getAllNotesCount()
-  return data
-}
+  const data = await notesDao.getAllNotesCount();
+  return data;
+};
