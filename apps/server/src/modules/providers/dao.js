@@ -1,8 +1,8 @@
-import * as prismaService from '../../utils/prisma/dao.js'
-import { TABLESNAMES } from '../../utils/constants/enums.js'
-import { prisma, Prisma } from '../../config/db.js'
+import * as prismaService from '../../utils/prisma/dao.js';
+import { TABLESNAMES } from '../../utils/constants/enums.js';
+import { prisma, Prisma } from '../../config/db.js';
 
-const tableName = TABLESNAMES.PROVIDERS
+const tableName = TABLESNAMES.PROVIDERS;
 
 /**
  * Retrieves all providers from the database based on optional filters.
@@ -15,17 +15,17 @@ const tableName = TABLESNAMES.PROVIDERS
  */
 
 export const getAllProducts = async (name, status, take, skip) => {
-  const whereClauses = []
+  const whereClauses = [];
 
   if (name) {
-    whereClauses.push(Prisma.sql`p."name" ILIKE ${'%' + name + '%'}`)
+    whereClauses.push(Prisma.sql`p."name" ILIKE ${'%' + name + '%'}`);
   }
   if (status !== null) {
-    whereClauses.push(Prisma.sql`p."status" = ${status}::boolean`)
+    whereClauses.push(Prisma.sql`p."status" = ${status}::boolean`);
   }
   const whereSql = whereClauses.length
     ? Prisma.sql`WHERE ${Prisma.join(whereClauses, Prisma.sql` AND `)}`
-    : Prisma.empty
+    : Prisma.empty;
 
   const providers = await prisma.$queryRaw`
     SELECT p.*, 
@@ -42,25 +42,25 @@ export const getAllProducts = async (name, status, take, skip) => {
     ORDER BY p."createdOn" DESC
     LIMIT ${take}
     OFFSET ${skip}
-  `
+  `;
 
   const total = await prisma.productProviders.count({
     where: {
       ...(name && {
         name: {
           contains: name,
-          mode: 'insensitive' // equivalente a ILIKE
-        }
+          mode: 'insensitive', // equivalente a ILIKE
+        },
       }),
 
       ...(status !== null && {
-        status: Boolean(status)
-      })
-    }
-  })
+        status: Boolean(status),
+      }),
+    },
+  });
 
-  return { dataList: providers, total }
-}
+  return { dataList: providers, total };
+};
 
 /**
  * Retrieves all providers.
@@ -68,8 +68,8 @@ export const getAllProducts = async (name, status, take, skip) => {
  */
 
 export const getAllProvidersFilters = async () => {
-  return await prisma.productProviders.findMany()
-}
+  return await prisma.productProviders.findMany();
+};
 
 /**
  * Creates a new provider in the database.
@@ -101,13 +101,13 @@ export const createProvider = async (data) => {
       // Claves foráneas
       userProvidersCreated: {
         connect: {
-          id: data.createdBy
-        }
-      }
-    }
-  })
-  return Promise.resolve(savedProvider)
-}
+          id: data.createdBy,
+        },
+      },
+    },
+  });
+  return Promise.resolve(savedProvider);
+};
 
 /**
  * Updates an existing provider in the database.
@@ -141,13 +141,13 @@ export const updateRow = async (data, where) => {
       // Claves foráneas
       userProvidersUpdated: {
         connect: {
-          id: data.updatedBy
-        }
-      }
-    }
-  })
-  return Promise.resolve(result)
-}
+          id: data.updatedBy,
+        },
+      },
+    },
+  });
+  return Promise.resolve(result);
+};
 
 /**
  * Deletes a provider from the database based on the provided filter.
@@ -156,4 +156,4 @@ export const updateRow = async (data, where) => {
  * @returns {Promise<Object>} The result of the deletion operation.
  */
 export const deleteRow = async (where) =>
-  prismaService.deleteRow(tableName, where)
+  prismaService.deleteRow(tableName, where);

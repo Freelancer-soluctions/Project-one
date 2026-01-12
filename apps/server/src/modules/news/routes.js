@@ -1,13 +1,18 @@
-import { Router } from 'express'
-import { News, NewsUpdate, NewsFilters } from '../../utils/joiSchemas/joi.js'
-import * as newsController from './controller.js'
-import upload from '../../utils/multer/multer.js'
-import { verifyToken, validateQueryParams, validateSchema, checkRoleAuthOrPermisssion } from '../../middleware/index.js'
-import { ROLESCODES, PERMISSIONCODES } from '../../utils/constants/enums.js'
+import { Router } from 'express';
+import { News, NewsUpdate, NewsFilters } from '../../utils/joiSchemas/joi.js';
+import * as newsController from './controller.js';
+import upload from '../../utils/multer/multer.js';
+import {
+  verifyToken,
+  validateQueryParams,
+  validateSchema,
+  checkRoleAuthOrPermisssion,
+} from '../../middleware/index.js';
+import { ROLESCODES, PERMISSIONCODES } from '../../utils/constants/enums.js';
 
-const router = Router()
+const router = Router();
 // uso global de middleware
-router.use(verifyToken)
+router.use(verifyToken);
 
 /**
  * @openapi
@@ -61,10 +66,15 @@ router.use(verifyToken)
  *               $ref: "#/components/schemas/Error"
  */
 
-router.get('/', checkRoleAuthOrPermisssion({
-  allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER, ROLESCODES.USER],
-  permissions: [PERMISSIONCODES.canViewNews]
-}), validateQueryParams(NewsFilters), newsController.getAllNews)
+router.get(
+  '/',
+  checkRoleAuthOrPermisssion({
+    allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER, ROLESCODES.USER],
+    permissions: [PERMISSIONCODES.canViewNews],
+  }),
+  validateQueryParams(NewsFilters),
+  newsController.getAllNews
+);
 
 /**
  * @openapi
@@ -103,10 +113,14 @@ router.get('/', checkRoleAuthOrPermisssion({
  *               $ref: "#/components/schemas/Error"
  */
 
-router.get('/status', checkRoleAuthOrPermisssion({
-  allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER, ROLESCODES.USER],
-  permissions: [PERMISSIONCODES.canViewNews]
-}), newsController.getAllNewsStatus)
+router.get(
+  '/status',
+  checkRoleAuthOrPermisssion({
+    allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER, ROLESCODES.USER],
+    permissions: [PERMISSIONCODES.canViewNews],
+  }),
+  newsController.getAllNewsStatus
+);
 /**
  * @openapi
  * /api/v1/news:
@@ -157,10 +171,16 @@ router.get('/status', checkRoleAuthOrPermisssion({
  *               $ref: "#/components/schemas/Error"
  */
 
-router.post('/', checkRoleAuthOrPermisssion({
-  allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER, ROLESCODES.USER],
-  permissions: [PERMISSIONCODES.canCreateNews]
-}), validateSchema(News), upload.single('document'), newsController.createNew)
+router.post(
+  '/',
+  checkRoleAuthOrPermisssion({
+    allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER, ROLESCODES.USER],
+    permissions: [PERMISSIONCODES.canCreateNews],
+  }),
+  validateSchema(News),
+  upload.single('document'),
+  newsController.createNew
+);
 
 /**
  * @openapi
@@ -219,10 +239,16 @@ router.post('/', checkRoleAuthOrPermisssion({
  *
  */
 
-router.put('/:id', checkRoleAuthOrPermisssion({
-  allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER, ROLESCODES.USER],
-  permissions: [PERMISSIONCODES.canEditNews]
-}), validateSchema(NewsUpdate), upload.single('document'), newsController.updateById)
+router.put(
+  '/:id',
+  checkRoleAuthOrPermisssion({
+    allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER, ROLESCODES.USER],
+    permissions: [PERMISSIONCODES.canEditNews],
+  }),
+  validateSchema(NewsUpdate),
+  upload.single('document'),
+  newsController.updateById
+);
 
 /**
  * @openapi
@@ -261,9 +287,13 @@ router.put('/:id', checkRoleAuthOrPermisssion({
  *             schema:
  *               $ref: "#/components/schemas/Error"
  */
-router.delete('/:id', checkRoleAuthOrPermisssion({
-  allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER, ROLESCODES.USER],
-  permissions: [PERMISSIONCODES.canDeleteNews]
-}), newsController.deleteById)
+router.delete(
+  '/:id',
+  checkRoleAuthOrPermisssion({
+    allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER, ROLESCODES.USER],
+    permissions: [PERMISSIONCODES.canDeleteNews],
+  }),
+  newsController.deleteById
+);
 
-export default router
+export default router;

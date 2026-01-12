@@ -1,22 +1,27 @@
-import { Router } from 'express'
+import { Router } from 'express';
 import {
   getAllStock,
   createStock,
   updateStockById,
   deleteStockById,
   getStockAlerts,
-  getStockByProductId
-} from './controller.js'
+  getStockByProductId,
+} from './controller.js';
 import {
   stockFiltersSchema,
-  stockCreateUpdateSchema
-} from '../../utils/joiSchemas/joi.js'
-import { verifyToken, validateQueryParams, validateSchema, checkRoleAuthOrPermisssion } from '../../middleware/index.js'
-import { ROLESCODES, PERMISSIONCODES } from '../../utils/constants/enums.js'
+  stockCreateUpdateSchema,
+} from '../../utils/joiSchemas/joi.js';
+import {
+  verifyToken,
+  validateQueryParams,
+  validateSchema,
+  checkRoleAuthOrPermisssion,
+} from '../../middleware/index.js';
+import { ROLESCODES, PERMISSIONCODES } from '../../utils/constants/enums.js';
 
-const router = Router()
+const router = Router();
 // uso global de middleware
-router.use(verifyToken)
+router.use(verifyToken);
 
 /**
  * @openapi
@@ -72,11 +77,11 @@ router.get(
   '/',
   checkRoleAuthOrPermisssion({
     allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER, ROLESCODES.USER],
-    permissions: [PERMISSIONCODES.canViewStock]
+    permissions: [PERMISSIONCODES.canViewStock],
   }),
   validateQueryParams(stockFiltersSchema),
   getAllStock
-)
+);
 
 /**
  * @openapi
@@ -131,10 +136,10 @@ router.get(
   '/',
   checkRoleAuthOrPermisssion({
     allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER, ROLESCODES.USER],
-    permissions: [PERMISSIONCODES.canViewStock]
+    permissions: [PERMISSIONCODES.canViewStock],
   }),
   getStockByProductId
-)
+);
 
 /**
  * @openapi
@@ -183,10 +188,10 @@ router.get(
   '/alerts',
   checkRoleAuthOrPermisssion({
     allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER, ROLESCODES.USER],
-    permissions: [PERMISSIONCODES.canViewStock]
+    permissions: [PERMISSIONCODES.canViewStock],
   }),
   getStockAlerts
-)
+);
 
 /**
  * @openapi
@@ -239,11 +244,11 @@ router.post(
   '/',
   checkRoleAuthOrPermisssion({
     allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER, ROLESCODES.USER],
-    permissions: [PERMISSIONCODES.canCreateStock]
+    permissions: [PERMISSIONCODES.canCreateStock],
   }),
   validateSchema(stockCreateUpdateSchema),
   createStock
-)
+);
 
 /**
  * @openapi
@@ -303,11 +308,11 @@ router.put(
   '/:id',
   checkRoleAuthOrPermisssion({
     allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER, ROLESCODES.USER],
-    permissions: [PERMISSIONCODES.canEditStock]
+    permissions: [PERMISSIONCODES.canEditStock],
   }),
   validateSchema(stockCreateUpdateSchema),
   updateStockById
-)
+);
 
 /**
  * @openapi
@@ -345,9 +350,13 @@ router.put(
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.delete('/:id', checkRoleAuthOrPermisssion({
-  allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER, ROLESCODES.USER],
-  permissions: [PERMISSIONCODES.canDeleteStock]
-}), deleteStockById)
+router.delete(
+  '/:id',
+  checkRoleAuthOrPermisssion({
+    allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER, ROLESCODES.USER],
+    permissions: [PERMISSIONCODES.canDeleteStock],
+  }),
+  deleteStockById
+);
 
-export default router
+export default router;

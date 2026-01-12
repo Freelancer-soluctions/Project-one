@@ -1,9 +1,8 @@
 import axios from 'axios'
-import {store} from '../redux/store'
+import { store } from '../redux/store'
 import { jwtDecode } from 'jwt-decode'
 import { refreshTokenFecth } from '../modules/auth/slice/authSlice'
-import Cookies from "js-cookie";
-
+import Cookies from 'js-cookie'
 
 // Axios instance
 export const axiosPublic = axios.create({
@@ -14,68 +13,68 @@ export const axiosPublic = axios.create({
 export const axiosPrivate = axios.create({
   baseURL: import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1',
   headers: {
-    'Content-Type': 'application/json',
-    // 'Authorization': store?.getState()?.auth?.user?.data.accessToken 
+    'Content-Type': 'application/json'
+    // 'Authorization': store?.getState()?.auth?.user?.data.accessToken
   },
   withCredentials: true // Incluye cookies automáticamente
 })
 
 // Interceptor de solicitud (request)
 axiosPrivate.interceptors.request.use(
-  (config) => {
-    const accessToken = sessionStorage.getItem('accessToken');
+  config => {
+    const accessToken = sessionStorage.getItem('accessToken')
     if (accessToken) {
-      config.headers['Authorization'] = `Bearer ${accessToken}`;
+      config.headers['Authorization'] = `Bearer ${accessToken}`
     }
 
-     // Añadir CSRF Token a métodos que lo requieren
-    const csrfToken = Cookies.get('csrfToken');
+    // Añadir CSRF Token a métodos que lo requieren
+    const csrfToken = Cookies.get('csrfToken')
     if (csrfToken) {
-      const method = config.method?.toLowerCase();
+      const method = config.method?.toLowerCase()
 
       // GET no lleva CSRF
       if (['post', 'put', 'patch', 'delete'].includes(method)) {
-        config.headers['CSRF-Token'] = csrfToken;
+        config.headers['CSRF-Token'] = csrfToken
       }
     }
 
-    return config;
+    return config
   },
-  (error) => {
-    return Promise.reject(error);
+  error => {
+    return Promise.reject(error)
   }
-);
+)
 
 axiosPrivate.interceptors.response.use(
   // Maneja la respuesta exitosa
-  (response) => {
-    return response; // Devuelve la respuesta tal cual si no hay problemas
+  response => {
+    return response // Devuelve la respuesta tal cual si no hay problemas
   },
-  async (error) => {
-    const originalRequest = error.config; // Guarda la solicitud original en caso de necesitarla
+  async error => {
+    const originalRequest = error.config // Guarda la solicitud original en caso de necesitarla
 
     // Verifica si el error es 401 (no autorizado) y si no se ha intentado renovar el token aún
     if (error.response.status === 401 && !originalRequest._retry) {
-      originalRequest._retry = true; // Marca la solicitud para evitar reintentos infinitos
+      originalRequest._retry = true // Marca la solicitud para evitar reintentos infinitos
 
       // Intenta obtener un nuevo `accessToken` usando el `refreshToken` almacenado en la cookie
       try {
-        await store.dispatch(refreshTokenFecth()); // Refresco la cookie en el servidor
-      
+        await store.dispatch(refreshTokenFecth()) // Refresco la cookie en el servidor
 
         // Reintenta la solicitud original, agregando el nuevo `accessToken` al header
-        originalRequest.headers['Authorization'] = `Bearer ${ store?.getState()?.auth?.user?.data.accessToken}`;
-        return axios(originalRequest); // Vuelve a hacer la solicitud original con el nuevo token
+        originalRequest.headers['Authorization'] =
+          `Bearer ${store?.getState()?.auth?.user?.data.accessToken}`
+        return axios(originalRequest) // Vuelve a hacer la solicitud original con el nuevo token
       } catch (refreshError) {
         // Si la renovación falla, rechaza la promesa y maneja el error
-        return Promise.reject(refreshError);
+        return Promise.reject(refreshError)
       }
     }
 
     // Si no es un error 401 o ya se intentó renovar, pasa el error
-    return Promise.reject(error);
+    return Promise.reject(error)
   }
-);
+)
 
 export const axiosPrivateBaseQuery =
   ({ baseUrl } = { baseUrl: '' }) =>
@@ -86,7 +85,7 @@ export const axiosPrivateBaseQuery =
         method,
         data: body, // data no se puede cambiar el nombre  es obligatorio
         params,
-        headers,
+        headers
       })
       return { data: result.data }
     } catch (axiosError) {
@@ -94,12 +93,11 @@ export const axiosPrivateBaseQuery =
       return {
         error: {
           status: err.response?.status,
-          data: err.response?.data || err.message,
-        },
+          data: err.response?.data || err.message
+        }
       }
     }
   }
-
 
 // // AxiosPrivate interceptor
 // axiosPrivate.interceptors.request.use(
@@ -132,7 +130,6 @@ export const axiosPrivateBaseQuery =
 //   }
 // )
 // axios basequery for redux tollkit and axiosPrivate
-
 
 // import { getLocalStorage } from '../utils/utils'
 

@@ -1,5 +1,5 @@
-import * as productsDao from './dao.js'
-import { getSafePagination } from '../../utils/pagination/pagination.js'
+import * as productsDao from './dao.js';
+import { getSafePagination } from '../../utils/pagination/pagination.js';
 
 /**
  * Get all products from the database with optional filters.
@@ -19,12 +19,12 @@ export const getAllProducts = async ({
   productCategoryCode,
   statusCode,
   limit,
-  page
+  page,
 }) => {
-  const { take, skip } = getSafePagination({ page, limit })
+  const { take, skip } = getSafePagination({ page, limit });
 
   if (!take || take <= 0) {
-    throw new Error('Pagination is required')
+    throw new Error('Pagination is required');
   }
   return await productsDao.getAllProducts(
     name,
@@ -33,8 +33,8 @@ export const getAllProducts = async ({
     statusCode,
     take,
     skip
-  )
-}
+  );
+};
 
 /**
  * Get all products.
@@ -42,8 +42,8 @@ export const getAllProducts = async ({
  * @returns {Promise<Array>} A list of products matching the filters.
  */
 export const getAllProductsFilters = async () => {
-  return await productsDao.getAllProductsFilters()
-}
+  return await productsDao.getAllProductsFilters();
+};
 
 /**
  * Create a new product in the database.
@@ -75,11 +75,11 @@ export const createOne = async (userId, data) => {
     productStatusId: Number(data.productStatusId),
     barCode: data.barCode ? String(data.barCode) : null, // Opcional
     createdOn: new Date(),
-    createdBy: Number(userId)
-  }
+    createdBy: Number(userId),
+  };
 
-  return productsDao.createRow(newProduct)
-}
+  return productsDao.createRow(newProduct);
+};
 
 /**
  * Update an existing product in the database by its ID.
@@ -92,16 +92,15 @@ export const createOne = async (userId, data) => {
  */
 
 export const updateById = async (userId, id, data) => {
-  const rowId = Number(id)
+  const rowId = Number(id);
   const product = {
     ...data,
     updatedOn: new Date(),
-    updatedBy: Number(userId)
+    updatedBy: Number(userId),
+  };
 
-  }
-
-  return productsDao.updateRow(product, { id: rowId })
-}
+  return productsDao.updateRow(product, { id: rowId });
+};
 
 /**
  * Delete a product from the database by its ID.
@@ -111,9 +110,9 @@ export const updateById = async (userId, id, data) => {
  */
 
 export const deleteById = async (id) => {
-  const rowId = Number(id)
-  return productsDao.deleteRow({ id: rowId })
-}
+  const rowId = Number(id);
+  return productsDao.deleteRow({ id: rowId });
+};
 
 /**
  * Get all available product statuses from the database.
@@ -122,9 +121,9 @@ export const deleteById = async (id) => {
  */
 
 export const getAllProductStatus = async () => {
-  const data = await productsDao.getAllProductStatus()
-  return data
-}
+  const data = await productsDao.getAllProductStatus();
+  return data;
+};
 
 /**
  * Get all available product categories from the database.
@@ -133,9 +132,9 @@ export const getAllProductStatus = async () => {
  */
 
 export const getAllProductCategories = async () => {
-  const data = await productsDao.getAllProductCategories()
-  return data
-}
+  const data = await productsDao.getAllProductCategories();
+  return data;
+};
 
 /**
  * Get all available product providers from the database.
@@ -144,9 +143,9 @@ export const getAllProductCategories = async () => {
  */
 
 export const getAllProductProviders = async () => {
-  const data = await productsDao.getAllProductProviders()
-  return data
-}
+  const data = await productsDao.getAllProductProviders();
+  return data;
+};
 
 /**
  * Get all attributes for a product by its ID.
@@ -156,10 +155,12 @@ export const getAllProductProviders = async () => {
  */
 
 export const getAllProductAttributesByProductId = async (id) => {
-  const rowId = Number(id)
-  const data = await productsDao.getAllProductAttributesByProductId({ productId: rowId })
-  return data
-}
+  const rowId = Number(id);
+  const data = await productsDao.getAllProductAttributesByProductId({
+    productId: rowId,
+  });
+  return data;
+};
 
 /**
  * Create new product attributes in the database.
@@ -169,8 +170,8 @@ export const getAllProductAttributesByProductId = async (id) => {
  */
 
 export const saveProductAttributes = async (data) => {
-  return productsDao.saveProductAttributes(data)
-}
+  return productsDao.saveProductAttributes(data);
+};
 
 /**
  * Delete a product attribute from the database by its ID.
@@ -179,6 +180,6 @@ export const saveProductAttributes = async (data) => {
  * @returns {Promise<Object>} The result of the deletion.
  */
 export const deleteProductsAttributeById = async (id) => {
-  const rowId = Number(id)
-  return productsDao.deleteProductsAttributeById({ id: rowId })
-}
+  const rowId = Number(id);
+  return productsDao.deleteProductsAttributeById({ id: rowId });
+};

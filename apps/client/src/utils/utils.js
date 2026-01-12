@@ -96,7 +96,7 @@
  * @returns {object} value numerico, formated valor con puntos de separación
  */
 
-export function ParseNumber (value) {
+export function ParseNumber(value) {
   return {
     value: Number(value.replace(/\D/g, '')),
     formated: value.replace(/\B(?=(\d{3})+(?!\d))/g, '.')
@@ -109,9 +109,9 @@ export function ParseNumber (value) {
  * @returns {Array} objeto con propiedades id y label
  */
 
-export function ConvertToList (data) {
+export function ConvertToList(data) {
   return [
-    ...data.map((e) => {
+    ...data.map(e => {
       return {
         id: e
           .replace(/ /g, '-')
@@ -129,7 +129,7 @@ export function ConvertToList (data) {
  * @param {Key} token header
  * @returns {item} token en formato json
  */
-export const getLocalStorage = (key) => {
+export const getLocalStorage = key => {
   const item = localStorage.getItem(key)
 
   if (!item) return
@@ -149,7 +149,7 @@ export const getLocalStorage = (key) => {
  * @returns {string} las queries filtradas y actualizadas
  */
 
-export function getURLQueries (property, value) {
+export function getURLQueries(property, value) {
   const url = new URLSearchParams(window.location.search)
   const values = {
     search: url.get('search'),
@@ -167,10 +167,12 @@ export function getURLQueries (property, value) {
       delete values[key]
     }
   }
-  return new URLSearchParams(values).toString() ? '?' + new URLSearchParams(values).toString() : null
+  return new URLSearchParams(values).toString()
+    ? '?' + new URLSearchParams(values).toString()
+    : null
 }
 
-export function getSpecificQuery (property) {
+export function getSpecificQuery(property) {
   const url = new URLSearchParams(window.location.search)
   const value = url.get(property) || ''
 

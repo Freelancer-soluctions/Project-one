@@ -7,22 +7,25 @@ import {
   getAllUsersRoles as getAllUserRolesDao,
   getUserRoleByCode as getUserRoleByCodeDao,
   getUserRoleByUserId as getUserRoleByUserIdDao,
-  getAllUserPermits as getAllUserPermitsDao
-} from './dao.js'
-import { getSafePagination } from '../../utils/pagination/pagination.js'
+  getAllUserPermits as getAllUserPermitsDao,
+} from './dao.js';
+import { getSafePagination } from '../../utils/pagination/pagination.js';
 /**
  * Get all users with optional filters
  * @param {Object} filters - Optional filters for the query
  * @returns {Promise<Array>} List of users
  */
 export const getAllUsers = async (filters) => {
-  const { take, skip } = getSafePagination({ page: filters.page, limit: filters.limit })
+  const { take, skip } = getSafePagination({
+    page: filters.page,
+    limit: filters.limit,
+  });
 
   if (!take || take <= 0) {
-    throw new Error('Pagination is required')
+    throw new Error('Pagination is required');
   }
-  return await getAllUsersDao(filters, take, skip)
-}
+  return await getAllUsersDao(filters, take, skip);
+};
 
 /**
  * Get all user permits by ID
@@ -30,18 +33,18 @@ export const getAllUsers = async (filters) => {
  * @returns {Promise<Array>} List of users
  */
 export const getAllUserPermits = async (id) => {
-  const { allPermissions, user } = await getAllUserPermitsDao(Number(id))
+  const { allPermissions, user } = await getAllUserPermitsDao(Number(id));
 
-  const userPermits = user?.userPermits || []
+  const userPermits = user?.userPermits || [];
 
-  const userPermissionIds = new Set(userPermits.map(p => p.permissionId))
-  const permissions = allPermissions.map(p => ({
+  const userPermissionIds = new Set(userPermits.map((p) => p.permissionId));
+  const permissions = allPermissions.map((p) => ({
     ...p,
-    assigned: userPermissionIds.has(p.id) // ✅ marcado si pertenece al usuario
-  }))
+    assigned: userPermissionIds.has(p.id), // ✅ marcado si pertenece al usuario
+  }));
 
-  return permissions
-}
+  return permissions;
+};
 
 /**
  * Get all available user statuses from the database.
@@ -50,9 +53,9 @@ export const getAllUserPermits = async (id) => {
  */
 
 export const getAllUsersStatus = async () => {
-  const data = await getAllUserStatusDao()
-  return data
-}
+  const data = await getAllUserStatusDao();
+  return data;
+};
 
 /**
  * Get all available user roles from the database.
@@ -61,9 +64,9 @@ export const getAllUsersStatus = async () => {
  */
 
 export const getAllUsersRoles = async () => {
-  const data = await getAllUserRolesDao()
-  return data
-}
+  const data = await getAllUserRolesDao();
+  return data;
+};
 
 /**
  * Create a new user
@@ -73,10 +76,10 @@ export const getAllUsersRoles = async () => {
 export const createUser = async (data) => {
   const userData = {
     ...data,
-    lastUpdatedOn: new Date()
-  }
-  return createDao(userData)
-}
+    lastUpdatedOn: new Date(),
+  };
+  return createDao(userData);
+};
 
 /**
  * Update a user by ID
@@ -88,10 +91,10 @@ export const updateUserById = async (id, data) => {
   const userData = {
     ...data,
     lastUpdatedBy: Number(id),
-    lastUpdatedOn: new Date()
-  }
-  return updateDao(Number(id), userData)
-}
+    lastUpdatedOn: new Date(),
+  };
+  return updateDao(Number(id), userData);
+};
 
 /**
  * Delete a user by ID
@@ -99,13 +102,13 @@ export const updateUserById = async (id, data) => {
  * @returns {Promise<Object>} Deleted user
  */
 export const deleteUserById = async (id) => {
-  return deleteDao(Number(id))
-}
+  return deleteDao(Number(id));
+};
 
 export const getUserRoleByCode = async (code) => {
-  return getUserRoleByCodeDao(code)
-}
+  return getUserRoleByCodeDao(code);
+};
 
 export const getUserRoleByUserId = async (userId) => {
-  return getUserRoleByUserIdDao(Number(userId))
-}
+  return getUserRoleByUserIdDao(Number(userId));
+};

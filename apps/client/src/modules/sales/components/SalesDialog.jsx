@@ -80,7 +80,9 @@ export const SalesDialog = ({
         clientId: selectedRow.clientId.toString(),
         total: selectedRow.total.toString(),
         createdOn: new Date(selectedRow.createdOn).toISOString().split('T')[0],
-        updatedOn: selectedRow.updatedOn ? new Date(selectedRow.updatedOn).toISOString().split('T')[0] : '',
+        updatedOn: selectedRow.updatedOn
+          ? new Date(selectedRow.updatedOn).toISOString().split('T')[0]
+          : '',
         userSaleCreatedName: selectedRow.userSaleCreated?.name,
         userSaleUpdatedName: selectedRow.userSaleUpdated?.name || '',
         details: selectedRow.saleDetail.map(detail => ({
@@ -107,7 +109,7 @@ export const SalesDialog = ({
     form.reset()
     setSaleId(null)
   }
-  
+
   const handleDelete = () => {
     onDeleteById(saleId)
     // Reset form and details state
@@ -166,19 +168,19 @@ export const SalesDialog = ({
       const quantity = Number(value) || 0
       if (quantity < 1) return
 
-    // Actualizar el detalle
-    const updatedDetails = [...details]
-    updatedDetails[index] = {
-      ...updatedDetails[index],
-      quantity: quantity
-    }
-    setDetails(updatedDetails)
+      // Actualizar el detalle
+      const updatedDetails = [...details]
+      updatedDetails[index] = {
+        ...updatedDetails[index],
+        quantity: quantity
+      }
+      setDetails(updatedDetails)
 
-    // Actualizar el formulario
-    form.setValue(`details.${index}.quantity`, quantity.toString(), {
-      shouldValidate: true,
-      shouldDirty: true
-    })
+      // Actualizar el formulario
+      form.setValue(`details.${index}.quantity`, quantity.toString(), {
+        shouldValidate: true,
+        shouldDirty: true
+      })
 
       // Calcular el total
       calculateTotal()
@@ -190,17 +192,18 @@ export const SalesDialog = ({
     calculateTotal()
   }, [details, calculateTotal])
 
-  
   const handleCloseDialog = () => {
-    clearDialog() 
+    clearDialog()
     onCloseDialog()
   }
 
   return (
-    <Dialog open={openDialog} onOpenChange={isOpen => {
-      if (isOpen === true) return
-      handleCloseDialog()
-    }}>
+    <Dialog
+      open={openDialog}
+      onOpenChange={isOpen => {
+        if (isOpen === true) return
+        handleCloseDialog()
+      }}>
       <DialogContent className='sm:max-w-[800px]'>
         <DialogHeader>
           <DialogTitle className='flex items-center gap-2'>
@@ -275,8 +278,7 @@ export const SalesDialog = ({
                 }}
               />
 
-
-{selectedRow?.createdOn && (
+              {selectedRow?.createdOn && (
                 <>
                   <FormField
                     control={form.control}
@@ -368,7 +370,6 @@ export const SalesDialog = ({
                   />
                 </>
               )}
-              
             </div>
             <Separator className='my-4' />
             <div className='space-y-4 overflow-y-auto max-h-80'>

@@ -82,18 +82,14 @@ export const InventoryMovementDialog = ({
         <Form {...form}>
           <form
             onSubmit={form.handleSubmit(handleSubmit)}
-            className='space-y-4'
-          >
+            className='space-y-4'>
             <FormField
               control={form.control}
               name='productId'
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>{t('product')}</FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    value={field.value}
-                  >
+                  <Select onValueChange={field.onChange} value={field.value}>
                     <option value=''>{t('select_product')}</option>
                     {products.map(product => (
                       <option key={product.id} value={product.id}>
@@ -112,10 +108,7 @@ export const InventoryMovementDialog = ({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>{t('warehouse')}</FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    value={field.value}
-                  >
+                  <Select onValueChange={field.onChange} value={field.value}>
                     <option value=''>{t('select_warehouse')}</option>
                     {warehouses.map(warehouse => (
                       <option key={warehouse.id} value={warehouse.id}>
@@ -148,10 +141,7 @@ export const InventoryMovementDialog = ({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>{t('type')}</FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    value={field.value}
-                  >
+                  <Select onValueChange={field.onChange} value={field.value}>
                     <option value=''>{t('select_type')}</option>
                     {Object.values(MOVEMENT_TYPES).map(type => (
                       <option key={type} value={type}>
@@ -186,12 +176,14 @@ export const InventoryMovementDialog = ({
                 <Button
                   type='button'
                   variant='destructive'
-                  onClick={handleDelete}
-                >
+                  onClick={handleDelete}>
                   {t('delete')}
                 </Button>
               )}
-              <Button type='button' variant='outline' onClick={handleCloseDialog}>
+              <Button
+                type='button'
+                variant='outline'
+                onClick={handleCloseDialog}>
                 {t('cancel')}
               </Button>
             </div>
@@ -212,4 +204,3 @@ InventoryMovementDialog.propTypes = {
   products: PropTypes.array.isRequired,
   warehouses: PropTypes.array.isRequired
 }
-

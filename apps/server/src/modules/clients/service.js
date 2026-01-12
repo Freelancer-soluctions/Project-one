@@ -3,9 +3,9 @@ import {
   createClient as createClientDao,
   getAllClientsFilters as getAllClientsFiltersDao,
   updateClientById as updateClientByIdDao,
-  deleteClientById as deleteClientByIdDao
-} from './dao.js'
-import { getSafePagination } from '../../utils/pagination/pagination.js'
+  deleteClientById as deleteClientByIdDao,
+} from './dao.js';
+import { getSafePagination } from '../../utils/pagination/pagination.js';
 
 /**
  * Get all clients with optional filters
@@ -13,21 +13,24 @@ import { getSafePagination } from '../../utils/pagination/pagination.js'
  * @returns {Promise<Array>} List of clients
  */
 export const getAllClients = async (filters) => {
-  const { take, skip } = getSafePagination({ page: filters.page, limit: filters.limit })
+  const { take, skip } = getSafePagination({
+    page: filters.page,
+    limit: filters.limit,
+  });
 
   if (!take || take <= 0) {
-    throw new Error('Pagination is required')
+    throw new Error('Pagination is required');
   }
-  return getAllClientsDao(filters, take, skip)
-}
+  return getAllClientsDao(filters, take, skip);
+};
 
 /**
  * Get all clients.
  * @returns {Promise<Array>} List of clients
  */
 export const getAllClientsFilters = async () => {
-  return getAllClientsFiltersDao()
-}
+  return getAllClientsFiltersDao();
+};
 
 /**
  * Create a new client
@@ -37,10 +40,10 @@ export const getAllClientsFilters = async () => {
 export const createClient = async (data) => {
   const dataClient = {
     ...data,
-    createdOn: new Date()
-  }
-  return createClientDao(dataClient)
-}
+    createdOn: new Date(),
+  };
+  return createClientDao(dataClient);
+};
 
 /**
  * Update a client by ID
@@ -51,10 +54,10 @@ export const createClient = async (data) => {
 export const updateClientById = async (id, data) => {
   const dataClient = {
     ...data,
-    updatedOn: new Date()
-  }
-  return updateClientByIdDao(Number(id), dataClient)
-}
+    updatedOn: new Date(),
+  };
+  return updateClientByIdDao(Number(id), dataClient);
+};
 
 /**
  * Delete a client by ID
@@ -62,5 +65,5 @@ export const updateClientById = async (id, data) => {
  * @returns {Promise<Object>} Deleted client
  */
 export const deleteClientById = async (id) => {
-  return deleteClientByIdDao(Number(id))
-}
+  return deleteClientByIdDao(Number(id));
+};

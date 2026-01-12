@@ -1,17 +1,25 @@
-import express from 'express'
+import express from 'express';
 import {
   getAllPerformanceEvaluations,
   createPerformanceEvaluation,
   updatePerformanceEvaluationById,
-  deletePerformanceEvaluationById
-} from './controller.js'
-import { verifyToken, validateQueryParams, validateSchema, checkRoleAuthOrPermisssion } from '../../middleware/index.js'
-import { performanceEvaluationFiltersSchema, performanceEvaluationCreateUpdateSchema } from '../../utils/joiSchemas/joi.js'
-import { ROLESCODES, PERMISSIONCODES } from '../../utils/constants/enums.js'
+  deletePerformanceEvaluationById,
+} from './controller.js';
+import {
+  verifyToken,
+  validateQueryParams,
+  validateSchema,
+  checkRoleAuthOrPermisssion,
+} from '../../middleware/index.js';
+import {
+  performanceEvaluationFiltersSchema,
+  performanceEvaluationCreateUpdateSchema,
+} from '../../utils/joiSchemas/joi.js';
+import { ROLESCODES, PERMISSIONCODES } from '../../utils/constants/enums.js';
 
-const router = express.Router()
+const router = express.Router();
 // uso global de middleware
-router.use(verifyToken)
+router.use(verifyToken);
 
 /**
  * @openapi
@@ -55,11 +63,11 @@ router.get(
   '/',
   checkRoleAuthOrPermisssion({
     allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER],
-    permissions: [PERMISSIONCODES.canViewPerformanceEvaluations]
+    permissions: [PERMISSIONCODES.canViewPerformanceEvaluations],
   }),
   validateQueryParams(performanceEvaluationFiltersSchema),
   getAllPerformanceEvaluations
-)
+);
 
 /**
  * @openapi
@@ -100,11 +108,11 @@ router.post(
   '/',
   checkRoleAuthOrPermisssion({
     allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER],
-    permissions: [PERMISSIONCODES.canCreateEvaluatePerformance]
+    permissions: [PERMISSIONCODES.canCreateEvaluatePerformance],
   }),
   validateSchema(performanceEvaluationCreateUpdateSchema),
   createPerformanceEvaluation
-)
+);
 
 /**
  * @openapi
@@ -152,11 +160,11 @@ router.put(
   '/:id',
   checkRoleAuthOrPermisssion({
     allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER],
-    permissions: [PERMISSIONCODES.canEditEvaluatePerformance]
+    permissions: [PERMISSIONCODES.canEditEvaluatePerformance],
   }),
   validateSchema(performanceEvaluationCreateUpdateSchema),
   updatePerformanceEvaluationById
-)
+);
 
 /**
  * @openapi
@@ -194,9 +202,13 @@ router.put(
  *                 data:
  *                   $ref: "#/components/schemas/ResponseGetPerformanceEvaluation"
  */
-router.delete('/:id', checkRoleAuthOrPermisssion({
-  allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER],
-  permissions: [PERMISSIONCODES.canDeleteEvaluationPerformance]
-}), deletePerformanceEvaluationById)
+router.delete(
+  '/:id',
+  checkRoleAuthOrPermisssion({
+    allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER],
+    permissions: [PERMISSIONCODES.canDeleteEvaluationPerformance],
+  }),
+  deletePerformanceEvaluationById
+);
 
-export default router
+export default router;

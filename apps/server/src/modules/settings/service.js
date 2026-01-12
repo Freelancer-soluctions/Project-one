@@ -5,9 +5,9 @@ import {
   getAllProductCategories as getAllProductCategoriesDao,
   createProductCategory as createProductCategoryDao,
   updateProductCategory as updateProductCategoryByIdDao,
-  deleteProductCategory as deleteProductCategoryByIdDao
-} from './dao.js'
-import { getSafePagination } from '../../utils/pagination/pagination.js'
+  deleteProductCategory as deleteProductCategoryByIdDao,
+} from './dao.js';
+import { getSafePagination } from '../../utils/pagination/pagination.js';
 
 /**
  * Create or update language settings based on the provided data.
@@ -23,16 +23,16 @@ export const createOrUpdateSettingsLanguage = async (
   { language, id },
   userId
 ) => {
-  const rowId = Number(id)
-  const user = Number(userId)
-  const timestamp = new Date()
+  const rowId = Number(id);
+  const user = Number(userId);
+  const timestamp = new Date();
 
   const settingsObject = id
     ? { updatedOn: timestamp, language }
-    : { language, createdOn: timestamp }
+    : { language, createdOn: timestamp };
 
-  return await createOrUpdateSettingsLanguageDao(rowId, settingsObject, user)
-}
+  return await createOrUpdateSettingsLanguageDao(rowId, settingsObject, user);
+};
 
 /**
  * Create or update language settings based on the provided data.
@@ -48,16 +48,16 @@ export const createOrUpdateSettingsDisplay = async (
   { id, displayOptions },
   userId
 ) => {
-  const rowId = Number(id)
-  const user = Number(userId)
-  const timestamp = new Date()
+  const rowId = Number(id);
+  const user = Number(userId);
+  const timestamp = new Date();
 
   const settingsObject = rowId
     ? { updatedOn: timestamp, ...displayOptions }
-    : { ...displayOptions, createdOn: timestamp }
+    : { ...displayOptions, createdOn: timestamp };
 
-  return await createOrUpdateSettingsDisplayDao(rowId, settingsObject, user)
-}
+  return await createOrUpdateSettingsDisplayDao(rowId, settingsObject, user);
+};
 
 /**
  * Get the language settings by user ID.
@@ -67,9 +67,9 @@ export const createOrUpdateSettingsDisplay = async (
  * @throws {Error} - If there is an error during the database operation.
  */
 export const getSettingsById = async (userId) => {
-  const rowId = Number(userId)
-  return await getSettingsByIdDao(rowId)
-}
+  const rowId = Number(userId);
+  return await getSettingsByIdDao(rowId);
+};
 
 /**
  * Get all product categories with optional filters
@@ -80,14 +80,19 @@ export const getSettingsById = async (userId) => {
  * @param {number} page - Filter by page
  * @returns {Promise<Array>} A list of categories matching the filters
  */
-export const getAllProductCategories = async ({ description, code, limit, page }) => {
-  const { take, skip } = getSafePagination({ page, limit })
+export const getAllProductCategories = async ({
+  description,
+  code,
+  limit,
+  page,
+}) => {
+  const { take, skip } = getSafePagination({ page, limit });
 
   if (!take || take <= 0) {
-    throw new Error('Pagination is required')
+    throw new Error('Pagination is required');
   }
-  return getAllProductCategoriesDao(description, code, take, skip)
-}
+  return getAllProductCategoriesDao(description, code, take, skip);
+};
 
 /**
  * Create a new product category
@@ -98,15 +103,15 @@ export const getAllProductCategories = async ({ description, code, limit, page }
  * @returns {Promise<Object>} The created category
  */
 export const createProductCategory = async (data) => {
-  console.log('data', data)
+  console.log('data', data);
   const createData = {
     code: data.code,
     description: data.description,
-    createdOn: new Date()
-  }
+    createdOn: new Date(),
+  };
 
-  return createProductCategoryDao(createData)
-}
+  return createProductCategoryDao(createData);
+};
 
 /**
  * Update a product category by ID
@@ -119,11 +124,11 @@ export const createProductCategory = async (data) => {
 export const updateProductCategoryById = async (categoryId, data) => {
   const updateData = {
     ...data,
-    updatedOn: new Date()
-  }
+    updatedOn: new Date(),
+  };
 
-  return updateProductCategoryByIdDao(updateData, { id: Number(categoryId) })
-}
+  return updateProductCategoryByIdDao(updateData, { id: Number(categoryId) });
+};
 
 /**
  * Delete a product category by ID
@@ -131,5 +136,5 @@ export const updateProductCategoryById = async (categoryId, data) => {
  * @returns {Promise<void>}
  */
 export const deleteProductCategoryById = async (categoryId) => {
-  return deleteProductCategoryByIdDao({ id: Number(categoryId) })
-}
+  return deleteProductCategoryByIdDao({ id: Number(categoryId) });
+};

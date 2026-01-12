@@ -2,27 +2,33 @@ import {
   getAllAttendance as getAllAttendanceDao,
   createAttendance as createAttendanceDao,
   updateAttendanceById as updateAttendanceByIdDao,
-  deleteAttendanceById as deleteAttendanceByIdDao
-} from './dao.js'
-import { getSafePagination } from '../../utils/pagination/pagination.js'
+  deleteAttendanceById as deleteAttendanceByIdDao,
+} from './dao.js';
+import { getSafePagination } from '../../utils/pagination/pagination.js';
 
 /**
  * Get all attendance records with optional filters
  * @param {Object} filters - filters for the query
  * @returns {Promise<Array>} List of attendance records
  */
-export const getAllAttendance = async ({ employeeId, fromDate, toDate, limit, page }) => {
+export const getAllAttendance = async ({
+  employeeId,
+  fromDate,
+  toDate,
+  limit,
+  page,
+}) => {
   const { take, skip } = getSafePagination({
     page,
-    limit
-  })
+    limit,
+  });
 
   if (!take || take <= 0) {
-    throw new Error('Pagination is required')
+    throw new Error('Pagination is required');
   }
 
-  return getAllAttendanceDao({ employeeId, fromDate, toDate }, take, skip)
-}
+  return getAllAttendanceDao({ employeeId, fromDate, toDate }, take, skip);
+};
 
 /**
  * Create a new attendance record
@@ -35,10 +41,10 @@ export const createAttendance = async (data, userId) => {
     employeeId: Number(data.employeeId),
     date: new Date(data.date),
     createdOn: new Date(),
-    createdBy: userId
-  }
-  return createAttendanceDao(dataAttendance)
-}
+    createdBy: userId,
+  };
+  return createAttendanceDao(dataAttendance);
+};
 
 /**
  * Update an attendance record by ID
@@ -52,11 +58,10 @@ export const updateAttendanceById = async (id, data, userId) => {
     updatedOn: new Date(),
     employeeId: Number(data.employeeId),
     updatedBy: userId,
-    date: new Date(data.date)
-
-  }
-  return updateAttendanceByIdDao(Number(id), dataAttendance)
-}
+    date: new Date(data.date),
+  };
+  return updateAttendanceByIdDao(Number(id), dataAttendance);
+};
 
 /**
  * Delete an attendance record by ID
@@ -64,5 +69,5 @@ export const updateAttendanceById = async (id, data, userId) => {
  * @returns {Promise<Object>} Deleted attendance record
  */
 export const deleteAttendanceById = async (id) => {
-  return deleteAttendanceByIdDao(Number(id))
-}
+  return deleteAttendanceByIdDao(Number(id));
+};

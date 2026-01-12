@@ -1,6 +1,6 @@
-import { ENVIROMENTS } from '../constants/enums.js'
-import dotenv from '../../config/dotenv.js'
-import helmet from 'helmet'
+import { ENVIROMENTS } from '../constants/enums.js';
+import dotenv from '../../config/dotenv.js';
+import helmet from 'helmet';
 
 // helmet.config.js
 // -----------------------------------------------------------
@@ -13,9 +13,9 @@ import helmet from 'helmet'
 // a desarrollo vs producción.
 // -----------------------------------------------------------
 
-const FRONTEND_URL = dotenv('FRONTEND_URL')
-const NODE_ENV = dotenv('NODE_ENV')
-const isProduction = NODE_ENV === ENVIROMENTS.PRODUCTION
+const FRONTEND_URL = dotenv('FRONTEND_URL');
+const NODE_ENV = dotenv('NODE_ENV');
+const isProduction = NODE_ENV === ENVIROMENTS.PRODUCTION;
 
 export const helmetConfig = helmet({
   // -----------------------------------------------------------
@@ -34,8 +34,8 @@ export const helmetConfig = helmet({
     ? [
         {
           name: 'csp-endpoint',
-          url: '/api/v1/security/csp-report'
-        }
+          url: '/api/v1/security/csp-report',
+        },
       ]
     : undefined,
 
@@ -63,36 +63,24 @@ export const helmetConfig = helmet({
             "'self'",
             FRONTEND_URL,
             "'unsafe-inline'",
-            "'unsafe-eval'" // requerido por Vite / source maps
+            "'unsafe-eval'", // requerido por Vite / source maps
           ],
 
       // -------------------------------------------------------
       // STYLES
       // unsafe-inline es necesario mientras React genere estilos inline
       // -------------------------------------------------------
-      styleSrc: [
-        "'self'",
-        FRONTEND_URL,
-        "'unsafe-inline'"
-      ],
+      styleSrc: ["'self'", FRONTEND_URL, "'unsafe-inline'"],
 
       // -------------------------------------------------------
       // IMÁGENES
       // -------------------------------------------------------
-      imgSrc: [
-        "'self'",
-        FRONTEND_URL,
-        'data:',
-        'blob:'
-      ],
+      imgSrc: ["'self'", FRONTEND_URL, 'data:', 'blob:'],
 
       // -------------------------------------------------------
       // FETCH / XHR / WEBSOCKET
       // -------------------------------------------------------
-      connectSrc: [
-        "'self'",
-        FRONTEND_URL
-      ],
+      connectSrc: ["'self'", FRONTEND_URL],
 
       // -------------------------------------------------------
       // CLICKJACKING
@@ -120,9 +108,9 @@ export const helmetConfig = helmet({
       // -------------------------------------------------------
       ...(isProduction && {
         reportUri: ['/api/v1/security/csp-report'],
-        reportTo: 'csp-endpoint'
-      })
-    }
+        reportTo: 'csp-endpoint',
+      }),
+    },
   },
 
   // -----------------------------------------------------------
@@ -135,7 +123,7 @@ export const helmetConfig = helmet({
     ? {
         maxAge: 31536000, // 1 año
         includeSubDomains: true,
-        preload: true
+        preload: true,
       }
     : false,
 
@@ -149,7 +137,7 @@ export const helmetConfig = helmet({
   // CLICKJACKING (HEADER X-FRAME-OPTIONS)
   // -----------------------------------------------------------
   frameguard: {
-    action: 'deny'
+    action: 'deny',
   },
 
   // -----------------------------------------------------------
@@ -157,7 +145,7 @@ export const helmetConfig = helmet({
   // Evita filtrar rutas o tokens en headers
   // -----------------------------------------------------------
   referrerPolicy: {
-    policy: 'strict-origin-when-cross-origin'
+    policy: 'strict-origin-when-cross-origin',
   },
 
   // -----------------------------------------------------------
@@ -168,7 +156,7 @@ export const helmetConfig = helmet({
     features: {
       camera: "'none'",
       geolocation: "'none'",
-      microphone: "'none'"
-    }
-  }
-})
+      microphone: "'none'",
+    },
+  },
+});

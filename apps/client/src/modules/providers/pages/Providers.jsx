@@ -26,7 +26,7 @@ const Providers = () => {
   const [openAlertDialog, setOpenAlertDialog] = useState(false)
   const [alertProps, setAlertProps] = useState({})
   const [actionDialog, setActionDialog] = useState('')
-    const [pagination, setPagination] = useState({
+  const [pagination, setPagination] = useState({
     pageIndex: 0,
     pageSize: 20
   })
@@ -57,9 +57,6 @@ const Providers = () => {
       isSuccess: isSuccessDelete
     }
   ] = useDeleteProviderByIdMutation()
-
-
-
 
   /**
    * Este efecto es la única fuente de verdad para disparar
@@ -99,7 +96,6 @@ const Providers = () => {
 
     setFilters(newFilters)
   }
-
 
   const handleSubmit = async (values, providerId) => {
     try {
@@ -197,9 +193,6 @@ const Providers = () => {
     }
   }
 
-
-
-
   return (
     <>
       <BackDashBoard link={'/home'} moduleName={t('providers')} />
@@ -225,7 +218,7 @@ const Providers = () => {
             <ProvidersDatatable
               dataProviders={dataProviders}
               onEditDialog={handleEditDialog}
-               pagination={pagination}
+              pagination={pagination}
               onPaginationChange={setPagination}
             />
           </div>

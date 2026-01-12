@@ -29,9 +29,7 @@ import { ProductsSchema } from '../utils'
 import { useNavigate } from 'react-router'
 import { useTranslation } from 'react-i18next'
 import { useEffect, useState } from 'react'
-import {
-  LuBarcode,
-} from 'react-icons/lu'
+import { LuBarcode } from 'react-icons/lu'
 
 export const ProductBasicInfo = ({
   onSubmitCreateEdit,
@@ -43,15 +41,15 @@ export const ProductBasicInfo = ({
 }) => {
   const navigate = useNavigate()
   const { t } = useTranslation()
-  const [id, setId]= useState()
+  const [id, setId] = useState()
   const generateBarcode = () => {
     // Simulación de generación de código de barras
     const randomCode = Math.floor(Math.random() * 10000000000)
       .toString()
       .padStart(10, '0')
-      form.setValue("barcode", randomCode, { shouldValidate: true }); // Asigna y valida el campo
+    form.setValue('barcode', randomCode, { shouldValidate: true }) // Asigna y valida el campo
   }
-  
+
   const form = useForm({
     resolver: zodResolver(ProductsSchema),
     defaultValues: {
@@ -64,32 +62,41 @@ export const ProductBasicInfo = ({
       category: null,
       provider: null,
       status: null
-     }
+    }
   })
-
 
   // Actualiza todos los valores del formulario al cambiar `selectedRow`
   useEffect(() => {
     if (selectedRow?.id) {
       form.reset({
         ...selectedRow,
-        status: {id:selectedRow.statusId, code:selectedRow.statusCode, description:selectedRow.statusDescription  },
-        category: {id:selectedRow.categoryId, code:selectedRow.categoryCode, description:selectedRow.categoryDescription  },
-        provider: {id:selectedRow.providerId, code:selectedRow.providerCode, description:selectedRow.providerDescription  }
+        status: {
+          id: selectedRow.statusId,
+          code: selectedRow.statusCode,
+          description: selectedRow.statusDescription
+        },
+        category: {
+          id: selectedRow.categoryId,
+          code: selectedRow.categoryCode,
+          description: selectedRow.categoryDescription
+        },
+        provider: {
+          id: selectedRow.providerId,
+          code: selectedRow.providerCode,
+          description: selectedRow.providerDescription
+        }
       })
       setId(selectedRow.id)
-    }else{
+    } else {
       form.reset()
     }
-
- 
   }, [selectedRow, form])
 
-  const submitForm = (data) => {
-    onSubmitCreateEdit(data);
-  };
+  const submitForm = data => {
+    onSubmitCreateEdit(data)
+  }
 
-  const handleDelete = (id) => {
+  const handleDelete = id => {
     onDelete(id)
   }
   return (
@@ -147,7 +154,7 @@ export const ProductBasicInfo = ({
                             id='sku'
                             type='text'
                             name='sku'
-                            maxLength="16"
+                            maxLength='16'
                             autoComplete='off'
                             placeholder={t(
                               'enter_unique_product_code_placeholder'
@@ -170,25 +177,24 @@ export const ProductBasicInfo = ({
                   control={form.control}
                   name='category'
                   render={({ field }) => {
-
                     return (
                       <FormItem>
-                        <FormLabel htmlFor='category'>{t('category')}*</FormLabel>
+                        <FormLabel htmlFor='category'>
+                          {t('category')}*
+                        </FormLabel>
                         <Select
-                        //   onValueChange={field.onChange}
+                          //   onValueChange={field.onChange}
                           onValueChange={code => {
                             // Buscar el objeto completo por el `code`
 
-
-                            if (dataCategory?.data.length > 0){
-                              const selectedCategory= dataCategory.data.find(
+                            if (dataCategory?.data.length > 0) {
+                              const selectedCategory = dataCategory.data.find(
                                 item => item.code === code
                               )
                               if (selectedCategory) {
                                 field.onChange(selectedCategory) // Asignar el objeto completo
                               }
                             }
-                          
                           }}
                           value={field.value?.code}>
                           <FormControl id='category'>
@@ -210,7 +216,7 @@ export const ProductBasicInfo = ({
                   }}
                 />
               </div>
-              
+
               <div className='space-y-2'>
                 <FormField
                   control={form.control}
@@ -218,21 +224,22 @@ export const ProductBasicInfo = ({
                   render={({ field }) => {
                     return (
                       <FormItem>
-                        <FormLabel htmlFor='provider'>{t('provider')}*</FormLabel>
+                        <FormLabel htmlFor='provider'>
+                          {t('provider')}*
+                        </FormLabel>
                         <Select
-                                  onValueChange={code => {
-                                    if (dataProviders?.data.length > 0){
-                                      // Buscar el objeto completo por el `code`
-                                    const selectedProvider= dataProviders.data.find(
-                                      item => item.code === code
-                                    )
-                                    if (selectedProvider) {
-                                      field.onChange(selectedProvider) // Asignar el objeto completo
-                                    }
-                                    }
-                                    
-                                  }}
-                                  value={field.value?.code}>
+                          onValueChange={code => {
+                            if (dataProviders?.data.length > 0) {
+                              // Buscar el objeto completo por el `code`
+                              const selectedProvider = dataProviders.data.find(
+                                item => item.code === code
+                              )
+                              if (selectedProvider) {
+                                field.onChange(selectedProvider) // Asignar el objeto completo
+                              }
+                            }
+                          }}
+                          value={field.value?.code}>
                           <FormControl id='provider'>
                             <SelectTrigger>
                               <SelectValue placeholder={t('select_provider')} />
@@ -263,19 +270,18 @@ export const ProductBasicInfo = ({
                       <FormItem>
                         <FormLabel htmlFor='status'>{t('status')}*</FormLabel>
                         <Select
-                                   onValueChange={code => {
-                                    if (datastatus?.data.length > 0){
-                                       // Buscar el objeto completo por el `code`
-                                    const selectedStatus = datastatus.data.find(
-                                      item => item.code === code
-                                    )
-                                    if (selectedStatus) {
-                                      field.onChange(selectedStatus) // Asignar el objeto completo
-                                    }
-                                    }
-                                   
-                                  }}
-                                  value={field.value?.code}>
+                          onValueChange={code => {
+                            if (datastatus?.data.length > 0) {
+                              // Buscar el objeto completo por el `code`
+                              const selectedStatus = datastatus.data.find(
+                                item => item.code === code
+                              )
+                              if (selectedStatus) {
+                                field.onChange(selectedStatus) // Asignar el objeto completo
+                              }
+                            }
+                          }}
+                          value={field.value?.code}>
                           <FormControl id='status'>
                             <SelectTrigger>
                               <SelectValue placeholder={t('select_status')} />
@@ -434,15 +440,15 @@ export const ProductBasicInfo = ({
                 {t('cancel')}
               </Button>
               {id && (
-                  <Button
-                    type='button'
-                    variant='destructive'
-                    onClick={() => {
-                      handleDelete(id)
-                    }}>
-                    {t('delete')}
-                  </Button>
-                )}
+                <Button
+                  type='button'
+                  variant='destructive'
+                  onClick={() => {
+                    handleDelete(id)
+                  }}>
+                  {t('delete')}
+                </Button>
+              )}
               <Button type='submit' variant='info'>
                 {t('save')}
               </Button>

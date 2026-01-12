@@ -44,7 +44,13 @@ export const PurchaseFiltersForm = ({ onSubmit, onAddDialog, providers }) => {
     }
   })
 
-  const handleSubmit = ({ providerId, fromDate, toDate, minTotal, maxTotal }) => {
+  const handleSubmit = ({
+    providerId,
+    fromDate,
+    toDate,
+    minTotal,
+    maxTotal
+  }) => {
     const fDate = fromDate && formatISO(new Date(fromDate), 'yyyy-MM-dd')
     const tDate = toDate && formatISO(new Date(toDate), 'yyyy-MM-dd')
 
@@ -58,8 +64,6 @@ export const PurchaseFiltersForm = ({ onSubmit, onAddDialog, providers }) => {
   const handleResetFilter = () => {
     form.reset()
   }
-
-
 
   return (
     <Form {...form}>

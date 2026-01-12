@@ -1,4 +1,4 @@
-import { prisma, Prisma } from '../../config/db.js'
+import { prisma, Prisma } from '../../config/db.js';
 
 /**
  * Get all performance evaluations with optional filters
@@ -10,24 +10,30 @@ import { prisma, Prisma } from '../../config/db.js'
  * @param {number} skip - skip to filter by
  * @returns {Promise<Array>} List of performance evaluations with their related data
  */
-export const getAllPerformanceEvaluations = async (filters = {}, take, skip) => {
-  const whereClauses = []
+export const getAllPerformanceEvaluations = async (
+  filters = {},
+  take,
+  skip
+) => {
+  const whereClauses = [];
 
   if (filters.employeeId) {
-    whereClauses.push(Prisma.sql`pe."employeeId" = ${Number(filters.employeeId)}`)
+    whereClauses.push(
+      Prisma.sql`pe."employeeId" = ${Number(filters.employeeId)}`
+    );
   }
 
   if (filters.startDate) {
-    whereClauses.push(Prisma.sql`pe."date" >= ${filters.startDate}`)
+    whereClauses.push(Prisma.sql`pe."date" >= ${filters.startDate}`);
   }
 
   if (filters.endDate) {
-    whereClauses.push(Prisma.sql`pe."date" <= ${filters.endDate}`)
+    whereClauses.push(Prisma.sql`pe."date" <= ${filters.endDate}`);
   }
 
   const whereSql = whereClauses.length
     ? Prisma.sql`WHERE ${Prisma.join(whereClauses, Prisma.sql` AND `)}`
-    : Prisma.empty
+    : Prisma.empty;
 
   const evaluations = await prisma.$queryRaw`
     SELECT 
@@ -43,37 +49,38 @@ export const getAllPerformanceEvaluations = async (filters = {}, take, skip) => 
     ORDER BY pe."date" DESC
     LIMIT ${take}
     OFFSET ${skip}
-  `
+  `;
 
   const total = await prisma.performanceEvaluation.count({
     where: {
       ...(filters.employeeId && {
-        employeeId: Number(filters.employeeId)
+        employeeId: Number(filters.employeeId),
       }),
 
       ...(filters.startDate && {
         date: {
-          gte: filters.startDate
-        }
+          gte: filters.startDate,
+        },
       }),
 
       ...(filters.endDate && {
         date: {
           ...(filters.startDate ? {} : undefined),
-          lte: filters.endDate
-        }
+          lte: filters.endDate,
+        },
       }),
 
-      ...(filters.startDate && filters.endDate && {
-        date: {
-          gte: filters.startDate,
-          lte: filters.endDate
-        }
-      })
-    }
-  })
-  return { dataList: evaluations, total }
-}
+      ...(filters.startDate &&
+        filters.endDate && {
+          date: {
+            gte: filters.startDate,
+            lte: filters.endDate,
+          },
+        }),
+    },
+  });
+  return { dataList: evaluations, total };
+};
 
 /**
  * Create a new performance evaluation
@@ -94,16 +101,15 @@ export const createPerformanceEvaluation = async (data) => {
       comments: data.comments,
       createdOn: data.createdOn,
       employee: {
-        connect: { id: data.employeeId }
+        connect: { id: data.employeeId },
       },
       userPerformanceEvaluationCreated: {
-        connect: { id: data.createdBy }
-      }
-    }
-
-  })
-  return evaluation
-}
+        connect: { id: data.createdBy },
+      },
+    },
+  });
+  return evaluation;
+};
 
 /**
  * Update a performance evaluation by ID
@@ -120,16 +126,15 @@ export const updatePerformanceEvaluationById = async (id, data) => {
       comments: data.comments,
       updatedOn: new Date(),
       employee: {
-        connect: { id: data.employeeId }
+        connect: { id: data.employeeId },
       },
       userPerformanceEvaluationUpdated: {
-        connect: { id: data.updatedBy }
-      }
-    }
-
-  })
-  return evaluation
-}
+        connect: { id: data.updatedBy },
+      },
+    },
+  });
+  return evaluation;
+};
 
 /**
  * Delete a performance evaluation by ID
@@ -138,7 +143,7 @@ export const updatePerformanceEvaluationById = async (id, data) => {
  */
 export const deletePerformanceEvaluationById = async (id) => {
   const evaluation = await prisma.performanceEvaluation.delete({
-    where: { id }
-  })
-  return evaluation
-}
+    where: { id },
+  });
+  return evaluation;
+};

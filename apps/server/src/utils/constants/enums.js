@@ -1,21 +1,20 @@
 export const roles = {
   admin: 'admin',
   user: 'user',
-  manager: 'manager'
-}
+  manager: 'manager',
+};
 
 export const ROLESCODES = {
   ADMIN: 'C01',
   USER: 'C02',
-  MANAGER: 'C03'
-}
+  MANAGER: 'C03',
+};
 
 export const ENVIROMENTS = {
   DEVELOMENT: 'dev',
   QA: 'qa',
-  PRODUCTION: 'production'
-
-}
+  PRODUCTION: 'production',
+};
 
 export const HTTPCodes = [
   { status: '200', message: 'OK' },
@@ -54,7 +53,7 @@ export const HTTPCodes = [
   { status: '415', message: 'Unsupported Media Type' },
   { status: '416', message: 'Requested Range Not Satisfiable' },
   { status: '417', message: 'Expectation Failed' },
-  { status: '418', message: 'I\'m a teapot' },
+  { status: '418', message: "I'm a teapot" },
   { status: '420', message: 'Enhance Your Calm' },
   { status: '421', message: 'Misdirected Request' },
   { status: '422', message: 'Unprocessable Entity' },
@@ -88,14 +87,14 @@ export const HTTPCodes = [
   { status: '523', message: 'Origin is Unreachable' },
   { status: '525', message: 'SSL Handshake Failed' },
   { status: '598', message: 'Network read timeout error' },
-  { status: '599', message: 'Network connect timeout error' }
-]
+  { status: '599', message: 'Network connect timeout error' },
+];
 
 export const NEWSSTATUSCODE = {
   ACTIVE: 'C01',
   PENDING: 'C02',
-  CLOSED: 'C03'
-}
+  CLOSED: 'C03',
+};
 
 export const TABLESNAMES = {
   NEWS: 'news',
@@ -105,13 +104,13 @@ export const TABLESNAMES = {
   SETTINGS: 'settings',
   PRODUCTS: 'products',
   PRODUCTATTRIBUTES: 'productAttributes',
-  PROVIDERS: 'productProviders'
-}
+  PROVIDERS: 'productProviders',
+};
 
 export const PRODUCTSSTATUSCODE = {
   ACTIVE: 'C01',
-  INACTIVE: 'C02'
-}
+  INACTIVE: 'C02',
+};
 
 export const PERMISSIONCODES = {
   canViewNews: 'canViewNews',
@@ -196,7 +195,7 @@ export const PERMISSIONCODES = {
   canViewPerformanceEvaluations: 'canViewPerformanceEvaluations',
   canCreateEvaluatePerformance: 'canCreateEvaluatePerformance',
   canEditEvaluatePerformance: 'canEditEvaluatePerformance',
-  canDeleteEvaluationPerformance: 'canDeleteEvaluationPerformance'
+  canDeleteEvaluationPerformance: 'canDeleteEvaluationPerformance',
 
   // canViewDashboard: 'canViewDashboard',
 
@@ -207,4 +206,4 @@ export const PERMISSIONCODES = {
   // canEditProviderOrder: 'canEditProviderOrder',
   // canViewProviderOrder: 'canViewProviderOrder',
   // canViewReports: 'canViewReports'
-}
+};

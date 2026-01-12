@@ -1,20 +1,25 @@
-import { Router } from 'express'
-import { verifyToken, validateQueryParams, validateSchema, checkRoleAuthOrPermisssion } from '../../middleware/index.js'
+import { Router } from 'express';
+import {
+  verifyToken,
+  validateQueryParams,
+  validateSchema,
+  checkRoleAuthOrPermisssion,
+} from '../../middleware/index.js';
 import {
   getAllInventoryMovements,
   createInventoryMovement,
   updateInventoryMovementById,
-  deleteInventoryMovementById
-} from './controller.js'
+  deleteInventoryMovementById,
+} from './controller.js';
 import {
   inventoryMovementFiltersSchema,
-  inventoryMovementCreateUpdateSchema
-} from '../../utils/joiSchemas/joi.js'
-import { ROLESCODES, PERMISSIONCODES } from '../../utils/constants/enums.js'
+  inventoryMovementCreateUpdateSchema,
+} from '../../utils/joiSchemas/joi.js';
+import { ROLESCODES, PERMISSIONCODES } from '../../utils/constants/enums.js';
 
-const router = Router()
+const router = Router();
 // uso global de middleware
-router.use(verifyToken)
+router.use(verifyToken);
 
 /**
  * @openapi
@@ -67,13 +72,14 @@ router.use(verifyToken)
  *               $ref: '#/components/schemas/Error'
  */
 router.get(
-  '/', checkRoleAuthOrPermisssion({
+  '/',
+  checkRoleAuthOrPermisssion({
     allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER, ROLESCODES.USER],
-    permissions: [PERMISSIONCODES.canViewInventory]
+    permissions: [PERMISSIONCODES.canViewInventory],
   }),
   validateQueryParams(inventoryMovementFiltersSchema),
   getAllInventoryMovements
-)
+);
 
 /**
  * @openapi
@@ -123,13 +129,14 @@ router.get(
  *               $ref: '#/components/schemas/Error'
  */
 router.post(
-  '/', checkRoleAuthOrPermisssion({
+  '/',
+  checkRoleAuthOrPermisssion({
     allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER],
-    permissions: [PERMISSIONCODES.canCreateInventory]
+    permissions: [PERMISSIONCODES.canCreateInventory],
   }),
   validateSchema(inventoryMovementCreateUpdateSchema),
   createInventoryMovement
-)
+);
 
 /**
  * @openapi
@@ -186,13 +193,14 @@ router.post(
  *               $ref: '#/components/schemas/Error'
  */
 router.put(
-  '/:id', checkRoleAuthOrPermisssion({
+  '/:id',
+  checkRoleAuthOrPermisssion({
     allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER],
-    permissions: [PERMISSIONCODES.canEditInventory]
+    permissions: [PERMISSIONCODES.canEditInventory],
   }),
   validateSchema(inventoryMovementCreateUpdateSchema),
   updateInventoryMovementById
-)
+);
 
 /**
  * @openapi
@@ -230,9 +238,13 @@ router.put(
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.delete('/:id', checkRoleAuthOrPermisssion({
-  allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER],
-  permissions: [PERMISSIONCODES.canDeleteInventory]
-}), deleteInventoryMovementById)
+router.delete(
+  '/:id',
+  checkRoleAuthOrPermisssion({
+    allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER],
+    permissions: [PERMISSIONCODES.canDeleteInventory],
+  }),
+  deleteInventoryMovementById
+);
 
-export default router
+export default router;

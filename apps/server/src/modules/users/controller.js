@@ -5,10 +5,10 @@ import {
   deleteUserById as deleteUserByIdService,
   getAllUsersStatus as getAllUsersStatusService,
   getAllUsersRoles as getAllUsersRolesService,
-  getAllUserPermits as getAllUserPermitsService
-} from './service.js'
-import handleCatchErrorAsync from '../../utils/responses&Errors/handleCatchErrorAsync.js'
-import globalResponse from '../../utils/responses&Errors/globalResponse.js'
+  getAllUserPermits as getAllUserPermitsService,
+} from './service.js';
+import handleCatchErrorAsync from '../../utils/responses&Errors/handleCatchErrorAsync.js';
+import globalResponse from '../../utils/responses&Errors/globalResponse.js';
 
 /**
  * Get all users with optional filters
@@ -16,9 +16,9 @@ import globalResponse from '../../utils/responses&Errors/globalResponse.js'
  * @param {Object} res - Express response object
  */
 export const getAllUsers = handleCatchErrorAsync(async (req, res) => {
-  const users = await getAllUsersService(req.query)
-  globalResponse(res, 200, users)
-})
+  const users = await getAllUsersService(req.query);
+  globalResponse(res, 200, users);
+});
 
 /**
  * Get all user permits by ID
@@ -26,10 +26,10 @@ export const getAllUsers = handleCatchErrorAsync(async (req, res) => {
  * @param {Object} res - Express response object
  */
 export const getAllUserPermits = handleCatchErrorAsync(async (req, res) => {
-  const id = req.userId
-  const users = await getAllUserPermitsService(id)
-  globalResponse(res, 200, users)
-})
+  const id = req.userId;
+  const users = await getAllUserPermitsService(id);
+  globalResponse(res, 200, users);
+});
 
 /**
  * Get all users statuses.
@@ -39,9 +39,9 @@ export const getAllUserPermits = handleCatchErrorAsync(async (req, res) => {
  * @returns {Promise<void>} Sends a response containing the status of all product items.
  */
 export const getAllUsersStatus = handleCatchErrorAsync(async (req, res) => {
-  const data = await getAllUsersStatusService()
-  globalResponse(res, 200, data)
-})
+  const data = await getAllUsersStatusService();
+  globalResponse(res, 200, data);
+});
 
 /**
  * Get all users roles.
@@ -51,9 +51,9 @@ export const getAllUsersStatus = handleCatchErrorAsync(async (req, res) => {
  * @returns {Promise<void>} Sends a response containing the status of all product items.
  */
 export const getAllUsersRoles = handleCatchErrorAsync(async (req, res) => {
-  const data = await getAllUsersRolesService()
-  globalResponse(res, 200, data)
-})
+  const data = await getAllUsersRolesService();
+  globalResponse(res, 200, data);
+});
 
 /**
  * Create a new user
@@ -63,10 +63,10 @@ export const getAllUsersRoles = handleCatchErrorAsync(async (req, res) => {
 export const createUser = handleCatchErrorAsync(async (req, res) => {
   const user = await createUserService({
     ...req.body,
-    lastUpdatedBy: req.userId
-  })
-  globalResponse(res, 201, user)
-})
+    lastUpdatedBy: req.userId,
+  });
+  globalResponse(res, 201, user);
+});
 
 /**
  * Update a user by ID
@@ -75,10 +75,10 @@ export const createUser = handleCatchErrorAsync(async (req, res) => {
  */
 export const updateUserById = handleCatchErrorAsync(async (req, res) => {
   const user = await updateUserByIdService(req.params.id, {
-    ...req.body
-  })
-  globalResponse(res, 200, user)
-})
+    ...req.body,
+  });
+  globalResponse(res, 200, user);
+});
 
 /**
  * Delete a user by ID
@@ -86,6 +86,6 @@ export const updateUserById = handleCatchErrorAsync(async (req, res) => {
  * @param {Object} res - Express response object
  */
 export const deleteUserById = handleCatchErrorAsync(async (req, res) => {
-  await deleteUserByIdService(req.params.id)
-  globalResponse(res, 200, { message: 'User deleted successfully' })
-})
+  await deleteUserByIdService(req.params.id);
+  globalResponse(res, 200, { message: 'User deleted successfully' });
+});

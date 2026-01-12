@@ -19,11 +19,14 @@ import {
 import { Input } from '@/components/ui/input' // Using Input for Year filter
 import { Button } from '@/components/ui/button'
 import { LuPlus, LuSearch, LuEraser } from 'react-icons/lu'
-import { months } from '../utils' 
+import { months } from '../utils'
 
-export const PayrollFiltersForm = ({ onSubmit, onAddDialog, dataEmployees }) => {
+export const PayrollFiltersForm = ({
+  onSubmit,
+  onAddDialog,
+  dataEmployees
+}) => {
   const { t } = useTranslation()
-
 
   const form = useForm({
     defaultValues: {
@@ -32,8 +35,6 @@ export const PayrollFiltersForm = ({ onSubmit, onAddDialog, dataEmployees }) => 
       year: '' // Use string for Input
     }
   })
-
-
 
   const handleSubmit = data => {
     const filters = {
@@ -77,16 +78,19 @@ export const PayrollFiltersForm = ({ onSubmit, onAddDialog, dataEmployees }) => 
                 <FormLabel>{t('employee')}</FormLabel>
                 <Select
                   onValueChange={field.onChange}
-                  value={field.value?.toString() ?? ''}
-                 >
+                  value={field.value?.toString() ?? ''}>
                   <FormControl>
                     <SelectTrigger>
-                      <SelectValue placeholder={t('select_employee_placeholder')} />
+                      <SelectValue
+                        placeholder={t('select_employee_placeholder')}
+                      />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
                     {dataEmployees.map(employee => (
-                      <SelectItem key={employee.id} value={employee.id.toString()}>
+                      <SelectItem
+                        key={employee.id}
+                        value={employee.id.toString()}>
                         {`${employee.name} ${employee.lastName}`}
                       </SelectItem>
                     ))}
@@ -109,7 +113,9 @@ export const PayrollFiltersForm = ({ onSubmit, onAddDialog, dataEmployees }) => 
                   value={field.value?.toString() ?? ''}>
                   <FormControl>
                     <SelectTrigger>
-                      <SelectValue placeholder={t('select_month_placeholder')} />
+                      <SelectValue
+                        placeholder={t('select_month_placeholder')}
+                      />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
@@ -128,17 +134,17 @@ export const PayrollFiltersForm = ({ onSubmit, onAddDialog, dataEmployees }) => 
           {/* Year Input Filter */}
           <FormField
             control={form.control}
-            name="year"
+            name='year'
             render={({ field }) => (
-              <FormItem className="flex flex-col flex-auto">
+              <FormItem className='flex flex-col flex-auto'>
                 <FormLabel htmlFor='year'>{t('year')}</FormLabel>
                 <FormControl>
                   <Input
-                    id="year"
-                    name="year"
+                    id='year'
+                    name='year'
                     placeholder={t('year_placeholder')}
-                    type="number"
-                    min="2000"
+                    type='number'
+                    min='2000'
                     {...field}
                     value={field.value ?? ''}
                   />
@@ -181,4 +187,4 @@ PayrollFiltersForm.propTypes = {
   onSubmit: PropTypes.func.isRequired,
   onAddDialog: PropTypes.func,
   dataEmployees: PropTypes.array.isRequired // Ensure dataEmployees is passed as prop
-} 
+}

@@ -28,7 +28,14 @@ import { CaretSortIcon } from '@radix-ui/react-icons'
 import { MdOutlineArrowDropDown, MdOutlineArrowDropUp } from 'react-icons/md'
 import PropTypes from 'prop-types'
 
-export const DataTable = ({ columns, data = [], totalRows, handleRow, pagination, onPaginationChange }) => {
+export const DataTable = ({
+  columns,
+  data = [],
+  totalRows,
+  handleRow,
+  pagination,
+  onPaginationChange
+}) => {
   const [columnFilters, setColumnFilters] = useState([]) //column filters
   const [sorting, setSorting] = useState([]) //sorting
   // se translada al componente contenedor (Page) para cumplir con el envio de limit y page cumpliendo con A03 OWASP INJECTION
@@ -48,7 +55,7 @@ export const DataTable = ({ columns, data = [], totalRows, handleRow, pagination
     getCoreRowModel: getCoreRowModel(),
     //column filters
     onColumnFiltersChange: setColumnFilters,
-    getFilteredRowModel: getFilteredRowModel(), //client side filtering 
+    getFilteredRowModel: getFilteredRowModel(), //client side filtering
     // sorting
     onSortingChange: setSorting,
     getSortedRowModel: getSortedRowModel(),
@@ -58,7 +65,7 @@ export const DataTable = ({ columns, data = [], totalRows, handleRow, pagination
     onPaginationChange,
     manualPagination: true,
     rowCount: totalRows,
-  // pageCount: Math.ceil(totalRows / pageSize),  
+    // pageCount: Math.ceil(totalRows / pageSize),
     //state
     state: {
       columnFilters, //column filters

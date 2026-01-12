@@ -1,4 +1,4 @@
-import { rateLimit } from 'express-rate-limit'
+import { rateLimit } from 'express-rate-limit';
 
 export const limiter = rateLimit({
   windowMs: 60 * 60 * 1000, // 1 hour
@@ -7,8 +7,8 @@ export const limiter = rateLimit({
   legacyHeaders: false, // Disable the `X-RateLimit-*` headers
   skipFailedRequests: false,
   skipSuccessfulRequests: false,
-  message: 'too many requests from this IP, please try again in an hour.'
-})
+  message: 'too many requests from this IP, please try again in an hour.',
+});
 
 // Rate limiter ESPECÍFICO para login
 export const loginLimiter = rateLimit({
@@ -17,8 +17,8 @@ export const loginLimiter = rateLimit({
   skipSuccessfulRequests: true, // Solo cuenta fallos
   message: 'Demasiados intentos de login. Intenta de nuevo en 15 minutos.',
   standardHeaders: true,
-  legacyHeaders: false
-})
+  legacyHeaders: false,
+});
 
 // Rate limiter ESPECÍFICO para refresh token
 export const refreshTokenLimiter = rateLimit({
@@ -30,18 +30,19 @@ export const refreshTokenLimiter = rateLimit({
   legacyHeaders: false,
   // Limitar por IP Y por cookie
   keyGenerator: (req) => {
-    return `${req.ip}-${req.cookies?.jwt?.substring(0, 10) || 'no-token'}`
-  }
-})
+    return `${req.ip}-${req.cookies?.jwt?.substring(0, 10) || 'no-token'}`;
+  },
+});
 
 export const changePasswordLimiter = rateLimit({
   windowMs: 60 * 60 * 1000, // 1 hora
   max: 3, // 3 intentos por IP
   skipSuccessfulRequests: true,
-  message: 'Demasiados intentos de cambio de contraseña. Intenta de nuevo en 1 hora.',
+  message:
+    'Demasiados intentos de cambio de contraseña. Intenta de nuevo en 1 hora.',
   standardHeaders: true,
-  legacyHeaders: false
-})
+  legacyHeaders: false,
+});
 
 export const forgotPasswordLimiter = rateLimit({
   windowMs: 60 * 60 * 1000, // 1 hora
@@ -49,5 +50,5 @@ export const forgotPasswordLimiter = rateLimit({
   skipSuccessfulRequests: false,
   message: 'Demasiados intentos de recuperación. Intenta de nuevo en 1 hora.',
   standardHeaders: true,
-  legacyHeaders: false
-})
+  legacyHeaders: false,
+});

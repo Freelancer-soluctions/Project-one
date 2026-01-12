@@ -6,9 +6,9 @@ export const dataStatus = [
   {
     value: 'INACTIVE',
     label: 'INACTIVE'
-  },    
+  },
   {
     value: 'MAINTENANCE',
     label: 'MAINTENANCE'
   }
-]   
+]

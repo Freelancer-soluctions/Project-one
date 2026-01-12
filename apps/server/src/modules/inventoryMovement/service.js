@@ -2,9 +2,9 @@ import {
   getAllInventoryMovements as getAllInventoryMovementsDao,
   createInventoryMovement as createInventoryMovementDao,
   updateInventoryMovementById as updateInventoryMovementByIdDao,
-  deleteInventoryMovementById as deleteInventoryMovementByIdDao
-} from './dao.js'
-import { getSafePagination } from '../../utils/pagination/pagination.js'
+  deleteInventoryMovementById as deleteInventoryMovementByIdDao,
+} from './dao.js';
+import { getSafePagination } from '../../utils/pagination/pagination.js';
 
 /**
  * Get all inventory movements with optional filters
@@ -15,24 +15,36 @@ import { getSafePagination } from '../../utils/pagination/pagination.js'
  * @param {number} limit - The limit code filter.
  * @returns {Promise<Array>} List of inventory movements
  */
-export const getAllInventoryMovements = async ({ productId, warehouseId, type, limit, page }) => {
-  const { take, skip } = getSafePagination({ page, limit })
+export const getAllInventoryMovements = async ({
+  productId,
+  warehouseId,
+  type,
+  limit,
+  page,
+}) => {
+  const { take, skip } = getSafePagination({ page, limit });
 
   if (!take || take <= 0) {
-    throw new Error('Pagination is required')
+    throw new Error('Pagination is required');
   }
-  return await getAllInventoryMovementsDao({ productId, warehouseId, type, take, skip })
-}
+  return await getAllInventoryMovementsDao({
+    productId,
+    warehouseId,
+    type,
+    take,
+    skip,
+  });
+};
 
 /**
  * Create a new inventory movement
  * @param {Object} data - Inventory movement data
  * @returns {Promise<Object>} Created inventory movement
  */
-export const createInventoryMovement = async data => {
-  const inventoryMovement = await createInventoryMovementDao(data)
-  return inventoryMovement
-}
+export const createInventoryMovement = async (data) => {
+  const inventoryMovement = await createInventoryMovementDao(data);
+  return inventoryMovement;
+};
 
 /**
  * Update an inventory movement by ID
@@ -41,16 +53,16 @@ export const createInventoryMovement = async data => {
  * @returns {Promise<Object>} Updated inventory movement
  */
 export const updateInventoryMovementById = async (id, data) => {
-  const inventoryMovement = await updateInventoryMovementByIdDao(id, data)
-  return inventoryMovement
-}
+  const inventoryMovement = await updateInventoryMovementByIdDao(id, data);
+  return inventoryMovement;
+};
 
 /**
  * Delete an inventory movement by ID
  * @param {string} id - Inventory movement ID
  * @returns {Promise<Object>} Deleted inventory movement
  */
-export const deleteInventoryMovementById = async id => {
-  const inventoryMovement = await deleteInventoryMovementByIdDao(id)
-  return inventoryMovement
-}
+export const deleteInventoryMovementById = async (id) => {
+  const inventoryMovement = await deleteInventoryMovementByIdDao(id);
+  return inventoryMovement;
+};

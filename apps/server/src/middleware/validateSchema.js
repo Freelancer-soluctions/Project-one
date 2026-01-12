@@ -6,7 +6,7 @@ export const validateSchema = (schema) => {
     // Se extrae el body de la petición HTTP.
     // Todo lo que venga en req.body se considera input NO confiable
     // hasta que sea validado explícitamente.
-    const { body } = req
+    const { body } = req;
 
     // Se valida el body contra el esquema definido para la ruta.
     // abortEarly: false -> devuelve TODOS los errores encontrados,
@@ -21,27 +21,27 @@ export const validateSchema = (schema) => {
     // ya que evita inyecciones indirectas y mass assignment.
     const { error } = schema.validate(body, {
       abortEarly: false,
-      allowUnknown: false
-    })
+      allowUnknown: false,
+    });
 
     // Si la validación falla, se corta inmediatamente el flujo
     // y el request NUNCA llega al controller ni a la lógica de negocio.
     if (error) {
       // Se obtienen los detalles de los errores de validación
-      const { details } = error
+      const { details } = error;
 
       // Se transforman los errores técnicos del validador
       // en mensajes controlados que no exponen información interna.
-      const messages = details?.map((errorDetail) => errorDetail.message)
+      const messages = details?.map((errorDetail) => errorDetail.message);
 
       // Se responde con 400 Bad Request indicando que el problema
       // es el input enviado por el cliente.
-      return res.status(400).json({ error: messages })
+      return res.status(400).json({ error: messages });
     }
 
     // Si el input cumple completamente con el esquema,
     // se continúa con el siguiente middleware o controller.
     // A partir de este punto, los datos se consideran confiables.
-    next()
-  }
-}
+    next();
+  };
+};

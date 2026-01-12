@@ -78,7 +78,7 @@ export const SalesFiltersForm = ({ onSubmit, onAddDialog, clients }) => {
                 <Select
                   onValueChange={field.onChange}
                   value={field.value?.toString()} // Asegura que el valor sea string
-                  >
+                >
                   <FormControl id='clientId'>
                     <SelectTrigger>
                       <SelectValue placeholder={t('select_client')} />

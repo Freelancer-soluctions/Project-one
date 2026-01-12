@@ -1,4 +1,4 @@
-import { prisma } from '../../config/db.js'
+import { prisma } from '../../config/db.js';
 
 /**
  * Create or update language settings.
@@ -15,8 +15,8 @@ export const createOrUpdateSettingsLanguage = async (id, data, userId) => {
     // Actualiza el registro si el id existe
     return await prisma.settings.update({
       where: { id },
-      data
-    })
+      data,
+    });
   } else {
     // Crea un nuevo registro si el id no existe
     return await prisma.settings.create({
@@ -25,13 +25,13 @@ export const createOrUpdateSettingsLanguage = async (id, data, userId) => {
         createdOn: data.createdOn,
         userSettingCreated: {
           connect: {
-            id: userId
-          }
-        }
-      }
-    })
+            id: userId,
+          },
+        },
+      },
+    });
   }
-}
+};
 
 /**
  * Create or update language settings.
@@ -48,8 +48,8 @@ export const createOrUpdateSettingsDisplay = async (id, data, userId) => {
     // Actualiza el registro si el id existe
     return await prisma.settings.update({
       where: { id },
-      data
-    })
+      data,
+    });
   } else {
     // Crea un nuevo registro si el id no existe
     return await prisma.settings.create({
@@ -57,13 +57,13 @@ export const createOrUpdateSettingsDisplay = async (id, data, userId) => {
         ...data,
         userSettingCreated: {
           connect: {
-            id: userId
-          }
-        }
-      }
-    })
+            id: userId,
+          },
+        },
+      },
+    });
   }
-}
+};
 
 /**
  * Get language settings by user ID (Alternative implementation).
@@ -77,11 +77,11 @@ export const createOrUpdateSettingsDisplay = async (id, data, userId) => {
 export const getSettingsById = async (userId) => {
   const result = await prisma.settings.findFirst({
     where: {
-      userId
-    }
-  })
-  return Promise.resolve(result)
-}
+      userId,
+    },
+  });
+  return Promise.resolve(result);
+};
 
 /**
  * Get all product categories from the database with optional filters
@@ -91,42 +91,46 @@ export const getSettingsById = async (userId) => {
  * @param {number} page - Filter by page
  * @returns {Promise<Array>} A list of categories matching the filters
  */
-export const getAllProductCategories = async (description = '', code = '', take, skip) => {
+export const getAllProductCategories = async (
+  description = '',
+  code = '',
+  take,
+  skip
+) => {
   const dataList = await prisma.productCategories.findMany({
     where: {
       description: {
         contains: description,
-        mode: 'insensitive'
+        mode: 'insensitive',
       },
       code: {
         contains: code,
-        mode: 'insensitive'
-      }
+        mode: 'insensitive',
+      },
     },
     orderBy: {
-      code: 'asc'
+      code: 'asc',
     },
     take,
-    skip
-  })
+    skip,
+  });
   const total = await prisma.productCategories.count({
     where: {
       description: {
         contains: description,
-        mode: 'insensitive'
+        mode: 'insensitive',
       },
       code: {
         contains: code,
-        mode: 'insensitive'
-      }
+        mode: 'insensitive',
+      },
     },
     orderBy: {
-      code: 'asc'
-    }
-
-  })
-  return { dataList, total }
-}
+      code: 'asc',
+    },
+  });
+  return { dataList, total };
+};
 
 /**
  * Create a new product category in the database
@@ -141,10 +145,10 @@ export const createProductCategory = async (data) => {
     data: {
       code: data.code,
       description: data.description,
-      createdOn: new Date()
-    }
-  })
-}
+      createdOn: new Date(),
+    },
+  });
+};
 
 /**
  * Update a product category in the database
@@ -160,10 +164,10 @@ export const updateProductCategory = async (data, where) => {
     data: {
       description: data.description,
       code: data.code,
-      updatedOn: new Date()
-    }
-  })
-}
+      updatedOn: new Date(),
+    },
+  });
+};
 
 /**
  * Delete a product category from the database
@@ -173,6 +177,6 @@ export const updateProductCategory = async (data, where) => {
  */
 export const deleteProductCategory = async (where) => {
   return prisma.productCategories.delete({
-    where
-  })
-}
+    where,
+  });
+};

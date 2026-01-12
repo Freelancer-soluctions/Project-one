@@ -28,7 +28,6 @@ const Stock = () => {
     pageSize: 20
   })
   const [filters, setFilters] = useState({})
- 
 
   const [
     getAllStock,
@@ -59,8 +58,6 @@ const Stock = () => {
     isFetching: isFetchingWarehouse
   } = useGetAllWarehousesFiltersQuery()
 
-
-
   useEffect(() => {
     debugger
     if (location.state?.filter) {
@@ -68,7 +65,7 @@ const Stock = () => {
     }
   }, [location.state?.filter])
 
-   /**
+  /**
    * Este efecto es la única fuente de verdad para disparar
    * la consulta al backend.
    *
@@ -107,7 +104,6 @@ const Stock = () => {
     setFilters(newFilters)
   }
 
- 
   const handleSubmit = async (values, stockId) => {
     try {
       const result = stockId
@@ -237,7 +233,7 @@ const Stock = () => {
             <StockDatatable
               dataStock={dataStock}
               onEditDialog={handleEditDialog}
-               pagination={pagination}
+              pagination={pagination}
               onPaginationChange={setPagination}
             />
           </div>

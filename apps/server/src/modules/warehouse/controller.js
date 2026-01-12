@@ -3,10 +3,10 @@ import {
   getAllWarehousesFilters as getAllWarehousesFiltersService,
   createWarehouse as createWarehouseService,
   updateWarehouseById as updateWarehouseByIdService,
-  deleteWarehouseById as deleteWarehouseByIdService
-} from './service.js'
-import globalResponse from '../../utils/responses&Errors/globalResponse.js'
-import handleCatchErrorAsync from '../../utils/responses&Errors/handleCatchErrorAsync.js'
+  deleteWarehouseById as deleteWarehouseByIdService,
+} from './service.js';
+import globalResponse from '../../utils/responses&Errors/globalResponse.js';
+import handleCatchErrorAsync from '../../utils/responses&Errors/handleCatchErrorAsync.js';
 
 /**
  * Get all warehouses with optional filters
@@ -15,10 +15,10 @@ import handleCatchErrorAsync from '../../utils/responses&Errors/handleCatchError
  * @returns {Promise<void>}
  */
 export const getAllWarehouses = handleCatchErrorAsync(async (req, res) => {
-  const { name, status } = req.query
-  const warehouses = await getAllWarehousesService({ name, status })
-  globalResponse(res, 200, warehouses)
-})
+  const { name, status } = req.query;
+  const warehouses = await getAllWarehousesService({ name, status });
+  globalResponse(res, 200, warehouses);
+});
 
 /**
  * Get all warehouses with optional filters
@@ -26,10 +26,12 @@ export const getAllWarehouses = handleCatchErrorAsync(async (req, res) => {
  * @param {Object} res - Express response object
  * @returns {Promise<void>}
  */
-export const getAllWarehousesFilters = handleCatchErrorAsync(async (req, res) => {
-  const warehouses = await getAllWarehousesFiltersService()
-  globalResponse(res, 200, warehouses)
-})
+export const getAllWarehousesFilters = handleCatchErrorAsync(
+  async (req, res) => {
+    const warehouses = await getAllWarehousesFiltersService();
+    globalResponse(res, 200, warehouses);
+  }
+);
 /**
  * Create a new warehouse
  * @param {Object} req - Express request object
@@ -37,9 +39,9 @@ export const getAllWarehousesFilters = handleCatchErrorAsync(async (req, res) =>
  * @returns {Promise<void>}
  */
 export const createWarehouse = handleCatchErrorAsync(async (req, res) => {
-  await createWarehouseService(req.body)
-  globalResponse(res, 201, { message: 'Warehouse created successfully' })
-})
+  await createWarehouseService(req.body);
+  globalResponse(res, 201, { message: 'Warehouse created successfully' });
+});
 
 /**
  * Update a warehouse by ID
@@ -48,10 +50,10 @@ export const createWarehouse = handleCatchErrorAsync(async (req, res) => {
  * @returns {Promise<void>}
  */
 export const updateWarehouseById = handleCatchErrorAsync(async (req, res) => {
-  const { id } = req.params
-  await updateWarehouseByIdService(id, req.body)
-  globalResponse(res, 200, { message: 'Warehouse updated successfully' })
-})
+  const { id } = req.params;
+  await updateWarehouseByIdService(id, req.body);
+  globalResponse(res, 200, { message: 'Warehouse updated successfully' });
+});
 
 /**
  * Delete a warehouse by ID
@@ -60,7 +62,7 @@ export const updateWarehouseById = handleCatchErrorAsync(async (req, res) => {
  * @returns {Promise<void>}
  */
 export const deleteWarehouseById = handleCatchErrorAsync(async (req, res) => {
-  const { id } = req.params
-  await deleteWarehouseByIdService(id)
-  globalResponse(res, 200, { message: 'Warehouse deleted successfully' })
-})
+  const { id } = req.params;
+  await deleteWarehouseByIdService(id);
+  globalResponse(res, 200, { message: 'Warehouse deleted successfully' });
+});

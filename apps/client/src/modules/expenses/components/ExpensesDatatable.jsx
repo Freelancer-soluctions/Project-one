@@ -3,12 +3,15 @@ import { DataTable } from '@/components/dataTable'
 import { format } from 'date-fns'
 import PropTypes from 'prop-types'
 
-export const ExpensesDatatable = ({ dataExpenses, onEditDialog,   pagination,
-  onPaginationChange }) => {
+export const ExpensesDatatable = ({
+  dataExpenses,
+  onEditDialog,
+  pagination,
+  onPaginationChange
+}) => {
   const { t } = useTranslation()
 
-    const {dataList, total}= dataExpenses.data
-
+  const { dataList, total } = dataExpenses.data
 
   const columnDefExpenses = [
     {
@@ -77,6 +80,6 @@ export const ExpensesDatatable = ({ dataExpenses, onEditDialog,   pagination,
 ExpensesDatatable.propTypes = {
   dataExpenses: PropTypes.object.isRequired,
   onEditDialog: PropTypes.func.isRequired,
-    pagination: PropTypes.object.isRequired,
-    onPaginationChange: PropTypes.func.isRequired
+  pagination: PropTypes.object.isRequired,
+  onPaginationChange: PropTypes.func.isRequired
 }

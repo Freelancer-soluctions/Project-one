@@ -3,9 +3,9 @@ import {
   getAllExpenses as getAllExpensesDao, // Renamed
   createExpense as createExpenseDao, // Renamed
   updateExpenseById as updateExpenseByIdDao, // Renamed
-  deleteExpenseById as deleteExpenseByIdDao // Renamed
-} from './dao.js' // Assuming dao.js will be adapted for expenses
-import { getSafePagination } from '../../utils/pagination/pagination.js'
+  deleteExpenseById as deleteExpenseByIdDao, // Renamed
+} from './dao.js'; // Assuming dao.js will be adapted for expenses
+import { getSafePagination } from '../../utils/pagination/pagination.js';
 
 /**
  * Get all expenses with optional filters
@@ -14,13 +14,16 @@ import { getSafePagination } from '../../utils/pagination/pagination.js'
  * @async
  */
 export const getAllExpenses = async (filters) => {
-  const { take, skip } = getSafePagination({ page: filters.page, limit: filters.limit })
+  const { take, skip } = getSafePagination({
+    page: filters.page,
+    limit: filters.limit,
+  });
 
   if (!take || take <= 0) {
-    throw new Error('Pagination is required')
+    throw new Error('Pagination is required');
   }
-  return getAllExpensesDao(filters, take, skip)
-}
+  return getAllExpensesDao(filters, take, skip);
+};
 
 /**
  * Create a new expense
@@ -32,10 +35,10 @@ export const createExpense = async (data, userId) => {
   const expenseData = {
     ...data,
     createdOn: new Date(),
-    createdBy: userId
-  }
-  return createExpenseDao(expenseData)
-}
+    createdBy: userId,
+  };
+  return createExpenseDao(expenseData);
+};
 
 /**
  * Update an expense by ID
@@ -48,11 +51,11 @@ export const updateExpenseById = async (id, data, userId) => {
   const expenseData = {
     ...data,
     updatedOn: new Date(), // Prisma model for expenses has updatedOn DateTime?
-    updatedBy: userId
-  }
+    updatedBy: userId,
+  };
   // ID is already a string, no Number() conversion needed for CUID
-  return updateExpenseByIdDao(Number(id), expenseData)
-}
+  return updateExpenseByIdDao(Number(id), expenseData);
+};
 
 /**
  * Delete an expense by ID
@@ -62,5 +65,5 @@ export const updateExpenseById = async (id, data, userId) => {
  */
 export const deleteExpenseById = async (id) => {
   // ID is already a string, no Number() conversion needed for CUID
-  return deleteExpenseByIdDao(Number(id))
-}
+  return deleteExpenseByIdDao(Number(id));
+};

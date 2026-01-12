@@ -47,8 +47,7 @@ export const UsersDialog = ({
   const [userId, setUserId] = useState('')
 
   const form = useForm({
-    resolver: zodResolver(UserSchema),
-    
+    resolver: zodResolver(UserSchema)
   })
 
   // Actualiza todos los valores del formulario al cambiar `selectedRow`
@@ -71,7 +70,7 @@ export const UsersDialog = ({
         picture: selectedRow.picture,
         document: selectedRow.document,
         roleId: selectedRow.roleId,
-        statusId: selectedRow.statusId,
+        statusId: selectedRow.statusId
       }
 
       form.reset(mappedValues)
@@ -94,7 +93,7 @@ export const UsersDialog = ({
         picture: '',
         document: '',
         roleId: '',
-        statusId: '',
+        statusId: ''
       })
       setUserId(null)
     }
@@ -116,9 +115,7 @@ export const UsersDialog = ({
             <LuUsersRound className='inline mr-3 w-7 h-7' />
             {actionDialog}
           </DialogTitle>
-          <DialogDescription>
-            {t('edit_message')}
-          </DialogDescription>
+          <DialogDescription>{t('edit_message')}</DialogDescription>
         </DialogHeader>
         <Form {...form}>
           <form
@@ -185,7 +182,9 @@ export const UsersDialog = ({
                 render={({ field }) => {
                   return (
                     <FormItem>
-                      <FormLabel htmlFor='telephone'>{t('telephone')}*</FormLabel>
+                      <FormLabel htmlFor='telephone'>
+                        {t('telephone')}*
+                      </FormLabel>
                       <FormControl>
                         <Input
                           id='telephone'
@@ -269,7 +268,9 @@ export const UsersDialog = ({
                 name='startDate'
                 render={({ field }) => (
                   <FormItem className='flex flex-col flex-auto'>
-                    <FormLabel htmlFor='startDate'>{t('start_date')}*</FormLabel>
+                    <FormLabel htmlFor='startDate'>
+                      {t('start_date')}*
+                    </FormLabel>
                     <Popover>
                       <PopoverTrigger asChild>
                         <FormControl>
@@ -305,7 +306,9 @@ export const UsersDialog = ({
                 render={({ field }) => {
                   return (
                     <FormItem>
-                      <FormLabel htmlFor='socialSecurity'>{t('social_security')}*</FormLabel>
+                      <FormLabel htmlFor='socialSecurity'>
+                        {t('social_security')}*
+                      </FormLabel>
                       <FormControl>
                         <Input
                           id='socialSecurity'
@@ -496,7 +499,9 @@ export const UsersDialog = ({
                 render={({ field }) => {
                   return (
                     <FormItem>
-                      <FormLabel htmlFor='statusId'>{t('status_id')}*</FormLabel>
+                      <FormLabel htmlFor='statusId'>
+                        {t('status_id')}*
+                      </FormLabel>
                       <FormControl>
                         <Input
                           id='statusId'
@@ -520,7 +525,9 @@ export const UsersDialog = ({
                 render={({ field }) => {
                   return (
                     <FormItem>
-                      <FormLabel htmlFor='userPermitId'>{t('user_permit_id')}*</FormLabel>
+                      <FormLabel htmlFor='userPermitId'>
+                        {t('user_permit_id')}*
+                      </FormLabel>
                       <FormControl>
                         <Input
                           id='userPermitId'
