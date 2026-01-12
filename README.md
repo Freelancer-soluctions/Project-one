@@ -243,3 +243,74 @@ node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"
 A02 CRYPTOGRAPHID FAILURES
 Cifrado de datos en campos sensibles (AES-GCM) 
 
+Configuracion de prettier
+{
+  // Esquema oficial para que editores (VS Code, WebStorm)
+  // validen y autocompleten las opciones de Prettier
+  "$schema": "https://json.schemastore.org/prettierrc",
+
+  // Longitud máxima de una línea antes de que Prettier haga saltos
+  // Valor recomendado por Prettier y estándar en equipos
+  "printWidth": 80,
+
+  // Número de espacios por nivel de indentación
+  "tabWidth": 2,
+
+  // Fuerza el uso de espacios en lugar de tabs
+  // Garantiza consistencia entre editores y CI
+  "useTabs": false,
+
+  // Obliga a usar punto y coma al final de las sentencias
+  // Evita edge cases del ASI en JavaScript
+  "semi": true,
+
+  // Usa comillas simples en JavaScript
+  // No afecta a JSX ni a JSON
+  "singleQuote": true,
+
+  // Solo añade comillas a propiedades de objetos cuando es necesario
+  // Reduce ruido visual sin romper compatibilidad
+  "quoteProps": "as-needed",
+
+  // En JSX se mantienen comillas dobles (convención HTML)
+  // Recomendado por la documentación oficial
+  "jsxSingleQuote": false,
+
+  // Añade coma final donde ES5 lo permite (objetos, arrays, parámetros)
+  // Mejora los diffs en Git
+  "trailingComma": "es5",
+
+  // Añade espacios dentro de llaves en objetos: { foo: bar }
+  // Mejora la legibilidad
+  "bracketSpacing": true,
+
+  // Mantiene el cierre de JSX en una nueva línea
+  // Evita JSX compacto difícil de leer
+  "bracketSameLine": false,
+
+  // Siempre incluye paréntesis en funciones flecha
+  // Mejora legibilidad y evita ambigüedades
+  "arrowParens": "always",
+
+  // Fuerza finales de línea LF
+  // CRÍTICO para evitar errores en CI/CD (Linux) y conflictos Windows
+  "endOfLine": "lf"
+}
+
+
+Uso en CI/CD (muy importante)   
+
+{
+  "scripts": {
+    "format:check": "prettier --check \"apps/**/*.{js,jsx,json,md}\""
+  }
+}
+En el pipeline
+npm ci
+npm run format:check
+
+Falla el pipeline si alguien rompe el formato
+
+No modifica código en CI
+
+Refuerza Husky (defensa en capas)
