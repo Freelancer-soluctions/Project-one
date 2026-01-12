@@ -1,4 +1,4 @@
-import { prisma, Prisma } from '../../config/db.js'
+import { prisma, Prisma } from '../../config/db.js';
 
 /**
  * Get all attendance records with optional filters
@@ -12,28 +12,32 @@ import { prisma, Prisma } from '../../config/db.js'
  * @returns {Promise<Array>} List of attendance records with their related data
  */
 export const getAllAttendance = async (filters = {}, take, skip) => {
-  console.log('filters', filters)
-  const whereClauses = []
+  console.log('filters', filters);
+  const whereClauses = [];
 
   if (filters.employeeId) {
-    whereClauses.push(Prisma.sql`a."employeeId" = ${Number(filters.employeeId)}`)
+    whereClauses.push(
+      Prisma.sql`a."employeeId" = ${Number(filters.employeeId)}`
+    );
   }
 
   if (filters.fromDate && filters.toDate) {
-    whereClauses.push(Prisma.sql`a."date" BETWEEN ${filters.fromDate}::timestamp AND ${filters.toDate}::timestamp`)
+    whereClauses.push(
+      Prisma.sql`a."date" BETWEEN ${filters.fromDate}::timestamp AND ${filters.toDate}::timestamp`
+    );
   } else if (filters.fromDate) {
-    whereClauses.push(Prisma.sql`a."date" >= ${filters.fromDate}::timestamp`)
+    whereClauses.push(Prisma.sql`a."date" >= ${filters.fromDate}::timestamp`);
   } else if (filters.toDate) {
-    whereClauses.push(Prisma.sql`a."date" <= ${filters.toDate}::timestamp`)
+    whereClauses.push(Prisma.sql`a."date" <= ${filters.toDate}::timestamp`);
   }
 
   const whereSql = whereClauses.length
     ? Prisma.sql`WHERE ${Prisma.join(whereClauses, ' AND ')}`
-    : Prisma.empty
+    : Prisma.empty;
 
-  console.log('whereClauses:', whereClauses)
-  console.log('whereSql:', whereSql)
-  console.log('take:', take, 'skip:', skip)
+  console.log('whereClauses:', whereClauses);
+  console.log('whereSql:', whereSql);
+  console.log('take:', take, 'skip:', skip);
   const attendance = await prisma.$queryRaw`
   SELECT 
      a.*,
@@ -49,29 +53,28 @@ export const getAllAttendance = async (filters = {}, take, skip) => {
    ORDER BY a."date" DESC, a."entryTime" DESC
    LIMIT ${take || 10}
    OFFSET ${skip || 0}
- `
+ `;
 
   const total = await prisma.attendance.count({
     where: {
       ...(filters.employeeId && {
-        employeeId: Number(filters.employeeId)
+        employeeId: Number(filters.employeeId),
       }),
 
       ...((filters.fromDate || filters.toDate) && {
         date: {
           ...(filters.fromDate && {
-            gte: new Date(filters.fromDate)
+            gte: new Date(filters.fromDate),
           }),
           ...(filters.toDate && {
-            lte: new Date(filters.toDate)
-          })
-        }
-      })
-    }
-
-  })
-  return { dataList: attendance, total }
-}
+            lte: new Date(filters.toDate),
+          }),
+        },
+      }),
+    },
+  });
+  return { dataList: attendance, total };
+};
 
 /**
  * Create a new attendance record
@@ -94,17 +97,17 @@ export const createAttendance = async (data) => {
       createdOn: data.createdOn,
       userAttendanceCreated: {
         connect: {
-          id: data.createdBy
-        }
+          id: data.createdBy,
+        },
       },
       employee: {
         connect: {
-          id: data.employeeId
-        }
-      }
-    }
-  })
-}
+          id: data.employeeId,
+        },
+      },
+    },
+  });
+};
 
 /**
  * Update an attendance record by ID
@@ -129,17 +132,17 @@ export const updateAttendanceById = async (id, data) => {
       updatedOn: data.updatedOn,
       employee: {
         connect: {
-          id: data.employeeId
-        }
+          id: data.employeeId,
+        },
       },
       userAttendanceUpdated: {
         connect: {
-          id: data.updatedBy
-        }
-      }
-    }
-  })
-}
+          id: data.updatedBy,
+        },
+      },
+    },
+  });
+};
 
 /**
  * Delete an attendance record by ID
@@ -148,6 +151,6 @@ export const updateAttendanceById = async (id, data) => {
  */
 export const deleteAttendanceById = async (id) => {
   return prisma.attendance.delete({
-    where: { id }
-  })
-}
+    where: { id },
+  });
+};

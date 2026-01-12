@@ -41,9 +41,7 @@ import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { LuTrendingDown } from 'react-icons/lu' // Changed icon
 import PropTypes from 'prop-types'
-import { ExpenseSchema, expenseCategories } from '../utils' 
-
-
+import { ExpenseSchema, expenseCategories } from '../utils'
 
 export const ExpensesDialog = ({
   // Renamed from ClientsDialog
@@ -62,8 +60,7 @@ export const ExpensesDialog = ({
     defaultValues: {
       description: '',
       total: '', // Or 0 if it's a number treated by schema
-      category: '',
-      
+      category: ''
     }
   })
 
@@ -94,8 +91,7 @@ export const ExpensesDialog = ({
       form.reset({
         description: '',
         total: '',
-        category: '',
-     
+        category: ''
       })
       setExpenseId(null)
     }
@@ -137,9 +133,6 @@ export const ExpensesDialog = ({
             onSubmit={form.handleSubmit(handleSubmit)}
             className='flex flex-col flex-wrap gap-5'>
             <div className='grid grid-cols-1 gap-6 py-4 md:grid-cols-2 auto-rows-auto'>
-          
-        
-             
               <FormField
                 control={form.control}
                 name='total'
@@ -193,7 +186,7 @@ export const ExpensesDialog = ({
                 )}
               />
 
-               <FormField
+              <FormField
                 control={form.control}
                 name='description'
                 render={({ field }) => {
@@ -209,7 +202,6 @@ export const ExpensesDialog = ({
                           placeholder={t('description_placeholder')}
                           className='resize-none'
                           maxLength={255}
-                         
                           {...field}
                           value={field.value ?? ''}
                         />

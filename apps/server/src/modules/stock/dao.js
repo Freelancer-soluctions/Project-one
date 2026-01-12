@@ -1,4 +1,4 @@
-import { prisma, Prisma } from '../../config/db.js'
+import { prisma, Prisma } from '../../config/db.js';
 
 /**
  * Get all stock entries with optional filters
@@ -17,7 +17,8 @@ export const getAllStock = async ({
   unitMeasure,
   stocksExpirated,
   stocksLow,
-  take, skip
+  take,
+  skip,
 }) => {
   const stocks = await prisma.$queryRaw(
     Prisma.sql`
@@ -74,10 +75,10 @@ export const getAllStock = async ({
         LIMIT ${take}
         OFFSET ${skip}
     `
-  )
+  );
 
-  return stocks
-}
+  return stocks;
+};
 
 /**
  * Get stock by product ID
@@ -86,9 +87,9 @@ export const getAllStock = async ({
  */
 export const getStockByProductId = async (id) => {
   return prisma.stock.findUnique({
-    where: { productId: id }
-  })
-}
+    where: { productId: id },
+  });
+};
 
 /**
  * Get all stock alerts
@@ -100,11 +101,11 @@ export const getStockAlerts = async () => {
       CAST(COUNT(CASE WHEN s."expirationDate" < CURRENT_DATE THEN 1 END) AS INTEGER) AS "expired",
       CAST(COUNT(CASE WHEN s."quantity" < s."minimum" THEN 1 END) AS INTEGER) AS "lowStock"  
     FROM "stock" s
-  `
+  `;
 
-  const { expired, lowStock } = stockAlerts[0]
-  return { expired, lowStock }
-}
+  const { expired, lowStock } = stockAlerts[0];
+  return { expired, lowStock };
+};
 
 /**
  * Create a new stock entry
@@ -124,23 +125,23 @@ export const createStock = async (data) => {
       createdOn: data.createdOn,
       warehouse: {
         connect: {
-          id: data.warehouseId
-        }
+          id: data.warehouseId,
+        },
       },
       product: {
         connect: {
-          id: data.productId
-        }
+          id: data.productId,
+        },
       },
       userStockCreated: {
         connect: {
-          id: data.createdBy
-        }
-      }
-    }
-  })
-  return stock
-}
+          id: data.createdBy,
+        },
+      },
+    },
+  });
+  return stock;
+};
 
 /**
  * Update a stock entry
@@ -161,25 +162,24 @@ export const updateStock = async (data, where) => {
       updatedOn: data.updatedOn,
       warehouse: {
         connect: {
-          id: data.warehouseId
-        }
+          id: data.warehouseId,
+        },
       },
       product: {
         connect: {
-          id: data.productId
-        }
+          id: data.productId,
+        },
       },
       userStockUpdated: {
         connect: {
-          id: data.updatedBy
-        }
-      }
+          id: data.updatedBy,
+        },
+      },
+    },
+  });
 
-    }
-  })
-
-  return stock
-}
+  return stock;
+};
 
 /**
  * Delete a stock entry
@@ -188,8 +188,8 @@ export const updateStock = async (data, where) => {
  */
 export const deleteStock = async (where) => {
   const stock = await prisma.stock.delete({
-    where
-  })
+    where,
+  });
 
-  return stock
-}
+  return stock;
+};

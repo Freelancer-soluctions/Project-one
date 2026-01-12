@@ -15,11 +15,14 @@ export const ClientSchema = z
       message: 'Address is required.'
     })
   })
-  .passthrough() // Permite otros campos 
+  .passthrough() // Permite otros campos
 
-  export const ClientsFiltersSchema = z.object({
-    name: z.string().optional(),
-    email: z.string().email({
+export const ClientsFiltersSchema = z.object({
+  name: z.string().optional(),
+  email: z
+    .string()
+    .email({
       message: 'Invalid email format.'
-    }).optional()
-  })
+    })
+    .optional()
+})

@@ -1,4 +1,4 @@
-import { prisma, Prisma } from '../../config/db.js'
+import { prisma, Prisma } from '../../config/db.js';
 
 /**
  * @description Retrieve permissions from the database with optional filters
@@ -13,32 +13,36 @@ import { prisma, Prisma } from '../../config/db.js'
  * @returns {Promise<Array>} List of permissions with related employee and approver data
  */
 export const getAllPermissions = async (filters, take, skip) => {
-  const whereClauses = []
+  const whereClauses = [];
 
   if (filters.employeeId) {
-    whereClauses.push(Prisma.sql`pe."employeeId" = ${Number(filters.employeeId)}`)
+    whereClauses.push(
+      Prisma.sql`pe."employeeId" = ${Number(filters.employeeId)}`
+    );
   }
 
   if (filters.startDate) {
-    whereClauses.push(Prisma.sql`pe."createdOn" >= ${filters.startDate}`)
+    whereClauses.push(Prisma.sql`pe."createdOn" >= ${filters.startDate}`);
   }
 
   if (filters.endDate) {
-    whereClauses.push(Prisma.sql`pe."createdOn" <= ${filters.endDate}`)
+    whereClauses.push(Prisma.sql`pe."createdOn" <= ${filters.endDate}`);
   }
 
   if (filters.status) {
     // Using ILIKE for case-insensitive search for description
-    whereClauses.push(Prisma.sql`pe."status" ILIKE ${'%' + filters.status + '%'}`)
+    whereClauses.push(
+      Prisma.sql`pe."status" ILIKE ${'%' + filters.status + '%'}`
+    );
   }
   if (filters.type) {
     // Using ILIKE for case-insensitive search for description
-    whereClauses.push(Prisma.sql`pe."type" ILIKE ${'%' + filters.type + '%'}`)
+    whereClauses.push(Prisma.sql`pe."type" ILIKE ${'%' + filters.type + '%'}`);
   }
 
   const whereSql = whereClauses.length
     ? Prisma.sql`WHERE ${Prisma.join(whereClauses, Prisma.sql` AND `)}`
-    : Prisma.empty
+    : Prisma.empty;
 
   const permissions = await prisma.$queryRaw`
       SELECT 
@@ -54,46 +58,44 @@ export const getAllPermissions = async (filters, take, skip) => {
       ORDER BY pe."createdOn" DESC
       LIMIT ${take}
       OFFSET ${skip}
-    `
+    `;
   const total = await prisma.permission.count({
     where: {
       ...(filters.employeeId && {
-        employeeId: Number(filters.employeeId)
+        employeeId: Number(filters.employeeId),
       }),
 
       ...(filters.startDate && {
         createdOn: {
-          gte: new Date(filters.startDate)
-        }
+          gte: new Date(filters.startDate),
+        },
       }),
 
       ...(filters.endDate && {
         createdOn: {
-          ...(filters.startDate
-            ? { gte: new Date(filters.startDate) }
-            : {}),
-          lte: new Date(filters.endDate)
-        }
+          ...(filters.startDate ? { gte: new Date(filters.startDate) } : {}),
+          lte: new Date(filters.endDate),
+        },
       }),
 
       ...(filters.status && {
         status: {
           contains: filters.status,
-          mode: 'insensitive' // equivalente a ILIKE
-        }
+          mode: 'insensitive', // equivalente a ILIKE
+        },
       }),
 
       ...(filters.type && {
         type: {
           contains: filters.type,
-          mode: 'insensitive' // equivalente a ILIKE
-        }
-      })
-    }
-  })
+          mode: 'insensitive', // equivalente a ILIKE
+        },
+      }),
+    },
+  });
 
-  return { dataList: permissions, total }
-}
+  return { dataList: permissions, total };
+};
 
 /**
  * @description Create a new permission record in the database
@@ -119,17 +121,17 @@ export const createPermission = async (data) => {
       reason: data.reason,
       comments: data.comments,
       employee: {
-        connect: { id: data.employeeId }
+        connect: { id: data.employeeId },
       },
       userPermissionCreated: {
-        connect: { id: data.createdBy }
-      }
+        connect: { id: data.createdBy },
+      },
     },
     include: {
-      employee: true
-    }
-  })
-}
+      employee: true,
+    },
+  });
+};
 
 /**
  * @description Update an existing permission record in the database
@@ -157,17 +159,17 @@ export const updatePermissionById = async (id, data) => {
       reason: data.reason,
       comments: data.comments,
       employee: {
-        connect: { id: data.employeeId }
+        connect: { id: data.employeeId },
       },
       userPermissionUpdated: {
-        connect: { id: data.updatedBy }
-      }
+        connect: { id: data.updatedBy },
+      },
     },
     include: {
-      employee: true
-    }
-  })
-}
+      employee: true,
+    },
+  });
+};
 
 /**
  * @description Delete a permission record from the database
@@ -177,6 +179,6 @@ export const updatePermissionById = async (id, data) => {
  */
 export const deletePermissionById = async (id) => {
   return await prisma.permission.delete({
-    where: { id }
-  })
-}
+    where: { id },
+  });
+};

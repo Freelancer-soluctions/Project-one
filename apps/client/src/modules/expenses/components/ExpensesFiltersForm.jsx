@@ -22,12 +22,13 @@ import PropTypes from 'prop-types'
 import { ExpensesFiltersSchema, expenseCategories } from '../utils' // Changed from ClientsFiltersSchema
 import { zodResolver } from '@hookform/resolvers/zod'
 
-
-export const ExpensesFiltersForm = ({ onSubmit, onAddDialog }) => { // Renamed
+export const ExpensesFiltersForm = ({ onSubmit, onAddDialog }) => {
+  // Renamed
   const { t } = useTranslation()
   const form = useForm({
     resolver: zodResolver(ExpensesFiltersSchema), // Changed schema
-    defaultValues: { // Added default values for new filter fields
+    defaultValues: {
+      // Added default values for new filter fields
       description: '',
       category: ''
     }
@@ -42,11 +43,12 @@ export const ExpensesFiltersForm = ({ onSubmit, onAddDialog }) => { // Renamed
   }
 
   const handleResetFilter = () => {
-    form.reset({ // Reset to defined defaults
-        description: '',
-        category: ''
+    form.reset({
+      // Reset to defined defaults
+      description: '',
+      category: ''
     })
-    onSubmit({}); // Submit empty object to clear filters in parent
+    onSubmit({}) // Submit empty object to clear filters in parent
   }
 
   return (
@@ -54,23 +56,23 @@ export const ExpensesFiltersForm = ({ onSubmit, onAddDialog }) => { // Renamed
       <form
         method='post'
         action=''
-        id='expense-filters-form' 
+        id='expense-filters-form'
         noValidate
         onSubmit={form.handleSubmit(handleSubmit)}
         className='flex flex-col flex-wrap gap-5'>
         {/* inputs */}
-        <div className='grid grid-cols-1 gap-4 md:grid-cols-2'> 
+        <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
           <FormField
             control={form.control}
             name='description'
             render={({ field }) => (
               <FormItem>
-                <FormLabel htmlFor='description'>{t('description')}</FormLabel> 
+                <FormLabel htmlFor='description'>{t('description')}</FormLabel>
                 <FormControl>
                   <Input
-                    id='description' 
+                    id='description'
                     name='description'
-                    placeholder={t('description_placeholder')} 
+                    placeholder={t('description_placeholder')}
                     type='text'
                     autoComplete='off'
                     maxLength={100} // Example max length
@@ -85,11 +87,11 @@ export const ExpensesFiltersForm = ({ onSubmit, onAddDialog }) => { // Renamed
 
           <FormField
             control={form.control}
-            name='category' 
+            name='category'
             render={({ field }) => (
               <FormItem>
                 <FormLabel htmlFor='category'>{t('category')}</FormLabel>
-                <Select onValueChange={field.onChange}  value={field.value}>
+                <Select onValueChange={field.onChange} value={field.value}>
                   <FormControl>
                     <SelectTrigger id='category'>
                       <SelectValue placeholder={t('select_category')} />
@@ -128,7 +130,7 @@ export const ExpensesFiltersForm = ({ onSubmit, onAddDialog }) => { // Renamed
             type='button'
             className='flex-1 md:flex-initial md:w-24'
             variant='outline'
-            onClick={handleResetFilter}> 
+            onClick={handleResetFilter}>
             {t('clear')} <LuEraser className='w-4 h-4 ml-auto opacity-50' />
           </Button>
         </div>
@@ -137,7 +139,7 @@ export const ExpensesFiltersForm = ({ onSubmit, onAddDialog }) => { // Renamed
   )
 }
 
-ExpensesFiltersForm.propTypes = { 
+ExpensesFiltersForm.propTypes = {
   onSubmit: PropTypes.func.isRequired,
   onAddDialog: PropTypes.func
 }

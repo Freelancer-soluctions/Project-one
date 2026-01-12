@@ -1,4 +1,4 @@
-import { prisma, Prisma } from '../../config/db.js'
+import { prisma, Prisma } from '../../config/db.js';
 
 /**
  * Get all sales with optional filters
@@ -18,8 +18,8 @@ export const getAllSales = async (filters = {}, take, skip) => {
     ...(filters.fromDate && { createdOn: { gte: filters.fromDate } }),
     ...(filters.toDate && { createdOn: { lte: filters.toDate } }),
     ...(filters.minTotal && { total: { gte: filters.minTotal } }),
-    ...(filters.maxTotal && { total: { lte: filters.maxTotal } })
-  }
+    ...(filters.maxTotal && { total: { lte: filters.maxTotal } }),
+  };
 
   const sales = await prisma.sale.findMany({
     where,
@@ -28,24 +28,24 @@ export const getAllSales = async (filters = {}, take, skip) => {
       saleDetail: true,
       userSaleCreated: {
         select: {
-          name: true
-        }
+          name: true,
+        },
       },
       userSaleUpdated: {
         select: {
-          name: true
-        }
-      }
+          name: true,
+        },
+      },
     },
     orderBy: {
-      createdOn: 'desc'
+      createdOn: 'desc',
     },
     take,
-    skip
-  })
+    skip,
+  });
 
-  return sales
-}
+  return sales;
+};
 
 /**
  * Create a new sale with details
@@ -57,23 +57,23 @@ export const getAllSales = async (filters = {}, take, skip) => {
  * @returns {Promise<Object>} Created sale with related data
  */
 export const createSale = async (data) => {
-  const { details, ...saleData } = data
+  const { details, ...saleData } = data;
   return prisma.sale.create({
     data: {
       createdOn: saleData.createdOn,
       total: saleData.total,
       saleDetail: {
-        create: details.map(detail => ({
+        create: details.map((detail) => ({
           product: { connect: { id: Number(detail.productId) } }, // Conectar el producto existente
           quantity: Number(detail.quantity),
-          price: Number(detail.price)
-        }))
+          price: Number(detail.price),
+        })),
       },
       userSaleCreated: { connect: { id: saleData.createdBy } },
-      client: { connect: { id: saleData.clientId } }
-    }
-  })
-}
+      client: { connect: { id: saleData.clientId } },
+    },
+  });
+};
 
 /**
  * Update a sale by ID
@@ -86,12 +86,12 @@ export const createSale = async (data) => {
  * @returns {Promise<Object>} Updated sale with related data
  */
 export const updateSaleById = async (id, data) => {
-  const { details, ...saleData } = data
+  const { details, ...saleData } = data;
 
   // First delete existing details
   await prisma.saleDetail.deleteMany({
-    where: { saleId: id }
-  })
+    where: { saleId: id },
+  });
 
   // Then update the sale and create new details
   return prisma.sale.update({
@@ -100,18 +100,17 @@ export const updateSaleById = async (id, data) => {
       updatedOn: saleData.updatedOn,
       total: saleData.total,
       saleDetail: {
-        create: details.map(detail => ({
+        create: details.map((detail) => ({
           product: { connect: { id: Number(detail.productId) } }, // Conectar el producto existente
           quantity: Number(detail.quantity),
-          price: Number(detail.price)
-        }))
+          price: Number(detail.price),
+        })),
       },
       userSaleUpdated: { connect: { id: saleData.updatedBy } },
-      client: { connect: { id: saleData.clientId } }
-    }
-
-  })
-}
+      client: { connect: { id: saleData.clientId } },
+    },
+  });
+};
 
 /**
  * Delete a sale by ID
@@ -121,11 +120,11 @@ export const updateSaleById = async (id, data) => {
 export const deleteSaleById = async (id) => {
   // First delete all related details
   await prisma.saleDetail.deleteMany({
-    where: { saleId: id }
-  })
+    where: { saleId: id },
+  });
 
   // Then delete the sale
   return prisma.sale.delete({
-    where: { id }
-  })
-}
+    where: { id },
+  });
+};

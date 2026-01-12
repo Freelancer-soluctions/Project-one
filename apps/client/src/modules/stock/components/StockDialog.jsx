@@ -119,8 +119,6 @@ export const StockDialog = ({
     onDeleteById(selectedRow?.id)
   }
 
-
-
   const handleCloseDialog = () => {
     form.reset()
     onCloseDialog()
@@ -169,8 +167,7 @@ export const StockDialog = ({
                         {products?.map(product => (
                           <SelectItem
                             key={product.id}
-                            value={product.id.toString()}
-                           >
+                            value={product.id.toString()}>
                             {product.name}
                           </SelectItem>
                         ))}
@@ -294,7 +291,6 @@ export const StockDialog = ({
                           placeholder={t('quantity_placeholder')}
                           type='number'
                           autoComplete='off'
-                         
                           {...field}
                           value={field.value ?? ''}
                         />
@@ -308,53 +304,53 @@ export const StockDialog = ({
                 <FormField
                   control={form.control}
                   name='price'
-                render={({ field }) => {
-                  return (
-                    <FormItem>
-                      <FormLabel htmlFor='price'>{t('price')}*</FormLabel>
-                      <FormControl>
-                        <Input
-                          id='price'
-                          name='price'
-                          placeholder={t('price_placeholder')}
-                          type='number'
-                          autoComplete='off'
-                          {...field}
-                          value={field.value ?? ''}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )
-                }}
-              />
+                  render={({ field }) => {
+                    return (
+                      <FormItem>
+                        <FormLabel htmlFor='price'>{t('price')}*</FormLabel>
+                        <FormControl>
+                          <Input
+                            id='price'
+                            name='price'
+                            placeholder={t('price_placeholder')}
+                            type='number'
+                            autoComplete='off'
+                            {...field}
+                            value={field.value ?? ''}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )
+                  }}
+                />
               )}
               {selectedRow?.productId && (
-              <FormField
-                control={form.control}
-                name='totalCost'
-                render={({ field }) => {
-                  return (
-                    <FormItem>
-                      <FormLabel htmlFor='totalCost'>
-                        {t('total_cost')}*
-                      </FormLabel>
-                      <FormControl>
-                        <Input
-                          id='totalCost'
-                          name='totalCost'
-                          placeholder={t('total_cost_placeholder')}
-                          type='number'
-                          autoComplete='off'
-                          {...field}
-                          value={field.value ?? ''}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )
-                }}
-              />
+                <FormField
+                  control={form.control}
+                  name='totalCost'
+                  render={({ field }) => {
+                    return (
+                      <FormItem>
+                        <FormLabel htmlFor='totalCost'>
+                          {t('total_cost')}*
+                        </FormLabel>
+                        <FormControl>
+                          <Input
+                            id='totalCost'
+                            name='totalCost'
+                            placeholder={t('total_cost_placeholder')}
+                            type='number'
+                            autoComplete='off'
+                            {...field}
+                            value={field.value ?? ''}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )
+                  }}
+                />
               )}
               <FormField
                 control={form.control}

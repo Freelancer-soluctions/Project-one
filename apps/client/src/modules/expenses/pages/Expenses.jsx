@@ -16,49 +16,47 @@ import AlertDialogComponent from '@/components/alertDialog/AlertDialog'
 import { Spinner } from '@/components/loader/Spinner'
 
 const Expenses = () => {
-
   const { t } = useTranslation()
   const [selectedRow, setSelectedRow] = useState({})
   const [openDialog, setOpenDialog] = useState(false)
   const [openAlertDialog, setOpenAlertDialog] = useState(false)
   const [alertProps, setAlertProps] = useState({})
   const [actionDialog, setActionDialog] = useState('')
-   const [pagination, setPagination] = useState({
-      pageIndex: 0,
-      pageSize: 20
-    })
-    const [filters, setFilters] = useState({})
+  const [pagination, setPagination] = useState({
+    pageIndex: 0,
+    pageSize: 20
+  })
+  const [filters, setFilters] = useState({})
 
   const [
-    getAllExpenses, 
+    getAllExpenses,
     {
-      data: dataExpenses = { data: [] }, 
-      isLoading: isLoadingExpenses, 
-      isFetching: isFetchingExpenses 
+      data: dataExpenses = { data: [] },
+      isLoading: isLoadingExpenses,
+      isFetching: isFetchingExpenses
     }
-  ] = useLazyGetAllExpensesQuery() 
+  ] = useLazyGetAllExpensesQuery()
 
   const [
-    updateExpenseById, 
+    updateExpenseById,
     { isLoading: isLoadingPut, isError: isErrorPut, isSuccess: isSuccessPut }
-  ] = useUpdateExpenseByIdMutation() 
+  ] = useUpdateExpenseByIdMutation()
 
   const [
-    createExpense, 
+    createExpense,
     { isLoading: isLoadingPost, isError: isErrorPost, isSuccess: isSuccessPost }
-  ] = useCreateExpenseMutation() 
+  ] = useCreateExpenseMutation()
 
   const [
-    deleteExpenseById, 
+    deleteExpenseById,
     {
       isLoading: isLoadingDelete,
       isError: isErrorDelete,
       isSuccess: isSuccessDelete
     }
-  ] = useDeleteExpenseByIdMutation() 
+  ] = useDeleteExpenseByIdMutation()
 
-
-   /**
+  /**
    * Este efecto es la única fuente de verdad para disparar
    * la consulta al backend.
    *
@@ -97,24 +95,26 @@ const Expenses = () => {
     setFilters(newFilters)
   }
 
-
-
   const handleSubmit = async (values, expenseId) => {
-     
     try {
       // values already contains { description, total, category, status }
       // total is already a float from ExpensesDialog
-      const result = expenseId 
+      const result = expenseId
         ? await updateExpenseById({
-            
-            id: expenseId, 
-            data:{description: values.description, total: values.total, category: values.category} // Sending all values from dialog form
+            id: expenseId,
+            data: {
+              description: values.description,
+              total: values.total,
+              category: values.category
+            } // Sending all values from dialog form
           }).unwrap()
-        : await createExpense(values).unwrap() 
+        : await createExpense(values).unwrap()
 
       setAlertProps({
-        alertTitle: t(expenseId ? 'update_record' : 'add_record'),  
-        alertMessage: t(expenseId ? 'updated_successfully' : 'added_successfully'),
+        alertTitle: t(expenseId ? 'update_record' : 'add_record'),
+        alertMessage: t(
+          expenseId ? 'updated_successfully' : 'added_successfully'
+        ),
         cancel: false,
         success: true,
         onSuccess: () => {
@@ -127,7 +127,8 @@ const Expenses = () => {
       // Handle error display, perhaps another AlertDialog
       setAlertProps({
         alertTitle: t('error_occurred_message'),
-        alertMessage: err.data?.message || err.message || t('operation_failed_message'),
+        alertMessage:
+          err.data?.message || err.message || t('operation_failed_message'),
         cancel: false,
         success: true, // To show only one button "OK"
         onSuccess: () => {
@@ -140,12 +141,12 @@ const Expenses = () => {
   }
 
   const handleAddDialog = () => {
-    setActionDialog(t('add_expense')) 
+    setActionDialog(t('add_expense'))
     setOpenDialog(true)
   }
 
   const handleEditDialog = row => {
-    setActionDialog(t('edit_expense')) 
+    setActionDialog(t('edit_expense'))
     setOpenDialog(true)
     setSelectedRow(row)
   }
@@ -168,7 +169,7 @@ const Expenses = () => {
         onSuccess: () => {},
         onDelete: async () => {
           try {
-            await deleteExpenseById(id).unwrap() 
+            await deleteExpenseById(id).unwrap()
 
             setAlertProps({
               alertTitle: '',
@@ -180,7 +181,7 @@ const Expenses = () => {
               },
               variantSuccess: 'info'
             })
-         setOpenAlertDialog(true)
+            setOpenAlertDialog(true)
           } catch (err) {
             console.error('Error deleting:', err)
             setAlertProps({
@@ -209,7 +210,7 @@ const Expenses = () => {
       <BackDashBoard link={'/home'} moduleName={t('expenses')} />
       {/* Changed */}
       <div className='relative'>
-        {(isLoadingExpenses || 
+        {(isLoadingExpenses ||
           isLoadingPut ||
           isLoadingPost ||
           isLoadingDelete ||
@@ -217,20 +218,20 @@ const Expenses = () => {
         {/* Changed */}
         <div className='grid grid-cols-2 grid-rows-4 gap-4 md:grid-cols-5'>
           <div className='col-span-2 row-span-1 md:col-span-5'>
-            <ExpensesFiltersForm 
+            <ExpensesFiltersForm
               onSubmit={handleSubmitFilters}
               onAddDialog={handleAddDialog}
             />
           </div>
           <div className='flex flex-wrap w-full col-span-2 row-span-3 row-start-2 md:col-span-5'>
-            <ExpensesDatatable 
-              dataExpenses={dataExpenses} 
+            <ExpensesDatatable
+              dataExpenses={dataExpenses}
               onEditDialog={handleEditDialog}
               pagination={pagination}
               onPaginationChange={setPagination}
             />
           </div>
-          <ExpensesDialog 
+          <ExpensesDialog
             openDialog={openDialog}
             onCloseDialog={handleCloseDialog}
             selectedRow={selectedRow}
@@ -250,4 +251,4 @@ const Expenses = () => {
   )
 }
 
-export default Expenses 
+export default Expenses

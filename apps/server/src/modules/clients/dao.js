@@ -1,4 +1,4 @@
-import { prisma, Prisma } from '../../config/db.js'
+import { prisma, Prisma } from '../../config/db.js';
 
 /**
  * Get all clients with optional filters
@@ -11,19 +11,19 @@ import { prisma, Prisma } from '../../config/db.js'
  * @returns {Promise<Array>} List of clients with their related data
  */
 export const getAllClients = async (filters = {}, take, skip) => {
-  const whereClauses = []
+  const whereClauses = [];
 
   if (filters.name) {
-    whereClauses.push(Prisma.sql`c."name" ILIKE ${filters.name}`)
+    whereClauses.push(Prisma.sql`c."name" ILIKE ${filters.name}`);
   }
 
   if (filters.email) {
-    whereClauses.push(Prisma.sql`c."email" ILIKE ${filters.email}`)
+    whereClauses.push(Prisma.sql`c."email" ILIKE ${filters.email}`);
   }
 
   const whereSql = whereClauses.length
     ? Prisma.sql`WHERE ${Prisma.join(whereClauses, Prisma.sql` AND `)}`
-    : Prisma.empty
+    : Prisma.empty;
 
   const clients = await prisma.$queryRaw`
   SELECT 
@@ -37,28 +37,28 @@ export const getAllClients = async (filters = {}, take, skip) => {
    ORDER BY c."createdOn" DESC
    LIMIT ${take}
    OFFSET ${skip}
- `
+ `;
 
   const total = await prisma.clients.count({
     where: {
       ...(filters.name && {
         name: {
           contains: filters.name,
-          mode: 'insensitive' // equivalente a ILIKE
-        }
+          mode: 'insensitive', // equivalente a ILIKE
+        },
       }),
 
       ...(filters.email && {
         email: {
           contains: filters.email,
-          mode: 'insensitive' // equivalente a ILIKE
-        }
-      })
-    }
-  })
+          mode: 'insensitive', // equivalente a ILIKE
+        },
+      }),
+    },
+  });
 
-  return { dataList: clients, total }
-}
+  return { dataList: clients, total };
+};
 
 /**
  * Get all clients.
@@ -66,8 +66,8 @@ export const getAllClients = async (filters = {}, take, skip) => {
  */
 
 export const getAllClientsFilters = async () => {
-  return prisma.clients.findMany()
-}
+  return prisma.clients.findMany();
+};
 
 /**
  * Create a new client
@@ -89,13 +89,12 @@ export const createClient = async (data) => {
       createdOn: data.createdOn,
       userClientCreated: {
         connect: {
-          id: data.createdBy
-        }
-      }
-    }
-
-  })
-}
+          id: data.createdBy,
+        },
+      },
+    },
+  });
+};
 
 /**
  * Update a client by ID
@@ -119,13 +118,12 @@ export const updateClientById = async (id, data) => {
       updatedOn: data.updatedOn,
       userClientUpdated: {
         connect: {
-          id: data.updatedBy
-        }
-      }
-    }
-
-  })
-}
+          id: data.updatedBy,
+        },
+      },
+    },
+  });
+};
 
 /**
  * Delete a client by ID
@@ -134,6 +132,6 @@ export const updateClientById = async (id, data) => {
  */
 export const deleteClientById = async (id) => {
   return prisma.clients.delete({
-    where: { id }
-  })
-}
+    where: { id },
+  });
+};

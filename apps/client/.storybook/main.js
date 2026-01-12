@@ -9,7 +9,6 @@
 //     '@storybook/addon-links',
 //     '@storybook/addon-styling-webpack',
 //   ],
-  
 
 //   framework: {
 //     name: '@storybook/react-vite',
@@ -18,7 +17,7 @@
 //   core: {
 //     builder: "vite",
 //   },
-  
+
 //   docs: {}
 // }
 // export default config
@@ -31,26 +30,26 @@ const config = {
     '@storybook/addon-essentials',
     '@storybook/addon-interactions',
     '@storybook/addon-links',
-    '@storybook/addon-styling-webpack',
+    '@storybook/addon-styling-webpack'
   ],
 
   framework: {
     name: '@storybook/react-vite',
     options: {}
   },
-  
+
   core: {
-    disableTelemetry: true, // Para evitar errores con Telemetry en versiones recientes
+    disableTelemetry: true // Para evitar errores con Telemetry en versiones recientes
   },
   async viteFinal(config) {
     return {
       ...config,
       esbuild: {
-        loader: "jsx", // 🚀 Indica que Storybook debe procesar JSX correctamente
-      },
-    };
+        loader: 'jsx' // 🚀 Indica que Storybook debe procesar JSX correctamente
+      }
+    }
   },
-  docs: {},
+  docs: {}
 }
 
-export default config;
+export default config

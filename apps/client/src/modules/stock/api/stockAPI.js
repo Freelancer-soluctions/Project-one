@@ -12,7 +12,7 @@ const stockApi = createApi({
     getAllStock: builder.query({
       query: params => ({
         url: `/stock`,
-        method:'GET',
+        method: 'GET',
         params
       }),
       providesTags: ['Stock']
@@ -51,13 +51,13 @@ const stockApi = createApi({
       providesTags: ['Stock']
     }),
 
-    getStockByProductId:builder.mutation({
+    getStockByProductId: builder.mutation({
       query: id => ({
         url: `/stock/${id}`,
-        method: 'GET',
+        method: 'GET'
       }),
       providesTags: ['Stock']
-    }),
+    })
   })
 })
 
@@ -70,4 +70,4 @@ export const {
   useGetStockAlertsQuery
 } = stockApi
 
-export default stockApi 
+export default stockApi

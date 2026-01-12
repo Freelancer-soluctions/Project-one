@@ -2,10 +2,10 @@ import {
   getAllSales as getAllSalesService,
   createSale as createSaleService,
   updateSaleById as updateSaleByIdService,
-  deleteSaleById as deleteSaleByIdService
-} from './service.js'
-import globalResponse from '../../utils/responses&Errors/globalResponse.js'
-import handleCatchErrorAsync from '../../utils/responses&Errors/handleCatchErrorAsync.js'
+  deleteSaleById as deleteSaleByIdService,
+} from './service.js';
+import globalResponse from '../../utils/responses&Errors/globalResponse.js';
+import handleCatchErrorAsync from '../../utils/responses&Errors/handleCatchErrorAsync.js';
 
 /**
  * Get all sales with optional filters
@@ -13,9 +13,9 @@ import handleCatchErrorAsync from '../../utils/responses&Errors/handleCatchError
  * @param {Object} res - Express response object
  */
 export const getAllSales = handleCatchErrorAsync(async (req, res) => {
-  const sales = await getAllSalesService(req.query)
-  globalResponse(res, 200, sales)
-})
+  const sales = await getAllSalesService(req.query);
+  globalResponse(res, 200, sales);
+});
 
 /**
  * Create a new sale
@@ -25,10 +25,10 @@ export const getAllSales = handleCatchErrorAsync(async (req, res) => {
 export const createSale = handleCatchErrorAsync(async (req, res) => {
   const sale = await createSaleService({
     ...req.body,
-    createdBy: req.userId
-  })
-  globalResponse(res, 201, sale)
-})
+    createdBy: req.userId,
+  });
+  globalResponse(res, 201, sale);
+});
 
 /**
  * Update a sale by ID
@@ -38,10 +38,10 @@ export const createSale = handleCatchErrorAsync(async (req, res) => {
 export const updateSaleById = handleCatchErrorAsync(async (req, res) => {
   const sale = await updateSaleByIdService(req.params.id, {
     ...req.body,
-    updatedBy: req.userId
-  })
-  globalResponse(res, 200, sale)
-})
+    updatedBy: req.userId,
+  });
+  globalResponse(res, 200, sale);
+});
 
 /**
  * Delete a sale by ID
@@ -49,6 +49,6 @@ export const updateSaleById = handleCatchErrorAsync(async (req, res) => {
  * @param {Object} res - Express response object
  */
 export const deleteSaleById = handleCatchErrorAsync(async (req, res) => {
-  await deleteSaleByIdService(req.params.id)
-  globalResponse(res, 200, { message: 'Sale deleted successfully' })
-})
+  await deleteSaleByIdService(req.params.id);
+  globalResponse(res, 200, { message: 'Sale deleted successfully' });
+});

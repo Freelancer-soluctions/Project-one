@@ -50,13 +50,10 @@ export const PayrollDialog = ({
   onSubmit,
   onDeleteById,
   actionDialog,
-            dataEmployees
-
+  dataEmployees
 }) => {
   const { t } = useTranslation()
   const [payrollId, setPayrollId] = useState('')
-
-
 
   const form = useForm({
     resolver: zodResolver(PayrollSchema),
@@ -103,8 +100,7 @@ export const PayrollDialog = ({
         baseSalary: '',
         extraHours: '0',
         deductions: '0',
-        totalPayment: '',
-    
+        totalPayment: ''
       })
       setPayrollId(null)
     }
@@ -131,7 +127,9 @@ export const PayrollDialog = ({
   }
 
   return (
-    <Dialog open={openDialog}  onOpenChange={isOpen => {
+    <Dialog
+      open={openDialog}
+      onOpenChange={isOpen => {
         if (isOpen === true) return
         onCloseDialog()
       }}>
@@ -163,8 +161,7 @@ export const PayrollDialog = ({
                     <FormLabel>{t('employee')}*</FormLabel>
                     <Select
                       onValueChange={field.onChange}
-                      value={field.value?.toString() ?? ''}
-                      >
+                      value={field.value?.toString() ?? ''}>
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue
@@ -187,7 +184,6 @@ export const PayrollDialog = ({
                 )}
               />
 
-            
               {/* Month Select */}
               <FormField
                 control={form.control}

@@ -1,17 +1,26 @@
-import express from 'express'
+import express from 'express';
 import {
   getAllAttendance,
   createAttendance,
   updateAttendanceById,
-  deleteAttendanceById
-} from './controller.js'
-import { verifyToken, validateSchema, validateQueryParams, checkRoleAuthOrPermisssion, validatePathParam } from '../../middleware/index.js'
-import { attendanceFiltersSchema, attendanceCreateUpdateSchema } from '../../utils/joiSchemas/joi.js'
-import { ROLESCODES, PERMISSIONCODES } from '../../utils/constants/enums.js'
+  deleteAttendanceById,
+} from './controller.js';
+import {
+  verifyToken,
+  validateSchema,
+  validateQueryParams,
+  checkRoleAuthOrPermisssion,
+  validatePathParam,
+} from '../../middleware/index.js';
+import {
+  attendanceFiltersSchema,
+  attendanceCreateUpdateSchema,
+} from '../../utils/joiSchemas/joi.js';
+import { ROLESCODES, PERMISSIONCODES } from '../../utils/constants/enums.js';
 
-const router = express.Router()
+const router = express.Router();
 // uso global de middleware
-router.use(verifyToken)
+router.use(verifyToken);
 
 /**
  * @openapi
@@ -88,11 +97,11 @@ router.get(
   '/',
   checkRoleAuthOrPermisssion({
     allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER, ROLESCODES.USER],
-    permissions: [PERMISSIONCODES.canViewAttendance]
+    permissions: [PERMISSIONCODES.canViewAttendance],
   }),
   validateQueryParams(attendanceFiltersSchema),
   getAllAttendance
-)
+);
 
 /**
  * @openapi
@@ -142,11 +151,11 @@ router.post(
   '/',
   checkRoleAuthOrPermisssion({
     allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER],
-    permissions: [PERMISSIONCODES.canCreateAttendance]
+    permissions: [PERMISSIONCODES.canCreateAttendance],
   }),
   validateSchema(attendanceCreateUpdateSchema),
   createAttendance
-)
+);
 
 /**
  * @openapi
@@ -203,12 +212,12 @@ router.put(
   '/:id',
   checkRoleAuthOrPermisssion({
     allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER],
-    permissions: [PERMISSIONCODES.canEditAttendance]
+    permissions: [PERMISSIONCODES.canEditAttendance],
   }),
   validatePathParam,
   validateSchema(attendanceCreateUpdateSchema),
   updateAttendanceById
-)
+);
 
 /**
  * @openapi
@@ -247,11 +256,12 @@ router.put(
  *               $ref: '#/components/schemas/Error'
  */
 router.delete(
-  '/:id', checkRoleAuthOrPermisssion({
+  '/:id',
+  checkRoleAuthOrPermisssion({
     allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER],
-    permissions: [PERMISSIONCODES.canDeleteAttendance]
+    permissions: [PERMISSIONCODES.canDeleteAttendance],
   }),
   deleteAttendanceById
-)
+);
 
-export default router
+export default router;

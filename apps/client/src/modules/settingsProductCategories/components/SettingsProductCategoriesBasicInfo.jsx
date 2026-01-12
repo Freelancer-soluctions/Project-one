@@ -32,7 +32,6 @@ export const SettingsProductCategoriesBasicInfo = ({
   const { t } = useTranslation()
   const [id, setId] = useState()
 
-
   const form = useForm({
     resolver: zodResolver(SettingsProductCategoriesSchema),
     defaultValues: {
@@ -62,7 +61,9 @@ export const SettingsProductCategoriesBasicInfo = ({
     <Card>
       <CardHeader>
         <CardTitle>{t('product_category_information')}</CardTitle>
-        <CardDescription>{t('product_category_basic_information_msg')}</CardDescription>
+        <CardDescription>
+          {t('product_category_basic_information_msg')}
+        </CardDescription>
       </CardHeader>
       <CardContent className='space-y-4'>
         <Form {...form}>
@@ -101,15 +102,13 @@ export const SettingsProductCategoriesBasicInfo = ({
                     )
                   }}
                 />
-                              <FormField
+                <FormField
                   control={form.control}
                   name='code'
                   render={({ field }) => {
                     return (
                       <FormItem>
-                        <FormLabel htmlFor='code'>
-                          {t('code')}*
-                        </FormLabel>
+                        <FormLabel htmlFor='code'>{t('code')}*</FormLabel>
                         <FormControl>
                           <Input
                             id='code'
@@ -130,10 +129,7 @@ export const SettingsProductCategoriesBasicInfo = ({
               </div>
             </div>
             <div className='flex flex-wrap items-center justify-between gap-3 mt-5 md:justify-normal'>
-              <Button
-                type='button'
-                variant='secondary'
-                onClick={onClose}>
+              <Button type='button' variant='secondary' onClick={onClose}>
                 {t('cancel')}
               </Button>
               {id && (

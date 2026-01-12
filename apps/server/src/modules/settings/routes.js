@@ -1,18 +1,23 @@
-import { Router } from 'express'
+import { Router } from 'express';
 import {
   SettingsLanguage,
   SettingsDisplay,
   SettingsProductCategoryFilters,
   SettingsProductCategoryCreate,
-  SettingsProductCategoryUpdate
-} from '../../utils/joiSchemas/joi.js'
-import * as settingsController from './controller.js'
-import { verifyToken, validateQueryParams, validateSchema, checkRoleAuthOrPermisssion } from '../../middleware/index.js'
-import { ROLESCODES, PERMISSIONCODES } from '../../utils/constants/enums.js'
+  SettingsProductCategoryUpdate,
+} from '../../utils/joiSchemas/joi.js';
+import * as settingsController from './controller.js';
+import {
+  verifyToken,
+  validateQueryParams,
+  validateSchema,
+  checkRoleAuthOrPermisssion,
+} from '../../middleware/index.js';
+import { ROLESCODES, PERMISSIONCODES } from '../../utils/constants/enums.js';
 
-const router = Router()
+const router = Router();
 // uso global de middleware
-router.use(verifyToken)
+router.use(verifyToken);
 
 /**
  * @openapi
@@ -63,7 +68,7 @@ router.use(verifyToken)
  *             schema:
  *               $ref: "#/components/schemas/Error"
  */
-router.get('/:id', settingsController.getSettingsById)
+router.get('/:id', settingsController.getSettingsById);
 /**
  * @openapi
  * /api/v1/settings/language:
@@ -116,7 +121,7 @@ router.post(
   '/language/',
   validateSchema(SettingsLanguage),
   settingsController.createOrUpdateSettingsLanguage
-)
+);
 /**
  * @openapi
  * /api/v1/settings/display:
@@ -169,7 +174,7 @@ router.post(
   '/display/',
   validateSchema(SettingsDisplay),
   settingsController.createOrUpdateSettingsDisplay
-)
+);
 
 /**
  * @openapi
@@ -226,11 +231,11 @@ router.get(
   '/product/categories',
   checkRoleAuthOrPermisssion({
     allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER, ROLESCODES.USER],
-    permissions: [PERMISSIONCODES.canViewCategory]
+    permissions: [PERMISSIONCODES.canViewCategory],
   }),
   validateQueryParams(SettingsProductCategoryFilters),
   settingsController.getAllProductCategories
-)
+);
 
 /**
  * @openapi
@@ -284,11 +289,11 @@ router.post(
   '/product/categories',
   checkRoleAuthOrPermisssion({
     allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER],
-    permissions: [PERMISSIONCODES.canCreateCategory]
+    permissions: [PERMISSIONCODES.canCreateCategory],
   }),
   validateSchema(SettingsProductCategoryCreate),
   settingsController.createProductCategory
-)
+);
 
 /**
  * @openapi
@@ -350,11 +355,11 @@ router.put(
   '/product/categories/:id',
   checkRoleAuthOrPermisssion({
     allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER],
-    permissions: [PERMISSIONCODES.canEditCategory]
+    permissions: [PERMISSIONCODES.canEditCategory],
   }),
   validateSchema(SettingsProductCategoryUpdate),
   settingsController.updateProductCategoryById
-)
+);
 
 /**
  * @openapi
@@ -397,9 +402,9 @@ router.delete(
   '/product/categories/:id',
   checkRoleAuthOrPermisssion({
     allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER],
-    permissions: [PERMISSIONCODES.canDeleteCategory]
+    permissions: [PERMISSIONCODES.canDeleteCategory],
   }),
   settingsController.deleteProductCategoryById
-)
+);
 
-export default router
+export default router;

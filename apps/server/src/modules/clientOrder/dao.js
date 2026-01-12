@@ -1,4 +1,4 @@
-import { prisma, Prisma } from '../../config/db.js'
+import { prisma, Prisma } from '../../config/db.js';
 
 /**
  * Get all clientOrders with optional filters
@@ -10,19 +10,21 @@ import { prisma, Prisma } from '../../config/db.js'
  * @returns {Promise<Array>} List of clientOrders
  */
 export const getAllClientOrders = async (filters = {}, take, skip) => {
-  const whereClauses = []
+  const whereClauses = [];
 
   if (filters.clientId) {
-    whereClauses.push(Prisma.sql`co."clientId" = ${parseInt(filters.clientId, 10)}`)
+    whereClauses.push(
+      Prisma.sql`co."clientId" = ${parseInt(filters.clientId, 10)}`
+    );
   }
 
   if (filters.status) {
-    whereClauses.push(Prisma.sql`co."status" ILIKE ${filters.status}`)
+    whereClauses.push(Prisma.sql`co."status" ILIKE ${filters.status}`);
   }
 
   const whereSql = whereClauses.length
     ? Prisma.sql`WHERE ${Prisma.join(whereClauses, Prisma.sql` AND `)}`
-    : Prisma.empty
+    : Prisma.empty;
 
   const clientOrders = await prisma.$queryRaw`
     SELECT
@@ -38,25 +40,25 @@ export const getAllClientOrders = async (filters = {}, take, skip) => {
     ORDER BY co."createdOn" DESC
     LIMIT ${take}
     OFFSET ${skip}
-  `
+  `;
 
   const total = await prisma.clientOrder.count({
     where: {
       ...(filters.clientId && {
-        clientId: parseInt(filters.clientId, 10)
+        clientId: parseInt(filters.clientId, 10),
       }),
 
       ...(filters.status && {
         status: {
           contains: filters.status,
-          mode: 'insensitive' // equivale a ILIKE en Postgres
-        }
-      })
-    }
-  })
+          mode: 'insensitive', // equivale a ILIKE en Postgres
+        },
+      }),
+    },
+  });
 
-  return { dataList: clientOrders, total }
-}
+  return { dataList: clientOrders, total };
+};
 
 /**
  * Create a new clientOrder
@@ -76,12 +78,12 @@ export const createClientOrder = async (data) => {
       createdOn: data.createdOn,
       userClientOrderCreated: {
         connect: {
-          id: data.createdBy
-        }
-      }
-    }
-  })
-}
+          id: data.createdBy,
+        },
+      },
+    },
+  });
+};
 
 /**
  * Update a clientOrder by ID
@@ -103,12 +105,12 @@ export const updateClientOrderById = async (id, data) => {
       updatedOn: data.updatedOn,
       userClientOrderUpdated: {
         connect: {
-          id: data.updatedBy
-        }
-      }
-    }
-  })
-}
+          id: data.updatedBy,
+        },
+      },
+    },
+  });
+};
 
 /**
  * Delete a clientOrder by ID
@@ -117,6 +119,6 @@ export const updateClientOrderById = async (id, data) => {
  */
 export const deleteClientOrderById = async (id) => {
   return prisma.clientOrder.delete({
-    where: { id }
-  })
-}
+    where: { id },
+  });
+};

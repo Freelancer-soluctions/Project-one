@@ -6,33 +6,35 @@ import { axiosPrivateBaseQuery } from '@/config/axios'
 // Define a service using a base URL and expected endpoints
 const payrollApi = createApi({
   reducerPath: 'payrollApi',
-  baseQuery: axiosPrivateBaseQuery({ baseUrl: import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1' }),
+  baseQuery: axiosPrivateBaseQuery({
+    baseUrl: import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1'
+  }),
   tagTypes: ['Payroll'],
   keepUnusedDataFor: 300, // 5 minutos
-  endpoints: (builder) => ({
+  endpoints: builder => ({
     getAllPayroll: builder.query({
-      query: (params) => ({
+      query: params => ({
         url: '/payroll',
         params
       }),
-      providesTags: ['Payroll'],
+      providesTags: ['Payroll']
     }),
 
     deletePayrollById: builder.mutation({
-      query: (id) => ({
+      query: id => ({
         url: `/payroll/${id}`,
         method: 'DELETE'
       }),
-      invalidatesTags: ['Payroll'],
+      invalidatesTags: ['Payroll']
     }),
 
     createPayroll: builder.mutation({
-      query: (data) => ({
+      query: data => ({
         url: '/payroll',
         method: 'POST',
-        body: data,
+        body: data
       }),
-      invalidatesTags: ['Payroll'],
+      invalidatesTags: ['Payroll']
     }),
 
     updatePayrollById: builder.mutation({
@@ -41,8 +43,8 @@ const payrollApi = createApi({
         method: 'PUT',
         body: data
       }),
-      invalidatesTags: ['Payroll'],
-    }),
+      invalidatesTags: ['Payroll']
+    })
   })
 })
 
@@ -55,4 +57,4 @@ export const {
   useDeletePayrollByIdMutation
 } = payrollApi
 
-export default payrollApi 
+export default payrollApi

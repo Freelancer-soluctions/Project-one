@@ -121,9 +121,9 @@ const settingsSlice = createSlice({
       state.isLoading = false
       state.isError = false
       // // ✅ Actualizar la configuración del usuario correctamente
-        if (state.dataSettings.userSettings) {
-          state.dataSettings.userSettings = action.payload
-        }
+      if (state.dataSettings.userSettings) {
+        state.dataSettings.userSettings = action.payload
+      }
     })
     builder.addCase(saveSettingLanguageFetch.rejected, (state, action) => {
       console.log('Error', action.error.message)

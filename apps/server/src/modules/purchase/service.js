@@ -2,9 +2,9 @@ import {
   getAllPurchases as getAllPurchasesDao,
   createPurchase as createPurchaseDao,
   updatePurchaseById as updatePurchaseByIdDao,
-  deletePurchaseById as deletePurchaseByIdDao
-} from './dao.js'
-import { getSafePagination } from '../../utils/pagination/pagination.js'
+  deletePurchaseById as deletePurchaseByIdDao,
+} from './dao.js';
+import { getSafePagination } from '../../utils/pagination/pagination.js';
 
 /**
  * Get all purchases with optional filters
@@ -15,13 +15,16 @@ import { getSafePagination } from '../../utils/pagination/pagination.js'
  * @returns {Promise<Array>} List of purchases
  */
 export const getAllPurchases = async (filters) => {
-  const { take, skip } = getSafePagination({ page: filters.page, limit: filters.limit })
+  const { take, skip } = getSafePagination({
+    page: filters.page,
+    limit: filters.limit,
+  });
 
   if (!take || take <= 0) {
-    throw new Error('Pagination is required')
+    throw new Error('Pagination is required');
   }
-  return await getAllPurchasesDao(filters, take, skip)
-}
+  return await getAllPurchasesDao(filters, take, skip);
+};
 
 /**
  * Create a new purchase
@@ -29,8 +32,8 @@ export const getAllPurchases = async (filters) => {
  * @returns {Promise<Object>} Created purchase
  */
 export const createPurchase = async (data) => {
-  return createPurchaseDao(data)
-}
+  return createPurchaseDao(data);
+};
 
 /**
  * Update a purchase by ID
@@ -39,8 +42,8 @@ export const createPurchase = async (data) => {
  * @returns {Promise<Object>} Updated purchase
  */
 export const updatePurchaseById = async (id, data) => {
-  return updatePurchaseByIdDao(id, data)
-}
+  return updatePurchaseByIdDao(id, data);
+};
 
 /**
  * Delete a purchase by ID
@@ -48,5 +51,5 @@ export const updatePurchaseById = async (id, data) => {
  * @returns {Promise<Object>} Deleted purchase
  */
 export const deletePurchaseById = async (id) => {
-  return deletePurchaseByIdDao(id)
-}
+  return deletePurchaseByIdDao(id);
+};

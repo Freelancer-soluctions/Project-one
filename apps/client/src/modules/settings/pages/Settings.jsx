@@ -24,7 +24,11 @@ import {
   LuPackage
 } from 'react-icons/lu'
 import { Separator } from '@/components/ui/separator'
-import { SettingsLanguage, SettingsDisplay, SettingsProduct } from '../components/index'
+import {
+  SettingsLanguage,
+  SettingsDisplay,
+  SettingsProduct
+} from '../components/index'
 import { useSelector } from 'react-redux'
 import { useTranslation } from 'react-i18next'
 import {
@@ -86,9 +90,9 @@ export default function Settings() {
               <LuLayoutTemplate className='w-4 h-4' />
               {t('display')}
             </TabsTrigger>
-            <TabsTrigger value="product" className="flex items-center gap-2">
-              <LuPackage className="w-4 h-4" />
-              {t("product")}
+            <TabsTrigger value='product' className='flex items-center gap-2'>
+              <LuPackage className='w-4 h-4' />
+              {t('product')}
             </TabsTrigger>
             <TabsTrigger value='account' className='flex items-center gap-2'>
               <LuShield className='w-4 h-4' />

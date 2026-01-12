@@ -3,7 +3,7 @@ export const movementTypes = [
   { value: 'EXIT', label: 'EXIT' },
   { value: 'TRANSFERENCE', label: 'TRANSFERENCE' },
   { value: 'ADJUSTMENT', label: 'ADJUSTMENT' }
-] 
+]
 
 export const MOVEMENT_TYPES = {
   ENTRY: 'ENTRY',

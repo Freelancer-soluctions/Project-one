@@ -1,5 +1,5 @@
-import { prisma, Prisma } from '../../config/db.js'
-import { decryptResults } from '../../utils/prisma/prisma-query.js'
+import { prisma, Prisma } from '../../config/db.js';
+import { decryptResults } from '../../utils/prisma/prisma-query.js';
 
 /**
  * Get all users with optional filters
@@ -11,23 +11,23 @@ import { decryptResults } from '../../utils/prisma/prisma-query.js'
  * @returns {Promise<Array>} List of users with their related data
  */
 export const getAllUsers = async (filters = {}, take, skip) => {
-  const whereClauses = []
+  const whereClauses = [];
 
   if (filters.name) {
-    Prisma.sql`c."name" ILIKE ${'%' + filters.name + '%'}`
+    Prisma.sql`c."name" ILIKE ${'%' + filters.name + '%'}`;
   }
 
   if (filters.email) {
-    whereClauses.push(Prisma.sql`u."email" ILIKE ${filters.email}`)
+    whereClauses.push(Prisma.sql`u."email" ILIKE ${filters.email}`);
   }
 
   if (filters.status) {
-    whereClauses.push(Prisma.sql`s."code" = ${filters.status}`)
+    whereClauses.push(Prisma.sql`s."code" = ${filters.status}`);
   }
 
   const whereSql = whereClauses.length
     ? Prisma.sql`WHERE ${Prisma.join(whereClauses, Prisma.sql` AND `)}`
-    : Prisma.empty
+    : Prisma.empty;
 
   const users = await prisma.$queryRaw`
    SELECT 
@@ -48,36 +48,36 @@ export const getAllUsers = async (filters = {}, take, skip) => {
     LIMIT ${take}
     OFFSET ${skip}
 
-  `
+  `;
 
   // A02 cryptographid failures (cifrado de datos sensibles)
-  const dataList = decryptResults(users)
+  const dataList = decryptResults(users);
 
   const total = await prisma.users.count({
     where: {
       ...(filters.name && {
         name: {
           contains: filters.name,
-          mode: 'insensitive' // equivale a ILIKE
-        }
+          mode: 'insensitive', // equivale a ILIKE
+        },
       }),
 
       ...(filters.email && {
         email: {
           contains: filters.email,
-          mode: 'insensitive' // equivale a ILIKE
-        }
+          mode: 'insensitive', // equivale a ILIKE
+        },
       }),
 
       ...(filters.status && {
         status: {
-          code: filters.status
-        }
-      })
-    }
-  })
-  return { dataList, total }
-}
+          code: filters.status,
+        },
+      }),
+    },
+  });
+  return { dataList, total };
+};
 
 /**
  * Retrieves all available user permissions from the database.
@@ -90,19 +90,19 @@ export const getAllUserPermits = async (id) => {
     select: {
       id: true,
       description: true,
-      code: true
+      code: true,
     },
-    orderBy: { code: 'asc' }
-  })
+    orderBy: { code: 'asc' },
+  });
 
   const user = await prisma.users.findUnique({
     where: { id },
     include: {
-      userPermits: true
-    }
-  })
-  return Promise.resolve({ allPermissions, user })
-}
+      userPermits: true,
+    },
+  });
+  return Promise.resolve({ allPermissions, user });
+};
 
 /**
  * Retrieves all available users statuses from the database.
@@ -111,9 +111,9 @@ export const getAllUserPermits = async (id) => {
  */
 
 export const getAllUsersStatus = async () => {
-  const status = await prisma.userStatus.findMany()
-  return Promise.resolve(status)
-}
+  const status = await prisma.userStatus.findMany();
+  return Promise.resolve(status);
+};
 
 /**
  * Retrieves all available users roles from the database.
@@ -122,9 +122,9 @@ export const getAllUsersStatus = async () => {
  */
 
 export const getAllUsersRoles = async () => {
-  const roles = await prisma.roles.findMany()
-  return Promise.resolve(roles)
-}
+  const roles = await prisma.roles.findMany();
+  return Promise.resolve(roles);
+};
 
 /**
  * Create a new user.
@@ -174,16 +174,16 @@ export const createUser = async (data) => {
       telephone: data.telephone,
       zipcode: data.zipcode,
       refreshToken: data.refreshToken,
-      userPermitId: data.userPermitId
+      userPermitId: data.userPermitId,
       // Prisma will handle connecting to roles, userStatus, userPermits via FKs (roleId, statusId, userPermitId)
     },
     include: {
       roles: true,
       status: true,
-      userPermits: true
-    }
-  })
-}
+      userPermits: true,
+    },
+  });
+};
 
 /**
  * Update an existing user by ID.
@@ -232,10 +232,10 @@ export const updateUserById = async (id, data) => {
       zipcode: data.zipcode,
       // foreign keys
       userStatus: {
-        connect: { id: data.statusId }
+        connect: { id: data.statusId },
       },
       roles: {
-        connect: { id: data.roleId }
+        connect: { id: data.roleId },
       },
       // rolePermits: {
       //   deleteMany: {}, // elimina TODAS las relaciones actuales
@@ -246,12 +246,12 @@ export const updateUserById = async (id, data) => {
       userPermits: {
         deleteMany: {}, // elimina solo los permisos del usuario actual
         create: data.permissions.map((permissionId) => ({
-          permission: { connect: { id: parseInt(permissionId, 10) } }
-        }))
-      }
-    }
-  })
-}
+          permission: { connect: { id: parseInt(permissionId, 10) } },
+        })),
+      },
+    },
+  });
+};
 
 /**
  * Delete a user by ID.
@@ -261,9 +261,9 @@ export const updateUserById = async (id, data) => {
  */
 export const deleteUserById = async (id) => {
   return prisma.users.delete({
-    where: { id: parseInt(id, 10) }
-  })
-}
+    where: { id: parseInt(id, 10) },
+  });
+};
 
 /**
  * Get a user by email.
@@ -278,32 +278,32 @@ export const getUserByEmail = async (email) => {
     include: {
       roles: true,
       status: true,
-      userPermits: true
-    }
-  })
-}
+      userPermits: true,
+    },
+  });
+};
 
 export const getUserRegisteredByEmail = async (email) => {
   const userExist = await prisma.user.findUnique({
     where: {
-      email
+      email,
     },
     include: {
-      roles: true
-    }
-  })
+      roles: true,
+    },
+  });
   // email registered
-  return userExist ? Promise.resolve(userExist) : Promise.resolve({})
-}
+  return userExist ? Promise.resolve(userExist) : Promise.resolve({});
+};
 
 export const getUserRoleByCode = async (code) => {
   const rolUser = await prisma.roles.findUnique({
     where: {
-      code
-    }
-  })
-  return Promise.resolve(rolUser)
-}
+      code,
+    },
+  });
+  return Promise.resolve(rolUser);
+};
 // ya no es necesario se pasa token a una tabla independiente
 // /**
 //  * Get user by refresh token.
@@ -323,18 +323,17 @@ export const getUserRoleByCode = async (code) => {
 export const getUserRoleByUserId = async (id) => {
   const user = await prisma.users.findUnique({
     where: {
-      id
+      id,
     },
     include: {
       roles: true,
 
       userPermits: {
         include: {
-          permissions: true
-        }
-      }
-    }
-
-  })
-  return Promise.resolve(user)
-}
+          permissions: true,
+        },
+      },
+    },
+  });
+  return Promise.resolve(user);
+};

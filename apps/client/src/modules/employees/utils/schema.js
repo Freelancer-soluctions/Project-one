@@ -29,9 +29,8 @@ export const EmployeeSchema = z
       message: 'Salary is required.'
     })
   })
-  .passthrough() // Permite otros campos 
+  .passthrough() // Permite otros campos
 
-  
 export const EmployeeFiltersSchema = z.object({
   name: z.string().optional(),
   dni: z.string().optional(),
@@ -40,5 +39,5 @@ export const EmployeeFiltersSchema = z.object({
     .email({
       message: 'Invalid email format.'
     })
-    .optional(),
+    .optional()
 })

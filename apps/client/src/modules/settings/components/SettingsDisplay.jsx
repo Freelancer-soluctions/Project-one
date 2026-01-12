@@ -107,7 +107,7 @@ export const SettingsDisplay = ({
                     </FormItem>
                   )}
                 />
-                   <FormField
+                <FormField
                   control={form.control}
                   name='displayStock'
                   render={({ field }) => (

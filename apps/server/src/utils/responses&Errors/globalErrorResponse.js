@@ -1,15 +1,22 @@
-import logger from '../../logger/index.js'
-const globalErrorResponse = (res, statusCode = 500, code, message, name, stack) => {
+import logger from '../../logger/index.js';
+const globalErrorResponse = (
+  res,
+  statusCode = 500,
+  code,
+  message,
+  name,
+  stack
+) => {
   logger.error({
     message,
     name,
-    stack
-  })
+    stack,
+  });
   res.status(statusCode).json({
     error: true,
     message,
-    code
-  })
-}
+    code,
+  });
+};
 
-export default globalErrorResponse
+export default globalErrorResponse;

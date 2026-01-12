@@ -26,7 +26,13 @@ import PropTypes from 'prop-types'
 import { ClientOrderSchema } from '../utils'
 import { useState } from 'react'
 import { orderStatus } from '@/lib/constants'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from '@/components/ui/select'
 
 export const ClientOrderDialog = ({
   openDialog,
@@ -134,15 +140,17 @@ export const ClientOrderDialog = ({
                 name='status'
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel htmlFor="status">{t("status")}</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormLabel htmlFor='status'>{t('status')}</FormLabel>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}>
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder={t("Select a status")} />
+                          <SelectValue placeholder={t('Select a status')} />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {orderStatus.map((status) => (
+                        {orderStatus.map(status => (
                           <SelectItem key={status.value} value={status.value}>
                             {status.label}
                           </SelectItem>

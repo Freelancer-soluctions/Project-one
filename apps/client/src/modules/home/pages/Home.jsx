@@ -27,8 +27,6 @@ const Home = () => {
     error: errorCountStock
   } = useGetStockAlertsQuery()
 
-
-
   return (
     <div className='flex flex-col w-full h-screen'>
       <header className='flex items-center justify-between px-4 py-3 shadow-sm bg-primary text-primary-foreground md:px-6'>

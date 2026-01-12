@@ -22,11 +22,11 @@ const Clients = () => {
   const [openAlertDialog, setOpenAlertDialog] = useState(false)
   const [alertProps, setAlertProps] = useState({})
   const [actionDialog, setActionDialog] = useState('')
-    const [pagination, setPagination] = useState({
-      pageIndex: 0,
-      pageSize: 20
-    })
-    const [filters, setFilters] = useState({})
+  const [pagination, setPagination] = useState({
+    pageIndex: 0,
+    pageSize: 20
+  })
+  const [filters, setFilters] = useState({})
 
   const [
     getAllClients,
@@ -94,8 +94,6 @@ const Clients = () => {
 
     setFilters(newFilters)
   }
-
-
 
   const handleSubmit = async (values, clientId) => {
     try {
@@ -211,7 +209,7 @@ const Clients = () => {
             <ClientsDatatable
               dataClients={dataClients}
               onEditDialog={handleEditDialog}
-               pagination={pagination}
+              pagination={pagination}
               onPaginationChange={setPagination}
             />
           </div>
@@ -236,4 +234,4 @@ const Clients = () => {
   )
 }
 
-export default Clients 
+export default Clients

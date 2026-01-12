@@ -5,8 +5,11 @@ const VacationStatusEnum = z.enum(['PENDING', 'APPROVED', 'REJECTED'])
 export const VacationSchema = z
   .object({
     employeeId: z.preprocess(
-      (val) => (val === '' ? undefined : Number(val)),
-      z.number({ required_error: 'Employee is required.' }).int().positive('Employee must be selected.')
+      val => (val === '' ? undefined : Number(val)),
+      z
+        .number({ required_error: 'Employee is required.' })
+        .int()
+        .positive('Employee must be selected.')
     ),
     startDate: z.date({
       required_error: 'Start date is required.'
@@ -17,4 +20,4 @@ export const VacationSchema = z
     status: VacationStatusEnum.default('PENDING') // Default to PENDING
   })
 
-  .passthrough() // Allows other fields not defined in the schema 
+  .passthrough() // Allows other fields not defined in the schema

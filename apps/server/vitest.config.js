@@ -1,4 +1,4 @@
-import { defineConfig } from 'vitest/config'
+import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
   test: {
@@ -9,10 +9,8 @@ export default defineConfig({
     coverage: {
       provider: 'v8',
       reportsDirectory: './tests/coverage',
-      reporter: ['text', 'html'] // Puedes generar reportes en varios formatos
-
+      reporter: ['text', 'html'], // Puedes generar reportes en varios formatos
     },
-    setupFiles: './tests/setupTest.js'
-
-  }
-})
+    setupFiles: './tests/setupTest.js',
+  },
+});

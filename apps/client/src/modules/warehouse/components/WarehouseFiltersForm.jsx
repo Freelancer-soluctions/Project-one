@@ -78,7 +78,7 @@ export const WarehouseFiltersForm = ({ onSubmit, dataStatus, onAddDialog }) => {
               )
             }}
           />
-  
+
           <FormField
             control={form.control}
             name='status'

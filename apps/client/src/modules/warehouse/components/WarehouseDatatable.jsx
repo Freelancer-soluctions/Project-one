@@ -6,12 +6,11 @@ import PropTypes from 'prop-types'
 export const WarehouseDatatable = ({
   dataWarehouse,
   onEditDialog,
-    pagination,
+  pagination,
   onPaginationChange
 }) => {
   const { t } = useTranslation()
-    const {dataList, total}= dataWarehouse.data
-
+  const { dataList, total } = dataWarehouse.data
 
   const columnDefWarehouse = [
     {
@@ -19,23 +18,23 @@ export const WarehouseDatatable = ({
       header: t('name'),
       cell: info => info.getValue()?.toUpperCase()
     },
-   {
-    accessorKey: 'status',
-    header: t('status'),
-    cell: info => info.getValue()?.toUpperCase()
-   },
-   {
-    accessorKey: 'description',
-    header: t('description'),
-    cell: info => info.getValue()?.toUpperCase()
-   },
+    {
+      accessorKey: 'status',
+      header: t('status'),
+      cell: info => info.getValue()?.toUpperCase()
+    },
+    {
+      accessorKey: 'description',
+      header: t('description'),
+      cell: info => info.getValue()?.toUpperCase()
+    },
 
     {
       accessorKey: 'createdOn',
       header: t('created_on'),
       cell: info => format(new Date(info.getValue()), 'PPP')
     },
-   
+
     {
       accessorKey: 'updatedOn',
       header: t('updated_on'),
@@ -43,9 +42,7 @@ export const WarehouseDatatable = ({
         const date = info.getValue()
         return date ? format(new Date(date), 'PPP') : null
       }
-    },
-    
-   
+    }
   ]
 
   const handleEditDialog = row => {
@@ -67,6 +64,6 @@ export const WarehouseDatatable = ({
 WarehouseDatatable.propTypes = {
   dataWarehouse: PropTypes.object.isRequired,
   onEditDialog: PropTypes.func.isRequired,
-    pagination: PropTypes.object.isRequired,
-    onPaginationChange: PropTypes.func.isRequired
+  pagination: PropTypes.object.isRequired,
+  onPaginationChange: PropTypes.func.isRequired
 }

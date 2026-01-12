@@ -1,18 +1,26 @@
-import express from 'express'
+import express from 'express';
 import {
   getAllClients,
   getAllClientsFilters,
   createClient,
   updateClientById,
-  deleteClientById
-} from './controller.js'
-import { verifyToken, validateSchema, validateQueryParams, checkRoleAuthOrPermisssion } from '../../middleware/index.js'
-import { clientFiltersSchema, clientCreateUpdateSchema } from '../../utils/joiSchemas/joi.js'
-import { ROLESCODES, PERMISSIONCODES } from '../../utils/constants/enums.js'
+  deleteClientById,
+} from './controller.js';
+import {
+  verifyToken,
+  validateSchema,
+  validateQueryParams,
+  checkRoleAuthOrPermisssion,
+} from '../../middleware/index.js';
+import {
+  clientFiltersSchema,
+  clientCreateUpdateSchema,
+} from '../../utils/joiSchemas/joi.js';
+import { ROLESCODES, PERMISSIONCODES } from '../../utils/constants/enums.js';
 
-const router = express.Router()
+const router = express.Router();
 // uso global de middleware
-router.use(verifyToken)
+router.use(verifyToken);
 
 /**
  * @openapi
@@ -68,20 +76,20 @@ router.get(
   '/',
   checkRoleAuthOrPermisssion({
     allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER, ROLESCODES.USER],
-    permissions: [PERMISSIONCODES.canViewClient]
+    permissions: [PERMISSIONCODES.canViewClient],
   }),
   validateQueryParams(clientFiltersSchema),
   getAllClients
-)
+);
 
 router.get(
   '/clientsFilters',
   checkRoleAuthOrPermisssion({
     allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER, ROLESCODES.USER],
-    permissions: [PERMISSIONCODES.canViewClient]
+    permissions: [PERMISSIONCODES.canViewClient],
   }),
   getAllClientsFilters
-)
+);
 
 /**
  * @openapi
@@ -131,11 +139,11 @@ router.post(
   '/',
   checkRoleAuthOrPermisssion({
     allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER],
-    permissions: [PERMISSIONCODES.canCreateClient]
+    permissions: [PERMISSIONCODES.canCreateClient],
   }),
   validateSchema(clientCreateUpdateSchema),
   createClient
-)
+);
 
 /**
  * @openapi
@@ -192,11 +200,11 @@ router.put(
   '/:id',
   checkRoleAuthOrPermisssion({
     allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER],
-    permissions: [PERMISSIONCODES.canEditClient]
+    permissions: [PERMISSIONCODES.canEditClient],
   }),
   validateSchema(clientCreateUpdateSchema),
   updateClientById
-)
+);
 
 /**
  * @openapi
@@ -238,9 +246,9 @@ router.delete(
   '/:id',
   checkRoleAuthOrPermisssion({
     allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER],
-    permissions: [PERMISSIONCODES.canDeleteClient]
+    permissions: [PERMISSIONCODES.canDeleteClient],
   }),
   deleteClientById
-)
+);
 
-export default router
+export default router;

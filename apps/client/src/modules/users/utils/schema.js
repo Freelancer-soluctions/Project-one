@@ -7,9 +7,9 @@ const permissionSchema = z.object({
   assigned: z.boolean().default(false)
 })
 
-export const UserSchema = z
-  .object({
-    user: z.object({
+export const UserSchema = z.object({
+  user: z
+    .object({
       name: z.string().min(1, {
         message: 'User name is required.'
       }),
@@ -52,11 +52,11 @@ export const UserSchema = z
       roles: z.custom(val => val && val.id, {
         message: 'Role is required'
       })
-    }).passthrough(), // Permite otros campos
+    })
+    .passthrough(), // Permite otros campos
 
-    permissions: z.array(permissionSchema)
-  })
-  
+  permissions: z.array(permissionSchema)
+})
 
 export const UsersFiltersSchema = z.object({
   name: z.string().optional(),

@@ -1,21 +1,28 @@
-import express from 'express'
+import express from 'express';
 import {
   getAllUsers,
   createUser,
   updateUserById,
   deleteUserById,
-
   getAllUsersStatus,
   getAllUsersRoles,
-  getAllUserPermits
-} from './controller.js'
-import { verifyToken, validateQueryParams, validateSchema, checkRoleAuthOrPermisssion } from '../../middleware/index.js'
-import { ROLESCODES, PERMISSIONCODES } from '../../utils/constants/enums.js'
-import { userFiltersSchema, userCreateUpdateSchema } from '../../utils/joiSchemas/joi.js'
+  getAllUserPermits,
+} from './controller.js';
+import {
+  verifyToken,
+  validateQueryParams,
+  validateSchema,
+  checkRoleAuthOrPermisssion,
+} from '../../middleware/index.js';
+import { ROLESCODES, PERMISSIONCODES } from '../../utils/constants/enums.js';
+import {
+  userFiltersSchema,
+  userCreateUpdateSchema,
+} from '../../utils/joiSchemas/joi.js';
 
-const router = express.Router()
+const router = express.Router();
 // uso global de middleware
-router.use(verifyToken)
+router.use(verifyToken);
 
 /**
  * @openapi
@@ -68,21 +75,23 @@ router.use(verifyToken)
  *               $ref: '#/components/schemas/Error'
  */
 router.get(
-  '/', checkRoleAuthOrPermisssion({
+  '/',
+  checkRoleAuthOrPermisssion({
     allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER],
-    permissions: [PERMISSIONCODES.canViewUser]
+    permissions: [PERMISSIONCODES.canViewUser],
   }),
   validateQueryParams(userFiltersSchema),
   getAllUsers
-)
+);
 
 router.get(
-  '/permits', checkRoleAuthOrPermisssion({
+  '/permits',
+  checkRoleAuthOrPermisssion({
     allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER],
-    permissions: [PERMISSIONCODES.canViewUser]
+    permissions: [PERMISSIONCODES.canViewUser],
   }),
   getAllUserPermits
-)
+);
 
 /**
  * @openapi
@@ -132,11 +141,11 @@ router.post(
   '/',
   checkRoleAuthOrPermisssion({
     allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER],
-    permissions: [PERMISSIONCODES.canCreateUser]
+    permissions: [PERMISSIONCODES.canCreateUser],
   }),
   validateSchema(userCreateUpdateSchema),
   createUser
-)
+);
 
 /**
  * @openapi
@@ -190,13 +199,14 @@ router.post(
  *               $ref: '#/components/schemas/Error'
  */
 router.put(
-  '/:id', checkRoleAuthOrPermisssion({
+  '/:id',
+  checkRoleAuthOrPermisssion({
     allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER],
-    permissions: [PERMISSIONCODES.canEditUser]
+    permissions: [PERMISSIONCODES.canEditUser],
   }),
   validateSchema(userCreateUpdateSchema),
   updateUserById
-)
+);
 
 /**
  * @openapi
@@ -235,21 +245,30 @@ router.put(
  *               $ref: '#/components/schemas/Error'
  */
 router.delete(
-  '/:id', checkRoleAuthOrPermisssion({
+  '/:id',
+  checkRoleAuthOrPermisssion({
     allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER],
-    permissions: [PERMISSIONCODES.canDeleteUser]
+    permissions: [PERMISSIONCODES.canDeleteUser],
   }),
   deleteUserById
-)
+);
 
-router.get('/status', checkRoleAuthOrPermisssion({
-  allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER],
-  permissions: [PERMISSIONCODES.canViewUser]
-}), getAllUsersStatus)
+router.get(
+  '/status',
+  checkRoleAuthOrPermisssion({
+    allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER],
+    permissions: [PERMISSIONCODES.canViewUser],
+  }),
+  getAllUsersStatus
+);
 
-router.get('/roles', checkRoleAuthOrPermisssion({
-  allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER],
-  permissions: [PERMISSIONCODES.canViewUser]
-}), getAllUsersRoles)
+router.get(
+  '/roles',
+  checkRoleAuthOrPermisssion({
+    allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER],
+    permissions: [PERMISSIONCODES.canViewUser],
+  }),
+  getAllUsersRoles
+);
 
-export default router
+export default router;

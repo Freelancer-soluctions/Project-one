@@ -6,33 +6,35 @@ import { axiosPrivateBaseQuery } from '@/config/axios'
 // Define a service using a base URL and expected endpoints
 const performanceEvaluationApi = createApi({
   reducerPath: 'performanceEvaluationApi',
-  baseQuery: axiosPrivateBaseQuery({ baseUrl: import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1' }),
+  baseQuery: axiosPrivateBaseQuery({
+    baseUrl: import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1'
+  }),
   tagTypes: ['PerformanceEvaluation'],
   keepUnusedDataFor: 300, // 5 minutos
-  endpoints: (builder) => ({
+  endpoints: builder => ({
     getAllPerformanceEvaluations: builder.query({
-      query: (params) => ({
+      query: params => ({
         url: '/performance-evaluation', // Adjust endpoint URL if needed
         params
       }),
-      providesTags: ['PerformanceEvaluation'],
+      providesTags: ['PerformanceEvaluation']
     }),
 
     deletePerformanceEvaluationById: builder.mutation({
-      query: (id) => ({
+      query: id => ({
         url: `/performance-evaluation/${id}`,
         method: 'DELETE'
       }),
-      invalidatesTags: ['PerformanceEvaluation'],
+      invalidatesTags: ['PerformanceEvaluation']
     }),
 
     createPerformanceEvaluation: builder.mutation({
-      query: (data) => ({
+      query: data => ({
         url: '/performance-evaluation',
         method: 'POST',
-        body: data,
+        body: data
       }),
-      invalidatesTags: ['PerformanceEvaluation'],
+      invalidatesTags: ['PerformanceEvaluation']
     }),
 
     updatePerformanceEvaluationById: builder.mutation({
@@ -41,8 +43,8 @@ const performanceEvaluationApi = createApi({
         method: 'PUT',
         body: data
       }),
-      invalidatesTags: ['PerformanceEvaluation'],
-    }),
+      invalidatesTags: ['PerformanceEvaluation']
+    })
   })
 })
 
@@ -55,4 +57,4 @@ export const {
   useDeletePerformanceEvaluationByIdMutation
 } = performanceEvaluationApi
 
-export default performanceEvaluationApi 
+export default performanceEvaluationApi

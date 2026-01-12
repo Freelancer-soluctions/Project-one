@@ -1,17 +1,25 @@
-import express from 'express'
+import express from 'express';
 import {
   getAllPurchases,
   createPurchase,
   updatePurchaseById,
-  deletePurchaseById
-} from './controller.js'
-import { verifyToken, validateQueryParams, validateSchema, checkRoleAuthOrPermisssion } from '../../middleware/index.js'
-import { purchaseFiltersSchema, purchaseCreateUpdateSchema } from '../../utils/joiSchemas/joi.js'
-import { ROLESCODES, PERMISSIONCODES } from '../../utils/constants/enums.js'
+  deletePurchaseById,
+} from './controller.js';
+import {
+  verifyToken,
+  validateQueryParams,
+  validateSchema,
+  checkRoleAuthOrPermisssion,
+} from '../../middleware/index.js';
+import {
+  purchaseFiltersSchema,
+  purchaseCreateUpdateSchema,
+} from '../../utils/joiSchemas/joi.js';
+import { ROLESCODES, PERMISSIONCODES } from '../../utils/constants/enums.js';
 
-const router = express.Router()
+const router = express.Router();
 // uso global de middleware
-router.use(verifyToken)
+router.use(verifyToken);
 
 /**
  * @openapi
@@ -76,13 +84,14 @@ router.use(verifyToken)
  *         $ref: '#/components/schemas/Error'
  */
 router.get(
-  '/', checkRoleAuthOrPermisssion({
+  '/',
+  checkRoleAuthOrPermisssion({
     allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER],
-    permissions: [PERMISSIONCODES.canViewPurchase]
+    permissions: [PERMISSIONCODES.canViewPurchase],
   }),
   validateQueryParams(purchaseFiltersSchema),
   getAllPurchases
-)
+);
 
 /**
  * @openapi
@@ -121,13 +130,14 @@ router.get(
  *         $ref: '#/components/schemas/Error'
  */
 router.post(
-  '/', checkRoleAuthOrPermisssion({
+  '/',
+  checkRoleAuthOrPermisssion({
     allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER],
-    permissions: [PERMISSIONCODES.canCreatePurchase]
+    permissions: [PERMISSIONCODES.canCreatePurchase],
   }),
   validateSchema(purchaseCreateUpdateSchema),
   createPurchase
-)
+);
 
 /**
  * @openapi
@@ -176,11 +186,11 @@ router.put(
   '/:id',
   checkRoleAuthOrPermisssion({
     allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER],
-    permissions: [PERMISSIONCODES.canEditPurchase]
+    permissions: [PERMISSIONCODES.canEditPurchase],
   }),
   validateSchema(purchaseCreateUpdateSchema),
   updatePurchaseById
-)
+);
 
 /**
  * @openapi
@@ -210,9 +220,9 @@ router.delete(
   '/:id',
   checkRoleAuthOrPermisssion({
     allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER],
-    permissions: [PERMISSIONCODES.canDeletePurchase]
+    permissions: [PERMISSIONCODES.canDeletePurchase],
   }),
   deletePurchaseById
-)
+);
 
-export default router
+export default router;

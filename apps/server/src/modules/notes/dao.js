@@ -1,4 +1,4 @@
-import { prisma } from '../../config/db.js'
+import { prisma } from '../../config/db.js';
 
 /**
  * Retrieves all notes from the database based on the provided filters.
@@ -17,16 +17,16 @@ export const getAllNotes = async (searchTerm, statusCode) => {
               ? {
                   OR: [
                     { content: { contains: searchTerm, mode: 'insensitive' } },
-                    { title: { contains: searchTerm, mode: 'insensitive' } }
-                  ]
+                    { title: { contains: searchTerm, mode: 'insensitive' } },
+                  ],
                 }
               : {}, // Si no hay `searchTerm`, no se aplica este filtro
 
             statusCode
               ? { columnStatus: { code: statusCode } } // Aplica el filtro solo si `statusCode` tiene un valor
-              : {} // Si no hay `statusCode`, no se aplica este filtro
-          ]
-        }
+              : {}, // Si no hay `statusCode`, no se aplica este filtro
+          ],
+        },
 
         // searchTerm
         //   ? {
@@ -41,10 +41,10 @@ export const getAllNotes = async (searchTerm, statusCode) => {
         //       // }
         //     }
         //   : {} // Si no hay filtro, trae todas las notas
-      }
-    }
-  })
-}
+      },
+    },
+  });
+};
 
 /**
  * Creates a note row in the database with the provided data.
@@ -59,18 +59,18 @@ export const createNote = async (data, userId, columnId) => {
       ...data,
       userNoteCreated: {
         connect: {
-          id: userId
-        }
+          id: userId,
+        },
       },
       columnStatus: {
         connect: {
-          id: columnId
-        }
-      }
-    }
-  })
-  return Promise.resolve(result)
-}
+          id: columnId,
+        },
+      },
+    },
+  });
+  return Promise.resolve(result);
+};
 
 /**
  * Retrieves all available notes columns from the database.
@@ -78,8 +78,8 @@ export const createNote = async (data, userId, columnId) => {
  * @returns {Promise<Array>} A list of notes columns from the database.
  */
 export const getAllNotesColumns = async () => {
-  return await prisma.noteColumns.findMany()
-}
+  return await prisma.noteColumns.findMany();
+};
 
 /**
  * Updates an existing row in the database based on the provided filter and data.
@@ -91,10 +91,10 @@ export const getAllNotesColumns = async () => {
 export const updateNoteColumId = async (id, data) => {
   const result = await prisma.notes.update({
     where: { id },
-    data
-  })
-  return Promise.resolve(result)
-}
+    data,
+  });
+  return Promise.resolve(result);
+};
 
 /**
  * Updates an existing row in the database based on the provided filter and data.
@@ -106,10 +106,10 @@ export const updateNoteColumId = async (id, data) => {
 export const updateNoteById = async (id, data) => {
   const result = await prisma.notes.update({
     where: { id },
-    data
-  })
-  return Promise.resolve(result)
-}
+    data,
+  });
+  return Promise.resolve(result);
+};
 
 /**
  * Deletes a row from the database based on the provided filter.
@@ -118,8 +118,8 @@ export const updateNoteById = async (id, data) => {
  * @returns {Promise<Object>} The result of the delete operation.
  */
 export const deleteRow = async (id) => {
-  await prisma.notes.delete({ where: { id } })
-}
+  await prisma.notes.delete({ where: { id } });
+};
 
 /**
  * Get all number of  notes from the database.
@@ -128,20 +128,20 @@ export const deleteRow = async (id) => {
  */
 export const getAllNotesCount = async () => {
   const lowCount = await prisma.notes.count({
-    where: { columnStatus: { code: 'C01' } }
-  })
+    where: { columnStatus: { code: 'C01' } },
+  });
 
   const mediumCount = await prisma.notes.count({
-    where: { columnStatus: { code: 'C02' } }
-  })
+    where: { columnStatus: { code: 'C02' } },
+  });
 
   const highCount = await prisma.notes.count({
-    where: { columnStatus: { code: 'C03' } }
-  })
+    where: { columnStatus: { code: 'C03' } },
+  });
 
-  const notesCount = { low: lowCount, medium: mediumCount, high: highCount }
+  const notesCount = { low: lowCount, medium: mediumCount, high: highCount };
 
-  return notesCount
+  return notesCount;
 
   // Regresa un array lo cual no es optimo en esta ocacion para manejkar en el front end
   // const notesCount = await prisma.$queryRaw`
@@ -154,4 +154,4 @@ export const getAllNotesCount = async () => {
   //  `
 
   // return notesCount
-}
+};

@@ -1,4 +1,4 @@
-import { prisma } from '../../config/db.js'
+import { prisma } from '../../config/db.js';
 
 /**
  * Get all inventory movements with optional filters
@@ -10,87 +10,93 @@ import { prisma } from '../../config/db.js'
  * @param {number} skip - skip to filter by
  * @returns {Promise<Array>} List of inventory movements
  */
-export const getAllInventoryMovements = async ({ productId, warehouseId, type, take, skip }) => {
+export const getAllInventoryMovements = async ({
+  productId,
+  warehouseId,
+  type,
+  take,
+  skip,
+}) => {
   const inventoryMovements = await prisma.inventoryMovement.findMany({
     where: {
       ...(productId
         ? {
             productId: {
-              equals: productId
-            }
+              equals: productId,
+            },
           }
         : {}),
       ...(warehouseId
         ? {
             warehouseId: {
-              equals: warehouseId
-            }
+              equals: warehouseId,
+            },
           }
         : {}),
       ...(type
         ? {
             type: {
-              equals: type
-            }
+              equals: type,
+            },
           }
-        : {})
+        : {}),
     },
     include: {
       product: true,
-      warehouse: true
+      warehouse: true,
     },
     orderBy: {
-      createdAt: 'desc'
+      createdAt: 'desc',
     },
     take,
-    skip
-  })
+    skip,
+  });
 
   const total = await prisma.yourModelName.count({
     where: {
       ...(productId
         ? {
             productId: {
-              equals: productId
-            }
+              equals: productId,
+            },
           }
         : {}),
       ...(warehouseId
         ? {
             warehouseId: {
-              equals: warehouseId
-            }
+              equals: warehouseId,
+            },
           }
         : {}),
       ...(type
         ? {
             type: {
-              equals: type
-            }
+              equals: type,
+            },
           }
-        : {})
-    }
-  })
+        : {}),
+    },
+  });
 
-  return { dataList: inventoryMovements, total }
-}
+  return { dataList: inventoryMovements, total };
+};
 
 /**
  * Create a new inventory movement
  * @param {Object} data - Inventory movement data
  * @returns {Promise<Object>} Created inventory movement
  */
-export const createInventoryMovement = async data => {
+export const createInventoryMovement = async (data) => {
   const inventoryMovement = await prisma.inventoryMovement.create({
     data,
     include: {
       product: true,
-      warehouse: true
-    }
-  })
+      warehouse: true,
+    },
+  });
 
-  return inventoryMovement
-}
+  return inventoryMovement;
+};
 
 /**
  * Update an inventory movement by ID
@@ -104,22 +110,22 @@ export const updateInventoryMovementById = async (id, data) => {
     data,
     include: {
       product: true,
-      warehouse: true
-    }
-  })
+      warehouse: true,
+    },
+  });
 
-  return inventoryMovement
-}
+  return inventoryMovement;
+};
 
 /**
  * Delete an inventory movement by ID
  * @param {string} id - Inventory movement ID
  * @returns {Promise<Object>} Deleted inventory movement
  */
-export const deleteInventoryMovementById = async id => {
+export const deleteInventoryMovementById = async (id) => {
   const inventoryMovement = await prisma.inventoryMovement.delete({
-    where: { id }
-  })
+    where: { id },
+  });
 
-  return inventoryMovement
-}
+  return inventoryMovement;
+};

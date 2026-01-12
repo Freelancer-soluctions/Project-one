@@ -6,12 +6,11 @@ import PropTypes from 'prop-types'
 export const SalesDatatable = ({
   dataSales,
   onEditDialog,
-    pagination,
+  pagination,
   onPaginationChange
 }) => {
   const { t } = useTranslation()
-    const {dataList, total}= dataSales.data
-
+  const { dataList, total } = dataSales.data
 
   const columnDefSales = [
     {
@@ -22,7 +21,10 @@ export const SalesDatatable = ({
     {
       accessorKey: 'total',
       header: t('total'),
-      cell: info => info.getValue()?.toLocaleString('es-CO', { style: 'currency', currency: 'COP' })
+      cell: info =>
+        info
+          .getValue()
+          ?.toLocaleString('es-CO', { style: 'currency', currency: 'COP' })
     },
     {
       accessorKey: 'saleDetail',
@@ -34,7 +36,8 @@ export const SalesDatatable = ({
       header: t('created_on'),
       cell: info => format(new Date(info.getValue()), 'PPP')
     },
-    {accessorKey: 'userSaleCreated.name',
+    {
+      accessorKey: 'userSaleCreated.name',
       header: t('created_by'),
       cell: info => {
         const userSaleCreated = info.row.original.userSaleCreated // Accede al dato original de la fila
@@ -56,7 +59,7 @@ export const SalesDatatable = ({
         const userSaleUpdated = info.row.original.userSaleUpdated // Accede al dato original de la fila
         return userSaleUpdated?.name ? userSaleUpdated.name.toUpperCase() : null // Retorna null para mantener la celda vacía
       }
-    } 
+    }
   ]
 
   const handleEditDialog = row => {
@@ -66,7 +69,7 @@ export const SalesDatatable = ({
   return (
     <DataTable
       columns={columnDefSales}
-       data={dataList}
+      data={dataList}
       totalRows={total}
       handleRow={row => handleEditDialog(row)}
       pagination={pagination}
@@ -79,5 +82,5 @@ SalesDatatable.propTypes = {
   dataSales: PropTypes.object.isRequired,
   onEditDialog: PropTypes.func.isRequired,
   pagination: PropTypes.object.isRequired,
-    onPaginationChange: PropTypes.func.isRequired
-} 
+  onPaginationChange: PropTypes.func.isRequired
+}

@@ -36,7 +36,6 @@ export const UsersFiltersForm = ({ onSubmit, dataStatus }) => {
     onSubmit(data)
   }
 
-
   const handleResetFilter = () => {
     form.reset()
   }
@@ -103,31 +102,31 @@ export const UsersFiltersForm = ({ onSubmit, dataStatus }) => {
           />
 
           <FormField
-              control={form.control}
-              name='status'
-              render={({ field }) => {
-                return (
-                  <FormItem className='flex flex-col flex-auto'>
-                    <FormLabel htmlFor='status'>{t('status')}</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
-                      <FormControl id='status'>
-                        <SelectTrigger>
-                          <SelectValue placeholder={t('select_status')} />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {dataStatus?.data.map((item, index) => (
-                          <SelectItem value={item.code.toString()} key={index}>
-                            {item.description}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )
-              }}
-            />
+            control={form.control}
+            name='status'
+            render={({ field }) => {
+              return (
+                <FormItem className='flex flex-col flex-auto'>
+                  <FormLabel htmlFor='status'>{t('status')}</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl id='status'>
+                      <SelectTrigger>
+                        <SelectValue placeholder={t('select_status')} />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {dataStatus?.data.map((item, index) => (
+                        <SelectItem value={item.code.toString()} key={index}>
+                          {item.description}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )
+            }}
+          />
         </div>
         {/* buttons */}
         <div className='flex flex-wrap items-center justify-between gap-3 mt-5 md:justify-normal'>
@@ -138,7 +137,7 @@ export const UsersFiltersForm = ({ onSubmit, dataStatus }) => {
             {t('search')}
             <LuSearch className='w-4 h-4 ml-auto opacity-50' />
           </Button>
-        
+
           <Button
             type='button'
             className='flex-1 md:flex-initial md:w-24'

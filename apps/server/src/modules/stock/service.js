@@ -4,9 +4,9 @@ import {
   updateStock as updateStockDao,
   deleteStock as deleteStockDao,
   getStockAlerts as getStockAlertsDao,
-  getStockByProductId as getStockByProductIdDao
-} from './dao.js'
-import { getSafePagination } from '../../utils/pagination/pagination.js'
+  getStockByProductId as getStockByProductIdDao,
+} from './dao.js';
+import { getSafePagination } from '../../utils/pagination/pagination.js';
 
 /**
  * Get all stock entries with optional filters
@@ -19,14 +19,32 @@ import { getSafePagination } from '../../utils/pagination/pagination.js'
  * @param {number} page - Filter by page
  * @returns {Promise<Array>} List of stock entries
  */
-export const getAllStock = async ({ productId, warehouseId, lot, unitMeasure, stocksExpirated, stocksLow, limit, page }) => {
-  const { take, skip } = getSafePagination({ page, limit })
+export const getAllStock = async ({
+  productId,
+  warehouseId,
+  lot,
+  unitMeasure,
+  stocksExpirated,
+  stocksLow,
+  limit,
+  page,
+}) => {
+  const { take, skip } = getSafePagination({ page, limit });
 
   if (!take || take <= 0) {
-    throw new Error('Pagination is required')
+    throw new Error('Pagination is required');
   }
-  return await getAllStockDao({ productId, warehouseId, lot, unitMeasure, stocksExpirated, stocksLow, take, skip })
-}
+  return await getAllStockDao({
+    productId,
+    warehouseId,
+    lot,
+    unitMeasure,
+    stocksExpirated,
+    stocksLow,
+    take,
+    skip,
+  });
+};
 
 /**
  * Get stock by product ID
@@ -34,16 +52,16 @@ export const getAllStock = async ({ productId, warehouseId, lot, unitMeasure, st
  * @returns {Promise<Object>} Stock entry
  */
 export const getStockByProductId = async (id) => {
-  return getStockByProductIdDao(Number(id))
-}
+  return getStockByProductIdDao(Number(id));
+};
 
 /**
  * Get all stock alerts
  * @returns {Promise<Object>} Stock alerts
  */
 export const getStockAlerts = async () => {
-  return getStockAlertsDao()
-}
+  return getStockAlertsDao();
+};
 
 /**
  * Create a new stock entry
@@ -63,11 +81,11 @@ export const createStock = async (userId, data) => {
   const createData = {
     ...data,
     createdBy: Number(userId),
-    createdOn: new Date()
-  }
+    createdOn: new Date(),
+  };
 
-  return createStockDao(createData)
-}
+  return createStockDao(createData);
+};
 
 /**
  * Update a stock entry by ID
@@ -86,17 +104,17 @@ export const updateStockById = async (stockId, data, userId) => {
   const updateData = {
     ...data,
     updatedBy: Number(userId),
-    updatedOn: new Date()
-  }
+    updatedOn: new Date(),
+  };
 
-  return updateStockDao(updateData, { id: Number(stockId) })
-}
+  return updateStockDao(updateData, { id: Number(stockId) });
+};
 
 /**
  * Delete a stock entry by ID
  * @param {number} stockId - ID of the stock entry to delete
  * @returns {Promise<void>}
  */
-export const deleteStockById = async stockId => {
-  return deleteStockDao({ id: Number(stockId) })
-}
+export const deleteStockById = async (stockId) => {
+  return deleteStockDao({ id: Number(stockId) });
+};

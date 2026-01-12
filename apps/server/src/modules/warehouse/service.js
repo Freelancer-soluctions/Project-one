@@ -3,9 +3,9 @@ import {
   getAllWarehousesFilters as getAllWarehousesFiltersDao,
   createWarehouse as createWarehouseDao,
   updateWarehouse as updateWarehouseDao,
-  deleteWarehouse as deleteWarehouseDao
-} from './dao.js'
-import { getSafePagination } from '../../utils/pagination/pagination.js'
+  deleteWarehouse as deleteWarehouseDao,
+} from './dao.js';
+import { getSafePagination } from '../../utils/pagination/pagination.js';
 
 /**
  * Get all warehouses with optional filters
@@ -17,21 +17,21 @@ import { getSafePagination } from '../../utils/pagination/pagination.js'
  * @returns {Promise<Array>} List of warehouses
  */
 export const getAllWarehouses = async ({ name, status, limit, page }) => {
-  const { take, skip } = getSafePagination({ page, limit })
+  const { take, skip } = getSafePagination({ page, limit });
 
   if (!take || take <= 0) {
-    throw new Error('Pagination is required')
+    throw new Error('Pagination is required');
   }
-  return await getAllWarehousesDao(name, status, take, skip)
-}
+  return await getAllWarehousesDao(name, status, take, skip);
+};
 
 /**
  * Get all warehouses.
  * @returns {Promise<Array>} List of warehouses
  */
 export const getAllWarehousesFilters = async () => {
-  return await getAllWarehousesFiltersDao()
-}
+  return await getAllWarehousesFiltersDao();
+};
 
 /**
  * Create a new warehouse
@@ -45,11 +45,11 @@ export const getAllWarehousesFilters = async () => {
 export const createWarehouse = async (data) => {
   const createData = {
     ...data,
-    createdOn: new Date()
-  }
+    createdOn: new Date(),
+  };
 
-  return createWarehouseDao(createData)
-}
+  return createWarehouseDao(createData);
+};
 
 /**
  * Update a warehouse by ID
@@ -65,17 +65,17 @@ export const createWarehouse = async (data) => {
 export const updateWarehouseById = async (warehouseId, data) => {
   const updateData = {
     ...data,
-    updatedOn: new Date()
-  }
+    updatedOn: new Date(),
+  };
 
-  return updateWarehouseDao(updateData, { id: Number(warehouseId) })
-}
+  return updateWarehouseDao(updateData, { id: Number(warehouseId) });
+};
 
 /**
  * Delete a warehouse by ID
  * @param {number} warehouseId - ID of the warehouse to delete
  * @returns {Promise<void>}
  */
-export const deleteWarehouseById = async warehouseId => {
-  return deleteWarehouseDao({ id: Number(warehouseId) })
-}
+export const deleteWarehouseById = async (warehouseId) => {
+  return deleteWarehouseDao({ id: Number(warehouseId) });
+};

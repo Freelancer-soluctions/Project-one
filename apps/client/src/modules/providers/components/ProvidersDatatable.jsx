@@ -6,12 +6,11 @@ import PropTypes from 'prop-types'
 export const ProvidersDatatable = ({
   dataProviders,
   onEditDialog,
-    pagination,
+  pagination,
   onPaginationChange
 }) => {
   const { t } = useTranslation()
-    const {dataList, total}= dataProviders.data
-
+  const { dataList, total } = dataProviders.data
 
   const columnDefProviders = [
     {
@@ -33,8 +32,6 @@ export const ProvidersDatatable = ({
       accessorKey: 'userProvidersCreatedName',
       header: t('created_by'),
       cell: info => info.getValue()?.toUpperCase()
-
-     
     },
     {
       accessorKey: 'userProvidersUpdatedName',
@@ -48,9 +45,7 @@ export const ProvidersDatatable = ({
         const date = info.getValue()
         return date ? format(new Date(date), 'PPP') : null
       }
-    },
-    
-   
+    }
   ]
 
   const handleEditDialog = row => {
@@ -72,7 +67,6 @@ export const ProvidersDatatable = ({
 ProvidersDatatable.propTypes = {
   dataProviders: PropTypes.object.isRequired,
   onEditDialog: PropTypes.func.isRequired,
-    pagination: PropTypes.object.isRequired,
-    onPaginationChange: PropTypes.func.isRequired
-
+  pagination: PropTypes.object.isRequired,
+  onPaginationChange: PropTypes.func.isRequired
 }

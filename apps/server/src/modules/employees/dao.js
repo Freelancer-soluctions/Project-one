@@ -1,7 +1,7 @@
-import { prisma, Prisma } from '../../config/db.js'
+import { prisma, Prisma } from '../../config/db.js';
 // import { decryptSensitiveFields, encryptSensitiveFields } from '../../utils/security/sensitive-transform.js'
-import { hashValue } from '../../common/crypto/index.js'
-import { decryptResults } from '../../utils/prisma/prisma-query.js'
+import { hashValue } from '../../common/crypto/index.js';
+import { decryptResults } from '../../utils/prisma/prisma-query.js';
 
 /**
  * Get all employees with optional filters
@@ -17,35 +17,43 @@ import { decryptResults } from '../../utils/prisma/prisma-query.js'
  * @returns {Promise<Array>} List of employees with their related data
  */
 export const getAllEmployees = async (filters = {}, take, skip) => {
-  const whereClauses = []
+  const whereClauses = [];
 
   if (filters.name) {
-    whereClauses.push(Prisma.sql`e."name" ILIKE ${`%${filters.name}%`}`)
+    whereClauses.push(Prisma.sql`e."name" ILIKE ${`%${filters.name}%`}`);
   }
 
   if (filters.lastName) {
-    whereClauses.push(Prisma.sql`e."lastName" ILIKE ${`%${filters.lastName}%`}`)
+    whereClauses.push(
+      Prisma.sql`e."lastName" ILIKE ${`%${filters.lastName}%`}`
+    );
   }
 
   if (filters.dni) {
-    whereClauses.push(Prisma.sql`e."dni_hash" ILIKE ${`%${hashValue(filters.dni)}%`}`)
+    whereClauses.push(
+      Prisma.sql`e."dni_hash" ILIKE ${`%${hashValue(filters.dni)}%`}`
+    );
   }
 
   if (filters.email) {
-    whereClauses.push(Prisma.sql`e."email" ILIKE ${`%${filters.email}%`}`)
+    whereClauses.push(Prisma.sql`e."email" ILIKE ${`%${filters.email}%`}`);
   }
 
   if (filters.department) {
-    whereClauses.push(Prisma.sql`e."department" ILIKE ${`%${filters.department}%`}`)
+    whereClauses.push(
+      Prisma.sql`e."department" ILIKE ${`%${filters.department}%`}`
+    );
   }
 
   if (filters.position) {
-    whereClauses.push(Prisma.sql`e."position" ILIKE ${`%${filters.position}%`}`)
+    whereClauses.push(
+      Prisma.sql`e."position" ILIKE ${`%${filters.position}%`}`
+    );
   }
 
   const whereSql = whereClauses.length
     ? Prisma.sql`WHERE ${Prisma.join(whereClauses, Prisma.sql` AND `)}`
-    : Prisma.empty
+    : Prisma.empty;
 
   const employees = await prisma.$queryRaw`
   SELECT 
@@ -59,67 +67,67 @@ export const getAllEmployees = async (filters = {}, take, skip) => {
    ORDER BY e."createdOn" DESC
    LIMIT ${take}
    OFFSET ${skip}
- `
+ `;
 
   // A02 cryptographid failures (cifrado de datos sensibles)
-  const dataList = decryptResults(employees)
+  const dataList = decryptResults(employees);
 
   const total = await prisma.employees.count({
     where: {
       ...(filters.name && {
         name: {
           contains: filters.name,
-          mode: 'insensitive' // equivale a ILIKE
-        }
+          mode: 'insensitive', // equivale a ILIKE
+        },
       }),
 
       ...(filters.lastName && {
         lastName: {
           contains: filters.lastName,
-          mode: 'insensitive'
-        }
+          mode: 'insensitive',
+        },
       }),
 
       ...(filters.dni && {
         dni_hash: {
           contains: hashValue(filters.dni),
-          mode: 'insensitive'
-        }
+          mode: 'insensitive',
+        },
       }),
 
       ...(filters.email && {
         email: {
           contains: filters.email,
-          mode: 'insensitive'
-        }
+          mode: 'insensitive',
+        },
       }),
 
       ...(filters.department && {
         department: {
           contains: filters.department,
-          mode: 'insensitive'
-        }
+          mode: 'insensitive',
+        },
       }),
 
       ...(filters.position && {
         position: {
           contains: filters.position,
-          mode: 'insensitive'
-        }
-      })
-    }
-  })
+          mode: 'insensitive',
+        },
+      }),
+    },
+  });
 
-  return { dataList, total }
-}
+  return { dataList, total };
+};
 
 /**
  * Get all employees to ui filters
  * @returns {Promise<Array>} List of employees with their related data
  */
 export const getAllEmployeesFilters = async () => {
-  return await prisma.employees.findMany()
-}
+  return await prisma.employees.findMany();
+};
 
 /**
  * Create a new employee
@@ -154,12 +162,12 @@ export const createEmployee = async (data) => {
       createdOn: data.createdOn,
       userEmployeeCreated: {
         connect: {
-          id: data.createdBy
-        }
-      }
-    }
-  })
-}
+          id: data.createdBy,
+        },
+      },
+    },
+  });
+};
 
 /**
  * Update an employee by ID
@@ -196,12 +204,12 @@ export const updateEmployeeById = async (id, data) => {
       updatedOn: data.updatedOn,
       userEmployeeUpdated: {
         connect: {
-          id: data.updatedBy
-        }
-      }
-    }
-  })
-}
+          id: data.updatedBy,
+        },
+      },
+    },
+  });
+};
 
 /**
  * Delete an employee by ID
@@ -210,6 +218,6 @@ export const updateEmployeeById = async (id, data) => {
  */
 export const deleteEmployeeById = async (id) => {
   return prisma.employees.delete({
-    where: { id }
-  })
-}
+    where: { id },
+  });
+};

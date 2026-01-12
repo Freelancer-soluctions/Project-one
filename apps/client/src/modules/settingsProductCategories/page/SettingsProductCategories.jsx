@@ -5,12 +5,12 @@ import {
 } from '../components/index'
 import { useLazyGetAllCategoriesQuery } from '../api/SettingsProductCategoriesAPI'
 import { Spinner } from '@/components/loader/Spinner'
-import { useState, useEffect } from 'react' 
+import { useState, useEffect } from 'react'
 
 export const SettingsProductCategories = () => {
   const [showForm, setShowForm] = useState(false)
   const [selectedRow, setSelectedRow] = useState(null)
-    const [pagination, setPagination] = useState({
+  const [pagination, setPagination] = useState({
     pageIndex: 0,
     pageSize: 20
   })
@@ -64,8 +64,6 @@ export const SettingsProductCategories = () => {
     setFilters(newFilters)
   }
 
-
-
   const handleCategory = row => {
     setShowForm(true)
     setSelectedRow(row)
@@ -102,7 +100,7 @@ export const SettingsProductCategories = () => {
                 dataCategories={dataCategories}
                 onEdit={handleCategory}
                 pagination={pagination}
-              onPaginationChange={setPagination}
+                onPaginationChange={setPagination}
               />
             </div>
           </div>

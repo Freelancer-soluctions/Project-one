@@ -1,5 +1,5 @@
-import * as productsDao from './dao.js'
-import { getSafePagination } from '../../utils/pagination/pagination.js'
+import * as productsDao from './dao.js';
+import { getSafePagination } from '../../utils/pagination/pagination.js';
 
 /**
  * Retrieves all providers based on optional filters.
@@ -11,24 +11,14 @@ import { getSafePagination } from '../../utils/pagination/pagination.js'
  * @param {number} page - Filter by page
  * @returns {Promise<Array>} A list of providers matching the filters.
  */
-export const getAllProviders = async ({
-  name,
-  status,
-  limit,
-  page
-}) => {
-  const { take, skip } = getSafePagination({ page, limit })
+export const getAllProviders = async ({ name, status, limit, page }) => {
+  const { take, skip } = getSafePagination({ page, limit });
 
   if (!take || take <= 0) {
-    throw new Error('Pagination is required')
+    throw new Error('Pagination is required');
   }
-  return await productsDao.getAllProducts(
-    name,
-    status,
-    take,
-    skip
-  )
-}
+  return await productsDao.getAllProducts(name, status, take, skip);
+};
 
 /**
  * Retrieves all providers.
@@ -36,8 +26,8 @@ export const getAllProviders = async ({
  * @returns {Promise<Array>} A list of providers matching the filters.
  */
 export const getAllProvidersFilters = async () => {
-  return await productsDao.getAllProvidersFilters()
-}
+  return await productsDao.getAllProvidersFilters();
+};
 
 /**
  * Creates a new provider in the database.
@@ -63,11 +53,11 @@ export const createProvider = async (userId, data) => {
     contactPhone: data.address ? String(data.contactPhone) : null,
     address: data.address ? String(data.address) : null,
     createdOn: new Date(),
-    createdBy: Number(userId)
-  }
+    createdBy: Number(userId),
+  };
 
-  return productsDao.createProvider(newProvider)
-}
+  return productsDao.createProvider(newProvider);
+};
 
 /**
  * Updates an existing provider in the database by its ID.
@@ -79,7 +69,7 @@ export const createProvider = async (userId, data) => {
  * @returns {Promise<Object>} The updated provider.
  */
 export const updateById = async (userId, id, data) => {
-  const rowId = Number(id)
+  const rowId = Number(id);
   const provider = {
     ...data,
     status: Boolean(data.status),
@@ -88,12 +78,11 @@ export const updateById = async (userId, id, data) => {
     contactPhone: data.address ? String(data.contactPhone) : null,
     address: data.address ? String(data.address) : null,
     updatedOn: new Date(),
-    updatedBy: Number(userId)
+    updatedBy: Number(userId),
+  };
 
-  }
-
-  return productsDao.updateRow(provider, { id: rowId })
-}
+  return productsDao.updateRow(provider, { id: rowId });
+};
 /**
  * Deletes a provider from the database by its ID.
  *
@@ -101,6 +90,6 @@ export const updateById = async (userId, id, data) => {
  * @returns {Promise<Object>} The result of the deletion.
  */
 export const deleteById = async (id) => {
-  const rowId = Number(id)
-  return productsDao.deleteRow({ id: rowId })
-}
+  const rowId = Number(id);
+  return productsDao.deleteRow({ id: rowId });
+};

@@ -11,7 +11,7 @@ import AlertDialogComponent from '@/components/alertDialog/AlertDialog'
 import { useState } from 'react'
 import PropTypes from 'prop-types'
 
-export function SettingsProductsCategoryForm( {onClose, selectedRow } ) {
+export function SettingsProductsCategoryForm({ onClose, selectedRow }) {
   const { t } = useTranslation()
   const [openAlertDialog, setOpenAlertDialog] = useState(false) //alert dialog open/close
   const [alertProps, setAlertProps] = useState({})
@@ -43,15 +43,15 @@ export function SettingsProductsCategoryForm( {onClose, selectedRow } ) {
         id: data.id,
         data: {
           description: data.description,
-          code: data.code,
+          code: data.code
         }
       }).unwrap()
     } else {
       await createCategory({
         description: data.description,
-        code: data.code,
+        code: data.code
       }).unwrap()
-    } 
+    }
 
     setOpenAlertDialog(true)
     setAlertProps({
@@ -108,13 +108,8 @@ export function SettingsProductsCategoryForm( {onClose, selectedRow } ) {
 
   return (
     <>
-  
       <div className='relative'>
-        {(
-          isLoadingPost ||
-          isLoadingPut ||
-          isLoadingDelete 
-          ) && <Spinner />}
+        {(isLoadingPost || isLoadingPut || isLoadingDelete) && <Spinner />}
 
         <div className='container flex flex-col min-h-screen'>
           <main className='container flex-1 py-6'>

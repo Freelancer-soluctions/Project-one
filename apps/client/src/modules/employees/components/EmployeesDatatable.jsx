@@ -112,6 +112,6 @@ export const EmployeesDatatable = ({
 EmployeesDatatable.propTypes = {
   dataEmployees: PropTypes.object.isRequired,
   onEditDialog: PropTypes.func.isRequired,
-    pagination: PropTypes.object.isRequired,
-    onPaginationChange: PropTypes.func.isRequired
+  pagination: PropTypes.object.isRequired,
+  onPaginationChange: PropTypes.func.isRequired
 }

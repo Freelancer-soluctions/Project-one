@@ -21,7 +21,7 @@
     "test": "npm run test -ws",
     "build": "npm run build -ws",
     "prepush": "npm run test && npm run build",
-    "format": "prettier --write",
+    "format": "prettier --write \"apps/**/*.{js,jsx,json,md}\"",
     "format:check": "prettier --check \"apps/**/*.{js,jsx,json,md}\""
   },
   "devDependencies": {
@@ -33,7 +33,6 @@
   },
   "lint-staged": {
     "*.{js,ts,cjs,mjs,d.cts,d.mts,json,jsonc}": [
-      "npm run lint:fix",
       "npm run format"
     ]
   }

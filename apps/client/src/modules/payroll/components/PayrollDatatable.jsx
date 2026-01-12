@@ -108,4 +108,3 @@ PayrollDatatable.propTypes = {
   pagination: PropTypes.object.isRequired,
   onPaginationChange: PropTypes.func.isRequired
 }
-    

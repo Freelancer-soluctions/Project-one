@@ -1,6 +1,6 @@
-import bcrypt from 'bcrypt'
-import zxcvbn from 'zxcvbn'
-import dontenv from '../../config/dotenv.js'
+import bcrypt from 'bcrypt';
+import zxcvbn from 'zxcvbn';
+import dontenv from '../../config/dotenv.js';
 
 /**
  * Hashea una contraseña utilizando bcrypt.
@@ -39,14 +39,14 @@ export const encryptPassword = async (password) => {
   // de entorno, evitando valores hardcodeados
   // (cumple buenas prácticas de seguridad).
   // ------------------------------------------------
-  const saltENV = dontenv('BCRYPTSALT') // Ej: 12
+  const saltENV = dontenv('BCRYPTSALT'); // Ej: 12
 
   // ------------------------------------------------
   // Se asegura un mínimo criptográficamente seguro.
   // Incluso si la variable de entorno está mal
   // configurada, no se permitirá un valor débil.
   // ------------------------------------------------
-  const rounds = Math.max(12, Number(saltENV) || 12)
+  const rounds = Math.max(12, Number(saltENV) || 12);
 
   // ------------------------------------------------
   // bcrypt.genSalt:
@@ -54,7 +54,7 @@ export const encryptPassword = async (password) => {
   // - Aplica el factor de trabajo (rounds)
   // - Protege contra rainbow tables
   // ------------------------------------------------
-  const salt = await bcrypt.genSalt(rounds)
+  const salt = await bcrypt.genSalt(rounds);
 
   // ------------------------------------------------
   // bcrypt.hash:
@@ -62,16 +62,16 @@ export const encryptPassword = async (password) => {
   // - Hace que ataques de fuerza bruta sean costosos
   // - La contraseña nunca se almacena ni se expone
   // ------------------------------------------------
-  return bcrypt.hash(password, salt)
-}
+  return bcrypt.hash(password, salt);
+};
 
 /**
  * Compara la contraseña ingresada con el hash almacenado.
  * - bcrypt.compare es seguro contra timing attacks.
  */
 export const comparePassword = async (password, savedPassword) => {
-  return bcrypt.compare(password, savedPassword)
-}
+  return bcrypt.compare(password, savedPassword);
+};
 
 /**
  * Evalúa la fortaleza de la contraseña.
@@ -80,6 +80,6 @@ export const comparePassword = async (password, savedPassword) => {
  * - Score mínimo aceptable = 3 (aceptable/seguro).
  */
 export const validatePasswordStrength = (password) => {
-  const evaluation = zxcvbn(password)
-  return evaluation.score >= 3
-}
+  const evaluation = zxcvbn(password);
+  return evaluation.score >= 3;
+};

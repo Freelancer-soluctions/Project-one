@@ -3,9 +3,9 @@ import {
   getAllEmployeesFilters as getAllEmployeesFiltersDao,
   createEmployee as createEmployeeDao,
   updateEmployeeById as updateEmployeeByIdDao,
-  deleteEmployeeById as deleteEmployeeByIdDao
-} from './dao.js'
-import { getSafePagination } from '../../utils/pagination/pagination.js'
+  deleteEmployeeById as deleteEmployeeByIdDao,
+} from './dao.js';
+import { getSafePagination } from '../../utils/pagination/pagination.js';
 
 /**
  * Get all employees with optional filters
@@ -13,21 +13,24 @@ import { getSafePagination } from '../../utils/pagination/pagination.js'
  * @returns {Promise<Array>} List of employees
  */
 export const getAllEmployees = async (filters) => {
-  const { take, skip } = getSafePagination({ page: filters.page, limit: filters.limit })
+  const { take, skip } = getSafePagination({
+    page: filters.page,
+    limit: filters.limit,
+  });
 
   if (!take || take <= 0) {
-    throw new Error('Pagination is required')
+    throw new Error('Pagination is required');
   }
-  return getAllEmployeesDao(filters, take, skip)
-}
+  return getAllEmployeesDao(filters, take, skip);
+};
 
 /**
  * Get all employees to ui filters
  * @returns {Promise<Array>} List of employees
  */
 export const getAllEmployeesFilters = async () => {
-  return getAllEmployeesFiltersDao()
-}
+  return getAllEmployeesFiltersDao();
+};
 
 /**
  * Create a new employee
@@ -37,10 +40,10 @@ export const getAllEmployeesFilters = async () => {
 export const createEmployee = async (data) => {
   const dataEmployee = {
     ...data,
-    createdOn: new Date()
-  }
-  return createEmployeeDao(dataEmployee)
-}
+    createdOn: new Date(),
+  };
+  return createEmployeeDao(dataEmployee);
+};
 
 /**
  * Update an employee by ID
@@ -51,10 +54,10 @@ export const createEmployee = async (data) => {
 export const updateEmployeeById = async (id, data) => {
   const dataEmployee = {
     ...data,
-    updatedOn: new Date()
-  }
-  return updateEmployeeByIdDao(Number(id), dataEmployee)
-}
+    updatedOn: new Date(),
+  };
+  return updateEmployeeByIdDao(Number(id), dataEmployee);
+};
 
 /**
  * Delete an employee by ID
@@ -62,5 +65,5 @@ export const updateEmployeeById = async (id, data) => {
  * @returns {Promise<Object>} Deleted employee
  */
 export const deleteEmployeeById = async (id) => {
-  return deleteEmployeeByIdDao(Number(id))
-}
+  return deleteEmployeeByIdDao(Number(id));
+};

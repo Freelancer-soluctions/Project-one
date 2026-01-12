@@ -9,15 +9,24 @@ import {
   FormMessage
 } from '@/components/ui/form'
 import { Button } from '@/components/ui/button'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from '@/components/ui/select'
 import PropTypes from 'prop-types'
 import { movementTypes } from '../utils'
 import { LuCalendarDays, LuSearch, LuPlus, LuEraser } from 'react-icons/lu'
 import { cn } from '@/lib/utils'
 import { Calendar } from '@/components/ui/calendar'
-import { Popover, PopoverContent, PopoverTrigger,  } from '@/components/ui/popover'
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger
+} from '@/components/ui/popover'
 import { format } from 'date-fns'
-
 
 export const InventoryMovementFiltersForm = ({
   onSubmit,
@@ -149,7 +158,6 @@ export const InventoryMovementFiltersForm = ({
               )
             }}
           />
-
 
           <FormField
             control={form.control}

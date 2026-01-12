@@ -1,1 +1,1 @@
-export * from './hashValue.js'
+export * from './hashValue.js';

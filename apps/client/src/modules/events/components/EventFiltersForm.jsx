@@ -33,7 +33,7 @@ export const EventFiltersForm = ({
             className='flex-1 md:flex-initial md:w-24'
             variant='success'
             onClick={() => {
-              setIsDialogOpen(true), setEvent({})
+              ;(setIsDialogOpen(true), setEvent({}))
             }}>
             {t('add')} <LuPlus className='w-4 h-4 ml-auto opacity-50' />
           </Button>

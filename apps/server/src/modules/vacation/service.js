@@ -1,18 +1,26 @@
-import { getAllVacation as getAllVacationDao, createVacation as createVacationDao, updateVacationById as updateVacationByIdDao, deleteVacationById as deleteVacationByIdDao } from './dao.js'
-import { getSafePagination } from '../../utils/pagination/pagination.js'
+import {
+  getAllVacation as getAllVacationDao,
+  createVacation as createVacationDao,
+  updateVacationById as updateVacationByIdDao,
+  deleteVacationById as deleteVacationByIdDao,
+} from './dao.js';
+import { getSafePagination } from '../../utils/pagination/pagination.js';
 /**
  * Get all vacation records with optional filters
  * @param {Object} filters - Filter criteria for vacation records
  * @returns {Promise<Array>} Array of vacation records
  */
 export const getAllVacation = async (filters) => {
-  const { take, skip } = getSafePagination({ page: filters.page, limit: filters.limit })
+  const { take, skip } = getSafePagination({
+    page: filters.page,
+    limit: filters.limit,
+  });
 
   if (!take || take <= 0) {
-    throw new Error('Pagination is required')
+    throw new Error('Pagination is required');
   }
-  return await getAllVacationDao(filters, take, skip)
-}
+  return await getAllVacationDao(filters, take, skip);
+};
 
 /**
  * Create a new vacation record
@@ -22,10 +30,10 @@ export const getAllVacation = async (filters) => {
 export const createVacation = async (data) => {
   const vacation = {
     ...data,
-    createdOn: new Date()
-  }
-  return await createVacationDao(vacation)
-}
+    createdOn: new Date(),
+  };
+  return await createVacationDao(vacation);
+};
 
 /**
  * Update a vacation record by ID
@@ -36,10 +44,10 @@ export const createVacation = async (data) => {
 export const updateVacationById = async (id, data) => {
   const vacation = {
     ...data,
-    updatedOn: new Date()
-  }
-  return await updateVacationByIdDao(id, vacation)
-}
+    updatedOn: new Date(),
+  };
+  return await updateVacationByIdDao(id, vacation);
+};
 
 /**
  * Delete a vacation record by ID
@@ -47,5 +55,5 @@ export const updateVacationById = async (id, data) => {
  * @returns {Promise<Object>} Deleted vacation record
  */
 export const deleteVacationById = async (id) => {
-  return await deleteVacationByIdDao(id)
-}
+  return await deleteVacationByIdDao(id);
+};

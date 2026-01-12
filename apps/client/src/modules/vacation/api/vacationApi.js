@@ -6,33 +6,35 @@ import { axiosPrivateBaseQuery } from '@/config/axios'
 // Define a service using a base URL and expected endpoints
 const vacationApi = createApi({
   reducerPath: 'vacationApi',
-  baseQuery: axiosPrivateBaseQuery({ baseUrl: import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1' }),
+  baseQuery: axiosPrivateBaseQuery({
+    baseUrl: import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1'
+  }),
   tagTypes: ['Vacation'],
   keepUnusedDataFor: 300, // 5 minutos
-  endpoints: (builder) => ({
+  endpoints: builder => ({
     getAllVacations: builder.query({
-      query: (params) => ({
+      query: params => ({
         url: '/vacation', // Check endpoint if different
         params
       }),
-      providesTags: ['Vacation'],
+      providesTags: ['Vacation']
     }),
 
     deleteVacationById: builder.mutation({
-      query: (id) => ({
+      query: id => ({
         url: `/vacation/${id}`,
         method: 'DELETE'
       }),
-      invalidatesTags: ['Vacation'],
+      invalidatesTags: ['Vacation']
     }),
 
     createVacation: builder.mutation({
-      query: (data) => ({
+      query: data => ({
         url: '/vacation',
         method: 'POST',
-        body: data,
+        body: data
       }),
-      invalidatesTags: ['Vacation'],
+      invalidatesTags: ['Vacation']
     }),
 
     updateVacationById: builder.mutation({
@@ -41,8 +43,8 @@ const vacationApi = createApi({
         method: 'PUT',
         body: data
       }),
-      invalidatesTags: ['Vacation'],
-    }),
+      invalidatesTags: ['Vacation']
+    })
   })
 })
 
@@ -55,4 +57,4 @@ export const {
   useDeleteVacationByIdMutation
 } = vacationApi
 
-export default vacationApi 
+export default vacationApi

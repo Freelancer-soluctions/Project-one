@@ -24,7 +24,7 @@ const Payroll = () => {
   const [openAlertDialog, setOpenAlertDialog] = useState(false)
   const [alertProps, setAlertProps] = useState({})
   const [actionDialog, setActionDialog] = useState('')
-   const [pagination, setPagination] = useState({
+  const [pagination, setPagination] = useState({
     pageIndex: 0,
     pageSize: 20
   })
@@ -93,9 +93,6 @@ const Payroll = () => {
 
     setFilters(newFilters)
   }
-
-
- 
 
   const handleSubmit = async (values, payrollId) => {
     try {

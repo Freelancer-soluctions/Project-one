@@ -17,10 +17,10 @@ import {
   LuPackagePlus,
   LuBuilding2,
   LuWarehouse,
-  LuShoppingCart ,
+  LuShoppingCart,
   LuArrowLeftRight,
   LuDollarSign,
-  LuUsersRound ,
+  LuUsersRound,
   LuUsers,
   LuClock,
   LuStar,
@@ -40,10 +40,10 @@ const CardModule = () => {
       <UpcomingEventsAlert />
 
       <div className='grid grid-cols-1 gap-4 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-8 '>
-      <Card className='relative overflow-hidden transition-all group hover:shadow-lg hover:-translate-y-1'>
+        <Card className='relative overflow-hidden transition-all group hover:shadow-lg hover:-translate-y-1'>
           <CardHeader className='p-6'>
             <div className='flex items-center gap-4'>
-              <LuUserSearch  className='w-8 h-8 text-zinc-800' />
+              <LuUserSearch className='w-8 h-8 text-zinc-800' />
               <div>
                 <CardTitle className='text-xl'>{t('users')}</CardTitle>
                 <CardDescription>{t('users_card_msg')}</CardDescription>
@@ -57,13 +57,12 @@ const CardModule = () => {
               prefetch={false}>
               {t('access')} <LuArrowRight className='w-4 h-4 ml-2' />
             </Link>
-          
           </CardContent>
         </Card>
         <Card className='relative overflow-hidden transition-all group hover:shadow-lg hover:-translate-y-1'>
           <CardHeader className='p-6'>
             <div className='flex items-center gap-4'>
-              <LuTrendingDown  className='w-8 h-8 text-zinc-800' />
+              <LuTrendingDown className='w-8 h-8 text-zinc-800' />
               <div>
                 <CardTitle className='text-xl'>{t('expenses')}</CardTitle>
                 <CardDescription>{t('expenses_card_msg')}</CardDescription>
@@ -77,13 +76,12 @@ const CardModule = () => {
               prefetch={false}>
               {t('access')} <LuArrowRight className='w-4 h-4 ml-2' />
             </Link>
-          
           </CardContent>
         </Card>
         <Card className='relative overflow-hidden transition-all group hover:shadow-lg hover:-translate-y-1'>
           <CardHeader className='p-6'>
             <div className='flex items-center gap-4'>
-              <LuWalletMinimal  className='w-8 h-8 text-zinc-800' />
+              <LuWalletMinimal className='w-8 h-8 text-zinc-800' />
               <div>
                 <CardTitle className='text-xl'>{t('reports')}</CardTitle>
                 <CardDescription>{t('reports_card_msg')}</CardDescription>
@@ -97,7 +95,6 @@ const CardModule = () => {
               prefetch={false}>
               {t('access')} <LuArrowRight className='w-4 h-4 ml-2' />
             </Link>
-          
           </CardContent>
         </Card>
         <Card className='relative overflow-hidden transition-all group hover:shadow-lg hover:-translate-y-1'>
@@ -303,8 +300,12 @@ const CardModule = () => {
             <div className='flex items-center gap-4'>
               <LuArrowLeftRight className='w-8 h-8 text-zinc-800' />
               <div>
-                <CardTitle className='text-xl'>{t('inventoryMovement')}</CardTitle>
-                <CardDescription>{t('inventoryMovement_card_msg')}</CardDescription>
+                <CardTitle className='text-xl'>
+                  {t('inventoryMovement')}
+                </CardTitle>
+                <CardDescription>
+                  {t('inventoryMovement_card_msg')}
+                </CardDescription>
               </div>
             </div>
           </CardHeader>
@@ -320,10 +321,12 @@ const CardModule = () => {
         <Card className='relative overflow-hidden transition-all group hover:shadow-lg hover:-translate-y-1'>
           <CardHeader className='p-6'>
             <div className='flex items-center gap-4'>
-              <LuClipboardPen  className='w-8 h-8 text-zinc-800' />
+              <LuClipboardPen className='w-8 h-8 text-zinc-800' />
               <div>
                 <CardTitle className='text-xl'>{t('provider_order')}</CardTitle>
-                <CardDescription>{t('provider_order_card_msg')}</CardDescription>
+                <CardDescription>
+                  {t('provider_order_card_msg')}
+                </CardDescription>
               </div>
             </div>
           </CardHeader>
@@ -339,7 +342,7 @@ const CardModule = () => {
         <Card className='relative overflow-hidden transition-all group hover:shadow-lg hover:-translate-y-1'>
           <CardHeader className='p-6'>
             <div className='flex items-center gap-4'>
-              <LuClipboardPen  className='w-8 h-8 text-zinc-800' />
+              <LuClipboardPen className='w-8 h-8 text-zinc-800' />
               <div>
                 <CardTitle className='text-xl'>{t('client_order')}</CardTitle>
                 <CardDescription>{t('client_order_card_msg')}</CardDescription>
@@ -357,7 +360,7 @@ const CardModule = () => {
         </Card>
       </div>
       <div className='grid grid-cols-1 gap-4 mt-20 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-8'>
-      <Card className='relative overflow-hidden transition-all group hover:shadow-lg hover:-translate-y-1'>
+        <Card className='relative overflow-hidden transition-all group hover:shadow-lg hover:-translate-y-1'>
           <CardHeader className='p-6'>
             <div className='flex items-center gap-4'>
               <LuUsers className='w-8 h-8 text-zinc-800' />
@@ -385,7 +388,7 @@ const CardModule = () => {
                 <CardDescription>{t('attendance_card_msg')}</CardDescription>
               </div>
             </div>
-          </CardHeader> 
+          </CardHeader>
           <CardContent className='px-6 pb-6'>
             <Link
               to={'attendance'}
@@ -404,7 +407,7 @@ const CardModule = () => {
                 <CardDescription>{t('payroll_card_msg')}</CardDescription>
               </div>
             </div>
-          </CardHeader> 
+          </CardHeader>
           <CardContent className='px-6 pb-6'>
             <Link
               to={'payroll'}
@@ -419,11 +422,15 @@ const CardModule = () => {
             <div className='flex items-center gap-4'>
               <LuStar className='w-8 h-8 text-zinc-800' />
               <div>
-                <CardTitle className='text-xl'>{t('performanceEvaluation')}</CardTitle>
-                <CardDescription>{t('performanceEvaluation_card_msg')}</CardDescription>
+                <CardTitle className='text-xl'>
+                  {t('performanceEvaluation')}
+                </CardTitle>
+                <CardDescription>
+                  {t('performanceEvaluation_card_msg')}
+                </CardDescription>
               </div>
             </div>
-          </CardHeader> 
+          </CardHeader>
           <CardContent className='px-6 pb-6'>
             <Link
               to={'performanceEvaluation'}
@@ -442,7 +449,7 @@ const CardModule = () => {
                 <CardDescription>{t('vacations_card_msg')}</CardDescription>
               </div>
             </div>
-          </CardHeader> 
+          </CardHeader>
           <CardContent className='px-6 pb-6'>
             <Link
               to={'vacations'}
@@ -461,7 +468,7 @@ const CardModule = () => {
                 <CardDescription>{t('permission_card_msg')}</CardDescription>
               </div>
             </div>
-          </CardHeader> 
+          </CardHeader>
           <CardContent className='px-6 pb-6'>
             <Link
               to={'permission'}

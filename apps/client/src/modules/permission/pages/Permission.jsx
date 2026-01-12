@@ -23,11 +23,11 @@ const Permission = () => {
   const [openAlertDialog, setOpenAlertDialog] = useState(false)
   const [alertProps, setAlertProps] = useState({})
   const [actionDialog, setActionDialog] = useState('')
-    const [pagination, setPagination] = useState({
-      pageIndex: 0,
-      pageSize: 20
-    })
-    const [filters, setFilters] = useState({})
+  const [pagination, setPagination] = useState({
+    pageIndex: 0,
+    pageSize: 20
+  })
+  const [filters, setFilters] = useState({})
 
   const {
     data: dataEmployees = { data: [] },
@@ -54,8 +54,7 @@ const Permission = () => {
   const [deletePermissionById, { isLoading: isLoadingDelete }] =
     useDeletePermissionByIdMutation()
 
-
-      /**
+  /**
    * Este efecto es la única fuente de verdad para disparar
    * la consulta al backend.
    *
@@ -94,18 +93,23 @@ const Permission = () => {
     setFilters(newFilters)
   }
 
-
   const handleSubmit = async (values, permissionId) => {
     try {
       const action = permissionId ? updatePermissionById : createPermission
-      const payload = permissionId ? { id: permissionId, data: { 
-        type: values.type,
-        startDate: values.startDate,
-        endDate: values.endDate,
-        reason: values.reason,
-        employeeId: values.employeeId,
-        status: values.status,
-        comments: values.comments} } : values
+      const payload = permissionId
+        ? {
+            id: permissionId,
+            data: {
+              type: values.type,
+              startDate: values.startDate,
+              endDate: values.endDate,
+              reason: values.reason,
+              employeeId: values.employeeId,
+              status: values.status,
+              comments: values.comments
+            }
+          }
+        : values
 
       await action(payload).unwrap()
 
@@ -225,7 +229,7 @@ const Permission = () => {
             <PermissionDatatable
               dataPermissions={dataPermissions} // Pass permission data
               onEditDialog={handleEditDialog}
-               pagination={pagination}
+              pagination={pagination}
               onPaginationChange={setPagination}
             />
           </div>

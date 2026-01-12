@@ -1,4 +1,8 @@
-import { PurchaseFiltersForm, PurchaseDialog, PurchaseDatatable } from '../components'
+import {
+  PurchaseFiltersForm,
+  PurchaseDialog,
+  PurchaseDatatable
+} from '../components'
 import { BackDashBoard } from '@/components/backDash/BackDashBoard'
 import { useTranslation } from 'react-i18next'
 import { useState, useEffect } from 'react'
@@ -20,7 +24,7 @@ const Purchase = () => {
   const [openAlertDialog, setOpenAlertDialog] = useState(false)
   const [alertProps, setAlertProps] = useState({})
   const [actionDialog, setActionDialog] = useState('')
-    const [pagination, setPagination] = useState({
+  const [pagination, setPagination] = useState({
     pageIndex: 0,
     pageSize: 20
   })
@@ -105,7 +109,6 @@ const Purchase = () => {
     setFilters(newFilters)
   }
 
-
   const handleSubmit = async (values, purchaseId) => {
     try {
       const result = purchaseId
@@ -125,7 +128,9 @@ const Purchase = () => {
 
       setAlertProps({
         alertTitle: t(purchaseId ? 'update_record' : 'add_record'),
-        alertMessage: t(purchaseId ? 'updated_successfully' : 'added_successfully'),
+        alertMessage: t(
+          purchaseId ? 'updated_successfully' : 'added_successfully'
+        ),
         cancel: false,
         success: true,
         onSuccess: () => {
@@ -309,7 +314,7 @@ const Purchase = () => {
             <PurchaseDatatable
               dataPurchases={dataPurchases}
               onEditDialog={handleEditDialog}
-               pagination={pagination}
+              pagination={pagination}
               onPaginationChange={setPagination}
             />
           </div>
@@ -341,4 +346,4 @@ const Purchase = () => {
   )
 }
 
-export default Purchase 
+export default Purchase

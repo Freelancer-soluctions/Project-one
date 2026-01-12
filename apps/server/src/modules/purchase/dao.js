@@ -1,4 +1,4 @@
-import { prisma } from '../../config/db.js'
+import { prisma } from '../../config/db.js';
 
 /**
  * Get all purchases with optional filters
@@ -18,8 +18,8 @@ export const getAllPurchases = async (filters = {}, take, skip) => {
     ...(filters.startDate && { createdOn: { gte: filters.startDate } }),
     ...(filters.endDate && { createdOn: { lte: filters.endDate } }),
     ...(filters.minTotal && { total: { gte: filters.minTotal } }),
-    ...(filters.maxTotal && { total: { lte: filters.maxTotal } })
-  }
+    ...(filters.maxTotal && { total: { lte: filters.maxTotal } }),
+  };
 
   const purchases = await prisma.purchase.findMany({
     where,
@@ -27,22 +27,22 @@ export const getAllPurchases = async (filters = {}, take, skip) => {
       provider: true,
       details: {
         include: {
-          product: true
-        }
-      }
+          product: true,
+        },
+      },
     },
     orderBy: {
-      createdOn: 'desc'
+      createdOn: 'desc',
     },
     take,
-    skip
-  })
+    skip,
+  });
 
   const total = await prisma.purchase.count({
-    where
-  })
-  return { dataList: purchases, total }
-}
+    where,
+  });
+  return { dataList: purchases, total };
+};
 
 /**
  * Create a new purchase with its details
@@ -57,25 +57,25 @@ export const getAllPurchases = async (filters = {}, take, skip) => {
  * @returns {Promise<Object>} Created purchase with its details and related data
  */
 export const createPurchase = async (data) => {
-  const { details, ...purchaseData } = data
+  const { details, ...purchaseData } = data;
 
   return prisma.purchase.create({
     data: {
       ...purchaseData,
       details: {
-        create: details
-      }
+        create: details,
+      },
     },
     include: {
       provider: true,
       details: {
         include: {
-          product: true
-        }
-      }
-    }
-  })
-}
+          product: true,
+        },
+      },
+    },
+  });
+};
 
 /**
  * Update a purchase and its details
@@ -88,12 +88,12 @@ export const createPurchase = async (data) => {
  * @returns {Promise<Object>} Updated purchase with its details and related data
  */
 export const updatePurchaseById = async (id, data) => {
-  const { details, ...purchaseData } = data
+  const { details, ...purchaseData } = data;
 
   // First, delete existing details
   await prisma.purchaseDetail.deleteMany({
-    where: { purchaseId: id }
-  })
+    where: { purchaseId: id },
+  });
 
   // Then update the purchase and create new details
   return prisma.purchase.update({
@@ -101,19 +101,19 @@ export const updatePurchaseById = async (id, data) => {
     data: {
       ...purchaseData,
       details: {
-        create: details
-      }
+        create: details,
+      },
     },
     include: {
       provider: true,
       details: {
         include: {
-          product: true
-        }
-      }
-    }
-  })
-}
+          product: true,
+        },
+      },
+    },
+  });
+};
 
 /**
  * Delete a purchase and its details
@@ -123,11 +123,11 @@ export const updatePurchaseById = async (id, data) => {
 export const deletePurchaseById = async (id) => {
   // First, delete all related details
   await prisma.purchaseDetail.deleteMany({
-    where: { purchaseId: id }
-  })
+    where: { purchaseId: id },
+  });
 
   // Then delete the purchase
   return prisma.purchase.delete({
-    where: { id }
-  })
-}
+    where: { id },
+  });
+};

@@ -4,8 +4,12 @@ import { format } from 'date-fns'
 import PropTypes from 'prop-types'
 import { Badge } from '@/components/ui/badge' // Import Badge for status
 
-export const PermissionDatatable = ({ dataPermissions, onEditDialog,   pagination,
-  onPaginationChange }) => {
+export const PermissionDatatable = ({
+  dataPermissions,
+  onEditDialog,
+  pagination,
+  onPaginationChange
+}) => {
   const { t } = useTranslation()
   const { dataList, total } = dataPermissions.data
 

@@ -1,4 +1,4 @@
-import { prisma } from '../../config/db.js'
+import { prisma } from '../../config/db.js';
 
 /**
  * Get all warehouses with optional filters
@@ -11,36 +11,33 @@ import { prisma } from '../../config/db.js'
 export const getAllWarehouses = async (name, status, take, skip) => {
   const warehouses = await prisma.warehouse.findMany({
     where: {
-
       ...(name
         ? {
             AND: [
               {
                 name: {
                   contains: name,
-                  mode: 'insensitive'
-                }
-              }
-
-            ]
+                  mode: 'insensitive',
+                },
+              },
+            ],
           }
         : {}),
 
       ...(status
         ? {
             status: {
-              equals: status
-            }
-
+              equals: status,
+            },
           }
-        : {})
+        : {}),
     },
     orderBy: {
-      name: 'asc'
+      name: 'asc',
     },
     take,
-    skip
-  })
+    skip,
+  });
 
   const total = await prisma.yourModel.count({
     where: {
@@ -50,46 +47,46 @@ export const getAllWarehouses = async (name, status, take, skip) => {
               {
                 name: {
                   contains: name,
-                  mode: 'insensitive'
-                }
-              }
-            ]
+                  mode: 'insensitive',
+                },
+              },
+            ],
           }
         : {}),
 
       ...(status
         ? {
             status: {
-              equals: status
-            }
+              equals: status,
+            },
           }
-        : {})
-    }
-  })
+        : {}),
+    },
+  });
 
-  return { dataList: warehouses, total }
-}
+  return { dataList: warehouses, total };
+};
 
 /**
  * Get all warehouses.
  * @returns {Promise<Array>} List of warehouses
  */
 export const getAllWarehousesFilters = async () => {
-  return await prisma.warehouse.findMany()
-}
+  return await prisma.warehouse.findMany();
+};
 
 /**
  * Create a new warehouse
  * @param {Object} data - Warehouse data
  * @returns {Promise<Object>} Created warehouse
  */
-export const createWarehouse = async data => {
+export const createWarehouse = async (data) => {
   const warehouse = await prisma.warehouse.create({
-    data
-  })
+    data,
+  });
 
-  return warehouse
-}
+  return warehouse;
+};
 
 /**
  * Update a warehouse
@@ -100,21 +97,21 @@ export const createWarehouse = async data => {
 export const updateWarehouse = async (data, where) => {
   const warehouse = await prisma.warehouse.update({
     where,
-    data
-  })
+    data,
+  });
 
-  return warehouse
-}
+  return warehouse;
+};
 
 /**
  * Delete a warehouse
  * @param {Object} where - Query conditions
  * @returns {Promise<Object>} Deleted warehouse
  */
-export const deleteWarehouse = async where => {
+export const deleteWarehouse = async (where) => {
   const warehouse = await prisma.warehouse.delete({
-    where
-  })
+    where,
+  });
 
-  return warehouse
-}
+  return warehouse;
+};

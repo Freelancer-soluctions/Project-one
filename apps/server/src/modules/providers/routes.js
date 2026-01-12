@@ -1,15 +1,17 @@
-import { Router } from 'express'
+import { Router } from 'express';
+import { Providers, ProvidersFilters } from '../../utils/joiSchemas/joi.js';
+import * as providersController from './controller.js';
 import {
-  Providers,
-  ProvidersFilters
-} from '../../utils/joiSchemas/joi.js'
-import * as providersController from './controller.js'
-import { verifyToken, validateQueryParams, validateSchema, checkRoleAuthOrPermisssion } from '../../middleware/index.js'
-import { ROLESCODES, PERMISSIONCODES } from '../../utils/constants/enums.js'
+  verifyToken,
+  validateQueryParams,
+  validateSchema,
+  checkRoleAuthOrPermisssion,
+} from '../../middleware/index.js';
+import { ROLESCODES, PERMISSIONCODES } from '../../utils/constants/enums.js';
 
-const router = Router()
+const router = Router();
 // uso global de middleware
-router.use(verifyToken)
+router.use(verifyToken);
 
 /**
  * @openapi
@@ -67,20 +69,20 @@ router.get(
   '/',
   checkRoleAuthOrPermisssion({
     allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER, ROLESCODES.USER],
-    permissions: [PERMISSIONCODES.canViewProvider]
+    permissions: [PERMISSIONCODES.canViewProvider],
   }),
   validateQueryParams(ProvidersFilters),
   providersController.getAllProviders
-)
+);
 
 router.get(
   '/providerFilters',
   checkRoleAuthOrPermisssion({
     allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER, ROLESCODES.USER],
-    permissions: [PERMISSIONCODES.canViewProvider]
+    permissions: [PERMISSIONCODES.canViewProvider],
   }),
   providersController.getAllProvidersFilters
-)
+);
 
 /**
  * @openapi
@@ -135,11 +137,11 @@ router.post(
   '/',
   checkRoleAuthOrPermisssion({
     allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER],
-    permissions: [PERMISSIONCODES.canCreateProvider]
+    permissions: [PERMISSIONCODES.canCreateProvider],
   }),
   validateSchema(Providers),
   providersController.createProvider
-)
+);
 
 /**
  * @openapi
@@ -201,11 +203,11 @@ router.put(
   '/:id',
   checkRoleAuthOrPermisssion({
     allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER],
-    permissions: [PERMISSIONCODES.canEditProvider]
+    permissions: [PERMISSIONCODES.canEditProvider],
   }),
   validateSchema(Providers),
   providersController.updateProviderById
-)
+);
 
 /**
  * @openapi
@@ -245,9 +247,13 @@ router.put(
  *               $ref: "#/components/schemas/Error"
  */
 
-router.delete('/:id', checkRoleAuthOrPermisssion({
-  allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER],
-  permissions: [PERMISSIONCODES.canDeleteProvider]
-}), providersController.deleteProviderById)
+router.delete(
+  '/:id',
+  checkRoleAuthOrPermisssion({
+    allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER],
+    permissions: [PERMISSIONCODES.canDeleteProvider],
+  }),
+  providersController.deleteProviderById
+);
 
-export default router
+export default router;

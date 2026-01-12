@@ -63,8 +63,6 @@ const SideBar = ({ dataCountNotes, dataCountStock, displaySettings }) => {
         />
       )}
 
-
-
       <Link
         to={'settings'}
         className='flex items-center gap-2 px-3 py-2 text-sm font-medium transition-colors rounded-md hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground'

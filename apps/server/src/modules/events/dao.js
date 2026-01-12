@@ -1,8 +1,8 @@
-import * as prismaService from '../../utils/prisma/dao.js'
-import { TABLESNAMES } from '../../utils/constants/enums.js'
-import { prisma, Prisma } from '../../config/db.js'
+import * as prismaService from '../../utils/prisma/dao.js';
+import { TABLESNAMES } from '../../utils/constants/enums.js';
+import { prisma, Prisma } from '../../config/db.js';
 
-const tableName = TABLESNAMES.EVENTS
+const tableName = TABLESNAMES.EVENTS;
 
 /**
  * Creates a new row in the database with the provided data.
@@ -16,19 +16,18 @@ export const createEvent = async (data, foreignKeys) => {
       ...data,
       userEventCreated: {
         connect: {
-          id: foreignKeys.createdBy
-        }
+          id: foreignKeys.createdBy,
+        },
       },
       eventTypes: {
         connect: {
-          id: foreignKeys.type
-        }
-      }
-
-    }
-  })
-  return Promise.resolve(result)
-}
+          id: foreignKeys.type,
+        },
+      },
+    },
+  });
+  return Promise.resolve(result);
+};
 
 /**
  * Retrieves all available event statuses from the database.
@@ -36,9 +35,9 @@ export const createEvent = async (data, foreignKeys) => {
  * @returns {Promise<Array>} A list of event statuses from the database.
  */
 export const getAllEventTypes = async () => {
-  const events = await prisma.eventTypes.findMany()
-  return Promise.resolve(events)
-}
+  const events = await prisma.eventTypes.findMany();
+  return Promise.resolve(events);
+};
 
 /**
  * Retrieves all events from the database based on the provided filters.
@@ -56,18 +55,20 @@ export const getAllEvents = async (searchQuery) => {
     FROM "events" e
     LEFT JOIN "eventTypes" et ON e."eventTypeId" = et.id
     LEFT JOIN "users" u ON e."createdBy" = u.id
-    ${searchQuery
-? Prisma.sql`
+    ${
+      searchQuery
+        ? Prisma.sql`
       WHERE e."title" ILIKE ${'%' + searchQuery + '%'}
          OR e."description" ILIKE ${'%' + searchQuery + '%'}
          OR e."speaker" ILIKE ${'%' + searchQuery + '%'}
     `
-: Prisma.empty}
+        : Prisma.empty
+    }
     ORDER BY e."createdOn" DESC
-  `
+  `;
 
-  return events
-}
+  return events;
+};
 
 // //old version
 // export const getAllEvents = async (searchQuery) => {
@@ -108,13 +109,13 @@ export const updateEventById = async (data, foreignKeys, where) => {
       ...data,
       eventTypes: {
         connect: {
-          id: foreignKeys.type
-        }
-      }
-    }
-  })
-  return Promise.resolve(result)
-}
+          id: foreignKeys.type,
+        },
+      },
+    },
+  });
+  return Promise.resolve(result);
+};
 
 /**
  * Deletes a row from the database based on the provided filter.
@@ -122,4 +123,5 @@ export const updateEventById = async (data, foreignKeys, where) => {
  * @param {Object} where - The filter conditions to identify the row to delete.
  * @returns {Promise<Object>} The result of the delete operation.
  */
-export const deleteEventById = async (where) => prismaService.deleteRow(tableName, where)
+export const deleteEventById = async (where) =>
+  prismaService.deleteRow(tableName, where);

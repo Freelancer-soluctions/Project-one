@@ -1,5 +1,5 @@
 // Fully replace the content with the correct version for expenses DAO
-import { prisma, Prisma } from '../../config/db.js'
+import { prisma, Prisma } from '../../config/db.js';
 
 /**
  * Get all expenses with optional filters
@@ -13,25 +13,29 @@ import { prisma, Prisma } from '../../config/db.js'
  * @async
  */
 export const getAllExpenses = async (filters = {}, take, skip) => {
-  const whereClauses = []
+  const whereClauses = [];
 
   if (filters.description) {
     // Using ILIKE for case-insensitive search for description
-    whereClauses.push(Prisma.sql`e."description" ILIKE ${'%' + filters.description + '%'}`)
+    whereClauses.push(
+      Prisma.sql`e."description" ILIKE ${'%' + filters.description + '%'}`
+    );
   }
   if (filters.category) {
     // Using ILIKE for case-insensitive search for category
-    whereClauses.push(Prisma.sql`e."category" ILIKE ${'%' + filters.category + '%'}`)
+    whereClauses.push(
+      Prisma.sql`e."category" ILIKE ${'%' + filters.category + '%'}`
+    );
   }
   if (filters.status) {
     // Exact match for status (enum)
-    whereClauses.push(Prisma.sql`e."status"::text = ${filters.status}`)
+    whereClauses.push(Prisma.sql`e."status"::text = ${filters.status}`);
   }
   // Add more filters if needed, e.g., for total (range), date range
 
   const whereSql = whereClauses.length
     ? Prisma.sql`WHERE ${Prisma.join(whereClauses, Prisma.sql` AND `)}`
-    : Prisma.empty
+    : Prisma.empty;
 
   const expenses = await prisma.$queryRaw`
     SELECT 
@@ -45,31 +49,31 @@ export const getAllExpenses = async (filters = {}, take, skip) => {
     ORDER BY e."createdOn" DESC
     LIMIT ${take}
     OFFSET ${skip}
-  `
+  `;
 
   const total = await prisma.expenses.count({
     where: {
       ...(filters.description && {
         description: {
           contains: filters.description,
-          mode: 'insensitive' // equivalente a ILIKE
-        }
+          mode: 'insensitive', // equivalente a ILIKE
+        },
       }),
 
       ...(filters.category && {
         category: {
           contains: filters.category,
-          mode: 'insensitive' // equivalente a ILIKE
-        }
+          mode: 'insensitive', // equivalente a ILIKE
+        },
       }),
 
       ...(filters.status && {
-        status: filters.status // match exacto (enum)
-      })
-    }
-  })
-  return { dataList: expenses, total }
-}
+        status: filters.status, // match exacto (enum)
+      }),
+    },
+  });
+  return { dataList: expenses, total };
+};
 
 /**
  * Create a new expense
@@ -89,14 +93,15 @@ export const createExpense = async (data) => {
       total: data.total, // Prisma expects Float, ensure data.total is a number
       category: data.category,
       createdOn: data.createdOn,
-      userExpenseCreated: { // Relation name from Prisma schema
+      userExpenseCreated: {
+        // Relation name from Prisma schema
         connect: {
-          id: data.createdBy
-        }
-      }
-    }
-  })
-}
+          id: data.createdBy,
+        },
+      },
+    },
+  });
+};
 
 /**
  * Update an expense by ID
@@ -120,12 +125,12 @@ export const updateExpenseById = async (id, data) => {
       updatedOn: data.updatedOn, // Prisma model for expenses has updatedOn DateTime?
       userExpenseUpdated: {
         connect: {
-          id: data.updatedBy
-        }
-      }
-    }
-  })
-}
+          id: data.updatedBy,
+        },
+      },
+    },
+  });
+};
 
 /**
  * Delete an expense by ID
@@ -135,6 +140,6 @@ export const updateExpenseById = async (id, data) => {
  */
 export const deleteExpenseById = async (id) => {
   return prisma.expenses.delete({
-    where: { id } // id is a string (cuid)
-  })
-}
+    where: { id }, // id is a string (cuid)
+  });
+};

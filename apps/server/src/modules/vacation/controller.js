@@ -1,6 +1,11 @@
-import { getAllVacation as getAllVacationService, createVacation as createVacationService, updateVacationById as updateVacationByIdService, deleteVacationById as deleteVacationByIdService } from './service.js'
-import handleCatchErrorAsync from '../../utils/responses&Errors/handleCatchErrorAsync.js'
-import globalResponse from '../../utils/responses&Errors/globalResponse.js'
+import {
+  getAllVacation as getAllVacationService,
+  createVacation as createVacationService,
+  updateVacationById as updateVacationByIdService,
+  deleteVacationById as deleteVacationByIdService,
+} from './service.js';
+import handleCatchErrorAsync from '../../utils/responses&Errors/handleCatchErrorAsync.js';
+import globalResponse from '../../utils/responses&Errors/globalResponse.js';
 
 /**
  * Get all vacation records with optional filters
@@ -9,10 +14,10 @@ import globalResponse from '../../utils/responses&Errors/globalResponse.js'
  * @returns {Object} Response with vacation records
  */
 export const getAllVacation = handleCatchErrorAsync(async (req, res) => {
-  const filters = req.query
-  const data = await getAllVacationService(filters)
-  return globalResponse(res, 200, data)
-})
+  const filters = req.query;
+  const data = await getAllVacationService(filters);
+  return globalResponse(res, 200, data);
+});
 
 /**
  * Create a new vacation record
@@ -21,9 +26,9 @@ export const getAllVacation = handleCatchErrorAsync(async (req, res) => {
  * @returns {Object} Response with created vacation record
  */
 export const createVacation = handleCatchErrorAsync(async (req, res) => {
-  const data = await createVacationService(req.body)
-  return globalResponse(res, 201, data)
-})
+  const data = await createVacationService(req.body);
+  return globalResponse(res, 201, data);
+});
 
 /**
  * Update a vacation record by ID
@@ -32,10 +37,10 @@ export const createVacation = handleCatchErrorAsync(async (req, res) => {
  * @returns {Object} Response with updated vacation record
  */
 export const updateVacationById = handleCatchErrorAsync(async (req, res) => {
-  const { id } = req.params
-  const data = await updateVacationByIdService(id, req.body)
-  return globalResponse(res, 200, data)
-})
+  const { id } = req.params;
+  const data = await updateVacationByIdService(id, req.body);
+  return globalResponse(res, 200, data);
+});
 
 /**
  * Delete a vacation record by ID
@@ -44,7 +49,7 @@ export const updateVacationById = handleCatchErrorAsync(async (req, res) => {
  * @returns {Object} Response with success message
  */
 export const deleteVacationById = handleCatchErrorAsync(async (req, res) => {
-  const { id } = req.params
-  const data = await deleteVacationByIdService(id)
-  return globalResponse(res, 200, data, 'Vacation record deleted successfully')
-})
+  const { id } = req.params;
+  const data = await deleteVacationByIdService(id);
+  return globalResponse(res, 200, data, 'Vacation record deleted successfully');
+});

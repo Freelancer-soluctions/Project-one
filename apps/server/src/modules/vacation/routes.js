@@ -1,12 +1,25 @@
-import express from 'express'
-import { getAllVacation, createVacation, updateVacationById, deleteVacationById } from './controller.js'
-import { verifyToken, validateQueryParams, validateSchema, checkRoleAuthOrPermisssion } from '../../middleware/index.js'
-import { vacationFiltersSchema, vacationCreateUpdateSchema } from '../../utils/joiSchemas/joi.js'
-import { ROLESCODES, PERMISSIONCODES } from '../../utils/constants/enums.js'
+import express from 'express';
+import {
+  getAllVacation,
+  createVacation,
+  updateVacationById,
+  deleteVacationById,
+} from './controller.js';
+import {
+  verifyToken,
+  validateQueryParams,
+  validateSchema,
+  checkRoleAuthOrPermisssion,
+} from '../../middleware/index.js';
+import {
+  vacationFiltersSchema,
+  vacationCreateUpdateSchema,
+} from '../../utils/joiSchemas/joi.js';
+import { ROLESCODES, PERMISSIONCODES } from '../../utils/constants/enums.js';
 
-const router = express.Router()
+const router = express.Router();
 // uso global de middleware
-router.use(verifyToken)
+router.use(verifyToken);
 
 /**
  * @swagger
@@ -81,11 +94,15 @@ router.use(verifyToken)
  *                               lastName:
  *                                 type: string
  */
-router.get('/',
+router.get(
+  '/',
   checkRoleAuthOrPermisssion({
     allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER, ROLESCODES.USER],
-    permissions: [PERMISSIONCODES.canViewVacations]
-  }), validateSchema(vacationFiltersSchema), getAllVacation)
+    permissions: [PERMISSIONCODES.canViewVacations],
+  }),
+  validateSchema(vacationFiltersSchema),
+  getAllVacation
+);
 
 /**
  * @swagger
@@ -145,10 +162,15 @@ router.get('/',
  *                     status:
  *                       type: string
  */
-router.post('/', checkRoleAuthOrPermisssion({
-  allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER, ROLESCODES.USER],
-  permissions: [PERMISSIONCODES.canRequestVacation]
-}), validateSchema(vacationCreateUpdateSchema), createVacation)
+router.post(
+  '/',
+  checkRoleAuthOrPermisssion({
+    allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER, ROLESCODES.USER],
+    permissions: [PERMISSIONCODES.canRequestVacation],
+  }),
+  validateSchema(vacationCreateUpdateSchema),
+  createVacation
+);
 
 /**
  * @swagger
@@ -198,10 +220,15 @@ router.post('/', checkRoleAuthOrPermisssion({
  *                     status:
  *                       type: string
  */
-router.put('/:id', checkRoleAuthOrPermisssion({
-  allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER, ROLESCODES.USER],
-  permissions: [PERMISSIONCODES.canEditRequestVacation]
-}), validateSchema(vacationCreateUpdateSchema), updateVacationById)
+router.put(
+  '/:id',
+  checkRoleAuthOrPermisssion({
+    allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER, ROLESCODES.USER],
+    permissions: [PERMISSIONCODES.canEditRequestVacation],
+  }),
+  validateSchema(vacationCreateUpdateSchema),
+  updateVacationById
+);
 
 /**
  * @swagger
@@ -235,9 +262,13 @@ router.put('/:id', checkRoleAuthOrPermisssion({
  *                     id:
  *                       type: integer
  */
-router.delete('/:id', checkRoleAuthOrPermisssion({
-  allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER, ROLESCODES.USER],
-  permissions: [PERMISSIONCODES.canDeleteVacation]
-}), deleteVacationById)
+router.delete(
+  '/:id',
+  checkRoleAuthOrPermisssion({
+    allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER, ROLESCODES.USER],
+    permissions: [PERMISSIONCODES.canDeleteVacation],
+  }),
+  deleteVacationById
+);
 
-export default router
+export default router;

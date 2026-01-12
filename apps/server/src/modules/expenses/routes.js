@@ -1,18 +1,26 @@
 // Fully replace the content with the correct version for expenses routes
-import express from 'express'
+import express from 'express';
 import {
   getAllExpenses,
   createExpense,
   updateExpenseById,
-  deleteExpenseById
-} from './controller.js'
-import { verifyToken, validateSchema, validateQueryParams, checkRoleAuthOrPermisssion } from '../../middleware/index.js'
-import { ROLESCODES, PERMISSIONCODES } from '../../utils/constants/enums.js'
-import { expenseFiltersSchema, expenseCreateUpdateSchema } from '../../utils/joiSchemas/joi.js'
+  deleteExpenseById,
+} from './controller.js';
+import {
+  verifyToken,
+  validateSchema,
+  validateQueryParams,
+  checkRoleAuthOrPermisssion,
+} from '../../middleware/index.js';
+import { ROLESCODES, PERMISSIONCODES } from '../../utils/constants/enums.js';
+import {
+  expenseFiltersSchema,
+  expenseCreateUpdateSchema,
+} from '../../utils/joiSchemas/joi.js';
 
-const router = express.Router()
+const router = express.Router();
 // uso global de middleware
-router.use(verifyToken)
+router.use(verifyToken);
 
 /**
  * @openapi
@@ -68,11 +76,11 @@ router.get(
   '/',
   checkRoleAuthOrPermisssion({
     allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER],
-    permissions: [PERMISSIONCODES.canViewExpense]
+    permissions: [PERMISSIONCODES.canViewExpense],
   }),
   validateQueryParams(expenseFiltersSchema),
   getAllExpenses
-)
+);
 
 /**
  * @openapi
@@ -122,11 +130,11 @@ router.post(
   '/',
   checkRoleAuthOrPermisssion({
     allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER],
-    permissions: [PERMISSIONCODES.canCreateExpense]
+    permissions: [PERMISSIONCODES.canCreateExpense],
   }),
   validateSchema(expenseCreateUpdateSchema),
   createExpense
-)
+);
 
 /**
  * @openapi
@@ -183,11 +191,11 @@ router.put(
   '/:id',
   checkRoleAuthOrPermisssion({
     allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER],
-    permissions: [PERMISSIONCODES.canEditExpense]
+    permissions: [PERMISSIONCODES.canEditExpense],
   }),
   validateSchema(expenseCreateUpdateSchema),
   updateExpenseById
-)
+);
 
 /**
  * @openapi
@@ -229,8 +237,9 @@ router.delete(
   '/:id',
   checkRoleAuthOrPermisssion({
     allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER],
-    permissions: [PERMISSIONCODES.canDeleteExpense]
+    permissions: [PERMISSIONCODES.canDeleteExpense],
   }),
-  deleteExpenseById)
+  deleteExpenseById
+);
 
-export default router
+export default router;

@@ -14,11 +14,11 @@ import { useState, useEffect } from 'react'
 const Products = () => {
   const { t } = useTranslation() // Accede a las traducciones
   const navigate = useNavigate()
-    const [pagination, setPagination] = useState({
-      pageIndex: 0,
-      pageSize: 20
-    })
-    const [filters, setFilters] = useState({})
+  const [pagination, setPagination] = useState({
+    pageIndex: 0,
+    pageSize: 20
+  })
+  const [filters, setFilters] = useState({})
 
   const {
     data: dataCategory,
@@ -61,7 +61,6 @@ const Products = () => {
     lastPromiseInfo
   ] = useLazyGetAllProductsQuery()
 
-
   /**
    * Este efecto es la única fuente de verdad para disparar
    * la consulta al backend.
@@ -101,7 +100,6 @@ const Products = () => {
     setFilters(newFilters)
   }
 
-
   const handleProductsForms = row => {
     navigate('/home/productsForms', { state: { row } })
   }
@@ -136,7 +134,7 @@ const Products = () => {
             <ProductsDatatable
               dataProducts={dataProducts}
               onOpenProductsForms={handleProductsForms}
-               pagination={pagination}
+              pagination={pagination}
               onPaginationChange={setPagination}
             />
           </div>

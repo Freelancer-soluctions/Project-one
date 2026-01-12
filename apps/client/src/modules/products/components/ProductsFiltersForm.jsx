@@ -38,21 +38,17 @@ export const ProductsFiltersForm = ({
       type: '',
       status: '',
       providers: ''
-
     }
   })
 
   //form event
-  const handleSubmitFilter = ({
-    name,
-    category,
-    type,
-    status
-  }) => {
-    onSubmit({ name,
-      productCategoryCode:category.code,
-    productTypeCode:type.code,
-      statusCode:status.code})
+  const handleSubmitFilter = ({ name, category, type, status }) => {
+    onSubmit({
+      name,
+      productCategoryCode: category.code,
+      productTypeCode: type.code,
+      statusCode: status.code
+    })
   }
 
   const handleAdd = () => {
@@ -81,9 +77,7 @@ export const ProductsFiltersForm = ({
               render={({ field }) => {
                 return (
                   <FormItem className='flex flex-col flex-auto'>
-                    <FormLabel htmlFor='name'>
-                      {t('name')}
-                    </FormLabel>
+                    <FormLabel htmlFor='name'>{t('name')}</FormLabel>
                     <FormControl>
                       <Input
                         id='name'
@@ -129,32 +123,32 @@ export const ProductsFiltersForm = ({
               }}
             />
 
-              <FormField
-                control={formFilter.control}
-                name='category'
-                render={({ field }) => {
-                  return (
-                    <FormItem className='flex flex-col flex-auto'>
-                      <FormLabel htmlFor='status'>{t('category')}</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value}>
-                        <FormControl id='category'>
-                          <SelectTrigger>
-                            <SelectValue placeholder={t('select_category')} />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {dataCategory?.data.map((item, index) => (
-                            <SelectItem value={item.code} key={index}>
-                              {item.description}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )
-                }}
-              />
+            <FormField
+              control={formFilter.control}
+              name='category'
+              render={({ field }) => {
+                return (
+                  <FormItem className='flex flex-col flex-auto'>
+                    <FormLabel htmlFor='status'>{t('category')}</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl id='category'>
+                        <SelectTrigger>
+                          <SelectValue placeholder={t('select_category')} />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {dataCategory?.data.map((item, index) => (
+                          <SelectItem value={item.code} key={index}>
+                            {item.description}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )
+              }}
+            />
 
             <FormField
               control={formFilter.control}
@@ -174,7 +168,7 @@ export const ProductsFiltersForm = ({
                           <SelectItem value={item.code} key={index}>
                             {item.name}
                           </SelectItem>
-                        ))} 
+                        ))}
                       </SelectContent>
                     </Select>
                     <FormMessage />

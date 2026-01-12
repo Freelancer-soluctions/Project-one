@@ -1,6 +1,6 @@
-import handleCatchErrorAsync from '../../utils/responses&Errors/handleCatchErrorAsync.js'
-import globalResponse from '../../utils/responses&Errors/globalResponse.js'
-import * as settingsService from './service.js'
+import handleCatchErrorAsync from '../../utils/responses&Errors/handleCatchErrorAsync.js';
+import globalResponse from '../../utils/responses&Errors/globalResponse.js';
+import * as settingsService from './service.js';
 
 /**
  * Create or update a user's language settings.
@@ -15,14 +15,14 @@ import * as settingsService from './service.js'
  */
 export const createOrUpdateSettingsLanguage = handleCatchErrorAsync(
   async (req, res) => {
-    const { body, userId } = req
+    const { body, userId } = req;
     const result = await settingsService.createOrUpdateSettingsLanguage(
       body,
       userId
-    )
-    globalResponse(res, 200, result)
+    );
+    globalResponse(res, 200, result);
   }
-)
+);
 
 /**
  * Create or update a user's language settings.
@@ -37,14 +37,14 @@ export const createOrUpdateSettingsLanguage = handleCatchErrorAsync(
  */
 export const createOrUpdateSettingsDisplay = handleCatchErrorAsync(
   async (req, res) => {
-    const { body, userId } = req
+    const { body, userId } = req;
     const result = await settingsService.createOrUpdateSettingsDisplay(
       body,
       userId
-    )
-    globalResponse(res, 200, result)
+    );
+    globalResponse(res, 200, result);
   }
-)
+);
 
 /**
  * Get the language settings by its ID.
@@ -59,10 +59,10 @@ export const createOrUpdateSettingsDisplay = handleCatchErrorAsync(
  * @throws {Error} - If there is an error, it will be handled by the catch handler.
  */
 export const getSettingsById = handleCatchErrorAsync(async (req, res) => {
-  const { id } = req.params
-  const result = await settingsService.getSettingsById(id)
-  globalResponse(res, 200, result)
-})
+  const { id } = req.params;
+  const result = await settingsService.getSettingsById(id);
+  globalResponse(res, 200, result);
+});
 
 /**
  * Get all product categories with optional filters
@@ -74,10 +74,10 @@ export const getSettingsById = handleCatchErrorAsync(async (req, res) => {
  */
 export const getAllProductCategories = handleCatchErrorAsync(
   async (req, res) => {
-    const data = await settingsService.getAllProductCategories(req.query)
-    globalResponse(res, 200, data)
+    const data = await settingsService.getAllProductCategories(req.query);
+    globalResponse(res, 200, data);
   }
-)
+);
 
 /**
  * Create a new product category
@@ -88,11 +88,10 @@ export const getAllProductCategories = handleCatchErrorAsync(
  * @param {Object} res - Express response object
  * @returns {Promise<void>} Sends a response confirming the creation
  */
-export const createProductCategory = handleCatchErrorAsync(
-  async (req, res) => {
-    await settingsService.createProductCategory(req.body)
-    globalResponse(res, 201, { message: 'Item created successfully' })
-  })
+export const createProductCategory = handleCatchErrorAsync(async (req, res) => {
+  await settingsService.createProductCategory(req.body);
+  globalResponse(res, 201, { message: 'Item created successfully' });
+});
 
 /**
  * Update a product category by ID
@@ -106,13 +105,11 @@ export const createProductCategory = handleCatchErrorAsync(
  */
 export const updateProductCategoryById = handleCatchErrorAsync(
   async (req, res) => {
-    const categoryId = req.params.id
-    await settingsService.updateProductCategoryById(
-      categoryId,
-      req.body
-    )
-    globalResponse(res, 200, { message: 'Item updated successfully' })
-  })
+    const categoryId = req.params.id;
+    await settingsService.updateProductCategoryById(categoryId, req.body);
+    globalResponse(res, 200, { message: 'Item updated successfully' });
+  }
+);
 
 /**
  * Delete a product category by ID
@@ -124,7 +121,8 @@ export const updateProductCategoryById = handleCatchErrorAsync(
  */
 export const deleteProductCategoryById = handleCatchErrorAsync(
   async (req, res) => {
-    const categoryId = req.params.id
-    await settingsService.deleteProductCategoryById(categoryId)
-    globalResponse(res, 200, { message: 'Item deleted successfully' })
-  })
+    const categoryId = req.params.id;
+    await settingsService.deleteProductCategoryById(categoryId);
+    globalResponse(res, 200, { message: 'Item deleted successfully' });
+  }
+);

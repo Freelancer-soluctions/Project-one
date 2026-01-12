@@ -24,21 +24,26 @@ const Stock = lazy(() => import('@/modules/stock/pages/Stock'))
 const Clients = lazy(() => import('@/modules/clients/pages/Clients'))
 const Sales = lazy(() => import('@/modules/sales/pages/Sales'))
 const Purchases = lazy(() => import('@/modules/purchase/pages/Purchase'))
-const InventoryMovement = lazy(() => import('@/modules/inventoryMovement/pages/InventoryMovement'))
+const InventoryMovement = lazy(
+  () => import('@/modules/inventoryMovement/pages/InventoryMovement')
+)
 const Expenses = lazy(() => import('@/modules/expenses/pages/Expenses'))
 const Users = lazy(() => import('@/modules/users/pages/Users'))
 const Employees = lazy(() => import('@/modules/employees/pages/Employees'))
 const Attendance = lazy(() => import('@/modules/attendance/pages/Attendance'))
 const Payroll = lazy(() => import('@/modules/payroll/pages/Payroll'))
-const PerformanceEvaluation = lazy(() => import('@/modules/performanceEvaluation/pages/PerformanceEvaluation'))
+const PerformanceEvaluation = lazy(
+  () => import('@/modules/performanceEvaluation/pages/PerformanceEvaluation')
+)
 const Vacation = lazy(() => import('@/modules/vacation/pages/Vacation'))
 const Permission = lazy(() => import('@/modules/permission/pages/Permission'))
-const ClientOrder = lazy(() => import('@/modules/clientOrder/pages/ClientOrder'))
-const ProviderOrder = lazy(() => import('@/modules/providerOrder/pages/ProviderOrders'))
-const UsersForms = lazy(
-  () => import('@/modules/users/pages/UsersForm')
+const ClientOrder = lazy(
+  () => import('@/modules/clientOrder/pages/ClientOrder')
 )
-
+const ProviderOrder = lazy(
+  () => import('@/modules/providerOrder/pages/ProviderOrders')
+)
+const UsersForms = lazy(() => import('@/modules/users/pages/UsersForm'))
 
 const App = () => {
   return (
@@ -91,14 +96,17 @@ const App = () => {
           <Route path='employees' element={<Employees />} />
           <Route path='attendance' element={<Attendance />} />
           <Route path='payroll' element={<Payroll />} />
-          <Route path='performanceEvaluation' element={<PerformanceEvaluation />} />
+          <Route
+            path='performanceEvaluation'
+            element={<PerformanceEvaluation />}
+          />
           <Route path='vacations' element={<Vacation />} />
           <Route path='permission' element={<Permission />} />
           <Route path='clientOrder' element={<ClientOrder />} />
           <Route path='providerOrder' element={<ProviderOrder />} />
           <Route path='providerOrder' element={<ProviderOrder />} />
 
-            <Route path='providerOrder' element={<ProviderOrder />} />
+          <Route path='providerOrder' element={<ProviderOrder />} />
 
           {/* Ruta comodín para manejar 404 en /home */}
           <Route path='*' element={<NotFound link={'/home'} />} />

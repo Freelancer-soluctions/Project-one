@@ -1,18 +1,26 @@
-import express from 'express'
+import express from 'express';
 import {
   getAllEmployees,
   getAllEmployeesFilters,
   createEmployee,
   updateEmployeeById,
-  deleteEmployeeById
-} from './controller.js'
-import { verifyToken, validateSchema, validateQueryParams, checkRoleAuthOrPermisssion } from '../../middleware/index.js'
-import { employeeFiltersSchema, employeeCreateUpdateSchema } from '../../utils/joiSchemas/joi.js'
-import { ROLESCODES, PERMISSIONCODES } from '../../utils/constants/enums.js'
+  deleteEmployeeById,
+} from './controller.js';
+import {
+  verifyToken,
+  validateSchema,
+  validateQueryParams,
+  checkRoleAuthOrPermisssion,
+} from '../../middleware/index.js';
+import {
+  employeeFiltersSchema,
+  employeeCreateUpdateSchema,
+} from '../../utils/joiSchemas/joi.js';
+import { ROLESCODES, PERMISSIONCODES } from '../../utils/constants/enums.js';
 
-const router = express.Router()
+const router = express.Router();
 // uso global de middleware
-router.use(verifyToken)
+router.use(verifyToken);
 
 /**
  * @openapi
@@ -68,19 +76,20 @@ router.get(
   '/',
   checkRoleAuthOrPermisssion({
     allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER],
-    permissions: [PERMISSIONCODES.canViewEmployee]
+    permissions: [PERMISSIONCODES.canViewEmployee],
   }),
   validateQueryParams(employeeFiltersSchema),
   getAllEmployees
-)
+);
 
 router.get(
   '/employeeFilters',
   checkRoleAuthOrPermisssion({
     allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER],
-    permissions: [PERMISSIONCODES.canViewEmployee]
+    permissions: [PERMISSIONCODES.canViewEmployee],
   }),
-  getAllEmployeesFilters)
+  getAllEmployeesFilters
+);
 
 /**
  * @openapi
@@ -130,11 +139,11 @@ router.post(
   '/',
   checkRoleAuthOrPermisssion({
     allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER],
-    permissions: [PERMISSIONCODES.canCreateEmployee]
+    permissions: [PERMISSIONCODES.canCreateEmployee],
   }),
   validateSchema(employeeCreateUpdateSchema),
   createEmployee
-)
+);
 
 /**
  * @openapi
@@ -191,11 +200,11 @@ router.put(
   '/:id',
   checkRoleAuthOrPermisssion({
     allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER],
-    permissions: [PERMISSIONCODES.canEditEmployee]
+    permissions: [PERMISSIONCODES.canEditEmployee],
   }),
   validateSchema(employeeCreateUpdateSchema),
   updateEmployeeById
-)
+);
 
 /**
  * @openapi
@@ -237,9 +246,9 @@ router.delete(
   '/:id',
   checkRoleAuthOrPermisssion({
     allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER],
-    permissions: [PERMISSIONCODES.canDeleteEmployee]
+    permissions: [PERMISSIONCODES.canDeleteEmployee],
   }),
   deleteEmployeeById
-)
+);
 
-export default router
+export default router;

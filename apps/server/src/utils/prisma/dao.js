@@ -1,4 +1,4 @@
-import { prisma } from '../../config/db.js'
+import { prisma } from '../../config/db.js';
 
 /**
  *
@@ -11,15 +11,15 @@ export const getRows = async ({
   where,
   include,
   select,
-  orderBy
+  orderBy,
 }) => {
   return prisma[tableName].findMany({
     ...(where && { where }),
     ...(include && { include }),
     ...(select && { select }),
-    ...(orderBy && { orderBy })
-  })
-}
+    ...(orderBy && { orderBy }),
+  });
+};
 
 /**
 
@@ -30,9 +30,9 @@ export const getRows = async ({
 export const getOneRow = async ({ tableName, where, include }) => {
   return prisma[tableName].findUnique({
     ...(where && { where }),
-    ...(include && { include })
-  })
-}
+    ...(include && { include }),
+  });
+};
 
 /**
 
@@ -43,9 +43,9 @@ export const getOneRow = async ({ tableName, where, include }) => {
 export const getRow = async ({ tableName, where, include }) => {
   return prisma[tableName].findFirst({
     ...(where && { where }),
-    ...(include && { include })
-  })
-}
+    ...(include && { include }),
+  });
+};
 
 /**
  *
@@ -53,8 +53,8 @@ export const getRow = async ({ tableName, where, include }) => {
  * @returns Created row in db
  */
 export const createRow = async (tableName, data) => {
-  return prisma[tableName].create({ data })
-}
+  return prisma[tableName].create({ data });
+};
 
 /**
  *
@@ -65,9 +65,9 @@ export const createRow = async (tableName, data) => {
 export const createManyRows = async (tableName, data) => {
   return prisma[tableName].createMany({
     skipDuplicates: true,
-    data
-  })
-}
+    data,
+  });
+};
 
 /**
  *
@@ -78,9 +78,9 @@ export const createManyRows = async (tableName, data) => {
 export const updateRow = async (tableName, data, where) => {
   return prisma[tableName].update({
     where,
-    data
-  })
-}
+    data,
+  });
+};
 
 /**
  *
@@ -88,8 +88,8 @@ export const updateRow = async (tableName, data, where) => {
  * @returns
  */
 export const deleteRow = async (tableName, where) => {
-  return prisma[tableName].delete({ where })
-}
+  return prisma[tableName].delete({ where });
+};
 
 /**
  *
@@ -101,8 +101,8 @@ export const deleteRow = async (tableName, where) => {
 export const excludefromObject = (item, keys) => {
   return Object.fromEntries(
     Object.entries(item).filter(([key]) => !keys.includes(key))
-  )
-}
+  );
+};
 
 /**
    *
@@ -111,4 +111,5 @@ export const excludefromObject = (item, keys) => {
    * @returnsdata items without excluded fields
 
    */
-export const excludefromArray = (items, keys) => (items.map((item) => (excludefromObject(item, keys))))
+export const excludefromArray = (items, keys) =>
+  items.map((item) => excludefromObject(item, keys));

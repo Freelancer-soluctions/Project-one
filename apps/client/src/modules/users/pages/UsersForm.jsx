@@ -41,7 +41,7 @@ function UsersForms() {
     isFetching: isFetchingStatus
   } = useGetAllUsersStatusQuery()
 
-    const {
+  const {
     data: dataUserPermits = { data: [] },
     isLoading: isLoadingUserPermits,
     isFetching: isFetchingUserPermits
@@ -84,7 +84,6 @@ function UsersForms() {
           roleId: values.roles.id,
           statusId: values.status.id,
           permissions: values.selectedPermissions
-       
         }
       }).unwrap()
 
@@ -124,8 +123,7 @@ function UsersForms() {
               alertMessage: t('deleted_successfully'),
               cancel: false,
               success: true,
-              onSuccess: () => {
-              },
+              onSuccess: () => {},
               variantSuccess: 'info'
             })
             setOpenAlertDialog(true)

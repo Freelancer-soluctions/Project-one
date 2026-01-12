@@ -6,32 +6,34 @@ import { axiosPrivateBaseQuery } from '@/config/axios'
 // Define a service using a base URL and expected endpoints
 const purchaseApi = createApi({
   reducerPath: 'purchaseApi',
-  baseQuery: axiosPrivateBaseQuery({ baseUrl: import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1' }),
+  baseQuery: axiosPrivateBaseQuery({
+    baseUrl: import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1'
+  }),
   tagTypes: ['Purchases'],
   keepUnusedDataFor: 300, // 5 minutos
-  endpoints: (builder) => ({
+  endpoints: builder => ({
     getAllPurchases: builder.query({
-      query: (params) => ({
+      query: params => ({
         url: `/purchases`,
         params
       }),
-      providesTags: ['Purchases'],
+      providesTags: ['Purchases']
     }),
 
     deletePurchaseById: builder.mutation({
-      query: (id) => ({
+      query: id => ({
         url: `/purchases/${id}`,
         method: 'DELETE'
       }),
-      invalidatesTags: ['Purchases'],
+      invalidatesTags: ['Purchases']
     }),
     createPurchase: builder.mutation({
-      query: (data) => ({
+      query: data => ({
         url: `/purchases/`,
         method: 'POST',
-        body: data,
+        body: data
       }),
-      invalidatesTags: ['Purchases'],
+      invalidatesTags: ['Purchases']
     }),
     updatePurchaseById: builder.mutation({
       query: ({ id, data }) => ({
@@ -39,7 +41,7 @@ const purchaseApi = createApi({
         method: 'PUT',
         body: data
       }),
-      invalidatesTags: ['Purchases'],
+      invalidatesTags: ['Purchases']
     })
   })
 })
@@ -53,4 +55,4 @@ export const {
   useDeletePurchaseByIdMutation
 } = purchaseApi
 
-export default purchaseApi 
+export default purchaseApi

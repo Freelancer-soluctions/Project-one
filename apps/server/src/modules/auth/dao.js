@@ -1,8 +1,8 @@
-import { createRow, getOneRow, updateRow } from '../../utils/prisma/dao.js'
-import { TABLESNAMES } from '../../utils/constants/enums.js'
-import { prisma } from '../../config/db.js'
+import { createRow, getOneRow, updateRow } from '../../utils/prisma/dao.js';
+import { TABLESNAMES } from '../../utils/constants/enums.js';
+import { prisma } from '../../config/db.js';
 
-const tableName = TABLESNAMES.USERS
+const tableName = TABLESNAMES.USERS;
 
 /**
  * Sign up a new user.
@@ -11,9 +11,9 @@ const tableName = TABLESNAMES.USERS
  * @returns {Promise<Object>} The created user.
  */
 export const signUp = async (user) => {
-  const userRes = await createRow(tableName, user)
-  return Promise.resolve(userRes)
-}
+  const userRes = await createRow(tableName, user);
+  return Promise.resolve(userRes);
+};
 
 /**
  * Get user by email.
@@ -25,11 +25,11 @@ export const signIn = async (email) => {
   const user = await getOneRow({
     tableName,
     where: { email },
-    include: { roles: true }
-  })
+    include: { roles: true },
+  });
 
-  return Promise.resolve(user)
-}
+  return Promise.resolve(user);
+};
 
 /**
  * Get session by ID.
@@ -41,11 +41,11 @@ export const session = async (id) => {
   const user = await getOneRow({
     tableName,
     where: { id },
-    include: { roles: true }
-  })
+    include: { roles: true },
+  });
 
-  return Promise.resolve(user)
-}
+  return Promise.resolve(user);
+};
 
 /**
  * Get user by ID.
@@ -57,11 +57,11 @@ export const getUserById = async (id) => {
   const user = await getOneRow({
     tableName,
     where: { id },
-    include: { roles: true }
-  })
+    include: { roles: true },
+  });
 
-  return Promise.resolve(user)
-}
+  return Promise.resolve(user);
+};
 
 // ya no necesario el token se guarda en una tabla independiente
 /**
@@ -72,32 +72,32 @@ export const getUserById = async (id) => {
  * @returns {Promise<Object>} The updated user data.
  */
 export const saveRefreshToken = async (refreshToken, id) => {
-  const data = { refreshToken }
-  const where = { id }
-  const user = await updateRow(tableName, data, where)
+  const data = { refreshToken };
+  const where = { id };
+  const user = await updateRow(tableName, data, where);
 
-  return Promise.resolve(user)
-}
+  return Promise.resolve(user);
+};
 
 export const storeRefreshToken = async ({ token, userId, issuedAt }) => {
   return prisma.refreshToken.create({
-    data: { token, userId, issuedAt: new Date(issuedAt) }
-  })
-}
+    data: { token, userId, issuedAt: new Date(issuedAt) },
+  });
+};
 
 export const findByToken = async (refreshToken) => {
-  return prisma.refreshToken.findUnique({ where: { token: refreshToken } })
-}
+  return prisma.refreshToken.findUnique({ where: { token: refreshToken } });
+};
 
 export const revokeRefreshToken = async (id) => {
   return prisma.refreshToken.update({
     where: { id },
-    data: { revoked: true, revokedAt: new Date() }
-  })
-}
+    data: { revoked: true, revokedAt: new Date() },
+  });
+};
 export const revokeAllRefreshTojeForUser = async (userId) => {
   return prisma.refreshToken.updateMany({
     where: { userId },
-    data: { revoked: true, revokedAt: new Date() }
-  })
-}
+    data: { revoked: true, revokedAt: new Date() },
+  });
+};

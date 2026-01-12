@@ -3,7 +3,9 @@ import { axiosPrivateBaseQuery } from '@/config/axios'
 
 export const inventoryMovementAPI = createApi({
   reducerPath: 'inventoryMovementAPI',
-  baseQuery:axiosPrivateBaseQuery({ baseUrl: import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1' }),
+  baseQuery: axiosPrivateBaseQuery({
+    baseUrl: import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1'
+  }),
   tagTypes: ['InventoryMovement'],
   endpoints: builder => ({
     getAllInventoryMovements: builder.query({
@@ -44,6 +46,6 @@ export const {
   useCreateInventoryMovementMutation,
   useUpdateInventoryMovementByIdMutation,
   useDeleteInventoryMovementByIdMutation
-} = inventoryMovementAPI 
+} = inventoryMovementAPI
 
 export default inventoryMovementAPI

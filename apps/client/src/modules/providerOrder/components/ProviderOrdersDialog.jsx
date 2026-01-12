@@ -115,7 +115,9 @@ export const ProviderOrdersDialog = ({
                 render={({ field }) => {
                   return (
                     <FormItem>
-                      <FormLabel htmlFor='supplierId'>{t('supplierId')}</FormLabel>
+                      <FormLabel htmlFor='supplierId'>
+                        {t('supplierId')}
+                      </FormLabel>
                       <FormControl>
                         <Input
                           id='supplierId'

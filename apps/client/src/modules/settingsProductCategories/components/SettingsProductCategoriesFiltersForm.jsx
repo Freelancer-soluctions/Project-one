@@ -60,7 +60,9 @@ export const SettingsProductCategoriesFiltersForm = ({ onSubmit, onAdd }) => {
             render={({ field }) => {
               return (
                 <FormItem className='flex flex-col flex-auto'>
-                  <FormLabel htmlFor='description'>{t('description')}</FormLabel>
+                  <FormLabel htmlFor='description'>
+                    {t('description')}
+                  </FormLabel>
                   <FormControl>
                     <Input
                       id='description'
@@ -78,7 +80,6 @@ export const SettingsProductCategoriesFiltersForm = ({ onSubmit, onAdd }) => {
               )
             }}
           />
-
 
           <FormField
             control={form.control}
@@ -104,8 +105,6 @@ export const SettingsProductCategoriesFiltersForm = ({ onSubmit, onAdd }) => {
               )
             }}
           />
-
-    
         </div>
         {/* buttons */}
         <div className='flex flex-wrap items-center justify-between gap-3 mt-5 md:justify-normal'>
@@ -140,4 +139,4 @@ SettingsProductCategoriesFiltersForm.propTypes = {
   onSubmit: PropTypes.func.isRequired,
   dataStatus: PropTypes.array,
   onAddDialog: PropTypes.func
-} 
+}

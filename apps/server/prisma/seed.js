@@ -1,33 +1,29 @@
-import { prisma } from '../src/config/db.js'
-import { encryptPassword } from '../src/utils/bcrypt/encrypt.js'
+import { prisma } from '../src/config/db.js';
+import { encryptPassword } from '../src/utils/bcrypt/encrypt.js';
 
 const roles = [
   {
     code: 'C01',
-    description: 'admin'
+    description: 'admin',
   },
   {
     code: 'C02',
-    description: 'user'
+    description: 'user',
   },
   {
     code: 'C03',
-    description: 'manager'
-  }
-]
+    description: 'manager',
+  },
+];
 
 const rolePermissionsMap = {
   2: [1, 23, 37, 39, 40, 47], // user
   3: [
-    1, 2, 3, 4, 5, 6, 7, 8, 9,
-    10, 11, 12, 13, 14, 15, 16,
-    17, 18, 19, 20, 21, 22, 23,
-    24, 25, 26, 27, 28, 29, 30,
-    31, 32, 33, 34, 35, 36, 37,
-    38, 39, 40, 41, 42, 43, 44,
-    45, 46, 47
-  ] // MANAGER
-}
+    1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21,
+    22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40,
+    41, 42, 43, 44, 45, 46, 47,
+  ], // MANAGER
+};
 
 const permissions = [
   { code: 'canViewNews', description: 'Puede ver noticias' },
@@ -91,7 +87,10 @@ const permissions = [
   { code: 'canRequestVacation', description: 'Puede solicitar vacaciones' },
   { code: 'canViewVacations', description: 'Puede ver vacaciones' },
   { code: 'canDeleteVacation', description: 'Puede eliminar vacaciones' },
-  { code: 'canEditRequestVacation', description: 'Puede editar solicitudes de vacaciones' },
+  {
+    code: 'canEditRequestVacation',
+    description: 'Puede editar solicitudes de vacaciones',
+  },
   { code: 'canViewPermission', description: 'Puede ver permisos' },
   { code: 'canEditPermission', description: 'Puede editar permisos' },
   { code: 'canDeletePermission', description: 'Puede eliminar permisos' },
@@ -105,10 +104,22 @@ const permissions = [
   { code: 'canViewExpense', description: 'Puede ver gastos' },
   { code: 'canDeleteExpense', description: 'Puede eliminar gastos' },
   { code: 'canEvaluatePerformance', description: 'Puede evaluar desempeño' },
-  { code: 'canViewPerformanceEvaluations', description: 'Puede ver evaluaciones de desempeño' },
-  { code: 'canCreateEvaluatePerformance', description: 'Puede crear evaluaciones de desempeño' },
-  { code: 'canEditEvaluatePerformance', description: 'Puede editar evaluaciones de desempeño' },
-  { code: 'canDeleteEvaluationPerformance', description: 'Puede eliminar evaluaciones de desempeño' }
+  {
+    code: 'canViewPerformanceEvaluations',
+    description: 'Puede ver evaluaciones de desempeño',
+  },
+  {
+    code: 'canCreateEvaluatePerformance',
+    description: 'Puede crear evaluaciones de desempeño',
+  },
+  {
+    code: 'canEditEvaluatePerformance',
+    description: 'Puede editar evaluaciones de desempeño',
+  },
+  {
+    code: 'canDeleteEvaluationPerformance',
+    description: 'Puede eliminar evaluaciones de desempeño',
+  },
 
   // { code: 'canViewDashboard', description: 'Puede ver el dashboard' },
 
@@ -120,74 +131,74 @@ const permissions = [
   // { code: 'canViewProviderOrder', description: 'Puede ver órdenes a proveedores' },
 
   // { code: 'canViewReports', description: 'Puede ver reportes' }
-]
+];
 
 const userStatus = [
   {
     code: 'C01',
-    description: 'ACTIVE'
+    description: 'ACTIVE',
   },
   {
     code: 'C02',
-    description: 'INACTIVE'
-  }
-]
+    description: 'INACTIVE',
+  },
+];
 
 const noteColumns = [
   {
     code: 'C01',
-    title: 'LOW'
+    title: 'LOW',
   },
   {
     code: 'C02',
-    title: 'MEDIUM'
+    title: 'MEDIUM',
   },
   {
     code: 'C03',
-    title: 'HIGH'
-  }
-]
+    title: 'HIGH',
+  },
+];
 
 const eventTypes = [
   {
     code: 'C01',
-    description: 'Session'
+    description: 'Session',
   },
   {
     code: 'C02',
-    description: 'Conference'
+    description: 'Conference',
   },
   {
     code: 'C03',
-    description: 'Workshop'
-  }
-]
+    description: 'Workshop',
+  },
+];
 
 const newStatus = [
   {
     code: 'C01',
-    description: 'ACTIVE'
+    description: 'ACTIVE',
   },
   {
     code: 'C02',
-    description: 'PENDING'
+    description: 'PENDING',
   },
   {
     code: 'C03',
-    description: 'CLOSED'
-  }
-]
+    description: 'CLOSED',
+  },
+];
 
 const productStatus = [
   {
     code: 'C01',
-    description: 'ACTIVE'
+    description: 'ACTIVE',
   },
   {
     code: 'C02',
-    description: 'INACTIVE'
-  }
-]
+    description: 'INACTIVE',
+  },
+];
 
 // const productProviders = [
 //   { code: 'C01', name: 'PROV. SOFTWARE' },
@@ -200,13 +211,13 @@ const productStatus = [
 const productCategories = [
   {
     code: 'C01',
-    description: 'Monitores y Periféricos'
+    description: 'Monitores y Periféricos',
   },
   {
     code: 'C02',
-    description: 'Accesorios (Teclados, Ratones, etc.)'
-  }
-]
+    description: 'Accesorios (Teclados, Ratones, etc.)',
+  },
+];
 
 const user = {
   name: 'Admin',
@@ -226,8 +237,8 @@ const user = {
   state: 'Texas',
   statusId: 1,
   telephone: '300456322445565',
-  zipcode: '987654321'
-}
+  zipcode: '987654321',
+};
 
 const user1 = {
   name: 'user1',
@@ -247,47 +258,48 @@ const user1 = {
   state: 'Texas',
   statusId: 1,
   telephone: '300456322445565',
-  zipcode: '987654321'
-}
+  zipcode: '987654321',
+};
 
-const news = [{
-  closedOn: null,
-  createdOn: '2024-08-05T00:19:58.867Z',
-  description: 'test1',
-  document: null,
-  documentId: null,
-  statusId: 1,
-  closedBy: 1,
-  createdBy: 1
-
-}]
+const news = [
+  {
+    closedOn: null,
+    createdOn: '2024-08-05T00:19:58.867Z',
+    description: 'test1',
+    document: null,
+    documentId: null,
+    statusId: 1,
+    closedBy: 1,
+    createdBy: 1,
+  },
+];
 
 const createVarious = async (tableName, createObjects) => {
   const createdObjects = await prisma[tableName].createMany({
     data: createObjects,
-    skipDuplicates: true
-  })
-  return Promise.resolve(createdObjects)
-}
+    skipDuplicates: true,
+  });
+  return Promise.resolve(createdObjects);
+};
 
 const create = async (tableName, createObject) => {
-  createObject.password = await encryptPassword(createObject.password)
+  createObject.password = await encryptPassword(createObject.password);
   const createdItem = await prisma[tableName].create({
-    data: createObject
-  })
-  return Promise.resolve(createdItem)
-}
+    data: createObject,
+  });
+  return Promise.resolve(createdItem);
+};
 
-async function main () {
-  await createVarious('roles', roles)
-  await createVarious('userStatus', userStatus)
-  await create('users', user)
+async function main() {
+  await createVarious('roles', roles);
+  await createVarious('userStatus', userStatus);
+  await create('users', user);
 
-  await createVarious('eventTypes', eventTypes)
-  await createVarious('permissions', permissions)
-  await createVarious('noteColumns', noteColumns)
-  await createVarious('newsStatus', newStatus)
-  await createVarious('productStatus', productStatus)
+  await createVarious('eventTypes', eventTypes);
+  await createVarious('permissions', permissions);
+  await createVarious('noteColumns', noteColumns);
+  await createVarious('newsStatus', newStatus);
+  await createVarious('productStatus', productStatus);
 
   // No necesarios por ahora
 
@@ -298,11 +310,11 @@ async function main () {
 
 main()
   .then(async () => {
-    console.log('Prisma seaders completed')
+    console.log('Prisma seaders completed');
     // await prisma.$disconnect()
   })
   .catch(async (e) => {
-    console.error(e, 'An error occurred while performing prisma seeders.')
+    console.error(e, 'An error occurred while performing prisma seeders.');
     // await prisma.$disconnect()
-    process.exit(1)
-  })
+    process.exit(1);
+  });

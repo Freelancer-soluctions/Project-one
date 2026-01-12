@@ -2,10 +2,10 @@ import {
   getAllPurchases as getAllPurchasesService,
   createPurchase as createPurchaseService,
   updatePurchaseById as updatePurchaseByIdService,
-  deletePurchaseById as deletePurchaseByIdService
-} from './service.js'
-import handleCatchErrorAsync from '../../utils/responses&Errors/handleCatchErrorAsync.js'
-import globalResponse from '../../utils/responses&Errors/globalResponse.js'
+  deletePurchaseById as deletePurchaseByIdService,
+} from './service.js';
+import handleCatchErrorAsync from '../../utils/responses&Errors/handleCatchErrorAsync.js';
+import globalResponse from '../../utils/responses&Errors/globalResponse.js';
 
 /**
  * Get all purchases with optional filters
@@ -13,9 +13,9 @@ import globalResponse from '../../utils/responses&Errors/globalResponse.js'
  * @param {Object} res - Express response object
  */
 export const getAllPurchases = handleCatchErrorAsync(async (req, res) => {
-  const purchases = await getAllPurchasesService(req.query)
-  globalResponse(res, 200, purchases)
-})
+  const purchases = await getAllPurchasesService(req.query);
+  globalResponse(res, 200, purchases);
+});
 
 /**
  * Create a new purchase
@@ -25,10 +25,10 @@ export const getAllPurchases = handleCatchErrorAsync(async (req, res) => {
 export const createPurchase = handleCatchErrorAsync(async (req, res) => {
   const purchase = await createPurchaseService({
     ...req.body,
-    createdBy: req.user.id
-  })
-  globalResponse(res, 201, purchase)
-})
+    createdBy: req.user.id,
+  });
+  globalResponse(res, 201, purchase);
+});
 
 /**
  * Update a purchase by ID
@@ -38,10 +38,10 @@ export const createPurchase = handleCatchErrorAsync(async (req, res) => {
 export const updatePurchaseById = handleCatchErrorAsync(async (req, res) => {
   const purchase = await updatePurchaseByIdService(req.params.id, {
     ...req.body,
-    updatedBy: req.user.id
-  })
-  globalResponse(res, 200, purchase)
-})
+    updatedBy: req.user.id,
+  });
+  globalResponse(res, 200, purchase);
+});
 
 /**
  * Delete a purchase by ID
@@ -49,6 +49,6 @@ export const updatePurchaseById = handleCatchErrorAsync(async (req, res) => {
  * @param {Object} res - Express response object
  */
 export const deletePurchaseById = handleCatchErrorAsync(async (req, res) => {
-  await deletePurchaseByIdService(req.params.id)
-  globalResponse(res, 200, { message: 'Purchase deleted successfully' })
-})
+  await deletePurchaseByIdService(req.params.id);
+  globalResponse(res, 200, { message: 'Purchase deleted successfully' });
+});
