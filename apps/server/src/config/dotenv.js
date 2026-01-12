@@ -7,6 +7,11 @@ import { config } from 'dotenv'
 
 // configuracion de entorno
 const env = process.env.NODE_ENV || 'development'
+
+// Intentar cargar archivo específico del entorno primero
 config({ path: `.env.${env}` })
+
+// Si no existe, cargar .env genérico como fallback
+config({ path: '.env' })
 
 export default (key) => process.env[key]
