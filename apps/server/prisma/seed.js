@@ -279,15 +279,15 @@ const create = async (tableName, createObject) => {
 }
 
 async function main () {
-  await createVarious('eventTypes', eventTypes)
-  await createVarious('permissions', permissions)
   await createVarious('roles', roles)
   await createVarious('userStatus', userStatus)
+  await create('users', user)
+
+  await createVarious('eventTypes', eventTypes)
+  await createVarious('permissions', permissions)
   await createVarious('noteColumns', noteColumns)
   await createVarious('newsStatus', newStatus)
   await createVarious('productStatus', productStatus)
-
-  await create('users', user)
 
   // No necesarios por ahora
 
