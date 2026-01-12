@@ -2,6 +2,7 @@ Instalar prettier en back
 Pruebas unitarias
 Pruebas de integracion
 Owasp to 10
+Hay llamadas que se estan haciendo automaticamente cuiando se inicia sesion, verificar y hacer llamado solo cuando se necesite que no sean actumaticas por ejemplo las de event, tambien tener en cuenta que hay un cache con redux en lo redux query hooks 
 
 Lista de caracteristicas para destacar
 - Logger de errores Tanto en back como front

@@ -25,7 +25,7 @@ export default logger[dotenv('NODE_ENV')]() */
 const loggers = {
   production: productionLogger,
   uat: uatLogger,
-  dev: devLogger
+  development: devLogger
 }
 
 const environment = dotenv('NODE_ENV')
