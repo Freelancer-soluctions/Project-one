@@ -1,6 +1,6 @@
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { useTranslation } from 'react-i18next'
-import { BackDashBoard } from '@/components/backDash/BackDashBoard'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useTranslation } from 'react-i18next';
+import { BackDashBoard } from '@/components/backDash/BackDashBoard';
 import {
   useGetAllProductsStatusQuery,
   useGetAllProductCategoriesQuery,
@@ -9,69 +9,60 @@ import {
   useUpdateProductByIdMutation,
   useDeleteProductByIdMutation,
   useDeleteProductAttributeByIdMutation,
-  useSaveProductAttributesMutation
-} from '../api/productsAPI'
-import { useGetAllProvidersFiltersQuery } from '../../providers/api/providersAPI'
+  useSaveProductAttributesMutation,
+} from '../api/productsAPI';
+import { useGetAllProvidersFiltersQuery } from '../../providers/api/providersAPI';
 
-import { Spinner } from '@/components/loader/Spinner'
-import { ProductBasicInfo, ProductAttributes } from '../components'
-import AlertDialogComponent from '@/components/alertDialog/AlertDialog'
-import { useNavigate, useLocation } from 'react-router'
-import { useState, useEffect } from 'react'
+import { Spinner } from '@/components/loader/Spinner';
+import { ProductBasicInfo, ProductAttributes } from '../components';
+import AlertDialogComponent from '@/components/alertDialog/AlertDialog';
+import { useNavigate, useLocation } from 'react-router';
+import { useState, useEffect } from 'react';
 
 function ProductsForms() {
-  const { t } = useTranslation()
-  const navigate = useNavigate()
-  const [selectedRow, setSelectedRow] = useState()
-  const [openAlertDialog, setOpenAlertDialog] = useState(false) //alert dialog open/close
-  const [alertProps, setAlertProps] = useState({})
-  const location = useLocation()
-    const [attributes, setAttributes] = useState([])
+  const { t } = useTranslation();
+  const navigate = useNavigate();
+  const [selectedRow, setSelectedRow] = useState();
+  const [openAlertDialog, setOpenAlertDialog] = useState(false); //alert dialog open/close
+  const [alertProps, setAlertProps] = useState({});
+  const location = useLocation();
+  const [attributes, setAttributes] = useState([]);
 
   useEffect(() => {
     if (location.state?.row) {
-      setSelectedRow(location.state.row)
+      setSelectedRow(location.state.row);
     } else {
-      setSelectedRow({})
+      setSelectedRow({});
     }
-  }, [location.state])
+  }, [location.state]);
 
   const {
     data: dataCategory,
     isLoading: isLoadingCategory,
     isFetching: isFetchingCategory,
-  } = useGetAllProductCategoriesQuery()
+  } = useGetAllProductCategoriesQuery();
 
   const {
     data: dataProviders,
     isLoading: isLoadingProviders,
     isFetching: isFetchingProviders,
-  } = useGetAllProvidersFiltersQuery()
+  } = useGetAllProvidersFiltersQuery();
 
   const {
     data: datastatus,
     isLoading: isLoadingStatus,
     isFetching: isFetchingStatus,
-  } = useGetAllProductsStatusQuery()
+  } = useGetAllProductsStatusQuery();
 
-  const [
-    saveProduct,
-    { isLoading: isLoadingPost  }
-  ] = useCreateProductMutation()
-  const [
-    updateProductById,
-    { isLoading: isLoadingPut}
-  ] = useUpdateProductByIdMutation()
-  const [
-    deleteProductById,
-    {
-      isLoading: isLoadingDelete,
+  const [saveProduct, { isLoading: isLoadingPost }] =
+    useCreateProductMutation();
+  const [updateProductById, { isLoading: isLoadingPut }] =
+    useUpdateProductByIdMutation();
+  const [deleteProductById, { isLoading: isLoadingDelete }] =
+    useDeleteProductByIdMutation();
 
-    }
-  ] = useDeleteProductByIdMutation()
-
-  const handleSubmitCreateEdit = async data => {
-    if (!data) return
+  const handleSubmitCreateEdit = async (data) => {
+    if (!data) return;
 
     if (data.id) {
       await updateProductById({
@@ -85,9 +76,9 @@ function ProductsForms() {
           barCode: data.barCode,
           productCategoryId: data.category.id,
           productStatusId: data.status.id,
-          productProviderId: data.provider.id
-        }
-      }).unwrap()
+          productProviderId: data.provider.id,
+        },
+      }).unwrap();
     } else {
       await saveProduct({
         cost: data.cost,
@@ -98,11 +89,11 @@ function ProductsForms() {
         barCode: data.barCode,
         productCategoryId: data.category.id,
         productStatusId: data.status.id,
-        productProviderId: data.provider.id
-      }).unwrap()
+        productProviderId: data.provider.id,
+      }).unwrap();
     }
 
-    setOpenAlertDialog(true)
+    setOpenAlertDialog(true);
     setAlertProps({
       alertTitle: data.id ? t('update_record') : t('add_record'),
       alertMessage: data.id
@@ -111,14 +102,14 @@ function ProductsForms() {
       cancel: false,
       success: true,
       onSuccess: () => {
-        navigate('/home/products')
+        navigate('/home/products');
       },
-      variantSuccess: 'info'
-    })
-  }
+      variantSuccess: 'info',
+    });
+  };
 
-  const handleDeleteProductById = async id => {
-    if (!id) return
+  const handleDeleteProductById = async (id) => {
+    if (!id) return;
     try {
       setAlertProps({
         alertTitle: t('delete_record'),
@@ -131,7 +122,7 @@ function ProductsForms() {
         onSuccess: () => {},
         onDelete: async () => {
           try {
-            await deleteProductById(id).unwrap()
+            await deleteProductById(id).unwrap();
 
             setAlertProps({
               alertTitle: '',
@@ -139,21 +130,21 @@ function ProductsForms() {
               cancel: false,
               success: true,
               onSuccess: () => {
-                navigate('/home/products')
+                navigate('/home/products');
               },
-              variantSuccess: 'info'
-            })
-            setOpenAlertDialog(true) // Open alert dialog
+              variantSuccess: 'info',
+            });
+            setOpenAlertDialog(true); // Open alert dialog
           } catch (err) {
-            console.error('Error deleting:', err)
+            console.error('Error deleting:', err);
           }
-        }
-      })
-      setOpenAlertDialog(true)
+        },
+      });
+      setOpenAlertDialog(true);
     } catch (err) {
-      console.error('Error deleting:', err)
+      console.error('Error deleting:', err);
     }
-  }
+  };
 
   const [
     getProductAttributes,
@@ -161,37 +152,26 @@ function ProductsForms() {
       data: dataAttributes = { data: [] },
       isLoading: isLoadingAttributes,
       isFetching: isFetchingAttributes,
-    }
-  ] = useLazyGetAllProductAttributesQuery()
+    },
+  ] = useLazyGetAllProductAttributesQuery();
 
-  const [
-    deleteProductAttributeById,
-    {
-      isLoading: isLoadingDeleteAttribute,
-    }
-  ] = useDeleteProductAttributeByIdMutation()
+  const [deleteProductAttributeById, { isLoading: isLoadingDeleteAttribute }] =
+    useDeleteProductAttributeByIdMutation();
 
-  const [
-    saveProductAttributes,
-    {
-      isLoading: isLoadingSaveAttributes,
-      
-    }
-  ] = useSaveProductAttributesMutation()
+  const [saveProductAttributes, { isLoading: isLoadingSaveAttributes }] =
+    useSaveProductAttributesMutation();
 
   useEffect(() => {
     if (selectedRow?.id) {
-      getProductAttributes(selectedRow.id)
+      getProductAttributes(selectedRow.id);
     }
-  }, [selectedRow, getProductAttributes])
+  }, [selectedRow, getProductAttributes]);
 
   useEffect(() => {
     if (dataAttributes?.data.length > 0) {
-      setAttributes(dataAttributes.data)
+      setAttributes(dataAttributes.data);
     }
-  }, [dataAttributes])
-
-
+  }, [dataAttributes]);
 
   const handleAddAttribute = () => {
     setAttributes([
@@ -201,20 +181,20 @@ function ProductsForms() {
         name: '',
         description: '',
         save: true,
-        productId: selectedRow?.id
-      }
-    ])
-  }
+        productId: selectedRow?.id,
+      },
+    ]);
+  };
 
-  const updateAttributes = index => {
-    setAttributes(prev => {
-      const newAttributes = [...prev]
+  const updateAttributes = (index) => {
+    setAttributes((prev) => {
+      const newAttributes = [...prev];
       if (index !== -1) {
-        newAttributes.splice(index, 1) // Elimina el atributo en el índice encontrado
+        newAttributes.splice(index, 1); // Elimina el atributo en el índice encontrado
       }
-      return newAttributes
-    })
-  }
+      return newAttributes;
+    });
+  };
 
   const handleRemoveAttribute = async (index, item) => {
     //Eliminacion logica
@@ -230,59 +210,59 @@ function ProductsForms() {
         onSuccess: () => {},
         onDelete: async () => {
           try {
-            await deleteProductAttributeById(item.id).unwrap()
-            updateAttributes(index)
+            await deleteProductAttributeById(item.id).unwrap();
+            updateAttributes(index);
             setAlertProps({
               alertTitle: '',
               alertMessage: t('deleted_successfully'),
               cancel: false,
               success: true,
               onSuccess: () => {
-                navigate('/home/products')
+                navigate('/home/products');
               },
-              variantSuccess: 'info'
-            })
-            setOpenAlertDialog(true) // Open alert dialog
+              variantSuccess: 'info',
+            });
+            setOpenAlertDialog(true); // Open alert dialog
           } catch (err) {
-            console.error('Error deleting:', err)
+            console.error('Error deleting:', err);
           }
-        }
-      })
-      setOpenAlertDialog(true)
+        },
+      });
+      setOpenAlertDialog(true);
     } else {
-      updateAttributes(index)
+      updateAttributes(index);
     }
-  }
+  };
 
   const handleEditAttribute = (index, field, value) => {
-    setAttributes(prev =>
+    setAttributes((prev) =>
       prev.map((attr, i) =>
         i === index ? { ...attr, [field]: value, save: true } : attr
       )
-    )
-  }
-  const handleSubmitFormAttribute = async data => {
+    );
+  };
+  const handleSubmitFormAttribute = async (data) => {
     // Filtrar solo los atributos con save: true
     const attributesToSend = data
-      .filter(attr => attr.save) // Solo los que tienen save: true
-      .map(({ save, ...rest }) => rest) // Eliminar 'save' del objeto
+      .filter((attr) => attr.save) // Solo los que tienen save: true
+      .map(({ save, ...rest }) => rest); // Eliminar 'save' del objeto
 
     if (attributesToSend.length > 0) {
-      await saveProductAttributes(attributesToSend).unwrap()
+      await saveProductAttributes(attributesToSend).unwrap();
 
-      setOpenAlertDialog(true)
+      setOpenAlertDialog(true);
       setAlertProps({
         alertTitle: t('save_record'),
         alertMessage: t('saved_successfully'),
         cancel: false,
         success: true,
         onSuccess: () => {
-          navigate('/home/products')
+          navigate('/home/products');
         },
-        variantSuccess: 'info'
-      })
+        variantSuccess: 'info',
+      });
     }
-  }
+  };
 
   return (
     <>
@@ -290,7 +270,7 @@ function ProductsForms() {
         link={'/home/products'}
         moduleName={selectedRow?.id ? t('edit_product') : t('new_product')}
       />
-      <div className='relative'>
+      <div className="relative">
         {(isLoadingCategory ||
           isLoadingPost ||
           isLoadingPut ||
@@ -305,15 +285,15 @@ function ProductsForms() {
           isFetchingStatus ||
           isLoadingSaveAttributes) && <Spinner />}
 
-        <div className='container flex flex-col min-h-screen'>
-          <main className='container flex-1 py-6'>
-            <Tabs defaultValue='info' className='mb-6'>
-              <TabsList className='grid w-full grid-cols-2'>
-                <TabsTrigger value='info'>{t('basic_information')}</TabsTrigger>
-                <TabsTrigger value='attributes'>{t('attributes')}</TabsTrigger>
+        <div className="container flex flex-col min-h-screen">
+          <main className="container flex-1 py-6">
+            <Tabs defaultValue="info" className="mb-6">
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="info">{t('basic_information')}</TabsTrigger>
+                <TabsTrigger value="attributes">{t('attributes')}</TabsTrigger>
               </TabsList>
 
-              <TabsContent value='info' className='mt-4'>
+              <TabsContent value="info" className="mt-4">
                 <ProductBasicInfo
                   onSubmitCreateEdit={handleSubmitCreateEdit}
                   onDelete={handleDeleteProductById}
@@ -324,7 +304,7 @@ function ProductsForms() {
                 />
               </TabsContent>
 
-              <TabsContent value='attributes' className='mt-4'>
+              <TabsContent value="attributes" className="mt-4">
                 <ProductAttributes
                   onRemoveAttribute={handleRemoveAttribute}
                   onAddAttribute={handleAddAttribute}
@@ -343,6 +323,6 @@ function ProductsForms() {
         </div>
       </div>
     </>
-  )
+  );
 }
-export default ProductsForms
+export default ProductsForms;

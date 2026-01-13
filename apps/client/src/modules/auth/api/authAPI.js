@@ -1,12 +1,12 @@
-import { axiosPublic, axiosPrivate } from '@/config/axios'
-import Cookies from 'js-cookie'
+import { axiosPublic, axiosPrivate } from '@/config/axios';
+import Cookies from 'js-cookie';
 
 export function SignInApi(body) {
-  return axiosPublic.post('/auth/signin', body)
+  return axiosPublic.post('/auth/signin', body);
 }
 
 export function SignUpApi(body) {
-  return axiosPublic.post('/auth/signup', body)
+  return axiosPublic.post('/auth/signup', body);
 }
 
 // export function newsApi (id) {
@@ -14,15 +14,15 @@ export function SignUpApi(body) {
 // }
 
 export function RefreshTokenApi() {
-  const csrfToken = Cookies.get('csrfToken')
+  const csrfToken = Cookies.get('csrfToken');
   return axiosPublic.post(
     '/auth/refresh-token',
     {}, // body vacío (si no mandas nada)
     {
       withCredentials: true,
       headers: {
-        'CSRF-Token': csrfToken
-      }
+        'CSRF-Token': csrfToken,
+      },
     }
-  )
+  );
 }

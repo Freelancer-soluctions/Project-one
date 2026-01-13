@@ -1,44 +1,46 @@
 export const SettingsTabs = () => {
   return (
-    <div className='container max-w-6xl py-10'>
-      <div className='space-y-6'>
+    <div className="container max-w-6xl py-10">
+      <div className="space-y-6">
         <div>
-          <h2 className='text-3xl font-bold tracking-tight'>{t('settings')}</h2>
-          <p className='text-muted-foreground'>
+          <h2 className="text-3xl font-bold tracking-tight">{t('settings')}</h2>
+          <p className="text-muted-foreground">
             {t('settings_preferences_message')}
           </p>
         </div>
         <Separator />
         <Tabs
-          defaultValue='profile'
+          defaultValue="profile"
           value={activeTab}
           onValueChange={setActiveTab}
-          className='space-y-10'>
-          <TabsList className='flex flex-wrap gap-5 overflow-x-auto md:flex-nowrap'>
-            <TabsTrigger value='profile' className='flex items-center gap-2'>
-              <LuUser className='w-4 h-4' />
+          className="space-y-10"
+        >
+          <TabsList className="flex flex-wrap gap-5 overflow-x-auto md:flex-nowrap">
+            <TabsTrigger value="profile" className="flex items-center gap-2">
+              <LuUser className="w-4 h-4" />
               {t('profile')}
             </TabsTrigger>
-            <TabsTrigger value='appearance' className='flex items-center gap-2'>
-              <LuMoon className='w-4 h-4' />
+            <TabsTrigger value="appearance" className="flex items-center gap-2">
+              <LuMoon className="w-4 h-4" />
               {t('appearance')}
             </TabsTrigger>
-            <TabsTrigger value='language' className='flex items-center gap-2'>
-              <LuGlobe className='w-4 h-4' />
+            <TabsTrigger value="language" className="flex items-center gap-2">
+              <LuGlobe className="w-4 h-4" />
               {t('language')}
             </TabsTrigger>
             <TabsTrigger
-              value='notifications'
-              className='flex items-center gap-2'>
-              <LuBell className='w-4 h-4' />
+              value="notifications"
+              className="flex items-center gap-2"
+            >
+              <LuBell className="w-4 h-4" />
               {t('notifications')}
             </TabsTrigger>
-            <TabsTrigger value='display' className='flex items-center gap-2'>
-              <LuLayoutTemplate className='w-4 h-4' />
+            <TabsTrigger value="display" className="flex items-center gap-2">
+              <LuLayoutTemplate className="w-4 h-4" />
               {t('display')}
             </TabsTrigger>
-            <TabsTrigger value='account' className='flex items-center gap-2'>
-              <LuShield className='w-4 h-4' />
+            <TabsTrigger value="account" className="flex items-center gap-2">
+              <LuShield className="w-4 h-4" />
               {t('account')}
             </TabsTrigger>
           </TabsList>
@@ -254,5 +256,5 @@ export const SettingsTabs = () => {
         </Tabs>
       </div>
     </div>
-  )
-}
+  );
+};

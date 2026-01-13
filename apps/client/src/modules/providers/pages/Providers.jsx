@@ -1,60 +1,51 @@
 import {
   ProvidersFiltersForm,
   ProvidersDialog,
-  ProvidersDatatable
-} from '../components/index'
-import { BackDashBoard } from '@/components/backDash/BackDashBoard'
-import { useTranslation } from 'react-i18next'
-import { useState } from 'react'
+  ProvidersDatatable,
+} from '../components/index';
+import { BackDashBoard } from '@/components/backDash/BackDashBoard';
+import { useTranslation } from 'react-i18next';
+import { useState } from 'react';
 import {
   useLazyGetAllProvidersQuery,
   useUpdateProviderByIdMutation,
   useCreateProviderMutation,
-  useDeleteProviderByIdMutation
-} from '../api/providersAPI'
-import { dataStatus } from '../utils/enums'
-import AlertDialogComponent from '@/components/alertDialog/AlertDialog'
-import { Spinner } from '@/components/loader/Spinner'
-import { generateCode } from '@/utils/helpers'
-import { useEffect } from 'react'
+  useDeleteProviderByIdMutation,
+} from '../api/providersAPI';
+import { dataStatus } from '../utils/enums';
+import AlertDialogComponent from '@/components/alertDialog/AlertDialog';
+import { Spinner } from '@/components/loader/Spinner';
+import { generateCode } from '@/utils/helpers';
+import { useEffect } from 'react';
 
 const Providers = () => {
-  const { t } = useTranslation()
-  const [selectedRow, setSelectedRow] = useState(null)
-  const [openDialog, setOpenDialog] = useState(false)
-  const [openAlertDialog, setOpenAlertDialog] = useState(false)
-  const [alertProps, setAlertProps] = useState({})
-  const [actionDialog, setActionDialog] = useState('')
+  const { t } = useTranslation();
+  const [selectedRow, setSelectedRow] = useState(null);
+  const [openDialog, setOpenDialog] = useState(false);
+  const [openAlertDialog, setOpenAlertDialog] = useState(false);
+  const [alertProps, setAlertProps] = useState({});
+  const [actionDialog, setActionDialog] = useState('');
   const [pagination, setPagination] = useState({
     pageIndex: 0,
-    pageSize: 20
-  })
-  const [filters, setFilters] = useState({})
+    pageSize: 20,
+  });
+  const [filters, setFilters] = useState({});
 
   const [
     getAllProviders,
     {
       data: dataProviders = { data: [] },
       isLoading: isLoadingProviders,
-      isFetching: isFetchingProviders
-    }
-  ] = useLazyGetAllProvidersQuery()
-  const [
-    updateProviderById,
-    { isLoading: isLoadingPut }
-  ] = useUpdateProviderByIdMutation()
+      isFetching: isFetchingProviders,
+    },
+  ] = useLazyGetAllProvidersQuery();
+  const [updateProviderById, { isLoading: isLoadingPut }] =
+    useUpdateProviderByIdMutation();
 
-  const [
-    createProvider,
-    { isLoading: isLoadingPost }
-  ] = useCreateProviderMutation()
-  const [
-    deleteProviderById,
-    {
-      isLoading: isLoadingDelete,
-   
-    }
-  ] = useDeleteProviderByIdMutation()
+  const [createProvider, { isLoading: isLoadingPost }] =
+    useCreateProviderMutation();
+  const [deleteProviderById, { isLoading: isLoadingDelete }] =
+    useDeleteProviderByIdMutation();
 
   /**
    * Este efecto es la única fuente de verdad para disparar
@@ -73,9 +64,9 @@ const Providers = () => {
     getAllProviders({
       page: pagination.pageIndex + 1,
       limit: pagination.pageSize,
-      ...filters
-    })
-  }, [pagination.pageIndex, pagination.pageSize, filters, getAllProviders])
+      ...filters,
+    });
+  }, [pagination.pageIndex, pagination.pageSize, filters, getAllProviders]);
 
   /**
    * Al aplicar nuevos filtros:
@@ -86,18 +77,18 @@ const Providers = () => {
    * El cambio de estado dispara el useEffect, manteniendo
    * un flujo reactivo y predecible.
    */
-  const handleSubmitFilters = newFilters => {
-    setPagination(prev => ({
+  const handleSubmitFilters = (newFilters) => {
+    setPagination((prev) => ({
       ...prev,
-      pageIndex: 0
-    }))
+      pageIndex: 0,
+    }));
 
-    setFilters(newFilters)
-  }
+    setFilters(newFilters);
+  };
 
   const handleSubmit = async (values, providerId) => {
     try {
-       providerId
+      providerId
         ? await updateProviderById({
             id: providerId,
             data: {
@@ -107,8 +98,8 @@ const Providers = () => {
               contactName: values.contactName,
               contactEmail: values.contactEmail,
               contactPhone: values.contactPhone,
-              address: values.address
-            }
+              address: values.address,
+            },
           }).unwrap()
         : await createProvider({
             name: values.name,
@@ -117,8 +108,8 @@ const Providers = () => {
             contactName: values.contactName,
             contactEmail: values.contactEmail,
             contactPhone: values.contactPhone,
-            address: values.address
-          }).unwrap()
+            address: values.address,
+          }).unwrap();
 
       setAlertProps({
         alertTitle: t(providerId ? 'update_record' : 'add_record'),
@@ -128,33 +119,33 @@ const Providers = () => {
         cancel: false,
         success: true,
         onSuccess: () => {
-          setOpenDialog(false)
+          setOpenDialog(false);
         },
-        variantSuccess: 'info'
-      })
-      setOpenAlertDialog(true)
+        variantSuccess: 'info',
+      });
+      setOpenAlertDialog(true);
     } catch (err) {
-      console.error('Error:', err)
+      console.error('Error:', err);
     }
-  }
+  };
 
   const handleAddDialog = () => {
-    setActionDialog(t('add_provider'))
-    setOpenDialog(true)
-  }
+    setActionDialog(t('add_provider'));
+    setOpenDialog(true);
+  };
 
-  const handleEditDialog = row => {
-    setActionDialog(t('edit_provider'))
-    setOpenDialog(true)
-    setSelectedRow(row)
-  }
+  const handleEditDialog = (row) => {
+    setActionDialog(t('edit_provider'));
+    setOpenDialog(true);
+    setSelectedRow(row);
+  };
 
   const handleCloseDialog = () => {
-    setSelectedRow(null)
-    setOpenDialog(false)
-  }
+    setSelectedRow(null);
+    setOpenDialog(false);
+  };
 
-  const handleDelete = async id => {
+  const handleDelete = async (id) => {
     try {
       setAlertProps({
         alertTitle: t('delete_record'),
@@ -167,7 +158,7 @@ const Providers = () => {
         onSuccess: () => {},
         onDelete: async () => {
           try {
-            await deleteProviderById(id).unwrap()
+            await deleteProviderById(id).unwrap();
 
             setAlertProps({
               alertTitle: '',
@@ -175,38 +166,36 @@ const Providers = () => {
               cancel: false,
               success: true,
               onSuccess: () => {
-                setOpenDialog(false)
+                setOpenDialog(false);
               },
-              variantSuccess: 'info'
-            })
-            setOpenAlertDialog(true) // Open alert dialog
+              variantSuccess: 'info',
+            });
+            setOpenAlertDialog(true); // Open alert dialog
           } catch (err) {
-            console.error('Error deleting:', err)
+            console.error('Error deleting:', err);
           }
-        }
-      })
-      setOpenAlertDialog(true)
+        },
+      });
+      setOpenAlertDialog(true);
     } catch (err) {
-      console.error('Error deleting:', err)
+      console.error('Error deleting:', err);
     }
-  }
+  };
 
   return (
     <>
       <BackDashBoard link={'/home'} moduleName={t('providers')} />
-      <div className='relative'>
+      <div className="relative">
         {/* Show spinner when loading or fetching */}
         {(isLoadingProviders ||
           isLoadingPut ||
           isLoadingPost ||
           isLoadingDelete ||
-          isFetchingProviders
-      
-          ) && <Spinner />}
+          isFetchingProviders) && <Spinner />}
 
-        <div className='grid grid-cols-2 grid-rows-4 gap-4 md:grid-cols-5'>
+        <div className="grid grid-cols-2 grid-rows-4 gap-4 md:grid-cols-5">
           {/* filters */}
-          <div className='col-span-2 row-span-1 md:col-span-5'>
+          <div className="col-span-2 row-span-1 md:col-span-5">
             <ProvidersFiltersForm
               onSubmit={handleSubmitFilters}
               dataStatus={dataStatus}
@@ -214,7 +203,7 @@ const Providers = () => {
             />
           </div>
           {/* Datatable */}
-          <div className='flex flex-wrap w-full col-span-2 row-span-3 row-start-2 md:col-span-5'>
+          <div className="flex flex-wrap w-full col-span-2 row-span-3 row-start-2 md:col-span-5">
             <ProvidersDatatable
               dataProviders={dataProviders}
               onEditDialog={handleEditDialog}
@@ -241,7 +230,7 @@ const Providers = () => {
         </div>
       </div>
     </>
-  )
-}
+  );
+};
 
-export default Providers
+export default Providers;

@@ -1,78 +1,79 @@
-import { useForm } from 'react-hook-form'
-import { useTranslation } from 'react-i18next'
-import { Button } from '@/components/ui/button'
+import { useForm } from 'react-hook-form';
+import { useTranslation } from 'react-i18next';
+import { Button } from '@/components/ui/button';
 import {
   Form,
   FormControl,
   FormField,
   FormItem,
   FormLabel,
-  FormMessage
-} from '@/components/ui/form'
-import { Input } from '@/components/ui/input'
+  FormMessage,
+} from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue
-} from '@/components/ui/select'
-import { LuPlus, LuSearch, LuEraser } from 'react-icons/lu'
-import PropTypes from 'prop-types'
+  SelectValue,
+} from '@/components/ui/select';
+import { LuPlus, LuSearch, LuEraser } from 'react-icons/lu';
+import PropTypes from 'prop-types';
 
 export const StockFiltersForm = ({
   onSubmit,
   onAddDialog,
   unitMeasures,
   products,
-  warehouses
+  warehouses,
 }) => {
-  const { t } = useTranslation()
+  const { t } = useTranslation();
 
   const form = useForm({
     defaultValues: {
       productId: '',
       warehouseId: '',
       lot: '',
-      unitMeasure: ''
-    }
-  })
+      unitMeasure: '',
+    },
+  });
 
-  const handleSubmit = data => {
-    onSubmit(data)
-  }
+  const handleSubmit = (data) => {
+    onSubmit(data);
+  };
 
   const handleAdd = () => {
-    onAddDialog()
-  }
+    onAddDialog();
+  };
 
   const handleResetFilter = () => {
-    form.reset()
-  }
+    form.reset();
+  };
 
   return (
     <Form {...form}>
       <form
-        method='post'
-        action=''
-        id='profile-info-form'
+        method="post"
+        action=""
+        id="profile-info-form"
         noValidate
         onSubmit={form.handleSubmit(handleSubmit)}
-        className='flex flex-col flex-wrap gap-5'>
+        className="flex flex-col flex-wrap gap-5"
+      >
         {/* inputs */}
-        <div className='flex flex-wrap flex-1 gap-3'>
+        <div className="flex flex-wrap flex-1 gap-3">
           <FormField
             control={form.control}
-            name='productId'
+            name="productId"
             render={({ field }) => {
               return (
-                <FormItem className='flex flex-col flex-auto'>
-                  <FormLabel htmlFor='productId'>{t('product')}</FormLabel>
+                <FormItem className="flex flex-col flex-auto">
+                  <FormLabel htmlFor="productId">{t('product')}</FormLabel>
                   <Select
                     onValueChange={field.onChange}
                     value={field.value?.toString()} // Asegura que el valor sea string
                   >
-                    <FormControl id='productId'>
+                    <FormControl id="productId">
                       <SelectTrigger>
                         <SelectValue placeholder={t('select_product')} />
                       </SelectTrigger>
@@ -87,21 +88,21 @@ export const StockFiltersForm = ({
                   </Select>
                   <FormMessage />
                 </FormItem>
-              )
+              );
             }}
           />
           <FormField
             control={form.control}
-            name='warehouseId'
+            name="warehouseId"
             render={({ field }) => {
               return (
-                <FormItem className='flex flex-col flex-auto'>
-                  <FormLabel htmlFor='warehouseId'>{t('warehouse')}</FormLabel>
+                <FormItem className="flex flex-col flex-auto">
+                  <FormLabel htmlFor="warehouseId">{t('warehouse')}</FormLabel>
                   <Select
                     onValueChange={field.onChange}
                     value={field.value?.toString()} // Asegura que el valor sea string
                   >
-                    <FormControl id='warehouseId'>
+                    <FormControl id="warehouseId">
                       <SelectTrigger>
                         <SelectValue placeholder={t('select_warehouse')} />
                       </SelectTrigger>
@@ -116,23 +117,23 @@ export const StockFiltersForm = ({
                   </Select>
                   <FormMessage />
                 </FormItem>
-              )
+              );
             }}
           />
           <FormField
             control={form.control}
-            name='lot'
+            name="lot"
             render={({ field }) => {
               return (
-                <FormItem className='flex flex-col flex-auto'>
-                  <FormLabel htmlFor='lot'>{t('lot')}</FormLabel>
+                <FormItem className="flex flex-col flex-auto">
+                  <FormLabel htmlFor="lot">{t('lot')}</FormLabel>
                   <FormControl>
                     <Input
-                      id='lot'
-                      name='lot'
+                      id="lot"
+                      name="lot"
                       placeholder={t('search_by_lot')}
-                      type='text'
-                      autoComplete='false'
+                      type="text"
+                      autoComplete="false"
                       maxLength={50}
                       {...field}
                       value={field.value ?? ''}
@@ -140,15 +141,15 @@ export const StockFiltersForm = ({
                   </FormControl>
                   <FormMessage />
                 </FormItem>
-              )
+              );
             }}
           />
 
           <FormField
             control={form.control}
-            name='unitMeasure'
+            name="unitMeasure"
             render={({ field }) => (
-              <FormItem className='flex flex-col flex-auto'>
+              <FormItem className="flex flex-col flex-auto">
                 <FormLabel>{t('unit_measure')}</FormLabel>
                 <Select onValueChange={field.onChange} value={field.value}>
                   <FormControl>
@@ -169,38 +170,41 @@ export const StockFiltersForm = ({
           />
         </div>
         {/* buttons */}
-        <div className='flex flex-wrap items-center justify-between gap-3 mt-5 md:justify-normal'>
+        <div className="flex flex-wrap items-center justify-between gap-3 mt-5 md:justify-normal">
           <Button
-            type='submit'
-            className='flex-1 md:flex-initial md:w-24'
-            variant='info'>
+            type="submit"
+            className="flex-1 md:flex-initial md:w-24"
+            variant="info"
+          >
             {t('search')}
-            <LuSearch className='w-4 h-4 ml-auto opacity-50' />
+            <LuSearch className="w-4 h-4 ml-auto opacity-50" />
           </Button>
           <Button
-            type='button'
-            className='flex-1 md:flex-initial md:w-24'
-            variant='success'
-            onClick={() => handleAdd()}>
-            {t('add')} <LuPlus className='w-4 h-4 ml-auto opacity-50' />
+            type="button"
+            className="flex-1 md:flex-initial md:w-24"
+            variant="success"
+            onClick={() => handleAdd()}
+          >
+            {t('add')} <LuPlus className="w-4 h-4 ml-auto opacity-50" />
           </Button>
           <Button
-            type='button'
-            className='flex-1 md:flex-initial md:w-24'
-            variant='outline'
-            onClick={() => handleResetFilter()}>
-            {t('clear')} <LuEraser className='w-4 h-4 ml-auto opacity-50' />
+            type="button"
+            className="flex-1 md:flex-initial md:w-24"
+            variant="outline"
+            onClick={() => handleResetFilter()}
+          >
+            {t('clear')} <LuEraser className="w-4 h-4 ml-auto opacity-50" />
           </Button>
         </div>
       </form>
     </Form>
-  )
-}
+  );
+};
 
 StockFiltersForm.propTypes = {
   onSubmit: PropTypes.func,
   onAddDialog: PropTypes.func,
   unitMeasures: PropTypes.array,
   products: PropTypes.array,
-  warehouses: PropTypes.array
-}
+  warehouses: PropTypes.array,
+};

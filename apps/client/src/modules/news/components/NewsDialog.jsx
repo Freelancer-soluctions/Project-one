@@ -1,7 +1,7 @@
-import { useEffect, useState } from 'react'
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { NewsDialogSchema, NewsStatusCode } from '../utils'
+import { useEffect, useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { NewsDialogSchema, NewsStatusCode } from '../utils';
 
 import {
   Dialog,
@@ -11,30 +11,30 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-  DialogClose
-} from '@/components/ui/dialog'
+  DialogClose,
+} from '@/components/ui/dialog';
 import {
   Form,
   FormControl,
   FormField,
   FormItem,
   FormLabel,
-  FormMessage
-} from '@/components/ui/form'
+  FormMessage,
+} from '@/components/ui/form';
 
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue
-} from '@/components/ui/select'
-import { Textarea } from '@/components/ui/textarea'
-import { Input } from '@/components/ui/input'
-import { Button } from '@/components/ui/button'
-import { LuNewspaper } from 'react-icons/lu'
-import { useTranslation } from 'react-i18next'
-import PropTypes from 'prop-types'
+  SelectValue,
+} from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { LuNewspaper } from 'react-icons/lu';
+import { useTranslation } from 'react-i18next';
+import PropTypes from 'prop-types';
 
 export const NewsDialog = ({
   openDialog,
@@ -44,16 +44,16 @@ export const NewsDialog = ({
   actionDialog,
   datastatus,
   onCreateUpdate,
-  onDeleteById
+  onDeleteById,
 }) => {
-  const { t } = useTranslation()
-  const [newId, setNewId] = useState('')
-  const [statusCodeSaved, setStatusCodeSaved] = useState('')
+  const { t } = useTranslation();
+  const [newId, setNewId] = useState('');
+  const [statusCodeSaved, setStatusCodeSaved] = useState('');
 
   // Configura el formulario
   const formDialog = useForm({
-    resolver: zodResolver(NewsDialogSchema)
-  })
+    resolver: zodResolver(NewsDialogSchema),
+  });
 
   // Actualiza todos los valores del formulario al cambiar `selectedRow`
   useEffect(() => {
@@ -73,48 +73,49 @@ export const NewsDialog = ({
         status: selectedRow.status || {},
         userNewsCreated: selectedRow.userNewsCreated?.name || '',
         userNewsClosed: selectedRow.userNewsClosed?.name || '',
-        userNewsPending: selectedRow.userNewsPending?.name || ''
-      }
+        userNewsPending: selectedRow.userNewsPending?.name || '',
+      };
 
       // // Usa `setValue` para aplicar todos los valores al formulario
       // Object.entries(mappedValues).forEach(([key, value]) => {
       //   setValue(key, value)
       // })
 
-      formDialog.reset(mappedValues)
-      setNewId(mappedValues.id || '')
-      setStatusCodeSaved(mappedValues.status.code || '')
+      formDialog.reset(mappedValues);
+      setNewId(mappedValues.id || '');
+      setStatusCodeSaved(mappedValues.status.code || '');
     }
 
     if (!openDialog) {
-      formDialog.reset()
+      formDialog.reset();
     }
-  }, [selectedRow, openDialog])
+  }, [selectedRow, openDialog]);
 
-  const onSubmitDialog = values => {
-    onCreateUpdate(values, newId)
-  }
+  const onSubmitDialog = (values) => {
+    onCreateUpdate(values, newId);
+  };
 
-  const onDeleteNewById = id => {
-    onDeleteById(id)
-  }
+  const onDeleteNewById = (id) => {
+    onDeleteById(id);
+  };
 
   return (
     <>
       <Dialog
         open={openDialog}
-        onOpenChange={isOpen => {
-          if (isOpen === true) return
-          setSelectedRow({})
-          setOpenDialog(false)
-        }}>
+        onOpenChange={(isOpen) => {
+          if (isOpen === true) return;
+          setSelectedRow({});
+          setOpenDialog(false);
+        }}
+      >
         {/* <DialogTrigger asChild>
           <Button variant='outline'>Edit Profile</Button>
         </DialogTrigger> */}
         <DialogContent>
           <DialogHeader>
             <DialogTitle>
-              <LuNewspaper className='inline mr-3 w-7 h-7' />
+              <LuNewspaper className="inline mr-3 w-7 h-7" />
               {actionDialog}
             </DialogTitle>
             <DialogDescription>
@@ -124,24 +125,25 @@ export const NewsDialog = ({
 
           <Form {...formDialog}>
             <form
-              method='post'
-              action=''
-              id='news-form'
+              method="post"
+              action=""
+              id="news-form"
               noValidate
-              onSubmit={formDialog.handleSubmit(onSubmitDialog)}>
-              <div className='grid grid-cols-2 gap-6 py-4 auto-rows-auto'>
+              onSubmit={formDialog.handleSubmit(onSubmitDialog)}
+            >
+              <div className="grid grid-cols-2 gap-6 py-4 auto-rows-auto">
                 <FormField
                   control={formDialog.control}
-                  name='document'
+                  name="document"
                   render={({ field }) => {
                     return (
-                      <FormItem className='flex flex-col flex-auto col-span-1'>
-                        <FormLabel htmlFor='file'>{t('document')}</FormLabel>
+                      <FormItem className="flex flex-col flex-auto col-span-1">
+                        <FormLabel htmlFor="file">{t('document')}</FormLabel>
                         <FormControl>
                           <Input
-                            id='file'
-                            name='document'
-                            type='file'
+                            id="file"
+                            name="document"
+                            type="file"
                             disabled={
                               newId && statusCodeSaved === NewsStatusCode.CLOSED
                             }
@@ -149,40 +151,41 @@ export const NewsDialog = ({
                         </FormControl>
                         <FormMessage />
                       </FormItem>
-                    )
+                    );
                   }}
                 />
                 {/* status */}
                 <FormField
                   control={formDialog.control}
-                  name='status'
+                  name="status"
                   render={({ field }) => {
                     // extract only the neccessary status
                     const dataStatus = !newId
                       ? datastatus?.data.filter(
-                          item => item.code !== NewsStatusCode.CLOSED
+                          (item) => item.code !== NewsStatusCode.CLOSED
                         )
-                      : [...datastatus?.data]
+                      : [...datastatus?.data];
 
                     return (
-                      <FormItem className='flex flex-col flex-auto'>
-                        <FormLabel htmlFor='status'>{t('status')}*</FormLabel>
+                      <FormItem className="flex flex-col flex-auto">
+                        <FormLabel htmlFor="status">{t('status')}*</FormLabel>
                         <Select
-                          id='status'
+                          id="status"
                           disabled={
                             newId && statusCodeSaved === NewsStatusCode.CLOSED
                           }
-                          onValueChange={value => {
+                          onValueChange={(value) => {
                             // Buscar el objeto completo por el `code`
                             const selectedStatus = dataStatus.find(
-                              item => item.code === value
-                            )
+                              (item) => item.code === value
+                            );
                             if (selectedStatus) {
-                              field.onChange(selectedStatus) // Asignar el objeto completo
+                              field.onChange(selectedStatus); // Asignar el objeto completo
                             }
                           }}
                           // Usar el `code` del objeto seleccionado para mantener consistencia
-                          value={field.value?.code}>
+                          value={field.value?.code}
+                        >
                           {/* <Select
                           onValueChange={value => {
                             field.onChange(value) // Actualiza solo el `code`
@@ -204,7 +207,7 @@ export const NewsDialog = ({
                         </Select>
                         <FormMessage />
                       </FormItem>
-                    )
+                    );
                   }}
                 />
 
@@ -212,19 +215,19 @@ export const NewsDialog = ({
                 {newId && (
                   <FormField
                     control={formDialog.control}
-                    name='userNewsCreated'
+                    name="userNewsCreated"
                     render={({ field }) => {
                       return (
-                        <FormItem className='flex flex-col flex-auto col-span-1'>
-                          <FormLabel htmlFor='userNewsCreated'>
+                        <FormItem className="flex flex-col flex-auto col-span-1">
+                          <FormLabel htmlFor="userNewsCreated">
                             {t('created_by')}
                           </FormLabel>
                           <FormControl>
                             <Input
-                              id='userNewsCreated'
-                              name='userNewsCreated'
-                              type='text'
-                              autoComplete='false'
+                              id="userNewsCreated"
+                              name="userNewsCreated"
+                              type="text"
+                              autoComplete="false"
                               readOnly={true}
                               disabled={true}
                               {...field}
@@ -233,7 +236,7 @@ export const NewsDialog = ({
                           </FormControl>
                           <FormMessage />
                         </FormItem>
-                      )
+                      );
                     }}
                   />
                 )}
@@ -242,18 +245,18 @@ export const NewsDialog = ({
                 {newId && (
                   <FormField
                     control={formDialog.control}
-                    name='createdOn'
+                    name="createdOn"
                     render={({ field }) => (
-                      <FormItem className='flex flex-col flex-auto'>
-                        <FormLabel htmlFor='createdOn'>
+                      <FormItem className="flex flex-col flex-auto">
+                        <FormLabel htmlFor="createdOn">
                           {t('created_on')}
                         </FormLabel>
                         <FormControl>
                           <Input
-                            id='createdOn'
-                            name='createdOn'
+                            id="createdOn"
+                            name="createdOn"
                             disabled
-                            type='date'
+                            type="date"
                             {...field}
                             value={field.value}
                           />
@@ -268,19 +271,19 @@ export const NewsDialog = ({
                 {newId && statusCodeSaved === NewsStatusCode.CLOSED && (
                   <FormField
                     control={formDialog.control}
-                    name='userNewsClosed'
+                    name="userNewsClosed"
                     render={({ field }) => {
                       return (
-                        <FormItem className='flex flex-col flex-auto col-span-1'>
-                          <FormLabel htmlFor='userNewsClosed'>
+                        <FormItem className="flex flex-col flex-auto col-span-1">
+                          <FormLabel htmlFor="userNewsClosed">
                             {t('closed_by')}
                           </FormLabel>
                           <FormControl>
                             <Input
-                              id='userNewsClosed'
-                              name='userNewsClosed'
-                              type='text'
-                              autoComplete='false'
+                              id="userNewsClosed"
+                              name="userNewsClosed"
+                              type="text"
+                              autoComplete="false"
                               readOnly={true}
                               disabled={true}
                               {...field}
@@ -289,7 +292,7 @@ export const NewsDialog = ({
                           </FormControl>
                           <FormMessage />
                         </FormItem>
-                      )
+                      );
                     }}
                   />
                 )}
@@ -298,18 +301,18 @@ export const NewsDialog = ({
                 {newId && statusCodeSaved === NewsStatusCode.CLOSED && (
                   <FormField
                     control={formDialog.control}
-                    name='closedOn'
+                    name="closedOn"
                     render={({ field }) => (
-                      <FormItem className='flex flex-col flex-auto'>
-                        <FormLabel htmlFor='closedOn'>
+                      <FormItem className="flex flex-col flex-auto">
+                        <FormLabel htmlFor="closedOn">
                           {t('closed_on')}
                         </FormLabel>
                         <FormControl>
                           <Input
-                            id='closedOn'
-                            name='closedOn'
+                            id="closedOn"
+                            name="closedOn"
                             disabled
-                            type='date'
+                            type="date"
                             {...field}
                             value={field.value}
                           />
@@ -322,11 +325,11 @@ export const NewsDialog = ({
 
                 <FormField
                   control={formDialog.control}
-                  name='description'
+                  name="description"
                   render={({ field }) => {
                     return (
-                      <FormItem className='flex flex-col flex-auto col-span-2'>
-                        <FormLabel htmlFor='description'>
+                      <FormItem className="flex flex-col flex-auto col-span-2">
+                        <FormLabel htmlFor="description">
                           {t('description')}*
                         </FormLabel>
                         <FormControl>
@@ -341,9 +344,9 @@ export const NewsDialog = ({
                             value={field.value ?? ''}
                           /> */}
                           <Textarea
-                            id='description'
+                            id="description"
                             placeholder={t('description_placeholder')}
-                            className='resize-none'
+                            className="resize-none"
                             maxLength={400}
                             disabled={
                               newId && statusCodeSaved === NewsStatusCode.CLOSED
@@ -354,30 +357,31 @@ export const NewsDialog = ({
                         </FormControl>
                         <FormMessage />
                       </FormItem>
-                    )
+                    );
                   }}
                 />
               </div>
 
               <DialogFooter>
                 <DialogClose asChild>
-                  <Button type='button' variant='secondary'>
+                  <Button type="button" variant="secondary">
                     {t('close')}
                   </Button>
                 </DialogClose>
                 {newId && (
                   <Button
-                    type='button'
-                    variant='destructive'
+                    type="button"
+                    variant="destructive"
                     onClick={() => {
-                      onDeleteNewById(newId)
-                    }}>
+                      onDeleteNewById(newId);
+                    }}
+                  >
                     {t('delete')}
                   </Button>
                 )}
 
                 {statusCodeSaved !== NewsStatusCode.CLOSED && (
-                  <Button type='submit' variant='info'>
+                  <Button type="submit" variant="info">
                     {t('save')}
                   </Button>
                 )}
@@ -387,8 +391,8 @@ export const NewsDialog = ({
         </DialogContent>
       </Dialog>
     </>
-  )
-}
+  );
+};
 
 NewsDialog.propTypes = {
   openDialog: PropTypes.bool.isRequired,
@@ -396,5 +400,5 @@ NewsDialog.propTypes = {
   selectedRow: PropTypes.object,
   setOpenDialog: PropTypes.func,
   actionDialog: PropTypes.string,
-  datastatus: PropTypes.object
-}
+  datastatus: PropTypes.object,
+};

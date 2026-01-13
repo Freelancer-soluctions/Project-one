@@ -1,40 +1,40 @@
 import {
   PerformanceEvaluationFiltersForm,
   PerformanceEvaluationDialog,
-  PerformanceEvaluationDatatable
-} from '../components' // Adjusted import path
-import { BackDashBoard } from '@/components/backDash/BackDashBoard'
-import { useTranslation } from 'react-i18next'
-import { useState, useEffect } from 'react'
+  PerformanceEvaluationDatatable,
+} from '../components'; // Adjusted import path
+import { BackDashBoard } from '@/components/backDash/BackDashBoard';
+import { useTranslation } from 'react-i18next';
+import { useState, useEffect } from 'react';
 import {
   useLazyGetAllPerformanceEvaluationsQuery,
   useUpdatePerformanceEvaluationByIdMutation,
   useCreatePerformanceEvaluationMutation,
-  useDeletePerformanceEvaluationByIdMutation
-} from '../api/performanceEvaluationApi' // Adjusted import path
-import { useGetAllEmployeesFiltersQuery } from '@/modules/employees/api/employeesApi' // Import employee query
+  useDeletePerformanceEvaluationByIdMutation,
+} from '../api/performanceEvaluationApi'; // Adjusted import path
+import { useGetAllEmployeesFiltersQuery } from '@/modules/employees/api/employeesApi'; // Import employee query
 
-import AlertDialogComponent from '@/components/alertDialog/AlertDialog'
-import { Spinner } from '@/components/loader/Spinner'
+import AlertDialogComponent from '@/components/alertDialog/AlertDialog';
+import { Spinner } from '@/components/loader/Spinner';
 
 const PerformanceEvaluation = () => {
-  const { t } = useTranslation()
-  const [selectedRow, setSelectedRow] = useState({})
-  const [openDialog, setOpenDialog] = useState(false)
-  const [openAlertDialog, setOpenAlertDialog] = useState(false)
-  const [alertProps, setAlertProps] = useState({})
-  const [actionDialog, setActionDialog] = useState('')
+  const { t } = useTranslation();
+  const [selectedRow, setSelectedRow] = useState({});
+  const [openDialog, setOpenDialog] = useState(false);
+  const [openAlertDialog, setOpenAlertDialog] = useState(false);
+  const [alertProps, setAlertProps] = useState({});
+  const [actionDialog, setActionDialog] = useState('');
   const [pagination, setPagination] = useState({
     pageIndex: 0,
-    pageSize: 20
-  })
-  const [filters, setFilters] = useState({})
+    pageSize: 20,
+  });
+  const [filters, setFilters] = useState({});
 
   const {
     data: dataEmployees = { data: [] },
     isLoading: isLoadingEmployees,
-    isFetching: isFetchingEmployees
-  } = useGetAllEmployeesFiltersQuery()
+    isFetching: isFetchingEmployees,
+  } = useGetAllEmployeesFiltersQuery();
 
   const [
     getAllEvaluations, // Renamed for clarity
@@ -42,24 +42,24 @@ const PerformanceEvaluation = () => {
       data: dataEvaluations = { data: [] },
       isLoading: isLoadingEvaluations,
       isFetching: isFetchingEvaluations,
-      refetch
-    }
-  ] = useLazyGetAllPerformanceEvaluationsQuery()
+      refetch,
+    },
+  ] = useLazyGetAllPerformanceEvaluationsQuery();
 
   const [
     updateEvaluationById, // Renamed
-    { isLoading: isLoadingPut }
-  ] = useUpdatePerformanceEvaluationByIdMutation()
+    { isLoading: isLoadingPut },
+  ] = useUpdatePerformanceEvaluationByIdMutation();
 
   const [
     createEvaluation, // Renamed
-    { isLoading: isLoadingPost }
-  ] = useCreatePerformanceEvaluationMutation()
+    { isLoading: isLoadingPost },
+  ] = useCreatePerformanceEvaluationMutation();
 
   const [
     deleteEvaluationById, // Renamed
-    { isLoading: isLoadingDelete }
-  ] = useDeletePerformanceEvaluationByIdMutation()
+    { isLoading: isLoadingDelete },
+  ] = useDeletePerformanceEvaluationByIdMutation();
 
   /**
    * Este efecto es la única fuente de verdad para disparar
@@ -78,9 +78,9 @@ const PerformanceEvaluation = () => {
     getAllEvaluations({
       page: pagination.pageIndex + 1,
       limit: pagination.pageSize,
-      ...filters
-    })
-  }, [pagination.pageIndex, pagination.pageSize, filters])
+      ...filters,
+    });
+  }, [pagination.pageIndex, pagination.pageSize, filters]);
 
   /**
    * Al aplicar nuevos filtros:
@@ -91,18 +91,18 @@ const PerformanceEvaluation = () => {
    * El cambio de estado dispara el useEffect, manteniendo
    * un flujo reactivo y predecible.
    */
-  const handleSubmitFilters = newFilters => {
-    setPagination(prev => ({
+  const handleSubmitFilters = (newFilters) => {
+    setPagination((prev) => ({
       ...prev,
-      pageIndex: 0
-    }))
+      pageIndex: 0,
+    }));
 
-    setFilters(newFilters)
-  }
+    setFilters(newFilters);
+  };
 
   const handleSubmit = async (values, evaluationId) => {
     try {
-      const action = evaluationId ? updateEvaluationById : createEvaluation
+      const action = evaluationId ? updateEvaluationById : createEvaluation;
       const payload = evaluationId
         ? {
             id: evaluationId,
@@ -110,12 +110,12 @@ const PerformanceEvaluation = () => {
               employeeId: values.employeeId,
               date: values.date,
               calification: values.calification,
-              comments: values.comments
-            }
+              comments: values.comments,
+            },
           }
-        : values
+        : values;
 
-      await action(payload).unwrap()
+      await action(payload).unwrap();
 
       setAlertProps({
         alertTitle: t(evaluationId ? 'update_record' : 'add_record'),
@@ -125,11 +125,11 @@ const PerformanceEvaluation = () => {
         cancel: false,
         success: true,
         onSuccess: () => {
-          setOpenDialog(false)
+          setOpenDialog(false);
         },
-        variantSuccess: 'info'
-      })
-      setOpenAlertDialog(true)
+        variantSuccess: 'info',
+      });
+      setOpenAlertDialog(true);
     } catch (err) {
       // Handle error display, perhaps another AlertDialog
       setAlertProps({
@@ -141,29 +141,29 @@ const PerformanceEvaluation = () => {
         onSuccess: () => {
           /* stay on dialog or close if needed */
         },
-        variantSuccess: 'destructive' // Show error styling
-      })
-      setOpenAlertDialog(true)
+        variantSuccess: 'destructive', // Show error styling
+      });
+      setOpenAlertDialog(true);
     }
-  }
+  };
 
   const handleAddDialog = () => {
-    setActionDialog(t('add_evaluation')) // Adjust key
-    setOpenDialog(true)
-  }
+    setActionDialog(t('add_evaluation')); // Adjust key
+    setOpenDialog(true);
+  };
 
-  const handleEditDialog = row => {
-    setActionDialog(t('edit_evaluation')) // Adjust key
-    setOpenDialog(true)
-    setSelectedRow(row)
-  }
+  const handleEditDialog = (row) => {
+    setActionDialog(t('edit_evaluation')); // Adjust key
+    setOpenDialog(true);
+    setSelectedRow(row);
+  };
 
   const handleCloseDialog = () => {
-    setSelectedRow({})
-    setOpenDialog(false)
-  }
+    setSelectedRow({});
+    setOpenDialog(false);
+  };
 
-  const handleDelete = async id => {
+  const handleDelete = async (id) => {
     try {
       setAlertProps({
         alertTitle: t('delete_record'),
@@ -176,7 +176,7 @@ const PerformanceEvaluation = () => {
         onSuccess: () => {},
         onDelete: async () => {
           try {
-            await deleteEvaluationById(id).unwrap()
+            await deleteEvaluationById(id).unwrap();
 
             setAlertProps({
               alertTitle: '',
@@ -184,36 +184,36 @@ const PerformanceEvaluation = () => {
               cancel: false,
               success: true,
               onSuccess: () => {
-                setOpenDialog(false)
+                setOpenDialog(false);
               },
-              variantSuccess: 'info'
-            })
-            setOpenAlertDialog(true)
+              variantSuccess: 'info',
+            });
+            setOpenAlertDialog(true);
           } catch (err) {
-            console.error('Error deleting:', err)
+            console.error('Error deleting:', err);
             setAlertProps({
               alertTitle: t('error'),
               alertMessage: t('delete_failed'),
               cancel: false,
               success: false,
               destructive: true,
-              variantDestructive: 'destructive'
-            })
-            setOpenAlertDialog(true)
+              variantDestructive: 'destructive',
+            });
+            setOpenAlertDialog(true);
           }
-        }
-      })
-      setOpenAlertDialog(true)
+        },
+      });
+      setOpenAlertDialog(true);
     } catch (err) {
-      console.error('Error initiating delete:', err)
+      console.error('Error initiating delete:', err);
     }
-  }
+  };
 
   return (
     <>
       <BackDashBoard link={'/home'} moduleName={t('performance_evaluation')} />
       {/* Adjust module name */}
-      <div className='relative'>
+      <div className="relative">
         {/* Spinner */}
         {(isLoadingEvaluations ||
           isLoadingPut ||
@@ -223,8 +223,8 @@ const PerformanceEvaluation = () => {
           isFetchingEmployees ||
           isFetchingEvaluations) && <Spinner />}
 
-        <div className='grid grid-cols-2 grid-rows-4 gap-4 md:grid-cols-5'>
-          <div className='col-span-2 row-span-1 md:col-span-5'>
+        <div className="grid grid-cols-2 grid-rows-4 gap-4 md:grid-cols-5">
+          <div className="col-span-2 row-span-1 md:col-span-5">
             <PerformanceEvaluationFiltersForm
               onSubmit={handleSubmitFilters}
               onAddDialog={handleAddDialog}
@@ -232,7 +232,7 @@ const PerformanceEvaluation = () => {
             />
           </div>
           {/* Datatable */}
-          <div className='flex flex-wrap w-full col-span-2 row-span-3 row-start-2 md:col-span-5'>
+          <div className="flex flex-wrap w-full col-span-2 row-span-3 row-start-2 md:col-span-5">
             <PerformanceEvaluationDatatable
               dataEvaluations={dataEvaluations} // Pass evaluation data
               onEditDialog={handleEditDialog}
@@ -259,7 +259,7 @@ const PerformanceEvaluation = () => {
         </div>
       </div>
     </>
-  )
-}
+  );
+};
 
-export default PerformanceEvaluation
+export default PerformanceEvaluation;

@@ -10,14 +10,14 @@ export const expenseCategories = [
   { value: 'SOFTWARE', labelKey: 'expense_category_software' },
   {
     value: 'PROFESSIONAL SERVICES',
-    labelKey: 'expense_category_professional_services'
+    labelKey: 'expense_category_professional_services',
   },
   { value: 'TAXES', labelKey: 'expense_category_taxes' },
   { value: 'BANK FEES', labelKey: 'expense_category_bank_fees' },
   { value: 'TRAVEL', labelKey: 'expense_category_travel' },
   { value: 'TRAINING', labelKey: 'expense_category_training' },
-  { value: 'OTHER', labelKey: 'expense_category_other' }
-]
+  { value: 'OTHER', labelKey: 'expense_category_other' },
+];
 
 const expenseCategoryEnumValues = [
   'RENTAL',
@@ -33,5 +33,5 @@ const expenseCategoryEnumValues = [
   'BANK_FEES',
   'TRAVEL',
   'TRAINING',
-  'OTHER'
-]
+  'OTHER',
+];

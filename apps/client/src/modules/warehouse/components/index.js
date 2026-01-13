@@ -1,3 +1,3 @@
-export * from './WarehouseFiltersForm'
-export * from './WarehouseDialog'
-export * from './WarehouseDatatable'
+export * from './WarehouseFiltersForm';
+export * from './WarehouseDialog';
+export * from './WarehouseDatatable';

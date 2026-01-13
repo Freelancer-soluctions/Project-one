@@ -1,36 +1,36 @@
-import { configureStore, combineReducers } from '@reduxjs/toolkit'
-import authSlice from '../modules/auth/slice/authSlice'
-import newsApi from '../modules/news/api/newsAPI'
-import notesApi from '../modules/notes/api/notesAPI'
-import eventsApi from '@/modules/events/api/eventsAPI'
-import homeApi from '@/modules/home/api/homeAPI'
-import productsApi from '@/modules/products/api/productsAPI'
-import providersApi from '@/modules/providers/api/providersAPI'
-import settingsSlice from '@/modules/settings/slice/settingsSlice'
-import settingsProductCategoriesApi from '@/modules/settingsProductCategories/api/SettingsProductCategoriesAPI'
-import warehouseApi from '@/modules/warehouse/api/warehouseAPI'
-import stockApi from '@/modules/stock/api/stockAPI'
-import clientsApi from '@/modules/clients/api/clientsApi'
-import salesApi from '@/modules/sales/api/salesAPI'
-import purchaseApi from '@/modules/purchase/api/purchaseAPI'
-import storageSession from 'redux-persist/lib/storage/session'
-import { persistStore, persistReducer } from 'redux-persist'
-import inventoryMovementApi from '@/modules/inventoryMovement/api/inventoryMovementAPI'
-import usersApi from '@/modules/users/api/usersApi'
-import expensesApi from '@/modules/expenses/api/expensesApi'
-import attendanceApi from '@/modules/attendance/api/attendanceApi'
-import employeesApi from '@/modules/employees/api/employeesApi'
-import payrollApi from '@/modules/payroll/api/payrollApi'
-import performanceEvaluationApi from '@/modules/performanceEvaluation/api/performanceEvaluationApi'
-import vacationApi from '@/modules/vacation/api/vacationApi'
-import permissionApi from '@/modules/permission/api/permissionApi'
+import { configureStore, combineReducers } from '@reduxjs/toolkit';
+import authSlice from '../modules/auth/slice/authSlice';
+import newsApi from '../modules/news/api/newsAPI';
+import notesApi from '../modules/notes/api/notesAPI';
+import eventsApi from '@/modules/events/api/eventsAPI';
+import homeApi from '@/modules/home/api/homeAPI';
+import productsApi from '@/modules/products/api/productsAPI';
+import providersApi from '@/modules/providers/api/providersAPI';
+import settingsSlice from '@/modules/settings/slice/settingsSlice';
+import settingsProductCategoriesApi from '@/modules/settingsProductCategories/api/SettingsProductCategoriesAPI';
+import warehouseApi from '@/modules/warehouse/api/warehouseAPI';
+import stockApi from '@/modules/stock/api/stockAPI';
+import clientsApi from '@/modules/clients/api/clientsApi';
+import salesApi from '@/modules/sales/api/salesAPI';
+import purchaseApi from '@/modules/purchase/api/purchaseAPI';
+import storageSession from 'redux-persist/lib/storage/session';
+import { persistStore, persistReducer } from 'redux-persist';
+import inventoryMovementApi from '@/modules/inventoryMovement/api/inventoryMovementAPI';
+import usersApi from '@/modules/users/api/usersApi';
+import expensesApi from '@/modules/expenses/api/expensesApi';
+import attendanceApi from '@/modules/attendance/api/attendanceApi';
+import employeesApi from '@/modules/employees/api/employeesApi';
+import payrollApi from '@/modules/payroll/api/payrollApi';
+import performanceEvaluationApi from '@/modules/performanceEvaluation/api/performanceEvaluationApi';
+import vacationApi from '@/modules/vacation/api/vacationApi';
+import permissionApi from '@/modules/permission/api/permissionApi';
 
 const persistConfig = {
   key: 'root',
   storage: storageSession,
-  whitelist: ['auth', 'settings'] // Agregar 'settings' para persistirlo
+  whitelist: ['auth', 'settings'], // Agregar 'settings' para persistirlo
   // blacklist: ['settingsApi'], // Mantener la exclusión de settingsApi
-}
+};
 
 // const persistConfig = {
 //   key: 'auth',
@@ -63,10 +63,10 @@ const rootReducer = combineReducers({
   [payrollApi.reducerPath]: payrollApi.reducer,
   [performanceEvaluationApi.reducerPath]: performanceEvaluationApi.reducer,
   [vacationApi.reducerPath]: vacationApi.reducer,
-  [permissionApi.reducerPath]: permissionApi.reducer
-})
+  [permissionApi.reducerPath]: permissionApi.reducer,
+});
 
-const persistedReducer = persistReducer(persistConfig, rootReducer)
+const persistedReducer = persistReducer(persistConfig, rootReducer);
 
 const store = configureStore({
   reducer: persistedReducer,
@@ -77,9 +77,9 @@ const store = configureStore({
   // },
   // Adding the api middleware enables caching, invalidation, polling,
   // and other useful features of `rtk-query`.
-  middleware: getDefaultMiddleware =>
+  middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
-      serializableCheck: false // Necesario para redux-persist
+      serializableCheck: false, // Necesario para redux-persist
     }).concat(
       newsApi.middleware,
       notesApi.middleware,
@@ -102,11 +102,11 @@ const store = configureStore({
       performanceEvaluationApi.middleware,
       vacationApi.middleware,
       permissionApi.middleware
-    )
-})
+    ),
+});
 // store.subscribe(() => {
 //   console.log('Estado persistido:', store.getState());
 // });
-const persistor = persistStore(store)
+const persistor = persistStore(store);
 
-export { store, persistor }
+export { store, persistor };

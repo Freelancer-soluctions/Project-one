@@ -1,14 +1,14 @@
 export const dataStatus = [
   {
     value: 'ACTIVE',
-    label: 'ACTIVE'
+    label: 'ACTIVE',
   },
   {
     value: 'INACTIVE',
-    label: 'INACTIVE'
+    label: 'INACTIVE',
   },
   {
     value: 'MAINTENANCE',
-    label: 'MAINTENANCE'
-  }
-]
+    label: 'MAINTENANCE',
+  },
+];

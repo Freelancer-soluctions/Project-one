@@ -1,4 +1,4 @@
-import { z } from 'zod'
+import { z } from 'zod';
 
 export const EventsDialogSchema = z
   .object({
@@ -7,9 +7,9 @@ export const EventsDialogSchema = z
     speaker: z.string().min(1, 'Speaker is required.'),
     startTime: z.string().min(5, 'StartTIme is required.'),
     endTime: z.string().min(5, 'EndTime is required.'),
-    eventDate: z.date().refine(date => !isNaN(date.getTime()), {
-      message: 'Invalid date'
+    eventDate: z.date().refine((date) => !isNaN(date.getTime()), {
+      message: 'Invalid date',
     }),
-    type: z.string().min(1, 'Type is required')
+    type: z.string().min(1, 'Type is required'),
   })
-  .passthrough() // Permite otros campos
+  .passthrough(); // Permite otros campos

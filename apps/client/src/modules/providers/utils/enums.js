@@ -7,10 +7,10 @@ export const ProvidersCodes = {
   C06: 'C06',
   C07: 'C07',
   C08: 'C08',
-  C09: 'C09'
-}
+  C09: 'C09',
+};
 
 export const dataStatus = [
   { value: true, description: 'ACTIVE' },
-  { value: false, description: 'INACTIVE' }
-]
+  { value: false, description: 'INACTIVE' },
+];

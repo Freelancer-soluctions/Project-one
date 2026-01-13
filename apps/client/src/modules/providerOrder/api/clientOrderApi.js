@@ -1,49 +1,49 @@
 /* React-specific entry point that automatically generates
    hooks corresponding to the defined endpoints */
-import { createApi } from '@reduxjs/toolkit/query/react'
-import { axiosPrivateBaseQuery } from '@/config/axios'
+import { createApi } from '@reduxjs/toolkit/query/react';
+import { axiosPrivateBaseQuery } from '@/config/axios';
 
 // Define a service using a base URL and expected endpoints
 const clientOrderApi = createApi({
   reducerPath: 'clientOrderApi',
   baseQuery: axiosPrivateBaseQuery({
-    baseUrl: import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1'
+    baseUrl: import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1',
   }),
   tagTypes: ['ClientOrder'], // Agrega un tag identificador
   keepUnusedDataFor: 300, // 5 minutos
-  endpoints: builder => ({
+  endpoints: (builder) => ({
     getAllClientOrder: builder.query({
-      query: params => ({
+      query: (params) => ({
         url: `/clientOrder`,
         method: 'GET',
-        params
+        params,
       }),
-      providesTags: ['ClientOrder'] // Indica que este endpoint usa el tag 'Notes'
+      providesTags: ['ClientOrder'], // Indica que este endpoint usa el tag 'Notes'
     }),
 
     deleteClientOrderById: builder.mutation({
-      query: id => ({
+      query: (id) => ({
         url: `/clientOrder/${id}`,
-        method: 'DELETE'
+        method: 'DELETE',
       }),
-      invalidatesTags: ['ClientOrder'] // Invalida el cache de 'Notes' para volver a consultar
+      invalidatesTags: ['ClientOrder'], // Invalida el cache de 'Notes' para volver a consultar
     }),
     createClientOrder: builder.mutation({
-      query: data => ({
+      query: (data) => ({
         url: `/clientOrder/`,
         method: 'POST',
-        body: data
+        body: data,
       }),
-      invalidatesTags: ['ClientOrder'] // Invalida el cache de 'Notes' para volver a consultar
+      invalidatesTags: ['ClientOrder'], // Invalida el cache de 'Notes' para volver a consultar
     }),
     updateClientOrderById: builder.mutation({
       query: ({ id, data }) => ({
         url: `/clientOrder/${id}`,
         method: 'PUT',
-        body: data
+        body: data,
       }),
-      invalidatesTags: ['ClientOrder'] // Invalida el cache de 'Notes' para volver a consultar
-    })
+      invalidatesTags: ['ClientOrder'], // Invalida el cache de 'Notes' para volver a consultar
+    }),
     // Cache selectivo
     //providesTags: (result) =>
     //result
@@ -51,8 +51,8 @@ const clientOrderApi = createApi({
     //    ...result.map(({ id }) => ({ type: 'Warehouses', id })),
     //    { type: 'Warehouses', id: 'LIST' }
     //]
-  })
-})
+  }),
+});
 
 // Export hooks for usage in functional components, which are
 // auto-generated based on the defined endpoints
@@ -61,7 +61,7 @@ export const {
   useGetAllClientOrderQuery,
   useUpdateClientOrderByIdMutation,
   useCreateClientOrderMutation,
-  useDeleteClientOrderByIdMutation
-} = clientOrderApi
+  useDeleteClientOrderByIdMutation,
+} = clientOrderApi;
 
-export default clientOrderApi
+export default clientOrderApi;

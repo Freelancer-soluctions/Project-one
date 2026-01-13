@@ -1,2 +1,2 @@
-export * from './schema'
-export * from './currencyFormat'
+export * from './schema';
+export * from './currencyFormat';

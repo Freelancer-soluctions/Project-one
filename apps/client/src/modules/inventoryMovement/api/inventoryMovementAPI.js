@@ -1,51 +1,51 @@
-import { createApi } from '@reduxjs/toolkit/query/react'
-import { axiosPrivateBaseQuery } from '@/config/axios'
+import { createApi } from '@reduxjs/toolkit/query/react';
+import { axiosPrivateBaseQuery } from '@/config/axios';
 
 export const inventoryMovementAPI = createApi({
   reducerPath: 'inventoryMovementAPI',
   baseQuery: axiosPrivateBaseQuery({
-    baseUrl: import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1'
+    baseUrl: import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1',
   }),
   tagTypes: ['InventoryMovement'],
-  endpoints: builder => ({
+  endpoints: (builder) => ({
     getAllInventoryMovements: builder.query({
       query: () => ({
         url: '/inventory-movements',
-        method: 'GET'
+        method: 'GET',
       }),
-      providesTags: ['InventoryMovement']
+      providesTags: ['InventoryMovement'],
     }),
     createInventoryMovement: builder.mutation({
-      query: data => ({
+      query: (data) => ({
         url: '/inventory-movements',
         method: 'POST',
-        data
+        data,
       }),
-      invalidatesTags: ['InventoryMovement']
+      invalidatesTags: ['InventoryMovement'],
     }),
     updateInventoryMovementById: builder.mutation({
       query: ({ id, data }) => ({
         url: `/inventory-movements/${id}`,
         method: 'PUT',
-        data
+        data,
       }),
-      invalidatesTags: ['InventoryMovement']
+      invalidatesTags: ['InventoryMovement'],
     }),
     deleteInventoryMovementById: builder.mutation({
-      query: id => ({
+      query: (id) => ({
         url: `/inventory-movements/${id}`,
-        method: 'DELETE'
+        method: 'DELETE',
       }),
-      invalidatesTags: ['InventoryMovement']
-    })
-  })
-})
+      invalidatesTags: ['InventoryMovement'],
+    }),
+  }),
+});
 
 export const {
   useLazyGetAllInventoryMovementsQuery,
   useCreateInventoryMovementMutation,
   useUpdateInventoryMovementByIdMutation,
-  useDeleteInventoryMovementByIdMutation
-} = inventoryMovementAPI
+  useDeleteInventoryMovementByIdMutation,
+} = inventoryMovementAPI;
 
-export default inventoryMovementAPI
+export default inventoryMovementAPI;

@@ -1,61 +1,65 @@
 import {
   WarehouseFiltersForm,
   WarehouseDialog,
-  WarehouseDatatable
-} from '../components'
-import { BackDashBoard } from '@/components/backDash/BackDashBoard'
-import { useTranslation } from 'react-i18next'
-import { useState, useEffect } from 'react'
+  WarehouseDatatable,
+} from '../components';
+import { BackDashBoard } from '@/components/backDash/BackDashBoard';
+import { useTranslation } from 'react-i18next';
+import { useState, useEffect } from 'react';
 import {
   useLazyGetAllWarehousesQuery,
   useUpdateWarehouseByIdMutation,
   useCreateWarehouseMutation,
-  useDeleteWarehouseByIdMutation
-} from '../api/warehouseAPI'
-import { dataStatus } from '../utils'
-import AlertDialogComponent from '@/components/alertDialog/AlertDialog'
-import { Spinner } from '@/components/loader/Spinner'
+  useDeleteWarehouseByIdMutation,
+} from '../api/warehouseAPI';
+import { dataStatus } from '../utils';
+import AlertDialogComponent from '@/components/alertDialog/AlertDialog';
+import { Spinner } from '@/components/loader/Spinner';
 
 const Warehouse = () => {
-  const { t } = useTranslation()
-  const [selectedRow, setSelectedRow] = useState({})
-  const [openDialog, setOpenDialog] = useState(false)
-  const [openAlertDialog, setOpenAlertDialog] = useState(false)
-  const [alertProps, setAlertProps] = useState({})
-  const [actionDialog, setActionDialog] = useState('')
+  const { t } = useTranslation();
+  const [selectedRow, setSelectedRow] = useState({});
+  const [openDialog, setOpenDialog] = useState(false);
+  const [openAlertDialog, setOpenAlertDialog] = useState(false);
+  const [alertProps, setAlertProps] = useState({});
+  const [actionDialog, setActionDialog] = useState('');
   const [pagination, setPagination] = useState({
     pageIndex: 0,
-    pageSize: 20
-  })
-  const [filters, setFilters] = useState({})
+    pageSize: 20,
+  });
+  const [filters, setFilters] = useState({});
 
   const [
     getAllWarehouse,
     {
       data: dataWarehouse = { data: [] },
       isLoading: isLoadingWarehouse,
-      isFetching: isFetchingWarehouse
-    }
-  ] = useLazyGetAllWarehousesQuery()
+      isFetching: isFetchingWarehouse,
+    },
+  ] = useLazyGetAllWarehousesQuery();
 
   const [
     updateWarehouseById,
-    { isLoading: isLoadingPut, isError: isErrorPut, isSuccess: isSuccessPut }
-  ] = useUpdateWarehouseByIdMutation()
+    { isLoading: isLoadingPut, isError: isErrorPut, isSuccess: isSuccessPut },
+  ] = useUpdateWarehouseByIdMutation();
 
   const [
     createWarehouse,
-    { isLoading: isLoadingPost, isError: isErrorPost, isSuccess: isSuccessPost }
-  ] = useCreateWarehouseMutation()
+    {
+      isLoading: isLoadingPost,
+      isError: isErrorPost,
+      isSuccess: isSuccessPost,
+    },
+  ] = useCreateWarehouseMutation();
 
   const [
     deleteWarehouseById,
     {
       isLoading: isLoadingDelete,
       isError: isErrorDelete,
-      isSuccess: isSuccessDelete
-    }
-  ] = useDeleteWarehouseByIdMutation()
+      isSuccess: isSuccessDelete,
+    },
+  ] = useDeleteWarehouseByIdMutation();
 
   /**
    * Este efecto es la única fuente de verdad para disparar
@@ -74,9 +78,9 @@ const Warehouse = () => {
     getAllWarehouse({
       page: pagination.pageIndex + 1,
       limit: pagination.pageSize,
-      ...filters
-    })
-  }, [pagination.pageIndex, pagination.pageSize, filters])
+      ...filters,
+    });
+  }, [pagination.pageIndex, pagination.pageSize, filters]);
 
   /**
    * Al aplicar nuevos filtros:
@@ -87,14 +91,14 @@ const Warehouse = () => {
    * El cambio de estado dispara el useEffect, manteniendo
    * un flujo reactivo y predecible.
    */
-  const handleSubmitFilters = newFilters => {
-    setPagination(prev => ({
+  const handleSubmitFilters = (newFilters) => {
+    setPagination((prev) => ({
       ...prev,
-      pageIndex: 0
-    }))
+      pageIndex: 0,
+    }));
 
-    setFilters(newFilters)
-  }
+    setFilters(newFilters);
+  };
 
   const handleSubmit = async (values, warehouseId) => {
     try {
@@ -105,15 +109,15 @@ const Warehouse = () => {
               name: values.name,
               status: values.status,
               description: values.description,
-              address: values.address
-            }
+              address: values.address,
+            },
           }).unwrap()
         : await createWarehouse({
             name: values.name,
             status: values.status,
             description: values.description,
-            address: values.address
-          }).unwrap()
+            address: values.address,
+          }).unwrap();
 
       setAlertProps({
         alertTitle: t(warehouseId ? 'update_record' : 'add_record'),
@@ -123,33 +127,33 @@ const Warehouse = () => {
         cancel: false,
         success: true,
         onSuccess: () => {
-          setOpenDialog(false)
+          setOpenDialog(false);
         },
-        variantSuccess: 'info'
-      })
-      setOpenAlertDialog(true)
+        variantSuccess: 'info',
+      });
+      setOpenAlertDialog(true);
     } catch (err) {
-      console.error('Error:', err)
+      console.error('Error:', err);
     }
-  }
+  };
 
   const handleAddDialog = () => {
-    setActionDialog(t('add_warehouse'))
-    setOpenDialog(true)
-  }
+    setActionDialog(t('add_warehouse'));
+    setOpenDialog(true);
+  };
 
-  const handleEditDialog = row => {
-    setActionDialog(t('edit_warehouse'))
-    setOpenDialog(true)
-    setSelectedRow(row)
-  }
+  const handleEditDialog = (row) => {
+    setActionDialog(t('edit_warehouse'));
+    setOpenDialog(true);
+    setSelectedRow(row);
+  };
 
   const handleCloseDialog = () => {
-    setSelectedRow({})
-    setOpenDialog(false)
-  }
+    setSelectedRow({});
+    setOpenDialog(false);
+  };
 
-  const handleDelete = async id => {
+  const handleDelete = async (id) => {
     try {
       setAlertProps({
         alertTitle: t('delete_record'),
@@ -162,7 +166,7 @@ const Warehouse = () => {
         onSuccess: () => {},
         onDelete: async () => {
           try {
-            await deleteWarehouseById(id).unwrap()
+            await deleteWarehouseById(id).unwrap();
 
             setAlertProps({
               alertTitle: '',
@@ -170,26 +174,26 @@ const Warehouse = () => {
               cancel: false,
               success: true,
               onSuccess: () => {
-                setOpenDialog(false)
+                setOpenDialog(false);
               },
-              variantSuccess: 'info'
-            })
-            setOpenAlertDialog(true) // Open alert dialog
+              variantSuccess: 'info',
+            });
+            setOpenAlertDialog(true); // Open alert dialog
           } catch (err) {
-            console.error('Error deleting:', err)
+            console.error('Error deleting:', err);
           }
-        }
-      })
-      setOpenAlertDialog(true)
+        },
+      });
+      setOpenAlertDialog(true);
     } catch (err) {
-      console.error('Error deleting:', err)
+      console.error('Error deleting:', err);
     }
-  }
+  };
 
   return (
     <>
       <BackDashBoard link={'/home'} moduleName={t('warehouse')} />
-      <div className='relative'>
+      <div className="relative">
         {/* Show spinner when loading or fetching */}
         {(isLoadingWarehouse ||
           isLoadingPut ||
@@ -197,9 +201,9 @@ const Warehouse = () => {
           isLoadingDelete ||
           isFetchingWarehouse) && <Spinner />}
 
-        <div className='grid grid-cols-2 grid-rows-4 gap-4 md:grid-cols-5'>
+        <div className="grid grid-cols-2 grid-rows-4 gap-4 md:grid-cols-5">
           {/* filters */}
-          <div className='col-span-2 row-span-1 md:col-span-5'>
+          <div className="col-span-2 row-span-1 md:col-span-5">
             <WarehouseFiltersForm
               onSubmit={handleSubmitFilters}
               dataStatus={dataStatus}
@@ -207,7 +211,7 @@ const Warehouse = () => {
             />
           </div>
           {/* Datatable */}
-          <div className='flex flex-wrap w-full col-span-2 row-span-3 row-start-2 md:col-span-5'>
+          <div className="flex flex-wrap w-full col-span-2 row-span-3 row-start-2 md:col-span-5">
             <WarehouseDatatable
               dataWarehouse={dataWarehouse}
               onEditDialog={handleEditDialog}
@@ -234,7 +238,7 @@ const Warehouse = () => {
         </div>
       </div>
     </>
-  )
-}
+  );
+};
 
-export default Warehouse
+export default Warehouse;

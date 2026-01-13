@@ -1,69 +1,69 @@
-import { StockFiltersForm, StockDialog, StockDatatable } from '../components'
-import { BackDashBoard } from '@/components/backDash/BackDashBoard'
-import { useTranslation } from 'react-i18next'
-import { useState, useEffect } from 'react'
+import { StockFiltersForm, StockDialog, StockDatatable } from '../components';
+import { BackDashBoard } from '@/components/backDash/BackDashBoard';
+import { useTranslation } from 'react-i18next';
+import { useState, useEffect } from 'react';
 import {
   useLazyGetAllStockQuery,
   useUpdateStockByIdMutation,
   useCreateStockMutation,
-  useDeleteStockByIdMutation
-} from '../api/stockAPI'
-import { useGetAllProductsFiltersQuery } from '@/modules/products/api/productsAPI'
-import { useGetAllWarehousesFiltersQuery } from '@/modules/warehouse/api/warehouseAPI'
-import AlertDialogComponent from '@/components/alertDialog/AlertDialog'
-import { Spinner } from '@/components/loader/Spinner'
-import { unitMeasures } from '../utils'
-import { useLocation } from 'react-router'
+  useDeleteStockByIdMutation,
+} from '../api/stockAPI';
+import { useGetAllProductsFiltersQuery } from '@/modules/products/api/productsAPI';
+import { useGetAllWarehousesFiltersQuery } from '@/modules/warehouse/api/warehouseAPI';
+import AlertDialogComponent from '@/components/alertDialog/AlertDialog';
+import { Spinner } from '@/components/loader/Spinner';
+import { unitMeasures } from '../utils';
+import { useLocation } from 'react-router';
 
 const Stock = () => {
-  const { t } = useTranslation()
-  const [selectedRow, setSelectedRow] = useState({})
-  const [openDialog, setOpenDialog] = useState(false)
-  const [openAlertDialog, setOpenAlertDialog] = useState(false)
-  const [alertProps, setAlertProps] = useState({})
-  const [actionDialog, setActionDialog] = useState('')
-  const location = useLocation()
+  const { t } = useTranslation();
+  const [selectedRow, setSelectedRow] = useState({});
+  const [openDialog, setOpenDialog] = useState(false);
+  const [openAlertDialog, setOpenAlertDialog] = useState(false);
+  const [alertProps, setAlertProps] = useState({});
+  const [actionDialog, setActionDialog] = useState('');
+  const location = useLocation();
   const [pagination, setPagination] = useState({
     pageIndex: 0,
-    pageSize: 20
-  })
-  const [filters, setFilters] = useState({})
+    pageSize: 20,
+  });
+  const [filters, setFilters] = useState({});
 
   const [
     getAllStock,
     {
       data: dataStock = { data: [] },
       isLoading: isLoadingStock,
-      isFetching: isFetchingStock
-    }
-  ] = useLazyGetAllStockQuery()
+      isFetching: isFetchingStock,
+    },
+  ] = useLazyGetAllStockQuery();
 
   const [updateStockById, { isLoading: isLoadingPut }] =
-    useUpdateStockByIdMutation()
+    useUpdateStockByIdMutation();
 
-  const [createStock, { isLoading: isLoadingPost }] = useCreateStockMutation()
+  const [createStock, { isLoading: isLoadingPost }] = useCreateStockMutation();
 
   const [deleteStockById, { isLoading: isLoadingDelete }] =
-    useDeleteStockByIdMutation()
+    useDeleteStockByIdMutation();
 
   const {
     data: dataProducts = { data: [] },
     isLoading: isLoadingProducts,
-    isFetching: isFetchingProduct
-  } = useGetAllProductsFiltersQuery()
+    isFetching: isFetchingProduct,
+  } = useGetAllProductsFiltersQuery();
 
   const {
     data: dataWarehouses = { data: [] },
     isLoading: isLoadingWarehouses,
-    isFetching: isFetchingWarehouse
-  } = useGetAllWarehousesFiltersQuery()
+    isFetching: isFetchingWarehouse,
+  } = useGetAllWarehousesFiltersQuery();
 
   useEffect(() => {
-    debugger
+    debugger;
     if (location.state?.filter) {
-      getAllStock({ ...location.state.filter })
+      getAllStock({ ...location.state.filter });
     }
-  }, [location.state?.filter])
+  }, [location.state?.filter]);
 
   /**
    * Este efecto es la única fuente de verdad para disparar
@@ -82,9 +82,9 @@ const Stock = () => {
     getAllStock({
       page: pagination.pageIndex + 1,
       limit: pagination.pageSize,
-      ...filters
-    })
-  }, [pagination.pageIndex, pagination.pageSize, filters])
+      ...filters,
+    });
+  }, [pagination.pageIndex, pagination.pageSize, filters]);
 
   /**
    * Al aplicar nuevos filtros:
@@ -95,14 +95,14 @@ const Stock = () => {
    * El cambio de estado dispara el useEffect, manteniendo
    * un flujo reactivo y predecible.
    */
-  const handleSubmitFilters = newFilters => {
-    setPagination(prev => ({
+  const handleSubmitFilters = (newFilters) => {
+    setPagination((prev) => ({
       ...prev,
-      pageIndex: 0
-    }))
+      pageIndex: 0,
+    }));
 
-    setFilters(newFilters)
-  }
+    setFilters(newFilters);
+  };
 
   const handleSubmit = async (values, stockId) => {
     try {
@@ -117,8 +117,8 @@ const Stock = () => {
               unitMeasure: values.unitMeasure,
               expirationDate: values.expirationDate,
               productId: Number(values.productId),
-              warehouseId: Number(values.warehouseId)
-            }
+              warehouseId: Number(values.warehouseId),
+            },
           }).unwrap()
         : await createStock({
             quantity: Number(values.quantity),
@@ -128,8 +128,8 @@ const Stock = () => {
             unitMeasure: values.unitMeasure,
             expirationDate: values.expirationDate,
             productId: Number(values.productId),
-            warehouseId: Number(values.warehouseId)
-          }).unwrap()
+            warehouseId: Number(values.warehouseId),
+          }).unwrap();
 
       setAlertProps({
         alertTitle: t(stockId ? 'update_record' : 'add_record'),
@@ -139,34 +139,34 @@ const Stock = () => {
         cancel: false,
         success: true,
         onSuccess: () => {
-          setOpenDialog(false)
+          setOpenDialog(false);
         },
-        variantSuccess: 'info'
-      })
-      setOpenAlertDialog(true)
+        variantSuccess: 'info',
+      });
+      setOpenAlertDialog(true);
     } catch (err) {
-      console.error('Error:', err)
+      console.error('Error:', err);
     }
-  }
+  };
 
   const handleAddDialog = () => {
-    setActionDialog(t('add_stock'))
-    setOpenDialog(true)
-    setSelectedRow({})
-  }
+    setActionDialog(t('add_stock'));
+    setOpenDialog(true);
+    setSelectedRow({});
+  };
 
-  const handleEditDialog = row => {
-    setActionDialog(t('edit_stock'))
-    setOpenDialog(true)
-    setSelectedRow(row)
-  }
+  const handleEditDialog = (row) => {
+    setActionDialog(t('edit_stock'));
+    setOpenDialog(true);
+    setSelectedRow(row);
+  };
 
   const handleCloseDialog = () => {
-    setSelectedRow({})
-    setOpenDialog(false)
-  }
+    setSelectedRow({});
+    setOpenDialog(false);
+  };
 
-  const handleDelete = async id => {
+  const handleDelete = async (id) => {
     try {
       setAlertProps({
         alertTitle: t('delete_record'),
@@ -179,7 +179,7 @@ const Stock = () => {
         onSuccess: () => {},
         onDelete: async () => {
           try {
-            await deleteStockById(id).unwrap()
+            await deleteStockById(id).unwrap();
 
             setAlertProps({
               alertTitle: '',
@@ -187,26 +187,26 @@ const Stock = () => {
               cancel: false,
               success: true,
               onSuccess: () => {
-                setOpenDialog(false)
+                setOpenDialog(false);
               },
-              variantSuccess: 'info'
-            })
-            setOpenAlertDialog(true)
+              variantSuccess: 'info',
+            });
+            setOpenAlertDialog(true);
           } catch (err) {
-            console.error('Error deleting:', err)
+            console.error('Error deleting:', err);
           }
-        }
-      })
-      setOpenAlertDialog(true)
+        },
+      });
+      setOpenAlertDialog(true);
     } catch (err) {
-      console.error('Error deleting:', err)
+      console.error('Error deleting:', err);
     }
-  }
+  };
 
   return (
     <>
       <BackDashBoard link={'/home'} moduleName={t('stock')} />
-      <div className='relative'>
+      <div className="relative">
         {(isLoadingStock ||
           isLoadingPut ||
           isLoadingPost ||
@@ -217,9 +217,9 @@ const Stock = () => {
           isLoadingProducts ||
           isLoadingWarehouses) && <Spinner />}
 
-        <div className='grid grid-cols-2 grid-rows-4 gap-4 md:grid-cols-5'>
+        <div className="grid grid-cols-2 grid-rows-4 gap-4 md:grid-cols-5">
           {/* filters */}
-          <div className='col-span-2 row-span-1 md:col-span-5'>
+          <div className="col-span-2 row-span-1 md:col-span-5">
             <StockFiltersForm
               onSubmit={handleSubmitFilters}
               onAddDialog={handleAddDialog}
@@ -229,7 +229,7 @@ const Stock = () => {
             />
           </div>
           {/* Datatable */}
-          <div className='flex flex-wrap w-full col-span-2 row-span-3 row-start-2 md:col-span-5'>
+          <div className="flex flex-wrap w-full col-span-2 row-span-3 row-start-2 md:col-span-5">
             <StockDatatable
               dataStock={dataStock}
               onEditDialog={handleEditDialog}
@@ -258,7 +258,7 @@ const Stock = () => {
         </div>
       </div>
     </>
-  )
-}
+  );
+};
 
-export default Stock
+export default Stock;

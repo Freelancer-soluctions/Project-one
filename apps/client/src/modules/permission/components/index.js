@@ -1,3 +1,3 @@
-export * from './PermissionDatatable'
-export * from './PermissionDialog'
-export * from './PermissionFiltersForm'
+export * from './PermissionDatatable';
+export * from './PermissionDialog';
+export * from './PermissionFiltersForm';

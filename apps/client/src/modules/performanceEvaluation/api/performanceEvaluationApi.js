@@ -1,52 +1,52 @@
 /* React-specific entry point that automatically generates
 hooks corresponding to the defined endpoints */
-import { createApi } from '@reduxjs/toolkit/query/react'
-import { axiosPrivateBaseQuery } from '@/config/axios'
+import { createApi } from '@reduxjs/toolkit/query/react';
+import { axiosPrivateBaseQuery } from '@/config/axios';
 
 // Define a service using a base URL and expected endpoints
 const performanceEvaluationApi = createApi({
   reducerPath: 'performanceEvaluationApi',
   baseQuery: axiosPrivateBaseQuery({
-    baseUrl: import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1'
+    baseUrl: import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1',
   }),
   tagTypes: ['PerformanceEvaluation'],
   keepUnusedDataFor: 300, // 5 minutos
-  endpoints: builder => ({
+  endpoints: (builder) => ({
     getAllPerformanceEvaluations: builder.query({
-      query: params => ({
+      query: (params) => ({
         url: '/performance-evaluation', // Adjust endpoint URL if needed
-        params
+        params,
       }),
-      providesTags: ['PerformanceEvaluation']
+      providesTags: ['PerformanceEvaluation'],
     }),
 
     deletePerformanceEvaluationById: builder.mutation({
-      query: id => ({
+      query: (id) => ({
         url: `/performance-evaluation/${id}`,
-        method: 'DELETE'
+        method: 'DELETE',
       }),
-      invalidatesTags: ['PerformanceEvaluation']
+      invalidatesTags: ['PerformanceEvaluation'],
     }),
 
     createPerformanceEvaluation: builder.mutation({
-      query: data => ({
+      query: (data) => ({
         url: '/performance-evaluation',
         method: 'POST',
-        body: data
+        body: data,
       }),
-      invalidatesTags: ['PerformanceEvaluation']
+      invalidatesTags: ['PerformanceEvaluation'],
     }),
 
     updatePerformanceEvaluationById: builder.mutation({
       query: ({ id, data }) => ({
         url: `/performance-evaluation/${id}`,
         method: 'PUT',
-        body: data
+        body: data,
       }),
-      invalidatesTags: ['PerformanceEvaluation']
-    })
-  })
-})
+      invalidatesTags: ['PerformanceEvaluation'],
+    }),
+  }),
+});
 
 // Export hooks for usage in functional components
 export const {
@@ -54,7 +54,7 @@ export const {
   useGetAllPerformanceEvaluationsQuery,
   useUpdatePerformanceEvaluationByIdMutation,
   useCreatePerformanceEvaluationMutation,
-  useDeletePerformanceEvaluationByIdMutation
-} = performanceEvaluationApi
+  useDeletePerformanceEvaluationByIdMutation,
+} = performanceEvaluationApi;
 
-export default performanceEvaluationApi
+export default performanceEvaluationApi;

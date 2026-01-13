@@ -1,7 +1,7 @@
-import { useEffect, useState } from 'react'
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { SettingsProductCategoriesSchema } from '../utils'
+import { useEffect, useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { SettingsProductCategoriesSchema } from '../utils';
 
 import {
   Dialog,
@@ -11,30 +11,30 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-  DialogClose
-} from '@/components/ui/dialog'
+  DialogClose,
+} from '@/components/ui/dialog';
 import {
   Form,
   FormControl,
   FormField,
   FormItem,
   FormLabel,
-  FormMessage
-} from '@/components/ui/form'
+  FormMessage,
+} from '@/components/ui/form';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue
-} from '@/components/ui/select'
-import { Input } from '@/components/ui/input'
-import { Button } from '@/components/ui/button'
-import { LuFolderTree } from 'react-icons/lu'
-import { useTranslation } from 'react-i18next'
-import { cn } from '@/lib/utils'
-import PropTypes from 'prop-types'
-import { Textarea } from '@/components/ui/textarea'
+  SelectValue,
+} from '@/components/ui/select';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { LuFolderTree } from 'react-icons/lu';
+import { useTranslation } from 'react-i18next';
+import { cn } from '@/lib/utils';
+import PropTypes from 'prop-types';
+import { Textarea } from '@/components/ui/textarea';
 
 export const SettingsProductCategoriesDialog = ({
   openDialog,
@@ -43,10 +43,10 @@ export const SettingsProductCategoriesDialog = ({
   dataStatus,
   onSubmit,
   onDeleteById,
-  actionDialog
+  actionDialog,
 }) => {
-  const { t } = useTranslation()
-  const [categoryId, setCategoryId] = useState('')
+  const { t } = useTranslation();
+  const [categoryId, setCategoryId] = useState('');
 
   // Configura el formulario
   const form = useForm({
@@ -54,9 +54,9 @@ export const SettingsProductCategoriesDialog = ({
     defaultValues: {
       name: '',
       status: undefined,
-      description: ''
-    }
-  })
+      description: '',
+    },
+  });
 
   // Actualiza todos los valores del formulario al cambiar `selectedRow`
   useEffect(() => {
@@ -71,37 +71,38 @@ export const SettingsProductCategoriesDialog = ({
         createdOn: selectedRow.createdOn || '',
         updatedOn: selectedRow.updatedOn || '',
         userCategoriesCreatedName: selectedRow.userCategoriesCreatedName || '',
-        userCategoriesUpdatedName: selectedRow.userCategoriesUpdatedName || ''
-      }
+        userCategoriesUpdatedName: selectedRow.userCategoriesUpdatedName || '',
+      };
 
-      form.reset(mappedValues)
-      setCategoryId(mappedValues.id)
+      form.reset(mappedValues);
+      setCategoryId(mappedValues.id);
     }
 
     if (!openDialog) {
-      form.reset()
+      form.reset();
     }
-  }, [selectedRow, openDialog])
+  }, [selectedRow, openDialog]);
 
-  const handleSubmit = data => {
-    onSubmit({ ...data }, categoryId)
-  }
+  const handleSubmit = (data) => {
+    onSubmit({ ...data }, categoryId);
+  };
 
   const handleDeleteById = () => {
-    onDeleteById(categoryId)
-  }
+    onDeleteById(categoryId);
+  };
 
   return (
     <Dialog
       open={openDialog}
-      onOpenChange={isOpen => {
-        if (isOpen === true) return
-        onCloseDialog()
-      }}>
-      <DialogContent className='sm:max-w-[600px]'>
+      onOpenChange={(isOpen) => {
+        if (isOpen === true) return;
+        onCloseDialog();
+      }}
+    >
+      <DialogContent className="sm:max-w-[600px]">
         <DialogHeader>
-          <DialogTitle className='flex items-center gap-2'>
-            <LuFolderTree className='inline mr-3 w-7 h-7' />
+          <DialogTitle className="flex items-center gap-2">
+            <LuFolderTree className="inline mr-3 w-7 h-7" />
             {actionDialog}
           </DialogTitle>
           <DialogDescription>
@@ -110,27 +111,28 @@ export const SettingsProductCategoriesDialog = ({
         </DialogHeader>
         <Form {...form}>
           <form
-            method='post'
-            action=''
-            id='categories-form'
+            method="post"
+            action=""
+            id="categories-form"
             onSubmit={form.handleSubmit(handleSubmit)}
             noValidate
-            className='flex flex-col flex-wrap gap-5'>
-            <div className='grid grid-cols-2 gap-6 py-4 auto-rows-auto'>
+            className="flex flex-col flex-wrap gap-5"
+          >
+            <div className="grid grid-cols-2 gap-6 py-4 auto-rows-auto">
               <FormField
                 control={form.control}
-                name='name'
+                name="name"
                 render={({ field }) => {
                   return (
                     <FormItem>
-                      <FormLabel htmlFor='name'>{t('name')}*</FormLabel>
+                      <FormLabel htmlFor="name">{t('name')}*</FormLabel>
                       <FormControl>
                         <Input
-                          id='name'
-                          name='name'
+                          id="name"
+                          name="name"
                           placeholder={t('category_name_placeholder')}
-                          type='text'
-                          autoComplete='off'
+                          type="text"
+                          autoComplete="off"
                           maxLength={80}
                           {...field}
                           value={field.value ?? ''}
@@ -138,28 +140,32 @@ export const SettingsProductCategoriesDialog = ({
                       </FormControl>
                       <FormMessage />
                     </FormItem>
-                  )
+                  );
                 }}
               />
 
               <FormField
                 control={form.control}
-                name='status'
+                name="status"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel htmlFor='status'>{t('status')}*</FormLabel>
+                    <FormLabel htmlFor="status">{t('status')}*</FormLabel>
                     <Select
-                      onValueChange={value => field.onChange(value === 'true')}
-                      value={field.value?.toString()}>
+                      onValueChange={(value) =>
+                        field.onChange(value === 'true')
+                      }
+                      value={field.value?.toString()}
+                    >
                       <FormControl>
                         <SelectTrigger
                           className={cn(
                             'w-full',
                             !field.value && 'text-muted-foreground'
-                          )}>
+                          )}
+                        >
                           <SelectValue
                             placeholder={t('select_status')}
-                            className='w-full'
+                            className="w-full"
                           />
                         </SelectTrigger>
                       </FormControl>
@@ -178,19 +184,19 @@ export const SettingsProductCategoriesDialog = ({
 
               <FormField
                 control={form.control}
-                name='description'
+                name="description"
                 render={({ field }) => {
                   return (
-                    <FormItem className='col-span-2'>
-                      <FormLabel htmlFor='description'>
+                    <FormItem className="col-span-2">
+                      <FormLabel htmlFor="description">
                         {t('description')}
                       </FormLabel>
                       <FormControl>
                         <Textarea
-                          id='description'
-                          name='description'
+                          id="description"
+                          name="description"
                           placeholder={t('category_description_placeholder')}
-                          className='resize-none'
+                          className="resize-none"
                           maxLength={2000}
                           {...field}
                           value={field.value ?? ''}
@@ -198,28 +204,30 @@ export const SettingsProductCategoriesDialog = ({
                       </FormControl>
                       <FormMessage />
                     </FormItem>
-                  )
+                  );
                 }}
               />
             </div>
 
             <DialogFooter>
-              <div className='flex flex-wrap items-center justify-between gap-3 mt-5 md:justify-normal'>
+              <div className="flex flex-wrap items-center justify-between gap-3 mt-5 md:justify-normal">
                 <Button
-                  type='button'
-                  variant='secondary'
-                  onClick={onCloseDialog}>
+                  type="button"
+                  variant="secondary"
+                  onClick={onCloseDialog}
+                >
                   {t('cancel')}
                 </Button>
                 {categoryId && (
                   <Button
-                    type='button'
-                    variant='destructive'
-                    onClick={handleDeleteById}>
+                    type="button"
+                    variant="destructive"
+                    onClick={handleDeleteById}
+                  >
                     {t('delete')}
                   </Button>
                 )}
-                <Button type='submit' variant='info'>
+                <Button type="submit" variant="info">
                   {t('save')}
                 </Button>
               </div>
@@ -228,8 +236,8 @@ export const SettingsProductCategoriesDialog = ({
         </Form>
       </DialogContent>
     </Dialog>
-  )
-}
+  );
+};
 
 SettingsProductCategoriesDialog.propTypes = {
   openDialog: PropTypes.bool.isRequired,
@@ -238,5 +246,5 @@ SettingsProductCategoriesDialog.propTypes = {
   dataStatus: PropTypes.array.isRequired,
   onSubmit: PropTypes.func.isRequired,
   onDeleteById: PropTypes.func.isRequired,
-  actionDialog: PropTypes.string.isRequired
-}
+  actionDialog: PropTypes.string.isRequired,
+};

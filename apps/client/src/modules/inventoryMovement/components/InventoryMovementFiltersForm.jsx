@@ -1,86 +1,87 @@
-import { useForm } from 'react-hook-form'
-import { useTranslation } from 'react-i18next'
+import { useForm } from 'react-hook-form';
+import { useTranslation } from 'react-i18next';
 import {
   Form,
   FormControl,
   FormField,
   FormItem,
   FormLabel,
-  FormMessage
-} from '@/components/ui/form'
-import { Button } from '@/components/ui/button'
+  FormMessage,
+} from '@/components/ui/form';
+import { Button } from '@/components/ui/button';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue
-} from '@/components/ui/select'
-import PropTypes from 'prop-types'
-import { movementTypes } from '../utils'
-import { LuCalendarDays, LuSearch, LuPlus, LuEraser } from 'react-icons/lu'
-import { cn } from '@/lib/utils'
-import { Calendar } from '@/components/ui/calendar'
+  SelectValue,
+} from '@/components/ui/select';
+import PropTypes from 'prop-types';
+import { movementTypes } from '../utils';
+import { LuCalendarDays, LuSearch, LuPlus, LuEraser } from 'react-icons/lu';
+import { cn } from '@/lib/utils';
+import { Calendar } from '@/components/ui/calendar';
 import {
   Popover,
   PopoverContent,
-  PopoverTrigger
-} from '@/components/ui/popover'
-import { format } from 'date-fns'
+  PopoverTrigger,
+} from '@/components/ui/popover';
+import { format } from 'date-fns';
 
 export const InventoryMovementFiltersForm = ({
   onSubmit,
   onAddDialog,
   products,
-  warehouses
+  warehouses,
 }) => {
-  const { t } = useTranslation()
+  const { t } = useTranslation();
   const form = useForm({
     defaultValues: {
       productId: '',
       warehouseId: '',
       type: '',
       startDate: '',
-      endDate: ''
-    }
-  })
+      endDate: '',
+    },
+  });
 
-  const handleSubmit = data => {
-    onSubmit(data)
-  }
+  const handleSubmit = (data) => {
+    onSubmit(data);
+  };
 
   const handleAdd = () => {
-    onAddDialog()
-  }
+    onAddDialog();
+  };
 
   const handleResetFilter = () => {
-    form.reset()
-    onSubmit({})
-  }
+    form.reset();
+    onSubmit({});
+  };
 
   return (
     <Form {...form}>
       <form
-        method='post'
-        action=''
-        id='inventory-movement-form'
+        method="post"
+        action=""
+        id="inventory-movement-form"
         noValidate
         onSubmit={form.handleSubmit(handleSubmit)}
-        className='flex flex-col flex-wrap gap-5'>
+        className="flex flex-col flex-wrap gap-5"
+      >
         {/* inputs */}
-        <div className='flex flex-wrap flex-1 gap-3'>
+        <div className="flex flex-wrap flex-1 gap-3">
           <FormField
             control={form.control}
-            name='productId'
+            name="productId"
             render={({ field }) => {
               return (
-                <FormItem className='flex flex-col flex-auto'>
-                  <FormLabel htmlFor='productId'>{t('product')}</FormLabel>
+                <FormItem className="flex flex-col flex-auto">
+                  <FormLabel htmlFor="productId">{t('product')}</FormLabel>
                   <Select
                     onValueChange={field.onChange}
                     value={field.value?.toString()} // Asegura que el valor sea string
                   >
-                    <FormControl id='productId'>
+                    <FormControl id="productId">
                       <SelectTrigger>
                         <SelectValue placeholder={t('select_product')} />
                       </SelectTrigger>
@@ -95,22 +96,22 @@ export const InventoryMovementFiltersForm = ({
                   </Select>
                   <FormMessage />
                 </FormItem>
-              )
+              );
             }}
           />
 
           <FormField
             control={form.control}
-            name='warehouseId'
+            name="warehouseId"
             render={({ field }) => {
               return (
-                <FormItem className='flex flex-col flex-auto'>
-                  <FormLabel htmlFor='warehouseId'>{t('warehouse')}</FormLabel>
+                <FormItem className="flex flex-col flex-auto">
+                  <FormLabel htmlFor="warehouseId">{t('warehouse')}</FormLabel>
                   <Select
                     onValueChange={field.onChange}
                     value={field.value?.toString()} // Asegura que el valor sea string
                   >
-                    <FormControl id='warehouseId'>
+                    <FormControl id="warehouseId">
                       <SelectTrigger>
                         <SelectValue placeholder={t('select_warehouse')} />
                       </SelectTrigger>
@@ -125,22 +126,22 @@ export const InventoryMovementFiltersForm = ({
                   </Select>
                   <FormMessage />
                 </FormItem>
-              )
+              );
             }}
           />
 
           <FormField
             control={form.control}
-            name='type'
+            name="type"
             render={({ field }) => {
               return (
-                <FormItem className='flex flex-col flex-auto'>
-                  <FormLabel htmlFor='type'>{t('type')}</FormLabel>
+                <FormItem className="flex flex-col flex-auto">
+                  <FormLabel htmlFor="type">{t('type')}</FormLabel>
                   <Select
                     onValueChange={field.onChange}
                     value={field.value?.toString()} // Asegura que el valor sea string
                   >
-                    <FormControl id='warehouseId'>
+                    <FormControl id="warehouseId">
                       <SelectTrigger>
                         <SelectValue placeholder={t('select_type')} />
                       </SelectTrigger>
@@ -155,41 +156,42 @@ export const InventoryMovementFiltersForm = ({
                   </Select>
                   <FormMessage />
                 </FormItem>
-              )
+              );
             }}
           />
 
           <FormField
             control={form.control}
-            name='fdate'
+            name="fdate"
             render={({ field }) => (
-              <FormItem className='flex flex-col flex-auto'>
-                <FormLabel htmlFor='fdate'>{t('from_date')}</FormLabel>
+              <FormItem className="flex flex-col flex-auto">
+                <FormLabel htmlFor="fdate">{t('from_date')}</FormLabel>
                 <Popover>
                   <PopoverTrigger asChild>
                     <FormControl>
                       <Button
-                        id='fdate'
+                        id="fdate"
                         variant={'outline'}
                         className={cn(
                           'pl-3 text-left font-normal',
                           !field.value && 'text-muted-foreground'
-                        )}>
+                        )}
+                      >
                         {field.value ? (
                           format(field.value, 'PPP')
                         ) : (
                           <span>{t('pick_date')}</span>
                         )}
-                        <LuCalendarDays className='w-4 h-4 ml-auto opacity-50' />
+                        <LuCalendarDays className="w-4 h-4 ml-auto opacity-50" />
                       </Button>
                     </FormControl>
                   </PopoverTrigger>
-                  <PopoverContent className='w-auto p-0' align='start'>
+                  <PopoverContent className="w-auto p-0" align="start">
                     <Calendar
-                      mode='single'
+                      mode="single"
                       selected={field.value}
                       onSelect={field.onChange}
-                      disabled={date => date < new Date('1900-01-01')}
+                      disabled={(date) => date < new Date('1900-01-01')}
                       initialFocus
                     />
                   </PopoverContent>
@@ -201,35 +203,36 @@ export const InventoryMovementFiltersForm = ({
 
           <FormField
             control={form.control}
-            name='tdate'
+            name="tdate"
             render={({ field }) => (
-              <FormItem className='flex flex-col flex-auto'>
-                <FormLabel htmlFor='tdate'>{t('to_date')}</FormLabel>
+              <FormItem className="flex flex-col flex-auto">
+                <FormLabel htmlFor="tdate">{t('to_date')}</FormLabel>
                 <Popover>
                   <PopoverTrigger asChild>
                     <FormControl>
                       <Button
-                        id='tdate'
+                        id="tdate"
                         variant={'outline'}
                         className={cn(
                           'pl-3 text-left font-normal',
                           !field.value && 'text-muted-foreground'
-                        )}>
+                        )}
+                      >
                         {field.value ? (
                           format(field.value, 'PPP')
                         ) : (
                           <span>{t('pick_date')}</span>
                         )}
-                        <LuCalendarDays className='w-4 h-4 ml-auto opacity-50' />
+                        <LuCalendarDays className="w-4 h-4 ml-auto opacity-50" />
                       </Button>
                     </FormControl>
                   </PopoverTrigger>
-                  <PopoverContent className='w-auto p-0' align='start'>
+                  <PopoverContent className="w-auto p-0" align="start">
                     <Calendar
-                      mode='single'
+                      mode="single"
                       selected={field.value}
                       onSelect={field.onChange}
-                      disabled={date => date < new Date('1900-01-01')}
+                      disabled={(date) => date < new Date('1900-01-01')}
                       initialFocus
                     />
                   </PopoverContent>
@@ -240,37 +243,40 @@ export const InventoryMovementFiltersForm = ({
           />
         </div>
         {/* buttons */}
-        <div className='flex flex-wrap items-center justify-between gap-3 mt-5 md:justify-normal'>
+        <div className="flex flex-wrap items-center justify-between gap-3 mt-5 md:justify-normal">
           <Button
-            type='submit'
-            className='flex-1 md:flex-initial md:w-24'
-            variant='info'>
+            type="submit"
+            className="flex-1 md:flex-initial md:w-24"
+            variant="info"
+          >
             {t('search')}
-            <LuSearch className='w-4 h-4 ml-auto opacity-50' />
+            <LuSearch className="w-4 h-4 ml-auto opacity-50" />
           </Button>
           <Button
-            type='button'
-            className='flex-1 md:flex-initial md:w-24'
-            variant='success'
-            onClick={handleAdd}>
-            {t('add')} <LuPlus className='w-4 h-4 ml-auto opacity-50' />
+            type="button"
+            className="flex-1 md:flex-initial md:w-24"
+            variant="success"
+            onClick={handleAdd}
+          >
+            {t('add')} <LuPlus className="w-4 h-4 ml-auto opacity-50" />
           </Button>
           <Button
-            type='button'
-            className='flex-1 md:flex-initial md:w-24'
-            variant='outline'
-            onClick={handleResetFilter}>
-            {t('clear')} <LuEraser className='w-4 h-4 ml-auto opacity-50' />
+            type="button"
+            className="flex-1 md:flex-initial md:w-24"
+            variant="outline"
+            onClick={handleResetFilter}
+          >
+            {t('clear')} <LuEraser className="w-4 h-4 ml-auto opacity-50" />
           </Button>
         </div>
       </form>
     </Form>
-  )
-}
+  );
+};
 
 InventoryMovementFiltersForm.propTypes = {
   onSubmit: PropTypes.func.isRequired,
   onAddDialog: PropTypes.func.isRequired,
   products: PropTypes.array.isRequired,
-  warehouses: PropTypes.array.isRequired
-}
+  warehouses: PropTypes.array.isRequired,
+};

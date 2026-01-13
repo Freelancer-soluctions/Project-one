@@ -1,9 +1,9 @@
-import { useForm } from 'react-hook-form'
-import { useTranslation } from 'react-i18next'
-import { format } from 'date-fns'
-import { cn } from '@/lib/utils'
-import PropTypes from 'prop-types'
-import { PERMISSION_TYPES, PERMISSION_STATUS } from '../utils'
+import { useForm } from 'react-hook-form';
+import { useTranslation } from 'react-i18next';
+import { format } from 'date-fns';
+import { cn } from '@/lib/utils';
+import PropTypes from 'prop-types';
+import { PERMISSION_TYPES, PERMISSION_STATUS } from '../utils';
 
 import {
   Form,
@@ -11,31 +11,31 @@ import {
   FormField,
   FormItem,
   FormLabel,
-  FormMessage
-} from '@/components/ui/form'
+  FormMessage,
+} from '@/components/ui/form';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue
-} from '@/components/ui/select'
+  SelectValue,
+} from '@/components/ui/select';
 import {
   Popover,
   PopoverContent,
-  PopoverTrigger
-} from '@/components/ui/popover'
-import { Calendar } from '@/components/ui/calendar'
-import { Button } from '@/components/ui/button'
-import { CalendarIcon } from '@radix-ui/react-icons'
-import { LuPlus, LuSearch, LuEraser } from 'react-icons/lu'
+  PopoverTrigger,
+} from '@/components/ui/popover';
+import { Calendar } from '@/components/ui/calendar';
+import { Button } from '@/components/ui/button';
+import { CalendarIcon } from '@radix-ui/react-icons';
+import { LuPlus, LuSearch, LuEraser } from 'react-icons/lu';
 
 export const PermissionFiltersForm = ({
   onSubmit,
   onAddDialog,
-  dataEmployees
+  dataEmployees,
 }) => {
-  const { t } = useTranslation()
+  const { t } = useTranslation();
 
   const form = useForm({
     defaultValues: {
@@ -43,24 +43,24 @@ export const PermissionFiltersForm = ({
       type: '',
       status: '',
       fromDate: null,
-      toDate: null
-    }
-  })
+      toDate: null,
+    },
+  });
 
-  const handleSubmit = data => {
+  const handleSubmit = (data) => {
     const filters = {
       employeeId: data.employeeId || undefined,
       type: data.type || undefined,
       status: data.status || undefined,
       fromDate: data.fromDate ? format(data.fromDate, 'yyyy-MM-dd') : undefined,
-      toDate: data.toDate ? format(data.toDate, 'yyyy-MM-dd') : undefined
-    }
-    onSubmit(filters)
-  }
+      toDate: data.toDate ? format(data.toDate, 'yyyy-MM-dd') : undefined,
+    };
+    onSubmit(filters);
+  };
 
   const handleAdd = () => {
-    onAddDialog()
-  }
+    onAddDialog();
+  };
 
   const handleResetFilter = () => {
     form.reset({
@@ -68,32 +68,34 @@ export const PermissionFiltersForm = ({
       type: '',
       status: '',
       fromDate: null,
-      toDate: null
-    })
-    onSubmit({}) // Submit empty filters to reset
-  }
+      toDate: null,
+    });
+    onSubmit({}); // Submit empty filters to reset
+  };
 
   return (
     <Form {...form}>
       <form
-        method='get'
-        action=''
-        id='permission-filters-form'
+        method="get"
+        action=""
+        id="permission-filters-form"
         noValidate
         onSubmit={form.handleSubmit(handleSubmit)}
-        className='flex flex-col flex-wrap gap-5'>
+        className="flex flex-col flex-wrap gap-5"
+      >
         {/* inputs - Using 5 columns for filters */}
-        <div className='grid grid-cols-1 gap-3 md:grid-cols-5'>
+        <div className="grid grid-cols-1 gap-3 md:grid-cols-5">
           {/* Employee Select Filter */}
           <FormField
             control={form.control}
-            name='employeeId'
+            name="employeeId"
             render={({ field }) => (
-              <FormItem className='flex flex-col flex-auto'>
+              <FormItem className="flex flex-col flex-auto">
                 <FormLabel>{t('employee')}</FormLabel>
                 <Select
                   onValueChange={field.onChange}
-                  value={field.value?.toString() ?? ''}>
+                  value={field.value?.toString() ?? ''}
+                >
                   <FormControl>
                     <SelectTrigger>
                       <SelectValue
@@ -102,10 +104,11 @@ export const PermissionFiltersForm = ({
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    {dataEmployees.map(employee => (
+                    {dataEmployees.map((employee) => (
                       <SelectItem
                         key={employee.id}
-                        value={employee.id.toString()}>
+                        value={employee.id.toString()}
+                      >
                         {`${employee.name} ${employee.lastName}`}
                       </SelectItem>
                     ))}
@@ -119,13 +122,14 @@ export const PermissionFiltersForm = ({
           {/* Type Select Filter */}
           <FormField
             control={form.control}
-            name='type'
+            name="type"
             render={({ field }) => (
-              <FormItem className='flex flex-col flex-auto'>
+              <FormItem className="flex flex-col flex-auto">
                 <FormLabel>{t('type')}</FormLabel>
                 <Select
                   onValueChange={field.onChange}
-                  value={field.value ?? ''}>
+                  value={field.value ?? ''}
+                >
                   <FormControl>
                     <SelectTrigger>
                       <SelectValue
@@ -134,7 +138,7 @@ export const PermissionFiltersForm = ({
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    {PERMISSION_TYPES.map(type => (
+                    {PERMISSION_TYPES.map((type) => (
                       <SelectItem key={type} value={type}>
                         {t(`permission_type.${type}`)}{' '}
                         {/* Assumes translations */}
@@ -150,20 +154,21 @@ export const PermissionFiltersForm = ({
           {/* Status Select Filter */}
           <FormField
             control={form.control}
-            name='status'
+            name="status"
             render={({ field }) => (
-              <FormItem className='flex flex-col flex-auto'>
+              <FormItem className="flex flex-col flex-auto">
                 <FormLabel>{t('status')}</FormLabel>
                 <Select
                   onValueChange={field.onChange}
-                  value={field.value ?? ''}>
+                  value={field.value ?? ''}
+                >
                   <FormControl>
                     <SelectTrigger>
                       <SelectValue placeholder={t('select_status')} />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    {PERMISSION_STATUS.map(status => (
+                    {PERMISSION_STATUS.map((status) => (
                       <SelectItem key={status} value={status}>
                         {t(`status.${status}`)}
                       </SelectItem>
@@ -178,9 +183,9 @@ export const PermissionFiltersForm = ({
           {/* From Date Filter */}
           <FormField
             control={form.control}
-            name='fromDate'
+            name="fromDate"
             render={({ field }) => (
-              <FormItem className='flex flex-col flex-auto'>
+              <FormItem className="flex flex-col flex-auto">
                 <FormLabel>{t('from_date')}</FormLabel>
                 <Popover>
                   <PopoverTrigger asChild>
@@ -190,22 +195,23 @@ export const PermissionFiltersForm = ({
                         className={cn(
                           'w-full pl-3 text-left font-normal',
                           !field.value && 'text-muted-foreground'
-                        )}>
+                        )}
+                      >
                         {field.value ? (
                           format(field.value, 'PPP')
                         ) : (
                           <span>{t('pick_date')}</span>
                         )}
-                        <CalendarIcon className='w-4 h-4 ml-auto opacity-50' />
+                        <CalendarIcon className="w-4 h-4 ml-auto opacity-50" />
                       </Button>
                     </FormControl>
                   </PopoverTrigger>
-                  <PopoverContent className='w-auto p-0' align='start'>
+                  <PopoverContent className="w-auto p-0" align="start">
                     <Calendar
-                      mode='single'
+                      mode="single"
                       selected={field.value}
                       onSelect={field.onChange}
-                      disabled={date =>
+                      disabled={(date) =>
                         date > new Date() || date < new Date('1900-01-01')
                       }
                       initialFocus
@@ -220,9 +226,9 @@ export const PermissionFiltersForm = ({
           {/* To Date Filter */}
           <FormField
             control={form.control}
-            name='toDate'
+            name="toDate"
             render={({ field }) => (
-              <FormItem className='flex flex-col flex-auto'>
+              <FormItem className="flex flex-col flex-auto">
                 <FormLabel>{t('to_date')}</FormLabel>
                 <Popover>
                   <PopoverTrigger asChild>
@@ -232,22 +238,23 @@ export const PermissionFiltersForm = ({
                         className={cn(
                           'w-full pl-3 text-left font-normal',
                           !field.value && 'text-muted-foreground'
-                        )}>
+                        )}
+                      >
                         {field.value ? (
                           format(field.value, 'PPP')
                         ) : (
                           <span>{t('pick_date')}</span>
                         )}
-                        <CalendarIcon className='w-4 h-4 ml-auto opacity-50' />
+                        <CalendarIcon className="w-4 h-4 ml-auto opacity-50" />
                       </Button>
                     </FormControl>
                   </PopoverTrigger>
-                  <PopoverContent className='w-auto p-0' align='start'>
+                  <PopoverContent className="w-auto p-0" align="start">
                     <Calendar
-                      mode='single'
+                      mode="single"
                       selected={field.value}
                       onSelect={field.onChange}
-                      disabled={date =>
+                      disabled={(date) =>
                         date > new Date() ||
                         date < new Date('1900-01-01') ||
                         (form.getValues('fromDate') &&
@@ -263,36 +270,39 @@ export const PermissionFiltersForm = ({
           />
         </div>
         {/* buttons */}
-        <div className='flex flex-wrap items-center justify-between gap-3 mt-5 md:justify-normal'>
+        <div className="flex flex-wrap items-center justify-between gap-3 mt-5 md:justify-normal">
           <Button
-            type='submit'
-            className='flex-1 md:flex-initial md:w-24'
-            variant='info'>
+            type="submit"
+            className="flex-1 md:flex-initial md:w-24"
+            variant="info"
+          >
             {t('search')}
-            <LuSearch className='w-4 h-4 ml-auto opacity-50' />
+            <LuSearch className="w-4 h-4 ml-auto opacity-50" />
           </Button>
           <Button
-            type='button'
-            className='flex-1 md:flex-initial md:w-24'
-            variant='success'
-            onClick={handleAdd}>
-            {t('add')} <LuPlus className='w-4 h-4 ml-auto opacity-50' />
+            type="button"
+            className="flex-1 md:flex-initial md:w-24"
+            variant="success"
+            onClick={handleAdd}
+          >
+            {t('add')} <LuPlus className="w-4 h-4 ml-auto opacity-50" />
           </Button>
           <Button
-            type='button'
-            className='flex-1 md:flex-initial md:w-24'
-            variant='outline'
-            onClick={handleResetFilter}>
-            {t('clear')} <LuEraser className='w-4 h-4 ml-auto opacity-50' />
+            type="button"
+            className="flex-1 md:flex-initial md:w-24"
+            variant="outline"
+            onClick={handleResetFilter}
+          >
+            {t('clear')} <LuEraser className="w-4 h-4 ml-auto opacity-50" />
           </Button>
         </div>
       </form>
     </Form>
-  )
-}
+  );
+};
 
 PermissionFiltersForm.propTypes = {
   onSubmit: PropTypes.func.isRequired,
   onAddDialog: PropTypes.func,
-  dataEmployees: PropTypes.array.isRequired
-}
+  dataEmployees: PropTypes.array.isRequired,
+};

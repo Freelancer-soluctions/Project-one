@@ -4,29 +4,29 @@ import {
   useReactTable,
   getFilteredRowModel,
   getSortedRowModel,
-  getPaginationRowModel
-} from '@tanstack/react-table'
+  getPaginationRowModel,
+} from '@tanstack/react-table';
 import {
   Table,
   TableBody,
   TableCell,
   TableHead,
   TableHeader,
-  TableRow
-} from '@/components/ui/table'
+  TableRow,
+} from '@/components/ui/table';
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
-  TooltipTrigger
-} from '@/components/ui/tooltip'
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 
-import { Filter } from './Filter'
-import { Pagination } from './Pagination'
-import { useState } from 'react'
-import { CaretSortIcon } from '@radix-ui/react-icons'
-import { MdOutlineArrowDropDown, MdOutlineArrowDropUp } from 'react-icons/md'
-import PropTypes from 'prop-types'
+import { Filter } from './Filter';
+import { Pagination } from './Pagination';
+import { useState } from 'react';
+import { CaretSortIcon } from '@radix-ui/react-icons';
+import { MdOutlineArrowDropDown, MdOutlineArrowDropUp } from 'react-icons/md';
+import PropTypes from 'prop-types';
 
 export const DataTable = ({
   columns,
@@ -34,10 +34,10 @@ export const DataTable = ({
   totalRows,
   handleRow,
   pagination,
-  onPaginationChange
+  onPaginationChange,
 }) => {
-  const [columnFilters, setColumnFilters] = useState([]) //column filters
-  const [sorting, setSorting] = useState([]) //sorting
+  const [columnFilters, setColumnFilters] = useState([]); //column filters
+  const [sorting, setSorting] = useState([]); //sorting
   // se translada al componente contenedor (Page) para cumplir con el envio de limit y page cumpliendo con A03 OWASP INJECTION
   // const [pagination, setPagination] = useState({
   //   pageIndex: 0,
@@ -70,23 +70,23 @@ export const DataTable = ({
     state: {
       columnFilters, //column filters
       sorting, // sorting
-      pagination // pagination
-    }
-  })
+      pagination, // pagination
+    },
+  });
 
-  const handleDataRow = row => {
-    handleRow(row.original)
-  }
+  const handleDataRow = (row) => {
+    handleRow(row.original);
+  };
 
   return (
-    <div className='flex-1 max-w-full max-h-[50vh] '>
-      <Table className='overflow-auto rounded-lg'>
+    <div className="flex-1 max-w-full max-h-[50vh] ">
+      <Table className="overflow-auto rounded-lg">
         <TableHeader>
-          {table.getHeaderGroups().map(headerGroup => (
+          {table.getHeaderGroups().map((headerGroup) => (
             <TableRow key={headerGroup.id}>
-              {headerGroup.headers.map(header => {
+              {headerGroup.headers.map((header) => {
                 return (
-                  <TableHead key={header.id} className='p-3 border '>
+                  <TableHead key={header.id} className="p-3 border ">
                     {/* {header.isPlaceholder
                           ? null
                           : flexRender(
@@ -110,27 +110,28 @@ export const DataTable = ({
                         className: header.column.getCanSort()
                           ? 'cursor-pointer select-none text-center'
                           : '',
-                        onClick: header.column.getToggleSortingHandler()
-                      }}>
+                        onClick: header.column.getToggleSortingHandler(),
+                      }}
+                    >
                       {flexRender(
                         header.column.columnDef.header,
                         header.getContext()
                       )}
                       {{
-                        asc: <MdOutlineArrowDropUp className='inline-block' />,
+                        asc: <MdOutlineArrowDropUp className="inline-block" />,
                         desc: (
-                          <MdOutlineArrowDropDown className='inline-block' />
+                          <MdOutlineArrowDropDown className="inline-block" />
                         ),
-                        false: <CaretSortIcon className='inline-block' />
+                        false: <CaretSortIcon className="inline-block" />,
                       }[header.column.getIsSorted()] ?? null}
                     </div>
                     {header.column.getCanFilter() ? (
-                      <div className='pt-2 '>
+                      <div className="pt-2 ">
                         <Filter column={header.column} table={table} />
                       </div>
                     ) : null}
                   </TableHead>
-                )
+                );
               })}
             </TableRow>
           ))}
@@ -138,18 +139,20 @@ export const DataTable = ({
 
         <TableBody>
           {table.getRowModel().rows?.length ? (
-            table.getRowModel().rows.map(row => (
+            table.getRowModel().rows.map((row) => (
               <TableRow
                 key={row.id}
-                className=''
-                data-state={row.getIsSelected() && 'selected'}>
-                {row.getVisibleCells().map(cell => (
+                className=""
+                data-state={row.getIsSelected() && 'selected'}
+              >
+                {row.getVisibleCells().map((cell) => (
                   <TableCell
                     key={cell.id}
-                    className='p-2 text-center border cursor-pointer select-none '
+                    className="p-2 text-center border cursor-pointer select-none "
                     onClick={() => {
-                      handleDataRow(row)
-                    }}>
+                      handleDataRow(row);
+                    }}
+                  >
                     {renderCellWithTooltip(cell)}
                     {/* {flexRender(cell.column.columnDef.cell, cell.getContext())} */}
                   </TableCell>
@@ -160,7 +163,8 @@ export const DataTable = ({
             <TableRow>
               <TableCell
                 colSpan={columns.length}
-                className='h-full text-center'>
+                className="h-full text-center"
+              >
                 No results.
               </TableCell>
             </TableRow>
@@ -171,33 +175,33 @@ export const DataTable = ({
       <Pagination table={table} />
       {/* <pre>{JSON.stringify(table.getState().pagination, null, 2)}</pre> */}
     </div>
-  )
-}
+  );
+};
 
 DataTable.propTypes = {
   columns: PropTypes.array.isRequired,
   data: PropTypes.array,
   totalRows: PropTypes.number,
-  handleRow: PropTypes.func
-}
+  handleRow: PropTypes.func,
+};
 
 // Helper function to render cell content with tooltip
-const renderCellWithTooltip = cell => {
-  const content = flexRender(cell.column.columnDef.cell, cell.getContext())
+const renderCellWithTooltip = (cell) => {
+  const content = flexRender(cell.column.columnDef.cell, cell.getContext());
 
   return (
     <TooltipProvider>
       <Tooltip>
         <TooltipTrigger asChild>
-          <div className='truncate'>{content}</div>
+          <div className="truncate">{content}</div>
         </TooltipTrigger>
         <TooltipContent>
-          <p className='max-w-xs break-words'>{content}</p>
+          <p className="max-w-xs break-words">{content}</p>
         </TooltipContent>
       </Tooltip>
     </TooltipProvider>
-  )
-}
+  );
+};
 renderCellWithTooltip.propTypes = {
-  cell: PropTypes.object.isRequired
-}
+  cell: PropTypes.object.isRequired,
+};

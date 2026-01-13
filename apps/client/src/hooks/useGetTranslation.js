@@ -1,6 +1,6 @@
-import { useGetSettingLanguageByIdQuery } from '@/modules/settings/slice/settingsSlice'
+import { useGetSettingLanguageByIdQuery } from '@/modules/settings/slice/settingsSlice';
 
-export const useGetTranslation = userId => {
+export const useGetTranslation = (userId) => {
   const {
     data: response,
     isError,
@@ -8,7 +8,15 @@ export const useGetTranslation = userId => {
     isFetching,
     isSuccess,
     error,
-    refetch
-  } = useGetSettingLanguageByIdQuery(userId)
-  return { response, isError, isLoading, isFetching, isSuccess, error, refetch }
-}
+    refetch,
+  } = useGetSettingLanguageByIdQuery(userId);
+  return {
+    response,
+    isError,
+    isLoading,
+    isFetching,
+    isSuccess,
+    error,
+    refetch,
+  };
+};

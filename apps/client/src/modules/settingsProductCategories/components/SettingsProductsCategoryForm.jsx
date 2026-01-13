@@ -1,59 +1,63 @@
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { useTranslation } from 'react-i18next'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useTranslation } from 'react-i18next';
 import {
   useUpdateCategoryByIdMutation,
   useCreateCategoryMutation,
-  useDeleteCategoryByIdMutation
-} from '../api/SettingsProductCategoriesAPI'
-import { Spinner } from '@/components/loader/Spinner'
-import { SettingsProductCategoriesBasicInfo } from './SettingsProductCategoriesBasicInfo'
-import AlertDialogComponent from '@/components/alertDialog/AlertDialog'
-import { useState } from 'react'
-import PropTypes from 'prop-types'
+  useDeleteCategoryByIdMutation,
+} from '../api/SettingsProductCategoriesAPI';
+import { Spinner } from '@/components/loader/Spinner';
+import { SettingsProductCategoriesBasicInfo } from './SettingsProductCategoriesBasicInfo';
+import AlertDialogComponent from '@/components/alertDialog/AlertDialog';
+import { useState } from 'react';
+import PropTypes from 'prop-types';
 
 export function SettingsProductsCategoryForm({ onClose, selectedRow }) {
-  const { t } = useTranslation()
-  const [openAlertDialog, setOpenAlertDialog] = useState(false) //alert dialog open/close
-  const [alertProps, setAlertProps] = useState({})
+  const { t } = useTranslation();
+  const [openAlertDialog, setOpenAlertDialog] = useState(false); //alert dialog open/close
+  const [alertProps, setAlertProps] = useState({});
 
   const [
     updateCategoryById,
-    { isLoading: isLoadingPut, isError: isErrorPut, isSuccess: isSuccessPut }
-  ] = useUpdateCategoryByIdMutation()
+    { isLoading: isLoadingPut, isError: isErrorPut, isSuccess: isSuccessPut },
+  ] = useUpdateCategoryByIdMutation();
 
   const [
     createCategory,
-    { isLoading: isLoadingPost, isError: isErrorPost, isSuccess: isSuccessPost }
-  ] = useCreateCategoryMutation()
+    {
+      isLoading: isLoadingPost,
+      isError: isErrorPost,
+      isSuccess: isSuccessPost,
+    },
+  ] = useCreateCategoryMutation();
 
   const [
     deleteCategoryById,
     {
       isLoading: isLoadingDelete,
       isError: isErrorDelete,
-      isSuccess: isSuccessDelete
-    }
-  ] = useDeleteCategoryByIdMutation()
+      isSuccess: isSuccessDelete,
+    },
+  ] = useDeleteCategoryByIdMutation();
 
-  const handleSubmitCreateEdit = async data => {
-    if (!data) return
+  const handleSubmitCreateEdit = async (data) => {
+    if (!data) return;
 
     if (data.id) {
       await updateCategoryById({
         id: data.id,
         data: {
           description: data.description,
-          code: data.code
-        }
-      }).unwrap()
+          code: data.code,
+        },
+      }).unwrap();
     } else {
       await createCategory({
         description: data.description,
-        code: data.code
-      }).unwrap()
+        code: data.code,
+      }).unwrap();
     }
 
-    setOpenAlertDialog(true)
+    setOpenAlertDialog(true);
     setAlertProps({
       alertTitle: data.id ? t('update_record') : t('add_record'),
       alertMessage: data.id
@@ -62,14 +66,14 @@ export function SettingsProductsCategoryForm({ onClose, selectedRow }) {
       cancel: false,
       success: true,
       onSuccess: () => {
-        onClose()
+        onClose();
       },
-      variantSuccess: 'info'
-    })
-  }
+      variantSuccess: 'info',
+    });
+  };
 
-  const handleDeleteProductById = async id => {
-    if (!id) return
+  const handleDeleteProductById = async (id) => {
+    if (!id) return;
     try {
       setAlertProps({
         alertTitle: t('delete_record'),
@@ -82,7 +86,7 @@ export function SettingsProductsCategoryForm({ onClose, selectedRow }) {
         onSuccess: () => {},
         onDelete: async () => {
           try {
-            await deleteCategoryById(id).unwrap()
+            await deleteCategoryById(id).unwrap();
 
             setAlertProps({
               alertTitle: '',
@@ -90,35 +94,35 @@ export function SettingsProductsCategoryForm({ onClose, selectedRow }) {
               cancel: false,
               success: true,
               onSuccess: () => {
-                onClose()
+                onClose();
               },
-              variantSuccess: 'info'
-            })
-            setOpenAlertDialog(true) // Open alert dialog
+              variantSuccess: 'info',
+            });
+            setOpenAlertDialog(true); // Open alert dialog
           } catch (err) {
-            console.error('Error deleting:', err)
+            console.error('Error deleting:', err);
           }
-        }
-      })
-      setOpenAlertDialog(true)
+        },
+      });
+      setOpenAlertDialog(true);
     } catch (err) {
-      console.error('Error deleting:', err)
+      console.error('Error deleting:', err);
     }
-  }
+  };
 
   return (
     <>
-      <div className='relative'>
+      <div className="relative">
         {(isLoadingPost || isLoadingPut || isLoadingDelete) && <Spinner />}
 
-        <div className='container flex flex-col min-h-screen'>
-          <main className='container flex-1 py-6'>
-            <Tabs defaultValue='info' className='mb-6'>
-              <TabsList className='grid w-full grid-cols-1'>
-                <TabsTrigger value='info'>{t('basic_information')}</TabsTrigger>
+        <div className="container flex flex-col min-h-screen">
+          <main className="container flex-1 py-6">
+            <Tabs defaultValue="info" className="mb-6">
+              <TabsList className="grid w-full grid-cols-1">
+                <TabsTrigger value="info">{t('basic_information')}</TabsTrigger>
               </TabsList>
 
-              <TabsContent value='info' className='mt-4'>
+              <TabsContent value="info" className="mt-4">
                 <SettingsProductCategoriesBasicInfo
                   onSubmitCreateEdit={handleSubmitCreateEdit}
                   onDelete={handleDeleteProductById}
@@ -136,10 +140,10 @@ export function SettingsProductsCategoryForm({ onClose, selectedRow }) {
         </div>
       </div>
     </>
-  )
+  );
 }
 
 SettingsProductsCategoryForm.propTypes = {
   onClose: PropTypes.func.isRequired,
-  selectedRow: PropTypes.object.isRequired
-}
+  selectedRow: PropTypes.object.isRequired,
+};

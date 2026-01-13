@@ -1,7 +1,7 @@
-import { useEffect } from 'react'
-import { useForm } from 'react-hook-form'
-import { useTranslation } from 'react-i18next'
-import { zodResolver } from '@hookform/resolvers/zod'
+import { useEffect } from 'react';
+import { useForm } from 'react-hook-form';
+import { useTranslation } from 'react-i18next';
+import { zodResolver } from '@hookform/resolvers/zod';
 import {
   Dialog,
   DialogContent,
@@ -9,30 +9,30 @@ import {
   DialogTitle,
   DialogDescription,
   DialogFooter,
-  DialogClose
-} from '@/components/ui/dialog'
+  DialogClose,
+} from '@/components/ui/dialog';
 import {
   Form,
   FormControl,
   FormField,
   FormItem,
   FormLabel,
-  FormMessage
-} from '@/components/ui/form'
-import { Input } from '@/components/ui/input'
-import { Button } from '@/components/ui/button'
-import { LuUsersRound } from 'react-icons/lu'
-import PropTypes from 'prop-types'
-import { ClientOrderSchema } from '../utils'
-import { useState } from 'react'
-import { orderStatus } from '@/lib/constants'
+  FormMessage,
+} from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { LuUsersRound } from 'react-icons/lu';
+import PropTypes from 'prop-types';
+import { ClientOrderSchema } from '../utils';
+import { useState } from 'react';
+import { orderStatus } from '@/lib/constants';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue
-} from '@/components/ui/select'
+  SelectValue,
+} from '@/components/ui/select';
 
 export const ClientOrderDialog = ({
   openDialog,
@@ -40,10 +40,10 @@ export const ClientOrderDialog = ({
   selectedRow,
   onSubmit,
   onDeleteById,
-  actionDialog
+  actionDialog,
 }) => {
-  const { t } = useTranslation()
-  const [clientOrderId, setClientOrderId] = useState('')
+  const { t } = useTranslation();
+  const [clientOrderId, setClientOrderId] = useState('');
 
   const form = useForm({
     resolver: zodResolver(ClientOrderSchema),
@@ -51,9 +51,9 @@ export const ClientOrderDialog = ({
       clientId: '',
       status: '',
       notes: '',
-      saleId: ''
-    }
-  })
+      saleId: '',
+    },
+  });
 
   // Actualiza todos los valores del formulario al cambiar `selectedRow`
   useEffect(() => {
@@ -64,11 +64,11 @@ export const ClientOrderDialog = ({
         clientId: selectedRow.clientId,
         status: selectedRow.status,
         notes: selectedRow.notes,
-        saleId: selectedRow.saleId
-      }
+        saleId: selectedRow.saleId,
+      };
 
-      form.reset(mappedValues)
-      setClientOrderId(mappedValues.id)
+      form.reset(mappedValues);
+      setClientOrderId(mappedValues.id);
     }
 
     if (!openDialog) {
@@ -76,26 +76,26 @@ export const ClientOrderDialog = ({
         clientId: '',
         status: '',
         notes: '',
-        saleId: ''
-      })
-      setClientOrderId(null)
+        saleId: '',
+      });
+      setClientOrderId(null);
     }
-  }, [selectedRow, openDialog])
+  }, [selectedRow, openDialog]);
 
-  const handleSubmit = data => {
-    onSubmit(data, clientOrderId)
-  }
+  const handleSubmit = (data) => {
+    onSubmit(data, clientOrderId);
+  };
 
   const handleDelete = () => {
-    onDeleteById(selectedRow.id)
-  }
+    onDeleteById(selectedRow.id);
+  };
 
   return (
     <Dialog open={openDialog} onOpenChange={onCloseDialog}>
-      <DialogContent className='sm:max-w-[600px]'>
+      <DialogContent className="sm:max-w-[600px]">
         <DialogHeader>
-          <DialogTitle className='flex items-center gap-2'>
-            <LuUsersRound className='inline mr-3 w-7 h-7' />
+          <DialogTitle className="flex items-center gap-2">
+            <LuUsersRound className="inline mr-3 w-7 h-7" />
             {actionDialog}
           </DialogTitle>
           <DialogDescription>
@@ -104,53 +104,55 @@ export const ClientOrderDialog = ({
         </DialogHeader>
         <Form {...form}>
           <form
-            method='post'
-            action=''
-            id='clientOrder-form'
+            method="post"
+            action=""
+            id="clientOrder-form"
             noValidate
             onSubmit={form.handleSubmit(handleSubmit)}
-            className='flex flex-col flex-wrap gap-5'>
-            <div className='grid grid-cols-2 gap-6 py-4 auto-rows-auto'>
+            className="flex flex-col flex-wrap gap-5"
+          >
+            <div className="grid grid-cols-2 gap-6 py-4 auto-rows-auto">
               <FormField
                 control={form.control}
-                name='clientId'
+                name="clientId"
                 render={({ field }) => {
                   return (
                     <FormItem>
-                      <FormLabel htmlFor='clientId'>{t('clientId')}*</FormLabel>
+                      <FormLabel htmlFor="clientId">{t('clientId')}*</FormLabel>
                       <FormControl>
                         <Input
-                          id='clientId'
-                          name='clientId'
+                          id="clientId"
+                          name="clientId"
                           placeholder={t('clientOrder_clientId_placeholder')}
-                          type='number'
-                          autoComplete='off'
+                          type="number"
+                          autoComplete="off"
                           {...field}
                           value={field.value ?? ''}
                         />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
-                  )
+                  );
                 }}
               />
 
               <FormField
                 control={form.control}
-                name='status'
+                name="status"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel htmlFor='status'>{t('status')}</FormLabel>
+                    <FormLabel htmlFor="status">{t('status')}</FormLabel>
                     <Select
                       onValueChange={field.onChange}
-                      defaultValue={field.value}>
+                      defaultValue={field.value}
+                    >
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder={t('Select a status')} />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {orderStatus.map(status => (
+                        {orderStatus.map((status) => (
                           <SelectItem key={status.value} value={status.value}>
                             {status.label}
                           </SelectItem>
@@ -164,77 +166,80 @@ export const ClientOrderDialog = ({
 
               <FormField
                 control={form.control}
-                name='notes'
+                name="notes"
                 render={({ field }) => {
                   return (
                     <FormItem>
-                      <FormLabel htmlFor='notes'>{t('notes')}</FormLabel>
+                      <FormLabel htmlFor="notes">{t('notes')}</FormLabel>
                       <FormControl>
                         <Input
-                          id='notes'
-                          name='notes'
+                          id="notes"
+                          name="notes"
                           placeholder={t('clientOrder_notes_placeholder')}
-                          type='text'
-                          autoComplete='off'
+                          type="text"
+                          autoComplete="off"
                           {...field}
                           value={field.value ?? ''}
                         />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
-                  )
+                  );
                 }}
               />
 
               <FormField
                 control={form.control}
-                name='saleId'
+                name="saleId"
                 render={({ field }) => {
                   return (
                     <FormItem>
-                      <FormLabel htmlFor='saleId'>{t('saleId')}</FormLabel>
+                      <FormLabel htmlFor="saleId">{t('saleId')}</FormLabel>
                       <FormControl>
                         <Input
-                          id='saleId'
-                          name='saleId'
+                          id="saleId"
+                          name="saleId"
                           placeholder={t('clientOrder_saleId_placeholder')}
-                          type='number'
-                          autoComplete='off'
+                          type="number"
+                          autoComplete="off"
                           {...field}
                           value={field.value ?? ''}
                         />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
-                  )
+                  );
                 }}
               />
             </div>
             <DialogFooter>
               <DialogClose asChild>
                 <Button
-                  type='button'
-                  variant='secondary'
-                  className='flex-1 md:flex-initial md:w-24'>
+                  type="button"
+                  variant="secondary"
+                  className="flex-1 md:flex-initial md:w-24"
+                >
                   {t('cancel')}
                 </Button>
               </DialogClose>
 
               {clientOrderId && (
                 <Button
-                  type='button'
-                  variant='destructive'
-                  className='flex-1 md:flex-initial md:w-24'
+                  type="button"
+                  variant="destructive"
+                  className="flex-1 md:flex-initial md:w-24"
                   onClick={() => {
-                    handleDelete()
-                  }}>
+                    handleDelete();
+                  }}
+                >
                   {t('delete')}
                 </Button>
               )}
               <Button
-                type='submit'
-                variant='info'
-                className='flex-1 md:flex-initial md:w-24'>
+                type="submit"
+                variant="info"
+                className="flex-1 md:flex-initial md:w-24"
+              >
                 {clientOrderId ? t('update') : t('save')}
               </Button>
             </DialogFooter>
@@ -242,8 +247,8 @@ export const ClientOrderDialog = ({
         </Form>
       </DialogContent>
     </Dialog>
-  )
-}
+  );
+};
 
 ClientOrderDialog.propTypes = {
   openDialog: PropTypes.bool.isRequired,
@@ -251,5 +256,5 @@ ClientOrderDialog.propTypes = {
   selectedRow: PropTypes.object,
   onSubmit: PropTypes.func.isRequired,
   onDeleteById: PropTypes.func.isRequired,
-  actionDialog: PropTypes.string.isRequired
-}
+  actionDialog: PropTypes.string.isRequired,
+};

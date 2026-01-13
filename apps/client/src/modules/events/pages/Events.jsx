@@ -1,24 +1,24 @@
-import { useState, useMemo } from 'react'
-import { useTranslation } from 'react-i18next'
-import { EventDialog, EventList, EventFiltersForm } from '../components'
-import AlertDialogComponent from '@/components/alertDialog/AlertDialog'
-import { BackDashBoard } from '@/components/backDash/BackDashBoard'
-import { Spinner } from '@/components/loader/Spinner'
+import { useState, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
+import { EventDialog, EventList, EventFiltersForm } from '../components';
+import AlertDialogComponent from '@/components/alertDialog/AlertDialog';
+import { BackDashBoard } from '@/components/backDash/BackDashBoard';
+import { Spinner } from '@/components/loader/Spinner';
 import {
   useCreateEventMutation,
   useGetAllEventTypesQuery,
   useGetAllEventsQuery,
   useUpdateEventByIdMutation,
-  useDeleteEventByIdMutation
-} from '../api/eventsAPI'
+  useDeleteEventByIdMutation,
+} from '../api/eventsAPI';
 
 export default function Events() {
-  const { t } = useTranslation()
-  const [isDialogOpen, setIsDialogOpen] = useState(false)
-  const [searchQuery, setSearchQuery] = useState('')
-  const [event, setEvent] = useState({})
-  const [alertProps, setAlertProps] = useState({})
-  const [openAlertDialog, setOpenAlertDialog] = useState(false) //alert dialog open/close
+  const { t } = useTranslation();
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [event, setEvent] = useState({});
+  const [alertProps, setAlertProps] = useState({});
+  const [openAlertDialog, setOpenAlertDialog] = useState(false); //alert dialog open/close
 
   const [
     createEvent,
@@ -26,9 +26,9 @@ export default function Events() {
       isLoading: isLoadingPost,
       isError: isErrorPost,
       isSuccess: isSuccessPost,
-      error: errorPost
-    }
-  ] = useCreateEventMutation()
+      error: errorPost,
+    },
+  ] = useCreateEventMutation();
 
   const [
     updateEvent,
@@ -36,18 +36,18 @@ export default function Events() {
       isLoading: isLoadingPut,
       isError: isErrorPut,
       isSuccess: isSuccessPut,
-      error: errorPut
-    }
-  ] = useUpdateEventByIdMutation()
+      error: errorPut,
+    },
+  ] = useUpdateEventByIdMutation();
   const [
     deleteEventById,
     {
       isLoading: isLoadingDelete,
       isError: isErrorDelete,
       isSuccess: isSuccessDelete,
-      error: errorDelete
-    }
-  ] = useDeleteEventByIdMutation()
+      error: errorDelete,
+    },
+  ] = useDeleteEventByIdMutation();
 
   const {
     data: dataTypes = { data: [] },
@@ -55,8 +55,8 @@ export default function Events() {
     isError: isErrorTypes,
     isSuccess: isSuccessTypes,
     isFetching: isFetchingTypes,
-    error: errorTypes
-  } = useGetAllEventTypesQuery()
+    error: errorTypes,
+  } = useGetAllEventTypesQuery();
 
   const {
     data: dataEvents = { data: [] },
@@ -64,10 +64,10 @@ export default function Events() {
     isError: isErrorEvents,
     isSuccess: isSuccessEvents,
     isFetching: isFetchingEvents,
-    error: errorEvents
-  } = useGetAllEventsQuery(searchQuery)
+    error: errorEvents,
+  } = useGetAllEventsQuery(searchQuery);
 
-  const handleAddEvent = async data => {
+  const handleAddEvent = async (data) => {
     data.id
       ? await updateEvent({
           id: data.id,
@@ -78,8 +78,8 @@ export default function Events() {
             type: data.type,
             eventDate: data.eventDate,
             startTime: data.startTime,
-            endTime: data.endTime
-          }
+            endTime: data.endTime,
+          },
         }).unwrap()
       : await createEvent({
           title: data.title,
@@ -88,8 +88,8 @@ export default function Events() {
           type: data.type,
           eventDate: data.eventDate,
           startTime: data.startTime,
-          endTime: data.endTime
-        }).unwrap()
+          endTime: data.endTime,
+        }).unwrap();
 
     setAlertProps({
       alertTitle: t(data.id ? 'update_record' : 'add_record'),
@@ -97,18 +97,18 @@ export default function Events() {
       cancel: false,
       success: true,
       onSuccess: () => {},
-      variantSuccess: 'info'
-    })
-    setOpenAlertDialog(true)
-    setIsDialogOpen(false)
-  }
+      variantSuccess: 'info',
+    });
+    setOpenAlertDialog(true);
+    setIsDialogOpen(false);
+  };
 
-  const handleEditEvent = updatedEvent => {
-    setEvent(updatedEvent)
-    setIsDialogOpen(true)
-  }
+  const handleEditEvent = (updatedEvent) => {
+    setEvent(updatedEvent);
+    setIsDialogOpen(true);
+  };
 
-  const handleDeleteEvent = async id => {
+  const handleDeleteEvent = async (id) => {
     setAlertProps({
       alertTitle: t('delete_record'),
       alertMessage: t('request_delete_record'),
@@ -120,7 +120,7 @@ export default function Events() {
       onSuccess: () => {},
       onDelete: async () => {
         try {
-          await deleteEventById(id).unwrap()
+          await deleteEventById(id).unwrap();
 
           setAlertProps({
             alertTitle: '',
@@ -128,21 +128,21 @@ export default function Events() {
             cancel: false,
             success: true,
             onSuccess: () => {},
-            variantSuccess: 'info'
-          })
-          setOpenAlertDialog(true) // Open alert dialog
+            variantSuccess: 'info',
+          });
+          setOpenAlertDialog(true); // Open alert dialog
         } catch (err) {
-          console.error('Error deleting:', err)
+          console.error('Error deleting:', err);
         }
-      }
-    })
-    setOpenAlertDialog(true)
-  }
+      },
+    });
+    setOpenAlertDialog(true);
+  };
 
   return (
     <>
       <BackDashBoard link={'/home'} moduleName={t('events')} />
-      <div className='relative flex flex-col h-screen'>
+      <div className="relative flex flex-col h-screen">
         {/* Show spinner when loading or fetching */}
         {(isLoadingEvents ||
           isLoadingPost ||
@@ -159,7 +159,7 @@ export default function Events() {
           setEvent={setEvent}
         />
         {/* Contenedor con scroll */}
-        <div className='flex-1 p-4 overflow-y-auto sm:p-6'>
+        <div className="flex-1 p-4 overflow-y-auto sm:p-6">
           <EventList
             events={dataEvents.data}
             onEdit={handleEditEvent}
@@ -182,5 +182,5 @@ export default function Events() {
         />
       </div>
     </>
-  )
+  );
 }

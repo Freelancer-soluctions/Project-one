@@ -1,18 +1,18 @@
-import React from 'react'
-import { Separator } from '@/components/ui/separator'
+import React from 'react';
+import { Separator } from '@/components/ui/separator';
 
 export default {
   title: 'UI/Separator',
   component: Separator,
   parameters: {
-    layout: 'centered'
-  }
-}
+    layout: 'centered',
+  },
+};
 
 export const DefaultSeparator = () => (
-  <div className='flex flex-col items-center space-y-4'>
+  <div className="flex flex-col items-center space-y-4">
     <div>Contenido arriba</div>
-    <Separator className='my-2' />
+    <Separator className="my-2" />
     <div>Contenido abajo</div>
   </div>
-)
+);

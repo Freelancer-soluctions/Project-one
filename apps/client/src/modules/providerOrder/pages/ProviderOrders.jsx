@@ -1,60 +1,51 @@
 import {
   ProviderOrdersFiltersForm,
   ProviderOrdersDialog,
-  ProviderOrdersDatatable
-} from '../components'
-import { BackDashBoard } from '@/components/backDash/BackDashBoard'
-import { useTranslation } from 'react-i18next'
-import { useState } from 'react'
+  ProviderOrdersDatatable,
+} from '../components';
+import { BackDashBoard } from '@/components/backDash/BackDashBoard';
+import { useTranslation } from 'react-i18next';
+import { useState } from 'react';
 import {
   useLazyGetAllProviderOrdersQuery,
   useUpdateProviderOrderByIdMutation,
   useCreateProviderOrderMutation,
-  useDeleteProviderOrderByIdMutation
-} from '../api/providerOrderApi'
-import AlertDialogComponent from '@/components/alertDialog/AlertDialog'
-import { Spinner } from '@/components/loader/Spinner'
+  useDeleteProviderOrderByIdMutation,
+} from '../api/providerOrderApi';
+import AlertDialogComponent from '@/components/alertDialog/AlertDialog';
+import { Spinner } from '@/components/loader/Spinner';
 
 const ProviderOrders = () => {
-  const { t } = useTranslation()
-  const [selectedRow, setSelectedRow] = useState({})
-  const [openDialog, setOpenDialog] = useState(false)
-  const [openAlertDialog, setOpenAlertDialog] = useState(false)
-  const [alertProps, setAlertProps] = useState({})
-  const [actionDialog, setActionDialog] = useState('')
+  const { t } = useTranslation();
+  const [selectedRow, setSelectedRow] = useState({});
+  const [openDialog, setOpenDialog] = useState(false);
+  const [openAlertDialog, setOpenAlertDialog] = useState(false);
+  const [alertProps, setAlertProps] = useState({});
+  const [actionDialog, setActionDialog] = useState('');
 
   const [
     getAllProviderOrders,
     {
       data: dataProviderOrders = { data: [] },
       isLoading: isLoadingProviderOrders,
-      isFetching: isFetchingProviderOrders
-    }
-  ] = useLazyGetAllProviderOrdersQuery()
+      isFetching: isFetchingProviderOrders,
+    },
+  ] = useLazyGetAllProviderOrdersQuery();
 
-  const [
-    updateProviderOrderById,
-    { isLoading: isLoadingPut  }
-  ] = useUpdateProviderOrderByIdMutation()
+  const [updateProviderOrderById, { isLoading: isLoadingPut }] =
+    useUpdateProviderOrderByIdMutation();
 
-  const [
-    createProviderOrder,
-    { isLoading: isLoadingPost}
-  ] = useCreateProviderOrderMutation()
+  const [createProviderOrder, { isLoading: isLoadingPost }] =
+    useCreateProviderOrderMutation();
 
-  const [
-    deleteProviderOrderById,
-    {
-      isLoading: isLoadingDelete,
+  const [deleteProviderOrderById, { isLoading: isLoadingDelete }] =
+    useDeleteProviderOrderByIdMutation();
 
-    }
-  ] = useDeleteProviderOrderByIdMutation()
-
-  const handleSubmitFilters = data => {
+  const handleSubmitFilters = (data) => {
     getAllProviderOrders({
-      ...data
-    })
-  }
+      ...data,
+    });
+  };
 
   const handleSubmit = async (values, providerOrderId) => {
     try {
@@ -63,13 +54,13 @@ const ProviderOrders = () => {
             id: providerOrderId,
             data: {
               supplierId: values.supplierId,
-              notes: values.notes
-            }
+              notes: values.notes,
+            },
           }).unwrap()
         : await createProviderOrder({
             supplierId: values.supplierId,
-            notes: values.notes
-          }).unwrap()
+            notes: values.notes,
+          }).unwrap();
 
       setAlertProps({
         alertTitle: t(providerOrderId ? 'update_record' : 'add_record'),
@@ -79,33 +70,33 @@ const ProviderOrders = () => {
         cancel: false,
         success: true,
         onSuccess: () => {
-          setOpenDialog(false)
+          setOpenDialog(false);
         },
-        variantSuccess: 'info'
-      })
-      setOpenAlertDialog(true)
+        variantSuccess: 'info',
+      });
+      setOpenAlertDialog(true);
     } catch (err) {
-      console.error('Error:', err)
+      console.error('Error:', err);
     }
-  }
+  };
 
   const handleAddDialog = () => {
-    setActionDialog(t('add_provider_order'))
-    setOpenDialog(true)
-  }
+    setActionDialog(t('add_provider_order'));
+    setOpenDialog(true);
+  };
 
-  const handleEditDialog = row => {
-    setActionDialog(t('edit_provider_order'))
-    setOpenDialog(true)
-    setSelectedRow(row)
-  }
+  const handleEditDialog = (row) => {
+    setActionDialog(t('edit_provider_order'));
+    setOpenDialog(true);
+    setSelectedRow(row);
+  };
 
   const handleCloseDialog = () => {
-    setSelectedRow({})
-    setOpenDialog(false)
-  }
+    setSelectedRow({});
+    setOpenDialog(false);
+  };
 
-  const handleDelete = async id => {
+  const handleDelete = async (id) => {
     try {
       setAlertProps({
         alertTitle: t('delete_record'),
@@ -118,7 +109,7 @@ const ProviderOrders = () => {
         onSuccess: () => {},
         onDelete: async () => {
           try {
-            await deleteProviderOrderById(id).unwrap()
+            await deleteProviderOrderById(id).unwrap();
 
             setAlertProps({
               alertTitle: '',
@@ -126,26 +117,26 @@ const ProviderOrders = () => {
               cancel: false,
               success: true,
               onSuccess: () => {
-                setOpenDialog(false)
+                setOpenDialog(false);
               },
-              variantSuccess: 'info'
-            })
-            setOpenAlertDialog(true)
+              variantSuccess: 'info',
+            });
+            setOpenAlertDialog(true);
           } catch (err) {
-            console.error('Error deleting:', err)
+            console.error('Error deleting:', err);
           }
-        }
-      })
-      setOpenAlertDialog(true)
+        },
+      });
+      setOpenAlertDialog(true);
     } catch (err) {
-      console.error('Error deleting:', err)
+      console.error('Error deleting:', err);
     }
-  }
+  };
 
   return (
     <>
       <BackDashBoard link={'/home'} moduleName={t('provider_orders')} />
-      <div className='relative'>
+      <div className="relative">
         {/* Show spinner when loading or fetching */}
         {(isLoadingProviderOrders ||
           isLoadingPut ||
@@ -153,16 +144,16 @@ const ProviderOrders = () => {
           isLoadingDelete ||
           isFetchingProviderOrders) && <Spinner />}
 
-        <div className='grid grid-cols-2 grid-rows-4 gap-4 md:grid-cols-5'>
+        <div className="grid grid-cols-2 grid-rows-4 gap-4 md:grid-cols-5">
           {/* filters */}
-          <div className='col-span-2 row-span-1 md:col-span-5'>
+          <div className="col-span-2 row-span-1 md:col-span-5">
             <ProviderOrdersFiltersForm
               onSubmit={handleSubmitFilters}
               onAddDialog={handleAddDialog}
             />
           </div>
           {/* Datatable */}
-          <div className='flex flex-wrap w-full col-span-2 row-span-3 row-start-2 md:col-span-5'>
+          <div className="flex flex-wrap w-full col-span-2 row-span-3 row-start-2 md:col-span-5">
             <ProviderOrdersDatatable
               dataProviderOrders={dataProviderOrders}
               onEditDialog={handleEditDialog}
@@ -186,7 +177,7 @@ const ProviderOrders = () => {
         </div>
       </div>
     </>
-  )
-}
+  );
+};
 
-export default ProviderOrders
+export default ProviderOrders;

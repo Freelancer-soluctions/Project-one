@@ -1,11 +1,11 @@
-import { z } from 'zod'
+import { z } from 'zod';
 
 export const StockSchema = z
   .object({
     quantity: z
       .string()
       .min(1, { message: 'Quantity is required.' })
-      .transform(val => Number(val))
+      .transform((val) => Number(val))
       .pipe(
         z
           .number()
@@ -16,7 +16,7 @@ export const StockSchema = z
     minimum: z
       .string()
       .min(1, { message: 'Minimum quantity is required.' })
-      .transform(val => Number(val))
+      .transform((val) => Number(val))
       .pipe(
         z
           .number()
@@ -26,7 +26,7 @@ export const StockSchema = z
     maximum: z
       .string()
       .min(1, { message: 'Maximum quantity is required.' })
-      .transform(val => Number(val))
+      .transform((val) => Number(val))
       .pipe(
         z
           .number()
@@ -42,33 +42,33 @@ export const StockSchema = z
       .string()
       .min(1, { message: 'Unit measure is required.' })
       .refine(
-        val => ['PIECES', 'KILOGRAMS', 'LITERS', 'METERS'].includes(val),
+        (val) => ['PIECES', 'KILOGRAMS', 'LITERS', 'METERS'].includes(val),
         {
-          message: 'Invalid unit measure.'
+          message: 'Invalid unit measure.',
         }
       ),
     expirationDate: z
       .date()
       .nullable()
       .optional()
-      .refine(date => !date || !isNaN(date.getTime()), {
-        message: 'Invalid date'
+      .refine((date) => !date || !isNaN(date.getTime()), {
+        message: 'Invalid date',
       }),
     productId: z
       .string()
       .min(1, { message: 'Product is required.' })
-      .transform(val => Number(val)),
+      .transform((val) => Number(val)),
     warehouseId: z
       .string()
       .min(1, { message: 'Warehouse is required.' })
-      .transform(val => Number(val))
+      .transform((val) => Number(val)),
   })
   .passthrough() // Permite otros campos
-  .refine(data => data.minimum <= data.maximum, {
+  .refine((data) => data.minimum <= data.maximum, {
     message: 'Minimum quantity cannot be greater than maximum quantity',
-    path: ['minimum'] // Esto hará que el error aparezca en el campo minimum
+    path: ['minimum'], // Esto hará que el error aparezca en el campo minimum
   })
-  .refine(data => data.quantity <= data.maximum, {
+  .refine((data) => data.quantity <= data.maximum, {
     message: 'Quantity cannot be greater than maximum quantity',
-    path: ['quantity'] // Esto hará que el error aparezca en el campo minimum
-  })
+    path: ['quantity'], // Esto hará que el error aparezca en el campo minimum
+  });

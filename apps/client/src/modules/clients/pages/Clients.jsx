@@ -1,60 +1,64 @@
 import {
   ClientsFiltersForm,
   ClientsDialog,
-  ClientsDatatable
-} from '../components'
-import { BackDashBoard } from '@/components/backDash/BackDashBoard'
-import { useTranslation } from 'react-i18next'
-import { useState, useEffect } from 'react'
+  ClientsDatatable,
+} from '../components';
+import { BackDashBoard } from '@/components/backDash/BackDashBoard';
+import { useTranslation } from 'react-i18next';
+import { useState, useEffect } from 'react';
 import {
   useLazyGetAllClientsQuery,
   useUpdateClientByIdMutation,
   useCreateClientMutation,
-  useDeleteClientByIdMutation
-} from '../api/clientsApi'
-import AlertDialogComponent from '@/components/alertDialog/AlertDialog'
-import { Spinner } from '@/components/loader/Spinner'
+  useDeleteClientByIdMutation,
+} from '../api/clientsApi';
+import AlertDialogComponent from '@/components/alertDialog/AlertDialog';
+import { Spinner } from '@/components/loader/Spinner';
 
 const Clients = () => {
-  const { t } = useTranslation()
-  const [selectedRow, setSelectedRow] = useState({})
-  const [openDialog, setOpenDialog] = useState(false)
-  const [openAlertDialog, setOpenAlertDialog] = useState(false)
-  const [alertProps, setAlertProps] = useState({})
-  const [actionDialog, setActionDialog] = useState('')
+  const { t } = useTranslation();
+  const [selectedRow, setSelectedRow] = useState({});
+  const [openDialog, setOpenDialog] = useState(false);
+  const [openAlertDialog, setOpenAlertDialog] = useState(false);
+  const [alertProps, setAlertProps] = useState({});
+  const [actionDialog, setActionDialog] = useState('');
   const [pagination, setPagination] = useState({
     pageIndex: 0,
-    pageSize: 20
-  })
-  const [filters, setFilters] = useState({})
+    pageSize: 20,
+  });
+  const [filters, setFilters] = useState({});
 
   const [
     getAllClients,
     {
       data: dataClients = { data: [] },
       isLoading: isLoadingClients,
-      isFetching: isFetchingClients
-    }
-  ] = useLazyGetAllClientsQuery()
+      isFetching: isFetchingClients,
+    },
+  ] = useLazyGetAllClientsQuery();
 
   const [
     updateClientById,
-    { isLoading: isLoadingPut, isError: isErrorPut, isSuccess: isSuccessPut }
-  ] = useUpdateClientByIdMutation()
+    { isLoading: isLoadingPut, isError: isErrorPut, isSuccess: isSuccessPut },
+  ] = useUpdateClientByIdMutation();
 
   const [
     createClient,
-    { isLoading: isLoadingPost, isError: isErrorPost, isSuccess: isSuccessPost }
-  ] = useCreateClientMutation()
+    {
+      isLoading: isLoadingPost,
+      isError: isErrorPost,
+      isSuccess: isSuccessPost,
+    },
+  ] = useCreateClientMutation();
 
   const [
     deleteClientById,
     {
       isLoading: isLoadingDelete,
       isError: isErrorDelete,
-      isSuccess: isSuccessDelete
-    }
-  ] = useDeleteClientByIdMutation()
+      isSuccess: isSuccessDelete,
+    },
+  ] = useDeleteClientByIdMutation();
 
   /**
    * Este efecto es la única fuente de verdad para disparar
@@ -73,9 +77,9 @@ const Clients = () => {
     getAllClients({
       page: pagination.pageIndex + 1,
       limit: pagination.pageSize,
-      ...filters
-    })
-  }, [pagination.pageIndex, pagination.pageSize, filters])
+      ...filters,
+    });
+  }, [pagination.pageIndex, pagination.pageSize, filters]);
 
   /**
    * Al aplicar nuevos filtros:
@@ -86,14 +90,14 @@ const Clients = () => {
    * El cambio de estado dispara el useEffect, manteniendo
    * un flujo reactivo y predecible.
    */
-  const handleSubmitFilters = newFilters => {
-    setPagination(prev => ({
+  const handleSubmitFilters = (newFilters) => {
+    setPagination((prev) => ({
       ...prev,
-      pageIndex: 0
-    }))
+      pageIndex: 0,
+    }));
 
-    setFilters(newFilters)
-  }
+    setFilters(newFilters);
+  };
 
   const handleSubmit = async (values, clientId) => {
     try {
@@ -104,15 +108,15 @@ const Clients = () => {
               name: values.name,
               email: values.email,
               phone: values.phone,
-              address: values.address
-            }
+              address: values.address,
+            },
           }).unwrap()
         : await createClient({
             name: values.name,
             email: values.email,
             phone: values.phone,
-            address: values.address
-          }).unwrap()
+            address: values.address,
+          }).unwrap();
 
       setAlertProps({
         alertTitle: t(clientId ? 'update_record' : 'add_record'),
@@ -122,33 +126,33 @@ const Clients = () => {
         cancel: false,
         success: true,
         onSuccess: () => {
-          setOpenDialog(false)
+          setOpenDialog(false);
         },
-        variantSuccess: 'info'
-      })
-      setOpenAlertDialog(true)
+        variantSuccess: 'info',
+      });
+      setOpenAlertDialog(true);
     } catch (err) {
-      console.error('Error:', err)
+      console.error('Error:', err);
     }
-  }
+  };
 
   const handleAddDialog = () => {
-    setActionDialog(t('add_client'))
-    setOpenDialog(true)
-  }
+    setActionDialog(t('add_client'));
+    setOpenDialog(true);
+  };
 
-  const handleEditDialog = row => {
-    setActionDialog(t('edit_client'))
-    setOpenDialog(true)
-    setSelectedRow(row)
-  }
+  const handleEditDialog = (row) => {
+    setActionDialog(t('edit_client'));
+    setOpenDialog(true);
+    setSelectedRow(row);
+  };
 
   const handleCloseDialog = () => {
-    setSelectedRow({})
-    setOpenDialog(false)
-  }
+    setSelectedRow({});
+    setOpenDialog(false);
+  };
 
-  const handleDelete = async id => {
+  const handleDelete = async (id) => {
     try {
       setAlertProps({
         alertTitle: t('delete_record'),
@@ -161,7 +165,7 @@ const Clients = () => {
         onSuccess: () => {},
         onDelete: async () => {
           try {
-            await deleteClientById(id).unwrap()
+            await deleteClientById(id).unwrap();
 
             setAlertProps({
               alertTitle: '',
@@ -169,26 +173,26 @@ const Clients = () => {
               cancel: false,
               success: true,
               onSuccess: () => {
-                setOpenDialog(false)
+                setOpenDialog(false);
               },
-              variantSuccess: 'info'
-            })
-            setOpenAlertDialog(true)
+              variantSuccess: 'info',
+            });
+            setOpenAlertDialog(true);
           } catch (err) {
-            console.error('Error deleting:', err)
+            console.error('Error deleting:', err);
           }
-        }
-      })
-      setOpenAlertDialog(true)
+        },
+      });
+      setOpenAlertDialog(true);
     } catch (err) {
-      console.error('Error deleting:', err)
+      console.error('Error deleting:', err);
     }
-  }
+  };
 
   return (
     <>
       <BackDashBoard link={'/home'} moduleName={t('clients')} />
-      <div className='relative'>
+      <div className="relative">
         {/* Show spinner when loading or fetching */}
         {(isLoadingClients ||
           isLoadingPut ||
@@ -196,16 +200,16 @@ const Clients = () => {
           isLoadingDelete ||
           isFetchingClients) && <Spinner />}
 
-        <div className='grid grid-cols-2 grid-rows-4 gap-4 md:grid-cols-5'>
+        <div className="grid grid-cols-2 grid-rows-4 gap-4 md:grid-cols-5">
           {/* filters */}
-          <div className='col-span-2 row-span-1 md:col-span-5'>
+          <div className="col-span-2 row-span-1 md:col-span-5">
             <ClientsFiltersForm
               onSubmit={handleSubmitFilters}
               onAddDialog={handleAddDialog}
             />
           </div>
           {/* Datatable */}
-          <div className='flex flex-wrap w-full col-span-2 row-span-3 row-start-2 md:col-span-5'>
+          <div className="flex flex-wrap w-full col-span-2 row-span-3 row-start-2 md:col-span-5">
             <ClientsDatatable
               dataClients={dataClients}
               onEditDialog={handleEditDialog}
@@ -231,7 +235,7 @@ const Clients = () => {
         </div>
       </div>
     </>
-  )
-}
+  );
+};
 
-export default Clients
+export default Clients;

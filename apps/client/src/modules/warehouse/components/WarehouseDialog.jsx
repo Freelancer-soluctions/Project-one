@@ -1,7 +1,7 @@
-import { useEffect, useState } from 'react'
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { WarehouseSchema } from '../utils/index'
+import { useEffect, useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { WarehouseSchema } from '../utils/index';
 
 import {
   Dialog,
@@ -11,37 +11,37 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-  DialogClose
-} from '@/components/ui/dialog'
+  DialogClose,
+} from '@/components/ui/dialog';
 import {
   Form,
   FormControl,
   FormField,
   FormItem,
   FormLabel,
-  FormMessage
-} from '@/components/ui/form'
+  FormMessage,
+} from '@/components/ui/form';
 import {
   Popover,
   PopoverContent,
-  PopoverTrigger
-} from '@/components/ui/popover'
+  PopoverTrigger,
+} from '@/components/ui/popover';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue
-} from '@/components/ui/select'
-import { Input } from '@/components/ui/input'
-import { Button } from '@/components/ui/button'
-import { LuBuilding2 } from 'react-icons/lu'
-import { useTranslation } from 'react-i18next'
-import { cn } from '@/lib/utils'
-import PropTypes from 'prop-types'
-import { CalendarIcon } from '@radix-ui/react-icons'
-import { Calendar } from '@/components/ui/calendar'
-import { format } from 'date-fns'
+  SelectValue,
+} from '@/components/ui/select';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { LuBuilding2 } from 'react-icons/lu';
+import { useTranslation } from 'react-i18next';
+import { cn } from '@/lib/utils';
+import PropTypes from 'prop-types';
+import { CalendarIcon } from '@radix-ui/react-icons';
+import { Calendar } from '@/components/ui/calendar';
+import { format } from 'date-fns';
 
 export const WarehouseDialog = ({
   openDialog,
@@ -50,10 +50,10 @@ export const WarehouseDialog = ({
   dataStatus,
   onSubmit,
   onDeleteById,
-  actionDialog
+  actionDialog,
 }) => {
-  const { t } = useTranslation()
-  const [warehouseId, setWarehouseId] = useState('')
+  const { t } = useTranslation();
+  const [warehouseId, setWarehouseId] = useState('');
 
   // Configura el formulario
   const form = useForm({
@@ -62,9 +62,9 @@ export const WarehouseDialog = ({
       name: '',
       status: '',
       description: '',
-      address: ''
-    }
-  })
+      address: '',
+    },
+  });
 
   // Actualiza todos los valores del formulario al cambiar `selectedRow`
   useEffect(() => {
@@ -77,37 +77,38 @@ export const WarehouseDialog = ({
         description: selectedRow.description || '',
         address: selectedRow.address || '',
         createdOn: selectedRow.createdOn || '',
-        updatedOn: selectedRow.updatedOn || ''
-      }
+        updatedOn: selectedRow.updatedOn || '',
+      };
 
-      form.reset(mappedValues)
-      setWarehouseId(mappedValues.id)
+      form.reset(mappedValues);
+      setWarehouseId(mappedValues.id);
     }
 
     if (!openDialog) {
-      form.reset()
+      form.reset();
     }
-  }, [selectedRow, openDialog])
+  }, [selectedRow, openDialog]);
 
-  const handleSubmit = data => {
-    onSubmit({ ...data }, warehouseId)
-  }
+  const handleSubmit = (data) => {
+    onSubmit({ ...data }, warehouseId);
+  };
 
   const handleDeleteById = () => {
-    onDeleteById(warehouseId)
-  }
+    onDeleteById(warehouseId);
+  };
 
   return (
     <Dialog
       open={openDialog}
-      onOpenChange={isOpen => {
-        if (isOpen === true) return
-        onCloseDialog()
-      }}>
-      <DialogContent className='sm:max-w-[600px]'>
+      onOpenChange={(isOpen) => {
+        if (isOpen === true) return;
+        onCloseDialog();
+      }}
+    >
+      <DialogContent className="sm:max-w-[600px]">
         <DialogHeader>
-          <DialogTitle className='flex items-center gap-2'>
-            <LuBuilding2 className='inline mr-3 w-7 h-7' />
+          <DialogTitle className="flex items-center gap-2">
+            <LuBuilding2 className="inline mr-3 w-7 h-7" />
             {actionDialog}
           </DialogTitle>
           <DialogDescription>
@@ -116,27 +117,28 @@ export const WarehouseDialog = ({
         </DialogHeader>
         <Form {...form}>
           <form
-            method='post'
-            action=''
-            id='warehouse-form'
+            method="post"
+            action=""
+            id="warehouse-form"
             onSubmit={form.handleSubmit(handleSubmit)}
             noValidate
-            className='flex flex-col flex-wrap gap-5'>
-            <div className='grid grid-cols-2 gap-6 py-4 auto-rows-auto'>
+            className="flex flex-col flex-wrap gap-5"
+          >
+            <div className="grid grid-cols-2 gap-6 py-4 auto-rows-auto">
               <FormField
                 control={form.control}
-                name='name'
+                name="name"
                 render={({ field }) => {
                   return (
                     <FormItem>
-                      <FormLabel htmlFor='name'>{t('name')}*</FormLabel>
+                      <FormLabel htmlFor="name">{t('name')}*</FormLabel>
                       <FormControl>
                         <Input
-                          id='name'
-                          name='name'
+                          id="name"
+                          name="name"
                           placeholder={t('warehouse_name_placeholder')}
-                          type='text'
-                          autoComplete='off'
+                          type="text"
+                          autoComplete="off"
                           maxLength={50}
                           {...field}
                           value={field.value ?? ''}
@@ -144,16 +146,16 @@ export const WarehouseDialog = ({
                       </FormControl>
                       <FormMessage />
                     </FormItem>
-                  )
+                  );
                 }}
               />
 
               <FormField
                 control={form.control}
-                name='status'
+                name="status"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel htmlFor='status'>{t('status')}*</FormLabel>
+                    <FormLabel htmlFor="status">{t('status')}*</FormLabel>
                     <Select
                       onValueChange={field.onChange}
                       value={field.value?.toString()} // Asegura que el valor sea string
@@ -163,10 +165,11 @@ export const WarehouseDialog = ({
                           className={cn(
                             'w-full',
                             !field.value && 'text-muted-foreground'
-                          )}>
+                          )}
+                        >
                           <SelectValue
                             placeholder={t('select_status')}
-                            className='w-full'
+                            className="w-full"
                           />
                         </SelectTrigger>
                       </FormControl>
@@ -185,20 +188,20 @@ export const WarehouseDialog = ({
 
               <FormField
                 control={form.control}
-                name='description'
+                name="description"
                 render={({ field }) => {
                   return (
-                    <FormItem className='flex flex-col flex-auto'>
-                      <FormLabel htmlFor='description'>
+                    <FormItem className="flex flex-col flex-auto">
+                      <FormLabel htmlFor="description">
                         {t('description')}
                       </FormLabel>
                       <FormControl>
                         <Input
-                          id='description'
-                          name='description'
+                          id="description"
+                          name="description"
                           placeholder={t('description_placeholder')}
-                          type='text'
-                          autoComplete='off'
+                          type="text"
+                          autoComplete="off"
                           maxLength={120}
                           {...field}
                           value={field.value ?? ''}
@@ -206,24 +209,24 @@ export const WarehouseDialog = ({
                       </FormControl>
                       <FormMessage />
                     </FormItem>
-                  )
+                  );
                 }}
               />
 
               <FormField
                 control={form.control}
-                name='address'
+                name="address"
                 render={({ field }) => {
                   return (
-                    <FormItem className='flex flex-col flex-auto'>
-                      <FormLabel htmlFor='address'>{t('address')}</FormLabel>
+                    <FormItem className="flex flex-col flex-auto">
+                      <FormLabel htmlFor="address">{t('address')}</FormLabel>
                       <FormControl>
                         <Input
-                          id='address'
-                          name='address'
+                          id="address"
+                          name="address"
                           placeholder={t('address_placeholder')}
-                          type='text'
-                          autoComplete='off'
+                          type="text"
+                          autoComplete="off"
                           maxLength={120}
                           {...field}
                           value={field.value ?? ''}
@@ -231,7 +234,7 @@ export const WarehouseDialog = ({
                       </FormControl>
                       <FormMessage />
                     </FormItem>
-                  )
+                  );
                 }}
               />
 
@@ -239,35 +242,36 @@ export const WarehouseDialog = ({
                 <>
                   <FormField
                     control={form.control}
-                    name='createdOn'
+                    name="createdOn"
                     render={({ field }) => (
-                      <FormItem className='flex flex-col flex-auto'>
-                        <FormLabel htmlFor='createdOn'>
+                      <FormItem className="flex flex-col flex-auto">
+                        <FormLabel htmlFor="createdOn">
                           {t('created_on')}
                         </FormLabel>
                         <Popover>
                           <PopoverTrigger asChild>
                             <FormControl>
                               <Button
-                                id='createdOn'
+                                id="createdOn"
                                 disabled={true}
                                 readOnly={true}
                                 variant={'outline'}
                                 className={cn(
                                   'pl-3 text-left font-normal',
                                   !field.value && 'text-muted-foreground'
-                                )}>
+                                )}
+                              >
                                 {field.value && format(field.value, 'PPP')}
-                                <CalendarIcon className='w-4 h-4 ml-auto opacity-50' />
+                                <CalendarIcon className="w-4 h-4 ml-auto opacity-50" />
                               </Button>
                             </FormControl>
                           </PopoverTrigger>
-                          <PopoverContent className='w-auto p-0' align='start'>
+                          <PopoverContent className="w-auto p-0" align="start">
                             <Calendar
-                              mode='single'
+                              mode="single"
                               selected={field.value}
                               onSelect={field.onChange}
-                              disabled={date => date < new Date('1900-01-01')}
+                              disabled={(date) => date < new Date('1900-01-01')}
                             />
                           </PopoverContent>
                         </Popover>
@@ -280,35 +284,36 @@ export const WarehouseDialog = ({
               {warehouseId && selectedRow?.updatedOn && (
                 <FormField
                   control={form.control}
-                  name='updatedOn'
+                  name="updatedOn"
                   render={({ field }) => (
-                    <FormItem className='flex flex-col flex-auto'>
-                      <FormLabel htmlFor='updatedOn'>
+                    <FormItem className="flex flex-col flex-auto">
+                      <FormLabel htmlFor="updatedOn">
                         {t('updated_on')}
                       </FormLabel>
                       <Popover>
                         <PopoverTrigger asChild>
                           <FormControl>
                             <Button
-                              id='updatedOn'
+                              id="updatedOn"
                               disabled={true}
                               readOnly={true}
                               variant={'outline'}
                               className={cn(
                                 'pl-3 text-left font-normal',
                                 !field.value && 'text-muted-foreground'
-                              )}>
+                              )}
+                            >
                               {field.value && format(field.value, 'PPP')}
-                              <CalendarIcon className='w-4 h-4 ml-auto opacity-50' />
+                              <CalendarIcon className="w-4 h-4 ml-auto opacity-50" />
                             </Button>
                           </FormControl>
                         </PopoverTrigger>
-                        <PopoverContent className='w-auto p-0' align='start'>
+                        <PopoverContent className="w-auto p-0" align="start">
                           <Calendar
-                            mode='single'
+                            mode="single"
                             selected={field.value}
                             onSelect={field.onChange}
-                            disabled={date => date < new Date('1900-01-01')}
+                            disabled={(date) => date < new Date('1900-01-01')}
                           />
                         </PopoverContent>
                       </Popover>
@@ -321,28 +326,31 @@ export const WarehouseDialog = ({
             <DialogFooter>
               <DialogClose asChild>
                 <Button
-                  type='button'
-                  variant='secondary'
-                  className='flex-1 md:flex-initial md:w-24'>
+                  type="button"
+                  variant="secondary"
+                  className="flex-1 md:flex-initial md:w-24"
+                >
                   {t('cancel')}
                 </Button>
               </DialogClose>
 
               {warehouseId && (
                 <Button
-                  type='button'
-                  variant='destructive'
-                  className='flex-1 md:flex-initial md:w-24'
+                  type="button"
+                  variant="destructive"
+                  className="flex-1 md:flex-initial md:w-24"
                   onClick={() => {
-                    handleDeleteById()
-                  }}>
+                    handleDeleteById();
+                  }}
+                >
                   {t('delete')}
                 </Button>
               )}
               <Button
-                type='submit'
-                variant='info'
-                className='flex-1 md:flex-initial md:w-24'>
+                type="submit"
+                variant="info"
+                className="flex-1 md:flex-initial md:w-24"
+              >
                 {warehouseId ? t('update') : t('save')}
               </Button>
             </DialogFooter>
@@ -350,8 +358,8 @@ export const WarehouseDialog = ({
         </Form>
       </DialogContent>
     </Dialog>
-  )
-}
+  );
+};
 
 WarehouseDialog.propTypes = {
   openDialog: PropTypes.bool,
@@ -360,5 +368,5 @@ WarehouseDialog.propTypes = {
   dataStatus: PropTypes.array,
   onSubmit: PropTypes.func,
   onDeleteById: PropTypes.func,
-  actionDialog: PropTypes.string
-}
+  actionDialog: PropTypes.string,
+};

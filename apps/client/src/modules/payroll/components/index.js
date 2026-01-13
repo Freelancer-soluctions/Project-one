@@ -1,3 +1,3 @@
-export * from './PayrollDatatable'
-export * from './PayrollDialog'
-export * from './PayrollFiltersForm'
+export * from './PayrollDatatable';
+export * from './PayrollDialog';
+export * from './PayrollFiltersForm';

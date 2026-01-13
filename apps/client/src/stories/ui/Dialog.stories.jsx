@@ -1,25 +1,25 @@
-import React from 'react'
+import React from 'react';
 import {
   Dialog,
   DialogTrigger,
   DialogContent,
   DialogTitle,
-  DialogDescription
-} from '@/components/ui/dialog'
-import { Button } from '@/components/ui/button'
+  DialogDescription,
+} from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
 
 export default {
   title: 'UI/Dialog',
   component: Dialog,
   parameters: {
-    layout: 'centered'
-  }
-}
+    layout: 'centered',
+  },
+};
 
-const Template = args => (
+const Template = (args) => (
   <Dialog {...args}>
     <DialogTrigger asChild>
-      <Button variant='default'>Abrir Diálogo</Button>
+      <Button variant="default">Abrir Diálogo</Button>
     </DialogTrigger>
     <DialogContent>
       <DialogTitle>Diálogo de Ejemplo</DialogTitle>
@@ -28,6 +28,6 @@ const Template = args => (
       </DialogDescription>
     </DialogContent>
   </Dialog>
-)
+);
 
-export const Default = Template.bind({})
+export const Default = Template.bind({});

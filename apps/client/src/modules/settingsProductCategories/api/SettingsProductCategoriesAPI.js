@@ -1,49 +1,49 @@
 /* React-specific entry point that automatically generates
    hooks corresponding to the defined endpoints */
-import { createApi } from '@reduxjs/toolkit/query/react'
-import { axiosPrivateBaseQuery } from '@/config/axios'
+import { createApi } from '@reduxjs/toolkit/query/react';
+import { axiosPrivateBaseQuery } from '@/config/axios';
 
 // Define a service using a base URL and expected endpoints
 const settingsProductCategoriesApi = createApi({
   reducerPath: 'settingsProductCategoriesApi',
   baseQuery: axiosPrivateBaseQuery({
-    baseUrl: import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1'
+    baseUrl: import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1',
   }),
   tagTypes: ['SettingsProductCategories'], // Agrega un tag identificador
-  endpoints: builder => ({
+  endpoints: (builder) => ({
     getAllCategories: builder.query({
-      query: params => ({
+      query: (params) => ({
         url: `/settings/product/categories`,
-        params
+        params,
       }),
-      providesTags: ['SettingsProductCategories'] // Indica que este endpoint usa el tag 'Categories'
+      providesTags: ['SettingsProductCategories'], // Indica que este endpoint usa el tag 'Categories'
     }),
 
     deleteCategoryById: builder.mutation({
-      query: id => ({
+      query: (id) => ({
         url: `/settings/product/categories/${id}`,
-        method: 'DELETE'
+        method: 'DELETE',
       }),
-      invalidatesTags: ['SettingsProductCategories'] // Invalida el cache de 'Categories' para volver a consultar
+      invalidatesTags: ['SettingsProductCategories'], // Invalida el cache de 'Categories' para volver a consultar
     }),
     createCategory: builder.mutation({
-      query: data => ({
+      query: (data) => ({
         url: `/settings/product/categories/`,
         method: 'POST',
-        body: data
+        body: data,
       }),
-      invalidatesTags: ['SettingsProductCategories'] // Invalida el cache de 'Categories' para volver a consultar
+      invalidatesTags: ['SettingsProductCategories'], // Invalida el cache de 'Categories' para volver a consultar
     }),
     updateCategoryById: builder.mutation({
       query: ({ id, data }) => ({
         url: `/settings/product/categories/${id}`,
         method: 'PUT',
-        body: data
+        body: data,
       }),
-      invalidatesTags: ['SettingsProductCategories'] // Invalida el cache de 'Categories' para volver a consultar
-    })
-  })
-})
+      invalidatesTags: ['SettingsProductCategories'], // Invalida el cache de 'Categories' para volver a consultar
+    }),
+  }),
+});
 
 // Export hooks for usage in functional components, which are
 // auto-generated based on the defined endpoints
@@ -51,7 +51,7 @@ export const {
   useLazyGetAllCategoriesQuery,
   useUpdateCategoryByIdMutation,
   useCreateCategoryMutation,
-  useDeleteCategoryByIdMutation
-} = settingsProductCategoriesApi
+  useDeleteCategoryByIdMutation,
+} = settingsProductCategoriesApi;
 
-export default settingsProductCategoriesApi
+export default settingsProductCategoriesApi;

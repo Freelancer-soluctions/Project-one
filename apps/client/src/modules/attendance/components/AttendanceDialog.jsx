@@ -1,12 +1,12 @@
-import { useEffect, useState } from 'react'
-import { useForm } from 'react-hook-form'
-import { useTranslation } from 'react-i18next'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { format } from 'date-fns'
-import { cn } from '@/lib/utils'
-import PropTypes from 'prop-types'
+import { useEffect, useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { useTranslation } from 'react-i18next';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { format } from 'date-fns';
+import { cn } from '@/lib/utils';
+import PropTypes from 'prop-types';
 
-import { AttendanceSchema } from '../utils' // Import attendance schema
+import { AttendanceSchema } from '../utils'; // Import attendance schema
 
 import {
   Dialog,
@@ -15,32 +15,32 @@ import {
   DialogTitle,
   DialogDescription,
   DialogFooter,
-  DialogClose
-} from '@/components/ui/dialog'
+  DialogClose,
+} from '@/components/ui/dialog';
 import {
   Form,
   FormControl,
   FormField,
   FormItem,
   FormLabel,
-  FormMessage
-} from '@/components/ui/form'
+  FormMessage,
+} from '@/components/ui/form';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue
-} from '@/components/ui/select'
+  SelectValue,
+} from '@/components/ui/select';
 import {
   Popover,
   PopoverContent,
-  PopoverTrigger
-} from '@/components/ui/popover'
-import { Calendar } from '@/components/ui/calendar'
-import { Input } from '@/components/ui/input'
-import { Button } from '@/components/ui/button'
-import { CalendarIcon, ClockIcon } from '@radix-ui/react-icons' // Using ClockIcon for time fields
+  PopoverTrigger,
+} from '@/components/ui/popover';
+import { Calendar } from '@/components/ui/calendar';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { CalendarIcon, ClockIcon } from '@radix-ui/react-icons'; // Using ClockIcon for time fields
 
 export const AttendanceDialog = ({
   openDialog,
@@ -49,10 +49,10 @@ export const AttendanceDialog = ({
   onSubmit,
   onDeleteById,
   actionDialog,
-  dataEmployees
+  dataEmployees,
 }) => {
-  const { t } = useTranslation()
-  const [attendanceId, setAttendanceId] = useState('')
+  const { t } = useTranslation();
+  const [attendanceId, setAttendanceId] = useState('');
 
   const form = useForm({
     resolver: zodResolver(AttendanceSchema),
@@ -61,9 +61,9 @@ export const AttendanceDialog = ({
       date: null,
       entryTime: '',
       exitTime: '',
-      workedHours: ''
-    }
-  })
+      workedHours: '',
+    },
+  });
 
   useEffect(() => {
     if (selectedRow?.id) {
@@ -78,45 +78,45 @@ export const AttendanceDialog = ({
         createdOn: selectedRow.createdOn,
         updatedOn: selectedRow.updatedOn,
         userAttendanceCreatedName: selectedRow.userAttendanceCreatedName,
-        userAttendanceUpdatedName: selectedRow.userAttendanceUpdatedName
-      }
-      form.reset(mappedValues)
-      setAttendanceId(mappedValues.id)
+        userAttendanceUpdatedName: selectedRow.userAttendanceUpdatedName,
+      };
+      form.reset(mappedValues);
+      setAttendanceId(mappedValues.id);
     } else {
       form.reset({
         employeeId: '',
         date: undefined,
         entryTime: '',
         exitTime: '',
-        workedHours: ''
-      })
-      setAttendanceId(null)
+        workedHours: '',
+      });
+      setAttendanceId(null);
     }
-  }, [selectedRow, openDialog, form])
+  }, [selectedRow, openDialog, form]);
 
-  const handleSubmit = data => {
+  const handleSubmit = (data) => {
     // Format date back to ISO string if needed by the backend
     const submissionData = {
       ...data,
-      date: data.date ? format(data.date, 'yyyy-MM-dd') : null
+      date: data.date ? format(data.date, 'yyyy-MM-dd') : null,
       // Convert workedHours back to number if needed
       // workedHours: Number(data.workedHours)
-    }
-    onSubmit(submissionData, attendanceId)
-  }
+    };
+    onSubmit(submissionData, attendanceId);
+  };
 
   const handleDelete = () => {
     if (selectedRow?.id) {
-      onDeleteById(selectedRow.id)
+      onDeleteById(selectedRow.id);
     }
-  }
+  };
 
   return (
     <Dialog open={openDialog} onOpenChange={onCloseDialog}>
-      <DialogContent className='sm:max-w-[600px]'>
+      <DialogContent className="sm:max-w-[600px]">
         <DialogHeader>
-          <DialogTitle className='flex items-center gap-2'>
-            <ClockIcon className='inline mr-3 w-7 h-7' />
+          <DialogTitle className="flex items-center gap-2">
+            <ClockIcon className="inline mr-3 w-7 h-7" />
             {actionDialog}
           </DialogTitle>
           <DialogDescription>
@@ -125,23 +125,25 @@ export const AttendanceDialog = ({
         </DialogHeader>
         <Form {...form}>
           <form
-            method='post'
-            action=''
-            id='attendance-form'
+            method="post"
+            action=""
+            id="attendance-form"
             noValidate
             onSubmit={form.handleSubmit(handleSubmit)}
-            className='flex flex-col flex-wrap gap-5'>
-            <div className='grid grid-cols-2 gap-6 py-4 auto-rows-auto'>
+            className="flex flex-col flex-wrap gap-5"
+          >
+            <div className="grid grid-cols-2 gap-6 py-4 auto-rows-auto">
               {/* Employee Select */}
               <FormField
                 control={form.control}
-                name='employeeId'
+                name="employeeId"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>{t('employee')}*</FormLabel>
                     <Select
                       onValueChange={field.onChange}
-                      value={field.value?.toString() ?? ''}>
+                      value={field.value?.toString() ?? ''}
+                    >
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue
@@ -150,10 +152,11 @@ export const AttendanceDialog = ({
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {dataEmployees.map(employee => (
+                        {dataEmployees.map((employee) => (
                           <SelectItem
                             key={employee.id}
-                            value={employee.id.toString()}>
+                            value={employee.id.toString()}
+                          >
                             {`${employee.name} ${employee.lastName}`}
                           </SelectItem>
                         ))}
@@ -167,7 +170,7 @@ export const AttendanceDialog = ({
               {/* Date Picker */}
               <FormField
                 control={form.control}
-                name='date'
+                name="date"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>{t('date')}*</FormLabel>
@@ -179,22 +182,23 @@ export const AttendanceDialog = ({
                             className={cn(
                               'w-full pl-3 text-left font-normal',
                               !field.value && 'text-muted-foreground'
-                            )}>
+                            )}
+                          >
                             {field.value ? (
                               format(field.value, 'PPP')
                             ) : (
                               <span>{t('pick_date')}</span>
                             )}
-                            <CalendarIcon className='w-4 h-4 ml-auto opacity-50' />
+                            <CalendarIcon className="w-4 h-4 ml-auto opacity-50" />
                           </Button>
                         </FormControl>
                       </PopoverTrigger>
-                      <PopoverContent className='w-auto p-0' align='start'>
+                      <PopoverContent className="w-auto p-0" align="start">
                         <Calendar
-                          mode='single'
+                          mode="single"
                           selected={field.value}
                           onSelect={field.onChange}
-                          disabled={date =>
+                          disabled={(date) =>
                             date > new Date() || date < new Date('1900-01-01')
                           }
                           initialFocus
@@ -209,18 +213,18 @@ export const AttendanceDialog = ({
               {/* Entry Time */}
               <FormField
                 control={form.control}
-                name='entryTime'
+                name="entryTime"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel htmlFor='entryTime'>
+                    <FormLabel htmlFor="entryTime">
                       {t('entry_time')}*
                     </FormLabel>
                     <FormControl>
                       <Input
-                        id='entryTime'
-                        name='entryTime'
-                        placeholder='HH:mm'
-                        type='time'
+                        id="entryTime"
+                        name="entryTime"
+                        placeholder="HH:mm"
+                        type="time"
                         {...field}
                         value={field.value ?? ''}
                       />
@@ -233,16 +237,16 @@ export const AttendanceDialog = ({
               {/* Exit Time */}
               <FormField
                 control={form.control}
-                name='exitTime'
+                name="exitTime"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel htmlFor='exitTime'>{t('exit_time')}*</FormLabel>
+                    <FormLabel htmlFor="exitTime">{t('exit_time')}*</FormLabel>
                     <FormControl>
                       <Input
-                        id='exitTime'
-                        name='exitTime'
-                        placeholder='HH:mm'
-                        type='time'
+                        id="exitTime"
+                        name="exitTime"
+                        placeholder="HH:mm"
+                        type="time"
                         {...field}
                         value={field.value ?? ''}
                       />
@@ -255,20 +259,20 @@ export const AttendanceDialog = ({
               {/* Worked Hours */}
               <FormField
                 control={form.control}
-                name='workedHours'
+                name="workedHours"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel htmlFor='workedHours'>
+                    <FormLabel htmlFor="workedHours">
                       {t('worked_hours')}*
                     </FormLabel>
                     <FormControl>
                       <Input
-                        id='workedHours'
-                        name='workedHours'
+                        id="workedHours"
+                        name="workedHours"
                         placeholder={t('worked_hours_placeholder')}
-                        type='number'
-                        step='0.01' // Allow decimals
-                        min='0'
+                        type="number"
+                        step="0.01" // Allow decimals
+                        min="0"
                         {...field}
                         value={field.value ?? ''}
                       />
@@ -283,16 +287,16 @@ export const AttendanceDialog = ({
                 <>
                   <FormField
                     control={form.control}
-                    name='userAttendanceCreatedName'
+                    name="userAttendanceCreatedName"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel htmlFor='userAttendanceCreatedName'>
+                        <FormLabel htmlFor="userAttendanceCreatedName">
                           {t('created_by')}
                         </FormLabel>
                         <FormControl>
                           <Input
-                            id='userAttendanceCreatedName'
-                            name='userAttendanceCreatedName'
+                            id="userAttendanceCreatedName"
+                            name="userAttendanceCreatedName"
                             disabled
                             {...field}
                             value={field.value ?? ''}
@@ -305,33 +309,34 @@ export const AttendanceDialog = ({
 
                   <FormField
                     control={form.control}
-                    name='createdOn'
+                    name="createdOn"
                     render={({ field }) => (
-                      <FormItem className='flex flex-col flex-auto'>
-                        <FormLabel htmlFor='createdOn'>
+                      <FormItem className="flex flex-col flex-auto">
+                        <FormLabel htmlFor="createdOn">
                           {t('created_on')}
                         </FormLabel>
                         <Popover>
                           <PopoverTrigger asChild>
                             <FormControl>
                               <Button
-                                id='createdOn'
+                                id="createdOn"
                                 disabled={true}
                                 readOnly={true}
                                 variant={'outline'}
                                 className={cn(
                                   'pl-3 text-left font-normal',
                                   !field.value && 'text-muted-foreground'
-                                )}>
+                                )}
+                              >
                                 {field.value &&
                                   format(new Date(field.value), 'PPP')}
-                                <CalendarIcon className='w-4 h-4 ml-auto opacity-50' />
+                                <CalendarIcon className="w-4 h-4 ml-auto opacity-50" />
                               </Button>
                             </FormControl>
                           </PopoverTrigger>
-                          <PopoverContent className='w-auto p-0' align='start'>
+                          <PopoverContent className="w-auto p-0" align="start">
                             <Calendar
-                              mode='single'
+                              mode="single"
                               selected={
                                 field.value ? new Date(field.value) : null
                               }
@@ -351,16 +356,16 @@ export const AttendanceDialog = ({
                 <>
                   <FormField
                     control={form.control}
-                    name='userAttendanceUpdatedName'
+                    name="userAttendanceUpdatedName"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel htmlFor='userAttendanceUpdatedName'>
+                        <FormLabel htmlFor="userAttendanceUpdatedName">
                           {t('updated_by')}
                         </FormLabel>
                         <FormControl>
                           <Input
-                            id='userAttendanceUpdatedName'
-                            name='userAttendanceUpdatedName'
+                            id="userAttendanceUpdatedName"
+                            name="userAttendanceUpdatedName"
                             disabled
                             {...field}
                             value={field.value ?? ''}
@@ -373,33 +378,34 @@ export const AttendanceDialog = ({
 
                   <FormField
                     control={form.control}
-                    name='updatedOn'
+                    name="updatedOn"
                     render={({ field }) => (
-                      <FormItem className='flex flex-col flex-auto'>
-                        <FormLabel htmlFor='updatedOn'>
+                      <FormItem className="flex flex-col flex-auto">
+                        <FormLabel htmlFor="updatedOn">
                           {t('updated_on')}
                         </FormLabel>
                         <Popover>
                           <PopoverTrigger asChild>
                             <FormControl>
                               <Button
-                                id='updatedOn'
+                                id="updatedOn"
                                 disabled={true}
                                 readOnly={true}
                                 variant={'outline'}
                                 className={cn(
                                   'pl-3 text-left font-normal',
                                   !field.value && 'text-muted-foreground'
-                                )}>
+                                )}
+                              >
                                 {field.value &&
                                   format(new Date(field.value), 'PPP')}
-                                <CalendarIcon className='w-4 h-4 ml-auto opacity-50' />
+                                <CalendarIcon className="w-4 h-4 ml-auto opacity-50" />
                               </Button>
                             </FormControl>
                           </PopoverTrigger>
-                          <PopoverContent className='w-auto p-0' align='start'>
+                          <PopoverContent className="w-auto p-0" align="start">
                             <Calendar
-                              mode='single'
+                              mode="single"
                               selected={
                                 field.value ? new Date(field.value) : null
                               }
@@ -418,26 +424,29 @@ export const AttendanceDialog = ({
             <DialogFooter>
               <DialogClose asChild>
                 <Button
-                  type='button'
-                  variant='secondary'
-                  className='flex-1 md:flex-initial md:w-24'>
+                  type="button"
+                  variant="secondary"
+                  className="flex-1 md:flex-initial md:w-24"
+                >
                   {t('cancel')}
                 </Button>
               </DialogClose>
 
               {attendanceId && (
                 <Button
-                  type='button'
-                  variant='destructive'
-                  className='flex-1 md:flex-initial md:w-24'
-                  onClick={handleDelete}>
+                  type="button"
+                  variant="destructive"
+                  className="flex-1 md:flex-initial md:w-24"
+                  onClick={handleDelete}
+                >
                   {t('delete')}
                 </Button>
               )}
               <Button
-                type='submit'
-                variant='info'
-                className='flex-1 md:flex-initial md:w-24'>
+                type="submit"
+                variant="info"
+                className="flex-1 md:flex-initial md:w-24"
+              >
                 {attendanceId ? t('update') : t('save')}
               </Button>
             </DialogFooter>
@@ -445,8 +454,8 @@ export const AttendanceDialog = ({
         </Form>
       </DialogContent>
     </Dialog>
-  )
-}
+  );
+};
 
 AttendanceDialog.propTypes = {
   openDialog: PropTypes.bool.isRequired,
@@ -455,5 +464,5 @@ AttendanceDialog.propTypes = {
   onSubmit: PropTypes.func.isRequired,
   onDeleteById: PropTypes.func.isRequired,
   actionDialog: PropTypes.string.isRequired,
-  dataEmployees: PropTypes.array.isRequired
-}
+  dataEmployees: PropTypes.array.isRequired,
+};

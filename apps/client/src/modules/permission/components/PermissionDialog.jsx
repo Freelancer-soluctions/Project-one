@@ -1,12 +1,16 @@
-import { useEffect, useState } from 'react'
-import { useForm } from 'react-hook-form'
-import { useTranslation } from 'react-i18next'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { format } from 'date-fns'
-import { cn } from '@/lib/utils'
-import PropTypes from 'prop-types'
+import { useEffect, useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { useTranslation } from 'react-i18next';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { format } from 'date-fns';
+import { cn } from '@/lib/utils';
+import PropTypes from 'prop-types';
 
-import { PermissionSchema, PERMISSION_TYPES, PERMISSION_STATUS } from '../utils' // Import schema
+import {
+  PermissionSchema,
+  PERMISSION_TYPES,
+  PERMISSION_STATUS,
+} from '../utils'; // Import schema
 
 import {
   Dialog,
@@ -15,34 +19,34 @@ import {
   DialogTitle,
   DialogDescription,
   DialogFooter,
-  DialogClose
-} from '@/components/ui/dialog'
+  DialogClose,
+} from '@/components/ui/dialog';
 import {
   Form,
   FormControl,
   FormField,
   FormItem,
   FormLabel,
-  FormMessage
-} from '@/components/ui/form'
+  FormMessage,
+} from '@/components/ui/form';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue
-} from '@/components/ui/select'
+  SelectValue,
+} from '@/components/ui/select';
 import {
   Popover,
   PopoverContent,
-  PopoverTrigger
-} from '@/components/ui/popover'
-import { Calendar } from '@/components/ui/calendar'
-import { Input } from '@/components/ui/input'
-import { Textarea } from '@/components/ui/textarea' // Import Textarea
-import { Button } from '@/components/ui/button'
-import { CalendarIcon } from '@radix-ui/react-icons' // Using ClipboardIcon
-import { LuClipboard } from 'react-icons/lu'
+  PopoverTrigger,
+} from '@/components/ui/popover';
+import { Calendar } from '@/components/ui/calendar';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea'; // Import Textarea
+import { Button } from '@/components/ui/button';
+import { CalendarIcon } from '@radix-ui/react-icons'; // Using ClipboardIcon
+import { LuClipboard } from 'react-icons/lu';
 
 export const PermissionDialog = ({
   openDialog,
@@ -51,10 +55,10 @@ export const PermissionDialog = ({
   onSubmit,
   onDeleteById,
   actionDialog,
-  dataEmployees
+  dataEmployees,
 }) => {
-  const { t } = useTranslation()
-  const [permissionId, setPermissionId] = useState('')
+  const { t } = useTranslation();
+  const [permissionId, setPermissionId] = useState('');
 
   const form = useForm({
     resolver: zodResolver(PermissionSchema),
@@ -65,9 +69,9 @@ export const PermissionDialog = ({
       endDate: null,
       reason: '',
       status: 'PENDING',
-      comments: ''
-    }
-  })
+      comments: '',
+    },
+  });
 
   useEffect(() => {
     if (selectedRow?.id) {
@@ -85,11 +89,11 @@ export const PermissionDialog = ({
         createdOn: selectedRow.createdOn,
         updatedOn: selectedRow.updatedOn,
         userPermissionCreatedName: selectedRow.userPermissionCreatedName,
-        userPermissionUpdatedName: selectedRow.userPermissionUpdatedName
+        userPermissionUpdatedName: selectedRow.userPermissionUpdatedName,
         // approvedBy and approvedAt are likely handled by the backend
-      }
-      form.reset(mappedValues)
-      setPermissionId(mappedValues.id)
+      };
+      form.reset(mappedValues);
+      setPermissionId(mappedValues.id);
     } else {
       form.reset({
         employeeId: '',
@@ -98,34 +102,34 @@ export const PermissionDialog = ({
         endDate: null,
         reason: '',
         status: 'PENDING',
-        comments: ''
-      })
-      setPermissionId(null)
+        comments: '',
+      });
+      setPermissionId(null);
     }
-  }, [selectedRow, openDialog, form])
+  }, [selectedRow, openDialog, form]);
 
-  const handleSubmit = data => {
+  const handleSubmit = (data) => {
     const submissionData = {
       ...data,
       startDate: data.startDate ? format(data.startDate, 'yyyy-MM-dd') : null,
-      endDate: data.endDate ? format(data.endDate, 'yyyy-MM-dd') : null
-    }
-    onSubmit(submissionData, permissionId)
-  }
+      endDate: data.endDate ? format(data.endDate, 'yyyy-MM-dd') : null,
+    };
+    onSubmit(submissionData, permissionId);
+  };
 
   const handleDelete = () => {
     if (selectedRow?.id) {
-      onDeleteById(selectedRow.id)
+      onDeleteById(selectedRow.id);
     }
-  }
+  };
 
   return (
     <Dialog open={openDialog} onOpenChange={onCloseDialog}>
       {/* Increased max width for more fields */}
-      <DialogContent className='sm:max-w-[750px]'>
+      <DialogContent className="sm:max-w-[750px]">
         <DialogHeader>
-          <DialogTitle className='flex items-center gap-2'>
-            <LuClipboard className='inline mr-3 w-7 h-7' /> {/* Changed Icon */}
+          <DialogTitle className="flex items-center gap-2">
+            <LuClipboard className="inline mr-3 w-7 h-7" /> {/* Changed Icon */}
             {actionDialog}
           </DialogTitle>
           <DialogDescription>
@@ -136,24 +140,26 @@ export const PermissionDialog = ({
         </DialogHeader>
         <Form {...form}>
           <form
-            method='post'
-            action=''
-            id='permission-form'
+            method="post"
+            action=""
+            id="permission-form"
             noValidate
             onSubmit={form.handleSubmit(handleSubmit)}
-            className='flex flex-col flex-wrap gap-5'>
+            className="flex flex-col flex-wrap gap-5"
+          >
             {/* Use grid-cols-3 for potentially more fields per row */}
-            <div className='grid grid-cols-1 gap-6 py-4 md:grid-cols-3 auto-rows-auto'>
+            <div className="grid grid-cols-1 gap-6 py-4 md:grid-cols-3 auto-rows-auto">
               {/* Employee Select */}
               <FormField
                 control={form.control}
-                name='employeeId'
+                name="employeeId"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>{t('employee')}*</FormLabel>
                     <Select
                       onValueChange={field.onChange}
-                      value={field.value?.toString() ?? ''}>
+                      value={field.value?.toString() ?? ''}
+                    >
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue
@@ -162,10 +168,11 @@ export const PermissionDialog = ({
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {dataEmployees.map(employee => (
+                        {dataEmployees.map((employee) => (
                           <SelectItem
                             key={employee.id}
-                            value={employee.id.toString()}>
+                            value={employee.id.toString()}
+                          >
                             {`${employee.name} ${employee.lastName}`}
                           </SelectItem>
                         ))}
@@ -179,13 +186,14 @@ export const PermissionDialog = ({
               {/* Type Select */}
               <FormField
                 control={form.control}
-                name='type'
+                name="type"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>{t('type')}*</FormLabel>
                     <Select
                       onValueChange={field.onChange}
-                      value={field.value ?? ''}>
+                      value={field.value ?? ''}
+                    >
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue
@@ -196,7 +204,7 @@ export const PermissionDialog = ({
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {PERMISSION_TYPES.map(type => (
+                        {PERMISSION_TYPES.map((type) => (
                           <SelectItem key={type} value={type}>
                             {t(`permission_type.${type}`)}{' '}
                             {/* Assumes translations like permission_type.SICK */}
@@ -212,7 +220,7 @@ export const PermissionDialog = ({
               {/* Status Select */}
               <FormField
                 control={form.control}
-                name='status'
+                name="status"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>{t('status')}*</FormLabel>
@@ -229,7 +237,7 @@ export const PermissionDialog = ({
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {PERMISSION_STATUS.map(status => (
+                        {PERMISSION_STATUS.map((status) => (
                           <SelectItem key={status} value={status}>
                             {t(`status.${status}`)}
                           </SelectItem>
@@ -244,9 +252,9 @@ export const PermissionDialog = ({
               {/* Start Date Picker */}
               <FormField
                 control={form.control}
-                name='startDate'
+                name="startDate"
                 render={({ field }) => (
-                  <FormItem className='flex flex-col'>
+                  <FormItem className="flex flex-col">
                     <FormLabel>{t('start_date')}*</FormLabel>
                     <Popover>
                       <PopoverTrigger asChild>
@@ -256,19 +264,20 @@ export const PermissionDialog = ({
                             className={cn(
                               'w-full pl-3 text-left font-normal',
                               !field.value && 'text-muted-foreground'
-                            )}>
+                            )}
+                          >
                             {field.value ? (
                               format(field.value, 'PPP')
                             ) : (
                               <span>{t('pick_date')}</span>
                             )}
-                            <CalendarIcon className='w-4 h-4 ml-auto opacity-50' />
+                            <CalendarIcon className="w-4 h-4 ml-auto opacity-50" />
                           </Button>
                         </FormControl>
                       </PopoverTrigger>
-                      <PopoverContent className='w-auto p-0' align='start'>
+                      <PopoverContent className="w-auto p-0" align="start">
                         <Calendar
-                          mode='single'
+                          mode="single"
                           selected={field.value}
                           onSelect={field.onChange}
                           initialFocus
@@ -283,9 +292,9 @@ export const PermissionDialog = ({
               {/* End Date Picker */}
               <FormField
                 control={form.control}
-                name='endDate'
+                name="endDate"
                 render={({ field }) => (
-                  <FormItem className='flex flex-col'>
+                  <FormItem className="flex flex-col">
                     <FormLabel>{t('end_date')}*</FormLabel>
                     <Popover>
                       <PopoverTrigger asChild>
@@ -295,22 +304,23 @@ export const PermissionDialog = ({
                             className={cn(
                               'w-full pl-3 text-left font-normal',
                               !field.value && 'text-muted-foreground'
-                            )}>
+                            )}
+                          >
                             {field.value ? (
                               format(field.value, 'PPP')
                             ) : (
                               <span>{t('pick_date')}</span>
                             )}
-                            <CalendarIcon className='w-4 h-4 ml-auto opacity-50' />
+                            <CalendarIcon className="w-4 h-4 ml-auto opacity-50" />
                           </Button>
                         </FormControl>
                       </PopoverTrigger>
-                      <PopoverContent className='w-auto p-0' align='start'>
+                      <PopoverContent className="w-auto p-0" align="start">
                         <Calendar
-                          mode='single'
+                          mode="single"
                           selected={field.value}
                           onSelect={field.onChange}
-                          disabled={date =>
+                          disabled={(date) =>
                             form.getValues('startDate') &&
                             date < form.getValues('startDate')
                           }
@@ -324,21 +334,21 @@ export const PermissionDialog = ({
               />
 
               {/* Spacer - Can add another field like approvedBy if needed and handled by FE */}
-              <div className='md:col-span-1'></div>
+              <div className="md:col-span-1"></div>
 
               {/* Reason Textarea */}
               <FormField
                 control={form.control}
-                name='reason'
+                name="reason"
                 render={({ field }) => (
-                  <FormItem className='md:col-span-3'>
+                  <FormItem className="md:col-span-3">
                     {' '}
                     {/* Span across grid */}
-                    <FormLabel htmlFor='reason'>{t('reason')}*</FormLabel>
+                    <FormLabel htmlFor="reason">{t('reason')}*</FormLabel>
                     <FormControl>
                       <Textarea
-                        id='reason'
-                        name='reason'
+                        id="reason"
+                        name="reason"
                         placeholder={t('permission_reason_placeholder')}
                         maxLength={500}
                         rows={3}
@@ -354,16 +364,16 @@ export const PermissionDialog = ({
               {/* Comments Textarea */}
               <FormField
                 control={form.control}
-                name='comments'
+                name="comments"
                 render={({ field }) => (
-                  <FormItem className='md:col-span-3'>
+                  <FormItem className="md:col-span-3">
                     {' '}
                     {/* Span across grid */}
-                    <FormLabel htmlFor='comments'>{t('comments')}</FormLabel>
+                    <FormLabel htmlFor="comments">{t('comments')}</FormLabel>
                     <FormControl>
                       <Textarea
-                        id='comments'
-                        name='comments'
+                        id="comments"
+                        name="comments"
                         placeholder={t('permission_comments_placeholder')}
                         maxLength={1000}
                         rows={3}
@@ -381,16 +391,16 @@ export const PermissionDialog = ({
                 <>
                   <FormField
                     control={form.control}
-                    name='userPermissionCreatedName'
+                    name="userPermissionCreatedName"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel htmlFor='userPermissionCreatedName'>
+                        <FormLabel htmlFor="userPermissionCreatedName">
                           {t('created_by')}
                         </FormLabel>
                         <FormControl>
                           <Input
-                            id='userPermissionCreatedName'
-                            name='userPermissionCreatedName'
+                            id="userPermissionCreatedName"
+                            name="userPermissionCreatedName"
                             disabled
                             {...field}
                             value={field.value ?? ''}
@@ -403,33 +413,34 @@ export const PermissionDialog = ({
 
                   <FormField
                     control={form.control}
-                    name='createdOn'
+                    name="createdOn"
                     render={({ field }) => (
-                      <FormItem className='flex flex-col flex-auto'>
-                        <FormLabel htmlFor='createdOn'>
+                      <FormItem className="flex flex-col flex-auto">
+                        <FormLabel htmlFor="createdOn">
                           {t('created_on')}
                         </FormLabel>
                         <Popover>
                           <PopoverTrigger asChild>
                             <FormControl>
                               <Button
-                                id='createdOn'
+                                id="createdOn"
                                 disabled={true}
                                 readOnly={true}
                                 variant={'outline'}
                                 className={cn(
                                   'pl-3 text-left font-normal',
                                   !field.value && 'text-muted-foreground'
-                                )}>
+                                )}
+                              >
                                 {field.value &&
                                   format(new Date(field.value), 'PPP')}
-                                <CalendarIcon className='w-4 h-4 ml-auto opacity-50' />
+                                <CalendarIcon className="w-4 h-4 ml-auto opacity-50" />
                               </Button>
                             </FormControl>
                           </PopoverTrigger>
-                          <PopoverContent className='w-auto p-0' align='start'>
+                          <PopoverContent className="w-auto p-0" align="start">
                             <Calendar
-                              mode='single'
+                              mode="single"
                               selected={
                                 field.value ? new Date(field.value) : null
                               }
@@ -442,7 +453,7 @@ export const PermissionDialog = ({
                     )}
                   />
                   {/* Spacer */}
-                  <div className='md:col-span-1'></div>
+                  <div className="md:col-span-1"></div>
                 </>
               )}
 
@@ -451,16 +462,16 @@ export const PermissionDialog = ({
                 <>
                   <FormField
                     control={form.control}
-                    name='userPermissionUpdatedName'
+                    name="userPermissionUpdatedName"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel htmlFor='userPermissionUpdatedName'>
+                        <FormLabel htmlFor="userPermissionUpdatedName">
                           {t('updated_by')}
                         </FormLabel>
                         <FormControl>
                           <Input
-                            id='userPermissionUpdatedName'
-                            name='userPermissionUpdatedName'
+                            id="userPermissionUpdatedName"
+                            name="userPermissionUpdatedName"
                             disabled
                             {...field}
                             value={field.value ?? ''}
@@ -473,33 +484,34 @@ export const PermissionDialog = ({
 
                   <FormField
                     control={form.control}
-                    name='updatedOn'
+                    name="updatedOn"
                     render={({ field }) => (
-                      <FormItem className='flex flex-col flex-auto'>
-                        <FormLabel htmlFor='updatedOn'>
+                      <FormItem className="flex flex-col flex-auto">
+                        <FormLabel htmlFor="updatedOn">
                           {t('updated_on')}
                         </FormLabel>
                         <Popover>
                           <PopoverTrigger asChild>
                             <FormControl>
                               <Button
-                                id='updatedOn'
+                                id="updatedOn"
                                 disabled={true}
                                 readOnly={true}
                                 variant={'outline'}
                                 className={cn(
                                   'pl-3 text-left font-normal',
                                   !field.value && 'text-muted-foreground'
-                                )}>
+                                )}
+                              >
                                 {field.value &&
                                   format(new Date(field.value), 'PPP')}
-                                <CalendarIcon className='w-4 h-4 ml-auto opacity-50' />
+                                <CalendarIcon className="w-4 h-4 ml-auto opacity-50" />
                               </Button>
                             </FormControl>
                           </PopoverTrigger>
-                          <PopoverContent className='w-auto p-0' align='start'>
+                          <PopoverContent className="w-auto p-0" align="start">
                             <Calendar
-                              mode='single'
+                              mode="single"
                               selected={
                                 field.value ? new Date(field.value) : null
                               }
@@ -512,7 +524,7 @@ export const PermissionDialog = ({
                     )}
                   />
                   {/* Spacer */}
-                  <div className='md:col-span-1'></div>
+                  <div className="md:col-span-1"></div>
                 </>
               )}
             </div>
@@ -520,26 +532,29 @@ export const PermissionDialog = ({
             <DialogFooter>
               <DialogClose asChild>
                 <Button
-                  type='button'
-                  variant='secondary'
-                  className='flex-1 md:flex-initial md:w-24'>
+                  type="button"
+                  variant="secondary"
+                  className="flex-1 md:flex-initial md:w-24"
+                >
                   {t('cancel')}
                 </Button>
               </DialogClose>
 
               {permissionId && (
                 <Button
-                  type='button'
-                  variant='destructive'
-                  className='flex-1 md:flex-initial md:w-24'
-                  onClick={handleDelete}>
+                  type="button"
+                  variant="destructive"
+                  className="flex-1 md:flex-initial md:w-24"
+                  onClick={handleDelete}
+                >
                   {t('delete')}
                 </Button>
               )}
               <Button
-                type='submit'
-                variant='info'
-                className='flex-1 md:flex-initial md:w-24'>
+                type="submit"
+                variant="info"
+                className="flex-1 md:flex-initial md:w-24"
+              >
                 {permissionId ? t('update') : t('save')}
               </Button>
             </DialogFooter>
@@ -547,8 +562,8 @@ export const PermissionDialog = ({
         </Form>
       </DialogContent>
     </Dialog>
-  )
-}
+  );
+};
 
 PermissionDialog.propTypes = {
   openDialog: PropTypes.bool.isRequired,
@@ -557,5 +572,5 @@ PermissionDialog.propTypes = {
   onSubmit: PropTypes.func.isRequired,
   onDeleteById: PropTypes.func.isRequired,
   actionDialog: PropTypes.string.isRequired,
-  dataEmployees: PropTypes.array.isRequired
-}
+  dataEmployees: PropTypes.array.isRequired,
+};

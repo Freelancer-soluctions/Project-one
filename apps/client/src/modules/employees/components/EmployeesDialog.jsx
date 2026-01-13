@@ -1,7 +1,7 @@
-import { useEffect } from 'react'
-import { useForm } from 'react-hook-form'
-import { useTranslation } from 'react-i18next'
-import { zodResolver } from '@hookform/resolvers/zod'
+import { useEffect } from 'react';
+import { useForm } from 'react-hook-form';
+import { useTranslation } from 'react-i18next';
+import { zodResolver } from '@hookform/resolvers/zod';
 import {
   Dialog,
   DialogContent,
@@ -9,31 +9,31 @@ import {
   DialogTitle,
   DialogDescription,
   DialogFooter,
-  DialogClose
-} from '@/components/ui/dialog'
+  DialogClose,
+} from '@/components/ui/dialog';
 import {
   Form,
   FormControl,
   FormField,
   FormItem,
   FormLabel,
-  FormMessage
-} from '@/components/ui/form'
+  FormMessage,
+} from '@/components/ui/form';
 import {
   Popover,
   PopoverContent,
-  PopoverTrigger
-} from '@/components/ui/popover'
-import { Calendar } from '@/components/ui/calendar'
-import { CalendarIcon } from '@radix-ui/react-icons'
-import { format } from 'date-fns'
-import { cn } from '@/lib/utils'
-import { Input } from '@/components/ui/input'
-import { Button } from '@/components/ui/button'
-import { LuUsersRound } from 'react-icons/lu'
-import PropTypes from 'prop-types'
-import { EmployeeSchema } from '../utils'
-import { useState } from 'react'
+  PopoverTrigger,
+} from '@/components/ui/popover';
+import { Calendar } from '@/components/ui/calendar';
+import { CalendarIcon } from '@radix-ui/react-icons';
+import { format } from 'date-fns';
+import { cn } from '@/lib/utils';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { LuUsersRound } from 'react-icons/lu';
+import PropTypes from 'prop-types';
+import { EmployeeSchema } from '../utils';
+import { useState } from 'react';
 
 export const EmployeesDialog = ({
   openDialog,
@@ -41,10 +41,10 @@ export const EmployeesDialog = ({
   selectedRow,
   onSubmit,
   onDeleteById,
-  actionDialog
+  actionDialog,
 }) => {
-  const { t } = useTranslation()
-  const [employeeId, setEmployeeId] = useState('')
+  const { t } = useTranslation();
+  const [employeeId, setEmployeeId] = useState('');
 
   const form = useForm({
     resolver: zodResolver(EmployeeSchema),
@@ -58,9 +58,9 @@ export const EmployeesDialog = ({
       startDate: new Date(),
       position: '',
       department: '',
-      salary: ''
-    }
-  })
+      salary: '',
+    },
+  });
 
   // Actualiza todos los valores del formulario al cambiar `selectedRow`
   useEffect(() => {
@@ -83,11 +83,11 @@ export const EmployeesDialog = ({
         createdOn: selectedRow.createdOn,
         updatedOn: selectedRow.updatedOn,
         userEmployeeCreatedName: selectedRow.userEmployeeCreatedName || '',
-        userEmployeeUpdatedName: selectedRow.userEmployeeUpdatedName || ''
-      }
+        userEmployeeUpdatedName: selectedRow.userEmployeeUpdatedName || '',
+      };
 
-      form.reset(mappedValues)
-      setEmployeeId(mappedValues.id)
+      form.reset(mappedValues);
+      setEmployeeId(mappedValues.id);
     }
 
     if (!openDialog) {
@@ -105,26 +105,26 @@ export const EmployeesDialog = ({
         createdOn: '',
         updatedOn: '',
         userEmployeeCreatedName: '',
-        userEmployeeUpdatedName: ''
-      })
-      setEmployeeId(null)
+        userEmployeeUpdatedName: '',
+      });
+      setEmployeeId(null);
     }
-  }, [selectedRow, openDialog])
+  }, [selectedRow, openDialog]);
 
-  const handleSubmit = data => {
-    onSubmit(data, employeeId)
-  }
+  const handleSubmit = (data) => {
+    onSubmit(data, employeeId);
+  };
 
   const handleDelete = () => {
-    onDeleteById(selectedRow.id)
-  }
+    onDeleteById(selectedRow.id);
+  };
 
   return (
     <Dialog open={openDialog} onOpenChange={onCloseDialog}>
-      <DialogContent className='sm:max-w-[600px]'>
+      <DialogContent className="sm:max-w-[600px]">
         <DialogHeader>
-          <DialogTitle className='flex items-center gap-2'>
-            <LuUsersRound className='inline mr-3 w-7 h-7' />
+          <DialogTitle className="flex items-center gap-2">
+            <LuUsersRound className="inline mr-3 w-7 h-7" />
             {actionDialog}
           </DialogTitle>
           <DialogDescription>
@@ -133,27 +133,28 @@ export const EmployeesDialog = ({
         </DialogHeader>
         <Form {...form}>
           <form
-            method='post'
-            action=''
-            id='employee-form'
+            method="post"
+            action=""
+            id="employee-form"
             noValidate
             onSubmit={form.handleSubmit(handleSubmit)}
-            className='flex flex-col flex-wrap gap-5'>
-            <div className='grid grid-cols-2 gap-6 py-4 auto-rows-auto'>
+            className="flex flex-col flex-wrap gap-5"
+          >
+            <div className="grid grid-cols-2 gap-6 py-4 auto-rows-auto">
               <FormField
                 control={form.control}
-                name='name'
+                name="name"
                 render={({ field }) => {
                   return (
                     <FormItem>
-                      <FormLabel htmlFor='name'>{t('name')}*</FormLabel>
+                      <FormLabel htmlFor="name">{t('name')}*</FormLabel>
                       <FormControl>
                         <Input
-                          id='name'
-                          name='name'
+                          id="name"
+                          name="name"
                           placeholder={t('employee_name_placeholder')}
-                          type='text'
-                          autoComplete='off'
+                          type="text"
+                          autoComplete="off"
                           maxLength={100}
                           {...field}
                           value={field.value ?? ''}
@@ -161,26 +162,26 @@ export const EmployeesDialog = ({
                       </FormControl>
                       <FormMessage />
                     </FormItem>
-                  )
+                  );
                 }}
               />
 
               <FormField
                 control={form.control}
-                name='lastName'
+                name="lastName"
                 render={({ field }) => {
                   return (
                     <FormItem>
-                      <FormLabel htmlFor='lastName'>
+                      <FormLabel htmlFor="lastName">
                         {t('last_name')}*
                       </FormLabel>
                       <FormControl>
                         <Input
-                          id='lastName'
-                          name='lastName'
+                          id="lastName"
+                          name="lastName"
                           placeholder={t('last_name_placeholder')}
-                          type='text'
-                          autoComplete='off'
+                          type="text"
+                          autoComplete="off"
                           maxLength={100}
                           {...field}
                           value={field.value ?? ''}
@@ -188,24 +189,24 @@ export const EmployeesDialog = ({
                       </FormControl>
                       <FormMessage />
                     </FormItem>
-                  )
+                  );
                 }}
               />
 
               <FormField
                 control={form.control}
-                name='dni'
+                name="dni"
                 render={({ field }) => {
                   return (
                     <FormItem>
-                      <FormLabel htmlFor='dni'>{t('dni')}*</FormLabel>
+                      <FormLabel htmlFor="dni">{t('dni')}*</FormLabel>
                       <FormControl>
                         <Input
-                          id='dni'
-                          name='dni'
+                          id="dni"
+                          name="dni"
                           placeholder={t('dni_placeholder')}
-                          type='text'
-                          autoComplete='off'
+                          type="text"
+                          autoComplete="off"
                           maxLength={10}
                           {...field}
                           value={field.value ?? ''}
@@ -213,24 +214,24 @@ export const EmployeesDialog = ({
                       </FormControl>
                       <FormMessage />
                     </FormItem>
-                  )
+                  );
                 }}
               />
 
               <FormField
                 control={form.control}
-                name='email'
+                name="email"
                 render={({ field }) => {
                   return (
                     <FormItem>
-                      <FormLabel htmlFor='email'>{t('email')}*</FormLabel>
+                      <FormLabel htmlFor="email">{t('email')}*</FormLabel>
                       <FormControl>
                         <Input
-                          id='email'
-                          name='email'
+                          id="email"
+                          name="email"
                           placeholder={t('employee_email_placeholder')}
-                          type='email'
-                          autoComplete='off'
+                          type="email"
+                          autoComplete="off"
                           maxLength={100}
                           {...field}
                           value={field.value ?? ''}
@@ -238,24 +239,24 @@ export const EmployeesDialog = ({
                       </FormControl>
                       <FormMessage />
                     </FormItem>
-                  )
+                  );
                 }}
               />
 
               <FormField
                 control={form.control}
-                name='phone'
+                name="phone"
                 render={({ field }) => {
                   return (
                     <FormItem>
-                      <FormLabel htmlFor='phone'>{t('phone')}</FormLabel>
+                      <FormLabel htmlFor="phone">{t('phone')}</FormLabel>
                       <FormControl>
                         <Input
-                          id='phone'
-                          name='phone'
+                          id="phone"
+                          name="phone"
                           placeholder={t('employee_phone_placeholder')}
-                          type='tel'
-                          autoComplete='off'
+                          type="tel"
+                          autoComplete="off"
                           maxLength={15}
                           {...field}
                           value={field.value ?? ''}
@@ -263,24 +264,24 @@ export const EmployeesDialog = ({
                       </FormControl>
                       <FormMessage />
                     </FormItem>
-                  )
+                  );
                 }}
               />
 
               <FormField
                 control={form.control}
-                name='address'
+                name="address"
                 render={({ field }) => {
                   return (
                     <FormItem>
-                      <FormLabel htmlFor='address'>{t('address')}</FormLabel>
+                      <FormLabel htmlFor="address">{t('address')}</FormLabel>
                       <FormControl>
                         <Input
-                          id='address'
-                          name='address'
+                          id="address"
+                          name="address"
                           placeholder={t('employee_address_placeholder')}
-                          type='text'
-                          autoComplete='off'
+                          type="text"
+                          autoComplete="off"
                           maxLength={120}
                           {...field}
                           value={field.value ?? ''}
@@ -288,15 +289,15 @@ export const EmployeesDialog = ({
                       </FormControl>
                       <FormMessage />
                     </FormItem>
-                  )
+                  );
                 }}
               />
 
               <FormField
                 control={form.control}
-                name='startDate'
+                name="startDate"
                 render={({ field }) => (
-                  <FormItem className='flex flex-col'>
+                  <FormItem className="flex flex-col">
                     <FormLabel>{t('start_date')}*</FormLabel>
                     <Popover>
                       <PopoverTrigger asChild>
@@ -306,22 +307,23 @@ export const EmployeesDialog = ({
                             className={cn(
                               'pl-3 text-left font-normal',
                               !field.value && 'text-muted-foreground'
-                            )}>
+                            )}
+                          >
                             {field.value ? (
                               format(field.value, 'PPP')
                             ) : (
                               <span>{t('pick_date')}</span>
                             )}
-                            <CalendarIcon className='w-4 h-4 ml-auto opacity-50' />
+                            <CalendarIcon className="w-4 h-4 ml-auto opacity-50" />
                           </Button>
                         </FormControl>
                       </PopoverTrigger>
-                      <PopoverContent className='w-auto p-0' align='start'>
+                      <PopoverContent className="w-auto p-0" align="start">
                         <Calendar
-                          mode='single'
+                          mode="single"
                           selected={field.value}
                           onSelect={field.onChange}
-                          disabled={date => date < new Date('1900-01-01')}
+                          disabled={(date) => date < new Date('1900-01-01')}
                           initialFocus
                         />
                       </PopoverContent>
@@ -333,18 +335,18 @@ export const EmployeesDialog = ({
 
               <FormField
                 control={form.control}
-                name='position'
+                name="position"
                 render={({ field }) => {
                   return (
                     <FormItem>
-                      <FormLabel htmlFor='position'>{t('position')}*</FormLabel>
+                      <FormLabel htmlFor="position">{t('position')}*</FormLabel>
                       <FormControl>
                         <Input
-                          id='position'
-                          name='position'
+                          id="position"
+                          name="position"
                           placeholder={t('employee_position_placeholder')}
-                          type='text'
-                          autoComplete='off'
+                          type="text"
+                          autoComplete="off"
                           maxLength={100}
                           {...field}
                           value={field.value ?? ''}
@@ -352,26 +354,26 @@ export const EmployeesDialog = ({
                       </FormControl>
                       <FormMessage />
                     </FormItem>
-                  )
+                  );
                 }}
               />
 
               <FormField
                 control={form.control}
-                name='department'
+                name="department"
                 render={({ field }) => {
                   return (
                     <FormItem>
-                      <FormLabel htmlFor='department'>
+                      <FormLabel htmlFor="department">
                         {t('department')}*
                       </FormLabel>
                       <FormControl>
                         <Input
-                          id='department'
-                          name='department'
+                          id="department"
+                          name="department"
                           placeholder={t('employee_department_placeholder')}
-                          type='text'
-                          autoComplete='off'
+                          type="text"
+                          autoComplete="off"
                           maxLength={100}
                           {...field}
                           value={field.value ?? ''}
@@ -379,33 +381,33 @@ export const EmployeesDialog = ({
                       </FormControl>
                       <FormMessage />
                     </FormItem>
-                  )
+                  );
                 }}
               />
 
               <FormField
                 control={form.control}
-                name='salary'
+                name="salary"
                 render={({ field }) => {
                   return (
                     <FormItem>
-                      <FormLabel htmlFor='salary'>{t('salary')}*</FormLabel>
+                      <FormLabel htmlFor="salary">{t('salary')}*</FormLabel>
                       <FormControl>
                         <Input
-                          id='salary'
-                          name='salary'
+                          id="salary"
+                          name="salary"
                           placeholder={t('employee_salary_placeholder')}
-                          type='number'
-                          autoComplete='off'
-                          min='0'
-                          step='0.01'
+                          type="number"
+                          autoComplete="off"
+                          min="0"
+                          step="0.01"
                           {...field}
                           value={field.value ?? ''}
                         />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
-                  )
+                  );
                 }}
               />
 
@@ -413,16 +415,16 @@ export const EmployeesDialog = ({
                 <>
                   <FormField
                     control={form.control}
-                    name='userEmployeeCreatedName'
+                    name="userEmployeeCreatedName"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel htmlFor='userEmployeeCreatedName'>
+                        <FormLabel htmlFor="userEmployeeCreatedName">
                           {t('created_by')}
                         </FormLabel>
                         <FormControl>
                           <Input
-                            id='userEmployeeCreatedName'
-                            name='userEmployeeCreatedName'
+                            id="userEmployeeCreatedName"
+                            name="userEmployeeCreatedName"
                             disabled
                             {...field}
                           />
@@ -434,36 +436,37 @@ export const EmployeesDialog = ({
 
                   <FormField
                     control={form.control}
-                    name='createdOn'
+                    name="createdOn"
                     render={({ field }) => (
-                      <FormItem className='flex flex-col flex-auto'>
-                        <FormLabel htmlFor='createdOn'>
+                      <FormItem className="flex flex-col flex-auto">
+                        <FormLabel htmlFor="createdOn">
                           {t('created_on')}
                         </FormLabel>
                         <Popover>
                           <PopoverTrigger asChild>
                             <FormControl>
                               <Button
-                                id='createdOn'
+                                id="createdOn"
                                 disabled={true}
                                 readOnly={true}
                                 variant={'outline'}
                                 className={cn(
                                   'pl-3 text-left font-normal',
                                   !field.value && 'text-muted-foreground'
-                                )}>
+                                )}
+                              >
                                 {field.value &&
                                   format(new Date(field.value), 'PPP')}
-                                <CalendarIcon className='w-4 h-4 ml-auto opacity-50' />
+                                <CalendarIcon className="w-4 h-4 ml-auto opacity-50" />
                               </Button>
                             </FormControl>
                           </PopoverTrigger>
-                          <PopoverContent className='w-auto p-0' align='start'>
+                          <PopoverContent className="w-auto p-0" align="start">
                             <Calendar
-                              mode='single'
+                              mode="single"
                               selected={field.value}
                               onSelect={field.onChange}
-                              disabled={date => date < new Date('1900-01-01')}
+                              disabled={(date) => date < new Date('1900-01-01')}
                             />
                           </PopoverContent>
                         </Popover>
@@ -477,16 +480,16 @@ export const EmployeesDialog = ({
                 <>
                   <FormField
                     control={form.control}
-                    name='userEmployeeUpdatedName'
+                    name="userEmployeeUpdatedName"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel htmlFor='userEmployeeUpdatedName'>
+                        <FormLabel htmlFor="userEmployeeUpdatedName">
                           {t('updated_by')}
                         </FormLabel>
                         <FormControl>
                           <Input
-                            id='userEmployeeUpdatedName'
-                            name='userEmployeeUpdatedName'
+                            id="userEmployeeUpdatedName"
+                            name="userEmployeeUpdatedName"
                             disabled
                             {...field}
                           />
@@ -498,36 +501,37 @@ export const EmployeesDialog = ({
 
                   <FormField
                     control={form.control}
-                    name='updatedOn'
+                    name="updatedOn"
                     render={({ field }) => (
-                      <FormItem className='flex flex-col flex-auto'>
-                        <FormLabel htmlFor='updatedOn'>
+                      <FormItem className="flex flex-col flex-auto">
+                        <FormLabel htmlFor="updatedOn">
                           {t('updated_on')}
                         </FormLabel>
                         <Popover>
                           <PopoverTrigger asChild>
                             <FormControl>
                               <Button
-                                id='updatedOn'
+                                id="updatedOn"
                                 disabled={true}
                                 readOnly={true}
                                 variant={'outline'}
                                 className={cn(
                                   'pl-3 text-left font-normal',
                                   !field.value && 'text-muted-foreground'
-                                )}>
+                                )}
+                              >
                                 {field.value &&
                                   format(new Date(field.value), 'PPP')}
-                                <CalendarIcon className='w-4 h-4 ml-auto opacity-50' />
+                                <CalendarIcon className="w-4 h-4 ml-auto opacity-50" />
                               </Button>
                             </FormControl>
                           </PopoverTrigger>
-                          <PopoverContent className='w-auto p-0' align='start'>
+                          <PopoverContent className="w-auto p-0" align="start">
                             <Calendar
-                              mode='single'
+                              mode="single"
                               selected={field.value}
                               onSelect={field.onChange}
-                              disabled={date => date < new Date('1900-01-01')}
+                              disabled={(date) => date < new Date('1900-01-01')}
                             />
                           </PopoverContent>
                         </Popover>
@@ -541,28 +545,31 @@ export const EmployeesDialog = ({
             <DialogFooter>
               <DialogClose asChild>
                 <Button
-                  type='button'
-                  variant='secondary'
-                  className='flex-1 md:flex-initial md:w-24'>
+                  type="button"
+                  variant="secondary"
+                  className="flex-1 md:flex-initial md:w-24"
+                >
                   {t('cancel')}
                 </Button>
               </DialogClose>
 
               {employeeId && (
                 <Button
-                  type='button'
-                  variant='destructive'
-                  className='flex-1 md:flex-initial md:w-24'
+                  type="button"
+                  variant="destructive"
+                  className="flex-1 md:flex-initial md:w-24"
                   onClick={() => {
-                    handleDelete()
-                  }}>
+                    handleDelete();
+                  }}
+                >
                   {t('delete')}
                 </Button>
               )}
               <Button
-                type='submit'
-                variant='info'
-                className='flex-1 md:flex-initial md:w-24'>
+                type="submit"
+                variant="info"
+                className="flex-1 md:flex-initial md:w-24"
+              >
                 {employeeId ? t('update') : t('save')}
               </Button>
             </DialogFooter>
@@ -570,8 +577,8 @@ export const EmployeesDialog = ({
         </Form>
       </DialogContent>
     </Dialog>
-  )
-}
+  );
+};
 
 EmployeesDialog.propTypes = {
   openDialog: PropTypes.bool.isRequired,
@@ -579,5 +586,5 @@ EmployeesDialog.propTypes = {
   selectedRow: PropTypes.object,
   onSubmit: PropTypes.func.isRequired,
   onDeleteById: PropTypes.func.isRequired,
-  actionDialog: PropTypes.string.isRequired
-}
+  actionDialog: PropTypes.string.isRequired,
+};

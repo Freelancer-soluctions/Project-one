@@ -1,69 +1,69 @@
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { useTranslation } from 'react-i18next'
-import { BackDashBoard } from '@/components/backDash/BackDashBoard'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useTranslation } from 'react-i18next';
+import { BackDashBoard } from '@/components/backDash/BackDashBoard';
 import {
   useUpdateUserByIdMutation,
   useDeleteUserByIdMutation,
   useGetAllUsersStatusQuery,
   useGetAllUsersRolQuery,
-  useGetAllUserPermitsQuery
-} from '../api/usersApi'
-import { Spinner } from '@/components/loader/Spinner'
-import { UsersBasicInfo } from '../components'
-import AlertDialogComponent from '@/components/alertDialog/AlertDialog'
-import { useNavigate, useLocation } from 'react-router'
-import { useState, useEffect } from 'react'
+  useGetAllUserPermitsQuery,
+} from '../api/usersApi';
+import { Spinner } from '@/components/loader/Spinner';
+import { UsersBasicInfo } from '../components';
+import AlertDialogComponent from '@/components/alertDialog/AlertDialog';
+import { useNavigate, useLocation } from 'react-router';
+import { useState, useEffect } from 'react';
 
 function UsersForms() {
-  const { t } = useTranslation()
-  const navigate = useNavigate()
-  const [selectedRow, setSelectedRow] = useState()
-  const [openAlertDialog, setOpenAlertDialog] = useState(false) //alert dialog open/close
-  const [alertProps, setAlertProps] = useState({})
-  const location = useLocation()
+  const { t } = useTranslation();
+  const navigate = useNavigate();
+  const [selectedRow, setSelectedRow] = useState();
+  const [openAlertDialog, setOpenAlertDialog] = useState(false); //alert dialog open/close
+  const [alertProps, setAlertProps] = useState({});
+  const location = useLocation();
 
   useEffect(() => {
     if (location.state?.row) {
-      setSelectedRow(location.state.row)
+      setSelectedRow(location.state.row);
     } else {
-      setSelectedRow({})
+      setSelectedRow({});
     }
-  }, [location.state])
+  }, [location.state]);
 
   const [
     updateUserById,
-    { isLoading: isLoadingPut, isError: isErrorPut, isSuccess: isSuccessPut }
-  ] = useUpdateUserByIdMutation()
+    { isLoading: isLoadingPut, isError: isErrorPut, isSuccess: isSuccessPut },
+  ] = useUpdateUserByIdMutation();
 
   const {
     data: dataUsersStatus = { data: [] },
     isLoading: isLoadingStatus,
-    isFetching: isFetchingStatus
-  } = useGetAllUsersStatusQuery()
+    isFetching: isFetchingStatus,
+  } = useGetAllUsersStatusQuery();
 
   const {
     data: dataUserPermits = { data: [] },
     isLoading: isLoadingUserPermits,
-    isFetching: isFetchingUserPermits
-  } = useGetAllUserPermitsQuery()
+    isFetching: isFetchingUserPermits,
+  } = useGetAllUserPermitsQuery();
 
   const [
     deleteUserById,
     {
       isLoading: isLoadingDelete,
       isError: isErrorDelete,
-      isSuccess: isSuccessDelete
-    }
-  ] = useDeleteUserByIdMutation()
+      isSuccess: isSuccessDelete,
+    },
+  ] = useDeleteUserByIdMutation();
 
   const {
     data: dataUsersRol = { data: [] },
     isLoading: isLoadingRol,
-    isFetching: isFetchingRol
-  } = useGetAllUsersRolQuery()
+    isFetching: isFetchingRol,
+  } = useGetAllUsersRolQuery();
 
-  const handleSubmit = async values => {
-    debugger
+  const handleSubmit = async (values) => {
+    debugger;
     try {
       const result = await updateUserById({
         id: values.id,
@@ -83,9 +83,9 @@ function UsersForms() {
           document: values.document,
           roleId: values.roles.id,
           statusId: values.status.id,
-          permissions: values.selectedPermissions
-        }
-      }).unwrap()
+          permissions: values.selectedPermissions,
+        },
+      }).unwrap();
 
       setAlertProps({
         alertTitle: t('update_record'),
@@ -93,17 +93,17 @@ function UsersForms() {
         cancel: false,
         success: true,
         onSuccess: () => {
-          navigate('/home/users')
+          navigate('/home/users');
         },
-        variantSuccess: 'info'
-      })
-      setOpenAlertDialog(true)
+        variantSuccess: 'info',
+      });
+      setOpenAlertDialog(true);
     } catch (err) {
-      console.error('Error:', err)
+      console.error('Error:', err);
     }
-  }
+  };
 
-  const handleDelete = async id => {
+  const handleDelete = async (id) => {
     try {
       setAlertProps({
         alertTitle: t('delete_record'),
@@ -116,7 +116,7 @@ function UsersForms() {
         onSuccess: () => {},
         onDelete: async () => {
           try {
-            await deleteUserById(id).unwrap()
+            await deleteUserById(id).unwrap();
 
             setAlertProps({
               alertTitle: '',
@@ -124,24 +124,24 @@ function UsersForms() {
               cancel: false,
               success: true,
               onSuccess: () => {},
-              variantSuccess: 'info'
-            })
-            setOpenAlertDialog(true)
+              variantSuccess: 'info',
+            });
+            setOpenAlertDialog(true);
           } catch (err) {
-            console.error('Error deleting:', err)
+            console.error('Error deleting:', err);
           }
-        }
-      })
-      setOpenAlertDialog(true)
+        },
+      });
+      setOpenAlertDialog(true);
     } catch (err) {
-      console.error('Error deleting:', err)
+      console.error('Error deleting:', err);
     }
-  }
+  };
 
   return (
     <>
       <BackDashBoard link={'/home/users'} moduleName={t('edit_users')} />
-      <div className='relative'>
+      <div className="relative">
         {(isLoadingPut ||
           isLoadingDelete ||
           isLoadingStatus ||
@@ -149,14 +149,14 @@ function UsersForms() {
           isFetchingRol ||
           isFetchingStatus) && <Spinner />}
 
-        <div className='container flex flex-col min-h-screen'>
-          <main className='container flex-1 py-6'>
-            <Tabs defaultValue='info' className='mb-6'>
-              <TabsList className='grid w-full grid-cols-1'>
-                <TabsTrigger value='info'>{t('basic_information')}</TabsTrigger>
+        <div className="container flex flex-col min-h-screen">
+          <main className="container flex-1 py-6">
+            <Tabs defaultValue="info" className="mb-6">
+              <TabsList className="grid w-full grid-cols-1">
+                <TabsTrigger value="info">{t('basic_information')}</TabsTrigger>
               </TabsList>
 
-              <TabsContent value='info' className='mt-4'>
+              <TabsContent value="info" className="mt-4">
                 <UsersBasicInfo
                   onSubmit={handleSubmit}
                   onDelete={handleDelete}
@@ -176,6 +176,6 @@ function UsersForms() {
         </div>
       </div>
     </>
-  )
+  );
 }
-export default UsersForms
+export default UsersForms;

@@ -1,73 +1,73 @@
 /* React-specific entry point that automatically generates
    hooks corresponding to the defined endpoints */
-import { createApi } from '@reduxjs/toolkit/query/react'
-import { axiosPrivateBaseQuery } from '@/config/axios'
+import { createApi } from '@reduxjs/toolkit/query/react';
+import { axiosPrivateBaseQuery } from '@/config/axios';
 
 // Define a service using a base URL and expected endpoints
 const notesApi = createApi({
   reducerPath: 'notesApi',
   baseQuery: axiosPrivateBaseQuery({
-    baseUrl: import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1'
+    baseUrl: import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1',
   }),
   tagTypes: ['Notes'], // Agrega un tag identificador
-  endpoints: builder => ({
+  endpoints: (builder) => ({
     getAllCountNotes: builder.query({
       query: () => ({
         url: `/notes/notesCount`,
-        method: 'GET'
+        method: 'GET',
       }),
-      providesTags: ['Notes'] // Indica que este endpoint usa el tag 'Notes'
+      providesTags: ['Notes'], // Indica que este endpoint usa el tag 'Notes'
     }),
 
     getAllNotes: builder.query({
-      query: args => ({
+      query: (args) => ({
         url: `/notes`,
         method: 'GET',
-        params: { ...args }
+        params: { ...args },
       }),
-      providesTags: ['Notes'] // Indica que este endpoint usa el tag 'Notes'
+      providesTags: ['Notes'], // Indica que este endpoint usa el tag 'Notes'
     }),
     getAllNotesColumns: builder.query({
       query: () => ({
         url: `/notes/notesColumns`,
-        method: 'GET'
-      })
+        method: 'GET',
+      }),
     }),
     updateNoteColumId: builder.mutation({
-      query: body => ({
+      query: (body) => ({
         url: `/notes/noteColumn`,
         method: 'PUT',
-        body
+        body,
       }),
-      invalidatesTags: ['Notes'] // Invalida el cache de 'Notes' para volver a consultar
+      invalidatesTags: ['Notes'], // Invalida el cache de 'Notes' para volver a consultar
     }),
     updateNoteById: builder.mutation({
       query: ({ id, body }) => ({
         url: `/notes/${id}`,
         method: 'PUT',
-        body
+        body,
       }),
-      invalidatesTags: ['Notes'] // Invalida el cache de 'Notes' para volver a consultar
+      invalidatesTags: ['Notes'], // Invalida el cache de 'Notes' para volver a consultar
     }),
     createNote: builder.mutation({
-      query: body => ({
+      query: (body) => ({
         url: `/notes/`,
         method: 'POST',
-        body
+        body,
       }),
-      invalidatesTags: ['Notes'] // Invalida el cache de 'Notes' para volver a consultar
+      invalidatesTags: ['Notes'], // Invalida el cache de 'Notes' para volver a consultar
     }),
     deleteNoteById: builder.mutation({
       query(id) {
         return {
           url: `/notes/${id}`,
-          method: 'DELETE'
-        }
+          method: 'DELETE',
+        };
       },
-      invalidatesTags: ['Notes'] // Invalida el cache de 'Notes' para volver a consultar
-    })
-  })
-})
+      invalidatesTags: ['Notes'], // Invalida el cache de 'Notes' para volver a consultar
+    }),
+  }),
+});
 
 // Export hooks for usage in functional components, which are
 // auto-generated based on the defined endpoints
@@ -78,7 +78,7 @@ export const {
   useUpdateNoteColumIdMutation,
   useUpdateNoteByIdMutation,
   useDeleteNoteByIdMutation,
-  useGetAllCountNotesQuery
-} = notesApi
+  useGetAllCountNotesQuery,
+} = notesApi;
 
-export default notesApi
+export default notesApi;
