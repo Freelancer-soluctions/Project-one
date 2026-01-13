@@ -1,0 +1,46 @@
+{
+  "name": "project-one",
+  "version": "1.0.0",
+  "description": "Front end \r - Persitencia de datos como el inicio de sesion con redux-persist\r - Proteccion de rutas solo accesibles cuando la sesion es valida por medio de un guard, trabajando conjuntamente con jwt\r - Internalizacion con i18next y react-i18next soportando dos idiomas (ingles y español)\r - Storybook para la documentacion y prueba componentes UI, para la facilitacion entre diseñadores y QA testers\r - Uso de hooks personalizados para organizar y separalar la logica de la pagina para su mejor comprension.\r - Uso de logger para monitoreo y registro de acciones o errores del front end\r - React hook forma para manejo de formularios en combinacion con zod schema validation\r - RTK QUERY  para manejo de estado global\r - Redux persist para la persitencia de estados necesarios como lo son las configuraciones o informacion de usuario",
+  "homepage": "https://github.com/Freelancer-soluctions/Project-one#readme",
+  "bugs": {
+    "url": "https://github.com/Freelancer-soluctions/Project-one/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Freelancer-soluctions/Project-one.git"
+  },
+  "license": "ISC",
+  "author": "",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "prepare": "husky",
+    "husky:disable": "ren .husky .husky.disabled",
+    "husky:enable": "ren .husky.disabled .husky",
+    "test": "npm run test -ws",
+    "build": "npm run build -ws",
+    "prepush": "npm run test && npm run build",
+    "format": "prettier --write \"apps/**/*.{js,jsx,json,md}\"",
+    "format:check": "prettier --check \"apps/**/*.{js,jsx,json,md}\"",
+    "lint": "eslint \"apps/**/*.{js,jsx}\"",
+    "lint:fix": "eslint \"apps/**/*.{js,jsx}\" --fix"
+  },
+  "devDependencies": {
+    "@commitlint/cli": "^20.3.1",
+    "@commitlint/config-conventional": "^20.3.1",
+    "eslint": "^9.39.2",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-import": "^2.32.0",
+    "eslint-plugin-react": "^7.37.5",
+    "eslint-plugin-react-hooks": "^7.0.1",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.2.7",
+    "prettier": "3.7.4"
+  },
+  "lint-staged": {
+    "*.{js,ts,cjs,mjs,d.cts,d.mts,json,jsonc}": [
+      "npm run format"
+    ]
+  }
+}
