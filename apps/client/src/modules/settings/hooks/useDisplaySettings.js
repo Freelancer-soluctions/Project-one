@@ -1,7 +1,7 @@
-import { useMemo } from 'react'
+import { useMemo } from 'react';
 export function useDisplaySettings(settings) {
   return useMemo(() => {
-    if (!settings) return {}
+    if (!settings) return {};
 
     const {
       displayEvents,
@@ -11,8 +11,8 @@ export function useDisplaySettings(settings) {
       displayLanguage,
       displayReports,
       displayPayroll,
-      displayStock
-    } = settings
+      displayStock,
+    } = settings;
 
     return {
       displayEvents,
@@ -22,7 +22,7 @@ export function useDisplaySettings(settings) {
       displayLanguage,
       displayReports,
       displayPayroll,
-      displayStock
-    }
-  }, [settings]) // Solo se recalcula si 'settings' cambia
+      displayStock,
+    };
+  }, [settings]); // Solo se recalcula si 'settings' cambia
 }

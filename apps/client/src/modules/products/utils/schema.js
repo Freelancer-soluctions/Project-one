@@ -1,4 +1,4 @@
-import { z } from 'zod'
+import { z } from 'zod';
 
 export const ProductsSchema = z
   .object({
@@ -7,19 +7,19 @@ export const ProductsSchema = z
       .string()
       .max(80, 'El nombre no puede tener más de 80 caracteres')
       .nonempty('El nombre es obligatorio'),
-    category: z.custom(val => val && val.id, {
-      message: 'Debe seleccionar una categoría'
+    category: z.custom((val) => val && val.id, {
+      message: 'Debe seleccionar una categoría',
     }),
-    status: z.custom(val => val && val.id, {
-      message: 'Debe seleccionar un estado'
+    status: z.custom((val) => val && val.id, {
+      message: 'Debe seleccionar un estado',
     }),
-    provider: z.custom(val => val && val.id, {
-      message: 'Debe seleccionar un provider'
+    provider: z.custom((val) => val && val.id, {
+      message: 'Debe seleccionar un provider',
     }),
     price: z
       .string()
       .min(1, 'El precio es obligatorio')
-      .transform(val => Number(val))
+      .transform((val) => Number(val))
       .pipe(
         z
           .number()
@@ -29,19 +29,19 @@ export const ProductsSchema = z
     cost: z
       .string()
       .min(1, 'El precio es obligatorio')
-      .transform(val => Number(val))
+      .transform((val) => Number(val))
       .pipe(
         z
           .number()
           .positive('El precio debe ser un número positivo')
           .multipleOf(0.01, 'El precio debe tener dos decimales')
-      )
+      ),
   })
-  .passthrough()
+  .passthrough();
 
 const attributeSchema = z
   .object({
-    createdOn: z.date().or(z.string().transform(val => new Date(val))), // Fecha válida
+    createdOn: z.date().or(z.string().transform((val) => new Date(val))), // Fecha válida
     name: z
       .string()
       .min(1, 'El nombre es obligatorio')
@@ -50,10 +50,12 @@ const attributeSchema = z
       .string()
       .min(1, 'La descripción es obligatoria')
       .max(100, 'La descripción no puede superar los 100 caracteres'), // Puede estar vacío
-    save: z.boolean().optional() // `save` es opcional
+    save: z.boolean().optional(), // `save` es opcional
   })
-  .passthrough()
+  .passthrough();
 
 export const attributesSchema = z.object({
-  attributes: z.array(attributeSchema).min(1, 'Debe haber al menos un atributo')
-})
+  attributes: z
+    .array(attributeSchema)
+    .min(1, 'Debe haber al menos un atributo'),
+});

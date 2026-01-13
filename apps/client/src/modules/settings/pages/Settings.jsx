@@ -1,19 +1,19 @@
-import { Button } from '@/components/ui/button'
-import { Card, CardContent } from '@/components/ui/card'
-import { Checkbox } from '@/components/ui/checkbox'
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Checkbox } from '@/components/ui/checkbox';
 
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue
-} from '@/components/ui/select'
-import { Switch } from '@/components/ui/switch'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+  SelectValue,
+} from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   LuBell,
   LuUser,
@@ -21,96 +21,98 @@ import {
   LuShield,
   LuGlobe,
   LuLayoutTemplate,
-  LuPackage
-} from 'react-icons/lu'
-import { Separator } from '@/components/ui/separator'
+  LuPackage,
+} from 'react-icons/lu';
+import { Separator } from '@/components/ui/separator';
 import {
   SettingsLanguage,
   SettingsDisplay,
-  SettingsProduct
-} from '../components/index'
-import { useSelector } from 'react-redux'
-import { useTranslation } from 'react-i18next'
+  SettingsProduct,
+} from '../components/index';
+import { useSelector } from 'react-redux';
+import { useTranslation } from 'react-i18next';
 import {
   useChangeLanguage,
   useActiveTab,
   useDisplaySettings,
-  useSaveDisplaySettings
-} from '../hooks'
+  useSaveDisplaySettings,
+} from '../hooks';
 
 export default function Settings() {
-  const { t } = useTranslation()
+  const { t } = useTranslation();
   const { data } = useSelector(
-    state => state.settings.dataSettings?.userSettings
-  )
+    (state) => state.settings.dataSettings?.userSettings
+  );
   //language
-  const { onChangeLanguage } = useChangeLanguage()
+  const { onChangeLanguage } = useChangeLanguage();
   //display
-  const { activeTab, setActiveTab } = useActiveTab('profile')
-  const userDisplaySettings = useDisplaySettings(data)
-  const { onSaveDisplaySettings } = useSaveDisplaySettings(data)
+  const { activeTab, setActiveTab } = useActiveTab('profile');
+  const userDisplaySettings = useDisplaySettings(data);
+  const { onSaveDisplaySettings } = useSaveDisplaySettings(data);
 
   return (
     // {(isLoading || isFetching || isLoadingPost) && <Spinner />}
 
-    <div className='w-full px-4 py-10'>
-      <div className='space-y-6'>
+    <div className="w-full px-4 py-10">
+      <div className="space-y-6">
         <div>
-          <h2 className='text-3xl font-bold tracking-tight'>{t('settings')}</h2>
-          <p className='text-muted-foreground'>
+          <h2 className="text-3xl font-bold tracking-tight">{t('settings')}</h2>
+          <p className="text-muted-foreground">
             {t('settings_preferences_message')}
           </p>
         </div>
         <Separator />
         <Tabs
-          defaultValue='profile'
+          defaultValue="profile"
           value={activeTab}
           onValueChange={setActiveTab}
-          className='space-y-10'>
-          <TabsList className='flex flex-wrap gap-5 overflow-x-auto md:flex-nowrap'>
-            <TabsTrigger value='profile' className='flex items-center gap-2'>
-              <LuUser className='w-4 h-4' />
+          className="space-y-10"
+        >
+          <TabsList className="flex flex-wrap gap-5 overflow-x-auto md:flex-nowrap">
+            <TabsTrigger value="profile" className="flex items-center gap-2">
+              <LuUser className="w-4 h-4" />
               {t('profile')}
             </TabsTrigger>
-            <TabsTrigger value='language' className='flex items-center gap-2'>
-              <LuGlobe className='w-4 h-4' />
+            <TabsTrigger value="language" className="flex items-center gap-2">
+              <LuGlobe className="w-4 h-4" />
               {t('language')}
             </TabsTrigger>
-            <TabsTrigger value='appearance' className='flex items-center gap-2'>
-              <LuMoon className='w-4 h-4' />
+            <TabsTrigger value="appearance" className="flex items-center gap-2">
+              <LuMoon className="w-4 h-4" />
               {t('appearance')}
             </TabsTrigger>
             <TabsTrigger
-              value='notifications'
-              className='flex items-center gap-2'>
-              <LuBell className='w-4 h-4' />
+              value="notifications"
+              className="flex items-center gap-2"
+            >
+              <LuBell className="w-4 h-4" />
               {t('notifications')}
             </TabsTrigger>
-            <TabsTrigger value='display' className='flex items-center gap-2'>
-              <LuLayoutTemplate className='w-4 h-4' />
+            <TabsTrigger value="display" className="flex items-center gap-2">
+              <LuLayoutTemplate className="w-4 h-4" />
               {t('display')}
             </TabsTrigger>
-            <TabsTrigger value='product' className='flex items-center gap-2'>
-              <LuPackage className='w-4 h-4' />
+            <TabsTrigger value="product" className="flex items-center gap-2">
+              <LuPackage className="w-4 h-4" />
               {t('product')}
             </TabsTrigger>
-            <TabsTrigger value='account' className='flex items-center gap-2'>
-              <LuShield className='w-4 h-4' />
+            <TabsTrigger value="account" className="flex items-center gap-2">
+              <LuShield className="w-4 h-4" />
               {t('account')}
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value='language' className='space-y-6'>
+          <TabsContent value="language" className="space-y-6">
             <SettingsLanguage onChangeLanguage={onChangeLanguage} />
           </TabsContent>
-          <TabsContent value='display' className='space-y-6'>
+          <TabsContent value="display" className="space-y-6">
             <SettingsDisplay
               userDisplaySettings={userDisplaySettings}
               onSaveDisplaySettings={onSaveDisplaySettings}
             />
           </TabsContent>
 
-          <TabsContent value='product' className='space-y-6'>
+          <TabsContent value="product" className="space-y-6">
             <SettingsProduct />
           </TabsContent>
 
@@ -324,5 +326,5 @@ export default function Settings() {
         </Tabs>
       </div>
     </div>
-  )
+  );
 }

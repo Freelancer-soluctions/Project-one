@@ -1,40 +1,40 @@
 import {
   PayrollFiltersForm,
   PayrollDialog,
-  PayrollDatatable
-} from '../components' // Adjusted import path
-import { BackDashBoard } from '@/components/backDash/BackDashBoard'
-import { useTranslation } from 'react-i18next'
-import { useState, useEffect } from 'react'
+  PayrollDatatable,
+} from '../components'; // Adjusted import path
+import { BackDashBoard } from '@/components/backDash/BackDashBoard';
+import { useTranslation } from 'react-i18next';
+import { useState, useEffect } from 'react';
 import {
   useLazyGetAllPayrollQuery,
   useUpdatePayrollByIdMutation,
   useCreatePayrollMutation,
-  useDeletePayrollByIdMutation
-} from '../api/payrollApi' // Adjusted import path
-import { useGetAllEmployeesFiltersQuery } from '@/modules/employees/api/employeesApi' // Assuming employee API exists
+  useDeletePayrollByIdMutation,
+} from '../api/payrollApi'; // Adjusted import path
+import { useGetAllEmployeesFiltersQuery } from '@/modules/employees/api/employeesApi'; // Assuming employee API exists
 
-import AlertDialogComponent from '@/components/alertDialog/AlertDialog'
-import { Spinner } from '@/components/loader/Spinner'
+import AlertDialogComponent from '@/components/alertDialog/AlertDialog';
+import { Spinner } from '@/components/loader/Spinner';
 
 const Payroll = () => {
-  const { t } = useTranslation()
-  const [selectedRow, setSelectedRow] = useState({})
-  const [openDialog, setOpenDialog] = useState(false)
-  const [openAlertDialog, setOpenAlertDialog] = useState(false)
-  const [alertProps, setAlertProps] = useState({})
-  const [actionDialog, setActionDialog] = useState('')
+  const { t } = useTranslation();
+  const [selectedRow, setSelectedRow] = useState({});
+  const [openDialog, setOpenDialog] = useState(false);
+  const [openAlertDialog, setOpenAlertDialog] = useState(false);
+  const [alertProps, setAlertProps] = useState({});
+  const [actionDialog, setActionDialog] = useState('');
   const [pagination, setPagination] = useState({
     pageIndex: 0,
-    pageSize: 20
-  })
-  const [filters, setFilters] = useState({})
+    pageSize: 20,
+  });
+  const [filters, setFilters] = useState({});
 
   const {
     data: dataEmployees = { data: [] },
     isLoading: isLoadingEmployees,
-    isFetching: isFetchingEmployees
-  } = useGetAllEmployeesFiltersQuery()
+    isFetching: isFetchingEmployees,
+  } = useGetAllEmployeesFiltersQuery();
 
   const [
     getAllPayroll,
@@ -42,18 +42,18 @@ const Payroll = () => {
       data: dataPayroll = { data: [] },
       isLoading: isLoadingPayroll,
       isFetching: isFetchingPayroll,
-      refetch // Add refetch to manually trigger data fetching
-    }
-  ] = useLazyGetAllPayrollQuery()
+      refetch, // Add refetch to manually trigger data fetching
+    },
+  ] = useLazyGetAllPayrollQuery();
 
   const [updatePayrollById, { isLoading: isLoadingPut }] =
-    useUpdatePayrollByIdMutation()
+    useUpdatePayrollByIdMutation();
 
   const [createPayroll, { isLoading: isLoadingPost }] =
-    useCreatePayrollMutation()
+    useCreatePayrollMutation();
 
   const [deletePayrollById, { isLoading: isLoadingDelete }] =
-    useDeletePayrollByIdMutation()
+    useDeletePayrollByIdMutation();
 
   /**
    * Este efecto es la única fuente de verdad para disparar
@@ -72,9 +72,9 @@ const Payroll = () => {
     getAllPayroll({
       page: pagination.pageIndex + 1,
       limit: pagination.pageSize,
-      ...filters
-    })
-  }, [pagination.pageIndex, pagination.pageSize, filters])
+      ...filters,
+    });
+  }, [pagination.pageIndex, pagination.pageSize, filters]);
 
   /**
    * Al aplicar nuevos filtros:
@@ -85,21 +85,21 @@ const Payroll = () => {
    * El cambio de estado dispara el useEffect, manteniendo
    * un flujo reactivo y predecible.
    */
-  const handleSubmitFilters = newFilters => {
-    setPagination(prev => ({
+  const handleSubmitFilters = (newFilters) => {
+    setPagination((prev) => ({
       ...prev,
-      pageIndex: 0
-    }))
+      pageIndex: 0,
+    }));
 
-    setFilters(newFilters)
-  }
+    setFilters(newFilters);
+  };
 
   const handleSubmit = async (values, payrollId) => {
     try {
-      const action = payrollId ? updatePayrollById : createPayroll
-      const payload = payrollId ? { id: payrollId, data: values } : values
+      const action = payrollId ? updatePayrollById : createPayroll;
+      const payload = payrollId ? { id: payrollId, data: values } : values;
 
-      await action(payload).unwrap()
+      await action(payload).unwrap();
 
       setAlertProps({
         alertTitle: t(payrollId ? 'update_record' : 'add_record'),
@@ -109,11 +109,11 @@ const Payroll = () => {
         cancel: false,
         success: true,
         onSuccess: () => {
-          setOpenDialog(false)
+          setOpenDialog(false);
         },
-        variantSuccess: 'info'
-      })
-      setOpenAlertDialog(true)
+        variantSuccess: 'info',
+      });
+      setOpenAlertDialog(true);
     } catch (err) {
       // Handle error display, perhaps another AlertDialog
       setAlertProps({
@@ -125,29 +125,29 @@ const Payroll = () => {
         onSuccess: () => {
           /* stay on dialog or close if needed */
         },
-        variantSuccess: 'destructive' // Show error styling
-      })
-      setOpenAlertDialog(true)
+        variantSuccess: 'destructive', // Show error styling
+      });
+      setOpenAlertDialog(true);
     }
-  }
+  };
 
   const handleAddDialog = () => {
-    setActionDialog(t('add_payroll')) // Adjust translation key
-    setOpenDialog(true)
-  }
+    setActionDialog(t('add_payroll')); // Adjust translation key
+    setOpenDialog(true);
+  };
 
-  const handleEditDialog = row => {
-    setActionDialog(t('edit_payroll')) // Adjust translation key
-    setOpenDialog(true)
-    setSelectedRow(row)
-  }
+  const handleEditDialog = (row) => {
+    setActionDialog(t('edit_payroll')); // Adjust translation key
+    setOpenDialog(true);
+    setSelectedRow(row);
+  };
 
   const handleCloseDialog = () => {
-    setSelectedRow({})
-    setOpenDialog(false)
-  }
+    setSelectedRow({});
+    setOpenDialog(false);
+  };
 
-  const handleDelete = async id => {
+  const handleDelete = async (id) => {
     try {
       setAlertProps({
         alertTitle: t('delete_record'),
@@ -160,7 +160,7 @@ const Payroll = () => {
         onSuccess: () => {},
         onDelete: async () => {
           try {
-            await deletePayrollById(id).unwrap()
+            await deletePayrollById(id).unwrap();
 
             setAlertProps({
               alertTitle: '',
@@ -168,36 +168,36 @@ const Payroll = () => {
               cancel: false,
               success: true,
               onSuccess: () => {
-                setOpenDialog(false)
+                setOpenDialog(false);
               },
-              variantSuccess: 'info'
-            })
-            setOpenAlertDialog(true)
+              variantSuccess: 'info',
+            });
+            setOpenAlertDialog(true);
           } catch (err) {
-            console.error('Error deleting:', err)
+            console.error('Error deleting:', err);
             setAlertProps({
               alertTitle: t('error'),
               alertMessage: t('delete_failed'),
               cancel: false,
               success: false,
               destructive: true,
-              variantDestructive: 'destructive'
-            })
-            setOpenAlertDialog(true)
+              variantDestructive: 'destructive',
+            });
+            setOpenAlertDialog(true);
           }
-        }
-      })
-      setOpenAlertDialog(true)
+        },
+      });
+      setOpenAlertDialog(true);
     } catch (err) {
-      console.error('Error initiating delete:', err)
+      console.error('Error initiating delete:', err);
     }
-  }
+  };
 
   return (
     <>
       <BackDashBoard link={'/home'} moduleName={t('payroll')} />{' '}
       {/* Adjust module name */}
-      <div className='relative'>
+      <div className="relative">
         {/* Show spinner when loading or fetching */}
         {(isLoadingPayroll ||
           isLoadingPut ||
@@ -207,8 +207,8 @@ const Payroll = () => {
           isFetchingEmployees ||
           isFetchingPayroll) && <Spinner />}
 
-        <div className='grid grid-cols-2 grid-rows-4 gap-4 md:grid-cols-5'>
-          <div className='col-span-2 row-span-1 md:col-span-5'>
+        <div className="grid grid-cols-2 grid-rows-4 gap-4 md:grid-cols-5">
+          <div className="col-span-2 row-span-1 md:col-span-5">
             <PayrollFiltersForm
               onSubmit={handleSubmitFilters}
               onAddDialog={handleAddDialog}
@@ -216,7 +216,7 @@ const Payroll = () => {
             />
           </div>
           {/* Datatable */}
-          <div className='flex flex-wrap w-full col-span-2 row-span-3 row-start-2 md:col-span-5'>
+          <div className="flex flex-wrap w-full col-span-2 row-span-3 row-start-2 md:col-span-5">
             <PayrollDatatable
               dataPayroll={dataPayroll} // Pass payroll data
               onEditDialog={handleEditDialog}
@@ -243,7 +243,7 @@ const Payroll = () => {
         </div>
       </div>
     </>
-  )
-}
+  );
+};
 
-export default Payroll
+export default Payroll;

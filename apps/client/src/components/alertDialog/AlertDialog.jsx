@@ -7,25 +7,26 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger
-} from '@/components/ui/alert-dialog'
-import { useTranslation } from 'react-i18next'
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
+import { useTranslation } from 'react-i18next';
 
 const AlertDialogComponent = ({
   openAlertDialog,
   setOpenAlertDialog,
-  alertProps
+  alertProps,
 }) => {
-  const { t } = useTranslation()
+  const { t } = useTranslation();
   return (
     <AlertDialog
       open={openAlertDialog}
-      onOpenChange={isOpen => {
-        if (isOpen === true) return
-        setOpenAlertDialog(false)
-      }}>
+      onOpenChange={(isOpen) => {
+        if (isOpen === true) return;
+        setOpenAlertDialog(false);
+      }}
+    >
       {/* <AlertDialogTrigger>Open</AlertDialogTrigger> */}
-      <AlertDialogContent onEscapeKeyDown={event => event.preventDefault()}>
+      <AlertDialogContent onEscapeKeyDown={(event) => event.preventDefault()}>
         <AlertDialogHeader>
           <AlertDialogTitle>{alertProps.alertTitle}</AlertDialogTitle>
           <AlertDialogDescription>
@@ -40,8 +41,9 @@ const AlertDialogComponent = ({
             <AlertDialogAction
               variant={alertProps.variantSuccess}
               onClick={() => {
-                alertProps.onSuccess()
-              }}>
+                alertProps.onSuccess();
+              }}
+            >
               {t('ok')}
             </AlertDialogAction>
           )}
@@ -49,15 +51,16 @@ const AlertDialogComponent = ({
             <AlertDialogAction
               variant={alertProps.variantDestructive}
               onClick={() => {
-                alertProps.onDelete()
-              }}>
+                alertProps.onDelete();
+              }}
+            >
               {t('delete')}
             </AlertDialogAction>
           )}
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
-  )
-}
+  );
+};
 
-export default AlertDialogComponent
+export default AlertDialogComponent;

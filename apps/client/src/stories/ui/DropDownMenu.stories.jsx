@@ -1,19 +1,19 @@
-import React from 'react'
+import React from 'react';
 import {
   DropdownMenu,
   DropdownMenuTrigger,
   DropdownMenuContent,
-  DropdownMenuItem
-} from '@/components/ui/dropdown-menu'
-import { Button } from '@/components/ui/button'
+  DropdownMenuItem,
+} from '@/components/ui/dropdown-menu';
+import { Button } from '@/components/ui/button';
 
 export default {
   title: 'UI/DropdownMenu',
   component: DropdownMenu,
   parameter: {
-    layout: 'centered'
-  }
-}
+    layout: 'centered',
+  },
+};
 
 export const Default = () => (
   <div
@@ -21,11 +21,12 @@ export const Default = () => (
       display: 'flex',
       justifyContent: 'center',
       alignItems: 'center',
-      height: '100vh'
-    }}>
+      height: '100vh',
+    }}
+  >
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant='outline'>Open Menu</Button>
+        <Button variant="outline">Open Menu</Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent>
         <DropdownMenuItem>Item 1</DropdownMenuItem>
@@ -34,4 +35,4 @@ export const Default = () => (
       </DropdownMenuContent>
     </DropdownMenu>
   </div>
-)
+);

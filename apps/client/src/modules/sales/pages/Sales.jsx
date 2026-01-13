@@ -1,69 +1,73 @@
-import { SalesFiltersForm, SalesDialog, SalesDatatable } from '../components'
-import { BackDashBoard } from '@/components/backDash/BackDashBoard'
-import { useTranslation } from 'react-i18next'
-import { useState, useEffect } from 'react'
+import { SalesFiltersForm, SalesDialog, SalesDatatable } from '../components';
+import { BackDashBoard } from '@/components/backDash/BackDashBoard';
+import { useTranslation } from 'react-i18next';
+import { useState, useEffect } from 'react';
 import {
   useLazyGetAllSalesQuery,
   useUpdateSaleByIdMutation,
   useCreateSaleMutation,
-  useDeleteSaleByIdMutation
-} from '../api/salesAPI'
-import { useGetAllProductsFiltersQuery } from '@/modules/products/api/productsAPI'
-import { useGetAllClientsFiltersQuery } from '@/modules/clients/api/clientsApi'
-import AlertDialogComponent from '@/components/alertDialog/AlertDialog'
-import { Spinner } from '@/components/loader/Spinner'
+  useDeleteSaleByIdMutation,
+} from '../api/salesAPI';
+import { useGetAllProductsFiltersQuery } from '@/modules/products/api/productsAPI';
+import { useGetAllClientsFiltersQuery } from '@/modules/clients/api/clientsApi';
+import AlertDialogComponent from '@/components/alertDialog/AlertDialog';
+import { Spinner } from '@/components/loader/Spinner';
 
 const Sales = () => {
-  const { t } = useTranslation()
-  const [selectedRow, setSelectedRow] = useState({})
-  const [openDialog, setOpenDialog] = useState(false)
-  const [openAlertDialog, setOpenAlertDialog] = useState(false)
-  const [alertProps, setAlertProps] = useState({})
-  const [actionDialog, setActionDialog] = useState('')
+  const { t } = useTranslation();
+  const [selectedRow, setSelectedRow] = useState({});
+  const [openDialog, setOpenDialog] = useState(false);
+  const [openAlertDialog, setOpenAlertDialog] = useState(false);
+  const [alertProps, setAlertProps] = useState({});
+  const [actionDialog, setActionDialog] = useState('');
   const [pagination, setPagination] = useState({
     pageIndex: 0,
-    pageSize: 20
-  })
-  const [filters, setFilters] = useState({})
+    pageSize: 20,
+  });
+  const [filters, setFilters] = useState({});
 
   const [
     getAllSales,
     {
       data: dataSales = { data: [] },
       isLoading: isLoadingSales,
-      isFetching: isFetchingSales
-    }
-  ] = useLazyGetAllSalesQuery()
+      isFetching: isFetchingSales,
+    },
+  ] = useLazyGetAllSalesQuery();
 
   const {
     data: dataClients = { data: [] },
     isLoading: isLoadingClients,
-    isFetching: isFetchingClients
-  } = useGetAllClientsFiltersQuery()
+    isFetching: isFetchingClients,
+  } = useGetAllClientsFiltersQuery();
   const [
     updateSaleById,
-    { isLoading: isLoadingPut, isError: isErrorPut, isSuccess: isSuccessPut }
-  ] = useUpdateSaleByIdMutation()
+    { isLoading: isLoadingPut, isError: isErrorPut, isSuccess: isSuccessPut },
+  ] = useUpdateSaleByIdMutation();
 
   const [
     createSale,
-    { isLoading: isLoadingPost, isError: isErrorPost, isSuccess: isSuccessPost }
-  ] = useCreateSaleMutation()
+    {
+      isLoading: isLoadingPost,
+      isError: isErrorPost,
+      isSuccess: isSuccessPost,
+    },
+  ] = useCreateSaleMutation();
 
   const [
     deleteSaleById,
     {
       isLoading: isLoadingDelete,
       isError: isErrorDelete,
-      isSuccess: isSuccessDelete
-    }
-  ] = useDeleteSaleByIdMutation()
+      isSuccess: isSuccessDelete,
+    },
+  ] = useDeleteSaleByIdMutation();
 
   const {
     data: dataProducts = { data: [] },
     isLoading: isLoadingProducts,
-    isFetching: isFetchingProducts
-  } = useGetAllProductsFiltersQuery()
+    isFetching: isFetchingProducts,
+  } = useGetAllProductsFiltersQuery();
 
   /**
    * Este efecto es la única fuente de verdad para disparar
@@ -82,9 +86,9 @@ const Sales = () => {
     getAllSales({
       page: pagination.pageIndex + 1,
       limit: pagination.pageSize,
-      ...filters
-    })
-  }, [pagination.pageIndex, pagination.pageSize, filters])
+      ...filters,
+    });
+  }, [pagination.pageIndex, pagination.pageSize, filters]);
 
   /**
    * Al aplicar nuevos filtros:
@@ -95,14 +99,14 @@ const Sales = () => {
    * El cambio de estado dispara el useEffect, manteniendo
    * un flujo reactivo y predecible.
    */
-  const handleSubmitFilters = newFilters => {
-    setPagination(prev => ({
+  const handleSubmitFilters = (newFilters) => {
+    setPagination((prev) => ({
       ...prev,
-      pageIndex: 0
-    }))
+      pageIndex: 0,
+    }));
 
-    setFilters(newFilters)
-  }
+    setFilters(newFilters);
+  };
 
   const handleSubmit = async (values, saleId) => {
     try {
@@ -112,14 +116,14 @@ const Sales = () => {
             data: {
               clientId: values.clientId,
               total: values.total,
-              details: values.details
-            }
+              details: values.details,
+            },
           }).unwrap()
         : await createSale({
             clientId: values.clientId,
             total: values.total,
-            details: values.details
-          }).unwrap()
+            details: values.details,
+          }).unwrap();
 
       setAlertProps({
         alertTitle: t(saleId ? 'update_record' : 'add_record'),
@@ -127,40 +131,40 @@ const Sales = () => {
         cancel: false,
         success: true,
         onSuccess: () => {
-          setOpenDialog(false)
+          setOpenDialog(false);
         },
-        variantSuccess: 'info'
-      })
-      setOpenAlertDialog(true)
+        variantSuccess: 'info',
+      });
+      setOpenAlertDialog(true);
     } catch (err) {
-      console.error('Error:', err)
+      console.error('Error:', err);
     }
-  }
+  };
 
   const handleAddDialog = () => {
-    setActionDialog(t('add_sale'))
-    setOpenDialog(true)
-    setSelectedRow({})
+    setActionDialog(t('add_sale'));
+    setOpenDialog(true);
+    setSelectedRow({});
     setDetails([
       {
         productId: '',
         quantity: 0,
-        price: 0
-      }
-    ])
-  }
+        price: 0,
+      },
+    ]);
+  };
 
-  const handleEditDialog = row => {
-    setActionDialog(t('edit_sale'))
-    setOpenDialog(true)
-    setSelectedRow(row)
-  }
+  const handleEditDialog = (row) => {
+    setActionDialog(t('edit_sale'));
+    setOpenDialog(true);
+    setSelectedRow(row);
+  };
 
   const handleCloseDialog = () => {
-    setOpenDialog(false)
-  }
+    setOpenDialog(false);
+  };
 
-  const handleDelete = async id => {
+  const handleDelete = async (id) => {
     try {
       setAlertProps({
         alertTitle: t('delete_record'),
@@ -173,7 +177,7 @@ const Sales = () => {
         onSuccess: () => {},
         onDelete: async () => {
           try {
-            await deleteSaleById(id).unwrap()
+            await deleteSaleById(id).unwrap();
 
             setAlertProps({
               alertTitle: '',
@@ -181,29 +185,29 @@ const Sales = () => {
               cancel: false,
               success: true,
               onSuccess: () => {
-                setOpenDialog(false)
+                setOpenDialog(false);
               },
-              variantSuccess: 'info'
-            })
-            setOpenAlertDialog(true)
+              variantSuccess: 'info',
+            });
+            setOpenAlertDialog(true);
           } catch (err) {
-            console.error('Error deleting:', err)
+            console.error('Error deleting:', err);
           }
-        }
-      })
-      setOpenAlertDialog(true)
+        },
+      });
+      setOpenAlertDialog(true);
     } catch (err) {
-      console.error('Error deleting:', err)
+      console.error('Error deleting:', err);
     }
-  }
+  };
 
   const handleEditDetail = (index, field, value) => {
-    setDetails(prev =>
+    setDetails((prev) =>
       prev.map((detail, i) =>
         i === index ? { ...detail, [field]: value, save: true } : detail
       )
-    )
-  }
+    );
+  };
 
   const handleRemoveDetail = async (index, item) => {
     //Eliminacion logica
@@ -219,53 +223,53 @@ const Sales = () => {
         onSuccess: () => {},
         onDelete: async () => {
           try {
-            await deleteSaleDetailById(item.id).unwrap()
-            updateDetails(index)
+            await deleteSaleDetailById(item.id).unwrap();
+            updateDetails(index);
             setAlertProps({
               alertTitle: '',
               alertMessage: t('deleted_successfully'),
               cancel: false,
               success: true,
               onSuccess: () => {
-                navigate('/home/products')
+                navigate('/home/products');
               },
-              variantSuccess: 'info'
-            })
-            setOpenAlertDialog(true) // Open alert dialog
+              variantSuccess: 'info',
+            });
+            setOpenAlertDialog(true); // Open alert dialog
           } catch (err) {
-            console.error('Error deleting:', err)
+            console.error('Error deleting:', err);
           }
-        }
-      })
-      setOpenAlertDialog(true)
+        },
+      });
+      setOpenAlertDialog(true);
     } else {
-      updateDetails(index)
+      updateDetails(index);
     }
-  }
+  };
 
-  const updateDetails = index => {
-    setDetails(prev => {
-      const newDetails = [...prev]
+  const updateDetails = (index) => {
+    setDetails((prev) => {
+      const newDetails = [...prev];
       if (index !== -1) {
-        newDetails.splice(index, 1) // Elimina el atributo en el índice encontrado
+        newDetails.splice(index, 1); // Elimina el atributo en el índice encontrado
       }
-      return newDetails
-    })
-  }
+      return newDetails;
+    });
+  };
 
   useEffect(() => {
     if (dataSales?.data.length > 0) {
-      setDetails(dataSales.data.details)
+      setDetails(dataSales.data.details);
     }
-  }, [dataSales])
+  }, [dataSales]);
 
   const [details, setDetails] = useState([
     {
       productId: '',
       quantity: 0,
-      price: 0
-    }
-  ])
+      price: 0,
+    },
+  ]);
 
   const handleAddDetail = () => {
     setDetails([
@@ -273,15 +277,15 @@ const Sales = () => {
       {
         productId: '',
         quantity: 0,
-        price: 0
-      }
-    ])
-  }
+        price: 0,
+      },
+    ]);
+  };
 
   return (
     <>
       <BackDashBoard link={'/home'} moduleName={t('sales')} />
-      <div className='relative'>
+      <div className="relative">
         {/* Show spinner when loading or fetching */}
         {(isLoadingSales ||
           isLoadingPut ||
@@ -293,9 +297,9 @@ const Sales = () => {
           isFetchingClients ||
           isFetchingProducts) && <Spinner />}
 
-        <div className='grid grid-cols-2 grid-rows-4 gap-4 md:grid-cols-5'>
+        <div className="grid grid-cols-2 grid-rows-4 gap-4 md:grid-cols-5">
           {/* filters */}
-          <div className='col-span-2 row-span-1 md:col-span-5'>
+          <div className="col-span-2 row-span-1 md:col-span-5">
             <SalesFiltersForm
               onSubmit={handleSubmitFilters}
               onAddDialog={handleAddDialog}
@@ -303,7 +307,7 @@ const Sales = () => {
             />
           </div>
           {/* Datatable */}
-          <div className='flex flex-wrap w-full col-span-2 row-span-3 row-start-2 md:col-span-5'>
+          <div className="flex flex-wrap w-full col-span-2 row-span-3 row-start-2 md:col-span-5">
             <SalesDatatable
               dataSales={dataSales}
               onEditDialog={handleEditDialog}
@@ -336,7 +340,7 @@ const Sales = () => {
         </div>
       </div>
     </>
-  )
-}
+  );
+};
 
-export default Sales
+export default Sales;

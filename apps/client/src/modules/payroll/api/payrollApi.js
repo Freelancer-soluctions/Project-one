@@ -1,52 +1,52 @@
 /* React-specific entry point that automatically generates
 hooks corresponding to the defined endpoints */
-import { createApi } from '@reduxjs/toolkit/query/react'
-import { axiosPrivateBaseQuery } from '@/config/axios'
+import { createApi } from '@reduxjs/toolkit/query/react';
+import { axiosPrivateBaseQuery } from '@/config/axios';
 
 // Define a service using a base URL and expected endpoints
 const payrollApi = createApi({
   reducerPath: 'payrollApi',
   baseQuery: axiosPrivateBaseQuery({
-    baseUrl: import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1'
+    baseUrl: import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1',
   }),
   tagTypes: ['Payroll'],
   keepUnusedDataFor: 300, // 5 minutos
-  endpoints: builder => ({
+  endpoints: (builder) => ({
     getAllPayroll: builder.query({
-      query: params => ({
+      query: (params) => ({
         url: '/payroll',
-        params
+        params,
       }),
-      providesTags: ['Payroll']
+      providesTags: ['Payroll'],
     }),
 
     deletePayrollById: builder.mutation({
-      query: id => ({
+      query: (id) => ({
         url: `/payroll/${id}`,
-        method: 'DELETE'
+        method: 'DELETE',
       }),
-      invalidatesTags: ['Payroll']
+      invalidatesTags: ['Payroll'],
     }),
 
     createPayroll: builder.mutation({
-      query: data => ({
+      query: (data) => ({
         url: '/payroll',
         method: 'POST',
-        body: data
+        body: data,
       }),
-      invalidatesTags: ['Payroll']
+      invalidatesTags: ['Payroll'],
     }),
 
     updatePayrollById: builder.mutation({
       query: ({ id, data }) => ({
         url: `/payroll/${id}`,
         method: 'PUT',
-        body: data
+        body: data,
       }),
-      invalidatesTags: ['Payroll']
-    })
-  })
-})
+      invalidatesTags: ['Payroll'],
+    }),
+  }),
+});
 
 // Export hooks for usage in functional components
 export const {
@@ -54,7 +54,7 @@ export const {
   useGetAllPayrollQuery,
   useUpdatePayrollByIdMutation,
   useCreatePayrollMutation,
-  useDeletePayrollByIdMutation
-} = payrollApi
+  useDeletePayrollByIdMutation,
+} = payrollApi;
 
-export default payrollApi
+export default payrollApi;

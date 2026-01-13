@@ -8,5 +8,5 @@ export const PerformanceEvaluationCalidation = [
   { value: '7', label: '07' },
   { value: '8', label: '08' },
   { value: '9', label: '09' },
-  { value: '10', label: '10' }
-]
+  { value: '10', label: '10' },
+];

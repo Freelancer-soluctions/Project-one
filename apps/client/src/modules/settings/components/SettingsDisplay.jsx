@@ -1,41 +1,41 @@
-import { Card, CardContent } from '@/components/ui/card'
-import { useTranslation } from 'react-i18next'
-import { useForm } from 'react-hook-form'
-import { Button } from '@/components/ui/button'
-import { Checkbox } from '@/components/ui/checkbox'
+import { Card, CardContent } from '@/components/ui/card';
+import { useTranslation } from 'react-i18next';
+import { useForm } from 'react-hook-form';
+import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   Form,
   FormControl,
   FormField,
   FormItem,
-  FormLabel
-} from '@/components/ui/form'
-import { useToast } from '@/components/ui/use-toast'
+  FormLabel,
+} from '@/components/ui/form';
+import { useToast } from '@/components/ui/use-toast';
 export const SettingsDisplay = ({
   userDisplaySettings,
-  onSaveDisplaySettings
+  onSaveDisplaySettings,
 }) => {
-  const { t } = useTranslation()
-  const { toast } = useToast()
+  const { t } = useTranslation();
+  const { toast } = useToast();
   const form = useForm({
     defaultValues: {
-      ...userDisplaySettings
-    }
-  })
+      ...userDisplaySettings,
+    },
+  });
   async function onSubmit(data) {
     try {
-      await onSaveDisplaySettings(data)
+      await onSaveDisplaySettings(data);
       toast({
         title: t('settings_display_success'),
         description: t('settings_display_success_message'),
-        variant: 'success'
-      })
+        variant: 'success',
+      });
     } catch (error) {
       toast({
         title: t('settings_display_error'),
         description: error.message || t('settings_display_error_message'),
-        variant: 'destructive'
-      })
+        variant: 'destructive',
+      });
     }
   }
 
@@ -48,39 +48,41 @@ export const SettingsDisplay = ({
 
   return (
     <Card>
-      <CardContent className='p-6 space-y-6'>
+      <CardContent className="p-6 space-y-6">
         <div>
-          <h3 className='mb-2 text-lg font-medium'>{t('display')}</h3>
-          <p className='text-sm text-muted-foreground'>
+          <h3 className="mb-2 text-lg font-medium">{t('display')}</h3>
+          <p className="text-sm text-muted-foreground">
             {t('turn_off_on_message')}
           </p>
         </div>
-        <div className='space-y-4'>
+        <div className="space-y-4">
           <div>
-            <h4 className='mb-3 text-sm font-medium'>{t('sidebar')}</h4>
-            <p className='mb-4 text-sm text-muted-foreground'>
+            <h4 className="mb-3 text-sm font-medium">{t('sidebar')}</h4>
+            <p className="mb-4 text-sm text-muted-foreground">
               {t('select_items_display_message')}
             </p>
             <Form {...form}>
               <form
                 onSubmit={form.handleSubmit(onSubmit)}
-                className='space-y-3'>
+                className="space-y-3"
+              >
                 <FormField
                   control={form.control}
-                  name='displayNews'
+                  name="displayNews"
                   render={({ field }) => (
-                    <FormItem className='flex items-center space-x-2'>
+                    <FormItem className="flex items-center space-x-2">
                       <FormControl>
                         <Checkbox
-                          className='mt-2'
-                          id='news'
+                          className="mt-2"
+                          id="news"
                           checked={field.value}
                           onCheckedChange={field.onChange}
                         />
                       </FormControl>
                       <FormLabel
-                        htmlFor='news'
-                        className='text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70'>
+                        htmlFor="news"
+                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                      >
                         {t('news')}
                       </FormLabel>
                     </FormItem>
@@ -88,20 +90,21 @@ export const SettingsDisplay = ({
                 />
                 <FormField
                   control={form.control}
-                  name='displayNotes'
+                  name="displayNotes"
                   render={({ field }) => (
-                    <FormItem className='flex items-center space-x-2'>
+                    <FormItem className="flex items-center space-x-2">
                       <FormControl>
                         <Checkbox
-                          className='mt-2'
-                          id='notes'
+                          className="mt-2"
+                          id="notes"
                           checked={field.value}
                           onCheckedChange={field.onChange}
                         />
                       </FormControl>
                       <FormLabel
-                        htmlFor='notes'
-                        className='text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70'>
+                        htmlFor="notes"
+                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                      >
                         {t('notes')}
                       </FormLabel>
                     </FormItem>
@@ -109,20 +112,21 @@ export const SettingsDisplay = ({
                 />
                 <FormField
                   control={form.control}
-                  name='displayStock'
+                  name="displayStock"
                   render={({ field }) => (
-                    <FormItem className='flex items-center space-x-2'>
+                    <FormItem className="flex items-center space-x-2">
                       <FormControl>
                         <Checkbox
-                          className='mt-2'
-                          id='stock'
+                          className="mt-2"
+                          id="stock"
                           checked={field.value}
                           onCheckedChange={field.onChange}
                         />
                       </FormControl>
                       <FormLabel
-                        htmlFor='stock'
-                        className='text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70'>
+                        htmlFor="stock"
+                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                      >
                         {t('stock')}
                       </FormLabel>
                     </FormItem>
@@ -130,20 +134,21 @@ export const SettingsDisplay = ({
                 />
                 <FormField
                   control={form.control}
-                  name='displayEvents'
+                  name="displayEvents"
                   render={({ field }) => (
-                    <FormItem className='flex items-center space-x-2'>
+                    <FormItem className="flex items-center space-x-2">
                       <FormControl>
                         <Checkbox
-                          className='mt-2'
-                          id='events'
+                          className="mt-2"
+                          id="events"
                           checked={field.value}
                           onCheckedChange={field.onChange}
                         />
                       </FormControl>
                       <FormLabel
-                        htmlFor='events'
-                        className='text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70'>
+                        htmlFor="events"
+                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                      >
                         {t('events')}
                       </FormLabel>
                     </FormItem>
@@ -151,20 +156,21 @@ export const SettingsDisplay = ({
                 />
                 <FormField
                   control={form.control}
-                  name='displayProfile'
+                  name="displayProfile"
                   render={({ field }) => (
-                    <FormItem className='flex items-center space-x-2'>
+                    <FormItem className="flex items-center space-x-2">
                       <FormControl>
                         <Checkbox
-                          className='mt-2'
-                          id='profile'
+                          className="mt-2"
+                          id="profile"
                           checked={field.value}
                           onCheckedChange={field.onChange}
                         />
                       </FormControl>
                       <FormLabel
-                        htmlFor='profile'
-                        className='text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70'>
+                        htmlFor="profile"
+                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                      >
                         {t('profile')}
                       </FormLabel>
                     </FormItem>
@@ -172,20 +178,21 @@ export const SettingsDisplay = ({
                 />
                 <FormField
                   control={form.control}
-                  name='displayLanguage'
+                  name="displayLanguage"
                   render={({ field }) => (
-                    <FormItem className='flex items-center space-x-2'>
+                    <FormItem className="flex items-center space-x-2">
                       <FormControl>
                         <Checkbox
-                          className='mt-2'
-                          id='language'
+                          className="mt-2"
+                          id="language"
                           checked={field.value}
                           onCheckedChange={field.onChange}
                         />
                       </FormControl>
                       <FormLabel
-                        htmlFor='language'
-                        className='text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70'>
+                        htmlFor="language"
+                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                      >
                         {t('language')}
                       </FormLabel>
                     </FormItem>
@@ -193,20 +200,21 @@ export const SettingsDisplay = ({
                 />
                 <FormField
                   control={form.control}
-                  name='displayReports'
+                  name="displayReports"
                   render={({ field }) => (
-                    <FormItem className='flex items-center space-x-2'>
+                    <FormItem className="flex items-center space-x-2">
                       <FormControl>
                         <Checkbox
-                          className='mt-2'
-                          id='reports'
+                          className="mt-2"
+                          id="reports"
                           checked={field.value}
                           onCheckedChange={field.onChange}
                         />
                       </FormControl>
                       <FormLabel
-                        htmlFor='reports'
-                        className='text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70'>
+                        htmlFor="reports"
+                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                      >
                         {t('reports')}
                       </FormLabel>
                     </FormItem>
@@ -214,29 +222,31 @@ export const SettingsDisplay = ({
                 />
                 <FormField
                   control={form.control}
-                  name='displayPayroll'
+                  name="displayPayroll"
                   render={({ field }) => (
-                    <FormItem className='flex items-center space-x-2'>
+                    <FormItem className="flex items-center space-x-2">
                       <FormControl>
                         <Checkbox
-                          className='mt-2'
-                          id='payroll'
+                          className="mt-2"
+                          id="payroll"
                           checked={field.value}
                           onCheckedChange={field.onChange}
                         />
                       </FormControl>
                       <FormLabel
-                        htmlFor='payroll'
-                        className='text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70'>
+                        htmlFor="payroll"
+                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                      >
                         {t('payroll')}
                       </FormLabel>
                     </FormItem>
                   )}
                 />
                 <Button
-                  type='submit'
-                  variant='info'
-                  className='w-full mt-6 sm:w-auto'>
+                  type="submit"
+                  variant="info"
+                  className="w-full mt-6 sm:w-auto"
+                >
                   {t('save')}
                 </Button>
               </form>
@@ -245,5 +255,5 @@ export const SettingsDisplay = ({
         </div>
       </CardContent>
     </Card>
-  )
-}
+  );
+};

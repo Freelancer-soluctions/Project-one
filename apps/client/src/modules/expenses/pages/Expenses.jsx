@@ -1,60 +1,64 @@
 import {
   ExpensesFiltersForm,
   ExpensesDialog,
-  ExpensesDatatable
-} from '../components'
-import { BackDashBoard } from '@/components/backDash/BackDashBoard'
-import { useTranslation } from 'react-i18next'
-import { useState, useEffect } from 'react' // Removed useEffect as it wasn't used for initial fetch in Clients.jsx
+  ExpensesDatatable,
+} from '../components';
+import { BackDashBoard } from '@/components/backDash/BackDashBoard';
+import { useTranslation } from 'react-i18next';
+import { useState, useEffect } from 'react'; // Removed useEffect as it wasn't used for initial fetch in Clients.jsx
 import {
   useLazyGetAllExpensesQuery,
   useUpdateExpenseByIdMutation,
   useCreateExpenseMutation,
-  useDeleteExpenseByIdMutation
-} from '../api/expensesApi'
-import AlertDialogComponent from '@/components/alertDialog/AlertDialog'
-import { Spinner } from '@/components/loader/Spinner'
+  useDeleteExpenseByIdMutation,
+} from '../api/expensesApi';
+import AlertDialogComponent from '@/components/alertDialog/AlertDialog';
+import { Spinner } from '@/components/loader/Spinner';
 
 const Expenses = () => {
-  const { t } = useTranslation()
-  const [selectedRow, setSelectedRow] = useState({})
-  const [openDialog, setOpenDialog] = useState(false)
-  const [openAlertDialog, setOpenAlertDialog] = useState(false)
-  const [alertProps, setAlertProps] = useState({})
-  const [actionDialog, setActionDialog] = useState('')
+  const { t } = useTranslation();
+  const [selectedRow, setSelectedRow] = useState({});
+  const [openDialog, setOpenDialog] = useState(false);
+  const [openAlertDialog, setOpenAlertDialog] = useState(false);
+  const [alertProps, setAlertProps] = useState({});
+  const [actionDialog, setActionDialog] = useState('');
   const [pagination, setPagination] = useState({
     pageIndex: 0,
-    pageSize: 20
-  })
-  const [filters, setFilters] = useState({})
+    pageSize: 20,
+  });
+  const [filters, setFilters] = useState({});
 
   const [
     getAllExpenses,
     {
       data: dataExpenses = { data: [] },
       isLoading: isLoadingExpenses,
-      isFetching: isFetchingExpenses
-    }
-  ] = useLazyGetAllExpensesQuery()
+      isFetching: isFetchingExpenses,
+    },
+  ] = useLazyGetAllExpensesQuery();
 
   const [
     updateExpenseById,
-    { isLoading: isLoadingPut, isError: isErrorPut, isSuccess: isSuccessPut }
-  ] = useUpdateExpenseByIdMutation()
+    { isLoading: isLoadingPut, isError: isErrorPut, isSuccess: isSuccessPut },
+  ] = useUpdateExpenseByIdMutation();
 
   const [
     createExpense,
-    { isLoading: isLoadingPost, isError: isErrorPost, isSuccess: isSuccessPost }
-  ] = useCreateExpenseMutation()
+    {
+      isLoading: isLoadingPost,
+      isError: isErrorPost,
+      isSuccess: isSuccessPost,
+    },
+  ] = useCreateExpenseMutation();
 
   const [
     deleteExpenseById,
     {
       isLoading: isLoadingDelete,
       isError: isErrorDelete,
-      isSuccess: isSuccessDelete
-    }
-  ] = useDeleteExpenseByIdMutation()
+      isSuccess: isSuccessDelete,
+    },
+  ] = useDeleteExpenseByIdMutation();
 
   /**
    * Este efecto es la única fuente de verdad para disparar
@@ -73,9 +77,9 @@ const Expenses = () => {
     getAllExpenses({
       page: pagination.pageIndex + 1,
       limit: pagination.pageSize,
-      ...filters
-    })
-  }, [pagination.pageIndex, pagination.pageSize, filters])
+      ...filters,
+    });
+  }, [pagination.pageIndex, pagination.pageSize, filters]);
 
   /**
    * Al aplicar nuevos filtros:
@@ -86,14 +90,14 @@ const Expenses = () => {
    * El cambio de estado dispara el useEffect, manteniendo
    * un flujo reactivo y predecible.
    */
-  const handleSubmitFilters = newFilters => {
-    setPagination(prev => ({
+  const handleSubmitFilters = (newFilters) => {
+    setPagination((prev) => ({
       ...prev,
-      pageIndex: 0
-    }))
+      pageIndex: 0,
+    }));
 
-    setFilters(newFilters)
-  }
+    setFilters(newFilters);
+  };
 
   const handleSubmit = async (values, expenseId) => {
     try {
@@ -105,10 +109,10 @@ const Expenses = () => {
             data: {
               description: values.description,
               total: values.total,
-              category: values.category
-            } // Sending all values from dialog form
+              category: values.category,
+            }, // Sending all values from dialog form
           }).unwrap()
-        : await createExpense(values).unwrap()
+        : await createExpense(values).unwrap();
 
       setAlertProps({
         alertTitle: t(expenseId ? 'update_record' : 'add_record'),
@@ -118,11 +122,11 @@ const Expenses = () => {
         cancel: false,
         success: true,
         onSuccess: () => {
-          setOpenDialog(false)
+          setOpenDialog(false);
         },
-        variantSuccess: 'info'
-      })
-      setOpenAlertDialog(true)
+        variantSuccess: 'info',
+      });
+      setOpenAlertDialog(true);
     } catch (err) {
       // Handle error display, perhaps another AlertDialog
       setAlertProps({
@@ -134,29 +138,29 @@ const Expenses = () => {
         onSuccess: () => {
           /* stay on dialog or close if needed */
         },
-        variantSuccess: 'destructive' // Show error styling
-      })
-      setOpenAlertDialog(true)
+        variantSuccess: 'destructive', // Show error styling
+      });
+      setOpenAlertDialog(true);
     }
-  }
+  };
 
   const handleAddDialog = () => {
-    setActionDialog(t('add_expense'))
-    setOpenDialog(true)
-  }
+    setActionDialog(t('add_expense'));
+    setOpenDialog(true);
+  };
 
-  const handleEditDialog = row => {
-    setActionDialog(t('edit_expense'))
-    setOpenDialog(true)
-    setSelectedRow(row)
-  }
+  const handleEditDialog = (row) => {
+    setActionDialog(t('edit_expense'));
+    setOpenDialog(true);
+    setSelectedRow(row);
+  };
 
   const handleCloseDialog = () => {
-    setSelectedRow({})
-    setOpenDialog(false)
-  }
+    setSelectedRow({});
+    setOpenDialog(false);
+  };
 
-  const handleDelete = async id => {
+  const handleDelete = async (id) => {
     try {
       setAlertProps({
         alertTitle: t('delete_record'),
@@ -169,7 +173,7 @@ const Expenses = () => {
         onSuccess: () => {},
         onDelete: async () => {
           try {
-            await deleteExpenseById(id).unwrap()
+            await deleteExpenseById(id).unwrap();
 
             setAlertProps({
               alertTitle: '',
@@ -177,13 +181,13 @@ const Expenses = () => {
               cancel: false,
               success: true,
               onSuccess: () => {
-                setOpenDialog(false) // Close main dialog if delete was from there
+                setOpenDialog(false); // Close main dialog if delete was from there
               },
-              variantSuccess: 'info'
-            })
-            setOpenAlertDialog(true)
+              variantSuccess: 'info',
+            });
+            setOpenAlertDialog(true);
           } catch (err) {
-            console.error('Error deleting:', err)
+            console.error('Error deleting:', err);
             setAlertProps({
               alertTitle: t('error_occurred_message'),
               alertMessage:
@@ -191,39 +195,39 @@ const Expenses = () => {
               cancel: false,
               success: true,
               onSuccess: () => {},
-              variantSuccess: 'destructive'
-            })
-            setOpenAlertDialog(true)
+              variantSuccess: 'destructive',
+            });
+            setOpenAlertDialog(true);
           }
-        }
-      })
-      setOpenAlertDialog(true)
+        },
+      });
+      setOpenAlertDialog(true);
     } catch (err) {
       // This catch is unlikely to be hit if the main action is in onDelete,
       // but kept for safety.
-      console.error('Error preparing delete confirmation:', err)
+      console.error('Error preparing delete confirmation:', err);
     }
-  }
+  };
 
   return (
     <>
       <BackDashBoard link={'/home'} moduleName={t('expenses')} />
       {/* Changed */}
-      <div className='relative'>
+      <div className="relative">
         {(isLoadingExpenses ||
           isLoadingPut ||
           isLoadingPost ||
           isLoadingDelete ||
           isFetchingExpenses) && <Spinner />}
         {/* Changed */}
-        <div className='grid grid-cols-2 grid-rows-4 gap-4 md:grid-cols-5'>
-          <div className='col-span-2 row-span-1 md:col-span-5'>
+        <div className="grid grid-cols-2 grid-rows-4 gap-4 md:grid-cols-5">
+          <div className="col-span-2 row-span-1 md:col-span-5">
             <ExpensesFiltersForm
               onSubmit={handleSubmitFilters}
               onAddDialog={handleAddDialog}
             />
           </div>
-          <div className='flex flex-wrap w-full col-span-2 row-span-3 row-start-2 md:col-span-5'>
+          <div className="flex flex-wrap w-full col-span-2 row-span-3 row-start-2 md:col-span-5">
             <ExpensesDatatable
               dataExpenses={dataExpenses}
               onEditDialog={handleEditDialog}
@@ -248,7 +252,7 @@ const Expenses = () => {
         </div>
       </div>
     </>
-  )
-}
+  );
+};
 
-export default Expenses
+export default Expenses;

@@ -1,26 +1,26 @@
-import { useForm } from 'react-hook-form'
-import { useTranslation } from 'react-i18next'
-import { zodResolver } from '@hookform/resolvers/zod'
+import { useForm } from 'react-hook-form';
+import { useTranslation } from 'react-i18next';
+import { zodResolver } from '@hookform/resolvers/zod';
 import {
   Dialog,
   DialogContent,
   DialogHeader,
-  DialogTitle
-} from '@/components/ui/dialog'
+  DialogTitle,
+} from '@/components/ui/dialog';
 import {
   Form,
   FormControl,
   FormField,
   FormItem,
   FormLabel,
-  FormMessage
-} from '@/components/ui/form'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Select } from '@/components/ui/select'
-import PropTypes from 'prop-types'
-import { useEffect } from 'react'
-import { InventoryMovementSchema, MOVEMENT_TYPES } from '../utils'
+  FormMessage,
+} from '@/components/ui/form';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Select } from '@/components/ui/select';
+import PropTypes from 'prop-types';
+import { useEffect } from 'react';
+import { InventoryMovementSchema, MOVEMENT_TYPES } from '../utils';
 
 export const InventoryMovementDialog = ({
   openDialog,
@@ -30,9 +30,9 @@ export const InventoryMovementDialog = ({
   onDeleteById,
   actionDialog,
   products,
-  warehouses
+  warehouses,
 }) => {
-  const { t } = useTranslation()
+  const { t } = useTranslation();
 
   const form = useForm({
     resolver: zodResolver(InventoryMovementSchema),
@@ -41,9 +41,9 @@ export const InventoryMovementDialog = ({
       warehouseId: '',
       quantity: '',
       type: '',
-      reason: ''
-    }
-  })
+      reason: '',
+    },
+  });
 
   useEffect(() => {
     if (selectedRow?.id) {
@@ -52,26 +52,26 @@ export const InventoryMovementDialog = ({
         warehouseId: selectedRow.warehouseId?.toString() ?? '',
         quantity: selectedRow.quantity?.toString() ?? '',
         type: selectedRow.type ?? '',
-        reason: selectedRow.reason ?? ''
-      }
-      form.reset(mappedValues)
+        reason: selectedRow.reason ?? '',
+      };
+      form.reset(mappedValues);
     }
-  }, [selectedRow, form])
+  }, [selectedRow, form]);
 
-  const handleSubmit = async data => {
-    await onSubmit(data, selectedRow?.id)
-    handleCloseDialog()
-  }
+  const handleSubmit = async (data) => {
+    await onSubmit(data, selectedRow?.id);
+    handleCloseDialog();
+  };
 
   const handleCloseDialog = () => {
-    form.reset()
-    onCloseDialog()
-  }
+    form.reset();
+    onCloseDialog();
+  };
 
   const handleDelete = async () => {
-    await onDeleteById(selectedRow.id)
-    handleCloseDialog()
-  }
+    await onDeleteById(selectedRow.id);
+    handleCloseDialog();
+  };
 
   return (
     <Dialog open={openDialog} onOpenChange={handleCloseDialog}>
@@ -82,16 +82,17 @@ export const InventoryMovementDialog = ({
         <Form {...form}>
           <form
             onSubmit={form.handleSubmit(handleSubmit)}
-            className='space-y-4'>
+            className="space-y-4"
+          >
             <FormField
               control={form.control}
-              name='productId'
+              name="productId"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>{t('product')}</FormLabel>
                   <Select onValueChange={field.onChange} value={field.value}>
-                    <option value=''>{t('select_product')}</option>
-                    {products.map(product => (
+                    <option value="">{t('select_product')}</option>
+                    {products.map((product) => (
                       <option key={product.id} value={product.id}>
                         {product.name}
                       </option>
@@ -104,13 +105,13 @@ export const InventoryMovementDialog = ({
 
             <FormField
               control={form.control}
-              name='warehouseId'
+              name="warehouseId"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>{t('warehouse')}</FormLabel>
                   <Select onValueChange={field.onChange} value={field.value}>
-                    <option value=''>{t('select_warehouse')}</option>
-                    {warehouses.map(warehouse => (
+                    <option value="">{t('select_warehouse')}</option>
+                    {warehouses.map((warehouse) => (
                       <option key={warehouse.id} value={warehouse.id}>
                         {warehouse.name}
                       </option>
@@ -123,12 +124,12 @@ export const InventoryMovementDialog = ({
 
             <FormField
               control={form.control}
-              name='quantity'
+              name="quantity"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>{t('quantity')}</FormLabel>
                   <FormControl>
-                    <Input type='number' {...field} />
+                    <Input type="number" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -137,13 +138,13 @@ export const InventoryMovementDialog = ({
 
             <FormField
               control={form.control}
-              name='type'
+              name="type"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>{t('type')}</FormLabel>
                   <Select onValueChange={field.onChange} value={field.value}>
-                    <option value=''>{t('select_type')}</option>
-                    {Object.values(MOVEMENT_TYPES).map(type => (
+                    <option value="">{t('select_type')}</option>
+                    {Object.values(MOVEMENT_TYPES).map((type) => (
                       <option key={type} value={type}>
                         {t(type.toLowerCase())}
                       </option>
@@ -156,7 +157,7 @@ export const InventoryMovementDialog = ({
 
             <FormField
               control={form.control}
-              name='reason'
+              name="reason"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>{t('reason')}</FormLabel>
@@ -168,22 +169,24 @@ export const InventoryMovementDialog = ({
               )}
             />
 
-            <div className='flex justify-end gap-4 mt-6'>
-              <Button type='submit' variant='default'>
+            <div className="flex justify-end gap-4 mt-6">
+              <Button type="submit" variant="default">
                 {selectedRow?.id ? t('update') : t('add')}
               </Button>
               {selectedRow?.id && (
                 <Button
-                  type='button'
-                  variant='destructive'
-                  onClick={handleDelete}>
+                  type="button"
+                  variant="destructive"
+                  onClick={handleDelete}
+                >
                   {t('delete')}
                 </Button>
               )}
               <Button
-                type='button'
-                variant='outline'
-                onClick={handleCloseDialog}>
+                type="button"
+                variant="outline"
+                onClick={handleCloseDialog}
+              >
                 {t('cancel')}
               </Button>
             </div>
@@ -191,8 +194,8 @@ export const InventoryMovementDialog = ({
         </Form>
       </DialogContent>
     </Dialog>
-  )
-}
+  );
+};
 
 InventoryMovementDialog.propTypes = {
   openDialog: PropTypes.bool.isRequired,
@@ -202,5 +205,5 @@ InventoryMovementDialog.propTypes = {
   onDeleteById: PropTypes.func.isRequired,
   actionDialog: PropTypes.string.isRequired,
   products: PropTypes.array.isRequired,
-  warehouses: PropTypes.array.isRequired
-}
+  warehouses: PropTypes.array.isRequired,
+};

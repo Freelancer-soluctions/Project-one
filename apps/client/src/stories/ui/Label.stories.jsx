@@ -1,17 +1,17 @@
-import React from 'react'
-import { Label } from '@/components/ui/label'
+import React from 'react';
+import { Label } from '@/components/ui/label';
 
 export default {
   title: 'UI/Label',
   component: Label,
   parameters: {
-    layout: 'centered'
-  }
-}
+    layout: 'centered',
+  },
+};
 
-const Template = args => <Label {...args} />
+const Template = (args) => <Label {...args} />;
 
-export const Default = Template.bind({})
+export const Default = Template.bind({});
 Default.args = {
-  children: 'Etiqueta de ejemplo'
-}
+  children: 'Etiqueta de ejemplo',
+};

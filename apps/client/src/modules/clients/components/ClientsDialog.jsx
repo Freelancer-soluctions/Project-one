@@ -1,7 +1,7 @@
-import { useEffect } from 'react'
-import { useForm } from 'react-hook-form'
-import { useTranslation } from 'react-i18next'
-import { zodResolver } from '@hookform/resolvers/zod'
+import { useEffect } from 'react';
+import { useForm } from 'react-hook-form';
+import { useTranslation } from 'react-i18next';
+import { zodResolver } from '@hookform/resolvers/zod';
 import {
   Dialog,
   DialogContent,
@@ -9,31 +9,31 @@ import {
   DialogTitle,
   DialogDescription,
   DialogFooter,
-  DialogClose
-} from '@/components/ui/dialog'
+  DialogClose,
+} from '@/components/ui/dialog';
 import {
   Form,
   FormControl,
   FormField,
   FormItem,
   FormLabel,
-  FormMessage
-} from '@/components/ui/form'
+  FormMessage,
+} from '@/components/ui/form';
 import {
   Popover,
   PopoverContent,
-  PopoverTrigger
-} from '@/components/ui/popover'
-import { Calendar } from '@/components/ui/calendar'
-import { CalendarIcon } from '@radix-ui/react-icons'
-import { format } from 'date-fns'
-import { cn } from '@/lib/utils'
-import { Input } from '@/components/ui/input'
-import { Button } from '@/components/ui/button'
-import { LuUsersRound } from 'react-icons/lu'
-import PropTypes from 'prop-types'
-import { ClientSchema } from '../utils'
-import { useState } from 'react'
+  PopoverTrigger,
+} from '@/components/ui/popover';
+import { Calendar } from '@/components/ui/calendar';
+import { CalendarIcon } from '@radix-ui/react-icons';
+import { format } from 'date-fns';
+import { cn } from '@/lib/utils';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { LuUsersRound } from 'react-icons/lu';
+import PropTypes from 'prop-types';
+import { ClientSchema } from '../utils';
+import { useState } from 'react';
 
 export const ClientsDialog = ({
   openDialog,
@@ -41,10 +41,10 @@ export const ClientsDialog = ({
   selectedRow,
   onSubmit,
   onDeleteById,
-  actionDialog
+  actionDialog,
 }) => {
-  const { t } = useTranslation()
-  const [clientId, setClientId] = useState('')
+  const { t } = useTranslation();
+  const [clientId, setClientId] = useState('');
 
   const form = useForm({
     resolver: zodResolver(ClientSchema),
@@ -56,9 +56,9 @@ export const ClientsDialog = ({
       createdOn: '',
       updatedOn: '',
       userClientCreatedName: '',
-      userClientUpdatedName: ''
-    }
-  })
+      userClientUpdatedName: '',
+    },
+  });
 
   // Actualiza todos los valores del formulario al cambiar `selectedRow`
   useEffect(() => {
@@ -73,11 +73,11 @@ export const ClientsDialog = ({
         createdOn: selectedRow.createdOn,
         updatedOn: selectedRow.updatedOn,
         userClientCreatedName: selectedRow.userClientCreatedName,
-        userClientUpdatedName: selectedRow.userClientUpdatedName
-      }
+        userClientUpdatedName: selectedRow.userClientUpdatedName,
+      };
 
-      form.reset(mappedValues)
-      setClientId(mappedValues.id)
+      form.reset(mappedValues);
+      setClientId(mappedValues.id);
     }
 
     if (!openDialog) {
@@ -89,26 +89,26 @@ export const ClientsDialog = ({
         createdOn: '',
         updatedOn: '',
         userClientCreatedName: '',
-        userClientUpdatedName: ''
-      })
-      setClientId(null)
+        userClientUpdatedName: '',
+      });
+      setClientId(null);
     }
-  }, [selectedRow, openDialog])
+  }, [selectedRow, openDialog]);
 
-  const handleSubmit = data => {
-    onSubmit(data, clientId)
-  }
+  const handleSubmit = (data) => {
+    onSubmit(data, clientId);
+  };
 
   const handleDelete = () => {
-    onDeleteById(selectedRow.id)
-  }
+    onDeleteById(selectedRow.id);
+  };
 
   return (
     <Dialog open={openDialog} onOpenChange={onCloseDialog}>
-      <DialogContent className='sm:max-w-[600px]'>
+      <DialogContent className="sm:max-w-[600px]">
         <DialogHeader>
-          <DialogTitle className='flex items-center gap-2'>
-            <LuUsersRound className='inline mr-3 w-7 h-7' />
+          <DialogTitle className="flex items-center gap-2">
+            <LuUsersRound className="inline mr-3 w-7 h-7" />
             {actionDialog}
           </DialogTitle>
           <DialogDescription>
@@ -117,27 +117,28 @@ export const ClientsDialog = ({
         </DialogHeader>
         <Form {...form}>
           <form
-            method='post'
-            action=''
-            id='client-form'
+            method="post"
+            action=""
+            id="client-form"
             noValidate
             onSubmit={form.handleSubmit(handleSubmit)}
-            className='flex flex-col flex-wrap gap-5'>
-            <div className='grid grid-cols-2 gap-6 py-4 auto-rows-auto'>
+            className="flex flex-col flex-wrap gap-5"
+          >
+            <div className="grid grid-cols-2 gap-6 py-4 auto-rows-auto">
               <FormField
                 control={form.control}
-                name='name'
+                name="name"
                 render={({ field }) => {
                   return (
                     <FormItem>
-                      <FormLabel htmlFor='name'>{t('name')}*</FormLabel>
+                      <FormLabel htmlFor="name">{t('name')}*</FormLabel>
                       <FormControl>
                         <Input
-                          id='name'
-                          name='name'
+                          id="name"
+                          name="name"
                           placeholder={t('client_name_placeholder')}
-                          type='text'
-                          autoComplete='off'
+                          type="text"
+                          autoComplete="off"
                           maxLength={100}
                           {...field}
                           value={field.value ?? ''}
@@ -145,24 +146,24 @@ export const ClientsDialog = ({
                       </FormControl>
                       <FormMessage />
                     </FormItem>
-                  )
+                  );
                 }}
               />
 
               <FormField
                 control={form.control}
-                name='email'
+                name="email"
                 render={({ field }) => {
                   return (
                     <FormItem>
-                      <FormLabel htmlFor='email'>{t('email')}*</FormLabel>
+                      <FormLabel htmlFor="email">{t('email')}*</FormLabel>
                       <FormControl>
                         <Input
-                          id='email'
-                          name='email'
+                          id="email"
+                          name="email"
                           placeholder={t('client_email_placeholder')}
-                          type='email'
-                          autoComplete='off'
+                          type="email"
+                          autoComplete="off"
                           maxLength={100}
                           {...field}
                           value={field.value ?? ''}
@@ -170,24 +171,24 @@ export const ClientsDialog = ({
                       </FormControl>
                       <FormMessage />
                     </FormItem>
-                  )
+                  );
                 }}
               />
 
               <FormField
                 control={form.control}
-                name='phone'
+                name="phone"
                 render={({ field }) => {
                   return (
                     <FormItem>
-                      <FormLabel htmlFor='phone'>{t('phone')}*</FormLabel>
+                      <FormLabel htmlFor="phone">{t('phone')}*</FormLabel>
                       <FormControl>
                         <Input
-                          id='phone'
-                          name='phone'
+                          id="phone"
+                          name="phone"
                           placeholder={t('client_phone_placeholder')}
-                          type='tel'
-                          autoComplete='off'
+                          type="tel"
+                          autoComplete="off"
                           maxLength={15}
                           {...field}
                           value={field.value ?? ''}
@@ -195,24 +196,24 @@ export const ClientsDialog = ({
                       </FormControl>
                       <FormMessage />
                     </FormItem>
-                  )
+                  );
                 }}
               />
 
               <FormField
                 control={form.control}
-                name='address'
+                name="address"
                 render={({ field }) => {
                   return (
                     <FormItem>
-                      <FormLabel htmlFor='address'>{t('address')}*</FormLabel>
+                      <FormLabel htmlFor="address">{t('address')}*</FormLabel>
                       <FormControl>
                         <Input
-                          id='address'
-                          name='address'
+                          id="address"
+                          name="address"
                           placeholder={t('client_address_placeholder')}
-                          type='text'
-                          autoComplete='off'
+                          type="text"
+                          autoComplete="off"
                           maxLength={120}
                           {...field}
                           value={field.value ?? ''}
@@ -220,7 +221,7 @@ export const ClientsDialog = ({
                       </FormControl>
                       <FormMessage />
                     </FormItem>
-                  )
+                  );
                 }}
               />
 
@@ -228,16 +229,16 @@ export const ClientsDialog = ({
                 <>
                   <FormField
                     control={form.control}
-                    name='userClientCreatedName'
+                    name="userClientCreatedName"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel htmlFor='userClientCreatedName'>
+                        <FormLabel htmlFor="userClientCreatedName">
                           {t('created_by')}
                         </FormLabel>
                         <FormControl>
                           <Input
-                            id='userClientCreatedName'
-                            name='userClientCreatedName'
+                            id="userClientCreatedName"
+                            name="userClientCreatedName"
                             disabled
                             {...field}
                           />
@@ -249,35 +250,36 @@ export const ClientsDialog = ({
 
                   <FormField
                     control={form.control}
-                    name='createdOn'
+                    name="createdOn"
                     render={({ field }) => (
-                      <FormItem className='flex flex-col flex-auto'>
-                        <FormLabel htmlFor='createdOn'>
+                      <FormItem className="flex flex-col flex-auto">
+                        <FormLabel htmlFor="createdOn">
                           {t('created_on')}
                         </FormLabel>
                         <Popover>
                           <PopoverTrigger asChild>
                             <FormControl>
                               <Button
-                                id='createdOn'
+                                id="createdOn"
                                 disabled={true}
                                 readOnly={true}
                                 variant={'outline'}
                                 className={cn(
                                   'pl-3 text-left font-normal',
                                   !field.value && 'text-muted-foreground'
-                                )}>
+                                )}
+                              >
                                 {field.value && format(field.value, 'PPP')}
-                                <CalendarIcon className='w-4 h-4 ml-auto opacity-50' />
+                                <CalendarIcon className="w-4 h-4 ml-auto opacity-50" />
                               </Button>
                             </FormControl>
                           </PopoverTrigger>
-                          <PopoverContent className='w-auto p-0' align='start'>
+                          <PopoverContent className="w-auto p-0" align="start">
                             <Calendar
-                              mode='single'
+                              mode="single"
                               selected={field.value}
                               onSelect={field.onChange}
-                              disabled={date => date < new Date('1900-01-01')}
+                              disabled={(date) => date < new Date('1900-01-01')}
                             />
                           </PopoverContent>
                         </Popover>
@@ -291,16 +293,16 @@ export const ClientsDialog = ({
                 <>
                   <FormField
                     control={form.control}
-                    name='userClientUpdatedName'
+                    name="userClientUpdatedName"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel htmlFor='userClientUpdatedName'>
+                        <FormLabel htmlFor="userClientUpdatedName">
                           {t('updated_by')}
                         </FormLabel>
                         <FormControl>
                           <Input
-                            id='userClientUpdatedName'
-                            name='userClientUpdatedName'
+                            id="userClientUpdatedName"
+                            name="userClientUpdatedName"
                             disabled
                             {...field}
                           />
@@ -312,35 +314,36 @@ export const ClientsDialog = ({
 
                   <FormField
                     control={form.control}
-                    name='updatedOn'
+                    name="updatedOn"
                     render={({ field }) => (
-                      <FormItem className='flex flex-col flex-auto'>
-                        <FormLabel htmlFor='updatedOn'>
+                      <FormItem className="flex flex-col flex-auto">
+                        <FormLabel htmlFor="updatedOn">
                           {t('updated_on')}
                         </FormLabel>
                         <Popover>
                           <PopoverTrigger asChild>
                             <FormControl>
                               <Button
-                                id='updatedOn'
+                                id="updatedOn"
                                 disabled={true}
                                 readOnly={true}
                                 variant={'outline'}
                                 className={cn(
                                   'pl-3 text-left font-normal',
                                   !field.value && 'text-muted-foreground'
-                                )}>
+                                )}
+                              >
                                 {field.value && format(field.value, 'PPP')}
-                                <CalendarIcon className='w-4 h-4 ml-auto opacity-50' />
+                                <CalendarIcon className="w-4 h-4 ml-auto opacity-50" />
                               </Button>
                             </FormControl>
                           </PopoverTrigger>
-                          <PopoverContent className='w-auto p-0' align='start'>
+                          <PopoverContent className="w-auto p-0" align="start">
                             <Calendar
-                              mode='single'
+                              mode="single"
                               selected={field.value}
                               onSelect={field.onChange}
-                              disabled={date => date < new Date('1900-01-01')}
+                              disabled={(date) => date < new Date('1900-01-01')}
                             />
                           </PopoverContent>
                         </Popover>
@@ -354,28 +357,31 @@ export const ClientsDialog = ({
             <DialogFooter>
               <DialogClose asChild>
                 <Button
-                  type='button'
-                  variant='secondary'
-                  className='flex-1 md:flex-initial md:w-24'>
+                  type="button"
+                  variant="secondary"
+                  className="flex-1 md:flex-initial md:w-24"
+                >
                   {t('cancel')}
                 </Button>
               </DialogClose>
 
               {clientId && (
                 <Button
-                  type='button'
-                  variant='destructive'
-                  className='flex-1 md:flex-initial md:w-24'
+                  type="button"
+                  variant="destructive"
+                  className="flex-1 md:flex-initial md:w-24"
                   onClick={() => {
-                    handleDelete()
-                  }}>
+                    handleDelete();
+                  }}
+                >
                   {t('delete')}
                 </Button>
               )}
               <Button
-                type='submit'
-                variant='info'
-                className='flex-1 md:flex-initial md:w-24'>
+                type="submit"
+                variant="info"
+                className="flex-1 md:flex-initial md:w-24"
+              >
                 {clientId ? t('update') : t('save')}
               </Button>
             </DialogFooter>
@@ -383,8 +389,8 @@ export const ClientsDialog = ({
         </Form>
       </DialogContent>
     </Dialog>
-  )
-}
+  );
+};
 
 ClientsDialog.propTypes = {
   openDialog: PropTypes.bool.isRequired,
@@ -392,5 +398,5 @@ ClientsDialog.propTypes = {
   selectedRow: PropTypes.object,
   onSubmit: PropTypes.func.isRequired,
   onDeleteById: PropTypes.func.isRequired,
-  actionDialog: PropTypes.string.isRequired
-}
+  actionDialog: PropTypes.string.isRequired,
+};

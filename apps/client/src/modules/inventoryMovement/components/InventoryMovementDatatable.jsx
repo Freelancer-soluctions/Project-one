@@ -1,42 +1,42 @@
-import { useTranslation } from 'react-i18next'
-import { DataTable } from '@/components/dataTable/index'
-import { format } from 'date-fns'
-import PropTypes from 'prop-types'
+import { useTranslation } from 'react-i18next';
+import { DataTable } from '@/components/dataTable/index';
+import { format } from 'date-fns';
+import PropTypes from 'prop-types';
 
 export const InventoryMovementDatatable = ({
   dataInventoryMovements,
   onEditDialog,
   pagination,
-  onPaginationChange
+  onPaginationChange,
 }) => {
-  const { t } = useTranslation()
-  const { dataList, total } = dataInventoryMovements.data
+  const { t } = useTranslation();
+  const { dataList, total } = dataInventoryMovements.data;
 
   const columnDefInventoryMovements = [
     {
       accessorKey: 'product.name',
-      header: t('product')
+      header: t('product'),
     },
     {
       accessorKey: 'warehouse.name',
-      header: t('warehouse')
+      header: t('warehouse'),
     },
     {
       accessorKey: 'quantity',
-      header: t('quantity')
+      header: t('quantity'),
     },
     {
       accessorKey: 'type',
-      header: t('type')
+      header: t('type'),
     },
     {
       accessorKey: 'reason',
-      header: t('reason')
+      header: t('reason'),
     },
     {
       accessorKey: 'createdOn',
       header: t('created_on'),
-      cell: ({ row }) => format(new Date(row.original.createdOn), 'PPP')
+      cell: ({ row }) => format(new Date(row.original.createdOn), 'PPP'),
     },
     {
       accessorKey: 'updatedOn',
@@ -44,29 +44,29 @@ export const InventoryMovementDatatable = ({
       cell: ({ row }) =>
         row.original.updatedOn
           ? format(new Date(row.original.updatedOn), 'PPP')
-          : ''
-    }
-  ]
+          : '',
+    },
+  ];
 
-  const handleEditDialog = row => {
-    onEditDialog(row.original)
-  }
+  const handleEditDialog = (row) => {
+    onEditDialog(row.original);
+  };
 
   return (
     <DataTable
       columns={columnDefInventoryMovements}
       data={dataList}
       totalRows={total}
-      handleRow={row => handleEditDialog(row)}
+      handleRow={(row) => handleEditDialog(row)}
       pagination={pagination}
       onPaginationChange={onPaginationChange}
     />
-  )
-}
+  );
+};
 
 InventoryMovementDatatable.propTypes = {
   dataInventoryMovements: PropTypes.object.isRequired,
   onEditDialog: PropTypes.func.isRequired,
   pagination: PropTypes.object.isRequired,
-  onPaginationChange: PropTypes.func.isRequired
-}
+  onPaginationChange: PropTypes.func.isRequired,
+};

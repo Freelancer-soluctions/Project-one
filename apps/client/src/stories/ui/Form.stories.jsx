@@ -1,4 +1,4 @@
-import React from 'react'
+import React from 'react';
 import {
   Form,
   FormItem,
@@ -6,50 +6,50 @@ import {
   FormControl,
   FormDescription,
   FormMessage,
-  FormField
-} from '@/components/ui/form'
-import { Input } from '@/components/ui/input'
-import { Button } from '@/components/ui/button'
-import { useForm } from 'react-hook-form'
+  FormField,
+} from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { useForm } from 'react-hook-form';
 
 export default {
   title: 'UI/Form',
   component: Form,
   parameters: {
-    layout: 'centered'
-  }
-}
+    layout: 'centered',
+  },
+};
 
-const Template = args => {
+const Template = (args) => {
   const form = useForm({
     defaultValues: {
-      name: ''
-    }
-  })
+      name: '',
+    },
+  });
 
-  const onSubmit = data => {
-    console.log('Form submitted:', data)
-  }
+  const onSubmit = (data) => {
+    console.log('Form submitted:', data);
+  };
 
   return (
     <Form {...args} {...form} onSubmit={form.handleSubmit(onSubmit)}>
       <FormField
-        name='name'
+        name="name"
         control={form.control}
         render={({ field }) => (
           <FormItem>
             <FormLabel>Nombre</FormLabel>
             <FormControl>
-              <Input {...field} placeholder='Escribe tu nombre' />
+              <Input {...field} placeholder="Escribe tu nombre" />
             </FormControl>
             <FormDescription>Por favor, introduce tu nombre.</FormDescription>
             <FormMessage />
           </FormItem>
         )}
       />
-      <Button type='submit'>Enviar</Button>
+      <Button type="submit">Enviar</Button>
     </Form>
-  )
-}
+  );
+};
 
-export const Default = Template.bind({})
+export const Default = Template.bind({});

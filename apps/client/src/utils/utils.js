@@ -99,8 +99,8 @@
 export function ParseNumber(value) {
   return {
     value: Number(value.replace(/\D/g, '')),
-    formated: value.replace(/\B(?=(\d{3})+(?!\d))/g, '.')
-  }
+    formated: value.replace(/\B(?=(\d{3})+(?!\d))/g, '.'),
+  };
 }
 
 /**
@@ -111,17 +111,17 @@ export function ParseNumber(value) {
 
 export function ConvertToList(data) {
   return [
-    ...data.map(e => {
+    ...data.map((e) => {
       return {
         id: e
           .replace(/ /g, '-')
           .toUpperCase()
           .normalize('NFD')
           .replace(/[\u0300-\u036f]/g, ''),
-        label: e
-      }
-    })
-  ]
+        label: e,
+      };
+    }),
+  ];
 }
 
 /**
@@ -129,18 +129,18 @@ export function ConvertToList(data) {
  * @param {Key} token header
  * @returns {item} token en formato json
  */
-export const getLocalStorage = key => {
-  const item = localStorage.getItem(key)
+export const getLocalStorage = (key) => {
+  const item = localStorage.getItem(key);
 
-  if (!item) return
+  if (!item) return;
   try {
-    return JSON.parse(item)
+    return JSON.parse(item);
   } catch (error) {
-    console.log(error)
-    localStorage.removeItem(key)
+    console.log(error);
+    localStorage.removeItem(key);
   }
-  return item
-}
+  return item;
+};
 
 /**
  * Obtiene las queries de la url actual del navegador y filtra por las declaras dentro de la funcion
@@ -150,31 +150,31 @@ export const getLocalStorage = key => {
  */
 
 export function getURLQueries(property, value) {
-  const url = new URLSearchParams(window.location.search)
+  const url = new URLSearchParams(window.location.search);
   const values = {
     search: url.get('search'),
     page: url.get('page'),
     limit: url.get('limit'),
-    discount: url.get('discount')
-  }
+    discount: url.get('discount'),
+  };
 
   if (property) {
-    values[property] = value
+    values[property] = value;
   }
 
   for (const key in values) {
     if (values[key] === null) {
-      delete values[key]
+      delete values[key];
     }
   }
   return new URLSearchParams(values).toString()
     ? '?' + new URLSearchParams(values).toString()
-    : null
+    : null;
 }
 
 export function getSpecificQuery(property) {
-  const url = new URLSearchParams(window.location.search)
-  const value = url.get(property) || ''
+  const url = new URLSearchParams(window.location.search);
+  const value = url.get(property) || '';
 
-  return value
+  return value;
 }

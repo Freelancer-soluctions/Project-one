@@ -1,59 +1,59 @@
 /* React-specific entry point that automatically generates
    hooks corresponding to the defined endpoints */
-import { createApi } from '@reduxjs/toolkit/query/react'
-import { axiosPrivateBaseQuery } from '@/config/axios'
+import { createApi } from '@reduxjs/toolkit/query/react';
+import { axiosPrivateBaseQuery } from '@/config/axios';
 
 // Define a service using a base URL and expected endpoints
 const newsApi = createApi({
   reducerPath: 'newsApi',
   baseQuery: axiosPrivateBaseQuery({
-    baseUrl: import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1'
+    baseUrl: import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1',
   }),
   tagTypes: ['News'], // Agrega un tag identificador
-  endpoints: builder => ({
+  endpoints: (builder) => ({
     getAllNews: builder.query({
-      query: args => ({
+      query: (args) => ({
         url: `/news`,
         method: 'GET',
-        params: { ...args }
+        params: { ...args },
       }),
-      providesTags: ['News'] // Indica que este endpoint usa el tag 'Notes'
+      providesTags: ['News'], // Indica que este endpoint usa el tag 'Notes'
     }),
     getAllNewsStatus: builder.query({
       query: () => ({
         url: `/news/status`,
-        method: 'GET'
-      })
+        method: 'GET',
+      }),
     }),
     updateNewById: builder.mutation({
       query: ({ id, data }) => ({
         url: `/news/${id}`,
         method: 'PUT',
-        body: { ...data }
+        body: { ...data },
       }),
-      invalidatesTags: ['News'] // Invalida el cache de 'Notes' para volver a consultar
+      invalidatesTags: ['News'], // Invalida el cache de 'Notes' para volver a consultar
     }),
     createNew: builder.mutation({
       query(body) {
         return {
           url: `/news/`,
           method: 'POST',
-          body
-        }
+          body,
+        };
       },
-      invalidatesTags: ['News'] // Invalida el cache de 'Notes' para volver a consultar
+      invalidatesTags: ['News'], // Invalida el cache de 'Notes' para volver a consultar
     }),
     deleteNewById: builder.mutation({
       query(id) {
         return {
           url: `/news/${id}`,
-          method: 'DELETE'
-        }
+          method: 'DELETE',
+        };
       },
-      invalidatesTags: ['News'] // Invalida el cache de 'Notes' para volver a consultar
-    })
-  })
-})
+      invalidatesTags: ['News'], // Invalida el cache de 'Notes' para volver a consultar
+    }),
+  }),
+});
 
 // Export hooks for usage in functional components, which are
 // auto-generated based on the defined endpoints
@@ -62,7 +62,7 @@ export const {
   useGetAllNewsStatusQuery,
   useUpdateNewByIdMutation,
   useCreateNewMutation,
-  useDeleteNewByIdMutation
-} = newsApi
+  useDeleteNewByIdMutation,
+} = newsApi;
 
-export default newsApi
+export default newsApi;

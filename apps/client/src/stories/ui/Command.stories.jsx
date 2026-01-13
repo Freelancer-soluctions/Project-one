@@ -1,4 +1,4 @@
-import React from 'react'
+import React from 'react';
 import {
   Command,
   CommandDialog,
@@ -7,23 +7,23 @@ import {
   CommandItem,
   CommandEmpty,
   CommandGroup,
-  CommandShortcut
-} from '@/components/ui/command'
+  CommandShortcut,
+} from '@/components/ui/command';
 
 export default {
   title: 'UI/Command',
   component: Command,
   parameters: {
-    layout: 'centered'
-  }
-}
+    layout: 'centered',
+  },
+};
 
-const Template = args => (
+const Template = (args) => (
   <Command {...args}>
-    <CommandInput placeholder='Search...' />
+    <CommandInput placeholder="Search..." />
     <CommandList>
       <CommandEmpty>No results found.</CommandEmpty>
-      <CommandGroup heading='Suggestions'>
+      <CommandGroup heading="Suggestions">
         <CommandItem>
           Profile <CommandShortcut>⌘P</CommandShortcut>
         </CommandItem>
@@ -36,17 +36,17 @@ const Template = args => (
       </CommandGroup>
     </CommandList>
   </Command>
-)
+);
 
-export const Default = Template.bind({})
-Default.args = {}
+export const Default = Template.bind({});
+Default.args = {};
 
 export const WithDialog = () => (
   <CommandDialog open={true}>
-    <CommandInput placeholder='Type a command...' />
+    <CommandInput placeholder="Type a command..." />
     <CommandList>
       <CommandEmpty>No results found.</CommandEmpty>
-      <CommandGroup heading='Actions'>
+      <CommandGroup heading="Actions">
         <CommandItem>
           New File <CommandShortcut>⌘N</CommandShortcut>
         </CommandItem>
@@ -56,4 +56,4 @@ export const WithDialog = () => (
       </CommandGroup>
     </CommandList>
   </CommandDialog>
-)
+);

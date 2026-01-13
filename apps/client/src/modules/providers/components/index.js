@@ -1,3 +1,3 @@
-export * from './ProvidersFiltersForm'
-export * from './ProvidersDialog'
-export * from './ProvidersDatatable'
+export * from './ProvidersFiltersForm';
+export * from './ProvidersDialog';
+export * from './ProvidersDatatable';

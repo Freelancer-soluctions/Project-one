@@ -4,6 +4,6 @@ export const PERMISSION_TYPES = [
   'PERSONAL',
   'MATERNITY',
   'PATERNITY',
-  'OTHER'
-]
-export const PERMISSION_STATUS = ['PENDING', 'APPROVED', 'REJECTED']
+  'OTHER',
+];
+export const PERMISSION_STATUS = ['PENDING', 'APPROVED', 'REJECTED'];
