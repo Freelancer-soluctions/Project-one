@@ -141,3 +141,15 @@ Este documento define los requisitos para implementar medidas de seguridad cript
 3. WHEN el Sistema detecta múltiples intentos fallidos de autenticación THEN el Sistema SHALL incrementar un contador y alertar después de un umbral definido
 4. WHEN el Sistema rota claves de encriptación THEN el Sistema SHALL registrar el evento con identificador de versión anterior y nueva
 5. WHEN el Sistema accede a datos sensibles encriptados THEN el Sistema SHALL registrar qué usuario accedió y cuándo sin exponer los datos mismos
+
+### Requirement 11
+
+**User Story:** Como desarrollador del sistema, quiero que todas las rutas que reciben parámetros de ID en la URL tengan validación de entrada, para prevenir ataques de inyección y asegurar que solo IDs válidos sean procesados.
+
+#### Acceptance Criteria
+
+1. WHEN una ruta recibe un parámetro :id en la URL THEN el Sistema SHALL aplicar el middleware validatePathParam antes del controlador
+2. WHEN el middleware validatePathParam recibe un parámetro id THEN el Sistema SHALL validar que el parámetro existe y no está vacío
+3. WHEN el middleware validatePathParam valida un id THEN el Sistema SHALL verificar que contiene únicamente dígitos usando expresión regular estricta
+4. WHEN el middleware validatePathParam procesa un id válido THEN el Sistema SHALL convertir el valor a número entero y verificar que es un entero seguro mayor que cero
+5. WHEN el middleware validatePathParam detecta un id inválido THEN el Sistema SHALL retornar error 400 con mensaje descriptivo sin procesar la petición
