@@ -11,6 +11,7 @@ import {
   validateSchema,
   validateQueryParams,
   checkRoleAuthOrPermisssion,
+  validatePathParam,
 } from '../../middleware/index.js';
 import {
   clientFiltersSchema,
@@ -202,6 +203,7 @@ router.put(
     allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER],
     permissions: [PERMISSIONCODES.canEditClient],
   }),
+  validatePathParam,
   validateSchema(clientCreateUpdateSchema),
   updateClientById
 );
@@ -248,6 +250,7 @@ router.delete(
     allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER],
     permissions: [PERMISSIONCODES.canDeleteClient],
   }),
+  validatePathParam,
   deleteClientById
 );
 

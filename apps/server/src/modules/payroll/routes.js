@@ -15,6 +15,7 @@ import {
   validateQueryParams,
   validateSchema,
   checkRoleAuthOrPermisssion,
+  validatePathParam,
 } from '../../middleware/index.js';
 import { ROLESCODES, PERMISSIONCODES } from '../../utils/constants/enums.js';
 
@@ -200,6 +201,7 @@ router.put(
     allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER],
     permissions: [PERMISSIONCODES.canEditPayroll],
   }),
+  validatePathParam,
   validateSchema(payrollCreateUpdateSchema),
   updatePayrollById
 );
@@ -229,6 +231,7 @@ router.delete(
     allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER],
     permissions: [PERMISSIONCODES.canDeletePayroll],
   }),
+  validatePathParam,
   deletePayrollById
 );
 

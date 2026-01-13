@@ -6,6 +6,7 @@ import {
   validateQueryParams,
   validateSchema,
   checkRoleAuthOrPermisssion,
+  validatePathParam,
 } from '../../middleware/index.js';
 import { ROLESCODES, PERMISSIONCODES } from '../../utils/constants/enums.js';
 
@@ -205,6 +206,7 @@ router.put(
     allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER],
     permissions: [PERMISSIONCODES.canEditProvider],
   }),
+  validatePathParam,
   validateSchema(Providers),
   providersController.updateProviderById
 );
@@ -253,6 +255,7 @@ router.delete(
     allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER],
     permissions: [PERMISSIONCODES.canDeleteProvider],
   }),
+  validatePathParam,
   providersController.deleteProviderById
 );
 

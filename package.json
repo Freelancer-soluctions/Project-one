@@ -22,11 +22,18 @@
     "build": "npm run build -ws",
     "prepush": "npm run test && npm run build",
     "format": "prettier --write \"apps/**/*.{js,jsx,json,md}\"",
-    "format:check": "prettier --check \"apps/**/*.{js,jsx,json,md}\""
+    "format:check": "prettier --check \"apps/**/*.{js,jsx,json,md}\"",
+    "lint": "eslint \"apps/**/*.{js,jsx}\"",
+    "lint:fix": "eslint \"apps/**/*.{js,jsx}\" --fix"
   },
   "devDependencies": {
     "@commitlint/cli": "^20.3.1",
     "@commitlint/config-conventional": "^20.3.1",
+    "eslint": "^9.39.2",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-import": "^2.32.0",
+    "eslint-plugin-react": "^7.37.5",
+    "eslint-plugin-react-hooks": "^7.0.1",
     "husky": "^9.1.7",
     "lint-staged": "^16.2.7",
     "prettier": "3.7.4"

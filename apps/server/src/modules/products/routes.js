@@ -11,6 +11,7 @@ import {
   validateQueryParams,
   validateSchema,
   checkRoleAuthOrPermisssion,
+  validatePathParam,
 } from '../../middleware/index.js';
 import { ROLESCODES, PERMISSIONCODES } from '../../utils/constants/enums.js';
 
@@ -71,6 +72,7 @@ router.put(
     allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER],
     permissions: [PERMISSIONCODES.canEditProduct],
   }),
+  validatePathParam,
   validateSchema(ProductsUpdate),
   productsController.updateById
 );
@@ -81,6 +83,7 @@ router.delete(
     allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER],
     permissions: [PERMISSIONCODES.canDeleteProduct],
   }),
+  validatePathParam,
   productsController.deleteById
 );
 
@@ -90,6 +93,7 @@ router.get(
     allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER, ROLESCODES.USER],
     permissions: [PERMISSIONCODES.canViewProduct],
   }),
+  validatePathParam,
   productsController.getAllProductAttributesByProductId
 );
 
@@ -109,6 +113,7 @@ router.delete(
     allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER],
     permissions: [PERMISSIONCODES.canDeleteProduct],
   }),
+  validatePathParam,
   productsController.deleteProductsAttributeById
 );
 

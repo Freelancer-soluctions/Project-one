@@ -1,7 +1,7 @@
-import { useEffect, useState } from 'react'
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { ProvidersDialogSchema } from '../utils'
+import { useEffect } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { ProvidersDialogSchema } from '../utils';
 
 import {
   Dialog,
@@ -10,38 +10,37 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
-  DialogClose
-} from '@/components/ui/dialog'
+  DialogClose,
+} from '@/components/ui/dialog';
 import {
   Form,
   FormControl,
   FormField,
   FormItem,
   FormLabel,
-  FormMessage
-} from '@/components/ui/form'
+  FormMessage,
+} from '@/components/ui/form';
 import {
   Popover,
   PopoverContent,
-  PopoverTrigger
-} from '@/components/ui/popover'
+  PopoverTrigger,
+} from '@/components/ui/popover';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue
-} from '@/components/ui/select'
-import { Input } from '@/components/ui/input'
-import { Button } from '@/components/ui/button'
-import { LuBuilding2 } from 'react-icons/lu'
-import { useTranslation } from 'react-i18next'
-import { cn } from '@/lib/utils'
-import PropTypes from 'prop-types'
-import { CalendarIcon } from '@radix-ui/react-icons'
-import { Calendar } from '@/components/ui/calendar'
-import { format } from 'date-fns'
+  SelectValue,
+} from '@/components/ui/select';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { LuBuilding2 } from 'react-icons/lu';
+import { useTranslation } from 'react-i18next';
+import { cn } from '@/lib/utils';
+import PropTypes from 'prop-types';
+import { CalendarIcon } from '@radix-ui/react-icons';
+import { Calendar } from '@/components/ui/calendar';
+import { format } from 'date-fns';
 
 export const ProvidersDialog = ({
   openDialog,
@@ -50,10 +49,11 @@ export const ProvidersDialog = ({
   dataStatus,
   onSubmit,
   onDeleteById,
-  actionDialog
+  actionDialog,
 }) => {
-  const { t } = useTranslation()
-  const [providerId, setProviderId] = useState('')
+  const { t } = useTranslation();
+  const providerId = selectedRow?.id ?? null;
+  // const [providerId, setProviderId] = useState('')
 
   // Configura el formulario
   const form = useForm({
@@ -64,57 +64,86 @@ export const ProvidersDialog = ({
       contactName: '',
       contactEmail: '',
       contactPhone: '',
-      address: ''
-    }
-  })
+      address: '',
+    },
+  });
 
   // Actualiza todos los valores del formulario al cambiar `selectedRow`
+
   useEffect(() => {
-    if (selectedRow) {
-      // Filtra y mapea solo los valores necesarios
-      const mappedValues = {
-        id: selectedRow.id || '',
-        name: selectedRow.name || '',
-        status: selectedRow.status || '',
-        code: selectedRow.code || '',
-        contactName: selectedRow.contactName || '',
-        contactEmail: selectedRow.contactEmail || '',
-        contactPhone: selectedRow.contactPhone || '',
-        address: selectedRow.address || '',
-        createdOn: selectedRow.createdOn || '',
-        updatedOn: selectedRow.updatedOn || '',
-        userProvidersCreatedName: selectedRow.userProvidersCreatedName || '',
-        userProvidersUpdatedName: selectedRow.userProvidersUpdatedName || ''
-      }
+    if (!selectedRow?.id) return;
 
-      form.reset(mappedValues)
-      setProviderId(mappedValues.id)
-    }
+    const mappedValues = {
+      id: selectedRow.id || '',
+      name: selectedRow.name || '',
+      status: selectedRow.status || '',
+      code: selectedRow.code || '',
+      contactName: selectedRow.contactName || '',
+      contactEmail: selectedRow.contactEmail || '',
+      contactPhone: selectedRow.contactPhone || '',
+      address: selectedRow.address || '',
+      createdOn: selectedRow.createdOn || '',
+      updatedOn: selectedRow.updatedOn || '',
+      userProvidersCreatedName: selectedRow.userProvidersCreatedName || '',
+      userProvidersUpdatedName: selectedRow.userProvidersUpdatedName || '',
+    };
 
+    form.reset(mappedValues);
+  }, [selectedRow, form]);
+
+  useEffect(() => {
     if (!openDialog) {
-      form.reset()
+      form.reset();
     }
-  }, [selectedRow, openDialog])
+  }, [openDialog, form]);
 
-  const handleSubmit = data => {
-    onSubmit({ ...data }, providerId)
-  }
+  // useEffect(() => {
+  //   if (selectedRow) {
+  //     // Filtra y mapea solo los valores necesarios
+  //     const mappedValues = {
+  //       id: selectedRow.id || '',
+  //       name: selectedRow.name || '',
+  //       status: selectedRow.status || '',
+  //       code: selectedRow.code || '',
+  //       contactName: selectedRow.contactName || '',
+  //       contactEmail: selectedRow.contactEmail || '',
+  //       contactPhone: selectedRow.contactPhone || '',
+  //       address: selectedRow.address || '',
+  //       createdOn: selectedRow.createdOn || '',
+  //       updatedOn: selectedRow.updatedOn || '',
+  //       userProvidersCreatedName: selectedRow.userProvidersCreatedName || '',
+  //       userProvidersUpdatedName: selectedRow.userProvidersUpdatedName || ''
+  //     }
+
+  //     form.reset(mappedValues)
+  //     // setProviderId(mappedValues.id)
+  //   }
+
+  //   if (!openDialog) {
+  //     form.reset()
+  //   }
+  // }, [selectedRow, openDialog])
+
+  const handleSubmit = (data) => {
+    onSubmit({ ...data }, providerId);
+  };
 
   const handleDeleteById = () => {
-    onDeleteById(providerId)
-  }
+    onDeleteById(providerId);
+  };
 
   return (
     <Dialog
       open={openDialog}
-      onOpenChange={isOpen => {
-        if (isOpen === true) return
-        onCloseDialog()
-      }}>
-      <DialogContent className='sm:max-w-[600px]'>
+      onOpenChange={(isOpen) => {
+        if (isOpen === true) return;
+        onCloseDialog();
+      }}
+    >
+      <DialogContent className="sm:max-w-[600px]">
         <DialogHeader>
-          <DialogTitle className='flex items-center gap-2'>
-            <LuBuilding2 className='inline mr-3 w-7 h-7' />
+          <DialogTitle className="flex items-center gap-2">
+            <LuBuilding2 className="inline mr-3 w-7 h-7" />
             {actionDialog}
           </DialogTitle>
           <DialogDescription>
@@ -123,27 +152,28 @@ export const ProvidersDialog = ({
         </DialogHeader>
         <Form {...form}>
           <form
-            method='post'
-            action=''
-            id='providers-form'
+            method="post"
+            action=""
+            id="providers-form"
             onSubmit={form.handleSubmit(handleSubmit)}
             noValidate
-            className='flex flex-col flex-wrap gap-5'>
-            <div className='grid grid-cols-2 gap-6 py-4 auto-rows-auto'>
+            className="flex flex-col flex-wrap gap-5"
+          >
+            <div className="grid grid-cols-2 gap-6 py-4 auto-rows-auto">
               <FormField
                 control={form.control}
-                name='name'
+                name="name"
                 render={({ field }) => {
                   return (
                     <FormItem>
-                      <FormLabel htmlFor='name'>{t('name')}*</FormLabel>
+                      <FormLabel htmlFor="name">{t('name')}*</FormLabel>
                       <FormControl>
                         <Input
-                          id='name'
-                          name='name'
+                          id="name"
+                          name="name"
                           placeholder={t('provider_name_placeholder')}
-                          type='text'
-                          autoComplete='off'
+                          type="text"
+                          autoComplete="off"
                           maxLength={80}
                           {...field}
                           value={field.value ?? ''}
@@ -151,28 +181,32 @@ export const ProvidersDialog = ({
                       </FormControl>
                       <FormMessage />
                     </FormItem>
-                  )
+                  );
                 }}
               />
 
               <FormField
                 control={form.control}
-                name='status'
+                name="status"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel htmlFor='status'>{t('status')}*</FormLabel>
+                    <FormLabel htmlFor="status">{t('status')}*</FormLabel>
                     <Select
-                      onValueChange={value => field.onChange(value === 'true')}
-                      value={field.value?.toString()}>
+                      onValueChange={(value) =>
+                        field.onChange(value === 'true')
+                      }
+                      value={field.value?.toString()}
+                    >
                       <FormControl>
                         <SelectTrigger
                           className={cn(
                             'w-full',
                             !field.value && 'text-muted-foreground'
-                          )}>
+                          )}
+                        >
                           <SelectValue
                             placeholder={t('select_status')}
-                            className='w-full'
+                            className="w-full"
                           />
                         </SelectTrigger>
                       </FormControl>
@@ -191,20 +225,20 @@ export const ProvidersDialog = ({
 
               <FormField
                 control={form.control}
-                name='contactName'
+                name="contactName"
                 render={({ field }) => {
                   return (
-                    <FormItem className='flex flex-col flex-auto'>
-                      <FormLabel htmlFor='contactName'>
+                    <FormItem className="flex flex-col flex-auto">
+                      <FormLabel htmlFor="contactName">
                         {t('contact_name')}
                       </FormLabel>
                       <FormControl>
                         <Input
-                          id='contactName'
-                          name='contactName'
+                          id="contactName"
+                          name="contactName"
                           placeholder={t('contact_name_placeholder')}
-                          type='text'
-                          autoComplete='off'
+                          type="text"
+                          autoComplete="off"
                           maxLength={60}
                           {...field}
                           value={field.value ?? ''}
@@ -212,26 +246,26 @@ export const ProvidersDialog = ({
                       </FormControl>
                       <FormMessage />
                     </FormItem>
-                  )
+                  );
                 }}
               />
 
               <FormField
                 control={form.control}
-                name='contactEmail'
+                name="contactEmail"
                 render={({ field }) => {
                   return (
-                    <FormItem className='flex flex-col flex-auto'>
-                      <FormLabel htmlFor='contactEmail'>
+                    <FormItem className="flex flex-col flex-auto">
+                      <FormLabel htmlFor="contactEmail">
                         {t('contact_email')}
                       </FormLabel>
                       <FormControl>
                         <Input
-                          id='contactEmail'
-                          name='contactEmail'
+                          id="contactEmail"
+                          name="contactEmail"
                           placeholder={t('contact_email_placeholder')}
-                          type='email'
-                          autoComplete='off'
+                          type="email"
+                          autoComplete="off"
                           maxLength={80}
                           {...field}
                           value={field.value ?? ''}
@@ -239,25 +273,25 @@ export const ProvidersDialog = ({
                       </FormControl>
                       <FormMessage />
                     </FormItem>
-                  )
+                  );
                 }}
               />
               <FormField
                 control={form.control}
-                name='contactPhone'
+                name="contactPhone"
                 render={({ field }) => {
                   return (
-                    <FormItem className='flex flex-col flex-auto'>
-                      <FormLabel htmlFor='contactPhone'>
+                    <FormItem className="flex flex-col flex-auto">
+                      <FormLabel htmlFor="contactPhone">
                         {t('contact_phone')}
                       </FormLabel>
                       <FormControl>
                         <Input
-                          id='contactPhone'
-                          name='contactPhone'
+                          id="contactPhone"
+                          name="contactPhone"
                           placeholder={t('contact_phone_placeholder')}
-                          type='text'
-                          autoComplete='off'
+                          type="text"
+                          autoComplete="off"
                           maxLength={15}
                           {...field}
                           value={field.value ?? ''}
@@ -265,23 +299,23 @@ export const ProvidersDialog = ({
                       </FormControl>
                       <FormMessage />
                     </FormItem>
-                  )
+                  );
                 }}
               />
               <FormField
                 control={form.control}
-                name='address'
+                name="address"
                 render={({ field }) => {
                   return (
-                    <FormItem className='flex flex-col flex-auto'>
-                      <FormLabel htmlFor='address'>{t('address')}</FormLabel>
+                    <FormItem className="flex flex-col flex-auto">
+                      <FormLabel htmlFor="address">{t('address')}</FormLabel>
                       <FormControl>
                         <Input
-                          id='address'
-                          name='address'
+                          id="address"
+                          name="address"
                           placeholder={t('address_placeholder')}
-                          type='text'
-                          autoComplete='off'
+                          type="text"
+                          autoComplete="off"
                           maxLength={120}
                           {...field}
                           value={field.value ?? ''}
@@ -289,7 +323,7 @@ export const ProvidersDialog = ({
                       </FormControl>
                       <FormMessage />
                     </FormItem>
-                  )
+                  );
                 }}
               />
 
@@ -297,16 +331,16 @@ export const ProvidersDialog = ({
                 <>
                   <FormField
                     control={form.control}
-                    name='userProvidersCreatedName'
+                    name="userProvidersCreatedName"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel htmlFor='userProvidersCreatedName'>
+                        <FormLabel htmlFor="userProvidersCreatedName">
                           {t('created_by')}
                         </FormLabel>
                         <FormControl>
                           <Input
-                            id='userProvidersCreatedName'
-                            name='userProvidersCreatedName'
+                            id="userProvidersCreatedName"
+                            name="userProvidersCreatedName"
                             disabled
                             {...field}
                           />
@@ -318,35 +352,36 @@ export const ProvidersDialog = ({
 
                   <FormField
                     control={form.control}
-                    name='createdOn'
+                    name="createdOn"
                     render={({ field }) => (
-                      <FormItem className='flex flex-col flex-auto'>
-                        <FormLabel htmlFor='createdOn'>
+                      <FormItem className="flex flex-col flex-auto">
+                        <FormLabel htmlFor="createdOn">
                           {t('created_on')}
                         </FormLabel>
                         <Popover>
                           <PopoverTrigger asChild>
                             <FormControl>
                               <Button
-                                id='createdOn'
+                                id="createdOn"
                                 disabled={true}
                                 readOnly={true}
                                 variant={'outline'}
                                 className={cn(
                                   'pl-3 text-left font-normal',
                                   !field.value && 'text-muted-foreground'
-                                )}>
+                                )}
+                              >
                                 {field.value && format(field.value, 'PPP')}
-                                <CalendarIcon className='w-4 h-4 ml-auto opacity-50' />
+                                <CalendarIcon className="w-4 h-4 ml-auto opacity-50" />
                               </Button>
                             </FormControl>
                           </PopoverTrigger>
-                          <PopoverContent className='w-auto p-0' align='start'>
+                          <PopoverContent className="w-auto p-0" align="start">
                             <Calendar
-                              mode='single'
+                              mode="single"
                               selected={field.value}
                               onSelect={field.onChange}
-                              disabled={date => date < new Date('1900-01-01')}
+                              disabled={(date) => date < new Date('1900-01-01')}
                             />
                           </PopoverContent>
                         </Popover>
@@ -360,16 +395,16 @@ export const ProvidersDialog = ({
                 <>
                   <FormField
                     control={form.control}
-                    name='userProvidersUpdatedName'
+                    name="userProvidersUpdatedName"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel htmlFor='userProvidersUpdatedName'>
+                        <FormLabel htmlFor="userProvidersUpdatedName">
                           {t('updated_by')}
                         </FormLabel>
                         <FormControl>
                           <Input
-                            id='userProvidersUpdatedName'
-                            name='userProvidersUpdatedName'
+                            id="userProvidersUpdatedName"
+                            name="userProvidersUpdatedName"
                             disabled
                             {...field}
                           />
@@ -381,35 +416,36 @@ export const ProvidersDialog = ({
 
                   <FormField
                     control={form.control}
-                    name='updatedOn'
+                    name="updatedOn"
                     render={({ field }) => (
-                      <FormItem className='flex flex-col flex-auto'>
-                        <FormLabel htmlFor='updatedOn'>
+                      <FormItem className="flex flex-col flex-auto">
+                        <FormLabel htmlFor="updatedOn">
                           {t('updated_on')}
                         </FormLabel>
                         <Popover>
                           <PopoverTrigger asChild>
                             <FormControl>
                               <Button
-                                id='updatedOn'
+                                id="updatedOn"
                                 disabled={true}
                                 readOnly={true}
                                 variant={'outline'}
                                 className={cn(
                                   'pl-3 text-left font-normal',
                                   !field.value && 'text-muted-foreground'
-                                )}>
+                                )}
+                              >
                                 {field.value && format(field.value, 'PPP')}
-                                <CalendarIcon className='w-4 h-4 ml-auto opacity-50' />
+                                <CalendarIcon className="w-4 h-4 ml-auto opacity-50" />
                               </Button>
                             </FormControl>
                           </PopoverTrigger>
-                          <PopoverContent className='w-auto p-0' align='start'>
+                          <PopoverContent className="w-auto p-0" align="start">
                             <Calendar
-                              mode='single'
+                              mode="single"
                               selected={field.value}
                               onSelect={field.onChange}
-                              disabled={date => date < new Date('1900-01-01')}
+                              disabled={(date) => date < new Date('1900-01-01')}
                             />
                           </PopoverContent>
                         </Popover>
@@ -423,28 +459,31 @@ export const ProvidersDialog = ({
             <DialogFooter>
               <DialogClose asChild>
                 <Button
-                  type='button'
-                  variant='secondary'
-                  className='flex-1 md:flex-initial md:w-24'>
+                  type="button"
+                  variant="secondary"
+                  className="flex-1 md:flex-initial md:w-24"
+                >
                   {t('cancel')}
                 </Button>
               </DialogClose>
 
               {providerId && (
                 <Button
-                  type='button'
-                  variant='destructive'
-                  className='flex-1 md:flex-initial md:w-24'
+                  type="button"
+                  variant="destructive"
+                  className="flex-1 md:flex-initial md:w-24"
                   onClick={() => {
-                    handleDeleteById()
-                  }}>
+                    handleDeleteById();
+                  }}
+                >
                   {t('delete')}
                 </Button>
               )}
               <Button
-                type='submit'
-                variant='info'
-                className='flex-1 md:flex-initial md:w-24'>
+                type="submit"
+                variant="info"
+                className="flex-1 md:flex-initial md:w-24"
+              >
                 {providerId ? t('update') : t('save')}
               </Button>
             </DialogFooter>
@@ -452,8 +491,8 @@ export const ProvidersDialog = ({
         </Form>
       </DialogContent>
     </Dialog>
-  )
-}
+  );
+};
 
 ProvidersDialog.propTypes = {
   openDialog: PropTypes.bool,
@@ -462,5 +501,5 @@ ProvidersDialog.propTypes = {
   dataStatus: PropTypes.array,
   onSubmit: PropTypes.func,
   onDeleteById: PropTypes.func,
-  actionDialog: PropTypes.string
-}
+  actionDialog: PropTypes.string,
+};

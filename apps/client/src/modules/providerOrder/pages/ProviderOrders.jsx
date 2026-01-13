@@ -5,7 +5,7 @@ import {
 } from '../components'
 import { BackDashBoard } from '@/components/backDash/BackDashBoard'
 import { useTranslation } from 'react-i18next'
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import {
   useLazyGetAllProviderOrdersQuery,
   useUpdateProviderOrderByIdMutation,
@@ -34,20 +34,19 @@ const ProviderOrders = () => {
 
   const [
     updateProviderOrderById,
-    { isLoading: isLoadingPut, isError: isErrorPut, isSuccess: isSuccessPut }
+    { isLoading: isLoadingPut  }
   ] = useUpdateProviderOrderByIdMutation()
 
   const [
     createProviderOrder,
-    { isLoading: isLoadingPost, isError: isErrorPost, isSuccess: isSuccessPost }
+    { isLoading: isLoadingPost}
   ] = useCreateProviderOrderMutation()
 
   const [
     deleteProviderOrderById,
     {
       isLoading: isLoadingDelete,
-      isError: isErrorDelete,
-      isSuccess: isSuccessDelete
+
     }
   ] = useDeleteProviderOrderByIdMutation()
 
@@ -59,7 +58,7 @@ const ProviderOrders = () => {
 
   const handleSubmit = async (values, providerOrderId) => {
     try {
-      const result = providerOrderId
+      providerOrderId
         ? await updateProviderOrderById({
             id: providerOrderId,
             data: {
