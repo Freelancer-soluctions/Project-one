@@ -1,4 +1,4 @@
-import React from 'react'
+import React from 'react';
 import {
   AlertDialog,
   AlertDialogTrigger,
@@ -8,21 +8,21 @@ import {
   AlertDialogDescription,
   AlertDialogFooter,
   AlertDialogAction,
-  AlertDialogCancel
-} from '@/components/ui/alert-dialog'
+  AlertDialogCancel,
+} from '@/components/ui/alert-dialog';
 
 export default {
   title: 'UI/AlertDialog',
   component: AlertDialog,
   parameters: {
-    layout: 'centered' // Optional parameter to center the component in the Canvas.
-  }
-}
+    layout: 'centered', // Optional parameter to center the component in the Canvas.
+  },
+};
 
-const Template = args => (
+const Template = (args) => (
   <AlertDialog {...args}>
     <AlertDialogTrigger asChild>
-      <button className='px-4 py-2 text-white bg-blue-500 rounded-md'>
+      <button className="px-4 py-2 text-white bg-blue-500 rounded-md">
         Open Alert
       </button>
     </AlertDialogTrigger>
@@ -36,11 +36,11 @@ const Template = args => (
       </AlertDialogHeader>
       <AlertDialogFooter>
         <AlertDialogCancel>Cancel</AlertDialogCancel>
-        <AlertDialogAction variant='destructive'>Confirm</AlertDialogAction>
+        <AlertDialogAction variant="destructive">Confirm</AlertDialogAction>
       </AlertDialogFooter>
     </AlertDialogContent>
   </AlertDialog>
-)
+);
 
-export const Default = Template.bind({})
-Default.args = {}
+export const Default = Template.bind({});
+Default.args = {};

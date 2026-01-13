@@ -1,34 +1,34 @@
-import { useEffect, useState, useRef } from 'react'
-import { Card, CardContent } from '@/components/ui/card'
-import { LuCalendar, LuClock, LuMapPin, LuChevronDown } from 'react-icons/lu'
+import { useEffect, useState, useRef } from 'react';
+import { Card, CardContent } from '@/components/ui/card';
+import { LuCalendar, LuClock, LuMapPin, LuChevronDown } from 'react-icons/lu';
 
-import { format } from 'date-fns'
-import { es } from 'date-fns/locale'
+import { format } from 'date-fns';
+import { es } from 'date-fns/locale';
 import {
   Carousel,
   CarouselContent,
   CarouselItem,
   CarouselNext,
-  CarouselPrevious
-} from '@/components/ui/carousel'
-import { cn } from '@/lib/utils'
-import Autoplay from 'embla-carousel-autoplay'
-import { Button } from '@/components/ui/button'
+  CarouselPrevious,
+} from '@/components/ui/carousel';
+import { cn } from '@/lib/utils';
+import Autoplay from 'embla-carousel-autoplay';
+import { Button } from '@/components/ui/button';
 import {
   Collapsible,
   CollapsibleContent,
-  CollapsibleTrigger
-} from '@/components/ui/collapsible'
-import { useGetAllEventsQuery } from '@/modules/events/api/eventsAPI'
-import { sortedEvents, getEventTypeColor } from '@/modules/events/utils'
-import { useTranslation } from 'react-i18next'
+  CollapsibleTrigger,
+} from '@/components/ui/collapsible';
+import { useGetAllEventsQuery } from '@/modules/events/api/eventsAPI';
+import { sortedEvents, getEventTypeColor } from '@/modules/events/utils';
+import { useTranslation } from 'react-i18next';
 
 export function UpcomingEventsAlert() {
-  const [upcomingEvents, setUpcomingEvents] = useState([])
-  const [isOpen, setIsOpen] = useState(false)
-  const { t } = useTranslation()
+  const [upcomingEvents, setUpcomingEvents] = useState([]);
+  const [isOpen, setIsOpen] = useState(false);
+  const { t } = useTranslation();
 
-  const plugin = useRef(Autoplay({ delay: 4000, stopOnInteraction: true }))
+  const plugin = useRef(Autoplay({ delay: 4000, stopOnInteraction: true }));
 
   const {
     data: dataEvents = { data: [] },
@@ -36,33 +36,34 @@ export function UpcomingEventsAlert() {
     isError: isErrorEvents,
     isSuccess: isSuccessEvents,
     isFetching: isFetchingEvents,
-    error: errorEvents
-  } = useGetAllEventsQuery()
+    error: errorEvents,
+  } = useGetAllEventsQuery();
 
   useEffect(() => {
     if (dataEvents.data.length > 0) {
       // Ordenar eventos por fecha y hora
-      const sorted = sortedEvents(dataEvents.data, true)
-      setUpcomingEvents(sorted)
+      const sorted = sortedEvents(dataEvents.data, true);
+      setUpcomingEvents(sorted);
     }
-  }, [dataEvents])
+  }, [dataEvents]);
 
-  if (upcomingEvents.length === 0) return null // cargar configuracion de settings para no ver notificaciones
+  if (upcomingEvents.length === 0) return null; // cargar configuracion de settings para no ver notificaciones
 
   return (
-    <div className='w-full h-full mx-auto mb-5 max-w-dvh'>
-      <div className='w-full'>
+    <div className="w-full h-full mx-auto mb-5 max-w-dvh">
+      <div className="w-full">
         <Collapsible open={isOpen} onOpenChange={setIsOpen}>
-          <div className='border-b '>
+          <div className="border-b ">
             <CollapsibleTrigger asChild>
               <Button
-                variant='ghost'
-                className='flex items-center justify-between w-full h-auto py-2'>
-                <div className='flex items-center gap-2'>
-                  <h2 className='text-lg font-semibold tracking-tight'>
+                variant="ghost"
+                className="flex items-center justify-between w-full h-auto py-2"
+              >
+                <div className="flex items-center gap-2">
+                  <h2 className="text-lg font-semibold tracking-tight">
                     {t('next_events')}
                   </h2>
-                  <span className='text-sm text-muted-foreground'>
+                  <span className="text-sm text-muted-foreground">
                     ({upcomingEvents.length})
                   </span>
                 </div>
@@ -77,44 +78,48 @@ export function UpcomingEventsAlert() {
           </div>
 
           <CollapsibleContent>
-            <div className='py-4 '>
+            <div className="py-4 ">
               <Carousel
                 opts={{
                   align: 'start',
-                  loop: true
+                  loop: true,
                 }}
                 plugins={[plugin.current]}
-                className='w-full'>
-                <CarouselContent className='-ml-2'>
-                  {upcomingEvents.map(event => (
+                className="w-full"
+              >
+                <CarouselContent className="-ml-2">
+                  {upcomingEvents.map((event) => (
                     <CarouselItem
                       key={event.id}
-                      className='pl-2 basis-full sm:basis-1/2 md:basis-1/3 lg:basis-1/4 xl:basis-1/5'>
+                      className="pl-2 basis-full sm:basis-1/2 md:basis-1/3 lg:basis-1/4 xl:basis-1/5"
+                    >
                       <Card
                         className={cn(
                           'relative overflow-hidden transition-colors hover:bg-muted/50',
                           'h-[140px]',
                           getEventTypeColor(event.eventTypeCode)
-                        )}>
-                        <CardContent className='p-3'>
-                          <div className='space-y-2'>
+                        )}
+                      >
+                        <CardContent className="p-3">
+                          <div className="space-y-2">
                             <div>
                               <div
-                                className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold ${getEventTypeColor(event.eventTypeCode)}`}>
+                                className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold ${getEventTypeColor(event.eventTypeCode)}`}
+                              >
                                 {event.eventTypeDescription
                                   .charAt(0)
                                   .toUpperCase() +
                                   event.eventTypeDescription.slice(1)}
                               </div>
-                              <h3 className='mt-1 font-medium leading-tight line-clamp-1'>
+                              <h3 className="mt-1 font-medium leading-tight line-clamp-1">
                                 {event.title}
                               </h3>
                             </div>
 
-                            <div className='space-y-1 text-xs'>
-                              <div className='flex items-center text-muted-foreground'>
-                                <LuCalendar className='mr-1.5 h-3.5 w-3.5 shrink-0' />
-                                <span className='line-clamp-1'>
+                            <div className="space-y-1 text-xs">
+                              <div className="flex items-center text-muted-foreground">
+                                <LuCalendar className="mr-1.5 h-3.5 w-3.5 shrink-0" />
+                                <span className="line-clamp-1">
                                   {format(
                                     new Date(event.eventDate),
                                     "EEEE d 'de' MMMM",
@@ -122,15 +127,15 @@ export function UpcomingEventsAlert() {
                                   )}
                                 </span>
                               </div>
-                              <div className='flex items-center text-muted-foreground'>
-                                <LuClock className='mr-1.5 h-3.5 w-3.5 shrink-0' />
+                              <div className="flex items-center text-muted-foreground">
+                                <LuClock className="mr-1.5 h-3.5 w-3.5 shrink-0" />
                                 <span>
                                   {event.startTime} - {event.endTime}
                                 </span>
                               </div>
-                              <div className='flex items-center font-medium'>
-                                <LuMapPin className='mr-1.5 h-3.5 w-3.5 shrink-0' />
-                                <span className='line-clamp-1'>
+                              <div className="flex items-center font-medium">
+                                <LuMapPin className="mr-1.5 h-3.5 w-3.5 shrink-0" />
+                                <span className="line-clamp-1">
                                   {event.speaker}
                                 </span>
                               </div>
@@ -141,13 +146,13 @@ export function UpcomingEventsAlert() {
                     </CarouselItem>
                   ))}
                 </CarouselContent>
-                <CarouselPrevious className='hidden sm:flex -left-3 h-7 w-7' />
-                <CarouselNext className='hidden sm:flex -right-3 h-7 w-7' />
+                <CarouselPrevious className="hidden sm:flex -left-3 h-7 w-7" />
+                <CarouselNext className="hidden sm:flex -right-3 h-7 w-7" />
               </Carousel>
             </div>
           </CollapsibleContent>
         </Collapsible>
       </div>
     </div>
-  )
+  );
 }

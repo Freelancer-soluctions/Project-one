@@ -1,29 +1,33 @@
-import { useState, useEffect } from 'react'
-import { NewsFiltersForm, NewsDialog, NewsDatatable } from '../components/index'
-import { Spinner } from '@/components/loader/Spinner'
-import { BackDashBoard } from '@/components/backDash/BackDashBoard'
-import AlertDialogComponent from '@/components/alertDialog/AlertDialog'
+import { useState, useEffect } from 'react';
+import {
+  NewsFiltersForm,
+  NewsDialog,
+  NewsDatatable,
+} from '../components/index';
+import { Spinner } from '@/components/loader/Spinner';
+import { BackDashBoard } from '@/components/backDash/BackDashBoard';
+import AlertDialogComponent from '@/components/alertDialog/AlertDialog';
 
 import {
   useLazyGetAllNewsQuery,
   useGetAllNewsStatusQuery,
   useUpdateNewByIdMutation,
   useCreateNewMutation,
-  useDeleteNewByIdMutation
-} from '../api/newsAPI'
-import { useTranslation } from 'react-i18next'
+  useDeleteNewByIdMutation,
+} from '../api/newsAPI';
+import { useTranslation } from 'react-i18next';
 const News = () => {
-  const [selectedRow, setSelectedRow] = useState({}) //data from datatable
-  const [openDialog, setOpenDialog] = useState(false) //dialog open/close
-  const [actionDialog, setActionDialog] = useState('') //actionDialog edit / add
-  const [alertProps, setAlertProps] = useState({})
-  const [openAlertDialog, setOpenAlertDialog] = useState(false) //alert dialog open/close
-  const { t } = useTranslation() // Accede a las traducciones
+  const [selectedRow, setSelectedRow] = useState({}); //data from datatable
+  const [openDialog, setOpenDialog] = useState(false); //dialog open/close
+  const [actionDialog, setActionDialog] = useState(''); //actionDialog edit / add
+  const [alertProps, setAlertProps] = useState({});
+  const [openAlertDialog, setOpenAlertDialog] = useState(false); //alert dialog open/close
+  const { t } = useTranslation(); // Accede a las traducciones
   const [pagination, setPagination] = useState({
     pageIndex: 0,
-    pageSize: 20
-  })
-  const [filters, setFilters] = useState({})
+    pageSize: 20,
+  });
+  const [filters, setFilters] = useState({});
 
   // filter form
   const [
@@ -34,10 +38,10 @@ const News = () => {
       isLoading,
       isFetching,
       isSuccess,
-      error
+      error,
     },
-    lastPromiseInfo
-  ] = useLazyGetAllNewsQuery()
+    lastPromiseInfo,
+  ] = useLazyGetAllNewsQuery();
 
   const {
     data: datastatus,
@@ -45,27 +49,31 @@ const News = () => {
     isLoading: isLoadingStatus,
     isFetching: isFetchingStatus,
     isSuccess: isSuccessStatus,
-    error: errorStatus
-  } = useGetAllNewsStatusQuery()
+    error: errorStatus,
+  } = useGetAllNewsStatusQuery();
 
   const [
     updateNewById,
-    { isLoading: isLoadingPut, isError: isErrorPut, isSuccess: isSuccessPut }
-  ] = useUpdateNewByIdMutation()
+    { isLoading: isLoadingPut, isError: isErrorPut, isSuccess: isSuccessPut },
+  ] = useUpdateNewByIdMutation();
 
   const [
     createNew,
-    { isLoading: isLoadingPost, isError: isErrorPost, isSuccess: isSuccessPost }
-  ] = useCreateNewMutation()
+    {
+      isLoading: isLoadingPost,
+      isError: isErrorPost,
+      isSuccess: isSuccessPost,
+    },
+  ] = useCreateNewMutation();
 
   const [
     deleteNewById,
     {
       isLoading: isLoadingDelete,
       isError: isErrorDelete,
-      isSuccess: isSuccessDelete
-    }
-  ] = useDeleteNewByIdMutation()
+      isSuccess: isSuccessDelete,
+    },
+  ] = useDeleteNewByIdMutation();
 
   /**
    * Este efecto es la única fuente de verdad para disparar
@@ -84,9 +92,9 @@ const News = () => {
     trigger({
       page: pagination.pageIndex + 1,
       limit: pagination.pageSize,
-      ...filters
-    })
-  }, [pagination.pageIndex, pagination.pageSize, filters])
+      ...filters,
+    });
+  }, [pagination.pageIndex, pagination.pageSize, filters]);
 
   /**
    * Al aplicar nuevos filtros:
@@ -97,14 +105,14 @@ const News = () => {
    * El cambio de estado dispara el useEffect, manteniendo
    * un flujo reactivo y predecible.
    */
-  const handleSubmitFilters = newFilters => {
-    setPagination(prev => ({
+  const handleSubmitFilters = (newFilters) => {
+    setPagination((prev) => ({
       ...prev,
-      pageIndex: 0
-    }))
+      pageIndex: 0,
+    }));
 
-    setFilters(newFilters)
-  }
+    setFilters(newFilters);
+  };
 
   const handleSubmit = async (values, newId) => {
     try {
@@ -115,15 +123,15 @@ const News = () => {
               description: values.description,
               statusId: values.status.id,
               statusCode: values.status.code,
-              document: values.document
-            }
+              document: values.document,
+            },
           }).unwrap()
         : await createNew({
             document: values.document,
             statusId: values.status.id,
             statusCode: values.status.code,
-            description: values.description
-          }).unwrap()
+            description: values.description,
+          }).unwrap();
 
       setAlertProps({
         alertTitle: t(newId ? 'update_record' : 'add_record'),
@@ -131,17 +139,17 @@ const News = () => {
         cancel: false,
         success: true,
         onSuccess: () => {
-          setOpenDialog(false)
+          setOpenDialog(false);
         },
-        variantSuccess: 'info'
-      })
-      setOpenAlertDialog(true)
+        variantSuccess: 'info',
+      });
+      setOpenAlertDialog(true);
     } catch (err) {
-      console.error('Error:', err)
+      console.error('Error:', err);
     }
-  }
+  };
 
-  const handleDelete = async id => {
+  const handleDelete = async (id) => {
     try {
       setAlertProps({
         alertTitle: t('delete_record'),
@@ -154,7 +162,7 @@ const News = () => {
         onSuccess: () => {},
         onDelete: async () => {
           try {
-            await deleteNewById(id).unwrap()
+            await deleteNewById(id).unwrap();
 
             setAlertProps({
               alertTitle: '',
@@ -162,26 +170,26 @@ const News = () => {
               cancel: false,
               success: true,
               onSuccess: () => {
-                setOpenDialog(false)
+                setOpenDialog(false);
               },
-              variantSuccess: 'info'
-            })
-            setOpenAlertDialog(true) // Open alert dialog
+              variantSuccess: 'info',
+            });
+            setOpenAlertDialog(true); // Open alert dialog
           } catch (err) {
-            console.error('Error deleting:', err)
+            console.error('Error deleting:', err);
           }
-        }
-      })
-      setOpenAlertDialog(true)
+        },
+      });
+      setOpenAlertDialog(true);
     } catch (err) {
-      console.error('Error deleting:', err)
+      console.error('Error deleting:', err);
     }
-  }
+  };
 
   return (
     <>
       <BackDashBoard link={'/home'} moduleName={t('news')} />
-      <div className='relative'>
+      <div className="relative">
         {/* Show spinner when loading or fetching */}
         {(isLoading ||
           isLoadingStatus ||
@@ -191,9 +199,9 @@ const News = () => {
           isFetching ||
           isFetchingStatus) && <Spinner />}
 
-        <div className='grid grid-cols-2 grid-rows-4 gap-4 md:grid-cols-5'>
+        <div className="grid grid-cols-2 grid-rows-4 gap-4 md:grid-cols-5">
           {/* filters */}
-          <div className='col-span-2 row-span-1 md:col-span-5'>
+          <div className="col-span-2 row-span-1 md:col-span-5">
             <NewsFiltersForm
               onSubmit={handleSubmitFilters}
               setActionDialog={setActionDialog}
@@ -202,7 +210,7 @@ const News = () => {
             />
           </div>
           {/* Datatable */}
-          <div className='flex flex-wrap w-full col-span-2 row-span-3 row-start-2 md:col-span-5'>
+          <div className="flex flex-wrap w-full col-span-2 row-span-3 row-start-2 md:col-span-5">
             <NewsDatatable
               dataNews={dataNews}
               setSelectedRow={setSelectedRow}
@@ -232,6 +240,6 @@ const News = () => {
         </div>
       </div>
     </>
-  )
-}
-export default News
+  );
+};
+export default News;

@@ -1,18 +1,18 @@
-import React from 'react'
-import { Input } from '@/components/ui/input'
+import React from 'react';
+import { Input } from '@/components/ui/input';
 
 export default {
   title: 'UI/Input',
   component: Input,
   parameters: {
-    layout: 'centered'
-  }
-}
+    layout: 'centered',
+  },
+};
 
-const Template = args => <Input {...args} />
+const Template = (args) => <Input {...args} />;
 
-export const Default = Template.bind({})
+export const Default = Template.bind({});
 Default.args = {
   type: 'text',
-  placeholder: 'Escribe algo...'
-}
+  placeholder: 'Escribe algo...',
+};

@@ -1,2 +1,2 @@
-export * from './ProtectedFormRoute'
-export * from './ProtectedRoutes'
+export * from './ProtectedFormRoute';
+export * from './ProtectedRoutes';

@@ -1,74 +1,78 @@
 import {
   InventoryMovementFiltersForm,
   InventoryMovementDialog,
-  InventoryMovementDatatable
-} from '../components'
-import { BackDashBoard } from '@/components/backDash/BackDashBoard'
-import { useTranslation } from 'react-i18next'
-import { useState, useEffect } from 'react'
+  InventoryMovementDatatable,
+} from '../components';
+import { BackDashBoard } from '@/components/backDash/BackDashBoard';
+import { useTranslation } from 'react-i18next';
+import { useState, useEffect } from 'react';
 import {
   useLazyGetAllInventoryMovementsQuery,
   useUpdateInventoryMovementByIdMutation,
   useCreateInventoryMovementMutation,
-  useDeleteInventoryMovementByIdMutation
-} from '../api/inventoryMovementAPI'
-import { useGetAllProductsQuery } from '@/modules/products/api/productsAPI'
-import { useGetAllWarehousesQuery } from '@/modules/warehouse/api/warehouseAPI'
-import AlertDialogComponent from '@/components/alertDialog/AlertDialog'
-import { Spinner } from '@/components/loader/Spinner'
+  useDeleteInventoryMovementByIdMutation,
+} from '../api/inventoryMovementAPI';
+import { useGetAllProductsQuery } from '@/modules/products/api/productsAPI';
+import { useGetAllWarehousesQuery } from '@/modules/warehouse/api/warehouseAPI';
+import AlertDialogComponent from '@/components/alertDialog/AlertDialog';
+import { Spinner } from '@/components/loader/Spinner';
 
 const InventoryMovement = () => {
-  const { t } = useTranslation()
-  const [selectedRow, setSelectedRow] = useState({})
-  const [openDialog, setOpenDialog] = useState(false)
-  const [openAlertDialog, setOpenAlertDialog] = useState(false)
-  const [alertProps, setAlertProps] = useState({})
-  const [actionDialog, setActionDialog] = useState('')
+  const { t } = useTranslation();
+  const [selectedRow, setSelectedRow] = useState({});
+  const [openDialog, setOpenDialog] = useState(false);
+  const [openAlertDialog, setOpenAlertDialog] = useState(false);
+  const [alertProps, setAlertProps] = useState({});
+  const [actionDialog, setActionDialog] = useState('');
   const [pagination, setPagination] = useState({
     pageIndex: 0,
-    pageSize: 20
-  })
-  const [filters, setFilters] = useState({})
+    pageSize: 20,
+  });
+  const [filters, setFilters] = useState({});
 
   const [
     getAllInventoryMovements,
     {
       data: dataInventoryMovements = { data: [] },
       isLoading: isLoadingInventoryMovements,
-      isFetching: isFetchingInventoryMovements
-    }
-  ] = useLazyGetAllInventoryMovementsQuery()
+      isFetching: isFetchingInventoryMovements,
+    },
+  ] = useLazyGetAllInventoryMovementsQuery();
 
   const {
     data: dataProducts = { data: [] },
     isLoading: isLoadingProducts,
-    isFetching: isFetchingProducts
-  } = useGetAllProductsQuery()
+    isFetching: isFetchingProducts,
+  } = useGetAllProductsQuery();
 
   const {
     data: dataWarehouses = { data: [] },
     isLoading: isLoadingWarehouses,
-    isFetching: isFetchingWarehouses
-  } = useGetAllWarehousesQuery()
+    isFetching: isFetchingWarehouses,
+  } = useGetAllWarehousesQuery();
 
   const [
     updateInventoryMovementById,
-    { isLoading: isLoadingPut, isError: isErrorPut, isSuccess: isSuccessPut }
-  ] = useUpdateInventoryMovementByIdMutation()
+    { isLoading: isLoadingPut, isError: isErrorPut, isSuccess: isSuccessPut },
+  ] = useUpdateInventoryMovementByIdMutation();
 
   const [
     createInventoryMovement,
-    { isLoading: isLoadingPost, isError: isErrorPost, isSuccess: isSuccessPost }
-  ] = useCreateInventoryMovementMutation()
+    {
+      isLoading: isLoadingPost,
+      isError: isErrorPost,
+      isSuccess: isSuccessPost,
+    },
+  ] = useCreateInventoryMovementMutation();
 
   const [
     deleteInventoryMovementById,
     {
       isLoading: isLoadingDelete,
       isError: isErrorDelete,
-      isSuccess: isSuccessDelete
-    }
-  ] = useDeleteInventoryMovementByIdMutation()
+      isSuccess: isSuccessDelete,
+    },
+  ] = useDeleteInventoryMovementByIdMutation();
 
   /**
    * Este efecto es la única fuente de verdad para disparar
@@ -87,9 +91,9 @@ const InventoryMovement = () => {
     getAllInventoryMovements({
       page: pagination.pageIndex + 1,
       limit: pagination.pageSize,
-      ...filters
-    })
-  }, [pagination.pageIndex, pagination.pageSize, filters])
+      ...filters,
+    });
+  }, [pagination.pageIndex, pagination.pageSize, filters]);
 
   /**
    * Al aplicar nuevos filtros:
@@ -100,23 +104,23 @@ const InventoryMovement = () => {
    * El cambio de estado dispara el useEffect, manteniendo
    * un flujo reactivo y predecible.
    */
-  const handleSubmitFilters = newFilters => {
-    setPagination(prev => ({
+  const handleSubmitFilters = (newFilters) => {
+    setPagination((prev) => ({
       ...prev,
-      pageIndex: 0
-    }))
+      pageIndex: 0,
+    }));
 
-    setFilters(newFilters)
-  }
+    setFilters(newFilters);
+  };
 
   const handleSubmit = async (values, inventoryMovementId) => {
     try {
       const result = inventoryMovementId
         ? await updateInventoryMovementById({
             id: inventoryMovementId,
-            data: values
+            data: values,
           }).unwrap()
-        : await createInventoryMovement(values).unwrap()
+        : await createInventoryMovement(values).unwrap();
 
       setAlertProps({
         alertTitle: t(inventoryMovementId ? 'update_record' : 'add_record'),
@@ -126,33 +130,33 @@ const InventoryMovement = () => {
         cancel: false,
         success: true,
         onSuccess: () => {
-          setOpenDialog(false)
+          setOpenDialog(false);
         },
-        variantSuccess: 'info'
-      })
-      setOpenAlertDialog(true)
+        variantSuccess: 'info',
+      });
+      setOpenAlertDialog(true);
     } catch (err) {
-      console.error('Error:', err)
+      console.error('Error:', err);
     }
-  }
+  };
 
   const handleAddDialog = () => {
-    setActionDialog(t('add_inventory_movement'))
-    setOpenDialog(true)
-  }
+    setActionDialog(t('add_inventory_movement'));
+    setOpenDialog(true);
+  };
 
-  const handleEditDialog = row => {
-    setActionDialog(t('edit_inventory_movement'))
-    setOpenDialog(true)
-    setSelectedRow(row)
-  }
+  const handleEditDialog = (row) => {
+    setActionDialog(t('edit_inventory_movement'));
+    setOpenDialog(true);
+    setSelectedRow(row);
+  };
 
   const handleCloseDialog = () => {
-    setSelectedRow({})
-    setOpenDialog(false)
-  }
+    setSelectedRow({});
+    setOpenDialog(false);
+  };
 
-  const handleDelete = async id => {
+  const handleDelete = async (id) => {
     try {
       setAlertProps({
         alertTitle: t('delete_record'),
@@ -165,7 +169,7 @@ const InventoryMovement = () => {
         onSuccess: () => {},
         onDelete: async () => {
           try {
-            await deleteInventoryMovementById(id).unwrap()
+            await deleteInventoryMovementById(id).unwrap();
 
             setAlertProps({
               alertTitle: '',
@@ -173,26 +177,26 @@ const InventoryMovement = () => {
               cancel: false,
               success: true,
               onSuccess: () => {
-                setOpenDialog(false)
+                setOpenDialog(false);
               },
-              variantSuccess: 'info'
-            })
-            setOpenAlertDialog(true)
+              variantSuccess: 'info',
+            });
+            setOpenAlertDialog(true);
           } catch (err) {
-            console.error('Error deleting:', err)
+            console.error('Error deleting:', err);
           }
-        }
-      })
-      setOpenAlertDialog(true)
+        },
+      });
+      setOpenAlertDialog(true);
     } catch (err) {
-      console.error('Error deleting:', err)
+      console.error('Error deleting:', err);
     }
-  }
+  };
 
   return (
     <>
       <BackDashBoard link={'/home'} moduleName={t('inventory_movements')} />
-      <div className='relative'>
+      <div className="relative">
         {/* Show spinner when loading or fetching */}
         {(isLoadingInventoryMovements ||
           isLoadingPut ||
@@ -204,9 +208,9 @@ const InventoryMovement = () => {
           isFetchingWarehouses ||
           isFetchingProducts) && <Spinner />}
 
-        <div className='grid grid-cols-2 grid-rows-4 gap-4 md:grid-cols-5'>
+        <div className="grid grid-cols-2 grid-rows-4 gap-4 md:grid-cols-5">
           {/* filters */}
-          <div className='col-span-2 row-span-1 md:col-span-5'>
+          <div className="col-span-2 row-span-1 md:col-span-5">
             <InventoryMovementFiltersForm
               onSubmit={handleSubmitFilters}
               onAddDialog={handleAddDialog}
@@ -215,7 +219,7 @@ const InventoryMovement = () => {
             />
           </div>
           {/* Datatable */}
-          <div className='flex flex-wrap w-full col-span-2 row-span-3 row-start-2 md:col-span-5'>
+          <div className="flex flex-wrap w-full col-span-2 row-span-3 row-start-2 md:col-span-5">
             <InventoryMovementDatatable
               dataInventoryMovements={dataInventoryMovements}
               onEditDialog={handleEditDialog}
@@ -243,7 +247,7 @@ const InventoryMovement = () => {
         </div>
       </div>
     </>
-  )
-}
+  );
+};
 
-export default InventoryMovement
+export default InventoryMovement;

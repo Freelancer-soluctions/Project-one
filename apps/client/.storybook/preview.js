@@ -1,16 +1,16 @@
-import '../src/index.css'
+import '../src/index.css';
 /** @type { import('@storybook/react').Preview } */
 const preview = {
   parameters: {
     controls: {
       matchers: {
         color: /(background|color)$/i,
-        date: /Date$/i
-      }
-    }
+        date: /Date$/i,
+      },
+    },
   },
 
-  tags: ['autodocs']
-}
+  tags: ['autodocs'],
+};
 
-export default preview
+export default preview;

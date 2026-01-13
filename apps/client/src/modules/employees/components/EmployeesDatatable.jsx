@@ -1,117 +1,117 @@
-import { useTranslation } from 'react-i18next'
-import { DataTable } from '@/components/dataTable'
-import { format } from 'date-fns'
-import PropTypes from 'prop-types'
+import { useTranslation } from 'react-i18next';
+import { DataTable } from '@/components/dataTable';
+import { format } from 'date-fns';
+import PropTypes from 'prop-types';
 
 export const EmployeesDatatable = ({
   dataEmployees,
   onEditDialog,
   pagination,
-  onPaginationChange
+  onPaginationChange,
 }) => {
-  const { t } = useTranslation()
-  const { dataList, total } = dataEmployees.data
+  const { t } = useTranslation();
+  const { dataList, total } = dataEmployees.data;
 
   const columnDefEmployees = [
     {
       accessorKey: 'name',
       header: t('name'),
-      cell: info => info.getValue()?.toUpperCase()
+      cell: (info) => info.getValue()?.toUpperCase(),
     },
     {
       accessorKey: 'lastName',
       header: t('last_name'),
-      cell: info => info.getValue()?.toUpperCase()
+      cell: (info) => info.getValue()?.toUpperCase(),
     },
     {
       accessorKey: 'dni',
       header: t('dni'),
-      cell: info => info.getValue()?.toUpperCase()
+      cell: (info) => info.getValue()?.toUpperCase(),
     },
     {
       accessorKey: 'email',
       header: t('email'),
-      cell: info => info.getValue()?.toUpperCase()
+      cell: (info) => info.getValue()?.toUpperCase(),
     },
     {
       accessorKey: 'position',
       header: t('position'),
-      cell: info => info.getValue()?.toUpperCase()
+      cell: (info) => info.getValue()?.toUpperCase(),
     },
     {
       accessorKey: 'department',
       header: t('department'),
-      cell: info => info.getValue()?.toUpperCase()
+      cell: (info) => info.getValue()?.toUpperCase(),
     },
     {
       accessorKey: 'salary',
       header: t('salary'),
-      cell: info => {
-        const value = info.getValue()
+      cell: (info) => {
+        const value = info.getValue();
         return value
           ? new Intl.NumberFormat('es-CO', {
               style: 'currency',
-              currency: 'COP'
+              currency: 'COP',
             }).format(value)
-          : null
-      }
+          : null;
+      },
     },
     {
       accessorKey: 'userEmployeeCreatedName',
       header: t('created_by'),
-      cell: info => {
+      cell: (info) => {
         const userEmployeeCreatedName =
-          info.row.original.userEmployeeCreatedName // Accede al dato original de la fila
+          info.row.original.userEmployeeCreatedName; // Accede al dato original de la fila
         return userEmployeeCreatedName
           ? userEmployeeCreatedName.toUpperCase()
-          : null // Retorna null para mantener la celda vacía
-      }
+          : null; // Retorna null para mantener la celda vacía
+      },
     },
     {
       accessorKey: 'createdOn',
       header: t('created_on'),
-      cell: info => format(new Date(info.getValue()), 'PPP')
+      cell: (info) => format(new Date(info.getValue()), 'PPP'),
     },
     {
       accessorKey: 'userEmployeeUpdatedName',
       header: t('created_by'),
-      cell: info => {
+      cell: (info) => {
         const userEmployeeUpdatedName =
-          info.row.original.userEmployeeUpdatedName // Accede al dato original de la fila
+          info.row.original.userEmployeeUpdatedName; // Accede al dato original de la fila
         return userEmployeeUpdatedName
           ? userEmployeeUpdatedName.toUpperCase()
-          : null // Retorna null para mantener la celda vacía
-      }
+          : null; // Retorna null para mantener la celda vacía
+      },
     },
     {
       accessorKey: 'updatedOn',
       header: t('updated_on'),
-      cell: info => {
-        const date = info.getValue()
-        return date ? format(new Date(date), 'PPP') : null
-      }
-    }
-  ]
+      cell: (info) => {
+        const date = info.getValue();
+        return date ? format(new Date(date), 'PPP') : null;
+      },
+    },
+  ];
 
-  const handleEditDialog = row => {
-    onEditDialog(row)
-  }
+  const handleEditDialog = (row) => {
+    onEditDialog(row);
+  };
 
   return (
     <DataTable
       columns={columnDefEmployees}
       data={dataList}
       totalRows={total}
-      handleRow={row => handleEditDialog(row)}
+      handleRow={(row) => handleEditDialog(row)}
       pagination={pagination}
       onPaginationChange={onPaginationChange}
     />
-  )
-}
+  );
+};
 
 EmployeesDatatable.propTypes = {
   dataEmployees: PropTypes.object.isRequired,
   onEditDialog: PropTypes.func.isRequired,
   pagination: PropTypes.object.isRequired,
-  onPaginationChange: PropTypes.func.isRequired
-}
+  onPaginationChange: PropTypes.func.isRequired,
+};

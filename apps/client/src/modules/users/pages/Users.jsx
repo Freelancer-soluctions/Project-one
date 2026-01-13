@@ -1,44 +1,44 @@
-import { UsersFiltersForm, UsersDatatable } from '../components'
-import { BackDashBoard } from '@/components/backDash/BackDashBoard'
-import { useTranslation } from 'react-i18next'
+import { UsersFiltersForm, UsersDatatable } from '../components';
+import { BackDashBoard } from '@/components/backDash/BackDashBoard';
+import { useTranslation } from 'react-i18next';
 import {
   useLazyGetAllUsersQuery,
   useGetAllUsersStatusQuery,
-  useGetAllUsersRolQuery
-} from '../api/usersApi'
-import { Spinner } from '@/components/loader/Spinner'
-import { useNavigate } from 'react-router'
-import { useState, useEffect } from 'react'
+  useGetAllUsersRolQuery,
+} from '../api/usersApi';
+import { Spinner } from '@/components/loader/Spinner';
+import { useNavigate } from 'react-router';
+import { useState, useEffect } from 'react';
 
 const Users = () => {
-  const { t } = useTranslation()
-  const navigate = useNavigate()
+  const { t } = useTranslation();
+  const navigate = useNavigate();
   const [pagination, setPagination] = useState({
     pageIndex: 0,
-    pageSize: 20
-  })
-  const [filters, setFilters] = useState({})
+    pageSize: 20,
+  });
+  const [filters, setFilters] = useState({});
 
   const [
     getAllUsers,
     {
       data: dataUsers = { data: [] },
       isLoading: isLoadingUsers,
-      isFetching: isFetchingUsers
-    }
-  ] = useLazyGetAllUsersQuery()
+      isFetching: isFetchingUsers,
+    },
+  ] = useLazyGetAllUsersQuery();
 
   const {
     data: dataUsersStatus = { data: [] },
     isLoading: isLoadingStatus,
-    isFetching: isFetchingStatus
-  } = useGetAllUsersStatusQuery()
+    isFetching: isFetchingStatus,
+  } = useGetAllUsersStatusQuery();
 
   const {
     data: dataUsersRol = { data: [] },
     isLoading: isLoadingRol,
-    isFetching: isFetchingRol
-  } = useGetAllUsersRolQuery()
+    isFetching: isFetchingRol,
+  } = useGetAllUsersRolQuery();
 
   /**
    * Este efecto es la única fuente de verdad para disparar
@@ -57,9 +57,9 @@ const Users = () => {
     getAllUsers({
       page: pagination.pageIndex + 1,
       limit: pagination.pageSize,
-      ...filters
-    })
-  }, [pagination.pageIndex, pagination.pageSize, filters])
+      ...filters,
+    });
+  }, [pagination.pageIndex, pagination.pageSize, filters]);
 
   /**
    * Al aplicar nuevos filtros:
@@ -70,23 +70,23 @@ const Users = () => {
    * El cambio de estado dispara el useEffect, manteniendo
    * un flujo reactivo y predecible.
    */
-  const handleSubmitFilters = newFilters => {
-    setPagination(prev => ({
+  const handleSubmitFilters = (newFilters) => {
+    setPagination((prev) => ({
       ...prev,
-      pageIndex: 0
-    }))
+      pageIndex: 0,
+    }));
 
-    setFilters(newFilters)
-  }
+    setFilters(newFilters);
+  };
 
-  const handleUsersForms = row => {
-    navigate('/home/userForm', { state: { row } })
-  }
+  const handleUsersForms = (row) => {
+    navigate('/home/userForm', { state: { row } });
+  };
 
   return (
     <>
       <BackDashBoard link={'/home'} moduleName={t('users')} />
-      <div className='relative'>
+      <div className="relative">
         {/* Show spinner when loading or fetching */}
         {(isLoadingUsers ||
           isFetchingUsers ||
@@ -95,9 +95,9 @@ const Users = () => {
           isLoadingRol ||
           isFetchingRol) && <Spinner />}
 
-        <div className='grid grid-cols-2 grid-rows-4 gap-4 md:grid-cols-5'>
+        <div className="grid grid-cols-2 grid-rows-4 gap-4 md:grid-cols-5">
           {/* filters */}
-          <div className='col-span-2 row-span-1 md:col-span-5'>
+          <div className="col-span-2 row-span-1 md:col-span-5">
             <UsersFiltersForm
               onSubmit={handleSubmitFilters}
               dataStatus={dataUsersStatus}
@@ -105,7 +105,7 @@ const Users = () => {
             />
           </div>
           {/* Datatable */}
-          <div className='flex flex-wrap w-full col-span-2 row-span-3 row-start-2 md:col-span-5'>
+          <div className="flex flex-wrap w-full col-span-2 row-span-3 row-start-2 md:col-span-5">
             <UsersDatatable
               dataUsers={dataUsers}
               onOpenUsersForms={handleUsersForms}
@@ -116,7 +116,7 @@ const Users = () => {
         </div>
       </div>
     </>
-  )
-}
+  );
+};
 
-export default Users
+export default Users;

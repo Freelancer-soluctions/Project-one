@@ -1,15 +1,15 @@
-import React from 'react'
-import { Switch } from '@/components/ui/switch'
+import React from 'react';
+import { Switch } from '@/components/ui/switch';
 
 export default {
   title: 'UI/Switch',
   component: Switch,
   parameters: {
-    layout: 'centered'
-  }
-}
+    layout: 'centered',
+  },
+};
 
-const Template = args => <Switch {...args} />
+const Template = (args) => <Switch {...args} />;
 
-export const Default = Template.bind({})
-Default.args = {}
+export const Default = Template.bind({});
+Default.args = {};

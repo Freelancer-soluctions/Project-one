@@ -1,43 +1,43 @@
-import { useForm } from 'react-hook-form'
-import { useTranslation } from 'react-i18next'
+import { useForm } from 'react-hook-form';
+import { useTranslation } from 'react-i18next';
 import {
   Form,
   FormControl,
   FormField,
   FormItem,
   FormLabel,
-  FormMessage
-} from '@/components/ui/form'
+  FormMessage,
+} from '@/components/ui/form';
 import {
   Popover,
   PopoverContent,
-  PopoverTrigger
-} from '@/components/ui/popover'
+  PopoverTrigger,
+} from '@/components/ui/popover';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue
-} from '@/components/ui/select'
-import { Input } from '@/components/ui/input'
-import { Button } from '@/components/ui/button'
-import { LuPlus, LuCalendarDays, LuSearch, LuEraser } from 'react-icons/lu'
+  SelectValue,
+} from '@/components/ui/select';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { LuPlus, LuCalendarDays, LuSearch, LuEraser } from 'react-icons/lu';
 
-import { Calendar } from '@/components/ui/calendar'
-import { format, formatISO } from 'date-fns'
-import { cn } from '@/lib/utils'
-import PropTypes from 'prop-types'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { NewsFiltersSchema } from '../utils'
+import { Calendar } from '@/components/ui/calendar';
+import { format, formatISO } from 'date-fns';
+import { cn } from '@/lib/utils';
+import PropTypes from 'prop-types';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { NewsFiltersSchema } from '../utils';
 
 export const NewsFiltersForm = ({
   onSubmit,
   setActionDialog,
   setOpenDialog,
-  datastatus
+  datastatus,
 }) => {
-  const { t } = useTranslation() // Accede a las traducciones
+  const { t } = useTranslation(); // Accede a las traducciones
   // Configura el formulario
   const formFilter = useForm({
     resolver: zodResolver(NewsFiltersSchema),
@@ -45,60 +45,61 @@ export const NewsFiltersForm = ({
       description: '',
       fdate: '',
       tdate: '',
-      statusNews: ''
-    }
-  })
+      statusNews: '',
+    },
+  });
 
   //form event
   const onSubmitFilter = ({
     description,
     fdate,
     tdate,
-    statusNews: statusCode
+    statusNews: statusCode,
   }) => {
-    const fromDate = fdate && formatISO(new Date(fdate), 'yyyy-MM-dd')
-    const toDate = tdate && formatISO(new Date(tdate), 'yyyy-MM-dd')
+    const fromDate = fdate && formatISO(new Date(fdate), 'yyyy-MM-dd');
+    const toDate = tdate && formatISO(new Date(tdate), 'yyyy-MM-dd');
 
-    onSubmit({ description, fromDate, toDate, statusCode })
-  }
+    onSubmit({ description, fromDate, toDate, statusCode });
+  };
 
   const handleAddDialog = () => {
-    setActionDialog(t('add_new'))
-    setOpenDialog(true)
-  }
+    setActionDialog(t('add_new'));
+    setOpenDialog(true);
+  };
 
   const handleResetFilter = () => {
-    formFilter.reset()
-  }
+    formFilter.reset();
+  };
 
   return (
     <>
       <Form {...formFilter}>
         <form
-          method='post'
-          action=''
-          id='profile-info-form'
+          method="post"
+          action=""
+          id="profile-info-form"
           noValidate
           onSubmit={formFilter.handleSubmit(onSubmitFilter)}
-          className='flex flex-col flex-wrap gap-5'>
+          className="flex flex-col flex-wrap gap-5"
+        >
           {/* inputs */}
-          <div className='flex flex-wrap flex-1 gap-3'>
+          <div className="flex flex-wrap flex-1 gap-3">
             <FormField
               control={formFilter.control}
-              name='description'
+              name="description"
               render={({ field }) => {
                 return (
-                  <FormItem className='flex flex-col flex-auto'>
-                    <FormLabel htmlFor='description'>
+                  <FormItem className="flex flex-col flex-auto">
+                    <FormLabel htmlFor="description">
                       {t('description')}
                     </FormLabel>
                     <FormControl>
                       <Input
-                        id='description'
-                        name='description'
+                        id="description"
+                        name="description"
                         placeholder={t('description_placeholder')}
-                        type='text'
-                        autoComplete='false'
+                        type="text"
+                        autoComplete="false"
                         maxLength={50}
                         {...field}
                         value={field.value ?? ''}
@@ -106,41 +107,42 @@ export const NewsFiltersForm = ({
                     </FormControl>
                     <FormMessage />
                   </FormItem>
-                )
+                );
               }}
             />
 
             <FormField
               control={formFilter.control}
-              name='fdate'
+              name="fdate"
               render={({ field }) => (
-                <FormItem className='flex flex-col flex-auto'>
-                  <FormLabel htmlFor='fdate'>{t('from_date')}</FormLabel>
+                <FormItem className="flex flex-col flex-auto">
+                  <FormLabel htmlFor="fdate">{t('from_date')}</FormLabel>
                   <Popover>
                     <PopoverTrigger asChild>
                       <FormControl>
                         <Button
-                          id='fdate'
+                          id="fdate"
                           variant={'outline'}
                           className={cn(
                             'pl-3 text-left font-normal',
                             !field.value && 'text-muted-foreground'
-                          )}>
+                          )}
+                        >
                           {field.value ? (
                             format(field.value, 'PPP')
                           ) : (
                             <span>{t('pick_date')}</span>
                           )}
-                          <LuCalendarDays className='w-4 h-4 ml-auto opacity-50' />
+                          <LuCalendarDays className="w-4 h-4 ml-auto opacity-50" />
                         </Button>
                       </FormControl>
                     </PopoverTrigger>
-                    <PopoverContent className='w-auto p-0' align='start'>
+                    <PopoverContent className="w-auto p-0" align="start">
                       <Calendar
-                        mode='single'
+                        mode="single"
                         selected={field.value}
                         onSelect={field.onChange}
-                        disabled={date => date < new Date('1900-01-01')}
+                        disabled={(date) => date < new Date('1900-01-01')}
                         initialFocus
                       />
                     </PopoverContent>
@@ -152,35 +154,36 @@ export const NewsFiltersForm = ({
 
             <FormField
               control={formFilter.control}
-              name='tdate'
+              name="tdate"
               render={({ field }) => (
-                <FormItem className='flex flex-col flex-auto'>
-                  <FormLabel htmlFor='tdate'>{t('to_date')}</FormLabel>
+                <FormItem className="flex flex-col flex-auto">
+                  <FormLabel htmlFor="tdate">{t('to_date')}</FormLabel>
                   <Popover>
                     <PopoverTrigger asChild>
                       <FormControl>
                         <Button
-                          id='tdate'
+                          id="tdate"
                           variant={'outline'}
                           className={cn(
                             'pl-3 text-left font-normal',
                             !field.value && 'text-muted-foreground'
-                          )}>
+                          )}
+                        >
                           {field.value ? (
                             format(field.value, 'PPP')
                           ) : (
                             <span>{t('pick_date')}</span>
                           )}
-                          <LuCalendarDays className='w-4 h-4 ml-auto opacity-50' />
+                          <LuCalendarDays className="w-4 h-4 ml-auto opacity-50" />
                         </Button>
                       </FormControl>
                     </PopoverTrigger>
-                    <PopoverContent className='w-auto p-0' align='start'>
+                    <PopoverContent className="w-auto p-0" align="start">
                       <Calendar
-                        mode='single'
+                        mode="single"
                         selected={field.value}
                         onSelect={field.onChange}
-                        disabled={date => date < new Date('1900-01-01')}
+                        disabled={(date) => date < new Date('1900-01-01')}
                         initialFocus
                       />
                     </PopoverContent>
@@ -192,13 +195,13 @@ export const NewsFiltersForm = ({
 
             <FormField
               control={formFilter.control}
-              name='statusNews'
+              name="statusNews"
               render={({ field }) => {
                 return (
-                  <FormItem className='flex flex-col flex-auto'>
-                    <FormLabel htmlFor='status'>{t('status')}</FormLabel>
+                  <FormItem className="flex flex-col flex-auto">
+                    <FormLabel htmlFor="status">{t('status')}</FormLabel>
                     <Select onValueChange={field.onChange} value={field.value}>
-                      <FormControl id='status'>
+                      <FormControl id="status">
                         <SelectTrigger>
                           <SelectValue placeholder={t('select_status')} />
                         </SelectTrigger>
@@ -213,43 +216,46 @@ export const NewsFiltersForm = ({
                     </Select>
                     <FormMessage />
                   </FormItem>
-                )
+                );
               }}
             />
           </div>
           {/* buttons */}
-          <div className='flex flex-wrap items-center justify-between gap-3 mt-5 md:justify-normal'>
+          <div className="flex flex-wrap items-center justify-between gap-3 mt-5 md:justify-normal">
             <Button
-              type='submit'
-              className='flex-1 md:flex-initial md:w-24'
-              variant='info'>
+              type="submit"
+              className="flex-1 md:flex-initial md:w-24"
+              variant="info"
+            >
               {t('search')}
-              <LuSearch className='w-4 h-4 ml-auto opacity-50' />
+              <LuSearch className="w-4 h-4 ml-auto opacity-50" />
             </Button>
             <Button
-              type='button'
-              className='flex-1 md:flex-initial md:w-24'
-              variant='success'
-              onClick={() => handleAddDialog()}>
-              {t('add')} <LuPlus className='w-4 h-4 ml-auto opacity-50' />
+              type="button"
+              className="flex-1 md:flex-initial md:w-24"
+              variant="success"
+              onClick={() => handleAddDialog()}
+            >
+              {t('add')} <LuPlus className="w-4 h-4 ml-auto opacity-50" />
             </Button>
             <Button
-              type='button'
-              className='flex-1 md:flex-initial md:w-24'
-              variant='outline'
-              onClick={() => handleResetFilter()}>
-              {t('clear')} <LuEraser className='w-4 h-4 ml-auto opacity-50' />
+              type="button"
+              className="flex-1 md:flex-initial md:w-24"
+              variant="outline"
+              onClick={() => handleResetFilter()}
+            >
+              {t('clear')} <LuEraser className="w-4 h-4 ml-auto opacity-50" />
             </Button>
           </div>
         </form>
       </Form>
     </>
-  )
-}
+  );
+};
 
 NewsFiltersForm.propTypes = {
   trigger: PropTypes.func,
   setActionDialog: PropTypes.func,
   setOpenDialog: PropTypes.func,
-  datastatus: PropTypes.object
-}
+  datastatus: PropTypes.object,
+};

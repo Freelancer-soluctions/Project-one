@@ -1,14 +1,14 @@
-import { z } from 'zod'
+import { z } from 'zod';
 
 export const ProviderOrderSchema = z
   .object({
     supplierId: z.number({
-      required_error: 'Supplier ID is required.'
+      required_error: 'Supplier ID is required.',
     }),
-    notes: z.string().optional()
+    notes: z.string().optional(),
   })
-  .passthrough() // Permite otros campos
+  .passthrough(); // Permite otros campos
 
 export const ProviderOrdersFiltersSchema = z.object({
-  supplierId: z.number().optional()
-})
+  supplierId: z.number().optional(),
+});

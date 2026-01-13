@@ -1,5 +1,5 @@
-import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
-import { SignInApi, RefreshTokenApi } from '@/modules/auth/api/authAPI'
+import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import { SignInApi, RefreshTokenApi } from '@/modules/auth/api/authAPI';
 
 // export const { guardarMiNombre } = origenSlice.actions // Cuando se trabaja con slice se obtine actions que hace referencia a los reducers, pero estas son acciones
 // pluginJsxRuntime
@@ -21,13 +21,13 @@ export const signInFetch = createAsyncThunk(
   'auth/signIn',
   async (args, { rejectWithValue }) => {
     try {
-      const response = await SignInApi(args)
-      return response.data
+      const response = await SignInApi(args);
+      return response.data;
     } catch (error) {
-      return rejectWithValue(error.response.data)
+      return rejectWithValue(error.response.data);
     }
   }
-)
+);
 
 // export const newsFetch = createAsyncThunk('news', async (args, { rejectWithValue }) => {
 //   try {
@@ -42,13 +42,13 @@ export const refreshTokenFecth = createAsyncThunk(
   'auth/refresh-token',
   async (args, { rejectWithValue }) => {
     try {
-      const response = await RefreshTokenApi()
-      return response.data
+      const response = await RefreshTokenApi();
+      return response.data;
     } catch (error) {
-      return rejectWithValue(error.response.data)
+      return rejectWithValue(error.response.data);
     }
   }
-)
+);
 
 // Variation 2
 // export const signInFetch = createAsyncThunk('auth/signIn', async (_, { getState, rejectWithValue }) => {
@@ -73,43 +73,43 @@ const authSlice = createSlice({
     user: null,
     isError: false,
     isAuth: false,
-    errorMessage: ''
+    errorMessage: '',
   },
   reducers: {
     updateAuthData(state, action) {
-      state.user = action.payload
+      state.user = action.payload;
     },
 
-    logout: state => {
-      state.user = null
-      state.isAuth = false
-      state.isError = false
-      state.errorMessage = ''
-    }
+    logout: (state) => {
+      state.user = null;
+      state.isAuth = false;
+      state.isError = false;
+      state.errorMessage = '';
+    },
   },
-  extraReducers: builder => {
+  extraReducers: (builder) => {
     // sign up
     builder.addCase(signInFetch.pending, (state, action) => {
-      state.isLoading = true
-      state.isError = false
-      state.isAuth = false
-    })
+      state.isLoading = true;
+      state.isError = false;
+      state.isAuth = false;
+    });
     builder.addCase(signInFetch.fulfilled, (state, action) => {
-      state.isLoading = false
-      state.isError = false
-      state.isAuth = true
-      state.user = action.payload
-      debugger
-      sessionStorage.setItem('accessToken', state.user.data.accessToken)
-    })
+      state.isLoading = false;
+      state.isError = false;
+      state.isAuth = true;
+      state.user = action.payload;
+      debugger;
+      sessionStorage.setItem('accessToken', state.user.data.accessToken);
+    });
     builder.addCase(signInFetch.rejected, (state, action) => {
-      console.log('Error', action.error.message)
+      console.log('Error', action.error.message);
       // console.log('Error payload', action.payload.error)
-      state.isError = true
-      state.isAuth = false
-      state.isLoading = false
-      state.errorMessage = action.error.message
-    })
+      state.isError = true;
+      state.isAuth = false;
+      state.isLoading = false;
+      state.errorMessage = action.error.message;
+    });
     // // Redux persist
     // builder.addCase('auth/rehydrate', (state, action) => {
     //   const userData = action.payload;
@@ -121,27 +121,27 @@ const authSlice = createSlice({
 
     // refresh
     builder.addCase(refreshTokenFecth.pending, (state, action) => {
-      state.isLoading = true
-      state.isError = false
-    })
+      state.isLoading = true;
+      state.isError = false;
+    });
     builder.addCase(refreshTokenFecth.fulfilled, (state, action) => {
-      state.isLoading = false
-      state.isError = false
-      state.user.data.accessToken = action.payload.data.accessToken
-      sessionStorage.setItem('accessToken', state.user.data.accessToken)
-      console.log('new-accesst store', action.payload.data.accessToken)
-    })
+      state.isLoading = false;
+      state.isError = false;
+      state.user.data.accessToken = action.payload.data.accessToken;
+      sessionStorage.setItem('accessToken', state.user.data.accessToken);
+      console.log('new-accesst store', action.payload.data.accessToken);
+    });
     builder.addCase(refreshTokenFecth.rejected, (state, action) => {
-      console.log('Error', action.error.message)
-      console.log('Error payload', action.payload.error)
-      state.isError = true
-      state.isAuth = false
-      state.isLoading = false
-      state.errorMessage = action.error.message
-    })
-  }
-})
+      console.log('Error', action.error.message);
+      console.log('Error payload', action.payload.error);
+      state.isError = true;
+      state.isAuth = false;
+      state.isLoading = false;
+      state.errorMessage = action.error.message;
+    });
+  },
+});
 
-export const { updateAuthData, logout } = authSlice.actions
+export const { updateAuthData, logout } = authSlice.actions;
 
-export default authSlice.reducer
+export default authSlice.reducer;

@@ -1,52 +1,52 @@
 /* React-specific entry point that automatically generates
 hooks corresponding to the defined endpoints */
-import { createApi } from '@reduxjs/toolkit/query/react'
-import { axiosPrivateBaseQuery } from '@/config/axios'
+import { createApi } from '@reduxjs/toolkit/query/react';
+import { axiosPrivateBaseQuery } from '@/config/axios';
 
 // Define a service using a base URL and expected endpoints
 const permissionApi = createApi({
   reducerPath: 'permissionApi',
   baseQuery: axiosPrivateBaseQuery({
-    baseUrl: import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1'
+    baseUrl: import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1',
   }),
   tagTypes: ['Permission'],
   keepUnusedDataFor: 300, // 5 minutos
-  endpoints: builder => ({
+  endpoints: (builder) => ({
     getAllPermissions: builder.query({
-      query: params => ({
+      query: (params) => ({
         url: '/permission',
-        params
+        params,
       }),
-      providesTags: ['Permission']
+      providesTags: ['Permission'],
     }),
 
     deletePermissionById: builder.mutation({
-      query: id => ({
+      query: (id) => ({
         url: `/permission/${id}`,
-        method: 'DELETE'
+        method: 'DELETE',
       }),
-      invalidatesTags: ['Permission']
+      invalidatesTags: ['Permission'],
     }),
 
     createPermission: builder.mutation({
-      query: data => ({
+      query: (data) => ({
         url: '/permission',
         method: 'POST',
-        body: data
+        body: data,
       }),
-      invalidatesTags: ['Permission']
+      invalidatesTags: ['Permission'],
     }),
 
     updatePermissionById: builder.mutation({
       query: ({ id, data }) => ({
         url: `/permission/${id}`,
         method: 'PUT',
-        body: data
+        body: data,
       }),
-      invalidatesTags: ['Permission']
-    })
-  })
-})
+      invalidatesTags: ['Permission'],
+    }),
+  }),
+});
 
 // Export hooks for usage in functional components
 export const {
@@ -54,7 +54,7 @@ export const {
   useGetAllPermissionsQuery,
   useUpdatePermissionByIdMutation,
   useCreatePermissionMutation,
-  useDeletePermissionByIdMutation
-} = permissionApi
+  useDeletePermissionByIdMutation,
+} = permissionApi;
 
-export default permissionApi
+export default permissionApi;

@@ -1,80 +1,81 @@
-import { useForm } from 'react-hook-form'
-import { useTranslation } from 'react-i18next'
+import { useForm } from 'react-hook-form';
+import { useTranslation } from 'react-i18next';
 import {
   Form,
   FormControl,
   FormField,
   FormItem,
   FormLabel,
-  FormMessage
-} from '@/components/ui/form'
+  FormMessage,
+} from '@/components/ui/form';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue
-} from '@/components/ui/select' // Added for status filter
-import { Input } from '@/components/ui/input'
-import { Button } from '@/components/ui/button'
-import { LuPlus, LuSearch, LuEraser } from 'react-icons/lu'
-import PropTypes from 'prop-types'
-import { ExpensesFiltersSchema, expenseCategories } from '../utils' // Changed from ClientsFiltersSchema
-import { zodResolver } from '@hookform/resolvers/zod'
+  SelectValue,
+} from '@/components/ui/select'; // Added for status filter
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { LuPlus, LuSearch, LuEraser } from 'react-icons/lu';
+import PropTypes from 'prop-types';
+import { ExpensesFiltersSchema, expenseCategories } from '../utils'; // Changed from ClientsFiltersSchema
+import { zodResolver } from '@hookform/resolvers/zod';
 
 export const ExpensesFiltersForm = ({ onSubmit, onAddDialog }) => {
   // Renamed
-  const { t } = useTranslation()
+  const { t } = useTranslation();
   const form = useForm({
     resolver: zodResolver(ExpensesFiltersSchema), // Changed schema
     defaultValues: {
       // Added default values for new filter fields
       description: '',
-      category: ''
-    }
-  })
+      category: '',
+    },
+  });
 
-  const handleSubmit = data => {
-    onSubmit(data)
-  }
+  const handleSubmit = (data) => {
+    onSubmit(data);
+  };
 
   const handleAdd = () => {
-    onAddDialog()
-  }
+    onAddDialog();
+  };
 
   const handleResetFilter = () => {
     form.reset({
       // Reset to defined defaults
       description: '',
-      category: ''
-    })
-    onSubmit({}) // Submit empty object to clear filters in parent
-  }
+      category: '',
+    });
+    onSubmit({}); // Submit empty object to clear filters in parent
+  };
 
   return (
     <Form {...form}>
       <form
-        method='post'
-        action=''
-        id='expense-filters-form'
+        method="post"
+        action=""
+        id="expense-filters-form"
         noValidate
         onSubmit={form.handleSubmit(handleSubmit)}
-        className='flex flex-col flex-wrap gap-5'>
+        className="flex flex-col flex-wrap gap-5"
+      >
         {/* inputs */}
-        <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <FormField
             control={form.control}
-            name='description'
+            name="description"
             render={({ field }) => (
               <FormItem>
-                <FormLabel htmlFor='description'>{t('description')}</FormLabel>
+                <FormLabel htmlFor="description">{t('description')}</FormLabel>
                 <FormControl>
                   <Input
-                    id='description'
-                    name='description'
+                    id="description"
+                    name="description"
                     placeholder={t('description_placeholder')}
-                    type='text'
-                    autoComplete='off'
+                    type="text"
+                    autoComplete="off"
                     maxLength={100} // Example max length
                     {...field}
                     value={field.value ?? ''}
@@ -87,18 +88,18 @@ export const ExpensesFiltersForm = ({ onSubmit, onAddDialog }) => {
 
           <FormField
             control={form.control}
-            name='category'
+            name="category"
             render={({ field }) => (
               <FormItem>
-                <FormLabel htmlFor='category'>{t('category')}</FormLabel>
+                <FormLabel htmlFor="category">{t('category')}</FormLabel>
                 <Select onValueChange={field.onChange} value={field.value}>
                   <FormControl>
-                    <SelectTrigger id='category'>
+                    <SelectTrigger id="category">
                       <SelectValue placeholder={t('select_category')} />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    {expenseCategories.map(cat => (
+                    {expenseCategories.map((cat) => (
                       <SelectItem key={cat.value} value={cat.value}>
                         {t(cat.labelKey)}
                       </SelectItem>
@@ -111,35 +112,38 @@ export const ExpensesFiltersForm = ({ onSubmit, onAddDialog }) => {
           />
         </div>
         {/* buttons */}
-        <div className='flex flex-wrap items-center justify-between gap-3 mt-5 md:justify-normal'>
+        <div className="flex flex-wrap items-center justify-between gap-3 mt-5 md:justify-normal">
           <Button
-            type='submit'
-            className='flex-1 md:flex-initial md:w-24'
-            variant='info'>
+            type="submit"
+            className="flex-1 md:flex-initial md:w-24"
+            variant="info"
+          >
             {t('search')}
-            <LuSearch className='w-4 h-4 ml-auto opacity-50' />
+            <LuSearch className="w-4 h-4 ml-auto opacity-50" />
           </Button>
           <Button
-            type='button'
-            className='flex-1 md:flex-initial md:w-24'
-            variant='success'
-            onClick={handleAdd}>
-            {t('add')} <LuPlus className='w-4 h-4 ml-auto opacity-50' />
+            type="button"
+            className="flex-1 md:flex-initial md:w-24"
+            variant="success"
+            onClick={handleAdd}
+          >
+            {t('add')} <LuPlus className="w-4 h-4 ml-auto opacity-50" />
           </Button>
           <Button
-            type='button'
-            className='flex-1 md:flex-initial md:w-24'
-            variant='outline'
-            onClick={handleResetFilter}>
-            {t('clear')} <LuEraser className='w-4 h-4 ml-auto opacity-50' />
+            type="button"
+            className="flex-1 md:flex-initial md:w-24"
+            variant="outline"
+            onClick={handleResetFilter}
+          >
+            {t('clear')} <LuEraser className="w-4 h-4 ml-auto opacity-50" />
           </Button>
         </div>
       </form>
     </Form>
-  )
-}
+  );
+};
 
 ExpensesFiltersForm.propTypes = {
   onSubmit: PropTypes.func.isRequired,
-  onAddDialog: PropTypes.func
-}
+  onAddDialog: PropTypes.func,
+};

@@ -1,63 +1,64 @@
-import { useForm } from 'react-hook-form'
-import { useTranslation } from 'react-i18next'
+import { useForm } from 'react-hook-form';
+import { useTranslation } from 'react-i18next';
 import {
   Form,
   FormControl,
   FormField,
   FormItem,
   FormLabel,
-  FormMessage
-} from '@/components/ui/form'
-import { Input } from '@/components/ui/input'
-import { Button } from '@/components/ui/button'
-import { LuPlus, LuSearch, LuEraser } from 'react-icons/lu'
-import PropTypes from 'prop-types'
-import { ClientsFiltersSchema } from '../utils'
-import { zodResolver } from '@hookform/resolvers/zod'
+  FormMessage,
+} from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { LuPlus, LuSearch, LuEraser } from 'react-icons/lu';
+import PropTypes from 'prop-types';
+import { ClientsFiltersSchema } from '../utils';
+import { zodResolver } from '@hookform/resolvers/zod';
 
 export const ClientsFiltersForm = ({ onSubmit, onAddDialog }) => {
-  const { t } = useTranslation()
+  const { t } = useTranslation();
   const form = useForm({
-    resolver: zodResolver(ClientsFiltersSchema)
-  })
+    resolver: zodResolver(ClientsFiltersSchema),
+  });
 
-  const handleSubmit = data => {
-    onSubmit(data)
-  }
+  const handleSubmit = (data) => {
+    onSubmit(data);
+  };
 
   const handleAdd = () => {
-    onAddDialog()
-  }
+    onAddDialog();
+  };
 
   const handleResetFilter = () => {
-    form.reset()
-  }
+    form.reset();
+  };
 
   return (
     <Form {...form}>
       <form
-        method='post'
-        action=''
-        id='client-filters-form'
+        method="post"
+        action=""
+        id="client-filters-form"
         noValidate
         onSubmit={form.handleSubmit(handleSubmit)}
-        className='flex flex-col flex-wrap gap-5'>
+        className="flex flex-col flex-wrap gap-5"
+      >
         {/* inputs */}
-        <div className='flex flex-wrap flex-1 gap-3'>
+        <div className="flex flex-wrap flex-1 gap-3">
           <FormField
             control={form.control}
-            name='name'
+            name="name"
             render={({ field }) => {
               return (
-                <FormItem className='flex flex-col flex-auto'>
-                  <FormLabel htmlFor='name'>{t('name')}</FormLabel>
+                <FormItem className="flex flex-col flex-auto">
+                  <FormLabel htmlFor="name">{t('name')}</FormLabel>
                   <FormControl>
                     <Input
-                      id='name'
-                      name='name'
+                      id="name"
+                      name="name"
                       placeholder={t('client_name_placeholder')}
-                      type='text'
-                      autoComplete='off'
+                      type="text"
+                      autoComplete="off"
                       maxLength={100}
                       {...field}
                       value={field.value ?? ''}
@@ -65,24 +66,24 @@ export const ClientsFiltersForm = ({ onSubmit, onAddDialog }) => {
                   </FormControl>
                   <FormMessage />
                 </FormItem>
-              )
+              );
             }}
           />
 
           <FormField
             control={form.control}
-            name='email'
+            name="email"
             render={({ field }) => {
               return (
-                <FormItem className='flex flex-col flex-auto'>
-                  <FormLabel htmlFor='email'>{t('email')}</FormLabel>
+                <FormItem className="flex flex-col flex-auto">
+                  <FormLabel htmlFor="email">{t('email')}</FormLabel>
                   <FormControl>
                     <Input
-                      id='email'
-                      name='email'
+                      id="email"
+                      name="email"
                       placeholder={t('client_email_placeholder')}
-                      type='email'
-                      autoComplete='off'
+                      type="email"
+                      autoComplete="off"
                       maxLength={100}
                       {...field}
                       value={field.value ?? ''}
@@ -90,40 +91,43 @@ export const ClientsFiltersForm = ({ onSubmit, onAddDialog }) => {
                   </FormControl>
                   <FormMessage />
                 </FormItem>
-              )
+              );
             }}
           />
         </div>
         {/* buttons */}
-        <div className='flex flex-wrap items-center justify-between gap-3 mt-5 md:justify-normal'>
+        <div className="flex flex-wrap items-center justify-between gap-3 mt-5 md:justify-normal">
           <Button
-            type='submit'
-            className='flex-1 md:flex-initial md:w-24'
-            variant='info'>
+            type="submit"
+            className="flex-1 md:flex-initial md:w-24"
+            variant="info"
+          >
             {t('search')}
-            <LuSearch className='w-4 h-4 ml-auto opacity-50' />
+            <LuSearch className="w-4 h-4 ml-auto opacity-50" />
           </Button>
           <Button
-            type='button'
-            className='flex-1 md:flex-initial md:w-24'
-            variant='success'
-            onClick={handleAdd}>
-            {t('add')} <LuPlus className='w-4 h-4 ml-auto opacity-50' />
+            type="button"
+            className="flex-1 md:flex-initial md:w-24"
+            variant="success"
+            onClick={handleAdd}
+          >
+            {t('add')} <LuPlus className="w-4 h-4 ml-auto opacity-50" />
           </Button>
           <Button
-            type='button'
-            className='flex-1 md:flex-initial md:w-24'
-            variant='outline'
-            onClick={() => handleResetFilter()}>
-            {t('clear')} <LuEraser className='w-4 h-4 ml-auto opacity-50' />
+            type="button"
+            className="flex-1 md:flex-initial md:w-24"
+            variant="outline"
+            onClick={() => handleResetFilter()}
+          >
+            {t('clear')} <LuEraser className="w-4 h-4 ml-auto opacity-50" />
           </Button>
         </div>
       </form>
     </Form>
-  )
-}
+  );
+};
 
 ClientsFiltersForm.propTypes = {
   onSubmit: PropTypes.func.isRequired,
-  onAddDialog: PropTypes.func
-}
+  onAddDialog: PropTypes.func,
+};
