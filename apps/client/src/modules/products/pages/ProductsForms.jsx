@@ -26,6 +26,7 @@ function ProductsForms() {
   const [openAlertDialog, setOpenAlertDialog] = useState(false) //alert dialog open/close
   const [alertProps, setAlertProps] = useState({})
   const location = useLocation()
+    const [attributes, setAttributes] = useState([])
 
   useEffect(() => {
     if (location.state?.row) {
@@ -37,45 +38,35 @@ function ProductsForms() {
 
   const {
     data: dataCategory,
-    isError: isErrorCategory,
     isLoading: isLoadingCategory,
     isFetching: isFetchingCategory,
-    isSuccess: isSuccessCategory,
-    error: errorCategory
   } = useGetAllProductCategoriesQuery()
 
   const {
     data: dataProviders,
-    isError: isErrorProviders,
     isLoading: isLoadingProviders,
     isFetching: isFetchingProviders,
-    isSuccess: isSuccessProviders,
-    error: errorProviders
   } = useGetAllProvidersFiltersQuery()
 
   const {
     data: datastatus,
-    isError: isErrorStatus,
     isLoading: isLoadingStatus,
     isFetching: isFetchingStatus,
-    isSuccess: isSuccessStatus,
-    error: errorStatus
   } = useGetAllProductsStatusQuery()
 
   const [
     saveProduct,
-    { isLoading: isLoadingPost, isError: isErrorPost, isSuccess: isSuccessPost }
+    { isLoading: isLoadingPost  }
   ] = useCreateProductMutation()
   const [
     updateProductById,
-    { isLoading: isLoadingPut, isError: isErrorPut, isSuccess: isSuccessPut }
+    { isLoading: isLoadingPut}
   ] = useUpdateProductByIdMutation()
   const [
     deleteProductById,
     {
       isLoading: isLoadingDelete,
-      isError: isErrorDelete,
-      isSuccess: isSuccessDelete
+
     }
   ] = useDeleteProductByIdMutation()
 
@@ -168,11 +159,8 @@ function ProductsForms() {
     getProductAttributes,
     {
       data: dataAttributes = { data: [] },
-      isError: isErrorAttributes,
       isLoading: isLoadingAttributes,
       isFetching: isFetchingAttributes,
-      isSuccess: isSuccessAttributes,
-      error: errorAttributes
     }
   ] = useLazyGetAllProductAttributesQuery()
 
@@ -180,8 +168,6 @@ function ProductsForms() {
     deleteProductAttributeById,
     {
       isLoading: isLoadingDeleteAttribute,
-      isError: isErrorDeleteAttribute,
-      isSuccess: isSuccessDeleteAttribute
     }
   ] = useDeleteProductAttributeByIdMutation()
 
@@ -189,8 +175,7 @@ function ProductsForms() {
     saveProductAttributes,
     {
       isLoading: isLoadingSaveAttributes,
-      isError: isErrorSaveAttributes,
-      isSuccess: isSuccessPutSaveAttributes
+      
     }
   ] = useSaveProductAttributesMutation()
 
@@ -198,7 +183,7 @@ function ProductsForms() {
     if (selectedRow?.id) {
       getProductAttributes(selectedRow.id)
     }
-  }, [selectedRow])
+  }, [selectedRow, getProductAttributes])
 
   useEffect(() => {
     if (dataAttributes?.data.length > 0) {
@@ -206,7 +191,7 @@ function ProductsForms() {
     }
   }, [dataAttributes])
 
-  const [attributes, setAttributes] = useState([])
+
 
   const handleAddAttribute = () => {
     setAttributes([
@@ -317,7 +302,8 @@ function ProductsForms() {
           isFetchingProviders ||
           isFetchingAttributes ||
           isFetchingCategory ||
-          isFetchingStatus) && <Spinner />}
+          isFetchingStatus ||
+          isLoadingSaveAttributes) && <Spinner />}
 
         <div className='container flex flex-col min-h-screen'>
           <main className='container flex-1 py-6'>

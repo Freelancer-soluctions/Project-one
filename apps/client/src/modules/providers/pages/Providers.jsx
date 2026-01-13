@@ -8,7 +8,6 @@ import { useTranslation } from 'react-i18next'
 import { useState } from 'react'
 import {
   useLazyGetAllProvidersQuery,
-  useGetAllProvidersQuery,
   useUpdateProviderByIdMutation,
   useCreateProviderMutation,
   useDeleteProviderByIdMutation
@@ -42,19 +41,18 @@ const Providers = () => {
   ] = useLazyGetAllProvidersQuery()
   const [
     updateProviderById,
-    { isLoading: isLoadingPut, isError: isErrorPut, isSuccess: isSuccessPut }
+    { isLoading: isLoadingPut }
   ] = useUpdateProviderByIdMutation()
 
   const [
     createProvider,
-    { isLoading: isLoadingPost, isError: isErrorPost, isSuccess: isSuccessPost }
+    { isLoading: isLoadingPost }
   ] = useCreateProviderMutation()
   const [
     deleteProviderById,
     {
       isLoading: isLoadingDelete,
-      isError: isErrorDelete,
-      isSuccess: isSuccessDelete
+   
     }
   ] = useDeleteProviderByIdMutation()
 
@@ -77,7 +75,7 @@ const Providers = () => {
       limit: pagination.pageSize,
       ...filters
     })
-  }, [pagination.pageIndex, pagination.pageSize, filters])
+  }, [pagination.pageIndex, pagination.pageSize, filters, getAllProviders])
 
   /**
    * Al aplicar nuevos filtros:
@@ -99,7 +97,7 @@ const Providers = () => {
 
   const handleSubmit = async (values, providerId) => {
     try {
-      const result = providerId
+       providerId
         ? await updateProviderById({
             id: providerId,
             data: {
@@ -202,7 +200,9 @@ const Providers = () => {
           isLoadingPut ||
           isLoadingPost ||
           isLoadingDelete ||
-          isFetchingProviders) && <Spinner />}
+          isFetchingProviders
+      
+          ) && <Spinner />}
 
         <div className='grid grid-cols-2 grid-rows-4 gap-4 md:grid-cols-5'>
           {/* filters */}
