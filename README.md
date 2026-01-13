@@ -314,3 +314,24 @@ Falla el pipeline si alguien rompe el formato
 No modifica código en CI
 
 Refuerza Husky (defensa en capas)
+
+
+Uso correcto en CI/CD (clave)
+En CI NO se usa --fix.
+
+{
+  "scripts": {
+    "lint": "eslint \"apps/**/*.{js,jsx}\""
+  }
+}
+npm ci
+npm run lint:ci
+npm run format:check
+npm test
+Esto garantiza:
+
+CI falla si hay errores
+
+El código no se modifica
+
+Husky + CI se refuerzan mutuamente

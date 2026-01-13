@@ -1206,7 +1206,7 @@
  *         totalCost:
  *           type: number
  *           description: Costo total del stock
- * 
+ *
  *     ResponseGetStockByProductId:
  *       type: object
  *       required:
@@ -2500,7 +2500,6 @@
  *           example: 1
  */
 
-
 /** --------------------------------------
  * Sección de ClientOrder
  * -------------------------------------- */
@@ -2579,6 +2578,8 @@
  *            nullable: true
  *            description: Sale ID
  */
+
+/**
  * @openapi
  * components:
  *   schemas:

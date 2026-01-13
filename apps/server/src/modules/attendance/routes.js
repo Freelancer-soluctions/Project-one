@@ -261,6 +261,7 @@ router.delete(
     allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER],
     permissions: [PERMISSIONCODES.canDeleteAttendance],
   }),
+  validatePathParam,
   deleteAttendanceById
 );
 
