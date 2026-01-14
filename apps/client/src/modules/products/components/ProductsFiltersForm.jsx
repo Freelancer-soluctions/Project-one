@@ -212,10 +212,9 @@ export const ProductsFiltersForm = ({
 };
 
 ProductsFiltersForm.propTypes = {
-  trigger: PropTypes.func,
-  setActionDialog: PropTypes.func,
-  setOpenDialog: PropTypes.func,
+  onSubmit: PropTypes.func.isRequired,
+  onOpenProductsForms: PropTypes.func.isRequired,
   datastatus: PropTypes.object,
   dataCategory: PropTypes.object,
-  dataTypes: PropTypes.object,
+  dataProviders: PropTypes.object,
 };

@@ -21,9 +21,16 @@ export const UsersDatatable = ({
     {
       accessorKey: 'name',
       header: t('name'),
+      // cell: (info) => {
+      //   const value = info.getValue()?.toUpperCase();
+      //   return value.length > 30 ? `${value.slice(0, 30)}...` : value;
+      // },
       cell: (info) => {
-        const value = info.getValue()?.toUpperCase();
-        return value.length > 30 ? `${value.slice(0, 30)}...` : value;
+        const value = info.getValue();
+        if (!value) return '';
+
+        const upper = value.toUpperCase();
+        return upper.length > 30 ? `${upper.slice(0, 30)}...` : upper;
       },
     },
     {
@@ -40,8 +47,11 @@ export const UsersDatatable = ({
       accessorKey: 'email',
       header: t('email'),
       cell: (info) => {
-        const value = info.getValue()?.toUpperCase();
-        return value.length > 30 ? `${value.slice(0, 30)}...` : value;
+        const value = info.getValue();
+        if (!value) return '';
+
+        const upper = value.toUpperCase();
+        return upper.length > 30 ? `${upper.slice(0, 30)}...` : upper;
       },
     },
     {
@@ -53,16 +63,22 @@ export const UsersDatatable = ({
       accessorKey: 'state',
       header: t('state'),
       cell: (info) => {
-        const value = info.getValue()?.toUpperCase();
-        return value.length > 30 ? `${value.slice(0, 30)}...` : value;
+        const value = info.getValue();
+        if (!value) return '';
+
+        const upper = value.toUpperCase();
+        return upper.length > 30 ? `${upper.slice(0, 30)}...` : upper;
       },
     },
     {
       accessorKey: 'address',
       header: t('address'),
       cell: (info) => {
-        const value = info.getValue()?.toUpperCase();
-        return value.length > 30 ? `${value.slice(0, 30)}...` : value;
+        const value = info.getValue();
+        if (!value) return '';
+
+        const upper = value.toUpperCase();
+        return upper.length > 30 ? `${upper.slice(0, 30)}...` : upper;
       },
     },
     {
@@ -75,8 +91,11 @@ export const UsersDatatable = ({
       accessorKey: 'lastUpdatedByName',
       header: t('updated_by'),
       cell: (info) => {
-        const value = info.getValue()?.toUpperCase();
-        return value.length > 30 ? `${value.slice(0, 30)}...` : value;
+        const value = info.getValue();
+        if (!value) return '';
+
+        const upper = value.toUpperCase();
+        return upper.length > 30 ? `${upper.slice(0, 30)}...` : upper;
       },
     },
     {
