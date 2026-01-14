@@ -33,6 +33,7 @@ export const InventoryMovementDialog = ({
   warehouses,
 }) => {
   const { t } = useTranslation();
+  console.log("produc", products)
 
   const form = useForm({
     resolver: zodResolver(InventoryMovementSchema),

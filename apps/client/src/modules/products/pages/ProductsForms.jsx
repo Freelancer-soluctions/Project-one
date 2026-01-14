@@ -17,24 +17,21 @@ import { Spinner } from '@/components/loader/Spinner';
 import { ProductBasicInfo, ProductAttributes } from '../components';
 import AlertDialogComponent from '@/components/alertDialog/AlertDialog';
 import { useNavigate, useLocation } from 'react-router';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 
 function ProductsForms() {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const [selectedRow, setSelectedRow] = useState();
+  // const [selectedRow, setSelectedRow] = useState();
   const [openAlertDialog, setOpenAlertDialog] = useState(false); //alert dialog open/close
   const [alertProps, setAlertProps] = useState({});
   const location = useLocation();
   const [attributes, setAttributes] = useState([]);
 
-  useEffect(() => {
-    if (location.state?.row) {
-      setSelectedRow(location.state.row);
-    } else {
-      setSelectedRow({});
-    }
-  }, [location.state]);
+
+const selectedRow = useMemo(() => {
+  return location.state?.row ?? null;
+}, [location.state?.row]);
 
   const {
     data: dataCategory,
@@ -172,6 +169,11 @@ function ProductsForms() {
       setAttributes(dataAttributes.data);
     }
   }, [dataAttributes]);
+
+  const fetchedAttributes = useMemo(
+  () => dataAttributes?.data ?? [],
+  [dataAttributes?.data]
+);
 
   const handleAddAttribute = () => {
     setAttributes([
