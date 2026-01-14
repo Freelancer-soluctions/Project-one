@@ -10,8 +10,9 @@ import * as productsService from './service.js';
  * @returns {Promise<void>} Sends a response containing the product items.
  */
 export const getAllProducts = handleCatchErrorAsync(async (req, res) => {
-  const queryParams = req.query;
+  const queryParams = req.safeQuery;
   const items = await productsService.getAllProducts(queryParams);
+  console.log('products3232', items);
   globalResponse(res, 200, items);
 });
 
