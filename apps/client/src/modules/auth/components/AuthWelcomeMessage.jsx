@@ -1,4 +1,5 @@
 import { useTranslation } from 'react-i18next';
+import PropTypes from 'prop-types';
 
 export const AuthWelcomeMessage = ({ field_sign_message }) => {
   const { t } = useTranslation();
@@ -10,4 +11,8 @@ export const AuthWelcomeMessage = ({ field_sign_message }) => {
       </p>
     </div>
   );
+};
+
+AuthWelcomeMessage.propTypes = {
+  field_sign_message: PropTypes.string.isRequired,
 };

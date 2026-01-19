@@ -21,6 +21,7 @@ import { LuTrash2, LuPlus } from 'react-icons/lu';
 import { useTranslation } from 'react-i18next';
 import { useEffect } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
+import PropTypes from 'prop-types';
 
 export const ProductAttributes = ({
   onRemoveAttribute,
@@ -152,4 +153,12 @@ export const ProductAttributes = ({
       </CardContent>
     </Card>
   );
+};
+
+ProductAttributes.propTypes = {
+  onRemoveAttribute: PropTypes.func.isRequired,
+  onAddAttribute: PropTypes.func.isRequired,
+  onEditAttribute: PropTypes.func.isRequired,
+  attributes: PropTypes.array.isRequired,
+  onSubmitFormAttributes: PropTypes.func.isRequired,
 };

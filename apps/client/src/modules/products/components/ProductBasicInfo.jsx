@@ -25,11 +25,12 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { ProductsSchema } from '../utils';
+import { ProductsSchema, generateRandomBarcode } from '../utils';
 import { useNavigate } from 'react-router';
 import { useTranslation } from 'react-i18next';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo } from 'react';
 import { LuBarcode } from 'react-icons/lu';
+import PropTypes from 'prop-types';
 
 export const ProductBasicInfo = ({
   onSubmitCreateEdit,
@@ -41,14 +42,15 @@ export const ProductBasicInfo = ({
 }) => {
   const navigate = useNavigate();
   const { t } = useTranslation();
-  const [id, setId] = useState();
-  const generateBarcode = () => {
-    // Simulación de generación de código de barras
-    const randomCode = Math.floor(Math.random() * 10000000000)
-      .toString()
-      .padStart(10, '0');
-    form.setValue('barcode', randomCode, { shouldValidate: true }); // Asigna y valida el campo
-  };
+
+const handleGenerateBarcode = () => {
+  const barcode = generateRandomBarcode(10);
+
+  form.setValue('barcode', barcode, {
+    shouldValidate: true,
+    shouldDirty: true,
+  });
+};
 
   const form = useForm({
     resolver: zodResolver(ProductsSchema),
@@ -64,6 +66,9 @@ export const ProductBasicInfo = ({
       status: null,
     },
   });
+
+const productId = useMemo(()=> selectedRow?.id ?? null, [selectedRow?.id])
+
 
   // Actualiza todos los valores del formulario al cambiar `selectedRow`
   useEffect(() => {
@@ -86,7 +91,6 @@ export const ProductBasicInfo = ({
           description: selectedRow.providerDescription,
         },
       });
-      setId(selectedRow.id);
     } else {
       form.reset();
     }
@@ -427,7 +431,7 @@ export const ProductBasicInfo = ({
                     className="mt-8"
                     type="button"
                     variant="outline"
-                    onClick={generateBarcode}
+                    onClick={handleGenerateBarcode}
                   >
                     <LuBarcode className="w-4 h-4 mr-2" />
                     {t('generate')}
@@ -445,12 +449,12 @@ export const ProductBasicInfo = ({
               >
                 {t('cancel')}
               </Button>
-              {id && (
+              {productId && (
                 <Button
                   type="button"
                   variant="destructive"
                   onClick={() => {
-                    handleDelete(id);
+                    handleDelete(productId);
                   }}
                 >
                   {t('delete')}
@@ -465,4 +469,13 @@ export const ProductBasicInfo = ({
       </CardContent>
     </Card>
   );
+};
+
+ProductBasicInfo.propTypes = {
+  onSubmitCreateEdit: PropTypes.func.isRequired,
+  onDelete: PropTypes.func.isRequired,
+  dataCategory: PropTypes.object,
+  dataProviders: PropTypes.object,
+  datastatus: PropTypes.object,
+  selectedRow: PropTypes.object,
 };
