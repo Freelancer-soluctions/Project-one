@@ -1,4 +1,5 @@
 import { Navigate, useLocation } from 'react-router';
+import PropTypes from 'prop-types';
 
 export const ProtectedFormRoute = ({ children }) => {
   const location = useLocation();
@@ -10,4 +11,8 @@ export const ProtectedFormRoute = ({ children }) => {
   }
 
   return children; // Renderiza el componente si state es válido
+};
+
+ProtectedFormRoute.propTypes = {
+  children: PropTypes.node.isRequired,
 };

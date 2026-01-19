@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -58,7 +58,6 @@ export const PermissionDialog = ({
   dataEmployees,
 }) => {
   const { t } = useTranslation();
-  const [permissionId, setPermissionId] = useState('');
 
   const form = useForm({
     resolver: zodResolver(PermissionSchema),
@@ -72,6 +71,8 @@ export const PermissionDialog = ({
       comments: '',
     },
   });
+
+  const permissionId = useMemo(() => selectedRow?.id ?? null,[selectedRow?.id] )
 
   useEffect(() => {
     if (selectedRow?.id) {
@@ -93,7 +94,6 @@ export const PermissionDialog = ({
         // approvedBy and approvedAt are likely handled by the backend
       };
       form.reset(mappedValues);
-      setPermissionId(mappedValues.id);
     } else {
       form.reset({
         employeeId: '',
@@ -104,7 +104,6 @@ export const PermissionDialog = ({
         status: 'PENDING',
         comments: '',
       });
-      setPermissionId(null);
     }
   }, [selectedRow, openDialog, form]);
 

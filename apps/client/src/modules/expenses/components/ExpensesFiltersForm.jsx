@@ -145,5 +145,5 @@ export const ExpensesFiltersForm = ({ onSubmit, onAddDialog }) => {
 
 ExpensesFiltersForm.propTypes = {
   onSubmit: PropTypes.func.isRequired,
-  onAddDialog: PropTypes.func,
+  onAddDialog: PropTypes.func.isRequired,
 };
