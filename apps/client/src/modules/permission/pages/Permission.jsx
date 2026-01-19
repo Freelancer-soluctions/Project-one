@@ -41,7 +41,6 @@ const Permission = () => {
       data: dataPermissions = { data: [] },
       isLoading: isLoadingPermissions,
       isFetching: isFetchingPermissions,
-      refetch,
     },
   ] = useLazyGetAllPermissionsQuery();
 
@@ -73,7 +72,7 @@ const Permission = () => {
       limit: pagination.pageSize,
       ...filters,
     });
-  }, [pagination.pageIndex, pagination.pageSize, filters]);
+  }, [pagination.pageIndex, pagination.pageSize, filters, getAllPermissions]);
 
   /**
    * Al aplicar nuevos filtros:

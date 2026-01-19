@@ -10,6 +10,7 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { useTranslation } from 'react-i18next';
+import PropTypes from 'prop-types';
 
 const AlertDialogComponent = ({
   openAlertDialog,
@@ -61,6 +62,22 @@ const AlertDialogComponent = ({
       </AlertDialogContent>
     </AlertDialog>
   );
+};
+
+AlertDialogComponent.propTypes = {
+  openAlertDialog: PropTypes.bool.isRequired,
+  setOpenAlertDialog: PropTypes.func.isRequired,
+  alertProps: PropTypes.shape({
+    alertTitle: PropTypes.string,
+    alertMessage: PropTypes.string,
+    cancel: PropTypes.bool,
+    success: PropTypes.bool,
+    destructive: PropTypes.bool,
+    variantSuccess: PropTypes.string,
+    variantDestructive: PropTypes.string,
+    onSuccess: PropTypes.func,
+    onDelete: PropTypes.func,
+  }).isRequired,
 };
 
 export default AlertDialogComponent;

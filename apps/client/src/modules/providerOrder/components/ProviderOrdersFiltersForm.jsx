@@ -103,5 +103,5 @@ export const ProviderOrdersFiltersForm = ({ onSubmit, onAddDialog }) => {
 
 ProviderOrdersFiltersForm.propTypes = {
   onSubmit: PropTypes.func.isRequired,
-  onAddDialog: PropTypes.func,
+  onAddDialog: PropTypes.func.isRequired,
 };

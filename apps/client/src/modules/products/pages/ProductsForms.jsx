@@ -28,10 +28,9 @@ function ProductsForms() {
   const location = useLocation();
   const [attributes, setAttributes] = useState([]);
 
-
-const selectedRow = useMemo(() => {
-  return location.state?.row ?? null;
-}, [location.state?.row]);
+  const selectedRow = useMemo(() => {
+    return location.state?.row ?? null;
+  }, [location.state?.row]);
 
   const {
     data: dataCategory,
@@ -171,9 +170,9 @@ const selectedRow = useMemo(() => {
   }, [dataAttributes]);
 
   const fetchedAttributes = useMemo(
-  () => dataAttributes?.data ?? [],
-  [dataAttributes?.data]
-);
+    () => dataAttributes?.data ?? [],
+    [dataAttributes?.data]
+  );
 
   const handleAddAttribute = () => {
     setAttributes([

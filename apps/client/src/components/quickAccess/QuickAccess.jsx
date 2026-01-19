@@ -4,6 +4,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
+import PropTypes from 'prop-types';
 
 export function QuickAccessButton({
   icon: Icon,
@@ -31,3 +32,11 @@ export function QuickAccessButton({
     </Popover>
   );
 }
+
+QuickAccessButton.propTypes = {
+  icon: PropTypes.elementType,
+  label: PropTypes.string.isRequired,
+  content: PropTypes.elementType,
+  contentProps: PropTypes.object,
+  className: PropTypes.string,
+};
