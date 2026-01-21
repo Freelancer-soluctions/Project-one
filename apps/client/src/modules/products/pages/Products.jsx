@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import { ProductsFiltersForm, ProductsDatatable } from '../components/index';
 import { Spinner } from '@/components/loader/Spinner';
 import { BackDashBoard } from '@/components/backDash/BackDashBoard';
@@ -22,29 +23,20 @@ const Products = () => {
 
   const {
     data: dataCategory,
-    isError: isErrorCategory,
     isLoading: isLoadingCategory,
     isFetching: isFetchingCategory,
-    isSuccess: isSuccessCategory,
-    error: errorCategory,
   } = useGetAllProductCategoriesQuery();
 
   const {
     data: dataProviders,
-    isError: isErrorProviders,
     isLoading: isLoadingProviders,
     isFetching: isFetchingProviders,
-    isSuccess: isSuccessProviders,
-    error: errorProviders,
   } = useGetAllProvidersFiltersQuery();
 
   const {
     data: datastatus,
-    isError: isErrorStatus,
     isLoading: isLoadingStatus,
     isFetching: isFetchingStatus,
-    isSuccess: isSuccessStatus,
-    error: errorStatus,
   } = useGetAllProductsStatusQuery();
 
   // filter form
@@ -80,7 +72,7 @@ const Products = () => {
       limit: pagination.pageSize,
       ...filters,
     });
-  }, [pagination.pageIndex, pagination.pageSize, filters]);
+  }, [pagination.pageIndex, pagination.pageSize, filters, trigger]);
 
   /**
    * Al aplicar nuevos filtros:

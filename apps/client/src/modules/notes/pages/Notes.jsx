@@ -1,7 +1,7 @@
 import { BackDashBoard } from '@/components/backDash/BackDashBoard';
 import { Spinner } from '@/components/loader/Spinner';
 import { useTranslation } from 'react-i18next';
-import { useState, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import {
   useGetAllNotesQuery,
   useGetAllNotesColumnsQuery,
@@ -21,60 +21,60 @@ import { useLocation } from 'react-router';
 
 export default function Notes() {
   const { t } = useTranslation();
-  const [filters, setFilters] = useState({ searchTerm: '', statusCode: '' });
   const [openAlertDialog, setOpenAlertDialog] = useState(false); //alert dialog open/close
   const [open, setOpen] = useState(false); //dialog open/close
   const [alertProps, setAlertProps] = useState({});
   const location = useLocation();
 
   // Capturar el filter al cargar el componente
-  useEffect(() => {
-    if (location.state?.filter) {
-      setFilters((prev) => ({ ...prev, statusCode: location.state.filter }));
-    } else {
-      setFilters({ searchTerm: '', statusCode: '' });
-    }
-  }, [location.state]);
+  // useEffect(() => {
+  //   if (location.state?.filter) {
+  //     setFilters((prev) => ({ ...prev, statusCode: location.state.filter }));
+  //   } else {
+  //     setFilters({ searchTerm: '', statusCode: '' });
+  //   }
+  // }, [location.state]);
+
+  const initialFilters  = useMemo(() => {
+  return {
+    searchTerm: '',
+    statusCode: location.state?.filter ?? '',
+  };
+}, [location.state?.filter]);
+const [filters, setFilters] = useState(initialFilters);
+
 
   const {
     data: dataColumns = { data: [] },
-    isError: isErrorColumns,
     isLoading: isLoadingColumns,
     isFetching: isFetchingColumns,
-    isSuccess: isSuccessColumns,
-    error: errorColumns,
+
   } = useGetAllNotesColumnsQuery();
 
   const {
     data: dataNotes = { data: [] },
-    isError: isErrorNotes,
     isLoading: isLoadingNotes,
     isFetching: isFetchingNotes,
-    isSuccess: isSuccessNotes,
-    error: errorNotes,
-    refetch: refetchNotes,
   } = useGetAllNotesQuery(filters);
 
   const [
     createNote,
     {
       isLoading: isLoadingPost,
-      isError: isErrorPost,
-      isSuccess: isSuccessPost,
+  
     },
   ] = useCreateNoteMutation();
 
   const [
     updateNoteColumId,
-    { isLoading: isLoadingPut, isError: isErrorPut, isSuccess: isSuccessPut },
+    { isLoading: isLoadingPut,  },
   ] = useUpdateNoteColumIdMutation();
 
   const [
     updateNoteById,
     {
       isLoading: isLoadingPutCard,
-      isError: isErrorPutCard,
-      isSuccess: isSuccessPutCard,
+   
     },
   ] = useUpdateNoteByIdMutation();
 
@@ -82,8 +82,7 @@ export default function Notes() {
     deleteNoteById,
     {
       isLoading: isLoadingDelete,
-      isError: isErrorDelete,
-      isSuccess: isSuccessDelete,
+     
     },
   ] = useDeleteNoteByIdMutation();
 
@@ -163,7 +162,7 @@ export default function Notes() {
   const handleCreateNote = async ({ title, content, status }) => {
     const color = setColor(status.code);
 
-    const newNote = await createNote({
+   await createNote({
       title,
       content,
       color,

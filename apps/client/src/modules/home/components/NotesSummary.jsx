@@ -6,6 +6,7 @@ import { LuArrowRight } from 'react-icons/lu';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
 import { StatusColumn } from '@/modules/notes/utils/enums';
+import PropTypes from 'prop-types';
 
 export function NotesSummary({ dataCountNotes }) {
   const { t } = useTranslation();
@@ -93,3 +94,7 @@ export function NotesSummary({ dataCountNotes }) {
     </Card>
   );
 }
+
+NotesSummary.propTypes = {
+  dataCountNotes: PropTypes.object.isRequired,
+};

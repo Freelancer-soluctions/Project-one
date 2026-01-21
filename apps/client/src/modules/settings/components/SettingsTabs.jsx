@@ -1,4 +1,14 @@
+import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Separator } from '@/components/ui/separator';
+import { LuUser, LuMoon, LuGlobe, LuBell, LuLayoutTemplate, LuShield } from 'react-icons/lu';
+import { SettingsLanguage } from './SettingsLanguage';
+
 export const SettingsTabs = () => {
+  const { t } = useTranslation();
+  const [activeTab, setActiveTab] = useState('profile');
+  const id = 1; // This should come from props or context
   return (
     <div className="container max-w-6xl py-10">
       <div className="space-y-6">

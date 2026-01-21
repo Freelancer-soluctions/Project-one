@@ -5,6 +5,7 @@ import { cn } from '@/lib/utils';
 import { LuArrowRight } from 'react-icons/lu';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
+import PropTypes from 'prop-types';
 
 export function StockSummary({ dataCountStock }) {
   const { t } = useTranslation();
@@ -72,3 +73,7 @@ export function StockSummary({ dataCountStock }) {
     </Card>
   );
 }
+
+StockSummary.propTypes = {
+  dataCountStock: PropTypes.object.isRequired,
+};

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
+import PropTypes from 'prop-types';
 
 // A typical debounced input react component
 export function DebouncedInput({
@@ -31,3 +32,9 @@ export function DebouncedInput({
     // <input {...props} value={value} onChange={} />
   );
 }
+
+DebouncedInput.propTypes = {
+  value: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+  onChange: PropTypes.func.isRequired,
+  debounce: PropTypes.number,
+};

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -53,7 +53,6 @@ export const PayrollDialog = ({
   dataEmployees,
 }) => {
   const { t } = useTranslation();
-  const [payrollId, setPayrollId] = useState('');
 
   const form = useForm({
     resolver: zodResolver(PayrollSchema),
@@ -68,11 +67,10 @@ export const PayrollDialog = ({
     },
   });
 
-  // // Generate month and year options
-  // const currentYear = new Date().getFullYear()
-  // const years = Array.from({ length: 10 }, (_, i) => ({
-  //   value: (currentYear - 5 + i).toString()
-  // })) // e.g., last 5 years and next 4 years
+const payrollId = useMemo(
+  () => selectedRow?.id ?? null,
+  [selectedRow?.id]
+);
 
   useEffect(() => {
     if (selectedRow?.id) {
@@ -91,7 +89,6 @@ export const PayrollDialog = ({
         userPayrollUpdatedName: selectedRow.userPayrollUpdatedName,
       };
       form.reset(mappedValues);
-      setPayrollId(mappedValues.id);
     } else {
       form.reset({
         employeeId: '',
@@ -102,7 +99,6 @@ export const PayrollDialog = ({
         deductions: '0',
         totalPayment: '',
       });
-      setPayrollId(null);
     }
   }, [selectedRow, openDialog, form]);
 
@@ -527,4 +523,6 @@ PayrollDialog.propTypes = {
   onSubmit: PropTypes.func.isRequired,
   onDeleteById: PropTypes.func.isRequired,
   actionDialog: PropTypes.string.isRequired,
+  dataEmployees: PropTypes.array.isRequired
+
 };

@@ -39,7 +39,7 @@ export const getAllWarehouses = async (name, status, take, skip) => {
     skip,
   });
 
-  const total = await prisma.yourModel.count({
+  const total = await prisma.warehouse.count({
     where: {
       ...(name
         ? {
