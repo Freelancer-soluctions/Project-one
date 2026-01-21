@@ -6,6 +6,7 @@ import {
   ChevronUpIcon,
 } from '@radix-ui/react-icons';
 import * as SelectPrimitive from '@radix-ui/react-select';
+import PropTypes from 'prop-types';
 
 import { cn } from '@/lib/utils';
 
@@ -34,6 +35,11 @@ const SelectTrigger = React.forwardRef(
 );
 SelectTrigger.displayName = SelectPrimitive.Trigger.displayName;
 
+SelectTrigger.propTypes = {
+  className: PropTypes.string,
+  children: PropTypes.node,
+};
+
 const SelectScrollUpButton = React.forwardRef(
   ({ className, ...props }, ref) => (
     <SelectPrimitive.ScrollUpButton
@@ -49,6 +55,10 @@ const SelectScrollUpButton = React.forwardRef(
   )
 );
 SelectScrollUpButton.displayName = SelectPrimitive.ScrollUpButton.displayName;
+
+SelectScrollUpButton.propTypes = {
+  className: PropTypes.string,
+};
 
 const SelectScrollDownButton = React.forwardRef(
   ({ className, ...props }, ref) => (
@@ -66,6 +76,10 @@ const SelectScrollDownButton = React.forwardRef(
 );
 SelectScrollDownButton.displayName =
   SelectPrimitive.ScrollDownButton.displayName;
+
+SelectScrollDownButton.propTypes = {
+  className: PropTypes.string,
+};
 
 const SelectContent = React.forwardRef(
   ({ className, children, position = 'popper', ...props }, ref) => (
@@ -98,6 +112,12 @@ const SelectContent = React.forwardRef(
 );
 SelectContent.displayName = SelectPrimitive.Content.displayName;
 
+SelectContent.propTypes = {
+  className: PropTypes.string,
+  children: PropTypes.node.isRequired,
+  position: PropTypes.oneOf(['popper', 'item-aligned']),
+};
+
 const SelectLabel = React.forwardRef(({ className, ...props }, ref) => (
   <SelectPrimitive.Label
     ref={ref}
@@ -106,6 +126,10 @@ const SelectLabel = React.forwardRef(({ className, ...props }, ref) => (
   />
 ));
 SelectLabel.displayName = SelectPrimitive.Label.displayName;
+
+SelectLabel.propTypes = {
+  className: PropTypes.string,
+};
 
 const SelectItem = React.forwardRef(
   ({ className, children, ...props }, ref) => (
@@ -128,6 +152,11 @@ const SelectItem = React.forwardRef(
 );
 SelectItem.displayName = SelectPrimitive.Item.displayName;
 
+SelectItem.propTypes = {
+  className: PropTypes.string,
+  children: PropTypes.node.isRequired,
+};
+
 const SelectSeparator = React.forwardRef(({ className, ...props }, ref) => (
   <SelectPrimitive.Separator
     ref={ref}
@@ -136,6 +165,10 @@ const SelectSeparator = React.forwardRef(({ className, ...props }, ref) => (
   />
 ));
 SelectSeparator.displayName = SelectPrimitive.Separator.displayName;
+
+SelectSeparator.propTypes = {
+  className: PropTypes.string,
+};
 
 export {
   Select,

@@ -19,7 +19,7 @@ export const expenseCategories = [
   { value: 'OTHER', labelKey: 'expense_category_other' },
 ];
 
-const expenseCategoryEnumValues = [
+export const expenseCategoryEnumValues = [
   'RENTAL',
   'UTILITIES',
   'SALARIES',

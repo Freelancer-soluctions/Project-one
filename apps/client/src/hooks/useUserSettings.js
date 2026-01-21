@@ -21,7 +21,7 @@ export const useUserSettings = () => {
     if (response?.language) {
       i18n.changeLanguage(response.language);
     }
-  }, [response]);
+  }, [response, i18n]);
 
   return { settings: response };
 };

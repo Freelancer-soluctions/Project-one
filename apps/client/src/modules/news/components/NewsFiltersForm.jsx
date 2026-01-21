@@ -254,7 +254,7 @@ export const NewsFiltersForm = ({
 };
 
 NewsFiltersForm.propTypes = {
-  trigger: PropTypes.func,
+  onSubmit: PropTypes.func.isRequired,
   setActionDialog: PropTypes.func,
   setOpenDialog: PropTypes.func,
   datastatus: PropTypes.object,
