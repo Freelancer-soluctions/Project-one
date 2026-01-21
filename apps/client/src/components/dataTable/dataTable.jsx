@@ -4,7 +4,6 @@ import {
   useReactTable,
   getFilteredRowModel,
   getSortedRowModel,
-  getPaginationRowModel,
 } from '@tanstack/react-table';
 import {
   Table,

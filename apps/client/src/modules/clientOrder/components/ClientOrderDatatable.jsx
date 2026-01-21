@@ -3,7 +3,8 @@ import { DataTable } from '@/components/dataTable';
 import { format } from 'date-fns';
 import PropTypes from 'prop-types';
 
-export const ClientOrderDatatable = ({ dataClientOrder, onEditDialog }) => {
+export const ClientOrderDatatable = ({ dataClientOrder, onEditDialog, pagination,
+  onPaginationChange,  }) => {
   const { t } = useTranslation();
   const { dataList, total } = dataClientOrder.data;
   const columnDefClientOrder = [

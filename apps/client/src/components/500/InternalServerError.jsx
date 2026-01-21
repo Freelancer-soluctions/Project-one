@@ -1,7 +1,7 @@
 import { Button } from '@/components/ui/button';
-import { Link, useNavigate } from 'react-router';
-import { TbLoader2 } from 'react-icons/tb';
 import { AiOutlineHome } from 'react-icons/ai';
+import PropTypes from 'prop-types';
+
 const InternalServerError = ({ error, resetErrorBoundary }) => {
   // const navigate = useNavigate()
   return (
@@ -71,6 +71,11 @@ const InternalServerError = ({ error, resetErrorBoundary }) => {
       </div>
     </div>
   );
+};
+
+InternalServerError.propTypes = {
+  error: PropTypes.object.isRequired,
+  resetErrorBoundary: PropTypes.func.isRequired,
 };
 
 export default InternalServerError;

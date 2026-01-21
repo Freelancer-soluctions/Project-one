@@ -1,5 +1,6 @@
 import * as React from 'react';
 import * as RadioGroupPrimitive from '@radix-ui/react-radio-group';
+import PropTypes from 'prop-types';
 import { cn } from '@/lib/utils';
 import { DotFilledIcon } from '@radix-ui/react-icons';
 
@@ -13,6 +14,10 @@ const RadioGroup = React.forwardRef(({ className, ...props }, ref) => {
   );
 });
 RadioGroup.displayName = RadioGroupPrimitive.Root.displayName;
+
+RadioGroup.propTypes = {
+  className: PropTypes.string,
+};
 
 const RadioGroupItem = React.forwardRef(({ className, ...props }, ref) => {
   return (
@@ -31,5 +36,9 @@ const RadioGroupItem = React.forwardRef(({ className, ...props }, ref) => {
   );
 });
 RadioGroupItem.displayName = RadioGroupPrimitive.Item.displayName;
+
+RadioGroupItem.propTypes = {
+  className: PropTypes.string,
+};
 
 export { RadioGroup, RadioGroupItem };

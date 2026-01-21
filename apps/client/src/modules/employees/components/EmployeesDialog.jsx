@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -33,7 +33,6 @@ import { Button } from '@/components/ui/button';
 import { LuUsersRound } from 'react-icons/lu';
 import PropTypes from 'prop-types';
 import { EmployeeSchema } from '../utils';
-import { useState } from 'react';
 
 export const EmployeesDialog = ({
   openDialog,
@@ -44,7 +43,7 @@ export const EmployeesDialog = ({
   actionDialog,
 }) => {
   const { t } = useTranslation();
-  const [employeeId, setEmployeeId] = useState('');
+  const employeeId = useMemo(()=> selectedRow?.id, [selectedRow?.id])
 
   const form = useForm({
     resolver: zodResolver(EmployeeSchema),
@@ -87,7 +86,6 @@ export const EmployeesDialog = ({
       };
 
       form.reset(mappedValues);
-      setEmployeeId(mappedValues.id);
     }
 
     if (!openDialog) {
@@ -107,9 +105,8 @@ export const EmployeesDialog = ({
         userEmployeeCreatedName: '',
         userEmployeeUpdatedName: '',
       });
-      setEmployeeId(null);
     }
-  }, [selectedRow, openDialog]);
+  }, [selectedRow, openDialog, form]);
 
   const handleSubmit = (data) => {
     onSubmit(data, employeeId);

@@ -4,14 +4,14 @@ import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { sortedEvents, getEventTypeColor } from '../utils';
 import { useEffect, useState } from 'react';
+import PropTypes from 'prop-types';
 
 export function EventList({ events, onEdit, onDelete }) {
   const [groupedEvents, setGroupedEvents] = useState([]);
 
   useEffect(() => {
-    if (events.length > 0) {
+    if (events && events.length > 0) {
       // Group events by date
-
       const sorted = sortedEvents(events, false);
       setGroupedEvents(
         sorted.reduce((groups, event) => {
@@ -26,7 +26,7 @@ export function EventList({ events, onEdit, onDelete }) {
     }
   }, [events]);
 
-  return events.length > 0 ? (
+  return events && events.length > 0 ? (
     <div className="space-y-8">
       {Object.entries(groupedEvents).map(([date, dateEvents]) => (
         <div key={date} className="space-y-4">
@@ -86,44 +86,8 @@ export function EventList({ events, onEdit, onDelete }) {
   );
 }
 
-//   return (
-//     <div className='space-y-4'>
-//       {events.map(event => (
-//         <div
-//           key={event.id}
-//           className='grid grid-cols-[120px_1fr] gap-4 items-center rounded-lg border p-4 transition-colors hover:bg-muted/50'>
-//           <div className='text-sm'>
-//             <div className='font-medium'>{event.startTime}</div>
-//             <div className='text-muted-foreground'>{event.endTime}</div>
-//           </div>
-//           <div className='flex items-start justify-between'>
-//             <div>
-//               <div className='font-semibold'>{event.title}</div>
-//               <div className='mb-2 text-sm text-muted-foreground'>
-//                 {event.speaker}
-//               </div>
-//               <div className='text-sm'>{event.description}</div>
-//               <div className='mt-2'>
-//                 <span
-//                   className={`text-xs px-2 py-1 rounded-full ${getEventTypeColor(event.type)}`}>
-//                   {event.type}
-//                 </span>
-//               </div>
-//             </div>
-//             <div className='flex gap-2'>
-//               <Button variant='ghost' size='icon' onClick={() => onEdit(event)}>
-//                 <LuPencil className='w-4 h-4' />
-//               </Button>
-//               <Button
-//                 variant='ghost'
-//                 size='icon'
-//                 onClick={() => onDelete(event.id)}>
-//                 <LuTrash2 className='w-4 h-4' />
-//               </Button>
-//             </div>
-//           </div>
-//         </div>
-//       ))}
-//     </div>
-//   )
-// }
+EventList.propTypes = {
+  events: PropTypes.array.isRequired,
+  onEdit: PropTypes.func.isRequired,
+  onDelete: PropTypes.func.isRequired,
+};

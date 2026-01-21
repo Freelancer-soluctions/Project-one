@@ -39,25 +39,17 @@ const Expenses = () => {
 
   const [
     updateExpenseById,
-    { isLoading: isLoadingPut, isError: isErrorPut, isSuccess: isSuccessPut },
+    { isLoading: isLoadingPut },
   ] = useUpdateExpenseByIdMutation();
 
   const [
     createExpense,
-    {
-      isLoading: isLoadingPost,
-      isError: isErrorPost,
-      isSuccess: isSuccessPost,
-    },
+    { isLoading: isLoadingPost },
   ] = useCreateExpenseMutation();
 
   const [
     deleteExpenseById,
-    {
-      isLoading: isLoadingDelete,
-      isError: isErrorDelete,
-      isSuccess: isSuccessDelete,
-    },
+    { isLoading: isLoadingDelete },
   ] = useDeleteExpenseByIdMutation();
 
   /**
@@ -79,7 +71,7 @@ const Expenses = () => {
       limit: pagination.pageSize,
       ...filters,
     });
-  }, [pagination.pageIndex, pagination.pageSize, filters]);
+  }, [pagination.pageIndex, pagination.pageSize, filters, getAllExpenses]);
 
   /**
    * Al aplicar nuevos filtros:
@@ -103,7 +95,7 @@ const Expenses = () => {
     try {
       // values already contains { description, total, category, status }
       // total is already a float from ExpensesDialog
-      const result = expenseId
+      expenseId
         ? await updateExpenseById({
             id: expenseId,
             data: {

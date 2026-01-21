@@ -72,7 +72,7 @@ export function EventDialog({
 
       formEventDialog.reset(mappedValues);
     }
-  }, [event]);
+  }, [event, formEventDialog]);
 
   const onSubmitDialog = (values) => {
     onSubmit(values);
@@ -164,7 +164,7 @@ export function EventDialog({
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          {dataTypes.map((item, index) => (
+                          {dataTypes.map((item) => (
                             <SelectItem
                               value={item.id.toString()}
                               key={item.id}
@@ -320,9 +320,9 @@ export function EventDialog({
 }
 
 EventDialog.propTypes = {
-  open: PropTypes.bool.required,
+  open: PropTypes.bool.isRequired,
   onOpenChange: PropTypes.func.isRequired,
   onSubmit: PropTypes.func.isRequired,
-  event: PropTypes.object.required,
+  event: PropTypes.object,
   dataTypes: PropTypes.array.isRequired,
 };

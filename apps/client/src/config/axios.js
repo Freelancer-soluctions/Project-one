@@ -1,6 +1,5 @@
 import axios from 'axios';
 import { store } from '../redux/store';
-import { jwtDecode } from 'jwt-decode';
 import { refreshTokenFecth } from '../modules/auth/slice/authSlice';
 import Cookies from 'js-cookie';
 
