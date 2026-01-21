@@ -42,7 +42,6 @@ const PerformanceEvaluation = () => {
       data: dataEvaluations = { data: [] },
       isLoading: isLoadingEvaluations,
       isFetching: isFetchingEvaluations,
-      refetch,
     },
   ] = useLazyGetAllPerformanceEvaluationsQuery();
 
@@ -80,7 +79,7 @@ const PerformanceEvaluation = () => {
       limit: pagination.pageSize,
       ...filters,
     });
-  }, [pagination.pageIndex, pagination.pageSize, filters]);
+  }, [pagination.pageIndex, pagination.pageSize, filters, getAllEvaluations]);
 
   /**
    * Al aplicar nuevos filtros:

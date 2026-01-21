@@ -1,8 +1,9 @@
-// import store from '../../redux/store'
 import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router';
 import { useEffect } from 'react';
 import { getUserFromToken } from '../../utils/jwt-decode';
+import PropTypes from 'prop-types';
+
 export const ProtectedRoutes = ({ children, redirectTo }) => {
   // Accediendo al estado de autenticación
   const user = useSelector((state) => state.auth);
@@ -36,4 +37,9 @@ export const ProtectedRoutes = ({ children, redirectTo }) => {
   // }
 
   return children;
+};
+
+ProtectedRoutes.propTypes = {
+  children: PropTypes.node.isRequired,
+  redirectTo: PropTypes.string.isRequired,
 };

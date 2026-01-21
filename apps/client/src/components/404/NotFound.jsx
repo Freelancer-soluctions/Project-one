@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router';
 import { Button } from '../ui/button';
+import PropTypes from 'prop-types';
 
 const NotFound = ({ link }) => {
   const navigate = useNavigate();
@@ -27,4 +28,9 @@ const NotFound = ({ link }) => {
     </main>
   );
 };
+
+NotFound.propTypes = {
+  link: PropTypes.string.isRequired,
+};
+
 export default NotFound;

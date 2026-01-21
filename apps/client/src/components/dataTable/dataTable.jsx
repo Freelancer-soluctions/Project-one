@@ -181,8 +181,10 @@ export const DataTable = ({
 DataTable.propTypes = {
   columns: PropTypes.array.isRequired,
   data: PropTypes.array,
-  totalRows: PropTypes.number,
-  handleRow: PropTypes.func,
+  totalRows: PropTypes.number.isRequired,
+  handleRow: PropTypes.func.isRequired,
+  pagination: PropTypes.object.isRequired,
+  onPaginationChange: PropTypes.func.isRequired,
 };
 
 // Helper function to render cell content with tooltip

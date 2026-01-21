@@ -8,6 +8,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useTranslation } from 'react-i18next';
+import PropTypes from 'prop-types';
 
 export const SettingsLanguage = ({ onChangeLanguage }) => {
   const {
@@ -57,4 +58,8 @@ export const SettingsLanguage = ({ onChangeLanguage }) => {
       </CardContent>
     </Card>
   );
+};
+
+SettingsLanguage.propTypes = {
+  onChangeLanguage: PropTypes.func.isRequired,
 };

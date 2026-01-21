@@ -39,25 +39,17 @@ const ClientOrder = () => {
 
   const [
     updateClientOrderById,
-    { isLoading: isLoadingPut, isError: isErrorPut, isSuccess: isSuccessPut },
+    { isLoading: isLoadingPut },
   ] = useUpdateClientOrderByIdMutation();
 
   const [
     createClientOrder,
-    {
-      isLoading: isLoadingPost,
-      isError: isErrorPost,
-      isSuccess: isSuccessPost,
-    },
+    { isLoading: isLoadingPost },
   ] = useCreateClientOrderMutation();
 
   const [
     deleteClientOrderById,
-    {
-      isLoading: isLoadingDelete,
-      isError: isErrorDelete,
-      isSuccess: isSuccessDelete,
-    },
+    { isLoading: isLoadingDelete },
   ] = useDeleteClientOrderByIdMutation();
 
   /**
@@ -101,7 +93,7 @@ const ClientOrder = () => {
 
   const handleSubmit = async (values, clientOrderId) => {
     try {
-      const result = clientOrderId
+       clientOrderId
         ? await updateClientOrderById({
             id: clientOrderId,
             data: {

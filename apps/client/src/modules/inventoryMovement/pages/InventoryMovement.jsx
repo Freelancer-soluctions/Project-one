@@ -12,8 +12,8 @@ import {
   useCreateInventoryMovementMutation,
   useDeleteInventoryMovementByIdMutation,
 } from '../api/inventoryMovementAPI';
-import { useGetAllProductsQuery } from '@/modules/products/api/productsAPI';
-import { useGetAllWarehousesQuery } from '@/modules/warehouse/api/warehouseAPI';
+import { useGetAllProductsFiltersQuery } from '@/modules/products/api/productsAPI';
+import { useGetAllWarehousesFiltersQuery } from '@/modules/warehouse/api/warehouseAPI';
 import AlertDialogComponent from '@/components/alertDialog/AlertDialog';
 import { Spinner } from '@/components/loader/Spinner';
 
@@ -43,13 +43,13 @@ const InventoryMovement = () => {
     data: dataProducts = { data: [] },
     isLoading: isLoadingProducts,
     isFetching: isFetchingProducts,
-  } = useGetAllProductsQuery();
+  } = useGetAllProductsFiltersQuery();
 
   const {
     data: dataWarehouses = { data: [] },
     isLoading: isLoadingWarehouses,
     isFetching: isFetchingWarehouses,
-  } = useGetAllWarehousesQuery();
+  } = useGetAllWarehousesFiltersQuery();
 
   const [
     updateInventoryMovementById,

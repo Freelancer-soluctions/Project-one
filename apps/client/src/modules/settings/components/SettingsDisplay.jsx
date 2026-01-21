@@ -11,6 +11,7 @@ import {
   FormLabel,
 } from '@/components/ui/form';
 import { useToast } from '@/components/ui/use-toast';
+import PropTypes from 'prop-types';
 export const SettingsDisplay = ({
   userDisplaySettings,
   onSaveDisplaySettings,
@@ -256,4 +257,9 @@ export const SettingsDisplay = ({
       </CardContent>
     </Card>
   );
+};
+
+SettingsDisplay.propTypes = {
+  userDisplaySettings: PropTypes.object.isRequired,
+  onSaveDisplaySettings: PropTypes.func.isRequired,
 };

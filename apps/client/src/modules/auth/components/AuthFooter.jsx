@@ -1,5 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
+import PropTypes from 'prop-types';
+
 export const AuthFooter = ({ link, linkMessage, authMessage }) => {
   const { t } = useTranslation();
   return (
@@ -17,4 +19,10 @@ export const AuthFooter = ({ link, linkMessage, authMessage }) => {
       </p>
     </div>
   );
+};
+
+AuthFooter.propTypes = {
+  link: PropTypes.string.isRequired,
+  linkMessage: PropTypes.string.isRequired,
+  authMessage: PropTypes.string.isRequired,
 };

@@ -38,6 +38,7 @@ import {
 } from '@/components/ui/accordion';
 import { LuUser } from 'react-icons/lu';
 import { LucideUserCheck } from 'lucide-react';
+import PropTypes from 'prop-types';
 
 export const UsersBasicInfo = ({
   onSubmit,
@@ -684,4 +685,13 @@ export const UsersBasicInfo = ({
       </CardContent>
     </Card>
   );
+};
+
+UsersBasicInfo.propTypes = {
+  onSubmit: PropTypes.func.isRequired,
+  onDelete: PropTypes.func.isRequired,
+  dataStatus: PropTypes.array.isRequired,
+  dataPermits: PropTypes.array.isRequired,
+  dataRol: PropTypes.array.isRequired,
+  selectedRow: PropTypes.object,
 };
