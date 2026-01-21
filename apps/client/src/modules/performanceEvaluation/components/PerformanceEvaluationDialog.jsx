@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -56,7 +56,11 @@ export const PerformanceEvaluationDialog = ({
   dataEmployees,
 }) => {
   const { t } = useTranslation();
-  const [evaluationId, setEvaluationId] = useState('');
+
+  const evaluationId = useMemo(
+    () => selectedRow?.id ?? null,
+    [selectedRow?.id]
+  );
 
   const form = useForm({
     resolver: zodResolver(PerformanceEvaluationSchema),
@@ -82,7 +86,6 @@ export const PerformanceEvaluationDialog = ({
         userPerformanceUpdatedName: selectedRow.userPerformanceUpdatedName,
       };
       form.reset(mappedValues);
-      setEvaluationId(mappedValues.id);
     } else {
       form.reset({
         employeeId: '',
@@ -90,7 +93,6 @@ export const PerformanceEvaluationDialog = ({
         calification: '',
         comments: '',
       });
-      setEvaluationId(null);
     }
   }, [selectedRow, openDialog, form]);
 

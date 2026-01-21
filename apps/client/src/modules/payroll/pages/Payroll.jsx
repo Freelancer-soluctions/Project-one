@@ -42,7 +42,6 @@ const Payroll = () => {
       data: dataPayroll = { data: [] },
       isLoading: isLoadingPayroll,
       isFetching: isFetchingPayroll,
-      refetch, // Add refetch to manually trigger data fetching
     },
   ] = useLazyGetAllPayrollQuery();
 
@@ -74,7 +73,7 @@ const Payroll = () => {
       limit: pagination.pageSize,
       ...filters,
     });
-  }, [pagination.pageIndex, pagination.pageSize, filters]);
+  }, [pagination.pageIndex, pagination.pageSize, filters, getAllPayroll]);
 
   /**
    * Al aplicar nuevos filtros:
