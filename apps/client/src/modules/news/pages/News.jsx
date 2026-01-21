@@ -94,7 +94,7 @@ const News = () => {
       limit: pagination.pageSize,
       ...filters,
     });
-  }, [pagination.pageIndex, pagination.pageSize, filters]);
+  }, [pagination.pageIndex, pagination.pageSize, filters, trigger]);
 
   /**
    * Al aplicar nuevos filtros:
@@ -116,7 +116,7 @@ const News = () => {
 
   const handleSubmit = async (values, newId) => {
     try {
-      const result = newId
+      newId
         ? await updateNewById({
             id: newId,
             data: {

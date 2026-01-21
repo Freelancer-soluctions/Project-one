@@ -41,7 +41,6 @@ const Attendance = () => {
       data: dataAttendance = { data: [] },
       isLoading: isLoadingAttendance,
       isFetching: isFetchingAttendance,
-      refetch, // Add refetch to manually trigger data fetching
     },
   ] = useLazyGetAllAttendanceQuery();
 
@@ -73,7 +72,7 @@ const Attendance = () => {
       limit: pagination.pageSize,
       ...filters,
     });
-  }, [pagination.pageIndex, pagination.pageSize, filters]);
+  }, [pagination.pageIndex, pagination.pageSize, filters, getAllAttendance]);
 
   /**
    * Al aplicar nuevos filtros:

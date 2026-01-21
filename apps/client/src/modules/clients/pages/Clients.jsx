@@ -39,25 +39,17 @@ const Clients = () => {
 
   const [
     updateClientById,
-    { isLoading: isLoadingPut, isError: isErrorPut, isSuccess: isSuccessPut },
+    { isLoading: isLoadingPut },
   ] = useUpdateClientByIdMutation();
 
   const [
     createClient,
-    {
-      isLoading: isLoadingPost,
-      isError: isErrorPost,
-      isSuccess: isSuccessPost,
-    },
+    { isLoading: isLoadingPost },
   ] = useCreateClientMutation();
 
   const [
     deleteClientById,
-    {
-      isLoading: isLoadingDelete,
-      isError: isErrorDelete,
-      isSuccess: isSuccessDelete,
-    },
+    { isLoading: isLoadingDelete },
   ] = useDeleteClientByIdMutation();
 
   /**
@@ -79,7 +71,7 @@ const Clients = () => {
       limit: pagination.pageSize,
       ...filters,
     });
-  }, [pagination.pageIndex, pagination.pageSize, filters]);
+  }, [pagination.pageIndex, pagination.pageSize, filters, getAllClients]);
 
   /**
    * Al aplicar nuevos filtros:
@@ -101,7 +93,7 @@ const Clients = () => {
 
   const handleSubmit = async (values, clientId) => {
     try {
-      const result = clientId
+       clientId
         ? await updateClientById({
             id: clientId,
             data: {

@@ -6,7 +6,6 @@ import {
   CardDescription,
 } from '@/components/ui/card';
 import { UpcomingEventsAlert } from './UpcomingEvents';
-import { Button } from '@/components/ui/button';
 import { Link } from 'react-router';
 import { CgNotes } from 'react-icons/cg';
 import {
@@ -33,6 +32,8 @@ import {
   LuClipboard,
 } from 'react-icons/lu';
 import { useTranslation } from 'react-i18next';
+import PropTypes from 'prop-types';
+
 const CardModule = () => {
   const { t } = useTranslation();
   return (
@@ -504,5 +505,7 @@ const CardModule = () => {
     </>
   );
 };
+
+CardModule.propTypes = {};
 
 export default CardModule;

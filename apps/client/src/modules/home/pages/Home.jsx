@@ -11,20 +11,10 @@ const Home = () => {
   const { settings } = useUserSettings();
   const {
     data: dataCountNotes = { data: [] },
-    isError: isErrorCountNotes,
-    isLoading: isLoadingCountNotes,
-    isFetching: isFetchingCountNotes,
-    isSuccess: isSuccesCountNotes,
-    error: errorCountNotes,
   } = useGetAllCountNotesQuery();
 
   const {
     data: dataCountStock = { data: [] },
-    isError: isErrorCountStock,
-    isLoading: isLoadingCountStock,
-    isFetching: isFetchingCountStock,
-    isSuccess: isSuccesCountStock,
-    error: errorCountStock,
   } = useGetStockAlertsQuery();
 
   return (

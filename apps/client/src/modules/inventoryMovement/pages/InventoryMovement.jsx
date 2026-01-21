@@ -53,25 +53,17 @@ const InventoryMovement = () => {
 
   const [
     updateInventoryMovementById,
-    { isLoading: isLoadingPut, isError: isErrorPut, isSuccess: isSuccessPut },
+    { isLoading: isLoadingPut },
   ] = useUpdateInventoryMovementByIdMutation();
 
   const [
     createInventoryMovement,
-    {
-      isLoading: isLoadingPost,
-      isError: isErrorPost,
-      isSuccess: isSuccessPost,
-    },
+    { isLoading: isLoadingPost },
   ] = useCreateInventoryMovementMutation();
 
   const [
     deleteInventoryMovementById,
-    {
-      isLoading: isLoadingDelete,
-      isError: isErrorDelete,
-      isSuccess: isSuccessDelete,
-    },
+    { isLoading: isLoadingDelete },
   ] = useDeleteInventoryMovementByIdMutation();
 
   /**
@@ -93,7 +85,7 @@ const InventoryMovement = () => {
       limit: pagination.pageSize,
       ...filters,
     });
-  }, [pagination.pageIndex, pagination.pageSize, filters]);
+  }, [pagination.pageIndex, pagination.pageSize, filters, getAllInventoryMovements]);
 
   /**
    * Al aplicar nuevos filtros:
@@ -115,7 +107,7 @@ const InventoryMovement = () => {
 
   const handleSubmit = async (values, inventoryMovementId) => {
     try {
-      const result = inventoryMovementId
+      inventoryMovementId
         ? await updateInventoryMovementById({
             id: inventoryMovementId,
             data: values,

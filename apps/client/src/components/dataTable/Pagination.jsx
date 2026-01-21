@@ -1,5 +1,4 @@
 import { Button } from '../ui/button';
-import { Input } from '../ui/input';
 import PropTypes from 'prop-types';
 
 export const Pagination = ({ table }) => {
