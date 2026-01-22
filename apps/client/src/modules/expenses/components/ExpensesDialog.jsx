@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -53,7 +53,6 @@ export const ExpensesDialog = ({
   actionDialog,
 }) => {
   const { t } = useTranslation();
-  const [expenseId, setExpenseId] = useState(''); // Renamed from clientId
 
   const form = useForm({
     resolver: zodResolver(ExpenseSchema), // Changed from ClientSchema
@@ -64,6 +63,7 @@ export const ExpensesDialog = ({
     },
   });
 
+  const expenseId = useMemo(() => selectedRow?.id, [selectedRow?.id]);
   // Actualiza todos los valores del formulario al cambiar `selectedRow`
   useEffect(() => {
     if (selectedRow?.id) {
@@ -85,7 +85,6 @@ export const ExpensesDialog = ({
           '',
       };
       form.reset(mappedValues);
-      setExpenseId(mappedValues.id);
     } else if (!openDialog) {
       // Changed logic to reset only if not openDialog and no selectedRow
       form.reset({
@@ -93,7 +92,6 @@ export const ExpensesDialog = ({
         total: '',
         category: '',
       });
-      setExpenseId(null);
     }
   }, [selectedRow, openDialog, form]); // Added form to dependency array as per react-hook-form's recommendation
 

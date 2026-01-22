@@ -1,6 +1,7 @@
 import * as React from 'react';
 import * as CheckboxPrimitive from '@radix-ui/react-checkbox';
 import { Check } from 'lucide-react';
+import PropTypes from 'prop-types';
 
 import { cn } from '@/lib/utils';
 
@@ -21,5 +22,9 @@ const Checkbox = React.forwardRef(({ className, ...props }, ref) => (
   </CheckboxPrimitive.Root>
 ));
 Checkbox.displayName = CheckboxPrimitive.Root.displayName;
+
+Checkbox.propTypes = {
+  className: PropTypes.string,
+};
 
 export { Checkbox };

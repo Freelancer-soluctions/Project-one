@@ -43,14 +43,14 @@ export const ProductBasicInfo = ({
   const navigate = useNavigate();
   const { t } = useTranslation();
 
-const handleGenerateBarcode = () => {
-  const barcode = generateRandomBarcode(10);
+  const handleGenerateBarcode = () => {
+    const barcode = generateRandomBarcode(10);
 
-  form.setValue('barcode', barcode, {
-    shouldValidate: true,
-    shouldDirty: true,
-  });
-};
+    form.setValue('barcode', barcode, {
+      shouldValidate: true,
+      shouldDirty: true,
+    });
+  };
 
   const form = useForm({
     resolver: zodResolver(ProductsSchema),
@@ -67,8 +67,7 @@ const handleGenerateBarcode = () => {
     },
   });
 
-const productId = useMemo(()=> selectedRow?.id ?? null, [selectedRow?.id])
-
+  const productId = useMemo(() => selectedRow?.id ?? null, [selectedRow?.id]);
 
   // Actualiza todos los valores del formulario al cambiar `selectedRow`
   useEffect(() => {

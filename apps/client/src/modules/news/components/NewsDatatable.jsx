@@ -1,7 +1,6 @@
 import { DataTable } from '@/components/dataTable/index';
-import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { format, parseISO } from 'date-fns';
+import { format } from 'date-fns';
 import PropTypes from 'prop-types';
 
 export const NewsDatatable = ({

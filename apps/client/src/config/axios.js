@@ -1,6 +1,5 @@
 import axios from 'axios';
 import { store } from '../redux/store';
-import { jwtDecode } from 'jwt-decode';
 import { refreshTokenFecth } from '../modules/auth/slice/authSlice';
 import Cookies from 'js-cookie';
 
@@ -139,7 +138,7 @@ export const axiosPrivateBaseQuery =
 //   return Authorization
 // }
 
-// eslint-disable-next-line dot-notation
+//// eslint-disable-next-line dot-notation
 // axiosPublic.defaults.headers.common['Authorization'] = user?.accessToken
 
 // axiosPublic.defaults.headers.common.Authorization = getToken()

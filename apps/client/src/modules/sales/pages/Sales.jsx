@@ -42,15 +42,13 @@ const Sales = () => {
   } = useGetAllClientsFiltersQuery();
   const [
     updateSaleById,
-    { isLoading: isLoadingPut, isError: isErrorPut, isSuccess: isSuccessPut },
+    { isLoading: isLoadingPut },
   ] = useUpdateSaleByIdMutation();
 
   const [
     createSale,
     {
       isLoading: isLoadingPost,
-      isError: isErrorPost,
-      isSuccess: isSuccessPost,
     },
   ] = useCreateSaleMutation();
 
@@ -58,8 +56,6 @@ const Sales = () => {
     deleteSaleById,
     {
       isLoading: isLoadingDelete,
-      isError: isErrorDelete,
-      isSuccess: isSuccessDelete,
     },
   ] = useDeleteSaleByIdMutation();
 
@@ -110,7 +106,7 @@ const Sales = () => {
 
   const handleSubmit = async (values, saleId) => {
     try {
-      const result = saleId
+      saleId
         ? await updateSaleById({
             id: saleId,
             data: {

@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { EventDialog, EventList, EventFiltersForm } from '../components';
 import AlertDialogComponent from '@/components/alertDialog/AlertDialog';
@@ -20,51 +20,23 @@ export default function Events() {
   const [alertProps, setAlertProps] = useState({});
   const [openAlertDialog, setOpenAlertDialog] = useState(false); //alert dialog open/close
 
-  const [
-    createEvent,
-    {
-      isLoading: isLoadingPost,
-      isError: isErrorPost,
-      isSuccess: isSuccessPost,
-      error: errorPost,
-    },
-  ] = useCreateEventMutation();
+  const [createEvent, { isLoading: isLoadingPost }] = useCreateEventMutation();
 
-  const [
-    updateEvent,
-    {
-      isLoading: isLoadingPut,
-      isError: isErrorPut,
-      isSuccess: isSuccessPut,
-      error: errorPut,
-    },
-  ] = useUpdateEventByIdMutation();
-  const [
-    deleteEventById,
-    {
-      isLoading: isLoadingDelete,
-      isError: isErrorDelete,
-      isSuccess: isSuccessDelete,
-      error: errorDelete,
-    },
-  ] = useDeleteEventByIdMutation();
+  const [updateEvent, { isLoading: isLoadingPut }] =
+    useUpdateEventByIdMutation();
+  const [deleteEventById, { isLoading: isLoadingDelete }] =
+    useDeleteEventByIdMutation();
 
   const {
     data: dataTypes = { data: [] },
     isLoading: isLoadingTypes,
-    isError: isErrorTypes,
-    isSuccess: isSuccessTypes,
     isFetching: isFetchingTypes,
-    error: errorTypes,
   } = useGetAllEventTypesQuery();
 
   const {
     data: dataEvents = { data: [] },
     isLoading: isLoadingEvents,
-    isError: isErrorEvents,
-    isSuccess: isSuccessEvents,
     isFetching: isFetchingEvents,
-    error: errorEvents,
   } = useGetAllEventsQuery(searchQuery);
 
   const handleAddEvent = async (data) => {

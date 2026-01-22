@@ -37,7 +37,7 @@ export const SignInForm = () => {
     } else {
       //Mostrar mensaje de error
     }
-  }, [user, isError]);
+  }, [user, isError, navigate]);
 
   // const handleChangeEmail = useCallback(
   //   e => dispatch(updateAuthData(e.target.value)),

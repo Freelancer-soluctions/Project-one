@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -52,7 +52,6 @@ export const AttendanceDialog = ({
   dataEmployees,
 }) => {
   const { t } = useTranslation();
-  const [attendanceId, setAttendanceId] = useState('');
 
   const form = useForm({
     resolver: zodResolver(AttendanceSchema),
@@ -64,6 +63,10 @@ export const AttendanceDialog = ({
       workedHours: '',
     },
   });
+  const attendanceId = useMemo(
+    () => selectedRow?.id ?? null,
+    [selectedRow?.id]
+  );
 
   useEffect(() => {
     if (selectedRow?.id) {
@@ -81,7 +84,6 @@ export const AttendanceDialog = ({
         userAttendanceUpdatedName: selectedRow.userAttendanceUpdatedName,
       };
       form.reset(mappedValues);
-      setAttendanceId(mappedValues.id);
     } else {
       form.reset({
         employeeId: '',
@@ -90,7 +92,6 @@ export const AttendanceDialog = ({
         exitTime: '',
         workedHours: '',
       });
-      setAttendanceId(null);
     }
   }, [selectedRow, openDialog, form]);
 

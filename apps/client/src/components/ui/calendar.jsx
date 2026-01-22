@@ -1,5 +1,6 @@
 import { ChevronLeftIcon, ChevronRightIcon } from '@radix-ui/react-icons';
 import { DayPicker } from 'react-day-picker';
+import PropTypes from 'prop-types';
 
 import { cn } from '@/lib/utils';
 import { buttonVariants } from '@/components/ui/button';
@@ -50,13 +51,19 @@ function Calendar({ className, classNames, showOutsideDays = true, ...props }) {
         ...classNames,
       }}
       components={{
-        IconLeft: ({ ...props }) => <ChevronLeftIcon className="w-4 h-4" />,
-        IconRight: ({ ...props }) => <ChevronRightIcon className="w-4 h-4" />,
+        IconLeft: () => <ChevronLeftIcon className="w-4 h-4" />,
+        IconRight: () => <ChevronRightIcon className="w-4 h-4" />,
       }}
-      {...props}
     />
   );
 }
 Calendar.displayName = 'Calendar';
+
+Calendar.propTypes = {
+  className: PropTypes.string,
+  classNames: PropTypes.object,
+  showOutsideDays: PropTypes.bool,
+  mode: PropTypes.oneOf(['single', 'multiple', 'range']),
+};
 
 export { Calendar };

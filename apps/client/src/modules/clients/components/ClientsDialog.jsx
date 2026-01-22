@@ -33,7 +33,7 @@ import { Button } from '@/components/ui/button';
 import { LuUsersRound } from 'react-icons/lu';
 import PropTypes from 'prop-types';
 import { ClientSchema } from '../utils';
-import { useState } from 'react';
+import { useMemo } from 'react';
 
 export const ClientsDialog = ({
   openDialog,
@@ -44,7 +44,8 @@ export const ClientsDialog = ({
   actionDialog,
 }) => {
   const { t } = useTranslation();
-  const [clientId, setClientId] = useState('');
+
+  const clientId = useMemo(() => selectedRow?.id ?? null, [selectedRow?.id]);
 
   const form = useForm({
     resolver: zodResolver(ClientSchema),
@@ -77,7 +78,6 @@ export const ClientsDialog = ({
       };
 
       form.reset(mappedValues);
-      setClientId(mappedValues.id);
     }
 
     if (!openDialog) {
@@ -91,9 +91,8 @@ export const ClientsDialog = ({
         userClientCreatedName: '',
         userClientUpdatedName: '',
       });
-      setClientId(null);
     }
-  }, [selectedRow, openDialog]);
+  }, [selectedRow, openDialog, form]);
 
   const handleSubmit = (data) => {
     onSubmit(data, clientId);

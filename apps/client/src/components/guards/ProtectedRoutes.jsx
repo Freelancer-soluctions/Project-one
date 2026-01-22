@@ -29,7 +29,7 @@ export const ProtectedRoutes = ({ children, redirectTo }) => {
     ) {
       navigate(redirectTo, { replace: true });
     }
-  }, [navigate, user]);
+  }, [navigate, user, redirectTo, userToken.id]);
 
   // if (user === null) {
   //   // Mientras se está rehidratando el estado o el usuario es null, no renderizamos el contenido.

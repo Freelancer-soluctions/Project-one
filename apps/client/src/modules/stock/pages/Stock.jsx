@@ -106,7 +106,7 @@ const Stock = () => {
 
   const handleSubmit = async (values, stockId) => {
     try {
-      const result = stockId
+      stockId
         ? await updateStockById({
             id: stockId,
             data: {

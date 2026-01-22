@@ -22,6 +22,7 @@ import {
 import { useGetAllEventsQuery } from '@/modules/events/api/eventsAPI';
 import { sortedEvents, getEventTypeColor } from '@/modules/events/utils';
 import { useTranslation } from 'react-i18next';
+import { Spinner } from '@/components/loader/Spinner';
 
 export function UpcomingEventsAlert() {
   const [upcomingEvents, setUpcomingEvents] = useState([]);
@@ -32,11 +33,8 @@ export function UpcomingEventsAlert() {
 
   const {
     data: dataEvents = { data: [] },
-    isLoading: isLoadingEvents,
-    isError: isErrorEvents,
-    isSuccess: isSuccessEvents,
-    isFetching: isFetchingEvents,
-    error: errorEvents,
+    isLoading,
+    isFetching,
   } = useGetAllEventsQuery();
 
   useEffect(() => {
@@ -46,6 +44,8 @@ export function UpcomingEventsAlert() {
       setUpcomingEvents(sorted);
     }
   }, [dataEvents]);
+
+  if (isLoading || isFetching) return <Spinner />;
 
   if (upcomingEvents.length === 0) return null; // cargar configuracion de settings para no ver notificaciones
 
