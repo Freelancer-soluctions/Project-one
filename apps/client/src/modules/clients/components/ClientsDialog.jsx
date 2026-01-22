@@ -45,7 +45,7 @@ export const ClientsDialog = ({
 }) => {
   const { t } = useTranslation();
 
-  const clientId = useMemo(()=> selectedRow?.id ?? null, [selectedRow?.id])
+  const clientId = useMemo(() => selectedRow?.id ?? null, [selectedRow?.id]);
 
   const form = useForm({
     resolver: zodResolver(ClientSchema),

@@ -24,6 +24,13 @@ const Purchase = () => {
   const [openAlertDialog, setOpenAlertDialog] = useState(false);
   const [alertProps, setAlertProps] = useState({});
   const [actionDialog, setActionDialog] = useState('');
+    const [details, setDetails] = useState([
+    {
+      productId: '',
+      quantity: 0,
+      price: 0,
+    },
+  ]);
   const [pagination, setPagination] = useState({
     pageIndex: 0,
     pageSize: 20,
@@ -47,15 +54,13 @@ const Purchase = () => {
 
   const [
     updatePurchaseById,
-    { isLoading: isLoadingPut, isError: isErrorPut, isSuccess: isSuccessPut },
+    { isLoading: isLoadingPut },
   ] = useUpdatePurchaseByIdMutation();
 
   const [
     createPurchase,
     {
       isLoading: isLoadingPost,
-      isError: isErrorPost,
-      isSuccess: isSuccessPost,
     },
   ] = useCreatePurchaseMutation();
 
@@ -63,8 +68,6 @@ const Purchase = () => {
     deletePurchaseById,
     {
       isLoading: isLoadingDelete,
-      isError: isErrorDelete,
-      isSuccess: isSuccessDelete,
     },
   ] = useDeletePurchaseByIdMutation();
 
@@ -93,7 +96,7 @@ const Purchase = () => {
       limit: pagination.pageSize,
       ...filters,
     });
-  }, [pagination.pageIndex, pagination.pageSize, filters]);
+  }, [pagination.pageIndex, pagination.pageSize, filters, getAllPurchases]);
 
   /**
    * Al aplicar nuevos filtros:
@@ -115,7 +118,7 @@ const Purchase = () => {
 
   const handleSubmit = async (values, purchaseId) => {
     try {
-      const result = purchaseId
+      purchaseId
         ? await updatePurchaseById({
             id: purchaseId,
             data: {
@@ -270,13 +273,7 @@ const Purchase = () => {
     }
   }, [dataPurchases]);
 
-  const [details, setDetails] = useState([
-    {
-      productId: '',
-      quantity: 0,
-      price: 0,
-    },
-  ]);
+
 
   const handleAddDetail = () => {
     setDetails([

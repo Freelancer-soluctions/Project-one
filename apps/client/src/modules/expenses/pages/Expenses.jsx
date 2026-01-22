@@ -37,20 +37,14 @@ const Expenses = () => {
     },
   ] = useLazyGetAllExpensesQuery();
 
-  const [
-    updateExpenseById,
-    { isLoading: isLoadingPut },
-  ] = useUpdateExpenseByIdMutation();
+  const [updateExpenseById, { isLoading: isLoadingPut }] =
+    useUpdateExpenseByIdMutation();
 
-  const [
-    createExpense,
-    { isLoading: isLoadingPost },
-  ] = useCreateExpenseMutation();
+  const [createExpense, { isLoading: isLoadingPost }] =
+    useCreateExpenseMutation();
 
-  const [
-    deleteExpenseById,
-    { isLoading: isLoadingDelete },
-  ] = useDeleteExpenseByIdMutation();
+  const [deleteExpenseById, { isLoading: isLoadingDelete }] =
+    useDeleteExpenseByIdMutation();
 
   /**
    * Este efecto es la única fuente de verdad para disparar

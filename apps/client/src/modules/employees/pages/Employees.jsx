@@ -37,20 +37,14 @@ const Employees = () => {
     },
   ] = useLazyGetAllEmployeesQuery();
 
-  const [
-    updateEmployeeById,
-    { isLoading: isLoadingPut },
-  ] = useUpdateEmployeeByIdMutation();
+  const [updateEmployeeById, { isLoading: isLoadingPut }] =
+    useUpdateEmployeeByIdMutation();
 
-  const [
-    createEmployee,
-    { isLoading: isLoadingPost },
-  ] = useCreateEmployeeMutation();
+  const [createEmployee, { isLoading: isLoadingPost }] =
+    useCreateEmployeeMutation();
 
-  const [
-    deleteEmployeeById,
-    { isLoading: isLoadingDelete },
-  ] = useDeleteEmployeeByIdMutation();
+  const [deleteEmployeeById, { isLoading: isLoadingDelete }] =
+    useDeleteEmployeeByIdMutation();
 
   /**
    * Este efecto es la única fuente de verdad para disparar
@@ -91,7 +85,7 @@ const Employees = () => {
     setFilters(newFilters);
   };
 
-const handleSubmit = async (values, employeeId) => {
+  const handleSubmit = async (values, employeeId) => {
     try {
       employeeId
         ? await updateEmployeeById({

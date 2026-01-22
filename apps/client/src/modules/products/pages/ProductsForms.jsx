@@ -145,11 +145,17 @@ function ProductsForms() {
   const [
     getProductAttributes,
     {
+      // eslint-disable-next-line no-unused-vars
       data: dataAttributes = { data: [] },
       isLoading: isLoadingAttributes,
       isFetching: isFetchingAttributes,
     },
-  ] = useLazyGetAllProductAttributesQuery();
+  ] = useLazyGetAllProductAttributesQuery({
+    async onQueryStarted(_, { queryFulfilled }) {
+      const { data } = await queryFulfilled;
+      setAttributes(data.data);
+    },
+  });
 
   const [deleteProductAttributeById, { isLoading: isLoadingDeleteAttribute }] =
     useDeleteProductAttributeByIdMutation();
@@ -163,16 +169,11 @@ function ProductsForms() {
     }
   }, [selectedRow, getProductAttributes]);
 
-  useEffect(() => {
-    if (dataAttributes?.data.length > 0) {
-      setAttributes(dataAttributes.data);
-    }
-  }, [dataAttributes]);
-
-  const fetchedAttributes = useMemo(
-    () => dataAttributes?.data ?? [],
-    [dataAttributes?.data]
-  );
+  // useEffect(() => {
+  //   if ( dataAttributes?.data.length > 0) {
+  //     setAttributes(dataAttributes.data);
+  //   }
+  // }, [dataAttributes?.data]);
 
   const handleAddAttribute = () => {
     setAttributes([
@@ -246,7 +247,7 @@ function ProductsForms() {
     // Filtrar solo los atributos con save: true
     const attributesToSend = data
       .filter((attr) => attr.save) // Solo los que tienen save: true
-      .map(({ save, ...rest }) => rest); // Eliminar 'save' del objeto
+      .map(({ ...rest }) => rest); // Eliminar 'save' del objeto
 
     if (attributesToSend.length > 0) {
       await saveProductAttributes(attributesToSend).unwrap();

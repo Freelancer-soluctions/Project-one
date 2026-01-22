@@ -20,19 +20,12 @@ export default function Events() {
   const [alertProps, setAlertProps] = useState({});
   const [openAlertDialog, setOpenAlertDialog] = useState(false); //alert dialog open/close
 
-  const [
-    createEvent,
-    { isLoading: isLoadingPost },
-  ] = useCreateEventMutation();
+  const [createEvent, { isLoading: isLoadingPost }] = useCreateEventMutation();
 
-  const [
-    updateEvent,
-    { isLoading: isLoadingPut },
-  ] = useUpdateEventByIdMutation();
-  const [
-    deleteEventById,
-    { isLoading: isLoadingDelete },
-  ] = useDeleteEventByIdMutation();
+  const [updateEvent, { isLoading: isLoadingPut }] =
+    useUpdateEventByIdMutation();
+  const [deleteEventById, { isLoading: isLoadingDelete }] =
+    useDeleteEventByIdMutation();
 
   const {
     data: dataTypes = { data: [] },

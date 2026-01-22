@@ -46,7 +46,7 @@ export function UpcomingEventsAlert() {
   }, [dataEvents]);
 
   if (isLoading || isFetching) return <Spinner />;
-  
+
   if (upcomingEvents.length === 0) return null; // cargar configuracion de settings para no ver notificaciones
 
   return (
