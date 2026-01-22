@@ -1,0 +1,1072 @@
+
+> project-one@1.0.0 lint
+> eslint "apps/**/*.{js,jsx}"
+
+
+C:\Users\user\Desktop\Programacion\Node-express-nest\Project one\apps\client\src\components\500\InternalServerError.jsx
+   2:10  error  'Link' is defined but never used                     no-unused-vars
+   2:16  error  'useNavigate' is defined but never used              no-unused-vars
+   3:10  error  'TbLoader2' is defined but never used                no-unused-vars
+   5:32  error  'error' is missing in props validation               react/prop-types
+   5:39  error  'resetErrorBoundary' is missing in props validation  react/prop-types
+  25:22  error  'error.message' is missing in props validation       react/prop-types
+  36:23  error  'error.stack' is missing in props validation         react/prop-types
+
+C:\Users\user\Desktop\Programacion\Node-express-nest\Project one\apps\client\src\components\alertDialog\AlertDialog.jsx
+  10:3  error  'AlertDialogTrigger' is defined but never used  no-unused-vars
+
+C:\Users\user\Desktop\Programacion\Node-express-nest\Project one\apps\client\src\components\dataTable\DebouncedInput.jsx
+  24:6  warning  React Hook useEffect has missing dependencies: 'debounce' and 'onChange'. Either include them or remove the dependency array. If 'onChange' changes too often, find the parent component that defines it and wrap that definition in useCallback  react-hooks/exhaustive-deps
+
+C:\Users\user\Desktop\Programacion\Node-express-nest\Project one\apps\client\src\components\dataTable\Pagination.jsx
+  2:10  error  'Input' is defined but never used  no-unused-vars
+
+C:\Users\user\Desktop\Programacion\Node-express-nest\Project one\apps\client\src\components\dataTable\dataTable.jsx
+   7:3   error    'getPaginationRowModel' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            no-unused-vars
+  46:17  warning  Compilation Skipped: Use of incompatible library
+
+This API returns functions which cannot be memoized without leading to stale UI. To prevent this, by default React Compiler will skip memoizing this component/hook. However, you may see issues if values from this API are passed to other components/hooks that are memoized.
+
+  44 |   //   pageSize: 20
+  45 |   // }) //pagination
+> 46 |   const table = useReactTable({
+     |                 ^^^^^^^^^^^^^ TanStack Table's `useReactTable()` API returns functions that cannot be memoized safely
+  47 |     //override default column sizing
+  48 |     // defaultColumn: {
+  49 |     //   size: 200, //starting column size  react-hooks/incompatible-library
+
+C:\Users\user\Desktop\Programacion\Node-express-nest\Project one\apps\client\src\components\guards\ProtectedRoutes.jsx
+  32:6  warning  React Hook useEffect has missing dependencies: 'redirectTo' and 'userToken.id'. Either include them or remove the dependency array  react-hooks/exhaustive-deps
+
+C:\Users\user\Desktop\Programacion\Node-express-nest\Project one\apps\client\src\components\ui\accordion.jsx
+   9:43  error  'className' is missing in props validation  react/prop-types
+  19:6   error  'className' is missing in props validation  react/prop-types
+  19:17  error  'children' is missing in props validation   react/prop-types
+  38:6   error  'className' is missing in props validation  react/prop-types
+  38:17  error  'children' is missing in props validation   react/prop-types
+
+C:\Users\user\Desktop\Programacion\Node-express-nest\Project one\apps\client\src\components\ui\alert-dialog.jsx
+  13:48  error  'className' is missing in props validation  react/prop-types
+  25:48  error  'className' is missing in props validation  react/prop-types
+  40:30  error  'className' is missing in props validation  react/prop-types
+  51:30  error  'className' is missing in props validation  react/prop-types
+  62:46  error  'className' is missing in props validation  react/prop-types
+  72:6   error  'className' is missing in props validation  react/prop-types
+  84:6   error  'className' is missing in props validation  react/prop-types
+  84:17  error  'variant' is missing in props validation    react/prop-types
+  94:47  error  'className' is missing in props validation  react/prop-types
+
+C:\Users\user\Desktop\Programacion\Node-express-nest\Project one\apps\client\src\components\ui\alert.jsx
+  22:35  error  'className' is missing in props validation  react/prop-types
+  22:46  error  'variant' is missing in props validation    react/prop-types
+  32:40  error  'className' is missing in props validation  react/prop-types
+  41:46  error  'className' is missing in props validation  react/prop-types
+
+C:\Users\user\Desktop\Programacion\Node-express-nest\Project one\apps\client\src\components\ui\badge.jsx
+  26:18  error  'className' is missing in props validation  react/prop-types
+  26:29  error  'variant' is missing in props validation    react/prop-types
+
+C:\Users\user\Desktop\Programacion\Node-express-nest\Project one\apps\client\src\components\ui\button.jsx
+  44:6   error  'className' is missing in props validation  react/prop-types
+  44:17  error  'variant' is missing in props validation    react/prop-types
+  44:26  error  'size' is missing in props validation       react/prop-types
+  44:32  error  'asChild' is missing in props validation    react/prop-types
+
+C:\Users\user\Desktop\Programacion\Node-express-nest\Project one\apps\client\src\components\ui\calendar.jsx
+   7:21  error  'className' is missing in props validation        react/prop-types
+   7:32  error  'classNames' is missing in props validation       react/prop-types
+   7:44  error  'showOutsideDays' is missing in props validation  react/prop-types
+  31:17  error  'mode' is missing in props validation             react/prop-types
+  53:25  error  'props' is defined but never used                 no-unused-vars
+  54:26  error  'props' is defined but never used                 no-unused-vars
+
+C:\Users\user\Desktop\Programacion\Node-express-nest\Project one\apps\client\src\components\ui\card.jsx
+   5:34  error  'className' is missing in props validation  react/prop-types
+  17:40  error  'className' is missing in props validation  react/prop-types
+  26:39  error  'className' is missing in props validation  react/prop-types
+  35:45  error  'className' is missing in props validation  react/prop-types
+  44:41  error  'className' is missing in props validation  react/prop-types
+  49:40  error  'className' is missing in props validation  react/prop-types
+
+C:\Users\user\Desktop\Programacion\Node-express-nest\Project one\apps\client\src\components\ui\carousel.jsx
+   23:7   error  'orientation' is missing in props validation  react/prop-types
+   24:7   error  'opts' is missing in props validation         react/prop-types
+   25:7   error  'setApi' is missing in props validation       react/prop-types
+   26:7   error  'plugins' is missing in props validation      react/prop-types
+   27:7   error  'className' is missing in props validation    react/prop-types
+   28:7   error  'children' is missing in props validation     react/prop-types
+  102:35  error  'opts.axis' is missing in props validation    react/prop-types
+  125:45  error  'className' is missing in props validation    react/prop-types
+  144:42  error  'className' is missing in props validation    react/prop-types
+  164:6   error  'className' is missing in props validation    react/prop-types
+  164:17  error  'variant' is missing in props validation      react/prop-types
+  164:38  error  'size' is missing in props validation         react/prop-types
+  192:6   error  'className' is missing in props validation    react/prop-types
+  192:17  error  'variant' is missing in props validation      react/prop-types
+  192:38  error  'size' is missing in props validation         react/prop-types
+
+C:\Users\user\Desktop\Programacion\Node-express-nest\Project one\apps\client\src\components\ui\checkbox.jsx
+  7:38  error  'className' is missing in props validation  react/prop-types
+
+C:\Users\user\Desktop\Programacion\Node-express-nest\Project one\apps\client\src\components\ui\command.jsx
+    8:37  error  'className' is missing in props validation   react/prop-types
+   20:26  error  'children' is missing in props validation    react/prop-types
+   32:42  error  'className' is missing in props validation   react/prop-types
+   33:52  error  Unknown property 'cmdk-input-wrapper' found  react/no-unknown-property
+   48:41  error  'className' is missing in props validation   react/prop-types
+   68:42  error  'className' is missing in props validation   react/prop-types
+   81:46  error  'className' is missing in props validation   react/prop-types
+   90:41  error  'className' is missing in props validation   react/prop-types
+  103:28  error  'className' is missing in props validation   react/prop-types
+
+C:\Users\user\Desktop\Programacion\Node-express-nest\Project one\apps\client\src\components\ui\dialog.jsx
+  15:43  error  'className' is missing in props validation  react/prop-types
+  28:6   error  'className' is missing in props validation  react/prop-types
+  28:17  error  'children' is missing in props validation   react/prop-types
+  50:25  error  'className' is missing in props validation  react/prop-types
+  61:25  error  'className' is missing in props validation  react/prop-types
+  72:41  error  'className' is missing in props validation  react/prop-types
+  84:47  error  'className' is missing in props validation  react/prop-types
+
+C:\Users\user\Desktop\Programacion\Node-express-nest\Project one\apps\client\src\components\ui\dropdown-menu.jsx
+   24:6   error  'className' is missing in props validation   react/prop-types
+   24:17  error  'inset' is missing in props validation       react/prop-types
+   24:24  error  'children' is missing in props validation    react/prop-types
+   43:6   error  'className' is missing in props validation   react/prop-types
+   58:6   error  'className' is missing in props validation   react/prop-types
+   58:17  error  'sideOffset' is missing in props validation  react/prop-types
+   76:6   error  'className' is missing in props validation   react/prop-types
+   76:17  error  'inset' is missing in props validation       react/prop-types
+   91:6   error  'className' is missing in props validation   react/prop-types
+   91:17  error  'children' is missing in props validation    react/prop-types
+   91:27  error  'checked' is missing in props validation     react/prop-types
+  114:6   error  'className' is missing in props validation   react/prop-types
+  114:17  error  'children' is missing in props validation    react/prop-types
+  135:6   error  'className' is missing in props validation   react/prop-types
+  135:17  error  'inset' is missing in props validation       react/prop-types
+  150:6   error  'className' is missing in props validation   react/prop-types
+  160:33  error  'className' is missing in props validation   react/prop-types
+
+C:\Users\user\Desktop\Programacion\Node-express-nest\Project one\apps\client\src\components\ui\form.jsx
+   14:53  error  'name' is missing in props validation       react/prop-types
+   45:38  error  'className' is missing in props validation  react/prop-types
+   56:39  error  'className' is missing in props validation  react/prop-types
+   90:45  error  'className' is missing in props validation  react/prop-types
+  105:6   error  'className' is missing in props validation  react/prop-types
+  105:17  error  'children' is missing in props validation   react/prop-types
+
+C:\Users\user\Desktop\Programacion\Node-express-nest\Project one\apps\client\src\components\ui\input.jsx
+  5:35  error  'className' is missing in props validation  react/prop-types
+  5:46  error  'type' is missing in props validation       react/prop-types
+
+C:\Users\user\Desktop\Programacion\Node-express-nest\Project one\apps\client\src\components\ui\label.jsx
+  11:35  error  'className' is missing in props validation  react/prop-types
+
+C:\Users\user\Desktop\Programacion\Node-express-nest\Project one\apps\client\src\components\ui\popover.jsx
+  13:6   error  'className' is missing in props validation   react/prop-types
+  13:17  error  'align' is missing in props validation       react/prop-types
+  13:35  error  'sideOffset' is missing in props validation  react/prop-types
+
+C:\Users\user\Desktop\Programacion\Node-express-nest\Project one\apps\client\src\components\ui\radio-group.jsx
+   6:40  error  'className' is missing in props validation  react/prop-types
+  17:44  error  'className' is missing in props validation  react/prop-types
+
+C:\Users\user\Desktop\Programacion\Node-express-nest\Project one\apps\client\src\components\ui\scroll-area.jsx
+   7:6   error  'className' is missing in props validation    react/prop-types
+   7:17  error  'children' is missing in props validation     react/prop-types
+  24:6   error  'className' is missing in props validation    react/prop-types
+  24:17  error  'orientation' is missing in props validation  react/prop-types
+
+C:\Users\user\Desktop\Programacion\Node-express-nest\Project one\apps\client\src\components\ui\select.jsx
+   19:6   error  'className' is missing in props validation  react/prop-types
+   19:17  error  'children' is missing in props validation   react/prop-types
+   38:6   error  'className' is missing in props validation  react/prop-types
+   54:6   error  'className' is missing in props validation  react/prop-types
+   71:6   error  'className' is missing in props validation  react/prop-types
+   71:17  error  'children' is missing in props validation   react/prop-types
+   71:27  error  'position' is missing in props validation   react/prop-types
+  101:41  error  'className' is missing in props validation  react/prop-types
+  111:6   error  'className' is missing in props validation  react/prop-types
+  111:17  error  'children' is missing in props validation   react/prop-types
+  131:45  error  'className' is missing in props validation  react/prop-types
+
+C:\Users\user\Desktop\Programacion\Node-express-nest\Project one\apps\client\src\components\ui\separator.jsx
+  8:7   error  'className' is missing in props validation    react/prop-types
+  8:18  error  'orientation' is missing in props validation  react/prop-types
+  8:46  error  'decorative' is missing in props validation   react/prop-types
+
+C:\Users\user\Desktop\Programacion\Node-express-nest\Project one\apps\client\src\components\ui\switch.jsx
+  6:36  error  'className' is missing in props validation  react/prop-types
+
+C:\Users\user\Desktop\Programacion\Node-express-nest\Project one\apps\client\src\components\ui\table.jsx
+   5:35  error  'className' is missing in props validation  react/prop-types
+  16:41  error  'className' is missing in props validation  react/prop-types
+  25:39  error  'className' is missing in props validation  react/prop-types
+  34:41  error  'className' is missing in props validation  react/prop-types
+  46:38  error  'className' is missing in props validation  react/prop-types
+  58:39  error  'className' is missing in props validation  react/prop-types
+  70:39  error  'className' is missing in props validation  react/prop-types
+  82:42  error  'className' is missing in props validation  react/prop-types
+
+C:\Users\user\Desktop\Programacion\Node-express-nest\Project one\apps\client\src\components\ui\tabs.jsx
+   8:38  error  'className' is missing in props validation  react/prop-types
+  20:41  error  'className' is missing in props validation  react/prop-types
+  32:41  error  'className' is missing in props validation  react/prop-types
+
+C:\Users\user\Desktop\Programacion\Node-express-nest\Project one\apps\client\src\components\ui\textarea.jsx
+  5:38  error  'className' is missing in props validation  react/prop-types
+
+C:\Users\user\Desktop\Programacion\Node-express-nest\Project one\apps\client\src\components\ui\toast.jsx
+  10:43  error  'className' is missing in props validation  react/prop-types
+  40:35  error  'className' is missing in props validation  react/prop-types
+  40:46  error  'variant' is missing in props validation    react/prop-types
+  51:41  error  'className' is missing in props validation  react/prop-types
+  63:40  error  'className' is missing in props validation  react/prop-types
+  78:40  error  'className' is missing in props validation  react/prop-types
+  87:46  error  'className' is missing in props validation  react/prop-types
+
+C:\Users\user\Desktop\Programacion\Node-express-nest\Project one\apps\client\src\components\ui\tooltip.jsx
+  13:6   error  'className' is missing in props validation   react/prop-types
+  13:17  error  'sideOffset' is missing in props validation  react/prop-types
+
+C:\Users\user\Desktop\Programacion\Node-express-nest\Project one\apps\client\src\config\axios.js
+    3:10  error    'jwtDecode' is defined but never used                                            no-unused-vars
+  142:1   warning  Unused eslint-disable directive (no problems were reported from 'dot-notation')
+
+C:\Users\user\Desktop\Programacion\Node-express-nest\Project one\apps\client\src\hooks\useFetch.js
+  11:5  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+   9 |   useEffect(() => {
+  10 |     const abortController = new AbortController();
+> 11 |     setController(abortController);
+     |     ^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  12 |
+  13 |     setLoading(true);
+  14 |     fetch(url, { signal: abortController.signal })  react-hooks/set-state-in-effect
+
+C:\Users\user\Desktop\Programacion\Node-express-nest\Project one\apps\client\src\hooks\useInitializeI18n.js
+  15:16  error    'getLanguageByUserIdFetch' is not defined                                                                                    no-undef
+  24:6   warning  React Hook useEffect has a missing dependency: 'response.language?.error'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+C:\Users\user\Desktop\Programacion\Node-express-nest\Project one\apps\client\src\hooks\useUserSettings.js
+  24:6  warning  React Hook useEffect has a missing dependency: 'i18n'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+C:\Users\user\Desktop\Programacion\Node-express-nest\Project one\apps\client\src\modules\attendance\components\AttendanceDialog.jsx
+  84:7  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  82 |       };
+  83 |       form.reset(mappedValues);
+> 84 |       setAttendanceId(mappedValues.id);
+     |       ^^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  85 |     } else {
+  86 |       form.reset({
+  87 |         employeeId: '',  react-hooks/set-state-in-effect
+
+C:\Users\user\Desktop\Programacion\Node-express-nest\Project one\apps\client\src\modules\auth\api\authAPI.js
+  1:23  error  'axiosPrivate' is defined but never used  no-unused-vars
+
+C:\Users\user\Desktop\Programacion\Node-express-nest\Project one\apps\client\src\modules\auth\components\SignInForm.jsx
+  40:6  warning  React Hook useEffect has a missing dependency: 'navigate'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+C:\Users\user\Desktop\Programacion\Node-express-nest\Project one\apps\client\src\modules\auth\slice\authSlice.js
+   92:50  error  'action' is defined but never used  no-unused-vars
+  102:7   error  Unexpected 'debugger' statement     no-debugger
+  123:56  error  'action' is defined but never used  no-unused-vars
+
+C:\Users\user\Desktop\Programacion\Node-express-nest\Project one\apps\client\src\modules\clientOrder\components\ClientOrderDatatable.jsx
+  55:19  error  'pagination' is not defined          no-undef
+  56:27  error  'onPaginationChange' is not defined  no-undef
+
+C:\Users\user\Desktop\Programacion\Node-express-nest\Project one\apps\client\src\modules\clientOrder\components\ClientOrderDialog.jsx
+  71:7  error    Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  69 |
+  70 |       form.reset(mappedValues);
+> 71 |       setClientOrderId(mappedValues.id);
+     |       ^^^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  72 |     }
+  73 |
+  74 |     if (!openDialog) {  react-hooks/set-state-in-effect
+  83:6  warning  React Hook useEffect has a missing dependency: 'form'. Either include it or remove the dependency array                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              react-hooks/exhaustive-deps
+
+C:\Users\user\Desktop\Programacion\Node-express-nest\Project one\apps\client\src\modules\clients\components\ClientsDialog.jsx
+  80:7  error    Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  78 |
+  79 |       form.reset(mappedValues);
+> 80 |       setClientId(mappedValues.id);
+     |       ^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  81 |     }
+  82 |
+  83 |     if (!openDialog) {  react-hooks/set-state-in-effect
+  96:6  warning  React Hook useEffect has a missing dependency: 'form'. Either include it or remove the dependency array                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    react-hooks/exhaustive-deps
+
+C:\Users\user\Desktop\Programacion\Node-express-nest\Project one\apps\client\src\modules\clients\pages\Clients.jsx
+  74:6  warning  React Hook useEffect has a missing dependency: 'getAllClients'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+C:\Users\user\Desktop\Programacion\Node-express-nest\Project one\apps\client\src\modules\employees\components\EmployeesDialog.jsx
+   90:7  error    Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  88 |
+  89 |       form.reset(mappedValues);
+> 90 |       setEmployeeId(mappedValues.id);
+     |       ^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  91 |     }
+  92 |
+  93 |     if (!openDialog) {  react-hooks/set-state-in-effect
+  112:6  warning  React Hook useEffect has a missing dependency: 'form'. Either include it or remove the dependency array                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        react-hooks/exhaustive-deps
+
+C:\Users\user\Desktop\Programacion\Node-express-nest\Project one\apps\client\src\modules\events\components\EventDialog.jsx
+   75:6   warning  React Hook useEffect has a missing dependency: 'formEventDialog'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+  167:49  error    'index' is defined but never used                                                                                   no-unused-vars
+
+C:\Users\user\Desktop\Programacion\Node-express-nest\Project one\apps\client\src\modules\events\components\EventList.jsx
+   8:29  error  'events' is missing in props validation                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    react/prop-types
+   8:37  error  'onEdit' is missing in props validation                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    react/prop-types
+   8:45  error  'onDelete' is missing in props validation                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  react/prop-types
+  12:16  error  'events.length' is missing in props validation                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             react/prop-types
+  16:7   error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  14 |
+  15 |       const sorted = sortedEvents(events, false);
+> 16 |       setGroupedEvents(
+     |       ^^^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  17 |         sorted.reduce((groups, event) => {
+  18 |           const date = event.eventDate;
+  19 |           if (!groups[date]) {  react-hooks/set-state-in-effect
+  29:17  error  'events.length' is missing in props validation                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             react/prop-types
+
+C:\Users\user\Desktop\Programacion\Node-express-nest\Project one\apps\client\src\modules\events\pages\Events.jsx
+  1:20  error  'useMemo' is defined but never used  no-unused-vars
+
+C:\Users\user\Desktop\Programacion\Node-express-nest\Project one\apps\client\src\modules\expenses\components\ExpensesDialog.jsx
+  88:7  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  86 |       };
+  87 |       form.reset(mappedValues);
+> 88 |       setExpenseId(mappedValues.id);
+     |       ^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  89 |     } else if (!openDialog) {
+  90 |       // Changed logic to reset only if not openDialog and no selectedRow
+  91 |       form.reset({  react-hooks/set-state-in-effect
+
+C:\Users\user\Desktop\Programacion\Node-express-nest\Project one\apps\client\src\modules\expenses\utils\enums.js
+  22:7  error  'expenseCategoryEnumValues' is assigned a value but never used  no-unused-vars
+
+C:\Users\user\Desktop\Programacion\Node-express-nest\Project one\apps\client\src\modules\home\components\AccessCardModules.jsx
+  9:10  error  'Button' is defined but never used  no-unused-vars
+
+C:\Users\user\Desktop\Programacion\Node-express-nest\Project one\apps\client\src\modules\home\components\SideBar.jsx
+   20:20  error  'dataCountNotes' is missing in props validation                   react/prop-types
+   20:36  error  'dataCountStock' is missing in props validation                   react/prop-types
+   20:52  error  'displaySettings' is missing in props validation                  react/prop-types
+   33:25  error  'displaySettings.displayNews' is missing in props validation      react/prop-types
+   44:25  error  'displaySettings.displayNotes' is missing in props validation     react/prop-types
+   56:25  error  'displaySettings.displayStock' is missing in props validation     react/prop-types
+   77:25  error  'displaySettings.displayEvents' is missing in props validation    react/prop-types
+   88:25  error  'displaySettings.displayProfile' is missing in props validation   react/prop-types
+   99:25  error  'displaySettings.displayLanguage' is missing in props validation  react/prop-types
+  110:25  error  'displaySettings.displayReports' is missing in props validation   react/prop-types
+  120:25  error  'displaySettings.displayPayroll' is missing in props validation   react/prop-types
+
+C:\Users\user\Desktop\Programacion\Node-express-nest\Project one\apps\client\src\modules\inventoryMovement\pages\InventoryMovement.jsx
+  88:6  warning  React Hook useEffect has a missing dependency: 'getAllInventoryMovements'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+C:\Users\user\Desktop\Programacion\Node-express-nest\Project one\apps\client\src\modules\news\components\NewsDatatable.jsx
+  2:10  error  'useMemo' is defined but never used   no-unused-vars
+  4:18  error  'parseISO' is defined but never used  no-unused-vars
+
+C:\Users\user\Desktop\Programacion\Node-express-nest\Project one\apps\client\src\modules\news\components\NewsDialog.jsx
+   13:3   error    'DialogTrigger' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           no-unused-vars
+   46:3   error    'onCreateUpdate' is missing in props validation                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     react/prop-types
+   47:3   error    'onDeleteById' is missing in props validation                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       react/prop-types
+   85:7   error    Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  83 |
+  84 |       formDialog.reset(mappedValues);
+> 85 |       setNewId(mappedValues.id || '');
+     |       ^^^^^^^^ Avoid calling setState() directly within an effect
+  86 |       setStatusCodeSaved(mappedValues.status.code || '');
+  87 |     }
+  88 |  react-hooks/set-state-in-effect
+   92:6   warning  React Hook useEffect has a missing dependency: 'formDialog'. Either include it or remove the dependency array                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       react-hooks/exhaustive-deps
+  138:30  error    'field' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   no-unused-vars
+  167:29  error    Unsafe usage of optional chaining. If it short-circuits with 'undefined' the evaluation will throw TypeError                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        no-unsafe-optional-chaining
+
+C:\Users\user\Desktop\Programacion\Node-express-nest\Project one\apps\client\src\modules\news\components\NewsFiltersForm.jsx
+  35:3  error  'onSubmit' is missing in props validation  react/prop-types
+
+C:\Users\user\Desktop\Programacion\Node-express-nest\Project one\apps\client\src\modules\news\pages\News.jsx
+  37:7   error    'isError' is assigned a value but never used                                                                no-unused-vars
+  40:7   error    'isSuccess' is assigned a value but never used                                                              no-unused-vars
+  41:7   error    'error' is assigned a value but never used                                                                  no-unused-vars
+  43:5   error    'lastPromiseInfo' is assigned a value but never used                                                        no-unused-vars
+  48:14  error    'isErrorStatus' is assigned a value but never used                                                          no-unused-vars
+  51:16  error    'isSuccessStatus' is assigned a value but never used                                                        no-unused-vars
+  52:12  error    'errorStatus' is assigned a value but never used                                                            no-unused-vars
+  57:41  error    'isErrorPut' is assigned a value but never used                                                             no-unused-vars
+  57:64  error    'isSuccessPut' is assigned a value but never used                                                           no-unused-vars
+  64:16  error    'isErrorPost' is assigned a value but never used                                                            no-unused-vars
+  65:18  error    'isSuccessPost' is assigned a value but never used                                                          no-unused-vars
+  73:16  error    'isErrorDelete' is assigned a value but never used                                                          no-unused-vars
+  74:18  error    'isSuccessDelete' is assigned a value but never used                                                        no-unused-vars
+  97:6   warning  React Hook useEffect has a missing dependency: 'trigger'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+C:\Users\user\Desktop\Programacion\Node-express-nest\Project one\apps\client\src\modules\notes\components\NotesCreateDialog.jsx
+   7:3   error  'DialogTrigger' is defined but never used  no-unused-vars
+  35:63  error  'open' is missing in props validation      react/prop-types
+  35:69  error  'setOpen' is missing in props validation   react/prop-types
+
+C:\Users\user\Desktop\Programacion\Node-express-nest\Project one\apps\client\src\modules\notes\components\NotesEditDialog.jsx
+  19:10  error  'Label' is defined but never used  no-unused-vars
+
+C:\Users\user\Desktop\Programacion\Node-express-nest\Project one\apps\client\src\modules\notes\components\NotesFilters.jsx
+  13:10  error  'useState' is defined but never used                 no-unused-vars
+  18:3   error  'onSearchStatus' is missing in props validation      react/prop-types
+  19:3   error  'dataStatus' is missing in props validation          react/prop-types
+  20:3   error  'filters' is missing in props validation             react/prop-types
+  21:3   error  'handleReset' is missing in props validation         react/prop-types
+  22:3   error  'setOpen' is missing in props validation             react/prop-types
+  39:26  error  'filters.searchTerm' is missing in props validation  react/prop-types
+  51:26  error  'filters.statusCode' is missing in props validation  react/prop-types
+  52:33  error  'filters.statusCode' is missing in props validation  react/prop-types
+  58:25  error  'dataStatus.map' is missing in props validation      react/prop-types
+
+C:\Users\user\Desktop\Programacion\Node-express-nest\Project one\apps\client\src\modules\products\pages\ProductsForms.jsx
+  168:7   error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  166 |   useEffect(() => {
+  167 |     if (dataAttributes?.data.length > 0) {
+> 168 |       setAttributes(dataAttributes.data);
+      |       ^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  169 |     }
+  170 |   }, [dataAttributes]);
+  171 |  react-hooks/set-state-in-effect
+  172:9   error  'fetchedAttributes' is assigned a value but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    no-unused-vars
+  249:15  error  'save' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          no-unused-vars
+
+C:\Users\user\Desktop\Programacion\Node-express-nest\Project one\apps\client\src\modules\purchase\pages\Purchase.jsx
+   50:41  error    'isErrorPut' is assigned a value but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        no-unused-vars
+   50:64  error    'isSuccessPut' is assigned a value but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      no-unused-vars
+   57:16  error    'isErrorPost' is assigned a value but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       no-unused-vars
+   58:18  error    'isSuccessPost' is assigned a value but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     no-unused-vars
+   66:16  error    'isErrorDelete' is assigned a value but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     no-unused-vars
+   67:18  error    'isSuccessDelete' is assigned a value but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   no-unused-vars
+   96:6   warning  React Hook useEffect has a missing dependency: 'getAllPurchases'. Either include it or remove the dependency array                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     react-hooks/exhaustive-deps
+  118:13  error    'result' is assigned a value but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            no-unused-vars
+  154:5   error    Error: Cannot access variable before it is declared
+
+`setDetails` is accessed before it is declared, which prevents the earlier access from updating when this value changes over time.
+
+  152 |     setActionDialog(t('add_purchase'));
+  153 |     setOpenDialog(true);
+> 154 |     setDetails([
+      |     ^^^^^^^^^^ `setDetails` accessed before it is declared
+  155 |       {
+  156 |         productId: '',
+  157 |         quantity: 0,
+
+  271 |   }, [dataPurchases]);
+  272 |
+> 273 |   const [details, setDetails] = useState([
+      |                   ^^^^^^^^^^ `setDetails` is declared here
+  274 |     {
+  275 |       productId: '',
+  276 |       quantity: 0,  react-hooks/immutability
+  233:19  error    'deletePurchaseDetailById' is not defined                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              no-undef
+  241:17  error    'navigate' is not defined                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              no-undef
+
+C:\Users\user\Desktop\Programacion\Node-express-nest\Project one\apps\client\src\modules\sales\components\SalesDialog.jsx
+   31:36  error    'LuPlus' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  no-unused-vars
+   45:3   error    'onEditDetail' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            no-unused-vars
+  100:7   error    Error: Cannot access variable before it is declared
+
+`clearDialog` is accessed before it is declared, which prevents the earlier access from updating when this value changes over time.
+
+   98 |     } else {
+   99 |       // Reset form when selectedRow is null
+> 100 |       clearDialog();
+      |       ^^^^^^^^^^^ `clearDialog` accessed before it is declared
+  101 |     }
+  102 |   }, [selectedRow]);
+  103 |
+
+  106 |   };
+  107 |
+> 108 |   const clearDialog = () => {
+      |   ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 109 |     form.reset();
+      | ^^^^^^^^^^^^^^^^^
+> 110 |     setSaleId(null);
+      | ^^^^^^^^^^^^^^^^^
+> 111 |   };
+      | ^^^^^ `clearDialog` is declared here
+  112 |
+  113 |   const handleDelete = () => {
+  114 |     onDeleteById(saleId);  react-hooks/immutability
+  102:6   warning  React Hook useEffect has missing dependencies: 'clearDialog', 'form', and 'setDetails'. Either include them or remove the dependency array. If 'setDetails' changes too often, find the parent component that defines it and wrap that definition in useCallback                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    react-hooks/exhaustive-deps
+
+C:\Users\user\Desktop\Programacion\Node-express-nest\Project one\apps\client\src\modules\sales\pages\Sales.jsx
+   45:41  error    'isErrorPut' is assigned a value but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    no-unused-vars
+   45:64  error    'isSuccessPut' is assigned a value but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  no-unused-vars
+   52:16  error    'isErrorPost' is assigned a value but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   no-unused-vars
+   53:18  error    'isSuccessPost' is assigned a value but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 no-unused-vars
+   61:16  error    'isErrorDelete' is assigned a value but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 no-unused-vars
+   62:18  error    'isSuccessDelete' is assigned a value but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               no-unused-vars
+   91:6   warning  React Hook useEffect has a missing dependency: 'getAllSales'. Either include it or remove the dependency array                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     react-hooks/exhaustive-deps
+  113:13  error    'result' is assigned a value but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        no-unused-vars
+  148:5   error    Error: Cannot access variable before it is declared
+
+`setDetails` is accessed before it is declared, which prevents the earlier access from updating when this value changes over time.
+
+  146 |     setOpenDialog(true);
+  147 |     setSelectedRow({});
+> 148 |     setDetails([
+      |     ^^^^^^^^^^ `setDetails` accessed before it is declared
+  149 |       {
+  150 |         productId: '',
+  151 |         quantity: 0,
+
+  264 |   }, [dataSales]);
+  265 |
+> 266 |   const [details, setDetails] = useState([
+      |                   ^^^^^^^^^^ `setDetails` is declared here
+  267 |     {
+  268 |       productId: '',
+  269 |       quantity: 0,  react-hooks/immutability
+  226:19  error    'deleteSaleDetailById' is not defined                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              no-undef
+  234:17  error    'navigate' is not defined                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          no-undef
+
+C:\Users\user\Desktop\Programacion\Node-express-nest\Project one\apps\client\src\modules\settingsProductCategories\components\SettingsProductCategoriesBasicInfo.jsx
+  30:3  error  'onClose' is missing in props validation                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  react/prop-types
+  49:7  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  47 |         ...selectedRow,
+  48 |       });
+> 49 |       setId(selectedRow.id || '');
+     |       ^^^^^ Avoid calling setState() directly within an effect
+  50 |     }
+  51 |   }, [selectedRow, form]);
+  52 |  react-hooks/set-state-in-effect
+
+C:\Users\user\Desktop\Programacion\Node-express-nest\Project one\apps\client\src\modules\settingsProductCategories\components\SettingsProductCategoriesDialog.jsx
+  13:3  error    'DialogTrigger' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      no-unused-vars
+  14:3  error    'DialogClose' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        no-unused-vars
+  78:7  error    Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  76 |
+  77 |       form.reset(mappedValues);
+> 78 |       setCategoryId(mappedValues.id);
+     |       ^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  79 |     }
+  80 |
+  81 |     if (!openDialog) {  react-hooks/set-state-in-effect
+  84:6  warning  React Hook useEffect has a missing dependency: 'form'. Either include it or remove the dependency array                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        react-hooks/exhaustive-deps
+
+C:\Users\user\Desktop\Programacion\Node-express-nest\Project one\apps\client\src\modules\settingsProductCategories\components\SettingsProductCategoriesFiltersForm.jsx
+  13:3   error  'Select' is defined but never used         no-unused-vars
+  14:3   error  'SelectContent' is defined but never used  no-unused-vars
+  15:3   error  'SelectItem' is defined but never used     no-unused-vars
+  16:3   error  'SelectTrigger' is defined but never used  no-unused-vars
+  17:3   error  'SelectValue' is defined but never used    no-unused-vars
+  25:66  error  'onAdd' is missing in props validation     react/prop-types
+
+C:\Users\user\Desktop\Programacion\Node-express-nest\Project one\apps\client\src\modules\settingsProductCategories\components\SettingsProductsCategoryForm.jsx
+  21:41  error  'isErrorPut' is assigned a value but never used       no-unused-vars
+  21:64  error  'isSuccessPut' is assigned a value but never used     no-unused-vars
+  28:16  error  'isErrorPost' is assigned a value but never used      no-unused-vars
+  29:18  error  'isSuccessPost' is assigned a value but never used    no-unused-vars
+  37:16  error  'isErrorDelete' is assigned a value but never used    no-unused-vars
+  38:18  error  'isSuccessDelete' is assigned a value but never used  no-unused-vars
+
+C:\Users\user\Desktop\Programacion\Node-express-nest\Project one\apps\client\src\modules\settingsProductCategories\page\SettingsProductCategories.jsx
+  47:6  warning  React Hook useEffect has a missing dependency: 'getAllCategories'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+C:\Users\user\Desktop\Programacion\Node-express-nest\Project one\apps\client\src\modules\settings\components\SettingsProduct.jsx
+  9:25  error  'LuSettings' is defined but never used  no-unused-vars
+
+C:\Users\user\Desktop\Programacion\Node-express-nest\Project one\apps\client\src\modules\settings\pages\Settings.jsx
+   1:10  error  'Button' is defined but never used          no-unused-vars
+   2:10  error  'Card' is defined but never used            no-unused-vars
+   2:16  error  'CardContent' is defined but never used     no-unused-vars
+   3:10  error  'Checkbox' is defined but never used        no-unused-vars
+   5:10  error  'Input' is defined but never used           no-unused-vars
+   6:10  error  'Label' is defined but never used           no-unused-vars
+   7:10  error  'RadioGroup' is defined but never used      no-unused-vars
+   7:22  error  'RadioGroupItem' is defined but never used  no-unused-vars
+   9:3   error  'Select' is defined but never used          no-unused-vars
+  10:3   error  'SelectContent' is defined but never used   no-unused-vars
+  11:3   error  'SelectItem' is defined but never used      no-unused-vars
+  12:3   error  'SelectTrigger' is defined but never used   no-unused-vars
+  13:3   error  'SelectValue' is defined but never used     no-unused-vars
+  15:10  error  'Switch' is defined but never used          no-unused-vars
+
+C:\Users\user\Desktop\Programacion\Node-express-nest\Project one\apps\client\src\modules\settings\slice\settingsSlice.js
+  99:63  error  'action' is defined but never used  no-unused-vars
+
+C:\Users\user\Desktop\Programacion\Node-express-nest\Project one\apps\client\src\modules\stock\components\StockDialog.jsx
+   94:7  error    Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  92 |
+  93 |       form.reset(mappedValues);
+> 94 |       setStockId(mappedValues.id);
+     |       ^^^^^^^^^^ Avoid calling setState() directly within an effect
+  95 |     }
+  96 |
+  97 |     if (!openDialog) {  react-hooks/set-state-in-effect
+  112:6  warning  React Hook useEffect has a missing dependency: 'form'. Either include it or remove the dependency array                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  react-hooks/exhaustive-deps
+
+C:\Users\user\Desktop\Programacion\Node-express-nest\Project one\apps\client\src\modules\stock\pages\Stock.jsx
+   62:5   error    Unexpected 'debugger' statement                                                                                 no-debugger
+   66:6   warning  React Hook useEffect has a missing dependency: 'getAllStock'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+   87:6   warning  React Hook useEffect has a missing dependency: 'getAllStock'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+  109:13  error    'result' is assigned a value but never used                                                                     no-unused-vars
+
+C:\Users\user\Desktop\Programacion\Node-express-nest\Project one\apps\client\src\modules\users\components\UsersBasicInfo.jsx
+  101:6   warning  React Hook useEffect has a missing dependency: 'dataPermits'. Either include it or remove the dependency array                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          react-hooks/exhaustive-deps
+  627:22  warning  Compilation Skipped: Use of incompatible library
+
+This API returns functions which cannot be memoized without leading to stale UI. To prevent this, by default React Compiler will skip memoizing this component/hook. However, you may see issues if values from this API are passed to other components/hooks that are memoized.
+
+  625 |                 <AccordionContent className="pt-4 pb-2 px-4 max-h-[50vh] overflow-y-auto scrollbar-thin">
+  626 |                   <div className="grid grid-cols-3 gap-6 py-4 auto-rows-auto">
+> 627 |                     {form.watch('permissions')?.map((permit, index) => (
+      |                      ^^^^ React Hook Form's `useForm()` API returns a `watch()` function which cannot be memoized safely.
+  628 |                       <FormField
+  629 |                         control={form.control}
+  630 |                         name={`permissions.${index}.assigned`}  react-hooks/incompatible-library
+  628:23  error    Missing "key" prop for element in iterator                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              react/jsx-key
+
+C:\Users\user\Desktop\Programacion\Node-express-nest\Project one\apps\client\src\modules\users\components\UsersDialog.jsx
+   77:7  error    Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  75 |
+  76 |       form.reset(mappedValues);
+> 77 |       setUserId(mappedValues.id);
+     |       ^^^^^^^^^ Avoid calling setState() directly within an effect
+  78 |     }
+  79 |
+  80 |     if (!openDialog) {  react-hooks/set-state-in-effect
+  100:6  warning  React Hook useEffect has a missing dependency: 'form'. Either include it or remove the dependency array                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                react-hooks/exhaustive-deps
+
+C:\Users\user\Desktop\Programacion\Node-express-nest\Project one\apps\client\src\modules\users\pages\Users.jsx
+  62:6  warning  React Hook useEffect has a missing dependency: 'getAllUsers'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+C:\Users\user\Desktop\Programacion\Node-express-nest\Project one\apps\client\src\modules\users\pages\UsersForm.jsx
+  27:7   error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  25 |   useEffect(() => {
+  26 |     if (location.state?.row) {
+> 27 |       setSelectedRow(location.state.row);
+     |       ^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  28 |     } else {
+  29 |       setSelectedRow({});
+  30 |     }  react-hooks/set-state-in-effect
+  35:41  error  'isErrorPut' is assigned a value but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        no-unused-vars
+  35:64  error  'isSuccessPut' is assigned a value but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      no-unused-vars
+  46:16  error  'isLoadingUserPermits' is assigned a value but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              no-unused-vars
+  47:17  error  'isFetchingUserPermits' is assigned a value but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             no-unused-vars
+  54:16  error  'isErrorDelete' is assigned a value but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     no-unused-vars
+  55:18  error  'isSuccessDelete' is assigned a value but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   no-unused-vars
+  66:5   error  Unexpected 'debugger' statement                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        no-debugger
+  68:13  error  'result' is assigned a value but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            no-unused-vars
+
+C:\Users\user\Desktop\Programacion\Node-express-nest\Project one\apps\client\src\modules\vacation\components\VacationDialog.jsx
+  84:7  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  82 |       };
+  83 |       form.reset(mappedValues);
+> 84 |       setVacationId(mappedValues.id);
+     |       ^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  85 |     } else {
+  86 |       form.reset({
+  87 |         employeeId: '',  react-hooks/set-state-in-effect
+
+C:\Users\user\Desktop\Programacion\Node-express-nest\Project one\apps\client\src\modules\vacation\pages\Vacation.jsx
+  45:7  error    'refetch' is assigned a value but never used                                                                        no-unused-vars
+  77:6  warning  React Hook useEffect has a missing dependency: 'getAllVacations'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+C:\Users\user\Desktop\Programacion\Node-express-nest\Project one\apps\client\src\modules\warehouse\components\WarehouseDialog.jsx
+  13:3  error    'DialogTrigger' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        no-unused-vars
+  84:7  error    Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  82 |
+  83 |       form.reset(mappedValues);
+> 84 |       setWarehouseId(mappedValues.id);
+     |       ^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  85 |     }
+  86 |
+  87 |     if (!openDialog) {  react-hooks/set-state-in-effect
+  90:6  warning  React Hook useEffect has a missing dependency: 'form'. Either include it or remove the dependency array                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          react-hooks/exhaustive-deps
+
+C:\Users\user\Desktop\Programacion\Node-express-nest\Project one\apps\client\src\modules\warehouse\pages\Warehouse.jsx
+   43:41  error    'isErrorPut' is assigned a value but never used                                                                     no-unused-vars
+   43:64  error    'isSuccessPut' is assigned a value but never used                                                                   no-unused-vars
+   50:16  error    'isErrorPost' is assigned a value but never used                                                                    no-unused-vars
+   51:18  error    'isSuccessPost' is assigned a value but never used                                                                  no-unused-vars
+   59:16  error    'isErrorDelete' is assigned a value but never used                                                                  no-unused-vars
+   60:18  error    'isSuccessDelete' is assigned a value but never used                                                                no-unused-vars
+   83:6   warning  React Hook useEffect has a missing dependency: 'getAllWarehouse'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+  105:13  error    'result' is assigned a value but never used                                                                         no-unused-vars
+
+C:\Users\user\Desktop\Programacion\Node-express-nest\Project one\apps\client\src\stories\ui\Popover.stories.jsx
+  6:3  error  'PopoverAnchor' is defined but never used  no-unused-vars
+
+C:\Users\user\Desktop\Programacion\Node-express-nest\Project one\apps\client\src\utils\jwt-decode.js
+  13:12  error  'err' is defined but never used  no-unused-vars
+
+C:\Users\user\Desktop\Programacion\Node-express-nest\Project one\apps\client\tailwind.config.js
+    2:1   error  'module' is not defined   no-undef
+  105:13  error  'require' is not defined  no-undef
+
+C:\Users\user\Desktop\Programacion\Node-express-nest\Project one\apps\client\vite.config.js
+  18:25  error  '__dirname' is not defined  no-undef
+
+C:\Users\user\Desktop\Programacion\Node-express-nest\Project one\apps\server\prisma\seed.js
+   19:7  error  'rolePermissionsMap' is assigned a value but never used  no-unused-vars
+  211:7  error  'productCategories' is assigned a value but never used   no-unused-vars
+  243:7  error  'user1' is assigned a value but never used               no-unused-vars
+  264:7  error  'news' is assigned a value but never used                no-unused-vars
+  313:5  error  'console' is not defined                                 no-undef
+  317:5  error  'console' is not defined                                 no-undef
+  319:5  error  'process' is not defined                                 no-undef
+
+C:\Users\user\Desktop\Programacion\Node-express-nest\Project one\apps\server\src\bin\index.js
+  34:5  error  'console' is not defined  no-undef
+  44:3  error  'console' is not defined  no-undef
+  45:3  error  'process' is not defined  no-undef
+
+C:\Users\user\Desktop\Programacion\Node-express-nest\Project one\apps\server\src\config\aws\secret-manager.client.js
+  4:11  error  'process' is not defined  no-undef
+  8:5   error  'process' is not defined  no-undef
+  9:21  error  'process' is not defined  no-undef
+
+C:\Users\user\Desktop\Programacion\Node-express-nest\Project one\apps\server\src\config\aws\secrets.js
+  6:15  error  'process' is not defined  no-undef
+
+C:\Users\user\Desktop\Programacion\Node-express-nest\Project one\apps\server\src\config\db.js
+  6:5  error  'process' is not defined  no-undef
+
+C:\Users\user\Desktop\Programacion\Node-express-nest\Project one\apps\server\src\config\dotenv.js
+   9:13  error  'process' is not defined  no-undef
+  17:25  error  'process' is not defined  no-undef
+
+C:\Users\user\Desktop\Programacion\Node-express-nest\Project one\apps\server\src\docs\swagger.js
+  28:3  error  'console' is not defined  no-undef
+
+C:\Users\user\Desktop\Programacion\Node-express-nest\Project one\apps\server\src\logger\index.js
+  34:3  error  'console' is not defined  no-undef
+
+C:\Users\user\Desktop\Programacion\Node-express-nest\Project one\apps\server\src\middleware\encription-prisma-middleware.js
+   11:24  error  'Buffer' is not defined   no-undef
+   19:1   error  'console' is not defined  no-undef
+   44:21  error  'Buffer' is not defined   no-undef
+   50:10  error  'Buffer' is not defined   no-undef
+   58:17  error  'Buffer' is not defined   no-undef
+   61:7   error  'console' is not defined  no-undef
+   72:12  error  'Buffer' is not defined   no-undef
+   77:5   error  'console' is not defined  no-undef
+  100:9   error  'console' is not defined  no-undef
+  104:9   error  'console' is not defined  no-undef
+  121:5   error  'console' is not defined  no-undef
+  127:5   error  'console' is not defined  no-undef
+  143:9   error  'console' is not defined  no-undef
+  147:9   error  'console' is not defined  no-undef
+  157:5   error  'console' is not defined  no-undef
+  171:5   error  'console' is not defined  no-undef
+  177:7   error  'console' is not defined  no-undef
+  181:5   error  'console' is not defined  no-undef
+  186:7   error  'console' is not defined  no-undef
+  189:9   error  'console' is not defined  no-undef
+  195:7   error  'console' is not defined  no-undef
+  197:9   error  'console' is not defined  no-undef
+  203:7   error  'console' is not defined  no-undef
+  205:9   error  'console' is not defined  no-undef
+  211:5   error  'console' is not defined  no-undef
+  213:5   error  'console' is not defined  no-undef
+  228:9   error  'console' is not defined  no-undef
+  230:9   error  'console' is not defined  no-undef
+  233:9   error  'console' is not defined  no-undef
+  240:3   error  'console' is not defined  no-undef
+  256:5   error  'console' is not defined  no-undef
+  262:3   error  'console' is not defined  no-undef
+  263:3   error  'console' is not defined  no-undef
+  267:3   error  'console' is not defined  no-undef
+  291:13  error  'console' is not defined  no-undef
+  295:13  error  'console' is not defined  no-undef
+  306:9   error  'console' is not defined  no-undef
+  309:9   error  'console' is not defined  no-undef
+  313:7   error  'console' is not defined  no-undef
+  320:3   error  'console' is not defined  no-undef
+  321:3   error  'console' is not defined  no-undef
+  322:3   error  'console' is not defined  no-undef
+  323:3   error  'console' is not defined  no-undef
+  324:3   error  'console' is not defined  no-undef
+  332:3   error  'console' is not defined  no-undef
+  340:5   error  'console' is not defined  no-undef
+  341:5   error  'console' is not defined  no-undef
+  342:5   error  'console' is not defined  no-undef
+  343:5   error  'console' is not defined  no-undef
+
+C:\Users\user\Desktop\Programacion\Node-express-nest\Project one\apps\server\src\middleware\errorHandler.js
+   3:45  error  'next' is defined but never used  no-unused-vars
+   7:3   error  'console' is not defined          no-undef
+   8:3   error  'console' is not defined          no-undef
+   9:3   error  'console' is not defined          no-undef
+  10:3   error  'console' is not defined          no-undef
+  11:3   error  'console' is not defined          no-undef
+
+C:\Users\user\Desktop\Programacion\Node-express-nest\Project one\apps\server\src\middleware\verifyCsrf.js
+  23:23  error  'Buffer' is not defined   no-undef
+  24:23  error  'Buffer' is not defined   no-undef
+  40:5   error  'console' is not defined  no-undef
+  52:3   error  'console' is not defined  no-undef
+
+C:\Users\user\Desktop\Programacion\Node-express-nest\Project one\apps\server\src\middleware\verifyRole.js
+  24:14  error  'error' is defined but never used  no-unused-vars
+  76:7   error  'console' is not defined           no-undef
+
+C:\Users\user\Desktop\Programacion\Node-express-nest\Project one\apps\server\src\middleware\verifyToken.js
+  1:15  error  'decode' is defined but never used  no-unused-vars
+  9:5   error  'console' is not defined            no-undef
+
+C:\Users\user\Desktop\Programacion\Node-express-nest\Project one\apps\server\src\modules\attendance\dao.js
+  15:3  error  'console' is not defined  no-undef
+  38:3  error  'console' is not defined  no-undef
+  39:3  error  'console' is not defined  no-undef
+  40:3  error  'console' is not defined  no-undef
+
+C:\Users\user\Desktop\Programacion\Node-express-nest\Project one\apps\server\src\modules\auth\service.js
+  165:5  error  'console' is not defined  no-undef
+
+C:\Users\user\Desktop\Programacion\Node-express-nest\Project one\apps\server\src\modules\clientOrder\controller.js
+  16:3  error  'console' is not defined  no-undef
+  27:3  error  'console' is not defined  no-undef
+
+C:\Users\user\Desktop\Programacion\Node-express-nest\Project one\apps\server\src\modules\employees\controller.js
+  39:3  error  'console' is not defined  no-undef
+
+C:\Users\user\Desktop\Programacion\Node-express-nest\Project one\apps\server\src\modules\events\controller.js
+  54:3  error  'console' is not defined  no-undef
+
+C:\Users\user\Desktop\Programacion\Node-express-nest\Project one\apps\server\src\modules\expenses\routes.js
+  14:3  error  'validatePathParam' is defined but never used  no-unused-vars
+
+C:\Users\user\Desktop\Programacion\Node-express-nest\Project one\apps\server\src\modules\news\service.js
+  3:3  error  'handleUpload' is defined but never used        no-unused-vars
+  4:3  error  'handleUploadUpdate' is defined but never used  no-unused-vars
+  5:3  error  'handleDeleteFile' is defined but never used    no-unused-vars
+
+C:\Users\user\Desktop\Programacion\Node-express-nest\Project one\apps\server\src\modules\payroll\routes.js
+  15:3  error  'validateQueryParams' is defined but never used  no-unused-vars
+
+C:\Users\user\Desktop\Programacion\Node-express-nest\Project one\apps\server\src\modules\permission\routes.js
+  10:3  error  'validateQueryParams' is defined but never used  no-unused-vars
+
+C:\Users\user\Desktop\Programacion\Node-express-nest\Project one\apps\server\src\modules\products\controller.js
+  15:3  error  'console' is not defined  no-undef
+
+C:\Users\user\Desktop\Programacion\Node-express-nest\Project one\apps\server\src\modules\providerOrder\controller.js
+  16:3  error  'console' is not defined  no-undef
+  27:3  error  'console' is not defined  no-undef
+
+C:\Users\user\Desktop\Programacion\Node-express-nest\Project one\apps\server\src\modules\providerOrder\routes.js
+  12:3  error  Parsing error: Identifier 'checkRoleAuthOrPermisssion' has already been declared
+
+C:\Users\user\Desktop\Programacion\Node-express-nest\Project one\apps\server\src\modules\sale\dao.js
+  1:18  error  'Prisma' is defined but never used  no-unused-vars
+
+C:\Users\user\Desktop\Programacion\Node-express-nest\Project one\apps\server\src\modules\settings\service.js
+  106:3  error  'console' is not defined  no-undef
+
+C:\Users\user\Desktop\Programacion\Node-express-nest\Project one\apps\server\src\modules\vacation\routes.js
+  10:3  error  'validateQueryParams' is defined but never used  no-unused-vars
+
+C:\Users\user\Desktop\Programacion\Node-express-nest\Project one\apps\server\src\utils\jwt\createToken.js
+  114:15  error  'process' is not defined  no-undef
+  115:13  error  'console' is not defined  no-undef
+
+C:\Users\user\Desktop\Programacion\Node-express-nest\Project one\apps\server\src\utils\prisma\prisma-query.js
+  11:24  error  'Buffer' is not defined            no-undef
+  17:17  error  'Buffer' is not defined            no-undef
+  27:12  error  'Buffer' is not defined            no-undef
+  31:12  error  'error' is defined but never used  no-unused-vars
+
+C:\Users\user\Desktop\Programacion\Node-express-nest\Project one\apps\server\tests\bin\server..js
+  45:5   error  'console' is not defined  no-undef
+  47:7   error  'process' is not defined  no-undef
+  56:41  error  'process' is not defined  no-undef
+
+C:\Users\user\Desktop\Programacion\Node-express-nest\Project one\apps\server\tests\components\role\role.test.js
+    6:1   error  'describe' is not defined                              no-undef
+   10:3   error  'beforeAll' is not defined                             no-undef
+   15:5   error  'console' is not defined                               no-undef
+   21:5   error  'console' is not defined                               no-undef
+   22:5   error  'console' is not defined                               no-undef
+   26:3   error  'afterAll' is not defined                              no-undef
+   40:9   error  'dataRolTocreate4' is assigned a value but never used  no-unused-vars
+   44:3   error  'describe' is not defined                              no-undef
+   45:5   error  'test' is not defined                                  no-undef
+   54:7   error  'expect' is not defined                                no-undef
+   55:7   error  'expect' is not defined                                no-undef
+   56:13  error  'expect' is not defined                                no-undef
+   61:7   error  'expect' is not defined                                no-undef
+   62:9   error  'expect' is not defined                                no-undef
+   67:5   error  'test' is not defined                                  no-undef
+   73:7   error  'expect' is not defined                                no-undef
+   74:7   error  'expect' is not defined                                no-undef
+   79:5   error  'test' is not defined                                  no-undef
+   90:7   error  'expect' is not defined                                no-undef
+   94:5   error  'test' is not defined                                  no-undef
+  106:7   error  'expect' is not defined                                no-undef
+  107:7   error  'expect' is not defined                                no-undef
+  111:5   error  'test' is not defined                                  no-undef
+  117:7   error  'expect' is not defined                                no-undef
+  118:7   error  'expect' is not defined                                no-undef
+  123:5   error  'test' is not defined                                  no-undef
+  129:7   error  'expect' is not defined                                no-undef
+  130:7   error  'expect' is not defined                                no-undef
+  135:5   error  'test' is not defined                                  no-undef
+  145:9   error  'expect' is not defined                                no-undef
+  146:9   error  'expect' is not defined                                no-undef
+  151:3   error  'describe' is not defined                              no-undef
+  152:5   error  'test' is not defined                                  no-undef
+  159:7   error  'expect' is not defined                                no-undef
+  160:7   error  'expect' is not defined                                no-undef
+  161:7   error  'expect' is not defined                                no-undef
+  162:7   error  'expect' is not defined                                no-undef
+  163:7   error  'expect' is not defined                                no-undef
+  168:5   error  'test' is not defined                                  no-undef
+  175:7   error  'expect' is not defined                                no-undef
+  179:5   error  'test' is not defined                                  no-undef
+  187:7   error  'expect' is not defined                                no-undef
+  188:7   error  'expect' is not defined                                no-undef
+  191:5   error  'test' is not defined                                  no-undef
+  202:9   error  'expect' is not defined                                no-undef
+  203:9   error  'expect' is not defined                                no-undef
+  208:5   error  'test' is not defined                                  no-undef
+  217:7   error  'expect' is not defined                                no-undef
+  218:7   error  'expect' is not defined                                no-undef
+  222:3   error  'describe' is not defined                              no-undef
+  223:5   error  'test' is not defined                                  no-undef
+  230:7   error  'expect' is not defined                                no-undef
+  232:5   error  'test' is not defined                                  no-undef
+  239:7   error  'expect' is not defined                                no-undef
+  241:5   error  'test' is not defined                                  no-undef
+  248:7   error  'expect' is not defined                                no-undef
+  252:3   error  'describe' is not defined                              no-undef
+  253:5   error  'test' is not defined                                  no-undef
+  257:7   error  'console' is not defined                               no-undef
+  259:7   error  'expect' is not defined                                no-undef
+  260:7   error  'expect' is not defined                                no-undef
+  262:5   error  'test' is not defined                                  no-undef
+  268:7   error  'expect' is not defined                                no-undef
+  269:7   error  'expect' is not defined                                no-undef
+  271:5   error  'test' is not defined                                  no-undef
+  278:7   error  'expect' is not defined                                no-undef
+
+C:\Users\user\Desktop\Programacion\Node-express-nest\Project one\apps\server\tests\test-server.js
+   6:29  error  'process' is not defined  no-undef
+   7:7   error  'console' is not defined  no-undef
+   7:53  error  'process' is not defined  no-undef
+  19:9   error  'console' is not defined  no-undef
+
+✖ 522 problems (492 errors, 30 warnings)
+  0 errors and 1 warning potentially fixable with the `--fix` option.
+

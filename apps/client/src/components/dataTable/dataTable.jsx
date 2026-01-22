@@ -4,7 +4,6 @@ import {
   useReactTable,
   getFilteredRowModel,
   getSortedRowModel,
-  getPaginationRowModel,
 } from '@tanstack/react-table';
 import {
   Table,
@@ -14,12 +13,9 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
+import { TooltipProvider } from '@/components/ui/tooltip';
+import {CellWithTooltip} from './cellWithTooltip'
+
 
 import { Filter } from './Filter';
 import { Pagination } from './Pagination';
@@ -43,6 +39,7 @@ export const DataTable = ({
   //   pageIndex: 0,
   //   pageSize: 20
   // }) //pagination
+  // eslint-disable-next-line react-hooks/incompatible-library
   const table = useReactTable({
     //override default column sizing
     // defaultColumn: {
@@ -80,97 +77,103 @@ export const DataTable = ({
 
   return (
     <div className="flex-1 max-w-full max-h-[50vh] ">
-      <Table className="overflow-auto rounded-lg">
-        <TableHeader>
-          {table.getHeaderGroups().map((headerGroup) => (
-            <TableRow key={headerGroup.id}>
-              {headerGroup.headers.map((header) => {
-                return (
-                  <TableHead key={header.id} className="p-3 border ">
-                    {/* {header.isPlaceholder
-                          ? null
-                          : flexRender(
-                              header.column.columnDef.header,
-                              header.getContext()
-                            )}
-                        {
+      <TooltipProvider>
+        {' '}
+        <Table className="overflow-auto rounded-lg">
+          <TableHeader>
+            {table.getHeaderGroups().map((headerGroup) => (
+              <TableRow key={headerGroup.id}>
+                {headerGroup.headers.map((header) => {
+                  return (
+                    <TableHead key={header.id} className="p-3 border ">
+                      {/* {header.isPlaceholder
+                            ? null
+                            : flexRender(
+                                header.column.columnDef.header,
+                                header.getContext()
+                              )}
                           {
-                            asc: <CaretSortIcon className='w-4 h-3 ml-1' />,
-                            desc: <CaretSortIcon className='w-4 h-4 ml-2' />
-                          }[header.column.getIsSorted() ?? null]
-                        }
-                        {header.column.getCanFilter() ? (
-                          <div>
-                            <Filter column={header.column} />
-                          </div>
-                        ) : null} */}
+                            {
+                              asc: <CaretSortIcon className='w-4 h-3 ml-1' />,
+                              desc: <CaretSortIcon className='w-4 h-4 ml-2' />
+                            }[header.column.getIsSorted() ?? null]
+                          }
+                          {header.column.getCanFilter() ? (
+                            <div>
+                              <Filter column={header.column} />
+                            </div>
+                          ) : null} */}
 
-                    <div
-                      {...{
-                        className: header.column.getCanSort()
-                          ? 'cursor-pointer select-none text-center'
-                          : '',
-                        onClick: header.column.getToggleSortingHandler(),
+                      <div
+                        {...{
+                          className: header.column.getCanSort()
+                            ? 'cursor-pointer select-none text-center'
+                            : '',
+                          onClick: header.column.getToggleSortingHandler(),
+                        }}
+                      >
+                        {flexRender(
+                          header.column.columnDef.header,
+                          header.getContext()
+                        )}
+                        {{
+                          asc: (
+                            <MdOutlineArrowDropUp className="inline-block" />
+                          ),
+                          desc: (
+                            <MdOutlineArrowDropDown className="inline-block" />
+                          ),
+                          false: <CaretSortIcon className="inline-block" />,
+                        }[header.column.getIsSorted()] ?? null}
+                      </div>
+                      {header.column.getCanFilter() ? (
+                        <div className="pt-2 ">
+                          <Filter column={header.column} table={table} />
+                        </div>
+                      ) : null}
+                    </TableHead>
+                  );
+                })}
+              </TableRow>
+            ))}
+          </TableHeader>
+
+          <TableBody>
+            {table.getRowModel().rows?.length ? (
+              table.getRowModel().rows.map((row) => (
+                <TableRow
+                  key={row.id}
+                  className=""
+                  data-state={row.getIsSelected() && 'selected'}
+                >
+                  {row.getVisibleCells().map((cell) => (
+                    <TableCell
+                      key={cell.id}
+                      className="p-2 text-center border cursor-pointer select-none "
+                      onClick={() => {
+                        handleDataRow(row);
                       }}
                     >
-                      {flexRender(
-                        header.column.columnDef.header,
-                        header.getContext()
-                      )}
-                      {{
-                        asc: <MdOutlineArrowDropUp className="inline-block" />,
-                        desc: (
-                          <MdOutlineArrowDropDown className="inline-block" />
-                        ),
-                        false: <CaretSortIcon className="inline-block" />,
-                      }[header.column.getIsSorted()] ?? null}
-                    </div>
-                    {header.column.getCanFilter() ? (
-                      <div className="pt-2 ">
-                        <Filter column={header.column} table={table} />
-                      </div>
-                    ) : null}
-                  </TableHead>
-                );
-              })}
-            </TableRow>
-          ))}
-        </TableHeader>
-
-        <TableBody>
-          {table.getRowModel().rows?.length ? (
-            table.getRowModel().rows.map((row) => (
-              <TableRow
-                key={row.id}
-                className=""
-                data-state={row.getIsSelected() && 'selected'}
-              >
-                {row.getVisibleCells().map((cell) => (
-                  <TableCell
-                    key={cell.id}
-                    className="p-2 text-center border cursor-pointer select-none "
-                    onClick={() => {
-                      handleDataRow(row);
-                    }}
-                  >
-                    {renderCellWithTooltip(cell)}
-                    {/* {flexRender(cell.column.columnDef.cell, cell.getContext())} */}
-                  </TableCell>
-                ))}
+                      {/* {renderCellWithTooltip(cell)} */}
+                      <CellWithTooltip cell={cell} />
+                      {/* {flexRender(cell.column.columnDef.cell, cell.getContext())} */}
+                    </TableCell>
+                  ))}
+                </TableRow>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell
+                  colSpan={columns.length}
+                  className="h-full text-center"
+                >
+                  No results.
+                </TableCell>
               </TableRow>
-            ))
-          ) : (
-            <TableRow>
-              <TableCell
-                colSpan={columns.length}
-                className="h-full text-center"
-              >
-                No results.
-              </TableCell>
-            </TableRow>
-          )}
-        </TableBody>
-      </Table>
+            )}
+          </TableBody>
+        </Table>
+      </TooltipProvider>
 
       <Pagination table={table} />
       {/* <pre>{JSON.stringify(table.getState().pagination, null, 2)}</pre> */}
@@ -187,23 +190,4 @@ DataTable.propTypes = {
   onPaginationChange: PropTypes.func.isRequired,
 };
 
-// Helper function to render cell content with tooltip
-const renderCellWithTooltip = (cell) => {
-  const content = flexRender(cell.column.columnDef.cell, cell.getContext());
 
-  return (
-    <TooltipProvider>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <div className="truncate">{content}</div>
-        </TooltipTrigger>
-        <TooltipContent>
-          <p className="max-w-xs break-words">{content}</p>
-        </TooltipContent>
-      </Tooltip>
-    </TooltipProvider>
-  );
-};
-renderCellWithTooltip.propTypes = {
-  cell: PropTypes.object.isRequired,
-};

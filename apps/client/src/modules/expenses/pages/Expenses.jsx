@@ -37,28 +37,14 @@ const Expenses = () => {
     },
   ] = useLazyGetAllExpensesQuery();
 
-  const [
-    updateExpenseById,
-    { isLoading: isLoadingPut, isError: isErrorPut, isSuccess: isSuccessPut },
-  ] = useUpdateExpenseByIdMutation();
+  const [updateExpenseById, { isLoading: isLoadingPut }] =
+    useUpdateExpenseByIdMutation();
 
-  const [
-    createExpense,
-    {
-      isLoading: isLoadingPost,
-      isError: isErrorPost,
-      isSuccess: isSuccessPost,
-    },
-  ] = useCreateExpenseMutation();
+  const [createExpense, { isLoading: isLoadingPost }] =
+    useCreateExpenseMutation();
 
-  const [
-    deleteExpenseById,
-    {
-      isLoading: isLoadingDelete,
-      isError: isErrorDelete,
-      isSuccess: isSuccessDelete,
-    },
-  ] = useDeleteExpenseByIdMutation();
+  const [deleteExpenseById, { isLoading: isLoadingDelete }] =
+    useDeleteExpenseByIdMutation();
 
   /**
    * Este efecto es la única fuente de verdad para disparar
@@ -79,7 +65,7 @@ const Expenses = () => {
       limit: pagination.pageSize,
       ...filters,
     });
-  }, [pagination.pageIndex, pagination.pageSize, filters]);
+  }, [pagination.pageIndex, pagination.pageSize, filters, getAllExpenses]);
 
   /**
    * Al aplicar nuevos filtros:
@@ -103,7 +89,7 @@ const Expenses = () => {
     try {
       // values already contains { description, total, category, status }
       // total is already a float from ExpensesDialog
-      const result = expenseId
+      expenseId
         ? await updateExpenseById({
             id: expenseId,
             data: {

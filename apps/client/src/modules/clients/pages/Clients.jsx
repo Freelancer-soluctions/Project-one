@@ -37,28 +37,14 @@ const Clients = () => {
     },
   ] = useLazyGetAllClientsQuery();
 
-  const [
-    updateClientById,
-    { isLoading: isLoadingPut, isError: isErrorPut, isSuccess: isSuccessPut },
-  ] = useUpdateClientByIdMutation();
+  const [updateClientById, { isLoading: isLoadingPut }] =
+    useUpdateClientByIdMutation();
 
-  const [
-    createClient,
-    {
-      isLoading: isLoadingPost,
-      isError: isErrorPost,
-      isSuccess: isSuccessPost,
-    },
-  ] = useCreateClientMutation();
+  const [createClient, { isLoading: isLoadingPost }] =
+    useCreateClientMutation();
 
-  const [
-    deleteClientById,
-    {
-      isLoading: isLoadingDelete,
-      isError: isErrorDelete,
-      isSuccess: isSuccessDelete,
-    },
-  ] = useDeleteClientByIdMutation();
+  const [deleteClientById, { isLoading: isLoadingDelete }] =
+    useDeleteClientByIdMutation();
 
   /**
    * Este efecto es la única fuente de verdad para disparar
@@ -79,7 +65,7 @@ const Clients = () => {
       limit: pagination.pageSize,
       ...filters,
     });
-  }, [pagination.pageIndex, pagination.pageSize, filters]);
+  }, [pagination.pageIndex, pagination.pageSize, filters, getAllClients]);
 
   /**
    * Al aplicar nuevos filtros:
@@ -101,7 +87,7 @@ const Clients = () => {
 
   const handleSubmit = async (values, clientId) => {
     try {
-      const result = clientId
+      clientId
         ? await updateClientById({
             id: clientId,
             data: {

@@ -40,15 +40,13 @@ const Warehouse = () => {
 
   const [
     updateWarehouseById,
-    { isLoading: isLoadingPut, isError: isErrorPut, isSuccess: isSuccessPut },
+    { isLoading: isLoadingPut },
   ] = useUpdateWarehouseByIdMutation();
 
   const [
     createWarehouse,
     {
       isLoading: isLoadingPost,
-      isError: isErrorPost,
-      isSuccess: isSuccessPost,
     },
   ] = useCreateWarehouseMutation();
 
@@ -56,8 +54,6 @@ const Warehouse = () => {
     deleteWarehouseById,
     {
       isLoading: isLoadingDelete,
-      isError: isErrorDelete,
-      isSuccess: isSuccessDelete,
     },
   ] = useDeleteWarehouseByIdMutation();
 
@@ -102,7 +98,7 @@ const Warehouse = () => {
 
   const handleSubmit = async (values, warehouseId) => {
     try {
-      const result = warehouseId
+      warehouseId
         ? await updateWarehouseById({
             id: warehouseId,
             data: {

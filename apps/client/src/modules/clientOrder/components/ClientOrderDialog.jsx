@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -24,7 +24,6 @@ import { Button } from '@/components/ui/button';
 import { LuUsersRound } from 'react-icons/lu';
 import PropTypes from 'prop-types';
 import { ClientOrderSchema } from '../utils';
-import { useState } from 'react';
 import { orderStatus } from '@/lib/constants';
 import {
   Select,
@@ -43,7 +42,6 @@ export const ClientOrderDialog = ({
   actionDialog,
 }) => {
   const { t } = useTranslation();
-  const [clientOrderId, setClientOrderId] = useState('');
 
   const form = useForm({
     resolver: zodResolver(ClientOrderSchema),
@@ -54,6 +52,11 @@ export const ClientOrderDialog = ({
       saleId: '',
     },
   });
+
+  const clientOrderId = useMemo(
+    () => selectedRow?.id ?? null,
+    [selectedRow?.id]
+  );
 
   // Actualiza todos los valores del formulario al cambiar `selectedRow`
   useEffect(() => {
@@ -68,7 +71,6 @@ export const ClientOrderDialog = ({
       };
 
       form.reset(mappedValues);
-      setClientOrderId(mappedValues.id);
     }
 
     if (!openDialog) {
@@ -78,9 +80,8 @@ export const ClientOrderDialog = ({
         notes: '',
         saleId: '',
       });
-      setClientOrderId(null);
     }
-  }, [selectedRow, openDialog]);
+  }, [selectedRow, openDialog, form]);
 
   const handleSubmit = (data) => {
     onSubmit(data, clientOrderId);

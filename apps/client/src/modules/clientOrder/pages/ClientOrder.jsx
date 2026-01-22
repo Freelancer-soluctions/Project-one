@@ -37,20 +37,14 @@ const ClientOrder = () => {
     },
   ] = useLazyGetAllClientOrderQuery();
 
-  const [
-    updateClientOrderById,
-    { isLoading: isLoadingPut },
-  ] = useUpdateClientOrderByIdMutation();
+  const [updateClientOrderById, { isLoading: isLoadingPut }] =
+    useUpdateClientOrderByIdMutation();
 
-  const [
-    createClientOrder,
-    { isLoading: isLoadingPost },
-  ] = useCreateClientOrderMutation();
+  const [createClientOrder, { isLoading: isLoadingPost }] =
+    useCreateClientOrderMutation();
 
-  const [
-    deleteClientOrderById,
-    { isLoading: isLoadingDelete },
-  ] = useDeleteClientOrderByIdMutation();
+  const [deleteClientOrderById, { isLoading: isLoadingDelete }] =
+    useDeleteClientOrderByIdMutation();
 
   /**
    * Este efecto es la única fuente de verdad para disparar
@@ -71,7 +65,7 @@ const ClientOrder = () => {
       limit: pagination.pageSize,
       ...filters,
     });
-  }, [pagination.pageIndex, pagination.pageSize, filters]);
+  }, [pagination.pageIndex, pagination.pageSize, filters, getAllClientOrder]);
 
   /**
    * Al aplicar nuevos filtros:
@@ -93,7 +87,7 @@ const ClientOrder = () => {
 
   const handleSubmit = async (values, clientOrderId) => {
     try {
-       clientOrderId
+      clientOrderId
         ? await updateClientOrderById({
             id: clientOrderId,
             data: {

@@ -34,35 +34,26 @@ const News = () => {
     trigger,
     {
       data: dataNews = { data: [] },
-      isError,
       isLoading,
       isFetching,
-      isSuccess,
-      error,
     },
-    lastPromiseInfo,
   ] = useLazyGetAllNewsQuery();
 
   const {
     data: datastatus,
-    isError: isErrorStatus,
     isLoading: isLoadingStatus,
     isFetching: isFetchingStatus,
-    isSuccess: isSuccessStatus,
-    error: errorStatus,
   } = useGetAllNewsStatusQuery();
 
   const [
     updateNewById,
-    { isLoading: isLoadingPut, isError: isErrorPut, isSuccess: isSuccessPut },
+    { isLoading: isLoadingPut },
   ] = useUpdateNewByIdMutation();
 
   const [
     createNew,
     {
       isLoading: isLoadingPost,
-      isError: isErrorPost,
-      isSuccess: isSuccessPost,
     },
   ] = useCreateNewMutation();
 
@@ -70,8 +61,6 @@ const News = () => {
     deleteNewById,
     {
       isLoading: isLoadingDelete,
-      isError: isErrorDelete,
-      isSuccess: isSuccessDelete,
     },
   ] = useDeleteNewByIdMutation();
 
@@ -94,7 +83,7 @@ const News = () => {
       limit: pagination.pageSize,
       ...filters,
     });
-  }, [pagination.pageIndex, pagination.pageSize, filters]);
+  }, [pagination.pageIndex, pagination.pageSize, filters, trigger]);
 
   /**
    * Al aplicar nuevos filtros:
@@ -116,7 +105,7 @@ const News = () => {
 
   const handleSubmit = async (values, newId) => {
     try {
-      const result = newId
+      newId
         ? await updateNewById({
             id: newId,
             data: {

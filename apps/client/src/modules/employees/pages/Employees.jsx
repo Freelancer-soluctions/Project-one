@@ -37,28 +37,14 @@ const Employees = () => {
     },
   ] = useLazyGetAllEmployeesQuery();
 
-  const [
-    updateEmployeeById,
-    { isLoading: isLoadingPut, isError: isErrorPut, isSuccess: isSuccessPut },
-  ] = useUpdateEmployeeByIdMutation();
+  const [updateEmployeeById, { isLoading: isLoadingPut }] =
+    useUpdateEmployeeByIdMutation();
 
-  const [
-    createEmployee,
-    {
-      isLoading: isLoadingPost,
-      isError: isErrorPost,
-      isSuccess: isSuccessPost,
-    },
-  ] = useCreateEmployeeMutation();
+  const [createEmployee, { isLoading: isLoadingPost }] =
+    useCreateEmployeeMutation();
 
-  const [
-    deleteEmployeeById,
-    {
-      isLoading: isLoadingDelete,
-      isError: isErrorDelete,
-      isSuccess: isSuccessDelete,
-    },
-  ] = useDeleteEmployeeByIdMutation();
+  const [deleteEmployeeById, { isLoading: isLoadingDelete }] =
+    useDeleteEmployeeByIdMutation();
 
   /**
    * Este efecto es la única fuente de verdad para disparar
@@ -79,7 +65,7 @@ const Employees = () => {
       limit: pagination.pageSize,
       ...filters,
     });
-  }, [pagination.pageIndex, pagination.pageSize, filters]);
+  }, [pagination.pageIndex, pagination.pageSize, filters, getAllEmployees]);
 
   /**
    * Al aplicar nuevos filtros:
@@ -101,7 +87,7 @@ const Employees = () => {
 
   const handleSubmit = async (values, employeeId) => {
     try {
-      const result = employeeId
+      employeeId
         ? await updateEmployeeById({
             id: employeeId,
             data: {
@@ -111,10 +97,16 @@ const Employees = () => {
               email: values.email,
               phone: values.phone,
               address: values.address,
-              startDate: values.startDate,
-              position: values.position,
-              department: values.department,
+              birthDate: values.birthDate,
+              hireDate: values.hireDate,
               salary: values.salary,
+              positionId: values.positionId,
+              departmentId: values.departmentId,
+              gender: values.gender,
+              countryId: values.countryId,
+              civilStatus: values.civilStatus,
+              cityId: values.cityId,
+              isActive: values.isActive,
             },
           }).unwrap()
         : await createEmployee({
@@ -124,10 +116,16 @@ const Employees = () => {
             email: values.email,
             phone: values.phone,
             address: values.address,
-            startDate: values.startDate,
-            position: values.position,
-            department: values.department,
+            birthDate: values.birthDate,
+            hireDate: values.hireDate,
             salary: values.salary,
+            positionId: values.positionId,
+            departmentId: values.departmentId,
+            gender: values.gender,
+            countryId: values.countryId,
+            civilStatus: values.civilStatus,
+            cityId: values.cityId,
+            isActive: values.isActive,
           }).unwrap();
 
       setAlertProps({

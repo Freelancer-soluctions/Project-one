@@ -35,20 +35,18 @@ export default function Notes() {
   //   }
   // }, [location.state]);
 
-  const initialFilters  = useMemo(() => {
-  return {
-    searchTerm: '',
-    statusCode: location.state?.filter ?? '',
-  };
-}, [location.state?.filter]);
-const [filters, setFilters] = useState(initialFilters);
-
+  const initialFilters = useMemo(() => {
+    return {
+      searchTerm: '',
+      statusCode: location.state?.filter ?? '',
+    };
+  }, [location.state?.filter]);
+  const [filters, setFilters] = useState(initialFilters);
 
   const {
     data: dataColumns = { data: [] },
     isLoading: isLoadingColumns,
     isFetching: isFetchingColumns,
-
   } = useGetAllNotesColumnsQuery();
 
   const {
@@ -57,34 +55,16 @@ const [filters, setFilters] = useState(initialFilters);
     isFetching: isFetchingNotes,
   } = useGetAllNotesQuery(filters);
 
-  const [
-    createNote,
-    {
-      isLoading: isLoadingPost,
-  
-    },
-  ] = useCreateNoteMutation();
+  const [createNote, { isLoading: isLoadingPost }] = useCreateNoteMutation();
 
-  const [
-    updateNoteColumId,
-    { isLoading: isLoadingPut,  },
-  ] = useUpdateNoteColumIdMutation();
+  const [updateNoteColumId, { isLoading: isLoadingPut }] =
+    useUpdateNoteColumIdMutation();
 
-  const [
-    updateNoteById,
-    {
-      isLoading: isLoadingPutCard,
-   
-    },
-  ] = useUpdateNoteByIdMutation();
+  const [updateNoteById, { isLoading: isLoadingPutCard }] =
+    useUpdateNoteByIdMutation();
 
-  const [
-    deleteNoteById,
-    {
-      isLoading: isLoadingDelete,
-     
-    },
-  ] = useDeleteNoteByIdMutation();
+  const [deleteNoteById, { isLoading: isLoadingDelete }] =
+    useDeleteNoteByIdMutation();
 
   // const filteredColumns = useMemo(() => {
   //   if (!searchTerm) return dataNotes?.data
@@ -162,7 +142,7 @@ const [filters, setFilters] = useState(initialFilters);
   const handleCreateNote = async ({ title, content, status }) => {
     const color = setColor(status.code);
 
-   await createNote({
+    await createNote({
       title,
       content,
       color,
