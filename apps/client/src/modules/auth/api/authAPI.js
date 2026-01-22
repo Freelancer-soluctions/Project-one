@@ -1,4 +1,4 @@
-import { axiosPublic, axiosPrivate } from '@/config/axios';
+import { axiosPublic } from '@/config/axios';
 import Cookies from 'js-cookie';
 
 export function SignInApi(body) {
@@ -8,10 +8,6 @@ export function SignInApi(body) {
 export function SignUpApi(body) {
   return axiosPublic.post('/auth/signup', body);
 }
-
-// export function newsApi (id) {
-//   return axiosPrivate.delete(`/news/deleteNews/${id}`)
-// }
 
 export function RefreshTokenApi() {
   const csrfToken = Cookies.get('csrfToken');

@@ -1,15 +1,19 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 export function useFetch(url) {
+  const controllerRef = useRef(null);
+
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [controller, setController] = useState(null);
+  // const [controller, setController] = useState(null);
 
   useEffect(() => {
     const abortController = new AbortController();
-    setController(abortController);
+    // setController(abortController);
+    controllerRef.current = abortController; // ✔ NO render
 
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setLoading(true);
     fetch(url, { signal: abortController.signal })
       .then((res) => res.json())
@@ -26,11 +30,17 @@ export function useFetch(url) {
     return () => abortController.abort();
   }, [url]);
 
+  // const handleCancelRequest = () => {
+  //   if (controller) {
+  //     controller.abort();
+  //     setError('Request cancelled');
+  //   }
+  // };
+
   const handleCancelRequest = () => {
-    if (controller) {
-      controller.abort();
-      setError('Request cancelled');
-    }
+    controllerRef.current?.abort();
+    setError('Request cancelled');
+    setLoading(false);
   };
 
   return { data, loading, error, handleCancelRequest };

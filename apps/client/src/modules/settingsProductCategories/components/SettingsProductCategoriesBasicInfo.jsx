@@ -159,4 +159,5 @@ SettingsProductCategoriesBasicInfo.propTypes = {
   onSubmitCreateEdit: PropTypes.func.isRequired,
   onDelete: PropTypes.func.isRequired,
   selectedRow: PropTypes.object.isRequired,
+  onClose: PropTypes.func.isRequired,
 };

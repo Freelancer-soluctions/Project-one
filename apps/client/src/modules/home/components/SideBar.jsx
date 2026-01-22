@@ -13,6 +13,7 @@ import {
 } from 'react-icons/lu';
 import { Link } from 'react-router';
 import { useTranslation } from 'react-i18next';
+import PropTypes from 'prop-types';
 import { QuickAccessButton } from '@/components/quickAccess/QuickAccess';
 import { NotesSummary } from './NotesSummary';
 import { StockSummary } from './StockSummary';
@@ -137,6 +138,12 @@ const SideBar = ({ dataCountNotes, dataCountStock, displaySettings }) => {
       </Link>
     </>
   );
+};
+
+SideBar.propTypes = {
+  dataCountNotes: PropTypes.object,
+  dataCountStock: PropTypes.object,
+  displaySettings: PropTypes.object,
 };
 
 export default SideBar;

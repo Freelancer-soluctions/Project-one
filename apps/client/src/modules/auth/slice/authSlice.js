@@ -89,6 +89,7 @@ const authSlice = createSlice({
   },
   extraReducers: (builder) => {
     // sign up
+    // eslint-disable-next-line no-unused-vars
     builder.addCase(signInFetch.pending, (state, action) => {
       state.isLoading = true;
       state.isError = false;
@@ -99,7 +100,7 @@ const authSlice = createSlice({
       state.isError = false;
       state.isAuth = true;
       state.user = action.payload;
-      debugger;
+
       sessionStorage.setItem('accessToken', state.user.data.accessToken);
     });
     builder.addCase(signInFetch.rejected, (state, action) => {
@@ -120,6 +121,7 @@ const authSlice = createSlice({
     // });
 
     // refresh
+    // eslint-disable-next-line no-unused-vars
     builder.addCase(refreshTokenFecth.pending, (state, action) => {
       state.isLoading = true;
       state.isError = false;

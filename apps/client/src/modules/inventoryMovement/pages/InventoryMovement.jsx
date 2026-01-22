@@ -51,28 +51,14 @@ const InventoryMovement = () => {
     isFetching: isFetchingWarehouses,
   } = useGetAllWarehousesFiltersQuery();
 
-  const [
-    updateInventoryMovementById,
-    { isLoading: isLoadingPut, isError: isErrorPut, isSuccess: isSuccessPut },
-  ] = useUpdateInventoryMovementByIdMutation();
+  const [updateInventoryMovementById, { isLoading: isLoadingPut }] =
+    useUpdateInventoryMovementByIdMutation();
 
-  const [
-    createInventoryMovement,
-    {
-      isLoading: isLoadingPost,
-      isError: isErrorPost,
-      isSuccess: isSuccessPost,
-    },
-  ] = useCreateInventoryMovementMutation();
+  const [createInventoryMovement, { isLoading: isLoadingPost }] =
+    useCreateInventoryMovementMutation();
 
-  const [
-    deleteInventoryMovementById,
-    {
-      isLoading: isLoadingDelete,
-      isError: isErrorDelete,
-      isSuccess: isSuccessDelete,
-    },
-  ] = useDeleteInventoryMovementByIdMutation();
+  const [deleteInventoryMovementById, { isLoading: isLoadingDelete }] =
+    useDeleteInventoryMovementByIdMutation();
 
   /**
    * Este efecto es la única fuente de verdad para disparar
@@ -93,7 +79,12 @@ const InventoryMovement = () => {
       limit: pagination.pageSize,
       ...filters,
     });
-  }, [pagination.pageIndex, pagination.pageSize, filters]);
+  }, [
+    pagination.pageIndex,
+    pagination.pageSize,
+    filters,
+    getAllInventoryMovements,
+  ]);
 
   /**
    * Al aplicar nuevos filtros:
@@ -115,7 +106,7 @@ const InventoryMovement = () => {
 
   const handleSubmit = async (values, inventoryMovementId) => {
     try {
-      const result = inventoryMovementId
+      inventoryMovementId
         ? await updateInventoryMovementById({
             id: inventoryMovementId,
             data: values,

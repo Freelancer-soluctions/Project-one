@@ -42,7 +42,6 @@ const Vacation = () => {
       data: dataVacations = { data: [] },
       isLoading: isLoadingVacations,
       isFetching: isFetchingVacations,
-      refetch,
     },
   ] = useLazyGetAllVacationsQuery();
 
@@ -74,7 +73,7 @@ const Vacation = () => {
       limit: pagination.pageSize,
       ...filters,
     });
-  }, [pagination.pageIndex, pagination.pageSize, filters]);
+  }, [pagination.pageIndex, pagination.pageSize, filters, getAllVacations]);
 
   /**
    * Al aplicar nuevos filtros:

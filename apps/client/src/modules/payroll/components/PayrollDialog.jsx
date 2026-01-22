@@ -67,10 +67,7 @@ export const PayrollDialog = ({
     },
   });
 
-const payrollId = useMemo(
-  () => selectedRow?.id ?? null,
-  [selectedRow?.id]
-);
+  const payrollId = useMemo(() => selectedRow?.id ?? null, [selectedRow?.id]);
 
   useEffect(() => {
     if (selectedRow?.id) {
@@ -523,6 +520,5 @@ PayrollDialog.propTypes = {
   onSubmit: PropTypes.func.isRequired,
   onDeleteById: PropTypes.func.isRequired,
   actionDialog: PropTypes.string.isRequired,
-  dataEmployees: PropTypes.array.isRequired
-
+  dataEmployees: PropTypes.array.isRequired,
 };

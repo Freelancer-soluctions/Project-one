@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { NewsDialogSchema, NewsStatusCode } from '../utils';
@@ -10,7 +10,6 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
   DialogClose,
 } from '@/components/ui/dialog';
 import {
@@ -47,13 +46,17 @@ export const NewsDialog = ({
   onDeleteById,
 }) => {
   const { t } = useTranslation();
-  const [newId, setNewId] = useState('');
-  const [statusCodeSaved, setStatusCodeSaved] = useState('');
 
   // Configura el formulario
   const formDialog = useForm({
     resolver: zodResolver(NewsDialogSchema),
   });
+
+  const newId = useMemo(() => selectedRow?.id ?? null, [selectedRow?.id]);
+  const statusCodeSaved = useMemo(
+    () => selectedRow?.status.code ?? null,
+    [selectedRow?.status]
+  );
 
   // Actualiza todos los valores del formulario al cambiar `selectedRow`
   useEffect(() => {
@@ -82,14 +85,12 @@ export const NewsDialog = ({
       // })
 
       formDialog.reset(mappedValues);
-      setNewId(mappedValues.id || '');
-      setStatusCodeSaved(mappedValues.status.code || '');
     }
 
     if (!openDialog) {
       formDialog.reset();
     }
-  }, [selectedRow, openDialog]);
+  }, [selectedRow, openDialog, formDialog]);
 
   const onSubmitDialog = (values) => {
     onCreateUpdate(values, newId);
@@ -135,7 +136,7 @@ export const NewsDialog = ({
                 <FormField
                   control={formDialog.control}
                   name="document"
-                  render={({ field }) => {
+                  render={() => {
                     return (
                       <FormItem className="flex flex-col flex-auto col-span-1">
                         <FormLabel htmlFor="file">{t('document')}</FormLabel>
@@ -164,7 +165,7 @@ export const NewsDialog = ({
                       ? datastatus?.data.filter(
                           (item) => item.code !== NewsStatusCode.CLOSED
                         )
-                      : [...datastatus?.data];
+                      : [...(datastatus?.data ?? [])];
 
                     return (
                       <FormItem className="flex flex-col flex-auto">
@@ -401,4 +402,6 @@ NewsDialog.propTypes = {
   setOpenDialog: PropTypes.func,
   actionDialog: PropTypes.string,
   datastatus: PropTypes.object,
+  onCreateUpdate: PropTypes.func,
+  onDeleteById: PropTypes.func,
 };

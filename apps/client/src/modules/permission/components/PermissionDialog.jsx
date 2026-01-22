@@ -72,7 +72,10 @@ export const PermissionDialog = ({
     },
   });
 
-  const permissionId = useMemo(() => selectedRow?.id ?? null,[selectedRow?.id] )
+  const permissionId = useMemo(
+    () => selectedRow?.id ?? null,
+    [selectedRow?.id]
+  );
 
   useEffect(() => {
     if (selectedRow?.id) {

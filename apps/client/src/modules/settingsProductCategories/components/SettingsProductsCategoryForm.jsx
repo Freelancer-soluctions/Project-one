@@ -18,15 +18,13 @@ export function SettingsProductsCategoryForm({ onClose, selectedRow }) {
 
   const [
     updateCategoryById,
-    { isLoading: isLoadingPut, isError: isErrorPut, isSuccess: isSuccessPut },
+    { isLoading: isLoadingPut },
   ] = useUpdateCategoryByIdMutation();
 
   const [
     createCategory,
     {
       isLoading: isLoadingPost,
-      isError: isErrorPost,
-      isSuccess: isSuccessPost,
     },
   ] = useCreateCategoryMutation();
 
@@ -34,8 +32,6 @@ export function SettingsProductsCategoryForm({ onClose, selectedRow }) {
     deleteCategoryById,
     {
       isLoading: isLoadingDelete,
-      isError: isErrorDelete,
-      isSuccess: isSuccessDelete,
     },
   ] = useDeleteCategoryByIdMutation();
 

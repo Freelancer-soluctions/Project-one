@@ -1,8 +1,6 @@
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
-import { LuPlus, LuEraser } from 'react-icons/lu';
-import { useTranslation } from 'react-i18next';
 import {
   Select,
   SelectContent,
@@ -10,7 +8,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { useState } from 'react';
+import { LuPlus, LuEraser } from 'react-icons/lu';
+import { useTranslation } from 'react-i18next';
 import PropTypes from 'prop-types';
 
 export function NotesFilters({
@@ -89,4 +88,9 @@ export function NotesFilters({
 
 NotesFilters.propTypes = {
   onSearch: PropTypes.func,
+  onSearchStatus: PropTypes.func,
+  dataStatus: PropTypes.array,
+  filters: PropTypes.object,
+  handleReset: PropTypes.func,
+  setOpen: PropTypes.func,
 };

@@ -4,7 +4,6 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
   DialogFooter,
   DialogClose,
 } from '@/components/ui/dialog';
@@ -189,4 +188,6 @@ export function NotesCreateDialog({ onCreateNote, dataStatus, open, setOpen }) {
 NotesCreateDialog.propTypes = {
   onCreateNote: PropTypes.func.isRequired,
   dataStatus: PropTypes.array.isRequired,
+  open: PropTypes.bool.isRequired,
+  setOpen: PropTypes.func.isRequired,
 };

@@ -2,7 +2,14 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
-import { LuUser, LuMoon, LuGlobe, LuBell, LuLayoutTemplate, LuShield } from 'react-icons/lu';
+import {
+  LuUser,
+  LuMoon,
+  LuGlobe,
+  LuBell,
+  LuLayoutTemplate,
+  LuShield,
+} from 'react-icons/lu';
 import { SettingsLanguage } from './SettingsLanguage';
 
 export const SettingsTabs = () => {
