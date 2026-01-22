@@ -52,8 +52,11 @@ export const NewsDialog = ({
     resolver: zodResolver(NewsDialogSchema),
   });
 
-const newId = useMemo(()=> selectedRow?.id ?? null, [selectedRow?.id])
-const statusCodeSaved = useMemo(()=> selectedRow?.status.code ?? null, [selectedRow?.status])
+  const newId = useMemo(() => selectedRow?.id ?? null, [selectedRow?.id]);
+  const statusCodeSaved = useMemo(
+    () => selectedRow?.status.code ?? null,
+    [selectedRow?.status]
+  );
 
   // Actualiza todos los valores del formulario al cambiar `selectedRow`
   useEffect(() => {
@@ -82,7 +85,6 @@ const statusCodeSaved = useMemo(()=> selectedRow?.status.code ?? null, [selected
       // })
 
       formDialog.reset(mappedValues);
-     
     }
 
     if (!openDialog) {
@@ -134,10 +136,10 @@ const statusCodeSaved = useMemo(()=> selectedRow?.status.code ?? null, [selected
                 <FormField
                   control={formDialog.control}
                   name="document"
-render={() => {
+                  render={() => {
                     return (
-                        <FormItem className="flex flex-col flex-auto col-span-1">
-                          <FormLabel htmlFor="file">{t('document')}</FormLabel>
+                      <FormItem className="flex flex-col flex-auto col-span-1">
+                        <FormLabel htmlFor="file">{t('document')}</FormLabel>
                         <FormControl>
                           <Input
                             id="file"
@@ -163,7 +165,7 @@ render={() => {
                       ? datastatus?.data.filter(
                           (item) => item.code !== NewsStatusCode.CLOSED
                         )
-                      : [...datastatus?.data];
+                      : [...(datastatus?.data ?? [])];
 
                     return (
                       <FormItem className="flex flex-col flex-auto">

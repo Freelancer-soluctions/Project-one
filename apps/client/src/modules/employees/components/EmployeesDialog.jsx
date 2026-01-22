@@ -43,7 +43,7 @@ export const EmployeesDialog = ({
   actionDialog,
 }) => {
   const { t } = useTranslation();
-  const employeeId = useMemo(()=> selectedRow?.id, [selectedRow?.id])
+  const employeeId = useMemo(() => selectedRow?.id, [selectedRow?.id]);
 
   const form = useForm({
     resolver: zodResolver(EmployeeSchema),

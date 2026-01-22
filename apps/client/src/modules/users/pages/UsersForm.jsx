@@ -32,7 +32,7 @@ function UsersForms() {
 
   const [
     updateUserById,
-    { isLoading: isLoadingPut, isError: isErrorPut, isSuccess: isSuccessPut },
+    { isLoading: isLoadingPut },
   ] = useUpdateUserByIdMutation();
 
   const {
@@ -43,16 +43,12 @@ function UsersForms() {
 
   const {
     data: dataUserPermits = { data: [] },
-    isLoading: isLoadingUserPermits,
-    isFetching: isFetchingUserPermits,
   } = useGetAllUserPermitsQuery();
 
   const [
     deleteUserById,
     {
       isLoading: isLoadingDelete,
-      isError: isErrorDelete,
-      isSuccess: isSuccessDelete,
     },
   ] = useDeleteUserByIdMutation();
 
@@ -63,9 +59,8 @@ function UsersForms() {
   } = useGetAllUsersRolQuery();
 
   const handleSubmit = async (values) => {
-    debugger;
     try {
-      const result = await updateUserById({
+      await updateUserById({
         id: values.id,
         data: {
           name: values.name,

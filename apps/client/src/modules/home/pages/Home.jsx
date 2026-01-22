@@ -9,13 +9,9 @@ import { useGetAllCountNotesQuery } from '@/modules/notes/api/notesAPI';
 import { useGetStockAlertsQuery } from '@/modules/stock/api/stockAPI';
 const Home = () => {
   const { settings } = useUserSettings();
-  const {
-    data: dataCountNotes = { data: [] },
-  } = useGetAllCountNotesQuery();
+  const { data: dataCountNotes = { data: [] } } = useGetAllCountNotesQuery();
 
-  const {
-    data: dataCountStock = { data: [] },
-  } = useGetStockAlertsQuery();
+  const { data: dataCountStock = { data: [] } } = useGetStockAlertsQuery();
 
   return (
     <div className="flex flex-col w-full h-screen">

@@ -53,7 +53,10 @@ export const ClientOrderDialog = ({
     },
   });
 
-  const clientOrderId = useMemo(()=> selectedRow?.id ?? null, [selectedRow?.id])
+  const clientOrderId = useMemo(
+    () => selectedRow?.id ?? null,
+    [selectedRow?.id]
+  );
 
   // Actualiza todos los valores del formulario al cambiar `selectedRow`
   useEffect(() => {

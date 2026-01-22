@@ -37,20 +37,14 @@ const Clients = () => {
     },
   ] = useLazyGetAllClientsQuery();
 
-  const [
-    updateClientById,
-    { isLoading: isLoadingPut },
-  ] = useUpdateClientByIdMutation();
+  const [updateClientById, { isLoading: isLoadingPut }] =
+    useUpdateClientByIdMutation();
 
-  const [
-    createClient,
-    { isLoading: isLoadingPost },
-  ] = useCreateClientMutation();
+  const [createClient, { isLoading: isLoadingPost }] =
+    useCreateClientMutation();
 
-  const [
-    deleteClientById,
-    { isLoading: isLoadingDelete },
-  ] = useDeleteClientByIdMutation();
+  const [deleteClientById, { isLoading: isLoadingDelete }] =
+    useDeleteClientByIdMutation();
 
   /**
    * Este efecto es la única fuente de verdad para disparar
@@ -93,7 +87,7 @@ const Clients = () => {
 
   const handleSubmit = async (values, clientId) => {
     try {
-       clientId
+      clientId
         ? await updateClientById({
             id: clientId,
             data: {

@@ -28,7 +28,7 @@ import {
 } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { LuTrash2, LuShoppingCart, LuPlus } from 'react-icons/lu';
+import { LuTrash2, LuShoppingCart } from 'react-icons/lu';
 import PropTypes from 'prop-types';
 import { SaleSchema } from '../utils';
 import { useState, useCallback } from 'react';
@@ -71,6 +71,13 @@ export const SalesDialog = ({
     },
   });
 
+
+    const clearDialog = () => {
+    form.reset();
+    setSaleId(null);
+  };
+
+
   // Actualiza todos los valores del formulario al cambiar `selectedRow`
   useEffect(() => {
     if (selectedRow?.id) {
@@ -99,16 +106,12 @@ export const SalesDialog = ({
       // Reset form when selectedRow is null
       clearDialog();
     }
-  }, [selectedRow]);
+  }, [selectedRow, clearDialog]);
 
   const handleSubmit = (data) => {
     onSubmit(data, saleId);
   };
 
-  const clearDialog = () => {
-    form.reset();
-    setSaleId(null);
-  };
 
   const handleDelete = () => {
     onDeleteById(saleId);

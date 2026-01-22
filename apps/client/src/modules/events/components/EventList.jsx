@@ -3,28 +3,25 @@ import { Button } from '@/components/ui/button';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { sortedEvents, getEventTypeColor } from '../utils';
-import { useEffect, useState } from 'react';
+import { useMemo } from 'react';
 import PropTypes from 'prop-types';
 
 export function EventList({ events, onEdit, onDelete }) {
-  const [groupedEvents, setGroupedEvents] = useState([]);
 
-  useEffect(() => {
-    if (events && events.length > 0) {
-      // Group events by date
-      const sorted = sortedEvents(events, false);
-      setGroupedEvents(
-        sorted.reduce((groups, event) => {
-          const date = event.eventDate;
-          if (!groups[date]) {
-            groups[date] = [];
-          }
-          groups[date].push(event);
-          return groups;
-        }, {})
-      );
+const groupedEvents = useMemo(() => {
+  if (!events || events.length === 0) return {};
+
+  const sorted = sortedEvents(events, false);
+
+  return sorted.reduce((groups, event) => {
+    const date = event.eventDate;
+    if (!groups[date]) {
+      groups[date] = [];
     }
-  }, [events]);
+    groups[date].push(event);
+    return groups;
+  }, {});
+}, [events]);
 
   return events && events.length > 0 ? (
     <div className="space-y-8">

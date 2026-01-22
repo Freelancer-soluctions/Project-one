@@ -138,7 +138,7 @@ export const axiosPrivateBaseQuery =
 //   return Authorization
 // }
 
-// eslint-disable-next-line dot-notation
+//// eslint-disable-next-line dot-notation
 // axiosPublic.defaults.headers.common['Authorization'] = user?.accessToken
 
 // axiosPublic.defaults.headers.common.Authorization = getToken()
