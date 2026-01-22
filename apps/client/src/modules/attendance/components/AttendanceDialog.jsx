@@ -63,7 +63,10 @@ export const AttendanceDialog = ({
       workedHours: '',
     },
   });
- const attendanceId = useMemo(()=> selectedRow?.id ?? null, [selectedRow?.id])
+  const attendanceId = useMemo(
+    () => selectedRow?.id ?? null,
+    [selectedRow?.id]
+  );
 
   useEffect(() => {
     if (selectedRow?.id) {

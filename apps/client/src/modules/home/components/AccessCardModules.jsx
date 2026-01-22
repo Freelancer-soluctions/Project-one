@@ -32,7 +32,6 @@ import {
   LuClipboard,
 } from 'react-icons/lu';
 import { useTranslation } from 'react-i18next';
-import PropTypes from 'prop-types';
 
 const CardModule = () => {
   const { t } = useTranslation();
@@ -506,6 +505,5 @@ const CardModule = () => {
   );
 };
 
-CardModule.propTypes = {};
 
 export default CardModule;

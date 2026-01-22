@@ -51,20 +51,14 @@ const InventoryMovement = () => {
     isFetching: isFetchingWarehouses,
   } = useGetAllWarehousesFiltersQuery();
 
-  const [
-    updateInventoryMovementById,
-    { isLoading: isLoadingPut },
-  ] = useUpdateInventoryMovementByIdMutation();
+  const [updateInventoryMovementById, { isLoading: isLoadingPut }] =
+    useUpdateInventoryMovementByIdMutation();
 
-  const [
-    createInventoryMovement,
-    { isLoading: isLoadingPost },
-  ] = useCreateInventoryMovementMutation();
+  const [createInventoryMovement, { isLoading: isLoadingPost }] =
+    useCreateInventoryMovementMutation();
 
-  const [
-    deleteInventoryMovementById,
-    { isLoading: isLoadingDelete },
-  ] = useDeleteInventoryMovementByIdMutation();
+  const [deleteInventoryMovementById, { isLoading: isLoadingDelete }] =
+    useDeleteInventoryMovementByIdMutation();
 
   /**
    * Este efecto es la única fuente de verdad para disparar
@@ -85,7 +79,12 @@ const InventoryMovement = () => {
       limit: pagination.pageSize,
       ...filters,
     });
-  }, [pagination.pageIndex, pagination.pageSize, filters, getAllInventoryMovements]);
+  }, [
+    pagination.pageIndex,
+    pagination.pageSize,
+    filters,
+    getAllInventoryMovements,
+  ]);
 
   /**
    * Al aplicar nuevos filtros:
