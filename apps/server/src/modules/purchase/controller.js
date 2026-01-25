@@ -13,7 +13,7 @@ import globalResponse from '../../utils/responses&Errors/globalResponse.js';
  * @param {Object} res - Express response object
  */
 export const getAllPurchases = handleCatchErrorAsync(async (req, res) => {
-  const purchases = await getAllPurchasesService(req.query);
+  const purchases = await getAllPurchasesService(req.safeQuery);
   globalResponse(res, 200, purchases);
 });
 

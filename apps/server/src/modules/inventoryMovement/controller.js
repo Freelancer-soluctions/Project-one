@@ -15,7 +15,7 @@ import handleCatchErrorAsync from '../../utils/responses&Errors/handleCatchError
  */
 export const getAllInventoryMovements = handleCatchErrorAsync(
   async (req, res) => {
-    const { productId, warehouseId, type, limit, page } = req.query;
+    const { productId, warehouseId, type, limit, page } = req.safeQuery;
     const inventoryMovements = await getAllInventoryMovementsService({
       productId,
       warehouseId,

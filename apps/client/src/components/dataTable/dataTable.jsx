@@ -14,8 +14,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { TooltipProvider } from '@/components/ui/tooltip';
-import {CellWithTooltip} from './cellWithTooltip'
-
+import { CellWithTooltip } from './cellWithTooltip';
 
 import { Filter } from './Filter';
 import { Pagination } from './Pagination';
@@ -189,5 +188,3 @@ DataTable.propTypes = {
   pagination: PropTypes.object.isRequired,
   onPaginationChange: PropTypes.func.isRequired,
 };
-
-

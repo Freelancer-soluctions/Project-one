@@ -13,8 +13,7 @@ import globalResponse from '../../utils/responses&Errors/globalResponse.js';
  * @param {Object} res - Express response object
  */
 export const getAllProviderOrders = handleCatchErrorAsync(async (req, res) => {
-  console.log(req.query);
-  const providerOrders = await getAllProviderOrdersService(req.query);
+  const providerOrders = await getAllProviderOrdersService(req.safeQuery);
   globalResponse(res, 200, providerOrders);
 });
 
@@ -24,7 +23,6 @@ export const getAllProviderOrders = handleCatchErrorAsync(async (req, res) => {
  * @param {Object} res - Express response object
  */
 export const createProviderOrder = handleCatchErrorAsync(async (req, res) => {
-  console.log(req.body);
   const providerOrder = await createProviderOrderService({
     ...req.body,
     createdBy: req.userId,

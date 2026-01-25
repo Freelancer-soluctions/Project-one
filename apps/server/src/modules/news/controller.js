@@ -10,7 +10,7 @@ import * as newsService from './service.js';
  * @returns {Promise<void>} Sends a response containing the news items.
  */
 export const getAllNews = handleCatchErrorAsync(async (req, res) => {
-  const queryParams = req.query;
+  const queryParams = req.safeQuery;
   const items = await newsService.getAllNews(queryParams);
   globalResponse(res, 200, items);
 });

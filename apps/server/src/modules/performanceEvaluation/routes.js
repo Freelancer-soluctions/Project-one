@@ -10,6 +10,7 @@ import {
   validateQueryParams,
   validateSchema,
   checkRoleAuthOrPermisssion,
+  validatePathParam,
 } from '../../middleware/index.js';
 import {
   performanceEvaluationFiltersSchema,
@@ -162,6 +163,7 @@ router.put(
     allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER],
     permissions: [PERMISSIONCODES.canEditEvaluatePerformance],
   }),
+  validatePathParam,
   validateSchema(performanceEvaluationCreateUpdateSchema),
   updatePerformanceEvaluationById
 );
@@ -208,6 +210,7 @@ router.delete(
     allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER],
     permissions: [PERMISSIONCODES.canDeleteEvaluationPerformance],
   }),
+  validatePathParam,
   deletePerformanceEvaluationById
 );
 

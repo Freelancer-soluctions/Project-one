@@ -38,24 +38,14 @@ const Warehouse = () => {
     },
   ] = useLazyGetAllWarehousesQuery();
 
-  const [
-    updateWarehouseById,
-    { isLoading: isLoadingPut },
-  ] = useUpdateWarehouseByIdMutation();
+  const [updateWarehouseById, { isLoading: isLoadingPut }] =
+    useUpdateWarehouseByIdMutation();
 
-  const [
-    createWarehouse,
-    {
-      isLoading: isLoadingPost,
-    },
-  ] = useCreateWarehouseMutation();
+  const [createWarehouse, { isLoading: isLoadingPost }] =
+    useCreateWarehouseMutation();
 
-  const [
-    deleteWarehouseById,
-    {
-      isLoading: isLoadingDelete,
-    },
-  ] = useDeleteWarehouseByIdMutation();
+  const [deleteWarehouseById, { isLoading: isLoadingDelete }] =
+    useDeleteWarehouseByIdMutation();
 
   /**
    * Este efecto es la única fuente de verdad para disparar
@@ -76,7 +66,7 @@ const Warehouse = () => {
       limit: pagination.pageSize,
       ...filters,
     });
-  }, [pagination.pageIndex, pagination.pageSize, filters]);
+  }, [pagination.pageIndex, pagination.pageSize, filters, getAllWarehouse]);
 
   /**
    * Al aplicar nuevos filtros:

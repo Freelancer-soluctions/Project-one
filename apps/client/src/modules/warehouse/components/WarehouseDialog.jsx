@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { WarehouseSchema } from '../utils/index';
@@ -52,7 +52,6 @@ export const WarehouseDialog = ({
   actionDialog,
 }) => {
   const { t } = useTranslation();
-  const [warehouseId, setWarehouseId] = useState('');
 
   // Configura el formulario
   const form = useForm({
@@ -64,6 +63,8 @@ export const WarehouseDialog = ({
       address: '',
     },
   });
+
+  const warehouseId = useMemo(()=> selectedRow?.id ?? null, [selectedRow?.id])
 
   // Actualiza todos los valores del formulario al cambiar `selectedRow`
   useEffect(() => {
@@ -80,13 +81,12 @@ export const WarehouseDialog = ({
       };
 
       form.reset(mappedValues);
-      setWarehouseId(mappedValues.id);
     }
 
     if (!openDialog) {
       form.reset();
     }
-  }, [selectedRow, openDialog]);
+  }, [selectedRow, openDialog, form]);
 
   const handleSubmit = (data) => {
     onSubmit({ ...data }, warehouseId);

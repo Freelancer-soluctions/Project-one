@@ -9,6 +9,7 @@ import {
   validateSchema,
   verifyToken,
   checkRoleAuthOrPermisssion,
+  validatePathParam,
 } from '../../middleware/index.js';
 import { ROLESCODES, PERMISSIONCODES } from '../../utils/constants/enums.js';
 
@@ -248,6 +249,7 @@ router.put(
     allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER, ROLESCODES.USER],
     permissions: [PERMISSIONCODES.canEditEvents],
   }),
+  validatePathParam,
   validateSchema(EventsCreateUpdate),
   eventsController.updateEventById
 );
@@ -296,6 +298,7 @@ router.delete(
     allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER, ROLESCODES.USER],
     permissions: [PERMISSIONCODES.canDeleteEvents],
   }),
+  validatePathParam,
   eventsController.deleteEventById
 );
 
