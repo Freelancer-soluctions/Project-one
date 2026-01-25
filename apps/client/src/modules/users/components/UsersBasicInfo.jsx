@@ -28,7 +28,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { UserSchema } from '../utils';
 import { useNavigate } from 'react-router';
 import { useTranslation } from 'react-i18next';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo } from 'react';
 import { cn } from '@/lib/utils';
 import {
   Accordion,
@@ -39,6 +39,7 @@ import {
 import { LuUser } from 'react-icons/lu';
 import { LucideUserCheck } from 'lucide-react';
 import PropTypes from 'prop-types';
+import { useWatch } from 'react-hook-form';
 
 export const UsersBasicInfo = ({
   onSubmit,
@@ -50,7 +51,6 @@ export const UsersBasicInfo = ({
 }) => {
   const navigate = useNavigate();
   const { t } = useTranslation();
-  const [id, setId] = useState();
 
   const form = useForm({
     resolver: zodResolver(UserSchema),
@@ -60,6 +60,12 @@ export const UsersBasicInfo = ({
     // }
   });
 
+  const permissions = useWatch({
+    control: form.control,
+    name: 'permissions',
+  });
+
+  const id = useMemo(()=> selectedRow?.id ?? null, [selectedRow?.id])
   // Actualiza todos los valores del formulario al cambiar `selectedRow`
   useEffect(() => {
     if (selectedRow?.id) {
@@ -94,11 +100,10 @@ export const UsersBasicInfo = ({
           assigned: p.assigned ?? false,
         })),
       });
-      setId(selectedRow.id);
     } else {
       form.reset();
     }
-  }, [selectedRow, form]);
+  }, [selectedRow, form, dataPermits]);
 
   const submitForm = (data) => {
     const selectedPermissions = data.permissions
@@ -624,8 +629,9 @@ export const UsersBasicInfo = ({
                 </AccordionTrigger>
                 <AccordionContent className="pt-4 pb-2 px-4 max-h-[50vh] overflow-y-auto scrollbar-thin">
                   <div className="grid grid-cols-3 gap-6 py-4 auto-rows-auto">
-                    {form.watch('permissions')?.map((permit, index) => (
+                    {permissions?.map((permit, index) => (
                       <FormField
+                        key={permit.id || index}
                         control={form.control}
                         name={`permissions.${index}.assigned`}
                         render={({ field }) => (

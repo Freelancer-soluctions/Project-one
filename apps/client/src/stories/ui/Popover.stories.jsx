@@ -3,7 +3,6 @@ import {
   Popover,
   PopoverTrigger,
   PopoverContent,
-  PopoverAnchor,
 } from '@/components/ui/popover';
 
 export default {

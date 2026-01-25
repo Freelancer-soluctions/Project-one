@@ -10,6 +10,7 @@ import {
   validateQueryParams,
   validateSchema,
   checkRoleAuthOrPermisssion,
+  validatePathParam,
 } from '../../middleware/index.js';
 import {
   saleFiltersSchema,
@@ -176,6 +177,7 @@ router.put(
     allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER, ROLESCODES.USER],
     permissions: [PERMISSIONCODES.canEditSale],
   }),
+  validatePathParam,
   validateSchema(saleCreateUpdateSchema),
   updateSaleById
 );
@@ -221,6 +223,7 @@ router.delete(
     allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER],
     permissions: [PERMISSIONCODES.canDeleteSale],
   }),
+  validatePathParam,
   deleteSaleById
 );
 

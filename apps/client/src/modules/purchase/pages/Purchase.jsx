@@ -6,6 +6,7 @@ import {
 import { BackDashBoard } from '@/components/backDash/BackDashBoard';
 import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   useLazyGetAllPurchasesQuery,
   useUpdatePurchaseByIdMutation,
@@ -19,12 +20,13 @@ import { Spinner } from '@/components/loader/Spinner';
 
 const Purchase = () => {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const [selectedRow, setSelectedRow] = useState({});
   const [openDialog, setOpenDialog] = useState(false);
   const [openAlertDialog, setOpenAlertDialog] = useState(false);
   const [alertProps, setAlertProps] = useState({});
   const [actionDialog, setActionDialog] = useState('');
-    const [details, setDetails] = useState([
+  const [details, setDetails] = useState([
     {
       productId: '',
       quantity: 0,
@@ -52,24 +54,14 @@ const Purchase = () => {
     isFetching: isFetchingProviders,
   } = useGetAllProvidersFiltersQuery();
 
-  const [
-    updatePurchaseById,
-    { isLoading: isLoadingPut },
-  ] = useUpdatePurchaseByIdMutation();
+  const [updatePurchaseById, { isLoading: isLoadingPut }] =
+    useUpdatePurchaseByIdMutation();
 
-  const [
-    createPurchase,
-    {
-      isLoading: isLoadingPost,
-    },
-  ] = useCreatePurchaseMutation();
+  const [createPurchase, { isLoading: isLoadingPost }] =
+    useCreatePurchaseMutation();
 
-  const [
-    deletePurchaseById,
-    {
-      isLoading: isLoadingDelete,
-    },
-  ] = useDeletePurchaseByIdMutation();
+  const [deletePurchaseById, { isLoading: isLoadingDelete }] =
+    useDeletePurchaseByIdMutation();
 
   const {
     data: dataProducts = { data: [] },
@@ -168,6 +160,18 @@ const Purchase = () => {
     setActionDialog(t('edit_purchase'));
     setOpenDialog(true);
     setSelectedRow(row);
+    // Cargar detalles de la fila seleccionada
+    setDetails(
+      row.details && row.details.length > 0
+        ? row.details
+        : [
+            {
+              productId: '',
+              quantity: 0,
+              price: 0,
+            },
+          ]
+    );
   };
 
   const handleCloseDialog = () => {
@@ -266,13 +270,6 @@ const Purchase = () => {
       return newDetails;
     });
   };
-
-  useEffect(() => {
-    if (dataPurchases?.data.length > 0) {
-      setDetails(dataPurchases.data.details);
-    }
-  }, [dataPurchases]);
-
 
 
   const handleAddDetail = () => {

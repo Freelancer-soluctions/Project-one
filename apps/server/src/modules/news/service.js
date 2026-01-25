@@ -1,9 +1,9 @@
 import * as newsDao from './dao.js';
-import {
-  handleUpload,
-  handleUploadUpdate,
-  handleDeleteFile,
-} from '../../utils/cloudinary/cloudinary.js';
+// import {
+//   handleUpload,
+//   handleUploadUpdate,
+//   handleDeleteFile,
+// } from '../../utils/cloudinary/cloudinary.js';
 import { NEWSSTATUSCODE } from '../../utils/constants/enums.js';
 import { getSafePagination } from '../../utils/pagination/pagination.js';
 

@@ -16,7 +16,7 @@ import globalResponse from '../../utils/responses&Errors/globalResponse.js';
  * @param {Object} res - Express response object
  */
 export const getAllUsers = handleCatchErrorAsync(async (req, res) => {
-  const users = await getAllUsersService(req.query);
+  const users = await getAllUsersService(req.safeQuery);
   globalResponse(res, 200, users);
 });
 

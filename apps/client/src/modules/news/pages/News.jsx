@@ -30,14 +30,8 @@ const News = () => {
   const [filters, setFilters] = useState({});
 
   // filter form
-  const [
-    trigger,
-    {
-      data: dataNews = { data: [] },
-      isLoading,
-      isFetching,
-    },
-  ] = useLazyGetAllNewsQuery();
+  const [trigger, { data: dataNews = { data: [] }, isLoading, isFetching }] =
+    useLazyGetAllNewsQuery();
 
   const {
     data: datastatus,
@@ -45,24 +39,13 @@ const News = () => {
     isFetching: isFetchingStatus,
   } = useGetAllNewsStatusQuery();
 
-  const [
-    updateNewById,
-    { isLoading: isLoadingPut },
-  ] = useUpdateNewByIdMutation();
+  const [updateNewById, { isLoading: isLoadingPut }] =
+    useUpdateNewByIdMutation();
 
-  const [
-    createNew,
-    {
-      isLoading: isLoadingPost,
-    },
-  ] = useCreateNewMutation();
+  const [createNew, { isLoading: isLoadingPost }] = useCreateNewMutation();
 
-  const [
-    deleteNewById,
-    {
-      isLoading: isLoadingDelete,
-    },
-  ] = useDeleteNewByIdMutation();
+  const [deleteNewById, { isLoading: isLoadingDelete }] =
+    useDeleteNewByIdMutation();
 
   /**
    * Este efecto es la única fuente de verdad para disparar
