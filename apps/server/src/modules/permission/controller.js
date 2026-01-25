@@ -20,7 +20,7 @@ import globalResponse from '../../utils/responses&Errors/globalResponse.js';
  * @returns {Promise<Object>} Response with list of permissions
  */
 export const getAllPermissions = handleCatchErrorAsync(async (req, res) => {
-  const filters = req.query;
+  const filters = req.safeQuery;
   const permissions = await getAllPermissionsService(filters);
   return globalResponse(res, 200, permissions);
 });

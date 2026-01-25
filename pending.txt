@@ -13,6 +13,8 @@ IsError de  los query hooks ver que puedo hacer con  ello
     error: errorStatus,
   } = useGetAllNewsStatusQuery();
 
+  Mover vitest a la raiz ya que se va a utilizar en ambos proyectos
+
 Mantener la dependencies actualizadas (Final)
 
 Lista de caracteristicas para destacar

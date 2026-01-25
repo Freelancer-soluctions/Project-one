@@ -16,24 +16,14 @@ export function SettingsProductsCategoryForm({ onClose, selectedRow }) {
   const [openAlertDialog, setOpenAlertDialog] = useState(false); //alert dialog open/close
   const [alertProps, setAlertProps] = useState({});
 
-  const [
-    updateCategoryById,
-    { isLoading: isLoadingPut },
-  ] = useUpdateCategoryByIdMutation();
+  const [updateCategoryById, { isLoading: isLoadingPut }] =
+    useUpdateCategoryByIdMutation();
 
-  const [
-    createCategory,
-    {
-      isLoading: isLoadingPost,
-    },
-  ] = useCreateCategoryMutation();
+  const [createCategory, { isLoading: isLoadingPost }] =
+    useCreateCategoryMutation();
 
-  const [
-    deleteCategoryById,
-    {
-      isLoading: isLoadingDelete,
-    },
-  ] = useDeleteCategoryByIdMutation();
+  const [deleteCategoryById, { isLoading: isLoadingDelete }] =
+    useDeleteCategoryByIdMutation();
 
   const handleSubmitCreateEdit = async (data) => {
     if (!data) return;

@@ -4,6 +4,7 @@ import {
   validateQueryParams,
   validateSchema,
   checkRoleAuthOrPermisssion,
+  validatePathParam,
 } from '../../middleware/index.js';
 import {
   getAllInventoryMovements,
@@ -198,6 +199,7 @@ router.put(
     allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER],
     permissions: [PERMISSIONCODES.canEditInventory],
   }),
+  validatePathParam,
   validateSchema(inventoryMovementCreateUpdateSchema),
   updateInventoryMovementById
 );
@@ -244,6 +246,7 @@ router.delete(
     allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER],
     permissions: [PERMISSIONCODES.canDeleteInventory],
   }),
+  validatePathParam,
   deleteInventoryMovementById
 );
 

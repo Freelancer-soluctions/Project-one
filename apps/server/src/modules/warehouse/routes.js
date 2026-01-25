@@ -15,6 +15,7 @@ import {
   validateQueryParams,
   validateSchema,
   checkRoleAuthOrPermisssion,
+  validatePathParam,
 } from '../../middleware/index.js';
 import { ROLESCODES, PERMISSIONCODES } from '../../utils/constants/enums.js';
 
@@ -208,6 +209,7 @@ router.put(
     allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER, ROLESCODES.USER],
     permissions: [PERMISSIONCODES.canEditWarehouse],
   }),
+  validatePathParam,
   validateSchema(warehouseCreateUpdateSchema),
   updateWarehouseById
 );
@@ -254,6 +256,7 @@ router.delete(
     allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER, ROLESCODES.USER],
     permissions: [PERMISSIONCODES.canDeleteWarehouse],
   }),
+  validatePathParam,
   deleteWarehouseById
 );
 

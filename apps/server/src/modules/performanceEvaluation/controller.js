@@ -14,7 +14,9 @@ import globalResponse from '../../utils/responses&Errors/globalResponse.js';
  */
 export const getAllPerformanceEvaluations = handleCatchErrorAsync(
   async (req, res) => {
-    const evaluations = await getAllPerformanceEvaluationsService(req.query);
+    const evaluations = await getAllPerformanceEvaluationsService(
+      req.safeQuery
+    );
     globalResponse(res, 200, evaluations);
   }
 );

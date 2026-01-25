@@ -10,7 +10,7 @@ import * as providersService from './service.js';
  * @returns {Promise<void>} Sends a response containing the list of providers.
  */
 export const getAllProviders = handleCatchErrorAsync(async (req, res) => {
-  const queryParams = req.query;
+  const queryParams = req.safeQuery;
   const items = await providersService.getAllProviders(queryParams);
   globalResponse(res, 200, items);
 });

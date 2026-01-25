@@ -44,7 +44,7 @@ export const SettingsProductCategories = () => {
       limit: pagination.pageSize,
       ...filters,
     });
-  }, [pagination.pageIndex, pagination.pageSize, filters]);
+  }, [pagination.pageIndex, pagination.pageSize, filters, getAllCategories]);
 
   /**
    * Al aplicar nuevos filtros:

@@ -13,8 +13,7 @@ import globalResponse from '../../utils/responses&Errors/globalResponse.js';
  * @returns {Promise<void>}
  */
 export const getAllClientOrders = handleCatchErrorAsync(async (req, res) => {
-  console.log(req.query);
-  const clientOrders = await getAllClientOrdersService(req.query);
+  const clientOrders = await getAllClientOrdersService(req.safeQuery);
   globalResponse(res, 200, clientOrders);
 });
 

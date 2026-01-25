@@ -7,6 +7,7 @@ import {
   validateQueryParams,
   validateSchema,
   checkRoleAuthOrPermisssion,
+  validatePathParam,
 } from '../../middleware/index.js';
 import { ROLESCODES, PERMISSIONCODES } from '../../utils/constants/enums.js';
 
@@ -245,6 +246,7 @@ router.put(
     allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER, ROLESCODES.USER],
     permissions: [PERMISSIONCODES.canEditNews],
   }),
+  validatePathParam,
   validateSchema(NewsUpdate),
   upload.single('document'),
   newsController.updateById
@@ -293,6 +295,7 @@ router.delete(
     allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER, ROLESCODES.USER],
     permissions: [PERMISSIONCODES.canDeleteNews],
   }),
+  validatePathParam,
   newsController.deleteById
 );
 

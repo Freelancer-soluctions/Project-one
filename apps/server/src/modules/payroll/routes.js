@@ -107,7 +107,7 @@ router.get(
     allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER],
     permissions: [PERMISSIONCODES.canViewPayroll],
   }),
-  validateSchema(payrollFiltersSchema),
+  validateQueryParams(payrollFiltersSchema),
   getAllPayroll
 );
 

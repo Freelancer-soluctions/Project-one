@@ -21,6 +21,7 @@ export function checkRoleAuth({ allowedRoles = [] }) {
       // req.user = user;
 
       next();
+      // eslint-disable-next-line no-unused-vars
     } catch (error) {
       res.status(500).json({ error: 'Error en la verificación de permisos' });
     }

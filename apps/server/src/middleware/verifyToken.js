@@ -1,3 +1,4 @@
+// eslint-disable-next-line no-unused-vars
 import jwt, { decode } from 'jsonwebtoken';
 import dontenv from '../config/dotenv.js';
 import logger from '../logger/index.js';

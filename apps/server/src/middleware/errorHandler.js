@@ -1,5 +1,6 @@
 import globalErrorResponse from '../utils/responses&Errors/globalErrorResponse.js';
 
+// eslint-disable-next-line no-unused-vars
 export const errorHandler = (err, req, res, next) => {
   const { code, message, name, stack } = err;
   let statusCode = err.statusCode;
