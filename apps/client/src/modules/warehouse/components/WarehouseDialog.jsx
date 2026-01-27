@@ -64,7 +64,7 @@ export const WarehouseDialog = ({
     },
   });
 
-  const warehouseId = useMemo(()=> selectedRow?.id ?? null, [selectedRow?.id])
+  const warehouseId = useMemo(() => selectedRow?.id ?? null, [selectedRow?.id]);
 
   // Actualiza todos los valores del formulario al cambiar `selectedRow`
   useEffect(() => {

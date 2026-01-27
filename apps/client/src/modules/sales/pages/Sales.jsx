@@ -152,7 +152,7 @@ const Sales = () => {
     setActionDialog(t('edit_sale'));
     setOpenDialog(true);
     setSelectedRow(row);
-     setDetails(
+    setDetails(
       row.details && row.details.length > 0
         ? row.details
         : [
@@ -261,8 +261,6 @@ const Sales = () => {
       return newDetails;
     });
   };
-
- 
 
   const handleAddDetail = () => {
     setDetails([

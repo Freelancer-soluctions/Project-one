@@ -271,7 +271,6 @@ const Purchase = () => {
     });
   };
 
-
   const handleAddDetail = () => {
     setDetails([
       ...details,

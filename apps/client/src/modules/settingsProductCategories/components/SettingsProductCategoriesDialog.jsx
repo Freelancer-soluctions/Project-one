@@ -10,7 +10,6 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-
 } from '@/components/ui/dialog';
 import {
   Form,
@@ -56,7 +55,7 @@ export const SettingsProductCategoriesDialog = ({
     },
   });
 
-  const categoryId = useMemo(()=> selectedRow?.id ?? null, [selectedRow?.id])
+  const categoryId = useMemo(() => selectedRow?.id ?? null, [selectedRow?.id]);
 
   // Actualiza todos los valores del formulario al cambiar `selectedRow`
   useEffect(() => {

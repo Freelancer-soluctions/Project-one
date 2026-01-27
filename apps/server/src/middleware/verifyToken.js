@@ -3,6 +3,20 @@ import jwt, { decode } from 'jsonwebtoken';
 import dontenv from '../config/dotenv.js';
 import logger from '../logger/index.js';
 
+/**
+ * Verifies JWT token from Authorization header and attaches user data to request.
+ * This middleware extracts the JWT from the 'Bearer {token}' format in the Authorization header,
+ * validates the token signature and expiration, and attaches the decoded user
+ * information to the request object for downstream middleware and routes.
+ *
+ * @param {Object} req - Express request object containing Authorization header
+ * @param {string} [req.headers.authorization] - JWT token in 'Bearer {token}' format
+ * @param {Object} res - Express response object for error responses
+ * @param {Function} next - Express next middleware function
+ * @returns {void} Calls next() with user data attached, or sends 401/403 response
+ * @throws {Error} When JWT verification fails due to invalid signature or expired token
+ * @throws {Error} When Authorization header is missing or malformed
+ */
 export const verifyToken = async (req, res, next) => {
   try {
     // Get the token from the headers
@@ -28,9 +42,7 @@ export const verifyToken = async (req, res, next) => {
         userAgent: req.headers['user-agent'],
         timestamp: new Date().toISOString(),
       });
-      return res
-        .status(401)
-        .json({ message: 'Lo sentimos debes iniciar sesión.' });
+      return res.status(401).json({ message: 'Sorry, you must log in.' });
     }
 
     // decode the token and verify the time

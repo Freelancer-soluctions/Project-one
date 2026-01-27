@@ -21,11 +21,9 @@ function UsersForms() {
   const [alertProps, setAlertProps] = useState({});
   const location = useLocation();
 
-
-
-    const selectedRow = useMemo(() => {
-      return location.state?.row ?? null;
-    }, [location.state?.row]);
+  const selectedRow = useMemo(() => {
+    return location.state?.row ?? null;
+  }, [location.state?.row]);
 
   const [updateUserById, { isLoading: isLoadingPut }] =
     useUpdateUserByIdMutation();
