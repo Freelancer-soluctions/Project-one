@@ -39,7 +39,7 @@ export const SettingsProductCategoriesBasicInfo = ({
     },
   });
 
-const id = useMemo(()=> selectedRow?.id ?? null, [selectedRow?.id])
+  const id = useMemo(() => selectedRow?.id ?? null, [selectedRow?.id]);
 
   // Actualiza todos los valores del formulario al cambiar `selectedRow`
   useEffect(() => {

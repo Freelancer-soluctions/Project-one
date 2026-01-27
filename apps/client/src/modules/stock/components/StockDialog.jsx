@@ -71,7 +71,7 @@ export const StockDialog = ({
     },
   });
 
-  const stockId = useMemo(()=> selectedRow?.id ?? null, [selectedRow?.id])
+  const stockId = useMemo(() => selectedRow?.id ?? null, [selectedRow?.id]);
   // Actualiza todos los valores del formulario al cambiar `selectedRow`
   useEffect(() => {
     if (selectedRow.id) {
