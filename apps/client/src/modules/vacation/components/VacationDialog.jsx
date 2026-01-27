@@ -64,7 +64,7 @@ export const VacationDialog = ({
     },
   });
 
-  const vacationId = useMemo(()=> selectedRow?.id ?? null, [selectedRow?.id])
+  const vacationId = useMemo(() => selectedRow?.id ?? null, [selectedRow?.id]);
 
   useEffect(() => {
     if (selectedRow?.id) {

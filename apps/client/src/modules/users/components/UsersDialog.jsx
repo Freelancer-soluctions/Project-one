@@ -48,7 +48,7 @@ export const UsersDialog = ({
     resolver: zodResolver(UserSchema),
   });
 
-  const userId = useMemo(()=> selectedRow?.id ?? null, [selectedRow?.id])
+  const userId = useMemo(() => selectedRow?.id ?? null, [selectedRow?.id]);
 
   // Actualiza todos los valores del formulario al cambiar `selectedRow`
   useEffect(() => {
