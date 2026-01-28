@@ -6,7 +6,7 @@ import {
 import { BackDashBoard } from '@/components/backDash/BackDashBoard';
 import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router';
 import {
   useLazyGetAllPurchasesQuery,
   useUpdatePurchaseByIdMutation,
