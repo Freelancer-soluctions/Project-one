@@ -6,7 +6,7 @@ import {
 import PropTypes from 'prop-types';
 import { flexRender } from '@tanstack/react-table';
 
-const CellWithTooltip = ({ cell }) => {
+export const CellWithTooltip = ({ cell }) => {
   const content = flexRender(cell.column.columnDef.cell, cell.getContext());
 
   return (

@@ -27,6 +27,15 @@ export const getOneRow = async ({ tableName, where, include }) => {
 };
 
 /**
+ *
+ * @param {*} data :: Argument to create an item in DB
+ * @returns Created row in db
+ */
+export const createRow = async (tableName, data) => {
+  return prisma[tableName].create({ data });
+};
+
+/**
 
  * @param {*} params :: filter params
  *

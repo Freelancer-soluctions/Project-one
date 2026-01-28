@@ -1,4 +1,5 @@
 import { rateLimit } from 'express-rate-limit';
+import crypto from 'crypto';
 
 /**
  * General purpose rate limiter for API endpoints.
@@ -101,7 +102,6 @@ export const refreshTokenLimiter = rateLimit({
     if (!token) {
       return req.ip;
     }
-
     // Secure derivation of user-controlled input
     const tokenHash = crypto
       .createHash('sha256')

@@ -12,7 +12,7 @@ import { useGetAllProductsFiltersQuery } from '@/modules/products/api/productsAP
 import { useGetAllClientsFiltersQuery } from '@/modules/clients/api/clientsApi';
 import AlertDialogComponent from '@/components/alertDialog/AlertDialog';
 import { Spinner } from '@/components/loader/Spinner';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router';
 
 const Sales = () => {
   const { t } = useTranslation();
