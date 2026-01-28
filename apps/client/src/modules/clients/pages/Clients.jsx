@@ -103,20 +103,20 @@ const Clients = () => {
             phone: values.phone,
             address: values.address,
           }).unwrap();
-
-      setAlertProps({
-        alertTitle: t(clientId ? 'update_record' : 'add_record'),
-        alertMessage: t(
-          clientId ? 'updated_successfully' : 'added_successfully'
-        ),
-        cancel: false,
-        success: true,
-        onSuccess: () => {
-          setOpenDialog(false);
-        },
-        variantSuccess: 'info',
-      });
-      setOpenAlertDialog(true);
+    
+      // setTimeout(() => {
+        setAlertProps({
+          alertTitle: t(clientId ? 'update_record' : 'add_record'),
+          alertMessage: t(
+            clientId ? 'updated_successfully' : 'added_successfully'
+          ),
+          cancel: false,
+          success: true,
+          onSuccess: () => {  setOpenDialog(false);},
+          variantSuccess: 'info',
+        });
+        setOpenAlertDialog(true);
+      // }, 300);
     } catch (err) {
       console.error('Error:', err);
     }
