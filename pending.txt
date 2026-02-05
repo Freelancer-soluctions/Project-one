@@ -15,6 +15,9 @@ IsError de  los query hooks ver que puedo hacer con  ello
 
 Mover vitest a la raiz ya que se va a utilizar en ambos proyectos
 quitar todos los console.log del proyecto (log injection)
+-despues de guardar una categoria no se esta refrescando en products ver como solucionar esto desde redux o que estrategia tomar
+
+
 
 PM2
 NX MONOREPO 
