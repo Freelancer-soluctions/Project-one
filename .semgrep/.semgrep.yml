@@ -1,0 +1,34 @@
+  # <- OBLIGATORIO aunque no tengas reglas custom
+rules:
+  # 1) Regla local ejemplo
+  - id: no-console-log
+    pattern: console.log(...)
+    message: "Evita console.log(...)"
+    severity: WARNING
+    languages: [javascript, typescript]
+    
+# configs:
+#   - p/owasp-top-ten
+#   - p/security-audit
+#   - p/secrets
+
+#   # Backend
+#   - p/nodejs
+#   - p/expressjs
+#   - p/sql-injection
+#   - p/nosql-injection
+#   - p/command-injection
+#   - p/jwt
+#   - p/crypto
+#   - p/http-security
+
+#   # Frontend
+#   - p/react
+#   - p/react-security
+#   - p/xss
+#   - p/dom-security
+
+#   # Calidad
+#   - p/best-practices
+#   - p/bug-risk
+
