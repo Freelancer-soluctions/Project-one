@@ -15,7 +15,7 @@ vi.mock('./app', () => ({
   },
 }));
 
-describe.skip('Appplication should start with port ', () => {
+describe.skip('Appplication should start with port', () => {
   it.skip('Should start', { skip: true }, async (context) => {
     context.skip();
     // const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {})

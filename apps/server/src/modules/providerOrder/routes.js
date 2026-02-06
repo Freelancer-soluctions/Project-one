@@ -1,15 +1,12 @@
 import { Router } from 'express';
 import * as providerOrderController from './controller.js';
-import {
-  validateCreateProviderOrder,
-  validateUpdateProviderOrder,
-  checkRoleAuthOrPermisssion,
-} from './schemas.js';
+
 import {
   verifyToken,
   validateQueryParams,
   validateSchema,
   checkRoleAuthOrPermisssion,
+  validatePathParam,
 } from '../../middleware/index.js';
 import { ROLESCODES, PERMISSIONCODES } from '../../utils/constants/enums.js';
 
@@ -24,6 +21,7 @@ router.get(
     allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER, ROLESCODES.USER],
     permissions: [PERMISSIONCODES.canViewProviderOrder],
   }),
+  validateQueryParams(),
   providerOrderController.getAllProviderOrders
 );
 router.post(
@@ -32,7 +30,7 @@ router.post(
     allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER],
     permissions: [PERMISSIONCODES.canCreateProviderOrder],
   }),
-  validateCreateProviderOrder,
+  validateSchema(),
   providerOrderController.createProviderOrder
 );
 router.put(
@@ -41,7 +39,7 @@ router.put(
     allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER, ROLESCODES.USER],
     permissions: [PERMISSIONCODES.canEditProviderOrder],
   }),
-  validateUpdateProviderOrder,
+  validatePathParam,
   providerOrderController.updateProviderOrderById
 );
 router.delete(
@@ -50,6 +48,7 @@ router.delete(
     allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER, ROLESCODES.USER],
     permissions: [PERMISSIONCODES.canDeleteProviderOrder],
   }),
+  validatePathParam,
   providerOrderController.deleteProviderOrderById
 );
 

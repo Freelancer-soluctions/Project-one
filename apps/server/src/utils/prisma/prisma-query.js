@@ -28,7 +28,7 @@ function decrypt(ciphertext) {
       decipher.update(encrypted),
       decipher.final(),
     ]).toString('utf8');
-  } catch (error) {
+  } catch {
     return ciphertext;
   }
 }

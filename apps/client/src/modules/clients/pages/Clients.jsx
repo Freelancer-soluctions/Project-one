@@ -104,6 +104,7 @@ const Clients = () => {
             address: values.address,
           }).unwrap();
 
+      // setTimeout(() => {
       setAlertProps({
         alertTitle: t(clientId ? 'update_record' : 'add_record'),
         alertMessage: t(
@@ -117,6 +118,7 @@ const Clients = () => {
         variantSuccess: 'info',
       });
       setOpenAlertDialog(true);
+      // }, 300);
     } catch (err) {
       console.error('Error:', err);
     }

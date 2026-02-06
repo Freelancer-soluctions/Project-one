@@ -12,9 +12,11 @@ import { useGetAllProductsFiltersQuery } from '@/modules/products/api/productsAP
 import { useGetAllClientsFiltersQuery } from '@/modules/clients/api/clientsApi';
 import AlertDialogComponent from '@/components/alertDialog/AlertDialog';
 import { Spinner } from '@/components/loader/Spinner';
+import { useNavigate } from 'react-router';
 
 const Sales = () => {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const [selectedRow, setSelectedRow] = useState({});
   const [openDialog, setOpenDialog] = useState(false);
   const [openAlertDialog, setOpenAlertDialog] = useState(false);
@@ -24,6 +26,13 @@ const Sales = () => {
     pageIndex: 0,
     pageSize: 20,
   });
+  const [details, setDetails] = useState([
+    {
+      productId: '',
+      quantity: 0,
+      price: 0,
+    },
+  ]);
   const [filters, setFilters] = useState({});
 
   const [
@@ -40,24 +49,13 @@ const Sales = () => {
     isLoading: isLoadingClients,
     isFetching: isFetchingClients,
   } = useGetAllClientsFiltersQuery();
-  const [
-    updateSaleById,
-    { isLoading: isLoadingPut },
-  ] = useUpdateSaleByIdMutation();
+  const [updateSaleById, { isLoading: isLoadingPut }] =
+    useUpdateSaleByIdMutation();
 
-  const [
-    createSale,
-    {
-      isLoading: isLoadingPost,
-    },
-  ] = useCreateSaleMutation();
+  const [createSale, { isLoading: isLoadingPost }] = useCreateSaleMutation();
 
-  const [
-    deleteSaleById,
-    {
-      isLoading: isLoadingDelete,
-    },
-  ] = useDeleteSaleByIdMutation();
+  const [deleteSaleById, { isLoading: isLoadingDelete }] =
+    useDeleteSaleByIdMutation();
 
   const {
     data: dataProducts = { data: [] },
@@ -84,7 +82,7 @@ const Sales = () => {
       limit: pagination.pageSize,
       ...filters,
     });
-  }, [pagination.pageIndex, pagination.pageSize, filters]);
+  }, [pagination.pageIndex, pagination.pageSize, filters, getAllSales]);
 
   /**
    * Al aplicar nuevos filtros:
@@ -154,6 +152,17 @@ const Sales = () => {
     setActionDialog(t('edit_sale'));
     setOpenDialog(true);
     setSelectedRow(row);
+    setDetails(
+      row.details && row.details.length > 0
+        ? row.details
+        : [
+            {
+              productId: '',
+              quantity: 0,
+              price: 0,
+            },
+          ]
+    );
   };
 
   const handleCloseDialog = () => {
@@ -252,20 +261,6 @@ const Sales = () => {
       return newDetails;
     });
   };
-
-  useEffect(() => {
-    if (dataSales?.data.length > 0) {
-      setDetails(dataSales.data.details);
-    }
-  }, [dataSales]);
-
-  const [details, setDetails] = useState([
-    {
-      productId: '',
-      quantity: 0,
-      price: 0,
-    },
-  ]);
 
   const handleAddDetail = () => {
     setDetails([

@@ -23,7 +23,7 @@ export const getAllStock = handleCatchErrorAsync(async (req, res) => {
     unitMeasure,
     stocksExpirated,
     stocksLow,
-  } = req.query;
+  } = req.safeQuery;
   const stock = await getAllStockService({
     productId,
     warehouseId,

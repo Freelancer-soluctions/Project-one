@@ -11,6 +11,7 @@ import {
   validateQueryParams,
   validateSchema,
   checkRoleAuthOrPermisssion,
+  validatePathParam,
 } from '../../middleware/index.js';
 import { ROLESCODES } from '../../utils/constants/enums.js';
 
@@ -35,9 +36,15 @@ router.put(
   noteController.updateNoteColumId
 );
 
-router.put('/:id', validateSchema(NoteUpdate), noteController.updateNoteById);
+router.put(
+  '/:id',
+  checkRoleAuthOrPermisssion,
+  validatePathParam,
+  validateSchema(NoteUpdate),
+  noteController.updateNoteById
+);
 
-router.delete('/:id', noteController.deleteById);
+router.delete('/:id', validatePathParam, noteController.deleteById);
 
 router.get('/notesCount', noteController.getAllNotesCount);
 

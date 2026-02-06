@@ -59,7 +59,7 @@ const Users = () => {
       limit: pagination.pageSize,
       ...filters,
     });
-  }, [pagination.pageIndex, pagination.pageSize, filters]);
+  }, [pagination.pageIndex, pagination.pageSize, filters, getAllUsers]);
 
   /**
    * Al aplicar nuevos filtros:
