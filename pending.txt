@@ -36,6 +36,7 @@ A02 Cryptographid failures
 - Punto 11 de gist
 
 A03 Injection
+- Aplicar sast y dast
 
 
 
