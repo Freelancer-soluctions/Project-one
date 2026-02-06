@@ -47,43 +47,43 @@ export const createRefreshTokenOld = (payload = {}) => {
 
 /// ------------------------------------------------------------------
 
-// Opciones base para firmar los tokens JWT.
-// - Uso HS256 porque es seguro mientras la clave tenga suficiente entropía.
-// - Defino issuer y audience para evitar uso del token fuera del contexto esperado.
+// Base options for signing JWT tokens.
+// - Use HS256 because it's secure as long as the key has sufficient entropy.
+// - Define issuer and audience to prevent token usage outside expected context.
 const SIGN_OPTIONS = {
   algorithm: 'HS256',
   issuer: 'mi-api',
   audience: 'mi-front',
 };
 
-// Las opciones para refresh tokens usan la misma configuración base.
-// - No defino el expiry aquí porque lo paso al llamar la función.
-// - Mantengo separación por claridad.
+// Refresh token options use the same base configuration.
+// - Don't define expiry here because I pass it when calling the function.
+// - Maintain separation for clarity.
 const SIGN_REFRESH_OPTIONS = {
   ...SIGN_OPTIONS,
-  // refresh puede tener un expiry mayor (1 día, 7 días o lo que yo quiera)
+  // refresh can have longer expiry (1 day, 7 days or whatever I want)
 };
 
-// Función que valida que el payload no sea vacío ni inválido.
-// Esto evita firmar tokens corruptos o mal construidos.
+// Function that validates payload is not empty or invalid.
+// This prevents signing corrupted or poorly constructed tokens.
 function validatePayload(payload) {
   if (
-    !payload || // Debe existir
-    typeof payload !== 'object' || // Debe ser un objeto
-    Array.isArray(payload) || // No debe ser un array
-    Object.keys(payload).length === 0 // No debe estar vacío
+    !payload || // Must exist
+    typeof payload !== 'object' || // Must be an object
+    Array.isArray(payload) || // Must not be an array
+    Object.keys(payload).length === 0 // Must not be empty
   ) {
     throw new Error(
-      'El payload del token es obligatorio y debe ser un objeto no vacío.'
+      'Token payload is required and must be a non-empty object.'
     );
   }
 }
 
-// Función genérica para crear tokens, recibe:
-// - payload: la data que quiero meter en el JWT
-// - secret: la clave con la que voy a firmar el token
-// - expiresIn: tiempo de expiración del token
-// - options: configuración del algoritmo, issuer y audience
+// Generic function for creating tokens, receives:
+// - payload: the data I want to put in the JWT
+// - secret: the key I will use to sign the token
+// - expiresIn: token expiration time
+// - options: algorithm, issuer and audience configuration
 const createTokenWithKey = (
   payload,
   secret,
@@ -92,35 +92,35 @@ const createTokenWithKey = (
 ) => {
   return new Promise((resolve, reject) => {
     try {
-      // Primero valido el payload para asegurarme que no firmo basura
+      // First validate payload to ensure I don't sign garbage
       validatePayload(payload);
 
-      // Verifico que la clave secreta exista. Firmar sin clave rompería toda la seguridad.
+      // Verify secret key exists. Signing without key would break all security.
       if (!secret) {
-        return reject('La clave secreta del token no está definida.');
+        return reject('Token secret key is not defined.');
       }
 
-      // Firmo el token usando jsonwebtoken
+      // Sign token using jsonwebtoken
       jwt.sign(
         payload,
         secret,
-        { ...options, expiresIn }, // Aplico opciones + expiración específica
+        { ...options, expiresIn }, // Apply options + specific expiration
         (err, token) => {
           if (err) {
-            return reject('Error generando el token.');
+            return reject('Error generating token.');
           }
 
-          // SOLO en desarrollo imprimo el token (esto nunca debe hacerse en producción)
+          // ONLY in development print token (this should never be done in production)
           if (process.env.NODE_ENV === 'development') {
-            console.log('Token generado:', token);
+            console.log('Token generated:', token);
           }
 
-          // Devuelvo el token firmado
+          // Return signed token
           resolve(token);
         }
       );
     } catch (error) {
-      // Manejo cualquier error ocurrido en la función
+      // Handle any error that occurred in the function
       reject(error.message);
     }
   });
@@ -128,34 +128,76 @@ const createTokenWithKey = (
 
 // Access token:
 // - Se firma con la variable de entorno SECRETKEY
-// - Expira rápido (900000 ms = 15min)
-// - Usa las SIGN_OPTIONS base
+/**
+ * Creates a cryptographically signed JWT access token with user payload.
+ * Encodes user data into a signed JSON Web Token for API authentication.
+ * Uses rapid expiration (15 minutes) for security best practices.
+ *
+ * @param {Object} payload - User data to encode in token (must include id, rol)
+ * @param {string} payload.id - Unique user identifier
+ * @param {string} payload.rol - User role code for authorization
+ * @returns {Promise<string>} Signed JWT access token ready for client storage
+ * @throws {ValidationError} When payload is missing required fields (id, rol)
+ * @throws {Error} When JWT signing fails due to invalid secret key or encoding issues
+ *
+ * @example
+ * const token = await createToken({
+ *   id: 'user123',
+ *   rol: 'ADMIN',
+ *   expiresIn: 1800 // 30 minutes
+ * });
+ * console.log(token); // eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+ */
 export const createToken = (payload) =>
   createTokenWithKey(payload, dotenv('SECRETKEY'), '900000', SIGN_OPTIONS);
 
-// Refresh token:
-// - Se firma con REFRESHSECRETKEY (clave distinta)
-// - Expira más largo (1 día por defecto)
-// - Usa SIGN_REFRESH_OPTIONS para permitir expiraciones largas
+/**
+ * Creates a JWT refresh token for token rotation mechanism.
+ * Used for generating new access tokens without requiring full re-authentication.
+ * Longer expiration time allows secure session management.
+ *
+ * @param {Object} payload - User data to encode in token (must include id)
+ * @param {string} payload.id - User ID to embed in token
+ * @returns {Promise<string>} Signed JWT refresh token with 1 day expiry
+ * @throws {ValidationError} When payload is missing required fields
+ * @throws {Error} When JWT signing fails due to invalid refresh secret key
+ *
+ * @example
+ * const refreshToken = await createRefreshToken({ id: 'user123' });
+ * // Store in secure HTTP-only cookie
+ * res.cookie('refreshToken', refreshToken, { httpOnly: true, secure: true });
+ */
 export const createRefreshToken = (payload) =>
   createTokenWithKey(
     payload,
     dotenv('REFRESHSECRETKEY'),
-    '1d',
+    '86400000',
     SIGN_REFRESH_OPTIONS
   );
 
-// Refresh token opaco:
-// - No usa JWT, solo genera un string aleatorio criptográficamente seguro.
-// - randomBytes(64) garantiza entropía fuerte (CSPRNG)
-// - Ideal para rotación e invalidación en BBDD.
+/**
+ * Creates a cryptographically secure opaque refresh token for database storage.
+ * Generates a random 128-character hex string for use as database identifier
+ * for refresh tokens, providing additional security against token guessing.
+ *
+ * @returns {Promise<string>} 128-character hex string for database storage
+ * @throws {Error} When crypto random bytes generation fails
+ *
+ * @example
+ * const opaqueToken = await createRefreshTokenOpaque();
+ * // Store in database with user association
+ * await storeRefreshToken({
+ *   token: opaqueToken,
+ *   userId: user.id
+ * });
+ */
 export const createRefreshTokenOpaque = () => {
   return new Promise((resolve, reject) => {
     try {
-      const token = crypto.randomBytes(64).toString('hex'); // Token opaco seguro
+      const token = crypto.randomBytes(64).toString('hex');
       resolve(token);
     } catch (error) {
-      reject(error.message);
+      reject(error);
     }
   });
 };

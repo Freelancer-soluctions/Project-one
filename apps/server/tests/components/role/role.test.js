@@ -37,7 +37,6 @@ describe('Role endpoint', () => {
   const dataRolTocreate1 = { code: 'C03', description: 'only test' };
   const dataRolTocreate2 = { code: 'C04' };
   const dataRolTocreate3 = { description: 'only test3' };
-  const dataRolTocreate4 = { code: 'C03', description: 'only test' };
 
   /// ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

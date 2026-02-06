@@ -15,8 +15,8 @@ import globalResponse from '../../utils/responses&Errors/globalResponse.js';
  * @access Private
  */
 export const getAllExpenses = handleCatchErrorAsync(async (req, res) => {
-  // console.log(req.query); // Keep for debugging if needed
-  const expenses = await getAllExpensesService(req.query);
+  // console.log(req.safeQuery); // Keep for debugging if needed
+  const expenses = await getAllExpensesService(req.safeQuery);
   globalResponse(res, 200, expenses);
 });
 

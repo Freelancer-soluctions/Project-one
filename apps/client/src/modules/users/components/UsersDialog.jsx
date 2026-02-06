@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -33,7 +33,6 @@ import { Button } from '@/components/ui/button';
 import { LuUsersRound } from 'react-icons/lu';
 import PropTypes from 'prop-types';
 import { UserSchema } from '../utils';
-import { useState } from 'react';
 
 export const UsersDialog = ({
   openDialog,
@@ -44,11 +43,12 @@ export const UsersDialog = ({
   actionDialog,
 }) => {
   const { t } = useTranslation();
-  const [userId, setUserId] = useState('');
 
   const form = useForm({
     resolver: zodResolver(UserSchema),
   });
+
+  const userId = useMemo(() => selectedRow?.id ?? null, [selectedRow?.id]);
 
   // Actualiza todos los valores del formulario al cambiar `selectedRow`
   useEffect(() => {
@@ -74,7 +74,6 @@ export const UsersDialog = ({
       };
 
       form.reset(mappedValues);
-      setUserId(mappedValues.id);
     }
 
     if (!openDialog) {
@@ -95,9 +94,8 @@ export const UsersDialog = ({
         roleId: '',
         statusId: '',
       });
-      setUserId(null);
     }
-  }, [selectedRow, openDialog]);
+  }, [selectedRow, openDialog, form]);
 
   const handleSubmit = (data) => {
     onSubmit(data, userId);

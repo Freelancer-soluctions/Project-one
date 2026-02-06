@@ -10,7 +10,7 @@ import * as notesService from './service.js';
  * @returns A message
  */
 export const getAllNotes = handleCatchErrorAsync(async (req, res) => {
-  const { searchTerm, statusCode } = req.query;
+  const { searchTerm, statusCode } = req.safeQuery;
   const items = await notesService.getAllNotes(searchTerm, statusCode);
   globalResponse(res, 200, items);
 });

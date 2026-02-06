@@ -40,7 +40,7 @@ import { format } from 'date-fns';
 import PropTypes from 'prop-types';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { StockSchema } from '../utils';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo } from 'react';
 
 export const StockDialog = ({
   openDialog,
@@ -54,7 +54,6 @@ export const StockDialog = ({
   actionDialog,
 }) => {
   const { t } = useTranslation();
-  const [stockId, setStockId] = useState(null);
 
   const form = useForm({
     resolver: zodResolver(StockSchema),
@@ -71,6 +70,8 @@ export const StockDialog = ({
       warehouseId: '',
     },
   });
+
+  const stockId = useMemo(() => selectedRow?.id ?? null, [selectedRow?.id]);
   // Actualiza todos los valores del formulario al cambiar `selectedRow`
   useEffect(() => {
     if (selectedRow.id) {
@@ -91,7 +92,6 @@ export const StockDialog = ({
       };
 
       form.reset(mappedValues);
-      setStockId(mappedValues.id);
     }
 
     if (!openDialog) {
@@ -107,9 +107,8 @@ export const StockDialog = ({
         productId: '',
         warehouseId: '',
       });
-      setStockId(null);
     }
-  }, [selectedRow, openDialog]);
+  }, [selectedRow, openDialog, form]);
 
   const handleSubmit = (data) => {
     onSubmit(data, selectedRow?.id);
