@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -53,7 +53,6 @@ export const VacationDialog = ({
   dataEmployees,
 }) => {
   const { t } = useTranslation();
-  const [vacationId, setVacationId] = useState('');
 
   const form = useForm({
     resolver: zodResolver(VacationSchema),
@@ -64,6 +63,8 @@ export const VacationDialog = ({
       status: 'PENDING',
     },
   });
+
+  const vacationId = useMemo(() => selectedRow?.id ?? null, [selectedRow?.id]);
 
   useEffect(() => {
     if (selectedRow?.id) {
@@ -81,7 +82,6 @@ export const VacationDialog = ({
         userVacationUpdatedName: selectedRow.userVacationUpdatedName,
       };
       form.reset(mappedValues);
-      setVacationId(mappedValues.id);
     } else {
       form.reset({
         employeeId: '',
@@ -89,7 +89,6 @@ export const VacationDialog = ({
         endDate: null,
         status: 'PENDING',
       });
-      setVacationId(null);
     }
   }, [selectedRow, openDialog, form]);
 

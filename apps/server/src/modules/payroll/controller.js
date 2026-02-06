@@ -3,7 +3,7 @@ import handleCatchErrorAsync from '../../utils/responses&Errors/handleCatchError
 import globalResponse from '../../utils/responses&Errors/globalResponse.js';
 
 export const getAllPayroll = handleCatchErrorAsync(async (req, res) => {
-  const filters = req.query;
+  const filters = req.safeQuery;
   const payroll = await payrollService.getAllPayroll(filters);
   globalResponse(res, 200, payroll, 'Payroll retrieved successfully');
 });

@@ -12,6 +12,7 @@ import {
   validateQueryParams,
   validateSchema,
   checkRoleAuthOrPermisssion,
+  validatePathParam,
 } from '../../middleware/index.js';
 import { ROLESCODES, PERMISSIONCODES } from '../../utils/constants/enums.js';
 
@@ -68,7 +69,7 @@ router.use(verifyToken);
  *             schema:
  *               $ref: "#/components/schemas/Error"
  */
-router.get('/:id', settingsController.getSettingsById);
+router.get('/:id', validatePathParam, settingsController.getSettingsById);
 /**
  * @openapi
  * /api/v1/settings/language:
@@ -357,6 +358,7 @@ router.put(
     allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER],
     permissions: [PERMISSIONCODES.canEditCategory],
   }),
+  validatePathParam,
   validateSchema(SettingsProductCategoryUpdate),
   settingsController.updateProductCategoryById
 );
@@ -404,6 +406,7 @@ router.delete(
     allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER],
     permissions: [PERMISSIONCODES.canDeleteCategory],
   }),
+  validatePathParam,
   settingsController.deleteProductCategoryById
 );
 

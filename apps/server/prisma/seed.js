@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import { prisma } from '../src/config/db.js';
 import { encryptPassword } from '../src/utils/bcrypt/encrypt.js';
 

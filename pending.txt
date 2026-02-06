@@ -13,6 +13,15 @@ IsError de  los query hooks ver que puedo hacer con  ello
     error: errorStatus,
   } = useGetAllNewsStatusQuery();
 
+Mover vitest a la raiz ya que se va a utilizar en ambos proyectos
+quitar todos los console.log del proyecto (log injection)
+-despues de guardar una categoria no se esta refrescando en products ver como solucionar esto desde redux o que estrategia tomar
+
+
+
+PM2
+NX MONOREPO 
+
 Mantener la dependencies actualizadas (Final)
 
 Lista de caracteristicas para destacar
@@ -27,6 +36,7 @@ A02 Cryptographid failures
 - Punto 11 de gist
 
 A03 Injection
+- Aplicar sast y dast
 
 
 

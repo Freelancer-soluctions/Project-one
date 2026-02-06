@@ -20,7 +20,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { SettingsProductCategoriesSchema } from '../utils';
 import { useTranslation } from 'react-i18next';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo } from 'react';
 import PropTypes from 'prop-types';
 
 export const SettingsProductCategoriesBasicInfo = ({
@@ -30,7 +30,6 @@ export const SettingsProductCategoriesBasicInfo = ({
   onClose,
 }) => {
   const { t } = useTranslation();
-  const [id, setId] = useState();
 
   const form = useForm({
     resolver: zodResolver(SettingsProductCategoriesSchema),
@@ -40,13 +39,14 @@ export const SettingsProductCategoriesBasicInfo = ({
     },
   });
 
+  const id = useMemo(() => selectedRow?.id ?? null, [selectedRow?.id]);
+
   // Actualiza todos los valores del formulario al cambiar `selectedRow`
   useEffect(() => {
     if (selectedRow) {
       form.reset({
         ...selectedRow,
       });
-      setId(selectedRow.id || '');
     }
   }, [selectedRow, form]);
 

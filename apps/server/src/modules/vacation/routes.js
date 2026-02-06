@@ -10,6 +10,7 @@ import {
   validateQueryParams,
   validateSchema,
   checkRoleAuthOrPermisssion,
+  validatePathParam,
 } from '../../middleware/index.js';
 import {
   vacationFiltersSchema,
@@ -100,7 +101,7 @@ router.get(
     allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER, ROLESCODES.USER],
     permissions: [PERMISSIONCODES.canViewVacations],
   }),
-  validateSchema(vacationFiltersSchema),
+  validateQueryParams(vacationFiltersSchema),
   getAllVacation
 );
 
@@ -226,6 +227,7 @@ router.put(
     allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER, ROLESCODES.USER],
     permissions: [PERMISSIONCODES.canEditRequestVacation],
   }),
+  validatePathParam,
   validateSchema(vacationCreateUpdateSchema),
   updateVacationById
 );
@@ -268,6 +270,7 @@ router.delete(
     allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER, ROLESCODES.USER],
     permissions: [PERMISSIONCODES.canDeleteVacation],
   }),
+  validatePathParam,
   deleteVacationById
 );
 

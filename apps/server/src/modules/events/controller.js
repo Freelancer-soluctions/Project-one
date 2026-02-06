@@ -10,7 +10,7 @@ import * as eventService from './service.js';
  * @returns {Promise<void>} Sends a response confirming the creation of the event item.
  */
 export const getAllEvents = handleCatchErrorAsync(async (req, res) => {
-  const query = req.query;
+  const query = req.safeQuery;
   const items = await eventService.getAllEvents(query);
   globalResponse(res, 200, items);
 });

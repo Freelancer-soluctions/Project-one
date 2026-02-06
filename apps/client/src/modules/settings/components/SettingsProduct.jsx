@@ -6,7 +6,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/accordion';
-import { LuTags, LuBox, LuSettings } from 'react-icons/lu';
+import { LuTags, LuBox } from 'react-icons/lu';
 import { SettingsProductCategories } from '@/modules/settingsProductCategories/page/SettingsProductCategories';
 
 export function SettingsProduct() {

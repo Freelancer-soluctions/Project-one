@@ -15,7 +15,7 @@ import handleCatchErrorAsync from '../../utils/responses&Errors/handleCatchError
  * @returns {Promise<void>}
  */
 export const getAllWarehouses = handleCatchErrorAsync(async (req, res) => {
-  const { name, status } = req.query;
+  const { name, status } = req.safeQuery;
   const warehouses = await getAllWarehousesService({ name, status });
   globalResponse(res, 200, warehouses);
 });

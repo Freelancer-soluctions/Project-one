@@ -14,7 +14,7 @@ import globalResponse from '../../utils/responses&Errors/globalResponse.js';
  * @returns {Object} Response with vacation records
  */
 export const getAllVacation = handleCatchErrorAsync(async (req, res) => {
-  const filters = req.query;
+  const filters = req.safeQuery;
   const data = await getAllVacationService(filters);
   return globalResponse(res, 200, data);
 });

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { SettingsProductCategoriesSchema } from '../utils';
@@ -10,8 +10,6 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
-  DialogClose,
 } from '@/components/ui/dialog';
 import {
   Form,
@@ -46,7 +44,6 @@ export const SettingsProductCategoriesDialog = ({
   actionDialog,
 }) => {
   const { t } = useTranslation();
-  const [categoryId, setCategoryId] = useState('');
 
   // Configura el formulario
   const form = useForm({
@@ -57,6 +54,8 @@ export const SettingsProductCategoriesDialog = ({
       description: '',
     },
   });
+
+  const categoryId = useMemo(() => selectedRow?.id ?? null, [selectedRow?.id]);
 
   // Actualiza todos los valores del formulario al cambiar `selectedRow`
   useEffect(() => {
@@ -75,13 +74,12 @@ export const SettingsProductCategoriesDialog = ({
       };
 
       form.reset(mappedValues);
-      setCategoryId(mappedValues.id);
     }
 
     if (!openDialog) {
       form.reset();
     }
-  }, [selectedRow, openDialog]);
+  }, [selectedRow, openDialog, form]);
 
   const handleSubmit = (data) => {
     onSubmit({ ...data }, categoryId);

@@ -505,5 +505,4 @@ const CardModule = () => {
   );
 };
 
-
 export default CardModule;

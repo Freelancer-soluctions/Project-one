@@ -12,28 +12,21 @@ import { Spinner } from '@/components/loader/Spinner';
 import { UsersBasicInfo } from '../components';
 import AlertDialogComponent from '@/components/alertDialog/AlertDialog';
 import { useNavigate, useLocation } from 'react-router';
-import { useState, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 
 function UsersForms() {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const [selectedRow, setSelectedRow] = useState();
   const [openAlertDialog, setOpenAlertDialog] = useState(false); //alert dialog open/close
   const [alertProps, setAlertProps] = useState({});
   const location = useLocation();
 
-  useEffect(() => {
-    if (location.state?.row) {
-      setSelectedRow(location.state.row);
-    } else {
-      setSelectedRow({});
-    }
-  }, [location.state]);
+  const selectedRow = useMemo(() => {
+    return location.state?.row ?? null;
+  }, [location.state?.row]);
 
-  const [
-    updateUserById,
-    { isLoading: isLoadingPut },
-  ] = useUpdateUserByIdMutation();
+  const [updateUserById, { isLoading: isLoadingPut }] =
+    useUpdateUserByIdMutation();
 
   const {
     data: dataUsersStatus = { data: [] },
@@ -41,16 +34,10 @@ function UsersForms() {
     isFetching: isFetchingStatus,
   } = useGetAllUsersStatusQuery();
 
-  const {
-    data: dataUserPermits = { data: [] },
-  } = useGetAllUserPermitsQuery();
+  const { data: dataUserPermits = { data: [] } } = useGetAllUserPermitsQuery();
 
-  const [
-    deleteUserById,
-    {
-      isLoading: isLoadingDelete,
-    },
-  ] = useDeleteUserByIdMutation();
+  const [deleteUserById, { isLoading: isLoadingDelete }] =
+    useDeleteUserByIdMutation();
 
   const {
     data: dataUsersRol = { data: [] },

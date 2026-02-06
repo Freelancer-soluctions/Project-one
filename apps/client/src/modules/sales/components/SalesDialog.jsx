@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -31,7 +31,7 @@ import { Button } from '@/components/ui/button';
 import { LuTrash2, LuShoppingCart } from 'react-icons/lu';
 import PropTypes from 'prop-types';
 import { SaleSchema } from '../utils';
-import { useState, useCallback } from 'react';
+import { useCallback } from 'react';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/components/ui/use-toast';
 
@@ -42,7 +42,6 @@ export const SalesDialog = ({
   onSubmit,
   onDeleteById,
   actionDialog,
-  onEditDetail,
   onAddDetail,
   onRemoveDetail,
   products,
@@ -51,7 +50,6 @@ export const SalesDialog = ({
   setDetails,
 }) => {
   const { t } = useTranslation();
-  const [saleId, setSaleId] = useState(null);
   const { toast } = useToast();
 
   const form = useForm({
@@ -71,12 +69,11 @@ export const SalesDialog = ({
     },
   });
 
-
-    const clearDialog = () => {
+  const clearDialog = useCallback(() => {
     form.reset();
-    setSaleId(null);
-  };
+  }, [form]);
 
+  const saleId = useMemo(() => selectedRow?.id ?? null, [selectedRow]);
 
   // Actualiza todos los valores del formulario al cambiar `selectedRow`
   useEffect(() => {
@@ -100,18 +97,16 @@ export const SalesDialog = ({
       };
 
       form.reset(mappedValues);
-      setSaleId(mappedValues.id);
       setDetails(mappedValues.details);
     } else {
       // Reset form when selectedRow is null
       clearDialog();
     }
-  }, [selectedRow, clearDialog]);
+  }, [selectedRow, clearDialog, form, setDetails]);
 
   const handleSubmit = (data) => {
     onSubmit(data, saleId);
   };
-
 
   const handleDelete = () => {
     onDeleteById(saleId);

@@ -188,16 +188,14 @@ router.post(
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-// NOTE: Expenses use CUID strings, not integers.
-// Current validatePathParam middleware only validates integers.
-// TODO: Create custom CUID validation middleware for expenses
+
 router.put(
   '/:id',
   checkRoleAuthOrPermisssion({
     allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER],
     permissions: [PERMISSIONCODES.canEditExpense],
   }),
-  // validatePathParam, // TODO: Replace with CUID validation middleware
+  validatePathParam,
   validateSchema(expenseCreateUpdateSchema),
   updateExpenseById
 );
@@ -238,16 +236,14 @@ router.put(
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-// NOTE: Expenses use CUID strings, not integers.
-// Current validatePathParam middleware only validates integers.
-// TODO: Create custom CUID validation middleware for expenses
+
 router.delete(
   '/:id',
   checkRoleAuthOrPermisssion({
     allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER],
     permissions: [PERMISSIONCODES.canDeleteExpense],
   }),
-  // validatePathParam, // TODO: Replace with CUID validation middleware
+  validatePathParam,
   deleteExpenseById
 );
 

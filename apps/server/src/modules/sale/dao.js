@@ -1,4 +1,4 @@
-import { prisma, Prisma } from '../../config/db.js';
+import { prisma } from '../../config/db.js';
 
 /**
  * Get all sales with optional filters

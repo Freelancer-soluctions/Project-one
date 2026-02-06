@@ -18,8 +18,23 @@ import prettier from 'eslint-config-prettier';
 // Importa las variables globales predefinidas para diferentes entornos
 import globals from 'globals';
 
+import vitest from 'eslint-plugin-vitest';
+import storybook from 'eslint-plugin-storybook';
+
 // Exporta la configuración usando Flat Config (formato recomendado por ESLint 9+)
 export default [
+  // ----------------------------
+  // Ignorar archivos
+  // ----------------------------
+  {
+    ignores: [
+      '**/dist/**',
+      '**/node_modules/**',
+      '**/storybook-static/**',
+      '**/build/**',
+    ],
+  },
+
   // ----------------------------
   // Base JavaScript (oficial)
   // ----------------------------
@@ -41,6 +56,10 @@ export default [
     // dentro del monorepo.
     files: ['apps/server/**/*.js'],
 
+    plugins: {
+      vitest,
+    },
+
     // Define opciones del lenguaje para Node.js moderno.
     languageOptions: {
       // Permite usar la versión más reciente de ECMAScript soportada por ESLint.
@@ -48,10 +67,17 @@ export default [
 
       // Indica que el backend usa módulos ES (import/export).
       sourceType: 'module',
+
+      globals: {
+        ...globals.browser,
+        ...globals.node,
+        ...vitest.environments.env.globals,
+      },
     },
 
     // Reglas específicas para backend.
     rules: {
+      ...vitest.configs.recommended.rules,
       // Permite el uso de console.log en backend,
       // ya que es común para logging en servidores.
       'no-console': 'off',
@@ -74,6 +100,7 @@ export default [
 
       // Plugin para reglas de React Hooks.
       'react-hooks': reactHooks,
+      vitest,
     },
 
     // Opciones del lenguaje para frontend.
@@ -87,6 +114,7 @@ export default [
       // Define las variables globales del navegador usando el preset
       globals: {
         ...globals.browser,
+        ...vitest.environments.env.globals,
       },
 
       // Habilita explícitamente JSX.
@@ -114,9 +142,61 @@ export default [
       // Aplica las reglas recomendadas oficiales para React Hooks.
       ...reactHooks.configs.recommended.rules,
 
+      ...vitest.configs.recommended.rules,
+
       // Desactiva la regla que exige importar React en JSX.
       // A partir de React 17+, esto ya no es necesario.
       'react/react-in-jsx-scope': 'off',
+    },
+  },
+
+  // ----------------------------
+  // Storybook (dentro de client)
+  // ----------------------------
+
+  {
+    // Solo archivos .stories dentro de apps/client
+    files: [
+      'apps/client/**/*.stories.{js,jsx}',
+      'apps/client/.storybook/**/*.{js,jsx}',
+    ],
+
+    plugins: {
+      storybook,
+      react, // También necesita React plugin para JSX
+    },
+
+    languageOptions: {
+      ecmaVersion: 'latest',
+      sourceType: 'module',
+      globals: {
+        ...globals.browser, // Storybook corre en el navegador
+      },
+      parserOptions: {
+        ecmaFeatures: {
+          jsx: true,
+        },
+      },
+    },
+
+    settings: {
+      react: {
+        version: 'detect',
+      },
+    },
+
+    rules: {
+      // Reglas recomendadas de Storybook
+      ...storybook.configs.recommended.rules,
+
+      // Reglas adicionales útiles
+      'storybook/hierarchy-separator': 'warn',
+      'storybook/default-exports': 'error',
+      'storybook/no-redundant-story-name': 'warn',
+
+      // Desactiva reglas que pueden causar conflictos en stories
+      'react-hooks/rules-of-hooks': 'off', // Stories pueden usar hooks en play functions
+      'react/prop-types': 'off', // No requerir prop-types en stories
     },
   },
 

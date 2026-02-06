@@ -10,6 +10,7 @@ import {
   validateQueryParams,
   validateSchema,
   checkRoleAuthOrPermisssion,
+  validatePathParam,
 } from '../../middleware/index.js';
 import { ROLESCODES, PERMISSIONCODES } from '../../utils/constants/enums.js';
 import {
@@ -188,7 +189,7 @@ router.get(
     allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER, ROLESCODES.USER],
     permissions: [PERMISSIONCODES.canViewPermission],
   }),
-  validateSchema(permissionFiltersSchema),
+  validateQueryParams(permissionFiltersSchema),
   getAllPermissions
 );
 
@@ -287,6 +288,7 @@ router.put(
     allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER, ROLESCODES.USER],
     permissions: [PERMISSIONCODES.canEditPermission],
   }),
+  validatePathParam,
   validateSchema(permissionCreateUpdateSchema),
   updatePermissionById
 );
@@ -336,6 +338,7 @@ router.delete(
     allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER, ROLESCODES.USER],
     permissions: [PERMISSIONCODES.canDeletePermission],
   }),
+  validatePathParam,
   deletePermissionById
 );
 

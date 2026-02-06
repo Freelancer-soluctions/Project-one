@@ -11,6 +11,6 @@ export function getUserFromToken() {
   try {
     return jwtDecode(token); // { id, email, role, iat, exp }
   } catch (err) {
-    return null;
+    return err;
   }
 }

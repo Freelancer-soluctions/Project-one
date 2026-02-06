@@ -13,7 +13,7 @@ import handleCatchErrorAsync from '../../utils/responses&Errors/handleCatchError
  * @param {Object} res - Express response object
  */
 export const getAllSales = handleCatchErrorAsync(async (req, res) => {
-  const sales = await getAllSalesService(req.query);
+  const sales = await getAllSalesService(req.safeQuery);
   globalResponse(res, 200, sales);
 });
 

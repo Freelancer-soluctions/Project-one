@@ -74,7 +74,7 @@ export const getSettingsById = handleCatchErrorAsync(async (req, res) => {
  */
 export const getAllProductCategories = handleCatchErrorAsync(
   async (req, res) => {
-    const data = await settingsService.getAllProductCategories(req.query);
+    const data = await settingsService.getAllProductCategories(req.safeQuery);
     globalResponse(res, 200, data);
   }
 );

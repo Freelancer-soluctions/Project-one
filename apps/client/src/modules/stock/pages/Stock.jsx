@@ -59,11 +59,10 @@ const Stock = () => {
   } = useGetAllWarehousesFiltersQuery();
 
   useEffect(() => {
-    debugger;
     if (location.state?.filter) {
       getAllStock({ ...location.state.filter });
     }
-  }, [location.state?.filter]);
+  }, [location.state?.filter, getAllStock]);
 
   /**
    * Este efecto es la única fuente de verdad para disparar
@@ -84,7 +83,7 @@ const Stock = () => {
       limit: pagination.pageSize,
       ...filters,
     });
-  }, [pagination.pageIndex, pagination.pageSize, filters]);
+  }, [pagination.pageIndex, pagination.pageSize, filters, getAllStock]);
 
   /**
    * Al aplicar nuevos filtros:
