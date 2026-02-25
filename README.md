@@ -335,3 +335,5 @@ CI falla si hay errores
 El código no se modifica
 
 Husky + CI se refuerzan mutuamente
+
+Se uso trunk based development como estrategia de ramas en compañia de feature flags
