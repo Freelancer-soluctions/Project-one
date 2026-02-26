@@ -9,6 +9,7 @@
   },
   "scripts": {
     "dev": "nodemon src/bin/index.js",
+    "build": "echo 'No build step needed for Express'",
     "postinstall": "prisma generate ",
     "prisma-migration": "prisma migrate dev",
     "prisma-seed": "prisma db seed",
