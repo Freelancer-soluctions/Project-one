@@ -1,0 +1,62 @@
+name: "CI / PR Validation"
+
+on:
+  pull_request:
+    branches: [ "main", "develop" ]
+
+jobs:
+
+  validate-code:
+    name: "Validate Frontend + Backend"
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [18.x, 20.x]  # múltiples versiones si quieres compatibilidad
+
+    steps:
+      # 1) Obtener el código
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      # 2) Setup Node.js
+      - name: Setup Node ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+
+      # 3) Install dependencies (monorepo root)
+      - name: Install dependencies
+        run: npm ci
+
+      # 4) Linting  and format (frontend y backend)
+      - name: Run ESLint
+        run: npm run lint
+
+      - name: Run format
+        run: npm run format
+
+      # 5) Build
+      - name: Build
+        run: npm run build
+
+      # # 
+      # - name: Build frontend
+      #   working-directory: ./frontend
+      #   run: npm run build
+
+      # # 6) Build backend
+      # - name: Build backend
+      #   working-directory: ./backend
+      #   run: npm run build
+
+      # # 7) Run frontend tests
+      # - name: Test frontend
+      #   working-directory: ./frontend
+      #   run: npm test
+
+      # # 8) Run backend tests
+      # - name: Test backend
+      #   working-directory: ./backend
+      #   run: npm test

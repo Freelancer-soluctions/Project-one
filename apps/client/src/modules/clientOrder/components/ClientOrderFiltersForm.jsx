@@ -12,13 +12,13 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { LuPlus, LuSearch, LuEraser } from 'react-icons/lu';
 import PropTypes from 'prop-types';
-import { ClientOrderFiltersSchema } from '../utils';
+// import { ClientOrderFiltersSchema } from '../utils';
 import { zodResolver } from '@hookform/resolvers/zod';
 
 export const ClientOrderFiltersForm = ({ onSubmit, onAddDialog }) => {
   const { t } = useTranslation();
   const form = useForm({
-    resolver: zodResolver(ClientOrderFiltersSchema),
+    resolver: zodResolver(),
   });
 
   const handleSubmit = (data) => {
