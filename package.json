@@ -14,12 +14,15 @@
   "author": "",
   "type": "module",
   "main": "index.js",
+  "workspaces": [
+    "apps/*"
+  ],
   "scripts": {
     "prepare": "husky",
     "husky:disable": "ren .husky .husky.disabled",
     "husky:enable": "ren .husky.disabled .husky",
-    "test": "npm run test -ws",
-    "build": "npm run build -ws",
+    "test": "npm run test --ws",
+    "build": "npm run build --ws --if-present",
     "prepush": "npm run test && npm run build",
     "format": "prettier --write \"apps/**/*.{js,jsx,json,md}\"",
     "format:check": "prettier --check \"apps/**/*.{js,jsx,json,md}\"",

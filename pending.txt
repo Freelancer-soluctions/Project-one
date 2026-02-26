@@ -30,6 +30,20 @@ Lista de caracteristicas para destacar
 - Error boundary para el front con   react-error-boundary
 -- Back
 
+Mantén security.md (NO lo cambies)
+
+Usa security.md para:
+
+OWASP A01–A03, A05–A10
+
+Controles técnicos implementados
+
+Librerías, middlewares, configuraciones
+
+Hardening, validaciones, auth, rate limiting, etc.
+
+📌 Es tu documento de “qué se implementó”
+
 A02 Cryptographid failures 
 - TLS habilitado (Depende de infraestructura)
 - HTTPS forzado (Debes confirmarlo)

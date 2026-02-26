@@ -23,15 +23,15 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { LuUsersRound } from 'react-icons/lu';
 import PropTypes from 'prop-types';
-import { ClientOrderSchema } from '../utils';
-import { orderStatus } from '@/lib/constants';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+// import { ClientOrderSchema } from '../utils';
+// import { orderStatus } from '@/lib/constants';
+// import {
+//   Select,
+//   SelectContent,
+//   SelectItem,
+//   SelectTrigger,
+//   SelectValue,
+// } from '@/components/ui/select';
 
 export const ClientOrderDialog = ({
   openDialog,
@@ -44,7 +44,7 @@ export const ClientOrderDialog = ({
   const { t } = useTranslation();
 
   const form = useForm({
-    resolver: zodResolver(ClientOrderSchema),
+    resolver: zodResolver(),
     defaultValues: {
       clientId: '',
       status: '',
@@ -136,8 +136,7 @@ export const ClientOrderDialog = ({
                   );
                 }}
               />
-
-              <FormField
+              {/*     <FormField
                 control={form.control}
                 name="status"
                 render={({ field }) => (
@@ -163,7 +162,7 @@ export const ClientOrderDialog = ({
                     <FormMessage />
                   </FormItem>
                 )}
-              />
+              />  */}
 
               <FormField
                 control={form.control}
