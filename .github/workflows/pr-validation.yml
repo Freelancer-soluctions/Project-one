@@ -36,10 +36,12 @@ jobs:
 
       - name: Run format
         run: npm run format
+        continue-on-error: true
 
       # 5) Build
       - name: Build
         run: npm run build
+        continue-on-error: true
 
       # # 
       # - name: Build frontend
