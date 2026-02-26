@@ -52,6 +52,9 @@ A02 Cryptographid failures
 A03 Injection
 - Aplicar sast y dast
 
+sE ESTA TRABAJANDO CON WORKSPACES DE NPM
+
+
 
 
 
