@@ -18,7 +18,7 @@ import prettier from 'eslint-config-prettier';
 // Importa las variables globales predefinidas para diferentes entornos
 import globals from 'globals';
 
-import vitest from 'eslint-plugin-vitest';
+import vitest from '@vitest/eslint-plugin';
 import storybook from 'eslint-plugin-storybook';
 
 // Exporta la configuración usando Flat Config (formato recomendado por ESLint 9+)

@@ -14,6 +14,7 @@
   "author": "",
   "type": "module",
   "main": "index.js",
+  "private": true,
   "workspaces": [
     "apps/*"
   ],
@@ -33,13 +34,13 @@
   "devDependencies": {
     "@commitlint/cli": "^20.3.1",
     "@commitlint/config-conventional": "^20.3.1",
+    "@vitest/eslint-plugin": "^1.6.9",
     "eslint": "^9.39.2",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-import": "^2.32.0",
     "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-hooks": "^7.0.1",
-    "eslint-plugin-storybook": "^10.2.0",
-    "eslint-plugin-vitest": "^0.5.4",
+    "eslint-plugin-storybook": "^0.11.0",
     "husky": "^9.1.7",
     "jsdoc": "^4.0.5",
     "lint-staged": "^16.2.7",
