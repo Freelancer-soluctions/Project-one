@@ -1,3 +1,4 @@
+# ⚠️ Deprecated workflow - replaced by CI.yml (2026-02)
 name: "CI / PR Validation"
 
 on:
