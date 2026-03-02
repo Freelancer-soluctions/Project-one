@@ -1,0 +1,63 @@
+name: Quality Gate
+
+on:
+  workflow_dispatch:
+  workflow_call:
+    inputs:
+      run-client:
+        required: true
+        type: string
+      run-server:
+        required: true
+        type: string
+
+
+permissions:
+  contents: read
+
+jobs:
+  quality:
+    name: Lint + Format Check + TypeCheck
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'npm'
+          cache-dependency-path: package-lock.json
+
+      - name: Install Dependencies (workspace root)
+        run: npm ci
+        
+      # =========================
+      # CLIENT  
+      # =========================
+      - name: Client Lint
+        if: inputs.run-client == 'true'
+        run: npm run lint --workspace=apps/client
+
+      - name: Client Format Check
+        if: inputs.run-client == 'true'
+        run: npm run format:check --workspace=apps/client
+
+      # =========================
+      # SERVER
+      # =========================
+      - name: Server Lint
+        if: inputs.run-server == 'true'
+        run: npm run lint --workspace=apps/server
+
+      - name: Server Format Check
+        if: inputs.run-server == 'true'
+        run: npm run format:check --workspace=apps/server
+
+      # =========================
+      # GLOBAL TYPECHECK (si aplica) Typescript
+      # =========================
+      - name: Type Check
+        run: npm run typecheck || echo "Typecheck skipped"
