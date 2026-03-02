@@ -1,0 +1,63 @@
+name: "CI"
+
+on:
+  pull_request:
+    branches:
+        - main
+
+concurrency:
+  group: pr-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  changes:
+    name: Detect Changes
+    runs-on: ubuntu-latest
+    outputs:
+      frontend: ${{ steps.filter.outputs.client }}
+      backend: ${{ steps.filter.outputs.server }}
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            client:
+              - 'apps/client/**'
+            server:
+              - 'apps/server/**'
+
+  quality:
+    name: Quality Gate
+    needs: changes
+    uses: ./.github/workflows/quality.yml
+    with:
+      run-client: ${{ needs.changes.outputs.frontend }}
+      run-server: ${{ needs.changes.outputs.backend }}
+
+
+  # lint:
+  #   name: Linter
+  #   uses: ./.github/workflows/linter.yml  
+  
+  # formatter:
+  #   name: Formatter
+  #   uses: ./.github/workflows/formatter.yml
+
+  # build:
+  #   name: Build
+  #   uses: ./.github/workflows/build.yml
+  
+  # test: 
+  #   name: Testing
+  #   uses: ./.github/workflows/test.yml
+
+
+
+  
+
+  
+
+ 
