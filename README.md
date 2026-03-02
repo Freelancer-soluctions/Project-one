@@ -337,3 +337,24 @@ El código no se modifica
 Husky + CI se refuerzan mutuamente
 
 Se uso trunk based development como estrategia de ramas en compañia de feature flags
+-------------------------------------------------------------------------------------------------
+
+Análisis Arquitectónico (Monorepo + PR CI)
+
+Tienes dos workflows:
+
+CI → Orquestador principal (pull_request a main)
+
+quality.yml → Workflow reutilizable (workflow_call)
+
+Esto está muy bien planteado. Es patrón enterprise real:
+
+Separación de responsabilidades
+
+Reutilización
+
+Orquestación central
+
+Detección inteligente de cambios
+
+Eso ya es nivel intermedio-alto.
