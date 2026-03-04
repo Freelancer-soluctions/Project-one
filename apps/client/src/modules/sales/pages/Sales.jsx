@@ -7,6 +7,7 @@ import {
   useUpdateSaleByIdMutation,
   useCreateSaleMutation,
   useDeleteSaleByIdMutation,
+  useDeleteSaleDetailByIdMutation
 } from '../api/salesAPI';
 import { useGetAllProductsFiltersQuery } from '@/modules/products/api/productsAPI';
 import { useGetAllClientsFiltersQuery } from '@/modules/clients/api/clientsApi';
@@ -56,6 +57,9 @@ const Sales = () => {
 
   const [deleteSaleById, { isLoading: isLoadingDelete }] =
     useDeleteSaleByIdMutation();
+
+      const [deleteSaleDetailById, { isLoading: isLoadingDeleteDetail }] =
+    useDeleteSaleDetailByIdMutation();
 
   const {
     data: dataProducts = { data: [] },
@@ -283,6 +287,7 @@ const Sales = () => {
           isLoadingPost ||
           isLoadingProducts ||
           isLoadingDelete ||
+          isLoadingDeleteDetail ||
           isLoadingClients ||
           isFetchingSales ||
           isFetchingClients ||

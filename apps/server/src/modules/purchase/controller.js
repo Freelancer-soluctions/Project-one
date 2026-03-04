@@ -3,6 +3,7 @@ import {
   createPurchase as createPurchaseService,
   updatePurchaseById as updatePurchaseByIdService,
   deletePurchaseById as deletePurchaseByIdService,
+  deletePurchaseDetailById as deletePurchaseDetailByIdService,
 } from './service.js';
 import handleCatchErrorAsync from '../../utils/responses&Errors/handleCatchErrorAsync.js';
 import globalResponse from '../../utils/responses&Errors/globalResponse.js';
@@ -52,3 +53,17 @@ export const deletePurchaseById = handleCatchErrorAsync(async (req, res) => {
   await deletePurchaseByIdService(req.params.id);
   globalResponse(res, 200, { message: 'Purchase deleted successfully' });
 });
+
+/**
+ * Delete a purchase detail by ID
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object
+ */
+export const deletePurchaseDetailById = handleCatchErrorAsync(
+  async (req, res) => {
+    await deletePurchaseDetailByIdService(req.params.id);
+    globalResponse(res, 200, {
+      message: 'Purchase detail deleted successfully',
+    });
+  }
+);

@@ -3,6 +3,7 @@ import {
   createPurchase as createPurchaseDao,
   updatePurchaseById as updatePurchaseByIdDao,
   deletePurchaseById as deletePurchaseByIdDao,
+  deletePurchaseDetailById as deletePurchaseDetailByIdDao,
 } from './dao.js';
 import { getSafePagination } from '../../utils/pagination/pagination.js';
 
@@ -52,4 +53,13 @@ export const updatePurchaseById = async (id, data) => {
  */
 export const deletePurchaseById = async (id) => {
   return deletePurchaseByIdDao(id);
+};
+
+/**
+ * Delete a purchase detail by ID
+ * @param {number} id - Purchase ID
+ * @returns {Promise<Object>} Deleted purchase
+ */
+export const deletePurchaseDetailById = async (id) => {
+  return deletePurchaseDetailByIdDao(id);
 };
