@@ -27,6 +27,13 @@ const salesApi = createApi({
       }),
       invalidatesTags: ['Sales'],
     }),
+    deleteSaleDetailById: builder.mutation({
+      query: (id) => ({
+        url: `/sales/detail/${id}`,
+        method: 'DELETE',
+      }),
+      invalidatesTags: ['Sales'],
+    }),
     createSale: builder.mutation({
       query: (data) => ({
         url: `/sales/`,
@@ -53,6 +60,7 @@ export const {
   useUpdateSaleByIdMutation,
   useCreateSaleMutation,
   useDeleteSaleByIdMutation,
+  useDeleteSaleDetailByIdMutation,
 } = salesApi;
 
 export default salesApi;

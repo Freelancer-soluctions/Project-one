@@ -27,6 +27,13 @@ const purchaseApi = createApi({
       }),
       invalidatesTags: ['Purchases'],
     }),
+    deletePurchaseDetailById: builder.mutation({
+      query: (id) => ({
+        url: `/purchases/detail/${id}`,
+        method: 'DELETE',
+      }),
+      invalidatesTags: ['Purchases'],
+    }),
     createPurchase: builder.mutation({
       query: (data) => ({
         url: `/purchases/`,
@@ -53,6 +60,7 @@ export const {
   useUpdatePurchaseByIdMutation,
   useCreatePurchaseMutation,
   useDeletePurchaseByIdMutation,
+  useDeletePurchaseDetailByIdMutation,
 } = purchaseApi;
 
 export default purchaseApi;
