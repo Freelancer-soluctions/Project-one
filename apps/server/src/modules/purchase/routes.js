@@ -4,6 +4,7 @@ import {
   createPurchase,
   updatePurchaseById,
   deletePurchaseById,
+  deletePurchaseDetailById,
 } from './controller.js';
 import {
   verifyToken,
@@ -226,6 +227,16 @@ router.delete(
   }),
   validatePathParam,
   deletePurchaseById
+);
+
+router.delete(
+  'detail/:id',
+  checkRoleAuthOrPermisssion({
+    allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER],
+    permissions: [PERMISSIONCODES.canDeletePurchase],
+  }),
+  validatePathParam,
+  deletePurchaseDetailById
 );
 
 export default router;

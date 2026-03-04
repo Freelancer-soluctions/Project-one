@@ -4,6 +4,7 @@ import {
   createSale,
   updateSaleById,
   deleteSaleById,
+  deleteSaleDetailById,
 } from './controller.js';
 import {
   verifyToken,
@@ -225,6 +226,16 @@ router.delete(
   }),
   validatePathParam,
   deleteSaleById
+);
+
+router.delete(
+  'detail/:id',
+  checkRoleAuthOrPermisssion({
+    allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER],
+    permissions: [PERMISSIONCODES.canDeleteSale],
+  }),
+  validatePathParam,
+  deleteSaleDetailById
 );
 
 export default router;
