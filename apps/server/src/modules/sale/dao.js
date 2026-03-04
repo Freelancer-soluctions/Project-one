@@ -128,3 +128,14 @@ export const deleteSaleById = async (id) => {
     where: { id },
   });
 };
+
+/**
+ * Delete a sale detail by ID
+ * @param {number} id - Sale ID
+ * @returns {Promise<Object>} Deleted sale detail
+ */
+export const deleteSaleDetailById = async (id) => {
+  await prisma.saleDetail.delete({
+    where: { id },
+  });
+};

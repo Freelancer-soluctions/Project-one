@@ -3,6 +3,7 @@ import {
   createSale as createSaleService,
   updateSaleById as updateSaleByIdService,
   deleteSaleById as deleteSaleByIdService,
+  deleteSaleDetailById as deleteSaleDetailByIdService,
 } from './service.js';
 import globalResponse from '../../utils/responses&Errors/globalResponse.js';
 import handleCatchErrorAsync from '../../utils/responses&Errors/handleCatchErrorAsync.js';
@@ -50,5 +51,15 @@ export const updateSaleById = handleCatchErrorAsync(async (req, res) => {
  */
 export const deleteSaleById = handleCatchErrorAsync(async (req, res) => {
   await deleteSaleByIdService(req.params.id);
+  globalResponse(res, 200, { message: 'Sale deleted successfully' });
+});
+
+/**
+ * Delete a sale detail by ID
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object
+ */
+export const deleteSaleDetailById = handleCatchErrorAsync(async (req, res) => {
+  await deleteSaleDetailByIdService(req.params.id);
   globalResponse(res, 200, { message: 'Sale deleted successfully' });
 });
