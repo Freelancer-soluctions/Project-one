@@ -30,7 +30,7 @@ jobs:
               - 'apps/server/**'
 
   quality:
-    name: Quality Gate
+    name: Code Quality
     needs: changes
     uses: ./.github/workflows/quality.yml
     with:
