@@ -1,0 +1,122 @@
+name: Security Pipeline
+
+on:
+  workflow_call:
+  pull_request:
+    branches: [ main ]
+
+permissions:
+  contents: read
+  security-events: write
+
+jobs:
+  dependency-scan:
+    name: Dependency Scan (SCA)
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'npm'
+          cache-dependency-path: package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@v0.20.0
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          format: 'table'
+          severity: 'CRITICAL,HIGH'
+          exit-code: '1'
+
+#   # =========================
+#   # Dependency Scanning (SCA)
+#   # =========================
+#   dependency-scan:
+#     name: Dependency Scan
+#     runs-on: ubuntu-latest
+
+#     steps:
+#       - uses: actions/checkout@v5
+
+#       - name: Setup Node
+#         uses: actions/setup-node@v4
+#         with:
+#           node-version-file: '.nvmrc'
+#           cache: 'npm'
+#           cache-dependency-path: package-lock.json
+
+#       - name: Install dependencies (workspace root)
+#         run: npm ci
+
+#       - name: Run npm audit
+#         run: npm audit --audit-level=high
+
+  # =========================
+  # SAST (Static Analysis)
+  # =========================
+  sast:
+    name: SAST - CodeQL
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: javascript
+
+      - name: Autobuild
+        uses: github/codeql-action/autobuild@v3
+
+      - name: Analyze
+        uses: github/codeql-action/analyze@v3
+
+  # =========================
+  # Secret Scanning
+  # =========================
+  secrets:
+    name: Secret Detection
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Scan for secrets
+        uses: gitleaks/gitleaks-action@v2
+
+#   # =========================
+#   # Infrastructure as Code Security
+#   # =========================
+#   iac-security:
+#     name: IaC Security Scan
+#     runs-on: ubuntu-latest
+
+#     steps:
+#       - uses: actions/checkout@v5
+
+#       - name: Run Semgrep IaC rules
+#         uses: returntocorp/semgrep-action@v1
+#         with:
+#           config: p/terraform
+
+#   # =========================
+#   # SBOM generation (recommended)
+#   # =========================
+#   sbom:
+#     name: Generate SBOM
+#     runs-on: ubuntu-latest
+
+#     steps:
+#       - uses: actions/checkout@v5
+
+#       - name: Generate SBOM
+#         uses: anchore/sbom-action@v0

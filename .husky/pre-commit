@@ -1,1 +1,24 @@
+echo "Running lint-staged..."
 npx lint-staged
+
+echo "Running SAST scan with Semgrep..."
+npm run sast:semgrep
+
+echo "🔐 Running secret detection with Gitleaks..."
+# Mensaje informativo para el desarrollador
+
+npm run security:secrets
+# Ejecuta el script definido en package.json que ejecuta gitleaks
+
+RESULT=$?
+# Guarda el código de salida del comando anterior
+
+if [ $RESULT -ne 0 ]; then
+  echo "❌ Commit blocked: potential secret detected."
+  exit 1
+fi
+# Si gitleaks encuentra un secreto devuelve código diferente de 0
+# El commit se cancela
+
+echo "✅ Secret scan passed."
+# Mensaje si no se encontraron secretos
