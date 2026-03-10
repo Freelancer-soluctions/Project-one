@@ -296,7 +296,7 @@ Configuracion de prettier
   // CRÍTICO para evitar errores en CI/CD (Linux) y conflictos Windows
   "endOfLine": "lf"
 }
-
+----------------------------------------------------------------------------------------------
 
 Uso en CI/CD (muy importante)   
 
@@ -358,3 +358,10 @@ Orquestación central
 Detección inteligente de cambios
 
 Eso ya es nivel intermedio-alto.
+
+Branch-Based Pipeline:
+Feature Branch → PR Pipeline (build, test, Code Quality, security scan)
+       ↓
+Main Branch → Full Pipeline (build, test, scan, deploy to staging)
+       ↓
+Release Tag → Production Pipeline (deploy to prod)
