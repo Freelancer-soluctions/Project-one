@@ -324,6 +324,7 @@ Incluso en APIs publicadas o microservicios internos.
 
 ---
 
+
 ## 12. Reporte de vulnerabilidades
 
 Las vulnerabilidades deben ser reportadas de forma responsable mediante los canales definidos por el equipo del proyecto.
@@ -340,4 +341,273 @@ Este documento será revisado y actualizado cuando:
 
 ---
 
-**Última actualización:** YYYY-MM-DD
+
+## Static Application Security Testing (SAST)
+
+This project uses **Semgrep** locally to perform static code analysis following a Shift-Left security strategy.
+
+### Covered OWASP Top 10 categories
+
+The following vulnerability classes are scanned:
+
+- Broken Access Control
+- Broken Authentication
+- Cross-Site Scripting (XSS)
+- Cryptographic Failures
+- Identification and Authentication Failures
+- Injection
+- Insecure Deserialization
+- Insecure Design
+- Security Misconfiguration
+- Sensitive Data Exposure
+- Server Side Request Forgery (SSRF)
+- Software and Data Integrity Failures
+- Vulnerable and Outdated Components
+
+### Implemented Rules
+
+See the full rule definition in: docs/security/semgrep-rules 
+
+The rules include checks for:
+
+- Express security misconfigurations
+- JWT misconfigurations
+- DOM XSS
+- SQL Injection
+- Unsafe dynamic code execution
+- Prototype pollution
+- SSRF
+- Insecure crypto usage
+
+
+# Dependency Vulnerability Scanning
+
+## Overview
+
+This project performs **dependency vulnerability scanning** to detect known security issues in third-party libraries used by the application.
+
+The project uses **Trivy** to analyze dependencies and identify vulnerabilities listed in public vulnerability databases.
+
+Dependency scanning helps detect:
+
+* vulnerable packages
+* insecure transitive dependencies
+* known CVEs affecting third-party libraries
+* recommended fixed versions
+
+This process is part of the project's **Shift-Left security strategy**.
+
+---
+
+# Scope
+
+The repository is structured as a **monorepo using npm workspaces**.
+
+Dependencies are resolved through the root lockfile:
+
+```
+package-lock.json
+```
+
+Because of this, dependency scanning runs at the **repository root**, covering all workspaces automatically.
+
+Example structure:
+
+```
+root
+│
+├── package.json
+├── package-lock.json
+├── apps
+│   ├── client
+│   └── server
+```
+
+---
+
+# Vulnerability Detection
+
+The dependency scanner identifies vulnerabilities in:
+
+* direct dependencies
+* transitive dependencies
+* packages referenced in the lockfile
+
+Vulnerabilities are classified by severity:
+
+| Severity | Description                                        |
+| -------- | -------------------------------------------------- |
+| LOW      | minimal security risk                              |
+| MEDIUM   | moderate risk                                      |
+| HIGH     | serious security issue                             |
+| CRITICAL | severe vulnerability requiring immediate attention |
+
+---
+
+# Security Enforcement
+
+The project enforces security checks through multiple layers:
+
+```
+Developer machine
+│
+├─ Static Analysis (Semgrep)
+├─ Secret Detection (Gitleaks)
+└─ Dependency Vulnerabilities (Trivy)
+```
+
+Dependency vulnerabilities classified as **HIGH or CRITICAL** should be addressed before merging code.
+
+---
+
+# Remediation Process
+
+If a vulnerability is detected, developers should:
+
+1. Identify the affected package.
+2. Upgrade the dependency to the **recommended fixed version**.
+3. Re-run the dependency scan.
+4. Verify that the vulnerability is resolved.
+
+If a patch is not available:
+
+* document the risk
+* track the issue in the repository
+* monitor upstream fixes
+
+---
+
+# Reporting Security Issues
+
+If a security issue related to dependencies is discovered, it should be reported following the repository's vulnerability reporting process.
+
+Security issues should **not be disclosed publicly until they are properly addressed**.
+
+# Secret Detection
+
+## Overview
+
+This project performs **secret detection scanning** to identify sensitive information that may have been accidentally committed to the repository.
+
+The project uses **Gitleaks** to detect secrets in source code, configuration files, and environment variables.
+
+Secret detection helps prevent exposure of:
+
+* API keys
+* authentication tokens
+* database credentials
+* private cryptographic keys
+* passwords and secrets embedded in code
+
+Detecting secrets early reduces the risk of credential leakage and unauthorized access to infrastructure or third-party services.
+
+This process is part of the project's **Shift-Left security strategy**.
+
+---
+
+# Scope
+
+The repository is structured as a **monorepo using npm workspaces**.
+
+Secret detection scans the repository from the **root directory**, ensuring all workspaces are analyzed.
+
+Example repository structure:
+
+root
+│
+├── package.json
+├── .gitleaks.toml
+├── apps
+│ ├── client
+│ └── server
+
+
+All files staged for commit are analyzed regardless of the workspace they belong to.
+
+---
+
+# Secret Detection Rules
+
+Secret detection is performed using the configuration defined in: .gitleaks.toml
+
+
+All files staged for commit are analyzed regardless of the workspace they belong to.
+
+This configuration includes:
+
+* official Gitleaks detection rules
+* custom rules for generic secrets
+* exclusions for build artifacts and dependencies
+* exclusions for testing directories
+
+Typical detection patterns include:
+
+* API key assignments
+* secret environment variables
+* password assignments
+* private cryptographic keys
+* JSON Web Tokens (JWT)
+
+---
+
+# Security Enforcement
+
+Security checks are executed at multiple stages of the development lifecycle.
+
+Developer machine
+│
+├─ Static Analysis (Semgrep)
+├─ Secret Detection (Gitleaks)
+└─ Dependency Vulnerabilities (Trivy)
+
+
+Secret detection is executed locally before code is committed to the repository.
+
+This prevents accidental leaks from reaching the version control system.
+
+---
+
+# Commit Protection
+
+Secret detection runs during the **pre-commit phase** of the development workflow.
+
+If a potential secret is detected:
+
+* the commit is blocked
+* the developer receives a warning message
+* the secret must be removed or replaced
+
+This mechanism prevents sensitive information from being committed to the repository.
+
+---
+
+# Remediation Process
+
+If a secret is detected during scanning, developers should:
+
+1. Identify the exposed credential.
+2. Remove the secret from the source code.
+3. Replace the value with an environment variable if needed.
+4. Re-run the secret scan.
+5. Commit the changes once the issue is resolved.
+
+If the secret has already been exposed:
+
+* rotate the credential immediately
+* revoke the compromised token or key
+* update the application configuration with the new secret
+
+---
+
+# Reporting Security Issues
+
+If a security issue related to exposed secrets is discovered, it should be reported following the repository's vulnerability reporting process.
+
+Sensitive information should **never be disclosed publicly** until the issue has been properly mitigated.
+
+
+
+
+
+
+**Última actualización:** 2026-03-14
