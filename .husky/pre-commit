@@ -4,6 +4,8 @@ npx lint-staged
 echo "Running SAST scan with Semgrep..."
 npm run sast:semgrep
 
+echo "✅ Sast scan passed."
+
 echo "🔐 Running secret detection with Gitleaks..."
 # Mensaje informativo para el desarrollador
 

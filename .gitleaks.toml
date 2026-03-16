@@ -1,0 +1,113 @@
+title = "Enterprise Secret Detection Policy"
+
+***REMOVED***==============
+# EXTEND DEFAULT GITLEAKS RULESET
+***REMOVED***==============
+
+[extend]
+
+# Usa todas las reglas oficiales mantenidas por Gitleaks
+# Incluye detección para:
+# AWS
+# GitHub tokens
+# Slack tokens
+# Stripe keys
+# Google API keys
+# Private keys
+useDefault = true
+
+
+***REMOVED***==============
+# GLOBAL ALLOWLIST (DIRECTORIES THAT SHOULD NOT BE SCANNED)
+***REMOVED***==============
+
+[[allowlists]]
+description = "Ignore dependency and build directories"
+
+paths = [
+  '''node_modules''',     # dependencias instaladas
+  '''dist''',             # builds compilados
+  '''build''',            # artefactos de build
+  '''coverage''',         # coverage reports
+  '''.next''',            # next.js build
+  '''.turbo''',           # turborepo cache
+  '''.cache''',           # caches
+  '''pnpm-lock.yaml''',
+  '''package-lock.json''',
+  '''yarn.lock'''
+]
+
+
+***REMOVED***==============
+# TESTING DIRECTORIES
+***REMOVED***==============
+
+[[allowlists]]
+description = "Ignore test fixtures and mocks"
+
+paths = [
+  '''__tests__''',
+  '''tests''',
+  '''fixtures''',
+  '''mocks''',
+  '''apps/client/tests''',
+  '''apps/server/tests'''
+]
+
+
+***REMOVED***==============
+# CUSTOM RULES FOR NODE PROJECTS
+***REMOVED***==============
+
+[[rules]]
+id = "generic-api-key"
+
+description = "Generic API key assignment"
+
+regex = '''(?i)api[_-]?key['"]?\s*[:=]\s*['"][A-Za-z0-9_\-]{16,}['"]'''
+
+tags = ["api","key"]
+
+
+
+[[rules]]
+id = "jwt-secret-variable"
+
+description = "JWT secret assignment"
+
+regex = '''(?i)jwt[_-]?secret['"]?\s*[:=]\s*['"].{10,}['"]'''
+
+tags = ["jwt","secret"]
+
+
+
+[[rules]]
+id = "generic-secret-variable"
+
+description = "Generic secret variable"
+
+regex = '''(?i)secret['"]?\s*[:=]\s*['"].{10,}['"]'''
+
+tags = ["secret"]
+
+
+
+[[rules]]
+id = "password-assignment"
+
+description = "Password assignment in code"
+
+regex = '''(?i)password['"]?\s*[:=]\s*['"].{8,}['"]'''
+
+tags = ["password"]
+
+
+
+[[rules]]
+id = "database-url"
+
+description = "Database connection string"
+
+regex = '''(?i)(postgres|mysql|mongodb|redis):\/\/[^ \n]+'''
+
+tags = ["database","connection"]
