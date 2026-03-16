@@ -365,3 +365,454 @@ Feature Branch → PR Pipeline (build, test, Code Quality, security scan)
 Main Branch → Full Pipeline (build, test, scan, deploy to staging)
        ↓
 Release Tag → Production Pipeline (deploy to prod)
+
+
+-----------------------------------------------------------------------------------------
+Uso de semgrep con docker
+Uso de gitleaks con chocolatey
+
+## Security Scanning
+## Static Application Security Testing (SAST)
+
+This project integrates **Semgrep** for **Static Application Security Testing (SAST)** as part of a **Shift-Left security strategy**.
+Semgrep analyzes the source code to detect common vulnerabilities during development before code reaches the CI pipeline.
+
+Security rules are aligned with common web application vulnerabilities such as:
+
+* Broken Access Control
+* Injection
+* Cross-Site Scripting (XSS)
+* Cryptographic Failures
+* Server-Side Request Forgery (SSRF)
+* Security Misconfiguration
+
+The full list of rules is documented in:
+
+```
+docs/security/semgrep-rules.md
+```
+
+---
+
+# Running Semgrep Locally
+
+Developers are encouraged to run Semgrep **before committing code** to detect potential security issues early.
+
+The project runs Semgrep using a **Docker container**, ensuring a consistent scanning environment without requiring a local installation.
+
+---
+
+## 1. Pull the Semgrep Docker Image
+
+Download the official Semgrep container:
+
+```bash
+docker pull semgrep/semgrep:latest
+```
+
+This image is used internally by the project scripts to execute the security scan.
+
+---
+
+## 2. Run the Semgrep Scan
+
+The project provides two scanning modes depending on the use case.
+
+### Scan only staged files (recommended before committing)
+
+This scan analyzes **only the files staged in Git**, making it faster and suitable for local development.
+
+```bash
+npm run sast:semgrep or pre-commit githook configuration
+```
+
+Script executed:
+
+```
+scripts/security/semgrep-staged.ps1
+```
+
+---
+
+### Scan the entire project
+
+This scan analyzes **the complete repository**, which is useful for:
+
+* manual security checks
+* validating a branch before opening a pull request
+* full security audits
+
+```bash
+npm run sast:semgrep:full
+```
+
+Script executed:
+
+```
+scripts/security/semgrep.ps1
+```
+
+---
+
+# Recommended Developer Workflow
+
+A typical secure development workflow is:
+
+1. Implement a feature
+2. Stage the changes
+
+```
+git add .
+```
+
+3. Run the staged security scan in precommit hook
+
+```
+npm run sast:semgrep
+```
+
+4. Fix any detected vulnerabilities
+5. Commit the changes
+
+This ensures vulnerabilities are detected **before code is pushed to the repository**.
+
+---
+
+
+# Security Documentation
+
+Additional security documentation can be found in:
+
+```
+docs/security/SECURITY.md (Static Application Security Testing (SAST))
+docs/security/segremp-rules.md 
+
+```
+
+These documents describe:
+
+* security policies
+* rule configuration
+* vulnerability coverage
+
+## Dependency Vulnerability Scanning
+
+This project integrates **Trivy** for **dependency vulnerability scanning** as part of the project's **Shift-Left security strategy**.
+
+Trivy analyzes project dependencies to detect **known vulnerabilities (CVEs)** in third-party packages before they reach production.
+
+The scan evaluates both **direct and transitive dependencies** defined in the repository lockfile.
+
+Dependency vulnerabilities are detected using public vulnerability databases such as:
+
+* NVD (National Vulnerability Database)
+* GitHub Security Advisories
+* Vendor security advisories
+
+These vulnerabilities may affect packages used by the application and can introduce risks such as:
+
+* Remote Code Execution (RCE)
+* Prototype Pollution
+* Denial of Service (DoS)
+* Authentication bypass
+* Privilege escalation
+
+---
+
+# Running Dependency Scan Locally
+
+Developers are encouraged to run the dependency scan periodically to detect vulnerable packages early in the development process.
+
+The project runs Trivy using a **Docker container**, ensuring a consistent scanning environment without requiring a local installation.
+
+---
+
+## 1. Pull the Trivy Docker Image
+
+Download the official Trivy container:
+
+```bash
+docker pull aquasec/trivy:latest
+```
+
+This image is used internally by the project scripts to execute the dependency vulnerability scan.
+
+---
+
+## 2. Run the Dependency Scan
+
+The project provides a script to analyze dependencies defined in the repository lockfile.
+
+```bash
+npm run security:trivy:deps
+```
+
+Script executed:
+
+```
+scripts/security/trivy-deps.ps1
+```
+
+---
+
+## What the Scan Analyzes
+
+Because this project uses a **monorepo architecture with npm workspaces**, dependencies are installed at the repository root.
+
+For this reason, the dependency scan analyzes the root lockfile:
+
+```
+package-lock.json
+```
+
+This allows Trivy to evaluate **all dependencies used across the workspace**, including:
+
+```
+apps/client
+apps/server
+```
+
+---
+
+# Example Scan Output
+
+When vulnerabilities are detected, Trivy reports them with their severity level.
+
+Example output:
+
+```
+package-lock.json
+
+Total: 1 (HIGH: 1)
+
+Library   Vulnerability      Severity
+lodash    CVE-2021-23337     HIGH
+```
+
+Severity levels reported by Trivy include:
+
+* LOW
+* MEDIUM
+* HIGH
+* CRITICAL
+
+Developers should prioritize fixing **HIGH and CRITICAL vulnerabilities**.
+
+---
+
+# Recommended Developer Workflow
+
+A typical secure development workflow is:
+
+1. Install or update dependencies
+
+```
+npm install
+```
+
+2. Run the dependency vulnerability scan
+
+```
+npm run security:trivy:deps
+```
+
+3. Review detected vulnerabilities
+
+4. Upgrade vulnerable dependencies
+
+5. Verify the vulnerability is resolved
+
+This ensures vulnerable dependencies are detected **before deployment or CI execution**.
+
+---
+
+# Security Documentation
+
+Additional security documentation can be found in:
+
+```
+docs/security/SECURITY.md (Dependency Vulnerability Scanning)
+```
+
+These documents describe:
+
+* security policies
+* vulnerability management process
+* dependency risk mitigation strategy
+
+
+
+
+## Secret Detection (Gitleaks)
+
+### Overview
+
+This project integrates **Gitleaks** to detect sensitive information that may be accidentally committed to the repository.
+
+Secret detection is part of the project's **Shift-Left security strategy**, allowing security issues to be identified **directly on the developer's machine before code reaches the repository**.
+
+The scanner helps prevent exposure of sensitive information such as:
+
+- API keys
+- authentication tokens
+- database credentials
+- private cryptographic keys
+- passwords or secrets embedded in source code
+
+Detecting secrets early reduces the risk of credential leaks and unauthorized access to infrastructure or external services.
+
+---
+
+## Monorepo Scope
+
+The repository is structured as a **monorepo using npm workspaces**.
+
+Secret scanning runs from the **repository root**, ensuring all workspaces are covered automatically.
+
+Example structure:
+root
+│
+├── package.json
+├── .gitleaks.toml
+│
+├── apps
+│ ├── client
+│ └── server
+
+
+Because scanning runs from the root, **all workspaces are included automatically** without additional configuration.
+
+---
+
+## Installation
+
+Gitleaks must be installed locally before running secret scans.
+
+In this project the tool is installed using **Chocolatey**.
+
+Install Gitleaks with: choco install gitleaks
+
+
+After installation, verify the installation: gitleaks version
+
+---
+
+## Available Security Commands
+
+The project provides npm scripts to run secret detection.
+
+### Scan staged files (used by Git hooks)
+npm run security:secrets
+
+Script definition: "security:secrets": "gitleaks protect --staged --verbose --redact --config .gitleaks.toml"
+
+
+This command:
+
+- scans **only staged files**
+- prevents secrets from being committed
+- redacts detected secrets in the console output
+- uses the project configuration defined in `.gitleaks.toml`
+
+This mode is optimized for **fast local execution during commits**.
+
+---
+
+### Full repository scan
+npm run security:secrets:full
+
+Script definition: "security:secrets:full": "gitleaks detect --source . --verbose --config .gitleaks.toml"
+
+
+This command scans the **entire repository** and is useful when:
+
+- performing a full security review
+- preparing a release
+- verifying the repository before pushing changes
+
+---
+
+## Configuration
+
+Secret detection rules are defined in: .gitleaks.toml
+
+
+The configuration file contains:
+
+- default rules provided by Gitleaks
+- project-specific secret detection patterns
+- directory exclusions (dependencies, build artifacts)
+- testing directory exclusions
+
+Example exclusions typically include:
+
+- `node_modules`
+- build artifacts (`dist`, `build`)
+- test fixtures and mocks
+
+---
+
+## Pre-Commit Protection
+
+Secret detection is integrated into the development workflow using a **Git pre-commit hook (Husky)**.
+
+Before a commit is created, the repository automatically runs the secret scan.
+
+
+This mechanism ensures that **sensitive information never reaches the repository history**.
+
+---
+
+## Handling Detected Secrets
+
+If Gitleaks detects a potential secret:
+
+1. Identify the exposed value.
+2. Remove the secret from the source code.
+3. Replace the value with an environment variable if needed.
+4. Re-stage the changes.
+5. Commit again.
+
+Example of recommended approach:
+
+Instead of committing a secret:
+API_KEY="my-secret-key"
+
+Use environment variables: API_KEY=process.env.API_KEY
+
+
+---
+
+## Ignoring False Positives
+ 
+If a detection is determined to be a false positive, it can be suppressed using: .gitleaksignore
+
+
+This file allows the repository to ignore specific findings while keeping the scanner active for real secrets.
+
+---
+
+## Security Strategy
+
+Secret detection is part of the project's **multi-layer security strategy**.
+Developer Machine
+│
+├─ Static Code Analysis
+├─ Secret Detection (Gitleaks)
+└─ Dependency Vulnerability Scanning
+
+
+Running security checks **locally before code is committed** helps catch security issues earlier in the development lifecycle.
+
+The security:secrets command runs gitleaks protect --staged, which scans only the files currently staged for commit in Git (i.e., the files added with git add). This command is typically executed as part of a pre-commit hook to prevent secrets such as API keys, tokens, passwords, or private keys from being committed to the repository. The --verbose flag provides detailed output about the scan process, while --redact ensures that detected secrets are masked in the console output to avoid exposing them in logs.
+
+The security:secrets:full command runs gitleaks detect --source ., which performs a full repository scan, including the entire Git history and all files in the project. This allows detection of secrets that may have been committed in the past, even if the files were later modified or removed. This type of scan is typically executed in CI pipelines or security audits to identify historical credential leaks and ensure the repository remains free of exposed secrets over time.
+
+
+
+
+
+
+
+
+
