@@ -1,0 +1,19 @@
+# ============================================
+# Remove database password
+# ============================================
+
+sp600pGoEJRAdtFd63H2F0ppzwyLdlJ3=>REMOVED_DB_PASSWORD
+
+postgres=>REMOVED_DB_PASSWORD
+
+# ============================================
+# Remove Cloudinary API secret
+# ============================================
+
+NT2trZ7qxEnGtht_VihE0pz_mrU=>REMOVED_CLOUDINARY_SECRET
+
+# ============================================
+# Remove JWT tokens
+# ============================================
+
+regex:eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+=>REMOVED_JWT
