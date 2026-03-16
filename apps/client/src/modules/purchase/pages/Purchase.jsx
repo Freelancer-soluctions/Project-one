@@ -12,8 +12,7 @@ import {
   useUpdatePurchaseByIdMutation,
   useCreatePurchaseMutation,
   useDeletePurchaseByIdMutation,
-  useDeletePurchaseDetailByIdMutation
-
+  useDeletePurchaseDetailByIdMutation,
 } from '../api/purchaseAPI';
 import { useGetAllProductsFiltersQuery } from '@/modules/products/api/productsAPI';
 import { useGetAllProvidersFiltersQuery } from '@/modules/providers/api/providersAPI';
@@ -65,9 +64,8 @@ const Purchase = () => {
   const [deletePurchaseById, { isLoading: isLoadingDelete }] =
     useDeletePurchaseByIdMutation();
 
-    const [deletePurchaseDetailById, { isLoading: isLoadingDeleteDetail }] =
+  const [deletePurchaseDetailById, { isLoading: isLoadingDeleteDetail }] =
     useDeletePurchaseDetailByIdMutation();
-
 
   const {
     data: dataProducts = { data: [] },
