@@ -29,9 +29,11 @@
     "format:check": "prettier --check \"apps/**/*.{js,jsx,json,md}\"",
     "lint": "eslint \"apps/**/*.{js,jsx}\"",
     "lint:fix": "eslint \"apps/**/*.{js,jsx}\" --fix",
-    "sast:semgrep": "powershell -ExecutionPolicy Bypass -File scripts/semgrep.ps1",
+    "sast:semgrep": "powershell -ExecutionPolicy Bypass -File scripts/security/semgrep-staged.ps1",
+    "sast:semgrep:full": "powershell -ExecutionPolicy Bypass -File scripts/security/semgrep.ps1",
     "security:secrets": "gitleaks protect --staged --verbose --redact --config .gitleaks.toml",
-    "security:secrets:full": "gitleaks detect --source . --verbose --config .gitleaks.toml"
+    "security:secrets:full": "gitleaks detect --source . --verbose --config .gitleaks.toml",
+    "security:trivy:deps": "powershell -ExecutionPolicy Bypass -File scripts/security/dependency-scan.ps1"
   },
   "devDependencies": {
     "@commitlint/cli": "^20.3.1",
@@ -50,7 +52,8 @@
   },
   "lint-staged": {
     "*.{js,ts,cjs,mjs,d.cts,d.mts,json,jsonc}": [
-      "npm run format"
+      "npm run format",
+      "npm run lint"
     ]
   }
 }

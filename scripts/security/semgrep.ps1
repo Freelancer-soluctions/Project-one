@@ -1,0 +1,111 @@
+# Semgrep SAST configuration
+# OWASP Top 10 rules used for Shift-Left security scanning.
+# Full documentation: docs/security/semgrep-rules.md
+Write-Host "▶ Running Semgrep SAST scan..." -ForegroundColor Cyan
+
+
+docker run --rm `
+  -v "${PWD}:/src" `
+  -w /src `
+  semgrep/semgrep:latest `
+  semgrep scan `
+    --config="r/javascript.browser.security.open-redirect.js-open-redirect" `
+    --config="r/javascript.browser.security.open-redirect-from-function.js-open-redirect-from-function" `
+    --config="r/javascript.express.security.audit.express-check-csurf-middleware-usage.express-check-csurf-middleware-usage" `
+    --config="r/javascript.express.security.audit.express-check-directory-listing.express-check-directory-listing" `
+    --config="r/javascript.express.security.audit.express-open-redirect.express-open-redirect" `
+    --config="r/javascript.express.security.audit.express-path-join-resolve-traversal.express-path-join-resolve-traversal" `
+    --config="r/javascript.express.security.audit.possible-user-input-redirect.unknown-value-in-redirect" `
+    --config="r/javascript.express.security.audit.res-render-injection.res-render-injection" `
+    --config="r/javascript.lang.security.audit.detect-non-literal-fs-filename.detect-non-literal-fs-filename" `
+    --config="r/javascript.lang.security.audit.path-traversal.path-join-resolve-traversal.path-join-resolve-traversal" `
+    --config="r/javascript.lang.security.audit.unsafe-formatstring.unsafe-formatstring" `
+    --config="r/javascript.lang.security.detect-no-csrf-before-method-override.detect-no-csrf-before-method-override" `
+    --config="r/javascript.lang.security.insecure-object-assign.insecure-object-assign" `
+    --config="r/typescript.react.security.audit.react-jwt-decoded-property.react-jwt-decoded-property" `
+    --config="r/typescript.react.security.audit.react-jwt-in-localstorage.react-jwt-in-localstorage" `
+    --config="r/javascript.express.security.audit.express-cookie-settings.express-cookie-session-default-name" `
+    --config="r/javascript.express.security.audit.express-cookie-settings.express-cookie-session-no-domain" `
+    --config="r/javascript.express.security.audit.express-cookie-settings.express-cookie-session-no-expires" `
+    --config="r/javascript.express.security.audit.express-cookie-settings.express-cookie-session-no-httponly" `
+    --config="r/javascript.express.security.audit.express-cookie-settings.express-cookie-session-no-path" `
+    --config="r/javascript.express.security.audit.express-cookie-settings.express-cookie-session-no-secure" `
+    --config="r/javascript.express.security.audit.express-jwt-not-revoked.express-jwt-not-revoked" `
+    --config="r/javascript.express.security.audit.remote-property-injection.remote-property-injection" `
+    --config="r/javascript.jsonwebtoken.security.audit.jwt-exposed-data.jwt-exposed-data" `
+    --config="r/javascript.audit.detect-replaceall-sanitization.detect-replaceall-sanitization" `
+    --config="r/javascript.browser.decoded-xss.decoded-xss" `
+    --config="r/javascript.browser.security.dom-based-xss.dom-based-xss" `
+    --config="r/javascript.browser.security.insecure-document-method.insecure-document-method" `
+    --config="r/javascript.browser.security.insecure-innerhtml.insecure-innerhtml" `
+    --config="r/javascript.browser.security.raw-html-concat.raw-html-concat" `
+    --config="r/javascript.browser.security.raw-html-join.raw-html-join" `
+    --config="r/javascript.express.security.audit.xss.direct-response-write.direct-response-write" `
+    --config="r/javascript.express.security.audit.xss.mustache.escape-function-overwrite.escape-function-overwrite" `
+    --config="r/javascript.express.security.injection.raw-html-format.raw-html-format" `
+    --config="r/javascript.lang.security.audit.unknown-value-with-script-tag.unknown-value-with-script-tag" `
+    --config="r/typescript.react.security.audit.react-dangerouslysetinnerhtml.react-dangerouslysetinnerhtml" `
+    --config="r/typescript.react.security.audit.react-href-var.react-href-var" `
+    --config="r/typescript.react.security.audit.react-unsanitized-method.react-unsanitized-method" `
+    --config="r/typescript.react.security.audit.react-unsanitized-property.react-unsanitized-property" `
+    --config="r/typescript.react.security.react-markdown-insecure-html.react-markdown-insecure-html" `
+    --config="r/javascript.jsonwebtoken.security.jwt-none-alg.jwt-none-alg" `
+    --config="r/javascript.lang.security.audit.md5-used-as-password.md5-used-as-password" `
+    --config="r/javascript.lang.security.detect-pseudorandombytes.detect-pseudoRandomBytes" `
+    --config="r/javascript.node-crypto.security.aead-no-final.aead-no-final" `
+    --config="r/javascript.node-crypto.security.gcm-no-tag-length.gcm-no-tag-length" `
+    --config="r/problem-based-packs.insecure-transport.js-node.using-http-server.using-http-server" `
+    --config="r/typescript.react.security.react-insecure-request.react-insecure-request" `
+    --config="r/javascript.express.security.audit.express-session-hardcoded-secret.express-session-hardcoded-secret" `
+    --config="r/javascript.express.security.cors-misconfiguration.cors-misconfiguration" `
+    --config="r/javascript.express.security.express-jwt-hardcoded-secret.express-jwt-hardcoded-secret" `
+    --config="r/javascript.jsonwebtoken.security.jwt-hardcode.hardcoded-jwt-secret" `
+    --config="r/javascript.lang.security.audit.hardcoded-hmac-key.hardcoded-hmac-key" `
+    --config="r/javascript.audit.detect-replaceall-sanitization.detect-replaceall-sanitization" `
+    --config="r/javascript.express.security.express-insecure-template-usage.express-insecure-template-usage" `
+    --config="r/javascript.express.security.express-sandbox-injection.express-sandbox-code-injection" `
+    --config="r/javascript.express.security.injection.tainted-sql-string.tainted-sql-string" `
+    --config="r/javascript.lang.security.audit.code-string-concat.code-string-concat" `
+    --config="r/javascript.lang.security.audit.dangerous-spawn-shell.dangerous-spawn-shell" `
+    --config="r/javascript.lang.security.audit.detect-non-literal-require.detect-non-literal-require" `
+    --config="r/javascript.lang.security.audit.incomplete-sanitization.incomplete-sanitization" `
+    --config="r/javascript.lang.security.audit.spawn-shell-true.spawn-shell-true" `
+    --config="r/javascript.lang.security.audit.unknown-value-with-script-tag.unknown-value-with-script-tag" `
+    --config="r/javascript.lang.security.audit.unsafe-dynamic-method.unsafe-dynamic-method" `
+    --config="r/javascript.lang.security.detect-child-process.detect-child-process" `
+    --config="r/javascript.lang.security.detect-disable-mustache-escape.detect-disable-mustache-escape" `
+    --config="r/javascript.lang.security.detect-eval-with-expression.detect-eval-with-expression" `
+    --config="r/javascript.lang.security.html-in-template-string.html-in-template-string" `
+    --config="r/javascript.lang.security.spawn-git-clone.spawn-git-clone" `
+    --config="r/javascript.playwright.security.audit.playwright-exposed-chrome-devtools.playwright-exposed-chrome-devtools" `
+    --config="r/javascript.express.security.audit.express-third-party-object-deserialization.express-third-party-object-deserialization" `
+    --config="r/javascript.express.security.audit.express-cookie-settings.express-cookie-session-default-name" `
+    --config="r/javascript.express.security.audit.express-cookie-settings.express-cookie-session-no-domain" `
+    --config="r/javascript.express.security.audit.express-cookie-settings.express-cookie-session-no-expires" `
+    --config="r/javascript.express.security.audit.express-res-sendfile.express-res-sendfile" `
+    --config="r/javascript.express.security.x-frame-options-misconfiguration.x-frame-options-misconfiguration" `
+    --config="r/javascript.lang.security.audit.detect-non-literal-regexp.detect-non-literal-regexp" `
+    --config="r/javascript.lang.security.audit.detect-redos.detect-redos" `
+    --config="r/problem-based-packs.insecure-transport.js-node.bypass-tls-verification.bypass-tls-verification" `
+    --config="r/problem-based-packs.insecure-transport.js-node.disallow-old-tls-versions1.disallow-old-tls-versions1" `
+    --config="r/problem-based-packs.insecure-transport.js-node.disallow-old-tls-versions2.disallow-old-tls-versions2" `
+    --config="r/problem-based-packs.insecure-transport.js-node.ftp-request.ftp-request" `
+    --config="r/problem-based-packs.insecure-transport.js-node.http-request.http-request" `
+    --config="r/javascript.chrome-remote-interface.security.audit.chrome-remote-interface-compilescript-injection.chrome-remote-interface-compilescript-injection" `
+    --config="r/javascript.express.security.audit.express-ssrf.express-ssrf" `
+    --config="r/javascript.express.security.express-phantom-injection.express-phantom-injection" `
+    --config="r/javascript.phantom.security.audit.phantom-injection.phantom-injection" `
+    --config="r/javascript.playwright.security.audit.playwright-addinitscript-code-injection.playwright-addinitscript-code-injection" `
+    --config="r/javascript.playwright.security.audit.playwright-evaluate-arg-injection.playwright-evaluate-arg-injection" `
+    --config="r/javascript.playwright.security.audit.playwright-evaluate-code-injection.playwright-evaluate-code-injection" `
+    --config="r/javascript.playwright.security.audit.playwright-goto-injection.playwright-goto-injection" `
+    --config="r/javascript.playwright.security.audit.playwright-setcontent-injection.playwright-setcontent-injection" `
+    --config="r/javascript.browser.security.insufficient-postmessage-origin-validation.insufficient-postmessage-origin-validation" `
+    --config="r/javascript.browser.security.wildcard-postmessage-configuration.wildcard-postmessage-configuration" `
+    --config="r/javascript.express.security.express-data-exfiltration.express-data-exfiltration" `
+    --config="r/javascript.lang.security.audit.prototype-pollution.prototype-pollution-assignment.prototype-pollution-assignment" `
+    --config="r/javascript.lang.security.audit.prototype-pollution.prototype-pollution-loop.prototype-pollution-loop" `
+    --config="r/javascript.lang.security.audit.sqli.node-postgres-sqli.node-postgres-sqli" `
+    --config="r/javascript.express.security.audit.express-detect-notevil-usage.express-detect-notevil-usage" `
+  
+
