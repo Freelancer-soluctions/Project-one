@@ -25,7 +25,7 @@ useDefault = true
 description = "Ignore dependency and build directories"
 
 paths = [
-  '''replacements\.txt''',# Archivo de limpieza para git-filter-repo
+  '''replacements.txt''', # Archivo de limpieza para git-filter-repo
   '''node_modules''',     # dependencias instaladas
   '''dist''',             # builds compilados
   '''build''',            # artefactos de build
