@@ -28,7 +28,7 @@ jobs:
         run: npm ci
 
       - name: Run Trivy vulnerability scanner
-        uses: aquasecurity/trivy-action@v0.20.0
+        uses: aquasecurity/trivy-action@0.33.1        
         with:
           scan-type: 'fs'
           scan-ref: '.'
@@ -74,11 +74,14 @@ jobs:
         with:
           languages: javascript
 
-      - name: Autobuild
-        uses: github/codeql-action/autobuild@v3
+      # - name: Autobuild
+      #   uses: github/codeql-action/autobuild@v4
 
+      - name: Install dependencies
+        run: npm ci
+  
       - name: Analyze
-        uses: github/codeql-action/analyze@v3
+        uses: github/codeql-action/analyze@v4
 
   # =========================
   # Secret Scanning
@@ -92,6 +95,8 @@ jobs:
 
       - name: Scan for secrets
         uses: gitleaks/gitleaks-action@v2
+        env:
+          GITLEAKS_LICENSE: ${{ secrets.GIT_LEAKS }}
 
 #   # =========================
 #   # Infrastructure as Code Security
