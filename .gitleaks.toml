@@ -1,8 +1,8 @@
 title = "Enterprise Secret Detection Policy"
 
-***REMOVED***==============
+# ==========================================================
 # EXTEND DEFAULT GITLEAKS RULESET
-***REMOVED***==============
+# ==========================================================
 
 [extend]
 
@@ -17,9 +17,9 @@ title = "Enterprise Secret Detection Policy"
 useDefault = true
 
 
-***REMOVED***==============
+# ==========================================================
 # GLOBAL ALLOWLIST (DIRECTORIES THAT SHOULD NOT BE SCANNED)
-***REMOVED***==============
+# ==========================================================
 
 [[allowlists]]
 description = "Ignore dependency and build directories"
@@ -38,9 +38,9 @@ paths = [
 ]
 
 
-***REMOVED***==============
+# ==========================================================
 # TESTING DIRECTORIES
-***REMOVED***==============
+# ==========================================================
 
 [[allowlists]]
 description = "Ignore test fixtures and mocks"
@@ -55,9 +55,9 @@ paths = [
 ]
 
 
-***REMOVED***==============
+# ==========================================================
 # CUSTOM RULES FOR NODE PROJECTS
-***REMOVED***==============
+# ==========================================================
 
 [[rules]]
 id = "generic-api-key"
