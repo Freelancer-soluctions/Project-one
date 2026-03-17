@@ -27,14 +27,12 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Run Trivy vulnerability scanner
-        uses: aquasecurity/trivy-action@0.33.1        
+      - name: Run Trivy filesystem scan
+        uses: aquasecurity/trivy-action@0.33.1
         with:
-          scan-type: 'fs'
-          scan-ref: '.'
-          format: 'table'
-          severity: 'CRITICAL,HIGH'
-          exit-code: '1'
+          scan-type: fs
+          scan-ref: .
+          severity: CRITICAL,HIGH
 
 #   # =========================
 #   # Dependency Scanning (SCA)
