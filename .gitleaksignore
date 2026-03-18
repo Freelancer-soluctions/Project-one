@@ -1,3 +1,4 @@
 # Falso positivo en traducción
-9ee52fcd3c4facc0ea3d1025ea7030ad899455e3:client/src/locale/en.json:password-assignment:50
-9ee52fcd3c4facc0ea3d1025ea7030ad899455e3:client/src/locale/en.json:password-assignment:59
+4b291ada8d50ef5bbe8574978aacaa427d56976b:client/src/locale/en.json:password-assignment:50
+4b291ada8d50ef5bbe8574978aacaa427d56976b:client/src/locale/en.json:password-assignment:59
+60136374f4f226c8d4cc5699bccd88d360a0d633:server/config/db.sequalize.js:password-assignment:11
