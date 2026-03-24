@@ -32,6 +32,7 @@ export default [
       '**/node_modules/**',
       '**/storybook-static/**',
       '**/build/**',
+      '.vscode/**',
     ],
   },
 
