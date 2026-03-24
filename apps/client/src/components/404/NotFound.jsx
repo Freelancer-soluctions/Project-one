@@ -19,8 +19,7 @@ const NotFound = ({ link }) => {
             Oops! Page not found.
           </h2>
           <p className="text-gray-500 dark:text-gray-400">
-            The page you&apos;re looking for doesn&apos;t exist or has been
-            moved.
+            The page you are looking for does not exist or has been moved.
           </p>
           <Button onClick={goback}>Go back</Button>
         </div>

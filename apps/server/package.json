@@ -18,14 +18,15 @@
     "prisma-pull": "prisma db pull",
     "test": "vitest",
     "test:watch": "vitest --watch",
+    "test:unit": "vitest run tests/unit",
+    "test:integration": "vitest run tests/integration",
     "test:coverage": "vitest run --coverage",
-    "test:ui": "vitest --ui",
     "format": "prettier --write \"**/*.{js,json,md}\"",
     "format:check": "prettier --check \"**/*.{js,json,md}\"",
     "lint": "eslint \"**/*.js\"",
     "lint:fix": "eslint \"**/*.js\" --fix"
   },
-  "author": "Laura Falcon and Johan Garcia",
+  "author": "Johan Garcia",
   "license": "ISC",
   "dependencies": {
     "@aws-sdk/client-secrets-manager": "^3.950.0",
