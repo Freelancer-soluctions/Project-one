@@ -43,7 +43,6 @@ Unit (Client + Server)
 #### Client (React)
 
 * Herramientas: Vitest + Testing Library
-* Ubicación: `apps/client/tests`
 * Entorno: `jsdom`
 
 **Objetivo:**
@@ -54,7 +53,6 @@ Validar comportamiento de componentes y hooks sin depender de implementación in
 #### Server (Express)
 
 * Herramienta: Vitest
-* Ubicación: `apps/server/tests/unit`
 * Entorno: `node`
 
 **Objetivo:**
@@ -62,13 +60,12 @@ Validar lógica de negocio, servicios y funciones puras.
 
 ---
 
-### 4.2 Integration Testing (Backend)
+### 4.2 Integration Testing (Server)
 
 * Herramientas: Vitest + Supertest
-* Ubicación: `apps/server/tests/integration`
 
 **Objetivo:**
-Validar endpoints HTTP, controladores y flujo entre capas del backend.
+Validar endpoints HTTP, controladores y flujo entre capas del backend (Server).
 
 ---
 
@@ -91,7 +88,6 @@ Validar flujos críticos desde la perspectiva del usuario final.
 ### 4.4 UI Testing (Storybook)
 
 * Herramienta: Storybook
-* Ubicación: `apps/client`
 
 **Objetivo:**
 
@@ -210,11 +206,11 @@ Ejemplo en código compartido
 components/
   alertDialog/
     AlertDialog.jsx
-    AlertDialog.ui.test.js
+    AlertDialog.ui.test.jsx
 
 hooks/
   useAuth.js
-  useAuth.unit.test.js
+  useAuth.unit.test.jsx
 
 Ejemplo en módulos (feature-based)
 
@@ -222,15 +218,15 @@ modules/
   attendance/
     api/
       attendanceApi.js
-      attendanceApi.unit.test.js
+      attendanceApi.unit.test.jsx
 
     components/
       AttendanceDialog.jsx
-      AttendanceDialog.ui.test.js
+      AttendanceDialog.ui.test.jsx
 
     pages/
       Attendance.jsx
-      Attendance.integration.test.js
+      Attendance.integration.test.jsx
 
     utils/
       schema.js
@@ -247,8 +243,178 @@ tests/
 ```
 
 ---
+## 8. Estrategia de Mocks
 
-## 8. Cobertura (Coverage)
+La estrategia de mocks define cómo se controlan las dependencias externas durante el testing, garantizando pruebas deterministas, rápidas y mantenibles. En este proyecto, se adopta un enfoque por capas alineado con buenas prácticas modernas en aplicaciones React con Redux Toolkit y RTK Query.
+
+---
+
+### 8.1 Principios
+
+- **Determinismo**: Los tests no deben depender de factores externos (red, tiempo, servicios reales).
+- **Aislamiento controlado**: Se mockean únicamente dependencias externas.
+- **Realismo progresivo**: A mayor nivel de test, menor uso de mocks manuales.
+- **Fuente única de verdad**: Las APIs se mockean centralizadamente.
+
+---
+
+### 8.2 Qué se Mockea
+
+#### ✅ Se mockea:
+- Requests HTTP (APIs externas)
+- Navegación (`react-router`)
+- Funciones de librerías externas no deterministas
+- Tiempo (`Date`, `setTimeout`, etc.)
+
+#### ❌ No se mockea:
+- Lógica de negocio interna
+- Selectores de Redux
+- Hooks propios (salvo casos muy específicos)
+- Estado global en integration tests
+
+---
+
+### 8.3 Estrategia por Tipo de Test
+
+---
+
+#### 🧩 Unit Testing
+
+Objetivo: Validar lógica aislada.
+
+**Características:**
+- Uso de `vi.mock`
+- Sin conexión a red
+- Sin MSW
+- Sin store real de Redux
+
+**Ejemplo:**
+
+```js
+vi.mock('react-router', () => ({
+  useNavigate: () => vi.fn()
+}));
+```
+
+#### 🔗 Integration Testing
+**Objetivo:** Validar la interacción entre componentes y el estado de la aplicación.
+
+### Características
+* **MSW:** Uso de *Mock Service Worker* para simular APIs.
+* **Store:** Uso del store real de **Redux Toolkit**.
+* **Router:** Uso del router real.
+* **Hooks:** No se mockean los hooks de RTK Query.
+
+### Flujo de Datos
+Componente → RTK Query → fetch → **MSW intercepta** → MSW responde mock
+
+---
+
+## 8.4 Mocking de APIs con MSW
+Se utiliza **Mock Service Worker (MSW)** como herramienta principal para interceptar y simular requests HTTP.
+
+### Definición de handlers
+```javascript
+import { http, HttpResponse } from 'msw';
+
+export const handlers = [
+  http.get('/api/users', () => {
+    return HttpResponse.json([{ id: 1, name: 'John Doe' }]);
+  }),
+];
+```
+### Configuración del servidor
+```javascript
+import { setupServer } from 'msw/node';
+import { handlers } from './handlers';
+
+export const server = setupServer(...handlers);
+```
+
+### Setup global de tests
+```javascript
+beforeAll(() => server.listen());
+afterEach(() => server.resetHandlers());
+afterAll(() => server.close());
+```
+
+---
+
+## 8.5 Estrategia con RTK Query
+
+Se definen dos enfoques según el tipo de test:
+```javascript
+vi.mock('../services/api', () => ({
+  useGetUsersQuery: () => ({
+    data: [{ id: 1 }],
+    isLoading: false,
+  }),
+}));
+```
+---
+
+## 8.6 Organización de 
+Estructura recomendada:
+```plaintext
+tests/
+  mocks/
+    server.js
+    handlers/
+      auth.handlers.js
+      user.handlers.js
+    fixtures/
+      user.fixture.js
+```
+Fixtures (datos reutilizables)
+```javascript
+export const userMock = {
+  id: 1,
+  name: 'John Doe',
+};
+``` 
+---
+## 8.7 Overrides por Test
+
+Permite modificar el comportamiento de la API en tests específicos:
+```javascript
+server.use(
+  http.get('/api/users', () => {
+    return HttpResponse.json(null, { status: 500 });
+  })
+);
+```
+Casos de uso:
+
+- Manejo de errores
+- Edge cases
+- Testing de reintentos
+
+---
+## 8.8 Buenas Prácticas
+- Centralizar mocks de API en MSW
+- Evitar mocks duplicados
+- Mantener fixtures reutilizables
+- Usar integration tests como base principal
+- Limitar mocks manuales a unit tests
+
+---
+## 8.9 Anti-Patrones
+- Mockear fetch manualmente cuando se usa MSW
+- Mockear RTK Query en integration tests
+- Tests dependientes entre sí
+- Mezclar múltiples estrategias de mocking sin control
+- Mockear lógica de negocio
+---
+## 8.10 Resumen Estratégico
+- Unit ->	vi.mock
+- Integration	-> MSW + Redux real
+- E2E ->	Sin mocks (o mínimos)
+---
+## 8.11 Regla General
+- MSW es la fuente de verdad para todo mocking HTTP.
+- Los mocks manuales se usan únicamente para aislamiento en unit tests.
+---
+## 9. Cobertura (Coverage)
 
 Se recomienda:
 
@@ -256,9 +422,7 @@ Se recomienda:
 * No forzar coverage en componentes triviales
 
 ---
-
-
-## 9. Decisiones Arquitectónicas
+## 10. Decisiones Arquitectónicas
 
 | Decisión                  | Justificación                             |
 | ------------------------- | ----------------------------------------- |
@@ -270,7 +434,7 @@ Se recomienda:
 
 ---
 
-## 10. Resumen
+## 11. Resumen
 
 La arquitectura de testing:
 
