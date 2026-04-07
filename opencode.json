@@ -1,0 +1,74 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+
+  "default_agent": "orchestrator",
+
+  "agent": {
+    "orchestrator": {
+      "mode": "primary",
+      "model": "opencode/gpt-5-nano",
+      "description": "Main orchestrator that delegates tasks to specialized agents",
+      "prompt": "You are an orchestrator agent. Break down tasks and delegate to subagents. Never implement directly unless necessary.",
+      "permission": {
+        "task": {
+          "*": "deny",
+          "planner": "allow",
+          "developer": "allow",
+          "reviewer": "allow",
+          "researcher": "allow"
+        }
+      },
+      "tools": {
+        "write": false,
+        "edit": false,
+        "bash": false
+      }
+    },
+
+    "planner": {
+      "mode": "subagent",
+      "model": "opencode/qwen3.6-plus-free",
+      "description": "Planning specialist",
+      "prompt": "You are a senior software architect. Break down requirements into detailed plans using SDD.",
+      "tools": {
+        "write": false,
+        "edit": false,
+        "bash": false
+      }
+    },
+
+    "developer": {
+      "mode": "subagent",
+      "model": "opencode/big-pickle",
+      "description": "Implementation agent",
+      "prompt": "You are a senior developer. Implement features following the plan strictly.",
+      "tools": {
+        "write": true,
+        "edit": true,
+        "bash": true
+      }
+    },
+
+    "reviewer": {
+      "mode": "subagent",
+      "model": "opencode/nemotron-3-super-free",
+      "description": "Code reviewer",
+      "prompt": "Review code for bugs, performance issues, and best practices.",
+      "tools": {
+        "write": false,
+        "edit": false,
+        "bash": false
+      }
+    },
+
+    "researcher": {
+      "mode": "subagent",
+      "model": "opencode/minimax-m2.5",
+      "description": "Research agent",
+      "prompt": "Search and analyze documentation, APIs, and external knowledge sources.",
+      "tools": {
+        "bash": false
+      }
+    }
+  }
+}

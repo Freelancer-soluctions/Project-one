@@ -1,4 +1,5 @@
 import { http, HttpResponse } from 'msw';
+import { me, logout } from '../fixtures/auth';
 
 export const handlers = [
   http.get('/api/user', () => {
@@ -7,6 +8,10 @@ export const handlers = [
       name: 'Johan',
     });
   }),
+
+  http.get('/api/auth/me', () => HttpResponse.json(me)),
+
+  http.post('/api/auth/logout', () => HttpResponse.json(logout)),
 
   http.post('/api/login', async ({ request }) => {
     const body = await request.json();

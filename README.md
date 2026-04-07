@@ -809,6 +809,246 @@ The security:secrets command runs gitleaks protect --staged, which scans only th
 The security:secrets:full command runs gitleaks detect --source ., which performs a full repository scan, including the entire Git history and all files in the project. This allows detection of secrets that may have been committed in the past, even if the files were later modified or removed. This type of scan is typically executed in CI pipelines or security audits to identify historical credential leaks and ensure the repository remains free of exposed secrets over time.
 
 
+# 🧠 OpenSpec + Multi-Agent Orchestration
+
+Este proyecto implementa un sistema de desarrollo asistido por IA basado en:
+
+* **OpenSpec (SDD)** → Define el flujo, artefactos y ciclo de vida
+* **Orchestrator Agent** → Controla el flujo de ejecución
+* **Subagents (multi-LLM)** → Ejecutan tareas especializadas
+
+---
+
+# 🧩 Arquitectura
+
+El sistema sigue una separación estricta de responsabilidades:
+
+```plaintext
+OpenSpec        → Define WHAT (specs, tasks, workflow)
+Orchestrator    → Controla WHEN + WHO
+Subagents       → Ejecutan HOW
+```
+
+---
+
+## 🤖 Agentes
+
+### 🧠 Orchestrator (Primary Agent)
+
+Responsabilidades:
+
+* Ejecutar comandos `/opsx:*`
+* Controlar el flujo de OpenSpec
+* Delegar tareas a subagentes
+* NO implementar código directamente
+
+---
+
+### 🧩 Subagentes
+
+| Agente       | Responsabilidad                     |
+| ------------ | ----------------------------------- |
+| `researcher` | Contexto externo, documentación     |
+| `planner`    | Arquitectura, diseño, validación    |
+| `developer`  | Implementación (ejecutor principal) |
+| `reviewer`   | Validación, QA                      |
+
+---
+
+# 🔄 Flujo de Trabajo (OpenSpec + Orchestrator)
+
+El sistema sigue estrictamente el workflow de OpenSpec:
+
+---
+
+## 1. Exploration Phase
+
+```bash
+/opsx:explore
+```
+
+* Analiza el problema y el codebase
+* No genera artefactos
+
+**Delegación:**
+
+* `researcher`
+* `planner`
+
+---
+
+## 2. Proposal Phase
+
+```bash
+/opsx:propose <feature-name>
+```
+
+Genera:
+
+```
+openspec/changes/<feature>/
+ ├── proposal.md
+ ├── design.md
+ ├── tasks.md
+ └── specs/
+```
+
+**Responsabilidades:**
+
+* El orchestrator asegura la creación de artefactos
+* `planner` valida la propuesta
+
+---
+
+## 3. Planning Phase
+
+* Se interpreta `tasks.md`
+* Se descompone en pasos ejecutables
+* Se preparan las tareas para ejecución
+
+---
+
+## 4. Execution Phase
+
+```bash
+/opsx:apply
+```
+
+### 🔥 Principio clave
+
+`/opsx:apply` **marca el inicio de la ejecución**, pero no define quién implementa.
+
+---
+
+### Flujo interno
+
+```plaintext
+orchestrator
+  → ejecuta /opsx:apply
+  → lee tasks.md
+  → delega → developer
+
+developer
+  → ejecuta tasks secuencialmente
+  → sigue design.md y specs/
+```
+
+---
+
+### Reglas
+
+* El `developer` es el **ejecutor principal**
+* El orchestrator **NO implementa código**
+* Todas las tareas deben seguir `tasks.md`
+
+---
+
+## 5. Verification Phase
+
+```bash
+/opsx:verify
+```
+
+**Delegación:**
+
+* `reviewer`
+
+Valida:
+
+* Correctitud del código
+* Alineación con `design.md`
+* Compleción de tareas
+
+---
+
+## 6. Archive Phase
+
+```bash
+/opsx:archive
+```
+
+* Se ejecuta cuando la verificación es exitosa
+* Marca el cierre del cambio
+
+---
+
+# 🔁 Flujo Completo
+
+```plaintext
+START
+  ↓
+/opsx:explore
+  ↓
+/opsx:propose
+  ↓
+(read tasks.md)
+  ↓
+/opsx:apply
+  ↓
+developer executes tasks
+  ↓
+/opsx:verify
+  ↓
+/opsx:archive
+  ↓
+END
+```
+
+---
+
+# ⚙️ Reglas de Orquestación
+
+El orchestrator DEBE:
+
+* Ejecutar todos los comandos `/opsx:*`
+* Seguir el flujo de OpenSpec estrictamente
+* Delegar toda implementación al `developer`
+* Validar el estado del sistema antes de avanzar
+
+---
+
+# 🚫 Anti-Patterns
+
+* Implementar sin `/opsx:propose`
+* Ignorar `tasks.md`
+* Saltar `/opsx:apply`
+* Mezclar planificación con ejecución
+* Permitir que el orchestrator escriba código
+
+---
+
+# 🧠 Principio Final
+
+```plaintext
+OpenSpec define el WHAT
+Subagentes ejecutan el HOW
+El Orchestrator controla el WHEN y WHO
+```
+
+---
+
+# 🚀 Beneficios de esta arquitectura
+
+* Separación clara de responsabilidades
+* Uso eficiente de múltiples LLMs
+* Flujo determinista (SDD)
+* Escalabilidad en sistemas multiagente
+* Reducción de errores por improvisación
+
+---
+
+# 📌 Nota
+
+OpenSpec es agnóstico a agentes y modelos.
+
+Esto permite:
+
+* Usar múltiples LLMs
+* Diseñar arquitecturas personalizadas
+* Mantener control total del flujo mediante el orchestrator
+
+
+
 
 
 
