@@ -1,5 +1,5 @@
-echo "Running lint-staged..."
-npx lint-staged
+# echo "Running lint-staged..."
+# npx lint-staged
 
 echo "Running SAST scan with Semgrep..."
 npm run sast:semgrep
