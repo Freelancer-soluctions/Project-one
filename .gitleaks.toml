@@ -35,7 +35,10 @@ paths = [
   '''.cache''',           # caches
   '''pnpm-lock.yaml''',
   '''package-lock.json''',
-  '''yarn.lock'''
+  '''yarn.lock''',
+  '''.agents''',          # Skills
+  '''.opencode''',        # opencode configuration
+  '''openspec'''          # openspec configuration
 ]
 
 
