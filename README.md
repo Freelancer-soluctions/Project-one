@@ -8,19 +8,34 @@ Front end
 - React hook forma para manejo de formularios en combinacion con zod schema validation
 - RTK QUERY  para manejo de estado global
 - Redux persist para la persitencia de estados necesarios como lo son las configuraciones o informacion de usuario
+- Editor WYSIWYG usando quill para texto Enriquecido (Textarea) (Pendiente)
 
 Back end
-- Swagger ui para la documentacion y prueba APIs REST
-- Documentacion basada en jsdoc
+- Documentación: Swagger/OpenAPI para la documentacion y prueba APIs REST
+- Documentacion basada en jsdoc complementaria a la de Swagger/OpenAPI
 - Arquitectura layered o capas
+- Versionado: /api/v1/Endpoint
 - Uso de prima ORM con sistema de consultas naviva y uso de sql raw para consultas mas complejas.
 - Uso de JWT para la autenticacion y autorizacion de usuarios en rutas privadas
-- HOF hihg order function para manejo de errores
+- HOF (hihg order function) para manejo de errores en cada uno de los controller del sistema
+- Códigos HTTP apropiados en reapuestas 
+- Rate limiting en endpoints criticos (Nombrar enpoints)
+- Logging Estructurado: Winston (Pulir)
+- Versionado y Auditoría (Pendiente)
+- Notificaciones en tiempo real (Websockets) (Pendiente)
+- Webhook support (Ver si es necesario)
+- Internalizacion en el back end (Pendiente)
 
 Global
 - El sistema posee varias capas de seguridad siendo tales como middlewares de control de acceso para verificacion de tokens jwt, roles y permisos, (Broken access control owasp top 10)
+- Se esta usando workspaces de npm
+- Paginacion y ordenamiento nativo para tablas implaemntadas con tanstack table
+- Sistema de permisos robusto (Ver que tipo de sietma se implemento RBAC + ABAC ajustar de ser necesario)
+- Formateo de fechas/números según locale (Ajustar)
+- Tema ocuro y blanco (Pendiente)
 
 
+PASAR LA LOGICA DE NEGOCIO A LA DOCUMENTACION DE LOS MODULOS Y REFERENCIAR AQUI EN EL README
 1️⃣ Módulo de Gestión de Productos 
 📌 Objetivo: Administrar los productos y sus características.
 🔹 CRUD de productos (crear, leer, actualizar, eliminar).
