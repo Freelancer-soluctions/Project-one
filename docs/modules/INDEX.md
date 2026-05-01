@@ -1,0 +1,54 @@
+# Modules Index
+
+Este índice lista módulos documentados para el sistema, distinguendo entre cliente y servidor cuando corresponde.
+
+- Client: Attendance
+- Client: Auth
+- Client: ClientOrder
+- Client: Clients
+- Client: Employees
+- Client: Events
+- Client: Expenses
+- Client: Home
+- Client: InventoryMovement
+- Client: News
+- Client: Notes
+- Client: Payroll
+- Client: PerformanceEvaluation
+- Client: Permission
+- Client: Products
+- Client: ProviderOrder
+- Client: Providers
+- Client: Purchase
+- Client: Sales
+- Client: Settings
+- Client: SettingsProductCategories
+- Client: Stock
+- Client: Users
+- Client: Vacation
+- Client: Warehouse
+
+- Server: Attendance
+- Server: Auth
+- Server: ClientOrder
+- Server: Clients
+- Server: Employees
+- Server: Events
+- Server: Expenses
+- Server: InventoryMovement
+- Server: News
+- Server: Notes
+- Server: Payroll
+- Server: PerformanceEvaluation
+- Server: Permission
+- Server: Products
+- Server: ProviderOrder
+- Server: Providers
+- Server: Purchase
+- Server: Sale
+- Server: Security
+- Server: Settings
+- Server: Stock
+- Server: Users
+- Server: Vacation
+- Server: Warehouse

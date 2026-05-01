@@ -1,6 +1,13 @@
-Instalar prettier en back
+
 Pruebas unitarias
 Pruebas de integracion
+Smoke test (Agregar a documentacion y nombrarlo dentro de los spec, tener presente que se hacen en front y back estas pruebas vienen antes o se combinan con las de integracion pero no pueden ser despues de las de e2e)
+Sanity test (pre-filtro antes de regression testing)
+Regresion test (front y back)
+UAT TESTING
+contract testing (en medio de unit y integration usar esquemas openapi o pact )
+
+
 Owasp to 10
 Hay llamadas que se estan haciendo automaticamente cuiando se inicia sesion, verificar y hacer llamado solo cuando se necesite que no sean actumaticas por ejemplo las de event, tambien tener en cuenta que hay un cache con redux en lo redux query hooks 
 IsError de  los query hooks ver que puedo hacer con  ello
