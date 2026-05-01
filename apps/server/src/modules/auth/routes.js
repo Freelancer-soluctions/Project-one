@@ -6,7 +6,7 @@ import {
   loginLimiter,
   refreshTokenLimiter,
 } from '../../middleware/index.js';
-import { SignUpSchema, SignInSchema } from '../../utils/joiSchemas/joi.js';
+import { SignUpSchema, SignInSchema } from './schemas/auth.joi.js';
 import { verifyCsrf } from '../../middleware/verifyCsrf.js';
 
 const router = Router();

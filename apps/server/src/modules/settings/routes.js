@@ -5,7 +5,7 @@ import {
   SettingsProductCategoryFilters,
   SettingsProductCategoryCreate,
   SettingsProductCategoryUpdate,
-} from '../../utils/joiSchemas/joi.js';
+} from './schemas/settings.joi.js';
 import * as settingsController from './controller.js';
 import {
   verifyToken,

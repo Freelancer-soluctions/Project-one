@@ -155,3 +155,23 @@ export const getAllNotesCount = async () => {
 
   // return notesCount
 };
+
+/**
+ * Retrieves all mentions for a specific note.
+ *
+ * @param {number} noteId - The ID of the note to get mentions for.
+ * @returns {Promise<Array>} A list of mentions for the note.
+ */
+export const getMentionsByNoteId = async (noteId) => {
+  return await prisma.mentions.findMany({
+    where: { noteId },
+    include: {
+      mentionedUser: {
+        select: { id: true, name: true, picture: true },
+      },
+      mentionedByUser: {
+        select: { id: true, name: true, picture: true },
+      },
+    },
+  });
+};

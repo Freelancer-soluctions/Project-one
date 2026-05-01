@@ -9,7 +9,7 @@ import {
 import {
   payrollFiltersSchema,
   payrollCreateUpdateSchema,
-} from '../../utils/joiSchemas/joi.js';
+} from './schemas/payroll.joi.js';
 import {
   verifyToken,
   validateQueryParams,
