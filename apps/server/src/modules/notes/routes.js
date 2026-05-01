@@ -4,7 +4,7 @@ import {
   NoteColumnUpdate,
   NotesFilters,
   NoteUpdate,
-} from '../../utils/joiSchemas/joi.js';
+} from './schemas/notes.joi.js';
 import * as noteController from './controller.js';
 import {
   verifyToken,
@@ -47,5 +47,8 @@ router.put(
 router.delete('/:id', validatePathParam, noteController.deleteById);
 
 router.get('/notesCount', noteController.getAllNotesCount);
+
+// Get mentions for a specific note
+router.get('/:id/mentions', validatePathParam, noteController.getMentionsByNoteId);
 
 export default router;

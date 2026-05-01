@@ -15,7 +15,7 @@ import {
 import {
   attendanceFiltersSchema,
   attendanceCreateUpdateSchema,
-} from '../../utils/joiSchemas/joi.js';
+} from './schemas/attendance.joi.js';
 import { ROLESCODES, PERMISSIONCODES } from '../../utils/constants/enums.js';
 
 const router = express.Router();

@@ -10,7 +10,7 @@ import {
 import {
   stockFiltersSchema,
   stockCreateUpdateSchema,
-} from '../../utils/joiSchemas/joi.js';
+} from './schemas/stock.joi.js';
 import {
   verifyToken,
   validateQueryParams,

@@ -17,7 +17,7 @@ import { ROLESCODES, PERMISSIONCODES } from '../../utils/constants/enums.js';
 import {
   expenseFiltersSchema,
   expenseCreateUpdateSchema,
-} from '../../utils/joiSchemas/joi.js';
+} from './schemas/expenses.joi.js';
 
 const router = express.Router();
 // uso global de middleware
