@@ -3,13 +3,15 @@ import { prisma, Prisma } from '../../config/db.js';
 import { decryptResults } from '../../utils/prisma/prisma-query.js';
 
 /**
- * Get all users with optional filters
- * @param {Object} filters - Optional filters for the query
- * @param {string} [filters.name] - Filter by user name
- * @param {string} [filters.email] - Filter by user email
- * @param {number} take- take to filter by
- * @param {number} skip - skip to filter by
- * @returns {Promise<Array>} List of users with their related data
+ * Get all users with optional filters.
+ *
+ * @param {Object} filters - Optional filters for the query.
+ * @param {string} [filters.name] - Filter by user name.
+ * @param {string} [filters.email] - Filter by user email.
+ * @param {string} [filters.status] - Filter by user status code.
+ * @param {number} take - Number of records to retrieve.
+ * @param {number} skip - Number of records to skip.
+ * @returns {Promise<Object>} Object containing dataList and total count.
  */
 export const getAllUsers = async (filters = {}, take, skip) => {
   const whereClauses = [];
