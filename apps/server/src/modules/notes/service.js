@@ -29,7 +29,7 @@ export const getAllNotes = async (searchTerm, statusCode) => {
  * @returns {Promise<Object>} The created notes item.
  */
 export const createNote = async (data, userId) => {
-  const { columnId, ...dataWithOutForeignKeys } = data;
+  const { columnId, content, mentions, ...dataWithOutForeignKeys } = data;
   dataWithOutForeignKeys.createdOn = new Date();
 
   const createdNote = await notesDao.createNote(
@@ -139,7 +139,7 @@ export const updateNoteById = async (id, data, userId) => {
 };
 
 /**
- * Delete a note item from the database by its ID.
+ * Delete a note and mentions item from the database by its ID.
  *
  * @param {number} id - The ID of the note item to delete.
  * @returns {Promise<Object>} The result of the deletion.
@@ -148,6 +148,9 @@ export const deleteById = async (id) => {
   const rowId = Number(id);
   return notesDao.deleteRow(rowId);
 };
+
+
+
 
 /**
  * Get all number of  notes from the database.
