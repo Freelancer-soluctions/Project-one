@@ -8,16 +8,17 @@ import handleCatchErrorAsync from '../../utils/responses&Errors/handleCatchError
 import globalResponse from '../../utils/responses&Errors/globalResponse.js';
 
 /**
- * @description Get all permissions with optional filters
- * @param {Object} req - Express request object
- * @param {Object} req.query - Query parameters for filtering
- * @param {number} [req.query.employeeId] - Filter by employee ID
- * @param {string} [req.query.type] - Filter by permission type (SICK, PERSONAL, MATERNITY, PATERNITY, OTHER)
- * @param {string} [req.query.status] - Filter by status (PENDING, APPROVED, REJECTED)
- * @param {string} [req.query.fromDate] - Filter by start date (ISO format)
- * @param {string} [req.query.toDate] - Filter by end date (ISO format)
- * @param {Object} res - Express response object
- * @returns {Promise<Object>} Response with list of permissions
+ * Get all permissions with optional filters.
+ *
+ * @param {Object} req - The HTTP request object.
+ * @param {Object} req.safeQuery - Validated query parameters
+ * @param {number} [req.safeQuery.employeeId] - Filter by employee ID
+ * @param {string} [req.safeQuery.type] - Filter by permission type (SICK, PERSONAL, MATERNITY, PATERNITY, OTHER)
+ * @param {string} [req.safeQuery.status] - Filter by status (PENDING, APPROVED, REJECTED)
+ * @param {string} [req.safeQuery.fromDate] - Filter by start date (ISO format)
+ * @param {string} [req.safeQuery.toDate] - Filter by end date (ISO format)
+ * @param {Object} res - The HTTP response object.
+ * @returns {Promise<void>} Sends response with list of permissions
  */
 export const getAllPermissions = handleCatchErrorAsync(async (req, res) => {
   const filters = req.safeQuery;
@@ -26,8 +27,10 @@ export const getAllPermissions = handleCatchErrorAsync(async (req, res) => {
 });
 
 /**
- * @description Create a new permission request
- * @param {Object} req - Express request object
+ * Create a new permission request.
+ *
+ * @param {Object} req - The HTTP request object.
+* @param {string} req.userId - Authenticated user ID from token
  * @param {Object} req.body - Permission data
  * @param {number} req.body.employeeId - Employee ID
  * @param {string} req.body.type - Permission type
@@ -35,22 +38,23 @@ export const getAllPermissions = handleCatchErrorAsync(async (req, res) => {
  * @param {string} req.body.endDate - End date (ISO format)
  * @param {string} req.body.reason - Reason for permission
  * @param {string} [req.body.status] - Permission status (defaults to PENDING)
- * @param {Object} res - Express response object
- * @returns {Promise<Object>} Response with created permission
+ * @param {Object} res - The HTTP response object.
+ * @returns {Promise<void>} Sends response with created permission
  */
 export const createPermission = handleCatchErrorAsync(async (req, res) => {
-  const permission = await createPermissionService(req.bod, req.userId);
+  const permission = await createPermissionService(req.body, req.userId);
   return globalResponse(res, 201, permission);
 });
 
 /**
- * @description Update an existing permission by ID
- * @param {Object} req - Express request object
+ * Update an existing permission by ID.
+ *
+ * @param {Object} req - The HTTP request object.
  * @param {Object} req.params - URL parameters
  * @param {string} req.params.id - Permission ID
  * @param {Object} req.body - Updated permission data
- * @param {Object} res - Express response object
- * @returns {Promise<Object>} Response with updated permission
+ * @param {Object} res - The HTTP response object.
+ * @returns {Promise<void>} Sends response with updated permission
  */
 export const updatePermissionById = handleCatchErrorAsync(async (req, res) => {
   const { id } = req.params;
@@ -59,12 +63,13 @@ export const updatePermissionById = handleCatchErrorAsync(async (req, res) => {
 });
 
 /**
- * @description Delete a permission by ID
- * @param {Object} req - Express request object
+ * Delete a permission by ID.
+ *
+ * @param {Object} req - The HTTP request object.
  * @param {Object} req.params - URL parameters
  * @param {string} req.params.id - Permission ID
- * @param {Object} res - Express response object
- * @returns {Promise<Object>} Response with deletion confirmation
+ * @param {Object} res - The HTTP response object.
+ * @returns {Promise<void>} Sends response with deletion confirmation
  */
 export const deletePermissionById = handleCatchErrorAsync(async (req, res) => {
   const { id } = req.params;

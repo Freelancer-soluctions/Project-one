@@ -5,15 +5,15 @@ import { prisma } from '../../config/db.js';
 const tableName = TABLESNAMES.NEWS;
 
 /**
- * Retrieves all news records from the database based on the provided filters.
+ * Get all news with optional filters.
  *
- * @param {string} [description] - Optional description to filter news by (partial match).
- * @param {Date} [fromDate] - Optional start date to filter news by.
- * @param {Date} [toDate] - Optional end date to filter news by.
- * @param {string} [statusCode] - Optional status code to filter news by.
- * @param {number} take- take to filter by
- * @param {number} skip - skip to filter by
- * @returns {Promise<Array>} A list of news records that match the filters.
+ * @param {string} description - Description to filter by.
+ * @param {Date} fromDate - Start date to filter by.
+ * @param {Date} toDate - End date to filter by.
+ * @param {string} statusCode - Status code to filter by.
+ * @param {number} take - Number of records to retrieve.
+ * @param {number} skip - Number of records to skip.
+ * @returns {Promise<Object>} Object containing dataList and total count.
  */
 export const getAllNews = async (
   description,
@@ -141,7 +141,7 @@ export const getAllNewsStatus = async () => {
 };
 
 /**
- * Creates a new news entry in the database.
+ * Create a new news entry in the database.
  *
  * @param {Object} data - The data for the new news entry.
  * @param {string} data.description - The description of the news.
@@ -186,7 +186,7 @@ export const createNew = async (data) => {
 };
 
 /**
- * Updates an existing news entry in the database based on the provided conditions.
+ * Update a news entry by conditions.
  *
  * @param {Object} data - The fields to update in the news entry.
  * @param {string} [data.description] - Optional new description.
@@ -234,10 +234,10 @@ export const updateRow = async (data, where) => {
 };
 
 /**
- * Deletes a news entry from the database based on the provided conditions.
+ * Delete a news entry by conditions.
  *
  * @param {Object} where - The conditions to identify the news entry to delete.
- * @returns {Promise<Object>} The result of the delete operation.
+ * @returns {Promise<Object>} The deleted news entry.
  */
 export const deleteRow = async (where) =>
   prismaService.deleteRow(tableName, where);

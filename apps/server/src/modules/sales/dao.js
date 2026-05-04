@@ -1,16 +1,17 @@
 import { prisma } from '../../config/db.js';
 
 /**
- * Get all sales with optional filters
- * @param {Object} filters - Optional filters for the query
- * @param {number} [filters.clientId] - Filter by client ID
- * @param {Date} [filters.startDate] - Filter by start date
- * @param {Date} [filters.endDate] - Filter by end date
- * @param {number} [filters.minTotal] - Filter by minimum total
- * @param {number} [filters.maxTotal] - Filter by maximum total
- * @param {number} take- take to filter by
- * @param {number} skip - skip to filter by
- * @returns {Promise<Array>} List of sales with their related data
+ * Get all sales with optional filters.
+ *
+ * @param {Object} filters - Optional filters for the query.
+ * @param {number} [filters.clientId] - Filter by client ID.
+ * @param {Date} [filters.startDate] - Filter by start date.
+ * @param {Date} [filters.endDate] - Filter by end date.
+ * @param {number} [filters.minTotal] - Filter by minimum total.
+ * @param {number} [filters.maxTotal] - Filter by maximum total.
+ * @param {number} take - Number of records to retrieve.
+ * @param {number} skip - Number of records to skip.
+ * @returns {Promise<Array>} List of sales with their related data.
  */
 export const getAllSales = async (filters = {}, take, skip) => {
   const where = {
@@ -48,13 +49,14 @@ export const getAllSales = async (filters = {}, take, skip) => {
 };
 
 /**
- * Create a new sale with details
- * @param {Object} data - Sale data
- * @param {number} data.clientId - Client ID
- * @param {number} data.total - Total amount
- * @param {Array} data.details - Array of sale details
- * @param {number} data.createdBy - User ID who created the sale
- * @returns {Promise<Object>} Created sale with related data
+ * Create a new sale with details.
+ *
+ * @param {Object} data - Sale data.
+ * @param {number} data.clientId - Client ID.
+ * @param {number} data.total - Total amount.
+ * @param {Array} data.details - Array of sale details.
+ * @param {number} data.createdBy - User ID who created the sale.
+ * @returns {Promise<Object>} Created sale with related data.
  */
 export const createSale = async (data) => {
   const { details, ...saleData } = data;
@@ -76,14 +78,15 @@ export const createSale = async (data) => {
 };
 
 /**
- * Update a sale by ID
- * @param {number} id - Sale ID
- * @param {Object} data - Updated sale data
- * @param {number} [data.clientId] - Client ID
- * @param {number} [data.total] - Total amount
- * @param {Array} [data.details] - Array of sale details
- * @param {number} data.updatedBy - User ID who updated the sale
- * @returns {Promise<Object>} Updated sale with related data
+ * Update a sale and its details by ID.
+ *
+ * @param {number} id - Sale ID.
+ * @param {Object} data - Updated sale data.
+ * @param {number} [data.clientId] - Client ID.
+ * @param {number} [data.total] - Total amount.
+ * @param {Array} [data.details] - Array of sale details.
+ * @param {number} data.updatedBy - User ID who updated the sale.
+ * @returns {Promise<Object>} Updated sale with related data.
  */
 export const updateSaleById = async (id, data) => {
   const { details, ...saleData } = data;
@@ -113,9 +116,10 @@ export const updateSaleById = async (id, data) => {
 };
 
 /**
- * Delete a sale by ID
- * @param {number} id - Sale ID
- * @returns {Promise<Object>} Deleted sale
+ * Delete a sale and its details by ID.
+ *
+ * @param {number} id - Sale ID.
+ * @returns {Promise<Object>} Deleted sale.
  */
 export const deleteSaleById = async (id) => {
   // First delete all related details
@@ -130,9 +134,10 @@ export const deleteSaleById = async (id) => {
 };
 
 /**
- * Delete a sale detail by ID
- * @param {number} id - Sale ID
- * @returns {Promise<Object>} Deleted sale detail
+ * Delete a sale detail by ID.
+ *
+ * @param {number} id - Sale detail ID.
+ * @returns {Promise<Object>} Deleted sale detail.
  */
 export const deleteSaleDetailById = async (id) => {
   await prisma.saleDetail.delete({

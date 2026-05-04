@@ -10,10 +10,17 @@ import {
   getAllUserPermits as getAllUserPermitsDao,
 } from './dao.js';
 import { getSafePagination } from '../../utils/pagination/pagination.js';
+
 /**
- * Get all users with optional filters
- * @param {Object} filters - Optional filters for the query
- * @returns {Promise<Array>} List of users
+ * Get all users with optional filters.
+ *
+ * @param {Object} filters - Optional filters for the query.
+ * @param {number} [filters.page] - Page number for pagination.
+ * @param {number} [filters.limit] - Number of items per page.
+ * @param {string} [filters.name] - Filter by user name.
+ * @param {string} [filters.email] - Filter by user email.
+ * @returns {Promise<Object>} Paginated list of users with metadata.
+ * @throws {Error} When pagination parameters are missing or invalid.
  */
 export const getAllUsers = async (filters) => {
   const { take, skip } = getSafePagination({
@@ -28,9 +35,10 @@ export const getAllUsers = async (filters) => {
 };
 
 /**
- * Get all user permits by ID
- * @param {number} id - User ID
- * @returns {Promise<Array>} List of users
+ * Get all user permits by ID.
+ *
+ * @param {number} id - User ID.
+ * @returns {Promise<Array>} List of permissions with assignment status.
  */
 export const getAllUserPermits = async (id) => {
   const { allPermissions, user } = await getAllUserPermitsDao(Number(id));
@@ -40,7 +48,7 @@ export const getAllUserPermits = async (id) => {
   const userPermissionIds = new Set(userPermits.map((p) => p.permissionId));
   const permissions = allPermissions.map((p) => ({
     ...p,
-    assigned: userPermissionIds.has(p.id), // ✅ marcado si pertenece al usuario
+    assigned: userPermissionIds.has(p.id), // ? marcado si pertenece al usuario
   }));
 
   return permissions;
@@ -69,9 +77,15 @@ export const getAllUsersRoles = async () => {
 };
 
 /**
- * Create a new user
- * @param {Object} data - User data
- * @returns {Promise<Object>} Created user
+ * Create a new user.
+ *
+ * @param {Object} data - User data.
+ * @param {string} data.name - User name.
+ * @param {string} data.email - User email address.
+ * @param {string} data.password - User password.
+ * @param {number} data.roleId - User role ID.
+ * @param {number} data.lastUpdatedBy - User ID who last updated the record.
+ * @returns {Promise<Object>} Created user.
  */
 export const createUser = async (data) => {
   const userData = {
@@ -82,10 +96,15 @@ export const createUser = async (data) => {
 };
 
 /**
- * Update a user by ID
- * @param {number} id - User ID
- * @param {Object} data - Updated user data
- * @returns {Promise<Object>} Updated user
+ * Update a user by ID.
+ *
+ * @param {number} id - User ID.
+ * @param {Object} data - Updated user data.
+ * @param {string} [data.name] - User name.
+ * @param {string} [data.email] - User email address.
+ * @param {string} [data.password] - User password.
+ * @param {number} [data.roleId] - User role ID.
+ * @returns {Promise<Object>} Updated user.
  */
 export const updateUserById = async (id, data) => {
   const userData = {
@@ -97,18 +116,31 @@ export const updateUserById = async (id, data) => {
 };
 
 /**
- * Delete a user by ID
- * @param {number} id - User ID
- * @returns {Promise<Object>} Deleted user
+ * Delete a user by ID.
+ *
+ * @param {number} id - User ID.
+ * @returns {Promise<Object>} Deleted user.
  */
 export const deleteUserById = async (id) => {
   return deleteDao(Number(id));
 };
 
+/**
+ * Get user role by role code.
+ *
+ * @param {string} code - Role code (e.g., 'ADMIN', 'USER').
+ * @returns {Promise<Object>} User role object.
+ */
 export const getUserRoleByCode = async (code) => {
   return getUserRoleByCodeDao(code);
 };
 
+/**
+ * Get user role by user ID.
+ *
+ * @param {number} userId - User ID.
+ * @returns {Promise<Object>} User role object.
+ */
 export const getUserRoleByUserId = async (userId) => {
   return getUserRoleByUserIdDao(Number(userId));
 };

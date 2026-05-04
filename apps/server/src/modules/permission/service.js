@@ -7,7 +7,8 @@ import {
 import { getSafePagination } from '../../utils/pagination/pagination.js';
 
 /**
- * @description Retrieve all permissions with optional filters
+ * Retrieve all permissions with optional filters.
+ *
  * @param {Object} filters - Filter criteria
  * @param {number} [filters.employeeId] - Filter by employee ID
  * @param {string} [filters.type] - Filter by permission type (SICK, PERSONAL, MATERNITY, PATERNITY, OTHER)
@@ -17,6 +18,7 @@ import { getSafePagination } from '../../utils/pagination/pagination.js';
  * @param {number} [filters.limit] - Filter by limit
  * @param {number} [filters.page] - Filter by page
  * @returns {Promise<Array>} List of permissions matching the filters
+ * @throws {Error} If pagination parameters are invalid or missing
  */
 export const getAllPermissions = async (filters) => {
   const { take, skip } = getSafePagination({
@@ -31,7 +33,8 @@ export const getAllPermissions = async (filters) => {
 };
 
 /**
- * @description Create a new permission record
+ * Create a new permission record.
+ *
  * @param {Object} data - Permission data
  * @param {number} data.employeeId - Employee ID
  * @param {string} data.type - Permission type
@@ -54,7 +57,8 @@ export const createPermission = async (data, userId) => {
 };
 
 /**
- * @description Update an existing permission record
+ * Update an existing permission record.
+ *
  * @param {number|string} id - Permission ID
  * @param {Object} data - Updated permission data
  * @param {number} [data.employeeId] - Employee ID
@@ -80,7 +84,8 @@ export const updatePermissionById = async (id, data, userId) => {
 };
 
 /**
- * @description Delete a permission record
+ * Delete a permission record.
+ *
  * @param {number|string} id - Permission ID
  * @returns {Promise<Object>} Deleted permission record
  */

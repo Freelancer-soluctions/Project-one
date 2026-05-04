@@ -5,13 +5,13 @@ import * as settingsService from './service.js';
 /**
  * Create or update a user's language settings.
  *
- * @function
- * @async
- * @param {Object} req - The request object containing the data for the language settings.
- * @param {Object} req.body - The body of the request, containing the language settings to be created or updated.
- * @param {Object} res - The response object to send the result.
- * @returns {void} - Sends a response with the status code and the result of the operation.
- * @throws {Error} - If there is an error, it will be handled by the catch handler.
+ * @param {Object} req - The HTTP request object.
+ * @param {Object} req.body - Request body containing language settings
+ * @param {string} req.body.language - Language code to save (e.g., 'en', 'es')
+ * @param {number} [req.body.id] - Settings ID (for updates)
+* @param {string} req.userId - Authenticated user ID from token
+ * @param {Object} res - The HTTP response object.
+ * @returns {Promise<void>} Sends response with created/updated language settings
  */
 export const createOrUpdateSettingsLanguage = handleCatchErrorAsync(
   async (req, res) => {
@@ -25,15 +25,15 @@ export const createOrUpdateSettingsLanguage = handleCatchErrorAsync(
 );
 
 /**
- * Create or update a user's language settings.
+ * Create or update a user's display settings.
  *
- * @function
- * @async
- * @param {Object} req - The request object containing the data for the language settings.
- * @param {Object} req.body - The body of the request, containing the language settings to be created or updated.
- * @param {Object} res - The response object to send the result.
- * @returns {void} - Sends a response with the status code and the result of the operation.
- * @throws {Error} - If there is an error, it will be handled by the catch handler.
+ * @param {Object} req - The HTTP request object.
+ * @param {Object} req.body - Request body containing display settings
+ * @param {number} [req.body.id] - Settings ID (for updates)
+ * @param {Object} req.body.displayOptions - Display options object
+* @param {string} req.userId - Authenticated user ID from token
+ * @param {Object} res - The HTTP response object.
+ * @returns {Promise<void>} Sends response with created/updated display settings
  */
 export const createOrUpdateSettingsDisplay = handleCatchErrorAsync(
   async (req, res) => {
@@ -47,16 +47,13 @@ export const createOrUpdateSettingsDisplay = handleCatchErrorAsync(
 );
 
 /**
- * Get the language settings by its ID.
+ * Get user settings by ID.
  *
- * @function
- * @async
- * @param {Object} req - The request object containing the ID of the language settings to retrieve.
- * @param {Object} req.params - The parameters of the request, containing the `id` of the language settings.
- * @param {string} req.params.id - The ID of the language settings to retrieve.
- * @param {Object} res - The response object to send the result.
- * @returns {void} - Sends a response with the status code and the language settings associated with the given ID.
- * @throws {Error} - If there is an error, it will be handled by the catch handler.
+ * @param {Object} req - The HTTP request object.
+ * @param {Object} req.params - URL parameters
+ * @param {number} req.params.id - Settings ID to retrieve
+ * @param {Object} res - The HTTP response object.
+ * @returns {Promise<void>} Sends response with user settings data
  */
 export const getSettingsById = handleCatchErrorAsync(async (req, res) => {
   const { id } = req.params;
@@ -65,11 +62,13 @@ export const getSettingsById = handleCatchErrorAsync(async (req, res) => {
 });
 
 /**
- * Get all product categories with optional filters
- * @param {Object} req - Express request object
- * @param {Object} req.query - Query parameters
- * @param {string} req.query.description - Description to filter categories by
- * @param {Object} res - Express response object
+ * Get all product categories with optional filters.
+ *
+ * @param {Object} req - The HTTP request object.
+ * @param {Object} req.safeQuery - Validated query parameters
+ * @param {string} [req.safeQuery.description] - Description to filter categories by
+ * @param {string} [req.safeQuery.code] - Code to filter categories by
+ * @param {Object} res - The HTTP response object.
  * @returns {Promise<void>} Sends a response containing the filtered categories
  */
 export const getAllProductCategories = handleCatchErrorAsync(
@@ -80,12 +79,13 @@ export const getAllProductCategories = handleCatchErrorAsync(
 );
 
 /**
- * Create a new product category
- * @param {Object} req - Express request object
- * @param {Object} req.body - Request body
+ * Create a new product category.
+ *
+ * @param {Object} req - The HTTP request object.
+ * @param {Object} req.body - Request body containing category data
  * @param {string} req.body.code - Category code
  * @param {string} req.body.description - Category description
- * @param {Object} res - Express response object
+ * @param {Object} res - The HTTP response object.
  * @returns {Promise<void>} Sends a response confirming the creation
  */
 export const createProductCategory = handleCatchErrorAsync(async (req, res) => {
@@ -94,13 +94,15 @@ export const createProductCategory = handleCatchErrorAsync(async (req, res) => {
 });
 
 /**
- * Update a product category by ID
- * @param {Object} req - Express request object
+ * Update a product category by ID.
+ *
+ * @param {Object} req - The HTTP request object.
  * @param {Object} req.params - URL parameters
  * @param {number} req.params.id - Category ID to update
- * @param {Object} req.body - Request body
+ * @param {Object} req.body - Request body containing updated category data
  * @param {string} req.body.description - Updated category description
- * @param {Object} res - Express response object
+ * @param {string} [req.body.code] - Updated category code
+ * @param {Object} res - The HTTP response object.
  * @returns {Promise<void>} Sends a response confirming the update
  */
 export const updateProductCategoryById = handleCatchErrorAsync(
@@ -112,11 +114,12 @@ export const updateProductCategoryById = handleCatchErrorAsync(
 );
 
 /**
- * Delete a product category by ID
- * @param {Object} req - Express request object
+ * Delete a product category by ID.
+ *
+ * @param {Object} req - The HTTP request object.
  * @param {Object} req.params - URL parameters
  * @param {number} req.params.id - Category ID to delete
- * @param {Object} res - Express response object
+ * @param {Object} res - The HTTP response object.
  * @returns {Promise<void>} Sends a response confirming the deletion
  */
 export const deleteProductCategoryById = handleCatchErrorAsync(

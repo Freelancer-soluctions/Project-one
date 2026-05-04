@@ -2,13 +2,15 @@ import { prisma, Prisma } from '../../config/db.js';
 import { decryptResults } from '../../utils/prisma/prisma-query.js';
 
 /**
- * Get all users with optional filters
- * @param {Object} filters - Optional filters for the query
- * @param {string} [filters.name] - Filter by user name
- * @param {string} [filters.email] - Filter by user email
- * @param {number} take- take to filter by
- * @param {number} skip - skip to filter by
- * @returns {Promise<Array>} List of users with their related data
+ * Get all users with optional filters.
+ *
+ * @param {Object} filters - Optional filters for the query.
+ * @param {string} [filters.name] - Filter by user name.
+ * @param {string} [filters.email] - Filter by user email.
+ * @param {string} [filters.status] - Filter by user status code.
+ * @param {number} take - Number of records to retrieve.
+ * @param {number} skip - Number of records to skip.
+ * @returns {Promise<Object>} Object containing dataList and total count.
  */
 export const getAllUsers = async (filters = {}, take, skip) => {
   const whereClauses = [];
@@ -82,7 +84,8 @@ export const getAllUsers = async (filters = {}, take, skip) => {
 /**
  * Retrieves all available user permissions from the database.
  *
- * @returns {Promise<object>} A object of Permissions and user.
+ * @param {number} id - User ID.
+ * @returns {Promise<Object>} Object containing allPermissions and user data.
  */
 
 export const getAllUserPermits = async (id) => {
@@ -129,8 +132,8 @@ export const getAllUsersRoles = async () => {
 /**
  * Create a new user.
  * The password should be hashed before calling this function (e.g., in the service layer).
- * @async
- * @param {object} data - User data.
+ *
+ * @param {Object} data - User data.
  * @param {string} data.name - User's name.
  * @param {string} data.email - User's email (must be unique).
  * @param {string} data.password - User's hashed password.
@@ -150,7 +153,7 @@ export const getAllUsersRoles = async () => {
  * @param {string} [data.document] - User's document identifier (optional).
  * @param {string} [data.state] - User's state (optional).
  * @param {string} [data.refreshToken] - User's refresh token (optional).
- * @returns {Promise&lt;object&gt;} The created user object.
+ * @returns {Promise<Object>} The created user object.
  */
 export const createUser = async (data) => {
   return prisma.users.create({
@@ -188,9 +191,9 @@ export const createUser = async (data) => {
 /**
  * Update an existing user by ID.
  * The password, if provided, should be hashed before calling this function.
- * @async
+ *
  * @param {number} id - The ID of the user to update.
- * @param {object} data - Data to update for the user.
+ * @param {Object} data - Data to update for the user.
  * @param {number} data.lastUpdatedBy - ID of the user performing the update.
  * @param {string} [data.name] - User's name.
  * @param {string} [data.email] - User's email (must be unique).
@@ -210,8 +213,8 @@ export const createUser = async (data) => {
  * @param {string} [data.document] - User's document identifier.
  * @param {string} [data.state] - User's state.
  * @param {string} [data.refreshToken] - User's refresh token.
-
- * @returns {Promise&lt;object&gt;} The updated user object.
+ * 
+ * @returns {Promise<Object>} The updated user object.
  */
 export const updateUserById = async (id, data) => {
   return prisma.users.update({
@@ -255,9 +258,9 @@ export const updateUserById = async (id, data) => {
 
 /**
  * Delete a user by ID.
- * @async
+ *
  * @param {number} id - The ID of the user to delete.
- * @returns {Promise&lt;object&gt;} The deleted user object.
+ * @returns {Promise<Object>} The deleted user object.
  */
 export const deleteUserById = async (id) => {
   return prisma.users.delete({
@@ -268,9 +271,9 @@ export const deleteUserById = async (id) => {
 /**
  * Get a user by email.
  * Useful for checking if an email already exists or for login purposes.
- * @async
+ *
  * @param {string} email - The email of the user to retrieve.
- * @returns {Promise&lt;object|null&gt;} The user object or null if not found.
+ * @returns {Promise<Object|null>} The user object or null if not found.
  */
 export const getUserByEmail = async (email) => {
   return prisma.users.findUnique({
@@ -283,6 +286,13 @@ export const getUserByEmail = async (email) => {
   });
 };
 
+/**
+ * Get a registered user by email.
+ * Checks if an email is already registered in the system.
+ *
+ * @param {string} email - The email to check.
+ * @returns {Promise<Object>} User object if registered, empty object if not.
+ */
 export const getUserRegisteredByEmail = async (email) => {
   const userExist = await prisma.user.findUnique({
     where: {
@@ -296,6 +306,12 @@ export const getUserRegisteredByEmail = async (email) => {
   return userExist ? Promise.resolve(userExist) : Promise.resolve({});
 };
 
+/**
+ * Get user role by role code.
+ *
+ * @param {string} code - Role code (e.g., 'ADMIN', 'USER').
+ * @returns {Promise<Object|null>} User role object or null if not found.
+ */
 export const getUserRoleByCode = async (code) => {
   const rolUser = await prisma.roles.findUnique({
     where: {
@@ -320,6 +336,12 @@ export const getUserRoleByCode = async (code) => {
 //   return Promise.resolve(user)
 // }
 
+/**
+ * Get user role by user ID.
+ *
+ * @param {number} id - User ID.
+ * @returns {Promise<Object|null>} User object with role and permissions or null if not found.
+ */
 export const getUserRoleByUserId = async (id) => {
   const user = await prisma.users.findUnique({
     where: {

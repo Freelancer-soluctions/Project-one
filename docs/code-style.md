@@ -37,3 +37,10 @@ Prettier handles all formatting. Run `npm run format` before committing.
 - **Storybook**: eslint-plugin-storybook (`apps/client/**/*.stories.*`)
 - **Prettier** runs last to avoid conflicts
 
+## JSDoc Documentation Standards
+
+- All controller, service, and dao functions must have complete JSDoc documentation
+- Follow patterns from `auth/controller.js` and `products/service.js`
+- Reference the full guide at `docs/jsdoc-reference-guide.md`
+- Do not add JSDoc to `routes.js` files; use Swagger/OpenAPI instead
+

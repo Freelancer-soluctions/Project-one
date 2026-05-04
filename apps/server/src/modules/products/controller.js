@@ -6,6 +6,13 @@ import * as productsService from './service.js';
  * Get all products with query parameters.
  *
  * @param {Object} req - The HTTP request object.
+ * @param {Object} req.safeQuery - Safe query parameters with filters
+ * @param {string} [req.safeQuery.name] - Filter by product name
+ * @param {string} [req.safeQuery.productProviderCode] - Filter by provider code
+ * @param {string} [req.safeQuery.productCategoryCode] - Filter by category code
+ * @param {string} [req.safeQuery.statusCode] - Filter by status code
+ * @param {number} [req.safeQuery.limit] - Number of items per page
+ * @param {number} [req.safeQuery.page] - Page number for pagination
  * @param {Object} res - The HTTP response object.
  * @returns {Promise<void>} Sends a response containing the product items.
  */
@@ -17,11 +24,11 @@ export const getAllProducts = handleCatchErrorAsync(async (req, res) => {
 });
 
 /**
- * Get all products.
+ * Get all products for UI filters.
  *
  * @param {Object} req - The HTTP request object.
  * @param {Object} res - The HTTP response object.
- * @returns {Promise<void>} Sends a response containing the product items.
+ * @returns {Promise<void>} Sends a response containing all product items.
  */
 export const getAllProductsFilters = handleCatchErrorAsync(async (req, res) => {
   const items = await productsService.getAllProductsFilters();
@@ -73,6 +80,18 @@ export const getAllProductProviders = handleCatchErrorAsync(
  * Create a product item.
  *
  * @param {Object} req - The HTTP request object.
+ * @param {Object} req.body - Request body containing product data
+ * @param {string} req.body.sku - Product SKU
+ * @param {string} req.body.name - Product name
+ * @param {number} req.body.productCategoryId - Product category ID
+ * @param {number} req.body.productProviderId - Product provider ID
+ * @param {number} req.body.price - Product price
+ * @param {number} req.body.cost - Product cost
+ * @param {number} req.body.stock - Product stock quantity
+ * @param {string} req.body.description - Product description
+ * @param {number} req.body.productStatusId - Product status ID
+ * @param {string} [req.body.barCode] - Product barcode (optional)
+ * @param {string} req.userId - Authenticated user ID from token verification
  * @param {Object} res - The HTTP response object.
  * @returns {Promise<void>} Sends a response confirming the creation of the product item.
  */
@@ -87,6 +106,11 @@ export const createOne = handleCatchErrorAsync(async (req, res) => {
  * Update a product item by its ID.
  *
  * @param {Object} req - The HTTP request object.
+ * @param {Object} req.params - Request parameters
+ * @param {string} req.params.id - Product ID from URL
+ * @param {Object} req.body - Request body containing product data to update
+ * @param {string} req.body.statusCode - Updated status code
+ * @param {string} req.userId - Authenticated user ID from token verification
  * @param {Object} res - The HTTP response object.
  * @returns {Promise<void>} Sends a response confirming the update of the product item.
  */
@@ -102,6 +126,8 @@ export const updateById = handleCatchErrorAsync(async (req, res) => {
  * Delete a product item by its ID.
  *
  * @param {Object} req - The HTTP request object.
+ * @param {Object} req.params - Request parameters
+ * @param {string} req.params.id - Product ID from URL
  * @param {Object} res - The HTTP response object.
  * @returns {Promise<void>} Sends a response confirming the deletion of the product item.
  */
@@ -116,6 +142,8 @@ export const deleteById = handleCatchErrorAsync(async (req, res) => {
  * Get all attributes for a product by its ID.
  *
  * @param {Object} req - The HTTP request object.
+ * @param {Object} req.params - Request parameters
+ * @param {string} req.params.id - Product ID from URL
  * @param {Object} res - The HTTP response object.
  * @returns {Promise<void>} Sends a response containing the attributes of the product.
  */
@@ -131,6 +159,8 @@ export const getAllProductAttributesByProductId = handleCatchErrorAsync(
  * Save product attributes.
  *
  * @param {Object} req - The HTTP request object.
+ * @param {Object} req.body - Request body containing product attributes data
+ * @param {Array} req.body.attributes - Array of product attributes
  * @param {Object} res - The HTTP response object.
  * @returns {Promise<void>} Sends a response confirming the creation of the product attributes.
  */
@@ -146,6 +176,8 @@ export const saveProductAttributes = handleCatchErrorAsync(async (req, res) => {
  * Delete a product attribute item by its ID.
  *
  * @param {Object} req - The HTTP request object.
+ * @param {Object} req.params - Request parameters
+ * @param {string} req.params.id - Product attribute ID from URL
  * @param {Object} res - The HTTP response object.
  * @returns {Promise<void>} Sends a response confirming the deletion of the product attribute.
  */

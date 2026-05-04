@@ -79,22 +79,50 @@ export const saveRefreshToken = async (refreshToken, id) => {
   return Promise.resolve(user);
 };
 
+/**
+ * Store a refresh token in the database.
+ *
+ * @param {Object} data - The refresh token data.
+ * @param {string} data.token - The refresh token string.
+ * @param {number} data.userId - The user ID associated with the token.
+ * @param {number} data.issuedAt - The timestamp when the token was issued.
+ * @returns {Promise<Object>} The created refresh token record.
+ */
 export const storeRefreshToken = async ({ token, userId, issuedAt }) => {
   return prisma.refreshToken.create({
     data: { token, userId, issuedAt: new Date(issuedAt) },
   });
 };
 
+/**
+ * Find a refresh token by its value.
+ *
+ * @param {string} refreshToken - The refresh token string to search for.
+ * @returns {Promise<Object|null>} The refresh token record or null if not found.
+ */
 export const findByToken = async (refreshToken) => {
   return prisma.refreshToken.findUnique({ where: { token: refreshToken } });
 };
 
+/**
+ * Revoke a refresh token by marking it as revoked.
+ *
+ * @param {number} id - The ID of the refresh token to revoke.
+ * @returns {Promise<Object>} The updated refresh token record.
+ */
 export const revokeRefreshToken = async (id) => {
   return prisma.refreshToken.update({
     where: { id },
     data: { revoked: true, revokedAt: new Date() },
   });
 };
+
+/**
+ * Revoke all refresh tokens for a specific user.
+ *
+ * @param {number} userId - The user ID whose refresh tokens should be revoked.
+ * @returns {Promise<Object>} The result of the update operation.
+ */
 export const revokeAllRefreshTojeForUser = async (userId) => {
   return prisma.refreshToken.updateMany({
     where: { userId },

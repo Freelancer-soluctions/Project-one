@@ -20,17 +20,23 @@ import logger from '../../logger/index.js';
  * Sign up a new user.
  *
  * @param {Object} user - The user object containing user details.
+ * @param {string} user.email - User email address
+ * @param {string} user.password - User password
+ * @param {string} user.firstName - User first name
+ * @param {string} user.picture - User profile picture URL
  * @returns {Promise<Object>} An object containing the access token and user details.
+ * @throws {ClientError} When password is too weak (400)
+ * @throws {ClientError} When email is already registered (400)
  */
 export const signUp = async (user) => {
   // get the user role id
   const role = await getUserRoleByCode(ROLESCODES.USER);
   user.roleId = role?.id;
 
-  // validacion de fuerza en contraseña
+  // validacion de fuerza en contrase�a
   if (!validatePasswordStrength(user.password)) {
     throw new ClientError(
-      'La contraseña es demasiado débil. Intenta con una más segura.',
+      'La contrase�a es demasiado d�bil. Intenta con una m�s segura.',
       400
     );
   }
@@ -59,7 +65,14 @@ export const signUp = async (user) => {
  * Sign in an existing user.
  *
  * @param {Object} user - The user object containing email and password.
+ * @param {string} user.email - User email address
+ * @param {string} user.password - User password
+ * @param {Object} req - The HTTP request object.
+ * @param {string} req.ip - Client IP address
+ * @param {string} req.headers ['user-agent'] - Client user agent
  * @returns {Promise<Object>} An object containing the access token, refresh token, and user details.
+ * @throws {ClientError} When email is not registered (400)
+ * @throws {ClientError} When password is invalid (400)
  */
 export const signIn = async (user, req) => {
   const { email, password } = user;
@@ -74,7 +87,7 @@ export const signIn = async (user, req) => {
   const validPassword = await comparePassword(password, userExists.password);
 
   if (!validPassword) {
-    throw new ClientError('Contraseña invalida.', 400);
+    throw new ClientError('Contrase�a invalida.', 400);
   }
   // create the token
   const token = await createToken({
@@ -92,7 +105,7 @@ export const signIn = async (user, req) => {
   // create csrf token
   const csrfToken = await createCsrfToken();
   // Log de login exitoso
-  logger.info('✅ LOGIN EXITOSO', {
+  logger.info('? LOGIN EXITOSO', {
     userId: userExists.id,
     email: userExists.email,
     ip: req.ip,
@@ -117,6 +130,7 @@ export const signIn = async (user, req) => {
  *
  * @param {number} id - The user's ID.
  * @returns {Promise<Object>} An object containing the user's session details.
+ * @throws {ClientError} When user is not found (400)
  */
 
 export const session = async (id) => {
@@ -134,14 +148,20 @@ export const session = async (id) => {
  * Generate a new access token using the refresh token.
  *
  * @param {Object} cookies - The HTTP cookies object containing the refresh token.
+ * @param {string} cookies.jwt - HTTP-only refresh token cookie
+ * @param {Object} req - The HTTP request object.
+ * @param {string} req.ip - Client IP address
+ * @param {string} req.headers['user-agent'] - Client user agent
  * @returns {Promise<Object>} An object containing the new access token and user details.
+ * @throws {ClientError} When refresh token is not found (400)
+ * @throws {ClientError} When refresh token reuse is detected (403)
  */
 
 export const refreshToken = async (cookies, req) => {
   const refreshCookie = cookies?.jwt;
   if (!refreshCookie) {
-    // 🚨 LOGGING: Intento sin refresh token
-    logger.warn('⚠️ INTENTO DE REFRESH SIN TOKEN', {
+    // ?? LOGGING: Intento sin refresh token
+    logger.warn('?? INTENTO DE REFRESH SIN TOKEN', {
       ip: req.ip,
       userAgent: req.headers['user-agent'],
       timestamp: new Date().toISOString(),
@@ -151,8 +171,8 @@ export const refreshToken = async (cookies, req) => {
 
   const stored = await authDao.findByToken(refreshCookie);
   if (!stored || stored.revoked) {
-    // 🚨 LOGGING CRÍTICO: Token reuse detectado
-    logger.error('🚨 INTENTO DE REUSO DE REFRESH TOKEN DETECTADO', {
+    // ?? LOGGING CR�TICO: Token reuse detectado
+    logger.error('?? INTENTO DE REUSO DE REFRESH TOKEN DETECTADO', {
       ip: req.ip,
       userId: stored?.userId || 'unknown',
       token: refreshCookie.substring(0, 10) + '...', // Solo primeros 10 chars
@@ -178,7 +198,7 @@ export const refreshToken = async (cookies, req) => {
   });
 
   const accessToken = await createToken({ id: stored.userId });
-  // renovar csrf token también
+  // renovar csrf token tambi�n
   const csrfToken = await createCsrfToken();
 
   return { accessToken, csrfToken, refreshToken: newRefresh };
@@ -206,13 +226,17 @@ export const refreshToken = async (cookies, req) => {
 
 /**
  * Revocar refresh token
+ *
+ * @param {Object} cookies - The HTTP cookies object containing the refresh token.
+ * @param {string} [cookies.jwt] - HTTP-only refresh token cookie to revoke
+ * @returns {Promise<boolean>} True when logout is successful
  */
 
 export const logout = async (cookies) => {
-  // ✅ Revocar token en BD si existe
+  // ? Revocar token en BD si existe
   const refreshCookie = cookies?.jwt;
 
-  if (refreshToken) {
+  if (refreshCookie) {
     const stored = await authDao.findByToken(refreshCookie);
     if (stored && !stored.revoked) {
       await authDao.revokeRefreshToken(stored.id);

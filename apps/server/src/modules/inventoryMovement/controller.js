@@ -8,10 +8,17 @@ import globalResponse from '../../utils/responses&Errors/globalResponse.js';
 import handleCatchErrorAsync from '../../utils/responses&Errors/handleCatchErrorAsync.js';
 
 /**
- * Get all inventory movements with optional filters
- * @param {Object} req - Express request object
- * @param {Object} res - Express response object
- * @returns {Promise<void>}
+ * Get all inventory movements with optional filters.
+ *
+ * @param {Object} req - The HTTP request object.
+ * @param {Object} req.safeQuery - Safe query parameters with filters
+ * @param {number} [req.safeQuery.productId] - Filter by product ID
+ * @param {number} [req.safeQuery.warehouseId] - Filter by warehouse ID
+ * @param {string} [req.safeQuery.type] - Filter by movement type (IN/OUT)
+ * @param {number} [req.safeQuery.limit] - Number of items per page
+ * @param {number} [req.safeQuery.page] - Page number for pagination
+ * @param {Object} res - The HTTP response object.
+ * @returns {Promise<void>} Returns paginated list of inventory movements
  */
 export const getAllInventoryMovements = handleCatchErrorAsync(
   async (req, res) => {
@@ -28,10 +35,17 @@ export const getAllInventoryMovements = handleCatchErrorAsync(
 );
 
 /**
- * Create a new inventory movement
- * @param {Object} req - Express request object
- * @param {Object} res - Express response object
- * @returns {Promise<void>}
+ * Create a new inventory movement.
+ *
+ * @param {Object} req - The HTTP request object.
+ * @param {Object} req.body - Request body containing inventory movement data
+ * @param {number} req.body.productId - Product ID
+ * @param {number} req.body.warehouseId - Warehouse ID
+ * @param {string} req.body.type - Movement type (IN/OUT)
+ * @param {number} req.body.quantity - Movement quantity
+ * @param {string} req.body.reason - Reason for the movement
+ * @param {Object} res - The HTTP response object.
+ * @returns {Promise<void>} Creates new inventory movement and returns confirmation
  */
 export const createInventoryMovement = handleCatchErrorAsync(
   async (req, res) => {
@@ -43,10 +57,17 @@ export const createInventoryMovement = handleCatchErrorAsync(
 );
 
 /**
- * Update an inventory movement by ID
- * @param {Object} req - Express request object
- * @param {Object} res - Express response object
- * @returns {Promise<void>}
+ * Update an inventory movement by ID.
+ *
+ * @param {Object} req - The HTTP request object.
+ * @param {Object} req.params - Request parameters
+ * @param {string} req.params.id - Inventory movement ID from URL
+ * @param {Object} req.body - Request body containing inventory movement data to update
+ * @param {string} [req.body.type] - Movement type (IN/OUT)
+ * @param {number} [req.body.quantity] - Movement quantity
+ * @param {string} [req.body.reason] - Reason for the movement
+ * @param {Object} res - The HTTP response object.
+ * @returns {Promise<void>} Updates inventory movement and returns confirmation
  */
 export const updateInventoryMovementById = handleCatchErrorAsync(
   async (req, res) => {
@@ -59,10 +80,13 @@ export const updateInventoryMovementById = handleCatchErrorAsync(
 );
 
 /**
- * Delete an inventory movement by ID
- * @param {Object} req - Express request object
- * @param {Object} res - Express response object
- * @returns {Promise<void>}
+ * Delete an inventory movement by ID.
+ *
+ * @param {Object} req - The HTTP request object.
+ * @param {Object} req.params - Request parameters
+ * @param {string} req.params.id - Inventory movement ID from URL
+ * @param {Object} res - The HTTP response object.
+ * @returns {Promise<void>} Deletes inventory movement and returns confirmation
  */
 export const deleteInventoryMovementById = handleCatchErrorAsync(
   async (req, res) => {

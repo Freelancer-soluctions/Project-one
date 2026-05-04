@@ -7,13 +7,16 @@ import {
 import { getSafePagination } from '../../utils/pagination/pagination.js';
 
 /**
- * Get all inventory movements with optional filters
- * @param {string} productId - Product ID to filter by
- * @param {string} warehouseId - Warehouse ID to filter by
- * @param {string} type - Movement type to filter by
- * @param {number} page - The page filter.
- * @param {number} limit - The limit code filter.
- * @returns {Promise<Array>} List of inventory movements
+ * Get all inventory movements with optional filters.
+ *
+ * @param {Object} params - Filter parameters.
+ * @param {number} [params.productId] - Product ID to filter by.
+ * @param {number} [params.warehouseId] - Warehouse ID to filter by.
+ * @param {string} [params.type] - Movement type to filter by (IN/OUT).
+ * @param {number} params.limit - Number of items per page.
+ * @param {number} params.page - Page number for pagination.
+ * @returns {Promise<Object>} Paginated list of inventory movements with metadata.
+ * @throws {Error} When pagination parameters are missing or invalid.
  */
 export const getAllInventoryMovements = async ({
   productId,
@@ -37,9 +40,15 @@ export const getAllInventoryMovements = async ({
 };
 
 /**
- * Create a new inventory movement
- * @param {Object} data - Inventory movement data
- * @returns {Promise<Object>} Created inventory movement
+ * Create a new inventory movement.
+ *
+ * @param {Object} data - Inventory movement data.
+ * @param {number} data.productId - Product ID.
+ * @param {number} data.warehouseId - Warehouse ID.
+ * @param {string} data.type - Movement type (IN/OUT).
+ * @param {number} data.quantity - Movement quantity.
+ * @param {string} data.reason - Reason for the movement.
+ * @returns {Promise<Object>} Created inventory movement.
  */
 export const createInventoryMovement = async (data) => {
   const inventoryMovement = await createInventoryMovementDao(data);
@@ -47,10 +56,14 @@ export const createInventoryMovement = async (data) => {
 };
 
 /**
- * Update an inventory movement by ID
- * @param {string} id - Inventory movement ID
- * @param {Object} data - Updated inventory movement data
- * @returns {Promise<Object>} Updated inventory movement
+ * Update an inventory movement by ID.
+ *
+ * @param {number} id - Inventory movement ID.
+ * @param {Object} data - Updated inventory movement data.
+ * @param {string} [data.type] - Movement type (IN/OUT).
+ * @param {number} [data.quantity] - Movement quantity.
+ * @param {string} [data.reason] - Reason for the movement.
+ * @returns {Promise<Object>} Updated inventory movement.
  */
 export const updateInventoryMovementById = async (id, data) => {
   const inventoryMovement = await updateInventoryMovementByIdDao(id, data);
@@ -58,9 +71,10 @@ export const updateInventoryMovementById = async (id, data) => {
 };
 
 /**
- * Delete an inventory movement by ID
- * @param {string} id - Inventory movement ID
- * @returns {Promise<Object>} Deleted inventory movement
+ * Delete an inventory movement by ID.
+ *
+ * @param {number} id - Inventory movement ID.
+ * @returns {Promise<Object>} Deleted inventory movement.
  */
 export const deleteInventoryMovementById = async (id) => {
   const inventoryMovement = await deleteInventoryMovementByIdDao(id);

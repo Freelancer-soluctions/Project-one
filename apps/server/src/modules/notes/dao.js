@@ -1,10 +1,11 @@
 import { prisma } from '../../config/db.js';
 
 /**
- * Retrieves all notes from the database based on the provided filters.
+ * Get all notes from the database with optional filters.
  *
- * @param {string} description - The description to filter news by.
- * @returns {Promise<Array>} A list of news matching the filters from the database.
+ * @param {string} searchTerm - Search term to filter notes by.
+ * @param {string} statusCode - Status code to filter notes by.
+ * @returns {Promise<Array>} A list of notes matching the filters.
  */
 
 export const getAllNotes = async (searchTerm, statusCode) => {
@@ -47,10 +48,12 @@ export const getAllNotes = async (searchTerm, statusCode) => {
 };
 
 /**
- * Creates a note row in the database with the provided data.
+ * Create a new note in the database.
  *
- * @param {Object} data - The data to insert into the database.
- * @returns {Promise<Object>} The created row in the database.
+ * @param {Object} data - The data for the new note.
+ * @param {number} userId - User ID who creates the note.
+ * @param {number} columnId - Column ID for the note.
+ * @returns {Promise<Object>} The created note.
  */
 
 export const createNote = async (data, userId, columnId) => {
@@ -82,12 +85,13 @@ export const getAllNotesColumns = async () => {
 };
 
 /**
- * Updates an existing row in the database based on the provided filter and data.
+ * Update note column ID by note ID.
  *
- * @param {Object} data - The fields to update in the row.
- * @param {Object} where - The conditions to identify the row to update.
- * @returns {Promise<Object>} The updated row in the database.
+ * @param {number} id - Note ID.
+ * @param {Object} data - Updated data.
+ * @returns {Promise<Object>} The updated note.
  */
+
 export const updateNoteColumId = async (id, data) => {
   const result = await prisma.notes.update({
     where: { id },
@@ -97,12 +101,13 @@ export const updateNoteColumId = async (id, data) => {
 };
 
 /**
- * Updates an existing row in the database based on the provided filter and data.
+ * Update a note by ID.
  *
- * @param {Object} data - The fields to update in the row.
- * @param {Object} where - The conditions to identify the row to update.
- * @returns {Promise<Object>} The updated row in the database.
+ * @param {number} id - Note ID.
+ * @param {Object} data - Updated note data.
+ * @returns {Promise<Object>} The updated note.
  */
+
 export const updateNoteById = async (id, data) => {
   const result = await prisma.notes.update({
     where: { id },
@@ -112,19 +117,31 @@ export const updateNoteById = async (id, data) => {
 };
 
 /**
- * Deletes a row from the database based on the provided filter.
+ * Delete a note by ID.
  *
- * @param {Object} where - The filter conditions to identify the row to delete.
- * @returns {Promise<Object>} The result of the delete operation.
+ * @param {number} id - Note ID.
+ * @returns {Promise<Object>} The deleted note.
  */
 export const deleteRow = async (id) => {
   await prisma.notes.delete({ where: { id } });
 };
 
 /**
- * Get all number of  notes from the database.
+ * Delete mentions by note ID.
  *
- * @returns {Promise<Array>} A list of all notes columns number.
+ * @param {number} noteId - Note ID.
+ * @returns {Promise<Object>} The result of the delete operation.
+ */
+export const deleteMnetionsByNoteId = async (noteId)=>{
+     await prisma.mentions.deleteMany({
+      where: { noteId },
+    });
+}
+
+/**
+ * Get count of notes by column status.
+ *
+ * @returns {Promise<Object>} Object with counts for each column status (low, medium, high).
  */
 export const getAllNotesCount = async () => {
   const lowCount = await prisma.notes.count({
@@ -157,10 +174,10 @@ export const getAllNotesCount = async () => {
 };
 
 /**
- * Retrieves all mentions for a specific note.
+ * Get all mentions for a specific note.
  *
- * @param {number} noteId - The ID of the note to get mentions for.
- * @returns {Promise<Array>} A list of mentions for the note.
+ * @param {number} noteId - Note ID.
+ * @returns {Promise<Array>} List of mentions with user details.
  */
 export const getMentionsByNoteId = async (noteId) => {
   return await prisma.mentions.findMany({
