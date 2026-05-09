@@ -1,9 +1,10 @@
 import { z } from 'zod';
+import { getZodMessage } from '@/utils/zod-i18n-map';
 
 export const ExpenseSchema = z
   .object({
     description: z.string().min(1, {
-      message: 'Expense description is required.', // Adapt message key for translation
+      message: getZodMessage('zod.expenses.description.empty'),
     }),
     total: z.preprocess(
       (val) =>
@@ -12,15 +13,15 @@ export const ExpenseSchema = z
           : parseFloat(String(val)),
       z
         .number({
-          required_error: 'Total is required.', // Adapt message key
-          invalid_type_error: 'Total must be a number.', // Adapt message key
+          required_error: getZodMessage('zod.expenses.total.required'),
+          invalid_type_error: getZodMessage('zod.expenses.total.invalid'),
         })
         .positive({
-          message: 'Total must be a positive number.', // Adapt message key
+          message: getZodMessage('zod.expenses.total.positive'),
         })
     ),
     category: z.string().min(1, {
-      message: 'Expense category is required.', // Adapt message key
+      message: getZodMessage('zod.expenses.category.empty'),
     }),
   })
   .passthrough(); // Allows other fields not explicitly defined in the schema

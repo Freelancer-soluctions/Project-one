@@ -1,50 +1,51 @@
 import { z } from 'zod';
+import { getZodMessage } from '@/utils/zod-i18n-map';
 
 export const StockSchema = z
   .object({
     quantity: z
       .string()
-      .min(1, { message: 'Quantity is required.' })
+      .min(1, { message: getZodMessage('zod.stock.quantity.empty') })
       .transform((val) => Number(val))
       .pipe(
         z
           .number()
-          .int('Quantity must be an integer')
-          .min(0, 'Quantity cannot be negative')
+          .int(getZodMessage('zod.stock.quantity.integer'))
+          .min(0, getZodMessage('zod.stock.quantity.min'))
       ),
 
     minimum: z
       .string()
-      .min(1, { message: 'Minimum quantity is required.' })
+      .min(1, { message: getZodMessage('zod.stock.minimum.empty') })
       .transform((val) => Number(val))
       .pipe(
         z
           .number()
-          .int('Minimum quantity must be an integer')
-          .min(0, 'Minimum quantity cannot be negative')
+          .int(getZodMessage('zod.stock.minimum.integer'))
+          .min(0, getZodMessage('zod.stock.minimum.min'))
       ),
     maximum: z
       .string()
-      .min(1, { message: 'Maximum quantity is required.' })
+      .min(1, { message: getZodMessage('zod.stock.maximum.empty') })
       .transform((val) => Number(val))
       .pipe(
         z
           .number()
-          .int('Maximum quantity must be an integer')
-          .min(0, 'Maximum quantity cannot be negative')
+          .int(getZodMessage('zod.stock.maximum.integer'))
+          .min(0, getZodMessage('zod.stock.maximum.min'))
       ),
     lot: z
       .string()
-      .max(50, { message: 'Lot number cannot exceed 50 characters.' })
+      .max(50, { message: getZodMessage('zod.stock.lot.maxLength') })
       .optional()
       .nullable(),
     unitMeasure: z
       .string()
-      .min(1, { message: 'Unit measure is required.' })
+      .min(1, { message: getZodMessage('zod.stock.unitMeasure.empty') })
       .refine(
         (val) => ['PIECES', 'KILOGRAMS', 'LITERS', 'METERS'].includes(val),
         {
-          message: 'Invalid unit measure.',
+          message: getZodMessage('zod.stock.unitMeasure.invalid'),
         }
       ),
     expirationDate: z
@@ -52,23 +53,23 @@ export const StockSchema = z
       .nullable()
       .optional()
       .refine((date) => !date || !isNaN(date.getTime()), {
-        message: 'Invalid date',
+        message: getZodMessage('zod.stock.expirationDate.invalid'),
       }),
     productId: z
       .string()
-      .min(1, { message: 'Product is required.' })
+      .min(1, { message: getZodMessage('zod.stock.productId.empty') })
       .transform((val) => Number(val)),
     warehouseId: z
       .string()
-      .min(1, { message: 'Warehouse is required.' })
+      .min(1, { message: getZodMessage('zod.stock.warehouseId.empty') })
       .transform((val) => Number(val)),
   })
   .passthrough() // Permite otros campos
   .refine((data) => data.minimum <= data.maximum, {
-    message: 'Minimum quantity cannot be greater than maximum quantity',
+    message: getZodMessage('zod.stock.minimumGreaterThanMaximum'),
     path: ['minimum'], // Esto hará que el error aparezca en el campo minimum
   })
   .refine((data) => data.quantity <= data.maximum, {
-    message: 'Quantity cannot be greater than maximum quantity',
+    message: getZodMessage('zod.stock.quantityGreaterThanMaximum'),
     path: ['quantity'], // Esto hará que el error aparezca en el campo minimum
   });

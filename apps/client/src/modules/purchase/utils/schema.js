@@ -1,44 +1,45 @@
 import { z } from 'zod';
+import { getZodMessage } from '@/utils/zod-i18n-map';
 
 export const PurchaseSchema = z
   .object({
     providerId: z.string().min(1, {
-      message: 'Provider is required.',
+      message: getZodMessage('zod.purchase.providerId.empty'),
     }),
     total: z
       .string()
-      .min(1, { message: 'Total is required.' })
+      .min(1, { message: getZodMessage('zod.purchase.total.empty') })
       .transform((val) => Number(val))
       .pipe(
         z
           .number()
-          .int('Total must be an integer')
-          .min(0, 'Total cannot be negative')
+          .int(getZodMessage('zod.purchase.total.integer'))
+          .min(0, getZodMessage('zod.purchase.total.min'))
       ),
     details: z.array(
       z.object({
         productId: z.string().min(1, {
-          message: 'Product is required.',
+          message: getZodMessage('zod.purchase.details.productId.empty'),
         }),
         quantity: z
           .string()
-          .min(1, { message: 'Quantity is required.' })
+          .min(1, { message: getZodMessage('zod.purchase.details.quantity.empty') })
           .transform((val) => Number(val))
           .pipe(
             z
               .number()
-              .int('Quantity must be an integer')
-              .min(1, 'Quantity must be greater than 0')
+              .int(getZodMessage('zod.purchase.details.quantity.integer'))
+              .min(1, getZodMessage('zod.purchase.details.quantity.min'))
           ),
         price: z
           .string()
-          .min(1, { message: 'Price is required.' })
+          .min(1, { message: getZodMessage('zod.purchase.details.price.empty') })
           .transform((val) => Number(val))
           .pipe(
             z
               .number()
-              .int('Price must be an integer')
-              .min(0, 'Price cannot be negative')
+              .int(getZodMessage('zod.purchase.details.price.integer'))
+              .min(0, getZodMessage('zod.purchase.details.price.min'))
           ),
       })
     ),
@@ -67,7 +68,7 @@ export const PurchaseFiltersSchema = z
       return true;
     },
     {
-      message: 'From date must be before or equal to to date',
+      message: getZodMessage('zod.purchase.fromDateAfterToDate'),
       path: ['fromDate'],
     }
   )
@@ -79,7 +80,7 @@ export const PurchaseFiltersSchema = z
       return true;
     },
     {
-      message: 'Minimum total must be less than or equal to maximum total',
+      message: getZodMessage('zod.purchase.minTotalGreaterThanMaxTotal'),
       path: ['minTotal'],
     }
   );

@@ -1,9 +1,10 @@
 import { z } from 'zod';
+import { getZodMessage } from '@/utils/zod-i18n-map';
 
 export const ClientOrderSchema = z
   .object({
     clientId: z.string().min(1, {
-      message: 'Client ID is required.',
+      message: getZodMessage('zod.clientOrder.clientId.empty'),
     }),
     status: z.string().optional(),
     notes: z.string().optional(),

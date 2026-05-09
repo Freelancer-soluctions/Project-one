@@ -200,7 +200,7 @@ export const SignUpForm = () => {
 
             <div className="flex items-center justify-center">
               <Button type="submit" className="flex-1">
-                {t('sign_last_name_placeholder')}
+                {t('sign_up_button')}
               </Button>
             </div>
           </form>

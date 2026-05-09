@@ -8,7 +8,7 @@ import {
   DialogClose,
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
+import { TiptapEditor } from '@/components/tiptap/TiptapEditor';
 import {
   Form,
   FormControl,
@@ -68,7 +68,7 @@ export function NotesCreateDialog({ onCreateNote, dataStatus, open, setOpen }) {
           <LuPlus className='w-5 h-5 ml-auto opacity-50' />
         </Button>
       </DialogTrigger> */}
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[700px]">
         <DialogHeader>
           <DialogTitle>
             <CgNotes className="inline mr-3 w-7 h-7" />
@@ -92,7 +92,7 @@ export function NotesCreateDialog({ onCreateNote, dataStatus, open, setOpen }) {
                 render={({ field }) => {
                   return (
                     <FormItem className="flex flex-col flex-auto">
-                      <FormLabel htmlFor="status">{t('status')}</FormLabel>
+                      <FormLabel htmlFor="status">{t('status')}*</FormLabel>
                       <Select
                         onValueChange={(code) => {
                           // Buscar el objeto completo por el `code`
@@ -104,7 +104,7 @@ export function NotesCreateDialog({ onCreateNote, dataStatus, open, setOpen }) {
                           }
                         }}
                         value={field.value?.code}
-                        // defaultValue={field.value} // Se asegura de que tome el valor inicial del form
+                      // defaultValue={field.value} // Se asegura de que tome el valor inicial del form
                       >
                         <SelectTrigger>
                           <SelectValue placeholder={t('select_status')} />
@@ -153,14 +153,13 @@ export function NotesCreateDialog({ onCreateNote, dataStatus, open, setOpen }) {
                   return (
                     <FormItem className="flex flex-col flex-auto col-span-1">
                       <FormLabel htmlFor="content">{t('content')}*</FormLabel>
-                      <FormControl>
-                        <Textarea
-                          id="content"
-                          {...field} // ✅ Enlazar con react-hook-form
-                          placeholder={t('content_placeholder')}
-                          required
-                        />
-                      </FormControl>
+                <FormControl>
+                  <TiptapEditor
+                    value={field.value}
+                    onChange={field.onChange}
+                    placeholder={t('content_placeholder')}
+                  />
+                </FormControl>
                       <FormMessage />
                     </FormItem>
                   );

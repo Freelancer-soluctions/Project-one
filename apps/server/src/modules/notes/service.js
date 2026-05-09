@@ -33,7 +33,7 @@ export const getAllNotes = async (searchTerm, statusCode) => {
  * @returns {Promise<Object>} The created notes item.
  */
 export const createNote = async (data, userId) => {
-  const { columnId, content, mentions, ...dataWithOutForeignKeys } = data;
+  const { columnId, mentions, ...dataWithOutForeignKeys } = data;
   dataWithOutForeignKeys.createdOn = new Date();
 
   const createdNote = await notesDao.createNote(
@@ -42,46 +42,46 @@ export const createNote = async (data, userId) => {
     Number(columnId)
   );
 
-  // Process mentions after note creation
-  if (mentions.length > 0) {
-    // const parsedMentions = await processMentions(
-    //   mentions,
-    //   createdNote.id,
-    //   Number(userId)
-    // );
+  // // Process mentions after note creation
+  // if (mentions.length > 0) {
+  //   // const parsedMentions = await processMentions(
+  //   //   mentions,
+  //   //   createdNote.id,
+  //   //   Number(userId)
+  //   // );
 
-    // Delete existing mentions for the note (for updates)
-    await notesDao.deleteMnetionsByNoteId(createdNote.noteId)
-    await prisma.mentions.deleteMany({
-      where: { noteId },
-    });
-
-
-    // Process each mention
-    const mentionsData = [];
-    for (const mention of mentions) {
-      mentionsData.push({
-        noteId,
-        mentionedUserId: user.id,
-        mentionedByUserId,
-        positionStart: mention.Start,
-        positionEnd: mention.End,
-      });
-    }
+  //   // Delete existing mentions for the note (for updates)
+  //   await notesDao.deleteMnetionsByNoteId(createdNote.noteId)
+  //   await prisma.mentions.deleteMany({
+  //     where: { noteId },
+  //   });
 
 
-    if (mentionsData.length > 0) {
-      await prisma.mentions.createMany({
-        data: mentionsData,
-      });
-    }
+  //   // Process each mention
+  //   const mentionsData = [];
+  //   for (const mention of mentions) {
+  //     mentionsData.push({
+  //       noteId,
+  //       mentionedUserId: user.id,
+  //       mentionedByUserId,
+  //       positionStart: mention.Start,
+  //       positionEnd: mention.End,
+  //     });
+  //   }
 
 
-    // Update hasMentions field if mentions were found
-    if (mentionsData.length > 0) {
-      await notesDao.updateNoteById(createdNote.id, { hasMentions: true });
-    }
-  }
+  //   if (mentionsData.length > 0) {
+  //     await prisma.mentions.createMany({
+  //       data: mentionsData,
+  //     });
+  //   }
+
+
+  //   // Update hasMentions field if mentions were found
+  //   if (mentionsData.length > 0) {
+  //     await notesDao.updateNoteById(createdNote.id, { hasMentions: true });
+  //   }
+  // }
 
   return createdNote;
 };

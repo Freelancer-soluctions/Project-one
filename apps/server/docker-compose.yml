@@ -12,6 +12,8 @@ services:
       - ./db/postgres:/var/lib/postgresql/data
     ports:
       - '5432:5432'
+    networks:
+      - app-network
 
   pgAdmin:
     container_name: project_one_pg
@@ -25,6 +27,12 @@ services:
       - ./db/pgadmin:/var/lib/pgadmin
     ports:
       - 8080:80
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
 
 
 #   api:

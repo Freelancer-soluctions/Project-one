@@ -15,20 +15,20 @@
     "closed_on": "Cerrado el",
     "add_new": "Agregar nuevo",
     "edit_new": "Editar nuevo",
-    "add_message": "Llena los campos requeridos para crear un nuevo registro. Asegúrate de que toda la información necesaria esté ingresada correctamente.",
-    "edit_message": "Realiza los cambios necesarios en el registro. Asegúrate de que la información sea precisa antes de guardar.",
+    "add_message": "Llena los campos",
+    "edit_message": "Realiza los cambios",
     "document": "Documento",
     "description": "Descripción",
-    "description_placeholder": "Ingresa la descripción",
-    "pick_date": "Selecciona una fecha",
-    "select_status": "Selecciona un estado",
+    "description_placeholder": "Ingrese la descripción",
+    "pick_date": "Seleccione una fecha",
+    "select_status": "Seleccione un estado",
     "delete_record": "Eliminar registro",
     "add_record": "Agregar registro",
     "update_record": "Actualizar registro",
     "updated_successfully": "Actualizado exitosamente",
     "added_successfully": "Agregado exitosamente",
     "deleted_successfully": "Eliminado exitosamente",
-    "request_delete_record": "¿Deseas eliminar este registro? Esta acción no se puede deshacer.",
+    "request_delete_record": "¿Desea eliminar este registro? Esta acción no se puede deshacer.",
     "save": "Guardar",
     "cancel": "Cancelar",
     "delete": "Eliminar",
@@ -36,6 +36,779 @@
     "ok": "Aceptar",
     "english": "Inglés",
     "spanish": "Español",
-    "language_message_change": " El cambio de idioma se aplicará a toda la aplicación"
+    "language_message_change": "El cambio de idioma se aplicará a toda la aplicación",
+    "language_message_change_error": "Error al cambiar el idioma",
+    "language_message_change_error_message": "Hubo un error al cambiar el idioma. Por favor, inténtelo de nuevo.",
+    "language_message_change_success": "Idioma cambiado correctamente",
+    "language_message_change_success_message": "El idioma ha sido cambiado correctamente",
+    "settings_display_success": "Configuración de visualización guardada",
+    "settings_display_success_message": "Sus preferencias de visualización se han actualizado correctamente",
+    "settings_display_error": "Error al guardar la configuración de visualización",
+    "settings_display_error_message": "Hubo un error al guardar sus preferencias de visualización. Por favor, inténtelo de nuevo.",
+    "settings": "Configuración",
+    "settings_preferences_message": "Gestione su cuenta y la configuración del módulo.",
+    "profile": "Perfil",
+    "appearance": "Apariencia",
+    "language": "Idioma",
+    "notifications": "Notificaciones",
+    "account": "Cuenta",
+    "notes": "Notas",
+    "search_notes": "Buscar notas...",
+    "no_notes": "No hay notas para mostrar",
+    "edit_note": "Editar nota",
+    "title": "Título",
+    "title_placeholder": "Ingrese el título",
+    "content_placeholder": "Ingrese el contenido",
+    "create_note": "Crear nota",
+    "note": "Nota",
+    "news_card_msg": "Noticias relevantes",
+    "notes_card_msg": "Recordatorios personales o información clave",
+    "events_card_msg": "Próximos o eventos importantes",
+    "access": "Acceso",
+    "events": "Eventos",
+    "home": "Inicio",
+    "logout": "Cerrar sesión",
+    "speaker_placeholder": "Ingrese el nombre del orador",
+    "provider": "Proveedor",
+    "select_provider": "Seleccione un proveedor",
+    "start_time": "Hora de inicio",
+    "end_time": "Hora de finalización",
+    "speaker": "Orador",
+    "date": "Fecha",
+    "save_changes": "Guardar cambios",
+    "status_notes": "Estado de notas",
+    "low_notes": "Verde: Baja prioridad",
+    "medium_notes": "Amarillo: Prioridad media",
+    "high_notes": "Rojo: Alta prioridad",
+    "show_all_notes": "Mostrar todas las notas",
+    "display": "Visualización",
+    "next_events": "Próximos eventos",
+    "turn_off_on_message": "Active o desactive elementos para controlar lo que se muestra en la aplicación.",
+    "select_items_display_message": "Seleccione los elementos que desea mostrar en la barra lateral.",
+    "sidebar": "Barra lateral",
+    "reports": "Reportes",
+    "payroll": "Nómina",
+    "products": "Productos",
+    "product": "Producto",
+    "products_card_msg": "Gestione sus productos, ventas e inventario de manera eficiente.",
+    "category": "Categoría",
+    "select_category": "Seleccione una categoría",
+    "name": "Nombre",
+    "sku": "SKU",
+    "updated_on": "Actualizado el",
+    "updated_by": "Actualizado por",
+    "price": "Precio ($)",
+    "cost": "Costo ($)",
+    "stock": "Inventario",
+    "new_product": "Nuevo Producto",
+    "edit_product": "Editar Producto",
+    "basic_information": "Información Básica",
+    "attributes": "Atributos",
+    "components": "Componentes",
+    "providers": "Proveedores",
+    "product_information": "Información del Producto",
+    "product_basic_information_msg": "Ingrese la información básica del producto.",
+    "enter_product_name_placeholder": "Ingrese el nombre del producto",
+    "enter_unique_product_code_placeholder": "Código de producto único",
+    "initial_stock": "Inventario Inicial",
+    "detailed_product_description_placeholder": "Descripción detallada del producto",
+    "barcode": "Código de Barras",
+    "generate_barcode_automatically_placeholder": "Generar código de barras automáticamente",
+    "generate": "Generar",
+    "attribute_name_placeholder": "Ej.: Color, Tamaño, Material",
+    "attribute_value_placeholder": "Ej.: Rojo, Grande, Algodón",
+    "remove_button_aria": "Eliminar atributo",
+    "product_attributes": "Atributos del Producto",
+    "add_custom_attributes": "Agregue atributos personalizados al producto.",
+    "attribute_name": "Nombre del Atributo",
+    "add_attribute": "Agregar Atributo",
+    "value": "Valor",
+    "save_record": "Guardar registro",
+    "saved_successfully": "Guardado correctamente",
+    "providers_card_msg": "Registre y gestione sus proveedores sin esfuerzo.",
+    "provider_name_placeholder": "Ingrese el nombre del proveedor",
+    "contact_name": "Nombre de contacto",
+    "contact_name_placeholder": "Ingrese el nombre de contacto",
+    "contact_email": "Correo electrónico de contacto",
+    "contact_email_placeholder": "Ingrese el correo electrónico de contacto",
+    "contact_phone": "Teléfono de contacto",
+    "contact_phone_placeholder": "Ingrese el teléfono de contacto",
+    "address": "Dirección",
+    "address_placeholder": "Ingrese la dirección",
+    "select_providers": "Seleccione un proveedor",
+    "product_settings": "Configuración del Producto",
+    "product_categories": "Categorías de Productos",
+    "inventory_management": "Gestión de Inventario",
+    "inventory_management_placeholder": "La configuración de gestión de inventario estará disponible pronto",
+    "category_name_placeholder": "Ingrese el nombre de la categoría",
+    "category_description_placeholder": "Ingrese la descripción de la categoría",
+    "category_code_placeholder": "Ingrese el código de la categoría",
+    "edit_category": "Editar Categoría",
+    "new_category": "Nueva Categoría",
+    "code": "Código",
+    "product_category_information": "Información de Categoría de Producto",
+    "product_category_basic_information_msg": "Ingrese la información básica de la categoría de producto.",
+    "warehouse": "Almacén",
+    "warehouse_management": "Gestión de Almacén",
+    "warehouse_name_placeholder": "Ingrese el nombre del almacén",
+    "warehouse_description_placeholder": "Ingrese la descripción del almacén",
+    "warehouse_code_placeholder": "Ingrese el código del almacén",
+    "edit_warehouse": "Editar almacén",
+    "add_warehouse": "Agregar almacén",
+    "warehouse_card_msg": "Gestione su almacén de manera eficiente.",
+    "stock_card_msg": "Gestione su inventario de manera eficiente.",
+    "stock_management": "Gestión de Inventario",
+    "lot": "Lote",
+    "search_by_lot": "Buscar por lote",
+    "expiration_date": "Fecha de vencimiento",
+    "select_unit_measure": "Seleccione una unidad de medida",
+    "unit_measure": "Unidad de medida",
+    "select_product": "Seleccione un producto",
+    "select_warehouse": "Seleccione un almacén",
+    "expiration_date_description": "La fecha de vencimiento es la fecha en que el producto vencerá, debe ser una fecha futura.",
+    "minimum_placeholder": "Ingrese el inventario mínimo",
+    "maximum_placeholder": "Ingrese el inventario máximo",
+    "minimum": "Mínimo",
+    "maximum": "Máximo",
+    "quantity": "Cantidad",
+    "lot_placeholder": "Ingrese el número de lote",
+    "quantity_placeholder": "Ingrese la cantidad",
+    "add_stock": "Agregar inventario",
+    "edit_stock": "Editar inventario",
+    "total_cost": "Costo total",
+    "expiration_status": "Estado de vencimiento",
+    "unitMeasure": "Unidad de medida",
+    "select_type": "Seleccione tipo",
+    "update": "Actualizar",
+    "stock_alerts": "Alertas de Inventario",
+    "expired_stock": "Productos Vencidos",
+    "low_stock": "Productos con Bajo Inventario",
+    "show_all_stock": "Ver Todo el Inventario",
+    "sales": "Ventas",
+    "sales_card_msg": "Gestione sus ventas de manera eficiente.",
+    "clients": "Clientes",
+    "clients_card_msg": "Gestione sus clientes de manera eficiente.",
+    "purchases": "Compras",
+    "purchases_card_msg": "Gestione sus compras de manera eficiente.",
+    "inventoryMovement": "Movimiento de Inventario",
+    "inventoryMovement_card_msg": "Gestione los movimientos de su inventario de manera eficiente.",
+    "employees": "Empleados",
+    "employees_card_msg": "Gestione sus empleados de manera eficiente.",
+    "attendance": "Asistencia",
+    "performanceEvaluation": "Evaluación de Desempeño",
+    "performanceEvaluation_card_msg": "Gestione la evaluación de desempeño de manera eficiente.",
+    "vacations": "Vacaciones",
+    "vacations_card_msg": "Gestione sus vacaciones de manera eficiente.",
+    "permission": "Permiso",
+    "permission_card_msg": "Gestione sus permisos de manera eficiente.",
+    "payroll_card_msg": "Gestione su nómina de manera eficiente.",
+    "add_client": "Agregar cliente",
+    "edit_client": "Editar cliente",
+    "client_name_placeholder": "Ingrese el nombre del cliente",
+    "client_email_placeholder": "Ingrese el correo del cliente",
+    "client_phone_placeholder": "Ingrese el teléfono del cliente",
+    "client_address_placeholder": "Ingrese la dirección del cliente",
+    "phone": "Teléfono",
+    "client": "Cliente",
+    "select_client": "Seleccione un cliente",
+    "start_date": "Fecha de inicio",
+    "end_date": "Fecha de finalización",
+    "total": "Total",
+    "details": "Detalles",
+    "add_detail": "Agregar detalle",
+    "edit_detail": "Editar detalle",
+    "delete_detail": "Eliminar detalle",
+    "min_total": "Total mínimo",
+    "min_total_placeholder": "Ingrese el total mínimo",
+    "max_total": "Total máximo",
+    "max_total_placeholder": "Ingrese el total máximo",
+    "add_sale": "Agregar venta",
+    "edit_sale": "Editar venta",
+    "product_placeholder": "Seleccione un producto",
+    "price_placeholder": "Ingrese el precio",
+    "total_placeholder": "Ingrese el total",
+    "product_already_exists": "Producto ya existe",
+    "product_already_exists_message": "El producto ya existe en la venta. Por favor, seleccione otro producto.",
+    "add_purchase": "Agregar compra",
+    "edit_purchase": "Editar compra",
+    "inventory_movements": "Movimientos de Inventario",
+    "inventory_movements_card_msg": "Gestione los movimientos de su inventario de manera eficiente.",
+    "users": "Usuarios",
+    "users_card_msg": "Usuarios del sistema",
+    "expenses": "Gastos",
+    "expenses_card_msg": "Gestione los movimientos de gastos de manera eficiente.",
+    "reports_card_msg": "Reportes",
+    "provider_order": "Orden de proveedor",
+    "provider_order_card_msg": "Cree y administre órdenes de proveedores",
+    "client_order": "Orden de cliente",
+    "client_order_card_msg": "Cree y administre órdenes de clientes",
+    "user_name_placeholder": "Ingrese el nombre del usuario.",
+    "user_email_placeholder": "Ingrese el correo del usuario.",
+    "rol": "Rol",
+    "birthday": "Fecha de nacimiento",
+    "telephone": "Teléfono",
+    "user_telephone_placeholder": "Ingrese el correo del usuario.",
+    "user_address_placeholder": "Ingrese la dirección del usuario.",
+    "user_social_security_placeholder": "Ingrese el número de seguridad social del usuario.",
+    "zipcode": "Código Postal",
+    "user_zipcode_placeholder": "Ingrese código postal",
+    "state": "Estado",
+    "user_state_placeholder": "Ingrese estado",
+    "city": "Ciudad",
+    "user_city_placeholder": "Ingrese ciudad",
+    "social_security": "Seguridad Social",
+    "user_information": "Información del usuario",
+    "user_basic_information_msg": "Ingrese la información básica del usuario.",
+    "access_configuration": "Configuración de acceso",
+    "access_news": "Acceder a noticias",
+    "edit": "Editar",
+    "select_role": "Seleccione un rol",
+    "error_occurred_message": "Ocurrió un error al procesar su solicitud. Por favor, inténtelo de nuevo más tarde.",
+    "operation_failed_message": "La operación no se pudo completar. Por favor, verifique su entrada e inténtelo de nuevo.",
+    "delete_failed_message": "No se pudo eliminar el registro. Por favor, inténtelo de nuevo más tarde.",
+    "expense_category_rental": "Alquiler",
+    "expense_category_utilities": "Servicios",
+    "expense_category_salaries": "Salarios",
+    "expense_category_supplies": "Suministros",
+    "expense_category_transport": "Transporte",
+    "expense_category_maintenance": "Mantenimiento",
+    "expense_category_marketing": "Marketing",
+    "expense_category_software": "Software",
+    "expense_category_professional_services": "Servicios Profesionales",
+    "expense_category_taxes": "Impuestos",
+    "expense_category_bank_fees": "Comisiones Bancarias",
+    "expense_category_travel": "Viajes",
+    "expense_category_other": "Otros",
+    "expense_category_training": "Entrenamiento",
+    "add_expense": "Agregar gasto",
+    "edit_expense": "Editar gasto",
+    "add_expense_message": "Complete los campos requeridos para crear un nuevo registro de gasto. Asegúrese de que toda la información necesaria esté ingresada correctamente.",
+    "select_employee_placeholder": "Seleccione un empleado",
+    "employee": "Empleado",
+    "add_attendance": "Agregar asistencia",
+    "edit_attendance": "Editar asistencia",
+    "entry_time": "Hora de entrada",
+    "exit_time": "Hora de salida",
+    " worked_hours": "Horas trabajadas",
+    "worked_hours_placeholder": "Ingrese las horas trabajadas",
+    "employee_name_placeholder": "Ingrese el nombre del empleado",
+    "dni_placeholder": "Ingrese el DNI del empleado",
+    "dni": "DNI",
+    "employee_email_placeholder": "Ingrese el correo del empleado",
+    "last_name_placeholder": "Ingrese el apellido del empleado",
+    "employee_phone_placeholder": "Ingrese el teléfono del empleado",
+    "employee_address_placeholder": "Ingrese la dirección del empleado",
+    "employee_position_placeholder": "Ingrese el puesto del empleado",
+    "position": "Puesto",
+    "department": "Departamento",
+    "employee_department_placeholder": "Ingrese el departamento del empleado",
+    "salary": "Salario",
+    "employee_salary_placeholder": "Ingrese el salario del empleado",
+    "months": "Meses",
+    "select_month_placeholder": "Seleccione un mes",
+    "year_placeholder": "Ingrese el año",
+    "add_payroll": "Agregar nómina",
+    "edit_payroll": "Editar nómina",
+    "base_salary_placeholder": "Ingrese el salario base",
+    "extra_hours_placeholder": "Ingrese las horas extras",
+    "deductions_placeholder": "Ingrese las deducciones",
+    "total_payment_placeholder": "Ingrese el pago total",
+    "total_payment": "Pago total",
+    "base_salary": "Salario base",
+    "extra_hours": "Horas extras",
+    "performance_evaluation": "Evaluación de desempeño",
+    "select_calification_placeholder": "Seleccione una calificación",
+    "evaluation_comments_placeholder": "Ingrese comentarios de evaluación",
+    "calification": "Calificación",
+    "comments": "Comentarios",
+    "add_evaluation": "Agregar evaluación",
+    "edit_evaluation": "Editar evaluación",
+    "add_evaluation_message": "Complete los campos requeridos para crear un nuevo registro de evaluación de desempeño. Asegúrese de que toda la información necesaria esté ingresada correctamente.",
+    "edit_evaluation_message": "Realice los cambios necesarios en el registro de evaluación de desempeño. Asegúrese de que la información sea precisa antes de guardar.",
+    "vacation": "Vacaciones",
+    "select_permission_type_placeholder": "Seleccione un tipo de permiso",
+    "reason": "Razón",
+    "type": "Tipo",
+    "add_vacation": "Agregar vacaciones",
+    "edit_vacation": "Editar vacaciones",
+    "add_vacation_message": "Complete los campos requeridos para crear un nuevo registro de vacaciones. Asegúrese de que toda la información necesaria esté ingresada correctamente.",
+    "edit_vacation_message": "Realice los cambios necesarios en el registro de vacaciones. Asegúrese de que la información sea precisa antes de guardar.",
+    "add_permission": "Agregar permiso",
+    "edit_permission": "Editar permiso",
+    "add_permission_message": "Complete los campos requeridos para crear un nuevo registro de permiso. Asegúrese de que toda la información necesaria esté ingresada correctamente.",
+    "edit_permission_message": "Realice los cambios necesarios en el registro de permiso. Asegúrese de que la información sea precisa antes de guardar.",
+    "permission_reason_placeholder": "Ingrese la razón del permiso",
+    "permission_comments_placeholder": "Ingrese comentarios del permiso",
+"content": "Contenido",
+  "zod": {
+    "auth": {
+      "email": {
+        "empty": "Debes ingresar tu correo electrónico.",
+        "invalid": "Dirección de correo inválida."
+      },
+      "password": {
+        "empty": "Debes ingresar tu contraseña.",
+        "minLength": "Debes ingresar al menos {{count}} caracteres.",
+        "maxLength": "Debes ingresar un máximo de {{count}} caracteres."
+      }
+    },
+    "users": {
+      "name": {
+        "empty": "El nombre de usuario es obligatorio."
+      },
+      "email": {
+        "empty": "El correo electrónico es obligatorio.",
+        "invalid": "Formato de correo inválido."
+      },
+      "telephone": {
+        "empty": "El teléfono es obligatorio."
+      },
+      "birthday": {
+        "required": "La fecha de nacimiento es obligatoria."
+      },
+      "startDate": {
+        "required": "La fecha de inicio es obligatoria."
+      },
+      "socialSecurity": {
+        "minLength": "La seguridad social debe tener al menos {{count}} caracteres.",
+        "maxLength": "La seguridad social debe tener como máximo {{count}} caracteres."
+      },
+      "zipcode": {
+        "invalid": "Formato de código postal inválido."
+      },
+      "state": {
+        "empty": "El estado es obligatorio."
+      },
+      "city": {
+        "empty": "La ciudad es obligatoria."
+      },
+      "status": {
+        "required": "El estado es obligatorio."
+      },
+      "roles": {
+        "required": "El rol es obligatorio."
+      }
+    },
+    "products": {
+      "sku": {
+        "empty": "El SKU es obligatorio."
+      },
+      "name": {
+        "maxLength": "El nombre del producto debe tener como máximo {{count}} caracteres.",
+        "empty": "El nombre del producto es obligatorio."
+      },
+      "category": {
+        "required": "La categoría es obligatoria."
+      },
+      "status": {
+        "required": "El estado es obligatorio."
+      },
+      "provider": {
+        "required": "El proveedor es obligatorio."
+      },
+      "price": {
+        "empty": "El precio es obligatorio.",
+        "positive": "El precio debe ser un número positivo.",
+        "multipleOf": "El precio debe estar en formato monetario válido."
+      },
+      "cost": {
+        "empty": "El costo es obligatorio.",
+        "positive": "El costo debe ser un número positivo.",
+        "multipleOf": "El costo debe estar en formato monetario válido."
+      },
+      "attributes": {
+        "name": {
+          "empty": "El nombre del atributo es obligatorio.",
+          "maxLength": "El nombre del atributo debe tener como máximo {{count}} caracteres."
+        },
+        "description": {
+          "empty": "La descripción del atributo es obligatoria.",
+          "maxLength": "La descripción del atributo debe tener como máximo {{count}} caracteres."
+        },
+        "minItems": "Se requiere al menos un atributo."
+      }
+    },
+    "providers": {
+      "name": {
+        "empty": "El nombre del proveedor es obligatorio."
+      },
+      "status": {
+        "required": "El estado es obligatorio."
+      }
+    },
+    "warehouse": {
+      "name": {
+        "empty": "El nombre del almacén es obligatorio."
+      },
+      "status": {
+        "empty": "El estado es obligatorio."
+      }
+    },
+    "stock": {
+      "quantity": {
+        "empty": "La cantidad es obligatoria.",
+        "integer": "La cantidad debe ser un número entero.",
+        "min": "La cantidad debe ser al menos {{count}}."
+      },
+      "minimum": {
+        "empty": "La cantidad mínima es obligatoria.",
+        "integer": "La cantidad mínima debe ser un número entero.",
+        "min": "La cantidad mínima debe ser al menos {{count}}."
+      },
+      "maximum": {
+        "empty": "La cantidad máxima es obligatoria.",
+        "integer": "La cantidad máxima debe ser un número entero.",
+        "min": "La cantidad máxima debe ser al menos {{count}}."
+      },
+      "lot": {
+        "maxLength": "El número de lote debe tener como máximo {{count}} caracteres."
+      },
+      "unitMeasure": {
+        "empty": "La unidad de medida es obligatoria.",
+        "invalid": "Unidad de medida inválida."
+      },
+      "expirationDate": {
+        "invalid": "Fecha de vencimiento inválida."
+      },
+      "productId": {
+        "empty": "El producto es obligatorio."
+      },
+      "warehouseId": {
+        "empty": "El almacén es obligatorio."
+      },
+      "minimumGreaterThanMaximum": "La cantidad mínima no puede ser mayor que la cantidad máxima.",
+      "quantityGreaterThanMaximum": "La cantidad no puede ser mayor que la cantidad máxima."
+    },
+    "sales": {
+      "clientId": {
+        "empty": "El cliente es obligatorio."
+      },
+      "total": {
+        "empty": "El total es obligatorio.",
+        "integer": "El total debe ser un número entero.",
+        "min": "El total debe ser al menos {{count}}."
+      },
+      "details": {
+        "productId": {
+          "empty": "El producto es obligatorio."
+        },
+        "quantity": {
+          "empty": "La cantidad es obligatoria.",
+          "integer": "La cantidad debe ser un número entero.",
+          "min": "La cantidad debe ser al menos {{count}}."
+        },
+        "price": {
+          "empty": "El precio es obligatorio.",
+          "integer": "El precio debe ser un número entero.",
+          "min": "El precio debe ser al menos {{count}}."
+        }
+      },
+      "fromDateAfterToDate": "La fecha de inicio no puede ser posterior a la fecha de finalización.",
+      "minTotalGreaterThanMaxTotal": "El total mínimo no puede ser mayor que el total máximo."
+    },
+    "purchase": {
+      "providerId": {
+        "empty": "El proveedor es obligatorio."
+      },
+      "total": {
+        "empty": "El total es obligatorio.",
+        "integer": "El total debe ser un número entero.",
+        "min": "El total debe ser al menos {{count}}."
+      },
+      "details": {
+        "productId": {
+          "empty": "El producto es obligatorio."
+        },
+        "quantity": {
+          "empty": "La cantidad es obligatoria.",
+          "integer": "La cantidad debe ser un número entero.",
+          "min": "La cantidad debe ser al menos {{count}}."
+        },
+        "price": {
+          "empty": "El precio es obligatorio.",
+          "integer": "El precio debe ser un número entero.",
+          "min": "El precio debe ser al menos {{count}}."
+        }
+      },
+      "fromDateAfterToDate": "La fecha de inicio no puede ser posterior a la fecha de finalización.",
+      "minTotalGreaterThanMaxTotal": "El total mínimo no puede ser mayor que el total máximo."
+    },
+    "clients": {
+      "name": {
+        "empty": "El nombre del cliente es obligatorio."
+      },
+      "email": {
+        "invalid": "Formato de correo inválido."
+      },
+      "phone": {
+        "empty": "El teléfono es obligatorio."
+      },
+      "address": {
+        "empty": "La dirección es obligatoria."
+      }
+    },
+    "employees": {
+      "name": {
+        "empty": "El nombre del empleado es obligatorio."
+      },
+      "lastName": {
+        "empty": "El apellido es obligatorio."
+      },
+      "dni": {
+        "empty": "El DNI es obligatorio."
+      },
+      "email": {
+        "invalid": "Formato de correo inválido."
+      },
+      "startDate": {
+        "required": "La fecha de inicio es obligatoria."
+      },
+      "position": {
+        "empty": "La posición es obligatoria."
+      },
+      "department": {
+        "empty": "El departamento es obligatorio."
+      },
+      "salary": {
+        "empty": "El salario es obligatorio."
+      }
+    },
+    "events": {
+      "title": {
+        "empty": "El título del evento es obligatorio."
+      },
+      "description": {
+        "empty": "La descripción es obligatoria."
+      },
+      "speaker": {
+        "empty": "El orador es obligatorio."
+      },
+      "startTime": {
+        "empty": "La hora de inicio es obligatoria."
+      },
+      "endTime": {
+        "empty": "La hora de finalización es obligatoria."
+      },
+      "eventDate": {
+        "invalid": "Fecha del evento inválida."
+      },
+      "type": {
+        "empty": "El tipo de evento es obligatorio."
+      }
+    },
+    "payroll": {
+      "employeeId": {
+        "required": "El empleado es obligatorio.",
+        "positive": "El ID del empleado debe ser positivo."
+      },
+      "month": {
+        "required": "El mes es obligatorio.",
+        "invalid": "Mes inválido."
+      },
+      "year": {
+        "required": "El año es obligatorio.",
+        "min": "El año debe ser al menos {{count}}.",
+        "max": "El año debe ser como máximo {{count}}."
+      },
+      "baseSalary": {
+        "required": "El salario base es obligatorio.",
+        "positive": "El salario base debe ser positivo."
+      },
+      "extraHours": {
+        "invalid": "Valor de horas extras inválido.",
+        "nonnegative": "Las horas extras deben ser no negativas."
+      },
+"deductions": {
+        "invalid": "Valor de deducciones inválido.",
+        "nonnegative": "Las deducciones deben ser no negativas."
+      }
+    },
+    "performanceEvaluation": {
+      "employeeId": {
+        "required": "El empleado es obligatorio.",
+        "positive": "El ID del empleado debe ser positivo."
+      },
+      "date": {
+        "required": "La fecha de evaluación es obligatoria."
+      },
+      "calification": {
+        "required": "La calificación es obligatoria.",
+        "min": "La calificación debe ser al menos {{count}}.",
+        "max": "La calificación debe ser como máximo {{count}}."
+      },
+      "comments": {
+        "maxLength": "Los comentarios deben tener como máximo {{count}} caracteres."
+      }
+    },
+    "permission": {
+      "employeeId": {
+        "required": "El empleado es obligatorio.",
+        "positive": "El ID del empleado debe ser positivo."
+      },
+      "type": {
+        "required": "El tipo de permiso es obligatorio."
+      },
+      "startDate": {
+        "required": "La fecha de inicio es obligatoria."
+      },
+      "endDate": {
+        "required": "La fecha de finalización es obligatoria."
+      },
+      "reason": {
+        "empty": "La razón es obligatoria.",
+        "maxLength": "La razón debe tener como máximo {{count}} caracteres."
+      },
+      "comments": {
+        "maxLength": "Los comentarios deben tener como máximo {{count}} caracteres."
+      }
+    },
+    "vacation": {
+      "employeeId": {
+        "required": "El empleado es obligatorio.",
+        "positive": "El ID del empleado debe ser positivo."
+      },
+      "startDate": {
+        "required": "La fecha de inicio es obligatoria."
+      },
+      "endDate": {
+        "required": "La fecha de finalización es obligatoria."
+      }
+    },
+    "attendance": {
+      "employeeId": {
+        "required": "El empleado es obligatorio.",
+        "positive": "El ID del empleado debe ser positivo."
+      },
+      "date": {
+        "required": "La fecha es obligatoria."
+      },
+      "entryTime": {
+        "invalid": "Hora de entrada inválida."
+      },
+      "exitTime": {
+        "invalid": "Hora de salida inválida."
+      },
+      "workedHours": {
+        "required": "Las horas trabajadas son obligatorias.",
+        "positive": "Las horas trabajadas deben ser positivas."
+      }
+    },
+    "inventoryMovement": {
+      "productId": {
+        "empty": "El producto es obligatorio."
+      },
+      "warehouseId": {
+        "empty": "El almacén es obligatorio."
+      },
+      "quantity": {
+        "positive": "La cantidad debe ser positiva."
+      },
+      "type": {
+        "required": "El tipo de movimiento es obligatorio."
+      }
+    },
+    "providerOrder": {
+      "supplierId": {
+        "required": "El proveedor es obligatorio."
+      }
+    },
+    "clientOrder": {
+      "clientId": {
+        "empty": "El cliente es obligatorio."
+      }
+    },
+    "news": {
+      "description": {
+        "empty": "La descripción es obligatoria."
+      },
+      "fdateAfterTdate": "La fecha de inicio no puede ser posterior a la fecha de finalización."
+    },
+    "expenses": {
+      "description": {
+        "empty": "La descripción del gasto es obligatoria."
+      },
+      "total": {
+        "required": "El total es obligatorio.",
+        "invalid": "El total debe ser un número.",
+        "positive": "El total debe ser un número positivo."
+      },
+      "category": {
+        "empty": "La categoría del gasto es obligatoria."
+      }
+    },
+    "notes": {
+      "title": {
+        "empty": "El título es obligatorio."
+      },
+      "content": {
+        "empty": "El contenido de la nota es obligatorio."
+      }
+    },
+    "settingsProductCategories": {
+      "description": {
+        "empty": "La descripción de la categoría es obligatoria."
+      },
+      "code": {
+        "empty": "El código de categoría es obligatorio.",
+        "maxLength": "El código de categoría debe tener como máximo 3 dígitos."
+      }
+    },
+    "errors": {
+      "required": "{{path}} es requerido",
+      "invalid_type": "Se esperaba {{expected}}",
+      "received": "{{received}} para {{path}}",
+      "too_small": {
+        "string": "La cadena debe tener al menos {{minimum}} caracteres",
+        "number": "El número debe ser al menos {{minimum}}",
+        "array": "El arreglo debe contener al menos {{minimum}} elementos",
+        "default": "El arreglo debe contener al menos {{minimum}} elementos"
+      },
+      "too_big": {
+        "string": "La cadena debe tener como máximo {{maximum}} caracteres",
+        "number": "El número debe ser como máximo {{maximum}}",
+        "array": "El arreglo debe contener como máximo {{maximum}} elementos",
+        "default": "El arreglo debe contener como máximo {{maximum}} elementos"
+      },
+      "custom": "Error de validación personalizado",
+      "default": "Entrada inválida"
+    }
+  },
+  "app_language": "Idioma de la aplicación",
+  "select_language_placeholder": "Seleccionar idioma",
+  "welcome_back": "Bienvenido de nuevo",
+  "sign_in_message": "Ingrese su correo electrónico y contraseña para iniciar sesión.",
+  "sign_up_message": "Cree su cuenta completando sus datos, incluyendo su nombre, correo electrónico, contraseña y cualquier información adicional requerida.",
+  "do_you_have_an_account": "¿Tiene una cuenta?",
+  "dont_you_have_an_account": "¿No tiene una cuenta?",
+  "sign_in": "¡Inicie sesión ahora!",
+  "sign_up": "¡Regístrese ahora!",
+  "sign_email_placeholder": "m@ejemplo.com",
+  "sign_password_placeholder": "Ingrese su contraseña",
+  "remind_me": "Recordarme",
+  "forgot_password": "¿Olvidó su contraseña?",
+  "sign_in_button": "Iniciar sesión",
+  "sign_name_placeholder": "Por favor, ingrese su nombre.",
+  "sign_last_name_placeholder": "Por favor, ingrese su apellido.",
+  "sign_confirm_password_placeholder": "Por favor, confirme su contraseña",
+  "first_name": "Nombre",
+  "last_name": "Apellido",
+  "email": "Correo electrónico",
+  "password": "Contraseña",
+  "date_of_birth": "Fecha de nacimiento",
+  "edit_provider": "Editar proveedor",
+  "add_provider": "Agregar proveedor",
+  "attendance_card_msg": "Gestione su asistencia de manera eficiente.",
+  "is_admin": "Es administrador",
+  "picture": "Foto",
+  "user_picture_placeholder": "Ingrese la URL de la foto",
+  "user_document_placeholder": "Ingrese el número de documento",
+  "role_id": "ID de rol",
+  "user_role_id_placeholder": "Ingrese el ID de rol",
+  "status_id": "ID de estado",
+  "user_status_id_placeholder": "Ingrese el ID de estado",
+  "user_permit_id": "ID de permiso de usuario",
+  "user_permit_id_placeholder": "Ingrese el ID de permiso de usuario",
+  "user_permits": "Permisos de usuario",
+  "edit_users": "Editar usuarios"
   }
 }

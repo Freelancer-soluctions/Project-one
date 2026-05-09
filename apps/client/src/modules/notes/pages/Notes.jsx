@@ -249,17 +249,18 @@ export default function Notes() {
             />
           </div>
           <div className="flex flex-col md:flex-row gap-6 p-4 min-h-[700px] w-full">
-            {dataNotes?.data.map((column) => (
+            {/* {dataNotes?.data.map((column) => ( */}
               <NotesColumn
-                key={column.id}
-                column={column}
+                data={dataNotes.data}
+                // key={column.id}
+                // column={column}
                 onDragStart={handleDragStart}
                 onDragOver={handleDragOver}
                 onDrop={handleDrop}
                 onDeleteNote={handleDeleteNote}
                 onEditNote={handleEditNote}
               />
-            ))}
+       
           </div>
           <AlertDialogComponent
             openAlertDialog={openAlertDialog}
