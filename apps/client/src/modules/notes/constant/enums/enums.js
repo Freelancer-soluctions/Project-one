@@ -9,3 +9,7 @@ export const codeEnums = {
   CODE2: 'C02',
   CODE3: 'C03',
 };
+
+export const NOTES_FIELD_LIMITS ={
+  content: 2000
+}

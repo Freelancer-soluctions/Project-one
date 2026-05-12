@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { getZodMessage, getZodMinMaxMessage } from '@/utils/zod-i18n-map';
+import { getZodMessage } from '@/utils/zod-i18n-map';
 
 export const NotesCreateDialogSchema = z
   .object({

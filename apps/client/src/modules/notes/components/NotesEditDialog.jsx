@@ -25,6 +25,8 @@ import { useEffect } from 'react';
 import { CgNotes } from 'react-icons/cg';
 import { notesEditDialogSchema } from '../utils/index';
 import { useGetActiveUsers } from '../hooks/useGetActiveUsers';
+import {NOTES_FIELD_LIMITS} from '../constant/enums/enums'
+
 
 export function NotesEditDialog({ open, onOpenChange, onEditNote, note }) {
   const { t } = useTranslation();
@@ -34,14 +36,14 @@ export function NotesEditDialog({ open, onOpenChange, onEditNote, note }) {
   const formEditNotesDialog = useForm({
     resolver: zodResolver(notesEditDialogSchema),
     defaultValues: {
-     ...note
+      ...note
     },
   });
 
   useEffect(() => {
     if (note) {
       formEditNotesDialog.reset({
-       ...note
+        ...note
       });
     }
   }, [note, formEditNotesDialog]);
@@ -108,6 +110,8 @@ export function NotesEditDialog({ open, onOpenChange, onEditNote, note }) {
                           onChange={field.onChange}
                           placeholder={t('content_placeholder')}
                           mentionSuggestions={dataUsers}
+                          characterLimit={NOTES_FIELD_LIMITS.content}
+
                         />
                       </FormControl>
                       <FormMessage />

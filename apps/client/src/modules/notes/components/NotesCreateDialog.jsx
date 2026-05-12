@@ -31,6 +31,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { NotesCreateDialogSchema } from '../utils/index';
 import { useGetActiveUsers } from '../hooks/useGetActiveUsers';
+import {NOTES_FIELD_LIMITS} from '../constant/enums/enums'
 
 export function NotesCreateDialog({ onCreateNote, dataStatus, open, setOpen }) {
   const { t } = useTranslation();
@@ -162,6 +163,7 @@ export function NotesCreateDialog({ onCreateNote, dataStatus, open, setOpen }) {
                     onChange={field.onChange}
                     placeholder={t('content_placeholder')}
                     mentionSuggestions={dataUsers}
+                    characterLimit={NOTES_FIELD_LIMITS.content}
                   />
                 </FormControl>
                       <FormMessage />
