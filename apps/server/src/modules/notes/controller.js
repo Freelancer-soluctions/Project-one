@@ -35,7 +35,6 @@ export const getAllNotes = handleCatchErrorAsync(async (req, res) => {
 export const createNote = handleCatchErrorAsync(async (req, res) => {
   const userId = req.userId; // viene del token
   const { body } = req;
-  console.log("nota", body)
   const createdNote = await notesService.createNote(body, userId);
   globalResponse(res, 201, createdNote, 'Item created successfully');
 });
