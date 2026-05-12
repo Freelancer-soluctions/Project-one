@@ -1,137 +1,3 @@
-## Orchestrator Rules (OpenSpec + SDD)
-
-### Role Definition
-
-The orchestrator is a **coordination agent**, NOT an implementation agent.
-
-* MUST delegate all implementation to subagents
-* MUST follow OpenSpec workflow strictly
-* MUST NOT write production code
-
-It MUST NOT:
-
-* Write production code directly
-* Modify files unless strictly necessary for orchestration
-* Bypass OpenSpec artifacts (`proposal.md`, `tasks.md`, etc.)
-
----
-
-### 🔄 Execution Phases (MANDATORY)
-
-All tasks MUST be executed following these phases:
-
-#### 1. Exploration Phase
-
-* Trigger when no OpenSpec context exists
-* Use `/opsx:explore` to analyze the problem and codebase
-* Delegate to:
-
-  * `researcher` → gather external context
-  * `planner` → outline possible approaches
-
----
-
-#### 2. Proposal Phase
-
-* Trigger when a solution direction is defined
-* Use `/opsx:propose <feature-name>`
-
-The orchestrator MUST:
-
-* Ensure `proposal.md`, `design.md`, and `tasks.md` are created
-* Delegate validation to `planner`
-
----
-
-#### 3. Planning Phase
-
-* Read and interpret `tasks.md`
-* Break down execution into atomic steps
-* Assign tasks to subagents
-
----
-
-#### 4. Execution Phase
-
-* Delegate ALL implementation to `developer`
-* Execute tasks strictly in the order defined in `tasks.md`
-* Do NOT skip or reorder tasks unless explicitly justified
-
----
-
-#### 5. Verification Phase
-
-* Use `/opsx:verify`
-* Delegate validation to `reviewer`
-
-The orchestrator MUST ensure:
-
-* Code correctness
-* Alignment with `design.md`
-* Completion of all tasks
-
----
-
-#### 6. Archive Phase
-
-* When verification passes:
-
-  * Execute `/opsx:archive`
-* Mark the workflow as complete
-
----
-
-### 📂 OpenSpec Enforcement Rules
-
-The orchestrator MUST ALWAYS:
-
-1. Check for existing OpenSpec context:
-
-   * `openspec/specs/`
-   * `openspec/changes/`
-
-2. Follow this decision tree:
-
-* If no spec exists → run `/opsx:explore`
-* If proposal exists → validate and continue
-* If tasks exist → execute
-* If implementation complete → verify
-* If verified → archive
-
----
-
-### 🤖 Delegation Rules
-
-The orchestrator MUST use subagents as follows:
-
-* `planner` → architecture, design validation
-* `researcher` → documentation, external knowledge
-* `developer` → implementation
-* `reviewer` → validation and QA
-
-The orchestrator MUST NOT perform these roles itself.
-
----
-
-### ⚠️ Anti-Patterns (STRICTLY FORBIDDEN)
-
-* Implementing features without a proposal
-* Ignoring `tasks.md`
-* Mixing planning and execution in a single step
-* Skipping verification
-* Acting without OpenSpec context
-
----
-
-### 🧩 Final Principle
-
-OpenSpec defines the **WHAT**
-Subagents execute the **HOW**
-The orchestrator controls the **WHEN and WHO**
-
-The orchestrator enforces discipline, not execution.
-
-
 
 # Project One (Project Context)
 
@@ -151,7 +17,7 @@ npm run test      # Run all tests
 ```
 apps/
 ├── client/       # React frontend (Vite, Tailwind, shadcn/ui)
-├── server/       # Express backend (Prisma, SQLite)
+├── server/       # Express backend (Prisma, Postgresql)
 └── e2e/          # Playwright E2E tests
 ```
 
@@ -185,7 +51,7 @@ cd e2e && npm run test
 | Layer    | Technology                                                    |
 | -------- | ------------------------------------------------------------- |
 | Frontend | React 18, Vite, Tailwind, shadcn/ui, Redux Toolkit, RTK Query |
-| Backend  | Express, Prisma, SQLite                                       |
+| Backend  | Express, Prisma ORM, Postgresql                               |
 | Testing  | Vitest, Testing Library, Playwright, MSW                      |
 
 ## Important Conventions

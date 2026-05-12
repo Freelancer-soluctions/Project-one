@@ -15,7 +15,7 @@ import {
 import {
   inventoryMovementFiltersSchema,
   inventoryMovementCreateUpdateSchema,
-} from '../../utils/joiSchemas/joi.js';
+} from './schemas/inventoryMovement.joi.js';
 import { ROLESCODES, PERMISSIONCODES } from '../../utils/constants/enums.js';
 
 const router = Router();

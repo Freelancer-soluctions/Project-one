@@ -15,7 +15,7 @@ import {
 import {
   vacationFiltersSchema,
   vacationCreateUpdateSchema,
-} from '../../utils/joiSchemas/joi.js';
+} from './schemas/vacation.joi.js';
 import { ROLESCODES, PERMISSIONCODES } from '../../utils/constants/enums.js';
 
 const router = express.Router();

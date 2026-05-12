@@ -66,6 +66,12 @@ const notesApi = createApi({
       },
       invalidatesTags: ['Notes'], // Invalida el cache de 'Notes' para volver a consultar
     }),
+    getMentionsByNoteId: builder.query({
+      query: (noteId) => ({
+        url: `/notes/${noteId}/mentions`,
+        method: 'GET',
+      }),
+    }),
   }),
 });
 
@@ -79,6 +85,7 @@ export const {
   useUpdateNoteByIdMutation,
   useDeleteNoteByIdMutation,
   useGetAllCountNotesQuery,
+  useGetMentionsByNoteIdQuery,
 } = notesApi;
 
 export default notesApi;

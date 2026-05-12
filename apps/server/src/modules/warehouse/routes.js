@@ -9,7 +9,7 @@ import {
 import {
   warehouseFiltersSchema,
   warehouseCreateUpdateSchema,
-} from '../../utils/joiSchemas/joi.js';
+} from './schemas/warehouse.joi.js';
 import {
   verifyToken,
   validateQueryParams,

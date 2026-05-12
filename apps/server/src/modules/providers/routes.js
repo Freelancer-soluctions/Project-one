@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { Providers, ProvidersFilters } from '../../utils/joiSchemas/joi.js';
+import { Providers, ProvidersFilters } from './schemas/providers.joi.js';
 import * as providersController from './controller.js';
 import {
   verifyToken,

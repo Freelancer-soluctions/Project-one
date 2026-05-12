@@ -64,8 +64,22 @@ export const updateNoteColumId = handleCatchErrorAsync(async (req, res) => {
 export const updateNoteById = handleCatchErrorAsync(async (req, res) => {
   const { body } = req;
   const { id } = req.params;
-  await notesService.updateNoteById(id, body);
+  const userId = req.userId;
+  await notesService.updateNoteById(id, body, userId);
   globalResponse(res, 200, { message: 'Item updated successfully' });
+});
+
+/**
+ * Get mentions by note ID
+ *
+ * @param {*} req
+ * @param {*} res
+ * @returns a message
+ */
+export const getMentionsByNoteId = handleCatchErrorAsync(async (req, res) => {
+  const { id } = req.params;
+  const data = await notesService.getMentionsByNoteId(id);
+  globalResponse(res, 200, data);
 });
 
 /**

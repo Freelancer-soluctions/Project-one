@@ -4,7 +4,7 @@ import {
   ProductsUpdate,
   ProductsFilters,
   ProductAttributes,
-} from '../../utils/joiSchemas/joi.js';
+} from './schemas/products.joi.js';
 import * as productsController from './controller.js';
 import {
   verifyToken,

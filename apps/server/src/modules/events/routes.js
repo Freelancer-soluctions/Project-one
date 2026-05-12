@@ -2,7 +2,7 @@ import { Router } from 'express';
 import {
   EventsCreateUpdate,
   EventsFilters,
-} from '../../utils/joiSchemas/joi.js';
+} from './schemas/events.joi.js';
 import * as eventsController from './controller.js';
 import {
   validateQueryParams,
