@@ -1,15 +1,16 @@
 import { prisma, Prisma } from '../../config/db.js';
 
 /**
- * Get all vacation records with optional filters
- * @param {Object} filters - Filter criteria for vacation records
- * @param {number} [filters.employeeId] - Filter by employee ID
- * @param {string} [filters.status] - Filter by status (PENDING, APPROVED, REJECTED)
- * @param {Date} [filters.fromDate] - Filter by start date (greater than or equal)
- * @param {Date} [filters.toDate] - Filter by end date (less than or equal)
- * @param {number} take- take to filter by
- * @param {number} skip - skip to filter by
- * @returns {Promise<Array>} Array of vacation records with employee information
+ * Get all vacation records with optional filters.
+ *
+ * @param {Object} filters - Filter criteria for vacation records.
+ * @param {number} [filters.employeeId] - Filter by employee ID.
+ * @param {string} [filters.status] - Filter by status (PENDING, APPROVED, REJECTED).
+ * @param {Date} [filters.fromDate] - Filter by start date (greater than or equal).
+ * @param {Date} [filters.toDate] - Filter by end date (less than or equal).
+ * @param {number} take - Number of records to retrieve.
+ * @param {number} skip - Number of records to skip.
+ * @returns {Promise<Object>} Object containing vacations list and total count.
  */
 export const getAllVacation = async (filters, take, skip) => {
   const whereClauses = [];
@@ -94,19 +95,20 @@ export const getAllVacation = async (filters, take, skip) => {
     },
   });
 
-  return { vacations, total };
+  return { dataList: vacations, total };
 };
 
 /**
- * Create a new vacation record
- * @param {Object} data - Vacation data to create
- * @param {number} data.employeeId - ID of the employee
- * @param {Date} data.startDate - Start date of the vacation
- * @param {Date} data.endDate - End date of the vacation
- * @param {string} [data.status] - Status of the vacation (default: PENDING)
- * @param {number} data.createdBy - ID of the user creating the record
- * @param {Date} data.createdOn - Creation timestamp
- * @returns {Promise<Object>} Created vacation record
+ * Create a new vacation record.
+ *
+ * @param {Object} data - Vacation data to create.
+ * @param {number} data.employeeId - ID of the employee.
+ * @param {Date} data.startDate - Start date of the vacation.
+ * @param {Date} data.endDate - End date of the vacation.
+ * @param {string} [data.status] - Status of the vacation (default: PENDING).
+ * @param {number} data.createdBy - ID of the user creating the record.
+ * @param {Date} data.createdOn - Creation timestamp.
+ * @returns {Promise<Object>} Created vacation record.
  */
 export const createVacation = async (data) => {
   return await prisma.vacation.create({
@@ -122,16 +124,17 @@ export const createVacation = async (data) => {
 };
 
 /**
- * Update a vacation record by ID
- * @param {number} id - ID of the vacation record to update
- * @param {Object} data - Updated vacation data
- * @param {number} [data.employeeId] - ID of the employee
- * @param {Date} [data.startDate] - Start date of the vacation
- * @param {Date} [data.endDate] - End date of the vacation
- * @param {string} [data.status] - Status of the vacation
- * @param {number} [data.updatedBy] - ID of the user updating the record
- * @param {Date} [data.updatedOn] - Update timestamp
- * @returns {Promise<Object>} Updated vacation record
+ * Update a vacation record by ID.
+ *
+ * @param {number} id - ID of the vacation record to update.
+ * @param {Object} data - Updated vacation data.
+ * @param {number} [data.employeeId] - ID of the employee.
+ * @param {Date} [data.startDate] - Start date of the vacation.
+ * @param {Date} [data.endDate] - End date of the vacation.
+ * @param {string} [data.status] - Status of the vacation.
+ * @param {number} [data.updatedBy] - ID of the user updating the record.
+ * @param {Date} [data.updatedOn] - Update timestamp.
+ * @returns {Promise<Object>} Updated vacation record.
  */
 export const updateVacationById = async (id, data) => {
   return await prisma.vacation.update({
@@ -148,9 +151,10 @@ export const updateVacationById = async (id, data) => {
 };
 
 /**
- * Delete a vacation record by ID
- * @param {number} id - ID of the vacation record to delete
- * @returns {Promise<Object>} Deleted vacation record
+ * Delete a vacation record by ID.
+ *
+ * @param {number} id - ID of the vacation record to delete.
+ * @returns {Promise<Object>} Deleted vacation record.
  */
 export const deleteVacationById = async (id) => {
   return await prisma.vacation.delete({

@@ -20,6 +20,28 @@ const usersApi = createApi({
       }),
       providesTags: ['Users'], // Indica que este endpoint usa el tag 'Notes'
     }),
+    /**
+     * Get users by status
+     * Fetches users filtered by their status
+     * @param {string} statusCode - The statusCode to filter users by
+     * @returns {Promise} A promise that resolves to the API response
+     * 
+     * @example
+     * // Example usage:
+     * // const { data, error, isLoading } = useGetUsersByStatusQuery('active');
+     * // if (!isLoading) {
+     * //   // Handle the data
+     * // }
+     */
+    getUsersByStatus: builder.query({
+      query: (statusCode) => ({
+        url: `/users/by-status/`,
+        method: 'GET',
+        params: { statusCode },
+
+      }),
+      providesTags: ['Users'],
+    }),
     getAllUsersStatus: builder.query({
       query: () => ({
         url: `/users/status`,
@@ -78,6 +100,7 @@ const usersApi = createApi({
 // auto-generated based on the defined endpoints
 export const {
   useLazyGetAllUsersQuery,
+  useGetUsersByStatusQuery,
   useGetAllUsersStatusQuery,
   useGetAllUsersRolQuery,
   useGetAllUserPermitsQuery,

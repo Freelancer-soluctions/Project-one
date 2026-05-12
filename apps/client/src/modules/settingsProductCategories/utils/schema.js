@@ -1,17 +1,18 @@
 import { z } from 'zod';
+import { getZodMessage } from '@/utils/zod-i18n-map';
 
 export const SettingsProductCategoriesSchema = z
   .object({
     description: z.string().min(1, {
-      message: 'Category description is required.',
+      message: getZodMessage('zod.settingsProductCategories.description.empty'),
     }),
     code: z
       .string()
       .min(1, {
-        message: 'Category code is required.',
+        message: getZodMessage('zod.settingsProductCategories.code.empty'),
       })
       .max(3, {
-        message: 'Category code must be less than 3 digits.',
+        message: getZodMessage('zod.settingsProductCategories.code.maxLength'),
       }),
   })
   .passthrough(); // Permite otros campos

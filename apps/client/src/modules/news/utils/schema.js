@@ -1,9 +1,10 @@
 import { z } from 'zod';
+import { getZodMessage } from '@/utils/zod-i18n-map';
 
 export const NewsDialogSchema = z
   .object({
     description: z.string().min(1, {
-      message: 'Description is required.',
+      message: getZodMessage('zod.news.description.empty'),
     }),
     status: z.object({
       id: z.number(), // No validación de mínimo o máximo
@@ -32,7 +33,7 @@ export const NewsFiltersSchema = z
       return true;
     },
     {
-      message: 'From date must be before or equal to to date',
+      message: getZodMessage('zod.news.fdateAfterTdate'),
       path: ['fdate'],
     }
   );

@@ -124,7 +124,7 @@ export const SignInForm = () => {
       {isLoading && <Spinner />}
 
       <div>
-        <button onClick={checkState}>revisar state</button>
+        <button onClick={checkState}>{t('check_state')}</button>
       </div>
     </>
   );

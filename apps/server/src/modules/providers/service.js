@@ -5,11 +5,12 @@ import { getSafePagination } from '../../utils/pagination/pagination.js';
  * Retrieves all providers based on optional filters.
  *
  * @param {Object} params - The parameters for filtering the providers.
- * @param {string} name - The name filter.
- * @param {boolean} status - The status filter.
- * @param {number} limit - Filter by limit
- * @param {number} page - Filter by page
- * @returns {Promise<Array>} A list of providers matching the filters.
+ * @param {string} [params.name] - The name filter.
+ * @param {boolean} [params.status] - The status filter.
+ * @param {number} params.limit - Filter by limit.
+ * @param {number} params.page - Filter by page.
+ * @returns {Promise<Object>} A paginated list of providers matching the filters.
+ * @throws {Error} When pagination parameters are missing or invalid.
  */
 export const getAllProviders = async ({ name, status, limit, page }) => {
   const { take, skip } = getSafePagination({ page, limit });
@@ -17,13 +18,13 @@ export const getAllProviders = async ({ name, status, limit, page }) => {
   if (!take || take <= 0) {
     throw new Error('Pagination is required');
   }
-  return await productsDao.getAllProducts(name, status, take, skip);
+  return await productsDao.getAllProviders(name, status, take, skip);
 };
 
 /**
- * Retrieves all providers.
+ * Retrieves all providers for UI filters.
  *
- * @returns {Promise<Array>} A list of providers matching the filters.
+ * @returns {Promise<Array>} A list of all providers.
  */
 export const getAllProvidersFilters = async () => {
   return await productsDao.getAllProvidersFilters();
@@ -50,7 +51,7 @@ export const createProvider = async (userId, data) => {
     status: Boolean(data.status),
     contactName: data.contactName ? String(data.contactName) : null,
     contactEmail: data.contactEmail ? String(data.contactEmail) : null,
-    contactPhone: data.address ? String(data.contactPhone) : null,
+    contactPhone: data.contactPhone ? String(data.contactPhone) : null,
     address: data.address ? String(data.address) : null,
     createdOn: new Date(),
     createdBy: Number(userId),
@@ -65,7 +66,7 @@ export const createProvider = async (userId, data) => {
  * @param {number} userId - The ID of the user updating the provider.
  * @param {number} id - The ID of the provider to update.
  * @param {Object} data - The updated data for the provider.
- * @param {string} [data.statusCode] - The status code of the provider.
+ * @param {boolean} [data.status] - The status of the provider (active/inactive).
  * @returns {Promise<Object>} The updated provider.
  */
 export const updateById = async (userId, id, data) => {
@@ -75,7 +76,7 @@ export const updateById = async (userId, id, data) => {
     status: Boolean(data.status),
     contactName: data.contactName ? String(data.contactName) : null,
     contactEmail: data.contactEmail ? String(data.contactEmail) : null,
-    contactPhone: data.address ? String(data.contactPhone) : null,
+    contactPhone: data.contactPhone ? String(data.contactPhone) : null,
     address: data.address ? String(data.address) : null,
     updatedOn: new Date(),
     updatedBy: Number(userId),
@@ -83,6 +84,7 @@ export const updateById = async (userId, id, data) => {
 
   return productsDao.updateRow(provider, { id: rowId });
 };
+
 /**
  * Deletes a provider from the database by its ID.
  *

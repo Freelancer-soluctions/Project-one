@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { getZodMessage, getZodMinMaxMessage } from '@/utils/zod-i18n-map';
 
 const permissionSchema = z.object({
   id: z.number(),
@@ -11,46 +12,46 @@ export const UserSchema = z.object({
   user: z
     .object({
       name: z.string().min(1, {
-        message: 'User name is required.',
+        message: getZodMessage('zod.users.name.empty'),
       }),
       email: z
         .string()
         .email({
-          message: 'Invalid email format.',
+          message: getZodMessage('zod.users.email.invalid'),
         })
-        .min(1, { message: 'User email is required.' }),
+        .min(1, { message: getZodMessage('zod.users.email.empty') }),
       telephone: z.string().min(1, {
-        message: 'Telephone is required.',
+        message: getZodMessage('zod.users.telephone.empty'),
       }),
       address: z.string().optional(),
       birthday: z.union([z.date(), z.string()], {
-        message: 'Birthday date is required.',
+        message: getZodMessage('zod.users.birthday.required'),
       }),
       startDate: z.union([z.date(), z.string()], {
-        message: 'Start date is required.',
+        message: getZodMessage('zod.users.startDate.required'),
       }),
 
       socialSecurity: z
         .string()
         .min(9, {
-          message: 'Social Security must be 9 characters.',
+          message: getZodMessage('zod.users.socialSecurity.minLength'),
         })
         .max(9, {
-          message: 'Social Security must be 9 characters.',
+          message: getZodMessage('zod.users.socialSecurity.maxLength'),
         }),
       zipcode: z.string().min(5).max(9, {
-        message: 'Zipcode must be between 5 and 9 characters.',
+        message: getZodMessage('zod.users.zipcode.invalid'),
       }),
-      state: z.string().min(1, { message: 'State is required' }),
-      city: z.string().min(1, { message: 'City is required' }),
+      state: z.string().min(1, { message: getZodMessage('zod.users.state.empty') }),
+      city: z.string().min(1, { message: getZodMessage('zod.users.city.empty') }),
       isAdmin: z.boolean(),
       picture: z.string().optional(),
       document: z.string().optional(),
       status: z.custom((val) => val && val.id, {
-        message: 'Status is required',
+        message: getZodMessage('zod.users.status.required'),
       }),
       roles: z.custom((val) => val && val.id, {
-        message: 'Role is required',
+        message: getZodMessage('zod.users.roles.required'),
       }),
     })
     .passthrough(), // Permite otros campos
@@ -63,7 +64,7 @@ export const UsersFiltersSchema = z.object({
   email: z
     .string()
     .email({
-      message: 'Invalid email format.',
+      message: getZodMessage('zod.users.email.invalid'),
     })
     .optional(),
   status: z.string().optional(),

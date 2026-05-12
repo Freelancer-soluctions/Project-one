@@ -7,6 +7,7 @@ import {
   getAllUsersStatus,
   getAllUsersRoles,
   getAllUserPermits,
+  getUsersByStatus,
 } from './controller.js';
 import {
   verifyToken,
@@ -19,6 +20,7 @@ import { ROLESCODES, PERMISSIONCODES } from '../../utils/constants/enums.js';
 import {
   userFiltersSchema,
   userCreateUpdateSchema,
+  byStatusCode
 } from './schemas/users.joi.js';
 
 const router = express.Router();
@@ -272,6 +274,72 @@ router.get(
     permissions: [PERMISSIONCODES.canViewUser],
   }),
   getAllUsersRoles
+);
+
+/**
+ * @openapi
+ * /v1/users/by-status/{status}:
+ *   get:
+ *     tags:
+ *       - Users
+ *     summary: Get users by status
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: status
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: User status
+ *     responses:
+ *       200:
+ *         description: OK
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: boolean
+ *                   example: false
+ *                 statusCode:
+ *                   type: integer
+ *                   example: 200
+ *                 message:
+ *                   type: string
+ *                   example: "Some success message"
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     $ref: "#/components/schemas/ResponseGetUser"
+ *       401:
+ *         description: Unauthorized
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Unauthorized'
+ *       404:
+ *         description: Users not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       500:
+ *         description: Server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
+router.get(
+  '/by-status/',
+  checkRoleAuthOrPermisssion({
+    allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER],
+    permissions: [PERMISSIONCODES.canViewUser],
+  }),
+  validateQueryParams(byStatusCode),
+  getUsersByStatus
 );
 
 export default router;

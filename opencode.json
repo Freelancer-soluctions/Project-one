@@ -1,6 +1,5 @@
 {
   "$schema": "https://opencode.ai/config.json",
-  
   "provider": {
     "ollama-local": {
       "npm": "@ai-sdk/openai-compatible",
@@ -15,18 +14,17 @@
       }
     }
   },
-  
   "default_agent": "orchestrator",
   "agent": {
-    
     "orchestrator": {
       "mode": "primary",
-      "model": "opencode/gpt-5-nano",
+      "model": "nvidia/moonshotai/kimi-k2-thinking",
       "description": "Main orchestrator that delegates tasks to specialized agents",
       "prompt": "{file:docs/opencode/prompts/orchestrator.md}",
       "permission": {
         "task": {
           "*": "deny",
+          "spec-manager": "allow",
           "planner": "allow",
           "developer": "allow",
           "reviewer": "allow",
@@ -36,12 +34,23 @@
       "tools": {
         "write": false,
         "edit": false,
+        "bash": false
+      }
+    },
+    "spec-manager": {
+      "mode": "subagent",
+      "model": "nvidia/google/gemma-2-2b-it",
+      "description": "Executes OpenSpec CLI - explore, propose, verify, archive",
+      "prompt": "{file:docs/opencode/prompts/spec-manager.md}",
+      "tools": {
+        "write": false,
+        "edit": false,
         "bash": true
       }
     },
-     "planner": {
+    "planner": {
       "mode": "subagent",
-      "model": "opencode/qwen3.6-plus-free",
+      "model": "opencode/ring-2.6-1t-free",
       "description": "Planning specialist",
       "prompt": "{file:docs/opencode/prompts/planner.md}",
       "tools": {
@@ -50,10 +59,9 @@
         "bash": false
       }
     },
- 
-   "developer": {
+    "developer": {
       "mode": "subagent",
-      "model": "opencode/big-pickle",
+      "model": "nvidia/qwen/qwen3-coder-480b-a35b-instruct",
       "description": "Implementation agent",
       "prompt": "{file:docs/opencode/prompts/developer.md}",
       "tools": {

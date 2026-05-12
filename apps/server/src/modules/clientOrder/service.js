@@ -7,8 +7,17 @@ import {
 import { getSafePagination } from '../../utils/pagination/pagination.js';
 
 /**
- * @param {Object} filters - filters for the query
- * @returns {Promise<Array>} List of clientOrders
+ * Get all client orders with optional filters.
+ *
+ * @param {Object} filters - Optional filters for the query.
+ * @param {number} [filters.clientId] - Filter by client ID.
+ * @param {string} [filters.status] - Filter by order status (PENDING, PROCESSING, COMPLETED, CANCELLED).
+ * @param {Date} [filters.startDate] - Filter by start date.
+ * @param {Date} [filters.endDate] - Filter by end date.
+ * @param {number} filters.limit - Number of items per page.
+ * @param {number} filters.page - Page number for pagination.
+ * @returns {Promise<Object>} Paginated list of client orders with metadata.
+ * @throws {Error} When pagination parameters are missing or invalid.
  */
 export const getAllClientOrders = async (filters) => {
   const { take, skip } = getSafePagination({
@@ -23,8 +32,15 @@ export const getAllClientOrders = async (filters) => {
 };
 
 /**
- * @param {Object} data - clientOrder data
- * @returns {Promise<Object>} Created clientOrder
+ * Create a new client order.
+ *
+ * @param {Object} data - Client order data.
+ * @param {number} data.clientId - Client ID.
+ * @param {number} data.total - Total amount.
+ * @param {Array} data.details - Array of order details.
+ * @param {string} data.status - Order status (PENDING, PROCESSING, COMPLETED, CANCELLED).
+ * @param {number} data.createdBy - User ID who created the order.
+ * @returns {Promise<Object>} Created client order.
  */
 export const createClientOrder = async (data) => {
   const dataClientOrder = {
@@ -35,9 +51,14 @@ export const createClientOrder = async (data) => {
 };
 
 /**
- * @param {number} id - clientOrder ID
- * @param {Object} data - Updated clientOrder data
- * @returns {Promise<Object>} Updated clientOrder
+ * Update a client order by ID.
+ *
+ * @param {number} id - Client order ID.
+ * @param {Object} data - Updated client order data.
+ * @param {number} [data.total] - Total amount.
+ * @param {string} [data.status] - Order status (PENDING, PROCESSING, COMPLETED, CANCELLED).
+ * @param {number} data.updatedBy - User ID who updated the order.
+ * @returns {Promise<Object>} Updated client order.
  */
 export const updateClientOrderById = async (id, data) => {
   const dataClientOrder = {
@@ -48,8 +69,10 @@ export const updateClientOrderById = async (id, data) => {
 };
 
 /**
- * @param {number} id - clientOrder ID
- * @returns {Promise<Object>} Deleted clientOrder
+ * Delete a client order by ID.
+ *
+ * @param {number} id - Client order ID.
+ * @returns {Promise<Object>} Deleted client order.
  */
 export const deleteClientOrderById = async (id) => {
   return deleteClientOrderByIdDao(Number(id));

@@ -1,6 +1,8 @@
 {
   "translation": {
     "news": "News",
+    "assigned_user": "Assigned user",
+    "select_user_placeholder": "Select a user",
     "from_date": "From date",
     "to_date": "To date",
     "status": "Status",
@@ -37,29 +39,14 @@
     "english": "English",
     "spanish": "Spanish",
     "language_message_change": "The language change will be applied to the entire application",
-    "app_language": "Application language",
-    "select_language_placeholder": "Select language",
-    "welcome_back": "Welcome back",
-    "sign_in_message": "Enter your email and password to sign in.",
-    "sign_up_message": "Create your account by filling in your details, including your name, email, password, and any additional information required.",
-    "do_you_have_an_account": "Do you have an account?",
-    "dont_you_have_an_account": "Don't have an account?",
-    "sign_in": "Sign in now!",
-    "sign_up": "Sign up now!",
-    "sign_email_placeholder": "m@example.com",
-    "sign_password_placeholder": "Enter your password",
-    "remind_me": "Remind me",
-    "forgot_password": "Forgot password?",
-    "sign_in_button": "Sign in",
-    "sign_up_button": "Sign up",
-    "sign_name_placeholder": "Please enter your first name.",
-    "sign_last_name_placeholder": "Please enter your last name.",
-    "sign_confirm_password_placeholder": "Please confirm your password.",
-    "first_name": "First name",
-    "last_name": "Last name",
-    "email": "Email",
-    "password": "Password",
-    "date_of_birth": "Date of birth",
+    "language_message_change_error": "Error changing language",
+    "language_message_change_error_message": "There was an error changing the language. Please try again.",
+    "language_message_change_success": "Language changed successfully",
+    "language_message_change_success_message": "The language has been changed successfully",
+    "settings_display_success": "Display settings saved",
+    "settings_display_success_message": "Your display preferences have been updated successfully",
+    "settings_display_error": "Error saving display settings",
+    "settings_display_error_message": "There was an error saving your display preferences. Please try again.",
     "settings": "Settings",
     "settings_preferences_message": "Manage your account and module settings.",
     "profile": "Profile",
@@ -73,7 +60,7 @@
     "edit_note": "Edit note",
     "title": "Title",
     "title_placeholder": "Enter the title",
-    "content_placeholder": "Enter the content",
+    "content_placeholder": "Enter the content message, use @ to mention anyone",
     "create_note": "Create note",
     "note": "Note",
     "news_card_msg": "Relevant news",
@@ -142,8 +129,6 @@
     "saved_successfully": "Saved successfully",
     "providers_card_msg": "Register and manage your providers effortlessly.",
     "provider_name_placeholder": "Enter the provider name",
-    "edit_provider": "Edit provider",
-    "add_provider": "Add provider",
     "contact_name": "Contact name",
     "contact_name_placeholder": "Enter the contact name",
     "contact_email": "Contact email",
@@ -165,7 +150,6 @@
     "code": "Code",
     "product_category_information": "Product Category Information",
     "product_category_basic_information_msg": "Enter the basic product category information.",
-
     "warehouse": "Warehouse",
     "warehouse_management": "Warehouse Management",
     "warehouse_name_placeholder": "Enter the warehouse name",
@@ -196,14 +180,6 @@
     "total_cost": "Total cost",
     "expiration_status": "Expiration status",
     "unitMeasure": "Unit measure",
-    "language_message_change_error": "Error changing language",
-    "language_message_change_error_message": "There was an error changing the language. Please try again.",
-    "settings_display_success": "Display settings saved",
-    "settings_display_success_message": "Your display preferences have been updated successfully",
-    "settings_display_error": "Error saving display settings",
-    "settings_display_error_message": "There was an error saving your display preferences. Please try again.",
-    "language_message_change_success": "Language changed successfully",
-    "language_message_change_success_message": "The language has been changed successfully",
     "select_type": "Select type",
     "update": "Update",
     "stock_alerts": "Stock Alerts",
@@ -221,7 +197,6 @@
     "employees": "Employees",
     "employees_card_msg": "Manage your employees efficiently.",
     "attendance": "Attendance",
-    "attendance_card_msg": "Manage your attendance efficiently.",
     "performanceEvaluation": "Performance Evaluation",
     "performanceEvaluation_card_msg": "Manage your performance evaluation efficiently.",
     "vacations": "Vacations",
@@ -283,18 +258,6 @@
     "user_state_placeholder": "Enter state",
     "city": "City",
     "user_city_placeholder": "Enter city",
-    "is_admin": "Is Admin",
-    "picture": "Picture",
-    "user_picture_placeholder": "Enter picture URL",
-    "user_document_placeholder": "Enter document number",
-    "role_id": "Role ID",
-    "user_role_id_placeholder": "Enter role ID",
-    "status_id": "Status ID",
-    "user_status_id_placeholder": "Enter status ID",
-    "user_permit_id": "User Permit ID",
-    "user_permit_id_placeholder": "Enter user permit ID",
-    "user_permits": "User permits",
-    "edit_users": "Edit users",
     "social_security": "Social Security",
     "user_information": "User information",
     "user_basic_information_msg": "Enter the basic user information.",
@@ -377,6 +340,479 @@
     "add_permission_message": "Fill in the required fields to create a new permission record. Ensure all necessary information is entered correctly.",
     "edit_permission_message": "Make the necessary changes to the permission record. Ensure the information is accurate before saving.",
     "permission_reason_placeholder": "Enter the permission reason",
-    "permission_comments_placeholder": "Enter the permission comments"
+    "permission_comments_placeholder": "Enter the permission comments",
+    "content": "Content",
+    "zod": {
+      "auth": {
+        "email": {
+          "empty": "Email is required.",
+          "invalid": "Invalid email format."
+        },
+        "password": {
+          "empty": "Password is required.",
+          "minLength": "Password must be at least {{count}} characters.",
+          "maxLength": "Password must be at most {{count}} characters."
+        }
+      },
+      "users": {
+        "name": {
+          "empty": "User name is required."
+        },
+        "email": {
+          "empty": "Email is required.",
+          "invalid": "Invalid email format."
+        },
+        "telephone": {
+          "empty": "Telephone is required."
+        },
+        "birthday": {
+          "required": "Birthday is required."
+        },
+        "startDate": {
+          "required": "Start date is required."
+        },
+        "socialSecurity": {
+          "minLength": "Social Security must be at least {{count}} characters.",
+          "maxLength": "Social Security must be at most {{count}} characters."
+        },
+        "zipcode": {
+          "invalid": "Invalid zip code format."
+        },
+        "state": {
+          "empty": "State is required."
+        },
+        "city": {
+          "empty": "City is required."
+        },
+        "status": {
+          "required": "Status is required."
+        },
+        "roles": {
+          "required": "Role is required."
+        }
+      },
+      "products": {
+        "sku": {
+          "empty": "SKU is required."
+        },
+        "name": {
+          "maxLength": "Product name must be at most {{count}} characters.",
+          "empty": "Product name is required."
+        },
+        "category": {
+          "required": "Category is required."
+        },
+        "status": {
+          "required": "Status is required."
+        },
+        "provider": {
+          "required": "Provider is required."
+        },
+        "price": {
+          "empty": "Price is required.",
+          "positive": "Price must be a positive number.",
+          "multipleOf": "Price must be in valid monetary format."
+        },
+        "cost": {
+          "empty": "Cost is required.",
+          "positive": "Cost must be a positive number.",
+          "multipleOf": "Cost must be in valid monetary format."
+        },
+        "attributes": {
+          "name": {
+            "empty": "Attribute name is required.",
+            "maxLength": "Attribute name must be at most {{count}} characters."
+          },
+          "description": {
+            "empty": "Attribute description is required.",
+            "maxLength": "Attribute description must be at most {{count}} characters."
+          },
+          "minItems": "At least one attribute is required."
+        }
+      },
+      "providers": {
+        "name": {
+          "empty": "Provider name is required."
+        },
+        "status": {
+          "required": "Status is required."
+        }
+      },
+      "warehouse": {
+        "name": {
+          "empty": "Warehouse name is required."
+        },
+        "status": {
+          "empty": "Status is required."
+        }
+      },
+      "stock": {
+        "quantity": {
+          "empty": "Quantity is required.",
+          "integer": "Quantity must be an integer.",
+          "min": "Quantity must be at least {{count}}."
+        },
+        "minimum": {
+          "empty": "Minimum quantity is required.",
+          "integer": "Minimum quantity must be an integer.",
+          "min": "Minimum quantity must be at least {{count}}."
+        },
+        "maximum": {
+          "empty": "Maximum quantity is required.",
+          "integer": "Maximum quantity must be an integer.",
+          "min": "Maximum quantity must be at least {{count}}."
+        },
+        "lot": {
+          "maxLength": "Lot number must be at most {{count}} characters."
+        },
+        "unitMeasure": {
+          "empty": "Unit measure is required.",
+          "invalid": "Invalid unit measure."
+        },
+        "expirationDate": {
+          "invalid": "Invalid expiration date."
+        },
+        "productId": {
+          "empty": "Product is required."
+        },
+        "warehouseId": {
+          "empty": "Warehouse is required."
+        },
+        "minimumGreaterThanMaximum": "Minimum quantity cannot be greater than maximum quantity.",
+        "quantityGreaterThanMaximum": "Quantity cannot be greater than maximum quantity."
+      },
+      "sales": {
+        "clientId": {
+          "empty": "Client is required."
+        },
+        "total": {
+          "empty": "Total is required.",
+          "integer": "Total must be an integer.",
+          "min": "Total must be at least {{count}}."
+        },
+        "details": {
+          "productId": {
+            "empty": "Product is required."
+          },
+          "quantity": {
+            "empty": "Quantity is required.",
+            "integer": "Quantity must be an integer.",
+            "min": "Quantity must be at least {{count}}."
+          },
+          "price": {
+            "empty": "Price is required.",
+            "integer": "Price must be an integer.",
+            "min": "Price must be at least {{count}}."
+          }
+        },
+        "fromDateAfterToDate": "From date cannot be after to date.",
+        "minTotalGreaterThanMaxTotal": "Minimum total cannot be greater than maximum total."
+      },
+      "purchase": {
+        "providerId": {
+          "empty": "Provider is required."
+        },
+        "total": {
+          "empty": "Total is required.",
+          "integer": "Total must be an integer.",
+          "min": "Total must be at least {{count}}."
+        },
+        "details": {
+          "productId": {
+            "empty": "Product is required."
+          },
+          "quantity": {
+            "empty": "Quantity is required.",
+            "integer": "Quantity must be an integer.",
+            "min": "Quantity must be at least {{count}}."
+          },
+          "price": {
+            "empty": "Price is required.",
+            "integer": "Price must be an integer.",
+            "min": "Price must be at least {{count}}."
+          }
+        },
+        "fromDateAfterToDate": "From date cannot be after to date.",
+        "minTotalGreaterThanMaxTotal": "Minimum total cannot be greater than maximum total."
+      },
+      "clients": {
+        "name": {
+          "empty": "Client name is required."
+        },
+        "email": {
+          "invalid": "Invalid email format."
+        },
+        "phone": {
+          "empty": "Phone is required."
+        },
+        "address": {
+          "empty": "Address is required."
+        }
+      },
+      "employees": {
+        "name": {
+          "empty": "Employee name is required."
+        },
+        "lastName": {
+          "empty": "Last name is required."
+        },
+        "dni": {
+          "empty": "DNI is required."
+        },
+        "email": {
+          "invalid": "Invalid email format."
+        },
+        "startDate": {
+          "required": "Start date is required."
+        },
+        "position": {
+          "empty": "Position is required."
+        },
+        "department": {
+          "empty": "Department is required."
+        },
+        "salary": {
+          "empty": "Salary is required."
+        }
+      },
+      "events": {
+        "title": {
+          "empty": "Event title is required."
+        },
+        "description": {
+          "empty": "Description is required."
+        },
+        "speaker": {
+          "empty": "Speaker is required."
+        },
+        "startTime": {
+          "empty": "Start time is required."
+        },
+        "endTime": {
+          "empty": "End time is required."
+        },
+        "eventDate": {
+          "invalid": "Invalid event date."
+        },
+        "type": {
+          "empty": "Event type is required."
+        }
+      },
+      "payroll": {
+        "employeeId": {
+          "required": "Employee is required.",
+          "positive": "Employee ID must be positive."
+        },
+        "month": {
+          "required": "Month is required.",
+          "invalid": "Invalid month."
+        },
+        "year": {
+          "required": "Year is required.",
+          "min": "Year must be at least {{count}}.",
+          "max": "Year must be at most {{count}}."
+        },
+        "baseSalary": {
+          "required": "Base salary is required.",
+          "positive": "Base salary must be positive."
+        },
+        "extraHours": {
+          "invalid": "Invalid extra hours value.",
+          "nonnegative": "Extra hours must be non-negative."
+        },
+        "deductions": {
+          "invalid": "Invalid deductions value.",
+          "nonnegative": "Deductions must be non-negative."
+        },
+        "totalPayment": {
+          "required": "Total payment is required.",
+          "positive": "Total payment must be positive."
+        }
+      },
+      "performanceEvaluation": {
+        "employeeId": {
+          "required": "Employee is required.",
+          "positive": "Employee ID must be positive."
+        },
+        "date": {
+          "required": "Evaluation date is required."
+        },
+        "calification": {
+          "required": "Calification is required.",
+          "min": "Calification must be at least {{count}}.",
+          "max": "Calification must be at most {{count}}."
+        },
+        "comments": {
+          "maxLength": "Comments must be at most {{count}} characters."
+        }
+      },
+      "permission": {
+        "employeeId": {
+          "required": "Employee is required.",
+          "positive": "Employee ID must be positive."
+        },
+        "type": {
+          "required": "Permission type is required."
+        },
+        "startDate": {
+          "required": "Start date is required."
+        },
+        "endDate": {
+          "required": "End date is required."
+        },
+        "reason": {
+          "empty": "Reason is required.",
+          "maxLength": "Reason must be at most {{count}} characters."
+        },
+        "comments": {
+          "maxLength": "Comments must be at most {{count}} characters."
+        }
+      },
+      "vacation": {
+        "employeeId": {
+          "required": "Employee is required.",
+          "positive": "Employee ID must be positive."
+        },
+        "startDate": {
+          "required": "Start date is required."
+        },
+        "endDate": {
+          "required": "End date is required."
+        }
+      },
+      "attendance": {
+        "employeeId": {
+          "required": "Employee is required.",
+          "positive": "Employee ID must be positive."
+        },
+        "date": {
+          "required": "Date is required."
+        },
+        "entryTime": {
+          "invalid": "Invalid entry time."
+        },
+        "exitTime": {
+          "invalid": "Invalid exit time."
+        },
+        "workedHours": {
+          "required": "Worked hours are required.",
+          "positive": "Worked hours must be positive."
+        }
+      },
+      "inventoryMovement": {
+        "productId": {
+          "empty": "Product is required."
+        },
+        "warehouseId": {
+          "empty": "Warehouse is required."
+        },
+        "quantity": {
+          "positive": "Quantity must be positive."
+        },
+        "type": {
+          "required": "Movement type is required."
+        }
+      },
+      "providerOrder": {
+        "supplierId": {
+          "required": "Supplier is required."
+        }
+      },
+      "clientOrder": {
+        "clientId": {
+          "empty": "Client is required."
+        }
+      },
+      "news": {
+        "description": {
+          "empty": "Description is required."
+        },
+        "fdateAfterTdate": "From date cannot be after to date."
+      },
+      "expenses": {
+        "description": {
+          "empty": "Expense description is required."
+        },
+        "total": {
+          "required": "Total is required.",
+          "invalid": "Total must be a number.",
+          "positive": "Total must be a positive number."
+        },
+        "category": {
+          "empty": "Expense category is required."
+        }
+      },
+      "notes": {
+        "title": {
+          "empty": "Title is required."
+        },
+        "content": {
+          "empty": "Content note is required."
+        }
+      },
+      "settingsProductCategories": {
+        "description": {
+          "empty": "Category description is required."
+        },
+        "code": {
+          "empty": "Category code is required.",
+          "maxLength": "Category code must be less than 3 digits."
+        }
+      },
+      "errors": {
+        "required": "{{path}} is required",
+        "invalid_type": "Expected {{expected}}",
+        "received": "{{received}} for {{path}}",
+        "too_small": {
+          "string": "String must be at least {{minimum}} characters",
+          "number": "Number must be at least {{minimum}}",
+          "array": "Array must contain at least {{minimum}} items"
+        },
+        "too_big": {
+          "string": "String must be at most {{maximum}} characters",
+          "number": "Number must be at most {{maximum}}",
+          "array": "Array must contain at most {{maximum}} items"
+        },
+        "custom": "Custom validation error",
+        "default": "Invalid input"
+      }
+    },
+    "app_language": "Application language",
+    "select_language_placeholder": "Select language",
+    "welcome_back": "Welcome back",
+    "sign_in_message": "Enter your email and password to sign in.",
+    "sign_up_message": "Create your account by filling in your details, including your name, email, password, and any additional information required.",
+    "do_you_have_an_account": "Do you have an account?",
+    "dont_you_have_an_account": "Don't have an account?",
+    "sign_in": "Sign in now!",
+    "sign_up": "Sign up now!",
+    "sign_email_placeholder": "m@example.com",
+    "sign_password_placeholder": "Enter your password",
+    "remind_me": "Remind me",
+    "forgot_password": "Forgot password?",
+    "sign_in_button": "Sign in",
+    "sign_name_placeholder": "Please enter your first name.",
+    "sign_last_name_placeholder": "Please enter your last name.",
+    "sign_confirm_password_placeholder": "Please confirm your password",
+    "first_name": "First name",
+    "last_name": "Last name",
+    "email": "Email",
+    "password": "Password",
+    "date_of_birth": "Date of birth",
+    "edit_provider": "Edit provider",
+    "add_provider": "Add provider",
+    "attendance_card_msg": "Manage your attendance efficiently.",
+    "is_admin": "Is Admin",
+    "picture": "Picture",
+    "user_picture_placeholder": "Enter picture URL",
+    "user_document_placeholder": "Enter document number",
+    "role_id": "Role ID",
+    "user_role_id_placeholder": "Enter role ID",
+    "status_id": "Status ID",
+    "user_status_id_placeholder": "Enter status ID",
+    "user_permit_id": "User Permit ID",
+    "user_permit_id_placeholder": "Enter user permit ID",
+    "user_permits": "User permits",
+    "edit_users": "Edit users"
   }
 }

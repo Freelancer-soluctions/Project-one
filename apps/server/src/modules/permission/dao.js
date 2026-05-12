@@ -1,16 +1,17 @@
 import { prisma, Prisma } from '../../config/db.js';
 
 /**
- * @description Retrieve permissions from the database with optional filters
- * @param {Object} filters - Filter criteria
- * @param {number} [filters.employeeId] - Filter by employee ID
- * @param {string} [filters.type] - Filter by permission type (SICK, PERSONAL, MATERNITY, PATERNITY, OTHER)
- * @param {string} [filters.status] - Filter by status (PENDING, APPROVED, REJECTED)
- * @param {string} [filters.fromDate] - Filter by start date (ISO format)
- * @param {string} [filters.toDate] - Filter by end date (ISO format)
- * @param {number} take- take to filter by
- * @param {number} skip - skip to filter by
- * @returns {Promise<Array>} List of permissions with related employee and approver data
+ * Get all permissions with optional filters.
+ *
+ * @param {Object} filters - Filter parameters.
+ * @param {number} [filters.employeeId] - Filter by employee ID.
+ * @param {string} [filters.type] - Filter by permission type (SICK, PERSONAL, MATERNITY, PATERNITY, OTHER).
+ * @param {string} [filters.status] - Filter by status (PENDING, APPROVED, REJECTED).
+ * @param {string} [filters.fromDate] - Filter by start date (ISO format).
+ * @param {string} [filters.toDate] - Filter by end date (ISO format).
+ * @param {number} take - Number of records to retrieve.
+ * @param {number} skip - Number of records to skip.
+ * @returns {Promise<Object>} Object containing dataList and total count.
  */
 export const getAllPermissions = async (filters, take, skip) => {
   const whereClauses = [];
@@ -98,17 +99,18 @@ export const getAllPermissions = async (filters, take, skip) => {
 };
 
 /**
- * @description Create a new permission record in the database
- * @param {Object} data - Permission data
- * @param {number} data.employeeId - Employee ID
- * @param {string} data.type - Permission type (SICK, PERSONAL, MATERNITY, PATERNITY, OTHER)
- * @param {string} data.startDate - Start date (ISO format)
- * @param {string} data.endDate - End date (ISO format)
- * @param {string} data.reason - Reason for permission
- * @param {string} [data.status] - Permission status (defaults to PENDING)
- * @param {number} [data.approvedBy] - ID of user who approved/rejected
- * @param {string} [data.comments] - Additional comments
- * @returns {Promise<Object>} Created permission record with related data
+ * Create a new permission record.
+ *
+ * @param {Object} data - Permission data.
+ * @param {number} data.employeeId - Employee ID.
+ * @param {string} data.type - Permission type (SICK, PERSONAL, MATERNITY, PATERNITY, OTHER).
+ * @param {string} data.startDate - Start date (ISO format).
+ * @param {string} data.endDate - End date (ISO format).
+ * @param {string} data.reason - Reason for permission.
+ * @param {string} [data.status] - Permission status (defaults to PENDING).
+ * @param {number} [data.approvedBy] - ID of user who approved/rejected.
+ * @param {string} [data.comments] - Additional comments.
+ * @returns {Promise<Object>} Created permission record with related data.
  */
 export const createPermission = async (data) => {
   return await prisma.permission.create({
@@ -134,18 +136,19 @@ export const createPermission = async (data) => {
 };
 
 /**
- * @description Update an existing permission record in the database
- * @param {number|string} id - Permission ID
- * @param {Object} data - Updated permission data
- * @param {number} [data.employeeId] - Employee ID
- * @param {string} [data.type] - Permission type
- * @param {string} [data.startDate] - Start date (ISO format)
- * @param {string} [data.endDate] - End date (ISO format)
- * @param {string} [data.reason] - Reason for permission
- * @param {string} [data.status] - Permission status
- * @param {number} [data.approvedBy] - ID of user who approved/rejected
- * @param {string} [data.comments] - Additional comments
- * @returns {Promise<Object>} Updated permission record with related data
+ * Update a permission record by ID.
+ *
+ * @param {number|string} id - Permission ID.
+ * @param {Object} data - Updated permission data.
+ * @param {number} [data.employeeId] - Employee ID.
+ * @param {string} [data.type] - Permission type.
+ * @param {string} [data.startDate] - Start date (ISO format).
+ * @param {string} [data.endDate] - End date (ISO format).
+ * @param {string} [data.reason] - Reason for permission.
+ * @param {string} [data.status] - Permission status.
+ * @param {number} [data.approvedBy] - ID of user who approved/rejected.
+ * @param {string} [data.comments] - Additional comments.
+ * @returns {Promise<Object>} Updated permission record with related data.
  */
 export const updatePermissionById = async (id, data) => {
   return await prisma.permission.update({
@@ -172,10 +175,10 @@ export const updatePermissionById = async (id, data) => {
 };
 
 /**
- * @description Delete a permission record from the database
- * @param {number|string} id - Permission ID
- * @returns {Promise<Object>} Deleted permission record with related data
- * @throws {Error} If permission not found or cannot be deleted
+ * Delete a permission record by ID.
+ *
+ * @param {number|string} id - Permission ID.
+ * @returns {Promise<Object>} Deleted permission record.
  */
 export const deletePermissionById = async (id) => {
   return await prisma.permission.delete({

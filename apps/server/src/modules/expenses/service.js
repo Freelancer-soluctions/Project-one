@@ -8,10 +8,17 @@ import {
 import { getSafePagination } from '../../utils/pagination/pagination.js';
 
 /**
- * Get all expenses with optional filters
- * @param {Object} filters - Optional filters for the query
- * @returns {Promise<Array>} List of expenses
- * @async
+ * Retrieves all expenses based on optional filters.
+ *
+ * @param {Object} filters - The parameters for filtering the expenses.
+ * @param {string} [filters.category] - Filter by expense category.
+ * @param {string} [filters.status] - Filter by expense status (PENDING, APPROVED, REJECTED, PAID).
+ * @param {Date} [filters.startDate] - Filter by start date.
+ * @param {Date} [filters.endDate] - Filter by end date.
+ * @param {number} filters.limit - Filter by limit.
+ * @param {number} filters.page - Filter by page.
+ * @returns {Promise<Object>} A paginated list of expenses matching the filters.
+ * @throws {Error} When pagination parameters are missing or invalid.
  */
 export const getAllExpenses = async (filters) => {
   const { take, skip } = getSafePagination({
@@ -26,10 +33,15 @@ export const getAllExpenses = async (filters) => {
 };
 
 /**
- * Create a new expense
- * @param {Object} data - Expense data (description, total, category, status, createdBy)
- * @returns {Promise<Object>} Created expense
- * @async
+ * Creates a new expense in the database.
+ *
+ * @param {Object} data - The data for the new expense.
+ * @param {string} data.description - The description of the expense.
+ * @param {number} data.total - The total amount of the expense.
+ * @param {string} data.category - The category of the expense.
+ * @param {string} data.status - The status of the expense (PENDING, APPROVED, REJECTED, PAID).
+ * @param {number} userId - The ID of the user creating the expense.
+ * @returns {Promise<Object>} The created expense.
  */
 export const createExpense = async (data, userId) => {
   const expenseData = {
@@ -41,11 +53,16 @@ export const createExpense = async (data, userId) => {
 };
 
 /**
- * Update an expense by ID
- * @param {string} id - Expense ID (cuid string)
- * @param {Object} data - Updated expense data (description, total, category, status, updatedBy)
- * @returns {Promise<Object>} Updated expense
- * @async
+ * Updates an existing expense in the database by its ID.
+ *
+ * @param {string} id - The ID of the expense to update.
+ * @param {Object} data - The updated data for the expense.
+ * @param {string} [data.description] - The description of the expense.
+ * @param {number} [data.total] - The total amount of the expense.
+ * @param {string} [data.category] - The category of the expense.
+ * @param {string} [data.status] - The status of the expense (PENDING, APPROVED, REJECTED, PAID).
+ * @param {number} userId - The ID of the user updating the expense.
+ * @returns {Promise<Object>} The updated expense.
  */
 export const updateExpenseById = async (id, data, userId) => {
   const expenseData = {
@@ -58,10 +75,10 @@ export const updateExpenseById = async (id, data, userId) => {
 };
 
 /**
- * Delete an expense by ID
- * @param {string} id - Expense ID (cuid string)
- * @returns {Promise<Object>} Result of the delete operation
- * @async
+ * Deletes an expense from the database by its ID.
+ *
+ * @param {string} id - The ID of the expense to delete.
+ * @returns {Promise<Object>} The result of the deletion.
  */
 export const deleteExpenseById = async (id) => {
   // ID is already a string, no Number() conversion needed for CUID

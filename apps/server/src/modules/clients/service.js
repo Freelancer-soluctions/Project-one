@@ -8,9 +8,16 @@ import {
 import { getSafePagination } from '../../utils/pagination/pagination.js';
 
 /**
- * Get all clients with optional filters
- * @param {Object} filters - filters for the query
- * @returns {Promise<Array>} List of clients
+ * Get all clients with optional filters.
+ *
+ * @param {Object} filters - Filters for the query.
+ * @param {number} [filters.page] - Page number for pagination.
+ * @param {number} [filters.limit] - Number of items per page.
+ * @param {string} [filters.name] - Filter by client name.
+ * @param {string} [filters.email] - Filter by client email.
+ * @param {string} [filters.phone] - Filter by client phone.
+ * @returns {Promise<Object>} Paginated list of clients with metadata.
+ * @throws {Error} When pagination parameters are missing or invalid.
  */
 export const getAllClients = async (filters) => {
   const { take, skip } = getSafePagination({
@@ -25,17 +32,24 @@ export const getAllClients = async (filters) => {
 };
 
 /**
- * Get all clients.
- * @returns {Promise<Array>} List of clients
+ * Get all clients for UI filters.
+ *
+ * @returns {Promise<Array>} List of all clients.
  */
 export const getAllClientsFilters = async () => {
   return getAllClientsFiltersDao();
 };
 
 /**
- * Create a new client
- * @param {Object} data - Client data
- * @returns {Promise<Object>} Created client
+ * Create a new client.
+ *
+ * @param {Object} data - Client data.
+ * @param {string} data.name - Client name.
+ * @param {string} data.email - Client email address.
+ * @param {string} data.phone - Client phone number.
+ * @param {string} data.address - Client address.
+ * @param {number} data.createdBy - User ID who created the client.
+ * @returns {Promise<Object>} Created client.
  */
 export const createClient = async (data) => {
   const dataClient = {
@@ -46,10 +60,16 @@ export const createClient = async (data) => {
 };
 
 /**
- * Update a client by ID
- * @param {number} id - Client ID
- * @param {Object} data - Updated client data
- * @returns {Promise<Object>} Updated client
+ * Update a client by ID.
+ *
+ * @param {number} id - Client ID.
+ * @param {Object} data - Updated client data.
+ * @param {string} [data.name] - Client name.
+ * @param {string} [data.email] - Client email address.
+ * @param {string} [data.phone] - Client phone number.
+ * @param {string} [data.address] - Client address.
+ * @param {number} data.updatedBy - User ID who updated the client.
+ * @returns {Promise<Object>} Updated client.
  */
 export const updateClientById = async (id, data) => {
   const dataClient = {
@@ -60,9 +80,10 @@ export const updateClientById = async (id, data) => {
 };
 
 /**
- * Delete a client by ID
- * @param {number} id - Client ID
- * @returns {Promise<Object>} Deleted client
+ * Delete a client by ID.
+ *
+ * @param {number} id - Client ID.
+ * @returns {Promise<Object>} Deleted client.
  */
 export const deleteClientById = async (id) => {
   return deleteClientByIdDao(Number(id));

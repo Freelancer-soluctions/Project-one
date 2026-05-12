@@ -1,13 +1,13 @@
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
-import { LuTrash2, LuPencil, LuUsers } from 'react-icons/lu';
+import { LuTrash2, LuPencil, LuUsers, LuAtSign } from 'react-icons/lu';
 import { Button } from '@/components/ui/button';
 import { useState } from 'react';
 import { NotesEditDialog } from './NotesEditDialog';
-import { NotesColor, highlightMentions } from '../utils/index';
 import { useTranslation } from 'react-i18next';
 import { format } from 'date-fns';
 import PropTypes from 'prop-types';
+import { NotesColor } from '../utils';
 import { useGetMentionsByNoteIdQuery } from '../api/notesAPI';
 
 export function NotesCard({ note, onDragStart, onDelete, onEdit, columnCode }) {
@@ -15,15 +15,15 @@ export function NotesCard({ note, onDragStart, onDelete, onEdit, columnCode }) {
   const { t } = useTranslation();
 
   // Fetch mentions for this note if it has mentions
-  const { data: mentions = [] } = useGetMentionsByNoteIdQuery(note.id, {
-    skip: !note.hasMentions,
-  });
+  // const { data: mentions = [] } = useGetMentionsByNoteIdQuery(note.id, {
+  //   skip: !note.hasMentions,
+  // });
 
-  const handleMentionClick = (user) => {
-    // Navigate to user profile or show user details
-    console.log('Mention clicked:', user);
-    // TODO: Implement navigation to user profile
-  };
+  // const handleMentionClick = (user) => {
+  //   // Navigate to user profile or show user details
+  //   console.log('Mention clicked:', user);
+  //   // TODO: Implement navigation to user profile
+  // };
 
   return (
     <>
@@ -50,15 +50,7 @@ export function NotesCard({ note, onDragStart, onDelete, onEdit, columnCode }) {
         >
           {note.title}
           <div className="flex gap-1 transition-opacity opacity-0 group-hover:opacity-100">
-            {note.hasMentions && (
-              <div
-                className="flex items-center gap-1 text-xs text-blue-600 bg-blue-50 px-2 py-1 rounded"
-                title={`${mentions.length} mention(s)`}
-              >
-                <LuAtSign className="w-3 h-3" />
-                <span>{mentions.length}</span>
-              </div>
-            )}
+        
             <Button
               variant="ghost"
               size="icon"
@@ -84,9 +76,9 @@ export function NotesCard({ note, onDragStart, onDelete, onEdit, columnCode }) {
           </div>
         </CardHeader>
         <CardContent className="p-3 pt-0">
-          <p className="text-sm text-gray-600">
+          {/* <p className="text-sm text-gray-600">
             {highlightMentions(note.content, mentions, handleMentionClick)}
-          </p>
+          </p> */}
           <p className="text-sm text-gray-600">
             {t('created_on')}: {format(note.createdOn, 'PPP')}
           </p>

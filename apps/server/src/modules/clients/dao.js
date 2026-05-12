@@ -1,14 +1,15 @@
 import { prisma, Prisma } from '../../config/db.js';
 
 /**
- * Get all clients with optional filters
- * @param {Object} filters - filters for the query
- * @param {string} [filters.name] - Filter by client name
- * @param {string} [filters.email] - Filter by client email
- * @param {string} [filters.phone] - Filter by client phone
- * @param {number} take- take to filter by
- * @param {number} skip - skip to filter by
- * @returns {Promise<Array>} List of clients with their related data
+ * Get all clients with optional filters.
+ *
+ * @param {Object} filters - Filter parameters.
+ * @param {string} [filters.name] - Filter by client name.
+ * @param {string} [filters.email] - Filter by client email.
+ * @param {string} [filters.phone] - Filter by client phone.
+ * @param {number} take - Number of records to retrieve.
+ * @param {number} skip - Number of records to skip.
+ * @returns {Promise<Object>} Object containing dataList and total count.
  */
 export const getAllClients = async (filters = {}, take, skip) => {
   const whereClauses = [];
@@ -37,7 +38,7 @@ export const getAllClients = async (filters = {}, take, skip) => {
    ORDER BY c."createdOn" DESC
    LIMIT ${take}
    OFFSET ${skip}
- `;
+  `;
 
   const total = await prisma.clients.count({
     where: {
@@ -61,8 +62,9 @@ export const getAllClients = async (filters = {}, take, skip) => {
 };
 
 /**
- * Get all clients.
- * @returns {Promise<Array>} List of clients with their related data
+ * Get all clients for UI filters.
+ *
+ * @returns {Promise<Array>} List of all clients.
  */
 
 export const getAllClientsFilters = async () => {
@@ -70,14 +72,15 @@ export const getAllClientsFilters = async () => {
 };
 
 /**
- * Create a new client
- * @param {Object} data - Client data
- * @param {string} data.name - Client name
- * @param {string} data.email - Client email
- * @param {string} data.phone - Client phone
- * @param {string} data.address - Client address
- * @param {number} data.createdBy - User ID who created the client
- * @returns {Promise<Object>} Created client with related data
+ * Create a new client.
+ *
+ * @param {Object} data - Client data.
+ * @param {string} data.name - Client name.
+ * @param {string} data.email - Client email.
+ * @param {string} data.phone - Client phone.
+ * @param {string} data.address - Client address.
+ * @param {number} data.createdBy - User ID who created the client.
+ * @returns {Promise<Object>} Created client with related data.
  */
 export const createClient = async (data) => {
   return prisma.clients.create({
@@ -97,15 +100,16 @@ export const createClient = async (data) => {
 };
 
 /**
- * Update a client by ID
- * @param {number} id - Client ID
- * @param {Object} data - Updated client data
- * @param {string} [data.name] - Client name
- * @param {string} [data.email] - Client email
- * @param {string} [data.phone] - Client phone
- * @param {string} [data.address] - Client address
- * @param {number} data.updatedBy - User ID who updated the client
- * @returns {Promise<Object>} Updated client with related data
+ * Update a client by ID.
+ *
+ * @param {number} id - Client ID.
+ * @param {Object} data - Updated client data.
+ * @param {string} [data.name] - Client name.
+ * @param {string} [data.email] - Client email.
+ * @param {string} [data.phone] - Client phone.
+ * @param {string} [data.address] - Client address.
+ * @param {number} data.updatedBy - User ID who updated the client.
+ * @returns {Promise<Object>} Updated client with related data.
  */
 export const updateClientById = async (id, data) => {
   return prisma.clients.update({
@@ -126,9 +130,10 @@ export const updateClientById = async (id, data) => {
 };
 
 /**
- * Delete a client by ID
- * @param {number} id - Client ID
- * @returns {Promise<Object>} Deleted client
+ * Delete a client by ID.
+ *
+ * @param {number} id - Client ID.
+ * @returns {Promise<Object>} Deleted client.
  */
 export const deleteClientById = async (id) => {
   return prisma.clients.delete({

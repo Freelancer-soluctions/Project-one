@@ -4,17 +4,18 @@ import { hashValue } from '../../common/crypto/index.js';
 import { decryptResults } from '../../utils/prisma/prisma-query.js';
 
 /**
- * Get all employees with optional filters
- * @param {Object} filters - filters for the query
- * @param {string} [filters.name] - Filter by employee name
- * @param {string} [filters.lastName] - Filter by employee last name
- * @param {string} [filters.dni] - Filter by employee DNI
- * @param {string} [filters.email] - Filter by employee email
- * @param {string} [filters.department] - Filter by employee department
- * @param {string} [filters.position] - Filter by employee position
- * @param {number} take- take to filter by
- * @param {number} skip - skip to filter by
- * @returns {Promise<Array>} List of employees with their related data
+ * Get all employees with optional filters.
+ *
+ * @param {Object} filters - Filter parameters.
+ * @param {string} [filters.name] - Filter by employee name.
+ * @param {string} [filters.lastName] - Filter by employee last name.
+ * @param {string} [filters.dni] - Filter by employee DNI.
+ * @param {string} [filters.email] - Filter by employee email.
+ * @param {string} [filters.department] - Filter by employee department.
+ * @param {string} [filters.position] - Filter by employee position.
+ * @param {number} take - Number of records to retrieve.
+ * @param {number} skip - Number of records to skip.
+ * @returns {Promise<Object>} Object containing dataList and total count.
  */
 export const getAllEmployees = async (filters = {}, take, skip) => {
   const whereClauses = [];
@@ -122,28 +123,30 @@ export const getAllEmployees = async (filters = {}, take, skip) => {
 };
 
 /**
- * Get all employees to ui filters
- * @returns {Promise<Array>} List of employees with their related data
+ * Get all employees for UI filters.
+ *
+ * @returns {Promise<Array>} List of all employees.
  */
 export const getAllEmployeesFilters = async () => {
   return await prisma.employees.findMany();
 };
 
 /**
- * Create a new employee
- * @param {Object} data - Employee data
- * @param {string} data.name - Employee name
- * @param {string} data.lastName - Employee last name
- * @param {string} data.dni - Employee DNI
- * @param {string} data.email - Employee email
- * @param {string} [data.phone] - Employee phone
- * @param {string} [data.address] - Employee address
- * @param {Date} data.startDate - Employee start date
- * @param {string} data.position - Employee position
- * @param {string} data.department - Employee department
- * @param {number} data.salary - Employee salary
- * @param {number} data.createdBy - User ID who created the employee
- * @returns {Promise<Object>} Created employee with related data
+ * Create a new employee.
+ *
+ * @param {Object} data - Employee data.
+ * @param {string} data.name - Employee name.
+ * @param {string} data.lastName - Employee last name.
+ * @param {string} data.dni - Employee DNI.
+ * @param {string} data.email - Employee email.
+ * @param {string} [data.phone] - Employee phone.
+ * @param {string} [data.address] - Employee address.
+ * @param {Date} data.startDate - Employee start date.
+ * @param {string} data.position - Employee position.
+ * @param {string} data.department - Employee department.
+ * @param {number} data.salary - Employee salary.
+ * @param {number} data.createdBy - User ID who created the employee.
+ * @returns {Promise<Object>} Created employee with related data.
  */
 export const createEmployee = async (data) => {
   return prisma.employees.create({
@@ -170,21 +173,22 @@ export const createEmployee = async (data) => {
 };
 
 /**
- * Update an employee by ID
- * @param {number} id - Employee ID
- * @param {Object} data - Updated employee data
- * @param {string} [data.name] - Employee name
- * @param {string} [data.lastName] - Employee last name
- * @param {string} [data.dni] - Employee DNI
- * @param {string} [data.email] - Employee email
- * @param {string} [data.phone] - Employee phone
- * @param {string} [data.address] - Employee address
- * @param {Date} [data.startDate] - Employee start date
- * @param {string} [data.position] - Employee position
- * @param {string} [data.department] - Employee department
- * @param {number} [data.salary] - Employee salary
- * @param {number} data.updatedBy - User ID who updated the employee
- * @returns {Promise<Object>} Updated employee with related data
+ * Update an employee by ID.
+ *
+ * @param {number} id - Employee ID.
+ * @param {Object} data - Updated employee data.
+ * @param {string} [data.name] - Employee name.
+ * @param {string} [data.lastName] - Employee last name.
+ * @param {string} [data.dni] - Employee DNI.
+ * @param {string} [data.email] - Employee email.
+ * @param {string} [data.phone] - Employee phone.
+ * @param {string} [data.address] - Employee address.
+ * @param {Date} [data.startDate] - Employee start date.
+ * @param {string} [data.position] - Employee position.
+ * @param {string} [data.department] - Employee department.
+ * @param {number} [data.salary] - Employee salary.
+ * @param {number} data.updatedBy - User ID who updated the employee.
+ * @returns {Promise<Object>} Updated employee with related data.
  */
 export const updateEmployeeById = async (id, data) => {
   return prisma.employees.update({
@@ -212,9 +216,10 @@ export const updateEmployeeById = async (id, data) => {
 };
 
 /**
- * Delete an employee by ID
- * @param {number} id - Employee ID
- * @returns {Promise<Object>} Deleted employee
+ * Delete an employee by ID.
+ *
+ * @param {number} id - Employee ID.
+ * @returns {Promise<Object>} Deleted employee.
  */
 export const deleteEmployeeById = async (id) => {
   return prisma.employees.delete({

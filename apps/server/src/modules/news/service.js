@@ -8,15 +8,17 @@ import { NEWSSTATUSCODE } from '../../utils/constants/enums.js';
 import { getSafePagination } from '../../utils/pagination/pagination.js';
 
 /**
- * Get all news from the database with optional filters.
+ * Retrieves all news from the database with optional filters.
  *
- * @param {string} description - The description filter.
- * @param {Date} fromDate - The start date filter.
- * @param {Date} toDate - The end date filter.
- * @param {string} statusCode - The status code filter.
- * @param {number} page - The page filter.
- * @param {number} limit - The limit code filter.
- * @returns {Promise<Array>} A list of news items matching the filters.
+ * @param {Object} filters - The parameters for filtering the news.
+ * @param {string} [filters.description] - Filter by news description.
+ * @param {Date} [filters.fromDate] - Filter by start date.
+ * @param {Date} [filters.toDate] - Filter by end date.
+ * @param {string} [filters.statusCode] - Filter by status code.
+ * @param {number} filters.page - Page number for pagination.
+ * @param {number} filters.limit - Number of items per page.
+ * @returns {Promise<Object>} A paginated list of news items matching the filters.
+ * @throws {Error} When pagination parameters are missing or invalid.
  */
 export const getAllNews = async ({
   description,
@@ -42,7 +44,7 @@ export const getAllNews = async ({
 };
 
 /**
- * Create a new news item in the database.
+ * Creates a new news item in the database.
  *
  * @param {number} userId - The ID of the user creating the news.
  * @param {Object} data - The data for the new news item.
@@ -74,12 +76,14 @@ export const createNew = async (userId, data) => {
 };
 
 /**
- * Update an existing news item in the database by its ID.
+ * Updates an existing news item in the database by its ID.
  *
  * @param {number} userId - The ID of the user updating the news.
+ * @param {number} newId - The ID of the news item to update.
  * @param {Object} data - The updated data for the news item.
- * @param {number} data.id - The ID of the news item to update.
- * @param {string} data.statusCode - The status code of the news item.
+ * @param {string} [data.description] - The description of the news item.
+ * @param {number} [data.statusId] - The ID of the status for the news item.
+ * @param {string} [data.statusCode] - The status code of the news item.
  * @returns {Promise<Object>} The updated news item.
  */
 export const updateById = async (userId, newId, data) => {
@@ -110,8 +114,9 @@ export const updateById = async (userId, newId, data) => {
   // }
   return newsDao.updateRow(data, { id: rowId });
 };
+
 /**
- * Delete a news item from the database by its ID.
+ * Deletes a news item from the database by its ID.
  *
  * @param {number} id - The ID of the news item to delete.
  * @returns {Promise<Object>} The result of the deletion.
@@ -128,11 +133,10 @@ export const deleteById = async (id) => {
 };
 
 /**
- * Get all available news statuses from the database.
+ * Retrieves all available news statuses from the database.
  *
  * @returns {Promise<Array>} A list of all news statuses.
  */
-
 export const getAllNewsStatus = async () => {
   const data = await newsDao.getAllNewsStatus();
   return data;
