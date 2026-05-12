@@ -1,10 +1,6 @@
 import { prisma } from '../../config/db.js';
 import * as notesDao from './dao.js';
-import { processMentions } from './utils/mentions.js';
-
-
-
-
+import { extractMentionIds } from './utils/mentionParser.js'
 
 
 /**
@@ -33,7 +29,7 @@ export const getAllNotes = async (searchTerm, statusCode) => {
  * @returns {Promise<Object>} The created notes item.
  */
 export const createNote = async (data, userId) => {
-  const { columnId, mentions, ...dataWithOutForeignKeys } = data;
+  const { columnId, ...dataWithOutForeignKeys } = data;
   dataWithOutForeignKeys.createdOn = new Date();
 
   const createdNote = await notesDao.createNote(
@@ -42,47 +38,30 @@ export const createNote = async (data, userId) => {
     Number(columnId)
   );
 
-  // // Process mentions after note creation
-  // if (mentions.length > 0) {
-  //   // const parsedMentions = await processMentions(
-  //   //   mentions,
-  //   //   createdNote.id,
-  //   //   Number(userId)
-  //   // );
 
-  //   // Delete existing mentions for the note (for updates)
-  //   await notesDao.deleteMnetionsByNoteId(createdNote.noteId)
-  //   await prisma.mentions.deleteMany({
-  //     where: { noteId },
-  //   });
+  if (dataWithOutForeignKeys.content) {
+    const mentionsId = await extractMentionIds(dataWithOutForeignKeys.content)
+    console.log("mention ids", mentionsId)
+    if (mentionsId.length > 0) {
+      // Process each mention
+      const mentionsData = [];
+      for (const mention of mentionsId) {
+        mentionsData.push({
+          noteId: createdNote.id,
+          mentionedUserId: mention.id,
+          mentionedByUserId: Number(userId),
+          createdOn: new Date()
+        });
+      }
 
+      if (mentionsData.length > 0) {
+        await notesDao.saveNoteMentions(mentionsData)
+        // Update hasMentions field if mentions were found
+        await notesDao.updateNoteById(createdNote.id, { hasMentions: true });
+      }
+    }
 
-  //   // Process each mention
-  //   const mentionsData = [];
-  //   for (const mention of mentions) {
-  //     mentionsData.push({
-  //       noteId,
-  //       mentionedUserId: user.id,
-  //       mentionedByUserId,
-  //       positionStart: mention.Start,
-  //       positionEnd: mention.End,
-  //     });
-  //   }
-
-
-  //   if (mentionsData.length > 0) {
-  //     await prisma.mentions.createMany({
-  //       data: mentionsData,
-  //     });
-  //   }
-
-
-  //   // Update hasMentions field if mentions were found
-  //   if (mentionsData.length > 0) {
-  //     await notesDao.updateNoteById(createdNote.id, { hasMentions: true });
-  //   }
-  // }
-
+  }
   return createdNote;
 };
 
@@ -126,22 +105,41 @@ export const updateNoteById = async (id, data, userId) => {
   await notesDao.updateNoteById(Number(id), data);
 
   // Process mentions if content was updated
-  if (data.content !== undefined) {
-    const { hasMentions } = await processMentions(
-      data.content,
-      Number(id),
-      Number(userId)
-    );
+  if (data.content) {
+    // Delete existing mentions for the note (for updates)
+    await notesDao.deleteMentionsByNoteId(Number(id))
+    const mentionsId = await extractMentionIds(data.content)
+    if (mentionsId.length > 0) {
+      // Process each mention
+      const mentionsData = [];
+      for (const mention of mentionsId) {
+        mentionsData.push({
+          noteId: Number(id),
+          mentionedUserId: mention.id,
+          mentionedByUserId: Number(userId),
+          createdOn: new Date()
+        });
+      }
 
-    // Update hasMentions field
-    await notesDao.updateNoteById(Number(id), { hasMentions });
+      if (mentionsData.length > 0) {
+        await notesDao.saveNoteMentions(mentionsData)
+        // Update hasMentions field
+        await notesDao.updateNoteById(Number(id), { hasMentions:true});
+
+      }
+    }
+
   }
+
+
+
+
 
   return { message: 'Item updated successfully' };
 };
 
 /**
- * Delete a note and mentions item from the database by its ID.
+ * Delete a note item from the database by its ID.
  *
  * @param {number} id - The ID of the note item to delete.
  * @returns {Promise<Object>} The result of the deletion.
@@ -150,9 +148,6 @@ export const deleteById = async (id) => {
   const rowId = Number(id);
   return notesDao.deleteRow(rowId);
 };
-
-
-
 
 /**
  * Get all number of  notes from the database.

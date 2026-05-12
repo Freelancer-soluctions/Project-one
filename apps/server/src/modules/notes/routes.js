@@ -38,7 +38,6 @@ router.put(
 
 router.put(
   '/:id',
-  checkRoleAuthOrPermisssion,
   validatePathParam,
   validateSchema(NoteUpdate),
   noteController.updateNoteById

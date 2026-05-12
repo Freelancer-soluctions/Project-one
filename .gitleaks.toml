@@ -38,7 +38,8 @@ paths = [
   '''yarn.lock''',
   '''.agents''',          # Skills
   '''.opencode''',        # opencode configuration
-  '''openspec'''          # openspec configuration
+  '''openspec''',          # openspec configuration
+  '''locale'''
 ]
 
 

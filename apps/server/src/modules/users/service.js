@@ -8,6 +8,7 @@ import {
   getUserRoleByCode as getUserRoleByCodeDao,
   getUserRoleByUserId as getUserRoleByUserIdDao,
   getAllUserPermits as getAllUserPermitsDao,
+  getUsersByStatus as getUsersByStatusDao,
 } from './dao.js';
 import { getSafePagination } from '../../utils/pagination/pagination.js';
 
@@ -31,7 +32,22 @@ export const getAllUsers = async (filters) => {
   if (!take || take <= 0) {
     throw new Error('Pagination is required');
   }
-  return await getAllUsersDao(filters, take, skip);
+return await getAllUsersDao(filters, take, skip);
+};
+
+/**
+ * Get users by status.
+ *
+ * @param {string} status - Status code to filter users by.
+ * @returns {Promise<Array>} Array of user objects containing id and name.
+ */
+export const getUsersByStatus = async (status) => {
+  const data = await getUsersByStatusDao(status);
+  // Transform the data to map 'name' field to 'label' field to align with frontend expectations
+  return data.map(item => ({
+    id: item.id,
+    label: item.name
+  }));
 };
 
 /**

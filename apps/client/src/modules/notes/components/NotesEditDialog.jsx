@@ -21,19 +21,31 @@ import { useTranslation } from 'react-i18next';
 import PropTypes from 'prop-types';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
+import { useEffect } from 'react';
 import { CgNotes } from 'react-icons/cg';
 import { notesEditDialogSchema } from '../utils/index';
+import { useGetActiveUsers } from '../hooks/useGetActiveUsers';
 
 export function NotesEditDialog({ open, onOpenChange, onEditNote, note }) {
   const { t } = useTranslation();
+  const { dataUsers, isLoadingUsers, isFetchingUsers } = useGetActiveUsers();
 
   // Configura el formulario
   const formEditNotesDialog = useForm({
     resolver: zodResolver(notesEditDialogSchema),
     defaultValues: {
-      ...note,
+     ...note
     },
   });
+
+  useEffect(() => {
+    if (note) {
+      formEditNotesDialog.reset({
+       ...note
+      });
+    }
+  }, [note, formEditNotesDialog]);
+
   const onEditSubmitDialog = (values) => {
     if (values.title.trim() && values.content.trim()) {
       onEditNote(values);
@@ -95,6 +107,7 @@ export function NotesEditDialog({ open, onOpenChange, onEditNote, note }) {
                           value={field.value}
                           onChange={field.onChange}
                           placeholder={t('content_placeholder')}
+                          mentionSuggestions={dataUsers}
                         />
                       </FormControl>
                       <FormMessage />

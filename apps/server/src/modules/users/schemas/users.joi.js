@@ -102,3 +102,7 @@ export const userCreateUpdateSchema = Joi.object({
   zipcode: Joi.string().max(9).required(),
   permissions: Joi.array().items(Joi.number().integer().optional()).optional(),
 });
+
+export const byStatusCode = Joi.object({
+  statusCode: Joi.string().min(3).max(3).allow(''),
+});

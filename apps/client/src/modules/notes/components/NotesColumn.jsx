@@ -80,7 +80,7 @@ export function NotesColumn({
 }
 
 NotesColumn.propTypes = {
-  column: PropTypes.object.isRequired,
+  data: PropTypes.array.isRequired,
   onDragStart: PropTypes.func.isRequired,
   onDragOver: PropTypes.func.isRequired,
   onDrop: PropTypes.func.isRequired,

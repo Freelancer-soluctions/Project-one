@@ -6,6 +6,7 @@ import {
   getAllUsersStatus as getAllUsersStatusService,
   getAllUsersRoles as getAllUsersRolesService,
   getAllUserPermits as getAllUserPermitsService,
+  getUsersByStatus as getUsersByStatusService,
 } from './service.js';
 import handleCatchErrorAsync from '../../utils/responses&Errors/handleCatchErrorAsync.js';
 import globalResponse from '../../utils/responses&Errors/globalResponse.js';
@@ -39,6 +40,23 @@ export const getAllUserPermits = handleCatchErrorAsync(async (req, res) => {
   const id = req.userId;
   const users = await getAllUserPermitsService(id);
   globalResponse(res, 200, users);
+});
+
+/**
+ * Get users by status.
+ *
+ * @param {Object} req - The HTTP request object.
+ * @param {Object} req.params - Request parameters
+ * @param {string} req.params.status - User status code to filter by
+ * @param {Object} res - The HTTP response object.
+ * @returns {Promise<void>} Returns users filtered by status.
+ */
+export const getUsersByStatus = handleCatchErrorAsync(async (req, res) => {
+  const { statusCode } = req.safeQuery;
+  console.log("STATUSCODE", statusCode)
+  const data = await getUsersByStatusService(statusCode);
+  console.log("result", data)
+  globalResponse(res, 200, data);
 });
 
 /**

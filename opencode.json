@@ -18,7 +18,7 @@
   "agent": {
     "orchestrator": {
       "mode": "primary",
-      "model": "nvidia/z-ai/glm4.7",
+      "model": "nvidia/moonshotai/kimi-k2-thinking",
       "description": "Main orchestrator that delegates tasks to specialized agents",
       "prompt": "{file:docs/opencode/prompts/orchestrator.md}",
       "permission": {
@@ -39,7 +39,7 @@
     },
     "spec-manager": {
       "mode": "subagent",
-      "model": "nvidia/minimaxai/minimax-m2.7",
+      "model": "nvidia/google/gemma-2-2b-it",
       "description": "Executes OpenSpec CLI - explore, propose, verify, archive",
       "prompt": "{file:docs/opencode/prompts/spec-manager.md}",
       "tools": {
@@ -50,7 +50,7 @@
     },
     "planner": {
       "mode": "subagent",
-      "model": "opencode/hy3-preview-free",
+      "model": "opencode/ring-2.6-1t-free",
       "description": "Planning specialist",
       "prompt": "{file:docs/opencode/prompts/planner.md}",
       "tools": {

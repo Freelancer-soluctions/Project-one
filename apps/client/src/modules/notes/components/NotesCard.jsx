@@ -50,15 +50,7 @@ export function NotesCard({ note, onDragStart, onDelete, onEdit, columnCode }) {
         >
           {note.title}
           <div className="flex gap-1 transition-opacity opacity-0 group-hover:opacity-100">
-            {note.hasMentions && (
-              <div
-                className="flex items-center gap-1 text-xs text-blue-600 bg-blue-50 px-2 py-1 rounded"
-                title={`${mentions.length} mention(s)`}
-              >
-                <LuAtSign className="w-3 h-3" />
-                <span>{mentions.length}</span>
-              </div>
-            )}
+        
             <Button
               variant="ghost"
               size="icon"

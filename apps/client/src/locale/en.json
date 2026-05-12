@@ -1,6 +1,8 @@
 {
   "translation": {
     "news": "News",
+    "assigned_user": "Assigned user",
+    "select_user_placeholder": "Select a user",
     "from_date": "From date",
     "to_date": "To date",
     "status": "Status",
@@ -58,7 +60,7 @@
     "edit_note": "Edit note",
     "title": "Title",
     "title_placeholder": "Enter the title",
-    "content_placeholder": "Enter the content",
+    "content_placeholder": "Enter the content message, use @ to mention anyone",
     "create_note": "Create note",
     "note": "Note",
     "news_card_msg": "Relevant news",

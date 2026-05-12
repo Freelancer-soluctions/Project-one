@@ -14,6 +14,10 @@ export const NotesCreateDialogSchema = z
       code: z.string(),
       title: z.string(),
     }),
+    assignedUser: z.object({
+      id: z.number(),
+      name: z.string(),
+    }).optional(),
   })
   .passthrough();
 
@@ -25,5 +29,9 @@ export const notesEditDialogSchema = z
     content: z.string().min(1, {
       message: getZodMessage('zod.notes.content.empty'),
     }),
+    assignedUser: z.object({
+      id: z.number(),
+      name: z.string(),
+    }).optional(),
   })
   .passthrough();

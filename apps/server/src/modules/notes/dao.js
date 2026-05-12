@@ -16,11 +16,11 @@ export const getAllNotes = async (searchTerm, statusCode) => {
           AND: [
             searchTerm
               ? {
-                  OR: [
-                    { content: { contains: searchTerm, mode: 'insensitive' } },
-                    { title: { contains: searchTerm, mode: 'insensitive' } },
-                  ],
-                }
+                OR: [
+                  { content: { contains: searchTerm, mode: 'insensitive' } },
+                  { title: { contains: searchTerm, mode: 'insensitive' } },
+                ],
+              }
               : {}, // Si no hay `searchTerm`, no se aplica este filtro
 
             statusCode
@@ -132,10 +132,10 @@ export const deleteRow = async (id) => {
  * @param {number} noteId - Note ID.
  * @returns {Promise<Object>} The result of the delete operation.
  */
-export const deleteMnetionsByNoteId = async (noteId)=>{
-     await prisma.mentions.deleteMany({
-      where: { noteId },
-    });
+export const deleteMnetionsByNoteId = async (noteId) => {
+  await prisma.mentions.deleteMany({
+    where: { noteId },
+  });
 }
 
 /**
@@ -192,3 +192,25 @@ export const getMentionsByNoteId = async (noteId) => {
     },
   });
 };
+
+
+/**
+ * Create a new note mention in the database.
+ *
+ * @param {Object} mentionsData - The data for the new note.
+ */
+export const saveNoteMentions = async (mentionsData) => {
+  await prisma.mentions.createMany({
+    data: mentionsData,
+  });
+}
+
+/**
+ * Dellete Mentions by note id
+ * @param {Number} noteId 
+ */
+export const deleteMentionsByNoteId = async(noteId)=>{
+    await prisma.mentions.deleteMany({
+    where: { noteId },
+  });
+}

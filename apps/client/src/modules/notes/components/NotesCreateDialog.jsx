@@ -30,9 +30,11 @@ import PropTypes from 'prop-types';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { NotesCreateDialogSchema } from '../utils/index';
+import { useGetActiveUsers } from '../hooks/useGetActiveUsers';
 
 export function NotesCreateDialog({ onCreateNote, dataStatus, open, setOpen }) {
   const { t } = useTranslation();
+  const { dataUsers, isLoadingUsers, isFetchingUsers } = useGetActiveUsers();
 
   // Configura el formulario
   const formNotesDialog = useForm({
@@ -123,6 +125,7 @@ export function NotesCreateDialog({ onCreateNote, dataStatus, open, setOpen }) {
                 }}
               />
             </div>
+       
             <div className="space-y-2">
               <FormField
                 control={formNotesDialog.control}
@@ -158,6 +161,7 @@ export function NotesCreateDialog({ onCreateNote, dataStatus, open, setOpen }) {
                     value={field.value}
                     onChange={field.onChange}
                     placeholder={t('content_placeholder')}
+                    mentionSuggestions={dataUsers}
                   />
                 </FormControl>
                       <FormMessage />

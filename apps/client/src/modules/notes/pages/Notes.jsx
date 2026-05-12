@@ -162,6 +162,29 @@ export default function Notes() {
     });
   };
 
+    const handleEditNote = async (note) => {
+    const { id, content, title } = note;
+    await updateNoteById({
+      id: id,
+      body: {
+        content,
+        title,
+      },
+    }).unwrap();
+    
+    setOpenAlertDialog(true);
+    setAlertProps({
+      alertTitle: t('update_record'),
+      alertMessage: t('updated_successfully'),
+      cancel: false,
+      success: true,
+      onSuccess: () => {
+        setOpenAlertDialog(false);
+      },
+      variantSuccess: 'info',
+    });
+  };
+
   const handleDeleteNote = async (noteId) => {
     setAlertProps({
       alertTitle: t('delete_record'),
@@ -171,7 +194,7 @@ export default function Notes() {
       destructive: true,
       variantSuccess: '',
       variantDestructive: 'destructive',
-      onSuccess: () => {},
+      onSuccess: () => { },
       onDelete: async () => {
         try {
           await deleteNoteById(noteId).unwrap();
@@ -195,27 +218,7 @@ export default function Notes() {
     setOpenAlertDialog(true);
   };
 
-  const handleEditNote = async (note) => {
-    const { id, content, title } = note;
-    await updateNoteById({
-      id: id,
-      body: {
-        content,
-        title,
-      },
-    }).unwrap();
-    setOpenAlertDialog(true);
-    setAlertProps({
-      alertTitle: t('update_record'),
-      alertMessage: t('updated_successfully'),
-      cancel: false,
-      success: true,
-      onSuccess: () => {
-        setOpenAlertDialog(false);
-      },
-      variantSuccess: 'info',
-    });
-  };
+
   return (
     <>
       <BackDashBoard link={'/home'} moduleName={t('notes')} />
@@ -249,18 +252,15 @@ export default function Notes() {
             />
           </div>
           <div className="flex flex-col md:flex-row gap-6 p-4 min-h-[700px] w-full">
-            {/* {dataNotes?.data.map((column) => ( */}
-              <NotesColumn
-                data={dataNotes.data}
-                // key={column.id}
-                // column={column}
-                onDragStart={handleDragStart}
-                onDragOver={handleDragOver}
-                onDrop={handleDrop}
-                onDeleteNote={handleDeleteNote}
-                onEditNote={handleEditNote}
-              />
-       
+            <NotesColumn
+              data={dataNotes?.data}
+              onDragStart={handleDragStart}
+              onDragOver={handleDragOver}
+              onDrop={handleDrop}
+              onDeleteNote={handleDeleteNote}
+              onEditNote={handleEditNote}
+            />
+
           </div>
           <AlertDialogComponent
             openAlertDialog={openAlertDialog}
