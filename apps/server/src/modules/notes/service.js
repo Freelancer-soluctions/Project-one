@@ -29,7 +29,7 @@ export const getAllNotes = async (searchTerm, statusCode) => {
  * @returns {Promise<Object>} The created notes item.
  */
 export const createNote = async (data, userId) => {
-  const { columnId, content, mentions, ...dataWithOutForeignKeys } = data;
+  const { columnId, mentions, ...dataWithOutForeignKeys } = data;
   dataWithOutForeignKeys.createdOn = new Date();
 
   const createdNote = await notesDao.createNote(
