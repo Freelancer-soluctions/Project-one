@@ -312,7 +312,7 @@ export const UsersBasicInfo = ({
                                 )}
                                 type="text"
                                 autoComplete="off"
-                                maxLength={9}
+                                maxLength={128}
                                 {...field}
                                 value={field.value ?? ''}
                               />
@@ -442,6 +442,7 @@ export const UsersBasicInfo = ({
                                 placeholder={t('user_document_placeholder')}
                                 type="document"
                                 autoComplete="off"
+                                maxLength={128}
                                 {...field}
                                 value={field.value ?? ''}
                               />
