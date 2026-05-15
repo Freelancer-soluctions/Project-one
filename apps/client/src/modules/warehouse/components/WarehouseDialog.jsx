@@ -2,6 +2,7 @@ import { useEffect, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { WarehouseSchema } from '../utils/index';
+import { FIELD_LIMITS } from '@/config/fieldLimits';
 
 import {
   Dialog,
@@ -138,7 +139,7 @@ export const WarehouseDialog = ({
                           placeholder={t('warehouse_name_placeholder')}
                           type="text"
                           autoComplete="off"
-                          maxLength={50}
+                          maxLength={FIELD_LIMITS.warehouse.name}
                           {...field}
                           value={field.value ?? ''}
                         />
@@ -201,7 +202,7 @@ export const WarehouseDialog = ({
                           placeholder={t('description_placeholder')}
                           type="text"
                           autoComplete="off"
-                          maxLength={120}
+                          maxLength={FIELD_LIMITS.warehouse.description}
                           {...field}
                           value={field.value ?? ''}
                         />
@@ -226,7 +227,7 @@ export const WarehouseDialog = ({
                           placeholder={t('address_placeholder')}
                           type="text"
                           autoComplete="off"
-                          maxLength={120}
+                          maxLength={FIELD_LIMITS.warehouse.address}
                           {...field}
                           value={field.value ?? ''}
                         />

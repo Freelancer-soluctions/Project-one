@@ -270,16 +270,16 @@ export const PerformanceEvaluationDialog = ({
                     {' '}
                     {/* Span across two columns */}
                     <FormLabel htmlFor="comments">{t('comments')}</FormLabel>
-                    <FormControl>
-                      <Textarea
-                        id="comments"
-                        name="comments"
-                        placeholder={t('evaluation_comments_placeholder')}
-                        maxLength={200}
-                        rows={4}
-                        {...field}
-                        value={field.value ?? ''}
-                      />
+<FormControl>
+                        <Textarea
+                          id="comments"
+                          name="comments"
+                          placeholder={t('evaluation_comments_placeholder')}
+                          maxLength={FIELD_LIMITS.performanceEvaluation.comments}
+                          rows={4}
+                          {...field}
+                          value={field.value ?? ''}
+                        />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

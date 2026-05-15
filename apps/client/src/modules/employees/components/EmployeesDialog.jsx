@@ -2,6 +2,16 @@ import { useEffect, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { FIELD_LIMITS } from '@/config/fieldLimits';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+  DialogClose,
+} from '@/components/ui/dialog';
 import {
   Dialog,
   DialogContent,
@@ -152,7 +162,7 @@ export const EmployeesDialog = ({
                           placeholder={t('employee_name_placeholder')}
                           type="text"
                           autoComplete="off"
-                          maxLength={100}
+                          maxLength={FIELD_LIMITS.employees.name}
                           {...field}
                           value={field.value ?? ''}
                         />
@@ -179,7 +189,7 @@ export const EmployeesDialog = ({
                           placeholder={t('last_name_placeholder')}
                           type="text"
                           autoComplete="off"
-                          maxLength={100}
+                          maxLength={FIELD_LIMITS.employees.lastName}
                           {...field}
                           value={field.value ?? ''}
                         />
@@ -204,7 +214,7 @@ export const EmployeesDialog = ({
                           placeholder={t('dni_placeholder')}
                           type="text"
                           autoComplete="off"
-                          maxLength={10}
+                          maxLength={FIELD_LIMITS.employees.dni}
                           {...field}
                           value={field.value ?? ''}
                         />
@@ -229,7 +239,7 @@ export const EmployeesDialog = ({
                           placeholder={t('employee_email_placeholder')}
                           type="email"
                           autoComplete="off"
-                          maxLength={100}
+                          maxLength={FIELD_LIMITS.employees.email}
                           {...field}
                           value={field.value ?? ''}
                         />
@@ -254,7 +264,7 @@ export const EmployeesDialog = ({
                           placeholder={t('employee_phone_placeholder')}
                           type="tel"
                           autoComplete="off"
-                          maxLength={15}
+                          maxLength={FIELD_LIMITS.employees.phone}
                           {...field}
                           value={field.value ?? ''}
                         />
@@ -279,7 +289,7 @@ export const EmployeesDialog = ({
                           placeholder={t('employee_address_placeholder')}
                           type="text"
                           autoComplete="off"
-                          maxLength={120}
+                          maxLength={FIELD_LIMITS.employees.address}
                           {...field}
                           value={field.value ?? ''}
                         />
@@ -344,7 +354,7 @@ export const EmployeesDialog = ({
                           placeholder={t('employee_position_placeholder')}
                           type="text"
                           autoComplete="off"
-                          maxLength={100}
+                          maxLength={FIELD_LIMITS.employees.position}
                           {...field}
                           value={field.value ?? ''}
                         />
@@ -371,7 +381,7 @@ export const EmployeesDialog = ({
                           placeholder={t('employee_department_placeholder')}
                           type="text"
                           autoComplete="off"
-                          maxLength={100}
+                          maxLength={FIELD_LIMITS.employees.department}
                           {...field}
                           value={field.value ?? ''}
                         />

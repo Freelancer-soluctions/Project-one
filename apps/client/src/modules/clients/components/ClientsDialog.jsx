@@ -2,6 +2,40 @@ import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { zodResolver } from '@hookform/resolvers/zod';
+
+import { FIELD_LIMITS } from '@/config/fieldLimits';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+  DialogClose,
+} from '@/components/ui/dialog';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
+import { Calendar } from '@/components/ui/calendar';
+import { CalendarIcon } from '@radix-ui/react-icons';
+import { format } from 'date-fns';
+import { cn } from '@/lib/utils';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { LuUsersRound } from 'react-icons/lu';
+import PropTypes from 'prop-types';
+import { ClientSchema } from '../utils';
+import { useMemo } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -138,7 +172,7 @@ export const ClientsDialog = ({
                           placeholder={t('client_name_placeholder')}
                           type="text"
                           autoComplete="off"
-                          maxLength={100}
+                          maxLength={FIELD_LIMITS.clients.name}
                           {...field}
                           value={field.value ?? ''}
                         />
@@ -163,7 +197,7 @@ export const ClientsDialog = ({
                           placeholder={t('client_email_placeholder')}
                           type="email"
                           autoComplete="off"
-                          maxLength={100}
+                          maxLength={FIELD_LIMITS.clients.email}
                           {...field}
                           value={field.value ?? ''}
                         />
@@ -188,7 +222,7 @@ export const ClientsDialog = ({
                           placeholder={t('client_phone_placeholder')}
                           type="tel"
                           autoComplete="off"
-                          maxLength={15}
+                          maxLength={FIELD_LIMITS.clients.phone}
                           {...field}
                           value={field.value ?? ''}
                         />
@@ -213,7 +247,7 @@ export const ClientsDialog = ({
                           placeholder={t('client_address_placeholder')}
                           type="text"
                           autoComplete="off"
-                          maxLength={120}
+                          maxLength={FIELD_LIMITS.clients.address}
                           {...field}
                           value={field.value ?? ''}
                         />
