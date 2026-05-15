@@ -7,9 +7,16 @@ import {
 import { getSafePagination } from '../../utils/pagination/pagination.js';
 
 /**
- * Get all attendance records with optional filters
- * @param {Object} filters - filters for the query
- * @returns {Promise<Array>} List of attendance records
+ * Get all attendance records with optional filters.
+ *
+ * @param {Object} params - Filter parameters.
+ * @param {number} [params.employeeId] - Filter by employee ID.
+ * @param {Date} [params.fromDate] - Filter by start date.
+ * @param {Date} [params.toDate] - Filter by end date.
+ * @param {number} params.limit - Number of items per page.
+ * @param {number} params.page - Page number for pagination.
+ * @returns {Promise<Object>} Paginated list of attendance records with metadata.
+ * @throws {Error} When pagination parameters are missing or invalid.
  */
 export const getAllAttendance = async ({
   employeeId,
@@ -31,9 +38,17 @@ export const getAllAttendance = async ({
 };
 
 /**
- * Create a new attendance record
- * @param {Object} data - Attendance data
- * @returns {Promise<Object>} Created attendance record
+ * Create a new attendance record.
+ *
+ * @param {Object} data - Attendance data.
+ * @param {number} data.employeeId - Employee ID.
+ * @param {Date} data.date - Attendance date.
+ * @param {Date} [data.checkInTime] - Check-in time.
+ * @param {Date} [data.checkOutTime] - Check-out time.
+ * @param {string} data.status - Attendance status (PRESENT, ABSENT, LATE, HALF_DAY).
+ * @param {string} [data.notes] - Attendance notes.
+ * @param {number} userId - User ID who created the record.
+ * @returns {Promise<Object>} Created attendance record.
  */
 export const createAttendance = async (data, userId) => {
   const dataAttendance = {
@@ -47,10 +62,18 @@ export const createAttendance = async (data, userId) => {
 };
 
 /**
- * Update an attendance record by ID
- * @param {number} id - Attendance ID
- * @param {Object} data - Updated attendance data
- * @returns {Promise<Object>} Updated attendance record
+ * Update an attendance record by ID.
+ *
+ * @param {number} id - Attendance ID.
+ * @param {Object} data - Updated attendance data.
+ * @param {number} [data.employeeId] - Employee ID.
+ * @param {Date} [data.date] - Attendance date.
+ * @param {Date} [data.checkInTime] - Check-in time.
+ * @param {Date} [data.checkOutTime] - Check-out time.
+ * @param {string} [data.status] - Attendance status (PRESENT, ABSENT, LATE, HALF_DAY).
+ * @param {string} [data.notes] - Attendance notes.
+ * @param {number} userId - User ID who updated the record.
+ * @returns {Promise<Object>} Updated attendance record.
  */
 export const updateAttendanceById = async (id, data, userId) => {
   const dataAttendance = {
@@ -64,9 +87,10 @@ export const updateAttendanceById = async (id, data, userId) => {
 };
 
 /**
- * Delete an attendance record by ID
- * @param {number} id - Attendance ID
- * @returns {Promise<Object>} Deleted attendance record
+ * Delete an attendance record by ID.
+ *
+ * @param {number} id - Attendance ID.
+ * @returns {Promise<Object>} Deleted attendance record.
  */
 export const deleteAttendanceById = async (id) => {
   return deleteAttendanceByIdDao(Number(id));

@@ -1,11 +1,12 @@
 import { prisma } from '../../config/db.js';
 
 /**
- * Get all providerOrders with optional filters
- * @param {Object} filters - Optional filters for the query
- * @param {number} take- take to filter by
- * @param {number} skip - skip to filter by
- * @returns {Promise<Array>} List of providerOrders with their related data
+ * Get all provider orders with optional filters.
+ *
+ * @param {Object} filters - Optional filters for the query.
+ * @param {number} take - Number of records to retrieve.
+ * @param {number} skip - Number of records to skip.
+ * @returns {Promise<Object>} Object containing dataList and total count.
  */
 export const getAllProviderOrders = async (filters = {}, take, skip) => {
   const providerOrders = await prisma.providerOrder.findMany({
@@ -29,11 +30,12 @@ export const getAllProviderOrders = async (filters = {}, take, skip) => {
 };
 
 /**
- * Create a new providerOrder
- * @param {Object} data - providerOrder data
- * @param {number} data.supplierId - Supplier ID
- * @param {number} data.createdBy - User ID who created the providerOrder
- * @returns {Promise<Object>} Created providerOrder with related data
+ * Create a new provider order.
+ *
+ * @param {Object} data - providerOrder data.
+ * @param {number} data.supplierId - Supplier ID.
+ * @param {number} data.createdBy - User ID who created the providerOrder.
+ * @returns {Promise<Object>} Created provider order with related data.
  */
 export const createProviderOrder = async (data) => {
   return prisma.providerOrder.create({
@@ -64,12 +66,13 @@ export const createProviderOrder = async (data) => {
 };
 
 /**
- * Update a providerOrder by ID
- * @param {number} id - providerOrder ID
- * @param {Object} data - Updated providerOrder data
- * @param {number} data.supplierId - Supplier ID
- * @param {number} data.updatedBy - User ID who updated the providerOrder
- * @returns {Promise<Object>} Updated providerOrder with related data
+ * Update a provider order by ID.
+ *
+ * @param {number} id - providerOrder ID.
+ * @param {Object} data - Updated providerOrder data.
+ * @param {number} [data.supplierId] - Supplier ID.
+ * @param {number} [data.updatedBy] - User ID who updated the providerOrder.
+ * @returns {Promise<Object>} Updated provider order with related data.
  */
 export const updateProviderOrderById = async (id, data) => {
   return prisma.providerOrder.update({
@@ -101,9 +104,10 @@ export const updateProviderOrderById = async (id, data) => {
 };
 
 /**
- * Delete a providerOrder by ID
- * @param {number} id - providerOrder ID
- * @returns {Promise<Object>} Deleted providerOrder
+ * Delete a provider order by ID.
+ *
+ * @param {number} id - providerOrder ID.
+ * @returns {Promise<Object>} Deleted provider order.
  */
 export const deleteProviderOrderById = async (id) => {
   return prisma.providerOrder.delete({

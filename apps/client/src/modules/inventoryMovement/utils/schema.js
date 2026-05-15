@@ -1,15 +1,16 @@
 import { z } from 'zod';
+import { getZodMessage } from '@/utils/zod-i18n-map';
 import { MOVEMENT_TYPES } from './enums';
 
 export const InventoryMovementSchema = z
   .object({
-    productId: z.string().min(1, 'Product is required'),
-    warehouseId: z.string().min(1, 'Warehouse is required'),
+    productId: z.string().min(1, getZodMessage('zod.inventoryMovement.productId.empty')),
+    warehouseId: z.string().min(1, getZodMessage('zod.inventoryMovement.warehouseId.empty')),
     quantity: z
       .string()
       .transform((val) => parseInt(val, 10))
       .refine((val) => val > 0, {
-        message: 'Quantity must be greater than 0',
+        message: getZodMessage('zod.inventoryMovement.quantity.positive'),
       }),
     type: z.enum(
       [
@@ -19,7 +20,7 @@ export const InventoryMovementSchema = z
         MOVEMENT_TYPES.ADJUSTMENT,
       ],
       {
-        required_error: 'Movement type is required',
+        required_error: getZodMessage('zod.inventoryMovement.type.required'),
       }
     ),
     reason: z.string().optional(),

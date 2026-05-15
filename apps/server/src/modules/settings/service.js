@@ -13,11 +13,11 @@ import { getSafePagination } from '../../utils/pagination/pagination.js';
  * Create or update language settings based on the provided data.
  *
  * @param {Object} data - The data for creating or updating language settings.
- * @param {number} data.id - The ID of the language settings (optional for creating new settings).
+ * @param {number} [data.id] - The ID of the language settings (optional for creating new settings).
  * @param {string} data.language - The language code to be saved.
  * @param {number} userId - The user ID associated with the language settings.
- * @returns {Object} - The object that is prepared to be saved, with the correct values for either creating or updating the settings.
- * @throws {Error} - If there is an error during the database operation.
+ * @returns {Promise<Object>} The created or updated language settings.
+ * @throws {ClientError} If there is an error during the database operation.
  */
 export const createOrUpdateSettingsLanguage = async (
   { language, id },
@@ -35,14 +35,14 @@ export const createOrUpdateSettingsLanguage = async (
 };
 
 /**
- * Create or update language settings based on the provided data.
+ * Create or update display settings based on the provided data.
  *
- * @param {Object} data - The data for creating or updating language settings.
- * @param {number} data.id - The ID of the language settings (optional for creating new settings).
- * @param {string} data - The display data to be saved.
- * @param {number} userId - The user ID associated with the language settings.
- * @returns {Object} - The object that is prepared to be saved, with the correct values for either creating or updating the settings.
- * @throws {Error} - If there is an error during the database operation.
+ * @param {Object} data - The data for creating or updating display settings.
+ * @param {number} [data.id] - The ID of the settings (optional for creating new settings).
+ * @param {Object} data.displayOptions - Display options object to be saved.
+ * @param {number} userId - The user ID associated with the settings.
+ * @returns {Promise<Object>} The created or updated display settings.
+ * @throws {ClientError} If there is an error during the database operation.
  */
 export const createOrUpdateSettingsDisplay = async (
   { id, displayOptions },
@@ -60,11 +60,11 @@ export const createOrUpdateSettingsDisplay = async (
 };
 
 /**
- * Get the language settings by user ID.
+ * Get user settings by user ID.
  *
- * @param {number} userId - The ID of the user whose language settings are to be retrieved.
- * @returns {Object} - The language settings associated with the given user ID.
- * @throws {Error} - If there is an error during the database operation.
+ * @param {number} userId - The ID of the user whose settings are to be retrieved.
+ * @returns {Promise<Object|null>} The settings associated with the given user ID.
+ * @throws {ClientError} If there is an error during the database operation.
  */
 export const getSettingsById = async (userId) => {
   const rowId = Number(userId);
@@ -72,13 +72,15 @@ export const getSettingsById = async (userId) => {
 };
 
 /**
- * Get all product categories with optional filters
+ * Get all product categories with optional filters.
+ *
  * @param {Object} params - The parameters for filtering categories
- * @param {string} params.description - Description to filter categories by
- * @param {string} params.code - Code to filter categories by
- * @param {number} limit - Filter by limit
- * @param {number} page - Filter by page
- * @returns {Promise<Array>} A list of categories matching the filters
+ * @param {string} [params.description] - Description to filter categories by
+ * @param {string} [params.code] - Code to filter categories by
+ * @param {number} params.limit - Filter by limit
+ * @param {number} params.page - Filter by page
+ * @returns {Promise<Object>} A paginated list of categories matching the filters.
+ * @throws {Error} When pagination parameters are missing or invalid.
  */
 export const getAllProductCategories = async ({
   description,
@@ -95,12 +97,12 @@ export const getAllProductCategories = async ({
 };
 
 /**
- * Create a new product category
- * @param {number} userId - The ID of the user creating the category
- * @param {Object} data - The data for the new category
- * @param {string} data.code - The code of the category
- * @param {string} data.description - The description of the category
- * @returns {Promise<Object>} The created category
+ * Create a new product category.
+ *
+ * @param {Object} data - The data for the new category.
+ * @param {string} data.code - The code of the category.
+ * @param {string} data.description - The description of the category.
+ * @returns {Promise<Object>} The created category.
  */
 export const createProductCategory = async (data) => {
   console.log('data', data);
@@ -114,12 +116,13 @@ export const createProductCategory = async (data) => {
 };
 
 /**
- * Update a product category by ID
- * @param {number} categoryId - The ID of the category to update
- * @param {Object} data - The updated data for the category
- * @param {string} data.description - The updated description of the category
- * @param {string} data.code - The updated code of the category
- * @returns {Promise<Object>} The updated category
+ * Update a product category by ID.
+ *
+ * @param {number} categoryId - The ID of the category to update.
+ * @param {Object} data - The updated data for the category.
+ * @param {string} [data.description] - The updated description of the category.
+ * @param {string} [data.code] - The updated code of the category.
+ * @returns {Promise<Object>} The updated category.
  */
 export const updateProductCategoryById = async (categoryId, data) => {
   const updateData = {
@@ -131,9 +134,10 @@ export const updateProductCategoryById = async (categoryId, data) => {
 };
 
 /**
- * Delete a product category by ID
- * @param {number} categoryId - The ID of the category to delete
- * @returns {Promise<void>}
+ * Delete a product category by ID.
+ *
+ * @param {number} categoryId - The ID of the category to delete.
+ * @returns {Promise<Object>} The deleted category.
  */
 export const deleteProductCategoryById = async (categoryId) => {
   return deleteProductCategoryByIdDao({ id: Number(categoryId) });

@@ -8,13 +8,15 @@ import {
 import { getSafePagination } from '../../utils/pagination/pagination.js';
 
 /**
- * Get all warehouses with optional filters
+ * Get all warehouses with optional filters.
+ *
  * @param {Object} params - Filter parameters
- * @param {string} name - Name to filter by
- * @param {boolean} status - Status to filter by
- * @param {number} take- take to filter by
- * @param {number} skip - skip to filter by
- * @returns {Promise<Array>} List of warehouses
+ * @param {string} [params.name] - Warehouse name to filter by
+ * @param {boolean} [params.status] - Warehouse status to filter by
+ * @param {number} [params.limit] - Number of items per page
+ * @param {number} [params.page] - Page number for pagination
+ * @returns {Promise<Object>} Paginated list of warehouses with metadata
+ * @throws {Error} When pagination parameters are missing or invalid
  */
 export const getAllWarehouses = async ({ name, status, limit, page }) => {
   const { take, skip } = getSafePagination({ page, limit });
@@ -52,14 +54,14 @@ export const createWarehouse = async (data) => {
 };
 
 /**
- * Update a warehouse by ID
+ * Update a warehouse by ID.
+ *
  * @param {number} warehouseId - ID of the warehouse to update
  * @param {Object} data - Updated warehouse data
- * @param {string} data.name - Updated warehouse name
- * @param {string} data.description - Updated warehouse description
- * @param {string} data.address - Updated warehouse address
- * @param {boolean} data.status - Updated warehouse status
- * @param {number} userId - ID of the user updating the warehouse
+ * @param {string} [data.name] - Updated warehouse name
+ * @param {string} [data.description] - Updated warehouse description
+ * @param {string} [data.address] - Updated warehouse address
+ * @param {boolean} [data.status] - Updated warehouse status
  * @returns {Promise<Object>} Updated warehouse
  */
 export const updateWarehouseById = async (warehouseId, data) => {

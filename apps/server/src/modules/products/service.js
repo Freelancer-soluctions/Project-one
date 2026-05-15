@@ -5,13 +5,14 @@ import { getSafePagination } from '../../utils/pagination/pagination.js';
  * Get all products from the database with optional filters.
  *
  * @param {Object} params - The parameters for filtering products.
- * @param {string} name - The name filter.
- * @param {string} productProviderCode - The product provider code filter.
- * @param {string} productCategoryCode - The product category code filter.
- * @param {string} statusCode - The status code filter.}
- * @param {number} limit - Filter by limit
- * @param {number} page - Filter by page
- * @returns {Promise<Array>} A list of products matching the filters.
+ * @param {string} params.name - The name filter.
+ * @param {string} params.productProviderCode - The product provider code filter.
+ * @param {string} params.productCategoryCode - The product category code filter.
+ * @param {string} params.statusCode - The status code filter.
+ * @param {number} params.limit - Filter by limit.
+ * @param {number} params.page - Filter by page.
+ * @returns {Promise<Object>} A paginated list of products matching the filters.
+ * @throws {Error} When pagination parameters are missing or invalid.
  */
 export const getAllProducts = async ({
   name,
@@ -37,9 +38,9 @@ export const getAllProducts = async ({
 };
 
 /**
- * Get all products.
+ * Get all products for UI filters.
  *
- * @returns {Promise<Array>} A list of products matching the filters.
+ * @returns {Promise<Array>} A list of all products.
  */
 export const getAllProductsFilters = async () => {
   return await productsDao.getAllProductsFilters();

@@ -1,8 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-
 import './index.css';
-// import { BrowserRouter } from 'react-router'
 import { store, persistor } from './redux/store';
 import { Provider } from 'react-redux';
 import App from './App';
@@ -13,6 +11,8 @@ import { PersistGate } from 'redux-persist/integration/react';
 import { I18nextProvider } from 'react-i18next';
 import { Spinner } from './components/loader/Spinner';
 import { BrowserRouter } from 'react-router';
+// Import the Zod error map configuration
+import './config/zod-i18n';
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>

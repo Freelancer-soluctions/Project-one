@@ -150,11 +150,8 @@ model mentions {
   noteId             Int      @db.Integer
   mentionedUserId    Int      @db.Integer
   mentionedByUserId   Int      @db.Integer
-  positionStart      Int      @db.Integer
-  positionEnd       Int      @db.Integer
   createdOn          DateTime @default(now()) @db.Timestamp(3)
   isRead             Boolean  @default(false)
-
   note               notes    @relation("NoteMentions", fields: [noteId], references: [id])
   mentionedUser     users    @relation("MentionedUser", fields: [mentionedUserId], references: [id])
   mentionedByUser  users    @relation("MentionedByUser", fields: [mentionedByUserId], references: [id])

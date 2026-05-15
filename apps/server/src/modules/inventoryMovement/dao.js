@@ -1,14 +1,15 @@
 import { prisma } from '../../config/db.js';
 
 /**
- * Get all inventory movements with optional filters
- * @param {Object} filters - Filter options
- * @param {string} filters.productId - Product ID to filter by
- * @param {string} filters.warehouseId - Warehouse ID to filter by
- * @param {string} filters.type - Movement type to filter by
- * @param {number} take- take to filter by
- * @param {number} skip - skip to filter by
- * @returns {Promise<Array>} List of inventory movements
+ * Get all inventory movements with optional filters.
+ *
+ * @param {Object} filters - Filter parameters.
+ * @param {number} [filters.productId] - Product ID to filter by.
+ * @param {number} [filters.warehouseId] - Warehouse ID to filter by.
+ * @param {string} [filters.type] - Movement type to filter by.
+ * @param {number} take - Number of records to retrieve.
+ * @param {number} skip - Number of records to skip.
+ * @returns {Promise<Object>} Object containing dataList and total count.
  */
 export const getAllInventoryMovements = async ({
   productId,
@@ -52,7 +53,7 @@ export const getAllInventoryMovements = async ({
     skip,
   });
 
-  const total = await prisma.yourModelName.count({
+  const total = await prisma.inventoryMovement.count({
     where: {
       ...(productId
         ? {
@@ -82,9 +83,10 @@ export const getAllInventoryMovements = async ({
 };
 
 /**
- * Create a new inventory movement
- * @param {Object} data - Inventory movement data
- * @returns {Promise<Object>} Created inventory movement
+ * Create a new inventory movement.
+ *
+ * @param {Object} data - Inventory movement data.
+ * @returns {Promise<Object>} Created inventory movement.
  */
 export const createInventoryMovement = async (data) => {
   const inventoryMovement = await prisma.inventoryMovement.create({
@@ -99,10 +101,11 @@ export const createInventoryMovement = async (data) => {
 };
 
 /**
- * Update an inventory movement by ID
- * @param {string} id - Inventory movement ID
- * @param {Object} data - Updated inventory movement data
- * @returns {Promise<Object>} Updated inventory movement
+ * Update an inventory movement by ID.
+ *
+ * @param {number} id - Inventory movement ID.
+ * @param {Object} data - Updated inventory movement data.
+ * @returns {Promise<Object>} Updated inventory movement.
  */
 export const updateInventoryMovementById = async (id, data) => {
   const inventoryMovement = await prisma.inventoryMovement.update({
@@ -118,9 +121,10 @@ export const updateInventoryMovementById = async (id, data) => {
 };
 
 /**
- * Delete an inventory movement by ID
- * @param {string} id - Inventory movement ID
- * @returns {Promise<Object>} Deleted inventory movement
+ * Delete an inventory movement by ID.
+ *
+ * @param {number} id - Inventory movement ID.
+ * @returns {Promise<Object>} Deleted inventory movement.
  */
 export const deleteInventoryMovementById = async (id) => {
   const inventoryMovement = await prisma.inventoryMovement.delete({

@@ -1,15 +1,16 @@
 import { prisma, Prisma } from '../../config/db.js';
 
 /**
- * Get all attendance records with optional filters
- * @param {Object} filters - filters for the query
- * @param {number} [filters.employeeId] - Filter by employee ID
- * @param {Date} [filters.date] - Filter by date
- * @param {Date} [filters.fromDate] - Filter by date range start
- * @param {Date} [filters.toDate] - Filter by date range end
- * @param {number} take- take to filter by
- * @param {number} skip - skip to filter by
- * @returns {Promise<Array>} List of attendance records with their related data
+ * Get all attendance records with optional filters.
+ *
+ * @param {Object} filters - Filter parameters.
+ * @param {number} [filters.employeeId] - Filter by employee ID.
+ * @param {Date} [filters.date] - Filter by date.
+ * @param {Date} [filters.fromDate] - Filter by date range start.
+ * @param {Date} [filters.toDate] - Filter by date range end.
+ * @param {number} take - Number of records to retrieve.
+ * @param {number} skip - Number of records to skip.
+ * @returns {Promise<Object>} Object containing dataList and total count.
  */
 export const getAllAttendance = async (filters = {}, take, skip) => {
   console.log('filters', filters);
@@ -77,15 +78,16 @@ export const getAllAttendance = async (filters = {}, take, skip) => {
 };
 
 /**
- * Create a new attendance record
- * @param {Object} data - Attendance data
- * @param {number} data.employeeId - Employee ID
- * @param {Date} data.date - Attendance date
- * @param {string} data.entryTime - Entry time
- * @param {string} data.exitTime - Exit time
- * @param {number} data.workedHours - Worked hours
- * @param {number} data.createdBy - User ID who created the attendance record
- * @returns {Promise<Object>} Created attendance record with related data
+ * Create a new attendance record.
+ *
+ * @param {Object} data - Attendance data.
+ * @param {number} data.employeeId - Employee ID.
+ * @param {Date} data.date - Attendance date.
+ * @param {string} data.entryTime - Entry time.
+ * @param {string} data.exitTime - Exit time.
+ * @param {number} data.workedHours - Worked hours.
+ * @param {number} data.createdBy - User ID who created the attendance record.
+ * @returns {Promise<Object>} Created attendance record with related data.
  */
 export const createAttendance = async (data) => {
   return prisma.attendance.create({
@@ -110,16 +112,17 @@ export const createAttendance = async (data) => {
 };
 
 /**
- * Update an attendance record by ID
- * @param {number} id - Attendance ID
- * @param {Object} data - Updated attendance data
- * @param {number} [data.employeeId] - Employee ID
- * @param {Date} [data.date] - Attendance date
- * @param {string} [data.entryTime] - Entry time
- * @param {string} [data.exitTime] - Exit time
- * @param {number} [data.workedHours] - Worked hours
- * @param {number} data.updatedBy - User ID who updated the attendance record
- * @returns {Promise<Object>} Updated attendance record with related data
+ * Update an attendance record by ID.
+ *
+ * @param {number} id - Attendance ID.
+ * @param {Object} data - Updated attendance data.
+ * @param {number} [data.employeeId] - Employee ID.
+ * @param {Date} [data.date] - Attendance date.
+ * @param {string} [data.entryTime] - Entry time.
+ * @param {string} [data.exitTime] - Exit time.
+ * @param {number} [data.workedHours] - Worked hours.
+ * @param {number} data.updatedBy - User ID who updated the attendance record.
+ * @returns {Promise<Object>} Updated attendance record with related data.
  */
 export const updateAttendanceById = async (id, data) => {
   return prisma.attendance.update({
@@ -145,9 +148,10 @@ export const updateAttendanceById = async (id, data) => {
 };
 
 /**
- * Delete an attendance record by ID
- * @param {number} id - Attendance ID
- * @returns {Promise<Object>} Deleted attendance record
+ * Delete an attendance record by ID.
+ *
+ * @param {number} id - Attendance ID.
+ * @returns {Promise<Object>} Deleted attendance record.
  */
 export const deleteAttendanceById = async (id) => {
   return prisma.attendance.delete({

@@ -1,18 +1,19 @@
 import { z } from 'zod';
+import { getZodMessage } from '@/utils/zod-i18n-map';
 
 export const ClientSchema = z
   .object({
     name: z.string().min(1, {
-      message: 'Client name is required.',
+      message: getZodMessage('zod.clients.name.empty'),
     }),
     email: z.string().email({
-      message: 'Invalid email format.',
+      message: getZodMessage('zod.clients.email.invalid'),
     }),
     phone: z.string().min(1, {
-      message: 'Phone number is required.',
+      message: getZodMessage('zod.clients.phone.empty'),
     }),
     address: z.string().min(1, {
-      message: 'Address is required.',
+      message: getZodMessage('zod.clients.address.empty'),
     }),
   })
   .passthrough(); // Permite otros campos
@@ -22,7 +23,7 @@ export const ClientsFiltersSchema = z.object({
   email: z
     .string()
     .email({
-      message: 'Invalid email format.',
+      message: getZodMessage('zod.clients.email.invalid'),
     })
     .optional(),
 });

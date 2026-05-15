@@ -1,14 +1,15 @@
 import { prisma, Prisma } from '../../config/db.js';
 
 /**
- * Get all performance evaluations with optional filters
- * @param {Object} filters - Optional filters for the query
- * @param {string} [filters.employeeId] - Filter by employee ID
- * @param {string} [filters.startDate] - Filter by start date
- * @param {string} [filters.endDate] - Filter by end date
- * @param {number} take- take to filter by
- * @param {number} skip - skip to filter by
- * @returns {Promise<Array>} List of performance evaluations with their related data
+ * Get all performance evaluations with optional filters.
+ *
+ * @param {Object} filters - Optional filters for the query.
+ * @param {string} [filters.employeeId] - Filter by employee ID.
+ * @param {string} [filters.startDate] - Filter by start date.
+ * @param {string} [filters.endDate] - Filter by end date.
+ * @param {number} take - Number of records to retrieve.
+ * @param {number} skip - Number of records to skip.
+ * @returns {Promise<Object>} Object containing dataList and total count.
  */
 export const getAllPerformanceEvaluations = async (
   filters = {},
@@ -83,15 +84,16 @@ export const getAllPerformanceEvaluations = async (
 };
 
 /**
- * Create a new performance evaluation
- * @param {Object} data - Performance evaluation data
- * @param {number} data.employeeId - Employee ID
- * @param {Date} data.date - Evaluation date
- * @param {number} data.calification - Evaluation score
- * @param {string} data.comments - Evaluation comments
- * @param {number} data.createdBy - User ID who created the evaluation
- * @param {Date} data.creationOn - Creation timestamp
- * @returns {Promise<Object>} Created performance evaluation with related data
+ * Create a new performance evaluation.
+ *
+ * @param {Object} data - Performance evaluation data.
+ * @param {number} data.employeeId - Employee ID.
+ * @param {Date} data.date - Evaluation date.
+ * @param {number} data.calification - Evaluation score.
+ * @param {string} data.comments - Evaluation comments.
+ * @param {number} data.createdBy - User ID who created the evaluation.
+ * @param {Date} data.creationOn - Creation timestamp.
+ * @returns {Promise<Object>} Created performance evaluation with related data.
  */
 export const createPerformanceEvaluation = async (data) => {
   const evaluation = await prisma.performanceEvaluation.create({
@@ -112,10 +114,11 @@ export const createPerformanceEvaluation = async (data) => {
 };
 
 /**
- * Update a performance evaluation by ID
- * @param {number} id - Performance evaluation ID
- * @param {Object} data - Updated performance evaluation data
- * @returns {Promise<Object>} Updated performance evaluation with related data
+ * Update a performance evaluation by ID.
+ *
+ * @param {number} id - Performance evaluation ID.
+ * @param {Object} data - Updated performance evaluation data.
+ * @returns {Promise<Object>} Updated performance evaluation with related data.
  */
 export const updatePerformanceEvaluationById = async (id, data) => {
   const evaluation = await prisma.performanceEvaluation.update({
@@ -137,9 +140,10 @@ export const updatePerformanceEvaluationById = async (id, data) => {
 };
 
 /**
- * Delete a performance evaluation by ID
- * @param {number} id - Performance evaluation ID
- * @returns {Promise<Object>} Deleted performance evaluation
+ * Delete a performance evaluation by ID.
+ *
+ * @param {number} id - Performance evaluation ID.
+ * @returns {Promise<Object>} Deleted performance evaluation.
  */
 export const deletePerformanceEvaluationById = async (id) => {
   const evaluation = await prisma.performanceEvaluation.delete({

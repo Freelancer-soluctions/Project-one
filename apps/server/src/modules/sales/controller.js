@@ -9,9 +9,19 @@ import globalResponse from '../../utils/responses&Errors/globalResponse.js';
 import handleCatchErrorAsync from '../../utils/responses&Errors/handleCatchErrorAsync.js';
 
 /**
- * Get all sales with optional filters
- * @param {Object} req - Express request object
- * @param {Object} res - Express response object
+ * Get all sales with optional filters.
+ *
+ * @param {Object} req - The HTTP request object.
+ * @param {Object} req.safeQuery - Safe query parameters with filters
+ * @param {number} [req.safeQuery.page] - Page number for pagination
+ * @param {number} [req.safeQuery.limit] - Number of items per page
+ * @param {number} [req.safeQuery.clientId] - Filter by client ID
+ * @param {Date} [req.safeQuery.startDate] - Filter by start date
+ * @param {Date} [req.safeQuery.endDate] - Filter by end date
+ * @param {number} [req.safeQuery.minTotal] - Filter by minimum total
+ * @param {number} [req.safeQuery.maxTotal] - Filter by maximum total
+ * @param {Object} res - The HTTP response object.
+ * @returns {Promise<void>} Returns paginated list of sales
  */
 export const getAllSales = handleCatchErrorAsync(async (req, res) => {
   const sales = await getAllSalesService(req.safeQuery);
@@ -19,9 +29,16 @@ export const getAllSales = handleCatchErrorAsync(async (req, res) => {
 });
 
 /**
- * Create a new sale
- * @param {Object} req - Express request object
- * @param {Object} res - Express response object
+ * Create a new sale.
+ *
+ * @param {Object} req - The HTTP request object.
+ * @param {Object} req.body - Request body containing sale data
+ * @param {number} req.body.clientId - Client ID
+ * @param {number} req.body.total - Total amount
+ * @param {Array} req.body.details - Array of sale details
+ * @param {string} req.userId - Authenticated user ID from token verification
+ * @param {Object} res - The HTTP response object.
+ * @returns {Promise<void>} Creates new sale and returns sale object
  */
 export const createSale = handleCatchErrorAsync(async (req, res) => {
   const sale = await createSaleService({
@@ -32,9 +49,18 @@ export const createSale = handleCatchErrorAsync(async (req, res) => {
 });
 
 /**
- * Update a sale by ID
- * @param {Object} req - Express request object
- * @param {Object} res - Express response object
+ * Update a sale by ID.
+ *
+ * @param {Object} req - The HTTP request object.
+ * @param {Object} req.params - Request parameters
+ * @param {string} req.params.id - Sale ID from URL
+ * @param {Object} req.body - Request body containing sale data to update
+ * @param {number} [req.body.clientId] - Client ID
+ * @param {number} [req.body.total] - Total amount
+ * @param {Array} [req.body.details] - Array of sale details
+ * @param {string} req.userId - Authenticated user ID from token verification
+ * @param {Object} res - The HTTP response object.
+ * @returns {Promise<void>} Updates sale and returns updated sale object
  */
 export const updateSaleById = handleCatchErrorAsync(async (req, res) => {
   const sale = await updateSaleByIdService(req.params.id, {
@@ -45,9 +71,13 @@ export const updateSaleById = handleCatchErrorAsync(async (req, res) => {
 });
 
 /**
- * Delete a sale by ID
- * @param {Object} req - Express request object
- * @param {Object} res - Express response object
+ * Delete a sale by ID.
+ *
+ * @param {Object} req - The HTTP request object.
+ * @param {Object} req.params - Request parameters
+ * @param {string} req.params.id - Sale ID from URL
+ * @param {Object} res - The HTTP response object.
+ * @returns {Promise<void>} Deletes sale and returns confirmation message
  */
 export const deleteSaleById = handleCatchErrorAsync(async (req, res) => {
   await deleteSaleByIdService(req.params.id);
@@ -55,9 +85,13 @@ export const deleteSaleById = handleCatchErrorAsync(async (req, res) => {
 });
 
 /**
- * Delete a sale detail by ID
- * @param {Object} req - Express request object
- * @param {Object} res - Express response object
+ * Delete a sale detail by ID.
+ *
+ * @param {Object} req - The HTTP request object.
+ * @param {Object} req.params - Request parameters
+ * @param {string} req.params.id - Sale detail ID from URL
+ * @param {Object} res - The HTTP response object.
+ * @returns {Promise<void>} Deletes sale detail and returns confirmation message
  */
 export const deleteSaleDetailById = handleCatchErrorAsync(async (req, res) => {
   await deleteSaleDetailByIdService(req.params.id);

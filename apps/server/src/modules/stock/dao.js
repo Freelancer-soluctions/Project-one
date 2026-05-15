@@ -1,14 +1,15 @@
 import { prisma, Prisma } from '../../config/db.js';
 
 /**
- * Get all stock entries with optional filters
- * @param {number} productId - Product ID to filter by
- * @param {number} warehouseId - Warehouse ID to filter by
- * @param {string} lot - Lot number to filter by
- * @param {string} unitMeasure - Unit measure to filter by
- * @param {number} take- take to filter by
- * @param {number} skip - skip to filter by
- * @returns {Promise<Array>} List of stock entries
+ * Get all stock entries with optional filters.
+ *
+ * @param {number} productId - Product ID to filter by.
+ * @param {number} warehouseId - Warehouse ID to filter by.
+ * @param {string} lot - Lot number to filter by.
+ * @param {string} unitMeasure - Unit measure to filter by.
+ * @param {number} take - Number of records to retrieve.
+ * @param {number} skip - Number of records to skip.
+ * @returns {Promise<Object>} Object containing dataList and total count.
  */
 export const getAllStock = async ({
   productId,
@@ -81,9 +82,10 @@ export const getAllStock = async ({
 };
 
 /**
- * Get stock by product ID
- * @param {number} id - Product ID
- * @returns {Promise<Object>} Stock entry
+ * Get stock by product ID.
+ *
+ * @param {number} id - Product ID.
+ * @returns {Promise<Object>} Stock entry for the specified product.
  */
 export const getStockByProductId = async (id) => {
   return prisma.stock.findUnique({
@@ -92,8 +94,9 @@ export const getStockByProductId = async (id) => {
 };
 
 /**
- * Get all stock alerts
- * @returns {Promise<Object>} Stock alerts
+ * Get all stock alerts.
+ *
+ * @returns {Promise<Object>} Stock alerts including expired and low stock counts.
  */
 export const getStockAlerts = async () => {
   const stockAlerts = await prisma.$queryRaw`
@@ -108,9 +111,10 @@ export const getStockAlerts = async () => {
 };
 
 /**
- * Create a new stock entry
- * @param {Object} data - Stock entry data
- * @returns {Promise<Object>} Created stock entry
+ * Create a new stock entry.
+ *
+ * @param {Object} data - Stock entry data.
+ * @returns {Promise<Object>} Created stock entry.
  */
 export const createStock = async (data) => {
   const stock = await prisma.stock.create({
@@ -144,10 +148,11 @@ export const createStock = async (data) => {
 };
 
 /**
- * Update a stock entry
- * @param {Object} data - Updated stock data
- * @param {Object} where - Query conditions
- * @returns {Promise<Object>} Updated stock entry
+ * Update a stock entry by conditions.
+ *
+ * @param {Object} data - Updated stock data.
+ * @param {Object} where - Query conditions.
+ * @returns {Promise<Object>} Updated stock entry.
  */
 export const updateStock = async (data, where) => {
   const stock = await prisma.stock.update({
@@ -182,9 +187,10 @@ export const updateStock = async (data, where) => {
 };
 
 /**
- * Delete a stock entry
- * @param {Object} where - Query conditions
- * @returns {Promise<Object>} Deleted stock entry
+ * Delete a stock entry by conditions.
+ *
+ * @param {Object} where - Query conditions.
+ * @returns {Promise<Object>} Deleted stock entry.
  */
 export const deleteStock = async (where) => {
   const stock = await prisma.stock.delete({

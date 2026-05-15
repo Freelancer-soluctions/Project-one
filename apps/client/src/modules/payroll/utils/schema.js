@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { getZodMessage } from '@/utils/zod-i18n-map';
 
 const currentYear = new Date().getFullYear();
 
@@ -7,53 +8,53 @@ export const PayrollSchema = z
     employeeId: z.preprocess(
       (val) => (val === '' ? undefined : Number(val)),
       z
-        .number({ required_error: 'Employee is required.' })
+        .number({ required_error: getZodMessage('zod.payroll.employeeId.required') })
         .int()
-        .positive('Employee must be selected.')
+        .positive(getZodMessage('zod.payroll.employeeId.positive'))
     ),
     month: z.preprocess(
       (val) => (val === '' ? undefined : Number(val)),
       z
-        .number({ required_error: 'Month is required.' })
+        .number({ required_error: getZodMessage('zod.payroll.month.required') })
         .int()
-        .min(1, 'Month must be between 1 and 12.')
-        .max(12, 'Month must be between 1 and 12.')
+        .min(1, getZodMessage('zod.payroll.month.invalid'))
+        .max(12, getZodMessage('zod.payroll.month.invalid'))
     ),
     year: z.preprocess(
       (val) => (val === '' ? undefined : Number(val)),
       z
-        .number({ required_error: 'Year is required.' })
+        .number({ required_error: getZodMessage('zod.payroll.year.required') })
         .int()
-        .min(2000, 'Year must be 2000 or later.')
-        .max(currentYear + 1, `Year cannot be later than ${currentYear + 1}.`)
+        .min(2000, getZodMessage('zod.payroll.year.min'))
+        .max(currentYear + 1, getZodMessage('zod.payroll.year.max', { count: currentYear + 1 }))
     ),
-    baseSalary: z.preprocess(
+baseSalary: z.preprocess(
       (val) => (val === '' ? undefined : Number(val)),
       z
-        .number({ required_error: 'Base salary is required.' })
-        .positive('Base salary must be positive.')
+        .number({ required_error: getZodMessage('zod.payroll.baseSalary.required') })
+        .positive(getZodMessage('zod.payroll.baseSalary.positive'))
     ),
-    extraHours: z.preprocess(
+extraHours: z.preprocess(
       (val) => (val === '' ? 0 : Number(val)), // Default to 0 if empty
       z
-        .number({ invalid_type_error: 'Extra hours must be a number.' })
-        .nonnegative('Extra hours cannot be negative.')
+        .number({ invalid_type_error: getZodMessage('zod.payroll.extraHours.invalid') })
+        .nonnegative(getZodMessage('zod.payroll.extraHours.nonnegative'))
         .optional()
         .default(0)
     ),
-    deductions: z.preprocess(
+deductions: z.preprocess(
       (val) => (val === '' ? 0 : Number(val)), // Default to 0 if empty
       z
-        .number({ invalid_type_error: 'Deductions must be a number.' })
-        .nonnegative('Deductions cannot be negative.')
+        .number({ invalid_type_error: getZodMessage('zod.payroll.deductions.invalid') })
+        .nonnegative(getZodMessage('zod.payroll.deductions.nonnegative'))
         .optional()
         .default(0)
     ),
     totalPayment: z.preprocess(
       (val) => (val === '' ? undefined : Number(val)),
       z
-        .number({ required_error: 'Total payment is required.' })
-        .positive('Total payment must be positive.')
+        .number({ required_error: getZodMessage('zod.payroll.totalPayment.required') })
+        .positive(getZodMessage('zod.payroll.totalPayment.positive'))
     ),
   })
   // Optional: Add refine logic if totalPayment needs calculation validation

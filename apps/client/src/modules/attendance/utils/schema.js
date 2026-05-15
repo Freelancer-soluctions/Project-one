@@ -1,29 +1,36 @@
 import { z } from 'zod';
+import { getZodMessage } from '@/utils/zod-i18n-map';
 
 export const AttendanceSchema = z
   .object({
     employeeId: z.preprocess(
       (val) => (val === '' ? undefined : Number(val)), // Convert empty string to undefined, otherwise to number
       z
-        .number({ required_error: 'Employee is required.' })
+        .number({ 
+          required_error: getZodMessage('zod.attendance.employeeId.required'),
+          invalid_type_error: getZodMessage('zod.attendance.employeeId.required')
+        })
         .int()
-        .positive('Employee must be selected.')
+        .positive(getZodMessage('zod.attendance.employeeId.positive'))
     ),
     date: z.date({
-      required_error: 'Date is required.',
+      required_error: getZodMessage('zod.attendance.date.required'),
     }),
     entryTime: z.string().regex(/^([01]\d|2[0-3]):([0-5]\d)$/, {
-      message: 'Invalid entry time format (HH:mm).',
+      message: getZodMessage('zod.attendance.entryTime.invalid'),
     }),
     exitTime: z.string().regex(/^([01]\d|2[0-3]):([0-5]\d)$/, {
-      message: 'Invalid exit time format (HH:mm).',
+      message: getZodMessage('zod.attendance.exitTime.invalid'),
     }),
-    // workedHours could be calculated or entered, assuming entered as a number here
     workedHours: z.preprocess(
       (val) => (val === '' ? undefined : Number(val)), // Convert empty string to undefined, otherwise to number
       z
-        .number({ required_error: 'Worked hours are required.' })
-        .positive('Worked hours must be positive.')
+        .number({ 
+          required_error: getZodMessage('zod.attendance.workedHours.required'),
+          invalid_type_error: getZodMessage('zod.attendance.workedHours.required')
+        })
+        .int()
+        .positive(getZodMessage('zod.attendance.workedHours.positive'))
     ),
   })
 

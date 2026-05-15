@@ -2,15 +2,15 @@
 import { prisma, Prisma } from '../../config/db.js';
 
 /**
- * Get all expenses with optional filters
- * @param {Object} filters - filters for the query
- * @param {string} [filters.description] - Filter by expense description
- * @param {string} [filters.category] - Filter by expense category
- * @param {string} [filters.status] - Filter by expense status (enum expenseCategory)
- * @param {number} take- take to filter by
- * @param {number} skip - skip to filter by
- * @returns {Promise<Array>} List of expenses with their related data
- * @async
+ * Get all expenses with optional filters.
+ *
+ * @param {Object} filters - Filter parameters.
+ * @param {string} [filters.description] - Filter by expense description.
+ * @param {string} [filters.category] - Filter by expense category.
+ * @param {string} [filters.status] - Filter by expense status (enum expenseCategory).
+ * @param {number} take - Number of records to retrieve.
+ * @param {number} skip - Number of records to skip.
+ * @returns {Promise<Object>} Object containing dataList and total count.
  */
 export const getAllExpenses = async (filters = {}, take, skip) => {
   const whereClauses = [];
@@ -76,15 +76,15 @@ export const getAllExpenses = async (filters = {}, take, skip) => {
 };
 
 /**
- * Create a new expense
- * @param {Object} data - Expense data
- * @param {string} data.description - Expense description
- * @param {number} data.total - Expense total (Float)
- * @param {string} data.category - Expense category
- * @param {Date} data.createdOn - Creation date
- * @param {number} data.createdBy - User ID who created the expense
- * @returns {Promise<Object>} Created expense
- * @async
+ * Create a new expense.
+ *
+ * @param {Object} data - Expense data.
+ * @param {string} data.description - Expense description.
+ * @param {number} data.total - Expense total (Float).
+ * @param {string} data.category - Expense category.
+ * @param {Date} data.createdOn - Creation date.
+ * @param {number} data.createdBy - User ID who created the expense.
+ * @returns {Promise<Object>} Created expense.
  */
 export const createExpense = async (data) => {
   return prisma.expenses.create({
@@ -104,16 +104,16 @@ export const createExpense = async (data) => {
 };
 
 /**
- * Update an expense by ID
- * @param {string} id - Expense ID (cuid string)
- * @param {Object} data - Updated expense data
- * @param {string} [data.description] - Expense description
- * @param {number} [data.total] - Expense total (Float)
- * @param {string} [data.category] - Expense category
- * @param {Date} data.updatedOn - Update date
- * @param {number} data.updatedBy - User ID who updated the expense
- * @returns {Promise<Object>} Updated expense
- * @async
+ * Update an expense by ID.
+ *
+ * @param {string} id - Expense ID (cuid string).
+ * @param {Object} data - Updated expense data.
+ * @param {string} [data.description] - Expense description.
+ * @param {number} [data.total] - Expense total (Float).
+ * @param {string} [data.category] - Expense category.
+ * @param {Date} data.updatedOn - Update date.
+ * @param {number} data.updatedBy - User ID who updated the expense.
+ * @returns {Promise<Object>} Updated expense.
  */
 export const updateExpenseById = async (id, data) => {
   return prisma.expenses.update({
@@ -133,10 +133,10 @@ export const updateExpenseById = async (id, data) => {
 };
 
 /**
- * Delete an expense by ID
- * @param {string} id - Expense ID (cuid string)
- * @returns {Promise<Object>} Deleted expense
- * @async
+ * Delete an expense by ID.
+ *
+ * @param {string} id - Expense ID (cuid string).
+ * @returns {Promise<Object>} Deleted expense.
  */
 export const deleteExpenseById = async (id) => {
   return prisma.expenses.delete({

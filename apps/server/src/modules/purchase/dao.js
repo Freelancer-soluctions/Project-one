@@ -1,16 +1,17 @@
 import { prisma } from '../../config/db.js';
 
 /**
- * Get all purchases with optional filters
- * @param {Object} filters - Optional filters for the query
- * @param {number} [filters.providerId] - Filter by provider ID
- * @param {Date} [filters.startDate] - Filter by start date
- * @param {Date} [filters.endDate] - Filter by end date
- * @param {number} [filters.minTotal] - Filter by minimum total
- * @param {number} [filters.maxTotal] - Filter by maximum total,
- * @param {number} take- take to filter by
- * @param {number} skip - skip to filter by
- * @returns {Promise<Array>} List of purchases with their details and related data
+ * Get all purchases with optional filters.
+ *
+ * @param {Object} filters - Optional filters for the query.
+ * @param {number} [filters.providerId] - Filter by provider ID.
+ * @param {Date} [filters.startDate] - Filter by start date.
+ * @param {Date} [filters.endDate] - Filter by end date.
+ * @param {number} [filters.minTotal] - Filter by minimum total.
+ * @param {number} [filters.maxTotal] - Filter by maximum total.
+ * @param {number} take - Number of records to retrieve.
+ * @param {number} skip - Number of records to skip.
+ * @returns {Promise<Object>} Object containing dataList and total count.
  */
 export const getAllPurchases = async (filters = {}, take, skip) => {
   const where = {
@@ -45,16 +46,17 @@ export const getAllPurchases = async (filters = {}, take, skip) => {
 };
 
 /**
- * Create a new purchase with its details
- * @param {Object} data - Purchase data including details
- * @param {number} data.providerId - Provider ID
- * @param {number} data.total - Total amount
- * @param {Array} data.details - Array of purchase details
- * @param {number} data.details[].productId - Product ID
- * @param {number} data.details[].quantity - Quantity
- * @param {number} data.details[].price - Price per unit
- * @param {number} data.createdBy - User ID who created the purchase
- * @returns {Promise<Object>} Created purchase with its details and related data
+ * Create a new purchase with its details.
+ *
+ * @param {Object} data - Purchase data including details.
+ * @param {number} data.providerId - Provider ID.
+ * @param {number} data.total - Total amount.
+ * @param {Array} data.details - Array of purchase details.
+ * @param {number} data.details[].productId - Product ID.
+ * @param {number} data.details[].quantity - Quantity.
+ * @param {number} data.details[].price - Price per unit.
+ * @param {number} data.createdBy - User ID who created the purchase.
+ * @returns {Promise<Object>} Created purchase with its details and related data.
  */
 export const createPurchase = async (data) => {
   const { details, ...purchaseData } = data;
@@ -78,14 +80,15 @@ export const createPurchase = async (data) => {
 };
 
 /**
- * Update a purchase and its details
- * @param {number} id - Purchase ID
- * @param {Object} data - Updated purchase data
- * @param {number} [data.providerId] - Provider ID
- * @param {number} [data.total] - Total amount
- * @param {Array} [data.details] - Array of purchase details
- * @param {number} data.updatedBy - User ID who updated the purchase
- * @returns {Promise<Object>} Updated purchase with its details and related data
+ * Update a purchase and its details by ID.
+ *
+ * @param {number} id - Purchase ID.
+ * @param {Object} data - Updated purchase data.
+ * @param {number} [data.providerId] - Provider ID.
+ * @param {number} [data.total] - Total amount.
+ * @param {Array} [data.details] - Array of purchase details.
+ * @param {number} data.updatedBy - User ID who updated the purchase.
+ * @returns {Promise<Object>} Updated purchase with its details and related data.
  */
 export const updatePurchaseById = async (id, data) => {
   const { details, ...purchaseData } = data;
@@ -116,9 +119,10 @@ export const updatePurchaseById = async (id, data) => {
 };
 
 /**
- * Delete a purchase and its details
- * @param {number} id - Purchase ID
- * @returns {Promise<Object>} Deleted purchase
+ * Delete a purchase and its details by ID.
+ *
+ * @param {number} id - Purchase ID.
+ * @returns {Promise<Object>} Deleted purchase.
  */
 export const deletePurchaseById = async (id) => {
   // First, delete all related details
@@ -133,9 +137,10 @@ export const deletePurchaseById = async (id) => {
 };
 
 /**
- * Delete a purchase details
- * @param {number} id - Purchase ID
- * @returns {Promise<Object>} Deleted purchase detail
+ * Delete a purchase detail by ID.
+ *
+ * @param {number} id - Purchase detail ID.
+ * @returns {Promise<Object>} Deleted purchase detail.
  */
 export const deletePurchaseDetailById = async (id) => {
   await prisma.purchaseDetail.delete({

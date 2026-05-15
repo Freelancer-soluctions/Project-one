@@ -5,16 +5,16 @@ import { prisma, Prisma } from '../../config/db.js';
 const tableName = TABLESNAMES.PROVIDERS;
 
 /**
- * Retrieves all providers from the database based on optional filters.
+ * Get all providers with optional filters.
  *
  * @param {string} [name] - The name filter for providers (partial match).
  * @param {boolean} [status] - The status filter for providers.
- * @param {number} take- take to filter by
- * @param {number} skip - skip to filter by
- * @returns {Promise<Array>} A list of providers matching the filters.
+ * @param {number} take - Number of records to retrieve.
+ * @param {number} skip - Number of records to skip.
+ * @returns {Promise<Object>} Object containing dataList and total count.
  */
 
-export const getAllProducts = async (name, status, take, skip) => {
+export const getAllProviders = async (name, status, take, skip) => {
   const whereClauses = [];
 
   if (name) {
@@ -63,8 +63,9 @@ export const getAllProducts = async (name, status, take, skip) => {
 };
 
 /**
- * Retrieves all providers.
- * @returns {Promise<Array>} A list of providers matching the filters.
+ * Get all providers for UI filters.
+ *
+ * @returns {Promise<Array>} List of all providers.
  */
 
 export const getAllProvidersFilters = async () => {
@@ -72,7 +73,7 @@ export const getAllProvidersFilters = async () => {
 };
 
 /**
- * Creates a new provider in the database.
+ * Create a new provider.
  *
  * @param {Object} data - The data for the new provider.
  * @param {string} data.code - The unique code of the provider (max 3 characters).
@@ -110,7 +111,7 @@ export const createProvider = async (data) => {
 };
 
 /**
- * Updates an existing provider in the database.
+ * Update a provider by conditions.
  *
  * @param {Object} data - The fields to update in the provider.
  * @param {Object} where - The conditions to identify the provider to update.
@@ -150,10 +151,10 @@ export const updateRow = async (data, where) => {
 };
 
 /**
- * Deletes a provider from the database based on the provided filter.
+ * Delete a provider by conditions.
  *
  * @param {Object} where - The conditions to identify the provider to delete.
- * @returns {Promise<Object>} The result of the deletion operation.
+ * @returns {Promise<Object>} The deleted provider.
  */
 export const deleteRow = async (where) =>
   prismaService.deleteRow(tableName, where);
