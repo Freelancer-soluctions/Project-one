@@ -139,5 +139,13 @@
         "bash": false
       }
     }
+  },
+  "mcp": {
+    "composio": {
+      "type": "remote",
+      "url": "https://connect.composio.dev/mcp",
+      "oauth": {},
+      "enabled": true
+    }
   }
 }
