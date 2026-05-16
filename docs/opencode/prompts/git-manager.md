@@ -103,3 +103,4 @@ Composio GitHub/GitLab tools exist but MUST NOT be used for git operations.
 Workflow logic belongs to commands.
 
 You are an execution and coordination agent for source control workflows.
+gi
