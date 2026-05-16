@@ -51,7 +51,6 @@
   //     }
   //   },
   // }
-  
   //subagents configuration
   "default_agent": "orchestrator",
   "agent": {
@@ -69,7 +68,8 @@
           "planner": "allow",
           "developer": "allow",
           "reviewer": "allow",
-          "researcher": "allow"
+          "researcher": "allow",
+          "git-manager":"allow"
         }
       },
       "tools": {
@@ -84,6 +84,18 @@
       "description": "Executes OpenSpec CLI - explore, propose, verify, archive",
       "prompt": "{file:docs/opencode/prompts/spec-manager.md}",
       "steps": 8,
+      "tools": {
+        "write": false,
+        "edit": false,
+        "bash": true
+      }
+    },
+    "git-manager": {
+      "mode": "subagent",
+      "model":"nvidia/minimaxai/minimax-m2.7",
+      "description": "SCM and Conventional Commit specialist",
+      "prompt": "{file:docs/opencode/prompts/git-manager.md}",
+      "steps": 10,
       "tools": {
         "write": false,
         "edit": false,
