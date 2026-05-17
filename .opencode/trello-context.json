@@ -1,0 +1,38 @@
+{
+  "version": 1,
+  "updated": "2026-05-16",
+  "description": "Trello board context registry — maps friendly names to Trello IDs for all commands",
+  "defaultBoard": "project-one",
+  "boards": {
+    "project-one": {
+      "id": "663aa79b4bb80987bc775706",
+      "name": "Project one",
+      "shortUrl": "https://trello.com/b/CSH9VRvs",
+      "url": "https://trello.com/b/CSH9VRvs/project-one",
+      "lists": {
+        "Backlog": "663aa79b4bb80987bc775707",
+        "Sprint Backlog": "663aa79b4bb80987bc775708",
+        "In Progress": "663aa79b4bb80987bc775709",
+        "Testing": "673507e3f305b42410f04639",
+        "8.9.17 Sprint - Complete": "663aa79b4bb80987bc77570a",
+        "Failed": "67350aad430c7ecc2edc35df",
+        "Revision de modulos": "67b7ec8941cbc1b5a53afd56"
+      },
+      "labels": {
+        "Verified on branch": { "id": "663aa79b4bb80987bc7757bc", "color": "yellow" },
+        "Regression": { "id": "663aa79b4bb80987bc7757c5", "color": "purple" },
+        "Verified on staging": { "id": "663aa79b4bb80987bc7757c8", "color": "blue" },
+        "Blocked": { "id": "663aa79b4bb80987bc7757c2", "color": "red" },
+        "Meta": { "id": "663aa79b4bb80987bc7757b9", "color": "green" },
+        "New Team / boards tab": { "id": "663aa79b4bb80987bc7757ce", "color": "sky" },
+        "Security Issue": { "id": "663aa79b4bb80987bc7757cb", "color": "black" },
+        "Bugs": { "id": "663aa79b4bb80987bc7757bf", "color": "orange" },
+        "Web": { "id": "663aa79b4bb80987bc7757d1", "color": "green" }
+      },
+      "members": {
+        "laurafalcon1": { "id": "5bb601eee274c46f21db31dc", "fullName": "Laura Falcón" },
+        "johangarcia6": { "id": "6606187e712266870ad3e9a8", "fullName": "johan Garcia" }
+      }
+    }
+  }
+}
