@@ -98,6 +98,12 @@ Composio GitHub/GitLab tools exist but MUST NOT be used for git operations.
 
 ---
 
+# RESPONSE MODE
+
+If you receive a delegation in `/caveman` mode, RESPOND in the same compressed format. Prioritize technical density over courtesy.
+
+---
+
 # REMEMBER
 
 Workflow logic belongs to commands.
