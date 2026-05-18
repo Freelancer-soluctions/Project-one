@@ -68,6 +68,24 @@ The spec-manager executes and reports command results.
 
 ---
 
+## Fase 0: INTERROGATORIO RELENTLESS (/grill-me)
+
+The `/grill-me` protocol is a registered skill (`.agents/skills/grill-me/`, from `mattpocock/skills`).
+
+Before delegating to @spec-manager for Phase 1 (Exploration) or Phase 2 (Spec Creation):
+
+1. **Load the skill**: `/skill grill-me`
+2. Follow the skill's instructions: interview the user relentlessly, walk down each branch of the design tree, resolve dependencies between decisions one-by-one
+3. Ask questions **one at a time**, at least 3 critical questions
+4. If a question can be answered by exploring the codebase, explore the codebase instead
+5. Do NOT delegate to @spec-manager (`/opsx-new`) until the user has confirmed a shared understanding of the plan [9, 11]
+
+Examples:
+
+- `/skill grill-me` → "1) ¿Qué pasa si el endpoint recibe datos malformados? 2) ¿Cómo manejamos autenticación vs autorización aquí? 3) ¿Cuál es el alcance exacto — solo GET o también POST?"
+
+---
+
 ## Phase 1: Exploration
 
 Delegate exploration workflows to @spec-manager.
@@ -150,6 +168,7 @@ Examples:
 - @spec-manager: /opsx-bulk-archive
 
 ---
+
 # PROJECT-MANAGEMENT WORKFLOW
 
 Project-management workflows are owned by @project-manager.
@@ -202,7 +221,7 @@ Examples:
 
 @<agent>: <instruction>
 
-Examples:
+Examples (modo estándar):
 - @spec-manager: Explore authentication patterns
 - @spec-manager: Create specification for jwt-auth
 - @planner: Review specification for jwt-auth
@@ -213,7 +232,56 @@ Examples:
 - @git-manager: Create Conventional Commits for current changes
 - @project-manager: Manage project workflow for jwt-auth
 
---- 
+## PROTOCOLO DE DELEGACIÓN (/caveman)
+
+The `/caveman` protocol is a registered skill (`.agents/skills/caveman/`, from `mattpocock/skills`). It cuts token usage ~75% by dropping filler, articles, and pleasantries while keeping full technical accuracy.
+
+When delegating to subagentes (especially @reviewer and @git-manager):
+
+1. **Load the skill**: `/skill caveman`
+2. The skill **PERSISTS** across all responses once triggered — no filler drift. Still active if unsure. Off only with "stop caveman" or "normal mode"
+3. Format: `@<agent>: <action>. focus: <areas>. context: <files>`
+4. Drop: articles (a/an/the), filler (just/really/basically/actually/simply), pleasantries (sure/certainly/of course/happy to), hedging
+5. Keep: technical terms exact, code blocks unchanged, error messages quoted
+6. Use arrows for causality (X → Y). Fragments OK. One word when one word enough
+
+Formato comprimido:
+```
+@<agent>: <acción>. focus: <áreas>. context: <archivos>
+```
+
+Ejemplos:
+- `@reviewer: verify add-field-limits. focus: sql-inj, types. context: fieldLimits.js`
+- `@developer: impl task-3 user-status. ref: design.md#api`
+- `@git-manager: commit "feat: add user status endpoint". scope: server`
+- `@spec-manager: verify user-status. focus: tasks-complete, spec-coverage`
+
+To disable caveman mode: say "stop caveman" or "normal mode".
+
+---
+
+# TOKEN EFFICIENCY PROTOCOLS
+
+## Reglas Estratégicas (Matt Pocock)
+
+### 1. Context Injection (CONTEXT.md)
+Antes de delegar cualquier tarea a un subagente, DEBES inyectar el contenido de `CONTEXT.md` en su prompt de sistema para asegurar el uso de lenguaje técnico preciso [2].
+
+### 2. Golden Rule of Conciseness (20-Word Rule)
+Si detectas que un agente gasta más de 20 palabras explicando un concepto técnico, DEBES obligarlo a definir un término nuevo en `CONTEXT.md` y usarlo en adelante [2].
+
+### 3. /caveman Communication (Skill)
+Carga y usa la skill `caveman` (`.agents/skills/caveman/`) vía `/skill caveman` para todas las delegaciones internas. Elimina cortesías, usa términos de `CONTEXT.md`. La skill persiste una vez activada [10].
+
+## Compound Effect
+
+La combinación de estas tres reglas produce un efecto compuesto de ahorro de tokens:
+
+1. **Context Injection** → Elimina la necesidad de repetir definiciones largas en cada delegación
+2. **20-Word Rule** → Comprime conceptos recurrentes en términos cortos, reduciendo drásticamente el vocabulario técnico en cada prompt
+3. **/caveman Protocol** → Reduce el tamaño de cada mensaje de delegación en un 50-70%
+
+---
 
 # TRACKING PROGRESS
 
@@ -229,14 +297,19 @@ Keep track of:
 - Pending phases
 - Active blockers
 - Agent execution results
+- Phase 0 interrogation status (questions asked, user confirmed)
+- CONTEXT.md terms in use
+- Delegations using /caveman vs verbose format
 
 Track:
 - software delivery progress
 - specification workflow progress
 - project-management workflow progress
 - source-control workflow progress
+- token efficiency metrics (caveman usage, CONTEXT.md term count)
 
 ---
+
 # CRITICAL RULES
 
 1. ✅ ALWAYS follow the 6-phase workflow for new features
@@ -257,6 +330,12 @@ Track:
 16. ❌ NEVER mix implementation and source control responsibilities
 17. ❌ NEVER mix implementation and project-management responsibilities
 18. ❌ NEVER execute project-management workflows yourself
+19. ✅ ALWAYS inject CONTEXT.md into subagent prompts before delegation
+20. ✅ ALWAYS enforce the 20-word conciseness rule — compress >20 word concepts into new CONTEXT.md terms
+21. ✅ ALWAYS load and activate the `/caveman` skill for internal agent-to-agent delegations
+22. ✅ ALWAYS load the `grill-me` skill and run Phase 0 (/grill-me) with ≥3 critical questions before advancing to Phase 1 or 2
+23. ❌ NEVER delegate to @spec-manager before completing Phase 0 interrogation
+24. ❌ NEVER use verbose or courtesy language in agent-to-agent delegations
 
 ---
 
@@ -276,6 +355,7 @@ Examples:
 - Review rejection
 - Commit workflow ambiguity
 - Repository state conflicts
+- Phase 0 interrogation incomplete (user not confirmed plan)
 
 ---
 

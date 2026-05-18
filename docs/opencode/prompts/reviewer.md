@@ -95,6 +95,10 @@ Task 5: ❌ Rate limiting not implemented
 - ✅ Proper request/response typing
 - ✅ Database transactions where needed
 
+## RESPONSE MODE
+
+If you receive a delegation in `/caveman` mode, RESPOND in the same compressed format. Prioritize technical density over courtesy.
+
 ## OUTPUT FORMAT
 
 ## Review Summary
