@@ -62,18 +62,27 @@ A03 Injection
 sE ESTA TRABAJANDO CON WORKSPACES DE NPM
 
 
-Crear comandos de trello para la creacion, edicion y manipulacion de las tarjetas, crear un agente project manager para esto.
-Ver como usar context7 donde referenciarlo y ver alcance
-comandos de git para automatizar TBD
+Crear comandos de trello para la creacion, edicion y manipulacion de las tarjetas, crear un agente project manager para esto. x
+Verificar qye tanto agents.md como las skills si se tenga presentes en cada interacion o creacion de especificaciones (SDD) (Usando agents.md o el prompt system del agente) x
+Crear una esquema de la arquitectura de agentes actual (Agent-architecture-analysis.md) x
+Ver como usar context7 donde referenciarlo y ver alcance x
 Terminar de leer toda la documentacion de opencode y openspec
+comandos de git para automatizar TBD
 Crear articulos o publicaciones con todo esto explicando paso a paso que fue lo que se hizo
-Verificar qye tanto agents.md como las skills si se tenga presentes en cada interacion o creacion de especificaciones (SDD)
 Crear changes completos de modulos empezando por lo que falta con notes
 Github mcp server
 TestSprite mcp
-Crear una esquema de la arquitectura de agentes actual
+Matt Pocock skill TDD 
+Localstack vs floci
+estrategias de consumo de tokens en arquitecturas de agentes.
+Crear la documentacion de cada archivo para referenciar en el readme, y ajustar el readme para que sea una documentacion que guie al lector por todo el proyecto.
 
-ctx7sk-55a5160f-f7bc-4bbe-baed-73fbf6d1d376
+  
+
+
+
+Skill para implementar
+setup-pre-commit
 
 
 
