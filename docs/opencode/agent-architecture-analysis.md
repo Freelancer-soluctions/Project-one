@@ -3,7 +3,7 @@
 # Subagent System Architectural Analysis
 
 > **Project:** project-one  
-> **Date:** May 18, 2026 (v1.1 — updated: Phase 0, Token Efficiency, skill discrimination)  
+> **Date:** May 18, 2026 (v1.3 — steps audit applied, v1.2: Steps Configuration Analysis, v1.1: Phase 0, Token Efficiency, skill discrimination)  
 > **Purpose:** Document and analyze the intelligent agent architecture, its design patterns, associated terminology, and technology stack.
 
 ---
@@ -89,7 +89,7 @@ In its most recent evolution, the architecture has incorporated three key innova
 | **ID** | `orchestrator` |
 | **Mode** | `primary` |
 | **Model** | `opencode/big-pickle` |
-| **Steps** | 35 |
+| **Steps** | 45 |
 | **Tools** | `question`, `task` (write/edit/bash = false) |
 | **Prompt** | `docs/opencode/prompts/orchestrator.md` (374 lines) |
 
@@ -116,7 +116,7 @@ In its most recent evolution, the architecture has incorporated three key innova
 | **ID** | `spec-manager` |
 | **Mode** | `subagent` |
 | **Model** | `nvidia/minimaxai/minimax-m2.7` |
-| **Steps** | 8 |
+| **Steps** | 15 |
 | **Tools** | `bash` (write/edit = false) |
 | **Prompt** | `docs/opencode/prompts/spec-manager.md` (274 lines) |
 
@@ -133,7 +133,7 @@ In its most recent evolution, the architecture has incorporated three key innova
 | **ID** | `git-manager` |
 | **Mode** | `subagent` |
 | **Model** | `nvidia/minimaxai/minimax-m2.7` |
-| **Steps** | 10 |
+| **Steps** | 20 |
 | **Tools** | `bash` (write/edit = false) |
 | **Prompt** | `docs/opencode/prompts/git-manager.md` (89 lines) |
 
@@ -150,7 +150,7 @@ In its most recent evolution, the architecture has incorporated three key innova
 | **ID** | `planner` |
 | **Mode** | `subagent` |
 | **Model** | `opencode/ring-2.6-1t-free` |
-| **Steps** | 5 |
+| **Steps** | 15 |
 | **Tools** | `write` (edit/bash = false) |
 | **Prompt** | `docs/opencode/prompts/planner.md` (67 lines) |
 
@@ -167,7 +167,7 @@ In its most recent evolution, the architecture has incorporated three key innova
 | **ID** | `developer` |
 | **Mode** | `subagent` |
 | **Model** | `opencode/qwen3.6-plus-free` |
-| **Steps** | 15 |
+| **Steps** | 25 |
 | **Tools** | `write`, `edit`, `bash` |
 | **Prompt** | `docs/opencode/prompts/developer.md` (33 lines) |
 
@@ -184,7 +184,7 @@ In its most recent evolution, the architecture has incorporated three key innova
 | **ID** | `reviewer` |
 | **Mode** | `subagent` |
 | **Model** | `opencode/nemotron-3-super-free` |
-| **Steps** | 5 |
+| **Steps** | 10 |
 | **Tools** | None (write/edit/bash = false) |
 | **Prompt** | `docs/opencode/prompts/reviewer.md` (155 lines) |
 
@@ -200,7 +200,7 @@ In its most recent evolution, the architecture has incorporated three key innova
 | **ID** | `researcher` |
 | **Mode** | `subagent` |
 | **Model** | `opencode/minimax-m2.5` |
-| **Steps** | 8 |
+| **Steps** | 12 |
 | **Tools** | `bash` (write/edit not defined) |
 | **Permissions** | `webfetch: allow` |
 | **Prompt** | `docs/opencode/prompts/researcher.md` (85 lines) |
@@ -218,7 +218,7 @@ In its most recent evolution, the architecture has incorporated three key innova
 | **ID** | `project-manager` |
 | **Mode** | `subagent` |
 | **Model** | `nvidia/minimaxai/minimax-m2.7` |
-| **Steps** | 10 |
+| **Steps** | 15 |
 | **Tools** | None (write/edit/bash = false) |
 | **Prompt** | `docs/opencode/prompts/project-manager.md` (176 lines) |
 
@@ -232,14 +232,14 @@ In its most recent evolution, the architecture has incorporated three key innova
 
 | Agent | Model | Steps | Prompt | write | edit | bash | Mode |
 |-------|-------|-------|--------|-------|------|------|------|
-| **Orchestrator** | `big-pickle` | 35 | 374 | ❌ | ❌ | ❌ | primary |
-| **Spec-Manager** | `minimax-m2.7` | 8 | 274 | ❌ | ❌ | ✅ | subagent |
-| **Git-Manager** | `minimax-m2.7` | 10 | 89 | ❌ | ❌ | ✅ | subagent |
-| **Planner** | `ring-2.6-1t-free` | 5 | 67 | ✅ | ❌ | ❌ | subagent |
-| **Developer** | `qwen3.6-plus-free` | 15 | 33 | ✅ | ✅ | ✅ | subagent |
-| **Reviewer** | `nemotron-3-super-free` | 5 | 155 | ❌ | ❌ | ❌ | subagent |
-| **Researcher** | `minimax-m2.5` | 8 | 85 | - | - | ✅ | subagent |
-| **Project-Manager** | `minimax-m2.7` | 10 | 176 | ❌ | ❌ | ❌ | subagent |
+| **Orchestrator** | `big-pickle` | 45 | 374 | ❌ | ❌ | ❌ | primary |
+| **Spec-Manager** | `minimax-m2.7` | 15 | 274 | ❌ | ❌ | ✅ | subagent |
+| **Git-Manager** | `minimax-m2.7` | 20 | 89 | ❌ | ❌ | ✅ | subagent |
+| **Planner** | `ring-2.6-1t-free` | 15 | 67 | ✅ | ❌ | ❌ | subagent |
+| **Developer** | `qwen3.6-plus-free` | 25 | 33 | ✅ | ✅ | ✅ | subagent |
+| **Reviewer** | `nemotron-3-super-free` | 10 | 155 | ❌ | ❌ | ❌ | subagent |
+| **Researcher** | `minimax-m2.5` | 12 | 85 | - | - | ✅ | subagent |
+| **Project-Manager** | `minimax-m2.7` | 15 | 176 | ❌ | ❌ | ❌ | subagent |
 
 ---
 
@@ -332,6 +332,60 @@ openspec/changes/<change-name>/
 ├── design.md            # How (technical decisions, architecture)
 └── tasks.md             # Implementation checklist with checkboxes
 ```
+
+### 4.7 Steps Configuration Analysis
+
+The `steps` property in `opencode.jsonc` determines the maximum number of AI interaction turns an agent can execute before being interrupted. Each turn = one think+respond cycle. When steps run out mid-workflow, the agent is cut off without completing its task — no error, no warning.
+
+#### Current Configuration vs. Actual Demand
+
+| Agent | Steps | Tools | Workflow Demand | Verdict |
+|-------|:-----:|-------|-----------------|:-------:|
+| **Orchestrator** | 45 | question, task | ~25-35 turns for full SDD lifecycle delegation | ✅ Adequate |
+| **Spec-Manager** | 15 | bash | 3-4 sequential commands; `/opsx-new` consumes 4-6 turns alone | ✅ Adequate |
+| **Git-Manager** | 20 | bash | 5-15 turns depending on number of commit groups + hook failures | ✅ Adequate |
+| **Planner** | 15 | write | 4-file review consumes all 5 turns; no margin for re-read or multi-spec files | ✅ Adequate |
+| **Developer** | 25 | write, edit, bash | 3 clean tasks fit; 4th task or test failures or #context7 queries push past 15 | ✅ Adequate |
+| **Reviewer** | 10 | none | Can read 2-3 files; cannot review 5-10 files across 7 checklist sections | ✅ Adequate |
+| **Researcher** | 12 | bash | Single-source research fits; multi-source research exceeds limit | ✅ Adequate |
+| **Project-Manager** | 15 | none | 2-3 Trello operations fit; complex card + multi-move may exceed | ✅ Adequate |
+
+#### Turn Trace: `/commit-all` (Git-Manager Case Study)
+
+The `/commit-all` command groups changes into Conventional Commits. Its workflow trace:
+
+| Turn | Action |
+|:----:|--------|
+| 1 | `git status --short` |
+| 2 | `git diff --stat` |
+| 3 | `git diff` |
+| 4 | `git log --oneline -10` |
+| 5 | Analyze, plan groups, present plan |
+| 6 | `git add` + `git commit` (group 1) |
+| 7 | `git add` + `git commit` (group 2) |
+| 8 | `git add` + `git commit` (group 3) |
+| 9 | `git add` + `git commit` (group 4) |
+| 10 | Handle hook failure if any |
+| 11 | `git add` + `git commit` (group 5) |
+| 12 | Summarize result |
+
+With the original `steps: 10`, the agent was cut off after 5 groups with no room for summary or error recovery. After correcting to `steps: 20`, there is sufficient margin.
+
+#### Resolution Status
+
+All priority recommendations from v1.2 have been applied. Current status:
+
+| Priority | Agent | Was | Now | Status |
+|:--------:|-------|:---:|:---:|:------:|
+| **1** | Developer | 15 | 25 | ✅ Applied |
+| **2** | Reviewer | 5 | 10 | ✅ Applied |
+| **3** | Spec-Manager | 8 | 15 | ✅ Applied (exceeds 12 recommendation) |
+| **4** | Planner | 5 | 15 | ✅ Applied (exceeds 8 recommendation) |
+| **5** | Researcher | 8 | 12 | ✅ Applied |
+| **6** | Orchestrator | 35 | 45 | ✅ Applied (extra headroom) |
+| **7** | Project-Manager | 10 | 15 | ✅ Applied (extra headroom) |
+
+All agents now have adequate steps for their workflow demands. The steps exhaustion issue that affected `/commit-all` (Git-Manager at original 10) and other agent truncations has been resolved across the entire architecture.
 
 ---
 
@@ -762,7 +816,7 @@ The `reviewer` agent executes a multidimensional checklist:
 │  │                  opencode.jsonc                          │    │
 │  │  Provider: ollama-local (fallback)                      │    │
 │  │  Plugin: @warp-dot-dev/opencode-warp                    │    │
-│  │  Subagents: 7 | Steps: 35/8/10/5/15/5/8/10             │    │
+│  │  Subagents: 7 | Steps: 45/15/20/15/25/10/12/15         │    │
 │  └─────────────────────────────────────────────────────────┘    │
 ├──────────────────────────────────────────────────────────────────┤
 │                     ORCHESTRATION LAYER                          │
@@ -897,22 +951,24 @@ The `reviewer` agent executes a multidimensional checklist:
 ### 15.2 Potential Improvement Areas
 
 1. **Model diversity**: 4 different models across 8 agents. Possible inconsistency in output quality.
-2. **Limited steps in key agents**: `planner` (5 steps) and `reviewer` (5 steps) have too few steps for deep analysis.
-3. **Underutilized local model**: `ollama-local` configured with incomplete `baseURL` and no active models.
-4. **No dedicated testing agent**: No agent specialized solely in testing.
-5. **No performance metrics**: No tracking of execution times, success/failure rates, or token costs.
-6. **CONTEXT.md requires active maintenance**: The glossary loses effectiveness if not updated with each new compressed term.
-7. **Missing automatic skill verification**: No mechanism validates that the correct skill was loaded in the correct context.
+2. **Steps exhaustion protection**: Although all agents now have adequate steps, there is still no mechanism to detect or recover when a subagent runs out of steps mid-workflow. The agent stops silently — no error propagation, no recovery handoff, no warning to the orchestrator.
+3. **No overload protection when steps exhausted**: When an agent runs out of steps, it stops silently — no error propagation, no recovery mechanism, no warning to the orchestrator.
+4. **Underutilized local model**: `ollama-local` configured with incomplete `baseURL` and no active models.
+5. **No testing specialist**: No agent dedicated solely to test writing and execution.
+6. **No performance metrics**: No tracking of execution times, step consumption rates, success/failure rates, or per-agent token costs.
+7. **CONTEXT.md requires active maintenance**: The glossary loses effectiveness if not updated with each new compressed term.
+8. **Missing automatic skill verification**: No mechanism validates that the correct skill was loaded in the correct context.
 
 ### 15.3 Recommendations
 
-1. **Standardize models**: Evaluate moving all subagents to the same model family for consistency.
-2. **Increase planner and reviewer steps**: Recommended: 10-12 steps for deep reviews.
-3. **Implement testing agent**: Create `test-engineer` specialized in writing and maintaining tests.
-4. **Activate local Ollama**: Complete the local provider configuration for offline development.
-5. **Add telemetry logging**: Track agent invocations, response times, and error rates.
-6. **Automate CONTEXT.md maintenance**: Add a step in Phase 6 (Archive) to review and update the glossary with compressed terms used during the change.
-7. **Implement skill-context validation**: Verify that loaded skills correspond to the active component (client vs server vs e2e) using the `pathPatterns` defined in skill metadata.
+1. **Steps configuration applied**: All agent steps have been adjusted per the v1.2 analysis (see section 4.7). Current: orchestrator=45, spec-manager=15, git-manager=20, planner=15, developer=25, reviewer=10, researcher=12, project-manager=15. Monitor for 1-2 weeks and validate sufficiency under real workloads.
+2. **Implement steps exhaustion detection**: Add monitoring so the orchestrator is notified when a subagent reaches its step limit, enabling recovery or re-delegation.
+3. **Standardize models**: Evaluate moving all subagents to the same model family for consistency.
+4. **Create testing agent**: Implement `test-engineer` specialized in writing and maintaining tests, offloading this responsibility from `developer`.
+5. **Activate local Ollama**: Complete the local provider configuration for offline development capability.
+6. **Add telemetry logging**: Track agent invocations, response times, step consumption, and error rates per agent.
+7. **Automate CONTEXT.md maintenance**: Add a step in Phase 6 (Archive) to review and update the glossary with compressed terms used during the change.
+8. **Implement skill-context validation**: Verify that loaded skills correspond to the active component (client vs server vs e2e) using the `pathPatterns` defined in skill metadata.
 
 ---
 

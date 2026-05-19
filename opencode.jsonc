@@ -59,7 +59,7 @@
       "model": "opencode/big-pickle",
       "description": "Main orchestrator that delegates tasks to specialized agents",
       "prompt": "{file:docs/opencode/prompts/orchestrator.md}",
-      "steps": 35,
+      "steps": 45,
       "permission": {
         "question": "allow",
         "task": {
@@ -84,7 +84,7 @@
       "model": "nvidia/minimaxai/minimax-m2.7",
       "description": "Executes OpenSpec CLI - explore, propose, verify, archive",
       "prompt": "{file:docs/opencode/prompts/spec-manager.md}",
-      "steps": 8,
+      "steps": 15,
       "tools": {
         "write": false,
         "edit": false,
@@ -96,7 +96,7 @@
       "model": "nvidia/minimaxai/minimax-m2.7",
       "description": "SCM and Conventional Commit specialist",
       "prompt": "{file:docs/opencode/prompts/git-manager.md}",
-      "steps": 10,
+      "steps": 20,
       "tools": {
         "write": false,
         "edit": false,
@@ -108,7 +108,7 @@
       "model": "opencode/ring-2.6-1t-free",
       "description": "Planning specialist",
       "prompt": "{file:docs/opencode/prompts/planner.md}",
-      "steps": 5,
+      "steps": 15,
       "tools": {
         "write": true,
         "edit": false,
@@ -120,7 +120,7 @@
       "model": "opencode/qwen3.6-plus-free",
       "description": "Implementation agent",
       "prompt": "{file:docs/opencode/prompts/developer.md}",
-      "steps": 15,
+      "steps": 25,
       "tools": {
         "write": true,
         "edit": true,
@@ -132,7 +132,7 @@
       "model": "opencode/nemotron-3-super-free",
       "description": "Code reviewer",
       "prompt": "{file:docs/opencode/prompts/reviewer.md}",
-      "steps": 5,
+      "steps": 10,
       "tools": {
         "write": false,
         "edit": false,
@@ -144,7 +144,7 @@
       "model": "opencode/minimax-m2.5",
       "description": "Research agent",
       "prompt": "{file:docs/opencode/prompts/researcher.md}",
-      "steps": 8,
+      "steps": 12,
       "permission": {
         "webfetch": "allow"
       },
@@ -157,7 +157,7 @@
       "model": "nvidia/minimaxai/minimax-m2.7",
       "description": "Handles Trello project-management workflows - card creation, updates, deletion, state transitions",
       "prompt": "{file:docs/opencode/prompts/project-manager.md}",
-      "steps": 10,
+      "steps": 15,
       "tools": {
         "write": false,
         "edit": false,
