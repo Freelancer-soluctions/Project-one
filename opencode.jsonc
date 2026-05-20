@@ -1,5 +1,6 @@
 {
   "$schema": "https://opencode.ai/config.json",
+  "autoupdate": true,
   "plugin": [
     "@warp-dot-dev/opencode-warp"
   ],
@@ -8,7 +9,7 @@
       "npm": "@ai-sdk/openai-compatible",
       "name": "Ollama Local",
       "options": {
-        "baseURL": "http://127.0.0"
+        "baseURL": "http://127.0.0.1:11434"
         //"timeout":
         //"setCacheKy": (bool)
       },
@@ -19,40 +20,55 @@
       }
     }
   },
-  /// Options
-  // "model": "models to use but this project its using Subagents"
-  // "small_model": it does not need this, due to subagents, this is use whe you need small tasks, configurate a small model for this
-  // "agent": {
-  //   "orchestrator": {
-  //     "disabled": (bool)
-  //     // randomness of the generated text, if we dont se tup this field, opencode will taje the default LLM Ztemperature 
-  //     "temperature": 0,
-  //     "mode": "primary",
-  //     "model": "opencode/minimax-m2.5-free",
-  //     "description": "Agent description",
-  //     "prompt": "File or description, to setup the agents behavior",
-  //     // determines the number of interactions, tha the agent has, this is the princpial mechanism to save tokens, ist infinity by
-  //     "steps": 1,
-  //     "permission": {
-  //       "task": {
-  //         "*": "deny",
-  //         "spec-manager": "allow",
-  //         "planner": "allow",
-  //         "developer": "allow",
-  //         "reviewer": "allow",
-  //         "researcher": "allow"
-  //       }
-  //     },
-  //     // available agents tools
-  //     "tools": {
-  //       "write": false,
-  //       "edit": false,
-  //       "bash": false
-  //     }
-  //   },
-  // }
   //subagents configuration
   "default_agent": "orchestrator",
+  "instructions": ["AGENTS.md", "CONTEXT.md"],
+  "shell": "bash",
+  "skills": {
+    "paths": [
+      ".opencode/skills",
+      ".agents/skills"
+    ]
+  },
+  "tool_output": {
+    "max_lines": 400,
+    "max_bytes": 65536
+  },
+  // Formatter disabled by design — formatting is handled by Husky + lint-staged + Prettier
+  // in pre-commit hooks. Enabling OpenCode formatter would duplicate this pipeline,
+  // formatting files that may never be committed (wasted CPU) and potentially causing
+  // conflicts with lint-staged (formatting staged files twice).
+  //"formatter": {
+  //  "prettier": {
+  //    "command": ["npx", "prettier", "--write", "$FILE"],
+  //    "extensions": [".js", ".ts", ".jsx", ".tsx", ".json", ".css", ".md", ".mdx", ".yaml", ".yml"]
+  //  }
+  //},
+  // LSP: Prisma validates .prisma schema files (apps/server/prisma/schema.prisma).
+  // Requires @prisma/language-server (installed in apps/server v31.11.0).
+  "lsp": {
+    "prisma": {
+      "command": ["npx", "@prisma/language-server", "--stdio"],
+      "extensions": [".prisma"]
+    }
+  },
+  "permission": {
+    "read": "allow",
+    "write": "deny",
+    "edit": "deny",
+    "bash": "deny",
+    "glob": "allow",
+    "grep": "allow",
+    "webfetch": "deny",
+    "websearch": "deny",
+    "question": "deny",
+    "task": "deny",
+    "skill": "allow",
+    "lsp": "deny",
+    "todowrite": "allow",
+    "doom_loop": "ask",
+    "external_directory": "ask"
+  },
   "agent": {
     "orchestrator": {
       "mode": "primary",
@@ -72,106 +88,101 @@
           "git-manager": "allow",
           "project-manager": "allow"
         }
-      },
-      "tools": {
-        "write": false,
-        "edit": false,
-        "bash": false
       }
     },
     "spec-manager": {
       "mode": "subagent",
+      "hidden": false,
       "model": "nvidia/minimaxai/minimax-m2.7",
       "description": "Executes OpenSpec CLI - explore, propose, verify, archive",
       "prompt": "{file:docs/opencode/prompts/spec-manager.md}",
       "steps": 15,
-      "tools": {
-        "write": false,
-        "edit": false,
-        "bash": true
+      "temperature": 0,
+      "permission": {
+        "bash": "allow"
       }
     },
     "git-manager": {
       "mode": "subagent",
-      "model": "nvidia/minimaxai/minimax-m2.7",
+      "hidden": false,
+      "model": "opencode/big-pickle",
       "description": "SCM and Conventional Commit specialist",
       "prompt": "{file:docs/opencode/prompts/git-manager.md}",
       "steps": 20,
-      "tools": {
-        "write": false,
-        "edit": false,
-        "bash": true
+      "permission": {
+        "bash":"allow",
+        "todowrite": "deny"
       }
     },
     "planner": {
       "mode": "subagent",
+      "hidden": false,
       "model": "opencode/ring-2.6-1t-free",
       "description": "Planning specialist",
       "prompt": "{file:docs/opencode/prompts/planner.md}",
       "steps": 15,
-      "tools": {
-        "write": true,
-        "edit": false,
-        "bash": false
+      "temperature": 0,
+      "permission": {
+        "write": "allow",
+        "question": "allow"
       }
     },
     "developer": {
       "mode": "subagent",
+      "hidden": false,
       "model": "opencode/qwen3.6-plus-free",
       "description": "Implementation agent",
       "prompt": "{file:docs/opencode/prompts/developer.md}",
       "steps": 25,
-      "tools": {
-        "write": true,
-        "edit": true,
-        "bash": true
+      "permission": {
+        "write": "allow",
+        "edit": "allow",
+        "bash": { "git *": "allow", "*": "deny" },
+        "webfetch": "allow",
+        "websearch": "allow",
+        "question": "allow",
+        "lsp": "allow"
       }
     },
     "reviewer": {
       "mode": "subagent",
+      "hidden": false,
       "model": "opencode/nemotron-3-super-free",
       "description": "Code reviewer",
       "prompt": "{file:docs/opencode/prompts/reviewer.md}",
       "steps": 10,
-      "tools": {
-        "write": false,
-        "edit": false,
-        "bash": false
+      "temperature": 0,
+      "permission": {
+        "lsp": "allow"
       }
     },
     "researcher": {
       "mode": "subagent",
+      "hidden": false,
       "model": "opencode/minimax-m2.5",
       "description": "Research agent",
       "prompt": "{file:docs/opencode/prompts/researcher.md}",
       "steps": 12,
       "permission": {
-        "webfetch": "allow"
-      },
-      "tools": {
-        "bash": false
+        "webfetch": "allow",
+        "websearch": "allow",
+        "question": "allow"
       }
     },
     "project-manager": {
       "mode": "subagent",
+      "hidden": false,
       "model": "nvidia/minimaxai/minimax-m2.7",
       "description": "Handles Trello project-management workflows - card creation, updates, deletion, state transitions",
       "prompt": "{file:docs/opencode/prompts/project-manager.md}",
       "steps": 15,
-      "tools": {
-        "write": false,
-        "edit": false,
-        "bash": false
+      "permission": {
+        "question": "allow"
       }
     }
   },
   "mcp": {
-    "composio": {
-      "type": "remote",
-      "url": "https://connect.composio.dev/mcp",
-      "oauth": {},
-      "enabled": true
-    },
+    
     "context7": {
       "type": "remote",
       "url": "https://mcp.context7.com/mcp",
@@ -180,5 +191,19 @@
       },
       "enabled": true
     }
+  },
+  "compaction": {
+    "auto": true,
+    "prune": true,
+    "reserved": 10000
+  },
+  "watcher": {
+    "ignore": [
+      "node_modules/**",
+      ".git/**",
+      "dist/**",
+      "coverage/**",
+      "build/**"
+    ]
   }
 }
