@@ -3,7 +3,7 @@
 # Subagent System Architectural Analysis
 
 > **Project:** project-one  
-> **Date:** May 18, 2026 (v1.3 — steps audit applied, v1.2: Steps Configuration Analysis, v1.1: Phase 0, Token Efficiency, skill discrimination)  
+> **Date:** May 19, 2026 (v1.5 — global defaults + per-agent override refactor, v1.4: permission model documented, v1.3: steps audit, v1.2: Steps Analysis, v1.1: Phase 0, Token Efficiency, skill discrimination)  
 > **Purpose:** Document and analyze the intelligent agent architecture, its design patterns, associated terminology, and technology stack.
 
 ---
@@ -48,7 +48,7 @@ In its most recent evolution, the architecture has incorporated three key innova
 │  │             ORCHESTRATOR (Primary Agent)           │      │
 │  │  Model: opencode/big-pickle                      │      │
 │  │  Role: Coordination and delegation                │      │
-│  │  Tools: question, task (denied: write/edit/bash)  │      │
+│  │  question + task: allow  |  write/edit/bash: deny  │      │
 │  └──────┬──────┬──────┬──────┬──────┬──────┬───────┘      │
 │         │      │      │      │      │      │              │
 │         ▼      ▼      ▼      ▼      ▼      ▼              │
@@ -90,7 +90,7 @@ In its most recent evolution, the architecture has incorporated three key innova
 | **Mode** | `primary` |
 | **Model** | `opencode/big-pickle` |
 | **Steps** | 45 |
-| **Tools** | `question`, `task` (write/edit/bash = false) |
+| **Permissions** | read=✅, write=❌, edit=❌, bash=❌, glob=✅, grep=✅, webfetch=❌, websearch=❌, question=✅, task=⚙️8 agents, skill=✅, lsp=❌, todowrite=✅, doom_loop=⚠️ask, external_directory=⚠️ask |
 | **Prompt** | `docs/opencode/prompts/orchestrator.md` (374 lines) |
 
 **Responsibilities:**
@@ -117,7 +117,7 @@ In its most recent evolution, the architecture has incorporated three key innova
 | **Mode** | `subagent` |
 | **Model** | `nvidia/minimaxai/minimax-m2.7` |
 | **Steps** | 15 |
-| **Tools** | `bash` (write/edit = false) |
+| **Permissions** | read=✅, write=❌, edit=❌, bash=✅, glob=✅, grep=✅, webfetch=❌, websearch=❌, question=❌, task=❌, skill=✅, lsp=❌, todowrite=✅, doom_loop=⚠️, external_directory=⚠️ |
 | **Prompt** | `docs/opencode/prompts/spec-manager.md` (274 lines) |
 
 **Responsibilities:**
@@ -134,7 +134,7 @@ In its most recent evolution, the architecture has incorporated three key innova
 | **Mode** | `subagent` |
 | **Model** | `nvidia/minimaxai/minimax-m2.7` |
 | **Steps** | 20 |
-| **Tools** | `bash` (write/edit = false) |
+| **Permissions** | read=✅, write=❌, edit=❌, bash=🎯git only, glob=✅, grep=✅, webfetch=❌, websearch=❌, question=❌, task=❌, skill=✅, lsp=❌, todowrite=❌, doom_loop=⚠️, external_directory=⚠️ |
 | **Prompt** | `docs/opencode/prompts/git-manager.md` (89 lines) |
 
 **Responsibilities:**
@@ -151,7 +151,7 @@ In its most recent evolution, the architecture has incorporated three key innova
 | **Mode** | `subagent` |
 | **Model** | `opencode/ring-2.6-1t-free` |
 | **Steps** | 15 |
-| **Tools** | `write` (edit/bash = false) |
+| **Permissions** | read=✅, write=✅, edit=❌, bash=❌, glob=✅, grep=✅, webfetch=❌, websearch=❌, question=✅, task=❌, skill=✅, lsp=❌, todowrite=✅, doom_loop=⚠️, external_directory=⚠️ |
 | **Prompt** | `docs/opencode/prompts/planner.md` (67 lines) |
 
 **Responsibilities:**
@@ -168,7 +168,7 @@ In its most recent evolution, the architecture has incorporated three key innova
 | **Mode** | `subagent` |
 | **Model** | `opencode/qwen3.6-plus-free` |
 | **Steps** | 25 |
-| **Tools** | `write`, `edit`, `bash` |
+| **Permissions** | read=✅, write=✅, edit=✅, bash=✅, glob=✅, grep=✅, webfetch=✅, websearch=✅, question=✅, task=❌, skill=✅, lsp=✅, todowrite=✅, doom_loop=⚠️, external_directory=⚠️ |
 | **Prompt** | `docs/opencode/prompts/developer.md` (33 lines) |
 
 **Responsibilities:**
@@ -185,7 +185,7 @@ In its most recent evolution, the architecture has incorporated three key innova
 | **Mode** | `subagent` |
 | **Model** | `opencode/nemotron-3-super-free` |
 | **Steps** | 10 |
-| **Tools** | None (write/edit/bash = false) |
+| **Permissions** | read=✅, write=❌, edit=❌, bash=❌, glob=✅, grep=✅, webfetch=❌, websearch=❌, question=❌, task=❌, skill=✅, lsp=✅, todowrite=✅, doom_loop=⚠️, external_directory=⚠️ |
 | **Prompt** | `docs/opencode/prompts/reviewer.md` (155 lines) |
 
 **Responsibilities:**
@@ -201,8 +201,7 @@ In its most recent evolution, the architecture has incorporated three key innova
 | **Mode** | `subagent` |
 | **Model** | `opencode/minimax-m2.5` |
 | **Steps** | 12 |
-| **Tools** | `bash` (write/edit not defined) |
-| **Permissions** | `webfetch: allow` |
+| **Permissions** | read=✅, write=❌, edit=❌, bash=❌, glob=✅, grep=✅, webfetch=✅, websearch=✅, question=✅, task=❌, skill=✅, lsp=❌, todowrite=✅, doom_loop=⚠️, external_directory=⚠️ |
 | **Prompt** | `docs/opencode/prompts/researcher.md` (85 lines) |
 
 **Responsibilities:**
@@ -219,7 +218,7 @@ In its most recent evolution, the architecture has incorporated three key innova
 | **Mode** | `subagent` |
 | **Model** | `nvidia/minimaxai/minimax-m2.7` |
 | **Steps** | 15 |
-| **Tools** | None (write/edit/bash = false) |
+| **Permissions** | read=✅, write=❌, edit=❌, bash=❌, glob=✅, grep=✅, webfetch=❌, websearch=❌, question=✅, task=❌, skill=✅, lsp=❌, todowrite=✅, doom_loop=⚠️, external_directory=⚠️ |
 | **Prompt** | `docs/opencode/prompts/project-manager.md` (176 lines) |
 
 **Responsibilities:**
@@ -230,16 +229,19 @@ In its most recent evolution, the architecture has incorporated three key innova
 
 ### 3.9 Agent Comparison Table
 
-| Agent | Model | Steps | Prompt | write | edit | bash | Mode |
-|-------|-------|-------|--------|-------|------|------|------|
-| **Orchestrator** | `big-pickle` | 45 | 374 | ❌ | ❌ | ❌ | primary |
-| **Spec-Manager** | `minimax-m2.7` | 15 | 274 | ❌ | ❌ | ✅ | subagent |
-| **Git-Manager** | `minimax-m2.7` | 20 | 89 | ❌ | ❌ | ✅ | subagent |
-| **Planner** | `ring-2.6-1t-free` | 15 | 67 | ✅ | ❌ | ❌ | subagent |
-| **Developer** | `qwen3.6-plus-free` | 25 | 33 | ✅ | ✅ | ✅ | subagent |
-| **Reviewer** | `nemotron-3-super-free` | 10 | 155 | ❌ | ❌ | ❌ | subagent |
-| **Researcher** | `minimax-m2.5` | 12 | 85 | - | - | ✅ | subagent |
-| **Project-Manager** | `minimax-m2.7` | 15 | 176 | ❌ | ❌ | ❌ | subagent |
+| Agent | Model | Steps | Prompt | r | w | e | b | g | gr | wf | ws | q | t | sk | l | td | dl | ed |
+|-------|-------|-------|--------|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| **Orchestrator** | big-pickle | 45 | 374 | ✅ | ❌ | ❌ | ❌ | ✅ | ✅ | ❌ | ❌ | ✅ | ⚙️ | ✅ | ❌ | ✅ | ⚠️ | ⚠️ |
+| **Spec-Manager** | minimax-m2.7 | 15 | 274 | ✅ | ❌ | ❌ | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ | ✅ | ❌ | ✅ | ⚠️ | ⚠️ |
+| **Git-Manager** | minimax-m2.7 | 20 | 89 | ✅ | ❌ | ❌ | 🎯 | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ | ✅ | ❌ | ❌ | ⚠️ | ⚠️ |
+| **Planner** | ring-2.6-1t | 15 | 67 | ✅ | ✅ | ❌ | ❌ | ✅ | ✅ | ❌ | ❌ | ✅ | ❌ | ✅ | ❌ | ✅ | ⚠️ | ⚠️ |
+| **Developer** | qwen3.6-plus | 25 | 33 | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ | ✅ | ✅ | ✅ | ⚠️ | ⚠️ |
+| **Reviewer** | nemotron-3-s | 10 | 155 | ✅ | ❌ | ❌ | ❌ | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ | ✅ | ✅ | ✅ | ⚠️ | ⚠️ |
+| **Researcher** | minimax-m2.5 | 12 | 86 | ✅ | ❌ | ❌ | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ | ✅ | ❌ | ✅ | ⚠️ | ⚠️ |
+| **Project-Manager** | minimax-m2.7 | 15 | 176 | ✅ | ❌ | ❌ | ❌ | ✅ | ✅ | ❌ | ❌ | ✅ | ❌ | ✅ | ❌ | ✅ | ⚠️ | ⚠️ |
+
+Column header key:
+- r=read, w=write, e=edit, b=bash, g=glob, gr=grep, wf=webfetch, ws=websearch, q=question, t=task, sk=skill, l=lsp, td=todowrite, dl=doom_loop, ed=external_directory
 
 ---
 
@@ -295,27 +297,138 @@ Each agent operates in two modes depending on context:
 
 ### 4.5 Agent Permission Model
 
-The architecture implements a **per-agent permission model** at three levels:
+OpenCode uses a **default-allow** model. All tools are implicitly `"allow"` unless explicitly set to `"deny"` or `"ask"` in the configuration.
 
-1. **Tool Permissions**: `write`, `edit`, `bash` enabled/disabled
-2. **Task Permissions**: Which subagents the orchestrator can invoke (allow/deny)
-3. **Feature Permissions**: Special permissions like `webfetch: allow`
+#### Full Tool Inventory
+
+OpenCode exposes 15 permission keys:
+
+| # | Tool | Default | Description | Supports Pattern |
+|:-:|------|:-------:|-------------|:----------------:|
+| 1 | `read` | ✅ allow | Read file contents | ✅ (glob) |
+| 2 | `write` | ✅ allow | Create new files | ❌ |
+| 3 | `edit` | ✅ allow | Modify existing files | ✅ (glob) |
+| 4 | `bash` | ✅ allow | Execute shell commands | ✅ (glob pattern) |
+| 5 | `glob` | ✅ allow | Find files by pattern | ❌ |
+| 6 | `grep` | ✅ allow | Search file contents | ❌ |
+| 7 | `webfetch` | ✅ allow | Fetch URLs | ❌ |
+| 8 | `websearch` | ✅ allow | Search the web | ❌ |
+| 9 | `question` | ✅ allow | Ask user questions | ❌ |
+| 10 | `task` | ✅ allow | Delegate to subagents | ✅ (agent names) |
+| 11 | `skill` | ✅ allow | Load and execute skills | ✅ (glob) |
+| 12 | `lsp` | ✅ allow | Language Server Protocol | ✅ (glob) |
+| 13 | `todowrite` | ✅ allow | Create/update todo lists | ❌ |
+| 14 | `doom_loop` | ⚠️ ask | Prevent repetitive tool calls | ❌ |
+| 15 | `external_directory` | ⚠️ ask | Access paths outside working dir | ✅ (path patterns) |
+
+**Note:** This project uses **global defaults + per-agent overrides** — all 15 tools are declared once at root level, and each agent only overrides the tools that differ. This leverages OpenCode's permission inheritance (deep merge) to reduce configuration size while maintaining explicit clarity.
+
+#### Permission Level Reference
+
+| Level | Syntax | Description |
+|-------|--------|-------------|
+| **Allow** | `"allow"` | Tool available without prompting |
+| **Deny** | `"deny"` | Tool call fails immediately |
+| **Ask** | `"ask"` | User prompted for approval per call |
+| **Glob pattern** | `{ "git *": "allow", "*": "deny" }` | Pattern-based rules (bash only) |
+| **Agent map** | `{ "*": "deny", "dev": "allow" }` | Subagent invocation rules (task only) |
+
+#### Global Defaults + Per-Agent Overrides
+
+OpenCode supports permission inheritance: a global `permission` block at root level sets defaults for all agents, and each agent only declares the tools that differ. Agent-level values are deep-merged with the global defaults.
+
+##### Global Defaults (root level)
 
 ```jsonc
-// Example orchestrator permission configuration
+"permission": {
+  "read": "allow",
+  "write": "deny",
+  "edit": "deny",
+  "bash": "deny",
+  "glob": "allow",
+  "grep": "allow",
+  "webfetch": "deny",
+  "websearch": "deny",
+  "question": "deny",
+  "task": "deny",
+  "skill": "allow",
+  "lsp": "deny",
+  "todowrite": "allow",
+  "doom_loop": "ask",
+  "external_directory": "ask"
+}
+```
+
+These 15 lines apply to EVERY agent unless explicitly overridden.
+
+##### Per-Agent Overrides
+
+Each agent only declares the tools that differ from the global defaults:
+
+```jsonc
+// Orchestrator — coordination and delegation only
+// Overrides: question (allow), task (agent map)
 "permission": {
   "question": "allow",
-  "task": {
-    "*": "deny",                    // Denied by default
-    "spec-manager": "allow",        // Only these allowed
-    "planner": "allow",
-    "developer": "allow",
-    "reviewer": "allow",
-    "researcher": "allow",
-    "git-manager": "allow",
-    "project-manager": "allow"
-  }
+  "task": { "*": "deny",
+    "spec-manager": "allow", "planner": "allow", "developer": "allow",
+    "reviewer": "allow", "researcher": "allow", "git-manager": "allow",
+    "project-manager": "allow" }
 }
+
+// Spec-Manager — OpenSpec CLI execution via bash
+// Override: bash (allow)
+"permission": { "bash": "allow" }
+
+// Git-Manager — restricted to git commands only
+// Overrides: bash (pattern), todowrite (deny)
+"permission": {
+  "bash": { "git *": "allow", "*": "deny" },
+  "todowrite": "deny"
+}
+
+// Planner — can write review docs, needs question
+// Overrides: write (allow), question (allow)
+"permission": { "write": "allow", "question": "allow" }
+
+// Developer — unrestricted implementation
+// Overrides: write, edit, bash, webfetch, websearch, question, lsp (all allow)
+"permission": {
+  "write": "allow", "edit": "allow", "bash": "allow",
+  "webfetch": "allow", "websearch": "allow", "question": "allow",
+  "lsp": "allow"
+}
+
+// Reviewer — read-only analysis, LSP for code intelligence
+// Override: lsp (allow)
+"permission": { "lsp": "allow" }
+
+// Researcher — web research specialist
+// Overrides: webfetch, websearch, question (all allow)
+"permission": { "webfetch": "allow", "websearch": "allow", "question": "allow" }
+
+// Project-Manager — Trello via MCP, can ask user
+// Override: question (allow)
+"permission": { "question": "allow" }
+```
+
+##### Effective Permission Resolution
+
+For any agent+tool combination, the effective permission is determined by:
+
+1. If the agent's `permission` block explicitly lists the tool → use that value
+2. Otherwise → inherit from global `permission` block
+
+This reduces the configuration from ~120 lines (15 tools × 8 agents) to ~34 lines (15 global + 19 overrides), saving ~86 lines while maintaining full explicit traceability.
+
+##### Inheritance Rules
+
+| Rule | Description |
+|------|-------------|
+| **Deep merge** | Agent values are merged into global defaults, not replaced |
+| **Tool-level granularity** | Each tool is resolved independently |
+| **Agent wins** | When a tool is defined in both, agent value takes precedence |
+| **Missing = inherit** | Tools not listed in agent block inherit the global default |
 ```
 
 ### 4.6 Document-Driven Artifacts
@@ -644,7 +757,7 @@ When performing these actions, the corresponding skill MUST be loaded automatica
 ```jsonc
 "ollama-local": {
   "npm": "@ai-sdk/openai-compatible",
-  "baseURL": "http://127.0.0",
+  "baseURL": "http://127.0.0.1:11434",
   "models": { "qwen2.5-coder:7b": {} }
 }
 ```
@@ -973,6 +1086,6 @@ The `reviewer` agent executes a multidimensional checklist:
 ---
 
 > **Document generated through complete filesystem analysis of the project-one project.**  
-> *May 18, 2026*
+> *May 19, 2026*
 
 ---
