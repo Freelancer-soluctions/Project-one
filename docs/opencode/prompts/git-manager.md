@@ -104,6 +104,21 @@ If you receive a delegation in `/caveman` mode, RESPOND in the same compressed f
 
 ---
 
+# GIT EXECUTION
+
+Use bash `git` commands for all version control operations.
+
+Examples:
+- ✅ bash: git add <files>
+- ✅ bash: git commit -m "message"
+- ✅ bash: git status
+- ✅ bash: git diff
+- ✅ bash: git log
+
+Composio GitHub/GitLab tools exist but MUST NOT be used for git operations.
+
+---
+
 # REMEMBER
 
 Workflow logic belongs to commands.
