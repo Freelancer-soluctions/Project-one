@@ -332,6 +332,7 @@ OpenCode exposes 15 permission keys:
 | **Ask** | `"ask"` | User prompted for approval per call |
 | **Glob pattern** | `{ "git *": "allow", "*": "deny" }` | Pattern-based rules (bash only) |
 | **Agent map** | `{ "*": "deny", "dev": "allow" }` | Subagent invocation rules (task only) |
+| **MCP wildcard** | `"composio_*": "deny"` | Wildcard patterns match MCP tool names (e.g., `composio_*` matches `composio_COMPOSIO_SEARCH_TOOLS`) |
 
 #### Global Defaults + Per-Agent Overrides
 
@@ -809,12 +810,96 @@ When performing these actions, the corresponding skill MUST be loaded automatica
 }
 ```
 
+**MCP Permission Restriction:**
+Since May 19, 2026, Composio MCP tools are restricted via the `permission` system to prevent context bloat and accidental invocations:
+- All agents except `project-manager` have Composio tools denied globally via `"composio_*": "deny"`
+- Only `project-manager` has `"composio_*": "allow"` for Trello operations
+- See [section 9.3](#93-mcp-permission-control) for full analysis
+
 ### 9.2 Context7 (Documentation)
 
 - **Type:** `remote`
 - **URL:** `https://mcp.context7.com/mcp`
 - **Authentication:** API Key (`CONTEXT7_API_KEY`)
 - **Purpose:** Updated library documentation queries
+
+### 9.3 MCP Permission Control
+
+#### Problem
+
+The `composio` MCP server was configured with `"enabled": true`, making all its tools available to every agent at all times. This caused three issues:
+
+1. **Context bloat**: Tool schemas for `composio_COMPOSIO_SEARCH_TOOLS`, `composio_COMPOSIO_MULTI_EXECUTE_TOOL`, etc. were injected into every session, consuming tokens even when no Trello work was needed.
+2. **Accidental invocations**: Non-Trello agents (orchestrator, developer, git-manager) could inadvertently call Composio tools during unrelated tasks, interfering with command execution.
+3. **Git-manager interference**: Composio tools being available during git operations caused unexpected tool invocations that disrupted commit workflows.
+
+#### Solution
+
+OpenCode's `permission` system supports wildcard pattern matching against MCP tool names:
+
+> *"Permission keys are matched as wildcard patterns against the underlying tool name... denying all tools from an MCP server with `"mymcp_*": "deny"`"*
+
+Two approaches were implemented and tested:
+
+#### Approach A: `"composio_*"` (documentation pattern)
+
+Follows the documented pattern `"mymcp_*": "deny"`:
+
+```jsonc
+// Global — deny for all agents
+"permission": {
+    "composio_*": "deny",
+    // ... other permissions
+}
+
+// Per-agent — allow only for Trello
+"project-manager": {
+    "permission": {
+        "question": "allow",
+        "composio_*": "allow"
+    }
+}
+```
+
+#### Approach B: `"composio_COMPOSIO_*"` (full tool name pattern)
+
+Matches the exact tool name prefix as seen by the model:
+
+```jsonc
+// Global
+"permission": { "composio_COMPOSIO_*": "deny" }
+
+// Per-agent
+"project-manager": {
+    "permission": {
+        "question": "allow",
+        "composio_COMPOSIO_*": "allow"
+    }
+}
+```
+
+#### Validation
+
+Both patterns were tested in a fresh TUI session:
+
+| Test | `"composio_*"` | `"composio_COMPOSIO_*"` |
+|------|:--------------:|:-----------------------:|
+| Orchestrator — Composio tools blocked | ✅ Not available | ✅ Not available |
+| Project-manager — create Trello card | ✅ Card created | ✅ Card created |
+| Card URL | [v2EpoES3](https://trello.com/c/v2EpoES3/46-test-composio-permission-check) | [tYaGsYeA](https://trello.com/c/tYaGsYeA/47-test-composio-composio-*-pattern) |
+
+#### Decision
+
+Both patterns work because `"composio_*"` is a prefix of the actual tool name `composio_COMPOSIO_SEARCH_TOOLS`. The project uses **Approach A** (`"composio_*"`) as it follows the OpenCode documentation exactly and is more readable.
+
+#### Key Insight
+
+MCP tool permissions require a **session reload** (close and reopen TUI) to take effect. Editing `opencode.jsonc` while the session is running does NOT apply permission changes until the configuration is re-read at startup.
+
+#### Related Configuration
+
+- The legacy `"tools"` property (deprecated) was initially used but replaced with `"permission"` as per OpenCode documentation.
+- The Composio MCP remains `"enabled": true` — tools are controlled at the permission layer, not by disabling the server entirely.
 
 ---
 
