@@ -110,7 +110,7 @@
       "prompt": "{file:docs/opencode/prompts/git-manager.md}",
       "steps": 20,
       "permission": {
-        "bash":"allow",
+        "bash": "allow",
         "todowrite": "deny"
       }
     },
@@ -137,7 +137,7 @@
       "permission": {
         "write": "allow",
         "edit": "allow",
-        "bash": { "git *": "allow", "*": "deny" },
+        "bash": "allow",
         "webfetch": "allow",
         "websearch": "allow",
         "question": "allow",
