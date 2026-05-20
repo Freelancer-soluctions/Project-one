@@ -44,7 +44,7 @@
   //    "extensions": [".js", ".ts", ".jsx", ".tsx", ".json", ".css", ".md", ".mdx", ".yaml", ".yml"]
   //  }
   //},
-  // LSP: Prisma validates .prisma schema files (apps/server/prisma/schema.prisma).
+  // LSP: Prisma validate .prisma schema files (apps/server/prisma/schema.prisma).
   // Requires @prisma/language-server (installed in apps/server v31.11.0).
   "lsp": {
     "prisma": {
@@ -57,6 +57,7 @@
     "write": "deny",
     "edit": "deny",
     "bash": "deny",
+    "composio_COMPOSIO_*": "deny",
     "glob": "allow",
     "grep": "allow",
     "webfetch": "deny",
@@ -70,6 +71,11 @@
     "external_directory": "ask"
   },
   "agent": {
+    // OpenCode built-in agents — disabled, not used
+    "build": { "disable": true },
+    "plan": { "disable": true },
+    "general": { "disable": true },
+
     "orchestrator": {
       "mode": "primary",
       "model": "opencode/big-pickle",
@@ -172,12 +178,14 @@
     "project-manager": {
       "mode": "subagent",
       "hidden": false,
-      "model": "nvidia/minimaxai/minimax-m2.7",
+      "model": "opencode/deepseek-v4-flash-free",
       "description": "Handles Trello project-management workflows - card creation, updates, deletion, state transitions",
       "prompt": "{file:docs/opencode/prompts/project-manager.md}",
       "steps": 15,
       "permission": {
-        "question": "allow"
+        "question": "allow",
+        "bash": "allow",
+        "composio_COMPOSIO_*": "allow"
       }
     }
   },
