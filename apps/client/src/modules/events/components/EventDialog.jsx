@@ -40,6 +40,7 @@ import { format } from 'date-fns';
 
 import { EventsDialogSchema } from '../utils';
 import { useTranslation } from 'react-i18next';
+import { FIELD_LIMITS } from '@/config/fieldLimits';
 
 export function EventDialog({
   open,
@@ -106,7 +107,7 @@ export function EventDialog({
                         <Input
                           id="title"
                           type="text"
-                          maxLength={50}
+                          maxLength={FIELD_LIMITS.events.title}
                           placeholder={t('title_placeholder')}
                           {...field}
                           value={field.value ?? ''}
@@ -131,7 +132,7 @@ export function EventDialog({
                         <Input
                           id="speaker"
                           type="text"
-                          maxLength={50}
+                          maxLength={FIELD_LIMITS.events.speaker}
                           placeholder={t('speaker_placeholder')}
                           {...field}
                           value={field.value ?? ''}
@@ -291,7 +292,7 @@ export function EventDialog({
                           id="description"
                           placeholder={t('description_placeholder')}
                           className="resize-none"
-                          maxLength={200}
+                          maxLength={FIELD_LIMITS.events.description}
                           {...field}
                           value={field.value ?? ''}
                         />

@@ -412,6 +412,7 @@ export const ProductBasicInfo = ({
                               type="text"
                               name="barcode"
                               autoComplete="off"
+                              maxLength={25}
                               placeholder={t(
                                 'generate_barcode_automatically_placeholder'
                               )}

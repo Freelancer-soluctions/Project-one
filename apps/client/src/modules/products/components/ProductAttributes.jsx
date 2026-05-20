@@ -22,6 +22,7 @@ import { useTranslation } from 'react-i18next';
 import { useEffect } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import PropTypes from 'prop-types';
+import { FIELD_LIMITS } from '@/config/fieldLimits';
 
 export const ProductAttributes = ({
   onRemoveAttribute,
@@ -76,7 +77,7 @@ export const ProductAttributes = ({
                           <Input
                             id={`attribute-name-${index}`}
                             type="text"
-                            maxLength="50"
+                            maxLength={FIELD_LIMITS.productAttributes.name}
                             autoComplete="off"
                             placeholder={t('attribute_name_placeholder')}
                             {...field}
@@ -105,7 +106,7 @@ export const ProductAttributes = ({
                           <Input
                             id={`attribute-description-${index}`}
                             type="text"
-                            maxLength="100"
+                            maxLength={FIELD_LIMITS.productAttributes.description}
                             autoComplete="off"
                             placeholder={t('attribute_value_placeholder')}
                             {...field}

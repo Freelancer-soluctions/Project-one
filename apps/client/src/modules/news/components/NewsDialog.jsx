@@ -2,6 +2,7 @@ import { useEffect, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { NewsDialogSchema, NewsStatusCode } from '../utils';
+import { FIELD_LIMITS } from '@/config/fieldLimits';
 
 import {
   Dialog,
@@ -348,7 +349,7 @@ export const NewsDialog = ({
                             id="description"
                             placeholder={t('description_placeholder')}
                             className="resize-none"
-                            maxLength={400}
+                            maxLength={FIELD_LIMITS.news.description}
                             disabled={
                               newId && statusCodeSaved === NewsStatusCode.CLOSED
                             }

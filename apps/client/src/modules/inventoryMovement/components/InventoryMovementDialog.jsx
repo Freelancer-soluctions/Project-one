@@ -16,8 +16,10 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { Select } from '@/components/ui/select';
+import { FIELD_LIMITS } from '@/config/fieldLimits';
 import PropTypes from 'prop-types';
 import { useEffect } from 'react';
 import { InventoryMovementSchema, MOVEMENT_TYPES } from '../utils';
@@ -163,7 +165,10 @@ export const InventoryMovementDialog = ({
                 <FormItem>
                   <FormLabel>{t('reason')}</FormLabel>
                   <FormControl>
-                    <Input {...field} />
+                    <Textarea
+                      {...field}
+                      maxLength={FIELD_LIMITS.inventoryMovement.reason}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

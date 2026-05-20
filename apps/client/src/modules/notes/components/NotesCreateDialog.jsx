@@ -141,6 +141,7 @@ export function NotesCreateDialog({ onCreateNote, dataStatus, open, setOpen }) {
                           {...field} // ✅ Enlazar con react-hook-form
                           placeholder={t('title_placeholder')}
                           required
+                          maxLength={50}
                         />
                       </FormControl>
                       <FormMessage />

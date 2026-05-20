@@ -6,6 +6,7 @@ import {
   DialogDescription,
   DialogClose,
   DialogFooter,
+  DialogFooter,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { useForm } from 'react-hook-form';
@@ -19,6 +20,7 @@ import {
   FormMessage,
   FormDescription,
 } from '@/components/ui/form';
+import { FIELD_LIMITS } from '@/config/fieldLimits';
 import { Input } from '@/components/ui/input';
 import {
   Select,
@@ -28,7 +30,6 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { CalendarIcon } from '@radix-ui/react-icons';
-import { LuPackagePlus } from 'react-icons/lu';
 import { Calendar } from '@/components/ui/calendar';
 import {
   Popover,
@@ -421,7 +422,7 @@ export const StockDialog = ({
                           placeholder={t('lot_placeholder')}
                           type="text"
                           autoComplete="off"
-                          maxLength={50}
+                          maxLength={FIELD_LIMITS.stock.lot}
                           {...field}
                           value={field.value ?? ''}
                         />

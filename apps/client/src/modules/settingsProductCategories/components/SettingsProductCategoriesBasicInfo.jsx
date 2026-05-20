@@ -1,4 +1,4 @@
-import {
+ import {
   Form,
   FormControl,
   FormField,
@@ -22,6 +22,7 @@ import { SettingsProductCategoriesSchema } from '../utils';
 import { useTranslation } from 'react-i18next';
 import { useEffect, useMemo } from 'react';
 import PropTypes from 'prop-types';
+import { FIELD_LIMITS } from '@/config/fieldLimits';
 
 export const SettingsProductCategoriesBasicInfo = ({
   onSubmitCreateEdit,
@@ -91,7 +92,7 @@ export const SettingsProductCategoriesBasicInfo = ({
                             id="description"
                             type="text"
                             name="description"
-                            maxLength={50}
+                            maxLength={FIELD_LIMITS.productCategories.description}
                             autoComplete="off"
                             placeholder={t('category_description_placeholder')}
                             {...field}
@@ -115,7 +116,7 @@ export const SettingsProductCategoriesBasicInfo = ({
                             id="code"
                             type="text"
                             name="code"
-                            maxLength={3}
+                            maxLength={FIELD_LIMITS.productCategories.code}
                             autoComplete="off"
                             placeholder={t('category_code_placeholder')}
                             {...field}

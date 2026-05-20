@@ -41,6 +41,7 @@ import PropTypes from 'prop-types';
 import { CalendarIcon } from '@radix-ui/react-icons';
 import { Calendar } from '@/components/ui/calendar';
 import { format } from 'date-fns';
+import { FIELD_LIMITS } from '@/config/fieldLimits';
 
 export const ProvidersDialog = ({
   openDialog,
@@ -174,7 +175,7 @@ export const ProvidersDialog = ({
                           placeholder={t('provider_name_placeholder')}
                           type="text"
                           autoComplete="off"
-                          maxLength={80}
+                          maxLength={FIELD_LIMITS.productProviders.name}
                           {...field}
                           value={field.value ?? ''}
                         />
@@ -239,7 +240,7 @@ export const ProvidersDialog = ({
                           placeholder={t('contact_name_placeholder')}
                           type="text"
                           autoComplete="off"
-                          maxLength={60}
+                          maxLength={FIELD_LIMITS.productProviders.contactName}
                           {...field}
                           value={field.value ?? ''}
                         />
@@ -266,7 +267,7 @@ export const ProvidersDialog = ({
                           placeholder={t('contact_email_placeholder')}
                           type="email"
                           autoComplete="off"
-                          maxLength={80}
+                          maxLength={FIELD_LIMITS.productProviders.contactEmail}
                           {...field}
                           value={field.value ?? ''}
                         />
@@ -292,7 +293,7 @@ export const ProvidersDialog = ({
                           placeholder={t('contact_phone_placeholder')}
                           type="text"
                           autoComplete="off"
-                          maxLength={15}
+                          maxLength={FIELD_LIMITS.productProviders.contactPhone}
                           {...field}
                           value={field.value ?? ''}
                         />
@@ -316,7 +317,7 @@ export const ProvidersDialog = ({
                           placeholder={t('address_placeholder')}
                           type="text"
                           autoComplete="off"
-                          maxLength={120}
+                          maxLength={FIELD_LIMITS.productProviders.address}
                           {...field}
                           value={field.value ?? ''}
                         />
