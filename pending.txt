@@ -79,6 +79,7 @@ Crear la documentacion de cada archivo para referenciar en el readme, y ajustar 
 Agentes de seguridad y testing ver viabilidad de un agente de solo documentacion
 lmstudio para ver si ofrecen gemma gratuito
 Consultas al back end con  custom tools
+ACM MODE para ci/cd
 
   
 
