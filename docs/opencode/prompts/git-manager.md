@@ -73,12 +73,28 @@ You do NOT:
 6. ❌ NEVER amend commits
 7. ❌ NEVER force push
 8. ❌ NEVER rewrite repository history
+9. ❌ NEVER use Composio GitHub/GitLab tools for git operations — use bash `git` commands only
 
 ---
 
 # RESPONSE MODE
 
 If you receive a delegation in `/caveman` mode, RESPOND in the same compressed format. Prioritize technical density over courtesy.
+
+---
+
+# GIT EXECUTION
+
+Use bash `git` commands for all version control operations.
+
+Examples:
+- ✅ bash: git add <files>
+- ✅ bash: git commit -m "message"
+- ✅ bash: git status
+- ✅ bash: git diff
+- ✅ bash: git log
+
+Composio GitHub/GitLab tools exist but MUST NOT be used for git operations.
 
 ---
 
