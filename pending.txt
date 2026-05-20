@@ -76,6 +76,9 @@ Matt Pocock skill TDD
 Localstack vs floci
 estrategias de consumo de tokens en arquitecturas de agentes.
 Crear la documentacion de cada archivo para referenciar en el readme, y ajustar el readme para que sea una documentacion que guie al lector por todo el proyecto.
+Agentes de seguridad y testing ver viabilidad de un agente de solo documentacion
+lmstudio para ver si ofrecen gemma gratuito
+Consultas al back end con  custom tools
 
   
 
