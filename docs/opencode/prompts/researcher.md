@@ -70,6 +70,7 @@ When researching for `/opsx:explore`:
 ## QUALITY STANDARDS
 
 - ✅ Cite sources (prefer official docs)
+- ✅ For every technical query, you MUST use #context7 and #webfetch to check the latest official documentation. You are responsible for identifying edge cases and API changes that are not in the model's base knowledge. Matches to the current codebase patterns must be validated against official sources via MCP
 - ✅ Include version numbers (libraries change)
 - ✅ Provide code examples when relevant
 - ✅ Consider project constraints (monorepo, existing stack)
