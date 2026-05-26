@@ -470,5 +470,53 @@ Any → Auto (session has auto-approval)
 
 ---
 
+## 11. GitHub CLI (gh)
+
+GitHub CLI (`gh`) provides GitHub API access from the terminal. Used by `@git-manager` for gists, issues, PRs, and repo operations.
+
+### 11.1 Installation
+
+```powershell
+choco install gh -y
+winget install --id GitHub.cli
+```
+
+Binary at `C:\Program Files\GitHub CLI\gh.exe`.
+
+### 11.2 PATH Setup
+
+Add `C:\Program Files\GitHub CLI` to Windows User PATH via sysdm.cpl or PowerShell.
+
+### 11.3 MSYS2/bash Wrapper
+
+Opencode uses bash (MSYS2) which doesn't inherit Windows PATH. Wrapper at `~/bin/gh`:
+
+```bash
+#!/usr/bin/env bash
+exec "C:/Program Files/GitHub CLI/gh.exe" "$@"
+```
+
+### 11.4 Authentication
+
+```bash
+gh auth login
+```
+
+HTTPS protocol, browser login, token in Windows Credential Manager. Scopes: `repo`, `gist`, `workflow`.
+
+### 11.5 Common Operations
+
+```bash
+gh gist create <files> --desc "description"
+gh gist list
+gh issue list
+gh pr list
+gh repo view
+```
+
+### 11.6 Agent Usage
+
+`@git-manager` uses `gh` via bash. `~/bin/gh` wrapper makes it available in non-interactive bash shells.
+
 > **Reference:** [github.com/anomalyco/opencode](https://github.com/anomalyco/opencode) — Official docs, agents.mdx, config.mdx, commands.mdx, skills.mdx  
 > **Generated:** May 18, 2026 — from project-one codebase analysis + Context7 documentation queries

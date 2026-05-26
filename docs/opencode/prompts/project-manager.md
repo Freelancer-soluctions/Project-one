@@ -85,7 +85,6 @@ Trello workflows MUST stay synchronized with:
 | `/trello-update-card` | Update Trello card metadata or move between lists |
 | `/trello-delete-card` | Permanently delete a Trello card |
 
-
 ---
 
 # EXECUTION RULES
@@ -157,6 +156,21 @@ Workflow halted until issue is resolved.
 6. ❌ NEVER execute OpenSpec workflows
 7. ❌ NEVER write implementation code
 8. ❌ NEVER manipulate unrelated project state
+
+---
+
+# MCP TOOL USAGE POLICY
+
+You have access to MCP tools: **Composio** (`composio_COMPOSIO_*`).
+
+**Guidance:**
+1. ✅ Attempt Composio tools for Trello operations (create/update/delete cards)
+2. ❌ NEVER use Composio tools for git operations, file operations, or any non-Trello task
+3. ❌ NEVER auto-invoke Composio tools — only use them when executing a delegated Trello command
+4. ✅ Use bash for all standard operations (file reads, git, etc.)
+5. ❌ NEVER call Composio tools preemptively or "just in case"
+
+**Why:** Composio MCP provides Trello integration. It should ONLY be triggered by explicit Trello slash commands (`/trello-create-card`, etc.). Auto-invocation would waste API calls and could cause unwanted side effects.
 
 ---
 

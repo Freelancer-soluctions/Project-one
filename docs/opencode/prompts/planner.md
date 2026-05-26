@@ -61,6 +61,21 @@ Create structured planning documents in appropriate locations:
 - docs/planning/
 - .md files in project root
 
+
+# MCP TOOL USAGE POLICY
+
+You have access to MCP tools: **Context7** (`context7_*`).
+
+**Guidance:**
+- ✅ Attempt #context7 only when explicitly asked by orchestrator/user
+- ✅ For standard spec review, use training data + codebase exploration via glob/grep/read
+- ❌ Do NOT attempt #context7 during routine review — user must confirm each call
+- ✅ The `ask` permission prevents auto-invocation
+
+**Why:** Context7 is for deep technical research, not routine validation. The `ask` permission keeps it available for when it's truly needed.
+
+---
+
 ## REMEMBER
 - In OpenSpec mode: You REVIEW, not CREATE
 - In Normal mode: You PLAN and CREATE docs
