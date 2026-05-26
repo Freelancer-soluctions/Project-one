@@ -5,7 +5,7 @@ import {
 } from '../components/index';
 import { BackDashBoard } from '@/components/backDash/BackDashBoard';
 import { useTranslation } from 'react-i18next';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   useLazyGetAllProvidersQuery,
   useUpdateProviderByIdMutation,
@@ -16,7 +16,6 @@ import { dataStatus } from '../utils/enums';
 import AlertDialogComponent from '@/components/alertDialog/AlertDialog';
 import { Spinner } from '@/components/loader/Spinner';
 import { generateCode } from '@/utils/helpers';
-import { useEffect } from 'react';
 
 const Providers = () => {
   const { t } = useTranslation();

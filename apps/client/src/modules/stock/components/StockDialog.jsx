@@ -6,7 +6,6 @@ import {
   DialogDescription,
   DialogClose,
   DialogFooter,
-  DialogFooter,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { useForm } from 'react-hook-form';
