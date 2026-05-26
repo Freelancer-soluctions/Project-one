@@ -55,9 +55,11 @@
   "permission": {
     "read": "allow",
     "write": "deny",
-    "edit": "deny",
+    // TODO: restore when PR #27654 merges - parent edit:deny hides subagent tools (bug #26758)
+    // "edit": "deny",
     "bash": "deny",
     "composio_COMPOSIO_*": "deny",
+    "context7_*": "deny",
     "glob": "allow",
     "grep": "allow",
     "webfetch": "deny",
@@ -84,6 +86,7 @@
       "steps": 45,
       "permission": {
         "question": "allow",
+        "edit": "ask",  // workaround: prevents bug #26758 from hiding subagent tools
         "task": {
           "*": "deny",
           "spec-manager": "allow",
@@ -99,13 +102,14 @@
     "spec-manager": {
       "mode": "subagent",
       "hidden": false,
-      "model": "nvidia/minimaxai/minimax-m2.7",
+      "model": "opencode/deepseek-v4-flash-free",
       "description": "Executes OpenSpec CLI - explore, propose, verify, archive",
       "prompt": "{file:docs/opencode/prompts/spec-manager.md}",
       "steps": 15,
       "temperature": 0,
       "permission": {
-        "bash": "allow"
+        "bash": "allow",
+        "edit": "deny"
       }
     },
     "git-manager": {
@@ -117,26 +121,29 @@
       "steps": 20,
       "permission": {
         "bash": "allow",
-        "todowrite": "deny"
+        "todowrite": "deny",
+        "edit": "deny"
       }
     },
     "planner": {
       "mode": "subagent",
       "hidden": false,
-      "model": "opencode/ring-2.6-1t-free",
+      "model": "opencode/deepseek-v4-flash-free",
       "description": "Planning specialist",
       "prompt": "{file:docs/opencode/prompts/planner.md}",
       "steps": 15,
       "temperature": 0,
       "permission": {
         "write": "allow",
-        "question": "allow"
+        "question": "allow",
+        "context7_*": "ask",
+        "edit": "deny"
       }
     },
     "developer": {
       "mode": "subagent",
       "hidden": false,
-      "model": "opencode/qwen3.6-plus-free",
+      "model": "opencode/nemotron-3-super-free",
       "description": "Implementation agent",
       "prompt": "{file:docs/opencode/prompts/developer.md}",
       "steps": 25,
@@ -147,32 +154,36 @@
         "webfetch": "allow",
         "websearch": "allow",
         "question": "allow",
-        "lsp": "allow"
+        "lsp": "allow",
+        "context7_*": "ask",
       }
     },
     "reviewer": {
       "mode": "subagent",
       "hidden": false,
-      "model": "opencode/nemotron-3-super-free",
+      "model": "opencode/deepseek-v4-flash-free",
       "description": "Code reviewer",
       "prompt": "{file:docs/opencode/prompts/reviewer.md}",
       "steps": 10,
       "temperature": 0,
       "permission": {
-        "lsp": "allow"
+        "lsp": "allow",
+        "edit": "deny"
       }
     },
     "researcher": {
       "mode": "subagent",
       "hidden": false,
-      "model": "opencode/minimax-m2.5",
+      "model": "opencode/deepseek-v4-flash-free",
       "description": "Research agent",
       "prompt": "{file:docs/opencode/prompts/researcher.md}",
       "steps": 12,
       "permission": {
         "webfetch": "allow",
         "websearch": "allow",
-        "question": "allow"
+        "question": "allow",
+        "context7_*": "ask",
+        "edit": "deny"
       }
     },
     "project-manager": {
@@ -185,7 +196,8 @@
       "permission": {
         "question": "allow",
         "bash": "allow",
-        "composio_COMPOSIO_*": "allow"
+        "composio_COMPOSIO_*": "allow",
+        "edit": "deny"
       }
     }
   },

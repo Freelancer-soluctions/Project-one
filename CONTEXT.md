@@ -28,4 +28,11 @@
 - **Workflow Skill**: Skill that manages the OpenSpec lifecycle.
 - **Knowledge Skill**: Skill with domain technical knowledge.
 - **Cascading Materialization**: (Suggested term) Synchronization problem when a lesson becomes "real" in the filesystem.
+- **gh CLI / GitHub CLI**: Binary at `C:\Program Files\GitHub CLI\gh.exe` for GitHub operations (gists, issues, PRs). Installed via Chocolatey.
+- **gh-wrapper**: Shell script at `~/bin/gh` that forwards `gh` commands to `gh.exe`. Required because MSYS2/bash doesn't inherit Windows PATH.
+- **Gist Creation Workflow**: `gh gist create <files> --desc "..."` from bash via @git-manager. Creates secret gist by default; add `--public` for public.
 
+## GitHub CLI & Opencode Integration
+- **Auth**: `gh auth login` — stores token in Windows Credential Manager (not env vars).
+- **Shell compatibility**: Opencode uses `bash` (MSYS2) for agents. `gh.exe` accessed via `~/bin/gh` wrapper.
+- **Token scope needed**: `repo`, `gist`, `workflow` for full GitHub operations.
