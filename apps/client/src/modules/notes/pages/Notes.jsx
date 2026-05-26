@@ -9,6 +9,9 @@ import {
   useUpdateNoteColumIdMutation,
   useUpdateNoteByIdMutation,
   useDeleteNoteByIdMutation,
+  useCreateHashtagMutation,
+  useUpdateHashtagMutation,
+  useDeleteHashtagMutation,
 } from '../api/notesAPI';
 import {
   NotesFilters,
@@ -21,19 +24,11 @@ import { useLocation } from 'react-router';
 
 export default function Notes() {
   const { t } = useTranslation();
-  const [openAlertDialog, setOpenAlertDialog] = useState(false); //alert dialog open/close
-  const [open, setOpen] = useState(false); //dialog open/close
+  const [openAlertDialog, setOpenAlertDialog] = useState(false);
+  const [open, setOpen] = useState(false);
   const [alertProps, setAlertProps] = useState({});
+  const [selectedHashtagIds, setSelectedHashtagIds] = useState([]);
   const location = useLocation();
-
-  // Capturar el filter al cargar el componente
-  // useEffect(() => {
-  //   if (location.state?.filter) {
-  //     setFilters((prev) => ({ ...prev, statusCode: location.state.filter }));
-  //   } else {
-  //     setFilters({ searchTerm: '', statusCode: '' });
-  //   }
-  // }, [location.state]);
 
   const initialFilters = useMemo(() => {
     return {
@@ -66,20 +61,9 @@ export default function Notes() {
   const [deleteNoteById, { isLoading: isLoadingDelete }] =
     useDeleteNoteByIdMutation();
 
-  // const filteredColumns = useMemo(() => {
-  //   if (!searchTerm) return dataNotes?.data
-
-  //   return dataNotes?.data.map(column => ({
-  //     ...column,
-  //     notes: column.notes.filter(note => {
-  //       const searchTermLower = searchTerm.toLowerCase()
-  //       return (
-  //         note.title.toLowerCase().includes(searchTermLower) ||
-  //         note.content.toLowerCase().includes(searchTermLower)
-  //       )
-  //     })
-  //   }))
-  // }, [dataNotes, searchTerm])
+  const [createHashtag] = useCreateHashtagMutation();
+  const [updateHashtag] = useUpdateHashtagMutation();
+  const [deleteHashtag] = useDeleteHashtagMutation();
 
   const setColor = (code) => {
     return code === StatusColumn.MEDIUM
@@ -137,9 +121,10 @@ export default function Notes() {
 
   const handleReset = () => {
     setFilters({ searchTerm: '', statusCode: '' });
+    setSelectedHashtagIds([]);
   };
 
-  const handleCreateNote = async ({ title, content, status }) => {
+  const handleCreateNote = async ({ title, content, status, hashtagIds }) => {
     const color = setColor(status.code);
 
     await createNote({
@@ -147,6 +132,7 @@ export default function Notes() {
       content,
       color,
       columnId: status.id,
+      hashtagIds,
     }).unwrap();
 
     setOpenAlertDialog(true);
@@ -162,16 +148,17 @@ export default function Notes() {
     });
   };
 
-    const handleEditNote = async (note) => {
-    const { id, content, title } = note;
+  const handleEditNote = async (note) => {
+    const { id, content, title, hashtagIds } = note;
     await updateNoteById({
       id: id,
       body: {
         content,
         title,
+        hashtagIds,
       },
     }).unwrap();
-    
+
     setOpenAlertDialog(true);
     setAlertProps({
       alertTitle: t('update_record'),
@@ -209,7 +196,7 @@ export default function Notes() {
             },
             variantSuccess: 'info',
           });
-          setOpenAlertDialog(true); // Open alert dialog
+          setOpenAlertDialog(true);
         } catch (err) {
           console.error('Error deleting:', err);
         }
@@ -218,12 +205,42 @@ export default function Notes() {
     setOpenAlertDialog(true);
   };
 
+  const handleHashtagSelectionChange = (ids) => {
+    setSelectedHashtagIds(ids);
+    setFilters((prev) => ({
+      ...prev,
+      hashtagId: ids.length > 0 ? ids : undefined,
+    }));
+  };
+
+  const handleCreateHashtag = async ({ name }) => {
+    try {
+      await createHashtag({ name }).unwrap();
+    } catch (error) {
+      console.error('Error creating hashtag:', error);
+    }
+  };
+
+  const handleEditHashtag = async ({ id, name }) => {
+    try {
+      await updateHashtag({ id, body: { name } }).unwrap();
+    } catch (error) {
+      console.error('Error updating hashtag:', error);
+    }
+  };
+
+  const handleDeleteHashtag = async ({ id }) => {
+    try {
+      await deleteHashtag(id).unwrap();
+    } catch (error) {
+      console.error('Error deleting hashtag:', error);
+    }
+  };
 
   return (
     <>
       <BackDashBoard link={'/home'} moduleName={t('notes')} />
       <div className="relative w-full px-4">
-        {/* Show spinner when loading or fetching */}
         {(isLoadingColumns ||
           isLoadingNotes ||
           isLoadingPut ||
@@ -241,6 +258,11 @@ export default function Notes() {
               filters={filters}
               handleReset={handleReset}
               setOpen={setOpen}
+              selectedHashtagIds={selectedHashtagIds}
+              onHashtagSelectionChange={handleHashtagSelectionChange}
+              onCreateHashtag={handleCreateHashtag}
+              onEditHashtag={handleEditHashtag}
+              onDeleteHashtag={handleDeleteHashtag}
             />
           </div>
           <div className="flex flex-wrap items-center justify-between gap-4">
@@ -252,15 +274,14 @@ export default function Notes() {
             />
           </div>
           <div className="flex flex-col md:flex-row gap-6 p-4 min-h-[700px] w-full">
-            <NotesColumn
-              data={dataNotes?.data}
-              onDragStart={handleDragStart}
-              onDragOver={handleDragOver}
-              onDrop={handleDrop}
+           <NotesColumn
+             data={dataNotes?.data}
+             onDragStart={handleDragStart}
+             onDragOver={handleDragOver}
+             onDrop={handleDrop}
               onDeleteNote={handleDeleteNote}
               onEditNote={handleEditNote}
-            />
-
+           />
           </div>
           <AlertDialogComponent
             openAlertDialog={openAlertDialog}

@@ -9,14 +9,14 @@ const notesApi = createApi({
   baseQuery: axiosPrivateBaseQuery({
     baseUrl: import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1',
   }),
-  tagTypes: ['Notes'], // Agrega un tag identificador
+  tagTypes: ['Notes', 'Hashtags'],
   endpoints: (builder) => ({
     getAllCountNotes: builder.query({
       query: () => ({
         url: `/notes/notesCount`,
         method: 'GET',
       }),
-      providesTags: ['Notes'], // Indica que este endpoint usa el tag 'Notes'
+      providesTags: ['Notes'],
     }),
 
     getAllNotes: builder.query({
@@ -25,7 +25,7 @@ const notesApi = createApi({
         method: 'GET',
         params: { ...args },
       }),
-      providesTags: ['Notes'], // Indica que este endpoint usa el tag 'Notes'
+      providesTags: ['Notes'],
     }),
     getAllNotesColumns: builder.query({
       query: () => ({
@@ -39,7 +39,7 @@ const notesApi = createApi({
         method: 'PUT',
         body,
       }),
-      invalidatesTags: ['Notes'], // Invalida el cache de 'Notes' para volver a consultar
+      invalidatesTags: ['Notes'],
     }),
     updateNoteById: builder.mutation({
       query: ({ id, body }) => ({
@@ -47,7 +47,7 @@ const notesApi = createApi({
         method: 'PUT',
         body,
       }),
-      invalidatesTags: ['Notes'], // Invalida el cache de 'Notes' para volver a consultar
+      invalidatesTags: ['Notes'],
     }),
     createNote: builder.mutation({
       query: (body) => ({
@@ -55,7 +55,7 @@ const notesApi = createApi({
         method: 'POST',
         body,
       }),
-      invalidatesTags: ['Notes'], // Invalida el cache de 'Notes' para volver a consultar
+      invalidatesTags: ['Notes'],
     }),
     deleteNoteById: builder.mutation({
       query(id) {
@@ -64,13 +64,48 @@ const notesApi = createApi({
           method: 'DELETE',
         };
       },
-      invalidatesTags: ['Notes'], // Invalida el cache de 'Notes' para volver a consultar
+      invalidatesTags: ['Notes'],
     }),
     getMentionsByNoteId: builder.query({
       query: (noteId) => ({
         url: `/notes/${noteId}/mentions`,
         method: 'GET',
       }),
+    }),
+
+    // === HASHTAG ENDPOINTS ===
+
+    getAllHashtags: builder.query({
+      query: () => ({
+        url: `/notes/hashtags`,
+        method: 'GET',
+      }),
+      providesTags: ['Hashtags'],
+    }),
+    createHashtag: builder.mutation({
+      query: (body) => ({
+        url: `/notes/hashtags`,
+        method: 'POST',
+        body,
+      }),
+      invalidatesTags: ['Hashtags'],
+    }),
+    updateHashtag: builder.mutation({
+      query: ({ id, body }) => ({
+        url: `/notes/hashtags/${id}`,
+        method: 'PUT',
+        body,
+      }),
+      invalidatesTags: ['Hashtags'],
+    }),
+    deleteHashtag: builder.mutation({
+      query(id) {
+        return {
+          url: `/notes/hashtags/${id}`,
+          method: 'DELETE',
+        };
+      },
+      invalidatesTags: ['Hashtags'],
     }),
   }),
 });
@@ -86,6 +121,10 @@ export const {
   useDeleteNoteByIdMutation,
   useGetAllCountNotesQuery,
   useGetMentionsByNoteIdQuery,
+  useGetAllHashtagsQuery,
+  useCreateHashtagMutation,
+  useUpdateHashtagMutation,
+  useDeleteHashtagMutation,
 } = notesApi;
 
 export default notesApi;

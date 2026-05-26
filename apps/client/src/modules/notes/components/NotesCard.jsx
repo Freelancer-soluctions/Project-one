@@ -85,12 +85,12 @@ export function NotesCard({ note, onDragStart, onDelete, onEdit, columnCode }) {
         </CardContent>
       </Card>
 
-      <NotesEditDialog
-        open={isEditDialogOpen}
-        onOpenChange={setIsEditDialogOpen}
-        onEditNote={onEdit}
-        note={note}
-      />
+       <NotesEditDialog
+         open={isEditDialogOpen}
+         onOpenChange={setIsEditDialogOpen}
+         onEditNote={onEdit}
+         note={note}
+       />
     </>
   );
 }
