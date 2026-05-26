@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useCallback } from 'react';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -31,7 +31,6 @@ import { Button } from '@/components/ui/button';
 import { LuTrash2, LuShoppingCart } from 'react-icons/lu';
 import PropTypes from 'prop-types';
 import { SaleSchema } from '../utils';
-import { useCallback } from 'react';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/components/ui/use-toast';
 

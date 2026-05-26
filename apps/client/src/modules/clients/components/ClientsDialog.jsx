@@ -36,38 +36,6 @@ import { LuUsersRound } from 'react-icons/lu';
 import PropTypes from 'prop-types';
 import { ClientSchema } from '../utils';
 import { useMemo } from 'react';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-  DialogClose,
-} from '@/components/ui/dialog';
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover';
-import { Calendar } from '@/components/ui/calendar';
-import { CalendarIcon } from '@radix-ui/react-icons';
-import { format } from 'date-fns';
-import { cn } from '@/lib/utils';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { LuUsersRound } from 'react-icons/lu';
-import PropTypes from 'prop-types';
-import { ClientSchema } from '../utils';
-import { useMemo } from 'react';
 
 export const ClientsDialog = ({
   openDialog,

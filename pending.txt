@@ -66,11 +66,13 @@ Crear comandos de trello para la creacion, edicion y manipulacion de las tarjeta
 Verificar qye tanto agents.md como las skills si se tenga presentes en cada interacion o creacion de especificaciones (SDD) (Usando agents.md o el prompt system del agente) x
 Crear una esquema de la arquitectura de agentes actual (Agent-architecture-analysis.md) x
 Ver como usar context7 donde referenciarlo y ver alcance x
+Crear articulos o publicaciones con todo esto explicando paso a paso que fue lo que se hizo x
+Github mcp server se uso gh cli en su lugar menos depencia x
 Terminar de leer toda la documentacion de opencode y openspec
+Verificar que cavemna sy CONTEXT.md si esten funcionando
+Las tools de los mcp deben de ajustarse en el system prompt para que no sean llamadas sin permiso o llamado explicito
 comandos de git para automatizar TBD
-Crear articulos o publicaciones con todo esto explicando paso a paso que fue lo que se hizo
 Crear changes completos de modulos empezando por lo que falta con notes
-Github mcp server
 TestSprite mcp
 Matt Pocock skill TDD 
 Localstack vs floci
@@ -80,7 +82,8 @@ Agentes de seguridad y testing ver viabilidad de un agente de solo documentacion
 lmstudio para ver si ofrecen gemma gratuito
 Consultas al back end con  custom tools
 ACM MODE para ci/cd
-
+Ajustar o crear nuevas tarjetas de trello que contenga las features actuales de cada uno de lo modulos y sistema, aprender sobre como deberia de ser estas tarjetas y aprende project management
+Activar chromaDb de clude mem cuando se solucione el problema
   
 
 

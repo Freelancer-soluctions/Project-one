@@ -67,10 +67,24 @@ When researching for `/opsx:explore`:
 - Identify technical risks or constraints
 - Your research will inform the proposal.md created by OpenSpec
 
+## MCP TOOL USAGE POLICY
+
+You have access to MCP tools: **Context7** (`context7_*`).
+
+**Guidance:**
+- ✅ Attempt #context7 when researching specific API details, version differences, or official documentation
+- ✅ Use webfetch and websearch for broader research questions
+- ❌ Do NOT attempt #context7 for every query — user must confirm each call
+- ✅ The `ask` permission prevents auto-invocation while keeping the tool available for deep research
+
+**Why:** Context7 is for deep-dive API validation. The `ask` permission ensures you only call it when truly needed.
+
+---
+
 ## QUALITY STANDARDS
 
 - ✅ Cite sources (prefer official docs)
-- ✅ For every technical query, you MUST use #context7 and #webfetch to check the latest official documentation. You are responsible for identifying edge cases and API changes that are not in the model's base knowledge. Matches to the current codebase patterns must be validated against official sources via MCP
+- ✅ Use #context7 and #webfetch on demand — when explicitly asked by the orchestrator/user or when researching a specific technical question. Do NOT auto-invocation for every query.
 - ✅ Include version numbers (libraries change)
 - ✅ Provide code examples when relevant
 - ✅ Consider project constraints (monorepo, existing stack)
@@ -84,3 +98,4 @@ When researching for `/opsx:explore`:
 - Consider the monorepo context
 - Prioritize official sources
 - Note any version-specific information
+- ✅ You are responsible for identifying edge cases and API changes not in the model's base knowledge

@@ -3,48 +3,52 @@ import handleCatchErrorAsync from '../../utils/responses&Errors/handleCatchError
 import * as notesService from './service.js';
 
 /**
- * Get all notes with optional filtering by search term and status code.
- * 
- * @param {Object} req - The HTTP request object.
+ * Get all notes with optional filtering by search term, status code, and hashtag IDs.
+ *
+ * @param {Object} req - Express request object.
  * @param {Object} req.safeQuery - Validated query parameters.
- * @param {string} [req.safeQuery.searchTerm] - Optional search term to filter notes by title or content.
- * @param {number} [req.safeQuery.statusCode] - Optional status code to filter notes by their column's status.
- * @param {Object} res - The HTTP response object.
- * @returns {Promise<void>} Sends a 200 response with the list of filtered notes.
+ * @param {string} [req.safeQuery.searchTerm] - Filter notes by title or content.
+ * @param {number} [req.safeQuery.statusCode] - Filter notes by column status code.
+ * @param {string|string[]} [req.safeQuery.hashtagId] - Filter notes by hashtag ID(s).
+ * @param {Object} res - Express response object.
+ * @returns {Promise<void>} Responds with 200 and filtered notes array.
  */
 export const getAllNotes = handleCatchErrorAsync(async (req, res) => {
-  const { searchTerm, statusCode } = req.safeQuery;
-  const items = await notesService.getAllNotes(searchTerm, statusCode);
+  const { searchTerm, statusCode, hashtagId } = req.safeQuery;
+  const hashtagIds = hashtagId
+    ? Array.isArray(hashtagId) ? hashtagId : [hashtagId]
+    : undefined;
+  const items = await notesService.getAllNotes(searchTerm, statusCode, hashtagIds);
   globalResponse(res, 200, items);
 });
 
 /**
- * Create a new note item.
- * 
- * @param {Object} req - The HTTP request object.
- * @param {string} req.userId - Authenticated user ID from token.
- * @param {Object} req.body - Request body containing the note data.
- * @param {string} req.body.title - The title of the note.
- * @param {string} [req.body.content] - Optional content/description of the note.
- * @param {string} [req.body.color] - Optional color for the note (hex code or color name).
- * @param {number} [req.body.columnId] - Optional ID of the column to assign the note to.
- * @param {Array<number>} [req.body.mentions] - Optional array of user IDs mentioned in the note.
- * @param {Object} res - The HTTP response object.
- * @returns {Promise<void>} Sends a 201 response with the created note and success message.
+ * Create a new note with optional mentions and hashtag associations.
+ *
+ * @param {Object} req - Express request object.
+ * @param {number} req.userId - Authenticated user ID from token.
+ * @param {Object} req.body - Validated note data.
+ * @param {string} req.body.title - Note title.
+ * @param {string} [req.body.content] - Note content (plain text).
+ * @param {string} [req.body.color] - Note color.
+ * @param {number} req.body.columnId - Column/status ID for the note.
+ * @param {number[]} [req.body.hashtagIds] - Hashtag IDs to associate.
+ * @param {Object} res - Express response object.
+ * @returns {Promise<void>} Responds with 201 and created note.
  */
 export const createNote = handleCatchErrorAsync(async (req, res) => {
-  const userId = req.userId; // viene del token
+  const userId = req.userId;
   const { body } = req;
   const createdNote = await notesService.createNote(body, userId);
   globalResponse(res, 201, createdNote, 'Item created successfully');
 });
 
 /**
- * Get the status of all notes items.
+ * Get all available note columns (statuses).
  *
- * @param {Object} req - The HTTP request object.
- * @param {Object} res - The HTTP response object.
- * @returns {Promise<void>} Sends a response containing the status of all news items.
+ * @param {Object} req - Express request object.
+ * @param {Object} res - Express response object.
+ * @returns {Promise<void>} Responds with 200 and columns array.
  */
 export const getAllNotesColumns = handleCatchErrorAsync(async (req, res) => {
   const data = await notesService.getAllNotesColumns();
@@ -52,15 +56,15 @@ export const getAllNotesColumns = handleCatchErrorAsync(async (req, res) => {
 });
 
 /**
- * Update a note's column ID and/or color.
- * 
- * @param {Object} req - The HTTP request object.
- * @param {Object} req.body - Request body containing the update data.
- * @param {number} req.body.id - The ID of the note to update.
- * @param {number} req.body.columnId - The new column ID to assign to the note.
- * @param {string} [req.body.color] - Optional new color for the note.
- * @param {Object} res - The HTTP response object.
- * @returns {Promise<void>} Sends a 200 response with a success message.
+ * Update a note's column ID and/or color (drag-and-drop).
+ *
+ * @param {Object} req - Express request object.
+ * @param {Object} req.body - Update payload.
+ * @param {number} req.body.id - Note ID.
+ * @param {number} req.body.columnId - New column ID.
+ * @param {string} [req.body.color] - New color.
+ * @param {Object} res - Express response object.
+ * @returns {Promise<void>} Responds with 200 and success message.
  */
 export const updateNoteColumId = handleCatchErrorAsync(async (req, res) => {
   const { body } = req;
@@ -69,38 +73,36 @@ export const updateNoteColumId = handleCatchErrorAsync(async (req, res) => {
 });
 
 /**
- * Update a note by ID with new data.
- * 
- * @param {Object} req - The HTTP request object.
- * @param {string} req.userId - Authenticated user ID from token.
+ * Update a note by ID (title, content, color, mentions, hashtags).
+ *
+ * @param {Object} req - Express request object.
  * @param {Object} req.params - URL parameters.
- * @param {string} req.params.id - The ID of the note to update.
- * @param {Object} req.body - Request body containing the fields to update.
- * @param {string} [req.body.title] - Optional new title for the note.
- * @param {string} [req.body.content] - Optional new content for the note.
- * @param {string} [req.body.color] - Optional new color for the note.
- * @param {number} [req.body.columnId] - Optional new column ID for the note.
- * @param {Array<number>} [req.body.mentions] - Optional array of user IDs to mention.
- * @param {Object} res - The HTTP response object.
- * @returns {Promise<void>} Sends a 200 response with a success message.
+ * @param {string} req.params.id - Note ID.
+ * @param {Object} req.body - Update payload.
+ * @param {string} [req.body.title] - New title.
+ * @param {string} [req.body.content] - New content.
+ * @param {string} [req.body.color] - New color.
+ * @param {number[]} [req.body.hashtagIds] - Hashtag IDs to re-associate.
+ * @param {number} req.userId - Authenticated user ID.
+ * @param {Object} res - Express response object.
+ * @returns {Promise<void>} Responds with 200 and success message.
  */
 export const updateNoteById = handleCatchErrorAsync(async (req, res) => {
   const { body } = req;
   const { id } = req.params;
   const userId = req.userId;
-  console.log("notebody",body )
   await notesService.updateNoteById(id, body, userId);
   globalResponse(res, 200, { message: 'Item updated successfully' });
 });
 
 /**
- * Get all user mentions for a specific note by note ID.
- * 
- * @param {Object} req - The HTTP request object.
+ * Get all mentions for a specific note.
+ *
+ * @param {Object} req - Express request object.
  * @param {Object} req.params - URL parameters.
- * @param {string} req.params.id - The ID of the note to get mentions for.
- * @param {Object} res - The HTTP response object.
- * @returns {Promise<void>} Sends a 200 response with the list of users mentioned in the note.
+ * @param {string} req.params.id - Note ID.
+ * @param {Object} res - Express response object.
+ * @returns {Promise<void>} Responds with 200 and mentions array.
  */
 export const getMentionsByNoteId = handleCatchErrorAsync(async (req, res) => {
   const { id } = req.params;
@@ -110,12 +112,12 @@ export const getMentionsByNoteId = handleCatchErrorAsync(async (req, res) => {
 
 /**
  * Delete a note by ID.
- * 
- * @param {Object} req - The HTTP request object.
+ *
+ * @param {Object} req - Express request object.
  * @param {Object} req.params - URL parameters.
- * @param {string} req.params.id - The ID of the note to delete.
- * @param {Object} res - The HTTP response object.
- * @returns {Promise<void>} Sends a 200 response with a success message.
+ * @param {string} req.params.id - Note ID to delete.
+ * @param {Object} res - Express response object.
+ * @returns {Promise<void>} Responds with 200 and success message.
  */
 export const deleteById = handleCatchErrorAsync(async (req, res) => {
   const { id } = req.params;
@@ -124,13 +126,79 @@ export const deleteById = handleCatchErrorAsync(async (req, res) => {
 });
 
 /**
- * Get the number of all notes items.
+ * Get total count of all notes.
  *
- * @param {Object} req - The HTTP request object.
- * @param {Object} res - The HTTP response object.
- * @returns {Promise<void>} Sends a response containing the number of all news items.
+ * @param {Object} req - Express request object.
+ * @param {Object} res - Express response object.
+ * @returns {Promise<void>} Responds with 200 and count number.
  */
 export const getAllNotesCount = handleCatchErrorAsync(async (req, res) => {
   const data = await notesService.getAllNotesCount();
   globalResponse(res, 200, data);
+});
+
+// ============================================================
+// HASHTAG HANDLERS
+// ============================================================
+
+/**
+ * Get all hashtags ordered by name ascending.
+ *
+ * @param {Object} req - Express request object.
+ * @param {Object} res - Express response object.
+ * @returns {Promise<void>} Responds with 200 and hashtags array (each includes note count).
+ */
+export const getAllHashtags = handleCatchErrorAsync(async (req, res) => {
+  const data = await notesService.getAllHashtags();
+  globalResponse(res, 200, data);
+});
+
+/**
+ * Create a new hashtag.
+ *
+ * @param {Object} req - Express request object.
+ * @param {number} req.userId - Authenticated user ID (creator).
+ * @param {Object} req.body - Request body.
+ * @param {string} req.body.name - Hashtag name (unique).
+ * @param {Object} res - Express response object.
+ * @returns {Promise<void>} Responds with 201 and created hashtag.
+ */
+export const createHashtag = handleCatchErrorAsync(async (req, res) => {
+  const userId = req.userId;
+  const { name } = req.body;
+  const hashtag = await notesService.createHashtag(name, userId);
+  globalResponse(res, 201, hashtag, 'Hashtag created successfully');
+});
+
+/**
+ * Update a hashtag name by ID.
+ *
+ * @param {Object} req - Express request object.
+ * @param {Object} req.params - URL parameters.
+ * @param {string} req.params.id - Hashtag ID.
+ * @param {Object} req.body - Request body.
+ * @param {string} req.body.name - New hashtag name.
+ * @param {Object} res - Express response object.
+ * @returns {Promise<void>} Responds with 200 and updated hashtag.
+ */
+export const updateHashtag = handleCatchErrorAsync(async (req, res) => {
+  const { name } = req.body;
+  const { id } = req.params;
+  const hashtag = await notesService.updateHashtag(id, name);
+  globalResponse(res, 200, hashtag, 'Hashtag updated successfully');
+});
+
+/**
+ * Delete a hashtag by ID (cascades note_hashtags relations).
+ *
+ * @param {Object} req - Express request object.
+ * @param {Object} req.params - URL parameters.
+ * @param {string} req.params.id - Hashtag ID to delete.
+ * @param {Object} res - Express response object.
+ * @returns {Promise<void>} Responds with 200 and success message.
+ */
+export const deleteHashtag = handleCatchErrorAsync(async (req, res) => {
+  const { id } = req.params;
+  await notesService.deleteHashtag(id);
+  globalResponse(res, 200, { message: 'Hashtag deleted successfully' });
 });

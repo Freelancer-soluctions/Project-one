@@ -1,1073 +1,323 @@
-Front end 
-- Persitencia de datos como el inicio de sesion con redux-persist
-- Proteccion de rutas solo accesibles cuando la sesion es valida por medio de un guard, trabajando conjuntamente con jwt
-- Internalizacion con i18next y react-i18next soportando dos idiomas (ingles y español)
-- Storybook para la documentacion y prueba componentes UI, para la facilitacion entre diseñadores y QA testers
-- Uso de hooks personalizados para organizar y separalar la logica de la pagina para su mejor comprension.
-- Uso de logger para monitoreo y registro de acciones o errores del front end
-- React hook forma para manejo de formularios en combinacion con zod schema validation
-- RTK QUERY  para manejo de estado global
-- Redux persist para la persitencia de estados necesarios como lo son las configuraciones o informacion de usuario
-- Editor WYSIWYG usando quill para texto Enriquecido (Textarea) (Pendiente)
+# Project One
 
-Back end
-- Documentación: Swagger/OpenAPI para la documentacion y prueba APIs REST
-- Documentacion basada en jsdoc complementaria a la de Swagger/OpenAPI
-- Arquitectura layered o capas
-- Versionado: /api/v1/Endpoint
-- Uso de prima ORM con sistema de consultas naviva y uso de sql raw para consultas mas complejas.
-- Uso de JWT para la autenticacion y autorizacion de usuarios en rutas privadas
-- HOF (hihg order function) para manejo de errores en cada uno de los controller del sistema
-- Códigos HTTP apropiados en reapuestas 
-- Rate limiting en endpoints criticos (Nombrar enpoints)
-- Logging Estructurado: Winston (Pulir)
-- Versionado y Auditoría (Pendiente)
-- Notificaciones en tiempo real (Websockets) (Pendiente)
-- Webhook support (Ver si es necesario)
-- Internalizacion en el back end (Pendiente)
+> Full-Stack ERP System — Inventory, Sales, HR, and Business Process Management
 
-Global
-- El sistema posee varias capas de seguridad siendo tales como middlewares de control de acceso para verificacion de tokens jwt, roles y permisos, (Broken access control owasp top 10)
-- Se esta usando workspaces de npm
-- Paginacion y ordenamiento nativo para tablas implaemntadas con tanstack table
-- Sistema de permisos robusto (Ver que tipo de sietma se implemento RBAC + ABAC ajustar de ser necesario)
-- Formateo de fechas/números según locale (Ajustar)
-- Tema ocuro y blanco (Pendiente)
-
-
-PASAR LA LOGICA DE NEGOCIO A LA DOCUMENTACION DE LOS MODULOS Y REFERENCIAR AQUI EN EL README
-1️⃣ Módulo de Gestión de Productos 
-📌 Objetivo: Administrar los productos y sus características.
-🔹 CRUD de productos (crear, leer, actualizar, eliminar).
-🔹 Manejo de categorías y atributos personalizables.
-🔹 Soporte para productos compuestos (kits o combos).
-🔹 Asociación con múltiples proveedores.
-🔹 Generación de código de barras automático.
-
-2️⃣ Módulo de Stock y Almacenes
-📌 Objetivo: Controlar la cantidad de productos en diferentes almacenes.
-🔹 Manejo de stock por almacén/sucursal.
-🔹 Configuración de stock mínimo y máximo con alertas.
-🔹 Registro de lotes y fechas de caducidad.
-🔹 Métodos de valoración de inventario (PEPS, UEPS, Promedio Ponderado).
-🔹 Configuración de permisos por usuario para modificar stock.
-
-3️⃣ Módulo de Movimientos de Inventario
-📌 Objetivo: Registrar todas las transacciones que afectan el stock.
-🔹 Entradas y salidas de inventario con motivo (compra, venta, ajuste, etc.).
-🔹 Transferencias entre almacenes.
-🔹 Ajustes manuales de inventario (pérdidas, auditorías, etc.).
-🔹 Auditoría de todos los movimientos.
-
-4️⃣ Módulo de Integración con Compras y Ventas
-📌 Objetivo: Sincronizar inventario con compras y ventas.
-🔹 Reducción automática de stock tras una venta.
-🔹 Actualización de stock al recibir productos de una compra.
-🔹 Integración con facturación y contabilidad.
-
-5️⃣ Módulo de Reportes y Auditoría
-📌 Objetivo: Generar reportes de inventario y auditoría.
-🔹 Kardex de inventario (historial de movimientos por producto).
-🔹 Reportes de stock en tiempo real.
-🔹 Auditoría de cambios manuales en el inventario.
-🔹 Análisis de tendencias de ventas y consumo de productos.
-
-6️⃣ Módulo de Configuración y Personalización
-📌 Objetivo: Adaptar el sistema a diferentes negocios.
-🔹 Permitir agregar campos personalizados a los productos.
-🔹 Configuración de permisos y roles de usuario.
-🔹 Definir reglas de stock y alertas.
-🔹 Automatización de órdenes de compra si el stock es bajo.
-
-Flujo de comunicación entre módulos
-1️⃣ Gestión de Productos → Stock y Almacenes
-
-Cuando se crea un producto, debe poder asignarse a uno o varios almacenes con un stock inicial opcional.
-Si un producto es compuesto (kit o combo), debe asegurarse que su stock se calcula en base a sus componentes.
-2️⃣ Stock y Almacenes → Movimientos de Inventario
-
-Cualquier cambio de stock (entrada, salida, ajuste, transferencia) se registra como un movimiento de inventario.
-Cada almacén tiene su propio stock, por lo que las transferencias entre almacenes deben actualizar ambos correctamente.
-3️⃣ Movimientos de Inventario → Integración con Compras y Ventas
-
-Al realizar una venta, se registra una salida de stock y un movimiento en el historial.
-Al recibir una compra, se registra una entrada de stock y se asocia con la orden de compra.
-Si una auditoría o ajuste cambia manualmente el stock, debe registrarse en la auditoría del inventario.
-4️⃣ Integración con Compras y Ventas → Stock y Almacenes
-
-La compra de productos puede actualizar automáticamente el stock en los almacenes asignados.
-Las ventas reducen el stock y pueden generar alertas si se alcanza el mínimo configurado.
-5️⃣ Stock y Almacenes → Reportes y Auditoría
-
-Cualquier cambio en el stock se refleja en los reportes en tiempo real.
-Los movimientos de inventario deben estar auditados para garantizar trazabilidad.
-6️⃣ Configuración y Personalización → Todos los módulos
-
-Debe permitir la configuración de reglas como stock mínimo, alertas, permisos y roles de usuario.
-Posibilidad de personalizar los campos de los productos y reportes según necesidades del negocio.
-Automatización de compras si el stock baja de un nivel crítico.
-
-Tabla: Acceso por rol a los módulos del ERP
-| Módulo                  | Admin | Manager | User |
-| ----------------------- | :---: | :-----: | :--: |
-| Dashboard               |   ✅   |    ✅    |   ✅  |
-| Gestión de productos    |   ✅   |    ✅    |  🔲  |
-| Proveedores             |   ✅   |    ✅    |  🔲  |
-| Inventario              |   ✅   |    ✅    |  🔲  |
-| Categorías de productos |   ✅   |    ✅    |  🔲  |
-| Atributos de producto   |   ✅   |    ✅    |  🔲  |
-| Gestión de ventas       |   ✅   |    ✅    |  🔲  |
-| Gestión de compras      |   ✅   |    ✅    |  🔲  |
-| Gestión de clientes     |   ✅   |    ✅    |   ✅  |
-| Gestión de empleados    |   ✅   |    ✅    |  🔲  |
-| Evaluación de desempeño |   ✅   |    ✅    |  🔲  |
-| Nómina                  |   ✅   |    ✅    |  🔲  |
-| Asistencia              |   ✅   |    ✅    |  🔲  |
-| Vacaciones              |   ✅   |    ✅    |  🔲  |
-| Noticias                |   ✅   |    ✅    |   ✅  |
-| Configuración de acceso |   ✅   |    🔲   |  🔲  |
-| Gestión de usuarios     |   ✅   |    🔲   |  🔲  |
-| Órdenes de clientes     |   ✅   |    ✅    |   ✅  |
-| Órdenes de proveedores  |   ✅   |    ✅    |  🔲  |
-| Gastos                  |   ✅   |    ✅    |  🔲  |
-| Reportes / Estadísticas |   ✅   |    ✅    |   ✅  |
-
-
-
-
-Tabla de permisos booleanos por rol (para manager y user) SDSD
-
-| ID  | Código del Permiso              | Descripción                               | Manager | User |
-|-----|----------------------------------|-------------------------------------------|---------|------|
-| 1   | canViewDashboard                 | Puede ver el dashboard                    | ✅      | ✅  |
-| 2   | canCreateProduct                 | Puede crear productos                     | ✅      |      |
-| 3   | canEditProduct                   | Puede editar productos                    | ✅      |      |
-| 4   | canDeleteProduct                 | Puede eliminar productos                  | ✅      |      |
-| 5   | canViewProduct                   | Puede ver productos                       | ✅      | ✅   |
-| 6   | canCreateProvider                | Puede crear proveedores                   | ✅      |      |
-| 7   | canEditProvider                  | Puede editar proveedores                  | ✅      |      |
-| 8   | canDeleteProvider                | Puede eliminar proveedores                | ✅      |      |
-| 9   | canViewProvider                  | Puede ver proveedores                     | ✅      | ✅   |
-| 10  | canCreateInventory               | Puede crear inventario                    | ✅      |      |
-| 11  | canEditInventory                 | Puede editar inventario                   | ✅      |      |
-| 12  | canViewInventory                 | Puede ver inventario                      | ✅      | ✅   |
-| -   | canDeleteInventory               | Puede eliminar inventario                 | ✅      |      |
-| 13  | canCreateCategory                | Puede crear categorías                    | ✅      |      |
-| 14  | canEditCategory                  | Puede editar categorías                   | ✅      |      |
-| 15  | canViewCategory                  | Puede ver categorías                      | ✅      | ✅   |
-| -   | canDeleteCategory                | Puede eliminar inventario                 | ✅      |      |
-| 16  | canCreateSale                    | Puede crear ventas                        | ✅      | ✅   |
-| 17  | canEditSale                      | Puede editar ventas                       | ✅      | ✅  |
-| 18  | canViewSale                      | Puede ver ventas                          | ✅      | ✅   |
-| -   | canDeleteSale                    | Puede eliminar un sale                    | ✅      |      |
-| 19  | canCreatePurchase                | Puede crear compras                       | ✅      |      |
-| 20  | canEditPurchase                  | Puede editar compras                      | ✅      |      |
-| 21  | canViewPurchase                  | Puede ver compras                         | ✅      |      |
-| -   | canDeletePurchase                | Puede eliminar un compras                 | ✅      |      |
-| 22  | canCreateClient                  | Puede crear clientes                      | ✅      |      |
-| 23  | canEditClient                    | Puede editar clientes                     | ✅      |      |
-| 24  | canViewClient                    | Puede ver clientes                        | ✅      | ✅   |
-| -   | canDeleteClient                  | Puede eliminar un cliente                 | ✅      |      |
-| 25  | canCreateEmployee                | Puede crear empleados                     | ✅      |      |
-| 26  | canEditEmployee                  | Puede editar empleados                    | ✅      |      |
-| 27  | canViewEmployee                  | Puede ver empleados                       | ✅      |      |
-| -   | canDeleteEmployee                | Puede eliminar un empleados               | ✅      |      |
-
-| 28  | canCreateEvaluatePerformance     | Puede crear evaluar desempeño             | ✅      |      |
-| -   | canEditEvaluatePerformance       | Puede editar evaluar desempeño            | ✅      |      |
-| -   | canDeleteEvaluationPerformance   | Puede eliminar un empleados               | ✅      |      |
-| 29  | canViewPerformanceEvaluations    | Puede ver evaluaciones de desempeño       | ✅      |      |
-| 30  | canCreatePayroll                 | Puede crear nóminas                       | ✅      |      |
-| 31  | canEditPayroll                   | Puede editar nóminas                      | ✅      |      |
-| 32  | canViewPayroll                   | Puede ver nóminas                         | ✅      |      |
-| -   | canDeletePayroll                 | Puede eliminar un empleados               | ✅      |      |
-
-| 33  | canCreateAttendance              | Puede registrar asistencia                | ✅      |      |
-| -   | canEditAttendance                | Puede registrar asistencia                | ✅      |      |
-| -   | canDeleteAttendance              | Puede eliminar un empleados               | ✅      |      |
-| 34  | canViewAttendance                | Puede ver asistencia                      | ✅      | ✅   |
-| 35  | canRequestVacation               | Puede solicitar vacaciones                | ✅      | ✅   |
-| -   | canEditRequestVacation           | Puede solicitar vacaciones                | ✅      | ✅   |
-| -   | canDeleteVacation              | Puede eliminar un empleados               | ✅      |   ✅   |
-| 36  | canViewVacations                 | Puede ver vacaciones                      | ✅      | ✅   |
-| 37  | canViewNews                      | Puede ver noticias                        | ✅      | ✅   |
-| 37  | canCreateNews                      | Puede ver noticias                        | ✅      | ✅   |
-| 37  | canEditNews                      | Puede ver noticias                        | ✅      | ✅   |
-| 37  | canDeleteNews                      | Puede ver noticias                        | ✅      | ✅   |
-
-
-
-| 38  | canCreateClientOrder             | Puede crear órdenes de cliente            | ✅      | ✅   |
-| 39  | canEditClientOrder               | Puede editar órdenes de cliente           | ✅      |      |
-| 40  | canViewClientOrder               | Puede ver órdenes de cliente              | ✅      | ✅   |
-
-| 41  | canCreateProviderOrder           | Puede crear órdenes a proveedores         | ✅      |      |
-| 42  | canEditProviderOrder             | Puede editar órdenes a proveedores        | ✅      |      |
-| 43  | canViewProviderOrder             | Puede ver órdenes a proveedores           | ✅      |      |
-| 37  | canDeleteProviderOrder           | Puede ver noticias                      | ✅      |    |
-
-| 44  | canCreateExpense                 | Puede crear gastos                        | ✅      |      |
-| 45  | canEditExpense                   | Puede editar gastos                       | ✅      |      |
-| 46  | canViewExpense                   | Puede ver gastos                          | ✅      |      |
-| 37  | canDeleteExpense             | Puede ver noticias                      | ✅      |    |
-
-| 47  | canViewReports                   | Puede ver reportes                        | ✅      |      |
-
-No se han aplicado los de client order y reports queda faltando mas modulos
-
-
-Segmentación de Permisos por Funcionalidad
-Decidiste que el sistema crecerá, por lo tanto optamos por segmentar los permisos en categorías lógicas para mayor claridad y control granular:
-
-Ejemplo de categorías:
-📦 Productos → canCreateProduct, canEditProduct, etc.
-
-👤 Clientes → canCreateClient, canEditClient, etc.
-
-🧾 Órdenes → canCreateClientOrder, canViewProviderOrder, etc.
-
-💼 Recursos Humanos → canViewEmployee, canEditPayroll, etc.
-
-Permisos por Rol (manager y user)
-Creamos una tabla de permisos booleanos para cada rol, donde:
-
-manager tiene acceso total.
-
-user tiene acceso parcial (ver dashboard, clientes, órdenes, etc.).
-
-Esto se convirtió en data semilla para la tabla RolePermit, uniendo cada roleId con los permissionId correspondientes.
-
-
-
-Quiero que hagas lo siguiente: 1- crea la estructura para expenses siguiendo como ejemplo clients y lo hecho en el server de clients, 2- usa la misma estructura de codigo, es importante que respetes como esta escrito el codigo lo que quiero es que lo adaptes a expenses siguiendo la misma estructura que esta en clients . 3- crealo dentro de modules siguiendo la estructura de archivos. 4- usa el mismo codigo de clients  pero adaptado a expenses, y estos cambios son los del front end, no debes de realizar ningun cambio en el back end, 5 verifica los modelos de expenses  en el back end (server) para que sepas como es la estructura del fromulario en el front end, antes de hacer algun cambio por favor lee la estructura y el codebase de clients que es el ejemplo no crees ni añadas codigo que no existe en clients quiero estrictamente la misma estructura adapatada apara a expenses, preguntame si tienes dudas
-
-Quiero que hagas lo siguiente: 1- crea la estructura para vacation siguiendo como ejemplo clients y el modelo de prisma de vacation, 2- usa la misma estructura de codigo, es importante que respetes como esta escrito el codigo lo que quiero es que lo adaptes a vacation siguiendo la misma estructura que esta en clients. 3- crealo dentro de components siguiendo la estructura de archivos. reviza el codigo porque no lo estas haciendo bien quiero que sea exacto yo estoy usando esmodules y tu lo estas haciendo de otra forma, tambien ten presente las HOF que tienen los controladores porque no estoy haciendo uso de try catch 4- Crea los esquemas de Joi específicos para vacation, también la documentacion de Swagger correspondientes en folder docs/schemas.js y los comentarios de jsdoc en controller, service y dao
-
-
-
-llaves de env generadas 
-node -e "console.log(require('crypto').randomBytes(32).toString('base64'))" <- se uso esta
-usar alguna de estas opciones para crear las llaves secretas
-node -e "console.log('SECRETKEY=', require('crypto').randomBytes(32).toString('hex'))"
-node -e "console.log('REFRESHSECRETKEY=', require('crypto').randomBytes(32).toString('hex'))"
-node -e "console.log('SECRETCOOKIEKEY=', require('crypto').randomBytes(32).toString('hex'))"
-
-AESGCM KEY
-node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"
-
-A02 CRYPTOGRAPHID FAILURES
-Cifrado de datos en campos sensibles (AES-GCM) 
-
-Configuracion de prettier
-{
-  // Esquema oficial para que editores (VS Code, WebStorm)
-  // validen y autocompleten las opciones de Prettier
-  "$schema": "https://json.schemastore.org/prettierrc",
-
-  // Longitud máxima de una línea antes de que Prettier haga saltos
-  // Valor recomendado por Prettier y estándar en equipos
-  "printWidth": 80,
-
-  // Número de espacios por nivel de indentación
-  "tabWidth": 2,
-
-  // Fuerza el uso de espacios en lugar de tabs
-  // Garantiza consistencia entre editores y CI
-  "useTabs": false,
-
-  // Obliga a usar punto y coma al final de las sentencias
-  // Evita edge cases del ASI en JavaScript
-  "semi": true,
-
-  // Usa comillas simples en JavaScript
-  // No afecta a JSX ni a JSON
-  "singleQuote": true,
-
-  // Solo añade comillas a propiedades de objetos cuando es necesario
-  // Reduce ruido visual sin romper compatibilidad
-  "quoteProps": "as-needed",
-
-  // En JSX se mantienen comillas dobles (convención HTML)
-  // Recomendado por la documentación oficial
-  "jsxSingleQuote": false,
-
-  // Añade coma final donde ES5 lo permite (objetos, arrays, parámetros)
-  // Mejora los diffs en Git
-  "trailingComma": "es5",
-
-  // Añade espacios dentro de llaves en objetos: { foo: bar }
-  // Mejora la legibilidad
-  "bracketSpacing": true,
-
-  // Mantiene el cierre de JSX en una nueva línea
-  // Evita JSX compacto difícil de leer
-  "bracketSameLine": false,
-
-  // Siempre incluye paréntesis en funciones flecha
-  // Mejora legibilidad y evita ambigüedades
-  "arrowParens": "always",
-
-  // Fuerza finales de línea LF
-  // CRÍTICO para evitar errores en CI/CD (Linux) y conflictos Windows
-  "endOfLine": "lf"
-}
-----------------------------------------------------------------------------------------------
-
-Uso en CI/CD (muy importante)   
-
-{
-  "scripts": {
-    "format:check": "prettier --check \"apps/**/*.{js,jsx,json,md}\""
-  }
-}
-En el pipeline
-npm ci
-npm run format:check
-
-Falla el pipeline si alguien rompe el formato
-
-No modifica código en CI
-
-Refuerza Husky (defensa en capas)
-
-
-Uso correcto en CI/CD (clave)
-En CI NO se usa --fix.
-
-{
-  "scripts": {
-    "lint": "eslint \"apps/**/*.{js,jsx}\""
-  }
-}
-npm ci
-npm run lint:ci
-npm run format:check
-npm test
-Esto garantiza:
-
-CI falla si hay errores
-
-El código no se modifica
-
-Husky + CI se refuerzan mutuamente
-
-Se uso trunk based development como estrategia de ramas en compañia de feature flags
--------------------------------------------------------------------------------------------------
-
-Análisis Arquitectónico (Monorepo + PR CI)
-
-Tienes dos workflows:
-
-CI → Orquestador principal (pull_request a main)
-
-quality.yml → Workflow reutilizable (workflow_call)
-
-Esto está muy bien planteado. Es patrón enterprise real:
-
-Separación de responsabilidades
-
-Reutilización
-
-Orquestación central
-
-Detección inteligente de cambios
-
-Eso ya es nivel intermedio-alto.
-
-Branch-Based Pipeline:
-Feature Branch → PR Pipeline (build, test, Code Quality, security scan)
-       ↓
-Main Branch → Full Pipeline (build, test, scan, deploy to staging)
-       ↓
-Release Tag → Production Pipeline (deploy to prod)
-
-
------------------------------------------------------------------------------------------
-Uso de semgrep con docker
-Uso de gitleaks con chocolatey
-
-## Security Scanning
-## Static Application Security Testing (SAST)
-
-This project integrates **Semgrep** for **Static Application Security Testing (SAST)** as part of a **Shift-Left security strategy**.
-Semgrep analyzes the source code to detect common vulnerabilities during development before code reaches the CI pipeline.
-
-Security rules are aligned with common web application vulnerabilities such as:
-
-* Broken Access Control
-* Injection
-* Cross-Site Scripting (XSS)
-* Cryptographic Failures
-* Server-Side Request Forgery (SSRF)
-* Security Misconfiguration
-
-The full list of rules is documented in:
-
-```
-docs/security/semgrep-rules.md
-```
+[![CI](https://img.shields.io/github/actions/workflow/status/Freelancer-soluctions/Project-one/ci.yml?branch=main&style=flat-square)](https://github.com/Freelancer-soluctions/Project-one/actions)
+[![Node](https://img.shields.io/badge/node-18.x-339933?style=flat-square&logo=nodedotjs)]()
+[![License](https://img.shields.io/badge/license-ISC-blue?style=flat-square)]()
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen?style=flat-square)](http://makeapullrequest.com)
 
 ---
 
-# Running Semgrep Locally
+## Table of Contents
 
-Developers are encouraged to run Semgrep **before committing code** to detect potential security issues early.
-
-The project runs Semgrep using a **Docker container**, ensuring a consistent scanning environment without requiring a local installation.
+- [About](#about)
+- [Architecture](#architecture)
+- [Tech Stack](#tech-stack)
+- [Prerequisites](#prerequisites)
+- [Quick Start](#quick-start)
+- [Project Structure](#project-structure)
+- [Features](#features)
+- [Security](#security)
+- [CI/CD](#cicd)
+- [Development Workflow](#development-workflow)
+- [Documentation](#documentation)
+- [Contributing](#contributing)
+- [License](#license)
 
 ---
 
-## 1. Pull the Semgrep Docker Image
+## About
 
-Download the official Semgrep container:
+**Project One** is an enterprise-grade ERP system built as a monorepo with a React frontend and Express backend. It manages inventory, sales, HR, client relationships, and business reporting with a robust RBAC/ABAC authorization layer across 20+ modules.
+
+### Core capabilities
+
+- **Inventory & Stock** — Multi-warehouse, lot tracking, transfers, valuation (FIFO/LIFO)
+- **Sales & Purchases** — Orders, invoicing, supplier management
+- **Human Resources** — Employees, payroll, attendance, performance evaluations, vacation workflows
+- **Clients & Providers** — CRM, purchasing, order management
+- **Reporting** — Real-time dashboards, exportable analytics
+
+---
+
+## Architecture
+
+```
+┌──────────────────────────────────────────────────────┐
+│                   Monorepo (npm workspaces)           │
+│                                                        │
+│  ┌──────────────────┐    ┌──────────────────┐         │
+│  │   apps/client     │    │   apps/server     │         │
+│  │   React 18        │    │   Express 4       │         │
+│  │   Vite 6          │    │   Prisma ORM      │         │
+│  │   Tailwind 4      │◄──►│   PostgreSQL 16   │         │
+│  │   shadcn/ui       │    │   Swagger/OpenAPI │         │
+│  │   Redux Toolkit   │    │   JSDoc           │         │
+│  └──────────────────┘    └──────────────────┘         │
+│            │                       │                    │
+│            └───────┬───────────────┘                    │
+│                    │                                     │
+│            ┌───────┴────────┐                            │
+│            │   apps/e2e     │                            │
+│            │   Playwright   │                            │
+│            └────────────────┘                            │
+└──────────────────────────────────────────────────────┘
+```
+
+### Design principles
+
+- **Monorepo** — Shared tooling, unified CI/CD, atomic cross-stack changes
+- **Layered backend** — Controller → Service → DAO with HOF error handling
+- **API versioning** — All endpoints under `/api/v1/`
+- **Deterministic workflow** — OpenSpec SDD with multi-agent orchestration
+
+---
+
+## Tech Stack
+
+| Layer | Technology | Purpose |
+|-------|-----------|---------|
+| **Frontend** | React 18, Vite 6, Tailwind 4, shadcn/ui | UI framework, bundler, component library |
+| **State** | Redux Toolkit, RTK Query, Redux Persist | Global state, API caching, persistence |
+| **Forms** | React Hook Form + Zod | Form validation |
+| **i18n** | i18next + react-i18next | Internationalization (EN/ES) |
+| **Backend** | Express 4, Node 18 | REST API |
+| **Database** | PostgreSQL 16, Prisma ORM | Data persistence |
+| **Auth** | JWT, bcrypt, AES-GCM | Authentication, encryption |
+| **API Docs** | Swagger/OpenAPI + JSDoc | API documentation |
+| **Testing** | Vitest, Testing Library, Playwright, MSW | Unit, integration, E2E |
+| **Security** | Semgrep, Trivy, Gitleaks, Helmet | SAST, dependency scan, secrets |
+
+---
+
+## Prerequisites
+
+- **Node.js** ≥ 18.x
+- **npm** ≥ 9.x
+- **PostgreSQL** ≥ 16
+- **Git**
+
+---
+
+## Quick Start
 
 ```bash
-docker pull semgrep/semgrep:latest
-```
-
-This image is used internally by the project scripts to execute the security scan.
-
----
-
-## 2. Run the Semgrep Scan
-
-The project provides two scanning modes depending on the use case.
-
-### Scan only staged files (recommended before committing)
-
-This scan analyzes **only the files staged in Git**, making it faster and suitable for local development.
-
-```bash
-npm run sast:semgrep or pre-commit githook configuration
-```
-
-Script executed:
-
-```
-scripts/security/semgrep-staged.ps1
-```
-
----
-
-### Scan the entire project
-
-This scan analyzes **the complete repository**, which is useful for:
-
-* manual security checks
-* validating a branch before opening a pull request
-* full security audits
-
-```bash
-npm run sast:semgrep:full
-```
-
-Script executed:
-
-```
-scripts/security/semgrep.ps1
-```
-
----
-
-# Recommended Developer Workflow
-
-A typical secure development workflow is:
-
-1. Implement a feature
-2. Stage the changes
-
-```
-git add .
-```
-
-3. Run the staged security scan in precommit hook
-
-```
-npm run sast:semgrep
-```
-
-4. Fix any detected vulnerabilities
-5. Commit the changes
-
-This ensures vulnerabilities are detected **before code is pushed to the repository**.
-
----
-
-
-# Security Documentation
-
-Additional security documentation can be found in:
-
-```
-docs/security/SECURITY.md (Static Application Security Testing (SAST))
-docs/security/segremp-rules.md 
-
-```
-
-These documents describe:
-
-* security policies
-* rule configuration
-* vulnerability coverage
-
-## Dependency Vulnerability Scanning
-
-This project integrates **Trivy** for **dependency vulnerability scanning** as part of the project's **Shift-Left security strategy**.
-
-Trivy analyzes project dependencies to detect **known vulnerabilities (CVEs)** in third-party packages before they reach production.
-
-The scan evaluates both **direct and transitive dependencies** defined in the repository lockfile.
-
-Dependency vulnerabilities are detected using public vulnerability databases such as:
-
-* NVD (National Vulnerability Database)
-* GitHub Security Advisories
-* Vendor security advisories
-
-These vulnerabilities may affect packages used by the application and can introduce risks such as:
-
-* Remote Code Execution (RCE)
-* Prototype Pollution
-* Denial of Service (DoS)
-* Authentication bypass
-* Privilege escalation
-
----
-
-# Running Dependency Scan Locally
-
-Developers are encouraged to run the dependency scan periodically to detect vulnerable packages early in the development process.
-
-The project runs Trivy using a **Docker container**, ensuring a consistent scanning environment without requiring a local installation.
-
----
-
-## 1. Pull the Trivy Docker Image
-
-Download the official Trivy container:
-
-```bash
-docker pull aquasec/trivy:latest
-```
-
-This image is used internally by the project scripts to execute the dependency vulnerability scan.
-
----
-
-## 2. Run the Dependency Scan
-
-The project provides a script to analyze dependencies defined in the repository lockfile.
-
-```bash
-npm run security:trivy:deps
-```
-
-Script executed:
-
-```
-scripts/security/trivy-deps.ps1
-```
-
----
-
-## What the Scan Analyzes
-
-Because this project uses a **monorepo architecture with npm workspaces**, dependencies are installed at the repository root.
-
-For this reason, the dependency scan analyzes the root lockfile:
-
-```
-package-lock.json
-```
-
-This allows Trivy to evaluate **all dependencies used across the workspace**, including:
-
-```
-apps/client
-apps/server
-```
-
----
-
-# Example Scan Output
-
-When vulnerabilities are detected, Trivy reports them with their severity level.
-
-Example output:
-
-```
-package-lock.json
-
-Total: 1 (HIGH: 1)
-
-Library   Vulnerability      Severity
-lodash    CVE-2021-23337     HIGH
-```
-
-Severity levels reported by Trivy include:
-
-* LOW
-* MEDIUM
-* HIGH
-* CRITICAL
-
-Developers should prioritize fixing **HIGH and CRITICAL vulnerabilities**.
-
----
-
-# Recommended Developer Workflow
-
-A typical secure development workflow is:
-
-1. Install or update dependencies
-
-```
+# 1. Clone
+git clone https://github.com/Freelancer-soluctions/Project-one.git
+cd Project-one
+
+# 2. Install dependencies (all workspaces)
 npm install
+
+# 3. Configure environment
+cp apps/server/.env.example apps/server/.env
+cp apps/client/.env.example apps/client/.env
+# Edit .env files with your database credentials
+
+# 4. Database setup
+cd apps/server
+npx prisma generate
+npx prisma migrate dev
+npx prisma db seed
+cd ../..
+
+# 5. Start development servers
+npm run dev
 ```
 
-2. Run the dependency vulnerability scan
+### Verify
 
-```
-npm run security:trivy:deps
-```
-
-3. Review detected vulnerabilities
-
-4. Upgrade vulnerable dependencies
-
-5. Verify the vulnerability is resolved
-
-This ensures vulnerable dependencies are detected **before deployment or CI execution**.
+| Service | URL |
+|---------|-----|
+| Client | `http://localhost:5173` |
+| Server | `http://localhost:3000/api/v1/health` |
+| API Docs | `http://localhost:3000/api-docs` |
+| Storybook | `cd apps/client && npm run storybook` |
 
 ---
 
-# Security Documentation
-
-Additional security documentation can be found in:
+## Project Structure
 
 ```
-docs/security/SECURITY.md (Dependency Vulnerability Scanning)
-```
-
-These documents describe:
-
-* security policies
-* vulnerability management process
-* dependency risk mitigation strategy
-
-
-
-
-## Secret Detection (Gitleaks)
-
-### Overview
-
-This project integrates **Gitleaks** to detect sensitive information that may be accidentally committed to the repository.
-
-Secret detection is part of the project's **Shift-Left security strategy**, allowing security issues to be identified **directly on the developer's machine before code reaches the repository**.
-
-The scanner helps prevent exposure of sensitive information such as:
-
-- API keys
-- authentication tokens
-- database credentials
-- private cryptographic keys
-- passwords or secrets embedded in source code
-
-Detecting secrets early reduces the risk of credential leaks and unauthorized access to infrastructure or external services.
-
----
-
-## Monorepo Scope
-
-The repository is structured as a **monorepo using npm workspaces**.
-
-Secret scanning runs from the **repository root**, ensuring all workspaces are covered automatically.
-
-Example structure:
-root
+project-one/
+├── apps/
+│   ├── client/                  # React frontend (Vite)
+│   │   ├── src/
+│   │   │   ├── modules/         # 25 feature modules
+│   │   │   ├── components/      # Reusable UI (shadcn/ui)
+│   │   │   ├── hooks/           # Custom React hooks
+│   │   │   ├── redux/           # Redux store + slices
+│   │   │   ├── services/        # API service layer
+│   │   │   ├── locale/          # i18n translations
+│   │   │   └── stories/         # Storybook stories
+│   │   └── tests/
+│   │
+│   ├── server/                  # Express backend
+│   │   ├── src/
+│   │   │   ├── modules/         # 24 feature modules
+│   │   │   ├── middleware/      # Auth, validation, security
+│   │   │   ├── common/          # Shared utilities (HOF, errors)
+│   │   │   ├── config/          # App configuration
+│   │   │   ├── logger/          # Winston structured logging
+│   │   │   └── docs/            # Swagger specs
+│   │   ├── prisma/              # Schema, migrations, seeds
+│   │   └── tests/
+│   │
+│   └── e2e/                     # Playwright E2E tests
 │
-├── package.json
-├── .gitleaks.toml
-│
-├── apps
-│ ├── client
-│ └── server
-
-
-Because scanning runs from the root, **all workspaces are included automatically** without additional configuration.
-
----
-
-## Installation
-
-Gitleaks must be installed locally before running secret scans.
-
-In this project the tool is installed using **Chocolatey**.
-
-Install Gitleaks with: choco install gitleaks
-
-
-After installation, verify the installation: gitleaks version
-
----
-
-## Available Security Commands
-
-The project provides npm scripts to run secret detection.
-
-### Scan staged files (used by Git hooks)
-npm run security:secrets
-
-Script definition: "security:secrets": "gitleaks protect --staged --verbose --redact --config .gitleaks.toml"
-
-
-This command:
-
-- scans **only staged files**
-- prevents secrets from being committed
-- redacts detected secrets in the console output
-- uses the project configuration defined in `.gitleaks.toml`
-
-This mode is optimized for **fast local execution during commits**.
-
----
-
-### Full repository scan
-npm run security:secrets:full
-
-Script definition: "security:secrets:full": "gitleaks detect --source . --verbose --config .gitleaks.toml"
-
-
-This command scans the **entire repository** and is useful when:
-
-- performing a full security review
-- preparing a release
-- verifying the repository before pushing changes
-
----
-
-## Configuration
-
-Secret detection rules are defined in: .gitleaks.toml
-
-
-The configuration file contains:
-
-- default rules provided by Gitleaks
-- project-specific secret detection patterns
-- directory exclusions (dependencies, build artifacts)
-- testing directory exclusions
-
-Example exclusions typically include:
-
-- `node_modules`
-- build artifacts (`dist`, `build`)
-- test fixtures and mocks
-
----
-
-## Pre-Commit Protection
-
-Secret detection is integrated into the development workflow using a **Git pre-commit hook (Husky)**.
-
-Before a commit is created, the repository automatically runs the secret scan.
-
-
-This mechanism ensures that **sensitive information never reaches the repository history**.
-
----
-
-## Handling Detected Secrets
-
-If Gitleaks detects a potential secret:
-
-1. Identify the exposed value.
-2. Remove the secret from the source code.
-3. Replace the value with an environment variable if needed.
-4. Re-stage the changes.
-5. Commit again.
-
-Example of recommended approach:
-
-Instead of committing a secret:
-API_KEY="my-secret-key"
-
-Use environment variables: API_KEY=process.env.API_KEY
-
-
----
-
-## Ignoring False Positives
- 
-If a detection is determined to be a false positive, it can be suppressed using: .gitleaksignore
-
-
-This file allows the repository to ignore specific findings while keeping the scanner active for real secrets.
-
----
-
-## Security Strategy
-
-Secret detection is part of the project's **multi-layer security strategy**.
-Developer Machine
-│
-├─ Static Code Analysis
-├─ Secret Detection (Gitleaks)
-└─ Dependency Vulnerability Scanning
-
-
-Running security checks **locally before code is committed** helps catch security issues earlier in the development lifecycle.
-
-The security:secrets command runs gitleaks protect --staged, which scans only the files currently staged for commit in Git (i.e., the files added with git add). This command is typically executed as part of a pre-commit hook to prevent secrets such as API keys, tokens, passwords, or private keys from being committed to the repository. The --verbose flag provides detailed output about the scan process, while --redact ensures that detected secrets are masked in the console output to avoid exposing them in logs.
-
-The security:secrets:full command runs gitleaks detect --source ., which performs a full repository scan, including the entire Git history and all files in the project. This allows detection of secrets that may have been committed in the past, even if the files were later modified or removed. This type of scan is typically executed in CI pipelines or security audits to identify historical credential leaks and ensure the repository remains free of exposed secrets over time.
-
-
-# 🧠 OpenSpec + Multi-Agent Orchestration
-
-Este proyecto implementa un sistema de desarrollo asistido por IA basado en:
-
-* **OpenSpec (SDD)** → Define el flujo, artefactos y ciclo de vida
-* **Orchestrator Agent** → Controla el flujo de ejecución
-* **Subagents (multi-LLM)** → Ejecutan tareas especializadas
-
----
-
-# 🧩 Arquitectura
-
-El sistema sigue una separación estricta de responsabilidades:
-
-```plaintext
-OpenSpec        → Define WHAT (specs, tasks, workflow)
-Orchestrator    → Controla WHEN + WHO
-Subagents       → Ejecutan HOW
+├── docs/                        # Technical documentation
+│   ├── modules/                 # Per-module guides
+│   └── security/               # Security policies
+├── scripts/                     # Security automation scripts
+├── .github/workflows/           # CI/CD pipelines
+├── openspec/                    # OpenSpec SDD artifacts
+└── .agents/                     # AI agent orchestration
 ```
 
 ---
 
-## 🤖 Agentes
+## Features
 
-### 🧠 Orchestrator (Primary Agent)
+### Inventory Management
+- Multi-warehouse stock control with lot and expiry tracking
+- Stock valuation (FIFO, LIFO, Weighted Average)
+- Auto stock updates on sales/purchases
+- Low-stock alerts and reorder automation
 
-Responsabilidades:
+### Sales & Purchases
+- Customer and supplier order management
+- Invoice and expense tracking
+- Automatic inventory synchronization
 
-* Ejecutar comandos `/opsx:*`
-* Controlar el flujo de OpenSpec
-* Delegar tareas a subagentes
-* NO implementar código directamente
+### Human Resources
+- Employee management with role-based access
+- Payroll processing and attendance tracking
+- Performance evaluations
+- Vacation request and approval workflows
+
+### Access Control
+- **RBAC + ABAC** hybrid authorization
+- 45+ granular permissions across 20 modules
+- Role-based dashboards and module visibility
+- Audit logging for sensitive operations
+
+### Internationalization
+- English and Spanish support
+- Locale-based date/number formatting
 
 ---
 
-### 🧩 Subagentes
+## Security
 
-| Agente       | Responsabilidad                     |
-| ------------ | ----------------------------------- |
-| `researcher` | Contexto externo, documentación     |
-| `planner`    | Arquitectura, diseño, validación    |
-| `developer`  | Implementación (ejecutor principal) |
-| `reviewer`   | Validación, QA                      |
+Defense-in-depth strategy across the development lifecycle.
+
+| Layer | Tool / Method |
+|-------|--------------|
+| HTTP headers | Helmet |
+| Encryption | JWT + AES-GCM (field-level) |
+| Rate limiting | express-rate-limit (critical endpoints) |
+| Input validation | Joi (server) + Zod (client) |
+| Authorization | RBAC + ABAC with 45+ permissions |
+| Password hashing | bcrypt |
+| **SAST** | Semgrep (Docker) |
+| **Dependency scan** | Trivy (Docker) |
+| **Secret detection** | Gitleaks (pre-commit hook) |
+
+All security tools run as **pre-commit hooks** (Husky) and in CI/CD. See [Security Documentation](docs/security/SECURITY.md).
 
 ---
 
-# 🔄 Flujo de Trabajo (OpenSpec + Orchestrator)
+## CI/CD
 
-El sistema sigue estrictamente el workflow de OpenSpec:
+Branch-based pipeline strategy with GitHub Actions.
+
+```mermaid
+flowchart LR
+    A[Feature Branch] --> B[PR Pipeline]
+    B --> C{Lint & Format}
+    B --> D{Tests}
+    B --> E[Security Scan]
+    B --> F[Build]
+    C & D & E & F --> G[main]
+    G --> H[Full Pipeline]
+    H --> I[Deploy]
+```
+
+| Workflow | Trigger | Scope |
+|----------|---------|-------|
+| `ci.yml` | PR to `main` | Lint, format, test, build |
+| `ci-enterprise.yml` | Push to `main` | Full CI + security |
+| `quality.yml` | Reusable (called) | Code quality |
+| `security.yml` | PR to `main` | Semgrep, Trivy, Gitleaks |
+| `pr-validation.yml` | PR to `main` | PR metadata validation |
 
 ---
 
-## 1. Exploration Phase
+## Development Workflow
+
+### Commits
+
+**Conventional Commits** enforced by commitlint + Husky.
+
+```
+<type>(<scope>): <description>
+
+feat(products): add barcode generation
+fix(auth): handle expired token refresh
+```
+
+Types: `feat`, `fix`, `docs`, `refactor`, `test`, `chore`, `security`
+
+### Branch strategy
+
+- **Trunk-based** with feature flags
+- Short-lived feature branches → PR → `main`
+- Pre-commit hooks enforce security + quality gates
+
+### Local cycle
 
 ```bash
-/opsx:explore
-```
-
-* Analiza el problema y el codebase
-* No genera artefactos
-
-**Delegación:**
-
-* `researcher`
-* `planner`
-
----
-
-## 2. Proposal Phase
-
-```bash
-/opsx:propose <feature-name>
-```
-
-Genera:
-
-```
-openspec/changes/<feature>/
- ├── proposal.md
- ├── design.md
- ├── tasks.md
- └── specs/
-```
-
-**Responsabilidades:**
-
-* El orchestrator asegura la creación de artefactos
-* `planner` valida la propuesta
-
----
-
-## 3. Planning Phase
-
-* Se interpreta `tasks.md`
-* Se descompone en pasos ejecutables
-* Se preparan las tareas para ejecución
-
----
-
-## 4. Execution Phase
-
-```bash
-/opsx:apply
-```
-
-### 🔥 Principio clave
-
-`/opsx:apply` **marca el inicio de la ejecución**, pero no define quién implementa.
-
----
-
-### Flujo interno
-
-```plaintext
-orchestrator
-  → ejecuta /opsx:apply
-  → lee tasks.md
-  → delega → developer
-
-developer
-  → ejecuta tasks secuencialmente
-  → sigue design.md y specs/
+git add .
+# Husky runs: Gitleaks + Semgrep + lint-staged
+git commit -m "feat(scope): description"
+git push origin feature/my-feature
 ```
 
 ---
 
-### Reglas
+## Documentation
 
-* El `developer` es el **ejecutor principal**
-* El orchestrator **NO implementa código**
-* Todas las tareas deben seguir `tasks.md`
-
----
-
-## 5. Verification Phase
-
-```bash
-/opsx:verify
-```
-
-**Delegación:**
-
-* `reviewer`
-
-Valida:
-
-* Correctitud del código
-* Alineación con `design.md`
-* Compleción de tareas
+| Resource | Location |
+|----------|----------|
+| Module guides | [docs/modules/](docs/modules/INDEX.md) |
+| API docs (dev) | `/api-docs` (Swagger) |
+| Storybook | `cd apps/client && npm run storybook` |
+| Security | [docs/security/](docs/security/SECURITY.md) |
+| Testing architecture | [docs/testing-architecture.md](docs/testing-architecture.md) |
+| Code style | [docs/code-style.md](docs/code-style.md) |
+| OpenSpec SDD | [openspec/](openspec/) |
 
 ---
 
-## 6. Archive Phase
+## Contributing
 
-```bash
-/opsx:archive
-```
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feat/amazing-feature`)
+3. Make changes
+4. Verify: `npm test && npm run lint && npm run format:check`
+5. Commit using [Conventional Commits](#commits)
+6. Open a Pull Request
 
-* Se ejecuta cuando la verificación es exitosa
-* Marca el cierre del cambio
+### PR requirements
 
----
-
-# 🔁 Flujo Completo
-
-```plaintext
-START
-  ↓
-/opsx:explore
-  ↓
-/opsx:propose
-  ↓
-(read tasks.md)
-  ↓
-/opsx:apply
-  ↓
-developer executes tasks
-  ↓
-/opsx:verify
-  ↓
-/opsx:archive
-  ↓
-END
-```
+- All CI checks pass
+- Tests added or updated
+- Documentation updated
+- Security scan clean
 
 ---
 
-# ⚙️ Reglas de Orquestación
+## License
 
-El orchestrator DEBE:
-
-* Ejecutar todos los comandos `/opsx:*`
-* Seguir el flujo de OpenSpec estrictamente
-* Delegar toda implementación al `developer`
-* Validar el estado del sistema antes de avanzar
-
----
-
-# 🚫 Anti-Patterns
-
-* Implementar sin `/opsx:propose`
-* Ignorar `tasks.md`
-* Saltar `/opsx:apply`
-* Mezclar planificación con ejecución
-* Permitir que el orchestrator escriba código
-
----
-
-# 🧠 Principio Final
-
-```plaintext
-OpenSpec define el WHAT
-Subagentes ejecutan el HOW
-El Orchestrator controla el WHEN y WHO
-```
-
----
-
-# 🚀 Beneficios de esta arquitectura
-
-* Separación clara de responsabilidades
-* Uso eficiente de múltiples LLMs
-* Flujo determinista (SDD)
-* Escalabilidad en sistemas multiagente
-* Reducción de errores por improvisación
-
----
-
-# 📌 Nota
-
-OpenSpec es agnóstico a agentes y modelos.
-
-Esto permite:
-
-* Usar múltiples LLMs
-* Diseñar arquitecturas personalizadas
-* Mantener control total del flujo mediante el orchestrator
-
-
-
-
-
-
-
-
-
-
+Distributed under the ISC License.

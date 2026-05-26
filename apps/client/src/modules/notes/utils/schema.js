@@ -18,6 +18,7 @@ export const NotesCreateDialogSchema = z
       id: z.number(),
       name: z.string(),
     }).optional(),
+    hashtagIds: z.array(z.number()).optional(),
   })
   .passthrough();
 
@@ -33,5 +34,6 @@ export const notesEditDialogSchema = z
       id: z.number(),
       name: z.string(),
     }).optional(),
+    hashtagIds: z.array(z.number()).optional(),
   })
   .passthrough();

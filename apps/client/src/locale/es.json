@@ -811,6 +811,18 @@
   "user_permit_id": "ID de permiso de usuario",
   "user_permit_id_placeholder": "Ingrese el ID de permiso de usuario",
   "user_permits": "Permisos de usuario",
-  "edit_users": "Editar usuarios"
+  "edit_users": "Editar usuarios",
+    "hashtags_title": "Hashtags",
+    "hashtags_search_placeholder": "Buscar hashtags...",
+    "hashtags_create_button": "Crear nuevo hashtag",
+    "hashtags_no_hashtags_found": "No se encontraron hashtags",
+    "hashtags_edit_hashtag": "Editar {{name}}",
+    "hashtags_create_hashtag": "Crear hashtag",
+    "hashtags_back": "Volver",
+    "hashtags_create": "Crear",
+    "hashtags_select_hashtags": "Seleccionar hashtags",
+    "hashtags_selected": "{{count}} hashtags seleccionados",
+  "hashtags_save": "Guardar"
   }
+  
 }

@@ -23,7 +23,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { UserSchema } from '../utils';
 import { useNavigate } from 'react-router';
@@ -39,7 +39,6 @@ import {
 import { LuUser } from 'react-icons/lu';
 import { LucideUserCheck } from 'lucide-react';
 import PropTypes from 'prop-types';
-import { useWatch } from 'react-hook-form';
 
 export const UsersBasicInfo = ({
   onSubmit,

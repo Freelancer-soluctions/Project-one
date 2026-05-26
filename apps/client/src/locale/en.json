@@ -813,6 +813,18 @@
     "user_permit_id": "User Permit ID",
     "user_permit_id_placeholder": "Enter user permit ID",
     "user_permits": "User permits",
-    "edit_users": "Edit users"
+    "edit_users": "Edit users",
+    "hashtags_title": "Hashtags",
+    "hashtags_search_placeholder": "Search hashtags...",
+    "hashtags_create_button": "Create a new hashtag",
+    "hashtags_no_hashtags_found": "No hashtags found",
+    "hashtags_edit_hashtag": "Edit {{name}}",
+    "hashtags_create_hashtag": "Create hashtag",
+    "hashtags_back": "Back",
+    "hashtags_create": "Create",
+    "hashtags_select_hashtags": "Select hashtags",
+    "hashtags_selected": "{{count}} hashtags selected",
+  "hashtags_save": "Save"
   }
+    
 }

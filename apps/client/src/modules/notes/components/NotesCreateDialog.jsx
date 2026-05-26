@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -24,18 +25,28 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
 import { useTranslation } from 'react-i18next';
 import { CgNotes } from 'react-icons/cg';
+import { LuTags } from 'react-icons/lu';
 import PropTypes from 'prop-types';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { NotesCreateDialogSchema } from '../utils/index';
 import { useGetActiveUsers } from '../hooks/useGetActiveUsers';
+import { useGetHashtagItems } from '../hooks';
+import { HashtagsSelector } from './NotesHashtagSelector';
 import {NOTES_FIELD_LIMITS} from '../constant/enums/enums'
 
 export function NotesCreateDialog({ onCreateNote, dataStatus, open, setOpen }) {
   const { t } = useTranslation();
   const { dataUsers, isLoadingUsers, isFetchingUsers } = useGetActiveUsers();
+  const { hashtagItems } = useGetHashtagItems();
+  const [selectedHashtagIds, setSelectedHashtagIds] = useState([]);
 
   // Configura el formulario
   const formNotesDialog = useForm({
@@ -48,9 +59,10 @@ export function NotesCreateDialog({ onCreateNote, dataStatus, open, setOpen }) {
 
   const onSubmitDialog = (values) => {
     if (values.title.trim() && values.content.trim() && values.status) {
-      onCreateNote(values);
+      onCreateNote({ ...values, hashtagIds: selectedHashtagIds });
       setOpen(false);
       formNotesDialog.reset();
+      setSelectedHashtagIds([]);
     }
   };
 
@@ -59,18 +71,13 @@ export function NotesCreateDialog({ onCreateNote, dataStatus, open, setOpen }) {
       open={open}
       onOpenChange={(isOpen) => {
         if (!isOpen) {
-          formNotesDialog.reset(); // Resetea el formulario cuando se cierra
+          formNotesDialog.reset();
+          setSelectedHashtagIds([]);
           setOpen(false);
         }
         setOpen(isOpen);
       }}
     >
-      {/* <DialogTrigger asChild>
-        <Button className='gap-2' variant='success'>
-          {t('create_note')}
-          <LuPlus className='w-5 h-5 ml-auto opacity-50' />
-        </Button>
-      </DialogTrigger> */}
       <DialogContent className="sm:max-w-[700px]">
         <DialogHeader>
           <DialogTitle>
@@ -107,7 +114,6 @@ export function NotesCreateDialog({ onCreateNote, dataStatus, open, setOpen }) {
                           }
                         }}
                         value={field.value?.code}
-                      // defaultValue={field.value} // Se asegura de que tome el valor inicial del form
                       >
                         <SelectTrigger>
                           <SelectValue placeholder={t('select_status')} />
@@ -126,7 +132,30 @@ export function NotesCreateDialog({ onCreateNote, dataStatus, open, setOpen }) {
                 }}
               />
             </div>
-       
+
+            {/* Hashtags selector */}
+            <div className="space-y-2">
+              <FormLabel>{t('hashtags_title')}</FormLabel>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" type="button" className="w-full justify-start gap-2">
+                    <LuTags className="h-4 w-4" />
+                    {selectedHashtagIds.length > 0
+                      ? t('hashtags_selected', { count: selectedHashtagIds.length })
+                      : t('hashtags_select_hashtags')}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <HashtagsSelector
+                    hashtags={hashtagItems}
+                    selectedIds={selectedHashtagIds.map(String)}
+                    onSelectionChange={(ids) => setSelectedHashtagIds(ids.map(Number))}
+                    onClose={() => {}}
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
+
             <div className="space-y-2">
               <FormField
                 control={formNotesDialog.control}
@@ -138,7 +167,7 @@ export function NotesCreateDialog({ onCreateNote, dataStatus, open, setOpen }) {
                       <FormControl>
                         <Input
                           id="title"
-                          {...field} // ✅ Enlazar con react-hook-form
+                          {...field}
                           placeholder={t('title_placeholder')}
                           required
                           maxLength={50}
