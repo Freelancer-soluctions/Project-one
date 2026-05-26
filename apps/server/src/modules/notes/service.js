@@ -1,35 +1,34 @@
 import { prisma } from '../../config/db.js';
 import * as notesDao from './dao.js';
-import { extractMentionIds } from './utils/mentionParser.js'
-
+import { extractMentionIds } from './utils/mentionParser.js';
 
 /**
- * Get all notes from the database with optional filters.
+ * Get all notes with optional filters.
  *
- * @param {Object} params - The parameters for filtering the news.
- * @param {string} params.searchTerm - The searchTerm filter.
- * @param {string} params.statusCode - The statusCode filter.
-
- * @returns {Promise<Array>} A list of news items matching the filters.
+ * @param {string} [searchTerm] - Filter notes by title or content (partial match).
+ * @param {string} [statusCode] - Filter by column status code.
+ * @param {number[]} [hashtagIds] - Filter by hashtag IDs (notes matching ANY).
+ * @returns {Promise<Array>} Filtered notes array.
  */
-export const getAllNotes = async (searchTerm, statusCode) => {
-  const data = await notesDao.getAllNotes(searchTerm, statusCode);
+export const getAllNotes = async (searchTerm, statusCode, hashtagIds) => {
+  const data = await notesDao.getAllNotes(searchTerm, statusCode, hashtagIds);
   return data;
 };
 
 /**
- * Create a new notes item in the database.
+ * Create a new note with mentions and hashtag associations.
  *
- * @param {Object} data - The data for the new notes item.
- * @param {string} data.title - The description of the notes item.
- * @param {string} data.createdOn - The date of the notes item.
- * @param {string} data.content - The description of the notes item.
- * @param {string} data.color - The description of the notes item.
- * @param {number} data.columnId - The ID of the status for the notes item.
- * @returns {Promise<Object>} The created notes item.
+ * @param {Object} data - Note creation payload.
+ * @param {string} data.title - Note title.
+ * @param {string} [data.content] - Note content.
+ * @param {string} [data.color] - Note color.
+ * @param {number} data.columnId - Column/status ID.
+ * @param {number[]} [data.hashtagIds] - Hashtag IDs to associate.
+ * @param {number} userId - Authenticated user ID.
+ * @returns {Promise<Object>} Created note.
  */
 export const createNote = async (data, userId) => {
-  const { columnId, ...dataWithOutForeignKeys } = data;
+  const { columnId, hashtagIds, ...dataWithOutForeignKeys } = data;
   dataWithOutForeignKeys.createdOn = new Date();
 
   const createdNote = await notesDao.createNote(
@@ -38,12 +37,9 @@ export const createNote = async (data, userId) => {
     Number(columnId)
   );
 
-
   if (dataWithOutForeignKeys.content) {
-    const mentionsId = await extractMentionIds(dataWithOutForeignKeys.content)
-    console.log("mention ids", mentionsId)
+    const mentionsId = await extractMentionIds(dataWithOutForeignKeys.content);
     if (mentionsId.length > 0) {
-      // Process each mention
       const mentionsData = [];
       for (const mention of mentionsId) {
         mentionsData.push({
@@ -53,37 +49,38 @@ export const createNote = async (data, userId) => {
           createdOn: new Date()
         });
       }
-
       if (mentionsData.length > 0) {
-        await notesDao.saveNoteMentions(mentionsData)
-        // Update hasMentions field if mentions were found
+        await notesDao.saveNoteMentions(mentionsData);
         await notesDao.updateNoteById(createdNote.id, { hasMentions: true });
       }
     }
-
   }
+
+  if (hashtagIds && hashtagIds.length > 0) {
+    await notesDao.syncNoteHashtags(createdNote.id, hashtagIds);
+  }
+
   return createdNote;
 };
 
 /**
- * Get all available notes columns from the database.
+ * Get all note columns (statuses).
  *
- * @returns {Promise<Array>} A list of all notes columns.
+ * @returns {Promise<Array>} Columns array.
  */
-
 export const getAllNotesColumns = async () => {
   const data = await notesDao.getAllNotesColumns();
   return data;
 };
 
 /**
- * Update an existing column item in the database by its ID.
+ * Update a note's column assignment (drag-and-drop).
  *
- * @param {Object} data - The updated data for the notes item.
- * @param {number} data.id - The ID of the notes item to update.
- * @param {number} data.columnId - The ID of the column note item to update.
- * @param {string} data.color - The column color of the note item.
- * @returns {Promise<Object>} The updated notes item.
+ * @param {Object} data - Update payload.
+ * @param {number} data.id - Note ID.
+ * @param {number} data.columnId - New column ID.
+ * @param {string} [data.color] - New color.
+ * @returns {Promise<Object>} Updated note.
  */
 export const updateNoteColumId = async (data) => {
   data.updatedOn = new Date();
@@ -92,25 +89,26 @@ export const updateNoteColumId = async (data) => {
 };
 
 /**
- * Update an existing column item in the database by its ID.
+ * Update a note by ID (title, content, mentions, hashtags).
  *
- * @param {Object} data - The updated data for the notes item.
- * @param {number} id - The ID of the notes item to update.
- * @param {number} data.title - The ID of the column note item to update.
- * @param {string} data.content - The column color of the note item.
- * @returns {Promise<Object>} The updated notes item.
+ * @param {string} id - Note ID.
+ * @param {Object} data - Update payload.
+ * @param {string} [data.title] - New title.
+ * @param {string} [data.content] - New content (triggers mention re-sync).
+ * @param {string} [data.color] - New color.
+ * @param {number[]} [data.hashtagIds] - Hashtag IDs to re-associate.
+ * @param {number} userId - Authenticated user ID.
+ * @returns {Promise<Object>} Success message.
  */
 export const updateNoteById = async (id, data, userId) => {
-  data.updatedOn = new Date();
-  await notesDao.updateNoteById(Number(id), data);
+  const { hashtagIds, ...restData } = data;
+  restData.updatedOn = new Date();
+  await notesDao.updateNoteById(Number(id), restData);
 
-  // Process mentions if content was updated
-  if (data.content) {
-    // Delete existing mentions for the note (for updates)
-    await notesDao.deleteMentionsByNoteId(Number(id))
-    const mentionsId = await extractMentionIds(data.content)
+  if (restData.content) {
+    await notesDao.deleteMentionsByNoteId(Number(id));
+    const mentionsId = await extractMentionIds(restData.content);
     if (mentionsId.length > 0) {
-      // Process each mention
       const mentionsData = [];
       for (const mention of mentionsId) {
         mentionsData.push({
@@ -120,29 +118,25 @@ export const updateNoteById = async (id, data, userId) => {
           createdOn: new Date()
         });
       }
-
       if (mentionsData.length > 0) {
-        await notesDao.saveNoteMentions(mentionsData)
-        // Update hasMentions field
-        await notesDao.updateNoteById(Number(id), { hasMentions:true});
-
+        await notesDao.saveNoteMentions(mentionsData);
+        await notesDao.updateNoteById(Number(id), { hasMentions: true });
       }
     }
-
   }
 
-
-
-
+  if (hashtagIds) {
+    await notesDao.syncNoteHashtags(Number(id), hashtagIds);
+  }
 
   return { message: 'Item updated successfully' };
 };
 
 /**
- * Delete a note item from the database by its ID.
+ * Delete a note by ID.
  *
- * @param {number} id - The ID of the note item to delete.
- * @returns {Promise<Object>} The result of the deletion.
+ * @param {string} id - Note ID to delete.
+ * @returns {Promise<Object>} Deletion result.
  */
 export const deleteById = async (id) => {
   const rowId = Number(id);
@@ -150,11 +144,10 @@ export const deleteById = async (id) => {
 };
 
 /**
- * Get all number of  notes from the database.
+ * Get total count of all notes.
  *
- * @returns {Promise<Array>} A list of all notes columns number.
+ * @returns {Promise<number>} Notes count.
  */
-
 export const getAllNotesCount = async () => {
   const data = await notesDao.getAllNotesCount();
   return data;
@@ -163,9 +156,54 @@ export const getAllNotesCount = async () => {
 /**
  * Get all mentions for a specific note.
  *
- * @param {number} noteId - The ID of the note to get mentions for.
- * @returns {Promise<Array>} A list of mentions for the note.
+ * @param {number} noteId - Note ID.
+ * @returns {Promise<Array>} Mentions array.
  */
 export const getMentionsByNoteId = async (noteId) => {
   return await notesDao.getMentionsByNoteId(Number(noteId));
+};
+
+// ============================================================
+// HASHTAG SERVICE FUNCTIONS
+// ============================================================
+
+/**
+ * Get all hashtags ordered by name ascending.
+ *
+ * @returns {Promise<Array>} Hashtags array with note count.
+ */
+export const getAllHashtags = async () => {
+  return notesDao.getAllHashtags();
+};
+
+/**
+ * Create a new hashtag.
+ *
+ * @param {string} name - Hashtag name (must be unique).
+ * @param {number} userId - ID of the creating user.
+ * @returns {Promise<Object>} Created hashtag.
+ */
+export const createHashtag = async (name, userId) => {
+  return notesDao.createHashtag(name, userId);
+};
+
+/**
+ * Update a hashtag name by ID.
+ *
+ * @param {string} id - Hashtag ID.
+ * @param {string} name - New hashtag name.
+ * @returns {Promise<Object>} Updated hashtag.
+ */
+export const updateHashtag = async (id, name) => {
+  return notesDao.updateHashtag(Number(id), name);
+};
+
+/**
+ * Delete a hashtag by ID. Cascades note_hashtags relations via Prisma.
+ *
+ * @param {string} id - Hashtag ID to delete.
+ * @returns {Promise<Object>} Deletion result.
+ */
+export const deleteHashtag = async (id) => {
+  return notesDao.deleteHashtag(Number(id));
 };

@@ -4,6 +4,8 @@ import {
   NoteColumnUpdate,
   NotesFilters,
   NoteUpdate,
+  CreateHashtagSchema,
+  UpdateHashtagSchema,
 } from './schemas/notes.joi.js';
 import * as noteController from './controller.js';
 import {
@@ -49,5 +51,11 @@ router.get('/notesCount', noteController.getAllNotesCount);
 
 // Get mentions for a specific note
 router.get('/:id/mentions', validatePathParam, noteController.getMentionsByNoteId);
+
+// Hashtag routes (within notes module)
+router.get('/hashtags', noteController.getAllHashtags);
+router.post('/hashtags', validateSchema(CreateHashtagSchema), noteController.createHashtag);
+router.put('/hashtags/:id', validatePathParam, validateSchema(UpdateHashtagSchema), noteController.updateHashtag);
+router.delete('/hashtags/:id', validatePathParam, noteController.deleteHashtag);
 
 export default router;

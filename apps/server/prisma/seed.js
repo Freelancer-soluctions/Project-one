@@ -275,6 +275,21 @@ const news = [
   },
 ];
 
+  const hashtags = [
+    { name: 'General', createdBy: 1, createdOn: new Date() },
+    { name: 'Ideas', createdBy: 1, createdOn: new Date() },
+    { name: 'Pendiente', createdBy: 1, createdOn: new Date() },
+    { name: 'Importante', createdBy: 1, createdOn: new Date() },
+    { name: 'Recordatorio', createdBy: 1, createdOn: new Date() },
+    { name: 'Cliente', createdBy: 1, createdOn: new Date() },
+    { name: 'Reunión', createdBy: 1, createdOn: new Date() },
+    { name: 'Proyecto', createdBy: 1, createdOn: new Date() },
+    { name: 'Tarea', createdBy: 1, createdOn: new Date() },
+    { name: 'Seguimiento', createdBy: 1, createdOn: new Date() },
+    { name: 'Urgente', createdBy: 1, createdOn: new Date() },
+    { name: 'Feedback', createdBy: 1, createdOn: new Date() },
+  ];
+
 const createVarious = async (tableName, createObjects) => {
   const createdObjects = await prisma[tableName].createMany({
     data: createObjects,
@@ -299,6 +314,9 @@ async function main() {
   await createVarious('eventTypes', eventTypes);
   await createVarious('permissions', permissions);
   await createVarious('noteColumns', noteColumns);
+
+
+  await createVarious('hashtags', hashtags);
   await createVarious('newsStatus', newStatus);
   await createVarious('productStatus', productStatus);
 
