@@ -1,0 +1,5 @@
+name: document-system-modules
+status: in-progress
+created: 2026-04-19
+updated: 2026-06-11
+description: Document all system modules using arc42/C4/IEEE 1016 template, consolidated server+client

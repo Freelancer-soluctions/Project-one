@@ -1,0 +1,275 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "autoupdate": true,
+  "plugin": [
+    "@warp-dot-dev/opencode-warp",
+    "./.opencode/plugins/output-contracts.ts",
+    "./.opencode/plugins/neurosymbolic-guardrails.ts"
+  ],
+  "provider": {
+    "ollama-local": {
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "Ollama Local",
+      "options": {
+        "baseURL": "http://127.0.0.1:11434"
+        //"timeout":
+        //"setCacheKy": (bool)
+      },
+      "models": {
+        "qwen2.5-coder:7b": {
+          "name": "Qwen 2.5 Coder 7B Local"
+        }
+      }
+    }
+  },
+  //subagents configuration
+  "default_agent": "orchestrator",
+  "instructions": [
+    "AGENTS.md",
+    "CONTEXT.md"
+  ],
+  // "env": {
+  //   "BASH_ENV": "$HOME/.bash_env"
+  // },
+  "shell": "bash",
+  "skills": {
+    "paths": [
+      ".opencode/skills",
+      ".agents/skills"
+    ]
+  },
+  "tool_output": {
+    "max_lines": 400,
+    "max_bytes": 65536
+  },
+  // Formatter disabled by design — formatting is handled by Husky + lint-staged + Prettier
+  // in pre-commit hooks. Enabling OpenCode formatter would duplicate this pipeline,
+  // formatting files that may never be committed (wasted CPU) and potentially causing
+  // conflicts with lint-staged (formatting staged files twice).
+  //"formatter": {
+  //  "prettier": {
+  //    "command": ["npx", "prettier", "--write", "$FILE"],
+  //    "extensions": [".js", ".ts", ".jsx", ".tsx", ".json", ".css", ".md", ".mdx", ".yaml", ".yml"]
+  //  }
+  //},
+  // LSP: Prisma validate .prisma schema files (apps/server/prisma/schema.prisma).
+  // Requires @prisma/language-server (installed in apps/server v31.11.0).
+  "lsp": {
+    "prisma": {
+      "command": [
+        "npx",
+        "@prisma/language-server",
+        "--stdio"
+      ],
+      "extensions": [
+        ".prisma"
+      ]
+    }
+  },
+  "permission": {
+    "read": "allow",
+    "write": "deny",
+    // TODO: restore when PR #27654 merges - parent edit:deny hides subagent tools (bug #26758)
+    // "edit": "deny",
+    "bash": "deny",
+    "composio_COMPOSIO_*": "deny",
+    "context7_*": "deny",
+    "glob": "allow",
+    "grep": "allow",
+    "webfetch": "deny",
+    "websearch": "deny",
+    "question": "deny",
+    "task": "deny",
+    "skill": "allow",
+    "lsp": "deny",
+    "todowrite": "allow",
+    "doom_loop": "ask",
+    "external_directory": "ask"
+  },
+  "agent": {
+    // OpenCode built-in agents — disabled, not used
+    "build": {
+      "disable": true
+    },
+    "plan": {
+      "disable": true
+    },
+    "general": {
+      "disable": true
+    },
+    "orchestrator": {
+      "mode": "primary",
+      "model": "opencode/nemotron-3-ultra-free",
+      "description": "Main orchestrator that delegates tasks to specialized agents",
+      "prompt": "{file:docs/opencode/prompts/orchestrator.md}",
+      "steps": 45,
+      "permission": {
+        "question": "allow",
+        "edit": "ask", // workaround: prevents bug #26758 from hiding subagent tools
+        "task": {
+          "*": "deny",
+          "spec-manager": "allow",
+          "planner": "allow",
+          "developer": "allow",
+          "reviewer": "allow",
+          "researcher": "allow",
+          "git-manager": "allow",
+          "project-manager": "allow"
+        }
+      }
+    },
+    "spec-manager": {
+      "mode": "subagent",
+      "hidden": false,
+      "model": "opencode/deepseek-v4-flash-free",
+      "description": "Executes OpenSpec CLI - explore, propose, verify, archive",
+      "prompt": "{file:docs/opencode/prompts/spec-manager.md}",
+      "steps": 30,
+      "temperature": 0,
+      "permission": {
+        "bash": "allow",
+        "edit": "deny"
+      }
+    },
+    "git-manager": {
+      "mode": "subagent",
+      "hidden": false,
+      "model": "opencode/big-pickle",
+      "description": "SCM and Conventional Commit specialist",
+      "prompt": "{file:docs/opencode/prompts/git-manager.md}",
+      "steps": 20,
+      "permission": {
+        "bash": "allow",
+        "todowrite": "deny",
+        "edit": "deny"
+      }
+    },
+    "planner": {
+      "mode": "subagent",
+      "hidden": false,
+      "model": "opencode/deepseek-v4-flash-free",
+      "description": "Planning specialist",
+      "prompt": "{file:docs/opencode/prompts/planner.md}",
+      "steps": 20,
+      "temperature": 0,
+      "permission": {
+        "write": "allow",
+        "question": "allow",
+        "context7_*": "ask",
+        "edit": "deny"
+      }
+    },
+    "developer": {
+      "mode": "subagent",
+      "hidden": false,
+      "model": "opencode/nemotron-3-ultra-free",
+      "description": "Implementation agent",
+      "prompt": "{file:docs/opencode/prompts/developer.md}",
+      "steps": 35,
+      "permission": {
+        "write": "allow",
+        "edit": "allow",
+        "bash": "allow",
+        "webfetch": "allow",
+        "websearch": "allow",
+        "question": "allow",
+        "lsp": "allow",
+        "context7_*": "ask"
+      }
+    },
+    "reviewer": {
+      "mode": "subagent",
+      "hidden": false,
+      "model": "opencode/deepseek-v4-flash-free",
+      "description": "Code reviewer",
+      "prompt": "{file:docs/opencode/prompts/reviewer.md}",
+      "steps": 15,
+      "temperature": 0,
+      "permission": {
+        "lsp": "allow",
+        "edit": "deny"
+      }
+    },
+    "researcher": {
+      "mode": "subagent",
+      "hidden": false,
+      "model": "opencode/deepseek-v4-flash-free",
+      "description": "Research agent",
+      "prompt": "{file:docs/opencode/prompts/researcher.md}",
+      "steps": 20,
+      "permission": {
+        "webfetch": "allow",
+        "websearch": "allow",
+        "question": "allow",
+        "context7_*": "ask",
+        "edit": "deny"
+      }
+    },
+    "project-manager": {
+      "mode": "subagent",
+      "hidden": false,
+      "model": "opencode/deepseek-v4-flash-free",
+      "description": "Handles Trello project-management workflows - card creation, updates, deletion, state transitions",
+      "prompt": "{file:docs/opencode/prompts/project-manager.md}",
+      "steps": 15,
+      "permission": {
+        "question": "allow",
+        "bash": "allow",
+        "composio_COMPOSIO_*": "allow",
+        "edit": "deny"
+      }
+    }
+  },
+  "mcp": {
+    "composio": {
+      "type": "remote",
+      "url": "https://connect.composio.dev/mcp",
+      // "headers": {
+      //   "x-consumer-api-key": "{env:COMPOSIO_API_KEY}"
+      // },
+       "oauth": {},
+      "enabled": true
+    },
+    "context7": {
+      "type": "remote",
+      "url": "https://mcp.context7.com/mcp",
+      "headers": {
+        "CONTEXT7_API_KEY": "{env:CONTEXT7_API_KEY}"
+      },
+      "enabled": true
+    }
+  
+      // "composio": {
+      //   "type": "local",
+      //   "command": [
+      //     "node",
+      //     ".opencode/proxy/index.js",
+      //     "--target=composio"
+      //   ],
+      //   "enabled": true
+      // },
+      // "context7": {
+      //   "type": "local",
+      //   "command": [
+      //     "node",
+      //     ".opencode/proxy/index.js",
+      //     "--target=context7"
+      //   ],
+      //   "enabled": true
+      // }
+  },
+  "compaction": {
+    "auto": true,
+    "prune": true,
+    "reserved": 10000
+  },
+  "watcher": {
+    "ignore": [
+      "node_modules/**",
+      ".git/**",
+      "dist/**",
+      "coverage/**",
+      "build/**"
+    ]
+  }
+}

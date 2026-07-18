@@ -1,0 +1,100 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Orchestrator Agent Output Contract Schema",
+  "description": "Defines required fields for orchestrator agent responses",
+  "type": "object",
+  "allOf": [
+    { "$ref": "base.schema.json" },
+    {
+      "type": "object",
+      "required": ["status", "delegatedAgent", "workflowStep", "result", "details"],
+      "properties": {
+        "status": {
+          "type": "string",
+          "description": "Overall status of the orchestration step",
+          "enum": ["completed", "in-progress", "blocked", "failed"]
+        },
+        "delegatedAgent": {
+          "type": "string",
+          "description": "The agent that was delegated to",
+          "enum": ["developer", "spec-manager", "git-manager", "reviewer", "planner", "researcher", "project-manager"]
+        },
+        "workflowStep": {
+          "type": "string",
+          "description": "Current workflow step being executed",
+          "enum": ["exploration", "specification", "review", "implementation", "verification", "archive", "project-management", "normal-mode"]
+        },
+        "result": {
+          "type": "string",
+          "description": "Result of the delegation",
+          "enum": ["success", "partial", "failed", "retry", "escalated"]
+        },
+        "details": {
+          "type": "string",
+          "description": "Human-readable description of the orchestration step result"
+        },
+        "changeName": {
+          "type": "string",
+          "description": "The change name being processed"
+        },
+        "taskId": {
+          "type": "string",
+          "description": "Current task ID being implemented"
+        },
+        "validationErrors": {
+          "type": "array",
+          "description": "Contract validation errors from subagent response",
+          "items": {
+            "type": "object",
+            "required": ["field", "message"],
+            "properties": {
+              "field": { "type": "string" },
+              "message": { "type": "string" },
+              "severity": { "type": "string", "enum": ["error", "warning"] }
+            }
+          }
+        },
+        "retryCount": {
+          "type": "integer",
+          "description": "Number of retries attempted for this delegation"
+        },
+        "nextSteps": {
+          "type": "array",
+          "description": "Recommended next steps",
+          "items": { "type": "string" }
+        }
+      }
+    }
+  ],
+  "responseTypes": {
+    "success": {
+      "description": "Orchestration step completed successfully",
+      "required": ["status", "delegatedAgent", "workflowStep", "result", "details"],
+      "properties": {
+        "status": { "const": "completed" },
+        "result": { "enum": ["success", "partial"] },
+        "validationErrors": { "type": "array" },
+        "nextSteps": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "failure": {
+      "description": "Orchestration step failed or blocked",
+      "required": ["status", "delegatedAgent", "workflowStep", "result", "details", "error"],
+      "properties": {
+        "status": { "enum": ["blocked", "failed"] },
+        "result": { "enum": ["failed", "retry", "escalated"] },
+        "error": {
+          "type": "object",
+          "required": ["code", "message"],
+          "properties": {
+            "code": { "type": "string" },
+            "message": { "type": "string" },
+            "details": { "type": "string" }
+          }
+        },
+        "retryCount": { "type": "integer" },
+        "nextSteps": { "type": "array", "items": { "type": "string" } }
+      }
+    }
+  }
+}

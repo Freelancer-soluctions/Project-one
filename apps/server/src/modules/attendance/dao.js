@@ -1,0 +1,180 @@
+import { prisma, Prisma } from '../../config/db.js';
+
+/**
+ * Get all attendance records with optional filters.
+ *
+ * @param {Object} filters - Filter parameters.
+ * @param {number} [filters.employeeId] - Filter by employee ID.
+ * @param {Date} [filters.date] - Filter by date.
+ * @param {Date} [filters.fromDate] - Filter by date range start.
+ * @param {Date} [filters.toDate] - Filter by date range end.
+ * @param {number} take - Number of records to retrieve.
+ * @param {number} skip - Number of records to skip.
+ * @returns {Promise<Object>} Object containing dataList and total count.
+ */
+export const getAllAttendance = async (filters = {}, take, skip) => {
+  console.log('filters', filters);
+  const whereClauses = [];
+
+  if (filters.employeeId) {
+    whereClauses.push(
+      Prisma.sql`a."employeeId" = ${Number(filters.employeeId)}`
+    );
+  }
+
+  if (filters.fromDate && filters.toDate) {
+    whereClauses.push(
+      Prisma.sql`a."date" BETWEEN ${filters.fromDate}::timestamp AND ${filters.toDate}::timestamp`
+    );
+  } else if (filters.fromDate) {
+    whereClauses.push(Prisma.sql`a."date" >= ${filters.fromDate}::timestamp`);
+  } else if (filters.toDate) {
+    whereClauses.push(Prisma.sql`a."date" <= ${filters.toDate}::timestamp`);
+  }
+
+  const whereSql = whereClauses.length
+    ? Prisma.sql`WHERE ${Prisma.join(whereClauses, ' AND ')}`
+    : Prisma.empty;
+
+  console.log('whereClauses:', whereClauses);
+  console.log('whereSql:', whereSql);
+  console.log('take:', take, 'skip:', skip);
+  const attendance = await prisma.$queryRaw`
+  SELECT 
+     a.*,
+     e.name AS "employeeName",
+     e."lastName" AS "employeeLastName",
+     u.name AS "userAttendanceCreatedName",
+     uu.name AS "userAttendanceUpdatedName"
+   FROM "attendance" a
+   LEFT JOIN "employees" e ON a."employeeId" = e.id
+   LEFT JOIN "users" u ON a."createdBy" = u.id
+   LEFT JOIN "users" uu ON a."updatedBy" = uu.id
+   ${whereSql}
+   ORDER BY a."date" DESC, a."entryTime" DESC
+   LIMIT ${take || 10}
+   OFFSET ${skip || 0}
+ `;
+
+  const total = await prisma.attendance.count({
+    where: {
+      ...(filters.employeeId && {
+        employeeId: Number(filters.employeeId),
+      }),
+
+      ...((filters.fromDate || filters.toDate) && {
+        date: {
+          ...(filters.fromDate && {
+            gte: new Date(filters.fromDate),
+          }),
+          ...(filters.toDate && {
+            lte: new Date(filters.toDate),
+          }),
+        },
+      }),
+    },
+  });
+  return { dataList: attendance, total };
+};
+
+/**
+ * Create a new attendance record.
+ *
+ * @param {Object} data - Attendance data.
+ * @param {number} data.employeeId - Employee ID.
+ * @param {Date} data.date - Attendance date.
+ * @param {string} data.entryTime - Entry time.
+ * @param {string} data.exitTime - Exit time.
+ * @param {number} data.workedHours - Worked hours.
+ * @param {number} data.createdBy - User ID who created the attendance record.
+ * @returns {Promise<Object>} Created attendance record with related data.
+ */
+export const createAttendance = async (data) => {
+  return prisma.attendance.create({
+    data: {
+      date: data.date,
+      entryTime: data.entryTime,
+      exitTime: data.exitTime,
+      workedHours: data.workedHours,
+      createdOn: data.createdOn,
+      userAttendanceCreated: {
+        connect: {
+          id: data.createdBy,
+        },
+      },
+      employee: {
+        connect: {
+          id: data.employeeId,
+        },
+      },
+    },
+  });
+};
+
+/**
+ * Update an attendance record by ID.
+ *
+ * @param {number} id - Attendance ID.
+ * @param {Object} data - Updated attendance data.
+ * @param {number} [data.employeeId] - Employee ID.
+ * @param {Date} [data.date] - Attendance date.
+ * @param {string} [data.entryTime] - Entry time.
+ * @param {string} [data.exitTime] - Exit time.
+ * @param {number} [data.workedHours] - Worked hours.
+ * @param {Date} [data.updatedOn] - Update timestamp.
+ * @param {number} [data.updatedBy] - User ID who updated the attendance record.
+ * @returns {Promise<Object>} Updated attendance record with related data.
+ */
+export const updateAttendanceById = async (id, data) => {
+  const updateData = {};
+
+  // Scalar fields
+  if (data.date !== undefined) {
+    updateData.date = data.date;
+  }
+  if (data.entryTime !== undefined) {
+    updateData.entryTime = data.entryTime;
+  }
+  if (data.exitTime !== undefined) {
+    updateData.exitTime = data.exitTime;
+  }
+  if (data.workedHours !== undefined) {
+    updateData.workedHours = data.workedHours;
+  }
+  if (data.updatedOn !== undefined) {
+    updateData.updatedOn = data.updatedOn;
+  }
+
+  // Relations
+  if (data.employeeId !== undefined) {
+    updateData.employee = {
+      connect: {
+        id: data.employeeId,
+      },
+    };
+  }
+  if (data.updatedBy !== undefined) {
+    updateData.userAttendanceUpdated = {
+      connect: {
+        id: data.updatedBy,
+      },
+    };
+  }
+
+  return prisma.attendance.update({
+    where: { id },
+    data: updateData,
+  });
+};
+
+/**
+ * Delete an attendance record by ID.
+ *
+ * @param {number} id - Attendance ID.
+ * @returns {Promise<Object>} Deleted attendance record.
+ */
+export const deleteAttendanceById = async (id) => {
+  return prisma.attendance.delete({
+    where: { id },
+  });
+};

@@ -1,0 +1,68 @@
+{
+  "name": "project-one",
+  "description": "Front end \r - Persitencia de datos como el inicio de sesion con redux-persist\r - Proteccion de rutas solo accesibles cuando la sesion es valida por medio de un guard, trabajando conjuntamente con jwt\r - Internalizacion con i18next y react-i18next soportando dos idiomas (ingles y español)\r - Storybook para la documentacion y prueba componentes UI, para la facilitacion entre diseñadores y QA testers\r - Uso de hooks personalizados para organizar y separalar la logica de la pagina para su mejor comprension.\r - Uso de logger para monitoreo y registro de acciones o errores del front end\r - React hook forma para manejo de formularios en combinacion con zod schema validation\r - RTK QUERY  para manejo de estado global\r - Redux persist para la persitencia de estados necesarios como lo son las configuraciones o informacion de usuario",
+  "homepage": "https://github.com/Freelancer-soluctions/Project-one#readme",
+  "bugs": {
+    "url": "https://github.com/Freelancer-soluctions/Project-one/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Freelancer-soluctions/Project-one.git"
+  },
+  "license": "ISC",
+  "author": "",
+  "type": "module",
+  "main": "index.js",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "e2e"
+  ],
+  "scripts": {
+    "prepare": "husky",
+    "husky:disable": "ren .husky .husky.disabled",
+    "husky:enable": "ren .husky.disabled .husky",
+    "test": "npm run test:unit && npm run test:integration && npm run test:e2e",
+    "test:unit": "npm run test:run --workspace=client && npm run test:unit --workspace=server",
+    "test:integration": "npm run test:integration --workspace=server",
+    "test:e2e": "npm run test --workspace=e2e",
+    "test:coverage": "npm run test:coverage --ws",
+    "build": "npm run build --ws --if-present",
+    "prepush": "npm run test && npm run build",
+    "format": "prettier --write \"apps/**/*.{js,jsx,json,md}\"",
+    "format:check": "prettier --check \"apps/**/*.{js,jsx,json,md}\"",
+    "lint": "eslint \"apps/**/*.{js,jsx}\"",
+    "lint:fix": "eslint \"apps/**/*.{js,jsx}\" --fix",
+    "sast:semgrep": "powershell -ExecutionPolicy Bypass -File scripts/security/semgrep-staged.ps1",
+    "sast:semgrep:full": "powershell -ExecutionPolicy Bypass -File scripts/security/semgrep.ps1",
+    "security:secrets": "gitleaks protect --staged --verbose --redact --config .gitleaks.toml",
+    "security:secrets:full": "gitleaks detect --source . --verbose --config .gitleaks.toml",
+    "security:trivy:deps": "powershell -ExecutionPolicy Bypass -File scripts/security/dependency-scan.ps1",
+    "changeset": "changeset",
+    "version:packages": "changeset version && npm install --ignore-scripts",
+    "release": "changeset tag"
+  },
+  "devDependencies": {
+    "@changesets/changelog-github": "^0.7.0",
+    "@changesets/cli": "^2.31.0",
+    "@commitlint/cli": "^20.3.1",
+    "@commitlint/config-conventional": "^20.3.1",
+    "@vitest/eslint-plugin": "^1.6.9",
+    "eslint": "^9.39.2",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-import": "^2.32.0",
+    "eslint-plugin-react": "^7.37.5",
+    "eslint-plugin-react-hooks": "^7.0.1",
+    "eslint-plugin-storybook": "^0.11.0",
+    "husky": "^9.1.7",
+    "jsdoc": "^4.0.5",
+    "lint-staged": "^16.2.7",
+    "prettier": "3.7.4"
+  },
+  "lint-staged": {
+    "*.{js,ts,cjs,mjs,d.cts,d.mts,json,jsonc}": [
+      "npm run format",
+      "npm run lint"
+    ]
+  }
+}

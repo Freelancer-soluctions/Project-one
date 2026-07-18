@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Base Output Contract Schema",
+  "description": "Shared base fields for all agent output contracts",
+  "type": "object",
+  "required": ["agent", "timestamp", "responseType", "version"],
+  "properties": {
+    "agent": {
+      "type": "string",
+      "description": "Name of the agent that produced this response",
+      "enum": ["developer", "spec-manager", "git-manager", "reviewer", "planner", "orchestrator", "researcher", "project-manager"]
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 timestamp when the response was generated"
+    },
+    "responseType": {
+      "type": "string",
+      "description": "Type of response - success or failure",
+      "enum": ["success", "failure"]
+    },
+    "version": {
+      "type": "integer",
+      "description": "Output contract version",
+      "const": 1
+    }
+  }
+}

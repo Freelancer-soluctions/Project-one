@@ -1,0 +1,368 @@
+import { Router } from 'express';
+import {
+  getAllStock,
+  createStock,
+  deleteStockById,
+  getStockAlerts,
+  getStockByProductId,
+  patchStockById,
+} from './controller.js';
+import {
+   stockFiltersSchema,
+   stockCreateSchema,
+   stockUpdateSchema,
+ } from './schemas/stock.joi.js';
+import {
+  verifyToken,
+  validateQueryParams,
+  validateSchema,
+  checkRoleAuthOrPermisssion,
+  validatePathParam,
+} from '../../middleware/index.js';
+import { ROLESCODES, PERMISSIONCODES } from '../../utils/constants/enums.js';
+
+const router = Router();
+// uso global de middleware
+router.use(verifyToken);
+
+/**
+ * @openapi
+ * /api/v1/stock:
+ *   get:
+ *     tags:
+ *       - Stock
+ *     summary: Get all stock entries
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: filters
+ *         schema:
+ *           $ref: "#/components/schemas/StockFilters"
+ *         required: false
+ *         description: "Optional filters for stock entries"
+ *     responses:
+ *       200:
+ *         description: OK
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: boolean
+ *                   example: false
+ *                 statusCode:
+ *                   type: integer
+ *                   example: 200
+ *                 message:
+ *                   type: string
+ *                   example: "Some success message"
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     $ref: "#/components/schemas/ResponseGetStock"
+ *       401:
+ *         description: Unauthorized
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Unauthorized'
+ *       500:
+ *         description: Server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
+router.get(
+  '/',
+  checkRoleAuthOrPermisssion({
+    allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER, ROLESCODES.USER],
+    permissions: [PERMISSIONCODES.canViewStock],
+  }),
+  validateQueryParams(stockFiltersSchema),
+  getAllStock
+);
+
+/**
+ * @openapi
+ * /api/v1/stock/{id}:
+ *   get:
+ *     tags:
+ *       - Stock
+ *     summary: Get stock by productID
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: Product ID
+ *     responses:
+ *       200:
+ *         description: OK
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: boolean
+ *                   example: false
+ *                 statusCode:
+ *                   type: integer
+ *                   example: 200
+ *                 message:
+ *                   type: string
+ *                   example: "Some success message"
+ *                 data:
+ *                   type: object
+ *                   $ref: "#/components/schemas/ResponseGetStockByProductId"
+ *       401:
+ *         description: Unauthorized
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Unauthorized'
+ *       500:
+ *         description: Server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
+router.get(
+  '/',
+  checkRoleAuthOrPermisssion({
+    allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER, ROLESCODES.USER],
+    permissions: [PERMISSIONCODES.canViewStock],
+  }),
+  getStockByProductId
+);
+
+/**
+ * @openapi
+ * /api/v1/stock/alerts:
+ *   get:
+ *     tags:
+ *       - Stock
+ *     summary: Get all stock Alerts
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: OK
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: boolean
+ *                   example: false
+ *                 statusCode:
+ *                   type: integer
+ *                   example: 200
+ *                 message:
+ *                   type: string
+ *                   example: "Some success message"
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     $ref: "#/components/schemas/ResponseGetStockAlerts"
+ *       401:
+ *         description: Unauthorized
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Unauthorized'
+ *       500:
+ *         description: Server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
+router.get(
+  '/alerts',
+  checkRoleAuthOrPermisssion({
+    allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER, ROLESCODES.USER],
+    permissions: [PERMISSIONCODES.canViewStock],
+  }),
+  getStockAlerts
+);
+
+/**
+ * @openapi
+ * /api/v1/stock:
+ *   post:
+ *     tags:
+ *       - Stock
+ *     summary: Create a new stock entry
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/BodyStockCreateUpdate'
+ *     responses:
+ *       201:
+ *         description: Created
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: boolean
+ *                   example: false
+ *                 statusCode:
+ *                   type: integer
+ *                   example: 201
+ *                 message:
+ *                   type: string
+ *                   example: "Some success message"
+ *                 data:
+ *                   $ref: "#/components/schemas/ResponseStockCreateUpdate"
+ *       401:
+ *         description: Unauthorized
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Unauthorized'
+ *       500:
+ *         description: Server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
+router.post(
+  '/',
+  checkRoleAuthOrPermisssion({
+    allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER, ROLESCODES.USER],
+    permissions: [PERMISSIONCODES.canCreateStock],
+  }),
+  validateSchema(stockCreateSchema),
+  createStock
+);
+
+
+
+/**
+ * @openapi
+ * /api/v1/stock/{id}:
+ *   patch:
+ *     tags:
+ *       - Stock
+ *     summary: Partially update a stock entry
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: Stock entry ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/StockPatch'
+ *     responses:
+ *       200:
+ *         description: OK
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: boolean
+ *                   example: false
+ *                 statusCode:
+ *                   type: integer
+ *                   example: 200
+ *                 message:
+ *                   type: string
+ *                   example: "Some success message"
+ *                 data:
+ *                   $ref: "#/components/schemas/ResponseStockCreateUpdate"
+ *       401:
+ *         description: Unauthorized
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Unauthorized'
+ *       500:
+ *         description: Server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
+router.patch(
+  '/:id',
+  checkRoleAuthOrPermisssion({
+    allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER, ROLESCODES.USER],
+    permissions: [PERMISSIONCODES.canEditStock],
+  }),
+  validatePathParam,
+  validateSchema(stockUpdateSchema),
+  patchStockById
+);
+
+/**
+ * @openapi
+ * /api/v1/stock/{id}:
+ *   delete:
+ *     tags:
+ *       - Stock
+ *     summary: Delete a stock entry
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: Stock entry ID
+ *     responses:
+ *       200:
+ *         description: Stock entry deleted
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Delete'
+ *       401:
+ *         description: Unauthorized
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Unauthorized'
+ *       500:
+ *         description: Server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
+router.delete(
+  '/:id',
+  checkRoleAuthOrPermisssion({
+    allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER, ROLESCODES.USER],
+    permissions: [PERMISSIONCODES.canDeleteStock],
+  }),
+  validatePathParam,
+  deleteStockById
+);
+
+export default router;

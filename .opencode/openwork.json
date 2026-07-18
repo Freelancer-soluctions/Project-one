@@ -1,0 +1,12 @@
+{
+  "version": 1,
+  "workspace": {
+    "name": "project-one",
+    "createdAt": 1781034338170,
+    "preset": "starter"
+  },
+  "authorizedRoots": [
+    "C:\\Users\\user\\Desktop\\Programacion\\Node-express-nest\\project-one"
+  ],
+  "reload": null
+}

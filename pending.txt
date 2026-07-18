@@ -1,0 +1,137 @@
+
+Pruebas unitarias
+Pruebas de integracion
+Smoke test (Agregar a documentacion y nombrarlo dentro de los spec, tener presente que se hacen en front y back estas pruebas vienen antes o se combinan con las de integracion pero no pueden ser despues de las de e2e)
+Sanity test (pre-filtro antes de regression testing)
+Regresion test (front y back)
+UAT TESTING
+contract testing (en medio de unit y integration usar esquemas openapi o pact )
+
+
+Owasp to 10
+Hay llamadas que se estan haciendo automaticamente cuiando se inicia sesion, verificar y hacer llamado solo cuando se necesite que no sean actumaticas por ejemplo las de event, tambien tener en cuenta que hay un cache con redux en lo redux query hooks 
+IsError de  los query hooks ver que puedo hacer con  ello
+  const {
+    data: datastatus,
+    isError: isErrorStatus,
+    isLoading: isLoadingStatus,
+    isFetching: isFetchingStatus,
+    isSuccess: isSuccessStatus,
+    error: errorStatus,
+  } = useGetAllNewsStatusQuery();
+
+Mover vitest a la raiz ya que se va a utilizar en ambos proyectos
+quitar todos los console.log del proyecto (log injection)
+-despues de guardar una categoria no se esta refrescando en products ver como solucionar esto desde redux o que estrategia tomar
+
+
+
+PM2
+NX MONOREPO 
+
+Mantener la dependencies actualizadas (Final)
+
+Lista de caracteristicas para destacar
+- Logger de errores Tanto en back como front
+-- Front 
+- Error boundary para el front con   react-error-boundary
+-- Back
+
+Mantén security.md (NO lo cambies)
+
+Usa security.md para:
+
+OWASP A01–A03, A05–A10
+
+Controles técnicos implementados
+
+Librerías, middlewares, configuraciones
+
+Hardening, validaciones, auth, rate limiting, etc.
+
+📌 Es tu documento de “qué se implementó”
+
+A02 Cryptographid failures 
+- TLS habilitado (Depende de infraestructura)
+- HTTPS forzado (Debes confirmarlo)
+- Punto 11 de gist
+
+A03 Injection
+- Aplicar sast y dast
+
+sE ESTA TRABAJANDO CON WORKSPACES DE NPM
+
+
+Crear comandos de trello para la creacion, edicion y manipulacion de las tarjetas, crear un agente project manager para esto. x
+Verificar qye tanto agents.md como las skills si se tenga presentes en cada interacion o creacion de especificaciones (SDD) (Usando agents.md o el prompt system del agente) x
+Crear una esquema de la arquitectura de agentes actual (Agent-architecture-analysis.md) x
+Ver como usar context7 donde referenciarlo y ver alcance x
+Crear articulos o publicaciones con todo esto explicando paso a paso que fue lo que se hizo x
+Github mcp server se uso gh cli en su lugar menos depencia x
+Terminar de leer toda la documentacion de opencode y openspec
+Verificar que cavemna y CONTEXT.md si esten funcionando
+Las tools de los mcp deben de ajustarse en el system prompt para que no sean llamadas sin permiso o llamado explicito
+comandos de git para automatizar TBD
+Crear changes completos de modulos empezando por lo que falta con notes
+TestSprite mcp
+Matt Pocock skill TDD 
+/grill-me se esta llamando solo despues del exploremode lo cual debe de ajustarse debe de vivir dentro de explore u otro flujo de creacion de changes ? 
+Localstack vs floci
+estrategias de consumo de tokens en arquitecturas de agentes.
+Crear la documentacion de cada archivo para referenciar en el readme, y ajustar el readme para que sea una documentacion que guie al lector por todo el proyecto.
+Agentes de seguridad y testing ver viabilidad de un agente de solo documentacion
+lmstudio para ver si ofrecen gemma gratuito
+Consultas al back end con  custom tools
+ACM MODE para ci/cd
+Ajustar o crear nuevas tarjetas de trello que contenga las features actuales de cada uno de lo modulos y sistema, aprender sobre como deberia de ser estas tarjetas y aprende project management
+Activar chromaDb de clude mem cuando se solucione el problema
+Al crear un nuevo change el orquestador no llama correctamente al agente que crear los changes spec-manager no usa el task-tool para delegar
+Si un change necesita cambios despues de haberse creado ya que el @planner vea inconsistencias hay que usar al spec-manager en lugar del orquestador u otro agente.
+RFC (Request for Comments) publicadas por la IETF (Internet Engineering Task Force) para el protocolo HTTP y estándares complementarios. ver como implementar esto ya que es el estandar de api rest
+Hacer que cada push altere la version del front y back end  
+A11Y (Accesibilidad para el final)
+modo oscuro
+Aplicar los permisos a modulos y sistema
+Roles en los cuales me desempeñe (doc)
+try catch de todo el sistema debe de tener mensajes controlado y logeados consultar mas de esto
+consultar como hace openspec para crear los deltaspecs porque no los esta creando al termionar un change y obligar al spec-manager a que los cree por el system prompt ( sync the delta specs)
+colocar en el system promp no llamar los subagenetes por symbol no esta llamando el task es lo que reporta ?
+MCP DE DRAW
+memory leak en general (react y node)
+
+Prompt de documentacio
+necesito que creaes la documentacion del modulo de @apps\server\src\modules\events y @apps\client\src\modules\events en un solo archivo de markdown, esta documentacion debe de detallar cada aspecto tecnico actual milimetricamente, tiene que tener documentacion tecnica de diseño,u otro enfoque utilizado en documentacion enterprise y profesional para eso consulta con el @researcher en internet como y que enfoque debe de tener la documentacion de un modulo bajo entandars profesionales, la documentacion debe de vivir en un solo documento en @docs\modules y debe de llevar el nombre del modulo.
+
+
+Skill para implementar
+setup-pre-commit
+
+
+
+---------------
+Tú → orchestrator: "implementa X feature"
+orchestrator → planner: decide arquitectura
+planner → developer: escribe código
+
+El problema está en ese segundo paso — planner está tomando decisiones de arquitectura sin saber qué patrones usas, qué librerías ya están instaladas, qué convenciones tiene tu codebase, ni qué trade-offs son aceptables para ti. Todo lo que planner no sabe con certeza, lo rellena con "lo más probable" — que es exactamente la definición de alucinación en contexto de código.
+
+AJUSTES PROMPT SYSTEM AGENTS
+
+- Architect vs Typist (Se implementa ADR)
+
+AGENTS
+- Positive constraint x
+- Refinar role prompting
+- Output Contract/formatting
+- Chain-of-Thought 
+- Few-Shot es opcional pero muy efectivo si tienes un ejemplo real.
+
+@Planner :
+- Debe tener contexto de que convenciones, arquitectura patrones de diseño se manejan en el sistema, veri si es mas viable dejar esto en AGENTS.md y referenciarlo en el ssystem prompt o si ya con la inyeccion de que hay del
+Agents.md en el llm basta
+
+
+
+
+
+
