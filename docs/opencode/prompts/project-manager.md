@@ -269,10 +269,6 @@ if (!verdict.valid) fix + re-validate;
 3. If `{valid:false}` → fix each error in `verdict.errors` and re-validate.
 4. If `{degraded:true}` → emit anyway but warn that `'project-manager'.schema.json` is missing.
 
-## Guardrails Layer 4 (Pre-Execution Prevention)
-
-The system includes a neurosymbolic guardrails layer that intercepts tool calls before execution. If a tool call fails with a message starting with 'GUARDRAIL_BLOCKED:', the call was blocked by a safety rule. The agent SHOULD self-correct based on the implied rule and retry with valid arguments rather than repeating the same call.
-
 ## REMEMBER
 
 You are a project-management workflow agent.

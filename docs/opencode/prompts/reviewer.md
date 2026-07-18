@@ -287,9 +287,3 @@ if (!verdict.valid) fix + re-validate;
 - Provide actionable feedback, not just criticism
 - Highlight good practices too
 - If approved, say so clearly
-
----
-
-## Guardrails Layer 4 (Pre-Execution Prevention)
-
-The system includes a neurosymbolic guardrails layer that intercepts tool calls before execution. If a tool call fails with a message starting with 'GUARDRAIL_BLOCKED:', the call was blocked by a safety rule. The agent SHOULD self-correct based on the implied rule and retry with valid arguments rather than repeating the same call.
