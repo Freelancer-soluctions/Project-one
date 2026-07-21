@@ -30,28 +30,30 @@ import type { Plugin } from "@opencode-ai/plugin";
 import * as fs from "node:fs";
 import * as path from "node:path";
 
-// ── Validator Module Path ────────────────────────────────────────
-// Plugin location:  .opencode/plugins/output-contracts.ts
-// Validator location: docs/opencode/prompts/contracts/contractValidator.js
-//
-// Cross-directory ESM resolution via file:// URL with import.meta.url.
-// This is the Node.js-standard way to resolve relative paths from a module's location.
-// Platform-independent (works on Windows and Linux).
-const VALIDATOR_DIR = new URL(
-  "../../docs/opencode/prompts/contracts/",
-  import.meta.url,
-);
-const VALIDATOR_ENTRY = new URL("contractValidator.js", VALIDATOR_DIR).href;
+// ── Lazy Path Resolution ─────────────────────────────────────────
+// Resolved lazily inside plugin factory to avoid import-time crash
+// in bun's bundled context (import.meta.url resolves to chunk URL).
+interface ResolvedPaths {
+  logFilePath: string;
+  validatorEntry: string;
+}
+let resolvedPaths: ResolvedPaths | null = null;
 
-// ── Audit Log Configuration ──────────────────────────────────────
-// Log file: .opencode/logs/contract-audit.jsonl
-// Format: one JSON object per line (JSON Lines / JSONL / NDJSON)
-// Fields: timestamp, agent, task, sessionId, callId, validationErrors, retryCount, degraded
-//
-// This log is NOT committed to the repository. .opencode/logs/ added to .gitignore in Task 1.4.
-const LOG_DIR = new URL("../logs/", import.meta.url);
-const LOG_FILE_URL = new URL("contract-audit.jsonl", LOG_DIR).href;
-const LOG_FILE_PATH = path.resolve(new URL(LOG_FILE_URL).pathname.replace(/^\//, ""));
+function resolvePaths(): ResolvedPaths | null {
+  if (resolvedPaths) return resolvedPaths;
+  try {
+    const logDir = new URL("../logs/", import.meta.url);
+    const logFileUrl = new URL("contract-audit.jsonl", logDir).href;
+    const logFilePath = path.resolve(new URL(logFileUrl).pathname.replace(/^\//, ""));
+    const vDir = new URL("../../docs/opencode/prompts/contracts/", import.meta.url);
+    const validatorEntry = new URL("contractValidator.js", vDir).href;
+    resolvedPaths = { logFilePath, validatorEntry };
+    return resolvedPaths;
+  } catch (err) {
+    console.warn("[output-contracts] WARN: import.meta.url resolution failed — running without paths");
+    return null;
+  }
+}
 
 // ── Retry Configuration ──────────────────────────────────────────
 const MAX_WRITE_RETRIES = 2;
@@ -75,8 +77,10 @@ let logDirChecked = false;
  * Called once on plugin load to warn early about permission issues.
  */
 function checkLogDirOnLoad(): void {
+  const paths = resolvePaths();
+  if (!paths) return;
   try {
-    const logDirPath = path.dirname(LOG_FILE_PATH);
+    const logDirPath = path.dirname(paths.logFilePath);
     if (!fs.existsSync(logDirPath)) {
       fs.mkdirSync(logDirPath, { recursive: true });
     }
@@ -96,15 +100,19 @@ function checkLogDirOnLoad(): void {
  * that never fail validation. Uses recursive mkdir so it works even if intermediate
  * .opencode/ dir doesn't exist yet.
  */
-function ensureLogDir(): void {
+function ensureLogDir(): boolean {
+  const paths = resolvePaths();
+  if (!paths) return false;
   try {
-    const logDirPath = path.dirname(LOG_FILE_PATH);
+    const logDirPath = path.dirname(paths.logFilePath);
     if (!fs.existsSync(logDirPath)) {
       fs.mkdirSync(logDirPath, { recursive: true });
     }
+    return true;
   } catch (err) {
     // Fail silently — writeAuditEntry will catch the subsequent write error
     console.error("[output-contracts] ensureLogDir failed:", err);
+    return false;
   }
 }
 
@@ -114,11 +122,13 @@ function ensureLogDir(): void {
  * Includes a simple retry for transient write failures.
  */
 function writeAuditEntry(entry: object): void {
+  const paths = resolvePaths();
+  if (!paths) return;
   let attempt = 0;
   while (attempt <= MAX_WRITE_RETRIES) {
     try {
       ensureLogDir();
-      fs.appendFileSync(LOG_FILE_PATH, JSON.stringify(entry) + "\n", "utf-8");
+      fs.appendFileSync(paths.logFilePath, JSON.stringify(entry) + "\n", "utf-8");
       return; // Success
     } catch (err) {
       attempt++;
@@ -199,23 +209,32 @@ export const plugin: Plugin = async () => {
 
   async function loadValidator() {
     if (!validatorModule) {
-      try {
-        const mod = await import(VALIDATOR_ENTRY);
-        validatorModule = mod;
-      } catch (err) {
-        console.error(
-          `[output-contracts] FATAL: Failed to load contractValidator.js from`,
-          VALIDATOR_ENTRY,
-          err,
-        );
-        // Graceful fallback: no-op validator that always reports valid + degraded.
-        // Per Spec Scenario "Validator import failure is non-fatal", this prevents
-        // session crashes but signals the degraded mode.
+      const paths = resolvePaths();
+      if (!paths) {
+        // Graceful fallback: no-op validator
         validatorModule = {
           validateContract: () => ({
             valid: true,
             degraded: true,
-            warning: "Validator module failed to load — check .opencode/package.json dependencies (ajv, ajv-formats)",
+            warning: "Paths not available — import.meta.url resolution failed",
+            agent: null,
+            version: null,
+            errors: [],
+            payload: null,
+          }),
+        };
+        return validatorModule;
+      }
+      try {
+        const mod = await import(paths.validatorEntry);
+        validatorModule = mod;
+      } catch (err) {
+        console.error(`[output-contracts] FATAL: Failed to load contractValidator.js:`, err);
+        validatorModule = {
+          validateContract: () => ({
+            valid: true,
+            degraded: true,
+            warning: "Validator module failed to load — check .opencode/package.json dependencies",
             agent: null,
             version: null,
             errors: [],
@@ -357,5 +376,8 @@ export const plugin: Plugin = async () => {
   };
 };
 
-// Default export for plugin loaders that prefer `export default`
-export default plugin;
+// V1 PluginModule format: { id, server } — avoids legacy path crash in readV1Plugin()
+export default {
+  id: "local.output-contracts",
+  server: plugin,
+};
