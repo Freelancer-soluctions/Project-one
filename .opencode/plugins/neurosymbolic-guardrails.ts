@@ -27,7 +27,7 @@ import {
   TOOL_RULES,
   GuardrailBlockedError,
   type RuleContext,
-} from "./guardrails-rules.ts";
+} from "../guardrails-rules";
 
 // ── Audit Log Configuration ──────────────────────────────────────
 // Log file: .opencode/logs/guardrails-audit.jsonl

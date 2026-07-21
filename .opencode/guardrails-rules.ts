@@ -480,10 +480,11 @@ export function validateRules(
  */
 // ── Shared Bash Rules ───────────────────────────────────────────
 // Architecture note (discovered 2026-07-18):
-//   `tool.execute.before` hook does NOT fire for `bash` tool directly —
-//   bash runs inside subagent proces. Hook fires for `task` tool which
-//   carries the bash command in `output.args.command`.
-//   Therefore bash rules register on BOTH `bash` (future-proof) AND `task` (actual path).
+//   `tool.execute.before` fires for ALL tool types at the orchestrator/framework level.
+//   However, when a subagent runs `bash`, the bash command is encapsulated inside
+//   a `task` tool call — the hook sees `tool="task"` with `output.args.command=...`.
+//   Direct `bash` tool calls (orchestrator level) also fire the hook.
+//   Therefore bash rules register on BOTH `bash` (direct use) AND `task` (subagent path).
 //
 // Write/edit rules (no_write_env_files, no_planner_write_specs, no_edit_gitignore_security)
 // remain on `write`/`edit` only — they check `filePath`/`oldString`/`newString` fields not
