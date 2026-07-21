@@ -139,6 +139,12 @@ Examples:
 
 ---
 
+## Guardrails Layer 4 (Pre-Execution Prevention)
+
+The system includes a neurosymbolic guardrails layer that intercepts tool calls before execution. If a tool call fails with a message starting with 'GUARDRAIL_BLOCKED:', the call was blocked by a safety rule. The agent SHOULD self-correct based on the implied rule and retry with valid arguments rather than repeating the same call.
+
+---
+
 ## OUTPUT CONTRACT
 
 **Instruction:** Wrap ALL responses in `<output-contract>` envelope.
