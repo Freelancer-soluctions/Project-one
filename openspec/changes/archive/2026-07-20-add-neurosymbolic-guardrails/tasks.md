@@ -46,13 +46,15 @@
 ## 3. Plugin Registration (opencode.jsonc)
 
 - [x] 3.1 Add `"./.opencode/plugins/neurosymbolic-guardrails.ts"` to the `plugin` array in `opencode.jsonc`
-- [ ] 3.2 Verify both plugins load without errors on OpenCode restart
+- [x] 3.2 Verify both plugins load without errors on OpenCode restart
+
+- [x] 3.3 Move `.opencode/plugins/guardrails-rules.ts` to `.opencode/guardrails-rules.ts` — OpenCode auto-discovers ALL `.ts` files in `.opencode/plugins/` and imports them as plugins. `guardrails-rules.ts` has no `export const plugin` (it exports types, interfaces, and a rules registry), so it causes a "Plugin export is not a function" crash on startup. Moving it outside `plugins/` avoids auto-discovery. Update the import path in `neurosymbolic-guardrails.ts` from `"./guardrails-rules.ts"` to `"../guardrails-rules.ts"`.
 
 ## 4. Audit Log Verification
 
-- [ ] 4.1 Verify `guardrails-audit.jsonl` is created on first blocked tool call
-- [ ] 4.2 Verify each JSONL entry has valid JSON format (`timestamp`, `tool`, `sessionId`, `callId`, `violations`, `args`)
-- [ ] 4.3 Ensure `.opencode/logs/` is in `.gitignore` (confirm it's already excluded)
+- [x] 4.1 Verify `guardrails-audit.jsonl` is created on first blocked tool call
+- [x] 4.2 Verify each JSONL entry has valid JSON format (`timestamp`, `tool`, `sessionId`, `callId`, `violations`, `args`)
+- [x] 4.3 Ensure `.opencode/logs/` is in `.gitignore` (confirm it's already excluded)
 
 ## 5. Stateful Rules (Deferred — MVP Skip)
 
@@ -62,9 +64,20 @@
 
 ## 6. Production Hardening
 
-- [ ] 6.1 Write Vitest unit tests for `validateRules()` — test all-pass, one-fail, multiple-fail, empty-rules, deterministic behavior
-- [ ] 6.2 Write Vitest unit tests for `buildContext()` — test recognized tool, unrecognized tool, parse error
-- [ ] 6.3 Write integration test: register hook + trigger blocked call + verify audit log entry
-- [ ] 6.4 Document the steer pattern gap in design.md. Add prompt instruction workaround to orchestrator.md system prompt AND all subagent prompt files (spec-manager.md, git-manager.md, planner.md, developer.md, reviewer.md, researcher.md, project-manager.md). Instruction text: "If a tool call fails with a 'BLOCKED:' or 'Tool call failed' error, the agent SHOULD self-correct based on the implied rule and retry with valid arguments rather than repeating the same call." Verify all 7 agent prompt files include the instruction.
+- [x] 6.1 Write Vitest unit tests for `validateRules()` — test all-pass, one-fail, multiple-fail, empty-rules, deterministic behavior
+- [x] 6.2 Write Vitest unit tests for `buildContext()` — test recognized tool, unrecognized tool, parse error
+- [x] 6.3 Write integration test: register hook + trigger blocked call + verify audit log entry
+- [x] 6.4 Document the steer pattern gap in design.md. Add prompt instruction workaround to orchestrator.md system prompt AND all subagent prompt files (spec-manager.md, git-manager.md, planner.md, developer.md, reviewer.md, researcher.md, project-manager.md). Instruction text: "If a tool call fails with a 'BLOCKED:' or 'Tool call failed' error, the agent SHOULD self-correct based on the implied rule and retry with valid arguments rather than repeating the same call." Verify all 7 agent prompt files include the instruction.
 - [x] 6.5 Implement `sanitizeArgs(args: Record<string, unknown>): Record<string, unknown>` helper that redacts known sensitive fields (password, apiKey, token, secret, authorization, cookie, x-api-key, x-auth-token) before writing to JSONL audit log. Apply in the audit log write path in neurosymbolic-guardrails.ts.
-- [ ] 6.6 Document all 4 gaps (steer, try/catch, registry, state) with workarounds in design.md
+- [x] 6.6 Document all 4 gaps (steer, try/catch, registry, state) with workarounds in design.md
+
+## 7. Startup Crash Fixes (Research-Discovered)
+
+Based on research comparing implementation against original AWS dev.to article. 3 CRITICAL root causes identified for `Error: Unexpected server error` on opencode startup at `B:/~BUN/root/chunk-*.js`.
+
+- [x] 7.1 Fix plugin export pattern in `neurosymbolic-guardrails.ts` — change from `export default plugin` (function-as-default) to `export default { id: "local.neurosymbolic-guardrails", server: plugin }` (V1 PluginModule shape). OpenCode's `readV1Plugin()` expects `mod.default` to be `{ server: fn }`. When it's a function, it returns undefined and falls back to legacy path that iterates ALL named exports via `Object.values(mod)` and throws `TypeError: Plugin export is not a function`. Confirmed by opencode-cost-guard fix (commit a356299) and Clawd PR #417. Severity: CRITICAL — prevents OpenCode from starting.
+- [x] 7.2 Move `import.meta.url` usage from module level to inside the plugin factory in `output-contracts.ts` — `new URL(..., import.meta.url)` on lines 40-54 execute at module import time, before any try/catch. In bun's bundled context (`B:/~BUN/root/chunk-*.js`), `import.meta.url` resolves to the chunk URL, causing path resolution that produces invalid Windows filesystem paths. The neurosymbolic-guardrails.ts already wraps its `import.meta.url` in try/catch inside a function — output-contracts.ts needs the same treatment. Severity: CRITICAL — import-time crash prevents OpenCode from loading.
+- [x] 7.3 Remove `.opencode/opencode.json` — the `"plugin": []` array OVERRIDES (not merges) the plugin array from `opencode.jsonc`, silently dropping `@warp-dot-dev/opencode-warp` and potentially causing config-based plugins to not load. OpenCode config loading merges configs in order with later sources overriding earlier ones (confirmed by GitHub issue #18953). The `plugin: []` was likely intended to prevent double-loading with auto-discovery, but it inadvertently wipes all config-based plugins. Severity: HIGH — breaks plugin loading silently.
+- [x] 7.4 Clear stale snapshot cache — OpenCode snapshot cache at `~/.local/share/opencode/snapshot/` contains compiled JS from before `guardrails-rules.ts` was moved out of `.opencode/plugins/`. Stale cache references file paths that no longer exist, causing module resolution failure. Run: `rm -rf ~/.local/share/opencode/snapshot/49f6a5*` (Linux) or `Remove-Item -Recurse -Force "$env:LOCALAPPDATA\..\Local\share\opencode\snapshot\49f6a5*"` (Windows). Severity: HIGH — stale cache prevents clean reload.
+- [x] 7.5 Correct `proposal.md` — replace inaccurate "1:1 equivalent" claim with "functionally analogous with different error propagation semantics". Strands' `event.cancel_tool` returns BLOCKED as tool result (graceful LLM UX); OpenCode `throw Error` propagates as exception (tool failure UX). Companion article "Runtime Guardrails — Steer, Don't Block" argues against throw patterns.
+- [x] 7.6 Add throw-vs-cancel semantic gap to `design.md` risk table — new risk row documenting that exception-based blocking differs from article's graceful cancellation pattern.
