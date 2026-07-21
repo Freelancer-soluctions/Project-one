@@ -99,10 +99,15 @@ export const checkRoleAuthOrPermisssion =
           .json({ error: 'Role not authorized for this action' });
       }
 
-      // 3. Get role permissions. Get array of permissions from user's role, for example:
+      // 3. If no specific permissions required, allow (role already validated)
+      if (permissions.length === 0) {
+        return next();
+      }
+
+      // 4. Get role permissions. Get array of permissions from user's role, for example:
       const rolePermissions =
         user.rolePermits?.map((rp) => rp.permissions.code) || [];
-      // 4. Validate if user has at least one of the required permissions
+      // 5. Validate if user has at least one of the required permissions
       const hasSomePermission = permissions.some((p) =>
         rolePermissions.includes(p)
       );

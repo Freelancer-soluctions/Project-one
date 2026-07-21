@@ -26,13 +26,13 @@ const newsApi = createApi({
       }),
     }),
     updateNewById: builder.mutation({
-      query: ({ id, data }) => ({
-        url: `/news/${id}`,
-        method: 'PUT',
-        body: { ...data },
-      }),
-      invalidatesTags: ['News'], // Invalida el cache de 'Notes' para volver a consultar
-    }),
+       query: ({ id, data }) => ({
+         url: `/news/${id}`,
+         method: 'PATCH',
+         body: { ...data },
+       }),
+       invalidatesTags: ['News'], // Invalida el cache de 'Notes' para volver a consultar
+     }),
     createNew: builder.mutation({
       query(body) {
         return {
@@ -58,11 +58,11 @@ const newsApi = createApi({
 // Export hooks for usage in functional components, which are
 // auto-generated based on the defined endpoints
 export const {
-  useLazyGetAllNewsQuery,
-  useGetAllNewsStatusQuery,
-  useUpdateNewByIdMutation,
-  useCreateNewMutation,
-  useDeleteNewByIdMutation,
-} = newsApi;
+   useLazyGetAllNewsQuery,
+   useGetAllNewsStatusQuery,
+   useUpdateNewByIdMutation,
+   useCreateNewMutation,
+   useDeleteNewByIdMutation,
+ } = newsApi;
 
 export default newsApi;

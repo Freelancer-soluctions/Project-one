@@ -1,43 +1,42 @@
+import { createServer } from 'http';
 import app from '../app.js';
 import { swaggerDocs as V1SwaggerDocs } from '../docs/swagger.js';
 import dotenv from '../config/dotenv.js';
-// import { loadSecrets } from '../config/aws/secrets.js'
-
-// const PORT = dotenv('PORT') || 3000
-// const server = app.listen(PORT, () => {
-//   console.log(`listening on port ${PORT}`)
-//   V1SwaggerDocs(app, PORT)
-// })
-
-// // keep alive
-// server.keepAliveTimeout = (60 * 1000) + 1000
-// server.headersTimeout = (60 * 1000) + 2000
+import { attachSocketServer } from '../socket/levels/level-02-server.js';
 
 async function bootstrap() {
-  // 1. Variables base (.env)
   const PORT = dotenv('PORT') || 3000;
 
-  // // 2. Cargar secretos (LocalStack o AWS)
-  // const secrets = await loadSecrets()
+  // Crear un único servidor HTTP para Express + Socket.IO
+  const httpServer = createServer(app);
 
-  // 3. Inyectar secretos al runtime
-  // process.env.JWT_ACCESS_SECRET = secrets.JWT_ACCESS_SECRET
-  // process.env.JWT_REFRESH_SECRET = secrets.JWT_REFRESH_SECRET
-  // process.env.SECRETCOOKIEKEY = secrets.COOKIE_SECRET
-  // process.env.AES_GCM_KEY = secrets.AES_GCM_KEY
-  // process.env.DATABASE_URL = secrets.DATABASE_URL
-  // process.env.POSTGRES_PASSWORD = secrets.POSTGRES_PASSWORD
-  // process.env.PGADMIN_DEFAULT_PASSWORD = secrets.PGADMIN_PASSWORD
+  // Adjuntar Socket.IO al mismo servidor HTTP
+  const io = attachSocketServer(httpServer);
+  app.set('io', io);
 
-  // 4. Arrancar servidor
-  const server = app.listen(PORT, () => {
+  // Iniciar servidor (Express + Socket.IO comparten el mismo puerto)
+  httpServer.listen(PORT, () => {
     console.log(`listening on port ${PORT}`);
     V1SwaggerDocs(app, PORT);
   });
 
-  // 5. Configuración de timeouts
-  server.keepAliveTimeout = 60 * 1000 + 1000;
-  server.headersTimeout = 60 * 1000 + 2000;
+  // Configuración de timeouts
+  httpServer.keepAliveTimeout = 60 * 1000 + 1000;
+  httpServer.headersTimeout = 60 * 1000 + 2000;
+
+  // Graceful shutdown unificado
+  const shutdown = (signal) => {
+    console.log(`🛑 Recibida señal ${signal}. Cerrando servidor...`);
+    io.close(() => {
+      httpServer.close(() => {
+        console.log('🛑 Servidor cerrado.');
+        process.exit(0);
+      });
+    });
+  };
+
+  process.on('SIGINT', () => shutdown('SIGINT'));
+  process.on('SIGTERM', () => shutdown('SIGTERM'));
 }
 
 bootstrap().catch((err) => {

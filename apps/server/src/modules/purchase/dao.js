@@ -80,33 +80,51 @@ export const createPurchase = async (data) => {
 };
 
 /**
- * Update a purchase and its details by ID.
+ * Partially update a purchase and its details by ID.
  *
  * @param {number} id - Purchase ID.
- * @param {Object} data - Updated purchase data.
+ * @param {Object} data - Partial purchase data to update.
  * @param {number} [data.providerId] - Provider ID.
  * @param {number} [data.total] - Total amount.
  * @param {Array} [data.details] - Array of purchase details.
  * @param {number} data.updatedBy - User ID who updated the purchase.
  * @returns {Promise<Object>} Updated purchase with its details and related data.
  */
-export const updatePurchaseById = async (id, data) => {
+export const patchPurchaseById = async (id, data) => {
   const { details, ...purchaseData } = data;
+  const updateData = { ...purchaseData, updatedBy: data.updatedBy };
 
-  // First, delete existing details
-  await prisma.purchaseDetail.deleteMany({
-    where: { purchaseId: id },
-  });
+  // Only update purchase fields if they exist
+  if (Object.keys(updateData).length > 0) {
+    await prisma.purchase.update({
+      where: { id },
+      data: updateData,
+    });
+  }
 
-  // Then update the purchase and create new details
-  return prisma.purchase.update({
+  // Handle details conditionally - only if provided
+  if (details !== undefined) {
+    // First, delete existing details
+    await prisma.purchaseDetail.deleteMany({
+      where: { purchaseId: id },
+    });
+
+    // Then create new details if provided
+    if (details && details.length > 0) {
+      await prisma.purchase.update({
+        where: { id },
+        data: {
+          details: {
+            create: details,
+          },
+        },
+      });
+    }
+  }
+
+  // Return updated purchase with relations
+  return prisma.purchase.findUnique({
     where: { id },
-    data: {
-      ...purchaseData,
-      details: {
-        create: details,
-      },
-    },
     include: {
       provider: true,
       details: {

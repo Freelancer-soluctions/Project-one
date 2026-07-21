@@ -41,26 +41,7 @@ describe('Role endpoint', () => {
   /// ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
   describe('GET /api/v1/role/:id endpoints', () => {
-    test.skip('Should return a single new role created by id GET /api/v1/role/:id', async () => {
-      // Arrenge
-      const dataTest = await prisma.roles.create({ data: dataRolTocreate1 });
-      // Act
-      const { body } = await server
-        .get(`/api/v1/role/${dataTest.id}`)
-        .set('Authorization', `Bearer ${token}`);
-
-      // Assert
-      expect(body.statusCode).toBe(200);
-      expect(body.data).toEqual({
-        id: expect.any(Number),
-        code: dataRolTocreate1.code,
-        description: dataRolTocreate1.description,
-      });
-      // verifica que no haya campos extra inesperados
-      expect(Object.keys(body.data)).toEqual(
-        expect.arrayContaining(['id', 'code', 'description'])
-      );
-    });
+    test.todo('Should return a single new role created by id GET /api/v1/role/:id');
 
     /// ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     test('should not return anything GET /api/v1/role/:id', async () => {
@@ -248,33 +229,5 @@ describe('Role endpoint', () => {
     });
   });
 
-  describe.skip('DELETE endpoints', () => {
-    test('should remove role test data from DELETE /api/v1/role/:id', async () => {
-      const dataTest = await prisma.roles.findFirst({
-        where: { code: dataRolTocreate1.code },
-      });
-      console.log('dataTest', dataTest);
-      const { body } = await server.delete(`/api/v1/role/${dataTest.id}`);
-      expect(body.statusCode).toBe(200);
-      expect(body.data.message).toBe('Items deleted successfully');
-    });
-    test('Should return 400 if the ID is not valid DELETE /api/v1/role/:id', async () => {
-      // Act
-      const { body } = await server
-        .delete('/api/v1/role/invalidID')
-        .set('Authorization', `Bearer ${token}`);
-      // Assert
-      expect(body.statusCode).toBe(400); // Esperamos un 400 Bad Request
-      expect(body.error).toBe(true);
-    });
-    test('Should return Unauthorized if user is not authenticated DELETE /api/v1/role/:id', async () => {
-      const existingRoleId = '123'; // ID de un rol existente
-      // Act
-      const { body } = await server
-        .delete(`/api/v1/role/${existingRoleId}`)
-        .set('Authorization', ''); // sin token
-      // Assert
-      expect(body.message).toBe('Unauthorized');
-    });
-  });
+  describe.todo('DELETE endpoints');
 });

@@ -11,7 +11,7 @@ export const AttendanceDatatable = ({
 }) => {
   const { t } = useTranslation();
 
-  const { dataList, total } = dataAttendance.data;
+  const { dataList, total } = dataAttendance;
 
   const columnDefAttendance = [
     {
@@ -97,7 +97,10 @@ export const AttendanceDatatable = ({
 };
 
 AttendanceDatatable.propTypes = {
-  dataAttendance: PropTypes.object.isRequired,
+  dataAttendance: PropTypes.shape({
+    dataList: PropTypes.array,
+    total: PropTypes.number,
+  }).isRequired,
   onEditDialog: PropTypes.func.isRequired,
   pagination: PropTypes.object.isRequired,
   onPaginationChange: PropTypes.func.isRequired,

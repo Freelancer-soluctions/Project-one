@@ -95,3 +95,20 @@ export const updateAttendanceById = async (id, data, userId) => {
 export const deleteAttendanceById = async (id) => {
   return deleteAttendanceByIdDao(Number(id));
 };
+
+/**
+ * Partially update an attendance record by ID.
+ *
+ * @param {number} id - Attendance ID.
+ * @param {Object} data - Partial attendance data to update.
+ * @param {number} userId - User ID who updated the record.
+ * @returns {Promise<Object>} Updated attendance record.
+ */
+export const patchAttendanceById = async (id, data, userId) => {
+  const dataAttendance = {
+    ...data,
+    updatedOn: new Date(),
+    updatedBy: userId,
+  };
+  return updateAttendanceByIdDao(Number(id), dataAttendance);
+};

@@ -20,6 +20,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { LuPlus, LuSearch, LuEraser } from 'react-icons/lu';
 import PropTypes from 'prop-types';
+import { FIELD_LIMITS } from '@/config/fieldLimits';
 
 export const ProductsFiltersForm = ({
   onSubmit,
@@ -80,16 +81,16 @@ export const ProductsFiltersForm = ({
                   <FormItem className="flex flex-col flex-auto">
                     <FormLabel htmlFor="name">{t('name')}</FormLabel>
                     <FormControl>
-                      <Input
-                        id="name"
-                        name="description"
-                        placeholder={t('description_placeholder')}
-                        type="text"
-                        autoComplete="false"
-                        maxLength={50}
-                        {...field}
-                        value={field.value ?? ''}
-                      />
+                       <Input
+                         id="name"
+                         name="description"
+                         placeholder={t('description_placeholder')}
+                         type="text"
+                         autoComplete="false"
+                         maxLength={FIELD_LIMITS.products.name}
+                         {...field}
+                         value={field.value ?? ''}
+                       />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -111,11 +112,11 @@ export const ProductsFiltersForm = ({
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {datastatus?.data.map((item, index) => (
-                          <SelectItem value={item.code} key={index}>
-                            {item.description}
-                          </SelectItem>
-                        ))}
+{datastatus?.map((item, index) => (
+                            <SelectItem value={item.code} key={index}>
+                              {item.description}
+                            </SelectItem>
+                          ))}
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -138,11 +139,11 @@ export const ProductsFiltersForm = ({
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {dataCategory?.data.map((item, index) => (
-                          <SelectItem value={item.code} key={index}>
-                            {item.description}
-                          </SelectItem>
-                        ))}
+{dataCategory?.map((item, index) => (
+                            <SelectItem value={item.code} key={index}>
+                              {item.description}
+                            </SelectItem>
+                          ))}
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -165,11 +166,11 @@ export const ProductsFiltersForm = ({
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {dataProviders?.data.map((item, index) => (
-                          <SelectItem value={item.code} key={index}>
-                            {item.name}
-                          </SelectItem>
-                        ))}
+{dataProviders?.map((item, index) => (
+                           <SelectItem value={item.code} key={index}>
+                             {item.name}
+                           </SelectItem>
+                         ))}
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -214,7 +215,7 @@ export const ProductsFiltersForm = ({
 ProductsFiltersForm.propTypes = {
   onSubmit: PropTypes.func.isRequired,
   onOpenProductsForms: PropTypes.func.isRequired,
-  datastatus: PropTypes.object,
-  dataCategory: PropTypes.object,
-  dataProviders: PropTypes.object,
+  datastatus: PropTypes.array,
+  dataCategory: PropTypes.array,
+  dataProviders: PropTypes.array,
 };

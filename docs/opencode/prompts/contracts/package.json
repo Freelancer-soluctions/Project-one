@@ -1,0 +1,22 @@
+{
+  "name": "project-one-output-contracts",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Output contract validator and per-agent schemas for the Project One agent architecture",
+  "main": "contractValidator.js",
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "coverage": "vitest run --coverage"
+  },
+  "dependencies": {
+    "ajv": "^8.17.1",
+    "ajv-formats": "^3.0.1"
+  },
+  "devDependencies": {
+    "@vitest/coverage-v8": "^4.0.18",
+    "esbuild": "^0.28.1",
+    "vitest": "^4.0.18"
+  }
+}

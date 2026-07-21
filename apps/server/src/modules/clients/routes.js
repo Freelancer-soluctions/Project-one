@@ -15,7 +15,8 @@ import {
 } from '../../middleware/index.js';
 import {
   clientFiltersSchema,
-  clientCreateUpdateSchema,
+  clientCreateSchema,
+  clientUpdateSchema,
 } from './schemas/clients.joi.js';
 import { ROLESCODES, PERMISSIONCODES } from '../../utils/constants/enums.js';
 
@@ -142,17 +143,19 @@ router.post(
     allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER],
     permissions: [PERMISSIONCODES.canCreateClient],
   }),
-  validateSchema(clientCreateUpdateSchema),
+  validateSchema(clientCreateSchema),
   createClient
 );
+
+
 
 /**
  * @openapi
  * /v1/clients/{id}:
- *   put:
+ *   patch:
  *     tags:
  *       - Clients
- *     summary: Update a client by ID
+ *     summary: Partially update a client by ID
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -167,7 +170,7 @@ router.post(
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/BodyClientCreateUpdate'
+ *             $ref: '#/components/schemas/BodyClientUpdatePartial'
  *     responses:
  *       200:
  *         description: Client updated successfully
@@ -190,21 +193,27 @@ router.post(
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/Unauthorized'
+ *       400:
+ *         description: Bad request
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/BadRequest'
  *       500:
  *         description: Server error
  *         content:
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/Error'
- */
-router.put(
+ *     */
+router.patch(
   '/:id',
   checkRoleAuthOrPermisssion({
     allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER],
     permissions: [PERMISSIONCODES.canEditClient],
   }),
   validatePathParam,
-  validateSchema(clientCreateUpdateSchema),
+  validateSchema(clientUpdateSchema),
   updateClientById
 );
 

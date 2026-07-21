@@ -3,6 +3,7 @@ import { describe, it, expect, vi } from 'vitest';
 import { BackDashBoard } from '../layout/BackDashBoard';
 
 vi.mock('react-router', () => ({
+  // eslint-disable-next-line react/prop-types
   Link: ({ to, children }) => <a href={to}>{children}</a>,
 }));
 

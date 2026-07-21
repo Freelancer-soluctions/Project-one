@@ -1,6 +1,7 @@
 import { useEffect, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
+import { pickDirty } from '@/utils/pickDirty';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
@@ -63,6 +64,7 @@ export const AttendanceDialog = ({
       workedHours: '',
     },
   });
+  const { formState: { dirtyFields } } = form;
   const attendanceId = useMemo(
     () => selectedRow?.id ?? null,
     [selectedRow?.id]
@@ -71,7 +73,6 @@ export const AttendanceDialog = ({
   useEffect(() => {
     if (selectedRow?.id) {
       const mappedValues = {
-        id: selectedRow.id,
         employeeId: selectedRow.employeeId,
         // Ensure date is a Date object for the Calendar component
         date: selectedRow.date ? new Date(selectedRow.date) : null,
@@ -96,14 +97,19 @@ export const AttendanceDialog = ({
   }, [selectedRow, openDialog, form]);
 
   const handleSubmit = (data) => {
-    // Format date back to ISO string if needed by the backend
     const submissionData = {
       ...data,
       date: data.date ? format(data.date, 'yyyy-MM-dd') : null,
-      // Convert workedHours back to number if needed
-      // workedHours: Number(data.workedHours)
     };
-    onSubmit(submissionData, attendanceId);
+
+    if (attendanceId) {
+      // edit → send only changed fields (PATCH)
+      const changes = pickDirty(submissionData, dirtyFields);
+      onSubmit({ id: attendanceId, body: changes });
+    } else {
+      // create → send all fields (POST)
+      onSubmit(submissionData);
+    }
   };
 
   const handleDelete = () => {

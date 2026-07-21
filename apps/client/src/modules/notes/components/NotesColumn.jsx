@@ -3,7 +3,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
 import { NotesCard } from './NotesCard';
 import { useTranslation } from 'react-i18next';
-import { StatusColumn } from '../utils/index';
+import { COLUMN_STYLES } from '../utils/noteStyles';
 import PropTypes from 'prop-types';
 
 export function NotesColumn({
@@ -22,22 +22,16 @@ export function NotesColumn({
           key={column.code}
           className={cn(
             'flex-1 shadow-lg min-w-[280px]',
-            column.code === StatusColumn.LOW &&
-            'border-green-200 shadow-green-100/50',
-            column.code === StatusColumn.MEDIUM &&
-            'border-yellow-200 shadow-yellow-100/50',
-            column.code === StatusColumn.HIGH && 'border-red-200 shadow-red-100/50'
+            COLUMN_STYLES[column.code]?.card
           )}
         >
           <CardHeader
             className={cn(
               'text-lg font-bold text-center border-b py-4 flex items-center justify-between',
-              column.code === StatusColumn.LOW && 'bg-green-50 text-green-700',
-              column.code === StatusColumn.MEDIUM && 'bg-yellow-50 text-yellow-700',
-              column.code === StatusColumn.HIGH && 'bg-red-50 text-red-700'
+              COLUMN_STYLES[column.code]?.header
             )}
           >
-            <span>{column.title}</span>
+            <span>{t(column.title, column.title)}</span>
             <span className="text-sm font-normal">
               {column.notes.length}{' '}
               {column.notes.length === 1 ? t('note') : t('notes')}

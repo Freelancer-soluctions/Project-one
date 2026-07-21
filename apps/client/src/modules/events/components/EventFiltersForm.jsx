@@ -4,6 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useTranslation } from 'react-i18next';
 import PropTypes from 'prop-types';
+import { FIELD_LIMITS } from '@/config/fieldLimits';
 
 export const EventFiltersForm = ({
   setSearchQuery,
@@ -21,7 +22,7 @@ export const EventFiltersForm = ({
           <Input
             id="textSearch"
             type="text"
-            maxLength={150}
+            maxLength={FIELD_LIMITS.search.searchTerm}
             placeholder="Buscar eventos..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}

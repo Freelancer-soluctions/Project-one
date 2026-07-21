@@ -216,16 +216,22 @@ export const updateRow = async (data, where) => {
       barCode: data.barCode,
       updatedOn: data.updatedOn,
 
-      // Claves foráneas
-      productCategories: {
-        connect: { id: data.productCategoryId },
-      },
-      productProviders: {
-        connect: { id: data.productProviderId },
-      },
-      productStatus: {
-        connect: { id: data.productStatusId },
-      },
+      // Claves foráneas - solo conectar si el campo está definido
+      ...(data.productCategoryId !== undefined && {
+        productCategories: {
+          connect: { id: data.productCategoryId },
+        },
+      }),
+      ...(data.productProviderId !== undefined && {
+        productProviders: {
+          connect: { id: data.productProviderId },
+        },
+      }),
+      ...(data.productStatusId !== undefined && {
+        productStatus: {
+          connect: { id: data.productStatusId },
+        },
+      }),
       userProductUpdated: {
         connect: {
           id: data.updatedBy,

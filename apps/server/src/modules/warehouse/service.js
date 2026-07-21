@@ -2,8 +2,8 @@ import {
   getAllWarehouses as getAllWarehousesDao,
   getAllWarehousesFilters as getAllWarehousesFiltersDao,
   createWarehouse as createWarehouseDao,
-  updateWarehouse as updateWarehouseDao,
   deleteWarehouse as deleteWarehouseDao,
+  patchWarehouseById as patchWarehouseByIdDao,
 } from './dao.js';
 import { getSafePagination } from '../../utils/pagination/pagination.js';
 
@@ -54,30 +54,30 @@ export const createWarehouse = async (data) => {
 };
 
 /**
- * Update a warehouse by ID.
- *
- * @param {number} warehouseId - ID of the warehouse to update
- * @param {Object} data - Updated warehouse data
- * @param {string} [data.name] - Updated warehouse name
- * @param {string} [data.description] - Updated warehouse description
- * @param {string} [data.address] - Updated warehouse address
- * @param {boolean} [data.status] - Updated warehouse status
- * @returns {Promise<Object>} Updated warehouse
- */
-export const updateWarehouseById = async (warehouseId, data) => {
-  const updateData = {
-    ...data,
-    updatedOn: new Date(),
-  };
-
-  return updateWarehouseDao(updateData, { id: Number(warehouseId) });
-};
-
-/**
  * Delete a warehouse by ID
  * @param {number} warehouseId - ID of the warehouse to delete
  * @returns {Promise<void>}
  */
 export const deleteWarehouseById = async (warehouseId) => {
   return deleteWarehouseDao({ id: Number(warehouseId) });
+};
+
+/**
+ * Partially update a warehouse by ID.
+ *
+ * @param {number} warehouseId - ID of the warehouse to update
+ * @param {Object} data - Partial warehouse data to update
+ * @param {string} [data.name] - Warehouse name
+ * @param {string} [data.description] - Warehouse description
+ * @param {string} [data.address] - Warehouse address
+ * @param {boolean} [data.status] - Warehouse status
+ * @returns {Promise<Object>} Updated warehouse
+ */
+export const patchWarehouseById = async (warehouseId, data) => {
+  const updateData = {
+    ...data,
+    updatedOn: new Date(),
+  };
+
+  return await patchWarehouseByIdDao(Number(warehouseId), updateData);
 };

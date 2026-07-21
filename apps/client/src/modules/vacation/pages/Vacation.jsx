@@ -93,27 +93,18 @@ const Vacation = () => {
     setFilters(newFilters);
   };
 
-  const handleSubmit = async (values, vacationId) => {
+  const handleSubmit = async (result) => {
     try {
-      const action = vacationId ? updateVacationById : createVacation;
-      const payload = vacationId
-        ? {
-            id: vacationId,
-            data: {
-              employeeId: values.employeeId,
-              startDate: values.startDate,
-              endDate: values.endDate,
-              status: values.status,
-            },
-          }
-        : values;
-
-      await action(payload).unwrap();
+      if (result?.id) {
+        await updateVacationById({ id: result.id, data: result.body }).unwrap();
+      } else {
+        await createVacation(result).unwrap();
+      }
 
       setAlertProps({
-        alertTitle: t(vacationId ? 'update_record' : 'add_record'),
+        alertTitle: t(result?.id ? 'update_record' : 'add_record'),
         alertMessage: t(
-          vacationId ? 'updated_successfully' : 'added_successfully'
+          result?.id ? 'updated_successfully' : 'added_successfully'
         ),
         cancel: false,
         success: true,

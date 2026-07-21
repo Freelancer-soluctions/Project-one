@@ -11,7 +11,7 @@ export const ExpensesDatatable = ({
 }) => {
   const { t } = useTranslation();
 
-  const { dataList, total } = dataExpenses.data;
+  const { dataList, total } = dataExpenses;
 
   const columnDefExpenses = [
     {
@@ -78,7 +78,10 @@ export const ExpensesDatatable = ({
 };
 
 ExpensesDatatable.propTypes = {
-  dataExpenses: PropTypes.object.isRequired,
+  dataExpenses: PropTypes.shape({
+    dataList: PropTypes.array,
+    total: PropTypes.number,
+  }).isRequired,
   onEditDialog: PropTypes.func.isRequired,
   pagination: PropTypes.object.isRequired,
   onPaginationChange: PropTypes.func.isRequired,

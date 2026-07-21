@@ -1,0 +1,115 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Planner Agent Output Contract Schema",
+  "description": "Defines required fields for planner agent responses",
+  "type": "object",
+  "allOf": [
+    { "$ref": "base.schema.json" },
+    {
+      "type": "object",
+      "required": ["verdict", "criticalIssues", "details"],
+      "properties": {
+        "verdict": {
+          "type": "string",
+          "description": "Overall verdict on the plan/specification",
+          "enum": ["APPROVED", "NEEDS CHANGES", "NEEDS CLARIFICATION"]
+        },
+        "criticalIssues": {
+          "type": "array",
+          "description": "Critical issues that must be resolved before approval",
+          "items": {
+            "type": "object",
+            "required": ["issue", "impact", "recommendation"],
+            "properties": {
+              "issue": { "type": "string", "description": "Description of the critical issue" },
+              "impact": { "type": "string", "description": "Impact if not resolved" },
+              "recommendation": { "type": "string", "description": "How to resolve the issue" }
+            }
+          }
+        },
+        "suggestions": {
+          "type": "array",
+          "description": "Suggestions for improving the plan",
+          "items": {
+            "type": "object",
+            "required": ["suggestion", "rationale"],
+            "properties": {
+              "suggestion": { "type": "string" },
+              "rationale": { "type": "string" }
+            }
+          }
+        },
+        "taskAmendments": {
+          "type": "array",
+          "description": "Proposed amendments to tasks.md",
+          "items": {
+            "type": "object",
+            "required": ["taskId", "change", "reason"],
+            "properties": {
+              "taskId": { "type": "string" },
+              "change": { "type": "string" },
+              "reason": { "type": "string" }
+            }
+          }
+        },
+        "details": {
+          "type": "string",
+          "description": "Human-readable summary of the review"
+        },
+        "designAlignment": {
+          "type": "string",
+          "description": "Assessment of design.md alignment",
+          "enum": ["ALIGNED", "MISALIGNED", "PARTIAL"]
+        },
+        "specCompleteness": {
+          "type": "string",
+          "description": "Assessment of specification completeness",
+          "enum": ["COMPLETE", "INCOMPLETE", "PARTIAL"]
+        },
+        "riskAssessment": {
+          "type": "string",
+          "description": "Overall risk assessment",
+          "enum": ["LOW", "MEDIUM", "HIGH"]
+        },
+        "nextSteps": {
+          "type": "array",
+          "description": "Recommended next steps for the orchestrator",
+          "items": { "type": "string" }
+        }
+      }
+    }
+  ],
+  "responseTypes": {
+    "success": {
+      "description": "Plan review completed successfully",
+      "required": ["verdict", "criticalIssues", "details"],
+      "properties": {
+        "verdict": { "enum": ["APPROVED", "NEEDS CHANGES", "NEEDS CLARIFICATION"] },
+        "criticalIssues": { "type": "array" },
+        "suggestions": { "type": "array" },
+        "taskAmendments": { "type": "array" },
+        "designAlignment": { "type": "string" },
+        "specCompleteness": { "type": "string" },
+        "riskAssessment": { "type": "string" },
+        "nextSteps": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "failure": {
+      "description": "Plan review failed",
+      "required": ["verdict", "criticalIssues", "details", "error"],
+      "properties": {
+        "verdict": { "const": "NEEDS CHANGES" },
+        "criticalIssues": { "type": "array" },
+        "error": {
+          "type": "object",
+          "required": ["code", "message"],
+          "properties": {
+            "code": { "type": "string" },
+            "message": { "type": "string" },
+            "details": { "type": "string" }
+          }
+        }
+      }
+    }
+  }
+}

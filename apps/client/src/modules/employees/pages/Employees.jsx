@@ -12,6 +12,7 @@ import {
   useCreateEmployeeMutation,
   useDeleteEmployeeByIdMutation,
 } from '../api/employeesApi';
+import { useQueryData, useLoadingState } from '@/hooks';
 import AlertDialogComponent from '@/components/alertDialog/AlertDialog';
 import { Spinner } from '@/components/loader/Spinner';
 
@@ -28,14 +29,9 @@ const Employees = () => {
   });
   const [filters, setFilters] = useState({});
 
-  const [
-    getAllEmployees,
-    {
-      data: dataEmployees = { data: [] },
-      isLoading: isLoadingEmployees,
-      isFetching: isFetchingEmployees,
-    },
-  ] = useLazyGetAllEmployeesQuery();
+const [getAllEmployees, queryState] = useLazyGetAllEmployeesQuery();
+const { data: dataEmployees, isLoading: queryIsLoading, isFetching: queryIsFetching } = useQueryData(queryState);
+const { isLoading: isEmployeesLoading, isFetching: isEmployeesFetching } = useLoadingState([{ isLoading: queryIsLoading, isFetching: queryIsFetching }]);
 
   const [updateEmployeeById, { isLoading: isLoadingPut }] =
     useUpdateEmployeeByIdMutation();
@@ -85,66 +81,31 @@ const Employees = () => {
     setFilters(newFilters);
   };
 
-  const handleSubmit = async (values, employeeId) => {
-    try {
-      employeeId
-        ? await updateEmployeeById({
-            id: employeeId,
-            data: {
-              name: values.name,
-              lastName: values.lastName,
-              dni: values.dni,
-              email: values.email,
-              phone: values.phone,
-              address: values.address,
-              birthDate: values.birthDate,
-              hireDate: values.hireDate,
-              salary: values.salary,
-              positionId: values.positionId,
-              departmentId: values.departmentId,
-              gender: values.gender,
-              countryId: values.countryId,
-              civilStatus: values.civilStatus,
-              cityId: values.cityId,
-              isActive: values.isActive,
-            },
-          }).unwrap()
-        : await createEmployee({
-            name: values.name,
-            lastName: values.lastName,
-            dni: values.dni,
-            email: values.email,
-            phone: values.phone,
-            address: values.address,
-            birthDate: values.birthDate,
-            hireDate: values.hireDate,
-            salary: values.salary,
-            positionId: values.positionId,
-            departmentId: values.departmentId,
-            gender: values.gender,
-            countryId: values.countryId,
-            civilStatus: values.civilStatus,
-            cityId: values.cityId,
-            isActive: values.isActive,
-          }).unwrap();
+   const handleSubmit = async (result) => {
+     try {
+       if (result?.id) {
+         await updateEmployeeById({ id: result.id, data: result.body }).unwrap();
+       } else {
+         await createEmployee(result).unwrap();
+       }
 
-      setAlertProps({
-        alertTitle: t(employeeId ? 'update_record' : 'add_record'),
-        alertMessage: t(
-          employeeId ? 'updated_successfully' : 'added_successfully'
-        ),
-        cancel: false,
-        success: true,
-        onSuccess: () => {
-          setOpenDialog(false);
-        },
-        variantSuccess: 'info',
-      });
-      setOpenAlertDialog(true);
-    } catch (err) {
-      console.error('Error:', err);
-    }
-  };
+       setAlertProps({
+         alertTitle: t(result?.id ? 'update_record' : 'add_record'),
+         alertMessage: t(
+           result?.id ? 'updated_successfully' : 'added_successfully'
+         ),
+         cancel: false,
+         success: true,
+         onSuccess: () => {
+           setOpenDialog(false);
+         },
+         variantSuccess: 'info',
+       });
+       setOpenAlertDialog(true);
+     } catch (err) {
+       console.error('Error:', err);
+     }
+   };
 
   const handleAddDialog = () => {
     setActionDialog(t('add_employee'));
@@ -204,11 +165,11 @@ const Employees = () => {
       <BackDashBoard link={'/home'} moduleName={t('employees')} />
       <div className="relative">
         {/* Show spinner when loading or fetching */}
-        {(isLoadingEmployees ||
+        {(isEmployeesLoading ||
+          isEmployeesFetching ||
           isLoadingPut ||
           isLoadingPost ||
-          isLoadingDelete ||
-          isFetchingEmployees) && <Spinner />}
+          isLoadingDelete) && <Spinner />}
 
         <div className="grid grid-cols-2 grid-rows-4 gap-4 md:grid-cols-5">
           {/* filters */}

@@ -19,15 +19,15 @@ export const inventoryMovementAPI = createApi({
       query: (data) => ({
         url: '/inventory-movements',
         method: 'POST',
-        data,
+        body: data,
       }),
       invalidatesTags: ['InventoryMovement'],
     }),
     updateInventoryMovementById: builder.mutation({
       query: ({ id, data }) => ({
         url: `/inventory-movements/${id}`,
-        method: 'PUT',
-        data,
+        method: 'PATCH',
+        body: data,
       }),
       invalidatesTags: ['InventoryMovement'],
     }),

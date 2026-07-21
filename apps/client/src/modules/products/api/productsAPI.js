@@ -42,7 +42,7 @@ const productsApi = createApi({
     updateProductById: builder.mutation({
       query: ({ id, data }) => ({
         url: `/products/${id}`,
-        method: 'PUT',
+        method: 'PATCH',
         body: { ...data },
       }),
       invalidatesTags: ['Products'], // Invalida el cache de 'Notes' para volver a consultar

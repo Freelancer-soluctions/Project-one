@@ -1,7 +1,8 @@
 import { Router } from 'express';
 import {
-  EventsCreateUpdate,
+  EventsCreateSchema,
   EventsFilters,
+  EventsUpdateSchema,
 } from './schemas/events.joi.js';
 import * as eventsController from './controller.js';
 import {
@@ -12,6 +13,9 @@ import {
   validatePathParam,
 } from '../../middleware/index.js';
 import { ROLESCODES, PERMISSIONCODES } from '../../utils/constants/enums.js';
+
+// Mount event attendee routes (mergeParams inherits verifyToken)
+import attendeeRoutes from './attendee/routes.js';
 
 const router = Router();
 // uso global de middleware
@@ -72,7 +76,7 @@ router.post(
     allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER, ROLESCODES.USER],
     permissions: [PERMISSIONCODES.canCreateEvents],
   }),
-  validateSchema(EventsCreateUpdate),
+  validateSchema(EventsCreateSchema),
   eventsController.createEvent
 );
 
@@ -131,7 +135,7 @@ router.get(
  *     security:
  *       - bearerAuth: []
  *     summary: "Obtener eventos"
- *     description: "Obtiene la lista de eventos junto con la información del tipo de evento. Se puede filtrar usando 'searchQuery'."
+ *     description: "Obtiene la lista de eventos junto con la información del tipo de evento. Se puede filtrar usando 'searchQuery', 'type', 'dateFrom', 'dateTo', 'speaker', y 'status'."
  *     parameters:
  *       - in: query
  *         name: searchQuery
@@ -140,8 +144,67 @@ router.get(
  *           minLength: 1
  *           maxLength: 30
  *         required: false
- *         description: "Texto para buscar en el título o descripción del evento. Puede estar vacío."
+ *         description: "Texto para buscar en el título, descripción o speaker del evento."
  *         example: "Tech Conference 2025"
+ *       - in: query
+ *         name: type
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *         required: false
+ *         description: "Filtrar por ID de tipo de evento (coincidencia exacta en eventTypeId)."
+ *         example: 1
+ *       - in: query
+ *         name: dateFrom
+ *         schema:
+ *           type: string
+ *           format: date
+ *         required: false
+ *         description: "Filtrar eventos desde esta fecha (inclusive, formato ISO: YYYY-MM-DD)."
+ *         example: "2025-01-01"
+ *       - in: query
+ *         name: dateTo
+ *         schema:
+ *           type: string
+ *           format: date
+ *         required: false
+ *         description: "Filtrar eventos hasta esta fecha (inclusive, formato ISO: YYYY-MM-DD, normalizado a fin de día)."
+ *         example: "2025-12-31"
+ *       - in: query
+ *         name: speaker
+ *         schema:
+ *           type: string
+ *           maxLength: 50
+ *         required: false
+ *         description: "Filtrar por nombre del speaker (coincidencia parcial, case-insensitive)."
+ *         example: "John"
+ *       - in: query
+ *         name: status
+ *         schema:
+ *           type: string
+ *           enum: [upcoming, past, all]
+ *         required: false
+ *         description: "Filtrar por estado del evento: 'upcoming' (futuros), 'past' (pasados), o 'all' (todos)."
+ *         example: "upcoming"
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           default: 1
+ *         required: false
+ *         description: "Número de página para paginación (default: 1)."
+ *         example: 2
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           maximum: 100
+ *           default: 20
+ *         required: false
+ *         description: "Cantidad de eventos por página (default: 20, max: 100)."
+ *         example: 20
  *     responses:
  *       200:
  *         description: OK
@@ -187,10 +250,12 @@ router.get(
   eventsController.getAllEvents
 );
 
+
+
 /**
  * @openapi
  * /api/v1/events/{id}:
- *   put:
+ *   patch:
  *     tags:
  *       - Events
  *     security:
@@ -209,7 +274,7 @@ router.get(
  *       content:
  *         application/json:
  *           schema:
- *             $ref: "#/components/schemas/BodyEventCreateUpdate"
+ *             $ref: "#/components/schemas/EventsUpdateSchema"
  *     responses:
  *       200:
  *         description: OK
@@ -222,7 +287,7 @@ router.get(
  *                   type: boolean
  *                   example: false
  *                 statusCode:
- *                   type: int
+ *                   type: integer
  *                   example: 200
  *                 message:
  *                   type: string
@@ -241,18 +306,18 @@ router.get(
  *           application/json:
  *             schema:
  *               $ref: "#/components/schemas/Error"
- *
- */
-router.put(
-  '/:id',
-  checkRoleAuthOrPermisssion({
-    allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER, ROLESCODES.USER],
-    permissions: [PERMISSIONCODES.canEditEvents],
-  }),
-  validatePathParam,
-  validateSchema(EventsCreateUpdate),
-  eventsController.updateEventById
-);
+ * */
+
+router.patch(
+   '/:id',
+   checkRoleAuthOrPermisssion({
+     allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER, ROLESCODES.USER],
+     permissions: [PERMISSIONCODES.canEditEvents],
+   }),
+   validatePathParam,
+   validateSchema(EventsUpdateSchema),
+   eventsController.updateEventById
+ );
 
 /**
  * @openapi
@@ -301,5 +366,8 @@ router.delete(
   validatePathParam,
   eventsController.deleteEventById
 );
+
+// Mount event attendee routes (mergeParams inherits verifyToken)
+router.use('/:eventId', attendeeRoutes);
 
 export default router;

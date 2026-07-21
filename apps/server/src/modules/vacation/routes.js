@@ -2,8 +2,8 @@ import express from 'express';
 import {
   getAllVacation,
   createVacation,
-  updateVacationById,
   deleteVacationById,
+  patchVacationById,
 } from './controller.js';
 import {
   verifyToken,
@@ -14,7 +14,8 @@ import {
 } from '../../middleware/index.js';
 import {
   vacationFiltersSchema,
-  vacationCreateUpdateSchema,
+  vacationCreateSchema,
+  vacationUpdateSchema,
 } from './schemas/vacation.joi.js';
 import { ROLESCODES, PERMISSIONCODES } from '../../utils/constants/enums.js';
 
@@ -169,67 +170,8 @@ router.post(
     allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER, ROLESCODES.USER],
     permissions: [PERMISSIONCODES.canRequestVacation],
   }),
-  validateSchema(vacationCreateUpdateSchema),
+  validateSchema(vacationCreateSchema),
   createVacation
-);
-
-/**
- * @swagger
- * /v1/vacation/{id}:
- *   put:
- *     summary: Update a vacation record by ID
- *     tags: [Vacation]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: integer
- *         description: Vacation ID
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             $ref: '#/components/schemas/BodyVacationCreateUpdate'
- *     responses:
- *       200:
- *         description: Vacation record updated successfully
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                   example: true
- *                 data:
- *                   type: object
- *                   properties:
- *                     id:
- *                       type: integer
- *                     employeeId:
- *                       type: integer
- *                     startDate:
- *                       type: string
- *                       format: date
- *                     endDate:
- *                       type: string
- *                       format: date
- *                     status:
- *                       type: string
- */
-router.put(
-  '/:id',
-  checkRoleAuthOrPermisssion({
-    allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER, ROLESCODES.USER],
-    permissions: [PERMISSIONCODES.canEditRequestVacation],
-  }),
-  validatePathParam,
-  validateSchema(vacationCreateUpdateSchema),
-  updateVacationById
 );
 
 /**
@@ -272,6 +214,69 @@ router.delete(
   }),
   validatePathParam,
   deleteVacationById
+);
+
+/**
+ * @swagger
+ * /v1/vacation/{id}:
+ *   patch:
+ *     summary: Partially update a vacation record by ID
+ *     tags: [Vacation]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: Vacation ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/BodyVacationPatch'
+ *     responses:
+ *       200:
+ *         description: Vacation record updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: integer
+ *                     employeeId:
+ *                       type: integer
+ *                     startDate:
+ *                       type: string
+ *                       format: date
+ *                     endDate:
+ *                       type: string
+ *                       format: date
+ *                     status:
+ *                       type: string
+ *                     type:
+ *                       type: string
+ *                     reason:
+ *                       type: string
+ */
+router.patch(
+  '/:id',
+  checkRoleAuthOrPermisssion({
+    allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER, ROLESCODES.USER],
+    permissions: [PERMISSIONCODES.canEditRequestVacation],
+  }),
+  validatePathParam,
+  validateSchema(vacationUpdateSchema),
+  patchVacationById
 );
 
 export default router;

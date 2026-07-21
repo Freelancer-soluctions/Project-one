@@ -1,12 +1,12 @@
 import {
   getAllUsers as getAllUsersService,
   createUser as createUserService,
-  updateUserById as updateUserByIdService,
   deleteUserById as deleteUserByIdService,
   getAllUsersStatus as getAllUsersStatusService,
   getAllUsersRoles as getAllUsersRolesService,
   getAllUserPermits as getAllUserPermitsService,
   getUsersByStatus as getUsersByStatusService,
+  patchUserById as patchUserByIdService,
 } from './service.js';
 import handleCatchErrorAsync from '../../utils/responses&Errors/handleCatchErrorAsync.js';
 import globalResponse from '../../utils/responses&Errors/globalResponse.js';
@@ -104,22 +104,20 @@ export const createUser = handleCatchErrorAsync(async (req, res) => {
   globalResponse(res, 201, user);
 });
 
+
+
 /**
- * Update a user by ID.
+ * Partially update a user by ID.
  *
  * @param {Object} req - The HTTP request object.
  * @param {Object} req.params - Request parameters
  * @param {string} req.params.id - User ID from URL
  * @param {Object} req.body - Request body containing user data to update
- * @param {string} [req.body.name] - User name
- * @param {string} [req.body.email] - User email address
- * @param {string} [req.body.password] - User password
- * @param {number} [req.body.roleId] - User role ID
  * @param {Object} res - The HTTP response object.
  * @returns {Promise<void>} Updates user and returns updated user object
  */
-export const updateUserById = handleCatchErrorAsync(async (req, res) => {
-  const user = await updateUserByIdService(req.params.id, {
+export const patchUserById = handleCatchErrorAsync(async (req, res) => {
+  const user = await patchUserByIdService(req.params.id, {
     ...req.body,
   });
   globalResponse(res, 200, user);

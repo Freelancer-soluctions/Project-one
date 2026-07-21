@@ -207,9 +207,11 @@ export const updateEmployeeById = async (id, data) => {
       salary: data.salary,
       updatedOn: data.updatedOn,
       userEmployeeUpdated: {
-        connect: {
-          id: data.updatedBy,
-        },
+        ...(data.updatedBy !== undefined && {
+          connect: {
+            id: data.updatedBy,
+          },
+        }),
       },
     },
   });

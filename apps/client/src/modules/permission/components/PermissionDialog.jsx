@@ -2,9 +2,11 @@ import { useEffect, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { pickDirty } from '@/utils/pickDirty';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import PropTypes from 'prop-types';
+import { FIELD_LIMITS } from '@/config/fieldLimits';
 
 import {
   PermissionSchema,
@@ -71,6 +73,7 @@ export const PermissionDialog = ({
       comments: '',
     },
   });
+  const { formState: { dirtyFields } } = form;
 
   const permissionId = useMemo(
     () => selectedRow?.id ?? null,
@@ -80,7 +83,6 @@ export const PermissionDialog = ({
   useEffect(() => {
     if (selectedRow?.id) {
       const mappedValues = {
-        id: selectedRow.id,
         employeeId: selectedRow.employeeId,
         type: selectedRow.type,
         startDate: selectedRow.startDate
@@ -116,7 +118,12 @@ export const PermissionDialog = ({
       startDate: data.startDate ? format(data.startDate, 'yyyy-MM-dd') : null,
       endDate: data.endDate ? format(data.endDate, 'yyyy-MM-dd') : null,
     };
-    onSubmit(submissionData, permissionId);
+    if (permissionId) {
+      const changes = pickDirty(submissionData, dirtyFields);
+      onSubmit({ id: permissionId, body: changes });
+    } else {
+      onSubmit(submissionData);
+    }
   };
 
   const handleDelete = () => {
@@ -352,7 +359,7 @@ export const PermissionDialog = ({
                         id="reason"
                         name="reason"
                         placeholder={t('permission_reason_placeholder')}
-                        maxLength={500}
+                        maxLength={FIELD_LIMITS.permission.reason}
                         rows={3}
                         {...field}
                         value={field.value ?? ''}
@@ -377,7 +384,7 @@ export const PermissionDialog = ({
                         id="comments"
                         name="comments"
                         placeholder={t('permission_comments_placeholder')}
-                        maxLength={1000}
+                        maxLength={FIELD_LIMITS.permission.comments}
                         rows={3}
                         {...field}
                         value={field.value ?? ''}

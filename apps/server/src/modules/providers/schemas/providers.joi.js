@@ -16,3 +16,13 @@ export const Providers = Joi.object({
   contactPhone: Joi.string().max(15).allow(null, ''),
   address: Joi.string().max(120).allow(null, ''),
 });
+
+export const ProvidersUpdateSchema = Joi.object({
+  code: Joi.string().max(3),
+  name: Joi.string().max(100),
+  status: Joi.boolean(),
+  contactName: Joi.string().max(60).allow(null, ''),
+  contactEmail: Joi.string().max(80).allow(null, ''),
+  contactPhone: Joi.string().max(15).allow(null, ''),
+  address: Joi.string().max(120).allow(null, ''),
+}).min(1);

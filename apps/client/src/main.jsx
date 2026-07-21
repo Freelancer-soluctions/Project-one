@@ -11,6 +11,7 @@ import { PersistGate } from 'redux-persist/integration/react';
 import { I18nextProvider } from 'react-i18next';
 import { Spinner } from './components/loader/Spinner';
 import { BrowserRouter } from 'react-router';
+import { MentionCountProvider } from '@/hooks';
 // Import the Zod error map configuration
 import './config/zod-i18n';
 
@@ -27,7 +28,9 @@ ReactDOM.createRoot(document.getElementById('root')).render(
         <PersistGate loading={<Spinner />} persistor={persistor}>
           <I18nextProvider i18n={i18n}>
             <BrowserRouter>
-              <App />
+              <MentionCountProvider>
+                <App />
+              </MentionCountProvider>
             </BrowserRouter>
           </I18nextProvider>
         </PersistGate>

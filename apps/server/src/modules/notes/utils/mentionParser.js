@@ -41,4 +41,45 @@ export const extractMentionIds = async (content) => {
   return uniqueIds.map(id => ({id: id}));
 };
 
+/**
+ * Parse mentions from plain text content.
+ * 
+ * This function extracts @username patterns from plain text
+ * and returns their username and position information.
+ * 
+ * @param {string} content - Plain text content
+ * @returns {Array<{username: string, positionStart: number, positionEnd: number}>} Array of mention objects
+ * 
+ * @example
+ * parseMentions('Hello @john, how are you?')
+ * // Returns: [{username: 'john', positionStart: 6, positionEnd: 11}]
+ * 
+ * @example
+ * parseMentions('@admin please check')
+ * // Returns: [{username: 'admin', positionStart: 0, positionEnd: 6}]
+ * 
+ * @example
+ * parseMentions(null)
+ * // Returns: []
+ */
+export const parseMentions = (content) => {
+  if (!content || typeof content !== 'string') {
+    return [];
+  }
+
+  const mentionRegex = /@([a-zA-Z0-9_]+)/g;
+  const mentions = [];
+  let match;
+
+  while ((match = mentionRegex.exec(content)) !== null) {
+    mentions.push({
+      username: match[1],
+      positionStart: match.index,
+      positionEnd: match.index + match[0].length,
+    });
+  }
+
+  return mentions;
+};
+
 

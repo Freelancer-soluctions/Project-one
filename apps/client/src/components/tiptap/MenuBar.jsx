@@ -32,10 +32,6 @@ import { Toggle } from "@/components/ui/toggle"
 
 
 export const MenuBar = ({ editor }) => {
-  if (!editor) {
-    return null
-  }
-
   const setLink = React.useCallback(() => {
     const previousUrl = editor.getAttributes("link").href
     const url = window.prompt("URL", previousUrl)
@@ -51,6 +47,10 @@ export const MenuBar = ({ editor }) => {
 
     editor.chain().focus().extendMarkRange("link").setLink({ href: url }).run()
   }, [editor])
+
+  if (!editor) {
+    return null
+  }
 
   return (
     <div className="flex flex-wrap gap-1 border-b border-border p-1">

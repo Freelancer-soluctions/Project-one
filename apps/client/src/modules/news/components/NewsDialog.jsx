@@ -1,6 +1,7 @@
 import { useEffect, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { pickDirty } from '@/utils/pickDirty';
 import { NewsDialogSchema, NewsStatusCode } from '../utils';
 import { FIELD_LIMITS } from '@/config/fieldLimits';
 
@@ -48,10 +49,11 @@ export const NewsDialog = ({
 }) => {
   const { t } = useTranslation();
 
-  // Configura el formulario
-  const formDialog = useForm({
-    resolver: zodResolver(NewsDialogSchema),
-  });
+// Configura el formulario
+   const formDialog = useForm({
+     resolver: zodResolver(NewsDialogSchema),
+   });
+   const { formState: { dirtyFields } } = formDialog;
 
   const newId = useMemo(() => selectedRow?.id ?? null, [selectedRow?.id]);
   const statusCodeSaved = useMemo(
@@ -61,10 +63,9 @@ export const NewsDialog = ({
 
   // Actualiza todos los valores del formulario al cambiar `selectedRow`
   useEffect(() => {
-    if (selectedRow) {
+    if (selectedRow?.id) {
       // Filtra y mapea solo los valores necesarios
       const mappedValues = {
-        id: selectedRow.id || '',
         description: selectedRow.description || '',
         document: selectedRow.document || '',
         createdOn: selectedRow.createdOn
@@ -93,9 +94,15 @@ export const NewsDialog = ({
     }
   }, [selectedRow, openDialog, formDialog]);
 
-  const onSubmitDialog = (values) => {
-    onCreateUpdate(values, newId);
-  };
+   const onSubmitDialog = (data) => {
+     // keep same data transformations
+     if (newId) {
+       const changes = pickDirty(data, dirtyFields);
+       onCreateUpdate({ id: newId, body: changes });
+     } else {
+       onCreateUpdate(data);
+     }
+   };
 
   const onDeleteNewById = (id) => {
     onDeleteById(id);

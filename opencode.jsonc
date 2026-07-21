@@ -2,7 +2,9 @@
   "$schema": "https://opencode.ai/config.json",
   "autoupdate": true,
   "plugin": [
-    "@warp-dot-dev/opencode-warp"
+    "@warp-dot-dev/opencode-warp",
+    "./.opencode/plugins/output-contracts.ts",
+    "./.opencode/plugins/neurosymbolic-guardrails.ts"
   ],
   "provider": {
     "ollama-local": {
@@ -15,14 +17,20 @@
       },
       "models": {
         "qwen2.5-coder:7b": {
-          "name": "Qwen 2.5 Coder 7B Local",
-        },
+          "name": "Qwen 2.5 Coder 7B Local"
+        }
       }
     }
   },
   //subagents configuration
   "default_agent": "orchestrator",
-  "instructions": ["AGENTS.md", "CONTEXT.md"],
+  "instructions": [
+    "AGENTS.md",
+    "CONTEXT.md"
+  ],
+  // "env": {
+  //   "BASH_ENV": "$HOME/.bash_env"
+  // },
   "shell": "bash",
   "skills": {
     "paths": [
@@ -48,8 +56,14 @@
   // Requires @prisma/language-server (installed in apps/server v31.11.0).
   "lsp": {
     "prisma": {
-      "command": ["npx", "@prisma/language-server", "--stdio"],
-      "extensions": [".prisma"]
+      "command": [
+        "npx",
+        "@prisma/language-server",
+        "--stdio"
+      ],
+      "extensions": [
+        ".prisma"
+      ]
     }
   },
   "permission": {
@@ -74,19 +88,24 @@
   },
   "agent": {
     // OpenCode built-in agents — disabled, not used
-    "build": { "disable": true },
-    "plan": { "disable": true },
-    "general": { "disable": true },
-
+    "build": {
+      "disable": true
+    },
+    "plan": {
+      "disable": true
+    },
+    "general": {
+      "disable": true
+    },
     "orchestrator": {
       "mode": "primary",
-      "model": "opencode/big-pickle",
+      "model": "opencode/nemotron-3-ultra-free",
       "description": "Main orchestrator that delegates tasks to specialized agents",
       "prompt": "{file:docs/opencode/prompts/orchestrator.md}",
       "steps": 45,
       "permission": {
         "question": "allow",
-        "edit": "ask",  // workaround: prevents bug #26758 from hiding subagent tools
+        "edit": "ask", // workaround: prevents bug #26758 from hiding subagent tools
         "task": {
           "*": "deny",
           "spec-manager": "allow",
@@ -105,7 +124,7 @@
       "model": "opencode/deepseek-v4-flash-free",
       "description": "Executes OpenSpec CLI - explore, propose, verify, archive",
       "prompt": "{file:docs/opencode/prompts/spec-manager.md}",
-      "steps": 15,
+      "steps": 30,
       "temperature": 0,
       "permission": {
         "bash": "allow",
@@ -131,7 +150,7 @@
       "model": "opencode/deepseek-v4-flash-free",
       "description": "Planning specialist",
       "prompt": "{file:docs/opencode/prompts/planner.md}",
-      "steps": 15,
+      "steps": 20,
       "temperature": 0,
       "permission": {
         "write": "allow",
@@ -143,10 +162,10 @@
     "developer": {
       "mode": "subagent",
       "hidden": false,
-      "model": "opencode/nemotron-3-super-free",
+      "model": "opencode/nemotron-3-ultra-free",
       "description": "Implementation agent",
       "prompt": "{file:docs/opencode/prompts/developer.md}",
-      "steps": 25,
+      "steps": 35,
       "permission": {
         "write": "allow",
         "edit": "allow",
@@ -155,7 +174,7 @@
         "websearch": "allow",
         "question": "allow",
         "lsp": "allow",
-        "context7_*": "ask",
+        "context7_*": "ask"
       }
     },
     "reviewer": {
@@ -164,7 +183,7 @@
       "model": "opencode/deepseek-v4-flash-free",
       "description": "Code reviewer",
       "prompt": "{file:docs/opencode/prompts/reviewer.md}",
-      "steps": 10,
+      "steps": 15,
       "temperature": 0,
       "permission": {
         "lsp": "allow",
@@ -177,7 +196,7 @@
       "model": "opencode/deepseek-v4-flash-free",
       "description": "Research agent",
       "prompt": "{file:docs/opencode/prompts/researcher.md}",
-      "steps": 12,
+      "steps": 20,
       "permission": {
         "webfetch": "allow",
         "websearch": "allow",
@@ -205,7 +224,10 @@
     "composio": {
       "type": "remote",
       "url": "https://connect.composio.dev/mcp",
-      "oauth": {},
+      // "headers": {
+      //   "x-consumer-api-key": "{env:COMPOSIO_API_KEY}"
+      // },
+       "oauth": {},
       "enabled": true
     },
     "context7": {
@@ -216,6 +238,25 @@
       },
       "enabled": true
     }
+  
+      // "composio": {
+      //   "type": "local",
+      //   "command": [
+      //     "node",
+      //     ".opencode/proxy/index.js",
+      //     "--target=composio"
+      //   ],
+      //   "enabled": true
+      // },
+      // "context7": {
+      //   "type": "local",
+      //   "command": [
+      //     "node",
+      //     ".opencode/proxy/index.js",
+      //     "--target=context7"
+      //   ],
+      //   "enabled": true
+      // }
   },
   "compaction": {
     "auto": true,

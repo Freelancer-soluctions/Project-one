@@ -42,7 +42,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { CalendarIcon } from '@radix-ui/react-icons'; // Using FileTextIcon for payroll
 import { LuFile } from 'react-icons/lu';
-
+import { pickDirty } from '@/utils/pickDirty';
 export const PayrollDialog = ({
   openDialog,
   onCloseDialog,
@@ -66,13 +66,13 @@ export const PayrollDialog = ({
       totalPayment: '',
     },
   });
+  const { formState: { dirtyFields } } = form;
 
   const payrollId = useMemo(() => selectedRow?.id ?? null, [selectedRow?.id]);
 
   useEffect(() => {
     if (selectedRow?.id) {
       const mappedValues = {
-        id: selectedRow.id,
         employeeId: selectedRow.employeeId,
         month: selectedRow.month?.toString(), // Ensure string for Select
         year: selectedRow.year?.toString(), // Ensure string for Select/Input
@@ -110,7 +110,12 @@ export const PayrollDialog = ({
       deductions: Number(data.deductions),
       totalPayment: Number(data.totalPayment),
     };
-    onSubmit(submissionData, payrollId);
+    if (payrollId) {
+      const changes = pickDirty(submissionData, dirtyFields);
+      onSubmit({ id: payrollId, body: changes });
+    } else {
+      onSubmit(submissionData);
+    }
   };
 
   const handleDelete = () => {

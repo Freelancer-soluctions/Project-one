@@ -113,30 +113,31 @@ export const createPerformanceEvaluation = async (data) => {
   return evaluation;
 };
 
+
 /**
- * Update a performance evaluation by ID.
+ * Partially update a performance evaluation by ID.
  *
  * @param {number} id - Performance evaluation ID.
- * @param {Object} data - Updated performance evaluation data.
- * @returns {Promise<Object>} Updated performance evaluation with related data.
+ * @param {Object} data - Partial update data.
+ * @returns {Promise<Object>} Updated performance evaluation.
  */
-export const updatePerformanceEvaluationById = async (id, data) => {
-  const evaluation = await prisma.performanceEvaluation.update({
+export const patchPerformanceEvaluationById = async (id, data) => {
+  const updateData = {};
+  if (data.date !== undefined) updateData.date = data.date;
+  if (data.calification !== undefined) updateData.calification = data.calification;
+  if (data.comments !== undefined) updateData.comments = data.comments;
+  if (data.updatedOn !== undefined) updateData.updatedOn = data.updatedOn;
+  if (data.employeeId !== undefined) {
+    updateData.employee = { connect: { id: data.employeeId } };
+  }
+  if (data.updatedBy !== undefined) {
+    updateData.userPerformanceEvaluationUpdated = { connect: { id: data.updatedBy } };
+  }
+
+  return prisma.performanceEvaluation.update({
     where: { id: Number(id) },
-    data: {
-      date: data.date,
-      calification: data.calification,
-      comments: data.comments,
-      updatedOn: new Date(),
-      employee: {
-        connect: { id: data.employeeId },
-      },
-      userPerformanceEvaluationUpdated: {
-        connect: { id: data.updatedBy },
-      },
-    },
+    data: updateData,
   });
-  return evaluation;
 };
 
 /**

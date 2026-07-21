@@ -3,22 +3,24 @@ import handleCatchErrorAsync from '../../utils/responses&Errors/handleCatchError
 import * as notesService from './service.js';
 
 /**
- * Get all notes with optional filtering by search term, status code, and hashtag IDs.
+ * Get all notes with optional filtering by search term, status code, hashtag IDs, and scope.
  *
  * @param {Object} req - Express request object.
  * @param {Object} req.safeQuery - Validated query parameters.
  * @param {string} [req.safeQuery.searchTerm] - Filter notes by title or content.
  * @param {number} [req.safeQuery.statusCode] - Filter notes by column status code.
- * @param {string|string[]} [req.safeQuery.hashtagId] - Filter notes by hashtag ID(s).
- * @param {Object} res - Express response object.
+  * @param {string|string[]} [req.safeQuery.hashtagId] - Filter notes by hashtag ID(s).
+  * @param {'mine'|'mixed'} [req.safeQuery.scope] - Scope filter for notes visibility.
+  * @param {Object} res - Express response object.
  * @returns {Promise<void>} Responds with 200 and filtered notes array.
  */
 export const getAllNotes = handleCatchErrorAsync(async (req, res) => {
-  const { searchTerm, statusCode, hashtagId } = req.safeQuery;
+  const { searchTerm, statusCode, hashtagId, isFavorite, scope } = req.safeQuery;
+  const userId = req.userId;
   const hashtagIds = hashtagId
     ? Array.isArray(hashtagId) ? hashtagId : [hashtagId]
     : undefined;
-  const items = await notesService.getAllNotes(searchTerm, statusCode, hashtagIds);
+  const items = await notesService.getAllNotes(searchTerm, statusCode, hashtagIds, userId, isFavorite, scope);
   globalResponse(res, 200, items);
 });
 
@@ -30,7 +32,6 @@ export const getAllNotes = handleCatchErrorAsync(async (req, res) => {
  * @param {Object} req.body - Validated note data.
  * @param {string} req.body.title - Note title.
  * @param {string} [req.body.content] - Note content (plain text).
- * @param {string} [req.body.color] - Note color.
  * @param {number} req.body.columnId - Column/status ID for the note.
  * @param {number[]} [req.body.hashtagIds] - Hashtag IDs to associate.
  * @param {Object} res - Express response object.
@@ -62,7 +63,6 @@ export const getAllNotesColumns = handleCatchErrorAsync(async (req, res) => {
  * @param {Object} req.body - Update payload.
  * @param {number} req.body.id - Note ID.
  * @param {number} req.body.columnId - New column ID.
- * @param {string} [req.body.color] - New color.
  * @param {Object} res - Express response object.
  * @returns {Promise<void>} Responds with 200 and success message.
  */
@@ -73,7 +73,7 @@ export const updateNoteColumId = handleCatchErrorAsync(async (req, res) => {
 });
 
 /**
- * Update a note by ID (title, content, color, mentions, hashtags).
+ * Update a note by ID (title, content, mentions, hashtags).
  *
  * @param {Object} req - Express request object.
  * @param {Object} req.params - URL parameters.
@@ -81,7 +81,6 @@ export const updateNoteColumId = handleCatchErrorAsync(async (req, res) => {
  * @param {Object} req.body - Update payload.
  * @param {string} [req.body.title] - New title.
  * @param {string} [req.body.content] - New content.
- * @param {string} [req.body.color] - New color.
  * @param {number[]} [req.body.hashtagIds] - Hashtag IDs to re-associate.
  * @param {number} req.userId - Authenticated user ID.
  * @param {Object} res - Express response object.
@@ -126,15 +125,40 @@ export const deleteById = handleCatchErrorAsync(async (req, res) => {
 });
 
 /**
- * Get total count of all notes.
+ * Get total count of all notes with optional scope filter.
  *
  * @param {Object} req - Express request object.
+ * @param {Object} req.safeQuery - Validated query parameters.
+ * @param {'mine'|'mixed'} [req.safeQuery.scope] - Scope filter for notes visibility.
  * @param {Object} res - Express response object.
- * @returns {Promise<void>} Responds with 200 and count number.
+ * @returns {Promise<void>} Responds with 200 and count object.
  */
 export const getAllNotesCount = handleCatchErrorAsync(async (req, res) => {
-  const data = await notesService.getAllNotesCount();
+  const { scope } = req.safeQuery;
+  const userId = req.userId;
+  const data = await notesService.getAllNotesCount(scope, userId);
   globalResponse(res, 200, data);
+});
+
+// ============================================================
+// FAVORITE HANDLERS
+// ============================================================
+
+/**
+ * Toggle favorite status for a note (PATCH /notes/:id/fav).
+ *
+ * @param {Object} req - Express request object.
+ * @param {number} req.userId - Authenticated user ID.
+ * @param {Object} req.params - URL parameters.
+ * @param {number} req.params.id - Note ID.
+ * @param {Object} res - Express response object.
+ * @returns {Promise<void>} Responds with 200 and new favorite state.
+ */
+export const toggleFavorite = handleCatchErrorAsync(async (req, res) => {
+  const userId = req.userId;
+  const { id } = req.params;
+  const result = await notesService.toggleFavorite(userId, Number(id));
+  globalResponse(res, 200, result);
 });
 
 // ============================================================

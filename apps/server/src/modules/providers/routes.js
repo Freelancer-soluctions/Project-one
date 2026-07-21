@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { Providers, ProvidersFilters } from './schemas/providers.joi.js';
+import { Providers, ProvidersFilters, ProvidersUpdateSchema } from './schemas/providers.joi.js';
 import * as providersController from './controller.js';
 import {
   verifyToken,
@@ -147,12 +147,12 @@ router.post(
 /**
  * @openapi
  * /api/v1/providers/{id}:
- *   put:
+ *   patch:
  *     tags:
  *       - Providers
  *     security:
  *       - bearerAuth: []
- *     summary: "Actualiza un proveedor"
+ *     summary: "Actualiza parcialmente un proveedor"
  *     description: "Este endpoint requiere autenticación. El userId se extrae automáticamente del token JWT."
  *     parameters:
  *       - in: path
@@ -160,13 +160,13 @@ router.post(
  *         required: true
  *         schema:
  *           type: integer
- *         description: "ID del evento a actualizar."
+ *         description: "ID del proveedor a actualizar."
  *     requestBody:
  *       required: true
  *       content:
  *         application/json:
  *           schema:
- *             $ref: "#/components/schemas/BodyProviderCreateUpdate"
+ *             $ref: "#/components/schemas/BodyProviderPatch"
  *     responses:
  *       200:
  *         description: OK
@@ -179,7 +179,7 @@ router.post(
  *                   type: boolean
  *                   example: false
  *                 statusCode:
- *                   type: int
+ *                   type: integer
  *                   example: 200
  *                 message:
  *                   type: string
@@ -193,22 +193,22 @@ router.post(
  *             schema:
  *               $ref: "#/components/schemas/Unauthorized"
  *       5XX:
- *         description: FAILED
+ *         description: "FAILED"
  *         content:
  *           application/json:
  *             schema:
  *               $ref: "#/components/schemas/Error"
- *
  */
-router.put(
+
+router.patch(
   '/:id',
   checkRoleAuthOrPermisssion({
     allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER],
     permissions: [PERMISSIONCODES.canEditProvider],
   }),
   validatePathParam,
-  validateSchema(Providers),
-  providersController.updateProviderById
+  validateSchema(ProvidersUpdateSchema),
+  providersController.patchProviderById
 );
 
 /**
@@ -258,5 +258,7 @@ router.delete(
   validatePathParam,
   providersController.deleteProviderById
 );
+
+
 
 export default router;

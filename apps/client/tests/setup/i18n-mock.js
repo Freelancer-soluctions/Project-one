@@ -1,4 +1,4 @@
-import i18n from '@/config/i18n';
+
 
 // Mock i18n for tests
 const i18nMock = {

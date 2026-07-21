@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
+import { pickDirty } from '@/utils/pickDirty';
 import { useTranslation } from 'react-i18next';
 import { zodResolver } from '@hookform/resolvers/zod';
 
@@ -68,7 +69,6 @@ export const ClientsDialog = ({
     if (selectedRow?.id) {
       // Filtra y mapea solo los valores necesarios
       const mappedValues = {
-        id: selectedRow.id,
         name: selectedRow.name,
         email: selectedRow.email,
         phone: selectedRow.phone,
@@ -96,8 +96,15 @@ export const ClientsDialog = ({
     }
   }, [selectedRow, openDialog, form]);
 
+  const { formState: { dirtyFields } } = form;
+
   const handleSubmit = (data) => {
-    onSubmit(data, clientId);
+    if (clientId) {
+      const changes = pickDirty(data, dirtyFields);
+      onSubmit({ id: clientId, body: changes });
+    } else {
+      onSubmit(data);
+    }
   };
 
   const handleDelete = () => {

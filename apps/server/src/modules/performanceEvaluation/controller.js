@@ -1,8 +1,8 @@
 import {
   getAllPerformanceEvaluations as getAllPerformanceEvaluationsService,
   createPerformanceEvaluation as createPerformanceEvaluationService,
-  updatePerformanceEvaluationById as updatePerformanceEvaluationByIdService,
   deletePerformanceEvaluationById as deletePerformanceEvaluationByIdService,
+  patchPerformanceEvaluationById as patchPerformanceEvaluationByIdService,
 } from './service.js';
 import handleCatchErrorAsync from '../../utils/responses&Errors/handleCatchErrorAsync.js';
 import globalResponse from '../../utils/responses&Errors/globalResponse.js';
@@ -55,23 +55,26 @@ export const createPerformanceEvaluation = handleCatchErrorAsync(
   }
 );
 
+
+
 /**
- * Update a performance evaluation by ID.
+ * Partially update a performance evaluation by ID.
  *
  * @param {Object} req - The HTTP request object.
  * @param {Object} req.params - Request parameters
  * @param {string} req.params.id - Performance evaluation ID from URL
  * @param {Object} req.body - Request body containing evaluation data to update
- * @param {number} [req.body.rating] - Overall rating (1-5)
- * @param {string} [req.body.status] - Evaluation status (DRAFT, SUBMITTED, APPROVED, REJECTED)
+ * @param {number} [req.body.employeeId] - Employee ID
+ * @param {string} [req.body.date] - Evaluation date (ISO format)
+ * @param {number} [req.body.calification] - Calification (1-10)
  * @param {string} [req.body.comments] - Evaluation comments
  * @param {string} req.userId - Authenticated user ID from token verification
  * @param {Object} res - The HTTP response object.
- * @returns {Promise<void>} Updates performance evaluation and returns updated evaluation object
+ * @returns {Promise<void>} Partially updates performance evaluation and returns updated evaluation object
  */
-export const updatePerformanceEvaluationById = handleCatchErrorAsync(
+export const patchPerformanceEvaluationById = handleCatchErrorAsync(
   async (req, res) => {
-    const evaluation = await updatePerformanceEvaluationByIdService(
+    const evaluation = await patchPerformanceEvaluationByIdService(
       req.params.id,
       {
         ...req.body,

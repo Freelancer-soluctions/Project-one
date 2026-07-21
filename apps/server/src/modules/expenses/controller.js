@@ -1,8 +1,8 @@
 import {
   getAllExpenses as getAllExpensesService,
   createExpense as createExpenseService,
-  updateExpenseById as updateExpenseByIdService,
   deleteExpenseById as deleteExpenseByIdService,
+  patchExpenseById as patchExpenseByIdService,
 } from './service.js';
 import handleCatchErrorAsync from '../../utils/responses&Errors/handleCatchErrorAsync.js';
 import globalResponse from '../../utils/responses&Errors/globalResponse.js';
@@ -53,34 +53,7 @@ export const createExpense = handleCatchErrorAsync(async (req, res) => {
   globalResponse(res, 201, expense);
 });
 
-/**
- * Update an expense by ID.
- *
- * @param {Object} req - The HTTP request object.
- * @param {Object} req.params - Request parameters
- * @param {string} req.params.id - Expense ID from URL
- * @param {Object} req.body - Request body containing expense data to update
- * @param {string} [req.body.description] - Expense description
- * @param {number} [req.body.total] - Expense total amount
- * @param {string} [req.body.category] - Expense category
- * @param {string} [req.body.status] - Expense status (PENDING, APPROVED, REJECTED, PAID)
- * @param {string} req.userId - Authenticated user ID from token verification
- * @param {Object} res - The HTTP response object.
- * @returns {Promise<void>} Updates expense and returns updated expense object
- * @route PUT /api/v1/expenses/:id
- * @access Private
- */
-export const updateExpenseById = handleCatchErrorAsync(async (req, res) => {
-  const expenseData = {
-    ...req.body, // Expected: { description, total, category, status }
-  };
-  const expense = await updateExpenseByIdService(
-    req.params.id,
-    expenseData,
-    req.userId
-  );
-  globalResponse(res, 200, expense);
-});
+
 
 /**
  * Delete an expense by ID.
@@ -96,4 +69,32 @@ export const updateExpenseById = handleCatchErrorAsync(async (req, res) => {
 export const deleteExpenseById = handleCatchErrorAsync(async (req, res) => {
   await deleteExpenseByIdService(req.params.id);
   globalResponse(res, 200, { message: 'Expense deleted successfully' });
+});
+
+/**
+ * Partially update an expense by ID.
+ *
+ * @param {Object} req - The HTTP request object.
+ * @param {Object} req.params - Request parameters
+ * @param {string} req.params.id - Expense ID from URL
+ * @param {Object} req.body - Request body containing partial expense data to update
+ * @param {string} [req.body.description] - Expense description
+ * @param {number} [req.body.total] - Expense total amount
+ * @param {string} [req.body.category] - Expense category
+ * @param {string} req.userId - Authenticated user ID from token verification
+ * @param {Object} res - The HTTP response object.
+ * @returns {Promise<void>} Updates expense and returns updated expense object
+ * @route PATCH /api/v1/expenses/:id
+ * @access Private
+ */
+export const patchExpenseById = handleCatchErrorAsync(async (req, res) => {
+  const expenseData = {
+    ...req.body,
+  };
+  const expense = await patchExpenseByIdService(
+    req.params.id,
+    expenseData,
+    req.userId
+  );
+  globalResponse(res, 200, expense);
 });

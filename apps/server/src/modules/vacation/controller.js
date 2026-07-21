@@ -1,8 +1,8 @@
 import {
   getAllVacation as getAllVacationService,
   createVacation as createVacationService,
-  updateVacationById as updateVacationByIdService,
   deleteVacationById as deleteVacationByIdService,
+  patchVacationById as patchVacationByIdService,
 } from './service.js';
 import handleCatchErrorAsync from '../../utils/responses&Errors/handleCatchErrorAsync.js';
 import globalResponse from '../../utils/responses&Errors/globalResponse.js';
@@ -46,26 +46,7 @@ export const createVacation = handleCatchErrorAsync(async (req, res) => {
   return globalResponse(res, 201, data);
 });
 
-/**
- * Update a vacation record by ID.
- *
- * @param {Object} req - The HTTP request object.
- * @param {Object} req.params - Request parameters
- * @param {string} req.params.id - Vacation ID from URL
- * @param {Object} req.body - Request body containing vacation data to update
- * @param {Date} [req.body.startDate] - Vacation start date
- * @param {Date} [req.body.endDate] - Vacation end date
- * @param {string} [req.body.type] - Vacation type (ANNUAL, SICK, PERSONAL, UNPAID)
- * @param {string} [req.body.status] - Vacation status (PENDING, APPROVED, REJECTED, COMPLETED)
- * @param {string} [req.body.reason] - Reason for the vacation
- * @param {Object} res - The HTTP response object.
- * @returns {Promise<void>} Updates vacation record and returns updated vacation object
- */
-export const updateVacationById = handleCatchErrorAsync(async (req, res) => {
-  const { id } = req.params;
-  const data = await updateVacationByIdService(id, req.body);
-  return globalResponse(res, 200, data);
-});
+
 
 /**
  * Delete a vacation record by ID.
@@ -80,4 +61,24 @@ export const deleteVacationById = handleCatchErrorAsync(async (req, res) => {
   const { id } = req.params;
   const data = await deleteVacationByIdService(id);
   return globalResponse(res, 200, data, 'Vacation record deleted successfully');
+});
+
+/**
+ * Partially update a vacation record by ID.
+ *
+ * @param {Object} req - The HTTP request object.
+ * @param {Object} req.params - Request parameters
+ * @param {string} req.params.id - Vacation ID from URL
+ * @param {Object} req.body - Request body containing vacation data to update
+ * @param {number} [req.body.employeeId] - Employee ID
+ * @param {Date} [req.body.startDate] - Vacation start date
+ * @param {Date} [req.body.endDate] - Vacation end date
+ * @param {string} [req.body.status] - Vacation status (PENDING, APPROVED, REJECTED)
+ * @param {Object} res - The HTTP response object.
+ * @returns {Promise<void>} Updates vacation record and returns updated vacation object
+ */
+export const patchVacationById = handleCatchErrorAsync(async (req, res) => {
+  const { id } = req.params;
+  const data = await patchVacationByIdService(id, req.body);
+  return globalResponse(res, 200, data);
 });

@@ -2,8 +2,8 @@ import {
   getAllWarehouses as getAllWarehousesService,
   getAllWarehousesFilters as getAllWarehousesFiltersService,
   createWarehouse as createWarehouseService,
-  updateWarehouseById as updateWarehouseByIdService,
   deleteWarehouseById as deleteWarehouseByIdService,
+  patchWarehouseById as patchWarehouseByIdService,
 } from './service.js';
 import globalResponse from '../../utils/responses&Errors/globalResponse.js';
 import handleCatchErrorAsync from '../../utils/responses&Errors/handleCatchErrorAsync.js';
@@ -55,22 +55,6 @@ export const createWarehouse = handleCatchErrorAsync(async (req, res) => {
 });
 
 /**
- * Update a warehouse by ID.
- *
- * @param {Object} req - The HTTP request object.
- * @param {Object} req.params - URL parameters
- * @param {number} req.params.id - Warehouse ID to update
- * @param {Object} req.body - Updated warehouse data
- * @param {Object} res - The HTTP response object.
- * @returns {Promise<void>} Updates warehouse and returns success message
- */
-export const updateWarehouseById = handleCatchErrorAsync(async (req, res) => {
-  const { id } = req.params;
-  await updateWarehouseByIdService(id, req.body);
-  globalResponse(res, 200, { message: 'Warehouse updated successfully' });
-});
-
-/**
  * Delete a warehouse by ID.
  *
  * @param {Object} req - The HTTP request object.
@@ -83,4 +67,24 @@ export const deleteWarehouseById = handleCatchErrorAsync(async (req, res) => {
   const { id } = req.params;
   await deleteWarehouseByIdService(id);
   globalResponse(res, 200, { message: 'Warehouse deleted successfully' });
+});
+
+/**
+ * Partially update a warehouse by ID.
+ *
+ * @param {Object} req - The HTTP request object.
+ * @param {Object} req.params - URL parameters
+ * @param {number} req.params.id - Warehouse ID to update
+ * @param {Object} req.body - Partial warehouse data to update
+ * @param {string} [req.body.name] - Warehouse name
+ * @param {string} [req.body.description] - Warehouse description
+ * @param {string} [req.body.address] - Warehouse address
+ * @param {boolean} [req.body.status] - Warehouse status
+ * @param {Object} res - The HTTP response object.
+ * @returns {Promise<void>} Partially updates warehouse and returns success message
+ */
+export const patchWarehouseById = handleCatchErrorAsync(async (req, res) => {
+  const { id } = req.params;
+  await patchWarehouseByIdService(id, req.body);
+  globalResponse(res, 200, { message: 'Warehouse partially updated successfully' });
 });

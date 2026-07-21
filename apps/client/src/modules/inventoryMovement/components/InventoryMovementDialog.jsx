@@ -23,6 +23,7 @@ import { FIELD_LIMITS } from '@/config/fieldLimits';
 import PropTypes from 'prop-types';
 import { useEffect } from 'react';
 import { InventoryMovementSchema, MOVEMENT_TYPES } from '../utils';
+import { pickDirty } from '@/utils/pickDirty';
 
 export const InventoryMovementDialog = ({
   openDialog,
@@ -37,18 +38,19 @@ export const InventoryMovementDialog = ({
   const { t } = useTranslation();
   console.log('produc', products);
 
-  const form = useForm({
-    resolver: zodResolver(InventoryMovementSchema),
-    defaultValues: {
-      productId: '',
-      warehouseId: '',
-      quantity: '',
-      type: '',
-      reason: '',
-    },
-  });
+   const form = useForm({
+     resolver: zodResolver(InventoryMovementSchema),
+     defaultValues: {
+       productId: '',
+       warehouseId: '',
+       quantity: '',
+       type: '',
+       reason: '',
+     },
+   });
+   const { formState: { dirtyFields } } = form;
 
-  useEffect(() => {
+   useEffect(() => {
     if (selectedRow?.id) {
       const mappedValues = {
         productId: selectedRow.productId?.toString() ?? '',
@@ -61,10 +63,16 @@ export const InventoryMovementDialog = ({
     }
   }, [selectedRow, form]);
 
-  const handleSubmit = async (data) => {
-    await onSubmit(data, selectedRow?.id);
-    handleCloseDialog();
-  };
+   const handleSubmit = async (data) => {
+     if (selectedRow?.id) {
+       const changes = pickDirty(data, dirtyFields);
+       await onSubmit({ id: selectedRow?.id, body: changes });
+       handleCloseDialog();
+     } else {
+       await onSubmit(data);
+       handleCloseDialog();
+     }
+   };
 
   const handleCloseDialog = () => {
     form.reset();

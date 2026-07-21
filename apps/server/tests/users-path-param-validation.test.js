@@ -3,10 +3,10 @@ import request from 'supertest';
 import app from '../src/app.js';
 
 describe('Users Path Parameter Validation', () => {
-  describe('PUT /api/v1/users/:id - Path Parameter Validation', () => {
+  describe('PATCH /api/v1/users/:id - Path Parameter Validation', () => {
     it('should return 401 for requests without authentication', async () => {
       // First verify that requests without auth fail at auth level
-      const response = await request(app).put('/api/v1/users/123').send({
+      const response = await request(app).patch('/api/v1/users/123').send({
         name: 'Test User',
         email: 'test@example.com',
       });
@@ -17,7 +17,7 @@ describe('Users Path Parameter Validation', () => {
     it('should return 401 for requests with invalid token', async () => {
       // Verify that requests with invalid auth fail at auth level
       const response = await request(app)
-        .put('/api/v1/users/123')
+        .patch('/api/v1/users/123')
         .set('Authorization', 'Bearer invalid-token')
         .send({
           name: 'Test User',

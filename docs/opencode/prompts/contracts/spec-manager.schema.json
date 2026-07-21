@@ -1,0 +1,79 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Spec-Manager Agent Output Contract Schema",
+  "description": "Defines required fields for spec-manager agent responses",
+  "type": "object",
+  "allOf": [
+    { "$ref": "base.schema.json" },
+    {
+      "type": "object",
+      "required": ["status", "command", "details", "changeName", "workflowState"],
+      "properties": {
+        "status": {
+          "type": "string",
+          "description": "Overall status of the command execution",
+          "enum": ["completed", "in-progress", "failed"]
+        },
+        "command": {
+          "type": "string",
+          "description": "The OpenSpec command executed (e.g., '/opsx-new', '/opsx-propose', '/opsx-apply')"
+        },
+        "changeName": {
+          "type": "string",
+          "description": "The change name being operated on"
+        },
+        "artifactId": {
+          "type": "string",
+          "description": "Identifier of the artifact created or modified (e.g., 'proposal.md', 'design.md', 'tasks.md')"
+        },
+        "details": {
+          "type": "string",
+          "description": "Human-readable description of the command result"
+        },
+        "artifactsCreated": {
+          "type": "array",
+          "description": "List of artifact files created or modified",
+          "items": { "type": "string" }
+        },
+        "workflowState": {
+          "type": "string",
+          "description": "Current state of the OpenSpec workflow",
+          "enum": ["exploration", "specification", "review", "implementation", "verification", "archived"]
+        },
+        "nextSteps": {
+          "type": "array",
+          "description": "Recommended next steps for the orchestrator",
+          "items": { "type": "string" }
+        }
+      }
+    }
+  ],
+  "responseTypes": {
+    "success": {
+      "description": "OpenSpec command completed successfully",
+      "required": ["status", "command", "details"],
+      "properties": {
+        "status": { "const": "completed" },
+        "artifactsCreated": { "type": "array", "items": { "type": "string" } },
+        "workflowState": { "type": "string" },
+        "nextSteps": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "failure": {
+      "description": "OpenSpec command failed",
+      "required": ["status", "command", "details", "error"],
+      "properties": {
+        "status": { "const": "failed" },
+        "error": {
+          "type": "object",
+          "required": ["code", "message"],
+          "properties": {
+            "code": { "type": "string" },
+            "message": { "type": "string" },
+            "details": { "type": "string" }
+          }
+        }
+      }
+    }
+  }
+}

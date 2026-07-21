@@ -41,11 +41,19 @@ export const expenseFiltersSchema = Joi.object({
   page: Joi.number().integer(),
 });
 
-export const expenseCreateUpdateSchema = Joi.object({
-  description: Joi.string().max(255).required(),
-  total: Joi.number().precision(2).positive().required(), // .positive() ensures it's > 0
-  category: Joi.string()
-    .valid(...expenseCategoryEnumValues)
-    .required(),
+export const expenseCreateSchema = Joi.object({
+   description: Joi.string().max(255).required(),
+   total: Joi.number().precision(2).positive().required(), // .positive() ensures it's > 0
+   category: Joi.string()
+     .valid(...expenseCategoryEnumValues)
+     .required(),
 });
+
+export const expenseUpdateSchema = Joi.object({
+   description: Joi.string().max(255).allow(null, ''),
+   total: Joi.number().precision(2).positive(),
+   category: Joi.string()
+     .valid(...expenseCategoryEnumValues)
+     .allow(null, ''),
+}).min(1);
 // {{ Expense Schemas END }}

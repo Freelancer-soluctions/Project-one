@@ -2,8 +2,9 @@ import express from 'express';
 import {
   getAllPerformanceEvaluations,
   createPerformanceEvaluation,
-  updatePerformanceEvaluationById,
+
   deletePerformanceEvaluationById,
+  patchPerformanceEvaluationById,
 } from './controller.js';
 import {
   verifyToken,
@@ -13,9 +14,10 @@ import {
   validatePathParam,
 } from '../../middleware/index.js';
 import {
-  performanceEvaluationFiltersSchema,
-  performanceEvaluationCreateUpdateSchema,
-} from './schemas/performanceEvaluation.joi.js';
+   performanceEvaluationFiltersSchema,
+   performanceEvaluationCreateSchema,
+   performanceEvaluationUpdateSchema,
+ } from './schemas/performanceEvaluation.joi.js';
 import { ROLESCODES, PERMISSIONCODES } from '../../utils/constants/enums.js';
 
 const router = express.Router();
@@ -106,22 +108,24 @@ router.get(
  *                   $ref: "#/components/schemas/ResponseGetPerformanceEvaluation"
  */
 router.post(
-  '/',
-  checkRoleAuthOrPermisssion({
-    allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER],
-    permissions: [PERMISSIONCODES.canCreateEvaluatePerformance],
-  }),
-  validateSchema(performanceEvaluationCreateUpdateSchema),
-  createPerformanceEvaluation
-);
+   '/',
+   checkRoleAuthOrPermisssion({
+     allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER],
+     permissions: [PERMISSIONCODES.canCreateEvaluatePerformance],
+   }),
+   validateSchema(performanceEvaluationCreateSchema),
+   createPerformanceEvaluation
+ );
+
+
 
 /**
  * @openapi
  * /v1/performance-evaluations/{id}:
- *   put:
+ *   patch:
  *     tags:
  *       - Performance Evaluations
- *     summary: Update a performance evaluation by ID
+ *     summary: Partially update a performance evaluation by ID
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -136,7 +140,7 @@ router.post(
  *       content:
  *         application/json:
  *           schema:
- *             $ref: "#/components/schemas/PerformanceEvaluationUpdate"
+ *             $ref: "#/components/schemas/PerformanceEvaluationPatch"
  *     responses:
  *       200:
  *         description: OK
@@ -153,19 +157,19 @@ router.post(
  *                   example: 200
  *                 message:
  *                   type: string
- *                   example: "Performance evaluation updated successfully"
+ *                   example: "Performance evaluation partially updated successfully"
  *                 data:
  *                   $ref: "#/components/schemas/ResponseGetPerformanceEvaluation"
- */
-router.put(
+ *     */
+router.patch(
   '/:id',
   checkRoleAuthOrPermisssion({
     allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER],
     permissions: [PERMISSIONCODES.canEditEvaluatePerformance],
   }),
   validatePathParam,
-  validateSchema(performanceEvaluationCreateUpdateSchema),
-  updatePerformanceEvaluationById
+  validateSchema(performanceEvaluationUpdateSchema),
+  patchPerformanceEvaluationById
 );
 
 /**

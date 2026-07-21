@@ -45,7 +45,7 @@ const salesApi = createApi({
     updateSaleById: builder.mutation({
       query: ({ id, data }) => ({
         url: `/sales/${id}`,
-        method: 'PUT',
+        method: 'PATCH',
         body: data,
       }),
       invalidatesTags: ['Sales'],

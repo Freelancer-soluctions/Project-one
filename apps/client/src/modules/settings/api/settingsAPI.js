@@ -1,13 +1,21 @@
 import { axiosPrivate } from '@/config/axios';
 
-export function GetSettingsByUserIdFetch(id) {
-  return axiosPrivate.get(`/settings/${id}`);
-}
+export const GetSettingsByUserIdFetch = async (userId) => {
+  const response = await axiosPrivate.get(`/settings/${userId}`);
+  return response;
+};
 
-export function SaveLanguage(body) {
-  return axiosPrivate.post('/settings/language', body);
-}
+export const SaveLanguage = async (data) => {
+  const response = await axiosPrivate.post('/settings/language/', data);
+  return response;
+};
 
-export function SaveDisplaySettings(body) {
-  return axiosPrivate.post('/settings/display', body);
-}
+export const SaveDisplaySettings = async (data) => {
+  const response = await axiosPrivate.post('/settings/display/', data);
+  return response;
+};
+
+export const PatchSettingsById = async ({ id, data }) => {
+  const response = await axiosPrivate.patch(`/settings/${id}`, data);
+  return response;
+};

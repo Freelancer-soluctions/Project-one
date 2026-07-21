@@ -81,7 +81,7 @@ const usersApi = createApi({
     updateUserById: builder.mutation({
       query: ({ id, data }) => ({
         url: `/users/${id}`,
-        method: 'PUT',
+        method: 'PATCH',
         body: data,
       }),
       invalidatesTags: ['Users'], // Invalida el cache de 'Notes' para volver a consultar

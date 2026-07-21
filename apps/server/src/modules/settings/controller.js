@@ -129,3 +129,40 @@ export const deleteProductCategoryById = handleCatchErrorAsync(
     globalResponse(res, 200, { message: 'Item deleted successfully' });
   }
 );
+
+/**
+ * Partially update user settings by ID.
+ *
+ * @param {Object} req - The HTTP request object.
+ * @param {Object} req.params - URL parameters
+ * @param {number} req.params.id - Settings ID to update
+ * @param {Object} req.body - Request body containing partial settings data
+ * @param {string} [req.body.language] - Language code to update
+ * @param {Object} [req.body.displayOptions] - Display options to update
+ * @param {Object} res - The HTTP response object.
+ * @returns {Promise<void>} Sends response with updated settings data
+ */
+export const patchSettingsById = handleCatchErrorAsync(async (req, res) => {
+  const settingsId = req.params.id;
+  const { language, displayOptions } = req.body;
+  
+  // Build update object with only provided fields
+  const updateData = {};
+  if (language !== undefined) {
+    updateData.language = language;
+  }
+  if (displayOptions !== undefined) {
+    updateData.displayOptions = displayOptions;
+  }
+  
+  // If there's nothing to update, return early
+  if (Object.keys(updateData).length === 0) {
+    return globalResponse(res, 400, { 
+      error: true, 
+      message: 'No valid fields provided for update' 
+    });
+  }
+  
+  const result = await settingsService.patchSettingsById(settingsId, updateData);
+  globalResponse(res, 200, result);
+});

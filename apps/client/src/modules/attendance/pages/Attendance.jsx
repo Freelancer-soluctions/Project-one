@@ -13,6 +13,7 @@ import {
   useDeleteAttendanceByIdMutation,
 } from '../api/attendanceApi'; // Adjusted import path
 import { useGetAllEmployeesFiltersQuery } from '@/modules/employees/api/employeesApi'; // Assuming employee API exists
+import { useQueryData, useLoadingState } from '@/hooks';
 import AlertDialogComponent from '@/components/alertDialog/AlertDialog';
 import { Spinner } from '@/components/loader/Spinner';
 
@@ -29,20 +30,15 @@ const Attendance = () => {
   });
   const [filters, setFilters] = useState({});
 
-  const {
-    data: dataEmployees = { data: [] },
-    isLoading: isLoadingEmployees,
-    isFetching: isFetchingEmployees,
-  } = useGetAllEmployeesFiltersQuery();
-
-  const [
-    getAllAttendance,
-    {
-      data: dataAttendance = { data: [] },
-      isLoading: isLoadingAttendance,
-      isFetching: isFetchingAttendance,
-    },
-  ] = useLazyGetAllAttendanceQuery();
+  const [triggerAttendance, queryStateAttendance] = useLazyGetAllAttendanceQuery();
+  const { data: dataAttendance = [], isLoading: isLoadingAtt, isFetching: isFetchingAtt } = useQueryData(queryStateAttendance);
+  
+  const { data: dataEmployees = [], isLoading: isLoadingEmp, isFetching: isFetchingEmp } = useQueryData(useGetAllEmployeesFiltersQuery());
+  
+  const { isLoading: isLoadingAny, isFetching: isFetchingAny } = useLoadingState([
+    { isLoading: isLoadingAtt, isFetching: isFetchingAtt },
+    { isLoading: isLoadingEmp, isFetching: isFetchingEmp },
+  ]);
 
   const [updateAttendanceById, { isLoading: isLoadingPut }] =
     useUpdateAttendanceByIdMutation();
@@ -67,12 +63,12 @@ const Attendance = () => {
    * para evitar duplicación de lógica y estados inconsistentes.
    */
   useEffect(() => {
-    getAllAttendance({
+    triggerAttendance({
       page: pagination.pageIndex + 1,
       limit: pagination.pageSize,
       ...filters,
     });
-  }, [pagination.pageIndex, pagination.pageSize, filters, getAllAttendance]);
+  }, [pagination.pageIndex, pagination.pageSize, filters, triggerAttendance]);
 
   /**
    * Al aplicar nuevos filtros:
@@ -92,28 +88,20 @@ const Attendance = () => {
     setFilters(newFilters);
   };
 
-  const handleSubmit = async (values, attendanceId) => {
+  const handleSubmit = async (result) => {
     try {
-      const action = attendanceId ? updateAttendanceById : createAttendance;
-      const payload = attendanceId
-        ? {
-            id: attendanceId,
-            data: {
-              employeeId: values.employeeId,
-              date: values.date,
-              entryTime: values.entryTime,
-              exitTime: values.exitTime,
-              workedHours: values.workedHours,
-            },
-          }
-        : values;
-
-      await action(payload).unwrap();
+      if (result?.id) {
+        // edit → result = { id, body } with only changed fields (PATCH)
+        await updateAttendanceById({ id: result.id, data: result.body }).unwrap();
+      } else {
+        // create → result = form values (POST)
+        await createAttendance(result).unwrap();
+      }
 
       setAlertProps({
-        alertTitle: t(attendanceId ? 'update_record' : 'add_record'),
+        alertTitle: t(result?.id ? 'update_record' : 'add_record'),
         alertMessage: t(
-          attendanceId ? 'updated_successfully' : 'added_successfully'
+          result?.id ? 'updated_successfully' : 'added_successfully'
         ),
         cancel: false,
         success: true,
@@ -209,13 +197,11 @@ const Attendance = () => {
       {/* Adjust module name */}
       <div className="relative">
         {/* Show spinner when loading or fetching */}
-        {(isLoadingAttendance ||
-          isLoadingPut ||
-          isLoadingPost ||
-          isLoadingDelete ||
-          isLoadingEmployees ||
-          isFetchingEmployees ||
-          isFetchingAttendance) && <Spinner />}
+        {(isLoadingAny ||
+           isFetchingAny ||
+           isLoadingPut ||
+           isLoadingPost ||
+           isLoadingDelete) && <Spinner />}
 
         <div className="grid grid-cols-2 grid-rows-4 gap-4 md:grid-cols-5">
           <div className="col-span-2 row-span-1 md:col-span-5">
@@ -223,7 +209,7 @@ const Attendance = () => {
             <AttendanceFiltersForm
               onSubmit={handleSubmitFilters}
               onAddDialog={handleAddDialog}
-              dataEmployees={dataEmployees.data} // Pass employee data for filters
+              dataEmployees={dataEmployees} // Pass employee data for filters
             />
           </div>
           {/* Datatable */}
@@ -243,7 +229,7 @@ const Attendance = () => {
             onSubmit={handleSubmit}
             onDeleteById={handleDelete}
             actionDialog={actionDialog}
-            dataEmployees={dataEmployees.data} // Pass employee data for filters
+            dataEmployees={dataEmployees} // Pass employee data for filters
           />
           <AlertDialogComponent
             openAlertDialog={openAlertDialog}

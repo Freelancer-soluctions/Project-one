@@ -14,6 +14,7 @@ import { Button } from '@/components/ui/button';
 import { LuPlus, LuSearch, LuEraser } from 'react-icons/lu';
 
 import PropTypes from 'prop-types';
+import { FIELD_LIMITS } from '@/config/fieldLimits';
 
 export const SettingsProductCategoriesFiltersForm = ({ onSubmit, onAdd }) => {
   const { t } = useTranslation();
@@ -64,7 +65,7 @@ export const SettingsProductCategoriesFiltersForm = ({ onSubmit, onAdd }) => {
                       placeholder={t('category_description_placeholder')}
                       type="text"
                       autoComplete="off"
-                      maxLength={80}
+                      maxLength={FIELD_LIMITS.productCategories.description}
                       {...field}
                       value={field.value ?? ''}
                     />
@@ -89,7 +90,7 @@ export const SettingsProductCategoriesFiltersForm = ({ onSubmit, onAdd }) => {
                       placeholder={t('category_code_placeholder')}
                       type="text"
                       autoComplete="off"
-                      maxLength={3}
+                      maxLength={FIELD_LIMITS.productCategories.code}
                       {...field}
                       value={field.value ?? ''}
                     />

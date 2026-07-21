@@ -1,5 +1,6 @@
 import { useEffect, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
+import { pickDirty } from '@/utils/pickDirty';
 import { useTranslation } from 'react-i18next';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { FIELD_LIMITS } from '@/config/fieldLimits';
@@ -62,12 +63,13 @@ export const EmployeesDialog = ({
     },
   });
 
+  const { formState: { dirtyFields } } = form;
+
   // Actualiza todos los valores del formulario al cambiar `selectedRow`
   useEffect(() => {
     if (selectedRow?.id) {
       // Filtra y mapea solo los valores necesarios
       const mappedValues = {
-        id: selectedRow.id,
         name: selectedRow.name,
         lastName: selectedRow.lastName,
         dni: selectedRow.dni,
@@ -109,9 +111,14 @@ export const EmployeesDialog = ({
     }
   }, [selectedRow, openDialog, form]);
 
-  const handleSubmit = (data) => {
-    onSubmit(data, employeeId);
-  };
+   const handleSubmit = (data) => {
+     if (employeeId) {
+       const changes = pickDirty(data, dirtyFields);
+       onSubmit({ id: employeeId, body: changes });
+     } else {
+       onSubmit(data);
+     }
+   };
 
   const handleDelete = () => {
     onDeleteById(selectedRow.id);

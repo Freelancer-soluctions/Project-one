@@ -9,6 +9,7 @@ import {
   validatePathParam,
 } from '../../middleware/index.js';
 import { ROLESCODES, PERMISSIONCODES } from '../../utils/constants/enums.js';
+import { providerOrderUpdateSchema } from './schemas/providerOrder.joi.js';
 
 const router = Router();
 // uso global de middleware
@@ -33,13 +34,14 @@ router.post(
   validateSchema(),
   providerOrderController.createProviderOrder
 );
-router.put(
+router.patch(
   '/:id',
   checkRoleAuthOrPermisssion({
     allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER, ROLESCODES.USER],
     permissions: [PERMISSIONCODES.canEditProviderOrder],
   }),
   validatePathParam,
+  validateSchema(providerOrderUpdateSchema),
   providerOrderController.updateProviderOrderById
 );
 router.delete(

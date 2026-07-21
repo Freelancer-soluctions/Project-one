@@ -22,6 +22,7 @@ import { SettingsProductCategoriesSchema } from '../utils';
 import { useTranslation } from 'react-i18next';
 import { useEffect, useMemo } from 'react';
 import PropTypes from 'prop-types';
+import { pickDirty } from '@/utils/pickDirty';
 import { FIELD_LIMITS } from '@/config/fieldLimits';
 
 export const SettingsProductCategoriesBasicInfo = ({
@@ -39,6 +40,7 @@ export const SettingsProductCategoriesBasicInfo = ({
       code: '',
     },
   });
+  const { formState: { dirtyFields } } = form;
 
   const id = useMemo(() => selectedRow?.id ?? null, [selectedRow?.id]);
 
@@ -52,7 +54,12 @@ export const SettingsProductCategoriesBasicInfo = ({
   }, [selectedRow, form]);
 
   const submitForm = (data) => {
-    onSubmitCreateEdit(data);
+    if (id) {
+      const changes = pickDirty(data, dirtyFields);
+      onSubmitCreateEdit(changes);
+    } else {
+      onSubmitCreateEdit(data);
+    }
   };
 
   const handleDelete = (id) => {

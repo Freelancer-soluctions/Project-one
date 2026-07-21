@@ -30,6 +30,7 @@ import { cn } from '@/lib/utils';
 import PropTypes from 'prop-types';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { NewsFiltersSchema } from '../utils';
+import { FIELD_LIMITS } from '@/config/fieldLimits';
 
 export const NewsFiltersForm = ({
   onSubmit,
@@ -100,16 +101,16 @@ export const NewsFiltersForm = ({
                         placeholder={t('description_placeholder')}
                         type="text"
                         autoComplete="false"
-                        maxLength={50}
-                        {...field}
-                        value={field.value ?? ''}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                );
-              }}
-            />
+                         maxLength={FIELD_LIMITS.news.description}
+                         {...field}
+                         value={field.value ?? ''}
+                       />
+                     </FormControl>
+                     <FormMessage />
+                   </FormItem>
+                 );
+               }}
+             />
 
             <FormField
               control={formFilter.control}

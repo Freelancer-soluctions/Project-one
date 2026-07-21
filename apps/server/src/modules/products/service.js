@@ -109,10 +109,28 @@ export const updateById = async (userId, id, data) => {
  * @param {number} id - The ID of the product to delete.
  * @returns {Promise<Object>} The result of the deletion.
  */
-
 export const deleteById = async (id) => {
   const rowId = Number(id);
   return productsDao.deleteRow({ id: rowId });
+};
+
+/**
+ * Partially update an existing product in the database by its ID.
+ *
+ * @param {number} userId - The ID of the user updating the product.
+ * @param {number} id - The ID of the product to update.
+ * @param {Object} data - The partial data for the product.
+ * @returns {Promise<Object>} The updated product.
+ */
+export const patchById = async (userId, id, data) => {
+  const rowId = Number(id);
+  const product = {
+    ...data,
+    updatedOn: new Date(),
+    updatedBy: Number(userId),
+  };
+
+  return productsDao.updateRow(product, { id: rowId });
 };
 
 /**

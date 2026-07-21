@@ -12,9 +12,10 @@ const notesApi = createApi({
   tagTypes: ['Notes', 'Hashtags'],
   endpoints: (builder) => ({
     getAllCountNotes: builder.query({
-      query: () => ({
+      query: (args) => ({
         url: `/notes/notesCount`,
         method: 'GET',
+        params: { ...args },
       }),
       providesTags: ['Notes'],
     }),
@@ -36,19 +37,19 @@ const notesApi = createApi({
     updateNoteColumId: builder.mutation({
       query: (body) => ({
         url: `/notes/noteColumn`,
-        method: 'PUT',
+        method: 'PATCH',
         body,
       }),
       invalidatesTags: ['Notes'],
     }),
     updateNoteById: builder.mutation({
-      query: ({ id, body }) => ({
-        url: `/notes/${id}`,
-        method: 'PUT',
-        body,
-      }),
-      invalidatesTags: ['Notes'],
-    }),
+       query: ({ id, body }) => ({
+         url: `/notes/${id}`,
+         method: 'PATCH',
+         body,
+       }),
+       invalidatesTags: ['Notes'],
+     }),
     createNote: builder.mutation({
       query: (body) => ({
         url: `/notes/`,
@@ -73,6 +74,16 @@ const notesApi = createApi({
       }),
     }),
 
+        // === FAVORITE ENDPOINTS ===
+
+    toggleFavorite: builder.mutation({
+      query: (noteId) => ({
+        url: `/notes/${noteId}/fav`,
+        method: 'PATCH',
+      }),
+      invalidatesTags: ['Notes'],
+    }),
+
     // === HASHTAG ENDPOINTS ===
 
     getAllHashtags: builder.query({
@@ -91,13 +102,13 @@ const notesApi = createApi({
       invalidatesTags: ['Hashtags'],
     }),
     updateHashtag: builder.mutation({
-      query: ({ id, body }) => ({
-        url: `/notes/hashtags/${id}`,
-        method: 'PUT',
-        body,
-      }),
-      invalidatesTags: ['Hashtags'],
-    }),
+       query: ({ id, body }) => ({
+         url: `/notes/hashtags/${id}`,
+         method: 'PATCH',
+         body,
+       }),
+       invalidatesTags: ['Hashtags'],
+     }),
     deleteHashtag: builder.mutation({
       query(id) {
         return {
@@ -113,18 +124,19 @@ const notesApi = createApi({
 // Export hooks for usage in functional components, which are
 // auto-generated based on the defined endpoints
 export const {
-  useGetAllNotesQuery,
-  useGetAllNotesColumnsQuery,
-  useCreateNoteMutation,
-  useUpdateNoteColumIdMutation,
-  useUpdateNoteByIdMutation,
-  useDeleteNoteByIdMutation,
-  useGetAllCountNotesQuery,
-  useGetMentionsByNoteIdQuery,
-  useGetAllHashtagsQuery,
-  useCreateHashtagMutation,
-  useUpdateHashtagMutation,
-  useDeleteHashtagMutation,
-} = notesApi;
+   useGetAllNotesQuery,
+   useGetAllNotesColumnsQuery,
+   useCreateNoteMutation,
+   useUpdateNoteColumIdMutation,
+   useUpdateNoteByIdMutation,
+   useDeleteNoteByIdMutation,
+   useGetAllCountNotesQuery,
+   useGetMentionsByNoteIdQuery,
+   useGetAllHashtagsQuery,
+   useCreateHashtagMutation,
+   useUpdateHashtagMutation,
+   useDeleteHashtagMutation,
+   useToggleFavoriteMutation,
+  } = notesApi;
 
 export default notesApi;

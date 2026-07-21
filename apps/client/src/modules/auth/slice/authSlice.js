@@ -104,13 +104,13 @@ const authSlice = createSlice({
       sessionStorage.setItem('accessToken', state.user.data.accessToken);
     });
     builder.addCase(signInFetch.rejected, (state, action) => {
-      console.log('Error', action.error.message);
-      // console.log('Error payload', action.payload.error)
-      state.isError = true;
-      state.isAuth = false;
-      state.isLoading = false;
-      state.errorMessage = action.error.message;
-    });
+       console.log('Error', action.payload || action.error.message);
+       // console.log('Error payload', action.payload.error)
+       state.isError = true;
+       state.isAuth = false;
+       state.isLoading = false;
+       state.errorMessage = action.payload?.message || action.error.message;
+     });
     // // Redux persist
     // builder.addCase('auth/rehydrate', (state, action) => {
     //   const userData = action.payload;
@@ -133,14 +133,14 @@ const authSlice = createSlice({
       sessionStorage.setItem('accessToken', state.user.data.accessToken);
       console.log('new-accesst store', action.payload.data.accessToken);
     });
-    builder.addCase(refreshTokenFecth.rejected, (state, action) => {
-      console.log('Error', action.error.message);
-      console.log('Error payload', action.payload.error);
-      state.isError = true;
-      state.isAuth = false;
-      state.isLoading = false;
-      state.errorMessage = action.error.message;
-    });
+     builder.addCase(refreshTokenFecth.rejected, (state, action) => {
+       console.log('Error', action.payload || action.error.message);
+       console.log('Error payload', action.payload?.error);
+       state.isError = true;
+       state.isAuth = false;
+       state.isLoading = false;
+       state.errorMessage = action.payload?.error?.message || action.payload?.message || action.error.message;
+     });
   },
 });
 

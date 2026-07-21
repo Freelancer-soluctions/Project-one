@@ -5,12 +5,9 @@ import { Suspense } from 'react';
 import { Spinner } from '../../../components/loader/Spinner';
 import { Outlet } from 'react-router';
 import { useUserSettings } from '@/hooks';
-import { useGetAllCountNotesQuery } from '@/modules/notes/api/notesAPI';
 import { useGetStockAlertsQuery } from '@/modules/stock/api/stockAPI';
 const Home = () => {
   const { settings } = useUserSettings();
-  const { data: dataCountNotes = { data: [] } } = useGetAllCountNotesQuery();
-
   const { data: dataCountStock = { data: [] } } = useGetStockAlertsQuery();
 
   return (
@@ -22,7 +19,6 @@ const Home = () => {
         <div className="flex-col hidden p-4 shadow-sm lg:flex bg-background">
           <nav className="flex flex-col gap-2">
             <SideBar
-              dataCountNotes={dataCountNotes}
               dataCountStock={dataCountStock}
               displaySettings={settings}
             />

@@ -32,21 +32,25 @@ import {
 } from '@/components/ui/popover';
 import { useTranslation } from 'react-i18next';
 import { CgNotes } from 'react-icons/cg';
-import { LuTags } from 'react-icons/lu';
+import { LuTags, LuStar } from 'react-icons/lu';
+import { Switch } from '@/components/ui/switch';
 import PropTypes from 'prop-types';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { NotesCreateDialogSchema } from '../utils/index';
 import { useGetActiveUsers } from '../hooks/useGetActiveUsers';
 import { useGetHashtagItems } from '../hooks';
+import { useGetNoteColumns } from '../hooks';
 import { HashtagsSelector } from './NotesHashtagSelector';
-import {NOTES_FIELD_LIMITS} from '../constant/enums/enums'
+import { FIELD_LIMITS } from '@/config/fieldLimits'
 
-export function NotesCreateDialog({ onCreateNote, dataStatus, open, setOpen }) {
+export function NotesCreateDialog({ onCreateNote, open, setOpen }) {
   const { t } = useTranslation();
-  const { dataUsers, isLoadingUsers, isFetchingUsers } = useGetActiveUsers();
+  const { dataUsers } = useGetActiveUsers();
   const { hashtagItems } = useGetHashtagItems();
+  const { dataColumns } = useGetNoteColumns();
   const [selectedHashtagIds, setSelectedHashtagIds] = useState([]);
+  const [hashtagOpen, setHashtagOpen] = useState(false);
 
   // Configura el formulario
   const formNotesDialog = useForm({
@@ -54,6 +58,7 @@ export function NotesCreateDialog({ onCreateNote, dataStatus, open, setOpen }) {
     defaultValues: {
       title: '',
       content: '',
+      isFavorite: false,
     },
   });
 
@@ -103,29 +108,35 @@ export function NotesCreateDialog({ onCreateNote, dataStatus, open, setOpen }) {
                   return (
                     <FormItem className="flex flex-col flex-auto">
                       <FormLabel htmlFor="status">{t('status')}*</FormLabel>
-                      <Select
-                        onValueChange={(code) => {
-                          // Buscar el objeto completo por el `code`
-                          const selectedStatus = dataStatus.find(
-                            (item) => item.code === code
-                          );
-                          if (selectedStatus) {
-                            field.onChange(selectedStatus); // Asignar el objeto completo
-                          }
-                        }}
-                        value={field.value?.code}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder={t('select_status')} />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {dataStatus.map((col) => (
-                            <SelectItem key={col.id} value={col.code}>
-                              {col.title}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                       <Select
+                         onValueChange={(code) => {
+                           // Buscar el objeto completo por el `code`
+                           const selectedStatus = dataColumns.find(
+                             (item) => item.code === code
+                           );
+                           if (selectedStatus) {
+                             field.onChange(selectedStatus); // Asignar el objeto completo
+                           }
+                         }}
+                         value={field.value?.code}
+                       >
+                         <SelectTrigger>
+                           <SelectValue placeholder={t('select_status')} />
+                         </SelectTrigger>
+                          <SelectContent>
+                            {dataColumns && dataColumns.length > 0 ? (
+                              dataColumns.map((col) => (
+                                <SelectItem key={col.id} value={col.code}>
+                                  {col.title}
+                                </SelectItem>
+                              ))
+                            ) : (
+                              <SelectItem value="loading" disabled>
+                                {t('loading')}
+                              </SelectItem>
+                            )}
+                          </SelectContent>
+                       </Select>
                       <FormMessage />
                     </FormItem>
                   );
@@ -136,7 +147,7 @@ export function NotesCreateDialog({ onCreateNote, dataStatus, open, setOpen }) {
             {/* Hashtags selector */}
             <div className="space-y-2">
               <FormLabel>{t('hashtags_title')}</FormLabel>
-              <Popover>
+              <Popover open={hashtagOpen} onOpenChange={setHashtagOpen}>
                 <PopoverTrigger asChild>
                   <Button variant="outline" type="button" className="w-full justify-start gap-2">
                     <LuTags className="h-4 w-4" />
@@ -150,10 +161,32 @@ export function NotesCreateDialog({ onCreateNote, dataStatus, open, setOpen }) {
                     hashtags={hashtagItems}
                     selectedIds={selectedHashtagIds.map(String)}
                     onSelectionChange={(ids) => setSelectedHashtagIds(ids.map(Number))}
-                    onClose={() => {}}
+                    onClose={() => setHashtagOpen(false)}
                   />
                 </PopoverContent>
               </Popover>
+            </div>
+
+            {/* Favorite switch */}
+            <div className="flex items-center gap-2">
+              <FormField
+                control={formNotesDialog.control}
+                name="isFavorite"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-center gap-2 space-y-0">
+                    <FormControl>
+                      <Switch
+                        checked={field.value || false}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                    <FormLabel className="cursor-pointer flex items-center gap-1">
+                      <LuStar className="w-4 h-4 text-amber-500" />
+                      {t('mark_as_favorite')}
+                    </FormLabel>
+                  </FormItem>
+                )}
+              />
             </div>
 
             <div className="space-y-2">
@@ -170,7 +203,7 @@ export function NotesCreateDialog({ onCreateNote, dataStatus, open, setOpen }) {
                           {...field}
                           placeholder={t('title_placeholder')}
                           required
-                          maxLength={50}
+                          maxLength={FIELD_LIMITS.notes.title}
                         />
                       </FormControl>
                       <FormMessage />
@@ -188,13 +221,13 @@ export function NotesCreateDialog({ onCreateNote, dataStatus, open, setOpen }) {
                     <FormItem className="flex flex-col flex-auto col-span-1">
                       <FormLabel htmlFor="content">{t('content')}*</FormLabel>
                 <FormControl>
-                  <TiptapEditor
-                    value={field.value}
-                    onChange={field.onChange}
-                    placeholder={t('content_placeholder')}
-                    mentionSuggestions={dataUsers}
-                    characterLimit={NOTES_FIELD_LIMITS.content}
-                  />
+<TiptapEditor
+                     value={field.value}
+                     onChange={field.onChange}
+                     placeholder={t('content_placeholder')}
+                     mentionSuggestions={dataUsers}
+                     characterLimit={FIELD_LIMITS.notes.content}
+                   />
                 </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -222,7 +255,6 @@ export function NotesCreateDialog({ onCreateNote, dataStatus, open, setOpen }) {
 
 NotesCreateDialog.propTypes = {
   onCreateNote: PropTypes.func.isRequired,
-  dataStatus: PropTypes.array.isRequired,
   open: PropTypes.bool.isRequired,
   setOpen: PropTypes.func.isRequired,
 };

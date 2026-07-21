@@ -183,3 +183,19 @@ export const deleteProductCategory = async (where) => {
     where,
   });
 };
+
+/**
+ * Partially update settings by ID.
+ *
+ * @param {number} id - Settings ID.
+ * @param {Object} data - Partial settings data to update.
+ * @param {string} [data.language] - Language code to update.
+ * @param {Object} [data.displayOptions] - Display options to update.
+ * @returns {Promise<Object>} The updated settings object.
+ */
+export const patchSettingsById = async (id, data) => {
+  return await prisma.settings.update({
+    where: { id },
+    data,
+  });
+};

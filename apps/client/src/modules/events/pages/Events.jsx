@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { EventDialog, EventList, EventFiltersForm } from '../components';
 import AlertDialogComponent from '@/components/alertDialog/AlertDialog';
@@ -7,10 +7,11 @@ import { Spinner } from '@/components/loader/Spinner';
 import {
   useCreateEventMutation,
   useGetAllEventTypesQuery,
-  useGetAllEventsQuery,
+  useLazyGetAllEventsQuery,
   useUpdateEventByIdMutation,
   useDeleteEventByIdMutation,
 } from '../api/eventsAPI';
+import { DEFAULT_PAGE_SIZE } from '../constants';
 
 export default function Events() {
   const { t } = useTranslation();
@@ -18,7 +19,9 @@ export default function Events() {
   const [searchQuery, setSearchQuery] = useState('');
   const [event, setEvent] = useState({});
   const [alertProps, setAlertProps] = useState({});
-  const [openAlertDialog, setOpenAlertDialog] = useState(false); //alert dialog open/close
+  const [openAlertDialog, setOpenAlertDialog] = useState(false);
+  const [pageIndex, setPageIndex] = useState(0);
+  const pageSize = DEFAULT_PAGE_SIZE;
 
   const [createEvent, { isLoading: isLoadingPost }] = useCreateEventMutation();
 
@@ -33,39 +36,36 @@ export default function Events() {
     isFetching: isFetchingTypes,
   } = useGetAllEventTypesQuery();
 
-  const {
-    data: dataEvents = { data: [] },
-    isLoading: isLoadingEvents,
-    isFetching: isFetchingEvents,
-  } = useGetAllEventsQuery(searchQuery);
+  const [triggerGetAllEvents, { data: dataEvents = { data: { data: [], total: 0 } }, isLoading: isLoadingEvents, isFetching: isFetchingEvents }] =
+    useLazyGetAllEventsQuery();
 
-  const handleAddEvent = async (data) => {
-    data.id
-      ? await updateEvent({
-          id: data.id,
-          data: {
-            title: data.title,
-            speaker: data.speaker,
-            description: data.description,
-            type: data.type,
-            eventDate: data.eventDate,
-            startTime: data.startTime,
-            endTime: data.endTime,
-          },
-        }).unwrap()
-      : await createEvent({
-          title: data.title,
-          speaker: data.speaker,
-          description: data.description,
-          type: data.type,
-          eventDate: data.eventDate,
-          startTime: data.startTime,
-          endTime: data.endTime,
-        }).unwrap();
+  useEffect(() => {
+    const promise = triggerGetAllEvents({ page: pageIndex + 1, limit: pageSize, search: searchQuery });
+    return () => {
+      promise.abort();
+    };
+  }, [pageIndex, pageSize, searchQuery, triggerGetAllEvents]);
+
+  const handleSearchChange = useCallback((value) => {
+    setSearchQuery(value);
+    setPageIndex(0);
+  }, []);
+
+  const handlePageChange = useCallback((newPageIndex) => {
+    setPageIndex(newPageIndex);
+  }, []);
+
+  const handleAddEvent = async (result) => {
+    try {
+      if (result?.id) {
+        await updateEvent({ id: result.id, data: result.body }).unwrap();
+      } else {
+        await createEvent(result).unwrap();
+      }
 
     setAlertProps({
-      alertTitle: t(data.id ? 'update_record' : 'add_record'),
-      alertMessage: t(data.id ? 'updated_successfully' : 'added_successfully'),
+      alertTitle: t(result?.id ? 'update_record' : 'add_record'),
+      alertMessage: t(result?.id ? 'updated_successfully' : 'added_successfully'),
       cancel: false,
       success: true,
       onSuccess: () => {},
@@ -73,6 +73,17 @@ export default function Events() {
     });
     setOpenAlertDialog(true);
     setIsDialogOpen(false);
+  } catch (err) {
+    setAlertProps({
+      alertTitle: t('error'),
+      alertMessage: t('something_went_wrong'),
+      cancel: false,
+      success: false,
+      onSuccess: () => {},
+      variantSuccess: 'destructive',
+    });
+    setOpenAlertDialog(true);
+  }
   };
 
   const handleEditEvent = (updatedEvent) => {
@@ -102,7 +113,7 @@ export default function Events() {
             onSuccess: () => {},
             variantSuccess: 'info',
           });
-          setOpenAlertDialog(true); // Open alert dialog
+          setOpenAlertDialog(true);
         } catch (err) {
           console.error('Error deleting:', err);
         }
@@ -125,7 +136,7 @@ export default function Events() {
           isFetchingEvents) && <Spinner />}
         {/* Header fijo */}
         <EventFiltersForm
-          setSearchQuery={setSearchQuery}
+          setSearchQuery={handleSearchChange}
           searchQuery={searchQuery}
           setIsDialogOpen={setIsDialogOpen}
           setEvent={setEvent}
@@ -133,7 +144,11 @@ export default function Events() {
         {/* Contenedor con scroll */}
         <div className="flex-1 p-4 overflow-y-auto sm:p-6">
           <EventList
-            events={dataEvents.data}
+            events={dataEvents?.data?.data || []}
+            pageIndex={pageIndex}
+            pageSize={pageSize}
+            total={dataEvents?.data?.total || 0}
+            onPageChange={handlePageChange}
             onEdit={handleEditEvent}
             onDelete={handleDeleteEvent}
           />

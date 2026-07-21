@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import PropTypes from "prop-types"
 import { X, ChevronLeft } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -57,6 +58,7 @@ export function HashtagCreator({
       {/* Header */}
       <div className="flex items-center justify-between border-b px-3 py-2">
         <Button
+          type="button"
           variant="ghost"
           size="icon"
           className="h-8 w-8"
@@ -69,6 +71,7 @@ export function HashtagCreator({
           {isEditing ? t('hashtags_edit_hashtag', { name: editingHashtag.name }) : t('hashtags_create_hashtag')}
         </span>
         <Button
+          type="button"
           variant="ghost"
           size="icon"
           className="h-8 w-8"
@@ -118,6 +121,7 @@ export function HashtagCreator({
       {/* Footer */}
       <div className="border-t p-3">
         <Button
+          type="button"
           variant="secondary"
           size="sm"
           onClick={handleAction}
@@ -130,3 +134,15 @@ export function HashtagCreator({
     </div>
   )
 }
+
+HashtagCreator.propTypes = {
+  onBack: PropTypes.func,
+  onClose: PropTypes.func,
+  onCreate: PropTypes.func,
+  onSave: PropTypes.func,
+  editingHashtag: PropTypes.shape({
+    id: PropTypes.number.isRequired,
+    name: PropTypes.string.isRequired,
+  }),
+  className: PropTypes.string,
+};

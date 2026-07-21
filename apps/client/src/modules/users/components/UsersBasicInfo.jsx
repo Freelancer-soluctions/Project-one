@@ -29,6 +29,7 @@ import { UserSchema } from '../utils';
 import { useNavigate } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import { useEffect, useMemo } from 'react';
+import { pickDirty } from '@/utils/pickDirty';
 import { cn } from '@/lib/utils';
 import {
   Accordion,
@@ -39,6 +40,7 @@ import {
 import { LuUser } from 'react-icons/lu';
 import { LucideUserCheck } from 'lucide-react';
 import PropTypes from 'prop-types';
+import { FIELD_LIMITS } from '@/config/fieldLimits';
 
 export const UsersBasicInfo = ({
   onSubmit,
@@ -58,6 +60,7 @@ export const UsersBasicInfo = ({
     //   permissions: []
     // }
   });
+  const { formState: { dirtyFields } } = form;
 
   const permissions = useWatch({
     control: form.control,
@@ -108,7 +111,20 @@ export const UsersBasicInfo = ({
     const selectedPermissions = data.permissions
       .filter((item) => item.assigned === true)
       .map((item) => item.id);
-    onSubmit({ ...data.user, selectedPermissions });
+
+    if (id) {
+      const rawChanges = pickDirty(data, dirtyFields);
+      const result = {};
+      if (rawChanges.user) Object.assign(result, rawChanges.user);
+      if (rawChanges.permissions) {
+        result.selectedPermissions = rawChanges.permissions
+          .filter((item) => item?.assigned === true)
+          .map((item) => item.id);
+      }
+      onSubmit(result);
+    } else {
+      onSubmit({ ...data.user, selectedPermissions });
+    }
   };
 
   const handleDelete = (id) => {
@@ -157,7 +173,7 @@ export const UsersBasicInfo = ({
                                 placeholder={t('user_name_placeholder')}
                                 type="text"
                                 autoComplete="off"
-                                maxLength={100}
+                                maxLength={FIELD_LIMITS.users.name}
                                 {...field}
                                 value={field.value ?? ''}
                               />
@@ -182,7 +198,7 @@ export const UsersBasicInfo = ({
                                 placeholder={t('user_email_placeholder')}
                                 type="email"
                                 autoComplete="off"
-                                maxLength={254}
+                                maxLength={FIELD_LIMITS.users.email}
                                 {...field}
                                 value={field.value ?? ''}
                               />
@@ -209,7 +225,7 @@ export const UsersBasicInfo = ({
                                 placeholder={t('user_telephone_placeholder')}
                                 type="tel"
                                 autoComplete="off"
-                                maxLength={15}
+                                maxLength={FIELD_LIMITS.users.telephone}
                                 {...field}
                                 value={field.value ?? ''}
                               />
@@ -236,7 +252,7 @@ export const UsersBasicInfo = ({
                                 placeholder={t('user_address_placeholder')}
                                 type="text"
                                 autoComplete="off"
-                                maxLength={250}
+                                maxLength={FIELD_LIMITS.users.address}
                                 {...field}
                                 value={field.value ?? ''}
                               />
@@ -311,7 +327,7 @@ export const UsersBasicInfo = ({
                                 )}
                                 type="text"
                                 autoComplete="off"
-                                maxLength={128}
+                                maxLength={FIELD_LIMITS.users.socialSecurity}
                                 {...field}
                                 value={field.value ?? ''}
                               />
@@ -338,7 +354,7 @@ export const UsersBasicInfo = ({
                                 placeholder={t('user_zipcode_placeholder')}
                                 type="text"
                                 autoComplete="off"
-                                maxLength={9}
+                                maxLength={FIELD_LIMITS.users.zipcode}
                                 {...field}
                                 value={field.value ?? ''}
                               />
@@ -363,7 +379,7 @@ export const UsersBasicInfo = ({
                                 placeholder={t('user_state_placeholder')}
                                 type="text"
                                 autoComplete="off"
-                                maxLength={50}
+                                maxLength={FIELD_LIMITS.users.state}
                                 {...field}
                                 value={field.value ?? ''}
                               />
@@ -388,7 +404,7 @@ export const UsersBasicInfo = ({
                                 placeholder={t('user_city_placeholder')}
                                 type="text"
                                 autoComplete="off"
-                                maxLength={35}
+                                maxLength={FIELD_LIMITS.users.city}
                                 {...field}
                                 value={field.value ?? ''}
                               />
@@ -441,7 +457,7 @@ export const UsersBasicInfo = ({
                                 placeholder={t('user_document_placeholder')}
                                 type="document"
                                 autoComplete="off"
-                                maxLength={128}
+                                maxLength={FIELD_LIMITS.users.document}
                                 {...field}
                                 value={field.value ?? ''}
                               />

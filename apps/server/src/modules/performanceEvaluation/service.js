@@ -1,8 +1,8 @@
 import {
   getAllPerformanceEvaluations as getAllPerformanceEvaluationsDao,
   createPerformanceEvaluation as createPerformanceEvaluationDao,
-  updatePerformanceEvaluationById as updatePerformanceEvaluationByIdDao,
   deletePerformanceEvaluationById as deletePerformanceEvaluationByIdDao,
+  patchPerformanceEvaluationById as patchPerformanceEvaluationByIdDao,
 } from './dao.js';
 import { getSafePagination } from '../../utils/pagination/pagination.js';
 
@@ -53,26 +53,22 @@ export const createPerformanceEvaluation = async (data, userId) => {
   return createPerformanceEvaluationDao(evaluationData);
 };
 
+
 /**
- * Update a performance evaluation by ID.
+ * Partially update a performance evaluation by ID.
  *
  * @param {number} id - Performance evaluation ID.
- * @param {Object} data - Updated performance evaluation data.
- * @param {number} [data.rating] - Overall rating (1-5).
- * @param {string} [data.status] - Evaluation status (DRAFT, SUBMITTED, APPROVED, REJECTED).
- * @param {string} [data.comments] - Evaluation comments.
- * @param {Date} data.date - Evaluation date.
- * @param {number} userId - User ID who updated the evaluation.
+ * @param {Object} data - Partial update data.
+ * @param {number} userId - User ID who updated.
  * @returns {Promise<Object>} Updated performance evaluation.
  */
-export const updatePerformanceEvaluationById = async (id, data, userId) => {
+export const patchPerformanceEvaluationById = async (id, data, userId) => {
   const evaluationData = {
     ...data,
     updatedOn: new Date(),
-    date: new Date(data.date),
     updatedBy: userId,
   };
-  return updatePerformanceEvaluationByIdDao(Number(id), evaluationData);
+  return patchPerformanceEvaluationByIdDao(Number(id), evaluationData);
 };
 
 /**

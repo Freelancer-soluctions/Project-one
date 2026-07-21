@@ -95,7 +95,7 @@ export const getUserRoleByUserId = async (id) => {
     include: {
       roles: true,
 
-      userPermits: {
+      permits: {
         include: {
           permissions: true,
         },
@@ -145,7 +145,7 @@ export const getAllUserPermits = async (id) => {
   const user = await prisma.users.findUnique({
     where: { id },
     include: {
-      userPermits: true,
+      permits: true,
     },
   });
   return Promise.resolve({ allPermissions, user });
@@ -227,7 +227,7 @@ export const createUser = async (data) => {
     include: {
       roles: true,
       status: true,
-      userPermits: true,
+      permits: true,
     },
   });
 };
@@ -264,41 +264,47 @@ export const updateUserById = async (id, data) => {
   return prisma.users.update({
     where: { id: parseInt(id, 10) },
     data: {
-      name: data.name,
-      email: data.email,
-      address: data.address,
-      city: data.city,
-      isAdmin: data.isAdmin,
-      picture: data.picture,
-      document: data.document,
-      lastUpdatedBy: data.lastUpdatedBy,
-      lastUpdatedOn: data.lastUpdatedOn,
-      socialSecurity: data.socialSecurity,
-      state: data.state,
-      telephone: data.telephone,
-      zipcode: data.zipcode,
+      // Scalar fields — only include if provided (PATCH partial)
+      ...(data.name !== undefined && { name: data.name }),
+      ...(data.email !== undefined && { email: data.email }),
+      ...(data.address !== undefined && { address: data.address }),
+      ...(data.city !== undefined && { city: data.city }),
+      ...(data.isAdmin !== undefined && { isAdmin: data.isAdmin }),
+      ...(data.picture !== undefined && { picture: data.picture }),
+      ...(data.document !== undefined && { document: data.document }),
+      ...(data.lastUpdatedBy !== undefined && { lastUpdatedBy: data.lastUpdatedBy }),
+      ...(data.lastUpdatedOn !== undefined && { lastUpdatedOn: data.lastUpdatedOn }),
+      ...(data.socialSecurity !== undefined && { socialSecurity: data.socialSecurity }),
+      ...(data.state !== undefined && { state: data.state }),
+      ...(data.telephone !== undefined && { telephone: data.telephone }),
+      ...(data.zipcode !== undefined && { zipcode: data.zipcode }),
       // foreign keys
-      userStatus: {
-        connect: { id: data.statusId },
-      },
-      roles: {
-        connect: { id: data.roleId },
-      },
-      // rolePermits: {
-      //   deleteMany: {}, // elimina TODAS las relaciones actuales
-      //   create: data.permissions.map((permissionId) => ({
-      //     permission: { connect: { id: permissionId } }
-      //   }))
-      // }
-      userPermits: {
-        deleteMany: {}, // elimina solo los permisos del usuario actual
-        create: data.permissions.map((permissionId) => ({
-          permission: { connect: { id: parseInt(permissionId, 10) } },
-        })),
-      },
+      ...(data.statusId !== undefined && {
+        userStatus: {
+          connect: { id: data.statusId },
+        },
+      }),
+      ...(data.roleId !== undefined && {
+        roles: {
+          connect: { id: data.roleId },
+        },
+      }),
+      // Handle userPermits with deleteMany+create pattern for permissions array
+      ...(data.permissions !== undefined && {
+        permits: {
+          deleteMany: {},
+          ...(data.permissions.length > 0 && {
+              create: data.permissions.map((permissionId) => ({
+              permissions: { connect: { id: parseInt(permissionId, 10) } },
+            })),
+          }),
+        },
+      }),
     },
   });
 };
+
+
 
 /**
  * Delete a user by ID.
@@ -325,7 +331,7 @@ export const getUserByEmail = async (email) => {
     include: {
       roles: true,
       status: true,
-      userPermits: true,
+      permits: true,
     },
   });
 };

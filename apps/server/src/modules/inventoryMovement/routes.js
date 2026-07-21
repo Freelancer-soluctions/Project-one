@@ -14,7 +14,8 @@ import {
 } from './controller.js';
 import {
   inventoryMovementFiltersSchema,
-  inventoryMovementCreateUpdateSchema,
+  inventoryMovementCreateSchema,
+  inventoryMovementUpdateSchema,
 } from './schemas/inventoryMovement.joi.js';
 import { ROLESCODES, PERMISSIONCODES } from '../../utils/constants/enums.js';
 
@@ -135,72 +136,18 @@ router.post(
     allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER],
     permissions: [PERMISSIONCODES.canCreateInventory],
   }),
-  validateSchema(inventoryMovementCreateUpdateSchema),
+  validateSchema(inventoryMovementCreateSchema),
   createInventoryMovement
 );
 
-/**
- * @openapi
- * /api/v1/inventory-movements/{id}:
- *   put:
- *     tags:
- *       - Inventory Movements
- *     summary: Update an inventory movement
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: integer
- *         description: Inventory Movement ID
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             $ref: '#/components/schemas/BodyInventoryMovementUpdate'
- *     responses:
- *       200:
- *         description: OK
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 error:
- *                   type: boolean
- *                   example: false
- *                 statusCode:
- *                   type: int
- *                   example: 200
- *                 message:
- *                   type: string
- *                   example: "Some success message"
- *                 data:
- *                   $ref: "#/components/schemas/ResponseInventoryMovementUpdate"
- *       401:
- *         description: Unauthorized
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Unauthorized'
- *       500:
- *         description: Server error
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Error'
- */
-router.put(
+router.patch(
   '/:id',
   checkRoleAuthOrPermisssion({
     allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER],
     permissions: [PERMISSIONCODES.canEditInventory],
   }),
   validatePathParam,
-  validateSchema(inventoryMovementCreateUpdateSchema),
+  validateSchema(inventoryMovementUpdateSchema),
   updateInventoryMovementById
 );
 

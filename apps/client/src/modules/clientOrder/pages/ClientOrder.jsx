@@ -85,29 +85,18 @@ const ClientOrder = () => {
     setFilters(newFilters);
   };
 
-  const handleSubmit = async (values, clientOrderId) => {
+  const handleSubmit = async (result) => {
     try {
-      clientOrderId
-        ? await updateClientOrderById({
-            id: clientOrderId,
-            data: {
-              clientId: values.clientId,
-              status: values.status,
-              notes: values.notes,
-              saleId: values.saleId,
-            },
-          }).unwrap()
-        : await createClientOrder({
-            clientId: values.clientId,
-            status: values.status,
-            notes: values.notes,
-            saleId: values.saleId,
-          }).unwrap();
+      if (result?.id) {
+        await updateClientOrderById({ id: result.id, data: result.body }).unwrap();
+      } else {
+        await createClientOrder(result).unwrap();
+      }
 
       setAlertProps({
-        alertTitle: t(clientOrderId ? 'update_record' : 'add_record'),
+        alertTitle: t(result?.id ? 'update_record' : 'add_record'),
         alertMessage: t(
-          clientOrderId ? 'updated_successfully' : 'added_successfully'
+          result?.id ? 'updated_successfully' : 'added_successfully'
         ),
         cancel: false,
         success: true,

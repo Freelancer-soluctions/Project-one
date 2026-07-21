@@ -6,6 +6,7 @@ import {
   createProductCategory as createProductCategoryDao,
   updateProductCategory as updateProductCategoryByIdDao,
   deleteProductCategory as deleteProductCategoryByIdDao,
+  patchSettingsById as patchSettingsByIdDao,
 } from './dao.js';
 import { getSafePagination } from '../../utils/pagination/pagination.js';
 
@@ -141,4 +142,17 @@ export const updateProductCategoryById = async (categoryId, data) => {
  */
 export const deleteProductCategoryById = async (categoryId) => {
   return deleteProductCategoryByIdDao({ id: Number(categoryId) });
+};
+
+/**
+ * Partially update settings by ID.
+ *
+ * @param {number} settingsId - The ID of the settings to update.
+ * @param {Object} data - Partial settings data to update.
+ * @param {string} [data.language] - Language code to update.
+ * @param {Object} [data.displayOptions] - Display options to update.
+ * @returns {Promise<Object>} The updated settings.
+ */
+export const patchSettingsById = async (settingsId, data) => {
+  return await patchSettingsByIdDao(Number(settingsId), data);
 };

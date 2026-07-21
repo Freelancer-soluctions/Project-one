@@ -1,10 +1,9 @@
 import { BackDashBoard } from '@/components/backDash/BackDashBoard';
 import { Spinner } from '@/components/loader/Spinner';
 import { useTranslation } from 'react-i18next';
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import {
   useGetAllNotesQuery,
-  useGetAllNotesColumnsQuery,
   useCreateNoteMutation,
   useUpdateNoteColumIdMutation,
   useUpdateNoteByIdMutation,
@@ -13,14 +12,19 @@ import {
   useUpdateHashtagMutation,
   useDeleteHashtagMutation,
 } from '../api/notesAPI';
+import notesApi from '../api/notesAPI';
+import { useDispatch } from 'react-redux';
 import {
   NotesFilters,
   NotesColumn,
   NotesCreateDialog,
 } from '../components/index';
-import { StatusColumn, NotesColor } from '../utils/index';
+
 import AlertDialogComponent from '@/components/alertDialog/AlertDialog';
 import { useLocation } from 'react-router';
+import { useSocket } from '@/hooks';
+import { useMentionNotifications } from '@/hooks/useMentionNotifications';
+
 
 export default function Notes() {
   const { t } = useTranslation();
@@ -29,22 +33,35 @@ export default function Notes() {
   const [alertProps, setAlertProps] = useState({});
   const [selectedHashtagIds, setSelectedHashtagIds] = useState([]);
   const location = useLocation();
+  const { socket } = useSocket();
+
+  // Activar notificaciones de menciones en tiempo real via WebSocket
+  useMentionNotifications()
 
   const initialFilters = useMemo(() => {
-    return {
-      searchTerm: '',
-      statusCode: location.state?.filter ?? '',
-    };
-  }, [location.state?.filter]);
-  const [filters, setFilters] = useState(initialFilters);
+     return {
+       searchTerm: '',
+       statusCode: location.state?.filter ?? '',
+       isFavorite: false,
+       scope: location.state?.scope ?? 'mine',
+     };
+   }, [location.state?.filter, location.state?.scope]);
+   const [filters, setFilters] = useState(initialFilters);
+   const dispatch = useDispatch();
 
-  const {
-    data: dataColumns = { data: [] },
-    isLoading: isLoadingColumns,
-    isFetching: isFetchingColumns,
-  } = useGetAllNotesColumnsQuery();
+   // Invalidar cache de Notes cuando se recibe mention:read
+   useEffect(() => {
+     if (!socket) return;
+     const handleMentionRead = () => {
+       dispatch(notesApi.util.invalidateTags(['Notes']));
+     };
+     socket.on('mention:read', handleMentionRead);
+     return () => {
+       socket.off('mention:read', handleMentionRead);
+     };
+   }, [socket, dispatch]);
 
-  const {
+   const {
     data: dataNotes = { data: [] },
     isLoading: isLoadingNotes,
     isFetching: isFetchingNotes,
@@ -61,17 +78,11 @@ export default function Notes() {
   const [deleteNoteById, { isLoading: isLoadingDelete }] =
     useDeleteNoteByIdMutation();
 
-  const [createHashtag] = useCreateHashtagMutation();
-  const [updateHashtag] = useUpdateHashtagMutation();
-  const [deleteHashtag] = useDeleteHashtagMutation();
+  const [createHashtag, { isLoading: isLoadingPostHashT }] = useCreateHashtagMutation();
+  const [updateHashtag, { isLoading: isLoadingPutHashT }] = useUpdateHashtagMutation();
+  const [deleteHashtag, { isLoading: isLoadingDeleteHashT }] = useDeleteHashtagMutation();
 
-  const setColor = (code) => {
-    return code === StatusColumn.MEDIUM
-      ? NotesColor.YELLOW
-      : code === StatusColumn.HIGH
-        ? NotesColor.RED
-        : NotesColor.GREEN;
-  };
+
 
   const handleDragStart = (e, noteId, sourceColumnCode) => {
     e.dataTransfer.setData(
@@ -80,36 +91,46 @@ export default function Notes() {
     );
   };
 
-  const handleDragOver = (e) => {
+const handleDragOver = (e) => {
+  const types = Array.from(e.dataTransfer.types);
+  if (types.includes('application/json')) {
     e.preventDefault();
-  };
+  }
+};
 
-  const handleDrop = async (e, targetColumnCode) => {
-    e.preventDefault();
+const handleDrop = async (e, targetColumnCode) => {
+  e.preventDefault();
 
-    const data = JSON.parse(e.dataTransfer.getData('application/json'));
-    const { noteId, sourceColumnCode } = data;
+  const raw = e.dataTransfer.getData('application/json');
+  if (!raw) return;
 
-    if (sourceColumnCode === targetColumnCode) return;
+  let data;
+  try {
+    data = JSON.parse(raw);
+  } catch {
+    return;
+  }
 
-    const newColor = setColor(targetColumnCode);
+  const { noteId, sourceColumnCode } = data;
+  if (!noteId || !sourceColumnCode) return;
 
-    const sourceColumn = dataNotes?.data.find(
-      (col) => col.code === sourceColumnCode
-    );
-    const targetColumn = dataNotes?.data.find(
-      (col) => col.code === targetColumnCode
-    );
-    const noteToMove = sourceColumn?.notes.find((note) => note.id === noteId);
+  if (sourceColumnCode === targetColumnCode) return;
 
-    if (!noteToMove) return dataNotes?.data;
+  const sourceColumn = dataNotes?.data.find(
+    (col) => col.code === sourceColumnCode
+  );
+  const targetColumn = dataNotes?.data.find(
+    (col) => col.code === targetColumnCode
+  );
+  const noteToMove = sourceColumn?.notes.find((note) => note.id === noteId);
 
-    await updateNoteColumId({
-      id: noteToMove.id,
-      columnId: targetColumn.id,
-      color: newColor,
-    }).unwrap();
-  };
+  if (!noteToMove) return dataNotes?.data;
+
+  await updateNoteColumId({
+    id: noteToMove.id,
+    columnId: targetColumn.id,
+  }).unwrap();
+};
 
   const handleSearchChange = (value) => {
     setFilters((prev) => ({ ...prev, searchTerm: value }));
@@ -119,20 +140,26 @@ export default function Notes() {
     setFilters((prev) => ({ ...prev, statusCode: value }));
   };
 
-  const handleReset = () => {
-    setFilters({ searchTerm: '', statusCode: '' });
-    setSelectedHashtagIds([]);
-  };
+   const handleFavoriteFilter = (value) => {
+     setFilters((prev) => ({ ...prev, isFavorite: value }));
+   };
 
-  const handleCreateNote = async ({ title, content, status, hashtagIds }) => {
-    const color = setColor(status.code);
+   const handleScopeChange = (value) => {
+     setFilters((prev) => ({ ...prev, scope: value }));
+   };
 
+   const handleReset = () => {
+     setFilters({ searchTerm: '', statusCode: '', isFavorite: false, scope: 'mine' });
+     setSelectedHashtagIds([]);
+   };
+
+  const handleCreateNote = async ({ title, content, status, hashtagIds, isFavorite }) => {
     await createNote({
       title,
       content,
-      color,
       columnId: status.id,
       hashtagIds,
+      isFavorite,
     }).unwrap();
 
     setOpenAlertDialog(true);
@@ -148,16 +175,10 @@ export default function Notes() {
     });
   };
 
-  const handleEditNote = async (note) => {
-    const { id, content, title, hashtagIds } = note;
-    await updateNoteById({
-      id: id,
-      body: {
-        content,
-        title,
-        hashtagIds,
-      },
-    }).unwrap();
+  const handleEditNote = async ({ id, body }) => {
+    if (Object.keys(body).length > 0) {
+      await updateNoteById({ id, body }).unwrap();
+    }
 
     setOpenAlertDialog(true);
     setAlertProps({
@@ -241,47 +262,50 @@ export default function Notes() {
     <>
       <BackDashBoard link={'/home'} moduleName={t('notes')} />
       <div className="relative w-full px-4">
-        {(isLoadingColumns ||
+        {(
           isLoadingNotes ||
           isLoadingPut ||
           isLoadingPost ||
           isLoadingDelete ||
+          isLoadingPostHashT ||
+          isLoadingDeleteHashT ||
+          isLoadingPutHashT ||
           isLoadingPutCard ||
-          isFetchingColumns ||
           isFetchingNotes) && <Spinner />}
         <div className="w-full space-y-6">
           <div className="col-span-2 row-span-1 md:col-span-5">
-            <NotesFilters
-              onSearch={handleSearchChange}
-              onSearchStatus={handleStatusChange}
-              dataStatus={dataColumns?.data}
-              filters={filters}
-              handleReset={handleReset}
-              setOpen={setOpen}
-              selectedHashtagIds={selectedHashtagIds}
-              onHashtagSelectionChange={handleHashtagSelectionChange}
-              onCreateHashtag={handleCreateHashtag}
-              onEditHashtag={handleEditHashtag}
-              onDeleteHashtag={handleDeleteHashtag}
-            />
+           <NotesFilters
+               onSearch={handleSearchChange}
+               onSearchStatus={handleStatusChange}
+               onFavoriteFilter={handleFavoriteFilter}
+               filters={filters}
+               handleReset={handleReset}
+               setOpen={setOpen}
+               selectedHashtagIds={selectedHashtagIds}
+               onHashtagSelectionChange={handleHashtagSelectionChange}
+               onCreateHashtag={handleCreateHashtag}
+               onEditHashtag={handleEditHashtag}
+               onDeleteHashtag={handleDeleteHashtag}
+               onScopeChange={handleScopeChange}
+               scope={filters.scope}
+             />
           </div>
           <div className="flex flex-wrap items-center justify-between gap-4">
             <NotesCreateDialog
               onCreateNote={handleCreateNote}
-              dataStatus={dataColumns?.data}
               open={open}
               setOpen={setOpen}
             />
           </div>
           <div className="flex flex-col md:flex-row gap-6 p-4 min-h-[700px] w-full">
-           <NotesColumn
-             data={dataNotes?.data}
-             onDragStart={handleDragStart}
-             onDragOver={handleDragOver}
-             onDrop={handleDrop}
+            <NotesColumn
+              data={dataNotes?.data}
+              onDragStart={handleDragStart}
+              onDragOver={handleDragOver}
+              onDrop={handleDrop}
               onDeleteNote={handleDeleteNote}
               onEditNote={handleEditNote}
-           />
+            />
           </div>
           <AlertDialogComponent
             openAlertDialog={openAlertDialog}

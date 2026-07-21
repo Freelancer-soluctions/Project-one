@@ -10,7 +10,7 @@ export const ProductsDatatable = ({
   onPaginationChange,
 }) => {
   const { t } = useTranslation();
-  const { dataList, total } = dataProducts.data;
+  const { dataList, total } = dataProducts;
 
   const columnDef = [
     {
@@ -93,7 +93,10 @@ export const ProductsDatatable = ({
 };
 
 ProductsDatatable.propTypes = {
-  dataProducts: PropTypes.object,
+  dataProducts: PropTypes.shape({
+    dataList: PropTypes.array,
+    total: PropTypes.number,
+  }),
   onOpenProductsForms: PropTypes.func.isRequired,
   pagination: PropTypes.object.isRequired,
   onPaginationChange: PropTypes.func.isRequired,

@@ -2,9 +2,9 @@ import express from 'express';
 import {
   getAllSales,
   createSale,
-  updateSaleById,
   deleteSaleById,
   deleteSaleDetailById,
+  patchSaleById,
 } from './controller.js';
 import {
   verifyToken,
@@ -15,7 +15,8 @@ import {
 } from '../../middleware/index.js';
 import {
   saleFiltersSchema,
-  saleCreateUpdateSchema,
+  saleCreateSchema,
+  saleUpdateSchema,
 } from './schemas/sales.joi.js';
 import { ROLESCODES, PERMISSIONCODES } from '../../utils/constants/enums.js';
 
@@ -122,15 +123,17 @@ router.post(
     allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER, ROLESCODES.USER],
     permissions: [PERMISSIONCODES.canCreateSale],
   }),
-  validateSchema(saleCreateUpdateSchema),
+  validateSchema(saleCreateSchema),
   createSale
 );
+
+
 
 /**
  * @swagger
  * /v1/sales/{id}:
- *   put:
- *     summary: Update a sale by ID
+ *   patch:
+ *     summary: Partially update a sale by ID
  *     tags: [Sales]
  *     security:
  *       - bearerAuth: []
@@ -146,7 +149,7 @@ router.post(
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/BodySaleCreateUpdate'
+ *             $ref: '#/components/schemas/BodySalePatch'
  *     responses:
  *       200:
  *         description: Sale updated successfully
@@ -165,22 +168,28 @@ router.post(
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/Unauthorized'
+ *       400:
+ *         description: Bad request
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/BadRequest'
  *       500:
  *         description: Server error
  *         content:
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/Error'
- */
-router.put(
+ *     */
+router.patch(
   '/:id',
   checkRoleAuthOrPermisssion({
     allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER, ROLESCODES.USER],
     permissions: [PERMISSIONCODES.canEditSale],
   }),
   validatePathParam,
-  validateSchema(saleCreateUpdateSchema),
-  updateSaleById
+  validateSchema(saleUpdateSchema),
+  patchSaleById
 );
 
 /**

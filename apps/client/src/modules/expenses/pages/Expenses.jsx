@@ -5,13 +5,14 @@ import {
 } from '../components';
 import { BackDashBoard } from '@/components/backDash/BackDashBoard';
 import { useTranslation } from 'react-i18next';
-import { useState, useEffect } from 'react'; // Removed useEffect as it wasn't used for initial fetch in Clients.jsx
+import { useState, useEffect } from 'react';
 import {
   useLazyGetAllExpensesQuery,
   useUpdateExpenseByIdMutation,
   useCreateExpenseMutation,
   useDeleteExpenseByIdMutation,
 } from '../api/expensesApi';
+import { useQueryData, useLoadingState } from '@/hooks';
 import AlertDialogComponent from '@/components/alertDialog/AlertDialog';
 import { Spinner } from '@/components/loader/Spinner';
 
@@ -28,14 +29,9 @@ const Expenses = () => {
   });
   const [filters, setFilters] = useState({});
 
-  const [
-    getAllExpenses,
-    {
-      data: dataExpenses = { data: [] },
-      isLoading: isLoadingExpenses,
-      isFetching: isFetchingExpenses,
-    },
-  ] = useLazyGetAllExpensesQuery();
+  const [triggerExpenses, queryState] = useLazyGetAllExpensesQuery();
+  const { data: dataExpenses, isLoading, isFetching } = useQueryData(queryState);
+  const { isLoading: isLoadingExpenses, isFetching: isFetchingExpenses } = useLoadingState([{ isLoading, isFetching }]);
 
   const [updateExpenseById, { isLoading: isLoadingPut }] =
     useUpdateExpenseByIdMutation();
@@ -60,12 +56,12 @@ const Expenses = () => {
    * para evitar duplicación de lógica y estados inconsistentes.
    */
   useEffect(() => {
-    getAllExpenses({
+    triggerExpenses({
       page: pagination.pageIndex + 1,
       limit: pagination.pageSize,
       ...filters,
     });
-  }, [pagination.pageIndex, pagination.pageSize, filters, getAllExpenses]);
+  }, [pagination.pageIndex, pagination.pageSize, filters, triggerExpenses]);
 
   /**
    * Al aplicar nuevos filtros:
@@ -85,25 +81,20 @@ const Expenses = () => {
     setFilters(newFilters);
   };
 
-  const handleSubmit = async (values, expenseId) => {
+  const handleSubmit = async (result) => {
     try {
-      // values already contains { description, total, category, status }
-      // total is already a float from ExpensesDialog
-      expenseId
-        ? await updateExpenseById({
-            id: expenseId,
-            data: {
-              description: values.description,
-              total: values.total,
-              category: values.category,
-            }, // Sending all values from dialog form
-          }).unwrap()
-        : await createExpense(values).unwrap();
+      if (result?.id) {
+        // edit → result = { id, body } with only changed fields
+        await updateExpenseById({ id: result.id, data: result.body }).unwrap();
+      } else {
+        // create → result = { description, total, category }
+        await createExpense(result).unwrap();
+      }
 
       setAlertProps({
-        alertTitle: t(expenseId ? 'update_record' : 'add_record'),
+        alertTitle: t(result?.id ? 'update_record' : 'add_record'),
         alertMessage: t(
-          expenseId ? 'updated_successfully' : 'added_successfully'
+          result?.id ? 'updated_successfully' : 'added_successfully'
         ),
         cancel: false,
         success: true,

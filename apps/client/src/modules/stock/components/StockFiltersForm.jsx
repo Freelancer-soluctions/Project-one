@@ -19,6 +19,7 @@ import {
 } from '@/components/ui/select';
 import { LuPlus, LuSearch, LuEraser } from 'react-icons/lu';
 import PropTypes from 'prop-types';
+import { FIELD_LIMITS } from '@/config/fieldLimits';
 
 export const StockFiltersForm = ({
   onSubmit,
@@ -134,7 +135,7 @@ export const StockFiltersForm = ({
                       placeholder={t('search_by_lot')}
                       type="text"
                       autoComplete="false"
-                      maxLength={50}
+                      maxLength={FIELD_LIMITS.stock.lot}
                       {...field}
                       value={field.value ?? ''}
                     />

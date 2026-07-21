@@ -1,12 +1,7 @@
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardContent,
-  CardDescription,
-} from '@/components/ui/card';
-import { UpcomingEventsAlert } from './UpcomingEvents';
-import { Link } from 'react-router';
+import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
+import { EventCalendarWidget } from './EventCalendarWidget';
+import { Link, useNavigate } from 'react-router';
+import { useCallback } from 'react';
 import { CgNotes } from 'react-icons/cg';
 import {
   LuArrowRight,
@@ -35,9 +30,18 @@ import { useTranslation } from 'react-i18next';
 
 const CardModule = () => {
   const { t } = useTranslation();
+  const navigate = useNavigate();
+  const handleEventClick = useCallback((eventId) => {
+    navigate(`/home/events?id=${eventId}`);
+  }, [navigate]);
+
   return (
     <>
-      <UpcomingEventsAlert />
+      <div className="flex flex-col xl:flex-row gap-4 mb-5">
+        <div className="w-full xl:w-[300px] shrink-0">
+          <EventCalendarWidget onEventClick={handleEventClick} />
+        </div>
+        <div className="flex-1 min-w-0">
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-8 ">
         <Card className="relative overflow-hidden transition-all group hover:shadow-lg hover:-translate-y-1">
@@ -500,6 +504,8 @@ const CardModule = () => {
             </Link>
           </CardContent>
         </Card>
+      </div>
+      </div>
       </div>
     </>
   );

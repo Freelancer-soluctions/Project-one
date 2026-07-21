@@ -103,37 +103,27 @@ const Stock = () => {
     setFilters(newFilters);
   };
 
-  const handleSubmit = async (values, stockId) => {
+  const handleSubmit = async (result) => {
     try {
-      stockId
-        ? await updateStockById({
-            id: stockId,
-            data: {
-              quantity: Number(values.quantity),
-              minimum: Number(values.minimum),
-              maximum: values.maximum ? Number(values.maximum) : null,
-              lot: values.lot,
-              unitMeasure: values.unitMeasure,
-              expirationDate: values.expirationDate,
-              productId: Number(values.productId),
-              warehouseId: Number(values.warehouseId),
-            },
-          }).unwrap()
-        : await createStock({
-            quantity: Number(values.quantity),
-            minimum: Number(values.minimum),
-            maximum: values.maximum ? Number(values.maximum) : null,
-            lot: values.lot,
-            unitMeasure: values.unitMeasure,
-            expirationDate: values.expirationDate,
-            productId: Number(values.productId),
-            warehouseId: Number(values.warehouseId),
-          }).unwrap();
+      if (result?.id) {
+        await updateStockById({ id: result.id, data: result.body }).unwrap();
+      } else {
+        await createStock({
+          quantity: Number(result.quantity),
+          minimum: Number(result.minimum),
+          maximum: result.maximum ? Number(result.maximum) : null,
+          lot: result.lot,
+          unitMeasure: result.unitMeasure,
+          expirationDate: result.expirationDate,
+          productId: Number(result.productId),
+          warehouseId: Number(result.warehouseId),
+        }).unwrap();
+      }
 
       setAlertProps({
-        alertTitle: t(stockId ? 'update_record' : 'add_record'),
+        alertTitle: t(result?.id ? 'update_record' : 'add_record'),
         alertMessage: t(
-          stockId ? 'updated_successfully' : 'added_successfully'
+          result?.id ? 'updated_successfully' : 'added_successfully'
         ),
         cancel: false,
         success: true,

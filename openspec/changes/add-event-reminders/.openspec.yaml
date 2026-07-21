@@ -1,0 +1,6 @@
+schema: spec-driven
+created: 2026-06-11
+depends_on:
+  - add-soft-delete-events
+  - add-event-rsvp
+  - add-sse-notification-infrastructure

@@ -86,40 +86,40 @@ const News = () => {
     setFilters(newFilters);
   };
 
-  const handleSubmit = async (values, newId) => {
-    try {
-      newId
-        ? await updateNewById({
-            id: newId,
-            data: {
-              description: values.description,
-              statusId: values.status.id,
-              statusCode: values.status.code,
-              document: values.document,
-            },
-          }).unwrap()
-        : await createNew({
-            document: values.document,
-            statusId: values.status.id,
-            statusCode: values.status.code,
-            description: values.description,
-          }).unwrap();
+   const handleSubmit = async (result) => {
+     try {
+       if (result?.id) {
+         await updateNewById({ id: result.id, data: result.body }).unwrap();
+       } else {
+         await createNew(result).unwrap();
+       }
 
-      setAlertProps({
-        alertTitle: t(newId ? 'update_record' : 'add_record'),
-        alertMessage: t(newId ? 'updated_successfully' : 'added_successfully'),
-        cancel: false,
-        success: true,
-        onSuccess: () => {
-          setOpenDialog(false);
-        },
-        variantSuccess: 'info',
-      });
-      setOpenAlertDialog(true);
-    } catch (err) {
-      console.error('Error:', err);
-    }
-  };
+       setAlertProps({
+         alertTitle: t(result?.id ? 'update_record' : 'add_record'),
+         alertMessage: t(result?.id ? 'updated_successfully' : 'added_successfully'),
+         cancel: false,
+         success: true,
+         onSuccess: () => {
+           setOpenDialog(false);
+         },
+         variantSuccess: 'info',
+       });
+       setOpenAlertDialog(true);
+     } catch (err) {
+       console.error('Error:', err);
+       setAlertProps({
+         alertTitle: t('error'),
+         alertMessage: t('something_went_wrong'),
+         cancel: false,
+         success: false,
+         onSuccess: () => {
+           setOpenDialog(false);
+         },
+         variantSuccess: 'destructive',
+       });
+       setOpenAlertDialog(true);
+     }
+   };
 
   const handleDelete = async (id) => {
     try {

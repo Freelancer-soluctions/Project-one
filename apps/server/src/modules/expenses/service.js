@@ -2,8 +2,8 @@
 import {
   getAllExpenses as getAllExpensesDao, // Renamed
   createExpense as createExpenseDao, // Renamed
-  updateExpenseById as updateExpenseByIdDao, // Renamed
   deleteExpenseById as deleteExpenseByIdDao, // Renamed
+  patchExpenseById as patchExpenseByIdDao, // Renamed
 } from './dao.js'; // Assuming dao.js will be adapted for expenses
 import { getSafePagination } from '../../utils/pagination/pagination.js';
 
@@ -52,27 +52,7 @@ export const createExpense = async (data, userId) => {
   return createExpenseDao(expenseData);
 };
 
-/**
- * Updates an existing expense in the database by its ID.
- *
- * @param {string} id - The ID of the expense to update.
- * @param {Object} data - The updated data for the expense.
- * @param {string} [data.description] - The description of the expense.
- * @param {number} [data.total] - The total amount of the expense.
- * @param {string} [data.category] - The category of the expense.
- * @param {string} [data.status] - The status of the expense (PENDING, APPROVED, REJECTED, PAID).
- * @param {number} userId - The ID of the user updating the expense.
- * @returns {Promise<Object>} The updated expense.
- */
-export const updateExpenseById = async (id, data, userId) => {
-  const expenseData = {
-    ...data,
-    updatedOn: new Date(), // Prisma model for expenses has updatedOn DateTime?
-    updatedBy: userId,
-  };
-  // ID is already a string, no Number() conversion needed for CUID
-  return updateExpenseByIdDao(Number(id), expenseData);
-};
+
 
 /**
  * Deletes an expense from the database by its ID.
@@ -83,4 +63,25 @@ export const updateExpenseById = async (id, data, userId) => {
 export const deleteExpenseById = async (id) => {
   // ID is already a string, no Number() conversion needed for CUID
   return deleteExpenseByIdDao(Number(id));
+};
+
+/**
+ * Partially update an expense in the database by its ID.
+ *
+ * @param {string} id - The ID of the expense to update.
+ * @param {Object} data - The partial data for the expense to update.
+ * @param {string} [data.description] - The description of the expense.
+ * @param {number} [data.total] - The total amount of the expense.
+ * @param {string} [data.category] - The category of the expense.
+ * @param {number} userId - The ID of the user updating the expense.
+ * @returns {Promise<Object>} The updated expense.
+ */
+export const patchExpenseById = async (id, data, userId) => {
+  const expenseData = {
+    ...data,
+    updatedOn: new Date(),
+    updatedBy: userId,
+  };
+  // ID is already a string, no Number() conversion needed for CUID
+  return patchExpenseByIdDao(Number(id), expenseData);
 };

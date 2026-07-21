@@ -35,14 +35,14 @@ const stockApi = createApi({
       invalidatesTags: ['Stock'],
     }),
 
-    updateStockById: builder.mutation({
-      query: ({ id, data }) => ({
-        url: `/stock/${id}`,
-        method: 'PUT',
-        body: data,
+      updateStockById: builder.mutation({
+        query: ({ id, data }) => ({
+          url: `/stock/${id}`,
+          method: 'PATCH',
+          body: data,
+        }),
+        invalidatesTags: ['Stock'],
       }),
-      invalidatesTags: ['Stock'],
-    }),
 
     getStockAlerts: builder.query({
       query: () => ({
@@ -51,7 +51,7 @@ const stockApi = createApi({
       providesTags: ['Stock'],
     }),
 
-    getStockByProductId: builder.mutation({
+    getStockByProductId: builder.query({
       query: (id) => ({
         url: `/stock/${id}`,
         method: 'GET',
@@ -64,6 +64,7 @@ const stockApi = createApi({
 // Export hooks for usage in functional components
 export const {
   useLazyGetAllStockQuery,
+  useLazyGetStockByProductIdQuery,
   useUpdateStockByIdMutation,
   useCreateStockMutation,
   useDeleteStockByIdMutation,

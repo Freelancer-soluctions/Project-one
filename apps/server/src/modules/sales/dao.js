@@ -78,7 +78,7 @@ export const createSale = async (data) => {
 };
 
 /**
- * Update a sale and its details by ID.
+ * Partially update a sale and its details by ID.
  *
  * @param {number} id - Sale ID.
  * @param {Object} data - Updated sale data.
@@ -88,30 +88,47 @@ export const createSale = async (data) => {
  * @param {number} data.updatedBy - User ID who updated the sale.
  * @returns {Promise<Object>} Updated sale with related data.
  */
-export const updateSaleById = async (id, data) => {
+export const patchSaleById = async (id, data) => {
   const { details, ...saleData } = data;
-
-  // First delete existing details
-  await prisma.saleDetail.deleteMany({
-    where: { saleId: id },
-  });
-
-  // Then update the sale and create new details
+  
+  // Build update object dynamically based on provided fields
+  const updateData = {
+    updatedOn: new Date(),
+  };
+  
+  // Only update fields that are provided
+  if (saleData.clientId !== undefined) {
+    updateData.clientId = { connect: { id: saleData.clientId } };
+  }
+  if (saleData.total !== undefined) {
+    updateData.total = saleData.total;
+  }
+  
+  // Only update sale details if provided
+  if (details !== undefined) {
+    // First delete existing details
+    await prisma.saleDetail.deleteMany({
+      where: { saleId: id },
+    });
+    
+    // Then create new details
+    updateData.saleDetail = {
+      create: details.map((detail) => ({
+        product: { connect: { id: Number(detail.productId) } },
+        quantity: Number(detail.quantity),
+        price: Number(detail.price),
+      })),
+    };
+  }
+  
+  // Only update user if provided (though updatedBy should always be provided)
+  if (data.updatedBy !== undefined) {
+    updateData.userSaleUpdated = { connect: { id: data.updatedBy } };
+  }
+  
   return prisma.sale.update({
     where: { id },
-    data: {
-      updatedOn: saleData.updatedOn,
-      total: saleData.total,
-      saleDetail: {
-        create: details.map((detail) => ({
-          product: { connect: { id: Number(detail.productId) } }, // Conectar el producto existente
-          quantity: Number(detail.quantity),
-          price: Number(detail.price),
-        })),
-      },
-      userSaleUpdated: { connect: { id: saleData.updatedBy } },
-      client: { connect: { id: saleData.clientId } },
-    },
+    data: updateData,
   });
 };
 

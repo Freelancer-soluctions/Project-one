@@ -40,7 +40,7 @@ const performanceEvaluationApi = createApi({
     updatePerformanceEvaluationById: builder.mutation({
       query: ({ id, data }) => ({
         url: `/performance-evaluation/${id}`,
-        method: 'PUT',
+        method: 'PATCH',
         body: data,
       }),
       invalidatesTags: ['PerformanceEvaluation'],

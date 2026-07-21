@@ -97,28 +97,6 @@ export const createWarehouse = async (data) => {
 };
 
 /**
- * Update a warehouse by conditions.
- *
- * @param {Object} data - Updated warehouse data.
- * @param {string} [data.name] - Updated warehouse name.
- * @param {string} [data.description] - Updated warehouse description.
- * @param {string} [data.address] - Updated warehouse address.
- * @param {boolean} [data.status] - Updated warehouse status.
- * @param {Date} [data.updatedOn] - Update timestamp.
- * @param {Object} where - Query conditions.
- * @param {number} where.id - Warehouse ID to update.
- * @returns {Promise<Object>} Updated warehouse record.
- */
-export const updateWarehouse = async (data, where) => {
-  const warehouse = await prisma.warehouse.update({
-    where,
-    data,
-  });
-
-  return warehouse;
-};
-
-/**
  * Delete a warehouse by conditions.
  *
  * @param {Object} where - Query conditions.
@@ -131,4 +109,22 @@ export const deleteWarehouse = async (where) => {
   });
 
   return warehouse;
+};
+
+/**
+ * Partially update a warehouse by ID.
+ *
+ * @param {number} id - Warehouse ID.
+ * @param {Object} data - Partial warehouse data to update.
+ * @param {string} [data.name] - Warehouse name.
+ * @param {string} [data.description] - Warehouse description.
+ * @param {string} [data.address] - Warehouse address.
+ * @param {boolean} [data.status] - Warehouse status.
+ * @returns {Promise<Object>} The updated warehouse record.
+ */
+export const patchWarehouseById = async (id, data) => {
+  return await prisma.warehouse.update({
+    where: { id },
+    data,
+  });
 };

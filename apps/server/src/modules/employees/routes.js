@@ -15,7 +15,8 @@ import {
 } from '../../middleware/index.js';
 import {
   employeeFiltersSchema,
-  employeeCreateUpdateSchema,
+  employeeCreateSchema,
+  employeeUpdateSchema,
 } from './schemas/employees.joi.js';
 import { ROLESCODES, PERMISSIONCODES } from '../../utils/constants/enums.js';
 
@@ -106,7 +107,7 @@ router.get(
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/BodyEmployeeCreateUpdate'
+ *             $ref: '#/components/schemas/BodyEmployeeCreate'
  *     responses:
  *       201:
  *         description: Employee created successfully
@@ -135,24 +136,28 @@ router.get(
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/Error'
- */
+ *     */
 router.post(
   '/',
   checkRoleAuthOrPermisssion({
     allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER],
     permissions: [PERMISSIONCODES.canCreateEmployee],
   }),
-  validateSchema(employeeCreateUpdateSchema),
+  validateSchema(employeeCreateSchema),
   createEmployee
 );
+
+
+
+
 
 /**
  * @openapi
  * /v1/employees/{id}:
- *   put:
+ *   patch:
  *     tags:
  *       - Employees
- *     summary: Update an employee by ID
+ *     summary: Partially update an employee by ID
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -167,7 +172,7 @@ router.post(
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/BodyEmployeeCreateUpdate'
+ *             $ref: '#/components/schemas/BodyEmployeeUpdate'
  *     responses:
  *       200:
  *         description: Employee updated successfully
@@ -190,21 +195,27 @@ router.post(
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/Unauthorized'
+ *       400:
+ *         description: Bad request
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/BadRequest'
  *       500:
  *         description: Server error
  *         content:
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/Error'
- */
-router.put(
+ *     */
+router.patch(
   '/:id',
   checkRoleAuthOrPermisssion({
     allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER],
     permissions: [PERMISSIONCODES.canEditEmployee],
   }),
   validatePathParam,
-  validateSchema(employeeCreateUpdateSchema),
+  validateSchema(employeeUpdateSchema),
   updateEmployeeById
 );
 

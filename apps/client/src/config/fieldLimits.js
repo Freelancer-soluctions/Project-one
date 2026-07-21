@@ -27,6 +27,7 @@ export const FIELD_LIMITS = {
     code: 3,
   },
   news: {
+    title: 30,
     description: 400,
   },
   events: {
@@ -97,6 +98,17 @@ export const FIELD_LIMITS = {
   },
   permission: {
     type: 100,
+    reason: 500,
+    comments: 1000,
+  },
+  search: {
+    searchTerm: 100,
+  },
+  expenses: {
+    description: 255,
+  },
+  providerOrder: {
+    notes: 200,
   },
 };
 

@@ -18,12 +18,14 @@ const roles = [
 ];
 
 const rolePermissionsMap = {
-  2: [1, 23, 37, 39, 40, 47], // user
+  2: [1, 23, 37, 39, 40, 47, 78, 79], // user + RSVP self-service (canRegisterForEvent, canCancelRegistration)
   3: [
-    1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21,
-    22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40,
-    41, 42, 43, 44, 45, 46, 47,
-  ], // MANAGER
+     1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21,
+     22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40,
+     41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59,
+     60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78,
+     79, 80, 81, 82,
+   ], // MANAGER (all permissions up to 82)
 };
 
 const permissions = [
@@ -131,6 +133,13 @@ const permissions = [
   // { code: 'canEditProviderOrder', description: 'Puede editar órdenes a proveedores' },
   // { code: 'canViewProviderOrder', description: 'Puede ver órdenes a proveedores' },
 
+  // Event RSVP permissions
+  { code: 'canRegisterForEvent', description: 'Puede registrarse a eventos' },
+  { code: 'canCancelRegistration', description: 'Puede cancelar registro a eventos' },
+  { code: 'canViewAttendees', description: 'Puede ver asistentes' },
+  { code: 'canManageAttendees', description: 'Puede gestionar asistentes' },
+  { code: 'canViewAttendeeDetail', description: 'Puede ver detalle de asistentes' },
+
   // { code: 'canViewReports', description: 'Puede ver reportes' }
 ];
 
@@ -146,18 +155,9 @@ const userStatus = [
 ];
 
 const noteColumns = [
-  {
-    code: 'C01',
-    title: 'LOW',
-  },
-  {
-    code: 'C02',
-    title: 'MEDIUM',
-  },
-  {
-    code: 'C03',
-    title: 'HIGH',
-  },
+  { code: 'C01', title: 'Backlog' },
+  { code: 'C02', title: 'Active' },
+  { code: 'C03', title: 'Completed' },
 ];
 
 const eventTypes = [
@@ -172,6 +172,62 @@ const eventTypes = [
   {
     code: 'C03',
     description: 'Workshop',
+  },
+];
+
+const events = [
+  {
+    title: 'Tech Conference 2024',
+    description: 'Annual technology conference with industry leaders',
+    speaker: 'John Doe',
+    startTime: new Date('1970-01-01T09:00:00.000Z'),
+    endTime: new Date('1970-01-01T17:00:00.000Z'),
+    eventDate: new Date('2024-06-15T00:00:00.000Z'),
+    type: 2, // Conference
+    createdBy: 1,
+    createdOn: new Date(),
+    modality: 'IN_PERSON',
+    location: 'Convention Center, Main Hall',
+  },
+  {
+    title: 'React Workshop',
+    description: 'Hands-on React workshop for beginners',
+    speaker: 'Jane Smith',
+    startTime: new Date('1970-01-01T10:00:00.000Z'),
+    endTime: new Date('1970-01-01T14:00:00.000Z'),
+    eventDate: new Date('2024-07-20T00:00:00.000Z'),
+    type: 3, // Workshop
+    createdBy: 1,
+    createdOn: new Date(),
+    modality: 'IN_PERSON',
+    location: 'Training Room A',
+  },
+  {
+    title: 'Online Webinar: AI Trends',
+    description: 'Virtual session on latest AI developments',
+    speaker: 'Dr. AI Expert',
+    startTime: new Date('1970-01-01T15:00:00.000Z'),
+    endTime: new Date('1970-01-01T16:30:00.000Z'),
+    eventDate: new Date('2024-08-10T00:00:00.000Z'),
+    type: 1, // Session
+    createdBy: 1,
+    createdOn: new Date(),
+    modality: 'ONLINE',
+    meetingUrl: 'https://meet.example.com/ai-trends-2024',
+  },
+  {
+    title: 'Hybrid DevOps Summit',
+    description: 'DevOps practices for modern teams - in-person and online',
+    speaker: 'DevOps Guru',
+    startTime: new Date('1970-01-01T09:00:00.000Z'),
+    endTime: new Date('1970-01-01T18:00:00.000Z'),
+    eventDate: new Date('2024-09-05T00:00:00.000Z'),
+    type: 2, // Conference
+    createdBy: 1,
+    createdOn: new Date(),
+    modality: 'HYBRID',
+    meetingUrl: 'https://meet.example.com/devops-summit-2024',
+    location: 'Tech Hub, Auditorium',
   },
 ];
 
@@ -252,6 +308,26 @@ const user1 = {
   picture: 'abcd',
   document: 'Not document',
   lastUpdatedBy: 1,
+   lastUpdatedOn: new Date('2024-01-07T07:58:30.996+0200'),
+   roleId: 2,
+   socialSecurity: '123456789',
+   startDate: new Date('2024-01-07T07:58:30.996+0200'),
+   state: 'Texas',
+   statusId: 1,
+   telephone: '300456322445565',
+   zipcode: '987654321',
+};
+const user2 = {
+  name: 'user2',
+  email: 'user2@gmail.com',
+  password: '123456',
+  address: 'Robert Robertson, 1234 NW Bobcat Lane, St. Robert, MO 65584-5678',
+  birthday: new Date('1990-09-26T07:58:30.996+0200'),
+  city: 'Vegas',
+  isAdmin: false,
+  picture: 'abcd',
+  document: 'Not document',
+  lastUpdatedBy: 1,
   lastUpdatedOn: new Date('2024-01-07T07:58:30.996+0200'),
   roleId: 2,
   socialSecurity: '123456789',
@@ -261,7 +337,6 @@ const user1 = {
   telephone: '300456322445565',
   zipcode: '987654321',
 };
-
 const news = [
   {
     closedOn: null,
@@ -310,6 +385,7 @@ async function main() {
   await createVarious('roles', roles);
   await createVarious('userStatus', userStatus);
   await create('users', user);
+  await create('users', user2);
 
   await createVarious('eventTypes', eventTypes);
   await createVarious('permissions', permissions);

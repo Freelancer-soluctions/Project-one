@@ -1,0 +1,82 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Project Manager Agent Output Contract Schema",
+  "description": "Defines required fields for project-manager agent responses",
+  "type": "object",
+  "allOf": [
+    { "$ref": "base.schema.json" },
+    {
+      "type": "object",
+      "required": ["status", "command", "details"],
+      "properties": {
+        "status": {
+          "type": "string",
+          "description": "Overall status of the project management action",
+          "enum": ["completed", "failed"]
+        },
+        "command": {
+          "type": "string",
+          "description": "The Trello command executed (e.g., '/trello-create-card')"
+        },
+        "details": {
+          "type": "string",
+          "description": "Human-readable description of what was done"
+        },
+        "changeName": {
+          "type": "string",
+          "description": "The OpenSpec change name this action relates to"
+        },
+        "cardId": {
+          "type": "string",
+          "description": "The Trello card ID created or modified"
+        },
+        "cardUrl": {
+          "type": "string",
+          "format": "uri",
+          "description": "URL to the Trello card"
+        },
+        "listName": {
+          "type": "string",
+          "description": "The Trello list name where the card resides"
+        },
+        "workflowState": {
+          "type": "string",
+          "description": "Current workflow state of the change",
+          "enum": ["backlog", "specification", "review", "in-progress", "verification", "done"]
+        },
+        "nextSteps": {
+          "type": "array",
+          "description": "Recommended next steps for the orchestrator",
+          "items": { "type": "string" }
+        }
+      }
+    }
+  ],
+  "responseTypes": {
+    "success": {
+      "description": "Project management action completed successfully",
+      "required": ["status", "command", "details"],
+      "properties": {
+        "status": { "const": "completed" },
+        "cardId": { "type": "string" },
+        "listName": { "type": "string" }
+      }
+    },
+    "failure": {
+      "description": "Project management action failed",
+      "required": ["status", "command", "details", "error"],
+      "properties": {
+        "status": { "const": "failed" },
+        "error": {
+          "type": "object",
+          "required": ["code", "message"],
+          "properties": {
+            "code": { "type": "string", "description": "Machine-readable error code" },
+            "message": { "type": "string", "description": "Human-readable error message" },
+            "details": { "type": "string", "description": "Additional error context" }
+          }
+        }
+      }
+    }
+  }
+}

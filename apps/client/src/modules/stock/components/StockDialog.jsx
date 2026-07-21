@@ -39,8 +39,10 @@ import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import PropTypes from 'prop-types';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { pickDirty } from '@/utils/pickDirty';
 import { StockSchema } from '../utils';
 import { useEffect, useMemo } from 'react';
+import {LuPackagePlus} from 'react-icons/lu'
 
 export const StockDialog = ({
   openDialog,
@@ -70,25 +72,31 @@ export const StockDialog = ({
       warehouseId: '',
     },
   });
+  const { formState: { dirtyFields } } = form;
 
   const stockId = useMemo(() => selectedRow?.id ?? null, [selectedRow?.id]);
   // Actualiza todos los valores del formulario al cambiar `selectedRow`
   useEffect(() => {
-    if (selectedRow.id) {
-      // Filtra y mapea solo los valores necesarios
+    if (selectedRow?.id) {
+      // Filtra y mapea solo los valores necesarios (sin spread para omitir id)
       const mappedValues = {
-        ...selectedRow,
         productId: selectedRow.productId.toString(),
         warehouseId: selectedRow.warehouseId.toString(),
         quantity: selectedRow.quantity.toString(),
         minimum: selectedRow.minimum.toString(),
         maximum: selectedRow.maximum.toString(),
+        lot: selectedRow.lot || '',
+        unitMeasure: selectedRow.unitMeasure || 'PIECES',
         price: selectedRow.productPrice.toString(),
         cost: selectedRow.productCost.toString(),
         totalCost: selectedRow.totalCost.toString(),
         expirationDate: selectedRow.expirationDate
           ? new Date(selectedRow.expirationDate)
           : null,
+        createdOn: selectedRow.createdOn,
+        updatedOn: selectedRow.updatedOn,
+        userStockCreatedName: selectedRow.userStockCreatedName || '',
+        userStockUpdatedName: selectedRow.userStockUpdatedName || '',
       };
 
       form.reset(mappedValues);
@@ -111,7 +119,12 @@ export const StockDialog = ({
   }, [selectedRow, openDialog, form]);
 
   const handleSubmit = (data) => {
-    onSubmit(data, selectedRow?.id);
+    if (selectedRow?.id) {
+      const changes = pickDirty(data, dirtyFields);
+      onSubmit({ id: selectedRow.id, body: changes });
+    } else {
+      onSubmit(data);
+    }
   };
 
   const handleDeleteById = () => {

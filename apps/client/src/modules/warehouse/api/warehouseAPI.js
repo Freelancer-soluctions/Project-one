@@ -45,7 +45,7 @@ const warehouseApi = createApi({
     updateWarehouseById: builder.mutation({
       query: ({ id, data }) => ({
         url: `/warehouse/${id}`,
-        method: 'PUT',
+        method: 'PATCH',
         body: data,
       }),
       invalidatesTags: ['Warehouses'], // Invalida el cache de 'Notes' para volver a consultar

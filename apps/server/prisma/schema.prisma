@@ -39,6 +39,7 @@ model users {
   userHashtagCreated              hashtags[]              @relation("userHashtagCreated")
   settingsCreated                  settings[]              @relation("userSettingCreated")
   eventsCreated                    events[]                @relation("userEventCreated")
+  eventsDeleted                    events[]                @relation("userEventDeleted")
   userProductCreated               products[]              @relation("userProductCreated")
   userProductUpdated               products[]              @relation("userProductUpdated")
   userProvidersUpdated             productProviders[]      @relation("userProvidersUpdated")
@@ -71,11 +72,12 @@ model users {
   userProviderOrderCreated         providerOrder[]         @relation("userProviderOrderCreated")
   userExpenseCreated               expenses[]              @relation("userExpenseCreated")
   userExpenseUpdated               expenses[]              @relation("userExpenseUpdated")
-  userPermits                      userPermits[]           @relation("userPermissions")
-  userRefreshTokens                refreshToken[]          @relation("userRefreshTokens")
-  userMentions                      mentions[]            @relation("MentionedUser")
-  userMentionsBy                   mentions[]            @relation("MentionedByUser")
-
+  favoriteNotes                    user_notes_favorites[]  @relation("UserFavoriteNotes")
+  refreshTokens                    refreshToken[]          @relation("userRefreshTokens")
+  permits                          userPermits[]           @relation("userPermissions")
+mentionedAs                      mentions[]              @relation("MentionedUser")
+  mentionedBy                      mentions[]              @relation("MentionedByUser")
+  attendees                        attendees[]             @relation("userAttendees")
 }
 
 model refreshToken {
@@ -145,6 +147,9 @@ model notes {
   hasMentions     Boolean     @default(false)
   mentions       mentions[]  @relation("NoteMentions")
   noteHashtags note_hashtags[] @relation("NoteHashtags")
+  favoriteBy user_notes_favorites[] @relation("FavoriteNotes")
+
+  @@index([createdBy])
 }
 
 model mentions {
@@ -154,9 +159,12 @@ model mentions {
   mentionedByUserId   Int      @db.Integer
   createdOn          DateTime @default(now()) @db.Timestamp(3)
   isRead             Boolean  @default(false)
-  note               notes    @relation("NoteMentions", fields: [noteId], references: [id])
+  note               notes    @relation("NoteMentions", fields: [noteId], references: [id], onDelete: Cascade)
   mentionedUser     users    @relation("MentionedUser", fields: [mentionedUserId], references: [id])
   mentionedByUser  users    @relation("MentionedByUser", fields: [mentionedByUserId], references: [id])
+
+  @@index([noteId, mentionedUserId])
+  @@index([mentionedUserId, isRead])
 }
 
 model hashtags {
@@ -177,6 +185,17 @@ model note_hashtags {
   hashtag    hashtags  @relation(fields: [hashtagId], references: [id], onDelete: Cascade)
 
   @@unique([noteId, hashtagId])
+}
+
+model user_notes_favorites {
+  noteId    Int
+  userId    Int
+  createdOn DateTime  @default(now()) @db.Timestamp(3)
+  note      notes     @relation("FavoriteNotes", fields: [noteId], references: [id], onDelete: Cascade)
+  user      users     @relation("UserFavoriteNotes", fields: [userId], references: [id])
+
+  @@unique([noteId, userId])
+  @@index([userId])
 }
 
 model noteColumns {
@@ -229,20 +248,81 @@ model settings {
   updatedOn          DateTime? @db.Timestamp(3)
 }
 
+enum EventModality {
+  ONLINE
+  IN_PERSON
+  HYBRID
+}
+
+enum AttendeeStatus {
+  CONFIRMED
+  WAITLIST
+  CANCELLED
+}
+
 model events {
-  id               Int        @id @default(autoincrement())
-  title            String     @db.VarChar(50)
-  description      String     @db.VarChar(200)
-  speaker          String?    @db.VarChar(20)
-  startTime        String     @db.VarChar(5)
-  endTime          String     @db.VarChar(5)
-  eventDate        DateTime   @db.Timestamp(3)
-  userEventCreated users      @relation("userEventCreated", fields: [createdBy], references: [id])
-  createdBy        Int        @db.Integer
-  createdOn        DateTime   @db.Timestamp(3)
-  updatedOn        DateTime?  @db.Timestamp(3)
-  eventTypes       eventTypes @relation("eventTypes", fields: [eventTypeId], references: [id])
+  id               Int           @id @default(autoincrement())
+  title            String        @db.VarChar(50)
+  description      String        @db.VarChar(200)
+  speaker          String?       @db.VarChar(20)
+  startTime        DateTime      @db.Time(0)
+  endTime          DateTime      @db.Time(0)
+  eventDate        DateTime      @db.Timestamp(3)
+  modality         EventModality @default(IN_PERSON)
+  meetingUrl       String?       @db.VarChar(500)
+  location         String?       @db.VarChar(200)
+  userEventCreated users         @relation("userEventCreated", fields: [createdBy], references: [id])
+  createdBy        Int           @db.Integer
+  createdOn        DateTime      @db.Timestamp(3)
+  updatedOn        DateTime?     @db.Timestamp(3)
+  deletedAt        DateTime?     @db.Timestamp(3)
+  deletedBy        Int?          @db.Integer
+  userEventDeleted users?        @relation("userEventDeleted", fields: [deletedBy], references: [id])
+  eventTypes       eventTypes    @relation("eventTypes", fields: [eventTypeId], references: [id])
   eventTypeId      Int
+
+  capacity        Int           @default(0)
+  attendeeCount   Int           @default(0)
+
+  attendees       attendees[]
+  registrationLog registration_log[]
+
+  @@index([eventDate])
+
+  @@index([modality])
+}
+
+model attendees {
+  id              Int             @id @default(autoincrement())
+  eventId         Int
+  userId          Int
+  status          AttendeeStatus  @default(CONFIRMED)
+  createdAt       DateTime        @db.Timestamp(3) @default(now())
+  updatedAt       DateTime?       @db.Timestamp(3)
+
+  event           events          @relation("eventAttendees", fields: [eventId], references: [id], onDelete: Restrict)
+  user            users           @relation("userAttendees", fields: [userId], references: [id])
+  registrationLog registration_log[] @relation("attendeeLogs")
+
+  @@unique([eventId, userId])
+  @@index([eventId, status])
+  @@index([eventId, userId])
+  @@index([userId])
+}
+
+model registration_log {
+  id             Int        @id @default(autoincrement())
+  attendeeId     Int
+  eventId        Int
+  previousStatus String?
+  newStatus      String
+  changedBy      Int?
+  createdOn      DateTime   @db.Timestamp(3) @default(now())
+
+  attendee       attendees  @relation("attendeeLogs", fields: [attendeeId], references: [id], onDelete: Cascade)
+
+  @@index([eventId, createdOn])
+  @@index([attendeeId])
 }
 
 model eventTypes {

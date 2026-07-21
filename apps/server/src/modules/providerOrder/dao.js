@@ -82,16 +82,20 @@ export const updateProviderOrderById = async (id, data) => {
       updatedBy: data.updatedBy,
       notes: data.notes,
       updatedOn: data.updatedOn,
-      productOrders: {
-        connect: {
-          id: data.supplierId,
+      ...(data.supplierId !== undefined && {
+        productOrders: {
+          connect: {
+            id: data.supplierId,
+          },
         },
-      },
-      userProviderOrderUpdated: {
-        connect: {
-          id: data.updatedBy,
+      }),
+      ...(data.updatedBy !== undefined && {
+        userProviderOrderUpdated: {
+          connect: {
+            id: data.updatedBy,
+          },
         },
-      },
+      }),
     },
     include: {
       productOrders: true,

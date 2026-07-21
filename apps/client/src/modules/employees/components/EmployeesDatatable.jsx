@@ -10,7 +10,7 @@ export const EmployeesDatatable = ({
   onPaginationChange,
 }) => {
   const { t } = useTranslation();
-  const { dataList, total } = dataEmployees.data;
+  const { dataList, total } = dataEmployees;
 
   const columnDefEmployees = [
     {
@@ -110,7 +110,10 @@ export const EmployeesDatatable = ({
 };
 
 EmployeesDatatable.propTypes = {
-  dataEmployees: PropTypes.object.isRequired,
+  dataEmployees: PropTypes.shape({
+    dataList: PropTypes.array,
+    total: PropTypes.number,
+  }).isRequired,
   onEditDialog: PropTypes.func.isRequired,
   pagination: PropTypes.object.isRequired,
   onPaginationChange: PropTypes.func.isRequired,

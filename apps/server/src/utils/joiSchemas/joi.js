@@ -89,7 +89,7 @@ export const RoleUpdate = Joi.object({
 export const RoleArray = Joi.array().items(Role).min(1);
 
 export const NotesFilters = Joi.object({
-  searchTerm: Joi.string().min(1).max(150).allow(''),
+  searchTerm: Joi.string().min(1).max(100).allow(''),
   statusCode: Joi.string().min(3).max(3).allow(''),
 });
 
@@ -163,7 +163,7 @@ export const EventsCreateUpdate = Joi.object({
 });
 
 export const EventsFilters = Joi.object({
-  searchQuery: Joi.string().min(1).max(30).allow(''),
+  searchQuery: Joi.string().min(1).max(100).allow(''),
 });
 
 export const Products = Joi.object({
@@ -202,7 +202,7 @@ export const ProductAttributes = Joi.array().items(
   Joi.object({
     id: Joi.number().integer().optional(),
     name: Joi.string().max(50).required(),
-    description: Joi.string().max(50).required(),
+    description: Joi.string().max(100).required(),
     createdOn: Joi.date().required(),
     productId: Joi.number().integer().required(),
   })
@@ -346,7 +346,7 @@ export const saleCreateUpdateSchema = Joi.object({
 export const employeeFiltersSchema = Joi.object({
   name: Joi.string().max(100).allow(''),
   lastName: Joi.string().max(100).allow(''),
-  dni: Joi.string().max(10).allow(''),
+  dni: Joi.string().max(128).allow(''),
   email: Joi.string().email().allow(''),
   department: Joi.string().max(100).allow(''),
   position: Joi.string().max(100).allow(''),
@@ -357,7 +357,7 @@ export const employeeFiltersSchema = Joi.object({
 export const employeeCreateUpdateSchema = Joi.object({
   name: Joi.string().max(100).required(),
   lastName: Joi.string().max(100).required(),
-  dni: Joi.string().max(10).required(),
+  dni: Joi.string().max(128).required(),
   email: Joi.string().email().required(),
   phone: Joi.string().max(15).allow(''),
   address: Joi.string().max(120).allow(''),

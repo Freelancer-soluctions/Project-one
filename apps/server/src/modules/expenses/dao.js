@@ -104,35 +104,6 @@ export const createExpense = async (data) => {
 };
 
 /**
- * Update an expense by ID.
- *
- * @param {string} id - Expense ID (cuid string).
- * @param {Object} data - Updated expense data.
- * @param {string} [data.description] - Expense description.
- * @param {number} [data.total] - Expense total (Float).
- * @param {string} [data.category] - Expense category.
- * @param {Date} data.updatedOn - Update date.
- * @param {number} data.updatedBy - User ID who updated the expense.
- * @returns {Promise<Object>} Updated expense.
- */
-export const updateExpenseById = async (id, data) => {
-  return prisma.expenses.update({
-    where: { id }, // id is a string (cuid)
-    data: {
-      description: data.description,
-      total: data.total, // Prisma expects Float, ensure data.total is a number
-      category: data.category,
-      updatedOn: data.updatedOn, // Prisma model for expenses has updatedOn DateTime?
-      userExpenseUpdated: {
-        connect: {
-          id: data.updatedBy,
-        },
-      },
-    },
-  });
-};
-
-/**
  * Delete an expense by ID.
  *
  * @param {string} id - Expense ID (cuid string).
@@ -141,5 +112,52 @@ export const updateExpenseById = async (id, data) => {
 export const deleteExpenseById = async (id) => {
   return prisma.expenses.delete({
     where: { id }, // id is a string (cuid)
+  });
+};
+
+/**
+ * Patch an expense by ID (only update provided fields).
+ *
+ * @param {string} id - Expense ID (cuid string).
+ * @param {Object} data - Partial expense data to update.
+ * @param {string} [data.description] - Expense description.
+ * @param {number} [data.total] - Expense total (Float).
+ * @param {string} [data.category] - Expense category.
+ * @param {Date} data.updatedOn - Update date.
+ * @param {number} data.updatedBy - User ID who updated the expense.
+ * @returns {Promise<Object>} Updated expense.
+ */
+export const patchExpenseById = async (id, data) => {
+  // Build update object dynamically - only include fields that are provided
+  const updateData = {};
+  
+  if (data.description !== undefined) {
+    updateData.description = data.description;
+  }
+  
+  if (data.total !== undefined) {
+    updateData.total = data.total;
+  }
+  
+  if (data.category !== undefined) {
+    updateData.category = data.category;
+  }
+  
+  // Always update the timestamp and user if provided
+  if (data.updatedOn !== undefined) {
+    updateData.updatedOn = data.updatedOn;
+  }
+  
+  if (data.updatedBy !== undefined) {
+    updateData.userExpenseUpdated = {
+      connect: {
+        id: data.updatedBy,
+      },
+    };
+  }
+  
+  return prisma.expenses.update({
+    where: { id }, // id is a string (cuid)
+    data: updateData,
   });
 };

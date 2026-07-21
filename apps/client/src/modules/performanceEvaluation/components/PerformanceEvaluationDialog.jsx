@@ -5,6 +5,8 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import PropTypes from 'prop-types';
+import { pickDirty } from '@/utils/pickDirty';
+import { FIELD_LIMITS } from '@/config/fieldLimits';
 
 import {
   PerformanceEvaluationSchema,
@@ -62,20 +64,20 @@ export const PerformanceEvaluationDialog = ({
     [selectedRow?.id]
   );
 
-  const form = useForm({
-    resolver: zodResolver(PerformanceEvaluationSchema),
-    defaultValues: {
-      employeeId: '',
-      date: undefined,
-      calification: '', // Use string for Select/Input
-      comments: '',
-    },
-  });
+   const form = useForm({
+     resolver: zodResolver(PerformanceEvaluationSchema),
+     defaultValues: {
+       employeeId: '',
+       date: undefined,
+       calification: '', // Use string for Select/Input
+       comments: '',
+     },
+   });
+   const { formState: { dirtyFields } } = form;
 
   useEffect(() => {
     if (selectedRow?.id) {
       const mappedValues = {
-        id: selectedRow.id,
         employeeId: selectedRow.employeeId,
         date: selectedRow.date ? new Date(selectedRow.date) : null,
         calification: selectedRow.calification?.toString(), // Ensure string
@@ -96,14 +98,19 @@ export const PerformanceEvaluationDialog = ({
     }
   }, [selectedRow, openDialog, form]);
 
-  const handleSubmit = (data) => {
-    const submissionData = {
-      ...data,
-      date: data.date ? format(data.date, 'yyyy-MM-dd') : null,
-      calification: Number(data.calification),
-    };
-    onSubmit(submissionData, evaluationId);
-  };
+   const handleSubmit = (data) => {
+     const submissionData = {
+       ...data,
+       date: data.date ? format(data.date, 'yyyy-MM-dd') : null,
+       calification: Number(data.calification),
+     };
+     if (evaluationId) {
+       const changes = pickDirty(submissionData, dirtyFields);
+       onSubmit({ id: evaluationId, body: changes });
+     } else {
+       onSubmit(submissionData);
+     }
+   };
 
   const handleDelete = () => {
     if (selectedRow?.id) {

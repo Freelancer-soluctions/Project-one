@@ -86,29 +86,18 @@ const Warehouse = () => {
     setFilters(newFilters);
   };
 
-  const handleSubmit = async (values, warehouseId) => {
+  const handleSubmit = async (result) => {
     try {
-      warehouseId
-        ? await updateWarehouseById({
-            id: warehouseId,
-            data: {
-              name: values.name,
-              status: values.status,
-              description: values.description,
-              address: values.address,
-            },
-          }).unwrap()
-        : await createWarehouse({
-            name: values.name,
-            status: values.status,
-            description: values.description,
-            address: values.address,
-          }).unwrap();
+      if (result?.id) {
+        await updateWarehouseById({ id: result.id, data: result.body }).unwrap();
+      } else {
+        await createWarehouse(result).unwrap();
+      }
 
       setAlertProps({
-        alertTitle: t(warehouseId ? 'update_record' : 'add_record'),
+        alertTitle: t(result?.id ? 'update_record' : 'add_record'),
         alertMessage: t(
-          warehouseId ? 'updated_successfully' : 'added_successfully'
+          result?.id ? 'updated_successfully' : 'added_successfully'
         ),
         cancel: false,
         success: true,

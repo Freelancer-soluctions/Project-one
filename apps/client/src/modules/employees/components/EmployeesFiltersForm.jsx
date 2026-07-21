@@ -14,6 +14,7 @@ import { LuPlus, LuSearch, LuEraser } from 'react-icons/lu';
 import PropTypes from 'prop-types';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { EmployeeFiltersSchema } from '../utils';
+import { FIELD_LIMITS } from '@/config/fieldLimits';
 
 export const EmployeesFiltersForm = ({ onSubmit, onAddDialog }) => {
   const { t } = useTranslation();
@@ -63,7 +64,7 @@ export const EmployeesFiltersForm = ({ onSubmit, onAddDialog }) => {
                       placeholder={t('employee_name_placeholder')}
                       type="text"
                       autoComplete="off"
-                      maxLength={100}
+                      maxLength={FIELD_LIMITS.employees.name}
                       {...field}
                       value={field.value ?? ''}
                     />
@@ -88,7 +89,7 @@ export const EmployeesFiltersForm = ({ onSubmit, onAddDialog }) => {
                       placeholder={t('employee_email_placeholder')}
                       type="email"
                       autoComplete="off"
-                      maxLength={100}
+                      maxLength={FIELD_LIMITS.employees.lastName}
                       {...field}
                       value={field.value ?? ''}
                     />
@@ -113,7 +114,7 @@ export const EmployeesFiltersForm = ({ onSubmit, onAddDialog }) => {
                       placeholder={t('dni_placeholder')}
                       type="text"
                       autoComplete="off"
-                      maxLength={10}
+                      maxLength={FIELD_LIMITS.employees.dni}
                       {...field}
                       value={field.value ?? ''}
                     />

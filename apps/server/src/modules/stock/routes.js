@@ -2,15 +2,16 @@ import { Router } from 'express';
 import {
   getAllStock,
   createStock,
-  updateStockById,
   deleteStockById,
   getStockAlerts,
   getStockByProductId,
+  patchStockById,
 } from './controller.js';
 import {
-  stockFiltersSchema,
-  stockCreateUpdateSchema,
-} from './schemas/stock.joi.js';
+   stockFiltersSchema,
+   stockCreateSchema,
+   stockUpdateSchema,
+ } from './schemas/stock.joi.js';
 import {
   verifyToken,
   validateQueryParams,
@@ -247,17 +248,19 @@ router.post(
     allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER, ROLESCODES.USER],
     permissions: [PERMISSIONCODES.canCreateStock],
   }),
-  validateSchema(stockCreateUpdateSchema),
+  validateSchema(stockCreateSchema),
   createStock
 );
+
+
 
 /**
  * @openapi
  * /api/v1/stock/{id}:
- *   put:
+ *   patch:
  *     tags:
  *       - Stock
- *     summary: Update a stock entry
+ *     summary: Partially update a stock entry
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -272,7 +275,7 @@ router.post(
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/BodyStockCreateUpdate'
+ *             $ref: '#/components/schemas/StockPatch'
  *     responses:
  *       200:
  *         description: OK
@@ -305,15 +308,15 @@ router.post(
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.put(
+router.patch(
   '/:id',
   checkRoleAuthOrPermisssion({
     allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER, ROLESCODES.USER],
     permissions: [PERMISSIONCODES.canEditStock],
   }),
   validatePathParam,
-  validateSchema(stockCreateUpdateSchema),
-  updateStockById
+  validateSchema(stockUpdateSchema),
+  patchStockById
 );
 
 /**

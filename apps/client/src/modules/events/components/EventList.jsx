@@ -1,18 +1,17 @@
-import { LuPencil, LuTrash2 } from 'react-icons/lu';
+import { LuPencil, LuTrash2, LuExternalLink } from 'react-icons/lu';
 import { Button } from '@/components/ui/button';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
-import { sortedEvents, getEventTypeColor } from '../utils';
+import { getEventTypeColor, getModalityIcon, getModalityColor } from '../utils';
 import { useMemo } from 'react';
 import PropTypes from 'prop-types';
+import { PaginationControls } from '@/components/PaginationControls';
 
-export function EventList({ events, onEdit, onDelete }) {
+export function EventList({ events, pageIndex, pageSize, total, onPageChange, onEdit, onDelete }) {
   const groupedEvents = useMemo(() => {
     if (!events || events.length === 0) return {};
 
-    const sorted = sortedEvents(events, false);
-
-    return sorted.reduce((groups, event) => {
+    return events.reduce((groups, event) => {
       const date = event.eventDate;
       if (!groups[date]) {
         groups[date] = [];
@@ -45,13 +44,34 @@ export function EventList({ events, onEdit, onDelete }) {
                     {event.speaker}
                   </div>
                   <div className="text-sm">{event.description}</div>
-                  <div className="mt-2">
-                    <span
-                      className={`text-xs px-2 py-1 rounded-full ${getEventTypeColor(event.eventTypeCode)}`}
-                    >
-                      {event.eventTypeDescription}
-                    </span>
-                  </div>
+<div className="mt-2 flex flex-wrap gap-2 items-center">
+                      <span
+                        className={`text-xs px-2 py-1 rounded-full ${getEventTypeColor(event.eventTypes?.code)}`}
+                      >
+                        {event.eventTypes?.description}
+                      </span>
+                      {event.modality && (
+                        <span
+                          className={`text-xs px-2 py-1 rounded-full flex items-center gap-1 ${getModalityColor(event.modality)}`}
+                        >
+                          {getModalityIcon(event.modality)}
+                          {event.modality === 'ONLINE' && 'Online'}
+                          {event.modality === 'IN_PERSON' && 'Presencial'}
+                          {event.modality === 'HYBRID' && 'Híbrido'}
+                        </span>
+                      )}
+                      {(event.modality === 'ONLINE' || event.modality === 'HYBRID') && event.meetingUrl && (
+                        <a
+                          href={event.meetingUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-xs px-2 py-1 rounded-full bg-green-100 text-green-800 flex items-center gap-1 hover:bg-green-200 transition-colors"
+                        >
+                          <LuExternalLink className="h-3 w-3" />
+                          Unirse
+                        </a>
+                      )}
+                    </div>
                 </div>
                 <div className="flex gap-2">
                   <Button
@@ -74,6 +94,16 @@ export function EventList({ events, onEdit, onDelete }) {
           ))}
         </div>
       ))}
+
+      {/* Pagination */}
+      {typeof total !== 'undefined' && (
+        <PaginationControls
+          pageIndex={pageIndex}
+          pageSize={pageSize}
+          total={total}
+          onPageChange={onPageChange}
+        />
+      )}
     </div>
   ) : (
     <div className="text-lg text-center text-muted-foreground">
@@ -84,6 +114,10 @@ export function EventList({ events, onEdit, onDelete }) {
 
 EventList.propTypes = {
   events: PropTypes.array.isRequired,
+  pageIndex: PropTypes.number,
+  pageSize: PropTypes.number,
+  total: PropTypes.number,
+  onPageChange: PropTypes.func,
   onEdit: PropTypes.func.isRequired,
   onDelete: PropTypes.func.isRequired,
 };

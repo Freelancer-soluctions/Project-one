@@ -33,6 +33,7 @@ import { Button } from '@/components/ui/button';
 import { LuUsersRound } from 'react-icons/lu';
 import PropTypes from 'prop-types';
 import { UserSchema } from '../utils';
+import { FIELD_LIMITS } from '@/config/fieldLimits';
 
 export const UsersDialog = ({
   openDialog,
@@ -55,7 +56,6 @@ export const UsersDialog = ({
     if (selectedRow?.id) {
       // Filtra y mapea solo los valores necesarios
       const mappedValues = {
-        id: selectedRow.id,
         name: selectedRow.name,
         email: selectedRow.email,
         telephone: selectedRow.telephone,
@@ -139,7 +139,7 @@ export const UsersDialog = ({
                           placeholder={t('user_name_placeholder')}
                           type="text"
                           autoComplete="off"
-                          maxLength={100}
+                          maxLength={FIELD_LIMITS.users.name}
                           {...field}
                           value={field.value ?? ''}
                         />
@@ -164,7 +164,7 @@ export const UsersDialog = ({
                           placeholder={t('user_email_placeholder')}
                           type="email"
                           autoComplete="off"
-                          maxLength={254}
+                          maxLength={FIELD_LIMITS.users.email}
                           {...field}
                           value={field.value ?? ''}
                         />
@@ -191,7 +191,7 @@ export const UsersDialog = ({
                           placeholder={t('user_telephone_placeholder')}
                           type="tel"
                           autoComplete="off"
-                          maxLength={15}
+                          maxLength={FIELD_LIMITS.users.telephone}
                           {...field}
                           value={field.value ?? ''}
                         />
@@ -216,7 +216,7 @@ export const UsersDialog = ({
                           placeholder={t('user_address_placeholder')}
                           type="text"
                           autoComplete="off"
-                          maxLength={250}
+                          maxLength={FIELD_LIMITS.users.address}
                           {...field}
                           value={field.value ?? ''}
                         />
@@ -317,7 +317,7 @@ export const UsersDialog = ({
                           placeholder={t('user_social_security_placeholder')}
                           type="text"
                           autoComplete="off"
-                          maxLength={128}
+                          maxLength={FIELD_LIMITS.users.socialSecurity}
                           {...field}
                           value={field.value ?? ''}
                         />
@@ -342,7 +342,7 @@ export const UsersDialog = ({
                           placeholder={t('user_zipcode_placeholder')}
                           type="text"
                           autoComplete="off"
-                          maxLength={9}
+                          maxLength={FIELD_LIMITS.users.zipcode}
                           {...field}
                           value={field.value ?? ''}
                         />
@@ -367,7 +367,7 @@ export const UsersDialog = ({
                           placeholder={t('user_state_placeholder')}
                           type="text"
                           autoComplete="off"
-                          maxLength={50}
+                          maxLength={FIELD_LIMITS.users.state}
                           {...field}
                           value={field.value ?? ''}
                         />
@@ -392,7 +392,7 @@ export const UsersDialog = ({
                           placeholder={t('user_city_placeholder')}
                           type="text"
                           autoComplete="off"
-                          maxLength={35}
+                          maxLength={FIELD_LIMITS.users.city}
                           {...field}
                           value={field.value ?? ''}
                         />
@@ -460,7 +460,7 @@ export const UsersDialog = ({
                           placeholder={t('user_document_placeholder')}
                           type="document"
                           autoComplete="off"
-                          maxLength={128}
+                          maxLength={FIELD_LIMITS.users.document}
                           {...field}
                           value={field.value ?? ''}
                         />

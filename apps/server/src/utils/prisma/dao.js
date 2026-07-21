@@ -111,6 +111,19 @@ export const updateRow = async (tableName, data, where) => {
 };
 
 /**
+ * Deletes a database row by its unique identifier.
+ * Hard delete — permanently removes the record.
+ * Returns the deleted record for audit/confirmation purposes.
+ *
+ * @param {string} tableName - Prisma model name (singular, e.g. 'events')
+ * @param {Object} where - Prisma where clause to identify the record
+ * @returns {Promise<Object>} The deleted record
+ */
+export const deleteRow = async (tableName, where) => {
+  return prisma[tableName].delete({ where });
+};
+
+/**
  *
  * @param {*} item :: Object returned from BD
  * @param {*} keys :: fileds to exclude

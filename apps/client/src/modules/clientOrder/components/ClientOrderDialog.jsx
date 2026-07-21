@@ -23,6 +23,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { LuUsersRound } from 'react-icons/lu';
 import PropTypes from 'prop-types';
+import { pickDirty } from '@/utils/pickDirty';
 // import { ClientOrderSchema } from '../utils';
 // import { orderStatus } from '@/lib/constants';
 // import {
@@ -43,15 +44,16 @@ export const ClientOrderDialog = ({
 }) => {
   const { t } = useTranslation();
 
-  const form = useForm({
-    resolver: zodResolver(),
-    defaultValues: {
-      clientId: '',
-      status: '',
-      notes: '',
-      saleId: '',
-    },
-  });
+   const form = useForm({
+     resolver: zodResolver(),
+     defaultValues: {
+       clientId: '',
+       status: '',
+       notes: '',
+       saleId: '',
+     },
+   });
+   const { formState: { dirtyFields } } = form;
 
   const clientOrderId = useMemo(
     () => selectedRow?.id ?? null,
@@ -63,7 +65,6 @@ export const ClientOrderDialog = ({
     if (selectedRow?.id) {
       // Filtra y mapea solo los valores necesarios
       const mappedValues = {
-        id: selectedRow.id,
         clientId: selectedRow.clientId,
         status: selectedRow.status,
         notes: selectedRow.notes,
@@ -83,9 +84,14 @@ export const ClientOrderDialog = ({
     }
   }, [selectedRow, openDialog, form]);
 
-  const handleSubmit = (data) => {
-    onSubmit(data, clientOrderId);
-  };
+   const handleSubmit = (data) => {
+     if (clientOrderId) {
+       const changes = pickDirty(data, dirtyFields);
+       onSubmit({ id: clientOrderId, body: changes });
+     } else {
+       onSubmit(data);
+     }
+   };
 
   const handleDelete = () => {
     onDeleteById(selectedRow.id);

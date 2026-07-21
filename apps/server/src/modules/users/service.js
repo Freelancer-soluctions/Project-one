@@ -59,7 +59,7 @@ export const getUsersByStatus = async (status) => {
 export const getAllUserPermits = async (id) => {
   const { allPermissions, user } = await getAllUserPermitsDao(Number(id));
 
-  const userPermits = user?.userPermits || [];
+  const userPermits = user?.permits || [];
 
   const userPermissionIds = new Set(userPermits.map((p) => p.permissionId));
   const permissions = allPermissions.map((p) => ({
@@ -111,18 +111,16 @@ export const createUser = async (data) => {
   return createDao(userData);
 };
 
+
+
 /**
- * Update a user by ID.
+ * Partially update a user by ID.
  *
  * @param {number} id - User ID.
- * @param {Object} data - Updated user data.
- * @param {string} [data.name] - User name.
- * @param {string} [data.email] - User email address.
- * @param {string} [data.password] - User password.
- * @param {number} [data.roleId] - User role ID.
+ * @param {Object} data - Partial user data to update.
  * @returns {Promise<Object>} Updated user.
  */
-export const updateUserById = async (id, data) => {
+export const patchUserById = async (id, data) => {
   const userData = {
     ...data,
     lastUpdatedBy: Number(id),

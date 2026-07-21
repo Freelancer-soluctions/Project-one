@@ -39,7 +39,7 @@ const clientOrderApi = createApi({
     updateClientOrderById: builder.mutation({
       query: ({ id, data }) => ({
         url: `/clientOrder/${id}`,
-        method: 'PUT',
+        method: 'PATCH',
         body: data,
       }),
       invalidatesTags: ['ClientOrder'], // Invalida el cache de 'Notes' para volver a consultar

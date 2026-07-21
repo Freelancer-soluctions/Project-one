@@ -22,12 +22,14 @@ import {
   LuGlobe,
   LuLayoutTemplate,
   LuPackage,
+  LuWifi,
 } from 'react-icons/lu';
 import { Separator } from '@/components/ui/separator';
 import {
   SettingsLanguage,
   SettingsDisplay,
   SettingsProduct,
+  SettingsWsStatus,
 } from '../components/index';
 import { useSelector } from 'react-redux';
 import { useTranslation } from 'react-i18next';
@@ -96,6 +98,10 @@ export default function Settings() {
               <LuPackage className="w-4 h-4" />
               {t('product')}
             </TabsTrigger>
+            <TabsTrigger value="websocket" className="flex items-center gap-2">
+              <LuWifi className="w-4 h-4" />
+              {t('ws_status_title')}
+            </TabsTrigger>
             <TabsTrigger value="account" className="flex items-center gap-2">
               <LuShield className="w-4 h-4" />
               {t('account')}
@@ -114,6 +120,10 @@ export default function Settings() {
 
           <TabsContent value="product" className="space-y-6">
             <SettingsProduct />
+          </TabsContent>
+
+          <TabsContent value="websocket" className="space-y-6">
+            <SettingsWsStatus />
           </TabsContent>
 
           {/* <TabsContent value='profile' className='space-y-6'>

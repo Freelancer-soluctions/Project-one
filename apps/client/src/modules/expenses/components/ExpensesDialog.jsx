@@ -1,5 +1,6 @@
 import { useEffect, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
+import { pickDirty } from '@/utils/pickDirty';
 import { useTranslation } from 'react-i18next';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
@@ -42,6 +43,7 @@ import { Button } from '@/components/ui/button';
 import { LuTrendingDown } from 'react-icons/lu'; // Changed icon
 import PropTypes from 'prop-types';
 import { ExpenseSchema, expenseCategories } from '../utils';
+import { FIELD_LIMITS } from '@/config/fieldLimits';
 
 export const ExpensesDialog = ({
   // Renamed from ClientsDialog
@@ -62,13 +64,13 @@ export const ExpensesDialog = ({
       category: '',
     },
   });
+  const { formState: { dirtyFields } } = form;
 
   const expenseId = useMemo(() => selectedRow?.id, [selectedRow?.id]);
   // Actualiza todos los valores del formulario al cambiar `selectedRow`
   useEffect(() => {
     if (selectedRow?.id) {
       const mappedValues = {
-        id: selectedRow.id,
         description: selectedRow.description,
         total: selectedRow.total,
         category: selectedRow.category,
@@ -96,12 +98,19 @@ export const ExpensesDialog = ({
   }, [selectedRow, openDialog, form]); // Added form to dependency array as per react-hook-form's recommendation
 
   const handleSubmit = (data) => {
-    // Ensure total is a number if it's coming as string from input
     const dataToSubmit = {
       ...data,
       total: parseFloat(data.total) || 0,
     };
-    onSubmit(dataToSubmit, expenseId);
+
+    if (expenseId) {
+      // edit → send only changed fields (PATCH)
+      const changes = pickDirty(dataToSubmit, dirtyFields);
+      onSubmit({ id: expenseId, body: changes });
+    } else {
+      // create → send all fields (POST)
+      onSubmit(dataToSubmit);
+    }
   };
 
   const handleDelete = () => {
@@ -201,7 +210,7 @@ export const ExpensesDialog = ({
                           id="description"
                           placeholder={t('description_placeholder')}
                           className="resize-none"
-                          maxLength={255}
+                          maxLength={FIELD_LIMITS.expenses.description}
                           {...field}
                           value={field.value ?? ''}
                         />

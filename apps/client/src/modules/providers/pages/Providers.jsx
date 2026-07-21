@@ -15,7 +15,7 @@ import {
 import { dataStatus } from '../utils/enums';
 import AlertDialogComponent from '@/components/alertDialog/AlertDialog';
 import { Spinner } from '@/components/loader/Spinner';
-import { generateCode } from '@/utils/helpers';
+// import { generateCode } from '@/utils/helpers';
 
 const Providers = () => {
   const { t } = useTranslation();
@@ -85,50 +85,33 @@ const Providers = () => {
     setFilters(newFilters);
   };
 
-  const handleSubmit = async (values, providerId) => {
-    try {
-      providerId
-        ? await updateProviderById({
-            id: providerId,
-            data: {
-              name: values.name,
-              code: values.code,
-              status: values.status,
-              contactName: values.contactName,
-              contactEmail: values.contactEmail,
-              contactPhone: values.contactPhone,
-              address: values.address,
-            },
-          }).unwrap()
-        : await createProvider({
-            name: values.name,
-            code: await generateCode(dataProviders?.data),
-            status: values.status,
-            contactName: values.contactName,
-            contactEmail: values.contactEmail,
-            contactPhone: values.contactPhone,
-            address: values.address,
-          }).unwrap();
+   const handleSubmit = async (result) => {
+     try {
+       if (result?.id) {
+         await updateProviderById({ id: result.id, data: result.body }).unwrap();
+       } else {
+         await createProvider(result).unwrap();
+       }
 
-      setAlertProps({
-        alertTitle: t(providerId ? 'update_record' : 'add_record'),
-        alertMessage: t(
-          providerId ? 'updated_successfully' : 'added_successfully'
-        ),
-        cancel: false,
-        success: true,
-        onSuccess: () => {
-          setOpenDialog(false);
-        },
-        variantSuccess: 'info',
-      });
-      setOpenAlertDialog(true);
-    } catch (err) {
-      console.error('Error:', err);
-    }
-  };
+       setAlertProps({
+         alertTitle: t(result?.id ? 'update_record' : 'add_record'),
+         alertMessage: t(
+           result?.id ? 'updated_successfully' : 'added_successfully'
+         ),
+         cancel: false,
+         success: true,
+         onSuccess: () => {
+           setOpenDialog(false);
+         },
+         variantSuccess: 'info',
+       });
+       setOpenAlertDialog(true);
+     } catch (err) {
+       console.error('Error:', err);
+     }
+    };
 
-  const handleAddDialog = () => {
+   const handleAddDialog = () => {
     setActionDialog(t('add_provider'));
     setOpenDialog(true);
   };

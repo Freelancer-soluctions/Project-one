@@ -52,25 +52,7 @@ export const createPayroll = async (data, userId) => {
   return await payrollDao.createPayroll(payroll);
 };
 
-/**
- * Update a payroll record by ID.
- *
- * @param {number} id - Payroll ID.
- * @param {Object} data - Updated payroll data.
- * @param {number} [data.baseSalary] - Base salary amount.
- * @param {number} [data.extraHours] - Extra hours amount.
- * @param {number} [data.deductions] - Total deductions.
- * @param {number} [data.totalPayment] - Total payment amount.
- * @param {string} [data.status] - Payroll status (DRAFT, PAID, CANCELLED).
- * @returns {Promise<Object>} Updated payroll record.
- */
-export const updatePayrollById = async (id, data) => {
-  const payroll = {
-    ...data,
-    updatedOn: new Date(),
-  };
-  return await payrollDao.updatePayrollById(id, payroll);
-};
+
 
 /**
  * Delete a payroll record by ID.
@@ -80,4 +62,21 @@ export const updatePayrollById = async (id, data) => {
  */
 export const deletePayrollById = async (id) => {
   return await payrollDao.deletePayrollById(Number(id));
+};
+
+/**
+ * Partially update a payroll record by ID.
+ *
+ * @param {number} id - Payroll ID.
+ * @param {Object} data - Partial payroll data to update.
+ * @param {number} userId - ID of the user performing the update.
+ * @returns {Promise<Object>} Updated payroll record.
+ */
+export const updatePayrollByIdPartial = async (id, data, userId) => {
+  const payroll = {
+    ...data,
+    updatedOn: new Date(),
+    updatedBy: userId,
+  };
+  return await payrollDao.updatePayrollById(id, payroll);
 };

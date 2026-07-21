@@ -2,8 +2,8 @@ import express from 'express';
 import {
   getAllAttendance,
   createAttendance,
-  updateAttendanceById,
   deleteAttendanceById,
+  patchAttendanceById,
 } from './controller.js';
 import {
   verifyToken,
@@ -14,7 +14,8 @@ import {
 } from '../../middleware/index.js';
 import {
   attendanceFiltersSchema,
-  attendanceCreateUpdateSchema,
+  attendanceCreateSchema,
+  attendanceUpdateSchema,
 } from './schemas/attendance.joi.js';
 import { ROLESCODES, PERMISSIONCODES } from '../../utils/constants/enums.js';
 
@@ -148,76 +149,16 @@ router.get(
  *               $ref: '#/components/schemas/Error'
  */
 router.post(
-  '/',
-  checkRoleAuthOrPermisssion({
-    allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER],
-    permissions: [PERMISSIONCODES.canCreateAttendance],
-  }),
-  validateSchema(attendanceCreateUpdateSchema),
-  createAttendance
-);
+   '/',
+   checkRoleAuthOrPermisssion({
+     allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER],
+     permissions: [PERMISSIONCODES.canCreateAttendance],
+   }),
+   validateSchema(attendanceCreateSchema),
+   createAttendance
+ );
 
-/**
- * @openapi
- * /v1/attendance/{id}:
- *   put:
- *     tags:
- *       - Attendance
- *     summary: Update an attendance record by ID
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: integer
- *         description: Attendance ID
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             $ref: '#/components/schemas/BodyAttendanceCreateUpdate'
- *     responses:
- *       200:
- *         description: Attendance record updated successfully
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 error:
- *                   type: boolean
- *                   example: false
- *                 statusCode:
- *                   type: integer
- *                   example: 200
- *                 data:
- *                   $ref: '#/components/schemas/ResponseAttendanceCreateUpdate'
- *       401:
- *         description: Unauthorized
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Unauthorized'
- *       500:
- *         description: Server error
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Error'
- */
-router.put(
-  '/:id',
-  checkRoleAuthOrPermisssion({
-    allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER],
-    permissions: [PERMISSIONCODES.canEditAttendance],
-  }),
-  validatePathParam,
-  validateSchema(attendanceCreateUpdateSchema),
-  updateAttendanceById
-);
+
 
 /**
  * @openapi
@@ -263,6 +204,68 @@ router.delete(
   }),
   validatePathParam,
   deleteAttendanceById
+);
+
+/**
+ * @openapi
+ * /v1/attendance/{id}:
+ *   patch:
+ *     tags:
+ *       - Attendance
+ *     summary: Partially update an attendance record by ID
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: Attendance ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/BodyAttendanceUpdatePartial'
+ *     responses:
+ *       200:
+ *         description: Attendance record updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: boolean
+ *                   example: false
+ *                 statusCode:
+ *                   type: integer
+ *                   example: 200
+ *                 data:
+ *                   $ref: '#/components/schemas/ResponseAttendanceCreateUpdate'
+ *       401:
+ *         description: Unauthorized
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Unauthorized'
+ *       500:
+ *         description: Server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *     */
+router.patch(
+  '/:id',
+  checkRoleAuthOrPermisssion({
+    allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER],
+    permissions: [PERMISSIONCODES.canEditAttendance],
+  }),
+  validatePathParam,
+  validateSchema(attendanceUpdateSchema),
+  patchAttendanceById
 );
 
 export default router;

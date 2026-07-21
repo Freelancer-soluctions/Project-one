@@ -8,7 +8,7 @@ export const saleFiltersSchema = Joi.object({
   maxTotal: Joi.number().min(0).optional().allow(''),
 });
 
-export const saleCreateUpdateSchema = Joi.object({
+export const saleCreateSchema = Joi.object({
   clientId: Joi.number().integer().required(),
   total: Joi.number().min(0).required(),
   details: Joi.array()
@@ -20,5 +20,21 @@ export const saleCreateUpdateSchema = Joi.object({
       })
     )
     .required()
+    .min(1),
+});
+
+// Partial schema for PATCH requests (all fields optional)
+export const saleUpdateSchema = Joi.object({
+  clientId: Joi.number().integer().optional(),
+  total: Joi.number().min(0).optional(),
+  details: Joi.array()
+    .items(
+      Joi.object({
+        productId: Joi.number().integer().optional(),
+        quantity: Joi.number().integer().min(1).optional(),
+        price: Joi.number().min(0).optional(),
+      })
+    )
+    .optional()
     .min(1),
 });

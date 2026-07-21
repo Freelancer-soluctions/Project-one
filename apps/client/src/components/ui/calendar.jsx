@@ -1,4 +1,5 @@
 import * as React from "react"
+import PropTypes from "prop-types"
 import {
   ChevronDownIcon,
   ChevronLeftIcon,
@@ -102,36 +103,50 @@ function Calendar({
         ...classNames,
       }}
       components={{
-        Root: ({ className, rootRef, ...props }) => {
-          return (<div data-slot="calendar" ref={rootRef} className={cn(className)} {...props} />);
-        },
-        Chevron: ({ className, orientation, ...props }) => {
-          if (orientation === "left") {
-            return (<ChevronLeftIcon className={cn("size-4", className)} {...props} />);
-          }
-
-          if (orientation === "right") {
-            return (<ChevronRightIcon className={cn("size-4", className)} {...props} />);
-          }
-
-          return (<ChevronDownIcon className={cn("size-4", className)} {...props} />);
-        },
+        Root: CalendarRoot,
+        Chevron: CalendarChevron,
         DayButton: CalendarDayButton,
-        WeekNumber: ({ children, ...props }) => {
-          return (
-            <td {...props}>
-              <div
-                className="flex size-[--cell-size] items-center justify-center text-center">
-                {children}
-              </div>
-            </td>
-          );
-        },
+        WeekNumber: CalendarWeekNumber,
         ...components,
       }}
       {...props} />
   );
 }
+
+function CalendarRoot({ className, rootRef, ...props }) {
+  return (<div data-slot="calendar" ref={rootRef} className={cn(className)} {...props} />);
+}
+CalendarRoot.propTypes = {
+  className: PropTypes.string,
+  rootRef: PropTypes.any,
+};
+
+function CalendarChevron({ className, orientation, ...props }) {
+  if (orientation === "left") {
+    return (<ChevronLeftIcon className={cn("size-4", className)} {...props} />);
+  }
+  if (orientation === "right") {
+    return (<ChevronRightIcon className={cn("size-4", className)} {...props} />);
+  }
+  return (<ChevronDownIcon className={cn("size-4", className)} {...props} />);
+}
+CalendarChevron.propTypes = {
+  className: PropTypes.string,
+  orientation: PropTypes.string,
+};
+
+function CalendarWeekNumber({ children, ...props }) {
+  return (
+    <td {...props}>
+      <div className="flex size-[--cell-size] items-center justify-center text-center">
+        {children}
+      </div>
+    </td>
+  );
+}
+CalendarWeekNumber.propTypes = {
+  children: PropTypes.node,
+};
 
 function CalendarDayButton({
   className,
@@ -169,5 +184,29 @@ function CalendarDayButton({
       {...props} />
   );
 }
+
+Calendar.propTypes = {
+  className: PropTypes.string,
+  classNames: PropTypes.object,
+  showOutsideDays: PropTypes.bool,
+  captionLayout: PropTypes.string,
+  buttonVariant: PropTypes.string,
+  formatters: PropTypes.object,
+  components: PropTypes.object,
+};
+
+CalendarDayButton.propTypes = {
+  className: PropTypes.string,
+  day: PropTypes.shape({
+    date: PropTypes.instanceOf(Date),
+  }),
+  modifiers: PropTypes.shape({
+    focused: PropTypes.bool,
+    selected: PropTypes.bool,
+    range_start: PropTypes.bool,
+    range_end: PropTypes.bool,
+    range_middle: PropTypes.bool,
+  }),
+};
 
 export { Calendar, CalendarDayButton }

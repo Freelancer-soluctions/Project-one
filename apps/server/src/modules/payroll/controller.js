@@ -42,26 +42,7 @@ export const createPayroll = handleCatchErrorAsync(async (req, res) => {
   globalResponse(res, 201, payroll, 'Payroll created successfully');
 });
 
-/**
- * Update a payroll record by ID.
- *
- * @param {Object} req - The HTTP request object.
- * @param {Object} req.params - Request parameters
- * @param {string} req.params.id - Payroll ID from URL
- * @param {Object} req.body - Request body containing payroll data to update
- * @param {number} [req.body.grossSalary] - Gross salary amount
- * @param {number} [req.body.netSalary] - Net salary amount
- * @param {number} [req.body.deductions] - Total deductions
- * @param {number} [req.body.bonuses] - Total bonuses
- * @param {string} [req.body.status] - Payroll status (DRAFT, PAID, CANCELLED)
- * @param {Object} res - The HTTP response object.
- * @returns {Promise<void>} Updates payroll record and returns updated payroll object
- */
-export const updatePayrollById = handleCatchErrorAsync(async (req, res) => {
-  const { id } = req.params;
-  const payroll = await payrollService.updatePayrollById(id, req.body);
-  globalResponse(res, 200, payroll, 'Payroll updated successfully');
-});
+
 
 /**
  * Delete a payroll record by ID.
@@ -76,4 +57,21 @@ export const deletePayrollById = handleCatchErrorAsync(async (req, res) => {
   const { id } = req.params;
   await payrollService.deletePayrollById(id);
   globalResponse(res, 200, 'Payroll deleted successfully');
+});
+
+/**
+ * Partially update a payroll record by ID.
+ *
+ * @param {Object} req - The HTTP request object.
+ * @param {Object} req.params - Request parameters
+ * @param {string} req.params.id - Payroll ID from URL
+ * @param {Object} req.body - Request body containing partial payroll data
+ * @param {string} req.userId - Authenticated user ID from token verification
+ * @param {Object} res - The HTTP response object.
+ * @returns {Promise<void>} Partially updates payroll record and returns updated payroll object
+ */
+export const updatePayrollByIdPartial = handleCatchErrorAsync(async (req, res) => {
+  const { id } = req.params;
+  const payroll = await payrollService.updatePayrollByIdPartial(id, req.body, req.userId);
+  globalResponse(res, 200, payroll, 'Payroll partially updated successfully');
 });

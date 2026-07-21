@@ -204,9 +204,9 @@ export const updateRow = async (data, where) => {
   const result = await prisma.news.update({
     where,
     data: {
-      description: data.description,
-      document: data.document,
-      documentId: data.documentId,
+      ...(data.description !== undefined && { description: data.description }),
+      ...(data.document !== undefined && { document: data.document }),
+      ...(data.documentId !== undefined && { documentId: data.documentId }),
       pendingOn: data.pendingOn ? data.pendingOn : undefined,
       userNewsPending: data.pendingBy
         ? {
@@ -223,11 +223,13 @@ export const updateRow = async (data, where) => {
             },
           }
         : undefined,
-      status: {
-        connect: {
-          id: data.statusId,
+      ...(data.statusId !== undefined && {
+        status: {
+          connect: {
+            id: data.statusId,
+          },
         },
-      },
+      }),
     },
   });
   return Promise.resolve(result);

@@ -3,12 +3,13 @@ import {
   getAllWarehouses,
   getAllWarehousesFilters,
   createWarehouse,
-  updateWarehouseById,
   deleteWarehouseById,
+  patchWarehouseById,
 } from './controller.js';
 import {
   warehouseFiltersSchema,
-  warehouseCreateUpdateSchema,
+  warehouseCreateSchema,
+  warehouseUpdateSchema,
 } from './schemas/warehouse.joi.js';
 import {
   verifyToken,
@@ -145,14 +146,14 @@ router.post(
     allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER, ROLESCODES.USER],
     permissions: [PERMISSIONCODES.canCreateWarehouse],
   }),
-  validateSchema(warehouseCreateUpdateSchema),
+  validateSchema(warehouseCreateSchema),
   createWarehouse
 );
 
 /**
  * @openapi
  * /api/v1/warehouse/{id}:
- *   put:
+ *   patch:
  *     tags:
  *       - Warehouse
  *     summary: Update a warehouse
@@ -183,13 +184,19 @@ router.post(
  *                   type: boolean
  *                   example: false
  *                 statusCode:
- *                   type: int
+ *                   type: integer
  *                   example: 200
  *                 message:
  *                   type: string
  *                   example: "Some success message"
  *                 data:
  *                   $ref: "#/components/schemas/ResponseWarehouseUpdate"
+ *       400:
+ *         description: Bad Request
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/BadRequest'
  *       401:
  *         description: Unauthorized
  *         content:
@@ -202,16 +209,16 @@ router.post(
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/Error'
- */
-router.put(
+ *     */
+router.patch(
   '/:id',
   checkRoleAuthOrPermisssion({
     allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER, ROLESCODES.USER],
     permissions: [PERMISSIONCODES.canEditWarehouse],
   }),
   validatePathParam,
-  validateSchema(warehouseCreateUpdateSchema),
-  updateWarehouseById
+  validateSchema(warehouseUpdateSchema),
+  patchWarehouseById
 );
 
 /**

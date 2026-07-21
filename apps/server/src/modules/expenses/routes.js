@@ -3,8 +3,8 @@ import express from 'express';
 import {
   getAllExpenses,
   createExpense,
-  updateExpenseById,
   deleteExpenseById,
+  patchExpenseById,
 } from './controller.js';
 import {
   verifyToken,
@@ -16,7 +16,8 @@ import {
 import { ROLESCODES, PERMISSIONCODES } from '../../utils/constants/enums.js';
 import {
   expenseFiltersSchema,
-  expenseCreateUpdateSchema,
+  expenseCreateSchema,
+  expenseUpdateSchema,
 } from './schemas/expenses.joi.js';
 
 const router = express.Router();
@@ -128,77 +129,16 @@ router.get(
  *               $ref: '#/components/schemas/Error'
  */
 router.post(
-  '/',
-  checkRoleAuthOrPermisssion({
-    allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER],
-    permissions: [PERMISSIONCODES.canCreateExpense],
-  }),
-  validateSchema(expenseCreateUpdateSchema),
-  createExpense
-);
+   '/',
+   checkRoleAuthOrPermisssion({
+     allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER],
+     permissions: [PERMISSIONCODES.canCreateExpense],
+   }),
+   validateSchema(expenseCreateSchema),
+   createExpense
+ );
 
-/**
- * @openapi
- * /v1/expenses/{id}:
- *   put:
- *     tags:
- *       - Expenses
- *     summary: Update an expense by ID
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string # ID for expenses is CUID (string)
- *         description: Expense ID
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             $ref: '#/components/schemas/BodyExpenseCreateUpdate'
- *     responses:
- *       200:
- *         description: Expense updated successfully
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 error:
- *                   type: boolean
- *                   example: false
- *                 statusCode:
- *                   type: integer
- *                   example: 200
- *                 data:
- *                   $ref: '#/components/schemas/ResponseExpenseCreateUpdate'
- *       401:
- *         description: Unauthorized
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Unauthorized'
- *       500:
- *         description: Server error
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Error'
- */
 
-router.put(
-  '/:id',
-  checkRoleAuthOrPermisssion({
-    allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER],
-    permissions: [PERMISSIONCODES.canEditExpense],
-  }),
-  validatePathParam,
-  validateSchema(expenseCreateUpdateSchema),
-  updateExpenseById
-);
 
 /**
  * @openapi
@@ -245,6 +185,77 @@ router.delete(
   }),
   validatePathParam,
   deleteExpenseById
+);
+
+/**
+ * @openapi
+ * /v1/expenses/{id}:
+ *   patch:
+ *     tags:
+ *       - Expenses
+ *     summary: Partially update an expense by ID
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string # ID for expenses is CUID (string)
+ *         description: Expense ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/BodyExpensePatch'
+ *     responses:
+ *       200:
+ *         description: Expense updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: boolean
+ *                   example: false
+ *                 statusCode:
+ *                   type: integer
+ *                   example: 200
+ *                 message:
+ *                   type: string
+ *                   example: "Expense updated successfully"
+ *                 data:
+ *                   $ref: '#/components/schemas/ResponseExpenseCreateUpdate'
+ *       400:
+ *         description: Bad Request
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/BadRequest'
+ *       401:
+ *         description: Unauthorized
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Unauthorized'
+ *       500:
+ *         description: Server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
+router.patch(
+   '/:id',
+   checkRoleAuthOrPermisssion({
+     allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER],
+     permissions: [PERMISSIONCODES.canEditExpense],
+   }),
+   validatePathParam,
+   validateSchema(expenseUpdateSchema),
+   patchExpenseById
 );
 
 export default router;

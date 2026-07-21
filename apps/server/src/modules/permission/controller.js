@@ -1,8 +1,8 @@
 import {
   getAllPermissions as getAllPermissionsService,
   createPermission as createPermissionService,
-  updatePermissionById as updatePermissionByIdService,
   deletePermissionById as deletePermissionByIdService,
+  updatePermissionById as patchPermissionByIdService, // Using same service for patch as update
 } from './service.js';
 import handleCatchErrorAsync from '../../utils/responses&Errors/handleCatchErrorAsync.js';
 import globalResponse from '../../utils/responses&Errors/globalResponse.js';
@@ -46,21 +46,7 @@ export const createPermission = handleCatchErrorAsync(async (req, res) => {
   return globalResponse(res, 201, permission);
 });
 
-/**
- * Update an existing permission by ID.
- *
- * @param {Object} req - The HTTP request object.
- * @param {Object} req.params - URL parameters
- * @param {string} req.params.id - Permission ID
- * @param {Object} req.body - Updated permission data
- * @param {Object} res - The HTTP response object.
- * @returns {Promise<void>} Sends response with updated permission
- */
-export const updatePermissionById = handleCatchErrorAsync(async (req, res) => {
-  const { id } = req.params;
-  const permission = await updatePermissionByIdService(id, req.body);
-  return globalResponse(res, 200, permission);
-});
+
 
 /**
  * Delete a permission by ID.
@@ -78,4 +64,20 @@ export const deletePermissionById = handleCatchErrorAsync(async (req, res) => {
     message: 'Permission deleted successfully',
     permission,
   });
+});
+
+/**
+ * Partially update an existing permission by ID.
+ *
+ * @param {Object} req - The HTTP request object.
+ * @param {Object} req.params - URL parameters
+ * @param {string} req.params.id - Permission ID
+ * @param {Object} req.body - Partial permission data to update
+ * @param {Object} res - The HTTP response object.
+ * @returns {Promise<void>} Sends response with updated permission
+ */
+export const patchPermissionById = handleCatchErrorAsync(async (req, res) => {
+  const { id } = req.params;
+  const permission = await patchPermissionByIdService(id, req.body);
+  return globalResponse(res, 200, permission);
 });

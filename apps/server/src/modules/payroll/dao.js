@@ -138,23 +138,19 @@ export const updatePayrollById = async (id, data) => {
   return await prisma.payroll.update({
     where: { id: parseInt(id) },
     data: {
-      month: data.month,
-      year: data.year,
-      baseSalary: data.baseSalary,
-      extraHours: data.extraHours,
-      deductions: data.deductions,
-      totalPayment: data.totalPayment,
-      updatedOn: data.updatedOn,
-      employee: {
-        connect: {
-          id: data.employeeId,
-        },
-      },
-      userPayrollUpdated: {
-        connect: {
-          id: data.updatedBy,
-        },
-      },
+      ...(data.month !== undefined && { month: data.month }),
+      ...(data.year !== undefined && { year: data.year }),
+      ...(data.baseSalary !== undefined && { baseSalary: data.baseSalary }),
+      ...(data.extraHours !== undefined && { extraHours: data.extraHours }),
+      ...(data.deductions !== undefined && { deductions: data.deductions }),
+      ...(data.totalPayment !== undefined && { totalPayment: data.totalPayment }),
+      ...(data.updatedOn !== undefined && { updatedOn: data.updatedOn }),
+      ...(data.employeeId !== undefined && {
+        employee: { connect: { id: data.employeeId } }
+      }),
+      ...(data.updatedBy !== undefined && {
+        userPayrollUpdated: { connect: { id: data.updatedBy } }
+      }),
     },
   });
 };
@@ -170,3 +166,5 @@ export const deletePayrollById = async (id) => {
     where: { id },
   });
 };
+
+

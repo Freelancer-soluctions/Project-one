@@ -15,7 +15,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Spinner } from '../../../components/loader/Spinner';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 
 export const SignInForm = () => {
@@ -23,19 +23,20 @@ export const SignInForm = () => {
   const dispatch = useDispatch();
   // const state = useSelector(state => state) todos los estados
   const { user, isError, isLoading } = useSelector((state) => state.auth);
-  const form = useForm({ resolver: zodResolver(signInSchema) });
+  const form = useForm({ resolver: zodResolver(signInSchema), defaultValues: { email: '', password: '' } });
   const { t } = useTranslation();
 
   const onSubmit = ({ email, password }) => {
     dispatch(signInFetch({ email, password }));
   };
 
+  const hasNavigated = useRef(false);
+
   useEffect(() => {
-    console.log('state', user);
+    if (hasNavigated.current) return;
     if (!isError && user && !user?.error) {
+      hasNavigated.current = true;
       navigate('/home', { replace: true });
-    } else {
-      //Mostrar mensaje de error
     }
   }, [user, isError, navigate]);
 
@@ -113,7 +114,7 @@ export const SignInForm = () => {
               </Link>
             </div>
             <div className="flex items-center justify-center">
-              <Button type="submit" className="flex-1">
+              <Button type="submit" disabled={isLoading} className="flex-1">
                 {t('sign_in')}
               </Button>
             </div>

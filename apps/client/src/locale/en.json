@@ -61,6 +61,7 @@
     "title": "Title",
     "title_placeholder": "Enter the title",
     "content_placeholder": "Enter the content message, use @ to mention anyone",
+    "note_view": "View Note",
     "create_note": "Create note",
     "note": "Note",
     "news_card_msg": "Relevant news",
@@ -79,10 +80,13 @@
     "date": "Date",
     "save_changes": "Save changes",
     "status_notes": "Status of notes",
-    "low_notes": "Green: Low priority",
-    "medium_notes": "Yellow: Medium priority",
-    "high_notes": "Red: High priority",
+    "low_notes": "Gray: Backlog",
+    "medium_notes": "Amber: Active",
+    "high_notes": "Emerald: Completed",
     "show_all_notes": "Show all notes",
+    "backlog_notes": "Backlog",
+    "active_notes": "Active",
+    "completed_notes": "Completed",
     "display": "Display",
     "next_events": "Next events",
     "turn_off_on_message": "Turn items on or off to control what's displayed in the app.",
@@ -342,6 +346,11 @@
     "permission_reason_placeholder": "Enter the permission reason",
     "permission_comments_placeholder": "Enter the permission comments",
     "content": "Content",
+     "scope_mine": "Mine",
+     "scope_mixed": "All",
+    "mentioned_badge": "Mentioned",
+    "mark_as_read": "Mark as read",
+    "mentions_count": "Mentions",
     "zod": {
       "auth": {
         "email": {
@@ -824,7 +833,21 @@
     "hashtags_create": "Create",
     "hashtags_select_hashtags": "Select hashtags",
     "hashtags_selected": "{{count}} hashtags selected",
-  "hashtags_save": "Save"
+    "hashtags_save": "Save",
+    "favorite": "Favorite",
+    "favorites": "Favorites",
+    "mark_as_favorite": "Mark as favorite",
+    "remove_from_favorites": "Remove from favorites",
+    "show_favorites_only": "Show favorites only",
+    "Backlog": "Backlog",
+    "Active": "Active",
+    "Completed": "Completed",
+    "ws_status_title": "WebSocket Status",
+    "ws_connected": "WS Connected",
+    "ws_disconnected": "WS Disconnected",
+    "ws_status": "Status",
+    "active": "Active",
+    "inactive": "Inactive",
+    "ws_error_description": "WebSocket connection error"
   }
-    
 }

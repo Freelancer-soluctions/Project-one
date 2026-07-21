@@ -121,29 +121,49 @@ export const createAttendance = async (data) => {
  * @param {string} [data.entryTime] - Entry time.
  * @param {string} [data.exitTime] - Exit time.
  * @param {number} [data.workedHours] - Worked hours.
- * @param {number} data.updatedBy - User ID who updated the attendance record.
+ * @param {Date} [data.updatedOn] - Update timestamp.
+ * @param {number} [data.updatedBy] - User ID who updated the attendance record.
  * @returns {Promise<Object>} Updated attendance record with related data.
  */
 export const updateAttendanceById = async (id, data) => {
+  const updateData = {};
+
+  // Scalar fields
+  if (data.date !== undefined) {
+    updateData.date = data.date;
+  }
+  if (data.entryTime !== undefined) {
+    updateData.entryTime = data.entryTime;
+  }
+  if (data.exitTime !== undefined) {
+    updateData.exitTime = data.exitTime;
+  }
+  if (data.workedHours !== undefined) {
+    updateData.workedHours = data.workedHours;
+  }
+  if (data.updatedOn !== undefined) {
+    updateData.updatedOn = data.updatedOn;
+  }
+
+  // Relations
+  if (data.employeeId !== undefined) {
+    updateData.employee = {
+      connect: {
+        id: data.employeeId,
+      },
+    };
+  }
+  if (data.updatedBy !== undefined) {
+    updateData.userAttendanceUpdated = {
+      connect: {
+        id: data.updatedBy,
+      },
+    };
+  }
+
   return prisma.attendance.update({
     where: { id },
-    data: {
-      date: data.date,
-      entryTime: data.entryTime,
-      exitTime: data.exitTime,
-      workedHours: data.workedHours,
-      updatedOn: data.updatedOn,
-      employee: {
-        connect: {
-          id: data.employeeId,
-        },
-      },
-      userAttendanceUpdated: {
-        connect: {
-          id: data.updatedBy,
-        },
-      },
-    },
+    data: updateData,
   });
 };
 

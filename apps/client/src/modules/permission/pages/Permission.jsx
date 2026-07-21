@@ -92,30 +92,18 @@ const Permission = () => {
     setFilters(newFilters);
   };
 
-  const handleSubmit = async (values, permissionId) => {
+  const handleSubmit = async (result) => {
     try {
-      const action = permissionId ? updatePermissionById : createPermission;
-      const payload = permissionId
-        ? {
-            id: permissionId,
-            data: {
-              type: values.type,
-              startDate: values.startDate,
-              endDate: values.endDate,
-              reason: values.reason,
-              employeeId: values.employeeId,
-              status: values.status,
-              comments: values.comments,
-            },
-          }
-        : values;
-
-      await action(payload).unwrap();
+      if (result?.id) {
+        await updatePermissionById({ id: result.id, data: result.body }).unwrap();
+      } else {
+        await createPermission(result).unwrap();
+      }
 
       setAlertProps({
-        alertTitle: t(permissionId ? 'update_record' : 'add_record'),
+        alertTitle: t(result?.id ? 'update_record' : 'add_record'),
         alertMessage: t(
-          permissionId ? 'updated_successfully' : 'added_successfully'
+          result?.id ? 'updated_successfully' : 'added_successfully'
         ),
         cancel: false,
         success: true,

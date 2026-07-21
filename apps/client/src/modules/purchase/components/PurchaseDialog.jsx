@@ -2,6 +2,7 @@ import { useEffect, useCallback } from 'react';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { pickDirty } from '@/utils/pickDirty';
 import {
   Dialog,
   DialogContent,
@@ -69,6 +70,7 @@ export const PurchaseDialog = ({
       ],
     },
   });
+  const { formState: { dirtyFields } } = form;
 
   const clearDialog = useCallback(() => {
     form.reset({
@@ -94,7 +96,6 @@ export const PurchaseDialog = ({
     if (selectedRow?.id) {
       // Filtra y mapea solo los valores necesarios
       const mappedValues = {
-        id: selectedRow.id,
         providerId: selectedRow.providerId.toString(),
         total: selectedRow.total.toString(),
         createdOn: selectedRow.createdOn,
@@ -118,7 +119,12 @@ export const PurchaseDialog = ({
   }, [selectedRow, form, clearDialog, setDetails]);
 
   const handleSubmit = (data) => {
-    onSubmit(data, purchaseId);
+    if (purchaseId) {
+      const changes = pickDirty(data, dirtyFields);
+      onSubmit({ id: purchaseId, body: changes });
+    } else {
+      onSubmit(data);
+    }
   };
 
   const handleDelete = () => {

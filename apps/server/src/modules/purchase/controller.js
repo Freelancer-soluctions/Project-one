@@ -1,9 +1,9 @@
 import {
   getAllPurchases as getAllPurchasesService,
   createPurchase as createPurchaseService,
-  updatePurchaseById as updatePurchaseByIdService,
   deletePurchaseById as deletePurchaseByIdService,
   deletePurchaseDetailById as deletePurchaseDetailByIdService,
+  patchPurchaseById as patchPurchaseByIdService,
 } from './service.js';
 import handleCatchErrorAsync from '../../utils/responses&Errors/handleCatchErrorAsync.js';
 import globalResponse from '../../utils/responses&Errors/globalResponse.js';
@@ -50,29 +50,6 @@ export const createPurchase = handleCatchErrorAsync(async (req, res) => {
 });
 
 /**
- * Update a purchase by ID.
- *
- * @param {Object} req - The HTTP request object.
- * @param {Object} req.params - Request parameters
- * @param {string} req.params.id - Purchase ID from URL
- * @param {Object} req.body - Request body containing purchase data to update
- * @param {number} [req.body.providerId] - Provider ID
- * @param {number} [req.body.total] - Total amount
- * @param {Array} [req.body.details] - Array of purchase details
- * @param {Object} req.user - Authenticated user object
- * @param {string} req.user.id - User ID from token verification
- * @param {Object} res - The HTTP response object.
- * @returns {Promise<void>} Updates purchase and returns updated purchase object
- */
-export const updatePurchaseById = handleCatchErrorAsync(async (req, res) => {
-  const purchase = await updatePurchaseByIdService(req.params.id, {
-    ...req.body,
-    updatedBy: req.user.id,
-  });
-  globalResponse(res, 200, purchase);
-});
-
-/**
  * Delete a purchase by ID.
  *
  * @param {Object} req - The HTTP request object.
@@ -103,3 +80,26 @@ export const deletePurchaseDetailById = handleCatchErrorAsync(
     });
   }
 );
+
+/**
+ * Partially update a purchase by ID.
+ *
+ * @param {Object} req - The HTTP request object.
+ * @param {Object} req.params - Request parameters
+ * @param {string} req.params.id - Purchase ID from URL
+ * @param {Object} req.body - Request body containing purchase data to update
+ * @param {number} [req.body.providerId] - Provider ID
+ * @param {number} [req.body.total] - Total amount
+ * @param {Array} [req.body.details] - Array of purchase details
+ * @param {Object} req.user - Authenticated user object
+ * @param {string} req.user.id - User ID from token verification
+ * @param {Object} res - The HTTP response object.
+ * @returns {Promise<void>} Updates purchase and returns updated purchase object
+ */
+export const patchPurchaseById = handleCatchErrorAsync(async (req, res) => {
+  const purchase = await patchPurchaseByIdService(req.params.id, {
+    ...req.body,
+    updatedBy: req.user.id,
+  });
+  globalResponse(res, 200, purchase);
+});

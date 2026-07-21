@@ -40,7 +40,7 @@ const attendanceApi = createApi({
     updateAttendanceById: builder.mutation({
       query: ({ id, data }) => ({
         url: `/attendance/${id}`,
-        method: 'PUT',
+        method: 'PATCH',
         body: data,
       }),
       invalidatesTags: ['Attendance'],

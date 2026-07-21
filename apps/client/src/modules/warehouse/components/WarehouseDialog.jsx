@@ -1,5 +1,6 @@
 import { useEffect, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
+import { pickDirty } from '@/utils/pickDirty';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { WarehouseSchema } from '../utils/index';
 import { FIELD_LIMITS } from '@/config/fieldLimits';
@@ -54,25 +55,25 @@ export const WarehouseDialog = ({
 }) => {
   const { t } = useTranslation();
 
-  // Configura el formulario
-  const form = useForm({
-    resolver: zodResolver(WarehouseSchema),
-    defaultValues: {
-      name: '',
-      status: '',
-      description: '',
-      address: '',
-    },
-  });
+   // Configura el formulario
+   const form = useForm({
+     resolver: zodResolver(WarehouseSchema),
+     defaultValues: {
+       name: '',
+       status: '',
+       description: '',
+       address: '',
+     },
+   });
 
-  const warehouseId = useMemo(() => selectedRow?.id ?? null, [selectedRow?.id]);
+   const { formState: { dirtyFields } } = form;
+   const warehouseId = useMemo(() => selectedRow?.id ?? null, [selectedRow?.id]);
 
   // Actualiza todos los valores del formulario al cambiar `selectedRow`
   useEffect(() => {
-    if (selectedRow) {
+    if (selectedRow?.id) {
       // Filtra y mapea solo los valores necesarios
       const mappedValues = {
-        id: selectedRow.id || '',
         name: selectedRow.name || '',
         status: selectedRow.status || '',
         description: selectedRow.description || '',
@@ -89,9 +90,14 @@ export const WarehouseDialog = ({
     }
   }, [selectedRow, openDialog, form]);
 
-  const handleSubmit = (data) => {
-    onSubmit({ ...data }, warehouseId);
-  };
+   const handleSubmit = (data) => {
+     if (warehouseId) {
+       const changes = pickDirty(data, dirtyFields);
+       onSubmit({ id: warehouseId, body: changes });
+     } else {
+       onSubmit(data);
+     }
+   };
 
   const handleDeleteById = () => {
     onDeleteById(warehouseId);

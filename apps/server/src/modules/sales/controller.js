@@ -1,9 +1,9 @@
 import {
   getAllSales as getAllSalesService,
   createSale as createSaleService,
-  updateSaleById as updateSaleByIdService,
   deleteSaleById as deleteSaleByIdService,
   deleteSaleDetailById as deleteSaleDetailByIdService,
+  patchSaleById as patchSaleByIdService,
 } from './service.js';
 import globalResponse from '../../utils/responses&Errors/globalResponse.js';
 import handleCatchErrorAsync from '../../utils/responses&Errors/handleCatchErrorAsync.js';
@@ -48,8 +48,10 @@ export const createSale = handleCatchErrorAsync(async (req, res) => {
   globalResponse(res, 201, sale);
 });
 
+
+
 /**
- * Update a sale by ID.
+ * Partially update a sale by ID.
  *
  * @param {Object} req - The HTTP request object.
  * @param {Object} req.params - Request parameters
@@ -60,10 +62,10 @@ export const createSale = handleCatchErrorAsync(async (req, res) => {
  * @param {Array} [req.body.details] - Array of sale details
  * @param {string} req.userId - Authenticated user ID from token verification
  * @param {Object} res - The HTTP response object.
- * @returns {Promise<void>} Updates sale and returns updated sale object
+ * @returns {Promise<void>} Partially updates sale and returns updated sale object
  */
-export const updateSaleById = handleCatchErrorAsync(async (req, res) => {
-  const sale = await updateSaleByIdService(req.params.id, {
+export const patchSaleById = handleCatchErrorAsync(async (req, res) => {
+  const sale = await patchSaleByIdService(req.params.id, {
     ...req.body,
     updatedBy: req.userId,
   });

@@ -21,6 +21,7 @@ import { LuSearch, LuEraser } from 'react-icons/lu';
 import PropTypes from 'prop-types';
 import { UsersFiltersSchema } from '../utils';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { FIELD_LIMITS } from '@/config/fieldLimits';
 
 export const UsersFiltersForm = ({ onSubmit, dataStatus }) => {
   const { t } = useTranslation();
@@ -66,7 +67,7 @@ export const UsersFiltersForm = ({ onSubmit, dataStatus }) => {
                       placeholder={t('user_name_placeholder')}
                       type="text"
                       autoComplete="off"
-                      maxLength={100}
+                      maxLength={FIELD_LIMITS.users.name}
                       {...field}
                       value={field.value ?? ''}
                     />
@@ -91,7 +92,7 @@ export const UsersFiltersForm = ({ onSubmit, dataStatus }) => {
                       placeholder={t('user_email_placeholder')}
                       type="email"
                       autoComplete="off"
-                      maxLength={254}
+                      maxLength={FIELD_LIMITS.users.email}
                       {...field}
                       value={field.value ?? ''}
                     />

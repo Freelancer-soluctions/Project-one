@@ -10,17 +10,11 @@ const homeApi = createApi({
     baseUrl: import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1',
   }),
   endpoints: (builder) => ({
-    getAllCountNotes: builder.query({
-      query: () => ({
-        url: `/notes/notesCount`,
-        method: 'GET',
-      }),
-    }),
+    // getAllCountNotes moved to @/modules/notes/api/notesAPI
+    // NotesSummary uses useGetAllCountNotesQuery from notesAPI directly.
+    // Keep this file for future home-scoped endpoints.
   }),
 });
 
-// Export hooks for usage in functional components, which are
-// auto-generated based on the defined endpoints
-export const { useGetAllCountNotesQuery } = homeApi;
-
+// Export hooks for usage in functional components — add new endpoints here as needed
 export default homeApi;

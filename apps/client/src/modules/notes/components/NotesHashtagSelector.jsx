@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import PropTypes from "prop-types"
 import { X, Search, Pencil, Plus, Check, Trash2 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
@@ -79,6 +80,7 @@ export function HashtagsSelector({
         <h3 className="text-sm font-medium">{resolvedTitle}</h3>
         {onClose && (
           <Button
+            type="button"
             variant="ghost"
             size="icon"
             className="h-6 w-6"
@@ -145,6 +147,7 @@ export function HashtagsSelector({
                   </button>
                   {onEdit && (
                     <Button
+                      type="button"
                       variant="ghost"
                       size="icon"
                       className="h-7 w-7 opacity-0 transition-opacity group-hover:opacity-100"
@@ -156,6 +159,7 @@ export function HashtagsSelector({
                   )}
                   {onDelete && (
                     <Button
+                      type="button"
                       variant="ghost"
                       size="icon"
                       className="h-7 w-7 opacity-0 transition-opacity group-hover:opacity-100 text-destructive hover:text-destructive"
@@ -176,6 +180,7 @@ export function HashtagsSelector({
       {onCreate && (
         <div className="border-t border-border p-3">
           <Button
+            type="button"
             variant="outline"
             className="w-full justify-start gap-2"
             onClick={onCreate}
@@ -188,3 +193,22 @@ export function HashtagsSelector({
     </div>
   )
 }
+
+HashtagsSelector.propTypes = {
+  hashtags: PropTypes.arrayOf(
+    PropTypes.shape({
+      id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
+      name: PropTypes.string.isRequired,
+    })
+  ).isRequired,
+  selectedIds: PropTypes.arrayOf(PropTypes.string),
+  onSelectionChange: PropTypes.func,
+  onEdit: PropTypes.func,
+  onDelete: PropTypes.func,
+  onCreate: PropTypes.func,
+  onClose: PropTypes.func,
+  title: PropTypes.string,
+  searchPlaceholder: PropTypes.string,
+  createButtonText: PropTypes.string,
+  className: PropTypes.string,
+};

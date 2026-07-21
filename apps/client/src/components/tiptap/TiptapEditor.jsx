@@ -58,67 +58,70 @@ export function TiptapEditor({
         HTMLAttributes: {
           class: "mention",
         },
-        suggestion: {
-          items: ({ query }) => {
-            return mentionSuggestions
-              .filter((item) =>
-                item.label.toLowerCase().includes(query.toLowerCase())
-              )
-              .slice(0, 5)
-          },
-          render: () => {
-            let component = null
-            let popup = null
+          suggestion: {
+            items: ({ query }) => {
+              return mentionSuggestions
+                .filter((item) =>
+                  item.label.toLowerCase().includes(query.toLowerCase())
+                )
+                .slice(0, 5)
+            },
+            // tiptap suggestion callbacks, not React components — suppress prop-types false positive
+            /* eslint-disable react/prop-types */
+            render: () => {
+              let component = null
+              let popup = null
 
-            return {
-              onStart: (props) => {
-                component = new ReactRenderer(MentionList, {
-                  props,
-                  editor: props.editor,
-                })
+              return {
+                onStart: (props) => {
+                  component = new ReactRenderer(MentionList, {
+                    props,
+                    editor: props.editor,
+                  })
 
-                if (!props.clientRect) {
-                  return
-                }
+                  if (!props.clientRect) {
+                    return
+                  }
 
-                popup = tippy("body", {
-                  getReferenceClientRect: props.clientRect,
-                  appendTo: () => document.body,
-                  content: component.element,
-                  showOnCreate: true,
-                  interactive: true,
-                  trigger: "manual",
-                  placement: "bottom-start",
-                })
-              },
+                  popup = tippy("body", {
+                    getReferenceClientRect: props.clientRect,
+                    appendTo: () => document.body,
+                    content: component.element,
+                    showOnCreate: true,
+                    interactive: true,
+                    trigger: "manual",
+                    placement: "bottom-start",
+                  })
+                },
 
-              onUpdate(props) {
-                component?.updateProps(props)
+                onUpdate(props) {
+                  component?.updateProps(props)
 
-                if (!props.clientRect) {
-                  return
-                }
+                  if (!props.clientRect) {
+                    return
+                  }
 
-                popup?.[0]?.setProps({
-                  getReferenceClientRect: props.clientRect,
-                })
-              },
+                  popup?.[0]?.setProps({
+                    getReferenceClientRect: props.clientRect,
+                  })
+                },
 
-              onKeyDown(props) {
-                if (props.event.key === "Escape") {
-                  popup?.[0]?.hide()
-                  return true
-                }
+                onKeyDown(props) {
+                  if (props.event.key === "Escape") {
+                    popup?.[0]?.hide()
+                    return true
+                  }
 
-                return component?.ref?.onKeyDown(props) ?? false
-              },
+                  return component?.ref?.onKeyDown(props) ?? false
+                },
 
-              onExit() {
-                popup?.[0]?.destroy()
-                component?.destroy()
-              },
-            }
-          },
+                onExit() {
+                  popup?.[0]?.destroy()
+                  component?.destroy()
+                },
+              }
+            },
+            /* eslint-enable react/prop-types */
         },
       }),
     ],
@@ -200,6 +203,8 @@ TiptapEditor.propTypes = {
   placeholder: PropTypes.string,
   className: PropTypes.string,
   disabled: PropTypes.bool,
-  mentionSuggestions: PropTypes.array
+  mentionSuggestions: PropTypes.array,
+  characterLimit: PropTypes.number
+
 }
 

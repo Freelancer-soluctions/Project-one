@@ -2,9 +2,9 @@ import express from 'express';
 import {
   getAllPurchases,
   createPurchase,
-  updatePurchaseById,
   deletePurchaseById,
   deletePurchaseDetailById,
+  patchPurchaseById,
 } from './controller.js';
 import {
   verifyToken,
@@ -15,7 +15,8 @@ import {
 } from '../../middleware/index.js';
 import {
   purchaseFiltersSchema,
-  purchaseCreateUpdateSchema,
+  purchaseCreateSchema,
+  purchaseUpdateSchema,
 } from './schemas/purchase.joi.js';
 import { ROLESCODES, PERMISSIONCODES } from '../../utils/constants/enums.js';
 
@@ -137,17 +138,19 @@ router.post(
     allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER],
     permissions: [PERMISSIONCODES.canCreatePurchase],
   }),
-  validateSchema(purchaseCreateUpdateSchema),
+  validateSchema(purchaseCreateSchema),
   createPurchase
 );
+
+
 
 /**
  * @openapi
  * /v1/purchases/{id}:
- *   put:
+ *   patch:
  *     tags:
  *       - Purchases
- *     summary: Update a purchase by ID
+ *     summary: Partially update a purchase by ID
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -162,7 +165,7 @@ router.post(
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/BodyPurchaseCreate'
+ *             $ref: '#/components/schemas/BodyPurchasePatch'
  *     responses:
  *       200:
  *         description: Purchase updated successfully
@@ -183,16 +186,50 @@ router.post(
  *         $ref: '#/components/schemas/Unauthorized'
  *       500:
  *         $ref: '#/components/schemas/Error'
- */
-router.put(
+ *     */
+router.patch(
   '/:id',
   checkRoleAuthOrPermisssion({
     allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER],
     permissions: [PERMISSIONCODES.canEditPurchase],
   }),
   validatePathParam,
-  validateSchema(purchaseCreateUpdateSchema),
-  updatePurchaseById
+  validateSchema(purchaseUpdateSchema),
+  patchPurchaseById
+);
+
+/**
+ * @openapi
+ * /v1/purchases/{id}:
+ *   delete:
+ *     tags:
+ *       - Purchases
+ *     summary: Delete a purchase by ID
+     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: Purchase ID
+ *     responses:
+ *       200:
+ *         $ref: '#/components/schemas/Delete'
+ *       401:
+ *         $ref: '#/components/schemas/Unauthorized'
+ *       500:
+ *         $ref: '#/components/schemas/Error'
+ *     */
+router.delete(
+  '/:id',
+  checkRoleAuthOrPermisssion({
+    allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER],
+    permissions: [PERMISSIONCODES.canDeletePurchase],
+  }),
+  validatePathParam,
+  deletePurchaseById
 );
 
 /**

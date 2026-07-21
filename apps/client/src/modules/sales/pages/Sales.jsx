@@ -106,26 +106,17 @@ const Sales = () => {
     setFilters(newFilters);
   };
 
-  const handleSubmit = async (values, saleId) => {
+  const handleSubmit = async (result) => {
     try {
-      saleId
-        ? await updateSaleById({
-            id: saleId,
-            data: {
-              clientId: values.clientId,
-              total: values.total,
-              details: values.details,
-            },
-          }).unwrap()
-        : await createSale({
-            clientId: values.clientId,
-            total: values.total,
-            details: values.details,
-          }).unwrap();
+      if (result?.id) {
+        await updateSaleById({ id: result.id, data: result.body }).unwrap();
+      } else {
+        await createSale(result).unwrap();
+      }
 
       setAlertProps({
-        alertTitle: t(saleId ? 'update_record' : 'add_record'),
-        alertMessage: t(saleId ? 'updated_successfully' : 'added_successfully'),
+        alertTitle: t(result?.id ? 'update_record' : 'add_record'),
+        alertMessage: t(result?.id ? 'updated_successfully' : 'added_successfully'),
         cancel: false,
         success: true,
         onSuccess: () => {

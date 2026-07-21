@@ -112,27 +112,18 @@ const Purchase = () => {
     setFilters(newFilters);
   };
 
-  const handleSubmit = async (values, purchaseId) => {
+  const handleSubmit = async (result) => {
     try {
-      purchaseId
-        ? await updatePurchaseById({
-            id: purchaseId,
-            data: {
-              providerId: values.providerId,
-              total: values.total,
-              details: values.details,
-            },
-          }).unwrap()
-        : await createPurchase({
-            providerId: values.providerId,
-            total: values.total,
-            details: values.details,
-          }).unwrap();
+      if (result?.id) {
+        await updatePurchaseById({ id: result.id, data: result.body }).unwrap();
+      } else {
+        await createPurchase(result).unwrap();
+      }
 
       setAlertProps({
-        alertTitle: t(purchaseId ? 'update_record' : 'add_record'),
+        alertTitle: t(result?.id ? 'update_record' : 'add_record'),
         alertMessage: t(
-          purchaseId ? 'updated_successfully' : 'added_successfully'
+          result?.id ? 'updated_successfully' : 'added_successfully'
         ),
         cancel: false,
         success: true,

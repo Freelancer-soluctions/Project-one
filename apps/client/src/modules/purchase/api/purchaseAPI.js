@@ -45,7 +45,7 @@ const purchaseApi = createApi({
     updatePurchaseById: builder.mutation({
       query: ({ id, data }) => ({
         url: `/purchases/${id}`,
-        method: 'PUT',
+        method: 'PATCH',
         body: data,
       }),
       invalidatesTags: ['Purchases'],

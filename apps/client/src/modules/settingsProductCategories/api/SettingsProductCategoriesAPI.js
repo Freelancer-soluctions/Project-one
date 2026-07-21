@@ -37,7 +37,7 @@ const settingsProductCategoriesApi = createApi({
     updateCategoryById: builder.mutation({
       query: ({ id, data }) => ({
         url: `/settings/product/categories/${id}`,
-        method: 'PUT',
+        method: 'PATCH',
         body: data,
       }),
       invalidatesTags: ['SettingsProductCategories'], // Invalida el cache de 'Categories' para volver a consultar

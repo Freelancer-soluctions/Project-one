@@ -1,9 +1,9 @@
 import {
   getAllPurchases as getAllPurchasesDao,
   createPurchase as createPurchaseDao,
-  updatePurchaseById as updatePurchaseByIdDao,
   deletePurchaseById as deletePurchaseByIdDao,
   deletePurchaseDetailById as deletePurchaseDetailByIdDao,
+  patchPurchaseById as patchPurchaseByIdDao,
 } from './dao.js';
 import { getSafePagination } from '../../utils/pagination/pagination.js';
 
@@ -48,21 +48,6 @@ export const createPurchase = async (data) => {
 };
 
 /**
- * Update a purchase by ID.
- *
- * @param {number} id - Purchase ID.
- * @param {Object} data - Updated purchase data.
- * @param {number} [data.providerId] - Provider ID.
- * @param {number} [data.total] - Total amount.
- * @param {Array} [data.details] - Array of purchase details.
- * @param {number} data.updatedBy - User ID who updated the purchase.
- * @returns {Promise<Object>} Updated purchase.
- */
-export const updatePurchaseById = async (id, data) => {
-  return updatePurchaseByIdDao(id, data);
-};
-
-/**
  * Delete a purchase by ID.
  *
  * @param {number} id - Purchase ID.
@@ -80,4 +65,19 @@ export const deletePurchaseById = async (id) => {
  */
 export const deletePurchaseDetailById = async (id) => {
   return deletePurchaseDetailByIdDao(id);
+};
+
+/**
+ * Partially update a purchase by ID.
+ *
+ * @param {number} id - Purchase ID.
+ * @param {Object} data - Updated purchase data.
+ * @param {number} [data.providerId] - Provider ID.
+ * @param {number} [data.total] - Total amount.
+ * @param {Array} [data.details] - Array of purchase details.
+ * @param {number} data.updatedBy - User ID who updated the purchase.
+ * @returns {Promise<Object>} Updated purchase.
+ */
+export const patchPurchaseById = async (id, data) => {
+  return patchPurchaseByIdDao(id, data);
 };

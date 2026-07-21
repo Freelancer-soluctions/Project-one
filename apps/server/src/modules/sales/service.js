@@ -1,9 +1,9 @@
 import {
   getAllSales as getAllSalesDao,
   createSale as createSaleDao,
-  updateSaleById as updateSaleByIdDao,
   deleteSaleById as deleteSaleByIdDao,
   deleteSaleDetailById as deleteSaleDetailByIdDao,
+  patchSaleById as patchSaleByIdDao,
 } from './dao.js';
 import { getSafePagination } from '../../utils/pagination/pagination.js';
 
@@ -59,7 +59,7 @@ export const createSale = async (data) => {
 };
 
 /**
- * Update a sale by ID.
+ * Partially update a sale by ID.
  *
  * @param {number} id - Sale ID.
  * @param {Object} data - Updated sale data.
@@ -69,15 +69,19 @@ export const createSale = async (data) => {
  * @param {number} data.updatedBy - User ID who updated the sale.
  * @returns {Promise<Object>} Updated sale.
  */
-export const updateSaleById = async (id, data) => {
+export const patchSaleById = async (id, data) => {
   const dataToUpdate = {
-    clientId: Number(data.clientId),
-    total: Number(data.total),
+    clientId: data.clientId !== undefined ? Number(data.clientId) : undefined,
+    total: data.total !== undefined ? Number(data.total) : undefined,
     details: data.details,
-    updatedBy: Number(data.updatedBy),
+    updatedBy: data.updatedBy !== undefined ? Number(data.updatedBy) : undefined,
     updatedOn: new Date(),
   };
-  return updateSaleByIdDao(Number(id), dataToUpdate);
+  // Remove undefined values
+  Object.keys(dataToUpdate).forEach(
+    key => dataToUpdate[key] === undefined && delete dataToUpdate[key]
+  );
+  return patchSaleByIdDao(Number(id), dataToUpdate);
 };
 
 /**

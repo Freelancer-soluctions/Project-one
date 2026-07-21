@@ -1,0 +1,156 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Reviewer Agent Output Contract Schema",
+  "description": "Defines required fields for reviewer agent responses",
+  "type": "object",
+  "allOf": [
+    { "$ref": "base.schema.json" },
+    {
+      "type": "object",
+      "required": ["status", "verdict", "details"],
+      "properties": {
+        "status": {
+          "type": "string",
+          "description": "Overall status of the review",
+          "enum": ["completed", "in-progress", "failed"]
+        },
+        "verdict": {
+          "type": "string",
+          "description": "Overall review verdict",
+          "enum": ["APPROVED", "NEEDS CHANGES"]
+        },
+        "designCompliance": {
+          "type": "string",
+          "description": "Whether implementation aligns with design.md",
+          "enum": ["PASS", "FAIL", "NOT_APPLICABLE"]
+        },
+        "tasksCompletion": {
+          "type": "string",
+          "description": "Task completion status from tasks.md (X/Y format) or 'N/A' when OpenSpec is not active",
+          "pattern": "^\\d+/\\d+$|^N/A$"
+        },
+        "details": {
+          "type": "string",
+          "description": "Human-readable review summary"
+        },
+        "criticalIssues": {
+          "type": "array",
+          "description": "Critical issues that must be fixed before merge",
+          "items": {
+            "type": "object",
+            "required": ["issue", "file", "fix"],
+            "properties": {
+              "issue": { "type": "string" },
+              "file": { "type": "string" },
+              "line": { "type": "integer" },
+              "fix": { "type": "string" }
+            }
+          }
+        },
+        "highPriority": {
+          "type": "array",
+          "description": "High priority issues that should be fixed",
+          "items": {
+            "type": "object",
+            "required": ["issue", "file", "suggestion"],
+            "properties": {
+              "issue": { "type": "string" },
+              "file": { "type": "string" },
+              "line": { "type": "integer" },
+              "suggestion": { "type": "string" }
+            }
+          }
+        },
+        "mediumPriority": {
+          "type": "array",
+          "description": "Medium priority improvements",
+          "items": {
+            "type": "object",
+            "required": ["issue", "file", "benefit"],
+            "properties": {
+              "issue": { "type": "string" },
+              "file": { "type": "string" },
+              "line": { "type": "integer" },
+              "benefit": { "type": "string" }
+            }
+          }
+        },
+        "lowPriority": {
+          "type": "array",
+          "description": "Low priority optional improvements",
+          "items": {
+            "type": "object",
+            "required": ["issue", "file"],
+            "properties": {
+              "issue": { "type": "string" },
+              "file": { "type": "string" },
+              "line": { "type": "integer" }
+            }
+          }
+        },
+        "positiveHighlights": {
+          "type": "array",
+          "description": "Good practices noticed during review",
+          "items": { "type": "string" }
+        },
+        "testCoverage": {
+          "type": "object",
+          "description": "Test coverage metrics",
+          "properties": {
+            "overall": { "type": "number" },
+            "unit": { "type": "number" },
+            "integration": { "type": "number" },
+            "e2e": { "type": "array", "items": { "type": "string" } }
+          }
+        },
+        "securityAssessment": {
+          "type": "string",
+          "description": "Security assessment result",
+          "enum": ["PASS", "CONCERNS"]
+        },
+        "nextSteps": {
+          "type": "array",
+          "description": "Recommended next steps for the orchestrator",
+          "items": { "type": "string" }
+        }
+      }
+    }
+  ],
+  "responseTypes": {
+    "success": {
+      "description": "Review completed successfully",
+      "required": ["status", "verdict", "details"],
+      "properties": {
+        "status": { "const": "completed" },
+        "verdict": { "enum": ["APPROVED", "NEEDS CHANGES"] },
+        "designCompliance": { "type": "string" },
+        "tasksCompletion": { "type": "string" },
+        "criticalIssues": { "type": "array" },
+        "highPriority": { "type": "array" },
+        "mediumPriority": { "type": "array" },
+        "lowPriority": { "type": "array" },
+        "positiveHighlights": { "type": "array" },
+        "testCoverage": { "type": "object" },
+        "securityAssessment": { "type": "string" },
+        "nextSteps": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "failure": {
+      "description": "Review failed to complete",
+      "required": ["status", "verdict", "details", "error"],
+      "properties": {
+        "status": { "const": "failed" },
+        "verdict": { "const": "NEEDS CHANGES" },
+        "error": {
+          "type": "object",
+          "required": ["code", "message"],
+          "properties": {
+            "code": { "type": "string" },
+            "message": { "type": "string" },
+            "details": { "type": "string" }
+          }
+        }
+      }
+    }
+  }
+}

@@ -21,6 +21,7 @@ import { LuPlus, LuSearch, LuEraser } from 'react-icons/lu';
 import PropTypes from 'prop-types';
 import { ExpensesFiltersSchema, expenseCategories } from '../utils'; // Changed from ClientsFiltersSchema
 import { zodResolver } from '@hookform/resolvers/zod';
+import { FIELD_LIMITS } from '@/config/fieldLimits';
 
 export const ExpensesFiltersForm = ({ onSubmit, onAddDialog }) => {
   // Renamed
@@ -76,7 +77,7 @@ export const ExpensesFiltersForm = ({ onSubmit, onAddDialog }) => {
                     placeholder={t('description_placeholder')}
                     type="text"
                     autoComplete="off"
-                    maxLength={100} // Example max length
+                    maxLength={FIELD_LIMITS.expenses.description}
                     {...field}
                     value={field.value ?? ''}
                   />

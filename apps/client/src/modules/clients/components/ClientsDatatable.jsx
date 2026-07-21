@@ -10,7 +10,7 @@ export const ClientsDatatable = ({
   onEditDialog,
 }) => {
   const { t } = useTranslation();
-  const { dataList, total } = dataClients.data;
+  const { dataList, total } = dataClients;
 
   const columnDefClients = [
     {
@@ -65,7 +65,10 @@ export const ClientsDatatable = ({
 };
 
 ClientsDatatable.propTypes = {
-  dataClients: PropTypes.object.isRequired,
+  dataClients: PropTypes.shape({
+    dataList: PropTypes.array,
+    total: PropTypes.number,
+  }).isRequired,
   onEditDialog: PropTypes.func.isRequired,
   pagination: PropTypes.object.isRequired,
   onPaginationChange: PropTypes.func.isRequired,

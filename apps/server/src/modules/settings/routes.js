@@ -4,7 +4,8 @@ import {
   SettingsDisplay,
   SettingsProductCategoryFilters,
   SettingsProductCategoryCreate,
-  SettingsProductCategoryUpdate,
+  SettingsProductCategoryUpdateSchema,
+  SettingsUpdate,
 } from './schemas/settings.joi.js';
 import * as settingsController from './controller.js';
 import {
@@ -299,7 +300,7 @@ router.post(
 /**
  * @openapi
  * /api/v1/settings/product/categories/{id}:
- *   put:
+ *   patch:
  *     tags:
  *       - Settings Product Categories
  *     security:
@@ -352,17 +353,6 @@ router.post(
  *               $ref: "#/components/schemas/Error"
  *
  */
-router.put(
-  '/product/categories/:id',
-  checkRoleAuthOrPermisssion({
-    allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER],
-    permissions: [PERMISSIONCODES.canEditCategory],
-  }),
-  validatePathParam,
-  validateSchema(SettingsProductCategoryUpdate),
-  settingsController.updateProductCategoryById
-);
-
 /**
  * @openapi
  * /api/v1/settings/product/categories/{id}:
@@ -400,6 +390,17 @@ router.put(
  *             schema:
  *               $ref: "#/components/schemas/Error"
  */
+router.patch(
+  '/product/categories/:id',
+  checkRoleAuthOrPermisssion({
+    allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER],
+    permissions: [PERMISSIONCODES.canEditCategory],
+  }),
+  validatePathParam,
+  validateSchema(SettingsProductCategoryUpdateSchema),
+  settingsController.updateProductCategoryById
+);
+
 router.delete(
   '/product/categories/:id',
   checkRoleAuthOrPermisssion({
@@ -408,6 +409,80 @@ router.delete(
   }),
   validatePathParam,
   settingsController.deleteProductCategoryById
+);
+
+/**
+ * @openapi
+ * /api/v1/settings/{id}:
+ *   patch:
+ *     tags:
+ *       - Settings
+ *     security:
+ *       - bearerAuth: []
+ *     summary: "Actualiza parcialmente la configuración del usuario"
+ *     description: "Este endpoint requiere autenticación. Actualiza parcialmente la configuración del usuario por ID."
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: "ID de la configuración a actualizar."
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: "#/components/schemas/SettingsPatch"
+ *     responses:
+ *       200:
+ *         description: OK
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: boolean
+ *                   example: false
+ *                 statusCode:
+ *                   type: integer
+ *                   example: 200
+ *                 message:
+ *                   type: string
+ *                   example: "Settings updated successfully"
+ *                 data:
+ *                   $ref: "#/components/schemas/SettingsResponse"
+ *       400:
+ *         description: Bad Request
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/BadRequest"
+ *       401:
+ *         description: "Unauthorized"
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Unauthorized"
+ *       5XX:
+ *         description: FAILED
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Error"
+ *       404:
+ *         description: Not Found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/NotFound"
+ * */
+router.patch(
+  '/:id',
+  validatePathParam,
+  validateSchema(SettingsUpdate),
+  settingsController.patchSettingsById
 );
 
 export default router;

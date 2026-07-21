@@ -2,12 +2,12 @@ import express from 'express';
 import {
   getAllUsers,
   createUser,
-  updateUserById,
   deleteUserById,
   getAllUsersStatus,
   getAllUsersRoles,
   getAllUserPermits,
   getUsersByStatus,
+  patchUserById,
 } from './controller.js';
 import {
   verifyToken,
@@ -19,8 +19,9 @@ import {
 import { ROLESCODES, PERMISSIONCODES } from '../../utils/constants/enums.js';
 import {
   userFiltersSchema,
-  userCreateUpdateSchema,
-  byStatusCode
+  userCreateSchema,
+  byStatusCode,
+  userUpdateSchema
 } from './schemas/users.joi.js';
 
 const router = express.Router();
@@ -146,17 +147,19 @@ router.post(
     allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER],
     permissions: [PERMISSIONCODES.canCreateUser],
   }),
-  validateSchema(userCreateUpdateSchema),
+  validateSchema(userCreateSchema),
   createUser
 );
+
+
 
 /**
  * @openapi
  * /v1/users/{id}:
- *   put:
+ *   patch:
  *     tags:
  *       - Users
- *     summary: Update a user by ID
+ *     summary: Partially update a user by ID
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -171,7 +174,7 @@ router.post(
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/BodyUserCreateUpdate'
+ *             $ref: '#/components/schemas/BodyUserUpdate'
  *     responses:
  *       200:
  *         description: User updated successfully
@@ -201,15 +204,61 @@ router.post(
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.put(
+router.patch(
   '/:id',
   checkRoleAuthOrPermisssion({
     allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER],
     permissions: [PERMISSIONCODES.canEditUser],
   }),
   validatePathParam,
-  validateSchema(userCreateUpdateSchema),
-  updateUserById
+  validateSchema(userUpdateSchema),
+  patchUserById
+);
+
+/**
+ * @openapi
+ * /v1/users/{id}:
+ *   delete:
+ *     tags:
+ *       - Users
+ *     summary: Delete a user by ID
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: User ID
+ *     responses:
+ *       200:
+ *         description: User deleted
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Delete'
+ *       401:
+ *         description: Unauthorized
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Unauthorized'
+ *       500:
+ *         description: Server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *     */
+router.delete(
+  '/:id',
+  checkRoleAuthOrPermisssion({
+    allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER],
+    permissions: [PERMISSIONCODES.canDeleteUser],
+  }),
+  validatePathParam,
+  deleteUserById
 );
 
 /**

@@ -1,9 +1,9 @@
 import { Router } from 'express';
 import {
-  Products,
-  ProductsUpdate,
+  ProductsCreate,
   ProductsFilters,
   ProductAttributes,
+  ProductsUpdate,
 } from './schemas/products.joi.js';
 import * as productsController from './controller.js';
 import {
@@ -62,11 +62,11 @@ router.post(
     allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER],
     permissions: [PERMISSIONCODES.canCreateProduct],
   }),
-  validateSchema(Products),
+  validateSchema(ProductsCreate),
   productsController.createOne
 );
 
-router.put(
+router.patch(
   '/:id',
   checkRoleAuthOrPermisssion({
     allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER],
@@ -74,7 +74,7 @@ router.put(
   }),
   validatePathParam,
   validateSchema(ProductsUpdate),
-  productsController.updateById
+  productsController.patchById
 );
 
 router.delete(

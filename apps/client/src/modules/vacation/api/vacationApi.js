@@ -40,7 +40,7 @@ const vacationApi = createApi({
     updateVacationById: builder.mutation({
       query: ({ id, data }) => ({
         url: `/vacation/${id}`,
-        method: 'PUT',
+        method: 'PATCH',
         body: data,
       }),
       invalidatesTags: ['Vacation'],

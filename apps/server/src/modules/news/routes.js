@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { News, NewsUpdate, NewsFilters } from './schemas/news.joi.js';
+import { NewsCreateSchema, NewsFilters, NewsUpdate } from './schemas/news.joi.js';
 import * as newsController from './controller.js';
 import upload from '../../utils/multer/multer.js';
 import {
@@ -173,25 +173,29 @@ router.get(
  */
 
 router.post(
-  '/',
-  checkRoleAuthOrPermisssion({
-    allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER, ROLESCODES.USER],
-    permissions: [PERMISSIONCODES.canCreateNews],
-  }),
-  validateSchema(News),
-  upload.single('document'),
-  newsController.createNew
-);
+   '/',
+   checkRoleAuthOrPermisssion({
+     allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER, ROLESCODES.USER],
+     permissions: [PERMISSIONCODES.canCreateNews],
+   }),
+   validateSchema(NewsCreateSchema),
+   upload.single('document'),
+   newsController.createNew
+ );
+
+
+
+
 
 /**
  * @openapi
  * /api/v1/news/{id}:
- *   put:
+ *   patch:
  *     tags:
  *       - News
  *     security:
  *       - bearerAuth: []
- *     summary: "Actualiza una noticia"
+ *     summary: "Actualiza parcialmente una noticia"
  *     description: "Este endpoint requiere autenticación. El userId se extrae automáticamente del token JWT."
  *     parameters:
  *       - in: path
@@ -205,7 +209,7 @@ router.post(
  *       content:
  *         application/json:
  *           schema:
- *             $ref: "#/components/schemas/NewsUpdate"
+ *             $ref: "#/components/schemas/NewsUpdatePartial"
  *     responses:
  *       200:
  *         description: OK
@@ -218,7 +222,7 @@ router.post(
  *                   type: boolean
  *                   example: false
  *                 statusCode:
- *                   type: int
+ *                   type: integer
  *                   example: 200
  *                 message:
  *                   type: string
@@ -237,20 +241,19 @@ router.post(
  *           application/json:
  *             schema:
  *               $ref: "#/components/schemas/Error"
- *
  */
 
-router.put(
-  '/:id',
-  checkRoleAuthOrPermisssion({
-    allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER, ROLESCODES.USER],
-    permissions: [PERMISSIONCODES.canEditNews],
-  }),
-  validatePathParam,
-  validateSchema(NewsUpdate),
-  upload.single('document'),
-  newsController.updateById
-);
+router.patch(
+   '/:id',
+   checkRoleAuthOrPermisssion({
+     allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER, ROLESCODES.USER],
+     permissions: [PERMISSIONCODES.canEditNews],
+   }),
+   validatePathParam,
+   validateSchema(NewsUpdate),
+   upload.single('document'),
+   newsController.updateById
+ );
 
 /**
  * @openapi

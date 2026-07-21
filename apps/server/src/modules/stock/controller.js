@@ -90,26 +90,7 @@ export const createStock = handleCatchErrorAsync(async (req, res) => {
   globalResponse(res, 201, { message: 'Stock entry created successfully' });
 });
 
-/**
- * Update a stock entry by ID.
- *
- * @param {Object} req - The HTTP request object.
- * @param {Object} req.params - Request parameters
- * @param {string} req.params.id - Stock entry ID from URL
- * @param {Object} req.body - Request body containing stock data to update
- * @param {number} [req.body.quantity] - Stock quantity
- * @param {string} [req.body.lot] - Lot number
- * @param {Date} [req.body.expirationDate] - Expiration date
- * @param {string} req.userId - Authenticated user ID from token verification
- * @param {Object} res - The HTTP response object.
- * @returns {Promise<void>} Updates stock entry and returns confirmation
- */
-export const updateStockById = handleCatchErrorAsync(async (req, res) => {
-  const { id } = req.params;
-  const userId = req.userId;
-  await updateStockByIdService(id, req.body, userId);
-  globalResponse(res, 200, { message: 'Stock entry updated successfully' });
-});
+
 
 /**
  * Delete a stock entry by ID.
@@ -124,4 +105,22 @@ export const deleteStockById = handleCatchErrorAsync(async (req, res) => {
   const { id } = req.params;
   await deleteStockByIdService(id);
   globalResponse(res, 200, { message: 'Stock entry deleted successfully' });
+});
+
+/**
+ * Partially update a stock entry by ID.
+ *
+ * @param {Object} req - The HTTP request object.
+ * @param {Object} req.params - Request parameters
+ * @param {string} req.params.id - Stock entry ID from URL
+ * @param {Object} req.body - Request body containing stock data to update (partial)
+ * @param {string} req.userId - Authenticated user ID from token verification
+ * @param {Object} res - The HTTP response object.
+ * @returns {Promise<void>} Updates stock entry and returns confirmation
+ */
+export const patchStockById = handleCatchErrorAsync(async (req, res) => {
+  const { id } = req.params;
+  const userId = req.userId;
+  await updateStockByIdService(id, req.body, userId);
+  globalResponse(res, 200, { message: 'Stock entry updated successfully' });
 });

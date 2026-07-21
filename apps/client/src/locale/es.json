@@ -61,6 +61,7 @@
     "title": "Título",
     "title_placeholder": "Ingrese el título",
     "content_placeholder": "Ingrese el contenido del mensaje, use @ para mencionar a alguien",
+    "note_view": "Ver nota",
     "create_note": "Crear nota",
     "note": "Nota",
     "news_card_msg": "Noticias relevantes",
@@ -79,10 +80,13 @@
     "date": "Fecha",
     "save_changes": "Guardar cambios",
     "status_notes": "Estado de notas",
-    "low_notes": "Verde: Baja prioridad",
-    "medium_notes": "Amarillo: Prioridad media",
-    "high_notes": "Rojo: Alta prioridad",
+    "low_notes": "Gris: Backlog",
+    "medium_notes": "Ámbar: Active",
+    "high_notes": "Esmeralda: Completed",
     "show_all_notes": "Mostrar todas las notas",
+    "backlog_notes": "Pendientes",
+    "active_notes": "Activas",
+    "completed_notes": "Completadas",
     "display": "Visualización",
     "next_events": "Próximos eventos",
     "turn_off_on_message": "Active o desactive elementos para controlar lo que se muestra en la aplicación.",
@@ -342,6 +346,11 @@
     "permission_reason_placeholder": "Ingrese la razón del permiso",
     "permission_comments_placeholder": "Ingrese comentarios del permiso",
 "content": "Contenido",
+     "scope_mine": "Mis notas",
+     "scope_mixed": "Todas",
+    "mentioned_badge": "Mencionado",
+    "mark_as_read": "Marcar como leído",
+    "mentions_count": "Menciones",
   "zod": {
     "auth": {
       "email": {
@@ -822,7 +831,21 @@
     "hashtags_create": "Crear",
     "hashtags_select_hashtags": "Seleccionar hashtags",
     "hashtags_selected": "{{count}} hashtags seleccionados",
-  "hashtags_save": "Guardar"
+  "hashtags_save": "Guardar",
+  "favorite": "Favorito",
+  "favorites": "Favoritos",
+  "mark_as_favorite": "Marcar como favorita",
+  "remove_from_favorites": "Quitar de favoritos",
+  "show_favorites_only": "Mostrar solo favoritas",
+    "Backlog": "Pendientes",
+    "Active": "Activas",
+    "Completed": "Completadas",
+    "ws_status_title": "Estado WebSocket",
+    "ws_connected": "WS conectado",
+    "ws_disconnected": "WS desconectado",
+    "ws_status": "Estado",
+    "active": "Activo",
+    "inactive": "Inactivo",
+    "ws_error_description": "Error en la conexión WebSocket"
   }
-  
 }

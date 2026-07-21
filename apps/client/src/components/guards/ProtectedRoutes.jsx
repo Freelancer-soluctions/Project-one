@@ -22,11 +22,9 @@ export const ProtectedRoutes = ({ children, redirectTo }) => {
   // }, [])
 
   useEffect(() => {
-    if (
-      user.user === null &&
-      !user.isAuth &&
-      parseInt(user.user.data.user.id) !== parseInt(userToken.id)
-    ) {
+    if (user.user === null && !user.isAuth) {
+      navigate(redirectTo, { replace: true });
+    } else if (user.user && parseInt(user.user.data.user.id) !== parseInt(userToken.id)) {
       navigate(redirectTo, { replace: true });
     }
   }, [navigate, user, redirectTo, userToken.id]);

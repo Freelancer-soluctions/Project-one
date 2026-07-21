@@ -2,13 +2,14 @@ import express from 'express';
 import {
   getAllPayroll,
   createPayroll,
-  updatePayrollById,
   deletePayrollById,
+  updatePayrollByIdPartial,
 } from './controller.js';
 
 import {
   payrollFiltersSchema,
-  payrollCreateUpdateSchema,
+  payrollCreateSchema,
+  payrollUpdateSchema,
 } from './schemas/payroll.joi.js';
 import {
   verifyToken,
@@ -161,50 +162,16 @@ router.get(
  *         description: Payroll record created successfully
  */
 router.post(
-  '/',
-  checkRoleAuthOrPermisssion({
-    allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER],
-    permissions: [PERMISSIONCODES.canCreatePayroll],
-  }),
-  validateSchema(payrollCreateUpdateSchema),
-  createPayroll
-);
+   '/',
+   checkRoleAuthOrPermisssion({
+     allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER],
+     permissions: [PERMISSIONCODES.canCreatePayroll],
+   }),
+   validateSchema(payrollCreateSchema),
+   createPayroll
+ );
 
-/**
- * @swagger
- * /v1/payroll/{id}:
- *   put:
- *     summary: Update a payroll record
- *     tags: [Payroll]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: integer
- *         description: Payroll ID
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             $ref: '#/components/schemas/BodyPayrollCreateUpdate'
- *     responses:
- *       200:
- *         description: Payroll record updated successfully
- */
-router.put(
-  '/:id',
-  checkRoleAuthOrPermisssion({
-    allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER],
-    permissions: [PERMISSIONCODES.canEditPayroll],
-  }),
-  validatePathParam,
-  validateSchema(payrollCreateUpdateSchema),
-  updatePayrollById
-);
+
 
 /**
  * @swagger
@@ -224,7 +191,7 @@ router.put(
  *     responses:
  *       200:
  *         description: Payroll record deleted successfully
- */
+ * */
 router.delete(
   '/:id',
   checkRoleAuthOrPermisssion({
@@ -233,6 +200,42 @@ router.delete(
   }),
   validatePathParam,
   deletePayrollById
+);
+
+/**
+ * @swagger
+ * /v1/payroll/{id}:
+ *   patch:
+ *     summary: Partially update a payroll record
+ *     tags: [Payroll]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: Payroll ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/BodyPayrollUpdate'
+ *     responses:
+ *       200:
+ *         description: Payroll record partially updated successfully
+ * */
+router.patch(
+   '/:id',
+   checkRoleAuthOrPermisssion({
+     allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER],
+     permissions: [PERMISSIONCODES.canEditPayroll],
+   }),
+   validatePathParam,
+   validateSchema(payrollUpdateSchema),
+   updatePayrollByIdPartial
 );
 
 export default router;

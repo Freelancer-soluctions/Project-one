@@ -1,0 +1,90 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Git-Manager Agent Output Contract Schema",
+  "description": "Defines required fields for git-manager agent responses",
+  "type": "object",
+  "allOf": [
+    { "$ref": "base.schema.json" },
+    {
+      "type": "object",
+      "required": ["status", "operation", "details"],
+      "properties": {
+        "status": {
+          "type": "string",
+          "description": "Overall status of the git operation",
+          "enum": ["completed", "in-progress", "failed"]
+        },
+        "operation": {
+          "type": "string",
+          "description": "The git operation performed",
+          "enum": ["commit", "commit-all", "commit-staged", "analyze-worktree", "split-commits", "gh-gist-create", "gh-issue-create", "gh-pr-create", "gh-repo-view"]
+        },
+        "branch": {
+          "type": "string",
+          "description": "Git branch involved in the operation"
+        },
+        "commitHash": {
+          "type": "string",
+          "description": "Commit hash if a commit was created"
+        },
+        "details": {
+          "type": "string",
+          "description": "Human-readable description of the operation result"
+        },
+        "filesStaged": {
+          "type": "array",
+          "description": "Files that were staged",
+          "items": { "type": "string" }
+        },
+        "conventionalCommit": {
+          "type": "string",
+          "description": "The conventional commit message if a commit was made"
+        },
+        "githubResult": {
+          "type": "object",
+          "description": "Result from GitHub CLI operations",
+          "properties": {
+            "url": { "type": "string" },
+            "id": { "type": "string" },
+            "type": { "type": "string", "enum": ["gist", "issue", "pr", "repo"] }
+          }
+        },
+        "nextSteps": {
+          "type": "array",
+          "description": "Recommended next steps for the orchestrator",
+          "items": { "type": "string" }
+        }
+      }
+    }
+  ],
+  "responseTypes": {
+    "success": {
+      "description": "Git operation completed successfully",
+      "required": ["status", "operation", "details"],
+      "properties": {
+        "status": { "const": "completed" },
+        "branch": { "type": "string" },
+        "commitHash": { "type": "string" },
+        "filesStaged": { "type": "array", "items": { "type": "string" } },
+        "githubResult": { "type": "object" },
+        "nextSteps": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "failure": {
+      "description": "Git operation failed",
+      "required": ["status", "operation", "details", "error"],
+      "properties": {
+        "status": { "const": "failed" },
+        "error": {
+          "type": "object",
+          "required": ["code", "message"],
+          "properties": {
+            "code": { "type": "string" },
+            "message": { "type": "string" },
+            "details": { "type": "string" }
+          }
+        }
+      }
+    }
+  }
+}

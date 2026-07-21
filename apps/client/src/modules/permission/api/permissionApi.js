@@ -40,7 +40,7 @@ const permissionApi = createApi({
     updatePermissionById: builder.mutation({
       query: ({ id, data }) => ({
         url: `/permission/${id}`,
-        method: 'PUT',
+        method: 'PATCH',
         body: data,
       }),
       invalidatesTags: ['Permission'],

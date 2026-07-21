@@ -1,5 +1,4 @@
 import { ExpenseSchema } from './utils/schema';
-import i18n from '../../config/i18n';
 
 // Simple test to verify the schema works with translation keys
 console.log('Testing ExpenseSchema with translation keys...');

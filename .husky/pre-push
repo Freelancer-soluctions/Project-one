@@ -1,0 +1,14 @@
+
+echo "Running unit test..."
+npm run test:unit
+
+echo "✅ Unit test passed."
+
+echo "Running unit test..."
+npm run test:integration --workspace=apps/server
+echo "✅ Integration test passed."
+
+echo "Running build project..."
+npm run build --workspace=apps/client
+npm run build --workspace=apps/server
+echo "✅ Build project passed."

@@ -2,8 +2,8 @@ import express from 'express';
 import {
   getAllPermissions,
   createPermission,
-  updatePermissionById,
   deletePermissionById,
+  patchPermissionById,
 } from './controller.js';
 import {
   verifyToken,
@@ -14,9 +14,10 @@ import {
 } from '../../middleware/index.js';
 import { ROLESCODES, PERMISSIONCODES } from '../../utils/constants/enums.js';
 import {
-  permissionFiltersSchema,
-  permissionCreateUpdateSchema,
-} from './schemas/permission.joi.js';
+   permissionFiltersSchema,
+   permissionCreateSchema,
+   permissionUpdateSchema,
+ } from './schemas/permission.joi.js';
 
 const router = express.Router();
 // uso global de middleware
@@ -234,16 +235,18 @@ router.post(
     allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER, ROLESCODES.USER],
     permissions: [PERMISSIONCODES.canCreatePermission],
   }),
-  validateSchema(permissionCreateUpdateSchema),
+  validateSchema(permissionCreateSchema),
   createPermission
 );
+
+
 
 /**
  * @swagger
  * /v1/permission/{id}:
- *   put:
- *     summary: Update a permission
- *     description: Update an existing permission by its ID
+ *   patch:
+ *     summary: Partially update a permission
+ *     description: Partially update an existing permission by its ID
  *     tags: [Permissions]
  *     security:
  *       - bearerAuth: []
@@ -262,7 +265,7 @@ router.post(
  *             $ref: '#/components/schemas/Permission'
  *     responses:
  *       200:
- *         description: Permission updated successfully
+ *         description: Permission partially updated successfully
  *         content:
  *           application/json:
  *             schema:
@@ -281,16 +284,16 @@ router.post(
  *         description: Permission not found
  *       500:
  *         description: Internal server error
- */
-router.put(
-  '/:id',
-  checkRoleAuthOrPermisssion({
-    allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER, ROLESCODES.USER],
-    permissions: [PERMISSIONCODES.canEditPermission],
-  }),
-  validatePathParam,
-  validateSchema(permissionCreateUpdateSchema),
-  updatePermissionById
+ *     */
+router.patch(
+   '/:id',
+   checkRoleAuthOrPermisssion({
+     allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER, ROLESCODES.USER],
+     permissions: [PERMISSIONCODES.canEditPermission],
+   }),
+   validatePathParam,
+   validateSchema(permissionUpdateSchema),
+   patchPermissionById
 );
 
 /**

@@ -8,10 +8,10 @@
  */
 const globalResponse = (res, statusCode, data, message = null) => {
   res.status(statusCode).json({
-    error: false,
+    success: true,
     statusCode,
     data,
-    ...(message && { message }),
+    ...(message !== null && { message }),
   });
 };
 export default globalResponse;

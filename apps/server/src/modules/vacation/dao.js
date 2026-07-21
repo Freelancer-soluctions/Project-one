@@ -137,16 +137,16 @@ export const createVacation = async (data) => {
  * @returns {Promise<Object>} Updated vacation record.
  */
 export const updateVacationById = async (id, data) => {
+  const updateData = {};
+  if (data.employeeId !== undefined) updateData.employeeId = data.employeeId;
+  if (data.startDate !== undefined) updateData.startDate = data.startDate;
+  if (data.endDate !== undefined) updateData.endDate = data.endDate;
+  if (data.status !== undefined) updateData.status = data.status;
+  if (data.updatedBy !== undefined) updateData.updatedBy = data.updatedBy;
+  if (data.updatedOn !== undefined) updateData.updatedOn = data.updatedOn;
   return await prisma.vacation.update({
     where: { id: parseInt(id) },
-    data: {
-      employeeId: data.employeeId,
-      startDate: data.startDate,
-      endDate: data.endDate,
-      status: data.status,
-      updatedBy: data.updatedBy,
-      updatedOn: data.updatedOn,
-    },
+    data: updateData,
   });
 };
 

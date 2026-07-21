@@ -59,10 +59,9 @@ export const SettingsProductCategoriesDialog = ({
 
   // Actualiza todos los valores del formulario al cambiar `selectedRow`
   useEffect(() => {
-    if (selectedRow) {
+    if (selectedRow?.id) {
       // Filtra y mapea solo los valores necesarios
       const mappedValues = {
-        id: selectedRow.id || '',
         name: selectedRow.name || '',
         status: selectedRow.status || '',
         code: selectedRow.code || '',

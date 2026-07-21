@@ -2,8 +2,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useTranslation } from 'react-i18next';
 import { BackDashBoard } from '@/components/backDash/BackDashBoard';
 import {
-  useGetAllProductsStatusQuery,
-  useGetAllProductCategoriesQuery,
   useLazyGetAllProductAttributesQuery,
   useCreateProductMutation,
   useUpdateProductByIdMutation,
@@ -11,7 +9,8 @@ import {
   useDeleteProductAttributeByIdMutation,
   useSaveProductAttributesMutation,
 } from '../api/productsAPI';
-import { useGetAllProvidersFiltersQuery } from '../../providers/api/providersAPI';
+import { useLoadingState } from '@/hooks';
+import { useProductsFilterData } from '../hooks';
 
 import { Spinner } from '@/components/loader/Spinner';
 import { ProductBasicInfo, ProductAttributes } from '../components';
@@ -28,27 +27,11 @@ function ProductsForms() {
   const location = useLocation();
   const [attributes, setAttributes] = useState([]);
 
-  const selectedRow = useMemo(() => {
-    return location.state?.row ?? null;
-  }, [location.state?.row]);
+const selectedRow = useMemo(() => {
+  return location.state?.row ?? null;
+}, [location.state?.row]);
 
-  const {
-    data: dataCategory,
-    isLoading: isLoadingCategory,
-    isFetching: isFetchingCategory,
-  } = useGetAllProductCategoriesQuery();
-
-  const {
-    data: dataProviders,
-    isLoading: isLoadingProviders,
-    isFetching: isFetchingProviders,
-  } = useGetAllProvidersFiltersQuery();
-
-  const {
-    data: datastatus,
-    isLoading: isLoadingStatus,
-    isFetching: isFetchingStatus,
-  } = useGetAllProductsStatusQuery();
+const { datastatus, dataCategory, dataProviders, isLoadingFilters, isFetchingFilters } = useProductsFilterData();
 
   const [saveProduct, { isLoading: isLoadingPost }] =
     useCreateProductMutation();
@@ -142,38 +125,36 @@ function ProductsForms() {
     }
   };
 
-  const [
-    getProductAttributes,
-    {
-      // eslint-disable-next-line no-unused-vars
-      data: dataAttributes = { data: [] },
-      isLoading: isLoadingAttributes,
-      isFetching: isFetchingAttributes,
-    },
-  ] = useLazyGetAllProductAttributesQuery({
-    async onQueryStarted(_, { queryFulfilled }) {
-      const { data } = await queryFulfilled;
-      setAttributes(data.data);
-    },
-  });
-
+const [
+  getProductAttributes,
+  { isLoading: isLoadingAttributes, isFetching: isFetchingAttributes },
+] = useLazyGetAllProductAttributesQuery();
   const [deleteProductAttributeById, { isLoading: isLoadingDeleteAttribute }] =
     useDeleteProductAttributeByIdMutation();
 
   const [saveProductAttributes, { isLoading: isLoadingSaveAttributes }] =
     useSaveProductAttributesMutation();
 
+  const { isLoading: isLoadingQueries, isFetching: isFetchingQueries } = useLoadingState([
+    { isLoading: isLoadingFilters, isFetching: isFetchingFilters },
+    { isLoading: isLoadingAttributes, isFetching: isFetchingAttributes },
+  ]);
+
+  const isLoadingMutations = isLoadingPost || isLoadingPut || isLoadingDelete || isLoadingDeleteAttribute || isLoadingSaveAttributes;
+
   useEffect(() => {
     if (selectedRow?.id) {
-      getProductAttributes(selectedRow.id);
+      getProductAttributes(selectedRow.id)
+        .unwrap()
+        .then((result) => {
+          const items = result?.data ?? [];
+          if (items.length > 0) {
+            setAttributes(items);
+          }
+        })
+        .catch(() => {});
     }
   }, [selectedRow, getProductAttributes]);
-
-  // useEffect(() => {
-  //   if ( dataAttributes?.data.length > 0) {
-  //     setAttributes(dataAttributes.data);
-  //   }
-  // }, [dataAttributes?.data]);
 
   const handleAddAttribute = () => {
     setAttributes([
@@ -272,20 +253,8 @@ function ProductsForms() {
         link={'/home/products'}
         moduleName={selectedRow?.id ? t('edit_product') : t('new_product')}
       />
-      <div className="relative">
-        {(isLoadingCategory ||
-          isLoadingPost ||
-          isLoadingPut ||
-          isLoadingDelete ||
-          isLoadingProviders ||
-          isLoadingStatus ||
-          isLoadingAttributes ||
-          isLoadingDeleteAttribute ||
-          isFetchingProviders ||
-          isFetchingAttributes ||
-          isFetchingCategory ||
-          isFetchingStatus ||
-          isLoadingSaveAttributes) && <Spinner />}
+        <div className="relative">
+         {(isLoadingQueries || isFetchingQueries || isLoadingMutations) && <Spinner />}
 
         <div className="container flex flex-col min-h-screen">
           <main className="container flex-1 py-6">

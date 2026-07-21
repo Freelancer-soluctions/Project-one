@@ -14,6 +14,7 @@ import { LuPlus, LuSearch, LuEraser } from 'react-icons/lu';
 import PropTypes from 'prop-types';
 import { ClientsFiltersSchema } from '../utils';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { FIELD_LIMITS } from '@/config/fieldLimits';
 
 export const ClientsFiltersForm = ({ onSubmit, onAddDialog }) => {
   const { t } = useTranslation();
@@ -59,7 +60,7 @@ export const ClientsFiltersForm = ({ onSubmit, onAddDialog }) => {
                       placeholder={t('client_name_placeholder')}
                       type="text"
                       autoComplete="off"
-                      maxLength={100}
+                      maxLength={FIELD_LIMITS.clients.name}
                       {...field}
                       value={field.value ?? ''}
                     />
@@ -84,7 +85,7 @@ export const ClientsFiltersForm = ({ onSubmit, onAddDialog }) => {
                       placeholder={t('client_email_placeholder')}
                       type="email"
                       autoComplete="off"
-                      maxLength={100}
+                      maxLength={FIELD_LIMITS.clients.email}
                       {...field}
                       value={field.value ?? ''}
                     />

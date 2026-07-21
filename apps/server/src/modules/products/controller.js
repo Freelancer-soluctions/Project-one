@@ -102,25 +102,7 @@ export const createOne = handleCatchErrorAsync(async (req, res) => {
   globalResponse(res, 201, { message: 'Item created successfully' });
 });
 
-/**
- * Update a product item by its ID.
- *
- * @param {Object} req - The HTTP request object.
- * @param {Object} req.params - Request parameters
- * @param {string} req.params.id - Product ID from URL
- * @param {Object} req.body - Request body containing product data to update
- * @param {string} req.body.statusCode - Updated status code
- * @param {string} req.userId - Authenticated user ID from token verification
- * @param {Object} res - The HTTP response object.
- * @returns {Promise<void>} Sends a response confirming the update of the product item.
- */
-export const updateById = handleCatchErrorAsync(async (req, res) => {
-  const userId = req.userId;
-  const { id } = req.params;
-  const { body } = req;
-  await productsService.updateById(userId, id, body);
-  globalResponse(res, 200, { message: 'Items updated successfully' });
-});
+
 
 /**
  * Delete a product item by its ID.
@@ -170,6 +152,26 @@ export const saveProductAttributes = handleCatchErrorAsync(async (req, res) => {
   globalResponse(res, 201, {
     message: 'Product Attributes saved successfully',
   });
+});
+
+
+/**
+ * Partially update a product item by its ID.
+ *
+ * @param {Object} req - The HTTP request object.
+ * @param {Object} req.params - Request parameters.
+ * @param {string} req.params.id - Product ID from URL.
+ * @param {Object} req.body - Request body containing partial product data.
+ * @param {string} req.userId - Authenticated user ID from token verification.
+ * @param {Object} res - The HTTP response object.
+ * @returns {Promise<void>} Sends a response confirming the update.
+ */
+export const patchById = handleCatchErrorAsync(async (req, res) => {
+  const userId = req.userId;
+  const { id } = req.params;
+  const { body } = req;
+  await productsService.patchById(userId, id, body);
+  globalResponse(res, 200, { message: 'Item updated successfully' });
 });
 
 /**

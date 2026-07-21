@@ -14,6 +14,7 @@ import {
 } from '../api/clientsApi';
 import AlertDialogComponent from '@/components/alertDialog/AlertDialog';
 import { Spinner } from '@/components/loader/Spinner';
+import { useQueryData, useLoadingState } from '@/hooks';
 
 const Clients = () => {
   const { t } = useTranslation();
@@ -28,14 +29,9 @@ const Clients = () => {
   });
   const [filters, setFilters] = useState({});
 
-  const [
-    getAllClients,
-    {
-      data: dataClients = { data: [] },
-      isLoading: isLoadingClients,
-      isFetching: isFetchingClients,
-    },
-  ] = useLazyGetAllClientsQuery();
+const [getAllClients, queryState] = useLazyGetAllClientsQuery();
+const { data: dataClients, isLoading, isFetching } = useQueryData(queryState);
+const { isLoading: isLoadingQuery, isFetching: isFetchingQuery } = useLoadingState([{ isLoading, isFetching }]);
 
   const [updateClientById, { isLoading: isLoadingPut }] =
     useUpdateClientByIdMutation();
@@ -85,30 +81,20 @@ const Clients = () => {
     setFilters(newFilters);
   };
 
-  const handleSubmit = async (values, clientId) => {
+  const handleSubmit = async (result) => {
     try {
-      clientId
-        ? await updateClientById({
-            id: clientId,
-            data: {
-              name: values.name,
-              email: values.email,
-              phone: values.phone,
-              address: values.address,
-            },
-          }).unwrap()
-        : await createClient({
-            name: values.name,
-            email: values.email,
-            phone: values.phone,
-            address: values.address,
-          }).unwrap();
+      if (result?.id) {
+        // edit → result = { id, body } with only changed fields (PATCH)
+        await updateClientById({ id: result.id, data: result.body }).unwrap();
+      } else {
+        // create → result = { name, email, phone, address } (POST)
+        await createClient(result).unwrap();
+      }
 
-      // setTimeout(() => {
       setAlertProps({
-        alertTitle: t(clientId ? 'update_record' : 'add_record'),
+        alertTitle: t(result?.id ? 'update_record' : 'add_record'),
         alertMessage: t(
-          clientId ? 'updated_successfully' : 'added_successfully'
+          result?.id ? 'updated_successfully' : 'added_successfully'
         ),
         cancel: false,
         success: true,
@@ -118,7 +104,6 @@ const Clients = () => {
         variantSuccess: 'info',
       });
       setOpenAlertDialog(true);
-      // }, 300);
     } catch (err) {
       console.error('Error:', err);
     }
@@ -182,11 +167,11 @@ const Clients = () => {
       <BackDashBoard link={'/home'} moduleName={t('clients')} />
       <div className="relative">
         {/* Show spinner when loading or fetching */}
-        {(isLoadingClients ||
-          isLoadingPut ||
-          isLoadingPost ||
-          isLoadingDelete ||
-          isFetchingClients) && <Spinner />}
+{(isLoadingQuery ||
+  isFetchingQuery ||
+  isLoadingPut ||
+  isLoadingPost ||
+  isLoadingDelete) && <Spinner />}
 
         <div className="grid grid-cols-2 grid-rows-4 gap-4 md:grid-cols-5">
           {/* filters */}

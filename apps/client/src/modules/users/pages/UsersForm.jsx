@@ -47,25 +47,29 @@ function UsersForms() {
 
   const handleSubmit = async (values) => {
     try {
+      // selectedRow contiene el id del usuario a editar (no viene en values porque
+      // UsersBasicInfo envía solo campos dirty via pickDirty, sin incluir el id)
+      const targetUserId = selectedRow?.id;
+      if (!targetUserId) {
+        console.error('No target user ID available');
+        return;
+      }
+
+      // PATCH parcial: solo enviamos los campos que llegaron (valores dirty)
+      const { roles, status, selectedPermissions, ...basicFields } = values;
+
+      // Limpiar undefineds para no mandar { email: undefined } al server
+      const cleanFields = Object.fromEntries(
+        Object.entries(basicFields).filter(([, v]) => v !== undefined)
+      );
+
       await updateUserById({
-        id: values.id,
+        id: targetUserId,
         data: {
-          name: values.name,
-          email: values.email,
-          telephone: values.telephone,
-          address: values.address,
-          birthday: values.birthday,
-          startDate: values.startDate,
-          socialSecurity: values.socialSecurity,
-          zipcode: values.zipcode,
-          state: values.state,
-          city: values.city,
-          isAdmin: values.isAdmin,
-          picture: values.picture,
-          document: values.document,
-          roleId: values.roles.id,
-          statusId: values.status.id,
-          permissions: values.selectedPermissions,
+          ...cleanFields,
+          ...(roles?.id && { roleId: roles.id }),
+          ...(status?.id && { statusId: status.id }),
+          ...(selectedPermissions && { permissions: selectedPermissions }),
         },
       }).unwrap();
 

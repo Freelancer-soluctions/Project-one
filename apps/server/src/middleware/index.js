@@ -6,3 +6,4 @@ export * from './verifyRole.js';
 export * from './verifyToken.js';
 export * from './csp-report-handle.js';
 export * from './validatePathParam.js';
+export * from './validateNumericPathParam.js';

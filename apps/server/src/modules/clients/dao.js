@@ -121,9 +121,11 @@ export const updateClientById = async (id, data) => {
       address: data.address,
       updatedOn: data.updatedOn,
       userClientUpdated: {
-        connect: {
-          id: data.updatedBy,
-        },
+        ...(data.updatedBy !== undefined && {
+          connect: {
+            id: data.updatedBy,
+          },
+        }),
       },
     },
   });

@@ -24,6 +24,8 @@ import { Button } from '@/components/ui/button';
 import { LuPackage } from 'react-icons/lu';
 import PropTypes from 'prop-types';
 import { ProviderOrderSchema } from '../utils';
+import { pickDirty } from '@/utils/pickDirty';
+import { FIELD_LIMITS } from '@/config/fieldLimits';
 // import { useState } from 'react'
 
 export const ProviderOrdersDialog = ({
@@ -38,17 +40,18 @@ export const ProviderOrdersDialog = ({
   const providerOrderId = selectedRow?.id ?? null;
   // const [providerOrderId, setProviderOrderId] = useState('')
 
-  const form = useForm({
-    resolver: zodResolver(ProviderOrderSchema),
-    defaultValues: {
-      supplierId: '',
-      notes: '',
-      createdOn: '',
-      updatedOn: '',
-      userProviderOrderCreatedName: '',
-      userProviderOrderUpdatedName: '',
-    },
-  });
+   const form = useForm({
+     resolver: zodResolver(ProviderOrderSchema),
+     defaultValues: {
+       supplierId: '',
+       notes: '',
+       createdOn: '',
+       updatedOn: '',
+       userProviderOrderCreatedName: '',
+       userProviderOrderUpdatedName: '',
+     },
+   });
+   const { formState: { dirtyFields } } = form;
 
   // Actualiza todos los valores del formulario al cambiar `selectedRow`
   useEffect(() => {
@@ -107,9 +110,14 @@ export const ProviderOrdersDialog = ({
   //   }
   // }, [selectedRow, openDialog])
 
-  const handleSubmit = (data) => {
-    onSubmit(data, providerOrderId);
-  };
+   const handleSubmit = (data) => {
+     if (providerOrderId) {
+       const changes = pickDirty(data, dirtyFields);
+       onSubmit({ id: providerOrderId, body: changes });
+     } else {
+       onSubmit(data);
+     }
+   };
 
   const handleDelete = () => {
     onDeleteById(providerOrderId);
@@ -177,7 +185,7 @@ export const ProviderOrdersDialog = ({
                           placeholder={t('notes_placeholder')}
                           type="text"
                           autoComplete="off"
-                          maxLength={200}
+                          maxLength={FIELD_LIMITS.providerOrder.notes}
                           {...field}
                           value={field.value ?? ''}
                         />

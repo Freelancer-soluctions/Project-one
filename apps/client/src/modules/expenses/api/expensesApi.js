@@ -39,7 +39,7 @@ const expensesApi = createApi({
     updateExpenseById: builder.mutation({
       query: ({ id, data }) => ({
         url: `/expenses/${id}`, // Endpoint para Expenses
-        method: 'PUT',
+        method: 'PATCH',
         body: data,
       }),
       invalidatesTags: ['Expenses'], // Invalida el cache de 'Expenses'

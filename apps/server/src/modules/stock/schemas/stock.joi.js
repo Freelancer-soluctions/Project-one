@@ -12,15 +12,28 @@ export const stockFiltersSchema = Joi.object({
   stocksLow: Joi.boolean().allow('').optional(),
 });
 
-export const stockCreateUpdateSchema = Joi.object({
-  quantity: Joi.number().integer().min(0).required(),
-  minimum: Joi.number().integer().min(0).required(),
-  maximum: Joi.number().integer().min(0).allow(null),
-  lot: Joi.string().max(50).allow(''),
-  unitMeasure: Joi.string()
-    .valid('PIECES', 'KILOGRAMS', 'LITERS', 'METERS')
-    .required(),
-  expirationDate: Joi.date().allow(null),
-  productId: Joi.number().integer().required(),
-  warehouseId: Joi.number().integer().required(),
-});
+export const stockCreateSchema = Joi.object({
+   quantity: Joi.number().integer().min(0).required(),
+   minimum: Joi.number().integer().min(0).required(),
+   maximum: Joi.number().integer().min(0).allow(null),
+   lot: Joi.string().max(50).allow(''),
+   unitMeasure: Joi.string()
+     .valid('PIECES', 'KILOGRAMS', 'LITERS', 'METERS')
+     .required(),
+   expirationDate: Joi.date().allow(null),
+   productId: Joi.number().integer().required(),
+   warehouseId: Joi.number().integer().required(),
+ });
+
+export const stockUpdateSchema = Joi.object({
+   quantity: Joi.number().integer().min(0).optional(),
+   minimum: Joi.number().integer().min(0).optional(),
+   maximum: Joi.number().integer().min(0).allow(null).optional(),
+   lot: Joi.string().max(50).allow('').optional(),
+   unitMeasure: Joi.string()
+     .valid('PIECES', 'KILOGRAMS', 'LITERS', 'METERS')
+     .optional(),
+   expirationDate: Joi.date().allow(null).optional(),
+   productId: Joi.number().integer().optional(),
+   warehouseId: Joi.number().integer().optional(),
+ }).min(1);

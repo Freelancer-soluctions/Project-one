@@ -21,6 +21,7 @@ import { Button } from '@/components/ui/button';
 import { LuPlus, LuSearch, LuEraser } from 'react-icons/lu';
 
 import PropTypes from 'prop-types';
+import { FIELD_LIMITS } from '@/config/fieldLimits';
 
 export const WarehouseFiltersForm = ({ onSubmit, dataStatus, onAddDialog }) => {
   const { t } = useTranslation();
@@ -69,7 +70,7 @@ export const WarehouseFiltersForm = ({ onSubmit, dataStatus, onAddDialog }) => {
                       placeholder={t('warehouse_name_placeholder')}
                       type="text"
                       autoComplete="off"
-                      maxLength={50}
+                      maxLength={FIELD_LIMITS.warehouse.name}
                       {...field}
                       value={field.value ?? ''}
                     />

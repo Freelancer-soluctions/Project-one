@@ -1,4 +1,5 @@
 import * as React from "react"
+import PropTypes from "prop-types"
 import * as TogglePrimitive from "@radix-ui/react-toggle"
 import { cva } from "class-variance-authority";
 
@@ -34,5 +35,11 @@ const Toggle = React.forwardRef(({ className, variant, size, ...props }, ref) =>
 ))
 
 Toggle.displayName = TogglePrimitive.Root.displayName
+
+Toggle.propTypes = {
+  className: PropTypes.string,
+  variant: PropTypes.string,
+  size: PropTypes.string,
+}
 
 export { Toggle, toggleVariants }

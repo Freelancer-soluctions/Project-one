@@ -1,8 +1,8 @@
 import {
   getAllAttendance as getAllAttendanceService,
   createAttendance as createAttendanceService,
-  updateAttendanceById as updateAttendanceByIdService,
   deleteAttendanceById as deleteAttendanceByIdService,
+  patchAttendanceById as patchAttendanceByIdService,
 } from './service.js';
 import handleCatchErrorAsync from '../../utils/responses&Errors/handleCatchErrorAsync.js';
 import globalResponse from '../../utils/responses&Errors/globalResponse.js';
@@ -52,32 +52,6 @@ export const createAttendance = handleCatchErrorAsync(async (req, res) => {
 });
 
 /**
- * Update an attendance record by ID.
- *
- * @param {Object} req - The HTTP request object.
- * @param {Object} req.params - Request parameters
- * @param {string} req.params.id - Attendance ID from URL
- * @param {Object} req.body - Request body containing attendance data to update
- * @param {Date} [req.body.checkInTime] - Check-in time
- * @param {Date} [req.body.checkOutTime] - Check-out time
- * @param {string} [req.body.status] - Attendance status (PRESENT, ABSENT, LATE, HALF_DAY)
- * @param {string} [req.body.notes] - Attendance notes
- * @param {string} req.userId - Authenticated user ID from token verification
- * @param {Object} res - The HTTP response object.
- * @returns {Promise<void>} Updates attendance record and returns updated attendance object
- */
-export const updateAttendanceById = handleCatchErrorAsync(async (req, res) => {
-  const attendance = await updateAttendanceByIdService(
-    req.params.id,
-    {
-      ...req.body,
-    },
-    req.userId
-  );
-  globalResponse(res, 200, attendance);
-});
-
-/**
  * Delete an attendance record by ID.
  *
  * @param {Object} req - The HTTP request object.
@@ -91,4 +65,31 @@ export const deleteAttendanceById = handleCatchErrorAsync(async (req, res) => {
   globalResponse(res, 200, {
     message: 'Attendance record deleted successfully',
   });
+});
+
+/**
+ * Partially update an attendance record by ID.
+ *
+ * @param {Object} req - The HTTP request object.
+ * @param {Object} req.params - Request parameters
+ * @param {string} req.params.id - Attendance ID from URL
+ * @param {Object} req.body - Request body containing attendance data to update (partial)
+ * @param {number} [req.body.employeeId] - Employee ID
+ * @param {Date} [req.body.date] - Attendance date
+ * @param {string} [req.body.entryTime] - Entry time
+ * @param {string} [req.body.exitTime] - Exit time
+ * @param {number} [req.body.workedHours] - Worked hours
+ * @param {string} req.userId - Authenticated user ID from token verification
+ * @param {Object} res - The HTTP response object.
+ * @returns {Promise<void>} Updates attendance record and returns updated attendance object
+ */
+export const patchAttendanceById = handleCatchErrorAsync(async (req, res) => {
+  const attendance = await patchAttendanceByIdService(
+    req.params.id,
+    {
+      ...req.body,
+    },
+    req.userId
+  );
+  globalResponse(res, 200, attendance);
 });

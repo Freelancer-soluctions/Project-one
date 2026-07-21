@@ -12,10 +12,10 @@ const eventsApi = createApi({
   tagTypes: ['Events'], // Agrega un tag identificador
   endpoints: (builder) => ({
     getAllEvents: builder.query({
-      query: (searchQuery) => ({
+      query: ({ page, limit, search }) => ({
         url: `/events`,
         method: 'GET',
-        params: { searchQuery },
+        params: { searchQuery: search, page, limit },
       }),
       providesTags: ['Events'], // Indica que este endpoint usa el tag 'Notes'
     }),
@@ -27,13 +27,13 @@ const eventsApi = createApi({
     }),
 
     updateEventById: builder.mutation({
-      query: ({ id, data }) => ({
-        url: `/events/${id}`,
-        method: 'PUT',
-        body: { ...data },
-      }),
-      invalidatesTags: ['Events'], // Invalida el cache de 'Events' para volver a consultar
-    }),
+       query: ({ id, data }) => ({
+         url: `/events/${id}`,
+         method: 'PATCH',
+         body: { ...data },
+       }),
+       invalidatesTags: ['Events'], // Invalida el cache de 'Events' para volver a consultar
+     }),
     createEvent: builder.mutation({
       query: (body) => ({
         url: `/events/`,
@@ -51,17 +51,53 @@ const eventsApi = createApi({
       },
       invalidatesTags: ['Events'], // Invalida el cache de 'Notes' para volver a consultar
     }),
+    // === RSVP Endpoints ===
+    registerForEvent: builder.mutation({
+      query: (eventId) => ({
+        url: `/events/${eventId}/register`,
+        method: 'POST',
+      }),
+      invalidatesTags: ['Events'],
+    }),
+    cancelRegistration: builder.mutation({
+      query: (eventId) => ({
+        url: `/events/${eventId}/register`,
+        method: 'DELETE',
+      }),
+      invalidatesTags: ['Events'],
+    }),
+    listAttendees: builder.query({
+      query: ({ eventId, ...params }) => ({
+        url: `/events/${eventId}/attendees`,
+        method: 'GET',
+        params,
+      }),
+      providesTags: ['Events'],
+    }),
+    updateAttendeeStatus: builder.mutation({
+      query: ({ eventId, attendeeId, data }) => ({
+        url: `/events/${eventId}/attendees/${attendeeId}`,
+        method: 'PATCH',
+        body: data,
+      }),
+      invalidatesTags: ['Events'],
+    }),
   }),
 });
 
 // Export hooks for usage in functional components, which are
 // auto-generated based on the defined endpoints
 export const {
-  useGetAllEventsQuery,
-  useCreateEventMutation,
-  useGetAllEventTypesQuery,
-  useUpdateEventByIdMutation,
-  useDeleteEventByIdMutation,
-} = eventsApi;
+   useGetAllEventsQuery,
+   useLazyGetAllEventsQuery,
+   useCreateEventMutation,
+   useGetAllEventTypesQuery,
+   useUpdateEventByIdMutation,
+   useDeleteEventByIdMutation,
+   useRegisterForEventMutation,
+   useCancelRegistrationMutation,
+   useLazyListAttendeesQuery,
+   useUpdateAttendeeStatusMutation,
+ } = eventsApi;
 
 export default eventsApi;

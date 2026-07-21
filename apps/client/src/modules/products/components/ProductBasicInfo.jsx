@@ -29,8 +29,10 @@ import { ProductsSchema, generateRandomBarcode } from '../utils';
 import { useNavigate } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import { useEffect, useMemo } from 'react';
+import { pickDirty } from '@/utils/pickDirty';
 import { LuBarcode } from 'react-icons/lu';
 import PropTypes from 'prop-types';
+import { FIELD_LIMITS } from '@/config/fieldLimits';
 
 export const ProductBasicInfo = ({
   onSubmitCreateEdit,
@@ -66,6 +68,7 @@ export const ProductBasicInfo = ({
       status: null,
     },
   });
+  const { formState: { dirtyFields } } = form;
 
   const productId = useMemo(() => selectedRow?.id ?? null, [selectedRow?.id]);
 
@@ -96,7 +99,12 @@ export const ProductBasicInfo = ({
   }, [selectedRow, form]);
 
   const submitForm = (data) => {
-    onSubmitCreateEdit(data);
+    if (productId) {
+      const changes = pickDirty(data, dirtyFields);
+      onSubmitCreateEdit(changes);
+    } else {
+      onSubmitCreateEdit(data);
+    }
   };
 
   const handleDelete = (id) => {
@@ -132,7 +140,7 @@ export const ProductBasicInfo = ({
                             id="name"
                             type="text"
                             name="name"
-                            maxLength="80"
+                            maxLength={FIELD_LIMITS.products.name}
                             autoComplete="off"
                             placeholder={t('enter_product_name_placeholder')}
                             {...field}
@@ -158,7 +166,7 @@ export const ProductBasicInfo = ({
                             id="sku"
                             type="text"
                             name="sku"
-                            maxLength="16"
+                            maxLength={FIELD_LIMITS.products.sku}
                             autoComplete="off"
                             placeholder={t(
                               'enter_unique_product_code_placeholder'
@@ -191,10 +199,10 @@ export const ProductBasicInfo = ({
                           onValueChange={(code) => {
                             // Buscar el objeto completo por el `code`
 
-                            if (dataCategory?.data.length > 0) {
-                              const selectedCategory = dataCategory.data.find(
-                                (item) => item.code === code
-                              );
+                             if (dataCategory.length > 0) {
+                               const selectedCategory = dataCategory.find(
+                                 (item) => item.code === code
+                               );
                               if (selectedCategory) {
                                 field.onChange(selectedCategory); // Asignar el objeto completo
                               }
@@ -208,11 +216,11 @@ export const ProductBasicInfo = ({
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            {dataCategory?.data.map((item, index) => (
-                              <SelectItem value={item.code} key={index}>
-                                {item.description}
-                              </SelectItem>
-                            ))}
+{dataCategory?.map((item, index) => (
+              <SelectItem value={item.code} key={index}>
+                {item.description}
+              </SelectItem>
+            ))}
                           </SelectContent>
                         </Select>
                         <FormMessage />
@@ -234,9 +242,9 @@ export const ProductBasicInfo = ({
                         </FormLabel>
                         <Select
                           onValueChange={(code) => {
-                            if (dataProviders?.data.length > 0) {
+                            if (dataProviders?.length > 0) {
                               // Buscar el objeto completo por el `code`
-                              const selectedProvider = dataProviders.data.find(
+                              const selectedProvider = dataProviders.find(
                                 (item) => item.code === code
                               );
                               if (selectedProvider) {
@@ -252,11 +260,11 @@ export const ProductBasicInfo = ({
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            {dataProviders?.data.map((item, index) => (
-                              <SelectItem value={item.code} key={index}>
-                                {item.name}
-                              </SelectItem>
-                            ))}
+{dataProviders?.map((item, index) => (
+              <SelectItem value={item.code} key={index}>
+                {item.name}
+              </SelectItem>
+            ))}
                           </SelectContent>
                         </Select>
 
@@ -277,9 +285,9 @@ export const ProductBasicInfo = ({
                         <FormLabel htmlFor="status">{t('status')}*</FormLabel>
                         <Select
                           onValueChange={(code) => {
-                            if (datastatus?.data.length > 0) {
+                            if (datastatus?.length > 0) {
                               // Buscar el objeto completo por el `code`
-                              const selectedStatus = datastatus.data.find(
+                              const selectedStatus = datastatus.find(
                                 (item) => item.code === code
                               );
                               if (selectedStatus) {
@@ -295,11 +303,11 @@ export const ProductBasicInfo = ({
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            {datastatus?.data.map((item, index) => (
-                              <SelectItem value={item.code} key={index}>
-                                {item.description}
-                              </SelectItem>
-                            ))}
+{datastatus?.map((item, index) => (
+              <SelectItem value={item.code} key={index}>
+                {item.description}
+              </SelectItem>
+            ))}
                           </SelectContent>
                         </Select>
                         <FormMessage />
@@ -381,7 +389,7 @@ export const ProductBasicInfo = ({
                           )}
                           className="resize-none"
                           autoComplete="off"
-                          maxLength={2000}
+                          maxLength={FIELD_LIMITS.products.description}
                           {...field}
                           value={field.value ?? ''}
                         />
@@ -412,7 +420,7 @@ export const ProductBasicInfo = ({
                               type="text"
                               name="barcode"
                               autoComplete="off"
-                              maxLength={25}
+                              maxLength={FIELD_LIMITS.products.barCode}
                               placeholder={t(
                                 'generate_barcode_automatically_placeholder'
                               )}
@@ -474,8 +482,8 @@ export const ProductBasicInfo = ({
 ProductBasicInfo.propTypes = {
   onSubmitCreateEdit: PropTypes.func.isRequired,
   onDelete: PropTypes.func.isRequired,
-  dataCategory: PropTypes.object,
-  dataProviders: PropTypes.object,
-  datastatus: PropTypes.object,
+  dataCategory: PropTypes.array,
+  dataProviders: PropTypes.array,
+  datastatus: PropTypes.array,
   selectedRow: PropTypes.object,
 };

@@ -7,9 +7,16 @@ export const clientFiltersSchema = Joi.object({
   page: Joi.number().integer(),
 });
 
-export const clientCreateUpdateSchema = Joi.object({
+export const clientCreateSchema = Joi.object({
   name: Joi.string().max(100).required(),
   email: Joi.string().email().required(),
   phone: Joi.string().max(15).required(),
   address: Joi.string().max(120).required(),
+});
+
+export const clientUpdateSchema = Joi.object({
+  name: Joi.string().max(100).optional().min(1),
+  email: Joi.string().email().optional().min(1),
+  phone: Joi.string().max(15).optional().min(1),
+  address: Joi.string().max(120).optional().min(1),
 });

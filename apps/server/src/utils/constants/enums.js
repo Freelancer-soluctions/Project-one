@@ -131,6 +131,13 @@ export const PERMISSIONCODES = {
   canViewEvents: 'canViewEvents',
   canDeleteEvents: 'canDeleteEvents',
 
+  // Event RSVP permissions
+  canRegisterForEvent: 'canRegisterForEvent',
+  canCancelRegistration: 'canCancelRegistration',
+  canViewAttendees: 'canViewAttendees',
+  canManageAttendees: 'canManageAttendees',
+  canViewAttendeeDetail: 'canViewAttendeeDetail',
+
   canCreateProduct: 'canCreateProduct',
   canEditProduct: 'canEditProduct',
   canDeleteProduct: 'canDeleteProduct',

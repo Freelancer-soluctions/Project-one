@@ -1,5 +1,6 @@
 import { useEffect, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
+import { pickDirty } from '@/utils/pickDirty';
 import { useTranslation } from 'react-i18next';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
@@ -63,13 +64,13 @@ export const VacationDialog = ({
       status: 'PENDING',
     },
   });
+  const { formState: { dirtyFields } } = form;
 
   const vacationId = useMemo(() => selectedRow?.id ?? null, [selectedRow?.id]);
 
   useEffect(() => {
     if (selectedRow?.id) {
       const mappedValues = {
-        id: selectedRow.id,
         employeeId: selectedRow.employeeId,
         startDate: selectedRow.startDate
           ? new Date(selectedRow.startDate)
@@ -98,7 +99,13 @@ export const VacationDialog = ({
       startDate: data.startDate ? format(data.startDate, 'yyyy-MM-dd') : null,
       endDate: data.endDate ? format(data.endDate, 'yyyy-MM-dd') : null,
     };
-    onSubmit(submissionData, vacationId);
+
+    if (vacationId) {
+      const changes = pickDirty(submissionData, dirtyFields);
+      onSubmit({ id: vacationId, body: changes });
+    } else {
+      onSubmit(submissionData);
+    }
   };
 
   const handleDelete = () => {

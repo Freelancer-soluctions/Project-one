@@ -51,25 +51,7 @@ export const createVacation = async (data) => {
   return await createVacationDao(vacation);
 };
 
-/**
- * Update a vacation record by ID.
- *
- * @param {number} id - ID of the vacation record to update.
- * @param {Object} data - Updated vacation data.
- * @param {Date} [data.startDate] - Vacation start date.
- * @param {Date} [data.endDate] - Vacation end date.
- * @param {string} [data.type] - Vacation type (ANNUAL, SICK, PERSONAL, UNPAID).
- * @param {string} [data.status] - Vacation status (PENDING, APPROVED, REJECTED, COMPLETED).
- * @param {string} [data.reason] - Reason for the vacation.
- * @returns {Promise<Object>} Updated vacation record.
- */
-export const updateVacationById = async (id, data) => {
-  const vacation = {
-    ...data,
-    updatedOn: new Date(),
-  };
-  return await updateVacationByIdDao(id, vacation);
-};
+
 
 /**
  * Delete a vacation record by ID.
@@ -79,4 +61,27 @@ export const updateVacationById = async (id, data) => {
  */
 export const deleteVacationById = async (id) => {
   return await deleteVacationByIdDao(id);
+};
+
+/**
+ * Partially update a vacation record by ID.
+ *
+ * @param {number} id - ID of the vacation record to update.
+ * @param {Object} data - Partial vacation data to update.
+ * @param {number} [data.employeeId] - Employee ID.
+ * @param {Date} [data.startDate] - Vacation start date.
+ * @param {Date} [data.endDate] - Vacation end date.
+ * @param {string} [data.status] - Vacation status (PENDING, APPROVED, REJECTED, COMPLETED).
+ * @param {string} [data.type] - Vacation type (ANNUAL, SICK, PERSONAL, UNPAID).
+ * @param {string} [data.reason] - Reason for the vacation.
+ * @param {number} [data.updatedBy] - ID of the user updating the record.
+ * @param {Date} [data.updatedOn] - Update timestamp.
+ * @returns {Promise<Object>} Updated vacation record.
+ */
+export const patchVacationById = async (id, data) => {
+  const vacation = {
+    ...data,
+    updatedOn: new Date(),
+  };
+  return await updateVacationByIdDao(id, vacation);
 };

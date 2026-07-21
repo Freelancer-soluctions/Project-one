@@ -24,7 +24,8 @@
 12. [Real Case Studies](#12-real-case-studies)
 13. [General Architecture Diagram](#13-general-architecture-diagram)
 14. [Glossary of Terms](#14-glossary-of-terms)
-15. [Conclusions & Recommendations](#15-conclusions--recommendations)
+15. [Prompting Techniques Catalog](#15-prompting-techniques-catalog)
+16. [Conclusions & Recommendations](#16-conclusions--recommendations)
 
 ---
 
@@ -229,16 +230,16 @@ In its most recent evolution, the architecture has incorporated three key innova
 
 ### 3.9 Agent Comparison Table
 
-| Agent | Model | Steps | Prompt | r | w | e | b | g | gr | wf | ws | q | t | sk | l | td | dl | ed |
+| Agent | Model | Steps | Prompt | r | w | e | b | g | gr | wf | ws | q | t | sk | l | td | dl | ed | engram |
 |-------|-------|-------|--------|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| **Orchestrator** | big-pickle | 45 | 374 | ✅ | ❌ | ❌ | ❌ | ✅ | ✅ | ❌ | ❌ | ✅ | ⚙️ | ✅ | ❌ | ✅ | ⚠️ | ⚠️ |
-| **Spec-Manager** | minimax-m2.7 | 15 | 274 | ✅ | ❌ | ❌ | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ | ✅ | ❌ | ✅ | ⚠️ | ⚠️ |
-| **Git-Manager** | minimax-m2.7 | 20 | 89 | ✅ | ❌ | ❌ | 🎯 | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ | ✅ | ❌ | ❌ | ⚠️ | ⚠️ |
-| **Planner** | ring-2.6-1t | 15 | 67 | ✅ | ✅ | ❌ | ❌ | ✅ | ✅ | ❌ | ❌ | ✅ | ❌ | ✅ | ❌ | ✅ | ⚠️ | ⚠️ |
-| **Developer** | qwen3.6-plus | 25 | 33 | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ | ✅ | ✅ | ✅ | ⚠️ | ⚠️ |
-| **Reviewer** | nemotron-3-s | 10 | 155 | ✅ | ❌ | ❌ | ❌ | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ | ✅ | ✅ | ✅ | ⚠️ | ⚠️ |
-| **Researcher** | minimax-m2.5 | 12 | 86 | ✅ | ❌ | ❌ | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ | ✅ | ❌ | ✅ | ⚠️ | ⚠️ |
-| **Project-Manager** | minimax-m2.7 | 15 | 176 | ✅ | ❌ | ❌ | ❌ | ✅ | ✅ | ❌ | ❌ | ✅ | ❌ | ✅ | ❌ | ✅ | ⚠️ | ⚠️ |
+| **Orchestrator** | big-pickle | 45 | 374 | ✅ | ❌ | ❌ | ❌ | ✅ | ✅ | ❌ | ❌ | ✅ | ⚙️ | ✅ | ❌ | ✅ | ⚠️ | ⚠️ | ✅ |
+| **Spec-Manager** | minimax-m2.7 | 15 | 274 | ✅ | ❌ | ❌ | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ | ✅ | ❌ | ✅ | ⚠️ | ⚠️ | ✅ |
+| **Git-Manager** | minimax-m2.7 | 20 | 89 | ✅ | ❌ | ❌ | 🎯 | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ | ✅ | ❌ | ❌ | ⚠️ | ⚠️ | ✅ |
+| **Planner** | ring-2.6-1t | 15 | 67 | ✅ | ✅ | ❌ | ❌ | ✅ | ✅ | ❌ | ❌ | ✅ | ❌ | ✅ | ❌ | ✅ | ⚠️ | ⚠️ | ✅ |
+| **Developer** | qwen3.6-plus | 25 | 33 | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ | ✅ | ✅ | ✅ | ✅ | ⚠️ | ✅ |
+| **Reviewer** | nemotron-3-s | 10 | 155 | ✅ | ❌ | ❌ | ❌ | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ | ✅ | ✅ | ✅ | ✅ | ⚠️ | ✅ |
+| **Researcher** | minimax-m2.5 | 12 | 86 | ✅ | ❌ | ❌ | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ | ✅ | ❌ | ✅ | ⚠️ | ⚠️ | ✅ |
+| **Project-Manager** | minimax-m2.7 | 15 | 176 | ✅ | ❌ | ❌ | ❌ | ✅ | ✅ | ❌ | ❌ | ✅ | ❌ | ✅ | ❌ | ✅ | ⚠️ | ⚠️ | ✅ |
 
 Column header key:
 - r=read, w=write, e=edit, b=bash, g=glob, gr=grep, wf=webfetch, ws=websearch, q=question, t=task, sk=skill, l=lsp, td=todowrite, dl=doom_loop, ed=external_directory
@@ -892,11 +893,52 @@ Both patterns were tested in a fresh TUI session:
 
 Both patterns work because `"composio_*"` is a prefix of the actual tool name `composio_COMPOSIO_SEARCH_TOOLS`. The project uses **Approach A** (`"composio_*"`) as it follows the OpenCode documentation exactly and is more readable.
 
-#### Key Insight
+### 9.3 MCP Permission Control
 
-MCP tool permissions require a **session reload** (close and reopen TUI) to take effect. Editing `opencode.jsonc` while the session is running does NOT apply permission changes until the configuration is re-read at startup.
+#### Engram Persistent Memory (New Integration)
 
-#### Related Configuration
+**What:** Engram is a single-binary persistent memory system for AI agents with SQLite+FTS5 backend and 20 MCP tools.
+
+**Why:** Replaces ephemeral session context with persistent, searchable memory that survives compactions and agent restarts.
+
+**Integration:**
+```jsonc
+// Global — allow for all agents
+"permission": {
+    "engram_*": "allow"
+}
+```
+
+**MCP Configuration:**
+```jsonc
+"mcp": {
+  "engram": {
+    "type": "local",
+    "command": ["engram", "mcp"],
+    "enabled": true
+  }
+}
+```
+
+**Key Engram Tools:**
+| Tool | Purpose |
+|------|---------|
+| `mem_save` | Save observation with title/type/content/scope/topic_key |
+| `mem_search` | Full-text search across memories |
+| `mem_context` | Get recent session context |
+| `mem_session_summary` | Save end-of-session summary |
+| `mem_get_observation` | Get full content by ID |
+| `mem_judge` | Resolve memory conflicts |
+
+**Usage Pattern:**
+1. At session start: `mem_current_project` → `mem_context`
+2. During work: `mem_save` after significant decisions/work
+3. At session end: `mem_session_summary` with Goal/Discoveries/Accomplished/Next Steps
+4. After compaction: `mem_context` to recover state
+
+**Note:** MCP tool permissions require session reload to take effect.
+
+#### Composio (Trello Integration)
 
 - The legacy `"tools"` property (deprecated) was initially used but replaced with `"permission"` as per OpenCode documentation.
 - The Composio MCP remains `"enabled": true` — tools are controlled at the permission layer, not by disabling the server entirely.
@@ -1132,7 +1174,150 @@ The `reviewer` agent executes a multidimensional checklist:
 
 ---
 
-## 15. Conclusions & Recommendations
+## 15. Prompting Techniques Catalog
+
+The `output-contracts-standardization` implementation employed a comprehensive set of prompting techniques to ensure reliable, structured, and efficient agent communication. Below is a catalog of the techniques used, with evidence from the implementation and analysis of their effectiveness.
+
+### 1. Role Prompting
+- **Where used**: Every agent's prompt `## YOUR IDENTITY` section; formalized via `<output-contract agent="[AGENT_NAME]" version="1">` envelope.
+- **Evidence**: 
+  - Developer: "You are a senior full-stack developer who implements features according to specifications."
+  - Orchestrator: XML envelope includes `agent="developer"` field.
+- **Effectiveness**: Establishes clear behavioral boundaries and expectations; the envelope makes the role explicit in machine-parsable output.
+
+### 2. Positive Constraint Prompting
+- **Where used**: Orchestrator's Critical Rules (lines 319-347) and agent prompt updates.
+- **Evidence**: 
+  - 26 instances of `✅ ALWAYS` directives (e.g., "✅ ALWAYS delegate code implementation to @developer").
+  - Replacement of `❌ NEVER` statements with affirmative actions (e.g., "NEVER write code yourself" → "ALWAYS delegate code implementation to @developer").
+- **Effectiveness**: Reduces cognitive load by focusing on desired behaviors; mitigates the "pink elephant problem" where negations increase fixation on forbidden actions.
+
+### 3. Output Contract / Structured Output Prompting
+- **Where used**: Core of the change; XML envelope + JSON schemas.
+- **Evidence**: 
+  - Envelope format: `<output-contract agent="developer" version="1"> { ... } </output-contract>`
+  - JSON schemas in `docs/opencode/prompts/contracts/*.schema.json` with strict field definitions.
+  - Example from developer schema: `{"task_id": "...", "status": "complete", "files_changed": [...], "tests": {...}}`
+- **Effectiveness**: Transforms free-form text into deterministic, machine-parsable responses; enables automated workflow tracking, validation, and gating.
+
+### 4. Formatting Prompting
+- **Where used**: Prompt structure, YAML frontmatter in command files, consistent heading hierarchy.
+- **Evidence**: 
+  - Use of `##` sections (e.g., `## OUTPUT CONTRACT`, `## TASK EXECUTION PROTOCOL`).
+  - Code fenced examples (```json ... ```) for clarity.
+  - Bullet points and tables for scannability.
+- **Effectiveness**: Improves readability while providing structural cues that help the model organize its response.
+
+### 5. Few-Shot / Example-Driven Prompting
+- **Where used**: Prompt updates with example JSON payloads; command files with usage examples.
+- **Evidence**: 
+  - Planner prompt includes example: 
+    ```json
+    {
+      "verdict": "sound",
+      "critical_issues": [],
+      "suggestions": ["Actualizar documentación"],
+      "task_amendments": []
+    }
+    ```
+  - Command files like `opsx-apply.md` contain detailed execution examples.
+- **Effectiveness**: Demonstrates expected format more effectively than abstract descriptions; reduces formatting errors.
+
+### 6. Recency / Positional Bias Prompting
+- **Where used**: Task 2.8 in `tasks.md` requiring penultimate placement of Output Contract section.
+- **Evidence**: 
+  - Task 2.8: "Position all `## Output Contract` sections as penultimate (immediately before Tools/Execution Rules) in each prompt."
+  - Placement ensures the contract is among the last tokens seen before generation.
+- **Effectiveness**: Leverages recency bias in LLMs; critical formatting instructions are more likely to be followed when near the end of the prompt.
+
+### 7. Caveman / Compressed Communication
+- **Where used**: Delegation format and agent responses in compressed mode.
+- **Evidence**: 
+  - Delegation: `@developer: impl task-3 user-status. ref: design.md#api`
+  - Response compression: Ultrashort envelope `<oc a="dev" v="1">{"s":"ok","fc":[{"p":"auth.ts","c":"create"}]}</oc>`.
+  - Skill activation: `/skill caveman` persisted across responses.
+- **Effectiveness**: Reduces token usage by ~75% while preserving technical accuracy; compatible with output contracts when using compressed field names.
+
+### 8. Context Injection
+- **Where used**: Pre-delegation protocol requiring CONTEXT.md injection.
+- **Evidence**: 
+  - Orchestrator rule: "✅ ALWAYS inject CONTEXT.md into subagent prompts before delegation" (line 339).
+  - CONTEXT.md defines terms like "Output Contract", "Schema", "Envelope".
+- **Effectiveness**: Ensures consistent terminology across agents; reduces need to repeat long definitions in every prompt.
+
+### 9. System Prompt vs User Prompt Separation
+- **Where used**: Clear distinction between `docs/opencode/prompts/*.md` (system prompts) and delegation instructions (`@agent: ...`).
+- **Evidence**: 
+  - System prompts contain identity, rules, and output contract sections.
+  - User/orchestrator delegations are concise: `@developer: Implement task 1 for <change-name>`.
+- **Effectiveness**: Separates invariant agent behavior (prompt) from variable task specifications (delegation); enables reuse and clarity.
+
+### 10. Phase-Gated Prompting
+- **Where used**: Phase 0 (`/grill-me`) interrogation and sequential task execution.
+- **Evidence**: 
+  - Phase 0 requires ≥3 confirmed questions before proceeding to Phase 1.
+  - Tasks must be executed sequentially: "Each task is marked complete (`[x]`) before continuing" (developer prompt).
+- **Effectiveness**: Prevents premature implementation; ensures shared understanding and reduces rework due to unclear requirements.
+
+### 11. Schema-First Prompting
+- **Where used**: JSON schemas defined before prompt updates and implementation.
+- **Evidence**: 
+  - Schema files created first (`developer.schema.json`, etc.).
+  - Prompts reference schemas: "Schema: docs/opencode/prompts/contracts/developer.schema.json".
+  - Task 1.9/1.10 define success/failure structures before integration.
+- **Effectiveness**: Guarantees consistency between expected structure and actual implementation; enables validation.
+
+### 12. Delegation Pattern Prompting
+- **Where used**: Standardized `@<agent>: <action>. focus: <areas>. context: <files>` format.
+- **Evidence**: 
+  - Orchestrator examples: `@spec-manager: /opsx-explore authentication`, `@developer: impl task-3 user-status. ref: design.md#api`.
+  - Enforced via caveman mode persistence and orchestrator rules.
+- **Effectiveness**: Creates a predictable, parseable interface for the orchestrator; reduces ambiguity in task specification.
+
+### 13. Chain-of-Thought / Reasoning Prompting
+- **Where used**: Explore mode stances and reviewer structured checklist.
+- **Evidence**: 
+  - Reviewer's multidimensional checklist (Correctness → Security → Performance → Code Quality → Testing → React-Specific → Express-Specific).
+  - Explore mode instructions: "Investigate existing context — thinking partner for exploring ideas, investigating problems, and clarifying requirements."
+- **Effectiveness**: Breaks down complex tasks into logical steps; improves accuracy by forcing structured reasoning before conclusion.
+
+### 14. Self-Validation / Self-Correction Prompting
+- **Where used**: 决赛 logic (max 2 retries) and severity guidelines.
+- **Evidence**: 
+  - Orchestrator retry logic: "Implement retry logic — on validation failure, request retry with specific error details (max 2 retries)".
+  - Reviewer severity guidelines: **CRITICAL** (security vulnerabilities, data loss risks, crashes) → **LOW** (style preferences).
+- **Effectiveness**: Enables error recovery and continuous improvement; provides graded feedback for prioritization.
+
+### 15. Tool-Use / Function Calling Prompting
+- **Where used**: MCP permission system and Context7 `ask` level.
+- **Evidence**: 
+  - MCP permissions: `"composio_*": "deny"` globally, `"composio_*": "allow"` only for project-manager.
+  - Context7 guidance: "✅ Attempt #context7 when researching specific API details, version differences, or official documentation" (researcher prompt).
+- **Effectiveness**: Controls access to external tools; prevents unsafe or unnecessary tool invocations while enabling powerful capabilities when needed.
+
+## Summary of Techniques
+
+| Technique | Primary Benefit | Agents Most Impacted |
+|-----------|----------------|----------------------|
+| Role Promoting | Clear boundaries and expectations | All |
+| Positive Constraints | Reduced fixation on forbidden actions | Orchestrator (rules), all agents |
+| Output Contracts | Machine-parsable, deterministic responses | Developer, Reviewer, Spec-Manager, Researcher, Planner |
+| Formatting Prompting | Improved readability and structure | All (prompt files) |
+| Few-Shot Examples | Reduced ambiguity in expected output | All (prompt updates, command files) |
+| Recency Bias | Increased compliance with critical instructions | All (penultimate section placement) |
+| Caveman Communication | ~75% token reduction in delegations | Orchestrator ↔ Agent internal comms |
+| Context Injection | Consistent terminology, reduced repetition | All agents (pre-delegation) |
+| System/User Prompt Separation | Clear division of static behavior vs. dynamic tasks | All |
+| Phase-Gated Prompting | Ensures shared understanding before action | Orchestrator (Phase 0), Developer (sequential tasks) |
+| Schema-First Prompting | Guarantees structural consistency | All (schema-driven validation) |
+| Delegation Pattern Prompting | Predictable, parseable task specifications | Orchestrator ↔ Agents |
+| Chain-of-Thought Reasoning | Improved accuracy through structured thinking | Reviewer, Explore mode |
+| Self-Validation/Self-Correction | Error recovery and graded feedback | Orchestrator (retries), Reviewer (severity) |
+| Tool-Use Prompting | Safe, controlled access to external capabilities | All (MCP, Context7, etc.) |
+
+The combination of these techniques creates a robust prompting ecosystem that balances human readability with machine parseability, optimizes token efficiency, and ensures reliable agent behavior in complex multi-agent workflows.
+
+---
 
 ### 15.1 Current Architecture Strengths
 
@@ -1145,6 +1330,8 @@ The `reviewer` agent executes a multidimensional checklist:
 7. **Persistent artifacts**: Decision history is documented in archived changes.
 8. **Integrated Token Efficiency**: Phase 0, CONTEXT.md, and /caveman drastically reduce token consumption across all interactions.
 9. **Context-discriminated skills**: Each skill loads only where relevant (client, server, e2e), avoiding cognitive noise in agents.
+10. **Output Contract + Caveman dual schema**: Structured responses with automatic field expansion allows token-efficient communication while maintaining validation. Caveman fields (e.g., `da` → `delegatedAgent`) expand to canonical schema before validation.
+  11. **Token-efficient contracts**: ~11% overhead vs free prose (caveman mode), enabling structure without excessive cost.
 
 ### 15.2 Potential Improvement Areas
 
