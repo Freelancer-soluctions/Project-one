@@ -2,8 +2,8 @@ import { describe, it, expect } from 'vitest';
 import {
   EventsCreateSchema,
   EventsUpdateSchema,
-} from '../../src/modules/events/schemas/events.joi.js';
-import { timeStrToDate, formatTime } from '../../src/modules/events/service.js';
+} from '../../../src/modules/events/schemas/events.joi.js';
+import { timeStrToDate, formatTime } from '../../../src/modules/events/service.js';
 
 /**
  * Events Validation Integration Tests
@@ -21,6 +21,8 @@ describe('Events Validation Integration', () => {
     endTime: '17:00',
     eventDate: '2025-01-15',
     type: 1,
+    modality: 'ONLINE',
+    meetingUrl: 'https://meet.example.com/test',
   };
 
   describe('Full pipeline: schema → helper → round-trip', () => {

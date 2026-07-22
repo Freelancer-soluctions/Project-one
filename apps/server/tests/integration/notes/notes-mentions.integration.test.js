@@ -10,7 +10,7 @@ import { describe, it, expect } from 'vitest';
 describe('Notes Mentions - Parsing & Service Tests', () => {
   describe('parseMentions function', () => {
     it('should parse a single mention correctly', async () => {
-      const { parseMentions } = await import('../../src/modules/notes/utils/index.js');
+      const { parseMentions } = await import('../../../src/modules/notes/utils/index.js');
       
       const content = 'Hello @john, how are you?';
       const mentions = parseMentions(content);
@@ -22,7 +22,7 @@ describe('Notes Mentions - Parsing & Service Tests', () => {
     });
 
     it('should parse multiple mentions correctly', async () => {
-      const { parseMentions } = await import('../../src/modules/notes/utils/index.js');
+      const { parseMentions } = await import('../../../src/modules/notes/utils/index.js');
       
       const content = 'Hey @alice and @bob, please review this note';
       const mentions = parseMentions(content);
@@ -33,7 +33,7 @@ describe('Notes Mentions - Parsing & Service Tests', () => {
     });
 
     it('should handle empty content', async () => {
-      const { parseMentions } = await import('../../src/modules/notes/utils/index.js');
+      const { parseMentions } = await import('../../../src/modules/notes/utils/index.js');
       
       expect(parseMentions('')).toEqual([]);
       expect(parseMentions(null)).toEqual([]);
@@ -41,14 +41,14 @@ describe('Notes Mentions - Parsing & Service Tests', () => {
     });
 
     it('should return empty array when no mentions exist', async () => {
-      const { parseMentions } = await import('../../src/modules/notes/utils/index.js');
+      const { parseMentions } = await import('../../../src/modules/notes/utils/index.js');
       
       const content = 'This is a note without any mentions';
       expect(parseMentions(content)).toEqual([]);
     });
 
     it('should handle mentions at start and end of content', async () => {
-      const { parseMentions } = await import('../../src/modules/notes/utils/index.js');
+      const { parseMentions } = await import('../../../src/modules/notes/utils/index.js');
       
       // Start
       let mentions = parseMentions('@admin please check');
@@ -62,7 +62,7 @@ describe('Notes Mentions - Parsing & Service Tests', () => {
     });
 
     it('should handle usernames with numbers', async () => {
-      const { parseMentions } = await import('../../src/modules/notes/utils/index.js');
+      const { parseMentions } = await import('../../../src/modules/notes/utils/index.js');
       
       const content = 'Contact @user123 for help';
       const mentions = parseMentions(content);
@@ -72,7 +72,7 @@ describe('Notes Mentions - Parsing & Service Tests', () => {
     });
 
     it('should handle consecutive mentions', async () => {
-      const { parseMentions } = await import('../../src/modules/notes/utils/index.js');
+      const { parseMentions } = await import('../../../src/modules/notes/utils/index.js');
       
       const content = '@user1@user2';
       const mentions = parseMentions(content);
@@ -83,19 +83,19 @@ describe('Notes Mentions - Parsing & Service Tests', () => {
 
   describe('Service layer - Mentions processing', () => {
     it('should export parseMentions function from utils', async () => {
-      const utils = await import('../../src/modules/notes/utils/index.js');
+      const utils = await import('../../../src/modules/notes/utils/index.js');
       
       expect(typeof utils.parseMentions).toBe('function');
     });
 
     it('should export extractMentionIds function from utils', async () => {
-      const utils = await import('../../src/modules/notes/utils/index.js');
+      const utils = await import('../../../src/modules/notes/utils/index.js');
       
       expect(typeof utils.extractMentionIds).toBe('function');
     });
 
     it('should export getMentionsByNoteId function from service', async () => {
-      const service = await import('../../src/modules/notes/service.js');
+      const service = await import('../../../src/modules/notes/service.js');
       
       expect(typeof service.getMentionsByNoteId).toBe('function');
     });
@@ -103,7 +103,7 @@ describe('Notes Mentions - Parsing & Service Tests', () => {
 
   describe('DAO layer - Mentions data access', () => {
     it('should export getMentionsByNoteId from DAO', async () => {
-      const dao = await import('../../src/modules/notes/dao.js');
+      const dao = await import('../../../src/modules/notes/dao.js');
       
       expect(typeof dao.getMentionsByNoteId).toBe('function');
     });
@@ -112,7 +112,7 @@ describe('Notes Mentions - Parsing & Service Tests', () => {
   describe('Mentions persistence logic', () => {
     it('processMentions should return hasMentions false for empty content', async () => {
       // Test the logic without DB by checking what parseMentions returns for empty content
-      const { parseMentions } = await import('../../src/modules/notes/utils/index.js');
+      const { parseMentions } = await import('../../../src/modules/notes/utils/index.js');
       
       const parsedMentions = parseMentions('');
       
@@ -122,7 +122,7 @@ describe('Notes Mentions - Parsing & Service Tests', () => {
     });
 
     it('processMentions should return hasMentions true for content with mentions', async () => {
-      const { parseMentions } = await import('../../src/modules/notes/utils/index.js');
+      const { parseMentions } = await import('../../../src/modules/notes/utils/index.js');
       
       const content = 'Hello @john and @jane';
       const parsedMentions = parseMentions(content);
