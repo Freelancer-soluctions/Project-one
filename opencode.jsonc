@@ -99,7 +99,7 @@
     },
     "orchestrator": {
       "mode": "primary",
-      "model": "opencode/nemotron-3-ultra-free",
+      "model": "nvidia/minimaxai/minimax-m3",
       "description": "Main orchestrator that delegates tasks to specialized agents",
       "prompt": "{file:docs/opencode/prompts/orchestrator.md}",
       "steps": 45,
