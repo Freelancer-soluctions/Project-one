@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router';
 import { describe, it, expect } from 'vitest';
-import BackDashBoard from './BackDashBoard';
+import { BackDashBoard } from './BackDashBoard';
 
 describe('BackDashBoard - Integration', () => {
   it('renders link with correct href', () => {
