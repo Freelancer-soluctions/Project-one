@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { extractMentionIds } from '../../src/modules/notes/utils/mentionParser.js';
+import { extractMentionIds } from './mentionParser.js';
 
 describe('extractMentionIds', () => {
   it('should extract a single mention ID correctly', async () => {

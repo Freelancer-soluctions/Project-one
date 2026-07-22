@@ -1,9 +1,9 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import * as eventAttendeeService from '../../src/modules/events/attendee/service.js';
-import * as attendeeDao from '../../src/modules/events/attendee/dao.js';
-import * as stateMachine from '../../src/modules/events/stateMachine.js';
+import * as eventAttendeeService from './service.js';
+import * as attendeeDao from './dao.js';
+import * as stateMachine from '../stateMachine.js';
 
-vi.mock('../../src/modules/events/attendee/dao.js', () => ({
+vi.mock('./dao.js', () => ({
   findEventById: vi.fn(),
   findAttendeeByUserAndEvent: vi.fn(),
   findAttendeeById: vi.fn(),
@@ -17,12 +17,12 @@ vi.mock('../../src/modules/events/attendee/dao.js', () => ({
   findEarliestWaitlist: vi.fn(),
 }));
 
-vi.mock('../../src/modules/events/stateMachine.js', () => ({
+vi.mock('../stateMachine.js', () => ({
   canTransition: vi.fn(() => true),
   getAllowedNextStates: vi.fn(() => []),
 }));
 
-vi.mock('../../src/config/db.js', () => ({
+vi.mock('../../../config/db.js', () => ({
   prisma: {
     $transaction: vi.fn((cb) => cb({})),
   },

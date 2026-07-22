@@ -1,8 +1,8 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import * as eventService from '../../src/modules/events/service.js';
-import * as eventDao from '../../src/modules/events/dao.js';
+import * as eventService from './service.js';
+import * as eventDao from './dao.js';
 
-vi.mock('../../src/modules/events/dao.js', () => ({
+vi.mock('./dao.js', () => ({
   getAllEvents: vi.fn(),
 }));
 

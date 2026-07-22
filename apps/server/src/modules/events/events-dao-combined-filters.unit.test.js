@@ -1,9 +1,9 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { prisma } from '../../src/config/db.js';
-import * as eventDao from '../../src/modules/events/dao.js';
+import { prisma } from '../../config/db.js';
+import * as eventDao from './dao.js';
 
-vi.mock('../../src/config/db.js', () => {
-  const original = vi.importActual('../../src/config/db.js');
+vi.mock('../../config/db.js', () => {
+  const original = vi.importActual('../../config/db.js');
   return {
     ...original,
     prisma: {

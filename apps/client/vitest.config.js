@@ -1,9 +1,10 @@
-import { defineConfig } from 'vitest/config';
+import { defineConfig, mergeConfig } from 'vitest/config';
 import react from '@vitejs/plugin-react';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import sharedConfig from '../../vitest.shared.js';
 
-export default defineConfig({
+export default defineConfig(mergeConfig(sharedConfig, {
   plugins: [react()],
 
   resolve: {
@@ -12,33 +13,22 @@ export default defineConfig({
     },
   },
   test: {
-    // Permite usar: test() y expect()
-    globals: true,
-    // Simula navegador → necesario para React.
     environment: 'jsdom',
 
     // setupFiles run before each test file
-    // Punto central para:
-    // matchers globales
-    // mocks globales
-    // configuración base
     setupFiles: ['./tests/setup/setupTest.js'],
 
-    // Evita errores al importar estilos (muy común en React).
+    // Evita errores al importar estilos
     css: true,
 
-    // usa motor nativo (v8 → más rápido)
-    // excluye tests y config
     coverage: {
-      provider: 'v8',
-      reporter: ['text', 'html'],
       exclude: ['node_modules/', 'tests/', '**/*.config.js'],
     },
 
-    // Evita que Vitest escanee todo el repo (performance + control)
+    // Evita que Vitest escanee todo el repo
     include: ['src/**/*.test.{js,jsx}', 'tests/**/*.test.{js,jsx}'],
 
-    // 🔥 optimización avanzada (docs vitest optimizer)
+    // Optimización avanzada
     deps: {
       optimizer: {
         web: {
@@ -47,4 +37,4 @@ export default defineConfig({
       },
     },
   },
-});
+}));

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { sanitizePrismaMessage } from '../../src/utils/prisma/sanitizePrismaMessage.js';
+import { sanitizePrismaMessage } from './sanitizePrismaMessage.js';
 
 describe('sanitizePrismaMessage', () => {
   it('should return safe message for P2002', () => {

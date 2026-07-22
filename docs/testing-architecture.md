@@ -104,30 +104,17 @@ El monorepo utiliza **npm workspaces**, donde cada módulo define sus propios sc
 ### Ejecución desde root
 
 ```bash
-npm run test
+npm run test              # Full suite: unit + integration + e2e
+npm run test:unit         # Unit tests (all workspaces)
+npm run test:integration  # Integration tests (all workspaces)
+npm run test:e2e          # E2E tests (Playwright)
+npm run test:watch        # Watch mode (all workspaces)
+npm run test:changed      # Only tests affected by git changes (CI)
+npm run test:ci           # CI mode: test:changed with JUnit reporter
+npm run test:server       # Server tests only
+npm run test:client       # Client tests only
+npm run test:coverage     # Coverage report (all workspaces)
 ```
-
-### Scripts principales
-
-* Unit tests:
-
-  ```bash
-  npm run test:unit
-  ```
-
-* Integration tests:
-
-  ```bash
-  npm run test:integration
-  ```
-
-* E2E:
-
-  ```bash
-  npm run test:e2e
-  ```
-
----
 
 ### Importante
 
@@ -136,8 +123,10 @@ El root **no ejecuta herramientas directamente** (Vitest, Playwright).
 El root actúa como **orquestador**, delegando la ejecución a cada workspace mediante:
 
 ```bash
-npm run <script> --workspace=<name>
+npm run <script> --workspaces --if-present
 ```
+
+Cada workspace define sus propios scripts granulares (`test:unit`, `test:integration`, `test:watch`, `test:changed`), lo que permite aislar la ejecución por tipo de test y por workspace.
 
 ---
 
@@ -188,13 +177,66 @@ Se evita el uso genérico de *.test.js o *.spec.js sin contexto, ya que no permi
 
 ---
 
-### Backend (Ajustar una vez se comience a hacer pruebas)
+### Backend
+
+Backend adopta **enfoque híbrido** (ver sección 8). Migración **completada** — los 161 unit tests ya están colocados junto a sus módulos:
 
 ```plaintext
-tests/
-  unit/
+# Unit tests: COLOCADOS junto al código que prueban (migración completa)
+apps/server/src/
+  modules/
+    events/
+      controller.js
+      dao.js
+      service.js
+      stateMachine.js
+      events-dao-combined-filters.unit.test.js      # COLOCADO
+      events-dao-soft-delete.unit.test.js            # COLOCADO
+      events-helpers.unit.test.js                    # COLOCADO
+      events-service-combined-filters.unit.test.js   # COLOCADO
+      events-service-soft-delete.unit.test.js        # COLOCADO
+      events-validation.unit.test.js                 # COLOCADO
+      event-rsvp-stateMachine.unit.test.js           # COLOCADO
+      attendee/
+        service.js
+        dao.js
+        event-rsvp-admin.unit.test.js                # COLOCADO
+        event-rsvp-audit.unit.test.js                # COLOCADO
+        event-rsvp-cancel.unit.test.js               # COLOCADO
+        event-rsvp-promote.unit.test.js              # COLOCADO
+        event-rsvp-register.unit.test.js             # COLOCADO
+    notes/
+      utils/
+        mentionParser.js
+        mentionParser.unit.test.js                   # COLOCADO
+        notes-mentions.unit.test.js                  # COLOCADO
+  utils/
+    prisma/
+      sanitizePrismaMessage.js
+      sanitizePrismaMessage.unit.test.js             # COLOCADO
+    responses&Errors/
+      errorHandler.unit.test.js                      # COLOCADO
+
+# Integration tests: centralizados y AGRUPADOS POR MÓDULO
+apps/server/tests/
   integration/
+    events/
+      events-combined-filters.integration.test.js
+      events-soft-delete.integration.test.js
+      events-validation.integration.test.js
+    notes/
+      notes-mentions.integration.test.js
+  orphans/                                           # Excepciones (describe.skip/todo)
+    bin/server.test.js                               # describe.todo
+    components/role/role.test.js                     # describe.skip (DB)
+    users-path-param-validation.test.js              # describe.skip (DB)
+
+# E2E tests: top-level del monorepo
+e2e/
+  tests/
 ```
+
+**Migración completa**: los 161 unit tests existentes fueron movidos de `tests/unit/` a sus módulos correspondientes en `src/modules/` y `src/utils/`. La carpeta `tests/unit/` ya no contiene tests — solo `manual-test.js` (script, no test real). Los unit tests nuevos se colocan directamente junto al módulo desde día uno.
 
 ---
 
@@ -243,13 +285,141 @@ tests/
 ```
 
 ---
-## 8. Estrategia de Mocks
+
+## 8. Organización de Tests: Enfoque Híbrido (Consenso 2025-2026)
+
+Backend adopta un **enfoque híbrido** para la organización de tests: unit tests **colocados** junto al código que prueban, integration tests **centralizados** en `tests/integration/`, E2E tests **top-level** en `e2e/`. Este es el consenso que emerged en la comunidad Node.js/TypeScript entre 2025 y 2026.
+
+### 8.1 Colocated vs Centralized — Comparación
+
+| Dimensión | Colocado (unit) | Centralizado (integration/E2E) |
+|-----------|-----------------|--------------------------------|
+| Descubrimiento | ✅ Test a 1 archivo de distancia, visible en la misma carpeta | ❌ Debe navegar árbol paralelo o buscar |
+| Refactoring | ✅ Mover/renombrar source = test se mueve automáticamente | ❌ Debe espejar cada cambio estructural en 2 lugares |
+| Acoplamiento estructural | ❌ Más acoplado (Clean Architecture advierte contra esto) | ✅ Test independiente, componente desplegable |
+| Visibilidad de cobertura | ✅ Falta `.test.js` = señal visual inmediata | ❌ Debe cruzar 2 árboles para detectar gaps |
+| Empaquetado para deploy | ⚠️ Debe excluir `*.test.js` del dist/pkg | ✅ Carpeta única `tests/` fácil de excluir |
+| Cohesión de código | ✅ Source + test = una unidad de trabajo; ownership claro | ❌ Tests físicamente separados del código que verifican |
+| Simplicidad de imports | ✅ `import { X } from './X'` | ❌ `import { X } from '../../src/modules/X'` |
+
+### 8.2 Qué Recomienda Cada Autoridad
+
+Industria técnica consultada (2025-2026):
+
+#### NestJS (Documentación oficial)
+
+> *"Co-locate unit tests with the code they test. Put E2E tests in a separate top-level folder."*
+
+- **Posición**: Colocación fuerte para unit tests (`*.spec.ts` junto al módulo). E2E en `test/` separado.
+- **Por qué**: NestJS CLI genera `*.spec.ts` junto al archivo del módulo. El contenedor DI hace trivial el mocking, así los unit tests están inherentemente acoplados al módulo. E2E cruza módulos y necesita su propio espacio.
+- **Fuente**: [Encore — NestJS Project Structure Best Practices](https://encore.dev/resources/nestjs-project-structure-best-practices)
+
+#### Kent C. Dodds (Blog "Colocation", 2019)
+
+> *"Co-locate unit test files next to source files. Put integration/E2E at root level."*
+
+- **Posición**: Colocar unit tests. E2E tests en raíz del proyecto.
+- **Por qué**: Testing debe ser como los comentarios de código — mantenerlos cerca de lo que describen. Refactors que mueven source mueven tests automáticamente. Import paths cortos. Si fuera otra ubicación, sería como un `DOCUMENTATION.md` gigante — nobody wants that.
+- **Fuente**: [Kent C. Dodds — Colocation](https://kentcdodds.com/blog/colocation)
+
+#### TypeScript TV (2026)
+
+> *"Co-located Tests Scale Better"*
+
+- **Posición**: Colocación gana a centralizado en codebases TypeScript.
+- **Por qué**: Discovery instantáneo (test es el siguiente archivo en el sidebar), refactors sobreviven (mover carpeta = mover tests), visibilidad de gaps (no test file = señal visual), import paths cortos, ownership claro por squad.
+- **Fuente**: [TypeScript TV — Co-located Tests Scale Better](https://typescript.tv/best-practices/co-located-tests-scale-better/)
+
+#### Clean Architecture (Robert C. Martin)
+
+> *"Tests are independently deployable components. Strong structural coupling between test and production code is an anti-pattern."*
+
+- **Posición**: Tests como componentes independientes. Acoplamiento estructural entre test y producción code es dañino.
+- **Por qué**: El "Fragile Tests Problem" ocurre cuando tests están estructuralmente acoplados al código de producción. Una Testing API debería desacoplarlos. La colocación inherentemente crea acoplamiento estructural.
+- **Esta es la ARGUMENTACIÓN EN CONTRA más fuerte desde una fuente autoritativa.**
+- **Fuente**: Clean Architecture (Robert C. Martin), capítulo sobre testing
+
+#### Goldbergyoni / Node.js Best Practices
+
+- **Posición**: Estructura por componentes de negocio, no por capas. Tests implícitos como parte de cada componente.
+- **Por qué**: La recomendación 3-tier (entry-points / domain / data-access por componente) se presta naturalmente a tests colocados dentro de cada carpeta de componente. Pero el guide NO prescribe explícitamente la ubicación de archivos.
+- **Fuentes**: [nodebestpractices](https://github.com/goldbergyoni/nodebestpractices), [nodejs-testing-best-practices](https://github.com/goldbergyoni/nodejs-testing-best-practices)
+
+#### Google Testing Blog
+
+- **Posición**: Sin prescripción explícita de ubicación de archivos. El monorepo interno (Bazel) típicamente coloca test targets en BUILD files junto al source.
+- **Focus**: Automation, TDD, continuous testing, test pyramid.
+- **Fuente**: [testing.googleblog.com](https://testing.googleblog.com/)
+
+#### Martin Fowler
+
+- **Posición**: Sin recomendación específica sobre ubicación de archivos.
+- **Focus**: Test Pyramid (ratio unit vs integration vs E2E), self-testing code, TDD, exploratory testing.
+- **Fuente**: [martinfowler.com/testing](https://martinfowler.com/testing/)
+
+#### Proyectos Express a gran escala (referencia empírica)
+
+| Proyecto | Estructura | Stars | Notas |
+|----------|-----------|-------|-------|
+| Ghost | Centralizado `test/` | 54K | Herencia histórica — predata colocación trend |
+| KeystoneJS | Centralizado `tests/` + `tests2/` | 10K | Herencia |
+| Strapi | Centralizado `test/` folder | 65K | Herencia |
+| Payload CMS | Centralizado `tests/` | 30K | Herencia |
+
+**Patrón**: Enterprise Express projects overwhelmingly use centralized test directories — pero es históricamente cultural, no óptimo. Estos proyectos pre-datan la trend de colocación.
+
+### 8.3 Consenso Híbrido (2025-2026)
+
+| Tipo de Test | Ubicación | Rationale |
+|--------------|-----------|-----------|
+| **Unit tests** (lógica pura, single module) | **Colocado**: `src/modules/X/X.service.unit.test.js` | Feedback rápido, sobrevive refactors, ownership claro |
+| **Integration tests** (multi-module, DB, HTTP) | **Centralizado**: `tests/integration/` | Cruza módulos, no pertenece a un solo módulo; necesita DB setup |
+| **E2E tests** (API completa, browser) | **Top-level**: `e2e/` | Span del sistema completo; NO debe acoplarse a la estructura de source |
+
+**Endorsado por**: NestJS, Kent C. Dodds, TypeScript TV, y crecientemente la comunidad Node.js.
+
+### 8.4 Estado de la Migración — COMPLETADA
+
+La migración fue ejecutada en el change `refactor-test-architecture`. Los 161 unit tests fueron movidos de `tests/unit/` a sus ubicaciones coloadas en `src/`. La carpeta `tests/unit/` ya no contiene archivos de test (solo `manual-test.js` — script, no test).
+
+La estrategia "move-when-touched" sigue siendo válida para **futuros cambios**: al modificar un módulo, si encuentra tests en `tests/unit/`, muévalos junto al módulo como parte del mismo PR.
+
+### 8.5 Vitest Config — Patrones de Inclusión
+
+```js
+// apps/server/vitest.config.js
+test: {
+  include: [
+    'src/**/*.unit.test.js',                    // Unit tests colocados en src/
+    'tests/integration/**/*.integration.test.js' // Integration centralizados por módulo
+  ]
+}
+```
+
+Esto permite coexistencia sin fricción durante la migración incremental.
+
+### 8.6 REFERENCIAS
+
+- NestJS Best Practices: https://encore.dev/resources/nestjs-project-structure-best-practices
+- Kent C. Dodds — Colocation: https://kentcdodds.com/blog/colocation
+- TypeScript TV — Co-located Tests Scale Better: https://typescript.tv/best-practices/co-located-tests-scale-better/
+- Node.js Best Practices (goldbergyoni): https://github.com/goldbergyoni/nodebestpractices
+- Node.js Testing Best Practices: https://github.com/goldbergyoni/nodejs-testing-best-practices
+- Martin Fowler — Testing: https://martinfowler.com/testing/
+- Google Testing Blog: https://testing.googleblog.com/
+- Ghost CMS: https://github.com/TryGhost/Ghost
+- KeystoneJS: https://github.com/keystonejs/keystone
+- Strapi: https://github.com/strapi/strapi
+- Clean Architecture (Robert C. Martin) — libro, capítulo sobre testing
+
+---
+## 9. Estrategia de Mocks
 
 La estrategia de mocks define cómo se controlan las dependencias externas durante el testing, garantizando pruebas deterministas, rápidas y mantenibles. En este proyecto, se adopta un enfoque por capas alineado con buenas prácticas modernas en aplicaciones React con Redux Toolkit y RTK Query.
 
 ---
 
-### 8.1 Principios
+### 9.1 Principios
 
 - **Determinismo**: Los tests no deben depender de factores externos (red, tiempo, servicios reales).
 - **Aislamiento controlado**: Se mockean únicamente dependencias externas.
@@ -258,7 +428,7 @@ La estrategia de mocks define cómo se controlan las dependencias externas duran
 
 ---
 
-### 8.2 Qué se Mockea
+### 9.2 Qué se Mockea
 
 #### ✅ Se mockea:
 - Requests HTTP (APIs externas)
@@ -274,7 +444,7 @@ La estrategia de mocks define cómo se controlan las dependencias externas duran
 
 ---
 
-### 8.3 Estrategia por Tipo de Test
+### 9.3 Estrategia por Tipo de Test
 
 ---
 
@@ -310,7 +480,7 @@ Componente → RTK Query → fetch → **MSW intercepta** → MSW responde mock
 
 ---
 
-## 8.4 Mocking de APIs con MSW
+## 9.4 Mocking de APIs con MSW
 Se utiliza **Mock Service Worker (MSW)** como herramienta principal para interceptar y simular requests HTTP.
 
 ### Definición de handlers
@@ -340,7 +510,7 @@ afterAll(() => server.close());
 
 ---
 
-## 8.5 Estrategia con RTK Query
+## 9.5 Estrategia con RTK Query
 
 Se definen dos enfoques según el tipo de test:
 ```javascript
@@ -353,7 +523,7 @@ vi.mock('../services/api', () => ({
 ```
 ---
 
-## 8.6 Organización de 
+## 9.6 Organización de 
 Estructura recomendada:
 ```plaintext
 tests/
@@ -373,7 +543,7 @@ export const userMock = {
 };
 ``` 
 ---
-## 8.7 Overrides por Test
+## 9.7 Overrides por Test
 
 Permite modificar el comportamiento de la API en tests específicos:
 ```javascript
@@ -390,7 +560,7 @@ Casos de uso:
 - Testing de reintentos
 
 ---
-## 8.8 Buenas Prácticas
+## 9.8 Buenas Prácticas
 - Centralizar mocks de API en MSW
 - Evitar mocks duplicados
 - Mantener fixtures reutilizables
@@ -398,23 +568,23 @@ Casos de uso:
 - Limitar mocks manuales a unit tests
 
 ---
-## 8.9 Anti-Patrones
+## 9.9 Anti-Patrones
 - Mockear fetch manualmente cuando se usa MSW
 - Mockear RTK Query en integration tests
 - Tests dependientes entre sí
 - Mezclar múltiples estrategias de mocking sin control
 - Mockear lógica de negocio
 ---
-## 8.10 Resumen Estratégico
+## 9.10 Resumen Estratégico
 - Unit ->	vi.mock
 - Integration	-> MSW + Redux real
 - E2E ->	Sin mocks (o mínimos)
 ---
-## 8.11 Regla General
+## 9.11 Regla General
 - MSW es la fuente de verdad para todo mocking HTTP.
 - Los mocks manuales se usan únicamente para aislamiento en unit tests.
 ---
-## 9. Cobertura (Coverage)
+## 10. Cobertura (Coverage)
 
 Se recomienda:
 
@@ -422,7 +592,7 @@ Se recomienda:
 * No forzar coverage en componentes triviales
 
 ---
-## 10. Decisiones Arquitectónicas
+## 11. Decisiones Arquitectónicas
 
 | Decisión                  | Justificación                             |
 | ------------------------- | ----------------------------------------- |
@@ -431,10 +601,14 @@ Se recomienda:
 | Usar Testing Library      | Testing orientado a comportamiento        |
 | Usar Supertest            | Testing de APIs estándar                  |
 | Usar Playwright           | E2E robusto y paralelo                    |
+| Compartir config Vitest via `vitest.shared.js` | Reduce duplicación entre workspaces, unifica cobertura |
+| Usar `--workspaces --if-present` en scripts root | Auto-descubre workspaces, no requiere mantener lista manual |
+| Adoptar enfoque híbrido (unit colocado + integration centralizado) | Consenso industria 2025-2026 (NestJS, Kent C. Dodds, TypeScript TV). Unit tests junto al source → discovery + refactoring. Integration tests centralizados → cruzan módulos + DB setup. **Migración completada** — 161 unit tests movidos a `src/` |
+| Migración move-when-touched completada — 161 unit tests movidos a `src/` | Migración ejecutada en change `refactor-test-architecture`. Tests legados en `tests/unit/` migrados a ubicaciones coloadas en `src/`. Estrategia move-when-touched permanece para futuros cambios |
 
 ---
 
-## 11. Resumen
+## 12. Resumen
 
 La arquitectura de testing:
 

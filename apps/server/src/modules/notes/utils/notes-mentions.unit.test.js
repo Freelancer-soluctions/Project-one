@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { parseMentions } from '../../src/modules/notes/utils/index.js';
+import { parseMentions } from './index.js';
 
 describe('parseMentions', () => {
   it('should return empty array for null content', () => {

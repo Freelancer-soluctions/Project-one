@@ -1,13 +1,13 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 // Mock logger BEFORE importing errorHandler
-vi.mock('../../src/logger/index.js', () => ({
+vi.mock('../../logger/index.js', () => ({
   default: { error: vi.fn(), warn: vi.fn() },
 }));
 
-import { Prisma } from '../../src/config/db.js';
-import ClientError from '../../src/utils/responses&Errors/errors.js';
-const { errorHandler } = await import('../../src/middleware/errorHandler.js');
+import { Prisma } from '../../config/db.js';
+import ClientError from './errors.js';
+const { errorHandler } = await import('../../middleware/errorHandler.js');
 
 describe('errorHandler', () => {
   let req, res, next;

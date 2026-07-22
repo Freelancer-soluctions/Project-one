@@ -9,9 +9,11 @@ npm run dev                # Start with nodemon (src/bin/index.js)
 npm run prisma-migration  # Run Prisma migrations
 npm run prisma-seed       # Seed database
 npm run prisma-push       # Push schema to DB
-npm run test              # Vitest (all)
+npm run test              # Vitest (all: unit + integration)
 npm run test:unit         # Unit tests only
 npm run test:integration  # Integration tests only
+npm run test:watch        # Watch mode
+npm run test:changed      # Only tests affected by git changes
 npm run test:coverage     # Coverage report
 ```
 
@@ -29,16 +31,92 @@ npx prisma migrate reset
 
 ## Testing
 
-See root [docs/testing-architecture.md](../../docs/testing-architecture.md)
+See root [docs/testing-architecture.md](../../docs/testing-architecture.md) — **section 8 covers the hybrid test organization in depth.**
 
-**Structure:**
+### Hybrid Test Organization (Consensus 2025-2026)
 
+Backend adopts the **hybrid approach** — the emerging industry consensus endorsed by NestJS, Kent C. Dodds, and TypeScript TV:
+
+- **Unit tests**: colocated alongside the source file they test
+- **Integration tests**: centralized in `tests/integration/<module>/` (grouped by module, cross-cutting, DB setup)
+- **E2E tests**: top-level in `e2e/` (in the monorepo root)
+
+### Structure (CURRENT STATE — migration complete)
+
+```plaintext
+# Colocated unit tests
+src/modules/<module>/
+  <file>.js
+  <file>.unit.test.js              # Colocated
+src/modules/events/attendee/
+  service.js
+  dao.js
+  event-rsvp-register.unit.test.js # Colocated
+  event-rsvp-cancel.unit.test.js
+  event-rsvp-admin.unit.test.js
+  event-rsvp-audit.unit.test.js
+  event-rsvp-promote.unit.test.js
+src/utils/prisma/
+  sanitizePrismaMessage.js
+  sanitizePrismaMessage.unit.test.js
+src/utils/responses&Errors/
+  errorHandler.unit.test.js
+
+# Integration tests grouped by module
+tests/integration/
+  events/
+    events-combined-filters.integration.test.js
+    events-soft-delete.integration.test.js
+    events-validation.integration.test.js
+  notes/
+    notes-mentions.integration.test.js
+
+# Orphans (skipped, legacy)
+tests/bin/server.test.js                            # describe.todo
+tests/components/role/role.test.js                  # describe.skip (DB)
+tests/users-path-param-validation.test.js           # describe.skip (DB)
+
+# E2E tests (monorepo top-level)
+e2e/tests/
 ```
-tests/
-├── unit/
-├── integration/
-└── setupTest.js
+
+### Vitest Configuration
+
+`vitest.config.js` discovers both colocated and centralized integration tests:
+
+```js
+include: [
+  'src/**/*.unit.test.js',                    // Colocated unit tests
+  'tests/integration/**/*.integration.test.js' // Integration grouped by module
+]
 ```
+
+### NPM Scripts (Server)
+
+Test scripts use **substring path filters** (not directory paths) so they work with the hybrid colocated layout:
+
+```json
+{
+  "test:unit": "vitest run \".unit.test.js\"",
+  "test:integration": "vitest run \".integration.test.js\""
+}
+```
+
+This filters by filename pattern instead of folder location — robust regardless of where the test file lives.
+
+### Naming Convention
+
+| Pattern | Type | Location |
+|---------|------|----------|
+| `*.unit.test.js` | Unit test (pure logic, single module) | Colocated with source |
+| `*.integration.test.js` | Integration (multi-module, DB, HTTP) | `tests/integration/<module>/` |
+| `*.test.js` | AVOID — no context about intent | — |
+
+### Adding New Tests
+
+- **New unit test for a module**: place at `src/modules/<module>/<file>.unit.test.js` — colocated with the source file it tests
+- **New integration test**: place at `tests/integration/<module>/<name>.integration.test.js` — grouped by the primary module the test exercises
+- **Avoid orphan tests** in `tests/` top-level or in unrelated subfolders
 
 ## ESLint
 

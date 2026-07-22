@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import {
   EventsCreateSchema,
   EventsUpdateSchema,
-} from '../../src/modules/events/schemas/events.joi.js';
+} from './schemas/events.joi.js';
 
 describe('Events Joi Validation Schemas', () => {
   describe('EventsCreateSchema', () => {

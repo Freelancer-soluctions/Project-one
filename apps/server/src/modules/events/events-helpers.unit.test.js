@@ -1,5 +1,12 @@
-import { describe, it, expect } from 'vitest';
-import { timeStrToDate, formatTime } from '../../src/modules/events/service.js';
+import { describe, it, expect, vi } from 'vitest';
+
+// Mock db to prevent PrismaClient instantiation (helpers don't need DB)
+vi.mock('../../config/db.js', () => ({
+  prisma: {},
+  Prisma: {},
+}));
+
+import { timeStrToDate, formatTime } from './service.js';
 
 describe('Events Time Helpers', () => {
   describe('timeStrToDate', () => {

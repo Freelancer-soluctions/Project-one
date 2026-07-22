@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { canTransition, getAllowedNextStates } from '../../src/modules/events/stateMachine.js';
+import { canTransition, getAllowedNextStates } from './stateMachine.js';
 
 describe('Event RSVP State Machine', () => {
   describe('canTransition', () => {
