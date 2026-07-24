@@ -16,6 +16,7 @@
 - [11. Troubleshooting](#11-troubleshooting)
 - [12. Cómo añadir un nuevo workspace](#12-cómo-añadir-un-nuevo-workspace)
 - [13. Referencias](#13-referencias)
+- [14. ESM vs CommonJS](#14-esm-vs-commonjs)
 
 ---
 
@@ -136,30 +137,49 @@ Project One adopta npm workspaces por las siguientes razones, alineadas con la e
 ```json
 {
   "name": "server-express",
+  "version": "1.0.0",
+  "description": "Back-end application with good practices using node.js and express",
+  "main": "index.js",
+  "type": "module",
   "private": true,
+  "engines": {
+    "node": ">=20.0.0",
+    "npm": ">=10.0.0"
+  },
+  "prisma": {
+    "seed": "node prisma/seed.js"
+  },
   "scripts": {
     "dev": "nodemon src/bin/index.js",
+    "build": "echo 'No build step needed for Express'",
+    "postinstall": "prisma generate ",
     "prisma-migration": "prisma migrate dev",
     "prisma-seed": "prisma db seed",
     "prisma-push": "prisma db push",
-    "test": "vitest run",
+    "prisma-pull": "prisma db pull",
+    "test": "npm run test:unit && npm run test:integration",
+    "test:watch": "vitest --watch",
     "test:unit": "vitest run \".unit.test.js\"",
     "test:integration": "vitest run \".integration.test.js\"",
-    "test:watch": "vitest",
     "test:changed": "vitest run --changed",
     "test:coverage": "vitest run --coverage",
-    "format": "prettier --write .",
-    "format:check": "prettier --check .",
+    "format": "prettier --write \"**/*.{js,json,md}\"",
+    "format:check": "prettier --check \"**/*.{js,json,md}\"",
     "lint": "eslint \"**/*.js\"",
     "lint:fix": "eslint \"**/*.js\" --fix"
   },
+  "author": "Johan Garcia",
+  "license": "ISC",
   "dependencies": { ... },
-  "devDependencies": { ... }
+  "devDependencies": { ... },
+  "eslintConfig": {
+    "extends": "./node_modules/standard/eslintrc.json"
+  }
 }
 ```
 
 - **Nombre del workspace:** `server-express` (referenciado en root scripts como `--workspace=server-express`).
-- **NO tiene** `"type": "module"` — usa **CommonJS** (`require`/`module.exports`).
+- **TIENE** `"type": "module"` (línea 6 de `apps/server/package.json`) — usa **ESM** (`import`/`export`).
 - `private: true` — correcto.
 
 ### 3.4 Workspace: `e2e` (`e2e/package.json`)
@@ -189,7 +209,7 @@ Project One adopta npm workspaces por las siguientes razones, alineadas con la e
 | Workspace | Ruta | `name` en package.json | `private` | `type` |
 |---|---|---|---|---|
 | Client | `apps/client/` | `client-react` | ✅ true | `module` (ESM) |
-| Server | `apps/server/` | `server-express` | ✅ true | (CommonJS) |
+| Server | `apps/server/` | `server-express` | ✅ true | `module` (ESM) |
 | E2E | `e2e/` | `e2e` | ❌ **falta** | (CommonJS) |
 
 ---
@@ -246,8 +266,8 @@ Sin `.npmrc`, el hoisting usa **comportamiento por defecto** de npm (sin `legacy
 |---|---|---|
 | `npm install` | Raíz (`project-one/`) | Instala **todos** los workspaces, genera **un** `package-lock.json` en la raíz, hoistea deps compartidas. |
 | `npm ci` | Raíz | Instalación limpia y determinista desde `package-lock.json` raíz (ideal para CI). |
-| `npm run build` | Raíz | Ejecuta `build` en **cada workspace** que lo tenga definido (scripts root no usan `--workspaces`; orquesta manual). |
-| `npm run test` | Raíz | Ejecuta suite completa: unit + integration + e2e (ver scripts root). |
+| `npm run build` | Raíz | `npm run build --workspaces --if-present` — ejecuta `build` en **cada workspace** que lo tenga definido. |
+| `npm run test` | Raíz | Ejecuta suite completa: unit + integration + e2e (ver scripts root). **Nota:** tests de integración del servidor requieren PostgreSQL corriendo. |
 | `npm run test:unit` | Raíz | `npm run test:unit --workspaces --if-present` — corre tests unitarios en **todos** los workspaces que tengan el script. |
 | `npm run test:integration` | Raíz | `npm run test:integration --workspaces --if-present` — corre tests de integración en todos los workspaces. |
 | `npm run test:e2e` | Raíz | `npm run test --workspace=e2e` — corre **solo** tests e2e (Playwright). |
@@ -255,7 +275,11 @@ Sin `.npmrc`, el hoisting usa **comportamiento por defecto** de npm (sin `legacy
 | `npm run test:ci` | Raíz | Ejecuta todos los tests con reporter JUnit (CI). |
 | `npm run test:server` | Raíz | `npm run test --workspace=server-express` — tests solo del servidor. |
 | `npm run test:client` | Raíz | `npm run test --workspace=client-react` — tests solo del cliente. |
-| `npm run dev` | **NO EXISTE EN RAÍZ** | ❌ Gap UX — ver §9. |
+| `npm run dev` | Raíz | `concurrently` — levanta **client (Vite) + server (nodemon)** simultáneamente con logs coloreados. |
+| `npm run dev:client` | Raíz | `npm run dev --workspace=client-react` — levanta solo el cliente (Vite, puerto 5173). |
+| `npm run dev:server` | Raíz | `npm run dev --workspace=server-express` — levanta solo el servidor (nodemon, puerto 4000). |
+| `npm run lint` | Raíz | `npm run lint --workspaces --if-present` — ESLint en **todos** los workspaces. |
+| `npm run format` | Raíz | `npm run format --workspaces --if-present` — Prettier en **todos** los workspaces. |
 | `npm run dev` | `apps/client/` | `vite` — levanta dev server Vite (puerto 5173 por defecto). |
 | `npm run dev` | `apps/server/` | `nodemon src/bin/index.js` — levanta Express con hot-reload (puerto 4000 típicamente). |
 | `npm run build` | `apps/client/` | `tsc && vite build` — build de producción del cliente. |
@@ -390,19 +414,19 @@ Basado en la investigación (hallazgos § Crítico/Importante/Mejora opcional), 
 
 | # | Gap | Archivo/Ubicación | Impacto | Solución |
 |---|---|---|---|---|
-| 1 | **`e2e/package-lock.json` existe** (2.3 KB) — duplica el lockfile raíz, rompe modelo single-lockfile. | `e2e/package-lock.json` | Instalaciones no deterministas; `npm ci` en raíz no limpia el lockfile anidado; posibles versiones divergentes. | `rm e2e/package-lock.json e2e/node_modules` → `npm install` en **raíz**. |
-| 2 | **Sin `.npmrc` en la raíz** — hoisting sin configuración explícita. | (archivo inexistente) | Comportamiento por defecto de npm: sin `save-exact`, sin `legacy-peer-deps`, hoisting impredecible entre versiones de npm. | Crear `.npmrc` en raíz (ver §10). |
-| 3 | **Sin scripts `dev`, `dev:client`, `dev:server` en raíz** — UX pobre para levantar entorno de desarrollo. | `package.json` (raíz), scripts | Desarrollador debe `cd apps/client && npm run dev` y `cd apps/server && npm run dev` en terminales separadas. | Añadir scripts raíz con `concurrently` o `npm-run-all` (ver §10). |
+| 1 | **`e2e/package-lock.json` existe** (2.3 KB) — duplica el lockfile raíz, rompe modelo single-lockfile. | `e2e/package-lock.json` | Instalaciones no deterministas; `npm ci` en raíz no limpia el lockfile anidado; posibles versiones divergentes. | ✅ **RESUELTO en change fix-workspaces-gaps:** Eliminado `e2e/package-lock.json` y `e2e/node_modules`, regenerado lockfile único con `npm install` en raíz. |
+| 2 | **Sin `.npmrc` en la raíz** — hoisting sin configuración explícita. | (archivo inexistente) | Comportamiento por defecto de npm: sin `save-exact`, sin `legacy-peer-deps`, hoisting impredecible entre versiones de npm. | ✅ **RESUELTO en change fix-workspaces-gaps:** Creado `.npmrc` en raíz con `save-exact=true`, `engine-strict=true`, `workspaces-update=true`, `include-workspace-root=true`, `fund=false`, `audit-level=moderate`, `legacy-peer-deps=false`. |
+| 3 | **Sin scripts `dev`, `dev:client`, `dev:server` en raíz** — UX pobre para levantar entorno de desarrollo. | `package.json` (raíz), scripts | Desarrollador debe `cd apps/client && npm run dev` y `cd apps/server && npm run dev` en terminales separadas. | ✅ **RESUELTO en change fix-workspaces-gaps:** Añadidos scripts `dev`, `dev:client`, `dev:server` en raíz con `concurrently` como devDependency. |
 
 ### 🟠 Importante
 
 | # | Gap | Archivo/Ubicación | Impacto | Solución |
 |---|---|---|---|---|
-| 4 | **Sin campo `engines`** en ningún `package.json` — versiones Node/npm no acotadas. | `package.json` (raíz), `apps/client/package.json`, `apps/server/package.json`, `e2e/package.json` | Builds inconsistentes entre máquinas/CI; actualizaciones de Node rompen builds silenciosamente. | Añadir `"engines": { "node": ">=20.0.0", "npm": ">=10.0.0" }` en todos. |
-| 5 | **`e2e` no formaliza dependencia hacia `client`/`server` con `file:`**. | `e2e/package.json` | Imposible importar tipos/utils compartidos desde E2E; acoplamiento solo por puertos de red. | Añadir `"@project-one/client": "file:../apps/client"` y `"@project-one/server": "file:../apps/server"` si se necesitan tipos. |
-| 6 | **Sin `type: "module"` documentado/uniforme** — root y client son ESM, server y e2e son CommonJS. | `package.json` (raíz, client, server, e2e) | Confusión al importar entre workspaces; `import` vs `require` mixing. | Documentar decisión; considerar migrar server a ESM o usar `.cjs`/`.mjs`. |
+| 4 | **Sin campo `engines`** en ningún `package.json` — versiones Node/npm no acotadas. | `package.json` (raíz), `apps/client/package.json`, `apps/server/package.json`, `e2e/package.json` | Builds inconsistentes entre máquinas/CI; actualizaciones de Node rompen builds silenciosamente. | ✅ **RESUELTO en change fix-workspaces-gaps:** Añadido `"engines": { "node": ">=20.0.0", "npm": ">=10.0.0" }` en todos los `package.json`. Con `.npmrc` `engine-strict=true`, npm validará en install. |
+| 5 | **`e2e` no formaliza dependencia hacia `client`/`server` con `file:`**. | `e2e/package.json` | Imposible importar tipos/utils compartidos desde E2E; acoplamiento solo por puertos de red. | ✅ **Investigado en change fix-workspaces-gaps — no aplica:** `e2e/` no importa código de `client-react` ni `server-express` (solo levanta dev servers vía `playwright.config.js` con `npm run dev --workspace=...`). No se requieren deps `file:`. |
+| 6 | **Sin `type: "module"` documentado/uniforme** — root, client y server son ESM (`apps/server/package.json:6` declara `"type": "module"`), solo e2e es CommonJS. | `package.json` (raíz, client, server, e2e) | Confusión al importar entre workspaces; `import` vs `require` mixing. | Pendiente: documentar decisión; considerar migrar e2e a ESM o usar `.cjs`/`.mjs`. |
 | 7 | **Root `package.json` sin `"private": true` explícito** (está presente, ver §3.1 — **NOTA: en este repo SÍ está**, pero se documenta como gap genérico). | `package.json` (raíz) | Riesgo de `npm publish` accidental si se quita. | Verificar que `"private": true` permanezca. |
-| 8 | **Scripts raíz `build` no usan `--workspaces`** — orquesta manualmente cada workspace. | `package.json` (raíz), script `build` | Mantenimiento manual; si se añade workspace, hay que editar script raíz. | Cambiar a `npm run build --workspaces --if-present` o script explícito con `-ws`. |
+| 8 | **Scripts raíz `build` no usan `--workspaces`** — orquesta manualmente cada workspace. | `package.json` (raíz), script `build` | Mantenimiento manual; si se añade workspace, hay que editar script raíz. | ✅ **RESUELTO en change fix-workspaces-gaps:** Script `build` en raíz ya usa `"npm run build --ws --if-present"` (equivalente a `--workspaces --if-present`). |
 
 > **Nota sobre Gap #7**: En este repositorio **sí existe** `"private": true` en el root `package.json` (línea 16). Se incluye en la tabla como referencia del hallazgo original, pero **no aplica como gap real aquí**.
 
@@ -687,4 +711,76 @@ Si son carpetas distintas (no symlinks al mismo inode), son copias separadas.
 - **npmrc config:** https://docs.npmjs.com/cli/v10/configuring-npm/npmrc
 
 ---
+
+## 14. ESM vs CommonJS
+
+> Documentación de la decisión de sistemas de módulos por workspace y estrategia de interoperabilidad.
+
+### Decisión por workspace
+
+| Workspace | `"type"` en package.json | Sistema | Razón |
+|---|---|---|---|
+| Raíz | `"module"` | ESM | Scripts de build/test/lint usan `import`. Necesario para ESM en archivos de configuración que el root ejecuta directamente. |
+| `apps/client` | `"module"` | ESM | Vite y React requieren ESM. Builds de Vite generan ESM. |
+| `apps/server` | `"module"` (línea 6 de `apps/server/package.json`) | ESM | ESM moderno — permite top-level `await`, `import` statements. Compatibilidad con `@prisma/client` ESM build y otros paquetes ESM-only. |
+| `e2e` | (sin campo — default) | CommonJS | Playwright config utiliza `require`. CJS es el sistema por defecto cuando no se declara `"type"` en package.json. |
+
+### Estrategia de interoperabilidad
+
+Los workspaces ESM (raíz, client, server) y CJS (e2e) necesitan coexistir. Estrategia:
+
+#### 1. Imports desde CJS a ESM (e2e → client/server)
+
+CommonJS no puede usar `require()` para importar módulos ESM — generaría error `ERR_REQUIRE_ESM`. En su lugar:
+
+```js
+// e2e/test/example.spec.js (CommonJS)
+const { someExport } = await import('@project-one/client/utils/example.js');
+```
+
+Usar `import()` dinámico (retorna una Promise). Disponible en Node >=14.8 y soportado en Playwright test runner.
+
+#### 2. Imports desde ESM a CJS (raíz/client/server → e2e)
+
+ESM puede importar CJS con `import` o `import()`:
+
+```js
+// apps/server/src/some-file.js (ESM)
+import { someCjsExport } from '../../e2e/some-cjs-module.cjs';
+```
+
+Si el módulo CJS exporta con `module.exports`, usar `import` con `default` o `import * as`.
+
+#### 3. Archivos `.cjs` y `.mjs` como escape hatch
+
+Si un workspace necesita scripts en el otro sistema:
+- En workspace ESM, archivos `.cjs` se ejecutan como CommonJS.
+- En workspace CJS, archivos `.mjs` se ejecutan como ESM.
+
+Ejemplo: en `apps/server` (ESM), un script legacy `prisma/seed.js` puede usar `import` (ESM) o renombrarse a `.cjs` si necesita `require`.
+
+#### 4. Convención: no mezclar dentro del mismo archivo
+
+Cada archivo es ESM **o** CJS — no ambos. La extensión (.js vs .cjs vs .mjs) + el campo `"type"` del package.json lo determina.
+
+### Verificación
+
+Validar la configuración actual:
+
+```bash
+# Verificar que root, client, server declaren "type": "module"
+grep -l '"type": "module"' package.json apps/client/package.json apps/server/package.json
+
+# Verificar que e2e NO declara "type" (default CJS)
+grep -L '"type": "module"' e2e/package.json
+```
+
+### Notas
+
+- Esta decisión no se modifica en el change `fix-workspaces-gaps` — se documenta la configuración pre-existente.
+- Migrar e2e a ESM requeriría un change separado (implicaría migrar configs/imports de `require` a `import`).
+- Para más contexto sobre interop ESM/CJS: [Node.js docs](https://nodejs.org/api/esm.html), [Vite docs](https://vitejs.dev/guide/features.html), [Playwright docs](https://playwright.dev/docs/test-config).
+
+---
+
 *Documento generado basado en la investigación de la configuración real del monorepo Project One (fecha: 2025-07-22).*
