@@ -4,6 +4,10 @@
   "description": "Front-end application with good practices using react shadcn and tailwind",
   "private": true,
   "type": "module",
+  "engines": {
+    "node": ">=20.0.0",
+    "npm": ">=10.0.0"
+  },
   "scripts": {
     "dev": "vite",
     "build": "vite build",

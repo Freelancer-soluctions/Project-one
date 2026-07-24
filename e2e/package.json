@@ -1,7 +1,12 @@
 {
   "name": "e2e",
   "version": "1.0.0",
+  "private": true,
   "main": "playwright.config.js",
+  "engines": {
+    "node": ">=20.0.0",
+    "npm": ">=10.0.0"
+  },
   "directories": {
     "test": "tests"
   },
