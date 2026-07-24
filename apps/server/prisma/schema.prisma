@@ -284,8 +284,8 @@ model events {
   capacity        Int           @default(0)
   attendeeCount   Int           @default(0)
 
-  attendees       attendees[]
-  registrationLog registration_log[]
+  attendees       attendees[]       @relation("eventAttendees")
+  registrationLog registration_log[] @relation("eventRegistrationLogs")
 
   @@index([eventDate])
 
@@ -320,6 +320,7 @@ model registration_log {
   createdOn      DateTime   @db.Timestamp(3) @default(now())
 
   attendee       attendees  @relation("attendeeLogs", fields: [attendeeId], references: [id], onDelete: Cascade)
+  event          events     @relation("eventRegistrationLogs", fields: [eventId], references: [id])
 
   @@index([eventId, createdOn])
   @@index([attendeeId])
