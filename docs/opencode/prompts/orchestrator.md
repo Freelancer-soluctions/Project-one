@@ -268,6 +268,39 @@ To disable caveman mode: say "stop caveman" or "normal mode".
 
 ---
 
+## DELEGATION SUFFIX TEMPLATE
+
+**CRITICAL:** ALWAYS append the following block as the LAST instruction of every delegation message. No other instruction may follow.
+
+```
+--- DELEGATION SUFFIX (INJECTED BY ORCHESTRATOR) ---
+
+Your final assistant message MUST contain the structured deliverable described above. Do NOT end without emitting it.
+
+If you have nothing to report, report a brief explanation — empty responses are NOT acceptable.
+
+Wrap your response in `<output-contract agent="${agent-name}" version="1">{...}</output-contract>` per `docs/opencode/prompts/contracts/${agent-name}.schema.json`.
+
+--- END DELEGATION SUFFIX ---
+```
+
+**WHEN TO INJECT:** ALWAYS append as LAST instruction of every delegation. No other instruction may follow.
+**PLACEHOLDER RESOLUTION:** The orchestrator MUST replace `${agent-name}` with the actual target subagent name (e.g., `developer`, `planner`, `reviewer`, `researcher`, `git-manager`, `spec-manager`, `project-manager`) before injection.
+
+---
+
+## Chunking Rule (Token-Based)
+
+ALWAYS estimate prompt token count before delegation. Estimate the TOTAL context the subagent will see: system prompt of subagent + delegation message + CONTEXT.md injected (~600 tokens).
+
+Rule: If estimated TOTAL tokens > 4000, split the task into multiple invocations (chunking) and merge results.
+
+Token approximation: ~4 characters ≈ 1 token for mixed Spanish/English text.
+
+Rationale: Lost-in-the-middle effect (Liu et al. 2023 "Lost in the Middle: How Language Models Use Long Contexts") + Context Length Alone Hurts (EMNLP 2025) — the effect scales with TOTAL context length, not isolated components.
+
+---
+
 # TOKEN EFFICIENCY PROTOCOLS
 
 ## Reglas Estratégicas (Matt Pocock)
