@@ -20,8 +20,8 @@
     "lint:fix": "eslint \"**/*.{js,jsx}\" --fix",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:unit": "vitest run --project=unit",
-    "test:integration": "vitest run --project=integration",
+    "test:unit": "vitest run \"src/**/*.unit.test.{js,jsx}\"",
+    "test:integration": "vitest run \"src/**/*.integration.test.{js,jsx}\" \"tests/**/*.integration.test.{js,jsx}\"",
     "test:changed": "vitest run --changed",
     "test:coverage": "vitest run --coverage"
   },
