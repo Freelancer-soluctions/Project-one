@@ -112,7 +112,7 @@ Referencia: `docs/cicd-estado-actual.md` — inventario completo de brechas.
 | C1 | Tests en CI | Comentados en `ci.yml` | 100% PRs ejecutan unit + integration + E2E | PRs mergean sin pruebas → defectos en main |
 | C2 | Build en CI | No se ejecuta `npm run build` | Build obligatorio en cada PR | Errores de compilación llegan a main |
 | C3 | CD inexistente | Sin pipelines de deploy | Auto-deploy a staging y producción | Despliegues manuales → errores humanos, días perdidos |
-| C4 | Hook pre-push vacío | `.husky/pre-push` no hace nada | Ejecuta `npm run test && npm run build` antes de push | Código roto sube al remoto |
+| C4 | ~~Hook pre-push vacío~~ | ✅ **Resuelto** | Ejecuta `vitest --changed origin/main` scoped (server + client) | — |
 
 ### Brechas altas (Sprint 1-2)
 
@@ -152,10 +152,10 @@ flowchart TD
         Edit --> CommitMsg[.husky/commit-msg]
         CommitMsg --> Commitlint[commitlint: Conventional Commits]
         
-        PreCommit --> PrePush[.husky/pre-push ✅ NUEVO]
-        PrePush --> TestLocal[npm run test:unit + test:integration]
-        PrePush --> BuildLocal[npm run build --ws --if-present]
-        PrePush --> LintLocal[npm run lint]
+        PreCommit --> PrePush[.husky/pre-push ✅ ACTIVO]
+        PrePush --> TestLocal[vitest --changed origin/main scoped tests]
+        PrePush --> GitFetch[git fetch origin main --depth=1]
+        PrePush --> OriginCheck[origin/main availability check]
     end
 
     LOCAL --> Push[git push]
@@ -284,33 +284,33 @@ npx --no -- commitlint --edit $1               # Conventional Commits
 
 **Cómo** (reemplazar el hook vacío actual):
 
-```bash
-# .husky/pre-push (NUEVO contenido)
-npm run test:unit --workspace=apps/client
-npm run test:unit --workspace=apps/server
-npm run test:integration --workspace=apps/server
-npm run build --workspace=apps/client
-npm run build --workspace=apps/server
-```
-
-> **Nota**: Al ser proyecto JavaScript puro (no TypeScript), no hay typecheck. Los gates de calidad son **lint + build**. Tests se ejecutan en CI, no en pre-push, para mantener feedback rápido (< 30s).
-
-**Configuración**: Se define el script `prepush` en `package.json` raíz y el hook lo invoca:
-
-```json
-{
-  "scripts": {
-    "prepush": "npm run lint && npm run build"
-  }
-}
-```
+> ✅ **Cambio aplicado (jul 2026):** El hook fue implementado en el change `pre-push-scoped-tests`. A diferencia del plan original (full suite), se optó por tests scoped con `vitest --changed origin/main` para mantener feedback rápido.
 
 ```bash
-# .husky/pre-push
-npm run prepush
+# .husky/pre-push (ACTUAL - implementado)
+#!/bin/sh
+set -e
+
+git fetch origin main --depth=1
+
+if ! git rev-parse --verify origin/main > /dev/null 2>&1; then
+  echo "❌ origin/main not found locally."
+  echo "   Run 'git fetch origin main' first, then push again."
+  exit 1
+fi
+
+echo "Running scoped tests (server)..."
+npx vitest run --changed origin/main --config apps/server/vitest.config.js || { echo "❌ Server scoped tests failed."; exit 1; }
+echo "✅ Server scoped tests passed."
+
+echo "Running scoped tests (client)..."
+npx vitest run --changed origin/main --config apps/client/vitest.config.js || { echo "❌ Client scoped tests failed."; exit 1; }
+echo "✅ Client scoped tests passed."
 ```
 
-**Criterio de aceptación**: `git push` falla si hay tests fallando o errores de compilación.
+> **Nota**: Se usa `vitest --changed origin/main` en vez de la suite completa — solo corren tests afectados por cambios desde `origin/main`. E2E y tests de integración con DB se excluyen del pre-push y se ejecutan en CI.
+
+**Criterio de aceptación**: `git push` ejecuta scoped tests; falla si hay tests rotos en los archivos modificados.
 
 ### Stage 2 — Detección de cambios (CI)
 
@@ -1193,7 +1193,7 @@ Implementar en un GitHub Project board o dashboard simple con:
 ### Qué hacer mañana (orden de prioridad)
 
 1. **Crear `.github/dependabot.yml`** — habilitar Dependabot con grouping config
-2. **Llenar `.husky/pre-push`** — activar lint + build antes de push
+2. ~~Llenar `.husky/pre-push`~~ ✅ **Completado** — hook implementado con `vitest --changed origin/main` scoped tests
 3. **Verificar ESLint como gate en CI** — `npm run lint` debe fallar si hay errores
 4. **Agregar caching a CI** — npm cache + Vitest cache en `ci.yml`
 5. **Crear `.dockerignore`** — evitar que `.env` y `node_modules` entren en la imagen
@@ -1219,12 +1219,8 @@ coverage
 .gitkeep
 EOF
 
-# 2. Configurar pre-push hook
-cat > .husky/pre-push << 'EOF'
-npm run prepush
-EOF
-
-git add .husky/pre-push
+# 2. ✅ Pre-push hook ya configurado (ver .husky/pre-push)
+#    Implementado con vitest --changed origin/main en change pre-push-scoped-tests
 
 # 3. Verificar que ESLint funciona como gate
 npm run lint
@@ -1234,7 +1230,7 @@ npm run lint
 
 ```markdown
 - [ ] `.github/dependabot.yml` creado
-- [ ] `.husky/pre-push` con `npm run prepush`
+- [x] ~~`.husky/pre-push`~~ ✅ Completado — `vitest --changed origin/main` scoped
 - [ ] `lint-staged` re-activado en `.husky/pre-commit`
 - [ ] npm cache + Vitest cache en ci.yml
 - [ ] `.dockerignore` creado

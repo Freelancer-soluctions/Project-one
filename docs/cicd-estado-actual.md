@@ -39,8 +39,8 @@ propensos a error (**CD**).
   código (estilo, formato, análisis de seguridad).
 - ⚠️ **Calidad pre-commit en el equipo del desarrollador: parcial.** Antes de confirmar
   un cambio, el git hook revisa secretos filtrados y aplica análisis estático, pero
-  el hook `pre-push` está vacío, por lo que antes de enviar los cambios al repositorio
-  remoto no se ejecutan pruebas ni construcción.
+  el hook `pre-push` ejecuta tests scoped con `vitest --changed origin/main`, enfocándose
+  solo en tests afectados por los cambios desde `origin/main`.
 - ❌ **Despliegue Continuo (CD): no implementado.** No existe ninguna pipeline que
   publique automáticamente el código en un servidor o en la nube. La infraestructura
   Docker del servidor está lista, pero no está conectada a la automatización.
@@ -92,7 +92,7 @@ las pruebas no corren en CI y no existe despliegue automático a ningún entorno
 | **Despliegue Continuo (CD)** | ❌ No implementada | No hay pipelines de publicación a ningún entorno. |
 | **Gates pre-commit** | ✅ Activos | Husky ejecuta Semgrep (SAST) + Gitleaks (secretos en staged). |
 | **Hook `commit-msg`** | ✅ Activo | commitlint valida Conventional Commits. |
-| **Gates pre-push** | ⚠️ Vacío | `.husky/pre-push` existe pero no ejecuta nada. |
+| **Gates pre-push** | ✅ Activo | `.husky/pre-push`: `vitest --changed origin/main` scoped tests (server + client) |
 | **Lint + Format en CI** | ✅ Activos | Workflow `quality.yml` reutilizable. |
 | **Tests en CI** | ❌ No ejecutados | Sección comentada en `ci.yml`. |
 | **Build en CI** | ❌ No ejecutado | No se corre `npm run build` en ningún workflow activo. |
@@ -124,9 +124,9 @@ Antes incluso de subir el código, cuando el desarrollador ejecuta `git commit`:
 3. **lint-staged** (configurado en `package.json`):
    - Aplica `prettier` (formato) y `eslint` (lint) a los archivos staged.
 
-> ⚠️ **Brecha:** El hook `.husky/pre-push` **está vacío**. Aunque el `package.json`
-> define el script `prepush` (que ejecuta `npm run test && npm run build`), este
-> script **no se está invocando automáticamente** antes de un `git push`.
+> ✅ **Actualizado (jul 2026):** El hook `.husky/pre-push` ahora ejecuta tests scoped
+> con `npx vitest run --changed origin/main` para los workspaces server y client,
+> reemplazando la suite completa por solo tests afectados desde `origin/main`.
 
 ### Etapa 1 — Apertura del Pull Request
 
@@ -254,7 +254,7 @@ conectados a CI/CD**:
 |---|---|---|---|
 | `pre-commit` | `.husky/pre-commit` | ✅ Activo | Semgrep SAST + Gitleaks en archivos staged |
 | `commit-msg` | `.husky/commit-msg` | ✅ Activo | commitlint (Conventional Commits) |
-| `pre-push` | `.husky/pre-push` | ⚠️ Vacío | No hace nada |
+| `pre-push` | `.husky/pre-push` | ✅ Activo | Scoped tests: `vitest --changed origin/main` (server + client) |
 
 ### Scripts relevantes de `package.json` (raíz)
 
@@ -268,7 +268,7 @@ conectados a CI/CD**:
 | `build` | `build --ws --if-present` | ❌ No |
 | `lint` | `eslint "apps/**/*.{js,jsx}"` | ✅ Sí (quality) |
 | `format:check` | `prettier --check "apps/**/*.{js,jsx,json,md}"` | ✅ Sí (quality) |
-| `prepush` | `npm run test && npm run build` | ❌ No (hook vacío) |
+| `prepush` | `npm run test && npm run build` | ❌ No (hook usa `vitest --changed` directo) |
 | `sast:semgrep` | PowerShell `scripts/security/semgrep-staged.ps1` | ✅ Local (pre-commit) |
 | `security:secrets` | `gitleaks protect --staged --verbose --redact` | ✅ Local (pre-commit) |
 | `changeset` / `version:packages` / `release` | Changesets | ✅ En release workflow |
@@ -287,8 +287,8 @@ flowchart TD
     Commit --> CommitMsg[.husky/commit-msg]
     CommitMsg --> Commitlint[commitlint valida Conventional Commits]
     PreCommit --> Push[git push]
-    Push --> PrePushVacio[.husky/pre-push VACÍO]
-    PrePushVacio --> PR[Abre Pull Request vs main]
+    Push --> PrePushScoped[.husky/pre-push: scoped tests]
+    PrePushScoped --> PR[Abre Pull Request vs main]
 
     PR --> CI[ci.yml se dispara]
     CI --> Detect[Detectar cambios client/server]
@@ -313,7 +313,7 @@ flowchart TD
     Manual --> DockerBuild[Build Docker manual]
     DockerBuild --> Deploy[Deploy manual a servidor/cloud]
 
-    style PrePushVacio fill:#ffe5b4,stroke:#d97706
+    style PrePushScoped fill:#bbf7d0,stroke:#16a34a
     style Typecheck fill:#ffe5b4,stroke:#d97706
     style GitleaksCI fill:#ffe5b4,stroke:#d97706
     style Manual fill:#ffcccc,stroke:#dc2626
@@ -352,8 +352,8 @@ ejecuta ninguna de ellas**. La documentación está en `docs/testing-architectur
 ### Impacto del gap
 
 - Los PR pueden mergeearse sin que corra una sola prueba → riesgo de defectos en `main`.
-- El script `prepush` (`npm run test && npm run build`) existe pero no se invoca →
-  los desarrolladores solo corren tests **si lo hacen a mano**.
+- El script `prepush` (`npm run test && npm run build`) existe pero el hook usa
+  `vitest --changed origin/main` directo → scoped, no suite completa.
 - No hay gate de coverage (umbral mínimo).
 
 ### Recomendaciones técnicas
@@ -363,7 +363,7 @@ ejecuta ninguna de ellas**. La documentación está en `docs/testing-architectur
    - `test:integration` — solo si `changes.server == 'true'` (requiere PostgreSQL service).
    - `test:e2e` — preferentemente en un job separado opcional.
 2. Agregar `build` como job obligatorio de CI.
-3. Activar el hook `pre-push` con `npm run prepush`.
+3. Activar el hook `pre-push`. ✅ **Completado** — hook usa `vitest --changed origin/main` directo (jul 2026).
 4. Agregar gate de coverage en Vitest (`coverage.thresholds`).
 
 ---
@@ -426,7 +426,7 @@ ejecuta ninguna de ellas**. La documentación está en `docs/testing-architectur
 | C1 | **No corren tests en CI** | PR puede mergeearse sin pruebas | Implementar job `test` en `ci.yml` (unit siempre, integration/e2e condicionales) |
 | C2 | **No corre `build` en CI** | Errores de compilación llegan a `main` | Agregar job `build` obligatorio en `ci.yml` |
 | C3 | **No existe CD** | Cada despliegue es manual | Diseñar workflow `deploy.yml` (staging + prod) usando el Dockerfile existente |
-| C4 | **Hook `pre-push` vacío** | Tests/build no corren antes de subir | Llenar `.husky/pre-push` con `npm run prepush` |
+| ~~C4~~ | ~~Hook pre-push vacío~~ | ✅ **Resuelto** — hook ejecuta `vitest --changed origin/main` (scoped) | — |
 
 ### 🟧 Altas (degradan madurez del pipeline)
 
@@ -540,7 +540,7 @@ ejecuta ninguna de ellas**. La documentación está en `docs/testing-architectur
 
 - `.husky/pre-commit` — Semgrep + Gitleaks en staged
 - `.husky/commit-msg` — commitlint
-- `.husky/pre-push` — **vacío**
+- `.husky/pre-push` — `vitest --changed origin/main` scoped tests (server + client)
 
 ### Infraestructura de despliegue del servidor (sin usar)
 
