@@ -1,15 +1,22 @@
 #!/bin/sh
 set -e
 
-echo "Running unit tests..."
-npm run test:unit
-echo "✅ Unit tests passed."
+# Fetch latest origin/main for accurate diff base
+echo "Fetching latest origin/main..."
+git fetch origin main --depth=1
 
-echo "Running integration tests..."
-npm run test:integration
-echo "✅ Integration tests passed."
+# Check origin/main availability (safety net if fetch fails)
+if ! git rev-parse --verify origin/main > /dev/null 2>&1; then
+  echo "❌ origin/main not found locally."
+  echo "   Run 'git fetch origin main' first, then push again."
+  echo "   (If this persists, check your remote configuration.)"
+  exit 1
+fi
 
-# echo "Building project..."
-# npm run build --workspace=apps/client
-# npm run build --workspace=apps/server
-# echo "✅ Build passed."
+echo "Running scoped tests (server)..."
+npx vitest run --changed origin/main --config apps/server/vitest.config.js || { echo "❌ Server scoped tests failed."; exit 1; }
+echo "✅ Server scoped tests passed."
+
+echo "Running scoped tests (client)..."
+npx vitest run --changed origin/main --config apps/client/vitest.config.js || { echo "❌ Client scoped tests failed."; exit 1; }
+echo "✅ Client scoped tests passed."

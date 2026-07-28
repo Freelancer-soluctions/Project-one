@@ -286,6 +286,40 @@ tests/
 
 ---
 
+## 7.5. Estrategia de Ejecución por Capas (Pre-commit / Pre-push / CI)
+
+Los tests se ejecutan en tres capas, cada una con un objetivo y presupuesto de tiempo distinto:
+
+| Capa | Objetivo | Timeout | Qué ejecuta |
+|------|----------|---------|-------------|
+| **Pre-commit** | Feedback inmediato en staged files | < 10s | ESLint + Prettier + type-check |
+| **Pre-push** | Validación rápida de cambios afectados | ~30s (límite SSH GitHub) | `vitest --changed origin/main` (scoped) |
+| **CI** | Validación completa del sistema | Ilimitado | Full unit + integration + E2E + coverage + security |
+
+### 7.5.1 Pre-commit
+Se ejecuta vía Husky `pre-commit` hook. Corre ESLint, Prettier y type-check **solo sobre staged files** (`lint-staged`). Tiempo esperado: < 10 segundos.
+
+### 7.5.2 Pre-push
+Se ejecuta vía Husky `pre-push` hook. Corre únicamente tests afectados por cambios desde `origin/main` usando `npx vitest run --changed origin/main`. El límite duro es ~30 segundos (timeout de SSH de GitHub).
+
+**Por qué `origin/main` como diff base:**
+- `HEAD~1` solo cubre el último commit — si una rama tiene múltiples commits, solo el último dispararía tests
+- `origin/main` cubre TODOS los commits de la rama desde el fork point
+- Es el estándar de la industria: Nx Affected, Turborepo `--filter`, y Vitest `--changed` usan `origin/main`
+- Compatible con TBD (Trunk-Based Development): branches cortas, pushes frecuentes
+
+**Excluidos de pre-push:**
+- Tests E2E (Playwright) — requieren browser binaries, lentos, pertenecen a CI
+- Tests de integración con DB (Prisma + Supertest) — requieren PostgreSQL, no disponible en hook
+
+### 7.5.3 CI
+Se ejecuta en GitHub Actions (o similar) ante cada push/PR. Corre la suite completa: unit + integration + E2E + coverage + security scans. Sin límite de tiempo artificial.
+
+### 7.5.4 Caching
+`vitest --changed` usa la cache de Vitest por defecto (`node_modules/.cache/vitest`). En CI, considerar `--reporter=blob` para fusionar reportes. En local, la cache acelera ejecuciones sucesivas.
+
+---
+
 ## 8. Organización de Tests: Enfoque Híbrido (Consenso 2025-2026)
 
 Backend adopta un **enfoque híbrido** para la organización de tests: unit tests **colocados** junto al código que prueban, integration tests **centralizados** en `tests/integration/`, E2E tests **top-level** en `e2e/`. Este es el consenso que emerged en la comunidad Node.js/TypeScript entre 2025 y 2026.
@@ -605,6 +639,9 @@ Se recomienda:
 | Usar `--workspaces --if-present` en scripts root | Auto-descubre workspaces, no requiere mantener lista manual |
 | Adoptar enfoque híbrido (unit colocado + integration centralizado) | Consenso industria 2025-2026 (NestJS, Kent C. Dodds, TypeScript TV). Unit tests junto al source → discovery + refactoring. Integration tests centralizados → cruzan módulos + DB setup. **Migración completada** — 161 unit tests movidos a `src/` |
 | Migración move-when-touched completada — 161 unit tests movidos a `src/` | Migración ejecutada en change `refactor-test-architecture`. Tests legados en `tests/unit/` migrados a ubicaciones coloadas en `src/`. Estrategia move-when-touched permanece para futuros cambios |
+| Three-tier hook strategy (pre-commit / pre-push / CI) | Pre-commit: lint + type-check en staged (<10s). Pre-push: scoped tests via `vitest --changed origin/main` (~30s). CI: full suite (sin límite) |
+| `origin/main` como diff base para scoped testing | `origin/main` cubre todos los commits de la rama, no solo el último (`HEAD~1`). Estándar industria (Nx, Turborepo, Vitest) |
+| E2E + DB-integration tests diferidos a CI | Requieren browser binaries (Playwright) y PostgreSQL — no disponibles en pre-push. CI provee infraestructura + caching + retry |
 
 ---
 
