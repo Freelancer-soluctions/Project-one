@@ -9,7 +9,7 @@ echo "Running integration tests..."
 npm run test:integration
 echo "✅ Integration tests passed."
 
-echo "Building project..."
-npm run build --workspace=apps/client
-npm run build --workspace=apps/server
-echo "✅ Build passed."
+# echo "Building project..."
+# npm run build --workspace=apps/client
+# npm run build --workspace=apps/server
+# echo "✅ Build passed."

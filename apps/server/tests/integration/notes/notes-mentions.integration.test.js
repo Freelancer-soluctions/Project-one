@@ -139,7 +139,11 @@ describe('Notes Mentions - API Route Structure', () => {
     // We can't easily import the routes due to middleware, 
     // but we can verify the file exists through fs
     const fs = await import('fs');
-    const routesPath = './src/modules/notes/routes.js';
+    const path = await import('path');
+    const url = await import('url');
+    const __filename = url.fileURLToPath(import.meta.url);
+    const __dirname = path.dirname(__filename);
+    const routesPath = path.resolve(__dirname, '../../../src/modules/notes/routes.js');
     
     expect(fs.existsSync(routesPath)).toBe(true);
   });

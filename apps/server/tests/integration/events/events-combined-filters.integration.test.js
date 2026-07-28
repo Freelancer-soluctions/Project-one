@@ -2,6 +2,10 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 
 // Mock DB to prevent PrismaClient hang — needs real PostgreSQL
 vi.mock('../../../src/config/db.js', () => ({ prisma: {}, Prisma: {} }));
+// Mock encryption to prevent AES_GCM_KEY env var error at module load time
+vi.mock('../../../src/utils/prisma/prisma-query.js', () => ({
+  decryptResults: (data) => data,
+}));
 
 import request from 'supertest';
 import app from '../../../src/app.js';
