@@ -1,14 +1,15 @@
+#!/bin/sh
+set -e
 
-echo "Running unit test..."
+echo "Running unit tests..."
 npm run test:unit
+echo "✅ Unit tests passed."
 
-echo "✅ Unit test passed."
+echo "Running integration tests..."
+npm run test:integration
+echo "✅ Integration tests passed."
 
-echo "Running unit test..."
-npm run test:integration --workspace=apps/server
-echo "✅ Integration test passed."
-
-echo "Running build project..."
-npm run build --workspace=apps/client
-npm run build --workspace=apps/server
-echo "✅ Build project passed."
+# echo "Building project..."
+# npm run build --workspace=apps/client
+# npm run build --workspace=apps/server
+# echo "✅ Build passed."

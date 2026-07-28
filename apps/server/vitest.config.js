@@ -1,16 +1,25 @@
-import { defineConfig } from 'vitest/config';
+import { defineConfig, mergeConfig } from 'vitest/config';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import sharedConfig from '../../vitest.shared.js';
 
-export default defineConfig({
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+export default defineConfig(mergeConfig(sharedConfig, {
   test: {
-    // Basic
+    root: __dirname,
     environment: 'node',
-    globals: true,
-    // exclude: ['./tests/bin/index.test.js'],
     coverage: {
-      provider: 'v8',
       reportsDirectory: './tests/coverage',
-      reporter: ['text', 'html'], // Puedes generar reportes en varios formatos
     },
     setupFiles: './tests/setupTest.js',
+    // Hybrid test organization (see docs/testing-architecture.md section 8):
+    //   - Colocated unit tests: src/<module>/*.unit.test.js (primary location)
+    //   - Integration tests grouped by module: tests/integration/<module>/*.integration.test.js
+    //   - Orphan tests: tests/orphans/ (describe.skip or describe.todo exceptions)
+    include: [
+      'src/**/*.unit.test.js',
+      'tests/integration/**/*.integration.test.js',
+    ],
   },
-});
+}));

@@ -31,6 +31,8 @@
 - **gh CLI / GitHub CLI**: Binary at `C:\Program Files\GitHub CLI\gh.exe` for GitHub operations (gists, issues, PRs). Installed via Chocolatey.
 - **gh-wrapper**: Shell script at `~/bin/gh` that forwards `gh` commands to `gh.exe`. Required because MSYS2/bash doesn't inherit Windows PATH.
 - **Gist Creation Workflow**: `gh gist create <files> --desc "..."` from bash via @git-manager. Creates secret gist by default; add `--public` for public.
+- **Subagent Silent Exit**: Subagent completes tool calls but emits no final assistant text message. Cause: prompt lacks explicit output-anchor at end of turn. Mitigation: append `ABSOLUTE REQUIREMENT: Your final message MUST contain <X>` as LAST prompt instruction. Empty responses NOT acceptable.
+- **Delegation Suffix Template**: Bloque de texto que el orchestrator inyecta como ÚLTIMA instrucción al delegar a un subagente. Contiene anchor de cierre, guard anti-vacío y referencia al schema del output contract. Previene Subagent Silent Exit al asegurar que las instrucciones de output estén al final del contexto (recency bias).
 
 ## GitHub CLI & Opencode Integration
 - **Auth**: `gh auth login` — stores token in Windows Credential Manager (not env vars).

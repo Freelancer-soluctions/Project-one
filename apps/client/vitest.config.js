@@ -1,44 +1,28 @@
-import { defineConfig } from 'vitest/config';
+import { defineConfig, mergeConfig } from 'vitest/config';
 import react from '@vitejs/plugin-react';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import sharedConfig from '../../vitest.shared.js';
 
-export default defineConfig({
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const srcPath = path.resolve(__dirname, './src');
+
+const baseProject = {
   plugins: [react()],
-
   resolve: {
     alias: {
-      '@': path.resolve(path.dirname(fileURLToPath(import.meta.url)), './src'),
+      '@': srcPath,
     },
   },
+};
+
+export default defineConfig(mergeConfig(sharedConfig, {
   test: {
-    // Permite usar: test() y expect()
-    globals: true,
-    // Simula navegador → necesario para React.
-    environment: 'jsdom',
-
-    // setupFiles run before each test file
-    // Punto central para:
-    // matchers globales
-    // mocks globales
-    // configuración base
-    setupFiles: ['./tests/setup/setupTest.js'],
-
-    // Evita errores al importar estilos (muy común en React).
+    root: __dirname,
     css: true,
-
-    // usa motor nativo (v8 → más rápido)
-    // excluye tests y config
     coverage: {
-      provider: 'v8',
-      reporter: ['text', 'html'],
       exclude: ['node_modules/', 'tests/', '**/*.config.js'],
     },
-
-    // Evita que Vitest escanee todo el repo (performance + control)
-    include: ['src/**/*.test.{js,jsx}', 'tests/**/*.test.{js,jsx}'],
-
-    // 🔥 optimización avanzada (docs vitest optimizer)
     deps: {
       optimizer: {
         web: {
@@ -46,5 +30,54 @@ export default defineConfig({
         },
       },
     },
+    projects: [
+      // Unit project — NO MSW, pure component/utility tests
+      {
+        ...baseProject,
+        test: {
+          name: 'unit',
+          root: __dirname,
+          globals: true,
+          include: [
+            'src/**/*.unit.test.{js,jsx}',
+            'src/**/*.ui.test.{js,jsx}',
+          ],
+          environment: 'jsdom',
+          css: true,
+          setupFiles: ['./tests/setup/setupTest.unit.js'],
+          deps: {
+            optimizer: {
+              web: {
+                include: ['@testing-library/react', '@testing-library/jest-dom'],
+              },
+            },
+          },
+        },
+      },
+      // Integration project — WITH MSW, i18n, longer timeout
+      {
+        ...baseProject,
+        test: {
+          name: 'integration',
+          root: __dirname,
+          globals: true,
+          include: [
+            'src/**/*.integration.test.{js,jsx}',
+            'tests/**/*.integration.test.{js,jsx}',
+          ],
+          environment: 'jsdom',
+          css: true,
+          setupFiles: ['./tests/setup/setupTest.js'],
+          testTimeout: 15000,
+          deps: {
+            optimizer: {
+              web: {
+                include: ['@testing-library/react', '@testing-library/jest-dom'],
+              },
+            },
+          },
+        },
+      },
+    ],
   },
-});
+}));

@@ -8,11 +8,11 @@ export default defineConfig({
   },
   webServer: [
     {
-      command: 'npm run dev --workspace=client',
+      command: 'npm run dev --workspace=client-react',
       port: 3000,
     },
     {
-      command: 'npm run dev --workspace=server',
+      command: 'npm run dev --workspace=server-express',
       port: 4000,
     },
   ],
