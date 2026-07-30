@@ -117,9 +117,9 @@ cp apps/client/.env.example apps/client/.env
 
 # 4. Database setup
 cd apps/server
-npx prisma generate
-npx prisma migrate dev
-npx prisma db seed
+npm exec prisma -- generate
+npm exec prisma -- migrate dev
+npm exec prisma -- db seed
 cd ../..
 
 # 5. Start development servers

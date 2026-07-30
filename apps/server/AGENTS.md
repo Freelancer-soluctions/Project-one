@@ -23,10 +23,10 @@ Prisma schema: `prisma/schema.prisma`
 
 ```bash
 # Generate Prisma client
-npx prisma generate
+npm exec prisma -- generate
 
 # Reset database
-npx prisma migrate reset
+npm exec prisma -- migrate reset
 ```
 
 ## Testing

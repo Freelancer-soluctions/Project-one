@@ -25,7 +25,7 @@ See root [docs/testing-architecture.md](../../docs/testing-architecture.md)
 
 ```bash
 # Single test
-npx vitest run src/components/Button.unit.test.jsx
+vitest run src/components/Button.unit.test.jsx
 ```
 
 ## Path Alias

@@ -6,9 +6,9 @@ Playwright E2E tests for the full application.
 
 ```bash
 npm run test                # Run Playwright tests
-npx playwright test        # Alternative
-npx playwright --ui        # Interactive UI mode
-npx playwright show-report  # View last report
+playwright test             # Alternative
+playwright --ui             # Interactive UI mode
+playwright show-report      # View last report
 ```
 
 ## Configuration
@@ -26,8 +26,8 @@ Tests go in `tests/` directory.
 
 ```bash
 # Run specific test file
-npx playwright test tests/example.spec.js
+playwright test tests/example.spec.js
 
 # Run with headed browser
-npx playwright test --headed
+playwright test --headed
 ```

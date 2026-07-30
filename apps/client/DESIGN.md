@@ -1039,9 +1039,9 @@ function Fallback({ error, resetErrorBoundary }) {
 ### 8.2 Setup
 
 ```bash
-npx vitest run                          # Tests unitarios
-npx vitest run --coverage               # Con cobertura
-npx vitest run src/components/Button.unit.test.jsx  # Test específico
+vitest run                          # Tests unitarios
+vitest run --coverage               # Con cobertura
+vitest run src/components/Button.unit.test.jsx  # Test específico
 ```
 
 ### 8.3 MSW Setup
@@ -1081,7 +1081,7 @@ Para añadir un nuevo color semántico:
 ### 9.3 Cómo Añadir un Nuevo Componente shadcn
 
 ```bash
-npx shadcn-ui@latest add button
+npm exec shadcn-ui@latest -- add button
 ```
 
 El componente se añade a `src/components/ui/` y puede personalizarse.
@@ -1163,7 +1163,7 @@ stories/
 
 ### 11.1 Añadir un Nuevo Componente UI
 
-1. Instalar vía shadcn CLI: `npx shadcn-ui@latest add <component>`
+1. Instalar vía shadcn CLI: `npm exec shadcn-ui@latest -- add <component>`
 2. Personalizar styles si necesario
 3. Añadir PropTypes
 4. Crear Storybook story en `src/stories/ui/`

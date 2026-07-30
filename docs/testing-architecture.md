@@ -645,7 +645,431 @@ Se recomienda:
 
 ---
 
-## 12. Resumen
+## 12. Smoke Testing
+
+Smoke tests (pruebas de humo) son validaciones rápidas de verificación post-deploy que confirman que los servicios críticos responden correctamente. No testean lógica de negocio profunda, solo confirman que la infraestructura y los endpoints esenciales están "vivos".
+
+### 12.1 Qué Son Smoke Tests
+
+- **Objetivo**: Verificación rápida (< 30s) de que el deploy no rompió la disponibilidad básica
+- **Alcance**: Health checks, conectividad DB, auth endpoints, 6 endpoints críticos del ERP
+- **Cuándo ejecutar**: Post-deploy (manual o en pipeline CI/CD), smoke test en staging/production
+- **No son**: Tests funcionales completos, ni tests de regresión, ni tests E2E
+
+### 12.2 Ubicación
+
+```
+apps/server/tests/smoke/
+  health.smoke.test.js        # Health check + métricas
+  database.smoke.test.js      # Conectividad Prisma/PostgreSQL
+  auth.smoke.test.js          # Signin / signup básicos
+  critical-endpoints.smoke.test.js  # 6 endpoints críticos ERP
+```
+
+Convención de nombres: `*.smoke.test.js` — permite filtrado fácil con `--testNamePattern` o glob patterns.
+
+### 12.3 Ejecución
+
+**Local / Manual (post-deploy):**
+```bash
+cd apps/server
+npm run test:smoke
+```
+
+**CI (pipeline post-deploy):**
+```bash
+npm run test:smoke:ci
+```
+
+**Configuración Vitest** (`apps/server/vitest.smoke.config.js`):
+- `testTimeout: 15000` (timeout estricto para feedback rápido)
+- `pool: 'forks'` con `singleFork: true` (evita fork overhead en CI)
+- `include: ['tests/smoke/**/*.smoke.test.js']` (solo smoke tests)
+- `reporters: ['default', 'hanging-process']` (diagnóstico de hangs)
+
+### 12.4 APIs Cubiertas
+
+| Categoría | Endpoints | Justificación |
+|-----------|-----------|---------------|
+| **Health / Metrics** | `GET /health`, `GET /metrics` | Infraestructura viva, Prometheus scrape |
+| **Database** | `GET /health/db` (Prisma `$queryRaw`) | Conectividad PostgreSQL real |
+| **Auth** | `POST /api/auth/signin`, `POST /api/auth/signup` | Puerta de entrada del sistema |
+| **Endpoints Críticos ERP (6)** | `GET /api/sales`, `GET /api/payroll`, `GET /api/purchases`, `GET /api/client-orders`, `GET /api/users`, `GET /api/products` | Módulos que mueven dinero o usuarios |
+
+> **Nota**: Los 6 endpoints críticos corresponden a los módulos de prioridad CRÍTICA definidos en Sección 14.
+
+### 12.5 Integración CI
+
+En GitHub Actions (post-deploy job):
+```yaml
+- name: Smoke Tests
+  run: npm run test:smoke:ci
+  env:
+    DATABASE_URL: ${{ secrets.DATABASE_URL }}
+    JWT_SECRET: ${{ secrets.JWT_SECRET }}
+```
+
+Timeout estricto: 60s máximo (fallo rápido si el deploy está roto).
+
+---
+
+## 13. Regression Testing
+
+Regression testing es la suite que protege contra regresiones en módulos core. Combina unit + integration tests de los módulos críticos y se ejecuta automáticamente en pre-push y CI.
+
+### 13.1 Qué Es la Regression Suite
+
+- **Composición**: Unit tests + Integration tests de módulos CRÍTICOS y ALTO (ver Sección 14)
+- **Alcance**: ~70% de la suite total (excluye módulos NORMAL y tests E2E)
+- **Objetivo**: Detectar breaking changes en lógica de negocio core antes de merge
+
+### 13.2 Ejecución
+
+**Comando unificado (root):**
+```bash
+npm run test:regression
+```
+
+**Qué ejecuta internamente:**
+```bash
+# Server: unit + integration de módulos críticos/alto
+cd apps/server && vitest run --config vitest.regression.config.js
+
+# Client: unit + integration de módulos críticos/alto
+cd apps/client && vitest run --config vitest.regression.config.js
+```
+
+**Configuración Vitest** (`vitest.regression.config.js` en cada workspace):
+- `include`: patterns que cubren solo módulos críticos/alto
+- `exclude`: módulos NORMAL, tests E2E, smoke tests
+- `testTimeout: 30000`, `hookTimeout: 15000`
+
+### 13.3 Integración lint-staged (Pre-commit)
+
+`lint-staged` **NO ejecuta tests de regresión** en pre-commit (muy lento para <10s). Solo corre:
+- ESLint + Prettier (staged files)
+- Type-check (staged files)
+
+### 13.4 Integración Husky Pre-push Hook
+
+El hook `pre-push` (`.husky/pre-push`) ejecuta la regression suite **scoped a cambios**:
+
+```bash
+# En .husky/pre-push
+vitest run --changed origin/main --config vitest.regression.config.js
+```
+
+- **Base diff**: `origin/main` (cubre TODOS los commits de la rama, no solo HEAD~1)
+- **Timeout**: ~30s (límite SSH GitHub)
+- **Excluidos**: E2E tests, smoke tests, integración con DB real
+
+> **Por qué no en pre-commit**: La suite de regresión tarda ~15-45s. Pre-commit debe ser <10s para no bloquear flujo de trabajo.
+
+### 13.5 Módulos Críticos Cubiertos
+
+| Prioridad | Módulos | Tests Incluidos |
+|-----------|---------|-----------------|
+| **CRÍTICO** | sale, payroll, purchase, clientOrder, users | Unit + Integration |
+| **ALTO** | inventoryMovement, stock, products, employees, attendance, vacation, permission | Unit + Integration |
+| **NORMAL** | news, notes, events, settings, clients, providers | **Excluidos** de regression suite |
+
+---
+
+## 14. Priority Testing (Módulos ERP)
+
+La priorización de testing sigue el principio de **riesgo de negocio**: módulos que mueven dinero o gestionan identidad tienen prioridad máxima. Recursos limitados → máximo impacto.
+
+### 14.1 Tabla de Prioridades (3 Niveles)
+
+| Prioridad | Módulos | Justificación (Riesgo) |
+|-----------|---------|------------------------|
+| **CRÍTICO** 🔴 | `sale`, `payroll`, `purchase`, `clientOrder`, `users` | **Dinero + Identidad**: Transacciones financieras directas, nómina, compras, pedidos clientes, autenticación/autorización. Fallo = pérdida económica, legal, o breach seguridad. |
+| **ALTO** 🟠 | `inventoryMovement`, `stock`, `products`, `employees`, `attendance`, `vacation`, `permission` | **Negocio core**: Operaciones diarias del ERP. Fallo = parálisis operativa, datos inconsistentes, compliance laboral. |
+| **NORMAL** 🟢 | `news`, `notes`, `events`, `settings`, `clients`, `providers` | **Soporte / Auxiliar**: Funcionalidad secundaria. Fallo = degradación UX, no bloqueo crítico. |
+
+### 14.2 Justificación por Riesgo (Design Decision D4)
+
+**CRÍTICO (Dinero/Identidad)**:
+- **sale / clientOrder**: Facturación, revenue recognition, impuestos. Error = multas, pérdida confianza cliente.
+- **payroll**: Nómina, seguridad social, contratos. Error = demandas laborales, multas gubernamentales.
+- **purchase**: Cuentas por pagar, inventario valuado. Error = desbalance financiero, auditoría.
+- **users**: AuthN/AuthZ, roles, permisos. Error = escalada privilegios, data breach.
+
+**ALTO (Negocio Core)**:
+- **inventoryMovement / stock / products**: Trazabilidad inventario, costo promedio, stockouts. Error = rupture stock, valuación errónea.
+- **employees / attendance / vacation / permission**: RRHH core, compliance laboral, liquidaciones. Error = incumplimiento legal, conflictos internos.
+
+**NORMAL (Soporte)**:
+- **news / notes / events**: Comunicación interna, no bloquea operación.
+- **settings**: Configuración, cambios infrecuentes.
+- **clients / providers**: Maestros de datos — importantes pero no transaccionales en tiempo real.
+
+### 14.3 Implicaciones Prácticas
+
+| Acción | CRÍTICO | ALTO | NORMAL |
+|--------|---------|------|--------|
+| **Coverage target** | ≥80% | ≥60% | Best effort |
+| **Regression suite** | ✅ Incluido | ✅ Incluido | ❌ Excluido |
+| **E2E tests** | 2-3 flows | 1-2 flows | 0-1 flow |
+| **Code review** | Obligatorio 2 aprobaciones | 1 aprobación | 1 aprobación |
+| **Deploy gate** | Smoke test obligatorio | Smoke test | Solo CI |
+
+### 14.4 Evolución de Prioridades
+
+- Revisar trimestralmente en planning
+- Cambios de negocio (nuevo módulo financiero → CRÍTICO)
+- Incidents post-mortem pueden elevar prioridad
+- Documentar cambios en este archivo (historial de decisiones)
+
+---
+
+## 15. E2E Setup Guide (Playwright)
+
+Guía completa para ejecutar, mantener y extender la suite E2E con Playwright.
+
+### 15.1 Stack
+
+| Componente | Versión | Propósito |
+|------------|---------|-----------|
+| **Playwright Test** | ^1.40+ | Test runner, parallelización, reporters |
+| **Playwright Core** | ^1.40+ | Browser automation (Chromium, Firefox, WebKit) |
+| **@playwright/test** | ^1.40+ | Test framework con fixtures, assertions |
+
+### 15.2 Estructura de Tests
+
+```
+e2e/
+  tests/
+    specs/
+      auth/
+        login.spec.js
+        logout.spec.js
+      dashboard/
+        dashboard.spec.js
+      users/
+        users-crud.spec.js
+      sales/
+        sales-view.spec.js
+    page-objects/
+      LoginPage.js
+      DashboardPage.js
+      UsersPage.js
+      SalesPage.js
+      BasePage.js
+    fixtures/
+      users.fixture.js
+      test-data.js
+  playwright.config.js
+  package.json
+```
+
+### 15.3 Configuración (`e2e/playwright.config.js`)
+
+```javascript
+export default defineConfig({
+  testDir: './tests/specs',
+  fullyParallel: true,
+  forbidOnly: !!process.env.CI,
+  retries: process.env.CI ? 2 : 0,
+  workers: process.env.CI ? 1 : undefined,
+  reporter: 'html',
+  use: {
+    baseURL: process.env.E2E_BASE_URL || 'http://localhost:5173',
+    trace: 'on-first-retry',
+    screenshot: 'only-on-failure',
+  },
+  webServer: {
+    command: 'npm run dev',
+    url: 'http://localhost:5173',
+    reuseExistingServer: !process.env.CI,
+    timeout: 120000,
+  },
+  projects: [
+    { name: 'chromium', use: { ...devices['Desktop Chrome'] } },
+    { name: 'firefox', use: { ...devices['Desktop Firefox'] } },
+    { name: 'webkit', use: { ...devices['Desktop Safari'] } },
+  ],
+});
+```
+
+**Puntos clave:**
+- `baseURL`: Apunta al frontend Vite dev server (puerto 5173)
+- `webServer`: Levanta `npm run dev` (client + server concurrentemente via concurrently)
+- `reuseExistingServer`: En local reusa server corriendo; en CI siempre levanta fresco
+- `projects`: Multi-browser (Chromium, Firefox, WebKit)
+
+### 15.4 Page Object Model (Patrón)
+
+Cada página/flujo tiene su Page Object en `e2e/tests/page-objects/`:
+
+```javascript
+// e2e/tests/page-objects/LoginPage.js
+export class LoginPage {
+  constructor(page) {
+    this.page = page;
+    this.emailInput = page.locator('[data-testid="email-input"]');
+    this.passwordInput = page.locator('[data-testid="password-input"]');
+    this.submitButton = page.locator('[data-testid="login-submit"]');
+    this.errorMessage = page.locator('[data-testid="login-error"]');
+  }
+
+  async goto() {
+    await this.page.goto('/login');
+  }
+
+  async login(email, password) {
+    await this.emailInput.fill(email);
+    await this.passwordInput.fill(password);
+    await this.submitButton.click();
+  }
+}
+```
+
+**Beneficios:**
+- Encapsula selectores y acciones
+- Tests legibles: `await loginPage.login('user@test.com', 'pass')`
+- Mantenimiento centralizado cuando UI cambia
+- Reutilizable across tests
+
+### 15.5 Ejecución
+
+**Local (con dev server):**
+```bash
+cd e2e
+npm run test:e2e
+```
+
+**CI (headless, multi-browser):**
+```bash
+cd e2e
+npm run test:e2e:ci
+```
+
+**Debug (headed, slow motion):**
+```bash
+cd e2e
+npm run test:e2e:debug
+```
+
+**Solo Chromium (rápido):**
+```bash
+cd e2e
+npm run test:e2e -- --project=chromium
+```
+
+### 15.6 Cobertura Actual (Implementada)
+
+| Test | Archivo | Estado | Qué Valida |
+|------|---------|--------|------------|
+| Login | `auth/login.spec.js` | ✅ | Login exitoso, redirect a dashboard, error handling |
+| Logout | `auth/logout.spec.js` | ✅ | Logout limpia session, redirect a login |
+| Dashboard | `dashboard/dashboard.spec.js` | ✅ | Carga widgets, navegación lateral, user menu |
+| Users CRUD | `users/users-crud.spec.js` | ✅ | Listar, crear, editar, eliminar usuarios |
+| Sales View | `sales/sales-view.spec.js` | ✅ | Listar ventas, filtros, paginación, detalle |
+
+### 15.7 Tests Skipeados y Por Qué
+
+| Test | Motivo Skip | Qué Requiere |
+|------|-------------|--------------|
+| `payroll-flow.spec.js` | `test.skip` | Datos nómina complejos (contratos, convenios, deducciones) — requiere seed DB específico |
+| `inventory-movement.spec.js` | `test.skip` | Movimientos stock requieren productos, almacenes, lotes pre-creados |
+| `purchase-order.spec.js` | `test.skip` | Flujo compra: proveedor + productos + aprobaciones — setup DB pesado |
+
+**Patrón recomendado para habilitar:**
+1. Crear fixtures/seed scripts en `e2e/tests/fixtures/`
+2. Usar `test.beforeAll` para setup DB via API o Prisma seed
+3. Marcar como `test.skip` hasta que fixtures estén listos
+4. Documentar dependencias en el archivo de test
+
+---
+
+## 16. Coverage Targets
+
+Metas de cobertura diferenciadas por criticidad del módulo. No existe un target único global — forzar 80% en todo el código genera tests de bajo valor en código trivial.
+
+### 16.1 Targets por Prioridad
+
+| Prioridad | Módulos | Coverage Target | Justificación |
+|-----------|---------|-----------------|---------------|
+| **CRÍTICO** | sale, payroll, purchase, clientOrder, users | **≥ 80%** | Dinero + identidad. Bugs = impacto financiero/legal directo. |
+| **ALTO** | inventoryMovement, stock, products, employees, attendance, vacation, permission | **≥ 60%** | Negocio core. Bugs = parálisis operativa, datos inconsistentes. |
+| **NORMAL** | news, notes, events, settings, clients, providers | **Best effort** (sin target obligatorio) | Soporte. Tests de valor, no métrica. |
+
+### 16.2 Cómo Medir Coverage
+
+**Comando unificado (root):**
+```bash
+npm run test:coverage
+```
+
+**Qué ejecuta:**
+```bash
+# Server
+cd apps/server && vitest run --coverage
+
+# Client
+cd apps/client && vitest run --coverage
+```
+
+**Reporte:** Genera `coverage/index.html` en cada workspace. Abrir en browser para análisis por archivo.
+
+### 16.3 Configuración Vitest Coverage v8 (`vitest.shared.js`)
+
+```javascript
+// apps/server/vitest.shared.js (compartido)
+export const coverageConfig = {
+  provider: 'v8',
+  reporter: ['text', 'json', 'html', 'lcov'],
+  reportsDirectory: './coverage',
+  exclude: [
+    'node_modules/**',
+    'tests/**',              // Tests no se miden a sí mismos
+    '**/*.test.js',          // Archivos de test
+    '**/*.spec.js',
+    '**/*.smoke.test.js',    // Smoke tests excluidos
+    '**/vitest.*.js',        // Config files
+    '**/prisma/**',          // Generated Prisma client
+    '**/migrations/**',      // DB migrations
+    'dist/**',               // Build output
+    '**/*.d.ts',             // Type definitions
+  ],
+  thresholds: {
+    // Thresholds globales (warning only, no fail build)
+    lines: 50,
+    functions: 50,
+    branches: 40,
+    statements: 50,
+  },
+};
+```
+
+**Nota**: Los thresholds globales son bajos intencionalmente — la métrica real se valida **por módulo** en code review usando la tabla de la Sección 16.1. El coverage global puede ser bajo por módulos NORMAL sin que falle CI.
+
+### 16.4 Exclusiones Estándar
+
+| Patrón | Razón |
+|--------|-------|
+| `node_modules/**` | Dependencias externas |
+| `tests/**` | Tests no se testean a sí mismos |
+| `**/*.test.js`, `**/*.spec.js` | Archivos de test |
+| `**/*.smoke.test.js` | Smoke tests (no testean lógica) |
+| `**/vitest.*.js` | Config files |
+| `**/prisma/**` | Generated client |
+| `**/migrations/**` | SQL migrations |
+| `dist/**` | Build output |
+| `**/*.d.ts` | Type definitions |
+
+### 16.5 Validación en Code Review
+
+En PR que toque módulos CRÍTICOS/ALTO:
+1. Revisar `npm run test:coverage` output
+2. Verificar que archivos modificados en módulos críticos cumplan ≥80% / ≥60%
+3. Si no: requerir tests adicionales antes de merge
+4. Módulos NORMAL: sin bloqueo, solo recomendación
+
+---
+
+## 17. Resumen
 
 La arquitectura de testing:
 
@@ -655,3 +1079,234 @@ La arquitectura de testing:
 * Facilita pipelines eficientes
 
 No está diseñada alrededor de herramientas, sino de validación del sistema.
+
+---
+
+## 18. Cross-Platform Considerations (Windows / Linux / macOS)
+
+Esta sección documenta los problemas de compatibilidad multiplataforma encontrados y las soluciones adoptadas para garantizar que la suite de testing funcione consistentemente en Windows (Git Bash/MSYS2), Linux y macOS.
+
+### 18.1 Windows Spawn Loop Issue con `npx`
+
+**Problema:** En Windows con Git Bash (MSYS2), `npx` invoca un shim `.cmd` que no propaga correctamente `EOF`/`SIGTERM`, causando procesos colgados (spawn loop) que no terminan — visible en Task Manager como múltiples procesos `node.exe` huérfanos tras ejecutar `npm run test`.
+
+**Referencias:**
+- [npm/cli#8259](https://github.com/npm/cli/issues/8259) — `npx` no propaga señales en Windows
+- [nodejs/node#52681](https://github.com/nodejs/node/issues/52681) — Child process handling en Windows
+
+**Solución adoptada (D5, D12):** Eliminar `npx` de **todos** los scripts npm. Usar bins directos resolvidos por npm automáticamente desde `node_modules/.bin/`:
+```json
+// ❌ MALO - causa spawn loop en Windows
+"test": "npx vitest run"
+
+// ✅ BUENO - bin directo, npm resuelve PATH
+"test": "vitest run"
+```
+
+**Aplicado a:**
+- Root `package.json`: todos los scripts `test*`, `lint`, `format`, `build`
+- Workspace `package.json` (server, client): scripts internos
+- `.husky/pre-push`: reemplazado `npx vitest` → `vitest`
+- `.husky/commit-msg`: reemplazado `npx --no-install commitlint` → `commitlint`
+
+### 18.2 Patrón de Delegación a Workspaces (`--workspaces --if-present`)
+
+**Problema:** Scripts root que invocan `npx vitest --config apps/X/vitest.config.js` ejecutan desde CWD incorrecto, rompen resolución de paths y añaden proceso intermediario. Adicionalmente, scripts root que encadenan workspaces con `&&` (ej. `npm run X --workspace=A && npm run X --workspace=B`) causan spawn loops en Windows: npm envuelve el `&&` en `cmd.exe /d /s /c`, perdiendo PATH y propagación de EOF (ver npm/cli#8259, npm/cli#7768).
+
+**Solución (D6 + corrección Windows):** Usar `--workspaces --if-present` para delegar a todos los workspaces, o `concurrently -m 1 --kill-others-on-fail` para cadenas secuenciales:
+```json
+// ✅ Multi-workspace — npm maneja iteración internamente, sin cmd.exe wrapper
+"test:unit": "npm run test:unit --workspaces --if-present"
+
+// ✅ Single workspace — sin &&, sin wrapper
+"test:e2e": "npm run test --workspace=e2e"
+
+// ✅ Cadena secuencial (fail-fast) — concurrently usa spawn, no cmd.exe
+"test": "concurrently -m 1 --kill-others-on-fail -n unit,integration,e2e -c cyan,yellow,green \"npm run test:unit\" \"npm run test:integration\" \"npm run test:e2e\""
+```
+
+**Anti-patrón (NO USAR en Windows):**
+```json
+// ❌ && con --workspace causa spawn loop en Windows
+"test:unit": "npm run test:unit --workspace=server-express && npm run test:unit --workspace=client-react"
+
+// ❌ && en script raíz causa cmd.exe wrapper que pierde PATH
+"test": "npm run test:unit && npm run test:integration && npm run test:e2e"
+```
+
+**Ventajas:**
+- CWD correcto automáticamente
+- Hereda `.npmrc` y config del workspace
+- Sin proceso `npx` intermediario
+- `--workspaces --if-present` auto-descubre workspaces
+- Sin `cmd.exe /d /s /c` wrapper (elimina spawn loop en Windows)
+- `concurrently -m 1` preserva fail-fast sin shell metacharacters
+
+### 18.3 `hanging-process` Reporter para Diagnóstico
+
+**Configuración (D8):** Agregar reporter `hanging-process` en `vitest.config.js`:
+```javascript
+reporters: ['default', 'hanging-process']
+```
+**Uso:** Cuando vitest no termina, este reporter imprime handles abiertos (timers, connections, file handles) para identificar la causa raíz.
+
+### 18.4 Pool Forks + `singleFork` Condicional (CI-only)
+
+**Configuración (D7):** En `apps/server/vitest.config.js`:
+```javascript
+pool: 'forks',
+poolOptions: {
+  forks: {
+    singleFork: process.env.CI === 'true'
+  }
+}
+```
+- **Dev local:** Paralelismo completo (múltiples forks) → velocidad
+- **CI (Windows GitHub Actions):** `singleFork: true` → un solo proceso hijo → evita agotamiento de recursos / spawn issues en runners Windows
+
+### 18.5 Husky Hooks sin `npx` (D12)
+
+**Antes (problemático):**
+```sh
+# .husky/pre-push
+npx vitest run --changed origin/main --config apps/server/vitest.config.js
+npx --no-install commitlint --edit "$1"
+```
+
+**Después (corregido):**
+```sh
+# .husky/pre-push
+vitest run --changed origin/main
+# .husky/commit-msg
+commitlint --edit "$1"
+```
+
+**Principio:** Husky 9.x ya expone bins en PATH. `npx` es redundante y dañino en Windows.
+
+### 18.6 Timeouts Globales Explícitos (D11)
+
+**Configuración en `vitest.shared.js`:**
+```javascript
+testTimeout: 30000,
+hookTimeout: 15000,
+teardownTimeout: 5000
+```
+Previene tests colgados indefinidamente. Fail-fast principle.
+
+### 18.7 Script de Diagnóstico: `npm run test:debug`
+
+**Root `package.json`:**
+```json
+"test:debug": "node --import why-is-node-running/include node_modules/vitest/vitest.mjs run --config apps/server/vitest.config.js"
+```
+
+**Uso:** Cuando los tests no terminan, ejecutar `npm run test:debug` para ver qué handles mantienen el proceso vivo.
+
+**Dependencia:** `why-is-node-running` agregado como `devDependency` formal en `apps/server/package.json` y `apps/client/package.json` (D10) — no depender de copias en `docs/opencode/.../node_modules/`.
+
+### 18.8 Resumen de Patrones Cross-Platform
+
+| Patrón | Windows (Git Bash) | Linux/macOS | Recomendación |
+|--------|-------------------|-------------|---------------|
+| `npx cmd` | ❌ Spawn loop | ✅ Funciona | **Nunca usar `npx` en scripts** |
+| `npm run X --workspace=Y` | ✅ Correcto | ✅ Correcto | **Patrón estándar** |
+| `concurrently` | ✅ Funciona | ✅ Funciona | Usar para paralelismo CI (`test:all`) |
+| `&&` en scripts | ✅ Funciona | ✅ Funciona | OK para fail-fast (prepush) |
+| `vitest` (bin directo) | ✅ Correcto | ✅ Correcto | **Siempre preferir a `npx vitest`** |
+| `#!/usr/bin/env sh` shebang | ✅ Git Bash | ✅ Bash/Zsh | **Hooks husky portables** |
+
+### 18.9 Checklist de Validación Cross-Platform
+
+Antes de mergear cambios a testing:
+- [ ] Ningún script en `package.json` usa `npx`
+- [ ] Scripts root delegan con `--workspace=`
+- [ ] Hooks `.husky/*` usan bins directos (`vitest`, `commitlint`, etc.)
+- [ ] `vitest.config.js` tiene `pool: 'forks'` + `singleFork: CI === 'true'`
+- [ ] `reporters: ['default', 'hanging-process']` presente
+- [ ] Timeouts globales configurados en `vitest.shared.js`
+- [ ] `why-is-node-running` en `devDependencies` de workspaces
+- [ ] `npm run test` termina limpio en Windows (sin procesos huérfanos en Task Manager)
+
+---
+
+## 19. Diagnóstico de Tests Colgados (npm run test:debug)
+
+Esta sección documenta cómo diagnosticar tests que **cuelgan** (no terminan, no fallan, no pasan — el proceso se queda vivo indefinidamente).
+
+### 19.1 Qué es `npm run test:debug`
+
+`test:debug` es un script de diagnóstico que utiliza `why-is-node-running` para imprimir todos los handles abiertos (timers, sockets, conexiones de base de datos, file handles, etc.) que mantienen el proceso de Node.js vivo después de que los tests deberían haber terminado.
+
+**Cuándo usarlo:**
+- Tests que no terminan (hang) tras ejecutar `npm run test`
+- Procesos huérfanos visibles en Task Manager (Windows) o `ps aux` (Linux/macOS)
+- Cuando el reporter `hanging-process` no da suficiente detalle
+
+**Cuándo NO usarlo:**
+- Tests que **fallan** (assertions rotas, errores de código) — usa `npm run test` normal
+- Tests que **pasan** pero son lentos — usa `--reporter=verbose` para ver tiempo por test
+- Debugging de lógica de negocio — usa `console.log` o debugger de VS Code
+
+### 19.2 Cómo Funciona
+
+El script en `package.json` (root):
+
+```json
+"test:debug": "node --import why-is-node-running/include node_modules/vitest/vitest.mjs run --config apps/server/vitest.config.js"
+```
+
+Ejecuta Vitest con el módulo `why-is-node-running` importado via `--import`. Este módulo se engancha en el event loop de Node y, al finalizar (o al recibir SIGINT), imprime una lista de todos los handles abiertos con sus stack traces.
+
+### 19.3 Ejemplo de Comando
+
+```bash
+# Desde root del monorepo
+npm run test:debug
+```
+
+> **Nota**: El script actual apunta a `apps/server/vitest.config.js`. Para diagnosticar tests del client, crear un script variante o editar temporalmente el config path.
+
+### 19.4 Ejemplo de Output
+
+```
+[why-is-node-running] Open handles preventing exit:
+──────────────────────────────────────────────────────
+Timer (setTimeout)
+    at setTimeout (<anonymous>)
+    at Function.setTimeout (node:timers:423:14)
+    at PrismaClient.connect (node_modules/@prisma/client/runtime/library.js:1:12345)
+    at Object.<anonymous> (apps/server/src/modules/users/service.js:45:12)
+
+TCPWRAP (socket)
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1456:10)
+    at Socket.connect (node:net:1024:12)
+    at Pool.connect (node_modules/pg-pool/index.js:45:18)
+    at PrismaClient._connect (node_modules/@prisma/client/runtime/library.js:1:67890)
+
+[why-is-node-running] Total: 2 handles
+```
+
+### 19.5 Cómo Interpretar el Output
+
+| Tipo de Handle | Qué Indica | Acción Típica |
+|----------------|------------|---------------|
+| **Timer (setTimeout/setInterval)** | Timer no limpiado en `afterAll` / `afterEach` | Agregar `vi.useFakeTimers()` o limpiar en teardown |
+| **TCPWRAP / Socket** | Conexión DB (Prisma/PostgreSQL) no cerrada | Llamar `await prisma.$disconnect()` en `afterAll` |
+| **TCPWRAP (HTTP)** | Servidor Express no cerrado | `await app.close()` o `server.close()` en teardown |
+| **FSReqCallback** | File handle abierto (logs, uploads) | Cerrar streams, usar `await fileHandle.close()` |
+| **Immediate** | `setImmediate` no limpiado | Raro — revisar librerías terceras |
+
+**Patrón común en este proyecto:** Prisma Client mantiene pool de conexiones. Asegurar `afterAll(async () => { await prisma.$disconnect() })` en tests de integración.
+
+### 19.6 Limitaciones
+
+- **No identifica el handle exacto que causa el hang** — lista **todos** los handles abiertos al momento de la impresión. Debes correlacionar con tu código.
+- **Solo funciona si el proceso termina** — si el hang es un deadlock total, `why-is-node-running` puede no imprimir nada (el event loop nunca llega al checkpoint).
+- **Requiere reproducción local** — algunos hangs solo ocurren en CI (diferentes recursos, límites de procesos).
+- **Output verbose** — en suites grandes puede listar decenas de handles; filtrar por stack trace de tu código (`apps/server/src/`, `apps/client/src/`).
+
+### 19.7 Referencia Externa
+
+- Documentación oficial: https://github.com/nuxt/why-is-node-running
+- Issue relacionado en este repo: Cross-Platform Considerations §18.7
+
