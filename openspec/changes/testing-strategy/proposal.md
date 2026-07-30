@@ -30,3 +30,11 @@ Un ERP empresarial requiere una estrategia de testing robusta para garantizar la
 - **e2e/**: Nuevo directorio de tests Playwright
 - **docs/**: Actualización de testing-architecture.md
 - **package.json**: Scripts de smoke y regression testing
+
+## Windows Spawn Loop Bug (Adicional)
+
+Adicionalmente, se detectó un bug crítico en Windows: el uso de `npx vitest`/`npx playwright` en los scripts npm del root genera un spawn infinito de procesos `cmd.exe` (shim de npx en Windows) y `node.exe` (forks de Vitest 4.x). Esto causa alto consumo de CPU/RAM y la ejecución nunca termina cleanly. La causa raíz es que `npx` en Windows es un `.cmd` shim que crea una cadena `bash.exe → cmd.exe → node.exe` donde `cmd.exe` no propaga EOF al proceso padre. Esto está confirmado por npm/cli#8259, nodejs/node#52681 (CVE-2024-27980), y anthropics/claude-code#62165.
+
+### Additional Capability
+
+- `test-runner-windows-compat`: Refactor de scripts npm del root para eliminar `npx`, delegar via `--workspace=X`, agregar `hanging-process` reporter, configurar pool explícito. Garantiza ejecución estable en Windows sin spawn loop.
