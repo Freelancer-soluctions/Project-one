@@ -1,26 +1,35 @@
-# echo "Running lint-staged..."
-# npx lint-staged
+#!/usr/bin/env sh
+# Pre-commit hook: SAST + Secrets + Regression tests (all in parallel)
 
-echo "Running SAST scan with Semgrep..."
-npm run sast:semgrep
+set -e
 
-echo "✅ Sast scan passed."
+echo "🔍 Running pre-commit checks in parallel..."
 
-echo "🔐 Running secret detection with Gitleaks..."
-# Mensaje informativo para el desarrollador
+# Start SAST scan in background
+echo "🔬 Starting SAST scan..."
+npm run sast:semgrep &
+SAST_PID=$!
 
-npm run security:secrets
-# Ejecuta el script definido en package.json que ejecuta gitleaks
+# Start secret detection in background
+echo "🔐 Starting secret detection..."
+npm run security:secrets &
+SECRETS_PID=$!
 
-RESULT=$?
-# Guarda el código de salida del comando anterior
+# Start regression tests in background
+echo "🧪 Starting regression tests..."
+npm run test:regression &
+REGRESSION_PID=$!
 
-if [ $RESULT -ne 0 ]; then
-  echo "❌ Commit blocked: potential secret detected."
+# Wait for all and capture exit codes
+FAILED=0
+
+wait $SAST_PID || { echo "❌ SAST scan failed."; FAILED=1; }
+wait $SECRETS_PID || { echo "❌ Secret scan failed."; FAILED=1; }
+wait $REGRESSION_PID || { echo "❌ Regression tests failed."; FAILED=1; }
+
+if [ $FAILED -ne 0 ]; then
+  echo "❌ Pre-commit checks failed. Commit blocked."
   exit 1
 fi
-# Si gitleaks encuentra un secreto devuelve código diferente de 0
-# El commit se cancela
 
-echo "✅ Secret scan passed."
-# Mensaje si no se encontraron secretos
+echo "✅ All pre-commit checks passed (SAST, Secrets, Regression)."

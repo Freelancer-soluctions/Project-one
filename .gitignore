@@ -67,3 +67,9 @@ report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
 
 # OpenCode runtime audit logs (output-contracts plugin)
 .opencode/logs/
+
+# Test output artifacts
+test-results/
+
+# Runtime session artifacts
+output-contract.json

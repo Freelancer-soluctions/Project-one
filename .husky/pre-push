@@ -14,9 +14,9 @@ if ! git rev-parse --verify origin/main > /dev/null 2>&1; then
 fi
 
 echo "Running scoped tests (server)..."
-npx vitest run --changed origin/main --config apps/server/vitest.config.js || { echo "❌ Server scoped tests failed."; exit 1; }
+vitest run --changed origin/main --config apps/server/vitest.config.js || { echo "❌ Server scoped tests failed."; exit 1; }
 echo "✅ Server scoped tests passed."
 
 echo "Running scoped tests (client)..."
-npx vitest run --changed origin/main --config apps/client/vitest.config.js || { echo "❌ Client scoped tests failed."; exit 1; }
+vitest run --changed origin/main --config apps/client/vitest.config.js || { echo "❌ Client scoped tests failed."; exit 1; }
 echo "✅ Client scoped tests passed."

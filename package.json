@@ -29,18 +29,24 @@
     "dev": "concurrently -n client,server -c cyan,green \"npm run dev --workspace=client-react\" \"npm run dev --workspace=server-express\"",
     "dev:client": "npm run dev --workspace=client-react",
     "dev:server": "npm run dev --workspace=server-express",
-    "test": "npm run test:unit && npm run test:integration && npm run test:e2e",
-    "test:unit": "npx vitest run --project=unit --config apps/client/vitest.config.js && npx vitest run \".unit.test.js\" --config apps/server/vitest.config.js",
-    "test:integration": "npx vitest run \".integration.test.js\" --config apps/server/vitest.config.js",
-    "test:e2e": "npx playwright test --config e2e/playwright.config.js",
+    "test:all": "concurrently -m 1 --success first -n unit,integration,e2e -c cyan,yellow,green \"npm --prefix apps/server-express run test:unit\" \"npm --prefix apps/server-express run test:integration\" \"npm --prefix e2e run test\"",
+    "test:unit:all": "concurrently -m 1 --success first -n server,client -c green,cyan \"npm run test:unit --workspace=server-express\" \"npm run test:unit --workspace=client-react\"",
+    "test:integration:all": "npm run test:integration --workspace=server-express",
+    "test:e2e:all": "npm --prefix e2e run test",
     "test:watch": "npm run test:watch --workspaces --if-present",
     "test:changed": "npm run test:changed --workspaces --if-present",
     "test:ci": "npm run test --workspaces --if-present -- --reporter=junit",
     "test:server": "npm run test --workspace=server-express",
     "test:client": "npm run test --workspace=client-react",
     "test:coverage": "npm run test:coverage --workspaces --if-present",
+"test:smoke": "npm run test:smoke --workspace=server-express",
+    "test:smoke:ci": "npm run test:smoke:ci --workspace=server-express",
+    "test:regression": "npm run test:regression --workspace=server-express",
+"verify:e2e": "npm --prefix e2e run test -- --reporter=list",
+    "verify:smoke": "npm run test:smoke --workspace=server-express -- --reporter=list",
+    "test:debug": "node --import why-is-node-running/include node_modules/vitest/vitest.mjs run --config apps/server/vitest.config.js",
     "build": "npm run build --ws --if-present",
-    "prepush": "npm run test && npm run build",
+    "prepush": "concurrently -m 1 --success first -n test,build -c cyan,green \"npm run test:changed --workspace=server-express\" \"npm run test:changed --workspace=client-react\" \"npm run build --workspace=client-react\"",
     "format": "npm run format --workspaces --if-present",
     "format:check": "npm run format:check --workspaces --if-present",
     "lint": "npm run lint --workspaces --if-present",
@@ -76,6 +82,9 @@
     "*.{js,ts,cjs,mjs,d.cts,d.mts,json,jsonc}": [
       "npm run format",
       "npm run lint"
+    ],
+    "**/*.test.js": [
+      "npm run test:regression --workspace=server-express"
     ]
   }
 }
