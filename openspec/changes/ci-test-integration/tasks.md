@@ -59,28 +59,34 @@
 
 ## 9. Coverage Thresholds (Baseline-Driven)
 
-- [ ] 9.1 Run `npm run test:coverage` in both `apps/client` and `apps/server` to establish current coverage baselines
-- [ ] 9.2 Record baseline values from 9.1 (statements, branches, functions, lines)
-- [ ] 9.3 Add `coverage.thresholds` in both vitest configs at or slightly below recorded baselines (NOT hardcoded 80%)
+- [ ] 9.1 **NO re-medir baselines**: consumir los baselines documentados por `ci-quality-gates` (coverage-baselines spec → `docs/cicd-plan-implementacion.md` §14.5) — ese change se implementa ANTES (dependencia de orden) y ya mide statements/branches/functions/lines
+- [ ] 9.2 Verificar que los valores de §14.5 cubren ambos workspaces (client + server)
+- [ ] 9.3 Add `coverage.thresholds` in both vitest configs at or slightly below the §14.5 baselines (NOT hardcoded 80%)
 - [ ] 9.4 Verify thresholds pass on CI: push a branch and confirm coverage check works
 - [ ] 9.5 Create follow-up change to raise thresholds incrementally (document in cicd-plan-implementacion.md)
 
-## 10. ESLint as Gate in CI
+## 10. ESLint as Gate in CI — OWNED BY `ci-quality-gates`
 
-- [ ] 10.1 Verify `quality` job in ci.yml runs `npm run lint` and blocks PR on errors
-- [ ] 10.2 Ensure lint errors are visible in PR checks (not just warnings)
-- [ ] 10.3 Add `timeout-minutes: 10` to quality job
+> **Cross-change note**: el ESLint blocking gate (tasks 10.1-10.3) es alcance del change `ci-quality-gates` (spec `eslint-blocking-gate`) — este change NO lo implementa. Mantener solo como referencia; NO duplicar.
 
-## 11. Re-activate lint-staged
+- [ ] 10.1 (Referencia) Verify `quality` job in ci.yml runs `npm run lint` and blocks PR on errors — implementado en ci-quality-gates
+- [ ] 10.2 (Referencia) Ensure lint errors are visible in PR checks (not just warnings) — implementado en ci-quality-gates
+- [ ] 10.3 (Referencia) Add `timeout-minutes: 10` to quality job — implementado en ci-quality-gates
 
-- [ ] 11.1 Uncomment or restore lint-staged configuration in `.husky/pre-commit`
-- [ ] 11.2 Verify pre-commit runs ESLint + Prettier on staged files
+## 11. Re-activate lint-staged — OWNED BY `ci-quality-gates`
+
+> **Cross-change note**: la re-activación de lint-staged (tasks 11.1-11.2) es alcance del change `ci-quality-gates` (spec `pre-commit-lint-staged`) — este change NO lo implementa. Mantener solo como referencia; NO duplicar.
+
+- [ ] 11.1 (Referencia) Uncomment or restore lint-staged configuration in `.husky/pre-commit` — implementado en ci-quality-gates
+- [ ] 11.2 (Referencia) Verify pre-commit runs ESLint + Prettier on staged files — implementado en ci-quality-gates
 
 ## 12. Create .dockerignore
 
-- [ ] 12.1 Create `.dockerignore` with excludes: node_modules, .env, .git, .github, openspec, docs, reports, *.log, .husky, .vscode, .idea
+- [ ] 12.1 Create `.dockerignore` with excludes: node_modules, .env, .git, .github, openspec, docs, reports, *.log, .husky, .vscode, .idea — **Spec**: ci-test-integration → specs/ci-dockerignore/spec.md ("Repository root .dockerignore")
 
 ## 13. Enable Dependabot
+
+> **Cross-change note (recíproco)**: `ci-secret-scanning` task 4.4 y `ci-scheduled-security` task 7.2 referencian ESTE task 13.1 para combinar ecosistemas `npm` + `github-actions` en UN solo `.github/dependabot.yml` al mergear. Al implementar 13.1-13.2, verificar que el archivo resultante cubre ambos ecosistemas y que no se crea un segundo dependabot.yml en esos changes.
 
 - [ ] 13.1 Create `.github/dependabot.yml` with npm ecosystem (weekly, grouping for dev-dependencies)
 - [ ] 13.2 Add GitHub Actions ecosystem (weekly) in same config
