@@ -13,6 +13,7 @@
 2. [Glosario de términos](#2-glosario-de-términos)
 3. [Estado actual vs estado ideal](#3-estado-actual-vs-estado-ideal)
 4. [Mapa completo de stages (Diagrama)](#4-mapa-completo-de-stages)
+   - 4.1 [Cobertura de cambios OpenSpec](#41-cobertura-de-cambios-openspec)
 5. [Detalle de cada stage](#5-detalle-de-cada-stage)
 6. [Estrategia de entornos y promoción](#6-estrategia-de-entornos-y-promoción)
 7. [Estrategia de branching y release](#7-estrategia-de-branching-y-release)
@@ -62,7 +63,7 @@ CI/CD es un sistema de **verificación y publicación automática** del código.
 
 ### El plan en una frase
 
-En **8 semanas** (~45 story points) pasamos de no tener pruebas ni despliegue automático a tener un pipeline enterprise completo: PR con tests → staging automático → producción con rollback.
+En **8 semanas** (~48 story points) pasamos de no tener pruebas ni despliegue automático a tener un pipeline enterprise completo: PR con tests + reporting + caching → staging automático → producción con rollback.
 
 ---
 
@@ -161,20 +162,32 @@ flowchart TD
     LOCAL --> Push[git push]
 
     subgraph PR["🔄 PULL REQUEST (CI)"]
-        PR_Open[Abrir PR → main] --> CI
+        PR_Open[Abrir PR → main] --> DetectChanges[changes: paths-filter]
+        DetectChanges --> QOS{Quality or Skip?}
 
-        subgraph CI[Workflow: ci.yml]
-            Detect[Detectar cambios: client / server / e2e]
-            Detect --> Quality[Calidad: lint + format:check]
-            Detect --> Test[Tests: unit + integration* + build]
-            Detect --> LintGate[Lint: npm run lint]
-            Detect --> E2E[E2E opcional con Playwright*]
-            
-            Quality --> MergeGate{Gate: todo OK?}
-            Test --> MergeGate
-            LintGate --> MergeGate
-            E2E --> MergeGate
-        end
+        QOS -->|frontend| QualityClient[quality: lint + format client]
+        QOS -->|backend| QualityServer[quality: lint + format server]
+        QOS -->|shared| QualityAll[quality: lint + format todos]
+
+        DetectChanges --> TestStrategy{Tests segun cambios}
+
+        TestStrategy -->|frontend| UnitClient[test-unit-client\nvitest run client unit tests]
+        TestStrategy -->|backend| UnitServer[test-unit-server\nvitest run server unit tests]
+        TestStrategy -->|backend| IntegServer[test-integration-server\nvitest run integration\nSERVICE: postgres:16-alpine\nprisma migrate deploy]
+        
+        DetectChanges --> Build[build all\nnpm run build --ws --if-present]
+
+        DetectChanges -->|e2e changed| E2E[e2e opcional\nPlaywright\nCache browsers\n--project=chromium]
+
+        QualityClient --> PRAnnotations[📋 Test Reporter\ndorny/test-reporter@v3\nJUnit annotations en PR]
+        QualityServer --> PRAnnotations
+        UnitClient --> PRAnnotations
+        UnitServer --> PRAnnotations
+        IntegServer --> PRAnnotations
+        Build --> PRAnnotations
+        E2E --> PRAnnotations
+
+        PRAnnotations --> MergeGate{Gate: todo OK?}
 
         subgraph SEC[Workflow: security.yml]
             SCA[Trivy SCA filesystem HIGH/CRITICAL]
@@ -251,6 +264,93 @@ flowchart TD
 - 🟢 (verde) — etapas con Floci (emulador AWS gratuito)
 - 🟡 (amarillo) — punto de decisión con riesgo (smoke tests)
 - 🔴 (rojo) — etapa de rollback (recuperación ante fallos)
+
+### 4.1 Cobertura de Cambios OpenSpec
+
+La siguiente tabla mapea cada stage de la arquitectura contra los cambios OpenSpec creados y pendientes:
+
+```
+                    ARQUITECTURA COMPLETA vs CAMBIOS OPENSPEC
+    ┌──────────────────────────────────────────────────────────────────────┐
+    │  STAGE 0-1: LOCAL                                                    │
+    │  ├── Pre-commit (lint-staged, SAST, secrets)     ✅ Existe           │
+    │  ├── Commit-msg (commitlint)                     ✅ Existe           │
+    │  ├── Pre-push (scoped tests)                     ✅ Existe           │
+    │  └── Floci dev-local (LocalStack → Floci) ⬅ ci-floci-migration       │
+    │                                              ✅ CREADO + APPROVED    │
+    ├──────────────────────────────────────────────────────────────────────┤
+    │  STAGE 2-4: PULL REQUEST (CI) — SPRINT 1                             │
+    │  ├── Change detection (paths-filter)             ✅ Existe           │
+    │  ├── Quality (lint gate) ⬅ ci-quality-gates      ✅ CREADO+APPROVED  │
+    │  ├── Tests unit + integración ⬅ ci-test-integ    ✅ CREADO+APPROVED  │
+    │  ├── Build + caching + reporting ⬅ ci-test-integ ✅ CREADO+APPROVED  │
+    │  ├── E2E + PostgreSQL ⬅ ci-test-integ            ✅ CREADO+APPROVED  │
+    │  ├── Dependabot ⬅ ci-test-integ                  ✅ CREADO+APPROVED  │
+    │  ├── Coverage baselines ⬅ ci-quality-gates       ✅ CREADO+APPROVED  │
+    │  └── Zombie cleanup ⬅ ci-cleanup-enterprise      ✅ CREADO+APPROVED  │
+    ├──────────────────────────────────────────────────────────────────────┤
+    │  STAGE 5: SECURITY — SPRINT 1-2                                      │
+    │  ├── SAST (CodeQL, Semgrep)                      ✅ Existe           │
+    │  ├── SCA (Trivy)                                  ✅ Existe           │
+    │  ├── Secrets (PR diff-scoped) ⬅ ci-secret-scanning                  │
+    │  │                                  ✅ CREADO + APPROVED             │
+    │  ├── SBOM (CycloneDX) + Dep Review ⬅ ci-security-enhance            │
+    │  │                                  ✅ CREADO + APPROVED             │
+    │  └── Dependency Review (PR) ⬅ ci-security-enhance                   │
+    │                                  ✅ CREADO + APPROVED                │
+    ├──────────────────────────────────────────────────────────────────────┤
+    │  STAGE 6: PREVIEW ENVIRONMENTS — SPRINT 2                            │
+    │  ├── Floci container efímero ⬅ ci-preview-environments              │
+    │  │                                  ✅ CREADO + APPROVED             │
+    │  └── Vercel preview URL per PR ⬅ ci-preview-environments            │
+    │                                  ✅ CREADO + APPROVED                │
+    ├──────────────────────────────────────────────────────────────────────┤
+    │  STAGE 7: POST-MERGE (CD) — SPRINT 3-4                              │
+    │  ├── Release + Changesets        ⬅ (preexistente release.yml)       │
+    │  ├── Docker build + push a ECR   ⬅ cd-aws-deploy-pipeline           │
+    │  ├── Deploy staging              ⬅ cd-aws-deploy-pipeline           │
+    │  ├── Smoke tests post-deploy     ⬅ cd-aws-deploy-pipeline           │
+    │  ├── Deploy producción           ⬅ cd-aws-deploy-pipeline           │
+    │  └── Rollback automático         ⬅ cd-aws-deploy-pipeline           │
+    │          (todas)                  ✅ CREADO + APPROVED               │
+    ├──────────────────────────────────────────────────────────────────────┤
+    │  STAGE 8: SCHEDULED — SPRINT 4                                       │
+    │  ├── Security full scan semanal  ⬅ ci-scheduled-security            │
+    │  ├── SBOM actualizado            ⬅ ci-scheduled-security            │
+    │  ├── Gitleaks full repo (cron)   ⬅ ci-secret-scanning               │
+    │          (todas)                  ✅ CREADO + APPROVED               │
+    └──────────────────────────────────────────────────────────────────────┘
+```
+
+**Resumen de cobertura:**
+
+| Categoría | Total | Cubierto | % |
+|-----------|-------|----------|---|
+| Local (Stage 0-1) | 4 | 4 | 100% |
+| PR CI (Stage 2-4) | 8 | 8 | 100% |
+| Security (Stage 5) | 5 | 5 | 100% |
+| Preview (Stage 6) | 2 | 2 | 100% |
+| CD (Stage 7) | 6 | 6 | 100% |
+| Scheduled (Stage 8) | 3 | 3 | 100% |
+| **Total** | **28** | **28** | **100%** |
+
+**Cambios OpenSpec creados + APPROVED (plan CI/CD completo):**
+
+| Change | Artefactos | Estado |
+|--------|-----------|--------|
+| `ci-test-integration` | proposal, design, tasks, specs | ✅ CREADO + APPROVED |
+| `ci-quality-gates` | proposal, design, tasks | ✅ CREADO + APPROVED |
+| `ci-cleanup-enterprise` | proposal, design, tasks | ✅ CREADO + APPROVED |
+| `ci-security-enhance` | proposal, design, tasks, specs | ✅ CREADO + APPROVED |
+| `ci-secret-scanning` | proposal, design, tasks, specs | ✅ CREADO + APPROVED |
+| `ci-preview-environments` | proposal, design, tasks, 5 specs | ✅ CREADO + APPROVED |
+| `ci-floci-migration` | proposal, design, tasks, specs | ✅ CREADO + APPROVED |
+| `cd-aws-deploy-pipeline` | proposal, design, tasks, 5 specs | ✅ CREADO + APPROVED |
+| `ci-scheduled-security` | proposal, design, tasks, specs | ✅ CREADO + APPROVED |
+
+**Cambios OpenSpec pendientes:**
+
+Ninguno — los 9 changes del plan están creados y aprobados. Siguiente fase: implementación en orden `ci-quality-gates` → `ci-cleanup-enterprise` → `ci-test-integration` → `ci-secret-scanning` → `ci-security-enhance` → `ci-preview-environments` → `ci-floci-migration` → `cd-aws-deploy-pipeline` → `ci-scheduled-security` (merge order: `ci-secret-scanning` ANTES de `ci-security-enhance`; `ci-preview-environments` ANTES de `cd-aws-deploy-pipeline`).
 
 ---
 
@@ -372,17 +472,139 @@ El `quality.yml` actual ya ejecuta `lint` y `format:check` para ambos workspaces
 
 ### Stage 4 — Tests + Build (CI, NUEVO)
 
-**Qué**: Ejecuta pruebas unitarias, de integración y build en CI.
+**Qué**: Ejecuta pruebas unitarias, de integración, build y test reporting en CI.
 
-**Por qué**: Es el corazón de la CI — sin tests, no hay calidad garantizada.
+**Por qué**: Es el corazón de la CI — sin tests, no hay calidad garantizada. Sin test reporting, los fallos son difíciles de depurar.
+
+**Arquitectura de jobs**:
+
+```
+changes (dorny/paths-filter)
+  ├── test-unit-client (si frontend cambió)
+  ├── test-unit-server (si backend cambió)
+  ├── test-integration (si backend cambió — con PostgreSQL service)
+  ├── build (siempre)
+  └── e2e (si e2e cambió — opcional, parallel)
+```
+
+**Multi-layer caching strategy**:
+
+| Capa cache | Qué cachea | Key | Recuperación |
+|-----------|-----------|-----|-------------|
+| **npm** (built-in `cache: 'npm'`) | `~/.npm` | hash `package-lock.json` | Automática con setup-node@v4 |
+| **Vitest** (actions/cache) | `node_modules/.cache/vitest` * ${{ runner.os }}-${{ hashFiles('package-lock.json') }} | Manual + restore-keys |
+| **Playwright browsers** (actions/cache) | `~/.cache/ms-playwright` | hash `e2e/package-lock.json` | Manual, instalar solo si cache miss |
+
+> **Target**: CI < 7 min con las 3 capas + path-filtering + jobs paralelos.
+
+**Test reporting**:
+
+Se usa `dorny/test-reporter@v3` para parsear JUnit XML y crear GitHub Check Run con anotaciones en el PR:
+
+```yaml
+- name: Test Report
+  uses: dorny/test-reporter@v3
+  if: success() || failure()
+  with:
+    name: Unit Tests Report
+    path: reports/junit.xml
+    reporter: java-junit
+```
+
+Configurar Vitest para emitir JUnit: `--reporter=junit --outputFile=reports/junit.xml`. Playwright tiene reporter `github` nativo que genera anotaciones directamente.
+
+**Flaky test handling**:
+
+- Playwright: `retries: process.env.CI ? 2 : 0` en configuración
+- Vitest: `retry: 2` en tests de integración (más propensos a flakiness)
+- Post-test: considerar DeFlaky / Trunk Flaky Tests para auto-detección + cuarentena con TTL
 
 **Cómo**:
 
 ```yaml
+# --- COMPOSITE ACTION: .github/actions/setup-monorepo/action.yml ---
+# Se recomienda crear esta action para evitar duplicación entre jobs
+name: 'Setup Monorepo'
+description: 'Checkout + Node.js + npm ci + caches'
+runs:
+  using: 'composite'
+  steps:
+    - uses: actions/checkout@v5
+    - uses: actions/setup-node@v4
+      with:
+        node-version-file: '.nvmrc'
+        cache: 'npm'
+    - run: npm ci
+      shell: bash
+    - uses: actions/cache@v4
+      with:
+        path: apps/*/node_modules/.cache/vitest
+        key: vitest-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+        restore-keys: vitest-${{ runner.os }}-
+```
+
+```yaml
+# --- Jobs de test en ci.yml ---
 jobs:
-  test:
+  changes:
     runs-on: ubuntu-latest
+    outputs:
+      frontend: ${{ steps.filter.outputs.frontend }}
+      backend: ${{ steps.filter.outputs.backend }}
+      e2e: ${{ steps.filter.outputs.e2e }}
+    steps:
+      - uses: actions/checkout@v5
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            frontend:
+              - 'apps/client/**'
+            backend:
+              - 'apps/server/**'
+            e2e:
+              - 'e2e/**'
+            shared:
+              - 'package.json'
+              - 'package-lock.json'
+              - '.github/workflows/**'
+
+  test-unit-client:
     needs: changes
+    if: needs.changes.outputs.frontend == 'true' || needs.changes.outputs.shared == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: ./.github/actions/setup-monorepo
+      - name: Run client unit tests
+        run: npm run test --workspace=client-react
+      - name: Test Report
+        uses: dorny/test-reporter@v3
+        if: success() || failure()
+        with:
+          name: Client Unit Tests
+          path: apps/client/reports/junit.xml
+          reporter: java-junit
+
+  test-unit-server:
+    needs: changes
+    if: needs.changes.outputs.backend == 'true' || needs.changes.outputs.shared == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: ./.github/actions/setup-monorepo
+      - name: Run server unit tests
+        run: npm run test:unit --workspace=server-express
+      - name: Test Report
+        uses: dorny/test-reporter@v3
+        if: success() || failure()
+        with:
+          name: Server Unit Tests
+          path: apps/server/reports/junit.xml
+          reporter: java-junit
+
+  test-integration:
+    needs: changes
+    if: needs.changes.outputs.backend == 'true' || needs.changes.outputs.shared == 'true'
+    runs-on: ubuntu-latest
     services:
       postgres:
         image: postgres:16-alpine
@@ -397,59 +619,40 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
-    
     steps:
-      - uses: actions/checkout@v5
-      - uses: actions/setup-node@v4
-        with:
-          node-version-file: '.nvmrc'
-          cache: 'npm'
-      
-      - name: Install dependencies
-        run: npm ci
-      
-      - name: Cache Vitest
-        uses: actions/cache@v4
-        with:
-          path: |
-            apps/client/node_modules/.cache/vitest
-            apps/server/node_modules/.cache/vitest
-          key: vitest-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
-      
-      - name: Unit tests (client)
-        if: needs.changes.outputs.frontend == 'true'
-        run: npm run test --workspace=apps/client
-      
-      - name: Unit tests (server)
-        if: needs.changes.outputs.backend == 'true'
-        run: npm run test:unit --workspace=apps/server
+      - uses: ./.github/actions/setup-monorepo
+      - name: Setup database schema
+        run: npx prisma migrate deploy
+        working-directory: apps/server
         env:
           DATABASE_URL: postgresql://test:test@localhost:5432/project_one_test
-      
-      - name: Integration tests (server)
-        if: needs.changes.outputs.backend == 'true'
-        run: npm run test:integration --workspace=apps/server
+      - name: Run integration tests
+        run: npm run test:integration --workspace=server-express
         env:
           DATABASE_URL: postgresql://test:test@localhost:5432/project_one_test
-      
+      - name: Test Report
+        uses: dorny/test-reporter@v3
+        if: success() || failure()
+        with:
+          name: Integration Tests
+          path: apps/server/reports/junit.xml
+          reporter: java-junit
+
+  build:
+    needs: changes
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - uses: ./.github/actions/setup-monorepo
       - name: Build all
         run: npm run build --ws --if-present
-      
-      # Nota: El server (Express) tiene build script no-op ("echo 'No build step needed for Express'").
-      # El build real ocurre al generar la imagen Docker en Stage 6 (Sprint 3+).
-      # El client (Vite) genera los bundles estáticos en apps/client/dist.
   
   e2e:
-    runs-on: ubuntu-latest
-    needs: [changes, test]
+    needs: [changes]
     if: needs.changes.outputs.e2e == 'true'
+    runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
-      - uses: actions/setup-node@v4
-        with:
-          node-version-file: '.nvmrc'
-          cache: 'npm'
-      - run: npm ci
+      - uses: ./.github/actions/setup-monorepo
       - name: Cache Playwright browsers
         uses: actions/cache@v4
         id: playwright-cache
@@ -462,6 +665,14 @@ jobs:
       - name: Run E2E tests
         run: npm run test --workspace=e2e
 ```
+
+> **Notas importantes**:
+> - `needs: [changes]` con `if:` condicional por workspace — si shared cambió (package.json, lockfile), corren TODOS los tests
+> - `if: always()` en build para que corra incluso si algún job de test falló (queremos saber si el build también está roto)
+> - `fail-fast: false` en cada job matrix para que un workspace no cancele al otro
+> - El server (Express) tiene build script no-op ("echo 'No build step needed for Express'")
+> - El client (Vite) genera los bundles estáticos en `apps/client/dist`
+> - Prisma migrate deploy antes de integration tests: replica el esquema exacto de producción
 
 ### Stage 5 — Security (CI) — Mejorado
 
@@ -549,12 +760,15 @@ jobs:
 
 ```yaml
 # Dentro de preview.yml (workflow nuevo)
+# ALINEADO CON ci-preview-environments (APPROVED):
+# - floci pinneado v1.5.11 (no :latest)
+# - Vercel preview NATIVO vía commit status con GITHUB_TOKEN (sin VERCEL_TOKEN)
 jobs:
   preview:
     runs-on: ubuntu-latest
     services:
       floci:
-        image: floci/floci:latest
+        image: floci/floci:v1.5.11
         ports:
           - "4566:4566"
         env:
@@ -569,15 +783,10 @@ jobs:
           cache: 'npm'
       - run: npm ci
       
-      - name: Deploy preview to Vercel
-        uses: amondnet/vercel-action@v25
-        with:
-          vercel-token: ${{ secrets.VERCEL_TOKEN }}
-          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
-          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
-          vercel-args: '--prebuilt'
-          github-comment: true
-          github-deployment: true
+      - name: Build + deploy preview to Vercel (commit status)
+        run: npm run build --workspace=@project-one/client
+        # Vercel CLI/git integration crea la preview URL; el PR comment
+        # único se gestiona con GITHUB_TOKEN (permisos contents: read)
       
       - name: Floci health check
         env:
@@ -612,7 +821,7 @@ jobs:
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          role-to-assume: ${{ vars.AWS_ROLE_ARN }}
           aws-region: us-east-1
       
       - name: Login to Amazon ECR
@@ -922,10 +1131,10 @@ Es un **cambio de 1 línea** en `docker-compose.yml`:
 
 ```yaml
 # Antes: image: localstack/localstack:latest
-# Después:
+# Después (pin v1.5.11 — consistente con ci-floci-migration):
 services:
   floci:
-    image: floci/floci:latest
+    image: floci/floci:v1.5.11
     ports:
       - "4566:4566"
     environment:
@@ -959,21 +1168,23 @@ volumes:
 
 ## 10. Plan de implementación por sprints
 
-### Sprint 1 — Cerrar gaps críticos de CI (2 semanas, ~13 SP)
+### Sprint 1 — Cerrar gaps críticos de CI (2 semanas, ~16 SP)
 
-**Objetivo**: Que cada PR ejecute tests + build + lint antes de ser mergeable.
+**Objetivo**: Que cada PR ejecute tests + build + lint con reporting y caching antes de ser mergeable.
 
 | # | Tarea | SP | Dependencia | Criterio de aceptación |
 |---|-------|----|-------------|------------------------|
 | 1.1 | Reforzar ESLint en `package.json` raíz y workspaces (proyecto es JS puro, no TypeScript) | 1 | — | `npm run lint` se ejecuta en CI y funciona sin errores |
-| 1.2 | Descomentar y configurar job `test` en `ci.yml` (unit + integration) | 3 | 1.1 | PR ejecuta `test:unit` (client/server) y `test:integration` (server) |
-| 1.3 | Agregar job `build` en `ci.yml` | 2 | 1.2 | `npm run build` corre en cada PR, falla si hay errores |
-| 1.4 | Agregar `coverage.thresholds` en Vitest config | 2 | 1.2 | Cobertura mínima configurada (ej. 70% branches, 80% lines) |
-| 1.5 | Llenar hook `.husky/pre-push` con lint + build (rápido) | 1 | — | `git push` ejecuta lint + build; tests se corren en CI para feedback más rápido |
-| 1.6 | Habilitar Dependabot (`.github/dependabot.yml`) | 1 | — | Dependabot crea PRs automáticos para parches de seguridad |
-| 1.7 | Agregar caching a CI (npm cache + Vitest cache) | 2 | 1.2 | CI time < 8 minutos con tests |
-| 1.8 | Crear `.dockerignore` | 1 | — | `docker build` no incluye `.env`, `node_modules`, etc. |
-| 1.9 | Re-activar `lint-staged` en `.husky/pre-commit` (hoy comentado) | 1 | — | Pre-commit ejecuta ESLint + Prettier en archivos staged antes de cada commit |
+| 1.2 | Descomentar y configurar jobs `test-unit-client`, `test-unit-server`, `test-integration` en `ci.yml` con PostgreSQL service container | 4 | 1.1 | PR ejecuta `test:unit` (client/server) y `test:integration` (server) con Postgres |
+| 1.3 | Agregar job `build` en `ci.yml` | 1 | 1.2 | `npm run build` corre en cada PR, falla si hay errores |
+| 1.4 | Agregar `coverage.thresholds` en Vitest config (statements ≥80%, branches ≥75%, functions ≥80%) | 1 | 1.2 | Cobertura mínima configurada por módulo |
+| 1.5 | Crear composite action `.github/actions/setup-monorepo/action.yml` (checkout + setup-node + npm ci + Vitest cache) | 2 | — | Jobs usan `uses: ./.github/actions/setup-monorepo` en vez de repetir pasos |
+| 1.6 | Configurar test reporting con `dorny/test-reporter@v3` + JUnit reporter de Vitest | 2 | 1.2 | PR muestra anotaciones de tests pasados/fallados en el diff |
+| 1.7 | Habilitar Dependabot (`.github/dependabot.yml`) con grouping config | 1 | — | Dependabot crea PRs automáticos para parches de seguridad |
+| 1.8 | Implementar caching multi-capa (npm + Vitest + Playwright) | 1 | 1.5 | CI time < 7 minutos con todas las capas |
+| 1.9 | Crear `.dockerignore` | 1 | — | `docker build` no incluye `.env`, `node_modules`, etc. |
+| 1.10 | Re-activar `lint-staged` en `.husky/pre-commit` (hoy comentado) | 1 | — | Pre-commit ejecuta ESLint + Prettier en archivos staged antes de cada commit |
+| 1.11 | Configurar flaky test handling: Playwright `retries: 2`, Vitest `retry: 2` en integration tests | 1 | 1.2 | Tests flaky se reintentan automáticamente en CI |
 
 **Dependabot config**:
 
@@ -1053,7 +1264,7 @@ updates:
 | 4.5 | Configurar cron semanal de security full scan | 1 | — | Cada lunes 6am corre Gitleaks full repo + Trivy full + npm audit |
 | 4.6 | Configurar deploy markers + integración con Sentry | 1 | 4.1 | Cada deploy crea release en Sentry |
 
-### Total: 8 semanas, ~45 SP
+### Total: 8 semanas, ~48 SP
 
 ---
 
@@ -1062,7 +1273,7 @@ updates:
 | Categoría | Herramienta | Versión | ¿Por qué? | Costo |
 |-----------|------------|---------|-----------|-------|
 | **CI/CD platform** | GitHub Actions | — | Ya en uso, integración nativa con GitHub | Gratuito (2000 min/mes) |
-| **Contenedores local** | Docker Compose + Floci | floci/floci:latest | MIT, 68 servicios, 90 MB, startup 24ms | Gratuito |
+| **Contenedores local** | Docker Compose + Floci | floci/floci:v1.5.11 | MIT, 68 servicios, 90 MB, startup 24ms | Gratuito |
 | **Emulador AWS** | Floci | latest | Sustituye LocalStack, licencia MIT, Testcontainers oficial | Gratuito |
 | **Testcontainers AWS** | `@floci/testcontainers` | latest | Integración con Vitest, configuración zero-código | Gratuito |
 | **Registry** | Amazon ECR | — | Integrado con ECS, IAM auth, sin límite de pulls | ~$1-3/mes |
@@ -1190,15 +1401,20 @@ Implementar en un GitHub Project board o dashboard simple con:
 
 ## 14. Próximos pasos concretos
 
-### Qué hacer mañana (orden de prioridad)
+### Qué hacer mañana (orden de prioridad — mapeado a Sprint 1)
 
-1. **Crear `.github/dependabot.yml`** — habilitar Dependabot con grouping config
-2. ~~Llenar `.husky/pre-push`~~ ✅ **Completado** — hook implementado con `vitest --changed origin/main` scoped tests
-3. **Verificar ESLint como gate en CI** — `npm run lint` debe fallar si hay errores
-4. **Agregar caching a CI** — npm cache + Vitest cache en `ci.yml`
-5. **Crear `.dockerignore`** — evitar que `.env` y `node_modules` entren en la imagen
-6. **Descomentar job test en `ci.yml`** — empezar con unit tests del workspace que cambió
-7. **Eliminar `pr-validation.yml` y `ci-enterprise.yml`** — eliminar workflows que apuntan a paths inexistentes
+1. **Crear composite action `.github/actions/setup-monorepo/action.yml`** — checkpoint + setup-node + npm ci + Vitest cache (Sprint 1.5)
+2. **Descomentar y armar jobs test en `ci.yml`** — test-unit-client, test-unit-server, test-integration con PostgreSQL service + prisma migrate deploy (Sprint 1.2)
+3. **Agregar job `build` en `ci.yml`** — `npm run build --ws --if-present` (Sprint 1.3)
+4. **Configurar test reporting** — `dorny/test-reporter@v3` + JUnit reporter de Vitest (Sprint 1.6)
+5. **Agregar caching multi-capa** — npm (built-in), Vitest cache, Playwright browsers (Sprint 1.8)
+6. **Configurar flaky test retry** — Playwright `retries: 2`, Vitest `retry: 2` (Sprint 1.11)
+7. **Crear `.github/dependabot.yml`** — habilitar Dependabot con grouping config (Sprint 1.7)
+8. **Agregar `coverage.thresholds`** en Vitest config (Sprint 1.4)
+9. **Verificar ESLint como gate en CI** — `npm run lint` debe fallar si hay errores (Sprint 1.1)
+10. **Re-activar `lint-staged`** en `.husky/pre-commit` (Sprint 1.10)
+11. **Crear `.dockerignore`** — evitar que `.env` y `node_modules` entren en la imagen (Sprint 1.9)
+12. **Eliminar `pr-validation.yml` y `ci-enterprise.yml`** — eliminar workflows zombie
 
 ### Quick reference — comandos iniciales
 
@@ -1229,12 +1445,17 @@ npm run lint
 ### Día 1 checklist
 
 ```markdown
-- [ ] `.github/dependabot.yml` creado
+- [ ] `.github/dependabot.yml` creado (Sprint 1.7)
 - [x] ~~`.husky/pre-push`~~ ✅ Completado — `vitest --changed origin/main` scoped
-- [ ] `lint-staged` re-activado en `.husky/pre-commit`
-- [ ] npm cache + Vitest cache en ci.yml
-- [ ] `.dockerignore` creado
-- [ ] Tests descomentados en ci.yml (unit al menos)
+- [ ] `lint-staged` re-activado en `.husky/pre-commit` (Sprint 1.10)
+- [ ] Composite action `.github/actions/setup-monorepo/action.yml` creado (Sprint 1.5)
+- [ ] Tests + PostgreSQL service container en ci.yml (Sprint 1.2)
+- [ ] Build job en ci.yml (Sprint 1.3)
+- [ ] npm cache + Vitest cache + Playwright cache (Sprint 1.8)
+- [ ] Test reporting con dorny/test-reporter (Sprint 1.6)
+- [ ] coverage.thresholds en vitest.config (Sprint 1.4)
+- [ ] `.dockerignore` creado (Sprint 1.9)
+- [ ] Flaky test retry configurado (Sprint 1.11)
 - [ ] Workflows zombie eliminados
 - [ ] Branch protection rules: required test + build + lint
 ```
@@ -1276,6 +1497,22 @@ npm run lint
 - "Continuous Delivery" (Humble & Farley) — https://continuousdelivery.com/
 - GitHub Actions best practices — https://docs.github.com/en/actions/using-workflows/workflow-best-practices
 - Prisma migration safety — https://www.prisma.io/docs/orm/prisma-migrate/getting-started
+
+### Investigación 2026 (incorporada a este plan)
+
+| Fuente | Enlace | Aportación al plan |
+|--------|--------|-------------------|
+| **GitHub Docs: Building and testing Node.js** | https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-nodejs | Estructura base workflows Node.js |
+| **GitHub Docs: PostgreSQL service containers** | https://docs.github.com/en/actions/using-containerized-services/creating-postgresql-service-containers | Service container pattern para integration tests |
+| **dorny/test-reporter** | https://github.com/marketplace/actions/test-reporter | JUnit annotations en PRs |
+| **ECOSIRE: CI/CD for Monorepo Projects** | https://ecosire.com/blog/github-actions-cicd-monorepo | Path-filtering + matrix parallelism |
+| **WarpBuild: GitHub Actions Monorepo Guide** | https://www.warpbuild.com/blog/github-actions-monorepo-guide | Composite actions, affected detection |
+| **OneUptime: Monorepos with GitHub Actions** | https://oneuptime.com/blog/post/2026-02-02-github-actions-monorepos/view | Job DAG optimization |
+| **DeFlaky: Flaky Tests in GitHub Actions** | https://deflaky.com/blog/flaky-tests-github-actions | Auto-detección y cuarentena de flaky tests |
+| **FlakyGuard: Fixing Flaky Tests** | https://flakyguard.com/blog/flaky-tests-github-actions | Retry strategies, TTL policies |
+| **RexBytes: GitHub Actions Integration Tests** | https://rexbytes.com/2026/02/21/github-actions-ci-cd-6-10-integration-tests/ | PostgreSQL service setup paso a paso |
+| **Pact: CI/CD Setup Guide** | https://docs.pact.io/pact_nirvana | Contract testing integration (futuro) |
+| **Pact: can-i-deploy** | https://docs.pact.io/pact_nirvana | Deployment gates con contract testing |
 
 ---
 
