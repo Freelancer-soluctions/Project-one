@@ -25,7 +25,7 @@ Project One tiene infraestructura de CI configurada pero con gaps críticos que 
 
 ### Documentar Coverage Baselines
 - Ejecutar `npm run test:coverage` en ambos workspaces (client + server)
-- Capturar y registrar en `docs/cicd-plan-implementacion.md` (sección 4.5) las métricas actuales
+- Capturar y registrar en `docs/cicd-plan-implementacion.md` (sección §14.5) las métricas actuales
 
 ### Harden quality.yml
 - No requiere cambio YAML — exit code non-zero de `npm run lint` con `--max-warnings 0` basta para que GitHub Actions falle el paso
