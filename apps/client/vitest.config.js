@@ -7,38 +7,40 @@ import sharedConfig from '../../vitest.shared.js';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const srcPath = path.resolve(__dirname, './src');
 
-export default defineConfig(mergeConfig(sharedConfig, {
-  plugins: [react()],
-  resolve: {
-    alias: {
-      '@': srcPath,
-    },
-  },
-  test: {
-    root: __dirname,
-    environment: 'jsdom',
-    css: true,
-    pool: 'forks',
-    ...(process.env.CI === 'true' ? { maxWorkers: 1, isolate: false } : {}),
-    reporters: ['default', 'hanging-process'],
-    coverage: {
-      exclude: ['node_modules/', 'tests/', '**/*.config.js'],
-    },
-    deps: {
-      optimizer: {
-        web: {
-          include: ['@testing-library/react', '@testing-library/jest-dom'],
-        },
+export default defineConfig(
+  mergeConfig(sharedConfig, {
+    plugins: [react()],
+    resolve: {
+      alias: {
+        '@': srcPath,
       },
     },
-    include: [
-      'src/**/*.unit.test.{js,jsx}',
-      'src/**/*.ui.test.{js,jsx}',
-      'src/**/*.integration.test.{js,jsx}',
-    ],
-    setupFiles: ['./tests/setup/setupTest.js'],
-    testTimeout: 30000,
-    hookTimeout: 15000,
-    teardownTimeout: 5000,
-  },
-}));
+    test: {
+      root: __dirname,
+      environment: 'jsdom',
+      css: true,
+      pool: 'forks',
+      ...(process?.env?.CI === 'true' ? { maxWorkers: 1, isolate: false } : {}),
+      reporters: ['default', 'hanging-process'],
+      coverage: {
+        exclude: ['node_modules/', 'tests/', '**/*.config.js'],
+      },
+      deps: {
+        optimizer: {
+          web: {
+            include: ['@testing-library/react', '@testing-library/jest-dom'],
+          },
+        },
+      },
+      include: [
+        'src/**/*.unit.test.{js,jsx}',
+        'src/**/*.ui.test.{js,jsx}',
+        'src/**/*.integration.test.{js,jsx}',
+      ],
+      setupFiles: ['./tests/setup/setupTest.js'],
+      testTimeout: 30000,
+      hookTimeout: 15000,
+      teardownTimeout: 5000,
+    },
+  })
+);

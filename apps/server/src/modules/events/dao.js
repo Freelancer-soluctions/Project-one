@@ -1,4 +1,4 @@
-import { prisma, Prisma } from '../../config/db.js';
+import { prisma } from '../../config/db.js';
 
 /**
  * Creates a new event in the database.
@@ -108,7 +108,9 @@ export const getAllEvents = async ({
     }
     if (dateTo !== undefined) {
       // Normalize dateTo to end-of-day (23:59:59.999) for inclusive range
-      const dateToEndOfDay = new Date(dateTo.getTime() + 24 * 60 * 60 * 1000 - 1);
+      const dateToEndOfDay = new Date(
+        dateTo.getTime() + 24 * 60 * 60 * 1000 - 1
+      );
       dateFilter.lte = dateToEndOfDay;
     }
     conditions.push({ eventDate: dateFilter });
@@ -122,9 +124,38 @@ export const getAllEvents = async ({
   // Status filter: derive upcoming/past from server UTC time
   if (status && status !== 'all') {
     const now = new Date();
-    const endOfTodayUTC = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 23, 59, 59, 999));
-    const startOfTodayUTC = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 0, 0, 0, 0));
-    const currentTimeOnEpoch = new Date(Date.UTC(1970, 0, 1, now.getUTCHours(), now.getUTCMinutes(), now.getUTCSeconds()));
+    const endOfTodayUTC = new Date(
+      Date.UTC(
+        now.getUTCFullYear(),
+        now.getUTCMonth(),
+        now.getUTCDate(),
+        23,
+        59,
+        59,
+        999
+      )
+    );
+    const startOfTodayUTC = new Date(
+      Date.UTC(
+        now.getUTCFullYear(),
+        now.getUTCMonth(),
+        now.getUTCDate(),
+        0,
+        0,
+        0,
+        0
+      )
+    );
+    const currentTimeOnEpoch = new Date(
+      Date.UTC(
+        1970,
+        0,
+        1,
+        now.getUTCHours(),
+        now.getUTCMinutes(),
+        now.getUTCSeconds()
+      )
+    );
 
     if (status === 'upcoming') {
       conditions.push({

@@ -1462,6 +1462,23 @@ npm run lint
 
 ---
 
+## 14.5. Coverage Baselines (Jul 2026)
+
+Medidas de cobertura de código actuales (baseline) para ambos workspaces. Estos valores se usarán como referencia para configurar umbrales (`coverage.thresholds`) en el cambio `ci-test-integration`.
+
+| Métrica | Client (React) | Server (Express) |
+|---------|----------------|------------------|
+| **Statements** | 84.69% | 39.5% |
+| **Branches** | 50.00% | 18.14% |
+| **Functions** | 64.28% | 7.51% |
+| **Lines** | 85.86% | 39.90% |
+
+**Fecha de medición:** Julio 2026  
+**Herramienta:** Vitest + V8 coverage provider  
+**Nota:** Los umbrales mínimos se configurarán en el cambio `ci-test-integration` (Sprint 1, tarea 1.4). El server tiene cobertura baja en branches/functions debido a middlewares y módulos sin tests unitarios directos; se priorizará elevar branches > 50% en modules críticos (events, auth, notes) antes de activar gate estricto.
+
+---
+
 ## 15. Referencias y fuentes
 
 ### Industry standards

@@ -31,7 +31,7 @@
     "test:regression": "vitest run --config vitest.config.js",
     "format": "prettier --write \"**/*.{js,json,md}\"",
     "format:check": "prettier --check \"**/*.{js,json,md}\"",
-    "lint": "eslint \"**/*.js\"",
+    "lint": "eslint \"**/*.js\" --max-warnings 0",
     "lint:fix": "eslint \"**/*.js\" --fix"
   },
   "author": "Johan Garcia",
@@ -71,8 +71,5 @@
     "supertest": "^7.0.0",
     "vitest": "^4.0.18",
     "why-is-node-running": "^3.1.0"
-  },
-  "eslintConfig": {
-    "extends": "./node_modules/standard/eslintrc.json"
   }
 }

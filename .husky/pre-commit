@@ -1,21 +1,23 @@
 #!/usr/bin/env sh
-# Pre-commit hook: SAST + Secrets + Regression tests (all in parallel)
+# Pre-commit hook: lint-staged + SAST + Secrets + Regression tests
 
 set -e
 
-echo "🔍 Running pre-commit checks in parallel..."
+echo "🔍 Running pre-commit checks..."
 
-# Start SAST scan in background
+# 1. lint-staged first (fast, may modify files via autofix)
+echo "🔧 Running lint-staged..."
+npm exec lint-staged || { echo "❌ lint-staged failed"; exit 1; }
+
+# 2. SAST + Secrets + Regression in parallel (existing logic)
 echo "🔬 Starting SAST scan..."
 npm run sast:semgrep &
 SAST_PID=$!
 
-# Start secret detection in background
 echo "🔐 Starting secret detection..."
 npm run security:secrets &
 SECRETS_PID=$!
 
-# Start regression tests in background
 echo "🧪 Starting regression tests..."
 npm run test:regression &
 REGRESSION_PID=$!
@@ -32,4 +34,4 @@ if [ $FAILED -ne 0 ]; then
   exit 1
 fi
 
-echo "✅ All pre-commit checks passed (SAST, Secrets, Regression)."
+echo "✅ All pre-commit checks passed (lint-staged, SAST, Secrets, Regression)."

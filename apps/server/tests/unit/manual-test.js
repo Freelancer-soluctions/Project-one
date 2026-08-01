@@ -8,7 +8,8 @@ async function runTests() {
   console.log('Test 1 result:', await extractMentionIds(test1));
 
   // Test with multiple mentions
-  const test2 = '<p><span data-type="mention" data-id="1">@User1</span> and <span data-type="mention" data-id="2">@User2</span></p>';
+  const test2 =
+    '<p><span data-type="mention" data-id="1">@User1</span> and <span data-type="mention" data-id="2">@User2</span></p>';
   console.log('Test 2 result:', await extractMentionIds(test2));
 
   // Test with no content

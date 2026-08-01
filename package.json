@@ -29,6 +29,7 @@
     "dev": "concurrently -n client,server -c cyan,green \"npm run dev --workspace=client-react\" \"npm run dev --workspace=server-express\"",
     "dev:client": "npm run dev --workspace=client-react",
     "dev:server": "npm run dev --workspace=server-express",
+    "test": "npm run test --workspaces --if-present",
     "test:all": "concurrently -m 1 --success first -n unit,integration,e2e -c cyan,yellow,green \"npm --prefix apps/server-express run test:unit\" \"npm --prefix apps/server-express run test:integration\" \"npm --prefix e2e run test\"",
     "test:unit:all": "concurrently -m 1 --success first -n server,client -c green,cyan \"npm run test:unit --workspace=server-express\" \"npm run test:unit --workspace=client-react\"",
     "test:integration:all": "npm run test:integration --workspace=server-express",
@@ -39,10 +40,10 @@
     "test:server": "npm run test --workspace=server-express",
     "test:client": "npm run test --workspace=client-react",
     "test:coverage": "npm run test:coverage --workspaces --if-present",
-"test:smoke": "npm run test:smoke --workspace=server-express",
+    "test:smoke": "npm run test:smoke --workspace=server-express",
     "test:smoke:ci": "npm run test:smoke:ci --workspace=server-express",
     "test:regression": "npm run test:regression --workspace=server-express",
-"verify:e2e": "npm --prefix e2e run test -- --reporter=list",
+    "verify:e2e": "npm --prefix e2e run test -- --reporter=list",
     "verify:smoke": "npm run test:smoke --workspace=server-express -- --reporter=list",
     "test:debug": "node --import why-is-node-running/include node_modules/vitest/vitest.mjs run --config apps/server/vitest.config.js",
     "build": "npm run build --ws --if-present",
@@ -79,9 +80,12 @@
     "prettier": "3.7.4"
   },
   "lint-staged": {
-    "*.{js,ts,cjs,mjs,d.cts,d.mts,json,jsonc}": [
+    "*.{js,ts,cjs,mjs,d.cts,d.mts}": [
       "npm run format",
       "npm run lint"
+    ],
+    "*.{json,jsonc}": [
+      "npm run format"
     ],
     "**/*.test.js": [
       "npm run test:regression --workspace=server-express"

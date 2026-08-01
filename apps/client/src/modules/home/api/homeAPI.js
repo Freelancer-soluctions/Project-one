@@ -9,7 +9,8 @@ const homeApi = createApi({
   baseQuery: axiosPrivateBaseQuery({
     baseUrl: import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1',
   }),
-  endpoints: (builder) => ({
+  // eslint-disable-next-line no-unused-vars
+  endpoints: (_builder) => ({
     // getAllCountNotes moved to @/modules/notes/api/notesAPI
     // NotesSummary uses useGetAllCountNotesQuery from notesAPI directly.
     // Keep this file for future home-scoped endpoints.

@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeAll, skip } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import request from 'supertest';
 import app from '../../src/app.js';
 
@@ -12,9 +12,9 @@ describe('Smoke Test: Authentication Endpoint', () => {
   it('POST /api/v1/auth/signin should respond (endpoint exists and handles request)', async () => {
     const response = await request(app)
       .post('/api/v1/auth/signin')
-      .send({ 
-        email: testEmail || 'nonexistent@test.com', 
-        password: testPassword || 'wrongpassword' 
+      .send({
+        email: testEmail || 'nonexistent@test.com',
+        password: testPassword || 'wrongpassword',
       });
 
     // Should get a valid HTTP response - not 404, not 500
@@ -57,7 +57,7 @@ describe('Smoke Test: Authentication Endpoint', () => {
   // Test 4: Session endpoint requires auth
   it('GET /api/v1/auth/session should require authentication', async () => {
     const response = await request(app).get('/api/v1/auth/session');
-    
+
     // Should return 401 (unauthorized) when no token provided
     expect([401, 403]).toContain(response.status);
   });

@@ -36,11 +36,21 @@ export default function Events() {
     isFetching: isFetchingTypes,
   } = useGetAllEventTypesQuery();
 
-  const [triggerGetAllEvents, { data: dataEvents = { data: { data: [], total: 0 } }, isLoading: isLoadingEvents, isFetching: isFetchingEvents }] =
-    useLazyGetAllEventsQuery();
+  const [
+    triggerGetAllEvents,
+    {
+      data: dataEvents = { data: { data: [], total: 0 } },
+      isLoading: isLoadingEvents,
+      isFetching: isFetchingEvents,
+    },
+  ] = useLazyGetAllEventsQuery();
 
   useEffect(() => {
-    const promise = triggerGetAllEvents({ page: pageIndex + 1, limit: pageSize, search: searchQuery });
+    const promise = triggerGetAllEvents({
+      page: pageIndex + 1,
+      limit: pageSize,
+      search: searchQuery,
+    });
     return () => {
       promise.abort();
     };
@@ -63,27 +73,32 @@ export default function Events() {
         await createEvent(result).unwrap();
       }
 
-    setAlertProps({
-      alertTitle: t(result?.id ? 'update_record' : 'add_record'),
-      alertMessage: t(result?.id ? 'updated_successfully' : 'added_successfully'),
-      cancel: false,
-      success: true,
-      onSuccess: () => {},
-      variantSuccess: 'info',
-    });
-    setOpenAlertDialog(true);
-    setIsDialogOpen(false);
-  } catch (err) {
-    setAlertProps({
-      alertTitle: t('error'),
-      alertMessage: t('something_went_wrong'),
-      cancel: false,
-      success: false,
-      onSuccess: () => {},
-      variantSuccess: 'destructive',
-    });
-    setOpenAlertDialog(true);
-  }
+      setAlertProps({
+        alertTitle: t(result?.id ? 'update_record' : 'add_record'),
+        alertMessage: t(
+          result?.id ? 'updated_successfully' : 'added_successfully'
+        ),
+        cancel: false,
+        success: true,
+        onSuccess: () => {},
+        variantSuccess: 'info',
+      });
+      setOpenAlertDialog(true);
+      setIsDialogOpen(false);
+    } catch (_err) {
+      // eslint-disable-next-line no-unused-vars
+      const _ = _err;
+      // Error caught but not used; alert is shown via setAlertProps
+      setAlertProps({
+        alertTitle: t('error'),
+        alertMessage: t('something_went_wrong'),
+        cancel: false,
+        success: false,
+        onSuccess: () => {},
+        variantSuccess: 'destructive',
+      });
+      setOpenAlertDialog(true);
+    }
   };
 
   const handleEditEvent = (updatedEvent) => {

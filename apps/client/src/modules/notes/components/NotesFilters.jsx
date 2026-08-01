@@ -14,13 +14,13 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
-import { LuPlus, LuEraser, LuTags, LuStar } from 'react-icons/lu';
+import { LuPlus, LuEraser, LuTags } from 'react-icons/lu';
 import { FavoriteToggle } from '@/components/favoriteToggle/favoriteToggle';
 import { useTranslation } from 'react-i18next';
 import PropTypes from 'prop-types';
 import { HashtagsSelector } from './NotesHashtagSelector';
 import { HashtagCreator } from './NotesHashtagCreator';
-import {useGetHashtagItems} from '../hooks/index'
+import { useGetHashtagItems } from '../hooks/index';
 import { useGetNoteColumns } from '../hooks';
 import { FIELD_LIMITS } from '@/config/fieldLimits';
 
@@ -43,8 +43,8 @@ export function NotesFilters({
   const [showCreator, setShowCreator] = useState(false);
   const [showSelector, setShowSelector] = useState(false);
   const [editingHashtag, setEditingHashtag] = useState(null);
-  const {hashtagItems} = useGetHashtagItems()
-  const { dataColumns } = useGetNoteColumns()
+  const { hashtagItems } = useGetHashtagItems();
+  const { dataColumns } = useGetNoteColumns();
 
   const handleCreateHashtag = ({ title }) => {
     if (onCreateHashtag) {
@@ -116,77 +116,77 @@ export function NotesFilters({
           <SelectTrigger>
             <SelectValue placeholder={t('select_status')} />
           </SelectTrigger>
-            <SelectContent>
-              {dataColumns && dataColumns.length > 0 ? (
-                dataColumns.map((col) => (
-                  <SelectItem key={col.id} value={col.code}>
-                    {col.title}
-                  </SelectItem>
-                ))
-              ) : (
-                <SelectItem value="loading" disabled>
-                  {t('loading')}
+          <SelectContent>
+            {dataColumns && dataColumns.length > 0 ? (
+              dataColumns.map((col) => (
+                <SelectItem key={col.id} value={col.code}>
+                  {col.title}
                 </SelectItem>
-              )}
-            </SelectContent>
+              ))
+            ) : (
+              <SelectItem value="loading" disabled>
+                {t('loading')}
+              </SelectItem>
+            )}
+          </SelectContent>
         </Select>
       </div>
-       <div className="flex items-end gap-2">
-         <FavoriteToggle
-           checked={filters.isFavorite}
-           onChange={(checked) => onFavoriteFilter && onFavoriteFilter(checked)}
-           label={t('show_favorites_only')}
-           size="sm"
-         />
-         <Popover open={showSelector} onOpenChange={setShowSelector}>
-           <PopoverTrigger asChild>
-             <Button variant="outline" className="gap-2">
-               <LuTags className="h-4 w-4" />
-               {t('hashtags_title')}
-               {selectedHashtagIds.length > 0 && (
-                 <span className="ml-1 rounded-full bg-primary px-1.5 text-xs text-primary-foreground">
-                   {selectedHashtagIds.length}
-                 </span>
-               )}
-             </Button>
-           </PopoverTrigger>
-           <PopoverContent className="w-auto p-0" align="start">
-             {showCreator ? (
-               <HashtagCreator
-                 onBack={handleBackFromCreator}
-                 onClose={handleCloseCreator}
-                 onCreate={handleCreateHashtag}
-                 onSave={handleSaveHashtag}
-                 editingHashtag={editingHashtag}
-               />
-             ) : (
-               <HashtagsSelector
-                 hashtags={hashtagItems}
-                 selectedIds={selectedHashtagIds.map(String)}
-                 onSelectionChange={(ids) => {
-                   onHashtagSelectionChange(ids.map(Number));;
-                 }}
-                 onEdit={handleStartEdit}
-                 onDelete={handleDeleteHashtag}
-                 onCreate={() => setShowCreator(true)}
-                 onClose={() => setShowSelector(false)}
-               />
-             )}
-           </PopoverContent>
-         </Popover>
-       </div>
-        <div className="flex items-end gap-1">
-          {['mine', 'mixed'].map((s) => (
-            <Button
-              key={s}
-              variant={scope === s ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => onScopeChange(s)}
-            >
-              {s === 'mine' ? t('scope_mine') : t('scope_mixed')}
+      <div className="flex items-end gap-2">
+        <FavoriteToggle
+          checked={filters.isFavorite}
+          onChange={(checked) => onFavoriteFilter && onFavoriteFilter(checked)}
+          label={t('show_favorites_only')}
+          size="sm"
+        />
+        <Popover open={showSelector} onOpenChange={setShowSelector}>
+          <PopoverTrigger asChild>
+            <Button variant="outline" className="gap-2">
+              <LuTags className="h-4 w-4" />
+              {t('hashtags_title')}
+              {selectedHashtagIds.length > 0 && (
+                <span className="ml-1 rounded-full bg-primary px-1.5 text-xs text-primary-foreground">
+                  {selectedHashtagIds.length}
+                </span>
+              )}
             </Button>
-          ))}
-        </div>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-0" align="start">
+            {showCreator ? (
+              <HashtagCreator
+                onBack={handleBackFromCreator}
+                onClose={handleCloseCreator}
+                onCreate={handleCreateHashtag}
+                onSave={handleSaveHashtag}
+                editingHashtag={editingHashtag}
+              />
+            ) : (
+              <HashtagsSelector
+                hashtags={hashtagItems}
+                selectedIds={selectedHashtagIds.map(String)}
+                onSelectionChange={(ids) => {
+                  onHashtagSelectionChange(ids.map(Number));
+                }}
+                onEdit={handleStartEdit}
+                onDelete={handleDeleteHashtag}
+                onCreate={() => setShowCreator(true)}
+                onClose={() => setShowSelector(false)}
+              />
+            )}
+          </PopoverContent>
+        </Popover>
+      </div>
+      <div className="flex items-end gap-1">
+        {['mine', 'mixed'].map((s) => (
+          <Button
+            key={s}
+            variant={scope === s ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => onScopeChange(s)}
+          >
+            {s === 'mine' ? t('scope_mine') : t('scope_mixed')}
+          </Button>
+        ))}
+      </div>
       <div className="flex flex-wrap items-center justify-between gap-3 mt-5 md:justify-normal">
         <Button
           className="flex-1 md:flex-initial md:w-24"

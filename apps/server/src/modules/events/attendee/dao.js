@@ -1,4 +1,4 @@
-import { prisma, Prisma } from '../../../config/db.js';
+import { prisma } from '../../../config/db.js';
 
 /**
  * Finds an attendee by event ID and user ID.
@@ -264,7 +264,11 @@ export const findEventById = async (eventId, tx) => {
  * @param {Prisma.TransactionClient} [tx] - Optional Prisma transaction client.
  * @returns {Promise<number>} The count of updated rows (0 = lock failed, 1 = success).
  */
-export const updateEventAttendeeCountWithLock = async (eventId, expectedCount, tx) => {
+export const updateEventAttendeeCountWithLock = async (
+  eventId,
+  expectedCount,
+  tx
+) => {
   const client = tx || prisma;
   const result = await client.events.updateMany({
     where: {

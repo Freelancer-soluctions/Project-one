@@ -10,7 +10,7 @@ vi.mock('../../../src/utils/prisma/prisma-query.js', () => ({
 import request from 'supertest';
 import app from '../../../src/app.js';
 
-describe.skip('Events Combined Filters – Integration', () => {
+describe.todo('Events Combined Filters – Integration', () => {
   const adminToken = 'mock-admin-token';
   const userToken = 'mock-user-token';
 
@@ -101,7 +101,9 @@ describe.skip('Events Combined Filters – Integration', () => {
 
   it('GET /events with type + dateFrom + dateTo + speaker returns 200', async () => {
     const res = await request(app)
-      .get('/api/v1/events?type=1&dateFrom=2025-01-01&dateTo=2025-12-31&speaker=Tech')
+      .get(
+        '/api/v1/events?type=1&dateFrom=2025-01-01&dateTo=2025-12-31&speaker=Tech'
+      )
       .set('Authorization', `Bearer ${adminToken}`);
 
     expect(res.status).toBe(200);
@@ -121,7 +123,9 @@ describe.skip('Events Combined Filters – Integration', () => {
 
   it('GET /events with all filters combined returns 200', async () => {
     const res = await request(app)
-      .get('/api/v1/events?type=1&dateFrom=2025-01-01&dateTo=2025-12-31&speaker=John&status=upcoming')
+      .get(
+        '/api/v1/events?type=1&dateFrom=2025-01-01&dateTo=2025-12-31&speaker=John&status=upcoming'
+      )
       .set('Authorization', `Bearer ${adminToken}`);
 
     expect(res.status).toBe(200);

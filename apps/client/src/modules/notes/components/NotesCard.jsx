@@ -17,7 +17,8 @@ import { toast } from '@/components/ui/use-toast';
 export function NotesCard({ note, onDragStart, onDelete, onEdit, columnCode }) {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
-  const [toggleFavorite, { isLoading: isTogglingFav }] = useToggleFavoriteMutation();
+  const [toggleFavorite, { isLoading: isTogglingFav }] =
+    useToggleFavoriteMutation();
   const { t } = useTranslation();
   const { socket } = useSocket();
 
@@ -25,10 +26,12 @@ export function NotesCard({ note, onDragStart, onDelete, onEdit, columnCode }) {
 
   const cardStyles = NOTE_CARD_STYLES[note.color] || NOTE_CARD_STYLES.gray;
 
-  const handleToggleFavorite = async (newState) => {
+  const handleToggleFavorite = async () => {
     try {
       await toggleFavorite(note.id).unwrap();
-    } catch (err) {
+    } catch (_err) {
+      // eslint-disable-next-line no-unused-vars
+      const _ = _err;
       toast({
         title: t('error'),
         description: t('error_occurred_message'),
@@ -39,7 +42,10 @@ export function NotesCard({ note, onDragStart, onDelete, onEdit, columnCode }) {
 
   const handleMarkAsRead = () => {
     if (socket && note.mentionIds?.length) {
-      socket.emit('message', { type: 'mention:read', payload: { mentionIds: note.mentionIds } });
+      socket.emit('message', {
+        type: 'mention:read',
+        payload: { mentionIds: note.mentionIds },
+      });
     }
   };
 
@@ -47,13 +53,16 @@ export function NotesCard({ note, onDragStart, onDelete, onEdit, columnCode }) {
     <>
       <Card
         draggable={isOwner}
-        onDragStart={isOwner ? (e) => onDragStart(e, note.id, columnCode) : undefined}
-         className={cn(
-           isOwner ? 'cursor-move' : 'cursor-default', 'transition-all duration-200 hover:shadow-lg group',
-           cardStyles.card,
-           !isOwner && 'border-dashed border-gray-400/50',
-           isMentioned && !isOwner && 'border-l-4 border-l-blue-400'
-         )}
+        onDragStart={
+          isOwner ? (e) => onDragStart(e, note.id, columnCode) : undefined
+        }
+        className={cn(
+          isOwner ? 'cursor-move' : 'cursor-default',
+          'transition-all duration-200 hover:shadow-lg group',
+          cardStyles.card,
+          !isOwner && 'border-dashed border-gray-400/50',
+          isMentioned && !isOwner && 'border-l-4 border-l-blue-400'
+        )}
       >
         <CardHeader
           className={cn(
@@ -79,7 +88,10 @@ export function NotesCard({ note, onDragStart, onDelete, onEdit, columnCode }) {
                   {t('mentioned_badge')}
                 </span>
                 {hasUnreadMentions && (
-                  <span className="w-2 h-2 rounded-full bg-blue-600 ml-1 inline-block" title={t('unread_mentions')} />
+                  <span
+                    className="w-2 h-2 rounded-full bg-blue-600 ml-1 inline-block"
+                    title={t('unread_mentions')}
+                  />
                 )}
               </>
             )}
