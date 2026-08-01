@@ -250,7 +250,6 @@ flowchart LR
 | `ci-enterprise.yml` | Push to `main` | Full CI + security |
 | `quality.yml` | Reusable (called) | Code quality |
 | `security.yml` | PR to `main` | Semgrep, Trivy, Gitleaks |
-| `pr-validation.yml` | PR to `main` | PR metadata validation |
 
 ---
 

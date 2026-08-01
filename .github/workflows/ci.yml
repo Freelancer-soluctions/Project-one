@@ -38,19 +38,7 @@ jobs:
       run-server: ${{ needs.changes.outputs.backend }}
 
 
-  # lint:
-  #   name: Linter
-  #   uses: ./.github/workflows/linter.yml  
-  
-  # formatter:
-  #   name: Formatter
-  #   uses: ./.github/workflows/formatter.yml
-
-  # build:
-  #   name: Build
-  #   uses: ./.github/workflows/build.yml
-  
-  test: 
+test: 
     name: Testing
     uses: ./.github/workflows/test.yml
 

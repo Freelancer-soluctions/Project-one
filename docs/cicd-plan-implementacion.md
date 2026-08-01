@@ -122,10 +122,9 @@ Referencia: `docs/cicd-estado-actual.md` — inventario completo de brechas.
 | A1 | Lint no bloqueante en CI | ESLint configurado pero no es gate obligatorio | ESLint como gate en CI — `npm run lint` bloquea si hay errores |
 | A2 | Gitleaks en CI requiere licencia | Job falla si `GIT_LEAKS` no está configurado | Usar GitHub secret scanning (gratuito) + Floci no-license |
 | A3 | `ci-enterprise.yml` references paths inexistentes | `frontend/`, `backend/` no existen | Eliminar o adaptar a `apps/client`, `apps/server` |
-| A4 | `pr-validation.yml` deprecado | Workflow zombie | Eliminar |
-| A5 | `lint.yml` + `formatter.yml` definidos no usados | Workflows zombie | Integrar en `ci.yml` o eliminar |
-| A6 | Sin gate de coverage | Cobertura sin umbral | `coverage.thresholds` en Vitest config |
-| A7 | Sin Dependabot/Renovate | Dependencias se desactualizan | Dependabot activo con auto-PR de seguridad |
+| A4 | `release.yml` usa `setup-node@v4` con Node 20 hardcodeado | `release.yml` hardcodea Node 20 vs `.nvmrc` | Unificar a `node-version-file: .nvmrc` <!-- FIXME: release.yml usa `node-version: 20` hardcoded; corregir a `node-version-file: '.nvmrc'` como los demás workflows --> |
+| A5 | Sin gate de coverage | Cobertura sin umbral | `coverage.thresholds` en Vitest config |
+| A6 | Sin Dependabot/Renovate | Dependencias se desactualizan | Dependabot activo con auto-PR de seguridad |
 
 ### Brechas medias (Sprint 2-4)
 
@@ -1233,7 +1232,7 @@ updates:
 | 2.2 | Crear workflow `preview.yml` con Floci + Vercel preview | 3 | — | Cada PR genera URL de preview comentada en el PR |
 | 2.3 | Migrar de LocalStack a Floci (1 línea en docker-compose.yml) | 1 | — | `docker compose up` levanta Floci en port 4566 |
 | 2.4 | Integrar `@floci/testcontainers` con Vitest para tests AWS | 2 | 2.3 | Tests que usan S3/DynamoDB funcionan con Floci en CI y local |
-| 2.5 | Eliminar workflows zombie (`pr-validation.yml`, `ci-enterprise.yml`, `lint.yml`, `formatter.yml`) | 1 | — | `ls .github/workflows/` solo muestra workflows activos |
+| 2.5 | Eliminar workflows zombie (`pr-validation.yml`, `lint.yml`, `formatter.yml`) | 1 | — | `ls .github/workflows/` solo muestra workflows activos |
 | 2.6 | Unificar versión de Node en todos los workflows a `.nvmrc` | 1 | — | Todos los workflows usan `node-version-file: .nvmrc` |
 | 2.7 | Configurar GitHub secret scanning (gratuito, no requiere licencia) | 1 | — | Secret scanning activo en GitHub Security tab |
 
@@ -1414,7 +1413,7 @@ Implementar en un GitHub Project board o dashboard simple con:
 9. **Verificar ESLint como gate en CI** — `npm run lint` debe fallar si hay errores (Sprint 1.1)
 10. **Re-activar `lint-staged`** en `.husky/pre-commit` (Sprint 1.10)
 11. **Crear `.dockerignore`** — evitar que `.env` y `node_modules` entren en la imagen (Sprint 1.9)
-12. **Eliminar `pr-validation.yml` y `ci-enterprise.yml`** — eliminar workflows zombie
+12. **Eliminar `pr-validation.yml`, `lint.yml`, `formatter.yml`** — eliminar workflows zombie
 
 ### Quick reference — comandos iniciales
 

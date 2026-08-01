@@ -243,9 +243,6 @@ conectados a CI/CD**:
 | **Code Quality (reutilizable)** | `.github/workflows/quality.yml` | `workflow_call`, `workflow_dispatch` | Checkout, setup Node, `npm ci`, lint + format:check por workspace, typecheck (skipped) | ✅ Sí |
 | **Security** | `.github/workflows/security.yml` | `pull_request` a `main`, `workflow_call` | Trivy SCA + CodeQL SAST + Gitleaks secret scan | ✅ Sí |
 | **Release (Changesets)** | `.github/workflows/release.yml` | `push` a `main` | Crear PR de versiones / publicar a npm | ✅ Sí |
-| **Linter (standalone)** | `.github/workflows/lint.yml` | `workflow_call` | Lint (referenciado pero no invocado en ci.yml) | ⚠️ Definido, no usado |
-| **Formatter (standalone)** | `.github/workflows/formatter.yml` | `workflow_call` | Format check (referenciado pero no invocado) | ⚠️ Definido, no usado |
-| **PR Validation (antiguo)** | `.github/workflows/pr-validation.yml` | — | — | ⚠️ Deprecado (reemplazado por ci.yml) |
 | **CI Enterprise** | `.github/workflows/ci-enterprise.yml` | — | Pipelines para paths `frontend/`, `backend/` (no existen en este monorepo) | ❌ No aplica |
 
 ### Hooks locales (Husky)
@@ -435,10 +432,7 @@ ejecuta ninguna de ellas**. La documentación está en `docs/testing-architectur
 | A1 | **Typecheck se omite en CI** | Errores de tipos no se detectan | Crear script `typecheck` real en `package.json` con `tsc --noEmit` por workspace |
 | A2 | **Gitleaks Action requiere licencia** | Job falla si `GIT_LEAKS` no está configurado | Configurar el secreto o migrar a `gitleaks/gitleaks-action@v2` con licencia free tier |
 | A3 | **`ci-enterprise.yml` referencia paths inexistentes** (`frontend/`, `backend/`) | Confusión / posibles falsos positivos | Eliminar el archivo o adaptar a `apps/client`, `apps/server` |
-| A4 | **`pr-validation.yml` deprecado** | Confusión histórica | Eliminar el archivo |
-| A5 | **`lint.yml` y `formatter.yml` standalone definidos pero no usados** | Workflows zombis | O invocarlos desde `ci.yml` o eliminarlos |
-| A6 | **No hay gate de coverage** | Cobertura sin umbral mínimo | Configurar `coverage.thresholds` en vitest config |
-| A7 | **No hay Dependabot/Renovate** | Dependencias se desactualizan | Agregar `.github/dependabot.yml` |
+| A4 | **`release.yml` usa `setup-node@v4` con Node 20 hardcodeado** vs `quality.yml` que usa `.nvmrc` | Versiones inconsistentes entre workflows | Unificar todo a `node-version-file: '.nvmrc'` |
 
 ### 🟨 Medias (mejoras operativas)
 
@@ -520,9 +514,6 @@ ejecuta ninguna de ellas**. La documentación está en `docs/testing-architectur
 - `.github/workflows/quality.yml` — reusable de lint + format + typecheck (skipped)
 - `.github/workflows/release.yml` — Changesets en push a main
 - `.github/workflows/security.yml` — Trivy SCA + CodeQL SAST + Gitleaks
-- `.github/workflows/lint.yml` — workflow_call (no invocado)
-- `.github/workflows/formatter.yml` — workflow_call (no invocado)
-- `.github/workflows/pr-validation.yml` — deprecado
 - `.github/workflows/ci-enterprise.yml` — referencia paths inexistentes
 
 ### Configuración del monorepo
