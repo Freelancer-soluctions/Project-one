@@ -427,12 +427,14 @@ ejecuta ninguna de ellas**. La documentación está en `docs/testing-architectur
 
 ### 🟧 Altas (degradan madurez del pipeline)
 
+> ✅ **Actualizado (jul 2026):** Los ítems A4 y M6 (versión Node inconsistente en release.yml) han sido resueltos — release.yml ahora usa `node-version-file: '.nvmrc'` igual que los demás workflows.
+
 | ID | Brecha | Impacto | Recomendación |
 |---|---|---|---|
 | A1 | **Typecheck se omite en CI** | Errores de tipos no se detectan | Crear script `typecheck` real en `package.json` con `tsc --noEmit` por workspace |
 | A2 | **Gitleaks Action requiere licencia** | Job falla si `GIT_LEAKS` no está configurado | Configurar el secreto o migrar a `gitleaks/gitleaks-action@v2` con licencia free tier |
 | A3 | **`ci-enterprise.yml` referencia paths inexistentes** (`frontend/`, `backend/`) | Confusión / posibles falsos positivos | Eliminar el archivo o adaptar a `apps/client`, `apps/server` |
-| A4 | **`release.yml` usa `setup-node@v4` con Node 20 hardcodeado** vs `quality.yml` que usa `.nvmrc` | Versiones inconsistentes entre workflows | Unificar todo a `node-version-file: '.nvmrc'` |
+| ~~A4~~ | ~~`release.yml` usa `setup-node@v4` con Node 20 hardcodeado~~ vs `quality.yml` que usa `.nvmrc` | ~~Versiones inconsistentes entre workflows~~ | ✅ **Resuelto** — release.yml usa `node-version-file: '.nvmrc'` |
 
 ### 🟨 Medias (mejoras operativas)
 
@@ -443,7 +445,7 @@ ejecuta ninguna de ellas**. La documentación está en `docs/testing-architectur
 | M3 | **No hay IaC (Terraform/Pulumi)** | Infra no reproducible | Evaluar IaC para cloud cuando se defina el proveedor |
 | M4 | **No hay SBOM** | Sin inventario de componentes | Activar `anchore/sbom-action` en security.yml |
 | M5 | **No hay caching de Vitest/Playwright** | CI lento cuando se agreguen tests | Usar cache de acciones (`actions/cache`) para playwright browsers y vitest |
-| M6 | **`release.yml` usa `setup-node@v4` con Node 20 hardcodeado** vs `quality.yml` que usa `.nvmrc` | Versiones inconsistentes entre workflows | Unificar todo a `node-version-file: '.nvmrc'` |
+| ~~M6~~ | ~~`release.yml` usa `setup-node@v4` con Node 20 hardcodeado~~ vs `quality.yml` que usa `.nvmrc` | ~~Versiones inconsistentes entre workflows~~ | ✅ **Resuelto** — release.yml usa `node-version-file: '.nvmrc'` |
 | M7 | **Secret scanning solo en CI, no en historial completo** | Secretos viejos no se detectan | Agregar job "full repo scan" programado (cron) |
 
 ---
@@ -469,16 +471,18 @@ ejecuta ninguna de ellas**. La documentación está en `docs/testing-architectur
 
 #### Roadmap sugerido (orden recomendado)
 
+> ✅ **Actualizado (jul 2026):** Los ítems del Sprint 2 marcados con ✅ ya fueron completados en el change `ci-cleanup-enterprise`.
+
 1. **Sprint 1 — Cerrar gaps de CI críticos:**
    - Descomentar e implementar jobs `test` y `build` en `ci.yml`.
    - Llenar el hook `pre-push`.
    - Agregar script `typecheck` real.
 
 2. **Sprint 2 — Limpiar y estabilizar:**
-   - Eliminar `ci-enterprise.yml`, `pr-validation.yml`.
-   - Decidir si usar `lint.yml`/`formatter.yml` standalone o eliminarlos.
+   - ✅ Eliminar `pr-validation.yml`, `lint.yml`, `formatter.yml` (completado en `ci-cleanup-enterprise`).
+   - ✅ Decidir sobre `lint.yml`/`formatter.yml` standalone → **eliminados** (completado).
    - Configurar secreto `GIT_LEAKS` o desactivar el job `secrets` de CI.
-   - Unificar versión de Node en workflows a `.nvmrc`.
+   - ✅ Unificar versión de Node en workflows a `.nvmrc` (completado — release.yml migrado).
 
 3. **Sprint 3 — CD Básico:**
    - Definir proveedor cloud (Render / Railway / Fly.io / VPS propio con PM2).

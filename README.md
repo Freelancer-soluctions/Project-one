@@ -247,9 +247,10 @@ flowchart LR
 | Workflow | Trigger | Scope |
 |----------|---------|-------|
 | `ci.yml` | PR to `main` | Lint, format, test, build |
-| `ci-enterprise.yml` | Push to `main` | Full CI + security |
 | `quality.yml` | Reusable (called) | Code quality |
 | `security.yml` | PR to `main` | Semgrep, Trivy, Gitleaks |
+| `release.yml` | Push to `main` | Changesets release + npm publish |
+| `ci-enterprise.yml` | Push to `main` | Full CI + security (reference) |
 
 ---
 

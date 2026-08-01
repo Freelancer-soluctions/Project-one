@@ -51,9 +51,9 @@
 
 ## 4. Update Documentation
 
-- [ ] 4.1 Update `README.md` CI table: remove or mark `pr-validation.yml` entry (line ~253)
-- [ ] 4.2 Update `docs/cicd-estado-actual.md`: remove references to deleted zombie workflows from tables and inventory lists (~10 references)
-- [ ] 4.3 Update `docs/cicd-plan-implementacion.md`: update CI workflow inventory to reflect deleted files
+- [x] 4.1 Update `README.md` CI table: remove or mark `pr-validation.yml` entry (line ~253)
+- [x] 4.2 Update `docs/cicd-estado-actual.md`: remove references to deleted zombie workflows from tables and inventory lists (~10 references)
+- [x] 4.3 Update `docs/cicd-plan-implementacion.md`: update CI workflow inventory to reflect deleted files
 
 ## 5. Verify Remaining Workflows Consistency
 
@@ -72,7 +72,7 @@
 - [x] 6.1 Run `git status` to confirm only intended files are staged/deleted
 - [x] 6.2 Run `git diff --stat` to review all changes at a glance
 - [x] 6.3 Verificar el set esperado de workflows DINÁMICAMENTE (`ls .github/workflows/*.yml` = set inicial menos los eliminados en este change; si existen workflows de changes posteriores mergeados, el inventario debe incluirlos — no asumir lista fija de 5)
-- [ ] 6.4 Commit with message: `chore(ci): remove zombie workflows, fix release.yml node-version to .nvmrc, update docs`
+- [x] 6.4 Commit with message: `chore(ci): remove zombie workflows, fix release.yml node-version to .nvmrc, update docs`
 
 ## Notes
 
