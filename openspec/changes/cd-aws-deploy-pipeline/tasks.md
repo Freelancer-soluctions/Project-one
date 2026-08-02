@@ -2,13 +2,13 @@
 
 > Cada grupo de tasks mapea a requisitos de los specs (`cd-docker-ecr`, `cd-staging-deploy`, `cd-production-deploy`, `cd-rollback`, `cd-aws-learning-path`) y a las decisiones del design (D1-D10). Fase 1 = sin cuenta AWS; Fase 2 = desbloqueada por hitos del learning path con Floci.
 >
-> **DEPENDENCIA DE ORDEN DE MERGE**: tasks 0.1-0.2 requieren el Dockerfile fix + `.dockerignore` de `ci-preview-environments` (tasks 0.1-0.2 de ese change). Mergear `ci-preview-environments` ANTES que este change; si no, aplicar el fix aquí (task 0.1 fallback). También depende de `GET /health` (ci-preview-environments task 3.0).
+> **DEPENDENCIA DE ORDEN DE MERGE (HARD)**: tasks 0.1-0.3 requieren el Dockerfile fix + `.dockerignore` + `GET /health` de `ci-preview-environments` (tasks 0.1-0.2 y 3.0 de ese change). `ci-preview-environments` DEBE mergearse ANTES que este change — NO aplicar el fix aquí (evita ediciones duplicadas/conflictivas en `apps/server/Dockerfile` y `src/app.js`); verificar solo.
 
 ## 0. Prerrequisitos y coordinación con siblings
 
-- [ ] 0.1 Verificar Dockerfile fix + `.dockerignore` del change sibling `ci-preview-environments` (tasks 0.1-0.2): `npm ci --omit=dev` no debe romper el postinstall `prisma generate` (copiar `prisma/` antes del `npm ci` o mover `prisma generate` tras `COPY . .` con el CLI disponible). **Fallback**: si el sibling NO está mergeado aún, aplicar el fix aquí (coordinado, fuente única de verdad) o declarar dependencia dura de orden de merge — declarar la dependencia en el header de este tasks.md
+- [ ] 0.1 Verificar Dockerfile fix + `.dockerignore` del change sibling `ci-preview-environments` (tasks 0.1-0.2): `npm ci --omit=dev` no debe romper el postinstall `prisma generate` (copiar `prisma/` antes del `npm ci` o mover `prisma generate` tras `COPY . .` con el CLI disponible). **SIN fallback**: si el sibling NO está mergeado, BLOQUEAR este change (dependencia dura declarada) — no re-aplicar el fix
 - [ ] 0.2 Verificar `docker build apps/server` end-to-end y que la imagen bootea `node src/bin/index.js` con el Prisma client generado — es el gate de entrada de todo el CD
-- [ ] 0.3 Verificar que existe `GET /health` (task 3.0 de `ci-preview-environments`); si no existe, añadir ruta mínima HTTP 200 no-breaking en `apps/server/src/app.js` — el CD y los smoke tests dependen de ella
+- [ ] 0.3 Verificar que existe `GET /health` (task 3.0 de `ci-preview-environments`); si NO existe, BLOQUEAR (dependencia dura) — no añadir la ruta aquí para evitar duplicación con el sibling
 - [ ] 0.4 Confirmar que las actions GitHub quedan pinneadas por tag y el patrón `GITHUB_TOKEN`-only donde no se requiera AWS (consistencia con los siblings)
 
 ## 1. Fase 1 — Job docker-build (build + validación sin AWS)
