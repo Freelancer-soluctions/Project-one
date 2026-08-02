@@ -40,18 +40,20 @@ export const ProviderOrdersDialog = ({
   const providerOrderId = selectedRow?.id ?? null;
   // const [providerOrderId, setProviderOrderId] = useState('')
 
-   const form = useForm({
-     resolver: zodResolver(ProviderOrderSchema),
-     defaultValues: {
-       supplierId: '',
-       notes: '',
-       createdOn: '',
-       updatedOn: '',
-       userProviderOrderCreatedName: '',
-       userProviderOrderUpdatedName: '',
-     },
-   });
-   const { formState: { dirtyFields } } = form;
+  const form = useForm({
+    resolver: zodResolver(ProviderOrderSchema),
+    defaultValues: {
+      supplierId: '',
+      notes: '',
+      createdOn: '',
+      updatedOn: '',
+      userProviderOrderCreatedName: '',
+      userProviderOrderUpdatedName: '',
+    },
+  });
+  const {
+    formState: { dirtyFields },
+  } = form;
 
   // Actualiza todos los valores del formulario al cambiar `selectedRow`
   useEffect(() => {
@@ -110,14 +112,14 @@ export const ProviderOrdersDialog = ({
   //   }
   // }, [selectedRow, openDialog])
 
-   const handleSubmit = (data) => {
-     if (providerOrderId) {
-       const changes = pickDirty(data, dirtyFields);
-       onSubmit({ id: providerOrderId, body: changes });
-     } else {
-       onSubmit(data);
-     }
-   };
+  const handleSubmit = (data) => {
+    if (providerOrderId) {
+      const changes = pickDirty(data, dirtyFields);
+      onSubmit({ id: providerOrderId, body: changes });
+    } else {
+      onSubmit(data);
+    }
+  };
 
   const handleDelete = () => {
     onDeleteById(providerOrderId);

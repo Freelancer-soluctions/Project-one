@@ -33,7 +33,7 @@ import {
 } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
 import PropTypes from 'prop-types';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { pickDirty } from '@/utils/pickDirty';
 import { LuCalendarDays, LuVideo, LuMapPin } from 'react-icons/lu';
@@ -62,23 +62,29 @@ export function EventDialog({
   const formEventDialog = useForm({
     resolver: zodResolver(schema),
   });
-   const { formState: { dirtyFields }, watch, setValue } = formEventDialog;
-   const watchedModality = watch('modality');
+  const {
+    formState: { dirtyFields },
+    setValue,
+  } = formEventDialog;
+  const watchedModality = useWatch({
+    control: formEventDialog.control,
+    name: 'modality',
+  });
 
-   // Reset meetingUrl/location when modality changes
-   useEffect(() => {
-     if (watchedModality === 'ONLINE') {
-       setValue('location', '');
-     } else if (watchedModality === 'IN_PERSON') {
-       setValue('meetingUrl', '');
-     } else if (watchedModality === 'HYBRID') {
-       // HYBRID needs both, don't reset
-     } else {
-       // modality cleared, reset both
-       setValue('meetingUrl', '');
-       setValue('location', '');
-     }
-   }, [watchedModality, setValue]);
+  // Reset meetingUrl/location when modality changes
+  useEffect(() => {
+    if (watchedModality === 'ONLINE') {
+      setValue('location', '');
+    } else if (watchedModality === 'IN_PERSON') {
+      setValue('meetingUrl', '');
+    } else if (watchedModality === 'HYBRID') {
+      // HYBRID needs both, don't reset
+    } else {
+      // modality cleared, reset both
+      setValue('meetingUrl', '');
+      setValue('location', '');
+    }
+  }, [watchedModality, setValue]);
 
   // Actualiza todos los valores del formulario al cambiar `event`
   useEffect(() => {
@@ -101,15 +107,15 @@ export function EventDialog({
     }
   }, [event, formEventDialog]);
 
-   const onSubmitDialog = (data) => {
-     // keep same data transformations
-     if (event.id) {
-       const changes = pickDirty(data, dirtyFields);
-       onSubmit({ id: event.id, body: changes });
-     } else {
-       onSubmit(data);
-     }
-   };
+  const onSubmitDialog = (data) => {
+    // keep same data transformations
+    if (event.id) {
+      const changes = pickDirty(data, dirtyFields);
+      onSubmit({ id: event.id, body: changes });
+    } else {
+      onSubmit(data);
+    }
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -269,7 +275,9 @@ export function EventDialog({
                   render={({ field }) => {
                     return (
                       <FormItem className="flex flex-col flex-auto col-span-1">
-                        <FormLabel htmlFor="meetingUrl">{t('meeting_url')}*</FormLabel>
+                        <FormLabel htmlFor="meetingUrl">
+                          {t('meeting_url')}*
+                        </FormLabel>
                         <FormControl>
                           <Input
                             id="meetingUrl"
@@ -286,7 +294,8 @@ export function EventDialog({
                 />
               </div>
             )}
-            {(watchedModality === 'IN_PERSON' || watchedModality === 'HYBRID') && (
+            {(watchedModality === 'IN_PERSON' ||
+              watchedModality === 'HYBRID') && (
               <div className="my-4">
                 <FormField
                   control={formEventDialog.control}
@@ -294,7 +303,9 @@ export function EventDialog({
                   render={({ field }) => {
                     return (
                       <FormItem className="flex flex-col flex-auto col-span-1">
-                        <FormLabel htmlFor="location">{t('location_field')}*</FormLabel>
+                        <FormLabel htmlFor="location">
+                          {t('location_field')}*
+                        </FormLabel>
                         <FormControl>
                           <Input
                             id="location"

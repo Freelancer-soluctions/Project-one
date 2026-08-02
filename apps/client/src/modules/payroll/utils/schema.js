@@ -8,7 +8,9 @@ export const PayrollSchema = z
     employeeId: z.preprocess(
       (val) => (val === '' ? undefined : Number(val)),
       z
-        .number({ required_error: getZodMessage('zod.payroll.employeeId.required') })
+        .number({
+          required_error: getZodMessage('zod.payroll.employeeId.required'),
+        })
         .int()
         .positive(getZodMessage('zod.payroll.employeeId.positive'))
     ),
@@ -26,26 +28,35 @@ export const PayrollSchema = z
         .number({ required_error: getZodMessage('zod.payroll.year.required') })
         .int()
         .min(2000, getZodMessage('zod.payroll.year.min'))
-        .max(currentYear + 1, getZodMessage('zod.payroll.year.max', { count: currentYear + 1 }))
+        .max(
+          currentYear + 1,
+          getZodMessage('zod.payroll.year.max', { count: currentYear + 1 })
+        )
     ),
-baseSalary: z.preprocess(
+    baseSalary: z.preprocess(
       (val) => (val === '' ? undefined : Number(val)),
       z
-        .number({ required_error: getZodMessage('zod.payroll.baseSalary.required') })
+        .number({
+          required_error: getZodMessage('zod.payroll.baseSalary.required'),
+        })
         .positive(getZodMessage('zod.payroll.baseSalary.positive'))
     ),
-extraHours: z.preprocess(
+    extraHours: z.preprocess(
       (val) => (val === '' ? 0 : Number(val)), // Default to 0 if empty
       z
-        .number({ invalid_type_error: getZodMessage('zod.payroll.extraHours.invalid') })
+        .number({
+          invalid_type_error: getZodMessage('zod.payroll.extraHours.invalid'),
+        })
         .nonnegative(getZodMessage('zod.payroll.extraHours.nonnegative'))
         .optional()
         .default(0)
     ),
-deductions: z.preprocess(
+    deductions: z.preprocess(
       (val) => (val === '' ? 0 : Number(val)), // Default to 0 if empty
       z
-        .number({ invalid_type_error: getZodMessage('zod.payroll.deductions.invalid') })
+        .number({
+          invalid_type_error: getZodMessage('zod.payroll.deductions.invalid'),
+        })
         .nonnegative(getZodMessage('zod.payroll.deductions.nonnegative'))
         .optional()
         .default(0)
@@ -53,7 +64,9 @@ deductions: z.preprocess(
     totalPayment: z.preprocess(
       (val) => (val === '' ? undefined : Number(val)),
       z
-        .number({ required_error: getZodMessage('zod.payroll.totalPayment.required') })
+        .number({
+          required_error: getZodMessage('zod.payroll.totalPayment.required'),
+        })
         .positive(getZodMessage('zod.payroll.totalPayment.positive'))
     ),
   })

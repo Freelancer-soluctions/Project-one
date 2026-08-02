@@ -64,7 +64,9 @@ export const AttendanceDialog = ({
       workedHours: '',
     },
   });
-  const { formState: { dirtyFields } } = form;
+  const {
+    formState: { dirtyFields },
+  } = form;
   const attendanceId = useMemo(
     () => selectedRow?.id ?? null,
     [selectedRow?.id]

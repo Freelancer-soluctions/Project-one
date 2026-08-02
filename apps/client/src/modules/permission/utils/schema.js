@@ -16,7 +16,9 @@ export const PermissionSchema = z
     employeeId: z.preprocess(
       (val) => (val === '' ? undefined : Number(val)),
       z
-        .number({ required_error: getZodMessage('zod.permission.employeeId.required') })
+        .number({
+          required_error: getZodMessage('zod.permission.employeeId.required'),
+        })
         .int()
         .positive(getZodMessage('zod.permission.employeeId.positive'))
     ),

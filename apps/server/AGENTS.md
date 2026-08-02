@@ -86,9 +86,9 @@ e2e/tests/
 
 ```js
 include: [
-  'src/**/*.unit.test.js',                    // Colocated unit tests
-  'tests/integration/**/*.integration.test.js' // Integration grouped by module
-]
+  'src/**/*.unit.test.js', // Colocated unit tests
+  'tests/integration/**/*.integration.test.js', // Integration grouped by module
+];
 ```
 
 ### NPM Scripts (Server)
@@ -106,11 +106,11 @@ This filters by filename pattern instead of folder location — robust regardles
 
 ### Naming Convention
 
-| Pattern | Type | Location |
-|---------|------|----------|
-| `*.unit.test.js` | Unit test (pure logic, single module) | Colocated with source |
-| `*.integration.test.js` | Integration (multi-module, DB, HTTP) | `tests/integration/<module>/` |
-| `*.test.js` | AVOID — no context about intent | — |
+| Pattern                 | Type                                  | Location                      |
+| ----------------------- | ------------------------------------- | ----------------------------- |
+| `*.unit.test.js`        | Unit test (pure logic, single module) | Colocated with source         |
+| `*.integration.test.js` | Integration (multi-module, DB, HTTP)  | `tests/integration/<module>/` |
+| `*.test.js`             | AVOID — no context about intent       | —                             |
 
 ### Adding New Tests
 
@@ -128,34 +128,34 @@ Skills relevant to server-side development. Load with `/skill <name>`.
 
 ### Backend Skills
 
-| Skill | Description | URL |
-|-------|-------------|-----|
-| `nodejs-backend-patterns` | Production-ready Express/Fastify: middleware, error handling, auth, API design | [SKILL.md](../../.agents/skills/nodejs-backend-patterns/SKILL.md) |
+| Skill                     | Description                                                                       | URL                                                               |
+| ------------------------- | --------------------------------------------------------------------------------- | ----------------------------------------------------------------- |
+| `nodejs-backend-patterns` | Production-ready Express/Fastify: middleware, error handling, auth, API design    | [SKILL.md](../../.agents/skills/nodejs-backend-patterns/SKILL.md) |
 | `postgresql-table-design` | PostgreSQL schema design: data types, indexing, constraints, performance patterns | [SKILL.md](../../.agents/skills/postgresql-table-design/SKILL.md) |
-| `prisma-postgres` | Prisma Postgres setup, Management API, provisioning, and connection handling | [SKILL.md](../../.agents/skills/prisma-postgres/SKILL.md) |
+| `prisma-postgres`         | Prisma Postgres setup, Management API, provisioning, and connection handling      | [SKILL.md](../../.agents/skills/prisma-postgres/SKILL.md)         |
 
 ### Testing Skills
 
-| Skill | Description | URL |
-|-------|-------------|-----|
-| `vitest` | Vitest config, test suites, mocks (vi.fn), code coverage, parallel execution | [SKILL.md](../../.agents/skills/vitest/SKILL.md) |
-| `test-driven-development` | TDD: write test first, watch it fail, write minimal code to pass | [SKILL.md](../../.agents/skills/test-driven-development/SKILL.md) |
+| Skill                     | Description                                                                  | URL                                                               |
+| ------------------------- | ---------------------------------------------------------------------------- | ----------------------------------------------------------------- |
+| `vitest`                  | Vitest config, test suites, mocks (vi.fn), code coverage, parallel execution | [SKILL.md](../../.agents/skills/vitest/SKILL.md)                  |
+| `test-driven-development` | TDD: write test first, watch it fail, write minimal code to pass             | [SKILL.md](../../.agents/skills/test-driven-development/SKILL.md) |
 
 ### Security Skills
 
-| Skill | Description | URL |
-|-------|-------------|-----|
+| Skill                  | Description                                                                      | URL                                                            |
+| ---------------------- | -------------------------------------------------------------------------------- | -------------------------------------------------------------- |
 | `owasp-security-check` | OWASP Top 10 audit: SQLi, XSS, auth/authz, CORS, rate limiting, input validation | [SKILL.md](../../.agents/skills/owasp-security-check/SKILL.md) |
 
 ## Auto-invoke Skills (Server)
 
 When performing these actions in the server, ALWAYS invoke the corresponding skill FIRST:
 
-| Action | Skill |
-|--------|-------|
-| Auditing server code for security vulnerabilities before merge | `owasp-security-check` |
-| Building a new API endpoint, middleware, or auth flow | `nodejs-backend-patterns` |
-| Changing Prisma schema, running migrations | `prisma-postgres` |
-| Designing or reviewing PostgreSQL table schemas | `postgresql-table-design` |
-| Fixing a bug or implementing a feature | `test-driven-development` |
-| Writing unit/integration tests with Vitest | `vitest` |
+| Action                                                         | Skill                     |
+| -------------------------------------------------------------- | ------------------------- |
+| Auditing server code for security vulnerabilities before merge | `owasp-security-check`    |
+| Building a new API endpoint, middleware, or auth flow          | `nodejs-backend-patterns` |
+| Changing Prisma schema, running migrations                     | `prisma-postgres`         |
+| Designing or reviewing PostgreSQL table schemas                | `postgresql-table-design` |
+| Fixing a bug or implementing a feature                         | `test-driven-development` |
+| Writing unit/integration tests with Vitest                     | `vitest`                  |

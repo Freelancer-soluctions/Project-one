@@ -39,11 +39,18 @@ export const UserSchema = z.object({
         .max(9, {
           message: getZodMessage('zod.users.socialSecurity.maxLength'),
         }),
-      zipcode: z.string().min(5).max(9, {
-        message: getZodMessage('zod.users.zipcode.invalid'),
-      }),
-      state: z.string().min(1, { message: getZodMessage('zod.users.state.empty') }),
-      city: z.string().min(1, { message: getZodMessage('zod.users.city.empty') }),
+      zipcode: z
+        .string()
+        .min(5)
+        .max(9, {
+          message: getZodMessage('zod.users.zipcode.invalid'),
+        }),
+      state: z
+        .string()
+        .min(1, { message: getZodMessage('zod.users.state.empty') }),
+      city: z
+        .string()
+        .min(1, { message: getZodMessage('zod.users.city.empty') }),
       isAdmin: z.boolean(),
       picture: z.string().optional(),
       document: z.string().optional(),

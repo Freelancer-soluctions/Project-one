@@ -13,18 +13,35 @@ export default defineConfig({
     '**/*.test.jsx',
     '**/*.test.js',
   ],
+  retries: process.env.CI ? 2 : 0,
   use: {
-    baseURL: 'http://localhost:3000',
+    baseURL: 'http://localhost:5173',
     headless: true,
   },
+  projects: [
+    {
+      name: 'chromium',
+      use: { browserName: 'chromium' },
+    },
+  ],
   webServer: [
     {
       command: 'npm run dev --workspace=client-react',
-      port: 3000,
+      port: 5173,
+      timeout: 30000,
+      reuseExistingServer: !process.env.CI,
     },
     {
       command: 'npm run dev --workspace=server-express',
-      port: 4000,
+      port: 3000,
+      timeout: 60000,
+      reuseExistingServer: !process.env.CI,
     },
   ],
+  reporter: process.env.CI
+    ? [
+        ['junit', { outputFile: 'reports/junit-e2e.xml' }],
+        ['list'],
+      ]
+    : 'list',
 });

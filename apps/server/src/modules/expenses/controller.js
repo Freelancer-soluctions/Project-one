@@ -53,8 +53,6 @@ export const createExpense = handleCatchErrorAsync(async (req, res) => {
   globalResponse(res, 201, expense);
 });
 
-
-
 /**
  * Delete an expense by ID.
  *

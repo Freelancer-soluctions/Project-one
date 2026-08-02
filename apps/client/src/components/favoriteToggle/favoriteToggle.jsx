@@ -1,4 +1,3 @@
-
 import { Star, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -41,10 +40,17 @@ export function FavoriteToggle({
         className
       )}
       aria-pressed={checked}
-      aria-label={label || (checked ? 'remove_from_favorites' : 'mark_as_favorite')}
+      aria-label={
+        label || (checked ? 'remove_from_favorites' : 'mark_as_favorite')
+      }
     >
       {isLoading ? (
-        <Loader2 className={cn(iconSizeClasses[size], 'animate-spin text-muted-foreground')} />
+        <Loader2
+          className={cn(
+            iconSizeClasses[size],
+            'animate-spin text-muted-foreground'
+          )}
+        />
       ) : (
         <Star
           className={cn(

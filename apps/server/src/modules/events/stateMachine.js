@@ -17,7 +17,8 @@ const validTransitions = {
  * @returns {boolean} True if transition is valid
  */
 export const canTransition = (fromStatus, toStatus) => {
-  const key = fromStatus === null || fromStatus === undefined ? 'null' : fromStatus;
+  const key =
+    fromStatus === null || fromStatus === undefined ? 'null' : fromStatus;
   const allowed = validTransitions[key];
   if (!allowed) return false;
   return allowed.includes(toStatus);
@@ -29,7 +30,9 @@ export const canTransition = (fromStatus, toStatus) => {
  * @returns {string[]} Array of valid target states
  */
 export const getAllowedNextStates = (currentStatus) => {
-  const key = currentStatus === null || currentStatus === undefined ? 'null' : currentStatus;
+  const key =
+    currentStatus === null || currentStatus === undefined
+      ? 'null'
+      : currentStatus;
   return validTransitions[key] || [];
 };
-

@@ -36,21 +36,27 @@ describe('Event RSVP — admin updateAttendeeStatus', () => {
 
   it('throws 404 if attendee not found', async () => {
     attendeeDao.findAttendeeById.mockResolvedValue(null);
-    await expect(eventAttendeeService.updateAttendeeStatus(999, 'CONFIRMED', 1))
-      .rejects.toThrow('Attendee not found');
+    await expect(
+      eventAttendeeService.updateAttendeeStatus(999, 'CONFIRMED', 1)
+    ).rejects.toThrow('Attendee not found');
   });
 
   it('throws 409 if attendee already has target status', async () => {
-    attendeeDao.findAttendeeById.mockResolvedValue({ ...mockAttendee, status: 'CONFIRMED' });
-    await expect(eventAttendeeService.updateAttendeeStatus(1, 'CONFIRMED', 1))
-      .rejects.toThrow('Attendee already has status CONFIRMED');
+    attendeeDao.findAttendeeById.mockResolvedValue({
+      ...mockAttendee,
+      status: 'CONFIRMED',
+    });
+    await expect(
+      eventAttendeeService.updateAttendeeStatus(1, 'CONFIRMED', 1)
+    ).rejects.toThrow('Attendee already has status CONFIRMED');
   });
 
   it('throws 400 if invalid transition', async () => {
     stateMachine.canTransition.mockReturnValue(false);
     attendeeDao.findAttendeeById.mockResolvedValue(mockAttendee);
-    await expect(eventAttendeeService.updateAttendeeStatus(1, 'CANCELLED', 1))
-      .rejects.toThrow('Cannot transition from WAITLIST to CANCELLED');
+    await expect(
+      eventAttendeeService.updateAttendeeStatus(1, 'CANCELLED', 1)
+    ).rejects.toThrow('Cannot transition from WAITLIST to CANCELLED');
   });
 
   it('throws 409 when promoting to CONFIRMED at capacity', async () => {
@@ -59,8 +65,9 @@ describe('Event RSVP — admin updateAttendeeStatus', () => {
     attendeeDao.findEventById.mockResolvedValue(mockEvent);
     attendeeDao.countConfirmedAttendees.mockResolvedValue(10); // at capacity
 
-    await expect(eventAttendeeService.updateAttendeeStatus(1, 'CONFIRMED', 1))
-      .rejects.toThrow('Event at capacity');
+    await expect(
+      eventAttendeeService.updateAttendeeStatus(1, 'CONFIRMED', 1)
+    ).rejects.toThrow('Event at capacity');
   });
 
   it('promotes WAITLIST to CONFIRMED — increments count', async () => {
@@ -68,14 +75,28 @@ describe('Event RSVP — admin updateAttendeeStatus', () => {
     attendeeDao.findAttendeeById.mockResolvedValue(mockAttendee);
     attendeeDao.findEventById.mockResolvedValue(mockEvent);
     attendeeDao.countConfirmedAttendees.mockResolvedValue(5); // room available
-    attendeeDao.updateAttendeeStatus.mockResolvedValue({ ...mockAttendee, status: 'CONFIRMED' });
+    attendeeDao.updateAttendeeStatus.mockResolvedValue({
+      ...mockAttendee,
+      status: 'CONFIRMED',
+    });
     attendeeDao.incrementAttendeeCount.mockResolvedValue({});
     attendeeDao.createAuditLog.mockResolvedValue({});
 
-    const result = await eventAttendeeService.updateAttendeeStatus(1, 'CONFIRMED', 1);
+    const result = await eventAttendeeService.updateAttendeeStatus(
+      1,
+      'CONFIRMED',
+      1
+    );
 
-    expect(attendeeDao.updateAttendeeStatus).toHaveBeenCalledWith(1, 'CONFIRMED', expect.anything());
-    expect(attendeeDao.incrementAttendeeCount).toHaveBeenCalledWith(1, expect.anything());
+    expect(attendeeDao.updateAttendeeStatus).toHaveBeenCalledWith(
+      1,
+      'CONFIRMED',
+      expect.anything()
+    );
+    expect(attendeeDao.incrementAttendeeCount).toHaveBeenCalledWith(
+      1,
+      expect.anything()
+    );
     expect(attendeeDao.createAuditLog).toHaveBeenCalledWith(
       expect.objectContaining({ attendeeId: 1, changedBy: 1 }),
       expect.anything()
@@ -84,27 +105,56 @@ describe('Event RSVP — admin updateAttendeeStatus', () => {
   });
 
   it('changes CONFIRMED to CANCELLED — decrements count, promotes waitlist', async () => {
-    const confirmedAttendee = { id: 2, eventId: 1, userId: 6, status: 'CONFIRMED' };
+    const confirmedAttendee = {
+      id: 2,
+      eventId: 1,
+      userId: 6,
+      status: 'CONFIRMED',
+    };
     stateMachine.canTransition.mockReturnValue(true);
     attendeeDao.findAttendeeById.mockResolvedValue(confirmedAttendee);
-    attendeeDao.updateAttendeeStatus.mockResolvedValue({ ...confirmedAttendee, status: 'CANCELLED' });
+    attendeeDao.updateAttendeeStatus.mockResolvedValue({
+      ...confirmedAttendee,
+      status: 'CANCELLED',
+    });
     attendeeDao.decrementAttendeeCount.mockResolvedValue({});
     attendeeDao.createAuditLog.mockResolvedValue({});
     attendeeDao.findEarliestWaitlist.mockResolvedValue(null);
 
-    const result = await eventAttendeeService.updateAttendeeStatus(2, 'CANCELLED', 1);
+    const result = await eventAttendeeService.updateAttendeeStatus(
+      2,
+      'CANCELLED',
+      1
+    );
 
-    expect(attendeeDao.decrementAttendeeCount).toHaveBeenCalledWith(1, expect.anything());
+    expect(attendeeDao.decrementAttendeeCount).toHaveBeenCalledWith(
+      1,
+      expect.anything()
+    );
     expect(attendeeDao.createAuditLog).toHaveBeenCalledWith(
-      expect.objectContaining({ previousStatus: 'CONFIRMED', newStatus: 'CANCELLED', changedBy: 1 }),
+      expect.objectContaining({
+        previousStatus: 'CONFIRMED',
+        newStatus: 'CANCELLED',
+        changedBy: 1,
+      }),
       expect.anything()
     );
     expect(result.status).toBe('CANCELLED');
   });
 
   it('changes CONFIRMED to CANCELLED with waitlist — triggers promotion', async () => {
-    const confirmedAttendee = { id: 2, eventId: 1, userId: 6, status: 'CONFIRMED' };
-    const waitlistAttendee = { id: 10, eventId: 1, userId: 20, status: 'WAITLIST' };
+    const confirmedAttendee = {
+      id: 2,
+      eventId: 1,
+      userId: 6,
+      status: 'CONFIRMED',
+    };
+    const waitlistAttendee = {
+      id: 10,
+      eventId: 1,
+      userId: 20,
+      status: 'WAITLIST',
+    };
     stateMachine.canTransition.mockReturnValue(true);
     attendeeDao.findAttendeeById.mockResolvedValue(confirmedAttendee);
     attendeeDao.updateAttendeeStatus

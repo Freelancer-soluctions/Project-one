@@ -51,8 +51,6 @@ export const createVacation = async (data) => {
   return await createVacationDao(vacation);
 };
 
-
-
 /**
  * Delete a vacation record by ID.
  *

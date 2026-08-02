@@ -130,24 +130,24 @@ export const deleteExpenseById = async (id) => {
 export const patchExpenseById = async (id, data) => {
   // Build update object dynamically - only include fields that are provided
   const updateData = {};
-  
+
   if (data.description !== undefined) {
     updateData.description = data.description;
   }
-  
+
   if (data.total !== undefined) {
     updateData.total = data.total;
   }
-  
+
   if (data.category !== undefined) {
     updateData.category = data.category;
   }
-  
+
   // Always update the timestamp and user if provided
   if (data.updatedOn !== undefined) {
     updateData.updatedOn = data.updatedOn;
   }
-  
+
   if (data.updatedBy !== undefined) {
     updateData.userExpenseUpdated = {
       connect: {
@@ -155,7 +155,7 @@ export const patchExpenseById = async (id, data) => {
       },
     };
   }
-  
+
   return prisma.expenses.update({
     where: { id }, // id is a string (cuid)
     data: updateData,

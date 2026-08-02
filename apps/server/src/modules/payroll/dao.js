@@ -143,13 +143,15 @@ export const updatePayrollById = async (id, data) => {
       ...(data.baseSalary !== undefined && { baseSalary: data.baseSalary }),
       ...(data.extraHours !== undefined && { extraHours: data.extraHours }),
       ...(data.deductions !== undefined && { deductions: data.deductions }),
-      ...(data.totalPayment !== undefined && { totalPayment: data.totalPayment }),
+      ...(data.totalPayment !== undefined && {
+        totalPayment: data.totalPayment,
+      }),
       ...(data.updatedOn !== undefined && { updatedOn: data.updatedOn }),
       ...(data.employeeId !== undefined && {
-        employee: { connect: { id: data.employeeId } }
+        employee: { connect: { id: data.employeeId } },
       }),
       ...(data.updatedBy !== undefined && {
-        userPayrollUpdated: { connect: { id: data.updatedBy } }
+        userPayrollUpdated: { connect: { id: data.updatedBy } },
       }),
     },
   });
@@ -166,5 +168,3 @@ export const deletePayrollById = async (id) => {
     where: { id },
   });
 };
-
-

@@ -41,8 +41,12 @@ describe('Events DAO – Combined Filters (Unit)', () => {
       const dateTo = new Date('2025-12-31');
       await eventDao.getAllEvents({ dateTo });
       const whereArg = prisma.events.findMany.mock.calls[0][0].where;
-      const expectedEndOfDay = new Date(dateTo.getTime() + 24 * 60 * 60 * 1000 - 1);
-      expect(whereArg.AND).toContainEqual({ eventDate: { lte: expectedEndOfDay } });
+      const expectedEndOfDay = new Date(
+        dateTo.getTime() + 24 * 60 * 60 * 1000 - 1
+      );
+      expect(whereArg.AND).toContainEqual({
+        eventDate: { lte: expectedEndOfDay },
+      });
     });
 
     it('dateFrom and dateTo together create single eventDate range condition', async () => {
@@ -50,20 +54,26 @@ describe('Events DAO – Combined Filters (Unit)', () => {
       const dateTo = new Date('2025-12-31');
       await eventDao.getAllEvents({ dateFrom, dateTo });
       const whereArg = prisma.events.findMany.mock.calls[0][0].where;
-      const expectedEndOfDay = new Date(dateTo.getTime() + 24 * 60 * 60 * 1000 - 1);
-      expect(whereArg.AND).toContainEqual({ eventDate: { gte: dateFrom, lte: expectedEndOfDay } });
+      const expectedEndOfDay = new Date(
+        dateTo.getTime() + 24 * 60 * 60 * 1000 - 1
+      );
+      expect(whereArg.AND).toContainEqual({
+        eventDate: { gte: dateFrom, lte: expectedEndOfDay },
+      });
     });
 
     it('speaker filter adds case-insensitive contains', async () => {
       await eventDao.getAllEvents({ speaker: 'John' });
       const whereArg = prisma.events.findMany.mock.calls[0][0].where;
-      expect(whereArg.AND).toContainEqual({ speaker: { contains: 'John', mode: 'insensitive' } });
+      expect(whereArg.AND).toContainEqual({
+        speaker: { contains: 'John', mode: 'insensitive' },
+      });
     });
 
     it('status=upcoming adds OR condition for future dates or today with endTime > now', async () => {
       await eventDao.getAllEvents({ status: 'upcoming' });
       const whereArg = prisma.events.findMany.mock.calls[0][0].where;
-      const statusCondition = whereArg.AND.find(c => c.OR);
+      const statusCondition = whereArg.AND.find((c) => c.OR);
       expect(statusCondition).toBeDefined();
       expect(statusCondition.OR).toHaveLength(2);
       expect(statusCondition.OR[0]).toHaveProperty('eventDate.gt');
@@ -73,7 +83,7 @@ describe('Events DAO – Combined Filters (Unit)', () => {
     it('status=past adds OR condition for past dates or today with endTime <= now', async () => {
       await eventDao.getAllEvents({ status: 'past' });
       const whereArg = prisma.events.findMany.mock.calls[0][0].where;
-      const statusCondition = whereArg.AND.find(c => c.OR);
+      const statusCondition = whereArg.AND.find((c) => c.OR);
       expect(statusCondition).toBeDefined();
       expect(statusCondition.OR).toHaveLength(2);
       expect(statusCondition.OR[0]).toHaveProperty('eventDate.lt');
@@ -83,19 +93,27 @@ describe('Events DAO – Combined Filters (Unit)', () => {
     it('status=all adds no status condition', async () => {
       await eventDao.getAllEvents({ status: 'all' });
       const whereArg = prisma.events.findMany.mock.calls[0][0].where;
-      const statusCondition = whereArg.AND.find(c => c.OR && c.OR.some(o => o.eventDate));
+      const statusCondition = whereArg.AND.find(
+        (c) => c.OR && c.OR.some((o) => o.eventDate)
+      );
       expect(statusCondition).toBeUndefined();
     });
 
     it('searchQuery adds OR block on title/description/speaker', async () => {
       await eventDao.getAllEvents({ searchQuery: 'tech' });
       const whereArg = prisma.events.findMany.mock.calls[0][0].where;
-      const searchCondition = whereArg.AND.find(c => c.OR);
+      const searchCondition = whereArg.AND.find((c) => c.OR);
       expect(searchCondition).toBeDefined();
       expect(searchCondition.OR).toHaveLength(3);
-      expect(searchCondition.OR[0]).toEqual({ title: { contains: 'tech', mode: 'insensitive' } });
-      expect(searchCondition.OR[1]).toEqual({ description: { contains: 'tech', mode: 'insensitive' } });
-      expect(searchCondition.OR[2]).toEqual({ speaker: { contains: 'tech', mode: 'insensitive' } });
+      expect(searchCondition.OR[0]).toEqual({
+        title: { contains: 'tech', mode: 'insensitive' },
+      });
+      expect(searchCondition.OR[1]).toEqual({
+        description: { contains: 'tech', mode: 'insensitive' },
+      });
+      expect(searchCondition.OR[2]).toEqual({
+        speaker: { contains: 'tech', mode: 'insensitive' },
+      });
     });
   });
 
@@ -109,8 +127,12 @@ describe('Events DAO – Combined Filters (Unit)', () => {
       });
       const whereArg = prisma.events.findMany.mock.calls[0][0].where;
       expect(whereArg.AND).toContainEqual({ eventTypeId: 1 });
-      expect(whereArg.AND).toContainEqual({ eventDate: { gte: new Date('2025-01-01') } });
-      expect(whereArg.AND).toContainEqual({ speaker: { contains: 'Smith', mode: 'insensitive' } });
+      expect(whereArg.AND).toContainEqual({
+        eventDate: { gte: new Date('2025-01-01') },
+      });
+      expect(whereArg.AND).toContainEqual({
+        speaker: { contains: 'Smith', mode: 'insensitive' },
+      });
     });
 
     it('status=upcoming + dateFrom combines both conditions', async () => {
@@ -119,8 +141,8 @@ describe('Events DAO – Combined Filters (Unit)', () => {
         dateFrom: new Date('2025-06-01'),
       });
       const whereArg = prisma.events.findMany.mock.calls[0][0].where;
-      const statusCond = whereArg.AND.find(c => c.OR);
-      const dateCond = whereArg.AND.find(c => c.eventDate && c.eventDate.gte);
+      const statusCond = whereArg.AND.find((c) => c.OR);
+      const dateCond = whereArg.AND.find((c) => c.eventDate && c.eventDate.gte);
       expect(statusCond).toBeDefined();
       expect(dateCond).toBeDefined();
     });
@@ -135,10 +157,14 @@ describe('Events DAO – Combined Filters (Unit)', () => {
       });
       const whereArg = prisma.events.findMany.mock.calls[0][0].where;
       expect(whereArg.AND).toContainEqual({ eventTypeId: 3 });
-      expect(whereArg.AND).toContainEqual({ speaker: { contains: 'Johnson', mode: 'insensitive' } });
-      const dateCond = whereArg.AND.find(c => c.eventDate && c.eventDate.gte && c.eventDate.lte);
+      expect(whereArg.AND).toContainEqual({
+        speaker: { contains: 'Johnson', mode: 'insensitive' },
+      });
+      const dateCond = whereArg.AND.find(
+        (c) => c.eventDate && c.eventDate.gte && c.eventDate.lte
+      );
       expect(dateCond).toBeDefined();
-      const statusCond = whereArg.AND.find(c => c.OR);
+      const statusCond = whereArg.AND.find((c) => c.OR);
       expect(statusCond).toBeDefined();
     });
   });

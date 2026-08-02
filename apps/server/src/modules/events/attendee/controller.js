@@ -43,7 +43,10 @@ export const cancelRegistration = handleCatchErrorAsync(async (req, res) => {
 export const listEventAttendees = handleCatchErrorAsync(async (req, res) => {
   const { eventId } = req.params;
   const query = req.safeQuery;
-  const result = await eventAttendeeService.listAttendees(Number(eventId), query);
+  const result = await eventAttendeeService.listAttendees(
+    Number(eventId),
+    query
+  );
   globalResponse(res, 200, result);
 });
 
@@ -60,6 +63,10 @@ export const updateAttendeeStatus = handleCatchErrorAsync(async (req, res) => {
   const userId = req.userId;
   const { attendeeId } = req.params;
   const { status } = req.body;
-  const attendee = await eventAttendeeService.updateAttendeeStatus(Number(attendeeId), status, userId);
+  const attendee = await eventAttendeeService.updateAttendeeStatus(
+    Number(attendeeId),
+    status,
+    userId
+  );
   globalResponse(res, 200, attendee, 'Attendee status updated');
 });

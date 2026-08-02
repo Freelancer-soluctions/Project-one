@@ -78,11 +78,7 @@ router.patch(
  * @returns {Object} 200 - New favorite state { isFavorited: boolean }
  * @access Private
  */
-router.patch(
-  '/:id/fav',
-  validatePathParam,
-  noteController.toggleFavorite
-);
+router.patch('/:id/fav', validatePathParam, noteController.toggleFavorite);
 
 router.patch(
   '/:id',
@@ -106,7 +102,11 @@ router.delete('/:id', validatePathParam, noteController.deleteById);
  * @returns {Object} 200 - Count of notes per column ({ backlog, active, completed })
  * @access Private
  */
-router.get('/notesCount', validateQueryParams(NotesFilters), noteController.getAllNotesCount);
+router.get(
+  '/notesCount',
+  validateQueryParams(NotesFilters),
+  noteController.getAllNotesCount
+);
 
 /**
  * @route GET /api/v1/notes/:id/mentions
@@ -116,7 +116,11 @@ router.get('/notesCount', validateQueryParams(NotesFilters), noteController.getA
  * @access Private
  */
 // Get mentions for a specific note
-router.get('/:id/mentions', validatePathParam, noteController.getMentionsByNoteId);
+router.get(
+  '/:id/mentions',
+  validatePathParam,
+  noteController.getMentionsByNoteId
+);
 
 /**
  * @route GET /api/v1/notes/hashtags
@@ -134,9 +138,18 @@ router.get('/hashtags', noteController.getAllHashtags);
  * @returns {Object} 201 - Created hashtag
  * @access Private
  */
-router.post('/hashtags', validateSchema(CreateHashtagSchema), noteController.createHashtag);
+router.post(
+  '/hashtags',
+  validateSchema(CreateHashtagSchema),
+  noteController.createHashtag
+);
 
-router.patch('/hashtags/:id', validatePathParam, validateSchema(HashtagUpdateSchema), noteController.updateHashtag);
+router.patch(
+  '/hashtags/:id',
+  validatePathParam,
+  validateSchema(HashtagUpdateSchema),
+  noteController.updateHashtag
+);
 
 /**
  * @route DELETE /api/v1/notes/hashtags/:id

@@ -25,7 +25,6 @@ import { useLocation } from 'react-router';
 import { useSocket } from '@/hooks';
 import { useMentionNotifications } from '@/hooks/useMentionNotifications';
 
-
 export default function Notes() {
   const { t } = useTranslation();
   const [openAlertDialog, setOpenAlertDialog] = useState(false);
@@ -36,32 +35,32 @@ export default function Notes() {
   const { socket } = useSocket();
 
   // Activar notificaciones de menciones en tiempo real via WebSocket
-  useMentionNotifications()
+  useMentionNotifications();
 
   const initialFilters = useMemo(() => {
-     return {
-       searchTerm: '',
-       statusCode: location.state?.filter ?? '',
-       isFavorite: false,
-       scope: location.state?.scope ?? 'mine',
-     };
-   }, [location.state?.filter, location.state?.scope]);
-   const [filters, setFilters] = useState(initialFilters);
-   const dispatch = useDispatch();
+    return {
+      searchTerm: '',
+      statusCode: location.state?.filter ?? '',
+      isFavorite: false,
+      scope: location.state?.scope ?? 'mine',
+    };
+  }, [location.state?.filter, location.state?.scope]);
+  const [filters, setFilters] = useState(initialFilters);
+  const dispatch = useDispatch();
 
-   // Invalidar cache de Notes cuando se recibe mention:read
-   useEffect(() => {
-     if (!socket) return;
-     const handleMentionRead = () => {
-       dispatch(notesApi.util.invalidateTags(['Notes']));
-     };
-     socket.on('mention:read', handleMentionRead);
-     return () => {
-       socket.off('mention:read', handleMentionRead);
-     };
-   }, [socket, dispatch]);
+  // Invalidar cache de Notes cuando se recibe mention:read
+  useEffect(() => {
+    if (!socket) return;
+    const handleMentionRead = () => {
+      dispatch(notesApi.util.invalidateTags(['Notes']));
+    };
+    socket.on('mention:read', handleMentionRead);
+    return () => {
+      socket.off('mention:read', handleMentionRead);
+    };
+  }, [socket, dispatch]);
 
-   const {
+  const {
     data: dataNotes = { data: [] },
     isLoading: isLoadingNotes,
     isFetching: isFetchingNotes,
@@ -78,11 +77,12 @@ export default function Notes() {
   const [deleteNoteById, { isLoading: isLoadingDelete }] =
     useDeleteNoteByIdMutation();
 
-  const [createHashtag, { isLoading: isLoadingPostHashT }] = useCreateHashtagMutation();
-  const [updateHashtag, { isLoading: isLoadingPutHashT }] = useUpdateHashtagMutation();
-  const [deleteHashtag, { isLoading: isLoadingDeleteHashT }] = useDeleteHashtagMutation();
-
-
+  const [createHashtag, { isLoading: isLoadingPostHashT }] =
+    useCreateHashtagMutation();
+  const [updateHashtag, { isLoading: isLoadingPutHashT }] =
+    useUpdateHashtagMutation();
+  const [deleteHashtag, { isLoading: isLoadingDeleteHashT }] =
+    useDeleteHashtagMutation();
 
   const handleDragStart = (e, noteId, sourceColumnCode) => {
     e.dataTransfer.setData(
@@ -91,46 +91,46 @@ export default function Notes() {
     );
   };
 
-const handleDragOver = (e) => {
-  const types = Array.from(e.dataTransfer.types);
-  if (types.includes('application/json')) {
+  const handleDragOver = (e) => {
+    const types = Array.from(e.dataTransfer.types);
+    if (types.includes('application/json')) {
+      e.preventDefault();
+    }
+  };
+
+  const handleDrop = async (e, targetColumnCode) => {
     e.preventDefault();
-  }
-};
 
-const handleDrop = async (e, targetColumnCode) => {
-  e.preventDefault();
+    const raw = e.dataTransfer.getData('application/json');
+    if (!raw) return;
 
-  const raw = e.dataTransfer.getData('application/json');
-  if (!raw) return;
+    let data;
+    try {
+      data = JSON.parse(raw);
+    } catch {
+      return;
+    }
 
-  let data;
-  try {
-    data = JSON.parse(raw);
-  } catch {
-    return;
-  }
+    const { noteId, sourceColumnCode } = data;
+    if (!noteId || !sourceColumnCode) return;
 
-  const { noteId, sourceColumnCode } = data;
-  if (!noteId || !sourceColumnCode) return;
+    if (sourceColumnCode === targetColumnCode) return;
 
-  if (sourceColumnCode === targetColumnCode) return;
+    const sourceColumn = dataNotes?.data.find(
+      (col) => col.code === sourceColumnCode
+    );
+    const targetColumn = dataNotes?.data.find(
+      (col) => col.code === targetColumnCode
+    );
+    const noteToMove = sourceColumn?.notes.find((note) => note.id === noteId);
 
-  const sourceColumn = dataNotes?.data.find(
-    (col) => col.code === sourceColumnCode
-  );
-  const targetColumn = dataNotes?.data.find(
-    (col) => col.code === targetColumnCode
-  );
-  const noteToMove = sourceColumn?.notes.find((note) => note.id === noteId);
+    if (!noteToMove) return dataNotes?.data;
 
-  if (!noteToMove) return dataNotes?.data;
-
-  await updateNoteColumId({
-    id: noteToMove.id,
-    columnId: targetColumn.id,
-  }).unwrap();
-};
+    await updateNoteColumId({
+      id: noteToMove.id,
+      columnId: targetColumn.id,
+    }).unwrap();
+  };
 
   const handleSearchChange = (value) => {
     setFilters((prev) => ({ ...prev, searchTerm: value }));
@@ -140,20 +140,31 @@ const handleDrop = async (e, targetColumnCode) => {
     setFilters((prev) => ({ ...prev, statusCode: value }));
   };
 
-   const handleFavoriteFilter = (value) => {
-     setFilters((prev) => ({ ...prev, isFavorite: value }));
-   };
+  const handleFavoriteFilter = (value) => {
+    setFilters((prev) => ({ ...prev, isFavorite: value }));
+  };
 
-   const handleScopeChange = (value) => {
-     setFilters((prev) => ({ ...prev, scope: value }));
-   };
+  const handleScopeChange = (value) => {
+    setFilters((prev) => ({ ...prev, scope: value }));
+  };
 
-   const handleReset = () => {
-     setFilters({ searchTerm: '', statusCode: '', isFavorite: false, scope: 'mine' });
-     setSelectedHashtagIds([]);
-   };
+  const handleReset = () => {
+    setFilters({
+      searchTerm: '',
+      statusCode: '',
+      isFavorite: false,
+      scope: 'mine',
+    });
+    setSelectedHashtagIds([]);
+  };
 
-  const handleCreateNote = async ({ title, content, status, hashtagIds, isFavorite }) => {
+  const handleCreateNote = async ({
+    title,
+    content,
+    status,
+    hashtagIds,
+    isFavorite,
+  }) => {
     await createNote({
       title,
       content,
@@ -202,7 +213,7 @@ const handleDrop = async (e, targetColumnCode) => {
       destructive: true,
       variantSuccess: '',
       variantDestructive: 'destructive',
-      onSuccess: () => { },
+      onSuccess: () => {},
       onDelete: async () => {
         try {
           await deleteNoteById(noteId).unwrap();
@@ -262,8 +273,7 @@ const handleDrop = async (e, targetColumnCode) => {
     <>
       <BackDashBoard link={'/home'} moduleName={t('notes')} />
       <div className="relative w-full px-4">
-        {(
-          isLoadingNotes ||
+        {(isLoadingNotes ||
           isLoadingPut ||
           isLoadingPost ||
           isLoadingDelete ||
@@ -274,21 +284,21 @@ const handleDrop = async (e, targetColumnCode) => {
           isFetchingNotes) && <Spinner />}
         <div className="w-full space-y-6">
           <div className="col-span-2 row-span-1 md:col-span-5">
-           <NotesFilters
-               onSearch={handleSearchChange}
-               onSearchStatus={handleStatusChange}
-               onFavoriteFilter={handleFavoriteFilter}
-               filters={filters}
-               handleReset={handleReset}
-               setOpen={setOpen}
-               selectedHashtagIds={selectedHashtagIds}
-               onHashtagSelectionChange={handleHashtagSelectionChange}
-               onCreateHashtag={handleCreateHashtag}
-               onEditHashtag={handleEditHashtag}
-               onDeleteHashtag={handleDeleteHashtag}
-               onScopeChange={handleScopeChange}
-               scope={filters.scope}
-             />
+            <NotesFilters
+              onSearch={handleSearchChange}
+              onSearchStatus={handleStatusChange}
+              onFavoriteFilter={handleFavoriteFilter}
+              filters={filters}
+              handleReset={handleReset}
+              setOpen={setOpen}
+              selectedHashtagIds={selectedHashtagIds}
+              onHashtagSelectionChange={handleHashtagSelectionChange}
+              onCreateHashtag={handleCreateHashtag}
+              onEditHashtag={handleEditHashtag}
+              onDeleteHashtag={handleDeleteHashtag}
+              onScopeChange={handleScopeChange}
+              scope={filters.scope}
+            />
           </div>
           <div className="flex flex-wrap items-center justify-between gap-4">
             <NotesCreateDialog

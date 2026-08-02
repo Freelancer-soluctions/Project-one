@@ -66,7 +66,9 @@ export const PayrollDialog = ({
       totalPayment: '',
     },
   });
-  const { formState: { dirtyFields } } = form;
+  const {
+    formState: { dirtyFields },
+  } = form;
 
   const payrollId = useMemo(() => selectedRow?.id ?? null, [selectedRow?.id]);
 

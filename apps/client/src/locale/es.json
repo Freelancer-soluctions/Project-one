@@ -345,482 +345,482 @@
     "edit_permission_message": "Realice los cambios necesarios en el registro de permiso. Asegúrese de que la información sea precisa antes de guardar.",
     "permission_reason_placeholder": "Ingrese la razón del permiso",
     "permission_comments_placeholder": "Ingrese comentarios del permiso",
-"content": "Contenido",
-     "scope_mine": "Mis notas",
-     "scope_mixed": "Todas",
+    "content": "Contenido",
+    "scope_mine": "Mis notas",
+    "scope_mixed": "Todas",
     "mentioned_badge": "Mencionado",
     "mark_as_read": "Marcar como leído",
     "mentions_count": "Menciones",
-  "zod": {
-    "auth": {
-      "email": {
-        "empty": "Debes ingresar tu correo electrónico.",
-        "invalid": "Dirección de correo inválida."
+    "zod": {
+      "auth": {
+        "email": {
+          "empty": "Debes ingresar tu correo electrónico.",
+          "invalid": "Dirección de correo inválida."
+        },
+        "password": {
+          "empty": "Debes ingresar tu contraseña.",
+          "minLength": "Debes ingresar al menos {{count}} caracteres.",
+          "maxLength": "Debes ingresar un máximo de {{count}} caracteres."
+        }
       },
-      "password": {
-        "empty": "Debes ingresar tu contraseña.",
-        "minLength": "Debes ingresar al menos {{count}} caracteres.",
-        "maxLength": "Debes ingresar un máximo de {{count}} caracteres."
-      }
-    },
-    "users": {
-      "name": {
-        "empty": "El nombre de usuario es obligatorio."
-      },
-      "email": {
-        "empty": "El correo electrónico es obligatorio.",
-        "invalid": "Formato de correo inválido."
-      },
-      "telephone": {
-        "empty": "El teléfono es obligatorio."
-      },
-      "birthday": {
-        "required": "La fecha de nacimiento es obligatoria."
-      },
-      "startDate": {
-        "required": "La fecha de inicio es obligatoria."
-      },
-      "socialSecurity": {
-        "minLength": "La seguridad social debe tener al menos {{count}} caracteres.",
-        "maxLength": "La seguridad social debe tener como máximo {{count}} caracteres."
-      },
-      "zipcode": {
-        "invalid": "Formato de código postal inválido."
-      },
-      "state": {
-        "empty": "El estado es obligatorio."
-      },
-      "city": {
-        "empty": "La ciudad es obligatoria."
-      },
-      "status": {
-        "required": "El estado es obligatorio."
-      },
-      "roles": {
-        "required": "El rol es obligatorio."
-      }
-    },
-    "products": {
-      "sku": {
-        "empty": "El SKU es obligatorio."
-      },
-      "name": {
-        "maxLength": "El nombre del producto debe tener como máximo {{count}} caracteres.",
-        "empty": "El nombre del producto es obligatorio."
-      },
-      "category": {
-        "required": "La categoría es obligatoria."
-      },
-      "status": {
-        "required": "El estado es obligatorio."
-      },
-      "provider": {
-        "required": "El proveedor es obligatorio."
-      },
-      "price": {
-        "empty": "El precio es obligatorio.",
-        "positive": "El precio debe ser un número positivo.",
-        "multipleOf": "El precio debe estar en formato monetario válido."
-      },
-      "cost": {
-        "empty": "El costo es obligatorio.",
-        "positive": "El costo debe ser un número positivo.",
-        "multipleOf": "El costo debe estar en formato monetario válido."
-      },
-      "attributes": {
+      "users": {
         "name": {
-          "empty": "El nombre del atributo es obligatorio.",
-          "maxLength": "El nombre del atributo debe tener como máximo {{count}} caracteres."
+          "empty": "El nombre de usuario es obligatorio."
+        },
+        "email": {
+          "empty": "El correo electrónico es obligatorio.",
+          "invalid": "Formato de correo inválido."
+        },
+        "telephone": {
+          "empty": "El teléfono es obligatorio."
+        },
+        "birthday": {
+          "required": "La fecha de nacimiento es obligatoria."
+        },
+        "startDate": {
+          "required": "La fecha de inicio es obligatoria."
+        },
+        "socialSecurity": {
+          "minLength": "La seguridad social debe tener al menos {{count}} caracteres.",
+          "maxLength": "La seguridad social debe tener como máximo {{count}} caracteres."
+        },
+        "zipcode": {
+          "invalid": "Formato de código postal inválido."
+        },
+        "state": {
+          "empty": "El estado es obligatorio."
+        },
+        "city": {
+          "empty": "La ciudad es obligatoria."
+        },
+        "status": {
+          "required": "El estado es obligatorio."
+        },
+        "roles": {
+          "required": "El rol es obligatorio."
+        }
+      },
+      "products": {
+        "sku": {
+          "empty": "El SKU es obligatorio."
+        },
+        "name": {
+          "maxLength": "El nombre del producto debe tener como máximo {{count}} caracteres.",
+          "empty": "El nombre del producto es obligatorio."
+        },
+        "category": {
+          "required": "La categoría es obligatoria."
+        },
+        "status": {
+          "required": "El estado es obligatorio."
+        },
+        "provider": {
+          "required": "El proveedor es obligatorio."
+        },
+        "price": {
+          "empty": "El precio es obligatorio.",
+          "positive": "El precio debe ser un número positivo.",
+          "multipleOf": "El precio debe estar en formato monetario válido."
+        },
+        "cost": {
+          "empty": "El costo es obligatorio.",
+          "positive": "El costo debe ser un número positivo.",
+          "multipleOf": "El costo debe estar en formato monetario válido."
+        },
+        "attributes": {
+          "name": {
+            "empty": "El nombre del atributo es obligatorio.",
+            "maxLength": "El nombre del atributo debe tener como máximo {{count}} caracteres."
+          },
+          "description": {
+            "empty": "La descripción del atributo es obligatoria.",
+            "maxLength": "La descripción del atributo debe tener como máximo {{count}} caracteres."
+          },
+          "minItems": "Se requiere al menos un atributo."
+        }
+      },
+      "providers": {
+        "name": {
+          "empty": "El nombre del proveedor es obligatorio."
+        },
+        "status": {
+          "required": "El estado es obligatorio."
+        }
+      },
+      "warehouse": {
+        "name": {
+          "empty": "El nombre del almacén es obligatorio."
+        },
+        "status": {
+          "empty": "El estado es obligatorio."
+        }
+      },
+      "stock": {
+        "quantity": {
+          "empty": "La cantidad es obligatoria.",
+          "integer": "La cantidad debe ser un número entero.",
+          "min": "La cantidad debe ser al menos {{count}}."
+        },
+        "minimum": {
+          "empty": "La cantidad mínima es obligatoria.",
+          "integer": "La cantidad mínima debe ser un número entero.",
+          "min": "La cantidad mínima debe ser al menos {{count}}."
+        },
+        "maximum": {
+          "empty": "La cantidad máxima es obligatoria.",
+          "integer": "La cantidad máxima debe ser un número entero.",
+          "min": "La cantidad máxima debe ser al menos {{count}}."
+        },
+        "lot": {
+          "maxLength": "El número de lote debe tener como máximo {{count}} caracteres."
+        },
+        "unitMeasure": {
+          "empty": "La unidad de medida es obligatoria.",
+          "invalid": "Unidad de medida inválida."
+        },
+        "expirationDate": {
+          "invalid": "Fecha de vencimiento inválida."
+        },
+        "productId": {
+          "empty": "El producto es obligatorio."
+        },
+        "warehouseId": {
+          "empty": "El almacén es obligatorio."
+        },
+        "minimumGreaterThanMaximum": "La cantidad mínima no puede ser mayor que la cantidad máxima.",
+        "quantityGreaterThanMaximum": "La cantidad no puede ser mayor que la cantidad máxima."
+      },
+      "sales": {
+        "clientId": {
+          "empty": "El cliente es obligatorio."
+        },
+        "total": {
+          "empty": "El total es obligatorio.",
+          "integer": "El total debe ser un número entero.",
+          "min": "El total debe ser al menos {{count}}."
+        },
+        "details": {
+          "productId": {
+            "empty": "El producto es obligatorio."
+          },
+          "quantity": {
+            "empty": "La cantidad es obligatoria.",
+            "integer": "La cantidad debe ser un número entero.",
+            "min": "La cantidad debe ser al menos {{count}}."
+          },
+          "price": {
+            "empty": "El precio es obligatorio.",
+            "integer": "El precio debe ser un número entero.",
+            "min": "El precio debe ser al menos {{count}}."
+          }
+        },
+        "fromDateAfterToDate": "La fecha de inicio no puede ser posterior a la fecha de finalización.",
+        "minTotalGreaterThanMaxTotal": "El total mínimo no puede ser mayor que el total máximo."
+      },
+      "purchase": {
+        "providerId": {
+          "empty": "El proveedor es obligatorio."
+        },
+        "total": {
+          "empty": "El total es obligatorio.",
+          "integer": "El total debe ser un número entero.",
+          "min": "El total debe ser al menos {{count}}."
+        },
+        "details": {
+          "productId": {
+            "empty": "El producto es obligatorio."
+          },
+          "quantity": {
+            "empty": "La cantidad es obligatoria.",
+            "integer": "La cantidad debe ser un número entero.",
+            "min": "La cantidad debe ser al menos {{count}}."
+          },
+          "price": {
+            "empty": "El precio es obligatorio.",
+            "integer": "El precio debe ser un número entero.",
+            "min": "El precio debe ser al menos {{count}}."
+          }
+        },
+        "fromDateAfterToDate": "La fecha de inicio no puede ser posterior a la fecha de finalización.",
+        "minTotalGreaterThanMaxTotal": "El total mínimo no puede ser mayor que el total máximo."
+      },
+      "clients": {
+        "name": {
+          "empty": "El nombre del cliente es obligatorio."
+        },
+        "email": {
+          "invalid": "Formato de correo inválido."
+        },
+        "phone": {
+          "empty": "El teléfono es obligatorio."
+        },
+        "address": {
+          "empty": "La dirección es obligatoria."
+        }
+      },
+      "employees": {
+        "name": {
+          "empty": "El nombre del empleado es obligatorio."
+        },
+        "lastName": {
+          "empty": "El apellido es obligatorio."
+        },
+        "dni": {
+          "empty": "El DNI es obligatorio."
+        },
+        "email": {
+          "invalid": "Formato de correo inválido."
+        },
+        "startDate": {
+          "required": "La fecha de inicio es obligatoria."
+        },
+        "position": {
+          "empty": "La posición es obligatoria."
+        },
+        "department": {
+          "empty": "El departamento es obligatorio."
+        },
+        "salary": {
+          "empty": "El salario es obligatorio."
+        }
+      },
+      "events": {
+        "title": {
+          "empty": "El título del evento es obligatorio."
         },
         "description": {
-          "empty": "La descripción del atributo es obligatoria.",
-          "maxLength": "La descripción del atributo debe tener como máximo {{count}} caracteres."
+          "empty": "La descripción es obligatoria."
         },
-        "minItems": "Se requiere al menos un atributo."
-      }
-    },
-    "providers": {
-      "name": {
-        "empty": "El nombre del proveedor es obligatorio."
+        "speaker": {
+          "empty": "El orador es obligatorio."
+        },
+        "startTime": {
+          "empty": "La hora de inicio es obligatoria."
+        },
+        "endTime": {
+          "empty": "La hora de finalización es obligatoria."
+        },
+        "eventDate": {
+          "invalid": "Fecha del evento inválida."
+        },
+        "type": {
+          "empty": "El tipo de evento es obligatorio."
+        }
       },
-      "status": {
-        "required": "El estado es obligatorio."
-      }
-    },
-    "warehouse": {
-      "name": {
-        "empty": "El nombre del almacén es obligatorio."
+      "payroll": {
+        "employeeId": {
+          "required": "El empleado es obligatorio.",
+          "positive": "El ID del empleado debe ser positivo."
+        },
+        "month": {
+          "required": "El mes es obligatorio.",
+          "invalid": "Mes inválido."
+        },
+        "year": {
+          "required": "El año es obligatorio.",
+          "min": "El año debe ser al menos {{count}}.",
+          "max": "El año debe ser como máximo {{count}}."
+        },
+        "baseSalary": {
+          "required": "El salario base es obligatorio.",
+          "positive": "El salario base debe ser positivo."
+        },
+        "extraHours": {
+          "invalid": "Valor de horas extras inválido.",
+          "nonnegative": "Las horas extras deben ser no negativas."
+        },
+        "deductions": {
+          "invalid": "Valor de deducciones inválido.",
+          "nonnegative": "Las deducciones deben ser no negativas."
+        }
       },
-      "status": {
-        "empty": "El estado es obligatorio."
-      }
-    },
-    "stock": {
-      "quantity": {
-        "empty": "La cantidad es obligatoria.",
-        "integer": "La cantidad debe ser un número entero.",
-        "min": "La cantidad debe ser al menos {{count}}."
+      "performanceEvaluation": {
+        "employeeId": {
+          "required": "El empleado es obligatorio.",
+          "positive": "El ID del empleado debe ser positivo."
+        },
+        "date": {
+          "required": "La fecha de evaluación es obligatoria."
+        },
+        "calification": {
+          "required": "La calificación es obligatoria.",
+          "min": "La calificación debe ser al menos {{count}}.",
+          "max": "La calificación debe ser como máximo {{count}}."
+        },
+        "comments": {
+          "maxLength": "Los comentarios deben tener como máximo {{count}} caracteres."
+        }
       },
-      "minimum": {
-        "empty": "La cantidad mínima es obligatoria.",
-        "integer": "La cantidad mínima debe ser un número entero.",
-        "min": "La cantidad mínima debe ser al menos {{count}}."
+      "permission": {
+        "employeeId": {
+          "required": "El empleado es obligatorio.",
+          "positive": "El ID del empleado debe ser positivo."
+        },
+        "type": {
+          "required": "El tipo de permiso es obligatorio."
+        },
+        "startDate": {
+          "required": "La fecha de inicio es obligatoria."
+        },
+        "endDate": {
+          "required": "La fecha de finalización es obligatoria."
+        },
+        "reason": {
+          "empty": "La razón es obligatoria.",
+          "maxLength": "La razón debe tener como máximo {{count}} caracteres."
+        },
+        "comments": {
+          "maxLength": "Los comentarios deben tener como máximo {{count}} caracteres."
+        }
       },
-      "maximum": {
-        "empty": "La cantidad máxima es obligatoria.",
-        "integer": "La cantidad máxima debe ser un número entero.",
-        "min": "La cantidad máxima debe ser al menos {{count}}."
+      "vacation": {
+        "employeeId": {
+          "required": "El empleado es obligatorio.",
+          "positive": "El ID del empleado debe ser positivo."
+        },
+        "startDate": {
+          "required": "La fecha de inicio es obligatoria."
+        },
+        "endDate": {
+          "required": "La fecha de finalización es obligatoria."
+        }
       },
-      "lot": {
-        "maxLength": "El número de lote debe tener como máximo {{count}} caracteres."
+      "attendance": {
+        "employeeId": {
+          "required": "El empleado es obligatorio.",
+          "positive": "El ID del empleado debe ser positivo."
+        },
+        "date": {
+          "required": "La fecha es obligatoria."
+        },
+        "entryTime": {
+          "invalid": "Hora de entrada inválida."
+        },
+        "exitTime": {
+          "invalid": "Hora de salida inválida."
+        },
+        "workedHours": {
+          "required": "Las horas trabajadas son obligatorias.",
+          "positive": "Las horas trabajadas deben ser positivas."
+        }
       },
-      "unitMeasure": {
-        "empty": "La unidad de medida es obligatoria.",
-        "invalid": "Unidad de medida inválida."
-      },
-      "expirationDate": {
-        "invalid": "Fecha de vencimiento inválida."
-      },
-      "productId": {
-        "empty": "El producto es obligatorio."
-      },
-      "warehouseId": {
-        "empty": "El almacén es obligatorio."
-      },
-      "minimumGreaterThanMaximum": "La cantidad mínima no puede ser mayor que la cantidad máxima.",
-      "quantityGreaterThanMaximum": "La cantidad no puede ser mayor que la cantidad máxima."
-    },
-    "sales": {
-      "clientId": {
-        "empty": "El cliente es obligatorio."
-      },
-      "total": {
-        "empty": "El total es obligatorio.",
-        "integer": "El total debe ser un número entero.",
-        "min": "El total debe ser al menos {{count}}."
-      },
-      "details": {
+      "inventoryMovement": {
         "productId": {
           "empty": "El producto es obligatorio."
         },
-        "quantity": {
-          "empty": "La cantidad es obligatoria.",
-          "integer": "La cantidad debe ser un número entero.",
-          "min": "La cantidad debe ser al menos {{count}}."
-        },
-        "price": {
-          "empty": "El precio es obligatorio.",
-          "integer": "El precio debe ser un número entero.",
-          "min": "El precio debe ser al menos {{count}}."
-        }
-      },
-      "fromDateAfterToDate": "La fecha de inicio no puede ser posterior a la fecha de finalización.",
-      "minTotalGreaterThanMaxTotal": "El total mínimo no puede ser mayor que el total máximo."
-    },
-    "purchase": {
-      "providerId": {
-        "empty": "El proveedor es obligatorio."
-      },
-      "total": {
-        "empty": "El total es obligatorio.",
-        "integer": "El total debe ser un número entero.",
-        "min": "El total debe ser al menos {{count}}."
-      },
-      "details": {
-        "productId": {
-          "empty": "El producto es obligatorio."
+        "warehouseId": {
+          "empty": "El almacén es obligatorio."
         },
         "quantity": {
-          "empty": "La cantidad es obligatoria.",
-          "integer": "La cantidad debe ser un número entero.",
-          "min": "La cantidad debe ser al menos {{count}}."
+          "positive": "La cantidad debe ser positiva."
         },
-        "price": {
-          "empty": "El precio es obligatorio.",
-          "integer": "El precio debe ser un número entero.",
-          "min": "El precio debe ser al menos {{count}}."
+        "type": {
+          "required": "El tipo de movimiento es obligatorio."
         }
       },
-      "fromDateAfterToDate": "La fecha de inicio no puede ser posterior a la fecha de finalización.",
-      "minTotalGreaterThanMaxTotal": "El total mínimo no puede ser mayor que el total máximo."
-    },
-    "clients": {
-      "name": {
-        "empty": "El nombre del cliente es obligatorio."
+      "providerOrder": {
+        "supplierId": {
+          "required": "El proveedor es obligatorio."
+        }
       },
-      "email": {
-        "invalid": "Formato de correo inválido."
+      "clientOrder": {
+        "clientId": {
+          "empty": "El cliente es obligatorio."
+        }
       },
-      "phone": {
-        "empty": "El teléfono es obligatorio."
+      "news": {
+        "description": {
+          "empty": "La descripción es obligatoria."
+        },
+        "fdateAfterTdate": "La fecha de inicio no puede ser posterior a la fecha de finalización."
       },
-      "address": {
-        "empty": "La dirección es obligatoria."
+      "expenses": {
+        "description": {
+          "empty": "La descripción del gasto es obligatoria."
+        },
+        "total": {
+          "required": "El total es obligatorio.",
+          "invalid": "El total debe ser un número.",
+          "positive": "El total debe ser un número positivo."
+        },
+        "category": {
+          "empty": "La categoría del gasto es obligatoria."
+        }
+      },
+      "notes": {
+        "title": {
+          "empty": "El título es obligatorio."
+        },
+        "content": {
+          "empty": "El contenido de la nota es obligatorio."
+        }
+      },
+      "settingsProductCategories": {
+        "description": {
+          "empty": "La descripción de la categoría es obligatoria."
+        },
+        "code": {
+          "empty": "El código de categoría es obligatorio.",
+          "maxLength": "El código de categoría debe tener como máximo 3 dígitos."
+        }
+      },
+      "errors": {
+        "required": "{{path}} es requerido",
+        "invalid_type": "Se esperaba {{expected}}",
+        "received": "{{received}} para {{path}}",
+        "too_small": {
+          "string": "La cadena debe tener al menos {{minimum}} caracteres",
+          "number": "El número debe ser al menos {{minimum}}",
+          "array": "El arreglo debe contener al menos {{minimum}} elementos",
+          "default": "El arreglo debe contener al menos {{minimum}} elementos"
+        },
+        "too_big": {
+          "string": "La cadena debe tener como máximo {{maximum}} caracteres",
+          "number": "El número debe ser como máximo {{maximum}}",
+          "array": "El arreglo debe contener como máximo {{maximum}} elementos",
+          "default": "El arreglo debe contener como máximo {{maximum}} elementos"
+        },
+        "custom": "Error de validación personalizado",
+        "default": "Entrada inválida"
       }
     },
-    "employees": {
-      "name": {
-        "empty": "El nombre del empleado es obligatorio."
-      },
-      "lastName": {
-        "empty": "El apellido es obligatorio."
-      },
-      "dni": {
-        "empty": "El DNI es obligatorio."
-      },
-      "email": {
-        "invalid": "Formato de correo inválido."
-      },
-      "startDate": {
-        "required": "La fecha de inicio es obligatoria."
-      },
-      "position": {
-        "empty": "La posición es obligatoria."
-      },
-      "department": {
-        "empty": "El departamento es obligatorio."
-      },
-      "salary": {
-        "empty": "El salario es obligatorio."
-      }
-    },
-    "events": {
-      "title": {
-        "empty": "El título del evento es obligatorio."
-      },
-      "description": {
-        "empty": "La descripción es obligatoria."
-      },
-      "speaker": {
-        "empty": "El orador es obligatorio."
-      },
-      "startTime": {
-        "empty": "La hora de inicio es obligatoria."
-      },
-      "endTime": {
-        "empty": "La hora de finalización es obligatoria."
-      },
-      "eventDate": {
-        "invalid": "Fecha del evento inválida."
-      },
-      "type": {
-        "empty": "El tipo de evento es obligatorio."
-      }
-    },
-    "payroll": {
-      "employeeId": {
-        "required": "El empleado es obligatorio.",
-        "positive": "El ID del empleado debe ser positivo."
-      },
-      "month": {
-        "required": "El mes es obligatorio.",
-        "invalid": "Mes inválido."
-      },
-      "year": {
-        "required": "El año es obligatorio.",
-        "min": "El año debe ser al menos {{count}}.",
-        "max": "El año debe ser como máximo {{count}}."
-      },
-      "baseSalary": {
-        "required": "El salario base es obligatorio.",
-        "positive": "El salario base debe ser positivo."
-      },
-      "extraHours": {
-        "invalid": "Valor de horas extras inválido.",
-        "nonnegative": "Las horas extras deben ser no negativas."
-      },
-"deductions": {
-        "invalid": "Valor de deducciones inválido.",
-        "nonnegative": "Las deducciones deben ser no negativas."
-      }
-    },
-    "performanceEvaluation": {
-      "employeeId": {
-        "required": "El empleado es obligatorio.",
-        "positive": "El ID del empleado debe ser positivo."
-      },
-      "date": {
-        "required": "La fecha de evaluación es obligatoria."
-      },
-      "calification": {
-        "required": "La calificación es obligatoria.",
-        "min": "La calificación debe ser al menos {{count}}.",
-        "max": "La calificación debe ser como máximo {{count}}."
-      },
-      "comments": {
-        "maxLength": "Los comentarios deben tener como máximo {{count}} caracteres."
-      }
-    },
-    "permission": {
-      "employeeId": {
-        "required": "El empleado es obligatorio.",
-        "positive": "El ID del empleado debe ser positivo."
-      },
-      "type": {
-        "required": "El tipo de permiso es obligatorio."
-      },
-      "startDate": {
-        "required": "La fecha de inicio es obligatoria."
-      },
-      "endDate": {
-        "required": "La fecha de finalización es obligatoria."
-      },
-      "reason": {
-        "empty": "La razón es obligatoria.",
-        "maxLength": "La razón debe tener como máximo {{count}} caracteres."
-      },
-      "comments": {
-        "maxLength": "Los comentarios deben tener como máximo {{count}} caracteres."
-      }
-    },
-    "vacation": {
-      "employeeId": {
-        "required": "El empleado es obligatorio.",
-        "positive": "El ID del empleado debe ser positivo."
-      },
-      "startDate": {
-        "required": "La fecha de inicio es obligatoria."
-      },
-      "endDate": {
-        "required": "La fecha de finalización es obligatoria."
-      }
-    },
-    "attendance": {
-      "employeeId": {
-        "required": "El empleado es obligatorio.",
-        "positive": "El ID del empleado debe ser positivo."
-      },
-      "date": {
-        "required": "La fecha es obligatoria."
-      },
-      "entryTime": {
-        "invalid": "Hora de entrada inválida."
-      },
-      "exitTime": {
-        "invalid": "Hora de salida inválida."
-      },
-      "workedHours": {
-        "required": "Las horas trabajadas son obligatorias.",
-        "positive": "Las horas trabajadas deben ser positivas."
-      }
-    },
-    "inventoryMovement": {
-      "productId": {
-        "empty": "El producto es obligatorio."
-      },
-      "warehouseId": {
-        "empty": "El almacén es obligatorio."
-      },
-      "quantity": {
-        "positive": "La cantidad debe ser positiva."
-      },
-      "type": {
-        "required": "El tipo de movimiento es obligatorio."
-      }
-    },
-    "providerOrder": {
-      "supplierId": {
-        "required": "El proveedor es obligatorio."
-      }
-    },
-    "clientOrder": {
-      "clientId": {
-        "empty": "El cliente es obligatorio."
-      }
-    },
-    "news": {
-      "description": {
-        "empty": "La descripción es obligatoria."
-      },
-      "fdateAfterTdate": "La fecha de inicio no puede ser posterior a la fecha de finalización."
-    },
-    "expenses": {
-      "description": {
-        "empty": "La descripción del gasto es obligatoria."
-      },
-      "total": {
-        "required": "El total es obligatorio.",
-        "invalid": "El total debe ser un número.",
-        "positive": "El total debe ser un número positivo."
-      },
-      "category": {
-        "empty": "La categoría del gasto es obligatoria."
-      }
-    },
-    "notes": {
-      "title": {
-        "empty": "El título es obligatorio."
-      },
-      "content": {
-        "empty": "El contenido de la nota es obligatorio."
-      }
-    },
-    "settingsProductCategories": {
-      "description": {
-        "empty": "La descripción de la categoría es obligatoria."
-      },
-      "code": {
-        "empty": "El código de categoría es obligatorio.",
-        "maxLength": "El código de categoría debe tener como máximo 3 dígitos."
-      }
-    },
-    "errors": {
-      "required": "{{path}} es requerido",
-      "invalid_type": "Se esperaba {{expected}}",
-      "received": "{{received}} para {{path}}",
-      "too_small": {
-        "string": "La cadena debe tener al menos {{minimum}} caracteres",
-        "number": "El número debe ser al menos {{minimum}}",
-        "array": "El arreglo debe contener al menos {{minimum}} elementos",
-        "default": "El arreglo debe contener al menos {{minimum}} elementos"
-      },
-      "too_big": {
-        "string": "La cadena debe tener como máximo {{maximum}} caracteres",
-        "number": "El número debe ser como máximo {{maximum}}",
-        "array": "El arreglo debe contener como máximo {{maximum}} elementos",
-        "default": "El arreglo debe contener como máximo {{maximum}} elementos"
-      },
-      "custom": "Error de validación personalizado",
-      "default": "Entrada inválida"
-    }
-  },
-  "app_language": "Idioma de la aplicación",
-  "select_language_placeholder": "Seleccionar idioma",
-  "welcome_back": "Bienvenido de nuevo",
-  "sign_in_message": "Ingrese su correo electrónico y contraseña para iniciar sesión.",
-  "sign_up_message": "Cree su cuenta completando sus datos, incluyendo su nombre, correo electrónico, contraseña y cualquier información adicional requerida.",
-  "do_you_have_an_account": "¿Tiene una cuenta?",
-  "dont_you_have_an_account": "¿No tiene una cuenta?",
-  "sign_in": "¡Inicie sesión ahora!",
-  "sign_up": "¡Regístrese ahora!",
-  "sign_email_placeholder": "m@ejemplo.com",
-  "sign_password_placeholder": "Ingrese su contraseña",
-  "remind_me": "Recordarme",
-  "forgot_password": "¿Olvidó su contraseña?",
-  "sign_in_button": "Iniciar sesión",
-  "sign_name_placeholder": "Por favor, ingrese su nombre.",
-  "sign_last_name_placeholder": "Por favor, ingrese su apellido.",
-  "sign_confirm_password_placeholder": "Por favor, confirme su contraseña",
-  "first_name": "Nombre",
-  "last_name": "Apellido",
-  "email": "Correo electrónico",
-  "password": "Contraseña",
-  "date_of_birth": "Fecha de nacimiento",
-  "edit_provider": "Editar proveedor",
-  "add_provider": "Agregar proveedor",
-  "attendance_card_msg": "Gestione su asistencia de manera eficiente.",
-  "is_admin": "Es administrador",
-  "picture": "Foto",
-  "user_picture_placeholder": "Ingrese la URL de la foto",
-  "user_document_placeholder": "Ingrese el número de documento",
-  "role_id": "ID de rol",
-  "user_role_id_placeholder": "Ingrese el ID de rol",
-  "status_id": "ID de estado",
-  "user_status_id_placeholder": "Ingrese el ID de estado",
-  "user_permit_id": "ID de permiso de usuario",
-  "user_permit_id_placeholder": "Ingrese el ID de permiso de usuario",
-  "user_permits": "Permisos de usuario",
-  "edit_users": "Editar usuarios",
+    "app_language": "Idioma de la aplicación",
+    "select_language_placeholder": "Seleccionar idioma",
+    "welcome_back": "Bienvenido de nuevo",
+    "sign_in_message": "Ingrese su correo electrónico y contraseña para iniciar sesión.",
+    "sign_up_message": "Cree su cuenta completando sus datos, incluyendo su nombre, correo electrónico, contraseña y cualquier información adicional requerida.",
+    "do_you_have_an_account": "¿Tiene una cuenta?",
+    "dont_you_have_an_account": "¿No tiene una cuenta?",
+    "sign_in": "¡Inicie sesión ahora!",
+    "sign_up": "¡Regístrese ahora!",
+    "sign_email_placeholder": "m@ejemplo.com",
+    "sign_password_placeholder": "Ingrese su contraseña",
+    "remind_me": "Recordarme",
+    "forgot_password": "¿Olvidó su contraseña?",
+    "sign_in_button": "Iniciar sesión",
+    "sign_name_placeholder": "Por favor, ingrese su nombre.",
+    "sign_last_name_placeholder": "Por favor, ingrese su apellido.",
+    "sign_confirm_password_placeholder": "Por favor, confirme su contraseña",
+    "first_name": "Nombre",
+    "last_name": "Apellido",
+    "email": "Correo electrónico",
+    "password": "Contraseña",
+    "date_of_birth": "Fecha de nacimiento",
+    "edit_provider": "Editar proveedor",
+    "add_provider": "Agregar proveedor",
+    "attendance_card_msg": "Gestione su asistencia de manera eficiente.",
+    "is_admin": "Es administrador",
+    "picture": "Foto",
+    "user_picture_placeholder": "Ingrese la URL de la foto",
+    "user_document_placeholder": "Ingrese el número de documento",
+    "role_id": "ID de rol",
+    "user_role_id_placeholder": "Ingrese el ID de rol",
+    "status_id": "ID de estado",
+    "user_status_id_placeholder": "Ingrese el ID de estado",
+    "user_permit_id": "ID de permiso de usuario",
+    "user_permit_id_placeholder": "Ingrese el ID de permiso de usuario",
+    "user_permits": "Permisos de usuario",
+    "edit_users": "Editar usuarios",
     "hashtags_title": "Hashtags",
     "hashtags_search_placeholder": "Buscar hashtags...",
     "hashtags_create_button": "Crear nuevo hashtag",
@@ -831,12 +831,12 @@
     "hashtags_create": "Crear",
     "hashtags_select_hashtags": "Seleccionar hashtags",
     "hashtags_selected": "{{count}} hashtags seleccionados",
-  "hashtags_save": "Guardar",
-  "favorite": "Favorito",
-  "favorites": "Favoritos",
-  "mark_as_favorite": "Marcar como favorita",
-  "remove_from_favorites": "Quitar de favoritos",
-  "show_favorites_only": "Mostrar solo favoritas",
+    "hashtags_save": "Guardar",
+    "favorite": "Favorito",
+    "favorites": "Favoritos",
+    "mark_as_favorite": "Marcar como favorita",
+    "remove_from_favorites": "Quitar de favoritos",
+    "show_favorites_only": "Mostrar solo favoritas",
     "Backlog": "Pendientes",
     "Active": "Activas",
     "Completed": "Completadas",

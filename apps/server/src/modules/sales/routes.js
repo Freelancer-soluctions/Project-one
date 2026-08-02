@@ -127,8 +127,6 @@ router.post(
   createSale
 );
 
-
-
 /**
  * @swagger
  * /v1/sales/{id}:

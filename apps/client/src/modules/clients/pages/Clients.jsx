@@ -29,9 +29,10 @@ const Clients = () => {
   });
   const [filters, setFilters] = useState({});
 
-const [getAllClients, queryState] = useLazyGetAllClientsQuery();
-const { data: dataClients, isLoading, isFetching } = useQueryData(queryState);
-const { isLoading: isLoadingQuery, isFetching: isFetchingQuery } = useLoadingState([{ isLoading, isFetching }]);
+  const [getAllClients, queryState] = useLazyGetAllClientsQuery();
+  const { data: dataClients, isLoading, isFetching } = useQueryData(queryState);
+  const { isLoading: isLoadingQuery, isFetching: isFetchingQuery } =
+    useLoadingState([{ isLoading, isFetching }]);
 
   const [updateClientById, { isLoading: isLoadingPut }] =
     useUpdateClientByIdMutation();
@@ -167,11 +168,11 @@ const { isLoading: isLoadingQuery, isFetching: isFetchingQuery } = useLoadingSta
       <BackDashBoard link={'/home'} moduleName={t('clients')} />
       <div className="relative">
         {/* Show spinner when loading or fetching */}
-{(isLoadingQuery ||
-  isFetchingQuery ||
-  isLoadingPut ||
-  isLoadingPost ||
-  isLoadingDelete) && <Spinner />}
+        {(isLoadingQuery ||
+          isFetchingQuery ||
+          isLoadingPut ||
+          isLoadingPost ||
+          isLoadingDelete) && <Spinner />}
 
         <div className="grid grid-cols-2 grid-rows-4 gap-4 md:grid-cols-5">
           {/* filters */}

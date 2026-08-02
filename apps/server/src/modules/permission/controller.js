@@ -30,7 +30,7 @@ export const getAllPermissions = handleCatchErrorAsync(async (req, res) => {
  * Create a new permission request.
  *
  * @param {Object} req - The HTTP request object.
-* @param {string} req.userId - Authenticated user ID from token
+ * @param {string} req.userId - Authenticated user ID from token
  * @param {Object} req.body - Permission data
  * @param {number} req.body.employeeId - Employee ID
  * @param {string} req.body.type - Permission type
@@ -45,8 +45,6 @@ export const createPermission = handleCatchErrorAsync(async (req, res) => {
   const permission = await createPermissionService(req.body, req.userId);
   return globalResponse(res, 201, permission);
 });
-
-
 
 /**
  * Delete a permission by ID.

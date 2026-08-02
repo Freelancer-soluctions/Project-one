@@ -6,11 +6,15 @@ export const PerformanceEvaluationSchema = z
     employeeId: z.preprocess(
       (val) => (val === '' ? undefined : Number(val)),
       z
-        .number({ 
-          required_error: getZodMessage('zod.performanceEvaluation.employeeId.required') 
+        .number({
+          required_error: getZodMessage(
+            'zod.performanceEvaluation.employeeId.required'
+          ),
         })
         .int()
-        .positive(getZodMessage('zod.performanceEvaluation.employeeId.positive'))
+        .positive(
+          getZodMessage('zod.performanceEvaluation.employeeId.positive')
+        )
     ),
     date: z.date({
       required_error: getZodMessage('zod.performanceEvaluation.date.required'),
@@ -18,8 +22,10 @@ export const PerformanceEvaluationSchema = z
     calification: z.preprocess(
       (val) => (val === '' ? undefined : Number(val)),
       z
-        .number({ 
-          required_error: getZodMessage('zod.performanceEvaluation.calification.required') 
+        .number({
+          required_error: getZodMessage(
+            'zod.performanceEvaluation.calification.required'
+          ),
         })
         .int()
         .min(1, getZodMessage('zod.performanceEvaluation.calification.min'))

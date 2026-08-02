@@ -14,11 +14,11 @@ The regression test suite = **Unit Tests + Integration Tests** for **Critical Mo
 
 ## 📋 Priority 1 — Critical Modules (Must Pass)
 
-| Module | Path | Unit Tests | Integration Tests | Status |
-|--------|------|------------|-------------------|--------|
-| **Sales** | `src/modules/sales/` | ❌ None yet | ❌ None yet | ⚠️ Needs tests |
-| **Payroll** | `src/modules/payroll/` | ❌ None yet | ❌ None yet | ⚠️ Needs tests |
-| **Users** | `src/modules/users/` | ❌ None yet | ❌ None yet | ⚠️ Needs tests |
+| Module      | Path                   | Unit Tests  | Integration Tests | Status         |
+| ----------- | ---------------------- | ----------- | ----------------- | -------------- |
+| **Sales**   | `src/modules/sales/`   | ❌ None yet | ❌ None yet       | ⚠️ Needs tests |
+| **Payroll** | `src/modules/payroll/` | ❌ None yet | ❌ None yet       | ⚠️ Needs tests |
+| **Users**   | `src/modules/users/`   | ❌ None yet | ❌ None yet       | ⚠️ Needs tests |
 
 > **Fallback behavior:** Until these modules have tests, the regression suite runs ALL unit tests (`src/**/*.unit.test.js`) + ALL integration tests (`tests/integration/**/*.integration.test.js`).
 
@@ -26,25 +26,25 @@ The regression test suite = **Unit Tests + Integration Tests** for **Critical Mo
 
 ## 📋 Priority 2 — Business Modules (Should Pass)
 
-| Module | Path | Unit Tests | Integration Tests | Status |
-|--------|------|------------|-------------------|--------|
-| Inventory | `src/modules/inventory/` / `stock/` / `warehouse/` | ❌ | ❌ | ⚠️ Needs tests |
-| Employees | `src/modules/employees/` | ❌ | ❌ | ⚠️ Needs tests |
-| Attendance | `src/modules/attendance/` | ❌ | ❌ | ⚠️ Needs tests |
-| Clients | `src/modules/clients/` | ❌ | ❌ | ⚠️ Needs tests |
-| Products | `src/modules/products/` | ❌ | ❌ | ⚠️ Needs tests |
-| Providers | `src/modules/providers/` | ❌ | ❌ | ⚠️ Needs tests |
-| Events | `src/modules/events/` | ✅ 12 tests | ✅ 2 tests (events/) | ✅ Covered |
-| Notes | `src/modules/notes/` | ✅ 2 tests | ✅ 2 tests (notes/) | ✅ Covered |
+| Module     | Path                                               | Unit Tests  | Integration Tests    | Status         |
+| ---------- | -------------------------------------------------- | ----------- | -------------------- | -------------- |
+| Inventory  | `src/modules/inventory/` / `stock/` / `warehouse/` | ❌          | ❌                   | ⚠️ Needs tests |
+| Employees  | `src/modules/employees/`                           | ❌          | ❌                   | ⚠️ Needs tests |
+| Attendance | `src/modules/attendance/`                          | ❌          | ❌                   | ⚠️ Needs tests |
+| Clients    | `src/modules/clients/`                             | ❌          | ❌                   | ⚠️ Needs tests |
+| Products   | `src/modules/products/`                            | ❌          | ❌                   | ⚠️ Needs tests |
+| Providers  | `src/modules/providers/`                           | ❌          | ❌                   | ⚠️ Needs tests |
+| Events     | `src/modules/events/`                              | ✅ 12 tests | ✅ 2 tests (events/) | ✅ Covered     |
+| Notes      | `src/modules/notes/`                               | ✅ 2 tests  | ✅ 2 tests (notes/)  | ✅ Covered     |
 
 ---
 
 ## 📋 Currently Covered (Existing Tests)
 
-| Module | Unit Tests | Integration Tests |
-|--------|------------|-------------------|
+| Module | Unit Tests                          | Integration Tests                 |
+| ------ | ----------------------------------- | --------------------------------- |
 | Events | 12 (RSVP, DAO, Service, Validation) | 2 (Combined filters, Soft delete) |
-| Notes | 2 (Mention parser, Mentions utils) | 2 (Mentions) |
+| Notes  | 2 (Mention parser, Mentions utils)  | 2 (Mentions)                      |
 
 > **Note:** Unit tests are colocated with source (`src/modules/**/*.unit.test.js`). Integration tests are grouped by module in `tests/integration/<module>/`.
 
@@ -61,6 +61,7 @@ npm run test:regression
 ```
 
 The script runs:
+
 ```bash
 vitest run --config apps/server/vitest.config.js \
   "src/**/*.unit.test.js" \

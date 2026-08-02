@@ -52,8 +52,6 @@ export const createPayroll = async (data, userId) => {
   return await payrollDao.createPayroll(payroll);
 };
 
-
-
 /**
  * Delete a payroll record by ID.
  *

@@ -1,5 +1,5 @@
 import { EventTypeCodes, EventModalityCodes } from './enums';
-import { Video, MapPin, Laptop } from 'lucide-react';
+import { Video, MapPin } from 'lucide-react';
 
 export const getEventTypeColor = (type) => {
   switch (type) {

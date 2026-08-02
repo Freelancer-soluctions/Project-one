@@ -6,14 +6,9 @@ import i18n from '@/config/i18n';
 // Redux, Router, Theme, etc.
 
 const customRender = (ui, options = {}) => {
-  return render(
-    <I18nextProvider i18n={i18n}>
-      {ui}
-    </I18nextProvider>,
-    {
-      ...options,
-    }
-  );
+  return render(<I18nextProvider i18n={i18n}>{ui}</I18nextProvider>, {
+    ...options,
+  });
 };
 
 export * from '@testing-library/react';

@@ -42,7 +42,7 @@ import { useGetActiveUsers } from '../hooks/useGetActiveUsers';
 import { useGetHashtagItems } from '../hooks';
 import { useGetNoteColumns } from '../hooks';
 import { HashtagsSelector } from './NotesHashtagSelector';
-import { FIELD_LIMITS } from '@/config/fieldLimits'
+import { FIELD_LIMITS } from '@/config/fieldLimits';
 
 export function NotesCreateDialog({ onCreateNote, open, setOpen }) {
   const { t } = useTranslation();
@@ -108,35 +108,35 @@ export function NotesCreateDialog({ onCreateNote, open, setOpen }) {
                   return (
                     <FormItem className="flex flex-col flex-auto">
                       <FormLabel htmlFor="status">{t('status')}*</FormLabel>
-                       <Select
-                         onValueChange={(code) => {
-                           // Buscar el objeto completo por el `code`
-                           const selectedStatus = dataColumns.find(
-                             (item) => item.code === code
-                           );
-                           if (selectedStatus) {
-                             field.onChange(selectedStatus); // Asignar el objeto completo
-                           }
-                         }}
-                         value={field.value?.code}
-                       >
-                         <SelectTrigger>
-                           <SelectValue placeholder={t('select_status')} />
-                         </SelectTrigger>
-                          <SelectContent>
-                            {dataColumns && dataColumns.length > 0 ? (
-                              dataColumns.map((col) => (
-                                <SelectItem key={col.id} value={col.code}>
-                                  {col.title}
-                                </SelectItem>
-                              ))
-                            ) : (
-                              <SelectItem value="loading" disabled>
-                                {t('loading')}
+                      <Select
+                        onValueChange={(code) => {
+                          // Buscar el objeto completo por el `code`
+                          const selectedStatus = dataColumns.find(
+                            (item) => item.code === code
+                          );
+                          if (selectedStatus) {
+                            field.onChange(selectedStatus); // Asignar el objeto completo
+                          }
+                        }}
+                        value={field.value?.code}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder={t('select_status')} />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {dataColumns && dataColumns.length > 0 ? (
+                            dataColumns.map((col) => (
+                              <SelectItem key={col.id} value={col.code}>
+                                {col.title}
                               </SelectItem>
-                            )}
-                          </SelectContent>
-                       </Select>
+                            ))
+                          ) : (
+                            <SelectItem value="loading" disabled>
+                              {t('loading')}
+                            </SelectItem>
+                          )}
+                        </SelectContent>
+                      </Select>
                       <FormMessage />
                     </FormItem>
                   );
@@ -149,10 +149,16 @@ export function NotesCreateDialog({ onCreateNote, open, setOpen }) {
               <FormLabel>{t('hashtags_title')}</FormLabel>
               <Popover open={hashtagOpen} onOpenChange={setHashtagOpen}>
                 <PopoverTrigger asChild>
-                  <Button variant="outline" type="button" className="w-full justify-start gap-2">
+                  <Button
+                    variant="outline"
+                    type="button"
+                    className="w-full justify-start gap-2"
+                  >
                     <LuTags className="h-4 w-4" />
                     {selectedHashtagIds.length > 0
-                      ? t('hashtags_selected', { count: selectedHashtagIds.length })
+                      ? t('hashtags_selected', {
+                          count: selectedHashtagIds.length,
+                        })
                       : t('hashtags_select_hashtags')}
                   </Button>
                 </PopoverTrigger>
@@ -160,7 +166,9 @@ export function NotesCreateDialog({ onCreateNote, open, setOpen }) {
                   <HashtagsSelector
                     hashtags={hashtagItems}
                     selectedIds={selectedHashtagIds.map(String)}
-                    onSelectionChange={(ids) => setSelectedHashtagIds(ids.map(Number))}
+                    onSelectionChange={(ids) =>
+                      setSelectedHashtagIds(ids.map(Number))
+                    }
                     onClose={() => setHashtagOpen(false)}
                   />
                 </PopoverContent>
@@ -220,15 +228,15 @@ export function NotesCreateDialog({ onCreateNote, open, setOpen }) {
                   return (
                     <FormItem className="flex flex-col flex-auto col-span-1">
                       <FormLabel htmlFor="content">{t('content')}*</FormLabel>
-                <FormControl>
-<TiptapEditor
-                     value={field.value}
-                     onChange={field.onChange}
-                     placeholder={t('content_placeholder')}
-                     mentionSuggestions={dataUsers}
-                     characterLimit={FIELD_LIMITS.notes.content}
-                   />
-                </FormControl>
+                      <FormControl>
+                        <TiptapEditor
+                          value={field.value}
+                          onChange={field.onChange}
+                          placeholder={t('content_placeholder')}
+                          mentionSuggestions={dataUsers}
+                          characterLimit={FIELD_LIMITS.notes.content}
+                        />
+                      </FormControl>
                       <FormMessage />
                     </FormItem>
                   );

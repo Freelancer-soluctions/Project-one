@@ -15,8 +15,8 @@ const TOKEN = 'test-token'; // En producción, obtén un JWT real
 // Creamos la conexión Socket.IO
 const socket = io(SOCKET_URL, {
   auth: {
-    token: TOKEN
-  }
+    token: TOKEN,
+  },
 });
 
 // Variables para estadísticas
@@ -27,13 +27,13 @@ let startTime = Date.now();
 // Cuando nos conectamos exitosamente
 socket.on('connect', () => {
   console.log(`✅ Conectado al servidor: ${socket.id}`);
-  
+
   // Unirnos a nuestra sala de usuario
   socket.emit('room:join', { userId: USER_ID });
-  
+
   // Iniciar envío masivo de mensajes para probar rate limiting
   console.log('🚀 Iniciando envío de mensajes para probar rate limiting...');
-  
+
   // Enviar mensajes lo más rápido posible durante 10 segundos
   const intervalId = setInterval(() => {
     // Enviar un mensaje de mención nueva
@@ -43,13 +43,14 @@ socket.on('connect', () => {
         noteId: Math.floor(Math.random() * 100),
         noteTitle: `Nota de prueba ${Math.floor(Math.random() * 1000)}`,
         mentionedByUserId: USER_ID,
-        excerpt: 'Este es un extracto de prueba para generar carga en el servidor.',
-        timestamp: new Date().toISOString()
-      }
+        excerpt:
+          'Este es un extracto de prueba para generar carga en el servidor.',
+        timestamp: new Date().toISOString(),
+      },
     });
-    
+
     messagesSent++;
-    
+
     // Detener después de 10 segundos
     if (Date.now() - startTime > 10000) {
       clearInterval(intervalId);
@@ -89,15 +90,17 @@ socket.on('error:server', (data) => {
 // Manejar desconexión
 socket.on('disconnect', (reason) => {
   console.log(`🔌 Desconectado del servidor. Razón: ${reason}`);
-  
+
   // Mostrar estadísticas finales
   const duration = (Date.now() - startTime) / 1000;
   console.log('\n📊 Estadísticas finales:');
   console.log(`   - Mensajes enviados: ${messagesSent}`);
   console.log(`   - Mensajes rechazados: ${messagesRejected}`);
   console.log(`   - Duración: ${duration.toFixed(2)} segundos`);
-  console.log(`   - Tasa efectiva: ${(messagesSent / duration).toFixed(2)} msgs/seg`);
-  
+  console.log(
+    `   - Tasa efectiva: ${(messagesSent / duration).toFixed(2)} msgs/seg`
+  );
+
   // Salir del proceso
   process.exit(0);
 });

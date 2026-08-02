@@ -4,8 +4,12 @@ import { MOVEMENT_TYPES } from './enums';
 
 export const InventoryMovementSchema = z
   .object({
-    productId: z.string().min(1, getZodMessage('zod.inventoryMovement.productId.empty')),
-    warehouseId: z.string().min(1, getZodMessage('zod.inventoryMovement.warehouseId.empty')),
+    productId: z
+      .string()
+      .min(1, getZodMessage('zod.inventoryMovement.productId.empty')),
+    warehouseId: z
+      .string()
+      .min(1, getZodMessage('zod.inventoryMovement.warehouseId.empty')),
     quantity: z
       .string()
       .transform((val) => parseInt(val, 10))

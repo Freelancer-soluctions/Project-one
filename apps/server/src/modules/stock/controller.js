@@ -90,8 +90,6 @@ export const createStock = handleCatchErrorAsync(async (req, res) => {
   globalResponse(res, 201, { message: 'Stock entry created successfully' });
 });
 
-
-
 /**
  * Delete a stock entry by ID.
  *

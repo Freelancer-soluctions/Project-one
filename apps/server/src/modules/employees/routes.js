@@ -147,10 +147,6 @@ router.post(
   createEmployee
 );
 
-
-
-
-
 /**
  * @openapi
  * /v1/employees/{id}:

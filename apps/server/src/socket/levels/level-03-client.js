@@ -7,7 +7,7 @@ const socket = io('http://localhost:3001', {
   reconnection: true,
   reconnectionDelay: 1000,
   reconnectionDelayMax: 5000,
-  randomizationFactor: 0.5
+  randomizationFactor: 0.5,
 });
 
 // Manejamos el evento de conexión exitoso
@@ -45,32 +45,32 @@ const pingInterval = setInterval(() => {
   console.log('📡 Enviando ping al servidor...');
   socket.emit('client:ping', {
     timestamp: new Date().toISOString(),
-    message: 'Ping desde el cliente Node.js'
+    message: 'Ping desde el cliente Node.js',
   });
 }, 5000);
 
 // Manejamos la señal de interrupción (SIGINT) para un apagado graceful
 process.on('SIGINT', () => {
   console.log('🛑 Recibida señal SIGINT. Cerrando cliente...');
-  
+
   // Limpiamos el intervalo de ping
   clearInterval(pingInterval);
-  
+
   // Desconectamos el socket
   socket.disconnect();
-  
+
   process.exit(0);
 });
 
 // También manejamos SIGTERM para entornos de producción
 process.on('SIGTERM', () => {
   console.log('🛑 Recibida señal SIGTERM. Cerrando cliente...');
-  
+
   // Limpiamos el intervalo de ping
   clearInterval(pingInterval);
-  
+
   // Desconectamos el socket
   socket.disconnect();
-  
+
   process.exit(0);
 });

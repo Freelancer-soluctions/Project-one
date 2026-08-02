@@ -46,8 +46,6 @@ export const createVacation = handleCatchErrorAsync(async (req, res) => {
   return globalResponse(res, 201, data);
 });
 
-
-
 /**
  * Delete a vacation record by ID.
  *

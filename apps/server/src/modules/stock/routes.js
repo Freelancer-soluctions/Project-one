@@ -8,10 +8,10 @@ import {
   patchStockById,
 } from './controller.js';
 import {
-   stockFiltersSchema,
-   stockCreateSchema,
-   stockUpdateSchema,
- } from './schemas/stock.joi.js';
+  stockFiltersSchema,
+  stockCreateSchema,
+  stockUpdateSchema,
+} from './schemas/stock.joi.js';
 import {
   verifyToken,
   validateQueryParams,
@@ -251,8 +251,6 @@ router.post(
   validateSchema(stockCreateSchema),
   createStock
 );
-
-
 
 /**
  * @openapi

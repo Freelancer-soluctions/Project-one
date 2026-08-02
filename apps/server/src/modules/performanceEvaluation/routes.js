@@ -2,7 +2,6 @@ import express from 'express';
 import {
   getAllPerformanceEvaluations,
   createPerformanceEvaluation,
-
   deletePerformanceEvaluationById,
   patchPerformanceEvaluationById,
 } from './controller.js';
@@ -14,10 +13,10 @@ import {
   validatePathParam,
 } from '../../middleware/index.js';
 import {
-   performanceEvaluationFiltersSchema,
-   performanceEvaluationCreateSchema,
-   performanceEvaluationUpdateSchema,
- } from './schemas/performanceEvaluation.joi.js';
+  performanceEvaluationFiltersSchema,
+  performanceEvaluationCreateSchema,
+  performanceEvaluationUpdateSchema,
+} from './schemas/performanceEvaluation.joi.js';
 import { ROLESCODES, PERMISSIONCODES } from '../../utils/constants/enums.js';
 
 const router = express.Router();
@@ -108,16 +107,14 @@ router.get(
  *                   $ref: "#/components/schemas/ResponseGetPerformanceEvaluation"
  */
 router.post(
-   '/',
-   checkRoleAuthOrPermisssion({
-     allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER],
-     permissions: [PERMISSIONCODES.canCreateEvaluatePerformance],
-   }),
-   validateSchema(performanceEvaluationCreateSchema),
-   createPerformanceEvaluation
- );
-
-
+  '/',
+  checkRoleAuthOrPermisssion({
+    allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER],
+    permissions: [PERMISSIONCODES.canCreateEvaluatePerformance],
+  }),
+  validateSchema(performanceEvaluationCreateSchema),
+  createPerformanceEvaluation
+);
 
 /**
  * @openapi

@@ -60,7 +60,9 @@ export const UsersBasicInfo = ({
     //   permissions: []
     // }
   });
-  const { formState: { dirtyFields } } = form;
+  const {
+    formState: { dirtyFields },
+  } = form;
 
   const permissions = useWatch({
     control: form.control,

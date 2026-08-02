@@ -20,7 +20,7 @@ import * as eventService from './service.js';
 export const getAllEvents = handleCatchErrorAsync(async (req, res) => {
   const query = req.safeQuery;
   const showDeleted = req.safeQuery.showDeleted ?? false;
-  
+
   // Admin-only showDeleted guard (Task 6.4)
   if (showDeleted && req.userRole !== 'ADMIN') {
     return res.status(403).json({
@@ -29,7 +29,7 @@ export const getAllEvents = handleCatchErrorAsync(async (req, res) => {
       message: 'Access denied: showDeleted requires ADMIN role',
     });
   }
-  
+
   const items = await eventService.getAllEvents({
     ...query,
     showDeleted,
@@ -90,7 +90,9 @@ export const updateEventById = handleCatchErrorAsync(async (req, res) => {
   const { id } = req.params;
   const result = await eventService.updateEventById(id, body);
   if (result === null) {
-    return res.status(404).json({ success: false, statusCode: 404, message: 'Event not found' });
+    return res
+      .status(404)
+      .json({ success: false, statusCode: 404, message: 'Event not found' });
   }
   globalResponse(res, 200, { message: 'Item updated successfully' });
 });
@@ -109,14 +111,20 @@ export const deleteEventById = handleCatchErrorAsync(async (req, res) => {
   const { id } = req.params;
   const userId = req.userId; // viene del token JWT
   const result = await eventService.deleteEventById(id, userId);
-  
+
   // Handle status codes from service (Task 6.1)
   if (result.status === 404) {
-    return res.status(404).json({ success: false, statusCode: 404, message: 'Event not found' });
+    return res
+      .status(404)
+      .json({ success: false, statusCode: 404, message: 'Event not found' });
   }
   if (result.status === 409) {
-    return res.status(409).json({ success: false, statusCode: 409, message: 'Event already deleted' });
+    return res.status(409).json({
+      success: false,
+      statusCode: 409,
+      message: 'Event already deleted',
+    });
   }
-  
+
   globalResponse(res, 200, result.event, 'Item deleted successfully');
 });

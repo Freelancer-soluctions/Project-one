@@ -1,5 +1,9 @@
 import { Router } from 'express';
-import { Providers, ProvidersFilters, ProvidersUpdateSchema } from './schemas/providers.joi.js';
+import {
+  Providers,
+  ProvidersFilters,
+  ProvidersUpdateSchema,
+} from './schemas/providers.joi.js';
 import * as providersController from './controller.js';
 import {
   verifyToken,
@@ -258,7 +262,5 @@ router.delete(
   validatePathParam,
   providersController.deleteProviderById
 );
-
-
 
 export default router;

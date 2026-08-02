@@ -35,19 +35,19 @@ Este documento define el sistema de diseño de **Project One**. Sirve como fuent
 
 ### 1.2 Stack Tecnológico
 
-| Capa | Tecnología |
-|------|-----------|
-| Framework | React 18.3.1 |
-| Build | Vite 6.4.1 |
-| CSS | Tailwind CSS 3.4.6 + PostCSS |
-| UI Library | shadcn/ui (new-york style) sobre Radix UI |
-| Estado | Redux Toolkit 2.2.6 + RTK Query |
-| Formularios | react-hook-form 7.52.1 + Zod 3.23.8 |
-| Routing | React Router 7.1.1 |
-| Testing | Vitest 4.0.18 + Testing Library + MSW 2.12.13 |
-| Storybook | Storybook 8.5.6 con autodocs |
-| i18n | react-i18next + i18next 24.2.1 |
-| Iconos | Lucide React + Radix Icons + React Icons |
+| Capa        | Tecnología                                    |
+| ----------- | --------------------------------------------- |
+| Framework   | React 18.3.1                                  |
+| Build       | Vite 6.4.1                                    |
+| CSS         | Tailwind CSS 3.4.6 + PostCSS                  |
+| UI Library  | shadcn/ui (new-york style) sobre Radix UI     |
+| Estado      | Redux Toolkit 2.2.6 + RTK Query               |
+| Formularios | react-hook-form 7.52.1 + Zod 3.23.8           |
+| Routing     | React Router 7.1.1                            |
+| Testing     | Vitest 4.0.18 + Testing Library + MSW 2.12.13 |
+| Storybook   | Storybook 8.5.6 con autodocs                  |
+| i18n        | react-i18next + i18next 24.2.1                |
+| Iconos      | Lucide React + Radix Icons + React Icons      |
 
 ### 1.3 Estructura del Proyecto
 
@@ -72,15 +72,15 @@ src/
 
 ### 1.4 Convenciones Generales
 
-| Regla | Estándar |
-|-------|----------|
-| Naming componentes | PascalCase (`Button.jsx`, `DataTable.jsx`) |
-| Naming archivos | kebab-case para dirs, PascalCase para componentes |
-| Imports | Alias `@/` apunta a `src/` |
-| Props | PropTypes obligatorio para componentes reutilizables |
-| Ref forwarding | `React.forwardRef` + `displayName` en todos los UI components |
-| Class merging | `cn()` utility (clsx + tailwind-merge) |
-| Composición | `asChild` via `@radix-ui/react-slot` para polymorphic components |
+| Regla              | Estándar                                                         |
+| ------------------ | ---------------------------------------------------------------- |
+| Naming componentes | PascalCase (`Button.jsx`, `DataTable.jsx`)                       |
+| Naming archivos    | kebab-case para dirs, PascalCase para componentes                |
+| Imports            | Alias `@/` apunta a `src/`                                       |
+| Props              | PropTypes obligatorio para componentes reutilizables             |
+| Ref forwarding     | `React.forwardRef` + `displayName` en todos los UI components    |
+| Class merging      | `cn()` utility (clsx + tailwind-merge)                           |
+| Composición        | `asChild` via `@radix-ui/react-slot` para polymorphic components |
 
 ---
 
@@ -92,49 +92,49 @@ El sistema usa **HSL CSS variables** con un matiz base **Zinc (240°)**. Los val
 
 #### Token Semánticos
 
-| Token | Light (HSL) | Dark (HSL) | Uso |
-|-------|-------------|------------|-----|
-| `--background` | `0 0% 100%` | `240 10% 3.9%` | Fondo principal de páginas |
-| `--foreground` | `240 10% 3.9%` | `0 0% 98%` | Texto principal |
-| `--card` | `0 0% 100%` | `240 10% 3.9%` | Fondo de cards |
-| `--card-foreground` | `240 10% 3.9%` | `0 0% 98%` | Texto en cards |
-| `--popover` | `0 0% 100%` | `240 10% 3.9%` | Fondo de popovers/tooltips |
-| `--popover-foreground` | `240 10% 3.9%` | `0 0% 98%` | Texto en popovers |
-| `--primary` | `240 5.9% 10%` | `0 0% 98%` | Acción principal, botones primary |
-| `--primary-foreground` | `0 0% 98%` | `240 5.9% 10%` | Texto sobre primary |
-| `--secondary` | `240 4.8% 95.9%` | `240 3.7% 15.9%` | Acción secundaria |
-| `--secondary-foreground` | `240 5.9% 10%` | `0 0% 98%` | Texto sobre secondary |
-| `--muted` | `240 4.8% 95.9%` | `240 3.7% 15.9%` | Fondo atenuado |
-| `--muted-foreground` | `240 3.8% 46.1%` | `240 5% 64.9%` | Texto atenuado |
-| `--accent` | `240 4.8% 95.9%` | `240 3.7% 15.9%` | Fondo de acento (hover, ghost) |
-| `--accent-foreground` | `240 5.9% 10%` | `0 0% 98%` | Texto sobre acento |
-| `--destructive` | `0 84.2% 60.2%` | `0 62.8% 30.6%` | Acciones destructivas (eliminar) |
-| `--destructive-foreground` | `0 0% 98%` | `0 0% 98%` | Texto sobre destructive |
-| `--border` | `240 5.9% 90%` | `240 3.7% 15.9%` | Bordes de componentes |
-| `--input` | `240 5.9% 90%` | `240 3.7% 15.9%` | Bordes de inputs |
-| `--ring` | `240 10% 3.9%` | `240 4.9% 83.9%` | Focus ring |
-| `--radius` | `0.5rem` | `0.5rem` | Border radius base |
+| Token                      | Light (HSL)      | Dark (HSL)       | Uso                               |
+| -------------------------- | ---------------- | ---------------- | --------------------------------- |
+| `--background`             | `0 0% 100%`      | `240 10% 3.9%`   | Fondo principal de páginas        |
+| `--foreground`             | `240 10% 3.9%`   | `0 0% 98%`       | Texto principal                   |
+| `--card`                   | `0 0% 100%`      | `240 10% 3.9%`   | Fondo de cards                    |
+| `--card-foreground`        | `240 10% 3.9%`   | `0 0% 98%`       | Texto en cards                    |
+| `--popover`                | `0 0% 100%`      | `240 10% 3.9%`   | Fondo de popovers/tooltips        |
+| `--popover-foreground`     | `240 10% 3.9%`   | `0 0% 98%`       | Texto en popovers                 |
+| `--primary`                | `240 5.9% 10%`   | `0 0% 98%`       | Acción principal, botones primary |
+| `--primary-foreground`     | `0 0% 98%`       | `240 5.9% 10%`   | Texto sobre primary               |
+| `--secondary`              | `240 4.8% 95.9%` | `240 3.7% 15.9%` | Acción secundaria                 |
+| `--secondary-foreground`   | `240 5.9% 10%`   | `0 0% 98%`       | Texto sobre secondary             |
+| `--muted`                  | `240 4.8% 95.9%` | `240 3.7% 15.9%` | Fondo atenuado                    |
+| `--muted-foreground`       | `240 3.8% 46.1%` | `240 5% 64.9%`   | Texto atenuado                    |
+| `--accent`                 | `240 4.8% 95.9%` | `240 3.7% 15.9%` | Fondo de acento (hover, ghost)    |
+| `--accent-foreground`      | `240 5.9% 10%`   | `0 0% 98%`       | Texto sobre acento                |
+| `--destructive`            | `0 84.2% 60.2%`  | `0 62.8% 30.6%`  | Acciones destructivas (eliminar)  |
+| `--destructive-foreground` | `0 0% 98%`       | `0 0% 98%`       | Texto sobre destructive           |
+| `--border`                 | `240 5.9% 90%`   | `240 3.7% 15.9%` | Bordes de componentes             |
+| `--input`                  | `240 5.9% 90%`   | `240 3.7% 15.9%` | Bordes de inputs                  |
+| `--ring`                   | `240 10% 3.9%`   | `240 4.9% 83.9%` | Focus ring                        |
+| `--radius`                 | `0.5rem`         | `0.5rem`         | Border radius base                |
 
 #### Tokens de Estado (Custom Extensions)
 
-| Token | Light (HSL) | Dark (HSL) | Uso |
-|-------|-------------|------------|-----|
-| `--success` | `145 71% 47%` | `159 53% 28%` | Operaciones exitosas |
-| `--success-foreground` | `0 0% 98%` | `0 0% 98%` | Texto sobre success |
-| `--info` | `217 90% 61%` | `188 100% 27%` | Información |
-| `--info-foreground` | `0 0% 98%` | `0 0% 98%` | Texto sobre info |
-| `--warning` | `37 82% 61%` | `37 82% 61%` | Advertencias |
-| `--warning-foreground` | `0 0% 98%` | `0 0% 98%` | Texto sobre warning |
+| Token                  | Light (HSL)   | Dark (HSL)     | Uso                  |
+| ---------------------- | ------------- | -------------- | -------------------- |
+| `--success`            | `145 71% 47%` | `159 53% 28%`  | Operaciones exitosas |
+| `--success-foreground` | `0 0% 98%`    | `0 0% 98%`     | Texto sobre success  |
+| `--info`               | `217 90% 61%` | `188 100% 27%` | Información          |
+| `--info-foreground`    | `0 0% 98%`    | `0 0% 98%`     | Texto sobre info     |
+| `--warning`            | `37 82% 61%`  | `37 82% 61%`   | Advertencias         |
+| `--warning-foreground` | `0 0% 98%`    | `0 0% 98%`     | Texto sobre warning  |
 
 #### Chart Colors
 
-| Token | Light (HSL) | Dark (HSL) |
-|-------|-------------|------------|
-| `--chart-1` | `12 76% 61%` | `220 70% 50%` |
+| Token       | Light (HSL)   | Dark (HSL)    |
+| ----------- | ------------- | ------------- |
+| `--chart-1` | `12 76% 61%`  | `220 70% 50%` |
 | `--chart-2` | `173 58% 39%` | `160 60% 45%` |
-| `--chart-3` | `197 37% 24%` | `30 80% 55%` |
-| `--chart-4` | `43 74% 66%` | `280 65% 60%` |
-| `--chart-5` | `27 87% 67%` | `340 75% 55%` |
+| `--chart-3` | `197 37% 24%` | `30 80% 55%`  |
+| `--chart-4` | `43 74% 66%`  | `280 65% 60%` |
+| `--chart-5` | `27 87% 67%`  | `340 75% 55%` |
 
 ### 2.2 Modo Claro / Oscuro
 
@@ -157,20 +157,21 @@ El sistema usa **HSL CSS variables** con un matiz base **Zinc (240°)**. Los val
 
 ### 2.3 Tipografía
 
-| Escala | Tailwind Class | Size | Line-Height |
-|--------|---------------|------|-------------|
-| Extra small | `text-xs` | 0.75rem (12px) | 1rem |
-| Small | `text-sm` | 0.875rem (14px) | 1.25rem |
-| Base | `text-base` | 1rem (16px) | 1.5rem |
-| Large | `text-lg` | 1.125rem (18px) | 1.75rem |
-| XL | `text-xl` | 1.25rem (20px) | 1.75rem |
-| 2XL | `text-2xl` | 1.5rem (24px) | 2rem |
-| 3XL | `text-3xl` | 1.875rem (30px) | 2.25rem |
-| 4XL | `text-4xl` | 2.25rem (36px) | 2.5rem |
+| Escala      | Tailwind Class | Size            | Line-Height |
+| ----------- | -------------- | --------------- | ----------- |
+| Extra small | `text-xs`      | 0.75rem (12px)  | 1rem        |
+| Small       | `text-sm`      | 0.875rem (14px) | 1.25rem     |
+| Base        | `text-base`    | 1rem (16px)     | 1.5rem      |
+| Large       | `text-lg`      | 1.125rem (18px) | 1.75rem     |
+| XL          | `text-xl`      | 1.25rem (20px)  | 1.75rem     |
+| 2XL         | `text-2xl`     | 1.5rem (24px)   | 2rem        |
+| 3XL         | `text-3xl`     | 1.875rem (30px) | 2.25rem     |
+| 4XL         | `text-4xl`     | 2.25rem (36px)  | 2.5rem      |
 
 **Font family:** Sistema nativo (sin Google Fonts). Definido por defecto de Tailwind.
 
 **Font weight:**
+
 - Normal: `font-normal` (400)
 - Medium: `font-medium` (500)
 - Semibold: `font-semibold` (600) — títulos de componentes
@@ -178,55 +179,55 @@ El sistema usa **HSL CSS variables** con un matiz base **Zinc (240°)**. Los val
 
 ### 2.4 Border Radius
 
-| Nivel | Cálculo | Valor por defecto |
-|-------|---------|-------------------|
-| `sm` | `calc(var(--radius) - 4px)` | `0.25rem` (4px) |
-| `md` | `calc(var(--radius) - 2px)` | `0.375rem` (6px) |
-| `lg` | `var(--radius)` | `0.5rem` (8px) |
-| `xl` | `rounded-xl` | `0.75rem` (12px) — usado en Cards |
+| Nivel | Cálculo                     | Valor por defecto                 |
+| ----- | --------------------------- | --------------------------------- |
+| `sm`  | `calc(var(--radius) - 4px)` | `0.25rem` (4px)                   |
+| `md`  | `calc(var(--radius) - 2px)` | `0.375rem` (6px)                  |
+| `lg`  | `var(--radius)`             | `0.5rem` (8px)                    |
+| `xl`  | `rounded-xl`                | `0.75rem` (12px) — usado en Cards |
 
 ### 2.5 Espaciado
 
 Basado en la escala de Tailwind (base 4px):
 
-| Token | Tailwind | Píxeles | Contexto |
-|-------|----------|---------|----------|
-| 1 | `p-1` / `gap-1` | 4px | Micro-espaciado |
-| 2 | `p-2` / `gap-2` | 8px | Espaciado interno pequeño |
-| 3 | `p-3` / `gap-3` | 12px | |
-| 4 | `p-4` / `gap-4` | 16px | Espaciado interno default |
-| 6 | `p-6` / `gap-6` | 24px | Card padding |
-| 8 | `p-8` / `gap-8` | 32px | Secciones |
-| 10 | `p-10` | 40px | |
-| 12 | `p-12` | 48px | Secciones grandes |
+| Token | Tailwind        | Píxeles | Contexto                  |
+| ----- | --------------- | ------- | ------------------------- |
+| 1     | `p-1` / `gap-1` | 4px     | Micro-espaciado           |
+| 2     | `p-2` / `gap-2` | 8px     | Espaciado interno pequeño |
+| 3     | `p-3` / `gap-3` | 12px    |                           |
+| 4     | `p-4` / `gap-4` | 16px    | Espaciado interno default |
+| 6     | `p-6` / `gap-6` | 24px    | Card padding              |
+| 8     | `p-8` / `gap-8` | 32px    | Secciones                 |
+| 10    | `p-10`          | 40px    |                           |
+| 12    | `p-12`          | 48px    | Secciones grandes         |
 
 ### 2.6 Sombras
 
-| Nivel | Tailwind | Uso |
-|-------|----------|-----|
-| sm | `shadow-sm` | Cards, botones |
-| md | `shadow-md` | Dropdowns, popovers |
-| lg | `shadow-lg` | Modales, dialogs |
-| xl | `shadow-xl` | Toasts, notificaciones |
+| Nivel | Tailwind    | Uso                    |
+| ----- | ----------- | ---------------------- |
+| sm    | `shadow-sm` | Cards, botones         |
+| md    | `shadow-md` | Dropdowns, popovers    |
+| lg    | `shadow-lg` | Modales, dialogs       |
+| xl    | `shadow-xl` | Toasts, notificaciones |
 
 ### 2.7 Animaciones
 
-| Keyframe | Duración | Timing | Uso |
-|----------|----------|--------|-----|
-| `accordion-down` | 0.2s | ease-out | Abrir acordeón |
-| `accordion-up` | 0.2s | ease-out | Cerrar acordeón |
-| `transition-colors` | 150ms | — | Hover, focus en botones/inputs |
-| Tailwind animate | configurable | — | Plugins via `tailwindcss-animate` |
+| Keyframe            | Duración     | Timing   | Uso                               |
+| ------------------- | ------------ | -------- | --------------------------------- |
+| `accordion-down`    | 0.2s         | ease-out | Abrir acordeón                    |
+| `accordion-up`      | 0.2s         | ease-out | Cerrar acordeón                   |
+| `transition-colors` | 150ms        | —        | Hover, focus en botones/inputs    |
+| Tailwind animate    | configurable | —        | Plugins via `tailwindcss-animate` |
 
 ### 2.8 Breakpoints
 
-| Breakpoint | Min-Width | Target |
-|------------|-----------|--------|
-| `sm` | 640px | Móvil landscape |
-| `md` | 768px | Tablet |
-| `lg` | 1024px | Desktop |
-| `xl` | 1280px | Desktop wide |
-| `2xl` | 1400px | Container max-width |
+| Breakpoint | Min-Width | Target              |
+| ---------- | --------- | ------------------- |
+| `sm`       | 640px     | Móvil landscape     |
+| `md`       | 768px     | Tablet              |
+| `lg`       | 1024px    | Desktop             |
+| `xl`       | 1280px    | Desktop wide        |
+| `2xl`      | 1400px    | Container max-width |
 
 **Container:** `max-width: 1400px`, centrado, con `padding: 2rem`.
 
@@ -243,35 +244,35 @@ Componente base para acciones. Usa `class-variance-authority` (cva) para variant
 
 #### Variants
 
-| Variant | Visual | Uso |
-|---------|--------|-----|
-| `default` | Fondo primary, texto primary-foreground | Acción principal del formulario |
-| `secondary` | Fondo secondary | Acción secundaria |
-| `destructive` | Fondo destructive | Eliminar, peligro |
-| `outline` | Borde, sin fondo | Alternativa a secondary |
-| `ghost` | Sin fondo ni borde | Toolbars, icon buttons |
-| `link` | Solo texto subrayado | Navegación inline |
-| `success` | Fondo success (custom) | Confirmación |
-| `info` | Fondo info (custom) | Información |
-| `warning` | Fondo warning (custom) | Advertencia |
+| Variant       | Visual                                  | Uso                             |
+| ------------- | --------------------------------------- | ------------------------------- |
+| `default`     | Fondo primary, texto primary-foreground | Acción principal del formulario |
+| `secondary`   | Fondo secondary                         | Acción secundaria               |
+| `destructive` | Fondo destructive                       | Eliminar, peligro               |
+| `outline`     | Borde, sin fondo                        | Alternativa a secondary         |
+| `ghost`       | Sin fondo ni borde                      | Toolbars, icon buttons          |
+| `link`        | Solo texto subrayado                    | Navegación inline               |
+| `success`     | Fondo success (custom)                  | Confirmación                    |
+| `info`        | Fondo info (custom)                     | Información                     |
+| `warning`     | Fondo warning (custom)                  | Advertencia                     |
 
 #### Sizes
 
-| Size | Height | Padding | Font |
-|------|--------|---------|------|
-| `sm` | 32px (h-8) | px-3 | text-xs |
-| `default` | 36px (h-9) | px-4 py-2 | text-sm |
-| `lg` | 40px (h-10) | px-8 | text-sm |
-| `icon` | 36px (h-9 w-9) | — | — |
+| Size      | Height         | Padding   | Font    |
+| --------- | -------------- | --------- | ------- |
+| `sm`      | 32px (h-8)     | px-3      | text-xs |
+| `default` | 36px (h-9)     | px-4 py-2 | text-sm |
+| `lg`      | 40px (h-10)    | px-8      | text-sm |
+| `icon`    | 36px (h-9 w-9) | —         | —       |
 
 #### Props
 
-| Prop | Type | Default | Description |
-|------|------|---------|-------------|
-| `variant` | string | `'default'` | Estilo visual del botón |
-| `size` | string | `'default'` | Tamaño del botón |
-| `asChild` | boolean | `false` | Render como elemento hijo (polymorphic) |
-| `className` | string | — | Clases adicionales |
+| Prop        | Type    | Default     | Description                             |
+| ----------- | ------- | ----------- | --------------------------------------- |
+| `variant`   | string  | `'default'` | Estilo visual del botón                 |
+| `size`      | string  | `'default'` | Tamaño del botón                        |
+| `asChild`   | boolean | `false`     | Render como elemento hijo (polymorphic) |
+| `className` | string  | —           | Clases adicionales                      |
 
 #### Estados
 
@@ -330,18 +331,21 @@ Implementado con Radix UI Select. Incluye scroll area automático.
 ### 3.4 Checkbox / RadioGroup / Switch / Toggle
 
 > **Sources:**
+>
 > - `src/components/ui/checkbox.jsx`
 > - `src/components/ui/radio-group.jsx`
 > - `src/components/ui/switch.jsx`
 > - `src/components/ui/toggle.jsx`
 
 #### Checkbox
+
 ```jsx
 <Checkbox id="terms" />
 <label htmlFor="terms">Acepto términos</label>
 ```
 
 #### RadioGroup
+
 ```jsx
 <RadioGroup defaultValue="active">
   <div className="flex items-center gap-2">
@@ -356,12 +360,14 @@ Implementado con Radix UI Select. Incluye scroll area automático.
 ```
 
 #### Switch
+
 ```jsx
 <Switch id="notifications" />
 <Label htmlFor="notifications">Notificaciones</Label>
 ```
 
 #### Toggle
+
 ```jsx
 <Toggle aria-label="Toggle bold">
   <BoldIcon className="h-4 w-4" />
@@ -375,14 +381,14 @@ Implementado con Radix UI Select. Incluye scroll area automático.
 
 Compuesto de 6 subcomponentes:
 
-| Componente | Rol |
-|------------|-----|
-| `<Card>` | Contenedor con borde, sombra, bg-card |
-| `<CardHeader>` | Header con padding p-6 |
-| `<CardTitle>` | Título semibold, tracking-tight |
-| `<CardDescription>` | Descripción muted, text-sm |
-| `<CardContent>` | Contenido p-6 pt-0 |
-| `<CardFooter>` | Footer con flex, p-6 pt-0 |
+| Componente          | Rol                                   |
+| ------------------- | ------------------------------------- |
+| `<Card>`            | Contenedor con borde, sombra, bg-card |
+| `<CardHeader>`      | Header con padding p-6                |
+| `<CardTitle>`       | Título semibold, tracking-tight       |
+| `<CardDescription>` | Descripción muted, text-sm            |
+| `<CardContent>`     | Contenido p-6 pt-0                    |
+| `<CardFooter>`      | Footer con flex, p-6 pt-0             |
 
 ```jsx
 <Card>
@@ -403,12 +409,14 @@ Compuesto de 6 subcomponentes:
 ### 3.6 Dialog / AlertDialog
 
 > **Sources:**
+>
 > - `src/components/ui/dialog.jsx`
 > - `src/components/ui/alert-dialog.jsx`
 > - `src/stories/ui/Dialog.stories.jsx`
 > - `src/stories/ui/AlertDialog.stories.jsx`
 
 #### Dialog (Modal genérico)
+
 ```jsx
 <Dialog>
   <DialogTrigger>Editar</DialogTrigger>
@@ -426,13 +434,16 @@ Compuesto de 6 subcomponentes:
 ```
 
 #### AlertDialog (Confirmación destructiva)
+
 ```jsx
 <AlertDialog>
   <AlertDialogTrigger>Eliminar</AlertDialogTrigger>
   <AlertDialogContent>
     <AlertDialogHeader>
       <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
-      <AlertDialogDescription>Esta acción no se puede deshacer.</AlertDialogDescription>
+      <AlertDialogDescription>
+        Esta acción no se puede deshacer.
+      </AlertDialogDescription>
     </AlertDialogHeader>
     <AlertDialogFooter>
       <AlertDialogCancel>Cancelar</AlertDialogCancel>
@@ -445,10 +456,12 @@ Compuesto de 6 subcomponentes:
 ### 3.7 Popover / Tooltip
 
 > **Sources:**
+>
 > - `src/components/ui/popover.jsx`
 > - `src/components/ui/tooltip.jsx`
 
 #### Popover
+
 ```jsx
 <Popover>
   <PopoverTrigger>Filtrar</PopoverTrigger>
@@ -459,6 +472,7 @@ Compuesto de 6 subcomponentes:
 ```
 
 #### Tooltip
+
 ```jsx
 <TooltipProvider>
   <Tooltip>
@@ -475,12 +489,14 @@ Compuesto de 6 subcomponentes:
 ### 3.8 DropdownMenu / Command
 
 > **Sources:**
+>
 > - `src/components/ui/dropdown-menu.jsx`
 > - `src/components/ui/command.jsx`
 > - `src/stories/ui/DropDownMenu.stories.jsx`
 > - `src/stories/ui/Command.stories.jsx`
 
 #### DropdownMenu
+
 ```jsx
 <DropdownMenu>
   <DropdownMenuTrigger>Acciones</DropdownMenuTrigger>
@@ -494,6 +510,7 @@ Compuesto de 6 subcomponentes:
 ```
 
 #### Command (Command Palette)
+
 ```jsx
 <Command>
   <CommandInput placeholder="Buscar..." />
@@ -510,6 +527,7 @@ Compuesto de 6 subcomponentes:
 ### 3.9 Tabs / Accordion / Collapsible
 
 #### Tabs
+
 ```jsx
 <Tabs defaultValue="info">
   <TabsList>
@@ -522,6 +540,7 @@ Compuesto de 6 subcomponentes:
 ```
 
 #### Accordion
+
 ```jsx
 <Accordion type="single" collapsible>
   <AccordionItem value="item-1">
@@ -588,12 +607,13 @@ const form = useForm({
     />
     <Button type="submit">Guardar</Button>
   </form>
-</Form>
+</Form>;
 ```
 
 ### 3.12 Toast / Toaster
 
 > **Sources:**
+>
 > - `src/components/ui/toast.jsx`
 > - `src/components/ui/toaster.jsx`
 > - `src/components/ui/use-toast.js`
@@ -603,15 +623,16 @@ const form = useForm({
 const { toast } = useToast();
 
 toast({
-  title: "Producto creado",
-  description: "El producto se ha creado exitosamente",
-  variant: "success", // default | destructive | success | info | warning
+  title: 'Producto creado',
+  description: 'El producto se ha creado exitosamente',
+  variant: 'success', // default | destructive | success | info | warning
 });
 ```
 
 ### 3.13 Badge / Alert / Separator / ScrollArea
 
 #### Badge
+
 ```jsx
 <Badge variant="default">Activo</Badge>
 <Badge variant="secondary">Borrador</Badge>
@@ -620,6 +641,7 @@ toast({
 ```
 
 #### Alert
+
 ```jsx
 <Alert variant="default">
   <AlertTitle>Información</AlertTitle>
@@ -634,16 +656,13 @@ toast({
 ### 3.14 Calendar / Carousel
 
 #### Calendar
+
 ```jsx
-<Calendar
-  mode="single"
-  selected={date}
-  onSelect={setDate}
-  initialFocus
-/>
+<Calendar mode="single" selected={date} onSelect={setDate} initialFocus />
 ```
 
 #### Carousel
+
 ```jsx
 <Carousel>
   <CarouselContent>
@@ -699,15 +718,15 @@ Tabla avanzada construida sobre **TanStack React Table** con:
 
 #### Características
 
-| Feature | Implementación |
-|---------|---------------|
-| Paginación | Manual (server-side), configurable: 10, 20, 30, 40, 50 |
-| Sorting | Por columna, server-side |
-| Filtros | Por columna: texto, rango numérico, select |
-| Tooltips | `CellWithTooltip` para celdas truncadas |
-| Debounce | `DebouncedInput` para filtros de texto |
-| Loading state | Skeleton o spinner mientras carga |
-| Empty state | Mensaje "Sin datos" cuando no hay resultados |
+| Feature       | Implementación                                         |
+| ------------- | ------------------------------------------------------ |
+| Paginación    | Manual (server-side), configurable: 10, 20, 30, 40, 50 |
+| Sorting       | Por columna, server-side                               |
+| Filtros       | Por columna: texto, rango numérico, select             |
+| Tooltips      | `CellWithTooltip` para celdas truncadas                |
+| Debounce      | `DebouncedInput` para filtros de texto                 |
+| Loading state | Skeleton o spinner mientras carga                      |
+| Empty state   | Mensaje "Sin datos" cuando no hay resultados           |
 
 #### Estructura
 
@@ -761,17 +780,17 @@ Editor rich text basado en **Tiptap** (ProseMirror wrapper).
 
 #### Extensiones
 
-| Extensión | Propósito |
-|-----------|-----------|
-| StarterKit | Bold, italic, strike, code, heading, bulletList, orderedList, blockquote |
-| Underline | Texto subrayado |
-| Link | Enlaces clickeables |
-| Highlight | Resaltado de texto |
-| TextAlign | Alineación (left, center, right, justify) |
-| Subscript / Superscript | Notas al pie |
-| Placeholder | Placeholder personalizado |
-| CharacterCount | Contador de caracteres |
-| Mention | Menciones (@usuario) con dropdown |
+| Extensión               | Propósito                                                                |
+| ----------------------- | ------------------------------------------------------------------------ |
+| StarterKit              | Bold, italic, strike, code, heading, bulletList, orderedList, blockquote |
+| Underline               | Texto subrayado                                                          |
+| Link                    | Enlaces clickeables                                                      |
+| Highlight               | Resaltado de texto                                                       |
+| TextAlign               | Alineación (left, center, right, justify)                                |
+| Subscript / Superscript | Notas al pie                                                             |
+| Placeholder             | Placeholder personalizado                                                |
+| CharacterCount          | Contador de caracteres                                                   |
+| Mention                 | Menciones (@usuario) con dropdown                                        |
 
 ```jsx
 <TiptapEditor
@@ -828,28 +847,28 @@ Mostrar: [10 ▼] registros por página
 
 React Router 7 con lazy loading:
 
-| Ruta | Componente | Guard |
-|------|-----------|-------|
-| `/` | Home | — |
-| `/login` | Login | — |
-| `/dashboard` | Dashboard | ProtectedRoutes |
-| `/products/*` | Products | ProtectedRoutes |
+| Ruta            | Componente    | Guard           |
+| --------------- | ------------- | --------------- |
+| `/`             | Home          | —               |
+| `/login`        | Login         | —               |
+| `/dashboard`    | Dashboard     | ProtectedRoutes |
+| `/products/*`   | Products      | ProtectedRoutes |
 | `/products/:id` | ProductDetail | ProtectedRoutes |
-| `/clients/*` | Clients | ProtectedRoutes |
-| `*` | NotFound | — |
+| `/clients/*`    | Clients       | ProtectedRoutes |
+| `*`             | NotFound      | —               |
 
 ### 5.3 Guards
 
-| Guard | Función |
-|-------|---------|
-| `ProtectedRoutes` | Redirige a `/login` si no hay sesión activa |
+| Guard                | Función                                                  |
+| -------------------- | -------------------------------------------------------- |
+| `ProtectedRoutes`    | Redirige a `/login` si no hay sesión activa              |
 | `ProtectedFormRoute` | Verifica permisos específicos para acceder a formularios |
 
 ### 5.4 Páginas de Error
 
-| Ruta | Componente | Propósito |
-|------|-----------|-----------|
-| `/404` | `NotFound` | Ruta no encontrada |
+| Ruta   | Componente      | Propósito                                               |
+| ------ | --------------- | ------------------------------------------------------- |
+| `/404` | `NotFound`      | Ruta no encontrada                                      |
 | `/500` | `ErrorBoundary` | Error interno con ErrorBoundary de react-error-boundary |
 
 ---
@@ -928,7 +947,10 @@ const productsApi = baseApi.injectEndpoints({
       query: (params) => ({ url: '/products', params }),
       providesTags: (result) =>
         result
-          ? [...result.map(({ id }) => ({ type: 'Products', id })), { type: 'Products', id: 'LIST' }]
+          ? [
+              ...result.map(({ id }) => ({ type: 'Products', id })),
+              { type: 'Products', id: 'LIST' },
+            ]
           : [{ type: 'Products', id: 'LIST' }],
     }),
     createProduct: builder.mutation({
@@ -996,7 +1018,7 @@ function Fallback({ error, resetErrorBoundary }) {
 
 <ErrorBoundary FallbackComponent={Fallback}>
   <ProductList />
-</ErrorBoundary>
+</ErrorBoundary>;
 ```
 
 ---
@@ -1005,11 +1027,11 @@ function Fallback({ error, resetErrorBoundary }) {
 
 ### 7.1 Librerías
 
-| Librería | Uso | Ejemplo |
-|----------|-----|---------|
-| **Lucide React** v0.475.0 | Librería primaria, iconos default | `import { Plus, Edit, Trash2 } from 'lucide-react'` |
-| **Radix UI Icons** v1.3.0 | Contexto Radix (menús, select) | `import { ChevronDownIcon } from '@radix-ui/react-icons'` |
-| **React Icons** v5.4.0 | Iconos específicos de Material Design | `import { MdOutlineDarkMode } from 'react-icons/md'` |
+| Librería                  | Uso                                   | Ejemplo                                                   |
+| ------------------------- | ------------------------------------- | --------------------------------------------------------- |
+| **Lucide React** v0.475.0 | Librería primaria, iconos default     | `import { Plus, Edit, Trash2 } from 'lucide-react'`       |
+| **Radix UI Icons** v1.3.0 | Contexto Radix (menús, select)        | `import { ChevronDownIcon } from '@radix-ui/react-icons'` |
+| **React Icons** v5.4.0    | Iconos específicos de Material Design | `import { MdOutlineDarkMode } from 'react-icons/md'`      |
 
 ### 7.2 Convenciones
 
@@ -1030,11 +1052,11 @@ function Fallback({ error, resetErrorBoundary }) {
 
 ### 8.1 Estrategia
 
-| Tipo | Archivo | Stack | Cuándo |
-|------|---------|-------|--------|
-| Unit | `*.unit.test.jsx` | Vitest + vi.mock | Componentes puros, hooks, utils |
-| Integration | `*.integration.test.jsx` | MSW + Redux real | Flujos completos con API |
-| Storybook | `*.stories.jsx` | Storybook test runner | Regresión visual, interaction testing |
+| Tipo        | Archivo                  | Stack                 | Cuándo                                |
+| ----------- | ------------------------ | --------------------- | ------------------------------------- |
+| Unit        | `*.unit.test.jsx`        | Vitest + vi.mock      | Componentes puros, hooks, utils       |
+| Integration | `*.integration.test.jsx` | MSW + Redux real      | Flujos completos con API              |
+| Storybook   | `*.stories.jsx`          | Storybook test runner | Regresión visual, interaction testing |
 
 ### 8.2 Setup
 
@@ -1088,12 +1110,12 @@ El componente se añade a `src/components/ui/` y puede personalizarse.
 
 ### 9.4 shadcn Style
 
-| Config | Valor |
-|--------|-------|
-| Style | `new-york` |
-| Base color | `zinc` |
-| CSS variables | `true` |
-| Icon library | `lucide` |
+| Config        | Valor      |
+| ------------- | ---------- |
+| Style         | `new-york` |
+| Base color    | `zinc`     |
+| CSS variables | `true`     |
+| Icon library  | `lucide`   |
 
 ---
 
@@ -1101,19 +1123,19 @@ El componente se añade a `src/components/ui/` y puede personalizarse.
 
 ### 10.1 Configuración
 
-| Archivo | Propósito |
-|---------|-----------|
-| `.storybook/main.js` | Configuración: stories path, addons, framework |
+| Archivo                 | Propósito                                          |
+| ----------------------- | -------------------------------------------------- |
+| `.storybook/main.js`    | Configuración: stories path, addons, framework     |
 | `.storybook/preview.js` | Preview: decorators, autodocs, parámetros globales |
 
 ### 10.2 Addons Instalados
 
-| Addon | Propósito |
-|-------|-----------|
-| `@storybook/addon-essentials` | Controls, Actions, Docs, Viewport |
-| `@storybook/addon-interactions` | Testing de interacciones |
-| `@storybook/addon-links` | Navegación entre stories |
-| `@storybook/addon-styling-webpack` | Soporte de estilos |
+| Addon                              | Propósito                         |
+| ---------------------------------- | --------------------------------- |
+| `@storybook/addon-essentials`      | Controls, Actions, Docs, Viewport |
+| `@storybook/addon-interactions`    | Testing de interacciones          |
+| `@storybook/addon-links`           | Navegación entre stories          |
+| `@storybook/addon-styling-webpack` | Soporte de estilos                |
 
 ### 10.3 Formato de Stories (CSF 3.0)
 
@@ -1125,7 +1147,14 @@ export default {
   argTypes: {
     variant: {
       control: 'select',
-      options: ['default', 'destructive', 'outline', 'secondary', 'ghost', 'link'],
+      options: [
+        'default',
+        'destructive',
+        'outline',
+        'secondary',
+        'ghost',
+        'link',
+      ],
     },
     size: { control: 'select', options: ['default', 'sm', 'lg', 'icon'] },
   },
@@ -1152,10 +1181,10 @@ stories/
 
 ### 10.5 Coverage Actual
 
-| Estado | Componentes |
-|--------|-------------|
+| Estado       | Componentes                                                                                                                                                                                                          |
+| ------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | ✅ Con story | Button, Card, Dialog, AlertDialog, Input, Textarea, Select, Checkbox, RadioGroup, Switch, Toggle, Popover, Tooltip, DropdownMenu, Command, Tabs, Table, Form, Label, Separator, ScrollArea, Calendar, Toast, Toaster |
-| ❌ Sin story | Accordion, Alert, Badge, Carousel, Collapsible, Pagination |
+| ❌ Sin story | Accordion, Alert, Badge, Carousel, Collapsible, Pagination                                                                                                                                                           |
 
 ---
 
@@ -1197,12 +1226,12 @@ Este design system sigue el versionado semántico del proyecto (`package.json`).
 
 ### 11.5 Recursos Relacionados
 
-| Documento | Contenido |
-|-----------|-----------|
-| `docs/code-style.md` | Convenciones de código y formato |
+| Documento                        | Contenido                                      |
+| -------------------------------- | ---------------------------------------------- |
+| `docs/code-style.md`             | Convenciones de código y formato               |
 | `docs/architectural-approach.md` | Patrones de arquitectura y decisiones técnicas |
-| `docs/testing-architecture.md` | Estrategia completa de testing |
-| `AGENTS.md` | Guías de desarrollo asistido por agentes |
+| `docs/testing-architecture.md`   | Estrategia completa de testing                 |
+| `AGENTS.md`                      | Guías de desarrollo asistido por agentes       |
 
 ---
 

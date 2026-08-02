@@ -57,20 +57,22 @@ export const ProvidersDialog = ({
   const providerId = selectedRow?.id ?? null;
   // const [providerId, setProviderId] = useState('')
 
-   // Configura el formulario
-   const form = useForm({
-     resolver: zodResolver(ProvidersDialogSchema),
-     defaultValues: {
-       name: '',
-       status: undefined,
-       contactName: '',
-       contactEmail: '',
-       contactPhone: '',
-       address: '',
-     },
-   });
+  // Configura el formulario
+  const form = useForm({
+    resolver: zodResolver(ProvidersDialogSchema),
+    defaultValues: {
+      name: '',
+      status: undefined,
+      contactName: '',
+      contactEmail: '',
+      contactPhone: '',
+      address: '',
+    },
+  });
 
-   const { formState: { dirtyFields } } = form;
+  const {
+    formState: { dirtyFields },
+  } = form;
 
   // Actualiza todos los valores del formulario al cambiar `selectedRow`
 
@@ -102,9 +104,9 @@ export const ProvidersDialog = ({
 
   // useEffect(() => {
   //   if (selectedRow) {
-    //     // Filtra y mapea solo los valores necesarios
-    //     const mappedValues = {
-    //       name: selectedRow.name || '',
+  //     // Filtra y mapea solo los valores necesarios
+  //     const mappedValues = {
+  //       name: selectedRow.name || '',
   //       status: selectedRow.status || '',
   //       code: selectedRow.code || '',
   //       contactName: selectedRow.contactName || '',
@@ -126,14 +128,14 @@ export const ProvidersDialog = ({
   //   }
   // }, [selectedRow, openDialog])
 
-   const handleSubmit = (data) => {
-     if (providerId) {
-       const changes = pickDirty(data, dirtyFields);
-       onSubmit({ id: providerId, body: changes });
-     } else {
-       onSubmit(data);
-     }
-   };
+  const handleSubmit = (data) => {
+    if (providerId) {
+      const changes = pickDirty(data, dirtyFields);
+      onSubmit({ id: providerId, body: changes });
+    } else {
+      onSubmit(data);
+    }
+  };
 
   const handleDeleteById = () => {
     onDeleteById(providerId);

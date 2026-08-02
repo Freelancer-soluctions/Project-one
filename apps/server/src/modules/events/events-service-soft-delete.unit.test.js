@@ -25,7 +25,10 @@ describe('Events Service – Soft Delete (Unit)', () => {
 
   // Helper to setup mocks per test
   const setupMocks = (overrides = {}) => {
-    eventDao.softDeleteEventById.mockResolvedValue({ status: 'deleted', event: mockEvent });
+    eventDao.softDeleteEventById.mockResolvedValue({
+      status: 'deleted',
+      event: mockEvent,
+    });
     eventDao.restoreEventById.mockResolvedValue(mockEvent);
     eventDao.updateEventById.mockResolvedValue({});
     eventDao.getEventById.mockResolvedValue(mockEvent);
@@ -40,7 +43,10 @@ describe('Events Service – Soft Delete (Unit)', () => {
   // 9.8 deleteEventById passes userId to DAO and translates status codes
   it('deleteEventById passes userId to DAO and translates status codes', async () => {
     // Success case
-    eventDao.softDeleteEventById.mockResolvedValueOnce({ status: 'deleted', event: { id: 1 } });
+    eventDao.softDeleteEventById.mockResolvedValueOnce({
+      status: 'deleted',
+      event: { id: 1 },
+    });
     const res1 = await eventService.deleteEventById(1, 99);
     expect(eventDao.softDeleteEventById).toHaveBeenCalledWith(1, 99);
     // Service wraps result: { status: 200, event: result.event }
@@ -52,7 +58,9 @@ describe('Events Service – Soft Delete (Unit)', () => {
     expect(res2).toEqual({ status: 404, message: 'Event not found' });
 
     // Already deleted case
-    eventDao.softDeleteEventById.mockResolvedValueOnce({ status: 'already-deleted' });
+    eventDao.softDeleteEventById.mockResolvedValueOnce({
+      status: 'already-deleted',
+    });
     const res3 = await eventService.deleteEventById(1, 99);
     expect(res3).toEqual({ status: 409, message: 'Event already deleted' });
   });
@@ -68,7 +76,10 @@ describe('Events Service – Soft Delete (Unit)', () => {
       endTime: new Date(Date.UTC(1970, 0, 1, 11, 0)),
     });
 
-    const result = await eventService.updateEventById(1, { deletedAt: null, title: 'New Title' });
+    const result = await eventService.updateEventById(1, {
+      deletedAt: null,
+      title: 'New Title',
+    });
 
     expect(eventDao.restoreEventById).toHaveBeenCalledWith(1);
     expect(result.deletedAt).toBeNull();

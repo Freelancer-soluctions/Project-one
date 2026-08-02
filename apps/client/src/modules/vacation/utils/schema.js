@@ -8,7 +8,9 @@ export const VacationSchema = z
     employeeId: z.preprocess(
       (val) => (val === '' ? undefined : Number(val)),
       z
-        .number({ required_error: getZodMessage('zod.vacation.employeeId.required') })
+        .number({
+          required_error: getZodMessage('zod.vacation.employeeId.required'),
+        })
         .int()
         .positive(getZodMessage('zod.vacation.employeeId.positive'))
     ),

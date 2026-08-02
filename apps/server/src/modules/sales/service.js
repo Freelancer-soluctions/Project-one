@@ -74,12 +74,13 @@ export const patchSaleById = async (id, data) => {
     clientId: data.clientId !== undefined ? Number(data.clientId) : undefined,
     total: data.total !== undefined ? Number(data.total) : undefined,
     details: data.details,
-    updatedBy: data.updatedBy !== undefined ? Number(data.updatedBy) : undefined,
+    updatedBy:
+      data.updatedBy !== undefined ? Number(data.updatedBy) : undefined,
     updatedOn: new Date(),
   };
   // Remove undefined values
   Object.keys(dataToUpdate).forEach(
-    key => dataToUpdate[key] === undefined && delete dataToUpdate[key]
+    (key) => dataToUpdate[key] === undefined && delete dataToUpdate[key]
   );
   return patchSaleByIdDao(Number(id), dataToUpdate);
 };

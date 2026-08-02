@@ -63,7 +63,9 @@ export const EmployeesDialog = ({
     },
   });
 
-  const { formState: { dirtyFields } } = form;
+  const {
+    formState: { dirtyFields },
+  } = form;
 
   // Actualiza todos los valores del formulario al cambiar `selectedRow`
   useEffect(() => {
@@ -111,14 +113,14 @@ export const EmployeesDialog = ({
     }
   }, [selectedRow, openDialog, form]);
 
-   const handleSubmit = (data) => {
-     if (employeeId) {
-       const changes = pickDirty(data, dirtyFields);
-       onSubmit({ id: employeeId, body: changes });
-     } else {
-       onSubmit(data);
-     }
-   };
+  const handleSubmit = (data) => {
+    if (employeeId) {
+      const changes = pickDirty(data, dirtyFields);
+      onSubmit({ id: employeeId, body: changes });
+    } else {
+      onSubmit(data);
+    }
+  };
 
   const handleDelete = () => {
     onDeleteById(selectedRow.id);

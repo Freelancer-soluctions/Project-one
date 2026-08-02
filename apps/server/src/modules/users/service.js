@@ -32,7 +32,7 @@ export const getAllUsers = async (filters) => {
   if (!take || take <= 0) {
     throw new Error('Pagination is required');
   }
-return await getAllUsersDao(filters, take, skip);
+  return await getAllUsersDao(filters, take, skip);
 };
 
 /**
@@ -44,9 +44,9 @@ return await getAllUsersDao(filters, take, skip);
 export const getUsersByStatus = async (status) => {
   const data = await getUsersByStatusDao(status);
   // Transform the data to map 'name' field to 'label' field to align with frontend expectations
-  return data.map(item => ({
+  return data.map((item) => ({
     id: item.id,
-    label: item.name
+    label: item.name,
   }));
 };
 
@@ -110,8 +110,6 @@ export const createUser = async (data) => {
   };
   return createDao(userData);
 };
-
-
 
 /**
  * Partially update a user by ID.

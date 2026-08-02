@@ -23,7 +23,9 @@ export const SaleSchema = z
         }),
         quantity: z
           .string()
-          .min(1, { message: getZodMessage('zod.sales.details.quantity.empty') })
+          .min(1, {
+            message: getZodMessage('zod.sales.details.quantity.empty'),
+          })
           .transform((val) => Number(val))
           .pipe(
             z

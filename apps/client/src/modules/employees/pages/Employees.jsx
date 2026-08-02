@@ -29,9 +29,16 @@ const Employees = () => {
   });
   const [filters, setFilters] = useState({});
 
-const [getAllEmployees, queryState] = useLazyGetAllEmployeesQuery();
-const { data: dataEmployees, isLoading: queryIsLoading, isFetching: queryIsFetching } = useQueryData(queryState);
-const { isLoading: isEmployeesLoading, isFetching: isEmployeesFetching } = useLoadingState([{ isLoading: queryIsLoading, isFetching: queryIsFetching }]);
+  const [getAllEmployees, queryState] = useLazyGetAllEmployeesQuery();
+  const {
+    data: dataEmployees,
+    isLoading: queryIsLoading,
+    isFetching: queryIsFetching,
+  } = useQueryData(queryState);
+  const { isLoading: isEmployeesLoading, isFetching: isEmployeesFetching } =
+    useLoadingState([
+      { isLoading: queryIsLoading, isFetching: queryIsFetching },
+    ]);
 
   const [updateEmployeeById, { isLoading: isLoadingPut }] =
     useUpdateEmployeeByIdMutation();
@@ -81,31 +88,31 @@ const { isLoading: isEmployeesLoading, isFetching: isEmployeesFetching } = useLo
     setFilters(newFilters);
   };
 
-   const handleSubmit = async (result) => {
-     try {
-       if (result?.id) {
-         await updateEmployeeById({ id: result.id, data: result.body }).unwrap();
-       } else {
-         await createEmployee(result).unwrap();
-       }
+  const handleSubmit = async (result) => {
+    try {
+      if (result?.id) {
+        await updateEmployeeById({ id: result.id, data: result.body }).unwrap();
+      } else {
+        await createEmployee(result).unwrap();
+      }
 
-       setAlertProps({
-         alertTitle: t(result?.id ? 'update_record' : 'add_record'),
-         alertMessage: t(
-           result?.id ? 'updated_successfully' : 'added_successfully'
-         ),
-         cancel: false,
-         success: true,
-         onSuccess: () => {
-           setOpenDialog(false);
-         },
-         variantSuccess: 'info',
-       });
-       setOpenAlertDialog(true);
-     } catch (err) {
-       console.error('Error:', err);
-     }
-   };
+      setAlertProps({
+        alertTitle: t(result?.id ? 'update_record' : 'add_record'),
+        alertMessage: t(
+          result?.id ? 'updated_successfully' : 'added_successfully'
+        ),
+        cancel: false,
+        success: true,
+        onSuccess: () => {
+          setOpenDialog(false);
+        },
+        variantSuccess: 'info',
+      });
+      setOpenAlertDialog(true);
+    } catch (err) {
+      console.error('Error:', err);
+    }
+  };
 
   const handleAddDialog = () => {
     setActionDialog(t('add_employee'));

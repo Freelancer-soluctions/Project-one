@@ -48,8 +48,6 @@ export const createSale = handleCatchErrorAsync(async (req, res) => {
   globalResponse(res, 201, sale);
 });
 
-
-
 /**
  * Partially update a sale by ID.
  *

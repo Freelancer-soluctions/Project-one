@@ -38,25 +38,23 @@ const payrollApi = createApi({
     }),
 
     updatePayrollById: builder.mutation({
-       query: ({ id, data }) => ({
-         url: `/payroll/${id}`,
-         method: 'PATCH',
-         body: data,
-       }),
-       invalidatesTags: ['Payroll'],
-     }),
-
-
+      query: ({ id, data }) => ({
+        url: `/payroll/${id}`,
+        method: 'PATCH',
+        body: data,
+      }),
+      invalidatesTags: ['Payroll'],
+    }),
   }),
 });
 
 // Export hooks for usage in functional components
 export const {
-   useLazyGetAllPayrollQuery,
-   useGetAllPayrollQuery,
-   useUpdatePayrollByIdMutation,
-   useCreatePayrollMutation,
-   useDeletePayrollByIdMutation,
+  useLazyGetAllPayrollQuery,
+  useGetAllPayrollQuery,
+  useUpdatePayrollByIdMutation,
+  useCreatePayrollMutation,
+  useDeletePayrollByIdMutation,
 } = payrollApi;
 
 export default payrollApi;

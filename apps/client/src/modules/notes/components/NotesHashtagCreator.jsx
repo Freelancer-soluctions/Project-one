@@ -1,12 +1,12 @@
-"use client"
+'use client';
 
-import * as React from "react"
-import PropTypes from "prop-types"
-import { X, ChevronLeft } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { cn } from "@/lib/utils"
+import * as React from 'react';
+import PropTypes from 'prop-types';
+import { X, ChevronLeft } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { cn } from '@/lib/utils';
 import { useTranslation } from 'react-i18next';
 
 /**
@@ -33,7 +33,7 @@ export function HashtagCreator({
   className,
 }) {
   const { t } = useTranslation();
-  const [title, setTitle] = React.useState(editingHashtag?.name ?? "")
+  const [title, setTitle] = React.useState(editingHashtag?.name ?? '');
 
   const isEditing = !!editingHashtag;
 
@@ -44,14 +44,14 @@ export function HashtagCreator({
       } else if (onCreate) {
         onCreate({ title: title.trim() });
       }
-      setTitle("")
+      setTitle('');
     }
-  }
+  };
 
   return (
     <div
       className={cn(
-        "w-72 rounded-lg border bg-popover text-popover-foreground shadow-md",
+        'w-72 rounded-lg border bg-popover text-popover-foreground shadow-md',
         className
       )}
     >
@@ -68,7 +68,9 @@ export function HashtagCreator({
           <span className="sr-only">{t('hashtags_back')}</span>
         </Button>
         <span className="text-sm font-medium">
-          {isEditing ? t('hashtags_edit_hashtag', { name: editingHashtag.name }) : t('hashtags_create_hashtag')}
+          {isEditing
+            ? t('hashtags_edit_hashtag', { name: editingHashtag.name })
+            : t('hashtags_create_hashtag')}
         </span>
         <Button
           type="button"
@@ -88,8 +90,8 @@ export function HashtagCreator({
         <div className="flex justify-center">
           <div
             className={cn(
-              "h-8 w-48 rounded",
-              title.trim() ? "bg-muted" : "bg-muted/50"
+              'h-8 w-48 rounded',
+              title.trim() ? 'bg-muted' : 'bg-muted/50'
             )}
           >
             {title.trim() && (
@@ -132,7 +134,7 @@ export function HashtagCreator({
         </Button>
       </div>
     </div>
-  )
+  );
 }
 
 HashtagCreator.propTypes = {

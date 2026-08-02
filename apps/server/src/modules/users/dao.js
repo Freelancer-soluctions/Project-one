@@ -1,4 +1,3 @@
-
 import { prisma, Prisma } from '../../config/db.js';
 import { decryptResults } from '../../utils/prisma/prisma-query.js';
 
@@ -80,7 +79,6 @@ export const getAllUsers = async (filters = {}, take, skip) => {
   return { dataList, total };
 };
 
-
 /**
  * Get user role by user ID.
  *
@@ -115,13 +113,13 @@ export const getUsersByStatus = async (status) => {
   return prisma.users.findMany({
     where: {
       userStatus: {
-        code: status
-      }
+        code: status,
+      },
     },
     select: {
       id: true,
-      name: true
-    }
+      name: true,
+    },
   });
 };
 
@@ -257,7 +255,7 @@ export const createUser = async (data) => {
  * @param {string} [data.document] - User's document identifier.
  * @param {string} [data.state] - User's state.
  * @param {string} [data.refreshToken] - User's refresh token.
- * 
+ *
  * @returns {Promise<Object>} The updated user object.
  */
 export const updateUserById = async (id, data) => {
@@ -272,9 +270,15 @@ export const updateUserById = async (id, data) => {
       ...(data.isAdmin !== undefined && { isAdmin: data.isAdmin }),
       ...(data.picture !== undefined && { picture: data.picture }),
       ...(data.document !== undefined && { document: data.document }),
-      ...(data.lastUpdatedBy !== undefined && { lastUpdatedBy: data.lastUpdatedBy }),
-      ...(data.lastUpdatedOn !== undefined && { lastUpdatedOn: data.lastUpdatedOn }),
-      ...(data.socialSecurity !== undefined && { socialSecurity: data.socialSecurity }),
+      ...(data.lastUpdatedBy !== undefined && {
+        lastUpdatedBy: data.lastUpdatedBy,
+      }),
+      ...(data.lastUpdatedOn !== undefined && {
+        lastUpdatedOn: data.lastUpdatedOn,
+      }),
+      ...(data.socialSecurity !== undefined && {
+        socialSecurity: data.socialSecurity,
+      }),
       ...(data.state !== undefined && { state: data.state }),
       ...(data.telephone !== undefined && { telephone: data.telephone }),
       ...(data.zipcode !== undefined && { zipcode: data.zipcode }),
@@ -294,7 +298,7 @@ export const updateUserById = async (id, data) => {
         permits: {
           deleteMany: {},
           ...(data.permissions.length > 0 && {
-              create: data.permissions.map((permissionId) => ({
+            create: data.permissions.map((permissionId) => ({
               permissions: { connect: { id: parseInt(permissionId, 10) } },
             })),
           }),
@@ -303,8 +307,6 @@ export const updateUserById = async (id, data) => {
     },
   });
 };
-
-
 
 /**
  * Delete a user by ID.
@@ -385,5 +387,3 @@ export const getUserRoleByCode = async (code) => {
 
 //   return Promise.resolve(user)
 // }
-
-

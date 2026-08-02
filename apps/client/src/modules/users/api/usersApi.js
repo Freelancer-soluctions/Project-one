@@ -25,7 +25,7 @@ const usersApi = createApi({
      * Fetches users filtered by their status
      * @param {string} statusCode - The statusCode to filter users by
      * @returns {Promise} A promise that resolves to the API response
-     * 
+     *
      * @example
      * // Example usage:
      * // const { data, error, isLoading } = useGetUsersByStatusQuery('active');
@@ -38,7 +38,6 @@ const usersApi = createApi({
         url: `/users/by-status/`,
         method: 'GET',
         params: { statusCode },
-
       }),
       providesTags: ['Users'],
     }),

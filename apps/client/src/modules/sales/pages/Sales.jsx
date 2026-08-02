@@ -116,7 +116,9 @@ const Sales = () => {
 
       setAlertProps({
         alertTitle: t(result?.id ? 'update_record' : 'add_record'),
-        alertMessage: t(result?.id ? 'updated_successfully' : 'added_successfully'),
+        alertMessage: t(
+          result?.id ? 'updated_successfully' : 'added_successfully'
+        ),
         cancel: false,
         success: true,
         onSuccess: () => {

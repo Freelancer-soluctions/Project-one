@@ -22,7 +22,5 @@ export const vacationUpdateSchema = Joi.object({
   employeeId: Joi.number().integer().min(1).optional(),
   startDate: Joi.date().optional(),
   endDate: Joi.date().optional(),
-  status: Joi.string()
-    .valid('PENDING', 'APPROVED', 'REJECTED')
-    .optional(),
+  status: Joi.string().valid('PENDING', 'APPROVED', 'REJECTED').optional(),
 });

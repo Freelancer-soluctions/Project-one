@@ -55,8 +55,6 @@ export const createPerformanceEvaluation = handleCatchErrorAsync(
   }
 );
 
-
-
 /**
  * Partially update a performance evaluation by ID.
  *

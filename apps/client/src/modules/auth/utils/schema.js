@@ -9,7 +9,9 @@ export const signInSchema = z.object({
   password: z
     .string({ required_error: getZodMessage('zod.auth.password.empty') })
     .min(6, { message: getZodMinMaxMessage('zod.auth.password.minLength', 6) })
-    .max(16, { message: getZodMinMaxMessage('zod.auth.password.maxLength', 16) }),
+    .max(16, {
+      message: getZodMinMaxMessage('zod.auth.password.maxLength', 16),
+    }),
 });
 
 export const signUpSchema = z.object({
@@ -24,7 +26,9 @@ export const signUpSchema = z.object({
   password: z
     .string({ required_error: getZodMessage('zod.auth.password.empty') })
     .min(6, { message: getZodMinMaxMessage('zod.auth.password.minLength', 6) })
-    .max(16, { message: getZodMinMaxMessage('zod.auth.password.maxLength', 16) }),
+    .max(16, {
+      message: getZodMinMaxMessage('zod.auth.password.maxLength', 16),
+    }),
 });
 
 // export const loginSchema = Joi.object({

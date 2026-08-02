@@ -21,7 +21,9 @@ const SIMULATED_USER = { id: 1, username: 'demoUser' };
 // Mantiene mensajes pequeños y predecibles.
 const envelopeSchema = Joi.object({
   // type: nombre del evento con namespace (ej: 'mention:new')
-  type: Joi.string().pattern(/^[a-z]+:[a-z]+$/).required(),
+  type: Joi.string()
+    .pattern(/^[a-z]+:[a-z]+$/)
+    .required(),
   // payload: datos específicos del evento (validado por schema individual)
   payload: Joi.object().required(),
   // meta: metadatos opcionales (timestamp, traceId, etc.)
@@ -47,25 +49,32 @@ const mentionNewSchema = Joi.object({
 
 // Schema para marcar menciones como leídas
 const mentionReadSchema = Joi.object({
-  mentionIds: Joi.array().items(Joi.number().integer().positive()).min(1).required(),
+  mentionIds: Joi.array()
+    .items(Joi.number().integer().positive())
+    .min(1)
+    .required(),
 });
 
 // Validador genérico: recibe mensaje completo (envelope) y valida contra envelope + schema específico
 const validateMessage = (message, payloadSchema) => {
-  const { error: envelopeError, value: envelopeValue } = envelopeSchema.validate(message, {
-    stripUnknown: true,
-    abortEarly: false,
-  });
+  const { error: envelopeError, value: envelopeValue } =
+    envelopeSchema.validate(message, {
+      stripUnknown: true,
+      abortEarly: false,
+    });
   if (envelopeError) {
-    return { valid: false, error: envelopeError.details.map(d => d.message) };
+    return { valid: false, error: envelopeError.details.map((d) => d.message) };
   }
 
-  const { error: payloadError, value: payloadValue } = payloadSchema.validate(envelopeValue.payload, {
-    stripUnknown: true,
-    abortEarly: false,
-  });
+  const { error: payloadError, value: payloadValue } = payloadSchema.validate(
+    envelopeValue.payload,
+    {
+      stripUnknown: true,
+      abortEarly: false,
+    }
+  );
   if (payloadError) {
-    return { valid: false, error: payloadError.details.map(d => d.message) };
+    return { valid: false, error: payloadError.details.map((d) => d.message) };
   }
 
   return { valid: true, value: { ...envelopeValue, payload: payloadValue } };
@@ -91,7 +100,10 @@ const handleMentionNew = (io, socket, payload) => {
 const handleMentionRead = (io, socket, payload) => {
   // En este nivel educativo, simulamos marcar menciones como leídas
   // En una implementación real, esto haría una actualización en la base de datos vía Prisma
-  console.log(`📖 Usuario ${socket.data.user?.id} marcó como leídas:`, payload.mentionIds);
+  console.log(
+    `📖 Usuario ${socket.data.user?.id} marcó como leídas:`,
+    payload.mentionIds
+  );
   // Emitimos confirmación al cliente
   socket.emit('mention:read:confirmed', { count: payload.mentionIds.length });
 };
@@ -101,9 +113,9 @@ const httpServer = http.createServer();
 // Configuramos el servidor de Socket.IO con CORS para permitir conexiones desde el cliente
 const io = new Server(httpServer, {
   cors: {
-    origin: "http://localhost:5173",
-    methods: ["GET", "POST"]
-  }
+    origin: 'http://localhost:5173',
+    methods: ['GET', 'POST'],
+  },
 });
 
 // Middleware de autenticación simulada
@@ -119,12 +131,15 @@ const PORT = 3004;
 // Manejamos el evento de conexión cuando un cliente se conecta
 io.on('connection', (socket) => {
   // Logueamos cuando un cliente se conecta, mostrando su ID de socket
-  console.log(`🟢 Cliente conectado: ${socket.id} (usuario: ${socket.data.user?.username})`);
+  console.log(
+    `🟢 Cliente conectado: ${socket.id} (usuario: ${socket.data.user?.username})`
+  );
 
   // Emitimos un evento 'welcome' al cliente recién conectado con un mensaje y timestamp
   socket.emit('welcome', {
-    message: 'Bienvenido al servidor de WebSocket nivel 06 - Eventos con validación Joi',
-    timestamp: new Date().toISOString()
+    message:
+      'Bienvenido al servidor de WebSocket nivel 06 - Eventos con validación Joi',
+    timestamp: new Date().toISOString(),
   });
 
   // Auto-join user room after auth middleware has populated socket.data.user
@@ -142,17 +157,27 @@ io.on('connection', (socket) => {
 
       switch (type) {
         case 'mention:new': {
-          const validation = validateMessage({ type, payload }, mentionNewSchema);
+          const validation = validateMessage(
+            { type, payload },
+            mentionNewSchema
+          );
           if (!validation.valid) {
-            return socket.emit('error:validation', { errors: validation.error });
+            return socket.emit('error:validation', {
+              errors: validation.error,
+            });
           }
           handleMentionNew(io, socket, validation.value.payload);
           break;
         }
         case 'mention:read': {
-          const validation = validateMessage({ type, payload }, mentionReadSchema);
+          const validation = validateMessage(
+            { type, payload },
+            mentionReadSchema
+          );
           if (!validation.valid) {
-            return socket.emit('error:validation', { errors: validation.error });
+            return socket.emit('error:validation', {
+              errors: validation.error,
+            });
           }
           handleMentionRead(io, socket, validation.value.payload);
           break;
@@ -180,9 +205,13 @@ io.on('connection', (socket) => {
 
 // Iniciamos el servidor HTTP en el puerto especificado
 httpServer.listen(PORT, () => {
-  console.log(`🚂 Servidor Socket.IO nivel 06 escuchando en http://localhost:${PORT}`);
+  console.log(
+    `🚂 Servidor Socket.IO nivel 06 escuchando en http://localhost:${PORT}`
+  );
   console.log(`   Demostrando eventos de mención con validación Joi`);
-  console.log(`   Prueba conectando un cliente y enviando eventos mention:new y mention:read`);
+  console.log(
+    `   Prueba conectando un cliente y enviando eventos mention:new y mention:read`
+  );
 });
 
 // Manejamos la señal de interrupción (SIGINT) para un apagado graceful

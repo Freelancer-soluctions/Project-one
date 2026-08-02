@@ -19,18 +19,18 @@ class TokenBucket {
    * @param {number} [config.refillInterval=1000] - Intervalo de recarga en ms
    */
   constructor({ capacity, refillRate, refillInterval = 1000 }) {
-    this.capacity = capacity
-    this.tokens = capacity
-    this.refillRate = refillRate
-    this.refillInterval = refillInterval
+    this.capacity = capacity;
+    this.tokens = capacity;
+    this.refillRate = refillRate;
+    this.refillInterval = refillInterval;
 
     // Intervalo que recarga tokens periódicamente
     this.intervalId = setInterval(() => {
-      this.tokens = Math.min(this.capacity, this.tokens + this.refillRate)
-    }, this.refillInterval)
+      this.tokens = Math.min(this.capacity, this.tokens + this.refillRate);
+    }, this.refillInterval);
 
     // Permitir que el intervalo no bloquee el proceso
-    this.intervalId.unref()
+    this.intervalId.unref();
   }
 
   /**
@@ -40,15 +40,15 @@ class TokenBucket {
    */
   consume(count = 1) {
     if (this.tokens >= count) {
-      this.tokens -= count
-      return true
+      this.tokens -= count;
+      return true;
     }
-    return false
+    return false;
   }
 
   /** Detiene el intervalo de recarga. Llama en cleanup. */
   stop() {
-    clearInterval(this.intervalId)
+    clearInterval(this.intervalId);
   }
 }
 
@@ -62,22 +62,22 @@ class TokenBucket {
  * @returns {Function} middleware (socket, next) => void
  */
 export const createSocketRateLimiter = (options = {}) => {
-   const {
-     connectionRate = 100,
-     eventRate = 30,
-   } = options
+  const { connectionRate = 100, eventRate = 30 } = options;
 
-   // Buckets por IP para rate limiting de conexiones
-   const connectionBuckets = new Map()
+  // Buckets por IP para rate limiting de conexiones
+  const connectionBuckets = new Map();
 
-   // Buckets por usuario para rate limiting de eventos
-   const eventBuckets = new Map()
+  // Buckets por usuario para rate limiting de eventos
+  const eventBuckets = new Map();
 
-   // Cleanup periódico de buckets inactivos (cada 5 minutos)
-   setInterval(() => {
-     connectionBuckets.clear()
-     eventBuckets.clear()
-   }, 5 * 60 * 1000)
+  // Cleanup periódico de buckets inactivos (cada 5 minutos)
+  setInterval(
+    () => {
+      connectionBuckets.clear();
+      eventBuckets.clear();
+    },
+    5 * 60 * 1000
+  );
 
   /**
    * Middleware de conexión — limitar conexiones por IP
@@ -86,62 +86,74 @@ export const createSocketRateLimiter = (options = {}) => {
    * @returns {void}
    */
   const connectionMiddleware = (socket, next) => {
-    const clientIp = socket.handshake.address
+    const clientIp = socket.handshake.address;
     if (!connectionBuckets.has(clientIp)) {
       // 100 conexiones por minuto ≈ ~1.67 tokens/segundo, capacity 100
-      connectionBuckets.set(clientIp, new TokenBucket({
-        capacity: connectionRate,
-        refillRate: Math.max(1, Math.floor(connectionRate / 60)),
-      }))
+      connectionBuckets.set(
+        clientIp,
+        new TokenBucket({
+          capacity: connectionRate,
+          refillRate: Math.max(1, Math.floor(connectionRate / 60)),
+        })
+      );
     }
-    const bucket = connectionBuckets.get(clientIp)
+    const bucket = connectionBuckets.get(clientIp);
     if (!bucket.consume()) {
-      return next(new Error('RATE_LIMITED: Demasiadas conexiones desde esta IP'))
+      return next(
+        new Error('RATE_LIMITED: Demasiadas conexiones desde esta IP')
+      );
     }
-    next()
-  }
+    next();
+  };
 
-
-
-   // Retornamos ambos middlewares para flexibilidad
-   return {
-      connection: connectionMiddleware,
-      /**
-       * Middleware por evento — limitar eventos/segundo por usuario
-       * Se ejecuta en cada evento entrante ANTES del handler.
-       * @param {import('socket.io').Socket} socket - Socket activo
-       */
-      event: (socket) => {
-        socket.use(([event], next) => {
-         if (event === 'connect' || event === 'disconnect' || event.startsWith('/')) {
-           return next()
-         }
-         const userId = socket.data.user?.id || socket.id
-         if (!eventBuckets.has(userId)) {
-           eventBuckets.set(userId, new TokenBucket({
-             capacity: eventRate,
-             refillRate: eventRate,
-           }))
-         }
-         const bucket = eventBuckets.get(userId)
-         if (!bucket.consume()) {
-           socket.emit('error:rate_limit', { message: 'Demasiados eventos. Intenta de nuevo en un momento.' })
-           return
-         }
-         next()
-       })
-     },
-      /**
-       * cleanup: eliminar buckets al desconectar para evitar memory leak
-       * Socket.IO emite 'disconnect' cuando un socket se cierra.
-       * Sin cleanup, cada IP/usuario deja buckets en memoria permanentemente.
-       * @param {import('socket.io').Socket} socket - Socket que se desconecta
-       */
-       cleanup: (socket) => {
-        const clientIp = socket.handshake.address
-        connectionBuckets.delete(clientIp)
-        const userId = socket.data.user?.id || socket.id
-        eventBuckets.delete(userId)
-      },
-   }
-}
+  // Retornamos ambos middlewares para flexibilidad
+  return {
+    connection: connectionMiddleware,
+    /**
+     * Middleware por evento — limitar eventos/segundo por usuario
+     * Se ejecuta en cada evento entrante ANTES del handler.
+     * @param {import('socket.io').Socket} socket - Socket activo
+     */
+    event: (socket) => {
+      socket.use(([event], next) => {
+        if (
+          event === 'connect' ||
+          event === 'disconnect' ||
+          event.startsWith('/')
+        ) {
+          return next();
+        }
+        const userId = socket.data.user?.id || socket.id;
+        if (!eventBuckets.has(userId)) {
+          eventBuckets.set(
+            userId,
+            new TokenBucket({
+              capacity: eventRate,
+              refillRate: eventRate,
+            })
+          );
+        }
+        const bucket = eventBuckets.get(userId);
+        if (!bucket.consume()) {
+          socket.emit('error:rate_limit', {
+            message: 'Demasiados eventos. Intenta de nuevo en un momento.',
+          });
+          return;
+        }
+        next();
+      });
+    },
+    /**
+     * cleanup: eliminar buckets al desconectar para evitar memory leak
+     * Socket.IO emite 'disconnect' cuando un socket se cierra.
+     * Sin cleanup, cada IP/usuario deja buckets en memoria permanentemente.
+     * @param {import('socket.io').Socket} socket - Socket que se desconecta
+     */
+    cleanup: (socket) => {
+      const clientIp = socket.handshake.address;
+      connectionBuckets.delete(clientIp);
+      const userId = socket.data.user?.id || socket.id;
+      eventBuckets.delete(userId);
+    },
+  };
+};

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import PropTypes from 'prop-types';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/loader/Spinner';
@@ -10,7 +11,7 @@ import AlertDialogComponent from '@/components/alertDialog/AlertDialog';
 
 /**
  * AttendButton — shows Register/Cancel/Waitlisted based on current user's status.
- * 
+ *
  * @param {Object} props
  * @param {number} props.eventId
  * @param {string|null} props.userStatus - User's current attendee status (CONFIRMED/WAITLIST/CANCELLED/null)
@@ -18,7 +19,8 @@ import AlertDialogComponent from '@/components/alertDialog/AlertDialog';
  */
 export const AttendButton = ({ eventId, userStatus, onStatusChange }) => {
   const { t } = useTranslation();
-  const [register, { isLoading: isRegistering }] = useRegisterForEventMutation();
+  const [register, { isLoading: isRegistering }] =
+    useRegisterForEventMutation();
   const [cancel, { isLoading: isCancelling }] = useCancelRegistrationMutation();
   const [alertProps, setAlertProps] = useState({});
   const [openAlert, setOpenAlert] = useState(false);
@@ -78,7 +80,11 @@ export const AttendButton = ({ eventId, userStatus, onStatusChange }) => {
   if (userStatus === 'CONFIRMED') {
     return (
       <>
-        <Button variant="destructive" onClick={handleCancel} disabled={isLoading}>
+        <Button
+          variant="destructive"
+          onClick={handleCancel}
+          disabled={isLoading}
+        >
           {t('cancel_registration')}
         </Button>
         <AlertDialogComponent
@@ -117,4 +123,10 @@ export const AttendButton = ({ eventId, userStatus, onStatusChange }) => {
       />
     </>
   );
+};
+
+AttendButton.propTypes = {
+  eventId: PropTypes.number.isRequired,
+  userStatus: PropTypes.string,
+  onStatusChange: PropTypes.func,
 };

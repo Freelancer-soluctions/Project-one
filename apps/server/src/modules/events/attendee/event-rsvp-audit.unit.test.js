@@ -1,7 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import * as eventAttendeeService from './service.js';
 import * as attendeeDao from './dao.js';
-import * as stateMachine from '../stateMachine.js';
 
 vi.mock('./dao.js', () => ({
   findEventById: vi.fn(),
@@ -17,11 +16,6 @@ vi.mock('./dao.js', () => ({
   findEarliestWaitlist: vi.fn(),
 }));
 
-vi.mock('../stateMachine.js', () => ({
-  canTransition: vi.fn(() => true),
-  getAllowedNextStates: vi.fn(() => []),
-}));
-
 vi.mock('../../../config/db.js', () => ({
   prisma: {
     $transaction: vi.fn((cb) => cb({})),
@@ -30,7 +24,12 @@ vi.mock('../../../config/db.js', () => ({
 }));
 
 describe('Event RSVP — audit log', () => {
-  const mockEvent = { id: 1, capacity: 10, attendeeCount: 5, eventDate: '2099-06-30' };
+  const mockEvent = {
+    id: 1,
+    capacity: 10,
+    attendeeCount: 5,
+    eventDate: '2099-06-30',
+  };
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -41,7 +40,12 @@ describe('Event RSVP — audit log', () => {
     attendeeDao.findAttendeeByUserAndEvent.mockResolvedValue(null);
     attendeeDao.countConfirmedAttendees.mockResolvedValue(4);
     attendeeDao.updateEventAttendeeCountWithLock.mockResolvedValue(1);
-    attendeeDao.createAttendee.mockResolvedValue({ id: 1, eventId: 1, userId: 1, status: 'CONFIRMED' });
+    attendeeDao.createAttendee.mockResolvedValue({
+      id: 1,
+      eventId: 1,
+      userId: 1,
+      status: 'CONFIRMED',
+    });
     attendeeDao.createAuditLog.mockResolvedValue({});
 
     await eventAttendeeService.register(1, 1);
@@ -59,12 +63,20 @@ describe('Event RSVP — audit log', () => {
   });
 
   it('register creates audit log with previousStatus=CANCELLED (re-registration)', async () => {
-    const cancelledAttendee = { id: 1, eventId: 1, userId: 1, status: 'CANCELLED' };
+    const cancelledAttendee = {
+      id: 1,
+      eventId: 1,
+      userId: 1,
+      status: 'CANCELLED',
+    };
     attendeeDao.findEventById.mockResolvedValue(mockEvent);
     attendeeDao.findAttendeeByUserAndEvent.mockResolvedValue(cancelledAttendee);
     attendeeDao.countConfirmedAttendees.mockResolvedValue(4);
     attendeeDao.updateEventAttendeeCountWithLock.mockResolvedValue(1);
-    attendeeDao.updateAttendeeStatus.mockResolvedValue({ ...cancelledAttendee, status: 'CONFIRMED' });
+    attendeeDao.updateAttendeeStatus.mockResolvedValue({
+      ...cancelledAttendee,
+      status: 'CONFIRMED',
+    });
     attendeeDao.createAuditLog.mockResolvedValue({});
 
     await eventAttendeeService.register(1, 1);
@@ -81,9 +93,17 @@ describe('Event RSVP — audit log', () => {
   });
 
   it('cancel creates audit log', async () => {
-    const confirmedAttendee = { id: 1, eventId: 1, userId: 1, status: 'CONFIRMED' };
+    const confirmedAttendee = {
+      id: 1,
+      eventId: 1,
+      userId: 1,
+      status: 'CONFIRMED',
+    };
     attendeeDao.findAttendeeByUserAndEvent.mockResolvedValue(confirmedAttendee);
-    attendeeDao.updateAttendeeStatus.mockResolvedValue({ ...confirmedAttendee, status: 'CANCELLED' });
+    attendeeDao.updateAttendeeStatus.mockResolvedValue({
+      ...confirmedAttendee,
+      status: 'CANCELLED',
+    });
     attendeeDao.decrementAttendeeCount.mockResolvedValue({});
     attendeeDao.createAuditLog.mockResolvedValue({});
     attendeeDao.findEarliestWaitlist.mockResolvedValue(null);
@@ -103,11 +123,19 @@ describe('Event RSVP — audit log', () => {
   });
 
   it('admin status change creates audit log with changedBy = adminUserId', async () => {
-    const waitlistAttendee = { id: 1, eventId: 1, userId: 5, status: 'WAITLIST' };
+    const waitlistAttendee = {
+      id: 1,
+      eventId: 1,
+      userId: 5,
+      status: 'WAITLIST',
+    };
     attendeeDao.findAttendeeById.mockResolvedValue(waitlistAttendee);
     attendeeDao.findEventById.mockResolvedValue(mockEvent);
     attendeeDao.countConfirmedAttendees.mockResolvedValue(5);
-    attendeeDao.updateAttendeeStatus.mockResolvedValue({ ...waitlistAttendee, status: 'CONFIRMED' });
+    attendeeDao.updateAttendeeStatus.mockResolvedValue({
+      ...waitlistAttendee,
+      status: 'CONFIRMED',
+    });
     attendeeDao.incrementAttendeeCount.mockResolvedValue({});
     attendeeDao.createAuditLog.mockResolvedValue({});
 
@@ -126,8 +154,18 @@ describe('Event RSVP — audit log', () => {
   });
 
   it('promoteFromWaitlist creates audit log with changedBy = null', async () => {
-    attendeeDao.findEarliestWaitlist.mockResolvedValue({ id: 5, eventId: 1, userId: 10, status: 'WAITLIST' });
-    attendeeDao.updateAttendeeStatus.mockResolvedValue({ id: 5, eventId: 1, userId: 10, status: 'CONFIRMED' });
+    attendeeDao.findEarliestWaitlist.mockResolvedValue({
+      id: 5,
+      eventId: 1,
+      userId: 10,
+      status: 'WAITLIST',
+    });
+    attendeeDao.updateAttendeeStatus.mockResolvedValue({
+      id: 5,
+      eventId: 1,
+      userId: 10,
+      status: 'CONFIRMED',
+    });
     attendeeDao.incrementAttendeeCount.mockResolvedValue({});
     attendeeDao.createAuditLog.mockResolvedValue({});
 

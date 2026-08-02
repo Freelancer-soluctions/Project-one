@@ -14,7 +14,7 @@ describe('Smoke Test: Database Connectivity', () => {
 
   it('should be able to query a real table (users)', async () => {
     // Try to count users - this verifies the schema is accessible
-    const count = await prisma.user.count();
+    const count = await prisma.users.count();
 
     expect(typeof count).toBe('number');
     expect(count).toBeGreaterThanOrEqual(0);

@@ -96,7 +96,9 @@ export const ClientsDialog = ({
     }
   }, [selectedRow, openDialog, form]);
 
-  const { formState: { dirtyFields } } = form;
+  const {
+    formState: { dirtyFields },
+  } = form;
 
   const handleSubmit = (data) => {
     if (clientId) {

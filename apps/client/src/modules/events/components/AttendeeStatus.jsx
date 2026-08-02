@@ -1,8 +1,9 @@
 import { useTranslation } from 'react-i18next';
+import PropTypes from 'prop-types';
 
 /**
  * AttendeeStatus — displays user's registration status badge.
- * 
+ *
  * @param {Object} props
  * @param {string|null} props.status - CONFIRMED/WAITLIST/CANCELLED/null
  */
@@ -32,4 +33,8 @@ export const AttendeeStatus = ({ status }) => {
       {labels[status] || status}
     </span>
   );
+};
+
+AttendeeStatus.propTypes = {
+  status: PropTypes.string,
 };

@@ -8,12 +8,12 @@ import { Server } from 'socket.io';
 const httpServer = http.createServer();
 const io = new Server(httpServer, {
   cors: {
-    origin: "http://localhost:5173",
-    methods: ["GET", "POST"]
+    origin: 'http://localhost:5173',
+    methods: ['GET', 'POST'],
   },
   // Habilitamos connectionStateRecovery para restaurar estado tras reconexión breve
   // maxDisconnectionDuration: 120000ms = 2 minutos (valor por defecto de Socket.IO v4+)
-  connectionStateRecovery: {}
+  connectionStateRecovery: {},
 });
 
 // Puerto del servidor educativo
@@ -33,11 +33,11 @@ let mentionIdCounter = 1;
 function simulateOfflineMentions() {
   // Simulamos que llegan menciones para usuarios específicos mientras están desconectados
   // En una app real, esto vendría de la base de datos o de eventos del sistema
-  
+
   // Ejemplo: crear una mention para el usuario 1 cada 5 segundos
   setInterval(() => {
     const userId = 1; // Usuario de ejemplo
-    
+
     // Crear objeto de mention simulado
     const fakeMention = {
       id: mentionIdCounter++,
@@ -45,16 +45,18 @@ function simulateOfflineMentions() {
       mentionedByUserId: 2, // Otro usuario que mencionó
       noteId: 101,
       createdOn: new Date(),
-      isRead: false
+      isRead: false,
     };
-    
+
     // Almacenar mention pendiente para este usuario
     if (!mentionStore.has(userId)) {
       mentionStore.set(userId, []);
     }
     mentionStore.get(userId).push(fakeMention);
-    
-    console.log(`📝 Simulando mention creada para usuario ${userId} mientras estaba offline`);
+
+    console.log(
+      `📝 Simulando mention creada para usuario ${userId} mientras estaba offline`
+    );
   }, 5000); // Cada 5 segundos
 }
 
@@ -65,7 +67,7 @@ io.on('connection', (socket) => {
   // Obtener ID de usuario desde los datos del socket (provisto por middleware de auth)
   // En este ejemplo educativo, simulamos un usuario autenticado
   const userId = socket.data.user?.id || 1; // Valor por defecto para demostración
-  
+
   // Unir al usuario a su sala personal para recibir notificaciones dirigidas
   socket.join(`user:${userId}`);
 
@@ -73,7 +75,7 @@ io.on('connection', (socket) => {
   socket.emit('welcome', {
     message: 'Bienvenido al servidor educativo de WebSocket nivel 08 (offline)',
     timestamp: new Date().toISOString(),
-    info: 'Este servidor demuestra connectionStateRecovery y entrega de backlog'
+    info: 'Este servidor demuestra connectionStateRecovery y entrega de backlog',
   });
 
   // socket.recovered es true si Socket.IO restauró estado exitosamente
@@ -81,40 +83,46 @@ io.on('connection', (socket) => {
   // Si es false, significa recovery falló (reconexión tardía o reinicio del servidor)
   // y debemos entregar el backlog desde nuestro almacenamiento en memoria.
   if (!socket.recovered) {
-    console.log(`🔄 Recovery falló para usuario ${userId}, verificando backlog...`);
-    
+    console.log(
+      `🔄 Recovery falló para usuario ${userId}, verificando backlog...`
+    );
+
     // Obtener menciones pendientes para este usuario desde nuestro almacén en memoria
     const pendingMentions = mentionStore.get(userId) || [];
-    
+
     if (pendingMentions.length > 0) {
-      console.log(`📦 Entregando backlog de ${pendingMentions.length} menciones a usuario ${userId}`);
-      
+      console.log(
+        `📦 Entregando backlog de ${pendingMentions.length} menciones a usuario ${userId}`
+      );
+
       // Formatear menciones para enviar al cliente (similar formato al del handler real)
-      const formattedMentions = pendingMentions.map(mention => ({
+      const formattedMentions = pendingMentions.map((mention) => ({
         id: mention.id,
         actor: {
           id: mention.mentionedByUserId,
           name: `Usuario ${mention.mentionedByUserId}`, // En app real vendría de DB
-          picture: `https://i.pravatar.cc/150?u=${mention.mentionedByUserId}`
+          picture: `https://i.pravatar.cc/150?u=${mention.mentionedByUserId}`,
         },
         note: {
           id: mention.noteId,
-          title: `Nota ${mention.noteId}` // En app real vendría de DB
+          title: `Nota ${mention.noteId}`, // En app real vendría de DB
         },
         excerpt: `Esta es una mención simulada creada mientras estabas offline`,
-        createdAt: mention.createdOn.toISOString()
+        createdAt: mention.createdOn.toISOString(),
       }));
-      
+
       // Emitir backlog al cliente
       socket.emit('mention:backlog', { mentions: formattedMentions });
-      
+
       // Limpiar menciones entregadas para evitar duplicados en futuras reconexiones
       mentionStore.delete(userId);
     } else {
       console.log(`📭 No hay menciones pendientes para usuario ${userId}`);
     }
   } else {
-    console.log(`✅ Recovery exitoso para usuario ${userId}, estado restaurado`);
+    console.log(
+      `✅ Recovery exitoso para usuario ${userId}, estado restaurado`
+    );
   }
 
   // Manejamos el evento de desconexión cuando el cliente se desconecta
@@ -137,9 +145,13 @@ io.on('connection', (socket) => {
 
 // Iniciamos el servidor HTTP en el puerto especificado
 httpServer.listen(PORT, () => {
-  console.log(`🚀 Servidor Socket.IO nivel 08 (offline) escuchando en http://localhost:${PORT}`);
-  console.log(`💡 Consejo: Abra múltiples pestañas del cliente y desconéctese/reconéctese para ver el backlog`);
-  
+  console.log(
+    `🚀 Servidor Socket.IO nivel 08 (offline) escuchando en http://localhost:${PORT}`
+  );
+  console.log(
+    `💡 Consejo: Abra múltiples pestañas del cliente y desconéctese/reconéctese para ver el backlog`
+  );
+
   // Iniciar simulación de menciones offline
   simulateOfflineMentions();
 });

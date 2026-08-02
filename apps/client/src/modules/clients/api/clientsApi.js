@@ -44,13 +44,13 @@ const clientsApi = createApi({
       invalidatesTags: ['Clients'], // Invalida el cache de 'Notes' para volver a consultar
     }),
     updateClientById: builder.mutation({
-       query: ({ id, data }) => ({
-         url: `/clients/${id}`,
-         method: 'PATCH',
-         body: data,
-       }),
-       invalidatesTags: ['Clients'], // Invalida el cache de 'Notes' para volver a consultar
-     }),
+      query: ({ id, data }) => ({
+        url: `/clients/${id}`,
+        method: 'PATCH',
+        body: data,
+      }),
+      invalidatesTags: ['Clients'], // Invalida el cache de 'Notes' para volver a consultar
+    }),
     // Cache selectivo
     //providesTags: (result) =>
     //result
@@ -64,12 +64,12 @@ const clientsApi = createApi({
 // Export hooks for usage in functional components, which are
 // auto-generated based on the defined endpoints
 export const {
-   useLazyGetAllClientsQuery,
-   useGetAllClientsQuery,
-   useGetAllClientsFiltersQuery,
-   useUpdateClientByIdMutation,
-   useCreateClientMutation,
-   useDeleteClientByIdMutation,
+  useLazyGetAllClientsQuery,
+  useGetAllClientsQuery,
+  useGetAllClientsFiltersQuery,
+  useUpdateClientByIdMutation,
+  useCreateClientMutation,
+  useDeleteClientByIdMutation,
 } = clientsApi;
 
 export default clientsApi;

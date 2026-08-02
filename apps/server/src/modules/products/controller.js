@@ -102,8 +102,6 @@ export const createOne = handleCatchErrorAsync(async (req, res) => {
   globalResponse(res, 201, { message: 'Item created successfully' });
 });
 
-
-
 /**
  * Delete a product item by its ID.
  *
@@ -153,7 +151,6 @@ export const saveProductAttributes = handleCatchErrorAsync(async (req, res) => {
     message: 'Product Attributes saved successfully',
   });
 });
-
 
 /**
  * Partially update a product item by its ID.

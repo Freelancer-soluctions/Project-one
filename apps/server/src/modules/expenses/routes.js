@@ -129,16 +129,14 @@ router.get(
  *               $ref: '#/components/schemas/Error'
  */
 router.post(
-   '/',
-   checkRoleAuthOrPermisssion({
-     allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER],
-     permissions: [PERMISSIONCODES.canCreateExpense],
-   }),
-   validateSchema(expenseCreateSchema),
-   createExpense
- );
-
-
+  '/',
+  checkRoleAuthOrPermisssion({
+    allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER],
+    permissions: [PERMISSIONCODES.canCreateExpense],
+  }),
+  validateSchema(expenseCreateSchema),
+  createExpense
+);
 
 /**
  * @openapi
@@ -248,14 +246,14 @@ router.delete(
  *               $ref: '#/components/schemas/Error'
  */
 router.patch(
-   '/:id',
-   checkRoleAuthOrPermisssion({
-     allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER],
-     permissions: [PERMISSIONCODES.canEditExpense],
-   }),
-   validatePathParam,
-   validateSchema(expenseUpdateSchema),
-   patchExpenseById
+  '/:id',
+  checkRoleAuthOrPermisssion({
+    allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER],
+    permissions: [PERMISSIONCODES.canEditExpense],
+  }),
+  validatePathParam,
+  validateSchema(expenseUpdateSchema),
+  patchExpenseById
 );
 
 export default router;

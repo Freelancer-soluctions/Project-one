@@ -23,7 +23,10 @@ export const SignInForm = () => {
   const dispatch = useDispatch();
   // const state = useSelector(state => state) todos los estados
   const { user, isError, isLoading } = useSelector((state) => state.auth);
-  const form = useForm({ resolver: zodResolver(signInSchema), defaultValues: { email: '', password: '' } });
+  const form = useForm({
+    resolver: zodResolver(signInSchema),
+    defaultValues: { email: '', password: '' },
+  });
   const { t } = useTranslation();
 
   const onSubmit = ({ email, password }) => {

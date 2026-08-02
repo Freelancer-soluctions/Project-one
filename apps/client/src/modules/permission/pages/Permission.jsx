@@ -95,7 +95,10 @@ const Permission = () => {
   const handleSubmit = async (result) => {
     try {
       if (result?.id) {
-        await updatePermissionById({ id: result.id, data: result.body }).unwrap();
+        await updatePermissionById({
+          id: result.id,
+          data: result.body,
+        }).unwrap();
       } else {
         await createPermission(result).unwrap();
       }

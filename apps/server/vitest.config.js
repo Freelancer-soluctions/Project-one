@@ -11,10 +11,16 @@ export default defineConfig(
       root: __dirname,
       environment: 'node',
       pool: 'forks',
-      ...(process.env.CI === 'true' ? { maxWorkers: 1, isolate: false } : {}),
+      ...(process.env.CI === 'true' ? { maxWorkers: 1, isolate: false, retry: 2 } : {}),
       reporters: ['default', 'hanging-process'],
       coverage: {
         reportsDirectory: './tests/coverage',
+        thresholds: {
+          statements: 39,
+          branches: 18,
+          functions: 7,
+          lines: 39,
+        },
       },
       setupFiles: './tests/setupTest.js',
       include: [

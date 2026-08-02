@@ -9,7 +9,12 @@ import {
 } from '@/components/ui/pagination';
 import PropTypes from 'prop-types';
 
-export function PaginationControls({ pageIndex, pageSize, total, onPageChange }) {
+export function PaginationControls({
+  pageIndex,
+  pageSize,
+  total,
+  onPageChange,
+}) {
   const totalPages = Math.ceil(total / pageSize);
 
   if (total <= pageSize) return null;
@@ -89,7 +94,11 @@ export function PaginationControls({ pageIndex, pageSize, total, onPageChange })
               e.preventDefault();
               if (pageIndex + 1 < totalPages) onPageChange(pageIndex + 1);
             }}
-            className={pageIndex + 1 >= totalPages ? 'pointer-events-none opacity-50' : ''}
+            className={
+              pageIndex + 1 >= totalPages
+                ? 'pointer-events-none opacity-50'
+                : ''
+            }
           />
         </PaginationItem>
       </PaginationContent>

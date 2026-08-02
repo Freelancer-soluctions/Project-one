@@ -18,34 +18,32 @@ const baseDialogSchema = z.object({
   location: z.string().optional(),
 });
 
-export const createEventsDialogSchema = (isEditMode = false) => baseDialogSchema
-  .refine(
-    (data) => data.startTime < data.endTime,
-    {
+export const createEventsDialogSchema = (isEditMode = false) =>
+  baseDialogSchema
+    .refine((data) => data.startTime < data.endTime, {
       message: getZodMessage('zod.events.startTime.beforeEndTime'),
       path: ['startTime'],
-    }
-  )
-  .refine(
-    (data) => {
-      if (!data.modality) return true;
-      if (data.modality === 'ONLINE') return !!data.meetingUrl;
-      if (data.modality === 'IN_PERSON') {
-        if (isEditMode) return true; // allow legacy null location on edit
-        return !!data.location;
+    })
+    .refine(
+      (data) => {
+        if (!data.modality) return true;
+        if (data.modality === 'ONLINE') return !!data.meetingUrl;
+        if (data.modality === 'IN_PERSON') {
+          if (isEditMode) return true; // allow legacy null location on edit
+          return !!data.location;
+        }
+        if (data.modality === 'HYBRID') {
+          if (isEditMode) return !!data.meetingUrl; // meetingUrl required, location optional on edit
+          return !!data.meetingUrl && !!data.location;
+        }
+        return true;
+      },
+      {
+        message: getZodMessage('zod.events.modality.fieldsRequired'),
+        path: ['meetingUrl'],
       }
-      if (data.modality === 'HYBRID') {
-        if (isEditMode) return !!data.meetingUrl; // meetingUrl required, location optional on edit
-        return !!data.meetingUrl && !!data.location;
-      }
-      return true;
-    },
-    {
-      message: getZodMessage('zod.events.modality.fieldsRequired'),
-      path: ['meetingUrl'],
-    }
-  )
-  .passthrough();
+    )
+    .passthrough();
 
 // Legacy export for backward compatibility (non-edit mode)
 export const EventsDialogSchema = createEventsDialogSchema(false);
