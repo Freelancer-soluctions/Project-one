@@ -1,9 +1,14 @@
 name: "CI"
 
+permissions:
+  contents: read
+  checks: write
+  pull-requests: write
+
 on:
   pull_request:
     branches:
-        - main
+      - main
 
 concurrency:
   group: pr-${{ github.event.pull_request.number }}
@@ -16,7 +21,8 @@ jobs:
     outputs:
       frontend: ${{ steps.filter.outputs.client }}
       backend: ${{ steps.filter.outputs.server }}
-
+      e2e: ${{ steps.filter.outputs.e2e }}
+      shared: ${{ steps.filter.outputs.shared }}
     steps:
       - uses: actions/checkout@v5
 
@@ -28,6 +34,12 @@ jobs:
               - 'apps/client/**'
             server:
               - 'apps/server/**'
+            e2e:
+              - 'e2e/**'
+            shared:
+              - 'package.json'
+              - 'package-lock.json'
+              - '.github/workflows/**'
 
   quality:
     name: Code Quality
@@ -37,15 +49,157 @@ jobs:
       run-client: ${{ needs.changes.outputs.frontend }}
       run-server: ${{ needs.changes.outputs.backend }}
 
+  test-unit-client:
+    name: Unit Tests - Client
+    needs: changes
+    if: needs.changes.outputs.frontend == 'true' || needs.changes.outputs.shared == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: ./.github/actions/setup-monorepo
 
-test: 
-    name: Testing
-    uses: ./.github/workflows/test.yml
+      - name: Run Client Unit Tests
+        run: npm run test:unit --workspace=client-react -- --reporter=junit --outputFile=reports/junit.xml
+        shell: bash
 
+      - name: Report Client Unit Tests
+        if: success() || failure()
+        uses: dorny/test-reporter@v3
+        with:
+          name: Client Unit Tests
+          path: apps/client/reports/junit.xml
+          reporter: java-junit
 
+  test-unit-server:
+    name: Unit Tests - Server
+    needs: changes
+    if: needs.changes.outputs.backend == 'true' || needs.changes.outputs.shared == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: ./.github/actions/setup-monorepo
 
-  
+      - name: Run Server Unit Tests
+        run: npm run test:unit --workspace=server-express -- --reporter=junit --outputFile=reports/junit.xml
+        shell: bash
 
-  
+      - name: Report Server Unit Tests
+        if: success() || failure()
+        uses: dorny/test-reporter@v3
+        with:
+          name: Server Unit Tests
+          path: apps/server/reports/junit.xml
+          reporter: java-junit
 
- 
+  test-integration:
+    name: Integration Tests - Server
+    needs: changes
+    if: needs.changes.outputs.backend == 'true' || needs.changes.outputs.shared == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      postgres:
+        image: postgres:16-alpine
+        ports: ['5432:5432']
+        env:
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test
+          POSTGRES_DB: project_one_test
+        options: >-
+          --health-cmd "pg_isready -U test -d project_one_test"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - uses: ./.github/actions/setup-monorepo
+
+      - name: Prisma Migrate Deploy
+        run: npx prisma migrate deploy
+        env:
+          DATABASE_URL: postgresql://test:test@localhost:5432/project_one_test
+        shell: bash
+        working-directory: apps/server
+
+      - name: Run Integration Tests
+        run: npm run test:integration --workspace=server-express -- --reporter=junit --outputFile=reports/junit.xml
+        env:
+          DATABASE_URL: postgresql://test:test@localhost:5432/project_one_test
+        shell: bash
+
+      - name: Report Integration Tests
+        if: success() || failure()
+        uses: dorny/test-reporter@v3
+        with:
+          name: Server Integration Tests
+          path: apps/server/reports/junit.xml
+          reporter: java-junit
+
+  build:
+    name: Build
+    needs: changes
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: ./.github/actions/setup-monorepo
+
+      - name: Build All Workspaces
+        run: npm run build --ws --if-present
+        shell: bash
+
+  e2e:
+    name: E2E Tests
+    needs: changes
+    if: needs.changes.outputs.e2e == 'true' || needs.changes.outputs.shared == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:16-alpine
+        ports: ['5432:5432']
+        env:
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test
+          POSTGRES_DB: project_one_test
+        options: >-
+          --health-cmd "pg_isready -U test -d project_one_test"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - uses: ./.github/actions/setup-monorepo
+
+      - name: Prisma Migrate Deploy
+        run: npx prisma migrate deploy
+        env:
+          DATABASE_URL: postgresql://test:test@localhost:5432/project_one_test
+        shell: bash
+        working-directory: apps/server
+
+      - name: Cache Playwright Browsers
+        id: cache-playwright
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+
+      - name: Install Playwright with System Dependencies
+        if: steps.cache-playwright.outputs.cache-hit != 'true'
+        run: npx playwright install --with-deps chromium
+        shell: bash
+        working-directory: e2e
+
+      - name: Run E2E Tests
+        run: npx playwright test --project=chromium --output=test-results
+        env:
+          DATABASE_URL: postgresql://test:test@localhost:5432/project_one_test
+        shell: bash
+        working-directory: e2e
+
+      - name: Report E2E Tests
+        if: success() || failure()
+        uses: dorny/test-reporter@v3
+        with:
+          name: E2E Tests
+          path: e2e/reports/junit-e2e.xml
+          reporter: java-junit

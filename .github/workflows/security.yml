@@ -82,7 +82,7 @@ jobs:
           GITLEAKS_LICENSE: ${{ secrets.GIT_LEAKS }}
       - name: Warn: licensed Gitleaks scan unavailable
         if: ${{ secrets.GIT_LEAKS == '' }}
-        run: echo "::warning::GIT_LEAKS secret not configured — licensed Gitleaks scan skipped. Using open-source Gitleaks only."
+        run: echo "::warning::GIT_LEAKS secret not configured - licensed Gitleaks scan skipped. Using open-source Gitleaks only."
 
   # =========================
   # Infrastructure as Code Security
