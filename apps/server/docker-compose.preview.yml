@@ -1,0 +1,74 @@
+# ============================================================
+# docker-compose.preview.yml - Stack de emulación AWS para Preview
+# ============================================================
+# Stack efímero para validación de PR y aprendizaje AWS con Floci
+# Componentes: server (Express) + floci (emulador AWS) + db (PostgreSQL efímera)
+# NO modifica docker-compose.yml (dev-local) - ese es el change ci-floci-migration
+# ============================================================
+
+services:
+  # Floci - Emulador AWS (MIT, puerto 4566, 68 servicios, storage en memoria)
+  # Pin concreto v1.5.11 para reproducibilidad (política de pinning del repo)
+  floci:
+    image: floci/floci:v1.5.11
+    container_name: preview-floci
+    ports:
+      - "4566:4566"
+    environment:
+      - FLOCI_STORAGE_MODE=memory
+      - FLOCI_HOSTNAME=floci
+    healthcheck:
+      test: ["CMD", "floci", "health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - preview-network
+
+  # PostgreSQL efímera para el stack de preview
+  # postgres:16-alpine (alineado con tests de integración, sin volumen persistente)
+  db:
+    image: postgres:16-alpine
+    container_name: preview-db
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=test
+      - POSTGRES_PASSWORD=test
+      - POSTGRES_DB=project_one_preview
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U test -d project_one_preview"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 5s
+    networks:
+      - preview-network
+
+  # Server Express - Build desde Dockerfile existente (context: monorepo root para package-lock.json)
+  server:
+    build:
+      context: ..
+      dockerfile: apps/server/Dockerfile
+    container_name: preview-server
+    ports:
+      - "3000:3000"
+    environment:
+      - DATABASE_URL=postgresql://test:test@db:5432/project_one_preview
+      - AWS_ENDPOINT_URL=http://floci:4566
+      - AWS_ACCESS_KEY_ID=test
+      - AWS_SECRET_ACCESS_KEY=test
+      - AWS_REGION=us-east-1
+      - PORT=3000
+    depends_on:
+      db:
+        condition: service_healthy
+      floci:
+        condition: service_healthy
+    networks:
+      - preview-network
+
+networks:
+  preview-network:
+    driver: bridge

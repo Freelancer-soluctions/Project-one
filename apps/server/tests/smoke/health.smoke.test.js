@@ -11,6 +11,13 @@ describe('Smoke Test: Server Health Check', () => {
     server = app;
   });
 
+  it('GET /health should respond with 200 OK and JSON status', async () => {
+    const response = await request(server).get('/health');
+    expect(response.status).toBe(200);
+    expect(response.headers['content-type']).toMatch(/json/);
+    expect(response.body).toEqual({ status: 'ok' });
+  });
+
   it('GET /metrics should respond with 200 OK (Prometheus metrics endpoint)', async () => {
     const response = await request(server).get('/metrics');
     // Accept 200 (metrics available) or 500 (metrics error but server responds)

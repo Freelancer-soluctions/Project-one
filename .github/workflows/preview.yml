@@ -1,0 +1,240 @@
+# ============================================================
+# Preview Environments Workflow
+# ============================================================
+# Valida el backend del PR contra stack AWS emulado (Floci + PostgreSQL)
+# y publica comentario combinado con URL de preview Vercel + estado backend
+# ============================================================
+
+name: Preview Environments
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize]
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.event_name == 'pull_request' && format('preview-{0}', github.event.pull_request.number) || 'preview-manual' }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  pull-requests: write
+  statuses: read
+
+jobs:
+  preview:
+    name: Preview Validation
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    services:
+      # Floci - Emulador AWS (puerto 4566)
+      floci:
+        image: floci/floci:v1.5.11
+        ports:
+          - 4566:4566
+        env:
+          FLOCI_STORAGE_MODE: memory
+          FLOCI_HOSTNAME: floci
+        options: >-
+          --health-cmd "floci health"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+          --health-start-period 10s
+
+      # PostgreSQL efímera para el stack de preview
+      db:
+        image: postgres:16-alpine
+        ports:
+          - 5432:5432
+        env:
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test
+          POSTGRES_DB: project_one_preview
+        options: >-
+          --health-cmd "pg_isready -U test -d project_one_preview"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+          --health-start-period 5s
+
+    steps:
+      # 1. Checkout
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      # 2. Setup Node.js
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'npm'
+
+      # 3. Install dependencies at monorepo root
+      - name: Install dependencies
+        run: npm ci
+
+      # 4. Build server Docker image (validates Dockerfile used by compose)
+      # Build from monorepo root to access package-lock.json; tag for reuse in step 6
+      - name: Build server Docker image
+        run: docker build -t preview-server -f apps/server/Dockerfile .
+
+      # 5. Run Prisma migrations against ephemeral Postgres
+      - name: Run Prisma migrations
+        working-directory: apps/server
+        run: npx prisma migrate deploy
+        env:
+          DATABASE_URL: postgresql://test:test@localhost:5432/project_one_preview
+
+      # 6. Start server from built image with service containers
+      - name: Start server container
+        run: |
+          docker run -d \
+            --name preview-server \
+            --network host \
+            -e DATABASE_URL=postgresql://test:test@localhost:5432/project_one_preview \
+            -e AWS_ENDPOINT_URL=http://localhost:4566 \
+            -e AWS_ACCESS_KEY_ID=test \
+            -e AWS_SECRET_ACCESS_KEY=test \
+            -e AWS_REGION=us-east-1 \
+            -e PORT=3000 \
+            preview-server
+        env:
+          DATABASE_URL: postgresql://test:test@localhost:5432/project_one_preview
+          AWS_ENDPOINT_URL: http://localhost:4566
+          AWS_ACCESS_KEY_ID: test
+          AWS_SECRET_ACCESS_KEY: test
+          AWS_REGION: us-east-1
+          PORT: 3000
+
+      # 7. Health check with retries
+      - name: Wait for server health
+        run: |
+          for i in {1..30}; do
+            if curl -sf http://localhost:3000/health > /dev/null; then
+              echo "✅ Server health check passed"
+              exit 0
+            fi
+            echo "⏳ Waiting for server... ($i/30)"
+            sleep 2
+          done
+          echo "❌ Server health check failed after 60s"
+          exit 1
+
+      # 8. Run smoke tests against Floci (AWS emulated)
+      - name: Run AWS emulation smoke tests
+        run: |
+          AWS_ENDPOINT_URL=http://localhost:4566 \
+          AWS_ACCESS_KEY_ID=test \
+          AWS_SECRET_ACCESS_KEY=test \
+          AWS_REGION=us-east-1 \
+          node apps/server/scripts/preview-smoke.mjs
+        env:
+          AWS_ENDPOINT_URL: http://localhost:4566
+          AWS_ACCESS_KEY_ID: test
+          AWS_SECRET_ACCESS_KEY: test
+          AWS_REGION: us-east-1
+
+      # 9. Capture Vercel preview URL from commit status
+      - name: Capture Vercel preview URL
+        if: github.event_name == 'pull_request'
+        id: vercel-url
+        continue-on-error: true
+        run: |
+          # Use PR head SHA for commit status lookup
+          SHA="${{ github.event.pull_request.head.sha }}"
+          # Poll for Vercel deployment status (max 60s)
+          for i in {1..12}; do
+            STATUS=$(gh api repos/${{ github.repository }}/commits/${SHA}/status --jq '.statuses[] | select(.context | startswith("vercel")) | .target_url' 2>/dev/null | head -1) || true
+            if [ -n "$STATUS" ]; then
+              echo "vercel_url=$STATUS" >> $GITHUB_OUTPUT
+              echo "✅ Found Vercel preview URL: $STATUS"
+              break
+            fi
+            echo "⏳ Waiting for Vercel deployment... ($i/12)"
+            sleep 5
+          done
+          if [ -z "$STATUS" ]; then
+            echo "⚠️ Vercel preview URL not found in commit status after 60s"
+            echo "vercel_url=" >> $GITHUB_OUTPUT
+          fi
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # 10. Find existing preview comment (marker-based)
+      - name: Find existing preview comment
+        if: always() && github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork == false
+        uses: peter-evans/find-comment@v3
+        id: find-comment
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          issue-number: ${{ github.event.pull_request.number }}
+          comment-author: 'github-actions[bot]'
+          body-includes: '<!-- preview-environments -->'
+
+      # 11. Create or update PR comment with combined preview info
+      - name: Create or update preview comment
+        if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork == false
+        uses: peter-evans/create-or-update-comment@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          issue-number: ${{ github.event.pull_request.number }}
+          comment-id: ${{ steps.find-comment.outputs.comment-id }}
+          body: |
+            <!-- preview-environments -->
+            ## 🔍 Preview Environments Validation
+
+            **Pull Request**: #${{ github.event.pull_request.number }}
+
+            ### 🌐 Frontend Preview (Vercel)
+            ${{ steps.vercel-url.outputs.vercel_url != '' && format('**Preview URL**: {0}', steps.vercel-url.outputs.vercel_url) || '**Preview URL**: *Not yet available — Vercel deployment may still be building*' }}
+
+            ### ⚙️ Backend Validation (AWS Emulated via Floci)
+            **Status**: ${{ success() && '✅ Backend validation passed (smoke tests OK)' || '❌ Backend validation failed (smoke tests failed)' }}
+
+            **Details**:
+            - Stack: Server (Docker) + Floci (AWS emulator) + PostgreSQL 16 (ephemeral)
+            - Smoke tests: CreateSecret + GetSecretValue against Secrets Manager emulated
+            - AWS Endpoint: `http://localhost:4566` (Floci)
+            - No real AWS credentials used — dummy test credentials only
+
+            ---
+            *Updated on ${{ github.event_name == 'pull_request' && github.event.pull_request.updated_at || github.run_id }}*
+            *Workflow: [Preview Environments](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})*
+
+          edit-mode: replace
+          continue-on-error: true
+
+      # 12. Report backend validation failure if smoke tests failed
+      - name: Report backend failure
+        if: failure() && github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork == false
+        uses: peter-evans/create-or-update-comment@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          issue-number: ${{ github.event.pull_request.number }}
+          comment-id: ${{ steps.find-comment.outputs.comment-id }}
+          body: |
+            <!-- preview-environments -->
+            ## 🔍 Preview Environments Validation
+
+            **Pull Request**: #${{ github.event.pull_request.number }}
+
+            ### 🌐 Frontend Preview (Vercel)
+            ${{ steps.vercel-url.outputs.vercel_url != '' && format('**Preview URL**: {0}', steps.vercel-url.outputs.vercel_url) || '**Preview URL**: *Not yet available — Vercel deployment may still be building*' }}
+
+            ### ⚙️ Backend Validation (AWS Emulated via Floci)
+            **Status**: ❌ Backend validation failed (smoke tests failed)
+
+            **Details**:
+            - Stack: Server (Docker) + Floci (AWS emulator) + PostgreSQL 16 (ephemeral)
+            - Smoke tests: CreateSecret + GetSecretValue against Secrets Manager emulated
+            - Check workflow logs for failure details
+
+            ---
+            *Updated on ${{ github.event_name == 'pull_request' && github.event.pull_request.updated_at || github.run_id }}*
+            *Workflow: [Preview Environments](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})*
+
+          edit-mode: replace
+          continue-on-error: true
