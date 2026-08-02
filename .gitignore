@@ -3,7 +3,7 @@
 
 # compiled output
 /dist
-/node_modules
+node_modules/
 e2e/node_modules
 /build
 /db
@@ -25,6 +25,7 @@ coverage/
 /.nyc_output
 e2e/test-results/
 *.lcov
+**/reports/
 *.info
 
 # IDEs and editors
