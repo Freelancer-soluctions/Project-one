@@ -24,12 +24,11 @@ export default defineConfig(
       reporters: ['default', 'hanging-process'],
       coverage: {
         exclude: ['node_modules/', 'tests/', '**/*.config.js'],
-      },
-      deps: {
-        optimizer: {
-          web: {
-            include: ['@testing-library/react', '@testing-library/jest-dom'],
-          },
+        thresholds: {
+          statements: 84,
+          branches: 49,
+          functions: 63,
+          lines: 85,
         },
       },
       include: [

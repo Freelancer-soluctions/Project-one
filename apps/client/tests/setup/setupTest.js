@@ -27,7 +27,7 @@ beforeAll(() => {
   if (i18n) {
     i18n.init({
       lng: 'en', // Set to English for tests
-      fallbackLng: 'en'
+      fallbackLng: 'en',
     });
   }
 });
