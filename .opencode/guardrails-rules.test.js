@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, beforeAll } from 'vitest';
 import {
   validateRules,
   GuardrailBlockedError,
@@ -169,5 +169,74 @@ describe('buildContext()', () => {
     };
     const ctx = buildContext(input);
     expect(ctx).toBeNull();
+  });
+});
+
+// ─── orchestrator-delegation-suffix-required tests ─────────────────────
+
+describe('orchestrator-delegation-suffix-required', () => {
+  const dummyContext = {
+    tool: 'task',
+    args: {},
+    sessionId: 'test-session',
+    callId: 'test-call',
+  };
+
+  it('suffix present in prompt → passes (allowed=true)', async () => {
+    const mod = await import('./guardrails-rules.ts');
+    const result = mod.validateRules(mod.TOOL_RULES.task, {
+      prompt: `Delegation message here
+--- DELEGATION SUFFIX (INJECTED BY ORCHESTRATOR) ---
+Your final assistant message MUST contain...`,
+    }, dummyContext);
+    expect(result.allowed).toBe(true);
+    expect(result.violations).toEqual([]);
+  });
+
+  it('suffix missing from prompt → blocks with GUARDRAIL_BLOCKED prefix', async () => {
+    const mod = await import('./guardrails-rules.ts');
+    const result = mod.validateRules(mod.TOOL_RULES.task, {
+      prompt: 'Delegation message without suffix',
+    }, dummyContext);
+    expect(result.allowed).toBe(false);
+    expect(result.violations.length).toBeGreaterThan(0);
+    expect(result.violations[0]).toMatch(/^GUARDRAIL_BLOCKED:/);
+  });
+
+  it('retry hint present in violation message', async () => {
+    const mod = await import('./guardrails-rules.ts');
+    const result = mod.validateRules(mod.TOOL_RULES.task, {
+      prompt: 'Delegation message without suffix',
+    }, dummyContext);
+    expect(result.allowed).toBe(false);
+    expect(result.violations[0]).toContain('Retry hint');
+    expect(result.violations[0]).toContain('DELEGATION SUFFIX');
+  });
+
+  it('unextractable prompt (missing prompt field) → fails open with allowed=true, NO GUARDRAIL_BLOCKED', async () => {
+    const mod = await import('./guardrails-rules.ts');
+    const result = mod.validateRules(mod.TOOL_RULES.task, {
+      otherField: 'value',
+    }, dummyContext);
+    expect(result.allowed).toBe(true);
+    expect(result.violations).toEqual([]);
+  });
+
+  it('unextractable prompt (non-string prompt) → fails open with allowed=true, NO GUARDRAIL_BLOCKED', async () => {
+    const mod = await import('./guardrails-rules.ts');
+    const result = mod.validateRules(mod.TOOL_RULES.task, {
+      prompt: 123,
+    }, dummyContext);
+    expect(result.allowed).toBe(true);
+    expect(result.violations).toEqual([]);
+  });
+
+  it('unextractable prompt (null prompt) → fails open with allowed=true, NO GUARDRAIL_BLOCKED', async () => {
+    const mod = await import('./guardrails-rules.ts');
+    const result = mod.validateRules(mod.TOOL_RULES.task, {
+      prompt: null,
+    }, dummyContext);
+    expect(result.allowed).toBe(true);
+    expect(result.violations).toEqual([]);
   });
 });

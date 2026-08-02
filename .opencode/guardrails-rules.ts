@@ -431,6 +431,35 @@ function validateNoComposioGitOps(args: unknown, _context: RuleContext): Validat
   return { allowed: true };
 }
 
+/**
+ * Rule: orchestrator-delegation-suffix-required
+ * Blocks task tool calls whose delegation prompt lacks the DELEGATION SUFFIX marker.
+ * The marker "DELEGATION SUFFIX (INJECTED BY ORCHESTRATOR)" must be present in the prompt.
+ * Severity: CRITICAL
+ */
+function validateOrchestratorDelegationSuffixRequired(args: unknown, _context: RuleContext): ValidationResult {
+  // The task tool args should have a `prompt` field containing the delegation message
+  // Per spec: first verify that args.prompt is extractable — if unextractable, fail open
+  const prompt = getString(args, ["prompt"]);
+  if (prompt === undefined) {
+    // Fail open: unextractable prompt (missing or non-string) — do not block
+    console.warn("[guardrails] WARN: orchestrator-delegation-suffix-required: prompt field unextractable from task args — failing open");
+    return { allowed: true };
+  }
+
+  const suffixMarker = "DELEGATION SUFFIX (INJECTED BY ORCHESTRATOR)";
+  if (!prompt.includes(suffixMarker)) {
+    return {
+      allowed: false,
+      message:
+        "GUARDRAIL_BLOCKED: Delegation prompt missing required DELEGATION SUFFIX block. " +
+        "Retry hint: Append the DELEGATION SUFFIX template as the final block of your delegation message. " +
+        "See orchestrator.md DELEGATION SUFFIX TEMPLATE section.",
+    };
+  }
+  return { allowed: true };
+}
+
 // ── Pure Validation Function ──────────────────────────────────────
 
 /**
@@ -543,7 +572,16 @@ const BASH_RULES: Rule[] = [
 
 export const TOOL_RULES: Record<string, Rule[]> = {
   // bash rules fire on `task` tool (actual execution path) AND `bash` (future-proof)
-  task: BASH_RULES,
+  // task tool also needs the delegation suffix rule
+  task: [
+    ...BASH_RULES,
+    {
+      name: "orchestrator-delegation-suffix-required",
+      description: "Blocks task tool calls whose delegation prompt lacks the DELEGATION SUFFIX marker",
+      tool: "task",
+      validate: validateOrchestratorDelegationSuffixRequired,
+    },
+  ],
   bash: BASH_RULES,
   write: [
     {

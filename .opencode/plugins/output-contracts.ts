@@ -284,13 +284,31 @@ export const plugin: Plugin = async () => {
       const rawOutput = (output as { output?: string }).output ?? "";
       const subagentMessage = extractTaskResult(rawOutput);
       if (!subagentMessage) {
-        // The <task_result> wrapper was not found. Per Spec Scenario
+        // The <task_result> wrapper was not found or was empty. Per Spec Scenario
         // "Task_result format change causes graceful fallback": log warning + skip.
+        // Additionally, log as silent_exit_candidate for observability.
         const timestamp = new Date().toISOString();
         console.warn(
           `[${timestamp}] [output-contracts] WARN: Could not extract <task_result> from task tool output for @${agentName} | ` +
           `This may indicate an OpenCode format change | Validation skipped — session continues`,
         );
+
+        // Task 4.1: Log silent_exit_candidate for observability (empty/unparseable <task_result>)
+        try {
+          const silentExitEntry = {
+            eventType: "silent_exit_candidate",
+            timestamp,
+            agent: agentName,
+            sessionId: input.sessionID,
+            task: (output as { title?: string }).title ?? "(unknown task)",
+            retryCount: 0,
+          };
+          writeAuditEntry(silentExitEntry);
+        } catch (auditErr) {
+          // Non-fatal: audit write failure should not crash the session
+          console.error("[output-contracts] Failed to write silent_exit_candidate audit entry:", auditErr);
+        }
+
         return;
       }
 
