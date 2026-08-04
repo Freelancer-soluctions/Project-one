@@ -134,6 +134,49 @@ jobs:
           path: apps/server/reports/junit.xml
           reporter: java-junit
 
+  test-smoke:
+    name: Smoke Tests - Server
+    needs: changes
+    if: needs.changes.outputs.backend == 'true' || needs.changes.outputs.shared == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      postgres:
+        image: postgres:16-alpine
+        ports: ['5432:5432']
+        env:
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test
+          POSTGRES_DB: project_one_test
+        options: >-
+          --health-cmd "pg_isready -U test -d project_one_test"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - uses: ./.github/actions/setup-monorepo
+
+      - name: Prisma Migrate Deploy
+        run: npx prisma migrate deploy
+        env:
+          DATABASE_URL: postgresql://test:test@localhost:5432/project_one_test
+        shell: bash
+        working-directory: apps/server
+
+      - name: Run Smoke Tests
+        run: npm run test:smoke:ci --workspace=server-express -- --reporter=junit --outputFile=reports/junit.xml
+        env:
+          DATABASE_URL: postgresql://test:test@localhost:5432/project_one_test
+        shell: bash
+
+      - name: Report Smoke Tests
+        if: success() || failure()
+        uses: dorny/test-reporter@v3
+        with:
+          name: Server Smoke Tests
+          path: apps/server/reports/junit.xml
+          reporter: java-junit
+
   build:
     name: Build
     needs: changes
