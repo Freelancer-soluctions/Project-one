@@ -4,43 +4,37 @@
   "plugin": [
     "@warp-dot-dev/opencode-warp",
     "./.opencode/plugins/output-contracts.ts",
-    "./.opencode/plugins/neurosymbolic-guardrails.ts"
+    "./.opencode/plugins/neurosymbolic-guardrails.ts",
   ],
   "provider": {
     "ollama-local": {
       "npm": "@ai-sdk/openai-compatible",
       "name": "Ollama Local",
       "options": {
-        "baseURL": "http://127.0.0.1:11434"
+        "baseURL": "http://127.0.0.1:11434",
         //"timeout":
         //"setCacheKy": (bool)
       },
       "models": {
         "qwen2.5-coder:7b": {
-          "name": "Qwen 2.5 Coder 7B Local"
-        }
-      }
-    }
+          "name": "Qwen 2.5 Coder 7B Local",
+        },
+      },
+    },
   },
   //subagents configuration
   "default_agent": "orchestrator",
-  "instructions": [
-    "AGENTS.md",
-    "CONTEXT.md"
-  ],
+  "instructions": ["AGENTS.md", "CONTEXT.md"],
   // "env": {
   //   "BASH_ENV": "$HOME/.bash_env"
   // },
   "shell": "bash",
   "skills": {
-    "paths": [
-      ".opencode/skills",
-      ".agents/skills"
-    ]
+    "paths": [".opencode/skills", ".agents/skills"],
   },
   "tool_output": {
     "max_lines": 400,
-    "max_bytes": 65536
+    "max_bytes": 65536,
   },
   // Formatter disabled by design — formatting is handled by Husky + lint-staged + Prettier
   // in pre-commit hooks. Enabling OpenCode formatter would duplicate this pipeline,
@@ -56,15 +50,9 @@
   // Requires @prisma/language-server (installed in apps/server v31.11.0).
   "lsp": {
     "prisma": {
-      "command": [
-        "npx",
-        "@prisma/language-server",
-        "--stdio"
-      ],
-      "extensions": [
-        ".prisma"
-      ]
-    }
+      "command": ["npx", "@prisma/language-server", "--stdio"],
+      "extensions": [".prisma"],
+    },
   },
   "permission": {
     "read": "allow",
@@ -84,18 +72,18 @@
     "lsp": "deny",
     "todowrite": "allow",
     "doom_loop": "ask",
-    "external_directory": "ask"
+    "external_directory": "ask",
   },
   "agent": {
     // OpenCode built-in agents — disabled, not used
     "build": {
-      "disable": true
+      "disable": true,
     },
     "plan": {
-      "disable": true
+      "disable": true,
     },
     "general": {
-      "disable": true
+      "disable": true,
     },
     "orchestrator": {
       "mode": "primary",
@@ -114,9 +102,9 @@
           "reviewer": "allow",
           "researcher": "allow",
           "git-manager": "allow",
-          "project-manager": "allow"
-        }
-      }
+          "project-manager": "allow",
+        },
+      },
     },
     "spec-manager": {
       "mode": "subagent",
@@ -128,8 +116,8 @@
       "temperature": 0,
       "permission": {
         "bash": "allow",
-        "edit": "deny"
-      }
+        "edit": "deny",
+      },
     },
     "git-manager": {
       "mode": "subagent",
@@ -141,8 +129,8 @@
       "permission": {
         "bash": "allow",
         "todowrite": "deny",
-        "edit": "deny"
-      }
+        "edit": "deny",
+      },
     },
     "planner": {
       "mode": "subagent",
@@ -156,8 +144,8 @@
         "write": "allow",
         "question": "allow",
         "context7_*": "ask",
-        "edit": "deny"
-      }
+        "edit": "deny",
+      },
     },
     "developer": {
       "mode": "subagent",
@@ -174,8 +162,8 @@
         "websearch": "allow",
         "question": "allow",
         "lsp": "allow",
-        "context7_*": "ask"
-      }
+        "context7_*": "ask",
+      },
     },
     "reviewer": {
       "mode": "subagent",
@@ -187,8 +175,8 @@
       "temperature": 0,
       "permission": {
         "lsp": "allow",
-        "edit": "deny"
-      }
+        "edit": "deny",
+      },
     },
     "researcher": {
       "mode": "subagent",
@@ -202,8 +190,8 @@
         "websearch": "allow",
         "question": "allow",
         "context7_*": "ask",
-        "edit": "deny"
-      }
+        "edit": "ask", // workaround: bug #26758 — edit:deny corrompe herencia de read/glob/grep allow del global; ask preserva restriccion (pedira permiso si researcher intenta editar) sin disparar el bug
+      },
     },
     "project-manager": {
       "mode": "subagent",
@@ -216,9 +204,9 @@
         "question": "allow",
         "bash": "allow",
         "composio_COMPOSIO_*": "allow",
-        "edit": "deny"
-      }
-    }
+        "edit": "deny",
+      },
+    },
   },
   "mcp": {
     "composio": {
@@ -227,41 +215,41 @@
       // "headers": {
       //   "x-consumer-api-key": "{env:COMPOSIO_API_KEY}"
       // },
-       "oauth": {},
-      "enabled": true
+      "oauth": {},
+      "enabled": true,
     },
     "context7": {
       "type": "remote",
       "url": "https://mcp.context7.com/mcp",
       "headers": {
-        "CONTEXT7_API_KEY": "{env:CONTEXT7_API_KEY}"
+        "CONTEXT7_API_KEY": "{env:CONTEXT7_API_KEY}",
       },
-      "enabled": true
-    }
-  
-      // "composio": {
-      //   "type": "local",
-      //   "command": [
-      //     "node",
-      //     ".opencode/proxy/index.js",
-      //     "--target=composio"
-      //   ],
-      //   "enabled": true
-      // },
-      // "context7": {
-      //   "type": "local",
-      //   "command": [
-      //     "node",
-      //     ".opencode/proxy/index.js",
-      //     "--target=context7"
-      //   ],
-      //   "enabled": true
-      // }
+      "enabled": true,
+    },
+
+    // "composio": {
+    //   "type": "local",
+    //   "command": [
+    //     "node",
+    //     ".opencode/proxy/index.js",
+    //     "--target=composio"
+    //   ],
+    //   "enabled": true
+    // },
+    // "context7": {
+    //   "type": "local",
+    //   "command": [
+    //     "node",
+    //     ".opencode/proxy/index.js",
+    //     "--target=context7"
+    //   ],
+    //   "enabled": true
+    // }
   },
   "compaction": {
     "auto": true,
     "prune": true,
-    "reserved": 10000
+    "reserved": 10000,
   },
   "watcher": {
     "ignore": [
@@ -269,7 +257,7 @@
       ".git/**",
       "dist/**",
       "coverage/**",
-      "build/**"
-    ]
-  }
+      "build/**",
+    ],
+  },
 }
