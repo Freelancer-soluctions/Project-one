@@ -44,3 +44,23 @@ Prettier handles all formatting. Run `npm run format` before committing.
 - Reference the full guide at `docs/jsdoc-reference-guide.md`
 - Do not add JSDoc to `routes.js` files; use Swagger/OpenAPI instead
 
+## Line Endings
+
+The repo enforces LF as the canonical line ending at three layers:
+
+| Layer     | File             | Setting                                                                                                           |
+| --------- | ---------------- | ----------------------------------------------------------------------------------------------------------------- |
+| Git       | `.gitattributes` | `* text=auto eol=lf` (explicit `text eol=lf` for `.js/.jsx/.ts/.tsx/.cjs/.mjs/.json/.md/.css/.yml/.yaml/.prisma`) |
+| Editor    | `.editorconfig`  | `[*] end_of_line = lf` (root = true)                                                                              |
+| Formatter | `.prettierrc`    | `"endOfLine": "lf"`                                                                                               |
+
+These three layers are complementary: `.gitattributes` makes LF the repo-level contract that overrides any developer's local `core.autocrlf`, `.editorconfig` aligns editors so files are authored as LF from the start, and Prettier re-formats to LF on save / on lint-staged.
+
+### Windows Shell Script Exception
+
+`.bat`, `.cmd`, and `.ps1` files use **CRLF** line endings — Windows `cmd.exe` and PowerShell require CRLF for reliable parsing. The exception is declared in:
+
+- `.gitattributes`: `*.bat text eol=crlf`, `*.cmd text eol=crlf`, `*.ps1 text eol=crlf`
+- `.editorconfig`: `[*.{bat,cmd,ps1}] end_of_line = crlf`
+
+Do NOT run Prettier on `.bat`/`.cmd`/`.ps1` files (they are not in the Prettier glob). Do NOT edit Windows shell scripts with editors that strip CRLF.
