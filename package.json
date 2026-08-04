@@ -82,13 +82,8 @@
     "prettier": "3.7.4"
   },
   "lint-staged": {
-    "*.{js,ts,cjs,mjs,d.cts,d.mts}": [
-      "npm run format",
-      "npm run lint"
-    ],
-    "*.{json,jsonc}": [
-      "npm run format"
-    ]
+    "*.{js,jsx,ts,tsx,cjs,mjs,json,jsonc,md}": "prettier --write",
+    "*.{js,jsx,cjs,mjs}": "eslint --fix --max-warnings 0"
   },
   "version": "1.0.0",
   "directories": {
