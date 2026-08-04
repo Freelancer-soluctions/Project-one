@@ -15,17 +15,32 @@ const { adminToken, userToken } = vi.hoisted(() => ({
 // Provide mocked auth/role middleware and passthrough validation middleware
 vi.mock('../../../src/middleware/index.js', () => {
   const ROLESCODES = { ADMIN: 'C01', USER: 'C02', MANAGER: 'C03' };
-  
+
   const mockUsers = {
-    1: { roles: { code: 'C01' }, permits: [{ permissions: { code: 'canViewEvents' } }] },
-    2: { roles: { code: 'C02' }, permits: [{ permissions: { code: 'canViewEvents' } }] },
+    1: {
+      roles: { code: 'C01' },
+      permits: [{ permissions: { code: 'canViewEvents' } }],
+    },
+    2: {
+      roles: { code: 'C02' },
+      permits: [{ permissions: { code: 'canViewEvents' } }],
+    },
   };
 
   // Passthrough validation middleware factories - return middleware that calls next()
-  const passthroughFactory = (schema) => (req, res, next) => next();
+  const passthroughFactory = (schema) => (req, res, next) => {
+    void schema; // schema intentionally ignored - passthrough mock
+    return next();
+  };
   const passthroughMiddleware = (req, res, next) => next();
-  const passthroughFactoryWithParam = (paramName) => (req, res, next) => next();
-  const passthroughFactoryWithLogger = (logger) => (req, res, next) => next();
+  const passthroughFactoryWithParam = (paramName) => (req, res, next) => {
+    void paramName; // paramName intentionally ignored - passthrough mock
+    return next();
+  };
+  const passthroughFactoryWithLogger = (logger) => (req, res, next) => {
+    void logger; // logger intentionally ignored - passthrough mock
+    return next();
+  };
 
   return {
     // Auth middleware
@@ -44,58 +59,75 @@ vi.mock('../../../src/middleware/index.js', () => {
       }
       next();
     },
-    
+
     // Role middleware factories
-    checkRoleAuth: ({ allowedRoles = [] }) => (req, res, next) => {
-      try {
-        const user = mockUsers[req.userId];
-        if (!user || !user?.roles?.code) {
-          return res.status(403).json({ error: 'Could not verify role' });
+    checkRoleAuth:
+      ({ allowedRoles = [] }) =>
+      (req, res, next) => {
+        try {
+          const user = mockUsers[req.userId];
+          if (!user || !user?.roles?.code) {
+            return res.status(403).json({ error: 'Could not verify role' });
+          }
+          const userRole = user.roles.code;
+          if (!allowedRoles.includes(userRole)) {
+            return res
+              .status(403)
+              .json({ error: 'You do not have sufficient permissions' });
+          }
+          next();
+        } catch {
+          res.status(500).json({ error: 'Error in permission verification' });
         }
-        const userRole = user.roles.code;
-        if (!allowedRoles.includes(userRole)) {
-          return res.status(403).json({ error: 'You do not have sufficient permissions' });
+      },
+
+    checkRoleAuthOrPermisssion:
+      ({ allowedRoles = [], permissions = [] }) =>
+      (req, res, next) => {
+        try {
+          const user = mockUsers[req.userId];
+          if (!user || !user.roles?.code) {
+            return res
+              .status(403)
+              .json({ error: 'Could not verify user role or permissions' });
+          }
+          const userRoleCode = user.roles.code;
+          if (userRoleCode === ROLESCODES.ADMIN) {
+            return next();
+          }
+          if (allowedRoles.length > 0 && !allowedRoles.includes(userRoleCode)) {
+            return res
+              .status(403)
+              .json({ error: 'Role not authorized for this action' });
+          }
+          if (permissions.length === 0) {
+            return next();
+          }
+          const rolePermissions =
+            user.permits?.map((rp) => rp.permissions.code) || [];
+          const hasSomePermission = permissions.some((p) =>
+            rolePermissions.includes(p)
+          );
+          if (!hasSomePermission) {
+            return res
+              .status(403)
+              .json({ error: 'Insufficient permissions for this operation' });
+          }
+          next();
+        } catch (error) {
+          console.error('Middleware auth error:', error);
+          return res
+            .status(500)
+            .json({ error: 'Internal error in permission verification' });
         }
-        next();
-      } catch (error) {
-        res.status(500).json({ error: 'Error in permission verification' });
-      }
-    },
-    
-    checkRoleAuthOrPermisssion: ({ allowedRoles = [], permissions = [] }) => (req, res, next) => {
-      try {
-        const user = mockUsers[req.userId];
-        if (!user || !user.roles?.code) {
-          return res.status(403).json({ error: 'Could not verify user role or permissions' });
-        }
-        const userRoleCode = user.roles.code;
-        if (userRoleCode === ROLESCODES.ADMIN) {
-          return next();
-        }
-        if (allowedRoles.length > 0 && !allowedRoles.includes(userRoleCode)) {
-          return res.status(403).json({ error: 'Role not authorized for this action' });
-        }
-        if (permissions.length === 0) {
-          return next();
-        }
-        const rolePermissions = user.permits?.map((rp) => rp.permissions.code) || [];
-        const hasSomePermission = permissions.some((p) => rolePermissions.includes(p));
-        if (!hasSomePermission) {
-          return res.status(403).json({ error: 'Insufficient permissions for this operation' });
-        }
-        next();
-      } catch (error) {
-        console.error('Middleware auth error:', error);
-        return res.status(500).json({ error: 'Internal error in permission verification' });
-      }
-    },
-    
+      },
+
     // Validation middleware - passthrough factories for tests
     validateQueryParams: passthroughFactory,
     validateSchema: passthroughFactory,
     validatePathParam: passthroughMiddleware,
     validateNumericPathParam: passthroughFactoryWithParam,
-    
+
     // Other middleware - passthrough
     errorHandler: passthroughMiddleware,
     limiter: passthroughMiddleware,
@@ -122,6 +154,7 @@ import app from '../../../src/app.js';
 // Skipped: estos tests requieren una BD Postgres activa (Prisma) que no está disponible
 // en el entorno actual. Los unit tests equivalentes en src/modules/events/ que mockean
 // el DAO ya cubren la lógica de negocio. Descomentar describe.skip cuando la BD esté disponible.
+// eslint-disable-next-line vitest/no-disabled-tests
 describe.skip('Events Combined Filters – Integration', () => {
   // 5.4.1 type filter (GET /events?type=1 returns 200)
   it('GET /events?type=1 returns 200', async () => {
