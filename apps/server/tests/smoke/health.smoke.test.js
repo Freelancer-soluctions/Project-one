@@ -1,25 +1,16 @@
-import { describe, it, expect, beforeAll } from 'vitest';
-import request from 'supertest';
-import app from '../../src/app.js';
+import { describe, it, expect } from 'vitest';
+import createRequest from './helpers/request.js';
 
 describe('Smoke Test: Server Health Check', () => {
-  let server;
-
-  beforeAll(() => {
-    // Use supertest with the app directly (in-process)
-    // This tests the Express app without needing a live server
-    server = app;
-  });
-
   it('GET /health should respond with 200 OK and JSON status', async () => {
-    const response = await request(server).get('/health');
+    const response = await createRequest().get('/health');
     expect(response.status).toBe(200);
     expect(response.headers['content-type']).toMatch(/json/);
     expect(response.body).toEqual({ status: 'ok' });
   });
 
   it('GET /metrics should respond with 200 OK (Prometheus metrics endpoint)', async () => {
-    const response = await request(server).get('/metrics');
+    const response = await createRequest().get('/metrics');
     // Accept 200 (metrics available) or 500 (metrics error but server responds)
     expect([200, 500]).toContain(response.status);
     // Always verify response.text is defined (unconditional expect)
@@ -32,7 +23,7 @@ describe('Smoke Test: Server Health Check', () => {
   });
 
   it('GET /api/v1/auth/signin should respond (endpoint exists)', async () => {
-    const response = await request(server).post('/api/v1/auth/signin').send({
+    const response = await createRequest().post('/api/v1/auth/signin').send({
       email: 'test@example.com',
       password: 'wrongpassword',
     });
@@ -41,7 +32,7 @@ describe('Smoke Test: Server Health Check', () => {
   });
 
   it('Server should handle unknown routes with 404', async () => {
-    const response = await request(server).get(
+    const response = await createRequest().get(
       '/api/v1/nonexistent-endpoint-xyz'
     );
     expect(response.status).toBe(404);

@@ -1,6 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import request from 'supertest';
-import app from '../../src/app.js';
+import createRequest from './helpers/request.js';
 
 describe('Smoke Test: Authentication Endpoint', () => {
   // Test credentials - in CI/CD these should be provided via environment variables
@@ -10,7 +9,7 @@ describe('Smoke Test: Authentication Endpoint', () => {
 
   // Test 1: Login endpoint exists and responds
   it('POST /api/v1/auth/signin should respond (endpoint exists and handles request)', async () => {
-    const response = await request(app)
+    const response = await createRequest()
       .post('/api/v1/auth/signin')
       .send({
         email: testEmail || 'nonexistent@test.com',
@@ -26,7 +25,7 @@ describe('Smoke Test: Authentication Endpoint', () => {
   it.skipIf(!testEmail || !testPassword)(
     'POST /api/v1/auth/signin should return token with valid credentials',
     async () => {
-      const response = await request(app)
+      const response = await createRequest()
         .post('/api/v1/auth/signin')
         .send({ email: testEmail, password: testPassword })
         .expect((res) => {
@@ -41,7 +40,7 @@ describe('Smoke Test: Authentication Endpoint', () => {
 
   // Test 3: Signup endpoint exists
   it('POST /api/v1/auth/signup should respond (endpoint exists)', async () => {
-    const response = await request(app)
+    const response = await createRequest()
       .post('/api/v1/auth/signup')
       .send({
         email: 'smoketest_' + Date.now() + '@example.com',
@@ -56,7 +55,7 @@ describe('Smoke Test: Authentication Endpoint', () => {
 
   // Test 4: Session endpoint requires auth
   it('GET /api/v1/auth/session should require authentication', async () => {
-    const response = await request(app).get('/api/v1/auth/session');
+    const response = await createRequest().get('/api/v1/auth/session');
 
     // Should return 401 (unauthorized) when no token provided
     expect([401, 403]).toContain(response.status);

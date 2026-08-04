@@ -1,6 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import request from 'supertest';
-import app from '../../src/app.js';
+import createRequest from './helpers/request.js';
 
 describe('Smoke Test: Critical API Endpoints', () => {
   // These endpoints require authentication, so we expect 401/403 without a token
@@ -14,7 +13,7 @@ describe('Smoke Test: Critical API Endpoints', () => {
 
   describe.each(criticalEndpoints)('$method $path', ({ path, method }) => {
     it(`should respond with valid HTTP status (not 404, not 500)`, async () => {
-      const response = await request(app)[method](path);
+      const response = await createRequest()[method](path);
 
       // Valid responses: 200 (OK), 401 (Unauthorized), 403 (Forbidden), 422 (Validation)
       // Invalid responses: 404 (Not Found - route missing), 500 (Server Error)
@@ -29,7 +28,7 @@ describe('Smoke Test: Critical API Endpoints', () => {
 
     for (const { path, method } of criticalEndpoints) {
       try {
-        const response = await request(app)[method](path);
+        const response = await createRequest()[method](path);
         if ([200, 401, 403, 422].includes(response.status)) {
           successCount++;
         }
@@ -44,17 +43,17 @@ describe('Smoke Test: Critical API Endpoints', () => {
   // Additional critical endpoints that should exist
   describe('Additional critical endpoints', () => {
     it('GET /api/v1/clients should respond', async () => {
-      const response = await request(app).get('/api/v1/clients');
+      const response = await createRequest().get('/api/v1/clients');
       expect([200, 401, 403, 422]).toContain(response.status);
     });
 
     it('GET /api/v1/warehouse should respond', async () => {
-      const response = await request(app).get('/api/v1/warehouse');
+      const response = await createRequest().get('/api/v1/warehouse');
       expect([200, 401, 403, 422]).toContain(response.status);
     });
 
     it('GET /api/v1/employees should respond', async () => {
-      const response = await request(app).get('/api/v1/employees');
+      const response = await createRequest().get('/api/v1/employees');
       expect([200, 401, 403, 422]).toContain(response.status);
     });
   });
