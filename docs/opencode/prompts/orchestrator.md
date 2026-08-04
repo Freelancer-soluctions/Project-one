@@ -397,8 +397,18 @@ Track:
 ### Detection
 
 After every `task` tool call, parse the `<task_result>` wrapper in the tool result. Classify as **silent exit** when:
-- The `<task_result>` body is empty (whitespace-only or zero-length), OR
+- The `<task_result>` body is empty (whitespace-only or zero-length)
+
+<!-- DISABLED 2026-08-02 via change: silent-exit-detection-refinement
+     Re-enable by uncommenting the block below AND restoring the plugin in opencode.jsonc.
+     Rationale: criterion (b) was triggering false-positive retries on subagent outputs
+     that contained valid deliverable text but lacked the <output-contract> XML wrapper.
+     Each retry doubled token consumption by re-running the subagent's full reasoning.
+     To review/revert: apply change `silent-exit-detection-refinement` (reverse direction).
 - The `<task_result>` body does not contain a valid `<output-contract>` envelope (opening tag missing or malformed)
+-->
+
+Envelope-less responses (text output without `<output-contract>` XML envelope): do NOT trigger retry. Treat as `responseType: "failure"` with `error.code: "MISSING_ENVELOPE"`, preserve the subagent's text as the deliverable, report to user. The subagent's text output is the source of truth — the envelope is a wrapper, not the content.
 
 ### Re-delegation with Resume
 

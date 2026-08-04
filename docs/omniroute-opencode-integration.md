@@ -1,18 +1,19 @@
 # Omniroute + Opencode Integration Plan (Project-One)
 
 > Status: PLAN — Pending user confirmation before execution
-> Last investigated: 2026-07-30
+> Last investigated: 2026-08-03
+> Validated: 2026-08-03 (independent verification vs official docs)
 > Owner: @researcher (investigation) → @developer (execution)
 
 ## TL;DR
 
-Add omniroute (AI gateway at `http://localhost:20128/v1`, 290+ providers, free tiers) as a provider inside project-one's opencode config. **Manual approach only** — never run `omniroute setup-opencode` or `omniroute setup opencode` as those write to the **global** `~/.config/opencode/opencode.json` and have a history of breaking the config (CJS bundle bug, plugin loader incompatibility). Instead, add a hand-crafted `provider.omniroute` block to the **project-level** `opencode.jsonc`, using the same `@ai-sdk/openai-compatible` npm package already proven by the existing `ollama-local` provider. The API key is injected via `{env:OMNIROUTE_API_KEY}` in the config (no shell profile changes needed beyond setting one env var). Omniroute itself runs via Docker (recommended) or `npm install -g omniroute`. The doc covers exact JSONC snippets, agent-scoped binding, env var strategy, failure recovery, and a numbered execution checklist.
+Add omniroute (AI gateway at `http://localhost:20128/v1`, 290+ providers, free tiers) as a provider inside project-one's opencode config. **Manual approach recommended** — avoid running `omniroute setup-opencode` or `omniroute setup opencode` against production global config as those write to the **global** `~/.config/opencode/opencode.json` and have a history of breaking the config (CJS bundle bug, plugin loader incompatibility — both now fixed in v3.8.26+ and opencode ≥1.18). Instead, add a hand-crafted `provider.omniroute` block to the **project-level** `opencode.jsonc`, using the same `@ai-sdk/openai-compatible` npm package already proven by the existing `ollama-local` provider. The API key is injected via `{env:OMNIROUTE_API_KEY}` in the config (no shell profile changes needed beyond setting one env var). Omniroute itself runs via Docker (recommended) or `npm install -g omniroute`. The doc covers exact JSONC snippets, agent-scoped binding, env var strategy, failure recovery, and a numbered execution checklist.
 
 ## Context
 
 ### What is omniroute
 
-Omniroute is an **MIT-licensed AI gateway** (npm `omniroute`, v3.8.50, 34.6k+ stars on GitHub). It exposes a single OpenAI-compatible endpoint at `http://localhost:20128/v1` that routes requests across **290+ providers** (90+ with free tiers, ~1.53B free tokens/month). Key features:
+Omniroute is an **MIT-licensed AI gateway** (npm `omniroute`, v3.8.49 (npm latest 2026-07-30; release/v3.8.50 es la rama default de GitHub, no publicada en npm), ~38.8k stars on GitHub, 5,956 commits). It exposes a single OpenAI-compatible endpoint at `http://localhost:20128/v1` that routes requests across **290+ providers** (90+ with free tiers, ~1.53B free tokens/month). Key features:
 
 - **Auto-fallback**: If one provider is down or rate-limited, omniroute automatically tries the next.
 - **19 routing strategies**: priority, round-robin, cost-optimized, LKGP (sticky), etc.
@@ -29,13 +30,26 @@ Project-one is a monorepo (Express backend + React client) using opencode as the
 
 A previous attempt to integrate omniroute into opencode caused opencode to break. The root cause was likely one of these:
 
-1. **`omniroute setup opencode`** (plugin command) wrote `@omniroute/opencode-plugin` into `~/.config/opencode/plugins/` and modified `~/.config/opencode/opencode.json`. The plugin had a **CJS bundle incompatibility** (PR #3883) where OpenCode's Bun-based plugin loader failed on CJS-to-ESM interop, causing `Plugin export is not a function`. Fixed in omniroute v3.8.26+ with ESM-only bundling, but an upstream OpenCode bug (`anomalyco/opencode#13543`) can still affect plugins with named exports.
+1. **`omniroute setup opencode`** (plugin command) wrote `@omniroute/opencode-plugin` into `~/.config/opencode/plugins/` and modified `~/.config/opencode/opencode.json`. The plugin had a **CJS bundle incompatibility** (PR #3883) where OpenCode's Bun-based plugin loader failed on CJS-to-ESM interop, causing `Plugin export is not a function`. Fixed in omniroute v3.8.26+ with ESM-only bundling, but an upstream OpenCode bug (`anomalyco/opencode#13543` CERRADO (2026-04-15, fix upstream commit anomalyco/opencode@2e27403b, PR #13544, presente en opencode ≥1.18.x)) can still affect plugins with named exports. **El riesgo del plugin-loader quedó mitigado** (PR #3883 ESM-only + fix upstream) y el riesgo real restante es el write al config global. Nota: `@omniroute/opencode-provider` es un paquete npm generador estático de config, DEPRECADO, NO un plugin.
 
 2. **`omniroute setup-opencode`** (lightweight command) writes a provider block to the **global** `~/.config/opencode/opencode.json`. This can conflict with project-level overrides or overwrite the user's global config.
 
 3. **`@/shared` path alias issue** — an older version of the omniroute plugin may have used TypeScript `@/` path aliases that weren't resolved at runtime, causing `Cannot find package @/shared`.
 
 **Key lesson**: Never run `omniroute setup-opencode` or `omniroute setup opencode`. Always hand-edit the project-level `opencode.jsonc`. The manual provider block approach is project-scoped, version-controlled, reversible, and completely under your control.
+
+### Root cause refutations (investigación 2 — verificado 2026-08-03)
+
+Dos mecanismos que se citaban como causas de rotura son **FALSOS** tras verificación contra fuentes oficiales:
+
+- **REFUTADO 1: "rompe la validación del schema"** — FALSO: el schema de opencode (`https://opencode.ai/config.json`) tiene `provider.additionalProperties: {$ref ProviderConfig}` y `models` con `additionalProperties` abierto; escribir 500+ modelos es **schema-válido**.
+
+- **REFUTADO 2: "desactiva/overwrite la config de proyecto"** — FALSO: los configs de opencode se **MERGEAN por capas** (remote < global < OPENCODE_CONFIG < project < .opencode); el proyecto gana en conflictos y conserva lo demás.
+
+**Riesgo REAL restante** = **SCOPE del write**:
+- Config **GLOBAL no versionado** (`~/.config/opencode/opencode.json`)
+- 500-1119 modelos que aplican a **TODOS** los proyectos, ensucian `/models`
+- Riesgo silencioso **.jsonc-vs-.json**: `globalConfigFile` de opencode elige `opencode.jsonc` primero; un write a `opencode.json` sería **IGNORADO**
 
 ## Current state of project opencode.jsonc
 
@@ -95,7 +109,7 @@ There is **no top-level `model` or `small_model` field** set in the project conf
 
 **Why NOT `setup-opencode`:**
 - `omniroute setup-opencode` writes to **global** `~/.config/opencode/opencode.json` — not the project config
-- `omniroute setup opencode` (plugin) had the CJS bundle bug (fixed in v3.8.26, but upstream OpenCode plugin loader issue `#13543` remains open)
+- `omniroute setup opencode` (plugin) had the CJS bundle bug (fixed in v3.8.26, but upstream OpenCode plugin loader issue `#13543` CERRADO (2026-04-15, fix upstream commit anomalyco/opencode@2e27403b, PR #13544, presente en opencode ≥1.18.x))
 - Neither is a postinstall hook — both are explicit CLI commands, but they're still risky for a production opencode setup
 - Manual project-level config is version-controlled, reversible, auditable, and doesn't touch other projects
 
@@ -276,7 +290,7 @@ echo $OMNIROUTE_API_KEY
 
 ```powershell
 # In PowerShell (Admin NOT required for npm global installs if using a proper prefix)
-npm install -g omniroute
+npm install -g omniroute@latest --include=optional
 ```
 
 **What it touches:**
@@ -331,6 +345,7 @@ npm uninstall omniroute
 docker pull diegosouzapw/omniroute:latest
 docker run -d ^
   --name omniroute ^
+  --stop-timeout 40 ^
   -p 20128:20128 ^
   -v omniroute-data:/app/data ^
   --restart unless-stopped ^
@@ -363,6 +378,8 @@ docker volume inspect omniroute-data
 docker info  # Should not show "Server Errors"
 ```
 
+**Note:** `npm global es la recomendación oficial del vendor (SETUP_GUIDE); Docker es elección de aislamiento del proyecto`. Mirror alternativo: `ghcr.io/diegosouzapw/omniroute`.
+
 ### Recommendation
 
 **Option C: Docker** — for this project specifically.
@@ -377,14 +394,20 @@ Rationale:
 
 ## Anti-patterns to avoid
 
-### NEVER run `omniroute setup-opencode` or `omniroute setup opencode`
+### Avoid running `omniroute setup-opencode` or `omniroute setup opencode` against production global config
 
 **Why:**
 - Writes to global `~/.config/opencode/opencode.json` — hard to undo, not version-controlled
-- The plugin-based `setup opencode` had the CJS bundle bug (PR #3883, v3.8.26). While fixed, the upstream OpenCode plugin loader bug (`anomalyco/opencode#13543`) means plugins with named exports can still fail with `Plugin export is not a function`
+- The plugin-based `setup opencode` had the CJS bundle bug (PR #3883, v3.8.26). While fixed, the upstream OpenCode plugin loader bug (`anomalyco/opencode#13543` CERRADO (2026-04-15, fix upstream commit anomalyco/opencode@2e27403b, PR #13544, presente en opencode ≥1.18.x)) means plugins with named exports can still fail with `Plugin export is not a function`. **El riesgo del plugin-loader quedó mitigado** (PR #3883 ESM-only + fix upstream) y el riesgo real restante es el write al config global.
 - Manual block in project `opencode.jsonc` is strictly better: version-controlled, scoped, reversible
 
-**What to do instead:** Follow the manual provider block approach documented above.
+**Matiz verificado (2026-08-03):**
+- `npm install -g omniroute` **ES SEGURO**: postinstall = solo warmup binario SQLite (skip con `OMNIROUTE_SKIP_POSTINSTALL=1`), **NO toca opencode**.
+- El bug CJS/ESM (`Plugin export is not a function`) está **CERRADO** desde v3.8.26 (PR #3883 ESM-only + subpath `./runtime`) + fix upstream opencode (#13544, ≥1.18).
+- Lo que sigue siendo arriesgado: **EJECUTAR** `setup-opencode` o `setup opencode` a ciegas contra el config **GLOBAL de producción**.
+- No existe flag `--project`/scoped; flags reales de `setup-opencode`: `--remote --api-key --only --model --dry-run --port`.
+
+**What to do instead:** Follow the manual provider block approach documented above. For testing without touching global config, use the `OPENCODE_CONFIG` env var isolation (see "Vías de integración" below).
 
 ### NEVER use `host.docker.internal` from the host
 
@@ -413,6 +436,34 @@ Instead, declare only the models you actually use. Start with 3 (`auto`, `oc/fre
   "anthropic/claude-sonnet-4": { "name": "Claude Sonnet 4" }
 }
 ```
+
+## Vías de integración (matriz de riesgo)
+
+| Vía | Qué escribe | Riesgo | Safety |
+|---|---|---|---|
+| `npm install -g omniroute` | nada en opencode (postinstall = warmup SQLite) | BAJO | Seguro; skip postinstall `OMNIROUTE_SKIP_POSTINSTALL=1` |
+| `omniroute setup opencode` (plugin) | `@omniroute/opencode-plugin` → `~/.config/opencode/plugins/` + entrada plugin en opencode.json GLOBAL | MEDIO-ALTO | Requiere opencode ≥1.15 shape v1; no correr a ciegas |
+| `omniroute setup-opencode` | provider con TODO el catálogo (500-1119 modelos) en opencode.json GLOBAL | MEDIO | Usar **SIEMPRE** `--dry-run` primero; `--only` para acotar |
+| `omniroute config opencode` | merge atómico no destructivo al global | MEDIO | OK con backup previo |
+| Manual en opencode.jsonc del proyecto | solo `provider.omniroute` scoped | MUY BAJO | **RECOMENDADA**; git-versionado; coexiste con ollama-local |
+| env `OPENCODE_CONFIG` → archivo aislado | provider en archivo custom mergeado entre global y project | MUY BAJO | Ideal para probar instalación normal sin tocar nada |
+
+### Comandos recomendados (coexistencia segura)
+
+- **Preview sin escribir**:
+  ```bash
+  omniroute setup-opencode --dry-run --only auto,oc/free,felo/felo
+  ```
+
+- **Prueba por invocación, cero writes**:
+  ```bash
+  OPENCODE_CONFIG="$(pwd)/omniroute-opencode.json" opencode -m omniroute/auto "test"
+  ```
+
+- **Regresión (provider existente)**:
+  ```bash
+  opencode -m ollama-local/qwen2.5-coder:7b "regression check"
+  ```
 
 ## Verification procedure
 
@@ -606,7 +657,7 @@ If something is already listening on port 20128, the output shows the PID. Resol
 ```powershell
 # Docker: change the host port mapping
 docker rm -f omniroute
-docker run -d --name omniroute -p 20129:20128 -v omniroute-data:/app/data diegosouzapw/omniroute:latest
+docker run -d --name omniroute --stop-timeout 40 -p 20129:20128 -v omniroute-data:/app/data diegosouzapw/omniroute:latest
 # Now available at http://localhost:20129/v1
 ```
 
@@ -707,7 +758,7 @@ Remove-Item Env:OMNIROUTE_API_KEY
 - [ ] **2. Back up global config** → `cp ~/.config/opencode/opencode.json ~/.config/opencode/opencode.json.backup-2026-07-30` (if exists)
 - [ ] **3. Run port check**: `netstat -ano | findstr :20128` — resolve if occupied
 - [ ] **4. Install/launch omniroute** (per Option C/Docker recommended):
-      `docker pull diegosouzapw/omniroute:latest && docker run -d --name omniroute -p 20128:20128 -v omniroute-data:/app/data --restart unless-stopped diegosouzapw/omniroute:latest`
+      `docker pull diegosouzapw/omniroute:latest && docker run -d --name omniroute --stop-timeout 40 -p 20128:20128 -v omniroute-data:/app/data --restart unless-stopped diegosouzapw/omniroute:latest`
 - [ ] **5. Test endpoint**: `curl http://localhost:20128/v1/models` — expect JSON list
 - [ ] **6. Set OMNIROUTE_API_KEY**:
       - PowerShell: `[Environment]::SetEnvironmentVariable("OMNIROUTE_API_KEY", "sk-...", "User")`
@@ -732,14 +783,19 @@ Remove-Item Env:OMNIROUTE_API_KEY
 | opencode config JSON schema | `https://opencode.ai/config.json` | Schema confirmed: `additionalProperties: false` at root, no `env` key. `env` only on ProviderConfig (array of strings) and LspConfig (object) |
 | opencode agents docs | `https://opencode.ai/docs/agents/` | Agent-scoped model binding via `agent.<name>.model` confirmed |
 | opencode models docs | `https://opencode.ai/docs/models/` | Model selection, `model`/`small_model` top-level fields |
-| omniroute npm | `https://www.npmjs.com/package/omniroute` | Version 3.8.49/3.8.50, MIT license, open-source |
-| omniroute GitHub | `https://github.com/diegosouzapw/OmniRoute` | 34.6k stars, 5,925 commits, 500+ contributors |
+| omniroute npm | `https://www.npmjs.com/package/omniroute` | Version 3.8.49, MIT license, open-source |
+| omniroute GitHub | `https://github.com/diegosouzapw/OmniRoute` | ~38.8k stars, 5,956 commits, 500+ contributors |
 | omniroute setup guide | `https://raw.githubusercontent.com/diegosouzapw/OmniRoute/release/v3.8.50/docs/guides/SETUP_GUIDE.md` | Docker/npm install options, CLI flags |
 | omniroute CLI integrations | `https://raw.githubusercontent.com/diegosouzapw/OmniRoute/release/v3.8.50/docs/guides/CLI-INTEGRATIONS.md` | `setup-opencode` writes to global config, NOT postinstall hook |
 | omniroute package.json | `https://raw.githubusercontent.com/diegosouzapw/OmniRoute/release/v3.8.50/package.json` | Postinstall script: only runtime warmup, skippable via `OMNIROUTE_SKIP_POSTINSTALL=1` |
-| omniroute PR #3908 (CJS fix) | `https://github.com/diegosouzapw/OmniRoute/pull/3908` | CJS bundle check removed — `setup-opencode` no longer crashes on ESM-only builds |
-| omniroute PR #3883 (ESM-only) | `https://github.com/diegosouzapw/OmniRoute/pull/3883` | Plugin switched from dual ESM+CJS to ESM-only for OpenCode compatibility |
-| omniroute PR #3726 (setup opencode) | `https://github.com/diegosouzapw/OmniRoute/pull/3726` | Original `setup opencode` command: writes to XDG config dir, copies plugin |
+| omniroute PR #3908 (CJS fix) | `https://github.com/diegosouzapw/OmniRoute/pull/3908` | (verificado vía GitHub API) CJS bundle check removed — `setup-opencode` no longer crashes on ESM-only builds |
+| omniroute PR #3883 (ESM-only) | `https://github.com/diegosouzapw/OmniRoute/pull/3883` | (verificado vía GitHub API) Plugin switched from dual ESM+CJS to ESM-only for OpenCode compatibility |
+| omniroute PR #3726 (setup opencode) | `https://github.com/diegosouzapw/OmniRoute/pull/3726` | (verificado vía GitHub API) Original `setup opencode` command (v3.8.23): writes to XDG config dir, copies @omniroute/opencode-plugin |
+| omniroute Docker guide | `https://github.com/diegosouzapw/OmniRoute/blob/release/v3.8.50/docs/guides/DOCKER_GUIDE.md` | Docker run options, volume `/app/data`, port 20128, `--stop-timeout 40` |
+| Docker Hub | `https://hub.docker.com/r/diegosouzapw/omniroute` | Official image `diegosouzapw/omniroute:latest` |
+| GHCR | `https://github.com/diegosouzapw/OmniRoute/pkgs/container/omniroute` | Mirror `ghcr.io/diegosouzapw/omniroute` |
+| opencode frameworks doc | `https://opencode.ai/docs/frameworks/OPENCODE.md` | Official opencode framework integration guide |
+| opencode CLI tools reference | `https://opencode.ai/docs/reference/CLI-TOOLS.md` | Official opencode CLI tools documentation |
 | Project opencode.jsonc | `C:\Users\user\Desktop\Programacion\Node-express-nest\project-one\opencode.jsonc` | Actual file read: 275 lines, existing ollama-local provider, 8 custom agents |
 
 ## Open questions for user
@@ -755,3 +811,5 @@ Remove-Item Env:OMNIROUTE_API_KEY
 5. **Model catalog expansion**: After the initial 3-model seed set works, would you like to add specific models (e.g., Claude, GPT, Gemini) to the `opencode.jsonc` as you discover them?
 
 6. **LiteLLM consideration**: Omniroute's main differentiator is its free-tier aggregation and routing strategies. If you only need a single-model proxy, a simpler tool like LiteLLM could suffice. Do you want LiteLLM considered as an alternative, or proceed with omniroute's richer feature set?
+
+7. **Config isolation strategy**: Do you prefer the manual project-level `opencode.jsonc` approach (recommended, git-versioned), or would you rather use `OPENCODE_CONFIG` pointing to an isolated config file for testing without touching the project config? The latter allows testing the full omniroute catalog via `setup-opencode --dry-run` output without any persistent changes.
