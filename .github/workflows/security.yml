@@ -4,6 +4,8 @@ on:
   workflow_call:
   pull_request:
     branches: [ main ]
+  push:
+    branches: [ main ]
 
 permissions:
   contents: read
@@ -84,30 +86,64 @@ jobs:
         if: ${{ secrets.GIT_LEAKS == '' }}
         run: echo "::warning::GIT_LEAKS secret not configured - licensed Gitleaks scan skipped. Using open-source Gitleaks only."
 
-  # =========================
+# =========================
   # Infrastructure as Code Security
   # =========================
   # iac-security:
   #   name: IaC Security Scan
   #   runs-on: ubuntu-latest
-
+  #
   #   steps:
   #     - uses: actions/checkout@v5
-
+  #
   #     - name: Run Semgrep IaC rules
   #       uses: returntocorp/semgrep-action@v1
   #       with:
   #         config: p/terraform
 
   # =========================
-  # SBOM generation (recommended)
+  # SBOM generation
   # =========================
-  # sbom:
-  #   name: Generate SBOM
-  #   runs-on: ubuntu-latest
+  sbom:
+    name: Generate SBOM
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: write
 
-  #   steps:
-  #     - uses: actions/checkout@v5
+    steps:
+      - uses: actions/checkout@v5
 
-  #     - name: Generate SBOM
-  #       uses: anchore/sbom-action@v0
+      - name: Generate SBOM
+        uses: anchore/sbom-action@v0.17.2
+        with:
+          format: cyclonedx-json
+          output-file: sbom-project-one.json
+
+      - name: Upload SBOM artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: sbom
+          path: sbom-project-one.json
+          if-no-files-found: error
+          retention-days: 365
+
+  # =========================
+  # Dependency Review
+  # =========================
+  dependency-review:
+    name: Dependency Review
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    permissions:
+      contents: read
+      pull-requests: write
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Run dependency review
+        uses: actions/dependency-review-action@v4
+        with:
+          vulnerability-check: true
+          license-check: true

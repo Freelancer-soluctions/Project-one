@@ -248,7 +248,7 @@ flowchart LR
 |----------|---------|-------|
 | `ci.yml` | PR to `main` | Lint, format, test, build |
 | `quality.yml` | Reusable (called) | Code quality |
-| `security.yml` | PR to `main` | Semgrep, Trivy, Gitleaks |
+| `security.yml` | PR to `main`, push to `main` | Semgrep, Trivy, Gitleaks, SBOM, Dependency Review |
 | `release.yml` | Push to `main` | Changesets release + npm publish |
 | `ci-enterprise.yml` | Push to `main` | Full CI + security (reference) |
 

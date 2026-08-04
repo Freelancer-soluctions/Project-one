@@ -376,7 +376,8 @@ ejecuta ninguna de ellas**. La documentación está en `docs/testing-architectur
 | **Secret scanning (CI)** | Gitleaks Action v2 | En PR a `main` | ⚠️ Requiere licencia `GIT_LEAKS` |
 | **npm audit (CI)** | `npm audit --audit-level=high` | — | ❌ Comentado en `security.yml` |
 | **IaC security** | Semgrep Terraform rules | — | ❌ Comentado (no aplica, no hay IaC) |
-| **SBOM generation** | anchore/sbom-action | — | ❌ Comentado |
+| **SBOM generation** | anchore/sbom-action@v0.17.2 | Push a `main`, PR a `main` | ✅ Implementado en `ci-security-enhance` |
+| **Dependency Review** | actions/dependency-review-action@v4 | PR a `main` | ✅ Implementado en `ci-security-enhance` |
 | **Dependabot** | — | — | ❌ No visible (no `.github/dependabot.yml`) |
 
 ### Hallazgos de seguridad relevantes
@@ -443,7 +444,7 @@ ejecuta ninguna de ellas**. La documentación está en `docs/testing-architectur
 | M1 | **No existe `.dockerignore`** | Imágenes Docker podrían incluir `.env`, logs | Crear `.dockerignore` antes de integrar Docker al CI |
 | M2 | **No hay entornos staging** | Imposible validar antes de producción | Agregar entorno staging en el proveedor cloud |
 | M3 | **No hay IaC (Terraform/Pulumi)** | Infra no reproducible | Evaluar IaC para cloud cuando se defina el proveedor |
-| M4 | **No hay SBOM** | Sin inventario de componentes | Activar `anchore/sbom-action` en security.yml |
+| ✅ ~~M4~~ | **~~No hay SBOM~~** | **~~Sin inventario de componentes~~** | ✅ **Implementado en `ci-security-enhance`** — `anchore/sbom-action@v0.17.2` (CycloneDX JSON) + artifact upload |
 | M5 | **No hay caching de Vitest/Playwright** | CI lento cuando se agreguen tests | Usar cache de acciones (`actions/cache`) para playwright browsers y vitest |
 | ~~M6~~ | ~~`release.yml` usa `setup-node@v4` con Node 20 hardcodeado~~ vs `quality.yml` que usa `.nvmrc` | ~~Versiones inconsistentes entre workflows~~ | ✅ **Resuelto** — release.yml usa `node-version-file: '.nvmrc'` |
 | M7 | **Secret scanning solo en CI, no en historial completo** | Secretos viejos no se detectan | Agregar job "full repo scan" programado (cron) |
