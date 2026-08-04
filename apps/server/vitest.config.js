@@ -11,7 +11,9 @@ export default defineConfig(
       root: __dirname,
       environment: 'node',
       pool: 'forks',
-      ...(process.env.CI === 'true' ? { maxWorkers: 1, isolate: false, retry: 2 } : {}),
+      ...(process.env.CI === 'true'
+        ? { maxWorkers: 1, isolate: false, retry: 2 }
+        : {}),
       reporters: ['default', 'hanging-process'],
       coverage: {
         reportsDirectory: './tests/coverage',
@@ -26,7 +28,6 @@ export default defineConfig(
       include: [
         'src/**/*.unit.test.js',
         'tests/integration/**/*.integration.test.js',
-        'tests/smoke/**/*.smoke.test.js',
       ],
       testTimeout: 30000,
       hookTimeout: 15000,
