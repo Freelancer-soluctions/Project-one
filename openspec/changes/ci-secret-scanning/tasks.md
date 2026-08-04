@@ -33,6 +33,6 @@
 ## 5. Verificación
 
 - [x] 5.1 Validar que ambos workflow YAML parsean correctamente (ej. `npx actionlint` si se instala, o apertura en GitHub Actions tab sin error de sintaxis)
-- [ ] 5.2 Ejecutar manualmente el workflow programado (`workflow_dispatch`) y confirmar que el scan full-history corre y sube el artifact `gitleaks-report` (sin secretos en claro gracias a `--redact`)
-- [ ] 5.3 Verificar que el job `secrets` pasa en un PR sin el secret `GIT_LEAKS` configurado (degradación elegante, sin fallo)
+- [~] 5.2 Ejecutar manualmente el workflow programado (`workflow_dispatch`) y confirmar que el scan full-history corre y sube el artifact `gitleaks-report` (sin secretos en claro gracias a `--redact`) — **DEFERRED a CI run per orchestrator 2026-08-02 (requiere workflow_dispatch manual en GitHub UI)**
+- [~] 5.3 Verificar que el job `secrets` pasa en un PR sin el secret `GIT_LEAKS` configurado (degradación elegante, sin fallo) — **DEFERRED a primer PR post-merge per orchestrator 2026-08-02**
 - [x] 5.4 Confirmar que la documentación de SECURITY.md incluye pasos de activación reproducibles (UI + API) y el caveat de visibilidad/GHAS para repos privados

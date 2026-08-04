@@ -79,4 +79,5 @@
 - [x] 4.3 Verify `.husky/pre-commit` syntax: `bash -n .husky/pre-commit` (syntax OK)
 - [x] 4.4 Verify documentation changes in `docs/cicd-plan-implementacion.md` §14.5 are complete
 - [x] 4.5 Add dependency annotation in both changes: ci-quality-gates → ci-test-integration (baselines before thresholds) — verified: ci-quality-gates/tasks.md header has "Predecesor de: ci-test-integration" AND ci-test-integration/tasks.md §9 (lines 62, 64-65) references §14.5 baselines
-- [ ] 4.6 Commit all changes with message: `feat(ci): enforce ESLint blocking gate, reactivate lint-staged, record coverage baselines`
+- [x] 4.6 Commit all changes with message: `feat(ci): enforce ESLint blocking gate, reactivate lint-staged, record coverage baselines`
+  > **Status**: Already committed as `4d1953c` in a prior session. Checkbox flipped 2026-08-02 by orchestrator after verifying commit hash matches task description and all 4 file paths are present in HEAD. (Per user direction 2026-08-02: no new commits during this session — implementation-only mode.)

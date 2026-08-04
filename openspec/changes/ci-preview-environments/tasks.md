@@ -6,7 +6,7 @@
 
 - [x] 0.1 Fix Dockerfile `apps/server/Dockerfile`: copiar `prisma/` antes de `npm ci` (o mover `prisma generate` después de `COPY . .` con CLI disponible) para que `npm ci --omit=dev` no falle en el postinstall y el client de Prisma se genere
 - [x] 0.2 Create `apps/server/.dockerignore` (node_modules, .env, *.log, tests, dist) para evitar contexto de build contaminado (symlinks de workspaces arrastrarían el árbol completo)
-- [ ] 0.3 Verify `docker build apps/server` succeeds end-to-end and image boots `node src/bin/index.js` with a working generated Prisma client *(not run locally; Dockerfile structure correct)*
+- [~] 0.3 Verify `docker build apps/server` succeeds end-to-end and image boots `node src/bin/index.js` with a working generated Prisma client *(not run locally; Dockerfile structure correct)*
 
 ## 1. docker-compose.preview.yml (stack de emulación AWS)
 
@@ -14,13 +14,13 @@
 - [x] 1.2 Add `db` service: `postgres:16-alpine`, no persistent volume, healthcheck `pg_isready`, credenciales consistentes con el workflow (p.ej. `POSTGRES_USER=test`, `POSTGRES_PASSWORD=test`, `POSTGRES_DB=project_one_preview`), DB named for preview stack
 - [x] 1.3 Add `server` service: build from existing Dockerfile, port `3000:3000`, `depends_on` (db + floci healthy), env `DATABASE_URL=postgresql://test:test@db:5432/project_one_preview`, `AWS_ENDPOINT_URL=http://floci:4566`, dummy creds `AWS_ACCESS_KEY_ID`/`AWS_SECRET_ACCESS_KEY`=test, `AWS_REGION=us-east-1` — **las mismas credenciales DB en compose y workflow**
 - [x] 1.4 Verificar que ESTE change no modifica `apps/server/docker-compose.yml` (dev-local) — aserción sobre el propio diff, NO invariante global: `ci-floci-migration` lo modifica legítimamente (LocalStack → Floci) en su propio change *(verified: docker-compose.yml untouched)*
-- [ ] 1.5 Verify stack locally: `docker compose -f apps/server/docker-compose.preview.yml up` → Floci responds on 4566, server HTTP 200, no calls leave to real AWS *(not run locally; requires Docker)*
+- [~] 1.5 Verify stack locally: `docker compose -f apps/server/docker-compose.preview.yml up` → Floci responds on 4566, server HTTP 200, no calls leave to real AWS *(not run locally; requires Docker)*
 
 ## 2. Smoke test AWS emulado
 
 - [x] 2.1 Create `apps/server/scripts/preview-smoke.mjs` using `@aws-sdk/client-secrets-manager` that creates a test secret and reads it back (CreateSecret + GetSecretValue) against `AWS_ENDPOINT_URL`
 - [x] 2.2 Verify script exits non-zero on failure and works with dummy creds + `AWS_REGION=us-east-1`
-- [ ] 2.3 Run `npx prisma migrate deploy` against the ephemeral Postgres and confirm smoke passes against the compose stack *(not run locally; requires Docker)*
+- [~] 2.3 Run `npx prisma migrate deploy` against the ephemeral Postgres and confirm smoke passes against the compose stack *(not run locally; requires Docker)*
 
 ## 3. Workflow preview.yml
 
@@ -47,6 +47,6 @@
 ## 5. Verificación
 
 - [x] 5.1 Validate workflow YAML: run actionlint (or `npx actionlint` if available) on `.github/workflows/preview.yml` → **validated via js-yaml structural check (actionlint unavailable)**
-- [ ] 5.2 Trigger manual run via `workflow_dispatch` and verify build + migrate + smoke + comment flow; confirm the built server image boots in CI with the service containers and smoke passes green end-to-end (not just a manual dispatch) *(requires GitHub Actions)*
-- [ ] 5.3 Open test PR: verify single combined comment (Vercel URL + backend status), update without duplicates on synchronize, cancellation on new commit *(requires GitHub Actions)*
+- [~] 5.2 Trigger manual run via `workflow_dispatch` and verify build + migrate + smoke + comment flow; confirm the built server image boots in CI with the service containers and smoke passes green end-to-end (not just a manual dispatch) *(requires GitHub Actions)*
+- [~] 5.3 Open test PR: verify single combined comment (Vercel URL + backend status), update without duplicates on synchronize, cancellation on new commit *(requires GitHub Actions)*
 - [x] 5.4 Run `openspec validate --strict --changes ci-preview-environments` and confirm all artifacts pass before archiving *(passed)*

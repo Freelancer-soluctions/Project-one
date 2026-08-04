@@ -66,7 +66,7 @@
 - [x] 9.1 **NO re-medir baselines**: consumir los baselines documentados por `ci-quality-gates` (coverage-baselines spec → `docs/cicd-plan-implementacion.md` §14.5) — ese change se implementa ANTES (dependencia de orden) y ya mide statements/branches/functions/lines
 - [x] 9.2 Verificar que los valores de §14.5 cubren ambos workspaces (client + server)
 - [x] 9.3 Add `coverage.thresholds` in both vitest configs at or slightly below the §14.5 baselines (NOT hardcoded 80%)
-- [ ] 9.4 Verify thresholds pass on CI: push a branch and confirm coverage check works **(requiere CI/push — no verificado localmente)**
+- [~] 9.4 Verify thresholds pass on CI: push a branch and confirm coverage check works **(requiere CI/push — no verificado localmente; DEFERRED a CI run per orchestrator 2026-08-02)**
 - [x] 9.5 Create follow-up change to raise thresholds incrementally (document in cicd-plan-implementacion.md) — **Documented as follow-up item**
 
 ## 10. ESLint as Gate in CI — OWNED BY `ci-quality-gates`
@@ -108,7 +108,7 @@
 ## 15. Playwright Configuration
 
 - [x] 15.1 Add explicit `projects:` array to `e2e/playwright.config.js`: `[{ name: 'chromium', use: { browserName: 'chromium', ... } }]`
-- [ ] 15.2 Verify `playwright test --project=chromium` works locally — **(requiere ejecución local de Playwright — no verificado)**
+- [~] 15.2 Verify `playwright test --project=chromium` works locally — **(requiere ejecución local de Playwright — no verificado; DEFERRED a local run per orchestrator 2026-08-02)**
 
 > **Note**: Task 15.1 is complete — `projects:` array was already present in the config (per D11). The webServer fix (HIGH 1) and JUnit reporter fix (HIGH 2) are additional improvements made during review.
 
@@ -116,6 +116,6 @@
 
 - [x] 16.1 Run `npx vitest run --reporter=junit --outputFile=reports/junit.xml` locally in client to verify JUnit output — **VERIFIED: junit.xml generated correctly**
 - [x] 16.2 Run `npx vitest run --reporter=junit --outputFile=reports/junit.xml` locally in server to verify JUnit output — **VERIFIED: junit.xml generated correctly**
-- [ ] 16.3 Verify all ci.yml jobs parse correctly: `act --pull-request` or push to test branch — **(requiere CI/push, act no disponible localmente)**
-- [ ] 16.4 Verify Dependabot config: `npx dependabot-config-validator` if available — **NO VERIFICABLE: paquete no existe en npm registry**
-- [ ] 16.5 Verify total CI time < 7 min with all caching layers — **(requiere CI/push, no medible localmente)**
+- [~] 16.3 Verify all ci.yml jobs parse correctly: `act --pull-request` or push to test branch — **(requiere CI/push, act no disponible localmente; DEFERRED a CI run per orchestrator 2026-08-02)**
+- [~] 16.4 Verify Dependabot config: `npx dependabot-config-validator` if available — **NO VERIFICABLE: paquete no existe en npm registry; DEFERRED — alternative validation via GitHub UI/settings tab per orchestrator 2026-08-02**
+- [~] 16.5 Verify total CI time < 7 min with all caching layers — **(requiere CI/push, no medible localmente; DEFERRED a primer CI run post-merge per orchestrator 2026-08-02)**
