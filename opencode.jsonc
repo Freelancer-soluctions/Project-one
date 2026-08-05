@@ -21,6 +21,28 @@
         },
       },
     },
+    "omniroute": {
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "OmniRoute Gateway",
+      "options": {
+        "baseURL": "http://localhost:20128/v1",
+        "apiKey": "{env:OMNIROUTE_API_KEY}",
+      },
+      "models": {
+        "auto": {
+          "name": "OmniRoute Auto (smart routing)",
+          "limit": { "context": 128000, "output": 65536 },
+        },
+        "oc/free": {
+          "name": "OpenCode Free (via OmniRoute)",
+          "limit": { "context": 128000, "output": 4096 },
+        },
+        "felo/felo": {
+          "name": "Felo (via OmniRoute)",
+          "limit": { "context": 32000, "output": 4096 },
+        },
+      },
+    },
   },
   //subagents configuration
   "default_agent": "orchestrator",
