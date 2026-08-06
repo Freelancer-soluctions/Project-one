@@ -3,4 +3,3 @@ export const StatusColumn = {
   ACTIVE: 'C02',
   COMPLETED: 'C03',
 };
-

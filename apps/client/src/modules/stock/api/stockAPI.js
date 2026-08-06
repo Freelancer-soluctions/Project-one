@@ -35,14 +35,14 @@ const stockApi = createApi({
       invalidatesTags: ['Stock'],
     }),
 
-      updateStockById: builder.mutation({
-        query: ({ id, data }) => ({
-          url: `/stock/${id}`,
-          method: 'PATCH',
-          body: data,
-        }),
-        invalidatesTags: ['Stock'],
+    updateStockById: builder.mutation({
+      query: ({ id, data }) => ({
+        url: `/stock/${id}`,
+        method: 'PATCH',
+        body: data,
       }),
+      invalidatesTags: ['Stock'],
+    }),
 
     getStockAlerts: builder.query({
       query: () => ({

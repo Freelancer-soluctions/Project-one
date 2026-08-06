@@ -1,4 +1,3 @@
-
 import * as notesDao from './dao.js';
 import { computeColorFromCode, extractMentionIds } from './utils/index.js';
 import bus, { BUS_EVENTS } from '../../socket/notificationBus.js';
@@ -13,8 +12,22 @@ import bus, { BUS_EVENTS } from '../../socket/notificationBus.js';
  * @param {boolean} [isFavorite] - If true, only return notes favorited by userId.
  * @returns {Promise<Array>} Filtered notes array.
  */
-export const getAllNotes = async (searchTerm, statusCode, hashtagIds, userId, isFavorite, scope) => {
-  const data = await notesDao.getAllNotes(searchTerm, statusCode, hashtagIds, userId, isFavorite, scope);
+export const getAllNotes = async (
+  searchTerm,
+  statusCode,
+  hashtagIds,
+  userId,
+  isFavorite,
+  scope
+) => {
+  const data = await notesDao.getAllNotes(
+    searchTerm,
+    statusCode,
+    hashtagIds,
+    userId,
+    isFavorite,
+    scope
+  );
   return data;
 };
 
@@ -45,36 +58,36 @@ export const createNote = async (data, userId) => {
     isFavorite
   );
 
-   if (dataWithOutForeignKeys.content) {
-     const mentionsId = await extractMentionIds(dataWithOutForeignKeys.content);
-     // Filter out self-mentions (don't create mentions for the user themselves)
-     const filteredMentions = mentionsId.filter(m => m.id !== Number(userId));
-     if (filteredMentions.length > 0) {
-       const mentionsData = [];
-       for (const mention of filteredMentions) {
-         mentionsData.push({
-           noteId: createdNote.id,
-           mentionedUserId: mention.id,
-           mentionedByUserId: Number(userId),
-           createdOn: new Date()
-         });
-       }
-       if (mentionsData.length > 0) {
-         await notesDao.saveNoteMentions(mentionsData);
-         await notesDao.updateNoteById(createdNote.id, { hasMentions: true });
-         // Emitir evento al bus para cada mención (notificación en tiempo real)
-         for (const mention of mentionsData) {
-           bus.emit(BUS_EVENTS.MENTION_CREATED, {
-             noteId: mention.noteId,
-             noteTitle: createdNote.title,
-             mentionedByUserId: mention.mentionedByUserId,
-             mentionedUserId: mention.mentionedUserId,
-             excerpt: (dataWithOutForeignKeys.content || '').substring(0, 200),
-           });
-         }
-       }
-     }
-   }
+  if (dataWithOutForeignKeys.content) {
+    const mentionsId = await extractMentionIds(dataWithOutForeignKeys.content);
+    // Filter out self-mentions (don't create mentions for the user themselves)
+    const filteredMentions = mentionsId.filter((m) => m.id !== Number(userId));
+    if (filteredMentions.length > 0) {
+      const mentionsData = [];
+      for (const mention of filteredMentions) {
+        mentionsData.push({
+          noteId: createdNote.id,
+          mentionedUserId: mention.id,
+          mentionedByUserId: Number(userId),
+          createdOn: new Date(),
+        });
+      }
+      if (mentionsData.length > 0) {
+        await notesDao.saveNoteMentions(mentionsData);
+        await notesDao.updateNoteById(createdNote.id, { hasMentions: true });
+        // Emitir evento al bus para cada mención (notificación en tiempo real)
+        for (const mention of mentionsData) {
+          bus.emit(BUS_EVENTS.MENTION_CREATED, {
+            noteId: mention.noteId,
+            noteTitle: createdNote.title,
+            mentionedByUserId: mention.mentionedByUserId,
+            mentionedUserId: mention.mentionedUserId,
+            excerpt: (dataWithOutForeignKeys.content || '').substring(0, 200),
+          });
+        }
+      }
+    }
+  }
 
   if (hashtagIds && hashtagIds.length > 0) {
     await notesDao.syncNoteHashtags(createdNote.id, hashtagIds);
@@ -132,7 +145,7 @@ export const updateNoteById = async (id, data, userId) => {
   if (columnId) {
     const currentNote = await notesDao.getNoteById(Number(id));
     if (!currentNote) throw new Error('Note not found');
-    
+
     if (Number(columnId) !== currentNote.columnId) {
       const column = await notesDao.getColumnById(Number(columnId));
       restData.color = computeColorFromCode(column.code);
@@ -142,37 +155,37 @@ export const updateNoteById = async (id, data, userId) => {
 
   await notesDao.updateNoteById(Number(id), restData, Number(userId));
 
-   if (restData.content) {
-     await notesDao.deleteMentionsByNoteId(Number(id));
-     const mentionsId = await extractMentionIds(restData.content);
-     // Filter out self-mentions (don't create mentions for the user themselves)
-     const filteredMentions = mentionsId.filter(m => m.id !== Number(userId));
-     if (filteredMentions.length > 0) {
-       const mentionsData = [];
-       for (const mention of filteredMentions) {
-         mentionsData.push({
-           noteId: Number(id),
-           mentionedUserId: mention.id,
-           mentionedByUserId: Number(userId),
-           createdOn: new Date()
-         });
-       }
-       if (mentionsData.length > 0) {
-         await notesDao.saveNoteMentions(mentionsData);
-         await notesDao.updateNoteById(Number(id), { hasMentions: true });
-         // Emitir evento al bus para cada mención (notificación en tiempo real)
-         for (const mention of mentionsData) {
-           bus.emit(BUS_EVENTS.MENTION_CREATED, {
-             noteId: mention.noteId,
-             noteTitle: restData.title || 'Nota',
-             mentionedByUserId: mention.mentionedByUserId,
-             mentionedUserId: mention.mentionedUserId,
-             excerpt: (restData.content || '').substring(0, 200),
-           });
-         }
-       }
-     }
-   }
+  if (restData.content) {
+    await notesDao.deleteMentionsByNoteId(Number(id));
+    const mentionsId = await extractMentionIds(restData.content);
+    // Filter out self-mentions (don't create mentions for the user themselves)
+    const filteredMentions = mentionsId.filter((m) => m.id !== Number(userId));
+    if (filteredMentions.length > 0) {
+      const mentionsData = [];
+      for (const mention of filteredMentions) {
+        mentionsData.push({
+          noteId: Number(id),
+          mentionedUserId: mention.id,
+          mentionedByUserId: Number(userId),
+          createdOn: new Date(),
+        });
+      }
+      if (mentionsData.length > 0) {
+        await notesDao.saveNoteMentions(mentionsData);
+        await notesDao.updateNoteById(Number(id), { hasMentions: true });
+        // Emitir evento al bus para cada mención (notificación en tiempo real)
+        for (const mention of mentionsData) {
+          bus.emit(BUS_EVENTS.MENTION_CREATED, {
+            noteId: mention.noteId,
+            noteTitle: restData.title || 'Nota',
+            mentionedByUserId: mention.mentionedByUserId,
+            mentionedUserId: mention.mentionedUserId,
+            excerpt: (restData.content || '').substring(0, 200),
+          });
+        }
+      }
+    }
+  }
 
   if (hashtagIds) {
     await notesDao.syncNoteHashtags(Number(id), hashtagIds);

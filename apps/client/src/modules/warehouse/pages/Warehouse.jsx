@@ -89,7 +89,10 @@ const Warehouse = () => {
   const handleSubmit = async (result) => {
     try {
       if (result?.id) {
-        await updateWarehouseById({ id: result.id, data: result.body }).unwrap();
+        await updateWarehouseById({
+          id: result.id,
+          data: result.body,
+        }).unwrap();
       } else {
         await createWarehouse(result).unwrap();
       }

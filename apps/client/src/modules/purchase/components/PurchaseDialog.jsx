@@ -70,7 +70,9 @@ export const PurchaseDialog = ({
       ],
     },
   });
-  const { formState: { dirtyFields } } = form;
+  const {
+    formState: { dirtyFields },
+  } = form;
 
   const clearDialog = useCallback(() => {
     form.reset({

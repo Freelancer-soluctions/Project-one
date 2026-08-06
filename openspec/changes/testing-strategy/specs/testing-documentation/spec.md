@@ -36,3 +36,24 @@ The system SHALL have documented coverage targets for different module types.
 
 - **WHEN** documentation is read
 - **THEN** it specifies ≥80% for critical modules, ≥60% for business modules
+
+### Requirement: Cross-Platform Considerations section in docs
+
+The system SHALL have documented cross-platform considerations for Windows, Linux, and Mac compatibility.
+
+#### Scenario: Cross-Platform section exists
+
+- **WHEN** documentation is read
+- **THEN** it includes a "Cross-Platform Considerations" section
+- **AND** it documents the Windows spawn loop issue with npx
+- **AND** it documents the workspace delegation pattern as best practice
+
+### Requirement: test:debug diagnostic documentation
+
+The system SHALL document how to use `npm run test:debug` to diagnose hanging processes.
+
+#### Scenario: Debug guide exists
+
+- **WHEN** documentation is read
+- **THEN** it includes a section on using `test:debug` with why-is-node-running
+- **AND** it shows example output and how to interpret handle stack traces

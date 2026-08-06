@@ -64,7 +64,9 @@ export const VacationDialog = ({
       status: 'PENDING',
     },
   });
-  const { formState: { dirtyFields } } = form;
+  const {
+    formState: { dirtyFields },
+  } = form;
 
   const vacationId = useMemo(() => selectedRow?.id ?? null, [selectedRow?.id]);
 

@@ -14,10 +14,10 @@ import {
 } from '../../middleware/index.js';
 import { ROLESCODES, PERMISSIONCODES } from '../../utils/constants/enums.js';
 import {
-   permissionFiltersSchema,
-   permissionCreateSchema,
-   permissionUpdateSchema,
- } from './schemas/permission.joi.js';
+  permissionFiltersSchema,
+  permissionCreateSchema,
+  permissionUpdateSchema,
+} from './schemas/permission.joi.js';
 
 const router = express.Router();
 // uso global de middleware
@@ -239,8 +239,6 @@ router.post(
   createPermission
 );
 
-
-
 /**
  * @swagger
  * /v1/permission/{id}:
@@ -286,14 +284,14 @@ router.post(
  *         description: Internal server error
  *     */
 router.patch(
-   '/:id',
-   checkRoleAuthOrPermisssion({
-     allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER, ROLESCODES.USER],
-     permissions: [PERMISSIONCODES.canEditPermission],
-   }),
-   validatePathParam,
-   validateSchema(permissionUpdateSchema),
-   patchPermissionById
+  '/:id',
+  checkRoleAuthOrPermisssion({
+    allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER, ROLESCODES.USER],
+    permissions: [PERMISSIONCODES.canEditPermission],
+  }),
+  validatePathParam,
+  validateSchema(permissionUpdateSchema),
+  patchPermissionById
 );
 
 /**

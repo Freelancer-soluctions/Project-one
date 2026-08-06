@@ -80,15 +80,24 @@ describe('Event RSVP State Machine', () => {
     });
 
     it('WAITLIST returns [CANCELLED, CONFIRMED]', () => {
-      expect(getAllowedNextStates('WAITLIST')).toEqual(['CANCELLED', 'CONFIRMED']);
+      expect(getAllowedNextStates('WAITLIST')).toEqual([
+        'CANCELLED',
+        'CONFIRMED',
+      ]);
     });
 
     it('CANCELLED returns [CONFIRMED, WAITLIST]', () => {
-      expect(getAllowedNextStates('CANCELLED')).toEqual(['CONFIRMED', 'WAITLIST']);
+      expect(getAllowedNextStates('CANCELLED')).toEqual([
+        'CONFIRMED',
+        'WAITLIST',
+      ]);
     });
 
     it('handles undefined as null', () => {
-      expect(getAllowedNextStates(undefined)).toEqual(['CONFIRMED', 'WAITLIST']);
+      expect(getAllowedNextStates(undefined)).toEqual([
+        'CONFIRMED',
+        'WAITLIST',
+      ]);
     });
 
     it('returns empty array for unknown status', () => {

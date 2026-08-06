@@ -1,11 +1,11 @@
-"use client"
+'use client';
 
-import * as React from "react"
-import PropTypes from "prop-types"
-import { X, Search, Pencil, Plus, Check, Trash2 } from "lucide-react"
-import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
+import * as React from 'react';
+import PropTypes from 'prop-types';
+import { X, Search, Pencil, Plus, Check, Trash2 } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { useTranslation } from 'react-i18next';
 
 /**
@@ -42,36 +42,38 @@ export function HashtagsSelector({
   className,
 }) {
   const { t } = useTranslation();
-  const [search, setSearch] = React.useState("")
-  const [selected, setSelected] = React.useState(selectedIds)
+  const [search, setSearch] = React.useState('');
+  const [selected, setSelected] = React.useState(selectedIds);
 
   const resolvedTitle = title || t('hashtags_title');
-  const resolvedSearchPlaceholder = searchPlaceholder || t('hashtags_search_placeholder');
-  const resolvedCreateButtonText = createButtonText || t('hashtags_create_button');
+  const resolvedSearchPlaceholder =
+    searchPlaceholder || t('hashtags_search_placeholder');
+  const resolvedCreateButtonText =
+    createButtonText || t('hashtags_create_button');
 
   const filteredHashtags = React.useMemo(() => {
-    if (!search.trim()) return hashtags
+    if (!search.trim()) return hashtags;
     return hashtags.filter((hashtag) =>
       hashtag.name.toLowerCase().includes(search.toLowerCase())
-    )
-  }, [hashtags, search])
+    );
+  }, [hashtags, search]);
 
   const handleToggle = (id) => {
     const newSelected = selected.includes(id)
       ? selected.filter((s) => s !== id)
-      : [...selected, id]
-    setSelected(newSelected)
-    onSelectionChange?.(newSelected)
-  }
+      : [...selected, id];
+    setSelected(newSelected);
+    onSelectionChange?.(newSelected);
+  };
 
   React.useEffect(() => {
-    setSelected(selectedIds)
-  }, [selectedIds])
+    setSelected(selectedIds);
+  }, [selectedIds]);
 
   return (
     <div
       className={cn(
-        "w-72 rounded-lg border border-border bg-popover text-popover-foreground shadow-lg",
+        'w-72 rounded-lg border border-border bg-popover text-popover-foreground shadow-lg',
         className
       )}
     >
@@ -118,7 +120,7 @@ export function HashtagsSelector({
             </p>
           ) : (
             filteredHashtags.map((hashtag) => {
-              const isSelected = selected.includes(hashtag.id)
+              const isSelected = selected.includes(hashtag.id);
               return (
                 <div
                   key={hashtag.id}
@@ -128,17 +130,17 @@ export function HashtagsSelector({
                     type="button"
                     onClick={() => handleToggle(hashtag.id)}
                     className={cn(
-                      "flex h-9 flex-1 items-center gap-3 rounded-md px-2 text-left text-sm transition-colors",
-                      "hover:bg-accent hover:text-accent-foreground",
-                      isSelected && "bg-accent/50"
+                      'flex h-9 flex-1 items-center gap-3 rounded-md px-2 text-left text-sm transition-colors',
+                      'hover:bg-accent hover:text-accent-foreground',
+                      isSelected && 'bg-accent/50'
                     )}
                   >
                     <div
                       className={cn(
-                        "flex h-4 w-4 items-center justify-center rounded border border-primary",
+                        'flex h-4 w-4 items-center justify-center rounded border border-primary',
                         isSelected
-                          ? "bg-primary text-primary-foreground"
-                          : "bg-transparent"
+                          ? 'bg-primary text-primary-foreground'
+                          : 'bg-transparent'
                       )}
                     >
                       {isSelected && <Check className="h-3 w-3" />}
@@ -154,7 +156,9 @@ export function HashtagsSelector({
                       onClick={() => onEdit(hashtag)}
                     >
                       <Pencil className="h-3.5 w-3.5" />
-                      <span className="sr-only">{t('hashtags_edit_hashtag', { name: hashtag.name })}</span>
+                      <span className="sr-only">
+                        {t('hashtags_edit_hashtag', { name: hashtag.name })}
+                      </span>
                     </Button>
                   )}
                   {onDelete && (
@@ -166,11 +170,13 @@ export function HashtagsSelector({
                       onClick={() => onDelete(hashtag)}
                     >
                       <Trash2 className="h-3.5 w-3.5" />
-                      <span className="sr-only">{t('hashtags_delete_hashtag', { name: hashtag.name })}</span>
+                      <span className="sr-only">
+                        {t('hashtags_delete_hashtag', { name: hashtag.name })}
+                      </span>
                     </Button>
                   )}
                 </div>
-              )
+              );
             })
           )}
         </div>
@@ -191,7 +197,7 @@ export function HashtagsSelector({
         </div>
       )}
     </div>
-  )
+  );
 }
 
 HashtagsSelector.propTypes = {

@@ -13,116 +13,121 @@ import { prisma } from '../../config/db.js';
  *  - isOwner: boolean indicating if the note was created by the current user
  *  - isMentioned: boolean indicating if the current user is mentioned in the note
  */
-export const getAllNotes = async (searchTerm, statusCode, hashtagIds, userId, isFavorite, scope = 'mine') => {
+export const getAllNotes = async (
+  searchTerm,
+  statusCode,
+  hashtagIds,
+  userId,
+  isFavorite,
+  scope = 'mine'
+) => {
   const columns = await prisma.noteColumns.findMany({
     include: {
       notes: {
         where: {
-           AND: [
-             searchTerm
-               ? {
-                 OR: [
-                   { content: { contains: searchTerm, mode: 'insensitive' } },
-                   { title: { contains: searchTerm, mode: 'insensitive' } },
-                 ],
-               }
-               : {},
+          AND: [
+            searchTerm
+              ? {
+                  OR: [
+                    { content: { contains: searchTerm, mode: 'insensitive' } },
+                    { title: { contains: searchTerm, mode: 'insensitive' } },
+                  ],
+                }
+              : {},
 
-             statusCode
-               ? { columnStatus: { code: statusCode } }
-               : {},
+            statusCode ? { columnStatus: { code: statusCode } } : {},
 
-             hashtagIds && hashtagIds.length > 0
-               ? {
-                   noteHashtags: {
-                     some: {
-                       hashtagId: { in: hashtagIds.map(Number) }
-                     }
-                   }
-                 }
-               : {},
+            hashtagIds && hashtagIds.length > 0
+              ? {
+                  noteHashtags: {
+                    some: {
+                      hashtagId: { in: hashtagIds.map(Number) },
+                    },
+                  },
+                }
+              : {},
 
-             isFavorite && userId
-               ? {
-                   favoriteBy: {
-                     some: {
-                       userId: userId
-                     }
-                   }
-                 }
-               : {},
+            isFavorite && userId
+              ? {
+                  favoriteBy: {
+                    some: {
+                      userId: userId,
+                    },
+                  },
+                }
+              : {},
 
-              // Scope filters
-              scope === 'mine'
-                ? { createdBy: userId }
-                : scope === 'mixed'
-                  ? {
-                      OR: [
-                        { createdBy: userId },
-                        { mentions: { some: { mentionedUserId: userId } } }
-                      ]
-                    }
-                  : {},
-           ],
+            // Scope filters
+            scope === 'mine'
+              ? { createdBy: userId }
+              : scope === 'mixed'
+                ? {
+                    OR: [
+                      { createdBy: userId },
+                      { mentions: { some: { mentionedUserId: userId } } },
+                    ],
+                  }
+                : {},
+          ],
         },
         include: {
           noteHashtags: {
             include: {
-              hashtag: true
-            }
-          }
+              hashtag: true,
+            },
+          },
         },
       },
     },
   });
 
-   // Batch lookup: get all note IDs favorited by current user
-   let favoriteNoteIds = new Set();
-   if (userId) {
-     const userFavorites = await prisma.user_notes_favorites.findMany({
-       where: { userId },
-       select: { noteId: true }
-     });
-     favoriteNoteIds = new Set(userFavorites.map(f => f.noteId));
-   }
+  // Batch lookup: get all note IDs favorited by current user
+  let favoriteNoteIds = new Set();
+  if (userId) {
+    const userFavorites = await prisma.user_notes_favorites.findMany({
+      where: { userId },
+      select: { noteId: true },
+    });
+    favoriteNoteIds = new Set(userFavorites.map((f) => f.noteId));
+  }
 
-    // Batch lookup: get all note IDs and mention IDs where current user is mentioned
-    let mentionsByNote = new Map();
-    if (userId) {
-      const userMentions = await prisma.mentions.findMany({
-        where: { mentionedUserId: userId },
-        select: { id: true, noteId: true, isRead: true }
-      });
-      userMentions.forEach(m => {
-        if (!mentionsByNote.has(m.noteId)) {
-          mentionsByNote.set(m.noteId, []);
-        }
-        mentionsByNote.get(m.noteId).push(m);
-      });
-    }
+  // Batch lookup: get all note IDs and mention IDs where current user is mentioned
+  let mentionsByNote = new Map();
+  if (userId) {
+    const userMentions = await prisma.mentions.findMany({
+      where: { mentionedUserId: userId },
+      select: { id: true, noteId: true, isRead: true },
+    });
+    userMentions.forEach((m) => {
+      if (!mentionsByNote.has(m.noteId)) {
+        mentionsByNote.set(m.noteId, []);
+      }
+      mentionsByNote.get(m.noteId).push(m);
+    });
+  }
 
-    return columns.map((column) => ({
-      ...column,
-      notes: column.notes.map((note) => {
-        const noteMentions = mentionsByNote.get(note.id) || [];
-        const mentionIds = noteMentions.map(m => m.id);
-        const hasUnreadMentions = noteMentions.some(m => !m.isRead);
-        return {
-          ...note,
-          hashtags: note.noteHashtags
-            ? note.noteHashtags.map((nh) => ({
-                id: nh.hashtag.id,
-                name: nh.hashtag.name,
-              }))
-            : [],
-          isFavorited: favoriteNoteIds.has(note.id),
-          isOwner: note.createdBy === userId,
-          isMentioned: noteMentions.length > 0,
-          mentionIds: mentionIds,
-          hasUnreadMentions: hasUnreadMentions,
-        };
-      }),
-    }));
+  return columns.map((column) => ({
+    ...column,
+    notes: column.notes.map((note) => {
+      const noteMentions = mentionsByNote.get(note.id) || [];
+      const mentionIds = noteMentions.map((m) => m.id);
+      const hasUnreadMentions = noteMentions.some((m) => !m.isRead);
+      return {
+        ...note,
+        hashtags: note.noteHashtags
+          ? note.noteHashtags.map((nh) => ({
+              id: nh.hashtag.id,
+              name: nh.hashtag.name,
+            }))
+          : [],
+        isFavorited: favoriteNoteIds.has(note.id),
+        isOwner: note.createdBy === userId,
+        isMentioned: noteMentions.length > 0,
+        mentionIds: mentionIds,
+        hasUnreadMentions: hasUnreadMentions,
+      };
+    }),
+  }));
 };
 
 /**
@@ -153,7 +158,7 @@ export const createNote = async (data, userId, columnId, isFavorite) => {
 
   if (isFavorite) {
     await prisma.user_notes_favorites.create({
-      data: { userId, noteId: result.id }
+      data: { userId, noteId: result.id },
     });
   }
 
@@ -184,7 +189,6 @@ export const updateNoteColumId = async (id, data) => {
   return Promise.resolve(result);
 };
 
-
 /**
  * Update a note by ID.
  *
@@ -194,52 +198,52 @@ export const updateNoteColumId = async (id, data) => {
  * @returns {Promise<Object>} The updated note.
  */
 export const updateNoteById = async (id, data, userId) => {
-   const updateData = { ...data };
+  const updateData = { ...data };
 
-   // Extract and handle isFavorite (not a note field, handled separately)
-   const { isFavorite } = updateData;
-   delete updateData.isFavorite;
+  // Extract and handle isFavorite (not a note field, handled separately)
+  const { isFavorite } = updateData;
+  delete updateData.isFavorite;
 
-   // Handle columnId -> columnStatus connect
-   if (updateData.columnId !== undefined) {
-     updateData.columnStatus = {
-       connect: { id: updateData.columnId }
-     };
-     delete updateData.columnId;
-   }
+  // Handle columnId -> columnStatus connect
+  if (updateData.columnId !== undefined) {
+    updateData.columnStatus = {
+      connect: { id: updateData.columnId },
+    };
+    delete updateData.columnId;
+  }
 
-   // Handle hashtagIds synchronization
-   const hashtagIds = updateData.hashtagIds;
-   delete updateData.hashtagIds;
+  // Handle hashtagIds synchronization
+  const hashtagIds = updateData.hashtagIds;
+  delete updateData.hashtagIds;
 
-   // Update the note
-   const result = await prisma.notes.update({
-     where: { id },
-     data: updateData,
-   });
+  // Update the note
+  const result = await prisma.notes.update({
+    where: { id },
+    data: updateData,
+  });
 
-   // Sync hashtags if provided
-   if (hashtagIds !== undefined) {
-     await syncNoteHashtags(id, hashtagIds);
-   }
+  // Sync hashtags if provided
+  if (hashtagIds !== undefined) {
+    await syncNoteHashtags(id, hashtagIds);
+  }
 
-   // Handle isFavorite sync if provided and userId available
-   if (isFavorite !== undefined && userId) {
-     if (isFavorite) {
-       await prisma.user_notes_favorites.upsert({
-         where: { noteId_userId: { noteId: id, userId } },
-         create: { noteId: id, userId },
-         update: {},
-       });
-     } else {
-       await prisma.user_notes_favorites.deleteMany({
-         where: { noteId: id, userId }
-       });
-     }
-   }
+  // Handle isFavorite sync if provided and userId available
+  if (isFavorite !== undefined && userId) {
+    if (isFavorite) {
+      await prisma.user_notes_favorites.upsert({
+        where: { noteId_userId: { noteId: id, userId } },
+        create: { noteId: id, userId },
+        update: {},
+      });
+    } else {
+      await prisma.user_notes_favorites.deleteMany({
+        where: { noteId: id, userId },
+      });
+    }
+  }
 
-   return Promise.resolve(result);
- };
+  return Promise.resolve(result);
+};
 
 /**
  * Delete a note by ID.
@@ -278,49 +282,44 @@ export const getColumnById = async (id) => {
  * When scope is provided, counts are filtered by the scope; when omitted, all notes are counted.
  */
 export const getAllNotesCount = async (scope = 'mine', userId) => {
-    // Build scope conditions similar to getAllNotes
-    const scopeConditions = [];
-    
-    if (scope === 'mine') {
-      scopeConditions.push({ createdBy: userId });
-    } else if (scope === 'mixed') {
-      scopeConditions.push({
-        OR: [
-          { createdBy: userId },
-          { mentions: { some: { mentionedUserId: userId } } }
-        ]
-      });
-    }
-    // For scope undefined or other values, no additional conditions (all notes)
+  // Build scope conditions similar to getAllNotes
+  const scopeConditions = [];
 
-    const backlogCount = await prisma.notes.count({
-      where: {
-        AND: [
-          { columnStatus: { code: 'C01' } },
-          ...scopeConditions
-        ]
-      },
+  if (scope === 'mine') {
+    scopeConditions.push({ createdBy: userId });
+  } else if (scope === 'mixed') {
+    scopeConditions.push({
+      OR: [
+        { createdBy: userId },
+        { mentions: { some: { mentionedUserId: userId } } },
+      ],
     });
+  }
+  // For scope undefined or other values, no additional conditions (all notes)
 
-    const activeCount = await prisma.notes.count({
-      where: {
-        AND: [
-          { columnStatus: { code: 'C02' } },
-          ...scopeConditions
-        ]
-      },
-    });
+  const backlogCount = await prisma.notes.count({
+    where: {
+      AND: [{ columnStatus: { code: 'C01' } }, ...scopeConditions],
+    },
+  });
 
-    const completedCount = await prisma.notes.count({
-      where: {
-        AND: [
-          { columnStatus: { code: 'C03' } },
-          ...scopeConditions
-        ]
-      },
-    });
+  const activeCount = await prisma.notes.count({
+    where: {
+      AND: [{ columnStatus: { code: 'C02' } }, ...scopeConditions],
+    },
+  });
 
-    return { backlog: backlogCount, active: activeCount, completed: completedCount };
+  const completedCount = await prisma.notes.count({
+    where: {
+      AND: [{ columnStatus: { code: 'C03' } }, ...scopeConditions],
+    },
+  });
+
+  return {
+    backlog: backlogCount,
+    active: activeCount,
+    completed: completedCount,
+  };
 };
 
 /**
@@ -343,7 +342,6 @@ export const getMentionsByNoteId = async (noteId) => {
   });
 };
 
-
 /**
  * Create a new note mention in the database.
  *
@@ -353,18 +351,17 @@ export const saveNoteMentions = async (mentionsData) => {
   await prisma.mentions.createMany({
     data: mentionsData,
   });
-}
+};
 
 /**
  * Dellete Mentions by note id
- * @param {Number} noteId 
+ * @param {Number} noteId
  */
-export const deleteMentionsByNoteId = async(noteId)=>{
-    await prisma.mentions.deleteMany({
+export const deleteMentionsByNoteId = async (noteId) => {
+  await prisma.mentions.deleteMany({
     where: { noteId },
   });
-}
-
+};
 
 // === FAVORITE FUNCTIONS ===
 
@@ -377,7 +374,7 @@ export const deleteMentionsByNoteId = async(noteId)=>{
  */
 export const createFavorite = async (userId, noteId) => {
   return prisma.user_notes_favorites.create({
-    data: { userId, noteId }
+    data: { userId, noteId },
   });
 };
 
@@ -390,7 +387,7 @@ export const createFavorite = async (userId, noteId) => {
  */
 export const deleteFavorite = async (userId, noteId) => {
   return prisma.user_notes_favorites.deleteMany({
-    where: { userId, noteId }
+    where: { userId, noteId },
   });
 };
 
@@ -403,7 +400,7 @@ export const deleteFavorite = async (userId, noteId) => {
  */
 export const isFavorited = async (userId, noteId) => {
   const count = await prisma.user_notes_favorites.count({
-    where: { userId, noteId }
+    where: { userId, noteId },
   });
   return count > 0;
 };
@@ -419,7 +416,7 @@ export const isFavorited = async (userId, noteId) => {
  */
 export const createHashtag = async (name, userId) => {
   return prisma.hashtags.create({
-    data: { name, createdBy: userId }
+    data: { name, createdBy: userId },
   });
 };
 
@@ -432,7 +429,7 @@ export const createHashtag = async (name, userId) => {
 export const getAllHashtags = async () => {
   return prisma.hashtags.findMany({
     orderBy: { name: 'asc' },
-    include: { _count: { select: { notes: true } } }
+    include: { _count: { select: { notes: true } } },
   });
 };
 
@@ -466,7 +463,7 @@ export const findHashtagById = async (id) => {
 export const updateHashtag = async (id, name) => {
   return prisma.hashtags.update({
     where: { id },
-    data: { name, updatedOn: new Date() }
+    data: { name, updatedOn: new Date() },
   });
 };
 
@@ -491,10 +488,10 @@ export const deleteHashtag = async (id) => {
 export const syncNoteHashtags = async (noteId, hashtagIds) => {
   await prisma.note_hashtags.deleteMany({ where: { noteId } });
   if (hashtagIds && hashtagIds.length > 0) {
-    const data = hashtagIds.map(hashtagId => ({
+    const data = hashtagIds.map((hashtagId) => ({
       noteId,
       hashtagId,
-      createdOn: new Date()
+      createdOn: new Date(),
     }));
     await prisma.note_hashtags.createMany({ data });
   }
@@ -509,6 +506,6 @@ export const syncNoteHashtags = async (noteId, hashtagIds) => {
 export const getNoteHashtags = async (noteId) => {
   return prisma.note_hashtags.findMany({
     where: { noteId },
-    include: { hashtag: true }
+    include: { hashtag: true },
   });
 };

@@ -9,7 +9,7 @@ import * as settingsService from './service.js';
  * @param {Object} req.body - Request body containing language settings
  * @param {string} req.body.language - Language code to save (e.g., 'en', 'es')
  * @param {number} [req.body.id] - Settings ID (for updates)
-* @param {string} req.userId - Authenticated user ID from token
+ * @param {string} req.userId - Authenticated user ID from token
  * @param {Object} res - The HTTP response object.
  * @returns {Promise<void>} Sends response with created/updated language settings
  */
@@ -31,7 +31,7 @@ export const createOrUpdateSettingsLanguage = handleCatchErrorAsync(
  * @param {Object} req.body - Request body containing display settings
  * @param {number} [req.body.id] - Settings ID (for updates)
  * @param {Object} req.body.displayOptions - Display options object
-* @param {string} req.userId - Authenticated user ID from token
+ * @param {string} req.userId - Authenticated user ID from token
  * @param {Object} res - The HTTP response object.
  * @returns {Promise<void>} Sends response with created/updated display settings
  */
@@ -145,7 +145,7 @@ export const deleteProductCategoryById = handleCatchErrorAsync(
 export const patchSettingsById = handleCatchErrorAsync(async (req, res) => {
   const settingsId = req.params.id;
   const { language, displayOptions } = req.body;
-  
+
   // Build update object with only provided fields
   const updateData = {};
   if (language !== undefined) {
@@ -154,15 +154,18 @@ export const patchSettingsById = handleCatchErrorAsync(async (req, res) => {
   if (displayOptions !== undefined) {
     updateData.displayOptions = displayOptions;
   }
-  
+
   // If there's nothing to update, return early
   if (Object.keys(updateData).length === 0) {
-    return globalResponse(res, 400, { 
-      error: true, 
-      message: 'No valid fields provided for update' 
+    return globalResponse(res, 400, {
+      error: true,
+      message: 'No valid fields provided for update',
     });
   }
-  
-  const result = await settingsService.patchSettingsById(settingsId, updateData);
+
+  const result = await settingsService.patchSettingsById(
+    settingsId,
+    updateData
+  );
   globalResponse(res, 200, result);
 });

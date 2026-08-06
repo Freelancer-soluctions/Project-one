@@ -147,8 +147,6 @@ router.post(
   createClient
 );
 
-
-
 /**
  * @openapi
  * /v1/clients/{id}:

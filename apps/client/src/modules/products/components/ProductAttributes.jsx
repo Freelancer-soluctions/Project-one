@@ -106,7 +106,9 @@ export const ProductAttributes = ({
                           <Input
                             id={`attribute-description-${index}`}
                             type="text"
-                            maxLength={FIELD_LIMITS.productAttributes.description}
+                            maxLength={
+                              FIELD_LIMITS.productAttributes.description
+                            }
                             autoComplete="off"
                             placeholder={t('attribute_value_placeholder')}
                             {...field}

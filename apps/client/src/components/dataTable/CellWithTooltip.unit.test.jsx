@@ -3,19 +3,15 @@ import { describe, it, expect, vi } from 'vitest';
 import { CellWithTooltip } from './cellWithTooltip';
 import { TooltipProvider } from '@/components/ui/tooltip';
 
-vi.mock('@tanstack/react-table', () => ({
-  flexRender: vi.fn(() => 'CellContent'),
-}));
-
 describe('CellWithTooltip - Unit', () => {
   it('renders cell content', () => {
     const mockCell = {
       column: {
         columnDef: {
-          cell: vi.fn(),
+          cell: () => 'CellContent',
         },
       },
-      getContext: vi.fn(),
+      getContext: vi.fn(() => ({})),
     };
 
     render(

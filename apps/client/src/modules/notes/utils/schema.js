@@ -14,10 +14,12 @@ export const NotesCreateDialogSchema = z
       code: z.string(),
       title: z.string(),
     }),
-    assignedUser: z.object({
-      id: z.number(),
-      name: z.string(),
-    }).optional(),
+    assignedUser: z
+      .object({
+        id: z.number(),
+        name: z.string(),
+      })
+      .optional(),
     hashtagIds: z.array(z.number()).optional(),
     isFavorite: z.boolean().optional(),
   })
@@ -31,15 +33,19 @@ export const notesEditDialogSchema = z
     content: z.string().min(1, {
       message: getZodMessage('zod.notes.content.empty'),
     }),
-    status: z.object({
-      id: z.number(),
-      code: z.string(),
-      title: z.string(),
-    }).optional(),
-    assignedUser: z.object({
-      id: z.number(),
-      name: z.string(),
-    }).optional(),
+    status: z
+      .object({
+        id: z.number(),
+        code: z.string(),
+        title: z.string(),
+      })
+      .optional(),
+    assignedUser: z
+      .object({
+        id: z.number(),
+        name: z.string(),
+      })
+      .optional(),
     hashtagIds: z.array(z.number()).optional(),
     isFavorite: z.boolean().optional(),
   })

@@ -6,9 +6,11 @@ export const AttendanceSchema = z
     employeeId: z.preprocess(
       (val) => (val === '' ? undefined : Number(val)), // Convert empty string to undefined, otherwise to number
       z
-        .number({ 
+        .number({
           required_error: getZodMessage('zod.attendance.employeeId.required'),
-          invalid_type_error: getZodMessage('zod.attendance.employeeId.required')
+          invalid_type_error: getZodMessage(
+            'zod.attendance.employeeId.required'
+          ),
         })
         .int()
         .positive(getZodMessage('zod.attendance.employeeId.positive'))
@@ -25,9 +27,11 @@ export const AttendanceSchema = z
     workedHours: z.preprocess(
       (val) => (val === '' ? undefined : Number(val)), // Convert empty string to undefined, otherwise to number
       z
-        .number({ 
+        .number({
           required_error: getZodMessage('zod.attendance.workedHours.required'),
-          invalid_type_error: getZodMessage('zod.attendance.workedHours.required')
+          invalid_type_error: getZodMessage(
+            'zod.attendance.workedHours.required'
+          ),
         })
         .int()
         .positive(getZodMessage('zod.attendance.workedHours.positive'))

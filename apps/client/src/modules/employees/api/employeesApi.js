@@ -43,25 +43,25 @@ const employeesApi = createApi({
       invalidatesTags: ['Employees'], // Invalida el cache de 'Employees' para volver a consultar
     }),
     updateEmployeeById: builder.mutation({
-       query: ({ id, data }) => ({
-         url: `/employees/${id}`,
-         method: 'PATCH',
-         body: data,
-       }),
-       invalidatesTags: ['Employees'], // Invalida el cache de 'Employees' para volver a consultar
-     }),
+      query: ({ id, data }) => ({
+        url: `/employees/${id}`,
+        method: 'PATCH',
+        body: data,
+      }),
+      invalidatesTags: ['Employees'], // Invalida el cache de 'Employees' para volver a consultar
+    }),
   }),
 });
 
 // Export hooks for usage in functional components, which are
 // auto-generated based on the defined endpoints
 export const {
-   useLazyGetAllEmployeesQuery,
-   useGetAllEmployeesQuery,
-   useGetAllEmployeesFiltersQuery,
-   useUpdateEmployeeByIdMutation,
-   useCreateEmployeeMutation,
-   useDeleteEmployeeByIdMutation,
+  useLazyGetAllEmployeesQuery,
+  useGetAllEmployeesQuery,
+  useGetAllEmployeesFiltersQuery,
+  useUpdateEmployeeByIdMutation,
+  useCreateEmployeeMutation,
+  useDeleteEmployeeByIdMutation,
 } = employeesApi;
 
 export default employeesApi;

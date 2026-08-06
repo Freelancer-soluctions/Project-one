@@ -1,13 +1,23 @@
 import { Server } from 'socket.io';
 import { createAuthMiddleware } from '../auth.js';
 import { joinUserRoom } from '../rooms.js';
-import { validateMessage, mentionNewSchema, mentionReadSchema } from '../events/schemas.js'
-import { handleMentionNew, handleMentionRead } from '../events/mentionEvents.js'
-import { getBus, BUS_EVENTS } from '../notificationBus.js'
-import { handleConnection, getMentionsBacklog } from '../handler.js'
-import { createSocketRateLimiter } from '../rateLimiter.js'
-import { setupMetricsMiddleware, setupSocketMetrics } from '../monitor/middleware.js'
-import { createAdapter } from '../adapter.js'
+import {
+  validateMessage,
+  mentionNewSchema,
+  mentionReadSchema,
+} from '../events/schemas.js';
+import {
+  handleMentionNew,
+  handleMentionRead,
+} from '../events/mentionEvents.js';
+import { getBus, BUS_EVENTS } from '../notificationBus.js';
+import { handleConnection, getMentionsBacklog } from '../handler.js';
+import { createSocketRateLimiter } from '../rateLimiter.js';
+import {
+  setupMetricsMiddleware,
+  setupSocketMetrics,
+} from '../monitor/middleware.js';
+import { createAdapter } from '../adapter.js';
 
 /**
  * Attaches Socket.IO to an existing HTTP server from Express.
@@ -51,8 +61,12 @@ export function attachSocketServer(httpServer) {
     socket.on('room:join', ({ userId }) => {
       const currentUserId = socket.data.user?.id;
       if (!currentUserId || userId !== currentUserId) {
-        console.log(`⚠️ Intento de room:join no autorizado: ${currentUserId} → ${userId}`);
-        return socket.emit('error:auth', { message: 'FORBIDDEN: No puedes unirte a la sala de otro usuario' });
+        console.log(
+          `⚠️ Intento de room:join no autorizado: ${currentUserId} → ${userId}`
+        );
+        return socket.emit('error:auth', {
+          message: 'FORBIDDEN: No puedes unirte a la sala de otro usuario',
+        });
       }
       joinUserRoom(io, socket, userId);
     });
@@ -73,43 +87,53 @@ export function attachSocketServer(httpServer) {
         const { type, payload } = data;
         switch (type) {
           case 'mention:new': {
-            const validation = validateMessage({ type, payload }, mentionNewSchema);
+            const validation = validateMessage(
+              { type, payload },
+              mentionNewSchema
+            );
             if (!validation.valid) {
-              return socket.emit('error:validation', { errors: validation.error });
+              return socket.emit('error:validation', {
+                errors: validation.error,
+              });
             }
             handleMentionNew(io, socket, validation.value.payload);
             break;
           }
-           case 'mention:read': {
-             const validation = validateMessage({ type, payload }, mentionReadSchema);
-             if (!validation.valid) {
-               return socket.emit('error:validation', { errors: validation.error });
-             }
-             await handleMentionRead(io, socket, validation.value.payload);
-             break;
-           }
-           case 'mention:backlog:request': {
-             try {
-               const userId = socket.data.user?.id;
-               if (!userId) {
-                 socket.emit('mention:backlog', { mentions: [] });
-                 break;
-               }
-               const backlog = await getMentionsBacklog(userId);
-               if (backlog && backlog.length > 0) {
-                 socket.emit('mention:backlog', { mentions: backlog });
-               } else {
-                 socket.emit('mention:backlog', { mentions: [] });
-               }
-             } catch (err) {
-               console.error('❌ Error getting mentions backlog:', err.message);
-               socket.emit('mention:backlog', { mentions: [] });
-             }
-             break;
-           }
-           default:
-             console.log(`⚠️ Tipo de evento desconocido: ${type}`);
-             socket.emit('error:unknown', { type });
+          case 'mention:read': {
+            const validation = validateMessage(
+              { type, payload },
+              mentionReadSchema
+            );
+            if (!validation.valid) {
+              return socket.emit('error:validation', {
+                errors: validation.error,
+              });
+            }
+            await handleMentionRead(io, socket, validation.value.payload);
+            break;
+          }
+          case 'mention:backlog:request': {
+            try {
+              const userId = socket.data.user?.id;
+              if (!userId) {
+                socket.emit('mention:backlog', { mentions: [] });
+                break;
+              }
+              const backlog = await getMentionsBacklog(userId);
+              if (backlog && backlog.length > 0) {
+                socket.emit('mention:backlog', { mentions: backlog });
+              } else {
+                socket.emit('mention:backlog', { mentions: [] });
+              }
+            } catch (err) {
+              console.error('❌ Error getting mentions backlog:', err.message);
+              socket.emit('mention:backlog', { mentions: [] });
+            }
+            break;
+          }
+          default:
+            console.log(`⚠️ Tipo de evento desconocido: ${type}`);
+            socket.emit('error:unknown', { type });
         }
       } catch (err) {
         console.error('❌ Error procesando mensaje:', err.message);
@@ -127,7 +151,10 @@ export function attachSocketServer(httpServer) {
   const bus = getBus();
 
   bus.on(BUS_EVENTS.MENTION_CREATED, (payload) => {
-    console.log('📢 Bus → WS: mención creada para usuario', payload.mentionedUserId);
+    console.log(
+      '📢 Bus → WS: mención creada para usuario',
+      payload.mentionedUserId
+    );
     io.to(`user:${payload.mentionedUserId}`).emit('mention:new', {
       type: 'mention:new',
       payload: {

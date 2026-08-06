@@ -117,9 +117,9 @@ cp apps/client/.env.example apps/client/.env
 
 # 4. Database setup
 cd apps/server
-npx prisma generate
-npx prisma migrate dev
-npx prisma db seed
+npm exec prisma -- generate
+npm exec prisma -- migrate dev
+npm exec prisma -- db seed
 cd ../..
 
 # 5. Start development servers
@@ -247,10 +247,10 @@ flowchart LR
 | Workflow | Trigger | Scope |
 |----------|---------|-------|
 | `ci.yml` | PR to `main` | Lint, format, test, build |
-| `ci-enterprise.yml` | Push to `main` | Full CI + security |
 | `quality.yml` | Reusable (called) | Code quality |
-| `security.yml` | PR to `main` | Semgrep, Trivy, Gitleaks |
-| `pr-validation.yml` | PR to `main` | PR metadata validation |
+| `security.yml` | PR to `main`, push to `main` | Semgrep, Trivy, Gitleaks, SBOM, Dependency Review |
+| `release.yml` | Push to `main` | Changesets release + npm publish |
+| `ci-enterprise.yml` | Push to `main` | Full CI + security (reference) |
 
 ---
 

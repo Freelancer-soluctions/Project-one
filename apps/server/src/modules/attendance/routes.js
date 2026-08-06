@@ -149,16 +149,14 @@ router.get(
  *               $ref: '#/components/schemas/Error'
  */
 router.post(
-   '/',
-   checkRoleAuthOrPermisssion({
-     allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER],
-     permissions: [PERMISSIONCODES.canCreateAttendance],
-   }),
-   validateSchema(attendanceCreateSchema),
-   createAttendance
- );
-
-
+  '/',
+  checkRoleAuthOrPermisssion({
+    allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER],
+    permissions: [PERMISSIONCODES.canCreateAttendance],
+  }),
+  validateSchema(attendanceCreateSchema),
+  createAttendance
+);
 
 /**
  * @openapi

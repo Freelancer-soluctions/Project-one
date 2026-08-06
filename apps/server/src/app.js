@@ -29,13 +29,18 @@ app.use(cookieParser());
 
 app.use(cors(corsOptions));
 
+// Health check endpoint (para validación de preview/CI)
+app.get('/health', (req, res) => {
+  res.status(200).json({ status: 'ok' });
+});
+
 // Endpoint para que Prometheus recolecte métricas del servidor WebSocket
 app.get('/metrics', async (req, res) => {
   try {
-    res.set('Content-Type', register.contentType)
-    res.end(await register.metrics())
+    res.set('Content-Type', register.contentType);
+    res.end(await register.metrics());
   } catch {
-    res.status(500).json({ error: 'Error al generar métricas' })
+    res.status(500).json({ error: 'Error al generar métricas' });
   }
 });
 
@@ -48,7 +53,7 @@ app.use('/api', (req, res, next) => {
 // Routes
 app.use('/api/v1', csrfConditional, routes);
 
-// Error hlandler
+// Error handler
 app.use(errorHandler);
 
 export default app;

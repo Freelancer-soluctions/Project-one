@@ -142,8 +142,6 @@ router.post(
   createPurchase
 );
 
-
-
 /**
  * @openapi
  * /v1/purchases/{id}:

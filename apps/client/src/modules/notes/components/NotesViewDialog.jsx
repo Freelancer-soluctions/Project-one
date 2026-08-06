@@ -38,9 +38,6 @@ export function NotesViewDialog({ note, open, onOpenChange }) {
     return mention?.mentionedByUser ?? null;
   }, [mentions]);
 
-  const isLoading = isLoadingMentions || isLoadingColumns;
-  const isError = isErrorMentions || isErrorColumns;
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[700px]">
@@ -105,7 +102,9 @@ export function NotesViewDialog({ note, open, onOpenChange }) {
             </div>
           ) : isErrorMentions ? null : mentionedByUser ? (
             <div className="flex items-center gap-2 text-sm">
-              <span className="text-muted-foreground">{t('mentioned_by')}:</span>
+              <span className="text-muted-foreground">
+                {t('mentioned_by')}:
+              </span>
               <div className="flex items-center gap-1.5">
                 {mentionedByUser.picture && (
                   <img

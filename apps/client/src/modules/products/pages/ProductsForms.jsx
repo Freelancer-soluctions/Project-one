@@ -27,11 +27,17 @@ function ProductsForms() {
   const location = useLocation();
   const [attributes, setAttributes] = useState([]);
 
-const selectedRow = useMemo(() => {
-  return location.state?.row ?? null;
-}, [location.state?.row]);
+  const selectedRow = useMemo(() => {
+    return location.state?.row ?? null;
+  }, [location.state?.row]);
 
-const { datastatus, dataCategory, dataProviders, isLoadingFilters, isFetchingFilters } = useProductsFilterData();
+  const {
+    datastatus,
+    dataCategory,
+    dataProviders,
+    isLoadingFilters,
+    isFetchingFilters,
+  } = useProductsFilterData();
 
   const [saveProduct, { isLoading: isLoadingPost }] =
     useCreateProductMutation();
@@ -125,22 +131,28 @@ const { datastatus, dataCategory, dataProviders, isLoadingFilters, isFetchingFil
     }
   };
 
-const [
-  getProductAttributes,
-  { isLoading: isLoadingAttributes, isFetching: isFetchingAttributes },
-] = useLazyGetAllProductAttributesQuery();
+  const [
+    getProductAttributes,
+    { isLoading: isLoadingAttributes, isFetching: isFetchingAttributes },
+  ] = useLazyGetAllProductAttributesQuery();
   const [deleteProductAttributeById, { isLoading: isLoadingDeleteAttribute }] =
     useDeleteProductAttributeByIdMutation();
 
   const [saveProductAttributes, { isLoading: isLoadingSaveAttributes }] =
     useSaveProductAttributesMutation();
 
-  const { isLoading: isLoadingQueries, isFetching: isFetchingQueries } = useLoadingState([
-    { isLoading: isLoadingFilters, isFetching: isFetchingFilters },
-    { isLoading: isLoadingAttributes, isFetching: isFetchingAttributes },
-  ]);
+  const { isLoading: isLoadingQueries, isFetching: isFetchingQueries } =
+    useLoadingState([
+      { isLoading: isLoadingFilters, isFetching: isFetchingFilters },
+      { isLoading: isLoadingAttributes, isFetching: isFetchingAttributes },
+    ]);
 
-  const isLoadingMutations = isLoadingPost || isLoadingPut || isLoadingDelete || isLoadingDeleteAttribute || isLoadingSaveAttributes;
+  const isLoadingMutations =
+    isLoadingPost ||
+    isLoadingPut ||
+    isLoadingDelete ||
+    isLoadingDeleteAttribute ||
+    isLoadingSaveAttributes;
 
   useEffect(() => {
     if (selectedRow?.id) {
@@ -253,8 +265,10 @@ const [
         link={'/home/products'}
         moduleName={selectedRow?.id ? t('edit_product') : t('new_product')}
       />
-        <div className="relative">
-         {(isLoadingQueries || isFetchingQueries || isLoadingMutations) && <Spinner />}
+      <div className="relative">
+        {(isLoadingQueries || isFetchingQueries || isLoadingMutations) && (
+          <Spinner />
+        )}
 
         <div className="container flex flex-col min-h-screen">
           <main className="container flex-1 py-6">

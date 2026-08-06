@@ -52,8 +52,6 @@ export const createExpense = async (data, userId) => {
   return createExpenseDao(expenseData);
 };
 
-
-
 /**
  * Deletes an expense from the database by its ID.
  *

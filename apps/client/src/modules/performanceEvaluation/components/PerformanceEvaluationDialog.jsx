@@ -64,16 +64,18 @@ export const PerformanceEvaluationDialog = ({
     [selectedRow?.id]
   );
 
-   const form = useForm({
-     resolver: zodResolver(PerformanceEvaluationSchema),
-     defaultValues: {
-       employeeId: '',
-       date: undefined,
-       calification: '', // Use string for Select/Input
-       comments: '',
-     },
-   });
-   const { formState: { dirtyFields } } = form;
+  const form = useForm({
+    resolver: zodResolver(PerformanceEvaluationSchema),
+    defaultValues: {
+      employeeId: '',
+      date: undefined,
+      calification: '', // Use string for Select/Input
+      comments: '',
+    },
+  });
+  const {
+    formState: { dirtyFields },
+  } = form;
 
   useEffect(() => {
     if (selectedRow?.id) {
@@ -98,19 +100,19 @@ export const PerformanceEvaluationDialog = ({
     }
   }, [selectedRow, openDialog, form]);
 
-   const handleSubmit = (data) => {
-     const submissionData = {
-       ...data,
-       date: data.date ? format(data.date, 'yyyy-MM-dd') : null,
-       calification: Number(data.calification),
-     };
-     if (evaluationId) {
-       const changes = pickDirty(submissionData, dirtyFields);
-       onSubmit({ id: evaluationId, body: changes });
-     } else {
-       onSubmit(submissionData);
-     }
-   };
+  const handleSubmit = (data) => {
+    const submissionData = {
+      ...data,
+      date: data.date ? format(data.date, 'yyyy-MM-dd') : null,
+      calification: Number(data.calification),
+    };
+    if (evaluationId) {
+      const changes = pickDirty(submissionData, dirtyFields);
+      onSubmit({ id: evaluationId, body: changes });
+    } else {
+      onSubmit(submissionData);
+    }
+  };
 
   const handleDelete = () => {
     if (selectedRow?.id) {
@@ -277,16 +279,16 @@ export const PerformanceEvaluationDialog = ({
                     {' '}
                     {/* Span across two columns */}
                     <FormLabel htmlFor="comments">{t('comments')}</FormLabel>
-<FormControl>
-                        <Textarea
-                          id="comments"
-                          name="comments"
-                          placeholder={t('evaluation_comments_placeholder')}
-                          maxLength={FIELD_LIMITS.performanceEvaluation.comments}
-                          rows={4}
-                          {...field}
-                          value={field.value ?? ''}
-                        />
+                    <FormControl>
+                      <Textarea
+                        id="comments"
+                        name="comments"
+                        placeholder={t('evaluation_comments_placeholder')}
+                        maxLength={FIELD_LIMITS.performanceEvaluation.comments}
+                        rows={4}
+                        {...field}
+                        value={field.value ?? ''}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

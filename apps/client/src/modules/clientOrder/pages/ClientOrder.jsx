@@ -88,7 +88,10 @@ const ClientOrder = () => {
   const handleSubmit = async (result) => {
     try {
       if (result?.id) {
-        await updateClientOrderById({ id: result.id, data: result.body }).unwrap();
+        await updateClientOrderById({
+          id: result.id,
+          data: result.body,
+        }).unwrap();
       } else {
         await createClientOrder(result).unwrap();
       }

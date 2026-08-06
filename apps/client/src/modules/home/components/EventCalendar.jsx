@@ -1,5 +1,5 @@
-import * as React from "react"
-import PropTypes from "prop-types"
+import * as React from 'react';
+import PropTypes from 'prop-types';
 import {
   startOfMonth,
   endOfMonth,
@@ -12,8 +12,8 @@ import {
   addMonths,
   subMonths,
   parseISO,
-} from "date-fns"
-import { es } from "date-fns/locale"
+} from 'date-fns';
+import { es } from 'date-fns/locale';
 import {
   ChevronLeft,
   ChevronRight,
@@ -21,62 +21,64 @@ import {
   MapPin,
   Video,
   Globe,
-} from "lucide-react"
+} from 'lucide-react';
 
-import { cn } from "@/lib/utils"
-import { Card } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { ScrollArea } from "@/components/ui/scroll-area"
-import { Skeleton } from "@/components/ui/skeleton"
+import { cn } from '@/lib/utils';
+import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Skeleton } from '@/components/ui/skeleton';
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "@/components/ui/tooltip"
+} from '@/components/ui/tooltip';
 
-const WEEKDAYS = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"]
+const WEEKDAYS = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
 
 // Mapeo de tipo de evento -> color del bullet
 function getEventColor(description) {
-  switch ((description || "").toUpperCase()) {
-    case "CONFERENCE":
-      return "bg-emerald-500"
-    case "WORKSHOP":
-      return "bg-blue-500"
-    case "SESSION":
-      return "bg-purple-500"
+  switch ((description || '').toUpperCase()) {
+    case 'CONFERENCE':
+      return 'bg-emerald-500';
+    case 'WORKSHOP':
+      return 'bg-blue-500';
+    case 'SESSION':
+      return 'bg-purple-500';
     default:
-      return "bg-gray-500"
+      return 'bg-gray-500';
   }
 }
 
 // Icono de modalidad
 function ModalityIcon({ modality, className }) {
-  if (modality === "ONLINE") return <Video className={className} aria-hidden="true" />
-  if (modality === "HYBRID") return <Globe className={className} aria-hidden="true" />
-  return null
+  if (modality === 'ONLINE')
+    return <Video className={className} aria-hidden="true" />;
+  if (modality === 'HYBRID')
+    return <Globe className={className} aria-hidden="true" />;
+  return null;
 }
 
 ModalityIcon.propTypes = {
   modality: PropTypes.string,
   className: PropTypes.string,
-}
+};
 
 // Hook simple para detectar viewport mobile (<768px)
 function useIsMobile() {
-  const [isMobile, setIsMobile] = React.useState(false)
+  const [isMobile, setIsMobile] = React.useState(false);
 
   React.useEffect(() => {
-    const mql = window.matchMedia("(max-width: 767px)")
-    const onChange = () => setIsMobile(mql.matches)
-    onChange()
-    mql.addEventListener("change", onChange)
-    return () => mql.removeEventListener("change", onChange)
-  }, [])
+    const mql = window.matchMedia('(max-width: 767px)');
+    const onChange = () => setIsMobile(mql.matches);
+    onChange();
+    mql.addEventListener('change', onChange);
+    return () => mql.removeEventListener('change', onChange);
+  }, []);
 
-  return isMobile
+  return isMobile;
 }
 
 // Tooltip con detalle completo del evento
@@ -87,18 +89,23 @@ function EventTooltipContent({ event }) {
       <p className="text-xs">
         {event.startTime} - {event.endTime}
       </p>
-      {event.speaker ? <p className="text-xs">Speaker: {event.speaker}</p> : null}
-      {event.location ? <p className="text-xs">Ubicación: {event.location}</p> : null}
-      {event.meetingUrl && (event.modality === "ONLINE" || event.modality === "HYBRID") ? (
+      {event.speaker ? (
+        <p className="text-xs">Speaker: {event.speaker}</p>
+      ) : null}
+      {event.location ? (
+        <p className="text-xs">Ubicación: {event.location}</p>
+      ) : null}
+      {event.meetingUrl &&
+      (event.modality === 'ONLINE' || event.modality === 'HYBRID') ? (
         <p className="text-xs">Reunión en línea</p>
       ) : null}
     </div>
-  )
+  );
 }
 
 EventTooltipContent.propTypes = {
   event: PropTypes.object.isRequired,
-}
+};
 
 // Chip de evento dentro de una celda del grid
 function EventChip({ event, compact, onClick }) {
@@ -108,36 +115,44 @@ function EventChip({ event, compact, onClick }) {
         <button
           type="button"
           onClick={(e) => {
-            e.stopPropagation()
-            onClick?.(event)
+            e.stopPropagation();
+            onClick?.(event);
           }}
           className={cn(
-            "flex w-full items-center gap-1.5 rounded-sm px-1 py-0.5 text-left text-xs transition-colors hover:bg-muted/50",
+            'flex w-full items-center gap-1.5 rounded-sm px-1 py-0.5 text-left text-xs transition-colors hover:bg-muted/50'
           )}
         >
           <span
-            className={cn("size-2 shrink-0 rounded-full", getEventColor(event.eventTypeDescription))}
+            className={cn(
+              'size-2 shrink-0 rounded-full',
+              getEventColor(event.eventTypeDescription)
+            )}
             aria-hidden="true"
           />
           {!compact ? (
-            <span className="shrink-0 tabular-nums text-muted-foreground">{event.startTime}</span>
+            <span className="shrink-0 tabular-nums text-muted-foreground">
+              {event.startTime}
+            </span>
           ) : null}
           <span className="line-clamp-1 flex-1 font-medium">{event.title}</span>
-          <ModalityIcon modality={event.modality} className="size-3 shrink-0 text-muted-foreground" />
+          <ModalityIcon
+            modality={event.modality}
+            className="size-3 shrink-0 text-muted-foreground"
+          />
         </button>
       </TooltipTrigger>
       <TooltipContent side="top">
         <EventTooltipContent event={event} />
       </TooltipContent>
     </Tooltip>
-  )
+  );
 }
 
 EventChip.propTypes = {
   event: PropTypes.object.isRequired,
   compact: PropTypes.bool,
   onClick: PropTypes.func,
-}
+};
 
 // Skeleton de carga: 5 filas x 7 columnas
 function CalendarSkeleton() {
@@ -156,7 +171,7 @@ function CalendarSkeleton() {
         </div>
       ))}
     </div>
-  )
+  );
 }
 
 function EventCalendar({
@@ -167,68 +182,80 @@ function EventCalendar({
   onMonthChange,
   className,
 }) {
-  const [currentMonth, setCurrentMonth] = React.useState(() => startOfMonth(new Date()))
-  const isMobile = useIsMobile()
+  const [currentMonth, setCurrentMonth] = React.useState(() =>
+    startOfMonth(new Date())
+  );
+  const isMobile = useIsMobile();
 
   const goToMonth = React.useCallback(
     (month) => {
-      const normalized = startOfMonth(month)
-      setCurrentMonth(normalized)
-      onMonthChange?.(normalized)
+      const normalized = startOfMonth(month);
+      setCurrentMonth(normalized);
+      onMonthChange?.(normalized);
     },
-    [onMonthChange],
-  )
+    [onMonthChange]
+  );
 
-  const isCurrentMonth = isSameMonth(currentMonth, new Date())
+  const isCurrentMonth = isSameMonth(currentMonth, new Date());
 
   // Agrupa eventos por fecha "YYYY-MM-DD" y los ordena por hora de inicio
   const eventsByDate = React.useMemo(() => {
-    const map = new Map()
+    const map = new Map();
     for (const event of events) {
-      const list = map.get(event.eventDate) || []
-      list.push(event)
-      map.set(event.eventDate, list)
+      const list = map.get(event.eventDate) || [];
+      list.push(event);
+      map.set(event.eventDate, list);
     }
     for (const list of map.values()) {
-      list.sort((a, b) => a.startTime.localeCompare(b.startTime))
+      list.sort((a, b) => a.startTime.localeCompare(b.startTime));
     }
-    return map
-  }, [events])
+    return map;
+  }, [events]);
 
   const getEventsForDay = React.useCallback(
-    (day) => eventsByDate.get(format(day, "yyyy-MM-dd")) || [],
-    [eventsByDate],
-  )
+    (day) => eventsByDate.get(format(day, 'yyyy-MM-dd')) || [],
+    [eventsByDate]
+  );
 
   // Días visibles del grid (semanas completas, lunes a domingo)
   const calendarDays = React.useMemo(() => {
-    const start = startOfWeek(startOfMonth(currentMonth), { weekStartsOn: 1 })
-    const end = endOfWeek(endOfMonth(currentMonth), { weekStartsOn: 1 })
-    return eachDayOfInterval({ start, end })
-  }, [currentMonth])
+    const start = startOfWeek(startOfMonth(currentMonth), { weekStartsOn: 1 });
+    const end = endOfWeek(endOfMonth(currentMonth), { weekStartsOn: 1 });
+    return eachDayOfInterval({ start, end });
+  }, [currentMonth]);
 
   // Eventos del mes para la vista mobile, ordenados por fecha + hora
   const monthEvents = React.useMemo(() => {
     return events
       .filter((e) => isSameMonth(parseISO(e.eventDate), currentMonth))
       .sort((a, b) => {
-        const dateCmp = a.eventDate.localeCompare(b.eventDate)
-        return dateCmp !== 0 ? dateCmp : a.startTime.localeCompare(b.startTime)
-      })
-  }, [events, currentMonth])
+        const dateCmp = a.eventDate.localeCompare(b.eventDate);
+        return dateCmp !== 0 ? dateCmp : a.startTime.localeCompare(b.startTime);
+      });
+  }, [events, currentMonth]);
 
-  const monthLabel = format(currentMonth, "LLLL yyyy", { locale: es })
-  const capitalizedMonth = monthLabel.charAt(0).toUpperCase() + monthLabel.slice(1)
+  const monthLabel = format(currentMonth, 'LLLL yyyy', { locale: es });
+  const capitalizedMonth =
+    monthLabel.charAt(0).toUpperCase() + monthLabel.slice(1);
 
   const Header = (
     <div className="flex items-center justify-between gap-2 border-b p-3">
       <div className="flex items-center gap-2">
-        <CalendarIcon className="size-5 text-muted-foreground" aria-hidden="true" />
-        <h2 className="text-base font-semibold capitalize">{capitalizedMonth}</h2>
+        <CalendarIcon
+          className="size-5 text-muted-foreground"
+          aria-hidden="true"
+        />
+        <h2 className="text-base font-semibold capitalize">
+          {capitalizedMonth}
+        </h2>
       </div>
       <div className="flex items-center gap-1">
         {!isCurrentMonth ? (
-          <Button variant="outline" size="sm" onClick={() => goToMonth(new Date())}>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => goToMonth(new Date())}
+          >
             Hoy
           </Button>
         ) : null}
@@ -250,13 +277,13 @@ function EventCalendar({
         </Button>
       </div>
     </div>
-  )
+  );
 
   // Vista mobile: lista vertical agrupada por día
   if (isMobile) {
     return (
       <TooltipProvider>
-        <Card className={cn("flex h-full flex-col overflow-hidden", className)}>
+        <Card className={cn('flex h-full flex-col overflow-hidden', className)}>
           {Header}
           <ScrollArea className="flex-1">
             {isLoading ? (
@@ -275,7 +302,9 @@ function EventCalendar({
                 {groupByDay(monthEvents).map(({ dateKey, dayEvents }) => (
                   <div key={dateKey} className="p-4">
                     <p className="mb-2 text-sm font-semibold capitalize text-muted-foreground">
-                      {format(parseISO(dateKey), "EEE d 'de' MMMM", { locale: es })}
+                      {format(parseISO(dateKey), "EEE d 'de' MMMM", {
+                        locale: es,
+                      })}
                     </p>
                     <div className="space-y-3">
                       {dayEvents.map((event) => (
@@ -288,8 +317,8 @@ function EventCalendar({
                           <div className="flex items-center gap-2">
                             <span
                               className={cn(
-                                "size-2.5 shrink-0 rounded-full",
-                                getEventColor(event.eventTypeDescription),
+                                'size-2.5 shrink-0 rounded-full',
+                                getEventColor(event.eventTypeDescription)
                               )}
                               aria-hidden="true"
                             />
@@ -315,7 +344,8 @@ function EventCalendar({
                             </p>
                           ) : null}
                           {event.meetingUrl &&
-                          (event.modality === "ONLINE" || event.modality === "HYBRID") ? (
+                          (event.modality === 'ONLINE' ||
+                            event.modality === 'HYBRID') ? (
                             <p className="flex items-center gap-1 pl-[18px] text-xs text-primary">
                               <Video className="size-3" /> Unirse a la reunión
                             </p>
@@ -330,13 +360,13 @@ function EventCalendar({
           </ScrollArea>
         </Card>
       </TooltipProvider>
-    )
+    );
   }
 
   // Vista desktop/tablet: grid mensual
   return (
     <TooltipProvider>
-      <Card className={cn("flex h-full flex-col overflow-hidden", className)}>
+      <Card className={cn('flex h-full flex-col overflow-hidden', className)}>
         {Header}
         {isLoading ? (
           <div className="flex-1 p-2">
@@ -361,30 +391,31 @@ function EventCalendar({
             <ScrollArea className="flex-1">
               <div className="grid grid-cols-7">
                 {calendarDays.map((day) => {
-                  const dayEvents = getEventsForDay(day)
-                  const inMonth = isSameMonth(day, currentMonth)
-                  const today = isToday(day)
-                  const visible = dayEvents.slice(0, 2)
-                  const remaining = dayEvents.length - visible.length
+                  const dayEvents = getEventsForDay(day);
+                  const inMonth = isSameMonth(day, currentMonth);
+                  const today = isToday(day);
+                  const visible = dayEvents.slice(0, 2);
+                  const remaining = dayEvents.length - visible.length;
 
                   return (
                     <div
                       key={day.toISOString()}
                       onClick={() => onDateClick?.(day)}
                       className={cn(
-                        "min-h-[80px] cursor-pointer border-b border-r p-1.5 last:border-r-0 lg:min-h-[100px]",
-                        !inMonth && "bg-muted/30",
+                        'min-h-[80px] cursor-pointer border-b border-r p-1.5 last:border-r-0 lg:min-h-[100px]',
+                        !inMonth && 'bg-muted/30'
                       )}
                     >
                       <div className="mb-1 flex items-center justify-between">
                         <span
                           className={cn(
-                            "flex size-6 items-center justify-center rounded-full text-xs",
-                            !inMonth && "text-muted-foreground/50",
-                            today && "bg-primary font-semibold text-primary-foreground",
+                            'flex size-6 items-center justify-center rounded-full text-xs',
+                            !inMonth && 'text-muted-foreground/50',
+                            today &&
+                              'bg-primary font-semibold text-primary-foreground'
                           )}
                         >
-                          {format(day, "d")}
+                          {format(day, 'd')}
                         </span>
                       </div>
                       <div className="space-y-0.5">
@@ -422,12 +453,18 @@ function EventCalendar({
                                   >
                                     <span
                                       className={cn(
-                                        "size-2 shrink-0 rounded-full",
-                                        getEventColor(event.eventTypeDescription),
+                                        'size-2 shrink-0 rounded-full',
+                                        getEventColor(
+                                          event.eventTypeDescription
+                                        )
                                       )}
                                     />
-                                    <span className="tabular-nums">{event.startTime}</span>
-                                    <span className="line-clamp-1">{event.title}</span>
+                                    <span className="tabular-nums">
+                                      {event.startTime}
+                                    </span>
+                                    <span className="line-clamp-1">
+                                      {event.title}
+                                    </span>
                                   </button>
                                 ))}
                               </div>
@@ -436,7 +473,7 @@ function EventCalendar({
                         ) : null}
                       </div>
                     </div>
-                  )
+                  );
                 })}
               </div>
             </ScrollArea>
@@ -444,31 +481,36 @@ function EventCalendar({
         )}
       </Card>
     </TooltipProvider>
-  )
+  );
 }
 
 // Estado vacío reutilizable
 function EmptyState() {
   return (
     <div className="flex flex-1 flex-col items-center justify-center gap-2 p-12 text-center">
-      <CalendarIcon className="size-10 text-muted-foreground/50" aria-hidden="true" />
-      <p className="text-sm text-muted-foreground">No hay eventos para este mes</p>
+      <CalendarIcon
+        className="size-10 text-muted-foreground/50"
+        aria-hidden="true"
+      />
+      <p className="text-sm text-muted-foreground">
+        No hay eventos para este mes
+      </p>
     </div>
-  )
+  );
 }
 
 // Agrupa una lista de eventos (ya ordenada) por su fecha
 function groupByDay(sortedEvents) {
-  const groups = []
-  const indexByKey = new Map()
+  const groups = [];
+  const indexByKey = new Map();
   for (const event of sortedEvents) {
     if (!indexByKey.has(event.eventDate)) {
-      indexByKey.set(event.eventDate, groups.length)
-      groups.push({ dateKey: event.eventDate, dayEvents: [] })
+      indexByKey.set(event.eventDate, groups.length);
+      groups.push({ dateKey: event.eventDate, dayEvents: [] });
     }
-    groups[indexByKey.get(event.eventDate)].dayEvents.push(event)
+    groups[indexByKey.get(event.eventDate)].dayEvents.push(event);
   }
-  return groups
+  return groups;
 }
 
 EventCalendar.propTypes = {
@@ -485,14 +527,14 @@ EventCalendar.propTypes = {
       modality: PropTypes.string,
       meetingUrl: PropTypes.string,
       location: PropTypes.string,
-    }),
+    })
   ).isRequired,
   isLoading: PropTypes.bool,
   onEventClick: PropTypes.func,
   onDateClick: PropTypes.func,
   onMonthChange: PropTypes.func,
   className: PropTypes.string,
-}
+};
 
-export default EventCalendar
-export { EventCalendar }
+export default EventCalendar;
+export { EventCalendar };

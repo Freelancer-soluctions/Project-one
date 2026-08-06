@@ -1,5 +1,9 @@
 import { Router } from 'express';
-import { NewsCreateSchema, NewsFilters, NewsUpdate } from './schemas/news.joi.js';
+import {
+  NewsCreateSchema,
+  NewsFilters,
+  NewsUpdate,
+} from './schemas/news.joi.js';
 import * as newsController from './controller.js';
 import upload from '../../utils/multer/multer.js';
 import {
@@ -173,19 +177,15 @@ router.get(
  */
 
 router.post(
-   '/',
-   checkRoleAuthOrPermisssion({
-     allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER, ROLESCODES.USER],
-     permissions: [PERMISSIONCODES.canCreateNews],
-   }),
-   validateSchema(NewsCreateSchema),
-   upload.single('document'),
-   newsController.createNew
- );
-
-
-
-
+  '/',
+  checkRoleAuthOrPermisssion({
+    allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER, ROLESCODES.USER],
+    permissions: [PERMISSIONCODES.canCreateNews],
+  }),
+  validateSchema(NewsCreateSchema),
+  upload.single('document'),
+  newsController.createNew
+);
 
 /**
  * @openapi
@@ -244,16 +244,16 @@ router.post(
  */
 
 router.patch(
-   '/:id',
-   checkRoleAuthOrPermisssion({
-     allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER, ROLESCODES.USER],
-     permissions: [PERMISSIONCODES.canEditNews],
-   }),
-   validatePathParam,
-   validateSchema(NewsUpdate),
-   upload.single('document'),
-   newsController.updateById
- );
+  '/:id',
+  checkRoleAuthOrPermisssion({
+    allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER, ROLESCODES.USER],
+    permissions: [PERMISSIONCODES.canEditNews],
+  }),
+  validatePathParam,
+  validateSchema(NewsUpdate),
+  upload.single('document'),
+  newsController.updateById
+);
 
 /**
  * @openapi

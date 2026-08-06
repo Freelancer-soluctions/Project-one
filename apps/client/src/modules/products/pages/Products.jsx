@@ -17,22 +17,25 @@ const Products = () => {
   });
   const [filters, setFilters] = useState({});
 
-  const { datastatus, dataCategory, dataProviders, isLoadingFilters, isFetchingFilters } = useProductsFilterData();
+  const {
+    datastatus,
+    dataCategory,
+    dataProviders,
+    isLoadingFilters,
+    isFetchingFilters,
+  } = useProductsFilterData();
 
   // filter form
   const [
     trigger,
-    {
-      data: dataProducts = { data: [] },
-      isLoading,
-      isFetching,
-    },
+    { data: dataProducts = { data: [] }, isLoading, isFetching },
   ] = useLazyGetAllProductsQuery();
 
-  const { isLoading: isLoadingAny, isFetching: isFetchingAny } = useLoadingState([
-    { isLoading, isFetching },
-    { isLoading: isLoadingFilters, isFetching: isFetchingFilters },
-  ]);
+  const { isLoading: isLoadingAny, isFetching: isFetchingAny } =
+    useLoadingState([
+      { isLoading, isFetching },
+      { isLoading: isLoadingFilters, isFetching: isFetchingFilters },
+    ]);
 
   /**
    * Este efecto es la única fuente de verdad para disparar
@@ -82,7 +85,7 @@ const Products = () => {
       <BackDashBoard link={'/home'} moduleName={t('products')} />
       <div className="relative">
         {/* Show spinner when loading or fetching */}
-{(isLoadingAny || isFetchingAny) && <Spinner />}
+        {(isLoadingAny || isFetchingAny) && <Spinner />}
 
         <div className="grid grid-cols-2 grid-rows-4 gap-4 md:grid-cols-5">
           {/* filters */}
@@ -97,12 +100,12 @@ const Products = () => {
           </div>
           {/* Datatable */}
           <div className="flex flex-wrap w-full col-span-2 row-span-3 row-start-2 md:col-span-5">
-<ProductsDatatable
-  dataProducts={dataProducts?.data ?? { dataList: [], total: 0 }}
-  onOpenProductsForms={handleProductsForms}
-  pagination={pagination}
-  onPaginationChange={setPagination}
-/>
+            <ProductsDatatable
+              dataProducts={dataProducts?.data ?? { dataList: [], total: 0 }}
+              onOpenProductsForms={handleProductsForms}
+              pagination={pagination}
+              onPaginationChange={setPagination}
+            />
           </div>
         </div>
       </div>

@@ -27,13 +27,13 @@ const eventsApi = createApi({
     }),
 
     updateEventById: builder.mutation({
-       query: ({ id, data }) => ({
-         url: `/events/${id}`,
-         method: 'PATCH',
-         body: { ...data },
-       }),
-       invalidatesTags: ['Events'], // Invalida el cache de 'Events' para volver a consultar
-     }),
+      query: ({ id, data }) => ({
+        url: `/events/${id}`,
+        method: 'PATCH',
+        body: { ...data },
+      }),
+      invalidatesTags: ['Events'], // Invalida el cache de 'Events' para volver a consultar
+    }),
     createEvent: builder.mutation({
       query: (body) => ({
         url: `/events/`,
@@ -88,16 +88,16 @@ const eventsApi = createApi({
 // Export hooks for usage in functional components, which are
 // auto-generated based on the defined endpoints
 export const {
-   useGetAllEventsQuery,
-   useLazyGetAllEventsQuery,
-   useCreateEventMutation,
-   useGetAllEventTypesQuery,
-   useUpdateEventByIdMutation,
-   useDeleteEventByIdMutation,
-   useRegisterForEventMutation,
-   useCancelRegistrationMutation,
-   useLazyListAttendeesQuery,
-   useUpdateAttendeeStatusMutation,
- } = eventsApi;
+  useGetAllEventsQuery,
+  useLazyGetAllEventsQuery,
+  useCreateEventMutation,
+  useGetAllEventTypesQuery,
+  useUpdateEventByIdMutation,
+  useDeleteEventByIdMutation,
+  useRegisterForEventMutation,
+  useCancelRegistrationMutation,
+  useLazyListAttendeesQuery,
+  useUpdateAttendeeStatusMutation,
+} = eventsApi;
 
 export default eventsApi;

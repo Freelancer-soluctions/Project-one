@@ -763,6 +763,99 @@ The `## SELF-VALIDATION` sections in all 8 agent prompts (`docs/opencode/prompts
 
 ---
 
+## Subagent Silent Exit Audit
+
+### Overview
+
+The Subagent Silent Exit Audit system captures and logs instances where a subagent completes its internal tool calls but produces no output or an output without a valid `<output-contract>` envelope. This is a known failure mode (AI SDK v6 maps finish reason `'other'` to terminal success, causing empty `<task_result>` serialization).
+
+Two log files capture complementary views of this problem:
+
+1. **Layer 2 (Plugin) — `contract-audit.jsonl`**: Marks **candidates** for silent exit detection at the validation layer
+2. **Layer 3 (Orchestrator) — `subagent-silent-exit-audit.jsonl`**: Records **recovery outcomes** from the orchestrator's retry protocol
+
+### Layer 2: Plugin Candidate Detection (`silent_exit_candidate`)
+
+**File**: `.opencode/logs/contract-audit.jsonl`
+
+**Trigger**: The `extractTaskResult()` function in `.opencode/plugins/output-contracts.ts` returns `null` (empty `<task_result>` body or missing wrapper).
+
+**Entry Schema**:
+```json
+{
+  "eventType": "silent_exit_candidate",
+  "timestamp": "2025-01-15T10:30:00.000Z",
+  "agent": "developer",
+  "sessionId": "sess_abc123",
+  "task": "Implement JWT middleware",
+  "retryCount": 0
+}
+```
+
+**Fields**:
+| Field | Type | Description |
+|-------|------|-------------|
+| `eventType` | string | Always `"silent_exit_candidate"` |
+| `timestamp` | ISO 8601 | When the candidate was detected |
+| `agent` | string | Subagent name from `input.args.subagent_type` |
+| `sessionId` | string | OpenCode session ID from `input.sessionID` |
+| `task` | string | Task title from `output.title` or `"(unknown task)"` |
+| `retryCount` | integer | Always `0` — this is detection, not recovery |
+
+**Behavior**: 
+- Logged in addition to the existing `console.warn`
+- Write failure is non-fatal (caught + `console.error`, session continues)
+- **Does not** fire for envelope-less responses (text without `<output-contract>` envelope) — those produce a `"contract-validation"` entry instead
+
+### Layer 3: Orchestrator Recovery (`subagent.silent_exit`)
+
+**File**: `.opencode/logs/subagent-silent-exit-audit.jsonl`
+
+**Trigger**: Orchestrator detects silent exit per the `orchestrator-retry-protocol` spec (Layer-3 Retry Protocol section in `orchestrator.md`).
+
+**Entry Schema**:
+```json
+{
+  "eventType": "subagent.silent_exit",
+  "timestamp": "2025-01-15T10:30:00.000Z",
+  "session_id": "sess_abc123",
+  "delegatedAgent": "developer",
+  "retryCount": 1,
+  "failureReason": "empty_task_result"
+}
+```
+
+**Fields**:
+| Field | Type | Description |
+|-------|------|-------------|
+| `eventType` | string | Always `"subagent.silent_exit"` |
+| `timestamp` | ISO 8601 | When the silent exit was detected |
+| `session_id` | string | OpenCode session ID |
+| `delegatedAgent` | string | Target subagent name |
+| `retryCount` | integer | Retry attempt number (1, 2, or 3) |
+| `failureReason` | enum | `"empty_task_result"` \| `"missing_envelope"` |
+
+**Write Mechanism**: Bash append via `mkdir -p .opencode/logs && echo '<JSON>' >> .opencode/logs/subagent-silent-exit-audit.jsonl`
+
+### Relationship Between Layers
+
+| Aspect | Layer 2 (Plugin) | Layer 3 (Orchestrator) |
+|--------|------------------|------------------------|
+| **Timing** | Immediately on hook fire (after tool execution) | After parsing `<task_result>` in orchestrator prompt |
+| **Ownership** | Validator observes empty extraction | Orchestrator recovers via re-delegation |
+| **Log File** | `contract-audit.jsonl` | `subagent-silent-exit-audit.jsonl` |
+| **Retry Context** | `retryCount: 0` (detection only) | `retryCount: 1..3` (recovery attempt) |
+
+### Classification Boundary (Important)
+
+**Envelope-less responses** (raw text output without `<output-contract>` XML envelope):
+- **Plugin (Layer 2)**: Produces a `"contract-validation"` entry (validation failure on missing envelope) — **NOT** `"silent_exit_candidate"`
+- **Orchestrator (Layer 3)**: Treats as silent exit per `orchestrator-retry-protocol` spec — parses `<task_result>`, finds no envelope, classifies as silent exit, triggers retry protocol
+
+This boundary exists because the plugin's `extractTaskResult()` successfully extracts the text content (it's not empty), but the validator rejects it for missing envelope. The orchestrator, however, sees the same empty-envelope condition and treats it as silent exit.
+
+---
+
 ## Related OpenSpec Changes
 
 | Change | Status | Description |

@@ -3,15 +3,17 @@ import { extractMentionIds } from './mentionParser.js';
 
 describe('extractMentionIds', () => {
   it('should extract a single mention ID correctly', async () => {
-    const content = '<p><span class="mention" data-type="mention" data-id="1">@Admin</span></p>';
+    const content =
+      '<p><span class="mention" data-type="mention" data-id="1">@Admin</span></p>';
     const result = await extractMentionIds(content);
-    expect(result).toEqual([{id: 1}]);
+    expect(result).toEqual([{ id: 1 }]);
   });
 
   it('should extract multiple mention IDs correctly', async () => {
-    const content = '<p><span data-type="mention" data-id="1">@User1</span> and <span data-type="mention" data-id="2">@User2</span></p>';
+    const content =
+      '<p><span data-type="mention" data-id="1">@User1</span> and <span data-type="mention" data-id="2">@User2</span></p>';
     const result = await extractMentionIds(content);
-    expect(result).toEqual([{id: 1}, {id: 2}]);
+    expect(result).toEqual([{ id: 1 }, { id: 2 }]);
   });
 
   it('should handle empty content', async () => {

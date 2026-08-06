@@ -162,16 +162,14 @@ router.get(
  *         description: Payroll record created successfully
  */
 router.post(
-   '/',
-   checkRoleAuthOrPermisssion({
-     allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER],
-     permissions: [PERMISSIONCODES.canCreatePayroll],
-   }),
-   validateSchema(payrollCreateSchema),
-   createPayroll
- );
-
-
+  '/',
+  checkRoleAuthOrPermisssion({
+    allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER],
+    permissions: [PERMISSIONCODES.canCreatePayroll],
+  }),
+  validateSchema(payrollCreateSchema),
+  createPayroll
+);
 
 /**
  * @swagger
@@ -228,14 +226,14 @@ router.delete(
  *         description: Payroll record partially updated successfully
  * */
 router.patch(
-   '/:id',
-   checkRoleAuthOrPermisssion({
-     allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER],
-     permissions: [PERMISSIONCODES.canEditPayroll],
-   }),
-   validatePathParam,
-   validateSchema(payrollUpdateSchema),
-   updatePayrollByIdPartial
+  '/:id',
+  checkRoleAuthOrPermisssion({
+    allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER],
+    permissions: [PERMISSIONCODES.canEditPayroll],
+  }),
+  validatePathParam,
+  validateSchema(payrollUpdateSchema),
+  updatePayrollByIdPartial
 );
 
 export default router;

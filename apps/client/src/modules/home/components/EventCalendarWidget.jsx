@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { useGetAllEventsQuery } from '@/modules/events/api/eventsAPI';
 import { sortedEvents } from '@/modules/events/utils';
 import EventCalendar from './EventCalendar';
+import PropTypes from 'prop-types';
 
 export function EventCalendarWidget({ onEventClick }) {
   const { data, isLoading } = useGetAllEventsQuery({
@@ -23,3 +24,7 @@ export function EventCalendarWidget({ onEventClick }) {
     />
   );
 }
+
+EventCalendarWidget.propTypes = {
+  onEventClick: PropTypes.func,
+};

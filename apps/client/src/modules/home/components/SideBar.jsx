@@ -21,7 +21,7 @@ import { useMentionCount } from '@/hooks';
 
 const SideBar = ({ dataCountStock, displaySettings }) => {
   const { t } = useTranslation();
-  const { unreadCount, isLoaded } = useMentionCount();
+  const { unreadCount } = useMentionCount();
 
   return (
     <>
@@ -44,33 +44,33 @@ const SideBar = ({ dataCountStock, displaySettings }) => {
         </Link>
       )}
 
-        {displaySettings?.displayNotes && (
-          <>
-             {unreadCount > 0 ? (
-               <Link
-                 to={'notes'}
-                 state={{ scope: 'mixed', fromBadge: true }}
-                 className="flex items-center justify-start gap-2 px-3 py-2 text-sm font-medium transition-colors rounded-md hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
-               >
-                <CgNotes className="w-5 h-5" />
-                <span>{t('notes')}</span>
-                <span className="ml-auto bg-red-500 text-white text-xs rounded-full px-1.5 py-0.5 min-w-[20px] text-center">
-                  {unreadCount}
-                </span>
-              </Link>
-            ) : (
-              <QuickAccessButton
-                icon={CgNotes}
-                label={t('notes')}
-                content={NotesSummary}
-                contentProps={{ scope: 'mixed' }}
-                className={
-                  'flex items-center justify-start gap-2 px-3 py-2 text-sm font-medium transition-colors rounded-md hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground '
-                }
-              />
-            )}
-          </>
-        )}
+      {displaySettings?.displayNotes && (
+        <>
+          {unreadCount > 0 ? (
+            <Link
+              to={'notes'}
+              state={{ scope: 'mixed', fromBadge: true }}
+              className="flex items-center justify-start gap-2 px-3 py-2 text-sm font-medium transition-colors rounded-md hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
+            >
+              <CgNotes className="w-5 h-5" />
+              <span>{t('notes')}</span>
+              <span className="ml-auto bg-red-500 text-white text-xs rounded-full px-1.5 py-0.5 min-w-[20px] text-center">
+                {unreadCount}
+              </span>
+            </Link>
+          ) : (
+            <QuickAccessButton
+              icon={CgNotes}
+              label={t('notes')}
+              content={NotesSummary}
+              contentProps={{ scope: 'mixed' }}
+              className={
+                'flex items-center justify-start gap-2 px-3 py-2 text-sm font-medium transition-colors rounded-md hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground '
+              }
+            />
+          )}
+        </>
+      )}
 
       {displaySettings?.displayStock && (
         <QuickAccessButton

@@ -55,19 +55,21 @@ export const WarehouseDialog = ({
 }) => {
   const { t } = useTranslation();
 
-   // Configura el formulario
-   const form = useForm({
-     resolver: zodResolver(WarehouseSchema),
-     defaultValues: {
-       name: '',
-       status: '',
-       description: '',
-       address: '',
-     },
-   });
+  // Configura el formulario
+  const form = useForm({
+    resolver: zodResolver(WarehouseSchema),
+    defaultValues: {
+      name: '',
+      status: '',
+      description: '',
+      address: '',
+    },
+  });
 
-   const { formState: { dirtyFields } } = form;
-   const warehouseId = useMemo(() => selectedRow?.id ?? null, [selectedRow?.id]);
+  const {
+    formState: { dirtyFields },
+  } = form;
+  const warehouseId = useMemo(() => selectedRow?.id ?? null, [selectedRow?.id]);
 
   // Actualiza todos los valores del formulario al cambiar `selectedRow`
   useEffect(() => {
@@ -90,14 +92,14 @@ export const WarehouseDialog = ({
     }
   }, [selectedRow, openDialog, form]);
 
-   const handleSubmit = (data) => {
-     if (warehouseId) {
-       const changes = pickDirty(data, dirtyFields);
-       onSubmit({ id: warehouseId, body: changes });
-     } else {
-       onSubmit(data);
-     }
-   };
+  const handleSubmit = (data) => {
+    if (warehouseId) {
+      const changes = pickDirty(data, dirtyFields);
+      onSubmit({ id: warehouseId, body: changes });
+    } else {
+      onSubmit(data);
+    }
+  };
 
   const handleDeleteById = () => {
     onDeleteById(warehouseId);

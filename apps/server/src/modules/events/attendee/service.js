@@ -35,7 +35,10 @@ export const register = async (eventId, userId) => {
   }
 
   // 3. Check existing registration — idempotent: if already registered, return current state
-  const existing = await attendeeDao.findAttendeeByUserAndEvent(eventId, userId);
+  const existing = await attendeeDao.findAttendeeByUserAndEvent(
+    eventId,
+    userId
+  );
   if (existing) {
     if (existing.status === 'CONFIRMED' || existing.status === 'WAITLIST') {
       return existing;
@@ -61,7 +64,11 @@ export const register = async (eventId, userId) => {
   return prisma.$transaction(async (tx) => {
     // Handle capacity check with optimistic lock for CONFIRMED with limited capacity
     if (event.capacity > 0 && status === 'CONFIRMED') {
-      const updatedRows = await attendeeDao.updateEventAttendeeCountWithLock(eventId, event.attendeeCount, tx);
+      const updatedRows = await attendeeDao.updateEventAttendeeCountWithLock(
+        eventId,
+        event.attendeeCount,
+        tx
+      );
       if (updatedRows === 0) {
         // Race condition - someone else took the spot, put on waitlist
         status = 'WAITLIST';
@@ -73,10 +80,17 @@ export const register = async (eventId, userId) => {
 
     if (existing) {
       // Re-registration: update existing attendee
-      attendee = await attendeeDao.updateAttendeeStatus(existing.id, status, tx);
+      attendee = await attendeeDao.updateAttendeeStatus(
+        existing.id,
+        status,
+        tx
+      );
     } else {
       // New registration
-      attendee = await attendeeDao.createAttendee({ eventId, userId, status }, tx);
+      attendee = await attendeeDao.createAttendee(
+        { eventId, userId, status },
+        tx
+      );
     }
 
     // Optimistic lock already incremented attendeeCount for capacity > 0 above.
@@ -87,13 +101,16 @@ export const register = async (eventId, userId) => {
     }
 
     // Create audit log
-    await attendeeDao.createAuditLog({
-      attendeeId: attendee.id,
-      eventId,
-      previousStatus,
-      newStatus: status,
-      changedBy: userId,
-    }, tx);
+    await attendeeDao.createAuditLog(
+      {
+        attendeeId: attendee.id,
+        eventId,
+        previousStatus,
+        newStatus: status,
+        changedBy: userId,
+      },
+      tx
+    );
 
     return attendee;
   });
@@ -109,7 +126,10 @@ export const register = async (eventId, userId) => {
  */
 export const cancel = async (eventId, userId) => {
   // 1. Find attendee
-  const attendee = await attendeeDao.findAttendeeByUserAndEvent(eventId, userId);
+  const attendee = await attendeeDao.findAttendeeByUserAndEvent(
+    eventId,
+    userId
+  );
   if (!attendee) {
     throw createError(404, 'Registration not found');
   }
@@ -129,7 +149,11 @@ export const cancel = async (eventId, userId) => {
   // 4. Execute in transaction
   return prisma.$transaction(async (tx) => {
     // Update attendee status to CANCELLED
-    const updatedAttendee = await attendeeDao.updateAttendeeStatus(attendee.id, 'CANCELLED', tx);
+    const updatedAttendee = await attendeeDao.updateAttendeeStatus(
+      attendee.id,
+      'CANCELLED',
+      tx
+    );
 
     // Decrement count if was CONFIRMED
     if (previousStatus === 'CONFIRMED') {
@@ -137,13 +161,16 @@ export const cancel = async (eventId, userId) => {
     }
 
     // Create audit log
-    await attendeeDao.createAuditLog({
-      attendeeId: attendee.id,
-      eventId,
-      previousStatus,
-      newStatus: 'CANCELLED',
-      changedBy: userId,
-    }, tx);
+    await attendeeDao.createAuditLog(
+      {
+        attendeeId: attendee.id,
+        eventId,
+        previousStatus,
+        newStatus: 'CANCELLED',
+        changedBy: userId,
+      },
+      tx
+    );
 
     // Promote from waitlist if was CONFIRMED
     if (previousStatus === 'CONFIRMED') {
@@ -177,7 +204,11 @@ export const listAttendees = async (eventId, query) => {
  * @returns {Promise<Object>} The updated attendee record.
  * @throws {Error} If attendee not found, already in target status, invalid transition, or capacity exceeded.
  */
-export const updateAttendeeStatus = async (attendeeId, newStatus, adminUserId) => {
+export const updateAttendeeStatus = async (
+  attendeeId,
+  newStatus,
+  adminUserId
+) => {
   // 1. Find attendee
   const attendee = await attendeeDao.findAttendeeById(attendeeId);
   if (!attendee) {
@@ -191,7 +222,10 @@ export const updateAttendeeStatus = async (attendeeId, newStatus, adminUserId) =
 
   // 3. Validate state transition
   if (!canTransition(attendee.status, newStatus)) {
-    throw createError(400, `Cannot transition from ${attendee.status} to ${newStatus}`);
+    throw createError(
+      400,
+      `Cannot transition from ${attendee.status} to ${newStatus}`
+    );
   }
 
   const eventId = attendee.eventId;
@@ -203,7 +237,10 @@ export const updateAttendeeStatus = async (attendeeId, newStatus, adminUserId) =
     if (event && event.capacity > 0) {
       const confirmedCount = await attendeeDao.countConfirmedAttendees(eventId);
       if (confirmedCount >= event.capacity) {
-        throw createError(409, 'Event at capacity, cannot promote to CONFIRMED');
+        throw createError(
+          409,
+          'Event at capacity, cannot promote to CONFIRMED'
+        );
       }
     }
   }
@@ -211,7 +248,11 @@ export const updateAttendeeStatus = async (attendeeId, newStatus, adminUserId) =
   // 5. Execute in transaction
   return prisma.$transaction(async (tx) => {
     // Update attendee status
-    const updatedAttendee = await attendeeDao.updateAttendeeStatus(attendeeId, newStatus, tx);
+    const updatedAttendee = await attendeeDao.updateAttendeeStatus(
+      attendeeId,
+      newStatus,
+      tx
+    );
 
     // Adjust attendee count
     if (previousStatus === 'CONFIRMED' && newStatus !== 'CONFIRMED') {
@@ -223,13 +264,16 @@ export const updateAttendeeStatus = async (attendeeId, newStatus, adminUserId) =
     }
 
     // Create audit log
-    await attendeeDao.createAuditLog({
-      attendeeId,
-      eventId,
-      previousStatus,
-      newStatus,
-      changedBy: adminUserId,
-    }, tx);
+    await attendeeDao.createAuditLog(
+      {
+        attendeeId,
+        eventId,
+        previousStatus,
+        newStatus,
+        changedBy: adminUserId,
+      },
+      tx
+    );
 
     // If changed from CONFIRMED to CANCELLED, promote from waitlist
     if (previousStatus === 'CONFIRMED' && newStatus === 'CANCELLED') {
@@ -256,19 +300,26 @@ export const promoteFromWaitlist = async (eventId, tx) => {
   }
 
   // 2. Update status to CONFIRMED
-  const promotedAttendee = await attendeeDao.updateAttendeeStatus(waitlistAttendee.id, 'CONFIRMED', tx);
+  const promotedAttendee = await attendeeDao.updateAttendeeStatus(
+    waitlistAttendee.id,
+    'CONFIRMED',
+    tx
+  );
 
   // 3. Increment attendee count
   await attendeeDao.incrementAttendeeCount(eventId, tx);
 
   // 4. Create audit log (changedBy: null for system promotion)
-  await attendeeDao.createAuditLog({
-    attendeeId: waitlistAttendee.id,
-    eventId,
-    previousStatus: 'WAITLIST',
-    newStatus: 'CONFIRMED',
-    changedBy: null,
-  }, tx);
+  await attendeeDao.createAuditLog(
+    {
+      attendeeId: waitlistAttendee.id,
+      eventId,
+      previousStatus: 'WAITLIST',
+      newStatus: 'CONFIRMED',
+      changedBy: null,
+    },
+    tx
+  );
 
   return promotedAttendee;
 };
@@ -284,12 +335,22 @@ export const promoteFromWaitlist = async (eventId, tx) => {
  * @param {Prisma.TransactionClient} [tx] - Optional Prisma transaction client.
  * @returns {Promise<Object>} The created audit log entry.
  */
-export const createAuditLog = async (attendeeId, eventId, previousStatus, newStatus, changedBy, tx) => {
-  return attendeeDao.createAuditLog({
-    attendeeId,
-    eventId,
-    previousStatus,
-    newStatus,
-    changedBy,
-  }, tx);
+export const createAuditLog = async (
+  attendeeId,
+  eventId,
+  previousStatus,
+  newStatus,
+  changedBy,
+  tx
+) => {
+  return attendeeDao.createAuditLog(
+    {
+      attendeeId,
+      eventId,
+      previousStatus,
+      newStatus,
+      changedBy,
+    },
+    tx
+  );
 };

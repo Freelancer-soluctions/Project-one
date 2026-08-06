@@ -53,9 +53,9 @@ export const getAllUserPermits = handleCatchErrorAsync(async (req, res) => {
  */
 export const getUsersByStatus = handleCatchErrorAsync(async (req, res) => {
   const { statusCode } = req.safeQuery;
-  console.log("STATUSCODE", statusCode)
+  console.log('STATUSCODE', statusCode);
   const data = await getUsersByStatusService(statusCode);
-  console.log("result", data)
+  console.log('result', data);
   globalResponse(res, 200, data);
 });
 
@@ -103,8 +103,6 @@ export const createUser = handleCatchErrorAsync(async (req, res) => {
   });
   globalResponse(res, 201, user);
 });
-
-
 
 /**
  * Partially update a user by ID.

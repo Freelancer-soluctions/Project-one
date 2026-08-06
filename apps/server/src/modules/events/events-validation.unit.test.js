@@ -42,8 +42,13 @@ describe('Events Joi Validation Schemas', () => {
 
       for (const payload of invalidFormats) {
         const { error } = EventsCreateSchema.validate(payload);
-        expect(error, `Expected error for startTime: "${payload.startTime}"`).toBeDefined();
-        expect(error.details.some(d => d.message.includes('HH:mm'))).toBe(true);
+        expect(
+          error,
+          `Expected error for startTime: "${payload.startTime}"`
+        ).toBeDefined();
+        expect(error.details.some((d) => d.message.includes('HH:mm'))).toBe(
+          true
+        );
       }
     });
 
@@ -64,8 +69,13 @@ describe('Events Joi Validation Schemas', () => {
 
       for (const payload of invalidFormats) {
         const { error } = EventsCreateSchema.validate(payload);
-        expect(error, `Expected error for endTime: "${payload.endTime}"`).toBeDefined();
-        expect(error.details.some(d => d.message.includes('HH:mm'))).toBe(true);
+        expect(
+          error,
+          `Expected error for endTime: "${payload.endTime}"`
+        ).toBeDefined();
+        expect(error.details.some((d) => d.message.includes('HH:mm'))).toBe(
+          true
+        );
       }
     });
 
@@ -78,7 +88,11 @@ describe('Events Joi Validation Schemas', () => {
       for (const payload of invalidPayloads) {
         const { error } = EventsCreateSchema.validate(payload);
         expect(error).toBeDefined();
-        expect(error.details.some(d => d.message.includes('startTime must be earlier than endTime'))).toBe(true);
+        expect(
+          error.details.some((d) =>
+            d.message.includes('startTime must be earlier than endTime')
+          )
+        ).toBe(true);
       }
     });
 
@@ -103,7 +117,8 @@ describe('Events Joi Validation Schemas', () => {
     });
 
     it('should accept omitted speaker field', () => {
-      const { speaker, ...payload } = validBase;
+      // eslint-disable-next-line no-unused-vars
+      const { speaker: _speaker, ...payload } = validBase;
       const { error, value } = EventsCreateSchema.validate(payload);
       expect(error).toBeUndefined();
       expect(value.speaker).toBeUndefined();
@@ -113,7 +128,9 @@ describe('Events Joi Validation Schemas', () => {
       const payload = { ...validBase, speaker: 'A'.repeat(21) };
       const { error } = EventsCreateSchema.validate(payload);
       expect(error).toBeDefined();
-      expect(error.details.some(d => d.message.includes('speaker'))).toBe(true);
+      expect(error.details.some((d) => d.message.includes('speaker'))).toBe(
+        true
+      );
     });
 
     it('should reject title longer than 50 characters', () => {
@@ -135,12 +152,20 @@ describe('Events Joi Validation Schemas', () => {
     });
 
     it('should reject missing required fields', () => {
-      const requiredFields = ['title', 'description', 'startTime', 'endTime', 'eventDate', 'type'];
+      const requiredFields = [
+        'title',
+        'description',
+        'startTime',
+        'endTime',
+        'eventDate',
+        'type',
+      ];
       for (const field of requiredFields) {
-        const { [field]: _, ...payload } = validBase;
+        // eslint-disable-next-line no-unused-vars
+        const { [field]: _unused, ...payload } = validBase;
         const { error } = EventsCreateSchema.validate(payload);
         expect(error).toBeDefined();
-        expect(error.details.some(d => d.message.includes(field))).toBe(true);
+        expect(error.details.some((d) => d.message.includes(field))).toBe(true);
       }
     });
   });
@@ -178,7 +203,9 @@ describe('Events Joi Validation Schemas', () => {
       for (const payload of invalidPayloads) {
         const { error } = EventsUpdateSchema.validate(payload);
         expect(error).toBeDefined();
-        expect(error.details.some(d => d.message.includes('HH:mm'))).toBe(true);
+        expect(error.details.some((d) => d.message.includes('HH:mm'))).toBe(
+          true
+        );
       }
     });
 
@@ -193,7 +220,9 @@ describe('Events Joi Validation Schemas', () => {
       for (const payload of invalidPayloads) {
         const { error } = EventsUpdateSchema.validate(payload);
         expect(error).toBeDefined();
-        expect(error.details.some(d => d.message.includes('HH:mm'))).toBe(true);
+        expect(error.details.some((d) => d.message.includes('HH:mm'))).toBe(
+          true
+        );
       }
     });
 
@@ -206,7 +235,11 @@ describe('Events Joi Validation Schemas', () => {
       for (const payload of invalidPayloads) {
         const { error } = EventsUpdateSchema.validate(payload);
         expect(error).toBeDefined();
-        expect(error.details.some(d => d.message.includes('startTime must be earlier than endTime'))).toBe(true);
+        expect(
+          error.details.some((d) =>
+            d.message.includes('startTime must be earlier than endTime')
+          )
+        ).toBe(true);
       }
     });
 
@@ -243,13 +276,3 @@ describe('Events Joi Validation Schemas', () => {
     });
   });
 });
-
-const validBase = {
-  title: 'Test Event',
-  description: 'Test Description',
-  speaker: 'John Doe',
-  startTime: '09:00',
-  endTime: '17:00',
-  eventDate: '2025-01-15',
-  type: 1,
-};

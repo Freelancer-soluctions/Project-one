@@ -56,8 +56,6 @@ export const createProvider = handleCatchErrorAsync(async (req, res) => {
   globalResponse(res, 201, { message: 'Item created successfully' });
 });
 
-
-
 /**
  * Deletes a provider by its ID.
  *

@@ -90,12 +90,12 @@ export const createSale = async (data) => {
  */
 export const patchSaleById = async (id, data) => {
   const { details, ...saleData } = data;
-  
+
   // Build update object dynamically based on provided fields
   const updateData = {
     updatedOn: new Date(),
   };
-  
+
   // Only update fields that are provided
   if (saleData.clientId !== undefined) {
     updateData.clientId = { connect: { id: saleData.clientId } };
@@ -103,14 +103,14 @@ export const patchSaleById = async (id, data) => {
   if (saleData.total !== undefined) {
     updateData.total = saleData.total;
   }
-  
+
   // Only update sale details if provided
   if (details !== undefined) {
     // First delete existing details
     await prisma.saleDetail.deleteMany({
       where: { saleId: id },
     });
-    
+
     // Then create new details
     updateData.saleDetail = {
       create: details.map((detail) => ({
@@ -120,12 +120,12 @@ export const patchSaleById = async (id, data) => {
       })),
     };
   }
-  
+
   // Only update user if provided (though updatedBy should always be provided)
   if (data.updatedBy !== undefined) {
     updateData.userSaleUpdated = { connect: { id: data.updatedBy } };
   }
-  
+
   return prisma.sale.update({
     where: { id },
     data: updateData,

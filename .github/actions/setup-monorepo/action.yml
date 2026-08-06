@@ -1,0 +1,28 @@
+name: 'Setup Monorepo'
+description: 'Checkout, setup Node.js, install dependencies, and cache Vitest'
+runs:
+  using: 'composite'
+  steps:
+    - name: Checkout
+      uses: actions/checkout@v5
+      with:
+        fetch-depth: 0
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version-file: '.nvmrc'
+        cache: 'npm'
+        cache-dependency-path: package-lock.json
+
+    - name: Install Dependencies
+      run: npm ci
+      shell: bash
+
+    - name: Cache Vitest
+      uses: actions/cache@v4
+      with:
+        path: node_modules/.cache/vitest
+        key: vitest-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+        restore-keys: |
+          vitest-${{ runner.os }}-

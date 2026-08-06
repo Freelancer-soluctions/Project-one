@@ -9,18 +9,28 @@ import * as notesService from './service.js';
  * @param {Object} req.safeQuery - Validated query parameters.
  * @param {string} [req.safeQuery.searchTerm] - Filter notes by title or content.
  * @param {number} [req.safeQuery.statusCode] - Filter notes by column status code.
-  * @param {string|string[]} [req.safeQuery.hashtagId] - Filter notes by hashtag ID(s).
-  * @param {'mine'|'mixed'} [req.safeQuery.scope] - Scope filter for notes visibility.
-  * @param {Object} res - Express response object.
+ * @param {string|string[]} [req.safeQuery.hashtagId] - Filter notes by hashtag ID(s).
+ * @param {'mine'|'mixed'} [req.safeQuery.scope] - Scope filter for notes visibility.
+ * @param {Object} res - Express response object.
  * @returns {Promise<void>} Responds with 200 and filtered notes array.
  */
 export const getAllNotes = handleCatchErrorAsync(async (req, res) => {
-  const { searchTerm, statusCode, hashtagId, isFavorite, scope } = req.safeQuery;
+  const { searchTerm, statusCode, hashtagId, isFavorite, scope } =
+    req.safeQuery;
   const userId = req.userId;
   const hashtagIds = hashtagId
-    ? Array.isArray(hashtagId) ? hashtagId : [hashtagId]
+    ? Array.isArray(hashtagId)
+      ? hashtagId
+      : [hashtagId]
     : undefined;
-  const items = await notesService.getAllNotes(searchTerm, statusCode, hashtagIds, userId, isFavorite, scope);
+  const items = await notesService.getAllNotes(
+    searchTerm,
+    statusCode,
+    hashtagIds,
+    userId,
+    isFavorite,
+    scope
+  );
   globalResponse(res, 200, items);
 });
 

@@ -20,12 +20,12 @@ const roles = [
 const rolePermissionsMap = {
   2: [1, 23, 37, 39, 40, 47, 78, 79], // user + RSVP self-service (canRegisterForEvent, canCancelRegistration)
   3: [
-     1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21,
-     22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40,
-     41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59,
-     60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78,
-     79, 80, 81, 82,
-   ], // MANAGER (all permissions up to 82)
+    1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21,
+    22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40,
+    41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59,
+    60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78,
+    79, 80, 81, 82,
+  ], // MANAGER (all permissions up to 82)
 };
 
 const permissions = [
@@ -135,10 +135,16 @@ const permissions = [
 
   // Event RSVP permissions
   { code: 'canRegisterForEvent', description: 'Puede registrarse a eventos' },
-  { code: 'canCancelRegistration', description: 'Puede cancelar registro a eventos' },
+  {
+    code: 'canCancelRegistration',
+    description: 'Puede cancelar registro a eventos',
+  },
   { code: 'canViewAttendees', description: 'Puede ver asistentes' },
   { code: 'canManageAttendees', description: 'Puede gestionar asistentes' },
-  { code: 'canViewAttendeeDetail', description: 'Puede ver detalle de asistentes' },
+  {
+    code: 'canViewAttendeeDetail',
+    description: 'Puede ver detalle de asistentes',
+  },
 
   // { code: 'canViewReports', description: 'Puede ver reportes' }
 ];
@@ -308,14 +314,14 @@ const user1 = {
   picture: 'abcd',
   document: 'Not document',
   lastUpdatedBy: 1,
-   lastUpdatedOn: new Date('2024-01-07T07:58:30.996+0200'),
-   roleId: 2,
-   socialSecurity: '123456789',
-   startDate: new Date('2024-01-07T07:58:30.996+0200'),
-   state: 'Texas',
-   statusId: 1,
-   telephone: '300456322445565',
-   zipcode: '987654321',
+  lastUpdatedOn: new Date('2024-01-07T07:58:30.996+0200'),
+  roleId: 2,
+  socialSecurity: '123456789',
+  startDate: new Date('2024-01-07T07:58:30.996+0200'),
+  state: 'Texas',
+  statusId: 1,
+  telephone: '300456322445565',
+  zipcode: '987654321',
 };
 const user2 = {
   name: 'user2',
@@ -350,20 +356,20 @@ const news = [
   },
 ];
 
-  const hashtags = [
-    { name: 'General', createdBy: 1, createdOn: new Date() },
-    { name: 'Ideas', createdBy: 1, createdOn: new Date() },
-    { name: 'Pendiente', createdBy: 1, createdOn: new Date() },
-    { name: 'Importante', createdBy: 1, createdOn: new Date() },
-    { name: 'Recordatorio', createdBy: 1, createdOn: new Date() },
-    { name: 'Cliente', createdBy: 1, createdOn: new Date() },
-    { name: 'Reunión', createdBy: 1, createdOn: new Date() },
-    { name: 'Proyecto', createdBy: 1, createdOn: new Date() },
-    { name: 'Tarea', createdBy: 1, createdOn: new Date() },
-    { name: 'Seguimiento', createdBy: 1, createdOn: new Date() },
-    { name: 'Urgente', createdBy: 1, createdOn: new Date() },
-    { name: 'Feedback', createdBy: 1, createdOn: new Date() },
-  ];
+const hashtags = [
+  { name: 'General', createdBy: 1, createdOn: new Date() },
+  { name: 'Ideas', createdBy: 1, createdOn: new Date() },
+  { name: 'Pendiente', createdBy: 1, createdOn: new Date() },
+  { name: 'Importante', createdBy: 1, createdOn: new Date() },
+  { name: 'Recordatorio', createdBy: 1, createdOn: new Date() },
+  { name: 'Cliente', createdBy: 1, createdOn: new Date() },
+  { name: 'Reunión', createdBy: 1, createdOn: new Date() },
+  { name: 'Proyecto', createdBy: 1, createdOn: new Date() },
+  { name: 'Tarea', createdBy: 1, createdOn: new Date() },
+  { name: 'Seguimiento', createdBy: 1, createdOn: new Date() },
+  { name: 'Urgente', createdBy: 1, createdOn: new Date() },
+  { name: 'Feedback', createdBy: 1, createdOn: new Date() },
+];
 
 const createVarious = async (tableName, createObjects) => {
   const createdObjects = await prisma[tableName].createMany({
@@ -390,7 +396,6 @@ async function main() {
   await createVarious('eventTypes', eventTypes);
   await createVarious('permissions', permissions);
   await createVarious('noteColumns', noteColumns);
-
 
   await createVarious('hashtags', hashtags);
   await createVarious('newsStatus', newStatus);

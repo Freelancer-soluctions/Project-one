@@ -66,10 +66,9 @@ describe('errorHandler', () => {
   });
 
   it('should return 400 for PrismaClientValidationError', () => {
-    const err = new Prisma.PrismaClientValidationError(
-      'Invalid query',
-      { clientVersion: '5.22.0' }
-    );
+    const err = new Prisma.PrismaClientValidationError('Invalid query', {
+      clientVersion: '5.22.0',
+    });
     errorHandler(err, req, res, next);
     expect(res.status).toHaveBeenCalledWith(400);
     expect(res.json).toHaveBeenCalledWith(
@@ -91,10 +90,9 @@ describe('errorHandler', () => {
 
   it('should return 500 for PrismaClientRustPanicError and set exitCode', () => {
     const originalExitCode = process.exitCode;
-    const err = new Prisma.PrismaClientRustPanicError(
-      'Engine crashed',
-      { clientVersion: '5.22.0' }
-    );
+    const err = new Prisma.PrismaClientRustPanicError('Engine crashed', {
+      clientVersion: '5.22.0',
+    });
     errorHandler(err, req, res, next);
     expect(res.status).toHaveBeenCalledWith(500);
     expect(res.json).toHaveBeenCalledWith(
@@ -144,10 +142,10 @@ describe('errorHandler', () => {
   });
 
   it('should return 500 for unknown Prisma error code', () => {
-    const err = new Prisma.PrismaClientKnownRequestError(
-      'Unknown error',
-      { code: 'P9999', clientVersion: '5.22.0' }
-    );
+    const err = new Prisma.PrismaClientKnownRequestError('Unknown error', {
+      code: 'P9999',
+      clientVersion: '5.22.0',
+    });
     errorHandler(err, req, res, next);
     expect(res.status).toHaveBeenCalledWith(500);
   });

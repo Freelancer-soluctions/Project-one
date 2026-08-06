@@ -489,7 +489,7 @@ Security issues should **not be disclosed publicly until they are properly addre
 
 This project performs **secret detection scanning** to identify sensitive information that may have been accidentally committed to the repository.
 
-The project uses **Gitleaks** to detect secrets in source code, configuration files, and environment variables.
+The project uses **GitHub native secret scanning** (free for public repositories) as the primary detection layer, complemented by **Gitleaks open source** (`zricethezav/gitleaks` Docker image, MIT licensed) for CI gate enforcement — no commercial license required.
 
 Secret detection helps prevent exposure of:
 
@@ -550,6 +550,73 @@ Typical detection patterns include:
 
 ---
 
+# GitHub Secret Scanning
+
+## Overview
+
+This project uses a **two-layer secret detection strategy**:
+
+1. **GitHub Native Secret Scanning** (primary layer) — Runs automatically on every push to the repository. Free for public repositories; requires GitHub Advanced Security (GHAS) for private repositories. Provides real-time alerts in the Security tab and optional push protection.
+
+2. **Gitleaks Open Source in CI** (enforcement layer) — Runs on every pull request (diff-scoped scan) and weekly (full-history scan) via GitHub Actions. Uses the `zricethezav/gitleaks` Docker image (MIT licensed). No commercial license or secret required.
+
+### Layer 1: GitHub Native Secret Scanning
+
+#### Enabling Secret Scanning (Repository Admin)
+
+**Via UI (recommended):**
+
+1. Navigate to **Settings → Security → Secret scanning & push protection**
+2. Click **Enable** for "Secret scanning"
+3. Click **Enable** for "Push protection" to block pushes containing recognized secrets
+
+**Via API (one-liner, automatable):**
+
+```bash
+gh api -X PATCH repos/{owner}/{repo}/security-and-analysis \
+  -f secret_scanning.enabled=true \
+  -f secret_scanning_push_protection.enabled=true
+```
+
+> **Note for private repositories:** GitHub Secret Scanning and Push Protection require **GitHub Advanced Security (GHAS)**, which is a paid feature. If the repository is private and GHAS is not enabled, the native layer cannot be activated. In this case, the operational detection layer is **Gitleaks OSS only** — the CI workflows will still run and detect secrets via the open-source tool.
+
+#### Handling Alerts
+
+When GitHub Secret Scanning detects a secret:
+
+1. An **alert appears in the Security tab** with the secret type, file path, and commit
+2. **Review the alert** — confirm whether it is a true positive or false positive
+3. **If true positive:**
+   - **Rotate the secret immediately** (revoke and regenerate)
+   - **Remove the secret from history** if needed (e.g., `git filter-repo`, BFG Repo-Cleaner)
+   - Update the application configuration with the new secret
+4. **Dismiss the alert** with appropriate justification:
+   - "False positive" — not actually a secret
+   - "Won't fix" — secret is intentionally in the repo (e.g., test fixtures, documented examples)
+   - "Revoked" — secret has been rotated and is no longer valid
+
+### Layer 2: Gitleaks in CI
+
+#### PR-Time Gate (Pull Request Scan)
+
+- **Trigger:** Every PR targeting `main`
+- **Scope:** Diff-only scan (`base.sha..head.sha`) — only new/changed lines in the PR
+- **Behavior:** **Fail-closed** — if a secret is detected in the PR diff, the check fails and blocks merge
+- **Tool:** `docker://zricethezav/gitleaks:v8.22.1` with `git --log-opts="${{ github.event.pull_request.base.sha }}..${{ github.event.pull_request.head.sha }}" --redact --verbose`
+- **Graceful degradation:** If `GIT_LEAKS` secret is not configured, the job still runs using open-source Gitleaks and emits a warning (does not fail)
+
+#### Weekly Full-History Scan (Scheduled)
+
+- **Trigger:** Weekly cron (Monday 03:00 UTC) + manual `workflow_dispatch`
+- **Scope:** Full repository history (`--log-opts="--all"`) — all refs and commits
+- **Behavior:** **Audit mode** (`continue-on-error: true`) — findings are reported but do not fail the run
+- **Outputs:**
+  - JSON artifact (`gitleaks-report`) uploaded for 30 days (with `--redact` to avoid exposing secrets in the artifact)
+  - SARIF uploaded to **Security tab** for centralized visibility (requires `security-events: write` permission)
+- **Tool:** `docker://zricethezav/gitleaks:v8.22.1` with `git --log-opts="--all" --report-format=json --report-path=gitleaks-report.json --redact` (and a second invocation for SARIF)
+
+---
+
 # Security Enforcement
 
 Security checks are executed at multiple stages of the development lifecycle.
@@ -557,13 +624,21 @@ Security checks are executed at multiple stages of the development lifecycle.
 Developer machine
 │
 ├─ Static Analysis (Semgrep)
-├─ Secret Detection (Gitleaks)
+├─ Secret Detection (Gitleaks pre-commit)
+├─ Secret Detection (CI: PR-time gate + weekly full-history scan)
 └─ Dependency Vulnerabilities (Trivy)
 
 
 Secret detection is executed locally before code is committed to the repository.
 
 This prevents accidental leaks from reaching the version control system.
+
+In CI, secret detection runs at two additional stages:
+
+1. **Pull Request gate** — Diff-scoped scan on every PR to `main` (fail-closed)
+2. **Weekly scheduled scan** — Full-history audit every Monday 03:00 UTC (audit mode, findings via artifact + Security tab)
+
+This multi-layered approach ensures secrets are caught both before commit and after merge, covering the gap where a secret already in history would not be detected by pre-commit or PR-time scans alone.
 
 ---
 
@@ -610,4 +685,148 @@ Sensitive information should **never be disclosed publicly** until the issue has
 
 
 
-**Última actualización:** 2026-03-14
+---
+
+# Scheduled Security Digest
+
+## Overview
+
+This project runs a **weekly scheduled security digest** every **Monday at 03:00 UTC** via the GitHub Actions workflow `.github/workflows/security-digest.yml`. The digest consolidates three security analyses into a single human-readable markdown report:
+
+1. **SBOM Generation** — CycloneDX Software Bill of Materials for the merged `main` branch state
+2. **Vulnerability & License Review** — OSV Scanner analysis of `package-lock.json` for known vulnerabilities and license compliance
+3. **Secret Scan Cross-Reference** — Findings from the sibling `scheduled-security.yml` workflow (Gitleaks full-history scan)
+
+The workflow also supports manual execution via `workflow_dispatch` with an optional `pull_request_number` input to post an actionable summary as a PR comment.
+
+---
+
+## Cadence
+
+| Trigger | Schedule | Notes |
+|---------|----------|-------|
+| **Scheduled (cron)** | `0 3 * * 1` — Monday 03:00 UTC | Same cadence as `scheduled-security.yml` for artifact cross-reference |
+| **Manual (`workflow_dispatch`)** | On-demand | Optional `pull_request_number` input enables PR summary comment |
+
+> **Note**: GitHub disables scheduled workflows after 60 days of repository inactivity. Use `workflow_dispatch` to re-enable or run manually.
+
+---
+
+## What Runs
+
+### 1. SBOM Generation (`sbom` job)
+- **Tool**: `anchore/sbom-action@v0.17.2` (Syft)
+- **Format**: CycloneDX JSON (`sbom-project-one.json`)
+- **Scope**: Entire repository (npm workspaces hoisted to root `package-lock.json`)
+- **Artifact**: `sbom` (retention: 365 days)
+
+### 2. Vulnerability & License Review (`vulnerability-review` job)
+- **Tool**: `google/osv-scanner-action@v2.3.8`
+- **Target**: `package-lock.json` (root lockfile covering all workspaces)
+- **Output**: JSON report (`osv-report.json`) with vulnerability details and severity
+- **Mode**: Audit (`continue-on-error: true`) — findings reported but run does not fail
+- **Artifact**: `osv-report` (default retention)
+
+### 3. Security Digest Generation (`digest` job)
+- **Dependencies**: `needs: [sbom, vulnerability-review]` with `if: always() && !cancelled()`
+- **Script**: `scripts/security/generate-security-digest.mjs` (pure Node.js ≥20, zero npm dependencies)
+- **Inputs**:
+  - `sbom-project-one.json` (from `sbom` job)
+  - `osv-report.json` (from `vulnerability-review` job)
+  - `gitleaks-report.json` (optional, from latest `scheduled-security.yml` run)
+- **Output**: `security-digest.md` artifact
+- **Optional PR Comment**: When `pull_request_number` input is provided, posts a summary comment **only if actionable findings exist** (critical/high vulnerabilities or deny-listed licenses)
+
+---
+
+## How to Read the Digest
+
+The generated `security-digest.md` contains the following sections:
+
+### 📦 Total Dependencies
+Count of packages in the dependency tree derived from the CycloneDX SBOM components array.
+
+### 🔍 Vulnerable Packages
+Vulnerabilities grouped by severity with badges:
+- 🚨 **CRITICAL** — Immediate attention required
+- 🔴 **HIGH** — Serious security issue
+- 🟡 **MEDIUM** — Moderate risk
+- 🟢 **LOW** — Minimal security risk
+
+Each entry shows: package name, version, vulnerability ID (CVE/GHSA), title, and CVSS score (if available).
+
+### ⚖️ License Summary
+Table of all licenses found in the SBOM with counts and status:
+- ✅ **Allowed** — License not in deny-list
+- ⛔ **DENY-LIST** — License matches `LICENSE_DENY_LIST` (see below)
+
+Packages with deny-listed licenses are listed individually with name, version, and license.
+
+### 🔐 Secret Scan Cross-Reference
+- **Findings: N** — Number of secrets detected by Gitleaks in the latest `scheduled-security.yml` run
+- **Secret report unavailable** — Sibling workflow artifact not found (workflow not yet run, artifact expired, or run failed)
+
+---
+
+## Artifact Locations
+
+All artifacts are available in the **GitHub Actions → Artifacts** tab of the `security-digest` workflow run:
+
+| Artifact Name | Description | Retention |
+|---------------|-------------|-----------|
+| `sbom` | CycloneDX SBOM (`sbom-project-one.json`) | 365 days |
+| `osv-report` | OSV Scanner JSON report (`osv-report.json`) | Default (90 days) |
+| `security-digest` | Human-readable markdown digest (`security-digest.md`) | Default (90 days) |
+
+The sibling `gitleaks-report` artifact (from `scheduled-security.yml`) has 30-day retention per its workflow configuration.
+
+---
+
+## License Deny List (`LICENSE_DENY_LIST`)
+
+The following licenses are flagged as **deny-listed** in the digest. This list is aligned with the default deny-list of `actions/dependency-review-action` (used in the sibling `security.yml` workflow):
+
+| License | Family |
+|---------|--------|
+| `GPL-1.0` | GPL |
+| `GPL-1.0+` | GPL |
+| `GPL-2.0` | GPL |
+| `GPL-2.0+` | GPL |
+| `GPL-3.0` | GPL |
+| `GPL-3.0+` | GPL |
+| `LGPL-1.0` | LGPL |
+| `LGPL-1.0+` | LGPL |
+| `LGPL-2.0` | LGPL |
+| `LGPL-2.1` | LGPL |
+| `LGPL-3.0` | LGPL |
+| `AGPL-1.0` | AGPL |
+| `AGPL-1.0+` | AGPL |
+| `AGPL-3.0` | AGPL |
+| `AGPL-3.0+` | AGPL |
+
+**Rationale**: These copyleft licenses impose redistribution requirements that may be incompatible with the project's distribution model. The deny-list is defined as a static constant in `scripts/security/generate-security-digest.mjs` and documented here for auditability.
+
+---
+
+## Manual Execution
+
+To run the digest manually and optionally post a PR comment:
+
+1. Go to **Actions → Scheduled Security Digest → Run workflow**
+2. (Optional) Enter a **Pull Request number** in the `pull_request_number` field
+3. Click **Run workflow**
+
+If a PR number is provided and the digest contains actionable findings (critical/high vulnerabilities or deny-listed licenses), a summary comment will be posted to that PR with a link to the full artifact.
+
+---
+
+## Related Workflows
+
+| Workflow | Purpose | Relationship |
+|----------|---------|--------------|
+| `scheduled-security.yml` | Weekly Gitleaks full-history scan | Provides `gitleaks-report` artifact for cross-reference |
+| `security.yml` | PR/push SBOM + Dependency Review | Separate scope (event-driven); this workflow re-runs SBOM on cron for merged state visibility |
+
+---
+
+**Última actualización:** 2026-07-31

@@ -1,0 +1,44 @@
+name: Scheduled Security Scan
+
+on:
+  schedule:
+    - cron: '0 3 * * 1'  # Monday 03:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  security-events: write
+
+jobs:
+  gitleaks-full-scan:
+    name: Gitleaks Full History Scan
+    runs-on: ubuntu-latest
+    continue-on-error: true
+
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Run Gitleaks full history scan (JSON report)
+        uses: docker://zricethezav/gitleaks:v8.22.1
+        with:
+          args: git --log-opts="--all" --report-format=json --report-path=gitleaks-report.json --redact
+
+      - name: Upload Gitleaks JSON report
+        uses: actions/upload-artifact@v4
+        with:
+          name: gitleaks-report
+          path: gitleaks-report.json
+          retention-days: 30
+
+      - name: Run Gitleaks full history scan (SARIF report)
+        uses: docker://zricethezav/gitleaks:v8.22.1
+        with:
+          args: git --log-opts="--all" --report-format=sarif --report-path=gitleaks.sarif --redact
+
+      - name: Upload SARIF to Security tab
+        uses: github/codeql-action/upload-sarif@v4
+        with:
+          sarif_file: gitleaks.sarif
+          category: gitleaks

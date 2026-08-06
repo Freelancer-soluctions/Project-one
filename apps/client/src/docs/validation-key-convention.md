@@ -3,6 +3,7 @@
 ## Naming Convention
 
 Use module-prefixed flat keys with a `zod.` namespace:
+
 - Format: `zod.{module}.{field}.{validationType}`
 - Example: `zod.auth.email.empty`, `zod.auth.password.minLength`
 
@@ -70,6 +71,8 @@ export const schema = z.object({
   password: z
     .string({ required_error: getZodMessage('zod.auth.password.empty') })
     .min(6, { message: getZodMinMaxMessage('zod.auth.password.minLength', 6) })
-    .max(16, { message: getZodMinMaxMessage('zod.auth.password.maxLength', 16) }),
+    .max(16, {
+      message: getZodMinMaxMessage('zod.auth.password.maxLength', 16),
+    }),
 });
 ```

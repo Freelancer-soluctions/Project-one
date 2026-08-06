@@ -10,7 +10,9 @@ import { getSafePagination } from '../../utils/pagination/pagination.js';
  */
 export const timeStrToDate = (timeStr) => {
   if (!timeStr || typeof timeStr !== 'string') {
-    throw new Error(`timeStrToDate: expected a valid HH:mm string, got ${typeof timeStr}`);
+    throw new Error(
+      `timeStrToDate: expected a valid HH:mm string, got ${typeof timeStr}`
+    );
   }
   const [hours, minutes] = timeStr.split(':').map(Number);
   if (isNaN(hours) || isNaN(minutes)) {
@@ -49,7 +51,7 @@ export const validateEventModality = (data, currentEvent = null) => {
   const { modality, meetingUrl, location } = data;
 
   // Determine effective modality (new or current)
-  const effectiveModality = modality || (currentEvent?.modality);
+  const effectiveModality = modality || currentEvent?.modality;
 
   // Skip if no modality at all
   if (!effectiveModality) {
@@ -78,7 +80,9 @@ export const validateEventModality = (data, currentEvent = null) => {
     }
   } else if (effectiveModality === 'HYBRID') {
     if (!effectiveMeetingUrl || !effectiveLocation) {
-      throw new Error('both meetingUrl and location are required for HYBRID events');
+      throw new Error(
+        'both meetingUrl and location are required for HYBRID events'
+      );
     }
   }
 
@@ -209,12 +213,18 @@ export const getAllEvents = async ({
  */
 export const updateEventById = async (eventId, data) => {
   const rowId = Number(eventId);
-  const { type, startTime, endTime, deletedAt, deletedBy, ...dataToSave } = data;
+  // eslint-disable-next-line no-unused-vars
+  const { type, startTime, endTime, deletedAt, _deletedBy, ...dataToSave } =
+    data;
   const isRestoreRequest = deletedAt === null;
 
   // Fetch current event for modality validation when modality-related fields are updated
   let currentEvent = null;
-  if (data.modality !== undefined || data.meetingUrl !== undefined || data.location !== undefined) {
+  if (
+    data.modality !== undefined ||
+    data.meetingUrl !== undefined ||
+    data.location !== undefined
+  ) {
     currentEvent = await eventDao.getEventById(rowId);
     if (!currentEvent) {
       return null; // Event not found
@@ -240,8 +250,13 @@ export const updateEventById = async (eventId, data) => {
       return null;
     }
     // If there are other fields to update besides restore fields, apply them
-    if (Object.keys(dataToSave).length > 1) { // more than just updatedOn
-      const updatedEvent = await eventDao.updateEventById(dataToSave, foreignKeys, { id: rowId });
+    if (Object.keys(dataToSave).length > 1) {
+      // more than just updatedOn
+      const updatedEvent = await eventDao.updateEventById(
+        dataToSave,
+        foreignKeys,
+        { id: rowId }
+      );
       return {
         ...updatedEvent,
         startTime: formatTime(updatedEvent.startTime),
@@ -257,7 +272,9 @@ export const updateEventById = async (eventId, data) => {
   }
 
   // Normal update (no restore)
-  const updatedEvent = await eventDao.updateEventById(dataToSave, foreignKeys, { id: rowId });
+  const updatedEvent = await eventDao.updateEventById(dataToSave, foreignKeys, {
+    id: rowId,
+  });
   return {
     ...updatedEvent,
     startTime: formatTime(updatedEvent.startTime),

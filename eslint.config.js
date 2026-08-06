@@ -33,6 +33,7 @@ export default [
       '**/storybook-static/**',
       '**/build/**',
       '.vscode/**',
+      '**/coverage/**',
     ],
   },
 
@@ -115,6 +116,7 @@ export default [
       // Define las variables globales del navegador usando el preset
       globals: {
         ...globals.browser,
+        ...globals.node,
         ...vitest.environments.env.globals,
       },
 

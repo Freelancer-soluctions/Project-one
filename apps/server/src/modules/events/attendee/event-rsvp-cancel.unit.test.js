@@ -36,32 +36,48 @@ describe('Event RSVP — cancel', () => {
 
   it('throws 404 if registration not found', async () => {
     attendeeDao.findAttendeeByUserAndEvent.mockResolvedValue(null);
-    await expect(eventAttendeeService.cancel(1, 999)).rejects.toThrow('Registration not found');
+    await expect(eventAttendeeService.cancel(1, 999)).rejects.toThrow(
+      'Registration not found'
+    );
   });
 
   it('throws 409 if already cancelled', async () => {
     attendeeDao.findAttendeeByUserAndEvent.mockResolvedValue(mockCancelled);
-    await expect(eventAttendeeService.cancel(1, 3)).rejects.toThrow('Registration already cancelled');
+    await expect(eventAttendeeService.cancel(1, 3)).rejects.toThrow(
+      'Registration already cancelled'
+    );
   });
 
   it('throws 400 if invalid transition', async () => {
     stateMachine.canTransition.mockReturnValue(false);
     attendeeDao.findAttendeeByUserAndEvent.mockResolvedValue(mockConfirmed);
-    await expect(eventAttendeeService.cancel(1, 1)).rejects.toThrow('Cannot cancel from CONFIRMED status');
+    await expect(eventAttendeeService.cancel(1, 1)).rejects.toThrow(
+      'Cannot cancel from CONFIRMED status'
+    );
   });
 
   it('cancels CONFIRMED — decrements count, promotes waitlist', async () => {
     stateMachine.canTransition.mockReturnValue(true);
     attendeeDao.findAttendeeByUserAndEvent.mockResolvedValue(mockConfirmed);
-    attendeeDao.updateAttendeeStatus.mockResolvedValue({ ...mockConfirmed, status: 'CANCELLED' });
+    attendeeDao.updateAttendeeStatus.mockResolvedValue({
+      ...mockConfirmed,
+      status: 'CANCELLED',
+    });
     attendeeDao.decrementAttendeeCount.mockResolvedValue({});
     attendeeDao.createAuditLog.mockResolvedValue({});
     attendeeDao.findEarliestWaitlist.mockResolvedValue(null);
 
     const result = await eventAttendeeService.cancel(1, 1);
 
-    expect(attendeeDao.updateAttendeeStatus).toHaveBeenCalledWith(1, 'CANCELLED', expect.anything());
-    expect(attendeeDao.decrementAttendeeCount).toHaveBeenCalledWith(1, expect.anything());
+    expect(attendeeDao.updateAttendeeStatus).toHaveBeenCalledWith(
+      1,
+      'CANCELLED',
+      expect.anything()
+    );
+    expect(attendeeDao.decrementAttendeeCount).toHaveBeenCalledWith(
+      1,
+      expect.anything()
+    );
     expect(attendeeDao.createAuditLog).toHaveBeenCalled();
     expect(result.status).toBe('CANCELLED');
   });
@@ -69,12 +85,19 @@ describe('Event RSVP — cancel', () => {
   it('cancels WAITLIST — no count decrement, no waitlist promotion', async () => {
     stateMachine.canTransition.mockReturnValue(true);
     attendeeDao.findAttendeeByUserAndEvent.mockResolvedValue(mockWaitlist);
-    attendeeDao.updateAttendeeStatus.mockResolvedValue({ ...mockWaitlist, status: 'CANCELLED' });
+    attendeeDao.updateAttendeeStatus.mockResolvedValue({
+      ...mockWaitlist,
+      status: 'CANCELLED',
+    });
     attendeeDao.createAuditLog.mockResolvedValue({});
 
     const result = await eventAttendeeService.cancel(1, 2);
 
-    expect(attendeeDao.updateAttendeeStatus).toHaveBeenCalledWith(2, 'CANCELLED', expect.anything());
+    expect(attendeeDao.updateAttendeeStatus).toHaveBeenCalledWith(
+      2,
+      'CANCELLED',
+      expect.anything()
+    );
     expect(attendeeDao.decrementAttendeeCount).not.toHaveBeenCalled();
     expect(attendeeDao.findEarliestWaitlist).not.toHaveBeenCalled();
     expect(attendeeDao.createAuditLog).toHaveBeenCalled();
@@ -97,9 +120,25 @@ describe('Event RSVP — cancel', () => {
 
     // updateAttendeeStatus called twice: cancel + promote
     expect(attendeeDao.updateAttendeeStatus).toHaveBeenCalledTimes(2);
-    expect(attendeeDao.updateAttendeeStatus).toHaveBeenNthCalledWith(1, 1, 'CANCELLED', expect.anything());
-    expect(attendeeDao.updateAttendeeStatus).toHaveBeenNthCalledWith(2, 10, 'CONFIRMED', expect.anything());
-    expect(attendeeDao.decrementAttendeeCount).toHaveBeenCalledWith(1, expect.anything());
-    expect(attendeeDao.incrementAttendeeCount).toHaveBeenCalledWith(1, expect.anything());
+    expect(attendeeDao.updateAttendeeStatus).toHaveBeenNthCalledWith(
+      1,
+      1,
+      'CANCELLED',
+      expect.anything()
+    );
+    expect(attendeeDao.updateAttendeeStatus).toHaveBeenNthCalledWith(
+      2,
+      10,
+      'CONFIRMED',
+      expect.anything()
+    );
+    expect(attendeeDao.decrementAttendeeCount).toHaveBeenCalledWith(
+      1,
+      expect.anything()
+    );
+    expect(attendeeDao.incrementAttendeeCount).toHaveBeenCalledWith(
+      1,
+      expect.anything()
+    );
   });
 });

@@ -101,16 +101,16 @@ export const NewsFiltersForm = ({
                         placeholder={t('description_placeholder')}
                         type="text"
                         autoComplete="false"
-                         maxLength={FIELD_LIMITS.news.description}
-                         {...field}
-                         value={field.value ?? ''}
-                       />
-                     </FormControl>
-                     <FormMessage />
-                   </FormItem>
-                 );
-               }}
-             />
+                        maxLength={FIELD_LIMITS.news.description}
+                        {...field}
+                        value={field.value ?? ''}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                );
+              }}
+            />
 
             <FormField
               control={formFilter.control}

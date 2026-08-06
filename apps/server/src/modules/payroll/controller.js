@@ -42,8 +42,6 @@ export const createPayroll = handleCatchErrorAsync(async (req, res) => {
   globalResponse(res, 201, payroll, 'Payroll created successfully');
 });
 
-
-
 /**
  * Delete a payroll record by ID.
  *
@@ -70,8 +68,14 @@ export const deletePayrollById = handleCatchErrorAsync(async (req, res) => {
  * @param {Object} res - The HTTP response object.
  * @returns {Promise<void>} Partially updates payroll record and returns updated payroll object
  */
-export const updatePayrollByIdPartial = handleCatchErrorAsync(async (req, res) => {
-  const { id } = req.params;
-  const payroll = await payrollService.updatePayrollByIdPartial(id, req.body, req.userId);
-  globalResponse(res, 200, payroll, 'Payroll partially updated successfully');
-});
+export const updatePayrollByIdPartial = handleCatchErrorAsync(
+  async (req, res) => {
+    const { id } = req.params;
+    const payroll = await payrollService.updatePayrollByIdPartial(
+      id,
+      req.body,
+      req.userId
+    );
+    globalResponse(res, 200, payroll, 'Payroll partially updated successfully');
+  }
+);

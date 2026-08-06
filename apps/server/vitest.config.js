@@ -5,21 +5,33 @@ import sharedConfig from '../../vitest.shared.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-export default defineConfig(mergeConfig(sharedConfig, {
-  test: {
-    root: __dirname,
-    environment: 'node',
-    coverage: {
-      reportsDirectory: './tests/coverage',
+export default defineConfig(
+  mergeConfig(sharedConfig, {
+    test: {
+      root: __dirname,
+      environment: 'node',
+      pool: 'forks',
+      ...(process.env.CI === 'true'
+        ? { maxWorkers: 1, isolate: false, retry: 2 }
+        : {}),
+      reporters: ['default', 'hanging-process'],
+      coverage: {
+        reportsDirectory: './tests/coverage',
+        thresholds: {
+          statements: 39,
+          branches: 18,
+          functions: 7,
+          lines: 39,
+        },
+      },
+      setupFiles: './tests/setupTest.js',
+      include: [
+        'src/**/*.unit.test.js',
+        'tests/integration/**/*.integration.test.js',
+      ],
+      testTimeout: 30000,
+      hookTimeout: 15000,
+      teardownTimeout: 5000,
     },
-    setupFiles: './tests/setupTest.js',
-    // Hybrid test organization (see docs/testing-architecture.md section 8):
-    //   - Colocated unit tests: src/<module>/*.unit.test.js (primary location)
-    //   - Integration tests grouped by module: tests/integration/<module>/*.integration.test.js
-    //   - Orphan tests: tests/orphans/ (describe.skip or describe.todo exceptions)
-    include: [
-      'src/**/*.unit.test.js',
-      'tests/integration/**/*.integration.test.js',
-    ],
-  },
-}));
+  })
+);

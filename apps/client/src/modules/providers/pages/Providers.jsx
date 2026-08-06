@@ -85,33 +85,33 @@ const Providers = () => {
     setFilters(newFilters);
   };
 
-   const handleSubmit = async (result) => {
-     try {
-       if (result?.id) {
-         await updateProviderById({ id: result.id, data: result.body }).unwrap();
-       } else {
-         await createProvider(result).unwrap();
-       }
+  const handleSubmit = async (result) => {
+    try {
+      if (result?.id) {
+        await updateProviderById({ id: result.id, data: result.body }).unwrap();
+      } else {
+        await createProvider(result).unwrap();
+      }
 
-       setAlertProps({
-         alertTitle: t(result?.id ? 'update_record' : 'add_record'),
-         alertMessage: t(
-           result?.id ? 'updated_successfully' : 'added_successfully'
-         ),
-         cancel: false,
-         success: true,
-         onSuccess: () => {
-           setOpenDialog(false);
-         },
-         variantSuccess: 'info',
-       });
-       setOpenAlertDialog(true);
-     } catch (err) {
-       console.error('Error:', err);
-     }
-    };
+      setAlertProps({
+        alertTitle: t(result?.id ? 'update_record' : 'add_record'),
+        alertMessage: t(
+          result?.id ? 'updated_successfully' : 'added_successfully'
+        ),
+        cancel: false,
+        success: true,
+        onSuccess: () => {
+          setOpenDialog(false);
+        },
+        variantSuccess: 'info',
+      });
+      setOpenAlertDialog(true);
+    } catch (err) {
+      console.error('Error:', err);
+    }
+  };
 
-   const handleAddDialog = () => {
+  const handleAddDialog = () => {
     setActionDialog(t('add_provider'));
     setOpenDialog(true);
   };

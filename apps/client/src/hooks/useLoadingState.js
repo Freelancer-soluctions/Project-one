@@ -14,8 +14,11 @@ import { useMemo } from 'react';
  * // isFetching → true if ANY query is fetching
  */
 export function useLoadingState(queryStates = []) {
-  return useMemo(() => ({
-    isLoading: queryStates.some(q => q?.isLoading),
-    isFetching: queryStates.some(q => q?.isFetching),
-  }), [queryStates]);
+  return useMemo(
+    () => ({
+      isLoading: queryStates.some((q) => q?.isLoading),
+      isFetching: queryStates.some((q) => q?.isFetching),
+    }),
+    [queryStates]
+  );
 }

@@ -6,21 +6,46 @@ import { sanitizePrismaMessage } from '../utils/prisma/sanitizePrismaMessage.js'
 // Prisma error code → HTTP status mapping
 const PRISMA_CODE_HTTP_MAP = {
   // ── 400 Client errors ──
-  P2000: 400, P2004: 400, P2005: 400, P2006: 400,
-  P2007: 400, P2008: 400, P2009: 400,
-  P2011: 400, P2012: 400, P2013: 400,
-  P2019: 400, P2020: 400, P2029: 400, P2033: 400,
+  P2000: 400,
+  P2004: 400,
+  P2005: 400,
+  P2006: 400,
+  P2007: 400,
+  P2008: 400,
+  P2009: 400,
+  P2011: 400,
+  P2012: 400,
+  P2013: 400,
+  P2019: 400,
+  P2020: 400,
+  P2029: 400,
+  P2033: 400,
   // ── 404 Not found ──
-  P2001: 404, P2015: 404, P2018: 404, P2025: 404,
+  P2001: 404,
+  P2015: 404,
+  P2018: 404,
+  P2025: 404,
   // ── 409 Conflict ──
-  P2002: 409, P2003: 409, P2014: 409, P2017: 409, P2034: 409,
+  P2002: 409,
+  P2003: 409,
+  P2014: 409,
+  P2017: 409,
+  P2034: 409,
   // ── 500 Server errors ──
-  P2010: 500, P2016: 500,
-  P2021: 500, P2022: 500, P2023: 500,
-  P2026: 500, P2027: 500, P2028: 500, P2030: 500,
-  P2035: 500, P2036: 500,
+  P2010: 500,
+  P2016: 500,
+  P2021: 500,
+  P2022: 500,
+  P2023: 500,
+  P2026: 500,
+  P2027: 500,
+  P2028: 500,
+  P2030: 500,
+  P2035: 500,
+  P2036: 500,
   // ── 503 Unavailable ──
-  P2024: 503, P2037: 503,
+  P2024: 503,
+  P2037: 503,
 };
 
 /**
@@ -45,28 +70,23 @@ export const errorHandler = (err, req, res, next) => {
     statusCode = PRISMA_CODE_HTTP_MAP[err.code] || 500;
     code = err.code;
     message = sanitizePrismaMessage(err, isDev);
-
   } else if (err instanceof Prisma.PrismaClientValidationError) {
     statusCode = 400;
     code = 'VALIDATION_ERROR';
     message = 'Invalid request data';
-
   } else if (err instanceof Prisma.PrismaClientInitializationError) {
     statusCode = 503;
     code = 'DATABASE_INIT_ERROR';
     message = 'Database service unavailable';
-
   } else if (err instanceof Prisma.PrismaClientRustPanicError) {
     statusCode = 500;
     code = 'DATABASE_ENGINE_CRASH';
     message = 'Database engine crashed';
     process.exitCode = 1; // Signal process restart
-
   } else if (err instanceof ClientError) {
     statusCode = err.statusCode || 400;
     code = err.code || 'CLIENT_ERROR';
     message = err.message;
-
   } else {
     // Generic / unknown errors — never leak system codes to API response
     message = err.message || message;

@@ -68,7 +68,9 @@ export const ProductBasicInfo = ({
       status: null,
     },
   });
-  const { formState: { dirtyFields } } = form;
+  const {
+    formState: { dirtyFields },
+  } = form;
 
   const productId = useMemo(() => selectedRow?.id ?? null, [selectedRow?.id]);
 
@@ -199,10 +201,10 @@ export const ProductBasicInfo = ({
                           onValueChange={(code) => {
                             // Buscar el objeto completo por el `code`
 
-                             if (dataCategory.length > 0) {
-                               const selectedCategory = dataCategory.find(
-                                 (item) => item.code === code
-                               );
+                            if (dataCategory.length > 0) {
+                              const selectedCategory = dataCategory.find(
+                                (item) => item.code === code
+                              );
                               if (selectedCategory) {
                                 field.onChange(selectedCategory); // Asignar el objeto completo
                               }
@@ -216,11 +218,11 @@ export const ProductBasicInfo = ({
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-{dataCategory?.map((item, index) => (
-              <SelectItem value={item.code} key={index}>
-                {item.description}
-              </SelectItem>
-            ))}
+                            {dataCategory?.map((item, index) => (
+                              <SelectItem value={item.code} key={index}>
+                                {item.description}
+                              </SelectItem>
+                            ))}
                           </SelectContent>
                         </Select>
                         <FormMessage />
@@ -260,11 +262,11 @@ export const ProductBasicInfo = ({
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-{dataProviders?.map((item, index) => (
-              <SelectItem value={item.code} key={index}>
-                {item.name}
-              </SelectItem>
-            ))}
+                            {dataProviders?.map((item, index) => (
+                              <SelectItem value={item.code} key={index}>
+                                {item.name}
+                              </SelectItem>
+                            ))}
                           </SelectContent>
                         </Select>
 
@@ -303,11 +305,11 @@ export const ProductBasicInfo = ({
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-{datastatus?.map((item, index) => (
-              <SelectItem value={item.code} key={index}>
-                {item.description}
-              </SelectItem>
-            ))}
+                            {datastatus?.map((item, index) => (
+                              <SelectItem value={item.code} key={index}>
+                                {item.description}
+                              </SelectItem>
+                            ))}
                           </SelectContent>
                         </Select>
                         <FormMessage />

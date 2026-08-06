@@ -250,8 +250,6 @@ router.get(
   eventsController.getAllEvents
 );
 
-
-
 /**
  * @openapi
  * /api/v1/events/{id}:
@@ -309,15 +307,15 @@ router.get(
  * */
 
 router.patch(
-   '/:id',
-   checkRoleAuthOrPermisssion({
-     allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER, ROLESCODES.USER],
-     permissions: [PERMISSIONCODES.canEditEvents],
-   }),
-   validatePathParam,
-   validateSchema(EventsUpdateSchema),
-   eventsController.updateEventById
- );
+  '/:id',
+  checkRoleAuthOrPermisssion({
+    allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER, ROLESCODES.USER],
+    permissions: [PERMISSIONCODES.canEditEvents],
+  }),
+  validatePathParam,
+  validateSchema(EventsUpdateSchema),
+  eventsController.updateEventById
+);
 
 /**
  * @openapi

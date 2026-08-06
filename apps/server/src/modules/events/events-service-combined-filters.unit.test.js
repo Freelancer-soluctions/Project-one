@@ -9,7 +9,12 @@ vi.mock('./dao.js', () => ({
 describe('Events Service – Combined Filters (Unit)', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    eventDao.getAllEvents.mockResolvedValue({ data: [], total: 0, page: 1, pageSize: 20 });
+    eventDao.getAllEvents.mockResolvedValue({
+      data: [],
+      total: 0,
+      page: 1,
+      pageSize: 20,
+    });
   });
 
   // 5.1 — Each filter passed through
@@ -61,7 +66,11 @@ describe('Events Service – Combined Filters (Unit)', () => {
     });
 
     it('passes pagination and showDeleted', async () => {
-      await eventService.getAllEvents({ page: 2, limit: 10, showDeleted: true });
+      await eventService.getAllEvents({
+        page: 2,
+        limit: 10,
+        showDeleted: true,
+      });
       expect(eventDao.getAllEvents).toHaveBeenCalledWith(
         expect.objectContaining({
           page: 2,
@@ -124,7 +133,12 @@ describe('Events Service – Combined Filters (Unit)', () => {
         startTime: new Date('1970-01-01T14:30:00.000Z'),
         endTime: new Date('1970-01-01T16:45:00.000Z'),
       };
-      eventDao.getAllEvents.mockResolvedValue({ data: [mockEvent], total: 1, page: 1, pageSize: 20 });
+      eventDao.getAllEvents.mockResolvedValue({
+        data: [mockEvent],
+        total: 1,
+        page: 1,
+        pageSize: 20,
+      });
 
       const result = await eventService.getAllEvents({});
 

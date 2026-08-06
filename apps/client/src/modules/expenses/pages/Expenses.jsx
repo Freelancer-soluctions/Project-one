@@ -30,8 +30,13 @@ const Expenses = () => {
   const [filters, setFilters] = useState({});
 
   const [triggerExpenses, queryState] = useLazyGetAllExpensesQuery();
-  const { data: dataExpenses, isLoading, isFetching } = useQueryData(queryState);
-  const { isLoading: isLoadingExpenses, isFetching: isFetchingExpenses } = useLoadingState([{ isLoading, isFetching }]);
+  const {
+    data: dataExpenses,
+    isLoading,
+    isFetching,
+  } = useQueryData(queryState);
+  const { isLoading: isLoadingExpenses, isFetching: isFetchingExpenses } =
+    useLoadingState([{ isLoading, isFetching }]);
 
   const [updateExpenseById, { isLoading: isLoadingPut }] =
     useUpdateExpenseByIdMutation();

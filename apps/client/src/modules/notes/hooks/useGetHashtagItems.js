@@ -12,19 +12,19 @@ import { useGetAllHashtagsQuery } from '@/modules/notes/api/notesAPI';
  * @returns {{ hashtagItems: Array<{id: string, name: string}> }}
  */
 export function useGetHashtagItems() {
-    const { data: hashtagsResponse } = useGetAllHashtagsQuery();
-    const hashtagsData = hashtagsResponse?.data;
+  const { data: hashtagsResponse } = useGetAllHashtagsQuery();
+  const hashtagsData = hashtagsResponse?.data;
 
-    const hashtagItems = useMemo(() => {
-        return Array.isArray(hashtagsData)
-            ? hashtagsData.map((h) => ({
-                id: String(h.id),
-                name: h.name,
-            }))
-            : [];
-    }, [hashtagsData]);
+  const hashtagItems = useMemo(() => {
+    return Array.isArray(hashtagsData)
+      ? hashtagsData.map((h) => ({
+          id: String(h.id),
+          name: h.name,
+        }))
+      : [];
+  }, [hashtagsData]);
 
-    return {
-        hashtagItems,
-    };
+  return {
+    hashtagItems,
+  };
 }

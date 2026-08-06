@@ -30,15 +30,25 @@ const Attendance = () => {
   });
   const [filters, setFilters] = useState({});
 
-  const [triggerAttendance, queryStateAttendance] = useLazyGetAllAttendanceQuery();
-  const { data: dataAttendance = [], isLoading: isLoadingAtt, isFetching: isFetchingAtt } = useQueryData(queryStateAttendance);
-  
-  const { data: dataEmployees = [], isLoading: isLoadingEmp, isFetching: isFetchingEmp } = useQueryData(useGetAllEmployeesFiltersQuery());
-  
-  const { isLoading: isLoadingAny, isFetching: isFetchingAny } = useLoadingState([
-    { isLoading: isLoadingAtt, isFetching: isFetchingAtt },
-    { isLoading: isLoadingEmp, isFetching: isFetchingEmp },
-  ]);
+  const [triggerAttendance, queryStateAttendance] =
+    useLazyGetAllAttendanceQuery();
+  const {
+    data: dataAttendance = [],
+    isLoading: isLoadingAtt,
+    isFetching: isFetchingAtt,
+  } = useQueryData(queryStateAttendance);
+
+  const {
+    data: dataEmployees = [],
+    isLoading: isLoadingEmp,
+    isFetching: isFetchingEmp,
+  } = useQueryData(useGetAllEmployeesFiltersQuery());
+
+  const { isLoading: isLoadingAny, isFetching: isFetchingAny } =
+    useLoadingState([
+      { isLoading: isLoadingAtt, isFetching: isFetchingAtt },
+      { isLoading: isLoadingEmp, isFetching: isFetchingEmp },
+    ]);
 
   const [updateAttendanceById, { isLoading: isLoadingPut }] =
     useUpdateAttendanceByIdMutation();
@@ -92,7 +102,10 @@ const Attendance = () => {
     try {
       if (result?.id) {
         // edit → result = { id, body } with only changed fields (PATCH)
-        await updateAttendanceById({ id: result.id, data: result.body }).unwrap();
+        await updateAttendanceById({
+          id: result.id,
+          data: result.body,
+        }).unwrap();
       } else {
         // create → result = form values (POST)
         await createAttendance(result).unwrap();
@@ -198,10 +211,10 @@ const Attendance = () => {
       <div className="relative">
         {/* Show spinner when loading or fetching */}
         {(isLoadingAny ||
-           isFetchingAny ||
-           isLoadingPut ||
-           isLoadingPost ||
-           isLoadingDelete) && <Spinner />}
+          isFetchingAny ||
+          isLoadingPut ||
+          isLoadingPost ||
+          isLoadingDelete) && <Spinner />}
 
         <div className="grid grid-cols-2 grid-rows-4 gap-4 md:grid-cols-5">
           <div className="col-span-2 row-span-1 md:col-span-5">

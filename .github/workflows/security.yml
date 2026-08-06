@@ -4,6 +4,8 @@ on:
   workflow_call:
   pull_request:
     branches: [ main ]
+  push:
+    branches: [ main ]
 
 permissions:
   contents: read
@@ -34,29 +36,6 @@ jobs:
           scan-ref: .
           severity: CRITICAL,HIGH
 
-#   # =========================
-#   # Dependency Scanning (SCA)
-#   # =========================
-#   dependency-scan:
-#     name: Dependency Scan
-#     runs-on: ubuntu-latest
-
-#     steps:
-#       - uses: actions/checkout@v5
-
-#       - name: Setup Node
-#         uses: actions/setup-node@v4
-#         with:
-#           node-version-file: '.nvmrc'
-#           cache: 'npm'
-#           cache-dependency-path: package-lock.json
-
-#       - name: Install dependencies (workspace root)
-#         run: npm ci
-
-#       - name: Run npm audit
-#         run: npm audit --audit-level=high
-
   # =========================
   # SAST (Static Analysis)
   # =========================
@@ -77,7 +56,7 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
-  
+   
       - name: Analyze
         uses: github/codeql-action/analyze@v4
 
@@ -90,36 +69,81 @@ jobs:
 
     steps:
       - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
 
-      - name: Scan for secrets
+      - name: Scan PR diff for secrets (Gitleaks OSS)
+        uses: docker://zricethezav/gitleaks:v8.22.1
+        with:
+          args: git --log-opts="${{ github.event.pull_request.base.sha }}..${{ github.event.pull_request.head.sha }}" --redact --verbose
+
+      - name: Scan for secrets (licensed action - optional)
+        if: ${{ secrets.GIT_LEAKS != '' }}
         uses: gitleaks/gitleaks-action@v2
         env:
           GITLEAKS_LICENSE: ${{ secrets.GIT_LEAKS }}
+      - name: Warn: licensed Gitleaks scan unavailable
+        if: ${{ secrets.GIT_LEAKS == '' }}
+        run: echo "::warning::GIT_LEAKS secret not configured - licensed Gitleaks scan skipped. Using open-source Gitleaks only."
 
-#   # =========================
-#   # Infrastructure as Code Security
-#   # =========================
-#   iac-security:
-#     name: IaC Security Scan
-#     runs-on: ubuntu-latest
+# =========================
+  # Infrastructure as Code Security
+  # =========================
+  # iac-security:
+  #   name: IaC Security Scan
+  #   runs-on: ubuntu-latest
+  #
+  #   steps:
+  #     - uses: actions/checkout@v5
+  #
+  #     - name: Run Semgrep IaC rules
+  #       uses: returntocorp/semgrep-action@v1
+  #       with:
+  #         config: p/terraform
 
-#     steps:
-#       - uses: actions/checkout@v5
+  # =========================
+  # SBOM generation
+  # =========================
+  sbom:
+    name: Generate SBOM
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: write
 
-#       - name: Run Semgrep IaC rules
-#         uses: returntocorp/semgrep-action@v1
-#         with:
-#           config: p/terraform
+    steps:
+      - uses: actions/checkout@v5
 
-#   # =========================
-#   # SBOM generation (recommended)
-#   # =========================
-#   sbom:
-#     name: Generate SBOM
-#     runs-on: ubuntu-latest
+      - name: Generate SBOM
+        uses: anchore/sbom-action@v0.17.2
+        with:
+          format: cyclonedx-json
+          output-file: sbom-project-one.json
 
-#     steps:
-#       - uses: actions/checkout@v5
+      - name: Upload SBOM artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: sbom
+          path: sbom-project-one.json
+          if-no-files-found: error
+          retention-days: 365
 
-#       - name: Generate SBOM
-#         uses: anchore/sbom-action@v0
+  # =========================
+  # Dependency Review
+  # =========================
+  dependency-review:
+    name: Dependency Review
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    permissions:
+      contents: read
+      pull-requests: write
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Run dependency review
+        uses: actions/dependency-review-action@v4
+        with:
+          vulnerability-check: true
+          license-check: true

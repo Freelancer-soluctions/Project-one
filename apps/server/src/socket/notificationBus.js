@@ -1,4 +1,4 @@
-import { EventEmitter } from 'events'
+import { EventEmitter } from 'events';
 
 // ============================================================
 // notificationBus.js — Bus de eventos para desacoplar servicios
@@ -18,8 +18,8 @@ import { EventEmitter } from 'events'
 // Singleton: un solo bus para toda la aplicación
 // El límite por defecto de EventEmitter es 10 listeners.
 // Aumentamos a 50 para soportar múltiples handlers sin warnings.
-const bus = new EventEmitter()
-bus.setMaxListeners(50)
+const bus = new EventEmitter();
+bus.setMaxListeners(50);
 
 // Constantes de eventos — un solo lugar para mantener sincronizados
 // los nombres entre emisores (servicios) y receptores (socket handlers)
@@ -31,13 +31,13 @@ export const BUS_EVENTS = {
   // Emitido cuando se marcan menciones como leídas
   // Payload: { mentionIds, userId }
   MENTION_READ: 'mention:read',
-}
+};
 
 /**
  * Obtiene la instancia singleton del bus de eventos.
  * @returns {EventEmitter}
  */
-export const getBus = () => bus
+export const getBus = () => bus;
 
 // Export default para conveniencia (import simplificado en servicios)
-export default bus
+export default bus;

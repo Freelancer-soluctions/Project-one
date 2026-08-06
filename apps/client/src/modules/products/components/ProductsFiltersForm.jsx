@@ -81,16 +81,16 @@ export const ProductsFiltersForm = ({
                   <FormItem className="flex flex-col flex-auto">
                     <FormLabel htmlFor="name">{t('name')}</FormLabel>
                     <FormControl>
-                       <Input
-                         id="name"
-                         name="description"
-                         placeholder={t('description_placeholder')}
-                         type="text"
-                         autoComplete="false"
-                         maxLength={FIELD_LIMITS.products.name}
-                         {...field}
-                         value={field.value ?? ''}
-                       />
+                      <Input
+                        id="name"
+                        name="description"
+                        placeholder={t('description_placeholder')}
+                        type="text"
+                        autoComplete="false"
+                        maxLength={FIELD_LIMITS.products.name}
+                        {...field}
+                        value={field.value ?? ''}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -112,11 +112,11 @@ export const ProductsFiltersForm = ({
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-{datastatus?.map((item, index) => (
-                            <SelectItem value={item.code} key={index}>
-                              {item.description}
-                            </SelectItem>
-                          ))}
+                        {datastatus?.map((item, index) => (
+                          <SelectItem value={item.code} key={index}>
+                            {item.description}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -139,11 +139,11 @@ export const ProductsFiltersForm = ({
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-{dataCategory?.map((item, index) => (
-                            <SelectItem value={item.code} key={index}>
-                              {item.description}
-                            </SelectItem>
-                          ))}
+                        {dataCategory?.map((item, index) => (
+                          <SelectItem value={item.code} key={index}>
+                            {item.description}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -166,11 +166,11 @@ export const ProductsFiltersForm = ({
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-{dataProviders?.map((item, index) => (
-                           <SelectItem value={item.code} key={index}>
-                             {item.name}
-                           </SelectItem>
-                         ))}
+                        {dataProviders?.map((item, index) => (
+                          <SelectItem value={item.code} key={index}>
+                            {item.name}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                     <FormMessage />

@@ -21,7 +21,7 @@ import {
   userFiltersSchema,
   userCreateSchema,
   byStatusCode,
-  userUpdateSchema
+  userUpdateSchema,
 } from './schemas/users.joi.js';
 
 const router = express.Router();
@@ -150,8 +150,6 @@ router.post(
   validateSchema(userCreateSchema),
   createUser
 );
-
-
 
 /**
  * @openapi

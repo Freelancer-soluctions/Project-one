@@ -2,7 +2,7 @@ import Joi from 'joi';
 
 /**
  * Validation schema for filtering notes.
- * 
+ *
  * @property {string} searchTerm - Search term for filtering notes (optional, min 1, max 150 chars)
  * @property {string} statusCode - Status code filter (optional, min 3, max 3 chars)
  * @property {number|number[]} [hashtagId] - Hashtag ID or array of IDs to filter by (optional)
@@ -11,17 +11,16 @@ import Joi from 'joi';
 export const NotesFilters = Joi.object({
   searchTerm: Joi.string().min(1).max(100).allow(''),
   statusCode: Joi.string().min(3).max(3).allow(''),
-  hashtagId: Joi.alternatives().try(
-    Joi.number().integer(),
-    Joi.array().items(Joi.number().integer())
-  ).optional(),
+  hashtagId: Joi.alternatives()
+    .try(Joi.number().integer(), Joi.array().items(Joi.number().integer()))
+    .optional(),
   isFavorite: Joi.boolean().optional(),
-   scope: Joi.string().valid('mine', 'mixed').default('mine').optional(),
+  scope: Joi.string().valid('mine', 'mixed').default('mine').optional(),
 });
 
 /**
  * Validation schema for creating a new note.
- * 
+ *
  * @property {string} title - Note title (required, max 50 chars)
  * @property {string} content - Note content (required, max 2000 chars)
  * @property {number} columnId - Column/status ID (required)
@@ -49,7 +48,7 @@ export const NoteUpdate = Joi.object({
 
 /**
  * Validation schema for updating a note's column/status.
- * 
+ *
  * @property {number} id - Note ID (required)
  * @property {number} columnId - New column/status ID (required)
  */
@@ -60,7 +59,7 @@ export const NoteColumnUpdate = Joi.object({
 
 /**
  * Validation schema for creating a new hashtag.
- * 
+ *
  * @property {string} name - Hashtag name (required, max 50 chars, trimmed)
  */
 export const CreateHashtagSchema = Joi.object({

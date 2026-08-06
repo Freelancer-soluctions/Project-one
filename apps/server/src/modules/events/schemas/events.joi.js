@@ -30,34 +30,44 @@ export const EventsCreateSchema = Joi.object({
   type: Joi.number().integer().required(),
   capacity: Joi.number().integer().min(0).optional(),
   modality: Joi.string().valid('ONLINE', 'IN_PERSON', 'HYBRID').required(),
-  meetingUrl: Joi.string().uri().max(500).when('modality', {
-    is: 'ONLINE',
-    then: Joi.required(),
-    otherwise: Joi.optional(),
-  }).when('modality', {
-    is: 'HYBRID',
-    then: Joi.required(),
-    otherwise: Joi.optional(),
-  }).forbidden().when('modality', {
-    is: 'IN_PERSON',
-    then: Joi.forbidden(),
-    otherwise: Joi.optional(),
-  }),
-  location: Joi.string().max(200).when('modality', {
-    is: 'IN_PERSON',
-    then: Joi.required(),
-    otherwise: Joi.optional(),
-  }).when('modality', {
-    is: 'HYBRID',
-    then: Joi.required(),
-    otherwise: Joi.optional(),
-  }).forbidden().when('modality', {
-    is: 'ONLINE',
-    then: Joi.forbidden(),
-    otherwise: Joi.optional(),
-  }),
-})
-  .custom(startBeforeEndValidator);
+  meetingUrl: Joi.string()
+    .uri()
+    .max(500)
+    .when('modality', {
+      is: 'ONLINE',
+      then: Joi.required(),
+      otherwise: Joi.optional(),
+    })
+    .when('modality', {
+      is: 'HYBRID',
+      then: Joi.required(),
+      otherwise: Joi.optional(),
+    })
+    .forbidden()
+    .when('modality', {
+      is: 'IN_PERSON',
+      then: Joi.forbidden(),
+      otherwise: Joi.optional(),
+    }),
+  location: Joi.string()
+    .max(200)
+    .when('modality', {
+      is: 'IN_PERSON',
+      then: Joi.required(),
+      otherwise: Joi.optional(),
+    })
+    .when('modality', {
+      is: 'HYBRID',
+      then: Joi.required(),
+      otherwise: Joi.optional(),
+    })
+    .forbidden()
+    .when('modality', {
+      is: 'ONLINE',
+      then: Joi.forbidden(),
+      otherwise: Joi.optional(),
+    }),
+}).custom(startBeforeEndValidator);
 
 export const EventsUpdateSchema = Joi.object({
   title: Joi.string().max(50).optional(),
@@ -75,36 +85,51 @@ export const EventsUpdateSchema = Joi.object({
   deletedAt: Joi.date().valid(null).optional().raw(),
   deletedBy: Joi.any().valid(null).optional(),
   modality: Joi.string().valid('ONLINE', 'IN_PERSON', 'HYBRID').optional(),
-  meetingUrl: Joi.string().uri().max(500).when('modality', {
-    is: 'ONLINE',
-    then: Joi.required(),
-    otherwise: Joi.optional(),
-  }).when('modality', {
-    is: 'HYBRID',
-    then: Joi.required(),
-    otherwise: Joi.optional(),
-  }).forbidden().when('modality', {
-    is: 'IN_PERSON',
-    then: Joi.forbidden(),
-    otherwise: Joi.optional(),
-  }),
-  location: Joi.string().max(200).when('modality', {
-    is: 'IN_PERSON',
-    then: Joi.required(),
-    otherwise: Joi.optional(),
-  }).when('modality', {
-    is: 'HYBRID',
-    then: Joi.required(),
-    otherwise: Joi.optional(),
-  }).forbidden().when('modality', {
-    is: 'ONLINE',
-    then: Joi.forbidden(),
-    otherwise: Joi.optional(),
-  }),
+  meetingUrl: Joi.string()
+    .uri()
+    .max(500)
+    .when('modality', {
+      is: 'ONLINE',
+      then: Joi.required(),
+      otherwise: Joi.optional(),
+    })
+    .when('modality', {
+      is: 'HYBRID',
+      then: Joi.required(),
+      otherwise: Joi.optional(),
+    })
+    .forbidden()
+    .when('modality', {
+      is: 'IN_PERSON',
+      then: Joi.forbidden(),
+      otherwise: Joi.optional(),
+    }),
+  location: Joi.string()
+    .max(200)
+    .when('modality', {
+      is: 'IN_PERSON',
+      then: Joi.required(),
+      otherwise: Joi.optional(),
+    })
+    .when('modality', {
+      is: 'HYBRID',
+      then: Joi.required(),
+      otherwise: Joi.optional(),
+    })
+    .forbidden()
+    .when('modality', {
+      is: 'ONLINE',
+      then: Joi.forbidden(),
+      otherwise: Joi.optional(),
+    }),
 })
   // Cross-field runs only when both fields present (partial update safe)
   .custom((value, helpers) => {
-    if (value.startTime !== undefined && value.endTime !== undefined && value.startTime >= value.endTime) {
+    if (
+      value.startTime !== undefined &&
+      value.endTime !== undefined &&
+      value.startTime >= value.endTime
+    ) {
       return helpers.message('startTime must be earlier than endTime');
     }
     return value;

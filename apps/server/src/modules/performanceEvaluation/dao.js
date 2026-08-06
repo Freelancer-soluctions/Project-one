@@ -113,7 +113,6 @@ export const createPerformanceEvaluation = async (data) => {
   return evaluation;
 };
 
-
 /**
  * Partially update a performance evaluation by ID.
  *
@@ -124,14 +123,17 @@ export const createPerformanceEvaluation = async (data) => {
 export const patchPerformanceEvaluationById = async (id, data) => {
   const updateData = {};
   if (data.date !== undefined) updateData.date = data.date;
-  if (data.calification !== undefined) updateData.calification = data.calification;
+  if (data.calification !== undefined)
+    updateData.calification = data.calification;
   if (data.comments !== undefined) updateData.comments = data.comments;
   if (data.updatedOn !== undefined) updateData.updatedOn = data.updatedOn;
   if (data.employeeId !== undefined) {
     updateData.employee = { connect: { id: data.employeeId } };
   }
   if (data.updatedBy !== undefined) {
-    updateData.userPerformanceEvaluationUpdated = { connect: { id: data.updatedBy } };
+    updateData.userPerformanceEvaluationUpdated = {
+      connect: { id: data.updatedBy },
+    };
   }
 
   return prisma.performanceEvaluation.update({

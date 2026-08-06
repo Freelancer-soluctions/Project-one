@@ -16,16 +16,16 @@ export const SERVER_EVENTS = {
   ERROR_RATE_LIMIT: 'error:rate_limit',
   ERROR_AUTH: 'error:auth',
   WELCOME: 'welcome',
-}
+};
 
 // Legacy alias para retrocompatibilidad con hooks existentes
-export const EVENTS = SERVER_EVENTS
+export const EVENTS = SERVER_EVENTS;
 
 // Eventos del cliente → servidor (client emits, server listens)
 export const CLIENT_EVENTS = {
   ROOM_JOIN: 'room:join',
   MENTION_READ: 'mention:read',
-}
+};
 
 /**
  * Crea payload para evento de mención usable desde el servicio de notas.
@@ -46,4 +46,4 @@ export const createMentionPayload = ({
 }) => ({
   type: SERVER_EVENTS.MENTION_NEW,
   payload: { noteId, noteTitle, mentionedByUserId, mentionedUserId, excerpt },
-})
+});

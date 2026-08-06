@@ -1,4 +1,7 @@
-import { useGetAllProductsStatusQuery, useGetAllProductCategoriesQuery } from '../api/productsAPI';
+import {
+  useGetAllProductsStatusQuery,
+  useGetAllProductCategoriesQuery,
+} from '../api/productsAPI';
 import { useGetAllProvidersFiltersQuery } from '../../providers/api/providersAPI';
 import { useQueryData } from '@/hooks';
 
@@ -17,7 +20,11 @@ export function useProductsFilterData() {
     datastatus: datastatus.data,
     dataCategory: dataCategory.data,
     dataProviders: dataProviders.data,
-    isLoadingFilters: datastatus.isLoading || dataCategory.isLoading || dataProviders.isLoading,
-    isFetchingFilters: datastatus.isFetching || dataCategory.isFetching || dataProviders.isFetching,
+    isLoadingFilters:
+      datastatus.isLoading || dataCategory.isLoading || dataProviders.isLoading,
+    isFetchingFilters:
+      datastatus.isFetching ||
+      dataCategory.isFetching ||
+      dataProviders.isFetching,
   };
 }

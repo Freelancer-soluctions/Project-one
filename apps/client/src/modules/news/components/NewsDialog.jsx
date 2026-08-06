@@ -49,11 +49,13 @@ export const NewsDialog = ({
 }) => {
   const { t } = useTranslation();
 
-// Configura el formulario
-   const formDialog = useForm({
-     resolver: zodResolver(NewsDialogSchema),
-   });
-   const { formState: { dirtyFields } } = formDialog;
+  // Configura el formulario
+  const formDialog = useForm({
+    resolver: zodResolver(NewsDialogSchema),
+  });
+  const {
+    formState: { dirtyFields },
+  } = formDialog;
 
   const newId = useMemo(() => selectedRow?.id ?? null, [selectedRow?.id]);
   const statusCodeSaved = useMemo(
@@ -94,15 +96,15 @@ export const NewsDialog = ({
     }
   }, [selectedRow, openDialog, formDialog]);
 
-   const onSubmitDialog = (data) => {
-     // keep same data transformations
-     if (newId) {
-       const changes = pickDirty(data, dirtyFields);
-       onCreateUpdate({ id: newId, body: changes });
-     } else {
-       onCreateUpdate(data);
-     }
-   };
+  const onSubmitDialog = (data) => {
+    // keep same data transformations
+    if (newId) {
+      const changes = pickDirty(data, dirtyFields);
+      onCreateUpdate({ id: newId, body: changes });
+    } else {
+      onCreateUpdate(data);
+    }
+  };
 
   const onDeleteNewById = (id) => {
     onDeleteById(id);

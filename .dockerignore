@@ -1,0 +1,35 @@
+# Root .dockerignore for monorepo-root context builds
+# Prevents contamination of build context (node_modules symlinks, etc.)
+
+node_modules
+.git
+.env
+.env.*
+.github
+openspec
+docs
+reports
+*.log
+*.log.*
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-store
+.turbo
+.vercel
+.netlify
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+.husky
+.vscode
+.idea
+*.pem
+*.key
+*.crt
+*.p12
+*.pfx
+dist
+coverage

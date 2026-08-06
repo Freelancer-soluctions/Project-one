@@ -1,7 +1,7 @@
 /**
  * Maps note color values to Tailwind CSS class pairs for note cards.
  * Lookup by color string, no conditional logic needed.
- * 
+ *
  * @type {Record<string, { card: string, header: string }>}
  */
 export const NOTE_CARD_STYLES = {
@@ -25,7 +25,7 @@ export const NOTE_CARD_STYLES = {
 
 /**
  * Maps column status codes to column-level Tailwind CSS classes.
- * 
+ *
  * @type {Record<string, { card: string, header: string }>}
  */
 export const COLUMN_STYLES = {

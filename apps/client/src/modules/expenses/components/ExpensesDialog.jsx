@@ -64,7 +64,9 @@ export const ExpensesDialog = ({
       category: '',
     },
   });
-  const { formState: { dirtyFields } } = form;
+  const {
+    formState: { dirtyFields },
+  } = form;
 
   const expenseId = useMemo(() => selectedRow?.id, [selectedRow?.id]);
   // Actualiza todos los valores del formulario al cambiar `selectedRow`

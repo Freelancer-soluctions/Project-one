@@ -42,7 +42,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { pickDirty } from '@/utils/pickDirty';
 import { StockSchema } from '../utils';
 import { useEffect, useMemo } from 'react';
-import {LuPackagePlus} from 'react-icons/lu'
+import { LuPackagePlus } from 'react-icons/lu';
 
 export const StockDialog = ({
   openDialog,
@@ -72,7 +72,9 @@ export const StockDialog = ({
       warehouseId: '',
     },
   });
-  const { formState: { dirtyFields } } = form;
+  const {
+    formState: { dirtyFields },
+  } = form;
 
   const stockId = useMemo(() => selectedRow?.id ?? null, [selectedRow?.id]);
   // Actualiza todos los valores del formulario al cambiar `selectedRow`

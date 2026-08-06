@@ -93,43 +93,43 @@ const Payroll = () => {
     setFilters(newFilters);
   };
 
-   const handleSubmit = async (result) => {
-     try {
-       if (result?.id) {
-         await updatePayrollById({ id: result.id, data: result.body }).unwrap();
-       } else {
-         await createPayroll(result).unwrap();
-       }
+  const handleSubmit = async (result) => {
+    try {
+      if (result?.id) {
+        await updatePayrollById({ id: result.id, data: result.body }).unwrap();
+      } else {
+        await createPayroll(result).unwrap();
+      }
 
-       setAlertProps({
-         alertTitle: t(result?.id ? 'update_record' : 'add_record'),
-         alertMessage: t(
-           result?.id ? 'updated_successfully' : 'added_successfully'
-         ),
-         cancel: false,
-         success: true,
-         onSuccess: () => {
-           setOpenDialog(false);
-         },
-         variantSuccess: 'info',
-       });
-       setOpenAlertDialog(true);
-     } catch (err) {
-       // Handle error display, perhaps another AlertDialog
-       setAlertProps({
-         alertTitle: t('error_occurred_message'),
-         alertMessage:
-           err.data?.message || err.message || t('operation_failed_message'),
-         cancel: false,
-         success: true, // To show only one button "OK"
-         onSuccess: () => {
-           /* stay on dialog or close if needed */
-         },
-         variantSuccess: 'destructive', // Show error styling
-       });
-       setOpenAlertDialog(true);
-     }
-   };
+      setAlertProps({
+        alertTitle: t(result?.id ? 'update_record' : 'add_record'),
+        alertMessage: t(
+          result?.id ? 'updated_successfully' : 'added_successfully'
+        ),
+        cancel: false,
+        success: true,
+        onSuccess: () => {
+          setOpenDialog(false);
+        },
+        variantSuccess: 'info',
+      });
+      setOpenAlertDialog(true);
+    } catch (err) {
+      // Handle error display, perhaps another AlertDialog
+      setAlertProps({
+        alertTitle: t('error_occurred_message'),
+        alertMessage:
+          err.data?.message || err.message || t('operation_failed_message'),
+        cancel: false,
+        success: true, // To show only one button "OK"
+        onSuccess: () => {
+          /* stay on dialog or close if needed */
+        },
+        variantSuccess: 'destructive', // Show error styling
+      });
+      setOpenAlertDialog(true);
+    }
+  };
 
   const handleAddDialog = () => {
     setActionDialog(t('add_payroll')); // Adjust translation key

@@ -1,4 +1,4 @@
- import {
+import {
   Form,
   FormControl,
   FormField,
@@ -40,7 +40,9 @@ export const SettingsProductCategoriesBasicInfo = ({
       code: '',
     },
   });
-  const { formState: { dirtyFields } } = form;
+  const {
+    formState: { dirtyFields },
+  } = form;
 
   const id = useMemo(() => selectedRow?.id ?? null, [selectedRow?.id]);
 
@@ -99,7 +101,9 @@ export const SettingsProductCategoriesBasicInfo = ({
                             id="description"
                             type="text"
                             name="description"
-                            maxLength={FIELD_LIMITS.productCategories.description}
+                            maxLength={
+                              FIELD_LIMITS.productCategories.description
+                            }
                             autoComplete="off"
                             placeholder={t('category_description_placeholder')}
                             {...field}

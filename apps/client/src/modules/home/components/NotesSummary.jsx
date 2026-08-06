@@ -13,18 +13,27 @@ import PropTypes from 'prop-types';
 // Derive alert styles from COLUMN_STYLES to stay in sync with note card colors
 const STATUS_STYLES = Object.fromEntries(
   Object.entries(COLUMN_STYLES).map(([code, s]) => {
-    const color = s.card.match(/border-(\w+)-200/)?.[1] ?? 'gray'
-    return [code, {
-      alert: cn(`border-${color}-200 bg-${color}-50/50`, `hover:bg-${color}-100/50`, 'cursor-pointer'),
-      text: `text-${color}-700`,
-    }]
+    const color = s.card.match(/border-(\w+)-200/)?.[1] ?? 'gray';
+    return [
+      code,
+      {
+        alert: cn(
+          `border-${color}-200 bg-${color}-50/50`,
+          `hover:bg-${color}-100/50`,
+          'cursor-pointer'
+        ),
+        text: `text-${color}-700`,
+      },
+    ];
   })
-)
+);
 
 export function NotesSummary({ scope = 'mine' }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { data: dataCountNotes, isLoading } = useGetAllCountNotesQuery({ scope });
+  const { data: dataCountNotes, isLoading } = useGetAllCountNotesQuery({
+    scope,
+  });
 
   if (isLoading) {
     return (
@@ -52,16 +61,28 @@ export function NotesSummary({ scope = 'mine' }) {
             <Alert
               className={STATUS_STYLES[StatusColumn.BACKLOG].alert}
               onClick={() =>
-                navigate('notes', { state: { filter: StatusColumn.BACKLOG, scope } })
+                navigate('notes', {
+                  state: { filter: StatusColumn.BACKLOG, scope },
+                })
               }
             >
               <AlertDescription className="flex items-center justify-between">
                 <span>{t('backlog_notes')}</span>
                 <div className="flex items-center gap-2">
-                  <span className={cn('font-semibold', STATUS_STYLES[StatusColumn.BACKLOG].text)}>
+                  <span
+                    className={cn(
+                      'font-semibold',
+                      STATUS_STYLES[StatusColumn.BACKLOG].text
+                    )}
+                  >
                     {dataCountNotes.data.backlog}
                   </span>
-                  <LuArrowRight className={cn('w-4 h-4', STATUS_STYLES[StatusColumn.BACKLOG].text)} />
+                  <LuArrowRight
+                    className={cn(
+                      'w-4 h-4',
+                      STATUS_STYLES[StatusColumn.BACKLOG].text
+                    )}
+                  />
                 </div>
               </AlertDescription>
             </Alert>
@@ -71,16 +92,28 @@ export function NotesSummary({ scope = 'mine' }) {
             <Alert
               className={STATUS_STYLES[StatusColumn.ACTIVE].alert}
               onClick={() =>
-                navigate('notes', { state: { filter: StatusColumn.ACTIVE, scope } })
+                navigate('notes', {
+                  state: { filter: StatusColumn.ACTIVE, scope },
+                })
               }
             >
               <AlertDescription className="flex items-center justify-between">
                 <span>{t('active_notes')}</span>
                 <div className="flex items-center gap-2">
-                  <span className={cn('font-semibold', STATUS_STYLES[StatusColumn.ACTIVE].text)}>
+                  <span
+                    className={cn(
+                      'font-semibold',
+                      STATUS_STYLES[StatusColumn.ACTIVE].text
+                    )}
+                  >
                     {dataCountNotes.data.active}
                   </span>
-                  <LuArrowRight className={cn('w-4 h-4', STATUS_STYLES[StatusColumn.ACTIVE].text)} />
+                  <LuArrowRight
+                    className={cn(
+                      'w-4 h-4',
+                      STATUS_STYLES[StatusColumn.ACTIVE].text
+                    )}
+                  />
                 </div>
               </AlertDescription>
             </Alert>
@@ -90,16 +123,28 @@ export function NotesSummary({ scope = 'mine' }) {
             <Alert
               className={STATUS_STYLES[StatusColumn.COMPLETED].alert}
               onClick={() =>
-                navigate('notes', { state: { filter: StatusColumn.COMPLETED, scope } })
+                navigate('notes', {
+                  state: { filter: StatusColumn.COMPLETED, scope },
+                })
               }
             >
               <AlertDescription className="flex items-center justify-between">
                 <span>{t('completed_notes')}</span>
                 <div className="flex items-center gap-2">
-                  <span className={cn('font-semibold', STATUS_STYLES[StatusColumn.COMPLETED].text)}>
+                  <span
+                    className={cn(
+                      'font-semibold',
+                      STATUS_STYLES[StatusColumn.COMPLETED].text
+                    )}
+                  >
                     {dataCountNotes.data.completed}
                   </span>
-                  <LuArrowRight className={cn('w-4 h-4', STATUS_STYLES[StatusColumn.COMPLETED].text)} />
+                  <LuArrowRight
+                    className={cn(
+                      'w-4 h-4',
+                      STATUS_STYLES[StatusColumn.COMPLETED].text
+                    )}
+                  />
                 </div>
               </AlertDescription>
             </Alert>

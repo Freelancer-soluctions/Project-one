@@ -23,7 +23,9 @@ export const PurchaseSchema = z
         }),
         quantity: z
           .string()
-          .min(1, { message: getZodMessage('zod.purchase.details.quantity.empty') })
+          .min(1, {
+            message: getZodMessage('zod.purchase.details.quantity.empty'),
+          })
           .transform((val) => Number(val))
           .pipe(
             z
@@ -33,7 +35,9 @@ export const PurchaseSchema = z
           ),
         price: z
           .string()
-          .min(1, { message: getZodMessage('zod.purchase.details.price.empty') })
+          .min(1, {
+            message: getZodMessage('zod.purchase.details.price.empty'),
+          })
           .transform((val) => Number(val))
           .pipe(
             z

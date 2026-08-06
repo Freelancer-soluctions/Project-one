@@ -7,7 +7,15 @@ import { useMemo } from 'react';
 import PropTypes from 'prop-types';
 import { PaginationControls } from '@/components/PaginationControls';
 
-export function EventList({ events, pageIndex, pageSize, total, onPageChange, onEdit, onDelete }) {
+export function EventList({
+  events,
+  pageIndex,
+  pageSize,
+  total,
+  onPageChange,
+  onEdit,
+  onDelete,
+}) {
   const groupedEvents = useMemo(() => {
     if (!events || events.length === 0) return {};
 
@@ -44,23 +52,25 @@ export function EventList({ events, pageIndex, pageSize, total, onPageChange, on
                     {event.speaker}
                   </div>
                   <div className="text-sm">{event.description}</div>
-<div className="mt-2 flex flex-wrap gap-2 items-center">
+                  <div className="mt-2 flex flex-wrap gap-2 items-center">
+                    <span
+                      className={`text-xs px-2 py-1 rounded-full ${getEventTypeColor(event.eventTypes?.code)}`}
+                    >
+                      {event.eventTypes?.description}
+                    </span>
+                    {event.modality && (
                       <span
-                        className={`text-xs px-2 py-1 rounded-full ${getEventTypeColor(event.eventTypes?.code)}`}
+                        className={`text-xs px-2 py-1 rounded-full flex items-center gap-1 ${getModalityColor(event.modality)}`}
                       >
-                        {event.eventTypes?.description}
+                        {getModalityIcon(event.modality)}
+                        {event.modality === 'ONLINE' && 'Online'}
+                        {event.modality === 'IN_PERSON' && 'Presencial'}
+                        {event.modality === 'HYBRID' && 'Híbrido'}
                       </span>
-                      {event.modality && (
-                        <span
-                          className={`text-xs px-2 py-1 rounded-full flex items-center gap-1 ${getModalityColor(event.modality)}`}
-                        >
-                          {getModalityIcon(event.modality)}
-                          {event.modality === 'ONLINE' && 'Online'}
-                          {event.modality === 'IN_PERSON' && 'Presencial'}
-                          {event.modality === 'HYBRID' && 'Híbrido'}
-                        </span>
-                      )}
-                      {(event.modality === 'ONLINE' || event.modality === 'HYBRID') && event.meetingUrl && (
+                    )}
+                    {(event.modality === 'ONLINE' ||
+                      event.modality === 'HYBRID') &&
+                      event.meetingUrl && (
                         <a
                           href={event.meetingUrl}
                           target="_blank"
@@ -71,7 +81,7 @@ export function EventList({ events, pageIndex, pageSize, total, onPageChange, on
                           Unirse
                         </a>
                       )}
-                    </div>
+                  </div>
                 </div>
                 <div className="flex gap-2">
                   <Button

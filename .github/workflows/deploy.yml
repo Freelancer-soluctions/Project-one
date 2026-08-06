@@ -1,0 +1,463 @@
+# ============================================================
+# CD Pipeline: Docker Build → ECR → Staging → Production
+# ============================================================
+# Fase 1 (sin AWS): docker-build con validación contra stack emulado (Floci + Postgres)
+# Fase 2 (con AWS, gated por vars.AWS_ROLE_ARN): ecr-push → deploy-staging → deploy-production
+# Concurrencia dividida por entorno (D10): job-level concurrency groups
+# ============================================================
+
+name: CD Deploy Pipeline
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  # ============================================================
+  # JOB 1: docker-build (Fase 1 - sin AWS)
+  # Build de la imagen + validación boot contra Floci + Postgres efímera
+  # ============================================================
+  docker-build:
+    name: Build & Validate Image (Emulated Stack)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    concurrency:
+      group: deploy-staging
+      cancel-in-progress: false
+    permissions:
+      contents: read
+
+    services:
+      # Floci - Emulador AWS (puerto 4566)
+      floci:
+        image: floci/floci:v1.5.11
+        ports:
+          - 4566:4566
+        env:
+          FLOCI_STORAGE_MODE: memory
+          FLOCI_HOSTNAME: floci
+        options: >-
+          --health-cmd "floci health"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+          --health-start-period 10s
+
+      # PostgreSQL efímera para validación de imagen
+      db:
+        image: postgres:16-alpine
+        ports:
+          - 5432:5432
+        env:
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test
+          POSTGRES_DB: project_one_cd
+        options: >-
+          --health-cmd "pg_isready -U test -d project_one_cd"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+          --health-start-period 5s
+
+    steps:
+      # 1. Checkout
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      # 2. Setup Node.js (needed for test:smoke if running in-process)
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'npm'
+
+      # 3. Install dependencies at monorepo root
+      - name: Install dependencies
+        run: npm ci
+
+      # 4. Build server Docker image (tag: SHA + latest)
+      - name: Build server Docker image
+        run: |
+          docker build -t project-one-server:${GITHUB_SHA} -t project-one-server:latest -f apps/server/Dockerfile .
+        env:
+          GITHUB_SHA: ${{ github.sha }}
+
+      # 5. Run Prisma migrations against ephemeral Postgres
+      - name: Run Prisma migrations
+        working-directory: apps/server
+        run: npx prisma migrate deploy
+        env:
+          DATABASE_URL: postgresql://test:test@localhost:5432/project_one_cd
+
+      # 6. Start server container with emulated AWS stack
+      - name: Start server container
+        run: |
+          docker run -d \
+            --name cd-server \
+            --network host \
+            -e DATABASE_URL=postgresql://test:test@localhost:5432/project_one_cd \
+            -e AWS_ENDPOINT_URL=http://localhost:4566 \
+            -e AWS_ACCESS_KEY_ID=test \
+            -e AWS_SECRET_ACCESS_KEY=test \
+            -e AWS_REGION=us-east-1 \
+            -e PORT=3000 \
+            project-one-server:${GITHUB_SHA}
+        env:
+          DATABASE_URL: postgresql://test:test@localhost:5432/project_one_cd
+          AWS_ENDPOINT_URL: http://localhost:4566
+          AWS_ACCESS_KEY_ID: test
+          AWS_SECRET_ACCESS_KEY: test
+          AWS_REGION: us-east-1
+          PORT: 3000
+
+      # 7. Health check with retries (wait for /health 200)
+      - name: Wait for server health
+        run: |
+          for i in {1..30}; do
+            if curl -sf http://localhost:3000/health > /dev/null; then
+              echo "✅ Server health check passed"
+              exit 0
+            fi
+            echo "⏳ Waiting for server... ($i/30)"
+            sleep 2
+          done
+          echo "❌ Server health check failed after 60s"
+          exit 1
+
+      # 8. Run smoke tests against emulated stack
+      - name: Run smoke tests (emulated)
+        working-directory: apps/server
+        run: |
+          AWS_ENDPOINT_URL=http://localhost:4566 \
+          AWS_ACCESS_KEY_ID=test \
+          AWS_SECRET_ACCESS_KEY=test \
+          AWS_REGION=us-east-1 \
+          npm run test:smoke
+        env:
+          AWS_ENDPOINT_URL: http://localhost:4566
+          AWS_ACCESS_KEY_ID: test
+          AWS_SECRET_ACCESS_KEY: test
+          AWS_REGION: us-east-1
+
+  # ============================================================
+  # JOB 2: ecr-push (Fase 2 - gated por AWS_ROLE_ARN)
+  # Push de la imagen validada a ECR via OIDC
+  # ============================================================
+  ecr-push:
+    name: Push to ECR
+    needs: docker-build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    concurrency:
+      group: deploy-staging
+      cancel-in-progress: false
+    permissions:
+      id-token: write
+      contents: read
+    if: ${{ vars.AWS_ROLE_ARN != '' }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.AWS_ROLE_ARN }}
+          aws-region: us-east-1
+
+      - name: Login to Amazon ECR
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build and push image to ECR
+        run: |
+          docker build -t project-one-server:${GITHUB_SHA} -t project-one-server:latest -f apps/server/Dockerfile .
+          docker tag project-one-server:${GITHUB_SHA} ${{ vars.AWS_ACCOUNT_ID }}.dkr.ecr.us-east-1.amazonaws.com/project-one-server:${GITHUB_SHA}
+          docker tag project-one-server:latest ${{ vars.AWS_ACCOUNT_ID }}.dkr.ecr.us-east-1.amazonaws.com/project-one-server:latest
+          docker push ${{ vars.AWS_ACCOUNT_ID }}.dkr.ecr.us-east-1.amazonaws.com/project-one-server:${GITHUB_SHA}
+          docker push ${{ vars.AWS_ACCOUNT_ID }}.dkr.ecr.us-east-1.amazonaws.com/project-one-server:latest
+        env:
+          GITHUB_SHA: ${{ github.sha }}
+          AWS_ACCOUNT_ID: ${{ vars.AWS_ACCOUNT_ID }}
+
+  # ============================================================
+  # JOB 3: deploy-staging (Fase 2 - gated por AWS_ROLE_ARN)
+  # Deploy a ECS Fargate staging con circuit breaker + smoke post-deploy
+  # ============================================================
+  deploy-staging:
+    name: Deploy to Staging
+    needs: ecr-push
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    concurrency:
+      group: deploy-staging
+      cancel-in-progress: false
+    permissions:
+      id-token: write
+      contents: read
+    environment: staging
+    if: ${{ vars.AWS_ROLE_ARN != '' }}
+
+    steps:
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.AWS_ROLE_ARN }}
+          aws-region: us-east-1
+
+      # 1. Register new task definition with SHA-tagged image (NEW revision)
+      - name: Register task definition (staging)
+        id: task-def-staging
+        run: |
+          TASK_DEF=$(aws ecs register-task-definition \
+            --family project-one-staging-api \
+            --network-mode awsvpc \
+            --requires-compatibilities FARGATE \
+            --cpu "256" \
+            --memory "512" \
+            --execution-role-arn ${{ secrets.STAGING_TASK_EXECUTION_ROLE_ARN }} \
+            --task-role-arn ${{ secrets.STAGING_TASK_ROLE_ARN }} \
+            --container-definitions '[
+              {
+                "name": "api",
+                "image": "'${{ vars.AWS_ACCOUNT_ID }}'.dkr.ecr.us-east-1.amazonaws.com/project-one-server:'${{ github.sha }}'",
+                "portMappings": [{"containerPort": 3000, "protocol": "tcp"}],
+                "environment": [
+                  {"name": "NODE_ENV", "value": "staging"},
+                  {"name": "PORT", "value": "3000"}
+                ],
+                "secrets": [
+                  {"name": "DATABASE_URL", "valueFrom": "'${{ secrets.STAGING_DATABASE_URL_SECRET_ARN }}'"},
+                  {"name": "JWT_SECRET", "valueFrom": "'${{ secrets.STAGING_JWT_SECRET_SECRET_ARN }}'"},
+                  {"name": "AWS_REGION", "valueFrom": "'${{ secrets.STAGING_AWS_REGION_SECRET_ARN }}'"}
+                ],
+                "logConfiguration": {
+                  "logDriver": "awslogs",
+                  "options": {
+                    "awslogs-group": "/ecs/project-one-staging",
+                    "awslogs-region": "us-east-1",
+                    "awslogs-stream-prefix": "api"
+                  }
+                },
+                "healthCheck": {
+                  "command": ["CMD-SHELL", "curl -f http://localhost:3000/health || exit 1"],
+                  "interval": 30,
+                  "timeout": 5,
+                  "retries": 3,
+                  "startPeriod": 60
+                }
+              }
+            ]' \
+            --query 'taskDefinition.taskDefinitionArn' \
+            --output text)
+          echo "task_definition_arn=$TASK_DEF" >> $GITHUB_OUTPUT
+        env:
+          GITHUB_SHA: ${{ github.sha }}
+          AWS_ACCOUNT_ID: ${{ vars.AWS_ACCOUNT_ID }}
+
+      # 2. Update service with force-new-deployment + circuit breaker
+      - name: Update ECS service (staging)
+        run: |
+          aws ecs update-service \
+            --cluster project-one-staging \
+            --service api \
+            --task-definition ${{ steps.task-def-staging.outputs.task_definition_arn }} \
+            --force-new-deployment \
+            --deployment-configuration "deploymentCircuitBreaker={enable=true,rollback=true}"
+
+      # 3. Wait for service stability
+      - name: Wait for service stability (staging)
+        run: |
+          aws ecs wait services-stable \
+            --cluster project-one-staging \
+            --services api
+
+      # 4. Smoke test post-deploy: health endpoint + remote smoke suite
+      - name: Post-deploy health check (staging)
+        run: |
+          for i in {1..30}; do
+            if curl -sf "${{ secrets.STAGING_URL }}/health" > /dev/null; then
+              echo "✅ Staging health check passed"
+              exit 0
+            fi
+            echo "⏳ Waiting for staging health... ($i/30)"
+            sleep 10
+          done
+          echo "❌ Staging health check failed after 5 minutes"
+          exit 1
+
+      # 5. Run remote smoke tests against deployed staging (requires BASE_URL support)
+      - name: Run remote smoke tests (staging)
+        working-directory: apps/server
+        run: |
+          BASE_URL="${{ secrets.STAGING_URL }}" npm run test:smoke
+        env:
+          BASE_URL: ${{ secrets.STAGING_URL }}
+
+  # ============================================================
+  # JOB 4: deploy-production (Fase 2 - gated por AWS_ROLE_ARN)
+  # Deploy a producción con approval manual + circuit breaker + health check 5 min
+  # ============================================================
+  deploy-production:
+    name: Deploy to Production
+    needs: deploy-staging
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    concurrency:
+      group: deploy-production
+      cancel-in-progress: false
+    permissions:
+      id-token: write
+      contents: read
+    environment: production
+    if: ${{ vars.AWS_ROLE_ARN != '' }}
+
+    steps:
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.AWS_ROLE_ARN }}
+          aws-region: us-east-1
+
+      # 1. Register new task definition with SHA-tagged image (NEW revision)
+      - name: Register task definition (production)
+        id: task-def-production
+        run: |
+          TASK_DEF=$(aws ecs register-task-definition \
+            --family project-one-prod-api \
+            --network-mode awsvpc \
+            --requires-compatibilities FARGATE \
+            --cpu "512" \
+            --memory "1024" \
+            --execution-role-arn ${{ secrets.PROD_TASK_EXECUTION_ROLE_ARN }} \
+            --task-role-arn ${{ secrets.PROD_TASK_ROLE_ARN }} \
+            --container-definitions '[
+              {
+                "name": "api",
+                "image": "'${{ vars.AWS_ACCOUNT_ID }}'.dkr.ecr.us-east-1.amazonaws.com/project-one-server:'${{ github.sha }}'",
+                "portMappings": [{"containerPort": 3000, "protocol": "tcp"}],
+                "environment": [
+                  {"name": "NODE_ENV", "value": "production"},
+                  {"name": "PORT", "value": "3000"}
+                ],
+                "secrets": [
+                  {"name": "DATABASE_URL", "valueFrom": "'${{ secrets.PROD_DATABASE_URL_SECRET_ARN }}'"},
+                  {"name": "JWT_SECRET", "valueFrom": "'${{ secrets.PROD_JWT_SECRET_SECRET_ARN }}'"},
+                  {"name": "AWS_REGION", "valueFrom": "'${{ secrets.PROD_AWS_REGION_SECRET_ARN }}'"}
+                ],
+                "logConfiguration": {
+                  "logDriver": "awslogs",
+                  "options": {
+                    "awslogs-group": "/ecs/project-one-prod",
+                    "awslogs-region": "us-east-1",
+                    "awslogs-stream-prefix": "api"
+                  }
+                },
+                "healthCheck": {
+                  "command": ["CMD-SHELL", "curl -f http://localhost:3000/health || exit 1"],
+                  "interval": 30,
+                  "timeout": 5,
+                  "retries": 3,
+                  "startPeriod": 60
+                }
+              }
+            ]' \
+            --query 'taskDefinition.taskDefinitionArn' \
+            --output text)
+          echo "task_definition_arn=$TASK_DEF" >> $GITHUB_OUTPUT
+        env:
+          GITHUB_SHA: ${{ github.sha }}
+          AWS_ACCOUNT_ID: ${{ vars.AWS_ACCOUNT_ID }}
+
+      # 2. Update service with force-new-deployment + circuit breaker
+      - name: Update ECS service (production)
+        run: |
+          aws ecs update-service \
+            --cluster project-one-prod \
+            --service api \
+            --task-definition ${{ steps.task-def-production.outputs.task_definition_arn }} \
+            --force-new-deployment \
+            --deployment-configuration "deploymentCircuitBreaker={enable=true,rollback=true}"
+
+      # 3. Wait for service stability
+      - name: Wait for service stability (production)
+        run: |
+          aws ecs wait services-stable \
+            --cluster project-one-prod \
+            --services api
+
+      # 4. Health check post-deploy: poll /health for up to 5 minutes
+      - name: Post-deploy health check (production)
+        run: |
+          echo "🔍 Polling production health for up to 5 minutes..."
+          for i in {1..30}; do
+            if curl -sf "${{ secrets.PROD_URL }}/health" > /dev/null; then
+              echo "✅ Production health check passed"
+              exit 0
+            fi
+            echo "⏳ Waiting for production health... ($i/30, 10s intervals)"
+            sleep 10
+          done
+          echo "❌ Production health check failed after 5 minutes"
+          exit 1
+
+      # 5. Run remote smoke tests against deployed production
+      - name: Run remote smoke tests (production)
+        working-directory: apps/server
+        run: |
+          BASE_URL="${{ secrets.PROD_URL }}" npm run test:smoke
+        env:
+          BASE_URL: ${{ secrets.PROD_URL }}
+
+  # ============================================================
+  # JOBS DE REPORTE: skipped jobs cuando falta AWS_ROLE_ARN
+  # Estos jobs corren siempre y reportan "skipped" con razón visible
+  # ============================================================
+  ecr-push-skipped:
+    name: ECR Push (Skipped - No AWS Config)
+    needs: docker-build
+    runs-on: ubuntu-latest
+    timeout-minutes: 1
+    concurrency:
+      group: deploy-staging
+      cancel-in-progress: false
+    if: ${{ vars.AWS_ROLE_ARN == '' }}
+    steps:
+      - name: Report skipped
+        run: |
+          echo "::notice title=ECR Push Skipped::AWS_ROLE_ARN repository variable is not configured. This job requires AWS infrastructure (OIDC role + ECR repo). Configure vars.AWS_ROLE_ARN and vars.AWS_ACCOUNT_ID to enable Phase 2."
+          exit 0
+
+  deploy-staging-skipped:
+    name: Deploy Staging (Skipped - No AWS Config)
+    needs: docker-build
+    runs-on: ubuntu-latest
+    timeout-minutes: 1
+    concurrency:
+      group: deploy-staging
+      cancel-in-progress: false
+    if: ${{ vars.AWS_ROLE_ARN == '' }}
+    steps:
+      - name: Report skipped
+        run: |
+          echo "::notice title=Staging Deploy Skipped::AWS_ROLE_ARN repository variable is not configured. ECS staging cluster and environment secrets not provisioned. Complete Floci ECS learning milestone to unlock."
+          exit 0
+
+  deploy-production-skipped:
+    name: Deploy Production (Skipped - No AWS Config)
+    needs: docker-build
+    runs-on: ubuntu-latest
+    timeout-minutes: 1
+    concurrency:
+      group: deploy-production
+      cancel-in-progress: false
+    if: ${{ vars.AWS_ROLE_ARN == '' }}
+    steps:
+      - name: Report skipped
+        run: |
+          echo "::notice title=Production Deploy Skipped::AWS_ROLE_ARN repository variable is not configured. ECS production cluster, ALB, and environment not provisioned. Complete Floci learning path milestones to unlock."
+          exit 0

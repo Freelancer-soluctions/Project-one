@@ -33,7 +33,7 @@ apps/
 ```bash
 cd apps/client && npm run dev          # Dev server (port 5173)
 cd apps/client && npm run storybook    # Storybook (port 6006)
-cd apps/client && npx vitest run       # Run tests once
+cd apps/client && npm run test        # Run tests once
 ```
 
 ### Server (Express)

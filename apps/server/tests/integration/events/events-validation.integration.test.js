@@ -3,7 +3,10 @@ import {
   EventsCreateSchema,
   EventsUpdateSchema,
 } from '../../../src/modules/events/schemas/events.joi.js';
-import { timeStrToDate, formatTime } from '../../../src/modules/events/service.js';
+import {
+  timeStrToDate,
+  formatTime,
+} from '../../../src/modules/events/service.js';
 
 /**
  * Events Validation Integration Tests
@@ -52,14 +55,18 @@ describe('Events Validation Integration', () => {
       const invalid = { ...validPayload, startTime: '10:00', endTime: '09:00' };
       const { error } = EventsCreateSchema.validate(invalid);
       expect(error).toBeDefined();
-      expect(error.details[0].message).toContain('startTime must be earlier than endTime');
+      expect(error.details[0].message).toContain(
+        'startTime must be earlier than endTime'
+      );
     });
 
     it('should reject equal startTime and endTime', () => {
       const invalid = { ...validPayload, startTime: '10:00', endTime: '10:00' };
       const { error } = EventsCreateSchema.validate(invalid);
       expect(error).toBeDefined();
-      expect(error.details[0].message).toContain('startTime must be earlier than endTime');
+      expect(error.details[0].message).toContain(
+        'startTime must be earlier than endTime'
+      );
     });
 
     it('should reject malformed startTime', () => {
@@ -72,7 +79,8 @@ describe('Events Validation Integration', () => {
     it('should reject missing required speaker', () => {
       // With .empty('').optional(), omitting speaker is OK
       // But that's the correct behavior — speaker is optional
-      const { speaker, ...withoutSpeaker } = validPayload;
+      // eslint-disable-next-line no-unused-vars
+      const { speaker: _speaker, ...withoutSpeaker } = validPayload;
       const { error } = EventsCreateSchema.validate(withoutSpeaker);
       expect(error).toBeUndefined();
     });
@@ -95,7 +103,9 @@ describe('Events Validation Integration', () => {
         endTime: '13:00',
       });
       expect(error).toBeDefined();
-      expect(error.details[0].message).toContain('startTime must be earlier than endTime');
+      expect(error.details[0].message).toContain(
+        'startTime must be earlier than endTime'
+      );
     });
 
     it('should accept valid partial update with both times', () => {
@@ -119,7 +129,8 @@ describe('Events Validation Integration', () => {
     });
 
     it('should accept completely omitted speaker', () => {
-      const { speaker, ...withoutSpeaker } = validPayload;
+      // eslint-disable-next-line no-unused-vars
+      const { speaker: _speaker, ...withoutSpeaker } = validPayload;
       const { error, value } = EventsCreateSchema.validate(withoutSpeaker);
       expect(error).toBeUndefined();
       expect(value.speaker).toBeUndefined();

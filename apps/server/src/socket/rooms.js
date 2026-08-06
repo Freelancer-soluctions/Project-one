@@ -19,11 +19,11 @@
 export const joinUserRoom = (io, socket, userId) => {
   // Convención: prefijo "user:" + ID numérico del usuario.
   // String template para evitar ambigüedad entre IDs numéricos.
-  const roomName = `user:${userId}`
+  const roomName = `user:${userId}`;
   // socket.join() hace que el socket reciba eventos emitidos a esta sala
   // via io.to(roomName).emit(). Es segura de llamar múltiples veces.
-  socket.join(roomName)
-}
+  socket.join(roomName);
+};
 
 /**
  * Remueve un socket de su sala personal.
@@ -32,9 +32,9 @@ export const joinUserRoom = (io, socket, userId) => {
  * @param {number|string} userId
  */
 export const leaveUserRoom = (socket, userId) => {
-  const roomName = `user:${userId}`
-  socket.leave(roomName)
-}
+  const roomName = `user:${userId}`;
+  socket.leave(roomName);
+};
 
 /**
  * Obtiene todos los sockets activos en la sala de un usuario.
@@ -44,12 +44,12 @@ export const leaveUserRoom = (socket, userId) => {
  * @returns {Promise<import('socket.io').Socket[]>}
  */
 export const getActiveUserSockets = async (io, userId) => {
-  const roomName = `user:${userId}`
+  const roomName = `user:${userId}`;
   // fetchSockets() reemplaza a in() + clients() de versiones anteriores.
   // Devuelve sockets reales (no solo IDs) — permite inspeccionar data, handshake, etc.
-  const sockets = await io.in(roomName).fetchSockets()
-  return sockets
-}
+  const sockets = await io.in(roomName).fetchSockets();
+  return sockets;
+};
 
 /**
  * Verifica si un usuario tiene al menos un socket conectado.
@@ -58,9 +58,9 @@ export const getActiveUserSockets = async (io, userId) => {
  * @returns {Promise<boolean>}
  */
 export const isUserOnline = async (io, userId) => {
-  const sockets = await getActiveUserSockets(io, userId)
-  return sockets.length > 0
-}
+  const sockets = await getActiveUserSockets(io, userId);
+  return sockets.length > 0;
+};
 
 /**
  * Cuenta cuántas salas de usuario están activas actualmente.
@@ -71,13 +71,13 @@ export const isUserOnline = async (io, userId) => {
  * @returns {number}
  */
 export const getActiveRoomCount = (io) => {
-  const rooms = io.sockets.adapter.rooms
-  let count = 0
+  const rooms = io.sockets.adapter.rooms;
+  let count = 0;
   for (const roomName of rooms.keys()) {
     // Saltar salas automáticas (nombres = socket IDs)
     if (roomName.startsWith('user:')) {
-      count++
+      count++;
     }
   }
-  return count
-}
+  return count;
+};

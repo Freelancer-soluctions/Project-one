@@ -3,19 +3,22 @@ import { getZodMessage } from '@/utils/zod-i18n-map';
 
 export const ProductsSchema = z
   .object({
-    sku: z.string().max(16).min(1, {
-      message: getZodMessage('zod.products.sku.empty'),
-      path: ['sku']
-    }),
+    sku: z
+      .string()
+      .max(16)
+      .min(1, {
+        message: getZodMessage('zod.products.sku.empty'),
+        path: ['sku'],
+      }),
     name: z
       .string()
       .max(80, {
         message: getZodMessage('zod.products.name.maxLength'),
-        path: ['name']
+        path: ['name'],
       })
       .min(1, {
         message: getZodMessage('zod.products.name.empty'),
-        path: ['name']
+        path: ['name'],
       }),
     category: z.custom((val) => val && val.id, {
       message: getZodMessage('zod.products.category.required'),
@@ -30,7 +33,7 @@ export const ProductsSchema = z
       .string()
       .min(1, {
         message: getZodMessage('zod.products.price.empty'),
-        path: ['price']
+        path: ['price'],
       })
       .transform((val) => Number(val))
       .pipe(
@@ -43,7 +46,7 @@ export const ProductsSchema = z
       .string()
       .min(1, {
         message: getZodMessage('zod.products.cost.empty'),
-        path: ['cost']
+        path: ['cost'],
       })
       .transform((val) => Number(val))
       .pipe(
@@ -62,31 +65,29 @@ const attributeSchema = z
       .string()
       .min(1, {
         message: getZodMessage('zod.products.attributes.name.empty'),
-        path: ['name']
+        path: ['name'],
       })
       .max(50, {
         message: getZodMessage('zod.products.attributes.name.maxLength'),
-        path: ['name']
+        path: ['name'],
       }),
     description: z
       .string()
       .min(1, {
         message: getZodMessage('zod.products.attributes.description.empty'),
-        path: ['description']
+        path: ['description'],
       })
       .max(100, {
         message: getZodMessage('zod.products.attributes.description.maxLength'),
-        path: ['description']
+        path: ['description'],
       }), // Puede estar vacío
     save: z.boolean().optional(), // `save` es opcional
   })
   .passthrough();
 
 export const attributesSchema = z.object({
-  attributes: z
-    .array(attributeSchema)
-    .min(1, {
-  message: getZodMessage('zod.products.attributes.minItems'),
-  path: ['attributes']
-}),
+  attributes: z.array(attributeSchema).min(1, {
+    message: getZodMessage('zod.products.attributes.minItems'),
+    path: ['attributes'],
+  }),
 });

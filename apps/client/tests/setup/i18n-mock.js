@@ -1,5 +1,3 @@
-
-
 // Mock i18n for tests
 const i18nMock = {
   t: (key) => {

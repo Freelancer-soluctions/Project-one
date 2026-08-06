@@ -10,6 +10,6 @@ export const codeEnums = {
   CODE3: 'C03',
 };
 
-export const NOTES_FIELD_LIMITS ={
-  content: 2000
-}
+export const NOTES_FIELD_LIMITS = {
+  content: 2000,
+};

@@ -1,7 +1,10 @@
 import { useState, useEffect } from 'react';
+import PropTypes from 'prop-types';
 import { useTranslation } from 'react-i18next';
-import { useLazyListAttendeesQuery, useUpdateAttendeeStatusMutation } from '../api/eventsAPI';
-import { Button } from '@/components/ui/button';
+import {
+  useLazyListAttendeesQuery,
+  useUpdateAttendeeStatusMutation,
+} from '../api/eventsAPI';
 import { Spinner } from '@/components/loader/Spinner';
 import { Pagination } from '@/components/ui/pagination';
 import {
@@ -16,7 +19,7 @@ import { AttendeeStatus } from './AttendeeStatus';
 
 /**
  * AttendeeList — admin paginated table of attendees with status management.
- * 
+ *
  * @param {Object} props
  * @param {number} props.eventId
  */
@@ -27,7 +30,8 @@ export const AttendeeList = ({ eventId }) => {
   const pageSize = 20;
 
   const [triggerList, { data, isLoading }] = useLazyListAttendeesQuery();
-  const [updateStatus, { isLoading: isUpdating }] = useUpdateAttendeeStatusMutation();
+  const [updateStatus, { isLoading: isUpdating }] =
+    useUpdateAttendeeStatusMutation();
   const [alertProps, setAlertProps] = useState({});
   const [openAlert, setOpenAlert] = useState(false);
 
@@ -41,7 +45,11 @@ export const AttendeeList = ({ eventId }) => {
 
   const handleStatusChange = async (attendeeId, newStatus) => {
     try {
-      await updateStatus({ eventId, attendeeId, data: { status: newStatus } }).unwrap();
+      await updateStatus({
+        eventId,
+        attendeeId,
+        data: { status: newStatus },
+      }).unwrap();
       setAlertProps({
         alertTitle: t('update'),
         alertMessage: t('updated_successfully'),
@@ -64,14 +72,26 @@ export const AttendeeList = ({ eventId }) => {
 
   if (isLoading || isUpdating) return <Spinner />;
 
-  const result = data?.data || { data: [], total: 0, page: 1, limit: 20, totalPages: 0 };
+  const result = data?.data || {
+    data: [],
+    total: 0,
+    page: 1,
+    limit: 20,
+    totalPages: 0,
+  };
 
   return (
     <div className="space-y-4">
       {/* Filter */}
       <div className="flex items-center gap-2">
         <label className="text-sm font-medium">{t('status_filter')}</label>
-        <Select value={statusFilter} onValueChange={(v) => { setStatusFilter(v); setPageIndex(0); }}>
+        <Select
+          value={statusFilter}
+          onValueChange={(v) => {
+            setStatusFilter(v);
+            setPageIndex(0);
+          }}
+        >
           <SelectTrigger className="w-40">
             <SelectValue placeholder={t('all')} />
           </SelectTrigger>
@@ -98,7 +118,11 @@ export const AttendeeList = ({ eventId }) => {
           </thead>
           <tbody>
             {result.data.length === 0 ? (
-              <tr><td colSpan="5" className="text-center py-4 text-gray-500">{t('no_data')}</td></tr>
+              <tr>
+                <td colSpan="5" className="text-center py-4 text-gray-500">
+                  {t('no_data')}
+                </td>
+              </tr>
             ) : (
               result.data.map((attendee) => (
                 <tr key={attendee.id} className="border-b hover:bg-gray-50">
@@ -108,17 +132,27 @@ export const AttendeeList = ({ eventId }) => {
                     <AttendeeStatus status={attendee.status} />
                   </td>
                   <td className="py-2 px-3">
-                    {attendee.createdAt ? new Date(attendee.createdAt).toLocaleDateString() : '-'}
+                    {attendee.createdAt
+                      ? new Date(attendee.createdAt).toLocaleDateString()
+                      : '-'}
                   </td>
                   <td className="py-2 px-3">
-                    <Select onValueChange={(v) => handleStatusChange(attendee.id, v)}>
+                    <Select
+                      onValueChange={(v) => handleStatusChange(attendee.id, v)}
+                    >
                       <SelectTrigger className="w-32">
                         <SelectValue placeholder={t('change_status')} />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="CONFIRMED">{t('confirmed')}</SelectItem>
-                        <SelectItem value="WAITLIST">{t('waitlist')}</SelectItem>
-                        <SelectItem value="CANCELLED">{t('cancelled')}</SelectItem>
+                        <SelectItem value="CONFIRMED">
+                          {t('confirmed')}
+                        </SelectItem>
+                        <SelectItem value="WAITLIST">
+                          {t('waitlist')}
+                        </SelectItem>
+                        <SelectItem value="CANCELLED">
+                          {t('cancelled')}
+                        </SelectItem>
                       </SelectContent>
                     </Select>
                   </td>
@@ -147,4 +181,8 @@ export const AttendeeList = ({ eventId }) => {
       />
     </div>
   );
+};
+
+AttendeeList.propTypes = {
+  eventId: PropTypes.number.isRequired,
 };

@@ -1,7 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import * as eventAttendeeService from './service.js';
 import * as attendeeDao from './dao.js';
-import * as stateMachine from '../stateMachine.js';
 
 vi.mock('./dao.js', () => ({
   findEventById: vi.fn(),
@@ -14,11 +13,6 @@ vi.mock('./dao.js', () => ({
   createAuditLog: vi.fn(),
 }));
 
-vi.mock('../stateMachine.js', () => ({
-  canTransition: vi.fn(() => true),
-  getAllowedNextStates: vi.fn(() => []),
-}));
-
 vi.mock('../../../config/db.js', () => ({
   prisma: {
     $transaction: vi.fn((cb) => cb({})),
@@ -27,10 +21,24 @@ vi.mock('../../../config/db.js', () => ({
 }));
 
 describe('Event RSVP — register', () => {
-  const mockEvent = { id: 1, capacity: 10, attendeeCount: 5, eventDate: '2099-06-30' };
-  const mockPastEvent = { id: 2, capacity: 10, attendeeCount: 0, eventDate: '2020-01-01' };
-  const mockUnlimitedEvent = { id: 3, capacity: 0, attendeeCount: 0, eventDate: '2099-06-30' };
-  const mockAttendee = { id: 1, eventId: 1, userId: 1, status: 'CONFIRMED' };
+  const mockEvent = {
+    id: 1,
+    capacity: 10,
+    attendeeCount: 5,
+    eventDate: '2099-06-30',
+  };
+  const mockPastEvent = {
+    id: 2,
+    capacity: 10,
+    attendeeCount: 0,
+    eventDate: '2020-01-01',
+  };
+  const mockUnlimitedEvent = {
+    id: 3,
+    capacity: 0,
+    attendeeCount: 0,
+    eventDate: '2099-06-30',
+  };
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -38,16 +46,25 @@ describe('Event RSVP — register', () => {
 
   it('throws 404 if event not found', async () => {
     attendeeDao.findEventById.mockResolvedValue(null);
-    await expect(eventAttendeeService.register(999, 1)).rejects.toThrow('Event not found');
+    await expect(eventAttendeeService.register(999, 1)).rejects.toThrow(
+      'Event not found'
+    );
   });
 
   it('throws 400 if event is in the past', async () => {
     attendeeDao.findEventById.mockResolvedValue(mockPastEvent);
-    await expect(eventAttendeeService.register(2, 1)).rejects.toThrow('Cannot register for past events');
+    await expect(eventAttendeeService.register(2, 1)).rejects.toThrow(
+      'Cannot register for past events'
+    );
   });
 
   it('returns existing attendee if already registered (CONFIRMED) — idempotent', async () => {
-    const existingAttendee = { id: 1, eventId: 1, userId: 1, status: 'CONFIRMED' };
+    const existingAttendee = {
+      id: 1,
+      eventId: 1,
+      userId: 1,
+      status: 'CONFIRMED',
+    };
     attendeeDao.findEventById.mockResolvedValue(mockEvent);
     attendeeDao.findAttendeeByUserAndEvent.mockResolvedValue(existingAttendee);
     const result = await eventAttendeeService.register(1, 1);
@@ -56,7 +73,12 @@ describe('Event RSVP — register', () => {
   });
 
   it('returns existing attendee if already registered (WAITLIST) — idempotent', async () => {
-    const existingAttendee = { id: 2, eventId: 1, userId: 2, status: 'WAITLIST' };
+    const existingAttendee = {
+      id: 2,
+      eventId: 1,
+      userId: 2,
+      status: 'WAITLIST',
+    };
     attendeeDao.findEventById.mockResolvedValue(mockEvent);
     attendeeDao.findAttendeeByUserAndEvent.mockResolvedValue(existingAttendee);
     const result = await eventAttendeeService.register(1, 2);
@@ -67,7 +89,12 @@ describe('Event RSVP — register', () => {
   it('creates CONFIRMED when capacity = 0 (unlimited)', async () => {
     attendeeDao.findEventById.mockResolvedValue(mockUnlimitedEvent);
     attendeeDao.findAttendeeByUserAndEvent.mockResolvedValue(null);
-    attendeeDao.createAttendee.mockResolvedValue({ id: 1, eventId: 3, userId: 1, status: 'CONFIRMED' });
+    attendeeDao.createAttendee.mockResolvedValue({
+      id: 1,
+      eventId: 3,
+      userId: 1,
+      status: 'CONFIRMED',
+    });
     attendeeDao.incrementAttendeeCount.mockResolvedValue({});
     attendeeDao.createAuditLog.mockResolvedValue({});
 
@@ -77,7 +104,10 @@ describe('Event RSVP — register', () => {
       { eventId: 3, userId: 1, status: 'CONFIRMED' },
       expect.anything()
     );
-    expect(attendeeDao.incrementAttendeeCount).toHaveBeenCalledWith(3, expect.anything());
+    expect(attendeeDao.incrementAttendeeCount).toHaveBeenCalledWith(
+      3,
+      expect.anything()
+    );
     expect(attendeeDao.createAuditLog).toHaveBeenCalled();
     expect(result.status).toBe('CONFIRMED');
   });
@@ -87,7 +117,12 @@ describe('Event RSVP — register', () => {
     attendeeDao.findAttendeeByUserAndEvent.mockResolvedValue(null);
     attendeeDao.countConfirmedAttendees.mockResolvedValue(4); // 4 < 10
     attendeeDao.updateEventAttendeeCountWithLock.mockResolvedValue(1); // lock succeeds
-    attendeeDao.createAttendee.mockResolvedValue({ id: 2, eventId: 1, userId: 1, status: 'CONFIRMED' });
+    attendeeDao.createAttendee.mockResolvedValue({
+      id: 2,
+      eventId: 1,
+      userId: 1,
+      status: 'CONFIRMED',
+    });
     attendeeDao.createAuditLog.mockResolvedValue({});
 
     const result = await eventAttendeeService.register(1, 1);
@@ -96,7 +131,11 @@ describe('Event RSVP — register', () => {
       { eventId: 1, userId: 1, status: 'CONFIRMED' },
       expect.anything()
     );
-    expect(attendeeDao.updateEventAttendeeCountWithLock).toHaveBeenCalledWith(1, 5, expect.anything());
+    expect(attendeeDao.updateEventAttendeeCountWithLock).toHaveBeenCalledWith(
+      1,
+      5,
+      expect.anything()
+    );
     expect(result.status).toBe('CONFIRMED');
   });
 
@@ -104,7 +143,12 @@ describe('Event RSVP — register', () => {
     attendeeDao.findEventById.mockResolvedValue(mockEvent);
     attendeeDao.findAttendeeByUserAndEvent.mockResolvedValue(null);
     attendeeDao.countConfirmedAttendees.mockResolvedValue(10); // 10 >= 10
-    attendeeDao.createAttendee.mockResolvedValue({ id: 3, eventId: 1, userId: 1, status: 'WAITLIST' });
+    attendeeDao.createAttendee.mockResolvedValue({
+      id: 3,
+      eventId: 1,
+      userId: 1,
+      status: 'WAITLIST',
+    });
     attendeeDao.createAuditLog.mockResolvedValue({});
 
     const result = await eventAttendeeService.register(1, 1);
@@ -121,7 +165,12 @@ describe('Event RSVP — register', () => {
     attendeeDao.findAttendeeByUserAndEvent.mockResolvedValue(null);
     attendeeDao.countConfirmedAttendees.mockResolvedValue(9); // 9 < 10, so target = CONFIRMED
     attendeeDao.updateEventAttendeeCountWithLock.mockResolvedValue(0); // lock fails
-    attendeeDao.createAttendee.mockResolvedValue({ id: 4, eventId: 1, userId: 1, status: 'WAITLIST' });
+    attendeeDao.createAttendee.mockResolvedValue({
+      id: 4,
+      eventId: 1,
+      userId: 1,
+      status: 'WAITLIST',
+    });
     attendeeDao.createAuditLog.mockResolvedValue({});
 
     const result = await eventAttendeeService.register(1, 1);
@@ -134,17 +183,29 @@ describe('Event RSVP — register', () => {
   });
 
   it('re-registers from CANCELLED status (update instead of create)', async () => {
-    const cancelledAttendee = { id: 5, eventId: 1, userId: 1, status: 'CANCELLED' };
+    const cancelledAttendee = {
+      id: 5,
+      eventId: 1,
+      userId: 1,
+      status: 'CANCELLED',
+    };
     attendeeDao.findEventById.mockResolvedValue(mockEvent);
     attendeeDao.findAttendeeByUserAndEvent.mockResolvedValue(cancelledAttendee);
     attendeeDao.countConfirmedAttendees.mockResolvedValue(4);
     attendeeDao.updateEventAttendeeCountWithLock.mockResolvedValue(1);
-    attendeeDao.updateAttendeeStatus.mockResolvedValue({ ...cancelledAttendee, status: 'CONFIRMED' });
+    attendeeDao.updateAttendeeStatus.mockResolvedValue({
+      ...cancelledAttendee,
+      status: 'CONFIRMED',
+    });
     attendeeDao.createAuditLog.mockResolvedValue({});
 
     const result = await eventAttendeeService.register(1, 1);
 
-    expect(attendeeDao.updateAttendeeStatus).toHaveBeenCalledWith(5, 'CONFIRMED', expect.anything());
+    expect(attendeeDao.updateAttendeeStatus).toHaveBeenCalledWith(
+      5,
+      'CONFIRMED',
+      expect.anything()
+    );
     expect(attendeeDao.createAttendee).not.toHaveBeenCalled();
     expect(result.status).toBe('CONFIRMED');
   });

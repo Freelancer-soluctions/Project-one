@@ -19,10 +19,11 @@ Controller HTTP → Service Layer → notificationBus → Socket.IO → Cliente
 ## Estrategia de Testing
 
 ### Mock del notificationBus (3 líneas aproximadamente)
+
 ```javascript
 const mockBus = {
   emit: jest.fn(),
-  on: jest.fn()
+  on: jest.fn(),
 };
 
 // En el test del servicio
@@ -31,6 +32,7 @@ expect(mockBus.emit).toHaveBeenCalledWith('MENTION_CREATED', expectedData);
 ```
 
 ### Mock de Socket.IO (~30 líneas)
+
 ```javascript
 const mockIo = {
   to: jest.fn().mockReturnThis(),
@@ -38,9 +40,9 @@ const mockIo = {
   sockets: {
     adapter: {
       rooms: new Map(),
-      sids: new Set()
-    }
-  }
+      sids: new Set(),
+    },
+  },
 };
 
 // Configuración compleja para simular rooms, conexiones, etc.
@@ -49,9 +51,9 @@ const mockIo = {
 
 ## Referencia de Nombres de Eventos
 
-| Evento | Descripción | Dirección |
-|--------|-------------|-----------|
-| MENTION_CREATED | Se creó una nueva mención @usuario | Servicio → Socket.IO → Cliente |
-| MENTION_READ | Usuario marcó una mención como leída | Cliente → Socket.IO → Servicio |
+| Evento          | Descripción                          | Dirección                      |
+| --------------- | ------------------------------------ | ------------------------------ |
+| MENTION_CREATED | Se creó una nueva mención @usuario   | Servicio → Socket.IO → Cliente |
+| MENTION_READ    | Usuario marcó una mención como leída | Cliente → Socket.IO → Servicio |
 
 **Nota**: Los eventos siguen la convención de mayúsculas con guiones bajos para facilitar su identificación en logs y debugging.

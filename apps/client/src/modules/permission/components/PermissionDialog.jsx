@@ -73,7 +73,9 @@ export const PermissionDialog = ({
       comments: '',
     },
   });
-  const { formState: { dirtyFields } } = form;
+  const {
+    formState: { dirtyFields },
+  } = form;
 
   const permissionId = useMemo(
     () => selectedRow?.id ?? null,

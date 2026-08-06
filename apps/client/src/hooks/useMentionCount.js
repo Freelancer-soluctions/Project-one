@@ -1,7 +1,7 @@
-import { createContext, useContext } from 'react'
+import { createContext, useContext } from 'react';
 
-const MentionCountContext = createContext({ unreadCount: 0, isLoaded: false })
+const MentionCountContext = createContext({ unreadCount: 0, isLoaded: false });
 
-export const useMentionCount = () => useContext(MentionCountContext)
+export const useMentionCount = () => useContext(MentionCountContext);
 
-export { MentionCountContext }
+export { MentionCountContext };

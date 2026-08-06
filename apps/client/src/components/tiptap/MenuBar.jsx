@@ -1,6 +1,5 @@
-import PropTypes from "prop-types"
-import * as React from "react"
-
+import PropTypes from 'prop-types';
+import * as React from 'react';
 
 import {
   Bold,
@@ -27,29 +26,28 @@ import {
   Superscript as SuperscriptIcon,
   RemoveFormatting,
   Minus,
-} from "lucide-react"
-import { Toggle } from "@/components/ui/toggle"
-
+} from 'lucide-react';
+import { Toggle } from '@/components/ui/toggle';
 
 export const MenuBar = ({ editor }) => {
   const setLink = React.useCallback(() => {
-    const previousUrl = editor.getAttributes("link").href
-    const url = window.prompt("URL", previousUrl)
+    const previousUrl = editor.getAttributes('link').href;
+    const url = window.prompt('URL', previousUrl);
 
     if (url === null) {
-      return
+      return;
     }
 
-    if (url === "") {
-      editor.chain().focus().extendMarkRange("link").unsetLink().run()
-      return
+    if (url === '') {
+      editor.chain().focus().extendMarkRange('link').unsetLink().run();
+      return;
     }
 
-    editor.chain().focus().extendMarkRange("link").setLink({ href: url }).run()
-  }, [editor])
+    editor.chain().focus().extendMarkRange('link').setLink({ href: url }).run();
+  }, [editor]);
 
   if (!editor) {
-    return null
+    return null;
   }
 
   return (
@@ -57,7 +55,7 @@ export const MenuBar = ({ editor }) => {
       {/* Formato de texto básico */}
       <Toggle
         size="sm"
-        pressed={editor.isActive("bold")}
+        pressed={editor.isActive('bold')}
         onPressedChange={() => editor.chain().focus().toggleBold().run()}
         aria-label="Toggle bold"
       >
@@ -65,7 +63,7 @@ export const MenuBar = ({ editor }) => {
       </Toggle>
       <Toggle
         size="sm"
-        pressed={editor.isActive("italic")}
+        pressed={editor.isActive('italic')}
         onPressedChange={() => editor.chain().focus().toggleItalic().run()}
         aria-label="Toggle italic"
       >
@@ -73,7 +71,7 @@ export const MenuBar = ({ editor }) => {
       </Toggle>
       <Toggle
         size="sm"
-        pressed={editor.isActive("underline")}
+        pressed={editor.isActive('underline')}
         onPressedChange={() => editor.chain().focus().toggleUnderline().run()}
         aria-label="Toggle underline"
       >
@@ -81,7 +79,7 @@ export const MenuBar = ({ editor }) => {
       </Toggle>
       <Toggle
         size="sm"
-        pressed={editor.isActive("strike")}
+        pressed={editor.isActive('strike')}
         onPressedChange={() => editor.chain().focus().toggleStrike().run()}
         aria-label="Toggle strikethrough"
       >
@@ -89,7 +87,7 @@ export const MenuBar = ({ editor }) => {
       </Toggle>
       <Toggle
         size="sm"
-        pressed={editor.isActive("code")}
+        pressed={editor.isActive('code')}
         onPressedChange={() => editor.chain().focus().toggleCode().run()}
         aria-label="Toggle code"
       >
@@ -97,7 +95,7 @@ export const MenuBar = ({ editor }) => {
       </Toggle>
       <Toggle
         size="sm"
-        pressed={editor.isActive("highlight")}
+        pressed={editor.isActive('highlight')}
         onPressedChange={() => editor.chain().focus().toggleHighlight().run()}
         aria-label="Toggle highlight"
       >
@@ -109,7 +107,7 @@ export const MenuBar = ({ editor }) => {
       {/* Superscript y Subscript */}
       <Toggle
         size="sm"
-        pressed={editor.isActive("superscript")}
+        pressed={editor.isActive('superscript')}
         onPressedChange={() => editor.chain().focus().toggleSuperscript().run()}
         aria-label="Toggle superscript"
       >
@@ -117,7 +115,7 @@ export const MenuBar = ({ editor }) => {
       </Toggle>
       <Toggle
         size="sm"
-        pressed={editor.isActive("subscript")}
+        pressed={editor.isActive('subscript')}
         onPressedChange={() => editor.chain().focus().toggleSubscript().run()}
         aria-label="Toggle subscript"
       >
@@ -129,7 +127,7 @@ export const MenuBar = ({ editor }) => {
       {/* Encabezados */}
       <Toggle
         size="sm"
-        pressed={editor.isActive("heading", { level: 1 })}
+        pressed={editor.isActive('heading', { level: 1 })}
         onPressedChange={() =>
           editor.chain().focus().toggleHeading({ level: 1 }).run()
         }
@@ -139,7 +137,7 @@ export const MenuBar = ({ editor }) => {
       </Toggle>
       <Toggle
         size="sm"
-        pressed={editor.isActive("heading", { level: 2 })}
+        pressed={editor.isActive('heading', { level: 2 })}
         onPressedChange={() =>
           editor.chain().focus().toggleHeading({ level: 2 }).run()
         }
@@ -149,7 +147,7 @@ export const MenuBar = ({ editor }) => {
       </Toggle>
       <Toggle
         size="sm"
-        pressed={editor.isActive("heading", { level: 3 })}
+        pressed={editor.isActive('heading', { level: 3 })}
         onPressedChange={() =>
           editor.chain().focus().toggleHeading({ level: 3 }).run()
         }
@@ -163,32 +161,40 @@ export const MenuBar = ({ editor }) => {
       {/* Alineación de texto */}
       <Toggle
         size="sm"
-        pressed={editor.isActive({ textAlign: "left" })}
-        onPressedChange={() => editor.chain().focus().setTextAlign("left").run()}
+        pressed={editor.isActive({ textAlign: 'left' })}
+        onPressedChange={() =>
+          editor.chain().focus().setTextAlign('left').run()
+        }
         aria-label="Align left"
       >
         <AlignLeft className="h-4 w-4" />
       </Toggle>
       <Toggle
         size="sm"
-        pressed={editor.isActive({ textAlign: "center" })}
-        onPressedChange={() => editor.chain().focus().setTextAlign("center").run()}
+        pressed={editor.isActive({ textAlign: 'center' })}
+        onPressedChange={() =>
+          editor.chain().focus().setTextAlign('center').run()
+        }
         aria-label="Align center"
       >
         <AlignCenter className="h-4 w-4" />
       </Toggle>
       <Toggle
         size="sm"
-        pressed={editor.isActive({ textAlign: "right" })}
-        onPressedChange={() => editor.chain().focus().setTextAlign("right").run()}
+        pressed={editor.isActive({ textAlign: 'right' })}
+        onPressedChange={() =>
+          editor.chain().focus().setTextAlign('right').run()
+        }
         aria-label="Align right"
       >
         <AlignRight className="h-4 w-4" />
       </Toggle>
       <Toggle
         size="sm"
-        pressed={editor.isActive({ textAlign: "justify" })}
-        onPressedChange={() => editor.chain().focus().setTextAlign("justify").run()}
+        pressed={editor.isActive({ textAlign: 'justify' })}
+        onPressedChange={() =>
+          editor.chain().focus().setTextAlign('justify').run()
+        }
         aria-label="Align justify"
       >
         <AlignJustify className="h-4 w-4" />
@@ -199,7 +205,7 @@ export const MenuBar = ({ editor }) => {
       {/* Listas y citas */}
       <Toggle
         size="sm"
-        pressed={editor.isActive("bulletList")}
+        pressed={editor.isActive('bulletList')}
         onPressedChange={() => editor.chain().focus().toggleBulletList().run()}
         aria-label="Toggle bullet list"
       >
@@ -207,7 +213,7 @@ export const MenuBar = ({ editor }) => {
       </Toggle>
       <Toggle
         size="sm"
-        pressed={editor.isActive("orderedList")}
+        pressed={editor.isActive('orderedList')}
         onPressedChange={() => editor.chain().focus().toggleOrderedList().run()}
         aria-label="Toggle ordered list"
       >
@@ -215,7 +221,7 @@ export const MenuBar = ({ editor }) => {
       </Toggle>
       <Toggle
         size="sm"
-        pressed={editor.isActive("blockquote")}
+        pressed={editor.isActive('blockquote')}
         onPressedChange={() => editor.chain().focus().toggleBlockquote().run()}
         aria-label="Toggle blockquote"
       >
@@ -227,7 +233,7 @@ export const MenuBar = ({ editor }) => {
       {/* Links */}
       <Toggle
         size="sm"
-        pressed={editor.isActive("link")}
+        pressed={editor.isActive('link')}
         onPressedChange={setLink}
         aria-label="Add link"
       >
@@ -237,7 +243,7 @@ export const MenuBar = ({ editor }) => {
         size="sm"
         pressed={false}
         onPressedChange={() => editor.chain().focus().unsetLink().run()}
-        disabled={!editor.isActive("link")}
+        disabled={!editor.isActive('link')}
         aria-label="Remove link"
       >
         <Unlink className="h-4 w-4" />
@@ -259,7 +265,9 @@ export const MenuBar = ({ editor }) => {
       <Toggle
         size="sm"
         pressed={false}
-        onPressedChange={() => editor.chain().focus().unsetAllMarks().clearNodes().run()}
+        onPressedChange={() =>
+          editor.chain().focus().unsetAllMarks().clearNodes().run()
+        }
         aria-label="Clear formatting"
       >
         <RemoveFormatting className="h-4 w-4" />
@@ -287,8 +295,8 @@ export const MenuBar = ({ editor }) => {
         <Redo className="h-4 w-4" />
       </Toggle>
     </div>
-  )
-}
+  );
+};
 
 // export const MenuBar = ({ editor }) => {
 //   if (!editor) {
@@ -399,5 +407,5 @@ export const MenuBar = ({ editor }) => {
 // }
 
 MenuBar.propTypes = {
-  editor: PropTypes.any
+  editor: PropTypes.any,
 };

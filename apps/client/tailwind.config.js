@@ -1,5 +1,6 @@
 /** @type {import('tailwindcss').Config} */
 import tailwindcssAnimate from 'tailwindcss-animate';
+import typography from '@tailwindcss/typography';
 export default {
   darkMode: ['class'],
   content: [
@@ -7,8 +8,8 @@ export default {
     './components/**/*.{js,jsx}',
     './app/**/*.{js,jsx}',
     './src/**/*.{js,jsx}',
-    './stories/**/*.{js,ts,jsx,tsx}', // Asegura que Storybook detecte Tailwind
-    './.storybook/**/*.{js,ts,jsx,tsx}', // Incluye Storybook en Tailwind
+    './stories/**/*.{js,ts,jsx,tsx}',
+    './.storybook/**/*.{js,ts,jsx,tsx}',
   ],
   prefix: '',
   theme: {
@@ -103,5 +104,5 @@ export default {
       },
     },
   },
-  plugins: [tailwindcssAnimate, require('@tailwindcss/typography')],
+  plugins: [tailwindcssAnimate, typography],
 };
