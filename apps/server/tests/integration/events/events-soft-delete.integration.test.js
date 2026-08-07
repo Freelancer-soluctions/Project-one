@@ -155,11 +155,7 @@ vi.mock('../../../src/middleware/verifyCsrf.js', () => ({
 import request from 'supertest';
 import app from '../../../src/app.js';
 
-// Skipped: estos tests requieren una BD Postgres activa (Prisma) que no está disponible
-// en el entorno actual. Los unit tests equivalentes en src/modules/events/ que mockean
-// el DAO ya cubren la lógica de negocio. Descomentar describe.skip cuando la BD esté disponible.
-// eslint-disable-next-line vitest/no-disabled-tests
-describe.skip('Events Soft Delete – Integration', () => {
+describe('Events Soft Delete – Integration', () => {
   // 9.11 DELETE returns 200 and soft-deletes event
   it('DELETE /events/:id returns 200 and soft-deletes event', async () => {
     const res = await request(app)
