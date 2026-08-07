@@ -20,7 +20,8 @@
 
 ## 2. Pre-commit lint-staged Reactivation
 
-- [x] 2.1 Edit `.husky/pre-commit` to add lint-staged execution before parallel SAST/secrets/regression checks:
+- [x] 2.1 Edit `.husky/pre-commit` to add lint-staged execution before parallel SAST/secrets checks:
+
   ```
   #!/usr/bin/env sh
   set -e
@@ -30,7 +31,7 @@
   # 1. lint-staged first (fast, may modify files via autofix)
   npm exec lint-staged || { echo "lint-staged failed"; exit 1; }
 
-  # 2. SAST + Secrets + Regression in parallel (existing logic)
+  # 2. SAST + Secrets in parallel (existing logic)
   echo "Starting SAST scan..."
   npm run sast:semgrep &
   SAST_PID=$!
@@ -39,27 +40,23 @@
   npm run security:secrets &
   SECRETS_PID=$!
 
-  echo "Starting regression tests..."
-  npm run test:regression &
-  REGRESSION_PID=$!
-
   # Wait for all and capture exit codes
   FAILED=0
 
   wait $SAST_PID || { echo "SAST scan failed."; FAILED=1; }
   wait $SECRETS_PID || { echo "Secret scan failed."; FAILED=1; }
-  wait $REGRESSION_PID || { echo "Regression tests failed."; FAILED=1; }
 
   if [ $FAILED -ne 0 ]; then
     echo "Pre-commit checks failed. Commit blocked."
     exit 1
   fi
 
-  echo "All pre-commit checks passed (lint-staged, SAST, Secrets, Regression)."
+  echo "All pre-commit checks passed (lint-staged, SAST, Secrets)."
   ```
+
 - [x] 2.2 Verify lint-staged config in root `package.json` correctly targets staged files:
   - `*.{js,ts,cjs,mjs,d.cts,d.mts,json,jsonc}` → format + lint
-  - `**/*.test.js` → test:regression (server-express workspace)
+  - No `test:regression` rule — regression is intentionally excluded from pre-commit per the three-tier strategy (`docs/testing-architecture.md` §7.5, decision origin: archived `2026-07-28-pre-push-scoped-tests`). Regression runs in pre-push (scoped `vitest run --changed origin/main`) and CI (full unit/integration). lint-staged is scoped to prettier + eslint only.
 - [x] 2.3 Verify `npm exec lint-staged` works on current platform (Windows compat) — `npx lint-staged --diff HEAD --verbose` parses successfully
 
 ## 3. Coverage Baseline Measurement & Documentation

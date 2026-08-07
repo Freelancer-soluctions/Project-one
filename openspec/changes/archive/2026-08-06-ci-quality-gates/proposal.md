@@ -15,22 +15,27 @@ Project One tiene infraestructura de CI configurada pero con gaps críticos que 
 ## What Changes
 
 ### ESLint como Gate Bloqueante en CI
+
 - Agregar `--max-warnings 0` en los scripts `lint` de ambos workspaces
 - Ejecutar pre-flight lint primero para detectar warnings existentes antes de activar gate
 - Verificar que ESLint correctamente ignora legacy configs y usa flat config
 
 ### Reactivar lint-staged en Pre-commit
+
 - Modificar `.husky/pre-commit` para ejecutar lint-staged con `npm exec lint-staged` (no `npx`) antes de los checks existentes
 - lint-staged ya está configurado en `package.json` — solo falta invocarlo
 
 ### Documentar Coverage Baselines
+
 - Ejecutar `npm run test:coverage` en ambos workspaces (client + server)
 - Capturar y registrar en `docs/cicd-plan-implementacion.md` (sección §14.5) las métricas actuales
 
 ### Harden quality.yml
+
 - No requiere cambio YAML — exit code non-zero de `npm run lint` con `--max-warnings 0` basta para que GitHub Actions falle el paso
 
 ### Address Server ESLint Config
+
 - Verificar si `apps/server/package.json` tiene `eslintConfig` legacy que el flat config ignora
 - Migrar remover o consolidar reglas en `eslint.config.js` root
 

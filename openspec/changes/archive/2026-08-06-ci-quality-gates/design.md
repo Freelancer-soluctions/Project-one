@@ -3,13 +3,15 @@
 El proyecto es un monorepo ERP (Express + React) con npm workspaces. Ya existe infraestructura CI/CD con workflows en GitHub Actions, pero los gates de calidad no son vinculantes.
 
 **Estado actual:**
+
 - `quality.yml`: Workflow reusable que corre lint + format check en client y server. NO bloquea PRs porque ESLint no tiene `--max-warnings 0` y el exit code del paso no se evalúa como fail.
-- `.husky/pre-commit`: Ejecuta SAST (Semgrep), secret scanning (Gitleaks), y regression tests en paralelo. NO ejecuta lint-staged.
-- `lint-staged`: Configurado en `package.json` root con reglas para ESLint + Prettier en `*.{js,ts,cjs,mjs,json,jsonc}` y regression tests en `*.test.js`. Dependencia instalada (`lint-staged@^16.2.7`).
+- `.husky/pre-commit`: Ejecuta SAST (Semgrep) y secret scanning (Gitleaks) en paralelo. NO ejecuta lint-staged.
+- `lint-staged`: Configurado en `package.json` root con reglas para ESLint + Prettier en `*.{js,ts,cjs,mjs,json,jsonc}`. Dependencia instalada (`lint-staged@^16.2.7`).
 - Coverage: Scripts `test:coverage` existen en ambos workspaces pero nunca se han ejecutado ni documentado.
 - `eslintConfig` legacy en `apps/server/package.json`: Extiende `standard` pero ESLint 9 flat config (`eslint.config.js` root) lo ignora. Dead config que puede confundir.
 
 **Contexto del proyecto:**
+
 - Monorepo con workspaces: client (React/Vite), server (Express/Prisma), e2e (Playwright)
 - CI actual: quality.yml, ci.yml (tests comentados), security.yml
 - ESLint 9 flat config vía `eslint.config.js` root con `js.configs.recommended`; server legacy `eslintConfig` extendía `standard`
@@ -18,12 +20,14 @@ El proyecto es un monorepo ERP (Express + React) con npm workspaces. Ya existe i
 ## Goals / Non-Goals
 
 **Goals:**
+
 1. Hacer ESLint gate bloqueante en CI — errores de lint bloquean merge de PRs
 2. Reactivar lint-staged en pre-commit con `npm exec lint-staged` (no `npx`)
 3. Medir y documentar coverage baselines actuales (client + server) en cicd-plan.md §14.5
 4. Investigar y resolver legacy `eslintConfig` en server package.json
 
 **Non-Goals:**
+
 - Configurar coverage thresholds en Vitest (se hará en `ci-test-integration`)
 - Modificar reglas de ESLint existentes (solo gate)
 - Agregar nuevos workflows CI
@@ -40,7 +44,7 @@ El proyecto es un monorepo ERP (Express + React) con npm workspaces. Ya existe i
 
 ### D2: Integración de lint-staged en pre-commit
 
-**Decisión:** Agregar `npm exec lint-staged` al inicio del hook `.husky/pre-commit`, antes de SAST/secrets/regression.
+**Decisión:** Agregar `npm exec lint-staged` al inicio del hook `.husky/pre-commit`, antes de SAST/secrets.
 **Alternativas:** `npx lint-staged` (descartado por Windows spawn loop), paralelo (descartado por race condition con autofix).
 **Rationale:** lint-staged modifica archivos (autofix ESLint + Prettier). Checks pesados deben correr sobre código ya formateado. `npm exec` evita el bug de Windows spawn loop.
 
@@ -63,9 +67,10 @@ El proyecto es un monorepo ERP (Express + React) con npm workspaces. Ya existe i
 ### D6: Server Legacy eslintConfig
 
 **Decisión:** Investigar `eslintConfig` en `apps/server/package.json`. ESLint 9 con flat config (`eslint.config.js`) ignora campos `eslintConfig` en package.json. Si hay reglas `standard` que no se aplican, evaluar:
-  - Opción A: Agregar `standard` rules al root `eslint.config.js` bajo `files: ['apps/server/**/*.js']`
-  - Opción B: Remover el campo legacy y documentar que root flat config gobierna ambos workspaces
-**Rationale:** Dead config es confuso para mantenedores y puede dar falsa sensación de seguridad.
+
+- Opción A: Agregar `standard` rules al root `eslint.config.js` bajo `files: ['apps/server/**/*.js']`
+- Opción B: Remover el campo legacy y documentar que root flat config gobierna ambos workspaces
+  **Rationale:** Dead config es confuso para mantenedores y puede dar falsa sensación de seguridad.
 
 ### D7: Dependency Ordering
 
