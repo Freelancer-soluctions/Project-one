@@ -12,9 +12,11 @@ Brecha A2 del plan de seguridad: el job de secrets en `security.yml` usa `gitlea
 ## Capabilities
 
 ### New Capabilities
+
 - `ci-secret-scanning`: Detección de secretos en CI a nivel PR y programada (cron semanal) — GitHub secret scanning nativo + Gitleaks open source full-repo scan sin licencia, con documentación de activación y política de severidad (PR-time gate vs full-history audit).
 
 ### Modified Capabilities
+
 <!-- Sin cambios de requisitos sobre specs existentes: ninguna spec actual cubre CI secret scanning. -->
 
 ## Impact

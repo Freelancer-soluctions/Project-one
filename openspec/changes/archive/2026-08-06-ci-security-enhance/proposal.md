@@ -3,12 +3,14 @@
 El Stage 5 (Security) del plan CI/CD (`docs/cicd-plan-implementacion.md`) tiene cobertura parcial: `security.yml` ya ejecuta SAST (CodeQL), SCA (Trivy) y secret scanning (Gitleaks), pero faltan dos controles de supply-chain security: **SBOM** y **Dependency Review**. Sin SBOM no hay inventario de componentes (brecha M4 del plan) y sin Dependency Review los PRs pueden introducir dependencias vulnerables o con licencias incompatibles sin bloqueo en el merge.
 
 **Estado actual:**
+
 - `security.yml` ejecuta: Trivy (SCA), CodeQL (SAST), Gitleaks (secrets)
 - Job SBOM comentado en `security.yml` (líneas 117-125) — sin implementar
 - Sin Dependency Review → dependencias vulnerables pueden llegar a `main`
 - Sin SBOM artifact → sin trazabilidad del inventario de dependencias
 
 **Qué resuelve:**
+
 - SBOM CycloneDX JSON generado en cada PR y push a main, con artifact subido para trazabilidad
 - Dependency Review bloquea PRs que introduzcan dependencias vulnerables o licencias incompatibles
 - Ambos jobs corren en PR + push a main, cerrando la brecha M4 y el componente faltante del mapa Stage 5

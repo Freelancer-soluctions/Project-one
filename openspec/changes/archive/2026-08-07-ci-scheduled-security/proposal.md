@@ -15,9 +15,11 @@ Stage 8 (Scheduled) del plan CI/CD (`docs/cicd-plan-implementacion.md`) queda si
 ## Capabilities
 
 ### New Capabilities
+
 - `ci-scheduled-security-review`: Revisión periódica (cron semanal) de la seguridad de dependencias del estado mergeado — re-ejecuta SBOM CycloneDX + escaneo de vulnerabilidades/licencias (osv-scanner) sobre `main`, genera un digest markdown legible (conteos SBOM, paquetes vulnerables, resumen de licencias, cross-ref de secretos) subido como artifact, reutilizando el patrón de trigger programado del change hermano `ci-secret-scanning` sin duplicar sus workflows.
 
 ### Modified Capabilities
+
 <!-- Ninguna: no hay specs existentes para scheduled workflows de seguridad en openspec/specs/. -->
 
 ## Impact

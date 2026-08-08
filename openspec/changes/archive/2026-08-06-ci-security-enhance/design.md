@@ -12,6 +12,7 @@ Ver `proposal.md` — Why para la motivación. Estado actual relevante:
 ## Goals / Non-Goals
 
 **Goals:**
+
 - Generar SBOM CycloneDX JSON en cada PR y push a main usando `anchore/sbom-action@v0`
 - Subir el SBOM como artifact (`actions/upload-artifact@v4`) para trazabilidad
 - Bloquear PRs que introduzcan dependencias vulnerables o licencias incompatibles con `actions/dependency-review-action@v4`
@@ -19,6 +20,7 @@ Ver `proposal.md` — Why para la motivación. Estado actual relevante:
 - Agregar trigger `push` a main para que SBOM corra también post-merge
 
 **Non-Goals:**
+
 - No se implementa el cron semanal (Stage 8: `ci-scheduled-security`), que generará SBOM SPDX en otro workflow
 - No se toca el secret scanning (brecha A2 — change `ci-secret-scanning` aparte)
 - No se agregan gates de coverage ni otros jobs del Stage 5
@@ -27,24 +29,28 @@ Ver `proposal.md` — Why para la motivación. Estado actual relevante:
 ## Decisions
 
 ### D1: `anchore/sbom-action@v0` con formato CycloneDX JSON
+
 Se usa la action oficial de Anchore (syft bajo el capó) con `format: cyclonedx-json` y `output-file: sbom-project-one.json`.
 
 - **Por qué**: Zero-config, cataloga `package-lock.json` raíz (cubre los 3 workspaces por hoisting npm), y es el formato recomendado por OWASP y la executive order 14028. El plan ya lo lista para PR/main; SPDX queda reservado para el cron semanal (Stage 8).
 - **Alternativas**: `syft` vía container (más control, más setup), `npm`-basado (no produce CycloneDX nativo). Rechazadas por complejidad sin beneficio aquí.
 
 ### D2: `actions/dependency-review-action@v4` con vulnerability + license check
+
 Se habilita `vulnerability-check: true` (default) **y** `license-check: true`, ejecutando solo en PR (`if: github.event_name == 'pull_request'`).
 
 - **Por qué**: El plan define ambos checks como gate. El license-check usa una deny-list por defecto de licencias incompatibles, sin bloqueos extraños.
 - **Alternativas**: Solo vulnerability-check (default) — no cubriría la brecha de licencias del plan. `fail-on-scopes: development,unknown` — más granular, se puede afinar luego si hay falsos positivos (ver Open Questions).
 
 ### D3: Los jobs viven en `security.yml` (no workflow nuevo)
+
 Se agregan los jobs `sbom` y `dependency-review` al workflow existente.
 
 - **Por qué**: El mapa Stage 5 del plan los muestra dentro del workflow `security.yml`. Un solo archivo = un solo lugar para revisar el estado de seguridad del pipeline.
 - **Alternativas**: Workflow separado `supply-chain.yml` — fragmenta el Stage 5 sin beneficio real.
 
 ### D4: Permisos job-scoped (least privilege)
+
 El bloque `permissions` top-level se conserva mínimo y cada job declara SOLO el permiso extra que necesita:
 
 ```yaml
@@ -66,11 +72,13 @@ permissions:
 - **Por qué**: `dependency-review-action@v4` requiere `pull-requests: write` para publicar el comentario de resumen en el PR, y `actions/upload-artifact@v4` requiere `actions: write` para crear el artifact. Con permisos top-level amplios, los jobs `dependency-scan` (Trivy), `sast` (CodeQL) y `secrets` (Gitleaks) — que ejecutan código de dependencias no confiables — heredarían capacidad de escritura de artifact/PR que no necesitan. Job-scoped limita el blast radius.
 
 ### D5: SBOM sin `npm ci`
+
 El job `sbom` hace checkout y ejecuta `anchore/sbom-action@v0` directamente, sin instalar dependencias.
 
 - **Por qué**: syft cataloga el lockfile (`package-lock.json`) directamente; instalar dependencias solo añadiría ~1-2 min al job sin mejorar el SBOM. Los jobs que sí necesitan el árbol completo (`dependency-scan`, `sast`) ya hacen `npm ci` de forma independiente.
 
 ### D6: El bloque SBOM comentado se elimina
+
 El job `sbom` comentado existente (sin `format` ni `output-file`) se reemplaza por el job activo con configuración completa.
 
 - **Por qué**: Evita confusión entre el bloque muerto y el job real. El git history conserva el bloque original.
