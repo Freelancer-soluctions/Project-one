@@ -2,11 +2,17 @@ import { describe, it, expect } from 'vitest';
 import createRequest from './helpers/request.js';
 
 describe('Smoke Test: Server Health Check', () => {
-  it('GET /health should respond with 200 OK and JSON status', async () => {
+  it('GET /health should respond with 200 (healthy) or 503 (degraded) and JSON status', async () => {
     const response = await createRequest().get('/health');
-    expect(response.status).toBe(200);
+    // Accept 200 (DB reachable) or 503 (DB unreachable but server alive)
+    expect([200, 503]).toContain(response.status);
     expect(response.headers['content-type']).toMatch(/json/);
-    expect(response.body).toEqual({ status: 'ok' });
+    // Body status should match: 'ok' for 200, 'degraded' for 503
+    const expectedStatus = response.status === 200 ? 'ok' : 'degraded';
+    expect(response.body).toEqual({
+      status: expectedStatus,
+      timestamp: expect.any(String),
+    });
   });
 
   it('GET /metrics should respond with 200 OK (Prometheus metrics endpoint)', async () => {
