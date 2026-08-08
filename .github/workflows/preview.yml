@@ -100,14 +100,8 @@ jobs:
             -e AWS_SECRET_ACCESS_KEY=test \
             -e AWS_REGION=us-east-1 \
             -e PORT=3000 \
+            -e ENABLE_SMOKE_ROUTE=true \
             preview-server
-        env:
-          DATABASE_URL: postgresql://test:test@localhost:5432/project_one_preview
-          AWS_ENDPOINT_URL: http://localhost:4566
-          AWS_ACCESS_KEY_ID: test
-          AWS_SECRET_ACCESS_KEY: test
-          AWS_REGION: us-east-1
-          PORT: 3000
 
       # 7. Health check with retries
       - name: Wait for server health
@@ -130,12 +124,14 @@ jobs:
           AWS_ACCESS_KEY_ID=test \
           AWS_SECRET_ACCESS_KEY=test \
           AWS_REGION=us-east-1 \
+          SERVER_BASE_URL=http://localhost:3000 \
           node apps/server/scripts/preview-smoke.mjs
         env:
           AWS_ENDPOINT_URL: http://localhost:4566
           AWS_ACCESS_KEY_ID: test
           AWS_SECRET_ACCESS_KEY: test
           AWS_REGION: us-east-1
+          SERVER_BASE_URL: http://localhost:3000
 
       # 9. Capture Vercel preview URL from commit status
       - name: Capture Vercel preview URL
@@ -147,7 +143,7 @@ jobs:
           SHA="${{ github.event.pull_request.head.sha }}"
           # Poll for Vercel deployment status (max 60s)
           for i in {1..12}; do
-            STATUS=$(gh api repos/${{ github.repository }}/commits/${SHA}/status --jq '.statuses[] | select(.context | startswith("vercel")) | .target_url' 2>/dev/null | head -1) || true
+            STATUS=$(gh api repos/${{ github.repository }}/commits/${SHA}/status --jq '.statuses[] | select(.context | ascii_downcase | startswith("vercel")) | .target_url' 2>/dev/null | head -1) || true
             if [ -n "$STATUS" ]; then
               echo "vercel_url=$STATUS" >> $GITHUB_OUTPUT
               echo "✅ Found Vercel preview URL: $STATUS"
@@ -192,7 +188,7 @@ jobs:
             ${{ steps.vercel-url.outputs.vercel_url != '' && format('**Preview URL**: {0}', steps.vercel-url.outputs.vercel_url) || '**Preview URL**: *Not yet available — Vercel deployment may still be building*' }}
 
             ### ⚙️ Backend Validation (AWS Emulated via Floci)
-            **Status**: ${{ success() && '✅ Backend validation passed (smoke tests OK)' || '❌ Backend validation failed (smoke tests failed)' }}
+            **Status**: ✅ Backend validation passed (smoke tests OK)
 
             **Details**:
             - Stack: Server (Docker) + Floci (AWS emulator) + PostgreSQL 16 (ephemeral)
@@ -225,7 +221,7 @@ jobs:
             ${{ steps.vercel-url.outputs.vercel_url != '' && format('**Preview URL**: {0}', steps.vercel-url.outputs.vercel_url) || '**Preview URL**: *Not yet available — Vercel deployment may still be building*' }}
 
             ### ⚙️ Backend Validation (AWS Emulated via Floci)
-            **Status**: ❌ Backend validation failed (smoke tests failed)
+            **Status**: ❌ Backend validation failed — see workflow logs for details
 
             **Details**:
             - Stack: Server (Docker) + Floci (AWS emulator) + PostgreSQL 16 (ephemeral)
