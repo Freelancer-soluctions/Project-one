@@ -1,5 +1,6 @@
 # Root .dockerignore for monorepo-root context builds
 # Prevents contamination of build context (node_modules symlinks, etc.)
+# Authoritative .dockerignore for all monorepo Docker builds (replaces apps/server/.dockerignore)
 
 node_modules
 .git
@@ -33,3 +34,35 @@ Thumbs.db
 *.pfx
 dist
 coverage
+
+# Tests (from apps/server/.dockerignore)
+tests
+**/*.test.js
+**/*.spec.js
+
+# Build outputs (from apps/server/.dockerignore)
+build
+
+# IDE/Editor (from apps/server/.dockerignore)
+*.swp
+*.swo
+
+# OS (from apps/server/.dockerignore)
+.DS_Store
+Thumbs.db
+
+# Git (from apps/server/.dockerignore)
+.git
+.gitignore
+
+# Prisma - migrations INTENTIONALLY NOT excluded (must be in image for migrate deploy)
+# prisma/migrations
+
+# Docker (from apps/server/.dockerignore)
+Dockerfile*
+docker-compose*.yml
+.dockerignore
+
+# Misc (from apps/server/.dockerignore)
+*.md
+!.github
