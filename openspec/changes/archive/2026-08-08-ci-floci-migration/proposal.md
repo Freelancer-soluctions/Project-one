@@ -6,7 +6,7 @@ LocalStack Community se sunsets en marzo 2026 (exige auth token; los updates de 
 
 ## What Changes
 
-- **Activar servicio `floci` en `apps/server/docker-compose.yml`**: sustituir la sección LocalStack comentada por un servicio `floci` (imagen `floci/floci:v1.5.11` pineada, puerto `4566:4566`, `FLOCI_STORAGE_MODE=memory`, healthcheck `["CMD", "floci", "health"]`) — emulación AWS disponible en dev local con `docker compose up`
+- **Activar servicio `floci` en `apps/server/docker-compose.yml`**: sustituir la sección LocalStack comentada por un servicio `floci` (imagen `floci/floci:1.5.31` pineada, puerto `4566:4566`, `FLOCI_STORAGE_MODE=memory`, healthcheck `["CMD-SHELL", "curl -f http://localhost:4566/_localstack/health"]`) — emulación AWS disponible en dev local con `docker compose up`
 - **Setup de desarrollo documentado**: cómo levantar Floci + app local (`AWS_ENDPOINT_URL=http://localhost:4566`, credenciales dummy `test`/`test`, `AWS_REGION=us-east-1`, `SECRET_NAME`), verificar healthcheck y conectar Secrets Manager emulado
 - **Documentación `docs/aws-dev-local-floci.md`**: qué es Floci (floci.io, MIT, 68 servicios), diferencias vs AWS real, cómo el código de Secrets Manager se conecta vía `AWS_ENDPOINT_URL`, ruta de aprendizaje (referencia cruzada a `docs/aws-learning-with-floci.md` del change sibling `ci-preview-environments`)
 - **Tests**: verificado que ningún test de integración usa emulador AWS hoy (solo Postgres); este change NO añade tooling de tests — el path de Secrets Manager emulado queda documentado para uso manual/dev, y la ampliación con `@floci/testcontainers` + Vitest queda como follow-up

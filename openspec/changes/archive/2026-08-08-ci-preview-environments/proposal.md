@@ -5,6 +5,7 @@ El monorepo Project One carece de validación de preview por Pull Request (Stage
 **Decisión de scope (2026-07):** Floci **NO** es un proveedor de hosting cloud — es un **emulador local de AWS** ("Any Cloud. Locally", MIT, puerto 4566). Se descarta el hosting cloud pagado para previews (Railway/Render/Fly.io). Floci se adopta como **capa de aprendizaje y emulación de AWS** en local y en CI, no como host de un preview público.
 
 **Estado actual:**
+
 - El backend Express usa `@aws-sdk/client-secrets-manager` (`apps/server/src/config/aws/secret-manager.client.js`) que respeta `AWS_ENDPOINT_URL` — el código está listo para emulación, pero no hay stack emulado activo
 - `apps/server/docker-compose.yml` contiene una sección LocalStack comentada (dev local); la migración LocalStack → Floci es el change `ci-floci-migration` (separado)
 - No existe preview del frontend por PR (Vercel no conectado como GitHub App)
@@ -12,6 +13,7 @@ El monorepo Project One carece de validación de preview por Pull Request (Stage
 - `apps/server/package.json` solo incluye `@aws-sdk/client-secrets-manager` entre los SDKs AWS
 
 **Qué resuelve:**
+
 - **Aprendizaje AWS con Floci (local + CI)**: stack docker-compose con server + Floci + PostgreSQL efímera para aprender servicios AWS localmente (Secrets Manager vía `AWS_ENDPOINT_URL`) sin cuenta real ni costo
 - **Validación de PR**: el workflow `preview.yml` levanta el stack emulado en CI, corre smoke tests contra AWS emulado y comenta los resultados en el PR
 - **Preview del client**: Vercel GitHub App nativa genera una preview URL automática por PR (sin workflow custom para Vercel)

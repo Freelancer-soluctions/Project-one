@@ -5,31 +5,33 @@
 ## 0. Prerrequisitos Dockerfile + .dockerignore
 
 - [x] 0.1 Fix Dockerfile `apps/server/Dockerfile`: copiar `prisma/` antes de `npm ci` (o mover `prisma generate` después de `COPY . .` con CLI disponible) para que `npm ci --omit=dev` no falle en el postinstall y el client de Prisma se genere
-- [x] 0.2 Create `apps/server/.dockerignore` (node_modules, .env, *.log, tests, dist) para evitar contexto de build contaminado (symlinks de workspaces arrastrarían el árbol completo)
-- [~] 0.3 Verify `docker build apps/server` succeeds end-to-end and image boots `node src/bin/index.js` with a working generated Prisma client *(not run locally; Dockerfile structure correct)*
+- [x] 0.2 Create `apps/server/.dockerignore` (node_modules, .env, \*.log, tests, dist) para evitar contexto de build contaminado (symlinks de workspaces arrastrarían el árbol completo)
+  > **NOTE: alineación (post-verify audit 2026-08-08)**: consolidated into root `.dockerignore` (authoritative for monorepo builds) — `apps/server/.dockerignore` intentionally absent.
+- [~] 0.3 Verify `docker build apps/server` succeeds end-to-end and image boots `node src/bin/index.js` with a working generated Prisma client _(not run locally; Dockerfile structure correct)_
 
 ## 1. docker-compose.preview.yml (stack de emulación AWS)
 
 - [x] 1.1 Create `apps/server/docker-compose.preview.yml` with `floci` service: image `floci/floci:v1.5.11` (pin concreto, no `latest`), port `4566:4566`, `FLOCI_STORAGE_MODE=memory`, `FLOCI_HOSTNAME=floci`, healthcheck `["CMD", "floci", "health"]`
+  > **NOTE de alineación (post-verify audit 2026-08-08)**: image tag updated to `floci/floci:1.5.31` (v1.5.11 not on Docker Hub) + healthcheck curl `/_localstack/health` (floci health cmd nonexistent) — see `openspec/specs/ci-floci-dev-emulation`.
 - [x] 1.2 Add `db` service: `postgres:16-alpine`, no persistent volume, healthcheck `pg_isready`, credenciales consistentes con el workflow (p.ej. `POSTGRES_USER=test`, `POSTGRES_PASSWORD=test`, `POSTGRES_DB=project_one_preview`), DB named for preview stack
 - [x] 1.3 Add `server` service: build from existing Dockerfile, port `3000:3000`, `depends_on` (db + floci healthy), env `DATABASE_URL=postgresql://test:test@db:5432/project_one_preview`, `AWS_ENDPOINT_URL=http://floci:4566`, dummy creds `AWS_ACCESS_KEY_ID`/`AWS_SECRET_ACCESS_KEY`=test, `AWS_REGION=us-east-1` — **las mismas credenciales DB en compose y workflow**
-- [x] 1.4 Verificar que ESTE change no modifica `apps/server/docker-compose.yml` (dev-local) — aserción sobre el propio diff, NO invariante global: `ci-floci-migration` lo modifica legítimamente (LocalStack → Floci) en su propio change *(verified: docker-compose.yml untouched)*
-- [~] 1.5 Verify stack locally: `docker compose -f apps/server/docker-compose.preview.yml up` → Floci responds on 4566, server HTTP 200, no calls leave to real AWS *(not run locally; requires Docker)*
+- [x] 1.4 Verificar que ESTE change no modifica `apps/server/docker-compose.yml` (dev-local) — aserción sobre el propio diff, NO invariante global: `ci-floci-migration` lo modifica legítimamente (LocalStack → Floci) en su propio change _(verified: docker-compose.yml untouched)_
+- [~] 1.5 Verify stack locally: `docker compose -f apps/server/docker-compose.preview.yml up` → Floci responds on 4566, server `/health` responds HTTP 200 (ok) or HTTP 503 (degraded), no calls leave to real AWS _(not run locally; requires Docker)_
 
 ## 2. Smoke test AWS emulado
 
 - [x] 2.1 Create `apps/server/scripts/preview-smoke.mjs` using `@aws-sdk/client-secrets-manager` that creates a test secret and reads it back (CreateSecret + GetSecretValue) against `AWS_ENDPOINT_URL`
 - [x] 2.2 Verify script exits non-zero on failure and works with dummy creds + `AWS_REGION=us-east-1`
-- [~] 2.3 Run `npx prisma migrate deploy` against the ephemeral Postgres and confirm smoke passes against the compose stack *(not run locally; requires Docker)*
+- [~] 2.3 Run `npx prisma migrate deploy` against the ephemeral Postgres and confirm smoke passes against the compose stack _(not run locally; requires Docker)_
 
 ## 3. Workflow preview.yml
 
-- [x] 3.0 Add minimal `GET /health` route (HTTP 200) to `apps/server/src/app.js` (non-breaking; or use existing `/metrics` as health gate)
+- [x] 3.0 Add minimal `GET /health` route to `apps/server/src/app.js` with 200/503 semantics: HTTP 200 + `status: ok` when the Prisma DB query succeeds within the 500 ms timeout; HTTP 503 + `status: degraded` when DB unreachable or query exceeds 500 ms (liveness vs readiness; non-breaking; or use existing `/metrics` as health gate)
 - [x] 3.1 Create `.github/workflows/preview.yml` with trigger `pull_request` (opened, reopened, synchronize) on `branches: [main]`; no run on direct pushes to main
 - [x] 3.2 Add concurrency: `group: ${{ github.event_name == 'pull_request' && format('preview-{0}', github.event.pull_request.number) || 'preview-manual' }}`, `cancel-in-progress: true`
 - [x] 3.3 Configure single `preview` job (ubuntu-latest): checkout@v5, setup-node@v4 (node-version-file `.nvmrc`, cache npm), `npm ci` at monorepo root; add `permissions: contents: read, pull-requests: write, statuses: read`
 - [x] 3.4 Add service containers: `floci` (4566, health options `--health-cmd "floci health" --health-interval 10s --health-retries 5` or per floci.io docs) and `db` (postgres:16-alpine, `pg_isready` health) — credenciales DB idénticas a compose (test/test/project_one_preview); build server image via `docker build apps/server`
-- [x] 3.5 Run `prisma migrate deploy` (working-directory: apps/server) against ephemeral Postgres with `DATABASE_URL=postgresql://test:test@localhost:5432/project_one_preview`; start server from built image (`--network=host`) with same DATABASE_URL + `AWS_ENDPOINT_URL=http://localhost:4566` + dummy creds + `AWS_REGION=us-east-1`; health check HTTP 200 on `/health` with retries
+- [x] 3.5 Run `prisma migrate deploy` (working-directory: apps/server) against ephemeral Postgres with `DATABASE_URL=postgresql://test:test@localhost:5432/project_one_preview`; start server from built image (`--network=host`) with same DATABASE_URL + `AWS_ENDPOINT_URL=http://localhost:4566` + dummy creds + `AWS_REGION=us-east-1`; health check on `/health` with retries accepting HTTP 200 (ok) or HTTP 503 (degraded) as valid liveness
 - [x] 3.6 Run smoke test (2.x) against Floci with `AWS_ENDPOINT_URL=http://localhost:4566` + dummy creds + `AWS_REGION=us-east-1` set explicitly, capture result for PR checks
 - [x] 3.7 Capture Vercel preview URL from Vercel GitHub App commit status via GitHub API (`GET /repos/{owner}/{repo}/commits/{sha}/status`, `target_url`) using `GITHUB_TOKEN`
 - [x] 3.8 Publish/update single PR comment: `peter-evans/find-comment` + `peter-evans/create-or-update-comment` with marker `<!-- preview-environments -->`, combining client preview URL + backend validation status; no duplicates on synchronize; guard with `if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork == false` (+ `continue-on-error`) — fork PRs get checks only, no comment
@@ -47,6 +49,6 @@
 ## 5. Verificación
 
 - [x] 5.1 Validate workflow YAML: run actionlint (or `npx actionlint` if available) on `.github/workflows/preview.yml` → **validated via js-yaml structural check (actionlint unavailable)**
-- [~] 5.2 Trigger manual run via `workflow_dispatch` and verify build + migrate + smoke + comment flow; confirm the built server image boots in CI with the service containers and smoke passes green end-to-end (not just a manual dispatch) *(requires GitHub Actions)*
-- [~] 5.3 Open test PR: verify single combined comment (Vercel URL + backend status), update without duplicates on synchronize, cancellation on new commit *(requires GitHub Actions)*
-- [x] 5.4 Run `openspec validate --strict --changes ci-preview-environments` and confirm all artifacts pass before archiving *(passed)*
+- [~] 5.2 Trigger manual run via `workflow_dispatch` and verify build + migrate + smoke + comment flow; confirm the built server image boots in CI with the service containers and smoke passes green end-to-end (not just a manual dispatch) _(requires GitHub Actions)_
+- [~] 5.3 Open test PR: verify single combined comment (Vercel URL + backend status), update without duplicates on synchronize, cancellation on new commit _(requires GitHub Actions)_
+- [x] 5.4 Run `openspec validate --strict --changes ci-preview-environments` and confirm all artifacts pass before archiving _(passed)_

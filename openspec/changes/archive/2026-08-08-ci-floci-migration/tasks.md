@@ -1,8 +1,8 @@
 ## 1. Activar Floci en el compose dev-local
 
-- [x] 1.1 Insertar el servicio `floci` bajo la clave `services:` de `apps/server/docker-compose.yml` (tras `grafana`, ~línea 85) — imagen `floci/floci:v1.5.11`, puerto `4566:4566`, `FLOCI_STORAGE_MODE=memory`, healthcheck `["CMD", "floci", "health"]`, en la red existente `app-network`. **NOTA**: el bloque LocalStack comentado (líneas 96-119: `api` alternativo + red `aws-local`) está DESPUÉS de la clave `volumes:` — fuera de `services:` — por lo que debe ELIMINARSE por completo (no reemplazarse in-place, que produciría YAML inválido)
+- [x] 1.1 Insertar el servicio `floci` bajo la clave `services:` de `apps/server/docker-compose.yml` (tras `grafana`, ~línea 85) — imagen `floci/floci:1.5.31`, puerto `4566:4566`, `FLOCI_STORAGE_MODE=memory`, healthcheck `["CMD-SHELL", "curl -f http://localhost:4566/_localstack/health >/dev/null 2>&1 || exit 1"]`, en la red existente `app-network`. **NOTA de alineación**: el tag `v1.5.11` no existe en Docker Hub (el publicado es `1.5.31`) y el comando `floci health` no existe en la imagen (el patrón correcto es curl `/_localstack/health`, consistente con el preview stack). **NOTA**: el bloque LocalStack comentado (líneas 96-119: `api` alternativo + red `aws-local`) está DESPUÉS de la clave `volumes:` — fuera de `services:` — por lo que debe ELIMINARSE por completo (no reemplazarse in-place, que produciría YAML inválido)
 - [x] 1.2 Verificar que los servicios existentes del compose dev-local quedan intactos: `db` (`postgres:17`), `pgAdmin`, `api`, `nginx`, `prometheus`, `grafana`
-- [x] 1.3 Validar el compose: `docker compose config` desde `apps/server` pasa sin errores de YAML y muestra el servicio `floci`. Verificar antes que la imagen existe: `docker manifest inspect floci/floci:v1.5.11` (o `docker pull floci/floci:v1.5.11`)
+- [x] 1.3 Validar el compose: `docker compose config` desde `apps/server` pasa sin errores de YAML y muestra el servicio `floci`. Verificar antes que la imagen existe: `docker manifest inspect floci/floci:1.5.31` (o `docker pull floci/floci:1.5.31`)
 
 ## 2. Setup de desarrollo (variables AWS)
 
