@@ -34,14 +34,14 @@ jobs:
     services:
       # Floci - Emulador AWS (puerto 4566)
       floci:
-        image: floci/floci:v1.5.11
+        image: floci/floci:1.5.31
         ports:
           - 4566:4566
         env:
           FLOCI_STORAGE_MODE: memory
           FLOCI_HOSTNAME: floci
         options: >-
-          --health-cmd "floci health"
+          --health-cmd "curl -f http://localhost:4566/_localstack/health || exit 1"
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5

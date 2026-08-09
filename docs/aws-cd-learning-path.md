@@ -10,16 +10,19 @@
 
 ## 🎯 Learning Path Overview
 
-| Milestone | AWS Service | Floci Practice | Checkpoint Task | Unlocks Phase 2 Task |
-|-----------|-------------|----------------|-----------------|---------------------|
-| **M1** | **ECR** | Push/pull Docker images to emulated ECR | `aws ecr describe-repositories` shows `project-one-server` | Task 5.2: Create real ECR repo + lifecycle policy |
-| **M2** | **ECS Fargate** | Register task definition, create service, deploy | `aws ecs describe-services` shows RUNNING task with health checks | Tasks 6.2–6.5: Provision VPC/ALB/ECS staging + deploy |
-| **M3** | **RDS PostgreSQL** | Create DB, run Prisma migrations, connect app | `prisma migrate deploy` succeeds against emulated RDS | Tasks 7.2–7.4: Provision real RDS + Secrets Manager wiring |
-| **M4** | **IAM OIDC** | Configure GitHub OIDC provider + role trust policy | `aws sts assume-role-with-web-identity` works from Floci | Tasks 5.3, 8.1: Real OIDC role + GitHub variable |
+| Milestone | AWS Service        | Floci Practice                                     | Checkpoint Task                                                   | Unlocks Phase 2 Task                                       |
+| --------- | ------------------ | -------------------------------------------------- | ----------------------------------------------------------------- | ---------------------------------------------------------- |
+| **M1**    | **ECR**            | Push/pull Docker images to emulated ECR            | `aws ecr describe-repositories` shows `project-one-server`        | Task 5.2: Create real ECR repo + lifecycle policy          |
+| **M2**    | **ECS Fargate**    | Register task definition, create service, deploy   | `aws ecs describe-services` shows RUNNING task with health checks | Tasks 6.2–6.5: Provision VPC/ALB/ECS staging + deploy      |
+| **M3**    | **RDS PostgreSQL** | Create DB, run Prisma migrations, connect app      | `prisma migrate deploy` succeeds against emulated RDS             | Tasks 7.2–7.4: Provision real RDS + Secrets Manager wiring |
+| **M4**    | **IAM OIDC**       | Configure GitHub OIDC provider + role trust policy | `aws sts assume-role-with-web-identity` works from Floci          | Tasks 5.3, 8.1: Real OIDC role + GitHub variable           |
 
 > **Cross-references**:
+>
 > - `docs/aws-learning-with-floci.md` — Progressive AWS learning levels 1–5 (sibling `ci-preview-environments`)
 > - `docs/aws-dev-local-floci.md` — Local dev setup with Floci (sibling `ci-floci-migration`)
+>
+> **Note**: The Floci tag used throughout this learning path is `floci/floci:1.5.31` (the actual published tag on Docker Hub), not `v1.5.11` which does not exist.
 
 ---
 
@@ -57,6 +60,7 @@
 ## 🏁 Milestone 1: ECR (Elastic Container Registry)
 
 ### Concept
+
 Private Docker registry for immutable SHA-tagged images. The CD pipeline pushes `project-one-server:${GITHUB_SHA}` and `latest`; rollback redeploys a previous SHA tag.
 
 ### Floci Emulated Practice
@@ -98,6 +102,7 @@ aws --endpoint-url=http://localhost:4566 ecr put-lifecycle-policy \
 ```
 
 ### ✅ Checkpoint Task (Verifiable)
+
 ```bash
 # Run this — must succeed without errors
 aws --endpoint-url=http://localhost:4566 ecr describe-repositories \
@@ -106,9 +111,11 @@ aws --endpoint-url=http://localhost:4566 ecr describe-repositories \
   --output text
 # Expected output: project-one-server
 ```
+
 **Mark complete**: ☐ `M1-ECR-CHECKPOINT` in your learning log
 
 ### Unlocks
+
 - **Task 5.2**: Create real ECR repo `project-one-server` + lifecycle policy (console-guided)
 - **Task 5.3**: Configure OIDC role with ECR push permissions
 
@@ -117,6 +124,7 @@ aws --endpoint-url=http://localhost:4566 ecr describe-repositories \
 ## 🏁 Milestone 2: ECS Fargate (Staging)
 
 ### Concept
+
 Serverless container orchestration. Deployment = (1) `register-task-definition` with new SHA image (new revision), (2) `update-service --force-new-deployment` with circuit breaker. ALB provides stickiness + idle timeout ≥ 65s for Socket.IO.
 
 ### Floci Emulated Practice
@@ -197,6 +205,7 @@ aws --endpoint-url=http://localhost:4566 ecs wait services-stable \
 ```
 
 ### ✅ Checkpoint Task (Verifiable)
+
 ```bash
 # Run this — must show RUNNING status and desiredCount = runningCount = 1
 aws --endpoint-url=http://localhost:4566 ecs describe-services \
@@ -206,9 +215,11 @@ aws --endpoint-url=http://localhost:4566 ecs describe-services \
   --output table
 # Expected: status=ACTIVE, desired=1, running=1, pending=0
 ```
+
 **Mark complete**: ☐ `M2-ECS-CHECKPOINT` in your learning log
 
 ### Unlocks
+
 - **Tasks 6.2–6.5**: Provision real VPC, ALB (stickiness + idle timeout ≥ 65s), ECS staging cluster, GitHub `staging` environment secrets, real deploy
 
 ---
@@ -216,6 +227,7 @@ aws --endpoint-url=http://localhost:4566 ecs describe-services \
 ## 🏁 Milestone 3: RDS PostgreSQL
 
 ### Concept
+
 Managed PostgreSQL with automated backups, PITR, and security group isolation. Prisma migrations run as part of deploy (preferably via ECS one-off task to avoid runner IP whitelisting).
 
 ### Floci Emulated Practice
@@ -275,6 +287,7 @@ DATABASE_URL="<DATABASE_URL>" \
 ```
 
 ### ✅ Checkpoint Task (Verifiable)
+
 ```bash
 # Run this — must show tables created by Prisma
 DATABASE_URL="<DATABASE_URL>" \
@@ -283,9 +296,11 @@ DATABASE_URL="<DATABASE_URL>" \
 SQL
 # Expected: tables like User, _prisma_migrations, etc.
 ```
+
 **Mark complete**: ☐ `M3-RDS-CHECKPOINT` in your learning log
 
 ### Unlocks
+
 - **Tasks 7.2–7.4**: Provision real RDS (staging: t3.micro, prod: Multi-AZ), `DATABASE_URL` as GitHub env secret → Secrets Manager, wire `loadSecrets()` in app bootstrap
 
 ---
@@ -293,6 +308,7 @@ SQL
 ## 🏁 Milestone 4: IAM OIDC (GitHub Actions → AWS)
 
 ### Concept
+
 Federate GitHub OIDC provider with IAM role. No long-lived access keys. Role trust policy restricted to `repo:<owner>/<repo>` + environment filter. Least-privilege policy for ECR + ECS.
 
 ### Floci Emulated Practice
@@ -397,6 +413,7 @@ aws --endpoint-url=http://localhost:4566 sts assume-role-with-web-identity \
 ```
 
 ### ✅ Checkpoint Task (Verifiable)
+
 ```bash
 # Run this — must show role with correct trust policy and attached policy
 aws --endpoint-url=http://localhost:4566 iam get-role \
@@ -410,9 +427,11 @@ aws --endpoint-url=http://localhost:4566 iam list-attached-role-policies \
   --output table
 # Expected: project-one-github-actions-cd
 ```
+
 **Mark complete**: ☐ `M4-OIDC-CHECKPOINT` in your learning log
 
 ### Unlocks
+
 - **Task 5.3**: Create real OIDC provider + role with subject restriction to your repo
 - **Task 5.4**: Add `AWS_ROLE_ARN` as GitHub **repository variable** (not secret — D6)
 - **Task 8.1**: Production OIDC verification
@@ -425,21 +444,22 @@ aws --endpoint-url=http://localhost:4566 iam list-attached-role-policies \
 
 ### Estimated Monthly Cost (us-east-1, minimal config)
 
-| Resource | Config | Est. Monthly Cost |
-|----------|--------|-------------------|
-| **ECS Fargate (staging)** | 1 task × 0.25 vCPU / 0.5 GB, 24/7 | ~$7–10 |
-| **ECS Fargate (prod)** | 1 task × 0.5 vCPU / 1 GB, 24/7 | ~$14–20 |
-| **ALB** | 1 LB + LCU (low traffic) | ~$16–20 |
-| **RDS PostgreSQL (staging)** | db.t3.micro, 20 GB, single-AZ, 7-day backup | ~$13–18 |
-| **RDS PostgreSQL (prod)** | db.t3.micro, 20 GB, Multi-AZ, 30-day backup | ~$35–50 |
-| **ECR** | ~2 GB storage, minimal transfer | ~$0.20 |
-| **CloudWatch Logs** | ~1 GB ingestion + storage | ~$0.50 |
-| **NAT Gateway** | 2 AZs, minimal data | ~$32–45 |
-| **Total (24/7)** | | **~$118–184/month** |
+| Resource                     | Config                                      | Est. Monthly Cost   |
+| ---------------------------- | ------------------------------------------- | ------------------- |
+| **ECS Fargate (staging)**    | 1 task × 0.25 vCPU / 0.5 GB, 24/7           | ~$7–10              |
+| **ECS Fargate (prod)**       | 1 task × 0.5 vCPU / 1 GB, 24/7              | ~$14–20             |
+| **ALB**                      | 1 LB + LCU (low traffic)                    | ~$16–20             |
+| **RDS PostgreSQL (staging)** | db.t3.micro, 20 GB, single-AZ, 7-day backup | ~$13–18             |
+| **RDS PostgreSQL (prod)**    | db.t3.micro, 20 GB, Multi-AZ, 30-day backup | ~$35–50             |
+| **ECR**                      | ~2 GB storage, minimal transfer             | ~$0.20              |
+| **CloudWatch Logs**          | ~1 GB ingestion + storage                   | ~$0.50              |
+| **NAT Gateway**              | 2 AZs, minimal data                         | ~$32–45             |
+| **Total (24/7)**             |                                             | **~$118–184/month** |
 
 ### Mitigation Strategies (Reduce to ~$30–50/month)
 
 1. **Shutdown outside hours** (biggest savings):
+
    ```bash
    # Staging: scale to 0 nights/weekends via EventBridge + Lambda
    # Or: stop ECS service (desired-count=0) on schedule
@@ -457,9 +477,10 @@ aws --endpoint-url=http://localhost:4566 iam list-attached-role-policies \
 5. **ALB**: Required — no direct alternative for public HTTPS + stickiness
 
 ### Zero-Cost Learning Guarantee
+
 > **Spec `cd-aws-learning-path` Requirement**: "All practice exercises run against Floci and local ephemeral services, so no cloud resources or costs are incurred during the learning phase."
 >
-> ✅ **This learning path is 100% executable without an AWS account.** All milestones use Floci emulator (`floci/floci:v1.5.11`) and local PostgreSQL. No AWS credentials needed. No cloud resources created. Zero cost.
+> ✅ **This learning path is 100% executable without an AWS account.** All milestones use Floci emulator (`floci/floci:1.5.31`) and local PostgreSQL. No AWS credentials needed. No cloud resources created. Zero cost.
 
 ---
 
@@ -511,15 +532,15 @@ Copy this to your local notes and check off as you complete each milestone:
 
 ## 🔗 Cross-References
 
-| Document | Purpose |
-|----------|---------|
-| `docs/aws-deploy-architecture.md` | Component inventory, network layout, **Terraform reference** (D9) |
-| `docs/aws-learning-with-floci.md` | Progressive AWS learning levels 1–5 (sibling `ci-preview-environments`) |
-| `docs/aws-dev-local-floci.md` | Local dev setup with Floci (sibling `ci-floci-migration`) |
-| `openspec/changes/cd-aws-deploy-pipeline/tasks.md` | Phase 2 tasks unlocked by milestones (5.x–9.x) |
-| `openspec/changes/cd-aws-deploy-pipeline/design.md` | Design decisions D1–D10 |
-| `.github/workflows/deploy.yml` | Pipeline with gated jobs (Phase 1 scaffold + Phase 2 real) |
+| Document                                            | Purpose                                                                 |
+| --------------------------------------------------- | ----------------------------------------------------------------------- |
+| `docs/aws-deploy-architecture.md`                   | Component inventory, network layout, **Terraform reference** (D9)       |
+| `docs/aws-learning-with-floci.md`                   | Progressive AWS learning levels 1–5 (sibling `ci-preview-environments`) |
+| `docs/aws-dev-local-floci.md`                       | Local dev setup with Floci (sibling `ci-floci-migration`)               |
+| `openspec/changes/cd-aws-deploy-pipeline/tasks.md`  | Phase 2 tasks unlocked by milestones (5.x–9.x)                          |
+| `openspec/changes/cd-aws-deploy-pipeline/design.md` | Design decisions D1–D10                                                 |
+| `.github/workflows/deploy.yml`                      | Pipeline with gated jobs (Phase 1 scaffold + Phase 2 real)              |
 
 ---
 
-*Generated as part of OpenSpec change `cd-aws-deploy-pipeline` — tasks 3.3, 3.4.*
+_Generated as part of OpenSpec change `cd-aws-deploy-pipeline` — tasks 3.3, 3.4._

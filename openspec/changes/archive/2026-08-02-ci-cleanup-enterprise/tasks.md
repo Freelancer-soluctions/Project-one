@@ -20,15 +20,19 @@
 ## 1. Delete Zombie Workflows
 
 - [x] 1.1 Delete `.github/workflows/pr-validation.yml`:
+
   ```bash
   git rm .github/workflows/pr-validation.yml
   ```
+
   Rationale: Marked deprecated since Feb 2026. Replaced by ci.yml.
 
 - [x] 1.2 Delete `.github/workflows/lint.yml`:
+
   ```bash
   git rm .github/workflows/lint.yml
   ```
+
   Rationale: Unused isolated workflow. Lint is covered by `quality.yml`.
 
 - [x] 1.3 Delete `.github/workflows/formatter.yml`:
@@ -80,3 +84,4 @@
 - **Node 20 → 22**: The change from `node-version: 20` to `.nvmrc` (22.22.0) bumps Node version. Verify compatibility before merging.
 - `ci-enterprise.yml` preserved as-is per team decision (not active, but kept for reference).
 - After merge, monitor first workflow run to confirm no breakage.
+- **Post-archive remediation note (2026-08-08)**: zombie workflows (`pr-validation.yml`, `lint.yml`, `formatter.yml`) were re-introduced by merge `f046991` (Feature/ai setup #77) and re-deleted during the post-archive audit. Spec `ci-clean-manifest` is now SATISFIED again. A regression guard job (`zombie-workflow-guard`) was added to `ci.yml` to fail CI if any zombie workflow file reappears.

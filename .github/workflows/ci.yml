@@ -246,3 +246,24 @@ jobs:
           name: E2E Tests
           path: e2e/reports/junit-e2e.xml
           reporter: java-junit
+
+  zombie-workflow-guard:
+    name: Zombie Workflow Guard
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: Assert deleted workflows are absent
+        run: |
+          if test -f .github/workflows/pr-validation.yml; then
+            echo "❌ Zombie workflow pr-validation.yml found - should have been deleted"
+            exit 1
+          fi
+          if test -f .github/workflows/lint.yml; then
+            echo "❌ Zombie workflow lint.yml found - should have been deleted"
+            exit 1
+          fi
+          if test -f .github/workflows/formatter.yml; then
+            echo "❌ Zombie workflow formatter.yml found - should have been deleted"
+            exit 1
+          fi
+          echo "✅ All zombie workflows confirmed absent"
