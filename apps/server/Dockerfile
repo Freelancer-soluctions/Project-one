@@ -18,7 +18,8 @@ COPY apps/server/prisma ./apps/server/prisma/
 
 # Instalar dependencias del workspace (incluye devDeps para prisma CLI en postinstall)
 # El postinstall "prisma generate" se ejecuta aquí y encuentra el schema en apps/server/prisma/
-RUN npm ci --workspace=apps/server
+# --ignore-scripts evita el prepare script del root (husky) que no está disponible en el contenedor
+RUN npm ci --workspace=apps/server --ignore-scripts
 
 # Eliminar devDependencies del workspace para imagen de producción más pequeña
 RUN npm prune --workspace=apps/server --omit=dev
