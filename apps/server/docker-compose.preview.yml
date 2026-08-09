@@ -8,9 +8,9 @@
 
 services:
   # Floci - Emulador AWS (MIT, puerto 4566, 68 servicios, storage en memoria)
-  # Pin concreto v1.5.11 para reproducibilidad (política de pinning del repo)
+  # Pin concreto 1.5.31 para reproducibilidad (política de pinning del repo)
   floci:
-    image: floci/floci:v1.5.11
+    image: floci/floci:1.5.31
     container_name: preview-floci
     ports:
       - "4566:4566"
@@ -18,7 +18,7 @@ services:
       - FLOCI_STORAGE_MODE=memory
       - FLOCI_HOSTNAME=floci
     healthcheck:
-      test: ["CMD", "floci", "health"]
+      test: ["CMD-SHELL", "curl -f http://localhost:4566/_localstack/health >/dev/null 2>&1 || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 5
