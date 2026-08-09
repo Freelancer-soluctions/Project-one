@@ -15,7 +15,7 @@
 
 - [x] 1.1 Crear `.github/workflows/deploy.yml` (NUEVO): trigger `push: branches: [main]` + `workflow_dispatch` (para verificación manual sin merge — task 4.2); **concurrencia dividida por entorno** (D10): `group: deploy-staging, cancel-in-progress: false` para docker-build/ecr-push/deploy-staging y `group: deploy-production, cancel-in-progress: false` para deploy-production (un solo grupo bloquearía deploys de staging detrás de un approval de producción pendiente)
 - [x] 1.2 Job `docker-build` (ubuntu-latest, `permissions: contents: read`): checkout@v5 + `docker build apps/server` etiquetando `project-one-server:${GITHUB_SHA}` y `project-one-server:latest` (D7 — tag inmutable por SHA)
-- [x] 1.3 Service containers del job: `floci` (`floci/floci:v1.5.11` pinneado, healthcheck `floci health`, puerto 4566, `FLOCI_HOSTNAME=floci`) + `db` (postgres:16-alpine, healthcheck `pg_isready`, credenciales `test`/`test`/`project_one_cd`) — patrón del workflow preview del sibling
+- [x] 1.3 Service containers del job: `floci` (`floci/floci:1.5.31` pinneado, healthcheck `["CMD-SHELL", "curl -f http://localhost:4566/_localstack/health"]`, puerto 4566, `FLOCI_HOSTNAME=floci`) + `db` (postgres:16-alpine, healthcheck `pg_isready`, credenciales `test`/`test`/`project_one_cd`) — patrón del workflow preview del sibling
 - [x] 1.4 Boot de la imagen contra el stack emulado: `prisma migrate deploy` (`DATABASE_URL=postgresql://test:test@localhost:5432/project_one_cd`), arrancar el contenedor con `AWS_ENDPOINT_URL=http://localhost:4566` + credenciales dummy + `AWS_REGION=us-east-1`, health check `/health` 200 con retries
 - [x] 1.5 Correr `npm run test:smoke` (working-directory: apps/server) contra el stack emulado; confirmar que ningún request sale a AWS real (todo vía `AWS_ENDPOINT_URL` — requisito de validación sin cuenta AWS)
 - [~] 1.6 Verificar que el job corre verde en un push a main de prueba sin credenciales AWS configuradas
@@ -27,7 +27,7 @@
 - [x] 2.3 Smoke post-deploy en staging: (a) curl con retries a `${{ secrets.STAGING_URL }}/health` esperando 200 (la URL se resuelve vía env secret, NO hardcoded) — gate de promoción a producción; (b) **AÑADIR modo remote smoke con `BASE_URL` parametrizado a la suite** (cambio de código en la suite de smoke: leer `BASE_URL` de env; si está seteada → HTTP real contra el servicio desplegado; si no → in-process) y ejecutarlo contra staging (spec `cd-staging-deploy` exige correr la suite smoke post-deploy). **NOTA**: `npm run test:smoke` sin `BASE_URL` es in-process (supertest + prisma local) y valida el runner, no el servicio desplegado — NO usar como smoke post-deploy
 - [x] 2.4 Job `deploy-production` (`needs: deploy-staging`, `environment: production`, approval manual vía protection rules) con el mismo gate (`vars.AWS_ROLE_ARN`) y `permissions: id-token: write, contents: read` (D4): (1) `register-task-definition` con imagen SHA, (2) update-service con `--deployment-configuration "deploymentCircuitBreaker={enable=true,rollback=true}"` (rollback automático — spec `cd-production-deploy`)
 - [x] 2.5 Health check post-deploy en producción: poll de `${{ secrets.PROD_URL }}/health` 200 durante ventana de observación (hasta 5 min); el job falla si no responde (spec `cd-production-deploy`)
-- [~] 2.6 Confirmar que los jobs cloud reportan *skipped* con razón visible cuando falta infra (`AWS_ROLE_ARN` variable no configurada) — la fase 1 corre siempre verde (spec `cd-aws-learning-path`)
+- [~] 2.6 Confirmar que los jobs cloud reportan _skipped_ con razón visible cuando falta infra (`AWS_ROLE_ARN` variable no configurada) — la fase 1 corre siempre verde (spec `cd-aws-learning-path`)
 
 ## 3. Fase 1 — Docs AWS (arquitectura + learning path)
 
@@ -39,7 +39,7 @@
 ## 4. Fase 1 — Validación
 
 - [x] 4.1 Validar el YAML con actionlint (o `npx actionlint`) en `.github/workflows/deploy.yml`
-- [~] 4.2 Verificar el flujo fase 1 (workflow_dispatch o push de prueba a main): `docker-build` verde y jobs cloud *skipped* con razón visible
+- [~] 4.2 Verificar el flujo fase 1 (workflow_dispatch o push de prueba a main): `docker-build` verde y jobs cloud _skipped_ con razón visible
 - [x] 4.3 Revisión de seguridad: ningún access key de larga vida en secrets; `AWS_ROLE_ARN` se guarda como **repository variable** (no secret — D6); `GITHUB_TOKEN` con permisos mínimos en los jobs
 - [ ] 4.4 Run `openspec validate "cd-aws-deploy-pipeline"` — todos los artifacts pasan
 
