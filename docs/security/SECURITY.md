@@ -611,6 +611,73 @@ When GitHub Secret Scanning detects a secret:
 
 ---
 
+# GitHub Secret Scanning
+
+## Overview
+
+This project uses a **two-layer secret detection strategy**:
+
+1. **GitHub Native Secret Scanning** (primary layer) — Runs automatically on every push to the repository. Free for public repositories; requires GitHub Advanced Security (GHAS) for private repositories. Provides real-time alerts in the Security tab and optional push protection.
+
+2. **Gitleaks Open Source in CI** (enforcement layer) — Runs on every pull request (diff-scoped scan) and weekly (full-history scan) via GitHub Actions. Uses the `zricethezav/gitleaks` Docker image (MIT licensed). No commercial license or secret required.
+
+### Layer 1: GitHub Native Secret Scanning
+
+#### Enabling Secret Scanning (Repository Admin)
+
+**Via UI (recommended):**
+
+1. Navigate to **Settings → Security → Secret scanning & push protection**
+2. Click **Enable** for "Secret scanning"
+3. Click **Enable** for "Push protection" to block pushes containing recognized secrets
+
+**Via API (one-liner, automatable):**
+
+```bash
+gh api -X PATCH repos/{owner}/{repo}/security-and-analysis \
+  -f secret_scanning.enabled=true \
+  -f secret_scanning_push_protection.enabled=true
+```
+
+> **Note for private repositories:** GitHub Secret Scanning and Push Protection require **GitHub Advanced Security (GHAS)**, which is a paid feature. If the repository is private and GHAS is not enabled, the native layer cannot be activated. In this case, the operational detection layer is **Gitleaks OSS only** — the CI workflows will still run and detect secrets via the open-source tool.
+
+#### Handling Alerts
+
+When GitHub Secret Scanning detects a secret:
+
+1. An **alert appears in the Security tab** with the secret type, file path, and commit
+2. **Review the alert** — confirm whether it is a true positive or false positive
+3. **If true positive:**
+   - **Rotate the secret immediately** (revoke and regenerate)
+   - **Remove the secret from history** if needed (e.g., `git filter-repo`, BFG Repo-Cleaner)
+   - Update the application configuration with the new secret
+4. **Dismiss the alert** with appropriate justification:
+   - "False positive" — not actually a secret
+   - "Won't fix" — secret is intentionally in the repo (e.g., test fixtures, documented examples)
+   - "Revoked" — secret has been rotated and is no longer valid
+
+### Layer 2: Gitleaks in CI
+
+#### PR-Time Gate (Pull Request Scan)
+
+- **Trigger:** Every PR targeting `main`
+- **Scope:** Diff-only scan (`base.sha..head.sha`) — only new/changed lines in the PR
+- **Behavior:** **Fail-closed** — if a secret is detected in the PR diff, the check fails and blocks merge
+- **Tool:** `docker://zricethezav/gitleaks:v8.22.1` with `git --log-opts="${{ github.event.pull_request.base.sha }}..${{ github.event.pull_request.head.sha }}" --redact --verbose`
+- **Graceful degradation:** If `GIT_LEAKS` secret is not configured, the job still runs using open-source Gitleaks and emits a warning (does not fail)
+
+#### Weekly Full-History Scan (Scheduled)
+
+- **Trigger:** Weekly cron (Monday 03:00 UTC) + manual `workflow_dispatch`
+- **Scope:** Full repository history (`--log-opts="--all"`) — all refs and commits
+- **Behavior:** **Audit mode** (`continue-on-error: true`) — findings are reported but do not fail the run
+- **Outputs:**
+  - JSON artifact (`gitleaks-report`) uploaded for 30 days (with `--redact` to avoid exposing secrets in the artifact)
+  - SARIF uploaded to **Security tab** for centralized visibility (requires `security-events: write` permission)
+- **Tool:** `docker://zricethezav/gitleaks:v8.22.1` with `git --log-opts="--all" --report-format=json --report-path=gitleaks-report.json --redact` (and a second invocation for SARIF)
+
+---
+
 # Security Enforcement
 
 Security checks are executed at multiple stages of the development lifecycle.
