@@ -34,23 +34,23 @@
 
 ## 1. Metadatos del Documento e Historial de Revisiones
 
-| Campo | Valor |
-| ---------------- | ------------------------------------------------ |
-| **Módulo** | `auth` |
-| **Estado** | Released / Implementado |
-| **Versión** | `1.0.0` |
-| **Owner** | Backend Guild — Express Track |
-| **Path Server** | `apps/server/src/modules/auth/` |
-| **Path Client** | `apps/client/src/modules/auth/` |
-| **Base URL API** | `/api/v1/auth` |
-| **Estándar** | arc42 + C4 (L1/L2) + IEEE 1016 |
-| **Audiencia** | Engineers, Architects, QA, Security Reviewers |
+| Campo            | Valor                                         |
+| ---------------- | --------------------------------------------- |
+| **Módulo**       | `auth`                                        |
+| **Estado**       | Released / Implementado                       |
+| **Versión**      | `1.0.0`                                       |
+| **Owner**        | Backend Guild — Express Track                 |
+| **Path Server**  | `apps/server/src/modules/auth/`               |
+| **Path Client**  | `apps/client/src/modules/auth/`               |
+| **Base URL API** | `/api/v1/auth`                                |
+| **Estándar**     | arc42 + C4 (L1/L2) + IEEE 1016                |
+| **Audiencia**    | Engineers, Architects, QA, Security Reviewers |
 
 ### Historial de Revisiones
 
-| Versión | Fecha | Autor | Cambios |
-| ------- | ----------- | ------------ | -------------------------------------------------------------------------------------------------- |
-| 1.0.0 | 2026-06-11 | Docs Bot | Creación inicial del documento integral (server + client) siguiendo arc42/C4/IEEE 1016. |
+| Versión | Fecha      | Autor    | Cambios                                                                                 |
+| ------- | ---------- | -------- | --------------------------------------------------------------------------------------- |
+| 1.0.0   | 2026-06-11 | Docs Bot | Creación inicial del documento integral (server + client) siguiendo arc42/C4/IEEE 1016. |
 
 ---
 
@@ -71,38 +71,38 @@ Funcionalidades principales:
 
 ### 2.2 Alcance Funcional
 
-| ID | Función | Actor | Cubre |
-| ------ | ---------------------------------------------------------------- | --------- | ----------------------------------------------------------------------------------------- |
-| F-001 | Registrar nuevo usuario | Público | POST `/api/v1/auth/signup` con validación Joi y fuerza de contraseña |
-| F-002 | Iniciar sesión | Público | POST `/api/v1/auth/signin` con rate limiting, emisión de access+refresh+CSRF tokens |
-| F-003 | Obtener sesión actual | Autenticado | GET `/api/v1/auth/session` con `verifyToken` |
-| F-004 | Renovar access token | Autenticado | POST `/api/v1/auth/refresh-token` con rotación de refresh token y CSRF verification |
-| F-005 | Cerrar sesión | Autenticado | Revocación de refresh token y limpieza de cookies |
-| F-006 | Cambiar contraseña | Autenticado | (Comentado) PATCH con rate limiting y validación |
-| F-007 | Recuperar contraseña | Público | (Comentado) POST con rate limiting |
+| ID    | Función                 | Actor       | Cubre                                                                               |
+| ----- | ----------------------- | ----------- | ----------------------------------------------------------------------------------- |
+| F-001 | Registrar nuevo usuario | Público     | POST `/api/v1/auth/signup` con validación Joi y fuerza de contraseña                |
+| F-002 | Iniciar sesión          | Público     | POST `/api/v1/auth/signin` con rate limiting, emisión de access+refresh+CSRF tokens |
+| F-003 | Obtener sesión actual   | Autenticado | GET `/api/v1/auth/session` con `verifyToken`                                        |
+| F-004 | Renovar access token    | Autenticado | POST `/api/v1/auth/refresh-token` con rotación de refresh token y CSRF verification |
+| F-005 | Cerrar sesión           | Autenticado | Revocación de refresh token y limpieza de cookies                                   |
+| F-006 | Cambiar contraseña      | Autenticado | (Comentado) PATCH con rate limiting y validación                                    |
+| F-007 | Recuperar contraseña    | Público     | (Comentado) POST con rate limiting                                                  |
 
 ### 2.3 Objetivos de Calidad
 
-| ID | Prioridad | Objetivo |
-| ----- | --------- | --------------------------------------------------------------------------------------- |
-| Q-001 | Alta | **Seguridad:** Rate limiting por IP en login (5/15min) y refresh (10/15min). CSRF protection en refresh. |
-| Q-002 | Alta | **Rotación de tokens:** Refresh token se rota en cada uso; detección de reuso revoca todos los tokens del usuario. |
-| Q-003 | Alta | **Cookies seguras:** Refresh token en HTTP-only, Secure, SameSite=None. CSRF token legible por JS para header. |
-| Q-004 | Alta | **Fuerza de contraseña:** Validación server-side con `validatePasswordStrength`. |
-| Q-005 | Media | **Trazabilidad:** Logging de login exitoso, intento de refresh sin token, y detección de reuso. |
-| Q-006 | Media | **UX reactiva:** Redux slice con `signInFetch` async thunk y auto-navegación post-login. |
-| Q-007 | Baja | **Internacionalización:** Textos UI por `react-i18next`; mensajes de validación por Zod i18n map. |
+| ID    | Prioridad | Objetivo                                                                                                           |
+| ----- | --------- | ------------------------------------------------------------------------------------------------------------------ |
+| Q-001 | Alta      | **Seguridad:** Rate limiting por IP en login (5/15min) y refresh (10/15min). CSRF protection en refresh.           |
+| Q-002 | Alta      | **Rotación de tokens:** Refresh token se rota en cada uso; detección de reuso revoca todos los tokens del usuario. |
+| Q-003 | Alta      | **Cookies seguras:** Refresh token en HTTP-only, Secure, SameSite=None. CSRF token legible por JS para header.     |
+| Q-004 | Alta      | **Fuerza de contraseña:** Validación server-side con `validatePasswordStrength`.                                   |
+| Q-005 | Media     | **Trazabilidad:** Logging de login exitoso, intento de refresh sin token, y detección de reuso.                    |
+| Q-006 | Media     | **UX reactiva:** Redux slice con `signInFetch` async thunk y auto-navegación post-login.                           |
+| Q-007 | Baja      | **Internacionalización:** Textos UI por `react-i18next`; mensajes de validación por Zod i18n map.                  |
 
 ### 2.4 Stakeholders
 
-| Rol | Interés |
-| ------------------ | -------------------------------------------------------------------------------- |
-| Product Owner | Flujo signup/signin/refresh funcional y seguro. |
-| Backend Engineer | Mantenimiento de routes/controller/service/DAO + JWT + rate limiters. |
-| Frontend Engineer | Mantenimiento de pages/components/slice/API. |
+| Rol               | Interés                                                                      |
+| ----------------- | ---------------------------------------------------------------------------- |
+| Product Owner     | Flujo signup/signin/refresh funcional y seguro.                              |
+| Backend Engineer  | Mantenimiento de routes/controller/service/DAO + JWT + rate limiters.        |
+| Frontend Engineer | Mantenimiento de pages/components/slice/API.                                 |
 | Security Reviewer | CSRF, rate limiting, rotación de tokens, cookie security, password strength. |
-| QA | Pruebas de integración, escenarios de error, brute force, token reuse. |
-| DevOps | Configuración de cookies (Secure flag por entorno), health-check. |
+| QA                | Pruebas de integración, escenarios de error, brute force, token reuse.       |
+| DevOps            | Configuración de cookies (Secure flag por entorno), health-check.            |
 
 ---
 
@@ -151,43 +151,43 @@ flowchart LR
 
 ## 4. Restricciones
 
-| ID | Tipo | Restricción |
-| ----- | ------------------- | ---------------------------------------------------------------------------------------------------------- |
-| C-001 | Tecnológica | Backend debe usar Express + Prisma + PostgreSQL (ver `apps/server/AGENTS.md`). |
-| C-002 | Tecnológica | Frontend debe usar React 18 + Vite + Redux Toolkit (ver `apps/client/AGENTS.md`). |
-| C-003 | Tecnológica | Todos los endpoints REST cuelgan del prefijo `/api/v1`. |
-| C-004 | Seguridad | Refresh token almacenado en cookie HTTP-only, Secure, SameSite=None. |
-| C-005 | Seguridad | CSRF token requerido en header `CSRF-Token` para refresh-token endpoint. |
-| C-006 | Seguridad | Rate limiting: login 5/15min, refresh 10/15min, change-password 3/1h, forgot-password 3/1h. |
-| C-007 | Validación | `email` formato válido; `password` min 6, max 16 chars; `firstName/lastName` min 4, max 50. |
-| C-008 | Seguridad | `verifyToken` NO se aplica globalmente en auth router (solo en `/session`). Signup y signin son públicos. |
-| C-009 | Convencional | Convención de commits: Conventional Commits (Husky). |
-| C-010 | Convencional | Path alias en cliente: `@/ → src/`. |
+| ID    | Tipo         | Restricción                                                                                               |
+| ----- | ------------ | --------------------------------------------------------------------------------------------------------- |
+| C-001 | Tecnológica  | Backend debe usar Express + Prisma + PostgreSQL (ver `apps/server/AGENTS.md`).                            |
+| C-002 | Tecnológica  | Frontend debe usar React 18 + Vite + Redux Toolkit (ver `apps/client/AGENTS.md`).                         |
+| C-003 | Tecnológica  | Todos los endpoints REST cuelgan del prefijo `/api/v1`.                                                   |
+| C-004 | Seguridad    | Refresh token almacenado en cookie HTTP-only, Secure, SameSite=None.                                      |
+| C-005 | Seguridad    | CSRF token requerido en header `CSRF-Token` para refresh-token endpoint.                                  |
+| C-006 | Seguridad    | Rate limiting: login 5/15min, refresh 10/15min, change-password 3/1h, forgot-password 3/1h.               |
+| C-007 | Validación   | `email` formato válido; `password` min 6, max 16 chars; `firstName/lastName` min 4, max 50.               |
+| C-008 | Seguridad    | `verifyToken` NO se aplica globalmente en auth router (solo en `/session`). Signup y signin son públicos. |
+| C-009 | Convencional | Convención de commits: Conventional Commits (Husky).                                                      |
+| C-010 | Convencional | Path alias en cliente: `@/ → src/`.                                                                       |
 
 ---
 
 ## 5. Stack Tecnológico
 
-| Capa | Tecnología | Versión / Notas | Justificación |
-| --------------------- | ------------------------------------- | ---------------------------------------- | ---------------------------------------------------------------------------- |
-| **Server runtime** | Node.js | LTS (>= 18) | Compatibilidad con Prisma y Express. |
-| **Server framework** | Express.js | 4.x / 5.x | Estándar de facto, simple, ecosistema maduro. |
-| **Server ORM** | Prisma | Cliente Prisma | Type-safety; acceso a `users`, `refreshToken`, `roles`. |
-| **Server DB** | PostgreSQL | Tipos `@db.VarChar(N)`, `@db.Timestamp(3)`, `@db.Integer` | Tipado estricto. |
-| **Server validación** | Joi | Esquemas en `auth.joi.js` | Validación declarativa del payload. |
-| **Server auth** | JWT + Refresh Token Opaco | `createToken` + `createRefreshTokenOpaque` | Access token stateless; refresh token opaco para revocación. |
-| **Server rate limit** | express-rate-limit | `loginLimiter`, `refreshTokenLimiter`, etc. | Protección contra brute force. |
-| **Server CSRF** | Custom middleware | `verifyCsrf` | Double-submit cookie pattern. |
-| **Server hashing** | bcrypt | `encryptPassword`, `comparePassword` | Hashing seguro de contraseñas. |
-| **Server logging** | Winston (logger) | `logger.info`, `logger.warn`, `logger.error` | Observabilidad de eventos de autenticación. |
-| **Client framework** | React | 18.x | Hooks, concurrent rendering. |
-| **Client bundler** | Vite | 5.x+ | HMR rápido, ESM nativo. |
-| **Client state** | Redux Toolkit | `createSlice` + `createAsyncThunk` | Estado global de auth, side effects. |
-| **Client HTTP** | Axios (public) | `axiosPublic` | Sin interceptor de refresh (evita loop). |
-| **Client forms** | react-hook-form + Zod | `@hookform/resolvers/zod` | Validación tipada. |
-| **Client UI** | shadcn/ui + Radix + Tailwind CSS | Form, Input, Button, Calendar, Popover | Componentes accesibles. |
-| **Client cookies** | js-cookie | `Cookies.get('csrfToken')` | Lectura del CSRF token para header. |
-| **Client i18n** | react-i18next | `useTranslation()` | Traducciones externas. |
+| Capa                  | Tecnología                       | Versión / Notas                                           | Justificación                                                |
+| --------------------- | -------------------------------- | --------------------------------------------------------- | ------------------------------------------------------------ |
+| **Server runtime**    | Node.js                          | LTS (>= 18)                                               | Compatibilidad con Prisma y Express.                         |
+| **Server framework**  | Express.js                       | 4.x / 5.x                                                 | Estándar de facto, simple, ecosistema maduro.                |
+| **Server ORM**        | Prisma                           | Cliente Prisma                                            | Type-safety; acceso a `users`, `refreshToken`, `roles`.      |
+| **Server DB**         | PostgreSQL                       | Tipos `@db.VarChar(N)`, `@db.Timestamp(3)`, `@db.Integer` | Tipado estricto.                                             |
+| **Server validación** | Joi                              | Esquemas en `auth.joi.js`                                 | Validación declarativa del payload.                          |
+| **Server auth**       | JWT + Refresh Token Opaco        | `createToken` + `createRefreshTokenOpaque`                | Access token stateless; refresh token opaco para revocación. |
+| **Server rate limit** | express-rate-limit               | `loginLimiter`, `refreshTokenLimiter`, etc.               | Protección contra brute force.                               |
+| **Server CSRF**       | Custom middleware                | `verifyCsrf`                                              | Double-submit cookie pattern.                                |
+| **Server hashing**    | bcrypt                           | `encryptPassword`, `comparePassword`                      | Hashing seguro de contraseñas.                               |
+| **Server logging**    | Winston (logger)                 | `logger.info`, `logger.warn`, `logger.error`              | Observabilidad de eventos de autenticación.                  |
+| **Client framework**  | React                            | 18.x                                                      | Hooks, concurrent rendering.                                 |
+| **Client bundler**    | Vite                             | 5.x+                                                      | HMR rápido, ESM nativo.                                      |
+| **Client state**      | Redux Toolkit                    | `createSlice` + `createAsyncThunk`                        | Estado global de auth, side effects.                         |
+| **Client HTTP**       | Axios (public)                   | `axiosPublic`                                             | Sin interceptor de refresh (evita loop).                     |
+| **Client forms**      | react-hook-form + Zod            | `@hookform/resolvers/zod`                                 | Validación tipada.                                           |
+| **Client UI**         | shadcn/ui + Radix + Tailwind CSS | Form, Input, Button, Calendar, Popover                    | Componentes accesibles.                                      |
+| **Client cookies**    | js-cookie                        | `Cookies.get('csrfToken')`                                | Lectura del CSRF token para header.                          |
+| **Client i18n**       | react-i18next                    | `useTranslation()`                                        | Traducciones externas.                                       |
 
 ---
 
@@ -291,88 +291,88 @@ flowchart TB
 
 ### 7.1 Responsabilidades por Capa
 
-| Capa | Archivo | Responsabilidad |
-| ------------- | ---------------------- | --------------------------------------------------------------------------------------------------- |
-| **Rutas** | `routes.js` | Definir endpoints, encadenar middleware (rate limiting + validación + CSRF). NO aplica `verifyToken` globalmente. |
-| **Controlador** | `controller.js` | Recibir request HTTP, extraer datos, delegar al servicio, gestionar cookies, formatear respuesta. |
-| **Servicio** | `service.js` | Reglas de negocio: fuerza de contraseña, verificación de email duplicado, emisión de tokens, rotación de refresh token, detección de reuso, logging de seguridad. |
-| **DAO** | `dao.js` | Persistencia: `createRow` para users, `prisma.refreshToken.create/findUnique/update/updateMany`. |
-| **Esquemas** | `schemas/auth.joi.js` | Validación declarativa del shape del payload. |
-| **Cross-module** | `users/dao.js` | `getUserRegisteredByEmail`, `getUserRoleByCode` — dependencia con módulo Users. |
+| Capa             | Archivo               | Responsabilidad                                                                                                                                                   |
+| ---------------- | --------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Rutas**        | `routes.js`           | Definir endpoints, encadenar middleware (rate limiting + validación + CSRF). NO aplica `verifyToken` globalmente.                                                 |
+| **Controlador**  | `controller.js`       | Recibir request HTTP, extraer datos, delegar al servicio, gestionar cookies, formatear respuesta.                                                                 |
+| **Servicio**     | `service.js`          | Reglas de negocio: fuerza de contraseña, verificación de email duplicado, emisión de tokens, rotación de refresh token, detección de reuso, logging de seguridad. |
+| **DAO**          | `dao.js`              | Persistencia: `createRow` para users, `prisma.refreshToken.create/findUnique/update/updateMany`.                                                                  |
+| **Esquemas**     | `schemas/auth.joi.js` | Validación declarativa del shape del payload.                                                                                                                     |
+| **Cross-module** | `users/dao.js`        | `getUserRegisteredByEmail`, `getUserRoleByCode` — dependencia con módulo Users.                                                                                   |
 
 ### 7.2 Rutas y Cadena de Middleware
 
-| Método | Path | Middleware Chain | Handler |
-| ------ | --------------------------------- | ------------------------------------------------------------------------------------------------------------- | ---------------------- |
-| POST | `/signup` | `validateSchema(SignUpSchema)` | `signUp` |
-| POST | `/signin` | `loginLimiter` → `validateSchema(SignInSchema)` | `signIn` |
-| GET | `/session` | `verifyToken` | `session` |
-| POST | `/refresh-token` | `refreshTokenLimiter` → `verifyCsrf` | `refreshToken` |
-| POST | `/change-password` | (Comentado) `verifyToken` → `changePasswordLimiter` → `validateSchema(ChangePasswordSchema)` | `changePassword` |
-| POST | `/forgot-password` | (Comentado) `forgotPasswordLimiter` → `validateSchema(ForgotPasswordSchema)` | `forgotPassword` |
+| Método | Path               | Middleware Chain                                                                             | Handler          |
+| ------ | ------------------ | -------------------------------------------------------------------------------------------- | ---------------- |
+| POST   | `/signup`          | `validateSchema(SignUpSchema)`                                                               | `signUp`         |
+| POST   | `/signin`          | `loginLimiter` → `validateSchema(SignInSchema)`                                              | `signIn`         |
+| GET    | `/session`         | `verifyToken`                                                                                | `session`        |
+| POST   | `/refresh-token`   | `refreshTokenLimiter` → `verifyCsrf`                                                         | `refreshToken`   |
+| POST   | `/change-password` | (Comentado) `verifyToken` → `changePasswordLimiter` → `validateSchema(ChangePasswordSchema)` | `changePassword` |
+| POST   | `/forgot-password` | (Comentado) `forgotPasswordLimiter` → `validateSchema(ForgotPasswordSchema)`                 | `forgotPassword` |
 
 > **Nota:** El router de auth NO aplica `verifyToken` globalmente — solo `/session` requiere autenticación. Signup y signin son endpoints públicos. Refresh-token usa `verifyCsrf` (no `verifyToken`).
 
 ### 7.3 Controladores (Funciones Exportadas)
 
-| Función | Firma | Comportamiento | Status Code |
-| -------------------- | ---------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- | ----------- |
-| `signUp` | `(req, res) → Promise<void>` <br/>Lee `req.body` | Llama a `authService.signUp(body)`, responde con `{ accessToken, user }`. | `201` |
-| `signIn` | `(req, res) → Promise<void>` <br/>Lee `req.body` | Llama a `authService.signIn(body, req)`, setea cookies `jwt` (HTTP-only) y `csrfToken`, elimina tokens del response body. | `200` |
-| `session` | `(req, res) → Promise<void>` <br/>Lee `req.userId` | Llama a `authService.session(userId)`, responde con datos del usuario. | `200` |
-| `refreshToken` | `(req, res) → Promise<void>` <br/>Lee `req.cookies` | Llama a `authService.refreshToken(cookies, req)`, setea nuevas cookies `jwt` y `csrfToken`, responde con `{ accessToken }`. | `200` |
-| `logOut` | `(req, res) → Promise<void>` <br/>Lee `req.cookies` | Llama a `authService.logout(cookies)`, limpia cookie `jwt`, responde con mensaje. | `200` |
-| `changePassword` | `(req, res) → Promise<void>` | Stub vacío — no implementado. | n/a |
+| Función          | Firma                                               | Comportamiento                                                                                                              | Status Code |
+| ---------------- | --------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- | ----------- |
+| `signUp`         | `(req, res) → Promise<void>` <br/>Lee `req.body`    | Llama a `authService.signUp(body)`, responde con `{ accessToken, user }`.                                                   | `201`       |
+| `signIn`         | `(req, res) → Promise<void>` <br/>Lee `req.body`    | Llama a `authService.signIn(body, req)`, setea cookies `jwt` (HTTP-only) y `csrfToken`, elimina tokens del response body.   | `200`       |
+| `session`        | `(req, res) → Promise<void>` <br/>Lee `req.userId`  | Llama a `authService.session(userId)`, responde con datos del usuario.                                                      | `200`       |
+| `refreshToken`   | `(req, res) → Promise<void>` <br/>Lee `req.cookies` | Llama a `authService.refreshToken(cookies, req)`, setea nuevas cookies `jwt` y `csrfToken`, responde con `{ accessToken }`. | `200`       |
+| `logOut`         | `(req, res) → Promise<void>` <br/>Lee `req.cookies` | Llama a `authService.logout(cookies)`, limpia cookie `jwt`, responde con mensaje.                                           | `200`       |
+| `changePassword` | `(req, res) → Promise<void>`                        | Stub vacío — no implementado.                                                                                               | n/a         |
 
 > **Patrón:** Todas las funciones usan `handleCatchErrorAsync` (decorador que captura errores y los delega a la capa central de errores) y `globalResponse` (formateador estándar de respuesta JSON). El controlador gestiona las cookies de seguridad.
 
 ### 7.4 Servicios (Lógica de Negocio)
 
-| Función | Firma | Reglas Aplicadas |
-| ------------------- | -------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `signUp` | `(user) → Promise<{accessToken, user}>` | 1) Obtiene rol `USER` vía `getUserRoleByCode`. 2) Valida fuerza de contraseña (`validatePasswordStrength`). 3) Encripta password (`encryptPassword`). 4) Verifica email no registrado (`getUserRegisteredByEmail`). 5) Crea usuario vía DAO. 6) Genera access token JWT. |
-| `signIn` | `(user, req) → Promise<{accessToken, refreshToken, csrfToken, user}>` | 1) Busca usuario por email con `roles` incluido. 2) Compara password con bcrypt. 3) Genera access token JWT. 4) Genera refresh token opaco. 5) Almacena refresh token en DB. 6) Genera CSRF token. 7) Log de login exitoso (IP + user-agent). |
-| `session` | `(id) → Promise<{user}>` | Busca usuario por ID con `roles` incluido. Si no existe, lanza `ClientError(400)`. |
-| `refreshToken` | `(cookies, req) → Promise<{accessToken, csrfToken, refreshToken}>` | 1) Verifica cookie `jwt` presente. 2) Busca token en DB. 3) Si no existe o está revocado → **detección de reuso**: revoca TODOS los tokens del usuario y lanza 403. 4) Si válido: revoca token actual (rotación), genera nuevo refresh token, genera nuevo access token, genera nuevo CSRF token. 5) Log de seguridad. |
-| `logout` | `(cookies) → Promise<boolean>` | Busca refresh token en cookie, lo revoca en DB si existe y no está revocado. |
+| Función        | Firma                                                                 | Reglas Aplicadas                                                                                                                                                                                                                                                                                                       |
+| -------------- | --------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `signUp`       | `(user) → Promise<{accessToken, user}>`                               | 1) Obtiene rol `USER` vía `getUserRoleByCode`. 2) Valida fuerza de contraseña (`validatePasswordStrength`). 3) Encripta password (`encryptPassword`). 4) Verifica email no registrado (`getUserRegisteredByEmail`). 5) Crea usuario vía DAO. 6) Genera access token JWT.                                               |
+| `signIn`       | `(user, req) → Promise<{accessToken, refreshToken, csrfToken, user}>` | 1) Busca usuario por email con `roles` incluido. 2) Compara password con bcrypt. 3) Genera access token JWT. 4) Genera refresh token opaco. 5) Almacena refresh token en DB. 6) Genera CSRF token. 7) Log de login exitoso (IP + user-agent).                                                                          |
+| `session`      | `(id) → Promise<{user}>`                                              | Busca usuario por ID con `roles` incluido. Si no existe, lanza `ClientError(400)`.                                                                                                                                                                                                                                     |
+| `refreshToken` | `(cookies, req) → Promise<{accessToken, csrfToken, refreshToken}>`    | 1) Verifica cookie `jwt` presente. 2) Busca token en DB. 3) Si no existe o está revocado → **detección de reuso**: revoca TODOS los tokens del usuario y lanza 403. 4) Si válido: revoca token actual (rotación), genera nuevo refresh token, genera nuevo access token, genera nuevo CSRF token. 5) Log de seguridad. |
+| `logout`       | `(cookies) → Promise<boolean>`                                        | Busca refresh token en cookie, lo revoca en DB si existe y no está revocado.                                                                                                                                                                                                                                           |
 
 ### 7.5 DAO (Acceso a Datos)
 
-| Función | Estrategia | Prisma API |
-| -------------------- | ------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `signUp` | Inserción de usuario. | `createRow('users', user)` (helper genérico) |
-| `signIn` | Búsqueda por email con roles. | `getOneRow({ tableName: 'users', where: { email }, include: { roles: true } })` |
-| `session` | Búsqueda por ID con roles. | `getOneRow({ tableName: 'users', where: { id }, include: { roles: true } })` |
-| `getUserById` | Búsqueda por ID con roles. | `getOneRow({ tableName: 'users', where: { id }, include: { roles: true } })` |
-| `saveRefreshToken` | Actualización (legacy, ya no usada). | `updateRow('users', { refreshToken }, { id })` |
-| `storeRefreshToken` | Inserción de refresh token en tabla dedicada. | `prisma.refreshToken.create({ data: { token, userId, issuedAt } })` |
-| `findByToken` | Búsqueda de refresh token por valor. | `prisma.refreshToken.findUnique({ where: { token } })` |
-| `revokeRefreshToken` | Marca un token como revocado. | `prisma.refreshToken.update({ where: { id }, data: { revoked: true, revokedAt: new Date() } })` |
+| Función                       | Estrategia                                                  | Prisma API                                                                                              |
+| ----------------------------- | ----------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| `signUp`                      | Inserción de usuario.                                       | `createRow('users', user)` (helper genérico)                                                            |
+| `signIn`                      | Búsqueda por email con roles.                               | `getOneRow({ tableName: 'users', where: { email }, include: { roles: true } })`                         |
+| `session`                     | Búsqueda por ID con roles.                                  | `getOneRow({ tableName: 'users', where: { id }, include: { roles: true } })`                            |
+| `getUserById`                 | Búsqueda por ID con roles.                                  | `getOneRow({ tableName: 'users', where: { id }, include: { roles: true } })`                            |
+| `saveRefreshToken`            | Actualización (legacy, ya no usada).                        | `updateRow('users', { refreshToken }, { id })`                                                          |
+| `storeRefreshToken`           | Inserción de refresh token en tabla dedicada.               | `prisma.refreshToken.create({ data: { token, userId, issuedAt } })`                                     |
+| `findByToken`                 | Búsqueda de refresh token por valor.                        | `prisma.refreshToken.findUnique({ where: { token } })`                                                  |
+| `revokeRefreshToken`          | Marca un token como revocado.                               | `prisma.refreshToken.update({ where: { id }, data: { revoked: true, revokedAt: new Date() } })`         |
 | `revokeAllRefreshTojeForUser` | Revoca todos los tokens de un usuario (detección de reuso). | `prisma.refreshToken.updateMany({ where: { userId }, data: { revoked: true, revokedAt: new Date() } })` |
 
 > **Nota:** `revokeAllRefreshTojeForUser` tiene un typo en el nombre ("Toje" en lugar de "Token") — ver §18 R-001.
 
 ### 7.6 Utilidades Compartidas (Server)
 
-| Utilidad | Ubicación | Uso en este módulo |
-| ------------------------------------- | ---------------------------------------- | ------------------------------------------------------------------- |
-| `globalResponse(res, status, data)` | `utils/responses&Errors/globalResponse.js` | Estandariza la respuesta JSON. |
-| `handleCatchErrorAsync(fn)` | `utils/responses&Errors/handleCatchErrorAsync.js` | Decorador async que captura y propaga errores. |
-| `createToken(payload)` | `utils/jwt/createToken.js` | Genera access token JWT. |
-| `createRefreshTokenOpaque()` | `utils/jwt/createToken.js` | Genera refresh token opaco (no JWT). |
-| `createCsrfToken()` | `utils/csrftoken/csrfToken.js` | Genera CSRF token. |
-| `encryptPassword(pwd)` | `utils/bcrypt/encrypt.js` | Hashing bcrypt. |
-| `comparePassword(pwd, hash)` | `utils/bcrypt/encrypt.js` | Comparación bcrypt. |
-| `validatePasswordStrength(pwd)` | `utils/bcrypt/encrypt.js` | Validación de fuerza de contraseña. |
-| `loginLimiter` | `middleware/rateLimit.js` | 5 intentos fallidos / 15 min por IP. |
-| `refreshTokenLimiter` | `middleware/rateLimit.js` | 10 intentos / 15 min por IP+token hash. |
-| `changePasswordLimiter` | `middleware/rateLimit.js` | 3 intentos / 1h por IP. |
-| `forgotPasswordLimiter` | `middleware/rateLimit.js` | 3 intentos / 1h por IP. |
-| `verifyCsrf` | `middleware/verifyCsrf.js` | Double-submit cookie pattern para CSRF. |
-| `ROLESCODES.USER` | `utils/constants/enums.js` | Constante para rol por defecto. |
-| `logger` | `logger/index.js` | Winston logger para eventos de seguridad. |
-| `getUserRegisteredByEmail` | `modules/users/dao.js` | Cross-module: verificar email duplicado. |
-| `getUserRoleByCode` | `modules/users/dao.js` | Cross-module: obtener ID de rol por código. |
+| Utilidad                            | Ubicación                                         | Uso en este módulo                             |
+| ----------------------------------- | ------------------------------------------------- | ---------------------------------------------- |
+| `globalResponse(res, status, data)` | `utils/responses&Errors/globalResponse.js`        | Estandariza la respuesta JSON.                 |
+| `handleCatchErrorAsync(fn)`         | `utils/responses&Errors/handleCatchErrorAsync.js` | Decorador async que captura y propaga errores. |
+| `createToken(payload)`              | `utils/jwt/createToken.js`                        | Genera access token JWT.                       |
+| `createRefreshTokenOpaque()`        | `utils/jwt/createToken.js`                        | Genera refresh token opaco (no JWT).           |
+| `createCsrfToken()`                 | `utils/csrftoken/csrfToken.js`                    | Genera CSRF token.                             |
+| `encryptPassword(pwd)`              | `utils/bcrypt/encrypt.js`                         | Hashing bcrypt.                                |
+| `comparePassword(pwd, hash)`        | `utils/bcrypt/encrypt.js`                         | Comparación bcrypt.                            |
+| `validatePasswordStrength(pwd)`     | `utils/bcrypt/encrypt.js`                         | Validación de fuerza de contraseña.            |
+| `loginLimiter`                      | `middleware/rateLimit.js`                         | 5 intentos fallidos / 15 min por IP.           |
+| `refreshTokenLimiter`               | `middleware/rateLimit.js`                         | 10 intentos / 15 min por IP+token hash.        |
+| `changePasswordLimiter`             | `middleware/rateLimit.js`                         | 3 intentos / 1h por IP.                        |
+| `forgotPasswordLimiter`             | `middleware/rateLimit.js`                         | 3 intentos / 1h por IP.                        |
+| `verifyCsrf`                        | `middleware/verifyCsrf.js`                        | Double-submit cookie pattern para CSRF.        |
+| `ROLESCODES.USER`                   | `utils/constants/enums.js`                        | Constante para rol por defecto.                |
+| `logger`                            | `logger/index.js`                                 | Winston logger para eventos de seguridad.      |
+| `getUserRegisteredByEmail`          | `modules/users/dao.js`                            | Cross-module: verificar email duplicado.       |
+| `getUserRoleByCode`                 | `modules/users/dao.js`                            | Cross-module: obtener ID de rol por código.    |
 
 ---
 
@@ -380,9 +380,9 @@ flowchart TB
 
 ### 8.1 Páginas — `SignIn.jsx` / `SignUp.jsx`
 
-| Página | Componentes | Comportamiento |
-| --------------------- | ------------------------------------------------------------------------------------------------ | -------------------------------------------------------- |
-| `SignIn.jsx` | `AuthWelcomeMessage`, `SignInForm`, `AuthFooter` | Página de login. Footer con link a signUp. |
+| Página       | Componentes                                      | Comportamiento                                |
+| ------------ | ------------------------------------------------ | --------------------------------------------- |
+| `SignIn.jsx` | `AuthWelcomeMessage`, `SignInForm`, `AuthFooter` | Página de login. Footer con link a signUp.    |
 | `SignUp.jsx` | `AuthWelcomeMessage`, `SignUpForm`, `AuthFooter` | Página de registro. Footer con link a signIn. |
 
 ### 8.2 Diagrama del Árbol de Componentes (Client)
@@ -413,38 +413,38 @@ flowchart TB
 
 #### `SignInForm.jsx`
 
-| Aspecto | Detalle |
-| --------------------- | ------------------------------------------------------------------------------------------------ |
-| **Hooks** | `useForm({ resolver: zodResolver(signInSchema) })`, `useDispatch`, `useSelector`, `useNavigate`, `useTranslation`, `useRef` |
-| **State** | Lee `{ user, isError, isLoading }` de `state.auth` |
-| **On Submit** | `dispatch(signInFetch({ email, password }))` |
+| Aspecto        | Detalle                                                                                                                       |
+| -------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| **Hooks**      | `useForm({ resolver: zodResolver(signInSchema) })`, `useDispatch`, `useSelector`, `useNavigate`, `useTranslation`, `useRef`   |
+| **State**      | Lee `{ user, isError, isLoading }` de `state.auth`                                                                            |
+| **On Submit**  | `dispatch(signInFetch({ email, password }))`                                                                                  |
 | **Navegación** | `useEffect` — si `user` existe y `!isError`, navega a `/home` con `replace: true`. Usa `useRef` para evitar doble navegación. |
-| **Campos** | `email` (Input type=email), `password` (Input type=password) |
-| **Extras** | Botón "Remind me", Link "Forgot password" (sin funcionalidad). Botón debug `checkState` (debe eliminarse). |
+| **Campos**     | `email` (Input type=email), `password` (Input type=password)                                                                  |
+| **Extras**     | Botón "Remind me", Link "Forgot password" (sin funcionalidad). Botón debug `checkState` (debe eliminarse).                    |
 
 #### `SignUpForm.jsx`
 
-| Aspecto | Detalle |
-| --------------------- | ------------------------------------------------------------------------------------------------ |
-| **Hooks** | `useForm({ resolver: zodResolver(signUpSchema) })`, `useTranslation` |
-| **On Submit** | `console.log(data)` — **NO conectado a API** (WIP). |
-| **Campos** | `fname` (firstName), `lname` (lastName), `email`, `password`, `rpassword` (confirmación), `dob` (Calendar popover) |
-| **Estado** | Sin dispatch, sin navegación. |
+| Aspecto       | Detalle                                                                                                            |
+| ------------- | ------------------------------------------------------------------------------------------------------------------ |
+| **Hooks**     | `useForm({ resolver: zodResolver(signUpSchema) })`, `useTranslation`                                               |
+| **On Submit** | `console.log(data)` — **NO conectado a API** (WIP).                                                                |
+| **Campos**    | `fname` (firstName), `lname` (lastName), `email`, `password`, `rpassword` (confirmación), `dob` (Calendar popover) |
+| **Estado**    | Sin dispatch, sin navegación.                                                                                      |
 
 > **Gap:** SignUpForm no está conectado al flujo de registro real — solo hace `console.log`. Ver §18 R-002.
 
 #### `AuthFooter.jsx`
 
-| Prop | Tipo | Descripción |
-| --------- | --------------------- | -------------------------------------------------------------------- |
-| `link` | `string` (required) | Ruta de navegación (`/signUp` o `/signIn`). |
-| `linkMessage` | `string` (required) | Clave i18n del texto del link. |
-| `authMessage` | `string` (required) | Clave i18n del mensaje contextual. |
+| Prop          | Tipo                | Descripción                                 |
+| ------------- | ------------------- | ------------------------------------------- |
+| `link`        | `string` (required) | Ruta de navegación (`/signUp` o `/signIn`). |
+| `linkMessage` | `string` (required) | Clave i18n del texto del link.              |
+| `authMessage` | `string` (required) | Clave i18n del mensaje contextual.          |
 
 #### `AuthWelcomeMessage.jsx`
 
-| Prop | Tipo | Descripción |
-| --------- | --------------------- | -------------------------------------------------------------------- |
+| Prop                 | Tipo                | Descripción                           |
+| -------------------- | ------------------- | ------------------------------------- |
 | `field_sign_message` | `string` (required) | Clave i18n del mensaje de bienvenida. |
 
 ### 8.4 API Client — `authAPI.js`
@@ -455,43 +455,43 @@ import { axiosPublic } from '@/config/axios';
 import Cookies from 'js-cookie';
 ```
 
-| Función | Verbo | Path | Notas |
-| --------------------------------- | ----- | --------------------------------- | ------------------------------------------------ |
-| `SignInApi(body)` | POST | `/auth/signin` | Body: `{ email, password }` |
-| `SignUpApi(body)` | POST | `/auth/signup` | Body: `{ firstName, lastName, birthday, email, password }` |
-| `RefreshTokenApi()` | POST | `/auth/refresh-token` | Lee `csrfToken` de cookie, envía en header `CSRF-Token`. Body vacío, `withCredentials: true`. |
+| Función             | Verbo | Path                  | Notas                                                                                         |
+| ------------------- | ----- | --------------------- | --------------------------------------------------------------------------------------------- |
+| `SignInApi(body)`   | POST  | `/auth/signin`        | Body: `{ email, password }`                                                                   |
+| `SignUpApi(body)`   | POST  | `/auth/signup`        | Body: `{ firstName, lastName, birthday, email, password }`                                    |
+| `RefreshTokenApi()` | POST  | `/auth/refresh-token` | Lee `csrfToken` de cookie, envía en header `CSRF-Token`. Body vacío, `withCredentials: true`. |
 
 > **Estrategia:** Auth API usa `axiosPublic` (sin auth interceptor) para evitar loops infinitos. El refresh token se envía automáticamente como cookie por `withCredentials`.
 
 ### 8.5 Redux Slice — `authSlice.js`
 
-| Aspecto | Detalle |
-| --------------------- | ------------------------------------------------------------------------------------------------ |
-| **Name** | `auth` |
+| Aspecto           | Detalle                                                                             |
+| ----------------- | ----------------------------------------------------------------------------------- |
+| **Name**          | `auth`                                                                              |
 | **Initial State** | `{ isLoading: false, user: null, isError: false, isAuth: false, errorMessage: '' }` |
 
 **Async Thunks:**
 
-| Thunk | Action Type | Comportamiento |
-| ----- | ----------- | -------------- |
-| `signInFetch` | `auth/signIn` | Dispatch `SignInApi(args)`, on fulfilled → `isAuth: true`, `user: payload`, guarda `accessToken` en `sessionStorage`. |
+| Thunk               | Action Type          | Comportamiento                                                                                                          |
+| ------------------- | -------------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| `signInFetch`       | `auth/signIn`        | Dispatch `SignInApi(args)`, on fulfilled → `isAuth: true`, `user: payload`, guarda `accessToken` en `sessionStorage`.   |
 | `refreshTokenFecth` | `auth/refresh-token` | Dispatch `RefreshTokenApi()`, on fulfilled → actualiza `user.data.accessToken`, guarda nuevo token en `sessionStorage`. |
 
 > **Typo:** `refreshTokenFecth` → debería ser `refreshTokenFetch`. Ver §18 R-003.
 
 **Reducers:**
 
-| Action | Comportamiento |
-| ------ | -------------- |
-| `updateAuthData` | Actualiza `state.user` con payload. |
-| `logout` | Resetea todo el estado: `user: null`, `isAuth: false`, `isError: false`, `errorMessage: ''`. |
+| Action           | Comportamiento                                                                               |
+| ---------------- | -------------------------------------------------------------------------------------------- |
+| `updateAuthData` | Actualiza `state.user` con payload.                                                          |
+| `logout`         | Resetea todo el estado: `user: null`, `isAuth: false`, `isError: false`, `errorMessage: ''`. |
 
 ### 8.6 Utilidades del Cliente
 
-| Función / Constante | Archivo | Descripción |
-| ----------------------------------------- | -------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
-| `signInSchema` | `utils/schema.js` | Zod: `email` (string, email), `password` (string, min 6, max 16). Mensajes i18n. |
-| `signUpSchema` | `utils/schema.js` | Zod: `email` (string, email), `password` (string, min 6, max 16). **Incompleto**: falta `firstName`, `lastName`, `birthday` (ver §18 R-004). |
+| Función / Constante | Archivo           | Descripción                                                                                                                                  |
+| ------------------- | ----------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| `signInSchema`      | `utils/schema.js` | Zod: `email` (string, email), `password` (string, min 6, max 16). Mensajes i18n.                                                             |
+| `signUpSchema`      | `utils/schema.js` | Zod: `email` (string, email), `password` (string, min 6, max 16). **Incompleto**: falta `firstName`, `lastName`, `birthday` (ver §18 R-004). |
 
 ---
 
@@ -593,7 +593,7 @@ sequenceDiagram
     RL->>CSRF: verifyCsrf (double-submit cookie)
     CSRF->>S: refreshToken(cookies, req)
     S->>ADAO: findByToken(refreshCookie)
-    ADAO->>DB: SELECT "refreshToken" WHERE token=? 
+    ADAO->>DB: SELECT "refreshToken" WHERE token=?
     DB-->>ADAO: stored (not revoked)
     S->>ADAO: revokeRefreshToken(stored.id) [invalidar antiguo]
     ADAO->>DB: UPDATE "refreshToken" SET revoked=true
@@ -635,18 +635,18 @@ sequenceDiagram
 
 ### 9.5 Escenarios de Error (Tabla)
 
-| Escenario | Origen | Manejo Server | Manejo Client |
-| ---------------------------------------- | ----------------------------------------------------- | ------------------------------------------------------------------ | ---------------------------------------------------------- |
-| Email ya registrado | `service.signUp` | `ClientError('Este correo ya esta registrado.', 400)` | `signInFetch.rejected` → mensaje en state |
-| Contraseña demasiado débil | `service.signUp` | `ClientError('La contraseña es demasiado débil...', 400)` | `signInFetch.rejected` → mensaje en state |
-| Email no registrado | `service.signIn` | `ClientError('Este correo no esta registrado.', 400)` | `signInFetch.rejected` → `isError: true` |
-| Contraseña inválida | `service.signIn` | `ClientError('Contraseña invalida.', 400)` | `signInFetch.rejected` → `isError: true` |
-| Rate limit excedido (login) | `loginLimiter` | 429 Too Many Requests | `signInFetch.rejected` → error message |
-| Refresh token no encontrado | Cookie ausente | `ClientError('Refresh token no encontrado', 400)` | `refreshTokenFecth.rejected` → `isAuth: false` |
-| Refresh token reuso detectado | Token revocado en DB | `ClientError('Forbidden', 403)` + revocación masiva | `refreshTokenFecth.rejected` → logout |
-| CSRF token inválido | `verifyCsrf` middleware | 403 Forbidden | Error de red → logout |
-| Validación Joi fallida | `validateSchema` | 400 con detalle de campos | Error genérico del formulario |
-| Usuario no encontrado (session) | `service.session` | `ClientError('No se ha encontrado al usuario', 400)` | `unwrap()` rechaza |
+| Escenario                       | Origen                  | Manejo Server                                             | Manejo Client                                  |
+| ------------------------------- | ----------------------- | --------------------------------------------------------- | ---------------------------------------------- |
+| Email ya registrado             | `service.signUp`        | `ClientError('Este correo ya esta registrado.', 400)`     | `signInFetch.rejected` → mensaje en state      |
+| Contraseña demasiado débil      | `service.signUp`        | `ClientError('La contraseña es demasiado débil...', 400)` | `signInFetch.rejected` → mensaje en state      |
+| Email no registrado             | `service.signIn`        | `ClientError('Este correo no esta registrado.', 400)`     | `signInFetch.rejected` → `isError: true`       |
+| Contraseña inválida             | `service.signIn`        | `ClientError('Contraseña invalida.', 400)`                | `signInFetch.rejected` → `isError: true`       |
+| Rate limit excedido (login)     | `loginLimiter`          | 429 Too Many Requests                                     | `signInFetch.rejected` → error message         |
+| Refresh token no encontrado     | Cookie ausente          | `ClientError('Refresh token no encontrado', 400)`         | `refreshTokenFecth.rejected` → `isAuth: false` |
+| Refresh token reuso detectado   | Token revocado en DB    | `ClientError('Forbidden', 403)` + revocación masiva       | `refreshTokenFecth.rejected` → logout          |
+| CSRF token inválido             | `verifyCsrf` middleware | 403 Forbidden                                             | Error de red → logout                          |
+| Validación Joi fallida          | `validateSchema`        | 400 con detalle de campos                                 | Error genérico del formulario                  |
+| Usuario no encontrado (session) | `service.session`       | `ClientError('No se ha encontrado al usuario', 400)`      | `unwrap()` rechaza                             |
 
 ---
 
@@ -697,34 +697,34 @@ erDiagram
 
 ### 10.2 Tabla `users` (parcial — campos relevantes para Auth)
 
-| Columna | Tipo (Prisma) | Restricciones | Notas |
-| -------------- | --------------------- | ------------------------------------------ | -------------------------------------------------------------------------------------- |
-| `id` | `Int` | PK, autoincrement | |
-| `name` | `String` | `VarChar(100)` | No se usa directamente en Auth pero se retorna en session. |
-| `email` | `String` | `VarChar(254)`, UNIQUE | Verificado como duplicado en signUp. |
-| `password` | `String` | `VarChar(100)` | Bcrypt hash (60 chars). |
-| `birthday` | `DateTime` | `Timestamp(3)` | Requerido en Joi SignUp. |
-| `roleId` | `Int` | FK → `roles.id` | Asignado automáticamente como `USER` en signUp. |
-| `statusId` | `Int` | FK → `userStatus.id` | No gestionado por Auth directamente. |
+| Columna    | Tipo (Prisma) | Restricciones          | Notas                                                      |
+| ---------- | ------------- | ---------------------- | ---------------------------------------------------------- |
+| `id`       | `Int`         | PK, autoincrement      |                                                            |
+| `name`     | `String`      | `VarChar(100)`         | No se usa directamente en Auth pero se retorna en session. |
+| `email`    | `String`      | `VarChar(254)`, UNIQUE | Verificado como duplicado en signUp.                       |
+| `password` | `String`      | `VarChar(100)`         | Bcrypt hash (60 chars).                                    |
+| `birthday` | `DateTime`    | `Timestamp(3)`         | Requerido en Joi SignUp.                                   |
+| `roleId`   | `Int`         | FK → `roles.id`        | Asignado automáticamente como `USER` en signUp.            |
+| `statusId` | `Int`         | FK → `userStatus.id`   | No gestionado por Auth directamente.                       |
 
 ### 10.3 Tabla `refreshToken`
 
-| Columna | Tipo (Prisma) | Restricciones | Notas |
-| -------------- | --------------------- | ------------------------------------------ | -------------------------------------------------------------------------------------- |
-| `id` | `Int` | PK, autoincrement | |
-| `token` | `String` | UNIQUE | Token opaco generado por `createRefreshTokenOpaque()`. |
-| `userId` | `Int` | FK → `users.id` | |
-| `revoked` | `Boolean` | DEFAULT `false` | `true` cuando se rota o revoca. |
-| `issuedAt` | `DateTime` | DEFAULT `now()` | |
-| `revokedAt` | `DateTime?` | NULL | Timestamp de revocación. |
+| Columna     | Tipo (Prisma) | Restricciones     | Notas                                                  |
+| ----------- | ------------- | ----------------- | ------------------------------------------------------ |
+| `id`        | `Int`         | PK, autoincrement |                                                        |
+| `token`     | `String`      | UNIQUE            | Token opaco generado por `createRefreshTokenOpaque()`. |
+| `userId`    | `Int`         | FK → `users.id`   |                                                        |
+| `revoked`   | `Boolean`     | DEFAULT `false`   | `true` cuando se rota o revoca.                        |
+| `issuedAt`  | `DateTime`    | DEFAULT `now()`   |                                                        |
+| `revokedAt` | `DateTime?`   | NULL              | Timestamp de revocación.                               |
 
 ### 10.4 Tabla `roles` (catálogo)
 
-| Columna | Tipo (Prisma) | Restricciones | Notas |
-| ------------- | ------------- | -------------------------- | ------------------------------------------------------------ |
-| `id` | `Int` | PK, autoincrement | |
-| `code` | `String` | `VarChar(3)`, UNIQUE | Ej: `C02` (USER). |
-| `description` | `String` | `VarChar(50)`, UNIQUE | Ej: "USER", "ADMIN", "MANAGER". |
+| Columna       | Tipo (Prisma) | Restricciones         | Notas                           |
+| ------------- | ------------- | --------------------- | ------------------------------- |
+| `id`          | `Int`         | PK, autoincrement     |                                 |
+| `code`        | `String`      | `VarChar(3)`, UNIQUE  | Ej: `C02` (USER).               |
+| `description` | `String`      | `VarChar(50)`, UNIQUE | Ej: "USER", "ADMIN", "MANAGER". |
 
 ---
 
@@ -736,11 +736,11 @@ erDiagram
 
 ### 11.1 `POST /api/v1/auth/signup` — Registrar usuario
 
-| Aspecto | Detalle |
-| --------------- | --------------------------------------------------------------------------------------------- |
-| **Auth** | Ninguna (público) |
+| Aspecto        | Detalle                        |
+| -------------- | ------------------------------ |
+| **Auth**       | Ninguna (público)              |
 | **Validación** | `validateSchema(SignUpSchema)` |
-| **Body** | `application/json` |
+| **Body**       | `application/json`             |
 
 **Request Body:**
 
@@ -779,11 +779,11 @@ erDiagram
 
 ### 11.2 `POST /api/v1/auth/signin` — Iniciar sesión
 
-| Aspecto | Detalle |
-| --------------- | --------------------------------------------------------------------------------------------- |
-| **Auth** | Ninguna (público) |
-| **Rate Limit** | `loginLimiter` — 5 intentos fallidos / 15 min por IP |
-| **Validación** | `validateSchema(SignInSchema)` |
+| Aspecto         | Detalle                                                                                     |
+| --------------- | ------------------------------------------------------------------------------------------- |
+| **Auth**        | Ninguna (público)                                                                           |
+| **Rate Limit**  | `loginLimiter` — 5 intentos fallidos / 15 min por IP                                        |
+| **Validación**  | `validateSchema(SignInSchema)`                                                              |
 | **Cookies Set** | `jwt` (HTTP-only, Secure, SameSite=None, maxAge=24h), `csrfToken` (HTTP-only=false, Secure) |
 
 **Request Body:**
@@ -823,9 +823,9 @@ erDiagram
 
 ### 11.3 `GET /api/v1/auth/session` — Obtener sesión
 
-| Aspecto | Detalle |
-| --------------- | --------------------------------------------------------------------------------------------- |
-| **Auth** | `verifyToken` |
+| Aspecto     | Detalle                               |
+| ----------- | ------------------------------------- |
+| **Auth**    | `verifyToken`                         |
 | **Headers** | `Authorization: Bearer <accessToken>` |
 
 **Response 200:**
@@ -851,13 +851,13 @@ erDiagram
 
 ### 11.4 `POST /api/v1/auth/refresh-token` — Renovar access token
 
-| Aspecto | Detalle |
-| --------------- | --------------------------------------------------------------------------------------------- |
-| **Auth** | CSRF (no JWT) |
-| **Rate Limit** | `refreshTokenLimiter` — 10 intentos / 15 min por IP+tokenHash |
-| **CSRF** | `verifyCsrf` — header `CSRF-Token` debe coincidir con cookie `csrfToken` |
-| **Cookies** | `jwt` (HTTP-only refresh token), `csrfToken` |
-| **Cookies Set** | Nuevas cookies `jwt` y `csrfToken` (rotación) |
+| Aspecto         | Detalle                                                                  |
+| --------------- | ------------------------------------------------------------------------ |
+| **Auth**        | CSRF (no JWT)                                                            |
+| **Rate Limit**  | `refreshTokenLimiter` — 10 intentos / 15 min por IP+tokenHash            |
+| **CSRF**        | `verifyCsrf` — header `CSRF-Token` debe coincidir con cookie `csrfToken` |
+| **Cookies**     | `jwt` (HTTP-only refresh token), `csrfToken`                             |
+| **Cookies Set** | Nuevas cookies `jwt` y `csrfToken` (rotación)                            |
 
 **Request:** `POST /api/v1/auth/refresh-token` con cookies y header CSRF.
 
@@ -880,12 +880,12 @@ erDiagram
 
 ### 11.5 Tabla Resumen de Validación por Endpoint
 
-| Endpoint | Auth | Rate Limit | Validación de entrada |
-| ------------------------------------- | ------------------------------------- | --------------------- | ---------------------------------------- |
-| `POST /api/v1/auth/signup` | Ninguna | Ninguno | `SignUpSchema` (body) |
-| `POST /api/v1/auth/signin` | Ninguna | `loginLimiter` (5/15min) | `SignInSchema` (body) |
-| `GET /api/v1/auth/session` | `verifyToken` | Ninguno | (ninguna) |
-| `POST /api/v1/auth/refresh-token` | `verifyCsrf` | `refreshTokenLimiter` (10/15min) | Cookie `jwt` + header `CSRF-Token` |
+| Endpoint                          | Auth          | Rate Limit                       | Validación de entrada              |
+| --------------------------------- | ------------- | -------------------------------- | ---------------------------------- |
+| `POST /api/v1/auth/signup`        | Ninguna       | Ninguno                          | `SignUpSchema` (body)              |
+| `POST /api/v1/auth/signin`        | Ninguna       | `loginLimiter` (5/15min)         | `SignInSchema` (body)              |
+| `GET /api/v1/auth/session`        | `verifyToken` | Ninguno                          | (ninguna)                          |
+| `POST /api/v1/auth/refresh-token` | `verifyCsrf`  | `refreshTokenLimiter` (10/15min) | Cookie `jwt` + header `CSRF-Token` |
 
 ---
 
@@ -929,13 +929,13 @@ z.object({
 
 ### 12.3 Alineación de Boundaries Joi ⇄ Zod ⇄ DB
 
-| Campo | Joi (server) | Zod (client) | DB | Notas |
-| ------------- | --------- | --------- | ------------ | ----------------------------------------------------------------------- |
-| `email` | `email().required()` | `.email()` | `VarChar(254) UNIQUE` | ✅ Alineado. |
-| `password` | `min(6).max(16).required()` | `min(6).max(16)` | `VarChar(100)` | ✅ Alineado. DB tiene más espacio para el hash. |
-| `firstName` | `min(4).max(50).required()` | ❌ No en schema | `VarChar(100)` | **Inconsistencia** — Joi lo requiere, Zod no lo valida. |
-| `lastName` | `min(4).max(50).required()` | ❌ No en schema | (parte de `name`) | **Inconsistencia** — Joi lo requiere, Zod no lo valida. |
-| `birthday` | `date().required()` | ❌ No en schema | `Timestamp(3)` | **Inconsistencia** — Joi lo requiere, Zod no lo valida. |
+| Campo       | Joi (server)                | Zod (client)     | DB                    | Notas                                                   |
+| ----------- | --------------------------- | ---------------- | --------------------- | ------------------------------------------------------- |
+| `email`     | `email().required()`        | `.email()`       | `VarChar(254) UNIQUE` | ✅ Alineado.                                            |
+| `password`  | `min(6).max(16).required()` | `min(6).max(16)` | `VarChar(100)`        | ✅ Alineado. DB tiene más espacio para el hash.         |
+| `firstName` | `min(4).max(50).required()` | ❌ No en schema  | `VarChar(100)`        | **Inconsistencia** — Joi lo requiere, Zod no lo valida. |
+| `lastName`  | `min(4).max(50).required()` | ❌ No en schema  | (parte de `name`)     | **Inconsistencia** — Joi lo requiere, Zod no lo valida. |
+| `birthday`  | `date().required()`         | ❌ No en schema  | `Timestamp(3)`        | **Inconsistencia** — Joi lo requiere, Zod no lo valida. |
 
 > **Ver §18 R-004:** signUpSchema de Zod está incompleto.
 
@@ -946,8 +946,8 @@ z.object({
 ### 13.1 Autenticación
 
 - **Mecanismo:** Double-token pattern — JWT access token (stateless, short-lived) + opaque refresh token (stored en DB, rotativo).
-- **Access Token:** Generado por `createToken({ id, rol })`. Firmado con `JWT_SECRET`. Almacenado en `sessionStorage` del client.
-- **Refresh Token:** Generado por `createRefreshTokenOpaque()` (string aleatorio opaco). Almacenado en cookie HTTP-only y en tabla `refreshToken` de DB.
+- **Access Token:** Generado por `createToken({ id, rol })`. Firmado con `SECRETKEY` (env var leída en `src/utils/jwt/createToken.js:9,152` — **NO `JWT_SECRET`**, ese nombre no existe en el código). Almacenado en `sessionStorage` del client.
+- **Refresh Token:** Generado por `createRefreshTokenOpaque()` (string aleatorio opaco) y firmado/renovado con `REFRESHSECRETKEY` (`createToken.js:33,173`). Almacenado en cookie HTTP-only y en tabla `refreshToken` de DB.
 
 ### 13.2 CSRF Protection
 
@@ -958,19 +958,19 @@ z.object({
 
 ### 13.3 Rate Limiting
 
-| Endpoint | Limiter | Window | Max | Key | Count failed only? |
-| -------- | ------- | ------ | --- | ---- | ------------------- |
-| `/signin` | `loginLimiter` | 15 min | 5 | IP | ✅ Yes |
-| `/refresh-token` | `refreshTokenLimiter` | 15 min | 10 | IP + SHA256(token)[:16] | ❌ No |
-| `/change-password` | `changePasswordLimiter` | 1 hour | 3 | IP | ✅ Yes |
-| `/forgot-password` | `forgotPasswordLimiter` | 1 hour | 3 | IP | ❌ No |
+| Endpoint           | Limiter                 | Window | Max | Key                     | Count failed only? |
+| ------------------ | ----------------------- | ------ | --- | ----------------------- | ------------------ |
+| `/signin`          | `loginLimiter`          | 15 min | 5   | IP                      | ✅ Yes             |
+| `/refresh-token`   | `refreshTokenLimiter`   | 15 min | 10  | IP + SHA256(token)[:16] | ❌ No              |
+| `/change-password` | `changePasswordLimiter` | 1 hour | 3   | IP                      | ✅ Yes             |
+| `/forgot-password` | `forgotPasswordLimiter` | 1 hour | 3   | IP                      | ❌ No              |
 
 ### 13.4 Cookie Security
 
-| Cookie | `httpOnly` | `secure` | `sameSite` | `maxAge` | Propósito |
-| ------ | ---------- | -------- | ---------- | -------- | --------- |
-| `jwt` | ✅ `true` | `true` | `none` | 24h | Refresh token opaco. |
-| `csrfToken` | ❌ `false` | `true` | `none` | Session | CSRF token para header. |
+| Cookie      | `httpOnly` | `secure` | `sameSite` | `maxAge` | Propósito               |
+| ----------- | ---------- | -------- | ---------- | -------- | ----------------------- |
+| `jwt`       | ✅ `true`  | `true`   | `none`     | 24h      | Refresh token opaco.    |
+| `csrfToken` | ❌ `false` | `true`   | `none`     | Session  | CSRF token para header. |
 
 > **Nota:** `secure: true` siempre está activo, incluso en localhost. Esto impide el uso en desarrollo sin HTTPS. Ver §18 R-005.
 
@@ -982,18 +982,18 @@ z.object({
 
 ### 13.6 OWASP Top 10 — Checklist Rápido
 
-| Riesgo | Estado |
-| ------------------------------------- | --------------------------------------------------------------------------------------- |
-| A01 Broken Access Control | ✅ Rate limiting + CSRF + JWT verification. |
-| A02 Cryptographic Failures | ✅ Bcrypt para passwords. Cookie Secure. |
-| A03 Injection | ✅ Prisma parametriza queries. Joi/Zod validan input. |
-| A04 Insecure Design | ✅ Double-token pattern con rotación. |
-| A05 Security Misconfiguration | ⚠️ `secure: true` siempre activo (problema en dev). |
-| A06 Vulnerable Components | Pendiente `npm audit`. |
-| A07 Auth Failures | ✅ Rate limiting específico. Logging de eventos. |
-| A08 Software & Data Integrity | ✅ Refresh token rotation previene reuso. |
-| A09 Logging & Monitoring | ✅ Login exitoso, refresh sin token, reuso detectado — todos logueados. |
-| A10 SSRF | No aplica (no se hace fetch externo). |
+| Riesgo                        | Estado                                                                  |
+| ----------------------------- | ----------------------------------------------------------------------- |
+| A01 Broken Access Control     | ✅ Rate limiting + CSRF + JWT verification.                             |
+| A02 Cryptographic Failures    | ✅ Bcrypt para passwords. Cookie Secure.                                |
+| A03 Injection                 | ✅ Prisma parametriza queries. Joi/Zod validan input.                   |
+| A04 Insecure Design           | ✅ Double-token pattern con rotación.                                   |
+| A05 Security Misconfiguration | ⚠️ `secure: true` siempre activo (problema en dev).                     |
+| A06 Vulnerable Components     | Pendiente `npm audit`.                                                  |
+| A07 Auth Failures             | ✅ Rate limiting específico. Logging de eventos.                        |
+| A08 Software & Data Integrity | ✅ Refresh token rotation previene reuso.                               |
+| A09 Logging & Monitoring      | ✅ Login exitoso, refresh sin token, reuso detectado — todos logueados. |
+| A10 SSRF                      | No aplica (no se hace fetch externo).                                   |
 
 ---
 
@@ -1001,27 +1001,27 @@ z.object({
 
 ### 14.1 Server
 
-| Origen | Mecanismo | Respuesta al cliente |
-| ------------------------------- | ------------------------------------------- | ------------------------------------------------- |
-| Error async en handler | `handleCatchErrorAsync` → `next(err)` | Middleware central → JSON estándar |
-| Email ya registrado | `ClientError('Este correo ya esta registrado.', 400)` | `400` con mensaje |
-| Contraseña débil | `ClientError('La contraseña es demasiado débil...', 400)` | `400` con mensaje |
-| Email no registrado | `ClientError('Este correo no esta registrado.', 400)` | `400` con mensaje |
-| Contraseña inválida | `ClientError('Contraseña invalida.', 400)` | `400` con mensaje |
-| Refresh token ausente | `ClientError('Refresh token no encontrado', 400)` | `400` con mensaje |
-| Refresh token reuso | `ClientError('Forbidden', 403)` + revocación masiva | `403` |
-| Rate limit excedido | express-rate-limit | `429` con mensaje |
-| CSRF inválido | `verifyCsrf` | `403` |
-| Validación Joi | `validateSchema` | `400` con detalle de campos |
+| Origen                 | Mecanismo                                                 | Respuesta al cliente               |
+| ---------------------- | --------------------------------------------------------- | ---------------------------------- |
+| Error async en handler | `handleCatchErrorAsync` → `next(err)`                     | Middleware central → JSON estándar |
+| Email ya registrado    | `ClientError('Este correo ya esta registrado.', 400)`     | `400` con mensaje                  |
+| Contraseña débil       | `ClientError('La contraseña es demasiado débil...', 400)` | `400` con mensaje                  |
+| Email no registrado    | `ClientError('Este correo no esta registrado.', 400)`     | `400` con mensaje                  |
+| Contraseña inválida    | `ClientError('Contraseña invalida.', 400)`                | `400` con mensaje                  |
+| Refresh token ausente  | `ClientError('Refresh token no encontrado', 400)`         | `400` con mensaje                  |
+| Refresh token reuso    | `ClientError('Forbidden', 403)` + revocación masiva       | `403`                              |
+| Rate limit excedido    | express-rate-limit                                        | `429` con mensaje                  |
+| CSRF inválido          | `verifyCsrf`                                              | `403`                              |
+| Validación Joi         | `validateSchema`                                          | `400` con detalle de campos        |
 
 ### 14.2 Client
 
-| Origen | Mecanismo | UX |
-| ------------------------------ | ---------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
-| Error en signIn | `signInFetch.rejected` | `isError: true`, `errorMessage` en state. No se muestra explícitamente en UI. |
-| Error en refresh | `refreshTokenFecth.rejected` | `isAuth: false`, `isLoading: false`. La app redirige a login. |
-| Validación Zod (form) | `zodResolver` → `formState.errors` | `FormMessage` por campo |
-| 429 desde server | `signInFetch.rejected` | Mismo flujo que error genérico — no hay UX específica para rate limit. |
+| Origen                | Mecanismo                          | UX                                                                            |
+| --------------------- | ---------------------------------- | ----------------------------------------------------------------------------- |
+| Error en signIn       | `signInFetch.rejected`             | `isError: true`, `errorMessage` en state. No se muestra explícitamente en UI. |
+| Error en refresh      | `refreshTokenFecth.rejected`       | `isAuth: false`, `isLoading: false`. La app redirige a login.                 |
+| Validación Zod (form) | `zodResolver` → `formState.errors` | `FormMessage` por campo                                                       |
+| 429 desde server      | `signInFetch.rejected`             | Mismo flujo que error genérico — no hay UX específica para rate limit.        |
 
 ---
 
@@ -1029,11 +1029,11 @@ z.object({
 
 ### 15.1 Token Storage
 
-| Token | Client Storage | Server Storage | Propósito |
-| ----- | -------------- | -------------- | --------- |
-| Access Token (JWT) | `sessionStorage` | No (stateless) | Autenticación en headers `Authorization: Bearer <token>`. |
-| Refresh Token (opaco) | Cookie `jwt` (HTTP-only) | Tabla `refreshToken` | Renovación de access token. |
-| CSRF Token | Cookie `csrfToken` (legible) | No | Protección CSRF en refresh endpoint. |
+| Token                 | Client Storage               | Server Storage       | Propósito                                                 |
+| --------------------- | ---------------------------- | -------------------- | --------------------------------------------------------- |
+| Access Token (JWT)    | `sessionStorage`             | No (stateless)       | Autenticación en headers `Authorization: Bearer <token>`. |
+| Refresh Token (opaco) | Cookie `jwt` (HTTP-only)     | Tabla `refreshToken` | Renovación de access token.                               |
+| CSRF Token            | Cookie `csrfToken` (legible) | No                   | Protección CSRF en refresh endpoint.                      |
 
 ### 15.2 Internacionalización (i18n)
 
@@ -1092,15 +1092,15 @@ mindmap
 
 ### 16.2 Gaps de Calidad Conocidos
 
-| ID | Gap | Severidad |
-| ----- | ------------------------------------------------------------------------- | --------- |
-| Q-G01 | SignUpForm no conectado a API (solo console.log). | Alta |
-| Q-G02 | signUpSchema de Zod incompleto (falta firstName, lastName, birthday). | Alta |
-| Q-G03 | Botón debug `checkState` en producción. | Baja |
-| Q-G04 | No hay UX específica para rate limit 429. | Media |
-| Q-G05 | `secure: true` siempre activo impide desarrollo local sin HTTPS. | Media |
-| Q-G06 | No hay test automatizado visible en el módulo. | Alta |
-| Q-G07 | Change password y forgot password no implementados. | Media |
+| ID    | Gap                                                                   | Severidad |
+| ----- | --------------------------------------------------------------------- | --------- |
+| Q-G01 | SignUpForm no conectado a API (solo console.log).                     | Alta      |
+| Q-G02 | signUpSchema de Zod incompleto (falta firstName, lastName, birthday). | Alta      |
+| Q-G03 | Botón debug `checkState` en producción.                               | Baja      |
+| Q-G04 | No hay UX específica para rate limit 429.                             | Media     |
+| Q-G05 | `secure: true` siempre activo impide desarrollo local sin HTTPS.      | Media     |
+| Q-G06 | No hay test automatizado visible en el módulo.                        | Alta      |
+| Q-G07 | Change password y forgot password no implementados.                   | Media     |
 
 ---
 
@@ -1108,65 +1108,65 @@ mindmap
 
 ### ADR-001 — Refresh Token Opaco (no JWT) con tabla dedicada
 
-| Aspecto | Detalle |
-| ----------- | -------------------------------------------------------------------------------------------------------------------------------- |
-| **Estado** | Accepted |
-| **Contexto**| Se podría usar JWT para refresh tokens (auto-contenido, sin DB hit). Sin embargo, la revocación de JWT es compleja sin una blacklist. |
-| **Decisión**| Usar refresh tokens opacos (random strings) almacenados en tabla `refreshToken`. Cada token se puede revocar individualmente o masivamente. |
-| **Consecuencias** | (+) Revocación inmediata y granular. (+) Detección de reuso trivial. (-) DB hit en cada refresh. (-) Escalabilidad: tabla puede crecer. |
-| **Mitigación**| Rotación automática reduce tokens activos. Añadir cleanup de tokens expirados/revocados periódicamente. |
+| Aspecto           | Detalle                                                                                                                                     |
+| ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Estado**        | Accepted                                                                                                                                    |
+| **Contexto**      | Se podría usar JWT para refresh tokens (auto-contenido, sin DB hit). Sin embargo, la revocación de JWT es compleja sin una blacklist.       |
+| **Decisión**      | Usar refresh tokens opacos (random strings) almacenados en tabla `refreshToken`. Cada token se puede revocar individualmente o masivamente. |
+| **Consecuencias** | (+) Revocación inmediata y granular. (+) Detección de reuso trivial. (-) DB hit en cada refresh. (-) Escalabilidad: tabla puede crecer.     |
+| **Mitigación**    | Rotación automática reduce tokens activos. Añadir cleanup de tokens expirados/revocados periódicamente.                                     |
 
 ### ADR-002 — CSRF Protection solo en refresh-token endpoint
 
-| Aspecto | Detalle |
-| ----------- | -------------------------------------------------------------------------------------------------------------------------------- |
-| **Estado** | Accepted |
-| **Contexto**| Los endpoints de signup y signin son públicos (no requieren cookies). Session usa JWT en Authorization header (no vulnerable a CSRF). Solo refresh-token usa cookies. |
-| **Decisión**| Aplicar `verifyCsrf` solo en `/refresh-token`, usando double-submit cookie pattern. |
+| Aspecto           | Detalle                                                                                                                                                                           |
+| ----------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Estado**        | Accepted                                                                                                                                                                          |
+| **Contexto**      | Los endpoints de signup y signin son públicos (no requieren cookies). Session usa JWT en Authorization header (no vulnerable a CSRF). Solo refresh-token usa cookies.             |
+| **Decisión**      | Aplicar `verifyCsrf` solo en `/refresh-token`, usando double-submit cookie pattern.                                                                                               |
 | **Consecuencias** | (+) Protección contra CSRF en el endpoint más sensible. (+) No añade complejidad a endpoints públicos. (-) Si se añaden más endpoints con cookies, se debe recordar aplicar CSRF. |
 
 ### ADR-003 — Auth API usa axiosPublic (sin interceptor de refresh)
 
-| Aspecto | Detalle |
-| ----------- | -------------------------------------------------------------------------------------------------------------------------------- |
-| **Estado** | Accepted |
-| **Contexto**| El interceptor de `axiosPrivate` intenta refresh automático en 401. Si auth API usara `axiosPrivate`, un 401 en signin dispararía refresh → loop infinito. |
-| **Decisión**| Auth API usa `axiosPublic` (sin interceptores). |
+| Aspecto           | Detalle                                                                                                                                                                            |
+| ----------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Estado**        | Accepted                                                                                                                                                                           |
+| **Contexto**      | El interceptor de `axiosPrivate` intenta refresh automático en 401. Si auth API usara `axiosPrivate`, un 401 en signin dispararía refresh → loop infinito.                         |
+| **Decisión**      | Auth API usa `axiosPublic` (sin interceptores).                                                                                                                                    |
 | **Consecuencias** | (+) Sin loops. (-) Auth API no se beneficia de refresh automático (no lo necesita). (-) Si se añade un endpoint auth que requiera auth, se debe migrar a axiosPrivate con cuidado. |
 
 ---
 
 ## 18. Riesgos y Deuda Técnica
 
-| ID | Descripción | Severidad | Mitigación Sugerida |
-| ------ | -------------------------------------------------------------------------------------------------------- | --------- | -------------------------------------------------------------------------------------------------------------------- |
-| R-001 | Typo `revokeAllRefreshTojeForUser` → debería ser `revokeAllRefreshTokenForUser`. | Baja | Renombrar función y actualizar import. |
-| R-002 | `SignUpForm.jsx` no despacha acción Redux ni llama a `SignUpApi`. `onSubmit` hace `console.log(data)`. | Alta | Conectar formulario: `dispatch(signUpFetch(data))` + crear thunk + navegación a signin. |
-| R-003 | Typo `refreshTokenFecth` → debería ser `refreshTokenFetch`. | Baja | Renombrar thunk y actualizar referencias. |
-| R-004 | `signUpSchema` de Zod solo tiene `email` y `password`. Faltan `firstName`, `lastName`, `birthday`, `confirmPassword`. | Alta | Completar schema Zod alineado con Joi `SignUpSchema`. |
-| R-005 | Cookie `secure: true` siempre activo. En desarrollo local sin HTTPS, las cookies no se setean. | Media | Usar `secure: isProduction` (ya existe variable en controller pero no se usa consistentemente). |
-| R-006 | `console.log('newSate', user)` y `console.log('Error', ...)` en authSlice — ruido en producción. | Baja | Eliminar console.logs. Usar logger. |
-| R-007 | No hay cleanup de `refreshToken` tabla — tokens revocados/expirados se acumulan. | Media | Añadir cron job o Prisma query para purgar tokens revocados más antiguos de N días. |
-| R-008 | `sessionStorage` para access token es accesible por XSS. Si hay XSS, el token puede ser robado. | Media | Considerar almacenar access token en cookie HTTP-only también, o usar shorter TTL. |
-| R-009 | No hay test automatizado visible en `apps/server/src/modules/auth/` ni en client. | Alta | Crear `auth.unit.test.js` y `auth.integration.test.js`. |
-| R-010 | `changePassword` y `forgotPassword` están definidos (schemas, limiters) pero comentados. | Baja | Implementar o eliminar código muerto. |
+| ID    | Descripción                                                                                                           | Severidad | Mitigación Sugerida                                                                             |
+| ----- | --------------------------------------------------------------------------------------------------------------------- | --------- | ----------------------------------------------------------------------------------------------- |
+| R-001 | Typo `revokeAllRefreshTojeForUser` → debería ser `revokeAllRefreshTokenForUser`.                                      | Baja      | Renombrar función y actualizar import.                                                          |
+| R-002 | `SignUpForm.jsx` no despacha acción Redux ni llama a `SignUpApi`. `onSubmit` hace `console.log(data)`.                | Alta      | Conectar formulario: `dispatch(signUpFetch(data))` + crear thunk + navegación a signin.         |
+| R-003 | Typo `refreshTokenFecth` → debería ser `refreshTokenFetch`.                                                           | Baja      | Renombrar thunk y actualizar referencias.                                                       |
+| R-004 | `signUpSchema` de Zod solo tiene `email` y `password`. Faltan `firstName`, `lastName`, `birthday`, `confirmPassword`. | Alta      | Completar schema Zod alineado con Joi `SignUpSchema`.                                           |
+| R-005 | Cookie `secure: true` siempre activo. En desarrollo local sin HTTPS, las cookies no se setean.                        | Media     | Usar `secure: isProduction` (ya existe variable en controller pero no se usa consistentemente). |
+| R-006 | `console.log('newSate', user)` y `console.log('Error', ...)` en authSlice — ruido en producción.                      | Baja      | Eliminar console.logs. Usar logger.                                                             |
+| R-007 | No hay cleanup de `refreshToken` tabla — tokens revocados/expirados se acumulan.                                      | Media     | Añadir cron job o Prisma query para purgar tokens revocados más antiguos de N días.             |
+| R-008 | `sessionStorage` para access token es accesible por XSS. Si hay XSS, el token puede ser robado.                       | Media     | Considerar almacenar access token en cookie HTTP-only también, o usar shorter TTL.              |
+| R-009 | No hay test automatizado visible en `apps/server/src/modules/auth/` ni en client.                                     | Alta      | Crear `auth.unit.test.js` y `auth.integration.test.js`.                                         |
+| R-010 | `changePassword` y `forgotPassword` están definidos (schemas, limiters) pero comentados.                              | Baja      | Implementar o eliminar código muerto.                                                           |
 
 ---
 
 ## 19. Glosario
 
-| Término | Definición |
-| ----------------------------- | ------------------------------------------------------------------------------------------------ |
-| **Access Token** | JWT de corta duración usado para autenticar requests en headers `Authorization`. |
-| **Refresh Token** | Token opaco de larga duración almacenado en cookie HTTP-only y DB, usado para obtener nuevos access tokens. |
-| **CSRF Token** | Token anti-falsificación de solicitudes entre sitios, usado en patrón double-submit cookie. |
-| **Double-submit cookie** | Patrón CSRF donde el token se envía en cookie y en header, verificando que coincidan. |
-| **Opaque token** | Token sin estructura legible (random string), validable solo contra DB. |
-| **Token rotation** | Emitir un nuevo refresh token y revocar el anterior en cada uso. |
-| **Reuse detection** | Detectar si un refresh token ya revocado se reutiliza, indicando posible theft. |
-| **Rate limiting** | Limitar la frecuencia de requests por IP o clave compuesta para prevenir abuso. |
-| **Bcrypt** | Algoritmo de hashing de contraseñas con salt integrado y factor de costo. |
-| **ClientError** | Clase de error custom del server para errores 4xx con mensaje y status code. |
+| Término                  | Definición                                                                                                  |
+| ------------------------ | ----------------------------------------------------------------------------------------------------------- |
+| **Access Token**         | JWT de corta duración usado para autenticar requests en headers `Authorization`.                            |
+| **Refresh Token**        | Token opaco de larga duración almacenado en cookie HTTP-only y DB, usado para obtener nuevos access tokens. |
+| **CSRF Token**           | Token anti-falsificación de solicitudes entre sitios, usado en patrón double-submit cookie.                 |
+| **Double-submit cookie** | Patrón CSRF donde el token se envía en cookie y en header, verificando que coincidan.                       |
+| **Opaque token**         | Token sin estructura legible (random string), validable solo contra DB.                                     |
+| **Token rotation**       | Emitir un nuevo refresh token y revocar el anterior en cada uso.                                            |
+| **Reuse detection**      | Detectar si un refresh token ya revocado se reutiliza, indicando posible theft.                             |
+| **Rate limiting**        | Limitar la frecuencia de requests por IP o clave compuesta para prevenir abuso.                             |
+| **Bcrypt**               | Algoritmo de hashing de contraseñas con salt integrado y factor de costo.                                   |
+| **ClientError**          | Clase de error custom del server para errores 4xx con mensaje y status code.                                |
 
 ---
 

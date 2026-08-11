@@ -8,16 +8,16 @@
 
 ## 🎯 Component Inventory
 
-| Component | AWS Service | Purpose | Key Configuration |
-|-----------|-------------|---------|-------------------|
-| **Container Orchestration** | ECS Fargate | Serverless containers for the Express + Socket.IO API | Clusters: `project-one-staging`, `project-one-prod`; Service: `api`; Task definitions pinned by Git SHA |
-| **Load Balancer** | Application Load Balancer (ALB) | Terminate TLS, route HTTP/WS traffic, sticky sessions for Socket.IO | Target group stickiness (cookie-based, duration 1h); **idle timeout ≥ 65s** (server `keepAliveTimeout` = 60s); HTTPS listener with ACM cert |
-| **Database** | RDS PostgreSQL | Managed PostgreSQL for Prisma ORM | Instance class: `db.t3.micro` / Serverless v2 (min capacity); Multi-AZ for prod; Automated backups + PITR; Security group restricted to ECS tasks + ALB |
-| **Container Registry** | ECR (Private) | Store Docker images tagged by SHA + `latest` | Repo: `project-one-server`; Lifecycle policy: keep last 30 tags / 30 days; Image scan on push |
-| **Identity & Access** | IAM OIDC Provider + Role | GitHub Actions → AWS authentication without long-lived keys | Provider: `token.actions.githubusercontent.com`; Audience: `sts.amazonaws.com`; Role trust policy restricted to `repo:<owner>/<repo>` + environment filter; Least-privilege policy (ECR push/pull, ECS update/describe on project clusters) |
-| **Network** | VPC + Subnets + Security Groups | Isolated network for all resources | VPC with public + private subnets (2 AZs); NAT Gateway for private egress; SG: ALB (80/443 from internet), ECS tasks (3000 from ALB SG), RDS (5432 from ECS tasks SG) |
-| **Secrets** | GitHub Environment Secrets (Phase 1–2a) → AWS Secrets Manager (Phase 2c) | DATABASE_URL, JWT_SECRET, AWS_REGION | Phase 1–2a: injected via ECS task `secrets` from GitHub env secrets; Phase 2c: task execution role reads from Secrets Manager, app loads via `loadSecrets()` (code wiring required) |
-| **Observability** | CloudWatch Logs + Metrics | Container logs, health checks, custom metrics | Log groups: `/ecs/project-one-staging`, `/ecs/project-one-prod`; Container health check: `curl -f http://localhost:3000/health \|\| exit 1` (interval 30s, timeout 5s, retries 3, startPeriod 60s) |
+| Component                   | AWS Service                                                              | Purpose                                                                                                                                                                                                                                                                                     | Key Configuration                                                                                                                                                                                                                             |
+| --------------------------- | ------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Container Orchestration** | ECS Fargate                                                              | Serverless containers for the Express + Socket.IO API                                                                                                                                                                                                                                       | Clusters: `project-one-staging`, `project-one-prod`; Service: `api`; Task definitions pinned by Git SHA                                                                                                                                       |
+| **Load Balancer**           | Application Load Balancer (ALB)                                          | Terminate TLS, route HTTP/WS traffic, sticky sessions for Socket.IO                                                                                                                                                                                                                         | Target group stickiness (cookie-based, duration 1h); **idle timeout ≥ 65s** (server `keepAliveTimeout` = 60s); HTTPS listener with ACM cert                                                                                                   |
+| **Database**                | RDS PostgreSQL                                                           | Managed PostgreSQL for Prisma ORM                                                                                                                                                                                                                                                           | Instance class: `db.t3.micro` / Serverless v2 (min capacity); Multi-AZ for prod; Automated backups + PITR; Security group restricted to ECS tasks + ALB                                                                                       |
+| **Container Registry**      | ECR (Private)                                                            | Store Docker images tagged by SHA + `latest`                                                                                                                                                                                                                                                | Repo: `project-one-server`; Lifecycle policy: keep last 30 tags / 30 days; Image scan on push                                                                                                                                                 |
+| **Identity & Access**       | IAM OIDC Provider + Role                                                 | GitHub Actions → AWS authentication without long-lived keys                                                                                                                                                                                                                                 | Provider: `token.actions.githubusercontent.com`; Audience: `sts.amazonaws.com`; Role trust policy restricted to `repo:<owner>/<repo>` + environment filter; Least-privilege policy (ECR push/pull, ECS update/describe on project clusters)   |
+| **Network**                 | VPC + Subnets + Security Groups                                          | Isolated network for all resources                                                                                                                                                                                                                                                          | VPC with public + private subnets (2 AZs); NAT Gateway for private egress; SG: ALB (80/443 from internet), ECS tasks (3000 from ALB SG), RDS (5432 from ECS tasks SG)                                                                         |
+| **Secrets**                 | GitHub Environment Secrets (Phase 1–2a) → AWS Secrets Manager (Phase 2c) | DATABASE*URL, **SECRETKEY** (env var — el ARN legacy se llama `*_JWT_SECRET_SECRET_ARN` pero el nombre del env var inyectado es `SECRETKEY`, NO `JWT_SECRET`), REFRESHSECRETKEY, AES_GCM_KEY, AWS_REGION + runtime vars (ORIGIN_CORS, FRONTEND_URL, BCRYPT_SALT, CLOUD*\*, SECRETCOOKIEKEY) | Phase 1–2a: injected via ECS task `secrets` from GitHub env secrets; Phase 2c: task execution role reads from Secrets Manager, app loads via `loadSecrets()` (code wiring required). Referencia completa: `docs/server-bootstrap-env-vars.md` |
+| **Observability**           | CloudWatch Logs + Metrics                                                | Container logs, health checks, custom metrics                                                                                                                                                                                                                                               | Log groups: `/ecs/project-one-staging`, `/ecs/project-one-prod`; Container health check: `curl -f http://localhost:3000/health \|\| exit 1` (interval 30s, timeout 5s, retries 3, startPeriod 60s)                                            |
 
 ---
 
@@ -78,6 +78,7 @@ graph TD
 ## 🌐 Network Layout
 
 ### VPC Design
+
 - **CIDR**: `10.0.0.0/16` (adjustable)
 - **Availability Zones**: 2 (e.g., `us-east-1a`, `us-east-1b`)
 - **Subnets**:
@@ -87,13 +88,14 @@ graph TD
 
 ### Security Groups
 
-| SG Name | Ingress Rules | Egress Rules | Attached To |
-|---------|---------------|--------------|-------------|
-| `sg-alb` | 80/443 from `0.0.0.0/0` | All to `sg-ecs-tasks` | ALB |
-| `sg-ecs-tasks` | 3000 from `sg-alb` | 5432 to `sg-rds`; 443 to ECR/Secrets Manager/CloudWatch | ECS Tasks (staging + prod) |
-| `sg-rds` | 5432 from `sg-ecs-tasks` | None (deny all egress) | RDS Instance |
+| SG Name        | Ingress Rules            | Egress Rules                                            | Attached To                |
+| -------------- | ------------------------ | ------------------------------------------------------- | -------------------------- |
+| `sg-alb`       | 80/443 from `0.0.0.0/0`  | All to `sg-ecs-tasks`                                   | ALB                        |
+| `sg-ecs-tasks` | 3000 from `sg-alb`       | 5432 to `sg-rds`; 443 to ECR/Secrets Manager/CloudWatch | ECS Tasks (staging + prod) |
+| `sg-rds`       | 5432 from `sg-ecs-tasks` | None (deny all egress)                                  | RDS Instance               |
 
 ### ALB Configuration for Socket.IO
+
 - **Target Group**: `project-one-api-tg` (instance/IP target type)
 - **Stickiness**: Enabled (load balancer generated cookie, duration: 1 hour)
 - **Idle Timeout**: **65 seconds minimum** (server `keepAliveTimeout` = 60s + buffer) — critical for WebSocket keep-alive
@@ -101,6 +103,7 @@ graph TD
 - **Listener**: HTTPS (443) with ACM certificate → forward to target group
 
 ### RDS Network Isolation
+
 - RDS in **private data subnets** (no public access)
 - Only `sg-ecs-tasks` can connect on port 5432
 - Parameter group: `rds.postgresql16` with `rds.force_ssl = 1`
@@ -132,14 +135,14 @@ sequenceDiagram
 
 ## 🛡️ Security Model
 
-| Layer | Mechanism |
-|-------|-----------|
-| **Auth to AWS** | OIDC federation (GitHub → IAM Role), no access keys |
-| **Least Privilege** | Role policy: ECR (project repo only), ECS (project clusters only) |
-| **Network** | Private subnets for compute/data; SG least-privilege; NAT for egress |
-| **Secrets** | Phase 1–2a: GitHub env secrets → ECS task `secrets`; Phase 2c: Secrets Manager + task execution role |
-| **Transport** | ALB terminates TLS; RDS `force_ssl=1`; ECS tasks communicate over private VPC |
-| **Image Supply Chain** | SHA-tagged immutable images; ECR scan on push; `latest` movable tag |
+| Layer                  | Mechanism                                                                                            |
+| ---------------------- | ---------------------------------------------------------------------------------------------------- |
+| **Auth to AWS**        | OIDC federation (GitHub → IAM Role), no access keys                                                  |
+| **Least Privilege**    | Role policy: ECR (project repo only), ECS (project clusters only)                                    |
+| **Network**            | Private subnets for compute/data; SG least-privilege; NAT for egress                                 |
+| **Secrets**            | Phase 1–2a: GitHub env secrets → ECS task `secrets`; Phase 2c: Secrets Manager + task execution role |
+| **Transport**          | ALB terminates TLS; RDS `force_ssl=1`; ECS tasks communicate over private VPC                        |
+| **Image Supply Chain** | SHA-tagged immutable images; ECR scan on push; `latest` movable tag                                  |
 
 ---
 
@@ -148,6 +151,7 @@ sequenceDiagram
 > **Design Decision D9**: Console-guided first for learning, Terraform reference documents reproducibility. This reference covers all components above as a **starting point** for real provisioning. It is not a complete production-ready module — adapt to your standards.
 
 ### Backend Configuration
+
 ```hcl
 # backend.tf
 terraform {
@@ -162,6 +166,7 @@ terraform {
 ```
 
 ### Provider & Variables
+
 ```hcl
 # providers.tf
 terraform {
@@ -196,6 +201,7 @@ variable "environment" {
 ```
 
 ### VPC Module (Simplified)
+
 ```hcl
 # modules/vpc/main.tf
 resource "aws_vpc" "main" {
@@ -309,6 +315,7 @@ resource "aws_route_table_association" "private_data" {
 ```
 
 ### Security Groups
+
 ```hcl
 # modules/security-groups/main.tf
 resource "aws_security_group" "alb" {
@@ -387,6 +394,7 @@ resource "aws_security_group" "rds" {
 ```
 
 ### ECR Repository
+
 ```hcl
 # modules/ecr/main.tf
 resource "aws_ecr_repository" "server" {
@@ -428,6 +436,7 @@ resource "aws_ecr_repository" "server" {
 ```
 
 ### ECS Cluster + Service (Staging Example)
+
 ```hcl
 # modules/ecs/main.tf
 resource "aws_ecs_cluster" "staging" {
@@ -459,7 +468,7 @@ resource "aws_ecs_task_definition" "staging_api" {
       ]
       secrets = [
         { name = "DATABASE_URL", valueFrom = var.db_url_secret_arn },
-        { name = "JWT_SECRET", valueFrom = var.jwt_secret_arn },
+        { name = "SECRETKEY", valueFrom = var.jwt_secret_arn },
         { name = "AWS_REGION", valueFrom = var.aws_region_secret_arn }
       ]
       logConfiguration = {
@@ -508,6 +517,7 @@ resource "aws_ecs_service" "staging_api" {
 ```
 
 ### ALB with Stickiness + Idle Timeout
+
 ```hcl
 # modules/alb/main.tf
 resource "aws_lb" "main" {
@@ -577,6 +587,7 @@ resource "aws_lb_listener" "http" {
 ```
 
 ### RDS PostgreSQL
+
 ```hcl
 # modules/rds/main.tf
 resource "aws_db_subnet_group" "main" {
@@ -639,6 +650,7 @@ resource "aws_db_instance" "production" {
 ```
 
 ### IAM OIDC Role for GitHub Actions
+
 ```hcl
 # modules/iam/github-oidc.tf
 data "aws_iam_policy_document" "github_oidc_trust" {
@@ -732,6 +744,7 @@ resource "aws_iam_role_policy_attachment" "github_actions_cd" {
 ```
 
 ### Usage (Root Module)
+
 ```hcl
 # main.tf (example composition)
 module "vpc" {
@@ -801,6 +814,7 @@ module "github_oidc" {
 ## 🔄 Rollback Procedures (Documented for < 15 min Budget)
 
 ### Application Rollback (Redeploy Previous Image)
+
 ```bash
 # 1. Identify previous SHA tag in ECR
 aws ecr describe-images \
@@ -822,6 +836,7 @@ aws ecs update-service \
 ```
 
 ### Database Rollback (Prisma Migrate Down)
+
 ```bash
 # Run as ECS one-off task (same network/security as service)
 aws ecs run-task \
@@ -838,14 +853,14 @@ aws ecs run-task \
 
 ## 📋 Cross-References
 
-| Document | Purpose |
-|----------|---------|
-| `docs/aws-cd-learning-path.md` | Milestone-based Floci practice to unlock each Phase 2 component |
-| `docs/aws-learning-with-floci.md` | Progressive AWS learning with Floci (sibling `ci-preview-environments`) |
-| `docs/aws-dev-local-floci.md` | Local dev setup with Floci (sibling `ci-floci-migration`) |
-| `openspec/changes/cd-aws-deploy-pipeline/design.md` | Design decisions D1-D10 |
-| `.github/workflows/deploy.yml` | Pipeline implementation (Phase 1 scaffold + Phase 2 gated jobs) |
+| Document                                            | Purpose                                                                 |
+| --------------------------------------------------- | ----------------------------------------------------------------------- |
+| `docs/aws-cd-learning-path.md`                      | Milestone-based Floci practice to unlock each Phase 2 component         |
+| `docs/aws-learning-with-floci.md`                   | Progressive AWS learning with Floci (sibling `ci-preview-environments`) |
+| `docs/aws-dev-local-floci.md`                       | Local dev setup with Floci (sibling `ci-floci-migration`)               |
+| `openspec/changes/cd-aws-deploy-pipeline/design.md` | Design decisions D1-D10                                                 |
+| `.github/workflows/deploy.yml`                      | Pipeline implementation (Phase 1 scaffold + Phase 2 gated jobs)         |
 
 ---
 
-*Generated as part of OpenSpec change `cd-aws-deploy-pipeline` — tasks 3.1, 3.2.*
+_Generated as part of OpenSpec change `cd-aws-deploy-pipeline` — tasks 3.1, 3.2._

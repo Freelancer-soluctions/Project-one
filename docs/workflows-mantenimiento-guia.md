@@ -443,19 +443,20 @@ El step `github/codeql-action/autobuild@v4` está comentado en `security.yml` (l
 
 ### Secrets inventory (requeridos para Fase 2)
 
-| Secret / Variable                         | Usado en                                   | Descripción                                       |
-| ----------------------------------------- | ------------------------------------------ | ------------------------------------------------- |
-| `vars.AWS_ROLE_ARN`                       | `deploy.yml` (ecr-push, deploy-\*)         | OIDC role ARN para asumir en AWS (gate principal) |
-| `vars.AWS_ACCOUNT_ID`                     | `deploy.yml` (ecr-push, task defs)         | Account ID para ECR URI                           |
-| `secrets.STAGING_TASK_EXECUTION_ROLE_ARN` | `deploy.yml` (deploy-staging)              | ECS task execution role                           |
-| `secrets.STAGING_TASK_ROLE_ARN`           | `deploy.yml` (deploy-staging)              | ECS task role                                     |
-| `secrets.STAGING_DATABASE_URL_SECRET_ARN` | `deploy.yml` (deploy-staging)              | Secrets Manager ARN para DB URL                   |
-| `secrets.STAGING_JWT_SECRET_SECRET_ARN`   | `deploy.yml` (deploy-staging)              | JWT secret en Secrets Manager                     |
-| `secrets.STAGING_AWS_REGION_SECRET_ARN`   | `deploy.yml` (deploy-staging)              | AWS region secret                                 |
-| `secrets.STAGING_URL`                     | `deploy.yml` (deploy-staging health/smoke) | URL pública de staging                            |
-| `secrets.PROD_*` (equivalentes)           | `deploy.yml` (deploy-production)           | Versiones production de lo anterior               |
-| `secrets.GITHUB_TOKEN`                    | `preview.yml` (Vercel status, PR comments) | Auto-provisto por GitHub                          |
-| `secrets.GIT_LEAKS`                       | `security.yml` (secrets job)               | Licencia Gitleaks Pro (opcional)                  |
+| Secret / Variable                              | Usado en                                   | Descripción                                                                                                                                                                   |
+| ---------------------------------------------- | ------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `vars.AWS_ROLE_ARN`                            | `deploy.yml` (ecr-push, deploy-\*)         | OIDC role ARN para asumir en AWS (gate principal)                                                                                                                             |
+| `vars.AWS_ACCOUNT_ID`                          | `deploy.yml` (ecr-push, task defs)         | Account ID para ECR URI                                                                                                                                                       |
+| `secrets.STAGING_TASK_EXECUTION_ROLE_ARN`      | `deploy.yml` (deploy-staging)              | ECS task execution role                                                                                                                                                       |
+| `secrets.STAGING_TASK_ROLE_ARN`                | `deploy.yml` (deploy-staging)              | ECS task role                                                                                                                                                                 |
+| `secrets.STAGING_DATABASE_URL_SECRET_ARN`      | `deploy.yml` (deploy-staging)              | Secrets Manager ARN para DB URL                                                                                                                                               |
+| `secrets.STAGING_JWT_SECRET_SECRET_ARN`        | `deploy.yml` (deploy-staging)              | ARN con la SECRETKEY real (env var inyectado: `SECRETKEY` — el ARN conserva el nombre legacy `JWT_SECRET` pero el código lee `SECRETKEY`/`REFRESHSECRETKEY`, NO `JWT_SECRET`) |
+| `secrets.STAGING_REFRESH_SECRETKEY_SECRET_ARN` | `deploy.yml` (deploy-staging)              | ARN NUEVO (2026-08-10) con la REFRESHSECRETKEY real                                                                                                                           |
+| `secrets.STAGING_AWS_REGION_SECRET_ARN`        | `deploy.yml` (deploy-staging)              | AWS region secret                                                                                                                                                             |
+| `secrets.STAGING_URL`                          | `deploy.yml` (deploy-staging health/smoke) | URL pública de staging                                                                                                                                                        |
+| `secrets.PROD_*` (equivalentes)                | `deploy.yml` (deploy-production)           | Versiones production de lo anterior                                                                                                                                           |
+| `secrets.GITHUB_TOKEN`                         | `preview.yml` (Vercel status, PR comments) | Auto-provisto por GitHub                                                                                                                                                      |
+| `secrets.GIT_LEAKS`                            | `security.yml` (secrets job)               | Licencia Gitleaks Pro (opcional)                                                                                                                                              |
 
 > 📝 **Diseño Fase 1:** Cuando `AWS_ROLE_ARN` está vacío (estado actual), los jobs de Fase 2 se saltan con `::notice::` annotations visibles en la UI de Actions (líneas 420-462 de `deploy.yml`). **Es intencional** para el learning path sin AWS. No "arreglar" hasta que se provea infra AWS.
 

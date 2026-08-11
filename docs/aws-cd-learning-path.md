@@ -157,7 +157,7 @@ aws --endpoint-url=http://localhost:4566 ecs register-task-definition \
       "environment": [{"name": "NODE_ENV", "value": "staging"}, {"name": "PORT", "value": "3000"}],
       "secrets": [
         {"name": "DATABASE_URL", "valueFrom": "arn:aws:secretsmanager:us-east-1:000000000000:secret:staging-db-url"},
-        {"name": "JWT_SECRET", "valueFrom": "arn:aws:secretsmanager:us-east-1:000000000000:secret:staging-jwt"}
+        {"name": "SECRETKEY", "valueFrom": "arn:aws:secretsmanager:us-east-1:000000000000:secret:staging-jwt"}
       ],
       "logConfiguration": {
         "logDriver": "awslogs",
@@ -189,7 +189,7 @@ aws --endpoint-url=http://localhost:4566 ecs register-task-definition \
   --execution-role-arn arn:aws:iam::000000000000:role/ecsTaskExecutionRole \
   --task-role-arn arn:aws:iam::000000000000:role/ecsTaskRole \
   --container-definitions '[
-    {"name":"api","image":"localhost:4566/project-one-server:latest","portMappings":[{"containerPort":3000,"protocol":"tcp"}],"environment":[{"name":"NODE_ENV","value":"staging"},{"name":"PORT","value":"3000"}],"secrets":[{"name":"DATABASE_URL","valueFrom":"arn:aws:secretsmanager:us-east-1:000000000000:secret:staging-db-url"},{"name":"JWT_SECRET","valueFrom":"arn:aws:secretsmanager:us-east-1:000000000000:secret:staging-jwt"}],"logConfiguration":{"logDriver":"awslogs","options":{"awslogs-group":"/ecs/project-one-staging","awslogs-region":"us-east-1","awslogs-stream-prefix":"api"}},"healthCheck":{"command":["CMD-SHELL","curl -f http://localhost:3000/health || exit 1"],"interval":30,"timeout":5,"retries":3,"startPeriod":60}}
+    {"name":"api","image":"localhost:4566/project-one-server:latest","portMappings":[{"containerPort":3000,"protocol":"tcp"}],"environment":[{"name":"NODE_ENV","value":"staging"},{"name":"PORT","value":"3000"}],"secrets":[{"name":"DATABASE_URL","valueFrom":"arn:aws:secretsmanager:us-east-1:000000000000:secret:staging-db-url"},{"name":"SECRETKEY","valueFrom":"arn:aws:secretsmanager:us-east-1:000000000000:secret:staging-jwt"}],"logConfiguration":{"logDriver":"awslogs","options":{"awslogs-group":"/ecs/project-one-staging","awslogs-region":"us-east-1","awslogs-stream-prefix":"api"}},"healthCheck":{"command":["CMD-SHELL","curl -f http://localhost:3000/health || exit 1"],"interval":30,"timeout":5,"retries":3,"startPeriod":60}}
   ]'
 
 aws --endpoint-url=http://localhost:4566 ecs update-service \
