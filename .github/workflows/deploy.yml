@@ -237,11 +237,14 @@ jobs:
                 "portMappings": [{"containerPort": 3000, "protocol": "tcp"}],
                 "environment": [
                   {"name": "NODE_ENV", "value": "staging"},
-                  {"name": "PORT", "value": "3000"}
+                  {"name": "PORT", "value": "3000"},
+                  {"name": "ALGORITHM", "value": "aes-256-gcm"}
                 ],
                 "secrets": [
                   {"name": "DATABASE_URL", "valueFrom": "'${{ secrets.STAGING_DATABASE_URL_SECRET_ARN }}'"},
-                  {"name": "JWT_SECRET", "valueFrom": "'${{ secrets.STAGING_JWT_SECRET_SECRET_ARN }}'"},
+                  {"name": "SECRETKEY", "valueFrom": "'${{ secrets.STAGING_JWT_SECRET_SECRET_ARN }}'"},
+                  {"name": "REFRESHSECRETKEY", "valueFrom": "'${{ secrets.STAGING_REFRESH_SECRETKEY_SECRET_ARN }}'"},
+                  {"name": "AES_GCM_KEY", "valueFrom": "'${{ secrets.STAGING_AES_GCM_KEY_SECRET_ARN }}'"},
                   {"name": "AWS_REGION", "valueFrom": "'${{ secrets.STAGING_AWS_REGION_SECRET_ARN }}'"}
                 ],
                 "logConfiguration": {
@@ -351,11 +354,14 @@ jobs:
                 "portMappings": [{"containerPort": 3000, "protocol": "tcp"}],
                 "environment": [
                   {"name": "NODE_ENV", "value": "production"},
-                  {"name": "PORT", "value": "3000"}
+                  {"name": "PORT", "value": "3000"},
+                  {"name": "ALGORITHM", "value": "aes-256-gcm"}
                 ],
                 "secrets": [
                   {"name": "DATABASE_URL", "valueFrom": "'${{ secrets.PROD_DATABASE_URL_SECRET_ARN }}'"},
-                  {"name": "JWT_SECRET", "valueFrom": "'${{ secrets.PROD_JWT_SECRET_SECRET_ARN }}'"},
+                  {"name": "SECRETKEY", "valueFrom": "'${{ secrets.PROD_JWT_SECRET_SECRET_ARN }}'"},
+                  {"name": "REFRESHSECRETKEY", "valueFrom": "'${{ secrets.PROD_REFRESH_SECRETKEY_SECRET_ARN }}'"},
+                  {"name": "AES_GCM_KEY", "valueFrom": "'${{ secrets.PROD_AES_GCM_KEY_SECRET_ARN }}'"},
                   {"name": "AWS_REGION", "valueFrom": "'${{ secrets.PROD_AWS_REGION_SECRET_ARN }}'"}
                 ],
                 "logConfiguration": {
