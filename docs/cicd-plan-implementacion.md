@@ -536,13 +536,14 @@ Configurar Vitest para emitir JUnit: `--reporter=junit --outputFile=reports/juni
 
 ```yaml
 # --- COMPOSITE ACTION: .github/actions/setup-monorepo/action.yml ---
-# Se recomienda crear esta action para evitar duplicación entre jobs
+# Se recomienda crear esta action para evitar duplicación entre jobs.
+# NO incluye checkout: el job invocador ejecuta actions/checkout@v5 con fetch-depth: 0
+# ANTES de usar la composite (necesario para resolver la action local + test-reporter).
 name: 'Setup Monorepo'
-description: 'Checkout + Node.js + npm ci + caches'
+description: 'Setup Node.js, install dependencies, and cache Vitest (requires prior actions/checkout with fetch-depth: 0)'
 runs:
   using: 'composite'
   steps:
-    - uses: actions/checkout@v5
     - uses: actions/setup-node@v4
       with:
         node-version-file: '.nvmrc'
@@ -554,6 +555,17 @@ runs:
         path: apps/*/node_modules/.cache/vitest
         key: vitest-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
         restore-keys: vitest-${{ runner.os }}-
+```
+
+```yaml
+# --- Job tipo en ci.yml (patrón de checkout único) ---
+jobs:
+  test-unit-client:
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0 # historial completo → test-reporter (exit 128 sin él)
+      - uses: ./.github/actions/setup-monorepo
 ```
 
 ```yaml

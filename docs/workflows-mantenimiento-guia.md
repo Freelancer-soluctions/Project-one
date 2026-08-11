@@ -100,50 +100,55 @@ fatal: bad revision '...'
 
 Ocurría en el step `Report Client Unit Tests` (y análogos) de `ci.yml`. `dorny/test-reporter@v3` necesita el SHA del merge commit del PR para adjuntar el check run; con `fetch-depth: 1` (default de `actions/checkout@v5`) el clon es shallow y ese SHA no existe localmente.
 
-**Causa raíz:** El composite action `.github/actions/setup-monorepo/action.yml` usaba `actions/checkout@v5` sin `fetch-depth: 0`. Seis jobs de `ci.yml` (test-unit-client, test-unit-server, test-integration, test-smoke, build, e2e) invocan ese composite action como primer paso, por lo que **todos** heredaban el shallow clone.
+**Causa raíz:** El composite action `.github/actions/setup-monorepo/action.yml` hacía checkout **interno** con `fetch-depth: 0`, pero los 6 jobs de `ci.yml` invocaban además un `actions/checkout@v5` externo con shallow clone ANTES de la composite (checkout externo obligatorio para que GitHub resuelva la action local). Resultado: **doble checkout por job**, y `dorny/test-reporter` fallaba igualmente porque el checkout externo era shallow.
 
-**Fix aplicado:**
+**Fix aplicado (ago 2026):**
 
-- **Archivo:** `.github/actions/setup-monorepo/action.yml`
-- **Cambio:** Añadido `with: fetch-depth: 0` al step `Checkout`
-- **Commit:** `32d35a8` (branch `feature/ai-setup`, 2026-08-05)
+- **Archivo:** `.github/workflows/ci.yml` + `.github/actions/setup-monorepo/action.yml`
+- **Cambio:** Unificar a **1 solo checkout por job** — el checkout externo de los 6 jobs pasa a `fetch-depth: 0`, y se **elimina el checkout interno** de la composite (ahora solo setup-node + npm ci + cache Vitest).
+- **Regla nueva:** `setup-monorepo` **NO hace checkout**; exige checkout externo previo con `fetch-depth: 0` (documentado en su `description`).
 
-**Antes:**
-
-```yaml
-- name: Checkout
-  uses: actions/checkout@v5
-```
-
-**Después:**
+**Antes (doble checkout por job):**
 
 ```yaml
-- name: Checkout
-  uses: actions/checkout@v5
-  with:
-    fetch-depth: 0
+# ci.yml (job)                  # setup-monorepo/action.yml
+- uses: actions/checkout@v5     #   - name: Checkout
+#  (shallow, default)           #     uses: actions/checkout@v5
+- uses: ./.github/actions/      #     with:
+  setup-monorepo                #       fetch-depth: 0
 ```
 
-**Propagación:** Los 6 jobs de `ci.yml` que usan la composite action (`test-unit-client`, `test-unit-server`, `test-integration`, `test-smoke`, `build`, `e2e`) ahora clonan con historial completo. `release.yml` ya tenía su propio `fetch-depth: 0` explícito. `security.yml` job `secrets` también lo tiene.
+**Después (checkout único por job):**
 
-**Lección extraída:** **`fetch-depth: 0` es opt-in, no default**. SIEMPRE que un step use `git log`, `git ls-files`, `git diff` contra un SHA, o un reporter tool como `dorny/test-reporter`, el checkout **debe** traer historial completo. No lo pongas "por si acaso" en workflows que no lo necesitan (pierde tiempo de CI).
+```yaml
+# ci.yml (job)                  # setup-monorepo/action.yml
+- uses: actions/checkout@v5     #   (sin checkout interno)
+  with:                         #   - name: Setup Node.js
+    fetch-depth: 0              #   - name: Install Dependencies
+- uses: ./.github/actions/      #   - name: Cache Vitest
+  setup-monorepo
+```
+
+**Propagación:** Los 6 jobs de `ci.yml` que usan la composite action (`test-unit-client`, `test-unit-server`, `test-integration`, `test-smoke`, `build`, `e2e`) clonan 1 vez con historial completo. `release.yml` ya tenía su propio `fetch-depth: 0` explícito. `security.yml` job `secrets` también lo tiene.
+
+**Lección extraída:** **`fetch-depth: 0` es opt-in, no default**. SIEMPRE que un step use `git log`, `git ls-files`, `git diff` contra un SHA, o un reporter tool como `dorny/test-reporter`, el checkout **debe** traer historial completo. Y las composite actions que solo hacen setup (node/npm/cache) **no deben** duplicar checkout — el job invocador lo hace con `fetch-depth: 0`. No pongas `fetch-depth: 0` "por si acaso" en workflows que no lo necesitan (pierde tiempo de CI).
 
 ---
 
 ## 4. Inventario de workflows y composite actions
 
-| Workflow / Action              | Archivo                                     | Disparador                                                 | Usa `.nvmrc`             | Notas                                                                                                  |
-| ------------------------------ | ------------------------------------------- | ---------------------------------------------------------- | ------------------------ | ------------------------------------------------------------------------------------------------------ |
-| **CI principal**               | `.github/workflows/ci.yml`                  | `pull_request` → `main`                                    | ✅ Sí (vía composite)    | 7 jobs: changes, quality, test-unit-client, test-unit-server, test-integration, test-smoke, build, e2e |
-| **Code Quality (reusable)**    | `.github/workflows/quality.yml`             | `workflow_call`, `workflow_dispatch`                       | ✅ Sí                    | Lint + format + typecheck (skipped) por workspace                                                      |
-| **Security**                   | `.github/workflows/security.yml`            | `pull_request` → `main`, `push` → `main`, `workflow_call`  | ✅ Sí                    | 5 jobs: dependency-scan, sast, secrets, sbom, dependency-review                                        |
-| **Release (Changesets)**       | `.github/workflows/release.yml`             | `push` → `main`                                            | ✅ Sí                    | `fetch-depth: 0` explícito para Changesets                                                             |
-| **CD Deploy Pipeline**         | `.github/workflows/deploy.yml`              | `push` → `main`, `workflow_dispatch`                       | ✅ Sí (job docker-build) | 7 jobs: docker-build, ecr-push, deploy-staging, deploy-production + 3 skipped                          |
-| **Preview Environments**       | `.github/workflows/preview.yml`             | `pull_request` (opened/reopened/sync), `workflow_dispatch` | ✅ Sí                    | Valida backend con Floci + Postgres efímera                                                            |
-| **CI Enterprise**              | `.github/workflows/ci-enterprise.yml`       | `workflow_dispatch`, `workflow_call`                       | ✅ Sí                    | **No aplica a este monorepo** (paths `frontend/`, `backend/` inexistentes)                             |
-| **Scheduled Security**         | `.github/workflows/scheduled-security.yml`  | `cron` (Mon 03:00 UTC), `workflow_dispatch`                | ✅ Sí (checkout only)    | Gitleaks full history scan + SARIF upload                                                              |
-| **Security Digest**            | `.github/workflows/security-digest.yml`     | `cron` (Mon 03:00 UTC), `workflow_dispatch`                | ✅ Sí (checkout only)    | SBOM + OSV Scanner + digest comment to PR                                                              |
-| **Setup Monorepo (composite)** | `.github/actions/setup-monorepo/action.yml` | Invocado por 6 jobs de `ci.yml`                            | ✅ Sí                    | **28 líneas**; checkout (fetch-depth: 0), setup-node, npm ci, cache Vitest                             |
+| Workflow / Action              | Archivo                                     | Disparador                                                 | Usa `.nvmrc`             | Notas                                                                                                            |
+| ------------------------------ | ------------------------------------------- | ---------------------------------------------------------- | ------------------------ | ---------------------------------------------------------------------------------------------------------------- |
+| **CI principal**               | `.github/workflows/ci.yml`                  | `pull_request` → `main`                                    | ✅ Sí (vía composite)    | 7 jobs: changes, quality, test-unit-client, test-unit-server, test-integration, test-smoke, build, e2e           |
+| **Code Quality (reusable)**    | `.github/workflows/quality.yml`             | `workflow_call`, `workflow_dispatch`                       | ✅ Sí                    | Lint + format + typecheck (skipped) por workspace                                                                |
+| **Security**                   | `.github/workflows/security.yml`            | `pull_request` → `main`, `push` → `main`, `workflow_call`  | ✅ Sí                    | 5 jobs: dependency-scan, sast, secrets, sbom, dependency-review                                                  |
+| **Release (Changesets)**       | `.github/workflows/release.yml`             | `push` → `main`                                            | ✅ Sí                    | `fetch-depth: 0` explícito para Changesets                                                                       |
+| **CD Deploy Pipeline**         | `.github/workflows/deploy.yml`              | `push` → `main`, `workflow_dispatch`                       | ✅ Sí (job docker-build) | 7 jobs: docker-build, ecr-push, deploy-staging, deploy-production + 3 skipped                                    |
+| **Preview Environments**       | `.github/workflows/preview.yml`             | `pull_request` (opened/reopened/sync), `workflow_dispatch` | ✅ Sí                    | Valida backend con Floci + Postgres efímera                                                                      |
+| **CI Enterprise**              | `.github/workflows/ci-enterprise.yml`       | `workflow_dispatch`, `workflow_call`                       | ✅ Sí                    | **No aplica a este monorepo** (paths `frontend/`, `backend/` inexistentes)                                       |
+| **Scheduled Security**         | `.github/workflows/scheduled-security.yml`  | `cron` (Mon 03:00 UTC), `workflow_dispatch`                | ✅ Sí (checkout only)    | Gitleaks full history scan + SARIF upload                                                                        |
+| **Security Digest**            | `.github/workflows/security-digest.yml`     | `cron` (Mon 03:00 UTC), `workflow_dispatch`                | ✅ Sí (checkout only)    | SBOM + OSV Scanner + digest comment to PR                                                                        |
+| **Setup Monorepo (composite)** | `.github/actions/setup-monorepo/action.yml` | Invocado por 6 jobs de `ci.yml`                            | ✅ Sí                    | **23 líneas**; setup-node, npm ci, cache Vitest (**sin checkout** — el job invocador clona con `fetch-depth: 0`) |
 
 > ⚠️ **Nota sobre `pr-validation.yml`**: Este workflow fue **eliminado** (agosto 2026) como parte de la limpieza de workflows zombie (change `ci-cleanup-enterprise`). Era código muerto intencional con matrix hardcoded `[18.x, 20.x]`. Ver sección 18.
 
@@ -155,11 +160,20 @@ Ocurría en el step `Report Client Unit Tests` (y análogos) de `ci.yml`. `dorny
 
 Nueve workflows + la composite action leen la versión de Node desde `.nvmrc` mediante `node-version-file: '.nvmrc'` en `actions/setup-node@v4`. **Este archivo es la única fuente de verdad**. Cuando necesites cambiar la versión de Node en CI:
 
-1. Edita **solo** `.nvmrc` (ej: `22.22.2`)
-2. Commit atómico: `chore: bump Node to 22.22.2 in .nvmrc`
+1. Edita **solo** `.nvmrc` (versión actual: `22.23.1` — actualizado ago 2026)
+2. Commit atómico: `chore: bump Node to 22.23.1 in .nvmrc`
 3. Push y verifica que CI vuelva a pasar (re-run si necesario)
 
 > ❌ **Anti-pattern**: Editar `node-version:` o `node-version-file:` workflow por workflow. Esto crea deriva, olvidos y errores sutiles. Un solo archivo, un solo commit.
+
+### ⚠️ Deadline plataforma: runtime Node 20 de las ACTIONS (16-sep-2026)
+
+> **NO confundir con la versión de Node del proyecto** (`.nvmrc` = 22.23.1). Este aviso es sobre el **runtime interno de las GitHub Actions**, verificado en internet (ago 2026):
+>
+> - GitHub **elimina Node 20 de los runners el 16-sep-2026**. Cualquier action cuyo `action.yml` declare `runs.using: node20` dejará de funcionar esa fecha.
+> - Actions afectadas en este repo (runtime node20): `setup-node@v4` (6 usos), `checkout@v4` (release.yml:15), `gitleaks-action@v2` (security.yml:83). Requieren verificación de major node24: `paths-filter@v3`, `test-reporter@v3`, `find-comment@v3`, `create-or-update-comment@v4`, `cache@v4`, `github-script@v7`.
+> - Fix: migrar a majors con runtime node24 (`setup-node@v5/v7`, `checkout@v6`, `gitleaks@v3`, etc.) — gestionado por el change OpenSpec `ci-security-hardening`.
+> - Subir `.nvmrc` **NO** resuelve esto: el runtime de las actions es independiente del Node que instala `setup-node` para el job.
 
 ### Cuándo bumpear `.nvmrc`
 
@@ -202,12 +216,12 @@ strategy:
 
 ### Dónde está `fetch-depth: 0` configurado HOY
 
-| Archivo / Job                               | Línea                  | Propósito                                      |
-| ------------------------------------------- | ---------------------- | ---------------------------------------------- |
-| `.github/actions/setup-monorepo/action.yml` | Checkout step          | Cubre 6 jobs de `ci.yml` (test-\*, build, e2e) |
-| `.github/workflows/release.yml`             | Checkout step          | Changesets necesita diffs                      |
-| `.github/workflows/security.yml`            | Job `secrets` checkout | Gitleaks OSS diff scan (`base.sha..head.sha`)  |
-| `.github/workflows/scheduled-security.yml`  | Checkout step          | Gitleaks full history (`--all`)                |
+| Archivo / Job                              | Línea                            | Propósito                                                              |
+| ------------------------------------------ | -------------------------------- | ---------------------------------------------------------------------- |
+| `.github/workflows/ci.yml` (6 jobs)        | Checkout step (`fetch-depth: 0`) | Cubre test-\*, build, e2e (1 checkout único; la composite ya no clona) |
+| `.github/workflows/release.yml`            | Checkout step                    | Changesets necesita diffs                                              |
+| `.github/workflows/security.yml`           | Job `secrets` checkout           | Gitleaks OSS diff scan (`base.sha..head.sha`)                          |
+| `.github/workflows/scheduled-security.yml` | Checkout step                    | Gitleaks full history (`--all`)                                        |
 
 ### Workflows que NO lo necesitan (y no lo tienen)
 
@@ -326,18 +340,21 @@ services:
 
 ## 11. Mantenimiento de la composite action `setup-monorepo`
 
-**Archivo único:** `.github/actions/setup-monorepo/action.yml` (28 líneas)
+**Archivo único:** `.github/actions/setup-monorepo/action.yml` (23 líneas)
 
 ### Qué hace (pasos en orden)
 
-1. `actions/checkout@v5` con `fetch-depth: 0`
-2. `actions/setup-node@v4` con `node-version-file: '.nvmrc'` + cache npm
-3. `npm ci` (install determinístico)
-4. `actions/cache@v4` para `node_modules/.cache/vitest` (key: `vitest-${OS}-${hash(package-lock.json)}`)
+1. `actions/setup-node@v4` con `node-version-file: '.nvmrc'` + cache npm
+2. `npm ci` (install determinístico)
+3. `actions/cache@v4` para `node_modules/.cache/vitest` (key: `vitest-${OS}-${hash(package-lock.json)}`)
+
+### Qué NO hace (desde ago 2026)
+
+- **NO hace checkout.** Los jobs invocadores clonan antes con `actions/checkout@v5` + `fetch-depth: 0`. Si añades checkout a la composite, reintroducirás el doble checkout (ver Caso 2, sección 3).
 
 ### Usado por
 
-6 jobs de `ci.yml` como **primer step**: `test-unit-client`, `test-unit-server`, `test-integration`, `test-smoke`, `build`, `e2e`.
+6 jobs de `ci.yml` como **segundo step** (tras el checkout): `test-unit-client`, `test-unit-server`, `test-integration`, `test-smoke`, `build`, `e2e`.
 
 ### Cuándo editar
 

@@ -430,20 +430,15 @@ updates:
 
 ### 6.1 Composite Action: `setup-monorepo` (`.github/actions/setup-monorepo/action.yml`)
 
-Acción reutilizable que encapsula el setup estándar del monorepo. **Referencia: `.github/actions/setup-monorepo/action.yml:1-40`**
+Acción reutilizable que encapsula el setup estándar del monorepo (Node + npm ci + cache Vitest). **NO hace checkout**: el job invocador debe ejecutar `actions/checkout@v5` con `fetch-depth: 0` ANTES (requisito de `dorny/test-reporter`). **Referencia: `.github/actions/setup-monorepo/action.yml:1-23`**
 
 ```yaml
 # .github/actions/setup-monorepo/action.yml — composite action
 name: 'Setup Monorepo'
-description: 'Checkout, setup Node, npm ci, cache Vitest'
+description: 'Setup Node.js, install dependencies, and cache Vitest (requires prior actions/checkout with fetch-depth: 0 in the calling job)'
 runs:
   using: 'composite'
   steps:
-    - name: Checkout repository
-      uses: actions/checkout@v5
-      with:
-        fetch-depth: 0 # Necesario para Changesets, git history, vitest --changed
-
     - name: Setup Node
       uses: actions/setup-node@v4
       with:
@@ -462,7 +457,18 @@ runs:
         restore-keys: vitest-${{ runner.os }}-
 ```
 
-**Uso en workflows:** `uses: ./.github/actions/setup-monorepo` (ej. `ci.yml`, `deploy.yml`, `preview.yml`).
+**Uso en workflows:** SOLO `ci.yml` (6 jobs: test-unit-client, test-unit-server, test-integration, test-smoke, build, e2e). `deploy.yml`, `preview.yml`, `quality.yml`, etc. **NO usan esta composite** — configuran Node directamente en sus jobs.
+
+**Patrón de checkout único (1 checkout por job):**
+
+```yaml
+# ci.yml — cada job que usa setup-monorepo
+steps:
+  - uses: actions/checkout@v5
+    with:
+      fetch-depth: 0 # historial completo → test-reporter (exit 128 sin él)
+  - uses: ./.github/actions/setup-monorepo
+```
 
 ### 6.2 Job `build` en `ci.yml` (ref: `ci.yml:180-195`)
 
@@ -1622,7 +1628,7 @@ BASE_URL=${{ secrets.STAGING_URL }} npm run test:smoke:ci --workspace=server-exp
 | **Caching Strategy**                 | npm (setup-node), Vitest (composite action), Playwright browsers (actions/cache)                                                                      | CI ~40-60% más rápido en runs posteriores                                                               |
 | **Test Reporting (JUnit)**           | `dorny/test-reporter@v3` en todos los test jobs                                                                                                       | Fallos como annotations clickeables en PR Checks; feedback inmediato                                    |
 | **Reusable Workflows**               | `quality.yml` via `workflow_call` desde `ci.yml`                                                                                                      | DRY: lint/format/typecheck definido una vez, usado en CI y manual                                       |
-| **Composite Actions**                | `setup-monorepo` (checkout + node + npm ci + vitest cache)                                                                                            | Encapsula setup común; versionado independiente; testeable                                              |
+| **Composite Actions**                | `setup-monorepo` (node + npm ci + vitest cache; checkout es del job invocador)                                                                        | Encapsula setup común; versionado independiente; testeable                                              |
 | **OIDC for Cloud Auth**              | `deploy.yml: ecr-push`, `deploy-staging`, `deploy-production` → `aws-actions/configure-aws-credentials@v4` con `id-token: write`                      | **Cero credenciales estáticas**; token JWT de corta vida; audit trail en CloudTrail                     |
 | **Service Containers**               | `ci.yml: test-integration`, `test-smoke`, `e2e` → `postgres:16-alpine` con healthcheck                                                                | BD real efímera por job; aislamiento total; no BD compartida                                            |
 | **ECS Circuit Breaker**              | `deploy.yml: update-service --deployment-configuration deploymentCircuitBreaker={enable=true,rollback=true}`                                          | Rollback automático si health checks fallan; zero-downtime deploy seguro                                |
@@ -1909,9 +1915,9 @@ flowchart TD
 
 ### Composite Actions (`.github/actions/`)
 
-| Archivo                     | Propósito                                        |
-| --------------------------- | ------------------------------------------------ |
-| `setup-monorepo/action.yml` | Checkout + Node (.nvmrc) + npm ci + Cache Vitest |
+| Archivo                     | Propósito                                                                            |
+| --------------------------- | ------------------------------------------------------------------------------------ |
+| `setup-monorepo/action.yml` | Node (.nvmrc) + npm ci + Cache Vitest (checkout: job invocador con `fetch-depth: 0`) |
 
 ### Hooks Husky (`.husky/`)
 
