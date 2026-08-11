@@ -56,6 +56,10 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
       - uses: ./.github/actions/setup-monorepo
 
       - name: Run Client Unit Tests
@@ -77,6 +81,10 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
       - uses: ./.github/actions/setup-monorepo
 
       - name: Run Server Unit Tests
@@ -111,6 +119,10 @@ jobs:
           --health-timeout 5s
           --health-retries 5
     steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
       - uses: ./.github/actions/setup-monorepo
 
       - name: Prisma Migrate Deploy
@@ -154,6 +166,10 @@ jobs:
           --health-timeout 5s
           --health-retries 5
     steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
       - uses: ./.github/actions/setup-monorepo
 
       - name: Prisma Migrate Deploy
@@ -184,6 +200,10 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
       - uses: ./.github/actions/setup-monorepo
 
       - name: Build All Workspaces
@@ -210,6 +230,10 @@ jobs:
           --health-timeout 5s
           --health-retries 5
     steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
       - uses: ./.github/actions/setup-monorepo
 
       - name: Prisma Migrate Deploy
@@ -252,6 +276,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 2
     steps:
+      - uses: actions/checkout@v5
+
       - name: Assert deleted workflows are absent
         run: |
           if test -f .github/workflows/pr-validation.yml; then
