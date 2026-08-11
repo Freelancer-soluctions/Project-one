@@ -89,6 +89,10 @@ jobs:
           DATABASE_URL: postgresql://test:test@localhost:5432/project_one_preview
 
       # 6. Start server from built image with service containers
+      # AES_GCM_KEY: dummy base64 of 32 zero bytes — required by encryptionMiddleware
+      # bootstrap (apps/server/src/middleware/encription-prisma-middleware.js) for module
+      # import to succeed. Preview never persists or decrypts real data, so a predictable
+      # dummy key is safe and keeps real AES_GCM_KEY out of CI secrets.
       - name: Start server container
         run: |
           docker run -d \
@@ -101,6 +105,8 @@ jobs:
             -e AWS_REGION=us-east-1 \
             -e PORT=3000 \
             -e ENABLE_SMOKE_ROUTE=true \
+            -e AES_GCM_KEY=AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA= \
+            -e ALGORITHM=aes-256-gcm \
             preview-server
 
       # 7. Health check with retries

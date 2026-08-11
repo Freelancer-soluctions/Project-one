@@ -61,6 +61,12 @@ services:
       - AWS_SECRET_ACCESS_KEY=test
       - AWS_REGION=us-east-1
       - PORT=3000
+      # AES_GCM_KEY: dummy base64 of 32 zero bytes — required by encryptionMiddleware
+      # bootstrap (apps/server/src/middleware/encription-prisma-middleware.js) so the
+      # module import does not throw before Express listens. Preview stack never
+      # persists or decrypts real data, so a predictable dummy key is safe.
+      - AES_GCM_KEY=AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
+      - ALGORITHM=aes-256-gcm
     depends_on:
       db:
         condition: service_healthy
