@@ -67,7 +67,7 @@ jobs:
 
       # 2. Setup Node.js
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version-file: '.nvmrc'
           cache: 'npm'
@@ -171,7 +171,7 @@ jobs:
       # 10. Find existing preview comment (marker-based)
       - name: Find existing preview comment
         if: always() && github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork == false
-        uses: peter-evans/find-comment@v3
+        uses: peter-evans/find-comment@v4
         id: find-comment
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
@@ -182,7 +182,8 @@ jobs:
       # 11. Create or update PR comment with combined preview info
       - name: Create or update preview comment
         if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork == false
-        uses: peter-evans/create-or-update-comment@v4
+        uses: peter-evans/create-or-update-comment@v5
+        continue-on-error: true
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           issue-number: ${{ github.event.pull_request.number }}
@@ -210,12 +211,12 @@ jobs:
             *Workflow: [Preview Environments](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})*
 
           edit-mode: replace
-          continue-on-error: true
 
       # 12. Report backend validation failure if smoke tests failed
       - name: Report backend failure
         if: failure() && github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork == false
-        uses: peter-evans/create-or-update-comment@v4
+        uses: peter-evans/create-or-update-comment@v5
+        continue-on-error: true
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           issue-number: ${{ github.event.pull_request.number }}
@@ -242,4 +243,3 @@ jobs:
             *Workflow: [Preview Environments](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})*
 
           edit-mode: replace
-          continue-on-error: true

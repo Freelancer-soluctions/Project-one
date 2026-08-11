@@ -21,12 +21,12 @@ jobs:
     steps:
       - uses: actions/checkout@v5.0.0
       - name: Generate CycloneDX SBOM
-        uses: anchore/sbom-action@v0.17.2
+        uses: anchore/sbom-action@v0.24.0
         with:
           format: cyclonedx-json
           output-file: sbom-project-one.json
       - name: Upload SBOM artifact
-        uses: actions/upload-artifact@v4.6.2
+        uses: actions/upload-artifact@v5
         with:
           name: sbom
           path: sbom-project-one.json
@@ -44,7 +44,7 @@ jobs:
           scan-args: --format=json --output=osv-report.json package-lock.json
         continue-on-error: true
       - name: Upload OSV Report artifact
-        uses: actions/upload-artifact@v4.6.2
+        uses: actions/upload-artifact@v5
         with:
           name: osv-report
           path: osv-report.json
@@ -58,18 +58,18 @@ jobs:
       pull-requests: write
     steps:
       - name: Download SBOM artifact
-        uses: actions/download-artifact@v4.2.1
+        uses: actions/download-artifact@v5
         with:
           name: sbom
           path: artifacts/sbom
       - name: Download OSV Report artifact
-        uses: actions/download-artifact@v4.2.1
+        uses: actions/download-artifact@v5
         with:
           name: osv-report
           path: artifacts/osv-report
       - name: Find latest scheduled-security run
         id: sibling-run
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           script: |
             const runs = await github.rest.actions.listWorkflowRuns({
@@ -86,7 +86,7 @@ jobs:
             core.setOutput('run_id', runs.data.workflow_runs[0].id.toString());
       - name: Download Gitleaks Report from sibling
         if: steps.sibling-run.outputs.run_id != ''
-        uses: actions/download-artifact@v4.2.1
+        uses: actions/download-artifact@v5
         with:
           name: gitleaks-report
           path: artifacts/gitleaks
@@ -100,13 +100,13 @@ jobs:
             artifacts/gitleaks/gitleaks-report.json \
             security-digest.md
       - name: Upload Security Digest artifact
-        uses: actions/upload-artifact@v4.6.2
+        uses: actions/upload-artifact@v5
         with:
           name: security-digest
           path: security-digest.md
       - name: Post digest comment to PR
         if: inputs.pull_request_number != ''
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           script: |
             const fs = require('fs');
