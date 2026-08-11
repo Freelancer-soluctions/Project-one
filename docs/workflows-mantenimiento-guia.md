@@ -158,7 +158,7 @@ Ocurría en el step `Report Client Unit Tests` (y análogos) de `ci.yml`. `dorny
 
 ### `.nvmrc` = Single Source of Truth
 
-Nueve workflows + la composite action leen la versión de Node desde `.nvmrc` mediante `node-version-file: '.nvmrc'` en `actions/setup-node@v4`. **Este archivo es la única fuente de verdad**. Cuando necesites cambiar la versión de Node en CI:
+Nueve workflows + la composite action leen la versión de Node desde `.nvmrc` mediante `node-version-file: '.nvmrc'` en `actions/setup-node@v5`. **Este archivo es la única fuente de verdad**. Cuando necesites cambiar la versión de Node en CI:
 
 1. Edita **solo** `.nvmrc` (versión actual: `22.23.1` — actualizado ago 2026)
 2. Commit atómico: `chore: bump Node to 22.23.1 in .nvmrc`
@@ -166,12 +166,12 @@ Nueve workflows + la composite action leen la versión de Node desde `.nvmrc` me
 
 > ❌ **Anti-pattern**: Editar `node-version:` o `node-version-file:` workflow por workflow. Esto crea deriva, olvidos y errores sutiles. Un solo archivo, un solo commit.
 
-### ⚠️ Deadline plataforma: runtime Node 20 de las ACTIONS (16-sep-2026)
+### ⚠️ Deadline plataforma: runtime Node 20 de las ACTIONS (16-sep-2026) — ✅ **RESUELTO**
 
 > **NO confundir con la versión de Node del proyecto** (`.nvmrc` = 22.23.1). Este aviso es sobre el **runtime interno de las GitHub Actions**, verificado en internet (ago 2026):
 >
 > - GitHub **elimina Node 20 de los runners el 16-sep-2026**. Cualquier action cuyo `action.yml` declare `runs.using: node20` dejará de funcionar esa fecha.
-> - Actions afectadas en este repo (runtime node20): `setup-node@v4` (6 usos), `checkout@v4` (release.yml:15), `gitleaks-action@v2` (security.yml:83). Requieren verificación de major node24: `paths-filter@v3`, `test-reporter@v3`, `find-comment@v3`, `create-or-update-comment@v4`, `cache@v4`, `github-script@v7`.
+> - ✅ **Resuelto (ago 2026, PR A 7873cc64)**: todas las actions migradas a node24. La lista histórica de actions afectadas era: `setup-node@v4` (6 usos), `checkout@v4` (release.yml:15), `gitleaks-action@v2` (security.yml:83). Requieren verificación de major node24: `paths-filter@v3`, `test-reporter@v3`, `find-comment@v3`, `create-or-update-comment@v4`, `cache@v4`, `github-script@v7`.
 > - Fix: migrar a majors con runtime node24 (`setup-node@v5/v7`, `checkout@v6`, `gitleaks@v3`, etc.) — gestionado por el change OpenSpec `ci-security-hardening`.
 > - Subir `.nvmrc` **NO** resuelve esto: el runtime de las actions es independiente del Node que instala `setup-node` para el job.
 
@@ -210,7 +210,7 @@ strategy:
 | Herramienta / Caso                                            | Por qué necesita historial completo                                        |
 | ------------------------------------------------------------- | -------------------------------------------------------------------------- |
 | `dorny/test-reporter@v3`                                      | Adjunta check runs al PR merge SHA; sin ese SHA falla con exit 128         |
-| `changesets/action@v1`                                        | Calcula diffs entre `main` y la rama para versionar; necesita commits base |
+| `changesets/action@v2`                                        | Calcula diffs entre `main` y la rama para versionar; necesita commits base |
 | Cualquier `git log`, `git ls-files`, `git diff` contra un SHA | Operan sobre objetos que no existen en shallow clone                       |
 | `gitleaks` full history scan (scheduled-security.yml)         | Escanea `--all` refs; requiere todos los commits                           |
 

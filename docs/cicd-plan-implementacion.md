@@ -504,7 +504,7 @@ changes (dorny/paths-filter)
 
 | Capa cache                              | Qué cachea                                                                             | Key                          | Recuperación                        |
 | --------------------------------------- | -------------------------------------------------------------------------------------- | ---------------------------- | ----------------------------------- |
-| **npm** (built-in `cache: 'npm'`)       | `~/.npm`                                                                               | hash `package-lock.json`     | Automática con setup-node@v4        |
+| **npm** (built-in `cache: 'npm'`)       | `~/.npm`                                                                               | hash `package-lock.json`     | Automática con setup-node@v5        |
 | **Vitest** (actions/cache)              | `node_modules/.cache/vitest` \* ${{ runner.os }}-${{ hashFiles('package-lock.json') }} | Manual + restore-keys        |
 | **Playwright browsers** (actions/cache) | `~/.cache/ms-playwright`                                                               | hash `e2e/package-lock.json` | Manual, instalar solo si cache miss |
 
@@ -544,7 +544,7 @@ description: 'Setup Node.js, install dependencies, and cache Vitest (requires pr
 runs:
   using: 'composite'
   steps:
-    - uses: actions/setup-node@v4
+    - uses: actions/setup-node@v5
       with:
         node-version-file: '.nvmrc'
         cache: 'npm'
@@ -731,7 +731,7 @@ jobs:
       - uses: actions/checkout@v5
       - uses: github/codeql-action/init@v4
         with:
-          languages: javascript
+          languages: javascript,actions
       - name: Install dependencies
         run: npm ci
       - uses: github/codeql-action/analyze@v4
@@ -915,7 +915,7 @@ jobs:
       - name: Capture Vercel preview URL
         if: github.event_name == 'pull_request'
         id: vercel-url
-        continue-on-error: true
+        # Fail-closed (PR B/C): findings fail the run; artifacts uploaded via if: always()
         run: |
           # Use PR head SHA for commit status lookup
           SHA="${{ github.event.pull_request.head.sha }}"
@@ -979,7 +979,7 @@ jobs:
             *Workflow: [Preview Environments](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})*
 
           edit-mode: replace
-          continue-on-error: true
+          # Fail-closed (PR B/C): findings fail the run; artifacts uploaded via if: always()
 
       # 12. Report backend validation failure if smoke tests failed
       - name: Report backend failure
@@ -1011,7 +1011,7 @@ jobs:
             *Workflow: [Preview Environments](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})*
 
           edit-mode: replace
-          continue-on-error: true
+          # Fail-closed (PR B/C): findings fail the run; artifacts uploaded via if: always()
 ```
 
 ### Stage 7 — Post-merge: CD (NUEVO)
@@ -1089,7 +1089,7 @@ jobs:
 
       # 2. Setup Node.js (needed for test:smoke if running in-process)
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version-file: '.nvmrc'
           cache: 'npm'
@@ -1184,7 +1184,7 @@ jobs:
         uses: actions/checkout@v5
 
       - name: Configure AWS credentials (OIDC)
-        uses: aws-actions/configure-aws-credentials@v4
+        uses: aws-actions/configure-aws-credentials@v6
         with:
           role-to-assume: ${{ vars.AWS_ROLE_ARN }}
           aws-region: us-east-1
@@ -1223,7 +1223,7 @@ jobs:
 
     steps:
       - name: Configure AWS credentials (OIDC)
-        uses: aws-actions/configure-aws-credentials@v4
+        uses: aws-actions/configure-aws-credentials@v6
         with:
           role-to-assume: ${{ vars.AWS_ROLE_ARN }}
           aws-region: us-east-1
@@ -1338,7 +1338,7 @@ jobs:
 
     steps:
       - name: Configure AWS credentials (OIDC)
-        uses: aws-actions/configure-aws-credentials@v4
+        uses: aws-actions/configure-aws-credentials@v6
         with:
           role-to-assume: ${{ vars.AWS_ROLE_ARN }}
           aws-region: us-east-1
@@ -1506,7 +1506,7 @@ jobs:
   gitleaks-full-scan:
     name: Gitleaks Full History Scan
     runs-on: ubuntu-latest
-    continue-on-error: true
+    # Fail-closed (PR B/C): findings fail the run; artifacts uploaded via if: always()
 
     steps:
       - uses: actions/checkout@v5
@@ -1519,7 +1519,7 @@ jobs:
           args: git --log-opts="--all" --report-format=json --report-path=gitleaks-report.json --redact
 
       - name: Upload Gitleaks JSON report
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: gitleaks-report
           path: gitleaks-report.json

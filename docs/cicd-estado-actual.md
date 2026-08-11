@@ -440,7 +440,7 @@ runs:
   using: 'composite'
   steps:
     - name: Setup Node
-      uses: actions/setup-node@v4
+      uses: actions/setup-node@v5
       with:
         node-version-file: '.nvmrc' # Single source of truth para versión Node
         cache: 'npm' # Cache global de npm (~/.npm)
@@ -523,7 +523,7 @@ docker-build:
         --health-cmd="pg_isready -U test -d project_one_cd"
         --health-interval=5s --health-timeout=3s --health-retries=10
   steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     - uses: ./.github/actions/setup-monorepo
     - name: Build Docker image (SHA + latest tags)
       run: |
@@ -602,7 +602,7 @@ Similar a `docker-build` pero optimizado para preview environments por PR:
 
 | Capa                    | Herramienta                     | Key                                                             | Restore Keys             | Dónde se usa                                                                |
 | ----------------------- | ------------------------------- | --------------------------------------------------------------- | ------------------------ | --------------------------------------------------------------------------- |
-| **npm**                 | `actions/setup-node@v4`         | `cache: 'npm'`                                                  | —                        | Todos los workflows (`setup-monorepo`, `quality.yml`, `security.yml`, etc.) |
+| **npm**                 | `actions/setup-node@v5`         | `cache: 'npm'`                                                  | —                        | Todos los workflows (`setup-monorepo`, `quality.yml`, `security.yml`, etc.) |
 | **Vitest**              | `actions/cache@v4` (composite)  | `vitest-${{runner.os}}-${{hashFiles('package-lock.json')}}`     | `vitest-${{runner.os}}-` | `.github/actions/setup-monorepo/action.yml`                                 |
 | **Playwright browsers** | `actions/cache@v4`              | `playwright-${{runner.os}}-${{hashFiles('package-lock.json')}}` | —                        | `ci.yml:e2e` job                                                            |
 | **Docker layer cache**  | GitHub Actions cache (implicit) | —                                                               | —                        | `docker build` en `deploy.yml`, `preview.yml`                               |
@@ -919,12 +919,12 @@ secrets:
 gitleaks-full-scan:
   name: Gitleaks Full History Scan
   runs-on: ubuntu-latest
-  continue-on-error: true # No bloquear repo por hallazgos históricos
+  # Fail-closed (PR B/C): findings fail the run; artifacts uploaded via if: always()
   permissions:
     contents: read
     security-events: write
   steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
       with:
         fetch-depth: 0 # Historial COMPLETO
     - name: Gitleaks full scan (JSON report)
@@ -932,7 +932,7 @@ gitleaks-full-scan:
       with:
         args: detect --source=. --log-opts="--all" --report-format=json --report-path=gitleaks-report.json --config=.gitleaks.toml
     - name: Upload JSON artifact
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v5
       with:
         name: gitleaks-report
         path: gitleaks-report.json
@@ -957,7 +957,7 @@ gitleaks-full-scan:
 jobs:
   sbom:
     name: Generate SBOM
-    uses: anchore/sbom-action@v0.17.2
+    uses: anchore/sbom-action@v0.24.0
     with:
       format: cyclonedx-json
       output-file: sbom-project-one.json
@@ -966,15 +966,15 @@ jobs:
   vulnerability-review:
     name: Vulnerability & License Review
     runs-on: ubuntu-latest
-    continue-on-error: true
+    # Fail-closed (PR B/C): findings fail the run; artifact uploaded via if: always()
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: OSV Scanner
-        uses: google/osv-scanner-action@v2.3.8
+        uses: google/osv-scanner-action@v2.5.0
         with:
           scan-args: --format=json --output=osv-report.json package-lock.json
       - name: Upload OSV artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: osv-report
           path: osv-report.json
@@ -989,11 +989,11 @@ jobs:
       actions: read
       pull-requests: write # Para comentar en PR
     steps:
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v5
         with:
           name: sbom-project-one
           path: artifacts/
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v5
         with:
           name: osv-report
           path: artifacts/
@@ -1012,7 +1012,7 @@ jobs:
             });
             return runs.data.workflow_runs[0]?.id;
       - name: Download gitleaks artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: gitleaks-report
           path: artifacts/
@@ -1025,7 +1025,7 @@ jobs:
             artifacts/gitleaks-report.json \
             security-digest.md
       - name: Upload digest artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: security-digest
           path: security-digest.md
@@ -1116,8 +1116,8 @@ jobs:
     name: Lint + Format Check + TypeCheck
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
         with:
           node-version-file: '.nvmrc'
           cache: 'npm'
@@ -1209,7 +1209,7 @@ jobs:
           POSTGRES_PASSWORD: test
           POSTGRES_DB: project_one_preview
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: ./.github/actions/setup-monorepo
       - name: Build server Docker image
         run: docker build -t preview-server -f apps/server/Dockerfile .
@@ -1356,7 +1356,7 @@ deploy-staging:
     id-token: write
   steps:
     - name: Configure AWS Credentials (OIDC)
-      uses: aws-actions/configure-aws-credentials@v4
+      uses: aws-actions/configure-aws-credentials@v6
       with:
         role-to-assume: ${{ vars.AWS_ROLE_ARN }}
         aws-region: us-east-1
@@ -1629,7 +1629,7 @@ BASE_URL=${{ secrets.STAGING_URL }} npm run test:smoke:ci --workspace=server-exp
 | **Test Reporting (JUnit)**           | `dorny/test-reporter@v3` en todos los test jobs                                                                                                       | Fallos como annotations clickeables en PR Checks; feedback inmediato                                    |
 | **Reusable Workflows**               | `quality.yml` via `workflow_call` desde `ci.yml`                                                                                                      | DRY: lint/format/typecheck definido una vez, usado en CI y manual                                       |
 | **Composite Actions**                | `setup-monorepo` (node + npm ci + vitest cache; checkout es del job invocador)                                                                        | Encapsula setup común; versionado independiente; testeable                                              |
-| **OIDC for Cloud Auth**              | `deploy.yml: ecr-push`, `deploy-staging`, `deploy-production` → `aws-actions/configure-aws-credentials@v4` con `id-token: write`                      | **Cero credenciales estáticas**; token JWT de corta vida; audit trail en CloudTrail                     |
+| **OIDC for Cloud Auth**              | `deploy.yml: ecr-push`, `deploy-staging`, `deploy-production` → `aws-actions/configure-aws-credentials@v6` con `id-token: write`                      | **Cero credenciales estáticas**; token JWT de corta vida; audit trail en CloudTrail                     |
 | **Service Containers**               | `ci.yml: test-integration`, `test-smoke`, `e2e` → `postgres:16-alpine` con healthcheck                                                                | BD real efímera por job; aislamiento total; no BD compartida                                            |
 | **ECS Circuit Breaker**              | `deploy.yml: update-service --deployment-configuration deploymentCircuitBreaker={enable=true,rollback=true}`                                          | Rollback automático si health checks fallan; zero-downtime deploy seguro                                |
 | **Environment-based Approval Gates** | `deploy.yml: environment: staging` / `environment: production`                                                                                        | Staging: auto-deploy; Production: **manual approval** requerida (protection rule)                       |
