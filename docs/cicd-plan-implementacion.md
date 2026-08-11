@@ -715,13 +715,15 @@ jobs:
     steps:
       - uses: actions/checkout@v5
       - name: Trivy filesystem scan
-        uses: aquasecurity/trivy-action@0.33.1
+        uses: aquasecurity/trivy-action@0.36.0
         with:
           scan-type: fs
           scan-ref: .
           severity: CRITICAL,HIGH
           format: sarif
           output: trivy-results.sarif
+          exit-code: '1'
+          ignore-unfixed: 'true'
 
   sast:
     runs-on: ubuntu-latest
@@ -757,7 +759,7 @@ jobs:
     if: github.event_name == 'pull_request'
     steps:
       - uses: actions/checkout@v5
-      - uses: actions/dependency-review-action@v4
+      - uses: actions/dependency-review-action@v5
         with:
           license-check: true
           vulnerability-check: true
@@ -766,11 +768,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
-      - uses: anchore/sbom-action@v0
+      - uses: anchore/sbom-action@v0.24.0
         with:
           format: cyclonedx-json
           output-file: sbom-project-one.json
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v5
         with:
           name: sbom
           path: sbom-project-one.json
@@ -835,7 +837,7 @@ jobs:
 
       # 2. Setup Node.js
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version-file: '.nvmrc'
           cache: 'npm'

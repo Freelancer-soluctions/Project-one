@@ -237,28 +237,37 @@ strategy:
 
 ## 7. Mantenimiento de third-party actions
 
-| Action                                  | Versión usada | Workflow(s)                                    | Cadencia de actualización | Riesgo si se queda vieja                        |
-| --------------------------------------- | ------------- | ---------------------------------------------- | ------------------------- | ----------------------------------------------- |
-| `actions/checkout`                      | `@v5`         | Todos (12 workflows + composite)               | Mensual (Dependabot)      | Breaking changes en API, CVEs en runner         |
-| `actions/setup-node`                    | `@v4`         | Todos los que usan Node                        | Mensual                   | Node versions deprecadas, cache corruption      |
-| `actions/cache`                         | `@v4`         | setup-monorepo (Vitest), ci.yml (Playwright)   | Mensual                   | Cache poisoning, key mismatches                 |
-| `actions/upload-artifact`               | `@v4`         | security.yml (sbom), security-digest.yml       | Mensual                   | Artifact retention, upload failures             |
-| `actions/dependency-review-action`      | `@v4`         | security.yml (dependency-review)               | Mensual                   | False negatives en vuln detection               |
-| `dorny/paths-filter`                    | `@v3`         | ci.yml (changes), ci-enterprise.yml            | Trimestral                | Path matching bugs, missed triggers             |
-| `dorny/test-reporter`                   | `@v3`         | ci.yml (6 report steps)                        | Mensual                   | Exit 128 si fetch-depth mal; format changes     |
-| `github/codeql-action/init`             | `@v4`         | security.yml (sast)                            | Mensual                   | Query pack updates, language support            |
-| `github/codeql-action/analyze`          | `@v4`         | security.yml (sast)                            | Mensual                   | SARIF upload failures                           |
-| `aquasecurity/trivy-action`             | `@0.33.1`     | security.yml (dependency-scan)                 | Mensual                   | DB de vulns desactualizada → false negatives    |
-| `anchore/sbom-action`                   | `@v0.17.2`    | security.yml (sbom), security-digest.yml       | Trimestral                | Formato SBOM roto, CycloneDX incompat           |
-| `docker://zricethezav/gitleaks`         | `:v8.22.1`    | security.yml (secrets), scheduled-security.yml | Mensual                   | Regex updates, false positives/negatives        |
-| `gitleaks/gitleaks-action`              | `@v2`         | security.yml (secrets - licensed)              | Mensual                   | Requiere licencia `GIT_LEAKS`; breaking changes |
-| `changesets/action`                     | `@v1`         | release.yml                                    | Trimestral                | Version bump logic, npm publish failures        |
-| `aws-actions/configure-aws-credentials` | `@v4`         | deploy.yml (ecr-push, deploy-\*)               | Mensual                   | OIDC token changes, region support              |
-| `aws-actions/amazon-ecr-login`          | `@v2`         | deploy.yml (ecr-push)                          | Trimestral                | ECR API changes, login failures                 |
-| `peter-evans/find-comment`              | `@v3`         | preview.yml                                    | Trimestral                | GraphQL API changes, comment not found          |
-| `peter-evans/create-or-update-comment`  | `@v4`         | preview.yml                                    | Trimestral                | Permissions, rate limiting                      |
+| Action                                  | Versión usada | Workflow(s)                                                             | Cadencia de actualización | Riesgo si se queda vieja                        |
+| --------------------------------------- | ------------- | ----------------------------------------------------------------------- | ------------------------- | ----------------------------------------------- |
+| `actions/checkout`                      | `@v5` / `@v6` | Todos (12 workflows + composite); release.yml usa v6                    | Mensual (Dependabot)      | Breaking changes en API, CVEs en runner         |
+| `actions/setup-node`                    | `@v5`         | Todos los que usan Node                                                 | Mensual                   | Node versions deprecadas, cache corruption      |
+| `actions/cache`                         | `@v5`         | setup-monorepo (Vitest), ci.yml (Playwright)                            | Mensual                   | Cache poisoning, key mismatches                 |
+| `actions/upload-artifact`               | `@v5`         | security.yml (sbom), security-digest.yml                                | Mensual                   | Artifact retention, upload failures             |
+| `actions/download-artifact`             | `@v5`         | security-digest.yml                                                     | Mensual                   | Download failures, deprecación v4               |
+| `actions/dependency-review-action`      | `@v5`         | security.yml (dependency-review)                                        | Mensual                   | False negatives en vuln detection               |
+| `dorny/paths-filter`                    | `@v4`         | ci.yml (changes), ci-enterprise.yml                                     | Trimestral                | Path matching bugs, missed triggers             |
+| `dorny/test-reporter`                   | `@v3`         | ci.yml (6 report steps)                                                 | Mensual                   | Exit 128 si fetch-depth mal; format changes     |
+| `github/codeql-action/init`             | `@v4`         | security.yml (sast)                                                     | Mensual                   | Query pack updates, language support            |
+| `github/codeql-action/analyze`          | `@v4`         | security.yml (sast)                                                     | Mensual                   | SARIF upload failures                           |
+| `github/codeql-action/upload-sarif`     | `@v4`         | security.yml (trivy SARIF), scheduled-security.yml, security-digest.yml | Mensual                   | SARIF upload failures                           |
+| `aquasecurity/trivy-action`             | `@0.36.0`     | security.yml (dependency-scan)                                          | Mensual                   | DB de vulns desactualizada → false negatives    |
+| `anchore/sbom-action`                   | `@v0.24.0`    | security.yml (sbom), security-digest.yml                                | Trimestral                | Formato SBOM roto, CycloneDX incompat           |
+| `docker://zricethezav/gitleaks`         | `:v8.22.1`    | security.yml (secrets), scheduled-security.yml                          | Mensual                   | Regex updates, false positives/negatives        |
+| `gitleaks/gitleaks-action`              | `@v3`         | security.yml (secrets - licensed)                                       | Mensual                   | Requiere licencia `GIT_LEAKS`; breaking changes |
+| `changesets/action`                     | `@v2`         | release.yml                                                             | Trimestral                | Version bump logic, npm publish failures        |
+| `aws-actions/configure-aws-credentials` | `@v6`         | deploy.yml (ecr-push, deploy-\*)                                        | Mensual                   | OIDC token changes, region support              |
+| `aws-actions/amazon-ecr-login`          | `@v2`         | deploy.yml (ecr-push)                                                   | Trimestral                | ECR API changes, login failures                 |
+| `peter-evans/find-comment`              | `@v4`         | preview.yml                                                             | Trimestral                | GraphQL API changes, comment not found          |
+| `peter-evans/create-or-update-comment`  | `@v5`         | preview.yml                                                             | Trimestral                | Permissions, rate limiting                      |
 
 > 💡 **Recomendación:** Configura **Dependabot** (ya existe en `.github/dependabot.yml` con ecosystem `github-actions`) para PRs semanales automáticos. Alternativa manual mensual: `gh api repos/:owner/:repo/actions/workflows --paginate | jq '.workflows[] | .path'` + revisar cada `uses:`.
+>
+> ⚠️ **Decisión (ago 2026): NO usar SHA pinning.** Los `uses:` se mantienen por tag versionado
+> (`@v5`, `@v0.24.0`, ...). Evaluado y rechazado el pin a commit SHA de 40 chars (recomendación
+> OWASP/Scorecard): el coste de mantenimiento (resolver SHA por cada major, sync de comentarios)
+> supera el beneficio para este repo. Dependabot (`github-actions`, weekly) gestiona los updates
+> de versiones. Riesgo residual aceptado: tags móviles (un maintainer comprometido podría
+> re-apuntar un tag). Change OpenSpec `ci-security-hardening` D8 (REMOVED).
 
 ---
 
@@ -344,9 +353,9 @@ services:
 
 ### Qué hace (pasos en orden)
 
-1. `actions/setup-node@v4` con `node-version-file: '.nvmrc'` + cache npm
+1. `actions/setup-node@v5` con `node-version-file: '.nvmrc'` + cache npm
 2. `npm ci` (install determinístico)
-3. `actions/cache@v4` para `node_modules/.cache/vitest` (key: `vitest-${OS}-${hash(package-lock.json)}`)
+3. `actions/cache@v5` para `node_modules/.cache/vitest` (key: `vitest-${OS}-${hash(package-lock.json)}`)
 
 ### Qué NO hace (desde ago 2026)
 
@@ -375,9 +384,9 @@ services:
 
 | Cache                   | Definido en                                                                                                | Key                                                                 | Invalida correctamente            |
 | ----------------------- | ---------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------- | --------------------------------- |
-| **npm (node_modules)**  | `actions/setup-node@v4` en quality.yml, security.yml, setup-monorepo, release.yml, deploy.yml, preview.yml | `cache-dependency-path: package-lock.json`                          | ✅ Sí (hash de package-lock.json) |
-| **Vitest**              | `.github/actions/setup-monorepo/action.yml` (actions/cache@v4)                                             | `vitest-${{ runner.os }}-${{ hashFiles('package-lock.json') }}`     | ✅ Sí                             |
-| **Playwright browsers** | `ci.yml` job `e2e` (actions/cache@v4)                                                                      | `playwright-${{ runner.os }}-${{ hashFiles('package-lock.json') }}` | ✅ Sí                             |
+| **npm (node_modules)**  | `actions/setup-node@v5` en quality.yml, security.yml, setup-monorepo, release.yml, deploy.yml, preview.yml | `cache-dependency-path: package-lock.json`                          | ✅ Sí (hash de package-lock.json) |
+| **Vitest**              | `.github/actions/setup-monorepo/action.yml` (actions/cache@v5)                                             | `vitest-${{ runner.os }}-${{ hashFiles('package-lock.json') }}`     | ✅ Sí                             |
+| **Playwright browsers** | `ci.yml` job `e2e` (actions/cache@v5)                                                                      | `playwright-${{ runner.os }}-${{ hashFiles('package-lock.json') }}` | ✅ Sí                             |
 
 ### ⚠️ Known Gap — `ci-enterprise.yml` cache miss garantizado
 
@@ -398,28 +407,28 @@ services:
 
 ### `security.yml` — 5 jobs
 
-| Job                 | Herramienta                                                                                       | Qué escanea                              | Estado                                            |
-| ------------------- | ------------------------------------------------------------------------------------------------- | ---------------------------------------- | ------------------------------------------------- |
-| `dependency-scan`   | Trivy (`aquasecurity/trivy-action@0.33.1`)                                                        | Filesystem, severidad CRITICAL/HIGH      | ✅ Activo                                         |
-| `sast`              | CodeQL (`github/codeql-action/init@v4` + `analyze@v4`)                                            | JavaScript SAST                          | ✅ Activo (autobuild comentado → `npm ci` manual) |
-| `secrets`           | Gitleaks OSS (`docker://zricethezav/gitleaks:v8.22.1`) + licensed (`gitleaks/gitleaks-action@v2`) | PR diff + full repo (si licencia)        | ⚠️ Ver nota abajo                                 |
-| `sbom`              | `anchore/sbom-action@v0.17.2`                                                                     | CycloneDX JSON → artifact 365 días       | ✅ Activo                                         |
-| `dependency-review` | `actions/dependency-review-action@v4`                                                             | PR dependency diff, vuln + license check | ✅ Activo                                         |
+| Job                 | Herramienta                                                                                       | Qué escanea                                                 | Estado                                                                                                                                 |
+| ------------------- | ------------------------------------------------------------------------------------------------- | ----------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| `dependency-scan`   | Trivy (`aquasecurity/trivy-action@0.36.0`)                                                        | Filesystem, severidad CRITICAL/HIGH                         | ✅ Activo (fail-closed: `exit-code: '1'`, `ignore-unfixed: true`, SARIF upload via `codeql-action/upload-sarif@v4` con `if: always()`) |
+| `sast`              | CodeQL (`github/codeql-action/init@v4` + `analyze@v4`)                                            | JavaScript + Actions SAST (`languages: javascript,actions`) | ✅ Activo (autobuild comentado → `npm ci` manual)                                                                                      |
+| `secrets`           | Gitleaks OSS (`docker://zricethezav/gitleaks:v8.22.1`) + licensed (`gitleaks/gitleaks-action@v3`) | PR diff + full repo (si licencia)                           | ⚠️ Ver nota abajo                                                                                                                      |
+| `sbom`              | `anchore/sbom-action@v0.24.0`                                                                     | CycloneDX JSON → artifact 365 días                          | ✅ Activo                                                                                                                              |
+| `dependency-review` | `actions/dependency-review-action@v5`                                                             | PR dependency diff, vuln + license check                    | ✅ Activo                                                                                                                              |
 
 ### ⚠️ Known Gap — `GIT_LEAKS` secret no configurado
 
 > En `security.yml` líneas 80-87, el job `secrets` tiene dos steps:
 >
 > 1. Gitleaks OSS (siempre corre, diff scan)
-> 2. Gitleaks licensed (`gitleaks/gitleaks-action@v2`) — **solo si `${{ secrets.GIT_LEAKS }} != ''`**
+> 2. Gitleaks licensed (`gitleaks/gitleaks-action@v3`) — **solo si `${{ secrets.GIT_LEAKS }} != ''`**
 > 3. Warning step — **si secret vacío, imprime `::warning::` y continua**
 >
 > **Comportamiento actual:** Si `GIT_LEAKS` no está en Settings → Secrets, el licensed scan se salta silenciosamente con warning. **No falla el job**, pero pierdes la detección avanzada. Verificar/rotar este secret trimestralmente.
 
 ### `scheduled-security.yml` y `security-digest.yml`
 
-- **`scheduled-security.yml`**: Cron Mon 03:00 UTC. Gitleaks full history (`--all`) → JSON + SARIF → upload artifact + Security tab.
-- **`security-digest.yml`**: Mismo cron. SBOM + OSV Scanner (`google/osv-scanner-action@v2.3.8`) → genera digest markdown → opcional comment en PR (input `pull_request_number`).
+- **`scheduled-security.yml`**: Cron Mon 03:00 UTC. Gitleaks full history (`--all`) → JSON + SARIF → upload artifact + Security tab (fail-closed: `continue-on-error` removido, `if: always()` en uploads).
+- **`security-digest.yml`**: Mismo cron. SBOM (`anchore/sbom-action@v0.24.0`) + OSV Scanner (`google/osv-scanner-action@v2.5.0`) → genera digest markdown → opcional comment en PR (input `pull_request_number`). OSV report upload con `if: always()`.
 
 > 🔍 **TODO:** Inspeccionar ambos durante la próxima ventana de mantenimiento trimestral para confirmar que los cron schedules se ejecutan y los artifacts se generan correctamente. No han sido auditados en profundidad desde su creación.
 
@@ -498,25 +507,28 @@ El step `github/codeql-action/autobuild@v4` está comentado en `security.yml` (l
 
 Principio: **mínimo privilegio**. Ningún workflow usa `permissions: write-all`. Cada workflow declara solo los scopes que necesita.
 
-| Workflow                                 | contents | pull-requests | checks  | security-events | id-token | actions |
-| ---------------------------------------- | -------- | ------------- | ------- | --------------- | -------- | ------- |
-| `ci.yml`                                 | `read`   | `write`       | `write` | —               | —        | —       |
-| `quality.yml`                            | `read`   | —             | —       | —               | —        | —       |
-| `security.yml`                           | `read`   | —             | —       | `write`         | —        | —       |
-| `security.yml` (job `sbom`)              | `read`   | —             | —       | —               | —        | `write` |
-| `security.yml` (job `dependency-review`) | `read`   | `write`       | —       | —               | —        | —       |
-| `release.yml`                            | `write`  | `write`       | —       | —               | —        | —       |
-| `deploy.yml` (root)                      | `read`   | —             | —       | —               | —        | —       |
-| `deploy.yml` (job `ecr-push`)            | `read`   | —             | —       | —               | `write`  | —       |
-| `deploy.yml` (job `deploy-staging`)      | `read`   | —             | —       | —               | `write`  | —       |
-| `deploy.yml` (job `deploy-production`)   | `read`   | —             | —       | —               | `write`  | —       |
-| `preview.yml`                            | `read`   | `write`       | —       | —               | —        | —       |
-| `scheduled-security.yml`                 | `read`   | —             | —       | `write`         | —        | —       |
-| `security-digest.yml`                    | `read`   | `write`\*     | —       | —               | —        | `read`  |
+| Workflow                                        | contents | pull-requests | checks  | security-events | id-token | actions | issues  |
+| ----------------------------------------------- | -------- | ------------- | ------- | --------------- | -------- | ------- | ------- |
+| `ci.yml`                                        | `read`   | `write`       | `write` | —               | —        | —       | —       |
+| `quality.yml`                                   | `read`   | —             | —       | —               | —        | —       | —       |
+| `security.yml`                                  | `read`   | —             | —       | `write`         | —        | —       | —       |
+| `security.yml` (job `sbom`)                     | `read`   | —             | —       | —               | —        | —       | —       |
+| `security.yml` (job `dependency-review`)        | `read`   | `write`       | —       | —               | —        | —       | —       |
+| `release.yml`                                   | `write`  | `write`       | —       | —               | —        | —       | —       |
+| `deploy.yml` (root)                             | `read`   | —             | —       | —               | —        | —       | —       |
+| `deploy.yml` (job `ecr-push`)                   | `read`   | —             | —       | —               | `write`  | —       | —       |
+| `deploy.yml` (job `deploy-staging`)             | `read`   | —             | —       | —               | `write`  | —       | —       |
+| `deploy.yml` (job `deploy-production`)          | `read`   | —             | —       | —               | `write`  | —       | —       |
+| `preview.yml`                                   | `read`   | `write`       | —       | —               | —        | —       | —       |
+| `scheduled-security.yml`                        | `read`   | —             | —       | `write`         | —        | —       | `write` |
+| `scheduled-security.yml` (job `notify-failure`) | `read`   | —             | —       | —               | —        | —       | `write` |
+| `security-digest.yml`                           | `read`   | `write`\*     | —       | —               | —        | `read`  | —       |
+| `security-digest.yml` (job `notify-failure`)    | `read`   | —             | —       | —               | —        | —       | `write` |
 
 - `security-digest.yml` job `digest` usa `pull-requests: write` solo cuando se pasa input `pull_request_number` (comment en PR).
+- Cron jobs `scheduled-security.yml` y `security-digest.yml` tienen job `notify-failure` con `issues: write` para crear issues en fallo.
 
-> 📌 **Patrón observado:** `id-token: write` **solo** en jobs que usan OIDC AWS (`aws-actions/configure-aws-credentials@v4`). `security-events: write` **solo** en jobs SAST/SCA que suben SARIF. `actions: write` **solo** en `sbom` job para upload artifact. No conceder permisos "por si acaso".
+> 📌 **Patrón observado:** `id-token: write` **solo** en jobs que usan OIDC AWS (`aws-actions/configure-aws-credentials@v6`). `security-events: write` **solo** en jobs SAST/SCA que suben SARIF. `issues: write` **solo** en jobs `notify-failure` de cron. No conceder permisos "por si acaso".
 
 ---
 
@@ -548,6 +560,7 @@ Principio: **mínimo privilegio**. Ningún workflow usa `permissions: write-all`
 - **Typos en cache keys (`cache-dependecy-path`, `cache-depency-path` en `lint.yml`/`formatter.yml`) no rompen pero degradan performance** — Corregir en próximo PR que toque esos archivos.
 - **`ci-enterprise.yml` referencia paths inexistentes (`frontend/`, `backend/`) — no copiar sus patrones** — Gap A3 documentado; workflow no aplica a este monorepo.
 - **`GIT_LEAKS` secret unset → licensed Gitleaks se salta con warning, no error** — Verificar trimestralmente que el secret existe y es válido; si no, al menos saber que solo corre OSS scan.
+- **SHA pinning evaluado y RECHAZADO (ago 2026) — se mantienen tags versionados con Dependabot** — Decisión consciente: coste de mantenimiento > beneficio para este repo. Documentado en Sección 7.
 
 ---
 

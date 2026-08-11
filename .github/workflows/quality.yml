@@ -19,6 +19,7 @@ jobs:
   quality:
     name: Lint + Format Check + TypeCheck
     runs-on: ubuntu-latest
+    timeout-minutes: 15
 
     steps:
       - name: Checkout

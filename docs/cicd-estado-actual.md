@@ -869,13 +869,13 @@ permissions:
   security-events: write # Para subir SARIF a GitHub Security tab
 ```
 
-| Job                   | Herramienta                                            | Config clave                                                                                                                                                                                                                      | Output                          |
-| --------------------- | ------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------- |
-| **dependency-scan**   | Trivy (`aquasecurity/trivy-action@0.33.1`)             | `scan-type: fs`, `scan-ref: .`, `severity: CRITICAL,HIGH`                                                                                                                                                                         | Vulnerabilidades deps           |
-| **sast**              | CodeQL (`github/codeql-action/init@v4` + `analyze@v4`) | `languages: javascript`, `npm ci`                                                                                                                                                                                                 | CodeQL alerts en Security tab   |
-| **secrets**           | Gitleaks (dual)                                        | 1. `docker://zricethezav/gitleaks:v8.22.1` args `git --log-opts="${{github.event.pull_request.base.sha}}..${{github.event.pull_request.head.sha}}"` (diff PR) 2. Si `secrets.GIT_LEAKS`: `gitleaks/gitleaks-action@v2` (licensed) | Secretos en diff del PR         |
-| **sbom**              | `anchore/sbom-action@v0.17.2`                          | `format: cyclonedx-json`, `output-file: sbom-project-one.json`                                                                                                                                                                    | Artifact 365d retention         |
-| **dependency-review** | `actions/dependency-review-action@v4`                  | `vulnerability-check: true`, `license-check: true`                                                                                                                                                                                | Bloquea PR si vuln/license fail |
+| Job                   | Herramienta                                            | Config clave                                                                                                                                                                                                                      | Output                              |
+| --------------------- | ------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------- |
+| **dependency-scan**   | Trivy (`aquasecurity/trivy-action@0.36.0`)             | `scan-type: fs`, `scan-ref: .`, `severity: CRITICAL,HIGH`, `exit-code: '1'`, `ignore-unfixed: true`, `format: sarif`, `output: trivy-results.sarif` + SARIF upload (`codeql-action/upload-sarif@v4`, `if: always()`)              | Vulnerabilidades deps (fail-closed) |
+| **sast**              | CodeQL (`github/codeql-action/init@v4` + `analyze@v4`) | `languages: javascript,actions`, `npm ci`                                                                                                                                                                                         | CodeQL alerts en Security tab       |
+| **secrets**           | Gitleaks (dual)                                        | 1. `docker://zricethezav/gitleaks:v8.22.1` args `git --log-opts="${{github.event.pull_request.base.sha}}..${{github.event.pull_request.head.sha}}"` (diff PR) 2. Si `secrets.GIT_LEAKS`: `gitleaks/gitleaks-action@v3` (licensed) | Secretos en diff del PR             |
+| **sbom**              | `anchore/sbom-action@v0.24.0`                          | `format: cyclonedx-json`, `output-file: sbom-project-one.json`                                                                                                                                                                    | Artifact 365d retention             |
+| **dependency-review** | `actions/dependency-review-action@v5`                  | `vulnerability-check: true`, `license-check: true`                                                                                                                                                                                | Bloquea PR si vuln/license fail     |
 
 **Gitleaks dual mode en PR (ref: `security.yml:secrets job`):**
 
@@ -887,7 +887,7 @@ secrets:
   permissions:
     contents: read
   steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
       with:
         fetch-depth: 0 # Necesario para diff del PR
     - name: Gitleaks OSS (diff PR only)
@@ -902,7 +902,7 @@ secrets:
           --config=.gitleaks.toml
     - name: Gitleaks Pro (if licensed)
       if: env.GIT_LEAKS != ''
-      uses: gitleaks/gitleaks-action@v2
+      uses: gitleaks/gitleaks-action@v3
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         GITLEAKS_LICENSE: ${{ secrets.GIT_LEAKS }}
@@ -1318,17 +1318,17 @@ ecr-push:
     contents: read
     id-token: write # 🔑 OIDC: permite assumir role AWS sin credenciales estáticas
   steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     - name: Configure AWS Credentials (OIDC)
-      uses: aws-actions/configure-aws-credentials@v4
+      uses: aws-actions/configure-aws-credentials@v6
       with:
         role-to-assume: ${{ vars.AWS_ROLE_ARN }}
-        aws-region: us-east-1
+        aws-region: ${{ vars.AWS_REGION || 'us-east-1' }}
     - name: Login to Amazon ECR
       uses: aws-actions/amazon-ecr-login@v2
     - name: Build, tag, and push image
       env:
-        ECR_REGISTRY: ${{ vars.AWS_ACCOUNT_ID }}.dkr.ecr.us-east-1.amazonaws.com
+        ECR_REGISTRY: ${{ vars.AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION || 'us-east-1' }}.amazonaws.com
         IMAGE_TAG: ${{ github.sha }}
       run: |
         docker tag project-one-server:${{ github.sha }} ${ECR_REGISTRY}/project-one-server:${IMAGE_TAG}
@@ -1512,19 +1512,19 @@ jobs:
     name: Release packages
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 0
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           node-version-file: '.nvmrc'
           cache: 'npm'
       - run: npm ci
-      - uses: changesets/action@v1
+      - uses: changesets/action@v2
         with:
-          version: npm run version:packages
-          title: 'chore: version packages'
-          commit: 'chore: version packages'
+          version-script: npm run version:packages
+          pr-title: 'chore: version packages'
+          commit-message: 'chore: version packages'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 ```
@@ -1604,7 +1604,7 @@ BASE_URL=${{ secrets.STAGING_URL }} npm run test:smoke:ci --workspace=server-exp
 
 ### 11.6 SBOM como Inventario de Componentes
 
-- Generado por `anchore/sbom-action@v0.17.2` en formato **CycloneDX JSON**.
+- Generado por `anchore/sbom-action@v0.24.0` en formato **CycloneDX JSON**.
 - Incluye: nombre, versión, licencia, purl, hashes de cada paquete npm (prod + dev).
 - Usado por `security-digest.yml` para correlacionar con OSV Scanner y Gitleaks.
 - Retención 365 días para compliance/auditoría.
@@ -1657,24 +1657,24 @@ BASE_URL=${{ secrets.STAGING_URL }} npm run test:smoke:ci --workspace=server-exp
 | **Git Hooks**          | Husky v9                                                       | —                                                              | pre-commit, commit-msg, pre-push                     |
 | **Staged Lint**        | lint-staged                                                    | —                                                              | Prettier + ESLint en staged                          |
 | **Commit Standard**    | commitlint + @commitlint/config-conventional                   | —                                                              | Conventional Commits validation                      |
-| **Path Filtering**     | dorny/paths-filter@v3                                          | —                                                              | Conditional job execution                            |
+| **Path Filtering**     | dorny/paths-filter@v4                                          | —                                                              | Conditional job execution                            |
 | **Test Reporting**     | dorny/test-reporter@v3                                         | —                                                              | JUnit XML → GitHub Checks                            |
 | **SAST Local**         | Semgrep                                                        | `semgrep/semgrep:latest`                                       | 100+ reglas OWASP en pre-commit                      |
-| **SAST CI**            | GitHub CodeQL                                                  | `github/codeql-action@v4`                                      | JavaScript analysis en PR                            |
-| **SCA**                | Trivy                                                          | `aquasecurity/trivy-action@0.33.1`                             | FS scan CRITICAL/HIGH                                |
-| **Secret Scanning**    | Gitleaks                                                       | `zricethezav/gitleaks:v8.22.1` + `gitleaks/gitleaks-action@v2` | Pre-commit staged + PR diff + full-history cron      |
-| **SBOM**               | anchore/sbom-action@v0.17.2                                    | —                                                              | CycloneDX JSON generation                            |
-| **Vuln Scanner**       | OSV Scanner                                                    | `google/osv-scanner-action@v2.3.8`                             | package-lock.json scan                               |
-| **Dependency Review**  | actions/dependency-review-action@v4                            | —                                                              | PR dependency vuln/license gate                      |
+| **SAST CI**            | GitHub CodeQL                                                  | `github/codeql-action@v4`                                      | JavaScript + Actions analysis en PR                  |
+| **SCA**                | Trivy                                                          | `aquasecurity/trivy-action@0.36.0`                             | FS scan CRITICAL/HIGH (fail-closed, SARIF)           |
+| **Secret Scanning**    | Gitleaks                                                       | `zricethezav/gitleaks:v8.22.1` + `gitleaks/gitleaks-action@v3` | Pre-commit staged + PR diff + full-history cron      |
+| **SBOM**               | anchore/sbom-action@v0.24.0                                    | —                                                              | CycloneDX JSON generation                            |
+| **Vuln Scanner**       | OSV Scanner                                                    | `google/osv-scanner-action@v2.5.0`                             | package-lock.json scan                               |
+| **Dependency Review**  | actions/dependency-review-action@v5                            | —                                                              | PR dependency vuln/license gate                      |
 | **Container**          | Docker                                                         | `apps/server/Dockerfile` multi-stage                           | Server image build                                   |
 | **AWS Emulator**       | Floci                                                          | `floci/floci:1.5.31`                                           | Secrets Manager, S3 emulation en CI/CD               |
 | **Cloud Deploy**       | AWS ECS Fargate                                                | —                                                              | Staging + Production services                        |
 | **Container Registry** | Amazon ECR                                                     | —                                                              | Image storage (OIDC auth)                            |
-| **AWS Auth**           | aws-actions/configure-aws-credentials@v4 + amazon-ecr-login@v2 | —                                                              | OIDC role assumption                                 |
+| **AWS Auth**           | aws-actions/configure-aws-credentials@v6 + amazon-ecr-login@v2 | —                                                              | OIDC role assumption                                 |
 | **IaC (Partial)**      | AWS CLI inline                                                 | —                                                              | `register-task-definition`, `update-service`, `wait` |
-| **Release**            | Changesets                                                     | `changesets/action@v1`                                         | Version packages + npm publish                       |
+| **Release**            | Changesets                                                     | `changesets/action@v2`                                         | Version packages + npm publish                       |
 | **Dependency Updates** | Dependabot                                                     | 3 ecosystems                                                   | Automated PRs weekly                                 |
-| **Preview Comment**    | peter-evans/find-comment@v3 + create-or-update-comment@v4      | —                                                              | PR comment management                                |
+| **Preview Comment**    | peter-evans/find-comment@v4 + create-or-update-comment@v5      | —                                                              | PR comment management                                |
 | **Vercel Integration** | gh api (GitHub CLI)                                            | —                                                              | Capture preview URL from commit statuses             |
 
 ---

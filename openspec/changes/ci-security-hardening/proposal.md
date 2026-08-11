@@ -13,7 +13,7 @@ GitHub is removing the Node 20 runtime from hosted runners on **2026-09-16**, wh
   - Verify-before-touch prerequisite for third-party majors: `dorny/paths-filter@v3`, `dorny/test-reporter@v3`, `peter-evans/find-comment@v3`, `peter-evans/create-or-update-comment@v4`, `actions/cache@v4`, `actions/github-script@v7` — if the current major still runs node20, plan the corresponding major bump. `.nvmrc` (22.23.1) is the project's _local_ Node version and is independent of the actions runtime (documented in design).
 - **Block 2 — HIGH:** `upload-artifact`/`download-artifact` to `v5` (above); Trivy `0.33.1` → `0.36.0` with `exit-code: '1'`, `format: sarif`, `output`, `ignore-unfixed: true` and SARIF upload via `codeql-action/upload-sarif` (`security.yml` dependency-scan job); `google/osv-scanner-action@v2.3.8` → `v2.5.0` (`security-digest.yml:42`).
 - **Block 3 — MEDIUM/LOW general hardening:**
-  - SHA-pin all third-party actions (full-length commit SHA + comment with human-readable version); Dependabot (`github-actions` ecosystem, already configured) manages updates.
+  - Third-party actions versionado por tag; Dependabot (`github-actions` ecosystem, already configured) gestiona updates (decisión 2026-08-11: sin SHA pinning).
   - Least-privilege `permissions:`: `ci.yml:3-6` — drop workflow-level `pull-requests: write`, move `checks: write` to the jobs that run `dorny/test-reporter`; `security.yml` `sbom` job — drop `actions: write`, keep `contents: read`.
   - `timeout-minutes` on jobs without it: `quality` (quality.yml), `release` (release.yml), `gitleaks-full-scan` (scheduled-security.yml), all 3 jobs (security-digest.yml), all 5 jobs (security.yml), `changes` (ci.yml).
   - `concurrency` in `release.yml` (`group: release`, `cancel-in-progress: false`) and `security.yml` (`group: security-${{ github.ref }}`, `cancel-in-progress: true`).
@@ -30,7 +30,7 @@ GitHub is removing the Node 20 runtime from hosted runners on **2026-09-16**, wh
 ### New Capabilities
 
 - `ci-actions-node24-runtime`: all GitHub Actions used by the 8 active workflows (and the `setup-monorepo` composite) run on Node 24+ runtimes (or a verified node24 major) ahead of the 2026-09-16 Node 20 removal; version bumps for deprecated/old majors (upload/download-artifact, osv-scanner, changesets, configure-aws-credentials, trivy-action) land in the same change.
-- `ci-workflow-hardening`: least-privilege workflow/job permissions, `timeout-minutes` on all jobs, `concurrency` controls on release/security, full-SHA action pinning with version comments, no error suppression (typecheck, scan masking), CodeQL `actions` language coverage, cron failure notification, and harden-runner on OIDC jobs.
+- `ci-workflow-hardening`: least-privilege workflow/job permissions, `timeout-minutes` on all jobs, `concurrency` controls on release/security, no error suppression (typecheck, scan masking), CodeQL `actions` language coverage, cron failure notification, and harden-runner on OIDC jobs.
 
 ### Modified Capabilities
 
@@ -45,5 +45,5 @@ GitHub is removing the Node 20 runtime from hosted runners on **2026-09-16**, wh
 - **Action majors bumped:** setup-node, checkout, gitleaks-action, upload-artifact, download-artifact, changesets, configure-aws-credentials, trivy-action, osv-scanner-action; verified-and-bumped-if-needed: paths-filter, test-reporter, find-comment, create-or-update-comment, cache, github-script.
 - **Docs:** `docs/cicd-estado-actual.md`, `docs/workflows-mantenimiento-guia.md` (version tables).
 - **No app-code or API impact:** backend (Express/Prisma), frontend (React/Vite) and e2e (Playwright) workspaces are untouched; `.nvmrc` unchanged.
-- **Dependabot:** already configured for `github-actions`; continues to manage SHA-pinned action updates.
+- **Dependabot:** already configured for `github-actions`; continues to manage version-tag updates.
 - **Out of scope:** `ci-enterprise.yml`, AWS OIDC trust-policy verification (requires user's AWS access), migrating local Node to 24 (`.nvmrc` stays 22.23.1).

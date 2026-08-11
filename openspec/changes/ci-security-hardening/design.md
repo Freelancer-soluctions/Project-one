@@ -8,7 +8,7 @@ See `proposal.md` — Why. The 8 active workflows (`ci`, `deploy`, `preview`, `q
 
 - Land a Node 24-runtime migration ahead of the 2026-09-16 Node 20 removal, as the critical path.
 - Fail closed on security findings while preserving report artifacts (visibility is not sacrificed).
-- Apply least-privilege, bounded runtimes, concurrency, SHA pinning, and cron alerting across the 8 workflows.
+- Apply least-privilege, bounded runtimes, concurrency, and cron alerting across the 8 workflows.
 - Keep the change reviewable by grouping work in severity-ordered, independently mergeable units.
 
 **Non-Goals:**
@@ -70,9 +70,9 @@ See `proposal.md` — Why. The 8 active workflows (`ci`, `deploy`, `preview`, `q
 - `release.yml`: `concurrency: group: release, cancel-in-progress: false` — releases queue, never cancel (a canceled publish could corrupt the npm/git state).
 - `security.yml`: `concurrency: group: security-${{ github.ref }}, cancel-in-progress: true` — per-ref, latest wins (matches ci.yml pattern).
 
-### D8. SHA pinning (Block 3)
+### D8. SHA pinning (REMOVED)
 
-Pin every third-party action to a full-length 40-char commit SHA with a trailing comment (`# vX.y.z`). Local composite stays path-referenced. Dependabot (github-actions, already configured weekly) will propose SHA updates as PRs; the version comment is kept in sync by the updating developer. CodeQL `codeql-action/init|analyze|upload-sarif` are third-party too and get pinned like the rest.
+**D8 (REMOVED):** SHA pinning eliminado por decisión del usuario (2026-08-11) — se mantienen tags versionados; Dependabot (github-actions, weekly) gestiona updates. Riesgo residual aceptado: tags móviles.
 
 ### D9. Cron failure notification (Block 3)
 
@@ -95,7 +95,7 @@ Replace hardcoded `us-east-1` in `deploy.yml` with `${{ vars.AWS_REGION }}` (rep
 - [Fail-closed scans can break runs on scanner false positives] → Mitigation: Trivy uses `ignore-unfixed: true` so the gate only fails on fixable CRITICAL/HIGH; Gitleaks and OSV findings are actionable by nature; SARIF/JSON reports are still uploaded via `if: always()`, so a failed run never loses visibility and findings can be triaged from the artifacts.
 - [Node major bumps (setup-node v4→v5, checkout v4→v6, gitleaks v2→v3) can change behavior subtly] → Mitigation: the P0 prerequisite verifies node24 status of every touched major before merging; Block 1 lands as its own PR ahead of the 2026-09-16 deadline; post-merge runs are monitored and rollback is a single-revert.
 - [release.yml checkout@v6 while the rest of the repo is @v5 creates a 1-major skew] → Accepted; flagged as a follow-up to standardize repo-wide. Both majors are node24, so the deadline is unaffected.
-- [Initial SHA pinning requires resolving 40-char SHAs for ~8 third-party majors] → Mitigation: Dependabot (`github-actions`, already weekly) owns subsequent updates; each pinned line carries a `# vX.y.z` comment so the human-readable version stays discoverable and reviewable.
+- [Third-party action tags are mutable (supply-chain tampering risk)] → Accepted by user decision (2026-08-11, D8 REMOVED): SHA pinning removed; tags versionados mantenidos; Dependabot (`github-actions`, weekly) gestiona updates; mutable-tag risk accepted.
 - [Harden-Runner `egress-policy: block` can break deploys (npm, ECR, STS, CloudWatch)] → Mitigation: start in `audit`, promote to `block` only after a green-run review period; fall back to documented `audit` if deploys regress.
 - [osv-scanner 2.5.0 / trivy 0.36.0 version bumps can change report output] → Mitigation: reports are consumed by existing upload/digest steps; PR review verifies the artifact formats after the bump before the block is considered done.
 - [Cron notification issues can become noise if a cron keeps failing] → Mitigation: the issue title carries the run date so it is self-describing; maintainers can close/annotate; optional dedupe of open issues can be added to the `github-script` step later.
@@ -104,7 +104,7 @@ Replace hardcoded `us-east-1` in `deploy.yml` with `${{ vars.AWS_REGION }}` (rep
 
 - **PR A — Block 1 (CRITICAL, must land before 2026-09-16):** P0 prerequisite verification of the 9 third-party majors, then the node24 migration across `deploy.yml`, `preview.yml`, `quality.yml`, `release.yml`, `security.yml`, `scheduled-security.yml`, `security-digest.yml` and `setup-monorepo/action.yml` — **all deadline-binding (node20-confirmed)**: setup-node→v5 (6 sites), checkout→v6 (release.yml:15), gitleaks→v3, upload-artifact→v5 (5 usages), download-artifact→v5 (3 usages), configure-aws-credentials→v6.x (3 usages), sbom-action→first node24 major (2 usages), dependency-review-action→first node24 major. `changesets→v2` is NOT in PR A (v1 already node24). Rollback: revert the single PR; the change is confined to `uses:` lines.
 - **PR B — Block 2 (HIGH):** Trivy 0.36.0 fail-closed SARIF (`security.yml`), `osv-scanner-action` 2.5.0 (`security-digest.yml`). (upload/download-artifact→v5 moved to PR A — node20 deadline-binding.) Rollback: revert the PR; runs return to prior versions.
-- **PR C — Block 3 (hardening):** permissions, timeouts, concurrency, SHA pinning, typecheck un-suppression, `continue-on-error` removal with `if: always()` uploads, cron notification jobs, CodeQL `actions` language, changesets→v2 (maintenance, v1 already node24), aws-creds role flags (migration already in PR A), harden-runner, optional region var, docs updates. Rollback: revert the PR; hardening is additive with no data migration.
+- **PR C — Block 3 (hardening):** permissions, timeouts, concurrency, typecheck un-suppression, `continue-on-error` removal with `if: always()` uploads, cron notification jobs, CodeQL `actions` language, changesets→v2 (maintenance, v1 already node24), aws-creds role flags (migration already in PR A), harden-runner, optional region var, docs updates. Rollback: revert the PR; hardening is additive with no data migration.
 - Docs (`cicd-estado-actual.md`, `workflows-mantenimiento-guia.md`) are updated in the same PR that changes what they describe, so the pipeline documentation never drifts from the code.
 
 ## Open Questions

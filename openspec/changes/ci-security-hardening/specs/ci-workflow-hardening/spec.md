@@ -1,6 +1,6 @@
 ## Purpose
 
-Raises the enterprise security posture of the 8 active CI/CD workflows: least-privilege permissions, bounded job runtimes, concurrency controls, full-SHA action pinning with version comments, removal of error suppression, CodeQL scanning of the workflows themselves, cron failure alerting, and host-level hardening on OIDC jobs.
+Raises the enterprise security posture of the 8 active CI/CD workflows: least-privilege permissions, bounded job runtimes, concurrency controls, removal of error suppression, CodeQL scanning of the workflows themselves, cron failure alerting, and host-level hardening on OIDC jobs.
 
 ## ADDED Requirements
 
@@ -46,23 +46,6 @@ The push-triggered release and security workflows SHALL declare concurrency grou
 - **WHEN** the `security.yml` workflow runs
 - **THEN** it SHALL use `concurrency: group: security-${{ github.ref }}` with `cancel-in-progress: true`
 - **AND** a newer run on the same ref SHALL cancel an in-progress run
-
-### Requirement: Actions SHA-pinned with version comments
-
-Every third-party action referenced by the 8 active workflows SHALL be pinned to a full-length commit SHA with a trailing comment naming the human-readable version, so supply-chain tampering is detectable; Dependabot (github-actions ecosystem) SHALL own subsequent updates.
-
-#### Scenario: Third-party action pinned
-
-- **WHEN** a workflow references a third-party action (e.g. `uses: dorny/paths-filter@<sha> # v3.x.y`)
-- **THEN** the reference SHALL be a full-length 40-character commit SHA
-- **AND** a comment SHALL document the human-readable version
-- **AND** the local composite action SHALL remain referenced by path (`.github/actions/setup-monorepo`)
-
-#### Scenario: Dependabot updates a pinned action
-
-- **WHEN** Dependabot proposes an update to a SHA-pinned action
-- **THEN** the update SHALL be reviewed and merged through the normal PR flow
-- **AND** the version comment SHALL be kept in sync with the new SHA
 
 ### Requirement: No error suppression in workflow steps
 

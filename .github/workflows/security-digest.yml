@@ -18,6 +18,7 @@ jobs:
   sbom:
     name: Generate SBOM
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v5.0.0
       - name: Generate CycloneDX SBOM
@@ -36,14 +37,15 @@ jobs:
   vulnerability-review:
     name: Vulnerability & License Review
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v5.0.0
       - name: Run OSV Scanner
         uses: google/osv-scanner-action@v2.5.0
         with:
           scan-args: --format=json --output=osv-report.json package-lock.json
-        continue-on-error: true
       - name: Upload OSV Report artifact
+        if: always()
         uses: actions/upload-artifact@v5
         with:
           name: osv-report
@@ -52,6 +54,7 @@ jobs:
   digest:
     name: Generate Security Digest
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     needs: [sbom, vulnerability-review]
     if: always() && !cancelled()
     permissions:
@@ -123,3 +126,21 @@ jobs:
               issue_number: parseInt('${{ inputs.pull_request_number }}'),
               body: `## Security Digest Summary\n\n${digest.split('\n').slice(0, 50).join('\n')}\n\n---\n*Full digest available in the [security-digest artifact](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}) of this workflow run.*`
             });
+
+  notify-failure:
+    name: Notify on Failure
+    needs: [sbom, vulnerability-review, digest]
+    if: failure()
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+    steps:
+      - uses: actions/github-script@v8
+        with:
+          script: |
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `Scheduled security scan failed: ${context.workflow} (${new Date().toISOString().split('T')[0]})`,
+              body: `See run: ${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`
+            })
