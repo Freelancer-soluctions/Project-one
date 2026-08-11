@@ -16,6 +16,23 @@ if (ENCRYPTION_KEY.length !== 32) {
   );
 }
 
+// Defensa en profundidad: rechazar la dummy key de CI en entornos reales
+// (previene copy-paste accidental del valor dummy de preview.yml/docker-build a producción)
+const DUMMY_CI_KEY = Buffer.from(
+  'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=',
+  'base64'
+);
+if (
+  process.env.NODE_ENV === 'production' &&
+  ENCRYPTION_KEY.equals(DUMMY_CI_KEY)
+) {
+  throw new Error(
+    '❌ AES_GCM_KEY dummy de CI detectada en NODE_ENV=production. ' +
+      'La dummy key (32 bytes cero) SOLO es válida para stacks emulados (preview.yml, docker-build). ' +
+      'Configura la clave real en AWS Secrets Manager. Ver docs/server-bootstrap-env-vars.md'
+  );
+}
+
 console.log('✅ Encryption middleware cargado correctamente');
 
 // ============================================

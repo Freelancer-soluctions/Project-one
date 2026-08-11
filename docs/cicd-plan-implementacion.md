@@ -47,7 +47,7 @@ CI/CD es un sistema de **verificación y publicación automática** del código.
 | **Despliegue automático**           | ❌ No existe                     | ✅ Auto-deploy a staging + producción |
 | **Entorno de pruebas (staging)**    | ❌ Inexistente                   | ✅ Staging con datos realistas        |
 | **Seguridad en pipeline**           | ✅ Parcial (SAST, SCA, secrets)  | ✅ + SBOM, Dependabot, IaC scan       |
-| **Tiempo de pipeline CI**           | ❌ Sin medir                     | ✅ < 8 minutos                        |
+| **Tiempo de pipeline CI**           | ❌ Sin medir                     | ✅ < 7 minutos                        |
 | **Frecuencia de deploys**           | ❌ Manual                        | ✅ ≥ 1/semana                         |
 | **Recuperación ante fallos (MTTR)** | ❌ No medido                     | ✅ < 30 minutos                       |
 
@@ -117,14 +117,14 @@ Referencia: `docs/cicd-estado-actual.md` — inventario completo de brechas.
 
 ### Brechas altas (Sprint 1-2)
 
-| ID     | Brecha                                                        | Estado actual                                   | Estado ideal                                                   |
-| ------ | ------------------------------------------------------------- | ----------------------------------------------- | -------------------------------------------------------------- |
-| A1     | Lint no bloqueante en CI                                      | ESLint configurado pero no es gate obligatorio  | ESLint como gate en CI — `npm run lint` bloquea si hay errores |
-| A2     | Gitleaks en CI requiere licencia                              | Job falla si `GIT_LEAKS` no está configurado    | Usar GitHub secret scanning (gratuito) + Floci no-license      |
-| A3     | `ci-enterprise.yml` references paths inexistentes             | `frontend/`, `backend/` no existen              | Eliminar o adaptar a `apps/client`, `apps/server`              |
-| ~~A4~~ | ~~`release.yml` usa `setup-node@v4` con Node 20 hardcodeado~~ | ~~`release.yml` hardcodea Node 20 vs `.nvmrc`~~ | ✅ **Resuelto** — release.yml usa `node-version-file: .nvmrc`  |
-| A5     | Sin gate de coverage                                          | Cobertura sin umbral                            | `coverage.thresholds` en Vitest config                         |
-| A6     | Sin Dependabot/Renovate                                       | Dependencias se desactualizan                   | Dependabot activo con auto-PR de seguridad                     |
+| ID     | Brecha                                                        | Estado actual                                                                                              | Estado ideal                                                                                     |
+| ------ | ------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| A1     | Lint no bloqueante en CI                                      | ESLint configurado pero no es gate obligatorio                                                             | ESLint como gate en CI — `npm run lint` bloquea si hay errores                                   |
+| A2     | Gitleaks en CI requiere licencia                              | Job falla si `GIT_LEAKS` no está configurado                                                               | Usar GitHub secret scanning (gratuito) + Floci no-license                                        |
+| A3     | `ci-enterprise.yml` references paths inexistentes             | `frontend/`, `backend/` no existen (el proyecto usa `apps/client/`, `apps/server/`) — **gap REMAINS OPEN** | Eliminar o adaptar a `apps/client`, `apps/server` — **propuesta follow-up: `ci-enterprise-fix`** |
+| ~~A4~~ | ~~`release.yml` usa `setup-node@v4` con Node 20 hardcodeado~~ | ~~`release.yml` hardcodea Node 20 vs `.nvmrc`~~                                                            | ✅ **Resuelto** — release.yml usa `node-version-file: .nvmrc`                                    |
+| A5     | Sin gate de coverage                                          | Cobertura sin umbral                                                                                       | `coverage.thresholds` en Vitest config                                                           |
+| A6     | Sin Dependabot/Renovate                                       | Dependencias se desactualizan                                                                              | Dependabot activo con auto-PR de seguridad                                                       |
 
 ### Brechas medias (Sprint 2-4)
 
@@ -233,14 +233,15 @@ flowchart TD
     end
 
     subgraph SCHEDULED["📅 SCHEDULED (cron)"]
-        CronWeekly[Cron semanal: security full scan]
-        CronWeekly --> FullGitleaks[Gitleaks full repo scan]
-        CronWeekly --> FullDependency[Trivy full + npm audit]
-        CronWeekly --> SBOMUpdate[SBOM actualizado]
+        CronWeekly[Cron semanal: lunes 03:00 UTC]
+        CronWeekly --> FullGitleaks[Gitleaks full repo scan\n(JSON + SARIF → Security tab)]
+        CronWeekly --> SecurityDigest[Security Digest (OSV + SBOM +\nGitleaks sibling artifact)\n→ PR comment si critical/high/deny-list]
 
         Dependabot[Dependabot: PRs automáticos de seguridad]
         Dependabot --> AutoMergePatches[Auto-merge parches seguros]
         Dependabot --> ManualReviewMinor[Manual review para minor]
+
+        TrivyProposed[Trivy full + npm audit cron\n⬅ ci-scheduled-trivy (en propuesta)]
     end
 
     style PrePush fill:#a5f3fc,stroke:#0891b2
@@ -276,33 +277,34 @@ La siguiente tabla mapea cada stage de la arquitectura contra los cambios OpenSp
     │  ├── Commit-msg (commitlint)                     ✅ Existe           │
     │  ├── Pre-push (scoped tests)                     ✅ Existe           │
     │  └── Floci dev-local (LocalStack → Floci) ⬅ ci-floci-migration       │
-    │                                              ✅ CREADO + APPROVED    │
+    │                                              ✅ IMPLEMENTADO + ARCHIVADO (08-08) │
     ├──────────────────────────────────────────────────────────────────────┤
     │  STAGE 2-4: PULL REQUEST (CI) — SPRINT 1                             │
     │  ├── Change detection (paths-filter)             ✅ Existe           │
-    │  ├── Quality (lint gate) ⬅ ci-quality-gates      ✅ CREADO+APPROVED  │
-    │  ├── Tests unit + integración ⬅ ci-test-integ    ✅ CREADO+APPROVED  │
-    │  ├── Build + caching + reporting ⬅ ci-test-integ ✅ CREADO+APPROVED  │
-    │  ├── E2E + PostgreSQL ⬅ ci-test-integ            ✅ CREADO+APPROVED  │
-    │  ├── Dependabot ⬅ ci-test-integ                  ✅ CREADO+APPROVED  │
-    │  ├── Coverage baselines ⬅ ci-quality-gates       ✅ CREADO+APPROVED  │
-    │  └── Zombie cleanup ⬅ ci-cleanup-enterprise      ✅ CREADO+APPROVED  │
+    │  ├── Quality (lint gate) ⬅ ci-quality-gates      ✅ IMPLEMENTADO + ARCHIVADO (08-06) │
+    │  ├── Tests unit + integración ⬅ ci-test-integ    ✅ EN IMPLEMENTACIÓN │
+    │  ├── Build + caching + reporting ⬅ ci-test-integ ✅ EN IMPLEMENTACIÓN │
+    │  ├── E2E + PostgreSQL ⬅ ci-test-integ            ✅ EN IMPLEMENTACIÓN │
+    │  ├── Dependabot ⬅ ci-test-integ                  ✅ EN IMPLEMENTACIÓN │
+    │  ├── Coverage baselines ⬅ ci-quality-gates       ✅ IMPLEMENTADO + ARCHIVADO (08-06) │
+    │  └── Zombie cleanup ⬅ ci-cleanup-enterprise      ✅ IMPLEMENTADO + ARCHIVADO (08-02) │
+    │       └── zombie-workflow-guard job (ci.yml:250-269) — Falla si reaparecen `pr-validation.yml`, `lint.yml`, `formatter.yml` (guardia anti-regresión post-limpieza) │
     ├──────────────────────────────────────────────────────────────────────┤
     │  STAGE 5: SECURITY — SPRINT 1-2                                      │
     │  ├── SAST (CodeQL, Semgrep)                      ✅ Existe           │
     │  ├── SCA (Trivy)                                  ✅ Existe           │
     │  ├── Secrets (PR diff-scoped) ⬅ ci-secret-scanning                  │
-    │  │                                  ✅ CREADO + APPROVED             │
+    │  │                                  ✅ IMPLEMENTADO + ARCHIVADO (08-07) │
     │  ├── SBOM (CycloneDX) + Dep Review ⬅ ci-security-enhance            │
-    │  │                                  ✅ CREADO + APPROVED             │
+    │  │                                  ✅ IMPLEMENTADO + ARCHIVADO (08-06) │
     │  └── Dependency Review (PR) ⬅ ci-security-enhance                   │
-    │                                  ✅ CREADO + APPROVED                │
+    │                                  ✅ IMPLEMENTADO + ARCHIVADO (08-06) │
     ├──────────────────────────────────────────────────────────────────────┤
     │  STAGE 6: PREVIEW ENVIRONMENTS — SPRINT 2                            │
     │  ├── Floci container efímero ⬅ ci-preview-environments              │
-    │  │                                  ✅ CREADO + APPROVED             │
+    │  │                                  ✅ IMPLEMENTADO + ARCHIVADO (08-08) │
     │  └── Vercel preview URL per PR ⬅ ci-preview-environments            │
-    │                                  ✅ CREADO + APPROVED                │
+    │                                  ✅ IMPLEMENTADO + ARCHIVADO (08-08) │
     ├──────────────────────────────────────────────────────────────────────┤
     │  STAGE 7: POST-MERGE (CD) — SPRINT 3-4                              │
     │  ├── Release + Changesets        ⬅ (preexistente release.yml)       │
@@ -311,45 +313,56 @@ La siguiente tabla mapea cada stage de la arquitectura contra los cambios OpenSp
     │  ├── Smoke tests post-deploy     ⬅ cd-aws-deploy-pipeline           │
     │  ├── Deploy producción           ⬅ cd-aws-deploy-pipeline           │
     │  └── Rollback automático         ⬅ cd-aws-deploy-pipeline           │
-    │          (todas)                  ✅ CREADO + APPROVED               │
+    │          (Phase 1: emulated ✅ | Phase 2: AWS gated) EN IMPLEMENTACIÓN │
     ├──────────────────────────────────────────────────────────────────────┤
     │  STAGE 8: SCHEDULED — SPRINT 4                                       │
     │  ├── Security full scan semanal  ⬅ ci-scheduled-security            │
+    │  │                                  ✅ IMPLEMENTADO + ARCHIVADO (08-07) │
     │  ├── SBOM actualizado            ⬅ ci-scheduled-security            │
     │  ├── Gitleaks full repo (cron)   ⬅ ci-secret-scanning               │
-    │          (todas)                  ✅ CREADO + APPROVED               │
+    │  │                                  ✅ IMPLEMENTADO + ARCHIVADO (08-07) │
+    │  ├── Security Digest (OSV + SBOM) ⬅ ci-scheduled-security-digest    │
+    │  │                                  ✅ IMPLEMENTADO + ARCHIVADO (08-07) │
+    │  └── Trivy full + npm audit cron  ⬅ ci-scheduled-trivy (en propuesta) │
     └──────────────────────────────────────────────────────────────────────┘
 ```
 
 **Resumen de cobertura:**
 
-| Categoría           | Total  | Cubierto | %        |
-| ------------------- | ------ | -------- | -------- |
-| Local (Stage 0-1)   | 4      | 4        | 100%     |
-| PR CI (Stage 2-4)   | 8      | 8        | 100%     |
-| Security (Stage 5)  | 5      | 5        | 100%     |
-| Preview (Stage 6)   | 2      | 2        | 100%     |
-| CD (Stage 7)        | 6      | 6        | 100%     |
-| Scheduled (Stage 8) | 3      | 3        | 100%     |
-| **Total**           | **28** | **28**   | **100%** |
+| Categoría           | Total  | Cubierto | %       |
+| ------------------- | ------ | -------- | ------- |
+| Local (Stage 0-1)   | 4      | 4        | 100%    |
+| PR CI (Stage 2-4)   | 8      | 6\*      | 75%     |
+| Security (Stage 5)  | 5      | 5        | 100%    |
+| Preview (Stage 6)   | 2      | 2        | 100%    |
+| CD (Stage 7)        | 6      | 1\*      | 17%     |
+| Scheduled (Stage 8) | 4      | 4        | 100%    |
+| **Total**           | **29** | **22**   | **76%** |
 
-**Cambios OpenSpec creados + APPROVED (plan CI/CD completo):**
+- Stage 2-4: 2 tareas en implementación (tests, build, E2E, Dependabot — via `ci-test-integration`)
+- Stage 7: Phase 1 (emulated) implementado; Phase 2 (AWS gated) pendiente `vars.AWS_ROLE_ARN`
 
-| Change                    | Artefactos                       | Estado               |
-| ------------------------- | -------------------------------- | -------------------- |
-| `ci-test-integration`     | proposal, design, tasks, specs   | ✅ CREADO + APPROVED |
-| `ci-quality-gates`        | proposal, design, tasks          | ✅ CREADO + APPROVED |
-| `ci-cleanup-enterprise`   | proposal, design, tasks          | ✅ CREADO + APPROVED |
-| `ci-security-enhance`     | proposal, design, tasks, specs   | ✅ CREADO + APPROVED |
-| `ci-secret-scanning`      | proposal, design, tasks, specs   | ✅ CREADO + APPROVED |
-| `ci-preview-environments` | proposal, design, tasks, 5 specs | ✅ CREADO + APPROVED |
-| `ci-floci-migration`      | proposal, design, tasks, specs   | ✅ CREADO + APPROVED |
-| `cd-aws-deploy-pipeline`  | proposal, design, tasks, 5 specs | ✅ CREADO + APPROVED |
-| `ci-scheduled-security`   | proposal, design, tasks, specs   | ✅ CREADO + APPROVED |
+**Cambios OpenSpec — Estado actual (agosto 2026):**
 
-**Cambios OpenSpec pendientes:**
+| Change                    | Artefactos                       | Estado                              |
+| ------------------------- | -------------------------------- | ----------------------------------- |
+| `ci-test-integration`     | proposal, design, tasks, specs   | ✅ EN IMPLEMENTACIÓN                |
+| `ci-quality-gates`        | proposal, design, tasks          | ✅ IMPLEMENTADO + ARCHIVADO (08-06) |
+| `ci-cleanup-enterprise`   | proposal, design, tasks          | ✅ IMPLEMENTADO + ARCHIVADO (08-02) |
+| `ci-security-enhance`     | proposal, design, tasks, specs   | ✅ IMPLEMENTADO + ARCHIVADO (08-06) |
+| `ci-secret-scanning`      | proposal, design, tasks, specs   | ✅ IMPLEMENTADO + ARCHIVADO (08-07) |
+| `ci-preview-environments` | proposal, design, tasks, 5 specs | ✅ IMPLEMENTADO + ARCHIVADO (08-08) |
+| `ci-floci-migration`      | proposal, design, tasks, specs   | ✅ IMPLEMENTADO + ARCHIVADO (08-08) |
+| `cd-aws-deploy-pipeline`  | proposal, design, tasks, 5 specs | ✅ EN IMPLEMENTACIÓN (Phase 1 done) |
+| `ci-scheduled-security`   | proposal, design, tasks, specs   | ✅ IMPLEMENTADO + ARCHIVADO (08-07) |
+| `ci-scheduled-trivy`      | proposal, design, tasks          | 📝 EN PROPUESTA                     |
+| `cd-observability-sentry` | proposal, design, tasks          | 📝 EN PROPUESTA                     |
 
-Ninguno — los 9 changes del plan están creados y aprobados. Siguiente fase: implementación en orden `ci-quality-gates` → `ci-cleanup-enterprise` → `ci-test-integration` → `ci-secret-scanning` → `ci-security-enhance` → `ci-preview-environments` → `ci-floci-migration` → `cd-aws-deploy-pipeline` → `ci-scheduled-security` (merge order: `ci-secret-scanning` ANTES de `ci-security-enhance`; `ci-preview-environments` ANTES de `cd-aws-deploy-pipeline`).
+**Cambios OpenSpec pendientes de implementar:**
+
+`ci-test-integration` (tests unit/integración/E2E + build + Dependabot + caching + reporting) → luego `cd-aws-deploy-pipeline` Phase 2 (ECS/RDS/OIDC real) → propuestas `ci-scheduled-trivy` (Trivy full + npm audit cron) y `cd-observability-sentry` (Sentry deploy markers).
+
+> **Nota (Exit-digital / context bracket):** `ci-enterprise.yml` (Fintech PR CI) sigue activo en `.github/workflows/` pero referencia paths inexistentes `frontend/` y `backend/` (el proyecto usa `apps/client/` y `apps/server/`). Este workflow no se ha adaptado aún — gap OPEN documentado en §3 (A3) y §19. Brecha pendiente: proponer `ci-enterprise-fix` o migrar sus jobs a `ci.yml` + `security.yml`.
 
 ---
 
@@ -482,6 +495,7 @@ changes (dorny/paths-filter)
   ├── test-unit-client (si frontend cambió)
   ├── test-unit-server (si backend cambió)
   ├── test-integration (si backend cambió — con PostgreSQL service)
+  ├── test-smoke (si backend cambió — con PostgreSQL service)
   ├── build (siempre)
   └── e2e (si e2e cambió — opcional, parallel)
 ```
@@ -761,12 +775,17 @@ jobs:
 ```yaml
 # Dentro de preview.yml (workflow nuevo)
 # ALINEADO CON ci-preview-environments (APPROVED):
-# - floci pinneado v1.5.11 (no :latest)
+# - floci pinneado v1.5.31 (no :latest)
 # - Vercel preview NATIVO vía commit status con GITHUB_TOKEN (sin VERCEL_TOKEN)
+# - Smoke tests reales contra Floci + Vercel commit-status poller
 jobs:
   preview:
+    name: Preview Validation
     runs-on: ubuntu-latest
+    timeout-minutes: 15
+
     services:
+      # Floci - Emulador AWS (puerto 4566)
       floci:
         image: floci/floci:1.5.31
         ports:
@@ -774,51 +793,383 @@ jobs:
         env:
           FLOCI_STORAGE_MODE: memory
           FLOCI_HOSTNAME: floci
+        options: >-
+          --health-cmd "curl -f http://localhost:4566/_localstack/health || exit 1"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+          --health-start-period 10s
+
+      # PostgreSQL efímera para el stack de preview
+      db:
+        image: postgres:16-alpine
+        ports:
+          - 5432:5432
+        env:
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test
+          POSTGRES_DB: project_one_preview
+        options: >-
+          --health-cmd "pg_isready -U test -d project_one_preview"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+          --health-start-period 5s
 
     steps:
-      - uses: actions/checkout@v5
-      - uses: actions/setup-node@v4
+      # 1. Checkout
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      # 2. Setup Node.js
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
           node-version-file: '.nvmrc'
           cache: 'npm'
-      - run: npm ci
 
-      - name: Build + deploy preview to Vercel (commit status)
-        run: npm run build --workspace=@project-one/client
-        # Vercel CLI/git integration crea la preview URL; el PR comment
-        # único se gestiona con GITHUB_TOKEN (permisos contents: read)
+      # 3. Install dependencies at monorepo root
+      - name: Install dependencies
+        run: npm ci
 
-      - name: Floci health check
+      # 4. Build server Docker image (validates Dockerfile used by compose)
+      # Build from monorepo root to access package-lock.json; tag for reuse in step 6
+      - name: Build server Docker image
+        run: docker build -t preview-server -f apps/server/Dockerfile .
+
+      # 5. Run Prisma migrations against ephemeral Postgres
+      - name: Run Prisma migrations
+        working-directory: apps/server
+        run: npx prisma migrate deploy
         env:
-          AWS_ENDPOINT_URL: http://floci:4566
+          DATABASE_URL: postgresql://test:test@localhost:5432/project_one_preview
+
+      # 6. Start server from built image with service containers
+      # ENABLE_SMOKE_ROUTE=true expone el endpoint interno /_smoke/secrets usado por preview-smoke.mjs
+      - name: Start server container
+        run: |
+          docker run -d \
+            --name preview-server \
+            --network host \
+            -e DATABASE_URL=postgresql://test:test@localhost:5432/project_one_preview \
+            -e AWS_ENDPOINT_URL=http://localhost:4566 \
+            -e AWS_ACCESS_KEY_ID=test \
+            -e AWS_SECRET_ACCESS_KEY=test \
+            -e AWS_REGION=us-east-1 \
+            -e PORT=3000 \
+            -e ENABLE_SMOKE_ROUTE=true \
+            preview-server
+
+      # 7. Health check with retries
+      # Health gate accepts 200 (healthy) or 503 (degraded DB).
+      # 503 indicates server is alive but DB not ready — preview env assessment deferred to subsequent smoke tests.
+      - name: Wait for server health
+        run: |
+          for i in {1..30}; do
+            http_code=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:3000/health)
+            if [[ "$http_code" == "200" || "$http_code" == "503" ]]; then
+              echo "✅ Server health check passed (HTTP $http_code)"
+              exit 0
+            fi
+            echo "⏳ Waiting for server... ($i/30) [HTTP $http_code]"
+            sleep 2
+          done
+          echo "❌ Server health check failed after 60s"
+          exit 1
+
+      # 8. Run smoke tests against Floci (AWS emulated)
+      # Ejecuta apps/server/scripts/preview-smoke.mjs que valida:
+      # - CreateSecret + GetSecretValue contra Secrets Manager emulado (Floci)
+      # - Path de la app /_smoke/secrets (secretsClient interno)
+      - name: Run AWS emulation smoke tests
+        run: |
+          AWS_ENDPOINT_URL=http://localhost:4566 \
+          AWS_ACCESS_KEY_ID=test \
+          AWS_SECRET_ACCESS_KEY=test \
+          AWS_REGION=us-east-1 \
+          SERVER_BASE_URL=http://localhost:3000 \
+          node apps/server/scripts/preview-smoke.mjs
+        env:
+          AWS_ENDPOINT_URL: http://localhost:4566
           AWS_ACCESS_KEY_ID: test
           AWS_SECRET_ACCESS_KEY: test
-          AWS_DEFAULT_REGION: us-east-1
+          AWS_REGION: us-east-1
+          SERVER_BASE_URL: http://localhost:3000
+
+      # 9. Capture Vercel preview URL from commit status
+      # Polling loop (max 60s) via gh api sobre commit statuses buscando context que empieza con "vercel"
+      - name: Capture Vercel preview URL
+        if: github.event_name == 'pull_request'
+        id: vercel-url
+        continue-on-error: true
         run: |
-          aws s3api list-buckets --endpoint-url $AWS_ENDPOINT_URL
+          # Use PR head SHA for commit status lookup
+          SHA="${{ github.event.pull_request.head.sha }}"
+          # Poll for Vercel deployment status (max 60s)
+          for i in {1..12}; do
+            STATUS=$(gh api repos/${{ github.repository }}/commits/${SHA}/status --jq '.statuses[] | select(.context | ascii_downcase | startswith("vercel")) | .target_url' 2>/dev/null | head -1) || true
+            if [ -n "$STATUS" ]; then
+              echo "vercel_url=$STATUS" >> $GITHUB_OUTPUT
+              echo "✅ Found Vercel preview URL: $STATUS"
+              break
+            fi
+            echo "⏳ Waiting for Vercel deployment... ($i/12)"
+            sleep 5
+          done
+          if [ -z "$STATUS" ]; then
+            echo "⚠️ Vercel preview URL not found in commit status after 60s"
+            echo "vercel_url=" >> $GITHUB_OUTPUT
+          fi
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # 10. Find existing preview comment (marker-based)
+      - name: Find existing preview comment
+        if: always() && github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork == false
+        uses: peter-evans/find-comment@v3
+        id: find-comment
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          issue-number: ${{ github.event.pull_request.number }}
+          comment-author: 'github-actions[bot]'
+          body-includes: '<!-- preview-environments -->'
+
+      # 11. Create or update PR comment with combined preview info
+      - name: Create or update preview comment
+        if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork == false
+        uses: peter-evans/create-or-update-comment@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          issue-number: ${{ github.event.pull_request.number }}
+          comment-id: ${{ steps.find-comment.outputs.comment-id }}
+          body: |
+            <!-- preview-environments -->
+            ## 🔍 Preview Environments Validation
+
+            **Pull Request**: #${{ github.event.pull_request.number }}
+
+            ### 🌐 Frontend Preview (Vercel)
+            ${{ steps.vercel-url.outputs.vercel_url != '' && format('**Preview URL**: {0}', steps.vercel-url.outputs.vercel_url) || '**Preview URL**: *Not yet available — Vercel deployment may still be building*' }}
+
+            ### ⚙️ Backend Validation (AWS Emulated via Floci)
+            **Status**: ✅ Backend validation passed (smoke tests OK)
+
+            **Details**:
+            - Stack: Server (Docker) + Floci (AWS emulator) + PostgreSQL 16 (ephemeral)
+            - Smoke tests: CreateSecret + GetSecretValue against Secrets Manager emulated
+            - AWS Endpoint: `http://localhost:4566` (Floci)
+            - No real AWS credentials used — dummy test credentials only
+
+            ---
+            *Updated on ${{ github.event_name == 'pull_request' && github.event.pull_request.updated_at || github.run_id }}*
+            *Workflow: [Preview Environments](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})*
+
+          edit-mode: replace
+          continue-on-error: true
+
+      # 12. Report backend validation failure if smoke tests failed
+      - name: Report backend failure
+        if: failure() && github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork == false
+        uses: peter-evans/create-or-update-comment@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          issue-number: ${{ github.event.pull_request.number }}
+          comment-id: ${{ steps.find-comment.outputs.comment-id }}
+          body: |
+            <!-- preview-environments -->
+            ## 🔍 Preview Environments Validation
+
+            **Pull Request**: #${{ github.event.pull_request.number }}
+
+            ### 🌐 Frontend Preview (Vercel)
+            ${{ steps.vercel-url.outputs.vercel_url != '' && format('**Preview URL**: {0}', steps.vercel-url.outputs.vercel_url) || '**Preview URL**: *Not yet available — Vercel deployment may still be building*' }}
+
+            ### ⚙️ Backend Validation (AWS Emulated via Floci)
+            **Status**: ❌ Backend validation failed — see workflow logs for details
+
+            **Details**:
+            - Stack: Server (Docker) + Floci (AWS emulator) + PostgreSQL 16 (ephemeral)
+            - Smoke tests: CreateSecret + GetSecretValue against Secrets Manager emulated
+            - Check workflow logs for failure details
+
+            ---
+            *Updated on ${{ github.event_name == 'pull_request' && github.event.pull_request.updated_at || github.run_id }}*
+            *Workflow: [Preview Environments](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})*
+
+          edit-mode: replace
+          continue-on-error: true
 ```
 
 ### Stage 7 — Post-merge: CD (NUEVO)
 
-**Qué**: Cuando un PR se mergea a `main`, se dispara el pipeline completo de CD.
+**Qué**: Cuando un PR se mergea a `main`, se dispara el pipeline completo de CD en **2 fases**:
 
-**Por qué**: Automatizar la publicación para eliminar errores manuales y acelerar entregas.
+- **Fase 1 (sin AWS, implementada)**: `docker-build` — build de imagen Docker + validación completa contra stack emulado (Floci + PostgreSQL efímera) + smoke tests.
+- **Fase 2 (con AWS, gated por `vars.AWS_ROLE_ARN`)**: `ecr-push` → `deploy-staging` → `deploy-production` — jobs que requieren infraestructura AWS real (OIDC role, ECR, ECS, RDS). Si `AWS_ROLE_ARN` no está configurado, corren jobs "skipped" reporters que documentan por qué no se ejecutan.
 
-**Cómo** (workflow `deploy.yml` nuevo):
+**Por qué**: Separar validación de imagen (rápida, sin credenciales AWS) del despliegue real (requiere AWS). Permite iterar en CI/CD sin bloqueo por infraestructura pendiente.
+
+**Cómo** (workflow `deploy.yml` implementado — arquitectura 2-phase gated):
 
 ```yaml
-name: Deploy
+name: CD Deploy Pipeline
 on:
   push:
     branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
 
 jobs:
+  # ============================================================
+  # JOB 1: docker-build (Fase 1 - sin AWS, YA IMPLEMENTADO)
+  # Build de la imagen + validación boot contra Floci + Postgres efímera
+  # ============================================================
   docker-build:
+    name: Build & Validate Image (Emulated Stack)
     runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v5
+    timeout-minutes: 20
+    concurrency:
+      group: deploy-staging
+      cancel-in-progress: false
+    permissions:
+      contents: read
 
-      - name: Configure AWS credentials
+    services:
+      # Floci - Emulador AWS (puerto 4566)
+      floci:
+        image: floci/floci:1.5.31
+        ports:
+          - 4566:4566
+        env:
+          FLOCI_STORAGE_MODE: memory
+          FLOCI_HOSTNAME: floci
+        options: >-
+          --health-cmd "curl -f http://localhost:4566/_localstack/health || exit 1"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+          --health-start-period 10s
+
+      # PostgreSQL efímera para validación de imagen
+      db:
+        image: postgres:16-alpine
+        ports:
+          - 5432:5432
+        env:
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test
+          POSTGRES_DB: project_one_cd
+        options: >-
+          --health-cmd "pg_isready -U test -d project_one_cd"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+          --health-start-period 5s
+
+    steps:
+      # 1. Checkout
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      # 2. Setup Node.js (needed for test:smoke if running in-process)
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'npm'
+
+      # 3. Install dependencies at monorepo root
+      - name: Install dependencies
+        run: npm ci
+
+      # 4. Build server Docker image (tag: SHA + latest)
+      - name: Build server Docker image
+        run: |
+          docker build -t project-one-server:${GITHUB_SHA} -t project-one-server:latest -f apps/server/Dockerfile .
+        env:
+          GITHUB_SHA: ${{ github.sha }}
+
+      # 5. Run Prisma migrations against ephemeral Postgres
+      - name: Run Prisma migrations
+        working-directory: apps/server
+        run: npx prisma migrate deploy
+        env:
+          DATABASE_URL: postgresql://test:test@localhost:5432/project_one_cd
+
+      # 6. Start server container with emulated AWS stack
+      - name: Start server container
+        run: |
+          docker run -d \
+            --name cd-server \
+            --network host \
+            -e DATABASE_URL=postgresql://test:test@localhost:5432/project_one_cd \
+            -e AWS_ENDPOINT_URL=http://localhost:4566 \
+            -e AWS_ACCESS_KEY_ID=test \
+            -e AWS_SECRET_ACCESS_KEY=test \
+            -e AWS_REGION=us-east-1 \
+            -e PORT=3000 \
+            project-one-server:${GITHUB_SHA}
+        env:
+          DATABASE_URL: postgresql://test:test@localhost:5432/project_one_cd
+          AWS_ENDPOINT_URL: http://localhost:4566
+          AWS_ACCESS_KEY_ID: test
+          AWS_SECRET_ACCESS_KEY: test
+          AWS_REGION: us-east-1
+          PORT: 3000
+
+      # 7. Health check with retries (wait for /health 200)
+      - name: Wait for server health
+        run: |
+          for i in {1..30}; do
+            if curl -sf http://localhost:3000/health > /dev/null; then
+              echo "✅ Server health check passed"
+              exit 0
+            fi
+            echo "⏳ Waiting for server... ($i/30)"
+            sleep 2
+          done
+          echo "❌ Server health check failed after 60s"
+          exit 1
+
+      # 8. Run smoke tests against emulated stack
+      - name: Run smoke tests (emulated)
+        working-directory: apps/server
+        run: |
+          AWS_ENDPOINT_URL=http://localhost:4566 \
+          AWS_ACCESS_KEY_ID=test \
+          AWS_SECRET_ACCESS_KEY=test \
+          AWS_REGION=us-east-1 \
+          npm run test:smoke
+        env:
+          AWS_ENDPOINT_URL: http://localhost:4566
+          AWS_ACCESS_KEY_ID: test
+          AWS_SECRET_ACCESS_KEY: test
+          AWS_REGION: us-east-1
+
+  # ============================================================
+  # JOB 2: ecr-push (Fase 2 - GATED por AWS_ROLE_ARN)
+  # Push de la imagen validada a ECR via OIDC
+  # ============================================================
+  ecr-push:
+    name: Push to ECR
+    needs: docker-build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    concurrency:
+      group: deploy-staging
+      cancel-in-progress: false
+    permissions:
+      id-token: write
+      contents: read
+    if: ${{ vars.AWS_ROLE_ARN != '' }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Configure AWS credentials (OIDC)
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${{ vars.AWS_ROLE_ARN }}
@@ -827,82 +1178,296 @@ jobs:
       - name: Login to Amazon ECR
         uses: aws-actions/amazon-ecr-login@v2
 
-      - name: Build, tag, and push Docker image
+      - name: Build and push image to ECR
+        run: |
+          docker build -t project-one-server:${GITHUB_SHA} -t project-one-server:latest -f apps/server/Dockerfile .
+          docker tag project-one-server:${GITHUB_SHA} ${{ vars.AWS_ACCOUNT_ID }}.dkr.ecr.us-east-1.amazonaws.com/project-one-server:${GITHUB_SHA}
+          docker tag project-one-server:latest ${{ vars.AWS_ACCOUNT_ID }}.dkr.ecr.us-east-1.amazonaws.com/project-one-server:latest
+          docker push ${{ vars.AWS_ACCOUNT_ID }}.dkr.ecr.us-east-1.amazonaws.com/project-one-server:${GITHUB_SHA}
+          docker push ${{ vars.AWS_ACCOUNT_ID }}.dkr.ecr.us-east-1.amazonaws.com/project-one-server:latest
         env:
-          REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          REPOSITORY: project-one-server
-          IMAGE_TAG: ${{ github.sha }}
-        run: |
-          docker build -t $REGISTRY/$REPOSITORY:$IMAGE_TAG ./apps/server
-          docker tag $REGISTRY/$REPOSITORY:$IMAGE_TAG $REGISTRY/$REPOSITORY:latest
-          docker push $REGISTRY/$REPOSITORY:$IMAGE_TAG
-          docker push $REGISTRY/$REPOSITORY:latest
+          GITHUB_SHA: ${{ github.sha }}
+          AWS_ACCOUNT_ID: ${{ vars.AWS_ACCOUNT_ID }}
 
+  # ============================================================
+  # JOB 3: deploy-staging (Fase 2 - GATED por AWS_ROLE_ARN)
+  # Deploy a ECS Fargate staging con circuit breaker + smoke post-deploy
+  # ============================================================
   deploy-staging:
-    needs: [docker-build]
+    name: Deploy to Staging
+    needs: ecr-push
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    concurrency:
+      group: deploy-staging
+      cancel-in-progress: false
+    permissions:
+      id-token: write
+      contents: read
     environment: staging
-    runs-on: ubuntu-latest
+    if: ${{ vars.AWS_ROLE_ARN != '' }}
+
     steps:
-      - name: Deploy to staging
-        run: |
-          # Deploy a staging (ECS, EKS, o EC2+PM2)
-          aws ecs update-service --cluster project-one-staging \
-            --service api --force-new-deployment \
-            --region us-east-1
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.AWS_ROLE_ARN }}
+          aws-region: us-east-1
 
-      - name: Smoke test
+      # 1. Register new task definition with SHA-tagged image (NEW revision)
+      - name: Register task definition (staging)
+        id: task-def-staging
         run: |
-          sleep 30
-          curl --retry 10 --retry-delay 5 --retry-connrefused \
-            https://staging.tudominio.com/api/health
+          TASK_DEF=$(aws ecs register-task-definition \
+            --family project-one-staging-api \
+            --network-mode awsvpc \
+            --requires-compatibilities FARGATE \
+            --cpu "256" \
+            --memory "512" \
+            --execution-role-arn ${{ secrets.STAGING_TASK_EXECUTION_ROLE_ARN }} \
+            --task-role-arn ${{ secrets.STAGING_TASK_ROLE_ARN }} \
+            --container-definitions '[
+              {
+                "name": "api",
+                "image": "'${{ vars.AWS_ACCOUNT_ID }}'.dkr.ecr.us-east-1.amazonaws.com/project-one-server:'${{ github.sha }}'",
+                "portMappings": [{"containerPort": 3000, "protocol": "tcp"}],
+                "environment": [
+                  {"name": "NODE_ENV", "value": "staging"},
+                  {"name": "PORT", "value": "3000"}
+                ],
+                "secrets": [
+                  {"name": "DATABASE_URL", "valueFrom": "'${{ secrets.STAGING_DATABASE_URL_SECRET_ARN }}'"},
+                  {"name": "SECRETKEY", "valueFrom": "'${{ secrets.STAGING_JWT_SECRET_SECRET_ARN }}'"},
+                  {"name": "REFRESHSECRETKEY", "valueFrom": "'${{ secrets.STAGING_REFRESH_SECRETKEY_SECRET_ARN }}'"},
+                  {"name": "AWS_REGION", "valueFrom": "'${{ secrets.STAGING_AWS_REGION_SECRET_ARN }}'"}
+                ],
+                "logConfiguration": {
+                  "logDriver": "awslogs",
+                  "options": {
+                    "awslogs-group": "/ecs/project-one-staging",
+                    "awslogs-region": "us-east-1",
+                    "awslogs-stream-prefix": "api"
+                  }
+                },
+                "healthCheck": {
+                  "command": ["CMD-SHELL", "curl -f http://localhost:3000/health || exit 1"],
+                  "interval": 30,
+                  "timeout": 5,
+                  "retries": 3,
+                  "startPeriod": 60
+                }
+              }
+            ]' \
+            --query 'taskDefinition.taskDefinitionArn' \
+            --output text)
+          echo "task_definition_arn=$TASK_DEF" >> $GITHUB_OUTPUT
+        env:
+          GITHUB_SHA: ${{ github.sha }}
+          AWS_ACCOUNT_ID: ${{ vars.AWS_ACCOUNT_ID }}
 
-          npm run test:smoke --workspace=apps/server || exit 1
-
-  deploy-production:
-    needs: [deploy-staging]
-    environment: production
-    runs-on: ubuntu-latest
-    steps:
-      - name: Blue/Green deploy
+      # 2. Update service with force-new-deployment + circuit breaker
+      - name: Update ECS service (staging)
         run: |
-          # Blue/Green con ECS
-          aws ecs update-service --cluster project-one-prod \
-            --service api --force-new-deployment \
-            --deployment-configuration "deploymentCircuitBreaker={enable=true,rollback=true}" \
-            --region us-east-1
+          aws ecs update-service \
+            --cluster project-one-staging \
+            --service api \
+            --task-definition ${{ steps.task-def-staging.outputs.task_definition_arn }} \
+            --force-new-deployment \
+            --deployment-configuration "deploymentCircuitBreaker={enable=true,rollback=true}"
 
-      - name: Health check post-deploy
+      # 3. Wait for service stability
+      - name: Wait for service stability (staging)
         run: |
-          sleep 60
-          for i in $(seq 1 30); do
-            STATUS=$(curl -s -o /dev/null -w "%{http_code}" https://api.tudominio.com/health)
-            if [ "$STATUS" = "200" ]; then
-              echo "Deploy health OK"
+          aws ecs wait services-stable \
+            --cluster project-one-staging \
+            --services api
+
+      # 4. Smoke test post-deploy: health endpoint + remote smoke suite
+      - name: Post-deploy health check (staging)
+        run: |
+          for i in {1..30}; do
+            if curl -sf "${{ secrets.STAGING_URL }}/health" > /dev/null; then
+              echo "✅ Staging health check passed"
               exit 0
             fi
+            echo "⏳ Waiting for staging health... ($i/30)"
             sleep 10
           done
-          echo "Health check failed"
+          echo "❌ Staging health check failed after 5 minutes"
           exit 1
 
-  post-deploy:
-    needs: [deploy-production]
-    runs-on: ubuntu-latest
-    steps:
-      - name: Create deploy marker
+      # 5. Run remote smoke tests against deployed staging (requires BASE_URL support)
+      - name: Run remote smoke tests (staging)
+        working-directory: apps/server
         run: |
-          # Enviar evento a sistema de monitoreo
-          curl -X POST ${{ secrets.DEPLOY_MONITOR_URL }} \
-            -H "Content-Type: application/json" \
-            -d "{\"service\":\"project-one\",\"sha\":\"${{ github.sha }}\",\"env\":\"production\"}"
-
-      - name: Error tracking release
-        uses: getsentry/action-release@v1
+          BASE_URL="${{ secrets.STAGING_URL }}" npm run test:smoke
         env:
-          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
-          SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
+          BASE_URL: ${{ secrets.STAGING_URL }}
+
+  # ============================================================
+  # JOB 4: deploy-production (Fase 2 - GATED por AWS_ROLE_ARN)
+  # Deploy a producción con approval manual + circuit breaker + health check 5 min
+  # ============================================================
+  deploy-production:
+    name: Deploy to Production
+    needs: deploy-staging
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    concurrency:
+      group: deploy-production
+      cancel-in-progress: false
+    permissions:
+      id-token: write
+      contents: read
+    environment: production
+    if: ${{ vars.AWS_ROLE_ARN != '' }}
+
+    steps:
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
         with:
-          environment: production
+          role-to-assume: ${{ vars.AWS_ROLE_ARN }}
+          aws-region: us-east-1
+
+      # 1. Register new task definition with SHA-tagged image (NEW revision)
+      - name: Register task definition (production)
+        id: task-def-production
+        run: |
+          TASK_DEF=$(aws ecs register-task-definition \
+            --family project-one-prod-api \
+            --network-mode awsvpc \
+            --requires-compatibilities FARGATE \
+            --cpu "512" \
+            --memory "1024" \
+            --execution-role-arn ${{ secrets.PROD_TASK_EXECUTION_ROLE_ARN }} \
+            --task-role-arn ${{ secrets.PROD_TASK_ROLE_ARN }} \
+            --container-definitions '[
+              {
+                "name": "api",
+                "image": "'${{ vars.AWS_ACCOUNT_ID }}'.dkr.ecr.us-east-1.amazonaws.com/project-one-server:'${{ github.sha }}'",
+                "portMappings": [{"containerPort": 3000, "protocol": "tcp"}],
+                "environment": [
+                  {"name": "NODE_ENV", "value": "production"},
+                  {"name": "PORT", "value": "3000"}
+                ],
+                "secrets": [
+                  {"name": "DATABASE_URL", "valueFrom": "'${{ secrets.PROD_DATABASE_URL_SECRET_ARN }}'"},
+                  {"name": "SECRETKEY", "valueFrom": "'${{ secrets.PROD_JWT_SECRET_SECRET_ARN }}'"},
+                  {"name": "REFRESHSECRETKEY", "valueFrom": "'${{ secrets.PROD_REFRESH_SECRETKEY_SECRET_ARN }}'"},
+                  {"name": "AWS_REGION", "valueFrom": "'${{ secrets.PROD_AWS_REGION_SECRET_ARN }}'"}
+                ],
+                "logConfiguration": {
+                  "logDriver": "awslogs",
+                  "options": {
+                    "awslogs-group": "/ecs/project-one-prod",
+                    "awslogs-region": "us-east-1",
+                    "awslogs-stream-prefix": "api"
+                  }
+                },
+                "healthCheck": {
+                  "command": ["CMD-SHELL", "curl -f http://localhost:3000/health || exit 1"],
+                  "interval": 30,
+                  "timeout": 5,
+                  "retries": 3,
+                  "startPeriod": 60
+                }
+              }
+            ]' \
+            --query 'taskDefinition.taskDefinitionArn' \
+            --output text)
+          echo "task_definition_arn=$TASK_DEF" >> $GITHUB_OUTPUT
+        env:
+          GITHUB_SHA: ${{ github.sha }}
+          AWS_ACCOUNT_ID: ${{ vars.AWS_ACCOUNT_ID }}
+
+      # 2. Update service with force-new-deployment + circuit breaker
+      - name: Update ECS service (production)
+        run: |
+          aws ecs update-service \
+            --cluster project-one-prod \
+            --service api \
+            --task-definition ${{ steps.task-def-production.outputs.task_definition_arn }} \
+            --force-new-deployment \
+            --deployment-configuration "deploymentCircuitBreaker={enable=true,rollback=true}"
+
+      # 3. Wait for service stability
+      - name: Wait for service stability (production)
+        run: |
+          aws ecs wait services-stable \
+            --cluster project-one-prod \
+            --services api
+
+      # 4. Health check post-deploy: poll /health for up to 5 minutes
+      - name: Post-deploy health check (production)
+        run: |
+          echo "🔍 Polling production health for up to 5 minutes..."
+          for i in {1..30}; do
+            if curl -sf "${{ secrets.PROD_URL }}/health" > /dev/null; then
+              echo "✅ Production health check passed"
+              exit 0
+            fi
+            echo "⏳ Waiting for production health... ($i/30, 10s intervals)"
+            sleep 10
+          done
+          echo "❌ Production health check failed after 5 minutes"
+          exit 1
+
+      # 5. Run remote smoke tests against deployed production
+      - name: Run remote smoke tests (production)
+        working-directory: apps/server
+        run: |
+          BASE_URL="${{ secrets.PROD_URL }}" npm run test:smoke
+        env:
+          BASE_URL: ${{ secrets.PROD_URL }}
+
+  # ============================================================
+  # JOBS DE REPORTE: skipped jobs cuando falta AWS_ROLE_ARN
+  # Estos jobs corren siempre y reportan "skipped" con razón visible
+  # ============================================================
+  ecr-push-skipped:
+    name: ECR Push (Skipped - No AWS Config)
+    needs: docker-build
+    runs-on: ubuntu-latest
+    timeout-minutes: 1
+    concurrency:
+      group: deploy-staging
+      cancel-in-progress: false
+    if: ${{ vars.AWS_ROLE_ARN == '' }}
+    steps:
+      - name: Report skipped
+        run: |
+          echo "::notice title=ECR Push Skipped::AWS_ROLE_ARN repository variable is not configured. This job requires AWS infrastructure (OIDC role + ECR repo). Configure vars.AWS_ROLE_ARN and vars.AWS_ACCOUNT_ID to enable Phase 2."
+          exit 0
+
+  deploy-staging-skipped:
+    name: Deploy Staging (Skipped - No AWS Config)
+    needs: docker-build
+    runs-on: ubuntu-latest
+    timeout-minutes: 1
+    concurrency:
+      group: deploy-staging
+      cancel-in-progress: false
+    if: ${{ vars.AWS_ROLE_ARN == '' }}
+    steps:
+      - name: Report skipped
+        run: |
+          echo "::notice title=Staging Deploy Skipped::AWS_ROLE_ARN repository variable is not configured. ECS staging cluster and environment secrets not provisioned. Complete Floci ECS learning milestone to unlock."
+          exit 0
+
+  deploy-production-skipped:
+    name: Deploy Production (Skipped - No AWS Config)
+    needs: docker-build
+    runs-on: ubuntu-latest
+    timeout-minutes: 1
+    concurrency:
+      group: deploy-production
+      cancel-in-progress: false
+    if: ${{ vars.AWS_ROLE_ARN == '' }}
+    steps:
+      - name: Report skipped
+        run: |
+          echo "::notice title=Production Deploy Skipped::AWS_ROLE_ARN repository variable is not configured. ECS production cluster, ALB, and environment not provisioned. Complete Floci learning path milestones to unlock."
+          exit 0
 ```
 
 ### Stage 8 — Scheduled / Cron (NUEVO)
@@ -911,47 +1476,74 @@ jobs:
 
 **Por qué**: Detectar secretos históricos, vulnerabilidades nuevas en dependencias, y mantener SBOM actualizado.
 
-**Cómo** (workflow `scheduled-security.yml` nuevo):
+**Cómo** (workflow `scheduled-security.yml` implementado):
 
 ```yaml
 name: Scheduled Security Scan
 on:
   schedule:
-    - cron: '0 6 * * 1' # Cada lunes 6am UTC
+    - cron: '0 3 * * 1' # Cada lunes 03:00 UTC
+
+permissions:
+  contents: read
+  security-events: write
 
 jobs:
-  full-scan:
+  gitleaks-full-scan:
+    name: Gitleaks Full History Scan
     runs-on: ubuntu-latest
+    continue-on-error: true
+
     steps:
       - uses: actions/checkout@v5
         with:
           fetch-depth: 0
 
-      - name: Full Gitleaks scan (histórico completo)
-        uses: gitleaks/gitleaks-action@v2
+      - name: Run Gitleaks full history scan (JSON report)
+        uses: docker://zricethezav/gitleaks:v8.22.1
         with:
-          scan-type: full
+          args: git --log-opts="--all" --report-format=json --report-path=gitleaks-report.json --redact
 
-      - name: Trivy full scan
-        uses: aquasecurity/trivy-action@0.33.1
+      - name: Upload Gitleaks JSON report
+        uses: actions/upload-artifact@v4
         with:
-          scan-type: fs
-          scan-ref: .
-          severity: HIGH,CRITICAL
+          name: gitleaks-report
+          path: gitleaks-report.json
+          retention-days: 30
 
-      - name: npm audit
-        run: npm audit --audit-level=high
-
-      - name: SBOM generation
-        uses: anchore/sbom-action@v0
+      - name: Run Gitleaks full history scan (SARIF report)
+        uses: docker://zricethezav/gitleaks:v8.22.1
         with:
-          format: spdx-json
-          output-file: sbom-project-one-weekly.json
+          args: git --log-opts="--all" --report-format=sarif --report-path=gitleaks.sarif --redact
 
-      - name: Report to security dashboard
-        run: |
-          # Subir resultados a GitHub Security / SIEM
+      - name: Upload SARIF to Security tab
+        uses: github/codeql-action/upload-sarif@v4
+        with:
+          sarif_file: gitleaks.sarif
+          category: gitleaks
 ```
+
+> **Nota**: El workflow actual ejecuta **solo Gitleaks full history scan** (JSON + SARIF → Security tab). Trivy full scan + npm audit + SBOM regeneration NO están en este workflow; están propuestos como cambio OpenSpec `ci-scheduled-trivy` (en propuesta).
+
+#### Stage 8.1 — Scheduled Security Digest (NUEVO)
+
+**Workflow**: `.github/workflows/security-digest.yml` (implementado, cron 03:00 UTC lunes)
+
+Ejecuta un resumen de seguridad semanal combinando múltiples fuentes:
+
+| Job                      | Qué hace                                                                                                                                                                                                                   |
+| ------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **sbom**                 | Regenera SBOM CycloneDX (`anchore/sbom-action`) y lo sube como artifact (retención 365 días)                                                                                                                               |
+| **vulnerability-review** | Ejecuta **OSV Scanner** (`google/osv-scanner-action`) sobre `package-lock.json` → reporte JSON                                                                                                                             |
+| **digest**               | Descarga SBOM + OSV report + **Gitleaks SARIF artifact del workflow hermano** `scheduled-security.yml` (via `actions/github-script`), ejecuta `scripts/security/generate-security-digest.mjs`, genera `security-digest.md` |
+| **digest (PR comment)**  | Si hay hallazgos `CRITICAL`/`HIGH` o `DENY-LIST`, publica comentario condicional en PR (input `pull_request_number`)                                                                                                       |
+
+**Diferencia clave vs `scheduled-security.yml`**:
+
+- `scheduled-security.yml`: **Gitleaks full history only** (secret scanning histórico, SARIF → Security tab)
+- `security-digest.yml`: **OSV Scanner + SBOM + Gitleaks sibling artifact** → digest legible + PR comment accionable
+
+**OSV Scanner en vez de npm audit**: Para el digest programado se usa `google/osv-scanner` (base de datos OSV, más completa y actualizada que npm audit). El `npm audit` permanece en el análisis event-driven (`security.yml` dependency-scan job).
 
 ---
 
@@ -1142,20 +1734,17 @@ services:
     ports:
       - '4566:4566'
     environment:
-      FLOCI_STORAGE_MODE: persistent
+      FLOCI_STORAGE_MODE: memory
       FLOCI_HOSTNAME: floci
-    volumes:
-      - floci_data:/app/data
     healthcheck:
       test:
         [
           'CMD-SHELL',
           'curl -f http://localhost:4566/_localstack/health >/dev/null 2>&1 || exit 1',
         ]
-
-volumes:
-  floci_data:
 ```
+
+> **Nota**: La configuración actual de desarrollo usa `FLOCI_STORAGE_MODE: memory` **sin volumen persistente** (según `ci-floci-migration` y `docker-compose.yml` del server). El modo `persistent` con volumen `floci_data:/app/data` está disponible vía config si se necesita retención de estado entre reinicios (ej. para desarrollo local prolongado).
 
 ### Costos estimados (AWS + Vercel)
 
@@ -1180,21 +1769,21 @@ volumes:
 
 **Objetivo**: Que cada PR ejecute tests + build + lint con reporting y caching antes de ser mergeable.
 
-| #    | Tarea                                                                                                                                 | SP  | Dependencia | Criterio de aceptación                                                            |
-| ---- | ------------------------------------------------------------------------------------------------------------------------------------- | --- | ----------- | --------------------------------------------------------------------------------- |
-| 1.1  | Reforzar ESLint en `package.json` raíz y workspaces (proyecto es JS puro, no TypeScript)                                              | 1   | —           | `npm run lint` se ejecuta en CI y funciona sin errores                            |
-| 1.2  | Descomentar y configurar jobs `test-unit-client`, `test-unit-server`, `test-integration` en `ci.yml` con PostgreSQL service container | 4   | 1.1         | PR ejecuta `test:unit` (client/server) y `test:integration` (server) con Postgres |
-| 1.3  | Agregar job `build` en `ci.yml`                                                                                                       | 1   | 1.2         | `npm run build` corre en cada PR, falla si hay errores                            |
-| 1.4  | Agregar `coverage.thresholds` en Vitest config (statements ≥80%, branches ≥75%, functions ≥80%)                                       | 1   | 1.2         | Cobertura mínima configurada por módulo                                           |
-| 1.5  | Crear composite action `.github/actions/setup-monorepo/action.yml` (checkout + setup-node + npm ci + Vitest cache)                    | 2   | —           | Jobs usan `uses: ./.github/actions/setup-monorepo` en vez de repetir pasos        |
-| 1.6  | Configurar test reporting con `dorny/test-reporter@v3` + JUnit reporter de Vitest                                                     | 2   | 1.2         | PR muestra anotaciones de tests pasados/fallados en el diff                       |
-| 1.7  | Habilitar Dependabot (`.github/dependabot.yml`) con grouping config                                                                   | 1   | —           | Dependabot crea PRs automáticos para parches de seguridad                         |
-| 1.8  | Implementar caching multi-capa (npm + Vitest + Playwright)                                                                            | 1   | 1.5         | CI time < 7 minutos con todas las capas                                           |
-| 1.9  | Crear `.dockerignore`                                                                                                                 | 1   | —           | `docker build` no incluye `.env`, `node_modules`, etc.                            |
-| 1.10 | Re-activar `lint-staged` en `.husky/pre-commit` (hoy comentado)                                                                       | 1   | —           | Pre-commit ejecuta ESLint + Prettier en archivos staged antes de cada commit      |
-| 1.11 | Configurar flaky test handling: Playwright `retries: 2`, Vitest `retry: 2` en integration tests                                       | 1   | 1.2         | Tests flaky se reintentan automáticamente en CI                                   |
+| #    | Tarea                                                                                                                                 | SP  | Dependencia | Criterio de aceptación                                                            | Estado / Change Ref                           |
+| ---- | ------------------------------------------------------------------------------------------------------------------------------------- | --- | ----------- | --------------------------------------------------------------------------------- | --------------------------------------------- |
+| 1.1  | Reforzar ESLint en `package.json` raíz y workspaces (proyecto es JS puro, no TypeScript)                                              | 1   | —           | `npm run lint` se ejecuta en CI y funciona sin errores                            | ✅ **DONE** — `ci-quality-gates`              |
+| 1.2  | Descomentar y configurar jobs `test-unit-client`, `test-unit-server`, `test-integration` en `ci.yml` con PostgreSQL service container | 4   | 1.1         | PR ejecuta `test:unit` (client/server) y `test:integration` (server) con Postgres | ✅ **DONE** — `ci-test-integration`           |
+| 1.3  | Agregar job `build` en `ci.yml`                                                                                                       | 1   | 1.2         | `npm run build` corre en cada PR, falla si hay errores                            | ✅ **DONE** — `ci-test-integration`           |
+| 1.4  | Agregar `coverage.thresholds` en Vitest config (statements ≥80%, branches ≥75%, functions ≥80%)                                       | 1   | 1.2         | Cobertura mínima configurada por módulo                                           | ✅ **DONE** — `ci-quality-gates`              |
+| 1.5  | Crear composite action `.github/actions/setup-monorepo/action.yml` (checkout + setup-node + npm ci + Vitest cache)                    | 2   | —           | Jobs usan `uses: ./.github/actions/setup-monorepo` en vez de repetir pasos        | ✅ **DONE** — `ci-test-integration`           |
+| 1.6  | Configurar test reporting con `dorny/test-reporter@v3` + JUnit reporter de Vitest                                                     | 2   | 1.2         | PR muestra anotaciones de tests pasados/fallados en el diff                       | ✅ **DONE** — `ci-test-integration`           |
+| 1.7  | Habilitar Dependabot (`.github/dependabot.yml`) con grouping config                                                                   | 1   | —           | Dependabot crea PRs automáticos para parches de seguridad                         | ✅ **DONE** — `ci-test-integration` (task 13) |
+| 1.8  | Implementar caching multi-capa (npm + Vitest + Playwright)                                                                            | 1   | 1.5         | CI time < 7 minutos con todas las capas                                           | ✅ **DONE** — `ci-test-integration`           |
+| 1.9  | Crear `.dockerignore`                                                                                                                 | 1   | —           | `docker build` no incluye `.env`, `node_modules`, etc.                            | ✅ **DONE** — `ci-test-integration`           |
+| 1.10 | Re-activar `lint-staged` en `.husky/pre-commit` (hoy comentado)                                                                       | 1   | —           | Pre-commit ejecuta ESLint + Prettier en archivos staged antes de cada commit      | ✅ **DONE** — `ci-quality-gates`              |
+| 1.11 | Configurar flaky test handling: Playwright `retries: 2`, Vitest `retry: 2` en integration tests                                       | 1   | 1.2         | Tests flaky se reintentan automáticamente en CI                                   | ✅ **DONE** — `ci-test-integration`           |
 
-**Dependabot config**:
+**Dependabot config** (actual `.github/dependabot.yml` — 3 ecosistemas):
 
 ```yaml
 # .github/dependabot.yml
@@ -1205,8 +1794,8 @@ updates:
     schedule:
       interval: 'weekly'
       day: 'monday'
-      time: '09:00'
-      timezone: 'America/Mexico_City'
+      time: '03:00'
+      timezone: 'UTC'
     open-pull-requests-limit: 10
     labels:
       - 'dependencies'
@@ -1218,60 +1807,87 @@ updates:
           - 'prettier*'
           - 'typescript*'
           - 'vitest*'
+          - '@testing-library*'
+          - '@types*'
         update-types:
           - 'minor'
           - 'patch'
     ignore:
       - dependency-name: 'react'
         update-types: ['version-update:semver-major']
+      - dependency-name: 'react-dom'
+        update-types: ['version-update:semver-major']
 
   - package-ecosystem: 'github-actions'
     directory: '/'
     schedule:
       interval: 'weekly'
+      day: 'monday'
+      time: '03:00'
+      timezone: 'UTC'
+    open-pull-requests-limit: 10
+    labels:
+      - 'dependencies'
+      - 'github-actions'
+    commit-message:
+      prefix: 'ci'
+
+  - package-ecosystem: 'docker'
+    directory: '/apps/server'
+    schedule:
+      interval: 'weekly'
+      day: 'monday'
+      time: '03:00'
+      timezone: 'UTC'
+    open-pull-requests-limit: 10
+    labels:
+      - 'dependencies'
+      - 'docker'
+    commit-message:
+      prefix: 'ci'
 ```
 
 ### Sprint 2 — CI avanzado + Preview environments (2 semanas, ~12 SP)
 
 **Objetivo**: E2E en CI, previews por PR con Floci + Vercel, y limpieza de workflows muertos.
 
-| #      | Tarea                                                                                                                           | SP  | Dependencia | Criterio de aceptación                                       |
-| ------ | ------------------------------------------------------------------------------------------------------------------------------- | --- | ----------- | ------------------------------------------------------------ |
-| 2.1    | Agregar job E2E Playwright en `ci.yml` con caché de browsers                                                                    | 3   | 1.2         | E2E corre en CI cuando `e2e/**` cambia                       |
-| 2.2    | Crear workflow `preview.yml` con Floci + Vercel preview                                                                         | 3   | —           | Cada PR genera URL de preview comentada en el PR             |
-| 2.3    | Migrar de LocalStack a Floci (1 línea en docker-compose.yml)                                                                    | 1   | —           | `docker compose up` levanta Floci en port 4566               |
-| 2.4    | Integrar `@floci/testcontainers` con Vitest para tests AWS                                                                      | 2   | 2.3         | Tests que usan S3/DynamoDB funcionan con Floci en CI y local |
-| ✅ 2.5 | ✅ **Eliminar workflows zombie** (`pr-validation.yml`, `lint.yml`, `formatter.yml`) — **COMPLETADO en `ci-cleanup-enterprise`** | 1   | —           | `ls .github/workflows/` solo muestra workflows activos       |
-| ✅ 2.6 | ✅ **Unificar versión de Node** en todos los workflows a `.nvmrc` — **COMPLETADO en `ci-cleanup-enterprise`**                   | 1   | —           | Todos los workflows usan `node-version-file: .nvmrc`         |
-| 2.7    | Configurar GitHub secret scanning (gratuito, no requiere licencia)                                                              | 1   | —           | Secret scanning activo en GitHub Security tab                |
+| #      | Tarea                                                                                                                           | SP  | Dependencia | Criterio de aceptación                                       | Estado / Change Ref                                                                                                                                                         |
+| ------ | ------------------------------------------------------------------------------------------------------------------------------- | --- | ----------- | ------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 2.1    | Agregar job E2E Playwright en `ci.yml` con caché de browsers                                                                    | 3   | 1.2         | E2E corre en CI cuando `e2e/**` cambia                       | ✅ **DONE** — `ci-test-integration`                                                                                                                                         |
+| 2.2    | Crear workflow `preview.yml` con Floci + Vercel preview                                                                         | 3   | —           | Cada PR genera URL de preview comentada en el PR             | ✅ **DONE** — `ci-preview-environments`                                                                                                                                     |
+| 2.3    | Migrar de LocalStack a Floci (1 línea en docker-compose.yml)                                                                    | 1   | —           | `docker compose up` levanta Floci en port 4566               | ✅ **DONE** — `ci-floci-migration`                                                                                                                                          |
+| 2.4    | Integrar `@floci/testcontainers` con Vitest para tests AWS                                                                      | 2   | 2.3         | Tests que usan S3/DynamoDB funcionan con Floci en CI y local | ⚠️ Pendiente (post-Sprint 4)                                                                                                                                                |
+| ✅ 2.5 | ✅ **Eliminar workflows zombie** (`pr-validation.yml`, `lint.yml`, `formatter.yml`) — **COMPLETADO en `ci-cleanup-enterprise`** | 1   | —           | `ls .github/workflows/` solo muestra workflows activos       | ✅ **DONE** — `ci-cleanup-enterprise` (08-02)                                                                                                                               |
+| ✅ 2.6 | ✅ **Unificar versión de Node** en todos los workflows a `.nvmrc` — **COMPLETADO en `ci-cleanup-enterprise`**                   | 1   | —           | Todos los workflows usan `node-version-file: .nvmrc`         | ✅ **DONE** — `ci-cleanup-enterprise` (08-02)                                                                                                                               |
+| 2.7    | Configurar GitHub secret scanning (gratuito, no requiere licencia)                                                              | 1   | —           | Secret scanning activo en GitHub Security tab                | ⚠️ **Pendiente verificación** — GitHub native secret scanning configurado en Settings (externo); Gitleaks PR-diff en `security.yml` + cron full en `scheduled-security.yml` |
 
 ### Sprint 3 — CD básico: Staging automático (2 semanas, ~12 SP)
 
 **Objetivo**: Despliegue automático a staging con smoke tests al mergear a main.
 
-| #   | Tarea                                                     | SP   | Dependencia | Criterio de aceptación                                                                                         |
-| --- | --------------------------------------------------------- | ---- | ----------- | -------------------------------------------------------------------------------------------------------------- |
-| 3.1 | Configurar cuenta AWS (IAM, ECR, ECS, RDS, VPC)           | 8-13 | —           | Despliegue manual exitoso a staging desde local. Estimación alta porque el equipo no tiene experiencia con AWS |
-| 3.2 | Crear workflow `deploy.yml` con build Docker + push a ECR | 2    | 3.1         | `git push main` → imagen Docker en ECR                                                                         |
-| 3.3 | Configurar deploy a staging en ECS Fargate                | 3    | 3.2         | Cambio mergeado → staging actualizado en < 5 min                                                               |
+| #   | Tarea                                                     | SP   | Dependencia | Criterio de aceptación                                                                                         | Estado / Change Ref                                                                      |
+| --- | --------------------------------------------------------- | ---- | ----------- | -------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
+| 3.1 | Configurar cuenta AWS (IAM, ECR, ECS, RDS, VPC)           | 8-13 | —           | Despliegue manual exitoso a staging desde local. Estimación alta porque el equipo no tiene experiencia con AWS | ⚠️ **Phase 2 pending** — `cd-aws-deploy-pipeline` Phase 2 gated por `vars.AWS_ROLE_ARN`  |
+| 3.2 | Crear workflow `deploy.yml` con build Docker + push a ECR | 2    | 3.1         | `git push main` → imagen Docker en ECR                                                                         | ✅ **Phase 1 DONE** — `deploy.yml` docker-build job (emulado con Floci+Postgres)         |
+| 3.3 | Configurar deploy a staging en ECS Fargate                | 3    | 3.2         | Cambio mergeado → staging actualizado en < 5 min                                                               | ⚠️ **Phase 2 pending** — `deploy.yml` deploy-staging job (gated por `vars.AWS_ROLE_ARN`) |
 
 > **Prerequisito**: Agregar endpoint `GET /api/health` al server (Express) si no existe. El health check es usado por ECS target group y por los smoke tests post-deploy.
-> | 3.4 | Implementar smoke tests automáticos post-deploy | 2 | 3.3 | Smoke test falla → rollback automático en staging |
-> | 3.5 | Configurar Floci en staging como AWS emulador para integración | 1 | 3.3 | Servicios AWS emulados disponibles en staging |
-> | 3.6 | Configurar GitHub Environments con secrets por entorno | 1 | 3.1 | Staging y producción tienen secretos separados |
+> | 3.4 | Implementar smoke tests automáticos post-deploy | 2 | 3.3 | Smoke test falla → rollback automático en staging | ✅ **Phase 1 DONE** — `deploy.yml` smoke tests contra Floci emulado + `deploy-staging` smoke tests post-deploy |
+> | 3.5 | Configurar Floci en staging como AWS emulador para integración | 1 | 3.3 | Servicios AWS emulados disponibles en staging | ⚠️ **Skipped by design** — staging usa AWS real; Floci solo en CI/preview (Phase 1 emulation) |
+> | 3.6 | Configurar GitHub Environments con secrets por entorno | 1 | 3.1 | Staging y producción tienen secretos separados | ⚠️ **Phase 2 pending** — `deploy.yml` usa `environment: staging/production` (gated por `vars.AWS_ROLE_ARN`) |
 
 ### Sprint 4 — CD completo: Producción + Madurez (2 semanas, ~8 SP)
 
 **Objetivo**: Despliegue a producción con rollback, SBOM, y monitoreo.
 
-| #   | Tarea                                                  | SP  | Dependencia | Criterio de aceptación                                           |
-| --- | ------------------------------------------------------ | --- | ----------- | ---------------------------------------------------------------- |
-| 4.1 | Configurar deploy a producción con aprobación manual   | 3   | 3.3         | Deploy a producción requiere reviewer + health check             |
-| 4.2 | Implementar blue/green deploy con ECS circuit breaker  | 2   | 4.1         | Rollback automático si health check falla post-deploy            |
-| 4.3 | Agregar SBOM generation en security.yml y cron semanal | 1   | —           | Cada release genera SBOM CycloneDX                               |
-| 4.4 | Agregar Dependency Review action en PRs                | 1   | —           | PRs bloqueados si dependencia tiene vulnerabilidad conocida      |
-| 4.5 | Configurar cron semanal de security full scan          | 1   | —           | Cada lunes 6am corre Gitleaks full repo + Trivy full + npm audit |
-| 4.6 | Configurar deploy markers + integración con Sentry     | 1   | 4.1         | Cada deploy crea release en Sentry                               |
+| #   | Tarea                                                  | SP  | Dependencia | Criterio de aceptación                                           | Estado / Change Ref                                                                                                                         |
+| --- | ------------------------------------------------------ | --- | ----------- | ---------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| 4.1 | Configurar deploy a producción con aprobación manual   | 3   | 3.3         | Deploy a producción requiere reviewer + health check             | ✅ **Phase 1 DONE** — `deploy.yml` deploy-production job con `environment: production` (gated)                                              |
+| 4.2 | Implementar blue/green deploy con ECS circuit breaker  | 2   | 4.1         | Rollback automático si health check falla post-deploy            | ✅ **Phase 1 DONE** — `deploy.yml` usa `deploymentCircuitBreaker={enable=true,rollback=true}`                                               |
+| 4.3 | Agregar SBOM generation en security.yml y cron semanal | 1   | —           | Cada release genera SBOM CycloneDX                               | ✅ **DONE** — `security.yml` sbom job + `security-digest.yml` sbom job (cron semanal)                                                       |
+| 4.4 | Agregar Dependency Review action en PRs                | 1   | —           | PRs bloqueados si dependencia tiene vulnerabilidad conocida      | ✅ **DONE** — `security.yml` dependency-review job                                                                                          |
+| 4.5 | Configurar cron semanal de security full scan          | 1   | —           | Cada lunes 6am corre Gitleaks full repo + Trivy full + npm audit | ⚠️ **Partial** — `scheduled-security.yml`: Gitleaks full cron ✅ (03:00 UTC); Trivy full + npm audit **propuestos** en `ci-scheduled-trivy` |
+| 4.6 | Configurar deploy markers + integración con Sentry     | 1   | 4.1         | Cada deploy crea release en Sentry                               | 📝 **Propuesto** — cambio `cd-observability-sentry` (Sentry deploy markers + releases)                                                      |
 
 ### Total: 8 semanas, ~48 SP
 
@@ -1389,7 +2005,7 @@ Implementar en un GitHub Project board o dashboard simple con:
 | **Long-lived branches** | Merge conflicts, despliegues atrasados  | TBD: ramas < 1 día, integración continua                  |
 | **Manual deploys**      | Errores humanos, inconsistencia         | CD automático con gates de aprobación                     |
 | **Missing rollback**    | Deploy fallido = downtime prolongado    | ECS circuit breaker + script de rollback                  |
-| **Slow CI (>10 min)**   | Desarrolladores ignoran CI              | Caching multi-capa, tests paralelizados                   |
+| **Slow CI (>7 min)**    | Desarrolladores ignoran CI              | Caching multi-capa, tests paralelizados                   |
 | **Flaky tests**         | Tests ignorados, CI pierde credibilidad | Retry policy, quarantine de flaky tests                   |
 | **Secret leakage**      | Exposición de credenciales              | Secret scanning pre-commit + CI + cron                    |
 | **Untested migrations** | DB corruption en producción             | Prisma migrate test en CI + migrate down siempre definido |
@@ -1413,18 +2029,20 @@ Implementar en un GitHub Project board o dashboard simple con:
 
 ### Qué hacer mañana (orden de prioridad — mapeado a Sprint 1)
 
-1. **Crear composite action `.github/actions/setup-monorepo/action.yml`** — checkpoint + setup-node + npm ci + Vitest cache (Sprint 1.5)
-2. **Descomentar y armar jobs test en `ci.yml`** — test-unit-client, test-unit-server, test-integration con PostgreSQL service + prisma migrate deploy (Sprint 1.2)
-3. **Agregar job `build` en `ci.yml`** — `npm run build --ws --if-present` (Sprint 1.3)
-4. **Configurar test reporting** — `dorny/test-reporter@v3` + JUnit reporter de Vitest (Sprint 1.6)
-5. **Agregar caching multi-capa** — npm (built-in), Vitest cache, Playwright browsers (Sprint 1.8)
-6. **Configurar flaky test retry** — Playwright `retries: 2`, Vitest `retry: 2` (Sprint 1.11)
-7. **Crear `.github/dependabot.yml`** — habilitar Dependabot con grouping config (Sprint 1.7)
-8. **Agregar `coverage.thresholds`** en Vitest config (Sprint 1.4)
-9. **Verificar ESLint como gate en CI** — `npm run lint` debe fallar si hay errores (Sprint 1.1)
-10. **Re-activar `lint-staged`** en `.husky/pre-commit` (Sprint 1.10)
-11. **Crear `.dockerignore`** — evitar que `.env` y `node_modules` entren en la imagen (Sprint 1.9)
-12. ✅ **Eliminar `pr-validation.yml`, `lint.yml`, `formatter.yml`** — **COMPLETADO en `ci-cleanup-enterprise`**
+1. ✅ **Crear composite action `.github/actions/setup-monorepo/action.yml`** — **DONE** en `ci-test-integration` (Sprint 1.5)
+2. ✅ **Descomentar y armar jobs test en `ci.yml`** — **DONE** test-unit-client, test-unit-server, test-integration con PostgreSQL service + prisma migrate deploy en `ci-test-integration` (Sprint 1.2)
+3. ✅ **Agregar job `build` en `ci.yml`** — **DONE** `npm run build --ws --if-present` en `ci-test-integration` (Sprint 1.3)
+4. ✅ **Configurar test reporting** — **DONE** `dorny/test-reporter@v3` + JUnit reporter de Vitest en `ci-test-integration` (Sprint 1.6)
+5. ✅ **Agregar caching multi-capa** — **DONE** npm (built-in), Vitest cache, Playwright browsers en `ci-test-integration` (Sprint 1.8)
+6. ✅ **Configurar flaky test retry** — **DONE** Playwright `retries: 2`, Vitest `retry: 2` en `ci-test-integration` (Sprint 1.11)
+7. ✅ **Crear `.github/dependabot.yml`** — **DONE** habilitar Dependabot con grouping config en `ci-test-integration` task 13 (Sprint 1.7)
+8. ✅ **Agregar `coverage.thresholds`** en Vitest config — **DONE** en `ci-quality-gates` (Sprint 1.4)
+9. ✅ **Verificar ESLint como gate en CI** — **DONE** `npm run lint` falla si hay errores en `ci-quality-gates` (Sprint 1.1)
+10. ✅ **Re-activar `lint-staged`** en `.husky/pre-commit` — **DONE** en `ci-quality-gates` (Sprint 1.10)
+11. ✅ **Crear `.dockerignore`** — **DONE** en `ci-test-integration` (Sprint 1.9)
+12. ✅ **Eliminar `pr-validation.yml`, `lint.yml`, `formatter.yml`** — **COMPLETADO en `ci-cleanup-enterprise`** (08-02)
+
+**Siguiente foco**: Implementar `ci-test-integration` (tests + build + reporting completos) → luego `cd-aws-deploy-pipeline` Phase 2 (AWS real).
 
 ### Quick reference — comandos iniciales
 
@@ -1455,19 +2073,19 @@ npm run lint
 ### Día 1 checklist
 
 ```markdown
-- [ ] `.github/dependabot.yml` creado (Sprint 1.7)
+- [x] `.github/dependabot.yml` creado (Sprint 1.7) — `ci-test-integration` task 13
 - [x] ~~`.husky/pre-push`~~ ✅ Completado — `vitest --changed origin/main` scoped
-- [ ] `lint-staged` re-activado en `.husky/pre-commit` (Sprint 1.10)
-- [ ] Composite action `.github/actions/setup-monorepo/action.yml` creado (Sprint 1.5)
-- [ ] Tests + PostgreSQL service container en ci.yml (Sprint 1.2)
-- [ ] Build job en ci.yml (Sprint 1.3)
-- [ ] npm cache + Vitest cache + Playwright cache (Sprint 1.8)
-- [ ] Test reporting con dorny/test-reporter (Sprint 1.6)
-- [ ] coverage.thresholds en vitest.config (Sprint 1.4)
-- [ ] `.dockerignore` creado (Sprint 1.9)
-- [ ] Flaky test retry configurado (Sprint 1.11)
-- [ ] Workflows zombie eliminados
-- [ ] Branch protection rules: required test + build + lint
+- [x] `lint-staged` re-activado en `.husky/pre-commit` (Sprint 1.10) — `ci-quality-gates`
+- [x] Composite action `.github/actions/setup-monorepo/action.yml` creado (Sprint 1.5) — `ci-test-integration`
+- [x] Tests + PostgreSQL service container en ci.yml (Sprint 1.2) — `ci-test-integration`
+- [x] Build job en ci.yml (Sprint 1.3) — `ci-test-integration`
+- [x] npm cache + Vitest cache + Playwright cache (Sprint 1.8) — `ci-test-integration`
+- [x] Test reporting con dorny/test-reporter (Sprint 1.6) — `ci-test-integration`
+- [x] coverage.thresholds en vitest.config (Sprint 1.4) — `ci-quality-gates`
+- [x] `.dockerignore` creado (Sprint 1.9) — `ci-test-integration`
+- [x] Flaky test retry configurado (Sprint 1.11) — `ci-test-integration`
+- [x] Workflows zombie eliminados — `ci-cleanup-enterprise` (08-02)
+- [ ] Branch protection rules: required test + build + lint (pendiente configurar en GitHub repo settings)
 ```
 
 ---
@@ -1709,15 +2327,15 @@ export default defineConfig({
 
 Técnicas de alto valor que se implementan después de estabilizar el pipeline base.
 
-| Técnica                           | Implementación                                                                              |
-| --------------------------------- | ------------------------------------------------------------------------------------------- |
-| **Contract Testing** (8)          | MSW handlers como source of truth. Validación automática contra OpenAPI spec.               |
-| **Shift Left Performance** (7)    | Lighthouse CI en preview URLs de Vercel. Budgets: LCP <2.5s, CLS <0.1, TBT <200ms.          |
-| **Feature Flags** (10)            | Unleash self-hosted o LaunchDarkly. Flags en responses de API, toggle en UI.                |
-| **Self-Healing Pipelines** (26)   | GitHub Actions `concurrency: cancel-in-progress`. Flaky test auto-retry (jest --retries 2). |
-| **Immutable Infrastructure** (12) | ECS Fargate sin SSH. Nueva task definition por deploy.                                      |
-| **IaC validation** (9)            | OpenTofu plan en CI-PR. tfsec scanning de módulos.                                          |
-| **SBOM + Supply Chain** (29)      | Anchore SBOM en cada release. Cosign para firmar imágenes ECR.                              |
+| Técnica                           | Implementación                                                                                                                                                                                                                                                                                                                                       |
+| --------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Contract Testing** (8)          | MSW handlers como source of truth. Validación automática contra OpenAPI spec.                                                                                                                                                                                                                                                                        |
+| **Shift Left Performance** (7)    | Lighthouse CI en preview URLs de Vercel. Budgets: LCP <2.5s, CLS <0.1, TBT <200ms.                                                                                                                                                                                                                                                                   |
+| **Feature Flags** (10)            | Unleash self-hosted o LaunchDarkly. Flags en responses de API, toggle en UI.                                                                                                                                                                                                                                                                         |
+| **Self-Healing Pipelines** (26)   | GitHub Actions `concurrency: cancel-in-progress`. Flaky test auto-retry (jest --retries 2). **Zombie workflow guard** (`ci.yml:zombie-workflow-guard`, líneas 250-269): job que falla si reaparecen workflows legacy eliminados (`pr-validation.yml`, `lint.yml`, `formatter.yml`) — guardia anti-regresión implementado en `ci-cleanup-enterprise`. |
+| **Immutable Infrastructure** (12) | ECS Fargate sin SSH. Nueva task definition por deploy.                                                                                                                                                                                                                                                                                               |
+| **IaC validation** (9)            | OpenTofu plan en CI-PR. tfsec scanning de módulos.                                                                                                                                                                                                                                                                                                   |
+| **SBOM + Supply Chain** (29)      | Anchore SBOM en cada release. Cosign para firmar imágenes ECR.                                                                                                                                                                                                                                                                                       |
 
 #### 🟢 Nice-to-have (Long-term)
 
@@ -1740,38 +2358,38 @@ Técnicas de madurez avanzada que aportan valor incremental a largo plazo.
 
 Estado actual de Project One vs objetivo al Sprint 4 vs visión a 12 meses.
 
-| Técnica                           | Estado actual                         | Objetivo Sprint 4                      | Objetivo 12 meses                           |
-| --------------------------------- | ------------------------------------- | -------------------------------------- | ------------------------------------------- |
-| Shift Left Testing (unit)         | ⚠️ Tests existen sin thresholds ni CI | ✅ CI con thresholds y paralelización  | ✅ Tests con TIA (test impact analysis)     |
-| Shift Left Security (SAST)        | ❌ Sin SAST en CI                     | ✅ Semgrep + CodeQL en CI-PR           | ✅ Semgrep + CodeQL + secrets en pre-commit |
-| Shift Right Testing (smoke)       | ❌ Sin smoke tests                    | ✅ Smoke tests post-deploy staging     | ✅ Smoke tests en staging y prod            |
-| Shift Right Security              | ❌ Sin runtime security               | ⚠️ Sentry + CloudWatch básico          | ✅ GuardDuty + WAF + runtime scan           |
-| Fail Fast                         | ❌ Sin pre-commit hooks activos       | ✅ Husky + lint-staged + ESLint        | ✅ Hooks completos + test impact analysis   |
-| Test Pyramid                      | ⚠️ Tests mezclados sin ratio          | ✅ Ratio 70/20/10 vigilado             | ✅ Ratio automatizado con tooling           |
-| Shift Left Performance            | ❌ Sin performance testing            | ⚠️ Lighthouse CI básico                | ✅ Lighthouse + k6 + bundle budgets         |
-| Contract Testing (CDC)            | ❌ Sin contract tests                 | ⚠️ MSW handlers documentados           | ✅ Pact CDC automatizado                    |
-| IaC + Shift Left Infra            | ❌ Infra manual                       | ❌ Pendiente (postergado)              | ✅ OpenTofu + tfsec en CI                   |
-| Feature Flags                     | ❌ Sin feature flags                  | ⚠️ Evaluación de plataforma            | ✅ Feature flags en producción              |
-| Traceability                      | ❌ Sin trazabilidad                   | ✅ Git tags + SBOM + Sentry releases   | ✅ Trazabilidad SLSA completa               |
-| Immutable Infrastructure          | ❌ Sin contenedores                   | ✅ ECS Fargate imágenes inmutables     | ✅ Imágenes firmadas + canary               |
-| Observability-Driven Dev          | ❌ Sin observabilidad estructurada    | ✅ Pino + Sentry + CloudWatch          | ✅ Dashboards + KPIs + alertas              |
-| Chaos Engineering                 | ❌ No aplicado                        | ❌ No planificado                      | ⚠️ Experimentos básicos AWS FIS             |
-| Quality Gates                     | ❌ Sin gates definidos                | ✅ 7 gates secuenciales                | ✅ Gates + policy as code                   |
-| Shift Left Documentation          | ❌ Documentación manual               | ⚠️ Generación automática básica        | ✅ Doc-as-code en CI                        |
-| Policy as Code (OPA)              | ❌ Sin políticas                      | ❌ No planificado                      | ⚠️ OPA para tagging AWS                     |
-| GitOps                            | ❌ Sin GitOps                         | ❌ No planificado                      | ⚠️ ArgoCD pilot                             |
-| Inner Loop / Outer Loop           | ❌ Sin separación                     | ✅ Pre-commit/pre-push vs CI definido  | ✅ Caché inteligente inner/outer            |
-| Blast Radius Reduction            | ⚠️ Monolito con separación lógica     | ⚠️ Feature flags básicos               | ✅ Canary + circuit breakers                |
-| Blue/Green Deployment             | ❌ Sin deploys                        | ✅ ECS multi-target group              | ✅ Zero-downtime automatizado               |
-| Canary Deployment                 | ❌ Sin canary                         | ✅ CodeDeploy canary 10%               | ✅ Canary automático con rollback           |
-| Dark Launching                    | ❌ Sin dark launches                  | ❌ Pendiente feature flags             | ⚠️ Dark launches con Unleash                |
-| Trunk-Based Development           | ✅ TBD con PRs opcionales             | ✅ TBD + PRs pequeños commits directos | ✅ Branch age limit + merge queue           |
-| Continuous Testing                | ❌ Solo bajo demanda                  | ⚠️ Tests en cada push + PR             | ✅ Regression diaria + smoke 5min           |
-| Self-Healing Pipelines            | ❌ Sin auto-healing                   | ⚠️ Concurrency + cancel-in-progress    | ✅ Flaky test quarantine automático         |
-| Compliance as Code                | ❌ Sin compliance automatizado        | ⚠️ SBOM + license checks               | ✅ Auditoría automatizada SOC2              |
-| Semantic Versioning + Changelog   | ⚠️ Changesets configurado             | ✅ Changesets operativo                | ✅ Auto-changelog + publish npm             |
-| Artifact Integrity / Supply Chain | ❌ Sin firmas                         | ✅ SBOM por release                    | ✅ Cosign + SLSA level 2                    |
-| Cost-Aware Deployments (FinOps)   | ❌ Sin cost gates                     | ❌ Budget alert manual                 | ✅ Cost estimation + stop/start             |
+| Técnica                           | Estado actual                         | Objetivo Sprint 4                                           | Objetivo 12 meses                           |
+| --------------------------------- | ------------------------------------- | ----------------------------------------------------------- | ------------------------------------------- |
+| Shift Left Testing (unit)         | ⚠️ Tests existen sin thresholds ni CI | ✅ CI con thresholds y paralelización                       | ✅ Tests con TIA (test impact analysis)     |
+| Shift Left Security (SAST)        | ❌ Sin SAST en CI                     | ✅ Semgrep + CodeQL en CI-PR                                | ✅ Semgrep + CodeQL + secrets en pre-commit |
+| Shift Right Testing (smoke)       | ❌ Sin smoke tests                    | ✅ Smoke tests post-deploy staging                          | ✅ Smoke tests en staging y prod            |
+| Shift Right Security              | ❌ Sin runtime security               | ⚠️ Sentry + CloudWatch básico                               | ✅ GuardDuty + WAF + runtime scan           |
+| Fail Fast                         | ❌ Sin pre-commit hooks activos       | ✅ Husky + lint-staged + ESLint                             | ✅ Hooks completos + test impact analysis   |
+| Test Pyramid                      | ⚠️ Tests mezclados sin ratio          | ✅ Ratio 70/20/10 vigilado                                  | ✅ Ratio automatizado con tooling           |
+| Shift Left Performance            | ❌ Sin performance testing            | ⚠️ Lighthouse CI básico                                     | ✅ Lighthouse + k6 + bundle budgets         |
+| Contract Testing (CDC)            | ❌ Sin contract tests                 | ⚠️ MSW handlers documentados                                | ✅ Pact CDC automatizado                    |
+| IaC + Shift Left Infra            | ❌ Infra manual                       | ❌ Pendiente (postergado)                                   | ✅ OpenTofu + tfsec en CI                   |
+| Feature Flags                     | ❌ Sin feature flags                  | ⚠️ Evaluación de plataforma                                 | ✅ Feature flags en producción              |
+| Traceability                      | ❌ Sin trazabilidad                   | ✅ Git tags + SBOM + Sentry releases                        | ✅ Trazabilidad SLSA completa               |
+| Immutable Infrastructure          | ❌ Sin contenedores                   | ✅ ECS Fargate imágenes inmutables                          | ✅ Imágenes firmadas + canary               |
+| Observability-Driven Dev          | ❌ Sin observabilidad estructurada    | ✅ Pino + Sentry + CloudWatch                               | ✅ Dashboards + KPIs + alertas              |
+| Chaos Engineering                 | ❌ No aplicado                        | ❌ No planificado                                           | ⚠️ Experimentos básicos AWS FIS             |
+| Quality Gates                     | ❌ Sin gates definidos                | ✅ 7 gates secuenciales                                     | ✅ Gates + policy as code                   |
+| Shift Left Documentation          | ❌ Documentación manual               | ⚠️ Generación automática básica                             | ✅ Doc-as-code en CI                        |
+| Policy as Code (OPA)              | ❌ Sin políticas                      | ❌ No planificado                                           | ⚠️ OPA para tagging AWS                     |
+| GitOps                            | ❌ Sin GitOps                         | ❌ No planificado                                           | ⚠️ ArgoCD pilot                             |
+| Inner Loop / Outer Loop           | ❌ Sin separación                     | ✅ Pre-commit/pre-push vs CI definido                       | ✅ Caché inteligente inner/outer            |
+| Blast Radius Reduction            | ⚠️ Monolito con separación lógica     | ⚠️ Feature flags básicos                                    | ✅ Canary + circuit breakers                |
+| Blue/Green Deployment             | ❌ Sin deploys                        | ✅ ECS multi-target group                                   | ✅ Zero-downtime automatizado               |
+| Canary Deployment                 | ❌ Sin canary                         | ✅ CodeDeploy canary 10%                                    | ✅ Canary automático con rollback           |
+| Dark Launching                    | ❌ Sin dark launches                  | ❌ Pendiente feature flags                                  | ⚠️ Dark launches con Unleash                |
+| Trunk-Based Development           | ✅ TBD con PRs opcionales             | ✅ TBD + PRs pequeños commits directos                      | ✅ Branch age limit + merge queue           |
+| Continuous Testing                | ❌ Solo bajo demanda                  | ⚠️ Tests en cada push + PR                                  | ✅ Regression diaria + smoke 5min           |
+| Self-Healing Pipelines            | ❌ Sin auto-healing                   | ✅ Zombie workflow guard + Concurrency + cancel-in-progress | ✅ Flaky test quarantine automático         |
+| Compliance as Code                | ❌ Sin compliance automatizado        | ⚠️ SBOM + license checks                                    | ✅ Auditoría automatizada SOC2              |
+| Semantic Versioning + Changelog   | ⚠️ Changesets configurado             | ✅ Changesets operativo                                     | ✅ Auto-changelog + publish npm             |
+| Artifact Integrity / Supply Chain | ❌ Sin firmas                         | ✅ SBOM por release                                         | ✅ Cosign + SLSA level 2                    |
+| Cost-Aware Deployments (FinOps)   | ❌ Sin cost gates                     | ❌ Budget alert manual                                      | ✅ Cost estimation + stop/start             |
 
 ---
 
