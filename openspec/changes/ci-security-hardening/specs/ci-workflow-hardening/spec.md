@@ -93,3 +93,14 @@ Deploy jobs that assume an AWS role via OIDC SHALL run inside a hardened runner 
 - **WHEN** `deploy.yml` jobs `ecr-push`, `deploy-staging`, or `deploy-production` execute
 - **THEN** each SHALL run `step-security/harden-runner` as its first step
 - **AND** the runner SHALL initially use `egress-policy: audit`, promoted to `block` after a review period of green runs
+
+### Requirement: Unit test job runs only unit tests
+
+The `test-unit-server` job in `ci.yml` SHALL run only unit tests, so integration tests that require PostgreSQL never execute in the unit job and cannot fail the JUnit report consumed by `dorny/test-reporter`.
+
+#### Scenario: Unit job filters out integration tests
+
+- **WHEN** the `test-unit-server` job in `ci.yml` runs the unit test script
+- **THEN** the script SHALL use an explicit include filter (glob `**/*.unit.test.js`) so integration tests (`tests/integration/**/*.integration.test.js`) are excluded
+- **AND** the vitest cache SHALL be disabled or CI-safe so cached results cannot mask failures
+- **AND** the JUnit report SHALL contain 0 failures with all 161 unit tests passing
