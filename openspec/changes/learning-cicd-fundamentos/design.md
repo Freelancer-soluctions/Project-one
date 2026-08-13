@@ -97,3 +97,26 @@ No aplica migración de sistemas: es documentación nueva en `docs/learning/ci-c
 
 - El detalle exacto de contenido de los niveles Intermedio/Avanzado/Profesional se define en sus propios cambios OpenSpec; aquí solo se referencian por nombre para el roadmap del README.
 - Las tareas 8.x/9.x de verificación (anti-duplicación y lint de markdown) dependen de qué herramientas de lint markdown estén disponibles en el repo; se resuelven en implementación sin cambiar el diseño ni las specs.
+
+## Notas de implementación (post-verify)
+
+> Registro de divergencias spec↔realidad detectadas en `/opsx-verify` (resultado: PASS, 0 críticas / 0 warnings) antes del archivado — SUGGESTION 2 del verify. Aprobado por el usuario: nota → commit → archive.
+
+### N1: La spec decía "multi-stage builds"; el Dockerfile real es single-stage
+
+- La tarea 6.3 (`tasks.md`) y la spec (`specs/cicd-fundamentals-guide/spec.md`, § multi-stage) pedían "explicar multi-stage builds desglosando el `apps/server/Dockerfile` real".
+- Realidad: `apps/server/Dockerfile` es **SINGLE-STAGE** (39 líneas: `FROM node:20-alpine` → `npm ci --workspace=apps/server --ignore-scripts` → `npm prune --workspace=apps/server --omit=dev` → `COPY apps/server/. .` → `CMD ["node", "src/bin/index.js"]`).
+- La guía 04 (§3, "Multi-Stage Builds — Concepto Genérico", líneas ~224 y ~804) maneja la divergencia honestamente: enseña multi-stage como concepto genérico (estándar de la industria) y explica la realidad del repo (single-stage optimizado con `npm prune --omit=dev`), con ejercicio para convertirlo a multi-stage con fines de aprendizaje.
+- **Nota adicional**: `design.md` (Context, línea 3, y decisión D3, línea 40) también describe el ecosistema como "Dockerfile multi-stage en `apps/server/`" — la misma imprecisión que la spec; la guía es más precisa que el diseño.
+- **Acción futura**: si se refactoriza `apps/server/Dockerfile` a multi-stage, actualizar guía 04 §3 (y corregir las referencias a multi-stage en `design.md`).
+
+### N2: Drift de versiones de Node — `.nvmrc` (22.23.1) vs Dockerfile (`node:20-alpine`)
+
+- `.nvmrc` = **22.23.1** (dev local + CI vía `setup-node` con `node-version-file: '.nvmrc'`); `apps/server/Dockerfile` = **`node:20-alpine`** (runtime contenedor/ECS).
+- Documentado en guía 04 §6 (líneas ~586-617) con impacto potencial (features Node 22+ no disponibles en Node 20 → build pasa en CI pero falla en contenedor) y mitigación (smoke tests en el job `docker-build` dentro del contenedor Node 20).
+- **Estado ago 2026**: el EOL de Node 20 (abril 2026) ya se alcanzó; Alpine 20 sigue recibiendo security patches tras EOL upstream, pero queda pendiente converger versiones: evaluar upgrade a `node:22-alpine` (o 24) con test exhaustivo y/o alinear `.nvmrc`. No automático — requiere validación de compatibilidad (musl libc, native deps).
+
+### N3: SUGGESTION 1 (no bloqueante) — fwd-ref 404 intencional
+
+- README (línea 289) y guía 04 (línea 859) referencian `05-husky-git-hooks.md` (nivel Intermedio), que aún no existe → enlace 404 temporal.
+- **Intencional**: está marcado "(cuando se implemente)" — es un forward-reference del roadmap. El 404 desaparece al implementarse el nivel Intermedio (cambio `learning-cicd-intermedio`). No requiere acción en este cambio.
