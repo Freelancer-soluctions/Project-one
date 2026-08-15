@@ -947,7 +947,7 @@ Si tienes dudas, relee las secciones correspondientes. La guía 04 (Docker) usa 
 
 ## 🏠 Volver al Índice
 
-> **[README.md](./README.md)** — Roadmap completo y navegación.
+> **[fundamentos-README.md](./fundamentos-README.md)** — Roadmap completo y navegación.
 
 ---
 

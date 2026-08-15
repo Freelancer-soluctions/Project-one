@@ -1,6 +1,6 @@
 # 04 — Docker Básico para CI/CD: Imágenes, Multi-stage, Compose y Floci
 
-> **Guía 04 de 5 del nivel Fundamentos** | Prerequisitos: [`03-secrets-variables.md`](03-secrets-variables.md) completada | Siguiente: Volver al **[README.md](./README.md)** (última guía del nivel)
+> **Guía 04 de 5 del nivel Fundamentos** | Prerequisitos: [`03-secrets-variables.md`](03-secrets-variables.md) completada | Siguiente: Volver al **[fundamentos-README.md](./fundamentos-README.md)** (última guía del nivel)
 
 ---
 
@@ -883,7 +883,7 @@ El cambio OpenSpec [`learning-cicd-intermedio`](../../../openspec/changes/learni
 
 ## 🏠 Volver al Índice
 
-> **[README.md](./README.md)** — Roadmap completo y navegación a todos los niveles.
+> **[fundamentos-README.md](./fundamentos-README.md)** — Roadmap completo y navegación a todos los niveles.
 
 ---
 

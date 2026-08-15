@@ -179,7 +179,7 @@ Las guías **referencian** (no copian) la documentación técnica existente. Est
 ## 🔗 Navegación rápida
 
 ```
-README.md (estás aquí)
+fundamentos-README.md (estás aquí)
     │
     ▼
 00-que-es-cicd.md  ──►  01-git-y-yaml.md  ──►  02-github-actions-base.md

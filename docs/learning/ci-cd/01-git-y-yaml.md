@@ -817,7 +817,7 @@ Marca cada afirmación que puedas sostener con confianza:
 
 ## 🏠 Volver al Índice
 
-> **[README.md](./README.md)** — Roadmap completo y navegación.
+> **[fundamentos-README.md](./fundamentos-README.md)** — Roadmap completo y navegación.
 
 ---
 

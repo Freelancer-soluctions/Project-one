@@ -1161,7 +1161,7 @@ jobs:
 
 ## 🏠 Volver al Índice
 
-> **[README.md](./README.md)** — Roadmap completo del nivel Fundamentos y navegación a niveles Intermedio/Avanzado/Profesional.
+> **[fundamentos-README.md](./fundamentos-README.md)** — Roadmap completo del nivel Fundamentos y navegación a niveles Intermedio/Avanzado/Profesional.
 
 ---
 

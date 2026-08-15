@@ -89,7 +89,7 @@ flowchart LR
     A[Commit] --> B[CI: integración y verificación]
     B -->|Pass| C[CD Delivery: artefacto listo]
     C -->|Aprobación manual| D[Deploy a producción]
-    C -.->|Sin aprobación| E[CD Deployment: deploy automático]
+    C -->|Sin aprobación| E[CD Deployment: deploy automático]
     D --> F[Producción]
     E --> F
 ```
@@ -650,9 +650,9 @@ M apps/server/src/modules/users/service.js
 
 Lista 3 validaciones que hoy ocurren "tarde" (staging/prod) y podrías mover a "temprano" (editor/pre-commit/CI):
 
-1. ******\*\*\*\*******\_******\*\*\*\******* (ej: validación de schema de API)
-2. ******\*\*\*\*******\_******\*\*\*\******* (ej: check de dependencias vulnerables)
-3. ******\*\*\*\*******\_******\*\*\*\******* (ej: test de contrato de base de datos)
+1. **\*\***\*\*\*\***\*\***\_**\*\***\*\*\*\***\*\*** (ej: validación de schema de API)
+2. **\*\***\*\*\*\***\*\***\_**\*\***\*\*\*\***\*\*** (ej: check de dependencias vulnerables)
+3. **\*\***\*\*\*\***\*\***\_**\*\***\*\*\*\***\*\*** (ej: test de contrato de base de datos)
 
 Para cada una: ¿qué tool/hook la ejecutaría antes? ¿Cuánto tiempo ahorrarías estimado?
 
@@ -806,7 +806,7 @@ Si tienes dudas en algún punto, relee la sección correspondiente. La guía 01 
 
 ## 🏠 Volver al Índice
 
-> **[README.md](./README.md)** — Roadmap completo del nivel Fundamentos y navegación a niveles Intermedio/Avanzado/Profesional.
+> **[fundamentos-README.md](./fundamentos-README.md)** — Roadmap completo del nivel Fundamentos y navegación a niveles Intermedio/Avanzado/Profesional.
 
 ---
 
