@@ -48,7 +48,7 @@ La ruta de aprendizaje AWS sigue la secuencia documentada en `docs/aws-cd-learni
 
 ### D5: Transparencia del inventario de secrets — gotcha SECRETKEY/JWT_SECRET
 
-La guia 13 (deploy-yml-walkthrough) cubre explicitamente el inventario completo de secrets/variables de Fase 2 (vars.AWS*ROLE_ARN, vars.AWS_ACCOUNT_ID, secrets.STAGING*_, secrets.PROD\__) e incluye el gotcha del ARN legacy `*_JWT_SECRET_SECRET_ARN` cuyo env var inyectado es `SECRETKEY` (no `JWT_SECRET`).
+La guia 13 (deploy-yml-walkthrough) cubre explicitamente el inventario completo de secrets/variables de Fase 2 (vars.AWS*ROLE_ARN, vars.AWS_ACCOUNT_ID, secrets.STAGING*\_, secrets.PROD\_\_) e incluye el gotcha del ARN legacy `*_JWT_SECRET_SECRET_ARN` cuyo env var inyectado es `SECRETKEY` (no `JWT_SECRET`).
 
 **Por que**: Es el error de naming mas confuso de la pipeline (el nombre del ARN no coincide con el nombre del env var) y esta documentado en `docs/workflows-mantenimiento-guia.md` seccion 14 y `docs/aws-deploy-architecture.md`. Un Junior que intente razonar el sistema por nombres quedaria atascado; explicitarlo en la guia didactica evita la friccion.
 
