@@ -131,6 +131,13 @@ AGENTS
 Agents.md en el llm basta
 
 
+-----
+cosa relacionadas a ci/cd
+
+- en el prebuild que jobs tiende a ejecutar el stage de test
+- los test de inetgracion dependen del build si es asi en que momento se deben de ejecutar
+- En que punto de los stages se vuelve CD y que abarcaria CI
+- Cual es la diferencia entre el dependecy scanning vs Dependency Analysis (Post-compile) depcheck hace lo mismo que dependetbot ?
 
 
 
