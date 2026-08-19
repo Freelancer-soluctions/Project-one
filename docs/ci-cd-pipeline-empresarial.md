@@ -273,6 +273,8 @@ Es la **puerta de entrada** del pipeline. Todo empieza en el sistema de control 
 12. **Secret scanning en PR:** GitHub secret scanning y Gitleaks en CI para detectar credenciales filtradas antes del merge.
 13. **Trunk-based development:** commits pequeños y frecuentes directamente o vía PR cortos hacia `main`; evitar ramas largas y merges masivos. Fuente: [Trunk Based Development](https://trunkbaseddevelopment.com/)
 14. **Zero-downtime de repositorio:** `main` siempre debe estar en estado desplegable (green). Prohibir merges que rompan la rama principal.
+15. **Large-file guard:** prevenir la adición de archivos binarios grandes (>500KB) o de tipos no permitidos (_.zip, _.exe, \*.jar) al repositorio. Se implementa como pre-commit hook o check en CI que rechaza el commit si detecta archivos que exceden el umbral de tamaño. Herramientas: `git-secrets`, custom scripts con `git diff --cached --name-only --diff-filter=A` + `wc -c`, o LFS para assets grandes legítimos (imágenes, videos). Evita la degradación del historial de Git y tiempos de clone excesivos.
+16. **Pre-push hooks — scoped tests:** ejecutar un subconjunto rápido de tests antes del push (no el suite completo). El hook `pre-push` de Husky ejecuta solo los tests afectados por los archivos modificados (`vitest --changed` o scripts con `git diff --name-only HEAD@{1}`), proporcionando feedback antes de que CI consuma recursos. Diferencia con pre-commit: pre-push corre tests (más lento que lint, pero más barato que CI completo). Si el developer trabaja offline, CI actúa como fallback obligatorio (defense-in-depth).
 
 ### 3.4 Herramientas comunes
 
@@ -397,6 +399,7 @@ El stage de build toma el código fuente verificado y produce **artifacts de con
 8. **SBOM temprana:** generar la lista de dependencias (CycloneDX/SPDX) en el build para trazabilidad de supply chain (ver Stage 6 Artifact / Packaging).
 9. **Fail fast en dependencias:** comprobar integridad (checksums), rechazar versiones pinneadas a rangos no exactos para producción.
 10. **Paralelización:** dividir el build en jobs paralelos independientes (lint, typecheck, unit, build) con pasos combinables (concurrency groups, dependencias entre jobs).
+11. **Tree-shaking verification:** verificar que el bundler (Vite/Rollup/esbuild) elimina correctamente código no utilizado del bundle de producción. El tree-shaking es una optimización que elimina imports no referenciados; si falla, el bundle crece innecesariamente. Verificar: (a) analizar el bundle con `rollup-plugin-visualizer` o `webpack-bundle-analyzer` para identificar módulos grandes no esperados; (b) usar `size-limit` para comparar tamaño del bundle contra un threshold; (c) verificar que no haya `sideEffects: false` ausente en package.json de dependencias (impide el tree-shaking). En CI: ejecutar como step post-build y comparar contra baseline.
 
 ### 4.4 Herramientas comunes
 
@@ -508,7 +511,7 @@ Este stage aplica **análisis estático de calidad** sobre el código: estilo, r
 3. **TypeScript strict mode:** `strict: true` y reglas adicionales de `noUnusedLocals`, `noUnusedParameters`, `noFallthroughCasesInSwitch`; forbid `any` implícito.
 4. **Análisis estático avanzado (SonarQube/SonarCloud):** bugs, code smells, vulnerabilidades, duplicación, cobertura. Quality Gates configurables (ej. coverage mínima, 0 bugs críticos/bloqueantes).
 5. **Coverage gates:** umbrales por suite (unit: 80%+; integration: 70%+; e2e: no aplica umbral clásico). Usar `--coverage` de Vitest/Jest y fallar el job si no se cumple.
-6. **Análisis de complejidad:** ciclomática por función/método, profundidad de anidamiento, límite de líneas por función.
+6. **Análisis de complejidad:** ciclomática por función/método, profundidad de anidamiento, límite de líneas por función. **PRE-Build:** ESLint `complexity`/`max-lines-per-rule` reglas (source-level, sin build). **POST-Build:** SonarQube/SonarCloud análisis completo (cyclomatic, cognitive, MI, Halstead) — requiere build artifact + datos de cobertura de test para métricas precisas (§23.3 STAGE 4).
 7. **Detector de duplicación:** SonarQube, jscpd; refactorizar duplicados a helpers/compartidos (especialmente en monorepos).
 8. **Check de formato en CI:** `prettier --check` falla el pipeline si hay archivos sin formatear.
 9. **Quality gate en PR:** comentar el estado del análisis en el PR (SonarQube PR analysis, CodeQL PR comments), bloqueando el merge si el gate no pasa.
@@ -517,6 +520,7 @@ Este stage aplica **análisis estático de calidad** sobre el código: estilo, r
 12. **Dead code detection:** knip, ts-prune (detectar exports/módulos no usados).
 13. **Docs generadas:** JSDoc/TSDoc review automático (ver `docs/jsdoc-review-checklist.md` en project-one).
 14. **Baseline y evolución:** fijar la deuda actual como baseline y exigir que las métricas no empeoren (quality trend en el PR).
+15. **PR Review Automation:** herramientas de revisión automática de código que analizan cada PR y comentan sugerencias de calidad, bugs potenciales, vulnerabilidades y code smells directamente en el pull request. Herramientas principales: DeepSource (análisis estático multi-lenguaje con auto-fix), CodeRabbit (AI-powered review que comenta en el PR con explicaciones), SonarQube PR Analysis (quality gate comentado en el PR). Ventaja: feedback inmediato sin esperar un reviewer humano; el reviewer se enfoca en lógica de negocio mientras la herramienta cubre calidad estática. Desventaja: falsos positivos que generan ruido; requiere calibración de reglas para evitar alert fatigue.
 
 ### 5.4 Herramientas comunes
 
@@ -661,7 +665,7 @@ El stage de seguridad aplica **escaneo automático** sobre el código y las depe
 5. **Secret scanning:** Gitleaks (pre-commit + CI), GitHub secret scanning (repositorio y PRs), detect-secrets, trufflehog. Bloquea el merge si se detecta un secreto.
 6. **Container scanning:** escanear imágenes Docker por vulnerabilidades del sistema base y dependencias (Trivy, Grype, Snyk, Anchore, Scan de Docker Hub). Idealmente dentro del stage de artifact (post-build, después de Build).
 7. **IaC scanning:** analizar Terraform/CloudFormation/Kubernetes manifests en busca de configuraciones inseguras (Checkov, tfsec, Terrascan, KICS). Fuente: [Checkov](https://www.checkov.io/), [tfsec (archivado, reemplazado por Trivy IaC)](https://github.com/aquasecurity/tfsec)
-8. **Supply chain hardening — SLSA:** aplicar el framework Supply-chain Levels for Software Artifacts (niveles 1-4) para garantizar integridad y procedencia. Fuente: [slsa.dev](https://slsa.dev/) y [SLSA Spec v1.0](https://slsa.dev/spec/v1.0)
+8. **Supply chain hardening — SLSA:** aplicar el framework Supply-chain Levels for Software Artifacts (niveles 1-4) para garantizar integridad y procedencia. Fuente: [slsa.dev](https://slsa.dev/) y [SLSA Spec v1.2](https://slsa.dev/spec/v1.2)
 9. **Firma de artifacts — Sigstore/cosign:** firmar imágenes y artifacts; verificar firma antes del deploy. Fuente: [Sigstore Docs](https://docs.sigstore.dev/), [slsa-github-generator](https://github.com/slsa-framework/slsa-github-generator)
 10. **Hardening del runner (GitHub Actions):** restringir permisos de tokens (read-only por defecto), usar OIDC en vez de secretos de larga duración, pin de acciones a SHA, revisar acciones de terceros, entornos separados. Fuente: [Security hardening for GitHub Actions](https://docs.github.com/en/actions/security-guides/security-hardening-for-github-actions), [Using OpenID Connect with GitHub Actions](https://docs.github.com/en/actions/security-guides/using-openid-connect-with-github-actions)
 11. **SARIF reporting:** subir resultados de escaneos en formato SARIF a GitHub code scanning para visualización centralizada. Fuente: [SARIF support for code scanning](https://docs.github.com/en/actions/security-guides/sarif-support-for-code-scanning)
@@ -669,6 +673,10 @@ El stage de seguridad aplica **escaneo automático** sobre el código y las depe
 13. **OWASP Top 10 como checklist:** verificar cada release contra los riesgos Top 10 (A01 broken access control, A03 injection, A07 auth failures, etc.). Fuente: [OWASP Top 10](https://owasp.org/Top10/)
 14. **DevSecOps Guideline (OWASP):** integrar seguridad en todo el ciclo con responsabilidades compartidas. Fuente: [OWASP DevSecOps Guideline](https://owasp.org/www-project-devsecops-guideline/)
 15. **Política de severidad:** definir gates: 0 vulnerabilidades críticas/altas sin excepción documentada; automatizar bloqueo con Snyk/Semgrep rules.
+16. **Fuzz Testing:** técnica de testing de seguridad que genera inputs aleatorios o mutados para encontrar crashes, memory leaks y vulnerabilidades no descubiertas por SAST/DAST. Se ejecuta contra APIs (REST/GraphQL), parsers de archivos, binarios y protocolos. Herramientas: OSS-Fuzz (Google, fuzzing continuo open-source), AFL++ (fuzzer compile-time instrumentation), GitLab CI/CD Fuzzing (integración nativa), libFuzzer (fuzzing lib). Configurar en CI como job post-build con tiempo límite (ej. 30 min fuzzing por suite). Idealmente ejecutar en nightly builds por el costo computacional. Fuente: [OSS-Fuzz](https://google.github.io/oss-fuzz/)
+17. **API Security Testing — BOLA/IDOR:** prueba específica de Broken Object Level Authorization (BOLA, antes IDOR) y Broken Function Level Authorization (BFLA), las vulnerabilidades #1 y #5 del OWASP API Security Top 10. Herramientas: 42Crunch (API security testing), OWASP ZAP API scan (Active Scan contra endpoints), Schemathesis (fuzzing basado en OpenAPI spec). Verificar que un usuario autenticado no pueda acceder a recursos de otro usuario manipulando IDs en la URL/body. Ejecutar contra staging después del deploy. Fuente: [OWASP API Security Top 10](https://owasp.org/API-Security/)
+18. **CNAPP Runtime Posture (Cloud-Native Application Protection Platform):** monitoreo continuo de la postura de seguridad en runtime en entornos cloud. Combina CSPM (Cloud Security Posture Management) + CWPP (Cloud Workload Protection) + CIEM (Cloud Infrastructure Entitlement Management). Herramientas: Prisma Cloud (Palo Alto), Wiz, Falco (runtime threat detection para Kubernetes), Aqua Security. Detecta: contenedores con permisos excesivos, imágenes vulnerables desplegadas, drift de configuración, acceso no autorizado a servicios. Se integra como check post-deploy o como monitoreo continuo en STAGE 11.
+19. **Misconfiguration scan (post-deploy):** escaneo de la infraestructura desplegada para detectar configuraciones inseguras que IaC scanning no captura (porque se detectan después del apply). Herramientas: ScoutSuite (multi-cloud security auditing), Prowler (AWS/Azure/GCP security assessments), AWS Config Rules (reglas de compliance continuo). Ejemplo: un S3 bucket abierto después de un Terraform apply manual, un Security Group con reglas 0.0.0.0/0, un RDS sin encryption. Ejecutar periódicamente (cron diario/semanal) y como post-deploy validation. Diferente de IaC scanning (pre-deploy) — esta es validación del estado real en la nube.
 
 ### 6.4 Herramientas comunes
 
@@ -716,7 +724,7 @@ El stage de seguridad aplica **escaneo automático** sobre el código y las depe
 - https://docs.github.com/en/actions/security-guides/using-openid-connect-with-github-actions
 - https://docs.github.com/en/actions/security-guides/sarif-support-for-code-scanning
 - https://docs.github.com/en/code-security/supply-chain-security/understanding-your-software-supply-chain/about-dependency-review
-- https://slsa.dev/ y https://slsa.dev/spec/v1.0
+- https://slsa.dev/ y https://slsa.dev/spec/v1.2
 - https://docs.sigstore.dev/
 - https://github.com/slsa-framework/slsa-github-generator
 - https://semgrep.dev/ | https://codeql.github.com/ | https://gitleaks.io/
@@ -839,6 +847,8 @@ El stage de testing es el **corazón del CI**: ejecuta las suites de pruebas que
 18. **Paralelización y sharding:** dividir suites entre runners (vitest --shard, Playwright shards) para CI más rápido.
 19. **Test data management:** datos de prueba aislados por test (BD transaccional o Testcontainers), sin dependencia del estado global.
 20. **Flaky test policy:** los tests flaky (intermitentes) se diagnostican y corrigen con prioridad; el pipeline no debe "reintentar hasta que pase" de forma silenciosa.
+21. **Smart test ordering:** ordenar la ejecución de tests para ejecutar primero los más probables de fallar (fail-first / fail-fast). Herramientas: Launchable (usa ML para predecir qué tests fallarán basándose en historial de cambios y fallos), Nx affected (ejecuta solo tests afectados por el cambio), Vitest `--changed` (tests que modificaron archivos del commit). Ventaja: feedback más rápido — si hay una regresión, se detecta en minutos en vez de esperar al final del suite completo. Implementar como stage de pre-build (STAGE 2) antes del build pesado.
+22. **Early-abort gate:** punto de verificación intermedio dentro de un stage que aborta el pipeline completo si falla, evitando consumir recursos en stages posteriores. Ejemplo: en STAGE 2, después de unit tests pero antes de build — si unit tests fallan, abortar sin ejecutar linter, type-check, ni build. En Vite/GitHub Actions: usar `if: success()` entre steps, o jobs separados con `needs:` condicional. También aplicable a `pytest --maxfail=1` (abortar después del primer fallo en vez de ejecutar todo el suite). El early-abort es un patrón de fail-fast que reduce tiempos de feedback y costes de compute.
 
 ### 7.4 Herramientas comunes
 
@@ -1013,6 +1023,7 @@ El stage de artifact toma los outputs del build (bundle, imagen, binario) y los 
 10. **Promotion model:** el artifact se promueve entre entornos (staging → prod) sin reconstruirse; la reconstrucción rompe la trazabilidad.
 11. **Scan de contenedor final:** escanear la imagen ya construida (Trivy/Grype) y bloquear publicación si hay críticas.
 12. **Reproducibilidad verificable:** registrar los inputs (lockfile hash, node version) en el artifact; opcional: verificar build reproducible con buildx.
+13. **Notarización (Apple/Windows):** proceso de certificación de software distribuido que verifica la identidad del desarrollador y la ausencia de malware. Apple: `notarytool` envía el DMG/pkg a Apple para escaneo, y si pasa, recibe un "ticket" de notarización que se "pegar" (`staple`) al artefacto. Windows: Authenticode signing con certificado EV (Extended Validation) firmado por una CA reconocida. Para software open-source: Sigstore (gratuito) reemplaza certificados tradicionales con identidad de OIDC (GitHub/GitLab). Herramientas: `notarytool` (macOS), `signtool.exe` (Windows), `cosign` (Linux/cross-platform). La notarización es OBLIGATORIA para distribuir software en macOS (Gatekeeper) y recomendada en Windows para evitar SmartScreen warnings.
 
 ### 8.4 Herramientas comunes
 
@@ -1282,6 +1293,7 @@ El stage de staging despliega el artifact verificado a un entorno de **staging/p
 8. **Checks de integración E2E completos:** ejecutar la suite E2E completa contra staging (no solo en CI aislado).
 9. **Gate manual para UAT (si aplica):** el entorno queda disponible para QA/PO/usuarios de negocio (ver Stage 9 Acceptance / UAT).
 10. **Evaluación de la salud tras deploy:** monitorear logs/errores del entorno staging durante un periodo de observación.
+11. **Cluster posture checks (kube-bench/kube-hunter):** verificación de la postura de seguridad del clúster Kubernetes después del deploy de staging. Herramientas: kube-bench (ejecuta los checks del CIS Kubernetes Benchmark — permisos de etcd, RBAC, network policies, secrets encryption), kube-hunter (hunting de vulnerabilidades activas en el clúster). Ejecutar como post-deploy check en STAGE 6 (Deploy Staging): si el clúster no pasa los checks de seguridad críticos,阻塞 el pipeline antes de continuar con testing. Ejemplos de findings: RBAC con permisos cluster-admin excesivos, etcd sin cifrado en reposo, absence of Pod Security Standards, puertos expuestos innecesariamente. Integrar con Trivy para escaneo de configuración de clúster (`trivy k8s cluster`).
 
 ### 10.4 Herramientas comunes
 
@@ -1509,6 +1521,8 @@ El stage de rendimiento verifica que el sistema cumple **SLOs de rendimiento y f
 7. **Probar puntos críticos:** endpoints más usados, consultas BD, autenticación, uploads, paginación.
 8. **Comparación de regresiones:** benchmarks automáticos en CI (perf budgets) que fallan si un cambio degrada >X% el rendimiento.
 9. **Perf budgets en el frontend:** tamaño de bundle, LCP, CLS (Core Web Vitals) con umbrales en CI (ver skill `vercel-react-best-practices`).
+10. **Memory leak detection:** detección de fugas de memoria en la aplicación durante cargas sostenidas. Se ejecuta preferiblemente en soak testing (STAGE 8) o en monitoreo post-deploy (STAGE 11). Herramientas: `clinic.js` (Node.js) genera flame graphs y heap snapshots, `--inspect` con Chrome DevTools para analizar heap, `heapdump`/`v8.writeHeapSnapshot()` para snapshots comparativos (tomar snapshot antes y después de 1000 requests y comparar con `--diff-instances`). Señales: uso de memoria que crece linealmente sin estabilizarse, objetos que no se recolectan con GC. En staging: ejecutar 30-60 min de carga sostenida y monitorear RSS/heapUsed.
+11. **DDoS resilience / rate-limit validation:** verificación de que la aplicación resiste ataques de denegación de servicio y que los rate limits funcionan correctamente. Pruebas: (a) traffic spike test con k6 que simula 10-100x la carga normal; (b) validación de rate limits en endpoints públicos (login, API) — verificar que el 429 se devuelve después del umbral; (c) test de slowloris (connections agotándose); (d) validación de WAF rules (AWS WAF, Cloudflare) que bloquean patrones maliciosos. Implementar como parte de performance testing o como job separado de resiliencia.
 
 ### 12.4 Herramientas comunes
 
@@ -1634,6 +1648,8 @@ El stage de aprobación/gobernanza aplica los **gates de decisión** que separan
 8. **Ventana de deploy (deployment window):** restringir deploys a horas de bajo tráfico si el sistema no soporta deploys continuos sin impacto.
 9. **Rollback plan obligatorio:** el plan de rollback (y su drill) se valida antes del deploy de alto riesgo.
 10. **Código de conducta de deploys:** política de "quién puede desplegar y cuándo", documentada y automatizada (RBAC en el pipeline).
+11. **Security Review Board (SRB):** comité de seguridad que revisa y aprueba cambios de alto riesgo antes de su despliegue a producción. A diferencia del CAB (Change Advisory Board, enfocado en impacto operacional), el SRB se enfoca en riesgo de seguridad: nuevos endpoints públicos, cambios en autenticación/autorización, actualizaciones de dependencias críticas, modificaciones a infraestructura de seguridad. Composición: security engineer, DevSecOps lead, arquitecto de seguridad. Aplicar como approval environment en GitHub Actions para cambios etiquetados como `security-sensitive` en el PR. No confundir con CAB (§13.3 item 5) — SRB es especializado en seguridad, CAB es generalista de cambios.
+12. **Code Freeze Check:** verificación automática de que no hay "code freeze" activo antes de ejecutar un deploy. Un code freeze es un período donde se prohiben cambios al código fuente (típicamente antes de releases importantes,Black Friday, eventos de alto tráfico). Implementar como gate en el pipeline: consultar la API de GitHub para verificar si hay branch protection temporal activa, o leer un archivo de configuración (`config/code-freeze.json` con fechas), o verificar una label especial en el último commit. Si hay freeze activo →阻塞 el deploy y notificar al equipo. Evita deploys accidentales durante períodos de estabilidad crítica.
 
 ### 13.4 Herramientas comunes
 
@@ -1903,6 +1919,8 @@ El stage post-deploy garantiza que el sistema **sigue sano después del desplieg
 11. **Automatización del rollback:** si las alertas/SLOs se violan en la ventana post-deploy, activar rollback (manual o automático según política).
 12. **Release markers en observabilidad:** marcar en dashboards/logs cuándo se desplegó cada versión (deploy markers) para correlacionar cambios con métricas.
 13. **Monitoreo del pipeline en sí:** medir la salud del CI/CD (tiempos, tasas de fallo) para detectar degradación de la infraestructura de entrega.
+14. **Business KPI monitoring:** monitoreo de métricas de negocio impactadas por el deploy, distincto de métricas técnicas de infraestructura. Métricas: tasa de conversión, revenue por sesión, carrito de compra abandonment rate, registro de usuarios, engagement de usuarios. Herramientas: Google Analytics 4, Mixpanel, Amplitude, Datadog RUM (Real User Monitoring). Implementar: dashboards de negocio en Grafana/Datadog que se superponen con deploy markers; alertas automáticas si la conversión cae >5% en 15 min post-deploy. Diferente de SLOs técnicos (latencia, error rate) — business KPIs miden impacto en el negocio, no en la infraestructura.
+15. **Threat Intelligence Feed Integration:** integración de feeds de inteligencia de amenazas para enriquecer la detección de seguridad en runtime. Fuentes: Sigma rules (reglas de detección de formato estándar), MITRE ATT&CK (framework de tácticas/techniques), AlienVault OTX, MISP (Malware Information Sharing Platform), CVE feeds (NVD). Implementar: (a) Sigma rules en SIEM (Splunk/Datadog/ELK) para detectar patrones de ataque conocidos; (b) CVE feeds para escaneo continuo de dependencias contra vulnerabilidades recién descubiertas; (c) IP/domain blocklists actualizadas en WAF/API Gateway. La integración es continua — no es un paso de CI/CD sino un componente de monitoreo en STAGE 11.
 
 ### 15.4 Herramientas comunes
 
@@ -2413,7 +2431,7 @@ DevSecOps integra la seguridad en todo el ciclo de vida (plan → code → build
 14. https://owasp.org/www-project-devsecops-guideline/ — OWASP DevSecOps Guideline
 15. https://owasp.org/Top10/ — OWASP Top 10
 16. https://slsa.dev/ — SLSA framework
-17. https://slsa.dev/spec/v1.0 — SLSA spec v1.0
+17. https://slsa.dev/spec/v1.2 — SLSA spec v1.2
 18. https://docs.sigstore.dev/ — Sigstore (firma de artifacts)
 19. https://github.com/slsa-framework/slsa-github-generator — SLSA GitHub generator
 20. https://www.openpolicyagent.org/docs/latest/cicd/ — OPA en CI/CD
@@ -2572,7 +2590,7 @@ El framework SLSA (Supply-chain Levels for Software Artifacts) clasifica los uni
 
 > _"No requirements — L0 represents the lack of SLSA. Intended for **Development or test builds** of software that are built and run on the same machine, such as **unit tests**."_
 
-Fuente: [SLSA Specification v1.0 — Levels](https://slsa.dev/spec/v1.0/levels)
+Fuente: [SLSA Specification v1.2 — Levels](https://slsa.dev/spec/v1.2/levels)
 
 #### OWASP — Detección temprana como objetivo
 
@@ -2643,176 +2661,372 @@ Las plataformas de CI/CD documentan consistentemente el patrón Build → Test �
 
 ### 23.3 Pipeline reorganizado — Orden óptimo con evidencia y discriminación por categoría
 
-Basado en la investigación anterior, el orden óptimo de stages es. **Cada fase discrimina entre categorías: Testing, Security y Quality.**
+Basado en la investigación anterior, el orden óptimo de stages es. **Cada fase discrimina entre categorías: Testing, Security y Quality.** El diagrama incorpora las estrategias **Shift-left**, **Fail-fast**, **Fail-first**, **Progressive validation** y **Defense in depth**.
 
 ```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│        PIPELINE CI/CD — ORDEN ÓPTIMO CON CATEGORÍAS (respaldado)           │
-└─────────────────────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────────────────────────────┐
+│           PIPELINE CI/CD ENTERPRISE — TODAS LAS ACTIVIDADES POR STAGE                  │
+│           Testing / Security / Quality / Build / Deploy / Governance / Monitoring       │
+│                                                                                         │
+│  ESTRATEGIAS:  [SL] Shift-left  [FF] Fail-fast  [F1] Fail-first  [PV] Progressive val. │
+│                [DD] Defense-in-depth  [BL] Build-less/test-more  [FB] Fast feedback     │
+│                                                                                         │
+│  Convención: cada check local DEBE tener espejo en CI. Herramientas entre paréntesis.  │
+└─────────────────────────────────────────────────────────────────────────────────────────┘
 
- [Commit/PR] → [PRE-COMMIT HOOKS (local)]
-       │          Gitleaks, commitlint, lint-staged
+ [Commit/PR] → [ENTRY: PATH-FILTERED + CHANGE-DETECTION [BL]]
+       │          ├─ Skip-CI on docs-only / non-code changes (§53.3)
+       │          ├─ Affected-only gate: --filter=...[HEAD^1] antes de build/test/lint (§38)
+       │          └─ Diff-scoped triggers: solo workspaces afectados en monorepo
        ▼
- ┌──────────────────────────────────────────────────────────────────────────┐
- │  PRE-BUILD: VALIDATE (pre-build, sobre source code)                      │
- │                                                                          │
- │  ┌────────────────────────────────────────────────────────────────────┐  │
- │  │  TESTING                                                          │  │
- │  │  ├─ Unit Tests (Vitest) — [AWS: "1. Unit tests"]                  │  │
- │  │  └─ Snapshot tests (Testing Library)                              │  │
- │  └────────────────────────────────────────────────────────────────────┘  │
- │  ┌────────────────────────────────────────────────────────────────────┐  │
- │  │  SECURITY                                                         │  │
- │  │  ├─ SAST (Semgrep/CodeQL) — [GitLab: stage `test`, source code]   │  │
- │  │  ├─ SCA (Dependabot/Snyk) — [Snyk: "gatekeeper in build"]        │  │
- │  │  ├─ Secret Detection (Gitleaks) — [OWASP: "detect fast"]         │  │
- │  │  └─ IaC Scanning (Checkov/Trivy) — [OWASP]                      │  │
- │  └────────────────────────────────────────────────────────────────────┘  │
- │  ┌────────────────────────────────────────────────────────────────────┐  │
- │  │  QUALITY                                                          │  │
- │  │  ├─ Lint (ESLint) — [GitLab: "early stage jobs lint code"]       │  │
- │  │  ├─ Format (Prettier)                                             │  │
- │  │  └─ Type Check (tsc --noEmit)                                     │  │
- │  └────────────────────────────────────────────────────────────────────┘  │
- │                                                                          │
- │  Todos son jobs PARALELOS (sin dependencias entre ellos).               │
- │  Justificación: AWS lista "1. Unit tests, 2. Code build". GitLab ejecuta │
- │  SAST en stage `test` sobre source code. DORA: tests + build en paralelo.│
- │  Ninguna de estas herramientas necesita un artifact compilado.           │
- └──────────────────────────────────────────────────────────────────────────┘
-       │ (all green)
+ [STAGE 1: PRE-COMMIT HOOKS (local — skippable via --no-verify) [SL]]
+       │          ├─ SECURITY: Secrets scan (Gitleaks), quick SAST (Semgrep) [DD]
+       │          ├─ QUALITY: Lint+Format (lint-staged), commitlint, large-file guard
+       │          ├─ TESTING: Pre-push hooks — scoped tests (Vitest changed-only) [SL][F1]
+       │          └─ GOVERNANCE: Commit signing (GPG/sigstore gitsign)
        ▼
- ┌──────────────────────────────────────────────────────────────────────────┐
- │  BUILD (compilación y empaquetado)                                       │
- │                                                                          │
- │  ├─ Build apps (Vite / workspace build) — [AWS: "2. Code build"]       │
- │  ├─ Build Docker image (multi-stage)                                     │
- │  └─ Generate SBOM + Provenance (SLSA L1-L3)                            │
- └──────────────────────────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────────────────────────────┐
+│  STAGE 2: PRE-BUILD — VALIDATE (source code, 0 dependencia de build)                 │
+│                                                                                      │
+│  ┌────────────────────────────────────────────────────────────────────────────────┐  │
+│  │  TESTING                                                                       │  │
+│  │  ├─ Unit Tests (Vitest/Jest) — [AWS: "1. Unit tests"] [SL]                    │  │
+│  │  ├─ Snapshot Tests (Testing Library)                                           │  │
+│  │  ├─ Coverage Gates (c8/Vitest --coverage, fallar si < umbral) [FF]             │  │
+│  │  ├─ Compile-check (tsc --noEmit / go vet / cargo check)                        │  │
+│  │  ├─ Test Impact Analysis (TIA) — solo tests afectados por diff [BL][FB]        │  │
+│  │  ├─ Smart test ordering — rápido / previamente fallido primero [F1]            │  │
+│  │  ├─ Test sharding — distribuir suites entre runners [FB]                       │  │
+│  │  └─ Mutation Testing nightlies (Stryker — opcional, costoso)                   │  │
+│  └────────────────────────────────────────────────────────────────────────────────┘  │
+│  ┌────────────────────────────────────────────────────────────────────────────────┐  │
+│  │  SECURITY [DD]                                                                 │  │
+│  │  ├─ Secrets Detection full-repo + history (Gitleaks/TruffleHog) [SL]          │  │
+│  │  ├─ SAST diff-scoped en PR + full scan en merge/nightly [DD]                   │  │
+│  │  ├─ SCA dependency scan lockfiles (Dependabot/Snyk/OSV-Scanner)                │  │
+│  │  ├─ License Compliance (FOSSA/ScanCode)                                        │  │
+│  │  ├─ IaC Scanning (Checkov/tfsec/KICS) — [OWASP]                                │  │
+│  │  ├─ Containerfile lint (Hadolint) — antes de Docker build                      │  │
+│  │  ├─ Pipeline config scan (actionlint/zizmor) — unpinned actions                │  │
+│  │  └─ Typosquatted package detection (Socket/GuardDog)                           │  │
+│  └────────────────────────────────────────────────────────────────────────────────┘  │
+│  ┌────────────────────────────────────────────────────────────────────────────────┐  │
+│  │  QUALITY (Grupo A — source code)                                               │  │
+│  │  ├─ Lint (ESLint/Ruff/golangci-lint) — [GitLab: "early stage lint"] [F1]      │  │
+│  │  ├─ Format Check (Prettier --check / Black --check)                            │  │
+│  │  ├─ Type Check strict (tsc --noEmit --incremental)                             │  │
+│  │  ├─ Complexity Rules — ESLint complexity/max-lines-per-rule [SL][F1]              │  │
+│  │  ├─ Dead Code Detection (knip/ts-prune)                                        │  │
+│  │  ├─ Duplication Detection (SonarQube/jscpd)                                    │  │
+│  │  ├─ Import Boundaries (dependency-cruiser)                                     │  │
+│  │  ├─ PR Review Automation (DeepSource/CodeRabbit/SonarQube PR checks)           │  │
+│  │  └─ Docs/CHANGELOG Validation (markdownlint/vale)                              │  │
+│  └────────────────────────────────────────────────────────────────────────────────┘  │
+│  ┌────────────────────────────────────────────────────────────────────────────────┐  │
+│  │  GOVERNANCE                                                                    │  │
+│  │  ├─ Commit Lint (commitlint — Conventional Commits)                            │  │
+│  │  ├─ Commit Signing (GPG/SSH/sigstore gitsign)                                  │  │
+│  │  ├─ Branch Protection + Required Status Checks (GitHub Rulesets)               │  │
+│  │  ├─ PR Metadata Checks (DCO sign-off, title/body templates)                    │  │
+│  │  └─ Early-abort gate: lint/SAST crítico aborta antes de suites largas [FF][F1] │  │
+│  └────────────────────────────────────────────────────────────────────────────────┘  │
+│                                                                                      │
+│  Todos PARALELOS. Matrix params: fail-fast:false, max-parallel, continue-on-error.   │
+│  AWS "1. Unit tests, 2. Code build". DORA: tests + build paralelo. [FF][FB]          │
+└──────────────────────────────────────────────────────────────────────────────────────┘
+      │ (all green)
+      ▼
+┌──────────────────────────────────────────────────────────────────────────────────────┐
+│  STAGE 3: BUILD (compilación, empaquetado, artifact)                                 │
+│                                                                                      │
+│  ┌────────────────────────────────────────────────────────────────────────────────┐  │
+│  │  BUILD                                                                         │  │
+│  │  ├─ Reproducible install (npm ci / yarn --frozen-lockfile)                     │  │
+│  │  ├─ Compilation (Vite build / tsc / webpack) — [AWS: "2. Code build"]          │  │
+│  │  ├─ Bundling + minification + compression (gzip/brotli)                        │  │
+│  │  ├─ Docker image build multi-arch (docker buildx / kaniko)                     │  │
+│  │  ├─ Hermetic build (Bazel/Nix — SLSA L3/L4)                                    │  │
+│  │  ├─ Build caching remote (Turborepo/Nx/BuildKit)                               │  │
+│  │  └─ Codegen artifacts (OpenAPI client, GraphQL codegen)                        │  │
+│  └────────────────────────────────────────────────────────────────────────────────┘  │
+│  ┌────────────────────────────────────────────────────────────────────────────────┐  │
+│  │  SECURITY (build-time)                                                         │  │
+│  │  ├─ Container Image Scan (Trivy image/Grype/Anchore) — [SLSA L0]               │  │
+│  │  ├─ SBOM Generation CycloneDX/SPDX (Syft/Trivy sbom) — EO 14028                │  │
+│  │  └─ Base-image hardening check (digest pin, distroless)                        │  │
+│  └────────────────────────────────────────────────────────────────────────────────┘  │
+│  ┌────────────────────────────────────────────────────────────────────────────────┐  │
+│  │  QUALITY (build-time)                                                          │  │
+│  │  ├─ Bundle Size Analysis (size-limit / source-map-explorer)                    │  │
+│  │  ├─ Tree-shaking Verification (rollup-plugin-visualizer)                       │  │
+│  │  └─ Schema Contract Validation (Spectral / protoc)                             │  │
+│  └────────────────────────────────────────────────────────────────────────────────┘  │
+└──────────────────────────────────────────────────────────────────────────────────────┘
        │
        ▼
- ┌──────────────────────────────────────────────────────────────────────────┐
- │  POST-BUILD: INTEGRATE (requieren artifact compilado)                    │
- │                                                                          │
- │  ┌────────────────────────────────────────────────────────────────────┐  │
- │  │  TESTING                                                          │  │
- │  │  ├─ Integration tests (Testcontainers/supertest) — [AWS: "4."]   │  │
- │  │  ├─ Contract tests (Pact)                                         │  │
- │  │  └─ Schema/migration validation (Prisma)                         │  │
- │  └────────────────────────────────────────────────────────────────────┘  │
- │  ┌────────────────────────────────────────────────────────────────────┐  │
- │  │  SECURITY                                                         │  │
- │  │  └─ Container Scan (Trivy image) — [SLSA L0]                     │  │
- │  └────────────────────────────────────────────────────────────────────┘  │
- └──────────────────────────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────────────────────────────┐
+│  STAGE 4: POST-BUILD — INTEGRATE (requieren artifact compilado)                      │
+│                                                                                      │
+│  ┌────────────────────────────────────────────────────────────────────────────────┐  │
+│  │  TESTING                                                                       │  │
+│  │  ├─ Integration Tests (Testcontainers/supertest) — [AWS: "4."]                 │  │
+│  │  ├─ Contract Tests consumer-driven (Pact/Pact Broker)                          │  │
+│  │  ├─ API Contract Validation (Newman/REST Assured/Schemathesis)                 │  │
+│  │  ├─ Component Tests (Testing Library / Vitest)                                 │  │
+│  │  ├─ Visual Regression (Percy/Chromatic/Playwright screenshots)                 │  │
+│  │  ├─ Accessibility Scan WCAG 2.1 AA (axe-core/pa11y-ci)                         │  │
+│  │  ├─ E2E ephemeral deploy (Playwright/Cypress)                                  │  │
+│  │  ├─ Flaky Test Detection + quarantine [FF]                                     │  │
+│  │  └─ Quarantine policy: pass-rate < 70% → auto-quarantine, ~7 días auto-restore │  │
+│  └────────────────────────────────────────────────────────────────────────────────┘  │
+│  ┌────────────────────────────────────────────────────────────────────────────────┐  │
+│  │  SECURITY                                                                      │  │
+│  │  ├─ IAST runtime instrumentation (Contrast Security)                           │  │
+│  │  └─ Fuzz Testing APIs/binaries (OSS-Fuzz/AFL++/GitLab Fuzz)                    │  │
+│  └────────────────────────────────────────────────────────────────────────────────┘  │
+│  ┌────────────────────────────────────────────────────────────────────────────────┐  │
+│  │  QUALITY (Grupo B — artifact)                                                  │  │
+│  │  ├─ SonarQube/SonarCloud full analysis (bugs, code smells, complexity,         │  │
+│  │  │   duplicación, MI, Halstead) — necesita build + coverage [PV][DD]            │  │
+│  │  ├─ Coverage enforcement integration suite (c8/JaCoCo)                         │  │
+│  │  └─ Contract validation output (OpenAPI spec compliance)                       │  │
+│  └────────────────────────────────────────────────────────────────────────────────┘  │
+└──────────────────────────────────────────────────────────────────────────────────────┘
        │
        ▼
- ┌──────────────────────────────────────────────────────────────────────────┐
- │  ARTIFACT & SIGN (empaquetado y firma)                                   │
- │                                                                          │
- │  ├─ Version artifact (SemVer / semantic-release)                        │
- │  ├─ Sign artifact (cosign / Sigstore)                                   │
- │  └─ Publish to registry (npm / ECR / GitHub Packages)                  │
- └──────────────────────────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────────────────────────────┐
+│  STAGE 5: ARTIFACT & SIGN (empaquetado, firma, publicación)                          │
+│                                                                                      │
+│  ┌────────────────────────────────────────────────────────────────────────────────┐  │
+│  │  PACKAGING + SECURITY                                                          │  │
+│  │  ├─ Semantic Versioning + git tag (semantic-release/release-please)            │  │
+│  │  ├─ Publish to registry (npm/GHCR/ECR/Artifactory)                             │  │
+│  │  ├─ Artifact Signing (Cosign/Sigstore) — containers + binaries                 │  │
+│  │  ├─ SLSA Provenance Generation (slsa-github-generator)                         │  │
+│  │  ├─ SBOM Attach as signed attestation (cosign attach)                          │  │
+│  │  ├─ Notarization platform (Apple notarization / Windows signtool)              │  │
+│  │  ├─ Immutable Digest Pinning (SHA256, not tag)                                 │  │
+│  │  ├─ Registry-side continuous re-scan (ECR/Trivy registry)                      │  │
+│  │  └─ Signature + Provenance verification gate (cosign verify/slsa-verifier)     │  │
+│  └────────────────────────────────────────────────────────────────────────────────┘  │
+│  ┌────────────────────────────────────────────────────────────────────────────────┐  │
+│  │  GOVERNANCE                                                                    │  │
+│  │  ├─ Artifact promotion policy (staging registry → prod via pipeline)           │  │
+│  │  └─ Retention/immutability policy (no tag overwrite)                           │  │
+│  └────────────────────────────────────────────────────────────────────────────────┘  │
+└──────────────────────────────────────────────────────────────────────────────────────┘
        │
        ▼
- ┌──────────────────────────────────────────────────────────────────────────┐
- │  DEPLOY STAGING (despliegue a entorno de validación)                     │
- │                                                                          │
- │  ├─ Deploy to staging / preview environment                             │
- │  ├─ Apply DB migrations (Prisma Migrate)                               │
- │  └─ Smoke tests (health checks, endpoints críticos)                    │
- │                                                                          │
- │  Justificación: [AWS DL.ADS.1] "Each non-production deployment serves   │
- │  as a gate". [AWS DL.CD.3] QA stages después de cada deployment.      │
- └──────────────────────────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────────────────────────────┐
+│  STAGE 6: DEPLOY STAGING (entorno de validación)                                     │
+│                                                                                      │
+│  ┌────────────────────────────────────────────────────────────────────────────────┐  │
+│  │  DEPLOY                                                                        │  │
+│  │  ├─ Infrastructure provisioning IaC (Terraform/CDK/Pulumi)                     │  │
+│  │  ├─ DB Migrations expand phase (Prisma Migrate/Flyway/Liquibase)               │  │
+│  │  ├─ Config + Secrets injection (Vault/External Secrets Operator)               │  │
+│  │  ├─ Manifest render + apply (Helm/Kustomize/ArgoCD)                            │  │
+│  │  ├─ Deployment strategy (rolling/blue-green/canary)                            │  │
+│  │  ├─ DNS + TLS + WAF + CDN warm-up                                              │  │
+│  │  └─ Feature flag init (LaunchDarkly/Unleash — flags OFF)                       │  │
+│  └────────────────────────────────────────────────────────────────────────────────┘  │
+│  ┌────────────────────────────────────────────────────────────────────────────────┐  │
+│  │  TESTING                                                                       │  │
+│  │  └─ Deployment Smoke Test (health/readiness endpoints)                         │  │
+│  └────────────────────────────────────────────────────────────────────────────────┘  │
+│  ┌────────────────────────────────────────────────────────────────────────────────┐  │
+│  │  SECURITY                                                                      │  │
+│  │  ├─ IaC plan-time scan + drift detection (Checkov/driftctl)                    │  │
+│  │  ├─ Cluster posture checks (kube-bench/kube-hunter)                            │  │
+│  │  └─ Admission policy (signed+scanned images — Kyverno/Gatekeeper)              │  │
+│  └────────────────────────────────────────────────────────────────────────────────┘  │
+│  ┌────────────────────────────────────────────────────────────────────────────────┐  │
+│  │  GOVERNANCE                                                                    │  │
+│  │  └─ Change record/ticket linkage (ServiceNow/Jira)                             │  │
+│  └────────────────────────────────────────────────────────────────────────────────┘  │
+└──────────────────────────────────────────────────────────────────────────────────────┘
        │
        ▼
- ┌──────────────────────────────────────────────────────────────────────────┐
- │  POST-DEPLOY: ACCEPT (sobre entorno desplegado)                          │
- │                                                                          │
- │  ┌────────────────────────────────────────────────────────────────────┐  │
- │  │  TESTING                                                          │  │
- │  │  ├─ E2E Tests (Playwright) — [Fowler: "2nd line of defense"]     │  │
- │  │  └─ UAT / Manual Verification                                    │  │
- │  └────────────────────────────────────────────────────────────────────┘  │
- │  ┌────────────────────────────────────────────────────────────────────┐  │
- │  │  SECURITY                                                         │  │
- │  │  ├─ DAST (OWASP ZAP) — [GitLab: "running... from outside in"]    │  │
- │  │  └─ Accessibility (axe-core) — [OWASP]                           │  │
- │  └────────────────────────────────────────────────────────────────────┘  │
- │  ┌────────────────────────────────────────────────────────────────────┐  │
- │  │  QUALITY                                                          │  │
- │  │  └─ Accessibility (axe-core) — [OWASP]                           │  │
- │  └────────────────────────────────────────────────────────────────────┘  │
- │                                                                          │
- │  Todos son jobs PARALELOS (todos requieren la app corriendo).           │
- └──────────────────────────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────────────────────────────┐
+│  STAGE 7: POST-DEPLOY — ACCEPT (app desplegada corriendo)                            │
+│                                                                                      │
+│  ┌────────────────────────────────────────────────────────────────────────────────┐  │
+│  │  TESTING                                                                       │  │
+│  │  ├─ Full E2E Regression (Playwright/Cypress) — [Fowler: "2nd line"]            │  │
+│  │  ├─ Smoke Suite critical journeys (Playwright/Checkly)                         │  │
+│  │  ├─ Synthetic Monitoring scripts (Checkly/Datadog Synthetics)                  │  │
+│  │  ├─ UAT / Acceptance validation (manual + automated)                           │  │
+│  │  └─ Memory Leak Detection (clinic.js / heap snapshots)                         │  │
+│  └────────────────────────────────────────────────────────────────────────────────┘  │
+│  ┌────────────────────────────────────────────────────────────────────────────────┐  │
+│  │  SECURITY                                                                      │  │
+│  │  ├─ DAST Active Scan auth-aware (OWASP ZAP/Burp/Nuclei) — [GitLab DAST]        │  │
+│  │  ├─ API Security Testing BOLA/rate-limit (42Crunch/ZAP API scan)               │  │
+│  │  ├─ Infrastructure Vuln Scan (Nessus/Trivy infra/AWS Inspector)                │  │
+│  │  ├─ CNAPP Runtime Posture (Prisma Cloud/Wiz/Falco)                             │  │
+│  │  └─ Misconfiguration scan deployed (ScoutSuite/Prowler)                        │  │
+│  └────────────────────────────────────────────────────────────────────────────────┘  │
+│  ┌────────────────────────────────────────────────────────────────────────────────┐  │
+│  │  QUALITY (app desplegada)                                                      │  │
+│  │  ├─ Lighthouse CI (Performance ≥ 90, LCP < 2.5s, CLS < 0.1)                    │  │
+│  │  ├─ Visual Regression (Chromatic/Percy/Playwright)                             │  │
+│  │  ├─ Accessibility Audit axe-core + manual (WCAG 2.1 AA)                        │  │
+│  │  └─ Content/brand review gate (manual)                                         │  │
+│  └────────────────────────────────────────────────────────────────────────────────┘  │
+│  ┌────────────────────────────────────────────────────────────────────────────────┐  │
+│  │  GOVERNANCE                                                                    │  │
+│  │  ├─ Release readiness dashboard + sign-off evidence                            │  │
+│  │  └─ Acceptance record (who approved what, evidence archive)                    │  │
+│  └────────────────────────────────────────────────────────────────────────────────┘  │
+│                                                                                      │
+│  Todos PARALELOS (todos requieren la app corriendo).                                 │
+└──────────────────────────────────────────────────────────────────────────────────────┘
        │
        ▼
- ┌──────────────────────────────────────────────────────────────────────────┐
- │  PERFORMANCE (rendimiento bajo carga)                                    │
- │                                                                          │
- │  ├─ Load testing (k6 / Artillery)                                       │
- │  ├─ Frontend perf (Lighthouse CI / Core Web Vitals)                    │
- │  └─ Chaos engineering (si aplica)                                       │
- └──────────────────────────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────────────────────────────┐
+│  STAGE 8: PERFORMANCE (stability + performance gated)                                │
+│                                                                                      │
+│  ┌────────────────────────────────────────────────────────────────────────────────┐  │
+│  │  PERFORMANCE                                                                   │  │
+│  │  ├─ Load Testing k6/Locust (p95 latency, throughput, error rate)               │  │
+│  │  ├─ Stress Testing / Soak (extended duration under load)                       │  │
+│  │  ├─ Spike Testing (burst traffic patterns)                                     │  │
+│  │  ├─ Performance Budget Enforcement (Lighthouse CI / Web Vitals)                │  │
+│  │  ├─ Resource Usage Profiling (CPU, memory, I/O under load)                     │  │
+│  │  └─ Auto-scaling Validation (HPA trigger, cold-start time)                     │  │
+│  └────────────────────────────────────────────────────────────────────────────────┘  │
+│  ┌────────────────────────────────────────────────────────────────────────────────┐  │
+│  │  SECURITY                                                                      │  │
+│  │  └─ DDoS resilience / rate-limit validation under load                         │  │
+│  └────────────────────────────────────────────────────────────────────────────────┘  │
+└──────────────────────────────────────────────────────────────────────────────────────┘
        │
        ▼
- ┌──────────────────────────────────────────────────────────────────────────┐
- │  APPROVAL & GOVERNANCE (gates de decisión)                               │
- │                                                                          │
- │  ├─ Quality gate (SonarQube)                                            │
- │  ├─ Security gate (severity threshold)                                  │
- │  ├─ Manual approval (GitHub Environments)                               │
- │  └─ Policy as Code (OPA / Conftest)                                    │
- └──────────────────────────────────────────────────────────────────────────┘
+ ┌──────────────────────────────────────────────────────────────────────────────────────┐
+ │  STAGE 9: APPROVAL & GOVERNANCE (human gate + compliance)                            │
+ │                                                                                      │
+ │  ┌────────────────────────────────────────────────────────────────────────────────┐  │
+ │  │  TESTING                                                                       │  │
+ │  │  └─ UAT / Acceptance gate (manual QA sign-off)                                 │  │
+ │  └────────────────────────────────────────────────────────────────────────────────┘  │
+ │  ┌────────────────────────────────────────────────────────────────────────────────┐  │
+ │  │  GOVERNANCE                                                                    │  │
+ │  │  ├─ Manual/Environment Protection Rules (GitHub environment approval)          │  │
+ │  │  ├─ Security Review Board approval (for high-risk changes)                     │  │
+ │  │  ├─ Quality gate (SonarQube quality gate pass)                                 │  │
+ │  │  ├─ Security gate (vulnerability severity threshold)                           │  │
+ │  │  ├─ Release Notes + CHANGELOG verification                                     │  │
+ │  │  ├─ Compliance evidence archive (SOC2/ISO 27001/artifact trail)                │  │
+ │  │  ├─ Policy-as-code validation (OPA/Conftest/Kyverno)                           │  │
+ │  │  ├─ Code Freeze Check (freeze windows)                                         │  │
+ │  │  └─ Rollback Plan + Backout procedure documented                               │  │
+ │  └────────────────────────────────────────────────────────────────────────────────┘  │
+ │  ┌────────────────────────────────────────────────────────────────────────────────┐  │
+ │  │  SECURITY                                                                      │  │
+ │  │  └─ Penetration Testing approval (scheduled/third-party for critical)          │  │
+ │  └────────────────────────────────────────────────────────────────────────────────┘  │
+ │                                                                                      │
+ │  Sequential: testing → security → governance approval chain.                         │
+ └──────────────────────────────────────────────────────────────────────────────────────┘
        │
        ▼
- ┌──────────────────────────────────────────────────────────────────────────┐
- │  DEPLOY PRODUCTION (release de bajo riesgo)                              │
- │                                                                          │
- │  ├─ Strategy: canary / blue-green / rolling                            │
- │  ├─ Smoke tests post-deploy                                             │
- │  └─ Canary analysis (Argo Rollouts + Prometheus)                       │
- └──────────────────────────────────────────────────────────────────────────┘
+ ┌──────────────────────────────────────────────────────────────────────────────────────┐
+ │  STAGE 10: DEPLOY PRODUCTION (release)                                               │
+ │                                                                                      │
+ │  ┌────────────────────────────────────────────────────────────────────────────────┐  │
+ │  │  DEPLOY                                                                        │  │
+ │  │  ├─ Strategy: canary / blue-green / rolling / feature flag progressive         │  │
+ │  │  ├─ Canary analysis automated (Argo Rollouts + Prometheus/Loki)                │  │
+ │  │  ├─ Traffic shifting (5% → 25% → 50% → 100%)                                   │  │
+ │  │  ├─ Auto-rollback on metric degradation (latency/error rate) [FF]              │  │
+│  │  ├─ Roll-forward / hotfix-forward strategy [F1]                                 │  │
+ │  │  ├─ Infrastructure-as-Code apply (Terraform plan → apply)                      │  │
+ │  │  └─ CDN cache invalidation + edge warm-up                                      │  │
+ │  └────────────────────────────────────────────────────────────────────────────────┘  │
+ │  ┌────────────────────────────────────────────────────────────────────────────────┐  │
+ │  │  TESTING                                                                       │  │
+ │  │  ├─ Production Smoke Tests (critical path health checks)                       │  │
+ │  │  └─ Synthetic Monitoring activation (Checkly/Datadog)                          │  │
+ │  └────────────────────────────────────────────────────────────────────────────────┘  │
+ │  ┌────────────────────────────────────────────────────────────────────────────────┐  │
+ │  │  GOVERNANCE                                                                    │  │
+ │  │  ├─ Deployment event record (timestamp, commit, artifact SHA)                  │  │
+ │  │  ├─ License Compliance final gate (FOSSA/ScanCode)                             │  │
+ │  │  └─ CI/CD DORA Metrics capture (deploy frequency, lead time)                   │  │
+ │  └────────────────────────────────────────────────────────────────────────────────┘  │
+ └──────────────────────────────────────────────────────────────────────────────────────┘
        │
        ▼
- ┌──────────────────────────────────────────────────────────────────────────┐
- │  MONITOR & CLEANUP (observabilidad + limpieza)                           │
- │                                                                          │
- │  ├─ Observability (metrics, logs, traces — OpenTelemetry)              │
- │  ├─ SLO monitoring + error budgets                                      │
- │  ├─ Incident response + blameless postmortems                           │
- │  ├─ Destroy ephemeral environments                                     │
- │  └─ Artifact retention + FinOps                                        │
- └──────────────────────────────────────────────────────────────────────────┘
+ ┌──────────────────────────────────────────────────────────────────────────────────────┐
+ │  STAGE 11: MONITOR & CLEANUP (observability + limpieza)                              │
+ │                                                                                      │
+ │  ┌────────────────────────────────────────────────────────────────────────────────┐  │
+ │  │  MONITORING                                                                    │  │
+ │  │  ├─ Observability (metrics/logs/traces — OpenTelemetry/Grafana/Prometheus)     │  │
+ │  │  ├─ SLO monitoring + error budgets (burn-rate alerts)                          │  │
+ │  │  ├─ Business KPI monitoring (conversion, revenue, adoption)                    │  │
+ │  │  ├─ Runtime security monitoring (Falco/Sysdig/Amazon GuardDuty)                │  │
+ │  │  ├─ Anomaly Detection (ML-driven, Datadog/Dynatrace)                           │  │
+ │  │  ├─ Uptime SLA reporting (99.9% target tracking)                               │  │
+ │  │  ├─ Time-to-first-feedback (commit → primer test < 5 min) [FB]                 │  │
+ │  │  └─ Threat Intelligence Feed Integration (Sigma rules)                         │  │
+ │  └────────────────────────────────────────────────────────────────────────────────┘  │
+ │  ┌────────────────────────────────────────────────────────────────────────────────┐  │
+ │  │  RESPONSE                                                                      │  │
+ │  │  ├─ Incident Response automation (PagerDuty/Opsgenie + Slack)                  │  │
+ │  │  ├─ Auto-remediation (self-healing, auto-restart, auto-revert)                 │  │
+ │  │  ├─ Blameless Postmortems (template + 5-whys + timeline)                       │  │
+ │  │  └─ Feature flag kill-switch (LaunchDarkly kill-switch)                        │  │
+ │  └────────────────────────────────────────────────────────────────────────────────┘  │
+ │  ┌────────────────────────────────────────────────────────────────────────────────┐  │
+ │  │  CLEANUP + GOVERNANCE                                                          │  │
+ │  │  ├─ Stale branch cleanup (gh, >30 days)                                        │  │
+ │  │  ├─ Preview env cleanup (ephemeral, auto-destroy)                              │  │
+ │  │  ├─ Container registry cleanup (untagged, old digests)                         │  │
+ │  │  ├─ Artifact retention policy (rotate/archive/expire)                          │  │
+ │  │  ├─ Build artifact purge (old caches, temp files)                              │  │
+ │  │  ├─ Vault secrets rotation audit                                               │  │
+ │  │  ├─ SBOM/Provenance archival (immutable store)                                 │  │
+ │  │  ├─ DORA Metrics export (AI/ML/LLM projects only if applicable)                │  │
+ │  │  └─ Audit trail export (immutable, compliance-ready)                           │  │
+ │  └────────────────────────────────────────────────────────────────────────────────┘  │
+ └──────────────────────────────────────────────────────────────────────────────────────┘
 ```
 
 ### 23.4 Tabla resumen: ¿Qué va antes y después del Build? (con categorías)
 
-| Categoría    | Capacidad                        | ¿Necesita build como input?             | Posición correcta   | Fuente                                                                                                                                                                    |
-| ------------ | -------------------------------- | --------------------------------------- | ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **TESTING**  | Unit Tests (Vitest)              | **NO** — opera sobre source TS/JS       | **ANTES del build** | [AWS: "1. Unit tests"](https://docs.aws.amazon.com/prescriptive-guidance/latest/strategy-cicd-litmus/understanding-cicd.html)                                             |
-| **TESTING**  | Snapshot Tests (Testing Library) | **NO** — opera sobre source JSX/TSX     | **ANTES del build** | [AWS: "1. Unit tests"](https://docs.aws.amazon.com/prescriptive-guidance/latest/strategy-cicd-litmus/understanding-cicd.html)                                             |
-| **SECURITY** | SAST (Semgrep, CodeQL)           | **NO** — análisis estático sobre source | **ANTES del build** | [GitLab SAST](https://docs.gitlab.com/ee/user/application_security/sast/)                                                                                                 |
-| **SECURITY** | SCA (Dependabot, Snyk)           | **NO** — analiza lockfiles              | **ANTES del build** | [Snyk CI/CD](https://docs.snyk.io/implementation-guides/team-implementation-guide/phase-5-rolling-out-the-prevention-stage/add-and-configure-snyk-to-your-ci-cd-pipeline) |
-| **SECURITY** | Secret Detection (Gitleaks)      | **NO** — archivos crudos                | **ANTES del build** | [OWASP DevSecOps](https://owasp.org/www-project-devsecops-guideline/)                                                                                                     |
-| **SECURITY** | IaC Scanning (Checkov/Trivy)     | **NO** — archivos de configuración      | **ANTES del build** | [OWASP DevSecOps](https://owasp.org/www-project-devsecops-guideline/)                                                                                                     |
-| **QUALITY**  | Lint (ESLint)                    | **NO** — opera sobre source code        | **ANTES del build** | [GitLab CI/CD](https://docs.gitlab.com/ee/ci/pipelines/)                                                                                                                  |
-| **QUALITY**  | Format (Prettier)                | **NO** — opera sobre source code        | **ANTES del build** | [GitLab CI/CD](https://docs.gitlab.com/ee/ci/pipelines/)                                                                                                                  |
-| **QUALITY**  | Type Check (tsc --noEmit)        | **NO** — opera sobre source TS          | **ANTES del build** | [TypeScript tsconfig](https://www.typescriptlang.org/tsconfig)                                                                                                            |
-| —            | **BUILD** (compile, bundle)      | —                                       | **BUILD**           | [AWS: "2. Code build"](https://docs.aws.amazon.com/prescriptive-guidance/latest/strategy-cicd-litmus/understanding-cicd.html)                                             |
-| **TESTING**  | Integration Tests                | **SÍ** — necesita artifact compilado    | **POST-BUILD**      | [AWS: "4. Integration tests"](https://docs.aws.amazon.com/prescriptive-guidance/latest/strategy-cicd-litmus/understanding-cicd.html)                                      |
-| **TESTING**  | Contract Tests (Pact)            | **SÍ** — necesita artifact compilado    | **POST-BUILD**      | [AWS: "4. Integration tests"](https://docs.aws.amazon.com/prescriptive-guidance/latest/strategy-cicd-litmus/understanding-cicd.html)                                      |
-| **SECURITY** | Container Scan (Trivy image)     | **SÍ** — necesita Docker image          | **POST-BUILD**      | [SLSA](https://slsa.dev/spec/v1.0/levels)                                                                                                                                 |
-| —            | Deploy Staging                   | **SÍ** — necesita artifact firmado      | **DEPLOY**          | [AWS DL.ADS.1](https://docs.aws.amazon.com/wellarchitected/latest/devops-guidance/)                                                                                       |
-| **TESTING**  | E2E Tests (Playwright)           | **SÍ** — necesita app corriendo         | **POST-DEPLOY**     | [Fowler: Test Pyramid](https://martinfowler.com/bliki/TestPyramid.html)                                                                                                   |
-| **TESTING**  | UAT / Manual Verification        | **SÍ** — necesita app corriendo         | **POST-DEPLOY**     | [Fowler: Test Pyramid](https://martinfowler.com/bliki/TestPyramid.html)                                                                                                   |
-| **SECURITY** | DAST (OWASP ZAP)                 | **SÍ** — necesita app desplegada        | **POST-DEPLOY**     | [GitLab DAST](https://docs.gitlab.com/ee/user/application_security/dast/)                                                                                                 |
-| **QUALITY**  | Accessibility (axe-core)         | **SÍ** — necesita app desplegada        | **POST-DEPLOY**     | [OWASP DevSecOps](https://owasp.org/www-project-devsecops-guideline/)                                                                                                     |
-| **QUALITY**  | Performance (k6)                 | **SÍ** — necesita app bajo carga        | **POST-DEPLOY**     | [AWS DL.CD.3](https://docs.aws.amazon.com/wellarchitected/latest/devops-guidance/)                                                                                        |
-| **QUALITY**  | Lighthouse CI (Core Web Vitals)  | **SÍ** — necesita app desplegada        | **POST-DEPLOY**     | [AWS DL.CD.3](https://docs.aws.amazon.com/wellarchitected/latest/devops-guidance/)                                                                                        |
+| Categoría      | Capacidad                            | ¿Necesita build como input?               | Posición correcta        | Fuente                                                                                                                                                                                      |
+| -------------- | ------------------------------------ | ----------------------------------------- | ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **TESTING**    | Unit Tests (Vitest)                  | **NO** — opera sobre source TS/JS         | **ANTES del build**      | [AWS: "1. Unit tests"](https://docs.aws.amazon.com/prescriptive-guidance/latest/strategy-cicd-litmus/understanding-cicd.html)                                                               |
+| **TESTING**    | Snapshot Tests (Testing Library)     | **NO** — opera sobre source JSX/TSX       | **ANTES del build**      | [AWS: "1. Unit tests"](https://docs.aws.amazon.com/prescriptive-guidance/latest/strategy-cicd-litmus/understanding-cicd.html)                                                               |
+| **SECURITY**   | SAST (Semgrep, CodeQL)               | **NO** — análisis estático sobre source   | **ANTES del build**      | [GitLab SAST](https://docs.gitlab.com/ee/user/application_security/sast/)                                                                                                                   |
+| **SECURITY**   | SCA (Dependabot, Snyk)               | **NO** — analiza lockfiles                | **ANTES del build**      | [Snyk CI/CD](https://docs.snyk.io/implementation-guides/team-implementation-guide/phase-5-rolling-out-the-prevention-stage/add-and-configure-snyk-to-your-ci-cd-pipeline)                   |
+| **SECURITY**   | Secret Detection (Gitleaks)          | **NO** — archivos crudos                  | **ANTES del build**      | [OWASP DevSecOps](https://owasp.org/www-project-devsecops-guideline/)                                                                                                                       |
+| **SECURITY**   | IaC Scanning (Checkov/Trivy)         | **NO** — archivos de configuración        | **ANTES del build**      | [OWASP DevSecOps](https://owasp.org/www-project-devsecops-guideline/)                                                                                                                       |
+| **QUALITY**    | Lint (ESLint)                        | **NO** — opera sobre source code          | **ANTES del build**      | [GitLab CI/CD](https://docs.gitlab.com/ee/ci/pipelines/)                                                                                                                                    |
+| **QUALITY**    | Format (Prettier)                    | **NO** — opera sobre source code          | **ANTES del build**      | [GitLab CI/CD](https://docs.gitlab.com/ee/ci/pipelines/)                                                                                                                                    |
+| **QUALITY**    | Type Check (tsc --noEmit)            | **NO** — opera sobre source TS            | **ANTES del build**      | [TypeScript tsconfig](https://www.typescriptlang.org/tsconfig)                                                                                                                              |
+| —              | **BUILD** (compile, bundle)          | —                                         | **BUILD**                | [AWS: "2. Code build"](https://docs.aws.amazon.com/prescriptive-guidance/latest/strategy-cicd-litmus/understanding-cicd.html)                                                               |
+| **TESTING**    | Integration Tests                    | **SÍ** — necesita artifact compilado      | **POST-BUILD**           | [AWS: "4. Integration tests"](https://docs.aws.amazon.com/prescriptive-guidance/latest/strategy-cicd-litmus/understanding-cicd.html)                                                        |
+| **TESTING**    | Contract Tests (Pact)                | **SÍ** — necesita artifact compilado      | **POST-BUILD**           | [AWS: "4. Integration tests"](https://docs.aws.amazon.com/prescriptive-guidance/latest/strategy-cicd-litmus/understanding-cicd.html)                                                        |
+| **SECURITY**   | Container Scan (Trivy image)         | **SÍ** — necesita Docker image            | **POST-BUILD**           | [SLSA](https://slsa.dev/spec/v1.2/levels)                                                                                                                                                   |
+| —              | Deploy Staging                       | **SÍ** — necesita artifact firmado        | **DEPLOY**               | [AWS DL.ADS.1](https://docs.aws.amazon.com/wellarchitected/latest/devops-guidance/)                                                                                                         |
+| **TESTING**    | E2E Tests (Playwright)               | **SÍ** — necesita app corriendo           | **POST-DEPLOY**          | [Fowler: Test Pyramid](https://martinfowler.com/bliki/TestPyramid.html)                                                                                                                     |
+| **TESTING**    | UAT / Manual Verification            | **SÍ** — necesita app corriendo           | **POST-DEPLOY**          | [Fowler: Test Pyramid](https://martinfowler.com/bliki/TestPyramid.html)                                                                                                                     |
+| **SECURITY**   | DAST (OWASP ZAP)                     | **SÍ** — necesita app desplegada          | **POST-DEPLOY**          | [GitLab DAST](https://docs.gitlab.com/ee/user/application_security/dast/)                                                                                                                   |
+| **QUALITY**    | Accessibility (axe-core)             | **SÍ** — necesita app desplegada          | **POST-DEPLOY**          | [OWASP DevSecOps](https://owasp.org/www-project-devsecops-guideline/)                                                                                                                       |
+| **QUALITY**    | Performance (k6)                     | **SÍ** — necesita app bajo carga          | **POST-DEPLOY**          | [AWS DL.CD.3](https://docs.aws.amazon.com/wellarchitected/latest/devops-guidance/)                                                                                                          |
+| **QUALITY**    | Lighthouse CI (Core Web Vitals)      | **SÍ** — necesita app desplegada          | **POST-DEPLOY**          | [AWS DL.CD.3](https://docs.aws.amazon.com/wellarchitected/latest/devops-guidance/)                                                                                                          |
+| **TESTING**    | Test Impact Analysis (TIA)           | **NO** — selecciona tests por diff        | **ANTES del build**      | [Launchable/Nx/Turborepo query](https://martinfowler.com/articles/continuousIntegration.html)                                                                                               |
+| **TESTING**    | Test Sharding (Vitest/Playwright)    | **DEPENDS** — distribuye entre runners    | **PRE-BUILD/POST-BUILD** | Parallel execution + Fast feedback (< 5 min target)                                                                                                                                         |
+| **TESTING**    | Smart Test Ordering (fail-first)     | **NO** — reordena por histórico de fallos | **ANTES del build**      | Fail-first strategy — rápido / previamente fallido primero                                                                                                                                  |
+| **GOVERNANCE** | Path-filtered entry / Skip-CI        | **NO** — change detection en source       | **ENTRY**                | [§53.3 Skip unnecessary builds](https://docs.aws.amazon.com/wellarchitected/latest/devops-guidance/)                                                                                        |
+| **GOVERNANCE** | Early-abort gate (lint/SAST crítico) | **NO** — aborta antes de suites largas    | **PRE-BUILD**            | Fail-fast strategy — `pytest --maxfail=1` semantics                                                                                                                                         |
+| **TESTING**    | Flaky Quarantine Policy              | **DEPENDS** — corre en post-build         | **POST-BUILD**           | Pass-rate < 70% → quarantine; auto-unquarantine ~7 días                                                                                                                                     |
+| **DEPLOY**     | Roll-forward / Hotfix-forward        | **SÍ** — necesita artifact firmado        | **DEPLOY PROD**          | Fail-forward strategy — deploy forward como alternativa al rollback                                                                                                                         |
+| **MONITORING** | Time-to-first-feedback (< 5 min)     | **NO** — métrica del pipeline             | **MONITOR**              | Fast feedback loop — commit → primer test resultado                                                                                                                                         |
+| **QUALITY**    | Complexity Rules (ESLint)            | **NO** — reglas source-level              | **ANTES del build**      | [ESLint complexity](https://eslint.org/)                                                                                                                                                    |
+| **QUALITY**    | SonarQube Full Analysis              | **SÍ** — necesita build + coverage data   | **POST-BUILD**           | [SonarQube Quality Gates](https://docs.sonarsource.com/sonarqube-server/quality-standards-administration/managing-quality-gates) — bugs, code smells, complexity, duplicación, MI, Halstead |
 
 ### 23.5 Implicación para project-one
 
@@ -2846,7 +3060,7 @@ Las herramientas actuales del monorepo, su posición en el orden correcto **y su
 | 5   | GitLab CI/CD Pipelines        | https://docs.gitlab.com/ee/ci/pipelines/                                                                                                                    | Lint como job temprano                  |
 | 6   | DORA — Continuous Integration | https://dora.dev/capabilities/continuous-integration/                                                                                                       | Tests + build en paralelo               |
 | 7   | DORA — Continuous Delivery    | https://dora.dev/capabilities/continuous-delivery/                                                                                                          | Continuous testing throughout lifecycle |
-| 8   | SLSA v1.0 Levels              | https://slsa.dev/spec/v1.0/levels                                                                                                                           | Unit tests como builds L0               |
+| 8   | SLSA v1.2 Levels              | https://slsa.dev/spec/v1.2/levels                                                                                                                           | Unit tests como builds L0               |
 | 9   | OWASP DevSecOps Guideline     | https://owasp.org/www-project-devsecops-guideline/                                                                                                          | Detección temprana como objetivo        |
 | 10  | SonarQube Quality Gates       | https://docs.sonarsource.com/sonarqube-server/quality-standards-administration/managing-quality-gates                                                       | Quality gate bloquea merge              |
 | 11  | Snyk CI/CD Integration        | https://docs.snyk.io/implementation-guides/team-implementation-guide/phase-5-rolling-out-the-prevention-stage/add-and-configure-snyk-to-your-ci-cd-pipeline | Snyk como gatekeeper                    |
@@ -3378,7 +3592,7 @@ steps:
       subject-path: '${{ github.workspace }}/my-app'
 ```
 
-- Binding subject (artifact + digest) a SLSA v1.0 build provenance (in-toto format), signed con short-lived Sigstore cert.
+- Binding subject (artifact + digest) a SLSA v1.2 build provenance (in-toto format), signed con short-lived Sigstore cert.
 - Verify: `gh attestation verify <artifact> --repo owner/repo`.
 - Achieves **SLSA v1 Build Level 3** cuando se combina con reusable workflows (permissions: `attestations: write` + `contents: read` + `id-token: write` en BOTH caller y reusable workflow).
 
@@ -3412,6 +3626,70 @@ steps:
 | 6   | OIDC             | AWS/GCP/Azure federation; subject-claim scoped a repo+branch+environment; 15-min tokens; quarterly audit                        | Elimina long-lived cloud secrets             |
 | 7   | Monorepo         | paths triggers + dorny/paths-filter + turbo `--filter='...[origin/main]'` con `fetch-depth: 0`                                  | Solo affected workspaces se construyen       |
 | 8   | Security         | SHA-pinned actions, minimal permissions, CODEOWNERS, attest-build-provenance + gh attestation verify, harden-runner             | Supply chain integrity                       |
+
+### 24.11 GitHub Actions 2026 Security Features
+
+GitHub Actions ha lanzado nuevas features de seguridad en 2026 que complementan el hardening de la sección 24.9:
+
+#### Workflow Execution Protections (public preview desde junio 2026)
+
+Permite definir **actor rules** y **event rules** vía GitHub Rulesets para controlar QUÉ workflows se ejecutan y CUÁNDO:
+
+```yaml
+# Repository Ruleset — workflow execution protection
+name: 'workflow-execution-protection'
+target: branch
+enforcement: active
+rules:
+  - type: workflow_execution
+    parameters:
+      allowed_actions: 'selected'
+      allowed_workflows:
+        - '.github/workflows/ci.yml'
+        - '.github/workflows/deploy.yml'
+```
+
+**Casos de uso:**
+
+- Bloquear workflows de forks en PRs (evitar miners de crypto)
+- Restringir a reusable workflows de un repo específico
+- Permitir solo workflows con SHA-pinned actions
+
+#### Scoped Secrets
+
+Los secrets ahora se pueden scopear por **workflow file** además de environment. Esto evita que reusable workflows hereden secrets innecesariamente:
+
+```yaml
+jobs:
+  deploy:
+    secrets: inherit # Hereda secrets del caller
+    # NUEVO 2026: caller puede filtrar qué secrets pasan
+```
+
+#### Egress Firewall nativo
+
+Control de red a nivel de workflow: permitir solo conexiones a dominios aprobados. Previene data exfiltration desde pipelines compromised. Se define vía repository ruleset.
+
+#### Immutable Releases
+
+Las releases de GitHub ahora soportan **immutability**: una vez publicada, no se puede modificar el artifact. Complementa SLSA provenance y cosign signatures.
+
+#### `dependencies:` Section con SHA-lock
+
+Nueva sección en workflow files que declara explícitamente las dependencias (actions, reusable workflows) con SHA pins:
+
+```yaml
+dependencies:
+  actions:
+    - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+    - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+  reusable:
+    - uses: my-org/shared-workflows/deploy@v2
+```
+
+**Impacto:** receptor puede auditar dependencias sin leer cada `uses:` en steps.
+
+> **Fuentes:** [GitHub Actions 2026 Security Roadmap](https://github.blog/news-insights/product-news/whats-coming-to-our-github-actions-2026-security-roadmap/), [Workflow Execution Protections](https://github.blog/changelog/2026-06-18-control-who-and-what-triggers-github-actions-workflows/)
 
 ---
 
@@ -3455,9 +3733,9 @@ steps:
 
 - **actions/attest** (v4) es la unified action — auto-detecta mode: Provenance (default), SBOM (`sbom-path`), Custom (`predicate-type`/`predicate`).
 - Verificar: `gh attestation verify dist/app --owner org-name`
-- Achieves **SLSA v1.0 Build L2** out of the box; **L3** via isolated trusted-builder pattern.
+- Achieves **SLSA v1.2 Build L2** out of the box; **L3** via isolated trusted-builder pattern.
 
-> **Fuente:** [SLSA Spec v1.0](https://slsa.dev/spec/v1.0/), [SLSA Levels](https://slsa.dev/spec/v1.0/levels), [actions/attest](https://github.com/actions/attest)
+> **Fuente:** [SLSA Spec v1.2](https://slsa.dev/spec/v1.2/), [SLSA Levels](https://slsa.dev/spec/v1.2/levels), [actions/attest](https://github.com/actions/attest)
 
 ### 25.3 Sigstore (cosign, keyless signing, Fulcio, Rekor)
 
@@ -4537,7 +4815,7 @@ Merge a main → CI workflow → artifact (SBOM + cosign)
 | 106 | GitHub Changelog Aug 2025: SHA Pinning        | 24.9       |
 | 107 | GitHub: Secure Use                            | 24.9       |
 | 108 | actions/attest-build-provenance               | 24.9, 25.2 |
-| 109 | SLSA Spec v1.0                                | 25.2       |
+| 109 | SLSA Spec v1.2                                | 25.2       |
 | 110 | SLSA Levels                                   | 25.2       |
 | 111 | Sigstore Docs                                 | 25.3       |
 | 112 | Fulcio                                        | 25.3       |
@@ -5536,6 +5814,7 @@ El testing avanzado va más allá de unit/integration/E2E para cubrir **dimensio
 8. **Test parallelization:** Vitest workspace config para correr test suites en paralelo. Sharding en CI para distribuir entre runners. Target: < 5 min para full suite.
 9. **Flaky test detection:** Playwright retry + reporter de flaky tests. Dashboard de test stability. Quarantine flaky tests automáticamente.
 10. **Performance budgets en tests:** Lighthouse CI con performance budgets (FCP < 1.8s, LCP < 2.5s). k6 smoke test en CI para endpoints críticos.
+11. **Content/brand review gate:** verificación automática de que el contenido desplegado cumple estándares de marca y contenido antes de la aprobación de UAT. Checks: (a) validación de que los textos legales (términos de uso, privacy policy) están presentes y actualizados; (b) verificación de que los logos/imágenes de marca tienen la resolución correcta (usando Playwright screenshot + OCR o comparación visual); (c) link rot detection — verificar que todos los links internos/externos funcionan (usar `lychee` o `markdown-link-check`); (d) validación de metadata SEO (title, description, OG tags) con Playwright. Ejecutar como step en STAGE 7 (Post-Deploy Acceptance) antes de UAT manual. Es un gate automático que complementa la revisión humana de contenido.
 
 ### 36.4 Herramientas comunes
 
@@ -7466,6 +7745,24 @@ jobs:
         run: |
           mlflow models transition --model-uri ml/model/ --version latest --stage Production
 ```
+
+### 50.10 DORA AI Capabilities Model (2025)
+
+El reporte DORA 2025 introduce un modelo de capacidades específico para organizaciones que adoptan AI en desarrollo. Las **7 capacidades** que predicen alto desempeño con AI son:
+
+| #   | Capacidad                    | Descripción                                                                                  | Evidencia                                                               |
+| --- | ---------------------------- | -------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------- |
+| 1   | **AI Strategy**              | Estrategia clara de AI con objetivos medibles y ownership ejecutivo                          | Organizaciones con AI strategy tienen 2x probabilidad de alto desempeño |
+| 2   | **Healthy Data Ecosystem**   | Datos de alta calidad, gobernados, accesibles para entrenamiento y validación                | AI sin datos limpios genera output no confiable                         |
+| 3   | **Internal Knowledge**       | Equipos documentan y comparten conocimiento interno para contexto de AI tools                | Reduce hallucinations y mejora relevancia de suggestions                |
+| 4   | **Foundational Practices**   | CI/CD maduro, testing automatizado, code review — base para que AI sea efectiva              | AI sobre código sin tests produce código no validado                    |
+| 5   | **User-Centric Development** | Desarrollo orientado a feedback del usuario, con métricas de adoptión y satisfacción         | AI-generated features que el usuario no necesita = waste                |
+| 6   | **Platform Engineering**     | IDP, golden paths, self-service — AI tools se integran en platforms existentes               | AI sin platform = shadow IT                                             |
+| 7   | **Small Batches**            | Despliegues frecuentes en incrementos pequeños; AI-generated code se integra y valida rápido | Large batches + AI = large risk                                         |
+
+> **Nota:** Las 2 capacidades originales de DORA (velocity y stability) siguen siendo el frame. Las 7 capacidades AI son **complementarias**, no reemplazantes. Organizations que combinan ambas tienen 3.5x más probabilidad de ser high performers.
+
+> **Fuente:** [DORA 2025 AI Report](https://dora.dev/research/publications/)
 
 ---
 
@@ -9672,4 +9969,4 @@ Los siguientes temas son válidos en contextos de CI/CD empresarial pero están 
 
 ---
 
-_Documento de referencia técnica CI/CD empresarial para el proyecto. Última actualización: agosto 2026. 65 secciones completas + 1 apéndice (Apéndice A: Temas NICE-TO-HAVE). ~9,650 líneas. Cobertura total: stages del pipeline (1-16), métricas (17, 26), pipeline as code (18), patrones (19), DevSecOps (20), glosario (21), evidencia de orden (23), GitHub Actions enterprise (24), supply chain security (25), progressive delivery (27), plantilla completa (28), containerización (29), Kubernetes (30), GitOps (31), IaC (32), DB migrations (33), secrets management (34), environment management (35), testing avanzado (36), compliance (37), monorepo (38), artifact management (39), pipeline observability (40), branch strategies y DR (41), dependency automation (42), release management (43), chatops (44), docs-as-code (45), feature flags (46), self-hosted runners (47), multi-region (48), API versioning (49), AI/ML MLOps (50), zero-trust OWASP (51), platform engineering (52), green CI (53), maturity model (54), DevEx (55), innerSource (56), serverless deployment (57), chaos engineering (58), FinOps CI/CD (59), DORA capabilities (60), self-healing (61), mobile CI/CD (62), data pipelines (63), WebAssembly (64), multi-cloud (65). Apéndice A: config management, service mesh, GraphQL/gRPC, rate limiting, security champion, legacy, IoT, blockchain, game dev, multi-tenancy._
+_Documento de referencia técnica CI/CD empresarial para el proyecto. Última actualización: agosto 2026. 65 secciones completas + 1 apéndice (Apéndice A: Temas NICE-TO-HAVE). ~9,971 líneas. Cobertura total: stages del pipeline (1-16), métricas (17, 26), pipeline as code (18), patrones (19), DevSecOps (20), glosario (21), evidencia de orden (23), GitHub Actions enterprise (24), supply chain security (25), progressive delivery (27), plantilla completa (28), containerización (29), Kubernetes (30), GitOps (31), IaC (32), DB migrations (33), secrets management (34), environment management (35), testing avanzado (36), compliance (37), monorepo (38), artifact management (39), pipeline observability (40), branch strategies y DR (41), dependency automation (42), release management (43), chatops (44), docs-as-code (45), feature flags (46), self-hosted runners (47), multi-region (48), API versioning (49), AI/ML MLOps (50), zero-trust OWASP (51), platform engineering (52), green CI (53), maturity model (54), DevEx (55), innerSource (56), serverless deployment (57), chaos engineering (58), FinOps CI/CD (59), DORA capabilities (60), self-healing (61), mobile CI/CD (62), data pipelines (63), WebAssembly (64), multi-cloud (65). Apéndice A: config management, service mesh, GraphQL/gRPC, rate limiting, security champion, legacy, IoT, blockchain, game dev, multi-tenancy._
