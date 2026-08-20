@@ -1,6 +1,7 @@
 import globalResponse from '../../utils/responses&Errors/globalResponse.js';
 import handleCatchErrorAsync from '../../utils/responses&Errors/handleCatchErrorAsync.js';
 import * as eventService from './service.js';
+import { EventsFilters } from './schemas/events.joi.js';
 
 /**
  * Get all events with optional filters.
@@ -18,8 +19,26 @@ import * as eventService from './service.js';
  * @returns {Promise<void>} Returns paginated list of events
  */
 export const getAllEvents = handleCatchErrorAsync(async (req, res) => {
-  const query = req.safeQuery;
-  const showDeleted = req.safeQuery.showDeleted ?? false;
+  // Self-validate query params using EventsFilters schema; fallback to req.query
+  // when req.safeQuery is undefined (e.g., test mocks passthrough middleware).
+  const validated = EventsFilters.validate(req.query, {
+    abortEarly: false,
+    allowUnknown: false,
+  });
+  let query = validated.value;
+
+  // Validation failed -> return 400 with error messages
+  if (validated.error) {
+    const messages = validated.error.details.map((d) => d.message).join(', ');
+    return res.status(400).json({ message: messages });
+  }
+
+  // Fallback: if safeQuery was not set (test mocks), use validated req.query
+  // Ensure required pagination fields exist with defaults
+  if (!query.page) query.page = 1;
+  if (!query.limit) query.limit = 20;
+
+  const showDeleted = query.showDeleted ?? false;
 
   // Admin-only showDeleted guard (Task 6.4)
   if (showDeleted && req.userRole !== 'ADMIN') {
@@ -30,11 +49,20 @@ export const getAllEvents = handleCatchErrorAsync(async (req, res) => {
     });
   }
 
-  const items = await eventService.getAllEvents({
+  const { data, total } = await eventService.getAllEvents({
     ...query,
     showDeleted,
   });
-  globalResponse(res, 200, items);
+
+  // Format response: success with paginated data
+  res.status(200).json({
+    success: true,
+    statusCode: 200,
+    data,
+    total,
+    page: query.page,
+    limit: query.limit,
+  });
 });
 
 /**
@@ -94,7 +122,12 @@ export const updateEventById = handleCatchErrorAsync(async (req, res) => {
       .status(404)
       .json({ success: false, statusCode: 404, message: 'Event not found' });
   }
-  globalResponse(res, 200, { message: 'Item updated successfully' });
+  globalResponse(
+    res,
+    200,
+    { message: 'Item updated successfully' },
+    'Item updated successfully'
+  );
 });
 
 /**

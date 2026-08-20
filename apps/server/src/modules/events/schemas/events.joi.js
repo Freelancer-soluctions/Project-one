@@ -138,7 +138,7 @@ export const EventsUpdateSchema = Joi.object({
 export const EventsFilters = Joi.object({
   searchQuery: Joi.string().min(1).max(100),
   page: Joi.number().integer().positive().default(1),
-  limit: Joi.number().integer().positive().default(20),
+  limit: Joi.number().integer().positive().max(100).default(20),
   showDeleted: Joi.boolean().truthy('true', '1').falsy('false', '0').optional(),
   type: Joi.number().integer().optional(),
   dateFrom: Joi.date().iso().optional(),
