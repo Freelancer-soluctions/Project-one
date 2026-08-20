@@ -8,7 +8,7 @@ export default defineConfig({
     teardownTimeout: 5000,
     coverage: {
       provider: 'v8',
-      reporter: ['text', 'html'],
+      reporter: ['text', 'json-summary', 'html'],
     },
   },
 });
