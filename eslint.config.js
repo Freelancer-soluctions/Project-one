@@ -204,6 +204,26 @@ export default [
   },
 
   // ----------------------------
+  // Complexity rule (per workspace)
+  // ----------------------------
+
+  {
+    // Threshold per workspace — used by the ci-quality-dag `*-complexity` jobs
+    // and enforced locally via `npm run lint`.
+    files: ['apps/client/**/*.{js,jsx}'],
+    rules: {
+      complexity: ['error', { max: 15 }],
+    },
+  },
+
+  {
+    files: ['apps/server/**/*.js'],
+    rules: {
+      complexity: ['error', { max: 15 }],
+    },
+  },
+
+  // ----------------------------
   // Prettier (siempre al final)
   // ----------------------------
 
