@@ -225,7 +225,7 @@ describe('Events Soft Delete – Integration', () => {
       .get('/api/v1/events')
       .set('Authorization', `Bearer ${adminToken}`);
 
-    const event1 = res.body.data.find((e) => e.id === 1);
+    const event1 = res.body.data.data.find((e) => e.id === 1);
     expect(event1).toBeUndefined();
   });
 
@@ -239,7 +239,7 @@ describe('Events Soft Delete – Integration', () => {
       .get('/api/v1/events?showDeleted=true')
       .set('Authorization', `Bearer ${adminToken}`);
 
-    const event1 = res.body.data.find((e) => e.id === 1);
+    const event1 = res.body.data.data.find((e) => e.id === 1);
     expect(event1).toBeDefined();
     expect(event1.deletedAt).not.toBeNull();
   });
@@ -254,7 +254,7 @@ describe('Events Soft Delete – Integration', () => {
       .get('/api/v1/events?showDeleted=true')
       .set('Authorization', `Bearer ${adminToken}`);
 
-    expect(res.body.total).toBeGreaterThan(0);
+    expect(res.body.data.total).toBeGreaterThan(0);
   });
 
   // 9.17 GET with ?showDeleted=true as non-ADMIN returns 403
