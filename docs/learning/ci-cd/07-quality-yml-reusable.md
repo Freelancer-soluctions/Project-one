@@ -908,6 +908,138 @@ Sí, un workflow puede tener `workflow_call` + `workflow_dispatch` + `push` + `p
 
 ---
 
+## 11. 🔄 Migración: de `quality.yml` reutilizable a DAG inline en `ci.yml`
+
+> **Actualizado agosto 2026** — `quality.yml` fue eliminado y sus checks se movieron como jobs inline dentro de `ci.yml`. Esta sección documenta por qué.
+
+### 11.1 El patrón anterior (antes de la migración)
+
+```mermaid
+flowchart TD
+    CI[ci.yml<br/>job quality] -->|uses + with| Q[quality.yml<br/>reusable workflow]
+    Q --> JOB[job quality<br/>lint+format+typecheck]
+    JOB --> RES[resultado opaco]
+    RES -->|espera| CI
+    style Q fill:#FFE082
+    style CI fill:#CDF0EA
+```
+
+Antes, `ci.yml` invocaba `quality.yml` con `uses: ./.github/workflows/quality.yml` + `with:` pasando `run-client`/`run-server`. El reusable ejecutaba lint + format + typecheck en un **único job** con `if:` step conditionals.
+
+### 11.2 Por qué se migró: 3 problemas estructurales
+
+#### Problema 1: El job opaco — no puedes depender de checks individuales
+
+Cuando un reusable workflow se invoca con `workflow_call`, el caller lo ve como **UN SOLO job**. No puedes escribir:
+
+```yaml
+# ❌ IMPOSIBLE — el caller no puede depender de jobs internos del reusable
+ci-complete:
+  needs: [quality.lint, quality.format] # esto no existe
+```
+
+El caller solo ve un nodo llamado `quality`. Si falla, no sabes si fue lint, format o typecheck sin abrir el run separado. El aggregator `ci-complete` no puede depender de cada check individualmente.
+
+#### Problema 2: Cero paralelismo real
+
+El job único de `quality.yml` ejecutaba todo en secuencia:
+
+```
+client-lint → client-format → server-lint → server-format → typecheck
+```
+
+Un fallo de client-lint **enmascaraba** server-format (el step siguiente se saltaba). Con jobs separados, todos corren en paralelo y cada uno reporta independientemente.
+
+#### Problema 3: `workflow_run` no es alternativa
+
+La otra opción (separar en dos workflows con `workflow_run`) es peor:
+
+| Problema              | Explicación                                                       |
+| --------------------- | ----------------------------------------------------------------- |
+| Ejecución post-finish | `workflow_run` se ejecuta DESPUÉS del primer workflow, no durante |
+| Run separado          | Crea un run nuevo en la UI, no parte del mismo DAG                |
+| ~30s delay            | Polling delay antes de que arranque                               |
+| Branch equivocada     | Corre en la branch default, no la del PR                          |
+| Sin `needs`           | No puede usar `needs` entre workflows                             |
+
+GitHub Security Lab dice explícito: `workflow_call` es para privilege separation, no para pipeline chaining.
+
+### 11.3 El patrón actual (DAG inline)
+
+```mermaid
+flowchart TD
+    subgraph Stage2["STAGE 2: PRE-BUILD QUALITY"]
+        L1[client-lint]
+        F1[client-format]
+        T1[client-typecheck]
+        L2[server-lint]
+        F2[server-format]
+        T2[server-typecheck]
+    end
+    subgraph Stage3["STAGE 3: BUILD"]
+        B1[client-build]
+    end
+    subgraph Stage5["STAGE 5: CI-COMPLETE"]
+        AGG[aggregator<br/>needs: ALL 28 jobs<br/>if: always]
+    end
+    Stage2 --> Stage3 --> Stage5
+    style Stage2 fill:#E8F5E9
+    style Stage5 fill:#FFF3E0
+```
+
+`ci-complete` puede depender de **cada job individualmente**:
+
+```yaml
+ci-complete:
+  if: always()
+  needs:
+    - client-lint # ← individual
+    - client-format-check # ← individual
+    - server-lint # ← individual
+    - ... (28 jobs en total)
+```
+
+### 11.4 Cuándo SÍ son mejores archivos separados
+
+| Caso                                   | Por qué                                                  |
+| -------------------------------------- | -------------------------------------------------------- |
+| Workflow compartido entre **3+ repos** | Un solo `quality.yml` mantenido por un equipo central    |
+| **Equipo diferente** lo mantiene       | Ownership separado, versionado independiente             |
+| **Triggers/permisos** distintos        | El workflow de quality necesita permisos que el de CI no |
+
+Ninguno aplica a nuestro caso: un monorepo, un equipo, un pipeline.
+
+### 11.5 La lección: la unidad de paralelismo es el JOB, no el ARCHIVO
+
+```
+Separar archivos = indirección, NO paralelismo
+Separar jobs    = paralelismo real, aislamiento de fallos
+```
+
+GitHub Actions ejecuta jobs en paralelo automáticamente. Dividir en archivos YAML no agrega paralelismo — solo agrega overhead de coordinación (cross-workflow artifact passing, `workflow_run` delays, logs separados).
+
+### 11.6 Enterprise confirma
+
+| Fuente                       | Patrón                                              |
+| ---------------------------- | --------------------------------------------------- |
+| SonarSource (docs oficiales) | Scan-after-build en la misma definición de pipeline |
+| GitLab                       | Single `.gitlab-ci.yml` con stages                  |
+| GitHub Well-Architected      | Single workflow con `needs` DAG                     |
+| Expedia, Shopify, Vercel     | Single ci.yml con tiers                             |
+
+### 11.7 Resumen de la migración
+
+| Aspecto           | Antes (`quality.yml` reusable)       | Ahora (DAG inline en `ci.yml`)       |
+| ----------------- | ------------------------------------ | ------------------------------------ |
+| Archivos          | 2 (`ci.yml` + `quality.yml`)         | 1 (`ci.yml`)                         |
+| Paralelismo       | 0 (job único secuencial)             | 13 jobs pre-build en paralelo        |
+| Granularidad      | 1 check opaco                        | 13 checks individuales               |
+| Aggregator        | No puede depender de checks internos | `ci-complete` depende de los 28 jobs |
+| Branch protection | N checks individuales (pending trap) | 1 check `ci-complete`                |
+| Debugging         | Abrir run separado de quality.yml    | Ver cada job directamente en el run  |
+
+---
+
 ## 📖 Glosario: reusable workflows
 
 | Término                           | Definición                                                                                                           |
