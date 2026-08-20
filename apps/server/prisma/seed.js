@@ -263,25 +263,6 @@ const productStatus = [
   },
 ];
 
-// const productProviders = [
-//   { code: 'C01', name: 'PROV. SOFTWARE' },
-//   { code: 'C02', name: 'PROV. HARDWARE' },
-//   { code: 'C03', name: 'PROV. SERV. NUBE' },
-//   { code: 'C04', name: 'PROV. INFRA IT' },
-//   { code: 'C05', name: 'PROV. SOPORTE' }
-// ]
-
-const productCategories = [
-  {
-    code: 'C01',
-    description: 'Monitores y Periféricos',
-  },
-  {
-    code: 'C02',
-    description: 'Accesorios (Teclados, Ratones, etc.)',
-  },
-];
-
 const user = {
   name: 'Admin',
   email: 'admin@gmail.com',
@@ -379,6 +360,15 @@ const createVarious = async (tableName, createObjects) => {
   return Promise.resolve(createdObjects);
 };
 
+const seedUser = async (u) => {
+  const d = { ...u, password: await encryptPassword(u.password) };
+  await prisma.users.upsert({
+    where: { email: u.email },
+    create: d,
+    update: { password: d.password },
+  });
+};
+
 const create = async (tableName, createObject) => {
   createObject.password = await encryptPassword(createObject.password);
   const createdItem = await prisma[tableName].create({
@@ -390,10 +380,19 @@ const create = async (tableName, createObject) => {
 async function main() {
   await createVarious('roles', roles);
   await createVarious('userStatus', userStatus);
-  await create('users', user);
-  await create('users', user2);
+  await seedUser(user);
+  await seedUser(user2);
 
   await createVarious('eventTypes', eventTypes);
+  if ((await prisma.events.count()) === 0) {
+    await createVarious(
+      'events',
+      events.map((e) => {
+        const { type, ...rest } = e;
+        return { eventTypeId: type, ...rest };
+      })
+    );
+  }
   await createVarious('permissions', permissions);
   await createVarious('noteColumns', noteColumns);
 
