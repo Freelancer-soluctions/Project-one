@@ -54,10 +54,7 @@ export const getAllEvents = handleCatchErrorAsync(async (req, res) => {
     showDeleted,
   });
 
-  // Format response: success with paginated data
-  res.status(200).json({
-    success: true,
-    statusCode: 200,
+  globalResponse(res, 200, {
     data,
     total,
     page: query.page,
