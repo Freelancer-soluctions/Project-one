@@ -2711,38 +2711,37 @@ Basado en la investigación anterior, el orden óptimo de stages es. **Cada fase
        │          └─ GOVERNANCE: Commit lint (commitlint — Conventional Commits)
        │
        │  ┌─────────────────────────────────────────────────────────────────────────┐
-       │  │  GOVERNANCE LIFECYCLE (6 pasos, NO es un stage paralelo — es el flujo    │
-       │  │  que conecta commit → merge. Cada paso depende del anterior.)            │
+       │  │  GOVERNANCE LIFECYCLE (6 pasos, NO es un stage paralelo — es el flujo   │
+       │  │  que conecta commit → merge. Cada paso depende del anterior.)           │
        │  │                                                                         │
-        │  │  1. LOCAL COMMIT SIGNING + COMMIT LINT (pre-commit hook)                │
-        │  │     ├─ GPG/SSH/sigstore gitsign firma el commit automáticamente        │
-        │  │     └─ commitlint valida Conventional Commits                           │
+       │  │  1. LOCAL COMMIT SIGNING + COMMIT LINT (pre-commit hook)                │
+       │  │     ├─ GPG/SSH/sigstore gitsign firma el commit automáticamente         │
+       │  │     └─ commitlint valida Conventional Commits                           │
        │  │                                                                         │
         │  │  2. PR GATE (CI — 1 solo workflow GOVERNANCE) [FF][F1]                  │
         │  │     ├─ Commit Lint (commitlint — Conventional Commits)                  │
+        │  │     ├─ Commit Signing verify (CI job — verifica GPG/SSH/sigstore)       │
         │  │     ├─ PR Metadata Checks (DCO sign-off, title/body templates)          │
         │  │     └─ Early-abort gate (solo diff PR, crítico/alta, segundos)          │
-        │  │                                                                         │
-        │  │  ⚠️  Commit Signing verify — GitHub nativo (no CI)                      │
        │  │                                                                         │
-       │  │  3. CODE PIPELINE (STAGES 2-8 — testing, security, quality, build)     │
+       │  │  3. CODE PIPELINE (STAGES 2-8 — testing, security, quality, build)      │
        │  │     └─ GOVERNANCE: artifacts firmados (Cosign), SBOM, provenance        │
        │  │                                                                         │
        │  │  4. BRANCH PROTECTION (GitHub Rulesets — PASSIVO, lee resultados)       │
        │  │     ├─ Lee: ¿todos los required checks en verde?                        │
        │  │     ├─ Lee: ¿hay approval de reviewer requerido?                        │
        │  │     ├─ Lee: ¿commits están firmados?                                    │
-       │  │     ├─ SÍ a todo → botón "Merge" habilitado                            │
-       │  │     └─ NO a alguno → botón bloqueado, muestra qué falta                │
+       │  │     ├─ SÍ a todo → botón "Merge" habilitado                             │
+       │  │     └─ NO a alguno → botón bloqueado, muestra qué falta                 │
        │  │                                                                         │
-       │  │  5. POST-DEPLOY GOVERNANCE (stages 6-7)                                │
+       │  │  5. POST-DEPLOY GOVERNANCE (stages 6-7)                                 │
        │  │     ├─ Change record/ticket linkage (ServiceNow/Jira)                   │
        │  │     ├─ Release readiness dashboard + sign-off evidence                  │
        │  │     └─ Acceptance record (who approved what, evidence archive)          │
        │  │                                                                         │
-       │  │  6. MERGE + CLEANUP (post-merge)                                       │
+       │  │  6. MERGE + CLEANUP (post-merge)                                        │
        │  │     ├─ Deployment event record (timestamp, commit, artifact SHA)        │
-       │  │     ├─ DORA Metrics capture (deploy frequency, lead time)              │
+       │  │     ├─ DORA Metrics capture (deploy frequency, lead time)               │
        │  │     ├─ Audit trail export (immutable, compliance-ready)                 │
        │  │     └─ Stale branch cleanup, artifact retention, secrets rotation       │
        │  └─────────────────────────────────────────────────────────────────────────┘
@@ -2753,22 +2752,20 @@ Basado en la investigación anterior, el orden óptimo de stages es. **Cada fase
 │  ┌────────────────────────────────────────────────────────────────────────────────┐  │
 │  │  GOVERNANCE (Paso 2 del ciclo — 1 solo workflow CI)                            │  │
 │  │  ├─ Commit Lint (commitlint — Conventional Commits Validation)                 │  │
+│  │  ├─ Commit Signing verify (CI job — verifica GPG/SSH/sigstore en cada commit)  │  │
 │  │  ├─ PR Metadata Checks (DCO sign-off, title/body templates)                    │  │
 │  │  └─ Early-abort gate [FF][F1]:                                                 │  │
-│  │     ├─ Alcance: solo diff del PR (NO full repo)                                 │  │
-│  │     ├─ Severidad: solo CRÍTICA/ALTA (SQL injection, RCE, secrets hardcoded)     │  │
-│  │     ├─ Tiempo: segundos — pocas reglas, poco código                             │  │
-│  │     └─ Si falla → aborta pipeline ANTES de suites largas                        │  │
-│  │                                                                                  │  │
-│  │  ⚠️ Commit Signing verify NO es este workflow — lo valida GitHub               │  │
-│  │     NATIVAMENTE (badge "Verified"). Es parte del ciclo GOVERNANCE               │  │
-│  │     pero no corre en CI.                                                         │  │
+│  │     ├─ Alcance: solo diff del PR (NO full repo)                                │  │
+│  │     ├─ Severidad: solo CRÍTICA/ALTA (SQL injection, RCE, secrets hardcoded)    │  │
+│  │     ├─ Tiempo: segundos — pocas reglas, poco código                            │  │
+│  │     └─ Si falla → aborta pipeline ANTES de suites largas                       │  │
+│  │     pero no corre en CI.                                                       │  │
 │  └────────────────────────────────────────────────────────────────────────────────┘  │
 │  ┌────────────────────────────────────────────────────────────────────────────────┐  │
 │  │  TESTING                                                                       │  │
-│  │  ├─ Unit Tests (Vitest/Jest) — [AWS: "1. Unit tests"] [SL]                    │  │
+│  │  ├─ Unit Tests (Vitest/Jest) — [AWS: "1. Unit tests"] [SL]                     │  │
 │  │  ├─ Snapshot Tests (Testing Library)                                           │  │
-│  │  ├─ Coverage Tripwire — floor ratchet (c8/Vitest --coverage) [FF]                │  │
+│  │  ├─ Coverage Tripwire — floor ratchet (c8/Vitest --coverage) [FF]              │  │
 │  │  ├─ Test Impact Analysis (TIA) — solo tests afectados por diff [BL][FB]        │  │
 │  │  ├─ Smart test ordering — rápido / previamente fallido primero [F1]            │  │
 │  │  ├─ Test sharding — distribuir suites entre runners [FB]                       │  │
@@ -2777,7 +2774,7 @@ Basado en la investigación anterior, el orden óptimo de stages es. **Cada fase
 │  └────────────────────────────────────────────────────────────────────────────────┘  │
 │  ┌────────────────────────────────────────────────────────────────────────────────┐  │
 │  │  SECURITY [DD]                                                                 │  │
-│  │  ├─ Secrets Detection full-repo + history (Gitleaks/TruffleHog) [SL]          │  │
+│  │  ├─ Secrets Detection full-repo + history (Gitleaks/TruffleHog) [SL]           │  │
 │  │  ├─ SAST diff-scoped en PR + full scan en merge/nightly [DD]                   │  │
 │  │  ├─ SCA dependency scan lockfiles (Dependabot/Snyk/OSV-Scanner)                │  │
 │  │  ├─ License Compliance (FOSSA/ScanCode)                                        │  │
@@ -2790,13 +2787,13 @@ Basado en la investigación anterior, el orden óptimo de stages es. **Cada fase
 │  │  QUALITY (Grupo A — source code)                                               │  │
 │  │  ├─ Lint (ESLint/Ruff/golangci-lint) — [GitLab: "early stage lint"] [F1]       │  │
 │  │  ├─ Format Check (Prettier --check / Black --check)                            │  │
-│  │  ├─ Type Check strict (tsc --noEmit --incremental)                              │  │
-│  │  ├─ Compile-check multi-lang (go vet / cargo check) [F1]                        │  │
-│  │  ├─ Complexity Rules — ESLint complexity/max-lines-per-rule [SL][F1]              │  │
+│  │  ├─ Type Check strict (tsc --noEmit --incremental)                             │  │
+│  │  ├─ Compile-check multi-lang (go vet / cargo check) [F1]                       │  │
+│  │  ├─ Complexity Rules — ESLint complexity/max-lines-per-rule [SL][F1]           │  │
 │  │  ├─ Dead Code Detection (knip/ts-prune)                                        │  │
 │  │  ├─ Import Boundaries (dependency-cruiser)                                     │  │
 │  │  ├─ PR Review Automation (DeepSource/CodeRabbit/SonarQube PR checks)           │  │
-│  │  └─ Docs/CHANGELOG Validation (markdownlint/vale) [SL]                               │  │
+│  │  └─ Docs/CHANGELOG Validation (markdownlint/vale) [SL]                         │  │
 │  └────────────────────────────────────────────────────────────────────────────────┘  │
 │                                                                                      │
 │  Todos PARALELOS. Matrix params: fail-fast:false, max-parallel: 4,                   │
@@ -2814,7 +2811,7 @@ Basado en la investigación anterior, el orden óptimo de stages es. **Cada fase
 │  │  ├─ Compilation (Vite build / tsc / webpack) — [AWS: "2. Code build"]          │  │
 │  │  ├─ Bundling + minification + compression (gzip/brotli)                        │  │
 │  │  ├─ Docker image build multi-arch (docker buildx / kaniko)                     │  │
-│  │  ├─ Hermetic build (Bazel/Nix — build reproducible)                             │  │
+│  │  ├─ Hermetic build (Bazel/Nix — build reproducible)                            │  │
 │  │  ├─ Build caching remote (Turborepo/Nx/BuildKit)                               │  │
 │  │  └─ Codegen artifacts (OpenAPI client, GraphQL codegen)                        │  │
 │  └────────────────────────────────────────────────────────────────────────────────┘  │
@@ -2846,7 +2843,7 @@ Basado en la investigación anterior, el orden óptimo de stages es. **Cada fase
 │  │  ├─ Accessibility Scan WCAG 2.1 AA (axe-core/pa11y-ci)                         │  │
 │  │  ├─ E2E ephemeral deploy (Playwright/Cypress)                                  │  │
 │  │  ├─ Flaky Test Detection + quarantine [FF]                                     │  │
-│  │  └─ Quarantine policy: pass-rate < 70% → auto-quarantine, requiere humano     │  │
+│  │  └─ Quarantine policy: pass-rate < 70% → auto-quarantine, requiere humano      │  │
 │  │     para restaurar (verificar commit nuevo en archivo en 7 días o aprobación)  │  │
 │  └────────────────────────────────────────────────────────────────────────────────┘  │
 │  ┌────────────────────────────────────────────────────────────────────────────────┐  │
@@ -2857,7 +2854,7 @@ Basado en la investigación anterior, el orden óptimo de stages es. **Cada fase
 │  ┌────────────────────────────────────────────────────────────────────────────────┐  │
 │  │  QUALITY (Grupo B — artifact)                                                  │  │
 │  │  ├─ SonarQube/SonarCloud full analysis (bugs, code smells, complexity,         │  │
-│  │  │   duplicación cross-file, MI, Halstead) — necesita build + coverage [PV][DD] │  │
+│  │  │   duplicación cross-file, MI, Halstead) — necesita build + coverage [PV][DD]│  │
 │  │  ├─ Coverage enforcement integration suite (c8/JaCoCo)                         │  │
 │  │  ├─ Dependency Analysis — unused/missing deps (depcheck)                       │  │
 │  │  └─ Contract validation output (OpenAPI spec compliance)                       │  │
@@ -2866,8 +2863,8 @@ Basado en la investigación anterior, el orden óptimo de stages es. **Cada fase
        │
        ▼
  ╔═══════════════════════════════════════════════════════════════════════════════════════╗
- ║  ⚡ FRONTERA CI/CD — PUSH TO REGISTRY                                                  ║
- ║  Aquí termina Integración Continua, arranca Entrega Continua                           ║
+ ║  ⚡ FRONTERA CI/CD — PUSH TO REGISTRY                                                 ║
+ ║  Aquí termina Integración Continua, arranca Entrega Continua                          ║
  ║  El artefacto se publica, firma, y genera provenance — listo para ambientes reales    ║
  ╚═══════════════════════════════════════════════════════════════════════════════════════╝
        │
@@ -2888,7 +2885,7 @@ Basado en la investigación anterior, el orden óptimo de stages es. **Cada fase
  │  │  └─ Signature + Provenance verification gate (cosign verify/slsa-verifier)     │  │
  │  └────────────────────────────────────────────────────────────────────────────────┘  │
  │  ┌────────────────────────────────────────────────────────────────────────────────┐  │
- │  │  GOVERNANCE (Paso 3 del ciclo — artifacts firmados)                           │  │
+ │  │  GOVERNANCE (Paso 3 del ciclo — artifacts firmados)                            │  │
  │  │  ├─ Artifact promotion policy (staging registry → prod via pipeline)           │  │
  │  │  └─ Retention/immutability policy (no tag overwrite)                           │  │
  │  └────────────────────────────────────────────────────────────────────────────────┘  │
@@ -2901,8 +2898,8 @@ Basado en la investigación anterior, el orden óptimo de stages es. **Cada fase
  ╚═══════════════════════════════════════════════════════════════════════════════════════╝
        │
        ▼
- ┌──────────────────────────────────────────────────────────────────────────────────────┐
- │  STAGE 6: DEPLOY STAGING (entorno de validación)                                     │
+┌──────────────────────────────────────────────────────────────────────────────────────┐
+│  STAGE 6: DEPLOY STAGING (entorno de validación)                                     │
 │                                                                                      │
 │  ┌────────────────────────────────────────────────────────────────────────────────┐  │
 │  │  DEPLOY                                                                        │  │
@@ -2925,7 +2922,7 @@ Basado en la investigación anterior, el orden óptimo de stages es. **Cada fase
 │  │  └─ Admission policy (signed+scanned images — Kyverno/Gatekeeper)              │  │
 │  └────────────────────────────────────────────────────────────────────────────────┘  │
 │  ┌────────────────────────────────────────────────────────────────────────────────┐  │
-│  │  GOVERNANCE (Paso 5 del ciclo — post-deploy)                                  │  │
+│  │  GOVERNANCE (Paso 5 del ciclo — post-deploy)                                   │  │
 │  │  └─ Change record/ticket linkage (ServiceNow/Jira)                             │  │
 │  └────────────────────────────────────────────────────────────────────────────────┘  │
 └──────────────────────────────────────────────────────────────────────────────────────┘
@@ -2958,7 +2955,7 @@ Basado en la investigación anterior, el orden óptimo de stages es. **Cada fase
 │  │  └─ Content/brand review gate (manual)                                         │  │
 │  └────────────────────────────────────────────────────────────────────────────────┘  │
 │  ┌────────────────────────────────────────────────────────────────────────────────┐  │
-│  │  GOVERNANCE (Paso 5 del ciclo — post-deploy)                                  │  │
+│  │  GOVERNANCE (Paso 5 del ciclo — post-deploy)                                   │  │
 │  │  ├─ Release readiness dashboard + sign-off evidence                            │  │
 │  │  └─ Acceptance record (who approved what, evidence archive)                    │  │
 │  └────────────────────────────────────────────────────────────────────────────────┘  │
@@ -2994,25 +2991,25 @@ Basado en la investigación anterior, el orden óptimo de stages es. **Cada fase
  │  │  └─ UAT / Acceptance gate (manual QA sign-off)                                 │  │
  │  └────────────────────────────────────────────────────────────────────────────────┘  │
  │  ┌────────────────────────────────────────────────────────────────────────────────┐  │
- │  │  GOVERNANCE (Paso 4 del ciclo — Branch Protection lee esto)                   │  │
+ │  │  GOVERNANCE (Paso 4 del ciclo — Branch Protection lee esto)                    │  │
  │  │  ├─ Manual/Environment Protection Rules (GitHub environment approval)          │  │
  │  │  ├─ Security Review Board approval (for high-risk changes)                     │  │
-│  │  ├─ Quality gate (SonarQube quality gate pass)                                 │  │
-│  │  ├─ Security gate (vulnerability severity threshold)                           │  │
-│  │  ├─ Release Notes + CHANGELOG verification                                     │  │
-│  │  ├─ Compliance evidence archive (SOC2/ISO 27001/artifact trail)                │  │
-│  │  ├─ Policy-as-code validation (OPA/Conftest/Kyverno)                           │  │
-│  │  ├─ Code Freeze Check (freeze windows)                                         │  │
-│  │  ├─ Rollback Plan + Backout procedure documented                               │  │
-│  │  └─ Rollback Gate: verificar que migration-down existe + funciona en staging    │  │
-│  └────────────────────────────────────────────────────────────────────────────────┘  │
+ │  │  ├─ Quality gate (SonarQube quality gate pass)                                 │  │
+ │  │  ├─ Security gate (vulnerability severity threshold)                           │  │
+ │  │  ├─ Release Notes + CHANGELOG verification                                     │  │
+ │  │  ├─ Compliance evidence archive (SOC2/ISO 27001/artifact trail)                │  │
+ │  │  ├─ Policy-as-code validation (OPA/Conftest/Kyverno)                           │  │
+ │  │  ├─ Code Freeze Check (freeze windows)                                         │  │
+ │  │  ├─ Rollback Plan + Backout procedure documented                               │  │
+ │  │  └─ Rollback Gate: verificar que migration-down existe + funciona en staging   │  │
+ │  └────────────────────────────────────────────────────────────────────────────────┘  │
  │  ┌────────────────────────────────────────────────────────────────────────────────┐  │
  │  │  SECURITY                                                                      │  │
  │  │  └─ Penetration Testing approval (scheduled/third-party for critical)          │  │
  │  └────────────────────────────────────────────────────────────────────────────────┘  │
  │                                                                                      │
  │  Sequential: testing → security → governance approval chain.                         │
- │  Branch Protection (Paso 4 del ciclo) lee todos estos resultados passivamente.      │
+ │  Branch Protection (Paso 4 del ciclo) lee todos estos resultados passivamente.       │
  └──────────────────────────────────────────────────────────────────────────────────────┘
        │
        ▼
@@ -3025,7 +3022,7 @@ Basado en la investigación anterior, el orden óptimo de stages es. **Cada fase
  │  │  ├─ Canary analysis automated (Argo Rollouts + Prometheus/Loki)                │  │
  │  │  ├─ Traffic shifting (5% → 25% → 50% → 100%)                                   │  │
  │  │  ├─ Auto-rollback on metric degradation (latency/error rate) [FF]              │  │
-│  │  ├─ Roll-forward / hotfix-forward strategy [F1]                                 │  │
+ │  │  ├─ Roll-forward / hotfix-forward strategy [F1]                                │  │
  │  │  ├─ Infrastructure-as-Code apply (Terraform plan → apply)                      │  │
  │  │  └─ CDN cache invalidation + edge warm-up                                      │  │
  │  └────────────────────────────────────────────────────────────────────────────────┘  │
@@ -3035,7 +3032,7 @@ Basado en la investigación anterior, el orden óptimo de stages es. **Cada fase
  │  │  └─ Synthetic Monitoring activation (Checkly/Datadog)                          │  │
  │  └────────────────────────────────────────────────────────────────────────────────┘  │
  │  ┌────────────────────────────────────────────────────────────────────────────────┐  │
- │  │  GOVERNANCE (Paso 6 del ciclo — post-merge)                                  │  │
+ │  │  GOVERNANCE (Paso 6 del ciclo — post-merge)                                    │  │
  │  │  ├─ Deployment event record (timestamp, commit, artifact SHA)                  │  │
  │  │  ├─ License Compliance final gate (FOSSA/ScanCode)                             │  │
  │  │  └─ CI/CD DORA Metrics capture (deploy frequency, lead time)                   │  │
@@ -3071,18 +3068,18 @@ Basado en la investigación anterior, el orden óptimo de stages es. **Cada fase
  │  │  ├─ Blameless Postmortems (template + 5-whys + timeline)                       │  │
  │  │  └─ Feature flag kill-switch (LaunchDarkly kill-switch)                        │  │
  │  └────────────────────────────────────────────────────────────────────────────────┘  │
-│  ┌────────────────────────────────────────────────────────────────────────────────┐  │
-│  │  CLEANUP + GOVERNANCE (Paso 6 del ciclo — post-merge)                         │  │
-│  │  ├─ Stale branch cleanup (gh, >30 days)                                        │  │
-│  │  ├─ Preview env cleanup (ephemeral, auto-destroy)                              │  │
-│  │  ├─ Container registry cleanup (untagged, old digests)                         │  │
-│  │  ├─ Artifact retention policy (rotate/archive/expire)                          │  │
-│  │  ├─ Build artifact purge (old caches, temp files)                              │  │
-│  │  ├─ Vault secrets rotation audit                                               │  │
-│  │  ├─ SBOM/Provenance archival (immutable store)                                 │  │
-│  │  ├─ DORA Metrics export (AI/ML/LLM projects only if applicable)                │  │
-│  │  └─ Audit trail export (immutable, compliance-ready)                           │  │
-│  └────────────────────────────────────────────────────────────────────────────────┘  │
+ │  ┌────────────────────────────────────────────────────────────────────────────────┐  │
+ │  │  CLEANUP + GOVERNANCE (Paso 6 del ciclo — post-merge)                          │  │
+ │  │  ├─ Stale branch cleanup (gh, >30 days)                                        │  │
+ │  │  ├─ Preview env cleanup (ephemeral, auto-destroy)                              │  │
+ │  │  ├─ Container registry cleanup (untagged, old digests)                         │  │
+ │  │  ├─ Artifact retention policy (rotate/archive/expire)                          │  │
+ │  │  ├─ Build artifact purge (old caches, temp files)                              │  │
+ │  │  ├─ Vault secrets rotation audit                                               │  │
+ │  │  ├─ SBOM/Provenance archival (immutable store)                                 │  │
+ │  │  ├─ DORA Metrics export (AI/ML/LLM projects only if applicable)                │  │
+ │  │  └─ Audit trail export (immutable, compliance-ready)                           │  │
+ │  └────────────────────────────────────────────────────────────────────────────────┘  │
  └──────────────────────────────────────────────────────────────────────────────────────┘
        │
        │  ═══════════════════════════════════════════════════════════════════════════════
@@ -3094,16 +3091,16 @@ Basado en la investigación anterior, el orden óptimo de stages es. **Cada fase
  │  │  MUTATION TESTING (Stryker — full sweep, non-blocking)                         │  │
  │  │  ├─ Schedule: nightly cron (e.g. 02:00 UTC) sobre main                         │  │
  │  │  ├─ On-demand: workflow_dispatch antes de releases                             │  │
- │  │  ├─ Mode: --incremental con baseline stryker-incremental.json cacheado        │  │
+ │  │  ├─ Mode: --incremental con baseline stryker-incremental.json cacheado         │  │
  │  │  ├─ Full --force periódico (weekly) para evitar drift del reporte              │  │
- │  │  ├─ Thresholds: --break-at como SEÑAL, NO required check                      │  │
- │  │  ├─ Reporte: HTML + badge + scoreboard de tendencia semanal                   │  │
- │  │  └─ Opcional: PR incremental diff-scoped (--since) advisory, jamás full gate  │  │
+ │  │  ├─ Thresholds: --break-at como SEÑAL, NO required check                       │  │
+ │  │  ├─ Reporte: HTML + badge + scoreboard de tendencia semanal                    │  │
+ │  │  └─ Opcional: PR incremental diff-scoped (--since) advisory, jamás full gate   │  │
  │  └────────────────────────────────────────────────────────────────────────────────┘  │
  │                                                                                      │
- │  WHY SEPARATE: full sweep = mutants × suite duration (10-40x unit tests).           │
- │  ~8k mutantes → 4+ horas. PR pipeline agotaría 3k min/mes de GitHub Team en días.   │
- │  Ver §36.3 item 5 para análisis completo y fuentes (StrykerJS, CircleCI, Pitest).   │
+ │  WHY SEPARATE: full sweep = mutants × suite duration (10-40x unit tests).            │
+ │  ~8k mutantes → 4+ horas. PR pipeline agotaría 3k min/mes de GitHub Team en días.    │
+ │  Ver §36.3 item 5 para análisis completo y fuentes (StrykerJS, CircleCI, Pitest).    │
  └──────────────────────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -3137,17 +3134,18 @@ GOVERNANCE **no es un stage paralelo** — es un ciclo de vida que conecta el co
 
 **Clave:** Branch Protection (paso 4) NO es un job de CI — es una configuración de GitHub Rulesets que **lee pasivamente** los resultados de todos los required checks. Si falta algún check, approval o firma, el botón "Merge" se bloquea y muestra qué falta. El dev no hace click en "Merge" hasta que todo esté verde.
 
-**⚠️ Nota sobre GOVERNANCE en Stage 2:** Los 3 items de GOVERNANCE que aparecen en el diagrama de Stage 2 (commitlint, PR metadata, early-abort) son el **mismo workflow** que el paso 2 del ciclo de Governance Lifecycle arriba — NO se re-ejecutan. El diagrama de Stage 2 muestra dónde se ejecutan físicamente en el pipeline; el Lifecycle muestra la secuencia lógica del ciclo completo.
+**⚠️ Nota sobre GOVERNANCE en Stage 2:** Los 4 items de GOVERNANCE que aparecen en el diagrama de Stage 2 (commitlint, commit signing verify, PR metadata, early-abort) son el **mismo workflow** que el paso 2 del ciclo de Governance Lifecycle arriba — NO se re-ejecutan. El diagrama de Stage 2 muestra dónde se ejecutan físicamente en el pipeline; el Lifecycle muestra la secuencia lógica del ciclo completo.
 
-| Paso                            | ¿Quién ejecuta?  | ¿Cuándo?            | Ejemplo                                                          | CI/CD           |
-| ------------------------------- | ---------------- | ------------------- | ---------------------------------------------------------------- | --------------- |
-| 1. Commit Signing + Commit Lint | Dev (local)      | Pre-commit hook     | GPG key firma el commit + commitlint valida Conventional Commits | CI (local)      |
-| 2. PR Gate (1 solo workflow CI) | CI (automático)  | Push al PR          | commitlint, PR metadata, early-abort                             | CI              |
-| 2a. Commit Signing verify       | GitHub (nativo)  | Push al PR          | badge "Verified" — NO es job de CI                               | CI (nativo)     |
-| 3. Code Pipeline                | CI (automático)  | Después del PR gate | tests, security, quality, build                                  | CI (Stages 2–4) |
-| 4. Branch Protection            | GitHub (passivo) | Continuous          | lee required checks, approval, signing                           | CI (gate)       |
-| 5. Post-deploy Governance       | CI + humano      | Después del deploy  | change record, sign-off                                          | CD (Stages 6–9) |
-| 6. Merge + Cleanup              | CI + GitHub      | Post-merge          | DORA metrics, audit trail, cleanup                               | Post-CD         |
+| Paso                            | ¿Quién ejecuta?  | ¿Cuándo?            | Ejemplo                                                                    | CI/CD           |
+| ------------------------------- | ---------------- | ------------------- | -------------------------------------------------------------------------- | --------------- |
+| 1. Commit Signing + Commit Lint | Dev (local)      | Pre-commit hook     | GPG key firma el commit + commitlint valida Conventional Commits           | CI (local)      |
+| 2. PR Gate (1 solo workflow CI) | CI (automático)  | Push al PR          | commitlint, commit signing verify, PR metadata, early-abort                | CI              |
+| 2a. Commit Signing verify (CI)  | CI (job)         | Push al PR          | `git verify-commit` — defense-in-depth contra solo confiar en GitHub badge | CI              |
+| 2b. Commit Signing verify (GH)  | GitHub (nativo)  | Push al PR          | badge "Verified" — primera línea, no sustituye el job CI                   | CI (nativo)     |
+| 3. Code Pipeline                | CI (automático)  | Después del PR gate | tests, security, quality, build                                            | CI (Stages 2–4) |
+| 4. Branch Protection            | GitHub (passivo) | Continuous          | lee required checks, approval, signing                                     | CI (gate)       |
+| 5. Post-deploy Governance       | CI + humano      | Después del deploy  | change record, sign-off                                                    | CD (Stages 6–9) |
+| 6. Merge + Cleanup              | CI + GitHub      | Post-merge          | DORA metrics, audit trail, cleanup                                         | Post-CD         |
 
 ### 23.4 Tabla resumen: ¿Qué va antes y después del Build? (con categorías)
 
@@ -3182,7 +3180,8 @@ GOVERNANCE **no es un stage paralelo** — es un ciclo de vida que conecta el co
 | **GOVERNANCE** | Path-filtered entry / Skip-CI         | **NO** — change detection en source            | **ENTRY**                | [§53.3 Skip unnecessary builds](https://docs.aws.amazon.com/wellarchitected/latest/devops-guidance/)                                                                                                                      |
 | **GOVERNANCE** | Commit Signing (GPG/sigstore)         | **NO** — local pre-commit hook                 | **PRE-COMMIT**           | GPG/sigstore gitsign firma commit antes de push                                                                                                                                                                           |
 | **GOVERNANCE** | Commit Lint (commitlint)              | **NO** — verifica mensaje commit               | **PR GATE**              | Conventional Commits enforcement — `feat(scope): desc`. 1 solo workflow CI con PR metadata checks [SL]                                                                                                                    |
-| **GOVERNANCE** | Commit Signing verify (GitHub nativo) | **NO** — GitHub verifica firma automáticamente | **PR GATE**              | GitHub muestra badge "Verified" — no es job de CI. Verificación nativa del commit firmado.                                                                                                                                |
+| **GOVERNANCE** | Commit Signing verify (CI job)        | **NO** — `git verify-commit` en CI             | **PR GATE**              | Defense-in-depth: job CI verifica firma en cada commit del PR. No confía solo en GitHub badge. `git log --format='%H' \| xargs git verify-commit`                                                                         |
+| **GOVERNANCE** | Commit Signing verify (GitHub nativo) | **NO** — GitHub verifica firma automáticamente | **PR GATE**              | Badge "Verified" — primera línea de defensa. No sustituye el job CI (defense-in-depth).                                                                                                                                   |
 | **GOVERNANCE** | PR Metadata Checks (DCO, templates)   | **NO** — valida metadata del PR                | **PR GATE**              | DCO sign-off, title/body templates, labels                                                                                                                                                                                |
 | **GOVERNANCE** | Early-abort gate (SAST crítico)       | **NO** — aborta antes de suites largas         | **PR GATE**              | Solo diff del PR, severidad CRÍTICA/ALTA (SQL injection, RCE, secrets hardcoded). Segundos — pocas reglas, poco código. Fail-fast: aborta pipeline completo si falla.                                                     |
 | **GOVERNANCE** | Branch Protection + Required Checks   | **NO** — lee resultados de CI (passivo)        | **CONTINUOUS**           | GitHub Rulesets: checks verdes + approval + signing → Merge habilitado                                                                                                                                                    |
