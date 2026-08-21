@@ -1,4 +1,4 @@
-# 06 — Walkthrough de `ci.yml`: Los 9 Jobs del Pipeline de CI
+# 06 — Walkthrough de `ci.yml`: Los 5 Stages y 28 Jobs del Pipeline de CI
 
 > **Guía 06 de 6 del nivel Intermedio** | Prerequisitos: **Nivel Fundamentos completado (guías 00-04) + Guía 05 (Husky git hooks)** | Anterior: [`05-husky-git-hooks.md`](./05-husky-git-hooks.md) | Siguiente: [`07-quality-yml-reusable.md`](./07-quality-yml-reusable.md)
 

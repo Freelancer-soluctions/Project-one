@@ -139,6 +139,21 @@ cosa relacionadas a ci/cd
 - En que punto de los stages se vuelve CD y que abarcaria CI
 - Cual es la diferencia entre el dependecy scanning vs Dependency Analysis (Post-compile) depcheck hace lo mismo que dependetbot ? x
 - Mantener el lockfile actualizado que refleje las versiones correctas para el dependecy scanning prebuild
+- Aprender hacer PR reviews manuales y aplicar despues PR review automation (AI-based, linter-based,  Checklist/Validation (GitHub Actions scripts, PR templates))
+- Components test en donde
+- Mutation test en donde main con programacion, Solo en changed files , Staging environment
+- Crear un change que se enfoque en aplicar shift left de varios jobs 
+- Que gate se espera en quality pre y post build ?
+- Test Impact Analysis (TIA)  esto afecta  Coverage Tripwire — floor ratchet mirar como es la estrategia para que convivan ambos TIA y el coverage gate viven en jobs separados, con propósitos distintos:
+Ahora la parte importante: la tensión con tu coverage ratchet
 
+Acá hay un conflicto real que te conviene resolver antes de implementarlo, porque si lo metés sin pensarlo, rompe el gate de cobertura que armamos:
 
+El coverage ratchet asume que vitest run --coverage corre toda la suite y mide cobertura sobre todo el codebase.
+Si TIA solo corre un subconjunto de tests, el reporte de cobertura de esa corrida va a mostrar un número artificialmente bajo (o directamente incoherente), porque c8 solo ve las líneas tocadas por los tests que efectivamente corrieron — el resto del código aparece como "no cubierto" aunque tenga tests que simplemente no se ejecutaron esta vez.
+Peor: si el autoUpdate del ratchet llegara a correr sobre ese subconjunto, bajaría el piso incorrectamente, y ahí perdés la garantía de "el piso nunca baja".
 
+La resolución estándar: TIA y el coverage gate viven en jobs separados, con propósitos
+O alternativamente, muchos equipos usan TIA como un job adicional y rápido que corre primero para dar feedback en segundos ("¿rompiste algo obvio?"), pero mantienen la suite completa con coverage como el gate real que decide si el PR puede mergearse — TIA nunca reemplaza al gate, solo lo complementa.
+- aplicar Test sharding — distribuir suites entre runners [FB] en el job de test post buils (viabilidad) merge de reportes de cobertura post-shards
+- Un pipeline separado programado para mutation test que no afecte las PR

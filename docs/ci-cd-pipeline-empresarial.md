@@ -838,8 +838,8 @@ El stage de testing es el **corazón del CI**: ejecuta las suites de pruebas que
 7. **Regression tests:** suite que garantiza que funcionalidades existentes no se rompen con cambios nuevos (normalmente la suite E2E + integration).
 8. **Performance / load tests:** verifican rendimiento bajo carga (ver Stage 10 Performance & Reliability). Ejemplos: k6, Artillery, JMeter, Locust.
 9. **Security tests:** SAST/DAST/SCA (Stage 4) + pruebas de penetración manual/automatizada.
-10. **Mutation testing:** muta el código (cambia operadores, borra condiciones) y verifica que las pruebas existentes detectan las mutaciones; mide la **calidad real** de los tests (mutation score). Ejemplos: StrykerJS. Fuente: [Stryker Mutator](https://stryker-mutator.io/), [Mutation testing — Microsoft Learn](https://learn.microsoft.com/en-us/dotnet/core/testing/unit-testing-with-mutation-testing)
-11. **Property-based testing:** genera entradas aleatorias y verifica propiedades invariantes del código (fast-check para JS/TS, Hypothesis para Python). Excelente para parsers, validaciones, lógica financiera.
+10. **Mutation testing:** muta el código (cambia operadores, borra condiciones) y verifica que las pruebas existentes detectan las mutaciones; mide la **calidad real** de los tests (mutation score). **Ubicación: pipeline SEPARADO (nightly/on-demand)**, NO en el pipeline de PRs — el full sweep es 10-40x más costoso que unit tests y añadiría horas de lead time por PR. Ver §36.3 item 5 para análisis completo y §23.3 para el diagrama del pipeline separado. Ejemplos: StrykerJS. Fuente: [Stryker Mutator](https://stryker-mutator.io/), [Mutation testing — Microsoft Learn](https://learn.microsoft.com/en-us/dotnet/core/testing/unit-testing-with-mutation-testing)
+11. **Property-based testing:** genera entradas aleatorias y verifica propiedades invariantes del código (fast-check para JS/TS, Hypothesis para Python). Excelente para parsers, validaciones, lógica financiera. **Ubicación: STAGE 2 PRE-Build** — lightweight (<1-2 min), opera sobre source code, complementa unit tests. Ver §36.3 item 14 para explicación completa.
 12. **Chaos engineering tests:** inyectan fallos deliberados (latencia, caídas de servicio) para verificar resiliencia. Se ejecutan contra staging, no en CI normal. Fuente: [Principles of Chaos Engineering](https://principlesofchaos.org/)
 13. **Accessibility tests:** verifican accesibilidad (axe-core con Playwright/Jest). Fuente: skill `react-testing-library`, axe-core.
 14. **Visual regression tests:** comparan capturas de pantalla de la UI contra un baseline (Playwright visual comparisons, Percy, Chromatic).
@@ -2698,7 +2698,7 @@ Basado en la investigación anterior, el orden óptimo de stages es. **Cada fase
 │  │  ├─ Test Impact Analysis (TIA) — solo tests afectados por diff [BL][FB]        │  │
 │  │  ├─ Smart test ordering — rápido / previamente fallido primero [F1]            │  │
 │  │  ├─ Test sharding — distribuir suites entre runners [FB]                       │  │
-│  │  └─ Mutation Testing nightlies (Stryker — opcional, costoso)                   │  │
+│  │  └─ Property-Based Testing (fast-check) — invariantes, parsers, lógica [SL]    │  │
 │  └────────────────────────────────────────────────────────────────────────────────┘  │
 │  ┌────────────────────────────────────────────────────────────────────────────────┐  │
 │  │  SECURITY [DD]                                                                 │  │
@@ -2993,6 +2993,27 @@ Basado en la investigación anterior, el orden óptimo de stages es. **Cada fase
  │  │  └─ Audit trail export (immutable, compliance-ready)                           │  │
  │  └────────────────────────────────────────────────────────────────────────────────┘  │
  └──────────────────────────────────────────────────────────────────────────────────────┘
+       │
+       │  ═══════════════════════════════════════════════════════════════════════════════
+       │
+ ┌──────────────────────────────────────────────────────────────────────────────────────┐
+ │  PIPELINE SEPARADO — SIN GATE DE MERGE (nightly / on-demand)                         │
+ │                                                                                      │
+ │  ┌────────────────────────────────────────────────────────────────────────────────┐  │
+ │  │  MUTATION TESTING (Stryker — full sweep, non-blocking)                         │  │
+ │  │  ├─ Schedule: nightly cron (e.g. 02:00 UTC) sobre main                         │  │
+ │  │  ├─ On-demand: workflow_dispatch antes de releases                             │  │
+ │  │  ├─ Mode: --incremental con baseline stryker-incremental.json cacheado        │  │
+ │  │  ├─ Full --force periódico (weekly) para evitar drift del reporte              │  │
+ │  │  ├─ Thresholds: --break-at como SEÑAL, NO required check                      │  │
+ │  │  ├─ Reporte: HTML + badge + scoreboard de tendencia semanal                   │  │
+ │  │  └─ Opcional: PR incremental diff-scoped (--since) advisory, jamás full gate  │  │
+ │  └────────────────────────────────────────────────────────────────────────────────┘  │
+ │                                                                                      │
+ │  WHY SEPARATE: full sweep = mutants × suite duration (10-40x unit tests).           │
+ │  ~8k mutantes → 4+ horas. PR pipeline agotaría 3k min/mes de GitHub Team en días.   │
+ │  Ver §36.3 item 5 para análisis completo y fuentes (StrykerJS, CircleCI, Pitest).   │
+ └──────────────────────────────────────────────────────────────────────────────────────┘
 ```
 
 ### 23.4 Tabla resumen: ¿Qué va antes y después del Build? (con categorías)
@@ -3001,6 +3022,7 @@ Basado en la investigación anterior, el orden óptimo de stages es. **Cada fase
 | -------------- | ------------------------------------ | ----------------------------------------- | ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **TESTING**    | Unit Tests (Vitest)                  | **NO** — opera sobre source TS/JS         | **ANTES del build**      | [AWS: "1. Unit tests"](https://docs.aws.amazon.com/prescriptive-guidance/latest/strategy-cicd-litmus/understanding-cicd.html)                                                                                             |
 | **TESTING**    | Snapshot Tests (Testing Library)     | **NO** — opera sobre source JSX/TSX       | **ANTES del build**      | [AWS: "1. Unit tests"](https://docs.aws.amazon.com/prescriptive-guidance/latest/strategy-cicd-litmus/understanding-cicd.html)                                                                                             |
+| **TESTING**    | Property-Based Tests (fast-check)    | **NO** — opera sobre source TS/JS         | **ANTES del build**      | [fast-check](https://fast-check.dev/) — invariantes, parsers, lógica. <1-2 min, complementa unit tests.                                                                                                                   |
 | **SECURITY**   | SAST (Semgrep, CodeQL)               | **NO** — análisis estático sobre source   | **ANTES del build**      | [GitLab SAST](https://docs.gitlab.com/ee/user/application_security/sast/)                                                                                                                                                 |
 | **SECURITY**   | SCA (Dependabot, Snyk)               | **NO** — analiza lockfiles                | **ANTES del build**      | [Snyk CI/CD](https://docs.snyk.io/implementation-guides/team-implementation-guide/phase-5-rolling-out-the-prevention-stage/add-and-configure-snyk-to-your-ci-cd-pipeline)                                                 |
 | **SECURITY**   | Secret Detection (Gitleaks)          | **NO** — archivos crudos                  | **ANTES del build**      | [OWASP DevSecOps](https://owasp.org/www-project-devsecops-guideline/)                                                                                                                                                     |
@@ -5812,7 +5834,17 @@ El testing avanzado va más allá de unit/integration/E2E para cubrir **dimensio
 2. **Visual regression testing:** Playwright snapshots, Chromatic (Storybook), Percy (BrowserStack). Comparar screenshots pixel-by-pixel. Configurar threshold para tolerar anti-aliasing diffs. Fuente: [Playwright Visual](https://playwright.dev/docs/test-snapshots)
 3. **Accessibility testing (axe-core):** inyectar axe-core en tests E2E. Playwright + axe. Lighthouse CI a11y score. WCAG 2.1 AA como mínimo. Fuente: [axe-core](https://github.com/dequelabs/axe-core)
 4. **Chaos engineering:** inyectar fallos controlados (latency, exceptions, pod kills) para probar resiliencia. Chaos Monkey (AWS), Litmus (K8s), Toxiproxy (network). Fuente: [Litmus](https://litmuschaos.io/)
-5. **Mutation testing:** Stryker muta el código fuente y verifica que los tests lo detectan. Si un mutante sobrevive → test gap. Metric: mutation score. Fuente: [Stryker](https://stryker-mutator.io/)
+5. **Mutation testing (Stryker) — pipeline SEPARADO, NO en el pipeline de PRs.** Stryker muta el código fuente (cambia operadores, borra condiciones, invierte booleanos) y ejecuta el suite de tests contra cada mutación; si un mutante sobrevive → los tests ejecutan el código pero no asertan el comportamiento (test gap). Métrica: mutation score (target: >80% en módulos críticos, 60-70% general; no perseguir 100% — equivalent mutants y retorno decreciente).
+
+   **¿Por qué NO en el pipeline de PRs? (consenso de industria):** El mutation testing full-sweep ejecuta el suite de tests una vez POR MUTANTE (costo ≈ nº de mutantes × duración del suite). Proyecto medio (10k LOC, 500 tests) → ~8.000 mutantes → 4+ horas de cómputo por run completo (10-40x el costo de unit tests). Mantenerlo en el PR pipeline causaría: (a) **lead time de horas por PR** — degrada DORA lead time for changes, pierde nivel Elite, colapsa merge queue; (b) **agotamiento de GitHub Actions minutes** — Linux 2-core = $0.006/min; full sweep de 60-120 min ≈ $0.36-0.72/run; 20 PRs/día = $7-15/día → $150-450/mes, y consume la cuota de 3.000 min/mes de GitHub Team en 2-5 días; (c) **contención de recursos** — compite por runners con unit/integration/E2E, timeouts falsos por CPU saturada inflan el mutation score (máquina saturada reporta score más alto del que el código merece); (d) **developer experience** — feedback de horas → context-switching, re-triggers, cultura de bypass; (e) **ruido del mutation score** — fluctúa por equivalent mutants, timeouts, cambios de scope — sirve como tendencia, no como gate bloqueante de merge.
+
+   **Ubicación recomendada (workflow separado `mutation.yml`):**
+   - **PRIMARIO — Nightly scheduled full sweep** sobre `main` (`schedule: cron`, ej. 02:00 UTC): Stryker con `--incremental`, baseline `stryker-incremental.json` cacheado/restaurado entre runs; **non-blocking** (NO required check, no bloquea merge); thresholds `--break-at` como señal; reporte HTML + scoreboard para lectura de tendencia semanal. Full `--force` semanal para evitar drift del reporte incremental.
+   - **SECUNDARIO — On-demand** (`workflow_dispatch`): full run manual antes de releases importantes o al modificar la config del flujo de mutation testing.
+   - **OPCIONAL AVANZADO — PR runs incrementales diff-scoped** (`--since origin/main`, `fetch-depth: 0`): solo sobre el diff (3-8 min), advisory primero ('indicator first, gate later' — Mercado Libre), umbral acordado por equipo, bypass con label+justificación para hotfixes. Jamás full sweep en PR.
+
+   Fuente: [StrykerJS incremental mode](https://stryker-mutator.io/blog/announcing-incremental-mode/), [StrykerJS issue #2247 — nicojs](https://github.com/stryker-mutator/stryker-js/issues/2247), [CircleCI — Mutation Testing](https://circleci.com/blog/what-is-mutation-testing/), [Autotomy — How teams use mutation testing in CI](https://autotomy.dev/blog/mutation-testing-takes-4-hours-how-do-teams-actually-use-it-in-ci/), [Pitest — Don't let your code dry](http://blog.pitest.org/dont-let-your-code-dry/), [Mercado Libre — Mutation Testing at Scale](https://medium.com/mercadolibre-tech/mutation-testing-at-mercado-libre-from-pilot-to-everyday-guardrail-2ffe0a273f0e), [Tesis Chalmers — MT in CI pipelines](https://odr.chalmers.se/bitstreams/38f0710c-ad11-409f-a579-aa35102e38e0/download). Ver §23.3 diagrama: bloque "PIPELINE SEPARADO — SIN GATE DE MERGE".
+
 6. **Contract testing en monorepo:** intra-workspace contracts (apps/server ↔ apps/client) con Pact o MSW handlers compartidos. External contracts para APIs de terceros.
 7. **Test data management:** datos de prueba deterministas, seed scripts, testcontainers para DB real, datos anonymizados para staging. Nunca usar datos reales de prod en tests.
 8. **Test parallelization:** Vitest workspace config para correr test suites en paralelo. Sharding en CI para distribuir entre runners. Target: < 5 min para full suite.
@@ -5821,6 +5853,7 @@ El testing avanzado va más allá de unit/integration/E2E para cubrir **dimensio
 11. **Duplication Detection (POST-Build):** detección de código duplicado ejecutada en STAGE 4 (post-build) porque la herramienta principal — SonarQube/SonarCloud — requiere el artifact compilado y datos de cobertura para un análisis preciso. **SonarQube** detecta: (a) `duplicated_lines_density` — porcentaje de líneas duplicadas en el proyecto; (b) duplicación cross-file — bloques idénticos en archivos diferentes (crítico en monorepos donde se copian lógicas entre workspaces); (c) `duplicated_blocks` vs `duplicated_files` — permite distinguir entre código copiado entre archivos vs archivos enteros duplicados. **jscpd** (JavaScript Copy/Paste Detector) puede ejecutarse como indicador temprano pre-build (language-agnostic, parsea AST sin necesidad de compilación), pero es menos preciso que SonarQube porque no considera métricas de complejidad ni cobertura. Workflow recomendado: jscpd en STAGE 2 como señal temprana (threshold: <5% duplicación), SonarQube en STAGE 4 como gate definitivo (quality gate: duplicación no puede empeorar). En monorepos, refactorizar duplicados a módulos compartidos reduce deuda técnica y previene bugs por inconsistencia.
 12. **Content/brand review gate:** verificación automática de que el contenido desplegado cumple estándares de marca y contenido antes de la aprobación de UAT. Checks: (a) validación de que los textos legales (términos de uso, privacy policy) están presentes y actualizados; (b) verificación de que los logos/imágenes de marca tienen la resolución correcta (usando Playwright screenshot + OCR o comparación visual); (c) link rot detection — verificar que todos los links internos/externos funcionan (usar `lychee` o `markdown-link-check`); (d) validación de metadata SEO (title, description, OG tags) con Playwright. Ejecutar como step en STAGE 7 (Post-Deploy Acceptance) antes de UAT manual. Es un gate automático que complementa la revisión humana de contenido.
 13. **Dependency Analysis (depcheck):** análisis de dependencias para detectar: (a) **unused dependencies** — paquetes en `package.json` que no se importan en ningún archivo del proyecto (dependencias huérfanas que inflan el bundle y aumentan superficie de ataque); (b) **missing dependencies** — paquetes importados en código que no están declarados en `package.json` (resolución exitosa solo por hoisting de npm, frágil y no reproducible); (c) **unused devDependencies** — herramientas de desarrollo que ya no se usan (tests migrados, linters removidos). Herramienta principal: `depcheck` (npm package) — escanea AST de todos los archivos del proyecto buscando `require()`/`import` y los cruza con `package.json`. Ejecutar como post-build quality check en STAGE 4: después del build se tiene la imagen completa del proyecto (todos los archivos transpilados/bundled), permitiendo un análisis más preciso que pre-build donde algunos archivos pueden no estar parseados. Configurar con `.depcheckrc` para ignorar configuraciones especiales (ej. `@types/*` en devDependencies). En monorepos: ejecutar `depcheck` por workspace para detectar dependencias huérfanas en cada paquete. Resultado: fallo del quality gate si hay >0 missing dependencies (riesgo de runtime error), warning si hay unused dependencies (deuda técnica).
+14. **Property-Based Testing (fast-check) — STAGE 2 PRE-Build.** A diferencia de los unit tests tradicionales (example-based: "para input X espero output Y"), los property-based tests definen **propiedades invariantes** que deben cumplirse para CUALQUIER input generado automáticamente: `fc.assert(fc.property(fc.integer(), fc.integer(), (a, b) => a + b === b + a))`. fast-check genera miles de inputs aleatorios (shrinked para minimal failure case) y verifica que la propiedad se cumpla. **Por qué en PRE-Build (STAGE 2):** opera sobre source code sin necesidad de build artifact, es ejecutable con el mismo runner que unit tests (Vite/Vitest), y añade <1-2 minutos al pipeline (fast-check es lightweight: 1,000 cases por property en ~1-3s en hardware moderno). **Qué detecta que los unit tests no detectan:** edge cases en parsers (JSON, URLs, emails), invariantes matemáticos (asociatividad, conmutatividad, idempotencia), lógica de validación (si `validate(input)` es true, entonces `sanitize(input)` no lanza), correlaciones entre funciones (si `encode(x)` produce `y`, entonces `decode(y)` produce `x`). **Configuración recomendada en Vitest:** importar `fast-check/vitest` para integración nativa; configurar `numRuns: 1_000` para CI (más que en local: 200); usar `--seed` fijo para reproducibilidad en CI; integrar con `@fast-check/vitest` para auto-discovery de properties. **Qué NO reemplaza:** no sustituye unit tests example-based (que validan casos conocidos y regression); es complementario — los property-based tests cubren el espacio de inputs que el developer no imaginó. **Categorías ideales:** parsers, serialización/deserialización, algoritmos de ordenamiento, CRUD operations (create → read → update → delete → verify invariant), transformaciones de datos (sanitization, normalization). Fuente: [fast-check](https://github.com/dubzzz/fast-check), [fast-check docs](https://fast-check.dev/), [Property-Based Testing — Martin Fowler](https://martinfowler.com/articles/ Replace-Industrial-Legacy-Code-With-Property-Based-Testing.html)
 
 ### 36.4 Herramientas comunes
 
@@ -5831,6 +5864,7 @@ El testing avanzado va más allá de unit/integration/E2E para cubrir **dimensio
 | Accessibility     | axe-core, Lighthouse a11y, Pa11y, jest-axe         |
 | Chaos engineering | Litmus, Chaos Monkey, Toxiproxy, Pumba             |
 | Mutation testing  | Stryker, mutmut, cosmic-ray                        |
+| Property-based    | fast-check, Hypothesis, jqwik                      |
 | Test data         | Testcontainers, Faker, factory-bot                 |
 
 ### 36.5 Mejores prácticas
@@ -5839,7 +5873,7 @@ El testing avanzado va más allá de unit/integration/E2E para cubrir **dimensio
 - Visual regression: baseline images en CI, no en local.
 - a11y testing: parte del E2E pipeline, no opcional.
 - Chaos: stagin primero, prod solo con feature flags.
-- Mutation testing: quarterly, no en cada PR (costo computacional).
+- Mutation testing: pipeline separado (nightly full sweep + on-demand), jamás en PRs como gate (ver §36.3 item 5).
 - Flaky test quarantine: no bloquear CI por tests inestables.
 
 ### 36.6 Errores comunes (anti-patrones)
