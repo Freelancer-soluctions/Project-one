@@ -34,6 +34,10 @@
 21. [Glosario](#21-glosario)
 22. [Fuentes consultadas](#22-fuentes-consultadas)
 23. [Orden correcto de stages — Evidencia de fuentes autoritativas (apéndice)](#23-orden-correcto-de-stages--evidencia-de-fuentes-autoritativas-apéndice)
+    - [23.3.1 Governance Lifecycle — Los 6 pasos del commit al merge](#2331-governance-lifecycle--los-6-pasos-del-commit-al-merge)
+    - [23.6 Coverage Merge Gate (requerido con sharding)](#236-coverage-merge-gate-requerido-con-sharding)
+    - [23.7 Rollback Automation Gate (requerido para ERP)](#237-rollback-automation-gate-requerido-para-erp)
+    - [23.8 CI vs CD Boundary — Discriminación por Stage](#238-ci-vs-cd-boundary--discriminación-por-stage)
 24. [GitHub Actions Enterprise: Patrones de implementación](#24-github-actions-enterprise-patrones-de-implementación)
 25. [Supply Chain Security: SLSA, Sigstore, SBOM, NIST SSDF](#25-supply-chain-security-slsa-sigstore-sbom-nist-ssdf)
 26. [Métricas DORA 5, Optimización y Costo del Pipeline](#26-métricas-dora-5-optimización-y-costo-del-pipeline)
@@ -2665,6 +2669,19 @@ Las plataformas de CI/CD documentan consistentemente el patrón Build → Test �
 
 Basado en la investigación anterior, el orden óptimo de stages es. **Cada fase discrimina entre categorías: Testing, Security y Quality.** El diagrama incorpora las estrategias **Shift-left**, **Fail-fast**, **Fail-first**, **Progressive validation** y **Defense in depth**.
 
+**Discriminación CI vs CD (según Octopus Deploy, Atlassian, DeployHQ):**
+
+| Fase                          | Stage(s) | Tipo      | Definición                                                                                                                                             |
+| ----------------------------- | -------- | --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **CI (Integración Continua)** | 1–4      | CI        | Construye confianza centrada en el artefacto: unit tests, scans sobre source, build, integration tests contra el artefacto sin infraestructura externa |
+| **⚡ FRONTERA**               | 5        | CD start  | Push al registry: Cosign, SBOM, publish — aquí termina CI, arranca CD                                                                                  |
+| **CD (Entrega Continua)**     | 5–10     | CD        | Mueve artefacto validado hacia ambientes reales; Stage 9 es el gate que hace Delivery (no Deployment puro)                                             |
+| **Post-CD**                   | 11       | Operación | Observability + cleanup — retroalimenta al ciclo vía DORA metrics                                                                                      |
+
+> **Nota sobre Continuous Delivery vs Continuous Deployment:** Este pipeline es **Continuous Delivery** (no Continuous Deployment). Stage 9 tiene gate manual explícito (Environment Protection Rules, Security Review Board approval). El código siempre está en estado desplegable, pero un humano decide cuándo apretar el botón hacia Stage 10. Esto es correcto para un ERP financiero: el gate humano en Stage 9 es compliance (SoD), no una limitación.
+
+> **Zona gris — Stage 4:** Integration Tests y Contract Tests corren contra el artefacto pero sin infraestructura externa desplegada → todavía CI. E2E ephemeral deploy dentro de ese stage técnicamente ya despliega algo (aunque sea efímero) → empieza a mezclarse con CD según definición estricta. En la práctica, la mayoría de equipos lo tratan como "CI extendido" mientras no toque staging/producción real.
+
 ```
 ┌─────────────────────────────────────────────────────────────────────────────────────────┐
 │           PIPELINE CI/CD ENTERPRISE — TODAS LAS ACTIVIDADES POR STAGE                  │
@@ -2681,15 +2698,72 @@ Basado en la investigación anterior, el orden óptimo de stages es. **Cada fase
        │          ├─ Affected-only gate: --filter=...[HEAD^1] antes de build/test/lint (§38)
        │          └─ Diff-scoped triggers: solo workspaces afectados en monorepo
        ▼
+ ╔═══════════════════════════════════════════════════════════════════════════════════════╗
+ ║  CI — INTEGRACIÓN CONTINUUA (Stages 1–4)                                              ║
+ ║  Construye confianza centrada en el artefacto: validate → build → integrate            ║
+ ╚═══════════════════════════════════════════════════════════════════════════════════════╝
+       │
  [STAGE 1: PRE-COMMIT HOOKS (local — skippable via --no-verify) [SL]]
        │          ├─ SECURITY: Secrets scan (Gitleaks), quick SAST (Semgrep) [DD]
-       │          ├─ QUALITY: Lint+Format (lint-staged), commitlint, large-file guard
+       │          ├─ QUALITY: Lint+Format (lint-staged), large-file guard
        │          ├─ TESTING: Pre-push hooks — scoped tests (Vitest changed-only) [SL][F1]
-       │          └─ GOVERNANCE: Commit signing (GPG/sigstore gitsign)
+       │          ├─ GOVERNANCE: Commit signing (GPG/sigstore gitsign)
+       │          └─ GOVERNANCE: Commit lint (commitlint — Conventional Commits)
+       │
+       │  ┌─────────────────────────────────────────────────────────────────────────┐
+       │  │  GOVERNANCE LIFECYCLE (6 pasos, NO es un stage paralelo — es el flujo    │
+       │  │  que conecta commit → merge. Cada paso depende del anterior.)            │
+       │  │                                                                         │
+        │  │  1. LOCAL COMMIT SIGNING + COMMIT LINT (pre-commit hook)                │
+        │  │     ├─ GPG/SSH/sigstore gitsign firma el commit automáticamente        │
+        │  │     └─ commitlint valida Conventional Commits                           │
+       │  │                                                                         │
+        │  │  2. PR GATE (CI — 1 solo workflow GOVERNANCE) [FF][F1]                  │
+        │  │     ├─ Commit Lint (commitlint — Conventional Commits)                  │
+        │  │     ├─ PR Metadata Checks (DCO sign-off, title/body templates)          │
+        │  │     └─ Early-abort gate (solo diff PR, crítico/alta, segundos)          │
+        │  │                                                                         │
+        │  │  ⚠️  Commit Signing verify — GitHub nativo (no CI)                      │
+       │  │                                                                         │
+       │  │  3. CODE PIPELINE (STAGES 2-8 — testing, security, quality, build)     │
+       │  │     └─ GOVERNANCE: artifacts firmados (Cosign), SBOM, provenance        │
+       │  │                                                                         │
+       │  │  4. BRANCH PROTECTION (GitHub Rulesets — PASSIVO, lee resultados)       │
+       │  │     ├─ Lee: ¿todos los required checks en verde?                        │
+       │  │     ├─ Lee: ¿hay approval de reviewer requerido?                        │
+       │  │     ├─ Lee: ¿commits están firmados?                                    │
+       │  │     ├─ SÍ a todo → botón "Merge" habilitado                            │
+       │  │     └─ NO a alguno → botón bloqueado, muestra qué falta                │
+       │  │                                                                         │
+       │  │  5. POST-DEPLOY GOVERNANCE (stages 6-7)                                │
+       │  │     ├─ Change record/ticket linkage (ServiceNow/Jira)                   │
+       │  │     ├─ Release readiness dashboard + sign-off evidence                  │
+       │  │     └─ Acceptance record (who approved what, evidence archive)          │
+       │  │                                                                         │
+       │  │  6. MERGE + CLEANUP (post-merge)                                       │
+       │  │     ├─ Deployment event record (timestamp, commit, artifact SHA)        │
+       │  │     ├─ DORA Metrics capture (deploy frequency, lead time)              │
+       │  │     ├─ Audit trail export (immutable, compliance-ready)                 │
+       │  │     └─ Stale branch cleanup, artifact retention, secrets rotation       │
+       │  └─────────────────────────────────────────────────────────────────────────┘
        ▼
 ┌──────────────────────────────────────────────────────────────────────────────────────┐
 │  STAGE 2: PRE-BUILD — VALIDATE (source code, 0 dependencia de build)                 │
 │                                                                                      │
+│  ┌────────────────────────────────────────────────────────────────────────────────┐  │
+│  │  GOVERNANCE (Paso 2 del ciclo — 1 solo workflow CI)                            │  │
+│  │  ├─ Commit Lint (commitlint — Conventional Commits Validation)                 │  │
+│  │  ├─ PR Metadata Checks (DCO sign-off, title/body templates)                    │  │
+│  │  └─ Early-abort gate [FF][F1]:                                                 │  │
+│  │     ├─ Alcance: solo diff del PR (NO full repo)                                 │  │
+│  │     ├─ Severidad: solo CRÍTICA/ALTA (SQL injection, RCE, secrets hardcoded)     │  │
+│  │     ├─ Tiempo: segundos — pocas reglas, poco código                             │  │
+│  │     └─ Si falla → aborta pipeline ANTES de suites largas                        │  │
+│  │                                                                                  │  │
+│  │  ⚠️ Commit Signing verify NO es este workflow — lo valida GitHub               │  │
+│  │     NATIVAMENTE (badge "Verified"). Es parte del ciclo GOVERNANCE               │  │
+│  │     pero no corre en CI.                                                         │  │
+│  └────────────────────────────────────────────────────────────────────────────────┘  │
 │  ┌────────────────────────────────────────────────────────────────────────────────┐  │
 │  │  TESTING                                                                       │  │
 │  │  ├─ Unit Tests (Vitest/Jest) — [AWS: "1. Unit tests"] [SL]                    │  │
@@ -2698,6 +2772,7 @@ Basado en la investigación anterior, el orden óptimo de stages es. **Cada fase
 │  │  ├─ Test Impact Analysis (TIA) — solo tests afectados por diff [BL][FB]        │  │
 │  │  ├─ Smart test ordering — rápido / previamente fallido primero [F1]            │  │
 │  │  ├─ Test sharding — distribuir suites entre runners [FB]                       │  │
+│  │  ├─ Coverage Merge Gate — merge artifacts de todos los shards, check-coverage  │  │
 │  │  └─ Property-Based Testing (fast-check) — invariantes, parsers, lógica [SL]    │  │
 │  └────────────────────────────────────────────────────────────────────────────────┘  │
 │  ┌────────────────────────────────────────────────────────────────────────────────┐  │
@@ -2713,7 +2788,7 @@ Basado en la investigación anterior, el orden óptimo de stages es. **Cada fase
 │  └────────────────────────────────────────────────────────────────────────────────┘  │
 │  ┌────────────────────────────────────────────────────────────────────────────────┐  │
 │  │  QUALITY (Grupo A — source code)                                               │  │
-│  │  ├─ Lint (ESLint/Ruff/golangci-lint) — [GitLab: "early stage lint"] [F1]      │  │
+│  │  ├─ Lint (ESLint/Ruff/golangci-lint) — [GitLab: "early stage lint"] [F1]       │  │
 │  │  ├─ Format Check (Prettier --check / Black --check)                            │  │
 │  │  ├─ Type Check strict (tsc --noEmit --incremental)                              │  │
 │  │  ├─ Compile-check multi-lang (go vet / cargo check) [F1]                        │  │
@@ -2723,16 +2798,9 @@ Basado en la investigación anterior, el orden óptimo de stages es. **Cada fase
 │  │  ├─ PR Review Automation (DeepSource/CodeRabbit/SonarQube PR checks)           │  │
 │  │  └─ Docs/CHANGELOG Validation (markdownlint/vale) [SL]                               │  │
 │  └────────────────────────────────────────────────────────────────────────────────┘  │
-│  ┌────────────────────────────────────────────────────────────────────────────────┐  │
-│  │  GOVERNANCE                                                                    │  │
-│  │  ├─ Commit Lint (commitlint — Conventional Commits)                            │  │
-│  │  ├─ Commit Signing (GPG/SSH/sigstore gitsign)                                  │  │
-│  │  ├─ Branch Protection + Required Status Checks (GitHub Rulesets)               │  │
-│  │  ├─ PR Metadata Checks (DCO sign-off, title/body templates)                    │  │
-│  │  └─ Early-abort gate: lint/SAST crítico aborta antes de suites largas [FF][F1] │  │
-│  └────────────────────────────────────────────────────────────────────────────────┘  │
 │                                                                                      │
-│  Todos PARALELOS. Matrix params: fail-fast:false, max-parallel, continue-on-error.   │
+│  Todos PARALELOS. Matrix params: fail-fast:false, max-parallel: 4,                   │
+│  continue-on-error. Concurrency groups: cancel runs obsoletos en mismo PR.           │
 │  AWS "1. Unit tests, 2. Code build". DORA: tests + build paralelo. [FF][FB]          │
 └──────────────────────────────────────────────────────────────────────────────────────┘
       │ (all green)
@@ -2746,7 +2814,7 @@ Basado en la investigación anterior, el orden óptimo de stages es. **Cada fase
 │  │  ├─ Compilation (Vite build / tsc / webpack) — [AWS: "2. Code build"]          │  │
 │  │  ├─ Bundling + minification + compression (gzip/brotli)                        │  │
 │  │  ├─ Docker image build multi-arch (docker buildx / kaniko)                     │  │
-│  │  ├─ Hermetic build (Bazel/Nix — SLSA L3/L4)                                    │  │
+│  │  ├─ Hermetic build (Bazel/Nix — build reproducible)                             │  │
 │  │  ├─ Build caching remote (Turborepo/Nx/BuildKit)                               │  │
 │  │  └─ Codegen artifacts (OpenAPI client, GraphQL codegen)                        │  │
 │  └────────────────────────────────────────────────────────────────────────────────┘  │
@@ -2778,7 +2846,8 @@ Basado en la investigación anterior, el orden óptimo de stages es. **Cada fase
 │  │  ├─ Accessibility Scan WCAG 2.1 AA (axe-core/pa11y-ci)                         │  │
 │  │  ├─ E2E ephemeral deploy (Playwright/Cypress)                                  │  │
 │  │  ├─ Flaky Test Detection + quarantine [FF]                                     │  │
-│  │  └─ Quarantine policy: pass-rate < 70% → auto-quarantine, ~7 días auto-restore │  │
+│  │  └─ Quarantine policy: pass-rate < 70% → auto-quarantine, requiere humano     │  │
+│  │     para restaurar (verificar commit nuevo en archivo en 7 días o aprobación)  │  │
 │  └────────────────────────────────────────────────────────────────────────────────┘  │
 │  ┌────────────────────────────────────────────────────────────────────────────────┐  │
 │  │  SECURITY                                                                      │  │
@@ -2796,31 +2865,44 @@ Basado en la investigación anterior, el orden óptimo de stages es. **Cada fase
 └──────────────────────────────────────────────────────────────────────────────────────┘
        │
        ▼
-┌──────────────────────────────────────────────────────────────────────────────────────┐
-│  STAGE 5: ARTIFACT & SIGN (empaquetado, firma, publicación)                          │
-│                                                                                      │
-│  ┌────────────────────────────────────────────────────────────────────────────────┐  │
-│  │  PACKAGING + SECURITY                                                          │  │
-│  │  ├─ Semantic Versioning + git tag (semantic-release/release-please)            │  │
-│  │  ├─ Publish to registry (npm/GHCR/ECR/Artifactory)                             │  │
-│  │  ├─ Artifact Signing (Cosign/Sigstore) — containers + binaries                 │  │
-│  │  ├─ SLSA Provenance Generation (slsa-github-generator)                         │  │
-│  │  ├─ SBOM Attach as signed attestation (cosign attach)                          │  │
-│  │  ├─ Notarization platform (Apple notarization / Windows signtool)              │  │
-│  │  ├─ Immutable Digest Pinning (SHA256, not tag)                                 │  │
-│  │  ├─ Registry-side continuous re-scan (ECR/Trivy registry)                      │  │
-│  │  └─ Signature + Provenance verification gate (cosign verify/slsa-verifier)     │  │
-│  └────────────────────────────────────────────────────────────────────────────────┘  │
-│  ┌────────────────────────────────────────────────────────────────────────────────┐  │
-│  │  GOVERNANCE                                                                    │  │
-│  │  ├─ Artifact promotion policy (staging registry → prod via pipeline)           │  │
-│  │  └─ Retention/immutability policy (no tag overwrite)                           │  │
-│  └────────────────────────────────────────────────────────────────────────────────┘  │
-└──────────────────────────────────────────────────────────────────────────────────────┘
+ ╔═══════════════════════════════════════════════════════════════════════════════════════╗
+ ║  ⚡ FRONTERA CI/CD — PUSH TO REGISTRY                                                  ║
+ ║  Aquí termina Integración Continua, arranca Entrega Continua                           ║
+ ║  El artefacto se publica, firma, y genera provenance — listo para ambientes reales    ║
+ ╚═══════════════════════════════════════════════════════════════════════════════════════╝
        │
        ▼
-┌──────────────────────────────────────────────────────────────────────────────────────┐
-│  STAGE 6: DEPLOY STAGING (entorno de validación)                                     │
+ ┌──────────────────────────────────────────────────────────────────────────────────────┐
+ │  STAGE 5: ARTIFACT & SIGN (empaquetado, firma, publicación)                          │
+ │                                                                                      │
+ │  ┌────────────────────────────────────────────────────────────────────────────────┐  │
+ │  │  PACKAGING + SECURITY                                                          │  │
+ │  │  ├─ Semantic Versioning + git tag (semantic-release/release-please)            │  │
+ │  │  ├─ Publish to registry (npm/GHCR/ECR/Artifactory)                             │  │
+ │  │  ├─ Artifact Signing (Cosign/Sigstore) — containers + binaries                 │  │
+ │  │  ├─ SLSA Provenance Generation (slsa-github-generator)                         │  │
+ │  │  ├─ SBOM Attach as signed attestation (cosign attach)                          │  │
+ │  │  ├─ Notarization platform (Apple notarization / Windows signtool)              │  │
+ │  │  ├─ Immutable Digest Pinning (SHA256, not tag)                                 │  │
+ │  │  ├─ Registry-side continuous re-scan (ECR/Trivy registry)                      │  │
+ │  │  └─ Signature + Provenance verification gate (cosign verify/slsa-verifier)     │  │
+ │  └────────────────────────────────────────────────────────────────────────────────┘  │
+ │  ┌────────────────────────────────────────────────────────────────────────────────┐  │
+ │  │  GOVERNANCE (Paso 3 del ciclo — artifacts firmados)                           │  │
+ │  │  ├─ Artifact promotion policy (staging registry → prod via pipeline)           │  │
+ │  │  └─ Retention/immutability policy (no tag overwrite)                           │  │
+ │  └────────────────────────────────────────────────────────────────────────────────┘  │
+ └──────────────────────────────────────────────────────────────────────────────────────┘
+       │
+       ▼
+ ╔═══════════════════════════════════════════════════════════════════════════════════════╗
+ ║  CD — ENTREGA CONTINUA (Stages 5–10)                                                  ║
+ ║  Mueve artefacto validado hacia ambientes reales; Stage 9 = gate manual (Delivery)    ║
+ ╚═══════════════════════════════════════════════════════════════════════════════════════╝
+       │
+       ▼
+ ┌──────────────────────────────────────────────────────────────────────────────────────┐
+ │  STAGE 6: DEPLOY STAGING (entorno de validación)                                     │
 │                                                                                      │
 │  ┌────────────────────────────────────────────────────────────────────────────────┐  │
 │  │  DEPLOY                                                                        │  │
@@ -2843,7 +2925,7 @@ Basado en la investigación anterior, el orden óptimo de stages es. **Cada fase
 │  │  └─ Admission policy (signed+scanned images — Kyverno/Gatekeeper)              │  │
 │  └────────────────────────────────────────────────────────────────────────────────┘  │
 │  ┌────────────────────────────────────────────────────────────────────────────────┐  │
-│  │  GOVERNANCE                                                                    │  │
+│  │  GOVERNANCE (Paso 5 del ciclo — post-deploy)                                  │  │
 │  │  └─ Change record/ticket linkage (ServiceNow/Jira)                             │  │
 │  └────────────────────────────────────────────────────────────────────────────────┘  │
 └──────────────────────────────────────────────────────────────────────────────────────┘
@@ -2876,7 +2958,7 @@ Basado en la investigación anterior, el orden óptimo de stages es. **Cada fase
 │  │  └─ Content/brand review gate (manual)                                         │  │
 │  └────────────────────────────────────────────────────────────────────────────────┘  │
 │  ┌────────────────────────────────────────────────────────────────────────────────┐  │
-│  │  GOVERNANCE                                                                    │  │
+│  │  GOVERNANCE (Paso 5 del ciclo — post-deploy)                                  │  │
 │  │  ├─ Release readiness dashboard + sign-off evidence                            │  │
 │  │  └─ Acceptance record (who approved what, evidence archive)                    │  │
 │  └────────────────────────────────────────────────────────────────────────────────┘  │
@@ -2912,23 +2994,25 @@ Basado en la investigación anterior, el orden óptimo de stages es. **Cada fase
  │  │  └─ UAT / Acceptance gate (manual QA sign-off)                                 │  │
  │  └────────────────────────────────────────────────────────────────────────────────┘  │
  │  ┌────────────────────────────────────────────────────────────────────────────────┐  │
- │  │  GOVERNANCE                                                                    │  │
+ │  │  GOVERNANCE (Paso 4 del ciclo — Branch Protection lee esto)                   │  │
  │  │  ├─ Manual/Environment Protection Rules (GitHub environment approval)          │  │
  │  │  ├─ Security Review Board approval (for high-risk changes)                     │  │
- │  │  ├─ Quality gate (SonarQube quality gate pass)                                 │  │
- │  │  ├─ Security gate (vulnerability severity threshold)                           │  │
- │  │  ├─ Release Notes + CHANGELOG verification                                     │  │
- │  │  ├─ Compliance evidence archive (SOC2/ISO 27001/artifact trail)                │  │
- │  │  ├─ Policy-as-code validation (OPA/Conftest/Kyverno)                           │  │
- │  │  ├─ Code Freeze Check (freeze windows)                                         │  │
- │  │  └─ Rollback Plan + Backout procedure documented                               │  │
- │  └────────────────────────────────────────────────────────────────────────────────┘  │
+│  │  ├─ Quality gate (SonarQube quality gate pass)                                 │  │
+│  │  ├─ Security gate (vulnerability severity threshold)                           │  │
+│  │  ├─ Release Notes + CHANGELOG verification                                     │  │
+│  │  ├─ Compliance evidence archive (SOC2/ISO 27001/artifact trail)                │  │
+│  │  ├─ Policy-as-code validation (OPA/Conftest/Kyverno)                           │  │
+│  │  ├─ Code Freeze Check (freeze windows)                                         │  │
+│  │  ├─ Rollback Plan + Backout procedure documented                               │  │
+│  │  └─ Rollback Gate: verificar que migration-down existe + funciona en staging    │  │
+│  └────────────────────────────────────────────────────────────────────────────────┘  │
  │  ┌────────────────────────────────────────────────────────────────────────────────┐  │
  │  │  SECURITY                                                                      │  │
  │  │  └─ Penetration Testing approval (scheduled/third-party for critical)          │  │
  │  └────────────────────────────────────────────────────────────────────────────────┘  │
  │                                                                                      │
  │  Sequential: testing → security → governance approval chain.                         │
+ │  Branch Protection (Paso 4 del ciclo) lee todos estos resultados passivamente.      │
  └──────────────────────────────────────────────────────────────────────────────────────┘
        │
        ▼
@@ -2951,12 +3035,19 @@ Basado en la investigación anterior, el orden óptimo de stages es. **Cada fase
  │  │  └─ Synthetic Monitoring activation (Checkly/Datadog)                          │  │
  │  └────────────────────────────────────────────────────────────────────────────────┘  │
  │  ┌────────────────────────────────────────────────────────────────────────────────┐  │
- │  │  GOVERNANCE                                                                    │  │
+ │  │  GOVERNANCE (Paso 6 del ciclo — post-merge)                                  │  │
  │  │  ├─ Deployment event record (timestamp, commit, artifact SHA)                  │  │
  │  │  ├─ License Compliance final gate (FOSSA/ScanCode)                             │  │
  │  │  └─ CI/CD DORA Metrics capture (deploy frequency, lead time)                   │  │
  │  └────────────────────────────────────────────────────────────────────────────────┘  │
  └──────────────────────────────────────────────────────────────────────────────────────┘
+       │
+       ▼
+ ╔═══════════════════════════════════════════════════════════════════════════════════════╗
+ ║  POST-CD — OPERACIÓN CONTINUA (Stage 11)                                              ║
+ ║  Observability + cleanup — retroalimenta al ciclo vía DORA metrics                    ║
+ ║  No es CD en sentido estricto; es la fase que cierra el loop DevOps                   ║
+ ╚═══════════════════════════════════════════════════════════════════════════════════════╝
        │
        ▼
  ┌──────────────────────────────────────────────────────────────────────────────────────┐
@@ -2980,18 +3071,18 @@ Basado en la investigación anterior, el orden óptimo de stages es. **Cada fase
  │  │  ├─ Blameless Postmortems (template + 5-whys + timeline)                       │  │
  │  │  └─ Feature flag kill-switch (LaunchDarkly kill-switch)                        │  │
  │  └────────────────────────────────────────────────────────────────────────────────┘  │
- │  ┌────────────────────────────────────────────────────────────────────────────────┐  │
- │  │  CLEANUP + GOVERNANCE                                                          │  │
- │  │  ├─ Stale branch cleanup (gh, >30 days)                                        │  │
- │  │  ├─ Preview env cleanup (ephemeral, auto-destroy)                              │  │
- │  │  ├─ Container registry cleanup (untagged, old digests)                         │  │
- │  │  ├─ Artifact retention policy (rotate/archive/expire)                          │  │
- │  │  ├─ Build artifact purge (old caches, temp files)                              │  │
- │  │  ├─ Vault secrets rotation audit                                               │  │
- │  │  ├─ SBOM/Provenance archival (immutable store)                                 │  │
- │  │  ├─ DORA Metrics export (AI/ML/LLM projects only if applicable)                │  │
- │  │  └─ Audit trail export (immutable, compliance-ready)                           │  │
- │  └────────────────────────────────────────────────────────────────────────────────┘  │
+│  ┌────────────────────────────────────────────────────────────────────────────────┐  │
+│  │  CLEANUP + GOVERNANCE (Paso 6 del ciclo — post-merge)                         │  │
+│  │  ├─ Stale branch cleanup (gh, >30 days)                                        │  │
+│  │  ├─ Preview env cleanup (ephemeral, auto-destroy)                              │  │
+│  │  ├─ Container registry cleanup (untagged, old digests)                         │  │
+│  │  ├─ Artifact retention policy (rotate/archive/expire)                          │  │
+│  │  ├─ Build artifact purge (old caches, temp files)                              │  │
+│  │  ├─ Vault secrets rotation audit                                               │  │
+│  │  ├─ SBOM/Provenance archival (immutable store)                                 │  │
+│  │  ├─ DORA Metrics export (AI/ML/LLM projects only if applicable)                │  │
+│  │  └─ Audit trail export (immutable, compliance-ready)                           │  │
+│  └────────────────────────────────────────────────────────────────────────────────┘  │
  └──────────────────────────────────────────────────────────────────────────────────────┘
        │
        │  ═══════════════════════════════════════════════════════════════════════════════
@@ -3016,64 +3107,222 @@ Basado en la investigación anterior, el orden óptimo de stages es. **Cada fase
  └──────────────────────────────────────────────────────────────────────────────────────┘
 ```
 
+### 23.3.1 Governance Lifecycle — Los 6 pasos del commit al merge
+
+GOVERNANCE **no es un stage paralelo** — es un ciclo de vida que conecta el commit del dev con el merge del PR. Cada paso depende del anterior:
+
+```
+  DEV COMMIT                    GOVERNANCE                     CODE PIPELINE
+  ──────────                    ──────────                     ─────────────
+  1. git commit -m "feat:..."   2. 1 solo workflow CI         3. Testing + Security
+     └─ pre-commit hook            ├─ commitlint ✓              + Quality + Build
+        firma + lint               ├─ PR metadata ✓            (stages 2-8)
+        (GPG/sigstore +            └─ early-abort gate ✓
+         commitlint)                  (diff PR, crítico/alta,
+                                   ⚠️  signing verify ✓         segundos)
+                                   (GitHub nativo, NO CI)
+                                        │
+                                        ▼
+                              BRANCH PROTECTION              POST-DEPLOY + MERGE
+                              (passivo — lee todo)           ────────────────────
+                              4. ¿checks verdes? ✓           5. Change record
+                                 ¿approval? ✓                   + sign-off evidence
+                                 ¿commits firmados? ✓        6. Deployment record
+                                        │                       + DORA metrics
+                                        ▼                       + audit trail
+                              ┌─────────────────┐
+                              │  MERGE habilitado│
+                              └─────────────────┘
+```
+
+**Clave:** Branch Protection (paso 4) NO es un job de CI — es una configuración de GitHub Rulesets que **lee pasivamente** los resultados de todos los required checks. Si falta algún check, approval o firma, el botón "Merge" se bloquea y muestra qué falta. El dev no hace click en "Merge" hasta que todo esté verde.
+
+**⚠️ Nota sobre GOVERNANCE en Stage 2:** Los 3 items de GOVERNANCE que aparecen en el diagrama de Stage 2 (commitlint, PR metadata, early-abort) son el **mismo workflow** que el paso 2 del ciclo de Governance Lifecycle arriba — NO se re-ejecutan. El diagrama de Stage 2 muestra dónde se ejecutan físicamente en el pipeline; el Lifecycle muestra la secuencia lógica del ciclo completo.
+
+| Paso                            | ¿Quién ejecuta?  | ¿Cuándo?            | Ejemplo                                                          | CI/CD           |
+| ------------------------------- | ---------------- | ------------------- | ---------------------------------------------------------------- | --------------- |
+| 1. Commit Signing + Commit Lint | Dev (local)      | Pre-commit hook     | GPG key firma el commit + commitlint valida Conventional Commits | CI (local)      |
+| 2. PR Gate (1 solo workflow CI) | CI (automático)  | Push al PR          | commitlint, PR metadata, early-abort                             | CI              |
+| 2a. Commit Signing verify       | GitHub (nativo)  | Push al PR          | badge "Verified" — NO es job de CI                               | CI (nativo)     |
+| 3. Code Pipeline                | CI (automático)  | Después del PR gate | tests, security, quality, build                                  | CI (Stages 2–4) |
+| 4. Branch Protection            | GitHub (passivo) | Continuous          | lee required checks, approval, signing                           | CI (gate)       |
+| 5. Post-deploy Governance       | CI + humano      | Después del deploy  | change record, sign-off                                          | CD (Stages 6–9) |
+| 6. Merge + Cleanup              | CI + GitHub      | Post-merge          | DORA metrics, audit trail, cleanup                               | Post-CD         |
+
 ### 23.4 Tabla resumen: ¿Qué va antes y después del Build? (con categorías)
 
-| Categoría      | Capacidad                            | ¿Necesita build como input?               | Posición correcta        | Fuente                                                                                                                                                                                                                    |
-| -------------- | ------------------------------------ | ----------------------------------------- | ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **TESTING**    | Unit Tests (Vitest)                  | **NO** — opera sobre source TS/JS         | **ANTES del build**      | [AWS: "1. Unit tests"](https://docs.aws.amazon.com/prescriptive-guidance/latest/strategy-cicd-litmus/understanding-cicd.html)                                                                                             |
-| **TESTING**    | Snapshot Tests (Testing Library)     | **NO** — opera sobre source JSX/TSX       | **ANTES del build**      | [AWS: "1. Unit tests"](https://docs.aws.amazon.com/prescriptive-guidance/latest/strategy-cicd-litmus/understanding-cicd.html)                                                                                             |
-| **TESTING**    | Property-Based Tests (fast-check)    | **NO** — opera sobre source TS/JS         | **ANTES del build**      | [fast-check](https://fast-check.dev/) — invariantes, parsers, lógica. <1-2 min, complementa unit tests.                                                                                                                   |
-| **SECURITY**   | SAST (Semgrep, CodeQL)               | **NO** — análisis estático sobre source   | **ANTES del build**      | [GitLab SAST](https://docs.gitlab.com/ee/user/application_security/sast/)                                                                                                                                                 |
-| **SECURITY**   | SCA (Dependabot, Snyk)               | **NO** — analiza lockfiles                | **ANTES del build**      | [Snyk CI/CD](https://docs.snyk.io/implementation-guides/team-implementation-guide/phase-5-rolling-out-the-prevention-stage/add-and-configure-snyk-to-your-ci-cd-pipeline)                                                 |
-| **SECURITY**   | Secret Detection (Gitleaks)          | **NO** — archivos crudos                  | **ANTES del build**      | [OWASP DevSecOps](https://owasp.org/www-project-devsecops-guideline/)                                                                                                                                                     |
-| **SECURITY**   | IaC Scanning (Checkov/Trivy)         | **NO** — archivos de configuración        | **ANTES del build**      | [OWASP DevSecOps](https://owasp.org/www-project-devsecops-guideline/)                                                                                                                                                     |
-| **QUALITY**    | Lint (ESLint)                        | **NO** — opera sobre source code          | **ANTES del build**      | [GitLab CI/CD](https://docs.gitlab.com/ee/ci/pipelines/)                                                                                                                                                                  |
-| **QUALITY**    | Format (Prettier)                    | **NO** — opera sobre source code          | **ANTES del build**      | [GitLab CI/CD](https://docs.gitlab.com/ee/ci/pipelines/)                                                                                                                                                                  |
-| **QUALITY**    | Type Check (tsc --noEmit)            | **NO** — opera sobre source TS            | **ANTES del build**      | [TypeScript tsconfig](https://www.typescriptlang.org/tsconfig)                                                                                                                                                            |
-| —              | **BUILD** (compile, bundle)          | —                                         | **BUILD**                | [AWS: "2. Code build"](https://docs.aws.amazon.com/prescriptive-guidance/latest/strategy-cicd-litmus/understanding-cicd.html)                                                                                             |
-| **TESTING**    | Integration Tests                    | **SÍ** — necesita artifact compilado      | **POST-BUILD**           | [AWS: "4. Integration tests"](https://docs.aws.amazon.com/prescriptive-guidance/latest/strategy-cicd-litmus/understanding-cicd.html)                                                                                      |
-| **TESTING**    | Contract Tests (Pact)                | **SÍ** — necesita artifact compilado      | **POST-BUILD**           | [AWS: "4. Integration tests"](https://docs.aws.amazon.com/prescriptive-guidance/latest/strategy-cicd-litmus/understanding-cicd.html)                                                                                      |
-| **SECURITY**   | Container Scan (Trivy image)         | **SÍ** — necesita Docker image            | **POST-BUILD**           | [SLSA](https://slsa.dev/spec/v1.2/levels)                                                                                                                                                                                 |
-| —              | Deploy Staging                       | **SÍ** — necesita artifact firmado        | **DEPLOY**               | [AWS DL.ADS.1](https://docs.aws.amazon.com/wellarchitected/latest/devops-guidance/)                                                                                                                                       |
-| **TESTING**    | E2E Tests (Playwright)               | **SÍ** — necesita app corriendo           | **POST-DEPLOY**          | [Fowler: Test Pyramid](https://martinfowler.com/bliki/TestPyramid.html)                                                                                                                                                   |
-| **TESTING**    | UAT / Manual Verification            | **SÍ** — necesita app corriendo           | **POST-DEPLOY**          | [Fowler: Test Pyramid](https://martinfowler.com/bliki/TestPyramid.html)                                                                                                                                                   |
-| **SECURITY**   | DAST (OWASP ZAP)                     | **SÍ** — necesita app desplegada          | **POST-DEPLOY**          | [GitLab DAST](https://docs.gitlab.com/ee/user/application_security/dast/)                                                                                                                                                 |
-| **QUALITY**    | Accessibility (axe-core)             | **SÍ** — necesita app desplegada          | **POST-DEPLOY**          | [OWASP DevSecOps](https://owasp.org/www-project-devsecops-guideline/)                                                                                                                                                     |
-| **QUALITY**    | Performance (k6)                     | **SÍ** — necesita app bajo carga          | **POST-DEPLOY**          | [AWS DL.CD.3](https://docs.aws.amazon.com/wellarchitected/latest/devops-guidance/)                                                                                                                                        |
-| **QUALITY**    | Lighthouse CI (Core Web Vitals)      | **SÍ** — necesita app desplegada          | **POST-DEPLOY**          | [AWS DL.CD.3](https://docs.aws.amazon.com/wellarchitected/latest/devops-guidance/)                                                                                                                                        |
-| **TESTING**    | Test Impact Analysis (TIA)           | **NO** — selecciona tests por diff        | **ANTES del build**      | [Launchable/Nx/Turborepo query](https://martinfowler.com/articles/continuousIntegration.html)                                                                                                                             |
-| **TESTING**    | Test Sharding (Vitest/Playwright)    | **DEPENDS** — distribuye entre runners    | **PRE-BUILD/POST-BUILD** | Parallel execution + Fast feedback (< 5 min target)                                                                                                                                                                       |
-| **TESTING**    | Smart Test Ordering (fail-first)     | **NO** — reordena por histórico de fallos | **ANTES del build**      | Fail-first strategy — rápido / previamente fallido primero                                                                                                                                                                |
-| **TESTING**    | Coverage Tripwire (floor ratchet)    | **NO** — byproduct del unit-test run      | **PRE-BUILD**            | Vitest coverage.thresholds (v8 provider) — tripwire de piso (60%), NO quality gate. El gate autoritativo es SonarQube new-code ≥80% en STAGE 4. Si unit tests pasan pero coverage bajo → build de todas formas, no merge. |
-| **GOVERNANCE** | Path-filtered entry / Skip-CI        | **NO** — change detection en source       | **ENTRY**                | [§53.3 Skip unnecessary builds](https://docs.aws.amazon.com/wellarchitected/latest/devops-guidance/)                                                                                                                      |
-| **GOVERNANCE** | Early-abort gate (lint/SAST crítico) | **NO** — aborta antes de suites largas    | **PRE-BUILD**            | Fail-fast strategy — `pytest --maxfail=1` semantics                                                                                                                                                                       |
-| **TESTING**    | Flaky Quarantine Policy              | **DEPENDS** — corre en post-build         | **POST-BUILD**           | Pass-rate < 70% → quarantine; auto-unquarantine ~7 días                                                                                                                                                                   |
-| **DEPLOY**     | Roll-forward / Hotfix-forward        | **SÍ** — necesita artifact firmado        | **DEPLOY PROD**          | Fail-forward strategy — deploy forward como alternativa al rollback                                                                                                                                                       |
-| **MONITORING** | Time-to-first-feedback (< 5 min)     | **NO** — métrica del pipeline             | **MONITOR**              | Fast feedback loop — commit → primer test resultado                                                                                                                                                                       |
-| **QUALITY**    | Complexity Rules (ESLint)            | **NO** — reglas source-level              | **ANTES del build**      | [ESLint complexity](https://eslint.org/)                                                                                                                                                                                  |
-| **QUALITY**    | SonarQube Full Analysis              | **SÍ** — necesita build + coverage data   | **POST-BUILD**           | [SonarQube Quality Gates](https://docs.sonarsource.com/sonarqube-server/quality-standards-administration/managing-quality-gates) — bugs, code smells, complexity, duplicación, MI, Halstead                               |
-| **QUALITY**    | Dependency Analysis (depcheck)       | **NO** — source-level, post-build preciso | **POST-BUILD**           | depcheck — unused deps, missing deps, unused devDeps. Más preciso post-build (imagen completa del proyecto). Falta: missing = gate fail, unused = warning.                                                                |
+| Categoría      | Capacidad                             | ¿Necesita build como input?                    | Posición correcta        | Fuente                                                                                                                                                                                                                    |
+| -------------- | ------------------------------------- | ---------------------------------------------- | ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **TESTING**    | Unit Tests (Vitest)                   | **NO** — opera sobre source TS/JS              | **ANTES del build**      | [AWS: "1. Unit tests"](https://docs.aws.amazon.com/prescriptive-guidance/latest/strategy-cicd-litmus/understanding-cicd.html)                                                                                             |
+| **TESTING**    | Snapshot Tests (Testing Library)      | **NO** — opera sobre source JSX/TSX            | **ANTES del build**      | [AWS: "1. Unit tests"](https://docs.aws.amazon.com/prescriptive-guidance/latest/strategy-cicd-litmus/understanding-cicd.html)                                                                                             |
+| **TESTING**    | Property-Based Tests (fast-check)     | **NO** — opera sobre source TS/JS              | **ANTES del build**      | [fast-check](https://fast-check.dev/) — invariantes, parsers, lógica. <1-2 min, complementa unit tests.                                                                                                                   |
+| **SECURITY**   | SAST (Semgrep, CodeQL)                | **NO** — análisis estático sobre source        | **ANTES del build**      | [GitLab SAST](https://docs.gitlab.com/ee/user/application_security/sast/)                                                                                                                                                 |
+| **SECURITY**   | SCA (Dependabot, Snyk)                | **NO** — analiza lockfiles                     | **ANTES del build**      | [Snyk CI/CD](https://docs.snyk.io/implementation-guides/team-implementation-guide/phase-5-rolling-out-the-prevention-stage/add-and-configure-snyk-to-your-ci-cd-pipeline)                                                 |
+| **SECURITY**   | Secret Detection (Gitleaks)           | **NO** — archivos crudos                       | **ANTES del build**      | [OWASP DevSecOps](https://owasp.org/www-project-devsecops-guideline/)                                                                                                                                                     |
+| **SECURITY**   | IaC Scanning (Checkov/Trivy)          | **NO** — archivos de configuración             | **ANTES del build**      | [OWASP DevSecOps](https://owasp.org/www-project-devsecops-guideline/)                                                                                                                                                     |
+| **QUALITY**    | Lint (ESLint)                         | **NO** — opera sobre source code               | **ANTES del build**      | [GitLab CI/CD](https://docs.gitlab.com/ee/ci/pipelines/)                                                                                                                                                                  |
+| **QUALITY**    | Format (Prettier)                     | **NO** — opera sobre source code               | **ANTES del build**      | [GitLab CI/CD](https://docs.gitlab.com/ee/ci/pipelines/)                                                                                                                                                                  |
+| **QUALITY**    | Type Check (tsc --noEmit)             | **NO** — opera sobre source TS                 | **ANTES del build**      | [TypeScript tsconfig](https://www.typescriptlang.org/tsconfig)                                                                                                                                                            |
+| —              | **BUILD** (compile, bundle)           | —                                              | **BUILD**                | [AWS: "2. Code build"](https://docs.aws.amazon.com/prescriptive-guidance/latest/strategy-cicd-litmus/understanding-cicd.html)                                                                                             |
+| **TESTING**    | Integration Tests                     | **SÍ** — necesita artifact compilado           | **POST-BUILD**           | [AWS: "4. Integration tests"](https://docs.aws.amazon.com/prescriptive-guidance/latest/strategy-cicd-litmus/understanding-cicd.html)                                                                                      |
+| **TESTING**    | Contract Tests (Pact)                 | **SÍ** — necesita artifact compilado           | **POST-BUILD**           | [AWS: "4. Integration tests"](https://docs.aws.amazon.com/prescriptive-guidance/latest/strategy-cicd-litmus/understanding-cicd.html)                                                                                      |
+| **SECURITY**   | Container Scan (Trivy image)          | **SÍ** — necesita Docker image                 | **POST-BUILD**           | [SLSA](https://slsa.dev/spec/v1.2/levels)                                                                                                                                                                                 |
+| —              | Deploy Staging                        | **SÍ** — necesita artifact firmado             | **DEPLOY**               | [AWS DL.ADS.1](https://docs.aws.amazon.com/wellarchitected/latest/devops-guidance/)                                                                                                                                       |
+| **TESTING**    | E2E Tests (Playwright)                | **SÍ** — necesita app corriendo                | **POST-DEPLOY**          | [Fowler: Test Pyramid](https://martinfowler.com/bliki/TestPyramid.html)                                                                                                                                                   |
+| **TESTING**    | UAT / Manual Verification             | **SÍ** — necesita app corriendo                | **POST-DEPLOY**          | [Fowler: Test Pyramid](https://martinfowler.com/bliki/TestPyramid.html)                                                                                                                                                   |
+| **SECURITY**   | DAST (OWASP ZAP)                      | **SÍ** — necesita app desplegada               | **POST-DEPLOY**          | [GitLab DAST](https://docs.gitlab.com/ee/user/application_security/dast/)                                                                                                                                                 |
+| **QUALITY**    | Accessibility (axe-core)              | **SÍ** — necesita app desplegada               | **POST-DEPLOY**          | [OWASP DevSecOps](https://owasp.org/www-project-devsecops-guideline/)                                                                                                                                                     |
+| **QUALITY**    | Performance (k6)                      | **SÍ** — necesita app bajo carga               | **POST-DEPLOY**          | [AWS DL.CD.3](https://docs.aws.amazon.com/wellarchitected/latest/devops-guidance/)                                                                                                                                        |
+| **QUALITY**    | Lighthouse CI (Core Web Vitals)       | **SÍ** — necesita app desplegada               | **POST-DEPLOY**          | [AWS DL.CD.3](https://docs.aws.amazon.com/wellarchitected/latest/devops-guidance/)                                                                                                                                        |
+| **TESTING**    | Test Impact Analysis (TIA)            | **NO** — selecciona tests por diff             | **ANTES del build**      | [Launchable/Nx/Turborepo query](https://martinfowler.com/articles/continuousIntegration.html)                                                                                                                             |
+| **TESTING**    | Test Sharding (Vitest/Playwright)     | **DEPENDS** — distribuye entre runners         | **PRE-BUILD/POST-BUILD** | Parallel execution + Fast feedback (< 5 min target)                                                                                                                                                                       |
+| **TESTING**    | Coverage Merge Gate                   | **SÍ** — necesita artifacts de shards          | **PRE-BUILD**            | Merge coverage artifacts de todos los shards + check-coverage. Requerido cuando se usa sharding — sin esto el ratchet falla falsamente.                                                                                   |
+| **TESTING**    | Smart Test Ordering (fail-first)      | **NO** — reordena por histórico de fallos      | **ANTES del build**      | Fail-first strategy — rápido / previamente fallido primero                                                                                                                                                                |
+| **TESTING**    | Coverage Tripwire (floor ratchet)     | **NO** — byproduct del unit-test run           | **PRE-BUILD**            | Vitest coverage.thresholds (v8 provider) — tripwire de piso (60%), NO quality gate. El gate autoritativo es SonarQube new-code ≥80% en STAGE 4. Si unit tests pasan pero coverage bajo → build de todas formas, no merge. |
+| **GOVERNANCE** | Path-filtered entry / Skip-CI         | **NO** — change detection en source            | **ENTRY**                | [§53.3 Skip unnecessary builds](https://docs.aws.amazon.com/wellarchitected/latest/devops-guidance/)                                                                                                                      |
+| **GOVERNANCE** | Commit Signing (GPG/sigstore)         | **NO** — local pre-commit hook                 | **PRE-COMMIT**           | GPG/sigstore gitsign firma commit antes de push                                                                                                                                                                           |
+| **GOVERNANCE** | Commit Lint (commitlint)              | **NO** — verifica mensaje commit               | **PR GATE**              | Conventional Commits enforcement — `feat(scope): desc`. 1 solo workflow CI con PR metadata checks [SL]                                                                                                                    |
+| **GOVERNANCE** | Commit Signing verify (GitHub nativo) | **NO** — GitHub verifica firma automáticamente | **PR GATE**              | GitHub muestra badge "Verified" — no es job de CI. Verificación nativa del commit firmado.                                                                                                                                |
+| **GOVERNANCE** | PR Metadata Checks (DCO, templates)   | **NO** — valida metadata del PR                | **PR GATE**              | DCO sign-off, title/body templates, labels                                                                                                                                                                                |
+| **GOVERNANCE** | Early-abort gate (SAST crítico)       | **NO** — aborta antes de suites largas         | **PR GATE**              | Solo diff del PR, severidad CRÍTICA/ALTA (SQL injection, RCE, secrets hardcoded). Segundos — pocas reglas, poco código. Fail-fast: aborta pipeline completo si falla.                                                     |
+| **GOVERNANCE** | Branch Protection + Required Checks   | **NO** — lee resultados de CI (passivo)        | **CONTINUOUS**           | GitHub Rulesets: checks verdes + approval + signing → Merge habilitado                                                                                                                                                    |
+| **GOVERNANCE** | Artifact Signing (Cosign/Sigstore)    | **SÍ** — necesita artifact compilado           | **ARTIFACT & SIGN**      | Cosign firma containers/binaries, SLSA provenance                                                                                                                                                                         |
+| **GOVERNANCE** | Change Record / Ticket Linkage        | **SÍ** — necesita deploy realizado             | **DEPLOY STAGING**       | ServiceNow/Jira linkage — trazabilidad commit → deploy                                                                                                                                                                    |
+| **GOVERNANCE** | Release Readiness + Sign-off          | **SÍ** — necesita app desplegada               | **POST-DEPLOY**          | Dashboard + acceptance record (who approved what, evidence archive)                                                                                                                                                       |
+| **GOVERNANCE** | Quality Gate (SonarQube)              | **SÍ** — necesita build + coverage             | **APPROVAL**             | SonarQube quality gate pass — bloquea merge si no pasa                                                                                                                                                                    |
+| **GOVERNANCE** | Security Gate (vuln threshold)        | **SÍ** — necesita scans completados            | **APPROVAL**             | Vulnerability severity threshold — bloquea merge si críticos/high abiertos                                                                                                                                                |
+| **GOVERNANCE** | Compliance Evidence Archive           | **SÍ** — necesita todos los scans              | **APPROVAL**             | SOC2/ISO 27001/artifact trail — evidencia para auditorías                                                                                                                                                                 |
+| **GOVERNANCE** | Deployment Event Record               | **SÍ** — necesita deploy a producción          | **DEPLOY PROD**          | Timestamp, commit SHA, artifact SHA — audit trail inmutable                                                                                                                                                               |
+| **GOVERNANCE** | DORA Metrics Capture                  | **NO** — métrica del pipeline                  | **POST-MERGE**           | Deploy frequency, lead time, change failure rate, MTTR                                                                                                                                                                    |
+| **GOVERNANCE** | Audit Trail Export                    | **NO** — exportación post-merge                | **POST-MERGE**           | Immutable, compliance-ready — para auditorías externas                                                                                                                                                                    |
+| **TESTING**    | Flaky Quarantine Policy               | **DEPENDS** — corre en post-build              | **POST-BUILD**           | Pass-rate < 70% → quarantine; **requiere humano para restaurar** (commit nuevo en archivo o aprobación manual)                                                                                                            |
+| **DEPLOY**     | Roll-forward / Hotfix-forward         | **SÍ** — necesita artifact firmado             | **DEPLOY PROD**          | Fail-forward strategy — deploy forward como alternativa al rollback                                                                                                                                                       |
+| **MONITORING** | Time-to-first-feedback (< 5 min)      | **NO** — métrica del pipeline                  | **MONITOR**              | Fast feedback loop — commit → primer test resultado                                                                                                                                                                       |
+| **QUALITY**    | Complexity Rules (ESLint)             | **NO** — reglas source-level                   | **ANTES del build**      | [ESLint complexity](https://eslint.org/)                                                                                                                                                                                  |
+| **QUALITY**    | SonarQube Full Analysis               | **SÍ** — necesita build + coverage data        | **POST-BUILD**           | [SonarQube Quality Gates](https://docs.sonarsource.com/sonarqube-server/quality-standards-administration/managing-quality-gates) — bugs, code smells, complexity, duplicación, MI, Halstead                               |
+| **QUALITY**    | Dependency Analysis (depcheck)        | **NO** — source-level, post-build preciso      | **POST-BUILD**           | depcheck — unused deps, missing deps, unused devDeps. Más preciso post-build (imagen completa del proyecto). Falta: missing = gate fail, unused = warning.                                                                |
 
 ### 23.5 Implicación para project-one
 
 Las herramientas actuales del monorepo, su posición en el orden correcto **y su categoría**:
 
-| Categoría    | Herramienta actual               | Fase correcta      | Nota                            |
-| ------------ | -------------------------------- | ------------------ | ------------------------------- |
-| —            | Husky + lint-staged + commitlint | Pre-commit (local) | Ya implementado ✅              |
-| **SECURITY** | Gitleaks (`security:secrets`)    | Pre-Build          | Pre-commit + CI                 |
-| **QUALITY**  | ESLint + Prettier                | Pre-Build          | Jobs paralelos                  |
-| **TESTING**  | Vitest (`npm run test`)          | Pre-Build          | **ANTES del build**, no después |
-| **SECURITY** | Semgrep (`sast:semgrep`)         | Pre-Build          | Job paralelo a unit tests       |
-| —            | `npm run build`                  | Build              | Solo después de Pre-Build verde |
-| **TESTING**  | Integration tests (supertest)    | Post-Build         | Necesita artifact compilado     |
-| **SECURITY** | Container scan (Trivy)           | Post-Build         | Necesita Docker image           |
-| —            | Prisma Migrate                   | Deploy Staging     | En el deploy                    |
-| **TESTING**  | Playwright (`test:e2e`)          | Post-Deploy        | Después del deploy a staging    |
-| **SECURITY** | DAST (OWASP ZAP)                 | Post-Deploy        | Necesita app corriendo          |
-| **QUALITY**  | Performance (k6)                 | Post-Deploy        | Necesita app bajo carga         |
+| Categoría      | Herramienta actual               | Fase correcta      | CI/CD        | Nota                            |
+| -------------- | -------------------------------- | ------------------ | ------------ | ------------------------------- |
+| —              | Husky + lint-staged + commitlint | Pre-commit (local) | CI (local)   | Ya implementado ✅              |
+| **SECURITY**   | Gitleaks (`security:secrets`)    | Pre-Build          | CI           | Pre-commit + CI                 |
+| **QUALITY**    | ESLint + Prettier                | Pre-Build          | CI           | Jobs paralelos                  |
+| **TESTING**    | Vitest (`npm run test`)          | Pre-Build          | CI           | **ANTES del build**, no después |
+| **SECURITY**   | Semgrep (`sast:semgrep`)         | Pre-Build          | CI           | Job paralelo a unit tests       |
+| —              | `npm run build`                  | Build              | CI           | Solo después de Pre-Build verde |
+| **TESTING**    | Integration tests (supertest)    | Post-Build         | CI           | Necesita artifact compilado     |
+| **SECURITY**   | Container scan (Trivy)           | Post-Build         | CI           | Necesita Docker image           |
+| **GOVERNANCE** | ci-complete aggregator           | Post-Build         | CI           | `if: always()`, needs ALL jobs  |
+| **GOVERNANCE** | ⚡ Push to registry (frontiera)  | Artifact & Sign    | **CD start** | Cosign, SBOM, publish           |
+| —              | Prisma Migrate                   | Deploy Staging     | CD           | En el deploy                    |
+| **TESTING**    | Playwright (`test:e2e`)          | Post-Deploy        | CD           | Después del deploy a staging    |
+| **SECURITY**   | DAST (OWASP ZAP)                 | Post-Deploy        | CD           | Necesita app corriendo          |
+| **QUALITY**    | Performance (k6)                 | Post-Deploy        | CD           | Necesita app bajo carga         |
 
 > **Recomendación para GitHub Actions:** definir los jobs de Pre-Build como **3 grupos paralelos** (Testing, Security, Quality), cada grupo con sus jobs internos paralelos, y el job de Build con `needs: [pre-build-testing, pre-build-security, pre-build-quality]`. Esto produce feedback de validación en ~1-2 minutos vs ~5-10 minutos si todo es secuencial.
+
+> **⚠️ Control de costos por paralelización:** Cada bloque matrix (sharding de tests, TIA por workspace) necesita `max-parallel` explícito (ej. `max-parallel: 4`). Sin esto, la factura de GitHub Actions escala linealmente con el tamaño de la matriz. Agregar `concurrency groups` a nivel workflow para cancelar runs obsoletos cuando llega un push nuevo al mismo PR — sin esto, cada push acumula runners corriendo en paralelo sin cancelarse.
+
+> **⚠️ Continuous Delivery, no Continuous Deployment:** Este pipeline es **Continuous Delivery** (no Continuous Deployment puro). Stage 9 tiene gate manual explícito (Environment Protection Rules, Security Review Board approval). El código siempre está en estado desplegable, pero un humano decide cuándo apretar el botón hacia Stage 10. Esto es correcto para un ERP financiero: el gate humano en Stage 9 es compliance (SoD — Segregation of Duties), no una limitación técnica.
+
+### 23.6 Coverage Merge Gate (requerido con sharding)
+
+Cuando se usa test sharding (Vitest `--shard=1/3`, `--shard=2/3`, `--shard=3/3`), cada shard reporta cobertura parcial. Sin un job explícito de merge, el coverage tripwire ratchet falla falsamente porque compara cobertura parcial contra thresholds absolutos.
+
+**Solución:** Agregar job `coverage-merge-gate` después de test sharding:
+
+```yaml
+coverage-merge-gate:
+  needs: [test-shard-1, test-shard-2, test-shard-3]
+  steps:
+    - uses: actions/download-artifact@v4
+      with:
+        pattern: coverage-*
+        merge-multiple: true
+    - run: npx vitest merge-reports --reporter=coverage
+    - run: npx vitest run --coverage --reporter=coverage
+```
+
+Este job:
+
+1. Descarga todos los artifacts de cobertura de los shards
+2. Merge los reportes con `vitest merge-reports`
+3. Ejecuta check-coverage contra los thresholds absolutos
+4. **Bloquea el pipeline si la cobertura合并后 no cumple**
+
+> **Nota:** Este job es REQUERIDO cuando se usa sharding. Sin él, el ratchet miente — puede fallar falsamente (shard con poca cobertura) o pasar falsamente (shard con cobertura artificialmente alta).
+
+### 23.7 Rollback Automation Gate (requerido para ERP)
+
+ERP deployments mutan PostgreSQL vía Prisma migrations — rollback es riesgo de datos, no solo código. Un checkbox manual "Rollback Plan documented" no verifica que el script funcione.
+
+**Solución:** Agregar job `rollback-gate` que verifique automáticamente que el rollback es ejecutable:
+
+```yaml
+rollback-gate:
+  needs: [prisma-migrate]
+  steps:
+    - name: Verify migration down exists
+      run: |
+        if [ ! -f "prisma/migrations/$(ls -t prisma/migrations | head -1)/migration_down.sql" ]; then
+          echo "⚠️ No migration_down.sql found for latest migration"
+          exit 1
+        fi
+    - name: Test rollback in staging
+      run: |
+        # Execute migration down in staging DB
+        psql $STAGING_DATABASE_URL -f prisma/migrations/$(ls -t prisma/migrations | head -1)/migration_down.sql
+        # Verify system recovers
+        curl -f $STAGING_URL/health
+```
+
+Este job:
+
+1. Verifica que existe un `migration_down.sql` para la migración más reciente
+2. Ejecuta el rollback en staging (no producción)
+3. Verifica que el sistema recupera salud después del rollback
+4. **Bloquea el deploy a producción si el rollback no funciona**
+
+> **⚠️ Mayor ROI para ERP:** Rollback no probado en producción puede corromper datos de negocio. Este gate es el más importante para ERP con DB stateful. Ver §23.3.1 paso 5 (Post-deploy Governance) para el ciclo completo.
+
+### 23.8 CI vs CD Boundary — Discriminación por Stage
+
+Según Octopus Deploy, Atlassian y DeployHQ, la distinción fundamental es:
+
+| Concepto                        | Definición                                                                                                                       | En este pipeline                                              |
+| ------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------- |
+| **CI (Continuous Integration)** | Construye confianza en el artefacto: code → tests → build. No toca infraestructura externa ni ambientes desplegados.             | Stages 1–4                                                    |
+| **CD (Continuous Delivery)**    | Mueve artefacto validado hacia ambientes reales. Siempre en estado desplegable, pero puede requerir gate humano para producción. | Stages 5–10                                                   |
+| **CD (Continuous Deployment)**  | Deploy automático a producción sin gate humano.                                                                                  | **NO aplica** — este pipeline es Delivery, no Deployment puro |
+| **Post-CD / Operación**         | Observability, cleanup, retroalimentación al ciclo.                                                                              | Stage 11                                                      |
+
+**¿Por qué Stage 5 es la frontera y no Stage 3 (Build)?**
+
+| Argumento           | Explicación                                                                                                                                                                        |
+| ------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Build ≠ publish     | Compilar (`tsc`, `vite build`) genera artefactos en `dist/` pero NO los publica ni los firma. El artefacto vive dentro del runner.                                                 |
+| Publish = CD start  | Push al registry (npm/GHCR/ECR) + Cosign + SBOM = el artefacto existe fuera del runner. A partir de aquí, el pipeline **maneja** el artefacto publicado, no solo lo **construye**. |
+| SLSA association    | La provenance se genera al publicar, no al compilar. La firma (Cosign) requiere el digest del artefacto publicado.                                                                 |
+| Industry convention | Atlassian, Octopus Deploy y DeployHQ colocan el boundary en el punto de publish/push, no en build.                                                                                 |
+
+**¿Por qué Stage 9 es manual (Delivery, no Deployment)?**
+
+| Razón                                       | Detalle                                                                                                                                             |
+| ------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| ERP compliance                              | SoD (Segregation of Duties) requiere que quien aprueba ≠ quien deploya. Stage 9 tiene `environment approval` de GitHub.                             |
+| Financial data                              | Mover datos financieros a producción sin gate humano viola SOC2/ISO 27001.                                                                          |
+| Reversibility                               | En ERP, un bad deploy puede causar pérdida de datos. El gate humano verifica que el rollback funciona (§23.7).                                      |
+| Continuous Delivery ≠ Continuous Deployment | Ambos son válidos. Delivery = siempre desplegable, humano decide cuándo. Deployment = deploy automático. Para ERP financiero, Delivery es correcto. |
+
+**Zona gris — Stage 4 (Integration Tests):**
+
+Stage 4 contiene E2E ephemeral deploy que técnicamente ya despliega algo (aunque sea efímero). Según definición estricta, esto ya empieza a mezclar CI con CD. En la práctica, la mayoría de equipos lo tratan como "CI extendido" mientras no toque staging/producción real. El artefacto efímero se destruye al terminar el job — no persiste ni se promueve.
+
+> **Decisión para project-one:** Este pipeline es **Continuous Delivery**. El gate humano en Stage 9 (Environment Protection Rules) es compliance, no limitación. Stage 11 retroalimenta al ciclo vía DORA metrics y audit trail export.
 
 ### 23.6 Fuentes de esta sección
 
@@ -3966,9 +4215,25 @@ NIST SP 800-218 define el **Secure Software Development Framework** (SSDF) — u
 | **PW — Produce Well-Secured Software** (PW.7) | Security testing SAST/DAST gates                                | CodeQL/Semgrep + DAST como merge-required status checks                                  |
 | **RV — Respond to Vulnerabilities** (RV.1)    | Aggregate findings centrally, remediate within SLAs             | Dependabot alerts + centralized vuln management con triage SLAs                          |
 
+#### Controles NIST SP 800-53 aplicables a CI/CD
+
+| Control      | Título                                        | Aplicación CI/CD                              | project-one                                             |
+| ------------ | --------------------------------------------- | --------------------------------------------- | ------------------------------------------------------- |
+| **SA-11(a)** | Developer Testing and Analysis                | Unit/integration tests, code review, SAST     | Vitest, Testing Library, Semgrep                        |
+| **SA-15(a)** | Development Tools, Techniques, and Methods    | Control de acceso a herramientas de build     | Pipeline as Code (GitHub Actions), SHA-pinned actions   |
+| **RA-5**     | Vulnerability Scanning and Monitoring         | SAST, SCA, container scanning                 | Semgrep, Gitleaks, Dependabot, dependency-review-action |
+| **CM-2**     | Baseline Configuration                        | Pipeline configuration management             | Infrastructure as Code, pipeline versioning             |
+| **CM-6**     | Configuration Settings                        | Security hardening de pipeline                | Least-privilege permissions, ephemeral runners          |
+| **SI-7**     | Software, Firmware, and Information Integrity | Artifact signing, hash verification           | Cosign keyless, SLSA provenance, GitHub attestations    |
+| **AC-2**     | Account Management                            | RBAC en pipelines, credential rotation        | GitHub Environments, OIDC tokens, least-privilege       |
+| **AU-2**     | Audit Events                                  | Audit trail, logs inmutables                  | GitHub Audit Log, DORA metrics, deployment records      |
+| **AU-3**     | Content of Audit Records                      | Trazabilidad: quién hizo qué, cuándo, por qué | PR linking, approval records, signed commits            |
+
 #### Por qué importa para compliance
 
 SSDF es el baseline para **EO 14028** secure software requirements y **OMB M-22-18 Secure Software Attestation Form** requerido de software producers vendiendo al gobierno US federal; ampliamente referenciado por FedRAMP y procurement enterprise.
+
+> **Nota:** Para mapeo detallado de cada componente del pipeline a NIST/CISA, ver §25.11.
 
 ### 25.9 Adoption Roadmap pragmático
 
@@ -3976,11 +4241,89 @@ SSDF es el baseline para **EO 14028** secure software requirements y **OMB M-22-
 | ---------------------------- | ----------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------- |
 | **1. Foundation**            | Branch protection con two-party review; pin actions por SHA; least-privilege workflow permissions     | SLSA Source L3, SSDF PW.5, Scorecard Pinned-Dependencies/Token-Permissions |
 | **2. Dependencies**          | Dependabot (npm + github-actions) con grouped updates; dependency-review-action gate; Socket.dev      | SSDF PW.4, RV.1                                                            |
-| **3. Provenance**            | `actions/attest@v4` en cada release artifact; `gh attestation verify` en deployment pipelines         | SLSA Build L2→L3, SSDF PS.3                                                |
+| **3. Provenance**            | `actions/attest@v4` en cada release artifact; `gh attestation verify` en deployment pipelines         | **SLSA Build L2** (signed provenance + SBOM), SSDF PS.3                    |
 | **4. SBOM**                  | Syft-generated CycloneDX + SPDX per release, attested                                                 | CRA/EO 14028, SSDF PO.5                                                    |
 | **5. Container signing**     | cosign keyless en registry push; admission policy en Kubernetes                                       | Sigstore verification                                                      |
 | **6. Continuous assessment** | OpenSSF Scorecard weekly con SARIF upload                                                             | Ongoing supply chain health                                                |
 | **7. Compliance evidence**   | Documentar SSDF mapping, archivar SBOMs + attestations per release, SECURITY.md con disclosure policy | EO 14028/FedRAMP attestation                                               |
+
+> **Nota para ERP:** El target recomendado es **SLSA Build L2** (hosted build + signed provenance + SBOM). SLSA L3/L4 requiere hermetic builds, two-party verification, y hardened runners — justified para distribución externa, overkill para ERP interno. Ver §23.3 diagrama para la distribución correcta de SLSA claims.
+
+### 25.10 CISA CI/CD Security Guidance
+
+#### Qué es
+
+CISA (Cybersecurity and Infrastructure Security Agency) es la agencia del DHS enfocada en protección de infraestructura crítica, incluyendo software supply chain. Publica guías operativas para asegurar CI/CD contra amenazas reales.
+
+#### Documentos clave
+
+| Documento                                                         | Enfoque                                               | Relevancia CI/CD                                      |
+| ----------------------------------------------------------------- | ----------------------------------------------------- | ----------------------------------------------------- |
+| **"Securing CI/CD"**                                              | Threat model específico para CI/CD pipelines          | 5 amenazas core + mitigaciones                        |
+| **"Defending Against Software Supply Chain Attacks"** (ANB-22-01) | Protección contra ataques en supply chain             | Typosquatting, dependency confusion, credential theft |
+| **BOD 22-01**                                                     | Binding Operational Directive para agencias federales | Requisitos de vulnerability scanning                  |
+| **KEV Catalog**                                                   | Known Exploited Vulnerabilities                       | Vulnerabilities que deben ser parcheadas urgentemente |
+| **SBOM Guidance**                                                 | Software Bill of Materials                            | SBOM como requisito para transparencia de componentes |
+
+#### 5 Amenazas CI/CD identificadas por CISA
+
+| #   | Amenaza                           | Descripción                                                | Mitigación en project-one                                           |
+| --- | --------------------------------- | ---------------------------------------------------------- | ------------------------------------------------------------------- |
+| 1   | **Compromiso de credentials**     | Tokens de CI/CD, secrets hardcodeados, OIDC identity theft | Gitleaks (pre-commit + CI), least-privilege tokens, SHA pin actions |
+| 2   | **Inyección de código malicioso** | Cambios no autorizados en pipeline, workflow tampering     | Branch protection, commit signing, PR review mandatory              |
+| 3   | **Dependencias comprometidas**    | Typosquatting, dependency confusion, hijacked packages     | Dependabot, dependency-review-action, Socket.dev                    |
+| 4   | **Artifact tampering**            | Modificación de bins/images entre build y deploy           | Artifact signing (Cosign/Sigstore), SLSA provenance                 |
+| 5   | **Acceso no autorizado**          | Permisos excesivos en runners de CI                        | Least-privilege workflow permissions, ephemeral runners             |
+
+#### Mapeo CISA → project-one
+
+| CISA Control             | Implementación en project-one                                          |
+| ------------------------ | ---------------------------------------------------------------------- |
+| Credential protection    | Gitleaks pre-commit + CI, OIDC for signing, no long-lived tokens       |
+| Pipeline integrity       | Branch protection (signed commits, 2-party review), SHA-pinned actions |
+| Dependency security      | Dependabot + dependency-review-action + Socket.dev                     |
+| Artifact integrity       | Cosign keyless signing, SLSA Build L2 attestation                      |
+| Access controls          | GitHub Environments, required reviewers, least-privilege permissions   |
+| Vulnerability management | Semgrep SAST, early-abort gate (critical/high), KEV-aware patching     |
+
+> **Fuente:** [CISA Securing CI/CD](https://www.cisa.gov/news-events/cybersecurity-advisories/aa22-118a), [CISA Supply Chain](https://www.cisa.gov/topics/cyber-threats-and-advisories/addressing-vulnerabilities/secure-software-development), [CISA KEV](https://www.cisa.gov/known-exploited-vulnerabilities-catalog)
+
+### 25.11 NIST/CISA Mapping a project-one Pipeline
+
+La siguiente tabla mapea cada componente del pipeline de project-one a los controles NIST y las guías CISA correspondientes:
+
+| Componente Pipeline                     | NIST Control                    | CISA Guidance                                               | Evidencia Generada                                |
+| --------------------------------------- | ------------------------------- | ----------------------------------------------------------- | ------------------------------------------------- |
+| **Commit Signing (GPG/sigstore)**       | SI-7 (Software Integrity)       | Pipeline integrity — autenticación de commits               | Signed commit objects, GitHub "Verified" badge    |
+| **Commit Lint (commitlint)**            | SA-11 (Developer Testing)       | Pipeline integrity — estándares de código                   | Commit validation logs                            |
+| **PR Metadata Checks**                  | AC-2 (Account Management)       | Access controls — trazabilidad de cambios                   | DCO sign-off, PR template compliance              |
+| **Early-abort gate (SAST crítico)**     | RA-5 (Vulnerability Scanning)   | Vulnerability management — fail-fast para amenazas críticas | Semgrep results (critical/high only, diff-scoped) |
+| **Gitleaks (Secret Detection)**         | RA-5 (Vulnerability Scanning)   | Credential protection — detección de secrets                | Gitleaks scan results                             |
+| **Semgrep (SAST)**                      | RA-5 (Vulnerability Scanning)   | Vulnerability management — static analysis                  | SAST findings with severity                       |
+| **ESLint / Prettier**                   | SA-11 (Developer Testing)       | Pipeline integrity — code quality gates                     | Lint/format results                               |
+| **TypeScript (tsc --noEmit)**           | SA-15 (Development Tools)       | Pipeline integrity — type safety como control               | Type check results                                |
+| **Coverage Tripwire**                   | SA-11(a) (Developer Testing)    | Vulnerability management — mínimo de testing                | Coverage reports (v8 provider)                    |
+| **Branch Protection (GitHub Rulesets)** | AC-2 (Account Management)       | Access controls — required checks, approval                 | Audit log: who approved, when                     |
+| **Artifact Signing (Cosign)**           | SI-7 (Software Integrity)       | Artifact integrity — firmas de containers/bins              | Cosign signatures, Sigstore bundle                |
+| **SBOM Generation**                     | PO.5 (SSDF)                     | SBOM Guidance — inventario de componentes                   | CycloneDX/SPDX per release                        |
+| **DORA Metrics**                        | AU-2 (Audit Events)             | Métricas de seguridad del pipeline                          | Deployment frequency, lead time, CFR, MTTR        |
+| **Audit Trail Export**                  | AU-3 (Content of Audit Records) | Compliance evidence — trazabilidad inmutable                | Immutable audit logs, compliance reports          |
+
+#### Controles NIST más relevantes para CI/CD
+
+| Control      | Título                                        | Aplicación CI/CD                                            |
+| ------------ | --------------------------------------------- | ----------------------------------------------------------- |
+| **SA-11(a)** | Developer Testing and Analysis                | Unit tests, integration tests, code review, static analysis |
+| **SA-15(a)** | Development Tools, Techniques, and Methods    | Control de acceso a herramientas de build, pipeline as code |
+| **RA-5**     | Vulnerability Scanning and Monitoring         | SAST, SCA, container scanning, dependency scanning          |
+| **CM-2**     | Baseline Configuration                        | Pipeline configuration management, infrastructure as code   |
+| **CM-6**     | Configuration Settings                        | Security hardening de pipeline, least-privilege defaults    |
+| **SI-7**     | Software, Firmware, and Information Integrity | Artifact signing, hash verification, provenance attestation |
+| **AC-2**     | Account Management                            | RBAC en pipelines, access reviews, credential rotation      |
+| **AU-2**     | Audit Events                                  | Audit trail, logs inmutables, evidence collection           |
+| **AU-3**     | Content of Audit Records                      | Quién hizo qué, cuándo, por qué — trazabilidad completa     |
+
+> **Fuente:** [NIST SP 800-53 Rev. 5](https://csrc.nist.gov/pubs/sp/800/53/r5/upd1/final), [NIST SP 800-218 SSDF](https://csrc.nist.gov/projects/ssdf), [NIST IR 8397](https://csrc.nist.gov/pubs/ir/8397/final), [CISA Securing CI/CD](https://www.cisa.gov/news-events/cybersecurity-advisories/aa22-118a)
 
 ---
 
@@ -4104,9 +4447,11 @@ Elite = **127x** faster lead time, **182x** more deployments/yr, **8x** lower CF
 
 #### Flaky tests — el costo hidden #1
 
-"a third of teams slow CI is actually 5-10 flaky tests." Las herramientas maduras (BuildPulse, Trunk Flaky Tests, Allure TestOps, Datadog Test Optimization) auto-detectan, quarantinan (auto-unquarantine después de ~7 clean days), y miden flake impact en hours/PRs-blocked.
+"a third of teams slow CI is actually 5-10 flaky tests." Las herramientas maduras (BuildPulse, Trunk Flaky Tests, Allure TestOps, Datadog Test Optimization) auto-detectan, quarantinan, y miden flake impact en hours/PRs-blocked.
 
-**Quarantine workflow:** state machine — quarantine blockea PR merge pero sigue corriendo; auto-unquarantine después de ~7 clean days; >3 retries usualmente significa remediation, no más retries.
+**Quarantine workflow:** state machine — quarantine blockea PR merge pero sigue corriendo; **requiere humano para restaurar** (verificar commit nuevo en archivo del test en 7 días, o aprobación manual); >3 retries usualmente significa remediation, no más retries.
+
+> **⚠️ Peligro del auto-restore automático:** Restaurar un test flaky después de 7 días sin verificación humana puede reintroducir un test que detecta un bug real (no flaky) sin que nadie lo haya investigado. Para ERP (finance, inventory), perder un defecto intermitente es costoso. El timer solo sirve como recordatorio, no como gate de reactivación.
 
 #### Test Parallelization (caso documentado)
 
@@ -5978,29 +6323,45 @@ jobs:
 
 ### 37.1 Descripción
 
-Compliance en CI/CD significa que cada cambio de código e infraestructura tiene **evidencia auditble** de quién hizo qué, cuándo, y por qué. Frameworks como SOC 2, HIPAA, PCI-DSS, y GDPR requieren trazabilidad, controles de acceso, y evidencia de que los procesos se siguen. CI/CD automatiza la recolección de evidencia: cada pipeline run genera logs, approvals, test results, y deploy records.
+Compliance en CI/CD significa que cada cambio de código e infraestructura tiene **evidencia auditble** de quién hizo qué, cuándo, y por qué. Frameworks como SOC 2, HIPAA, PCI-DSS, GDPR, y **marcos NIST/CISA** requieren trazabilidad, controles de acceso, y evidencia de que los procesos se siguen. CI/CD automatiza la recolección de evidencia: cada pipeline run genera logs, approvals, test results, y deploy records.
 
 ### 37.2 Objetivo de negocio
 
-- Pass audit requirements (SOC 2 Type II, PCI-DSS, HIPAA) con evidencia automatizada.
+- Pass audit requirements (SOC 2 Type II, PCI-DSS, HIPAA, **NIST SP 800-53**) con evidencia automatizada.
 - Reducir tiempo de auditoría de semanas a horas con evidencia pre-recopilada.
 - Cumplir GDPR con data retention policies y right-to-erasure automation.
+- Cumplir **EO 14028** y **OMB M-22-18** con SBOM + attestations per release.
 - Crear cultura de accountability con approvals y audit trails.
 
 ### 37.3 Prácticas recomendadas (exhaustivo)
 
 1. **Approval gates para producción:** GitHub Environments con required reviewers. Cada deploy a prod requiere aprobación humana registrada. Audit log: quién aprobó, cuándo. Fuente: [GitHub Environments](https://docs.github.com/en/actions/deployment/targeting-different-environments/using-environments-for-deployment)
-2. **Signed commits:** commit signing con GPG/SSH keys o Sigstore. Verificar que commits no son spoofados. Branch protection: require signed commits.
+2. **Signed commits:** commit signing con GPG/SSH keys o Sigstore. Verificar que commits no son spoofados. Branch protection: require signed commits. **NIST SI-7, CISA Pipeline Integrity.**
 3. **Automated evidence collection:** pipeline genera artifacts de evidencia: test results, security scans, deploy manifests, approval records. Retener por 7+ años para SOC2. Fuente: [SOC 2](https://www.aicpa-cima.com/topic/audit-assurance/audit-and-assurance-greater-than-soc-2)
 4. **Change control automation:** cada change tiene ticket (Jira/Linear), PR, review, CI pass, approval, deploy. Cadena completa trazable. PR linking con ticket.
-5. **Access reviews periódicos:** revisar quién tiene acceso a GitHub secrets, cloud accounts, databases. Automatizar con access review tools. Target: quarterly.
+5. **Access reviews periódicos:** revisar quién tiene acceso a GitHub secrets, cloud accounts, databases. Automatizar con access review tools. Target: quarterly. **NIST AC-2.**
 6. **Compliance-as-Code:** definir reglas de compliance como código verificable (OPA policies, Checkov rules, custom scripts). Ejecutar en CI como gates. Fuente: [OPA](https://www.openpolicyagent.org/)
-7. **Audit log aggregation:** centralizar logs de CI/CD (GitHub audit log, cloud audit logs, Vault audit log). SIEM integration (Splunk, Datadog, ELK).
+7. **Audit log aggregation:** centralizar logs de CI/CD (GitHub audit log, cloud audit logs, Vault audit log). SIEM integration (Splunk, Datadog, ELK). **NIST AU-2, AU-3.**
 8. **Data retention policies:** logs de CI retener X días, artifacts Y meses. Automatizar cleanup. Cumplir con GDPR right-to-erasure para datos de usuarios.
 9. **Incident response automation:** runbooks ejecutables, alertas automatizadas, on-call rotation. Post-mortems blameless documentados. Fuente: [PagerDuty](https://www.pagerduty.com/)
 10. **Vendor assessment:** evaluar riesgo de dependencias de CI/CD (GitHub Actions marketplace, Docker Hub, npm). SLSA compliance para supply chain.
+11. **SBOM generation per release:** generar CycloneDX/SPDX SBOM para cada release. Archivar con attestation. **Requerido por EO 14028 y EU CRA. NIST PO.5.**
+12. **Vulnerability management SLA:** definir SLAs de remediación por severidad (critical: 24h, high: 7d, medium: 30d). **CISA KEV-aware patching.**
 
-### 37.4 Herramientas comunes
+### 37.4 Mapeo NIST/CISA a Compliance Practices
+
+| Practice              | NIST Control                    | CISA Guidance       | Evidence Generated                           |
+| --------------------- | ------------------------------- | ------------------- | -------------------------------------------- |
+| Approval gates        | AC-2 (Account Management)       | Access controls     | Audit log: approver, timestamp               |
+| Signed commits        | SI-7 (Software Integrity)       | Pipeline integrity  | Signed commit objects                        |
+| Automated evidence    | AU-2 (Audit Events)             | Compliance evidence | Test results, scan reports, deploy manifests |
+| Access reviews        | AC-2 (Account Management)       | Access controls     | Quarterly access review records              |
+| Compliance-as-Code    | CM-6 (Configuration Settings)   | Security hardening  | OPA/Checkov scan results                     |
+| Audit log aggregation | AU-3 (Content of Audit Records) | Audit trail         | Centralized logs, SIEM alerts                |
+| SBOM generation       | PO.5 (SSDF)                     | SBOM Guidance       | CycloneDX/SPDX per release                   |
+| Vuln management SLA   | RA-5 (Vulnerability Scanning)   | KEV-aware patching  | SLA compliance reports                       |
+
+### 37.5 Herramientas comunes
 
 | Categoría             | Herramientas                                     |
 | --------------------- | ------------------------------------------------ |
@@ -6044,6 +6405,12 @@ Compliance en CI/CD significa que cada cambio de código e infraestructura tiene
 - https://www.openpolicyagent.org/
 - https://www.pagerduty.com/
 - https://docs.aws.amazon.com/awscloudtrail/latest/userguide/cloudtrail-user-guide.html
+- **NIST:** https://csrc.nist.gov/pubs/sp/800/53/r5/upd1/final (SP 800-53 Rev. 5)
+- **NIST SSDF:** https://csrc.nist.gov/projects/ssdf (SP 800-218)
+- **NIST IR 8397:** https://csrc.nist.gov/pubs/ir/8397/final (CI/CD Controls)
+- **CISA Securing CI/CD:** https://www.cisa.gov/news-events/cybersecurity-advisories/aa22-118a
+- **CISA Supply Chain:** https://www.cisa.gov/topics/cyber-threats-and-advisories/addressing-vulnerabilities/secure-software-development
+- **CISA KEV:** https://www.cisa.gov/known-exploited-vulnerabilities-catalog
 
 ### 37.9 Ejemplo práctico — GitHub Actions
 
