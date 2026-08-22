@@ -7,9 +7,10 @@ on:
   pull_request:
     branches:
       - main
+  merge_group: {}
 
 concurrency:
-  group: pr-${{ github.event.pull_request.number }}
+  group: ${{ github.event_name == 'merge_group' && 'merge-group-${{ github.event.merge_group.head_ref }}' || 'pr-${{ github.event.pull_request.number }}' }}
   cancel-in-progress: true
 
 jobs:
@@ -42,9 +43,124 @@ jobs:
               - 'package-lock.json'
               - '.github/workflows/**'
 
-  # ═══════════════════════════════════════════════════════════════
+# ═══════════════════════════════════════════════════════════════
   # STAGE 2: PRE-BUILD QUALITY — Source code analysis (parallel)
   # ═══════════════════════════════════════════════════════════════
+  # verify-signatures (G3) — Verifica firma de commits vía GitHub REST API
+  # ═══════════════════════════════════════════════════════════════
+  verify-signatures:
+    name: Verify Commit Signatures
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    if: github.event_name == 'pull_request' || github.event_name == 'merge_group'
+    steps:
+      - name: Detect event type and set SHAs
+        id: detect_event
+        run: |
+          if [ "${{ github.event_name }}" = "merge_group" ]; then
+            echo "event_type=merge_group" >> $GITHUB_OUTPUT
+            # For merge_group, use the commit SHA that triggered the workflow
+            SHA="${{ github.sha }}"
+            echo "single_sha=$SHA" >> $GITHUB_OUTPUT
+            
+          else
+            echo "event_type=pull_request" >> $GITHUB_OUTPUT
+            echo "pr_number=${{ github.event.pull_request.number }}" >> $GITHUB_OUTPUT
+          fi
+  
+      - name: Debug PR number
+        if: steps.detect_event.outputs.event_type == 'pull_request'
+        run: |
+          echo "PR number: ${{ steps.detect_event.outputs.pr_number }}"
+  
+      - name: Fetch PR commits via REST API
+        if: steps.detect_event.outputs.event_type == 'pull_request'
+        id: fetch_commits
+        run: |
+          set -e
+          SHAS=""
+          PAGE=1
+          while true; do
+            # Fetch with HTTP status capture to detect non-200 responses (e.g. server-only PRs → 404)
+            RESPONSE=$(curl -s -w "\n%{http_code}" -H "Authorization: Bearer ${{ github.token }}" \
+              "https://api.github.com/repos/${{ github.repository }}/pulls/${{ steps.detect_event.outputs.pr_number }}/commits?per_page=100&page=${PAGE}")
+            HTTP_CODE=$(echo "$RESPONSE" | tail -1)
+            RESPONSE_BODY=$(echo "$RESPONSE" | sed '$d')
+
+            # Validate HTTP status 200
+            if [ "$HTTP_CODE" != "200" ]; then
+              echo "ERROR: HTTP status $HTTP_CODE fetching commits page $PAGE" >&2
+              break
+            fi
+
+            # Validate response is JSON array — guard against non-array responses
+            if ! echo "$RESPONSE_BODY" | jq -e 'type=="array"' > /dev/null 2>&1; then
+              echo "ERROR: Response is not a JSON array (page $PAGE)" >&2
+              break
+            fi
+
+            COUNT=$(echo "$RESPONSE_BODY" | jq '. | length')
+            if [ "$COUNT" -eq 0 ]; then
+              break
+            fi
+            SHAS_NEW=$(echo "$RESPONSE_BODY" | jq -r '.[].sha')
+            echo "$RESPONSE_BODY" | jq -r '.[] | select(.verification.verified == true) | .sha' >> ok_shas.txt
+            echo "$RESPONSE_BODY" | jq -r '.[] | select(.verification.verified != true) | .sha' >> failed_shas.txt
+            SHAS="$SHAS $SHAS_NEW"
+            PAGE=$((PAGE + 1))
+          done
+          echo "found_shas=$SHAS" >> $GITHUB_OUTPUT
+          echo "PR commits classified:"
+          [ -f ok_shas.txt ] && sed 's/^/  VERIFIED: /' ok_shas.txt
+          [ -f failed_shas.txt ] && sed 's/^/  UNVERIFIED: /' failed_shas.txt
+          exit 0
+        timeout-minutes: 10
+  
+      - name: Fetch single commit verification (merge_group fallback)
+        if: steps.detect_event.outputs.event_type == 'merge_group'
+        run: |
+          SHA="${{ steps.detect_event.outputs.single_sha }}"
+          VERIFIED=$(curl -s -H "Authorization: Bearer ${{ github.token }}" \
+            "https://api.github.com/repos/${{ github.repository }}/commits/$SHA" | jq -r '.verification.verified')
+          if [ "$VERIFIED" = "true" ]; then
+            echo "$SHA" >> ok_shas.txt
+          else
+            echo "$SHA" >> failed_shas.txt
+          fi
+  
+      - name: Check verification results
+        id: verify_results
+        run: |
+          FAILED_SHAS=""
+          if [ -f failed_shas.txt ] && [ "$(cat failed_shas.txt)" != "" ]; then
+            FAILED_SHAS=$(cat failed_shas.txt)
+          fi
+          if [ -n "$FAILED_SHAS" ]; then
+            echo "failed=true" >> $GITHUB_OUTPUT
+            echo "failed_shas=$FAILED_SHAS" >> $GITHUB_OUTPUT
+            exit 1
+          else
+            echo "failed=false" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+        timeout-minutes: 10
+      - name: Informative report (non-blocking)
+        if: always()
+        run: |
+          echo "=== Commit Verification Report ==="
+          if [ -f ok_shas.txt ]; then
+            echo "Verified commits:"
+            cat ok_shas.txt
+          fi
+          if [ -f failed_shas.txt ]; then
+            echo "Non-verified commits:"
+            cat failed_shas.txt
+          fi
+          echo "=== End Report ==="
+        timeout-minutes: 5
+    # Job-level continue-on-error for non-blocking mode
+    continue-on-error: true
 
   # --- Client Pre-Build ---
   client-lint:
@@ -417,6 +533,7 @@ jobs:
       - test-integration
       - test-smoke
       - e2e
+      - verify-signatures
       - zombie-workflow-guard
     steps:
       - name: Check for failures
