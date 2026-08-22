@@ -42,15 +42,19 @@ La ruta completa de CI/CD del proyecto tiene **4 niveles**. Este índice corresp
 
 ## 📚 Guías del nivel Avanzado
 
-| #   | Guía                                                                              | Descripción                                                               | Tiempo estimado |
-| --- | --------------------------------------------------------------------------------- | ------------------------------------------------------------------------- | --------------- |
-| 11  | [Conceptos de CD y AWS](./11-cd-conceptos-aws.md)                                 | CI vs CD, blue-green y canary, AWS desde cero, inventario de servicios    | 60-90 min       |
-| 12  | [Floci: emulador de AWS](./12-floci-emulador-aws.md)                              | Qué es Floci, vs LocalStack, docker-compose.preview.yml, hands-on         | 60-90 min       |
-| 13  | [Walkthrough de deploy.yml](./13-deploy-yml-walkthrough.md)                       | Fase 1 (build) y Fase 2 (ECR + staging + producción), gating, secrets     | 90-120 min      |
-| 14  | [Entornos de preview (preview.yml)](./14-preview-environments-yml.md)             | Triggers, Floci + Postgres, Prisma migrate, smoke tests, comentario en PR | 90-120 min      |
-| 15  | [OIDC sin credenciales estáticas](./15-oidc-sin-credenciales-estaticas.md)        | Por qué OIDC, flujo JWT, trust policy, mínimo privilegio                  | 60-90 min       |
-| 16  | [ECS: circuit breaker y health checks](./16-ecs-circuit-breaker-health-checks.md) | Task definition por SHA, force-new-deployment, rollback, smoke tests      | 60-90 min       |
-| 17  | [Changesets y release.yml](./17-changesets-release-yml.md)                        | Flujo de release, changesets/action, fetch-depth 0, .changeset/           | 60-90 min       |
+| #   | Guía                                                                              | Descripción                                                                      | Tiempo estimado |
+| --- | --------------------------------------------------------------------------------- | -------------------------------------------------------------------------------- | --------------- | ----------------------------------------------- |
+| 11  | [Conceptos de CD y AWS](./11-cd-conceptos-aws.md)                                 | CI vs CD, blue-green y canary, AWS desde cero, inventario de servicios           | 60-90 min       |
+| 12  | [Floci: emulador de AWS](./12-floci-emulador-aws.md)                              | Qué es Floci, vs LocalStack, docker-compose.preview.yml, hands-on                | 60-90 min       |
+| 13  | [Walkthrough de deploy.yml](./13-deploy-yml-walkthrough.md)                       | Fase 1 (build) y Fase 2 (ECR + staging + producción), gating, secrets            | 90-120 min      |
+| 14  | [Entornos de preview (preview.yml)](./14-preview-environments-yml.md)             | Triggers, Floci + Postgres, Prisma migrate, smoke tests, comentario en PR        | 90-120 min      |
+| 15  | [OIDC sin credenciales estáticas](./15-oidc-sin-credenciales-estaticas.md)        | Por qué OIDC, flujo JWT, trust policy, mínimo privilegio                         | 60-90 min       |
+| 16  | [ECS: circuit breaker y health checks](./16-ecs-circuit-breaker-health-checks.md) | Task definition por SHA, force-new-deployment, rollback, smoke tests             | 60-90 min       |
+| 17  | [Changesets y release.yml](./17-changesets-release-yml.md)                        | Flujo de release, changesets/action, fetch-depth 0, .changeset/                  | 60-90 min       |
+| 05b | [Firma de Commits SSH ed25519](./05b-commit-signing.md)                           | Firma local ed25519, ruleset GitHub, OpenSpec `ci-commit-signing`, 6 fases F0-F5 | 60-90 min       | **05b** _(transversal: git local, antes de CI)_ |
+
+5. **Guía 05 — Husky Git Hooks**: husky y hooks locales (pre-commit, commit-msg, pre-push).
+6. **Guía 05b — Firma de Commits SSH ed25519**: firma local ed25519, reglaset GitHub, OpenSpec `ci-commit-signing`. _Transversal: cubre conceptos git local aplicables antes de avanzar al nivel CD._
 
 ### Orden de lectura recomendado
 
@@ -61,6 +65,9 @@ Las guías están ordenadas de forma **acumulativa**: cada una asume los concept
 3. Continúa con las **guías 13 y 14** (walkthroughs de deploy.yml y preview.yml) — son las dos caras del despliegue: producción y preview.
 4. Profundiza con las **guías 15 y 16** (OIDC y ECS) — la seguridad y la robustez del despliegue.
 5. Cierra con la **guía 17** (Changesets) — el flujo de release que publica el trabajo de todo el nivel.
+6. **Guía 05b — Firma de Commits SSH ed25519**: reforzando la capa de autoría y supply-chain security, con conceptos que se conectan con la guía 05 (husky hooks) y preparando el terreno para el nivel Profesional. Útil como transición antes de las guías 18-23 de seguridad profesional.
+
+> **Nota**: La guía 05b cubre conceptos de firma git que son independientes del nivel Avanzado CD, por eso se inserta después de la guía 05 (nivel Intermedio) como guía transversal.
 
 ## 🔍 Descripción detallada de las guías
 
@@ -163,6 +170,24 @@ Las guías están ordenadas de forma **acumulativa**: cada una asume los concept
 - Concurrency group `release` con `cancel-in-progress: false`.
 
 **Hands-on**: crear un changeset, ver el PR de versionado y seguir una release real.
+
+### Guía 05b — Firma de Commits SSH ed25519
+
+**Objetivo**: cerrar el nivel Avanzado con la capa de firma de commits y ruleset de enforcement. Aprenderás a configurar una clave SSH ed25519 dedicada, firmar commits localmente, y comprender las 6 fases del cambio OpenSpec `ci-commit-signing` (F0-F5), desde la configuración inicial hasta el ruleset de enforcement en `main`. Diferenciarás cuándo el ruleset nativo de GitHub basta y cuándo el job `verify-signatures` (F2) es indispensable, especialmente en squash-merge flujos.
+
+**Contenido destacado**:
+
+- Problema de autoría falsificable en Git y el vacío de firma.
+- Cómo funciona la firma: clave privada local → badge Verified en GitHub.
+- Tabla comparativa de métodos: GPG/SSH/S-MIME/sigstore (estatus Verified vs Unverified).
+- **Por qué este repo elige SSH ed25519** (sin gpg-agent, rotación, compatibilidad git >= 2.34).
+- Las 6 fases del OpenSpec `ci-commit-signing` (F0-F5): documentación, clave local, job CI, spike release, modo vigilant, ruleset.
+- El hueco del squash-merge: ruleset nativo suficiente para merge-commit/rebase, pero insuficiente para squash-merge — ahí es donde F2 marca la diferencia.
+- Flujo completo ASCII: máquina ↔ GitHub (firmado → badge → CI gate → enforcement).
+- Qué NO hace: no reescribe 374 legacy, no toca Husky, no firma tags, no usa gitsign.
+- Impacto enterprise: supply chain security, compliance SOC2/PCI-DSS, confianza colaboradores, política estándar orgs.
+
+**Hands-on**: generar clave `id_ed25519_projectERP`, configurar `git config --global gpg.format ssh` + `user.signingkey` + `commit.gpgsign true`, verificar con `git log --show-signature`, y ejecutar el job `verify-signatures` en CI.
 
 ## 🧑‍🏫 Cómo usar este nivel
 
@@ -340,19 +365,20 @@ Si necesitas repasar los conceptos previos, vuelve al [índice de Intermedio](./
 
 ### Nivel siguiente: Profesional
 
-El nivel **Profesional** (guías 18+, 🔜 próximamente) cubrirá Terraform avanzado, observabilidad, optimización de costos y seguridad avanzada. Este nivel Avanzado es el prerequisito directo.
+El nivel **Profesional** (guías 05b+, 🔜 próximamente) cubrirá Terraform avanzado, observabilidad, optimización de costos y seguridad avanzada. Este nivel Avanzado es el prerequisito directo.
 
 ### Índice de guías
 
-| Guía | Título                    | Anterior                                        | Siguiente                                       |
-| ---- | ------------------------- | ----------------------------------------------- | ----------------------------------------------- |
-| 11   | Conceptos de CD y AWS     | [10-testing-pipeline](./10-testing-pipeline.md) | [12](./12-floci-emulador-aws.md)                |
-| 12   | Floci: emulador de AWS    | [11](./11-cd-conceptos-aws.md)                  | [13](./13-deploy-yml-walkthrough.md)            |
-| 13   | Walkthrough de deploy.yml | [12](./12-floci-emulador-aws.md)                | [14](./14-preview-environments-yml.md)          |
-| 14   | Entornos de preview       | [13](./13-deploy-yml-walkthrough.md)            | [15](./15-oidc-sin-credenciales-estaticas.md)   |
-| 15   | OIDC sin credenciales     | [14](./14-preview-environments-yml.md)          | [16](./16-ecs-circuit-breaker-health-checks.md) |
-| 16   | ECS circuit breaker       | [15](./15-oidc-sin-credenciales-estaticas.md)   | [17](./17-changesets-release-yml.md)            |
-| 17   | Changesets y release      | [16](./16-ecs-circuit-breaker-health-checks.md) | [README Avanzado](./avanzado-README.md)         |
+| Guía | Título                       | Anterior                                        | Siguiente                                       |
+| ---- | ---------------------------- | ----------------------------------------------- | ----------------------------------------------- |
+| 11   | Conceptos de CD y AWS        | [10-testing-pipeline](./10-testing-pipeline.md) | [12](./12-floci-emulador-aws.md)                |
+| 12   | Floci: emulador de AWS       | [11](./11-cd-conceptos-aws.md)                  | [13](./13-deploy-yml-walkthrough.md)            |
+| 13   | Walkthrough de deploy.yml    | [12](./12-floci-emulador-aws.md)                | [14](./14-preview-environments-yml.md)          |
+| 14   | Entornos de preview          | [13](./13-deploy-yml-walkthrough.md)            | [15](./15-oidc-sin-credenciales-estaticas.md)   |
+| 15   | OIDC sin credenciales        | [14](./14-preview-environments-yml.md)          | [16](./16-ecs-circuit-breaker-health-checks.md) |
+| 16   | ECS circuit breaker          | [15](./15-oidc-sin-credenciales-estaticas.md)   | [17](./17-changesets-release-yml.md)            |
+| 17   | Changesets y release         | [16](./16-ecs-circuit-breaker-health-checks.md) | [README Avanzado](./avanzado-README.md)         |
+| 05b  | Firma de Commits SSH ed25519 | [05](./05-husky-git-hooks.md)                   | [README Avanzado](./avanzado-README.md)         |
 
 ---
 
