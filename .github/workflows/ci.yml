@@ -201,7 +201,7 @@ jobs:
           fetch-depth: 0
       - uses: ./.github/actions/setup-monorepo
       - name: TypeCheck (no-op until TS migration)
-        run: npx tsc --noEmit 2>/dev/null || echo "TypeCheck: no-op until TS migration"
+        run: 'npx tsc --noEmit 2>/dev/null || echo "TypeCheck: no-op until TS migration"'
         working-directory: apps/client
 
   client-complexity:
@@ -216,7 +216,7 @@ jobs:
           fetch-depth: 0
       - uses: ./.github/actions/setup-monorepo
       - name: Check complexity
-        run: npx eslint --rule '{"complexity": ["error", 15]}' "src/**/*.{js,jsx}"
+        run: 'npx eslint --rule ''{"complexity": ["error", 15]}'' "src/**/*.{js,jsx}"'
         working-directory: apps/client
 
   client-dead-code:
@@ -287,7 +287,7 @@ jobs:
           fetch-depth: 0
       - uses: ./.github/actions/setup-monorepo
       - name: TypeCheck (no-op until TS migration)
-        run: npx tsc --noEmit 2>/dev/null || echo "TypeCheck: no-op until TS migration"
+        run: 'npx tsc --noEmit 2>/dev/null || echo "TypeCheck: no-op until TS migration"'
         working-directory: apps/server
 
   server-complexity:
@@ -302,7 +302,7 @@ jobs:
           fetch-depth: 0
       - uses: ./.github/actions/setup-monorepo
       - name: Check complexity
-        run: npx eslint --rule '{"complexity": ["error", 15]}' "src/**/*.js"
+        run: 'npx eslint --rule ''{"complexity": ["error", 15]}'' "src/**/*.js"'
         working-directory: apps/server
 
   server-dead-code:
@@ -371,7 +371,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - run: echo "server-build: no-op (source-level, D8)"
+      - run: 'echo "server-build: no-op (source-level, D8)"'
 
   # ═══════════════════════════════════════════════════════════════
   # STAGE 4: POST-BUILD QUALITY — Artifact analysis
