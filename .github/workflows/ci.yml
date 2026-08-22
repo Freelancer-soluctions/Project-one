@@ -10,7 +10,7 @@ on:
   merge_group: {}
 
 concurrency:
-  group: ${{ github.event_name == 'merge_group' && 'merge-group-${{ github.event.merge_group.head_ref }}' || 'pr-${{ github.event.pull_request.number }}' }}
+  group: ${{ github.event_name == 'merge_group' && format('merge-group-{0}', github.event.merge_group.head_ref) || format('pr-{0}', github.event.pull_request.number) }}
   cancel-in-progress: true
 
 jobs:
