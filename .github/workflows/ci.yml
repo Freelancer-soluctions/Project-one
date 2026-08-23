@@ -97,7 +97,14 @@ jobs:
           # ruleset protects main independently of this branch. Commits authored
           # before ROLLOUT_DATE are counted as grandfathered and do NOT fail;
           # only unsigned commits dated on/after the rollout are real failures.
-          ROLLOUT_DATE="2026-08-01"
+
+          # ═══════════════════════════════════════════════════════════════
+          # ONE-TIME MIGRATION CUTOVER (PR #99): exonera el lote side-lineage sin firmar
+          # (113 commits ago 1-23 integrados via merge 6dad0fe). El squash-merge crea un
+          # único commit firmado por GitHub en main; el ruleset es la enforcement real.
+          # Tras mergear este PR: restaurar 2026-08-01 (tarea separada).
+          # ═══════════════════════════════════════════════════════════════
+          ROLLOUT_DATE="2026-08-24"
 
           # R1: Scoping base..head via compare endpoint
           # Replaces pagination GET /pulls/{n}/commits with server-side range filtering
@@ -183,9 +190,15 @@ jobs:
               fi
 
               # Individual check with null tolerance (.verification.verified // false)
-              # Solo si individual TAMBIÉN false → failed_shas
+              # Solo si individual TAMBIÉN false → evaluar grandfathering antes de fallar
               INDIVIDUAL=$(curl -s -H "Authorization: Bearer ${{ github.token }}" "https://api.github.com/repos/${{ github.repository }}/commits/$SHA")
-              VERIFIED=$(echo "$INDIVIDUAL" | jq -r '.verification.verified // false')
+              # Schema note: GET /commits/{sha} nests under .commit.verification; tolerate legacy flat layout too
+              VERIFIED=$(echo "$INDIVIDUAL" | jq -r '.commit.verification.verified // .verification.verified // false')
+              # Anti-stale parity: extraer AUTHOR_DATE del payload individual y aplicar
+              # la MISMA guardia de cutoff que el bulk path. Sin esta guardia, commits
+              # pre-rollout que llegan al retry quedan en failed_shas.txt
+              # (ref bug: run 32661559666, SHAs 4d1953c7/890cdc2a/110292707b/7ec00546).
+              AUTHOR_DATE=$(echo "$INDIVIDUAL" | jq -r '.commit.author.date // ""')
 
               if [ "$VERIFIED" = "true" ]; then
                 # Recovered! Move from failed to ok
@@ -195,6 +208,13 @@ jobs:
                 mv failed_shas_tmp.txt failed_shas.txt
                 ANTI_STALE_RECOVERED="$ANTI_STALE_RECOVERED $SHA"
                 echo "Anti-stale: recovered $SHA via individual check" >&2
+              elif [[ -n "$AUTHOR_DATE" && "$AUTHOR_DATE" < "$ROLLOUT_DATE" ]]; then
+                # Commit pre-rollout sin firma tras retry individual: grandfathered,
+                # NO es fallo. Remover de failed_shas y registrar en grandfathered_shas.txt.
+                echo "SKIP (grandfathered via anti-stale, $AUTHOR_DATE): $SHA" >&2
+                grep -v "^${SHA}$" failed_shas.txt > failed_shas_tmp.txt 2>/dev/null || true
+                mv failed_shas_tmp.txt failed_shas.txt
+                echo "$SHA" >> grandfathered_shas.txt
               else
                 echo "Anti-stale: individual check for $SHA also unverified" >&2
               fi
