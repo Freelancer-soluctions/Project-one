@@ -89,6 +89,16 @@ jobs:
         run: |
           set -e
 
+          # ------------------------------------------------------------
+          # Signing rollout cutoff (grandfathering). Change: ci-commit-signing.
+          # WHY: comparison ranges (main...feature) can drag hundreds of historical
+          # commits authored BEFORE mandatory signing existed. Those commits cannot
+          # be signed retroactively without rewriting history, and the main-branch
+          # ruleset protects main independently of this branch. Commits authored
+          # before ROLLOUT_DATE are counted as grandfathered and do NOT fail;
+          # only unsigned commits dated on/after the rollout are real failures.
+          ROLLOUT_DATE="2026-08-01"
+
           # R1: Scoping base..head via compare endpoint
           # Replaces pagination GET /pulls/{n}/commits with server-side range filtering
           # compare endpoint URL: base.sha...head.sha — only commits new to the PR
@@ -106,6 +116,7 @@ jobs:
             echo "found_shas=" >> $GITHUB_OUTPUT
             > ok_shas.txt
             > failed_shas.txt
+            > grandfathered_shas.txt
             exit 0
           fi
 
@@ -117,6 +128,7 @@ jobs:
           # Initialize output files
           > ok_shas.txt
           > failed_shas.txt
+          > grandfathered_shas.txt
 
           if [ "$COMMIT_COUNT" -eq 0 ]; then
             echo "ERROR: 0 commits in base..head range on pull_request event — this indicates a broken data pipeline (empty evaluation must NOT pass silently)" >&2
@@ -132,8 +144,19 @@ jobs:
           echo "$RESPONSE_BODY" | jq -r '.commits[] | .sha' | while read -r SHA; do
             # Only .verification.verified == true counts as verified
             # // false treats null/undefined as not verified without crashing
-            # REST API nests verification under .commit — top-level .verification does not exist
-            VERIFIED=$(echo "$RESPONSE_BODY" | jq -r --arg s "$SHA" '.commits[] | select(.sha == $s) | .commit.verification.verified // false')
+            # REST API nests verification under .commit (top-level .verification does not exist)
+            COMMIT_JSON=$(echo "$RESPONSE_BODY" | jq -c --arg s "$SHA" '.commits[] | select(.sha == $s)')
+            VERIFIED=$(echo "$COMMIT_JSON" | jq -r '.commit.verification.verified // false')
+            # Author date in ISO 8601 (e.g. 2026-07-15T10:30:00Z)
+            AUTHOR_DATE=$(echo "$COMMIT_JSON" | jq -r '.commit.author.date')
+
+            # Grandfathering cutoff: lexicographic compare is valid for ISO 8601 dates
+            if [[ "$AUTHOR_DATE" < "$ROLLOUT_DATE" ]]; then
+              # Historical commit predating signing rollout: grandfathered, NOT a failure
+              echo "SKIP (grandfathered, $AUTHOR_DATE): $SHA" >&2
+              echo "$SHA" >> grandfathered_shas.txt
+              continue
+            fi
 
             if [ "$VERIFIED" = "true" ]; then
               echo "$SHA" >> ok_shas.txt
@@ -184,18 +207,20 @@ jobs:
           OK_COUNT=$( [ -f ok_shas.txt ] && [ "$(cat ok_shas.txt)" != "" ] && wc -l < ok_shas.txt || echo "0" )
           FAILED_COUNT=$( [ -f failed_shas.txt ] && [ "$(cat failed_shas.txt)" != "" ] && wc -l < failed_shas.txt || echo "0" )
           ANTI_STALE_COUNT=$(echo "$ANTI_STALE_RECOVERED" | xargs -r echo | wc -w)
+          GRANDFATHERED_COUNT=$( [ -f grandfathered_shas.txt ] && [ "$(cat grandfathered_shas.txt)" != "" ] && wc -l < grandfathered_shas.txt || echo "0" )
           EXCLUDED_COUNT=0  # By scoping, compare endpoint only returns new PR commits (base..head)
 
-          found_shas=$((OK_COUNT + FAILED_COUNT + ANTI_STALE_COUNT))
+          found_shas=$((OK_COUNT + FAILED_COUNT + ANTI_STALE_COUNT + GRANDFATHERED_COUNT))
           echo "found_shas=$found_shas" >> $GITHUB_OUTPUT
           echo "ok_shas_count=$OK_COUNT" >> $GITHUB_OUTPUT
           echo "failed_shas_count=$FAILED_COUNT" >> $GITHUB_OUTPUT
           echo "anti_stale_recovered=$ANTI_STALE_COUNT" >> $GITHUB_OUTPUT
+          echo "grandfathered_count=$GRANDFATHERED_COUNT" >> $GITHUB_OUTPUT
           echo "excluded_by_scoping=$EXCLUDED_COUNT" >> $GITHUB_OUTPUT
 
           echo "Commit verification summary:" >&2
-          echo "  New commits from PR evaluated: $((OK_COUNT + FAILED_COUNT))" >&2
-          echo "  Verified: $OK_COUNT, Unverified: $FAILED_COUNT" >&2
+          echo "  New commits from PR evaluated: $((OK_COUNT + FAILED_COUNT + GRANDFATHERED_COUNT))" >&2
+          echo "  Verified: $OK_COUNT | Grandfathered: $GRANDFATHERED_COUNT | Unverified: $FAILED_COUNT" >&2
           echo "  Excluded by scoping (base..head): $EXCLUDED_COUNT (handled by compare endpoint)" >&2
           echo "  Recovered by anti-stale retry: $ANTI_STALE_COUNT" >&2
         timeout-minutes: 10
@@ -222,7 +247,14 @@ jobs:
           fi
           if [ -n "$FAILED_SHAS" ]; then
             echo "failed=true" >> $GITHUB_OUTPUT
-            echo "failed_shas=$FAILED_SHAS" >> $GITHUB_OUTPUT
+            # Multiline output requires heredoc delimiter format; plain
+            # key=value with embedded newlines crashes the runner with
+            # "Unable to process file command 'output'" (Invalid format '<sha>')
+            {
+              echo "failed_shas<<EOF"
+              echo "$FAILED_SHAS"
+              echo "EOF"
+            } >> $GITHUB_OUTPUT
             exit 1
           else
             echo "failed=false" >> $GITHUB_OUTPUT
@@ -240,6 +272,10 @@ jobs:
           if [ -f failed_shas.txt ]; then
             echo "Non-verified commits:"
             cat failed_shas.txt
+          fi
+          if [ -f grandfathered_shas.txt ] && [ "$(cat grandfathered_shas.txt)" != "" ]; then
+            echo "Grandfathered commits (pre-rollout cutoff, skipped):"
+            cat grandfathered_shas.txt
           fi
           echo "=== End Report ==="
         timeout-minutes: 5
