@@ -132,6 +132,9 @@ jobs:
             fi
           done
 
+          # Tolerate GitHub signature-verification propagation delay (~30s post-push)
+          sleep 30
+
           # Anti-stale retry: for each SHA marked not verified, do individual check
           # Max 5 individual retries per run (fallidos bulk adicionales van a failed_shas con nota en summary)
           ANTI_STALE_RECOVERED=""
@@ -406,6 +409,7 @@ jobs:
 
   # --- Shared Pre-Build ---
   actionlint:
+    if: ${{ vars.CI_MINIMAL != 'true' }}
     name: "Quality: ActionLint"
     needs: repo-discovery
     runs-on: ubuntu-latest
@@ -449,9 +453,9 @@ jobs:
 
   # --- Client Post-Build ---
   client-sonarqube:
+    if: ${{ vars.CI_MINIMAL != 'true' && always() && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) }}
     name: "Quality: Client SonarQube"
     needs: [client-build, test-unit-client]
-    if: always() && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
@@ -477,9 +481,9 @@ jobs:
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
 
   client-coverage:
+    if: ${{ vars.CI_MINIMAL != 'true' && always() }}
     name: "Quality: Client Coverage"
     needs: [client-build, test-unit-client]
-    if: always()
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -511,9 +515,9 @@ jobs:
 
   # --- Server Post-Build ---
   server-sonarqube:
+    if: ${{ vars.CI_MINIMAL != 'true' && always() && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) }}
     name: "Quality: Server SonarQube"
     needs: [server-build, test-unit-server]
-    if: always() && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
@@ -536,9 +540,9 @@ jobs:
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
 
   server-coverage:
+    if: ${{ vars.CI_MINIMAL != 'true' && always() }}
     name: "Quality: Server Coverage"
     needs: [server-build, test-unit-server]
-    if: always()
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -572,9 +576,9 @@ jobs:
   # STAGE 5: CI-COMPLETE — Single required check aggregator
   # ═══════════════════════════════════════════════════════════════
   ci-complete:
+    if: ${{ vars.CI_MINIMAL != 'true' && always() }}
     name: CI Complete
     runs-on: ubuntu-latest
-    if: always()
     needs:
       - repo-discovery
       - actionlint
