@@ -101,16 +101,18 @@ jobs:
           fi
 
           # Extract commit count from compare response
-          COMMIT_COUNT=$(echo "$RESPONSE_BODY" | jq '.data.commits | length')
+          # NOTE: REST compare API returns top-level "commits" — there is NO ".data" wrapper
+          # (that convention only exists in GraphQL). jq null|length=0 silently otherwise.
+          COMMIT_COUNT=$(echo "$RESPONSE_BODY" | jq '.commits | length')
 
           # Initialize output files
           > ok_shas.txt
           > failed_shas.txt
 
           if [ "$COMMIT_COUNT" -eq 0 ]; then
-            echo "No new commits in range base..head (0 commits humanos a verificar)" >&2
+            echo "ERROR: 0 commits in base..head range on pull_request event — this indicates a broken data pipeline (empty evaluation must NOT pass silently)" >&2
             echo "found_shas=0" >> $GITHUB_OUTPUT
-            exit 0
+            exit 1
           fi
 
           echo "Evaluating $COMMIT_COUNT new commits from PR (base..head)" >&2
@@ -118,10 +120,10 @@ jobs:
           # Process each commit from compare endpoint
           # Null tolerance: use // false defaults; only .verification.verified == true counts as verified
           # Filtros jq no deben crashear con verification null (requisito C)
-          echo "$RESPONSE_BODY" | jq -r '.data.commits[] | .sha' | while read -r SHA; do
+          echo "$RESPONSE_BODY" | jq -r '.commits[] | .sha' | while read -r SHA; do
             # Only .verification.verified == true counts as verified
             # // false treats null/undefined as not verified without crashing
-            VERIFIED=$(echo "$RESPONSE_BODY" | jq -r --arg s "$SHA" '.data.commits[] | select(.sha == $s) | .verification.verified // false')
+            VERIFIED=$(echo "$RESPONSE_BODY" | jq -r --arg s "$SHA" '.commits[] | select(.sha == $s) | .verification.verified // false')
 
             if [ "$VERIFIED" = "true" ]; then
               echo "$SHA" >> ok_shas.txt
