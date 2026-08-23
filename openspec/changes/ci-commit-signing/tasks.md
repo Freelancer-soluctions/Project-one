@@ -17,8 +17,9 @@
 - [x] 3.2 Implementar lógica de verificación vía GitHub REST API (`verification.verified`) con `jq` + allow-list de bots (dependabot[bot], github-actions[bot] si verified=true); NUNCA `git log %G?` sin allowedSignersFile en runner. El job SHALL declarar `permissions: contents: read` y consultar exactamente: `GET /repos/{owner}/{repo}/pulls/{n}/commits` y `GET /repos/{owner}/{repo}/commits/{ref}` (campo `verification.verified`) (R5, R6, D4, m3)
 - [x] 3.3 [NON-BLOCKING] Desplegar el job en modo no-blocking: `continue-on-error: true` con salida de reporte informativo (F2 fase 1 — fail-open) (R5, D5)
 - [x] 3.4 Añadir `verify-signatures` a `needs` de `ci-complete` (D5)
-- [ ] 3.5 [BLOCKING FLIP] Tras validar en staging, eliminar `continue-on-error` para volver el job blocking (F2 fase 2) (R5, D5)
+- [x] 3.5 [BLOCKING FLIP] Tras validar en staging, eliminar `continue-on-error` para volver el job blocking (F2 fase 2) (R5, D5)
   > NOTA (post-staging hardening 2026-08-22): scoping base..head + anti-stale retry + null tolerance validados en staging (run 32559337513, PR #93). Cubierto por 3.2/3.5; no anade tareas.
+  > COMPLETADO 2026-08-22: JOB_VALIDATED=true — run 32617352968, job "Verify Commit Signatures" success, 3/3 commits verificados con fix `.commit.verification.verified`. `continue-on-error` eliminado → job ahora blocking (F2 fase 2).
 
 ## 4. Release.yml migration (G4)
 
