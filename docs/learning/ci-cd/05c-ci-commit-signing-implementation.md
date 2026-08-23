@@ -522,6 +522,38 @@ ci-commit-signing
 
 ---
 
+## 🏁 Resolución Final (post-mortem del desbloqueo)
+
+### 🧩 Historias desconectadas
+
+`git merge-base` entre `feature/ai-setup` y `origin/main` devolvía **vacío**: raíces distintas (`6799fe4` vs `1595f3c`). Herencia directa de la reconstrucción de historia previa del repo.
+
+### 🟢 Falso verde del check `Verify Commit Signatures`
+
+El check daba ✅ pero **no replicaba la verificación nativa de GitHub**: `required_signatures` evalúa **TODOS los commits del PR**, no solo HEAD. Un check que solo inspecciona HEAD no puede predecir el veredicto del ruleset.
+
+### 🚫 Action inexistente: `peter-evans/git-commit-signer`
+
+La action **NO existe** (404). Fue inventada/copiada mal, lo que produjo una cascada de pasos en estado `SKIP`.
+
+### 🔓 Desbloqueo
+
+Bypass temporal (**Repository admin**) del ruleset + **squash-merge del PR #99** → `main` recibió **UN commit firmado por GitHub**: el squash colapsa el lote contaminado en un único commit con firma válida emitida por GitHub.
+
+### 💡 Lección clave
+
+> Con flujo **squash-merge**, verificar los commits individuales del PR es higiene; la enforcement real son las `required_signatures` sobre lo que ENTRA a `main`.
+
+### 📍 Estado final
+
+| Elemento         | Estado                                         |
+| ---------------- | ---------------------------------------------- |
+| `main`           | Limpio — solo entran commits firmados          |
+| Feature branches | Muertas (historia huérfana, no mergeables)     |
+| Pendiente        | Restaurar `ROLLOUT_DATE` si se desea endurecer |
+
+---
+
 ## 📚 Referencias
 
 | Recurso                         | URL                                                                                                                                                    |
