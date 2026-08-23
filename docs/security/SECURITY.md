@@ -603,7 +603,7 @@ When GitHub Secret Scanning detects a secret:
 
 - **Trigger:** Weekly cron (Monday 03:00 UTC) + manual `workflow_dispatch`
 - **Scope:** Full repository history (`--log-opts="--all"`) — all refs and commits
-- **Behavior:** **Audit mode** (`continue-on-error: true`) — findings are reported but do not fail the run
+- **Behavior:** **Fail-closed** — findings fail the run; report artifacts still uploaded (if: always())
 - **Outputs:**
   - JSON artifact (`gitleaks-report`) uploaded for 30 days (with `--redact` to avoid exposing secrets in the artifact)
   - SARIF uploaded to **Security tab** for centralized visibility (requires `security-events: write` permission)
@@ -670,7 +670,7 @@ When GitHub Secret Scanning detects a secret:
 
 - **Trigger:** Weekly cron (Monday 03:00 UTC) + manual `workflow_dispatch`
 - **Scope:** Full repository history (`--log-opts="--all"`) — all refs and commits
-- **Behavior:** **Audit mode** (`continue-on-error: true`) — findings are reported but do not fail the run
+- **Behavior:** **Fail-closed** — findings fail the run; report artifacts still uploaded (if: always())
 - **Outputs:**
   - JSON artifact (`gitleaks-report`) uploaded for 30 days (with `--redact` to avoid exposing secrets in the artifact)
   - SARIF uploaded to **Security tab** for centralized visibility (requires `security-events: write` permission)
@@ -696,7 +696,7 @@ This prevents accidental leaks from reaching the version control system.
 In CI, secret detection runs at two additional stages:
 
 1. **Pull Request gate** — Diff-scoped scan on every PR to `main` (fail-closed)
-2. **Weekly scheduled scan** — Full-history audit every Monday 03:00 UTC (audit mode, findings via artifact + Security tab)
+2. **Weekly scheduled scan** — Full-history audit every Monday 03:00 UTC (fail-closed, findings fail the run; report artifacts still uploaded (if: always()))
 
 This multi-layered approach ensures secrets are caught both before commit and after merge, covering the gap where a secret already in history would not be detected by pre-commit or PR-time scans alone.
 
@@ -771,17 +771,17 @@ The workflow also supports manual execution via `workflow_dispatch` with an opti
 
 ### 1. SBOM Generation (`sbom` job)
 
-- **Tool**: `anchore/sbom-action@v0.17.2` (Syft)
+- **Tool**: `anchore/sbom-action@v0.24.0` (Syft)
 - **Format**: CycloneDX JSON (`sbom-project-one.json`)
 - **Scope**: Entire repository (npm workspaces hoisted to root `package-lock.json`)
 - **Artifact**: `sbom` (retention: 365 days)
 
 ### 2. Vulnerability & License Review (`vulnerability-review` job)
 
-- **Tool**: `google/osv-scanner-action@v2.3.8`
+- **Tool**: `google/osv-scanner-action@v2.5.0`
 - **Target**: `package-lock.json` (root lockfile covering all workspaces)
 - **Output**: JSON report (`osv-report.json`) with vulnerability details and severity
-- **Mode**: Audit (`continue-on-error: true`) — findings reported but run does not fail
+- **Mode**: Fail-closed — findings fail the run; report artifacts still uploaded (if: always())
 - **Artifact**: `osv-report` (default retention)
 
 ### 3. Security Digest Generation (`digest` job)

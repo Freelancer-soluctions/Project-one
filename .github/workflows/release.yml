@@ -8,15 +8,20 @@ permissions:
   contents: write
   pull-requests: write
 
+concurrency:
+  group: release
+  cancel-in-progress: false
+
 jobs:
   release:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           node-version-file: '.nvmrc'
           cache: npm
@@ -26,10 +31,10 @@ jobs:
 
       - name: Create Release PR or Publish
         id: changesets
-        uses: changesets/action@v1
+        uses: changesets/action@v2
         with:
-          version: npm run version:packages
-          title: "chore: version packages"
-          commit: "chore: version packages"
+          version-script: npm run version:packages
+          pr-title: "chore: version packages"
+          commit-message: "chore: version packages"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

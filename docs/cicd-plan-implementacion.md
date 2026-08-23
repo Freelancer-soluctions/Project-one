@@ -504,7 +504,7 @@ changes (dorny/paths-filter)
 
 | Capa cache                              | Qué cachea                                                                             | Key                          | Recuperación                        |
 | --------------------------------------- | -------------------------------------------------------------------------------------- | ---------------------------- | ----------------------------------- |
-| **npm** (built-in `cache: 'npm'`)       | `~/.npm`                                                                               | hash `package-lock.json`     | Automática con setup-node@v4        |
+| **npm** (built-in `cache: 'npm'`)       | `~/.npm`                                                                               | hash `package-lock.json`     | Automática con setup-node@v5        |
 | **Vitest** (actions/cache)              | `node_modules/.cache/vitest` \* ${{ runner.os }}-${{ hashFiles('package-lock.json') }} | Manual + restore-keys        |
 | **Playwright browsers** (actions/cache) | `~/.cache/ms-playwright`                                                               | hash `e2e/package-lock.json` | Manual, instalar solo si cache miss |
 
@@ -536,14 +536,15 @@ Configurar Vitest para emitir JUnit: `--reporter=junit --outputFile=reports/juni
 
 ```yaml
 # --- COMPOSITE ACTION: .github/actions/setup-monorepo/action.yml ---
-# Se recomienda crear esta action para evitar duplicación entre jobs
+# Se recomienda crear esta action para evitar duplicación entre jobs.
+# NO incluye checkout: el job invocador ejecuta actions/checkout@v5 con fetch-depth: 0
+# ANTES de usar la composite (necesario para resolver la action local + test-reporter).
 name: 'Setup Monorepo'
-description: 'Checkout + Node.js + npm ci + caches'
+description: 'Setup Node.js, install dependencies, and cache Vitest (requires prior actions/checkout with fetch-depth: 0)'
 runs:
   using: 'composite'
   steps:
-    - uses: actions/checkout@v5
-    - uses: actions/setup-node@v4
+    - uses: actions/setup-node@v5
       with:
         node-version-file: '.nvmrc'
         cache: 'npm'
@@ -554,6 +555,17 @@ runs:
         path: apps/*/node_modules/.cache/vitest
         key: vitest-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
         restore-keys: vitest-${{ runner.os }}-
+```
+
+```yaml
+# --- Job tipo en ci.yml (patrón de checkout único) ---
+jobs:
+  test-unit-client:
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0 # historial completo → test-reporter (exit 128 sin él)
+      - uses: ./.github/actions/setup-monorepo
 ```
 
 ```yaml
@@ -703,13 +715,15 @@ jobs:
     steps:
       - uses: actions/checkout@v5
       - name: Trivy filesystem scan
-        uses: aquasecurity/trivy-action@0.33.1
+        uses: aquasecurity/trivy-action@0.36.0
         with:
           scan-type: fs
           scan-ref: .
           severity: CRITICAL,HIGH
           format: sarif
           output: trivy-results.sarif
+          exit-code: '1'
+          ignore-unfixed: 'true'
 
   sast:
     runs-on: ubuntu-latest
@@ -717,7 +731,7 @@ jobs:
       - uses: actions/checkout@v5
       - uses: github/codeql-action/init@v4
         with:
-          languages: javascript
+          languages: javascript,actions
       - name: Install dependencies
         run: npm ci
       - uses: github/codeql-action/analyze@v4
@@ -745,7 +759,7 @@ jobs:
     if: github.event_name == 'pull_request'
     steps:
       - uses: actions/checkout@v5
-      - uses: actions/dependency-review-action@v4
+      - uses: actions/dependency-review-action@v5
         with:
           license-check: true
           vulnerability-check: true
@@ -754,11 +768,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
-      - uses: anchore/sbom-action@v0
+      - uses: anchore/sbom-action@v0.24.0
         with:
           format: cyclonedx-json
           output-file: sbom-project-one.json
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v5
         with:
           name: sbom
           path: sbom-project-one.json
@@ -823,7 +837,7 @@ jobs:
 
       # 2. Setup Node.js
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version-file: '.nvmrc'
           cache: 'npm'
@@ -901,7 +915,7 @@ jobs:
       - name: Capture Vercel preview URL
         if: github.event_name == 'pull_request'
         id: vercel-url
-        continue-on-error: true
+        # Fail-closed (PR B/C): findings fail the run; artifacts uploaded via if: always()
         run: |
           # Use PR head SHA for commit status lookup
           SHA="${{ github.event.pull_request.head.sha }}"
@@ -965,7 +979,7 @@ jobs:
             *Workflow: [Preview Environments](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})*
 
           edit-mode: replace
-          continue-on-error: true
+          # Fail-closed (PR B/C): findings fail the run; artifacts uploaded via if: always()
 
       # 12. Report backend validation failure if smoke tests failed
       - name: Report backend failure
@@ -997,7 +1011,7 @@ jobs:
             *Workflow: [Preview Environments](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})*
 
           edit-mode: replace
-          continue-on-error: true
+          # Fail-closed (PR B/C): findings fail the run; artifacts uploaded via if: always()
 ```
 
 ### Stage 7 — Post-merge: CD (NUEVO)
@@ -1075,7 +1089,7 @@ jobs:
 
       # 2. Setup Node.js (needed for test:smoke if running in-process)
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version-file: '.nvmrc'
           cache: 'npm'
@@ -1170,7 +1184,7 @@ jobs:
         uses: actions/checkout@v5
 
       - name: Configure AWS credentials (OIDC)
-        uses: aws-actions/configure-aws-credentials@v4
+        uses: aws-actions/configure-aws-credentials@v6
         with:
           role-to-assume: ${{ vars.AWS_ROLE_ARN }}
           aws-region: us-east-1
@@ -1209,7 +1223,7 @@ jobs:
 
     steps:
       - name: Configure AWS credentials (OIDC)
-        uses: aws-actions/configure-aws-credentials@v4
+        uses: aws-actions/configure-aws-credentials@v6
         with:
           role-to-assume: ${{ vars.AWS_ROLE_ARN }}
           aws-region: us-east-1
@@ -1324,7 +1338,7 @@ jobs:
 
     steps:
       - name: Configure AWS credentials (OIDC)
-        uses: aws-actions/configure-aws-credentials@v4
+        uses: aws-actions/configure-aws-credentials@v6
         with:
           role-to-assume: ${{ vars.AWS_ROLE_ARN }}
           aws-region: us-east-1
@@ -1492,7 +1506,7 @@ jobs:
   gitleaks-full-scan:
     name: Gitleaks Full History Scan
     runs-on: ubuntu-latest
-    continue-on-error: true
+    # Fail-closed (PR B/C): findings fail the run; artifacts uploaded via if: always()
 
     steps:
       - uses: actions/checkout@v5
@@ -1505,7 +1519,7 @@ jobs:
           args: git --log-opts="--all" --report-format=json --report-path=gitleaks-report.json --redact
 
       - name: Upload Gitleaks JSON report
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: gitleaks-report
           path: gitleaks-report.json

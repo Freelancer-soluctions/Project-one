@@ -69,6 +69,8 @@
     "@vitest/eslint-plugin": "^1.6.9",
     "actionlint": "2.0.6",
     "concurrently": "^9.1.0",
+    "depcheck": "1.4.7",
+    "dependency-cruiser": "18.2.0",
     "eslint": "^9.39.2",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-import": "^2.32.0",
@@ -77,6 +79,7 @@
     "eslint-plugin-storybook": "^0.11.0",
     "husky": "^9.1.7",
     "jsdoc": "^4.0.5",
+    "knip": "6.32.2",
     "lint-staged": "^16.2.7",
     "omniroute": "3.8.49",
     "prettier": "3.7.4"

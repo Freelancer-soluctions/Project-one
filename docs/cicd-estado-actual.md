@@ -430,22 +430,17 @@ updates:
 
 ### 6.1 Composite Action: `setup-monorepo` (`.github/actions/setup-monorepo/action.yml`)
 
-Acción reutilizable que encapsula el setup estándar del monorepo. **Referencia: `.github/actions/setup-monorepo/action.yml:1-40`**
+Acción reutilizable que encapsula el setup estándar del monorepo (Node + npm ci + cache Vitest). **NO hace checkout**: el job invocador debe ejecutar `actions/checkout@v5` con `fetch-depth: 0` ANTES (requisito de `dorny/test-reporter`). **Referencia: `.github/actions/setup-monorepo/action.yml:1-23`**
 
 ```yaml
 # .github/actions/setup-monorepo/action.yml — composite action
 name: 'Setup Monorepo'
-description: 'Checkout, setup Node, npm ci, cache Vitest'
+description: 'Setup Node.js, install dependencies, and cache Vitest (requires prior actions/checkout with fetch-depth: 0 in the calling job)'
 runs:
   using: 'composite'
   steps:
-    - name: Checkout repository
-      uses: actions/checkout@v5
-      with:
-        fetch-depth: 0 # Necesario para Changesets, git history, vitest --changed
-
     - name: Setup Node
-      uses: actions/setup-node@v4
+      uses: actions/setup-node@v5
       with:
         node-version-file: '.nvmrc' # Single source of truth para versión Node
         cache: 'npm' # Cache global de npm (~/.npm)
@@ -462,7 +457,18 @@ runs:
         restore-keys: vitest-${{ runner.os }}-
 ```
 
-**Uso en workflows:** `uses: ./.github/actions/setup-monorepo` (ej. `ci.yml`, `deploy.yml`, `preview.yml`).
+**Uso en workflows:** SOLO `ci.yml` (6 jobs: test-unit-client, test-unit-server, test-integration, test-smoke, build, e2e). `deploy.yml`, `preview.yml`, `quality.yml`, etc. **NO usan esta composite** — configuran Node directamente en sus jobs.
+
+**Patrón de checkout único (1 checkout por job):**
+
+```yaml
+# ci.yml — cada job que usa setup-monorepo
+steps:
+  - uses: actions/checkout@v5
+    with:
+      fetch-depth: 0 # historial completo → test-reporter (exit 128 sin él)
+  - uses: ./.github/actions/setup-monorepo
+```
 
 ### 6.2 Job `build` en `ci.yml` (ref: `ci.yml:180-195`)
 
@@ -517,7 +523,7 @@ docker-build:
         --health-cmd="pg_isready -U test -d project_one_cd"
         --health-interval=5s --health-timeout=3s --health-retries=10
   steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     - uses: ./.github/actions/setup-monorepo
     - name: Build Docker image (SHA + latest tags)
       run: |
@@ -596,7 +602,7 @@ Similar a `docker-build` pero optimizado para preview environments por PR:
 
 | Capa                    | Herramienta                     | Key                                                             | Restore Keys             | Dónde se usa                                                                |
 | ----------------------- | ------------------------------- | --------------------------------------------------------------- | ------------------------ | --------------------------------------------------------------------------- |
-| **npm**                 | `actions/setup-node@v4`         | `cache: 'npm'`                                                  | —                        | Todos los workflows (`setup-monorepo`, `quality.yml`, `security.yml`, etc.) |
+| **npm**                 | `actions/setup-node@v5`         | `cache: 'npm'`                                                  | —                        | Todos los workflows (`setup-monorepo`, `quality.yml`, `security.yml`, etc.) |
 | **Vitest**              | `actions/cache@v4` (composite)  | `vitest-${{runner.os}}-${{hashFiles('package-lock.json')}}`     | `vitest-${{runner.os}}-` | `.github/actions/setup-monorepo/action.yml`                                 |
 | **Playwright browsers** | `actions/cache@v4`              | `playwright-${{runner.os}}-${{hashFiles('package-lock.json')}}` | —                        | `ci.yml:e2e` job                                                            |
 | **Docker layer cache**  | GitHub Actions cache (implicit) | —                                                               | —                        | `docker build` en `deploy.yml`, `preview.yml`                               |
@@ -863,13 +869,13 @@ permissions:
   security-events: write # Para subir SARIF a GitHub Security tab
 ```
 
-| Job                   | Herramienta                                            | Config clave                                                                                                                                                                                                                      | Output                          |
-| --------------------- | ------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------- |
-| **dependency-scan**   | Trivy (`aquasecurity/trivy-action@0.33.1`)             | `scan-type: fs`, `scan-ref: .`, `severity: CRITICAL,HIGH`                                                                                                                                                                         | Vulnerabilidades deps           |
-| **sast**              | CodeQL (`github/codeql-action/init@v4` + `analyze@v4`) | `languages: javascript`, `npm ci`                                                                                                                                                                                                 | CodeQL alerts en Security tab   |
-| **secrets**           | Gitleaks (dual)                                        | 1. `docker://zricethezav/gitleaks:v8.22.1` args `git --log-opts="${{github.event.pull_request.base.sha}}..${{github.event.pull_request.head.sha}}"` (diff PR) 2. Si `secrets.GIT_LEAKS`: `gitleaks/gitleaks-action@v2` (licensed) | Secretos en diff del PR         |
-| **sbom**              | `anchore/sbom-action@v0.17.2`                          | `format: cyclonedx-json`, `output-file: sbom-project-one.json`                                                                                                                                                                    | Artifact 365d retention         |
-| **dependency-review** | `actions/dependency-review-action@v4`                  | `vulnerability-check: true`, `license-check: true`                                                                                                                                                                                | Bloquea PR si vuln/license fail |
+| Job                   | Herramienta                                            | Config clave                                                                                                                                                                                                                      | Output                              |
+| --------------------- | ------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------- |
+| **dependency-scan**   | Trivy (`aquasecurity/trivy-action@0.36.0`)             | `scan-type: fs`, `scan-ref: .`, `severity: CRITICAL,HIGH`, `exit-code: '1'`, `ignore-unfixed: true`, `format: sarif`, `output: trivy-results.sarif` + SARIF upload (`codeql-action/upload-sarif@v4`, `if: always()`)              | Vulnerabilidades deps (fail-closed) |
+| **sast**              | CodeQL (`github/codeql-action/init@v4` + `analyze@v4`) | `languages: javascript,actions`, `npm ci`                                                                                                                                                                                         | CodeQL alerts en Security tab       |
+| **secrets**           | Gitleaks (dual)                                        | 1. `docker://zricethezav/gitleaks:v8.22.1` args `git --log-opts="${{github.event.pull_request.base.sha}}..${{github.event.pull_request.head.sha}}"` (diff PR) 2. Si `secrets.GIT_LEAKS`: `gitleaks/gitleaks-action@v3` (licensed) | Secretos en diff del PR             |
+| **sbom**              | `anchore/sbom-action@v0.24.0`                          | `format: cyclonedx-json`, `output-file: sbom-project-one.json`                                                                                                                                                                    | Artifact 365d retention             |
+| **dependency-review** | `actions/dependency-review-action@v5`                  | `vulnerability-check: true`, `license-check: true`                                                                                                                                                                                | Bloquea PR si vuln/license fail     |
 
 **Gitleaks dual mode en PR (ref: `security.yml:secrets job`):**
 
@@ -881,7 +887,7 @@ secrets:
   permissions:
     contents: read
   steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
       with:
         fetch-depth: 0 # Necesario para diff del PR
     - name: Gitleaks OSS (diff PR only)
@@ -896,7 +902,7 @@ secrets:
           --config=.gitleaks.toml
     - name: Gitleaks Pro (if licensed)
       if: env.GIT_LEAKS != ''
-      uses: gitleaks/gitleaks-action@v2
+      uses: gitleaks/gitleaks-action@v3
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         GITLEAKS_LICENSE: ${{ secrets.GIT_LEAKS }}
@@ -913,12 +919,12 @@ secrets:
 gitleaks-full-scan:
   name: Gitleaks Full History Scan
   runs-on: ubuntu-latest
-  continue-on-error: true # No bloquear repo por hallazgos históricos
+  # Fail-closed (PR B/C): findings fail the run; artifacts uploaded via if: always()
   permissions:
     contents: read
     security-events: write
   steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
       with:
         fetch-depth: 0 # Historial COMPLETO
     - name: Gitleaks full scan (JSON report)
@@ -926,7 +932,7 @@ gitleaks-full-scan:
       with:
         args: detect --source=. --log-opts="--all" --report-format=json --report-path=gitleaks-report.json --config=.gitleaks.toml
     - name: Upload JSON artifact
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v5
       with:
         name: gitleaks-report
         path: gitleaks-report.json
@@ -951,7 +957,7 @@ gitleaks-full-scan:
 jobs:
   sbom:
     name: Generate SBOM
-    uses: anchore/sbom-action@v0.17.2
+    uses: anchore/sbom-action@v0.24.0
     with:
       format: cyclonedx-json
       output-file: sbom-project-one.json
@@ -960,15 +966,15 @@ jobs:
   vulnerability-review:
     name: Vulnerability & License Review
     runs-on: ubuntu-latest
-    continue-on-error: true
+    # Fail-closed (PR B/C): findings fail the run; artifact uploaded via if: always()
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: OSV Scanner
-        uses: google/osv-scanner-action@v2.3.8
+        uses: google/osv-scanner-action@v2.5.0
         with:
           scan-args: --format=json --output=osv-report.json package-lock.json
       - name: Upload OSV artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: osv-report
           path: osv-report.json
@@ -983,11 +989,11 @@ jobs:
       actions: read
       pull-requests: write # Para comentar en PR
     steps:
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v5
         with:
           name: sbom-project-one
           path: artifacts/
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v5
         with:
           name: osv-report
           path: artifacts/
@@ -1006,7 +1012,7 @@ jobs:
             });
             return runs.data.workflow_runs[0]?.id;
       - name: Download gitleaks artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: gitleaks-report
           path: artifacts/
@@ -1019,7 +1025,7 @@ jobs:
             artifacts/gitleaks-report.json \
             security-digest.md
       - name: Upload digest artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: security-digest
           path: security-digest.md
@@ -1110,8 +1116,8 @@ jobs:
     name: Lint + Format Check + TypeCheck
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
         with:
           node-version-file: '.nvmrc'
           cache: 'npm'
@@ -1203,7 +1209,7 @@ jobs:
           POSTGRES_PASSWORD: test
           POSTGRES_DB: project_one_preview
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: ./.github/actions/setup-monorepo
       - name: Build server Docker image
         run: docker build -t preview-server -f apps/server/Dockerfile .
@@ -1312,17 +1318,17 @@ ecr-push:
     contents: read
     id-token: write # 🔑 OIDC: permite assumir role AWS sin credenciales estáticas
   steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     - name: Configure AWS Credentials (OIDC)
-      uses: aws-actions/configure-aws-credentials@v4
+      uses: aws-actions/configure-aws-credentials@v6
       with:
         role-to-assume: ${{ vars.AWS_ROLE_ARN }}
-        aws-region: us-east-1
+        aws-region: ${{ vars.AWS_REGION || 'us-east-1' }}
     - name: Login to Amazon ECR
       uses: aws-actions/amazon-ecr-login@v2
     - name: Build, tag, and push image
       env:
-        ECR_REGISTRY: ${{ vars.AWS_ACCOUNT_ID }}.dkr.ecr.us-east-1.amazonaws.com
+        ECR_REGISTRY: ${{ vars.AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION || 'us-east-1' }}.amazonaws.com
         IMAGE_TAG: ${{ github.sha }}
       run: |
         docker tag project-one-server:${{ github.sha }} ${ECR_REGISTRY}/project-one-server:${IMAGE_TAG}
@@ -1350,7 +1356,7 @@ deploy-staging:
     id-token: write
   steps:
     - name: Configure AWS Credentials (OIDC)
-      uses: aws-actions/configure-aws-credentials@v4
+      uses: aws-actions/configure-aws-credentials@v6
       with:
         role-to-assume: ${{ vars.AWS_ROLE_ARN }}
         aws-region: us-east-1
@@ -1506,19 +1512,19 @@ jobs:
     name: Release packages
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 0
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           node-version-file: '.nvmrc'
           cache: 'npm'
       - run: npm ci
-      - uses: changesets/action@v1
+      - uses: changesets/action@v2
         with:
-          version: npm run version:packages
-          title: 'chore: version packages'
-          commit: 'chore: version packages'
+          version-script: npm run version:packages
+          pr-title: 'chore: version packages'
+          commit-message: 'chore: version packages'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 ```
@@ -1598,7 +1604,7 @@ BASE_URL=${{ secrets.STAGING_URL }} npm run test:smoke:ci --workspace=server-exp
 
 ### 11.6 SBOM como Inventario de Componentes
 
-- Generado por `anchore/sbom-action@v0.17.2` en formato **CycloneDX JSON**.
+- Generado por `anchore/sbom-action@v0.24.0` en formato **CycloneDX JSON**.
 - Incluye: nombre, versión, licencia, purl, hashes de cada paquete npm (prod + dev).
 - Usado por `security-digest.yml` para correlacionar con OSV Scanner y Gitleaks.
 - Retención 365 días para compliance/auditoría.
@@ -1622,8 +1628,8 @@ BASE_URL=${{ secrets.STAGING_URL }} npm run test:smoke:ci --workspace=server-exp
 | **Caching Strategy**                 | npm (setup-node), Vitest (composite action), Playwright browsers (actions/cache)                                                                      | CI ~40-60% más rápido en runs posteriores                                                               |
 | **Test Reporting (JUnit)**           | `dorny/test-reporter@v3` en todos los test jobs                                                                                                       | Fallos como annotations clickeables en PR Checks; feedback inmediato                                    |
 | **Reusable Workflows**               | `quality.yml` via `workflow_call` desde `ci.yml`                                                                                                      | DRY: lint/format/typecheck definido una vez, usado en CI y manual                                       |
-| **Composite Actions**                | `setup-monorepo` (checkout + node + npm ci + vitest cache)                                                                                            | Encapsula setup común; versionado independiente; testeable                                              |
-| **OIDC for Cloud Auth**              | `deploy.yml: ecr-push`, `deploy-staging`, `deploy-production` → `aws-actions/configure-aws-credentials@v4` con `id-token: write`                      | **Cero credenciales estáticas**; token JWT de corta vida; audit trail en CloudTrail                     |
+| **Composite Actions**                | `setup-monorepo` (node + npm ci + vitest cache; checkout es del job invocador)                                                                        | Encapsula setup común; versionado independiente; testeable                                              |
+| **OIDC for Cloud Auth**              | `deploy.yml: ecr-push`, `deploy-staging`, `deploy-production` → `aws-actions/configure-aws-credentials@v6` con `id-token: write`                      | **Cero credenciales estáticas**; token JWT de corta vida; audit trail en CloudTrail                     |
 | **Service Containers**               | `ci.yml: test-integration`, `test-smoke`, `e2e` → `postgres:16-alpine` con healthcheck                                                                | BD real efímera por job; aislamiento total; no BD compartida                                            |
 | **ECS Circuit Breaker**              | `deploy.yml: update-service --deployment-configuration deploymentCircuitBreaker={enable=true,rollback=true}`                                          | Rollback automático si health checks fallan; zero-downtime deploy seguro                                |
 | **Environment-based Approval Gates** | `deploy.yml: environment: staging` / `environment: production`                                                                                        | Staging: auto-deploy; Production: **manual approval** requerida (protection rule)                       |
@@ -1651,24 +1657,24 @@ BASE_URL=${{ secrets.STAGING_URL }} npm run test:smoke:ci --workspace=server-exp
 | **Git Hooks**          | Husky v9                                                       | —                                                              | pre-commit, commit-msg, pre-push                     |
 | **Staged Lint**        | lint-staged                                                    | —                                                              | Prettier + ESLint en staged                          |
 | **Commit Standard**    | commitlint + @commitlint/config-conventional                   | —                                                              | Conventional Commits validation                      |
-| **Path Filtering**     | dorny/paths-filter@v3                                          | —                                                              | Conditional job execution                            |
+| **Path Filtering**     | dorny/paths-filter@v4                                          | —                                                              | Conditional job execution                            |
 | **Test Reporting**     | dorny/test-reporter@v3                                         | —                                                              | JUnit XML → GitHub Checks                            |
 | **SAST Local**         | Semgrep                                                        | `semgrep/semgrep:latest`                                       | 100+ reglas OWASP en pre-commit                      |
-| **SAST CI**            | GitHub CodeQL                                                  | `github/codeql-action@v4`                                      | JavaScript analysis en PR                            |
-| **SCA**                | Trivy                                                          | `aquasecurity/trivy-action@0.33.1`                             | FS scan CRITICAL/HIGH                                |
-| **Secret Scanning**    | Gitleaks                                                       | `zricethezav/gitleaks:v8.22.1` + `gitleaks/gitleaks-action@v2` | Pre-commit staged + PR diff + full-history cron      |
-| **SBOM**               | anchore/sbom-action@v0.17.2                                    | —                                                              | CycloneDX JSON generation                            |
-| **Vuln Scanner**       | OSV Scanner                                                    | `google/osv-scanner-action@v2.3.8`                             | package-lock.json scan                               |
-| **Dependency Review**  | actions/dependency-review-action@v4                            | —                                                              | PR dependency vuln/license gate                      |
+| **SAST CI**            | GitHub CodeQL                                                  | `github/codeql-action@v4`                                      | JavaScript + Actions analysis en PR                  |
+| **SCA**                | Trivy                                                          | `aquasecurity/trivy-action@0.36.0`                             | FS scan CRITICAL/HIGH (fail-closed, SARIF)           |
+| **Secret Scanning**    | Gitleaks                                                       | `zricethezav/gitleaks:v8.22.1` + `gitleaks/gitleaks-action@v3` | Pre-commit staged + PR diff + full-history cron      |
+| **SBOM**               | anchore/sbom-action@v0.24.0                                    | —                                                              | CycloneDX JSON generation                            |
+| **Vuln Scanner**       | OSV Scanner                                                    | `google/osv-scanner-action@v2.5.0`                             | package-lock.json scan                               |
+| **Dependency Review**  | actions/dependency-review-action@v5                            | —                                                              | PR dependency vuln/license gate                      |
 | **Container**          | Docker                                                         | `apps/server/Dockerfile` multi-stage                           | Server image build                                   |
 | **AWS Emulator**       | Floci                                                          | `floci/floci:1.5.31`                                           | Secrets Manager, S3 emulation en CI/CD               |
 | **Cloud Deploy**       | AWS ECS Fargate                                                | —                                                              | Staging + Production services                        |
 | **Container Registry** | Amazon ECR                                                     | —                                                              | Image storage (OIDC auth)                            |
-| **AWS Auth**           | aws-actions/configure-aws-credentials@v4 + amazon-ecr-login@v2 | —                                                              | OIDC role assumption                                 |
+| **AWS Auth**           | aws-actions/configure-aws-credentials@v6 + amazon-ecr-login@v2 | —                                                              | OIDC role assumption                                 |
 | **IaC (Partial)**      | AWS CLI inline                                                 | —                                                              | `register-task-definition`, `update-service`, `wait` |
-| **Release**            | Changesets                                                     | `changesets/action@v1`                                         | Version packages + npm publish                       |
+| **Release**            | Changesets                                                     | `changesets/action@v2`                                         | Version packages + npm publish                       |
 | **Dependency Updates** | Dependabot                                                     | 3 ecosystems                                                   | Automated PRs weekly                                 |
-| **Preview Comment**    | peter-evans/find-comment@v3 + create-or-update-comment@v4      | —                                                              | PR comment management                                |
+| **Preview Comment**    | peter-evans/find-comment@v4 + create-or-update-comment@v5      | —                                                              | PR comment management                                |
 | **Vercel Integration** | gh api (GitHub CLI)                                            | —                                                              | Capture preview URL from commit statuses             |
 
 ---
@@ -1909,9 +1915,9 @@ flowchart TD
 
 ### Composite Actions (`.github/actions/`)
 
-| Archivo                     | Propósito                                        |
-| --------------------------- | ------------------------------------------------ |
-| `setup-monorepo/action.yml` | Checkout + Node (.nvmrc) + npm ci + Cache Vitest |
+| Archivo                     | Propósito                                                                            |
+| --------------------------- | ------------------------------------------------------------------------------------ |
+| `setup-monorepo/action.yml` | Node (.nvmrc) + npm ci + Cache Vitest (checkout: job invocador con `fetch-depth: 0`) |
 
 ### Hooks Husky (`.husky/`)
 

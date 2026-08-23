@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeAll } from 'vitest';
 
 // Mock encryption - AES_GCM_KEY is provided in .env.test for CI
 vi.mock('../../../src/utils/prisma/prisma-query.js', () => ({
@@ -154,8 +154,31 @@ vi.mock('../../../src/middleware/verifyCsrf.js', () => ({
 
 import request from 'supertest';
 import app from '../../../src/app.js';
+import { prisma } from '../../../src/config/db.js';
 
 describe('Events Soft Delete – Integration', () => {
+  // Ensure event 1 exists and is active before tests (idempotent; creates if absent, restores if soft-deleted)
+  beforeAll(async () => {
+    await prisma.events.upsert({
+      where: { id: 1 },
+      create: {
+        id: 1,
+        title: 'Soft Delete Test Event',
+        description: 'Row ensured by soft-delete test setup',
+        speaker: 'Test Speaker',
+        startTime: new Date('1970-01-01T09:00:00.000Z'),
+        endTime: new Date('1970-01-01T17:00:00.000Z'),
+        eventDate: new Date('2024-06-15T00:00:00.000Z'),
+        modality: 'IN_PERSON',
+        location: 'Test Location',
+        createdBy: 1,
+        createdOn: new Date(),
+        eventTypeId: 1,
+      },
+      update: { deletedAt: null, deletedBy: null },
+    });
+  });
+
   // 9.11 DELETE returns 200 and soft-deletes event
   it('DELETE /events/:id returns 200 and soft-deletes event', async () => {
     const res = await request(app)
@@ -163,7 +186,7 @@ describe('Events Soft Delete – Integration', () => {
       .set('Authorization', `Bearer ${adminToken}`);
 
     expect(res.status).toBe(200);
-    expect(res.body).toHaveProperty('id', 1);
+    expect(res.body.data).toHaveProperty('id', 1);
   });
 
   // 9.12 DELETE returns 409 Conflict for already-deleted event
@@ -202,7 +225,7 @@ describe('Events Soft Delete – Integration', () => {
       .get('/api/v1/events')
       .set('Authorization', `Bearer ${adminToken}`);
 
-    const event1 = res.body.data.find((e) => e.id === 1);
+    const event1 = res.body.data.data.find((e) => e.id === 1);
     expect(event1).toBeUndefined();
   });
 
@@ -216,7 +239,7 @@ describe('Events Soft Delete – Integration', () => {
       .get('/api/v1/events?showDeleted=true')
       .set('Authorization', `Bearer ${adminToken}`);
 
-    const event1 = res.body.data.find((e) => e.id === 1);
+    const event1 = res.body.data.data.find((e) => e.id === 1);
     expect(event1).toBeDefined();
     expect(event1.deletedAt).not.toBeNull();
   });
@@ -231,7 +254,7 @@ describe('Events Soft Delete – Integration', () => {
       .get('/api/v1/events?showDeleted=true')
       .set('Authorization', `Bearer ${adminToken}`);
 
-    expect(res.body.total).toBeGreaterThan(0);
+    expect(res.body.data.total).toBeGreaterThan(0);
   });
 
   // 9.17 GET with ?showDeleted=true as non-ADMIN returns 403

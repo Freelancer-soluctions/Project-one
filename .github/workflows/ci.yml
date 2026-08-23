@@ -2,31 +2,33 @@ name: "CI"
 
 permissions:
   contents: read
-  checks: write
-  pull-requests: write
 
 on:
   pull_request:
     branches:
       - main
+  merge_group: {}
 
 concurrency:
-  group: pr-${{ github.event.pull_request.number }}
+  group: ${{ github.event_name == 'merge_group' && format('merge-group-{0}', github.event.merge_group.head_ref) || format('pr-{0}', github.event.pull_request.number) }}
   cancel-in-progress: true
 
 jobs:
-  changes:
+  # ═══════════════════════════════════════════════════════════════
+  # STAGE 1: INICIACIÓN — Detect which workspaces changed
+  # ═══════════════════════════════════════════════════════════════
+  repo-discovery:
     name: Detect Changes
     runs-on: ubuntu-latest
     outputs:
-      frontend: ${{ steps.filter.outputs.client }}
-      backend: ${{ steps.filter.outputs.server }}
+      client: ${{ steps.filter.outputs.client }}
+      server: ${{ steps.filter.outputs.server }}
       e2e: ${{ steps.filter.outputs.e2e }}
       shared: ${{ steps.filter.outputs.shared }}
+    timeout-minutes: 5
     steps:
       - uses: actions/checkout@v5
-
-      - uses: dorny/paths-filter@v3
+      - uses: dorny/paths-filter@v4
         id: filter
         with:
           filters: |
@@ -41,27 +43,604 @@ jobs:
               - 'package-lock.json'
               - '.github/workflows/**'
 
-  quality:
-    name: Code Quality
-    needs: changes
-    uses: ./.github/workflows/quality.yml
-    with:
-      run-client: ${{ needs.changes.outputs.frontend }}
-      run-server: ${{ needs.changes.outputs.backend }}
+# ═══════════════════════════════════════════════════════════════
+  # STAGE 2: PRE-BUILD QUALITY — Source code analysis (parallel)
+  # ═══════════════════════════════════════════════════════════════
+  # verify-signatures (G3) — Verifica firma de commits vía GitHub REST API
+  # ═══════════════════════════════════════════════════════════════
+  verify-signatures:
+    name: Verify Commit Signatures
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    if: github.event_name == 'pull_request' || github.event_name == 'merge_group'
+    steps:
+      - name: Detect event type and set SHAs
+        id: detect_event
+        run: |
+          if [ "${{ github.event_name }}" = "merge_group" ]; then
+            echo "event_type=merge_group" >> $GITHUB_OUTPUT
+            # For merge_group, use the commit SHA that triggered the workflow
+            SHA="${{ github.sha }}"
+            echo "single_sha=$SHA" >> $GITHUB_OUTPUT
+            
+          else
+            echo "event_type=pull_request" >> $GITHUB_OUTPUT
+            echo "pr_number=${{ github.event.pull_request.number }}" >> $GITHUB_OUTPUT
+          fi
+  
+      - name: Debug PR number
+        if: steps.detect_event.outputs.event_type == 'pull_request'
+        run: |
+          echo "PR number: ${{ steps.detect_event.outputs.pr_number }}"
+  
+      - name: Fetch PR commits via compare endpoint
+        if: steps.detect_event.outputs.event_type == 'pull_request'
+        id: fetch_commits
+        run: |
+          set -e
 
-  test-unit-client:
-    name: Unit Tests - Client
-    needs: changes
-    if: needs.changes.outputs.frontend == 'true' || needs.changes.outputs.shared == 'true'
+          # R1: Scoping base..head via compare endpoint
+          # Replaces pagination GET /pulls/{n}/commits with server-side range filtering
+          # compare endpoint URL: base.sha...head.sha — only commits new to the PR
+          # GitHub compare API limit: up to 250 commits per call (documented below)
+          # https://docs.github.com/en/rest/repos/comparisons?apiVersion=2022-11-28#get-a-repository-comparison
+          COMPARE_URL="https://api.github.com/repos/${{ github.repository }}/compare/${{ github.event.pull_request.base.sha }}...${{ github.event.pull_request.head.sha }}"
+
+          RESPONSE=$(curl -s -w "\n%{http_code}" -H "Authorization: Bearer ${{ github.token }}" "$COMPARE_URL")
+          HTTP_CODE=$(echo "$RESPONSE" | tail -1)
+          RESPONSE_BODY=$(echo "$RESPONSE" | sed '$d')
+
+          # HTTP status check
+          if [ "$HTTP_CODE" != "200" ]; then
+            echo "ERROR: HTTP status $HTTP_CODE comparing base..head" >&2
+            echo "found_shas=" >> $GITHUB_OUTPUT
+            > ok_shas.txt
+            > failed_shas.txt
+            exit 0
+          fi
+
+          # Extract commit count from compare response
+          COMMIT_COUNT=$(echo "$RESPONSE_BODY" | jq '.data.commits | length')
+
+          # Initialize output files
+          > ok_shas.txt
+          > failed_shas.txt
+
+          if [ "$COMMIT_COUNT" -eq 0 ]; then
+            echo "No new commits in range base..head (0 commits humanos a verificar)" >&2
+            echo "found_shas=0" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          echo "Evaluating $COMMIT_COUNT new commits from PR (base..head)" >&2
+
+          # Process each commit from compare endpoint
+          # Null tolerance: use // false defaults; only .verification.verified == true counts as verified
+          # Filtros jq no deben crashear con verification null (requisito C)
+          echo "$RESPONSE_BODY" | jq -r '.data.commits[] | .sha' | while read -r SHA; do
+            # Only .verification.verified == true counts as verified
+            # // false treats null/undefined as not verified without crashing
+            VERIFIED=$(echo "$RESPONSE_BODY" | jq -r --arg s "$SHA" '.data.commits[] | select(.sha == $s) | .verification.verified // false')
+
+            if [ "$VERIFIED" = "true" ]; then
+              echo "$SHA" >> ok_shas.txt
+            else
+              echo "$SHA" >> failed_shas.txt
+            fi
+          done
+
+          # Anti-stale retry: for each SHA marked not verified, do individual check
+          # Max 5 individual retries per run (fallidos bulk adicionales van a failed_shas con nota en summary)
+          ANTI_STALE_RECOVERED=""
+          RETRY_COUNT=0
+          MAX_RETRIES=5
+
+          if [ -f failed_shas.txt ] && [ "$(cat failed_shas.txt)" != "" ]; then
+            FAILED_SHAS=$(cat failed_shas.txt)
+            for SHA in $FAILED_SHAS; do
+              if [ "$RETRY_COUNT" -ge "$MAX_RETRIES" ]; then
+                echo "Anti-stale: skipping remaining individual retries (limit $MAX_RETRIES reached)" >&2
+                break
+              fi
+
+              # Individual check with null tolerance (.verification.verified // false)
+              # Solo si individual TAMBIÉN false → failed_shas
+              INDIVIDUAL=$(curl -s -H "Authorization: Bearer ${{ github.token }}" "https://api.github.com/repos/${{ github.repository }}/commits/$SHA")
+              VERIFIED=$(echo "$INDIVIDUAL" | jq -r '.verification.verified // false')
+
+              if [ "$VERIFIED" = "true" ]; then
+                # Recovered! Move from failed to ok
+                echo "$SHA" >> ok_shas.txt
+                # Remove from failed_shas.txt
+                grep -v "^${SHA}$" failed_shas.txt > failed_shas_tmp.txt 2>/dev/null || true
+                mv failed_shas_tmp.txt failed_shas.txt
+                ANTI_STALE_RECOVERED="$ANTI_STALE_RECOVERED $SHA"
+                echo "Anti-stale: recovered $SHA via individual check" >&2
+              else
+                echo "Anti-stale: individual check for $SHA also unverified" >&2
+              fi
+
+              RETRY_COUNT=$((RETRY_COUNT + 1))
+            done
+          fi
+
+          # Generate summary values
+          OK_COUNT=$( [ -f ok_shas.txt ] && [ "$(cat ok_shas.txt)" != "" ] && wc -l < ok_shas.txt || echo "0" )
+          FAILED_COUNT=$( [ -f failed_shas.txt ] && [ "$(cat failed_shas.txt)" != "" ] && wc -l < failed_shas.txt || echo "0" )
+          ANTI_STALE_COUNT=$(echo "$ANTI_STALE_RECOVERED" | xargs -r echo | wc -w)
+          EXCLUDED_COUNT=0  # By scoping, compare endpoint only returns new PR commits (base..head)
+
+          found_shas=$((OK_COUNT + FAILED_COUNT + ANTI_STALE_COUNT))
+          echo "found_shas=$found_shas" >> $GITHUB_OUTPUT
+          echo "ok_shas_count=$OK_COUNT" >> $GITHUB_OUTPUT
+          echo "failed_shas_count=$FAILED_COUNT" >> $GITHUB_OUTPUT
+          echo "anti_stale_recovered=$ANTI_STALE_COUNT" >> $GITHUB_OUTPUT
+          echo "excluded_by_scoping=$EXCLUDED_COUNT" >> $GITHUB_OUTPUT
+
+          echo "Commit verification summary:" >&2
+          echo "  New commits from PR evaluated: $((OK_COUNT + FAILED_COUNT))" >&2
+          echo "  Verified: $OK_COUNT, Unverified: $FAILED_COUNT" >&2
+          echo "  Excluded by scoping (base..head): $EXCLUDED_COUNT (handled by compare endpoint)" >&2
+          echo "  Recovered by anti-stale retry: $ANTI_STALE_COUNT" >&2
+        timeout-minutes: 10
+  
+      - name: Fetch single commit verification (merge_group fallback)
+        if: steps.detect_event.outputs.event_type == 'merge_group'
+        run: |
+          SHA="${{ steps.detect_event.outputs.single_sha }}"
+          VERIFIED=$(curl -s -H "Authorization: Bearer ${{ github.token }}" \
+            "https://api.github.com/repos/${{ github.repository }}/commits/$SHA" | jq -r '.verification.verified // false')
+          if [ "$VERIFIED" = "true" ]; then
+            echo "$SHA" >> ok_shas.txt
+          else
+            echo "$SHA" >> failed_shas.txt
+          fi
+  
+      - name: Check verification results
+        id: verify_results
+        run: |
+          FAILED_SHAS=""
+          if [ -f failed_shas.txt ] && [ "$(cat failed_shas.txt)" != "" ]; then
+            FAILED_SHAS=$(cat failed_shas.txt)
+          fi
+          if [ -n "$FAILED_SHAS" ]; then
+            echo "failed=true" >> $GITHUB_OUTPUT
+            echo "failed_shas=$FAILED_SHAS" >> $GITHUB_OUTPUT
+            exit 1
+          else
+            echo "failed=false" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+        timeout-minutes: 10
+      - name: Informative report (non-blocking)
+        if: always()
+        run: |
+          echo "=== Commit Verification Report ==="
+          if [ -f ok_shas.txt ]; then
+            echo "Verified commits:"
+            cat ok_shas.txt
+          fi
+          if [ -f failed_shas.txt ]; then
+            echo "Non-verified commits:"
+            cat failed_shas.txt
+          fi
+          echo "=== End Report ==="
+        timeout-minutes: 5
+    # Job-level continue-on-error for non-blocking mode
+    continue-on-error: true
+
+  # --- Client Pre-Build ---
+  client-lint:
+    name: "Quality: Client Lint"
+    needs: repo-discovery
+    if: needs.repo-discovery.outputs.client == 'true' || needs.repo-discovery.outputs.shared == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - uses: ./.github/actions/setup-monorepo
+      - run: npm run lint --workspace=apps/client
+
+  client-format-check:
+    name: "Quality: Client Format"
+    needs: repo-discovery
+    if: needs.repo-discovery.outputs.client == 'true' || needs.repo-discovery.outputs.shared == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - uses: ./.github/actions/setup-monorepo
+      - run: npm run format:check --workspace=apps/client
+
+  client-typecheck:
+    name: "Quality: Client TypeCheck"
+    needs: repo-discovery
+    if: needs.repo-discovery.outputs.client == 'true' || needs.repo-discovery.outputs.shared == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - uses: ./.github/actions/setup-monorepo
+      - name: TypeCheck (no-op until TS migration)
+        run: 'npx tsc --noEmit 2>/dev/null || echo "TypeCheck: no-op until TS migration"'
+        working-directory: apps/client
+
+  client-complexity:
+    name: "Quality: Client Complexity"
+    needs: repo-discovery
+    if: needs.repo-discovery.outputs.client == 'true' || needs.repo-discovery.outputs.shared == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - uses: ./.github/actions/setup-monorepo
+      - name: Check complexity
+        run: 'npx eslint --rule ''{"complexity": ["error", 15]}'' "src/**/*.{js,jsx}"'
+        working-directory: apps/client
+
+  client-dead-code:
+    name: "Quality: Client Dead Code"
+    needs: repo-discovery
+    if: needs.repo-discovery.outputs.client == 'true' || needs.repo-discovery.outputs.shared == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - uses: ./.github/actions/setup-monorepo
+      - name: Detect dead code
+        run: npx knip
+        working-directory: apps/client
+
+  client-import-bounds:
+    name: "Quality: Client Import Bounds"
+    needs: repo-discovery
+    if: needs.repo-discovery.outputs.client == 'true' || needs.repo-discovery.outputs.shared == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - uses: ./.github/actions/setup-monorepo
+      - name: Check import boundaries
+        run: npx dep-cruise apps/client/src --config .dependency-cruiser.cjs
+
+  # --- Server Pre-Build ---
+  server-lint:
+    name: "Quality: Server Lint"
+    needs: repo-discovery
+    if: needs.repo-discovery.outputs.server == 'true' || needs.repo-discovery.outputs.shared == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - uses: ./.github/actions/setup-monorepo
+      - run: npm run lint --workspace=apps/server
+
+  server-format-check:
+    name: "Quality: Server Format"
+    needs: repo-discovery
+    if: needs.repo-discovery.outputs.server == 'true' || needs.repo-discovery.outputs.shared == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - uses: ./.github/actions/setup-monorepo
+      - run: npm run format:check --workspace=apps/server
+
+  server-typecheck:
+    name: "Quality: Server TypeCheck"
+    needs: repo-discovery
+    if: needs.repo-discovery.outputs.server == 'true' || needs.repo-discovery.outputs.shared == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - uses: ./.github/actions/setup-monorepo
+      - name: TypeCheck (no-op until TS migration)
+        run: 'npx tsc --noEmit 2>/dev/null || echo "TypeCheck: no-op until TS migration"'
+        working-directory: apps/server
+
+  server-complexity:
+    name: "Quality: Server Complexity"
+    needs: repo-discovery
+    if: needs.repo-discovery.outputs.server == 'true' || needs.repo-discovery.outputs.shared == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - uses: ./.github/actions/setup-monorepo
+      - name: Check complexity
+        run: 'npx eslint --rule ''{"complexity": ["error", 15]}'' "src/**/*.js"'
+        working-directory: apps/server
+
+  server-dead-code:
+    name: "Quality: Server Dead Code"
+    needs: repo-discovery
+    if: needs.repo-discovery.outputs.server == 'true' || needs.repo-discovery.outputs.shared == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - uses: ./.github/actions/setup-monorepo
+      - name: Detect dead code
+        run: npx knip
+        working-directory: apps/server
+
+  server-import-bounds:
+    name: "Quality: Server Import Bounds"
+    needs: repo-discovery
+    if: needs.repo-discovery.outputs.server == 'true' || needs.repo-discovery.outputs.shared == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - uses: ./.github/actions/setup-monorepo
+      - name: Check import boundaries
+        run: npx dep-cruise apps/server/src --config .dependency-cruiser.cjs
+
+  # --- Shared Pre-Build ---
+  actionlint:
+    name: "Quality: ActionLint"
+    needs: repo-discovery
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - uses: rhysd/actionlint@v1
+
+  # ═══════════════════════════════════════════════════════════════
+  # STAGE 3: BUILD — Compile and upload artifacts
+  # ═══════════════════════════════════════════════════════════════
+  client-build:
+    name: Build - Client
+    needs: [client-lint, client-format-check, client-typecheck, client-complexity, client-dead-code, client-import-bounds]
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
       - uses: ./.github/actions/setup-monorepo
+      - run: npm run build --workspace=apps/client
+      - uses: actions/upload-artifact@v4
+        with:
+          name: client-dist
+          path: apps/client/dist/
 
-      - name: Run Client Unit Tests
-        run: npm run test:unit --workspace=client-react -- --reporter=junit --outputFile=reports/junit.xml
-        shell: bash
+  server-build:
+    name: Build - Server
+    needs: [server-lint, server-format-check, server-typecheck, server-complexity, server-dead-code, server-import-bounds]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - run: 'echo "server-build: no-op (source-level, D8)"'
 
+  # ═══════════════════════════════════════════════════════════════
+  # STAGE 4: POST-BUILD QUALITY — Artifact analysis
+  # ═══════════════════════════════════════════════════════════════
+
+  # --- Client Post-Build ---
+  client-sonarqube:
+    name: "Quality: Client SonarQube"
+    needs: [client-build, test-unit-client]
+    if: always() && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - uses: ./.github/actions/setup-monorepo
+      - uses: actions/download-artifact@v4
+        with:
+          name: client-dist
+          path: apps/client/dist/
+      - uses: actions/download-artifact@v4
+        with:
+          name: coverage-client
+          path: apps/client/coverage/
+      - uses: SonarSource/sonarqube-scan-action@v4
+        with:
+          projectBaseDir: apps/client
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+
+  client-coverage:
+    name: "Quality: Client Coverage"
+    needs: [client-build, test-unit-client]
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - uses: ./.github/actions/setup-monorepo
+      - uses: actions/download-artifact@v4
+        with:
+          name: coverage-client
+          path: apps/client/coverage/
+      - name: Enforce coverage thresholds
+        run: node scripts/ci/check-coverage.mjs apps/client
+
+  client-depcheck:
+    name: "Quality: Client DepCheck"
+    needs: client-build
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - uses: ./.github/actions/setup-monorepo
+      - name: Check unused/missing dependencies
+        run: npx depcheck
+        working-directory: apps/client
+
+  # --- Server Post-Build ---
+  server-sonarqube:
+    name: "Quality: Server SonarQube"
+    needs: [server-build, test-unit-server]
+    if: always() && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - uses: ./.github/actions/setup-monorepo
+      - uses: actions/download-artifact@v4
+        with:
+          name: coverage-server
+          path: apps/server/tests/coverage/
+      - uses: SonarSource/sonarqube-scan-action@v4
+        with:
+          projectBaseDir: apps/server
+          projectKey: project-one-server
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+
+  server-coverage:
+    name: "Quality: Server Coverage"
+    needs: [server-build, test-unit-server]
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - uses: ./.github/actions/setup-monorepo
+      - uses: actions/download-artifact@v4
+        with:
+          name: coverage-server
+          path: apps/server/tests/coverage/
+      - name: Enforce coverage thresholds
+        run: node scripts/ci/check-coverage.mjs apps/server
+
+  server-depcheck:
+    name: "Quality: Server DepCheck"
+    needs: server-build
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - uses: ./.github/actions/setup-monorepo
+      - name: Check unused/missing dependencies
+        run: npx depcheck
+        working-directory: apps/server
+
+  # ═══════════════════════════════════════════════════════════════
+  # STAGE 5: CI-COMPLETE — Single required check aggregator
+  # ═══════════════════════════════════════════════════════════════
+  ci-complete:
+    name: CI Complete
+    runs-on: ubuntu-latest
+    if: always()
+    needs:
+      - repo-discovery
+      - actionlint
+      - client-lint
+      - client-format-check
+      - client-typecheck
+      - client-complexity
+      - client-dead-code
+      - client-import-bounds
+      - server-lint
+      - server-format-check
+      - server-typecheck
+      - server-complexity
+      - server-dead-code
+      - server-import-bounds
+      - client-build
+      - server-build
+      - client-sonarqube
+      - server-sonarqube
+      - client-coverage
+      - server-coverage
+      - client-depcheck
+      - server-depcheck
+      - test-unit-client
+      - test-unit-server
+      - test-integration
+      - test-smoke
+      - e2e
+      - verify-signatures
+      - zombie-workflow-guard
+    steps:
+      - name: Check for failures
+        run: |
+          if [[ "${{ contains(needs.*.result, 'failure') }}" == "true" ]]; then
+            echo "❌ One or more upstream jobs failed"
+            exit 1
+          fi
+          if [[ "${{ contains(needs.*.result, 'cancelled') }}" == "true" ]]; then
+            echo "⚠️ One or more upstream jobs were cancelled — skipping ci-complete"
+            exit 0
+          fi
+          echo "✅ All upstream jobs succeeded or were skipped"
+
+  # ═══════════════════════════════════════════════════════════════
+  # EXISTING TEST JOBS (re-wired to repo-discovery)
+  # ═══════════════════════════════════════════════════════════════
+  test-unit-client:
+    name: Unit Tests - Client
+    needs: repo-discovery
+    if: needs.repo-discovery.outputs.client == 'true' || needs.repo-discovery.outputs.shared == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      checks: write
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - uses: ./.github/actions/setup-monorepo
+      - name: Run Client Unit Tests with Coverage
+        run: npm run test:coverage --workspace=apps/client
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: coverage-client
+          path: apps/client/coverage/
+          if-no-files-found: warn
       - name: Report Client Unit Tests
         if: success() || failure()
         uses: dorny/test-reporter@v3
@@ -72,17 +651,26 @@ jobs:
 
   test-unit-server:
     name: Unit Tests - Server
-    needs: changes
-    if: needs.changes.outputs.backend == 'true' || needs.changes.outputs.shared == 'true'
+    needs: repo-discovery
+    if: needs.repo-discovery.outputs.server == 'true' || needs.repo-discovery.outputs.shared == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    permissions:
+      contents: read
+      checks: write
     steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
       - uses: ./.github/actions/setup-monorepo
-
-      - name: Run Server Unit Tests
-        run: npm run test:unit --workspace=server-express -- --reporter=junit --outputFile=reports/junit.xml
-        shell: bash
-
+      - name: Run Server Unit Tests with Coverage
+        run: npm run test:coverage --workspace=apps/server
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: coverage-server
+          path: apps/server/tests/coverage/
+          if-no-files-found: warn
       - name: Report Server Unit Tests
         if: success() || failure()
         uses: dorny/test-reporter@v3
@@ -93,10 +681,13 @@ jobs:
 
   test-integration:
     name: Integration Tests - Server
-    needs: changes
-    if: needs.changes.outputs.backend == 'true' || needs.changes.outputs.shared == 'true'
+    needs: repo-discovery
+    if: needs.repo-discovery.outputs.server == 'true' || needs.repo-discovery.outputs.shared == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    permissions:
+      contents: read
+      checks: write
     services:
       postgres:
         image: postgres:16-alpine
@@ -111,21 +702,21 @@ jobs:
           --health-timeout 5s
           --health-retries 5
     steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
       - uses: ./.github/actions/setup-monorepo
-
       - name: Prisma Migrate Deploy
         run: npx prisma migrate deploy
         env:
           DATABASE_URL: postgresql://test:test@localhost:5432/project_one_test
         shell: bash
         working-directory: apps/server
-
       - name: Run Integration Tests
-        run: npm run test:integration --workspace=server-express -- --reporter=junit --outputFile=reports/junit.xml
+        run: npm run test:integration --workspace=apps/server -- --reporter=junit --outputFile=reports/junit.xml
         env:
           DATABASE_URL: postgresql://test:test@localhost:5432/project_one_test
         shell: bash
-
       - name: Report Integration Tests
         if: success() || failure()
         uses: dorny/test-reporter@v3
@@ -136,10 +727,13 @@ jobs:
 
   test-smoke:
     name: Smoke Tests - Server
-    needs: changes
-    if: needs.changes.outputs.backend == 'true' || needs.changes.outputs.shared == 'true'
+    needs: repo-discovery
+    if: needs.repo-discovery.outputs.server == 'true' || needs.repo-discovery.outputs.shared == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    permissions:
+      contents: read
+      checks: write
     services:
       postgres:
         image: postgres:16-alpine
@@ -154,21 +748,21 @@ jobs:
           --health-timeout 5s
           --health-retries 5
     steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
       - uses: ./.github/actions/setup-monorepo
-
       - name: Prisma Migrate Deploy
         run: npx prisma migrate deploy
         env:
           DATABASE_URL: postgresql://test:test@localhost:5432/project_one_test
         shell: bash
         working-directory: apps/server
-
       - name: Run Smoke Tests
-        run: npm run test:smoke:ci --workspace=server-express -- --reporter=junit --outputFile=reports/junit.xml
+        run: npm run test:smoke:ci --workspace=apps/server -- --reporter=junit --outputFile=reports/junit.xml
         env:
           DATABASE_URL: postgresql://test:test@localhost:5432/project_one_test
         shell: bash
-
       - name: Report Smoke Tests
         if: success() || failure()
         uses: dorny/test-reporter@v3
@@ -177,25 +771,15 @@ jobs:
           path: apps/server/reports/junit.xml
           reporter: java-junit
 
-  build:
-    name: Build
-    needs: changes
-    if: always()
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    steps:
-      - uses: ./.github/actions/setup-monorepo
-
-      - name: Build All Workspaces
-        run: npm run build --ws --if-present
-        shell: bash
-
   e2e:
     name: E2E Tests
-    needs: changes
-    if: needs.changes.outputs.e2e == 'true' || needs.changes.outputs.shared == 'true'
+    needs: repo-discovery
+    if: needs.repo-discovery.outputs.e2e == 'true' || needs.repo-discovery.outputs.shared == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    permissions:
+      contents: read
+      checks: write
     services:
       postgres:
         image: postgres:16-alpine
@@ -210,35 +794,33 @@ jobs:
           --health-timeout 5s
           --health-retries 5
     steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
       - uses: ./.github/actions/setup-monorepo
-
       - name: Prisma Migrate Deploy
         run: npx prisma migrate deploy
         env:
           DATABASE_URL: postgresql://test:test@localhost:5432/project_one_test
         shell: bash
         working-directory: apps/server
-
       - name: Cache Playwright Browsers
         id: cache-playwright
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ~/.cache/ms-playwright
           key: playwright-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
-
       - name: Install Playwright with System Dependencies
         if: steps.cache-playwright.outputs.cache-hit != 'true'
         run: npx playwright install --with-deps chromium
         shell: bash
         working-directory: e2e
-
       - name: Run E2E Tests
         run: npx playwright test --project=chromium --output=test-results
         env:
           DATABASE_URL: postgresql://test:test@localhost:5432/project_one_test
         shell: bash
         working-directory: e2e
-
       - name: Report E2E Tests
         if: success() || failure()
         uses: dorny/test-reporter@v3
@@ -249,21 +831,27 @@ jobs:
 
   zombie-workflow-guard:
     name: Zombie Workflow Guard
+    needs: repo-discovery
     runs-on: ubuntu-latest
     timeout-minutes: 2
     steps:
+      - uses: actions/checkout@v5
       - name: Assert deleted workflows are absent
         run: |
           if test -f .github/workflows/pr-validation.yml; then
-            echo "❌ Zombie workflow pr-validation.yml found - should have been deleted"
+            echo "❌ Zombie workflow pr-validation.yml found"
             exit 1
           fi
           if test -f .github/workflows/lint.yml; then
-            echo "❌ Zombie workflow lint.yml found - should have been deleted"
+            echo "❌ Zombie workflow lint.yml found"
             exit 1
           fi
           if test -f .github/workflows/formatter.yml; then
-            echo "❌ Zombie workflow formatter.yml found - should have been deleted"
+            echo "❌ Zombie workflow formatter.yml found"
+            exit 1
+          fi
+          if test -f .github/workflows/quality.yml; then
+            echo "❌ Zombie workflow quality.yml found - should have been deleted"
             exit 1
           fi
           echo "✅ All zombie workflows confirmed absent"

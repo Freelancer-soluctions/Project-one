@@ -189,31 +189,38 @@ Controller (handleCatchErrorAsync) → Service (lógica de negocio) → DAO (acc
 
 ### Lo que se implementó
 
-**12 workflows de GitHub Actions en producción:**
+**11 workflows de GitHub Actions en producción:**
 
 | Workflow                 | Propósito                                       | Complejidad    |
 | ------------------------ | ----------------------------------------------- | -------------- |
-| `ci.yml`                 | PR pipeline con path filtering                  | Avanzada       |
+| `ci.yml`                 | PR pipeline — 5 stages, 28 jobs con DAG         | **Enterprise** |
 | `security.yml`           | SAST + SCA + SBOM + Secrets + Dependency Review | **Enterprise** |
 | `release.yml`            | Changesets release + npm publish                | Senior         |
 | `preview.yml`            | Deploy de preview                               | Senior         |
-| `quality.yml`            | Reusable quality workflow                       | Senior         |
 | `scheduled-security.yml` | Security scan programado                        | Senior         |
 | `security-digest.yml`    | Digest de seguridad                             | Senior         |
 | `ci-enterprise.yml`      | Reference full pipeline                         | Enterprise     |
 | `deploy.yml`             | Deploy a producción                             | Senior         |
 
-**Características avanzadas:**
+**Características avanzadas (ci.yml — 5-stage DAG enterprise):**
 
+- **Stage 1** `repo-discovery` — path filtering con `dorny/paths-filter@v3` emitiendo `client`, `server`, `e2e`, `shared`.
+- **Stage 2** Pre-build quality (13 jobs paralelos) — lint, format-check, typecheck, complexity (ESLint max:15), dead-code (knip), import-bounds (dep-cruiser) por workspace + actionlint (`rhysd/actionlint@v1`).
+- **Stage 3** Build — `client-build` con artifact upload (`actions/upload-artifact@v4`), `server-build` no-op (D8: análisis source-level sin dist).
+- **Stage 4** Post-build quality (6 jobs) — SonarQube scan (fork-PR gate), coverage enforcement (thresholds 84/49/63/85 client, 39/18/7/39 server), depcheck por workspace.
+- **Stage 5** `ci-complete` aggregator — `if: always()`, `needs` ALL 28 jobs, exit non-zero on any `failure`, exit 0 on `cancelled`.
 - `concurrency` con `cancel-in-progress: true` — cancela PRs obsoletos.
-- `dorny/paths-filter@v3` — solo ejecuta jobs relevantes.
-- Composite actions (`actions/setup-monorepo`).
-- Cache: `actions/cache@v4` para Playwright browsers.
+- Composite action (`actions/setup-monorepo`) — checkout + node + npm ci + vitest cache.
+- `quality.yml` eliminado — `zombie-workflow-guard` verifica ausencia (anti-regresión).
+- Branch protection: required check único `ci-complete`.
+
+**Características avanzadas (otros workflows):**
+
 - SBOM CycloneDX con retención 365 días.
 - GitHub Dependabot configurado.
 - Husky: pre-commit (lint-staged + SAST + Secrets en paralelo) y pre-push (scoped tests).
 
-**Nivel demostrado: Staff/DevOps Engineer.** El pipeline de seguridad con SAST + SCA + SBOM + Secret Detection + Dependency Review es de nivel enterprise. La mayoría de Seniors solo configuran `npm test` en CI.
+**Nivel demostrado: Staff/DevOps Engineer.** La arquitectura de 5-stage DAG con 28 jobs, SonarQube, coverage thresholds, knip, dependency-cruiser, actionlint self-validation y ci-complete aggregator es de nivel enterprise. La mayoría de Seniors solo configuran `npm test` en CI. La decisión de unificar `quality.yml` inline (D1) demuestra capacidad de evaluar trade-offs `workflow_call` vs DAG y justificar con evidencia de enterprise references (Shopify, Netflix, Microsoft, GitHub).
 
 ### Lo que NO se implementó (gaps)
 

@@ -160,10 +160,10 @@ describe('Events Combined Filters – Integration', () => {
 
     expect(res.status).toBe(200);
     expect(res.body).toHaveProperty('data');
-    expect(Array.isArray(res.body.data)).toBe(true);
-    expect(res.body).toHaveProperty('total');
-    expect(res.body).toHaveProperty('page');
-    expect(res.body).toHaveProperty('limit');
+    expect(Array.isArray(res.body.data.data)).toBe(true);
+    expect(res.body.data).toHaveProperty('total');
+    expect(res.body.data).toHaveProperty('page');
+    expect(res.body.data).toHaveProperty('limit');
   });
 
   // 5.4.2 dateFrom/dateTo (range)
@@ -174,7 +174,7 @@ describe('Events Combined Filters – Integration', () => {
 
     expect(res.status).toBe(200);
     expect(res.body).toHaveProperty('data');
-    expect(Array.isArray(res.body.data)).toBe(true);
+    expect(Array.isArray(res.body.data.data)).toBe(true);
   });
 
   // 5.4.3 speaker filter
@@ -185,7 +185,7 @@ describe('Events Combined Filters – Integration', () => {
 
     expect(res.status).toBe(200);
     expect(res.body).toHaveProperty('data');
-    expect(Array.isArray(res.body.data)).toBe(true);
+    expect(Array.isArray(res.body.data.data)).toBe(true);
   });
 
   // 5.4.4 status=upcoming
@@ -196,7 +196,7 @@ describe('Events Combined Filters – Integration', () => {
 
     expect(res.status).toBe(200);
     expect(res.body).toHaveProperty('data');
-    expect(Array.isArray(res.body.data)).toBe(true);
+    expect(Array.isArray(res.body.data.data)).toBe(true);
   });
 
   // 5.4.5 status=past
@@ -207,7 +207,7 @@ describe('Events Combined Filters – Integration', () => {
 
     expect(res.status).toBe(200);
     expect(res.body).toHaveProperty('data');
-    expect(Array.isArray(res.body.data)).toBe(true);
+    expect(Array.isArray(res.body.data.data)).toBe(true);
   });
 
   // 5.5 Combined filter scenarios
@@ -218,7 +218,7 @@ describe('Events Combined Filters – Integration', () => {
 
     expect(res.status).toBe(200);
     expect(res.body).toHaveProperty('data');
-    expect(Array.isArray(res.body.data)).toBe(true);
+    expect(Array.isArray(res.body.data.data)).toBe(true);
   });
 
   it('GET /events with type + dateFrom + dateTo + speaker returns 200', async () => {
@@ -230,7 +230,7 @@ describe('Events Combined Filters – Integration', () => {
 
     expect(res.status).toBe(200);
     expect(res.body).toHaveProperty('data');
-    expect(Array.isArray(res.body.data)).toBe(true);
+    expect(Array.isArray(res.body.data.data)).toBe(true);
   });
 
   it('GET /events with status=past + type + dateTo returns 200', async () => {
@@ -240,7 +240,7 @@ describe('Events Combined Filters – Integration', () => {
 
     expect(res.status).toBe(200);
     expect(res.body).toHaveProperty('data');
-    expect(Array.isArray(res.body.data)).toBe(true);
+    expect(Array.isArray(res.body.data.data)).toBe(true);
   });
 
   it('GET /events with all filters combined returns 200', async () => {
@@ -252,7 +252,7 @@ describe('Events Combined Filters – Integration', () => {
 
     expect(res.status).toBe(200);
     expect(res.body).toHaveProperty('data');
-    expect(Array.isArray(res.body.data)).toBe(true);
+    expect(Array.isArray(res.body.data.data)).toBe(true);
   });
 
   // 5.6 Validation tests
@@ -328,10 +328,10 @@ describe('Events Combined Filters – Integration', () => {
 
     expect(res.status).toBe(200);
     expect(res.body).toHaveProperty('data');
-    expect(Array.isArray(res.body.data)).toBe(true);
-    expect(res.body).toHaveProperty('total');
-    expect(res.body).toHaveProperty('page', 1);
-    expect(res.body).toHaveProperty('limit', 10);
+    expect(Array.isArray(res.body.data.data)).toBe(true);
+    expect(res.body.data).toHaveProperty('total');
+    expect(res.body.data).toHaveProperty('page', 1);
+    expect(res.body.data).toHaveProperty('limit', 10);
   });
 
   it('GET /events?searchQuery=conference returns 200 (searchQuery only)', async () => {
@@ -341,7 +341,7 @@ describe('Events Combined Filters – Integration', () => {
 
     expect(res.status).toBe(200);
     expect(res.body).toHaveProperty('data');
-    expect(Array.isArray(res.body.data)).toBe(true);
+    expect(Array.isArray(res.body.data.data)).toBe(true);
   });
 
   it('GET /events?page=2&limit=5 returns 200 (pagination only)', async () => {
@@ -351,9 +351,9 @@ describe('Events Combined Filters – Integration', () => {
 
     expect(res.status).toBe(200);
     expect(res.body).toHaveProperty('data');
-    expect(Array.isArray(res.body.data)).toBe(true);
-    expect(res.body).toHaveProperty('page', 2);
-    expect(res.body).toHaveProperty('limit', 5);
+    expect(Array.isArray(res.body.data.data)).toBe(true);
+    expect(res.body.data).toHaveProperty('page', 2);
+    expect(res.body.data).toHaveProperty('limit', 5);
   });
 
   it('GET /events?searchQuery=tech&type=1 returns 200 (searchQuery + new filter)', async () => {
@@ -363,7 +363,7 @@ describe('Events Combined Filters – Integration', () => {
 
     expect(res.status).toBe(200);
     expect(res.body).toHaveProperty('data');
-    expect(Array.isArray(res.body.data)).toBe(true);
+    expect(Array.isArray(res.body.data.data)).toBe(true);
   });
 
   it('GET /events?searchQuery=event&status=upcoming&page=1&limit=20 returns 200 (all old + new params)', async () => {
@@ -373,8 +373,8 @@ describe('Events Combined Filters – Integration', () => {
 
     expect(res.status).toBe(200);
     expect(res.body).toHaveProperty('data');
-    expect(Array.isArray(res.body.data)).toBe(true);
-    expect(res.body).toHaveProperty('page', 1);
-    expect(res.body).toHaveProperty('limit', 20);
+    expect(Array.isArray(res.body.data.data)).toBe(true);
+    expect(res.body.data).toHaveProperty('page', 1);
+    expect(res.body.data).toHaveProperty('limit', 20);
   });
 });

@@ -1,0 +1,23 @@
+{
+  "$schema": "https://unpkg.com/knip@5/schema.json",
+  "entry": ["src/bin/index.js"],
+  "project": ["src/**/*.js"],
+  "ignore": [
+    "src/**/*.test.js",
+    "src/**/*.spec.js",
+    "src/docs/**",
+    "src/socket/levels/**",
+    "tests/**"
+  ],
+  "ignoreDependencies": [
+    "@prisma/language-server",
+    "@vitest/ui",
+    "nodemon",
+    "why-is-node-running"
+  ],
+  "ignoreBinaries": ["prisma", "nodemon"],
+  "ignoreExportsUsedInFile": true,
+  "rules": {
+    "duplicates": "off"
+  }
+}

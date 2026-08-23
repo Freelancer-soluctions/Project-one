@@ -70,7 +70,7 @@ jobs:
 
       # 2. Setup Node.js (needed for test:smoke if running in-process)
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version-file: '.nvmrc'
           cache: 'npm'
@@ -170,14 +170,21 @@ jobs:
     if: ${{ vars.AWS_ROLE_ARN != '' }}
 
     steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@v2
+        with:
+          egress-policy: audit
+
       - name: Checkout repository
         uses: actions/checkout@v5
 
       - name: Configure AWS credentials (OIDC)
-        uses: aws-actions/configure-aws-credentials@v4
+        uses: aws-actions/configure-aws-credentials@v6
         with:
           role-to-assume: ${{ vars.AWS_ROLE_ARN }}
-          aws-region: us-east-1
+          aws-region: ${{ vars.AWS_REGION || 'us-east-1' }}
+          role-session-name: gha-${{ github.run_id }}
+          role-duration-seconds: 900
 
       - name: Login to Amazon ECR
         uses: aws-actions/amazon-ecr-login@v2
@@ -185,10 +192,10 @@ jobs:
       - name: Build and push image to ECR
         run: |
           docker build -t project-one-server:${GITHUB_SHA} -t project-one-server:latest -f apps/server/Dockerfile .
-          docker tag project-one-server:${GITHUB_SHA} ${{ vars.AWS_ACCOUNT_ID }}.dkr.ecr.us-east-1.amazonaws.com/project-one-server:${GITHUB_SHA}
-          docker tag project-one-server:latest ${{ vars.AWS_ACCOUNT_ID }}.dkr.ecr.us-east-1.amazonaws.com/project-one-server:latest
-          docker push ${{ vars.AWS_ACCOUNT_ID }}.dkr.ecr.us-east-1.amazonaws.com/project-one-server:${GITHUB_SHA}
-          docker push ${{ vars.AWS_ACCOUNT_ID }}.dkr.ecr.us-east-1.amazonaws.com/project-one-server:latest
+          docker tag project-one-server:${GITHUB_SHA} ${{ vars.AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION || 'us-east-1' }}.amazonaws.com/project-one-server:${GITHUB_SHA}
+          docker tag project-one-server:latest ${{ vars.AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION || 'us-east-1' }}.amazonaws.com/project-one-server:latest
+          docker push ${{ vars.AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION || 'us-east-1' }}.amazonaws.com/project-one-server:${GITHUB_SHA}
+          docker push ${{ vars.AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION || 'us-east-1' }}.amazonaws.com/project-one-server:latest
         env:
           GITHUB_SHA: ${{ github.sha }}
           AWS_ACCOUNT_ID: ${{ vars.AWS_ACCOUNT_ID }}
@@ -212,11 +219,18 @@ jobs:
     if: ${{ vars.AWS_ROLE_ARN != '' }}
 
     steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@v2
+        with:
+          egress-policy: audit
+
       - name: Configure AWS credentials (OIDC)
-        uses: aws-actions/configure-aws-credentials@v4
+        uses: aws-actions/configure-aws-credentials@v6
         with:
           role-to-assume: ${{ vars.AWS_ROLE_ARN }}
-          aws-region: us-east-1
+          aws-region: ${{ vars.AWS_REGION || 'us-east-1' }}
+          role-session-name: gha-${{ github.run_id }}
+          role-duration-seconds: 900
 
       # 1. Register new task definition with SHA-tagged image (NEW revision)
       - name: Register task definition (staging)
@@ -233,7 +247,7 @@ jobs:
             --container-definitions '[
               {
                 "name": "api",
-                "image": "'${{ vars.AWS_ACCOUNT_ID }}'.dkr.ecr.us-east-1.amazonaws.com/project-one-server:'${{ github.sha }}'",
+                "image": "'${{ vars.AWS_ACCOUNT_ID }}'.dkr.ecr.${{ vars.AWS_REGION || 'us-east-1' }}.amazonaws.com/project-one-server:'${{ github.sha }}'",
                 "portMappings": [{"containerPort": 3000, "protocol": "tcp"}],
                 "environment": [
                   {"name": "NODE_ENV", "value": "staging"},
@@ -251,7 +265,7 @@ jobs:
                   "logDriver": "awslogs",
                   "options": {
                     "awslogs-group": "/ecs/project-one-staging",
-                    "awslogs-region": "us-east-1",
+                    "awslogs-region": "${{ vars.AWS_REGION || 'us-east-1' }}",
                     "awslogs-stream-prefix": "api"
                   }
                 },
@@ -329,11 +343,18 @@ jobs:
     if: ${{ vars.AWS_ROLE_ARN != '' }}
 
     steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@v2
+        with:
+          egress-policy: audit
+
       - name: Configure AWS credentials (OIDC)
-        uses: aws-actions/configure-aws-credentials@v4
+        uses: aws-actions/configure-aws-credentials@v6
         with:
           role-to-assume: ${{ vars.AWS_ROLE_ARN }}
-          aws-region: us-east-1
+          aws-region: ${{ vars.AWS_REGION || 'us-east-1' }}
+          role-session-name: gha-${{ github.run_id }}
+          role-duration-seconds: 900
 
       # 1. Register new task definition with SHA-tagged image (NEW revision)
       - name: Register task definition (production)
@@ -350,7 +371,7 @@ jobs:
             --container-definitions '[
               {
                 "name": "api",
-                "image": "'${{ vars.AWS_ACCOUNT_ID }}'.dkr.ecr.us-east-1.amazonaws.com/project-one-server:'${{ github.sha }}'",
+                "image": "'${{ vars.AWS_ACCOUNT_ID }}'.dkr.ecr.${{ vars.AWS_REGION || 'us-east-1' }}.amazonaws.com/project-one-server:'${{ github.sha }}'",
                 "portMappings": [{"containerPort": 3000, "protocol": "tcp"}],
                 "environment": [
                   {"name": "NODE_ENV", "value": "production"},
@@ -368,7 +389,7 @@ jobs:
                   "logDriver": "awslogs",
                   "options": {
                     "awslogs-group": "/ecs/project-one-prod",
-                    "awslogs-region": "us-east-1",
+                    "awslogs-region": "${{ vars.AWS_REGION || 'us-east-1' }}",
                     "awslogs-stream-prefix": "api"
                   }
                 },

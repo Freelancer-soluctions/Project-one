@@ -1,0 +1,34 @@
+{
+  "$schema": "https://unpkg.com/knip@5/schema.json",
+  "entry": ["src/main.jsx"],
+  "project": ["src/**/*.{js,jsx}"],
+  "ignore": [
+    "src/stories/**",
+    "src/**/*.stories.{js,jsx}",
+    "src/**/*.test.{js,jsx}",
+    "src/**/*.spec.{js,jsx}",
+    "src/config/fieldLimits.js",
+    "src/modules/inventoryMovement/api/inventoryMovementAPI.js",
+    "src/services/socketService.js"
+  ],
+  "ignoreDependencies": [
+    "@storybook/addon-docs",
+    "@storybook/addon-essentials",
+    "@storybook/addon-interactions",
+    "@storybook/addon-links",
+    "@storybook/addon-styling-webpack",
+    "@storybook/blocks",
+    "@storybook/react",
+    "@storybook/react-vite",
+    "@storybook/test",
+    "@chromatic-com/storybook",
+    "storybook",
+    "msw",
+    "why-is-node-running"
+  ],
+  "ignoreBinaries": ["storybook"],
+  "ignoreExportsUsedInFile": true,
+  "rules": {
+    "duplicates": "off"
+  }
+}

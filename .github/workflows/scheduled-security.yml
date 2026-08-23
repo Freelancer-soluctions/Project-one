@@ -13,7 +13,7 @@ jobs:
   gitleaks-full-scan:
     name: Gitleaks Full History Scan
     runs-on: ubuntu-latest
-    continue-on-error: true
+    timeout-minutes: 15
 
     steps:
       - uses: actions/checkout@v5
@@ -26,7 +26,8 @@ jobs:
           args: git --log-opts="--all" --report-format=json --report-path=gitleaks-report.json --redact
 
       - name: Upload Gitleaks JSON report
-        uses: actions/upload-artifact@v4
+        if: always()
+        uses: actions/upload-artifact@v5
         with:
           name: gitleaks-report
           path: gitleaks-report.json
@@ -38,7 +39,26 @@ jobs:
           args: git --log-opts="--all" --report-format=sarif --report-path=gitleaks.sarif --redact
 
       - name: Upload SARIF to Security tab
+        if: always()
         uses: github/codeql-action/upload-sarif@v4
         with:
           sarif_file: gitleaks.sarif
           category: gitleaks
+
+  notify-failure:
+    name: Notify on Failure
+    needs: gitleaks-full-scan
+    if: failure()
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+    steps:
+      - uses: actions/github-script@v8
+        with:
+          script: |
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `Scheduled security scan failed: ${context.workflow} (${new Date().toISOString().split('T')[0]})`,
+              body: `See run: ${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`
+            })

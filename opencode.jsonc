@@ -109,7 +109,7 @@
     },
     "orchestrator": {
       "mode": "primary",
-      "model": "nvidia/minimaxai/minimax-m3",
+      "model": "nvidia/deepseek-ai/deepseek-v4-flash",
       "description": "Main orchestrator that delegates tasks to specialized agents",
       "prompt": "{file:docs/opencode/prompts/orchestrator.md}",
       "steps": 45,
@@ -131,7 +131,7 @@
     "spec-manager": {
       "mode": "subagent",
       "hidden": false,
-      "model": "opencode/deepseek-v4-flash-free",
+      "model": "opencode/hy3-free",
       "description": "Executes OpenSpec CLI - explore, propose, verify, archive",
       "prompt": "{file:docs/opencode/prompts/spec-manager.md}",
       "steps": 30,
@@ -157,7 +157,7 @@
     "planner": {
       "mode": "subagent",
       "hidden": false,
-      "model": "opencode/deepseek-v4-flash-free",
+      "model": "opencode/hy3-free",
       "description": "Planning specialist",
       "prompt": "{file:docs/opencode/prompts/planner.md}",
       "steps": 20,
@@ -172,7 +172,7 @@
     "developer": {
       "mode": "subagent",
       "hidden": false,
-      "model": "opencode/nemotron-3-ultra-free",
+      "model": "opencode/nemotron-3.5-lightning-free",
       "description": "Implementation agent",
       "prompt": "{file:docs/opencode/prompts/developer.md}",
       "steps": 35,
@@ -190,7 +190,7 @@
     "reviewer": {
       "mode": "subagent",
       "hidden": false,
-      "model": "opencode/deepseek-v4-flash-free",
+      "model": "opencode/hy3-free",
       "description": "Code reviewer",
       "prompt": "{file:docs/opencode/prompts/reviewer.md}",
       "steps": 15,
@@ -203,7 +203,7 @@
     "researcher": {
       "mode": "subagent",
       "hidden": false,
-      "model": "opencode/deepseek-v4-flash-free",
+      "model": "opencode/hy3-free",
       "description": "Research agent",
       "prompt": "{file:docs/opencode/prompts/researcher.md}",
       "steps": 20,
@@ -218,7 +218,7 @@
     "project-manager": {
       "mode": "subagent",
       "hidden": false,
-      "model": "opencode/deepseek-v4-flash-free",
+      "model": "opencode/hy3-free",
       "description": "Handles Trello project-management workflows - card creation, updates, deletion, state transitions",
       "prompt": "{file:docs/opencode/prompts/project-manager.md}",
       "steps": 15,
