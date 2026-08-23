@@ -356,6 +356,123 @@ git add openspec/changes/ci-commit-signing/tasks.md
 
 ---
 
+## 🔑 Setup Permanente del ssh-agent en Windows (CRÍTICO)
+
+### El problema recurrente
+
+Durante TODO el change, cada commit firmado por agentes fallaba con:
+
+```
+error: incorrect passphrase supplied to decrypt private key
+fatal: failed to write commit object
+```
+
+**Causa**: cada sesión bash de un agente es un entorno nuevo. El `ssh-agent` arrancado dentro de esa sesión muere al terminar, y la passphrase nunca está disponible no-interactivamente.
+
+### La solución: servicio ssh-agent de Windows
+
+Windows tiene un **servicio ssh-agent global** que persiste entre terminales y sesiones de agentes. Una vez cargada la clave ahí, TODOS los procesos (agentes incluidos) pueden firmar sin passphrase.
+
+**Setup UNA vez (PowerShell como Administrador):**
+
+```powershell
+# 1. Servicio automático al arrancar Windows
+Set-Service ssh-agent -StartupType Automatic
+
+# 2. Arrancarlo ahora
+Start-Service ssh-agent
+
+# 3. Cargar la clave (pide passphrase — ÚLTIMA VEZ por sesión de Windows)
+ssh-add $env:USERPROFILE\.ssh\id_ed25519_projectERP
+```
+
+**Verificar:**
+
+```powershell
+ssh-add -l
+# Debe mostrar: 256 SHA256:BrykXb1hhwLcPc+cjis6XFqh3DfgYy/cLIIHOFCUM3w projectERP-signing (ED25519)
+```
+
+### Qué cambia con esto
+
+| Sin servicio                          | Con servicio                             |
+| ------------------------------------- | ---------------------------------------- |
+| Cada commit de agente pide passphrase | Agentes firman directo                   |
+| SSH_ASKPASS popups constantes         | Passphrase UNA vez por sesión de Windows |
+| Friction constante                    | Flujo fluido                             |
+
+### Nota de seguridad
+
+La passphrase **sigue protegiendo el archivo `.pem` en disco**. El servicio solo mantiene la clave descifrada **en memoria** mientras tu sesión de Windows está activa. Al reiniciar la PC, vuelves a cargar una vez con `ssh-add`.
+
+> **IMPORTANTE para agentes**: los comandos `Set-Service` y `Start-Service` son de PowerShell, NO de bash/MSYS2. Si intentas `eval $(ssh-agent)` en PowerShell dará error.
+
+---
+
+## 🏛️ Decisión de Arquitectura: ¿Por qué verificar en el PR y no en cada push?
+
+### La pregunta
+
+> "La verificación de firma no debería hacerse al push a la rama en el remote?"
+
+### La respuesta: 3 capas, cada una en su momento
+
+```
+Capa 1 (LOCAL):     git config commit.gpgsign=true
+                    → TODO commit que haces YA sale firmado automáticamente
+                    → La firma nace aquí, no en el server
+
+Capa 2 (GITHUB):    Ruleset "Require signed commits" en main
+                    → GitHub BLOQUEA el merge aunque el CI no exista
+                    → ESTA es la enforcement REAL e infalible
+
+Capa 3 (CI):        job verify-signatures en pull_request
+                    → Feedback temprano ANTES del merge
+                    → Te dice QUÉ commit falló y POR QUÉ (log detallado)
+```
+
+### Por qué NO agregar trigger `push` al workflow
+
+| Si verificas en cada push                             | Con el diseño actual (PR only)             |
+| ----------------------------------------------------- | ------------------------------------------ |
+| Quemas minutos de Actions en cada push de WIP         | Solo corres cuando importa (puerta a main) |
+| Commits a medio trabajo fallan y generan ruido rojo   | Sin ruido: verde cuando debe estar verde   |
+| **Redundante**: el ruleset ya bloquea de todas formas | El ruleset es el seguro definitivo         |
+
+### La prueba empírica
+
+Cuando hicimos el test del commit sin firmar (`test/unsigned-commit`), el bloqueo lo dio **el ruleset** ("Merging is blocked — must have verified signature"), NO el CI. Es decir: aunque el workflow `verify-signatures` no existiera, un commit sin firma jamás entra a main.
+
+### Regla general de diseño CI/CD
+
+> **Enforcement en el destino, feedback en el tránsito.**
+>
+> - El ruleset protege main (destino).
+> - El job de CI da visibilidad durante la revisión del PR (tránsito).
+> - Verificar en cada push es poner un guardia en cada calle en vez de en la puerta del banco.
+
+---
+
+## ⚠️ Cosas que NO Tuvimos en Cuenta (y te van a pasar)
+
+1. **Commits legacy siempre Unverified**: los commits históricos anteriores al change muestran badge "Unverified" en GitHub. Es visual solamente — no rompe nada.
+
+2. **El squash-merge firma con GitHub**: cuando haces squash-merge, GitHub crea un commit nuevo firmado con SU clave web-flow, no con la tuya. El badge Verified aparece pero es la firma de GitHub, no la del autor original. El job verify-signatures valida la cadena real antes del merge.
+
+3. **Dependabot Updates no se puede deshabilitar por API**: devuelve HTTP 422. Solo desde Settings UI del repo.
+
+4. **Los secrets de la App deben existir ANTES del push**: si haces push sin crear APP_ID y APP_PRIVATE_KEY como secrets, ci.yml fallará en create-github-app-token con "secret not found".
+
+5. **El ruleset bloquea TAMBIÉN a admins**: si no configuras bypass list, ni siquiera tú podrás mergear un commit sin firma. Configúralo en Rules → tu ruleset → Bypass list.
+
+6. **CI_MINIMAL=true salta jobs pesados PERO también CI Complete**: el gate final no corre. Cuando quieras validar todo el pipeline completo, borra temporalmente la variable o ponla en false.
+
+7. **ActionLint roto independiente**: el job actionlint falla por `rhysd/actionlint@v1` (versión no resoluble). Es un bug preexistente ajeno a este change — arreglarlo es tarea aparte.
+
+8. **El .pem de la App NUNCA al repo**: si lo commitas aunque sea una vez, queda en el historial y debes rotarlo. Guárdalo fuera del proyecto y usa solo GitHub Secrets.
+
+---
+
 ## 📊 Métricas del Change
 
 | Métrica                      | Valor                                                      |
