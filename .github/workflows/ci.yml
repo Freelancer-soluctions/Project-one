@@ -32,7 +32,11 @@ jobs:
         with:
           app-id: ${{ secrets.APP_ID }}
           private-key: ${{ secrets.APP_PRIVATE_KEY }}
-      # NOTE: commit signing moved out — see verify-signatures job
+      - uses: peter-evans/git-commit-signer@v4
+        with:
+          gpg-key: ${{ secrets.APP_PRIVATE_KEY }}
+          name: "Project-one-commit-signing"
+          email: "project-one@project-one.com"
       - uses: dorny/paths-filter@v4
         id: filter
         with:

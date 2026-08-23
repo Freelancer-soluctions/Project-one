@@ -181,3 +181,5 @@ git log --show-signature
 | Ruleset Require signed commits | Configurado en `main`, bypass Admin para emergencias                             |
 | Guía pedagógica completa       | [05b-commit-signing.md](./learning/ci-cd/05b-commit-signing.md)                  |
 | OpenSpec change                | `openspec/changes/ci-commit-signing/`                                            |
+
+<!-- ci validation marker 2026-08-22 20:51 -->
