@@ -159,5 +159,11 @@ O alternativamente, muchos equipos usan TIA como un job adicional y rápido que 
 - Un pipeline separado programado para mutation test que no afecte las PR
 -  Entiendes supply chain security (tema hot en DevOps/SRE/Platform Engineering)
 - que la doc responda estas preguntas  "¿Cómo garantizas que los commits en main son legítimos?"
-- "¿Cómo manejas credenciales en CI/CD?"
-- "¿Qué es OIDC y cómo se usa en GitHub Actions?"
+"¿Cómo manejas credenciales en CI/CD?"
+"¿Qué es OIDC y cómo se usa en GitHub Actions?"
+- porque debo de seleccionar una cuanta cada vez que elimino una branch en el remoto o hago push
+- en shifting left solo se evalua el codigo cambiante o nuevo o todo el codebase
+- como se debe de ejecutar los commit de ahora en adelante con el cambio de los commits firmados ?
+- crear un comando para activar la clave de commit signing
+- COMO FUNCIONA LOS ACTIONS AL HACER PUSH A UNA RAMA SE EJECUTAN O LO HACEN HASTA ABRIR LA PULL REQUEST ?
+
