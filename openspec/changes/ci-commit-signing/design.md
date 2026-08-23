@@ -5,7 +5,7 @@ El repositorio usa feature branches (`feature/*`) que se mergean a `main`. No ex
 Restricciones del usuario:
 
 - Branching: feature/_ → main. Ruleset `Require signed commits` SOLO en main; feature/_ sin protección remota.
-- Firma efectiva exigida a nivel PR vía job `verify-signatures` (pull_request cubre todo el rango base..head) + merge_group.
+- Firma efectiva exigida a nivel PR vía job `verify-signatures` (pull_request cubre SOLO los commits nuevos del rango base..head) + merge_group.
 - `commit.gpgsign=true` global → commits nuevos en features salen firmados automáticamente.
 
 ## Goals / Non-Goals
@@ -58,17 +58,17 @@ Ruleset `Require signed commits` en main con bypass de rol Admin para emergencia
 
 ### D4 — Verificación CI por GitHub REST API
 
-Se usa `verification.verified` de la REST API. NUNCA `git log %G?` en el runner sin `allowedSignersFile` → produciría falsos N para firmas SSH.
+Se usa `verification.verified` de la REST API. NUNCA `git log %G?` en el runner sin `allowedSignersFile` → produciría falsos N para firmas SSH. El job verifica SOLO los commits nuevos del PR (scoping base..head, ver R-PS1); tolera `verification: null` (ver R-PS3) y aplica anti-stale retry (ver R-PS2).
 
 ### D5 — Job verify-signatures en Stage 2 PRE-Build
 
-Job en `ci.yml` Stage 2 PRE-Build, triggers `pull_request` + `merge_group`, allow-list de bots (dependabot[bot], github-actions[bot] si verified=true), añadido a `ci-complete.needs`, marcado required status check.
+Job en `ci.yml` Stage 2 PRE-Build, triggers `pull_request` + `merge_group`, allow-list de bots (dependabot[bot], github-actions[bot] si verified=true), añadido a `ci-complete.needs`, marcado required status check. El job evalúa SOLO el rango base..head del PR (no la historia previa).
 
 NOTA (M4): el repositorio NO tiene merge queue configurada, por lo que el evento `merge_group` no se dispara hoy; el trigger se añade future-proof (inerte) y la verificación en merge_group es condicional a que se habilite la merge queue (ver R7 en spec ci-verification).
 
 ### D6 — No reescribir legacy
 
-Los 374 commits legacy no se reescriben; enforcement solo aplica a commits futuros.
+Los 374 commits legacy no se reescriben; enforcement solo aplica a commits futuros. El job CI tampoco evalúa la historia previa al PR (R-PS1).
 
 ### D7 — Clave signing separada de auth
 
@@ -78,12 +78,52 @@ Mínimo privilegio y revocación independiente.
 
 Sin hook Husky obligatorio de firma.
 
+## Post-Staging Resolution (2026-08-22)
+
+Resolución de defectos de diseño y quirks descubiertos empíricamente durante la validación en staging (run `32559337513`, PR #93). Documenta las 4 decisiones derivadas de la evidencia real.
+
+### R-PS1 — Scoping del job a base..head (exclusión de historia previa)
+
+**Defecto descubierto:** en staging el job verificó TODOS los commits incluidos en el PR (~176 en PR #93), de los cuales ~175 son históricos de julio SIN firmar (previos al registro de la signing key `2026-08-21T19:49`). Esto producía falsos negativos masivos sobre historia que el job no debe evaluar.
+
+**Decisión:** el job verifica SOLO los commits introducidos por el PR, obtenidos vía compare endpoint `GET /repos/{owner}/{repo}/compare/{base.sha}...{head.sha}`. La historia previa al PR queda EXPLÍCITAMENTE excluida. La enforcement server-side del ruleset `Require signed commits` cubre lo nuevo; el job es defense-in-depth sobre los commits nuevos del PR.
+
+**Evidencia:** run `32559337513`, PR #93, ~175 commits legacy de julio sin firma (signing key registrada 2026-08-21T19:49).
+
+### R-PS2 — Anti-stale: confirmación individual antes de fallar
+
+**Quirk descubierto:** el endpoint `GET /repos/{owner}/{repo}/pulls/{n}/commits` puede devolver `.verification` stale o `null` para commits recién pusheados, mientras `GET /repos/{owner}/{repo}/commits/{sha}` individual ya reporta `verified: true` con `reason: "valid"`.
+
+**Decisión:** la clasificación negativa del bulk DEBE confirmarse con consulta individual antes de marcarse como failed, con un límite razonable (p.ej. 5 reintentos por run).
+
+**Evidencia:** diagnósticos de staging — discrepancia entre bulk y endpoint individual para commits recién pusheados.
+
+### R-PS3 — Tolerancia a nulls en verification/reason
+
+**Hallazgo:** commits sin firma retornan `verification: null` / `reason: null` (no siempre el string `"unsigned"`). Los filtros deben tolerar `null` y tratarlo como "no verificado" sin romper el parseo.
+
+**Decisión:** los filtros del job tratan `null` como no verificado; no asumen string `"unsigned"`.
+
+**Evidencia:** respuestas de la API en staging para commits sin firma.
+
+### R-PS4 — Práctica de proceso: validación YAML local antes de pushear
+
+**Hallazgo:** 2 ciclos commit+push+CI desperdiciados por startup failures evitables en workflows.
+
+**Decisión:** los cambios a `.github/workflows/*.yml` requieren validación YAML local (`python -c "import yaml; yaml.safe_load(open(...))"`, `node js-yaml`, o `actionlint`) ANTES de pushear.
+
+**Evidencia:** 2 ciclos de CI fallidos por errores de parseo YAML evitables durante la validación staging.
+
 ## Risks / Trade-offs
 
 - [Risk] `release.yml` sin migrar bloquea releases → Mitigación: F3 (migrar, SOLO si GATE 4.0 determina necesario) antes de F5 (enforcement).
 - [Risk] squash-merge en UI bloqueado salvo autor (dev único = autor, OK) → Mitigación: documentar.
 - [Risk] forks externos sin clave bloqueados por verify → Mitigación: limitación conocida, documentada en docs.
 - [Risk] `allowed_signers` mal formateado rompe verificación local → Mitigación: documentar sintaxis exacta en docs/commit-signing.md.
+- [Risk] Job verifica historia previa del PR (falsos negativos masivos) → Mitigación: scoping base..head vía compare endpoint (R-PS1); el job evalúa SOLO commits nuevos del PR.
+- [Risk] Endpoint bulk stale produce falsos negativos en commits recién pusheados → Mitigación: anti-stale retry con consulta individual (R-PS2, 5 reintentos/run).
+- [Risk] Commits sin firma retornan `verification: null` y rompen el parseo → Mitigación: filtros tolerantes a nulls (R-PS3).
+- [Risk] Startup failures por YAML inválido desperdician ciclos CI → Mitigación: validación YAML local obligatoria antes de pushear (R-PS4).
 
 - [Risk] Premisa de bloqueo de `release.yml` no verificada empíricamente → Mitigación: GATE 4.0 valida el comportamiento real contra una rama protegida temporal con Require signed commits ON antes de comprometer la migración; si el push con GITHUB*TOKEN resulta aceptado/Verified, G4/R8/D2 se marcan \_not-needed* (C1).
 
@@ -91,7 +131,7 @@ Sin hook Husky obligatorio de firma.
 
 - **F0 — Docs + prep**: verificar git >= 2.34 manualmente. Salida: entorno documentado.
 - **F1 — Firma local**: commits dev Verified en GitHub. Salida: commit de prueba Verified.
-- **F2 — CI verify no-blocking → blocking**: job informativo primero, luego required check. Salida: PR con commit no verificado falla.
+- **F2 — CI verify no-blocking → blocking**: job informativo primero, luego required check. Salida: PR con commit no verificado falla. El job aplica scoping base..head (R-PS1), anti-stale retry (R-PS2) y tolerancia a nulls (R-PS3).
 - **F3 — Migrar release.yml** (CONDICIONAL al GATE 4.0): version commit Verified vía App SSH. F3 es CONDICIONAL al resultado del GATE 4.0: si los commits resultan aceptados/Verified → F3/G4 se marcan _not-needed_ y se salta directo a F5 (F4/vigilant mode ya ejecutado como task 2.2); si son rechazados → se ejecuta la migración vía App. Salida: Release PR Verified.
 - **F4 — Vigilant mode ON**: legacy marca Unverified. Salida: commits legacy visibles como Unverified.
 - **F5 — Ruleset enforcement en main**: push sin firma rechazado. Salida: push sin firma rechazado con error claro.

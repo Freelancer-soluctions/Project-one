@@ -18,6 +18,7 @@
 - [x] 3.3 [NON-BLOCKING] Desplegar el job en modo no-blocking: `continue-on-error: true` con salida de reporte informativo (F2 fase 1 — fail-open) (R5, D5)
 - [x] 3.4 Añadir `verify-signatures` a `needs` de `ci-complete` (D5)
 - [ ] 3.5 [BLOCKING FLIP] Tras validar en staging, eliminar `continue-on-error` para volver el job blocking (F2 fase 2) (R5, D5)
+  > NOTA (post-staging hardening 2026-08-22): scoping base..head + anti-stale retry + null tolerance validados en staging (run 32559337513, PR #93). Cubierto por 3.2/3.5; no anade tareas.
 
 ## 4. Release.yml migration (G4)
 
