@@ -101,16 +101,18 @@ jobs:
           fi
 
           # Extract commit count from compare response
-          COMMIT_COUNT=$(echo "$RESPONSE_BODY" | jq '.data.commits | length')
+          # NOTE: REST compare API returns top-level "commits" — there is NO ".data" wrapper
+          # (that convention only exists in GraphQL). jq null|length=0 silently otherwise.
+          COMMIT_COUNT=$(echo "$RESPONSE_BODY" | jq '.commits | length')
 
           # Initialize output files
           > ok_shas.txt
           > failed_shas.txt
 
           if [ "$COMMIT_COUNT" -eq 0 ]; then
-            echo "No new commits in range base..head (0 commits humanos a verificar)" >&2
+            echo "ERROR: 0 commits in base..head range on pull_request event — this indicates a broken data pipeline (empty evaluation must NOT pass silently)" >&2
             echo "found_shas=0" >> $GITHUB_OUTPUT
-            exit 0
+            exit 1
           fi
 
           echo "Evaluating $COMMIT_COUNT new commits from PR (base..head)" >&2
@@ -118,10 +120,11 @@ jobs:
           # Process each commit from compare endpoint
           # Null tolerance: use // false defaults; only .verification.verified == true counts as verified
           # Filtros jq no deben crashear con verification null (requisito C)
-          echo "$RESPONSE_BODY" | jq -r '.data.commits[] | .sha' | while read -r SHA; do
+          echo "$RESPONSE_BODY" | jq -r '.commits[] | .sha' | while read -r SHA; do
             # Only .verification.verified == true counts as verified
             # // false treats null/undefined as not verified without crashing
-            VERIFIED=$(echo "$RESPONSE_BODY" | jq -r --arg s "$SHA" '.data.commits[] | select(.sha == $s) | .verification.verified // false')
+            # REST API nests verification under .commit — top-level .verification does not exist
+            VERIFIED=$(echo "$RESPONSE_BODY" | jq -r --arg s "$SHA" '.commits[] | select(.sha == $s) | .commit.verification.verified // false')
 
             if [ "$VERIFIED" = "true" ]; then
               echo "$SHA" >> ok_shas.txt
@@ -129,6 +132,9 @@ jobs:
               echo "$SHA" >> failed_shas.txt
             fi
           done
+
+          # Tolerate GitHub signature-verification propagation delay (~30s post-push)
+          sleep 30
 
           # Anti-stale retry: for each SHA marked not verified, do individual check
           # Max 5 individual retries per run (fallidos bulk adicionales van a failed_shas con nota en summary)
@@ -189,8 +195,9 @@ jobs:
         if: steps.detect_event.outputs.event_type == 'merge_group'
         run: |
           SHA="${{ steps.detect_event.outputs.single_sha }}"
+          # REST API nests verification under .commit — top-level .verification does not exist
           VERIFIED=$(curl -s -H "Authorization: Bearer ${{ github.token }}" \
-            "https://api.github.com/repos/${{ github.repository }}/commits/$SHA" | jq -r '.verification.verified // false')
+            "https://api.github.com/repos/${{ github.repository }}/commits/$SHA" | jq -r '.commit.verification.verified // false')
           if [ "$VERIFIED" = "true" ]; then
             echo "$SHA" >> ok_shas.txt
           else
@@ -404,6 +411,7 @@ jobs:
 
   # --- Shared Pre-Build ---
   actionlint:
+    if: ${{ vars.CI_MINIMAL != 'true' }}
     name: "Quality: ActionLint"
     needs: repo-discovery
     runs-on: ubuntu-latest
@@ -447,9 +455,9 @@ jobs:
 
   # --- Client Post-Build ---
   client-sonarqube:
+    if: ${{ vars.CI_MINIMAL != 'true' && always() && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) }}
     name: "Quality: Client SonarQube"
     needs: [client-build, test-unit-client]
-    if: always() && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
@@ -475,9 +483,9 @@ jobs:
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
 
   client-coverage:
+    if: ${{ vars.CI_MINIMAL != 'true' && always() }}
     name: "Quality: Client Coverage"
     needs: [client-build, test-unit-client]
-    if: always()
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -509,9 +517,9 @@ jobs:
 
   # --- Server Post-Build ---
   server-sonarqube:
+    if: ${{ vars.CI_MINIMAL != 'true' && always() && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) }}
     name: "Quality: Server SonarQube"
     needs: [server-build, test-unit-server]
-    if: always() && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
@@ -534,9 +542,9 @@ jobs:
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
 
   server-coverage:
+    if: ${{ vars.CI_MINIMAL != 'true' && always() }}
     name: "Quality: Server Coverage"
     needs: [server-build, test-unit-server]
-    if: always()
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -570,9 +578,9 @@ jobs:
   # STAGE 5: CI-COMPLETE — Single required check aggregator
   # ═══════════════════════════════════════════════════════════════
   ci-complete:
+    if: ${{ vars.CI_MINIMAL != 'true' && always() }}
     name: CI Complete
     runs-on: ubuntu-latest
-    if: always()
     needs:
       - repo-discovery
       - actionlint
