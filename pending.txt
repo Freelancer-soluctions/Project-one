@@ -157,3 +157,7 @@ La resolución estándar: TIA y el coverage gate viven en jobs separados, con pr
 O alternativamente, muchos equipos usan TIA como un job adicional y rápido que corre primero para dar feedback en segundos ("¿rompiste algo obvio?"), pero mantienen la suite completa con coverage como el gate real que decide si el PR puede mergearse — TIA nunca reemplaza al gate, solo lo complementa.
 - aplicar Test sharding — distribuir suites entre runners [FB] en el job de test post buils (viabilidad) merge de reportes de cobertura post-shards
 - Un pipeline separado programado para mutation test que no afecte las PR
+-  Entiendes supply chain security (tema hot en DevOps/SRE/Platform Engineering)
+- que la doc responda estas preguntas  "¿Cómo garantizas que los commits en main son legítimos?"
+- "¿Cómo manejas credenciales en CI/CD?"
+- "¿Qué es OIDC y cómo se usa en GitHub Actions?"
