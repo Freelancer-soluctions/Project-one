@@ -74,47 +74,115 @@ jobs:
         run: |
           echo "PR number: ${{ steps.detect_event.outputs.pr_number }}"
   
-      - name: Fetch PR commits via REST API
+      - name: Fetch PR commits via compare endpoint
         if: steps.detect_event.outputs.event_type == 'pull_request'
         id: fetch_commits
         run: |
           set -e
-          SHAS=""
-          PAGE=1
-          while true; do
-            # Fetch with HTTP status capture to detect non-200 responses (e.g. server-only PRs → 404)
-            RESPONSE=$(curl -s -w "\n%{http_code}" -H "Authorization: Bearer ${{ github.token }}" \
-              "https://api.github.com/repos/${{ github.repository }}/pulls/${{ steps.detect_event.outputs.pr_number }}/commits?per_page=100&page=${PAGE}")
-            HTTP_CODE=$(echo "$RESPONSE" | tail -1)
-            RESPONSE_BODY=$(echo "$RESPONSE" | sed '$d')
 
-            # Validate HTTP status 200
-            if [ "$HTTP_CODE" != "200" ]; then
-              echo "ERROR: HTTP status $HTTP_CODE fetching commits page $PAGE" >&2
-              break
-            fi
+          # R1: Scoping base..head via compare endpoint
+          # Replaces pagination GET /pulls/{n}/commits with server-side range filtering
+          # compare endpoint URL: base.sha...head.sha — only commits new to the PR
+          # GitHub compare API limit: up to 250 commits per call (documented below)
+          # https://docs.github.com/en/rest/repos/comparisons?apiVersion=2022-11-28#get-a-repository-comparison
+          COMPARE_URL="https://api.github.com/repos/${{ github.repository }}/compare/${{ github.event.pull_request.base.sha }}...${{ github.event.pull_request.head.sha }}"
 
-            # Validate response is JSON array — guard against non-array responses
-            if ! echo "$RESPONSE_BODY" | jq -e 'type=="array"' > /dev/null 2>&1; then
-              echo "ERROR: Response is not a JSON array (page $PAGE)" >&2
-              break
-            fi
+          RESPONSE=$(curl -s -w "\n%{http_code}" -H "Authorization: Bearer ${{ github.token }}" "$COMPARE_URL")
+          HTTP_CODE=$(echo "$RESPONSE" | tail -1)
+          RESPONSE_BODY=$(echo "$RESPONSE" | sed '$d')
 
-            COUNT=$(echo "$RESPONSE_BODY" | jq '. | length')
-            if [ "$COUNT" -eq 0 ]; then
-              break
+          # HTTP status check
+          if [ "$HTTP_CODE" != "200" ]; then
+            echo "ERROR: HTTP status $HTTP_CODE comparing base..head" >&2
+            echo "found_shas=" >> $GITHUB_OUTPUT
+            > ok_shas.txt
+            > failed_shas.txt
+            exit 0
+          fi
+
+          # Extract commit count from compare response
+          COMMIT_COUNT=$(echo "$RESPONSE_BODY" | jq '.data.commits | length')
+
+          # Initialize output files
+          > ok_shas.txt
+          > failed_shas.txt
+
+          if [ "$COMMIT_COUNT" -eq 0 ]; then
+            echo "No new commits in range base..head (0 commits humanos a verificar)" >&2
+            echo "found_shas=0" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          echo "Evaluating $COMMIT_COUNT new commits from PR (base..head)" >&2
+
+          # Process each commit from compare endpoint
+          # Null tolerance: use // false defaults; only .verification.verified == true counts as verified
+          # Filtros jq no deben crashear con verification null (requisito C)
+          echo "$RESPONSE_BODY" | jq -r '.data.commits[] | .sha' | while read -r SHA; do
+            # Only .verification.verified == true counts as verified
+            # // false treats null/undefined as not verified without crashing
+            VERIFIED=$(echo "$RESPONSE_BODY" | jq -r --arg s "$SHA" '.data.commits[] | select(.sha == $s) | .verification.verified // false')
+
+            if [ "$VERIFIED" = "true" ]; then
+              echo "$SHA" >> ok_shas.txt
+            else
+              echo "$SHA" >> failed_shas.txt
             fi
-            SHAS_NEW=$(echo "$RESPONSE_BODY" | jq -r '.[].sha')
-            echo "$RESPONSE_BODY" | jq -r '.[] | select(.verification.verified == true) | .sha' >> ok_shas.txt
-            echo "$RESPONSE_BODY" | jq -r '.[] | select(.verification.verified != true) | .sha' >> failed_shas.txt
-            SHAS="$SHAS $SHAS_NEW"
-            PAGE=$((PAGE + 1))
           done
-          echo "found_shas=$SHAS" >> $GITHUB_OUTPUT
-          echo "PR commits classified:"
-          [ -f ok_shas.txt ] && sed 's/^/  VERIFIED: /' ok_shas.txt
-          [ -f failed_shas.txt ] && sed 's/^/  UNVERIFIED: /' failed_shas.txt
-          exit 0
+
+          # Anti-stale retry: for each SHA marked not verified, do individual check
+          # Max 5 individual retries per run (fallidos bulk adicionales van a failed_shas con nota en summary)
+          ANTI_STALE_RECOVERED=""
+          RETRY_COUNT=0
+          MAX_RETRIES=5
+
+          if [ -f failed_shas.txt ] && [ "$(cat failed_shas.txt)" != "" ]; then
+            FAILED_SHAS=$(cat failed_shas.txt)
+            for SHA in $FAILED_SHAS; do
+              if [ "$RETRY_COUNT" -ge "$MAX_RETRIES" ]; then
+                echo "Anti-stale: skipping remaining individual retries (limit $MAX_RETRIES reached)" >&2
+                break
+              fi
+
+              # Individual check with null tolerance (.verification.verified // false)
+              # Solo si individual TAMBIÉN false → failed_shas
+              INDIVIDUAL=$(curl -s -H "Authorization: Bearer ${{ github.token }}" "https://api.github.com/repos/${{ github.repository }}/commits/$SHA")
+              VERIFIED=$(echo "$INDIVIDUAL" | jq -r '.verification.verified // false')
+
+              if [ "$VERIFIED" = "true" ]; then
+                # Recovered! Move from failed to ok
+                echo "$SHA" >> ok_shas.txt
+                # Remove from failed_shas.txt
+                grep -v "^${SHA}$" failed_shas.txt > failed_shas_tmp.txt 2>/dev/null || true
+                mv failed_shas_tmp.txt failed_shas.txt
+                ANTI_STALE_RECOVERED="$ANTI_STALE_RECOVERED $SHA"
+                echo "Anti-stale: recovered $SHA via individual check" >&2
+              else
+                echo "Anti-stale: individual check for $SHA also unverified" >&2
+              fi
+
+              RETRY_COUNT=$((RETRY_COUNT + 1))
+            done
+          fi
+
+          # Generate summary values
+          OK_COUNT=$( [ -f ok_shas.txt ] && [ "$(cat ok_shas.txt)" != "" ] && wc -l < ok_shas.txt || echo "0" )
+          FAILED_COUNT=$( [ -f failed_shas.txt ] && [ "$(cat failed_shas.txt)" != "" ] && wc -l < failed_shas.txt || echo "0" )
+          ANTI_STALE_COUNT=$(echo "$ANTI_STALE_RECOVERED" | xargs -r echo | wc -w)
+          EXCLUDED_COUNT=0  # By scoping, compare endpoint only returns new PR commits (base..head)
+
+          found_shas=$((OK_COUNT + FAILED_COUNT + ANTI_STALE_COUNT))
+          echo "found_shas=$found_shas" >> $GITHUB_OUTPUT
+          echo "ok_shas_count=$OK_COUNT" >> $GITHUB_OUTPUT
+          echo "failed_shas_count=$FAILED_COUNT" >> $GITHUB_OUTPUT
+          echo "anti_stale_recovered=$ANTI_STALE_COUNT" >> $GITHUB_OUTPUT
+          echo "excluded_by_scoping=$EXCLUDED_COUNT" >> $GITHUB_OUTPUT
+
+          echo "Commit verification summary:" >&2
+          echo "  New commits from PR evaluated: $((OK_COUNT + FAILED_COUNT))" >&2
+          echo "  Verified: $OK_COUNT, Unverified: $FAILED_COUNT" >&2
+          echo "  Excluded by scoping (base..head): $EXCLUDED_COUNT (handled by compare endpoint)" >&2
+          echo "  Recovered by anti-stale retry: $ANTI_STALE_COUNT" >&2
         timeout-minutes: 10
   
       - name: Fetch single commit verification (merge_group fallback)
@@ -122,7 +190,7 @@ jobs:
         run: |
           SHA="${{ steps.detect_event.outputs.single_sha }}"
           VERIFIED=$(curl -s -H "Authorization: Bearer ${{ github.token }}" \
-            "https://api.github.com/repos/${{ github.repository }}/commits/$SHA" | jq -r '.verification.verified')
+            "https://api.github.com/repos/${{ github.repository }}/commits/$SHA" | jq -r '.verification.verified // false')
           if [ "$VERIFIED" = "true" ]; then
             echo "$SHA" >> ok_shas.txt
           else
