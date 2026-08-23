@@ -28,6 +28,15 @@ jobs:
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@v5
+      - uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ secrets.APP_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
+      - uses: peter-evans/git-commit-signer@v4
+        with:
+          gpg-key: ${{ secrets.APP_PRIVATE_KEY }}
+          name: "Project-one-commit-signing"
+          email: "project-one@project-one.com"
       - uses: dorny/paths-filter@v4
         id: filter
         with:
