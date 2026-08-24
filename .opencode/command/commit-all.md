@@ -46,6 +46,12 @@ Rules:
 - Do not revert existing changes.
 - Do not use `--no-verify`.
 - Do not amend commits.
+- ALWAYS sign every commit with `git commit -S` — this repo enforces signed
+  commits (ruleset required_signatures). Plain `git commit` is forbidden.
+- If signing fails because the SSH agent has no key loaded (`ssh-add -l`
+  fails or passphrase prompt in non-interactive shell), do NOT fall back to
+  unsigned commits: leave changes staged and output the exact
+  `git commit -S -m "..."` commands for the user to run interactively.
 
 Flow:
 
@@ -55,5 +61,7 @@ Flow:
 4. For each group:
    - Add only the files for that group using:
      `git add <files>`
-   - Create the commit using Conventional Commit format.
-5. When finished, summarize the commits created.
+   - Create the signed commit using Conventional Commit format:
+     `git commit -S -m "type(scope): description"`
+5. When finished, summarize the commits created (with hashes and signature
+   status).
