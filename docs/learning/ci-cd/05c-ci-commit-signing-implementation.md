@@ -554,6 +554,29 @@ Bypass temporal (**Repository admin**) del ruleset + **squash-merge del PR #99**
 
 ---
 
+## 📅 Cronología Completa de la Odisea
+
+1. **F1–F5 del change**: 22/22 tasks — firma local SSH ed25519 → job CI `verify-signatures` → validación `JOB_VALIDATED=true` → GitHub App (ID 4688914) → ruleset "Require signed commits" activo en `main`.
+2. **Caos de rebase**: reconstrucción de historia dejó `feature/ai-setup` con historias NO relacionadas a `main` (merge-base vacío, raíces `6799fe4` vs `1595f3c`) y ~113 commits zombie side-lineage sin firma.
+3. **Job `verify-signatures`**: bug de JSON path (`.verification` vs `.commit.verification`), luego falso verde detectado — el check custom no replicaba la verificación nativa `required_signatures` que evalúa TODOS los commits del PR, no solo HEAD.
+4. **Tres fixes al job**: heredoc para `$GITHUB_OUTPUT` multilínea, guardia grandfathering faltante en path anti-stale, selector jq tolerante a ambos schemas.
+5. **Action inexistente** `peter-evans/git-commit-signer` (HTTP 404) en `repo-discovery` → fallo en "Set up job" → cascada SKIP de ~24 jobs de calidad.
+6. **Desbloqueo PR #99**: bypass temporal Repository admin en el ruleset + squash-merge → `main` recibió UN solo commit firmado por GitHub; bypass removido inmediatamente después.
+7. **Clave dedicada para agentes**: ED25519 SIN passphrase (`~/.ssh/id_ed25519_projectERP-agents`) generada, registrada como Signing Key en GitHub, cableada a repo config local.
+8. **E2E exitoso**: commit `bb695bb` creado por agente → `verified=true reason=valid`, sin passphrase. Hito central de la Vía 2.
+9. **PR #100** (post-mortem doc) mergeado por squash; ramas muertas eliminadas (`feature/ai-setup`, `fix/ci-signing-clean`, `docs/ci-signing-postmortem`).
+10. **Estado final**: TBD intacto (nada directo a `main`), ruleset activo sin bypass, firma de agentes operativa, chores de limpieza (ROLLOUT_DATE, app-token, git-commit-signer, commit-all -S) commiteados vía PR `chore/ci-cleanup`.
+
+### Lecciones meta
+
+- **Verificar actions antes de usarlas**: `gh api repos/<owner>/<repo>/actions/workflows/<slug>` — las referencias rotas cascanean SKIP a todo el pipeline y son difíciles de rastrear.
+- **CI verde ≠ mergeable**: `required_signatures` evalúa todos los commits del PR; un check custom puede dar `JOB_VALIDATED` mientras `mergeStateStatus` sigue `BLOCKED`.
+- **Enforcement en el destino, feedback en el tránsito**: el ruleset protege `main` (verdadero enforcement); el job CI da visibilidad en el PR (feedback temprano). Los dos capas son complementarios.
+- **Claves de automatización sin passphrase**: estándar industria (mismo patrón que `APP_PRIVATE_KEY` de GitHub Apps); passphrase solo para claves humanas en terminales interactivas.
+- **TBD significa TODO por PR**: incluso docs y chores — nunca push directo a `main`.
+
+---
+
 ## 📚 Referencias
 
 | Recurso                         | URL                                                                                                                                                    |

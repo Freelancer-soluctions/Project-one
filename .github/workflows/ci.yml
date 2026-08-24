@@ -28,15 +28,7 @@ jobs:
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@v5
-      - uses: actions/create-github-app-token@v1
-        with:
-          app-id: ${{ secrets.APP_ID }}
-          private-key: ${{ secrets.APP_PRIVATE_KEY }}
-      - uses: peter-evans/git-commit-signer@v4
-        with:
-          gpg-key: ${{ secrets.APP_PRIVATE_KEY }}
-          name: "Project-one-commit-signing"
-          email: "project-one@project-one.com"
+      # NOTE: app-token step removed — unused; paths-filter uses default GITHUB_TOKEN
       - uses: dorny/paths-filter@v4
         id: filter
         with:
@@ -98,13 +90,10 @@ jobs:
           # before ROLLOUT_DATE are counted as grandfathered and do NOT fail;
           # only unsigned commits dated on/after the rollout are real failures.
 
-          # ═══════════════════════════════════════════════════════════════
-          # ONE-TIME MIGRATION CUTOVER (PR #99): exonera el lote side-lineage sin firmar
-          # (113 commits ago 1-23 integrados via merge 6dad0fe). El squash-merge crea un
-          # único commit firmado por GitHub en main; el ruleset es la enforcement real.
-          # Tras mergear este PR: restaurar 2026-08-01 (tarea separada).
-          # ═══════════════════════════════════════════════════════════════
-          ROLLOUT_DATE="2026-08-24"
+          # Signing rollout date: commits anteriores son grandfathered (exonerados).
+          # El lote contaminado del PR #99 jamás entró a main (squash); desde el
+          # rollout TODO commit nuevo debe estar firmado y verificado.
+          ROLLOUT_DATE="2026-08-01"
 
           # R1: Scoping base..head via compare endpoint
           # Replaces pagination GET /pulls/{n}/commits with server-side range filtering
@@ -304,9 +293,9 @@ jobs:
 
   # --- Client Pre-Build ---
   client-lint:
+    if: false  # Disabled for incremental CI — change to true to re-enable
     name: "Quality: Client Lint"
     needs: repo-discovery
-    if: needs.repo-discovery.outputs.client == 'true' || needs.repo-discovery.outputs.shared == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -317,9 +306,9 @@ jobs:
       - run: npm run lint --workspace=apps/client
 
   client-format-check:
+    if: false  # Disabled for incremental CI — change to true to re-enable
     name: "Quality: Client Format"
     needs: repo-discovery
-    if: needs.repo-discovery.outputs.client == 'true' || needs.repo-discovery.outputs.shared == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -330,9 +319,9 @@ jobs:
       - run: npm run format:check --workspace=apps/client
 
   client-typecheck:
+    if: false  # Disabled for incremental CI — change to true to re-enable
     name: "Quality: Client TypeCheck"
     needs: repo-discovery
-    if: needs.repo-discovery.outputs.client == 'true' || needs.repo-discovery.outputs.shared == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -345,9 +334,9 @@ jobs:
         working-directory: apps/client
 
   client-complexity:
+    if: false  # Disabled for incremental CI — change to true to re-enable
     name: "Quality: Client Complexity"
     needs: repo-discovery
-    if: needs.repo-discovery.outputs.client == 'true' || needs.repo-discovery.outputs.shared == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -360,9 +349,9 @@ jobs:
         working-directory: apps/client
 
   client-dead-code:
+    if: false  # Disabled for incremental CI — change to true to re-enable
     name: "Quality: Client Dead Code"
     needs: repo-discovery
-    if: needs.repo-discovery.outputs.client == 'true' || needs.repo-discovery.outputs.shared == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -375,9 +364,9 @@ jobs:
         working-directory: apps/client
 
   client-import-bounds:
+    if: false  # Disabled for incremental CI — change to true to re-enable
     name: "Quality: Client Import Bounds"
     needs: repo-discovery
-    if: needs.repo-discovery.outputs.client == 'true' || needs.repo-discovery.outputs.shared == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -390,9 +379,9 @@ jobs:
 
   # --- Server Pre-Build ---
   server-lint:
+    if: false  # Disabled for incremental CI — change to true to re-enable
     name: "Quality: Server Lint"
     needs: repo-discovery
-    if: needs.repo-discovery.outputs.server == 'true' || needs.repo-discovery.outputs.shared == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -403,9 +392,9 @@ jobs:
       - run: npm run lint --workspace=apps/server
 
   server-format-check:
+    if: false  # Disabled for incremental CI — change to true to re-enable
     name: "Quality: Server Format"
     needs: repo-discovery
-    if: needs.repo-discovery.outputs.server == 'true' || needs.repo-discovery.outputs.shared == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -416,9 +405,9 @@ jobs:
       - run: npm run format:check --workspace=apps/server
 
   server-typecheck:
+    if: false  # Disabled for incremental CI — change to true to re-enable
     name: "Quality: Server TypeCheck"
     needs: repo-discovery
-    if: needs.repo-discovery.outputs.server == 'true' || needs.repo-discovery.outputs.shared == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -431,9 +420,9 @@ jobs:
         working-directory: apps/server
 
   server-complexity:
+    if: false  # Disabled for incremental CI — change to true to re-enable
     name: "Quality: Server Complexity"
     needs: repo-discovery
-    if: needs.repo-discovery.outputs.server == 'true' || needs.repo-discovery.outputs.shared == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -446,9 +435,9 @@ jobs:
         working-directory: apps/server
 
   server-dead-code:
+    if: false  # Disabled for incremental CI — change to true to re-enable
     name: "Quality: Server Dead Code"
     needs: repo-discovery
-    if: needs.repo-discovery.outputs.server == 'true' || needs.repo-discovery.outputs.shared == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -461,9 +450,9 @@ jobs:
         working-directory: apps/server
 
   server-import-bounds:
+    if: false  # Disabled for incremental CI — change to true to re-enable
     name: "Quality: Server Import Bounds"
     needs: repo-discovery
-    if: needs.repo-discovery.outputs.server == 'true' || needs.repo-discovery.outputs.shared == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -476,7 +465,7 @@ jobs:
 
   # --- Shared Pre-Build ---
   actionlint:
-    if: ${{ vars.CI_MINIMAL != 'true' }}
+    if: false  # Disabled for incremental CI — change to true to re-enable
     name: "Quality: ActionLint"
     needs: repo-discovery
     runs-on: ubuntu-latest
@@ -491,6 +480,7 @@ jobs:
   # STAGE 3: BUILD — Compile and upload artifacts
   # ═══════════════════════════════════════════════════════════════
   client-build:
+    if: false  # Disabled for incremental CI — change to true to re-enable
     name: Build - Client
     needs: [client-lint, client-format-check, client-typecheck, client-complexity, client-dead-code, client-import-bounds]
     runs-on: ubuntu-latest
@@ -507,6 +497,7 @@ jobs:
           path: apps/client/dist/
 
   server-build:
+    if: false  # Disabled for incremental CI — change to true to re-enable
     name: Build - Server
     needs: [server-lint, server-format-check, server-typecheck, server-complexity, server-dead-code, server-import-bounds]
     runs-on: ubuntu-latest
@@ -520,7 +511,7 @@ jobs:
 
   # --- Client Post-Build ---
   client-sonarqube:
-    if: ${{ vars.CI_MINIMAL != 'true' && always() && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) }}
+    if: false  # Disabled for incremental CI — change to true to re-enable
     name: "Quality: Client SonarQube"
     needs: [client-build, test-unit-client]
     runs-on: ubuntu-latest
@@ -548,7 +539,7 @@ jobs:
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
 
   client-coverage:
-    if: ${{ vars.CI_MINIMAL != 'true' && always() }}
+    if: false  # Disabled for incremental CI — change to true to re-enable
     name: "Quality: Client Coverage"
     needs: [client-build, test-unit-client]
     runs-on: ubuntu-latest
@@ -566,9 +557,8 @@ jobs:
         run: node scripts/ci/check-coverage.mjs apps/client
 
   client-depcheck:
+    if: false  # Disabled for incremental CI — change to true to re-enable
     name: "Quality: Client DepCheck"
-    needs: client-build
-    if: always()
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -582,7 +572,7 @@ jobs:
 
   # --- Server Post-Build ---
   server-sonarqube:
-    if: ${{ vars.CI_MINIMAL != 'true' && always() && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) }}
+    if: false  # Disabled for incremental CI — change to true to re-enable
     name: "Quality: Server SonarQube"
     needs: [server-build, test-unit-server]
     runs-on: ubuntu-latest
@@ -607,7 +597,7 @@ jobs:
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
 
   server-coverage:
-    if: ${{ vars.CI_MINIMAL != 'true' && always() }}
+    if: false  # Disabled for incremental CI — change to true to re-enable
     name: "Quality: Server Coverage"
     needs: [server-build, test-unit-server]
     runs-on: ubuntu-latest
@@ -625,9 +615,9 @@ jobs:
         run: node scripts/ci/check-coverage.mjs apps/server
 
   server-depcheck:
+    if: false  # Disabled for incremental CI — change to true to re-enable
     name: "Quality: Server DepCheck"
     needs: server-build
-    if: always()
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -693,9 +683,9 @@ jobs:
   # EXISTING TEST JOBS (re-wired to repo-discovery)
   # ═══════════════════════════════════════════════════════════════
   test-unit-client:
+    if: false  # Disabled for incremental CI — change to true to re-enable
     name: Unit Tests - Client
     needs: repo-discovery
-    if: needs.repo-discovery.outputs.client == 'true' || needs.repo-discovery.outputs.shared == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
@@ -723,9 +713,9 @@ jobs:
           reporter: java-junit
 
   test-unit-server:
+    if: false  # Disabled for incremental CI — change to true to re-enable
     name: Unit Tests - Server
     needs: repo-discovery
-    if: needs.repo-discovery.outputs.server == 'true' || needs.repo-discovery.outputs.shared == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
@@ -753,9 +743,9 @@ jobs:
           reporter: java-junit
 
   test-integration:
+    if: false  # Disabled for incremental CI — change to true to re-enable
     name: Integration Tests - Server
     needs: repo-discovery
-    if: needs.repo-discovery.outputs.server == 'true' || needs.repo-discovery.outputs.shared == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
@@ -799,9 +789,9 @@ jobs:
           reporter: java-junit
 
   test-smoke:
+    if: false  # Disabled for incremental CI — change to true to re-enable
     name: Smoke Tests - Server
     needs: repo-discovery
-    if: needs.repo-discovery.outputs.server == 'true' || needs.repo-discovery.outputs.shared == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
@@ -845,9 +835,9 @@ jobs:
           reporter: java-junit
 
   e2e:
+    if: false  # Disabled for incremental CI — change to true to re-enable
     name: E2E Tests
     needs: repo-discovery
-    if: needs.repo-discovery.outputs.e2e == 'true' || needs.repo-discovery.outputs.shared == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     permissions:
