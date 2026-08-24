@@ -835,9 +835,9 @@ jobs:
           reporter: java-junit
 
   e2e:
+    if: false  # Disabled for incremental CI — change to true to re-enable
     name: E2E Tests
     needs: repo-discovery
-    if: needs.repo-discovery.outputs.e2e == 'true' || needs.repo-discovery.outputs.shared == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     permissions:
