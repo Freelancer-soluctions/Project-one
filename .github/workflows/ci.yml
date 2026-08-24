@@ -556,7 +556,7 @@ jobs:
       - name: Enforce coverage thresholds
         run: node scripts/ci/check-coverage.mjs apps/client
 
-client-depcheck:
+  client-depcheck:
     if: false  # Disabled for incremental CI — change to true to re-enable
     name: "Quality: Client DepCheck"
     runs-on: ubuntu-latest
