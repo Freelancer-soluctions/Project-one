@@ -28,15 +28,7 @@ jobs:
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@v5
-      - uses: actions/create-github-app-token@v1
-        with:
-          app-id: ${{ secrets.APP_ID }}
-          private-key: ${{ secrets.APP_PRIVATE_KEY }}
-      - uses: peter-evans/git-commit-signer@v4
-        with:
-          gpg-key: ${{ secrets.APP_PRIVATE_KEY }}
-          name: "Project-one-commit-signing"
-          email: "project-one@project-one.com"
+      # NOTE: app-token step removed — unused; paths-filter uses default GITHUB_TOKEN
       - uses: dorny/paths-filter@v4
         id: filter
         with:
@@ -98,13 +90,10 @@ jobs:
           # before ROLLOUT_DATE are counted as grandfathered and do NOT fail;
           # only unsigned commits dated on/after the rollout are real failures.
 
-          # ═══════════════════════════════════════════════════════════════
-          # ONE-TIME MIGRATION CUTOVER (PR #99): exonera el lote side-lineage sin firmar
-          # (113 commits ago 1-23 integrados via merge 6dad0fe). El squash-merge crea un
-          # único commit firmado por GitHub en main; el ruleset es la enforcement real.
-          # Tras mergear este PR: restaurar 2026-08-01 (tarea separada).
-          # ═══════════════════════════════════════════════════════════════
-          ROLLOUT_DATE="2026-08-24"
+          # Signing rollout date: commits anteriores son grandfathered (exonerados).
+          # El lote contaminado del PR #99 jamás entró a main (squash); desde el
+          # rollout TODO commit nuevo debe estar firmado y verificado.
+          ROLLOUT_DATE="2026-08-01"
 
           # R1: Scoping base..head via compare endpoint
           # Replaces pagination GET /pulls/{n}/commits with server-side range filtering
