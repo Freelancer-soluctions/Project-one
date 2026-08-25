@@ -89,6 +89,7 @@ dco:
   runs-on: ubuntu-latest
   permissions:
     contents: read
+    pull-requests: read
   steps:
     # PR events: validate Signed-off-by on all commits
     - name: DCO sign-off check

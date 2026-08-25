@@ -95,7 +95,6 @@
       chore
       revert
     requireScope: false
-    subjectPattern: ^(?![A-Z]).+$
     ignoreLabels: |
       bot
       ignore-semantic-pull-request
@@ -182,7 +181,7 @@ squash_merge_commit_message: COMMIT_MESSAGES
 - `ci-complete` gate aggregates all jobs via `if: ${{ vars.CI_MINIMAL != 'true' && always() }}`
 - ADD-only principle: never remove or modify existing jobs
 
-**Real ci-complete.needs** (30 jobs, ADD-only):
+**Real ci-complete.needs** (32 jobs, ADD-only):
 
 ```yaml
 ci-complete:
