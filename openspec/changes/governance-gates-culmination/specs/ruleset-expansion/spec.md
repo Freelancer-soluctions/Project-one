@@ -52,11 +52,17 @@ The ruleset SHALL block force pushes to protected branches.
 
 ### Requirement: Required status checks
 
-The ruleset SHALL require the `DCO` and `ci-complete` status checks to pass before merge. DCO is an enterprise provenance control (implemented in pr-metadata-governance change).
+The ruleset SHALL require the following status checks to pass before merge (inherited from pr-metadata-governance + new):
+
+- Verify Commit Signatures (existing)
+- Commit Lint (existing)
+- PR Title Lint (from pr-metadata-governance)
+- DCO (from pr-metadata-governance, enterprise provenance control)
+- ci-complete (existing)
 
 #### Scenario: Missing required check
 
-- **WHEN** `DCO` or `ci-complete` has not passed
+- **WHEN** any required status check has not passed
 - **THEN** the merge is blocked
 
 ### Requirement: CODEOWNERS review enforcement

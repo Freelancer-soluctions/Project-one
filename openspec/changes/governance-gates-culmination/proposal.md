@@ -23,7 +23,7 @@ This change is grounded in VERIFIED enterprise practices from Google, Meta, Micr
 ## What Changes
 
 - **Level 2 — PR gates**: Add a `dependency-review` workflow that fails on new vulnerabilities (severity >= moderate) and blocks merge via the `ci-complete` fan-in gate.
-- **Level 3 — Merge gates**: Expand ruleset `21227644` (full PUT replace) with required reviews (>=1 approval, dismiss stale, require last push), required linear history, force-push blocking, required status checks (DCO + ci-complete), and CODEOWNERS review enforcement. **DCO is REQUIRED** (enterprise provenance control, already implemented in pr-metadata-governance).
+- **Level 3 — Merge gates**: Expand ruleset `21227644` (full PUT replace) with required reviews (>=1 approval, dismiss stale, require last push), required linear history, force-push blocking, required status checks (Verify Commit Signatures, Commit Lint, PR Title Lint, DCO, ci-complete), and CODEOWNERS review enforcement. PR Title Lint and DCO are inherited from pr-metadata-governance (already implemented, preserved in this change).
 - **Level 4 — Post-Merge**: Configure GitHub Environments for staging/production with required reviewers, post-deploy smoke tests (health-check endpoint), and a deploy verification workflow.
 - **Level 5 — Audit**: Document audit log streaming configuration (org/enterprise-level, not repo workflow) and compliance evidence collection process with a quarterly review cadence.
 - **Rollback**: Document a layered rollback strategy (kill-switch < traffic shift < git revert < DB expand/contract) with runbooks and fix-forward documentation.

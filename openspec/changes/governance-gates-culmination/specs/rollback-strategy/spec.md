@@ -13,14 +13,14 @@ The system SHALL define a rollback precedence order: feature-flag kill-switch ta
 - **WHEN** a production incident is detected
 - **THEN** responders apply the highest-precedence available rollback layer (kill-switch first)
 
-### Requirement: Feature flag kill-switch capability
+### Requirement: Feature flag kill-switch approach documented
 
-The system SHALL document and provide a feature-flag kill-switch that can disable a faulty feature without a deployment.
+The system SHALL document the feature-flag kill-switch approach (assuming a feature-flag system is implemented separately, out of scope for this change).
 
-#### Scenario: Kill-switch engaged
+#### Scenario: Kill-switch approach referenced
 
-- **WHEN** the kill-switch flag for a feature is toggled off
-- **THEN** the feature is disabled in production immediately without a new deploy
+- **WHEN** a team needs to disable a faulty feature without a deployment
+- **THEN** the documented approach in `docs/runbooks/rollback.md` describes how a kill-switch would work
 
 ### Requirement: Rollback runbook created
 

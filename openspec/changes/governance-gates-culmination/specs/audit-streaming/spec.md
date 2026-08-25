@@ -4,14 +4,14 @@ Streams GitHub audit logs to an external store and documents the compliance evid
 
 ## ADDED Requirements
 
-### Requirement: Audit log streaming configured
+### Requirement: Audit log streaming configuration documented
 
-The system SHALL configure audit log streaming from GitHub to an external store (e.g., SIEM) so audit events are retained outside GitHub.
+The system SHALL document the configuration of audit log streaming from GitHub to an external store (e.g., SIEM). Note: audit streaming is an org/enterprise-level feature (GHEC/GHES), not a repo workflow. This change documents the procedure, not a workflow file.
 
-#### Scenario: Audit event streamed
+#### Scenario: Configuration procedure available
 
-- **WHEN** a governance-relevant event occurs in GitHub
-- **THEN** the event is forwarded to the configured external store
+- **WHEN** an operator needs to set up audit log streaming
+- **THEN** the documented procedure describes the steps to configure GitHub audit log streaming to the external store
 
 ### Requirement: Evidence collection process documented
 
