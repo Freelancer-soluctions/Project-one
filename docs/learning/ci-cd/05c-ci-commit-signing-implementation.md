@@ -577,6 +577,27 @@ Bypass temporal (**Repository admin**) del ruleset + **squash-merge del PR #99**
 
 ---
 
+## 🔧 Post-Implementation: CI Incremental (PR #101)
+
+Tras el merge del PR #100, se ejecutó una limpieza adicional vía **PR #101 (`chore/ci-cleanup`)** para habilitar CI incremental durante desarrollo activo:
+
+1. **Restauración de `ROLLOUT_DATE=2026-08-01`** en `verify-signatures` (el cutover one-time del PR #99 cumplió su propósito; main limpio desde entonces).
+2. **Eliminación de actions huérfanas** en `repo-discovery`:
+   - `actions/create-github-app-token@v1` — token no consumido.
+   - `peter-evans/git-commit-signer@v4` — action inexistente (404) que rompía Set up Job.
+3. **Endurecimiento de `/commit-all`**: regla `-S` obligatoria + fallback seguro sin commits unsigned.
+4. **Deshabilitación de 26 jobs** para CI incremental (`if: false` en cada job):
+   - **Quality (13)**: lint, format, typecheck, complexity, dead-code, import-bounds, actionlint (client + server)
+   - **Post-build quality (6)**: sonarqube, coverage, depcheck (client + server)
+   - **Tests (4)**: unit-client, unit-server, integration, smoke
+   - **Build (2)**: client-build, server-build
+   - **E2E (1)**: e2e
+5. **Jobs que SÍ corren**: `repo-discovery`, `verify-signatures`, `zombie-workflow-guard`, `ci-complete` (se skipea solo al no tener deps).
+6. **Fix crítico de indentación YAML**: `client-depcheck` perdido al nivel raíz → restaurado bajo `jobs:` (error detectado por js-yaml pre-commit, no por GitHub Actions).
+7. **PR #101 mergeado**: CI incremental operativo — solo firma y detección de cambios corren en cada push.
+
+---
+
 ## 📚 Referencias
 
 | Recurso                         | URL                                                                                                                                                    |
