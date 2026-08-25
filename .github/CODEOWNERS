@@ -1,0 +1,21 @@
+# Default: @Freelancer-soluctions/core-team
+*                           @Freelancer-soluctions/core-team
+
+# Client
+apps/client/                @Freelancer-soluctions/frontend-team
+
+# Server
+apps/server/                @Freelancer-soluctions/backend-team
+
+# CI/CD
+.github/                    @Freelancer-soluctions/devops-team
+.github/workflows/          @Freelancer-soluctions/devops-team
+
+# E2E
+apps/e2e/                   @Freelancer-soluctions/qa-team
+
+# OpenSpec
+openspec/                   @Freelancer-soluctions/architects
+
+# Learning docs
+docs/learning/              @Freelancer-soluctions/core-team
