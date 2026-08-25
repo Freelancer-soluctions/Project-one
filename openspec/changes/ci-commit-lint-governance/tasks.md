@@ -16,6 +16,6 @@
 
 - [x] 3.1 Run `actionlint` on the modified workflow file — baseline documented: pre-existing `if: false` constant expressions x26 in ci.yml (26 matches both in baseline commit af79185^ and current file). ZERO errors reference lines 294-329 (our commit-lint block). Known-failures baseline established; actionlint tool not easily invocable via npx but grep-confirmed baseline.
 - [x] 3.2 Local dry-run validation: `npx commitlint --from=HEAD~2 --to=HEAD --verbose` — passed: `found 0 problems, 0 warnings` (both commits are Conventional)
-- [ ] 3.3 Verify commit-lint job appears in CI workflow runs — LEAVE UNCHECKED: needs PR CI run to confirm
-- [ ] 3.4 Verify disabled jobs remain disabled (grep for `if: false` or conditional patterns) — LEAVE UNCHECKED: requires full grep audit across all conditional patterns
+- [x] 3.3 Verify commit-lint job appears in CI workflow runs — VERIFIED: job "Commit Lint (Conventional Commits)" PASSED in run 32792653410 (PR #112, 1m56s); conclusion=success
+- [x] 3.4 Verify disabled jobs remain disabled (grep for `if: false` or conditional patterns) — VERIFIED in real CI run 32792653410: exactly 4 active jobs (Detect Changes, Verify Commit Signatures, Commit Lint, Zombie Workflow Guard); all heavy jobs 'skipping' — none activated
 - [ ] 3.5 Register commit-lint as a required status check in the GitHub branch-protection ruleset (manual step) AND document the procedure — LEAVE UNCHECKED: manual GitHub ruleset registration
