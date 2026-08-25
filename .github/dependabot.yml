@@ -11,6 +11,8 @@ updates:
     labels:
       - "dependencies"
       - "automated"
+    commit-message:
+      prefix: "fix"
     groups:
       dev-dependencies:
         patterns:
