@@ -63,13 +63,13 @@ pr-title-lint:
 
 ### Acceptance
 
-- [ ] Job exists in ci.yml
-- [ ] Job is parallel (no `needs` dependency)
-- [ ] Job has `permissions: pull-requests: read`
-- [ ] Handles both `pull_request` and `merge_group` events
-- [ ] Types list matches `@commitlint/config-conventional`
-- [ ] Job name is exactly `PR Title Lint`
-- [ ] `continue-on-error: true` present (Phase 1)
+- [x] Job exists in ci.yml
+- [x] Job is parallel (no `needs` dependency)
+- [x] Job has `permissions: pull-requests: read`
+- [x] Handles both `pull_request` and `merge_group` events
+- [x] Types list matches `@commitlint/config-conventional`
+- [x] Job name is exactly `PR Title Lint`
+- [x] `continue-on-error: true` present (Phase 1)
 
 ---
 
@@ -115,14 +115,14 @@ dco:
 
 ### Acceptance
 
-- [ ] Job exists in ci.yml
-- [ ] Job is parallel (no `needs` dependency)
-- [ ] Job has `permissions: contents: read`
-- [ ] Handles both `pull_request` and `merge_group` events
-- [ ] Config TOML uses `well-known` policy
-- [ ] `dependency-updaters` category covers dependabot[bot]
-- [ ] Job name is exactly `DCO`
-- [ ] `continue-on-error: true` present (Phase 1)
+- [x] Job exists in ci.yml
+- [x] Job is parallel (no `needs` dependency)
+- [x] Job has `permissions: contents: read`
+- [x] Handles both `pull_request` and `merge_group` events
+- [x] Config TOML uses `well-known` policy
+- [x] `dependency-updaters` category covers dependabot[bot]
+- [x] Job name is exactly `DCO`
+- [x] `continue-on-error: true` present (Phase 1)
 
 ---
 
@@ -232,11 +232,11 @@ ci-complete:
 
 ### Acceptance
 
-- [ ] `pr-title-lint` added to `needs` array
-- [ ] `dco` added to `needs` array
-- [ ] ALL existing entries preserved (30 jobs)
-- [ ] `if: ${{ vars.CI_MINIMAL != 'true' && always() }}` PRESERVED
-- [ ] Gate logic uses `contains(needs.*.result, ...)` pattern (existing)
+- [x] `pr-title-lint` added to `needs` array
+- [x] `dco` added to `needs` array
+- [x] ALL existing entries preserved (30 jobs)
+- [x] `if: ${{ vars.CI_MINIMAL != 'true' && always() }}` PRESERVED
+- [x] Gate logic uses `contains(needs.*.result, ...)` pattern (existing)
 
 ---
 
@@ -283,9 +283,9 @@ Add `commit-message: prefix: "fix"` to the npm ecosystem in dependabot.yml. With
 
 ### Acceptance
 
-- [ ] `commit-message: prefix: "fix"` added to npm ecosystem
-- [ ] All other dependabot.yml content unchanged
-- [ ] PR titles will now be "fix(deps): bump axios from 1.0 to 1.1"
+- [x] `commit-message: prefix: "fix"` added to npm ecosystem
+- [x] All other dependabot.yml content unchanged
+- [x] PR titles will now be "fix(deps): bump axios from 1.0 to 1.1"
 
 ---
 
@@ -345,11 +345,11 @@ Closes #
 
 ### Acceptance
 
-- [ ] `.github/PULL_REQUEST_TEMPLATE.md` exists
-- [ ] All 6 sections present
-- [ ] Checklist includes `Signed-off-by` reminder
-- [ ] HTML comments used for guidance
-- [ ] PR title format reminder in checklist
+- [x] `.github/PULL_REQUEST_TEMPLATE.md` exists
+- [x] All 6 sections present
+- [x] Checklist includes `Signed-off-by` reminder
+- [x] HTML comments used for guidance
+- [x] PR title format reminder in checklist
 
 ---
 
@@ -389,10 +389,10 @@ docs/learning/              @Freelancer-soluctions/core-team
 
 ### Acceptance
 
-- [ ] `.github/CODEOWNERS` exists
-- [ ] Default owner defined (`*`)
-- [ ] Component-specific owners defined
-- [ ] Team names match GitHub teams
+- [x] `.github/CODEOWNERS` exists
+- [x] Default owner defined (`*`)
+- [x] Component-specific owners defined
+- [x] Team names match GitHub teams
 
 ---
 
@@ -447,11 +447,11 @@ Use the provided PR template when creating PRs. Include:
 
 ### Acceptance
 
-- [ ] CONTRIBUTING.md exists or is created
-- [ ] PR title format documented
-- [ ] DCO requirement documented
-- [ ] PR template usage documented
-- [ ] Review process documented
+- [x] CONTRIBUTING.md exists or is created
+- [x] PR title format documented
+- [x] DCO requirement documented
+- [x] PR template usage documented
+- [x] Review process documented
 
 ---
 
