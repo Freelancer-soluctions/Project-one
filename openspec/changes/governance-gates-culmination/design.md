@@ -16,8 +16,9 @@ Current governance maturity is ~55-60%. Levels 2-3 are partially blocked by two 
 
 **Goals:**
 
-- Reach Level 2 (PR dependency gate), Level 3 (merge gates), Level 4 (post-merge deploy gating + rollback), Level 5 (audit streaming).
-- Provide enforceable, auditable controls mapped to SOC2/ISO27001.
+- Reach Level 2 (PR dependency gate) and Level 3 (merge gates) — fully implementable.
+- Document Level 4 (post-merge deploy gating + rollback) and Level 5 (audit streaming) — conditional on deploy target + Enterprise tier.
+- Provide enforceable, auditable controls mapped to SOC2/ISO27001 (repo-level, ~75-80% maturity).
 
 **Non-Goals:**
 
@@ -35,8 +36,8 @@ Current governance maturity is ~55-60%. Levels 2-3 are partially blocked by two 
 
 ### D2: Fan-in Gate Pattern — ci-complete
 
-**Decision**: `ci-complete` is the **single required check** aggregating all jobs via `needs`.
-**Rationale**: One required check in the ruleset reduces drift; jobs are added ADD-only. dependency-review joins the `needs` array. DCO is included (enterprise provenance control, implemented in pr-metadata-governance).
+**Decision**: `ci-complete` is the **single aggregate gate** for CI jobs via `needs`. Other required checks (Verify Commit Signatures, Commit Lint, PR Title Lint, DCO) remain separately required in the ruleset.
+**Rationale**: ci-complete aggregates CI jobs ADD-only; the other 4 checks are independent governance controls from pr-metadata-governance. All 5 are required status checks in ruleset 21227644.
 **Alternatives**: List every job as a required check (rejected — high maintenance, easy to desync).
 
 ### D3: Deploy Gating — GitHub Environments + Required Reviewers
@@ -59,30 +60,29 @@ Current governance maturity is ~55-60%. Levels 2-3 are partially blocked by two 
 
 ### D6: Compliance Mapping
 
-**Decision**: Map gates to controls:
+**Decision**: Map gates to controls (verified against AICPA 2017 Trust Services Criteria and ISO 27001:2022):
 
-- SOC2 CC6.1 (logical access) → required reviews, CODEOWNERS
-- SOC2 CC7.1 (vulnerability detection) → dependency-review
-- SOC2 CC7.2 (monitoring) → audit log streaming, post-deploy smoke tests
-- SOC2 CC8.1 (change management) → required reviews, linear history, ci-complete
-- SOC2 CC8.2 (change approval) → rollback strategy, fix-forward
-- ISO A.5.19 (info sec in SDLC) → dependency-review
-- ISO A.5.29 (security in dev) → rollback strategy
-- ISO A.5.33 (protection of records) → audit log streaming
-- ISO A.5.34 (privacy in SDLC) → required reviews, CODEOWNERS
+- SOC2 CC6.3 (logical access — least privilege) → required reviews, CODEOWNERS (segregation of duties)
+- SOC2 CC7.1 (vulnerability detection) → dependency-review (SCA), future SAST/DAST
+- SOC2 CC7.2 (monitoring) → audit log streaming documentation, post-deploy smoke tests
+- SOC2 CC8.1 (change management/approval) → required reviews, linear history, ci-complete, rollback strategy, fix-forward
+- ISO A.5.19 (supplier relationships) → dependency-review (also A.8.7)
+- ISO A.5.29 (security during disruption) → rollback strategy
+- ISO A.5.33 (protection of records) → audit log streaming documentation (needs retention policy)
+- ISO A.5.34 (privacy in SDLC) → required reviews, CODEOWNERS (weak mapping — no PII handling)
 - ISO A.8.7 (protection against malware) → dependency-review (supply-chain vulnerability blocking)
-- ISO A.8.16 (monitoring activities) → audit log streaming, post-deploy smoke tests
-  **Rationale**: Direct traceability for auditors.
+- ISO A.8.16 (monitoring activities) → audit log streaming documentation, post-deploy smoke tests
+  **Rationale**: Direct traceability for auditors. **NOTE**: CC8.2 does NOT exist in AICPA 2017 Trust Services Criteria; change approval lives in CC8.1 only. CC6.1 (logical access — credential management) is NOT mapped here; identity-layer controls (SSO/MFA) are out of scope for this change.
 
 ### D7: Enterprise Verification Corrections
 
 **Decision**: Apply verified corrections:
 
-- PR Title Lint → **optional in Phase 1** (cosmetic, not a compliance control; will be blocking in Phase 2 of rollout per pr-metadata-governance D7)
+- PR Title Lint → **already required (blocking)** from pr-metadata-governance; this change preserves it. Classified optional only as a compliance control (cosmetic, not mapped to SOC2/ISO)
 - PR Template → **not enforceable** (GitHub cannot enforce body content; documentation only)
 - Signed commits → **selective** (regulated repositories only, not org-wide)
 - DCO → **required** (enterprise provenance control, implemented in pr-metadata-governance)
-  **Rationale**: Verification against Google/Meta/Microsoft/Netflix/Swissquote/GitHub showed PR Title Lint and PR Template were over-scoped. DCO is confirmed as enterprise provenance control. Removing non-enforceable items from compliance scope reduces friction without reducing real assurance.
+  **Rationale**: Verification against Google/Meta/Microsoft/Netflix/Swissquote/GitHub showed PR Template was over-scoped. DCO and PR Title Lint are confirmed as enterprise controls from pr-metadata-governance. Removing non-enforceable items from compliance scope reduces friction without reducing real assurance.
 
 ## Risks / Trade-offs
 
