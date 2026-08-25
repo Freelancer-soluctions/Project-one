@@ -67,9 +67,23 @@ The ruleset SHALL require the following status checks to pass before merge (inhe
 
 ### Requirement: CODEOWNERS review enforcement
 
-The ruleset SHALL enforce that CODEOWNERS-nominated reviewers have approved changes to owned paths.
+The ruleset SHALL enforce that CODEOWNERS-nominated reviewers have approved changes to owned paths. A CODEOWNERS file MUST exist (from pr-metadata-governance) before this rule is enabled.
 
 #### Scenario: Owned file changed without owner approval
 
 - **WHEN** a PR modifies a file owned by a CODEOWNERS entry and no owner has approved
 - **THEN** the ruleset blocks the merge
+
+#### Scenario: CODEOWNERS file missing
+
+- **WHEN** the ruleset has `require_code_owner_reviews` enabled but no CODEOWNERS file exists
+- **THEN** all PRs are blocked (unsatisfiable rule)
+
+### Requirement: Bypass actors preserved as NONE
+
+The ruleset SHALL maintain zero bypass actors (no exceptions for anyone, including admins). This is preserved from pr-metadata-governance D5.
+
+#### Scenario: Admin attempts bypass
+
+- **WHEN** a repository admin attempts to bypass the ruleset
+- **THEN** the bypass is rejected (zero bypass actors configured)

@@ -392,7 +392,7 @@ GET /orgs/{org}/audit-log
 | Required PR + reviews | CC8.1 | A.8.32    | Ruleset + audit log     |
 | Signed commits        | CC8.1 | A.8.9     | Verification record     |
 | DCO                   | CC8.1 | A.8.32    | DCO check + trailers    |
-| Secret scanning       | CC6.1 | A.8.28    | Security center         |
+| Secret scanning       | CC7.1 | A.8.28    | Security center         |
 | Dependency review     | CC7.1 | A.8.28    | dependency-review check |
 | ci-complete           | CC8.1 | A.8.29    | Gate workflow           |
 | Deploy protection     | CC8.1 | A.8.32    | Environment + audit log |
