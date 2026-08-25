@@ -8,7 +8,7 @@
 
 ## Context
 
-**Repository Classification**: project-one is an **internal repository** (personal simulation for enterprise learning). DCO is exempt (not OSS). Signed commits are optional (enforced for practice). PR Title Lint is optional (cosmetic). PR Template is optional (not enforceable).
+**Repository Classification**: project-one is an **internal repository** (personal simulation for enterprise learning). DCO is required (enterprise provenance control, implemented in pr-metadata-governance). Signed commits are optional (enforced for practice). PR Title Lint is optional (cosmetic, will be blocking in Phase 2 of rollout). PR Template is optional (not enforceable).
 
 Current governance maturity is ~55-60%. Levels 2-3 are partially blocked by two admin actions (Admin-2 ruleset PUT, Admin-1 squash setting), and Levels 4-5 are unstarted. This design closes those gaps toward ~95% maturity for SOC2/ISO27001. It is grounded in verified practices from Google, Meta, Microsoft, Netflix, Swissquote, and GitHub, with corrections applied after verification (see D7).
 
@@ -21,10 +21,9 @@ Current governance maturity is ~55-60%. Levels 2-3 are partially blocked by two 
 
 **Non-Goals:**
 
-- PR Title Lint as a governance gate (cosmetic — optional, see D7).
+- PR Title Lint as a governance gate in this change (cosmetic — optional in Phase 1, blocking in Phase 2 of rollout per pr-metadata-governance D7).
 - PR Template as a compliance control (not enforceable — see D7).
 - Org-wide signed commits (selective/regulated only — see D7).
-- DCO for internal repos (OSS-only — see D7).
 
 ## Decisions
 
@@ -37,7 +36,7 @@ Current governance maturity is ~55-60%. Levels 2-3 are partially blocked by two 
 ### D2: Fan-in Gate Pattern — ci-complete
 
 **Decision**: `ci-complete` is the **single required check** aggregating all jobs via `needs`.
-**Rationale**: One required check in the ruleset reduces drift; jobs are added ADD-only. dependency-review joins the `needs` array. DCO is excluded (internal repo, not OSS).
+**Rationale**: One required check in the ruleset reduces drift; jobs are added ADD-only. dependency-review joins the `needs` array. DCO is included (enterprise provenance control, implemented in pr-metadata-governance).
 **Alternatives**: List every job as a required check (rejected — high maintenance, easy to desync).
 
 ### D3: Deploy Gating — GitHub Environments + Required Reviewers
@@ -79,11 +78,11 @@ Current governance maturity is ~55-60%. Levels 2-3 are partially blocked by two 
 
 **Decision**: Apply verified corrections:
 
-- PR Title Lint → **optional** (cosmetic, not a compliance control; keep as non-blocking aid)
+- PR Title Lint → **optional in Phase 1** (cosmetic, not a compliance control; will be blocking in Phase 2 of rollout per pr-metadata-governance D7)
 - PR Template → **not enforceable** (GitHub cannot enforce body content; documentation only)
 - Signed commits → **selective** (regulated repositories only, not org-wide)
-- DCO → **OSS-only** (internal repositories exempt)
-  **Rationale**: Verification against Google/Meta/Microsoft/Netflix/Swissquote/GitHub showed these were over-scoped. Removing them from compliance scope reduces friction without reducing real assurance.
+- DCO → **required** (enterprise provenance control, implemented in pr-metadata-governance)
+  **Rationale**: Verification against Google/Meta/Microsoft/Netflix/Swissquote/GitHub showed PR Title Lint and PR Template were over-scoped. DCO is confirmed as enterprise provenance control. Removing non-enforceable items from compliance scope reduces friction without reducing real assurance.
 
 ## Risks / Trade-offs
 

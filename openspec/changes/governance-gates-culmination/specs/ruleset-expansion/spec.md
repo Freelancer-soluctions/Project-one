@@ -52,11 +52,11 @@ The ruleset SHALL block force pushes to protected branches.
 
 ### Requirement: Required status checks
 
-The ruleset SHALL require the `ci-complete` status check to pass before merge. **DCO is excluded** (project-one is an internal repository, not OSS).
+The ruleset SHALL require the `DCO` and `ci-complete` status checks to pass before merge. DCO is an enterprise provenance control (implemented in pr-metadata-governance change).
 
 #### Scenario: Missing required check
 
-- **WHEN** `ci-complete` has not passed
+- **WHEN** `DCO` or `ci-complete` has not passed
 - **THEN** the merge is blocked
 
 ### Requirement: CODEOWNERS review enforcement

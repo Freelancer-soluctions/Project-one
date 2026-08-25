@@ -1,12 +1,17 @@
 ## 1. Level 2 — PR Dependency Gate
 
 - [ ] 1.1 Create `.github/workflows/dependency-review.yml` running `actions/dependency-review-action` on `pull_request`, failing on new moderate+ vulnerabilities. Wire to ci-complete gate. **Esfuerzo: 2-3h**
-- [ ] 1.2 Keep PR Title Lint as optional (continue-on-error: true) — NOT a governance gate per enterprise verification. No changes needed. **Esfuerzo: 0h (verify existing)**
+- [ ] 1.2 Verify PR Title Lint exists with `continue-on-error: true` — will become blocking in Phase 2 of rollout (per pr-metadata-governance D7). **Esfuerzo: 0h (verify only)**
 
-## 2. Level 3 — Merge Gates (Admin Actions)
+## 2. Level 3 — Merge Gates (Admin Actions — COMBINED)
 
-- [ ] 2.1 Prepare full PUT payload for Admin-2: `PUT /repos/{owner}/{repo}/rulesets/21227644` with required reviews (≥1, dismiss stale, last push), required linear history, block force pushes, required status checks (ci-complete ONLY — DCO excluded, internal repo), CODEOWNERS enforcement. Document handoff as blocked-until-admin. **Esfuerzo: 2-3h**
-- [ ] 2.2 Document Admin-1 `squash_merge_commit_title` settings: change to `PR_TITLE` + `COMMIT_MESSAGES` to enforce linear history and preserve conventional commit format. Document handoff as blocked-until-admin. **Esfuerzo: 0.5h**
+- [ ] 2.1 Prepare COMBINED PUT payload for Admin-2: `PUT /repos/{owner}/{repo}/rulesets/21227644` with:
+  - Existing rules (preserve): `required_signatures`
+  - From pr-metadata-governance: `required_status_checks` (Verify Commit Signatures, Commit Lint, PR Title Lint, DCO, ci-complete)
+  - From governance-gates-culmination: `required_pull_request` (≥1 review, dismiss stale, last push), `required_linear_history`, `block_force_pushes`, `require_code_owner_reviews`
+  - **CRITICAL**: PUT is full replace — ALL rules must be in ONE payload
+  - Document handoff as blocked-until-admin. **Esfuerzo: 3-4h**
+- [ ] 2.2 Document Admin-1 `squash_merge_commit_title` settings: change to `PR_TITLE` + `COMMIT_MESSAGES` (consistent with pr-metadata-governance D3). Document handoff as blocked-until-admin. **Esfuerzo: 0.5h**
 
 ## 3. Level 4 — Post-Merge Deploy Gating
 
@@ -30,20 +35,31 @@
 
 ## Summary
 
-| Task | Level |     Status      | Blocked By      |
-| ---- | :---: | :-------------: | --------------- |
-| 1.1  |  L2   |  Implementable  | —               |
-| 1.2  |  L2   |   Verify only   | —               |
-| 2.1  |  L3   | Prepare payload | Admin-2         |
-| 2.2  |  L3   |    Document     | Admin-1         |
-| 3.1  |  L4   |     Future      | Deploy target   |
-| 3.2  |  L4   |     Future      | Health endpoint |
-| 4.1  |  L4   |  Implementable  | —               |
-| 4.2  |  L5   |  Implementable  | —               |
-| 5.1  |  L5   |    Document     | —               |
-| 6.1  |  Doc  |  Implementable  | —               |
+| Task | Level |     Status      | Blocked By      | Conflict Resolution                       |
+| ---- | :---: | :-------------: | --------------- | ----------------------------------------- |
+| 1.1  |  L2   |  Implementable  | —               | —                                         |
+| 1.2  |  L2   |   Verify only   | —               | PR Title Lint future blocking (Phase 2)   |
+| 2.1  |  L3   | Prepare payload | Admin-2         | COMBINED PUT with pr-metadata-governance  |
+| 2.2  |  L3   |    Document     | Admin-1         | Consistent with pr-metadata-governance D3 |
+| 3.1  |  L4   |     Future      | Deploy target   | —                                         |
+| 3.2  |  L4   |     Future      | Health endpoint | —                                         |
+| 4.1  |  L4   |  Implementable  | —               | —                                         |
+| 4.2  |  L5   |  Implementable  | —               | —                                         |
+| 5.1  |  L5   |    Document     | —               | —                                         |
+| 6.1  |  Doc  |  Implementable  | —               | —                                         |
 
 **Implementable now**: 1.1, 4.1, 4.2, 5.1, 6.1 (5 tasks)
-**Blocked by admin**: 2.1, 2.2 (2 tasks)
+**Blocked by admin**: 2.1, 2.2 (2 tasks — COMBINED with pr-metadata-governance)
 **Blocked by infra**: 3.1, 3.2 (2 tasks)
 **Verify only**: 1.2 (1 task)
+
+---
+
+## Conflict Resolution Notes
+
+| Conflict                           | Resolution                                                |
+| ---------------------------------- | --------------------------------------------------------- |
+| DCO excluded from ruleset          | ✅ RESTORED — DCO is required (enterprise provenance)     |
+| PR Title Lint optional vs blocking | ✅ CLARIFIED — Will be blocking in Phase 2 of rollout     |
+| Admin-2 PUT double modification    | ✅ COMBINED — Single PUT with all rules from both changes |
+| Admin-1 duplication                | ✅ ELIMINATED — Documented once, consistent with D3       |

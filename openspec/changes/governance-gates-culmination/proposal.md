@@ -4,36 +4,44 @@
 
 **project-one** is an **internal repository** (personal simulation for enterprise learning).
 
-| Control           | Applicability | Reason                                   |
-| ----------------- | :-----------: | ---------------------------------------- |
-| DCO               |   ❌ Exempt   | Internal repo, not OSS                   |
-| Signed commits    |  ⚠️ Optional  | Learning purposes, enforced for practice |
-| PR Title Lint     |  ⚠️ Optional  | Cosmetic, not compliance                 |
-| PR Template       |  ⚠️ Optional  | Not enforceable by GitHub                |
-| Dependency review |  ✅ Required  | Supply-chain control, universal          |
-| Required reviews  |  ✅ Required  | Universal enterprise gate                |
-| Rulesets          |  ✅ Required  | Universal enforcement layer              |
+| Control           | Applicability | Reason                                                                |
+| ----------------- | :-----------: | --------------------------------------------------------------------- |
+| DCO               |  ✅ Required  | Enterprise provenance control (implemented in pr-metadata-governance) |
+| Signed commits    |  ⚠️ Optional  | Learning purposes, enforced for practice                              |
+| PR Title Lint     |  ⚠️ Optional  | Cosmetic, not compliance                                              |
+| PR Template       |  ⚠️ Optional  | Not enforceable by GitHub                                             |
+| Dependency review |  ✅ Required  | Supply-chain control, universal                                       |
+| Required reviews  |  ✅ Required  | Universal enterprise gate                                             |
+| Rulesets          |  ✅ Required  | Universal enforcement layer                                           |
 
 ## Why
 
 Current enterprise governance posture is ~55-60% maturity. Two admin actions block Level 2/3 enforcement, and Levels 4-5 (post-merge deploy gating, rollback, audit streaming) are unstarted. We must close these gaps to reach ~95% enterprise governance maturity and satisfy SOC2/ISO27001 compliance evidence requirements.
 
-This change is grounded in VERIFIED enterprise practices from Google, Meta, Microsoft, Netflix, Swissquote, and GitHub. Corrections were applied after verification: PR Title Lint is demoted to optional (cosmetic, not a compliance control), PR Template is removed from compliance scope (not enforceable by GitHub), signed commits are scoped to regulated repositories only (selective, not org-wide), and DCO is scoped to OSS repositories only (project-one is internal, therefore DCO exempt).
+This change is grounded in VERIFIED enterprise practices from Google, Meta, Microsoft, Netflix, Swissquote, and GitHub. Corrections were applied after verification: PR Title Lint is demoted to optional (cosmetic, not a compliance control), PR Template is removed from compliance scope (not enforceable by GitHub), signed commits are scoped to regulated repositories only (selective, not org-wide). DCO is confirmed as an enterprise provenance control and is REQUIRED (already implemented in pr-metadata-governance change).
 
 ## What Changes
 
 - **Level 2 — PR gates**: Add a `dependency-review` workflow that fails on new vulnerabilities (severity >= moderate) and blocks merge via the `ci-complete` fan-in gate.
-- **Level 3 — Merge gates**: Expand ruleset `21227644` (full PUT replace) with required reviews (>=1 approval, dismiss stale, require last push), required linear history, force-push blocking, required status checks (ci-complete only), and CODEOWNERS review enforcement. **DCO is excluded** (internal repo, not OSS).
+- **Level 3 — Merge gates**: Expand ruleset `21227644` (full PUT replace) with required reviews (>=1 approval, dismiss stale, require last push), required linear history, force-push blocking, required status checks (DCO + ci-complete), and CODEOWNERS review enforcement. **DCO is REQUIRED** (enterprise provenance control, already implemented in pr-metadata-governance).
 - **Level 4 — Post-Merge**: Configure GitHub Environments for staging/production with required reviewers, post-deploy smoke tests (health-check endpoint), and a deploy verification workflow.
 - **Level 5 — Audit**: Document audit log streaming configuration (org/enterprise-level, not repo workflow) and compliance evidence collection process with a quarterly review cadence.
 - **Rollback**: Document a layered rollback strategy (kill-switch < traffic shift < git revert < DB expand/contract) with runbooks and fix-forward documentation.
 
 ### Enterprise Verification Corrections (applied)
 
-- PR Title Lint → **optional** (cosmetic, not a compliance control)
+- PR Title Lint → **optional in Phase 1** (cosmetic, not a compliance control; will be blocking in Phase 2 of rollout per pr-metadata-governance D7)
 - PR Template → **not enforceable** (removed from compliance scope)
 - Signed commits → **selective** (regulated repositories only, not org-wide)
-- DCO → **OSS-only** (project-one is internal, therefore exempt)
+- DCO → **required** (enterprise provenance control, implemented in pr-metadata-governance)
+
+### Conflict Resolution with pr-metadata-governance
+
+This change is COMBINED with pr-metadata-governance for Admin-2 ruleset PUT:
+
+- **Single PUT** to ruleset 21227644 with ALL required checks (Verify Commit Signatures, Commit Lint, PR Title Lint, DCO, ci-complete)
+- **Single documentation** of Admin-1 squash settings (PR_TITLE + COMMIT_MESSAGES)
+- **PR Title Lint** will be blocking in Phase 2 of rollout (not in this change)
 
 ## Capabilities
 
