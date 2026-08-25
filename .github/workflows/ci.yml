@@ -356,9 +356,7 @@ jobs:
           requireScope: false
           ignoreLabels: |
             bot
-            ignoreLabels: |
-              bot
-              ignore-semantic-pull-request
+            ignore-semantic-pull-request
       # Merge queue: squash commit title already validated by commitlint --last
       - name: Skip on merge_group (covered by commitlint)
         if: github.event_name == 'merge_group'
