@@ -22,6 +22,6 @@ Local Husky `commit-msg` hook is bypassable via `git commit --no-verify`. Enterp
 ## Impact
 
 - **Files**: `.github/workflows/ci.yml` (add job), `.husky/commit-msg` (fix bug)
-- **Dependencies**: `wagoid/commitlint-github-action@v6` (new GitHub Action)
+- **Dependencies**: none new — uses lockfile-pinned `@commitlint/cli` v20.3.1 (existing devDep) via raw `npx commitlint` official pattern (per design D1; wagoid action explicitly rejected)
 - **Existing jobs**: commit-lint runs in parallel with build/test (no `needs:` dependency), no impact on existing job execution
 - **Ruleset**: requires manual configuration in GitHub UI to register commit-lint as required check

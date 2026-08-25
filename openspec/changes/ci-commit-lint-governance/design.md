@@ -69,7 +69,7 @@
 
 - Enterprise standard: required check that blocks merge
 - Defense-in-depth over bypassable local hook
-- wagoid defaults are appropriate — no configuration needed
+- nonzero exit code of `npx commitlint` fails the step and job natively — no suppression flags needed
 
 ## Risks / Trade-offs
 

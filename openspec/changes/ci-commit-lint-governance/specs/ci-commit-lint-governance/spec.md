@@ -36,7 +36,7 @@ The system SHALL handle merge_group events by running `commitlint --last` agains
 - **WHEN** a merge_group event is triggered
 - **AND** the squash commit message does NOT follow Conventional Commits format
 - **THEN** the commit-lint CI job fails
-- **AND** the PR is removed from the merge queue (once the required check is registered in branch protection) (once the required check is registered in branch protection)
+- **AND** the PR is removed from the merge queue (once the required check is registered in branch protection)
 
 ### Requirement: Empty PR commit range SHALL fail validation
 
