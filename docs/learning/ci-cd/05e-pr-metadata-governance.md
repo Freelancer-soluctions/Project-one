@@ -2,7 +2,9 @@
 
 > **Guía 05e — Research Brief + Implementation Guide** (después de 05d) | Anterior: [05d-ci-commit-lint-implementation.md](./05d-ci-commit-lint-implementation.md)
 >
-> Esta guía documenta la investigación completa sobre **PR Metadata Checks** (DCO sign-off, PR title validation, body templates) con foco en entornos enterprise. Cubre el landscape de herramientas, interacción con squash-merge, patrones de implementación enterprise, y el roadmap de implementación para Project-one.
+> Esta guía documenta la investigación completa sobre **PR Metadata Checks** (DCO sign-off, PR title validation, body templates) con foco en entornos enterprise. Cubre el landscape de herramientas, interacción con squash-merge, patrones de implementación enterprise, y la **implementación completa** del change `pr-metadata-governance` para Project-one.
+>
+> **Estado**: Implementado en `feat/ci-governance` (commits `128a0e8` → `31d445f`). Admin actions pendientes (squash setting + ruleset registration).
 
 ---
 
@@ -227,7 +229,6 @@ pr-title-lint:
           chore
           revert
         requireScope: false
-        subjectPattern: ^(?![A-Z]).+$
         ignoreLabels: |
           bot
           ignore-semantic-pull-request
@@ -341,28 +342,513 @@ Razón: la automatización del body es fragile (templates cambian, bots whitelis
 
 ---
 
-## 🗺️ Roadmap de Implementación
+## 🗺️ Implementación
 
-### P1: PR Title Lint (effort: S)
+> **OpenSpec change**: `pr-metadata-governance` | **Commits**: `128a0e8` → `31d445f`
+> **Branch**: `feat/ci-governance` | **Schema**: spec-driven
 
-1. Agregar job `pr-title-lint` a ci.yml (paralelo, no needs, ADD-only)
-2. Registrar `PR Title Lint` como required check en ruleset 21227644
-3. Cambiar repo setting `squash_merge_commit_title=PR_TITLE`
-4. Rollout: `continue-on-error: true` por un ciclo → luego Active
+### Resumen de Cambios
 
-### P1.5: DCO Check (effort: S)
+| #   | Commit    | Descripción                                                      |
+| --- | --------- | ---------------------------------------------------------------- |
+| 1   | `128a0e8` | Research brief (este doc)                                        |
+| 2   | `577a443` | OpenSpec change artifacts (proposal, spec, design, tasks)        |
+| 3   | `d8fdd6f` | Fix 5 planner issues in spec/design/tasks                        |
+| 4   | `c3cc1c7` | **PR Title Lint + DCO jobs** in ci.yml + ci-complete gate update |
+| 5   | `cc400b4` | Fix malformed `ignoreLabels` YAML in pr-title-lint               |
+| 6   | `a5fb76b` | Mark Tasks 1-7 acceptance criteria complete                      |
+| 7   | `d92f89b` | **Fix**: add `pull-requests: read` to DCO permissions            |
+| 8   | `31d445f` | **PR Template + CODEOWNERS + CONTRIBUTING.md**                   |
 
-1. Agregar job `dco` a ci.yml usando `KineticCafe/actions-dco@v3.2.0`
-2. Whitelist dependabot via config TOML `well-known` policy
-3. Registrar `DCO` como required check en ruleset 21227644
-4. Documentar en CONTRIBUTING.md: `git commit -s` obligatorio
+---
 
-### P2: PR Template + Guidelines (effort: M)
+### P1: PR Title Lint — `amannn/action-semantic-pull-request@v6`
 
-1. Crear `.github/PULL_REQUEST_TEMPLATE.md` con las 6 secciones
-2. Agregar CODEOWNERS para review boundaries
-3. Documentar PR guidelines en CONTRIBUTING.md
-4. (Opcional) Action ligera para validar body no-empty
+**Ubicación**: `.github/workflows/ci.yml:331-365`
+
+#### Por qué esta herramienta
+
+- **13k+ stars**, activamente mantenida (v6, 2025)
+- Configurable: `types`, `requireScope`, `subjectPattern`, `ignoreLabels`
+- Soporte nativo para `merge_group` events (requerido para merge queue)
+- No necesita GitHub App — es un Action simple
+
+#### Job implementado
+
+```yaml
+pr-title-lint:
+  name: PR Title Lint # ← CRITICAL: nombre exacto para ruleset
+  runs-on: ubuntu-latest
+  permissions:
+    pull-requests: read # ← Necesario para leer PR title
+  steps:
+    # PR events: valida título contra Conventional Commits
+    - name: Lint PR title
+      if: github.event_name == 'pull_request'
+      uses: amannn/action-semantic-pull-request@v6
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        types: | # ← Mismos types que commitlint config-conventional
+          feat
+          fix
+          docs
+          style
+          refactor
+          perf
+          test
+          build
+          ci
+          chore
+          revert
+        requireScope: false
+        ignoreLabels: | # ← Bots pueden saltar con este label
+          bot
+          ignore-semantic-pull-request
+    # Merge queue: squash commit title ya validado por commitlint --last
+    - name: Skip on merge_group (covered by commitlint)
+      if: github.event_name == 'merge_group'
+      run: echo "✅ Merge queue — squash commit title validated by commitlint"
+  # Phase 1: non-blocking. Remove after team adjusts (1 sprint).
+  continue-on-error: true
+```
+
+#### Decisiones clave
+
+1. **Sin `needs`**: job corre en paralelo — no bloquea ni es bloqueado
+2. **`permissions: pull-requests: read`**: necesario para leer el título del PR vía API
+3. **`merge_group` step**: emite success neutral — required check satisfacible en merge queue
+4. **`continue-on-error: true`**: Phase 1 rollout — equipo se ajusta sin bloquear merges
+5. **`name: PR Title Lint`**: string exacto que debe coincidir con el ruleset (D5)
+6. **Sin `subjectPattern`**: decidimos NO aplicar la regla "no capital-first" — commitlint ya valida commits; PR title es más flexible
+
+#### Flujo de validación
+
+```
+PR abierto → PR Title Lint corre
+  ├── Título válido (feat: ..., fix: ...) → ✅ pass
+  ├── Título inválido (feature: ..., add ...) → ❌ fail
+  ├── PR con label "bot" → skip (ignoreLabels)
+  └── merge_group event → emite success (commitlint cubre esto)
+```
+
+---
+
+### P1.5: DCO Sign-off — `KineticCafe/actions-dco@v3.2.0`
+
+**Ubicación**: `.github/workflows/ci.yml:367-389`
+
+#### Por qué KineticCafe
+
+- **Policy `well-known`**: whitelist automática de dependabot[bot], renovate[bot], snyk-bot[bot]
+- **Edge case dependabot**: author email = `+dependabot[bot]@users.noreply.github.com`, sign-off = `support@github.com` — KineticCafe maneja esto; scripts custom fallan
+- **TOML config**: versionable en el repo, no hardcoded
+- **Action, no App**: no necesita instalación de GitHub App con permisos extendidos
+
+#### Job implementado
+
+```yaml
+dco:
+  name: DCO # ← CRITICAL: nombre exacto para ruleset
+  runs-on: ubuntu-latest
+  permissions:
+    contents: read # ← Para leer archivos del repo
+    pull-requests: read # ← Para enumerar commits del PR (pulls.listCommits)
+  steps:
+    # PR events: valida Signed-off-by en todos los commits
+    - name: DCO sign-off check
+      if: github.event_name == 'pull_request'
+      uses: KineticCafe/actions-dco@v3.2.0
+      with:
+        config: |
+          [bot]
+          policy = "well-known"
+          categories = ["dependency-updaters"]
+    # Merge queue: DCO es check de PR-level; squash commit no lleva trailers individuales
+    - name: Skip on merge_group (PR-level check)
+      if: github.event_name == 'merge_group'
+      run: echo "✅ Merge queue — DCO validated at PR level"
+  # Phase 1: non-blocking. Remove after team adjusts (1 sprint).
+  continue-on-error: true
+```
+
+#### Bug encontrado por reviewer: DCO permissions
+
+**Problema**: el job solo tenía `contents: read`. `KineticCafe/actions-dco` necesita `pull-requests: read` para enumerar commits del PR vía `pulls.listCommits`. Sin esto → HTTP 403 en runtime.
+
+**Actualmente enmascarado** por `continue-on-error: true` en Phase 1. En Phase 2 (sin continue-on-error) → **bloquearía TODOS los merges**.
+
+**Fix** (`d92f89b`):
+
+```yaml
+permissions:
+  contents: read
+  pull-requests: read # ← AGREGADO
+```
+
+**Lección**: siempre verificar si un Action necesita acceso a la API de PRs, no solo a contents.
+
+#### Config TOML: `well-known` policy
+
+```toml
+[bot]
+policy = "well-known"
+categories = ["dependency-updaters"]
+```
+
+| Policy           | Comportamiento                                                                                                                                        |
+| ---------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `all`            | Exenta a TODOS los bots (débil)                                                                                                                       |
+| **`well-known`** | Solo categorías conocidas: `dependency-updaters` (dependabot, renovate, snyk), `ci-cd` (github-actions), `release` (semantic-release, release-please) |
+| `allowlist`      | Solo bots explícitos                                                                                                                                  |
+| `none`           | Nadie exento — todos firman                                                                                                                           |
+
+#### Flujo de dependabot
+
+```
+dependabot abre PR → DCO job corre
+  ├── Bot detectado → SKIPPED (well-known policy)
+  ├── GitHub ve: DCO = success (skipped = success)
+  ├── PR Title Lint corre normalmente (dependabot titles follow convention)
+  └── Todos los checks pasan → merge permitido ✅
+```
+
+---
+
+### P2: ci-complete Gate Update
+
+**Ubicación**: `.github/workflows/ci.yml:730-778`
+
+#### Patron ADD-only
+
+Regla estricta: **NUNCA eliminar o modificar** jobs existentes en `ci-complete.needs`. Solo agregar.
+
+```yaml
+ci-complete:
+  if: ${{ vars.CI_MINIMAL != 'true' && always() }} # ← PRESERVE exactamente
+  name: CI Complete
+  runs-on: ubuntu-latest
+  needs:
+    - repo-discovery # existing
+    - actionlint # existing
+    - commit-lint # existing
+    - pr-title-lint # ← ADD (P1)
+    - dco # ← ADD (P1.5)
+    - client-lint # existing (if: false)
+    - client-format-check # existing (if: false)
+    - client-typecheck # existing (if: false)
+    - client-complexity # existing (if: false)
+    - client-dead-code # existing (if: false)
+    - client-import-bounds # existing (if: false)
+    - server-lint # existing (if: false)
+    - server-format-check # existing (if: false)
+    - server-typecheck # existing (if: false)
+    - server-complexity # existing (if: false)
+    - server-dead-code # existing (if: false)
+    - server-import-bounds # existing (if: false)
+    - client-build # existing
+    - server-build # existing
+    - client-sonarqube # existing
+    - server-sonarqube # existing
+    - client-coverage # existing
+    - server-coverage # existing
+    - client-depcheck # existing
+    - server-depcheck # existing
+    - test-unit-client # existing
+    - test-unit-server # existing
+    - test-integration # existing
+    - test-smoke # existing
+    - e2e # existing
+    - verify-signatures # existing
+    - zombie-workflow-guard # existing
+  steps:
+    - name: Check for failures
+      run: |
+        if [[ "${{ contains(needs.*.result, 'failure') }}" == "true" ]]; then
+          echo "❌ One or more upstream jobs failed"
+          exit 1
+        fi
+        if [[ "${{ contains(needs.*.result, 'cancelled') }}" == "true" ]]; then
+          echo "⚠️ One or more upstream jobs were cancelled — skipping ci-complete"
+          exit 0
+        fi
+        echo "✅ All upstream jobs succeeded or were skipped"
+```
+
+**Total**: 32 jobs (30 existentes + 2 nuevos). Guard `CI_MINIMAL` preservado exactamente.
+
+---
+
+### P2: dependabot.yml Fix
+
+**Ubicación**: `.github/dependabot.yml:14-15`
+
+**Problema**: dependabot genera PRs con título `Bump X from Y to Z`. PR Title Lint rechaza `Bump` (no es un type válido).
+
+**Fix**: agregar `commit-message: prefix: "fix"` al ecosystem npm:
+
+```yaml
+- package-ecosystem: 'npm'
+  directory: '/'
+  schedule:
+    interval: 'weekly'
+    day: 'monday'
+    time: '03:00'
+    timezone: 'UTC'
+  open-pull-requests-limit: 10
+  labels:
+    - 'dependencies'
+    - 'automated'
+  commit-message:
+    prefix: 'fix' # ← AGREGADO: "fix(deps): Bump X from Y to Z"
+  groups:
+    dev-dependencies:
+      patterns: [...]
+```
+
+**Resultado**: dependabot PR titles → `fix(deps): Bump X from Y to Z` → PR Title Lint pasa ✅
+
+---
+
+### P2: PR Template
+
+**Ubicación**: `.github/PULL_REQUEST_TEMPLATE.md`
+
+**6 secciones** — cada una es un control de compliance enterprise:
+
+```markdown
+## Summary
+
+<!-- What does this PR do and why? Link to context if needed. -->
+
+## Type / Scope
+
+<!-- Check all that apply: -->
+
+- [ ] Client (React/Vite)
+- [ ] Server (Express/Prisma)
+- [ ] E2E (Playwright)
+- [ ] Shared/Config
+- [ ] CI/CD
+
+## Related Issue
+
+<!-- Required for traceability. Use "Closes #<number>" to auto-close on merge. -->
+
+Closes #
+
+## How Has This Been Tested?
+
+<!-- Describe the tests you ran. Provide reproducibility steps if manual. -->
+
+- [ ] Unit tests (vitest)
+- [ ] Integration tests
+- [ ] E2E tests (Playwright)
+- [ ] Manual testing
+- [ ] N/A (docs/config only)
+
+## Screenshots (if applicable)
+
+<!-- Add screenshots or screen recordings for UI changes. -->
+
+## Pre-merge Checklist
+
+- [ ] `Signed-off-by` present in all commits (`git commit -s`)
+- [ ] Tests pass locally (`npm run test`)
+- [ ] Documentation updated (if applicable)
+- [ ] No breaking changes (or documented in Summary)
+- [ ] PR title follows Conventional Commits format
+```
+
+**Por qué no automatizar el body**: GitHub NO puede nativamente forzar contenido. Enterprise standard = template + review culture + CODEOWNERS. La automatización del body es fragile y de alto mantenimiento.
+
+---
+
+### P2: CODEOWNERS
+
+**Ubicación**: `.github/CODEOWNERS`
+
+```markdown
+# Default: @Freelancer-soluctions/core-team
+
+-                           @Freelancer-soluctions/core-team
+
+# Client
+
+apps/client/ @Freelancer-soluctions/frontend-team
+
+# Server
+
+apps/server/ @Freelancer-soluctions/backend-team
+
+# CI/CD
+
+.github/ @Freelancer-soluctions/devops-team
+.github/workflows/ @Freelancer-soluctions/devops-team
+
+# E2E
+
+apps/e2e/ @Freelancer-soluctions/qa-team
+
+# OpenSpec
+
+openspec/ @Freelancer-soluctions/architects
+
+# Learning docs
+
+docs/learning/ @Freelancer-soluctions/core-team
+```
+
+**Función**: asegura que cada componente tenga reviewers especializados. Complementa la automatización de CI con review humana.
+
+---
+
+### P2: CONTRIBUTING.md
+
+**Ubicación**: `CONTRIBUTING.md` (raíz del repo)
+
+**Secciones clave**:
+
+- **Commit Guidelines**: formato Conventional Commits, types, ejemplos
+- **DCO Sign-off**: `git commit -s` obligatorio, exemption para bots
+- **PR Title Format**: type(scope): description, types, scope examples
+- **PR Template**: uso del template, secciones explicadas
+- **Review Process**: CODEOWNERS, required checks, signed commits
+- **Code Standards**: Frontend (React/Vite/Tailwind), Backend (Express/Prisma), Testing (Vitest/RTL/Playwright)
+
+---
+
+### Design Decisions — Estado Final
+
+| Decision                               | Implementada | Notas                                      |
+| -------------------------------------- | :----------: | ------------------------------------------ |
+| D1: PR Title Lint tool                 |      ✅      | amannn/action-semantic-pull-request@v6     |
+| D2: DCO tool                           |      ✅      | KineticCafe/actions-dco@v3.2.0             |
+| D3: Squash setting PR_TITLE            |      ⏳      | Admin action pendiente                     |
+| D4: CI pattern parallel/ADD-only       |      ✅      | 32 jobs, CI_MINIMAL guard preservado       |
+| D5: Ruleset required checks            |      ⏳      | Admin action pendiente                     |
+| D6: Body enforcement template+culture  |      ✅      | PR Template + CODEOWNERS + CONTRIBUTING.md |
+| D7: Rollout continue-on-error → Active |      ✅      | Phase 1 activo                             |
+| D8: Merge queue neutral success        |      ✅      | Ambos jobs emiten success en merge_group   |
+
+---
+
+### Admin Actions Pendientes
+
+#### Admin-1: Squash Setting
+
+**Cambiar** `squash_merge_commit_title` de `COMMIT_OR_PR_TITLE` → `PR_TITLE`.
+
+**Por qué**: consistencia — PR title = squash subject en TODOS los casos. Con `COMMIT_OR_PR_TITLE`, single-commit PRs usan el commit message (commitlint), multi-commit usan PR title (PR Title Lint). Con `PR_TITLE`, siempre PR title.
+
+**Cómo**:
+
+1. GitHub → Settings → General → Pull Requests
+2. Cambiar "Allow squash merging" → Default commit message → "Pull request title"
+3. Verificar que `squash_merge_commit_message` sigue siendo `COMMIT_MESSAGES`
+
+**Impacto**: single-commit PRs cuyo commit message es convencional pero PR title no → PR Title Lint falla. Esto es DESIRED — fuerza consistencia.
+
+#### Admin-2: Ruleset Required Checks
+
+**Registrar** `PR Title Lint` y `DCO` como required checks en ruleset 21227644.
+
+**CRITICAL**: usar **GET → modify → PUT**, NO PATCH. PATCH borra todos los checks existentes.
+
+```bash
+# 1. GET current ruleset
+gh api repos/{owner}/{repo}/rulesets/21227644
+
+# 2. Modify: agregar PR Title Lint y DCO a required_checks
+# (mantener Verify Commit Signatures y Commit Lint)
+
+# 3. PUT full ruleset back
+gh api repos/{owner}/{repo}/rulesets/21227644 -X PUT -d @ruleset.json
+```
+
+**Ruleset resultante**:
+
+```
+Required status checks:
+  ├── Verify Commit Signatures       ← existing
+  ├── Commit Lint (Conventional Commits) ← existing
+  ├── PR Title Lint                  ← NEW
+  ├── DCO                            ← NEW
+  └── ci-complete                    ← existing (gate)
+
+Bypass actors: NONE
+```
+
+---
+
+### Rollout Phases
+
+```
+Phase 1 (Week 1-2): AHORA
+  ├── continue-on-error: true en ambos jobs
+  ├── Jobs corren, reportan pass/fail, NO bloquean merge
+  ├── Equipo ve failures, ajusta workflow
+  └── Admin-1 + Admin-2 pendientes
+
+Phase 2 (Week 3): ACTIVACIÓN
+  ├── Remover continue-on-error de pr-title-lint y dco
+  ├── Admin-1: squash = PR_TITLE
+  ├── Admin-2: registers checks in ruleset
+  └── Required checks → blocking
+
+Phase 3 (Ongoing): MANTENIMIENTO
+  ├── Monitorear false positives
+  ├── Ajustar ignoreLabels si necesario
+  └── Evolucionar CONTRIBUTING.md según feedback
+```
+
+---
+
+### Verification Report
+
+| Dimension    | Estado                                            |
+| ------------ | ------------------------------------------------- |
+| Completeness | 7/7 tasks implementadas                           |
+| Correctness  | Todos los acceptance criteria verificados         |
+| Coherence    | Design decisions D1-D8 seguidas (2 pending admin) |
+
+**Issues encontrados durante verification**:
+
+| #   | Severidad | Issue                                                            | Fix                                      |
+| --- | --------- | ---------------------------------------------------------------- | ---------------------------------------- |
+| 1   | **HIGH**  | DCO job permissions: solo `contents: read` → HTTP 403 en Phase 2 | `d92f89b`: agregar `pull-requests: read` |
+| 2   | MEDIUM    | design.md D1: `subjectPattern` stale en config block             | `d92f89b`: remover de design.md          |
+| 3   | LOW       | design.md D4: count 30→32 desactualizado                         | `d92f89b`: actualizar a 32               |
+| 4   | LOW       | CODEOWNERS: team slugs no verificables desde repo                | Verificar en GitHub org antes de confiar |
+
+---
+
+### Commits Totales (feat/ci-governance)
+
+```
+31d445f docs(ci): add PR template, CODEOWNERS, and CONTRIBUTING.md
+d92f89b fix(ci): add pull-requests: read to DCO job permissions
+a5fb76b docs(openspec): mark Tasks 1-7 acceptance criteria complete
+cc400b4 fix(ci): fix malformed ignoreLabels YAML in pr-title-lint job
+c3cc1c7 feat(ci): add PR Title Lint and DCO jobs with merge_group support
+d8fdd6f fix(openspec): fix 5 critical planner issues in pr-metadata-governance artifacts
+577a443 docs(openspec): add pr-metadata-governance change artifacts
+128a0e8 docs(learning): add 05e PR metadata checks research brief
+```
+
+---
+
+## ⚠️ Gotchas Enterprise
+
+1. **Exact-name case-sensitive**: el `name:` del job debe coincidir EXACTAMENTE con el string registrado en el ruleset. Mismatch → deadlock de "Expected — waiting".
+2. **Dependabot email mismatch**: author email es `+dependabot[bot]@users.noreply.github.com` pero sign-off es `support@github.com`. KineticCafe lo maneja; scripts custom necesitan whitelist explícita.
+3. **Squash trailer loss**: si `squash_merge_commit_message` no es `COMMIT_MESSAGES`, los Signed-off-by se pierden. Verificar setting ANTES de activar DCO check.
+4. **probot/dco está muerto**: no instalar la DCO App clásica. Usar `cncf/dco2` (App) o `KineticCafe/actions-dco` (Action).
+5. **Zero-bypass ruleset**: dependabot, release-please, y otros bots generarán PRs que deben pasar los checks — whitelist OBLIGATORIO en las configs de los Actions.
+6. **PR body enforcement**: GitHub NO puede nativamente forzar contenido del body. No intentar automatizar lo que la review humana hace mejor.
+7. **DCO permissions**: `KineticCafe/actions-dco` necesita `pull-requests: read` para enumerar commits. Solo `contents: read` → HTTP 403 silencioso (enmascarado por `continue-on-error`).
+8. **Ruleset PATCH destructivo**: `PATCH` en GitHub API rulesets BORRA todos los required checks. Siempre usar GET → modify → PUT.
+9. **subjectPattern debate**: inicialmente incluimos `subjectPattern: ^(?![A-Z]).+$` para rechazar mayúsculas iniciales. Lo removimos porque: (a) commitlint ya valida commits, (b) PR titles en inglés frecuentemente empiezan con mayúscula ("Fix: ..."), (c) más fricción que valor.
 
 ---
 
@@ -379,20 +865,21 @@ Razón: la automatización del body es fragile (templates cambian, bots whitelis
 
 ## 📚 Referencias
 
-| Recurso                             | URL                                                                                                                          |
-| ----------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
-| KineticCafe/actions-dco             | https://github.com/KineticCafe/actions-dco                                                                                   |
-| amannn/action-semantic-pull-request | https://github.com/amannn/action-semantic-pull-request                                                                       |
-| CNCF dco2 App                       | https://github.com/cncf/dco2                                                                                                 |
-| LF DCO Best Practices               | https://bestpractices.linuxfoundation.org/ip/contribution-mechanisms-dco.html                                                |
-| GitHub squash options (2022)        | https://github.blog/changelog/2022-08-23-new-options-for-controlling-the-default-commit-message-when-merging-a-pull-request/ |
-| OpenSpec change                     | `openspec/changes/pr-metadata-governance/`                                                                                   |
+| Recurso                             | URL                                                                                                                                                               |
+| ----------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| KineticCafe/actions-dco             | https://github.com/KineticCafe/actions-dco                                                                                                                        |
+| amannn/action-semantic-pull-request | https://github.com/amannn/action-semantic-pull-request                                                                                                            |
+| CNCF dco2 App                       | https://github.com/cncf/dco2                                                                                                                                      |
+| LF DCO Best Practices               | https://bestpractices.linuxfoundation.org/ip/contribution-mechanisms-dco.html                                                                                     |
+| GitHub squash options (2022)        | https://github.blog/changelog/2022-08-23-new-options-for-controlling-the-default-commit-message-when-merging-a-pull-request/                                      |
+| OpenSpec change                     | `openspec/changes/pr-metadata-governance/`                                                                                                                        |
+| CI/CD learning docs                 | [05a](./05a-ci-cd-pipeline-design.md) · [05b](./05b-github-actions-setup.md) · [05c](./05c-ssh-commit-signing.md) · [05d](./05d-ci-commit-lint-implementation.md) |
 
 ---
 
 ## 🔮 Futuro: Enterprise Implementation Patterns (Para Profundizar)
 
-> **Nota**: esta sección es un placeholder para investigación futura sobre patrones avanzados de implementación en entornos empresariales. Los siguientes temas merecen un deep-dive dedicado:
+> **Nota**: la implementación core está completa. Los siguientes temas merecen un deep-dive dedicado:
 >
 > - **CLA (Contributor License Agreement)**: cuándo DCO no es suficiente y se necesita CLA bilateral (patent grants, relicensing rights, copyright assignment). Comparación DCO vs CLA en escenarios de auditoría SOC2/ISO27001 real.
 > - **Push rulesets para Signed-off-by**: regex en el commit message como defense-in-depth contra el squash-time stripping (requiere plan Team/Enterprise). Cómo configurar y rollout.
@@ -400,11 +887,14 @@ Razón: la automatización del body es fragile (templates cambian, bots whitelis
 > - **Automated compliance dashboards**: cómo exportar evidencia de DCO/title-lint/template-compliance para auditorías (GitHub API, audit log exports, SIEM integration).
 > - **Multi-repo governance**: cómo escalar PR metadata checks a nivel organization (org-wide rulesets, shared Actions, reusable workflows).
 > - **Patrones de Mantycore/MorganStanley/Netflix**: cómo empresas fintech/enterprise reales implementan DCO + CLA + CODEOWNERS como stack de compliance.
+> - **Danger.js body validation**: si el equipo quiere reforzar el template, agregar un script Danger que valide body no-empty y checklist completada (maintenance cost trade-off).
 
 ---
 
 ## ➡️ Siguiente
 
-> **Has completado el research brief de PR Metadata Checks** — junto con 05c (signing) y 05d (commit-lint), cubre las tres capas de gobernanza de commits: quién firma, cómo se escribe, y qué metadatos acompaña cada PR.
+> **Has completado el research brief + implementación de PR Metadata Checks** — junto con 05c (signing) y 05d (commit-lint), cubre las tres capas de gobernanza de commits: quién firma, cómo se escribe, y qué metadatos acompaña cada PR.
+>
+> **Estado actual**: implementación completa en `feat/ci-governance`. Pendiente: Admin-1 (squash setting) + Admin-2 (ruleset registration) + push.
 
 > **Índice**: [README Avanzado](./avanzado-README.md) · **Anterior**: [05d-ci-commit-lint-implementation.md](./05d-ci-commit-lint-implementation.md)
