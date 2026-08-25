@@ -248,9 +248,9 @@ AND the issue is auto-closed when the PR merges (GitHub native behavior)
 ```gherkin
 GIVEN a pull request event
 WHEN ci.yml runs
-THEN it executes: commit-lint, pr-title-lint, dco, security-sast, e2e-backend, client-unit, server-unit, server-integration
-AND all jobs run in PARALLEL (no `needs` dependency)
-AND ci-complete waits for ALL jobs via `if: always()` + `needs: [...]`
+THEN it executes: repo-discovery, actionlint, commit-lint, pr-title-lint, dco, verify-signatures, zombie-workflow-guard, test-unit-client, test-unit-server, test-integration, test-smoke, e2e
+AND new jobs (pr-title-lint, dco) run in PARALLEL (no `needs` dependency)
+AND ci-complete waits for ALL jobs via `if: ${{ vars.CI_MINIMAL != 'true' && always() }}` + `needs: [...]`
 ```
 
 ### Scenario: CI_COMPLETE gate
@@ -258,9 +258,10 @@ AND ci-complete waits for ALL jobs via `if: always()` + `needs: [...]`
 ```gherkin
 GIVEN all CI jobs have completed
 WHEN the `ci-complete` job evaluates
-THEN it checks `needs.*.result` for each job
+THEN it checks `contains(needs.*.result, 'failure')` and `contains(needs.*.result, 'cancelled')`
+AND if ANY result is `failure` → ci-complete fails
+AND if ANY result is `cancelled` → ci-complete skips (exit 0)
 AND if ALL results are `success` or `skipped` → ci-complete succeeds
-AND if ANY result is `failure` or `cancelled` → ci-complete fails
 ```
 
 ### Scenario: PR Title Lint job in CI_MINIMAL
@@ -271,7 +272,9 @@ WHEN ci.yml runs
 THEN the `pr-title-lint` job is included in CI_MINIMAL
 AND the job name is `PR Title Lint` (exact string for ruleset)
 AND the job has `permissions: pull-requests: read`
-AND the job only runs on `pull_request` events
+AND the job handles both `pull_request` and `merge_group` events
+AND on `pull_request`: validates PR title against Conventional Commits
+AND on `merge_group`: emits success (covered by commitlint)
 ```
 
 ### Scenario: DCO job in CI_MINIMAL
@@ -282,21 +285,43 @@ WHEN ci.yml runs
 THEN the `dco` job is included in CI_MINIMAL
 AND the job name is `DCO` (exact string for ruleset)
 AND the job has `permissions: contents: read`
-AND the job only runs on `pull_request` events
+AND the job handles both `pull_request` and `merge_group` events
+AND on `pull_request`: validates Signed-off-by on all commits
+AND on `merge_group`: emits success (PR-level check)
+```
+
+### Scenario: PR Title Lint handles merge_group
+
+```gherkin
+GIVEN a merge queue event (merge_group)
+WHEN ci.yml runs
+THEN the `pr-title-lint` job emits success
+AND the required check is satisfiable in merge queue
+```
+
+### Scenario: DCO handles merge_group
+
+```gherkin
+GIVEN a merge queue event (merge_group)
+WHEN ci.yml runs
+THEN the `dco` job emits success
+AND the required check is satisfiable in merge queue
 ```
 
 ### Acceptance Criteria
 
-| ID      | Criterion                                                | Status |
-| ------- | -------------------------------------------------------- | ------ |
-| AC-005a | `pr-title-lint` job added to ci.yml                      | ⬜     |
-| AC-005b | `dco` job added to ci.yml                                | ⬜     |
-| AC-005c | Both jobs are parallel (no `needs`)                      | ⬜     |
-| AC-005d | Both jobs added to `ci-complete.needs` array             | ⬜     |
-| AC-005e | `pr-title-lint` has `permissions: pull-requests: read`   | ⬜     |
-| AC-005f | `dco` has `permissions: contents: read`                  | ⬜     |
-| AC-005g | Both jobs have `if: github.event_name == 'pull_request'` | ⬜     |
-| AC-005h | Job names exactly match required check names in ruleset  | ⬜     |
+| ID      | Criterion                                                                  | Status |
+| ------- | -------------------------------------------------------------------------- | ------ |
+| AC-005a | `pr-title-lint` job added to ci.yml                                        | ⬜     |
+| AC-005b | `dco` job added to ci.yml                                                  | ⬜     |
+| AC-005c | Both jobs are parallel (no `needs`)                                        | ⬜     |
+| AC-005d | Both jobs added to `ci-complete.needs` array (ADD-only, 32 total)          | ⬜     |
+| AC-005e | `pr-title-lint` has `permissions: pull-requests: read`                     | ⬜     |
+| AC-005f | `dco` has `permissions: contents: read`                                    | ⬜     |
+| AC-005g | Both jobs handle `pull_request` and `merge_group` events                   | ⬜     |
+| AC-005h | Job names exactly match required check names in ruleset                    | ⬜     |
+| AC-005i | `ci-complete` preserves `if: ${{ vars.CI_MINIMAL != 'true' && always() }}` | ⬜     |
+| AC-005j | `continue-on-error: true` present on both jobs (Phase 1)                   | ⬜     |
 
 ---
 

@@ -177,38 +177,65 @@ squash_merge_commit_message: COMMIT_MESSAGES
 
 **Rationale**:
 
-- Follows established CI_MINIMAL pattern (commit-lint, security-sast, etc.)
+- Follows established CI_MINIMAL pattern (commit-lint, verify-signatures, etc.)
 - No `needs` dependency → parallel execution → faster CI
-- `ci-complete` gate aggregates all jobs via `if: always() + needs: [...]`
+- `ci-complete` gate aggregates all jobs via `if: ${{ vars.CI_MINIMAL != 'true' && always() }}`
 - ADD-only principle: never remove or modify existing jobs
 
-**CI_MINIMAL after change**:
+**Real ci-complete.needs** (30 jobs, ADD-only):
 
 ```yaml
-jobs:
-  commit-lint: # existing
-  pr-title-lint: # NEW (P1)
-  dco: # NEW (P1.5)
-  security-sast: # existing
-  e2e-backend: # existing
-  client-unit: # existing
-  server-unit: # existing
-  server-integration: # existing
-  ci-complete: # existing (gate)
+ci-complete:
+  if: ${{ vars.CI_MINIMAL != 'true' && always() }} # PRESERVE
+  needs:
+    - repo-discovery
+    - actionlint
+    - commit-lint
+    - pr-title-lint # ADD
+    - dco # ADD
+    - client-lint
+    - client-format-check
+    - client-typecheck
+    - client-complexity
+    - client-dead-code
+    - client-import-bounds
+    - server-lint
+    - server-format-check
+    - server-typecheck
+    - server-complexity
+    - server-dead-code
+    - server-import-bounds
+    - client-build
+    - server-build
+    - client-sonarqube
+    - server-sonarqube
+    - client-coverage
+    - server-coverage
+    - client-depcheck
+    - server-depcheck
+    - test-unit-client
+    - test-unit-server
+    - test-integration
+    - test-smoke
+    - e2e
+    - verify-signatures
+    - zombie-workflow-guard
 ```
 
-**ci-complete.needs update**:
+**ci-complete.needs update** (ADD-only, preserve all 30 existing entries):
 
 ```yaml
+# Only ADD these two lines to the existing needs array:
 needs:
-  - commit-lint
+  - repo-discovery # existing
+  - actionlint # existing
+  - commit-lint # existing
   - pr-title-lint # ADD
   - dco # ADD
-  - security-sast
-  - e2e-backend
-  - client-unit
-  - server-unit
-  - server-integration
+  - client-lint # existing (if: false)
+  - ... (22 more existing entries)
+  - verify-signatures # existing
+  - zombie-workflow-guard # existing
 ```
 
 ---
@@ -293,6 +320,53 @@ Phase 3 (Week 3): Register in ruleset 21227644
 
 ---
 
+### D8: Merge Queue Strategy — Neutral Success on merge_group
+
+**Decision**: Both `pr-title-lint` and `dco` emit neutral success on `merge_group` events.
+
+**Rationale**:
+
+- Required checks must be satisfiable in the merge queue; otherwise all merges via merge queue are blocked
+- `pr-title-lint`: squash commit title is already validated by `commitlint --last` (which runs on `merge_group`); no need to re-validate
+- `dco`: DCO is a PR-level check (validates individual commits); squash commit doesn't carry individual `Signed-off-by` trailers; validation already happened at PR level
+- Pattern matches `verify-signatures` (runs on both events with different logic per event)
+
+**Implementation**:
+
+```yaml
+# pr-title-lint
+steps:
+  - name: Lint PR title
+    if: github.event_name == 'pull_request'
+    uses: amannn/action-semantic-pull-request@v6
+    # ...
+  - name: Skip on merge_group (covered by commitlint)
+    if: github.event_name == 'merge_group'
+    run: echo "✅ Merge queue — squash commit title validated by commitlint"
+
+# dco
+steps:
+  - name: DCO sign-off check
+    if: github.event_name == 'pull_request'
+    uses: KineticCafe/actions-dco@v3.2.0
+    # ...
+  - name: Skip on merge_group (PR-level check)
+    if: github.event_name == 'merge_group'
+    run: echo "✅ Merge queue — DCO validated at PR level"
+```
+
+**Flow**:
+
+```
+PR → merge queue → merge_group event
+  ├── commitlint: validates squash commit title (--last) ✅
+  ├── pr-title-lint: emits success (already covered by commitlint) ✅
+  ├── dco: emits success (already validated at PR level) ✅
+  └── verify-signatures: validates squash commit signature ✅
+```
+
+---
+
 ## Integration Points
 
 | System                           | Integration               | Direction            |
@@ -309,10 +383,13 @@ Phase 3 (Week 3): Register in ruleset 21227644
 
 ## Risks & Mitigations
 
-| Risk                          | Impact                          | Mitigation                                    |
-| ----------------------------- | ------------------------------- | --------------------------------------------- |
-| Dependabot PRs blocked by DCO | High — no dependency updates    | Bot whitelist via well-known policy           |
-| PR Title Lint false positives | Medium — contributor friction   | `ignoreLabels` for bots, clear docs           |
-| Squash trailer loss           | High — DCO provenance gap       | Verify COMMIT_MESSAGES setting before rollout |
-| Ruleset deadlock              | High — all PRs blocked          | Rollout with continue-on-error first          |
-| Job name mismatch             | Critical — checks never trigger | Exact name matching between job and ruleset   |
+| Risk                                 | Impact                                | Mitigation                                                                   |
+| ------------------------------------ | ------------------------------------- | ---------------------------------------------------------------------------- |
+| Dependabot PRs blocked by DCO        | High — no dependency updates          | Bot whitelist via well-known policy (Task 2)                                 |
+| Dependabot PRs blocked by Title Lint | High — no dependency updates          | Add `commit-message: prefix: "fix"` to dependabot.yml npm ecosystem (Task 4) |
+| PR Title Lint false positives        | Medium — contributor friction         | `ignoreLabels` for bots, clear docs                                          |
+| Squash trailer loss                  | High — DCO provenance gap             | Verify COMMIT_MESSAGES setting before rollout                                |
+| Ruleset deadlock                     | High — all PRs blocked                | Rollout with continue-on-error first                                         |
+| Job name mismatch                    | Critical — checks never trigger       | Exact name matching between job and ruleset                                  |
+| Merge queue blocking                 | High — all merge-queue merges blocked | Neutral success on merge_group (D8)                                          |
+| Admin-2 partial PATCH                | Critical — deletes existing rules     | GET→modify→PUT approach (tasks.md Admin-2)                                   |

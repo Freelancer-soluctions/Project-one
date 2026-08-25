@@ -1,8 +1,9 @@
 # Tasks: PR Metadata Governance
 
-> **Change**: `pr-metadata-governance` | **Status**: proposed
-> **Estimated**: 7 tasks + 2 admin tasks
+> **Change**: `pr-metadata-governance` | **Status**: proposed (REVIEWED — planner fixes applied)
+> **Estimated**: 8 tasks + 2 admin tasks
 > **Dependencies**: ci-commit-lint-governance (commit-lint + signing active)
+> **Planner review**: 5 critical issues fixed (ci-complete.needs, CI_MINIMAL guard, Admin-2 API, merge_group coverage, dependabot title lint)
 
 ---
 
@@ -12,7 +13,7 @@
 
 ### Description
 
-Add a parallel job `pr-title-lint` to ci.yml using `amannn/action-semantic-pull-request@v6`. The job validates that PR titles follow Conventional Commits format.
+Add a parallel job `pr-title-lint` to ci.yml using `amannn/action-semantic-pull-request@v6`. Handles both `pull_request` and `merge_group` events.
 
 ### Implementation
 
@@ -22,9 +23,11 @@ pr-title-lint:
   runs-on: ubuntu-latest
   permissions:
     pull-requests: read
-  if: github.event_name == 'pull_request'
   steps:
-    - uses: amannn/action-semantic-pull-request@v6
+    # PR events: validate PR title against Conventional Commits
+    - name: Lint PR title
+      if: github.event_name == 'pull_request'
+      uses: amannn/action-semantic-pull-request@v6
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
@@ -41,20 +44,32 @@ pr-title-lint:
           chore
           revert
         requireScope: false
-        subjectPattern: ^(?![A-Z]).+$
         ignoreLabels: |
           bot
           ignore-semantic-pull-request
+    # Merge queue: squash commit title already validated by commitlint --last
+    - name: Skip on merge_group (covered by commitlint)
+      if: github.event_name == 'merge_group'
+      run: echo "✅ Merge queue — squash commit title validated by commitlint"
+  # Phase 1: non-blocking. Remove after team adjusts (1 sprint).
+  continue-on-error: true
 ```
+
+**Notes**:
+
+- `subjectPattern` REMOVED — was stricter than commitlint (`^[A-Z]` rejection). PR title lint validates TYPE only; commitlint handles full message format.
+- `merge_group` step emits success — required check is satisfiable in merge queue.
+- `continue-on-error: true` for Phase 1 rollout (remove in Phase 2).
 
 ### Acceptance
 
 - [ ] Job exists in ci.yml
 - [ ] Job is parallel (no `needs` dependency)
 - [ ] Job has `permissions: pull-requests: read`
-- [ ] Job only runs on `pull_request` events
+- [ ] Handles both `pull_request` and `merge_group` events
 - [ ] Types list matches `@commitlint/config-conventional`
 - [ ] Job name is exactly `PR Title Lint`
+- [ ] `continue-on-error: true` present (Phase 1)
 
 ---
 
@@ -64,7 +79,7 @@ pr-title-lint:
 
 ### Description
 
-Add a parallel job `dco` to ci.yml using `KineticCafe/actions-dco@v3.2.0`. The job validates that all commits in the PR have `Signed-off-by` trailers with matching author emails.
+Add a parallel job `dco` to ci.yml using `KineticCafe/actions-dco@v3.2.0`. Handles both `pull_request` and `merge_group` events.
 
 ### Implementation
 
@@ -74,25 +89,40 @@ dco:
   runs-on: ubuntu-latest
   permissions:
     contents: read
-  if: github.event_name == 'pull_request'
   steps:
-    - uses: KineticCafe/actions-dco@v3.2.0
+    # PR events: validate Signed-off-by on all commits
+    - name: DCO sign-off check
+      if: github.event_name == 'pull_request'
+      uses: KineticCafe/actions-dco@v3.2.0
       with:
         config: |
           [bot]
           policy = "well-known"
           categories = ["dependency-updaters"]
+    # Merge queue: DCO is a PR-level check; squash commit doesn't carry individual trailers
+    - name: Skip on merge_group (PR-level check)
+      if: github.event_name == 'merge_group'
+      run: echo "✅ Merge queue — DCO validated at PR level"
+  # Phase 1: non-blocking. Remove after team adjusts (1 sprint).
+  continue-on-error: true
 ```
+
+**Notes**:
+
+- `merge_group` step emits success — required check is satisfiable in merge queue.
+- `well-known` policy whitelists dependabot[bot], renovate[bot], snyk-bot[bot].
+- `continue-on-error: true` for Phase 1 rollout (remove in Phase 2).
 
 ### Acceptance
 
 - [ ] Job exists in ci.yml
 - [ ] Job is parallel (no `needs` dependency)
 - [ ] Job has `permissions: contents: read`
-- [ ] Job only runs on `pull_request` events
+- [ ] Handles both `pull_request` and `merge_group` events
 - [ ] Config TOML uses `well-known` policy
 - [ ] `dependency-updaters` category covers dependabot[bot]
 - [ ] Job name is exactly `DCO`
+- [ ] `continue-on-error: true` present (Phase 1)
 
 ---
 
@@ -102,70 +132,216 @@ dco:
 
 ### Description
 
-Add `pr-title-lint` and `dco` to the `needs` array of the `ci-complete` job.
+Add `pr-title-lint` and `dco` to the `needs` array of the `ci-complete` job. **ADD-ONLY** — do NOT remove or modify existing entries.
 
-### Implementation
+### Current ci-complete (real)
 
 ```yaml
 ci-complete:
+  if: ${{ vars.CI_MINIMAL != 'true' && always() }}
   name: CI Complete
   runs-on: ubuntu-latest
-  if: always()
   needs:
+    - repo-discovery
+    - actionlint
+    - commit-lint
+    - client-lint
+    - client-format-check
+    - client-typecheck
+    - client-complexity
+    - client-dead-code
+    - client-import-bounds
+    - server-lint
+    - server-format-check
+    - server-typecheck
+    - server-complexity
+    - server-dead-code
+    - server-import-bounds
+    - client-build
+    - server-build
+    - client-sonarqube
+    - server-sonarqube
+    - client-coverage
+    - server-coverage
+    - client-depcheck
+    - server-depcheck
+    - test-unit-client
+    - test-unit-server
+    - test-integration
+    - test-smoke
+    - e2e
+    - verify-signatures
+    - zombie-workflow-guard
+```
+
+### Target ci-complete (after change)
+
+```yaml
+ci-complete:
+  if: ${{ vars.CI_MINIMAL != 'true' && always() }} # PRESERVE existing guard
+  name: CI Complete
+  runs-on: ubuntu-latest
+  needs:
+    - repo-discovery
+    - actionlint
     - commit-lint
     - pr-title-lint # ADD
     - dco # ADD
-    - security-sast
-    - e2e-backend
-    - client-unit
-    - server-unit
-    - server-integration
+    - client-lint
+    - client-format-check
+    - client-typecheck
+    - client-complexity
+    - client-dead-code
+    - client-import-bounds
+    - server-lint
+    - server-format-check
+    - server-typecheck
+    - server-complexity
+    - server-dead-code
+    - server-import-bounds
+    - client-build
+    - server-build
+    - client-sonarqube
+    - server-sonarqube
+    - client-coverage
+    - server-coverage
+    - client-depcheck
+    - server-depcheck
+    - test-unit-client
+    - test-unit-server
+    - test-integration
+    - test-smoke
+    - e2e
+    - verify-signatures
+    - zombie-workflow-guard
   steps:
-    - name: Check all jobs
+    - name: Check for failures
       run: |
-        if [[ "${{ needs.commit-lint.result }}" != "success" && "${{ needs.commit-lint.result }}" != "skipped" ]]; then
-          echo "❌ commit-lint: ${{ needs.commit-lint.result }}"
+        if [[ "${{ contains(needs.*.result, 'failure') }}" == "true" ]]; then
+          echo "❌ One or more upstream jobs failed"
           exit 1
         fi
-        if [[ "${{ needs.pr-title-lint.result }}" != "success" && "${{ needs.pr-title-lint.result }}" != "skipped" ]]; then
-          echo "❌ pr-title-lint: ${{ needs.pr-title-lint.result }}"
-          exit 1
+        if [[ "${{ contains(needs.*.result, 'cancelled') }}" == "true" ]]; then
+          echo "⚠️ One or more upstream jobs were cancelled — skipping ci-complete"
+          exit 0
         fi
-        if [[ "${{ needs.dco.result }}" != "success" && "${{ needs.dco.result }}" != "skipped" ]]; then
-          echo "❌ dco: ${{ needs.dco.result }}"
-          exit 1
-        fi
-        # ... existing checks ...
-        echo "✅ All jobs passed"
+        echo "✅ All upstream jobs succeeded or were skipped"
 ```
+
+**Critical**: The `if` condition MUST remain `${{ vars.CI_MINIMAL != 'true' && always() }}`. The step logic MUST use the existing `contains(needs.*.result, ...)` pattern — do NOT replace with per-job result checks.
 
 ### Acceptance
 
 - [ ] `pr-title-lint` added to `needs` array
 - [ ] `dco` added to `needs` array
-- [ ] `ci-complete.needs` array contains all 9 jobs
-- [ ] Gate logic checks both new jobs
+- [ ] ALL existing entries preserved (30 jobs)
+- [ ] `if: ${{ vars.CI_MINIMAL != 'true' && always() }}` PRESERVED
+- [ ] Gate logic uses `contains(needs.*.result, ...)` pattern (existing)
 
 ---
 
-## Task 4: Create PR Template
+## Task 4: Configure dependabot.yml for Conventional Commits
+
+**Priority**: P1 | **Effort**: XS | **Component**: `.github/dependabot.yml`
+
+### Description
+
+Add `commit-message: prefix: "fix"` to the npm ecosystem in dependabot.yml. Without this, dependabot npm PRs have titles like "Bump axios from 1.0 to 1.1" which fail PR Title Lint.
+
+### Current state
+
+```yaml
+# npm ecosystem — NO commit-message prefix
+- package-ecosystem: 'npm'
+  directory: '/'
+  schedule:
+    interval: 'weekly'
+  # ... no commit-message section
+```
+
+### Target state
+
+```yaml
+- package-ecosystem: 'npm'
+  directory: '/'
+  schedule:
+    interval: 'weekly'
+    day: 'monday'
+    time: '03:00'
+    timezone: 'UTC'
+  open-pull-requests-limit: 10
+  labels:
+    - 'dependencies'
+    - 'automated'
+  commit-message:
+    prefix: 'fix' # ADD — makes titles Conventional Commits
+  groups:
+    # ... existing groups unchanged
+```
+
+**Note**: `github-actions` and `docker` ecosystems already have `commit-message: prefix: "ci"`. Only `npm` is missing.
+
+### Acceptance
+
+- [ ] `commit-message: prefix: "fix"` added to npm ecosystem
+- [ ] All other dependabot.yml content unchanged
+- [ ] PR titles will now be "fix(deps): bump axios from 1.0 to 1.1"
+
+---
+
+## Task 5: Create PR Template
 
 **Priority**: P2 | **Effort**: S | **Component**: `.github/PULL_REQUEST_TEMPLATE.md`
 
 ### Description
 
-Create `.github/PULL_REQUEST_TEMPLATE.md` with 6 sections: Summary, Type/Scope, Related Issue, Testing, Screenshots, Checklist.
+Create `.github/PULL_REQUEST_TEMPLATE.md` with 6 sections.
 
 ### Implementation
 
-See REQ-004 spec for template content. Key sections:
+```markdown
+## Summary
 
-- Summary (what + why)
-- Type/Scope (checkboxes: client/server/e2e/shared/ci)
-- Related Issue (Closes #)
-- How Has This Been Tested? (checkboxes: unit/integration/e2e/manual/N/A)
-- Screenshots (if applicable)
-- Pre-merge Checklist (Signed-off-by, tests, docs, breaking changes)
+<!-- What does this PR do and why? Link to context if needed. -->
+
+## Type / Scope
+
+<!-- Check all that apply: -->
+
+- [ ] Client (React/Vite)
+- [ ] Server (Express/Prisma)
+- [ ] E2E (Playwright)
+- [ ] Shared/Config
+- [ ] CI/CD
+
+## Related Issue
+
+<!-- Required for traceability. Use "Closes #<number>" to auto-close on merge. -->
+
+Closes #
+
+## How Has This Been Tested?
+
+<!-- Describe the tests you ran. Provide reproducibility steps if manual. -->
+
+- [ ] Unit tests (vitest)
+- [ ] Integration tests
+- [ ] E2E tests (Playwright)
+- [ ] Manual testing
+- [ ] N/A (docs/config only)
+
+## Screenshots (if applicable)
+
+<!-- Add screenshots or screen recordings for UI changes. Remove this section if not applicable. -->
+
+## Pre-merge Checklist
+
+- [ ] `Signed-off-by` present in all commits (`git commit -s`)
+- [ ] Tests pass locally (`npm run test`)
+- [ ] Documentation updated (if applicable)
+- [ ] No breaking changes (or documented in Summary)
+- [ ] PR title follows [Conventional Commits](https://www.conventionalcommits.org/) format
+```
 
 ### Acceptance
 
@@ -173,10 +349,11 @@ See REQ-004 spec for template content. Key sections:
 - [ ] All 6 sections present
 - [ ] Checklist includes `Signed-off-by` reminder
 - [ ] HTML comments used for guidance
+- [ ] PR title format reminder in checklist
 
 ---
 
-## Task 5: Create CODEOWNERS
+## Task 6: Create CODEOWNERS
 
 **Priority**: P2 | **Effort**: S | **Component**: `.github/CODEOWNERS`
 
@@ -219,7 +396,7 @@ docs/learning/              @Freelancer-soluctions/core-team
 
 ---
 
-## Task 6: Update CONTRIBUTING.md
+## Task 7: Update CONTRIBUTING.md
 
 **Priority**: P2 | **Effort**: M | **Component**: `CONTRIBUTING.md`
 
@@ -278,7 +455,7 @@ Use the provided PR template when creating PRs. Include:
 
 ---
 
-## Task 7: Create Learning Doc 05e
+## Task 8: Create Learning Doc 05e
 
 **Priority**: P2 | **Effort**: M | **Component**: `docs/learning/ci-cd/05e-pr-metadata-governance.md`
 
@@ -327,20 +504,27 @@ gh api repos/Freelancer-soluctions/Project-one \
 
 **Action**: Add `PR Title Lint` and `DCO` to ruleset 21227644 as required status checks.
 
-**Via UI**: Repo Settings → Rules → Rulesets → Ruleset 21227644 → Edit → Required status checks → Add:
+**⚠️ CRITICAL**: Do NOT use partial PATCH — it would DELETE existing required checks. Use GET → modify → PUT.
+
+**Via UI** (recommended): Repo Settings → Rules → Rulesets → Ruleset 21227644 → Edit → Required status checks → Add:
 
 1. `PR Title Lint`
 2. `DCO`
 
-**Via API** (if available):
+**Via API** (safe approach):
 
 ```bash
+# Step 1: GET current ruleset
+gh api repos/Freelancer-soluctions/Project-one/rulesets/21227644 > /tmp/ruleset.json
+
+# Step 2: Append new checks to required_status_checks
+# (use jq to add PR Title Lint and DCO to existing array)
+jq '.rules[] | select(.type=="required_status_checks") | .parameters.required_status_checks += [{"context":"PR Title Lint"},{"context":"DCO"}]' /tmp/ruleset.json > /tmp/ruleset-updated.json
+
+# Step 3: PUT full updated ruleset
 gh api repos/Freelancer-soluctions/Project-one/rulesets/21227644 \
-  --method PATCH \
-  -f "conditions[][ref_name_filter][include]=refs/heads/main" \
-  -f "rules[][type]=required_status_checks" \
-  -f "rules[][parameters][required_status_checks][0][context]=PR Title Lint" \
-  -f "rules[][parameters][required_status_checks][1][context]=DCO"
+  --method PUT \
+  --input /tmp/ruleset-updated.json
 ```
 
 **Verify**:
@@ -356,20 +540,21 @@ gh api repos/Freelancer-soluctions/Project-one/rulesets/21227644 \
 ## Execution Order
 
 ```
-Phase 1 (CI jobs):
-  Task 1: PR Title Lint job         ← ci.yml
-  Task 2: DCO job                   ← ci.yml
-  Task 3: ci-complete gate update   ← ci.yml
-  (commit all three as single atomic commit)
+Phase 1 (CI jobs + dependabot):
+  Task 1: PR Title Lint job         ← ci.yml (with merge_group + continue-on-error)
+  Task 2: DCO job                   ← ci.yml (with merge_group + continue-on-error)
+  Task 3: ci-complete gate update   ← ci.yml (ADD-only, preserve CI_MINIMAL guard)
+  Task 4: dependabot.yml fix        ← .github/dependabot.yml
+  (commit all four as single atomic commit)
 
 Phase 2 (Admin):
   Admin-1: Change squash setting    ← manual
-  Admin-2: Register ruleset checks  ← manual
+  Admin-2: Register ruleset checks  ← manual (GET→PUT, not PATCH)
 
 Phase 3 (Templates & Docs):
-  Task 4: PR Template               ← .github/
-  Task 5: CODEOWNERS                ← .github/
-  Task 6: CONTRIBUTING.md           ← root
+  Task 5: PR Template               ← .github/
+  Task 6: CODEOWNERS                ← .github/
+  Task 7: CONTRIBUTING.md           ← root
   (commit as single atomic commit)
 
 Phase 4 (Verification):
@@ -377,6 +562,7 @@ Phase 4 (Verification):
   - Verify DCO job runs on test PR
   - Verify ci-complete aggregates correctly
   - Verify ruleset checks are enforced
+  - Verify dependabot PR titles are Conventional Commits
 ```
 
 ---
@@ -386,13 +572,14 @@ Phase 4 (Verification):
 ```
 Week 1-2: continue-on-error: true (both new jobs)
   → Team adjusts, sees failures without blocking
+  → dependabot.yml fix ensures dependency PRs pass title lint
 
 Week 3: Remove continue-on-error
   → Jobs become real checks
 
 Week 3: Admin actions
-  → squash setting changed
-  → ruleset checks registered
+  → squash setting changed (Admin-1)
+  → ruleset checks registered (Admin-2, GET→PUT)
 
 Week 4: Full enforcement
   → All checks required
