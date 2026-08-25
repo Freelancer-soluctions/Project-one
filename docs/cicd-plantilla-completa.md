@@ -94,51 +94,51 @@ CI/CD (Integración Continua / Despliegue Continuo) es un conjunto de prácticas
 
 ## 3. Estado actual de CI/CD de un vistazo (tabla resumen)
 
-| Aspecto                       | Estado               | Detalle técnico clave                                                                                                                           |
-| ----------------------------- | -------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- | --- | --------------------------------------------------------------- |
-| **Integración Continua (CI)** | ✅ Completa          | 9 jobs en `ci.yml`: changes → quality → test-unit-client → test-unit-server → test-integration → test-smoke → build → e2e → zombie-guard        |
-| **Despliegue Continuo (CD)**  | ✅ Implementado      | `deploy.yml`: Fase 1 (docker-build + validación Floci) → Fase 2 (ECR OIDC → ECS Fargate staging → ECS Fargate prod con circuit breaker)         |
-| **Preview Environments**      | ✅ Por PR            | `preview.yml`: Floci + Postgres + Docker server + Vercel URL capture + comentario PR                                                            |
-| **Quality gates pre-commit**  | ✅ Shifting Left     | Husky: pre-commit (Semgrep 100+ reglas + Gitleaks staged + lint-staged), commit-msg (commitlint), pre-push (vitest --changed)                   |
-| **Seguridad multi-capa**      | ✅ 3 capas           | Pre-commit / PR (security.yml: Trivy, CodeQL, Gitleaks diff, SBOM, DepReview) / Cron (scheduled-security + security-digest)                     |
-| **Tests en CI**               | ✅ Pirámide completa | Unit (client+server), Integration (PostgreSQL service), Smoke, E2E (Playwright Chromium cached), JUnit reporting                                |
-| **Build en CI**               | ✅ Obligatorio       | `npm run build --ws --if-present` en `ci.yml:build` (always); Docker build en `deploy.yml` y `preview.yml`                                      |
-| **Typecheck en CI**           | ⚠️ Condicionado      | `npm run typecheck                                                                                                                              |     | echo "Typecheck skipped"`en`quality.yml` — script no existe aún |
-| **Release / Versionado**      | ✅ Changesets        | `release.yml`: push a main → PR version packages → merge → publish npm + tags                                                                   |
-| **Entornos remotos**          | ✅ Staging + Prod    | ECS Fargate services: `project-one-staging-api` (256 CPU/512 MB) → `project-one-prod-api` (512/1024)                                            |
-| **Infra como código**         | ❌ Parcial           | No Terraform/Pulumi; ECS task definitions inline en `deploy.yml` (aws cli)                                                                      |
-| **Dockerización server**      | ✅ Integrada         | `apps/server/Dockerfile` multi-stage; build en CI, preview, y deploy                                                                            |
-| **Caching strategy**          | ✅ Multi-layer       | npm (setup-node), Vitest (setup-monorepo composite), Playwright browsers (actions/cache)                                                        |
-| **Dependabot**                | ✅ 3 ecosistemas     | npm (weekly, grouped dev-deps), github-actions, docker (apps/server)                                                                            |
-| **Zombie workflow guard**     | ✅ Anti-regresión    | `ci.yml:zombie-workflow-guard` verifica que workflows legacy no reaparezcan                                                                     |
-| **Governance gates**          | ✅ Levels 1-2        | Commit-level (DCO, commit signing, commitlint) + PR-level (PR Title Lint, dependency-review) implementados; Levels 3-5 condicionales (ver §3.x) |
+| Aspecto                       | Estado               | Detalle técnico clave                                                                                                                                                                             |
+| ----------------------------- | -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --- | --------------------------------------------------------------- |
+| **Integración Continua (CI)** | ✅ Completa          | 9 jobs en `ci.yml`: changes → quality → test-unit-client → test-unit-server → test-integration → test-smoke → build → e2e → zombie-guard                                                          |
+| **Despliegue Continuo (CD)**  | ✅ Implementado      | `deploy.yml`: Fase 1 (docker-build + validación Floci) → Fase 2 (ECR OIDC → ECS Fargate staging → ECS Fargate prod con circuit breaker)                                                           |
+| **Preview Environments**      | ✅ Por PR            | `preview.yml`: Floci + Postgres + Docker server + Vercel URL capture + comentario PR                                                                                                              |
+| **Quality gates pre-commit**  | ✅ Shifting Left     | Husky: pre-commit (Semgrep 100+ reglas + Gitleaks staged + lint-staged), commit-msg (commitlint), pre-push (vitest --changed)                                                                     |
+| **Seguridad multi-capa**      | ✅ 3 capas           | Pre-commit / PR (security.yml: Trivy, CodeQL, Gitleaks diff, SBOM, DepReview) / Cron (scheduled-security + security-digest)                                                                       |
+| **Tests en CI**               | ✅ Pirámide completa | Unit (client+server), Integration (PostgreSQL service), Smoke, E2E (Playwright Chromium cached), JUnit reporting                                                                                  |
+| **Build en CI**               | ✅ Obligatorio       | `npm run build --ws --if-present` en `ci.yml:build` (always); Docker build en `deploy.yml` y `preview.yml`                                                                                        |
+| **Typecheck en CI**           | ⚠️ Condicionado      | `npm run typecheck                                                                                                                                                                                |     | echo "Typecheck skipped"`en`quality.yml` — script no existe aún |
+| **Release / Versionado**      | ✅ Changesets        | `release.yml`: push a main → PR version packages → merge → publish npm + tags                                                                                                                     |
+| **Entornos remotos**          | ✅ Staging + Prod    | ECS Fargate services: `project-one-staging-api` (256 CPU/512 MB) → `project-one-prod-api` (512/1024)                                                                                              |
+| **Infra como código**         | ❌ Parcial           | No Terraform/Pulumi; ECS task definitions inline en `deploy.yml` (aws cli)                                                                                                                        |
+| **Dockerización server**      | ✅ Integrada         | `apps/server/Dockerfile` multi-stage; build en CI, preview, y deploy                                                                                                                              |
+| **Caching strategy**          | ✅ Multi-layer       | npm (setup-node), Vitest (setup-monorepo composite), Playwright browsers (actions/cache)                                                                                                          |
+| **Dependabot**                | ✅ 3 ecosistemas     | npm (weekly, grouped dev-deps), github-actions, docker (apps/server)                                                                                                                              |
+| **Zombie workflow guard**     | ✅ Anti-regresión    | `ci.yml:zombie-workflow-guard` verifica que workflows legacy no reaparezcan                                                                                                                       |
+| **Governance gates**          | ✅ Levels 1-2        | Commit-level (DCO, commit signing, commitlint) + PR-level (PR Title Lint); dependency-review runs in security.yml but is NOT a required ci-complete gate yet; Levels 3-5 condicionales (ver §3.x) |
 
 ### 3.x Governance Controls — Implementados, Futuros y Bloqueados
 
-> Referencia operativa del change `governance-gates-culmination`. Clasificación: repo interno (simulación personal para aprendizaje enterprise). Madurez repo-level: **~75-80%** (GitHub Enterprise). Niveles 4-5 son CONDICIONALES (requieren deploy target + GitHub Team/Enterprise tier).
+> Referencia operativa del change `governance-gates-culmination`. Clasificación: repo interno (simulación personal para aprendizaje enterprise). Madurez repo-level: **~75-80%** (GitHub Enterprise). Niveles 4-5 son CONDICIONALES (requieren deploy target + GitHub Team/Enterprise tier). Framework completo: `docs/learning/ci-cd/19-governance-gates.md` (SOC2/ISO27001 mapping, implementation checklist, enterprise maturity assessment).
 
 #### Implementados (ya en producción)
 
-| Control                                   | Nivel | Workflow/Archivo                   | Qué hace                                                                                                                                    | Fuente                 |
-| ----------------------------------------- | ----- | ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------- |
-| **DCO (Developer Certificate of Origin)** | L1    | `ci.yml:dco`                       | Verifica `Signed-off-by` en commits PR (KineticCafe/actions-dco@v3.2.0). Requerido por ruleset.                                             | pr-metadata-governance |
-| **PR Title Lint**                         | L2    | `ci.yml:pr-title-lint`             | Valida PR title contra Conventional Commits (amannn/action-semantic-pull-request@v6). `continue-on-error: true` (Phase 1, futuro blocking). | pr-metadata-governance |
-| **ci-complete fan-in gate**               | L2    | `ci.yml:ci-complete`               | Job aggregates 32 jobs (ADD-only). Falta si cualquier upstream falla.                                                                       | pr-metadata-governance |
-| **CODEOWNERS**                            | L2    | `.github/CODEOWNERS`               | Asigna reviewers por path (frontend, server, infra, security, docs).                                                                        | pr-metadata-governance |
-| **PR Template**                           | L2    | `.github/PULL_REQUEST_TEMPLATE.md` | 6 secciones: summary, type of change, testing, checklist, screenshots, related issues. No enforceable por GitHub.                           | pr-metadata-governance |
-| **CONTRIBUTING.md**                       | L2    | `CONTRIBUTING.md`                  | Guía de PR guidelines, DCO, commit format, governance gates overview.                                                                       | pr-metadata-governance |
-| **Commit signing (-S)**                   | L1    | Ruleset `21227644`                 | SSH ED25519. Regla `required_signatures` activa en ruleset main.                                                                            | Pre-existente          |
-| **commitlint**                            | L1    | `.husky/commit-msg`                | Conventional Commits validation.                                                                                                            | Pre-existente          |
+| Control                                   | Nivel | Workflow/Archivo                                | Qué hace                                                                                                                                                   | Fuente                 |
+| ----------------------------------------- | ----- | ----------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------- |
+| **DCO (Developer Certificate of Origin)** | L1    | `ci.yml:dco`                                    | Verifica `Signed-off-by` en commits PR (KineticCafe/actions-dco@v3.2.0). Requerido por ruleset.                                                            | pr-metadata-governance |
+| **PR Title Lint**                         | L2    | `ci.yml:pr-title-lint`                          | Valida PR title contra Conventional Commits (amannn/action-semantic-pull-request@v6). `continue-on-error: true` (Phase 1, futuro blocking).                | pr-metadata-governance |
+| **ci-complete fan-in gate**               | L2    | `ci.yml:ci-complete`                            | Job aggregates all upstream results (fan-in). Falta si cualquier upstream falla.                                                                           | pr-metadata-governance |
+| **CODEOWNERS**                            | L2    | `.github/CODEOWNERS`                            | Asigna reviewers por path: client→frontend-team, server→backend-team, .github→devops-team, apps/e2e→qa-team, openspec→architects, docs/learning→core-team. | pr-metadata-governance |
+| **PR Template**                           | L2    | `.github/PULL_REQUEST_TEMPLATE.md`              | 6 secciones: summary, type of change, testing, checklist, screenshots, related issues. No enforceable por GitHub.                                          | pr-metadata-governance |
+| **CONTRIBUTING.md**                       | L2    | `CONTRIBUTING.md`                               | Guía de PR guidelines, DCO, commit format, governance gates overview.                                                                                      | pr-metadata-governance |
+| **Commit signing (-S)**                   | L1    | Ruleset `21227644` + `ci.yml:verify-signatures` | SSH ED25519. Regla `required_signatures` activa en ruleset main. Job CI verifica vía GitHub REST API (`continue-on-error: true`).                          | Pre-existente          |
+| **commitlint**                            | L1    | `.husky/commit-msg` + `ci.yml:commit-lint`      | Conventional Commits validation (husky hook + CI job).                                                                                                     | Pre-existente          |
 
 #### Futuros — Implementables ahora (5 tasks)
 
-| Control                        | Nivel | Archivo destino                           | Qué hace                                                                                                                                                | Bloqueado por     |
-| ------------------------------ | ----- | ----------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------- |
-| **dependency-review workflow** | L2    | `.github/workflows/dependency-review.yml` | Falla en PR si hay nuevas vulnerabilidades ≥ moderate (actions/dependency-review-action@v5). Se agrega a `ci-complete.needs`.                           | — (implementable) |
-| **Rollback runbook**           | L4    | `docs/runbooks/rollback.md`               | Documenta estrategia layerada: kill-switch < traffic shift < git revert < DB expand/contract. **Documenta enfoque, no implementa feature-flag system.** | — (implementable) |
-| **Fix-forward runbook**        | L4    | `docs/runbooks/fix-forward.md\*\*         | Documenta cuándo fix-forward es preferido sobre rollback.                                                                                               | — (implementable) |
-| **Audit streaming docs**       | L5    | `docs/audit-streaming.md`                 | Documenta configuración de audit-log streaming (org/enterprise level, GHEC/GHES). **Documenta procedimiento, no configura workflow.**                   | — (implementable) |
-| **CONTRIBUTING.md update**     | Doc   | `CONTRIBUTING.md`                         | Agrega documentación de governance gates (Levels 2-5).                                                                                                  | — (implementable) |
+| Control                                     | Nivel | Archivo destino                    | Qué hace                                                                                                                                                                                                                   | Bloqueado por     |
+| ------------------------------------------- | ----- | ---------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------- |
+| **Wire dependency-review into ci-complete** | L2    | `ci.yml:ci-complete` (needs array) | `security.yml:dependency-review` ya existe (actions/dependency-review-action@v5, vulnerability-check:true). Gap real: NO está en `ci-complete.needs`, así que no es merge gate requerido. Agregar job a la lista de needs. | — (implementable) |
+| **Rollback runbook**                        | L4    | `docs/runbooks/rollback.md`        | Documenta estrategia layerada: kill-switch < traffic shift < git revert < DB expand/contract. **Documenta enfoque, no implementa feature-flag system.**                                                                    | — (implementable) |
+| **Fix-forward runbook**                     | L4    | `docs/runbooks/fix-forward.md`     | Documenta cuándo fix-forward es preferido sobre rollback.                                                                                                                                                                  | — (implementable) |
+| **Audit streaming docs**                    | L5    | `docs/audit-streaming.md`          | Documenta configuración de audit-log streaming (org/enterprise level, GHEC/GHES). **Documenta procedimiento, no configura workflow.**                                                                                      | — (implementable) |
+| **CONTRIBUTING.md update**                  | Doc   | `CONTRIBUTING.md`                  | Agrega documentación de governance gates (Levels 2-5).                                                                                                                                                                     | — (implementable) |
 
 #### Bloqueados por Admin (requieren admin de repo)
 
@@ -155,7 +155,7 @@ CI/CD (Integración Continua / Despliegue Continuo) es un conjunto de prácticas
 | **Audit-log streaming** | L5    | GitHub Enterprise Cloud (GHEC) o GHES                      | Documentación futuro | Org-level feature, no repo workflow. Requiere streaming a SIEM (S3, Splunk, Datadog)                                                                                               |
 | **SOC2 compliance**     | —     | Auditoría formal                                           | Mapping referencia   | CC6.3 + CC8.1 (reviews/CODEOWNERS), CC7.1 (dependency review, secret scanning), CC8.1 (ci-complete, deploy protection). **CC8.2 NO existe en AICPA 2017 Trust Services Criteria.** |
 
-> **Madurez enterprise (Researcher assessment):** 70/100 compliance empresarial, 67/100 aplicación profesional. Repo-level ~75-80% (GitHub Enterprise). Gaps principales: no SAST/DAST en CI pipeline, niveles 4-5 condicionales, prod environment sin hardening completo. Professional level: Senior DevOps Engineering (SCM, CI/CD Pipeline Design, Git/GitHub Administration, Security & Compliance).
+> **Madurez enterprise (Researcher assessment):** 70/100 compliance empresarial, 67/100 aplicación profesional. Repo-level ~75-80% (GitHub Enterprise). Gaps principales: SAST (CodeQL) corre en PR via security.yml pero no es gate requerido en ci-complete; DAST no existe; Semgrep es solo pre-commit local; niveles 4-5 condicionales, prod environment sin hardening completo. Professional level: Senior DevOps Engineering (SCM, CI/CD Pipeline Design, Git/GitHub Administration, Security & Compliance).
 
 ---
 
@@ -4158,13 +4158,13 @@ npm run lint
 
 #### Lo que podemos implementar AHORA (5 tasks)
 
-| Control                    | Nivel | Archivo                                   | Esfuerzo |
-| -------------------------- | ----- | ----------------------------------------- | -------- |
-| dependency-review workflow | L2    | `.github/workflows/dependency-review.yml` | 1 SP     |
-| Rollback runbook           | L4    | `docs/runbooks/rollback.md`               | 2 SP     |
-| Fix-forward runbook        | L4    | `docs/runbooks/fix-forward.md`            | 1 SP     |
-| Audit streaming docs       | L5    | `docs/audit-streaming.md`                 | 1 SP     |
-| CONTRIBUTING.md update     | Doc   | `CONTRIBUTING.md`                         | 0.5 SP   |
+| Control                                 | Nivel | Archivo                        | Esfuerzo |
+| --------------------------------------- | ----- | ------------------------------ | -------- |
+| Wire dependency-review into ci-complete | L2    | `ci.yml:ci-complete`           | 1 SP     |
+| Rollback runbook                        | L4    | `docs/runbooks/rollback.md`    | 2 SP     |
+| Fix-forward runbook                     | L4    | `docs/runbooks/fix-forward.md` | 1 SP     |
+| Audit streaming docs                    | L5    | `docs/audit-streaming.md`      | 1 SP     |
+| CONTRIBUTING.md update                  | Doc   | `CONTRIBUTING.md`              | 0.5 SP   |
 
 #### Lo que está BLOQUEADO (requiere admin/infra)
 
@@ -4177,12 +4177,12 @@ npm run lint
 
 #### Gaps críticos identificados
 
-| Gap                                                        | Severidad | Mitigación                                                                    |
-| ---------------------------------------------------------- | --------- | ----------------------------------------------------------------------------- |
-| No SAST/DAST en CI pipeline (solo pre-commit local)        | Alta      | Semgrep + CodeQL ya configurados en `security.yml` (cron, no PR-blocking)     |
-| Niveles 4-5 condicionales (deploy target + GH tier)        | Media     | Documentación de runbooks + audit streaming como preparación                  |
-| SOC2 CC8.2 no existe en AICPA 2017 Trust Services Criteria | Crítica   | Corregido: reviews/CODEOWNERS → CC6.3 + CC8.1; secret scanning → CC7.1        |
-| CC6.1 no aplica a secret scanning                          | Media     | Corregido: CC6.1 = SSO/MFA user provisioning, CC7.1 = vulnerability detection |
+| Gap                                                                 | Severidad | Mitigación                                                                                                                                   |
+| ------------------------------------------------------------------- | --------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| SAST (CodeQL) corre en PR pero no es gate requerido; DAST no existe | Alta      | CodeQL corre en `security.yml:pull_request` (no es required check); Semgrep es pre-commit local. Gap: ninguno bloquea merge vía ci-complete. |
+| Niveles 4-5 condicionales (deploy target + GH tier)                 | Media     | Documentación de runbooks + audit streaming como preparación                                                                                 |
+| SOC2 CC8.2 no existe en AICPA 2017 Trust Services Criteria          | Crítica   | Corregido: reviews/CODEOWNERS → CC6.3 + CC8.1; secret scanning → CC7.1                                                                       |
+| CC6.1 no aplica a secret scanning                                   | Media     | Corregido: CC6.1 = SSO/MFA user provisioning, CC7.1 = vulnerability detection                                                                |
 
 > **Referencia completa**: `docs/learning/ci-cd/19-governance-gates.md` — 5-level framework con SOC2/ISO27001 mapping, implementation checklist, enterprise maturity assessment.
 
