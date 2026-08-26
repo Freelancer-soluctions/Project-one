@@ -751,6 +751,75 @@ jobs:
 
 **Sí**, YAML las soporta nativamente. Pero el proyecto prefiere `defaults:` en root del workflow + composite actions para DRY. Las anclas pueden hacer workflows harder to read.
 
+### ¿Qué es "unrelated histories" y por qué me sale al hacer pull?
+
+**Error completo:** `fatal: refusing to merge unrelated histories`
+
+**Qué pasa:** Git no encuentra un commit ancestral común entre tu repo local y el remoto. Ambos empezaron independientemente.
+
+```
+GitHub main:  A → B → C  (README, LICENSE, etc.)
+Local main:   X → Y → Z  (tus commits)
+              ↓
+         No hay conexión → unrelated histories
+```
+
+**Causa más común:** Creaste el repo en GitHub (con commit inicial automático) Y también tenías tu repo local con sus propios commits. Ambos lados se inicializaron por separado.
+
+**Solución inmediata:**
+
+```bash
+git pull origin main --allow-unrelated-histories
+```
+
+Esto fusiona las dos historias. Solo necesitas hacerlo una vez — después, `git pull` funciona normal.
+
+**Cómo prevenirlo en el futuro:**
+
+| Situación                                       | Qué hacer                                                                                                   |
+| ----------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| Creas repo en GitHub primero                    | Clónalo: `git clone <url>` — historia compartida desde el inicio                                            |
+| Ya tienes repo local, quieres conectar a GitHub | Crea repo en GitHub **VACÍO** (sin README, sin .gitignore): `gh repo create <name> --private --no-git-init` |
+| Ya tienes ambos y falla                         | `git pull origin main --allow-unrelated-histories` — una sola vez                                           |
+
+> **Regla de oro:** Siempre que uno de los dos lados (local o GitHub) ya tenga commits, el otro debe empezar **vacío**. Nunca inicialices ambos independientemente.
+
+### ¿Trabajé en main por equivocación? ¿Cómo lo corrijo?
+
+**En TBD (Trunk-Based Development), `main` es sagrada.** Si hiciste cambios ahí por error, muévelos a una rama feature:
+
+**Si los cambios NO están commiteados (solo editados):**
+
+```bash
+# 1. Crear rama desde main (captura tus cambios)
+git checkout -b feature/mi-cambio
+
+# 2. Tus cambios quedan en la rama nueva, main está limpio
+# 3. Continúa trabajando en feature/mi-cambio
+```
+
+**Si los cambios YA están commiteados:**
+
+```bash
+# 1. Crear rama desde main (preserva los commits)
+git checkout -b feature/mi-cambio
+
+# 2. Regresar main al estado anterior (origin/main)
+git reset --hard origin/main
+
+# 3. Tus commits están en la rama nueva, main volvió atrás
+# 4. Continúa trabajando en feature/mi-cambio
+```
+
+**Después:** push y abre PR normalmente:
+
+```bash
+git push -u origin feature/mi-cambio
+gh pr create --title "feat: mi cambio" --body "Descripción..."
+```
+
+> **¿Por qué funciona?** `checkout -b` crea una rama nueva apuntando al mismo commit donde estás. Tus cambios quedan ahí. Luego `reset --hard origin/main` mueve el puntero de main de vuelta a su estado original. No pierdes nada.
+
 ---
 
 ## 📖 Glosario Git + YAML (Fundamentos)
