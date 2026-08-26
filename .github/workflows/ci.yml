@@ -291,6 +291,42 @@ jobs:
     # Job-level continue-on-error for non-blocking mode
     continue-on-error: true
 
+  commit-lint:
+    name: Commit Lint (Conventional Commits)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+          cache-dependency-path: package-lock.json
+      - run: npm ci
+      - name: Guard - fail on empty PR commit range
+        if: github.event_name == 'pull_request'
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          COUNT=$(git rev-list --count "$BASE_SHA".."$HEAD_SHA")
+          if [ "$COUNT" -eq 0 ]; then
+            echo "::error::No commits to validate between base and head"
+            exit 1
+          fi
+      - name: Lint PR commits
+        if: github.event_name == 'pull_request'
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: npx commitlint --from "$BASE_SHA" --to "$HEAD_SHA" --verbose
+      - name: Lint squash commit (merge queue)
+        if: github.event_name == 'merge_group'
+        run: npx commitlint --last --verbose
   # --- Client Pre-Build ---
   client-lint:
     if: false  # Disabled for incremental CI — change to true to re-enable
@@ -639,6 +675,7 @@ jobs:
     needs:
       - repo-discovery
       - actionlint
+      - commit-lint
       - client-lint
       - client-format-check
       - client-typecheck

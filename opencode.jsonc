@@ -144,7 +144,7 @@
     "git-manager": {
       "mode": "subagent",
       "hidden": false,
-      "model": "opencode/big-pickle",
+      "model": "opencode/hy3-free",
       "description": "SCM and Conventional Commit specialist",
       "prompt": "{file:docs/opencode/prompts/git-manager.md}",
       "steps": 20,
