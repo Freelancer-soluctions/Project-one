@@ -1,6 +1,6 @@
 # Tasks: PR Metadata Governance
 
-> **Change**: `pr-metadata-governance` | **Status**: proposed (REVIEWED — planner fixes applied)
+> **Change**: `ci-pr-metadata-governance` | **Status**: proposed (REVIEWED — planner fixes applied)
 > **Estimated**: 8 tasks + 2 admin tasks
 > **Dependencies**: ci-commit-lint-governance (commit-lint + signing active)
 > **Planner review**: 5 critical issues fixed (ci-complete.needs, CI_MINIMAL guard, Admin-2 API, merge_group coverage, dependabot title lint)

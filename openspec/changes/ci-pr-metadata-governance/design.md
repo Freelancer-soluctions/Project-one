@@ -1,6 +1,6 @@
 # Design: PR Metadata Governance
 
-> **Change**: `pr-metadata-governance` | **Status**: proposed
+> **Change**: `ci-pr-metadata-governance` | **Status**: proposed
 > **Stack**: PR Title Lint + DCO Sign-off + PR Template
 > **Decision log**: 2026-08-25 (research-backed)
 

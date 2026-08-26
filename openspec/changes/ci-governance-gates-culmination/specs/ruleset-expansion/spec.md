@@ -52,12 +52,12 @@ The ruleset SHALL block force pushes to protected branches.
 
 ### Requirement: Required status checks
 
-The ruleset SHALL require the following status checks to pass before merge (inherited from pr-metadata-governance + new):
+The ruleset SHALL require the following status checks to pass before merge (inherited from ci-pr-metadata-governance + new):
 
 - Verify Commit Signatures (existing)
 - Commit Lint (existing)
-- PR Title Lint (from pr-metadata-governance)
-- DCO (from pr-metadata-governance, enterprise provenance control)
+- PR Title Lint (from ci-pr-metadata-governance)
+- DCO (from ci-pr-metadata-governance, enterprise provenance control)
 - ci-complete (existing)
 
 #### Scenario: Missing required check
@@ -67,7 +67,7 @@ The ruleset SHALL require the following status checks to pass before merge (inhe
 
 ### Requirement: CODEOWNERS review enforcement
 
-The ruleset SHALL enforce that CODEOWNERS-nominated reviewers have approved changes to owned paths. A CODEOWNERS file MUST exist (from pr-metadata-governance) before this rule is enabled.
+The ruleset SHALL enforce that CODEOWNERS-nominated reviewers have approved changes to owned paths. A CODEOWNERS file MUST exist (from ci-pr-metadata-governance) before this rule is enabled.
 
 #### Scenario: Owned file changed without owner approval
 
@@ -81,7 +81,7 @@ The ruleset SHALL enforce that CODEOWNERS-nominated reviewers have approved chan
 
 ### Requirement: Bypass actors preserved as NONE
 
-The ruleset SHALL maintain zero bypass actors (no exceptions for anyone, including admins). This is preserved from pr-metadata-governance D5.
+The ruleset SHALL maintain zero bypass actors (no exceptions for anyone, including admins). This is preserved from ci-pr-metadata-governance D5.
 
 #### Scenario: Admin attempts bypass
 

@@ -166,4 +166,4 @@ O alternativamente, muchos equipos usan TIA como un job adicional y rápido que 
 - como se debe de ejecutar los commit de ahora en adelante con el cambio de los commits firmados ?
 - crear un comando para activar la clave de commit signing
 - COMO FUNCIONA LOS ACTIONS AL HACER PUSH A UNA RAMA SE EJECUTAN O LO HACEN HASTA ABRIR LA PULL REQUEST ?
-
+- que se elimine el branch una vez dado push y la pr este cerrada tanto en local como en remote
