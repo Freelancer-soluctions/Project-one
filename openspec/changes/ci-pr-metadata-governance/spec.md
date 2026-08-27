@@ -1,6 +1,6 @@
 # Delta Spec: PR Metadata Governance
 
-> **Change**: `pr-metadata-governance` | **Status**: proposed
+> **Change**: `ci-pr-metadata-governance` | **Status**: proposed
 > **Stack**: PR Title Lint + DCO Sign-off + PR Template
 > **Depends on**: ci-commit-lint-governance (commit-lint + signing already active)
 

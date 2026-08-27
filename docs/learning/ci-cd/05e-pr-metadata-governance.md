@@ -2,7 +2,7 @@
 
 > **Guía 05e — Research Brief + Implementation Guide** (después de 05d) | Anterior: [05d-ci-commit-lint-implementation.md](./05d-ci-commit-lint-implementation.md)
 >
-> Esta guía documenta la investigación completa sobre **PR Metadata Checks** (DCO sign-off, PR title validation, body templates) con foco en entornos enterprise. Cubre el landscape de herramientas, interacción con squash-merge, patrones de implementación enterprise, y la **implementación completa** del change `pr-metadata-governance` para Project-one.
+> Esta guía documenta la investigación completa sobre **PR Metadata Checks** (DCO sign-off, PR title validation, body templates) con foco en entornos enterprise. Cubre el landscape de herramientas, interacción con squash-merge, patrones de implementación enterprise, y la **implementación completa** del change `ci-pr-metadata-governance` para Project-one.
 >
 > **Estado**: Implementado en `feat/ci-governance` (commits `128a0e8` → `31d445f`). Admin actions pendientes (squash setting + ruleset registration).
 
@@ -344,7 +344,7 @@ Razón: la automatización del body es fragile (templates cambian, bots whitelis
 
 ## 🗺️ Implementación
 
-> **OpenSpec change**: `pr-metadata-governance` | **Commits**: `128a0e8` → `31d445f`
+> **OpenSpec change**: `ci-pr-metadata-governance` | **Commits**: `128a0e8` → `31d445f`
 > **Branch**: `feat/ci-governance` | **Schema**: spec-driven
 
 ### Resumen de Cambios
@@ -831,8 +831,8 @@ d92f89b fix(ci): add pull-requests: read to DCO job permissions
 a5fb76b docs(openspec): mark Tasks 1-7 acceptance criteria complete
 cc400b4 fix(ci): fix malformed ignoreLabels YAML in pr-title-lint job
 c3cc1c7 feat(ci): add PR Title Lint and DCO jobs with merge_group support
-d8fdd6f fix(openspec): fix 5 critical planner issues in pr-metadata-governance artifacts
-577a443 docs(openspec): add pr-metadata-governance change artifacts
+d8fdd6f fix(openspec): fix 5 critical planner issues in ci-pr-metadata-governance artifacts
+577a443 docs(openspec): add ci-pr-metadata-governance change artifacts
 128a0e8 docs(learning): add 05e PR metadata checks research brief
 ```
 
@@ -872,7 +872,7 @@ d8fdd6f fix(openspec): fix 5 critical planner issues in pr-metadata-governance a
 | CNCF dco2 App                       | https://github.com/cncf/dco2                                                                                                                                      |
 | LF DCO Best Practices               | https://bestpractices.linuxfoundation.org/ip/contribution-mechanisms-dco.html                                                                                     |
 | GitHub squash options (2022)        | https://github.blog/changelog/2022-08-23-new-options-for-controlling-the-default-commit-message-when-merging-a-pull-request/                                      |
-| OpenSpec change                     | `openspec/changes/pr-metadata-governance/`                                                                                                                        |
+| OpenSpec change                     | `openspec/changes/ci-pr-metadata-governance/`                                                                                                                     |
 | CI/CD learning docs                 | [05a](./05a-ci-cd-pipeline-design.md) · [05b](./05b-github-actions-setup.md) · [05c](./05c-ssh-commit-signing.md) · [05d](./05d-ci-commit-lint-implementation.md) |
 
 ---

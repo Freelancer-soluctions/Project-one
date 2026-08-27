@@ -1,6 +1,6 @@
 # Design: Governance Gates Culmination — Enterprise-Grade CI/CD Enforcement
 
-> **Change**: `governance-gates-culmination` | **Status**: proposed
+> **Change**: `ci-governance-gates-culmination` | **Status**: proposed
 > **Stack**: dependency-review + ruleset-expansion + deploy-gating + rollback-strategy + audit-streaming
 > **Decision log**: 2026-08-25 (verified enterprise practices)
 
@@ -8,7 +8,7 @@
 
 ## Context
 
-**Repository Classification**: project-one is an **internal repository** (personal simulation for enterprise learning). DCO is required (enterprise provenance control, implemented in pr-metadata-governance). Signed commits are optional (enforced for practice). PR Title Lint is optional (cosmetic, will be blocking in Phase 2 of rollout). PR Template is optional (not enforceable).
+**Repository Classification**: project-one is an **internal repository** (personal simulation for enterprise learning). DCO is required (enterprise provenance control, implemented in ci-pr-metadata-governance). Signed commits are optional (enforced for practice). PR Title Lint is optional (cosmetic, will be blocking in Phase 2 of rollout). PR Template is optional (not enforceable).
 
 Current governance maturity is ~55-60%. Levels 2-3 are partially blocked by two admin actions (Admin-2 ruleset PUT, Admin-1 squash setting), and Levels 4-5 are unstarted. This design closes those gaps toward ~95% maturity for SOC2/ISO27001. It is grounded in verified practices from Google, Meta, Microsoft, Netflix, Swissquote, and GitHub, with corrections applied after verification (see D7).
 
@@ -22,7 +22,7 @@ Current governance maturity is ~55-60%. Levels 2-3 are partially blocked by two 
 
 **Non-Goals:**
 
-- PR Title Lint as a governance gate in this change (cosmetic — optional in Phase 1, blocking in Phase 2 of rollout per pr-metadata-governance D7).
+- PR Title Lint as a governance gate in this change (cosmetic — optional in Phase 1, blocking in Phase 2 of rollout per ci-pr-metadata-governance D7).
 - PR Template as a compliance control (not enforceable — see D7).
 - Org-wide signed commits (selective/regulated only — see D7).
 
@@ -37,7 +37,7 @@ Current governance maturity is ~55-60%. Levels 2-3 are partially blocked by two 
 ### D2: Fan-in Gate Pattern — ci-complete
 
 **Decision**: `ci-complete` is the **single aggregate gate** for CI jobs via `needs`. Other required checks (Verify Commit Signatures, Commit Lint, PR Title Lint, DCO) remain separately required in the ruleset.
-**Rationale**: ci-complete aggregates CI jobs ADD-only; the other 4 checks are independent governance controls from pr-metadata-governance. All 5 are required status checks in ruleset 21227644.
+**Rationale**: ci-complete aggregates CI jobs ADD-only; the other 4 checks are independent governance controls from ci-pr-metadata-governance. All 5 are required status checks in ruleset 21227644.
 **Alternatives**: List every job as a required check (rejected — high maintenance, easy to desync).
 
 ### D3: Deploy Gating — GitHub Environments + Required Reviewers
@@ -78,11 +78,11 @@ Current governance maturity is ~55-60%. Levels 2-3 are partially blocked by two 
 
 **Decision**: Apply verified corrections:
 
-- PR Title Lint → **already required (blocking)** from pr-metadata-governance; this change preserves it. Classified optional only as a compliance control (cosmetic, not mapped to SOC2/ISO)
+- PR Title Lint → **already required (blocking)** from ci-pr-metadata-governance; this change preserves it. Classified optional only as a compliance control (cosmetic, not mapped to SOC2/ISO)
 - PR Template → **not enforceable** (GitHub cannot enforce body content; documentation only)
 - Signed commits → **selective** (regulated repositories only, not org-wide)
-- DCO → **required** (enterprise provenance control, implemented in pr-metadata-governance)
-  **Rationale**: Verification against Google/Meta/Microsoft/Netflix/Swissquote/GitHub showed PR Template was over-scoped. DCO and PR Title Lint are confirmed as enterprise controls from pr-metadata-governance. Removing non-enforceable items from compliance scope reduces friction without reducing real assurance.
+- DCO → **required** (enterprise provenance control, implemented in ci-pr-metadata-governance)
+  **Rationale**: Verification against Google/Meta/Microsoft/Netflix/Swissquote/GitHub showed PR Template was over-scoped. DCO and PR Title Lint are confirmed as enterprise controls from ci-pr-metadata-governance. Removing non-enforceable items from compliance scope reduces friction without reducing real assurance.
 
 ## Risks / Trade-offs
 
