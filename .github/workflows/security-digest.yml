@@ -27,7 +27,7 @@ jobs:
           format: cyclonedx-json
           output-file: sbom-project-one.json
       - name: Upload SBOM artifact
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v7
         with:
           name: sbom
           path: sbom-project-one.json
@@ -46,7 +46,7 @@ jobs:
           scan-args: --format=json --output=osv-report.json package-lock.json
       - name: Upload OSV Report artifact
         if: always()
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v7
         with:
           name: osv-report
           path: osv-report.json
@@ -103,7 +103,7 @@ jobs:
             artifacts/gitleaks/gitleaks-report.json \
             security-digest.md
       - name: Upload Security Digest artifact
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v7
         with:
           name: security-digest
           path: security-digest.md
