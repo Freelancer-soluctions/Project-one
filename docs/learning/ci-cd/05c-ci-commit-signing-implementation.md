@@ -598,6 +598,84 @@ Tras el merge del PR #100, se ejecutó una limpieza adicional vía **PR #101 (`c
 
 ---
 
+## 🔑 Arquitectura de 3 Keys: ¿Por qué y cuándo sobra?
+
+### Las 3 keys registradas
+
+| Key                         | Huella (SHA256)                               | Registrada | Actor               | Uso                                |
+| --------------------------- | --------------------------------------------- | ---------- | ------------------- | ---------------------------------- |
+| `projectERP-signing`        | `BrykXb1hhwLcPc+cjis6XFqh3DfgYy/cLIIHOFCUM3w` | Aug 21     | Humano (tú)         | Commits manuales `git commit -S`   |
+| `projectERP-agents-signing` | `xIKkF6MJ36mbZ0lfV28K1N8L5eIMsQPa/BsQvq7OCEQ` | Aug 23     | Agentes IA (local)  | Commits delegados a @git-manager   |
+| `projecterp-release-signer` | `qwBuMMso8HkmAxLOcF4gzwvuW5RJ25854PqsI9jgXCk` | Aug 26     | GitHub Actions (CI) | Commits automáticos de release.yml |
+
+### ¿Por qué 3?
+
+Cada key representa un **actor diferente** que firma commits bajo la misma cuenta GitHub:
+
+```
+              ┌──────────────────────────────┐
+              │   Cuenta GitHub              │
+              │   (DevJohanAdrian)           │
+              │                              │
+              │   ✍️  projectERP-signing     │ ← identidad humana
+              │   🤖  projectERP-agents      │ ← identidad agentes
+              │   ⚙️   projecterp-release    │ ← identidad runner CI
+              │                              │
+              │   email: 82298307+...@users   │
+              └──────────────────────────────┘
+```
+
+**Ventajas de separar:**
+
+- **Rotación aislada**: si una key se compromete, solo rotas ese contexto
+- **Auditoría clara**: `git log --show-signature` muestra qué key firmó cada commit
+- **Zero shared blast radius**: la key de CI no expone la identidad humana
+
+### Hallazgo clave: ¿La key de CI es necesaria?
+
+**No necesariamente.** `changesets/action@v2` sin `push-with-git-cli` usa **modo API por defecto**:
+
+```
+changesets/action@v2 (push-with-git-cli: false, default)
+  → push via GitHub REST API
+  → GitHub firma el commit con SU clave GPG (web-flow)
+  → required_signatures del ruleset ✅
+  → badge Verified ✅
+
+  La config SSH en release.yml (gpg.format=ssh, signingkey, etc.)
+  NUNCA se ejecuta porque changesets no usa git CLI locally
+```
+
+**Evidencia**: `release.yml` líneas 39-46 configuran SSH signing en el runner, pero changesets pusha vía API → esas líneas son dead code en el flujo default.
+
+### ¿Entonces por qué mantener la key de CI?
+
+| Razón                        | Explicación                                                                                                                          |
+| ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| **Defense in depth**         | Si alguien cambia `push-with-git-cli: true`, la SSH key ya está lista                                                                |
+| **Cero costo**               | Una signing key registrada no consume recursos ni superficie de ataque significativa                                                 |
+| **Preparación para cambios** | Si se necesita commit con identidad específica (no la web-flow de GitHub), la SSH key permite firmar con la App en vez de con GitHub |
+| **Learning artifact**        | Documenta cómo funciona changesets internamente (API mode vs CLI mode)                                                               |
+
+### Cuándo SÍ sería necesaria la key de CI
+
+- Si `push-with-git-cli: true` se agrega a changesets (usa git CLI locally → necesita firma SSH)
+- Si el workflow crea commits FUERA de changesets (hotfixes, version bumps manuales)
+- Si se necesita que el commit sea firmado con la identidad de la App (no la web-flow de GitHub)
+
+### Matriz de decisión
+
+| Escenario                     | ¿Necesita SSH key en CI? | Firma quién         |
+| ----------------------------- | ------------------------ | ------------------- |
+| changesets API mode (default) | ❌ No                    | GitHub web-flow GPG |
+| changesets CLI mode           | ✅ Sí                    | App SSH key         |
+| Commits manuales en workflow  | ✅ Sí                    | App SSH key         |
+| squash-merge por GitHub       | ❌ No                    | GitHub web-flow GPG |
+
+### Lección aprendida
+
+> **Los git config de firma en CI solo tienen efecto cuando se usa `git commit` localmente.** Si el workflow pusha vía API (como changesets por defecto), la config SSH es dead code. Siempre verifica el modo de push del tool que usas antes de asumir que la firma SSH se aplica.
+
 ## 📚 Referencias
 
 | Recurso                         | URL                                                                                                                                                    |

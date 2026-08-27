@@ -50,6 +50,8 @@ Se usa `id_ed25519_projectERP` (passphrase, separada de clave auth). gitsign des
 
 **NOTA (D2 — GATE 4.0):** Comportamiento exacto de firma según mecanismo (git push vs REST API) se determina empíricamente en GATE 4.0; el fallback no depende de firmas automáticas de GitHub.
 
+**Corrección D9 (2026-08-26):** La premisa de D2 sobre `git push` es incorrecta para changesets. `changesets/action@v2` usa REST API por defecto, no `git push`. Ver D9 para el análisis completo.
+
 **Resolución GATE 4.0 (2026-08-22):** Estado condicional → **CONFIRMADO** por spike empírico ejecutado por git-manager. Evidencia: push de commit sin firmar autenticado con `GITHUB_TOKEN` (author actions@github.com, %G?=N) contra rama de prueba `feature/signing-gate-test` protegida por ruleset temporal `required_signatures` fue RECHAZADO con `GH013: Repository rule violations found — Commits must have verified signatures` / `! [remote rejected] ... (push declined due to repository rule violations)`. Ref remota permaneció en SHA de main. Limpieza verificada: DELETE 204, rama eliminada, cero residuales. Conclusión: G4/R8/D2 se confirman NECESARIOS — proceder con 4.1+ (migración GitHub App).
 
 ### D3 — Ruleset estricto + bypass Admin
@@ -77,6 +79,16 @@ Mínimo privilegio y revocación independiente.
 ### D8 — Mecanismo local: commit.gpgsign=true global
 
 Sin hook Husky obligatorio de firma.
+
+### D9 — Changesets API mode: SSH signing config es dead code
+
+**Hallazgo (2026-08-26):** `changesets/action@v2` usa REST API por defecto (`push-with-git-cli: false`). Cuando pusha vía API, GitHub auto-firma los commits con la GPG key de web-flow (id `4AEE18F83AFDEB23`). El ruleset `Require signed commits` acepta firmas web-flow (verified=true). La config SSH en release.yml (gpg.format, signingkey, commit.gpgsign) era dead code: nunca se ejecutaba porque changesets no usa `git push` localmente.
+
+**Corrección a D2:** El GATE 4.0 (spike de 2026-08-22) probó `git push` con GITHUB_TOKEN → rechazado. Pero el spike testó el mecanismo equivocado: changesets no usa `git push`, usa REST API. El resultado del spike (rechazado) era correcto para `git push` pero irrelevante para el comportamiento real de changesets. La migración vía GitHub App (D2) sigue siendo necesaria por el token (APP_ID + APP_PRIVATE_KEY), pero la SSH signing key de la App (APP_SSH_KEY/APP_SSH_PUB) NO es necesaria para release.yml.
+
+**Non-functional even in git-cli mode:** la config SSH solo escribía la clave PÚBLICA (`APP_SSH_PUB`) a `/tmp/github_app_signing_key.pub` — nunca provisionaba la clave PRIVADA en ssh-agent. Sin la privada, la firma SSH es imposible.
+
+**Ref:** `openspec/changes/ci-release-workflow-signing/design.md`
 
 ## Post-Staging Resolution (2026-08-22)
 
@@ -137,6 +149,18 @@ Resolución de defectos de diseño y quirks descubiertos empíricamente durante 
 - **F5 — Ruleset enforcement en main**: push sin firma rechazado. Salida: push sin firma rechazado con error claro.
 
 **Rollback**: desactivar el ruleset (F5) restaura push sin firma; el job CI puede volver a fail-open.
+
+## Verification Log (Remote Audit — 2026-08-25, this session)
+
+Auditoria remota de solo-lectura via `gh api` (sin flag de almacenamiento) sobre el ruleset de produccion `Require signed commits` (id 21227644). Hallazgos:
+
+- **Ruleset activo**: enforcement=active, target=branch, conditions ref include ~DEFAULT_BRANCH (main). rules=[deletion, non_fast_forward, required_signatures, required_status_checks]. bypass_actors=[] (ninguno — sin bypass excepto los implicitos del rol Admin via D3).
+- **required_signatures presente**: el ruleset exige firmas verificadas en main (R9, F5).
+- **required_status_checks bindea "Verify Commit Signatures"**: el contexto "Verify Commit Signatures" aparece en `required_status_checks.contexts` del ruleset.
+- **CAVEAT de binding por job NAME**: GitHub bindea el required status check al campo `name:` del job (no a un id interno). El job `verify-signatures` declara `name: "Verify Commit Signatures"` en ci.yml; un rename del job SIN actualizar el ruleset romperia el binding (required check dangling). Hazard documentado en comentario de ci.yml (~linea 291, justo encima del job).
+- **Integridad del required check**: el job `verify-signatures` tuvo `continue-on-error: true` removido ESTA session (era linea 292 en ci.yml) — ver tasks.md 3.5. Sin esto, el job no garantizaria fallo de merge, invalidando la proteccion del ruleset.
+
+Estado de tareas G5 tras auditoria: 5.1 y 5.2 VERIFIED (checkbox + nota); 5.3 (push-rejection test) queda UNCHECKED pendiente de validacion por el usuario.
 
 ## Open Questions
 

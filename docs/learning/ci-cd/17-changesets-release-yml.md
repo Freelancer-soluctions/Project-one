@@ -521,6 +521,23 @@ grep -A 5 "1.3.0" CHANGELOG.md
 
 > 🔑 **Regla mental**: un release completo = versión en package.json + tag en git + entrada en changelog. Si falta cualquiera de los tres, el release está incompleto.
 
+### 9.5 Modo de firma: API vs git-cli
+
+`changesets/action@v2` tiene dos modos de push:
+
+| Modo                   | Config                     | Firma de commits                                  |
+| ---------------------- | -------------------------- | ------------------------------------------------- |
+| **API mode** (default) | `push-with-git-cli: false` | GitHub auto-firma vía web-flow GPG key            |
+| **git-cli mode**       | `push-with-git-cli: true`  | Git push local → requiere signing key configurada |
+
+**API mode** (el default): changesets usa la REST API de GitHub para push. GitHub auto-firma los commits con su GPG key de web-flow (`github-actions[bot]`). El ruleset `Require signed commits` acepta estas firmas (verified=true). No necesita configuración SSH.
+
+**git-cli mode**: changesets ejecuta `git push` localmente. Requiere configurar `gpg.format`, `user.signingkey` y `commit.gpgsign` en el runner. Necesita la clave PRIVADA en ssh-agent (no solo la pública).
+
+> ⚠️ **Anti-patrón**: añadir config SSH a release.yml en API mode es dead code. La config nunca se ejecuta porque changesets no usa `git push`. Incluso en git-cli mode, provisionar solo la clave pública (sin la privada en ssh-agent) es non-functional.
+
+**Ref:** `openspec/changes/ci-release-workflow-signing/design.md`
+
 ## 10. Ejercicios
 
 ### Ejercicio 1 — Escribe un changeset
