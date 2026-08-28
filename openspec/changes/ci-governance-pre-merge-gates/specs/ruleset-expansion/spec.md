@@ -76,7 +76,7 @@ The ruleset SHALL enforce that CODEOWNERS-nominated reviewers have approved chan
 
 #### Scenario: CODEOWNERS file missing
 
-- **WHEN** the ruleset has `require_code_owner_reviews` enabled but no CODEOWNERS file exists
+- **WHEN** the ruleset has `require_code_owner_review` enabled but no CODEOWNERS file exists
 - **THEN** all PRs are blocked (unsatisfiable rule)
 
 ### Requirement: Bypass actors preserved as NONE

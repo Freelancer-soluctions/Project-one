@@ -115,7 +115,7 @@ CI/CD (Integración Continua / Despliegue Continuo) es un conjunto de prácticas
 
 ### 3.x Governance Controls — Implementados, Futuros y Bloqueados
 
-> Referencia operativa del change `ci-governance-gates-culmination`. Clasificación: repo interno (simulación personal para aprendizaje enterprise). Madurez repo-level: **~75-80%** (GitHub Enterprise). Niveles 4-5 son CONDICIONALES (requieren deploy target + GitHub Team/Enterprise tier). Framework completo: `docs/learning/ci-cd/19-governance-gates.md` (SOC2/ISO27001 mapping, implementation checklist, enterprise maturity assessment).
+> Referencia operativa del change `ci-governance-pre-merge-gates`. Clasificación: repo interno (simulación personal para aprendizaje enterprise). Madurez repo-level: **~75-80%** (GitHub Enterprise). Niveles 4-5 son CONDICIONALES (requieren deploy target + GitHub Team/Enterprise tier). Framework completo: `docs/learning/ci-cd/19-governance-gates.md` (SOC2/ISO27001 mapping, implementation checklist, enterprise maturity assessment).
 
 #### Implementados (ya en producción)
 
@@ -142,10 +142,10 @@ CI/CD (Integración Continua / Despliegue Continuo) es un conjunto de prácticas
 
 #### Bloqueados por Admin (requieren admin de repo)
 
-| Control                | Nivel | Acción admin                      | Detalle                                                                                                                                                                                                                                                                                                                  | Fuente                          |
-| ---------------------- | ----- | --------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------- |
-| **Ruleset expansion**  | L3    | Admin-2: PUT a ruleset `21227644` | Full replace con: `required_pull_request` (≥1 review, dismiss stale, last push), `required_linear_history`, `block_force_pushes`, `require_code_owner_reviews`. Preserva checks existentes (Verify Commit Signatures, Commit Lint, PR Title Lint, DCO, ci-complete). **GET first para verificar `required_signatures`.** | ci-governance-gates-culmination |
-| **Squash merge title** | L3    | Admin-1: Settings                 | Cambiar `squash_merge_commit_title` → `PR_TITLE` + `squash_merge_commit_message=COMMIT_MESSAGES` (preserva DCO trailers).                                                                                                                                                                                                | ci-governance-gates-culmination |
+| Control                | Nivel | Acción admin                      | Detalle                                                                                                                                                                                                                                                                                                                  | Fuente                        |
+| ---------------------- | ----- | --------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ----------------------------- |
+| **Ruleset expansion**  | L3    | Admin-2: PUT a ruleset `21227644` | Full replace con: `required_pull_request` (≥1 review, dismiss stale, last push), `required_linear_history`, `block_force_pushes`, `require_code_owner_reviews`. Preserva checks existentes (Verify Commit Signatures, Commit Lint, PR Title Lint, DCO, ci-complete). **GET first para verificar `required_signatures`.** | ci-governance-pre-merge-gates |
+| **Squash merge title** | L3    | Admin-1: Settings                 | Cambiar `squash_merge_commit_title` → `PR_TITLE` + `squash_merge_commit_message=COMMIT_MESSAGES` (preserva DCO trailers).                                                                                                                                                                                                | ci-governance-pre-merge-gates |
 
 #### Bloqueados por Infra (requieren deploy target + GitHub tier)
 
