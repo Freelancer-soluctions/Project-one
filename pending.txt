@@ -167,3 +167,5 @@ O alternativamente, muchos equipos usan TIA como un job adicional y rápido que 
 - crear un comando para activar la clave de commit signing
 - COMO FUNCIONA LOS ACTIONS AL HACER PUSH A UNA RAMA SE EJECUTAN O LO HACEN HASTA ABRIR LA PULL REQUEST ?
 - que se elimine el branch una vez dado push y la pr este cerrada tanto en local como en remote
+- PR Title Lint posee  continue-on-error: true solo para acostumbrase esto debe de quitarse y el job debe de bloquear
+- que tan viable es crear un ruleset para - `ci-complete` como status check requerido esto abarcaria muchos jobs y este seria un ruleset aparte del ya creado Require signed commits
