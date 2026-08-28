@@ -101,27 +101,23 @@ Esta ruta sigue un método pedagógico fijo, igual en todas las guías:
 
 ## 📚 Guías del nivel Fundamentos (orden de lectura)
 
-| #   | Archivo                                                                      | Descripción                                                                                           | Prerequisitos |
-| --- | ---------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- | ------------- |
-| 00  | [`00-que-es-cicd.md`](00-que-es-cicd.md)                                     | Qué es CI vs CD, etapas de pipeline, métricas DORA, shifting left                                     | Ninguno       |
-| 01  | [`01-git-y-yaml.md`](01-git-y-yaml.md)                                       | Ramas, PRs, Conventional Commits, YAML desde cero                                                     | 00            |
-| 02  | [`02-github-actions-base.md`](02-github-actions-base.md)                     | Workflows, jobs, steps, triggers, runners, expresiones, contextos                                     | 00, 01        |
-| 03  | [`03-secrets-variables.md`](03-secrets-variables.md)                         | Secrets vs variables, environments, mínimo privilegio, uso real                                       | 02            |
-| 04  | [`04-docker-basico-para-cicd.md`](04-docker-basico-para-cicd.md)             | Dockerfile, multi-stage, compose, Floci intro                                                         | 02, 03        |
-| 04b | [`04b-merge-conflict-shallow-clone.md`](04b-merge-conflict-shallow-clone.md) | **Anexo Git**: caso real de `refusing to merge unrelated histories` (shallow clone) y cómo resolverlo | 01            |
-
-> **Nota 04b**: guía **anexa** del nivel Fundamentos (bloque Git). Complementa la guía 01 con un caso práctico de resolución de conflictos de merge. Es más densa técnicamente que el resto del nivel (útil también como referencia rápida).
+| #   | Archivo                                                          | Descripción                                                       | Prerequisitos |
+| --- | ---------------------------------------------------------------- | ----------------------------------------------------------------- | ------------- |
+| 00  | [`00-que-es-cicd.md`](00-que-es-cicd.md)                         | Qué es CI vs CD, etapas de pipeline, métricas DORA, shifting left | Ninguno       |
+| 01  | [`01-git-y-yaml.md`](01-git-y-yaml.md)                           | Ramas, PRs, Conventional Commits, YAML desde cero                 | 00            |
+| 02  | [`02-github-actions-base.md`](02-github-actions-base.md)         | Workflows, jobs, steps, triggers, runners, expresiones, contextos | 00, 01        |
+| 03  | [`03-secrets-variables.md`](03-secrets-variables.md)             | Secrets vs variables, environments, mínimo privilegio, uso real   | 02            |
+| 04  | [`04-docker-basico-para-cicd.md`](04-docker-basico-para-cicd.md) | Dockerfile, multi-stage, compose, Floci intro                     | 02, 03        |
 
 ### Objetivos detallados por guía
 
-| Guía    | Objetivos de aprendizaje específicos                                                                                                                                                                                                                                             |
-| ------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **00**  | Definir CI y CD con analogías · Enumerar etapas de un pipeline · Explicar "shifting left" · Identificar las 4 métricas DORA · Reconocer los 9 workflows del proyecto                                                                                                             |
-| **01**  | Explicar el flujo de ramas y PRs · Escribir Conventional Commits · Entender Husky + commitlint · Leer/escribir YAML (escalares, listas, mapas) · Dominar multilínea y anclas · Conectar YAML con Actions                                                                         |
-| **02**  | Explicar anatomía workflow/job/step · Configurar triggers (push, PR, dispatch, cron) · Diferenciar runners · Dominar expresiones `${{ }}` y contextos · Distinguir outputs de job vs step · Desglosar `ci.yml` línea por línea                                                   |
-| **03**  | Diferenciar secrets de variables · Entender environments y protection rules · Aplicar mínimo privilegio · Explicar el gating real con `vars.AWS_ROLE_ARN` y secrets `STAGING_*`/`PROD_*`                                                                                         |
-| **04**  | Explicar imagen vs contenedor vs Dockerfile · Desglosar `apps/server/Dockerfile` · Entender multi-stage builds · Conocer docker-compose y su rol en CI/CD · Introducir el contenedor Floci                                                                                       |
-| **04b** | Reconocer un clone shallow (`(grafted)`) · Explicar `refusing to merge unrelated histories` · **Evitar** `--allow-unrelated-histories` · Completar historial (`git fetch --unshallow origin`) · Resolver conflictos conservando tu rama (`--ours`) · Cerrar con commit -S + push |
+| Guía   | Objetivos de aprendizaje específicos                                                                                                                                                                                           |
+| ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **00** | Definir CI y CD con analogías · Enumerar etapas de un pipeline · Explicar "shifting left" · Identificar las 4 métricas DORA · Reconocer los 9 workflows del proyecto                                                           |
+| **01** | Explicar el flujo de ramas y PRs · Escribir Conventional Commits · Entender Husky + commitlint · Leer/escribir YAML (escalares, listas, mapas) · Dominar multilínea y anclas · Conectar YAML con Actions                       |
+| **02** | Explicar anatomía workflow/job/step · Configurar triggers (push, PR, dispatch, cron) · Diferenciar runners · Dominar expresiones `${{ }}` y contextos · Distinguir outputs de job vs step · Desglosar `ci.yml` línea por línea |
+| **03** | Diferenciar secrets de variables · Entender environments y protection rules · Aplicar mínimo privilegio · Explicar el gating real con `vars.AWS_ROLE_ARN` y secrets `STAGING_*`/`PROD_*`                                       |
+| **04** | Explicar imagen vs contenedor vs Dockerfile · Desglosar `apps/server/Dockerfile` · Entender multi-stage builds · Conocer docker-compose y su rol en CI/CD · Introducir el contenedor Floci                                     |
 
 ---
 
@@ -193,9 +189,6 @@ fundamentos-README.md (estás aquí)
                                                                   │
                                                                   ▼
                                                          04-docker-basico-para-cicd.md
-                                                                  │
-                                                                  ▼
-                                            04b-merge-conflict-shallow-clone.md (anexo Git)
                                                                   │
                                                                   ▼
                                                          🎓 Graduación Fundamentos

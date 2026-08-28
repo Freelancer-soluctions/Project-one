@@ -2,8 +2,6 @@
 
 > **Guía 1 de 5 del nivel Fundamentos** | Prerequisitos: **Ninguno** | Siguiente: [`01-git-y-yaml.md`](01-git-y-yaml.md)
 
-> ⚠️ **NOTA DE ACTUALIZACIÓN (2026-08-28):** Esta guía menciona `quality.yml` (workflow reutilizable) en varios ejemplos. **Ese workflow YA NO EXISTE** desde la consolidación — sus jobs (lint/format/typecheck) son ahora `if: false` inline dentro de `ci.yml`, y `ci.yml` cambió de 9 jobs a un gate de governance (verify-signatures, commit-lint, pr-title-lint, dco, dependency-review, zombie-workflow-guard + jobs quality/build/test deshabilitados). **El estado real de los workflows está en [`CONTEXT-CICD.md`](./CONTEXT-CICD.md) §3.3** — esta guía es didáctica: los conceptos (CI/CD, pipelines, DORA) siguen vigentes; los ejemplos de archivos concretos pueden estar desactualizados.
-
 ---
 
 ## 🎯 Objetivos de aprendizaje
@@ -16,7 +14,7 @@ Al terminar esta guía, serás capaz de:
 - ✅ **Enumerar las etapas típicas** de un pipeline CI/CD y su orden lógico
 - ✅ **Explicar "shifting left"** y por qué mover validaciones temprano ahorra costos
 - ✅ **Identificar las 4 métricas DORA** y qué mide cada una
-- ✅ **Reconocer los 8 workflows** del proyecto y su propósito general
+- ✅ **Reconocer los 9 workflows** del proyecto y su propósito general
 - ✅ **Seguir un Pull Request real** a lo largo del pipeline del proyecto
 
 ---
@@ -106,14 +104,14 @@ flowchart LR
 
 ### 1.4 CI vs CD: Tabla comparativa
 
-| Aspecto              | **CI (Integración Continua)**           | **CD (Despliegue Continuo / Entrega Continua)**  |
-| -------------------- | --------------------------------------- | ------------------------------------------------ |
-| **Qué hace**         | Verifica cada cambio automáticamente    | Publica cambios verificados a entornos           |
-| **Cuándo corre**     | En cada Pull Request (y push a main)    | Tras CI exitosa, en push a main o tag            |
-| **Objetivo**         | Detectar errores _temprano_             | Reducir fricción entre "listo" y "en producción" |
-| **Salida**           | ✅ Pass / ❌ Fail (badge en PR)         | Artefacto desplegado (imagen Docker, URL)        |
-| **Riesgo si falla**  | Tiempo de desarrollo perdido            | Incidente en producción (usuarios afectados)     |
-| **En este proyecto** | `ci.yml`, `security.yml`, `preview.yml` | `deploy.yml`, `release.yml`                      |
+| Aspecto              | **CI (Integración Continua)**                          | **CD (Despliegue Continuo / Entrega Continua)**  |
+| -------------------- | ------------------------------------------------------ | ------------------------------------------------ |
+| **Qué hace**         | Verifica cada cambio automáticamente                   | Publica cambios verificados a entornos           |
+| **Cuándo corre**     | En cada Pull Request (y push a main)                   | Tras CI exitosa, en push a main o tag            |
+| **Objetivo**         | Detectar errores _temprano_                            | Reducir fricción entre "listo" y "en producción" |
+| **Salida**           | ✅ Pass / ❌ Fail (badge en PR)                        | Artefacto desplegado (imagen Docker, URL)        |
+| **Riesgo si falla**  | Tiempo de desarrollo perdido                           | Incidente en producción (usuarios afectados)     |
+| **En este proyecto** | `ci.yml`, `quality.yml`, `security.yml`, `preview.yml` | `deploy.yml`, `release.yml`                      |
 
 > **Nota**: "Continuous Delivery" = listo para deploy manual. "Continuous Deployment" = deploy automático. Este proyecto hace **Continuous Deployment** a staging y **Delivery** a production (requiere approval manual).
 
@@ -145,19 +143,19 @@ flowchart LR
 
 **Descripción de cada etapa:**
 
-| Etapa                 | Qué ocurre                         | Herramientas típicas         | En este proyecto                                        |
-| --------------------- | ---------------------------------- | ---------------------------- | ------------------------------------------------------- |
-| **Source**            | Commit/PR inicia el pipeline       | Git, GitHub                  | Push a rama, PR a `main`                                |
-| **Lint/Format**       | Estilo, tipos, formato             | ESLint, Prettier, TypeScript | `ci.yml` (jobs inline `if: false`; antes `quality.yml`) |
-| **Unit Tests**        | Funciones aisladas                 | Vitest                       | `ci.yml` → `test-unit-client/server`                    |
-| **Integration Tests** | Módulos + DB real                  | Vitest + PostgreSQL service  | `ci.yml` → `test-integration`                           |
-| **Build**             | Compilar a artefactos              | Vite, `npm run build`        | `ci.yml` → `build` job                                  |
-| **Security**          | SAST, SCA, secrets, SBOM           | CodeQL, Trivy, Gitleaks      | `security.yml` + `scheduled-security.yml`               |
-| **Docker Build**      | Imagen multi-stage                 | Docker, BuildKit             | `deploy.yml` → `docker-build`                           |
-| **Validate Image**    | Boot contra stack emulado          | Floci + Postgres             | `deploy.yml` → `docker-build` services                  |
-| **Push Registry**     | Subir a ECR/GHCR                   | `aws ecr`, OIDC              | `deploy.yml` → `ecr-push`                               |
-| **Deploy Staging**    | ECS Fargate staging                | AWS CLI, task def            | `deploy.yml` → `deploy-staging`                         |
-| **Deploy Prod**       | ECS Fargate prod + circuit breaker | AWS CLI, approval gate       | `deploy.yml` → `deploy-production`                      |
+| Etapa                 | Qué ocurre                         | Herramientas típicas         | En este proyecto                          |
+| --------------------- | ---------------------------------- | ---------------------------- | ----------------------------------------- |
+| **Source**            | Commit/PR inicia el pipeline       | Git, GitHub                  | Push a rama, PR a `main`                  |
+| **Lint/Format**       | Estilo, tipos, formato             | ESLint, Prettier, TypeScript | `quality.yml` (reusable)                  |
+| **Unit Tests**        | Funciones aisladas                 | Vitest                       | `ci.yml` → `test-unit-client/server`      |
+| **Integration Tests** | Módulos + DB real                  | Vitest + PostgreSQL service  | `ci.yml` → `test-integration`             |
+| **Build**             | Compilar a artefactos              | Vite, `npm run build`        | `ci.yml` → `build` job                    |
+| **Security**          | SAST, SCA, secrets, SBOM           | CodeQL, Trivy, Gitleaks      | `security.yml` + `scheduled-security.yml` |
+| **Docker Build**      | Imagen multi-stage                 | Docker, BuildKit             | `deploy.yml` → `docker-build`             |
+| **Validate Image**    | Boot contra stack emulado          | Floci + Postgres             | `deploy.yml` → `docker-build` services    |
+| **Push Registry**     | Subir a ECR/GHCR                   | `aws ecr`, OIDC              | `deploy.yml` → `ecr-push`                 |
+| **Deploy Staging**    | ECS Fargate staging                | AWS CLI, task def            | `deploy.yml` → `deploy-staging`           |
+| **Deploy Prod**       | ECS Fargate prod + circuit breaker | AWS CLI, approval gate       | `deploy.yml` → `deploy-production`        |
 
 > 🔗 **Referencia técnica completa**: [`../../cicd-estado-actual.md`](../../cicd-estado-actual.md#4-mapa-del-pipeline--diagrama-mermaid-del-flujo-completo-del-pr-al-deploy) — diagrama Mermaid del flujo completo PR → deploy.
 
@@ -176,7 +174,7 @@ Todo pipeline empieza con un **evento**: un push a una rama o un Pull Request ab
 Verifica que el código siga las reglas de estilo del equipo: formato (Prettier), reglas de calidad (ESLint) y tipos (TypeScript). Es la etapa **más rápida y barata** — no necesita base de datos ni servicios.
 
 ```jsonc
-// En este proyecto: los jobs de calidad (lint + format de client/server) son inline en ci.yml (if: false)
+// En este proyecto: quality.yml llama a lint + format de client y server
 // Source: package.json (scripts)
 "lint": "npm run lint --workspaces --if-present",
 "format:check": "npm run format:check --workspaces --if-present"
@@ -231,7 +229,7 @@ flowchart LR
 | Momento de detección   | Costo relativo | Ejemplo en este proyecto                                                    |
 | ---------------------- | -------------- | --------------------------------------------------------------------------- |
 | **Pre-commit (local)** | 1x             | Husky: Semgrep SAST (100+ reglas), Gitleaks staged, lint-staged, commitlint |
-| **PR / CI**            | 10x            | `ci.yml` + `security.yml`: tests, build, SAST, SCA, SBOM                    |
+| **PR / CI**            | 10x            | `ci.yml` + `quality.yml` + `security.yml`: tests, build, SAST, SCA, SBOM    |
 | **Staging / Preview**  | 100x           | `preview.yml`: entorno efímero por PR, smoke tests contra Floci             |
 | **Producción**         | 1000x+         | Incidentes reales, rollback, MTTR, reputación                               |
 
@@ -321,7 +319,7 @@ Mes 6: 1 deployment/día    (elite: CI/CD maduro + cultura de cambios pequeños)
 | Fase | Tiempo típico | Qué ocurre |
 |------|---------------|------------|
 | Commit → PR open | 0-30 min | Dev hace push, abre PR |
-| PR → CI complete | 10-15 min | ci.yml + security.yml |
+| PR → CI complete | 10-15 min | ci.yml + security.yml + quality.yml |
 | CI → Merge | 15-60 min | Code review + approvals |
 | Merge → Deploy staging | 8-10 min | deploy.yml: docker-build + ecr-push + deploy-staging |
 | Staging → Production | 5-30 min | Manual approval + deploy-production |
@@ -367,8 +365,8 @@ Mes 6: 1 deployment/día    (elite: CI/CD maduro + cultura de cambios pequeños)
 **Quality gates que protegen el CFR en este repo**:
 | Gate | Qué atrapa | Workflow/Job |
 |------|------------|--------------|
-| Lint + format | Syntax errors, style drift, unused vars | `ci.yml` (jobs inline `if: false`) |
-| TypeScript check | Type errors, breaking API changes | `ci.yml` |
+| Lint + format | Syntax errors, style drift, unused vars | `quality.yml` (reusable) |
+| TypeScript check | Type errors, breaking API changes | `quality.yml` |
 | Unit tests | Logic regressions, edge cases | `ci.yml` test-unit-\* |
 | Integration tests | DB schema drift, API contract breaks | `ci.yml` test-integration |
 | E2E tests | User journey breaks, UI regressions | `ci.yml` e2e |
@@ -389,7 +387,7 @@ Mes 6: 1 deployment/día    (elite: CI/CD maduro + cultura de cambios pequeños)
 
 | Categoría          | Herramientas destacadas                               | Qué usa este proyecto                                         |
 | ------------------ | ----------------------------------------------------- | ------------------------------------------------------------- |
-| **CI/CD SaaS**     | GitHub Actions, GitLab CI, CircleCI, Buildkite        | **GitHub Actions** (native, gratis para público, 8 workflows) |
+| **CI/CD SaaS**     | GitHub Actions, GitLab CI, CircleCI, Buildkite        | **GitHub Actions** (native, gratis para público, 9 workflows) |
 | **Self-hosted**    | Jenkins, TeamCity, Drone, Woodpecker                  | No (runners `ubuntu-latest` de GitHub)                        |
 | **Contenedores**   | Docker, BuildKit, Kaniko, Podman                      | **Docker multi-stage** (`apps/server/Dockerfile`)             |
 | **Orquestación**   | Kubernetes, ECS, Nomad, Docker Swarm                  | **AWS ECS Fargate** (serverless containers)                   |
@@ -426,20 +424,19 @@ Para situar dónde está tu equipo/proyecto, usa este modelo simplificado basado
 
 ## 2. Implementación en el proyecto: El pipeline real
 
-### 2.1 Inventario de workflows (8 workflows — post-cleanup + consolidación 2026-08-28)
+### 2.1 Inventario de workflows (9 workflows, no 12 — post-cleanup agosto 2026)
 
-| Workflow               | Archivo                  | Tipo            | Propósito                                                                                                                                        | Trigger principal                     |
-| ---------------------- | ------------------------ | --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------- |
-| **CI**                 | `ci.yml`                 | CI principal    | Gate governance: verify-signatures, commit-lint, pr-title-lint, dco, dependency-review, zombie-workflow-guard (+ quality/build/test `if: false`) | `pull_request` a `main`               |
-| **Security**           | `security.yml`           | Security        | Trivy SCA + CodeQL SAST + Gitleaks diff + SBOM                                                                                                   | `pull_request` + `push` main          |
-| **Scheduled Security** | `scheduled-security.yml` | Security cron   | Gitleaks full-history + OSV Scanner (semanal)                                                                                                    | `schedule` (cron)                     |
-| **Security Digest**    | `security-digest.yml`    | Security digest | Comentario automático en PR si hallazgos críticos                                                                                                | `workflow_dispatch` + schedule        |
-| **Preview**            | `preview.yml`            | CD Preview      | Levanta stack Floci+Postgres+Docker por PR                                                                                                       | `pull_request` (opened/synchronize)   |
-| **Deploy**             | `deploy.yml`             | CD Principal    | 2 fases: docker-build (Floci) → ECR OIDC → ECS staging/prod                                                                                      | `push` a `main` + `workflow_dispatch` |
-| **Release**            | `release.yml`            | Release         | Changesets: version bump + npm publish + tags                                                                                                    | `push` a `main`                       |
-| **CI Enterprise**      | `ci-enterprise.yml`      | CI Extended     | Pipeline extendido para validaciones enterprise                                                                                                  | `workflow_dispatch`                   |
-
-> ⚠️ **Nota (2026-08-28):** `quality.yml` fue **eliminado** en la consolidación — sus jobs de calidad ahora son `if: false` inline en `ci.yml`. Por eso el inventario pasó de 9 a 8 workflows. Versiones viejas de esta tabla (y del curso) mencionan 9; el estado verificado está en `CONTEXT-CICD.md` §3.3.
+| Workflow               | Archivo                  | Tipo            | Propósito                                                   | Trigger principal                     |
+| ---------------------- | ------------------------ | --------------- | ----------------------------------------------------------- | ------------------------------------- |
+| **CI**                 | `ci.yml`                 | CI principal    | Path filtering → quality → tests → build → e2e              | `pull_request` a `main`               |
+| **Quality**            | `quality.yml`            | Reusable        | Lint + format + typecheck (client/server)                   | `workflow_call` desde `ci.yml`        |
+| **Security**           | `security.yml`           | Security        | Trivy SCA + CodeQL SAST + Gitleaks diff + SBOM              | `pull_request` + `push` main          |
+| **Scheduled Security** | `scheduled-security.yml` | Security cron   | Gitleaks full-history + OSV Scanner (semanal)               | `schedule` (cron)                     |
+| **Security Digest**    | `security-digest.yml`    | Security digest | Comentario automático en PR si hallazgos críticos           | `workflow_dispatch` + schedule        |
+| **Preview**            | `preview.yml`            | CD Preview      | Levanta stack Floci+Postgres+Docker por PR                  | `pull_request` (opened/synchronize)   |
+| **Deploy**             | `deploy.yml`             | CD Principal    | 2 fases: docker-build (Floci) → ECR OIDC → ECS staging/prod | `push` a `main` + `workflow_dispatch` |
+| **Release**            | `release.yml`            | Release         | Changesets: version bump + npm publish + tags               | `push` a `main`                       |
+| **CI Enterprise**      | `ci-enterprise.yml`      | CI Extended     | Pipeline extendido para validaciones enterprise             | `workflow_dispatch`                   |
 
 > 📋 **Inventario técnico detallado**: [`../../workflows-mantenimiento-guia.md#4-inventario-de-workflows-y-composite-actions`](../../workflows-mantenimiento-guia.md#4-inventario-de-workflows-y-composite-actions) — tabla completa con jobs, triggers, permissions, y composite actions.
 
@@ -451,7 +448,7 @@ Cada fila es un **workflow** — un archivo `.yml` en `.github/workflows/`. Algu
 
 - **Trigger principal**: el evento que lo dispara. `pull_request` = corre en cada PR; `push` = corre al pushear a una rama; `schedule` = corre por tiempo (cron); `workflow_dispatch` = solo manual; `workflow_call` = lo invoca otro workflow.
 - **CI vs CD**: los de tipo CI validan (no cambian el entorno); los de tipo CD despliegan (cambian el entorno real).
-- **Reusable**: el patrón de reusable workflow sigue vigente (ver `security.yml` con trigger `workflow_call`); `quality.yml` fue eliminado en la consolidación 2026-08-28.
+- **Reusable**: `quality.yml` no corre solo — lo llama `ci.yml`. Esto evita duplicar la config de lint.
 
 > 💡 **No memorices la tabla**: úsala como referencia. Cuando necesites saber qué hace un workflow, la consultas. La guía 02 te enseña a leer cualquier workflow por ti mismo.
 
@@ -511,7 +508,7 @@ El pipeline actual **implementa** el plan de 8 semanas de [`../../cicd-plan-impl
 
 | Sprint del plan | Qué entregó                     | Workflow(s) resultantes                                         |
 | --------------- | ------------------------------- | --------------------------------------------------------------- |
-| 1-2             | CI base + tests + quality gates | `ci.yml`                                                        |
+| 1-2             | CI base + tests + quality gates | `ci.yml`, `quality.yml`                                         |
 | 3               | Security multi-capa             | `security.yml`, `scheduled-security.yml`, `security-digest.yml` |
 | 4               | Preview environments            | `preview.yml`                                                   |
 | 5-6             | CD: Docker + Floci + ECS        | `deploy.yml`                                                    |
@@ -687,11 +684,12 @@ Para cada una: ¿qué tool/hook la ejecutaría antes? ¿Cuánto tiempo ahorrarí
 
 **Para todo el equipo**. Los devs las usan para argumentar mejoras ("nuestro lead time es 3 días, queremos <1 día → necesitamos feature flags"). Los managers las usan para tracking. Ambos ganan visibilidad.
 
-### ¿Por qué el proyecto usa 8 workflows separados en lugar de 1 monolítico?
+### ¿Por qué el proyecto usa 9 workflows separados en lugar de 1 monolítico?
 
 **Separación de responsabilidades y reutilización**:
 
-- `ci.yml` = CI principal (gate governance del PR)
+- `ci.yml` = CI principal (PR validation)
+- `quality.yml` = reusable (lint/format/typecheck) — llamado por `ci.yml` y `ci-enterprise.yml`
 - `security.yml` = security pipeline — corre en PR + push + reusable
 - `deploy.yml` = CD pipeline — solo en push/main + dispatch
 - `preview.yml` = preview environments — solo PRs
@@ -702,9 +700,9 @@ Para cada una: ¿qué tool/hook la ejecutaría antes? ¿Cuánto tiempo ahorrarí
 
 **Beneficios**: aislamiento de fallos, reutilización (DRY), permisos mínimos por workflow, concurrencia independiente, debugging más fácil.
 
-### ¿Qué es un "reusable workflow"?
+### ¿Qué es un "reusable workflow" y por qué `quality.yml` lo es?
 
-Un **reusable workflow** se invoca via `uses: ./.github/workflows/<name>.yml` desde otro workflow (`workflow_call` trigger). En este proyecto el ejemplo canónico era `quality.yml` (eliminado 2026-08-28); el patrón sigue vigente en `security.yml` (trigger `workflow_call`). Evita duplicar configuración entre múltiples workflows.
+Un **reusable workflow** se invoca via `uses: ./.github/workflows/quality.yml` desde otro workflow (`workflow_call` trigger). `ci.yml` lo llama pasando inputs dinámicos (`run-client`, `run-server`) según qué paths cambiaron. Esto evita duplicar la config de lint/format/typecheck en múltiples workflows.
 
 ### ¿Cuál es la diferencia entre `pull_request` y `push` triggers en `ci.yml` vs `deploy.yml`?
 
@@ -767,9 +765,9 @@ El workflow `deploy.yml` tiene **jobs "skipped" paralelos** (`ecr-push-skipped`,
 | **Pipeline stages**               | Source → Lint → Unit Tests → Integration → Build → Security → Image → Registry → Staging → (Approval) → Production |
 | **Shifting Left**                 | Detectar temprano = 1x costo; detectar tarde = 1000x+ costo                                                        |
 | **DORA metrics**                  | Frequency, Lead Time, MTTR, Change Failure Rate — estándar de la industria                                         |
-| **8 workflows del proyecto**      | ci, security, scheduled-security, security-digest, preview, deploy, release, ci-enterprise                         |
+| **9 workflows del proyecto**      | ci, quality, security, scheduled-security, security-digest, preview, deploy, release, ci-enterprise                |
 | **Path filtering**                | `dorny/paths-filter` → outputs → `needs.changes.outputs.*` → `if:` condicionales                                   |
-| **Reusable workflows**            | Patrón `workflow_call` (ej: `security.yml`); `quality.yml` eliminado 2026-08-28                                    |
+| **Reusable workflows**            | `quality.yml` llamado por `ci.yml` con inputs dinámicos — DRY                                                      |
 | **Concurrency groups**            | PRs: cancel-in-progress=true; CD: cancel-in-progress=false (protege integridad)                                    |
 | **Permissions mínimo privilegio** | `contents: read` por defecto; `checks: write`/`id-token: write` solo donde se necesitan                            |
 | **Gating con vars**               | `if: ${{ vars.AWS_ROLE_ARN != '' }}` — CD solo corre si infra existe                                               |
@@ -785,7 +783,7 @@ Antes de pasar a la siguiente guía, verifica que puedes:
 - [ ] Dibujar (mental o en papel) las etapas de un pipeline típico en orden
 - [ ] Explicar "shifting left" y dar 3 ejemplos del proyecto (pre-commit, PR CI, preview)
 - [ ] Nombrar las 4 métricas DORA y decir qué mide cada una
-- [ ] Identificar los 8 workflows del proyecto y el trigger principal de cada uno
+- [ ] Identificar los 9 workflows del proyecto y el trigger principal de cada uno
 - [ ] Explicar qué hace `dorny/paths-filter` y cómo `needs.changes.outputs` rutea jobs
 - [ ] Diferenciar `pull_request` vs `push` triggers y por qué `ci.yml` usa solo PR
 - [ ] Explicar por qué `concurrency` tiene `cancel-in-progress: true` en CI pero `false` en CD

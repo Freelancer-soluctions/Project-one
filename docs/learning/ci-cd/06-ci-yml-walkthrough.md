@@ -2,15 +2,13 @@
 
 > **Guía 06 de 6 del nivel Intermedio** | Prerequisitos: **Nivel Fundamentos completado (guías 00-04) + Guía 05 (Husky git hooks)** | Anterior: [`05-husky-git-hooks.md`](./05-husky-git-hooks.md) | Siguiente: [`07-quality-yml-reusable.md`](./07-quality-yml-reusable.md)
 
-> ⚠️ **NOTA DE ACTUALIZACIÓN (2026-08-28):** Esta guía es un walkthrough del `ci.yml` **histórico** (5 stages, 28 jobs, job reutilizable `quality`). Desde la consolidación (change `ci-governance-pre-merge-gates`, archivado), **`ci.yml` es un gate de governance**: `repo-discovery`, `verify-signatures`, `commit-lint`, `pr-title-lint`, `dco`, `dependency-review`, `zombie-workflow-guard` + jobs quality/build/test `if: false` + `ci-complete` (gated por `CI_MINIMAL`). **`quality.yml` YA NO EXISTE.** Los conceptos (path filtering, concurrency, service containers, JUnit reporting, fetch-depth, `.nvmrc`) siguen siendo la lógica real; solo cambió la estructura del archivo. **Estado real verificado: [`CONTEXT-CICD.md`](./CONTEXT-CICD.md) §3.3.**
-
 ---
 
 ## 🎯 Objetivos de aprendizaje
 
 Al terminar esta guía, serás capaz de:
 
-- ✅ **Leer `.github/workflows/ci.yml` línea por línea** y explicar cada uno de sus **9 jobs** (propósito, `needs`, `if`, dependencias) — _estructura histórica; el `ci.yml` actual es un gate de governance (ver banner arriba)_
+- ✅ **Leer `.github/workflows/ci.yml` línea por línea** y explicar cada uno de sus **9 jobs** (propósito, `needs`, `if`, dependencias)
 - ✅ **Explicar el path filtering** con `dorny/paths-filter@v4` (filtros `client`/`server`/`e2e`/`shared`) y cómo sus outputs condicionan el resto del pipeline
 - ✅ **Entender el bloque `concurrency`** (`group: pr-<n>`, `cancel-in-progress: true`) y por qué se usa en PRs
 - ✅ **Configurar un service container de PostgreSQL 16** con healthcheck (`pg_isready`) y `prisma migrate deploy` antes de los tests
@@ -102,7 +100,7 @@ GitHub Actions asigna por defecto un `GITHUB_TOKEN` con permisos amplios. Aquí 
 
 ### 2.2 `on: pull_request` hacia `main`
 
-El trigger es **exclusivamente Pull Request hacia `main`**. No corre en `push` a ramas feature (eso queda para los hooks pre-push de la guía 05), ni en `workflow_dispatch` manual (_en el `ci.yml` histórico, el dispatch manual era para `quality.yml` — hoy inexistente; los jobs quality/build/test están `if: false`_).
+El trigger es **exclusivamente Pull Request hacia `main`**. No corre en `push` a ramas feature (eso queda para los hooks pre-push de la guía 05), ni en `workflow_dispatch` manual (eso es para `quality.yml`).
 
 ### 2.3 `concurrency`: cancela runs obsoletos del mismo PR
 
@@ -593,9 +591,8 @@ Un **zombie workflow** es un archivo `.github/workflows/*.yml` que **se eliminó
 Los workflows eliminados que se vigilan:
 
 - `pr-validation.yml` — consolidado en `ci.yml`
-- `lint.yml` — consolidado en `quality.yml` (y ambos **eliminados en la consolidación 2026-08-28**)
-
-- `formatter.yml` — consolidado en `quality.yml` (y ambos **eliminados en la consolidación 2026-08-28**)
+- `lint.yml` — consolidado en `quality.yml`
+- `formatter.yml` — consolidado en `quality.yml`
 
 ### 9.2 Sin `needs` — corre en paralelo
 
