@@ -588,7 +588,7 @@ jobs:
           fetch-depth: 0
       - uses: ./.github/actions/setup-monorepo
       - run: npm run build --workspace=apps/client
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: client-dist
           path: apps/client/dist/
@@ -826,7 +826,7 @@ jobs:
       - uses: ./.github/actions/setup-monorepo
       - name: Run Client Unit Tests with Coverage
         run: npm run test:coverage --workspace=apps/client
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: coverage-client
@@ -856,7 +856,7 @@ jobs:
       - uses: ./.github/actions/setup-monorepo
       - name: Run Server Unit Tests with Coverage
         run: npm run test:coverage --workspace=apps/server
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: coverage-server
