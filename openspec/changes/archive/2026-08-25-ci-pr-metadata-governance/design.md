@@ -95,6 +95,9 @@
       chore
       revert
     requireScope: false
+    subjectPattern: '^[a-z]'
+    subjectPatternError: |
+      The subject must start with a lowercase letter (e.g. "feat: add login", not "Feat: add login").
     ignoreLabels: |
       bot
       ignore-semantic-pull-request
@@ -139,6 +142,8 @@
 - `dependency-updaters` category → dependabot[bot], renovate[bot], snyk-bot[bot]
 - All other bots → must sign off (strict default)
 - Human contributors → must sign off always
+
+**Traceability note (permissions)**: The `dco` job in `ci.yml` (lines 371-372) declares `permissions: contents: read` AND `pull-requests: read`. The `pull-requests: read` scope is REQUIRED by `KineticCafe/actions-dco` to enumerate PR commits via the GitHub API; omitting it results in HTTP 403. This is a justified least-privilege superset over AC-005f (which specified `contents: read` only).
 
 ---
 

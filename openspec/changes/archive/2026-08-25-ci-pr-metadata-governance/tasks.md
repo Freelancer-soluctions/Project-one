@@ -57,7 +57,7 @@ pr-title-lint:
 
 **Notes**:
 
-- `subjectPattern` REMOVED — was stricter than commitlint (`^[A-Z]` rejection). PR title lint validates TYPE only; commitlint handles full message format.
+- `subjectPattern` INCLUDED — set to `^[a-z]` (rejects capital-first subject) with a clear error message (`subjectPatternError`). PR title lint validates TYPE + lowercase subject; commitlint handles full message format.
 - `merge_group` step emits success — required check is satisfiable in merge queue.
 - `continue-on-error: true` for Phase 1 rollout (remove in Phase 2).
 
@@ -300,49 +300,7 @@ Create `.github/PULL_REQUEST_TEMPLATE.md` with 6 sections.
 
 ### Implementation
 
-```markdown
-## Summary
-
-<!-- What does this PR do and why? Link to context if needed. -->
-
-## Type / Scope
-
-<!-- Check all that apply: -->
-
-- [ ] Client (React/Vite)
-- [ ] Server (Express/Prisma)
-- [ ] E2E (Playwright)
-- [ ] Shared/Config
-- [ ] CI/CD
-
-## Related Issue
-
-<!-- Required for traceability. Use "Closes #<number>" to auto-close on merge. -->
-
-Closes #
-
-## How Has This Been Tested?
-
-<!-- Describe the tests you ran. Provide reproducibility steps if manual. -->
-
-- [ ] Unit tests (vitest)
-- [ ] Integration tests
-- [ ] E2E tests (Playwright)
-- [ ] Manual testing
-- [ ] N/A (docs/config only)
-
-## Screenshots (if applicable)
-
-<!-- Add screenshots or screen recordings for UI changes. Remove this section if not applicable. -->
-
-## Pre-merge Checklist
-
-- [ ] `Signed-off-by` present in all commits (`git commit -s`)
-- [ ] Tests pass locally (`npm run test`)
-- [ ] Documentation updated (if applicable)
-- [ ] No breaking changes (or documented in Summary)
-- [ ] PR title follows [Conventional Commits](https://www.conventionalcommits.org/) format
-```
+Full template: .github/PULL_REQUEST_TEMPLATE.md
 
 ### Acceptance
 
