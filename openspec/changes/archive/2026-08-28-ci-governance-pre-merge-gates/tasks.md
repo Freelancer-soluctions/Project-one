@@ -7,7 +7,7 @@
 
 ## 2. Level 3 — Merge Gates (Admin Actions — COMBINED)
 
-- [ ] 2.1 Prepare COMBINED PUT payload for Admin-2. **Steps**:
+- [x] 2.1 Prepare COMBINED PUT payload for Admin-2. **Steps**:
   1. **GET** current ruleset: `GET /repos/{owner}/{repo}/rulesets/21227644`
   2. **Verify** which rules exist (especially `required_signatures` — do NOT assume it exists)
   3. **Merge** new rules into returned body: `pull_request` (≥1 review, dismiss stale, last push — params: `required_approving_review_count`, `dismiss_stale_reviews_on_push`, `require_last_push_approval`, `require_code_owner_review`), `required_linear_history`, `non_fast_forward`
@@ -19,10 +19,10 @@
   - Document handoff as blocked-until-admin. **Esfuerzo: 3-4h**
     > CORRECCIÓN API (2026-08-26, research): los strings de tipo en el payload deben ser: `pull_request` (con params: required_approving_review_count, dismiss_stale_reviews_on_push, require_last_push_approval, require_code_owner_review), `non_fast_forward` (NO block_force_pushes), `required_linear_history`, `required_signatures`, `required_status_checks`. Usar strings incorrectos → HTTP 422. Ver D8.
     > **Handoff Document Created**: `openspec/changes/ci-governance-pre-merge-gates/ADMIN-2-HANDOFF.md` — contains full COMBINED PUT payload with correct API type strings, all 5 required status checks, and bypass_actors: []
-    > **Status**: Blocked until Admin-2 applies payload. Task remains `- [ ]` until applied.
-- [ ] 2.2 Document Admin-1 `squash_merge_commit_title` settings: change to `PR_TITLE` + `COMMIT_MESSAGES` (consistent with ci-pr-metadata-governance D3). Document handoff as blocked-until-admin. **Esfuerzo: 0.5h**
+    > **Status (2026-08-28)**: ✅ DONE — verified live via gh api against ruleset 21227644. All rules PASS (pull_request reviews, linear history, signatures preserved, status checks strict with 4 checks, bypass_actors=[]). Note: 'CI Complete' remains unbound — intentional (ci-complete skipped while CI_MINIMAL=true).
+- [x] 2.2 Document Admin-1 `squash_merge_commit_title` settings: change to `PR_TITLE` + `COMMIT_MESSAGES` (consistent with ci-pr-metadata-governance D3). Document handoff as blocked-until-admin. **Esfuerzo: 0.5h**
   > **Handoff Document Created**: `openspec/changes/ci-governance-pre-merge-gates/ADMIN-1-HANDOFF.md` — documents both settings with rationale (preserves DCO trailers, consistent with ci-pr-metadata-governance D3)
-  > **Status**: Blocked until Admin-1 applies settings. Task remains `- [ ]` until applied.
+  > **Status (2026-08-28)**: ✅ DONE — verified live via gh api. allow_squash_merge=true, squash_merge_commit_title=PR_TITLE, squash_merge_commit_message=COMMIT_MESSAGES.
 
 ## 3. Post-Merge Governance (OUT OF SCOPE — future change)
 
@@ -45,8 +45,8 @@
 | ------- | :-----: | :--------------: | ------------------- | ------------------------------------------------------------------------------------------------------------------ |
 | 1.1     |   L2    | **OUT OF SCOPE** | —                   | Pre-existing SECURITY control (ci-security-enhance/hardening). NOT a governance deliverable. Spec in OUT-OF-SCOPE. |
 | 1.2     |   L2    |   ✅ Verified    | —                   | PR Title Lint exists with `continue-on-error: true`                                                                |
-| 2.1     |   L3    |  Handoff ready   | Admin-2             | COMBINED PUT payload documented in ADMIN-2-HANDOFF.md                                                              |
-| 2.2     |   L3    |  Handoff ready   | Admin-1             | Squash settings documented in ADMIN-1-HANDOFF.md                                                                   |
+| 2.1     |   L3    |     ✅ Done      | —                   | COMBINED PUT payload documented in ADMIN-2-HANDOFF.md                                                              |
+| 2.2     |   L3    |     ✅ Done      | —                   | Squash settings documented in ADMIN-1-HANDOFF.md                                                                   |
 | ~~3.1~~ | ~~L4~~  |    ~~Future~~    | ~~Deploy target~~   | OUT OF SCOPE → `ci-deploy-gating`                                                                                  |
 | ~~3.2~~ | ~~L4~~  |    ~~Future~~    | ~~Health endpoint~~ | OUT OF SCOPE → `ci-deploy-gating`                                                                                  |
 | ~~4.1~~ | ~~L4~~  |    ~~Future~~    | —                   | OUT OF SCOPE → `ci-rollback-strategy`                                                                              |
@@ -54,8 +54,8 @@
 | ~~5.1~~ | ~~L5~~  |   ~~Document~~   | —                   | OUT OF SCOPE → `ci-audit-streaming`                                                                                |
 | ~~6.1~~ | ~~Doc~~ |    ~~Future~~    | —                   | OUT OF SCOPE → `ci-contributing-governance`                                                                        |
 
-**Completed**: 1.2 (1 task — 1.1 is OUT OF SCOPE, not a governance task)
-**Blocked by admin**: 2.1, 2.2 (2 tasks — handoff docs created, awaiting admin action)
+**Completed**: 1.2, 2.1, 2.2 (3 tasks — 1.1 is OUT OF SCOPE)
+**Blocked by admin**: none — 2.1 and 2.2 applied and verified (2026-08-28)
 **OUT OF SCOPE (post-merge, future)**: 3.1, 3.2, 4.1, 4.2, 5.1, 6.1 (6 tasks → 4 future changes)
 **OUT OF SCOPE (security control, not governance)**: 1.1 (1 task → reference only)
 

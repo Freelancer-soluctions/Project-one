@@ -2718,13 +2718,13 @@ Además de los gates puntuales de GOVERNANCE que aparecen dentro de cada stage (
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────────────────┐
-│           PIPELINE CI/CD ENTERPRISE — TODAS LAS ACTIVIDADES POR STAGE                  │
+│           PIPELINE CI/CD ENTERPRISE — TODAS LAS ACTIVIDADES POR STAGE                   │
 │           Testing / Security / Quality / Build / Deploy / Governance / Monitoring       │
 │                                                                                         │
-│  ESTRATEGIAS:  [SL] Shift-left  [FF] Fail-fast  [F1] Fail-first  [PV] Progressive val. │
+│  ESTRATEGIAS:  [SL] Shift-left  [FF] Fail-fast  [F1] Fail-first  [PV] Progressive val.  │
 │                [DD] Defense-in-depth  [BL] Build-less/test-more  [FB] Fast feedback     │
 │                                                                                         │
-│  Convención: cada check local DEBE tener espejo en CI. Herramientas entre paréntesis.  │
+│  Convención: cada check local DEBE tener espejo en CI. Herramientas entre paréntesis.   │
 └─────────────────────────────────────────────────────────────────────────────────────────┘
 
  [Commit/PR] → [ENTRY: PATH-FILTERED + CHANGE-DETECTION [BL]]
@@ -2733,8 +2733,8 @@ Además de los gates puntuales de GOVERNANCE que aparecen dentro de cada stage (
        │          └─ Diff-scoped triggers: solo workspaces afectados en monorepo
        ▼
  ╔═══════════════════════════════════════════════════════════════════════════════════════╗
- ║  CI — INTEGRACIÓN CONTINUA (Stages 1–4)                                              ║
- ║  Construye confianza centrada en el artefacto: validate → build → integrate            ║
+ ║  CI — INTEGRACIÓN CONTINUA (Stages 1–4)                                               ║
+ ║  Construye confianza centrada en el artefacto: validate → build → integrate           ║
  ╚═══════════════════════════════════════════════════════════════════════════════════════╝
        │
  [STAGE 1: PRE-COMMIT HOOKS (local — skippable via --no-verify) [SL]]
@@ -2811,7 +2811,7 @@ Además de los gates puntuales de GOVERNANCE que aparecen dentro de cada stage (
 │  │  ├─ Secrets Detection full-repo + history (Gitleaks/TruffleHog) [SL]           │  │
 │  │  ├─ SAST diff-scoped en PR + full scan en merge/nightly [DD]                   │  │
 │  │  ├─ SCA dependency scan lockfiles (Dependabot/Snyk/OSV-Scanner)                │  │
-│  │  ├─ Dependency Review (security.yml — vuln+license en PR) [DD]                │  │
+│  │  ├─ Dependency Review (security.yml — vuln+license en PR) [DD]                 │  │
 │  │  ├─ License Compliance (FOSSA/ScanCode)                                        │  │
 │  │  ├─ IaC Scanning (Checkov/tfsec/KICS) — [OWASP]                                │  │
 │  │  ├─ Containerfile lint (Hadolint) — antes de Docker build                      │  │
