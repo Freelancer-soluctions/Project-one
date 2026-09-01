@@ -629,7 +629,7 @@ jobs:
         with:
           name: coverage-client
           path: apps/client/coverage/
-      - uses: SonarSource/sonarqube-scan-action@v4
+      - uses: SonarSource/sonarqube-scan-action@v8
         with:
           projectBaseDir: apps/client
         env:
@@ -686,7 +686,7 @@ jobs:
         with:
           name: coverage-server
           path: apps/server/tests/coverage/
-      - uses: SonarSource/sonarqube-scan-action@v4
+      - uses: SonarSource/sonarqube-scan-action@v8
         with:
           projectBaseDir: apps/server
           projectKey: project-one-server
