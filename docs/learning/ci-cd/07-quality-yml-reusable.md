@@ -2,6 +2,8 @@
 
 > **Guía 07 de 6 del nivel Intermedio** | Prerequisitos: **Fundamentos (00-04) + Guía 05 (Husky) + Guía 06 (`ci.yml`)** | Anterior: [`06-ci-yml-walkthrough.md`](./06-ci-yml-walkthrough.md) | Siguiente: [`08-composite-actions.md`](./08-composite-actions.md)
 
+> ⚠️ **NOTA DE DEPRECACIÓN (2026-08-28):** El workflow `quality.yml` que analiza esta guía **YA NO EXISTE**. Fue eliminado en la consolidación — sus checks (lint/format/typecheck) ahora son jobs `if: false` inline en `ci.yml`, y `ci.yml` no los invoca como reusable. **Esta guía se conserva por su valor didáctico del patrón `workflow_call`** (concepto vigente; `security.yml` declara el trigger `workflow_call`). El estado real de los workflows está en [`CONTEXT-CICD.md`](./CONTEXT-CICD.md) §3.3.
+
 ---
 
 ## 🎯 Objetivos de aprendizaje

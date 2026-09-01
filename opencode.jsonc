@@ -46,7 +46,7 @@
   },
   //subagents configuration
   "default_agent": "orchestrator",
-  "instructions": ["AGENTS.md", "CONTEXT.md"],
+  "instructions": ["AGENTS.md", "CONTEXT.md", "docs/CONTEXT-CICD.md"],
   // "env": {
   //   "BASH_ENV": "$HOME/.bash_env"
   // },
@@ -109,7 +109,7 @@
     },
     "orchestrator": {
       "mode": "primary",
-      "model": "nvidia/deepseek-ai/deepseek-v4-flash",
+      "model": "opencode/ling-3.0-flash-fin-free",
       "description": "Main orchestrator that delegates tasks to specialized agents",
       "prompt": "{file:docs/opencode/prompts/orchestrator.md}",
       "steps": 45,
@@ -131,7 +131,7 @@
     "spec-manager": {
       "mode": "subagent",
       "hidden": false,
-      "model": "opencode/hy3-free",
+      "model": "opencode/ling-3.0-flash-fin-free",
       "description": "Executes OpenSpec CLI - explore, propose, verify, archive",
       "prompt": "{file:docs/opencode/prompts/spec-manager.md}",
       "steps": 30,
@@ -144,7 +144,7 @@
     "git-manager": {
       "mode": "subagent",
       "hidden": false,
-      "model": "opencode/hy3-free",
+      "model": "opencode/mimo-v2.5-free",
       "description": "SCM and Conventional Commit specialist",
       "prompt": "{file:docs/opencode/prompts/git-manager.md}",
       "steps": 20,
@@ -157,7 +157,7 @@
     "planner": {
       "mode": "subagent",
       "hidden": false,
-      "model": "opencode/hy3-free",
+      "model": "opencode/ling-3.0-flash-fin-free",
       "description": "Planning specialist",
       "prompt": "{file:docs/opencode/prompts/planner.md}",
       "steps": 20,
@@ -172,7 +172,7 @@
     "developer": {
       "mode": "subagent",
       "hidden": false,
-      "model": "opencode/nemotron-3-ultra-free",
+      "model": "nvidia/moonshotai/kimi-k3",
       "description": "Implementation agent",
       "prompt": "{file:docs/opencode/prompts/developer.md}",
       "steps": 35,
@@ -190,7 +190,7 @@
     "reviewer": {
       "mode": "subagent",
       "hidden": false,
-      "model": "opencode/hy3-free",
+      "model": "opencode/ling-3.0-flash-fin-free",
       "description": "Code reviewer",
       "prompt": "{file:docs/opencode/prompts/reviewer.md}",
       "steps": 15,
@@ -203,7 +203,7 @@
     "researcher": {
       "mode": "subagent",
       "hidden": false,
-      "model": "opencode/hy3-free",
+      "model": "opencode/ling-3.0-flash-fin-free",
       "description": "Research agent",
       "prompt": "{file:docs/opencode/prompts/researcher.md}",
       "steps": 20,
@@ -218,7 +218,7 @@
     "project-manager": {
       "mode": "subagent",
       "hidden": false,
-      "model": "opencode/hy3-free",
+      "model": "opencode/mimo-v2.5-free",
       "description": "Handles Trello project-management workflows - card creation, updates, deletion, state transitions",
       "prompt": "{file:docs/opencode/prompts/project-manager.md}",
       "steps": 15,

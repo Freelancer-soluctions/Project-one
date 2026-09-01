@@ -44,7 +44,7 @@ Los workflows de GitHub Actions **son código** y, como todo código, **se pudre
 | **Node version pin**    | `.nvmrc`                                                    | Bump de versión cuando una dependencia sube su floor `engines.node` o sale release de seguridad de Node | Mensual (coincidir con security releases de Node) |
 | **Engines floors**      | `package.json` (raíz, `apps/client`, `apps/server`, `e2e`)  | Revisar que `>=20.0.0` siga siendo correcto al cambiar LTS                                              | Cuando cambia Node LTS (abril/octubre)            |
 | **Composite action**    | `.github/actions/setup-monorepo/action.yml`                 | Añadir/quitar pasos de setup compartidos por todos los jobs                                             | Trimestral o al añadir herramienta global         |
-| **Workflows (12)**      | `.github/workflows/*.yml`                                   | Cambios por-workflow: triggers, jobs, steps, secrets, permissions                                       | Según necesidad (PR-driven)                       |
+| **Workflows (8)**       | `.github/workflows/*.yml`                                   | Cambios por-workflow: triggers, jobs, steps, secrets, permissions                                       | Según necesidad (PR-driven)                       |
 | **Pre-commit hooks**    | `.husky/pre-commit`, `.husky/commit-msg`, `.husky/pre-push` | Actualizar cuando se añade/quita linter, scanner, test runner                                           | Al cambiar toolchain local                        |
 | **Third-party actions** | Todos los `uses:` en workflows y composite action           | Revisar versiones, CVEs, breaking changes                                                               | **Mensual** (auditoría de seguridad)              |
 | **Pre-commit timeouts** | `.husky/pre-commit` (bash default 120s)                     | Aumentar timeout si lint-staged + semgrep + gitleaks superan 120s                                       | Cuando se observe timeout falso positivo          |
@@ -74,14 +74,14 @@ npm error }
 - **Después:** `22.22.2`
 - **Commit:** `cf5e1bb` (branch `feature/ai-setup`, 2026-08-05)
 
-**Propagación:** 9 workflows + 1 composite action leen `node-version-file: '.nvmrc'`. Un solo commit actualizó la versión efectiva en **todos** ellos:
+**Propagación:** 8 workflows + 1 composite action leen `node-version-file: '.nvmrc'`. Un solo commit actualizó la versión efectiva en **todos** ellos:
 
-- `ci.yml` (jobs: quality, test-unit-client, test-unit-server, test-integration, test-smoke, build, e2e)
-- `quality.yml` (reusable)
+- `ci.yml` (jobs: verify-signatures, commit-lint, pr-title-lint, dco, dependency-review, zombie-workflow-guard + jobs quality/build/test `if: false`)
 - `security.yml` (jobs: dependency-scan, sast, sbom, dependency-review)
 - `release.yml`
 - `deploy.yml` (job: docker-build)
 - `preview.yml`
+- `scheduled-security.yml`, `security-digest.yml` (checkout only)
 - `.github/actions/setup-monorepo/action.yml` (composite)
 
 **Lección extraída:** **`.nvmrc` es la única fuente de verdad**. Nunca edites `node-version:` workflow por workflow. Un bump en `.nvmrc` + commit + re-run de CI propaga el cambio atómicamente a toda la flota.
@@ -137,20 +137,21 @@ Ocurría en el step `Report Client Unit Tests` (y análogos) de `ci.yml`. `dorny
 
 ## 4. Inventario de workflows y composite actions
 
-| Workflow / Action              | Archivo                                     | Disparador                                                 | Usa `.nvmrc`             | Notas                                                                                                            |
-| ------------------------------ | ------------------------------------------- | ---------------------------------------------------------- | ------------------------ | ---------------------------------------------------------------------------------------------------------------- |
-| **CI principal**               | `.github/workflows/ci.yml`                  | `pull_request` → `main`                                    | ✅ Sí (vía composite)    | 7 jobs: changes, quality, test-unit-client, test-unit-server, test-integration, test-smoke, build, e2e           |
-| **Code Quality (reusable)**    | `.github/workflows/quality.yml`             | `workflow_call`, `workflow_dispatch`                       | ✅ Sí                    | Lint + format + typecheck (skipped) por workspace                                                                |
-| **Security**                   | `.github/workflows/security.yml`            | `pull_request` → `main`, `push` → `main`, `workflow_call`  | ✅ Sí                    | 5 jobs: dependency-scan, sast, secrets, sbom, dependency-review                                                  |
-| **Release (Changesets)**       | `.github/workflows/release.yml`             | `push` → `main`                                            | ✅ Sí                    | `fetch-depth: 0` explícito para Changesets                                                                       |
-| **CD Deploy Pipeline**         | `.github/workflows/deploy.yml`              | `push` → `main`, `workflow_dispatch`                       | ✅ Sí (job docker-build) | 7 jobs: docker-build, ecr-push, deploy-staging, deploy-production + 3 skipped                                    |
-| **Preview Environments**       | `.github/workflows/preview.yml`             | `pull_request` (opened/reopened/sync), `workflow_dispatch` | ✅ Sí                    | Valida backend con Floci + Postgres efímera                                                                      |
-| **CI Enterprise**              | `.github/workflows/ci-enterprise.yml`       | `workflow_dispatch`, `workflow_call`                       | ✅ Sí                    | **No aplica a este monorepo** (paths `frontend/`, `backend/` inexistentes)                                       |
-| **Scheduled Security**         | `.github/workflows/scheduled-security.yml`  | `cron` (Mon 03:00 UTC), `workflow_dispatch`                | ✅ Sí (checkout only)    | Gitleaks full history scan + SARIF upload                                                                        |
-| **Security Digest**            | `.github/workflows/security-digest.yml`     | `cron` (Mon 03:00 UTC), `workflow_dispatch`                | ✅ Sí (checkout only)    | SBOM + OSV Scanner + digest comment to PR                                                                        |
-| **Setup Monorepo (composite)** | `.github/actions/setup-monorepo/action.yml` | Invocado por 6 jobs de `ci.yml`                            | ✅ Sí                    | **23 líneas**; setup-node, npm ci, cache Vitest (**sin checkout** — el job invocador clona con `fetch-depth: 0`) |
+| Workflow / Action              | Archivo                                     | Disparador                                                 | Usa `.nvmrc`             | Notas                                                                                                                                                                                                    |
+| ------------------------------ | ------------------------------------------- | ---------------------------------------------------------- | ------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **CI principal**               | `.github/workflows/ci.yml`                  | `pull_request` → `main`, `merge_group`                     | ✅ Sí (vía composite)    | Gate governance: repo-discovery, verify-signatures, commit-lint, pr-title-lint, dco, dependency-review, zombie-workflow-guard; jobs quality/build/test `if: false`; `ci-complete` gated por `CI_MINIMAL` |
+| **Security**                   | `.github/workflows/security.yml`            | `pull_request` → `main`, `push` → `main`, `workflow_call`  | ✅ Sí                    | 5 jobs: dependency-scan, sast, secrets, sbom, dependency-review                                                                                                                                          |
+| **Release (Changesets)**       | `.github/workflows/release.yml`             | `push` → `main`                                            | ✅ Sí                    | `fetch-depth: 0` explícito para Changesets                                                                                                                                                               |
+| **CD Deploy Pipeline**         | `.github/workflows/deploy.yml`              | `push` → `main`, `workflow_dispatch`                       | ✅ Sí (job docker-build) | 7 jobs: docker-build, ecr-push, deploy-staging, deploy-production + 3 skipped                                                                                                                            |
+| **Preview Environments**       | `.github/workflows/preview.yml`             | `pull_request` (opened/reopened/sync), `workflow_dispatch` | ✅ Sí                    | Valida backend con Floci + Postgres efímera                                                                                                                                                              |
+| **CI Enterprise**              | `.github/workflows/ci-enterprise.yml`       | `workflow_dispatch`, `workflow_call`                       | ✅ Sí                    | **No aplica a este monorepo** (paths `frontend/`, `backend/` inexistentes)                                                                                                                               |
+| **Scheduled Security**         | `.github/workflows/scheduled-security.yml`  | `cron` (Mon 03:00 UTC), `workflow_dispatch`                | ✅ Sí (checkout only)    | Gitleaks full history scan + SARIF upload                                                                                                                                                                |
+| **Security Digest**            | `.github/workflows/security-digest.yml`     | `cron` (Mon 03:00 UTC), `workflow_dispatch`                | ✅ Sí (checkout only)    | SBOM + OSV Scanner + digest comment to PR                                                                                                                                                                |
+| **Setup Monorepo (composite)** | `.github/actions/setup-monorepo/action.yml` | Invocado por 6 jobs de `ci.yml`                            | ✅ Sí                    | **23 líneas**; setup-node, npm ci, cache Vitest (**sin checkout** — el job invocador clona con `fetch-depth: 0`)                                                                                         |
 
 > ⚠️ **Nota sobre `pr-validation.yml`**: Este workflow fue **eliminado** (agosto 2026) como parte de la limpieza de workflows zombie (change `ci-cleanup-enterprise`). Era código muerto intencional con matrix hardcoded `[18.x, 20.x]`. Ver sección 18.
+>
+> ⚠️ **Nota sobre `quality.yml`**: **YA NO EXISTE** desde la consolidación — sus chequeos (lint/format/typecheck) fueron migrados a jobs `if: false` inline dentro de `ci.yml` (cambio `ci-governance-pre-merge-gates`). Guías de aprendizaje 00/06/07 lo referencian con **banner de deprecación** (2026-08-28); guías 02/08/09/10 lo usan como ejemplo didáctico del patrón reusable. El estado real está en `CONTEXT-CICD.md` §3.3.
 
 ---
 
@@ -225,8 +226,6 @@ strategy:
 
 ### Workflows que NO lo necesitan (y no lo tienen)
 
-- `quality.yml` (lint/format solo necesitan archivos actuales)
-- `lint.yml`, `formatter.yml` (standalone, mismo caso)
 - `security.yml` jobs: `dependency-scan`, `sast`, `sbom`, `dependency-review` (no tocan git history)
 - `deploy.yml` job `docker-build` (solo build de imagen)
 - `preview.yml` (smoke tests contra stack efímero, sin git history)
@@ -239,7 +238,7 @@ strategy:
 
 | Action                                  | Versión usada | Workflow(s)                                                             | Cadencia de actualización | Riesgo si se queda vieja                        |
 | --------------------------------------- | ------------- | ----------------------------------------------------------------------- | ------------------------- | ----------------------------------------------- |
-| `actions/checkout`                      | `@v5` / `@v6` | Todos (12 workflows + composite); release.yml usa v6                    | Mensual (Dependabot)      | Breaking changes en API, CVEs en runner         |
+| `actions/checkout`                      | `@v5` / `@v6` | Todos (8 workflows + composite); release.yml usa v6                     | Mensual (Dependabot)      | Breaking changes en API, CVEs en runner         |
 | `actions/setup-node`                    | `@v5`         | Todos los que usan Node                                                 | Mensual                   | Node versions deprecadas, cache corruption      |
 | `actions/cache`                         | `@v5`         | setup-monorepo (Vitest), ci.yml (Playwright)                            | Mensual                   | Cache poisoning, key mismatches                 |
 | `actions/upload-artifact`               | `@v5`         | security.yml (sbom), security-digest.yml                                | Mensual                   | Artifact retention, upload failures             |
@@ -372,7 +371,7 @@ services:
 ### Cuándo NO editar
 
 - Setup **específico de un job** (ej: `e2e` necesita cache de Playwright browsers → eso va en `ci.yml` job `e2e`, no en la composite)
-- Cambios que solo afectan a `quality.yml`, `security.yml`, `deploy.yml`, `preview.yml` (no usan esta composite)
+- Cambios que solo afectan a `security.yml`, `deploy.yml`, `preview.yml` (no usan esta composite)
 
 > ⚠️ Cualquier cambio aquí **propaga a 6 jobs simultáneamente**. Testear con `act` local o un PR de prueba antes de mergear a `main`.
 
@@ -382,11 +381,11 @@ services:
 
 ### Caches actuales
 
-| Cache                   | Definido en                                                                                                | Key                                                                 | Invalida correctamente            |
-| ----------------------- | ---------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------- | --------------------------------- |
-| **npm (node_modules)**  | `actions/setup-node@v5` en quality.yml, security.yml, setup-monorepo, release.yml, deploy.yml, preview.yml | `cache-dependency-path: package-lock.json`                          | ✅ Sí (hash de package-lock.json) |
-| **Vitest**              | `.github/actions/setup-monorepo/action.yml` (actions/cache@v5)                                             | `vitest-${{ runner.os }}-${{ hashFiles('package-lock.json') }}`     | ✅ Sí                             |
-| **Playwright browsers** | `ci.yml` job `e2e` (actions/cache@v5)                                                                      | `playwright-${{ runner.os }}-${{ hashFiles('package-lock.json') }}` | ✅ Sí                             |
+| Cache                   | Definido en                                                                                   | Key                                                                 | Invalida correctamente            |
+| ----------------------- | --------------------------------------------------------------------------------------------- | ------------------------------------------------------------------- | --------------------------------- |
+| **npm (node_modules)**  | `actions/setup-node@v5` en security.yml, setup-monorepo, release.yml, deploy.yml, preview.yml | `cache-dependency-path: package-lock.json`                          | ✅ Sí (hash de package-lock.json) |
+| **Vitest**              | `.github/actions/setup-monorepo/action.yml` (actions/cache@v5)                                | `vitest-${{ runner.os }}-${{ hashFiles('package-lock.json') }}`     | ✅ Sí                             |
+| **Playwright browsers** | `ci.yml` job `e2e` (actions/cache@v5)                                                         | `playwright-${{ runner.os }}-${{ hashFiles('package-lock.json') }}` | ✅ Sí                             |
 
 ### ⚠️ Known Gap — `ci-enterprise.yml` cache miss garantizado
 
@@ -510,7 +509,6 @@ Principio: **mínimo privilegio**. Ningún workflow usa `permissions: write-all`
 | Workflow                                        | contents | pull-requests | checks  | security-events | id-token | actions | issues  |
 | ----------------------------------------------- | -------- | ------------- | ------- | --------------- | -------- | ------- | ------- |
 | `ci.yml`                                        | `read`   | `write`       | `write` | —               | —        | —       | —       |
-| `quality.yml`                                   | `read`   | —             | —       | —               | —        | —       | —       |
 | `security.yml`                                  | `read`   | —             | —       | `write`         | —        | —       | —       |
 | `security.yml` (job `sbom`)                     | `read`   | —             | —       | —               | —        | —       | —       |
 | `security.yml` (job `dependency-review`)        | `read`   | `write`       | —       | —               | —        | —       | —       |
@@ -538,7 +536,7 @@ Principio: **mínimo privilegio**. Ningún workflow usa `permissions: write-all`
 2. **Verificar `.nvmrc` vs último Node LTS security release** — `node --version` local vs `.nvmrc` vs [Node.js release schedule](https://nodejs.org/en/about/releases/).
 3. **Revisar `package.json` engines.node floors** — Confirmar que `>=20.0.0` sigue siendo correcto (no igualar a `.nvmrc` exacto).
 4. **Confirmar que `fetch-depth: 0` sigue siendo necesario** — Revisar si `dorny/test-reporter` u otras tools cambiaron comportamiento (ej: v4 ya no necesita historial).
-5. **Correr `act` localmente con un PR de prueba** — `act -j quality -W .github/workflows/quality.yml` (ver Apéndice A) para validar cambios sin gastar minutos de GitHub.
+5. **Correr `act` localmente con un PR de prueba** — `act -j zombie-workflow-guard -W .github/workflows/ci.yml` (ver Apéndice A) para validar cambios sin gastar minutos de GitHub. (Nota: `quality.yml` ya no existe desde la consolidación; los checks quality son jobs `if: false` inline en `ci.yml`.)
 6. **Inspeccionar `.github/dependabot.yml`** — Verificar que los tres ecosistemas (`npm`, `github-actions`, `docker`) siguen configurados y los schedules corren.
 7. **Correr `gh run list --limit 50`** — Detectar runs fallidos recurrentes, jobs que flaky, workflows que no se disparan.
 8. **Inspeccionar `scheduled-security.yml` y `security-digest.yml`** — Verificar cron schedules (Mon 03:00 UTC), artifacts generados, SARIF subidos a Security tab.
@@ -576,8 +574,8 @@ gh api repos/:owner/:repo/actions/permissions
 # Verificar archivos tracked bajo .github/
 git ls-files .github/
 
-# Runner local act (requiere Docker) — testear job quality sin push
-act -j quality -W .github/workflows/quality.yml
+# Runner local act (requiere Docker) — testear un job de ci.yml sin push
+act -j zombie-workflow-guard -W .github/workflows/ci.yml
 
 # Sanity check Node version local vs .nvmrc
 cat .nvmrc && node --version
@@ -602,8 +600,9 @@ gh run view <run-id> --log
 
 ## 20. Referencias
 
-- [Estado actual de CI/CD](cicd-estado-actual.md) — Documento base de auditoría
-- [Plan de implementación CI/CD](cicd-plan-implementacion.md) — Roadmap de sprints
+- **CONTEXT-CICD.md** — **FUENTE CENTRAL de la verdad operativa de CI/CD** (auto-cargado cada sesión). Estado de implementación, archivos verificados con `gh api`, reglas de oro para nuevos changes. **Leer antes de crear/implementar cualquier change de CI/CD.**
+- [Estado actual de CI/CD](cicd-estado-actual.md) — Documento base de auditoría (histórico, mantener como referencia)
+- [Plan de implementación CI/CD](cicd-plan-implementacion.md) — Roadmap de sprints (histórico, mantener como referencia)
 - [Arquitectura de testing](testing-architecture.md) — Pirámide unit/integration/E2E
 - [AWS CD Learning Path](aws-cd-learning-path.md) — Fases Floci → ECS
 - [AWS Dev Local con Floci](aws-dev-local-floci.md) — Emulador local

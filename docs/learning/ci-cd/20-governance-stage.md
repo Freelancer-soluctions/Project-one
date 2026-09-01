@@ -496,5 +496,6 @@ En nuestro proyecto, la respuesta es sí — para los componentes pre-PR/merge q
 - `docs/ci-cd-pipeline-empresarial.md` — **§23.3.2 Matriz completa de Governance por momento del pipeline (44 filas / 10 dominios)** y §23.3.2.1 (governance transversal continuo)
 - `docs/ci-cd-pipeline-empresarial.md` — Diagrama 23.3 (pipeline reorganizado con capa transversal CONTINUOUS)
 - `docs/learning/ci-cd/19-governance-gates.md` — Framework de 5 niveles de governance gates
-- `docs/cicd-plantilla-completa.md` — Estado de implementación de governance en project-one
+- `docs/archive/governance-roadmap.md` — Estado de implementación de governance en project-one (archivado 2026-08-28; matriz 45 filas preservada)
+- `docs/learning/ci-cd/CONTEXT-CICD.md` — Fuente central de la verdad operativa CI/CD (estado real, §6 deudas)
 - Change `ci-governance-pre-merge-gates` — alcance pre-PR/merge implementable vs post-merge documentado
