@@ -169,3 +169,6 @@ O alternativamente, muchos equipos usan TIA como un job adicional y rápido que 
 - que se elimine el branch una vez dado push y la pr este cerrada tanto en local como en remote
 - PR Title Lint posee  continue-on-error: true solo para acostumbrase esto debe de quitarse y el job debe de bloquear
 - que tan viable es crear un ruleset para - `ci-complete` como status check requerido esto abarcaria muchos jobs y este seria un ruleset aparte del ya creado Require signed commits
+- mirar si unagente puede hacer el code review pero no usando mi nombre ya que yo mismo no deberia de hacerlo
+- extender al @reviewer para los code reviewer, auque solo es para ver como lo hace y aprender ya que no serviria para cerrar una pr real
+-
