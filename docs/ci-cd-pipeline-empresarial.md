@@ -2703,6 +2703,11 @@ Basado en la investigación anterior, el orden óptimo de stages es. **Cada fase
 
 Además de los gates puntuales de GOVERNANCE que aparecen dentro de cada stage (Stage 1/2, 5, 7, 9, 10 y 11), el diagrama representa una **capa transversal continua de GOVERNANCE TRANSVERSAL** (Momento=CONTINUOUS) que recorre todo el pipeline desde el commit hasta el audit y no se limita a un momento concreto. Sus 10 dimensiones se detallan en la matriz §23.3.2 (filas `CONTINUOUS`) y se muestran como banda continua al cierre del diagrama. Ver también §13.10 (governance a lo largo de todo el ciclo de vida).
 
+**CODE REVIEW (Paso 3 del Governance Lifecycle — PR-time):** el diagrama sitúa el _code review_ como un paso explícito e independiente del ciclo de gobernanza, en la fase del PR, entre el `PR GATE` (paso 2, checks automáticos de CI) y la `BRANCH PROTECTION` (paso 5, el ruleset que lee los resultados). Tiene **dos funciones con gates distintos**:
+
+- **Función revisor humano (gate BLOQUEANTE):** revisión de calidad y diseño del diff por personas. El resultado es la **aprobación** (`approving review`) que el ruleset exige (`required_approving_review_count`, `require_code_owner_review`). Es un **gate de merge obligatorio, no-bypassable** (`current_user_can_bypass: never`): si no hay approval humano de un reviewer autorizado (no el autor), el botón "Merge" permanece bloqueado. Ver §23.3.1 pasos 3 y 5, y `docs/code-review-checklist.md` (project-one).
+- **Función revisor automático (gate INFORMATIVO, no bloqueante):** asistentes de IA / PR review automation (opencode, CodeRabbit, SonarQube PR checks) que comentan sugerencias directamente en el PR. **NO aprueban** (solo comentan), no cuentan hacia el `required_approving_review_count`, y **no bloquean ni sustituyen** la aprobación humana. Es una capa de feedback temprano (shifting-left), no un gate de merge. Implementación de referencia en el change `ci-opencode-code-review` (project-one).
+
 **Discriminación CI vs CD (según Octopus Deploy, Atlassian, DeployHQ):**
 
 | Fase                          | Stage(s) | Tipo      | Definición                                                                                                                                             |
@@ -2743,42 +2748,48 @@ Además de los gates puntuales de GOVERNANCE que aparecen dentro de cada stage (
        │          ├─ TESTING: Pre-push hooks — scoped tests (Vitest changed-only) [SL][F1]
        │          ├─ GOVERNANCE: Commit signing (GPG/sigstore gitsign)
        │          └─ GOVERNANCE: Commit lint (commitlint — Conventional Commits)
-       │
-       │  ┌─────────────────────────────────────────────────────────────────────────┐
-       │  │  GOVERNANCE LIFECYCLE (6 pasos, NO es un stage paralelo — es el flujo   │
-       │  │  que conecta commit → merge. Cada paso depende del anterior.)           │
-       │  │                                                                         │
-       │  │  1. LOCAL COMMIT SIGNING + COMMIT LINT (pre-commit hook)                │
-       │  │     ├─ GPG/SSH/sigstore gitsign firma el commit automáticamente         │
-       │  │     └─ commitlint valida Conventional Commits                           │
-       │  │                                                                         │
-       │  │  2. PR GATE (CI — 1 solo workflow GOVERNANCE) [FF][F1]                  │
-       │  │     ├─ Commit Lint (commitlint — Conventional Commits)                  │
-       │  │     ├─ Commit Signing verify (CI job — verifica GPG/SSH/sigstore)       │
-       │  │     ├─ PR Metadata Checks (DCO sign-off, title/body templates)          │
-       │  │     └─ Early-abort gate (solo diff PR, crítico/alta, segundos)          │
-       │  │                                                                         │
-       │  │  3. CODE PIPELINE (STAGES 2-8 — testing, security, quality, build)      │
-       │  │     └─ GOVERNANCE: artifacts firmados (Cosign), SBOM, provenance        │
-       │  │                                                                         │
-       │  │  4. BRANCH PROTECTION (GitHub Rulesets — PASSIVO, lee resultados)       │
-       │  │     ├─ Lee: ¿todos los required checks en verde?                        │
-       │  │     ├─ Lee: ¿hay approval de reviewer requerido?                        │
-       │  │     ├─ Lee: ¿commits están firmados?                                    │
-       │  │     ├─ SÍ a todo → botón "Merge" habilitado                             │
-       │  │     └─ NO a alguno → botón bloqueado, muestra qué falta                 │
-       │  │                                                                         │
-       │  │  5. POST-DEPLOY GOVERNANCE (stages 6-7)                                 │
-       │  │     ├─ Change record/ticket linkage (ServiceNow/Jira)                   │
-       │  │     ├─ Release readiness dashboard + sign-off evidence                  │
-       │  │     └─ Acceptance record (who approved what, evidence archive)          │
-       │  │                                                                         │
-       │  │  6. MERGE + CLEANUP (post-merge)                                        │
-       │  │     ├─ Deployment event record (timestamp, commit, artifact SHA)        │
-       │  │     ├─ DORA Metrics capture (deploy frequency, lead time)               │
-       │  │     ├─ Audit trail export (immutable, compliance-ready)                 │
-       │  │     └─ Stale branch cleanup, artifact retention, secrets rotation       │
-       │  └─────────────────────────────────────────────────────────────────────────┘
+        │
+        │  ┌─────────────────────────────────────────────────────────────────────────┐
+        │  │  GOVERNANCE LIFECYCLE (7 pasos, NO es un stage paralelo — es el flujo   │
+        │  │  que conecta commit → merge. Cada paso depende del anterior.)           │
+        │  │                                                                         │
+        │  │  1. LOCAL COMMIT SIGNING + COMMIT LINT (pre-commit hook)                │
+        │  │     ├─ GPG/SSH/sigstore gitsign firma el commit automáticamente         │
+        │  │     └─ commitlint valida Conventional Commits                           │
+        │  │                                                                         │
+        │  │  2. PR GATE (CI — 1 solo workflow GOVERNANCE) [FF][F1]                  │
+        │  │     ├─ Commit Lint (commitlint — Conventional Commits)                  │
+        │  │     ├─ Commit Signing verify (CI job — verifica GPG/SSH/sigstore)       │
+        │  │     ├─ PR Metadata Checks (DCO sign-off, title/body templates)          │
+        │  │     └─ Early-abort gate (solo diff PR, crítico/alta, segundos)          │
+        │  │                                                                         │
+        │  │  3. CODE REVIEW (PR-time) — revisión del diff del PR [PV]               │
+        │  │     ├─ HUMANA → gate BLOQUEANTE (ruleset)                               │
+        │  │     │    required_approving_review_count + CODEOWNERS                   │
+        │  │     └─ AUTOMATIZADA → informativa (no gate)                             │
+        │  │          opencode / PR Review Automation (§5.9.15) [PV]                 │
+        │  │                                                                         │
+        │  │  4. CODE PIPELINE (STAGES 2-8 — testing, security, quality, build)      │
+        │  │     └─ GOVERNANCE: artifacts firmados (Cosign), SBOM, provenance        │
+        │  │                                                                         │
+        │  │  5. BRANCH PROTECTION (GitHub Rulesets — PASSIVO, lee resultados)       │
+        │  │     ├─ Lee: ¿todos los required checks en verde?                        │
+        │  │     ├─ Lee: ¿hay approval de reviewer? (viene de paso 3)                │
+        │  │     ├─ Lee: ¿commits están firmados?                                    │
+        │  │     ├─ SÍ a todo → botón "Merge" habilitado                             │
+        │  │     └─ NO a alguno → botón bloqueado, muestra qué falta                 │
+        │  │                                                                         │
+        │  │  6. POST-DEPLOY GOVERNANCE (stages 6-7)                                 │
+        │  │     ├─ Change record/ticket linkage (ServiceNow/Jira)                   │
+        │  │     ├─ Release readiness dashboard + sign-off evidence                  │
+        │  │     └─ Acceptance record (who approved what, evidence archive)          │
+        │  │                                                                         │
+        │  │  7. MERGE + CLEANUP (post-merge)                                        │
+        │  │     ├─ Deployment event record (timestamp, commit, artifact SHA)        │
+        │  │     ├─ DORA Metrics capture (deploy frequency, lead time)               │
+        │  │     ├─ Audit trail export (immutable, compliance-ready)                 │
+        │  │     └─ Stale branch cleanup, artifact retention, secrets rotation       │
+        │  └─────────────────────────────────────────────────────────────────────────┘
        ▼
 ┌──────────────────────────────────────────────────────────────────────────────────────┐
 │  STAGE 2: PRE-BUILD — VALIDATE (source code, 0 dependencia de build)                 │
@@ -3167,27 +3178,33 @@ Representación de la capa continua:
 
 Coherencia: ver §13.10 (governance a lo largo de todo el ciclo de vida CI→CD→post-deploy→audit) y el ciclo de 7 momentos en §23.3.1.1. Las 10 dimensiones son **post-merge → documentadas (OUT OF SCOPE de implementación en el change `ci-governance-pre-merge-gates`)**, alineadas con la nota de alcance de §23.3.2.
 
-### 23.3.1 Governance Lifecycle — Los 6 pasos del commit al merge
+### 23.3.1 Governance Lifecycle — Los 7 pasos del commit al merge
 
-GOVERNANCE **no es un stage paralelo** — es un ciclo de vida de extremo a extremo que atraviesa `commit → PR → merge → build/artifact → deploy → post-deploy → audit/recovery`. Los 6 pasos originales (commit → merge) son el **núcleo CI**; a continuación se documenta la extensión CD y post-deploy/audit (momentos 4–7) sin romper el modelo. Cada momento depende del anterior y alimenta al siguiente:
+GOVERNANCE **no es un stage paralelo** — es un ciclo de vida de extremo a extremo que atraviesa `commit → PR → merge → build/artifact → deploy → post-deploy → audit/recovery`. Los 7 pasos (commit → merge) son el **núcleo CI** — el paso 3 es el _code review_ (PR-time), con su subsiguiente ramp-up de gate humano/automático; a continuación se documenta la extensión CD y post-deploy/audit (momentos 4–7) sin romper el modelo. Cada momento depende del anterior y alimenta al siguiente:
 
 ```
   DEV COMMIT                    GOVERNANCE                     CODE PIPELINE
   ──────────                    ──────────                     ─────────────
-  1. git commit -m "feat:..."   2. 1 solo workflow CI         3. Testing + Security
+  1. git commit -m "feat:..."   2. 1 solo workflow CI         4. Testing + Security
      └─ pre-commit hook            ├─ commitlint ✓              + Quality + Build
         firma + lint               ├─ PR metadata ✓            (stages 2-8)
         (GPG/sigstore +            └─ early-abort gate ✓
          commitlint)                  (diff PR, crítico/alta,
                                    ⚠️  signing verify ✓         segundos)
                                    (GitHub nativo, NO CI)
+                                        ⬇
+                                   3. CODE REVIEW (PR-time)
+                                      ├─ HUMANA → gate
+                                      │   BLOQUEANTE (ruleset)
+                                      └─ AUTOMATIZADA →
+                                          informativa (no gate)
                                         │
                                         ▼
                               BRANCH PROTECTION              POST-DEPLOY + MERGE
                               (passivo — lee todo)           ────────────────────
-                              4. ¿checks verdes? ✓           5. Change record
+                              5. ¿checks verdes? ✓           6. Change record
                                  ¿approval? ✓                   + sign-off evidence
-                                 ¿commits firmados? ✓        6. Deployment record
+                                 ¿commits firmados? ✓        7. Deployment record
                                         │                       + DORA metrics
                                         ▼                       + audit trail
                               ┌─────────────────┐
@@ -3195,26 +3212,27 @@ GOVERNANCE **no es un stage paralelo** — es un ciclo de vida de extremo a extr
                               └─────────────────┘
 ```
 
-**Clave:** Branch Protection (paso 4) NO es un job de CI — es una configuración de GitHub Rulesets que **lee pasivamente** los resultados de todos los required checks. Si falta algún check, approval o firma, el botón "Merge" se bloquea y muestra qué falta. El dev no hace click en "Merge" hasta que todo esté verde.
+**Clave:** Branch Protection (paso 5) NO es un job de CI — es una configuración de GitHub Rulesets que **lee pasivamente** los resultados de todos los required checks. Si falta algún check, approval (humano, del paso 3) o firma, el botón "Merge" se bloquea y muestra qué falta. El dev no hace click en "Merge" hasta que todo esté verde.
 
 **Extensión CD/post-deploy:** el mismo principio de "capa pasiva que lee resultados" se aplica en deploy (GitHub Environments lee required reviewers/wait timer) y en post-deploy/audit (smoke tests, DORA, audit trail). La gobernanza no termina en el merge: continúa como gates automatizados + manuales hasta el audit. Ver [§23.3.1.1](#23311-ciclo-completo-de-governance-7-momentos-commit-a-audit) y [§23.3.2](#2332-matriz-completa-de-governance-por-momento-del-pipeline).
 
 **⚠️ Nota sobre GOVERNANCE en Stage 2:** Los 4 items de GOVERNANCE que aparecen en el diagrama de Stage 2 (commitlint, commit signing verify, PR metadata, early-abort) son el **mismo workflow** que el paso 2 del ciclo de Governance Lifecycle arriba — NO se re-ejecutan. El diagrama de Stage 2 muestra dónde se ejecutan físicamente en el pipeline; el Lifecycle muestra la secuencia lógica del ciclo completo.
 
-| Paso                            | ¿Quién ejecuta?  | ¿Cuándo?            | Ejemplo                                                                    | CI/CD           |
-| ------------------------------- | ---------------- | ------------------- | -------------------------------------------------------------------------- | --------------- |
-| 1. Commit Signing + Commit Lint | Dev (local)      | Pre-commit hook     | GPG key firma el commit + commitlint valida Conventional Commits           | CI (local)      |
-| 2. PR Gate (1 solo workflow CI) | CI (automático)  | Push al PR          | commitlint, commit signing verify, PR metadata, early-abort                | CI              |
-| 2a. Commit Signing verify (CI)  | CI (job)         | Push al PR          | `git verify-commit` — defense-in-depth contra solo confiar en GitHub badge | CI              |
-| 2b. Commit Signing verify (GH)  | GitHub (nativo)  | Push al PR          | badge "Verified" — primera línea, no sustituye el job CI                   | CI (nativo)     |
-| 3. Code Pipeline                | CI (automático)  | Después del PR gate | tests, security, quality, build                                            | CI (Stages 2–4) |
-| 4. Branch Protection            | GitHub (passivo) | Continuous          | lee required checks, approval, signing                                     | CI (gate)       |
-| 5. Post-deploy Governance       | CI + humano      | Después del deploy  | change record, sign-off                                                    | CD (Stages 6–9) |
-| 6. Merge + Cleanup              | CI + GitHub      | Post-merge          | DORA metrics, audit trail, cleanup                                         | Post-CD         |
+| Paso                            | ¿Quién ejecuta?  | ¿Cuándo?            | Ejemplo                                                                                                                                             | CI/CD           |
+| ------------------------------- | ---------------- | ------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- | --------------- |
+| 1. Commit Signing + Commit Lint | Dev (local)      | Pre-commit hook     | GPG key firma el commit + commitlint valida Conventional Commits                                                                                    | CI (local)      |
+| 2. PR Gate (1 solo workflow CI) | CI (automático)  | Push al PR          | commitlint, commit signing verify, PR metadata, early-abort                                                                                         | CI              |
+| 2a. Commit Signing verify (CI)  | CI (job)         | Push al PR          | `git verify-commit` — defense-in-depth contra solo confiar en GitHub badge                                                                          | CI              |
+| 2b. Commit Signing verify (GH)  | GitHub (nativo)  | Push al PR          | badge "Verified" — primera línea, no sustituye el job CI                                                                                            | CI (nativo)     |
+| 3. Code Review (PR-time)        | Humano + autom.  | Push al PR          | HUMANA → gate BLOQUEANTE (ruleset: required approvals + CODEOWNERS); AUTOMATIZADA → informativa (opencode / PR automation, comentarios, no bloquea) | CI (gate/inf.)  |
+| 4. Code Pipeline                | CI (automático)  | Después del PR gate | tests, security, quality, build                                                                                                                     | CI (Stages 2–4) |
+| 5. Branch Protection            | GitHub (passivo) | Continuous          | lee required checks, approval (humano del paso 3), signing                                                                                          | CI (gate)       |
+| 6. Post-deploy Governance       | CI + humano      | Después del deploy  | change record, sign-off                                                                                                                             | CD (Stages 6–9) |
+| 7. Merge + Cleanup              | CI + GitHub      | Post-merge          | DORA metrics, audit trail, cleanup                                                                                                                  | Post-CD         |
 
 #### 23.3.1.1 Ciclo completo de Governance (7 momentos: commit a audit)
 
-El núcleo CI (pasos 1–4 del diagrama anterior) se extiende con las fases CD y post-deploy sin romper el modelo. La gobernanza recorre los 7 momentos: además de estos 7 momentos puntuales, la capa **GOVERNANCE TRANSVERSAL (CONTINUOUS)** de la matriz §23.3.2 (10 dimensiones: acceso humano/RBAC, vulnerabilidades, terceros/tooling, datos/PII-PHI, release, incidentes/postmortem, SLO/error-budget, config/drift, meta-governance, docs/ADRs) se aplica de forma continua a lo largo de todos ellos — véase la banda continua al cierre del diagrama §23.3.
+El núcleo CI pre-merge (pasos 1–5 del diagrama anterior: commit, PR gate, code review, code pipeline, branch protection) se extiende con las fases CD y post-deploy sin romper el modelo. La gobernanza recorre los 7 momentos: además de estos 7 momentos puntuales, la capa **GOVERNANCE TRANSVERSAL (CONTINUOUS)** de la matriz §23.3.2 (10 dimensiones: acceso humano/RBAC, vulnerabilidades, terceros/tooling, datos/PII-PHI, release, incidentes/postmortem, SLO/error-budget, config/drift, meta-governance, docs/ADRs) se aplica de forma continua a lo largo de todos ellos — véase la banda continua al cierre del diagrama §23.3.
 
 ```
  [1 COMMIT] -> [2 PR GATE] -> [3 MERGE] -> [4 BUILD/ARTIFACT] -> [5 DEPLOY] -> [6 POST-DEPLOY] -> [7 AUDIT/RECOVERY]
@@ -3229,8 +3247,8 @@ El núcleo CI (pasos 1–4 del diagrama anterior) se extiende con las fases CD y
 ```
 
 - **Momento 1 — Commit-time:** firma (GPG/SSH/Sigstore gitsign), commit lint (Conventional Commits), pre-commit hooks (secret scan local). Ejecuta el dev en local; primera línea de defensa.
-- **Momento 2 — PR-time:** 1 solo workflow CI agrupa commitlint, PR metadata (DCO/templates), early-abort SAST en diff, dependency review (SCA en diff), y commit signing verify (job CI + badge GH nativo). Fuente: [GitHub Docs — Dependency review](https://docs.github.com/code-security/supply-chain-security/understanding-your-software-supply-chain/about-dependency-review)
-- **Momento 3 — Merge-time (branch protection / rulesets):** GitHub Rulesets leen pasivamente required checks + required reviews + CODEOWNERS + required signatures + linear history + no force-push + merge queue. El botón Merge se bloquea hasta cumplir todo. Fuente: [GitHub Docs — About rulesets](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-rulesets/about-rulesets)
+- **Momento 2 — PR-time:** 1 solo workflow CI agrupa commitlint, PR metadata (DCO/templates), early-abort SAST en diff, dependency review (SCA en diff), y commit signing verify (job CI + badge GH nativo). Aquí ocurre el **code review** (paso 3 del lifecycle): la revisión **humana** (required approvals + CODEOWNERS) es un gate BLOQUEANTE del ruleset, mientras que la revisión **automatizada** (opencode / PR Review Automation) es informativa — comenta el diff pero NO aprueba ni bloquea el merge. Fuente: [GitHub Docs — Dependency review](https://docs.github.com/code-security/supply-chain-security/understanding-your-software-supply-chain/about-dependency-review)
+- **Momento 3 — Merge-time (branch protection / rulesets):** GitHub Rulesets leen pasivamente required checks + required reviews (la aprobación humana del code review del paso 3) + CODEOWNERS + required signatures + linear history + no force-push + merge queue. El botón Merge se bloquea hasta cumplir todo. Fuente: [GitHub Docs — About rulesets](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-rulesets/about-rulesets)
 - **Momento 4 — Build/Artifact-time:** SLSA provenance (L1→L3), SBOM (CycloneDX/SPDX), artifact signing (cosign/sigstore con OIDC keyless + Rekor), policy-as-code (OPA/Conftest/Kyverno), artifacts inmutables. Fuente: [SLSA levels](https://slsa.dev/spec/v1.0-rc2/levels), [Sigstore](https://www.sigstore.dev/)
 - **Momento 5 — Deploy-time:** GitHub Environments `required reviewers` + `wait timer` + `custom protection rules` (CAB/SRB/ServiceNow), code freeze check, change record/ticket linkage, rollback plan validado. Fuente: [GitHub Docs — Deployments and environments](https://docs.github.com/en/actions/reference/workflows-and-actions/deployments-and-environments)
 - **Momento 6 — Post-deploy:** smoke tests, health checks, canary/baseline comparison con auto-rollback, release readiness sign-off (acceptance record). Fuente: [OWASP DevSecOps Guideline](https://owasp.org/www-project-devsecops-guideline/)

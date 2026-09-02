@@ -52,6 +52,19 @@ La ruta completa de CI/CD del proyecto tiene **4 niveles**. Este índice corresp
 | 22  | [Métricas DORA y performance tuning](./22-dora-metrics-performance-tuning.md) | 4 métricas DORA, SLSA, tuning del pipeline, act local                | 90-120 min      |
 | 23  | [Pipeline enterprise de referencia](./23-ci-enterprise-reference-pipeline.md) | 9 vs 30+ jobs, SLSA L3, VEX, IaC, future-proofing                    | 90-120 min      |
 
+### Guías de la serie Governance / Review (existentes en el repo)
+
+Las guías reales **18-21** que existen hoy en el repo pertenecen a la **serie de gobernanza y revisión**, y son un recorrido acumulativo hacia el enforcement de `main`:
+
+| #   | Guía                                                       | Descripción                                                                       |
+| --- | ---------------------------------------------------------- | --------------------------------------------------------------------------------- |
+| 18  | [Trunk-based development](./18-trunk-based-development.md) | Estrategia de ramas integradas, PRs pequeños y despliegue continuo                |
+| 19  | [Governance Gates](./19-governance-gates.md)               | Framework de 5 niveles de enforcement: commit → PR → merge → post-merge → audit   |
+| 20  | [Governance Stage](./20-governance-stage.md)               | Implementación por fases de los gates de gobernanza en el pipeline del proyecto   |
+| 21  | [Code Review](./21-code-review.md)                         | La técnica de QA nº 1: por qué, 6 dimensiones, técnicas, IA, métricas, single-dev |
+
+> ⚠️ **Nota de sincronización**: la tabla superior (18-23) es el **plan original** del nivel Profesional (matriz de seguridad/Dependabot/DORA/enterprise). La tabla de abajo refleja las **guías realmente creadas** hoy (serie governance/review). La reconciliación completa del plan pasa a otra sesión; **la guía 21 (code review) es un archivo real** y tiene la numeración coherente con la serie governance (tras la 20).
+
 ### Orden de lectura recomendado
 
 Las guías están ordenadas de forma **acumulativa**: cada una asume los conceptos de la anterior.
@@ -62,6 +75,8 @@ Las guías están ordenadas de forma **acumulativa**: cada una asume los concept
 4. Profundiza con la **guía 21** (mantenimiento) — la filosofía de mantener el pipeline.
 5. Mide con la **guía 22** (DORA y performance) — los marcos Staff-level.
 6. Cierra con la **guía 23** (enterprise) — el salto de escala y el wrap-up del nivel.
+
+> **Serie governance/review (guías reales 18-21)**: si estás siguiendo la serie que existe hoy en vez del plan superior, el orden es **18** (trunk-based) → **19** (governance gates) → **20** (governance stage) → **21** (code review). La guía 21 cierra la serie de revisión: tras gobernar _qué puede entrar_ en `main`, aprendes _cómo se revisa_ bien lo que entra.
 
 ## 🔍 Descripción detallada de las guías
 
@@ -156,6 +171,14 @@ Las guías están ordenadas de forma **acumulativa**: cada una asume los concept
 - Future-proofing: Kubernetes/EKS, canary deploys, feature flags, OpenTelemetry.
 
 **Hands-on**: comparar `ci-enterprise.yml` con los workflows operacionales y detectar el version drift.
+
+### Guía 21 (real) — Code Review: Práctica, Técnica y Cultura de Revisión
+
+**Objetivo**: dominar **la técnica de QA nº 1 de la industria** — la revisión humana del código antes de que entre a `main`. Cubre el _por qué_ (8 beneficios), las **6 dimensiones** del análisis (funcionalidad, diseño, seguridad, testing, performance, documentación), las técnicas (lectura, ejecución, incremental, walkthrough), el **rol de la IA** (no aprueba, solo comenta), las métricas (SmartBear: <400 LOC, <500 LOC/h, 60-90 min) y el caso **single-dev** real del proyecto.
+
+**Conexión con el repo**: complementa `docs/code-review-checklist.md` (la herramienta operativa) y la serie de gobernanza (guía 19). Aplica lo que los 4 checks del ruleset **no** automatizan: el juicio humano de diseño, intención y seguridad-de-diseño.
+
+**Hands-on**: aplicar `docs/code-review-checklist.md` a un PR propio (self-review) usando las 6 dimensiones y las reglas de severidad.
 
 ## 🧑🏫 Cómo usar este nivel
 
