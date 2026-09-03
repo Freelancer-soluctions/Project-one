@@ -38,6 +38,7 @@ jobs:
 
             Provide feedback as a concise bulleted list. If there are no significant issues, reply with "LGTM".
         env:
+          # modelo free-tier de Groq; reemplazar si cambia el catálogo — ver docs/CONTEXT-CICD.md §9.3.8
           OPENCODE_CONFIG_CONTENT: |
             {
               "provider": {
@@ -49,10 +50,10 @@ jobs:
                     "apiKey": "{env:GROQ_API_KEY}"
                   },
                   "models": {
-                    "llama-3.3-70b-versatile": { "name": "Llama 3.3 70B Versatile" }
+                    "gpt-oss-120b": { "name": "GPT-OSS 120B" }
                   }
                 }
               },
-              "model": "groq/llama-3.3-70b-versatile"
+              "model": "groq/gpt-oss-120b"
             }
           GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
