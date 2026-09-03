@@ -1,0 +1,58 @@
+name: OpenCode AI Code Review
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    branches: [main]
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: read
+
+jobs:
+  opencode-review:
+    name: opencode-review
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    continue-on-error: true
+    if: github.event.pull_request.head.repo.fork == false && github.actor != 'dependabot[bot]' && github.event.pull_request.draft == false
+    concurrency:
+      group: opencode-review-${{ github.event.pull_request.number }}
+      cancel-in-progress: true
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Run OpenCode AI review
+        uses: anomalyco/opencode/github@latest
+        with:
+          use_github_token: true
+          prompt: |
+            Review this pull request. Focus on:
+            - Code quality and maintainability
+            - Bugs and edge cases
+            - Security vulnerabilities
+            - Performance concerns
+            - Adherence to project conventions (Conventional Commits, ESLint/Prettier style, monorepo structure)
+
+            Provide feedback as a concise bulleted list. If there are no significant issues, reply with "LGTM".
+        env:
+          OPENCODE_CONFIG_CONTENT: |
+            {
+              "provider": {
+                "groq": {
+                  "npm": "@ai-sdk/openai-compatible",
+                  "name": "Groq",
+                  "options": {
+                    "baseURL": "https://api.groq.com/openai/v1",
+                    "apiKey": "{env:GROQ_API_KEY}"
+                  },
+                  "models": {
+                    "llama-3.3-70b-versatile": { "name": "Llama 3.3 70B Versatile" }
+                  }
+                }
+              },
+              "model": "groq/llama-3.3-70b-versatile"
+            }
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
