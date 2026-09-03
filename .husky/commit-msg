@@ -1,1 +1,21 @@
+#!/bin/sh
+set -e
+
+# DCO check (L1): commit message must contain a Signed-off-by trailer.
+# Presence-only grep case-sensitive; CI (KineticCafe/actions-dco) is the authoritative parser.
+MSG_FILE="$1"
+
+# Skip merge commits (they do not carry Signed-off-by trailers)
+if head -n 1 "$MSG_FILE" | grep -q '^Merge '; then
+  echo "✅ Merge commit detected — skipping DCO check."
+else
+  if ! grep -q 'Signed-off-by:' "$MSG_FILE"; then
+    echo "❌ DCO: commit missing 'Signed-off-by: Your Name <you@email.com>' trailer."
+    echo "   Re-run with 'git commit -s' or set 'git config --global commit.signoff true'."
+    exit 1
+  fi
+  echo "✅ DCO check passed (Signed-off-by trailer present)."
+fi
+
+# Conventional Commits validation (runs last, after DCO passes)
 npx --no -- commitlint --edit "$1"
