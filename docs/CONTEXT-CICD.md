@@ -1,6 +1,6 @@
 # CONTEXT CI/CD — Documento Central (auto-cargable)
 
-> **Única fuente de verdad operativa del CI/CD de Project One.** Auto-cargado cada sesión (`opencode.jsonc` L49). Verificado 2026-08-28; re-verificación de config GitHub por API 2026-08-30 (ver §3.4/§3.5/§5.9); verificación merge queue + pr-title-lint 2026-08-31 (ver §3.3/§5.3/§9.3.3).
+> **Única fuente de verdad operativa del CI/CD de Project One.** Auto-cargado cada sesión (`opencode.jsonc` L49). Verificado 2026-08-28; re-verificación de config GitHub por API 2026-08-30 (ver §3.4/§3.5/§5.9); verificación merge queue + pr-title-lint 2026-08-31 (ver §3.3/§5.3/§9.3.3); capa local DCO + PR-title wrapper 2026-09-02 (ver §10.3/§10.4/§11.1); convención de trazabilidad DCO auto-signoff global 2026-09-02 (ver §10.5).
 > **Antes de crear un change nuevo de CI/CD: LEER este documento** (sección 7) para no asumir cambios erróneos.
 
 ---
@@ -358,17 +358,18 @@ O via UI: repo → Actions → <workflow> → ⋯ → Enable workflow.
 
 **Inventario real (API 2026-08-30):**
 
-| Workflow                    | Estado      | Qué esperaría dispararse hoy si NO estuviera deshabilitado |
-| --------------------------- | ----------- | ---------------------------------------------------------- |
-| `ci.yml`                    | ✅ active   | PR/push → 4 checks + dependency-review + zombie-guard      |
-| `security.yml`              | ⛔ disabled | PR/push main → SCA/SAST/secrets/SBOM                       |
-| `scheduled-security.yml`    | ⛔ disabled | cron Lun 03:00 → Gitleaks full-history + SARIF             |
-| `security-digest.yml`       | ⛔ disabled | cron Lun 03:00 → SBOM/OSV/digest                           |
-| `preview.yml`               | ⛔ disabled | PR main → backend validation + PR comment                  |
-| `deploy.yml`                | ⛔ disabled | push main → docker-build (+ Phase 2 si AWS)                |
-| `release.yml`               | ⛔ disabled | push main → changesets + verifica firma                    |
-| `ci-enterprise.yml`         | ⛔ disabled | dispatch/call only (template inerte)                       |
-| (dependabot-updates config) | ✅ active   | config dinámica de dependabot                              |
+| Workflow                    | Estado      | Qué esperaría dispararse hoy si NO estuviera deshabilitado                         |
+| --------------------------- | ----------- | ---------------------------------------------------------------------------------- |
+| `ci.yml`                    | ✅ active   | PR/push → 4 checks + dependency-review + zombie-guard                              |
+| `opencode-review.yml`       | ⛔ disabled | PR main → comentario informativo de code review IA (check NO-required, GOVERNANCE) |
+| `security.yml`              | ⛔ disabled | PR/push main → SCA/SAST/secrets/SBOM                                               |
+| `scheduled-security.yml`    | ⛔ disabled | cron Lun 03:00 → Gitleaks full-history + SARIF                                     |
+| `security-digest.yml`       | ⛔ disabled | cron Lun 03:00 → SBOM/OSV/digest                                                   |
+| `preview.yml`               | ⛔ disabled | PR main → backend validation + PR comment                                          |
+| `deploy.yml`                | ⛔ disabled | push main → docker-build (+ Phase 2 si AWS)                                        |
+| `release.yml`               | ⛔ disabled | push main → changesets + verifica firma                                            |
+| `ci-enterprise.yml`         | ⛔ disabled | dispatch/call only (template inerte)                                               |
+| (dependabot-updates config) | ✅ active   | config dinámica de dependabot                                                      |
 
 > **Regla práctica:** un archive de change (evidence §9) prueba que el **código** del workflow existe y fue implementado; pero **NO prueba que el workflow esté habilitado** en GitHub. Para saber si algo corre hoy, consultar siempre la API de `actions/workflows` (§3.4/§3.5) — no asumir "activo" solo porque el archivo existe.
 
@@ -556,6 +557,18 @@ Esta subsección explica el **mecanismo real** de las implementaciones que prote
 - **Qué hace:** agregador único que pasa si TODOS los jobs upstream (quality/build/test/lint/sec) pasan o se saltan.
 - **`if: ${{ vars.CI_MINIMAL != 'true' && always() }}`** → con `CI_MINIMAL=true` queda SKIPPED y NO se reporta. Por eso "CI Complete" NO es status check del ruleset (nunca se ha reportado para poder vincularlo).
 
+#### 9.3.8 `opencode-review` → check "OpenCode AI Code Review" (NO REQUIRED, informativo)
+
+> Workflow aparte `opencode-review.yml` (change `ci-opencode-code-review`, 2026-09-02). NO forma parte de `ci.yml`; es un workflow independiente, `disabled_manually` por defecto (§5.9) y **NO está vinculado al ruleset** (no es status check requerido).
+
+- **Qué hace:** dispara un **comentario informativo de code review IA** en el PR (al abrirlo y en cada `synchronize`/`reopened`) hacia `main`. Es feedback temprano de **calidad/bugs/seguridad/rendimiento/convenciones** del diff, en bullets, con "LGTM" si no hay issues.
+- **GOVERNANCE informativo (§7 regla 6):** `continue-on-error: true` y **NO es status check del ruleset** → **NO bloquea el merge ni sustituye la aprobación humana** (`required_approving_review_count` sigue exigiendo review humano/CODEOWNERS). Es una capa de feedback, no un gate.
+- **Modelo (config):** `anomalyco/opencode/github` usando Groq `groq/llama-3.3-70b-versatile` (free, ~30 RPM) vía `OPENCODE_CONFIG_CONTENT`. Groq **no es built-in** en opencode → requiere `@ai-sdk/openai-compatible` + baseURL (`https://api.groq.com/openai/v1`) + `apiKey: {env:GROQ_API_KEY}` en el JSON del env. Requiere el secret **`GROQ_API_KEY`** (no provisionado aún).
+- **Rate-limit / fallback (2.3):** Groq free-tier puede agotarse (~30 RPM). Fallback previsto a `opencode/free` (modelo del `opencode.jsonc` vía `omniroute`/`oc/free`); si ambos se agotan, postear advisory de rate-limit y salir de forma limpia (el job NO debe fallar el build por esto — `continue-on-error: true`).
+- **Prompt-injection (4.2):** la revisión es **advisory-only**. El código revisado podría contener instrucciones maliciosas dirigidas al modelo; el comentario NO debe tratarse como gate ni como aprobación, y un humano decide el merge.
+- **Supply chain (4.3):** se usa `anomalyco/opencode/github@latest`; tras el primer run exitoso se **debe SHA-pinnear** la acción para supply chain (§5.4, `allowed_actions=all`). El índice de versions §13.5 deberá actualizarse cuando se fije el SHA.
+- **Toggle / enablement (3.1/4.4):** el workflow nace `disabled_manually`. Para activarlo: (1) provisionar secret `GROQ_API_KEY`, (2) `gh workflow enable .github/workflows/opencode-review.yml` (o UI → Actions → Enable), (3) verificar en un PR de prueba que comenta y NO bloquea.
+
 > **Conclusión de contexto:** hoy, los ÚNICOS checks que bloquean el merge a `main` son los 4 del ruleset (`Verify Commit Signatures`, `Commit Lint`, `PR Title Lint`, `DCO`) — y desde 2026-08-31 los 4 son **BLOCKING** (se removió `continue-on-error` en pr-title-lint y dco). Todos los jobs de calidad/build/test/sonarqube están deshabilitados (`if: false`) por diseño de CI incremental (§3.1), NO por fallo. `CI_MINIMAL=true` desactiva `ci-complete` y ese bloque completo.
 
 ---
@@ -566,11 +579,11 @@ Esta subsección explica el **mecanismo real** de las implementaciones que prote
 
 ### 10.1 Los 3 hooks activos
 
-| Hook             | Cuándo corre             | Qué ejecuta (verificado)                                                                                                      | Bloquea                                                  |
-| ---------------- | ------------------------ | ----------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------- |
-| **`pre-commit`** | Antes de crear el commit | 1) `lint-staged` → 2) en paralelo `sast:semgrep` (Semgrep SAST vía `sast:semgrep`) + `security:secrets` (Gitleaks `--staged`) | ✅ SÍ (solo checks rápidos; regresión movida a pre-push) |
-| **`commit-msg`** | Al redactar el mensaje   | `npx --no -- commitlint --edit "$1"` (Conventional Commits; flag `--no` añadido por Husky v9)                                 | ✅ SÍ                                                    |
-| **`pre-push`**   | Antes de `git push`      | Tests scoped: `vitest run --changed origin/main` en server + client (regresión)                                               | ✅ SÍ                                                    |
+| Hook             | Cuándo corre             | Qué ejecuta (verificado)                                                                                                                                                                                                                           | Bloquea                                                  |
+| ---------------- | ------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------- |
+| **`pre-commit`** | Antes de crear el commit | 1) `lint-staged` → 2) en paralelo `sast:semgrep` (Semgrep SAST vía `sast:semgrep`) + `security:secrets` (Gitleaks `--staged`)                                                                                                                      | ✅ SÍ (solo checks rápidos; regresión movida a pre-push) |
+| **`commit-msg`** | Al redactar el mensaje   | 1) **DCO presence check** (grep case-sensitive de `Signed-off-by:`, skip de merge commits `^Merge `) → 2) `npx --no -- commitlint --edit "$1"` (Conventional Commits; flag `--no` añadido por Husky v9). DCO corre ANTES de commitlint (fail fast) | ✅ SÍ                                                    |
+| **`pre-push`**   | Antes de `git push`      | 1) **DCO re-check** por commit pusheado (`Signed-off-by:` por SHA, refs leídos de STDIN) → 2) Tests scoped: `vitest run --changed origin/main` en server + client (regresión). DCO corre ANTES de vitest                                           | ✅ SÍ                                                    |
 
 ### 10.2 Mecanismo del pre-commit (`.husky/pre-commit`)
 
@@ -582,6 +595,55 @@ Esta subsección explica el **mecanismo real** de las implementaciones que prote
 
 > **Notas de operación:** Husky v9 tiene scripts `husky:disable` / `husky:enable` (`ren .husky .husky.disabled`) para desactivar/activar los hooks puntualmente. **NUNCA** usar `git commit --no-verify` salvo emergencia extrema (rompe la cadena). El pre-commit ejecuta SOLO checks rápidos (lint/format/SAST/secrets-staged); la **regresión completa** (tests) se movió a `pre-push` + CI por diseño (velocidad del ciclo de commit).
 
+### 10.3 Mecanismo DCO local (commit-msg + pre-push)
+
+Los hooks `commit-msg` y `pre-push` añaden una validación DCO **local** (L1/L2) que adelanta el feedback del check CI `DCO` (KineticCafe, L3 — el enforcer autoritativo e inbypassable).
+
+- **`commit-msg` (L1, antes de commitlint):** lee el mensaje desde `$1`. Si la primera línea coincide con `^Merge ` (merge commit) **salta** el check (los merge commits no llevan `Signed-off-by:`). Si no, hace `grep` case-sensitive de la cadena literal `Signed-off-by:` sobre el mensaje completo (presence-only: NO valida posición ni sección de trailers — eso lo hace CI). Si falta, imprime un error accionable (`git commit -s` / `git config --global commit.signoff true`) y sale con `exit 1`. Si pasa (o es merge), corre `commitlint` como paso final.
+- **`pre-push` (L2, antes de vitest):** Git pasa los refs pusheados por **STDIN**, una línea por ref: `<local-ref> <local-sha> <remote-ref> <remote-sha>`. Por cada línea:
+  - Salta pushes de borrado (remote-sha == `(delete)`).
+  - Si remote-sha es todo ceros (primer push de una rama nueva), el ref remoto aún no existe → fallback a iterar `origin/main..HEAD --no-merges` (depende del `git fetch origin main` que ya corrió antes en el hook; **no mover el DCO por encima del fetch**).
+  - En caso contrario itera `git log --no-merges --format="%H" "$REMOTE_REF..$LOCAL_REF"`.
+  - Para cada SHA corre `git log -1 --format="%B" $SHA | grep "Signed-off-by:"` (case-sensitive) y acumula los fallos por commit.
+  - Si alguno falla, imprime la lista de commits sin signoff (con short-SHA), instruye el fix (`git rebase --signoff origin/main`) y sale con `exit 1`. Solo si todos pasan corren los tests scoped de vitest.
+
+### 10.4 Ajuste DCO de `/commit-all` (git-manager prompt)
+
+El comando `/commit-all` (definido en el system prompt `docs/opencode/prompts/git-manager.md`) exige —vía regla de comportamiento nº 10— que **todo** commit use `git commit -S -s` (firma SSH + signoff), de modo que cada commit no-merge incluya el trailer `Signed-off-by: Name <email>` en el formato KineticCafe DCO que exige el check CI `DCO`. `-s` es **no-opcional** aunque `git config commit.signoff true` esté activo: la config puede faltar en otras máquinas, clones frescos o runners (defense-in-depth). Es una regla a nivel de prompt (sin script wrapper); sigue prohibido `--no-verify`.
+
+### 10.5 Trazabilidad DCO — auto-signoff global (convención del repo)
+
+> **Decisión de trazabilidad (2026-09-02):** la convención del repo para garantizar trazabilidad de autoría en **todos** los commits es activar el auto-signoff global:
+>
+> ```bash
+> git config --global commit.signoff true
+> ```
+>
+> Con esto, **cada commit** (`git commit` y/o `/commit-all`) inyecta automáticamente el trailer `Signed-off-by: Nombre <email>` sin necesidad de pasarlo a mano en cada commit. El trailer hace trazable quién autoriza cada cambio frente al check CI `DCO`.
+
+**Por qué es la base de la trazabilidad:**
+
+- El trailer `Signed-off-by:` es el mecanismo de **trazabilidad de autoría** del repo: documenta explícitamente quién (y con qué identidad) autoriza/reconoce cada cambio, y es lo que el check `DCO` (KineticCafe, L3, requerido y bloqueante) valida de forma estricta y no-bypasseable (`docs/CONTEXT-CICD.md` §3.3/§9.3.4).
+- La config global es **local a la máquina** → comodidad del dev: evita olvidar `-s` y cubre el 100% de los commits hechos desde esta instalación. Permite hacer `git commit -S` (solo firma) y que el trailer DCO se añada solo.
+
+**Cómo convive con las demás capas (defense-in-depth, §11):**
+
+| Capa                                                   | Rol frente a la trazabilidad DCO                                                                                                                      |
+| ------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `git config --global commit.signoff true` (esta §10.5) | **Convención base**: auto-signoff en TODA esta máquina → trazabilidad garantizada localmente sin fricción                                             |
+| Regla 10 de `/commit-all` (`git-manager.md`, §10.4)    | Red de seguridad para **otras** máquinas/clones frescos/runners donde la config global no existe (`-s` explícito, no-opcional)                        |
+| Hook `commit-msg` (L1, §10.3)                          | Valida la **presencia** del trailer antes de crear el commit; si falta, bloquea y sugiere `git commit -s` / `git config --global commit.signoff true` |
+| Hook `pre-push` (L2, §10.3)                            | Re-verifica por commit pusheado; bloquea el push si algún commit sin signoff intenta salir                                                            |
+| Check CI `DCO` (L3, §3.2/§9.3.4)                       | Enforcer final estricto e inbypassable: valida posición/formato/identidad del trailer. El que hace cumplir la trazabilidad en GitHub                  |
+
+**Siguientes pasos para activarlo (si aún no está):**
+
+```bash
+git config --global commit.signoff true   # una sola vez, en cada máquina del dev
+```
+
+> Nota: la regla 10 de `/commit-all` (§10.4) se mantiene **aunque** actives este auto-signoff, porque es defensa en profundidad para cualquier contexto sin la config global (clones frescos, otras máquinas, runners de CI). Confirmado por decisión del usuario 2026-09-02 (memoria `decision/…`).
+
 ---
 
 ## 11. Estrategia shifting-left (capa local → CI)
@@ -590,11 +652,12 @@ Esta subsección explica el **mecanismo real** de las implementaciones que prote
 
 ### 11.1 Las 3 capas de validación
 
-| Capa                | Punto de ejecución            | Qué valida                                                                                   | Costo      | Bloqueo               |
-| ------------------- | ----------------------------- | -------------------------------------------------------------------------------------------- | ---------- | --------------------- |
-| **L1 — Pre-commit** | En el dev (hook `pre-commit`) | Format (prettier), lint (eslint), SAST (Semgrep staged), secrets (Gitleaks staged)           | Muy bajo   | ✅                    |
-| **L2 — Pre-push**   | En el dev (hook `pre-push`)   | Regresión de tests scoped (`vitest run --changed origin/main`) en server + client            | Bajo-medio | ✅                    |
-| **L3 — CI**         | En GitHub (PR → main)         | Gates de gobernanza: firma de commits, Conventional Commits, DCO, dependency-review (ver §9) | Alto       | ✅ (4 checks ruleset) |
+| Capa                | Punto de ejecución                           | Qué valida                                                                                                                                                                                                                                                                                   | Costo      | Bloqueo               |
+| ------------------- | -------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------- | --------------------- |
+| **L1 — Pre-commit** | En el dev (hook `pre-commit` + `commit-msg`) | Format (prettier), lint (eslint), SAST (Semgrep staged), secrets (Gitleaks staged), **DCO presence** (`Signed-off-by:` en commit-msg). Defense-in-depth adicional: `git config commit.signoff true` (auto-signoff) + regla `/commit-all` del git-manager prompt (`-S -s` obligatorio, §10.4) | Muy bajo   | ✅                    |
+| **L2 — Pre-push**   | En el dev (hook `pre-push`)                  | **DCO re-check** por commit pusheado + regresión de tests scoped (`vitest run --changed origin/main`) en server + client                                                                                                                                                                     | Bajo-medio | ✅                    |
+| **L2.5 — PR title** | En el dev (wrapper npm)                      | Validación del título de PR contra Conventional Commits vía `npm run pr:create` (script `scripts/hooks/pr-title-check.mjs`) ANTES de `gh pr create`                                                                                                                                          | Muy bajo   | ⚠️ (wrapper, no hook) |
+| **L3 — CI**         | En GitHub (PR → main)                        | Gates de gobernanza: firma de commits, Conventional Commits, DCO, dependency-review (ver §9)                                                                                                                                                                                                 | Alto       | ✅ (4 checks ruleset) |
 
 ### 11.2 Por qué está espaciada así (por diseño)
 
