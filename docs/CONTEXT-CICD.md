@@ -1,6 +1,6 @@
 # CONTEXT CI/CD — Documento Central (auto-cargable)
 
-> **Única fuente de verdad operativa del CI/CD de Project One.** Auto-cargado cada sesión (`opencode.jsonc` L49). Verificado 2026-08-28; re-verificación de config GitHub por API 2026-08-30 (ver §3.4/§3.5/§5.9); verificación merge queue + pr-title-lint 2026-08-31 (ver §3.3/§5.3/§9.3.3); capa local DCO + PR-title wrapper 2026-09-02 (ver §10.3/§10.4/§11.1); convención de trazabilidad DCO auto-signoff global 2026-09-02 (ver §10.5).
+> **Única fuente de verdad operativa del CI/CD de Project One.** Auto-cargado cada sesión (`opencode.jsonc` L49). Verificado 2026-08-28; re-verificación de config GitHub por API 2026-08-30 (ver §3.4/§3.5/§5.9); verificación merge queue + pr-title-lint 2026-08-31 (ver §3.3/§5.3/§9.3.3); capa local DCO + PR-title wrapper 2026-09-02 (ver §10.3/§10.4/§11.1); convención de trazabilidad DCO auto-signoff global 2026-09-02 (ver §10.5); corrección DCO del slash command `/commit-all` 2026-09-02 (ver §10.4).
 > **Antes de crear un change nuevo de CI/CD: LEER este documento** (sección 7) para no asumir cambios erróneos.
 
 ---
@@ -607,9 +607,15 @@ Los hooks `commit-msg` y `pre-push` añaden una validación DCO **local** (L1/L2
   - Para cada SHA corre `git log -1 --format="%B" $SHA | grep "Signed-off-by:"` (case-sensitive) y acumula los fallos por commit.
   - Si alguno falla, imprime la lista de commits sin signoff (con short-SHA), instruye el fix (`git rebase --signoff origin/main`) y sale con `exit 1`. Solo si todos pasan corren los tests scoped de vitest.
 
-### 10.4 Ajuste DCO de `/commit-all` (git-manager prompt)
+### 10.4 Ajuste DCO de `/commit-all` (git-manager prompt + slash command)
 
-El comando `/commit-all` (definido en el system prompt `docs/opencode/prompts/git-manager.md`) exige —vía regla de comportamiento nº 10— que **todo** commit use `git commit -S -s` (firma SSH + signoff), de modo que cada commit no-merge incluya el trailer `Signed-off-by: Name <email>` en el formato KineticCafe DCO que exige el check CI `DCO`. `-s` es **no-opcional** aunque `git config commit.signoff true` esté activo: la config puede faltar en otras máquinas, clones frescos o runners (defense-in-depth). Es una regla a nivel de prompt (sin script wrapper); sigue prohibido `--no-verify`.
+El comando `/commit-all` exige DCO en **dos puntos de materialización** (defense-in-depth, ambos aplicados):
+
+1. **System prompt del agente git-manager** (`docs/opencode/prompts/git-manager.md`) — vía regla de comportamiento nº 10: que **todo** commit use `git commit -S -s` (firma SSH + signoff), de modo que cada commit no-merge incluya el trailer `Signed-off-by: Name <email>` en el formato KineticCafe DCO que exige el check CI `DCO`. `-s` es **no-opcional** aunque `git config commit.signoff true` esté activo: la config puede faltar en otras máquinas, clones frescos o runners (defense-in-depth). Es una regla a nivel de prompt (sin script wrapper); sigue prohibido `--no-verify`.
+
+2. **Slash command `/commit-all`** (`.opencode/command/commit-all.md`) — el comando invocable directamente (no solo vía agente) exige ahora `git commit -S -s` para TODOS los commits (regla añadida 2026-09-02). Antes solo exigía `-S` (firma SSH) sin el trailer DCO; se alineó con el prompt del agente para evitar commits sin `Signed-off-by:` cuando `/commit-all` se ejecuta sin pasar por @git-manager. Los usos de ejemplo del flujo usan `git commit -S -s -m "type(scope): description"`.
+
+> ⚠️ **Nota de trazabilidad:** el change archivado `2026-09-02-ci-shifting-left-dco-pr-lint` afirmaba (design.md §7) que "no existe `.opencode/command/commit-all.md` (glob found no such file)". Esa verificación fue un **falso negativo** del glob en paths ocultos de Windows — el archivo SÍ existía. El hueco real (comando sin DCO) se corrigió aquí el 2026-09-02. El prompt del agente (punto 1) ya cubría DCO desde aquel change; el comando (punto 2) no, y es lo que faltaba ajustar.
 
 ### 10.5 Trazabilidad DCO — auto-signoff global (convención del repo)
 
