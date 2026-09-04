@@ -28,6 +28,7 @@ jobs:
         uses: anomalyco/opencode/github@latest
         with:
           use_github_token: true
+          model: groq/gpt-oss-120b
           prompt: |
             Review this pull request. Focus on:
             - Code quality and maintainability

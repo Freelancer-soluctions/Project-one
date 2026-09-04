@@ -27,15 +27,17 @@
         "apiKey": "{env:GROQ_API_KEY}"
       },
       "models": {
-        "llama-3.3-70b-versatile": {
-          "name": "Llama 3.3 70B Versatile"
+        "gpt-oss-120b": {
+          "name": "GPT-OSS 120B"
         }
       }
     }
   },
-  "model": "groq/llama-3.3-70b-versatile"
+  "model": "groq/gpt-oss-120b"
 }
 ```
+
+> **Nota (2026-09-02):** el modelo original `groq/llama-3.3-70b-versatile` fue deprecado por Groq (2026-08-16, pasó a Enterprise-only → 404 con key free/developer) y se sustituyó por `gpt-oss-120b` (modelo free-tier actual de Groq). El JSON de arriba refleja el modelo vigente. Además, la action `anomalyco/opencode/github` requiere el input `model: groq/gpt-oss-120b` para setear la env var `MODEL` (sin él, el job falla con `Environment variable "MODEL" is not set` — fix 2026-09-03).
 
 - [x] 2.3 Document fallback model (`opencode/free`) and rate-limit exhaustion behavior (Groq-only or fallback to `opencode/free`; if both exhausted, post rate-limit advisory and exit gracefully) — documentado en `docs/CONTEXT-CICD.md` §9.3.8 (Rate-limit / fallback)
 
