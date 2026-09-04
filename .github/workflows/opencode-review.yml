@@ -39,6 +39,8 @@ jobs:
 
             Provide feedback as a concise bulleted list. If there are no significant issues, reply with "LGTM".
         env:
+          # El input `model:` (above) setea la env var MODEL; use_github_token true exige GITHUB_TOKEN
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           # modelo free-tier de Groq; reemplazar si cambia el catálogo — ver docs/CONTEXT-CICD.md §9.3.8
           OPENCODE_CONFIG_CONTENT: |
             {
