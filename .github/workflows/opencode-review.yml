@@ -53,7 +53,7 @@ jobs:
                     "apiKey": "{env:GROQ_API_KEY}"
                   },
                   "models": {
-                    "gpt-oss-120b": { "name": "GPT-OSS 120B" }
+                    "gpt-oss-120b": { "name": "GPT-OSS 120B", "modelID": "openai/gpt-oss-120b" }
                   }
                 }
               },
