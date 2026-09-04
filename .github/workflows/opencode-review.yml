@@ -41,13 +41,19 @@ jobs:
         env:
           # El input `model:` (above) setea la env var MODEL; use_github_token true exige GITHUB_TOKEN
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          # Google Gemini 2.5 Flash (built-in provider, 250K TPM, 1M context); ver docs/CONTEXT-CICD.md §9.3.8
+          # Google Gemini 2.5 Flash (built-in provider, ~15 RPM free tier, 1M context); ver docs/CONTEXT-CICD.md §9.3.8
           OPENCODE_CONFIG_CONTENT: |
             {
               "provider": {
                 "google": {
                   "models": {
-                    "gemini-2.5-flash": {}
+                    "gemini-2.5-flash": {
+                      "options": {
+                        "thinkingConfig": {
+                          "thinkingBudget": 8192
+                        }
+                      }
+                    }
                   }
                 }
               }
