@@ -3,7 +3,7 @@
 /**
  * `npm run pr:create` wrapper (L2.5 — "shifting left").
  *
- * Validates the PR title locally (via pr-title-check.mjs rules) and only then
+ * Validates the PR title locally (via pr-title-check.js rules) and only then
  * delegates to `gh pr create`, forwarding ALL original arguments untouched.
  *
  * Why a wrapper: npm scripts cannot reliably forward quoted multi-word args
@@ -19,7 +19,7 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const here = dirname(fileURLToPath(import.meta.url));
-const titleCheck = join(here, 'pr-title-check.mjs');
+const titleCheck = join(here, 'pr-title-check.js');
 
 const args = process.argv.slice(2);
 
