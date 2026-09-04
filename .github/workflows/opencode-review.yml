@@ -28,7 +28,7 @@ jobs:
         uses: anomalyco/opencode/github@latest
         with:
           use_github_token: true
-          model: groq/openai/gpt-oss-120b
+          model: groq/compound-mini
           prompt: |
             Review this pull request. Focus on:
             - Code quality and maintainability
@@ -41,7 +41,7 @@ jobs:
         env:
           # El input `model:` (above) setea la env var MODEL; use_github_token true exige GITHUB_TOKEN
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          # modelo free-tier de Groq (openai/gpt-oss-120b = ID real de API); reemplazar si cambia el catálogo — ver docs/CONTEXT-CICD.md §9.3.8
+          # modelo agentic de Groq (compound-mini, 70K TPM, multi-turn nativo); reemplazar si cambia el catálogo — ver docs/CONTEXT-CICD.md §9.3.8
           OPENCODE_CONFIG_CONTENT: |
             {
               "provider": {
@@ -53,10 +53,10 @@ jobs:
                     "apiKey": "{env:GROQ_API_KEY}"
                   },
                   "models": {
-                    "openai/gpt-oss-120b": { "name": "GPT-OSS 120B" }
+                    "compound-mini": { "name": "Compound Mini" }
                   }
                 }
               },
-              "model": "groq/openai/gpt-oss-120b"
+              "model": "groq/compound-mini"
             }
           GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
