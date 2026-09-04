@@ -28,7 +28,7 @@ jobs:
         uses: anomalyco/opencode/github@latest
         with:
           use_github_token: true
-          model: groq/compound-mini
+          model: google/gemini-2.5-flash
           prompt: |
             Review this pull request. Focus on:
             - Code quality and maintainability
@@ -41,22 +41,15 @@ jobs:
         env:
           # El input `model:` (above) setea la env var MODEL; use_github_token true exige GITHUB_TOKEN
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          # modelo agentic de Groq (compound-mini, 70K TPM, multi-turn nativo); reemplazar si cambia el catálogo — ver docs/CONTEXT-CICD.md §9.3.8
+          # Google Gemini 2.5 Flash (built-in provider, 250K TPM, 1M context); ver docs/CONTEXT-CICD.md §9.3.8
           OPENCODE_CONFIG_CONTENT: |
             {
               "provider": {
-                "groq": {
-                  "npm": "@ai-sdk/openai-compatible",
-                  "name": "Groq",
-                  "options": {
-                    "baseURL": "https://api.groq.com/openai/v1",
-                    "apiKey": "{env:GROQ_API_KEY}"
-                  },
+                "google": {
                   "models": {
-                    "compound-mini": { "name": "Compound Mini" }
+                    "gemini-2.5-flash": {}
                   }
                 }
-              },
-              "model": "groq/compound-mini"
+              }
             }
-          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
