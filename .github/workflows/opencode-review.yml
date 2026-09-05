@@ -28,7 +28,7 @@ jobs:
         uses: anomalyco/opencode/github@5d5c35ee71c095464b9eb3c3e991df906f12a152 # pinned for supply chain security (verified 2026-09-04)
         with:
           use_github_token: true
-          model: google/gemini-2.5-flash
+          model: google/gemini-3.6-flash
           prompt: |
             Review this pull request. Focus on:
             - Code quality and maintainability
@@ -41,16 +41,16 @@ jobs:
         env:
           # El input `model:` (above) setea la env var MODEL; use_github_token true exige GITHUB_TOKEN
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          # Google Gemini 2.5 Flash (built-in provider, ~15 RPM free tier, 1M context); ver docs/CONTEXT-CICD.md §9.3.8
-          # Fix 2026-09-04: title agent resolvía gemini-3.8-flash del catálogo → se fija small_model
+          # Google Gemini 3.6 Flash (built-in provider; gemini-2.5-flash 404 "no longer available to new users" 2026-09-05); ver docs/CONTEXT-CICD.md §9.3.8
+          # Fix 2026-09-05: title agent resolvía gemini-3.8-flash del catálogo → se fija small_model
           OPENCODE_CONFIG_CONTENT: |
             {
-              "model": "google/gemini-2.5-flash",
-              "small_model": "google/gemini-2.5-flash",
+              "model": "google/gemini-3.6-flash",
+              "small_model": "google/gemini-3.6-flash",
               "provider": {
                 "google": {
                   "models": {
-                    "gemini-2.5-flash": {
+                    "gemini-3.6-flash": {
                       "options": {
                         "thinkingConfig": {
                           "thinkingBudget": 8192
