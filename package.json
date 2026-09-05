@@ -434,7 +434,7 @@
     "is-core-module": "2.16.1",
     "is-data-view": "1.0.2",
     "is-date-object": "1.1.0",
-    "is-docker": "2.2.1",
+    "is-docker": "4.0.0",
     "is-extglob": "2.1.1",
     "is-finalizationregistry": "1.1.1",
     "is-fullwidth-code-point": "5.1.0",
