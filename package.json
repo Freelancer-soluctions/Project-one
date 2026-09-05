@@ -705,7 +705,7 @@
     "read-yaml-file": "1.1.0",
     "readable-stream": "2.3.8",
     "readdirp": "3.6.0",
-    "recast": "0.23.11",
+    "recast": "0.24.0",
     "rechoir": "0.8.0",
     "redent": "3.0.0",
     "redis-errors": "1.2.0",
