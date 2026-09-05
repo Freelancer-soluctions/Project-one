@@ -44,9 +44,18 @@ if (check.status !== 0) {
 //    On win32, `shell: true` re-joins argv through cmd, which would split
 //    multi-word values ("feat: add DCO" -> 3 tokens). Re-quote any arg that
 //    contains whitespace so the value survives the shell round-trip.
-const ghArgs = args.map((a) =>
-  /\s/.test(a) ? '"' + a.replace(/"/g, '\\"') + '"' : a
-);
+//    Quoting rules differ per platform:
+//      - win32 (cmd.exe): escape double quotes by doubling (" -> ""); cmd
+//        does NOT require escaping backslashes, and \" would corrupt values
+//        containing "\" (e.g. Windows paths in --body).
+//      - POSIX (sh/bash): escape `"`, `\`, `$`, and backtick with a backslash.
+const quoteArgForShell = (a) => {
+  if (!/\s/.test(a)) return a;
+  return process.platform === 'win32'
+    ? '"' + a.replace(/"/g, '""') + '"'
+    : '"' + a.replace(/(["\\$`])/g, '\\$1') + '"';
+};
+const ghArgs = args.map(quoteArgForShell);
 const gh = spawnSync('gh', ['pr', 'create', ...ghArgs], {
   stdio: 'inherit',
   shell: process.platform === 'win32',

@@ -11,10 +11,10 @@
  * Scope         : optional — `type: desc` or `type(scope): desc`
  *
  * Usage:
- *   node scripts/hooks/pr-title-check.mjs "feat: add feature"
- *   node scripts/hooks/pr-title-check.mjs --title "feat: add feature" [--body "..."]
- *   node scripts/hooks/pr-title-check.mjs --title="feat: add feature"
- *   echo "feat: add feature" | node scripts/hooks/pr-title-check.mjs
+ *   node scripts/hooks/pr-title-check.js "feat: add feature"
+ *   node scripts/hooks/pr-title-check.js --title "feat: add feature" [--body "..."]
+ *   node scripts/hooks/pr-title-check.js --title="feat: add feature"
+ *   echo "feat: add feature" | node scripts/hooks/pr-title-check.js
  */
 
 const TYPES = [
