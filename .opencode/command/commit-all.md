@@ -48,10 +48,18 @@ Rules:
 - Do not amend commits.
 - ALWAYS sign every commit with `git commit -S` — this repo enforces signed
   commits (ruleset required_signatures). Plain `git commit` is forbidden.
+- ALWAYS add the DCO sign-off with `-s` (`git commit -S -s`) so every
+  non-merge commit includes a `Signed-off-by: Name <email>` trailer matching
+  the KineticCafe DCO format enforced in CI (case-sensitive `Signed-off-by:`,
+  trailer identity matching the author/committer). `-s` is NON-OPTIONAL even
+  when `git config commit.signoff true` is set — the config may be absent on
+  other machines, fresh clones, or CI runners (defense-in-depth). Plain
+  `git commit -S` (without `-s`) is forbidden. See `docs/CONTEXT-CICD.md`
+  §10.4/§10.5 for the local DCO layers.
 - If signing fails because the SSH agent has no key loaded (`ssh-add -l`
   fails or passphrase prompt in non-interactive shell), do NOT fall back to
   unsigned commits: leave changes staged and output the exact
-  `git commit -S -m "..."` commands for the user to run interactively.
+  `git commit -S -s -m "..."` commands for the user to run interactively.
 
 Flow:
 
@@ -61,7 +69,7 @@ Flow:
 4. For each group:
    - Add only the files for that group using:
      `git add <files>`
-   - Create the signed commit using Conventional Commit format:
-     `git commit -S -m "type(scope): description"`
+   - Create the signed, DCO-signed commit using Conventional Commit format:
+     `git commit -S -s -m "type(scope): description"`
 5. When finished, summarize the commits created (with hashes and signature
    status).

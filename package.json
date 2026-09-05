@@ -59,7 +59,9 @@
     "security:trivy:deps": "powershell -ExecutionPolicy Bypass -File scripts/security/dependency-scan.ps1",
     "changeset": "changeset",
     "version:packages": "changeset version && npm install --ignore-scripts",
-    "release": "changeset tag"
+    "release": "changeset tag",
+    "pr:title-check": "node scripts/hooks/pr-title-check.mjs",
+    "pr:create": "node scripts/hooks/pr-create.mjs"
   },
   "devDependencies": {
     "@changesets/changelog-github": "^0.7.0",

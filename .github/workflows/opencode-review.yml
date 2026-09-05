@@ -1,0 +1,62 @@
+name: OpenCode AI Code Review
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    branches: [main]
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: read
+
+jobs:
+  opencode-review:
+    name: opencode-review
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    continue-on-error: true
+    if: github.event.pull_request.head.repo.fork == false && github.actor != 'dependabot[bot]' && github.event.pull_request.draft == false
+    concurrency:
+      group: opencode-review-${{ github.event.pull_request.number }}
+      cancel-in-progress: true
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Run OpenCode AI review
+        uses: anomalyco/opencode/github@5d5c35ee71c095464b9eb3c3e991df906f12a152 # pinned for supply chain security (verified 2026-09-04)
+        with:
+          use_github_token: true
+          model: google/gemini-3.6-flash
+          prompt: |
+            Review this pull request. Focus on:
+            - Code quality and maintainability
+            - Bugs and edge cases
+            - Security vulnerabilities
+            - Performance concerns
+            - Adherence to project conventions (Conventional Commits, ESLint/Prettier style, monorepo structure)
+
+            Provide feedback as a concise bulleted list. If there are no significant issues, reply with "LGTM".
+        env:
+          # El input `model:` (above) setea la env var MODEL; use_github_token true exige GITHUB_TOKEN
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Google Gemini 3.6 Flash (built-in provider; gemini-2.5-flash 404 "no longer available to new users" 2026-09-05); ver docs/CONTEXT-CICD.md §9.3.8
+          # Thinking: NO configurar thinkingConfig — opencode inyecta thinkingLevel:high (gemini-3) y
+          # thinkingBudget (param gemini-2.5) causa 400 "only one of thinking budget and thinking level" (fix 2026-09-05)
+          OPENCODE_CONFIG_CONTENT: |
+            {
+              "model": "google/gemini-3.6-flash",
+              "small_model": "google/gemini-3.6-flash",
+              "provider": {
+                "google": {
+                  "models": {
+                    "gemini-3.6-flash": {}
+                  }
+                }
+              }
+            }
+          # @ai-sdk/google espera GOOGLE_GENERATIVE_AI_API_KEY (no GEMINI_API_KEY) → las 3 variantes al mismo secret
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GOOGLE_GENERATIVE_AI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GOOGLE_API_KEY: ${{ secrets.GEMINI_API_KEY }}

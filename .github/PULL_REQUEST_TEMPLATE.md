@@ -34,7 +34,7 @@ Closes #
 
 ## Pre-merge Checklist
 
-- [ ] `Signed-off-by` present in all commits (`git commit -s`)
+- [ ] `Signed-off-by` present in all commits (`git commit -s`; auto-signoff via `git config --global commit.signoff true` — see `docs/CONTEXT-CICD.md` §10.5)
 - [ ] Tests pass locally (`npm run test`)
 - [ ] Documentation updated (if applicable)
 - [ ] No breaking changes (or documented in Summary)

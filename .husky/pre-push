@@ -13,6 +13,41 @@ if ! git rev-parse --verify origin/main > /dev/null 2>&1; then
   exit 1
 fi
 
+# DCO re-check (L2): every pushed commit must carry a Signed-off-by trailer.
+# Runs AFTER the fetch above (the null-SHA first-push fallback depends on origin/main).
+# Git passes pushed refs on STDIN: <local-ref> <local-sha> <remote-ref> <remote-sha>
+DCO_FAILED=""
+
+while read -r LOCAL_REF LOCAL_SHA REMOTE_REF REMOTE_SHA; do
+  # Skip branch deletions — nothing was pushed
+  if [ "$REMOTE_SHA" = "(delete)" ] || [ "$LOCAL_SHA" = "0000000000000000000000000000000000000000" ]; then
+    continue
+  fi
+
+  if [ "$REMOTE_SHA" = "0000000000000000000000000000000000000000" ]; then
+    # First push of a new branch: remote ref does not exist yet.
+    # Fall back to commits not yet on origin/main (fetch above guarantees it exists).
+    COMMITS=$(git log --no-merges --format="%H" origin/main..HEAD)
+  else
+    COMMITS=$(git log --no-merges --format="%H" "$REMOTE_REF..$LOCAL_REF")
+  fi
+
+  for SHA in $COMMITS; do
+    if ! git log -1 --format="%B" "$SHA" | grep -q 'Signed-off-by:'; then
+      SHORT=$(git log -1 --format="%h" "$SHA")
+      DCO_FAILED="${DCO_FAILED}  - commit $SHORT is missing 'Signed-off-by:' trailer\n"
+    fi
+  done
+done
+
+if [ -n "$DCO_FAILED" ]; then
+  echo "❌ DCO: the following commits are missing a Signed-off-by trailer:"
+  printf "%b" "$DCO_FAILED"
+  echo "   Fix with 'git rebase --signoff origin/main' or amend with 'git commit -s --amend'."
+  exit 1
+fi
+echo "✅ DCO re-check passed (all pushed commits signed off)."
+
 echo "Running scoped tests (server)..."
 vitest run --changed origin/main --config apps/server/vitest.config.js || { echo "❌ Server scoped tests failed."; exit 1; }
 echo "✅ Server scoped tests passed."
