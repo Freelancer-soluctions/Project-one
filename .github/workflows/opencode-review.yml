@@ -42,8 +42,11 @@ jobs:
           # El input `model:` (above) setea la env var MODEL; use_github_token true exige GITHUB_TOKEN
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           # Google Gemini 2.5 Flash (built-in provider, ~15 RPM free tier, 1M context); ver docs/CONTEXT-CICD.md §9.3.8
+          # Fix 2026-09-04: title agent resolvía gemini-3.8-flash del catálogo → se fija small_model
           OPENCODE_CONFIG_CONTENT: |
             {
+              "model": "google/gemini-2.5-flash",
+              "small_model": "google/gemini-2.5-flash",
               "provider": {
                 "google": {
                   "models": {
@@ -58,4 +61,7 @@ jobs:
                 }
               }
             }
+          # @ai-sdk/google espera GOOGLE_GENERATIVE_AI_API_KEY (no GEMINI_API_KEY) → las 3 variantes al mismo secret
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GOOGLE_GENERATIVE_AI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GOOGLE_API_KEY: ${{ secrets.GEMINI_API_KEY }}
