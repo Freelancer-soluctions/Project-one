@@ -116,3 +116,5 @@ Use the provided PR template when creating PRs. Include:
 ## Questions?
 
 Open a discussion or reach out to the team.
+
+> _Note: This line was added as part of the opencode-review smoke test (task 1.10)._
