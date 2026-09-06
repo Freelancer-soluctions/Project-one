@@ -124,13 +124,13 @@ GitHub acepta varios métodos de firma. Cada uno tiene distinto estatus de `veri
 
 ## 4. Las 6 fases del OpenSpec `ci-commit-signing` (F0-F5)
 
-Este cambio está documentado en `openspec/changes/ci-commit-signing/`. Cada fase tiene un entregable concreto y un "definition of done".
+Este cambio está documentado (archivado) en `openspec/changes/archive/2026-08-26-ci-commit-signing/`. Cada fase tiene un entregable concreto y un "definition of done".
 
 ### Visión general F0 → F5
 
 | Fase   | Qué crea/configura                                                                                                                                                                                                                                                  | Resultado cuándo termina                                                                                       |
 | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
-| **F0** | `docs/commit-signing.md` (este archivo), actualización de `AGENTS.md`                                                                                                                                                                                               | El equipo sabe por qué firmamos y cómo.                                                                        |
+| **F0** | `docs/learning/ci-cd/05b-commit-signing.md` (este archivo), actualización de `AGENTS.md`                                                                                                                                                                            | El equipo sabe por qué firmamos y cómo.                                                                        |
 | **F1** | Clave SSH ed25519 dedicada (`id_ed25519_projectERP`), 4 flags `git config`, `allowed_signers`                                                                                                                                                                       | Cada commit nuevo sale firmado automáticamente; `git log --show-signature` muestra la firma.                   |
 | **F2** | Job `verify-signatures` en `ci.yml` Stage 2 PRE-Build: consulta `GitHub API .verified` por PR; modo informativo → blocking; **por qué NO usar `git log %G?` en CI** (falsos positives sin `allowedSignersFile`).                                                    | PRs con commits sin firma son bloqueados en la stage de verify antes de merge.                                 |
 | **F3** | Migración `release.yml` CONDICIONAL al GATE 4.0: spike empírico con ruleset temporal en branch `feature/signing-gate-test`; `changesets/action` hace `git push` con `GITHUB_TOKEN` → commits sin firmar; si son rechazados → GitHub App con SSH signing key propia. | Libera el release solo cuando los commits están firmados; fallback a GitHub App si el ruleset bloquea el push. |
@@ -192,6 +192,22 @@ Passo 4: git config --global commit.gpgsign true
 Passo 5: git commit -m "feat: nueva funcionalidad" → firma automática
 Passo 6: git log --show-signature → muestra firma Good signature
 ```
+
+### F1.1 — `allowed_signers`: sintaxis exacta
+
+El archivo `~/.ssh/allowed_signers` (configurado vía `git config --global gpg.ssh.allowedSignersFile ~/.ssh/allowed_signers`) permite que **Git local** verifique firmas (`git log --show-signature`, `git verify-commit`). Sintaxis: **una línea por clave** con el formato:
+
+```
+<email> namespaces="git" ssh-ed25519 <clave-publica>
+```
+
+Ejemplo:
+
+```
+tu-email@example.com namespaces="git" ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAI... comment
+```
+
+> **Nota:** la clave pública de este archivo debe coincidir **exactamente** con la subida a GitHub (F1, paso 2). Si difieren, GitHub marca el commit como **"Unverified"**.
 
 ---
 
@@ -445,7 +461,61 @@ Desarrollador: git commit -m "feat: x" (sign-ed25519)
 
 ---
 
-## 8. Por qué importa a nivel enterprise
+## 8. Runbook operativo (troubleshooting y rotación)
+
+> Sección operativa de consulta rápida. La teoría y el setup detallado están en las fases F0-F5 (§4); aquí va lo práctico del día a día.
+
+### 8.1 Troubleshooting
+
+| Síntoma                                                    | Causa                                                               | Fix                                                                                                                                                                                          |
+| ---------------------------------------------------------- | ------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `! [remote rejected] main -> main (push declined)`         | Commit sin firma o firma no verificada por GitHub                   | Re-firmar: `git commit --amend -S` (o `git rebase --signoff origin/main`); confirmar que `user.signingkey` coincide con la pública subida a GitHub; verificar con `git log --show-signature` |
+| Badge **Unverified** en commits legacy                     | Los 374 commits previos al rollout (2026-08-01) no estaban firmados | **Esperado.** No reescribir la historia — el check `Verify Commit Signatures` los trata como grandfathered (ver F4)                                                                          |
+| `error: gpg.ssh.allowedSignersFile needs to be configured` | Falta el archivo o el config                                        | Crear `~/.ssh/allowed_signers` (F1.1) y configurar `git config --global gpg.ssh.allowedSignersFile ~/.ssh/allowed_signers`                                                                   |
+
+### 8.2 Setup rápido condensado (Windows / MSYS2)
+
+La fase F1 (§4) tiene el setup detallado paso a paso; aquí va la versión condensada como chuleta:
+
+```bash
+# 1. Generar clave dedicada (sin passphrase — la usa CI/hooks)
+ssh-keygen -t ed25519 -C "commit-signing-projectone" -f ~/.ssh/id_ed25519_projectERP
+
+# 2. Subir la pública a GitHub (Settings → SSH and GPG keys → New SSH key, tipo Signing Key)
+cat ~/.ssh/id_ed25519_projectERP.pub
+
+# 3. Configurar git
+git config --global gpg.format ssh
+git config --global user.signingkey ~/.ssh/id_ed25519_projectERP.pub
+git config --global commit.gpgsign true
+git config --global commit.signoff true   # trailer DCO — lo exige el check CI "DCO"
+git config --global gpg.ssh.allowedSignersFile ~/.ssh/allowed_signers
+```
+
+> **`commit.signoff true`** añade el trailer `Signed-off-by:` a cada commit — es la convención de trazabilidad DCO del repo (ver `docs/CONTEXT-CICD.md` §10.5) y lo exige el check CI `DCO`, bloqueante.
+
+Verificación:
+
+```bash
+git log --show-signature -1   # debe mostrar: Good "git" signature for <email>
+git verify-commit HEAD        # exit 0 si la firma es válida
+```
+
+Tras push, el commit debe mostrar badge **Verified** en GitHub.
+
+### 8.3 Rotación / revocación de la clave
+
+1. Generar clave nueva (mismo procedimiento de F1, nombre de archivo distinto).
+2. En GitHub → Settings → SSH and GPG keys: **subir la nueva** como Signing Key y **eliminar la vieja**.
+3. Actualizar `~/.ssh/allowed_signers`: reemplazar la línea con la pública nueva (F1.1).
+4. Actualizar `user.signingkey` a la nueva pública.
+5. Re-verificar: commit de prueba → `git log --show-signature` → badge Verified en GitHub.
+
+> Los commits ya hechos con la clave anterior **permanecen Verified** — GitHub verifica contra la clave registrada en el momento del push. **No se re-firman.**
+
+---
+
+## 9. Por qué importa a nivel enterprise
 
 | Área de impacto                        | Beneficio                                                                                                                                                                   |
 | -------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -458,11 +528,11 @@ Desarrollador: git commit -m "feat: x" (sign-ed25519)
 
 ---
 
-## 9. Referencias
+## 10. Referencias
 
 | Tipo                | Referencia               | Enlaces                                                                                                                                                                  |
-| ------------------- | ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| **OpenSpec cambio** | `ci-commit-signing`      | `openspec/changes/ci-commit-signing/` (proposal/design/tasks/specs)                                                                                                      |
+| ------------------- | ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | --- |
+| **OpenSpec cambio** | `ci-commit-signing`      | `openspec/changes/archive/2026-08-26-ci-commit-signing/` (proposal/design/tasks/specs — change archivado)                                                                |     |
 | **Docs GitHub**     | Signature verification   | <https://docs.github.com/en/authentication/managing-commit-signature-verification>                                                                                       |
 | **Docs GitHub**     | Rulesets                 | <https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/enabling-features-for-your-repository/managing-rulesets#require-signed-commits> |
 | **Issue sigstore**  | gitsign#40               | <https://github.com/sigstore/gitsign/issues/40> (CA fuera trust root + claves efímeras)                                                                                  |
@@ -485,7 +555,7 @@ Antes de marcar como completa, verifica que puedes:
 - [ ] Describir el flujo ASCII máquina↔GitHub (firmado → badge → CI gate → enforcement).
 - [ ] Listar qué NO hace el cambio (no reescribe legacy, no toca Husky, no firma tags, no usa gitsign).
 - [ ] Explicar el impacto enterprise: supply chain, compliance SOC2/PCI-DSS, confianza colaboradores, política org.
-- [ ] Mencionar las referencias: openspec/changes/ci-commit-signing/, docs.github.com, issue sigstore/gitsign#40.
+- [ ] Mencionar las referencias: openspec/changes/archive/2026-08-26-ci-commit-signing/, docs.github.com, issue sigstore/gitsign#40.
 
 Si tienes dudas en algún punto, relee la sección correspondiente. La guía 05b (Changesets) asume que conoces el flujo de release; esta guía 05b complementa con la capa de firma de autoría.
 

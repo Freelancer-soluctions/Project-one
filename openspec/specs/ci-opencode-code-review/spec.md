@@ -1,8 +1,10 @@
+# ci-opencode-code-review Specification
+
 ## Purpose
 
 Provides an automated opencode-based code review commentary on every PR toward main, using free-tier LLM models, so contributors receive structured feedback without blocking the merge pipeline.
 
-## ADDED Requirements
+## Requirements
 
 ### Requirement: The workflow runs on PRs toward main and posts a review comment
 
@@ -25,35 +27,30 @@ The system SHALL execute the `opencode-review.yml` workflow on pull requests tar
 
 ### Requirement: The workflow configures the model self-contained via OPENCODE_CONFIG_CONTENT (Bug #36504)
 
-The system SHALL configure the opencode model via the `OPENCODE_CONFIG_CONTENT` environment variable (or the action's native input), passing a Groq-compatible provider inline with the `GROQ_API_KEY` secret. The `agent` input of `anomalyco/opencode/github` SHALL NOT be relied upon (Bug #36504: the `agent` input may be ignored by the action). The model/provider configuration in `opencode.jsonc` is OUT-OF-SCOPE / DEFERRED per user decision.
+The system SHALL configure the opencode model via the `OPENCODE_CONFIG_CONTENT` environment variable (or the action's native input), using Google Gemini as a built-in provider with the `GEMINI_API_KEY` secret. The `agent` input of `anomalyco/opencode/github` SHALL NOT be relied upon (Bug #36504: the `agent` input may be ignored by the action). The model/provider configuration in `opencode.jsonc` is OUT-OF-SCOPE / DEFERRED per user decision.
 
-#### Scenario: Workflow runs with Groq model via OPENCODE_CONFIG_CONTENT
+#### Scenario: Workflow runs with Gemini model via OPENCODE_CONFIG_CONTENT
 
 - **WHEN** the `opencode-review.yml` workflow executes
-- **THEN** it invokes `anomalyco/opencode/github@latest` (latest documented version; no `v1.0.0` tag exists; SHA-pinned after first successful run) with `use_github_token: true`, setting `OPENCODE_CONFIG_CONTENT` to a custom Groq provider configuration:
+- **THEN** it invokes `anomalyco/opencode/github@5d5c35ee71c095464b9eb3c3e991df906f12a152` (SHA-pinned for supply chain safety, verified 2026-09-04) with `use_github_token: true`, `model: google/gemini-3.6-flash`, setting `OPENCODE_CONFIG_CONTENT` to the Google Gemini built-in provider configuration:
   ```json
   {
+    "model": "google/gemini-3.6-flash",
+    "small_model": "google/gemini-3.6-flash",
     "provider": {
-      "groq": {
-        "npm": "@ai-sdk/openai-compatible",
-        "name": "Groq",
-        "options": {
-          "baseURL": "https://api.groq.com/openai/v1",
-          "apiKey": "{env:GROQ_API_KEY}"
-        },
+      "google": {
         "models": {
-          "llama-3.3-70b-versatile": { "name": "Llama 3.3 70B Versatile" }
+          "gemini-3.6-flash": {}
         }
       }
-    },
-    "model": "groq/llama-3.3-70b-versatile"
+    }
   }
   ```
-  and authenticating via the `GROQ_API_KEY` secret
+  and authenticating via the `GEMINI_API_KEY` secret (mapped to three env vars: `GEMINI_API_KEY`, `GOOGLE_GENERATIVE_AI_API_KEY`, `GOOGLE_API_KEY` for Google AI SDK compatibility)
 
 #### Scenario: Fallback model activates on rate-limit exhaustion
 
-- **WHEN** the primary Groq model is unavailable or rate-limited (HTTP 429)
+- **WHEN** the primary Gemini model is unavailable or rate-limited (HTTP 429)
 - **THEN** the workflow falls back to `opencode/free` (a valid, non-deprecated opencode free-tier model); if both models are exhausted, the workflow posts a rate-limit advisory and exits gracefully
 
 ### Requirement: The workflow uses scoped permissions without statuses
@@ -126,21 +123,14 @@ The `opencode-review.yml` workflow SHALL be documented as `disabled_manually` by
 
 #### Scenario: Workflow is enabled after provisioning secrets
 
-- **WHEN** `GROQ_API_KEY` is added to GitHub repo secrets and the workflow is enabled
+- **WHEN** `GEMINI_API_KEY` is added to GitHub repo secrets and the workflow is enabled
 - **THEN** the workflow executes on qualifying PRs
 
 ### Requirement: The action version is documented and will be SHA-pinned
 
-The `anomalyco/opencode/github` action SHALL use `@latest` per official documentation (no stable `v1.0.0` version tag exists in documented releases — verified via Context7). After the first successful run, the action SHALL be pinned to the specific commit SHA for supply chain safety (§5.4).
+The `anomalyco/opencode/github` action SHALL be pinned to a specific commit SHA for supply chain safety (§5.4). Current pin: `@5d5c35ee71c095464b9eb3c3e991df906f12a152` (verified 2026-09-04).
 
 #### Scenario: Action version is documented
 
 - **WHEN** the workflow references the action
-- **THEN** it uses `@latest` initially, with the SHA documented in design.md; the SHA is committed after first successful smoke test
-
-### OUT-OF-SCOPE / DEFERRED
-
-The following items are explicitly OUT-OF-SCOPE / DEFERRED from this change per user decision:
-
-- **Provider/model configuration in `opencode.jsonc`**: The configuration of the Groq provider and model in `opencode.jsonc` is deferred to a future change. This change configures the model self-contained via `OPENCODE_CONFIG_CONTENT` env var (or action input), without depending on `opencode.jsonc`.
-- **Fine-grained provider configuration**: Advanced provider settings (rate limits, provider-specific options) are documented as future work, not deliverables of this change.
+- **THEN** it uses the SHA-pinned version `@5d5c35ee71c095464b9eb3c3e991df906f12a152` for supply chain safety

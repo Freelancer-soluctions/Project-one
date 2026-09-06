@@ -60,8 +60,8 @@
     "changeset": "changeset",
     "version:packages": "changeset version && npm install --ignore-scripts",
     "release": "changeset tag",
-    "pr:title-check": "node scripts/hooks/pr-title-check.mjs",
-    "pr:create": "node scripts/hooks/pr-create.mjs"
+    "pr:title-check": "node scripts/hooks/pr-title-check.js",
+    "pr:create": "node scripts/hooks/pr-create.js"
   },
   "devDependencies": {
     "@changesets/changelog-github": "^0.7.0",
