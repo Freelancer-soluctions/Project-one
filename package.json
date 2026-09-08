@@ -88,7 +88,7 @@
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx,cjs,mjs,json,jsonc,md}": "prettier --write",
-    "*.{js,jsx,cjs,mjs}": "eslint --fix --max-warnings 0"
+    "*.{js,jsx,cjs,mjs}": "eslint --fix --max-warnings 0 --no-warn-ignored"
   },
   "version": "1.0.0",
   "directories": {

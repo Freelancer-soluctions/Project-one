@@ -4,6 +4,10 @@ build/
 coverage/
 .env
 *.min.js
+e2e/
+**/*.test.*
+**/*.spec.*
+prisma/generated/**
 
 
  

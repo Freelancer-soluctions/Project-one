@@ -1,0 +1,28 @@
+# semgrep custom rule: SSRF (CWE-918)
+# Target: Dynamic URL construction from user input passed to fetch/axios.get/http.request
+# Confidence: HIGH
+metadata:
+  cwe: ["CWE-918"]
+  confidence: HIGH
+  technology: ["javascript", "nodejs", "express"]
+  severity: ERROR
+
+pattern-sources:
+  - pattern: |
+      fetch($X)
+  - pattern: |
+      axios.get($X)
+  - pattern: |
+      http.request($X)
+
+pattern-sinks:
+  - pattern: |
+      fetch($X)
+
+  - pattern: |
+      axios.get($X)
+
+  - pattern: |
+      http.request($X)
+
+confidence: HIGH
