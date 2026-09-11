@@ -133,7 +133,7 @@ Verificación READ-ONLY vía `gh api repos/Freelancer-soluctions/Project-one/rul
 
 | Campo             | Valor                                                             |
 | ----------------- | ----------------------------------------------------------------- |
-| Ruleset           | `Require signed commits` (id 21227644)                            |
+| Ruleset           | `Pre-Merge Governance Gate` (id 21227644)                         |
 | Enforcement       | `active`, target `~DEFAULT_BRANCH` (main)                         |
 | Checks requeridos | `Verify Commit Signatures` + `Commit Lint (Conventional Commits)` |
 | Bypass            | `[]` — `current_user_can_bypass: never` (ni admins)               |

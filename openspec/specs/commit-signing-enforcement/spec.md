@@ -8,7 +8,7 @@ Define el ruleset de GitHub en `main` que exige commits firmados y rechaza pushe
 
 ### Requirement: Ruleset en main exige commits firmados
 
-GitHub SHALL tener un ruleset `Require signed commits` que apunte SOLO a la rama `main` (las ramas `feature/*` NO tienen protección remota de firma). El ruleset SHALL aceptar únicamente pushes cuyos commits estén firmados y verificados. El ruleset SHALL incluir un bypass de rol Admin para emergencias.
+GitHub SHALL tener un ruleset `Pre-Merge Governance Gate` que apunte SOLO a la rama `main` (las ramas `feature/*` NO tienen protección remota de firma). El ruleset SHALL aceptar únicamente pushes cuyos commits estén firmados y verificados. El ruleset SHALL incluir un bypass de rol Admin para emergencias.
 
 #### Scenario: Push firmado a main
 

@@ -24,7 +24,7 @@
 
 | Área                                             | Estado          | Detalle                                                                                                                                 |
 | ------------------------------------------------ | --------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
-| Ruleset 21227644 "Require signed commits"        | ✅ Activo       | Enforcer real de gobernanza (~DEFAULT_BRANCH)                                                                                           |
+| Ruleset 21227644 "Pre-Merge Governance Gate"     | ✅ Activo       | Enforcer real de gobernanza (~DEFAULT_BRANCH)                                                                                           |
 | `verify-signatures` (firmas)                     | ✅ Activo       | Required status check en ruleset                                                                                                        |
 | `commit-lint` (Conventional Commits)             | ✅ Activo       | Required status check en ruleset                                                                                                        |
 | `pr-title-lint`                                  | ✅ Activo       | Required + **BLOCKING** (continue-on-error removido 2026-08-31); `subjectPattern: ^(?![A-Z]).+$`, types añade `ops`                     |
@@ -130,7 +130,7 @@ gh api repos/Freelancer-soluctions/Project-one/branches/main/protection/required
 | `security.yml`, `security-digest.yml`, `scheduled-security.yml`, `deploy.yml`, `release.yml`, `preview.yml`, `ci-enterprise.yml` — ⛔ `disabled_manually` |
 | (config dinámico `dynamic/dependabot/dependabot-updates` — ✅ active)                                                                                     |
 
-**Ruleset 21227644 "Require signed commits"** (active, enforcement, ~DEFAULT_BRANCH):
+**Ruleset 21227644 "Pre-Merge Governance Gate"** (active, enforcement, ~DEFAULT_BRANCH):
 
 - **6 reglas** (ID 21227644, `bypass_actors: []`, `current_user_can_bypass: never`):
   - `deletion` + `non_fast_forward` + `required_signatures`
@@ -265,7 +265,7 @@ flowchart TD
 
 ## 5. Configuraciones de GitHub explicadas
 
-### 5.1 Ruleset "Require signed commits" (ID 21227644)
+### 5.1 Ruleset "Pre-Merge Governance Gate" (ID 21227644)
 
 | Regla                                              | Qué hace                             | Relación con workflows/jobs                                        |
 | -------------------------------------------------- | ------------------------------------ | ------------------------------------------------------------------ |

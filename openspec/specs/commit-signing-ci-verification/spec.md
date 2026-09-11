@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Define el job CI `verify-signatures` que verifica mediante la GitHub REST API que SOLO los commits introducidos por un PR (rango base..head obtenido vía compare endpoint `base.sha...head.sha`) tienen firma verificada, con allow-list de bots. La historia previa al PR queda EXPLÍCITAMENTE excluida: el ruleset server-side `Require signed commits` ya cubre la enforcement de lo nuevo; el job es defense-in-depth sobre los commits nuevos del PR.
+Define el job CI `verify-signatures` que verifica mediante la GitHub REST API que SOLO los commits introducidos por un PR (rango base..head obtenido vía compare endpoint `base.sha...head.sha`) tienen firma verificada, con allow-list de bots. La historia previa al PR queda EXPLÍCITAMENTE excluida: el ruleset server-side `Pre-Merge Governance Gate` ya cubre la enforcement de lo nuevo; el job es defense-in-depth sobre los commits nuevos del PR.
 
 ## Requirements
 

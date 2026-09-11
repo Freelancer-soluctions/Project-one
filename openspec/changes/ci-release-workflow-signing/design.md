@@ -1,6 +1,6 @@
 ## Context
 
-`release.yml` is the only workflow that commits (via `changesets/action@v2`). During `ci-commit-signing`, a GATE 4.0 spike appeared to confirm that release commits would be rejected by the `Require signed commits` ruleset, motivating a GitHub App + SSH signing migration. Post-hoc analysis revealed the spike tested the wrong mechanism. This document records the corrected understanding so the dead code is never reintroduced.
+`release.yml` is the only workflow that commits (via `changesets/action@v2`). During `ci-commit-signing`, a GATE 4.0 spike appeared to confirm that release commits would be rejected by the `Pre-Merge Governance Gate` ruleset, motivating a GitHub App + SSH signing migration. Post-hoc analysis revealed the spike tested the wrong mechanism. This document records the corrected understanding so the dead code is never reintroduced.
 
 ## Goals / Non-Goals
 
@@ -27,7 +27,7 @@ Commits created through the GitHub REST API (e.g., the Changesets bot / `github-
 
 ### D3 — required_signatures accepts web-flow signatures
 
-The `Require signed commits` ruleset (id `21227644`) accepts commits signed by the web-flow key: `verification.verified=true` for API-created commits, so they pass the `required_signatures` rule. No developer SSH signing key is involved.
+The `Pre-Merge Governance Gate` ruleset (id `21227644`) accepts commits signed by the web-flow key: `verification.verified=true` for API-created commits, so they pass the `required_signatures` rule. No developer SSH signing key is involved.
 
 ### D4 — GATE 4.0 spike tested the wrong mechanism
 
