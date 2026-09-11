@@ -480,7 +480,30 @@ En esta rama (`ci/governance-gates`) el job CI de Semgrep **no está en `ci.yml`
 
 ---
 
-### 4.7 Detección de secretos — Gitleaks
+### 4.8 SAST vs Secret Detection: taxonomía y separación
+
+**Veredicto taxonomico:** _secret scanning_ es categoria propia separada de SAST (industria 2026). Ambos analizan código sin ejecutarlo, pero abordan problemas distintos: SAST busca patrones de vulnerabilidad y bugs estructurales (CWE, inyección, cripto Weakness), mientras que _secret scanning_ detecta credenciales hardcodeadas que ya son mecanismos de autenticación funcionales. Esta separación es coherente con la clasificación industrial actual y evita confusiones en la configuración de gates.
+
+**Evidencia con fuentes:**
+
+- **GitHub Docs:** "Code Security" (SAST) vs "Secret Protection" (secret scanning) son dos productos independientes — `docs.github.com/en/code-security/concepts/secret-security/secret-scanning` define el escaneo de secretos como categoría distinta al análisis estático de código.
+- **GitLab:** desde v13.1 (2020) separa _Secret Detection_ de SAST en su documentación de Application Security; hoy enumera 4 categorías independientes — `docs.gitlab.com/user/application_security/detect/` (SAST, Secret Detection, Container Scanning, Dependency Scanning).
+- **NIST IR 8397 §2.3 vs §2.4:** _"static code scanning"_ (SAST, definición de patrones de vulnerabilidad en código fuente) vs _"heuristic tools for hardcoded secrets"_ — el estándar de EE.UU. distingue explícitamente el escaneo de código fuente de las heurísticas para credenciales filtradas.
+- **GitGuardian 2026:** _"a valid leaked secret requires no exploit — it is an authentication mechanism that already works"_ — subraya que un secreto filtrado no requiere cadena de explotación; ya es un vector de acceso activo.
+
+**Por qué `p/secrets` (Semgrep registry) está comentado en `.semgrep/.semgrep.yml`:**
+
+- _Precision menor:_ Semgrep OSS carece de validators propietarios para categorizar qué secretos son "válidos" vs ruidosos; la docs reconoce que no es adecuado como criterio para bloquear un PR (`not suitable as criteria to block a PR`).
+- _Ruido masivo conocido:_ en `package-lock.json` y archivos de configuración genera falsos positivos que saturan el feedback loop (returntocorp/semgrep issue #5728).
+- _Gitleaks ya cubre el caso:_ en el benchmark Safeguard.sh 2026, Gitleaks open source acertó 81/87 secretos vs Semgrep Secrets commercial 84/93 — la diferencia no justifica la dependencia comercial para un repo público.
+
+**Patrón 2026 recomendado:** _Gitleaks pre-commit + Semgrep CI + full-history_. Project-one ya lo sigue: el pre-commit ejecuta ambos en paralelo (SAST + Gitleaks staged), y el workflow `scheduled-security.yml` (hoy `disabled_manualmente`) corre Gitleaks full-history + SARIF a la Security tab. Esta combinación cubre ambos dominios sin depender de validators comerciales.
+
+**Divergencia única:** _sin validación de secretos activos (validators)_ — hoy no bloqueamos un PR por un secreto nuevo detectado por Semgrep OSS, porque los validators que distinguen "credencial reales" de "falso positivo" requieren Semgrep Secrets commercial o TruffleHog. Esto es **aceptable para un repositorio público** donde el costo de los falsos positivos supera el beneficio de bloqueo; pero **hay re-evaluar si el equipo adopta Semgrep Secrets commercial** o se integra TruffleHog en el pipeline local, que elevan la precisión y habilitan gates F2 bloqueantes en el ruleset.
+
+---
+
+### 4.9 Detección de secretos — Gitleaks
 
 **Capa:** L1 (staged) + scheduled (workflow semanal, hoy `disabled_manually`) · **No es check del ruleset**
 
@@ -556,7 +579,7 @@ Junto con la firma de commits, es el gate de **mayor impacto si falla silenciosa
 
 ---
 
-### 4.8 Tests scoped — `vitest run --changed` en pre-push
+### 4.10 Tests scoped — `vitest run --changed` en pre-push
 
 **Capa:** L2 (solo) · **No es check del ruleset** (vive en el dev)
 
@@ -589,7 +612,7 @@ Detecta los archivos de test que dependen de los archivos modificados (grafo de 
 
 ---
 
-### 4.9 Path scoping — job `repo-discovery` (Detect Changes)
+### 4.11 Path scoping — job `repo-discovery` (Detect Changes)
 
 **Capa:** L3 (infraestructura de otros jobs) · **No es check de governance por sí mismo**
 
@@ -622,7 +645,7 @@ Sin path-scoping, un cambio trivial de README dispararía todo el pipeline de ca
 
 ---
 
-### 4.10 Supply chain — job `dependency-review` (dependency-review-action@v5)
+### 4.12 Supply chain — job `dependency-review` (dependency-review-action@v5)
 
 **Capa:** L3 (corre en PRs a main) · **NO es check del ruleset** — es SECURITY, no governance (regla 6 de nuestra guía CI/CD)
 
@@ -660,7 +683,7 @@ Es un gate **no-bloqueante a nivel ruleset pero bloqueante a nivel PR**: si fall
 
 ---
 
-### 4.11 Anti-regresión de workflows — job `zombie-workflow-guard`
+### 4.13 Anti-regresión de workflows — job `zombie-workflow-guard`
 
 **Capa:** L3 · **No es check del ruleset** (pero es implacable)
 
@@ -693,7 +716,7 @@ Es el gate de **higiene de configuración**: el único que no valida código _de
 
 ---
 
-### 4.12 Dead code — knip (change activo `ci-prebuild-substage-structure`)
+### 4.14 Dead code — knip (change activo `ci-prebuild-substage-structure`)
 
 **Capa:** L3 (job, diseñado; hoy `if:false` por CI incremental) · **No es check del ruleset**
 
@@ -721,7 +744,7 @@ Complementa a los gates de lint/tests: esos dicen _"lo que hay, funciona"_; knip
 
 ## 5. El ruleset: el pegamento que convierte lo voluntario en obligatorio
 
-Sin un enforcer, todos los jobs anteriores son _reportes_: pueden fallar y el merge seguir ocurriendo. El **ruleset `21227644` "Require signed commits"** (branch `main`, `enforcement`) es el que hace que 4 de ellos **bloqueen el merge físicamente**:
+Sin un enforcer, todos los jobs anteriores son _reportes_: pueden fallar y el merge seguir ocurriendo. El **ruleset `21227644` "Pre-Merge Governance Gate"** (branch `main`, `enforcement`) es el que hace que 4 de ellos **bloqueen el merge físicamente**:
 
 | Regla del ruleset                                      | Qué bloquea                                          |
 | ------------------------------------------------------ | ---------------------------------------------------- |
