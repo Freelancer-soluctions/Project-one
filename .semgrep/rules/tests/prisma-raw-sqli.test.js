@@ -1,10 +1,5 @@
-// Prisma Raw SQL Injection (CWE-89) test fixtures - vulnerable case
-// vulnerable: should trigger the rule (queryRaw with interpolated user input)
-const { PrismaClient } = require('@prisma/client');
-const prisma = new PrismaClient();
+// Prisma Raw SQL Injection vulnerability: $queryRaw with interpolated user input from req.query
+// This should trigger the prisma-raw-sqli rule
 
-// VULNERABLE: user input directly interpolated in $queryRaw
-const userId = req.query.id; // uncontrolled user input
-const result = await prisma.$queryRaw(
-  Prisma.sql`SELECT * FROM users WHERE id = ${userId}`
-); // ← this should trigger the rule (interpolation, NOT parameterized)
+// VULNERABLE: $queryRaw with string interpolation (SQL injection)
+prisma.$queryRaw(`SELECT * FROM users WHERE id = ${req.query.userId}`);

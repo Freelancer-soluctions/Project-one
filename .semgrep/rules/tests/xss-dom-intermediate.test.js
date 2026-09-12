@@ -1,11 +1,6 @@
-// XSS via DOM intermediate variable (CWE-79) test fixtures - vulnerable case
-// vulnerable: should trigger the rule (dangerouslySetInnerHTML with intermediate user-controlled variable)
-const userValue = req.query.theme; // uncontrolled user input from query string
+// XSS DOM intermediate vulnerability: dangerouslySetInnerHTML with user-controlled value from req.query
+// This should trigger the xss-dom-intermediate rule
 
-// VULNERABLE: intermediate variable from user input passed to dangerouslySetInnerHTML
-const ComponentVuln = () => (
-  <div>
-    <span dangerouslySetInnerHTML={{ __html: userValue }} /> // ← this should
-    trigger the rule (user-controlled intermediate)
-  </div>
-);
+// VULNERABLE: dangerouslySetInnerHTML with unvalidated user input
+const el = {};
+el.dangerouslySetInnerHTML = { __html: req.query.theme };

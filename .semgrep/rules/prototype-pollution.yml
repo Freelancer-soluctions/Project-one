@@ -1,5 +1,5 @@
 # semgrep custom rule: Prototype Pollution (CWE-1321)
-# Target: Object.assign userInput or bracket notation with uncontrolled input
+# Target: Object.assign(userInput, ...) or obj[userInput] = value where userInput is not validated
 # Confidence: MEDIUM — inter-procedural taint limited; first arg must be user-controlled
 metadata:
   cwe: ["CWE-1321"]
@@ -9,12 +9,14 @@ metadata:
 
 pattern-sources:
   - pattern: |
-      Object.assign($X, ...)
-  - pattern: |
-      $X[$Y] = $Z
+      $USER_INPUT = req.body.data
+      $USER_INPUT = req.query.data
+      $USER_INPUT = req.params.data
 
 pattern-sinks:
   - pattern: |
-      Object.assign($X, ...)
+      Object.assign($TARGET, $USER_INPUT)
+  - pattern: |
+      $TARGET[$USER_INPUT] = $VALUE
 
 confidence: MEDIUM

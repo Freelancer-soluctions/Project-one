@@ -1,5 +1,5 @@
 # semgrep custom rule: Prisma Raw SQL Injection (CWE-89)
-# Target: $queryRaw / $queryRawUnsafe / $executeRaw / $executeRawUnsafe with tainted user input
+# Target: $queryRaw / $executeRaw with tainted user input
 # Confidence: HIGH
 # MUST include true-negative fixture with safe Prisma.sql tagged template (parameterized, NO string interpolation)
 metadata:
@@ -10,25 +10,18 @@ metadata:
 
 pattern-sources:
   - pattern: |
-      $queryRaw($X)
-  - pattern: |
-      $queryRawUnsafe($X)
-  - pattern: |
-      $executeRaw($X)
-  - pattern: |
-      $executeRawUnsafe($X)
+      $USER_INPUT = req.body.data
+      $USER_INPUT = req.query.data
+      $USER_INPUT = req.params.data
 
 pattern-sinks:
   - pattern: |
-      $queryRaw($X)
-
+      $queryRaw($USER_INPUT)
   - pattern: |
-      $queryRawUnsafe($X)
-
+      $queryRawUnsafe($USER_INPUT)
   - pattern: |
-      $executeRaw($X)
-
+      $executeRaw($USER_INPUT)
   - pattern: |
-      $executeRawUnsafe($X)
+      $executeRawUnsafe($USER_INPUT)
 
 confidence: HIGH
