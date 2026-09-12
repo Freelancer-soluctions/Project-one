@@ -1,5 +1,5 @@
 # semgrep custom rule: Prototype Pollution (CWE-1321)
-# Target: Object.assign(userInput, ...) or obj[userInput] = value where userInput is not validated
+# Target: Object.assign userInput or bracket notation with uncontrolled input
 # Confidence: MEDIUM — inter-procedural taint limited; first arg must be user-controlled
 metadata:
   cwe: ["CWE-1321"]
