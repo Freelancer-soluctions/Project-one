@@ -62,7 +62,7 @@ cd e2e && npm run test
 ## Important Conventions
 
 - **Commits**: Conventional Commits enforced by Husky
-- **Commit Signing**: Cada commit debe firmarse localmente con la SSH key ed25519 dedicada (`git commit -S`). **Nunca usar `--no-verify` ni commits sin firmar** — rompe el ruleset `Require signed commits` y la cadena de suministro. Ver docs/learning/ci-cd/05b-commit-signing.md para el setup rápido.
+- **Commit Signing**: Cada commit debe firmarse localmente con la SSH key ed25519 dedicada (`git commit -S`). **Nunca usar `--no-verify` ni commits sin firmar** — rompe el ruleset `Pre-Merge Governance Gate` y la cadena de suministro. Ver docs/learning/ci-cd/05b-commit-signing.md para el setup rápido.
 - **Testing**: See [docs/testing-architecture.md](docs/testing-architecture.md)
 - **Code Style**: See [docs/code-style.md](docs/code-style.md)
 

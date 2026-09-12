@@ -20,7 +20,7 @@ Entender a fondo qué se hizo, POR QUÉ se hizo así, y QUÉ APRENDIMOS en el pr
 | **F2**    | Job `verify-signatures` en ci.yml que consulta GitHub API                    | ✅ Completo |
 | **F3**    | JOB_VALIDATED=true (3/3 commits verified en CI real)                         | ✅ Completo |
 | **F4**    | GitHub App `Project-one-commit-signing` + `peter-evans/git-commit-signer` v4 | ✅ Completo |
-| **F5**    | Ruleset "Require signed commits" en main + required status check             | ✅ Completo |
+| **F5**    | Ruleset "Pre-Merge Governance Gate" en main + required status check          | ✅ Completo |
 | **Bonus** | CI incremental (CI_MINIMAL guards) + root cause analysis del bug JSON        | ✅ Completo |
 
 ---
@@ -256,13 +256,13 @@ Crear variable de repo en Settings → Secrets and variables → Actions → Var
 Settings → Rules → New branch ruleset
 ```
 
-| Campo                  | Valor                      |
-| ---------------------- | -------------------------- |
-| Ruleset name           | `Require signed commits`   |
-| Enforcement            | `Active`                   |
-| Target                 | `refs/heads/main`          |
-| Require signed commits | ✅ Enabled                 |
-| Required status check  | `Verify Commit Signatures` |
+| Campo                     | Valor                       |
+| ------------------------- | --------------------------- |
+| Ruleset name              | `Pre-Merge Governance Gate` |
+| Enforcement               | `Active`                    |
+| Target                    | `refs/heads/main`           |
+| Pre-Merge Governance Gate | ✅ Enabled                  |
+| Required status check     | `Verify Commit Signatures`  |
 
 ### Validación
 
@@ -422,7 +422,7 @@ Capa 1 (LOCAL):     git config commit.gpgsign=true
                     → TODO commit que haces YA sale firmado automáticamente
                     → La firma nace aquí, no en el server
 
-Capa 2 (GITHUB):    Ruleset "Require signed commits" en main
+Capa 2 (GITHUB):    Ruleset "Pre-Merge Governance Gate" en main
                     → GitHub BLOQUEA el merge aunque el CI no exista
                     → ESTA es la enforcement REAL e infalible
 
@@ -515,7 +515,7 @@ ci-commit-signing
 │   └── peter-evans/git-commit-signer@v4
 │
 └── F5: Ruleset
-    ├── Require signed commits en main
+    ├── Pre-Merge Governance Gate en main
     ├── Required status check: Verify Commit Signatures
     └── Validación: commit sin firma → merge bloqueado
 ```
@@ -556,7 +556,7 @@ Bypass temporal (**Repository admin**) del ruleset + **squash-merge del PR #99**
 
 ## 📅 Cronología Completa de la Odisea
 
-1. **F1–F5 del change**: 22/22 tasks — firma local SSH ed25519 → job CI `verify-signatures` → validación `JOB_VALIDATED=true` → GitHub App (ID 4688914) → ruleset "Require signed commits" activo en `main`.
+1. **F1–F5 del change**: 22/22 tasks — firma local SSH ed25519 → job CI `verify-signatures` → validación `JOB_VALIDATED=true` → GitHub App (ID 4688914) → ruleset "Pre-Merge Governance Gate" activo en `main`.
 2. **Caos de rebase**: reconstrucción de historia dejó `feature/ai-setup` con historias NO relacionadas a `main` (merge-base vacío, raíces `6799fe4` vs `1595f3c`) y ~113 commits zombie side-lineage sin firma.
 3. **Job `verify-signatures`**: bug de JSON path (`.verification` vs `.commit.verification`), luego falso verde detectado — el check custom no replicaba la verificación nativa `required_signatures` que evalúa TODOS los commits del PR, no solo HEAD.
 4. **Tres fixes al job**: heredoc para `$GITHUB_OUTPUT` multilínea, guardia grandfathering faltante en path anti-stale, selector jq tolerante a ambos schemas.

@@ -104,12 +104,12 @@ GitHub acepta varios métodos de firma. Cada uno tiene distinto estatus de `veri
 
 ### 3.1 Tabla comparativa de métodos
 
-| Método                        | Requisito de Git                                                                                                       | Estatus GitHub  | Comentario                                                                                                                                                                                                                                  |
-| ----------------------------- | ---------------------------------------------------------------------------------------------------------------------- | --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **GPG**                       | `gpg --keygen` + `git config --global user.signingkey`                                                                 | `Verified` ✅   | Clave GPG exportada y subida a GitHub. Clave persistente en el clavetero.                                                                                                                                                                   |
-| **SSH ed25519** (recomendado) | `ssh-keygen -t ed25519` + clave pública subida a GitHub + `git config --global gpg.format ssh` + `commit.gpgsign true` | `Verified` ✅   | **Este reposo elige este método**. Clave rotativa, no necesidad de gpg-agent.                                                                                                                                                               |
-| **S-MIME**                    | Certificado X.509 con email asociado                                                                                   | `Verified` ✅   | Menos común en flujos open source; requiere infraestructura PKI.                                                                                                                                                                            |
-| **sigstore/gitsign**          | `gitsign sign` (sigstore)                                                                                              | `Unverified` ⚠️ | **Fuera trust root**: claves efímeras firmadas por Bundle + Rekor, pero GitHub no valida la cadena de confianza completa. Issue upstream: <https://github.com/sigstore/gitsign/issues/40>. No cuenta para ruleset `Require signed commits`. |
+| Método                        | Requisito de Git                                                                                                       | Estatus GitHub  | Comentario                                                                                                                                                                                                                                     |
+| ----------------------------- | ---------------------------------------------------------------------------------------------------------------------- | --------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **GPG**                       | `gpg --keygen` + `git config --global user.signingkey`                                                                 | `Verified` ✅   | Clave GPG exportada y subida a GitHub. Clave persistente en el clavetero.                                                                                                                                                                      |
+| **SSH ed25519** (recomendado) | `ssh-keygen -t ed25519` + clave pública subida a GitHub + `git config --global gpg.format ssh` + `commit.gpgsign true` | `Verified` ✅   | **Este reposo elige este método**. Clave rotativa, no necesidad de gpg-agent.                                                                                                                                                                  |
+| **S-MIME**                    | Certificado X.509 con email asociado                                                                                   | `Verified` ✅   | Menos común en flujos open source; requiere infraestructura PKI.                                                                                                                                                                               |
+| **sigstore/gitsign**          | `gitsign sign` (sigstore)                                                                                              | `Unverified` ⚠️ | **Fuera trust root**: claves efímeras firmadas por Bundle + Rekor, pero GitHub no valida la cadena de confianza completa. Issue upstream: <https://github.com/sigstore/gitsign/issues/40>. No cuenta para ruleset `Pre-Merge Governance Gate`. |
 
 ### 3.3 Por qué este repo elige SSH ed25519
 
@@ -135,7 +135,7 @@ Este cambio está documentado (archivado) en `openspec/changes/archive/2026-08-2
 | **F2** | Job `verify-signatures` en `ci.yml` Stage 2 PRE-Build: consulta `GitHub API .verified` por PR; modo informativo → blocking; **por qué NO usar `git log %G?` en CI** (falsos positives sin `allowedSignersFile`).                                                    | PRs con commits sin firma son bloqueados en la stage de verify antes de merge.                                 |
 | **F3** | Migración `release.yml` CONDICIONAL al GATE 4.0: spike empírico con ruleset temporal en branch `feature/signing-gate-test`; `changesets/action` hace `git push` con `GITHUB_TOKEN` → commits sin firmar; si son rechazados → GitHub App con SSH signing key propia. | Libera el release solo cuando los commits están firmados; fallback a GitHub App si el ruleset bloquea el push. |
 | **F4** | **Vigilant mode**: commits legacy (374 anteriores) mostrarán `Unverified`, solo visual — no rompe el pipeline.                                                                                                                                                      | El pipeline no se bloquea por commits viejos; solo alerta.                                                     |
-| **F5** | **Ruleset** `Require signed commits` en `main` con `bypass` para Admin + `required status check` "verified-commits".                                                                                                                                                | Políticas de enforcement: nadie puede mergear un commit sin `Verified` badge, salvo admin con bypass.          |
+| **F5** | **Ruleset** `Pre-Merge Governance Gate` en `main` con `bypass` para Admin + `required status check` "verified-commits".                                                                                                                                             | Políticas de enforcement: nadie puede mergear un commit sin `Verified` badge, salvo admin con bypass.          |
 
 ---
 
@@ -254,7 +254,7 @@ Job verify-signatures (Stage 2 PRE-Build):
 **Proceso**:
 
 1. Crear branch `feature/signing-gate-test` desde `main`.
-2. Aplicar temporalmente un ruleset en la organización que exija `Require signed commits` en `main` (sin enforcement aún, modo _informative_).
+2. Aplicar temporalmente un ruleset en la organización que exija `Pre-Merge Governance Gate` en `main` (sin enforcement aún, modo _informative_).
 3. Intentar hacer release usando el workflow actual (`release.yml`).
 4. `changesets/action` hace `git push` con `GITHUB_TOKEN` → commits **sin firmar** (porque la clave local aún no está configurada en todos los colaboradores).
 5. Si el ruleset rechaza el push (modo blocking), grabar métricas: ¿cuántos PRs se bloquean? ¿Cuántos tienen `verified` falso?
@@ -274,7 +274,7 @@ Job verify-signatures (Stage 2 PRE-Build):
 
 ```
 Branch: feature/signing-gate-test
-1. Aplicar ruleset "Require signed commits" (informative)
+1. Aplicar ruleset "Pre-Merge Governance Gate" (informative)
 2. Ejecutar release.yml
 3. changesets/action git push → commits sin firmar
 4. Ruleset bloquea push? → Sí/No
@@ -303,7 +303,7 @@ Branch: feature/signing-gate-test
 
 ---
 
-### F5 — Ruleset `Require signed commits` en main con bypass Admin + required status check
+### F5 — Ruleset `Pre-Merge Governance Gate` en main con bypass Admin + required status check
 
 **Entregable**: Crear/actualizar el ruleset de GitHub Organization/Repository que exija commits firmados en la rama `main`.
 
@@ -311,7 +311,7 @@ Branch: feature/signing-gate-test
 
 | Configuración                    | Valor                                 | Qué hace                                                                                        |
 | -------------------------------- | ------------------------------------- | ----------------------------------------------------------------------------------------------- |
-| **Require signed commits**       | `Enabled`                             | GitHub verifica que cada commit en `main` tenga `verified` badge.                               |
+| **Pre-Merge Governance Gate**    | `Enabled`                             | GitHub verifica que cada commit en `main` tenga `verified` badge.                               |
 | ** bypass allow list**           | `Admin` (usuarios seleccionados)      | Los usuarios con rol de admin en la org pueden omitir el check (para hotfixes de emergencia).   |
 | **Required status check**        | `verified-commits` (job name from F2) | Integra el job `verify-signatures` de `ci.yml` como _status check_ obligatorio en PRs a `main`. |
 | **Status check requirements**    | `Include administrators`              | ON: incluso los admins deben pasar el check (a menos que estén en el bypass).                   |
@@ -321,13 +321,13 @@ Branch: feature/signing-gate-test
 
 1. Un colaborador abre un PR con un commit sin firma (`verified: false`).
 2. El job `verify-signatures` de F2 falla → el status check `verified-commits` está rojo.
-3. GitHub Ruleset `Require signed commits` también bloquea el merge.
+3. GitHub Ruleset `Pre-Merge Governance Gate` también bloquea el merge.
 4. El colaborador debe firmar su commit localmente (F1) o solicitar un bypass de admin.
 5. Una vez firmado, el job pasa, el status check verde y el ruleset permite el merge.
 
 **Definition of done**:
 
-- [x] Ruleset `Require signed commits` creado en la organización/repo.
+- [x] Ruleset `Pre-Merge Governance Gate` creado en la organización/repo.
 - [x] Bypass admin configurado (lista de usernames o rol `maintainer`/`admin`).
 - [x] Status check `verified-commits` vinculado y exigido en branch `main`.
 - [x] Probado: commit sin firma → merge bloqueado; commit firmado → merge permitido.
@@ -340,7 +340,7 @@ Colaborador abre PR con commit sin verificar
        ▼
  Job verify-signatures (F2) ──fail──► Status check verified-commits rojo
        │                                      │
-       └────────────────── Ruleset Require signed commits ─────┐
+       └────────────────── Ruleset Pre-Merge Governance Gate ─────┐
                                                           │
                                                           ▼
                                                 Merge BLOQUEADO
@@ -390,7 +390,7 @@ sequenceDiagram
     participant Git como "Git local"
     participant Commit como "Commit firmado"
     participant GH API como "GitHub API .verified"
-    participant Ruleset como "Ruleset Require signed commits"
+    participant Ruleset como "Ruleset Pre-Merge Governance Gate"
     participant CI como "ci.yml job verify-signatures"
     participant PR como "Pull Request"
     participant Merge como "Merge a main"
@@ -408,7 +408,7 @@ sequenceDiagram
     else .verified == false
       GH API-->>CI: failure
       CI-->>PR: status check "verified-commits" ❌
-      PR->>Ruleset: Ruleset Require signed commits bloquea merge
+      PR->>Ruleset: Ruleset Pre-Merge Governance Gate bloquea merge
     end
 
     alt ruleset enabled + status check verde
@@ -435,14 +435,14 @@ Desarrollador: git commit -m "feat: x" (sign-ed25519)
               ├──► GitHub API .verified === true ──► job pasa ──► status check verde
               │                                      │
               │                                      ▼
-              │                            Ruleset Require signed commits ✅
+              │                            Ruleset Pre-Merge Governance Gate ✅
               │                                      │
               │                                      ▼
               │                            Merge a main ✅
               │
               └──► GitHub API .verified === false ──► job falla ──► status check rojo
                                                        │
-                                                       ├──► Ruleset Require signed commits ❌ bloquea merge
+                                                       ├──► Ruleset Pre-Merge Governance Gate ❌ bloquea merge
                                                        │
                                                        └──► Si admin bypass → merge con auditoría
 ```
@@ -517,14 +517,14 @@ Tras push, el commit debe mostrar badge **Verified** en GitHub.
 
 ## 9. Por qué importa a nivel enterprise
 
-| Área de impacto                        | Beneficio                                                                                                                                                                   |
-| -------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Supply chain security**              | Garantiza que el commit que se mergea a `main` fue realmente creado por el autor declarado, no por un atacante que inyectó código en tránsito.                              |
-| **Auditabilidad (SOC2/PCI-DSS)**       | Los registros de auditoría pueden demostrar que los commits tienen firma verificable, no solo texto `author` falsificable. Es un control "people" clave para compliance.    |
-| **Confianza colaboradores**            | En equipos grandes o distribuidos, la firma elimina la duda "¿realmente ese commit lo escribió Fulano?". La clave pública subida a GitHub es la fuente de confianza.        |
-| **Política estándar orgs**             | Las organizaciones que exigen `Require signed commits` en main están adoptando este patrón como best practice (igual que exigen branch protection rules, CODEOWNERS, etc.). |
-| **Prevención de commits fraudulentos** | Un atacante que obtenga acceso de escritura al repo pero sin tu clave SSH privada no puede commitear con firma verificada. El ruleset bloqueará el merge.                   |
-| **Dark source attribution**            | En investigaciones de incidentes, la firma criptográfica atribución el commit a una identidad concreta, a diferencia del `author` texto que cualquiera puede setear.        |
+| Área de impacto                        | Beneficio                                                                                                                                                                      |
+| -------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Supply chain security**              | Garantiza que el commit que se mergea a `main` fue realmente creado por el autor declarado, no por un atacante que inyectó código en tránsito.                                 |
+| **Auditabilidad (SOC2/PCI-DSS)**       | Los registros de auditoría pueden demostrar que los commits tienen firma verificable, no solo texto `author` falsificable. Es un control "people" clave para compliance.       |
+| **Confianza colaboradores**            | En equipos grandes o distribuidos, la firma elimina la duda "¿realmente ese commit lo escribió Fulano?". La clave pública subida a GitHub es la fuente de confianza.           |
+| **Política estándar orgs**             | Las organizaciones que exigen `Pre-Merge Governance Gate` en main están adoptando este patrón como best practice (igual que exigen branch protection rules, CODEOWNERS, etc.). |
+| **Prevención de commits fraudulentos** | Un atacante que obtenga acceso de escritura al repo pero sin tu clave SSH privada no puede commitear con firma verificada. El ruleset bloqueará el merge.                      |
+| **Dark source attribution**            | En investigaciones de incidentes, la firma criptográfica atribución el commit a una identidad concreta, a diferencia del `author` texto que cualquiera puede setear.           |
 
 ---
 

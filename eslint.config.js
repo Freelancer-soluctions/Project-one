@@ -34,6 +34,7 @@ export default [
       '**/build/**',
       '.vscode/**',
       '**/coverage/**',
+      '.semgrep/rules/tests/**',
     ],
   },
 

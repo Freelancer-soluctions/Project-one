@@ -530,7 +530,7 @@ grep -A 5 "1.3.0" CHANGELOG.md
 | **API mode** (default) | `push-with-git-cli: false` | GitHub auto-firma vía web-flow GPG key            |
 | **git-cli mode**       | `push-with-git-cli: true`  | Git push local → requiere signing key configurada |
 
-**API mode** (el default): changesets usa la REST API de GitHub para push. GitHub auto-firma los commits con su GPG key de web-flow (`github-actions[bot]`). El ruleset `Require signed commits` acepta estas firmas (verified=true). No necesita configuración SSH.
+**API mode** (el default): changesets usa la REST API de GitHub para push. GitHub auto-firma los commits con su GPG key de web-flow (`github-actions[bot]`). El ruleset `Pre-Merge Governance Gate` acepta estas firmas (verified=true). No necesita configuración SSH.
 
 **git-cli mode**: changesets ejecuta `git push` localmente. Requiere configurar `gpg.format`, `user.signingkey` y `commit.gpgsign` en el runner. Necesita la clave PRIVADA en ssh-agent (no solo la pública).
 

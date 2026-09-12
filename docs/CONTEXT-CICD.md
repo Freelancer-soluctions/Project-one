@@ -24,7 +24,7 @@
 
 | Área                                             | Estado          | Detalle                                                                                                                                 |
 | ------------------------------------------------ | --------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
-| Ruleset 21227644 "Require signed commits"        | ✅ Activo       | Enforcer real de gobernanza (~DEFAULT_BRANCH)                                                                                           |
+| Ruleset 21227644 "Pre-Merge Governance Gate"     | ✅ Activo       | Enforcer real de gobernanza (~DEFAULT_BRANCH)                                                                                           |
 | `verify-signatures` (firmas)                     | ✅ Activo       | Required status check en ruleset                                                                                                        |
 | `commit-lint` (Conventional Commits)             | ✅ Activo       | Required status check en ruleset                                                                                                        |
 | `pr-title-lint`                                  | ✅ Activo       | Required + **BLOCKING** (continue-on-error removido 2026-08-31); `subjectPattern: ^(?![A-Z]).+$`, types añade `ops`                     |
@@ -65,8 +65,9 @@ gh api repos/Freelancer-soluctions/Project-one/branches/main/protection/required
 ### 3.1 CI Incremental — por diseño
 
 - `vars.CI_MINIMAL=true` ES INTENCIONAL → CI en modo mínimo/incremental.
-- Muchos jobs `if: false` (disabled a propósito): client-lint, server-lint, \*-build, sonarqube, coverage, depcheck, test-unit-\*, test-integration, test-smoke, e2e, actionlint. NO son bugs; **no activarlos** "para que funque".
+- Muchos jobs `if: false` (disabled a propósito): client-lint, server-lint, \*-build, sonarqube, coverage, depcheck, test-unit-\*, test-integration, test-smoke, e2e, actionlint. NO son bugs; **no activarlos** "para que funcione".
 - `ci-complete` corre SOLO si `CI_MINIMAL != 'true'`. Como CI_MINIMAL=true, queda SKIPPED → "CI Complete" NO se reporta.
+- **El job `sast` (SAST Semgrep) NO está gated por `CI_MINIMAL`**: corre en todos los PRs a `main` independientemente de este valor, como capa de governance standalone (precedente §9.3.5 dependency-review).
 - NUNCA interpretar un job skipped/disabled por CI_MINIMAL como algo roto. Es diseño incremental.
 - Status checks selectables: GitHub solo deja elegir un check si se reportó ≥1 vez. Un job que nunca corrió NO aparece en búsqueda del ruleset.
 
@@ -95,6 +96,7 @@ gh api repos/Freelancer-soluctions/Project-one/branches/main/protection/required
 | pr-title-lint                                                                                                | **PR Title Lint**                      | ✅ ruleset     | ❌ (bloqueante desde 2026-08-31) |
 | dco                                                                                                          | **DCO**                                | ✅ ruleset     | ❌ (bloqueante desde 2026-08-31) |
 | dependency-review                                                                                            | Dependency Review                      | ❌             | ❌                               |
+| sast                                                                                                         | **SAST (Semgrep)**                     | ❌             | ✅                               |
 | zombie-workflow-guard                                                                                        | Zombie Workflow Guard                  | ❌             | ❌                               |
 | client-lint, server-lint, \*-build, sonarqube, coverage, depcheck, unit, integration, smoke, e2e, actionlint | Quality/Build/Test                     | ❌             | N/A (`if: false`)                |
 | ci-complete                                                                                                  | CI Complete                            | ❌ (no bound)  | N/A (`if: CI_MINIMAL != 'true'`) |
@@ -128,7 +130,7 @@ gh api repos/Freelancer-soluctions/Project-one/branches/main/protection/required
 | `security.yml`, `security-digest.yml`, `scheduled-security.yml`, `deploy.yml`, `release.yml`, `preview.yml`, `ci-enterprise.yml` — ⛔ `disabled_manually` |
 | (config dinámico `dynamic/dependabot/dependabot-updates` — ✅ active)                                                                                     |
 
-**Ruleset 21227644 "Require signed commits"** (active, enforcement, ~DEFAULT_BRANCH):
+**Ruleset 21227644 "Pre-Merge Governance Gate"** (active, enforcement, ~DEFAULT_BRANCH):
 
 - **6 reglas** (ID 21227644, `bypass_actors: []`, `current_user_can_bypass: never`):
   - `deletion` + `non_fast_forward` + `required_signatures`
@@ -263,7 +265,7 @@ flowchart TD
 
 ## 5. Configuraciones de GitHub explicadas
 
-### 5.1 Ruleset "Require signed commits" (ID 21227644)
+### 5.1 Ruleset "Pre-Merge Governance Gate" (ID 21227644)
 
 | Regla                                              | Qué hace                             | Relación con workflows/jobs                                        |
 | -------------------------------------------------- | ------------------------------------ | ------------------------------------------------------------------ |
@@ -570,6 +572,24 @@ Esta subsección explica el **mecanismo real** de las implementaciones que prote
 - **Toggle / enablement (3.1/4.4):** el workflow nace `disabled_manually`. Para activarlo: (1) provisionar secret `GEMINI_API_KEY` (https://aistudio.google.com/apikey), (2) `gh workflow enable .github/workflows/opencode-review.yml` (o UI → Actions → Enable), (3) verificar en un PR de prueba que comenta y NO bloquea.
 
 > **Conclusión de contexto:** hoy, los ÚNICOS checks que bloquean el merge a `main` son los 4 del ruleset (`Verify Commit Signatures`, `Commit Lint`, `PR Title Lint`, `DCO`) — y desde 2026-08-31 los 4 son **BLOCKING** (se removió `continue-on-error` en pr-title-lint y dco). Todos los jobs de calidad/build/test/sonarqube están deshabilitados (`if: false`) por diseño de CI incremental (§3.1), NO por fallo. `CI_MINIMAL=true` desactiva `ci-complete` y ese bloque completo.
+
+#### 9.3.9 `sast` → job "SAST (Semgrep)" en `ci.yml` (SAST Governance Layer)
+
+**Descripción del job:** job `sast` en `.github/workflows/ci.yml` corriendo sobre `docker run --rm -v ${{ github.workspace }}:/src semgrep/semgrep:1.176.1`. Configuración clave:
+
+- **Imagen:** `semgrep/semgrep:1.176.1` (pinado Docker, verified 2026-09-04).
+- **Packs inline (9):** `p/owasp-top-ten`, `p/security-audit`, `p/secrets`, `p/nodejs`, `p/expressjs`, `p/sql-injection`, `p/command-injection`, `p/react`, `p/xss`.
+- **Reglas custom (`--config .semgrep/rules`):** cargadas **antes** que los packs `p/...`. El directorio `.semgrep/rules/` está versionado en el repo y contiene reglas YAML custom. En Semgrep, las reglas local tienen prioridad sobre los packs remotos si cubren el mismo CWE.
+- **8 excludes:** `node_modules`, `dist`, `build`, `coverage`, `.env`, `* .min.js`, `prisma/generated`, `e2` (patrones de directorio simple, paridad con `.semgrepignore`; FIX-1: `prisma/generated` usa forma simple sin glob `**`).
+- **Severidad y fail-on:** `--severity ERROR --fail-on error` — solo falla el job ante vulnerabilidades ERROR; los warnings no bloquean.
+- **Baseline con `--baseline-commit`:** usa `${{ github.event.pull_request.base.sha }}` para comparar contra el commit base del PR (diff-scoped), no sobre toda la historia. Esto permite detectar nuevas vulnerabilidades en el PR sin ruido del código existente.
+- **Modo non-blocking (F1):** `continue-on-error: true` — el job **nunca bloquea el merge**. Los resultados aparecen como advertencia en la pestaña Code Scanning de GitHub, pero no impiden el merge. Esto permite un rollout phased: F1 non-blocking en la fase actual, con intención de hacer F2 blocking después de validar resultados (Regla 8).
+
+**Caveat — Regla 8 (name exacto para future binding ruleset):** El nombre del job `SAST (Semgrep)` DEBE coincidir EXACTAMENTE con el nombre del status check en el ruleset 21227644 para que el binding F2 funcione. Si se renombra el job en `ci.yml`, el binding del ruleset se rompe en silencio y el check deja de aplicarse. Este precedente viene de `pr-title-lint`/`dco` donde el nombre exacto es crítico (§3.2, §3.3).
+
+**Independencia respecto a `ci-complete.needs`:** El job `sast` **NO está en** `ci-complete.needs` array. Es un job standalone, independiente del pipeline completo. No está acoplado a `CI_MINIMAL` — corre siempre que hay un `pull_request` a `main`, independientemente del valor de `CI_MINIMAL`. Este precedente viene de `dependency-review` (§9.3.5): jobs de seguridad governance pueden ser standalone sin necesidad de reportarse en el agregador `ci-complete`.
+
+---
 
 ---
 

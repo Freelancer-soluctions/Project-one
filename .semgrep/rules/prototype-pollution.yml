@@ -1,0 +1,20 @@
+# semgrep custom rule: Prototype Pollution (CWE-1321)
+# Target: Object.assign userInput or bracket notation with uncontrolled input
+# Confidence: MEDIUM — inter-procedural taint limited; first arg must be user-controlled
+metadata:
+  cwe: ["CWE-1321"]
+  confidence: MEDIUM
+  technology: ["javascript", "nodejs"]
+  severity: ERROR
+
+pattern-sources:
+  - pattern: |
+      Object.assign($X, ...)
+  - pattern: |
+      $X[$Y] = $Z
+
+pattern-sinks:
+  - pattern: |
+      Object.assign($X, ...)
+
+confidence: MEDIUM

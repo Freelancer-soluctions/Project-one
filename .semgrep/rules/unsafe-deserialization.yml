@@ -1,0 +1,21 @@
+# semgrep custom rule: Unsafe Deserialization (CWE-502)
+# Target: JSON.parse(userInput) or eval() on deserialized data
+# Confidence: HIGH
+metadata:
+  cwe: ["CWE-502"]
+  confidence: HIGH
+  technology: ["javascript", "nodejs"]
+  severity: ERROR
+
+pattern-sources:
+  - pattern: |
+      JSON.parse($X)
+
+pattern-sinks:
+  - pattern: |
+      eval($X)
+
+  - pattern: |
+      Function($X)
+
+confidence: HIGH

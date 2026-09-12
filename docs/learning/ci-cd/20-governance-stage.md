@@ -177,7 +177,7 @@ Cuando configuramos una branch protection rule en GitHub (vía el Ruleset API), 
 La configuración en nuestro Ruleset (ID `21227644`) requiere:
 
 - `ci-complete` como status check requerido
-- `Require signed commits` activado
+- `Pre-Merge Governance Gate` activado
 - `Require branches to be up to date` activado
 
 ---
