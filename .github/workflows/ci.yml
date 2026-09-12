@@ -754,6 +754,23 @@ jobs:
           license-check: true
     # Job-level continue-on-error: false (default) — failures block the check
 
+  sast:
+    name: SAST (Semgrep)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    if: github.event_name == 'pull_request'
+    needs: repo-discovery
+    permissions:
+      contents: read
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - name: Run Semgrep SAST scan
+        run: docker run --rm -v ${{ github.workspace }}:/src semgrep/semgrep:1.176.1 semgrep ci --baseline-commit ${{ github.event.pull_request.base.sha }} --config .semgrep/rules --config p/owasp-top-ten --config p/security-audit --config p/secrets --config p/nodejs --config p/expressjs --config p/sql-injection --config p/command-injection --config p/react --config p/xss --exclude node_modules --exclude dist --exclude build --exclude coverage --exclude .env --exclude '*.min.js' --exclude prisma/generated --exclude e2e --severity ERROR --fail-on error
+    # NOT in ci-complete.needs — SAST is a standalone gate, not coupled to CI_MINIMAL
+
   # ═══════════════════════════════════════════════════════════════
   # STAGE 5: CI-COMPLETE — Single required check aggregator
   # ═══════════════════════════════════════════════════════════════
