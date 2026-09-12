@@ -784,7 +784,7 @@
     "strict-event-emitter": "0.5.1",
     "string_decoder": "1.1.1",
     "string-argv": "0.3.2",
-    "string-width": "5.1.2",
+    "string-width": "8.2.2",
     "string-width-cjs": "4.2.3",
     "string.prototype.matchall": "4.0.12",
     "string.prototype.repeat": "1.0.0",
