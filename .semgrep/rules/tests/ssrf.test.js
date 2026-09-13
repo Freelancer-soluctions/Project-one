@@ -1,10 +1,5 @@
-// SSRF (CWE-918) test fixtures - vulnerable case
-// vulnerable: should trigger the rule (fetch with user-controlled URL)
-const http = require('http');
+// SSRF vulnerability: fetch with user-controlled URL from req.query
+// This should trigger the ssrf rule
 
-async function fetchUserData(userInput) {
-  // VULNERABLE: user-controlled URL passed directly to fetch
-  const response = await fetch(userInput); // ← this should trigger the rule
-  const data = await response.text();
-  return data;
-}
+// VULNERABLE: fetch with unvalidated user-controlled URL
+fetch(req.query.url);

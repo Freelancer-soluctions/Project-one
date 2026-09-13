@@ -9,20 +9,16 @@ metadata:
 
 pattern-sources:
   - pattern: |
-      fetch($X)
-  - pattern: |
-      axios.get($X)
-  - pattern: |
-      http.request($X)
+      $USER_INPUT = req.body.data
+      $USER_INPUT = req.query.data
+      $USER_INPUT = req.params.data
 
 pattern-sinks:
   - pattern: |
-      fetch($X)
-
+      fetch($USER_INPUT)
   - pattern: |
-      axios.get($X)
-
+      axios.get($USER_INPUT)
   - pattern: |
-      http.request($X)
+      http.request($USER_INPUT)
 
 confidence: HIGH

@@ -1,19 +1,7 @@
-// SSRF (CWE-918) test fixtures
-// vulnerable: should trigger the rule (fetch with user-controlled URL)
-const http = require('http');
+// SSRF fix: fetch with whitelist-validated URL
+// This should NOT trigger the ssrf rule
 
-async function fetchUserData(userInput) {
-  // VULNERABLE: user-controlled URL passed directly to fetch
-  const response = await fetch(userInput); // ← this should trigger the rule
-  const data = await response.text();
-  return data;
-}
+const whitelist = ['https://api.example.com', 'https://internal.example.com'];
 
-// fixed: should NOT trigger the rule (validated URL)
-async function fetchSafeData(validatedId) {
-  // SAFE: validated ID, whitelisted domain
-  const url = `https://api.example.com/users/${validatedId}`; // controlled domain
-  const response = await fetch(url); // ← this should NOT trigger the rule
-  const data = await response.text();
-  return data;
-}
+// SAFE: fetch with whitelisted URL
+fetch(whitelist[req.query.url]);

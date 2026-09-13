@@ -9,12 +9,14 @@ metadata:
 
 pattern-sources:
   - pattern: |
-      Object.assign($X, ...)
-  - pattern: |
-      $X[$Y] = $Z
+      $USER_INPUT = req.body.data
+      $USER_INPUT = req.query.data
+      $USER_INPUT = req.params.data
 
 pattern-sinks:
   - pattern: |
-      Object.assign($X, ...)
+      Object.assign($TARGET, $USER_INPUT)
+  - pattern: |
+      $TARGET[$USER_INPUT] = $VALUE
 
 confidence: MEDIUM

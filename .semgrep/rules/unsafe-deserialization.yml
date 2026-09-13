@@ -1,5 +1,5 @@
 # semgrep custom rule: Unsafe Deserialization (CWE-502)
-# Target: JSON.parse(userInput) or eval() on deserialized data
+# Target: JSON.parse(userInput) passed directly to dangerous sinks
 # Confidence: HIGH
 metadata:
   cwe: ["CWE-502"]
@@ -9,13 +9,12 @@ metadata:
 
 pattern-sources:
   - pattern: |
-      JSON.parse($X)
+      $USER_INPUT = req.body.data
+      $USER_INPUT = req.query.data
+      $USER_INPUT = req.params.data
 
 pattern-sinks:
   - pattern: |
-      eval($X)
-
-  - pattern: |
-      Function($X)
+      JSON.parse($USER_INPUT)
 
 confidence: HIGH

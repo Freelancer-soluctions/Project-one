@@ -1,5 +1,5 @@
 # semgrep custom rule: XSS via DOM intermediate variable (CWE-79)
-# Target: innerHTML / document.write / dangerouslySetInnerHTML fed by user-controlled intermediate variables
+# Target: innerHTML / dangerouslySetInnerHTML fed by user-controlled intermediate variables
 # Confidence: MEDIUM — taint precision may be insufficient for intermediate variable tracking
 # MUST include true-negative fixture with safe dangerouslySetInnerHTML={{ __html: constant }} (no user-controlled intermediate)
 metadata:
@@ -10,16 +10,16 @@ metadata:
 
 pattern-sources:
   - pattern: |
-      $X = getUserInput()  # e.g., req.query, req.body
+      $USER_INPUT = req.body.data
+      $USER_INPUT = req.query.data
+      $USER_INPUT = req.params.data
 
 pattern-sinks:
   - pattern: |
-      $X.innerHTML = $Y
-
+      $VAR.innerHTML = $USER_INPUT
   - pattern: |
-      $X.documentWrite = $Y
-
+      $VAR.document.write = $USER_INPUT
   - pattern: |
-      $X.dangerouslySetInnerHTML = ${{ __html: $Y }}
+      $VAR.dangerouslySetInnerHTML = ${{ __html: $USER_INPUT }}
 
 confidence: MEDIUM
