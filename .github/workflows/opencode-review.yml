@@ -22,7 +22,7 @@ jobs:
       cancel-in-progress: true
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7
 
       - name: Run OpenCode AI review
         uses: anomalyco/opencode/github@5d5c35ee71c095464b9eb3c3e991df906f12a152 # pinned for supply chain security (verified 2026-09-04)
