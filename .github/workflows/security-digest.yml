@@ -72,7 +72,7 @@ jobs:
           path: artifacts/osv-report
       - name: Find latest scheduled-security run
         id: sibling-run
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         with:
           script: |
             const runs = await github.rest.actions.listWorkflowRuns({
@@ -109,7 +109,7 @@ jobs:
           path: security-digest.md
       - name: Post digest comment to PR
         if: inputs.pull_request_number != ''
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         with:
           script: |
             const fs = require('fs');
@@ -135,7 +135,7 @@ jobs:
     permissions:
       issues: write
     steps:
-      - uses: actions/github-script@v8
+      - uses: actions/github-script@v9
         with:
           script: |
             await github.rest.issues.create({
