@@ -15,7 +15,7 @@ concurrency:
 
 jobs:
   # ═══════════════════════════════════════════════════════════════
-  # STAGE 1: INICIACIÓN — Detect which workspaces changed
+  # ENTRY — Detect Changes (path-filtered)
   # ═══════════════════════════════════════════════════════════════
   repo-discovery:
     name: Detect Changes
@@ -44,8 +44,14 @@ jobs:
               - 'package-lock.json'
               - '.github/workflows/**'
 
-# ═══════════════════════════════════════════════════════════════
-  # STAGE 2: PRE-BUILD QUALITY — Source code analysis (parallel)
+  # ═══════════════════════════════════════════════════════════════
+  # STAGE 1: PRE-COMMIT HOOKS (local — skippable via --no-verify) [SL]
+  # Vive en .husky/ (pre-commit + commit-msg + pre-push) — NO en ci.yml.
+  # Placeholder informativo: el pipeline empieza en local antes del PR.
+  # ═══════════════════════════════════════════════════════════════
+
+  # ═══════════════════════════════════════════════════════════════
+  # STAGE 2: PRE-BUILD — VALIDATE (source code, 0 dependencia de build)
   # ═══════════════════════════════════════════════════════════════
 # verify-signatures (G3) — Verifica firma de commits vía GitHub REST API
 # ════════════════════════════════════════════════════════════════
@@ -389,6 +395,25 @@ jobs:
         run: echo "✅ Merge queue — DCO validated at PR level"
     # Phase 1: non-blocking. Remove after team adjusts (1 sprint).
     # continue-on-error: true
+
+  # --- GOVERNANCE: SAST early-abort gate (diff-scoped, standalone) ---
+  sast:
+    name: SAST (Semgrep)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    if: github.event_name == 'pull_request'
+    needs: repo-discovery
+    permissions:
+      contents: read
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - name: Run Semgrep SAST scan
+        run: docker run --rm -v ${{ github.workspace }}:/src semgrep/semgrep:1.176.1 semgrep ci --baseline-commit ${{ github.event.pull_request.base.sha }} --config .semgrep/rules --config p/owasp-top-ten --config p/security-audit --config p/secrets --config p/nodejs --config p/expressjs --config p/sql-injection --config p/command-injection --config p/react --config p/xss --exclude node_modules --exclude dist --exclude build --exclude coverage --exclude .env --exclude '*.min.js' --exclude prisma/generated --exclude e2e --severity ERROR --fail-on error
+    # NOT in ci-complete.needs — SAST is a standalone gate, not coupled to CI_MINIMAL
+
   # --- Client Pre-Build ---
   client-lint:
     if: false  # Disabled for incremental CI — change to true to re-enable
@@ -574,8 +599,96 @@ jobs:
           fetch-depth: 0
       - uses: rhysd/actionlint@v1
 
+  # --- TESTING (pre-build): unit tests, source-level, no artifact needed ---
+  test-unit-client:
+    if: false  # Disabled for incremental CI — change to true to re-enable
+    name: Unit Tests - Client
+    needs: repo-discovery
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      checks: write
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - uses: ./.github/actions/setup-monorepo
+      - name: Run Client Unit Tests with Coverage
+        run: npm run test:coverage --workspace=apps/client
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: coverage-client
+          path: apps/client/coverage/
+          if-no-files-found: warn
+      - name: Report Client Unit Tests
+        if: success() || failure()
+        uses: dorny/test-reporter@v3
+        with:
+          name: Client Unit Tests
+          path: apps/client/reports/junit.xml
+          reporter: java-junit
+
+  test-unit-server:
+    if: false  # Disabled for incremental CI — change to true to re-enable
+    name: Unit Tests - Server
+    needs: repo-discovery
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      checks: write
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - uses: ./.github/actions/setup-monorepo
+      - name: Run Server Unit Tests with Coverage
+        run: npm run test:coverage --workspace=apps/server
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: coverage-server
+          path: apps/server/tests/coverage/
+          if-no-files-found: warn
+      - name: Report Server Unit Tests
+        if: success() || failure()
+        uses: dorny/test-reporter@v3
+        with:
+          name: Server Unit Tests
+          path: apps/server/reports/junit.xml
+          reporter: java-junit
+
+  # ════════════════════════════════════════════════════════════════
+  # SECURITY — Dependency Review (inline so ci-complete.needs resolves)
+  # ════════════════════════════════════════════════════════════════
+  dependency-review:
+    name: Dependency Review
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    if: github.event_name == 'pull_request'
+    permissions:
+      contents: read
+      pull-requests: write
+      security-events: write
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Run dependency review
+        uses: actions/dependency-review-action@v5
+        with:
+          # Fail on new vulnerabilities with severity >= moderate (governance intent)
+          fail-on-severity: moderate
+          # Allow specific vulnerabilities if needed (empty by default)
+          allow-ghsas: ""
+          # Security intent: vulnerability + license checks
+          vulnerability-check: true
+          license-check: true
+    # Job-level continue-on-error: false (default) — failures block the check
+
   # ═══════════════════════════════════════════════════════════════
-  # STAGE 3: BUILD — Compile and upload artifacts
+  # STAGE 3: BUILD (compilación, empaquetado, artifact)
   # ═══════════════════════════════════════════════════════════════
   client-build:
     if: false  # Disabled for incremental CI — change to true to re-enable
@@ -604,7 +717,7 @@ jobs:
       - run: 'echo "server-build: no-op (source-level, D8)"'
 
   # ═══════════════════════════════════════════════════════════════
-  # STAGE 4: POST-BUILD QUALITY — Artifact analysis
+  # STAGE 4: POST-BUILD — INTEGRATE (requieren artifact compilado)
   # ═══════════════════════════════════════════════════════════════
 
   # --- Client Post-Build ---
@@ -727,167 +840,7 @@ jobs:
         run: npx depcheck
         working-directory: apps/server
 
-  # ════════════════════════════════════════════════════════════════
-  # SECURITY — Dependency Review (inline so ci-complete.needs resolves)
-  # ════════════════════════════════════════════════════════════════
-  dependency-review:
-    name: Dependency Review
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    if: github.event_name == 'pull_request'
-    permissions:
-      contents: read
-      pull-requests: write
-      security-events: write
-    steps:
-      - uses: actions/checkout@v5
-
-      - name: Run dependency review
-        uses: actions/dependency-review-action@v5
-        with:
-          # Fail on new vulnerabilities with severity >= moderate (governance intent)
-          fail-on-severity: moderate
-          # Allow specific vulnerabilities if needed (empty by default)
-          allow-ghsas: ""
-          # Security intent: vulnerability + license checks
-          vulnerability-check: true
-          license-check: true
-    # Job-level continue-on-error: false (default) — failures block the check
-
-  sast:
-    name: SAST (Semgrep)
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    if: github.event_name == 'pull_request'
-    needs: repo-discovery
-    permissions:
-      contents: read
-    continue-on-error: true
-    steps:
-      - uses: actions/checkout@v5
-        with:
-          fetch-depth: 0
-      - name: Run Semgrep SAST scan
-        run: docker run --rm -v ${{ github.workspace }}:/src semgrep/semgrep:1.176.1 semgrep ci --baseline-commit ${{ github.event.pull_request.base.sha }} --config .semgrep/rules --config p/owasp-top-ten --config p/security-audit --config p/secrets --config p/nodejs --config p/expressjs --config p/sql-injection --config p/command-injection --config p/react --config p/xss --exclude node_modules --exclude dist --exclude build --exclude coverage --exclude .env --exclude '*.min.js' --exclude prisma/generated --exclude e2e --severity ERROR --fail-on error
-    # NOT in ci-complete.needs — SAST is a standalone gate, not coupled to CI_MINIMAL
-
-  # ═══════════════════════════════════════════════════════════════
-  # STAGE 5: CI-COMPLETE — Single required check aggregator
-  # ═══════════════════════════════════════════════════════════════
-  ci-complete:
-    if: ${{ vars.CI_MINIMAL != 'true' && always() }}
-    name: CI Complete
-    runs-on: ubuntu-latest
-    needs:
-      - repo-discovery
-      - actionlint
-      - commit-lint
-      - pr-title-lint
-      - dco
-      - dependency-review
-      - client-lint
-      - client-format-check
-      - client-typecheck
-      - client-complexity
-      - client-dead-code
-      - client-import-bounds
-      - server-lint
-      - server-format-check
-      - server-typecheck
-      - server-complexity
-      - server-dead-code
-      - server-import-bounds
-      - client-build
-      - server-build
-      - client-sonarqube
-      - server-sonarqube
-      - client-coverage
-      - server-coverage
-      - client-depcheck
-      - server-depcheck
-      - test-unit-client
-      - test-unit-server
-      - test-integration
-      - test-smoke
-      - e2e
-      - verify-signatures
-      - zombie-workflow-guard
-    steps:
-      - name: Check for failures
-        run: |
-          if [[ "${{ contains(needs.*.result, 'failure') }}" == "true" ]]; then
-            echo "❌ One or more upstream jobs failed"
-            exit 1
-          fi
-          if [[ "${{ contains(needs.*.result, 'cancelled') }}" == "true" ]]; then
-            echo "⚠️ One or more upstream jobs were cancelled — skipping ci-complete"
-            exit 0
-          fi
-          echo "✅ All upstream jobs succeeded or were skipped"
-
-  # ═══════════════════════════════════════════════════════════════
-  # EXISTING TEST JOBS (re-wired to repo-discovery)
-  # ═══════════════════════════════════════════════════════════════
-  test-unit-client:
-    if: false  # Disabled for incremental CI — change to true to re-enable
-    name: Unit Tests - Client
-    needs: repo-discovery
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    permissions:
-      contents: read
-      checks: write
-    steps:
-      - uses: actions/checkout@v5
-        with:
-          fetch-depth: 0
-      - uses: ./.github/actions/setup-monorepo
-      - name: Run Client Unit Tests with Coverage
-        run: npm run test:coverage --workspace=apps/client
-      - uses: actions/upload-artifact@v7
-        if: always()
-        with:
-          name: coverage-client
-          path: apps/client/coverage/
-          if-no-files-found: warn
-      - name: Report Client Unit Tests
-        if: success() || failure()
-        uses: dorny/test-reporter@v3
-        with:
-          name: Client Unit Tests
-          path: apps/client/reports/junit.xml
-          reporter: java-junit
-
-  test-unit-server:
-    if: false  # Disabled for incremental CI — change to true to re-enable
-    name: Unit Tests - Server
-    needs: repo-discovery
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    permissions:
-      contents: read
-      checks: write
-    steps:
-      - uses: actions/checkout@v5
-        with:
-          fetch-depth: 0
-      - uses: ./.github/actions/setup-monorepo
-      - name: Run Server Unit Tests with Coverage
-        run: npm run test:coverage --workspace=apps/server
-      - uses: actions/upload-artifact@v7
-        if: always()
-        with:
-          name: coverage-server
-          path: apps/server/tests/coverage/
-          if-no-files-found: warn
-      - name: Report Server Unit Tests
-        if: success() || failure()
-        uses: dorny/test-reporter@v3
-        with:
-          name: Server Unit Tests
-          path: apps/server/reports/junit.xml
-          reporter: java-junit
-
+  # --- TESTING (post-build): integration / smoke / e2e requieren artifact compilado ---
   test-integration:
     if: false  # Disabled for incremental CI — change to true to re-enable
     name: Integration Tests - Server
@@ -1038,6 +991,102 @@ jobs:
           path: e2e/reports/junit-e2e.xml
           reporter: java-junit
 
+  # ═══════════════════════════════════════════════════════════════
+  # STAGE 5: ARTIFACT & SIGN (empaquetado, firma, publicación)
+  # Vive en security.yml / deploy.yml (ambos disabled_manually) — NO en ci.yml.
+  # Placeholder informativo: conserva la topología del pipeline §23.3.
+  # ═══════════════════════════════════════════════════════════════
+
+  # ═══════════════════════════════════════════════════════════════
+  # STAGE 6: DEPLOY STAGING (entorno de validación)
+  # Vive en deploy.yml (disabled_manually) — NO en ci.yml.
+  # Placeholder informativo: conserva la topología del pipeline §23.3.
+  # ═══════════════════════════════════════════════════════════════
+
+  # ═══════════════════════════════════════════════════════════════
+  # STAGE 7: POST-DEPLOY — ACCEPT (app desplegada corriendo)
+  # Vive en deploy.yml (disabled_manually) — NO en ci.yml.
+  # Placeholder informativo: conserva la topología del pipeline §23.3.
+  # ═══════════════════════════════════════════════════════════════
+
+  # ═══════════════════════════════════════════════════════════════
+  # STAGE 8: PERFORMANCE (stability + performance gated)
+  # Sin workflow asignado — placeholder informativo §23.3.
+  # ═══════════════════════════════════════════════════════════════
+
+  # ═══════════════════════════════════════════════════════════════
+  # STAGE 9: APPROVAL & GOVERNANCE (human gate + compliance)
+  # Gate humano (ruleset + CODEOWNERS) — placeholder informativo §23.3.
+  # ═══════════════════════════════════════════════════════════════
+
+  # ═══════════════════════════════════════════════════════════════
+  # STAGE 10: DEPLOY PRODUCTION (release)
+  # Vive en deploy.yml + release.yml (ambos disabled_manually) — NO en ci.yml.
+  # Placeholder informativo: conserva la topología del pipeline §23.3.
+  # ═══════════════════════════════════════════════════════════════
+
+  # ═══════════════════════════════════════════════════════════════
+  # STAGE 11: MONITOR & CLEANUP (observability + limpieza)
+  # Post-CD: observability + cleanup — placeholder informativo §23.3.
+  # ═══════════════════════════════════════════════════════════════
+
+  # ═══════════════════════════════════════════════════════════════
+  # AGGREGATOR — CI Complete — Single required check aggregator
+  # ═══════════════════════════════════════════════════════════════
+  ci-complete:
+    if: ${{ vars.CI_MINIMAL != 'true' && always() }}
+    name: CI Complete
+    runs-on: ubuntu-latest
+    needs:
+      - repo-discovery
+      - actionlint
+      - commit-lint
+      - pr-title-lint
+      - dco
+      - dependency-review
+      - client-lint
+      - client-format-check
+      - client-typecheck
+      - client-complexity
+      - client-dead-code
+      - client-import-bounds
+      - server-lint
+      - server-format-check
+      - server-typecheck
+      - server-complexity
+      - server-dead-code
+      - server-import-bounds
+      - client-build
+      - server-build
+      - client-sonarqube
+      - server-sonarqube
+      - client-coverage
+      - server-coverage
+      - client-depcheck
+      - server-depcheck
+      - test-unit-client
+      - test-unit-server
+      - test-integration
+      - test-smoke
+      - e2e
+      - verify-signatures
+      - zombie-workflow-guard
+    steps:
+      - name: Check for failures
+        run: |
+          if [[ "${{ contains(needs.*.result, 'failure') }}" == "true" ]]; then
+            echo "❌ One or more upstream jobs failed"
+            exit 1
+          fi
+          if [[ "${{ contains(needs.*.result, 'cancelled') }}" == "true" ]]; then
+            echo "⚠️ One or more upstream jobs were cancelled — skipping ci-complete"
+            exit 0
+          fi
+          echo "✅ All upstream jobs succeeded or were skipped"
+
+  # ═══════════════════════════════════════════════════════════════
+  # GUARDS — Zombie Workflow Guard
+  # ═══════════════════════════════════════════════════════════════
   zombie-workflow-guard:
     name: Zombie Workflow Guard
     needs: repo-discovery
