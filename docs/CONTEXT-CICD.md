@@ -589,13 +589,14 @@ Esta subsección explica el **mecanismo real** de las implementaciones que prote
 
 #### 9.3.9 `sast` → job "SAST (Semgrep)" en `ci.yml` (SAST Governance Layer)
 
-**Descripción del job:** job `sast` en `.github/workflows/ci.yml` corriendo sobre `docker run --rm -v ${{ github.workspace }}:/src semgrep/semgrep:1.176.1`. Configuración clave:
+**Descripción del job:** job `sast` en `.github/workflows/ci.yml` corriendo sobre `docker run --rm -v ${{ github.workspace }}:/src semgrep/semgrep:1.176.1 semgrep scan`. Configuración clave:
 
 - **Imagen:** `semgrep/semgrep:1.176.1` (pinado Docker, verified 2026-09-04).
 - **Packs inline (9):** `p/owasp-top-ten`, `p/security-audit`, `p/secrets`, `p/nodejs`, `p/expressjs`, `p/sql-injection`, `p/command-injection`, `p/react`, `p/xss`.
 - **Reglas custom (`--config .semgrep/rules`):** cargadas **antes** que los packs `p/...`. El directorio `.semgrep/rules/` está versionado en el repo y contiene reglas YAML custom. En Semgrep, las reglas local tienen prioridad sobre los packs remotos si cubren el mismo CWE.
 - **8 excludes:** `node_modules`, `dist`, `build`, `coverage`, `.env`, `* .min.js`, `prisma/generated`, `e2` (patrones de directorio simple, paridad con `.semgrepignore`; FIX-1: `prisma/generated` usa forma simple sin glob `**`).
-- **Severidad y fail-on:** `--severity ERROR --fail-on error` — solo falla el job ante vulnerabilidades ERROR; los warnings no bloquean.
+- **Severidad y fail-on:** `--severity ERROR --error` — solo reporta reglas ERROR y sale con exit 1 si hay findings; los warnings no bloquean. (Antes `semgrep ci --severity ERROR --fail-on error`, roto: `ci` no soporta `--severity` — issue #5075 wontfix — ni `--fail-on`; `scan` sí soporta ambos vía `--error`.)
+- **Telemetría:** `--metrics off` — desactiva el envío de métricas en CI (con `--config p/...` del registry el default `auto` las enviaría).
 - **Baseline con `--baseline-commit`:** usa `${{ github.event.pull_request.base.sha }}` para comparar contra el commit base del PR (diff-scoped), no sobre toda la historia. Esto permite detectar nuevas vulnerabilidades en el PR sin ruido del código existente.
 - **Modo non-blocking (F1):** `continue-on-error: true` — el job **nunca bloquea el merge**. Los resultados aparecen como advertencia en la pestaña Code Scanning de GitHub, pero no impiden el merge. Esto permite un rollout phased: F1 non-blocking en la fase actual, con intención de hacer F2 blocking después de validar resultados (Regla 8).
 

@@ -411,7 +411,7 @@ jobs:
         with:
           fetch-depth: 0
       - name: Run Semgrep SAST scan
-        run: docker run --rm -v ${{ github.workspace }}:/src semgrep/semgrep:1.176.1 semgrep ci --baseline-commit ${{ github.event.pull_request.base.sha }} --config .semgrep/rules --config p/owasp-top-ten --config p/security-audit --config p/secrets --config p/nodejs --config p/expressjs --config p/sql-injection --config p/command-injection --config p/react --config p/xss --exclude node_modules --exclude dist --exclude build --exclude coverage --exclude .env --exclude '*.min.js' --exclude prisma/generated --exclude e2e --severity ERROR --fail-on error
+        run: docker run --rm -v ${{ github.workspace }}:/src semgrep/semgrep:1.176.1 semgrep scan --baseline-commit ${{ github.event.pull_request.base.sha }} --config .semgrep/rules --config p/owasp-top-ten --config p/security-audit --config p/secrets --config p/nodejs --config p/expressjs --config p/sql-injection --config p/command-injection --config p/react --config p/xss --exclude node_modules --exclude dist --exclude build --exclude coverage --exclude .env --exclude '*.min.js' --exclude prisma/generated --exclude e2e --severity ERROR --error --metrics off
     # NOT in ci-complete.needs — SAST is a standalone gate, not coupled to CI_MINIMAL
 
   # --- Client Pre-Build ---
