@@ -333,19 +333,21 @@ Este job es la **raíz del DAG**: consume el diff del PR y produce 4 outputs boo
 Los jobs downstream verifican los outputs de `repo-discovery` vía `needs.repo-discovery.outputs.<key>`:
 
 ```yaml
-# Ejemplo real (ci.yml L418-429):
+# Estado real (change ci-prebuild-quality-lint, rama ci/prebuild-stages — verificado ci.yml L418-429):
 client-lint:
-  if: false # Disabled for incremental CI
+  if: needs.repo-discovery.outputs.client == 'true' && github.event_name == 'pull_request'
   needs: repo-discovery
-  # Cuando se reactive, la condición será:
-  # if: needs.repo-discovery.outputs.client == 'true'
 
 server-lint:
-  if: false # Disabled for incremental CI
+  if: needs.repo-discovery.outputs.server == 'true' && github.event_name == 'pull_request'
+  needs: repo-discovery
+
+actionlint:
+  if: needs.repo-discovery.outputs.shared == 'true' && github.event_name == 'pull_request'
   needs: repo-discovery
 ```
 
-> **Estado real verificado:** hoy, TODOS los jobs de calidad/build/test tienen `if: false` — el path-scoping condicional **está declarado en la estructura** pero **no se evalúa** porque los nodos están deshabilitados por diseño (CI_MINIMAL=true).
+> **Estado real verificado (2026-09-14):** `client-lint`, `server-lint` y `actionlint` están **reactivados path-scoped** (change `ci-prebuild-quality-lint`) — el path-scoping condicional SÍ se evalúa en estos 3 nodos. Los DEMÁS jobs de calidad/build/test mantienen `if: false` por diseño (CI_MINIMAL=true).
 
 ### 1.3 Agregador final: `ci-complete`
 
@@ -414,14 +416,19 @@ ci-complete:
 
 ### 1.4 Jobs habilitados que SÍ corren hoy
 
-| Job                     | Nombre UI                          | Required?  | continue-on-error? | Path-scoped?       |
-| ----------------------- | ---------------------------------- | ---------- | ------------------ | ------------------ |
-| `verify-signatures`     | Verify Commit Signatures           | ✅ Ruleset | ❌                 | No (corre siempre) |
-| `commit-lint`           | Commit Lint (Conventional Commits) | ✅ Ruleset | ❌                 | No (corre siempre) |
-| `pr-title-lint`         | PR Title Lint                      | ✅ Ruleset | ❌                 | No (corre siempre) |
-| `dco`                   | DCO                                | ✅ Ruleset | ❌                 | No (corre siempre) |
-| `dependency-review`     | Dependency Review                  | ❌         | ❌                 | `if: pull_request` |
-| `zombie-workflow-guard` | Zombie Workflow Guard              | ❌         | ❌                 | No (corre siempre) |
+| Job                     | Nombre UI                          | Required?  | continue-on-error? | Path-scoped?                    |
+| ----------------------- | ---------------------------------- | ---------- | ------------------ | ------------------------------- |
+| `verify-signatures`     | Verify Commit Signatures           | ✅ Ruleset | ❌                 | No (corre siempre)              |
+| `commit-lint`           | Commit Lint (Conventional Commits) | ✅ Ruleset | ❌                 | No (corre siempre)              |
+| `pr-title-lint`         | PR Title Lint                      | ✅ Ruleset | ❌                 | No (corre siempre)              |
+| `dco`                   | DCO                                | ✅ Ruleset | ❌                 | No (corre siempre)              |
+| `dependency-review`     | Dependency Review                  | ❌         | ❌                 | `if: pull_request`              |
+| `zombie-workflow-guard` | Zombie Workflow Guard              | ❌         | ❌                 | No (corre siempre)              |
+| `client-lint`           | Quality: Client Lint               | ❌         | ❌                 | `outputs.client == 'true'` + PR |
+| `server-lint`           | Quality: Server Lint               | ❌         | ❌                 | `outputs.server == 'true'` + PR |
+| `actionlint`            | Quality: ActionLint                | ❌         | ❌                 | `outputs.shared == 'true'` + PR |
+
+> **Nota (2026-09-14, change `ci-prebuild-quality-lint`, rama `ci/prebuild-stages`):** `client-lint`/`server-lint`/`actionlint` son standalone path-scoped (patrón `sast`/`dependency-review`, sin gate `CI_MINIMAL`), NO required por el ruleset. Supresiones intencionales en `.github/actionlint.yaml`; complexity ESLint 15→20.
 
 > **Nota (2026-09-14, change `ci-workflow-readability`):** el job `sast` ("SAST Semgrep", ci.yml L400-415, con `continue-on-error: true`, standalone governance, NO en `ci-complete.needs`) vive en el bloque `STAGE 2: PRE-BUILD — VALIDATE`, inmediatamente después de `dco` y junto a los 4 checks del ruleset. Es un gate standalone non-blocking (F1).
 
@@ -432,27 +439,29 @@ ci-complete:
 Todos estos jobs tienen `if: false` con comentario explícito:
 
 ```yaml
-client-lint:
+client-format-check:
   if: false # Disabled for incremental CI — change to true to re-enable
   needs: repo-discovery
 ```
 
-**Jobs deshabilitados (verificados L418-993):**
+**Jobs deshabilitados (verificados L431-993):**
 
-| Categoría      | Jobs                                                                                                          | Líneas             |
-| -------------- | ------------------------------------------------------------------------------------------------------------- | ------------------ |
-| Client Quality | client-lint, client-format-check, client-typecheck, client-complexity, client-dead-code, client-import-bounds | L418-502           |
-| Server Quality | server-lint, server-format-check, server-typecheck, server-complexity, server-dead-code, server-import-bounds | L504-588           |
-| Shared Quality | actionlint                                                                                                    | L590-601           |
-| Unit Tests     | test-unit-client, test-unit-server                                                                            | L603-661           |
-| Build          | client-build, server-build                                                                                    | L693-718           |
-| Coverage       | client-coverage, server-coverage                                                                              | L752-769, L810-827 |
-| DepCheck       | client-depcheck, server-depcheck                                                                              | L770-783, L828-841 |
-| Integration    | test-integration                                                                                              | L844-888           |
-| Smoke          | test-smoke                                                                                                    | L890-934           |
-| E2E            | e2e                                                                                                           | L936-993           |
+| Categoría      | Jobs                                                                                             | Líneas             |
+| -------------- | ------------------------------------------------------------------------------------------------ | ------------------ |
+| Client Quality | client-format-check, client-typecheck, client-complexity, client-dead-code, client-import-bounds | L431-502           |
+| Server Quality | server-format-check, server-typecheck, server-complexity, server-dead-code, server-import-bounds | L517-588           |
+| Shared Quality | — (`actionlint` reactivado, ver §1.4)                                                            | L590-601           |
+| Unit Tests     | test-unit-client, test-unit-server                                                               | L603-661           |
+| Build          | client-build, server-build                                                                       | L693-718           |
+| Coverage       | client-coverage, server-coverage                                                                 | L752-769, L810-827 |
+| DepCheck       | client-depcheck, server-depcheck                                                                 | L770-783, L828-841 |
+| Integration    | test-integration                                                                                 | L844-888           |
+| Smoke          | test-smoke                                                                                       | L890-934           |
+| E2E            | e2e                                                                                              | L936-993           |
 
 > **⚠️ CRÍTICO:** Estos nodos **NO están rotos**. Son diseño incremental de CI_MINIMAL=true (§3.1 de CONTEXT-CICD). Activarlos requiere un change OpenSpec que justifique el costo.
+>
+> > **Excepción (2026-09-14, change `ci-prebuild-quality-lint`):** `client-lint`, `server-lint` y `actionlint` YA salieron de esta lista — reactivados path-scoped standalone (ver §1.4).
 
 ---
 
@@ -468,7 +477,7 @@ client-lint:
 
 ### 2.3 `docs/CONTEXT-CICD.md` §3.1
 
-> "CI*MINIMAL=true ES INTENCIONAL → CI en modo mínimo/incremental. Muchos jobs if: false (disabled a propósito): client-lint, server-lint, *-build, sonarqube, coverage, depcheck, test-unit-\_, test-integration, test-smoke, e2e, actionlint. NO son bugs; no activarlos 'para que funcione'."
+> "CI*MINIMAL=true ES INTENCIONAL → CI en modo mínimo/incremental. Muchos jobs if: false (disabled a propósito): \*-build, sonarqube, coverage, depcheck, test-unit-*, test-integration, test-smoke, e2e, format-check, typecheck, complexity, dead-code, import-bounds. NO son bugs; no activarlos 'para que funcione'." + bullet 2026-09-14: `client-lint`/`server-lint`/`actionlint` activos path-scoped standalone (change `ci-prebuild-quality-lint`).
 
 ### 2.4 `docs/learning/ci-cd/07-quality-yml-reusable.md` §11
 
@@ -515,10 +524,15 @@ flowchart TD
         ZWG["zombie-workflow-guard\nZombie Workflow Guard"]
     end
 
-    subgraph Q_DISABLED ["⚠️ Quality/Build/Test (if: false — por diseño)"]
-        CLINT["client-lint/format/\ntypecheck/complexity/\ndead-code/import-bounds"]
-        SLINT["server-lint/format/\ntypecheck/complexity/\ndead-code/import-bounds"]
-        ALINT["actionlint"]
+    subgraph Q_LINT ["Quality Lint (path-scoped — ACTIVOS)"]
+        CLINT["client-lint\n(outputs.client + PR)"]
+        SLINT["server-lint\n(outputs.server + PR)"]
+        ALINT["actionlint\n(outputs.shared + PR)"]
+    end
+
+    subgraph Q_DISABLED ["⚠️ Quality/Build/Test restantes (if: false — por diseño)"]
+        CFMT["client-format/typecheck/\ncomplexity/dead-code/import-bounds"]
+        SFMT["server-format/typecheck/\ncomplexity/dead-code/import-bounds"]
         CBUILD["client-build\nserver-build"]
         COV["client-coverage\nserver-coverage"]
         DPCHECK["client-depcheck\nserver-depcheck"]
@@ -542,6 +556,8 @@ flowchart TD
     RD --> CLINT
     RD --> SLINT
     RD --> ALINT
+    RD --> CFMT
+    RD --> SFMT
     RD --> TUNIT
     RD --> TINT
     RD --> TSMOKE
@@ -575,15 +591,15 @@ flowchart TD
     classDef always fill:#e3f2fd,stroke:#1565c0,stroke-width:2px
 
     class VS,CL,PTL,DCO required
-    class DR,ZWG nonblocking
-    class CLINT,SLINT,ALINT,CBUILD,COV,DPCHECK,TUNIT,TINT,TSMOKE,E2E skipped
+    class DR,ZWG,CLINT,SLINT,ALINT nonblocking
+    class CFMT,SFMT,CBUILD,COV,DPCHECK,TUNIT,TINT,TSMOKE,E2E skipped
     class RD,CC always
 ```
 
 **Leyenda:**
 
 - ⭐ = Required status check (ruleset 21227644, **BLOCKING**)
-- 🟠 = Non-blocking (dependency-review, zombie-guard)
+- 🟠 = Non-blocking standalone (dependency-review, zombie-guard, client-lint, server-lint, actionlint)
 - ⬜ = Skipped por diseño (if: false, CI_MINIMAL=true)
 - 🔵 = Siempre corre (raíz del DAG + fan-in)
 
@@ -628,11 +644,11 @@ Las siguientes fuentes fueron consultadas el **2026-09-11** para la investigaci�
 
 ## Próximos pasos / mejoras candidatas
 
-| Candidato                                  | Prioridad | Dependencia                                 | Nota                                                                                  |
-| ------------------------------------------ | --------- | ------------------------------------------- | ------------------------------------------------------------------------------------- |
-| **ci-complete robusto con `!cancelled()`** | Alta      | Ninguna (cambio en ci.yml)                  | Cambiar `if: always()` → `if: !cancelled()` para respetar cancelación del usuario     |
-| **Path-scoping real en jobs habilitados**  | Media     | CI_MINIMAL=false (requiere change OpenSpec) | Cuando se activen jobs quality, añadir `if: needs.repo-discovery.outputs.X == 'true'` |
-| **F2 SAST blocking**                       | Media     | Validar F1 (no-blocking) por sprint         | Re-introducir job sast en ci.yml con `continue-on-error: false` + añadir al ruleset   |
-| **Nx/Turborepo affected detection**        | Baja      | >5 workspaces en el monorepo                | Reemplazar `dorny/paths-filter` con graph-based affected                              |
-| **Merge queue activa**                     | Baja      | Regla `merge_queue` en ruleset              | Activar `merge_group` trigger (hoy es dead code)                                      |
-| **Dagger.io como DAG engine**              | Baja      | Migración significativa                     | Solo si el pipeline crece a 50+ jobs y YAML se vuelve ingobernable                    |
+| Candidato                                  | Prioridad | Dependencia                                                                         | Nota                                                                                                                                 |
+| ------------------------------------------ | --------- | ----------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| **ci-complete robusto con `!cancelled()`** | Alta      | Ninguna (cambio en ci.yml)                                                          | Cambiar `if: always()` → `if: !cancelled()` para respetar cancelación del usuario                                                    |
+| **Path-scoping real en jobs habilitados**  | Media     | Hecho para lint (change `ci-prebuild-quality-lint`); resto requiere change OpenSpec | `client-lint`/`server-lint`/`actionlint` YA path-scoped standalone (sin `CI_MINIMAL=false`). Pendiente para build/test/coverage/etc. |
+| **F2 SAST blocking**                       | Media     | Validar F1 (no-blocking) por sprint                                                 | Re-introducir job sast en ci.yml con `continue-on-error: false` + añadir al ruleset                                                  |
+| **Nx/Turborepo affected detection**        | Baja      | >5 workspaces en el monorepo                                                        | Reemplazar `dorny/paths-filter` con graph-based affected                                                                             |
+| **Merge queue activa**                     | Baja      | Regla `merge_queue` en ruleset                                                      | Activar `merge_group` trigger (hoy es dead code)                                                                                     |
+| **Dagger.io como DAG engine**              | Baja      | Migración significativa                                                             | Solo si el pipeline crece a 50+ jobs y YAML se vuelve ingobernable                                                                   |

@@ -65,9 +65,10 @@ gh api repos/Freelancer-soluctions/Project-one/branches/main/protection/required
 ### 3.1 CI Incremental — por diseño
 
 - `vars.CI_MINIMAL=true` ES INTENCIONAL → CI en modo mínimo/incremental.
-- Muchos jobs `if: false` (disabled a propósito): client-lint, server-lint, \*-build, sonarqube, coverage, depcheck, test-unit-\*, test-integration, test-smoke, e2e, actionlint. NO son bugs; **no activarlos** "para que funcione".
+- Muchos jobs `if: false` (disabled a propósito): \*-build, sonarqube, coverage, depcheck, test-unit-\*, test-integration, test-smoke, e2e, format-check, typecheck, complexity, dead-code, import-bounds. NO son bugs; **no activarlos** "para que funcione".
 - `ci-complete` corre SOLO si `CI_MINIMAL != 'true'`. Como CI_MINIMAL=true, queda SKIPPED → "CI Complete" NO se reporta.
 - **El job `sast` (SAST Semgrep) NO está gated por `CI_MINIMAL`**: corre en todos los PRs a `main` independientemente de este valor, como capa de governance standalone (precedente §9.3.5 dependency-review).
+- **Jobs lint activos path-scoped (change `ci-prebuild-quality-lint`, rama `ci/prebuild-stages` — aún no mergeado):** `client-lint`, `server-lint` y `actionlint` corren standalone en PRs a `main` (`if: needs.repo-discovery.outputs.<client|server|shared> == 'true' && github.event_name == 'pull_request'`), SIN gate de `CI_MINIMAL` — mismo patrón standalone que `sast`/`dependency-review`. Supresiones intencionales en `.github/actionlint.yaml` (restos `if: false` + `secrets` en `security.yml` deshabilitado). Threshold complexity ESLint 15→20 en `eslint.config.js` (baseline c16-c18).
 - NUNCA interpretar un job skipped/disabled por CI_MINIMAL como algo roto. Es diseño incremental.
 - Status checks selectables: GitHub solo deja elegir un check si se reportó ≥1 vez. Un job que nunca corrió NO aparece en búsqueda del ruleset.
 
@@ -88,18 +89,23 @@ gh api repos/Freelancer-soluctions/Project-one/branches/main/protection/required
 
 > **⚠️ Merge queue NO está activo (verificado API 2026-08-31):** el trigger `merge_group` es **código muerto** — el ruleset 21227644 **no tiene regla `merge_queue`** y `allow_auto_merge=false`, así que GitHub **nunca dispara** `merge_group`. Los steps `if: merge_group` de commit-lint/pr-title-lint/dco son **preparación preventiva**. Conclusión: **NO añadir validación extra para merge_group** mientras no exista merge queue (ver §5.3).
 
-| Job                                                                                                          | name (exacto)                          | Required?      | continue-on-error?               |
-| ------------------------------------------------------------------------------------------------------------ | -------------------------------------- | -------------- | -------------------------------- |
-| repo-discovery                                                                                               | Detect Changes                         | N/A (no check) | -                                |
-| verify-signatures                                                                                            | **Verify Commit Signatures**           | ✅ ruleset     | ❌                               |
-| commit-lint                                                                                                  | **Commit Lint (Conventional Commits)** | ✅ ruleset     | ❌                               |
-| pr-title-lint                                                                                                | **PR Title Lint**                      | ✅ ruleset     | ❌ (bloqueante desde 2026-08-31) |
-| dco                                                                                                          | **DCO**                                | ✅ ruleset     | ❌ (bloqueante desde 2026-08-31) |
-| dependency-review                                                                                            | Dependency Review                      | ❌             | ❌                               |
-| sast                                                                                                         | **SAST (Semgrep)**                     | ❌             | ✅                               |
-| zombie-workflow-guard                                                                                        | Zombie Workflow Guard                  | ❌             | ❌                               |
-| client-lint, server-lint, \*-build, sonarqube, coverage, depcheck, unit, integration, smoke, e2e, actionlint | Quality/Build/Test                     | ❌             | N/A (`if: false`)                |
-| ci-complete                                                                                                  | CI Complete                            | ❌ (no bound)  | N/A (`if: CI_MINIMAL != 'true'`) |
+| Job                                                                                                                                                             | name (exacto)                          | Required?      | continue-on-error?               |
+| --------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------- | -------------- | -------------------------------- |
+| repo-discovery                                                                                                                                                  | Detect Changes                         | N/A (no check) | -                                |
+| verify-signatures                                                                                                                                               | **Verify Commit Signatures**           | ✅ ruleset     | ❌                               |
+| commit-lint                                                                                                                                                     | **Commit Lint (Conventional Commits)** | ✅ ruleset     | ❌                               |
+| pr-title-lint                                                                                                                                                   | **PR Title Lint**                      | ✅ ruleset     | ❌ (bloqueante desde 2026-08-31) |
+| dco                                                                                                                                                             | **DCO**                                | ✅ ruleset     | ❌ (bloqueante desde 2026-08-31) |
+| dependency-review                                                                                                                                               | Dependency Review                      | ❌             | ❌                               |
+| sast                                                                                                                                                            | **SAST (Semgrep)**                     | ❌             | ✅                               |
+| zombie-workflow-guard                                                                                                                                           | Zombie Workflow Guard                  | ❌             | ❌                               |
+| client-lint                                                                                                                                                     | Quality: Client Lint                   | ❌             | ❌                               |
+| server-lint                                                                                                                                                     | Quality: Server Lint                   | ❌             | ❌                               |
+| actionlint                                                                                                                                                      | Quality: ActionLint                    | ❌             | ❌                               |
+| client/server-format-check, \*-typecheck, \*-complexity, \*-dead-code, \*-import-bounds, \*-build, sonarqube, coverage, depcheck, unit, integration, smoke, e2e | Quality/Build/Test                     | ❌             | N/A (`if: false`)                |
+| ci-complete                                                                                                                                                     | CI Complete                            | ❌ (no bound)  | N/A (`if: CI_MINIMAL != 'true'`) |
+
+> **Path-scoping de los 3 lint activos (change `ci-prebuild-quality-lint`):** `client-lint` → `if: needs.repo-discovery.outputs.client == 'true' && github.event_name == 'pull_request'`; `server-lint` → idem con `outputs.server`; `actionlint` → idem con `outputs.shared`. Standalone (sin gate `CI_MINIMAL`), NO required por el ruleset.
 
 ### 3.4 Pipelines
 
@@ -302,7 +308,9 @@ default=read · workflows no aprueban reviews · `allowed_actions=all` (🔴 rie
 
 ### 5.5 Variable CI_MINIMAL=true
 
-Desactiva `ci-complete` y TODOS los jobs quality/build/test (`if: false`). Es diseño incremental: iterar gobernanza sin pagar build/test completos. Gate completo = change OpenSpec que justifique costo (`CI_MINIMAL=false` → ci-complete reporta → añadible al ruleset tras ≥1 run).
+Desactiva `ci-complete` y los jobs quality/build/test restantes (`if: false`). Es diseño incremental: iterar gobernanza sin pagar build/test completos. Gate completo = change OpenSpec que justifique costo (`CI_MINIMAL=false` → ci-complete reporta → añadible al ruleset tras ≥1 run).
+
+> **`client-lint`, `server-lint` y `actionlint` YA NO están gated por `CI_MINIMAL`** (change `ci-prebuild-quality-lint`, rama `ci/prebuild-stages`): son standalone path-scoped en PRs a `main`, mismo patrón que `sast`/`dependency-review` (§3.1/§3.3).
 
 ### 5.6 Secrets
 
@@ -499,20 +507,21 @@ O via UI: repo → Actions → <workflow> → ⋯ → Enable workflow.
 
 Estos cambios existen en `openspec/changes/` pero **aún no están archivados**; su estado de implementación varía y NO deben darse por cerrados:
 
-| Change                                                        | Estado probable      | Nota                                                      |
-| ------------------------------------------------------------- | -------------------- | --------------------------------------------------------- |
-| `ci-scheduled-trivy`                                          | ⏸️ Parcial           | Trivy SCA interactúa con `security.yml` / scheduled       |
-| `learning-cicd-profesional`                                   | 📋 Pendiente         | Índice + guía profesional (18+), 🔜                       |
-| `ci-preview-environments`                                     | ⏸️ Parcial           | `preview.yml` existe y corre; change no archivado         |
-| `ci-floci-migration` / `ci-testcontainers`                    | ⏸️ Parcial           | Emulación Floci/testcontainers en CI                      |
-| `ci-release-workflow-signing`                                 | ⏸️ Parcial           | `release.yml` re-verifica firma del tip de main           |
-| `ci-test-integration` / `ci-shifting-left` / `ci-quality-dag` | 📋 Pendiente/Parcial | Jobs `if:false` deshabilitados (diseño incremental, §3.1) |
+| Change                                                        | Estado probable                                    | Nota                                                                                                                                                                                                                                                           |
+| ------------------------------------------------------------- | -------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `ci-scheduled-trivy`                                          | ⏸️ Parcial                                         | Trivy SCA interactúa con `security.yml` / scheduled                                                                                                                                                                                                            |
+| `learning-cicd-profesional`                                   | 📋 Pendiente                                       | Índice + guía profesional (18+), 🔜                                                                                                                                                                                                                            |
+| `ci-preview-environments`                                     | ⏸️ Parcial                                         | `preview.yml` existe y corre; change no archivado                                                                                                                                                                                                              |
+| `ci-floci-migration` / `ci-testcontainers`                    | ⏸️ Parcial                                         | Emulación Floci/testcontainers en CI                                                                                                                                                                                                                           |
+| `ci-release-workflow-signing`                                 | ⏸️ Parcial                                         | `release.yml` re-verifica firma del tip de main                                                                                                                                                                                                                |
+| `ci-test-integration` / `ci-shifting-left` / `ci-quality-dag` | 📋 Pendiente/Parcial                               | Jobs `if:false` deshabilitados (diseño incremental, §3.1)                                                                                                                                                                                                      |
+| `ci-prebuild-quality-lint`                                    | 🔧 En curso (rama `ci/prebuild-stages`, sin merge) | Reactiva `client-lint`/`server-lint`/`actionlint` path-scoped standalone (§3.1/§3.3) + complexity ESLint 15→20 + `.github/actionlint.yaml` con supresiones; flip `CI_MINIMAL=false` post-merge = task 8 (@git-manager). NO archivar en §9.1 hasta merge + flip |
 
 ### 9.3 Cómo funciona cada implementación del gate (detalle verificado en `ci.yml`)
 
 Esta subsección explica el **mecanismo real** de las implementaciones que protegen el merge a `main` (los 4 checks vinculados al ruleset 21227644, más los jobs no-required). Todo verificado contra `.github/workflows/ci.yml` (1048 líneas).
 
-**Contexto de triggers y scoping:** `ci.yml` corre en `pull_request → main` y `merge_group`. Usa `dorny/paths-filter` para detectar qué workspace cambió (`client`/`server`/`e2e`/`shared`) — los jobs quality/build dependen de ese filtro (hoy `if: false`). El `concurrency` cancela runs previos del mismo PR (`pr-<n>`) o merge queue (`merge-group-<ref>`).
+**Contexto de triggers y scoping:** `ci.yml` corre en `pull_request → main` y `merge_group`. Usa `dorny/paths-filter` para detectar qué workspace cambió (`client`/`server`/`e2e`/`shared`) — los jobs quality/build dependen de ese filtro (hoy `if: false`, excepto `client-lint`/`server-lint`/`actionlint`, path-scoped activos desde `ci-prebuild-quality-lint`, §9.2). El `concurrency` cancela runs previos del mismo PR (`pr-<n>`) o merge queue (`merge-group-<ref>`).
 
 #### 9.3.1 `verify-signatures` → check "Verify Commit Signatures" (REQUIRED)
 
