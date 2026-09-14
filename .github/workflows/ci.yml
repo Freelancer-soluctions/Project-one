@@ -416,7 +416,7 @@ jobs:
 
   # --- Client Pre-Build ---
   client-lint:
-    if: false  # Disabled for incremental CI — change to true to re-enable
+    if: needs.repo-discovery.outputs.client == 'true' && github.event_name == 'pull_request'
     name: "Quality: Client Lint"
     needs: repo-discovery
     runs-on: ubuntu-latest
@@ -502,7 +502,7 @@ jobs:
 
   # --- Server Pre-Build ---
   server-lint:
-    if: false  # Disabled for incremental CI — change to true to re-enable
+    if: needs.repo-discovery.outputs.server == 'true' && github.event_name == 'pull_request'
     name: "Quality: Server Lint"
     needs: repo-discovery
     runs-on: ubuntu-latest
@@ -588,7 +588,7 @@ jobs:
 
   # --- Shared Pre-Build ---
   actionlint:
-    if: false  # Disabled for incremental CI — change to true to re-enable
+    if: needs.repo-discovery.outputs.shared == 'true' && github.event_name == 'pull_request'
     name: "Quality: ActionLint"
     needs: repo-discovery
     runs-on: ubuntu-latest
