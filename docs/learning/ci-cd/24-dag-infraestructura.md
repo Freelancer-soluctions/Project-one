@@ -290,7 +290,7 @@ Para repos pequeños (<5 workspaces, <20 jobs), un DAG explícito con path-scopi
 
 # PARTE B — Qué está implementado en Project One HOY
 
-> **⚠️ Nota metodológica:** toda la información de esta parte fue verificada contra el código fuente real (`.github/workflows/ci.yml`, 1049 líneas, verificado 2026-09-11) y la documentación del repo. Se cita la línea de referencia exacta.
+> **⚠️ Nota metodológica:** toda la información de esta parte fue verificada contra el código fuente real (`.github/workflows/ci.yml`, 1114 líneas — reordenado por el change `ci-workflow-readability`, verificado 2026-09-14) y la documentación del repo. Se cita la línea de referencia exacta.
 
 ## 1. El DAG real de `ci.yml`
 
@@ -333,7 +333,7 @@ Este job es la **raíz del DAG**: consume el diff del PR y produce 4 outputs boo
 Los jobs downstream verifican los outputs de `repo-discovery` vía `needs.repo-discovery.outputs.<key>`:
 
 ```yaml
-# Ejemplo real (ci.yml L394-404):
+# Ejemplo real (ci.yml L418-429):
 client-lint:
   if: false # Disabled for incremental CI
   needs: repo-discovery
@@ -349,7 +349,7 @@ server-lint:
 
 ### 1.3 Agregador final: `ci-complete`
 
-**Archivo:** `.github/workflows/ci.yml` L760-809
+**Archivo:** `.github/workflows/ci.yml` L1036-1086
 **Job ID:** `ci-complete` | **Nombre UI:** "CI Complete"
 
 ```yaml
@@ -423,11 +423,11 @@ ci-complete:
 | `dependency-review`     | Dependency Review                  | ❌         | ❌                 | `if: pull_request` |
 | `zombie-workflow-guard` | Zombie Workflow Guard              | ❌         | ❌                 | No (corre siempre) |
 
-> **Nota (2026-09-11):** el job `sast` ("SAST Semgrep") que existía previamente en ci.yml (L757-772, con `continue-on-error: true`, standalone governance) **fue eliminado** del archivo. La funcionalidad SAST vive ahora solo en `security.yml` (deshabilitado). Verificar si fue movido a otro workflow o eliminado completamente antes de documentar como "implementado".
+> **Nota (2026-09-14, change `ci-workflow-readability`):** el job `sast` ("SAST Semgrep", ci.yml L400-415, con `continue-on-error: true`, standalone governance, NO en `ci-complete.needs`) vive en el bloque `STAGE 2: PRE-BUILD — VALIDATE`, inmediatamente después de `dco` y junto a los 4 checks del ruleset. Es un gate standalone non-blocking (F1).
 
 ### 1.5 Jobs `if: false` — DAG con nodos deshabilitados
 
-**Archivo:** `.github/workflows/ci.yml` — múltiples jobs (L394-576, 580-698, 815-1022)
+**Archivo:** `.github/workflows/ci.yml` — múltiples jobs (L418-601, 603-661, 693-718, 724-841, 844-993)
 
 Todos estos jobs tienen `if: false` con comentario explícito:
 
@@ -437,20 +437,20 @@ client-lint:
   needs: repo-discovery
 ```
 
-**Jobs deshabilitados (verificados L394-1022):**
+**Jobs deshabilitados (verificados L418-993):**
 
-| Categoría      | Jobs                                                                                                          | Líneas    |
-| -------------- | ------------------------------------------------------------------------------------------------------------- | --------- |
-| Client Quality | client-lint, client-format-check, client-typecheck, client-complexity, client-dead-code, client-import-bounds | L394-477  |
-| Server Quality | server-lint, server-format-check, server-typecheck, server-complexity, server-dead-code, server-import-bounds | L479-562  |
-| Shared Quality | actionlint                                                                                                    | L565-576  |
-| Build          | client-build, server-build                                                                                    | L580-698  |
-| Coverage       | client-coverage, server-coverage                                                                              | L700-713  |
-| DepCheck       | client-depcheck, server-depcheck                                                                              | L715-728  |
-| Unit Tests     | test-unit-client, test-unit-server                                                                            | L815-875  |
-| Integration    | test-integration                                                                                              | L877-935  |
-| Smoke          | test-smoke                                                                                                    | L937-967  |
-| E2E            | e2e                                                                                                           | L969-1022 |
+| Categoría      | Jobs                                                                                                          | Líneas             |
+| -------------- | ------------------------------------------------------------------------------------------------------------- | ------------------ |
+| Client Quality | client-lint, client-format-check, client-typecheck, client-complexity, client-dead-code, client-import-bounds | L418-502           |
+| Server Quality | server-lint, server-format-check, server-typecheck, server-complexity, server-dead-code, server-import-bounds | L504-588           |
+| Shared Quality | actionlint                                                                                                    | L590-601           |
+| Unit Tests     | test-unit-client, test-unit-server                                                                            | L603-661           |
+| Build          | client-build, server-build                                                                                    | L693-718           |
+| Coverage       | client-coverage, server-coverage                                                                              | L752-769, L810-827 |
+| DepCheck       | client-depcheck, server-depcheck                                                                              | L770-783, L828-841 |
+| Integration    | test-integration                                                                                              | L844-888           |
+| Smoke          | test-smoke                                                                                                    | L890-934           |
+| E2E            | e2e                                                                                                           | L936-993           |
 
 > **⚠️ CRÍTICO:** Estos nodos **NO están rotos**. Son diseño incremental de CI_MINIMAL=true (§3.1 de CONTEXT-CICD). Activarlos requiere un change OpenSpec que justifique el costo.
 
@@ -468,7 +468,7 @@ client-lint:
 
 ### 2.3 `docs/CONTEXT-CICD.md` §3.1
 
-> "CI_MINIMAL=true ES INTENCIONAL → CI en modo mínimo/incremental. Muchos jobs if: false (disabled a propósito): client-lint, server-lint, _-build, sonarqube, coverage, depcheck, test-unit-_, test-integration, test-smoke, e2e, actionlint. NO son bugs; no activarlos 'para que funcione'."
+> "CI*MINIMAL=true ES INTENCIONAL → CI en modo mínimo/incremental. Muchos jobs if: false (disabled a propósito): client-lint, server-lint, *-build, sonarqube, coverage, depcheck, test-unit-\_, test-integration, test-smoke, e2e, actionlint. NO son bugs; no activarlos 'para que funcione'."
 
 ### 2.4 `docs/learning/ci-cd/07-quality-yml-reusable.md` §11
 
@@ -498,7 +498,7 @@ client-lint:
 flowchart TD
     PR[("pull_request → main")] --> RD
 
-    subgraph INIT [Stage 1: Iniciación]
+    subgraph INIT [ENTRY: Detect Changes]
         RD["repo-discovery\n(Detect Changes)\ndorny/paths-filter@v4"]
     end
 
@@ -510,6 +510,7 @@ flowchart TD
     end
 
     subgraph SEC [Seguridad / Governance]
+        SAST["sast\nSAST (Semgrep)\n(standalone, non-blocking)"]
         DR["dependency-review\nDependency Review\n(if: pull_request)"]
         ZWG["zombie-workflow-guard\nZombie Workflow Guard"]
     end
@@ -527,7 +528,7 @@ flowchart TD
         E2E["e2e"]
     end
 
-    subgraph FANIN [Stage 5: Fan-in]
+    subgraph FANIN [AGGREGATOR: CI Complete]
         CC["ci-complete\n(if: CI_MINIMAL != true)\n⚠️ SKIPPED hoy"]
     end
 
@@ -535,6 +536,7 @@ flowchart TD
     RD --> CL
     RD --> PTL
     RD --> DCO
+    RD --> SAST
     RD --> DR
     RD --> ZWG
     RD --> CLINT

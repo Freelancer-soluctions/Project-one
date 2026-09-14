@@ -1,0 +1,4 @@
+schema: spec-driven
+created: 2026-09-13
+skip_specs: true
+reason: "Pure refactor - reorders job blocks and renames section headers for readability. Zero behavior changes: needs, if conditions, continue-on-error, job names, and ci-complete.needs remain identical."
