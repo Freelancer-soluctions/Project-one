@@ -489,15 +489,15 @@ client-format-check:
 
 | Indicador                       | Estado real (verificado API + código)                                                      |
 | ------------------------------- | ------------------------------------------------------------------------------------------ |
-| Workflows totales               | 8 archivos en `.github/workflows/`                                                         |
-| Workflows habilitados en GitHub | 1 (`ci.yml` activo)                                                                        |
+| Workflows totales               | 9 archivos en `.github/workflows/`                                                         |
+| Workflows habilitados en GitHub | 2 (`ci.yml` + `opencode-review.yml` desde 2026-09-14)                                      |
 | Workflows `disabled_manually`   | 7 (security, scheduled-security, security-digest, deploy, preview, release, ci-enterprise) |
 | Ruleset 21227644                | Activo, 4 required checks                                                                  |
 | Merge queue                     | NO activo (trigger `merge_group` es dead code)                                             |
 | CI_MINIMAL                      | `true` → la mayoría de jobs deshabilitados                                                 |
 | Node source of truth            | `.nvmrc` = `22.23.1`                                                                       |
 
-> **Fuente:** `docs/CONTEXT-CICD.md` §3.4/§5.9 — verificado por API 2026-08-30.
+> **Fuente:** `docs/CONTEXT-CICD.md` §3.4/§5.9 — verificado por API 2026-08-30; `opencode-review.yml` → ACTIVE verificado por API 2026-09-14 (fix rate-limit `ci-opencode-review-fix`: steps inline, advisory NO bloqueante).
 
 ---
 
