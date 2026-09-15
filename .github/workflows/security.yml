@@ -22,7 +22,7 @@ jobs:
     timeout-minutes: 15
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
 
       - name: Setup Node
         uses: actions/setup-node@v5
@@ -61,7 +61,7 @@ jobs:
     timeout-minutes: 15
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
 
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v4
@@ -87,7 +87,7 @@ jobs:
     if: github.event_name == 'pull_request'
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
@@ -113,7 +113,7 @@ jobs:
   #   runs-on: ubuntu-latest
   #
   #   steps:
-  #     - uses: actions/checkout@v5
+  #     - uses: actions/checkout@v7
   #
   #     - name: Run Semgrep IaC rules
   #       uses: returntocorp/semgrep-action@v1
@@ -131,7 +131,7 @@ jobs:
       contents: read
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
 
       - name: Generate SBOM
         uses: anchore/sbom-action@v0.24.0
