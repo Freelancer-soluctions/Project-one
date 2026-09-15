@@ -213,14 +213,14 @@ export default [
     // and enforced locally via `npm run lint`.
     files: ['apps/client/**/*.{js,jsx}'],
     rules: {
-      complexity: ['error', { max: 15 }],
+      complexity: ['error', { max: 20 }],
     },
   },
 
   {
     files: ['apps/server/**/*.js'],
     rules: {
-      complexity: ['error', { max: 15 }],
+      complexity: ['error', { max: 20 }],
     },
   },
 

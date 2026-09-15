@@ -24,12 +24,30 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v5
 
+      - name: Install opencode
+        run: |
+          set -euo pipefail
+          OPENCODE_VERSION="v1.18.31"
+          INSTALL_DIR="$HOME/.opencode/bin"
+          mkdir -p "$INSTALL_DIR"
+          curl -fsSL -o /tmp/opencode-linux-x64.zip "https://github.com/anomalyco/opencode/releases/download/${OPENCODE_VERSION}/opencode-linux-x64.zip"
+          unzip -o -q /tmp/opencode-linux-x64.zip -d "$INSTALL_DIR"
+          chmod +x "$INSTALL_DIR/opencode"
+          echo "$INSTALL_DIR" >> "$GITHUB_PATH"
+          rm -f /tmp/opencode-linux-x64.zip
+          "$INSTALL_DIR/opencode" --version
+
       - name: Run OpenCode AI review
-        uses: anomalyco/opencode/github@5d5c35ee71c095464b9eb3c3e991df906f12a152 # pinned for supply chain security (verified 2026-09-04)
-        with:
-          use_github_token: true
-          model: google/gemini-3.6-flash
-          prompt: |
+        run: opencode github run
+        env:
+          # MODEL replaces the former `with: model:` input (action set MODEL env var internally)
+          MODEL: google/gemini-3.6-flash
+          # use_github_token:true exige GITHUB_TOKEN (former `with: use_github_token:` input)
+          USE_GITHUB_TOKEN: "true"
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Prompt: the composite action passed `with: prompt:` via PROMPT env var
+          # (github/action.yml L62); the `opencode github run` CLI reads PROMPT from environment
+          PROMPT: |
             Review this pull request. Focus on:
             - Code quality and maintainability
             - Bugs and edge cases
@@ -38,9 +56,7 @@ jobs:
             - Adherence to project conventions (Conventional Commits, ESLint/Prettier style, monorepo structure)
 
             Provide feedback as a concise bulleted list. If there are no significant issues, reply with "LGTM".
-        env:
-          # El input `model:` (above) setea la env var MODEL; use_github_token true exige GITHUB_TOKEN
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # MODEL (above) reemplaza el antiguo input `with: model:`; USE_GITHUB_TOKEN=true exige GITHUB_TOKEN
           # Google Gemini 3.6 Flash (built-in provider; gemini-2.5-flash 404 "no longer available to new users" 2026-09-05); ver docs/CONTEXT-CICD.md §9.3.8
           # Thinking: NO configurar thinkingConfig — opencode inyecta thinkingLevel:high (gemini-3) y
           # thinkingBudget (param gemini-2.5) causa 400 "only one of thinking budget and thinking level" (fix 2026-09-05)

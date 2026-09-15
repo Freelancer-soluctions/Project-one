@@ -27,12 +27,12 @@ The system SHALL execute the `opencode-review.yml` workflow on pull requests tar
 
 ### Requirement: The workflow configures the model self-contained via OPENCODE_CONFIG_CONTENT (Bug #36504)
 
-The system SHALL configure the opencode model via the `OPENCODE_CONFIG_CONTENT` environment variable (or the action's native input), using Google Gemini as a built-in provider with the `GEMINI_API_KEY` secret. The `agent` input of `anomalyco/opencode/github` SHALL NOT be relied upon (Bug #36504: the `agent` input may be ignored by the action). The model/provider configuration in `opencode.jsonc` is OUT-OF-SCOPE / DEFERRED per user decision.
+The system SHALL configure the opencode model via the `OPENCODE_CONFIG_CONTENT` environment variable, using Google Gemini as a built-in provider with the `GEMINI_API_KEY` secret. The workflow SHALL use inline steps (no third-party composite action since fix 2026-09-14, change `ci-opencode-review-fix`): an `Install opencode` step downloading the pinned binary v1.18.31, followed by `opencode github run` with env `MODEL`, `USE_GITHUB_TOKEN`, `GITHUB_TOKEN`, `PROMPT` and `OPENCODE_CONFIG_CONTENT`. The model/provider configuration in `opencode.jsonc` is OUT-OF-SCOPE / DEFERRED per user decision.
 
 #### Scenario: Workflow runs with Gemini model via OPENCODE_CONFIG_CONTENT
 
 - **WHEN** the `opencode-review.yml` workflow executes
-- **THEN** it invokes `anomalyco/opencode/github@5d5c35ee71c095464b9eb3c3e991df906f12a152` (SHA-pinned for supply chain safety, verified 2026-09-04) with `use_github_token: true`, `model: google/gemini-3.6-flash`, setting `OPENCODE_CONFIG_CONTENT` to the Google Gemini built-in provider configuration:
+- **THEN** it runs the inline steps (fix 2026-09-14; the former `anomalyco/opencode/github@5d5c35ee71c095464b9eb3c3e991df906f12a152` composite action was removed because its internal `Get opencode version` step failed on unauthenticated GitHub API rate-limit, upstream `not_planned`): (1) `Install opencode` downloads the pinned binary v1.18.31, installs to `$HOME/.opencode/bin` (added to `GITHUB_PATH`); (2) `Run OpenCode AI review` executes `opencode github run` with `MODEL=google/gemini-3.6-flash`, `USE_GITHUB_TOKEN=true`, `PROMPT` (review prompt text — the CLI reads it from env, no `--prompt` flag), setting `OPENCODE_CONFIG_CONTENT` to the Google Gemini built-in provider configuration:
   ```json
   {
     "model": "google/gemini-3.6-flash",
@@ -55,12 +55,12 @@ The system SHALL configure the opencode model via the `OPENCODE_CONFIG_CONTENT` 
 
 ### Requirement: The workflow uses scoped permissions without statuses
 
-The workflow SHALL define `permissions: { contents: read, pull-requests: write, issues: read }` so that the comment posting action has `pull-requests: write` (without which it returns HTTP 403). `id-token: write` is NOT required for `pull_request` triggers (only needed for `issue_comment`/OIDC token exchange). `statuses: read` is NOT required because the action posts PR comments via the Issues API, not status checks.
+The workflow SHALL define `permissions: { contents: read, pull-requests: write, issues: read }` so that the `opencode github run` step has `pull-requests: write` (without which it returns HTTP 403). `id-token: write` is NOT required for `pull_request` triggers (only needed for `issue_comment`/OIDC token exchange). `statuses: read` is NOT required because the CLI posts PR comments via the Issues API, not status checks.
 
 #### Scenario: Permissions are sufficient for comment posting
 
 - **WHEN** the workflow posts a review comment
-- **THEN** the `pull-requests: write` permission allows the action to post the comment; `contents: read` allows checkout; `issues: read` allows reading PR details for the comment
+- **THEN** the `pull-requests: write` permission allows the CLI to post the comment; `contents: read` allows checkout; `issues: read` allows reading PR details for the comment
 
 ### Requirement: The review is non-required and informational; it does not approve or block merge
 
@@ -85,23 +85,23 @@ The system SHALL skip the opencode review for PRs created by `dependabot[bot]`.
 - **WHEN** a pull request is opened by `dependabot[bot]`
 - **THEN** the `opencode-review.yml` workflow does not execute (`if: github.actor != 'dependabot[bot]'`)
 
-### Requirement: The action handles its own fetch (no fetch-depth: 0)
+### Requirement: The CLI handles its own fetch (no fetch-depth: 0)
 
-The `anomalyco/opencode/github` composite action performs its own `git fetch` of the PR branch internally. The workflow SHALL NOT require `fetch-depth: 0` on `actions/checkout`; a default checkout is sufficient.
+The `opencode github run` CLI performs its own `git fetch` of the PR branch internally. The workflow SHALL NOT require `fetch-depth: 0` on `actions/checkout`; a default checkout is sufficient.
 
-#### Scenario: Action handles its own checkout/fetch
+#### Scenario: CLI handles its own checkout/fetch
 
 - **WHEN** the `opencode-review.yml` workflow checks out the repository
-- **THEN** it uses `actions/checkout` with default depth; the action manages its own fetch internally
+- **THEN** it uses `actions/checkout` with default depth; the opencode CLI manages its own fetch internally
 
 ### Requirement: The review posts a unique comment per PR via updateComment
 
-The `anomalyco/opencode/github` action SHALL publish/update a UNIQUE comment per PR via `octokit.issues.updateComment` (with a footer containing a shared session link). It does NOT create inline comments or use `pull_request_review`. A custom script or `peter-evans/create-or-update-comment` is NOT needed.
+The `opencode github run` CLI SHALL publish/update a UNIQUE comment per PR via `octokit.issues.updateComment` (with a footer containing a shared session link). It does NOT create inline comments or use `pull_request_review`. A custom script or `peter-evans/create-or-update-comment` is NOT needed.
 
 #### Scenario: Unique comment is posted or updated
 
 - **WHEN** the opencode analysis completes
-- **THEN** the action posts a single comment on the PR thread, updating it if it already exists
+- **THEN** the CLI posts a single comment on the PR thread, updating it if it already exists
 
 ### Requirement: Concurrency group and timeout are configured
 
@@ -112,25 +112,25 @@ The workflow SHALL define a `concurrency` group keyed by PR number (`opencode-re
 - **WHEN** a new push to the same PR triggers the workflow while a previous run is in progress
 - **THEN** the previous run is cancelled by the concurrency group, and execution is capped at 10 minutes
 
-### Requirement: The workflow is disabled_manually by default and must be enabled explicitly
+### Requirement: The workflow is ACTIVE (enabled 2026-09-14)
 
-The `opencode-review.yml` workflow SHALL be documented as `disabled_manually` by default (per repo convention §3.4/§5.9 of CONTEXT-CICD.md). It SHALL NOT run in GitHub until explicitly enabled via `gh workflow enable .github/workflows/opencode-review.yml` or the GitHub UI.
+The `opencode-review.yml` workflow SHALL be documented as **ACTIVE** in GitHub (enabled 2026-09-14 after provisioning `GEMINI_API_KEY`; audited via `actions/workflows` API; see CONTEXT-CICD.md §3.4/§5.9). It runs on qualifying PRs toward `main` as an advisory, non-blocking review.
 
-#### Scenario: Workflow is disabled by default
+#### Scenario: Workflow runs when enabled
 
-- **WHEN** the workflow file is added to the repo
-- **THEN** it is in `disabled_manually` state and does not execute on any trigger until manually enabled
-
-#### Scenario: Workflow is enabled after provisioning secrets
-
-- **WHEN** `GEMINI_API_KEY` is added to GitHub repo secrets and the workflow is enabled
+- **WHEN** `GEMINI_API_KEY` is present in GitHub repo secrets and the workflow is enabled
 - **THEN** the workflow executes on qualifying PRs
 
-### Requirement: The action version is documented and will be SHA-pinned
+#### Scenario: Historical disabled state
 
-The `anomalyco/opencode/github` action SHALL be pinned to a specific commit SHA for supply chain safety (§5.4). Current pin: `@5d5c35ee71c095464b9eb3c3e991df906f12a152` (verified 2026-09-04).
+- **WHEN** the workflow file was first added to the repo (2026-09-02)
+- **THEN** it was in `disabled_manually` state and did not execute on any trigger until manually enabled via `gh workflow enable .github/workflows/opencode-review.yml` or the GitHub UI (enablement completed 2026-09-14)
 
-#### Scenario: Action version is documented
+### Requirement: The opencode binary version is pinned (no composite action since 2026-09-14)
 
-- **WHEN** the workflow references the action
-- **THEN** it uses the SHA-pinned version `@5d5c35ee71c095464b9eb3c3e991df906f12a152` for supply chain safety
+The opencode binary SHALL be pinned to a specific release for supply chain safety (§5.4). Current pin: **v1.18.31** (hardcoded download URL `https://github.com/anomalyco/opencode/releases/download/v1.18.31/opencode-linux-x64.zip`, no dynamic version lookup). Historical pin (superseded 2026-09-14 by change `ci-opencode-review-fix`): `anomalyco/opencode/github@5d5c35ee71c095464b9eb3c3e991df906f12a152` (SHA-pinned, verified 2026-09-04; removed because its `Get opencode version` step failed on unauthenticated API rate-limit).
+
+#### Scenario: Binary version is documented
+
+- **WHEN** the workflow installs opencode
+- **THEN** it downloads the pinned v1.18.31 release for supply chain safety
