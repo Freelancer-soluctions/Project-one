@@ -61,12 +61,12 @@ jobs:
       pull-requests: write
     steps:
       - name: Download SBOM artifact
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v8
         with:
           name: sbom
           path: artifacts/sbom
       - name: Download OSV Report artifact
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v8
         with:
           name: osv-report
           path: artifacts/osv-report
@@ -89,7 +89,7 @@ jobs:
             core.setOutput('run_id', runs.data.workflow_runs[0].id.toString());
       - name: Download Gitleaks Report from sibling
         if: steps.sibling-run.outputs.run_id != ''
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v8
         with:
           name: gitleaks-report
           path: artifacts/gitleaks
