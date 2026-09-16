@@ -6,7 +6,7 @@ The CI pipeline currently runs in minimal mode (`CI_MINIMAL=true`) with most qua
 
 - **Reactivate `client-lint` job** in `ci.yml` — runs `npm run lint --workspace=apps/client` on PRs that modify client files
 - **Reactivate `server-lint` job** in `ci.yml` — runs `npm run lint --workspace=apps/server` on PRs that modify server files
-- **Reactivate `actionlint` job** in `ci.yml` — runs `actionlint (pin v1.7.12, download-script pattern)` on PRs that modify shared/workflow files
+- **Reactivate `actionlint` job** in `ci.yml` — runs `rhysd/actionlint@v1` on PRs that modify shared/workflow files
 - **Path-scoped execution** — each job runs only when its relevant workspace files change (via `repo-discovery` outputs)
 - **Standalone jobs** — not gated by `CI_MINIMAL`; follow the `sast`/`dependency-review` pattern (always run on qualifying PRs)
 - **ESLint complexity threshold** — `eslint.config.js` complexity rule raised from `["error", 15]` to `["error", 20]` to match baseline (8 existing errors in c16-c18 range)

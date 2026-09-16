@@ -38,12 +38,12 @@ The `server-lint` job in `ci.yml` SHALL execute `npm run lint --workspace=apps/s
 
 ### Requirement: actionlint job runs on PRs modifying shared/workflow files
 
-The `actionlint` job in `ci.yml` SHALL execute `actionlint (pin v1.7.12, download-script pattern)` on pull requests that modify shared files or GitHub Actions workflows.
+The `actionlint` job in `ci.yml` SHALL execute `rhysd/actionlint@v1` on pull requests that modify shared files or GitHub Actions workflows.
 
 #### Scenario: PR modifies shared/workflow files
 
 - **WHEN** a pull request targets `main` AND the `repo-discovery` job outputs `shared == 'true'`
-- **THEN** the `actionlint` job runs `actionlint (pin v1.7.12, download-script pattern)`
+- **THEN** the `actionlint` job runs `rhysd/actionlint@v1`
 - **AND** the job scans all `.github/workflows/*.yml` files
 - **AND** findings in pre-existing workflow files are addressed in the same change or disabled with justification
 
