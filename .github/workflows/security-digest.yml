@@ -20,7 +20,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v5.0.0
+      - uses: actions/checkout@v7
       - name: Generate CycloneDX SBOM
         uses: anchore/sbom-action@v0.24.0
         with:
@@ -39,7 +39,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v5.0.0
+      - uses: actions/checkout@v7
       - name: Run OSV Scanner
         uses: google/osv-scanner-action@v2.5.0
         with:
