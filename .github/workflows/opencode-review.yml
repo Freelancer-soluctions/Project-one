@@ -28,7 +28,9 @@ jobs:
         # Official install script (same download-script trade-off as actionlint in ci.yml):
         # binary pinned to 1.18.31 via --version; script itself is upstream-mutable (not SHA-pinned)
         run: |
+          # nosemgrep: yaml.github-actions.security.gha-curl-pipe-shell
           curl -fsSL https://opencode.ai/install | bash -s -- --version 1.18.31
+          export PATH="$HOME/.opencode/bin:$PATH"
           opencode --version
         shell: bash
 
