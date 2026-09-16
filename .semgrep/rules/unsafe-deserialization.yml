@@ -1,20 +1,30 @@
 # semgrep custom rule: Unsafe Deserialization (CWE-502)
-# Target: JSON.parse(userInput) passed directly to dangerous sinks
+# Target: JSON.parse with user-controlled input
 # Confidence: HIGH
-metadata:
-  cwe: ["CWE-502"]
-  confidence: HIGH
-  technology: ["javascript", "nodejs"]
-  severity: ERROR
-
-pattern-sources:
-  - pattern: |
-      $USER_INPUT = req.body.data
-      $USER_INPUT = req.query.data
-      $USER_INPUT = req.params.data
-
-pattern-sinks:
-  - pattern: |
-      JSON.parse($USER_INPUT)
-
-confidence: HIGH
+# True-negative fixture: tests/unsafe-deserialization.test.fixed.js
+# (validateJsonInput(...) output passed to JSON.parse — sanitizer strips the taint)
+rules:
+  - id: unsafe-deserialization
+    message: Potential unsafe deserialization. User-controlled data flows into JSON.parse without validation. Validate the input before deserializing.
+    severity: ERROR
+    languages: [javascript, typescript]
+    mode: taint
+    pattern-sources:
+      - patterns:
+          - pattern-either:
+              - pattern: req
+              - pattern: req.body
+              - pattern: req.query
+              - pattern: req.params
+    pattern-sinks:
+      - patterns:
+          - pattern: JSON.parse($X, ...)
+    pattern-sanitizers:
+      - patterns:
+          - pattern: validateJsonInput($X)
+    metadata:
+      cwe: ["CWE-502"]
+      confidence: HIGH
+      technology: ["javascript", "nodejs"]
+      category: security
+      owasp: ["A08:2021 - Software and Data Integrity Failures"]
