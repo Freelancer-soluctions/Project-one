@@ -1,6 +1,6 @@
 ## 1. Pre-flight Assessment
 
-- [ ] 1.1 Run `actionlint` locally to identify pre-existing findings in `.github/workflows/*.yml` (fallback: if docker daemon down and binary unavailable, validation via CI job `rhysd/actionlint@v1` + post-PR verification)
+- [ ] 1.1 Run `actionlint` locally to identify pre-existing findings in `.github/workflows/*.yml` (fallback: if docker daemon down and binary unavailable, validation via CI job `actionlint (pin v1.7.12, download-script pattern)` + post-PR verification)
 - [ ] 1.2 Run `npm run lint --workspace=apps/client` without `--max-warnings 0` to capture baseline error count
 - [ ] 1.3 Run `npm run lint --workspace=apps/server` without `--max-warnings 0` to capture baseline error count
 - [ ] 1.4 Document baseline findings in change notes
@@ -28,7 +28,7 @@
 
 - [ ] 5.1 Reactivate `actionlint` job in `.github/workflows/ci.yml`: replace `if: false` with `if: needs.repo-discovery.outputs.shared == 'true' && github.event_name == 'pull_request'`
 - [ ] 5.2 Ensure job uses `needs: repo-discovery` dependency
-- [ ] 5.3 Verify job runs `rhysd/actionlint@v1`
+- [ ] 5.3 Verify job runs `actionlint (pin v1.7.12, download-script pattern)`
 - [ ] 5.4 Fix or disable pre-existing actionlint findings (from step 1.1)
 
 ## 6. Verification

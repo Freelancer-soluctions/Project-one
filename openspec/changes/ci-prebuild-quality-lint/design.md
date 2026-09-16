@@ -20,7 +20,7 @@ See proposal.md — Why for motivation.
 - No changes to the 4 ruleset status check names (`Verify Commit Signatures`, `Commit Lint`, `PR Title Lint`, `DCO`)
 - No governance changes (ruleset 21227644 untouched)
 - No changes to `security.yml`, `deploy.yml`, `release.yml`, or other disabled workflows
-- No new GitHub Actions dependencies (reuses existing `rhysd/actionlint@v1`)
+- No new GitHub Actions dependencies (actionlint uses download-script pattern, no external action needed)
 
 ## Decisions
 
