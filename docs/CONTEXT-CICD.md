@@ -813,24 +813,24 @@ Versiones EXACTAS de GitHub Actions de terceros y del tooling de test, verificad
 
 **Actions de terceros:**
 
-| Action                                  | Versión            | Workflow / uso                                                     |
-| --------------------------------------- | ------------------ | ------------------------------------------------------------------ |
-| `changesets/action`                     | @v2                | release.yml (versionado de paquetes)                               |
-| `amannn/action-semantic-pull-request`   | @v6                | ci.yml (pr-title-lint)                                             |
-| `KineticCafe/actions-dco`               | @v3.2.0            | ci.yml (DCO)                                                       |
-| `dorny/paths-filter`                    | **@v4** vs **@v3** | @v4 → ci.yml; @v3 → ci-enterprise.yml                              |
-| `dorny/test-reporter`                   | @v3                | ci.yml (×5: unit/integration/smoke/e2e)                            |
-| `rhysd/actionlint`                      | @v1                | ci.yml (job actionlint)                                            |
-| `SonarSource/sonarqube-scan-action`     | @v4                | ci.yml (jobs coverity/sonarqube — `if: false`)                     |
-| `github/codeql-action/*`                | **@v4** vs **@v3** | @v4 → security.yml/scheduled-security.yml; @v3 → ci-enterprise.yml |
-| `gitleaks/gitleaks-action`              | @v3                | security.yml (licensed)                                            |
-| `anchore/sbom-action`                   | @v0.24.0           | security.yml, security-digest.yml (SBOM)                           |
-| `google/osv-scanner-action`             | @v2.5.0            | security-digest.yml (OSV)                                          |
-| `peter-evans/find-comment`              | @v4                | preview.yml                                                        |
-| `peter-evans/create-or-update-comment`  | @v5                | preview.yml (PR comment)                                           |
-| `step-security/harden-runner`           | @v2                | deploy.yml (Phase 2, ×3 jobs)                                      |
-| `aws-actions/configure-aws-credentials` | @v6                | deploy.yml (Phase 2 — SKIPPED sin AWS)                             |
-| `aws-actions/amazon-ecr-login`          | @v2                | deploy.yml (Phase 2 — SKIPPED sin AWS)                             |
+| Action                                            | Versión            | Workflow / uso                                                                |
+| ------------------------------------------------- | ------------------ | ----------------------------------------------------------------------------- |
+| `changesets/action`                               | @v2                | release.yml (versionado de paquetes)                                          |
+| `amannn/action-semantic-pull-request`             | @v6                | ci.yml (pr-title-lint)                                                        |
+| `KineticCafe/actions-dco`                         | @v3.2.0            | ci.yml (DCO)                                                                  |
+| `dorny/paths-filter`                              | **@v4** vs **@v3** | @v4 → ci.yml; @v3 → ci-enterprise.yml                                         |
+| `dorny/test-reporter`                             | @v3                | ci.yml (×5: unit/integration/smoke/e2e)                                       |
+| `rhysd/actionlint` (download-script, sin `uses:`) | v1.7.12 (pinned)   | ci.yml (job actionlint: `run: bash <(curl …download-actionlint.bash) 1.7.12`) |
+| `SonarSource/sonarqube-scan-action`               | @v4                | ci.yml (jobs coverity/sonarqube — `if: false`)                                |
+| `github/codeql-action/*`                          | **@v4** vs **@v3** | @v4 → security.yml/scheduled-security.yml; @v3 → ci-enterprise.yml            |
+| `gitleaks/gitleaks-action`                        | @v3                | security.yml (licensed)                                                       |
+| `anchore/sbom-action`                             | @v0.24.0           | security.yml, security-digest.yml (SBOM)                                      |
+| `google/osv-scanner-action`                       | @v2.5.0            | security-digest.yml (OSV)                                                     |
+| `peter-evans/find-comment`                        | @v4                | preview.yml                                                                   |
+| `peter-evans/create-or-update-comment`            | @v5                | preview.yml (PR comment)                                                      |
+| `step-security/harden-runner`                     | @v2                | deploy.yml (Phase 2, ×3 jobs)                                                 |
+| `aws-actions/configure-aws-credentials`           | @v6                | deploy.yml (Phase 2 — SKIPPED sin AWS)                                        |
+| `aws-actions/amazon-ecr-login`                    | @v2                | deploy.yml (Phase 2 — SKIPPED sin AWS)                                        |
 
 **Tooling de test (devDependencies):**
 
