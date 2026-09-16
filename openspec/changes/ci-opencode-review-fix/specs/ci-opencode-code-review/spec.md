@@ -15,12 +15,12 @@ The workflow SHALL perform its own `git fetch` of the PR branch internally (e.g.
 
 ### Requirement: The opencode binary version is pinned
 
-The opencode binary version SHALL be pinned to a specific release version (v1.18.31) in the install step for supply chain safety (§5.4). The install step SHALL use the official install script (`curl -fsSL https://opencode.ai/install | bash -s -- --version 1.18.31`) with the `--version` flag to pin the binary. This is the same upstream-mutable script trade-off used by actionlint in ci.yml; it is mitigated by the version pin. A fail-fast `opencode --version` check SHALL follow the install to verify the binary is usable.
+The opencode binary version SHALL be pinned to a specific release version (v1.18.31) in the install step for supply chain safety (§5.4). The install step SHALL download the binary from `https://github.com/anomalyco/opencode/releases/download/v1.18.31/opencode-linux-x64.zip` and place it in `$HOME/.opencode/bin`.
 
 #### Scenario: Pinned binary version is installed
 
 - **WHEN** the `opencode-review.yml` workflow runs the install step
-- **THEN** it installs opencode `v1.18.31` via the official install script and verifies the binary with `opencode --version`
+- **THEN** it downloads opencode `v1.18.31` from the official release URL and adds the binary to `GITHUB_PATH`
 
 ### Requirement: The prompt is passed via PROMPT environment variable
 

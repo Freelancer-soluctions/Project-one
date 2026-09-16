@@ -1,7 +1,6 @@
 # actionlint config — suppresses known intentional / pre-existing findings.
 # Change: ci-prebuild-quality-lint (Decision 4). The CI `actionlint` job
-# (official download-script pinned to v1.7.12 — NOT uses: rhysd/actionlint@v1)
-# reads this file automatically from .github/.
+# (rhysd/actionlint@v1) reads this file automatically from .github/.
 ignore:
   # Incremental-CI design: jobs intentionally disabled via `if: false`
   # (see docs/CONTEXT-CICD.md §3.1/§5.5). Flagged as [if-cond] by actionlint
