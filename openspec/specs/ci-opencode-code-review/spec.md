@@ -27,12 +27,12 @@ The system SHALL execute the `opencode-review.yml` workflow on pull requests tar
 
 ### Requirement: The workflow configures the model self-contained via OPENCODE_CONFIG_CONTENT (Bug #36504)
 
-The system SHALL configure the opencode model via the `OPENCODE_CONFIG_CONTENT` environment variable, using Google Gemini as a built-in provider with the `GEMINI_API_KEY` secret. The workflow SHALL use inline steps (no third-party composite action since fix 2026-09-14, change `ci-opencode-review-fix`): an `Install opencode` step downloading the pinned binary v1.18.31, followed by `opencode github run` with env `MODEL`, `USE_GITHUB_TOKEN`, `GITHUB_TOKEN`, `PROMPT` and `OPENCODE_CONFIG_CONTENT`. The model/provider configuration in `opencode.jsonc` is OUT-OF-SCOPE / DEFERRED per user decision.
+The system SHALL configure the opencode model via the `OPENCODE_CONFIG_CONTENT` environment variable, using Google Gemini as a built-in provider with the `GEMINI_API_KEY` secret. The workflow SHALL use inline steps (no third-party composite action since fix 2026-09-14, change `ci-opencode-review-fix`): an `Install opencode` step using the official install script (`curl -fsSL https://opencode.ai/install | bash -s -- --version 1.18.31`) with fail-fast `opencode --version` verification, followed by `opencode github run` with env `MODEL`, `USE_GITHUB_TOKEN`, `GITHUB_TOKEN`, `PROMPT` and `OPENCODE_CONFIG_CONTENT`. The model/provider configuration in `opencode.jsonc` is OUT-OF-SCOPE / DEFERRED per user decision.
 
 #### Scenario: Workflow runs with Gemini model via OPENCODE_CONFIG_CONTENT
 
 - **WHEN** the `opencode-review.yml` workflow executes
-- **THEN** it runs the inline steps (fix 2026-09-14; the former `anomalyco/opencode/github@5d5c35ee71c095464b9eb3c3e991df906f12a152` composite action was removed because its internal `Get opencode version` step failed on unauthenticated GitHub API rate-limit, upstream `not_planned`): (1) `Install opencode` downloads the pinned binary v1.18.31, installs to `$HOME/.opencode/bin` (added to `GITHUB_PATH`); (2) `Run OpenCode AI review` executes `opencode github run` with `MODEL=google/gemini-3.6-flash`, `USE_GITHUB_TOKEN=true`, `PROMPT` (review prompt text — the CLI reads it from env, no `--prompt` flag), setting `OPENCODE_CONFIG_CONTENT` to the Google Gemini built-in provider configuration:
+- **THEN** it runs the inline steps (fix 2026-09-14; the former `anomalyco/opencode/github@5d5c35ee71c095464b9eb3c3e991df906f12a152` composite action was removed because its internal `Get opencode version` step failed on unauthenticated GitHub API rate-limit, upstream `not_planned`): (1) `Install opencode` installs the pinned binary v1.18.31 via the official install script and verifies with `opencode --version`; (2) `Run OpenCode AI review` executes `opencode github run` with `MODEL=google/gemini-3.6-flash`, `USE_GITHUB_TOKEN=true`, `PROMPT` (review prompt text — the CLI reads it from env, no `--prompt` flag), setting `OPENCODE_CONFIG_CONTENT` to the Google Gemini built-in provider configuration:
   ```json
   {
     "model": "google/gemini-3.6-flash",
@@ -128,9 +128,9 @@ The `opencode-review.yml` workflow SHALL be documented as **ACTIVE** in GitHub (
 
 ### Requirement: The opencode binary version is pinned (no composite action since 2026-09-14)
 
-The opencode binary SHALL be pinned to a specific release for supply chain safety (§5.4). Current pin: **v1.18.31** (hardcoded download URL `https://github.com/anomalyco/opencode/releases/download/v1.18.31/opencode-linux-x64.zip`, no dynamic version lookup). Historical pin (superseded 2026-09-14 by change `ci-opencode-review-fix`): `anomalyco/opencode/github@5d5c35ee71c095464b9eb3c3e991df906f12a152` (SHA-pinned, verified 2026-09-04; removed because its `Get opencode version` step failed on unauthenticated API rate-limit).
+The opencode binary SHALL be pinned to a specific release for supply chain safety (§5.4). Current pin: **v1.18.31**, installed via the official install script (`curl -fsSL https://opencode.ai/install | bash -s -- --version 1.18.31`) with the `--version` flag. This is the same upstream-mutable script trade-off used by actionlint in ci.yml; it is mitigated by the version pin and fail-fast `opencode --version` verification. Historical pin (superseded 2026-09-14 by change `ci-opencode-review-fix`): `anomalyco/opencode/github@5d5c35ee71c095464b9eb3c3e991df906f12a152` (SHA-pinned, verified 2026-09-04; removed because its `Get opencode version` step failed on unauthenticated API rate-limit).
 
-#### Scenario: Binary version is documented
+#### Scenario: Binary version is installed and verified
 
 - **WHEN** the workflow installs opencode
-- **THEN** it downloads the pinned v1.18.31 release for supply chain safety
+- **THEN** it installs the pinned v1.18.31 release via the official install script and verifies the binary with `opencode --version`
