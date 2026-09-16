@@ -2,13 +2,20 @@
 # Change: ci-prebuild-quality-lint (Decision 4). The CI `actionlint` job
 # (official download-script pinned to v1.7.12 — NOT uses: rhysd/actionlint@v1)
 # reads this file automatically from .github/.
-ignore:
+# NOTE (v1.7.12 schema, docs/config.md): suppressions MUST live under
+# `paths: {glob}: ignore: [regex...]` (message-based regex match). A top-level
+# `ignore:` key is NOT part of the schema and is silently ignored — do NOT use it.
+paths:
   # Incremental-CI design: jobs intentionally disabled via `if: false`
   # (see docs/CONTEXT-CICD.md §3.1/§5.5). Flagged as [if-cond] by actionlint
   # but NOT a bug — do not "fix" by removing the if: section.
-  - 'constant expression "false" in condition'
+  .github/workflows/ci.yml:
+    ignore:
+      - 'constant expression "false" in condition'
   # Pre-existing in security.yml (disabled_manually workflow, out of scope):
   # step-level `secrets.GIT_LEAKS` guards flagged as [expression].
   # Fixing them means touching a disabled workflow — deferred to a future
   # SECURITY-stage change per docs/CONTEXT-CICD.md §7 rule 4 (no mixed stages).
-  - 'context "secrets" is not allowed here'
+  .github/workflows/security.yml:
+    ignore:
+      - 'context "secrets" is not allowed here'
