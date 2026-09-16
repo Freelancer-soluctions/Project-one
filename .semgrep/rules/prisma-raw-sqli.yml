@@ -1,34 +1,36 @@
 # semgrep custom rule: Prisma Raw SQL Injection (CWE-89)
 # Target: $queryRaw / $queryRawUnsafe / $executeRaw / $executeRawUnsafe with tainted user input
 # Confidence: HIGH
-# MUST include true-negative fixture with safe Prisma.sql tagged template (parameterized, NO string interpolation)
-metadata:
-  cwe: ["CWE-89"]
-  confidence: HIGH
-  technology: ["javascript", "nodejs", "prisma"]
-  severity: ERROR
-
-pattern-sources:
-  - pattern: |
-      $queryRaw($X)
-  - pattern: |
-      $queryRawUnsafe($X)
-  - pattern: |
-      $executeRaw($X)
-  - pattern: |
-      $executeRawUnsafe($X)
-
-pattern-sinks:
-  - pattern: |
-      $queryRaw($X)
-
-  - pattern: |
-      $queryRawUnsafe($X)
-
-  - pattern: |
-      $executeRaw($X)
-
-  - pattern: |
-      $executeRawUnsafe($X)
-
-confidence: HIGH
+# True-negative fixture: tests/prisma-raw-sqli.test.fixed.js
+# (safe Prisma.sql tagged template — parameterized, no string interpolation)
+rules:
+  - id: prisma-raw-sqli
+    message: Potential SQL injection via Prisma raw query with user-controlled data. Use Prisma.sql tagged templates with bound parameters instead of string interpolation.
+    severity: ERROR
+    languages: [javascript, typescript]
+    mode: taint
+    pattern-sources:
+      - patterns:
+          - pattern-either:
+              - pattern: req
+              - pattern: req.body
+              - pattern: req.query
+              - pattern: req.params
+    pattern-sinks:
+      - patterns:
+          - pattern-either:
+              - pattern: $DB.$queryRaw($X, ...)
+              - pattern: $DB.$queryRawUnsafe($X, ...)
+              - pattern: $DB.$executeRaw($X, ...)
+              - pattern: $DB.$executeRawUnsafe($X, ...)
+    pattern-sanitizers:
+      - patterns:
+          - pattern-either:
+              - pattern: Prisma.sql`...`
+              - pattern: validateUserId($X)
+    metadata:
+      cwe: ["CWE-89"]
+      confidence: HIGH
+      technology: ["javascript", "nodejs", "prisma"]
+      category: security
+      owasp: ["A03:2021 - Injection"]

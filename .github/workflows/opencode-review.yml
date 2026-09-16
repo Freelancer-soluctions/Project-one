@@ -25,17 +25,12 @@ jobs:
         uses: actions/checkout@v5
 
       - name: Install opencode
+        # Official install script (same download-script trade-off as actionlint in ci.yml):
+        # binary pinned to 1.18.31 via --version; script itself is upstream-mutable (not SHA-pinned)
         run: |
-          set -euo pipefail
-          OPENCODE_VERSION="v1.18.31"
-          INSTALL_DIR="$HOME/.opencode/bin"
-          mkdir -p "$INSTALL_DIR"
-          curl -fsSL -o /tmp/opencode-linux-x64.zip "https://github.com/anomalyco/opencode/releases/download/${OPENCODE_VERSION}/opencode-linux-x64.zip"
-          unzip -o -q /tmp/opencode-linux-x64.zip -d "$INSTALL_DIR"
-          chmod +x "$INSTALL_DIR/opencode"
-          echo "$INSTALL_DIR" >> "$GITHUB_PATH"
-          rm -f /tmp/opencode-linux-x64.zip
-          "$INSTALL_DIR/opencode" --version
+          curl -fsSL https://opencode.ai/install | bash -s -- --version 1.18.31
+          opencode --version
+        shell: bash
 
       - name: Run OpenCode AI review
         run: opencode github run

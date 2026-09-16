@@ -1,25 +1,30 @@
 # semgrep custom rule: XSS via DOM intermediate variable (CWE-79)
-# Target: innerHTML / dangerouslySetInnerHTML fed by user-controlled intermediate variables
+# Target: innerHTML / document.write / dangerouslySetInnerHTML fed by user-controlled data
 # Confidence: MEDIUM — taint precision may be insufficient for intermediate variable tracking
-# MUST include true-negative fixture with safe dangerouslySetInnerHTML={{ __html: constant }} (no user-controlled intermediate)
-metadata:
-  cwe: ["CWE-79"]
-  confidence: MEDIUM
-  technology: ["javascript", "react", "nodejs"]
-  severity: ERROR
-
-pattern-sources:
-  - pattern: |
-      $USER_INPUT = req.body.data
-      $USER_INPUT = req.query.data
-      $USER_INPUT = req.params.data
-
-pattern-sinks:
-  - pattern: |
-      $VAR.innerHTML = $USER_INPUT
-  - pattern: |
-      $VAR.document.write = $USER_INPUT
-  - pattern: |
-      $VAR.dangerouslySetInnerHTML = ${{ __html: $USER_INPUT }}
-
-confidence: MEDIUM
+# True-negative fixture: tests/xss-dom-intermediate.test.fixed.js
+# (safe dangerouslySetInnerHTML={{ __html: constant }} with no user-controlled data)
+rules:
+  - id: xss-dom-intermediate
+    message: Potential XSS via DOM sink fed by user-controlled data. Sanitize or encode untrusted input before assigning to innerHTML, document.write, or dangerouslySetInnerHTML.
+    severity: ERROR
+    languages: [javascript, typescript]
+    mode: taint
+    pattern-sources:
+      - patterns:
+          - pattern-either:
+              - pattern: req
+              - pattern: req.body
+              - pattern: req.query
+              - pattern: req.params
+    pattern-sinks:
+      - patterns:
+          - pattern-either:
+              - pattern: $EL.innerHTML = $X
+              - pattern: document.write($X)
+              - pattern: "$EL.dangerouslySetInnerHTML = { __html: $X, ... }"
+    metadata:
+      cwe: ["CWE-79"]
+      confidence: MEDIUM
+      technology: ["javascript", "react", "nodejs"]
+      category: security
+      owasp: ["A03:2021 - Injection"]

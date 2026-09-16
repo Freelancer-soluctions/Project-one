@@ -1,22 +1,32 @@
 # semgrep custom rule: Prototype Pollution (CWE-1321)
-# Target: Object.assign userInput or bracket notation with uncontrolled input
+# Target: Object.assign with user-controlled input or bracket-notation write with tainted key
 # Confidence: MEDIUM — inter-procedural taint limited; first arg must be user-controlled
-metadata:
-  cwe: ["CWE-1321"]
-  confidence: MEDIUM
-  technology: ["javascript", "nodejs"]
-  severity: ERROR
-
-pattern-sources:
-  - pattern: |
-      $USER_INPUT = req.body.data
-      $USER_INPUT = req.query.data
-      $USER_INPUT = req.params.data
-
-pattern-sinks:
-  - pattern: |
-      Object.assign($TARGET, $USER_INPUT)
-  - pattern: |
-      $TARGET[$USER_INPUT] = $VALUE
-
-confidence: MEDIUM
+# True-negative fixture: tests/prototype-pollution.test.fixed.js
+# (Object.assign with validateAndSanitize(...) output — sanitizer strips the taint)
+rules:
+  - id: prototype-pollution
+    message: Potential prototype pollution. User-controlled data flows into Object.assign or a computed property write. Validate keys and sanitize input before merging.
+    severity: ERROR
+    languages: [javascript, typescript]
+    mode: taint
+    pattern-sources:
+      - patterns:
+          - pattern-either:
+              - pattern: req
+              - pattern: req.body
+              - pattern: req.query
+              - pattern: req.params
+    pattern-sinks:
+      - patterns:
+          - pattern-either:
+              - pattern: Object.assign($TARGET, $X, ...)
+              - pattern: $O[$X] = $Y
+    pattern-sanitizers:
+      - patterns:
+          - pattern: validateAndSanitize($X)
+    metadata:
+      cwe: ["CWE-1321"]
+      confidence: MEDIUM
+      technology: ["javascript", "nodejs"]
+      category: security
+      owasp: ["A08:2021 - Software and Data Integrity Failures"]
