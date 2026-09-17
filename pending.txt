@@ -174,3 +174,4 @@ O alternativamente, muchos equipos usan TIA como un job adicional y rápido que 
 - Acabar com implmentacion del sast
 - dependecy review ?
 - zombie eliminar ver su razon y funcionamiento actual
+- Flujo exacto de como trabajar con TBD Y RAMAS
