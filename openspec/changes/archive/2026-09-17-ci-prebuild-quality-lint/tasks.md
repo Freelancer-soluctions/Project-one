@@ -52,4 +52,4 @@
 
 - [x] 8.1 After merge to main, run `gh variable set CI_MINIMAL --body "false"` (GitHub Admin, executed by @git-manager)
 - [x] 8.2 Verify `CI_MINIMAL` is set to `false`: `gh variable get CI_MINIMAL`
-- [ ] 8.3 Verify `ci-complete` job now runs (not skipped) on next PR
+- [x] 8.3 Verify `ci-complete` job now runs (not skipped) on next PR (verified 2026-09-17 — run 35200041941 PR #130, CI Complete job success)
