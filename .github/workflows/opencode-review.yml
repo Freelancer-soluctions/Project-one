@@ -27,9 +27,9 @@ jobs:
       - name: Install opencode
         run: |
           mkdir -p "$HOME/.opencode/bin"
-          curl -fsSL https://github.com/anomalyco/opencode/releases/download/v1.18.31/opencode-linux-x64.zip -o "$HOME/.opencode/bin/opencode.zip"
-          unzip -o "$HOME/.opencode/bin/opencode.zip" -d "$HOME/.opencode/bin"
-          rm "$HOME/.opencode/bin/opencode.zip"
+          curl -fsSL https://github.com/anomalyco/opencode/releases/download/v1.18.31/opencode-linux-x64.tar.gz -o "$HOME/.opencode/bin/opencode.tar.gz"
+          tar xzf "$HOME/.opencode/bin/opencode.tar.gz" -C "$HOME/.opencode/bin"
+          rm "$HOME/.opencode/bin/opencode.tar.gz"
           chmod +x "$HOME/.opencode/bin/opencode"
           echo "$HOME/.opencode/bin" >> "$GITHUB_PATH"
           "$HOME/.opencode/bin/opencode" --version
