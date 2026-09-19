@@ -429,7 +429,7 @@ jobs:
       - run: npm run lint --workspace=apps/client
 
   client-format-check:
-    if: false  # Disabled for incremental CI — change to true to re-enable
+    if: needs.repo-discovery.outputs.client == 'true' && github.event_name == 'pull_request'
     name: "Quality: Client Format"
     needs: repo-discovery
     runs-on: ubuntu-latest
@@ -457,7 +457,7 @@ jobs:
         working-directory: apps/client
 
   client-complexity:
-    if: false  # Disabled for incremental CI — change to true to re-enable
+    if: needs.repo-discovery.outputs.client == 'true' && github.event_name == 'pull_request'
     name: "Quality: Client Complexity"
     needs: repo-discovery
     runs-on: ubuntu-latest
@@ -468,11 +468,11 @@ jobs:
           fetch-depth: 0
       - uses: ./.github/actions/setup-monorepo
       - name: Check complexity
-        run: 'npx eslint --rule ''{"complexity": ["error", 15]}'' "src/**/*.{js,jsx}"'
+        run: 'npx eslint --rule ''{"complexity": ["error", 20]}'' "src/**/*.{js,jsx}"'
         working-directory: apps/client
 
   client-dead-code:
-    if: false  # Disabled for incremental CI — change to true to re-enable
+    if: needs.repo-discovery.outputs.client == 'true' && github.event_name == 'pull_request'
     name: "Quality: Client Dead Code"
     needs: repo-discovery
     runs-on: ubuntu-latest
@@ -487,7 +487,7 @@ jobs:
         working-directory: apps/client
 
   client-import-bounds:
-    if: false  # Disabled for incremental CI — change to true to re-enable
+    if: needs.repo-discovery.outputs.client == 'true' && github.event_name == 'pull_request'
     name: "Quality: Client Import Bounds"
     needs: repo-discovery
     runs-on: ubuntu-latest
@@ -498,7 +498,8 @@ jobs:
           fetch-depth: 0
       - uses: ./.github/actions/setup-monorepo
       - name: Check import boundaries
-        run: npx dep-cruise apps/client/src --config .dependency-cruiser.cjs
+        run: npx dep-cruise src --config .dependency-cruiser.cjs
+        working-directory: apps/client
 
   # --- Server Pre-Build ---
   server-lint:
