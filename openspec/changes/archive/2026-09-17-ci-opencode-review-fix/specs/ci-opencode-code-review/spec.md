@@ -15,7 +15,7 @@ The workflow SHALL perform its own `git fetch` of the PR branch internally (e.g.
 
 ### Requirement: The opencode binary version is pinned
 
-The opencode binary version SHALL be pinned to a specific release version (v1.18.31) in the install step for supply chain safety (§5.4). The install step SHALL download the binary from `https://github.com/anomalyco/opencode/releases/download/v1.18.31/opencode-linux-x64.zip` and place it in `$HOME/.opencode/bin`.
+The opencode binary version SHALL be pinned to a specific release version (v1.18.31) in the install step for supply chain safety (§5.4). The install step SHALL download the binary from `https://github.com/anomalyco/opencode/releases/download/v1.18.31/opencode-linux-x64.tar.gz` and place it in `$HOME/.opencode/bin`.
 
 #### Scenario: Pinned binary version is installed
 

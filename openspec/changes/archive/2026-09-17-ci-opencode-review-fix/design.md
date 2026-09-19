@@ -34,7 +34,7 @@ The workflow is now ACTIVE in GitHub (audited 2026-09-14 API; inventory shows 3 
 
 **Decision 2: Pinning the opencode binary version**
 
-- **Chosen:** Hardcode `v1.18.31` in the install step (download from `https://github.com/anomalyco/opencode/releases/download/v1.18.31/opencode-linux-x64.zip`).
+- **Chosen:** Hardcode `v1.18.31` in the install step (download from `https://github.com/anomalyco/opencode/releases/download/v1.18.31/opencode-linux-x64.tar.gz`).
 - **Rationale:** Ensures reproducibility and supply‑chain safety. The URL is stable (GitHub releases are immutable). Version can be updated later by changing the URL.
 - **Alternatives considered:**
   1. Use `OPENCODE_VERSION` env var — the `opencode.ai/install` script may support this, but we cannot guarantee availability on GitHub runners. Hardcoding is simpler and more reliable.

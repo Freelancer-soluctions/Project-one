@@ -12,6 +12,37 @@ paths:
   .github/workflows/ci.yml:
     ignore:
       - 'constant expression "false" in condition'
+      # Shellcheck noise in legacy/incremental workflows (SC2086/SC2129/SC2188/SC1078/SC1079);
+      # suppressed per CI-incremental design (docs/CONTEXT-CICD.md §3.1) — do not "fix" by
+      # touching disabled/if:false blocks; deferred to future stage changes.
+      - 'SC2086'
+      - 'SC2129'
+      - 'SC2188'
+      - 'SC1078'
+      - 'SC1079'
+  # Shellcheck noise in disabled_manually workflows (deploy/preview/release out of scope
+  # per docs/CONTEXT-CICD.md §3.4/§7 rule 4 — no mixed stages). Same 5 SC codes as ci.yml.
+  .github/workflows/deploy.yml:
+    ignore:
+      - 'SC2086'
+      - 'SC2129'
+      - 'SC2188'
+      - 'SC1078'
+      - 'SC1079'
+  .github/workflows/preview.yml:
+    ignore:
+      - 'SC2086'
+      - 'SC2129'
+      - 'SC2188'
+      - 'SC1078'
+      - 'SC1079'
+  .github/workflows/release.yml:
+    ignore:
+      - 'SC2086'
+      - 'SC2129'
+      - 'SC2188'
+      - 'SC1078'
+      - 'SC1079'
   # Pre-existing in security.yml (disabled_manually workflow, out of scope):
   # step-level `secrets.GIT_LEAKS` guards flagged as [expression].
   # Fixing them means touching a disabled workflow — deferred to a future
