@@ -1,16 +1,14 @@
-# commit-signing-release-migration Specification
+## REMOVED Requirements
 
-## Purpose
+### Requirement: release.yml produce commits Verified vía GitHub App SSH
 
-Migra el workflow `release.yml` para que los commits de versión y el Release PR que genera changesets/action queden firmados y verificados en GitHub, sin romper el enforcement de commits firmados.
+**Motivo de la eliminación (2026-09-21):** el requirement exigía una GitHub App con SSH signing key propia para firmar el version commit y el Release PR. Quedó invalidado por la corrección de mecanismo (D4/D9 de `ci-commit-signing`; D7 de `ci-release-workflow-signing`): `changesets/action@v2` usa REST API por defecto (`push-with-git-cli: false`) y GitHub auto-firma esos commits con su GPG key de web-flow, que el ruleset `required_signatures` acepta. El spike GATE 4.0 que motivó R8 probó `git push` — un mecanismo que changesets nunca invoca. La App con SSH signing key es innecesaria; el token de la App (opcional, vía input `github-token`) solo aporta atribución de PRs. Reemplazado por el requirement "release.yml produce commits Verified sin firma en el runner (API mode)".
 
-## Requirements
+## ADDED Requirements
 
 ### Requirement: release.yml produce commits Verified sin firma en el runner (API mode)
 
 El workflow `release.yml` SHALL producir el version commit y el Release PR de changesets como "Verified" en GitHub **sin configuración de firma en el runner**. `changesets/action@v2` opera por defecto en modo API (`push-with-git-cli: false`): crea el version commit y el Release PR vía REST API, y GitHub los auto-firma con su GPG key de web-flow (id `4AEE18F83AFDEB23`), que el ruleset `Pre-Merge Governance Gate` (`required_signatures`) acepta como `verification.verified=true`. El workflow SHALL autenticarse con un token con `contents: write` + `pull-requests: write` (el `GITHUB_TOKEN` por defecto, o un App token pasado explícitamente vía el input `github-token` — NUNCA únicamente vía la variable de entorno `GITHUB_TOKEN`, que el action v2 ya no soporta y rechaza si difiere del input). El workflow SHALL NOT volver a incluir configuración de firma SSH (`gpg.format`, `user.signingkey`, `commit.gpgsign`): es dead code en modo API y non-functional en git-cli mode (la clave privada de la App no se provisiona en `ssh-agent`).
-
-**Historia:** reemplaza el requirement original (R8), que exigía una GitHub App con SSH signing key. R8 se marcó condicional a GATE 4.0; el spike probó `git push` con `GITHUB_TOKEN` (mecanismo que changesets no usa) y la corrección de mecanismo (2026-08-26, D4/D9 del change `ci-commit-signing`; 2026-09-21, D7 de `ci-release-workflow-signing`) determinó que el requisito de la App es innecesario. La App con su token vía `github-token` input queda como preferencia opcional (atribución de PRs), no como requisito.
 
 #### Scenario: Version commit auto-firmado en modo API
 
@@ -28,4 +26,4 @@ El workflow `release.yml` SHALL producir el version commit y el Release PR de ch
 
 - **WHEN** un desarrollador añade configuración de firma SSH (`gpg.format`, `user.signingkey`, `commit.gpgsign`) a `release.yml`
 - **THEN** la revisión de code review / governance la rechaza como dead code (no se ejecuta en modo API y es non-functional en git-cli mode)
-- **AND** la referencia autoritativa es `openspec/changes/archive/2026-09-21-ci-release-workflow-signing/design.md` (D5–D7)
+- **AND** la referencia autoritativa es `openspec/changes/ci-release-workflow-signing/design.md` (D5–D7)
