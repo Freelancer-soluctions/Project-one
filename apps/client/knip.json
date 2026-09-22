@@ -39,7 +39,9 @@
     "src/modules/providerOrder/api/providerOrderApi.js": ["exports"],
     "src/modules/providers/utils/enums.js": ["exports"],
     "src/modules/settings/api/settingsAPI.js": ["exports"],
-    "src/modules/settingsProductCategories/components/index.js": ["exports"]
+    "src/modules/settingsProductCategories/components/index.js": ["exports"],
+    "src/config/fieldLimits.js": ["exports"],
+    "src/services/socketService.js": ["exports"]
   },
   "rules": {
     "duplicates": "off"
