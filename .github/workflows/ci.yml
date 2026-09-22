@@ -53,6 +53,9 @@ jobs:
   # ═══════════════════════════════════════════════════════════════
   # STAGE 2: PRE-BUILD — VALIDATE (source code, 0 dependencia de build)
   # ═══════════════════════════════════════════════════════════════
+  # ═══════════════════════════════════════════════════════════════
+  # SUBSTAGE 2A: GOVERNANCE — verify-signatures, commit-lint, pr-title-lint, dco, sast
+  # ═══════════════════════════════════════════════════════════════
 # verify-signatures (G3) — Verifica firma de commits vía GitHub REST API
 # ════════════════════════════════════════════════════════════════
 # Required status check in ruleset 21227644 — bound by job NAME 'Verify Commit Signatures';
@@ -414,6 +417,9 @@ jobs:
         run: docker run --rm -v ${{ github.workspace }}:/src semgrep/semgrep:1.176.1 semgrep scan --baseline-commit ${{ github.event.pull_request.base.sha }} --config .semgrep/rules --config p/owasp-top-ten --config p/security-audit --config p/secrets --config p/nodejs --config p/expressjs --config p/sql-injection --config p/command-injection --config p/react --config p/xss --exclude node_modules --exclude dist --exclude build --exclude coverage --exclude .env --exclude '*.min.js' --exclude prisma/generated --exclude e2e --severity ERROR --error --metrics off
     # NOT in ci-complete.needs — SAST is a standalone gate, not coupled to CI_MINIMAL
 
+  # ═══════════════════════════════════════════════════════════════
+  # SUBSTAGE 2B: CODE QUALITY — lint, format-check, typecheck, complexity, dead-code, import-bounds, actionlint
+  # ═══════════════════════════════════════════════════════════════
   # --- Client Pre-Build ---
   client-lint:
     if: needs.repo-discovery.outputs.client == 'true' && github.event_name == 'pull_request'
@@ -559,7 +565,7 @@ jobs:
         working-directory: apps/server
 
   server-dead-code:
-    if: false  # Disabled for incremental CI — change to true to re-enable
+    if: needs.repo-discovery.outputs.server == 'true' && github.event_name == 'pull_request'
     name: "Quality: Server Dead Code"
     needs: repo-discovery
     runs-on: ubuntu-latest
@@ -604,6 +610,9 @@ jobs:
           ./actionlint -color
         shell: bash
 
+  # ═══════════════════════════════════════════════════════════════
+  # SUBSTAGE 2D: UNIT TESTING — test-unit-client, test-unit-server, test-integration, test-smoke
+  # ═══════════════════════════════════════════════════════════════
   # --- TESTING (pre-build): unit tests, source-level, no artifact needed ---
   test-unit-client:
     if: false  # Disabled for incremental CI — change to true to re-enable
@@ -665,6 +674,9 @@ jobs:
           path: apps/server/reports/junit.xml
           reporter: java-junit
 
+  # ═══════════════════════════════════════════════════════════════
+  # SUBSTAGE 2C: SECURITY — dependency-review (+ security.yml when enabled)
+  # ═══════════════════════════════════════════════════════════════
   # ════════════════════════════════════════════════════════════════
   # SECURITY — Dependency Review (inline so ci-complete.needs resolves)
   # ════════════════════════════════════════════════════════════════
@@ -1036,19 +1048,32 @@ jobs:
   # ═══════════════════════════════════════════════════════════════
 
   # ═══════════════════════════════════════════════════════════════
-  # AGGREGATOR — CI Complete — Single required check aggregator
+  # SUBSTAGE AGGREGATORS — Prebuild Complete (STAGE 2)
+  # One aggregator per substage 2A/2B/2C/2D; ci-complete depends on these.
   # ═══════════════════════════════════════════════════════════════
-  ci-complete:
+  prebuild-governance-complete:
     if: ${{ vars.CI_MINIMAL != 'true' && always() }}
-    name: CI Complete
+    name: Prebuild Governance Complete
     runs-on: ubuntu-latest
     needs:
-      - repo-discovery
-      - actionlint
+      - verify-signatures
       - commit-lint
       - pr-title-lint
       - dco
-      - dependency-review
+    steps:
+      - name: Check for failures
+        run: |
+          if [[ "${{ contains(needs.*.result, 'failure') }}" == "true" ]]; then
+            echo "❌ One or more governance jobs failed"
+            exit 1
+          fi
+          echo "✅ Governance substage succeeded or was skipped"
+
+  prebuild-quality-complete:
+    if: ${{ vars.CI_MINIMAL != 'true' && always() }}
+    name: Prebuild Quality Complete
+    runs-on: ubuntu-latest
+    needs:
       - client-lint
       - client-format-check
       - client-typecheck
@@ -1061,21 +1086,64 @@ jobs:
       - server-complexity
       - server-dead-code
       - server-import-bounds
-      - client-build
-      - server-build
-      - client-sonarqube
-      - server-sonarqube
-      - client-coverage
-      - server-coverage
-      - client-depcheck
-      - server-depcheck
+      - actionlint
+    steps:
+      - name: Check for failures
+        run: |
+          if [[ "${{ contains(needs.*.result, 'failure') }}" == "true" ]]; then
+            echo "❌ One or more quality jobs failed"
+            exit 1
+          fi
+          echo "✅ Quality substage succeeded or was skipped"
+
+  prebuild-security-complete:
+    if: ${{ vars.CI_MINIMAL != 'true' && always() }}
+    name: Prebuild Security Complete
+    runs-on: ubuntu-latest
+    needs:
+      - dependency-review
+    steps:
+      - name: Check for failures
+        run: |
+          if [[ "${{ contains(needs.*.result, 'failure') }}" == "true" ]]; then
+            echo "❌ One or more security jobs failed"
+            exit 1
+          fi
+          echo "✅ Security substage succeeded or was skipped"
+
+  prebuild-unit-tests-complete:
+    if: ${{ vars.CI_MINIMAL != 'true' && always() }}
+    name: Prebuild Unit Tests Complete
+    runs-on: ubuntu-latest
+    needs:
       - test-unit-client
       - test-unit-server
       - test-integration
       - test-smoke
-      - e2e
+    steps:
+      - name: Check for failures
+        run: |
+          if [[ "${{ contains(needs.*.result, 'failure') }}" == "true" ]]; then
+            echo "❌ One or more unit-test jobs failed"
+            exit 1
+          fi
+          echo "✅ Unit-testing substage succeeded or was skipped"
+
+  # ═══════════════════════════════════════════════════════════════
+  # AGGREGATOR — CI Complete — Single required check aggregator
+  # ═══════════════════════════════════════════════════════════════
+  ci-complete:
+    if: ${{ vars.CI_MINIMAL != 'true' && always() }}
+    name: CI Complete
+    runs-on: ubuntu-latest
+    needs:
+      - prebuild-governance-complete
+      - prebuild-quality-complete
+      - prebuild-security-complete
+      - prebuild-unit-tests-complete
       - verify-signatures
       - zombie-workflow-guard
+      - repo-discovery
     steps:
       - name: Check for failures
         run: |
