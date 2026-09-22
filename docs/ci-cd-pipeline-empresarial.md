@@ -1825,6 +1825,14 @@ El stage de despliegue a producción aplica el artifact verificado con una **est
 - Observabilidad activa durante y después del deploy (dashboards de canary).
 - Desplegar con el mismo mecanismo en staging y prod (una sola vía).
 
+### 14.5 Coverage Baselines (Jul 2026)
+
+Baselines medidos (`npm run test:coverage`) — alimenta thresholds `ci-test-integration`.
+
+- **Client** (`apps/client`): statements 84%, branches 49%, functions 63%, lines 85% (Jul 2026)
+- **Server** (`apps/server`): statements 39%, branches 18%, functions 7%, lines 39% (Jul 2026)
+- **Nota:** thresholds configurados en cambio `ci-test-integration`; deben ser ≤ baselines documentados.
+
 ### 14.6 Errores comunes (anti-patrones)
 
 - Despliegues masivos (big bang) sin gradualidad.
