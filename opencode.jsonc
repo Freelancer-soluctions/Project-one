@@ -33,12 +33,28 @@
           "name": "OmniRoute Auto (smart routing)",
           "limit": { "context": 128000, "output": 65536 },
         },
-        "oc/free": {
-          "name": "OpenCode Free (via OmniRoute)",
-          "limit": { "context": 128000, "output": 4096 },
-        },
         "felo/felo": {
           "name": "Felo (via OmniRoute)",
+          "limit": { "context": 32000, "output": 4096 },
+        },
+        "tllm/deepseek_v4": {
+          "name": "DeepSeek V4 (via TheOldLLM)",
+          "limit": { "context": 128000, "output": 4096 },
+        },
+        "tllm/gemini_3_flash": {
+          "name": "Gemini 3 Flash (via TheOldLLM)",
+          "limit": { "context": 128000, "output": 4096 },
+        },
+        "tllm/claude_sonnet_4": {
+          "name": "Claude Sonnet 4 (via TheOldLLM)",
+          "limit": { "context": 200000, "output": 4096 },
+        },
+        "ddgw/claude-haiku-4-5": {
+          "name": "Claude Haiku 4.5 (via DuckDuckGo)",
+          "limit": { "context": 200000, "output": 4096 },
+        },
+        "unc/qwen3.6:27b": {
+          "name": "Qwen 3.6 27B (via UncloseAI)",
           "limit": { "context": 32000, "output": 4096 },
         },
       },
@@ -81,7 +97,7 @@
     "write": "deny",
     // TODO: restore when PR #27654 merges - parent edit:deny hides subagent tools (bug #26758)
     // "edit": "deny",
-    "bash": "deny",
+    // "bash": "deny",
     "composio_COMPOSIO_*": "deny",
     "context7_*": "deny",
     "glob": "allow",
@@ -98,15 +114,15 @@
   },
   "agent": {
     // OpenCode built-in agents — disabled, not used
-    "build": {
-      "disable": true,
-    },
-    "plan": {
-      "disable": true,
-    },
-    "general": {
-      "disable": true,
-    },
+    // "build": {
+    //   "disable": true,
+    // },
+    // "plan": {
+    //   "disable": true,
+    // },
+    // "general": {
+    //   "disable": true,
+    // },
     "orchestrator": {
       "mode": "primary",
       "model": "opencode/mimo-v2.5-free",
@@ -116,6 +132,7 @@
       "permission": {
         "question": "allow",
         "edit": "ask", // workaround: prevents bug #26758 from hiding subagent tools
+        "bash": "ask",
         "task": {
           "*": "deny",
           "spec-manager": "allow",

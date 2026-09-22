@@ -175,3 +175,8 @@ O alternativamente, muchos equipos usan TIA como un job adicional y rápido que 
 - dependecy review ?
 - zombie eliminar ver su razon y funcionamiento actual
 - Flujo exacto de como trabajar con TBD Y RAMAS
+- ver si existe un plugin que me diga el coste en tokens que he consumido o crearlo, tambien ver la cuota limite de los tokens gratuitos que opencode provee
+- hacer sync a cada cambio de openspec de los delta epecs
+- crear comandos de openspec como openspec status --change changename --json y openspec validate ci-release-workflow-signing --strict
+- ver si opencode reconoce commands o command ya que aparentemente hace lo mismo y command es legacy
+- agregar los proveedores con tokens free como cerebras, nvidiam operoure entre otros a omniroute y esta al developer u otro agent 
