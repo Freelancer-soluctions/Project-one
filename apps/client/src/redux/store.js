@@ -24,6 +24,8 @@ import payrollApi from '@/modules/payroll/api/payrollApi';
 import performanceEvaluationApi from '@/modules/performanceEvaluation/api/performanceEvaluationApi';
 import vacationApi from '@/modules/vacation/api/vacationApi';
 import permissionApi from '@/modules/permission/api/permissionApi';
+import clientOrderApi from '@/modules/clientOrder/api/clientOrderApi';
+import providerOrderApi from '@/modules/providerOrder/api/providerOrderApi';
 
 const persistConfig = {
   key: 'root',
@@ -64,6 +66,8 @@ const rootReducer = combineReducers({
   [performanceEvaluationApi.reducerPath]: performanceEvaluationApi.reducer,
   [vacationApi.reducerPath]: vacationApi.reducer,
   [permissionApi.reducerPath]: permissionApi.reducer,
+  [clientOrderApi.reducerPath]: clientOrderApi.reducer,
+  [providerOrderApi.reducerPath]: providerOrderApi.reducer,
 });
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);
@@ -101,7 +105,9 @@ const store = configureStore({
       payrollApi.middleware,
       performanceEvaluationApi.middleware,
       vacationApi.middleware,
-      permissionApi.middleware
+      permissionApi.middleware,
+      clientOrderApi.middleware,
+      providerOrderApi.middleware
     ),
 });
 // store.subscribe(() => {
