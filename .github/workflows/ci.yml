@@ -489,7 +489,7 @@ jobs:
           fetch-depth: 0
       - uses: ./.github/actions/setup-monorepo
       - name: Detect dead code
-        run: npx knip
+        run: npx knip --workspace=. --no-progress --reporter json
         working-directory: apps/client
 
   client-import-bounds:

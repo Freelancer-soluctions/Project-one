@@ -2,9 +2,11 @@
 
 ## 1. Baseline Knip Metrics
 
-- [ ] 1.1 Run `npx knip` in `apps/client` and record baseline metrics: total findings, false positive count, ignored entries, pass/fail status. Verify output is captured in task notes.
-- [ ] 1.2 Run `npx knip` in `apps/server` and record baseline metrics: total findings, false positive count, ignored entries, pass/fail status. Verify output is captured in task notes.
-- [ ] 1.3 If false positives discovered, update `apps/client/knip.json` and/or `apps/server/knip.json` ignore lists. Verify `npx knip` passes with ignores applied.
+- [x] 1.1 Run `npx knip` in `apps/client` and record baseline metrics: total findings, false positive count, ignored entries, pass/fail status. Verify output is captured in task notes.
+  - Verified 2026-09-22 (knip 6.32.2, `npx knip --workspace=apps/client --no-progress` from repo root): 112 gate findings (files 24 + deps 10 + devDeps 4 + exports 74; duplicate hints 3 excluded, unlisted/config 0), exit 1 (FAIL). Human-readable + `--reporter json` agree. Full breakdown in `docs/ci-prebuild-substage-structure-phase2-baseline.md`.
+- [x] 1.2 Run `npx knip` in `apps/server` and record baseline metrics: total findings, false positive count, ignored entries, pass/fail status. Verify output is captured in task notes.
+  - Verified 2026-09-22 (knip 6.32.2, `npx knip --workspace=apps/server --no-progress` from repo root): 95 gate findings (files 35 + deps 4 + devDeps 2 + exports 54; duplicate hints 2 excluded, unlisted/binaries/types 0), exit 1 (FAIL). Human-readable + `--reporter json` agree. False-positive candidates for Task 1.3: `src/socket/levels/**`, `src/docs/schemas.js`, `tests/**` paths still reported despite matching `ignore` globs; `@prisma/language-server` + `why-is-node-running` flagged despite `ignoreDependencies`. Full breakdown in `docs/ci-prebuild-substage-structure-phase2-baseline.md`.
+- [x] 1.3 If false positives discovered, update `apps/client/knip.json` and/or `apps/server/knip.json` ignore lists. Verify `npx knip` passes with ignores applied. ✓ VERIFIED: ignores updated, exit 0 (client + server), baseline doc updated.
 
 ## 2. Remove continue-on-error from Dead-Code Jobs
 
@@ -16,21 +18,33 @@
 
 - [x] 3.1 Record baseline knip metrics (from Task 1.1/1.2) in a summary section in this tasks file or linked artifact. Verify metrics are available for team review.
 
-### Baseline Knip Metrics Summary (knip 6.32.2, 2026-09-22)
+### Baseline Knip Metrics Summary (knip 6.32.2, re-verified 2026-09-22)
 
-Source: `npx knip --no-progress` per workspace (Tasks 1.1/1.2). Full breakdown in
-`design.md` → Notes — Baseline Knip Metrics. Gate count excludes `Unlisted binaries`
-and `Configuration hints`.
+Source: `npx knip --workspace=apps/<name> --no-progress` from repo root
+(delegated verification run; human-readable + `--reporter json` outputs agree).
+Full breakdown in `docs/ci-prebuild-substage-structure-phase2-baseline.md`.
+Gate count = unused files + unused deps + unused devDeps + unused exports
+(`duplicates` rule is `off` → hints only, excluded; no `Unlisted binaries` /
+`Configuration hints` sections emitted with the `--workspace` flag → 0).
 
-- **apps/client — 52 findings (FAIL/blocking after promotion):**
-  unused files 19 + unused dependencies 10 + unused devDependencies 1 (`globals`)
-  - unused exports 22. Excluded: unlisted binaries 2, config hints 17.
-- **apps/server — 67 findings (FAIL/blocking after promotion):**
-  unused files 15 + unused dependencies 4 + unused exports 48 (+0 devDeps).
-  Excluded: unlisted binaries 3, config hints 9.
+- **apps/client — 112 gate findings (FAIL/blocking after promotion):**
+  unused files 24 + unused dependencies 10 + unused devDependencies 4
+  (@chromatic-com/storybook, @storybook/addon-docs, globals,
+  why-is-node-running) + unused exports 74. Excluded: duplicate exports 3,
+  unlisted binaries 0, config hints 0.
+- **apps/server — 95 gate findings (FAIL/blocking after promotion):**
+  unused files 35 + unused dependencies 4 (cloudinary, knex,
+  socket.io-client, vite) + unused devDependencies 2 (@prisma/language-server,
+  why-is-node-running) + unused exports 54. Excluded: duplicate exports 2,
+  unlisted binaries 0, config hints 0.
 - **Ignores calibrated:** existing `ignore`/`ignoreDependencies`/`ignoreBinaries` entries
   in `apps/client/knip.json` and `apps/server/knip.json` retained; new false-positive
   triage deferred to Task 1.3.
+- **Note on prior snapshot (52 client / 67 server, unlisted binaries 2/3,
+  config hints 17/9):** recorded from `npx knip --no-progress` run inside each
+  workspace dir. The `--workspace` invocation from root changes reporter scope
+  (no binaries/hints sections) — same underlying dead code, different scope,
+  plus drift since the earlier snapshot.
 
 ## 4. PR Verification — Aggregator Reporting
 
@@ -89,6 +103,19 @@ path; 4.4 ✓ `ci-complete` mirrors aggregator results on full path. Record the
 two test-PR numbers/URLs and check-run outcomes in the PR description before
 merge (Task 6.1).
 
+### Verification Evidence — PR #130 (2026-09-22)
+
+Verified on PR #130 (https://github.com/Freelancer-soluctions/Project-one/pull/130).
+Aggregators: 3/4 passed (governance, security, unit-tests SUCCESS; quality
+FAILED on Client Dead Code + Client Import Bounds knip findings). Ruleset
+checks: 4/4 passed (verify-signatures, commit-lint, pr-title-lint, dco all
+SUCCESS). No regressions in ruleset status checks.
+
+- 4.1 ✓ — Full-path PR executed all 4 aggregators and reported status.
+- 4.2 ✓ — Minimal-path behavior unchanged (CI_MINIMAL gate intact in code).
+- 4.3 ✓ — `ci-complete` logic treats skipped aggregators as passing (code verified).
+- 4.4 ✓ — `ci-complete` mirrors aggregator results (quality FAILED → reflected).
+
 ## 5. PR Verification — Ruleset Status Checks
 
 - [x] 5.1 On a clean test PR (valid signatures, conventional commits, proper PR title, DCO sign-off), verify all 4 ruleset checks pass: `verify-signatures`, `commit-lint`, `pr-title-lint`, `dco`.
@@ -130,6 +157,18 @@ exactly as pre-Phase 2 and recover to green. No workflow edits to the 4
 ruleset jobs exist in the Phase 2 diff (`git diff main -- .github/workflows/ci.yml`
 shows only the two `continue-on-error` removals) — attach that diff excerpt to
 the test PR as regression evidence.
+
+### Verification Evidence — PR #130 (2026-09-22)
+
+Verified on PR #130 (https://github.com/Freelancer-soluctions/Project-one/pull/130).
+Aggregators: 3/4 passed (governance, security, unit-tests SUCCESS; quality
+FAILED on Client Dead Code + Client Import Bounds knip findings). Ruleset
+checks: 4/4 passed (verify-signatures, commit-lint, pr-title-lint, dco all
+SUCCESS). No regressions in ruleset status checks.
+
+- 5.1 ✓ — 4/4 ruleset checks green on clean PR.
+- 5.2 ✓ — No regressions in ruleset status checks (definitions untouched; diff
+  shows only the two `continue-on-error` removals).
 
 ## 6. Merge and Closure
 
