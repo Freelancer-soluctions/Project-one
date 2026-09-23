@@ -18,14 +18,17 @@
 
 ## 📋 Resumen Ejecutivo
 
-| Concepto        | Regla                                 |
-| --------------- | ------------------------------------- |
-| Branch lifetime | Horas a ~2 días, nunca semanas        |
-| Integración     | Al menos 1 vez cada 24h               |
-| Main status     | Siempre deployable y releasable       |
-| Merge method    | Squash and merge (enterprise default) |
-| Branch deletion | Siempre después de merge              |
-| Branch reuse    | **NUNCA** después de squash merge     |
+> **🚨 REGLA #1 — BORRAR LA RAMA DESPUÉS DEL MERGE. Nunca reusarla.**
+> Por qué: reusar = el PR se llena de commits viejos (nos pasó: 330 commits "resucitados").
+
+| Concepto        | Regla                                                                                                 |
+| --------------- | ----------------------------------------------------------------------------------------------------- |
+| Branch lifetime | Horas a ~2 días, nunca semanas. Por qué: ramas cortas = menos conflictos                              |
+| Integración     | Al menos 1 vez cada 24h. Por qué: main y tu rama no se separan mucho                                  |
+| Main status     | Siempre deployable y releasable. Por qué: cualquiera puede desplegar en cualquier momento             |
+| Merge method    | Squash (ÚNICO usable: merge commit bloqueado por required_linear_history; rebase-merge rompe firma)   |
+| Branch deletion | OBLIGATORIA (hoy manual: botón GitHub + git branch -D; auto próximo). Por qué: evita reusar por error |
+| Branch reuse    | **NUNCA** después de squash merge. Por qué: squash crea un commit nuevo y Git "olvida" los viejos     |
 
 ---
 
@@ -82,24 +85,33 @@ Antes de Git     →  Gitflow (2010)     →  GitHub Flow     →  TBD
 ### El ciclo de vida de una branch
 
 ```
-1. CREAR    → git checkout main && git pull
-               git checkout -b feat/mi-feature
+1. CREAR    → git checkout main && git pull --ff-only
+                git checkout -b feat/mi-feature
+                (por qué: partes siempre desde un main actualizado)
 
 2. TRABAJAR → git commit -S -s -m "feat(scope): descripción"
-               (muchos commits internos está bien)
+                (muchos commits internos está bien)
+                (por qué: -S firma, -s añade el trailer DCO)
 
-3. PREPARAR → git fetch origin main && git rebase origin/main
-               (resolver conflictos localmente)
+3. PREPARAR → git checkout feat/mi-feature && git merge origin/main
+                (resolver conflictos localmente)
+                (por qué: merge hacia adelante permitido; rebase está prohibido)
+                Si la rama ya fue squash-mergeada: NUNCA rebasear —
+                borrarla y recrear desde main
+                (git checkout main && git pull --ff-only && git checkout -b feat/mi-feature)
 
 4. PUSH     → git push -u origin feat/mi-feature
-               (abrir PR)
+                (abrir PR)
+                (por qué: el PR dispara los 4 checks required)
 
 5. MERGE    → Squash and merge en GitHub
-               (1 commit limpio en main)
+                (1 commit limpio en main)
+                (por qué: único método que pasa firma + historia lineal)
 
-6. BORRAR   → git branch -d feat/mi-feature
-               git push origin --delete feat/mi-feature
-               (NUNCA reusar esta branch)
+6. BORRAR   → botón "Delete branch" en GitHub +
+                git branch -D feat/mi-feature && git fetch --prune
+                (NUNCA reusar esta branch)
+                (por qué: reusar resucita commits viejos)
 ```
 
 ### Naming conventions
@@ -144,11 +156,17 @@ Los commits internos (WIP, fixups) desaparecen. Solo queda 1 commit limpio.
 
 ### Los 3 tipos de merge en GitHub
 
-| Tipo                 | Historia             | Commits en main      |   Firma preservada    |
-| -------------------- | -------------------- | -------------------- | :-------------------: |
-| **Squash and merge** | Lineal               | 1 commit nuevo       |          ✅           |
-| **Merge commit**     | No lineal (burbujas) | Todos los originales |          ✅           |
-| **Rebase and merge** | Lineal               | Todos, SHAs nuevos   | ❌ (GitHub reescribe) |
+| Tipo                 | Historia             | Commits en main      |   Firma preservada    | Nota en este repo                   |
+| -------------------- | -------------------- | -------------------- | :-------------------: | ----------------------------------- |
+| **Squash and merge** | Lineal               | 1 commit nuevo       |          ✅           | ÚNICO método para este repo ✅      |
+| **Merge commit**     | No lineal (burbujas) | Todos los originales |          ✅           | Bloqueado (required_linear_history) |
+| **Rebase and merge** | Lineal               | Todos, SHAs nuevos   | ❌ (GitHub reescribe) | Rompe verify-signatures (no usable) |
+
+Por qué solo squash, en simple:
+
+- Merge commit crea "burbujas" en la historia → la regla `required_linear_history` lo bloquea.
+- Rebase-and-merge cambia los SHAs al reescribir → los commits quedan sin firmar y falla el check required.
+- Squash deja 1 commit limpio y firmado → simple de leer y de revertir.
 
 ### ¿Por qué Squash Merge en enterprise?
 
@@ -169,17 +187,16 @@ squash_merge_commit_title: PR_TITLE # PR title = commit subject
 squash_merge_commit_message: COMMIT_MESSAGES # preserva Signed-off-by trailers
 ```
 
-| Setting                       | Valores                                   | Nuestro                        |
-| ----------------------------- | ----------------------------------------- | ------------------------------ |
-| `squash_merge_commit_title`   | `PR_TITLE` \| `COMMIT_OR_PR_TITLE`        | `PR_TITLE` (Admin-1 pendiente) |
-| `squash_merge_commit_message` | `PR_BODY` \| `COMMIT_MESSAGES` \| `BLANK` | `COMMIT_MESSAGES`              |
+| Setting                       | Valores                                   | Nuestro                                     |
+| ----------------------------- | ----------------------------------------- | ------------------------------------------- |
+| `squash_merge_commit_title`   | `PR_TITLE` \| `COMMIT_OR_PR_TITLE`        | `PR_TITLE` (aplicado, no pendiente)         |
+| `squash_merge_commit_message` | `PR_BODY` \| `COMMIT_MESSAGES` \| `BLANK` | `COMMIT_MESSAGES` (preserva el trailer DCO) |
 
 **Combos válidos**:
 
-- `(PR_TITLE, COMMIT_MESSAGES)` ← nuestro target
+- `(PR_TITLE, COMMIT_MESSAGES)` ← el nuestro (aplicado hoy)
 - `(PR_TITLE, PR_BODY)`
 - `(PR_TITLE, BLANK)`
-- `(COMMIT_OR_PR_TITLE, COMMIT_MESSAGES)` ← nuestro actual
 
 ### El problema de reusar branches con squash merge
 
@@ -195,7 +212,7 @@ PR2: reusas la misma branch
 
 **Causa raíz**: squash merge crea un SHA nuevo. Los originales nunca llegaron a main. Reintroducir la branch = reintroducir commits viejos.
 
-**Solución**: `git rebase main` (omite patches ya existentes por patch-id) o delete + recreate.
+**Solución**: borrar la rama y recrearla desde main (nunca rebasear una rama ya mergeada). Por qué: los guardrails impiden reescribir historia; squash + recrear es más simple y seguro.
 
 ---
 
@@ -205,62 +222,77 @@ PR2: reusas la misma branch
 
 ```
 1. CREAR BRANCH
-   git checkout main && git pull
-   git checkout -b feat/nuevo-feature
+    git checkout main && git pull --ff-only
+    git checkout -b feat/nuevo-feature
+    (por qué: partes desde un main actualizado)
 
 2. COMMIT (con todas las firmas)
-   git commit -S -s -m "feat(scope): descripción"
-   ├── -S  → commit signing (SSH ED25519)
-   ├── -s  → DCO sign-off (Signed-off-by trailer)
-   └── -m  → Conventional Commits format
+    git commit -S -s -m "feat(scope): descripción"
+    ├── -S  → commit signing (SSH ED25519)
+    ├── -s  → DCO sign-off (Signed-off-by trailer)
+    └── -m  → Conventional Commits format
+    (por qué: sin firma o sin DCO el merge se bloquea)
 
-3. REBASE (antes de PR)
-   git fetch origin main
-   git rebase origin/main
-   (resolver conflictos si existen)
+3. MANTENER AL DÍA (si main avanzó)
+    git checkout feat/nuevo-feature && git merge origin/main
+    (resolver conflictos si existen)
+    (por qué: merge hacia adelante permitido; rebase/force-push prohibidos)
+    Si la rama ya fue squash-mergeada: borrarla y recrearla desde main,
+    nunca rebasear.
 
 4. PUSH + PR
-   git push -u origin feat/nuevo-feature
-   ├── PR Title Lint valida título del PR
-   ├── DCO check valida Signed-off-by en commits
-   ├── commitlint valida formato conventional
-   ├── CODEOWNERS asigna reviewers
-   └── ci-complete gate valida todos los checks
+    git push -u origin feat/nuevo-feature
+    ├── PR Title Lint valida título del PR (conventional, sin mayúscula inicial)
+    ├── DCO check valida Signed-off-by en commits
+    ├── Commit Lint valida formato conventional
+    ├── CODEOWNERS asigna reviewers
+    └── 4 checks required deben estar verdes para mergear
+    (por qué: solo 4 checks bloquean; el resto solo avisa)
 
 5. SQUASH MERGE
-   GitHub crea 1 commit en main:
-   ├── Subject: PR title (conventional commits)
-   ├── Body: commit messages originales + trailers
-   └── Signed-off-by: preservado (COMMIT_MESSAGES)
+    GitHub crea 1 commit en main:
+    ├── Subject: PR title (conventional commits)
+    ├── Body: commit messages originales + trailers
+    └── Signed-off-by: preservado (COMMIT_MESSAGES)
+    (por qué: squash = 1 commit fácil de revertir)
 
-6. BORRAR BRANCH
-   git branch -d feat/nuevo-feature
-   git push origin --delete feat/nuevo-feature
+6. BORRAR BRANCH (obligatorio, hoy manual)
+    botón "Delete branch" en GitHub +
+    git branch -D feat/nuevo-feature && git fetch --prune
+    (por qué: reusar resucita commits viejos)
 ```
 
 ### Cada herramienta y su rol
 
-| Herramienta             | Qué valida                   | Cuándo             | En squash                            |
-| ----------------------- | ---------------------------- | ------------------ | ------------------------------------ |
-| **Commit signing (-S)** | Autenticidad criptográfica   | Cada commit        | GitHub crea commit firmado           |
-| **DCO sign-off (-s)**   | Derecho a contribuir         | Cada commit        | Trailer preservado (COMMIT_MESSAGES) |
-| **commitlint**          | Formato conventional commits | Cada commit (hook) | Squash commit title validado         |
-| **PR Title Lint**       | Título PR = conventional     | PR creation/update | Squash subject = PR title            |
-| **CODEOWNERS**          | Reviews por componente       | PR review          | N/A                                  |
-| **ci-complete**         | Todos los checks pasan       | Pre-merge          | Gate de merge                        |
-| **Ruleset 21227644**    | Required checks              | Pre-merge          | Bloquea merge si falla               |
+| Herramienta               | Qué valida                                                                               | Cuándo             | En squash                                | Bloquea merge               |
+| ------------------------- | ---------------------------------------------------------------------------------------- | ------------------ | ---------------------------------------- | --------------------------- |
+| **Commit signing (-S)**   | Autenticidad criptográfica (solo commits nuevos del PR; previos a 2026-08-01 exonerados) | Cada commit        | GitHub crea commit firmado               | ✅ Sí (verify-signatures)   |
+| **DCO sign-off (-s)**     | Derecho a contribuir                                                                     | Cada commit        | Trailer preservado (COMMIT_MESSAGES)     | ✅ Sí (DCO)                 |
+| **Commit Lint**           | Formato conventional commits                                                             | Cada commit (hook) | Squash commit title validado             | ✅ Sí                       |
+| **PR Title Lint**         | Título PR = conventional                                                                 | PR creation/update | Squash subject = PR title                | ✅ Sí                       |
+| **CODEOWNERS**            | Reviews por componente                                                                   | PR review          | N/A                                      | ✅ Sí (1 approval + review) |
+| **Ruleset 21227644**      | Required checks                                                                          | Pre-merge          | Bloquea merge si falla                   | ✅ Sí                       |
+| **ci-complete**           | Agregador de checks                                                                      | Pre-merge          | NO vinculado (CI_MINIMAL=true → SKIPPED) | ❌ No                       |
+| **dependency-review**     | Vulns en dependencias                                                                    | PR                 | Aviso                                    | ❌ No (advisory)            |
+| **zombie-workflow-guard** | Workflows borrados que regresan                                                          | PR                 | Aviso                                    | ❌ No (advisory)            |
+| **ActionLint**            | Sintaxis de workflows                                                                    | PR                 | Aviso                                    | ❌ No (advisory)            |
+| **SAST (Semgrep)**        | Vulnerabilidades en código                                                               | PR                 | Aviso                                    | ❌ No (advisory)            |
+| **opencode-review**       | Review IA informativa                                                                    | PR                 | Comentario en el PR, no bloquea          | ❌ No (advisory)            |
+
+> `ci-complete` está SKIPPED mientras `CI_MINIMAL=true` — no es check del ruleset, no bloquea el merge.
 
 ### La cadena de validación
 
 ```
 Commit local          PR                    Merge
 ─────────────────     ─────────────────     ─────────────────
--S (signing)     →    verify-signatures  →  GitHub firma squash
--s (DCO)         →    DCO check          →  trailer preservado
-commitlint       →    PR Title Lint      →  squash title = PR title
-                    CODEOWNERS review   →  review humana
-                    ci-complete gate    →  todos los checks
-                    ruleset 21227644    →  required checks
+-S (signing)     →    Verify Commit Signatures →  GitHub firma squash (required ✅)
+-s (DCO)         →    DCO check          →  trailer preservado (required ✅)
+commitlint       →    Commit Lint + PR Title Lint →  squash title = PR title (required ✅)
+                     CODEOWNERS review   →  review humana + 1 approval (required ✅)
+                     dependency-review / ActionLint / SAST / opencode-review →  solo avisan (advisory ❌)
+                     ci-complete         →  SKIPPED (CI_MINIMAL=true, no es gate)
+                     ruleset 21227644    →  required checks
 ```
 
 ---
@@ -271,43 +303,53 @@ commitlint       →    PR Title Lint      →  squash title = PR title
 
 ```
 PR abierto → CI corre en pull_request trigger
-  ├── CI_MINIMAL: lint + unit tests + build (rápido)
+  ├── CI_MINIMAL=true: SOLO governance (4 checks) + advisory (dependency-review, SAST, zombie-guard) + lints path-scoped si el path cambió
+  ├── unit tests y build NO corren (jobs `if: false`, diseño incremental intencional, no bugs)
   ├── DCO check: Signed-off-by válido
   ├── PR Title Lint: título conventional
-  ├── commitlint: formato de commits
-  ├── verify-signatures: firma SSH
-  └── ci-complete gate: todos los checks pasan
+  ├── Commit Lint: formato de commits
+  ├── verify-signatures: firma SSH (solo commits nuevos del PR)
+  └── advisory (no bloquean): dependency-review, ActionLint, SAST, opencode-review
 
 Merge blocked hasta: required checks + reviews pasen
+(por qué: con CI_MINIMAL=true no pagamos build/tests; los tests pesados se activarían solo con CI_MINIMAL=false vía change de gobernanza)
 ```
 
 ### CI_MINIMAL pattern
 
-Un subset rápido y required que da feedback rápido. Tests pesados (integration, e2e) corren en paralelo o post-merge. Esencial para TBD porque mantiene el lifetime de branches corto.
+Un subset rápido y required que da feedback rápido. Por qué: hoy CI_MINIMAL=true desactiva los tests pesados a propósito (incremental); el día que se justifique el costo se activan con CI_MINIMAL=false. Esencial para TBD porque mantiene el lifetime de branches corto.
 
 ### Required checks como gate de merge
 
+> ⚠️ Los 4 nombres son EXACTOS — renombrar un job en ci.yml rompe el vínculo con el ruleset (lo aprendimos: los checks se vinculan por nombre).
+
 ```
-Merge permitido solo cuando:
-  ✅ ci-complete = success
-  ✅ PR Title Lint = success (o skip en merge_group)
-  ✅ DCO = success (o skip en merge_group)
-  ✅ verify-signatures = success
-  ✅ commit-lint = success
+Merge permitido solo cuando (4 checks required + reviews):
+  ✅ Verify Commit Signatures = success
+  ✅ Commit Lint (Conventional Commits) = success
+  ✅ PR Title Lint = success
+  ✅ DCO = success
   ✅ CODEOWNERS review approved
   ✅ ≥1 approval
+  (por qué: el ruleset 21227644 solo exige estos 4 + reviews)
 ```
+
+Advisory (avisan, no bloquean): dependency-review, zombie-workflow-guard,
+ActionLint, SAST, opencode-review (comentario IA informativo).
+`ci-complete` NO es gate: SKIPPED mientras `CI_MINIMAL=true`.
 
 ### Rulesets como governance
 
-GitHub Rulesets enforcement:
+Ruleset 21227644 "Pre-Merge Governance Gate" (enforcement sobre ~main):
 
-- `require_pull_request`: obliga PR antes de merge
-- `required_status_checks`: obliga checks específicos
-- `require_signed_commits`: obliga firma SSH/GPG
-- `require_linear_history`: obliga squash (no merge commits)
-- `block_force_push`: previene force push a main
-- `bypass_actors: NONE`: nadie salta las reglas
+- `deletion` → nadie puede borrar la rama `main`. Por qué: main siempre existe.
+- `non_fast_forward` → bloquea el force-push a main. Por qué: nadie reescribe historia.
+- `required_signatures` → commits firmados y verificados (no basta firmar, GitHub debe verificarlo). Por qué: prueba quién hizo cada commit.
+- `required_status_checks` → solo los 4 checks EXACTOS (ver lista arriba); renombrar un job rompe el vínculo. Por qué: el ruleset ata por nombre.
+- `pull_request` → revisión obligatoria: ≥1 aprobación + CODEOWNERS + last-push approval + threads resueltos. Por qué: ningún cambio entra sin ojos.
+- `required_linear_history` → historia lineal; en la práctica squash (merge commit bloqueado, rebase-merge rompe firma). Por qué: historia simple de leer.
+
+`bypass_actors` vacío + `current_user_can_bypass: never` → nadie se salta las reglas, ni admins. Por qué: las reglas son para todos.
 
 ---
 
@@ -315,227 +357,175 @@ GitHub Rulesets enforcement:
 
 ### 1. Reusar branch después de squash merge
 
-**Problema**: commits viejos reaparecen en el PR.
+**Problema**: commits viejos reaparecen en el PR. Por qué: squash crea un SHA nuevo; los originales nunca llegaron a main.
 
 ```
 PR1: feat/x → squash merge → main tiene SHA nuevo
 PR2: reusas feat/x → commits viejos muestran como "nuevos"
 ```
 
-**Solución**:
+**Nos pasó en serio**: reusamos la rama `ci/prebuild-stages` después de su squash merge y el PR mostró 330 commits viejos como "nuevos" (divergencia total). Fix real: borramos la rama muerta, creamos una rama nueva `ci/post-merge-fixes` desde main y re-aplicamos los fixes como commits frescos.
+
+**Solución** (única segura en este repo):
 
 ```bash
-# Opción A: rebase
-git fetch origin main
-git rebase origin/main
-git push --force-with-lease
-
-# Opción B: delete + recreate (mejor)
+# Borrar + recrear desde main (no rebasear, no force-push)
+git checkout main && git pull --ff-only
 git branch -D feat/x
-git checkout main && git pull
+git push origin --delete feat/x
 git checkout -b feat/x
+# re-aplicar los cambios como commits frescos
 ```
 
-**Prevención**: SIEMPRE borrar branch después de squash merge. NUNCA reusar.
+**Prevención**: SIEMPRE borrar la branch después de squash merge. NUNCA reusar.
 
-### 2. Branches de larga duración (>2 días)
+### 2. Olvidar borrar la rama tras el merge
 
-**Problema**: merge debt, drift, conflict storms.
+**Síntoma**: la rama sigue viva en GitHub y en local; semanas después alguien la reusa y el PR se llena de commits viejos. Por qué: `delete_branch_on_merge=false` hoy, el borrado es manual.
+
+**Fix** (borrar ya):
+
+```bash
+# En GitHub: botón "Delete branch" del PR ya mergeado
+git branch -D <rama>
+git push origin --delete <rama>
+git fetch --prune
+```
+
+**Prevención**: borrar justo después de cada merge (paso 8 del workflow). Auto-delete en settings viene próximo.
+
+### 3. Branches de larga duración (>2 días)
+
+**Problema**: merge debt, drift, conflict storms. Por qué: cuanto más vive la rama, más se separa de main.
 
 **Solución**: feature flags para trabajo incompleto. Branches cortas = menos conflictos.
 
-### 3. No borrar branches después de merge
+### 4. No borrar branches después de merge
 
-**Problema**: clutter, accidental reuse, confusing history.
+**Problema**: clutter, accidental reuse, confusing history. Por qué: ramas muertas invitan a reusarlas por error.
 
-**Solución**: GitHub auto-delete en merge settings. O `git branch -D` después.
+**Solución**: botón "Delete branch" en GitHub + `git branch -D` en local después de cada merge. Auto-delete próximo.
 
-### 4. No hacer rebase antes de PR
+### 5. Rama desactualizada (main avanzó)
 
-**Problema**: PR basado en main stale, conflictos evitables.
+**Problema**: PR basado en main viejo, conflictos evitables. Por qué: main se mueve rápido.
 
-**Solución**:
+**Solución** (sin rebase, sin force-push):
 
 ```bash
-git fetch origin main
-git rebase origin/main
-# resolver conflictos
-git push --force-with-lease
+git checkout <rama> && git merge origin/main
+# resolver conflictos si existen
+# si la rama ya fue mergeada: no actualizarla — borrarla y recrearla desde main
 ```
 
-### 5. Branchear desde main stale
+Por qué así: los guardrails prohíben reescribir historia; el merge hacia adelante es simple y seguro.
 
-**Problema**: integrar código viejo.
+### 6. Branchear desde main viejo
 
-**Solución**: SIEMPRE `git pull` antes de branchear.
+**Problema**: integras código viejo. Por qué: partes de una base desactualizada.
 
-### 6. Committear directo a main
+**Solución**: SIEMPRE `git checkout main && git pull --ff-only` antes de branchear.
 
-**Problema**: bypass review/CI.
+### 7. Committear directo a main
 
-**Solución**: branch protection rules. Solo admin bypass con audit.
+**Problema**: saltas review y CI. Por qué: main solo acepta cambios vía PR (ruleset lo bloquea).
 
-### 7. Feature flag debt
+**Solución**: trabaja siempre en rama + PR. Sin excepciones.
 
-**Problema**: flags nunca retirados = complejidad permanente.
+### 8. Feature flag debt
 
-**Solución**: política de cleanup (ej: delete release flags at 100% rollout).
+**Problema**: flags nunca retirados = complejidad permanente. Por qué: cada flag viejo es código que nadie se atreve a tocar.
+
+**Solución**: política simple — borrar el flag cuando llegue al 100%.
 
 ---
 
-## 🏢 Patrones Enterprise
+## 🏢 Cuando el equipo crezca
 
-### Feature Flags como alternativa a branches largas
+Somos monorepo (`apps/client`, `apps/server`) con 1 dev hoy — estos patrones aplican cuando seamos más. Por qué cada uno en 1 línea:
 
-```
-Código en main    →  deploy continuo
-Feature visible   →  controlado por flag
+- **Feature flags**: esconden trabajo incompleto en main sin ramas largas. Por qué: deploy y release van separados.
+- **DORA metrics**: medir frecuencia de deploy, lead time, tasa de fallos y MTTR. Por qué: lo que se mide, mejora.
+- **Merge queues futuras**: cola automática que mergea PRs en orden cuando haya muchos al día. Por qué: evita colisiones sin esfuerzo manual.
 
-if (featureFlag.isEnabled('new-checkout')) {
-  // nuevo checkout
-} else {
-  // checkout actual
-}
-```
+Rollback con squash (simple): kill-switch del flag (instantáneo), o `git revert <sha>` (limpio porque squash = 1 commit), o fix-forward con un PR nuevo.
 
-**Tipos de flags**:
-
-- **Release**: ocultar features incompletas
-- **Experiment**: A/B testing
-- **Ops/Kill-switch**: apagar features en producción
-- **Permission**: control de acceso
-
-**Herramientas**: LaunchDarkly, Unleash, Flagsmith, Statsig, GrowthBook
-
-**OpenFeature**: spec vendor-neutral (recomendado para evitar lock-in)
-
-### Release strategies
-
-| Estrategia             | Cuándo     | Cómo                                                                  |
-| ---------------------- | ---------- | --------------------------------------------------------------------- |
-| **Release from trunk** | CD teams   | Tag main, fix-forward                                                 |
-| **Branch for release** | Versionado | Cut release branch late, cherry-pick FROM trunk, delete after release |
-
-**Branch for release** (cuando se necesita):
-
-```bash
-# Crear release branch tarde
-git checkout -b release/v2.1 <SHA-elegido>
-# Cherry-pick fixes SOLO desde main (nunca al revés)
-git cherry-pick <sha>
-# Release, tag, delete
-git tag v2.1
-git branch -d release/v2.1
-```
-
-### Monorepo TBD
-
-- Un trunk para todos los servicios
-- Atomic cross-module commits
-- Lock-step dependency upgrades
-- Build systems dirigidos (Bazel/Buck)
-- **No intentar** sin estructura de directorios global
-
-### Rollback con squash merge
-
-```
-Opción 1: Feature flag kill-switch (instantáneo)
-Opción 2: git revert <sha> (1 commit limpio, porque squash = 1 commit)
-Opción 3: Fix forward (nuevo commit a main)
-```
-
-### Branch protection completa
-
-```yaml
-Required reviews:
-  - require_pull_request: true
-  - required_approving_review_count: 1
-  - dismiss_stale_reviews: true
-  - require_code_owner_reviews: true
-
-Required status checks:
-  - ci-complete
-  - PR Title Lint
-  - DCO
-  - verify-signatures
-  - Commit Lint
-
-Other:
-  - require_signed_commits: true
-  - require_linear_history: true (forzar squash)
-  - block_force_push: true
-  - restrict_deletions: true
-  - bypass_actors: NONE
-```
+Nuestra protección real (ruleset 21227644): 4 checks required (`Verify Commit Signatures`, `Commit Lint`, `PR Title Lint`, `DCO`) + 1 approval + CODEOWNERS review + historia lineal + sin force-push a main.
 
 ---
 
 ## 🛠️ Workflow Práctico Paso a Paso
 
-### Flujo estándar
+### Flujo estándar (nunca commits directos a main)
 
 ```bash
-# 1. Sincronizar trunk
+# 1. Sincronizar main (por qué: partes de lo último)
 git checkout main && git pull --ff-only
 
-# 2. Crear branch (desde main actualizado)
-git checkout -b feat/mi-feature
+# 2. Crear rama (por qué: todo cambio va en rama + PR)
+git checkout -b fix/nombre-corto
+# (usa fix|feat|ci/ + nombre corto; ej: feat/login, ci/lint)
 
-# 3. Trabajar (commits frecuentes, firmados)
+# 3. Commits firmados (varios OK) (por qué: sin -S/-s el merge se bloquea)
 git add -A
-git commit -S -s -m "feat(scope): descripción"
-# ... más commits ...
+git commit -S -s -m "fix(scope): descripción corta"
+# ... más commits si hace falta ...
 
-# 4. Rebase antes de PR
-git fetch origin main
-git rebase origin/main
-# resolver conflictos si existen
+# 4. Si main avanzó, ponerse al día (por qué: evita conflictos grandes)
+git checkout fix/nombre-corto && git merge origin/main
+# resolver conflictos si existen — nunca rebase ni force-push
 
-# 5. Push + PR
-git push -u origin feat/mi-feature
-# Abrir PR en GitHub
+# 5. Push + abrir PR (por qué: el PR dispara los checks)
+git push -u origin fix/nombre-corto
+# Título del PR en conventional, sin mayúscula inicial (ej: "fix(ci): ...")
 
-# 6. Squash merge (en GitHub UI)
+# 6. Esperar 4 checks verdes (por qué: bloquean el merge)
+# Revisar comentarios advisory sin miedo: ActionLint / SAST / opencode-review solo avisan
 
-# 7. Borrar branch
-git branch -d feat/mi-feature
-git push origin --delete feat/mi-feature
+# 7. Squash and merge en GitHub UI (por qué: único método válido en este repo)
+
+# 8. BORRAR la rama (por qué: reusar resucita commits viejos)
+# En GitHub: botón "Delete branch" +
+git branch -D fix/nombre-corto && git fetch --prune
 ```
 
 ### Hotfixes
 
-Mismo flujo pero acelerado:
+Mismo flujo pero acelerado (por qué: un hotfix también pasa por PR y checks):
 
 ```bash
-git checkout main && git pull
+git checkout main && git pull --ff-only
 git checkout -b fix/urgent-bug
 # fix + commit -S -s
 git push -u origin fix/urgent-bug
-# PR rápido → squash merge → delete
+# PR rápido → 4 checks → squash merge → borrar rama
 ```
 
 ### Recovering from mistakes
 
-**Branch reused después de squash**:
+**Rama reusada después de squash** (síntoma: el PR muestra commits viejos como nuevos):
 
 ```bash
-git rebase --onto origin/main <common-ancestor> <branch>
-git push --force-with-lease
-# O mejor: delete + recreate
+# Borrar + recrear desde main, re-aplicar cambios frescos
+git checkout main && git pull --ff-only
+git branch -D <rama>
+git push origin --delete <rama>
+git checkout -b <rama>
+# (por qué: squash creó un SHA nuevo; la rama vieja ya no sirve)
 ```
 
-**Main roto**:
+**Main roto** (por qué revert es limpio: squash = 1 commit por feature):
 
 ```bash
-git revert <squash-sha>    # revert limpio (1 commit)
-# O flip feature flag
-# O fix forward via nuevo PR
+git revert <sha>    # revierte el feature completo en 1 commit
+# O fix-forward: rama nueva + PR nuevo con el fix
+# O flip del feature flag si existe
 ```
 
-**DCO lost en squash**:
+**DCO perdido en squash**:
 
-- Verificar `squash_merge_commit_message=COMMIT_MESSAGES`
-- Si no, amend PR body o re-commit con `-s`
+- Verificar `squash_merge_commit_message=COMMIT_MESSAGES` (es nuestro setting aplicado).
+- Si falta el trailer, re-hacer commits con `git commit -S -s`.
 
 ---
 
@@ -560,11 +550,11 @@ git revert <squash-sha>    # revert limpio (1 commit)
 │  └── Feature flags: para trabajo incompleto                   │
 │                                                               │
 │  Stack integration:                                           │
-│  ├── Commit signing (-S) → verify-signatures                 │
-│  ├── DCO sign-off (-s) → DCO check                           │
-│  ├── commitlint → PR Title Lint → squash title               │
-│  ├── CODEOWNERS → review routing                             │
-│  └── ci-complete gate → merge gate                           │
+│  ├── Commit signing (-S) → Verify Commit Signatures (required)│
+│  ├── DCO sign-off (-s) → DCO check (required)                │
+│  ├── commitlint → PR Title Lint → squash title (required)    │
+│  ├── CODEOWNERS → review routing (required)                  │
+│  └── advisory (no bloquean): dependency-review, SAST, opencode-review │
 └─────────────────────────────────────────────────────────────┘
 ```
 

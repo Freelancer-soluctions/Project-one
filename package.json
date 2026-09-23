@@ -19,8 +19,8 @@
     "e2e"
   ],
   "engines": {
-    "node": ">=20.0.0",
-    "npm": ">=10.0.0"
+    "node": ">=22.11",
+    "npm": ">=10.9.0"
   },
   "scripts": {
     "prepare": "husky",
@@ -59,13 +59,13 @@
     "security:trivy:deps": "powershell -ExecutionPolicy Bypass -File scripts/security/dependency-scan.ps1",
     "changeset": "changeset",
     "version:packages": "changeset version && npm install --ignore-scripts",
-    "release": "changeset tag",
+    "release": "changeset git-tag",
     "pr:title-check": "node scripts/hooks/pr-title-check.js",
     "pr:create": "node scripts/hooks/pr-create.js"
   },
   "devDependencies": {
-    "@changesets/changelog-github": "^0.7.0",
-    "@changesets/cli": "^2.31.0",
+    "@changesets/changelog-github": "^1.0.1",
+    "@changesets/cli": "^3.0.3",
     "@commitlint/cli": "^20.3.1",
     "@commitlint/config-conventional": "^20.3.1",
     "@vitest/eslint-plugin": "^1.6.9",
@@ -95,6 +95,7 @@
     "doc": "docs"
   },
   "dependencies": {
+    "@fission-ai/openspec": "1.13.1",
     "accepts": "1.3.8",
     "acorn": "8.16.0",
     "acorn-import-phases": "1.0.4",

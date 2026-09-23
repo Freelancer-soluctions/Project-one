@@ -115,7 +115,7 @@ docker-build:
         FLOCI_STORAGE_MODE: memory
         FLOCI_HOSTNAME: floci
       options: >-
-        --health-cmd "curl -f http://localhost:4566/_localstack/health || exit 1"
+        --health-cmd "curl -f http://localhost:4566/_floci/health || exit 1"
         --health-interval 10s
         --health-timeout 5s
         --health-retries 5

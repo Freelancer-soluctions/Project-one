@@ -106,26 +106,27 @@ jobs:
 
       - name: Create Release PR or Publish
         id: changesets
-        uses: changesets/action@v2
+        # Pin exacto: action v1.x ↔ @changesets/cli v2; action v2.x ↔ CLI v3 (subir ambos juntos)
+        uses: changesets/action@v2.1.2
         with:
+          github-token: ${{ steps.app-token.outputs.token }}
           version-script: npm run version:packages
           pr-title: 'chore: version packages'
           commit-message: 'chore: version packages'
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          push-with-git-cli: false
 ```
 
 ### 2.2 Desglose
 
-| Elemento                           | Valor     | Qué hace                                          |
-| ---------------------------------- | --------- | ------------------------------------------------- |
-| `on.push.branches`                 | `[main]`  | Se dispara solo en pushes a main                  |
-| `permissions.contents: write`      | —         | Necesario para crear el PR y los tags             |
-| `permissions.pull-requests: write` | —         | Necesario para abrir/actualizar el PR de versión  |
-| `concurrency.group`                | `release` | Serializa los releases                            |
-| `concurrency.cancel-in-progress`   | `false`   | **No** interrumpe un release en marcha            |
-| `fetch-depth: 0`                   | —         | Clona el historial completo (clave, sección 3)    |
-| `changesets/action@v2`             | —         | El corazón: detecta changesets, versiona, publica |
+| Elemento                                | Valor     | Qué hace                                                                                                                                                                                                                                                                                                                            |
+| --------------------------------------- | --------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `on.push.branches`                      | `[main]`  | Se dispara solo en pushes a main                                                                                                                                                                                                                                                                                                    |
+| `permissions.contents: write`           | —         | Necesario para crear el PR y los tags                                                                                                                                                                                                                                                                                               |
+| `permissions.pull-requests: write`      | —         | Necesario para abrir/actualizar el PR de versión                                                                                                                                                                                                                                                                                    |
+| `concurrency.group`                     | `release` | Serializa los releases                                                                                                                                                                                                                                                                                                              |
+| `concurrency.cancel-in-progress`        | `false`   | **No** interrumpe un release en marcha                                                                                                                                                                                                                                                                                              |
+| `fetch-depth: 0`                        | —         | Clona el historial completo (clave, sección 3)                                                                                                                                                                                                                                                                                      |
+| `changesets/action@v2.1.2` (pin exacto) | —         | El corazón: detecta changesets, versiona, publica. Pareja soportada con `@changesets/cli` v3 (`privatePackages: true` — #2186; `changeset git-tag` — #2128). El token va por el input `github-token`: v2 lo exige y rechaza `env: GITHUB_TOKEN` si difiere (#674) — ver `ci-release-action-v2-fix` y `ci-changesets-cli-v3-upgrade` |
 
 ### 2.3 Los dos scripts
 
@@ -134,17 +135,17 @@ jobs:
 {
   "scripts": {
     "version:packages": "changeset version && npm install --ignore-scripts",
-    "release": "changeset tag"
+    "release": "changeset git-tag"
   }
 }
 ```
 
-| Script             | Comando                                             | Qué hace                                                                                                                 |
-| ------------------ | --------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
-| `version:packages` | `changeset version && npm install --ignore-scripts` | Actualiza `package.json` y changelogs según los changesets, **borra** los changesets consumidos y reinstala dependencias |
-| `release`          | `changeset tag`                                     | Crea los tags de git (`v<version>`) para los paquetes versionados                                                        |
+| Script             | Comando                                             | Qué hace                                                                                                                  |
+| ------------------ | --------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| `version:packages` | `changeset version && npm install --ignore-scripts` | Actualiza `package.json` y changelogs según los changesets, **borra** los changesets consumidos y reinstala dependencias  |
+| `release`          | `changeset git-tag`                                 | Crea los tags de git (`v<version>`) para los paquetes versionados (CLI v3 renombró `changeset tag` → `changeset git-tag`) |
 
-> 🔑 **Regla mental**: `version:packages` prepara los archivos (bump + changelog); `release` (`changeset tag`) crea los tags de git. El action invoca `version-script` al abrir el PR de versión.
+> 🔑 **Regla mental**: `version:packages` prepara los archivos (bump + changelog); `release` (`changeset git-tag`) crea los tags de git. El action invoca `version-script` al abrir el PR de versión.
 
 ## 3. `fetch-depth: 0`: por qué el historial completo
 
@@ -432,7 +433,7 @@ sequenceDiagram
     Main->>Main: 7. Merge del PR de versión
     Main->>Rel: 8. Push dispara release.yml de nuevo
     Rel->>Bot: 9. Ya no hay changesets pendientes
-    Bot->>Git: 10. changeset tag → tag v1.3.0
+    Bot->>Git: 10. changeset git-tag → tag v1.3.0
 ```
 
 **ASCII fallback** (si mermaid no renderiza):
@@ -447,7 +448,7 @@ changesets/action → main: 6. Abre PR "chore: version packages"
 main: 7. Merge del PR de versión
 main → release.yml: 8. Push dispara release.yml de nuevo
 release.yml → changesets/action: 9. Ya no hay changesets pendientes
-changesets/action → Git tags: 10. changeset tag → tag v1.3.0
+changesets/action → Git tags: 10. changeset git-tag → tag v1.3.0
 ```
 
 ### 8.2 El doble disparo
@@ -523,7 +524,7 @@ grep -A 5 "1.3.0" CHANGELOG.md
 
 ### 9.5 Modo de firma: API vs git-cli
 
-`changesets/action@v2` tiene dos modos de push:
+`changesets/action` tiene dos modos de push (v2 los nombra `push-with-git-cli`; v1 `commitMode`):
 
 | Modo                   | Config                     | Firma de commits                                  |
 | ---------------------- | -------------------------- | ------------------------------------------------- |
@@ -536,7 +537,7 @@ grep -A 5 "1.3.0" CHANGELOG.md
 
 > ⚠️ **Anti-patrón**: añadir config SSH a release.yml en API mode es dead code. La config nunca se ejecuta porque changesets no usa `git push`. Incluso en git-cli mode, provisionar solo la clave pública (sin la privada en ssh-agent) es non-functional.
 
-**Ref:** `openspec/changes/ci-release-workflow-signing/design.md`
+**Ref:** `openspec/changes/archive/2026-09-21-ci-release-workflow-signing/design.md` · reparación del pin: `openspec/changes/archive/2026-09-21-ci-release-action-v2-fix/`
 
 ## 10. Ejercicios
 

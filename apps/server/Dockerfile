@@ -10,18 +10,31 @@ FROM node:20-alpine
 
 WORKDIR /app
 
+# OpenSSL CLI: necesario para que Prisma detecte linux-musl-openssl-3.0.x durante
+# `prisma generate`. Alpine trae libssl3 (OpenSSL 3) pero NO el CLI; sin él, generate
+# produce el engine "linux-musl" (OpenSSL 1.1) que no puede cargar sobre libssl.so.3
+# del node:20-alpine actual (Error: libssl.so.1.1: No such file or directory).
+RUN apk add --no-cache openssl
+
 # Copiar root package.json + lockfile, luego workspace package.json y prisma schema
 # Esto permite `npm ci --workspace=apps/server` que encuentra el lockfile en la raíz
 COPY package.json package-lock.json ./
 COPY apps/server/package.json ./apps/server/package.json
 COPY apps/server/prisma ./apps/server/prisma/
 
-# Instalar dependencias del workspace (incluye devDeps para prisma CLI en postinstall)
-# El postinstall "prisma generate" se ejecuta aquí y encuentra el schema en apps/server/prisma/
-# --ignore-scripts evita el prepare script del root (husky) que no está disponible en el contenedor
+# Instalar dependencias del workspace (incluye devDeps: prisma CLI para npx prisma generate)
+# --ignore-scripts evita el prepare script del root (husky) Y TAMBIÉN suprime el postinstall
+# "prisma generate" de apps/server → por eso el client se genera explícitamente en la capa siguiente
 RUN npm ci --workspace=apps/server --ignore-scripts
 
+# Generar el client de Prisma explícitamente (postinstall suprimido por --ignore-scripts).
+# El schema ya fue copiado (COPY apps/server/prisma) y @prisma/client queda hoisted en el
+# node_modules raíz → output en node_modules/.prisma/client.
+# DEBE correr ANTES de npm prune, que elimina el CLI de prisma (devDependency).
+RUN npx prisma generate --schema=apps/server/prisma/schema.prisma
+
 # Eliminar devDependencies del workspace para imagen de producción más pequeña
+# (no debe tocar el client generado en node_modules/.prisma — se verifica en CI)
 RUN npm prune --workspace=apps/server --omit=dev
 
 # Copiar código fuente del server (sobrescribe package.json del workspace, OK: deps ya instaladas)

@@ -3,6 +3,7 @@
 # Authoritative .dockerignore for all monorepo Docker builds (replaces apps/server/.dockerignore)
 
 node_modules
+**/node_modules
 .git
 .env
 .env.*

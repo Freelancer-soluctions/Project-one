@@ -5,6 +5,7 @@ El monorepo Project One carece de validación de preview por Pull Request (Stage
 **Decisión de scope (2026-07):** Floci **NO** es un proveedor de hosting cloud — es un **emulador local de AWS** ("Any Cloud. Locally", MIT, puerto 4566). Se descarta el hosting cloud pagado para previews (Railway/Render/Fly.io). Floci se adopta como **capa de aprendizaje y emulación de AWS** en local y en CI, no como host de un preview público.
 
 **Estado actual:**
+
 - El backend Express usa `@aws-sdk/client-secrets-manager` (`apps/server/src/config/aws/secret-manager.client.js`) que respeta `AWS_ENDPOINT_URL` — el código está listo para emulación, pero no hay stack emulado activo
 - `apps/server/docker-compose.yml` contiene una sección LocalStack comentada (dev local); la migración LocalStack → Floci es el change `ci-floci-migration` (separado)
 - No existe preview del frontend por PR (Vercel no conectado como GitHub App)
@@ -12,6 +13,7 @@ El monorepo Project One carece de validación de preview por Pull Request (Stage
 - `apps/server/package.json` solo incluye `@aws-sdk/client-secrets-manager` entre los SDKs AWS
 
 **Qué resuelve:**
+
 - **Aprendizaje AWS con Floci (local + CI)**: stack docker-compose con server + Floci + PostgreSQL efímera para aprender servicios AWS localmente (Secrets Manager vía `AWS_ENDPOINT_URL`) sin cuenta real ni costo
 - **Validación de PR**: el workflow `preview.yml` levanta el stack emulado en CI, corre smoke tests contra AWS emulado y comenta los resultados en el PR
 - **Preview del client**: Vercel GitHub App nativa genera una preview URL automática por PR (sin workflow custom para Vercel)
@@ -19,7 +21,7 @@ El monorepo Project One carece de validación de preview por Pull Request (Stage
 
 ## What Changes
 
-- Crear `apps/server/docker-compose.preview.yml`: stack efímero con `server` (Dockerfile existente) + `floci` (`floci/floci:v1.5.11`, puerto 4566, storage en memoria) + `db` (postgres:16-alpine, sin volumen persistente) para emulación AWS en local y CI
+- Crear `apps/server/docker-compose.preview.yml`: stack efímero con `server` (Dockerfile existente) + `floci` (`floci/floci:1.5.31`, pin publicado en Docker Hub — el tag `v1.5.11` citado en el plan no existe; puerto 4566, storage en memoria, healthcheck nativo de imagen) + `db` (postgres:16-alpine, sin volumen persistente) para emulación AWS en local y CI
 - Crear workflow `.github/workflows/preview.yml` en `pull_request` (opened, reopened, synchronize) contra `main`: build del server, levantar Floci + PostgreSQL como service containers del runner, `prisma migrate deploy`, correr smoke tests contra AWS emulado (`AWS_ENDPOINT_URL`) y comentar los resultados en el PR
 - Conectar Vercel como GitHub App nativa para preview automático del client React por PR (config en dashboard: root `apps/client`, preset Vite — sin acción custom; el workflow captura la URL del preview vía commit status con `GITHUB_TOKEN`, sin secrets custom)
 - Comentar en el PR: URL de preview del client (Vercel) + estado de la validación del backend contra el stack AWS emulado (smoke tests)

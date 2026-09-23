@@ -134,8 +134,10 @@ Este cambio está documentado (archivado) en `openspec/changes/archive/2026-08-2
 | **F1** | Clave SSH ed25519 dedicada (`id_ed25519_projectERP`), 4 flags `git config`, `allowed_signers`                                                                                                                                                                       | Cada commit nuevo sale firmado automáticamente; `git log --show-signature` muestra la firma.                   |
 | **F2** | Job `verify-signatures` en `ci.yml` Stage 2 PRE-Build: consulta `GitHub API .verified` por PR; modo informativo → blocking; **por qué NO usar `git log %G?` en CI** (falsos positives sin `allowedSignersFile`).                                                    | PRs con commits sin firma son bloqueados en la stage de verify antes de merge.                                 |
 | **F3** | Migración `release.yml` CONDICIONAL al GATE 4.0: spike empírico con ruleset temporal en branch `feature/signing-gate-test`; `changesets/action` hace `git push` con `GITHUB_TOKEN` → commits sin firmar; si son rechazados → GitHub App con SSH signing key propia. | Libera el release solo cuando los commits están firmados; fallback a GitHub App si el ruleset bloquea el push. |
-| **F4** | **Vigilant mode**: commits legacy (374 anteriores) mostrarán `Unverified`, solo visual — no rompe el pipeline.                                                                                                                                                      | El pipeline no se bloquea por commits viejos; solo alerta.                                                     |
-| **F5** | **Ruleset** `Pre-Merge Governance Gate` en `main` con `bypass` para Admin + `required status check` "verified-commits".                                                                                                                                             | Políticas de enforcement: nadie puede mergear un commit sin `Verified` badge, salvo admin con bypass.          |
+
+> **⚠️ Corrección de mecanismo (2026-09-21):** la premisa del spike de F3 era incorrecta — `changesets/action@v2` usa la **REST API por defecto** (`push-with-git-cli: false`), no `git push`. Los commits creados por la API los auto-firma GitHub con su GPG key de web-flow (Verified) y el ruleset `required_signatures` los acepta. El spike probó `git push` (rechazado, correctamente) — un mecanismo que changesets nunca invoca. La GitHub App con SSH signing key NO era necesaria; y la config SSH que llegó a estar en `release.yml` era **dead code**. Referencia autoritativa: `openspec/changes/archive/2026-09-21-ci-release-workflow-signing/design.md` (D1–D8) y el spec `commit-signing-release-migration`. La F3 real que sí se necesitó fue la reparación del pin `changesets/action` (ver change `ci-release-action-v2-fix`): el tag `@v2` exige `@changesets/cli` v3 y el repo usa v2. |
+> | **F4** | **Vigilant mode**: commits legacy (374 anteriores) mostrarán `Unverified`, solo visual — no rompe el pipeline. | El pipeline no se bloquea por commits viejos; solo alerta. |
+> | **F5** | **Ruleset** `Pre-Merge Governance Gate` en `main` con `bypass` para Admin + `required status check` "verified-commits". | Políticas de enforcement: nadie puede mergear un commit sin `Verified` badge, salvo admin con bypass. |
 
 ---
 
@@ -248,6 +250,8 @@ Job verify-signatures (Stage 2 PRE-Build):
 ---
 
 ### F3 — Migración release.yml CONDICIONAL al GATE 4.0
+
+> **⚠️ Registro histórico con premisa corregida (2026-09-21):** esta fase se planificó asumiendo que changesets hace `git push` con `GITHUB_TOKEN`. En realidad usa la REST API (auto-firma web-flow, aceptada por el ruleset). Lo que sí fue necesario: quitar la config SSH muerta de `release.yml` y reparar el pin `changesets/action` (change `ci-release-action-v2-fix`). Detalles: `openspec/changes/archive/2026-09-21-ci-release-workflow-signing/design.md`.
 
 **Entregable**: Spike empírico en una branch temporal `feature/signing-gate-test` para medir el impacto de un `ruleset` de signed commits en el workflow de release.
 

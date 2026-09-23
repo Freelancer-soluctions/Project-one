@@ -678,14 +678,25 @@ changesets/action@v2 (push-with-git-cli: false, default)
 
 ## 📚 Referencias
 
-| Recurso                         | URL                                                                                                                                                    |
-| ------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| OpenSpec change                 | `openspec/changes/ci-commit-signing/`                                                                                                                  |
-| GitHub App docs                 | https://docs.github.com/en/apps/creating-github-apps                                                                                                   |
-| peter-evans/git-commit-signer   | https://github.com/peter-evans/git-commit-signer                                                                                                       |
-| actions/create-github-app-token | https://github.com/actions/create-github-app-token                                                                                                     |
-| GitHub Rulesets                 | https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features                                                                |
-| SSH commit signing              | https://docs.github.com/en/authentication/managing-commit-signature-verification/about-commit-signature-verification#ssh-commit-signature-verification |
+| Recurso                              | URL                                                                                                                                                                                                 |
+| ------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| OpenSpec change                      | `openspec/changes/archive/2026-08-26-ci-commit-signing/` (archivado)                                                                                                                                |
+| Corrección de mecanismo (2026-09-21) | `openspec/changes/archive/2026-09-21-ci-release-workflow-signing/design.md` (D1–D8) — GATE 4.0 probó el mecanismo equivocado; App token opcional; spec `commit-signing-release-migration` corregida |
+| Reparación release.yml (2026-09-21)  | `openspec/changes/archive/2026-09-21-ci-release-action-v2-fix/` — pin `changesets/action@v1.9.0` (action v2 exige CLI v3; repo usa v2), token vía input `github-token`                              |
+| GitHub App docs                      | https://docs.github.com/en/apps/creating-github-apps                                                                                                                                                |
+| peter-evans/git-commit-signer        | https://github.com/peter-evans/git-commit-signer                                                                                                                                                    |
+| actions/create-github-app-token      | https://github.com/actions/create-github-app-token                                                                                                                                                  |
+| GitHub Rulesets                      | https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features                                                                                                             |
+| SSH commit signing                   | https://docs.github.com/en/authentication/managing-commit-signature-verification/about-commit-signature-verification#ssh-commit-signature-verification                                              |
+
+### Actualización 2026-09-21 — corrección de alcance de este journal
+
+La sección anterior ("¿Entonces por qué mantener la key de CI?") queda matizada por dos hallazgos posteriores:
+
+1. **El GATE 4.0 probó el mecanismo equivocado** (change `ci-release-workflow-signing`, archivado en `openspec/changes/archive/2026-09-21-ci-release-workflow-signing/`): el spike hizo `git push` con `GITHUB_TOKEN` (rechazado, correctamente) pero changesets usa la REST API — los commits de release siempre quedaron auto-firmados (web-flow) y el ruleset los acepta. La App + SSH key NO eran necesarias para `release.yml`; la config SSH era dead code (ya documentado arriba) y el propio token de la App, tal como estaba cableado (`env: GITHUB_TOKEN`), dejó de llegar al action en v2 (release note #674 exige el input `github-token`).
+2. **`release.yml` estuvo roto del 2026-08-12 al 2026-09-21** por otra vía: el pin `changesets/action@v2` exige `@changesets/cli` v3 y el monorepo usa v2 (`Changesets CLI v2 is not supported` — runs `32609462623`/`32609700337`). Reparado en `ci-release-action-v2-fix` con pin exacto `@v1.9.0` + `commitMode: github-api` + token por input.
+
+La matriz de decisión de arriba sigue siendo correcta; la fila "Commits manuales en workflow → ✅ Sí / App SSH key" requiere además que la firma ocurra en el runner con la clave PRIVADA en ssh-agent (con solo la pública, non-functional — ver D6/D9).
 
 ---
 

@@ -57,7 +57,7 @@ docker compose ps
 # STATE debe mostrar: Up ... (healthy)
 
 # O directamente (el contenedor tiene curl disponible):
-docker compose exec floci curl -f http://localhost:4566/_localstack/health
+docker compose exec floci curl -f http://localhost:4566/_floci/health
 # Respuesta esperada: JSON con status ok y servicios running
 ```
 

@@ -38,13 +38,29 @@ jobs:
 
       - name: Create Release PR or Publish
         id: changesets
-        uses: changesets/action@v2
+        # Pinned to the exact tag v2.1.2 (latest v2). MAJOR moves of @changesets/cli or
+        # changesets/action are BREAKING and must land together in one PR (an atomically
+        # paired half-migration broke this pipeline 2026-08-12→2026-09-21: the floating
+        # tag @v2 required @changesets/cli v3 while the repo had v2).
+        # Pairing rule: action v1.x ↔ @changesets/cli v2 · action v2.x ↔ @changesets/cli v3.
+        # Current pairing: action v2.1.2 ↔ @changesets/cli ^3.0.3 (CLI v3 notes that touched
+        # this repo: #2186 privatePackages (set true in .changeset/config.json), #2128
+        # `changeset tag`→`changeset git-tag` (see the `release` script), #1860 version
+        # exits 1 on no-op (fail-loud is accepted), #1482 node ^22.11||^24||>=26 (.nvmrc 22.x).
+        # If a publish mode is ever added, pass CHANGESETS_OUTPUT down to the CLI invocations
+        # (action README). Keep the token on the github-token input (v2 REQUIRES it; env
+        # GITHUB_TOKEN is rejected when it differs from the input).
+        # Do NOT re-add runner-side SSH signing config (see
+        # openspec/specs/commit-signing-release-migration + release-workflow-compatibility).
+        uses: changesets/action@v2.1.2
         with:
+          github-token: ${{ steps.app-token.outputs.token }}
           version-script: npm run version:packages
           pr-title: "chore: version packages"
           commit-message: "chore: version packages"
-        env:
-          GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
+          # API mode (explicit): GitHub auto-signs the version commit and Release PR with
+          # its web-flow GPG key (Verified badges, required_signatures-compliant).
+          push-with-git-cli: false
 
       - name: Verify Commit Signature
         if: success()

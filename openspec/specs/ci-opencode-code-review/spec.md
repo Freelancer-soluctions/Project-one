@@ -128,7 +128,7 @@ The `opencode-review.yml` workflow SHALL be documented as **ACTIVE** in GitHub (
 
 ### Requirement: The opencode binary version is pinned (no composite action since 2026-09-14)
 
-The opencode binary SHALL be pinned to a specific release for supply chain safety (§5.4). Current pin: **v1.18.31** (hardcoded download URL `https://github.com/anomalyco/opencode/releases/download/v1.18.31/opencode-linux-x64.zip`, no dynamic version lookup). Historical pin (superseded 2026-09-14 by change `ci-opencode-review-fix`): `anomalyco/opencode/github@5d5c35ee71c095464b9eb3c3e991df906f12a152` (SHA-pinned, verified 2026-09-04; removed because its `Get opencode version` step failed on unauthenticated API rate-limit).
+The opencode binary SHALL be pinned to a specific release for supply chain safety (§5.4). Current pin: **v1.18.31** (hardcoded download URL `https://github.com/anomalyco/opencode/releases/download/v1.18.31/opencode-linux-x64.tar.gz`, no dynamic version lookup). Historical pin (superseded 2026-09-14 by change `ci-opencode-review-fix`): `anomalyco/opencode/github@5d5c35ee71c095464b9eb3c3e991df906f12a152` (SHA-pinned, verified 2026-09-04; removed because its `Get opencode version` step failed on unauthenticated API rate-limit).
 
 #### Scenario: Binary version is documented
 

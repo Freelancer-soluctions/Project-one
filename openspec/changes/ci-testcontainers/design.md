@@ -1,7 +1,7 @@
 ## Context
 
 - Motivación completa en proposal.md - Why: ítem 2.4 de `docs/cicd-plan-implementacion.md` diferido como follow-up en `ci-floci-migration` (archivado 2026-08-08); `@floci/testcontainers` no está en el árbol de dependencias (verificado).
-- La base ya está en main specs: `openspec/specs/ci-floci-dev-emulation/spec.md` define el servicio `floci` del compose dev-local (imagen `floci/floci:1.5.31`, puerto 4566, `FLOCI_STORAGE_MODE=memory`, healthcheck `/_localstack/health`) y la conexión por `AWS_ENDPOINT_URL` + credenciales dummy. Este change NO toca esa spec.
+- La base ya está en main specs: `openspec/specs/ci-floci-dev-emulation/spec.md` define el servicio `floci` del compose dev-local (imagen `floci/floci:1.5.31`, puerto 4566, `FLOCI_STORAGE_MODE=memory`, healthcheck `/_floci/health`) y la conexión por `AWS_ENDPOINT_URL` + credenciales dummy. Este change NO toca esa spec.
 - El server usa Vitest con configuración híbrida: unit tests colocated (`src/**/*.unit.test.js`) + integration tests centralizados (`tests/integration/<module>/*.integration.test.js`), `setupFiles: ./tests/setupTest.js` (carga `.env.test`), y en CI `maxWorkers: 1, isolate: false, retry: 2` (`apps/server/vitest.config.js`).
 - El job `test-integration` de `ci.yml` corre en `ubuntu-latest` (Docker disponible) con PostgreSQL service container; Testcontainers puede usar el socket Docker del runner sin configuración extra.
 - `loadSecrets()` (`src/config/aws/secrets.js`) es código muerto hoy (ningún archivo la importa) — verificado en `ci-floci-migration`; el smoke test de Secrets Manager se valida vía SDK directo hasta que exista consumidor.

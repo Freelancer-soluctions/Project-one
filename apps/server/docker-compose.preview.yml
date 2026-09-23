@@ -17,12 +17,9 @@ services:
     environment:
       - FLOCI_STORAGE_MODE=memory
       - FLOCI_HOSTNAME=floci
-    healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:4566/_localstack/health >/dev/null 2>&1 || exit 1"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 10s
+    # Sin healthcheck propio: la imagen trae uno nativo (CMD-SHELL curl -f
+    # http://localhost:4566/_floci/health, 5s/3s/5 retries). La imagen no incluye
+    # CLI "floci" ni "which"; solo curl/sh/ls.
     networks:
       - preview-network
 
@@ -46,10 +43,12 @@ services:
     networks:
       - preview-network
 
-  # Server Express - Build desde Dockerfile existente (context: monorepo root para package-lock.json)
+  # Server Express - Build desde Dockerfile existente
+  # context: raíz del monorepo (el Dockerfile copia package-lock.json de la raíz y el
+  # path de dockerfile es RELATIVO AL CONTEXT según el spec de compose)
   server:
     build:
-      context: ..
+      context: ../..
       dockerfile: apps/server/Dockerfile
     container_name: preview-server
     ports:
@@ -61,6 +60,8 @@ services:
       - AWS_SECRET_ACCESS_KEY=test
       - AWS_REGION=us-east-1
       - PORT=3000
+      # Habilita la ruta test-only /_smoke/secrets (misma config que el workflow de CI)
+      - ENABLE_SMOKE_ROUTE=true
       # AES_GCM_KEY: dummy base64 of 32 zero bytes — required by encryptionMiddleware
       # bootstrap (apps/server/src/middleware/encription-prisma-middleware.js) so the
       # module import does not throw before Express listens. Preview stack never

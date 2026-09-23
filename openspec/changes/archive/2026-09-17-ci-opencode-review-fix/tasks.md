@@ -1,0 +1,29 @@
+## 1. Workflow Update
+
+- [x] 1.1 Open `.github/workflows/opencode-review.yml` for editing
+- [x] 1.2 Remove the step `uses: anomalyco/opencode/github@5d5c35ee71c095464b9eb3c3e991df906f12a152` and its `with:` inputs
+- [x] 1.3 Add new step "Install opencode" with run script that downloads v1.18.31 from `https://github.com/anomalyco/opencode/releases/download/v1.18.31/opencode-linux-x64.tar.gz`, extracts with tar xzf to `$HOME/.opencode/bin`, makes executable, and adds to `GITHUB_PATH`
+- [x] 1.4 Add new step "Run OpenCode AI review" with run script `opencode github run` and environment variables: `MODEL=google/gemini-3.6-flash`, `USE_GITHUB_TOKEN=true`, `GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}`, `OPENCODE_CONFIG_CONTENT` (JSON), `GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}`, `GOOGLE_GENERATIVE_AI_API_KEY=${{ secrets.GEMINI_API_KEY }}`, `GOOGLE_API_KEY=${{ secrets.GEMINI_API_KEY }}`. **Prompt handling**: the `opencode github run` CLI does NOT accept a `--prompt` flag (verified via `opencode github run --help`). The composite action passes the prompt via the `PROMPT` env var (see `github/action.yml` L62: `PROMPT: ${{ inputs.prompt }}`). The inline step MUST set the `PROMPT` env var with the review prompt text (identical to the current `with: prompt:` block). The CLI reads `PROMPT` from environment at runtime.
+- [x] 1.5 Preserve existing job-level settings: `continue-on-error: true`, `timeout-minutes: 10`, concurrency group, `if:` conditions, permissions
+- [x] 1.6 Verify the updated workflow YAML is syntactically valid (run `actionlint` if available) ✅ ActionLint job in CI run 35189370806 completed SUCCESS (2026-09-17T06:21:06Z)
+
+## 2. Documentation Updates
+
+- [x] 2.1 Open `docs/CONTEXT-CICD.md` for editing
+- [x] 2.2 Update §3.4, §3.5, and §5.9 workflow inventory: change `opencode-review.yml` from `⛔ disabled_manually` to `✅ active` (audited 2026-09-14 API; inventory now shows 3 active workflows + dependabot config). Also review §5.10 if it references the workflow count — update any narrative that says "SOLO `ci.yml` está habilitado" to reflect the new state (ci.yml + opencode-review.yml + dependabot config = 3 active).
+- [x] 2.3 Update §9.3.8 to document the root-cause analysis (rate-limit bug) and the inline-step fix (replace composite action with install + run steps)
+- [x] 2.4 Ensure the documentation reflects the current runtime state and the fix details
+
+## 3. Verification
+
+- [x] 3.1 Create a PR draft targeting `main` to trigger the `opencode-review.yml` workflow (it only fires on `pull_request` to `main` with `types: [opened, synchronize, reopened]`). Verify the workflow triggers by checking the Actions tab for the run. Then verify the review comment appears on the PR. ✅ Run 35189370761 completed SUCCESS; review comment posted by github-actions[bot] at 2026-09-17T06:23:55Z on PR #130
+- [x] 3.2 Verify the job completes without the rate-limit error ✅ Run 35189370761 conclusion: success; Install opencode step: SUCCESS; Run OpenCode AI review step: SUCCESS
+- [x] 3.3 Check that the review comment is informational and non-blocking (does not affect merge requirements) ✅ Comment posted by github-actions[bot] (not an approval); `continue-on-error: true` in workflow; no ruleset binding
+- [x] 3.4 Confirm that all existing governance checks (4 required status checks) remain unaffected ✅ Verify Commit Signatures: SUCCESS, Commit Lint: SUCCESS, PR Title Lint: SUCCESS, DCO: SUCCESS (ci.yml run 35189370806)
+- [x] 3.5 Validate that the workflow still excludes fork PRs, dependabot PRs, and draft PRs ✅ Workflow YAML line 19: `if: github.event.pull_request.head.repo.fork == false && github.actor != 'dependabot[bot]' && github.event.pull_request.draft == false`
+
+## 4. Final Review
+
+- [x] 4.1 Review all changes for compliance with repo rules (signed commits, no `--no-verify`, conventional commits) ✅ Commits 9852243 and 3ef6f0b both have Good ED25519 signatures; all commits use Conventional Commits format; no --no-verify usage detected
+- [x] 4.2 Ensure the PR title follows Conventional Commits format (e.g., `fix(ci): replace opencode composite action with inline steps to fix rate-limit bug`) ✅ PR title: "fix(ci): land post-merge ci fixes"
+- [x] 4.3 Verify the PR includes both workflow and documentation changes in a single commit (or appropriate commits) ✅ Commits: 9852243 (workflow fix), 3ef6f0b (tar.gz correction), plus docs commits; PR includes workflow + docs + artifacts changes

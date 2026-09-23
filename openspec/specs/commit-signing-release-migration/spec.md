@@ -6,25 +6,26 @@ Migra el workflow `release.yml` para que los commits de versión y el Release PR
 
 ## Requirements
 
-### Requirement: release.yml produce commits Verified vía GitHub App SSH
+### Requirement: release.yml produce commits Verified sin firma en el runner (API mode)
 
-El workflow `release.yml` SHALL usar una GitHub App dedicada con su propia SSH signing key (vía `actions/create-github-app-token`) para generar el token con el que `changesets/action` crea el version commit y el Release PR. Los commits y el Release PR SHALL marcarse como "Verified" en GitHub. Como fallback si App indisponible, SHALL (fallback si App indisponible: (a) pausar releases hasta restaurar App — preferido; o (b) firmar en runner con SSH signing key dedicada de emergencia importada vía secret — requiere su .pub registrada como Signing Key previamente).
+El workflow `release.yml` SHALL producir el version commit y el Release PR de changesets como "Verified" en GitHub **sin configuración de firma en el runner**. `changesets/action@v2` opera por defecto en modo API (`push-with-git-cli: false`): crea el version commit y el Release PR vía REST API, y GitHub los auto-firma con su GPG key de web-flow (id `4AEE18F83AFDEB23`), que el ruleset `Pre-Merge Governance Gate` (`required_signatures`) acepta como `verification.verified=true`. El workflow SHALL autenticarse con un token con `contents: write` + `pull-requests: write` (el `GITHUB_TOKEN` por defecto, o un App token pasado explícitamente vía el input `github-token` — NUNCA únicamente vía la variable de entorno `GITHUB_TOKEN`, que el action v2 ya no soporta y rechaza si difiere del input). El workflow SHALL NOT volver a incluir configuración de firma SSH (`gpg.format`, `user.signingkey`, `commit.gpgsign`): es dead code en modo API y non-functional en git-cli mode (la clave privada de la App no se provisiona en `ssh-agent`).
 
-**Nota (condicional — R8):** R8 aplica SOLO si GATE 4.0 (tasks 4.0) determina que commits de changesets son rechazados por enforcement; si aceptados, R8 queda not-needed y este spec delta se marca como descartado en sync/archive.
+**Historia:** reemplaza el requirement original (R8), que exigía una GitHub App con SSH signing key. R8 se marcó condicional a GATE 4.0; el spike probó `git push` con `GITHUB_TOKEN` (mecanismo que changesets no usa) y la corrección de mecanismo (2026-08-26, D4/D9 del change `ci-commit-signing`; 2026-09-21, D7 de `ci-release-workflow-signing`) determinó que el requisito de la App es innecesario. La App con su token vía `github-token` input queda como preferencia opcional (atribución de PRs), no como requisito.
 
-#### Scenario: Version commit firmado por la App
+#### Scenario: Version commit auto-firmado en modo API
 
-- **WHEN** `changesets/action` crea el version commit usando el token de la GitHub App con SSH signing key configurada
-- **THEN** el version commit se marca como "Verified" en GitHub
-- **AND** el Release PR resultante también se marca como "Verified"
+- **WHEN** `changesets/action@v2` (`push-with-git-cli: false`, default) crea el version commit y el Release PR vía REST API con un token con `contents: write` + `pull-requests: write`
+- **THEN** ambos quedan marcados como "Verified" en GitHub, firmados con la GPG key de web-flow
+- **AND** pasan la regla `required_signatures` del ruleset sin ninguna configuración de firma en el runner
 
-#### Scenario: Fallback si la App no está disponible
+#### Scenario: Token personalizado bien cableado (opcional)
 
-- **WHEN** la GitHub App no está disponible (credenciales revocadas o servicio caído)
-- **THEN** se aplica el fallback dual: (a) pausar releases hasta restaurar la App — preferido; o (b) firmar en el runner con una SSH signing key dedicada de emergencia importada vía secret, cuya `.pub` debe estar registrada previamente como Signing Key en GitHub
-- **AND** el fallback NO depende de firmas automáticas de GitHub (web-flow); el comportamiento exacto de firma según mecanismo (git push vs REST API) se determina empíricamente en GATE 4.0
+- **WHEN** se usa un App token (`APP_ID` + `APP_PRIVATE_KEY` vía `actions/create-github-app-token`) en lugar del `GITHUB_TOKEN` por defecto
+- **THEN** el token SHALL pasarse al input `github-token` de `changesets/action`
+- **AND** SHALL NOT configurarse únicamente como `env: GITHUB_TOKEN` (el action v2 lo rechaza cuando difiere del input)
 
-#### Scenario: release.yml sin migrar rompe enforcement
+#### Scenario: Guardarraíl contra firma SSH en release.yml
 
-- **WHEN** `release.yml` sigue usando GITHUB_TOKEN con contents:write sin firma de la App
-- **THEN** los commits de release NO quedan Verified y el enforcement en main los rechaza (riesgo mitigado ejecutando F3 antes de F5)
+- **WHEN** un desarrollador añade configuración de firma SSH (`gpg.format`, `user.signingkey`, `commit.gpgsign`) a `release.yml`
+- **THEN** la revisión de code review / governance la rechaza como dead code (no se ejecuta en modo API y es non-functional en git-cli mode)
+- **AND** la referencia autoritativa es `openspec/changes/archive/2026-09-21-ci-release-workflow-signing/design.md` (D5–D7)

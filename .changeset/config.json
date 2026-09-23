@@ -1,11 +1,15 @@
 {
   "$schema": "https://unpkg.com/@changesets/config@3.0.0/schema.json",
-  "changelog": ["@changesets/changelog-github", { "repo": "Freelancer-soluctions/Project-one" }],
+  "changelog": [
+    "@changesets/changelog-github",
+    { "repo": "Freelancer-soluctions/Project-one" }
+  ],
   "commit": false,
   "fixed": [],
   "linked": [],
   "access": "restricted",
   "baseBranch": "main",
+  "privatePackages": true,
   "updateInternalDependencies": "patch",
   "ignore": ["e2e"]
 }
