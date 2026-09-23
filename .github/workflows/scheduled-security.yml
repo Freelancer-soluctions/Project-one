@@ -20,8 +20,14 @@ jobs:
         with:
           fetch-depth: 0
 
+      # Audit mode (spec ci-secret-scanning — "Secret found in historical commit"):
+      # el run NO falla por hallazgos; los reporta (artifact JSON) y continúa
       - name: Run Gitleaks full history scan (JSON report)
+        continue-on-error: true
         uses: docker://zricethezav/gitleaks:v8.22.1
+        env:
+          # Lookups de config contra la API de GitHub — 403 sin token
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           args: git --log-opts="--all" --report-format=json --report-path=gitleaks-report.json --redact
 
@@ -33,8 +39,12 @@ jobs:
           path: gitleaks-report.json
           retention-days: 30
 
+      # Audit mode también aquí: el SARIF se genera/sube aunque haya hallazgos
       - name: Run Gitleaks full history scan (SARIF report)
+        continue-on-error: true
         uses: docker://zricethezav/gitleaks:v8.22.1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           args: git --log-opts="--all" --report-format=sarif --report-path=gitleaks.sarif --redact
 

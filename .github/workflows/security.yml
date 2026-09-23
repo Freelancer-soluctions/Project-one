@@ -85,6 +85,11 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     if: github.event_name == 'pull_request'
+    # El contexto `secrets` NO está disponible en `steps.if` (Context availability,
+    # GitHub Docs) — se proyecta a env a nivel de job para poder condicionar los
+    # steps sobre env.GIT_LEAKS (la condicional sobre secrets era código muerto)
+    env:
+      GIT_LEAKS: ${{ secrets.GIT_LEAKS }}
 
     steps:
       - uses: actions/checkout@v5
@@ -93,16 +98,20 @@ jobs:
 
       - name: Scan PR diff for secrets (Gitleaks OSS)
         uses: docker://zricethezav/gitleaks:v8.22.1
+        env:
+          # Gitleaks consulta la API de GitHub (lookup de config org/repo) cuando
+          # detecta que corre en Actions — sin token falla con 403
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           args: git --log-opts="${{ github.event.pull_request.base.sha }}..${{ github.event.pull_request.head.sha }}" --redact --verbose
 
       - name: Scan for secrets (licensed action - optional)
-        if: ${{ secrets.GIT_LEAKS != '' }}
+        if: ${{ env.GIT_LEAKS != '' }}
         uses: gitleaks/gitleaks-action@v3
         env:
           GITLEAKS_LICENSE: ${{ secrets.GIT_LEAKS }}
       - name: "Warn: licensed Gitleaks scan unavailable"
-        if: ${{ secrets.GIT_LEAKS == '' }}
+        if: ${{ env.GIT_LEAKS == '' }}
         run: echo "::warning::GIT_LEAKS secret not configured - licensed Gitleaks scan skipped. Using open-source Gitleaks only."
 
 # =========================
