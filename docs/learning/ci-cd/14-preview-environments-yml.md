@@ -151,7 +151,7 @@ jobs:
           FLOCI_STORAGE_MODE: memory
           FLOCI_HOSTNAME: floci
         options: >-
-          --health-cmd "curl -f http://localhost:4566/_localstack/health || exit 1"
+          --health-cmd "curl -f http://localhost:4566/_floci/health || exit 1"
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
@@ -171,18 +171,18 @@ env:
   FLOCI_STORAGE_MODE: memory
   FLOCI_HOSTNAME: floci
 options: >-
-  --health-cmd "curl -f http://localhost:4566/_localstack/health || exit 1"
+  --health-cmd "curl -f http://localhost:4566/_floci/health || exit 1"
   --health-interval 10s
   --health-timeout 5s
   --health-retries 5
   --health-start-period 10s
 ````
 
-| Variable                              | Para qué                                                                       |
-| ------------------------------------- | ------------------------------------------------------------------------------ |
-| `FLOCI_STORAGE_MODE: memory`          | Los servicios emulados guardan estado en memoria (efímero por diseño)          |
-| `FLOCI_HOSTNAME: floci`               | Hostname del contenedor para que el server lo resuelva en la red de servicios  |
-| `--health-cmd .../_localstack/health` | Healthcheck compatible con LocalStack (mismo criterio que deploy.yml, Guía 13) |
+| Variable                         | Para qué                                                                       |
+| -------------------------------- | ------------------------------------------------------------------------------ |
+| `FLOCI_STORAGE_MODE: memory`     | Los servicios emulados guardan estado en memoria (efímero por diseño)          |
+| `FLOCI_HOSTNAME: floci`          | Hostname del contenedor para que el server lo resuelva en la red de servicios  |
+| `--health-cmd .../_floci/health` | Healthcheck nativo de la imagen floci (mismo criterio que deploy.yml, Guía 13) |
 
 > ℹ️ **Floci no usa la variable `SERVICES` de LocalStack**: siempre arranca con sus servicios emulados (68 en total). Lo que cambia es el _modo de almacenamiento_ (`memory` = efímero, sin persistencia). En este stack solo se ejercita Secrets Manager vía el smoke test; S3 y DynamoDB arrancan igualmente aunque el preview no los use.
 

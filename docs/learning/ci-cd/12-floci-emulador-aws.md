@@ -199,10 +199,10 @@ Deberías ver el contenedor de Floci con estado `Up` y el puerto `4566` publicad
 Floci expone un endpoint de salud. Verifícalo con curl:
 
 ```bash
-curl http://localhost:4566/_localstack/health
+curl http://localhost:4566/_floci/health
 ```
 
-> 💡 Nota: Floci mantiene compatibilidad con el endpoint de healthcheck de LocalStack (`/_localstack/health`), lo que facilita migrar entre ambos.
+> 💡 Nota: El endpoint nativo de Floci es `/_floci/health` (expone el catálogo de servicios emulados con su estado). También responde el alias de compatibilidad `/_localstack/health` para facilitar la migración desde LocalStack. La convención del repo es usar el endpoint nativo.
 
 La respuesta es un JSON con el estado de los servicios emulados:
 
@@ -693,7 +693,7 @@ docker logs <container-id> --tail 50
 
 # Esperar más tiempo antes de asumir que está listo
 sleep 15
-curl -s http://localhost:4566/_localstack/health | jq
+curl -s http://localhost:4566/_floci/health | jq
 ```
 
 > 💡 En CI, el workflow de preview ya espera el healthcheck antes de lanzar los smoke tests. Si el timeout es corto, el job falla con un error de "service not ready".
@@ -748,7 +748,7 @@ docker volume rm <volume-name>
 docker ps | grep floci
 
 # 2. ¿Responde el endpoint?
-curl -s http://localhost:4566/_localstack/health
+curl -s http://localhost:4566/_floci/health
 
 # 3. ¿Está la variable bien definida?
 echo $AWS_ENDPOINT_URL
@@ -799,7 +799,7 @@ aws --endpoint-url=http://localhost:4566 secretsmanager get-secret-value \
 **Solución**:
 
 ```bash
-curl -s http://localhost:4566/_localstack/health | jq '.services | to_entries[] | select(.value == "available") | .key'
+curl -s http://localhost:4566/_floci/health | jq '.services | to_entries[] | select(.value == "available") | .key'
 ```
 
 **Qué aprendes**: El endpoint de health de Floci expone el estado de cada servicio. Es la misma información que usa el workflow para decidir si puede continuar.
@@ -831,7 +831,7 @@ docker compose -f docker-compose.preview.yml up -d
 
 # 2. Esperar healthcheck
 sleep 15
-curl -s http://localhost:4566/_localstack/health | jq '.services.secretsmanager'
+curl -s http://localhost:4566/_floci/health | jq '.services.secretsmanager'
 
 # 3. Crear secreto
 aws --endpoint-url=http://localhost:4566 secretsmanager create-secret \

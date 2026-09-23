@@ -4,13 +4,14 @@
 - El repo no tiene infraestructura de preview: sin staging ni hosting de la API; el client corre en Vite dev local; `apps/server/docker-compose.yml` es dev-local (db, pgAdmin, api, nginx, prometheus, grafana) y **NO se modifica** para preview.
 - `apps/server/Dockerfile` ya existe (node:20-alpine, EXPOSE 3000, CMD `node src/bin/index.js`) — reutilizable para la imagen del server del stack emulado.
 - `apps/server/src/config/aws/secret-manager.client.js` ya respeta `AWS_ENDPOINT_URL` (configura el `SecretsManagerClient` con ese endpoint cuando la variable está definida) — el código está listo para emulación **sin cambios de aplicación**.
-- Floci (`floci/floci:v1.5.11`, MIT) emula 68 servicios AWS en el puerto 4566, storage en memoria, sin telemetría (~90 MB, startup ~24 ms). Sustituye a LocalStack Community, que exige auth token desde marzo 2026. Docs oficiales: floci.io.
+- Floci (`floci/floci:1.5.31`, MIT) emula 68 servicios AWS en el puerto 4566, storage en memoria, sin telemetría (~90 MB, startup ~24 ms). Sustituye a LocalStack Community, que exige auth token desde marzo 2026. Docs oficiales: floci.io. (El tag `v1.5.11` citado en `docs/cicd-plan-implementacion.md` no existe en Docker Hub; el publicado real es `1.5.31`.)
 - El client es Vite (`vite build` → `apps/client/dist`); Vercel no está conectado aún como GitHub App.
 - La migración LocalStack→Floci en dev local es el change `ci-floci-migration` (separado) — aquí solo se incorpora Floci al stack de preview.
 
 ## Goals / Non-Goals
 
 **Goals:**
+
 - Cada PR contra `main` obtiene validación completa: preview del client (Vercel GitHub App nativa, URL automática por PR) + backend validado contra AWS emulado (Floci) con build + migraciones + smoke tests.
 - Stack AWS emulado reproducible en local y CI desde un compose dedicado (`apps/server/docker-compose.preview.yml`): server + Floci + PostgreSQL efímera.
 - Comentario único y actualizable en el PR con la URL del preview Vercel y el estado de la validación del backend emulado.
@@ -19,6 +20,7 @@
 - Solo `GITHUB_TOKEN` como secreto (sin secrets custom).
 
 **Non-Goals:**
+
 - NO desplegar a producción ni a staging; no tocar entornos existentes.
 - NO hosting cloud pagado para el preview de la API (sin Railway/Render/Fly.io) — Floci emula, no hostea.
 - NO migrar LocalStack→Floci en dev local (change `ci-floci-migration`).
@@ -31,7 +33,8 @@
 ### D1: Stack de emulación definido en `apps/server/docker-compose.preview.yml` (nuevo), sin tocar el compose de dev local
 
 **Decisión:** Crear `apps/server/docker-compose.preview.yml` con tres servicios:
-- `floci`: imagen oficial `floci/floci:v1.5.11` (pin concreto, consistente con la política de pinning del repo — gitleaks v8.22.1, sbom-action v0.17.2), puerto `4566:4566`, `FLOCI_STORAGE_MODE=memory`, `FLOCI_HOSTNAME=floci`, healthcheck `["CMD", "floci", "health"]` — emula AWS en local/CI sin cuenta real.
+
+- `floci`: imagen oficial `floci/floci:1.5.31` (pin concreto, consistente con la política de pinning del repo — gitleaks v8.22.1, sbom-action v0.17.2; el tag `v1.5.11` no existe en Docker Hub), puerto `4566:4566`, `FLOCI_STORAGE_MODE=memory`, `FLOCI_HOSTNAME=floci`, **sin healthcheck custom** — la imagen trae uno nativo (`CMD-SHELL curl -f http://localhost:4566/_floci/health`, interval 5s, timeout 3s, 5 retries; verificado empíricamente) y NO incluye el CLI `floci` ni `which` (solo `sh`/`ls`/`curl`), por lo que el healthcheck propuesto `["CMD", "floci", "health"]` era imposible de ejecutar — emula AWS en local/CI sin cuenta real.
 - `db`: `postgres:16-alpine`, sin volumen persistente, healthcheck `pg_isready`, credenciales de test — PostgreSQL efímera por stack.
 - `server`: build desde el `Dockerfile` existente, puerto `3000:3000`, `depends_on` db + floci healthy, env: `DATABASE_URL` apuntando al servicio `db`, `AWS_ENDPOINT_URL=http://floci:4566` (nombre de servicio del compose), credenciales dummy (`AWS_ACCESS_KEY_ID=test`, `AWS_SECRET_ACCESS_KEY=test`) y `AWS_REGION=us-east-1`.
 
@@ -44,6 +47,7 @@
 **Decisión:** Cada stack preview levanta su propia PostgreSQL efímera dentro del compose (`db`, sin volumen persistente) y ejecuta `npx prisma migrate deploy` al provisionar. La imagen `postgres:16-alpine` coincide con la convención de los tests de integración del change `ci-test-integration` (service container `postgres:16-alpine`).
 
 **Alternativas (rechazadas):**
+
 - `postgres:17` como el compose dev-local → diverge de la convención de tests de integración y de CI; sin ganancia funcional.
 - DB compartida de staging → staging no existe (Stage 7); datos de un PR contaminarían otros previews; viola aislamiento.
 - Apuntar a la DB local de dev → no accesible desde el entorno del preview/CI.
@@ -53,9 +57,10 @@
 
 ### D3: Floci como capa de emulación AWS — NO hosting
 
-**Decisión:** Floci (`floci/floci:v1.5.11`, puerto 4566) es el emulador AWS del stack de preview, para **aprendizaje y validación**. NO es un proveedor de hosting: la API validada contra Floci no se expone en una URL pública.
+**Decisión:** Floci (`floci/floci:1.5.31`, puerto 4566) es el emulador AWS del stack de preview, para **aprendizaje y validación**. NO es un proveedor de hosting: la API validada contra Floci no se expone en una URL pública.
 
 **Por qué Floci:**
+
 - **Objetivo de aprendizaje del usuario**: aprender AWS antes de usar cloud real; Floci permite desarrollar contra servicios AWS 1:1 sin cuenta ni costo.
 - **LocalStack Community sunset (marzo 2026)**: exige auth token y licencia restrictiva; Floci es MIT (forever free), 68 servicios vs ~26, imagen ~90 MB vs ~1 GB, startup ~24 ms vs ~3.3 s, sin telemetría.
 - **Código listo**: la app usa `@aws-sdk/client-secrets-manager` y `secret-manager.client.js` ya honra `AWS_ENDPOINT_URL` — cero cambios de aplicación para emular.
@@ -85,7 +90,7 @@
   3. Service containers del job: `floci` (puerto 4566) y `db` (`postgres:16-alpine`, puerto 5432, healthcheck `pg_isready`)
   4. Build de la imagen del server: `docker build apps/server` (valida el Dockerfile que usa el compose local)
   5. `npx prisma migrate deploy` contra la PostgreSQL efímera del service container
-  6. Arrancar el server desde la imagen construida (`--network=host`) con `AWS_ENDPOINT_URL=http://localhost:4566` + credenciales dummy + `AWS_REGION`; health check HTTP 200 en el endpoint de salud con reintentos
+  6. Arrancar el server desde la imagen construida (`--network=host`) con `AWS_ENDPOINT_URL=http://localhost:4566` + credenciales dummy + `AWS_REGION`; health check en `/health` con reintentos, aceptando HTTP 200 o 503 como liveness (503 = server vivo con DB degradada; ver R10)
   7. **Smoke test contra AWS emulado**: script Node (`apps/server/scripts/preview-smoke.mjs`) que hace CreateSecret + GetSecretValue vía `@aws-sdk/client-secrets-manager` contra `AWS_ENDPOINT_URL`; un fallo marca la validación como fallida en el PR
   8. Capturar la URL del preview Vercel (ver D7) y publicar comentario único con marker `<!-- preview-environments -->` usando `peter-evans/find-comment` + `peter-evans/create-or-update-comment` (URL del client + estado de los smoke tests; actualización en cada `synchronize` sin duplicados)
 - **Concurrencia:** grupo por PR con `cancel-in-progress: true` (ver D7).
@@ -97,6 +102,7 @@
 ### D6: Cleanup — efímero por naturaleza + Vercel auto-delete
 
 **Decisión:** No hay lógica de cleanup custom:
+
 - El stack emulado vive solo durante el job: los service containers (Floci + PostgreSQL) mueren con el runner al terminar (éxito o fallo); no hay volúmenes persistentes ni recursos cloud que desprovisionar.
 - Vercel elimina automáticamente el preview deployment del client al mergear/cerrar el PR (comportamiento nativo de la GitHub App).
 - El ciclo de vida efímero se documenta en `docs/aws-learning-with-floci.md`.
@@ -108,6 +114,7 @@
 ### D7: Secrets y concurrencia — GITHUB_TOKEN only
 
 **Decisión:**
+
 - El workflow usa únicamente `GITHUB_TOKEN` (automático): para comentar en el PR y para leer el status del deployment de Vercel.
 - **Captura de la URL de Vercel:** leer el commit status publicado por la Vercel GitHub App (`GET /repos/{owner}/{repo}/commits/{sha}/status` o check-runs) y extraer el `target_url` del status de Vercel — funciona solo con `GITHUB_TOKEN`, sin secrets custom. (El spec `ci-preview-client-vercel` usa este mismo mecanismo — alineado.)
 - **Concurrencia:** `concurrency: { group: preview-${{ github.event.pull_request.number }}, cancel-in-progress: true }` — un nuevo commit cancela la ejecución en curso del mismo PR y arranca una nueva para el commit más reciente.
@@ -125,9 +132,9 @@
 - **[R5: PRs de forks con GITHUB_TOKEN]** → Mitigation: en PRs de forks, `GITHUB_TOKEN` es **read-only** — no puede escribir comentarios. Los steps de comentario se protegen con `if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork == false` (+ `continue-on-error`); los PRs de forks obtienen validación vía checks, sin comentario combinado. Documentado en spec.
 - **[R6: Ruido de comentario en cada synchronize]** → Mitigation: comentario único con marker estable + update-in-place + `cancel-in-progress`.
 - **[R7: Smoke tests poco representativos]** → Mitigation: seed + get-secret-value cubren el path real de la app hoy; la guía de aprendizaje permite ampliar a más servicios progresivamente (p.ej. `@floci/testcontainers`).
-- **[R8: Dockerfile actual no construye]** → Mitigation: `RUN npm ci --omit=dev` ejecuta el postinstall `prisma generate`, pero `prisma` CLI es devDependency (omitida) y `prisma/schema.prisma` no se copia hasta `COPY . .`. Fix en este change: reordenar el Dockerfile — copiar `prisma/` antes de `npm ci` (o mover `prisma generate` después de `COPY . .` con CLI disponible). Task 0.1.
-- **[R9: Contexto de build contaminado (sin .dockerignore)]** → Mitigation: crear `apps/server/.dockerignore` (node_modules, .env, *.log, tests, dist). Sin él, el `npm ci` de la raíz + `docker build apps/server` incluiría el árbol completo de node_modules vía symlinks de workspaces. Task 0.2.
-- **[R10: No existe endpoint /health]** → Mitigation: añadir ruta mínima `GET /health` (200) en `src/app.js` — cambio de app no rompiente (o usar `/metrics` existente como gate alternativo). Task 3.0.
+- **[R8: Dockerfile actual no construye]** → Mitigation: `RUN npm ci --omit=dev` ejecuta el postinstall `prisma generate`, pero `prisma` CLI es devDependency (omitida) y `prisma/schema.prisma` no se copia hasta `COPY . .`. Fix en este change: reordenar el Dockerfile — copiar `prisma/` antes de `npm ci` (o mover `prisma generate` después de `COPY . .` con CLI disponible). Task 0.1. **Estado (2026-09-22, verificado):** la implementación final conserva el `COPY prisma/` previo y añade `RUN npx prisma generate` explícito antes del `npm prune` (el Dockerfile usa `--ignore-scripts`, que suprime el postinstall) más `apk add openssl` para que generate produzca el engine `linux-musl-openssl-3.0.x` compatible con el OpenSSL 3 de node:20-alpine — build, boot (`/health` 200) y smoke verificados localmente.
+- **[R9: Contexto de build contaminado (sin .dockerignore)]** → Mitigation: crear `apps/server/.dockerignore` (node_modules, .env, \*.log, tests, dist). Sin él, el `npm ci` de la raíz + `docker build apps/server` incluiría el árbol completo de node_modules vía symlinks de workspaces. Task 0.2.
+- **[R10: No existe endpoint /health]** → Mitigation: añadir ruta mínima `GET /health` (200) en `src/app.js` — cambio de app no rompiente (o usar `/metrics` existente como gate alternativo). Task 3.0. **Estado (2026-09-22, verificado):** `/health` implementado con semántica 200 (healthy, `SELECT 1` <500ms) / 503 (degraded); el gate del workflow acepta ambos como liveness y la main spec `ci-preview-workflow` quedó alineada.
 
 ## Migration Plan
 
@@ -144,4 +151,14 @@
 - ~~¿Capturar la URL de Vercel por commit status (GITHUB_TOKEN-only, D7) o vía Vercel REST API con `VERCEL_TOKEN` como menciona el spec `ci-preview-client-vercel`?~~ → **Resuelto**: commit status con `GITHUB_TOKEN` (D7). Zero secrets custom, funciona en PRs de forks. Spec `ci-preview-client-vercel` alineado.
 - ~~¿Postgres 16 (convención tests de integración, D2) o 17 (proposal.md)?~~ → **Resuelto**: 16-alpine (D2). proposal.md alineado.
 - ~~¿El smoke test debe ampliarse a más servicios AWS además de `secretsmanager` en este change, o dejarlo como follow-up (p.ej. `@floci/testcontainers` con Vitest)?~~ → **Resuelto**: solo `secretsmanager` (lo que la app usa hoy); ampliación como follow-up documentado en R7.
-- ~~¿Pinear la imagen `floci/floci:latest` a una versión concreta (p.ej. v1.5.11 según `docs/cicd-plan-implementacion.md`) para reproducibilidad en CI?~~ → **Resuelto**: pin `v1.5.11`, consistente con la política de pinning del repo (gitleaks v8.22.1, sbom-action v0.17.2).
+- ~~¿Pinear la imagen `floci/floci:latest` a una versión concreta (p.ej. v1.5.11 según `docs/cicd-plan-implementacion.md`) para reproducibilidad en CI?~~ → **Resuelto**: pin `1.5.31` (tag publicado real en Docker Hub; `v1.5.11` no existe), consistente con la política de pinning del repo (gitleaks v8.22.1, sbom-action v0.17.2).
+
+### Alineación con la implementación (verificación local 2026-09-22)
+
+Desviaciones menores entre el diseño original y la implementación final, documentadas para el registro:
+
+- **Pin de imagen**: `floci/floci:1.5.31` (el tag `v1.5.11` del plan no existe en Docker Hub). Aplica a compose preview, workflow preview y dev-local.
+- **Healthcheck de Floci**: la imagen no incluye CLI `floci` y trae healthcheck nativo `curl -f http://localhost:4566/_floci/health`. El compose preview no define healthcheck custom; los workflows (`preview.yml` y `deploy.yml`) usan `--health-cmd` con el endpoint nativo `/_floci/health` — convención unificada repo-wide y documentada en la main spec `ci-floci-dev-emulation` (el alias `/_localstack/health` responde 200 y queda reservado para migración desde LocalStack).
+- **Compose preview**: `ENABLE_SMOKE_ROUTE=true` en el server (habilita `/_smoke/secrets` para el smoke del path de app en local) y build context `../..` (el path de `dockerfile:` es relativo al context según el spec de compose).
+- **Prisma en Docker**: `RUN npx prisma generate` explícito + `apk add openssl` (ver R8); `/health` con semántica 200/503 (ver R10).
+- **Verificado end-to-end en local**: build de imagen OK, stack compose up con db+floci Healthy, 60 migraciones aplicadas, smoke PASSED (host e in-network) contra Floci 1.5.31.

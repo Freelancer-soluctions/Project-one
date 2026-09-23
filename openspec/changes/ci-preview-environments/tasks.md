@@ -10,17 +10,17 @@
 
 ## 1. docker-compose.preview.yml (stack de emulación AWS)
 
-- [x] 1.1 Create `apps/server/docker-compose.preview.yml` with `floci` service: image `floci/floci:v1.5.11` (pin concreto, no `latest`), port `4566:4566`, `FLOCI_STORAGE_MODE=memory`, `FLOCI_HOSTNAME=floci`, healthcheck `["CMD", "floci", "health"]`
+- [x] 1.1 Create `apps/server/docker-compose.preview.yml` with `floci` service: image `floci/floci:v1.5.11` (pin concreto, no `latest`), port `4566:4566`, `FLOCI_STORAGE_MODE=memory`, `FLOCI_HOSTNAME=floci`, healthcheck `["CMD", "floci", "health"]` _(impl final: pin `1.5.31`; sin healthcheck custom — la imagen trae uno nativo `curl -f localhost:4566/_floci/health` y no incluye CLI `floci` ni `which`)_
 - [x] 1.2 Add `db` service: `postgres:16-alpine`, no persistent volume, healthcheck `pg_isready`, credenciales consistentes con el workflow (p.ej. `POSTGRES_USER=test`, `POSTGRES_PASSWORD=test`, `POSTGRES_DB=project_one_preview`), DB named for preview stack
 - [x] 1.3 Add `server` service: build from existing Dockerfile, port `3000:3000`, `depends_on` (db + floci healthy), env `DATABASE_URL=postgresql://test:test@db:5432/project_one_preview`, `AWS_ENDPOINT_URL=http://floci:4566`, dummy creds `AWS_ACCESS_KEY_ID`/`AWS_SECRET_ACCESS_KEY`=test, `AWS_REGION=us-east-1` — **las mismas credenciales DB en compose y workflow**
 - [x] 1.4 Verificar que ESTE change no modifica `apps/server/docker-compose.yml` (dev-local) — aserción sobre el propio diff, NO invariante global: `ci-floci-migration` lo modifica legítimamente (LocalStack → Floci) en su propio change _(verified: docker-compose.yml untouched)_
-- [~] 1.5 Verify stack locally: `docker compose -f apps/server/docker-compose.preview.yml up` → Floci responds on 4566, server HTTP 200, no calls leave to real AWS _(not run locally; requires Docker)_
+- [x] 1.5 Verify stack locally: `docker compose -f apps/server/docker-compose.preview.yml up` → Floci responds on 4566, server HTTP 200, no calls leave to real AWS _(verified locally 2026-09-22: stack up con db+floci Healthy, `/health` HTTP 200, smoke PASSED host e in-network; fixes al compose: build context `../..` (dockerfile es relativo al context), healthcheck nativo de imagen, `ENABLE_SMOKE_ROUTE=true`)_
 
 ## 2. Smoke test AWS emulado
 
 - [x] 2.1 Create `apps/server/scripts/preview-smoke.mjs` using `@aws-sdk/client-secrets-manager` that creates a test secret and reads it back (CreateSecret + GetSecretValue) against `AWS_ENDPOINT_URL`
 - [x] 2.2 Verify script exits non-zero on failure and works with dummy creds + `AWS_REGION=us-east-1`
-- [~] 2.3 Run `npx prisma migrate deploy` against the ephemeral Postgres and confirm smoke passes against the compose stack _(not run locally; requires Docker)_
+- [x] 2.3 Run `npx prisma migrate deploy` against the ephemeral Postgres and confirm smoke passes against the compose stack _(verified locally 2026-09-22: 60 migraciones aplicadas contra la DB del compose; smoke PASSED contra Floci + `/_smoke/secrets`)_
 
 ## 3. Workflow preview.yml
 

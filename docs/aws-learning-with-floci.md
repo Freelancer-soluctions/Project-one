@@ -52,8 +52,9 @@ docker compose -f docker-compose.preview.yml down
 
 ```bash
 # 1. Verificar Floci responde en puerto 4566
-curl http://localhost:4566/_localstack/health
-# Respuesta esperada: JSON con servicios disponibles
+curl http://localhost:4566/_floci/health
+# Respuesta esperada: JSON con catálogo de servicios ("secretsmanager":"running", ...)
+# (el alias de compatibilidad /_localstack/health también responde 200)
 
 # 2. Verificar health check del server
 curl http://localhost:3000/health
@@ -81,7 +82,7 @@ El stack `docker-compose.preview.yml` define tres servicios:
 - **Rol**: Emulador de 68 servicios AWS
 - **Puerto**: 4566 (HTTP/HTTPS)
 - **Storage**: Memoria (`FLOCI_STORAGE_MODE=memory`) — datos efímeros
-- **Healthcheck**: `curl -f http://localhost:4566/_localstack/health || exit 1` cada 10s
+- **Healthcheck**: nativo de la imagen — `curl -f http://localhost:4566/_floci/health` (cada 5s, 5 retries); el compose no define override
 - **Variables**:
   - `FLOCI_HOSTNAME=floci` (para resolución DNS interna)
 

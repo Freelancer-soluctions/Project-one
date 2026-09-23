@@ -30,9 +30,9 @@ El servicio `floci` SHALL exponer un healthcheck ejecutable que permita a `docke
 #### Scenario: Contenedor sano
 
 - **WHEN** el contenedor `floci` está corriendo correctamente
-- **THEN** su healthcheck (`["CMD-SHELL", "curl -f http://localhost:4566/_localstack/health"]`) reporta el estado healthy
+- **THEN** su healthcheck (`["CMD-SHELL", "curl -f http://localhost:4566/_floci/health"]`) reporta el estado healthy
 
-> **Nota de alineación con la implementación**: el tag `floci/floci:v1.5.11` no existe en Docker Hub; el tag publicado real es `floci/floci:1.5.31` (el que usa el compose dev-local). El comando `floci health` no existe en la imagen; el patrón correcto es el healthcheck curl contra `/_localstack/health` (endpoint de compatibilidad LocalStack), consistente con el stack de preview (`ci-preview-environments`).
+> **Nota de alineación con la implementación**: el tag `floci/floci:v1.5.11` no existe en Docker Hub; el tag publicado real es `floci/floci:1.5.31` (el que usa el compose dev-local). El comando `floci health` no existe en la imagen; el patrón correcto es el healthcheck curl contra `/_floci/health` (endpoint nativo de Floci, que expone el catálogo de servicios emulados con su estado) — convención unificada repo-wide (compose dev-local, preview.yml, deploy.yml). El alias de compatibilidad `/_localstack/health` también responde 200, pero queda reservado solo para migración desde LocalStack.
 
 ### Requirement: Conexión de la app vía variables de entorno
 
