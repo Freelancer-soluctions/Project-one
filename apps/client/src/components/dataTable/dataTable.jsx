@@ -23,6 +23,77 @@ import { CaretSortIcon } from '@radix-ui/react-icons';
 import { MdOutlineArrowDropDown, MdOutlineArrowDropUp } from 'react-icons/md';
 import PropTypes from 'prop-types';
 
+/**
+ * Encabezado de columna: título ordenable + icono de dirección + filtro.
+ *
+ * @param {Object} p - Props del encabezado.
+ * @param {Object} p.header - Header de TanStack Table.
+ * @param {Object} p.table - Instancia de la tabla (para el filtro).
+ * @returns {JSX.Element} Contenido del TableHead.
+ */
+const SortableHeaderContent = ({ header, table }) => (
+  <>
+    <div
+      {...{
+        className: header.column.getCanSort()
+          ? 'cursor-pointer select-none text-center'
+          : '',
+        onClick: header.column.getToggleSortingHandler(),
+      }}
+    >
+      {flexRender(header.column.columnDef.header, header.getContext())}
+      {{
+        asc: <MdOutlineArrowDropUp className="inline-block" />,
+        desc: <MdOutlineArrowDropDown className="inline-block" />,
+        false: <CaretSortIcon className="inline-block" />,
+      }[header.column.getIsSorted()] ?? null}
+    </div>
+    {header.column.getCanFilter() ? (
+      <div className="pt-2 ">
+        <Filter column={header.column} table={table} />
+      </div>
+    ) : null}
+  </>
+);
+
+SortableHeaderContent.propTypes = {
+  header: PropTypes.object.isRequired,
+  table: PropTypes.object.isRequired,
+};
+
+/**
+ * Fila de datos: celdas clickeables con tooltip.
+ *
+ * @param {Object} p - Props de la fila.
+ * @param {Object} p.row - Row de TanStack Table.
+ * @param {Function} p.handleDataRow - Callback al hacer click en una celda.
+ * @returns {JSX.Element} TableRow.
+ */
+const DataRow = ({ row, handleDataRow }) => (
+  <TableRow
+    key={row.id}
+    className=""
+    data-state={row.getIsSelected() && 'selected'}
+  >
+    {row.getVisibleCells().map((cell) => (
+      <TableCell
+        key={cell.id}
+        className="p-2 text-center border cursor-pointer select-none "
+        onClick={() => {
+          handleDataRow(row);
+        }}
+      >
+        <CellWithTooltip cell={cell} />
+      </TableCell>
+    ))}
+  </TableRow>
+);
+
+DataRow.propTypes = {
+  row: PropTypes.object.isRequired,
+  handleDataRow: PropTypes.func.isRequired,
+};
+
 export const DataTable = ({
   columns,
   data = [],
@@ -82,84 +153,26 @@ export const DataTable = ({
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
-                {headerGroup.headers.map((header) => {
-                  return (
-                    <TableHead key={header.id} className="p-3 border ">
-                      {/* {header.isPlaceholder
-                            ? null
-                            : flexRender(
-                                header.column.columnDef.header,
-                                header.getContext()
-                              )}
-                          {
-                            {
-                              asc: <CaretSortIcon className='w-4 h-3 ml-1' />,
-                              desc: <CaretSortIcon className='w-4 h-4 ml-2' />
-                            }[header.column.getIsSorted() ?? null]
-                          }
-                          {header.column.getCanFilter() ? (
-                            <div>
-                              <Filter column={header.column} />
-                            </div>
-                          ) : null} */}
-
-                      <div
-                        {...{
-                          className: header.column.getCanSort()
-                            ? 'cursor-pointer select-none text-center'
-                            : '',
-                          onClick: header.column.getToggleSortingHandler(),
-                        }}
-                      >
-                        {flexRender(
-                          header.column.columnDef.header,
-                          header.getContext()
-                        )}
-                        {{
-                          asc: (
-                            <MdOutlineArrowDropUp className="inline-block" />
-                          ),
-                          desc: (
-                            <MdOutlineArrowDropDown className="inline-block" />
-                          ),
-                          false: <CaretSortIcon className="inline-block" />,
-                        }[header.column.getIsSorted()] ?? null}
-                      </div>
-                      {header.column.getCanFilter() ? (
-                        <div className="pt-2 ">
-                          <Filter column={header.column} table={table} />
-                        </div>
-                      ) : null}
-                    </TableHead>
-                  );
-                })}
+                {headerGroup.headers.map((header) => (
+                  <TableHead key={header.id} className="p-3 border ">
+                    <SortableHeaderContent header={header} table={table} />
+                  </TableHead>
+                ))}
               </TableRow>
             ))}
           </TableHeader>
 
           <TableBody>
             {table.getRowModel().rows?.length ? (
-              table.getRowModel().rows.map((row) => (
-                <TableRow
-                  key={row.id}
-                  className=""
-                  data-state={row.getIsSelected() && 'selected'}
-                >
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell
-                      key={cell.id}
-                      className="p-2 text-center border cursor-pointer select-none "
-                      onClick={() => {
-                        handleDataRow(row);
-                      }}
-                    >
-                      {/* {renderCellWithTooltip(cell)} */}
-                      <CellWithTooltip cell={cell} />
-                      {/* {flexRender(cell.column.columnDef.cell, cell.getContext())} */}
-                    </TableCell>
-                  ))}
-                </TableRow>
-              ))
+              table
+                .getRowModel()
+                .rows.map((row) => (
+                  <DataRow
+                    key={row.id}
+                    row={row}
+                    handleDataRow={handleDataRow}
+                  />
+                ))
             ) : (
               <TableRow>
                 <TableCell
@@ -175,7 +188,6 @@ export const DataTable = ({
       </TooltipProvider>
 
       <Pagination table={table} />
-      {/* <pre>{JSON.stringify(table.getState().pagination, null, 2)}</pre> */}
     </div>
   );
 };

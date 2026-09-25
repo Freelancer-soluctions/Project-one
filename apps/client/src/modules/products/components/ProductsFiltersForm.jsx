@@ -22,6 +22,123 @@ import { LuPlus, LuSearch, LuEraser } from 'react-icons/lu';
 import PropTypes from 'prop-types';
 import { FIELD_LIMITS } from '@/config/fieldLimits';
 
+/** Text filter field. */
+function FilterTextField({ control }) {
+  const { t } = useTranslation();
+  return (
+    <FormField
+      control={control}
+      name="name"
+      render={({ field }) => (
+        <FormItem className="flex flex-col flex-auto">
+          <FormLabel htmlFor="name">{t('name')}</FormLabel>
+          <FormControl>
+            <Input
+              id="name"
+              name="description"
+              placeholder={t('description_placeholder')}
+              type="text"
+              autoComplete="false"
+              maxLength={FIELD_LIMITS.products.name}
+              {...field}
+              value={field.value ?? ''}
+            />
+          </FormControl>
+          <FormMessage />
+        </FormItem>
+      )}
+    />
+  );
+}
+
+FilterTextField.propTypes = {
+  control: PropTypes.object.isRequired,
+};
+
+/**
+ * Catalog select filter (stores the full object keyed by `code`,
+ * like the dialogs' catalog selects).
+ */
+function FilterCatalogSelectField({
+  control,
+  name,
+  labelKey,
+  id,
+  placeholderKey,
+  dataCatalog,
+  labelSelector,
+}) {
+  const { t } = useTranslation();
+  return (
+    <FormField
+      control={control}
+      name={name}
+      render={({ field }) => (
+        <FormItem className="flex flex-col flex-auto">
+          <FormLabel htmlFor={id}>{t(labelKey)}</FormLabel>
+          <Select onValueChange={field.onChange} value={field.value}>
+            <FormControl id={id}>
+              <SelectTrigger>
+                <SelectValue placeholder={t(placeholderKey)} />
+              </SelectTrigger>
+            </FormControl>
+            <SelectContent>
+              {dataCatalog?.map((item, index) => (
+                <SelectItem value={item.code} key={index}>
+                  {labelSelector(item)}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <FormMessage />
+        </FormItem>
+      )}
+    />
+  );
+}
+
+FilterCatalogSelectField.propTypes = {
+  control: PropTypes.object.isRequired,
+  name: PropTypes.string.isRequired,
+  labelKey: PropTypes.string.isRequired,
+  id: PropTypes.string.isRequired,
+  placeholderKey: PropTypes.string.isRequired,
+  dataCatalog: PropTypes.array,
+  labelSelector: PropTypes.func.isRequired,
+};
+
+/** Search / add / clear action buttons row. */
+function buildFilterButtons({ t, handleAdd, handleResetFilter }) {
+  return (
+    <div className="flex flex-wrap items-center justify-between gap-3 mt-5 md:justify-normal">
+      <Button
+        type="submit"
+        className="flex-1 md:flex-initial md:w-24"
+        variant="info"
+      >
+        {t('search')}
+        <LuSearch className="w-4 h-4 ml-auto opacity-50" />
+      </Button>
+      <Button
+        type="button"
+        className="flex-1 md:flex-initial md:w-24"
+        variant="success"
+        onClick={() => handleAdd()}
+      >
+        {t('add')} <LuPlus className="w-4 h-4 ml-auto opacity-50" />
+      </Button>
+      <Button
+        type="button"
+        className="flex-1 md:flex-initial md:w-24"
+        variant="outline"
+        onClick={() => handleResetFilter()}
+      >
+        {t('clear')} <LuEraser className="w-4 h-4 ml-auto opacity-50" />
+      </Button>
+    </div>
+  );
+}
+
 export const ProductsFiltersForm = ({
   onSubmit,
   onOpenProductsForms,
@@ -73,139 +190,40 @@ export const ProductsFiltersForm = ({
         >
           {/* inputs */}
           <div className="flex flex-wrap flex-1 gap-3">
-            <FormField
-              control={formFilter.control}
-              name="name"
-              render={({ field }) => {
-                return (
-                  <FormItem className="flex flex-col flex-auto">
-                    <FormLabel htmlFor="name">{t('name')}</FormLabel>
-                    <FormControl>
-                      <Input
-                        id="name"
-                        name="description"
-                        placeholder={t('description_placeholder')}
-                        type="text"
-                        autoComplete="false"
-                        maxLength={FIELD_LIMITS.products.name}
-                        {...field}
-                        value={field.value ?? ''}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                );
-              }}
-            />
+            <FilterTextField control={formFilter.control} />
 
-            <FormField
+            <FilterCatalogSelectField
               control={formFilter.control}
               name="status"
-              render={({ field }) => {
-                return (
-                  <FormItem className="flex flex-col flex-auto">
-                    <FormLabel htmlFor="status">{t('status')}</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
-                      <FormControl id="status">
-                        <SelectTrigger>
-                          <SelectValue placeholder={t('select_status')} />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {datastatus?.map((item, index) => (
-                          <SelectItem value={item.code} key={index}>
-                            {item.description}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                );
-              }}
+              labelKey="status"
+              id="status"
+              placeholderKey="select_status"
+              dataCatalog={datastatus}
+              labelSelector={(item) => item.description}
             />
 
-            <FormField
+            <FilterCatalogSelectField
               control={formFilter.control}
               name="category"
-              render={({ field }) => {
-                return (
-                  <FormItem className="flex flex-col flex-auto">
-                    <FormLabel htmlFor="status">{t('category')}</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
-                      <FormControl id="category">
-                        <SelectTrigger>
-                          <SelectValue placeholder={t('select_category')} />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {dataCategory?.map((item, index) => (
-                          <SelectItem value={item.code} key={index}>
-                            {item.description}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                );
-              }}
+              labelKey="category"
+              id="category"
+              placeholderKey="select_category"
+              dataCatalog={dataCategory}
+              labelSelector={(item) => item.description}
             />
 
-            <FormField
+            <FilterCatalogSelectField
               control={formFilter.control}
               name="providers"
-              render={({ field }) => {
-                return (
-                  <FormItem className="flex flex-col flex-auto">
-                    <FormLabel htmlFor="providers">{t('providers')}</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
-                      <FormControl id="providers">
-                        <SelectTrigger>
-                          <SelectValue placeholder={t('select_providers')} />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {dataProviders?.map((item, index) => (
-                          <SelectItem value={item.code} key={index}>
-                            {item.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                );
-              }}
+              labelKey="providers"
+              id="providers"
+              placeholderKey="select_providers"
+              dataCatalog={dataProviders}
+              labelSelector={(item) => item.name}
             />
           </div>
           {/* buttons */}
-          <div className="flex flex-wrap items-center justify-between gap-3 mt-5 md:justify-normal">
-            <Button
-              type="submit"
-              className="flex-1 md:flex-initial md:w-24"
-              variant="info"
-            >
-              {t('search')}
-              <LuSearch className="w-4 h-4 ml-auto opacity-50" />
-            </Button>
-            <Button
-              type="button"
-              className="flex-1 md:flex-initial md:w-24"
-              variant="success"
-              onClick={() => handleAdd()}
-            >
-              {t('add')} <LuPlus className="w-4 h-4 ml-auto opacity-50" />
-            </Button>
-            <Button
-              type="button"
-              className="flex-1 md:flex-initial md:w-24"
-              variant="outline"
-              onClick={() => handleResetFilter()}
-            >
-              {t('clear')} <LuEraser className="w-4 h-4 ml-auto opacity-50" />
-            </Button>
-          </div>
+          {buildFilterButtons({ t, handleAdd, handleResetFilter })}
         </form>
       </Form>
     </>

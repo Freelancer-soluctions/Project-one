@@ -16,6 +16,75 @@ import { ClientsFiltersSchema } from '../utils';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { FIELD_LIMITS } from '@/config/fieldLimits';
 
+/** Text filter field (parametrized name/label/placeholder/type). */
+function FilterTextField({ control, name, labelKey, placeholderKey, type }) {
+  const { t } = useTranslation();
+  return (
+    <FormField
+      control={control}
+      name={name}
+      render={({ field }) => (
+        <FormItem className="flex flex-col flex-auto">
+          <FormLabel htmlFor={name}>{t(labelKey)}</FormLabel>
+          <FormControl>
+            <Input
+              id={name}
+              name={name}
+              placeholder={t(placeholderKey)}
+              type={type}
+              autoComplete="off"
+              maxLength={FIELD_LIMITS.clients[name]}
+              {...field}
+              value={field.value ?? ''}
+            />
+          </FormControl>
+          <FormMessage />
+        </FormItem>
+      )}
+    />
+  );
+}
+
+FilterTextField.propTypes = {
+  control: PropTypes.object.isRequired,
+  name: PropTypes.string.isRequired,
+  labelKey: PropTypes.string.isRequired,
+  placeholderKey: PropTypes.string.isRequired,
+  type: PropTypes.string,
+};
+
+/** Search / add / clear action buttons row. */
+function buildFilterButtons({ t, handleAdd, handleResetFilter }) {
+  return (
+    <div className="flex flex-wrap items-center justify-between gap-3 mt-5 md:justify-normal">
+      <Button
+        type="submit"
+        className="flex-1 md:flex-initial md:w-24"
+        variant="info"
+      >
+        {t('search')}
+        <LuSearch className="w-4 h-4 ml-auto opacity-50" />
+      </Button>
+      <Button
+        type="button"
+        className="flex-1 md:flex-initial md:w-24"
+        variant="success"
+        onClick={handleAdd}
+      >
+        {t('add')} <LuPlus className="w-4 h-4 ml-auto opacity-50" />
+      </Button>
+      <Button
+        type="button"
+        className="flex-1 md:flex-initial md:w-24"
+        variant="outline"
+        onClick={handleResetFilter}
+      >
+        {t('clear')} <LuEraser className="w-4 h-4 ml-auto opacity-50" />
+      </Button>
+    </div>
+  );
+}
+
 export const ClientsFiltersForm = ({ onSubmit, onAddDialog }) => {
   const { t } = useTranslation();
   const form = useForm({
@@ -46,83 +115,24 @@ export const ClientsFiltersForm = ({ onSubmit, onAddDialog }) => {
       >
         {/* inputs */}
         <div className="flex flex-wrap flex-1 gap-3">
-          <FormField
+          <FilterTextField
             control={form.control}
             name="name"
-            render={({ field }) => {
-              return (
-                <FormItem className="flex flex-col flex-auto">
-                  <FormLabel htmlFor="name">{t('name')}</FormLabel>
-                  <FormControl>
-                    <Input
-                      id="name"
-                      name="name"
-                      placeholder={t('client_name_placeholder')}
-                      type="text"
-                      autoComplete="off"
-                      maxLength={FIELD_LIMITS.clients.name}
-                      {...field}
-                      value={field.value ?? ''}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              );
-            }}
+            labelKey="name"
+            placeholderKey="client_name_placeholder"
+            type="text"
           />
 
-          <FormField
+          <FilterTextField
             control={form.control}
             name="email"
-            render={({ field }) => {
-              return (
-                <FormItem className="flex flex-col flex-auto">
-                  <FormLabel htmlFor="email">{t('email')}</FormLabel>
-                  <FormControl>
-                    <Input
-                      id="email"
-                      name="email"
-                      placeholder={t('client_email_placeholder')}
-                      type="email"
-                      autoComplete="off"
-                      maxLength={FIELD_LIMITS.clients.email}
-                      {...field}
-                      value={field.value ?? ''}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              );
-            }}
+            labelKey="email"
+            placeholderKey="client_email_placeholder"
+            type="email"
           />
         </div>
         {/* buttons */}
-        <div className="flex flex-wrap items-center justify-between gap-3 mt-5 md:justify-normal">
-          <Button
-            type="submit"
-            className="flex-1 md:flex-initial md:w-24"
-            variant="info"
-          >
-            {t('search')}
-            <LuSearch className="w-4 h-4 ml-auto opacity-50" />
-          </Button>
-          <Button
-            type="button"
-            className="flex-1 md:flex-initial md:w-24"
-            variant="success"
-            onClick={handleAdd}
-          >
-            {t('add')} <LuPlus className="w-4 h-4 ml-auto opacity-50" />
-          </Button>
-          <Button
-            type="button"
-            className="flex-1 md:flex-initial md:w-24"
-            variant="outline"
-            onClick={() => handleResetFilter()}
-          >
-            {t('clear')} <LuEraser className="w-4 h-4 ml-auto opacity-50" />
-          </Button>
-        </div>
+        {buildFilterButtons({ t, handleAdd, handleResetFilter })}
       </form>
     </Form>
   );

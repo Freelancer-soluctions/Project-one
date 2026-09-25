@@ -3,15 +3,10 @@
 import { createApi } from '@reduxjs/toolkit/query/react';
 import { axiosPrivateBaseQuery } from '@/config/axios';
 
-// Define a service using a base URL and expected endpoints
-const notesApi = createApi({
-  reducerPath: 'notesApi',
-  baseQuery: axiosPrivateBaseQuery({
-    baseUrl: import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1',
-  }),
-  tagTypes: ['Notes', 'Hashtags'],
-  endpoints: (builder) => ({
-    getAllCountNotes: builder.query({
+// Note endpoint definitions (each value is an (builder) => endpoint fn)
+const notesEndpoints = {
+  getAllCountNotes: (builder) =>
+    builder.query({
       query: (args) => ({
         url: `/notes/notesCount`,
         method: 'GET',
@@ -19,8 +14,8 @@ const notesApi = createApi({
       }),
       providesTags: ['Notes'],
     }),
-
-    getAllNotes: builder.query({
+  getAllNotes: (builder) =>
+    builder.query({
       query: (args) => ({
         url: `/notes`,
         method: 'GET',
@@ -28,13 +23,15 @@ const notesApi = createApi({
       }),
       providesTags: ['Notes'],
     }),
-    getAllNotesColumns: builder.query({
+  getAllNotesColumns: (builder) =>
+    builder.query({
       query: () => ({
         url: `/notes/notesColumns`,
         method: 'GET',
       }),
     }),
-    updateNoteColumId: builder.mutation({
+  updateNoteColumId: (builder) =>
+    builder.mutation({
       query: (body) => ({
         url: `/notes/noteColumn`,
         method: 'PATCH',
@@ -42,7 +39,8 @@ const notesApi = createApi({
       }),
       invalidatesTags: ['Notes'],
     }),
-    updateNoteById: builder.mutation({
+  updateNoteById: (builder) =>
+    builder.mutation({
       query: ({ id, body }) => ({
         url: `/notes/${id}`,
         method: 'PATCH',
@@ -50,7 +48,8 @@ const notesApi = createApi({
       }),
       invalidatesTags: ['Notes'],
     }),
-    createNote: builder.mutation({
+  createNote: (builder) =>
+    builder.mutation({
       query: (body) => ({
         url: `/notes/`,
         method: 'POST',
@@ -58,7 +57,8 @@ const notesApi = createApi({
       }),
       invalidatesTags: ['Notes'],
     }),
-    deleteNoteById: builder.mutation({
+  deleteNoteById: (builder) =>
+    builder.mutation({
       query(id) {
         return {
           url: `/notes/${id}`,
@@ -67,33 +67,37 @@ const notesApi = createApi({
       },
       invalidatesTags: ['Notes'],
     }),
-    getMentionsByNoteId: builder.query({
+  getMentionsByNoteId: (builder) =>
+    builder.query({
       query: (noteId) => ({
         url: `/notes/${noteId}/mentions`,
         method: 'GET',
       }),
     }),
 
-    // === FAVORITE ENDPOINTS ===
-
-    toggleFavorite: builder.mutation({
+  // === FAVORITE ENDPOINTS ===
+  toggleFavorite: (builder) =>
+    builder.mutation({
       query: (noteId) => ({
         url: `/notes/${noteId}/fav`,
         method: 'PATCH',
       }),
       invalidatesTags: ['Notes'],
     }),
+};
 
-    // === HASHTAG ENDPOINTS ===
-
-    getAllHashtags: builder.query({
+// === HASHTAG ENDPOINTS ===
+const hashtagEndpoints = {
+  getAllHashtags: (builder) =>
+    builder.query({
       query: () => ({
         url: `/notes/hashtags`,
         method: 'GET',
       }),
       providesTags: ['Hashtags'],
     }),
-    createHashtag: builder.mutation({
+  createHashtag: (builder) =>
+    builder.mutation({
       query: (body) => ({
         url: `/notes/hashtags`,
         method: 'POST',
@@ -101,7 +105,8 @@ const notesApi = createApi({
       }),
       invalidatesTags: ['Hashtags'],
     }),
-    updateHashtag: builder.mutation({
+  updateHashtag: (builder) =>
+    builder.mutation({
       query: ({ id, body }) => ({
         url: `/notes/hashtags/${id}`,
         method: 'PATCH',
@@ -109,7 +114,8 @@ const notesApi = createApi({
       }),
       invalidatesTags: ['Hashtags'],
     }),
-    deleteHashtag: builder.mutation({
+  deleteHashtag: (builder) =>
+    builder.mutation({
       query(id) {
         return {
           url: `/notes/hashtags/${id}`,
@@ -118,6 +124,27 @@ const notesApi = createApi({
       },
       invalidatesTags: ['Hashtags'],
     }),
+};
+
+// Resolve { name: (builder) => definition } maps into RTK endpoint defs
+const resolveEndpoints = (builder, endpointDefs) =>
+  Object.fromEntries(
+    Object.entries(endpointDefs).map(([name, define]) => [
+      name,
+      define(builder),
+    ])
+  );
+
+// Define a service using a base URL and expected endpoints
+const notesApi = createApi({
+  reducerPath: 'notesApi',
+  baseQuery: axiosPrivateBaseQuery({
+    baseUrl: import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1',
+  }),
+  tagTypes: ['Notes', 'Hashtags'],
+  endpoints: (builder) => ({
+    ...resolveEndpoints(builder, notesEndpoints),
+    ...resolveEndpoints(builder, hashtagEndpoints),
   }),
 });
 

@@ -24,6 +24,74 @@ import { useTranslation } from 'react-i18next';
  * @param {EditingHashtag} [props.editingHashtag]
  * @param {string} [props.className]
  */
+
+/** Popover header with back/close navigation. */
+function HeaderRow({ onBack, onClose, isEditing, editingName }) {
+  const { t } = useTranslation();
+  return (
+    <div className="flex items-center justify-between border-b px-3 py-2">
+      <Button
+        type="button"
+        variant="ghost"
+        size="icon"
+        className="h-8 w-8"
+        onClick={onBack}
+      >
+        <ChevronLeft className="h-4 w-4" />
+        <span className="sr-only">{t('hashtags_back')}</span>
+      </Button>
+      <span className="text-sm font-medium">
+        {isEditing
+          ? t('hashtags_edit_hashtag', { name: editingName })
+          : t('hashtags_create_hashtag')}
+      </span>
+      <Button
+        type="button"
+        variant="ghost"
+        size="icon"
+        className="h-8 w-8"
+        onClick={onClose}
+      >
+        <X className="h-4 w-4" />
+        <span className="sr-only">{t('close')}</span>
+      </Button>
+    </div>
+  );
+}
+
+HeaderRow.propTypes = {
+  onBack: PropTypes.func,
+  onClose: PropTypes.func,
+  isEditing: PropTypes.bool.isRequired,
+  editingName: PropTypes.string,
+};
+
+/** Live preview of the hashtag pill. */
+function PreviewBox({ title }) {
+  return (
+    <div className="flex justify-center">
+      <div
+        className={cn(
+          'h-8 w-48 rounded',
+          title.trim() ? 'bg-muted' : 'bg-muted/50'
+        )}
+      >
+        {title.trim() && (
+          <div className="flex h-full items-center justify-center px-3">
+            <span className="text-sm font-medium truncate text-foreground">
+              {title}
+            </span>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+PreviewBox.propTypes = {
+  title: PropTypes.string.isRequired,
+};
+
 export function HashtagCreator({
   onBack,
   onClose,
@@ -55,56 +123,16 @@ export function HashtagCreator({
         className
       )}
     >
-      {/* Header */}
-      <div className="flex items-center justify-between border-b px-3 py-2">
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon"
-          className="h-8 w-8"
-          onClick={onBack}
-        >
-          <ChevronLeft className="h-4 w-4" />
-          <span className="sr-only">{t('hashtags_back')}</span>
-        </Button>
-        <span className="text-sm font-medium">
-          {isEditing
-            ? t('hashtags_edit_hashtag', { name: editingHashtag.name })
-            : t('hashtags_create_hashtag')}
-        </span>
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon"
-          className="h-8 w-8"
-          onClick={onClose}
-        >
-          <X className="h-4 w-4" />
-          <span className="sr-only">{t('close')}</span>
-        </Button>
-      </div>
+      <HeaderRow
+        onBack={onBack}
+        onClose={onClose}
+        isEditing={isEditing}
+        editingName={editingHashtag?.name}
+      />
 
-      {/* Content */}
       <div className="p-4 space-y-4">
-        {/* Preview */}
-        <div className="flex justify-center">
-          <div
-            className={cn(
-              'h-8 w-48 rounded',
-              title.trim() ? 'bg-muted' : 'bg-muted/50'
-            )}
-          >
-            {title.trim() && (
-              <div className="flex h-full items-center justify-center px-3">
-                <span className="text-sm font-medium truncate text-foreground">
-                  {title}
-                </span>
-              </div>
-            )}
-          </div>
-        </div>
+        <PreviewBox title={title} />
 
-        {/* Title Input */}
         <div className="space-y-2">
           <Label htmlFor="hashtag-title" className="text-sm">
             {t('title')}
@@ -120,7 +148,6 @@ export function HashtagCreator({
         </div>
       </div>
 
-      {/* Footer */}
       <div className="border-t p-3">
         <Button
           type="button"

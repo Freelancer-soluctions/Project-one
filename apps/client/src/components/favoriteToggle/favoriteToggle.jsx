@@ -9,6 +9,38 @@ const iconSizeClasses = {
   lg: 'h-6 w-6',
 };
 
+/**
+ * Decide el icono a mostrar (spinner si carga, estrella en otro caso) y
+ * sus clases según el estado del toggle.
+ *
+ * @param {Object} p - Estado del botón.
+ * @param {boolean} p.isLoading - Mostrar spinner de carga.
+ * @param {boolean} p.checked - Toggle marcado.
+ * @param {string} p.size - Tamaño (sm|md|lg).
+ * @returns {{Icon: Object, iconClass: string}} Icono y clases listas.
+ */
+const getIconState = ({ isLoading, checked, size }) => {
+  if (isLoading) {
+    return {
+      Icon: Loader2,
+      iconClass: cn(
+        iconSizeClasses[size],
+        'animate-spin text-muted-foreground'
+      ),
+    };
+  }
+  return {
+    Icon: Star,
+    iconClass: cn(
+      iconSizeClasses[size],
+      'transition-colors duration-200',
+      checked
+        ? 'fill-yellow-400 text-yellow-400'
+        : 'fill-transparent text-muted-foreground hover:text-muted-foreground/80'
+    ),
+  };
+};
+
 export function FavoriteToggle({
   checked = false,
   onChange,
@@ -25,6 +57,7 @@ export function FavoriteToggle({
   };
 
   const buttonSize = label ? 'sm' : 'icon';
+  const { Icon, iconClass } = getIconState({ isLoading, checked, size });
 
   return (
     <Button
@@ -44,24 +77,7 @@ export function FavoriteToggle({
         label || (checked ? 'remove_from_favorites' : 'mark_as_favorite')
       }
     >
-      {isLoading ? (
-        <Loader2
-          className={cn(
-            iconSizeClasses[size],
-            'animate-spin text-muted-foreground'
-          )}
-        />
-      ) : (
-        <Star
-          className={cn(
-            iconSizeClasses[size],
-            'transition-colors duration-200',
-            checked
-              ? 'fill-yellow-400 text-yellow-400'
-              : 'fill-transparent text-muted-foreground hover:text-muted-foreground/80'
-          )}
-        />
-      )}
+      <Icon className={iconClass} />
       {label && (
         <span
           className={cn(

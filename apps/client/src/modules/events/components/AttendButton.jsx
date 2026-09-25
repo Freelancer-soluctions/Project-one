@@ -10,6 +10,54 @@ import {
 import AlertDialogComponent from '@/components/alertDialog/AlertDialog';
 
 /**
+ * Ejecuta una mutación de asistencia y muestra el AlertDialog con el
+ * resultado (éxito o error). Unifica los dos flujos idénticos
+ * (registrarse / cancelar).
+ *
+ * @param {Object} p - Parámetros del flujo.
+ * @param {Function} p.mutation - Mutación RTK Query a ejecutar.
+ * @param {number} p.eventId - Id del evento.
+ * @param {Function} p.t - Traductor.
+ * @param {string} p.successTitle - Clave i18n del título en éxito.
+ * @param {string} p.successMessage - Clave i18n del mensaje en éxito.
+ * @param {Function} [p.onStatusChange] - Callback tras la operación.
+ * @param {Function} p.setAlertProps - Setter de props del AlertDialog.
+ * @param {Function} p.setOpenAlert - Setter de apertura del AlertDialog.
+ */
+const runAttendanceMutation = async ({
+  mutation,
+  eventId,
+  t,
+  successTitle,
+  successMessage,
+  onStatusChange,
+  setAlertProps,
+  setOpenAlert,
+}) => {
+  try {
+    await mutation(eventId).unwrap();
+    setAlertProps({
+      alertTitle: t(successTitle),
+      alertMessage: t(successMessage),
+      cancel: false,
+      success: true,
+      variantSuccess: 'info',
+    });
+    setOpenAlert(true);
+    onStatusChange?.();
+  } catch (err) {
+    setAlertProps({
+      alertTitle: t('error'),
+      alertMessage: err?.data?.message || t('something_went_wrong'),
+      cancel: false,
+      success: false,
+      variantSuccess: 'destructive',
+    });
+    setOpenAlert(true);
+  }
+};
+
+/**
  * AttendButton — shows Register/Cancel/Waitlisted based on current user's status.
  *
  * @param {Object} props
@@ -27,53 +75,29 @@ export const AttendButton = ({ eventId, userStatus, onStatusChange }) => {
 
   const isLoading = isRegistering || isCancelling;
 
-  const handleRegister = async () => {
-    try {
-      await register(eventId).unwrap();
-      setAlertProps({
-        alertTitle: t('register'),
-        alertMessage: t('added_successfully'),
-        cancel: false,
-        success: true,
-        variantSuccess: 'info',
-      });
-      setOpenAlert(true);
-      onStatusChange?.();
-    } catch (err) {
-      setAlertProps({
-        alertTitle: t('error'),
-        alertMessage: err?.data?.message || t('something_went_wrong'),
-        cancel: false,
-        success: false,
-        variantSuccess: 'destructive',
-      });
-      setOpenAlert(true);
-    }
+  const mutationArgs = {
+    eventId,
+    t,
+    onStatusChange,
+    setAlertProps,
+    setOpenAlert,
   };
 
-  const handleCancel = async () => {
-    try {
-      await cancel(eventId).unwrap();
-      setAlertProps({
-        alertTitle: t('cancel'),
-        alertMessage: t('deleted_successfully'),
-        cancel: false,
-        success: true,
-        variantSuccess: 'info',
-      });
-      setOpenAlert(true);
-      onStatusChange?.();
-    } catch (err) {
-      setAlertProps({
-        alertTitle: t('error'),
-        alertMessage: err?.data?.message || t('something_went_wrong'),
-        cancel: false,
-        success: false,
-        variantSuccess: 'destructive',
-      });
-      setOpenAlert(true);
-    }
-  };
+  const handleRegister = () =>
+    runAttendanceMutation({
+      ...mutationArgs,
+      mutation: register,
+      successTitle: 'register',
+      successMessage: 'added_successfully',
+    });
+
+  const handleCancel = () =>
+    runAttendanceMutation({
+      ...mutationArgs,
+      mutation: cancel,
+      successTitle: 'cancel',
+      successMessage: 'deleted_successfully',
+    });
 
   if (isLoading) return <Spinner />;
 

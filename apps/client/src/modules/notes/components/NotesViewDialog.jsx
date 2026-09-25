@@ -16,8 +16,72 @@ import { CgNotes } from 'react-icons/cg';
 import PropTypes from 'prop-types';
 import { useMemo } from 'react';
 
-export function NotesViewDialog({ note, open, onOpenChange }) {
+/** Status (column) row: loading spinner, hidden on error, label otherwise. */
+function ViewStatusRow({ isLoadingColumns, isErrorColumns, column }) {
   const { t } = useTranslation();
+  if (isLoadingColumns) {
+    return (
+      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+        <Spinner className="w-4 h-4" />
+        <span>{t('loading')}...</span>
+      </div>
+    );
+  }
+  if (isErrorColumns || !column) return null;
+  return (
+    <p className="text-sm text-muted-foreground">
+      {t('status')}: {t(column.title, column.title)}
+    </p>
+  );
+}
+
+ViewStatusRow.propTypes = {
+  isLoadingColumns: PropTypes.bool,
+  isErrorColumns: PropTypes.bool,
+  column: PropTypes.object,
+};
+
+/** "Mentioned by" row: loading spinner, hidden on error, avatar+name otherwise. */
+function ViewMentionedByRow({
+  isLoadingMentions,
+  isErrorMentions,
+  mentionedByUser,
+}) {
+  const { t } = useTranslation();
+  if (isLoadingMentions) {
+    return (
+      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+        <Spinner className="w-4 h-4" />
+        <span>{t('loading')}...</span>
+      </div>
+    );
+  }
+  if (isErrorMentions || !mentionedByUser) return null;
+  return (
+    <div className="flex items-center gap-2 text-sm">
+      <span className="text-muted-foreground">{t('mentioned_by')}:</span>
+      <div className="flex items-center gap-1.5">
+        {mentionedByUser.picture && (
+          <img
+            src={mentionedByUser.picture}
+            alt={mentionedByUser.name}
+            className="w-5 h-5 rounded-full"
+          />
+        )}
+        <span className="font-medium">{mentionedByUser.name}</span>
+      </div>
+    </div>
+  );
+}
+
+ViewMentionedByRow.propTypes = {
+  isLoadingMentions: PropTypes.bool,
+  isErrorMentions: PropTypes.bool,
+  mentionedByUser: PropTypes.object,
+};
+
+/** Read-only view data: matching column and first mention author. */
+function useViewNoteData(note, open) {
   const { dataColumns, isLoadingColumns, isErrorColumns } = useGetNoteColumns();
   const {
     data: mentions,
@@ -37,6 +101,27 @@ export function NotesViewDialog({ note, open, onOpenChange }) {
     const mention = mentions[0];
     return mention?.mentionedByUser ?? null;
   }, [mentions]);
+
+  return {
+    isLoadingColumns,
+    isErrorColumns,
+    column,
+    isLoadingMentions,
+    isErrorMentions,
+    mentionedByUser,
+  };
+}
+
+export function NotesViewDialog({ note, open, onOpenChange }) {
+  const { t } = useTranslation();
+  const {
+    isLoadingColumns,
+    isErrorColumns,
+    column,
+    isLoadingMentions,
+    isErrorMentions,
+    mentionedByUser,
+  } = useViewNoteData(note, open);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -69,16 +154,11 @@ export function NotesViewDialog({ note, open, onOpenChange }) {
           )}
 
           {/* Status/Column — third */}
-          {isLoadingColumns ? (
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Spinner className="w-4 h-4" />
-              <span>{t('loading')}...</span>
-            </div>
-          ) : isErrorColumns ? null : column ? (
-            <p className="text-sm text-muted-foreground">
-              {t('status')}: {t(column.title, column.title)}
-            </p>
-          ) : null}
+          <ViewStatusRow
+            isLoadingColumns={isLoadingColumns}
+            isErrorColumns={isErrorColumns}
+            column={column}
+          />
 
           {/* Content — fourth (same TiptapEditor as edit, disabled for view) */}
           <TiptapEditor
@@ -95,28 +175,11 @@ export function NotesViewDialog({ note, open, onOpenChange }) {
           )}
 
           {/* Mentioned by */}
-          {isLoadingMentions ? (
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Spinner className="w-4 h-4" />
-              <span>{t('loading')}...</span>
-            </div>
-          ) : isErrorMentions ? null : mentionedByUser ? (
-            <div className="flex items-center gap-2 text-sm">
-              <span className="text-muted-foreground">
-                {t('mentioned_by')}:
-              </span>
-              <div className="flex items-center gap-1.5">
-                {mentionedByUser.picture && (
-                  <img
-                    src={mentionedByUser.picture}
-                    alt={mentionedByUser.name}
-                    className="w-5 h-5 rounded-full"
-                  />
-                )}
-                <span className="font-medium">{mentionedByUser.name}</span>
-              </div>
-            </div>
-          ) : null}
+          <ViewMentionedByRow
+            isLoadingMentions={isLoadingMentions}
+            isErrorMentions={isErrorMentions}
+            mentionedByUser={mentionedByUser}
+          />
         </div>
 
         <div className="mt-4 flex justify-end">
