@@ -23,42 +23,9 @@ export const getAllNews = async (
   take,
   skip
 ) => {
+  const where = buildNewsWhere({ description, fromDate, toDate, statusCode });
   const news = await prisma.news.findMany({
-    where: {
-      ...(description
-        ? {
-            AND: [
-              {
-                description: { contains: description },
-              },
-              // {
-              //   NOT: { description: null }
-              // }
-            ],
-          }
-        : {}),
-
-      ...(fromDate && toDate
-        ? {
-            AND: [
-              {
-                createdOn: {
-                  gte: new Date(fromDate),
-                  lte: new Date(toDate),
-                },
-              },
-            ],
-          }
-        : {}),
-      ...(statusCode
-        ? {
-            status: {
-              code: { equals: statusCode },
-            },
-          }
-        : {}),
-      // status: { code: { equals: statusCode } }
-    },
+    where,
     include: {
       status: { select: { id: true, code: true, description: true } },
       userNewsCreated: { select: { name: true } },
@@ -83,47 +50,56 @@ export const getAllNews = async (
     // }
   });
 
-  const total = await prisma.news.count({
-    where: {
-      ...(description
-        ? {
-            AND: [
-              {
-                description: {
-                  contains: description,
-                },
-              },
-            ],
-          }
-        : {}),
-
-      ...(fromDate && toDate
-        ? {
-            AND: [
-              {
-                createdOn: {
-                  gte: new Date(fromDate),
-                  lte: new Date(toDate),
-                },
-              },
-            ],
-          }
-        : {}),
-
-      ...(statusCode
-        ? {
-            status: {
-              code: {
-                equals: statusCode,
-              },
-            },
-          }
-        : {}),
-    },
-  });
+  const total = await prisma.news.count({ where });
 
   return { dataList: news, total };
 };
+
+/**
+ * Builds the shared Prisma WHERE for the news list (findMany + count).
+ * Kept apart from getAllNews so both queries stay guaranteed in sync.
+ *
+ * @param {Object} p - Filters.
+ * @param {string} [p.description] - Description to filter by.
+ * @param {Date} [p.fromDate] - Start date to filter by.
+ * @param {Date} [p.toDate] - End date to filter by.
+ * @param {string} [p.statusCode] - Status code to filter by.
+ * @returns {Object} Prisma WHERE object.
+ */
+const buildNewsWhere = ({ description, fromDate, toDate, statusCode }) => ({
+  ...(description
+    ? {
+        AND: [
+          {
+            description: { contains: description },
+          },
+        ],
+      }
+    : {}),
+
+  ...(fromDate && toDate
+    ? {
+        AND: [
+          {
+            createdOn: {
+              gte: new Date(fromDate),
+              lte: new Date(toDate),
+            },
+          },
+        ],
+      }
+    : {}),
+
+  ...(statusCode
+    ? {
+        status: {
+          code: {
+            equals: statusCode,
+          },
+        },
+      }
+    : {}),
+});
 
 /**
  * Retrieves all available news statuses from the database.

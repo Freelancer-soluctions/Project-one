@@ -25,50 +25,14 @@ export const getAllNotes = async (
     include: {
       notes: {
         where: {
-          AND: [
-            searchTerm
-              ? {
-                  OR: [
-                    { content: { contains: searchTerm, mode: 'insensitive' } },
-                    { title: { contains: searchTerm, mode: 'insensitive' } },
-                  ],
-                }
-              : {},
-
-            statusCode ? { columnStatus: { code: statusCode } } : {},
-
-            hashtagIds && hashtagIds.length > 0
-              ? {
-                  noteHashtags: {
-                    some: {
-                      hashtagId: { in: hashtagIds.map(Number) },
-                    },
-                  },
-                }
-              : {},
-
-            isFavorite && userId
-              ? {
-                  favoriteBy: {
-                    some: {
-                      userId: userId,
-                    },
-                  },
-                }
-              : {},
-
-            // Scope filters
-            scope === 'mine'
-              ? { createdBy: userId }
-              : scope === 'mixed'
-                ? {
-                    OR: [
-                      { createdBy: userId },
-                      { mentions: { some: { mentionedUserId: userId } } },
-                    ],
-                  }
-                : {},
-          ],
+          AND: buildNoteFilters({
+            searchTerm,
+            statusCode,
+            hashtagIds,
+            userId,
+            isFavorite,
+            scope,
+          }),
         },
         include: {
           noteHashtags: {
@@ -129,6 +93,71 @@ export const getAllNotes = async (
     }),
   }));
 };
+
+/**
+ * Builds the AND-filters for the notes list query.
+ * Kept apart from getAllNotes to keep the query small and single-purpose.
+ *
+ * @param {Object} p - Filter parameters.
+ * @param {string} [p.searchTerm] - Search term (title/content, case-insensitive).
+ * @param {string} [p.statusCode] - Column status code filter.
+ * @param {Array<number>} [p.hashtagIds] - Hashtag IDs to filter by.
+ * @param {number} [p.userId] - Current user ID (favorites/owner/mentions).
+ * @param {boolean} [p.isFavorite] - Only notes favorited by userId.
+ * @param {'mine'|'mixed'} [p.scope] - Visibility scope.
+ * @returns {Array<Object>} Prisma WHERE fragments combined with AND.
+ */
+const buildNoteFilters = ({
+  searchTerm,
+  statusCode,
+  hashtagIds,
+  userId,
+  isFavorite,
+  scope,
+}) => [
+  searchTerm
+    ? {
+        OR: [
+          { content: { contains: searchTerm, mode: 'insensitive' } },
+          { title: { contains: searchTerm, mode: 'insensitive' } },
+        ],
+      }
+    : {},
+
+  statusCode ? { columnStatus: { code: statusCode } } : {},
+
+  hashtagIds && hashtagIds.length > 0
+    ? {
+        noteHashtags: {
+          some: {
+            hashtagId: { in: hashtagIds.map(Number) },
+          },
+        },
+      }
+    : {},
+
+  isFavorite && userId
+    ? {
+        favoriteBy: {
+          some: {
+            userId: userId,
+          },
+        },
+      }
+    : {},
+
+  // Scope filters
+  scope === 'mine'
+    ? { createdBy: userId }
+    : scope === 'mixed'
+      ? {
+          OR: [
+            { createdBy: userId },
+            { mentions: { some: { mentionedUserId: userId } } },
+          ],
+        }
+      : {},
+];
 
 /**
  * Create a new note in the database.

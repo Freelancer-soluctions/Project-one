@@ -47,11 +47,29 @@ export const formatTime = (date) => {
  * @returns {Object} data with opposing fields cleared based on modality
  * @throws {Error} If validation fails
  */
-export const validateEventModality = (data, currentEvent = null) => {
-  const { modality, meetingUrl, location } = data;
 
-  // Determine effective modality (new or current)
-  const effectiveModality = modality || currentEvent?.modality;
+// Reglas por modalidad: campo a limpiar + campos requeridos + mensaje exacto
+// (los mensajes se preservan igual que en la versión con if/else encadenado).
+const MODALITY_RULES = {
+  ONLINE: {
+    clearField: 'location',
+    requiredFields: ['meetingUrl'],
+    errorMessage: 'meetingUrl is required for ONLINE events',
+  },
+  IN_PERSON: {
+    clearField: 'meetingUrl',
+    requiredFields: ['location'],
+    errorMessage: 'location is required for IN_PERSON events',
+  },
+  HYBRID: {
+    clearField: null,
+    requiredFields: ['meetingUrl', 'location'],
+    errorMessage: 'both meetingUrl and location are required for HYBRID events',
+  },
+};
+
+export const validateEventModality = (data, currentEvent = null) => {
+  const effectiveModality = data.modality || currentEvent?.modality;
 
   // Skip if no modality at all
   if (!effectiveModality) {
@@ -61,29 +79,27 @@ export const validateEventModality = (data, currentEvent = null) => {
   // Create mutable copy to clear opposing fields
   const validatedData = { ...data };
 
-  // Use currentEvent fields as fallback when modality in payload but meetingUrl/location missing
-  const effectiveLocation = location ?? currentEvent?.location;
-  const effectiveMeetingUrl = meetingUrl ?? currentEvent?.meetingUrl;
+  const rule = MODALITY_RULES[effectiveModality];
 
-  // Modality-specific validation AND field clearing
-  if (effectiveModality === 'ONLINE') {
-    // Clear location for ONLINE
-    validatedData.location = null;
-    if (!effectiveMeetingUrl) {
-      throw new Error('meetingUrl is required for ONLINE events');
-    }
-  } else if (effectiveModality === 'IN_PERSON') {
-    // Clear meetingUrl for IN_PERSON
-    validatedData.meetingUrl = null;
-    if (!effectiveLocation) {
-      throw new Error('location is required for IN_PERSON events');
-    }
-  } else if (effectiveModality === 'HYBRID') {
-    if (!effectiveMeetingUrl || !effectiveLocation) {
-      throw new Error(
-        'both meetingUrl and location are required for HYBRID events'
-      );
-    }
+  // Modalidad desconocida: se devuelve la copia sin cambios (comportamiento
+  // idéntico a la cadena de if/else original, que no tenía rama por defecto).
+  if (!rule) {
+    return validatedData;
+  }
+
+  // Use currentEvent fields as fallback when modality in payload but
+  // meetingUrl/location missing
+  const effectiveFields = {
+    meetingUrl: data.meetingUrl ?? currentEvent?.meetingUrl,
+    location: data.location ?? currentEvent?.location,
+  };
+
+  // Modality-specific field clearing AND required-field validation
+  if (rule.clearField) {
+    validatedData[rule.clearField] = null;
+  }
+  if (rule.requiredFields.some((field) => !effectiveFields[field])) {
+    throw new Error(rule.errorMessage);
   }
 
   return validatedData;

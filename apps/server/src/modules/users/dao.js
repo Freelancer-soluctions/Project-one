@@ -258,52 +258,73 @@ export const createUser = async (data) => {
  *
  * @returns {Promise<Object>} The updated user object.
  */
+/**
+ * Builds the scalar (non-relation) fields of the user update payload.
+ * Only includes fields that were provided (PATCH partial).
+ *
+ * @param {Object} data - Patch payload from the service layer.
+ * @returns {Object} Scalar fields for prisma.users.update.
+ */
+const buildUserScalarFields = (data) => ({
+  ...(data.name !== undefined && { name: data.name }),
+  ...(data.email !== undefined && { email: data.email }),
+  ...(data.address !== undefined && { address: data.address }),
+  ...(data.city !== undefined && { city: data.city }),
+  ...(data.isAdmin !== undefined && { isAdmin: data.isAdmin }),
+  ...(data.picture !== undefined && { picture: data.picture }),
+  ...(data.document !== undefined && { document: data.document }),
+  ...(data.lastUpdatedBy !== undefined && {
+    lastUpdatedBy: data.lastUpdatedBy,
+  }),
+  ...(data.lastUpdatedOn !== undefined && {
+    lastUpdatedOn: data.lastUpdatedOn,
+  }),
+  ...(data.socialSecurity !== undefined && {
+    socialSecurity: data.socialSecurity,
+  }),
+  ...(data.state !== undefined && { state: data.state }),
+  ...(data.telephone !== undefined && { telephone: data.telephone }),
+  ...(data.zipcode !== undefined && { zipcode: data.zipcode }),
+});
+
+/**
+ * Builds the relation updates of the user update payload (status, roles and
+ * the deleteMany+create pattern for permits driven by the permissions array).
+ *
+ * @param {Object} data - Patch payload from the service layer.
+ * @returns {Object} Relation fields for prisma.users.update.
+ */
+const buildUserRelationFields = (data) => ({
+  ...(data.statusId !== undefined && {
+    userStatus: {
+      connect: { id: data.statusId },
+    },
+  }),
+  ...(data.roleId !== undefined && {
+    roles: {
+      connect: { id: data.roleId },
+    },
+  }),
+  ...(data.permissions !== undefined && {
+    permits: {
+      deleteMany: {},
+      ...(data.permissions.length > 0 && {
+        create: data.permissions.map((permissionId) => ({
+          permissions: { connect: { id: parseInt(permissionId, 10) } },
+        })),
+      }),
+    },
+  }),
+});
+
 export const updateUserById = async (id, data) => {
   return prisma.users.update({
     where: { id: parseInt(id, 10) },
     data: {
       // Scalar fields — only include if provided (PATCH partial)
-      ...(data.name !== undefined && { name: data.name }),
-      ...(data.email !== undefined && { email: data.email }),
-      ...(data.address !== undefined && { address: data.address }),
-      ...(data.city !== undefined && { city: data.city }),
-      ...(data.isAdmin !== undefined && { isAdmin: data.isAdmin }),
-      ...(data.picture !== undefined && { picture: data.picture }),
-      ...(data.document !== undefined && { document: data.document }),
-      ...(data.lastUpdatedBy !== undefined && {
-        lastUpdatedBy: data.lastUpdatedBy,
-      }),
-      ...(data.lastUpdatedOn !== undefined && {
-        lastUpdatedOn: data.lastUpdatedOn,
-      }),
-      ...(data.socialSecurity !== undefined && {
-        socialSecurity: data.socialSecurity,
-      }),
-      ...(data.state !== undefined && { state: data.state }),
-      ...(data.telephone !== undefined && { telephone: data.telephone }),
-      ...(data.zipcode !== undefined && { zipcode: data.zipcode }),
-      // foreign keys
-      ...(data.statusId !== undefined && {
-        userStatus: {
-          connect: { id: data.statusId },
-        },
-      }),
-      ...(data.roleId !== undefined && {
-        roles: {
-          connect: { id: data.roleId },
-        },
-      }),
-      // Handle userPermits with deleteMany+create pattern for permissions array
-      ...(data.permissions !== undefined && {
-        permits: {
-          deleteMany: {},
-          ...(data.permissions.length > 0 && {
-            create: data.permissions.map((permissionId) => ({
-              permissions: { connect: { id: parseInt(permissionId, 10) } },
-            })),
-          }),
-        },
-      }),
+      ...buildUserScalarFields(data),
+      // foreign keys + permissions
+      ...buildUserRelationFields(data),
     },
   });
 };
