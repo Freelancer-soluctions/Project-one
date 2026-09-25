@@ -1,14 +1,12 @@
 import { test, expect } from '@playwright/test';
-import { LoginPage, DashboardPage, SalesPage } from './page-objects/LoginPage';
+import { LoginPage, SalesPage } from './page-objects/LoginPage';
 
 test.describe('Sales View', () => {
   let loginPage;
-  let dashboardPage;
   let salesPage;
 
   test.beforeEach(async ({ page }) => {
     loginPage = new LoginPage(page);
-    dashboardPage = new DashboardPage(page);
     salesPage = new SalesPage(page);
     await loginPage.goto();
     await loginPage.login('admin@gmail.com', '123456');
@@ -24,9 +22,7 @@ test.describe('Sales View', () => {
     await expect(salesPage.filtersForm).toBeVisible();
   });
 
-  test('WHEN sales page loads THEN filters form is visible', async ({
-    page,
-  }) => {
+  test('WHEN sales page loads THEN filters form is visible', async () => {
     await expect(salesPage.filtersForm).toBeVisible();
   });
 
@@ -84,6 +80,8 @@ test.describe('Sales View', () => {
   test('WHEN unauthenticated user accesses sales THEN redirected to login', async ({
     page,
   }) => {
+    // La sesión vive en sessionStorage (redux-persist), no en cookies.
+    await page.evaluate(() => window.sessionStorage.clear());
     await page.context().clearCookies();
     await page.goto('/home/sales');
     await page.waitForLoadState('networkidle');
@@ -110,12 +108,10 @@ test.describe('Sales View', () => {
 
 test.describe('Sales Pagination', () => {
   let loginPage;
-  let dashboardPage;
   let salesPage;
 
   test.beforeEach(async ({ page }) => {
     loginPage = new LoginPage(page);
-    dashboardPage = new DashboardPage(page);
     salesPage = new SalesPage(page);
     await loginPage.goto();
     await loginPage.login('admin@gmail.com', '123456');
@@ -123,9 +119,7 @@ test.describe('Sales Pagination', () => {
     await salesPage.goto();
   });
 
-  test('WHEN sales table has pagination THEN pagination controls visible', async ({
-    page,
-  }) => {
+  test('WHEN sales table has pagination THEN pagination controls visible', async () => {
     if (
       await salesPage.pagination.isVisible({ timeout: 3000 }).catch(() => false)
     ) {

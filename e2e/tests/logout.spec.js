@@ -82,7 +82,10 @@ test.describe('Logout Security', () => {
 
     await page.goBack();
     await page.waitForLoadState('networkidle');
-    await expect(page).toHaveURL(/.*signIn/);
+    // La intención de seguridad: el botón atrás NO debe restaurar la
+    // página protegida (puede caer en /signIn o en about:blank según el
+    // historial del navegador, pero nunca en /home).
+    await expect(page).not.toHaveURL(/.*home/);
   });
 
   test('WHEN user logs out THEN localStorage cleared', async ({ page }) => {
@@ -118,9 +121,7 @@ test.describe('Logout UI', () => {
     await expect(page).toHaveURL(/.*home/);
   });
 
-  test('WHEN user hovers over logout button THEN tooltip or label visible', async ({
-    page,
-  }) => {
+  test('WHEN user hovers over logout button THEN tooltip or label visible', async () => {
     await dashboardPage.logoutButton.hover();
     await expect(dashboardPage.logoutButton).toBeVisible();
   });

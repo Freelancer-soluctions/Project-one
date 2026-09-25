@@ -21,9 +21,7 @@ test.describe('Dashboard Access', () => {
     await expect(dashboardPage.sidebar).toBeVisible();
   });
 
-  test('WHEN user navigates to dashboard THEN navigation menu visible', async ({
-    page,
-  }) => {
+  test('WHEN user navigates to dashboard THEN navigation menu visible', async () => {
     await expect(dashboardPage.sidebar).toBeVisible();
     const navLinks = dashboardPage.page
       .locator('nav a, [role="navigation"] a, aside a')
@@ -58,6 +56,8 @@ test.describe('Dashboard Access', () => {
   test('WHEN unauthenticated user accesses dashboard THEN redirected to login', async ({
     page,
   }) => {
+    // La sesión vive en sessionStorage (redux-persist), no en cookies.
+    await page.evaluate(() => window.sessionStorage.clear());
     await page.context().clearCookies();
     await page.goto('/home');
     await page.waitForLoadState('networkidle');

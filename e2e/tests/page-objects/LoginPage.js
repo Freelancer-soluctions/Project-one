@@ -46,7 +46,7 @@ export class DashboardPage {
       .first();
     this.logoutButton = page
       .locator(
-        'a:has-text("Logout"), a:has-text("logout"), a:has-text("Cerrar sesión"), a:has-text("cerrar sesión"), [data-testid="logout"]'
+        '[data-testid="logout"], button:has-text("Logout"), button:has-text("Cerrar sesión"), a:has-text("Logout"), a:has-text("Cerrar sesión")'
       )
       .first();
     this.sidebar = page
