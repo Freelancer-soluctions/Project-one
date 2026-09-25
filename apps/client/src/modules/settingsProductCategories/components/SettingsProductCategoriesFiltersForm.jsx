@@ -16,6 +16,74 @@ import { LuPlus, LuSearch, LuEraser } from 'react-icons/lu';
 import PropTypes from 'prop-types';
 import { FIELD_LIMITS } from '@/config/fieldLimits';
 
+/** Category text filter field (parametrized name/label/placeholder). */
+function FilterCategoryField({ control, name, labelKey, placeholderKey }) {
+  const { t } = useTranslation();
+  return (
+    <FormField
+      control={control}
+      name={name}
+      render={({ field }) => (
+        <FormItem className="flex flex-col flex-auto">
+          <FormLabel htmlFor={name}>{t(labelKey)}</FormLabel>
+          <FormControl>
+            <Input
+              id={name}
+              name={name}
+              placeholder={t(placeholderKey)}
+              type="text"
+              autoComplete="off"
+              maxLength={FIELD_LIMITS.productCategories[name]}
+              {...field}
+              value={field.value ?? ''}
+            />
+          </FormControl>
+          <FormMessage />
+        </FormItem>
+      )}
+    />
+  );
+}
+
+FilterCategoryField.propTypes = {
+  control: PropTypes.object.isRequired,
+  name: PropTypes.string.isRequired,
+  labelKey: PropTypes.string.isRequired,
+  placeholderKey: PropTypes.string.isRequired,
+};
+
+/** Search / add / clear action buttons row. */
+function buildFilterButtons({ t, handleAdd, handleResetFilter }) {
+  return (
+    <div className="flex flex-wrap items-center justify-between gap-3 mt-5 md:justify-normal">
+      <Button
+        type="submit"
+        className="flex-1 md:flex-initial md:w-24"
+        variant="info"
+      >
+        {t('search')}
+        <LuSearch className="w-4 h-4 ml-auto opacity-50" />
+      </Button>
+      <Button
+        type="button"
+        className="flex-1 md:flex-initial md:w-24"
+        variant="success"
+        onClick={handleAdd}
+      >
+        {t('add')} <LuPlus className="w-4 h-4 ml-auto opacity-50" />
+      </Button>
+      <Button
+        type="button"
+        className="flex-1 md:flex-initial md:w-24"
+        variant="outline"
+        onClick={() => handleResetFilter()}
+      >
+        {t('clear')} <LuEraser className="w-4 h-4 ml-auto opacity-50" />
+      </Button>
+    </div>
+  );
+}
+
 export const SettingsProductCategoriesFiltersForm = ({ onSubmit, onAdd }) => {
   const { t } = useTranslation();
   const form = useForm({
@@ -49,85 +117,22 @@ export const SettingsProductCategoriesFiltersForm = ({ onSubmit, onAdd }) => {
       >
         {/* inputs */}
         <div className="flex flex-wrap flex-1 gap-3">
-          <FormField
+          <FilterCategoryField
             control={form.control}
             name="description"
-            render={({ field }) => {
-              return (
-                <FormItem className="flex flex-col flex-auto">
-                  <FormLabel htmlFor="description">
-                    {t('description')}
-                  </FormLabel>
-                  <FormControl>
-                    <Input
-                      id="description"
-                      name="description"
-                      placeholder={t('category_description_placeholder')}
-                      type="text"
-                      autoComplete="off"
-                      maxLength={FIELD_LIMITS.productCategories.description}
-                      {...field}
-                      value={field.value ?? ''}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              );
-            }}
+            labelKey="description"
+            placeholderKey="category_description_placeholder"
           />
 
-          <FormField
+          <FilterCategoryField
             control={form.control}
             name="code"
-            render={({ field }) => {
-              return (
-                <FormItem className="flex flex-col flex-auto">
-                  <FormLabel htmlFor="code">{t('code')}</FormLabel>
-                  <FormControl>
-                    <Input
-                      id="code"
-                      name="code"
-                      placeholder={t('category_code_placeholder')}
-                      type="text"
-                      autoComplete="off"
-                      maxLength={FIELD_LIMITS.productCategories.code}
-                      {...field}
-                      value={field.value ?? ''}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              );
-            }}
+            labelKey="code"
+            placeholderKey="category_code_placeholder"
           />
         </div>
         {/* buttons */}
-        <div className="flex flex-wrap items-center justify-between gap-3 mt-5 md:justify-normal">
-          <Button
-            type="submit"
-            className="flex-1 md:flex-initial md:w-24"
-            variant="info"
-          >
-            {t('search')}
-            <LuSearch className="w-4 h-4 ml-auto opacity-50" />
-          </Button>
-          <Button
-            type="button"
-            className="flex-1 md:flex-initial md:w-24"
-            variant="success"
-            onClick={handleAdd}
-          >
-            {t('add')} <LuPlus className="w-4 h-4 ml-auto opacity-50" />
-          </Button>
-          <Button
-            type="button"
-            className="flex-1 md:flex-initial md:w-24"
-            variant="outline"
-            onClick={() => handleResetFilter()}
-          >
-            {t('clear')} <LuEraser className="w-4 h-4 ml-auto opacity-50" />
-          </Button>
-        </div>
+        {buildFilterButtons({ t, handleAdd, handleResetFilter })}
       </form>
     </Form>
   );

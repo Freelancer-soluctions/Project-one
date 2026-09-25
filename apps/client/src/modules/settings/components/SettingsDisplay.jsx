@@ -12,10 +12,90 @@ import {
 } from '@/components/ui/form';
 import { useToast } from '@/components/ui/use-toast';
 import PropTypes from 'prop-types';
-export const SettingsDisplay = ({
+
+/** Sidebar display toggles in render order. */
+const DISPLAY_SETTINGS = [
+  { name: 'displayNews', id: 'news', labelKey: 'news' },
+  { name: 'displayNotes', id: 'notes', labelKey: 'notes' },
+  { name: 'displayStock', id: 'stock', labelKey: 'stock' },
+  { name: 'displayEvents', id: 'events', labelKey: 'events' },
+  { name: 'displayProfile', id: 'profile', labelKey: 'profile' },
+  { name: 'displayLanguage', id: 'language', labelKey: 'language' },
+  { name: 'displayReports', id: 'reports', labelKey: 'reports' },
+  { name: 'displayPayroll', id: 'payroll', labelKey: 'payroll' },
+];
+
+/** Sidebar display toggle checkbox. */
+function DisplayToggleField({ control, name, id, labelKey }) {
+  const { t } = useTranslation();
+  return (
+    <FormField
+      control={control}
+      name={name}
+      render={({ field }) => (
+        <FormItem className="flex items-center space-x-2">
+          <FormControl>
+            <Checkbox
+              className="mt-2"
+              id={id}
+              checked={field.value}
+              onCheckedChange={field.onChange}
+            />
+          </FormControl>
+          <FormLabel
+            htmlFor={id}
+            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+          >
+            {t(labelKey)}
+          </FormLabel>
+        </FormItem>
+      )}
+    />
+  );
+}
+
+DisplayToggleField.propTypes = {
+  control: PropTypes.object.isRequired,
+  name: PropTypes.string.isRequired,
+  id: PropTypes.string.isRequired,
+  labelKey: PropTypes.string.isRequired,
+};
+
+/** Renders the display toggles in order. */
+const renderDisplayToggles = (control) =>
+  DISPLAY_SETTINGS.map((setting) => (
+    <DisplayToggleField key={setting.name} control={control} {...setting} />
+  ));
+
+/** Save button row. */
+function buildSaveButton({ t }) {
+  return (
+    <Button type="submit" variant="info" className="w-full mt-6 sm:w-auto">
+      {t('save')}
+    </Button>
+  );
+}
+
+/** Display section header: sidebar description. */
+function buildSidebarHeader({ t }) {
+  return (
+    <div>
+      <h4 className="mb-3 text-sm font-medium">{t('sidebar')}</h4>
+      <p className="mb-4 text-sm text-muted-foreground">
+        {t('select_items_display_message')}
+      </p>
+    </div>
+  );
+}
+
+/**
+ * Display settings form state: toggles submit with success/error
+ * toasts.
+ */
+function useDisplaySettingsForm({
   userDisplaySettings,
   onSaveDisplaySettings,
-}) => {
+}) {
   const { t } = useTranslation();
   const { toast } = useToast();
   const form = useForm({
@@ -23,6 +103,7 @@ export const SettingsDisplay = ({
       ...userDisplaySettings,
     },
   });
+
   async function onSubmit(data) {
     try {
       await onSaveDisplaySettings(data);
@@ -40,12 +121,17 @@ export const SettingsDisplay = ({
     }
   }
 
-  // useEffect(() => {
-  //   if (userDisplaySettings) {
-  //     setDisplaySettings({ ...userDisplaySettings })
-  //     console.log('dfdfd', displaySettings)
-  //   }
-  // }, [userDisplaySettings])
+  return { t, form, onSubmit };
+}
+
+export const SettingsDisplay = ({
+  userDisplaySettings,
+  onSaveDisplaySettings,
+}) => {
+  const { t, form, onSubmit } = useDisplaySettingsForm({
+    userDisplaySettings,
+    onSaveDisplaySettings,
+  });
 
   return (
     <Card>
@@ -58,198 +144,15 @@ export const SettingsDisplay = ({
         </div>
         <div className="space-y-4">
           <div>
-            <h4 className="mb-3 text-sm font-medium">{t('sidebar')}</h4>
-            <p className="mb-4 text-sm text-muted-foreground">
-              {t('select_items_display_message')}
-            </p>
+            {buildSidebarHeader({ t })}
             <Form {...form}>
               <form
                 onSubmit={form.handleSubmit(onSubmit)}
                 className="space-y-3"
               >
-                <FormField
-                  control={form.control}
-                  name="displayNews"
-                  render={({ field }) => (
-                    <FormItem className="flex items-center space-x-2">
-                      <FormControl>
-                        <Checkbox
-                          className="mt-2"
-                          id="news"
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
-                        />
-                      </FormControl>
-                      <FormLabel
-                        htmlFor="news"
-                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                      >
-                        {t('news')}
-                      </FormLabel>
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="displayNotes"
-                  render={({ field }) => (
-                    <FormItem className="flex items-center space-x-2">
-                      <FormControl>
-                        <Checkbox
-                          className="mt-2"
-                          id="notes"
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
-                        />
-                      </FormControl>
-                      <FormLabel
-                        htmlFor="notes"
-                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                      >
-                        {t('notes')}
-                      </FormLabel>
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="displayStock"
-                  render={({ field }) => (
-                    <FormItem className="flex items-center space-x-2">
-                      <FormControl>
-                        <Checkbox
-                          className="mt-2"
-                          id="stock"
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
-                        />
-                      </FormControl>
-                      <FormLabel
-                        htmlFor="stock"
-                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                      >
-                        {t('stock')}
-                      </FormLabel>
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="displayEvents"
-                  render={({ field }) => (
-                    <FormItem className="flex items-center space-x-2">
-                      <FormControl>
-                        <Checkbox
-                          className="mt-2"
-                          id="events"
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
-                        />
-                      </FormControl>
-                      <FormLabel
-                        htmlFor="events"
-                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                      >
-                        {t('events')}
-                      </FormLabel>
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="displayProfile"
-                  render={({ field }) => (
-                    <FormItem className="flex items-center space-x-2">
-                      <FormControl>
-                        <Checkbox
-                          className="mt-2"
-                          id="profile"
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
-                        />
-                      </FormControl>
-                      <FormLabel
-                        htmlFor="profile"
-                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                      >
-                        {t('profile')}
-                      </FormLabel>
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="displayLanguage"
-                  render={({ field }) => (
-                    <FormItem className="flex items-center space-x-2">
-                      <FormControl>
-                        <Checkbox
-                          className="mt-2"
-                          id="language"
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
-                        />
-                      </FormControl>
-                      <FormLabel
-                        htmlFor="language"
-                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                      >
-                        {t('language')}
-                      </FormLabel>
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="displayReports"
-                  render={({ field }) => (
-                    <FormItem className="flex items-center space-x-2">
-                      <FormControl>
-                        <Checkbox
-                          className="mt-2"
-                          id="reports"
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
-                        />
-                      </FormControl>
-                      <FormLabel
-                        htmlFor="reports"
-                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                      >
-                        {t('reports')}
-                      </FormLabel>
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="displayPayroll"
-                  render={({ field }) => (
-                    <FormItem className="flex items-center space-x-2">
-                      <FormControl>
-                        <Checkbox
-                          className="mt-2"
-                          id="payroll"
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
-                        />
-                      </FormControl>
-                      <FormLabel
-                        htmlFor="payroll"
-                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                      >
-                        {t('payroll')}
-                      </FormLabel>
-                    </FormItem>
-                  )}
-                />
-                <Button
-                  type="submit"
-                  variant="info"
-                  className="w-full mt-6 sm:w-auto"
-                >
-                  {t('save')}
-                </Button>
+                {renderDisplayToggles(form.control)}
+
+                {buildSaveButton({ t })}
               </form>
             </Form>
           </div>

@@ -174,18 +174,261 @@ function CalendarSkeleton() {
   );
 }
 
-function EventCalendar({
-  events,
-  isLoading = false,
+// Encabezado del calendario: título del mes y navegación.
+function buildCalendarHeader({
+  capitalizedMonth,
+  isCurrentMonth,
+  currentMonth,
+  goToMonth,
+}) {
+  return (
+    <div className="flex items-center justify-between gap-2 border-b p-3">
+      <div className="flex items-center gap-2">
+        <CalendarIcon
+          className="size-5 text-muted-foreground"
+          aria-hidden="true"
+        />
+        <h2 className="text-base font-semibold capitalize">
+          {capitalizedMonth}
+        </h2>
+      </div>
+      <div className="flex items-center gap-1">
+        {!isCurrentMonth ? (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => goToMonth(new Date())}
+          >
+            Hoy
+          </Button>
+        ) : null}
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => goToMonth(subMonths(currentMonth, 1))}
+          aria-label="Mes anterior"
+        >
+          <ChevronLeft className="size-4" />
+        </Button>
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => goToMonth(addMonths(currentMonth, 1))}
+          aria-label="Mes siguiente"
+        >
+          <ChevronRight className="size-4" />
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+// Vista mobile: tarjeta con lista vertical de eventos agrupados por día.
+function buildMobileView({
+  header,
+  isLoading,
+  monthEvents,
   onEventClick,
-  onDateClick,
-  onMonthChange,
   className,
 }) {
+  return (
+    <TooltipProvider>
+      <Card className={cn('flex h-full flex-col overflow-hidden', className)}>
+        {header}
+        <ScrollArea className="flex-1">
+          {isLoading ? (
+            mobileListSkeleton()
+          ) : monthEvents.length === 0 ? (
+            <EmptyState />
+          ) : (
+            <div className="divide-y">
+              {groupByDay(monthEvents).map(({ dateKey, dayEvents }) => (
+                <div key={dateKey} className="p-4">
+                  <p className="mb-2 text-sm font-semibold capitalize text-muted-foreground">
+                    {format(parseISO(dateKey), "EEE d 'de' MMMM", {
+                      locale: es,
+                    })}
+                  </p>
+                  <div className="space-y-3">
+                    {dayEvents.map((event) => (
+                      <MobileEventItem
+                        key={event.id}
+                        event={event}
+                        onEventClick={onEventClick}
+                      />
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </ScrollArea>
+      </Card>
+    </TooltipProvider>
+  );
+}
+
+// Fila de carga para la vista mobile.
+function mobileListSkeleton() {
+  return (
+    <div className="space-y-4 p-4">
+      {Array.from({ length: 4 }).map((_, i) => (
+        <div key={i} className="space-y-2">
+          <Skeleton className="h-4 w-32" />
+          <Skeleton className="h-12 w-full" />
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// Tarjeta de evento para la vista mobile (lista vertical).
+function MobileEventItem({ event, onEventClick }) {
+  return (
+    <button
+      type="button"
+      onClick={() => onEventClick?.(event)}
+      className="flex w-full flex-col gap-1 rounded-md border p-3 text-left transition-colors hover:bg-muted/50"
+    >
+      <div className="flex items-center gap-2">
+        <span
+          className={cn(
+            'size-2.5 shrink-0 rounded-full',
+            getEventColor(event.eventTypeDescription)
+          )}
+          aria-hidden="true"
+        />
+        <span className="shrink-0 text-sm font-medium tabular-nums">
+          {event.startTime}
+        </span>
+        <span className="line-clamp-1 flex-1 text-sm font-medium">
+          {event.title}
+        </span>
+        <ModalityIcon
+          modality={event.modality}
+          className="size-4 shrink-0 text-muted-foreground"
+        />
+      </div>
+      {event.speaker ? (
+        <p className="pl-[18px] text-xs text-muted-foreground">
+          Speaker: {event.speaker}
+        </p>
+      ) : null}
+      {event.location ? (
+        <p className="flex items-center gap-1 pl-[18px] text-xs text-muted-foreground">
+          <MapPin className="size-3" /> {event.location}
+        </p>
+      ) : null}
+      {event.meetingUrl &&
+      (event.modality === 'ONLINE' || event.modality === 'HYBRID') ? (
+        <p className="flex items-center gap-1 pl-[18px] text-xs text-primary">
+          <Video className="size-3" /> Unirse a la reunión
+        </p>
+      ) : null}
+    </button>
+  );
+}
+
+MobileEventItem.propTypes = {
+  event: PropTypes.object.isRequired,
+  onEventClick: PropTypes.func,
+};
+
+// Contenido del tooltip "+N más": lista de eventos ocultos del día.
+function buildOverflowTooltip({ dayEvents, onEventClick }) {
+  return (
+    <div className="space-y-1">
+      {dayEvents.slice(2).map((event) => (
+        <button
+          key={event.id}
+          type="button"
+          onClick={() => onEventClick?.(event)}
+          className="flex w-full items-center gap-1.5 text-left text-xs"
+        >
+          <span
+            className={cn(
+              'size-2 shrink-0 rounded-full',
+              getEventColor(event.eventTypeDescription)
+            )}
+          />
+          <span className="tabular-nums">{event.startTime}</span>
+          <span className="line-clamp-1">{event.title}</span>
+        </button>
+      ))}
+    </div>
+  );
+}
+
+// Celda de día del grid mensual con sus eventos visibles y overflow.
+function buildDayCell({
+  day,
+  dayEvents,
+  inMonth,
+  today,
+  onDateClick,
+  onEventClick,
+}) {
+  const visible = dayEvents.slice(0, 2);
+  const remaining = dayEvents.length - visible.length;
+
+  return (
+    <div
+      key={day.toISOString()}
+      onClick={() => onDateClick?.(day)}
+      className={cn(
+        'min-h-[80px] cursor-pointer border-b border-r p-1.5 last:border-r-0 lg:min-h-[100px]',
+        !inMonth && 'bg-muted/30'
+      )}
+    >
+      <div className="mb-1 flex items-center justify-between">
+        <span
+          className={cn(
+            'flex size-6 items-center justify-center rounded-full text-xs',
+            !inMonth && 'text-muted-foreground/50',
+            today && 'bg-primary font-semibold text-primary-foreground'
+          )}
+        >
+          {format(day, 'd')}
+        </span>
+      </div>
+      <div className="space-y-0.5">
+        {visible.map((event) => (
+          <EventChip key={event.id} event={event} onClick={onEventClick} />
+        ))}
+        {remaining > 0 ? (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                type="button"
+                onClick={(e) => e.stopPropagation()}
+                className="w-full"
+              >
+                <Badge
+                  variant="outline"
+                  className="w-full justify-center text-[10px] font-normal"
+                >
+                  +{remaining} más
+                </Badge>
+              </button>
+            </TooltipTrigger>
+            <TooltipContent side="bottom" className="max-w-xs">
+              {buildOverflowTooltip({ dayEvents, onEventClick })}
+            </TooltipContent>
+          </Tooltip>
+        ) : null}
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Estado y datos derivados del calendario: mes visible, navegación,
+ * agrupación de eventos y días del grid.
+ */
+function useCalendarState({ events, onMonthChange }) {
   const [currentMonth, setCurrentMonth] = React.useState(() =>
     startOfMonth(new Date())
   );
-  const isMobile = useIsMobile();
 
   const goToMonth = React.useCallback(
     (month) => {
@@ -238,136 +481,59 @@ function EventCalendar({
   const capitalizedMonth =
     monthLabel.charAt(0).toUpperCase() + monthLabel.slice(1);
 
-  const Header = (
-    <div className="flex items-center justify-between gap-2 border-b p-3">
-      <div className="flex items-center gap-2">
-        <CalendarIcon
-          className="size-5 text-muted-foreground"
-          aria-hidden="true"
-        />
-        <h2 className="text-base font-semibold capitalize">
-          {capitalizedMonth}
-        </h2>
-      </div>
-      <div className="flex items-center gap-1">
-        {!isCurrentMonth ? (
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => goToMonth(new Date())}
-          >
-            Hoy
-          </Button>
-        ) : null}
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => goToMonth(subMonths(currentMonth, 1))}
-          aria-label="Mes anterior"
-        >
-          <ChevronLeft className="size-4" />
-        </Button>
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => goToMonth(addMonths(currentMonth, 1))}
-          aria-label="Mes siguiente"
-        >
-          <ChevronRight className="size-4" />
-        </Button>
-      </div>
-    </div>
-  );
+  return {
+    currentMonth,
+    goToMonth,
+    isCurrentMonth,
+    getEventsForDay,
+    calendarDays,
+    monthEvents,
+    capitalizedMonth,
+  };
+}
+
+function EventCalendar({
+  events,
+  isLoading = false,
+  onEventClick,
+  onDateClick,
+  onMonthChange,
+  className,
+}) {
+  const {
+    currentMonth,
+    goToMonth,
+    isCurrentMonth,
+    getEventsForDay,
+    calendarDays,
+    monthEvents,
+    capitalizedMonth,
+  } = useCalendarState({ events, onMonthChange });
+  const isMobile = useIsMobile();
+
+  const header = buildCalendarHeader({
+    capitalizedMonth,
+    isCurrentMonth,
+    currentMonth,
+    goToMonth,
+  });
 
   // Vista mobile: lista vertical agrupada por día
   if (isMobile) {
-    return (
-      <TooltipProvider>
-        <Card className={cn('flex h-full flex-col overflow-hidden', className)}>
-          {Header}
-          <ScrollArea className="flex-1">
-            {isLoading ? (
-              <div className="space-y-4 p-4">
-                {Array.from({ length: 4 }).map((_, i) => (
-                  <div key={i} className="space-y-2">
-                    <Skeleton className="h-4 w-32" />
-                    <Skeleton className="h-12 w-full" />
-                  </div>
-                ))}
-              </div>
-            ) : monthEvents.length === 0 ? (
-              <EmptyState />
-            ) : (
-              <div className="divide-y">
-                {groupByDay(monthEvents).map(({ dateKey, dayEvents }) => (
-                  <div key={dateKey} className="p-4">
-                    <p className="mb-2 text-sm font-semibold capitalize text-muted-foreground">
-                      {format(parseISO(dateKey), "EEE d 'de' MMMM", {
-                        locale: es,
-                      })}
-                    </p>
-                    <div className="space-y-3">
-                      {dayEvents.map((event) => (
-                        <button
-                          key={event.id}
-                          type="button"
-                          onClick={() => onEventClick?.(event)}
-                          className="flex w-full flex-col gap-1 rounded-md border p-3 text-left transition-colors hover:bg-muted/50"
-                        >
-                          <div className="flex items-center gap-2">
-                            <span
-                              className={cn(
-                                'size-2.5 shrink-0 rounded-full',
-                                getEventColor(event.eventTypeDescription)
-                              )}
-                              aria-hidden="true"
-                            />
-                            <span className="shrink-0 text-sm font-medium tabular-nums">
-                              {event.startTime}
-                            </span>
-                            <span className="line-clamp-1 flex-1 text-sm font-medium">
-                              {event.title}
-                            </span>
-                            <ModalityIcon
-                              modality={event.modality}
-                              className="size-4 shrink-0 text-muted-foreground"
-                            />
-                          </div>
-                          {event.speaker ? (
-                            <p className="pl-[18px] text-xs text-muted-foreground">
-                              Speaker: {event.speaker}
-                            </p>
-                          ) : null}
-                          {event.location ? (
-                            <p className="flex items-center gap-1 pl-[18px] text-xs text-muted-foreground">
-                              <MapPin className="size-3" /> {event.location}
-                            </p>
-                          ) : null}
-                          {event.meetingUrl &&
-                          (event.modality === 'ONLINE' ||
-                            event.modality === 'HYBRID') ? (
-                            <p className="flex items-center gap-1 pl-[18px] text-xs text-primary">
-                              <Video className="size-3" /> Unirse a la reunión
-                            </p>
-                          ) : null}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </ScrollArea>
-        </Card>
-      </TooltipProvider>
-    );
+    return buildMobileView({
+      header,
+      isLoading,
+      monthEvents,
+      onEventClick,
+      className,
+    });
   }
 
   // Vista desktop/tablet: grid mensual
   return (
     <TooltipProvider>
       <Card className={cn('flex h-full flex-col overflow-hidden', className)}>
-        {Header}
+        {header}
         {isLoading ? (
           <div className="flex-1 p-2">
             <CalendarSkeleton />
@@ -390,91 +556,16 @@ function EventCalendar({
             {/* Grid de días */}
             <ScrollArea className="flex-1">
               <div className="grid grid-cols-7">
-                {calendarDays.map((day) => {
-                  const dayEvents = getEventsForDay(day);
-                  const inMonth = isSameMonth(day, currentMonth);
-                  const today = isToday(day);
-                  const visible = dayEvents.slice(0, 2);
-                  const remaining = dayEvents.length - visible.length;
-
-                  return (
-                    <div
-                      key={day.toISOString()}
-                      onClick={() => onDateClick?.(day)}
-                      className={cn(
-                        'min-h-[80px] cursor-pointer border-b border-r p-1.5 last:border-r-0 lg:min-h-[100px]',
-                        !inMonth && 'bg-muted/30'
-                      )}
-                    >
-                      <div className="mb-1 flex items-center justify-between">
-                        <span
-                          className={cn(
-                            'flex size-6 items-center justify-center rounded-full text-xs',
-                            !inMonth && 'text-muted-foreground/50',
-                            today &&
-                              'bg-primary font-semibold text-primary-foreground'
-                          )}
-                        >
-                          {format(day, 'd')}
-                        </span>
-                      </div>
-                      <div className="space-y-0.5">
-                        {visible.map((event) => (
-                          <EventChip
-                            key={event.id}
-                            event={event}
-                            onClick={onEventClick}
-                          />
-                        ))}
-                        {remaining > 0 ? (
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <button
-                                type="button"
-                                onClick={(e) => e.stopPropagation()}
-                                className="w-full"
-                              >
-                                <Badge
-                                  variant="outline"
-                                  className="w-full justify-center text-[10px] font-normal"
-                                >
-                                  +{remaining} más
-                                </Badge>
-                              </button>
-                            </TooltipTrigger>
-                            <TooltipContent side="bottom" className="max-w-xs">
-                              <div className="space-y-1">
-                                {dayEvents.slice(2).map((event) => (
-                                  <button
-                                    key={event.id}
-                                    type="button"
-                                    onClick={() => onEventClick?.(event)}
-                                    className="flex w-full items-center gap-1.5 text-left text-xs"
-                                  >
-                                    <span
-                                      className={cn(
-                                        'size-2 shrink-0 rounded-full',
-                                        getEventColor(
-                                          event.eventTypeDescription
-                                        )
-                                      )}
-                                    />
-                                    <span className="tabular-nums">
-                                      {event.startTime}
-                                    </span>
-                                    <span className="line-clamp-1">
-                                      {event.title}
-                                    </span>
-                                  </button>
-                                ))}
-                              </div>
-                            </TooltipContent>
-                          </Tooltip>
-                        ) : null}
-                      </div>
-                    </div>
-                  );
-                })}
+                {calendarDays.map((day) =>
+                  buildDayCell({
+                    day,
+                    dayEvents: getEventsForDay(day),
+                    inMonth: isSameMonth(day, currentMonth),
+                    today: isToday(day),
+                    onDateClick,
+                    onEventClick,
+                  })
+                )}
               </div>
             </ScrollArea>
           </div>

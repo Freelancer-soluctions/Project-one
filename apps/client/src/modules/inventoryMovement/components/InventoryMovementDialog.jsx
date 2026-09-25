@@ -25,6 +25,208 @@ import { useEffect } from 'react';
 import { InventoryMovementSchema, MOVEMENT_TYPES } from '../utils';
 import { pickDirty } from '@/utils/pickDirty';
 
+const EMPTY_FORM_VALUES = {
+  productId: '',
+  warehouseId: '',
+  quantity: '',
+  type: '',
+  reason: '',
+};
+
+/** Entity select with native options (products/warehouses keyed by id). */
+function MovementEntitySelectField({
+  control,
+  name,
+  labelKey,
+  placeholderKey,
+  dataItems,
+}) {
+  const { t } = useTranslation();
+  return (
+    <FormField
+      control={control}
+      name={name}
+      render={({ field }) => (
+        <FormItem>
+          <FormLabel>{t(labelKey)}</FormLabel>
+          <Select onValueChange={field.onChange} value={field.value}>
+            <option value="">{t(placeholderKey)}</option>
+            {dataItems.map((item) => (
+              <option key={item.id} value={item.id}>
+                {item.name}
+              </option>
+            ))}
+          </Select>
+          <FormMessage />
+        </FormItem>
+      )}
+    />
+  );
+}
+
+MovementEntitySelectField.propTypes = {
+  control: PropTypes.object.isRequired,
+  name: PropTypes.string.isRequired,
+  labelKey: PropTypes.string.isRequired,
+  placeholderKey: PropTypes.string.isRequired,
+  dataItems: PropTypes.array.isRequired,
+};
+
+/** Movement-type select with native options. */
+function MovementTypeSelectField({ control }) {
+  const { t } = useTranslation();
+  return (
+    <FormField
+      control={control}
+      name="type"
+      render={({ field }) => (
+        <FormItem>
+          <FormLabel>{t('type')}</FormLabel>
+          <Select onValueChange={field.onChange} value={field.value}>
+            <option value="">{t('select_type')}</option>
+            {Object.values(MOVEMENT_TYPES).map((type) => (
+              <option key={type} value={type}>
+                {t(type.toLowerCase())}
+              </option>
+            ))}
+          </Select>
+          <FormMessage />
+        </FormItem>
+      )}
+    />
+  );
+}
+
+MovementTypeSelectField.propTypes = {
+  control: PropTypes.object.isRequired,
+};
+
+/** Quantity numeric input field. */
+function MovementQuantityField({ control }) {
+  const { t } = useTranslation();
+  return (
+    <FormField
+      control={control}
+      name="quantity"
+      render={({ field }) => (
+        <FormItem>
+          <FormLabel>{t('quantity')}</FormLabel>
+          <FormControl>
+            <Input type="number" {...field} />
+          </FormControl>
+          <FormMessage />
+        </FormItem>
+      )}
+    />
+  );
+}
+
+MovementQuantityField.propTypes = {
+  control: PropTypes.object.isRequired,
+};
+
+/** Reason textarea field. */
+function MovementReasonField({ control }) {
+  const { t } = useTranslation();
+  return (
+    <FormField
+      control={control}
+      name="reason"
+      render={({ field }) => (
+        <FormItem>
+          <FormLabel>{t('reason')}</FormLabel>
+          <FormControl>
+            <Textarea
+              {...field}
+              maxLength={FIELD_LIMITS.inventoryMovement.reason}
+            />
+          </FormControl>
+          <FormMessage />
+        </FormItem>
+      )}
+    />
+  );
+}
+
+MovementReasonField.propTypes = {
+  control: PropTypes.object.isRequired,
+};
+
+/** Dialog action buttons: submit, delete (edit only), cancel. */
+function buildDialogButtons({ t, isEdit, handleDelete, handleCloseDialog }) {
+  return (
+    <div className="flex justify-end gap-4 mt-6">
+      <Button type="submit" variant="default">
+        {isEdit ? t('update') : t('add')}
+      </Button>
+      {isEdit && (
+        <Button type="button" variant="destructive" onClick={handleDelete}>
+          {t('delete')}
+        </Button>
+      )}
+      <Button type="button" variant="outline" onClick={handleCloseDialog}>
+        {t('cancel')}
+      </Button>
+    </div>
+  );
+}
+
+/**
+ * Dialog form state: reset from the selected row, numeric-string
+ * mapping, close-after-submit flow.
+ */
+function useMovementDialogForm({
+  selectedRow,
+  onSubmit,
+  onDeleteById,
+  onCloseDialog,
+}) {
+  const form = useForm({
+    resolver: zodResolver(InventoryMovementSchema),
+    defaultValues: EMPTY_FORM_VALUES,
+  });
+  const {
+    formState: { dirtyFields },
+  } = form;
+
+  useEffect(() => {
+    if (selectedRow?.id) {
+      form.reset({
+        productId: selectedRow.productId?.toString() ?? '',
+        warehouseId: selectedRow.warehouseId?.toString() ?? '',
+        quantity: selectedRow.quantity?.toString() ?? '',
+        type: selectedRow.type ?? '',
+        reason: selectedRow.reason ?? '',
+      });
+    }
+  }, [selectedRow, form]);
+
+  const handleCloseDialog = () => {
+    form.reset();
+    onCloseDialog();
+  };
+
+  const handleSubmit = async (data) => {
+    if (selectedRow?.id) {
+      // edit → send only changed fields (PATCH)
+      const changes = pickDirty(data, dirtyFields);
+      await onSubmit({ id: selectedRow?.id, body: changes });
+      handleCloseDialog();
+    } else {
+      // create → send all fields (POST)
+      await onSubmit(data);
+      handleCloseDialog();
+    }
+  };
+
+  const handleDelete = async () => {
+    await onDeleteById(selectedRow.id);
+    handleCloseDialog();
+  };
+
+  return { form, handleSubmit, handleDelete, handleCloseDialog };
+}
+
 export const InventoryMovementDialog = ({
   openDialog,
   onCloseDialog,
@@ -36,55 +238,15 @@ export const InventoryMovementDialog = ({
   warehouses,
 }) => {
   const { t } = useTranslation();
-  console.log('produc', products);
+  const { form, handleSubmit, handleDelete, handleCloseDialog } =
+    useMovementDialogForm({
+      selectedRow,
+      onSubmit,
+      onDeleteById,
+      onCloseDialog,
+    });
 
-  const form = useForm({
-    resolver: zodResolver(InventoryMovementSchema),
-    defaultValues: {
-      productId: '',
-      warehouseId: '',
-      quantity: '',
-      type: '',
-      reason: '',
-    },
-  });
-  const {
-    formState: { dirtyFields },
-  } = form;
-
-  useEffect(() => {
-    if (selectedRow?.id) {
-      const mappedValues = {
-        productId: selectedRow.productId?.toString() ?? '',
-        warehouseId: selectedRow.warehouseId?.toString() ?? '',
-        quantity: selectedRow.quantity?.toString() ?? '',
-        type: selectedRow.type ?? '',
-        reason: selectedRow.reason ?? '',
-      };
-      form.reset(mappedValues);
-    }
-  }, [selectedRow, form]);
-
-  const handleSubmit = async (data) => {
-    if (selectedRow?.id) {
-      const changes = pickDirty(data, dirtyFields);
-      await onSubmit({ id: selectedRow?.id, body: changes });
-      handleCloseDialog();
-    } else {
-      await onSubmit(data);
-      handleCloseDialog();
-    }
-  };
-
-  const handleCloseDialog = () => {
-    form.reset();
-    onCloseDialog();
-  };
-
-  const handleDelete = async () => {
-    await onDeleteById(selectedRow.id);
-    handleCloseDialog();
-  };
+  const isEdit = !!selectedRow?.id;
 
   return (
     <Dialog open={openDialog} onOpenChange={handleCloseDialog}>
@@ -97,115 +259,34 @@ export const InventoryMovementDialog = ({
             onSubmit={form.handleSubmit(handleSubmit)}
             className="space-y-4"
           >
-            <FormField
+            <MovementEntitySelectField
               control={form.control}
               name="productId"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{t('product')}</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
-                    <option value="">{t('select_product')}</option>
-                    {products.map((product) => (
-                      <option key={product.id} value={product.id}>
-                        {product.name}
-                      </option>
-                    ))}
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
+              labelKey="product"
+              placeholderKey="select_product"
+              dataItems={products}
             />
 
-            <FormField
+            <MovementEntitySelectField
               control={form.control}
               name="warehouseId"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{t('warehouse')}</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
-                    <option value="">{t('select_warehouse')}</option>
-                    {warehouses.map((warehouse) => (
-                      <option key={warehouse.id} value={warehouse.id}>
-                        {warehouse.name}
-                      </option>
-                    ))}
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
+              labelKey="warehouse"
+              placeholderKey="select_warehouse"
+              dataItems={warehouses}
             />
 
-            <FormField
-              control={form.control}
-              name="quantity"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{t('quantity')}</FormLabel>
-                  <FormControl>
-                    <Input type="number" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            <MovementQuantityField control={form.control} />
 
-            <FormField
-              control={form.control}
-              name="type"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{t('type')}</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
-                    <option value="">{t('select_type')}</option>
-                    {Object.values(MOVEMENT_TYPES).map((type) => (
-                      <option key={type} value={type}>
-                        {t(type.toLowerCase())}
-                      </option>
-                    ))}
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            <MovementTypeSelectField control={form.control} />
 
-            <FormField
-              control={form.control}
-              name="reason"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{t('reason')}</FormLabel>
-                  <FormControl>
-                    <Textarea
-                      {...field}
-                      maxLength={FIELD_LIMITS.inventoryMovement.reason}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            <MovementReasonField control={form.control} />
 
-            <div className="flex justify-end gap-4 mt-6">
-              <Button type="submit" variant="default">
-                {selectedRow?.id ? t('update') : t('add')}
-              </Button>
-              {selectedRow?.id && (
-                <Button
-                  type="button"
-                  variant="destructive"
-                  onClick={handleDelete}
-                >
-                  {t('delete')}
-                </Button>
-              )}
-              <Button
-                type="button"
-                variant="outline"
-                onClick={handleCloseDialog}
-              >
-                {t('cancel')}
-              </Button>
-            </div>
+            {buildDialogButtons({
+              t,
+              isEdit,
+              handleDelete,
+              handleCloseDialog,
+            })}
           </form>
         </Form>
       </DialogContent>

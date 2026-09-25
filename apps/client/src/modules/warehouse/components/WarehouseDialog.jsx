@@ -44,17 +44,258 @@ import { CalendarIcon } from '@radix-ui/react-icons';
 import { Calendar } from '@/components/ui/calendar';
 import { format } from 'date-fns';
 
-export const WarehouseDialog = ({
+/** Text input field (parametrized name/label/placeholder). */
+function WarehouseTextField({
+  control,
+  name,
+  labelKey,
+  placeholderKey,
+  required = false,
+}) {
+  const { t } = useTranslation();
+  return (
+    <FormField
+      control={control}
+      name={name}
+      render={({ field }) => (
+        <FormItem className="flex flex-col flex-auto">
+          <FormLabel htmlFor={name}>
+            {t(labelKey)}
+            {required ? '*' : ''}
+          </FormLabel>
+          <FormControl>
+            <Input
+              id={name}
+              name={name}
+              placeholder={t(placeholderKey)}
+              type="text"
+              autoComplete="off"
+              maxLength={FIELD_LIMITS.warehouse[name]}
+              {...field}
+              value={field.value ?? ''}
+            />
+          </FormControl>
+          <FormMessage />
+        </FormItem>
+      )}
+    />
+  );
+}
+
+WarehouseTextField.propTypes = {
+  control: PropTypes.object.isRequired,
+  name: PropTypes.string.isRequired,
+  labelKey: PropTypes.string.isRequired,
+  placeholderKey: PropTypes.string.isRequired,
+  required: PropTypes.bool,
+};
+
+/** Status select field fed from the warehouse status enum. */
+function WarehouseStatusSelectField({ control, dataStatus }) {
+  const { t } = useTranslation();
+  return (
+    <FormField
+      control={control}
+      name="status"
+      render={({ field }) => (
+        <FormItem>
+          <FormLabel htmlFor="status">{t('status')}*</FormLabel>
+          <Select
+            onValueChange={field.onChange}
+            value={field.value?.toString()} // Asegura que el valor sea string
+          >
+            <FormControl>
+              <SelectTrigger
+                className={cn(
+                  'w-full',
+                  !field.value && 'text-muted-foreground'
+                )}
+              >
+                <SelectValue
+                  placeholder={t('select_status')}
+                  className="w-full"
+                />
+              </SelectTrigger>
+            </FormControl>
+            <SelectContent>
+              {dataStatus.map((item, index) => (
+                <SelectItem key={index} value={item.value.toString()}>
+                  {item.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <FormMessage />
+        </FormItem>
+      )}
+    />
+  );
+}
+
+WarehouseStatusSelectField.propTypes = {
+  control: PropTypes.object.isRequired,
+  dataStatus: PropTypes.array.isRequired,
+};
+
+/** Disabled date display with calendar popover (created/updated on). */
+function WarehouseReadonlyDateField({ control, name, labelKey }) {
+  const { t } = useTranslation();
+  return (
+    <FormField
+      control={control}
+      name={name}
+      render={({ field }) => (
+        <FormItem className="flex flex-col flex-auto">
+          <FormLabel htmlFor={name}>{t(labelKey)}</FormLabel>
+          <Popover>
+            <PopoverTrigger asChild>
+              <FormControl>
+                <Button
+                  id={name}
+                  disabled={true}
+                  readOnly={true}
+                  variant={'outline'}
+                  className={cn(
+                    'pl-3 text-left font-normal',
+                    !field.value && 'text-muted-foreground'
+                  )}
+                >
+                  {field.value && format(field.value, 'PPP')}
+                  <CalendarIcon className="w-4 h-4 ml-auto opacity-50" />
+                </Button>
+              </FormControl>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              <Calendar
+                mode="single"
+                selected={field.value}
+                onSelect={field.onChange}
+                disabled={(date) => date < new Date('1900-01-01')}
+              />
+            </PopoverContent>
+          </Popover>
+          <FormMessage />
+        </FormItem>
+      )}
+    />
+  );
+}
+
+WarehouseReadonlyDateField.propTypes = {
+  control: PropTypes.object.isRequired,
+  name: PropTypes.string.isRequired,
+  labelKey: PropTypes.string.isRequired,
+};
+
+/** Grid of dialog form fields in display order. */
+function buildWarehouseFields({ form, dataStatus, warehouseId, selectedRow }) {
+  return (
+    <div className="grid grid-cols-2 gap-6 py-4 auto-rows-auto">
+      <WarehouseTextField
+        control={form.control}
+        name="name"
+        labelKey="name"
+        placeholderKey="warehouse_name_placeholder"
+        required
+      />
+
+      <WarehouseStatusSelectField
+        control={form.control}
+        dataStatus={dataStatus}
+      />
+
+      <WarehouseTextField
+        control={form.control}
+        name="description"
+        labelKey="description"
+        placeholderKey="description_placeholder"
+      />
+
+      <WarehouseTextField
+        control={form.control}
+        name="address"
+        labelKey="address"
+        placeholderKey="address_placeholder"
+      />
+
+      {warehouseId && (
+        <WarehouseReadonlyDateField
+          control={form.control}
+          name="createdOn"
+          labelKey="created_on"
+        />
+      )}
+      {warehouseId && selectedRow?.updatedOn && (
+        <WarehouseReadonlyDateField
+          control={form.control}
+          name="updatedOn"
+          labelKey="updated_on"
+        />
+      )}
+    </div>
+  );
+}
+
+/** Dialog header: building icon, action title and edit/add description. */
+function buildDialogHeader({ t, actionDialog, warehouseId }) {
+  return (
+    <DialogHeader>
+      <DialogTitle className="flex items-center gap-2">
+        <LuBuilding2 className="inline mr-3 w-7 h-7" />
+        {actionDialog}
+      </DialogTitle>
+      <DialogDescription>
+        {warehouseId ? t('edit_message') : t('add_message')}
+      </DialogDescription>
+    </DialogHeader>
+  );
+}
+
+/** Dialog footer: cancel, delete (edit only) and save/update. */
+function buildDialogFooter({ t, warehouseId, handleDeleteById }) {
+  return (
+    <DialogFooter>
+      <DialogClose asChild>
+        <Button
+          type="button"
+          variant="secondary"
+          className="flex-1 md:flex-initial md:w-24"
+        >
+          {t('cancel')}
+        </Button>
+      </DialogClose>
+
+      {warehouseId && (
+        <Button
+          type="button"
+          variant="destructive"
+          className="flex-1 md:flex-initial md:w-24"
+          onClick={handleDeleteById}
+        >
+          {t('delete')}
+        </Button>
+      )}
+      <Button
+        type="submit"
+        variant="info"
+        className="flex-1 md:flex-initial md:w-24"
+      >
+        {warehouseId ? t('update') : t('save')}
+      </Button>
+    </DialogFooter>
+  );
+}
+
+/**
+ * Dialog form state: reset from the selected row, dirty-field PATCH
+ * payloads on edit.
+ */
+function useWarehouseDialogForm({
   openDialog,
-  onCloseDialog,
   selectedRow,
-  dataStatus,
   onSubmit,
   onDeleteById,
-  actionDialog,
-}) => {
-  const { t } = useTranslation();
-
+}) {
   // Configura el formulario
   const form = useForm({
     resolver: zodResolver(WarehouseSchema),
@@ -75,16 +316,14 @@ export const WarehouseDialog = ({
   useEffect(() => {
     if (selectedRow?.id) {
       // Filtra y mapea solo los valores necesarios
-      const mappedValues = {
+      form.reset({
         name: selectedRow.name || '',
         status: selectedRow.status || '',
         description: selectedRow.description || '',
         address: selectedRow.address || '',
         createdOn: selectedRow.createdOn || '',
         updatedOn: selectedRow.updatedOn || '',
-      };
-
-      form.reset(mappedValues);
+      });
     }
 
     if (!openDialog) {
@@ -94,9 +333,11 @@ export const WarehouseDialog = ({
 
   const handleSubmit = (data) => {
     if (warehouseId) {
+      // edit → send only changed fields (PATCH)
       const changes = pickDirty(data, dirtyFields);
       onSubmit({ id: warehouseId, body: changes });
     } else {
+      // create → send all fields (POST)
       onSubmit(data);
     }
   };
@@ -104,6 +345,22 @@ export const WarehouseDialog = ({
   const handleDeleteById = () => {
     onDeleteById(warehouseId);
   };
+
+  return { form, warehouseId, handleSubmit, handleDeleteById };
+}
+
+export const WarehouseDialog = ({
+  openDialog,
+  onCloseDialog,
+  selectedRow,
+  dataStatus,
+  onSubmit,
+  onDeleteById,
+  actionDialog,
+}) => {
+  const { t } = useTranslation();
+  const { form, warehouseId, handleSubmit, handleDeleteById } =
+    useWarehouseDialogForm({ openDialog, selectedRow, onSubmit, onDeleteById });
 
   return (
     <Dialog
@@ -114,15 +371,7 @@ export const WarehouseDialog = ({
       }}
     >
       <DialogContent className="sm:max-w-[600px]">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <LuBuilding2 className="inline mr-3 w-7 h-7" />
-            {actionDialog}
-          </DialogTitle>
-          <DialogDescription>
-            {warehouseId ? t('edit_message') : t('add_message')}
-          </DialogDescription>
-        </DialogHeader>
+        {buildDialogHeader({ t, actionDialog, warehouseId })}
         <Form {...form}>
           <form
             method="post"
@@ -132,236 +381,14 @@ export const WarehouseDialog = ({
             noValidate
             className="flex flex-col flex-wrap gap-5"
           >
-            <div className="grid grid-cols-2 gap-6 py-4 auto-rows-auto">
-              <FormField
-                control={form.control}
-                name="name"
-                render={({ field }) => {
-                  return (
-                    <FormItem>
-                      <FormLabel htmlFor="name">{t('name')}*</FormLabel>
-                      <FormControl>
-                        <Input
-                          id="name"
-                          name="name"
-                          placeholder={t('warehouse_name_placeholder')}
-                          type="text"
-                          autoComplete="off"
-                          maxLength={FIELD_LIMITS.warehouse.name}
-                          {...field}
-                          value={field.value ?? ''}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  );
-                }}
-              />
+            {buildWarehouseFields({
+              form,
+              dataStatus,
+              warehouseId,
+              selectedRow,
+            })}
 
-              <FormField
-                control={form.control}
-                name="status"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel htmlFor="status">{t('status')}*</FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      value={field.value?.toString()} // Asegura que el valor sea string
-                    >
-                      <FormControl>
-                        <SelectTrigger
-                          className={cn(
-                            'w-full',
-                            !field.value && 'text-muted-foreground'
-                          )}
-                        >
-                          <SelectValue
-                            placeholder={t('select_status')}
-                            className="w-full"
-                          />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {dataStatus.map((item, index) => (
-                          <SelectItem key={index} value={item.value.toString()}>
-                            {item.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="description"
-                render={({ field }) => {
-                  return (
-                    <FormItem className="flex flex-col flex-auto">
-                      <FormLabel htmlFor="description">
-                        {t('description')}
-                      </FormLabel>
-                      <FormControl>
-                        <Input
-                          id="description"
-                          name="description"
-                          placeholder={t('description_placeholder')}
-                          type="text"
-                          autoComplete="off"
-                          maxLength={FIELD_LIMITS.warehouse.description}
-                          {...field}
-                          value={field.value ?? ''}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  );
-                }}
-              />
-
-              <FormField
-                control={form.control}
-                name="address"
-                render={({ field }) => {
-                  return (
-                    <FormItem className="flex flex-col flex-auto">
-                      <FormLabel htmlFor="address">{t('address')}</FormLabel>
-                      <FormControl>
-                        <Input
-                          id="address"
-                          name="address"
-                          placeholder={t('address_placeholder')}
-                          type="text"
-                          autoComplete="off"
-                          maxLength={FIELD_LIMITS.warehouse.address}
-                          {...field}
-                          value={field.value ?? ''}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  );
-                }}
-              />
-
-              {warehouseId && (
-                <>
-                  <FormField
-                    control={form.control}
-                    name="createdOn"
-                    render={({ field }) => (
-                      <FormItem className="flex flex-col flex-auto">
-                        <FormLabel htmlFor="createdOn">
-                          {t('created_on')}
-                        </FormLabel>
-                        <Popover>
-                          <PopoverTrigger asChild>
-                            <FormControl>
-                              <Button
-                                id="createdOn"
-                                disabled={true}
-                                readOnly={true}
-                                variant={'outline'}
-                                className={cn(
-                                  'pl-3 text-left font-normal',
-                                  !field.value && 'text-muted-foreground'
-                                )}
-                              >
-                                {field.value && format(field.value, 'PPP')}
-                                <CalendarIcon className="w-4 h-4 ml-auto opacity-50" />
-                              </Button>
-                            </FormControl>
-                          </PopoverTrigger>
-                          <PopoverContent className="w-auto p-0" align="start">
-                            <Calendar
-                              mode="single"
-                              selected={field.value}
-                              onSelect={field.onChange}
-                              disabled={(date) => date < new Date('1900-01-01')}
-                            />
-                          </PopoverContent>
-                        </Popover>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </>
-              )}
-              {warehouseId && selectedRow?.updatedOn && (
-                <FormField
-                  control={form.control}
-                  name="updatedOn"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-col flex-auto">
-                      <FormLabel htmlFor="updatedOn">
-                        {t('updated_on')}
-                      </FormLabel>
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <FormControl>
-                            <Button
-                              id="updatedOn"
-                              disabled={true}
-                              readOnly={true}
-                              variant={'outline'}
-                              className={cn(
-                                'pl-3 text-left font-normal',
-                                !field.value && 'text-muted-foreground'
-                              )}
-                            >
-                              {field.value && format(field.value, 'PPP')}
-                              <CalendarIcon className="w-4 h-4 ml-auto opacity-50" />
-                            </Button>
-                          </FormControl>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0" align="start">
-                          <Calendar
-                            mode="single"
-                            selected={field.value}
-                            onSelect={field.onChange}
-                            disabled={(date) => date < new Date('1900-01-01')}
-                          />
-                        </PopoverContent>
-                      </Popover>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              )}
-            </div>
-            <DialogFooter>
-              <DialogClose asChild>
-                <Button
-                  type="button"
-                  variant="secondary"
-                  className="flex-1 md:flex-initial md:w-24"
-                >
-                  {t('cancel')}
-                </Button>
-              </DialogClose>
-
-              {warehouseId && (
-                <Button
-                  type="button"
-                  variant="destructive"
-                  className="flex-1 md:flex-initial md:w-24"
-                  onClick={() => {
-                    handleDeleteById();
-                  }}
-                >
-                  {t('delete')}
-                </Button>
-              )}
-              <Button
-                type="submit"
-                variant="info"
-                className="flex-1 md:flex-initial md:w-24"
-              >
-                {warehouseId ? t('update') : t('save')}
-              </Button>
-            </DialogFooter>
+            {buildDialogFooter({ t, warehouseId, handleDeleteById })}
           </form>
         </Form>
       </DialogContent>

@@ -25,14 +25,82 @@ import PropTypes from 'prop-types';
 import { pickDirty } from '@/utils/pickDirty';
 import { FIELD_LIMITS } from '@/config/fieldLimits';
 
-export const SettingsProductCategoriesBasicInfo = ({
-  onSubmitCreateEdit,
-  onDelete,
-  selectedRow,
-  onClose,
-}) => {
+/** Category input field (parametrized name/label/placeholder). */
+function CategoryInputField({
+  control,
+  name,
+  labelKey,
+  placeholderKey,
+  required = false,
+}) {
   const { t } = useTranslation();
+  return (
+    <FormField
+      control={control}
+      name={name}
+      render={({ field }) => (
+        <FormItem>
+          <FormLabel htmlFor={name}>
+            {t(labelKey)}
+            {required ? '*' : ''}
+          </FormLabel>
+          <FormControl>
+            <Input
+              id={name}
+              type="text"
+              name={name}
+              maxLength={FIELD_LIMITS.productCategories[name]}
+              autoComplete="off"
+              placeholder={t(placeholderKey)}
+              {...field}
+              value={field.value ?? ''}
+            />
+          </FormControl>
+          <FormMessage />
+        </FormItem>
+      )}
+    />
+  );
+}
 
+CategoryInputField.propTypes = {
+  control: PropTypes.object.isRequired,
+  name: PropTypes.string.isRequired,
+  labelKey: PropTypes.string.isRequired,
+  placeholderKey: PropTypes.string.isRequired,
+  required: PropTypes.bool,
+};
+
+/** Form action buttons: cancel, delete (edit only), save. */
+function buildFormButtons({ t, id, handleDelete, onClose }) {
+  return (
+    <div className="flex flex-wrap items-center justify-between gap-3 mt-5 md:justify-normal">
+      <Button type="button" variant="secondary" onClick={onClose}>
+        {t('cancel')}
+      </Button>
+      {id && (
+        <Button
+          type="button"
+          variant="destructive"
+          onClick={() => {
+            handleDelete(id);
+          }}
+        >
+          {t('delete')}
+        </Button>
+      )}
+      <Button type="submit" variant="info">
+        {t('save')}
+      </Button>
+    </div>
+  );
+}
+
+/**
+ * Form state: reset from the selected row, dirty-field PATCH payloads
+ * on edit.
+ */
+function useCategoryBasicInfoForm({ selectedRow, onSubmitCreateEdit }) {
   const form = useForm({
     resolver: zodResolver(SettingsProductCategoriesSchema),
     defaultValues: {
@@ -57,16 +125,34 @@ export const SettingsProductCategoriesBasicInfo = ({
 
   const submitForm = (data) => {
     if (id) {
+      // edit → send only changed fields (PATCH)
       const changes = pickDirty(data, dirtyFields);
       onSubmitCreateEdit(changes);
     } else {
+      // create → send all fields (POST)
       onSubmitCreateEdit(data);
     }
   };
 
+  return { form, id, submitForm };
+}
+
+export const SettingsProductCategoriesBasicInfo = ({
+  onSubmitCreateEdit,
+  onDelete,
+  selectedRow,
+  onClose,
+}) => {
+  const { t } = useTranslation();
+  const { form, id, submitForm } = useCategoryBasicInfoForm({
+    selectedRow,
+    onSubmitCreateEdit,
+  });
+
   const handleDelete = (id) => {
     onDelete(id);
   };
+
   return (
     <Card>
       <CardHeader>
@@ -87,79 +173,24 @@ export const SettingsProductCategoriesBasicInfo = ({
           >
             <div className="grid grid-cols-1 gap-4 ">
               <div className="space-y-2">
-                <FormField
+                <CategoryInputField
                   control={form.control}
                   name="description"
-                  render={({ field }) => {
-                    return (
-                      <FormItem>
-                        <FormLabel htmlFor="description">
-                          {t('description')}*
-                        </FormLabel>
-                        <FormControl>
-                          <Input
-                            id="description"
-                            type="text"
-                            name="description"
-                            maxLength={
-                              FIELD_LIMITS.productCategories.description
-                            }
-                            autoComplete="off"
-                            placeholder={t('category_description_placeholder')}
-                            {...field}
-                            value={field.value ?? ''}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    );
-                  }}
+                  labelKey="description"
+                  placeholderKey="category_description_placeholder"
+                  required
                 />
-                <FormField
+                <CategoryInputField
                   control={form.control}
                   name="code"
-                  render={({ field }) => {
-                    return (
-                      <FormItem>
-                        <FormLabel htmlFor="code">{t('code')}*</FormLabel>
-                        <FormControl>
-                          <Input
-                            id="code"
-                            type="text"
-                            name="code"
-                            maxLength={FIELD_LIMITS.productCategories.code}
-                            autoComplete="off"
-                            placeholder={t('category_code_placeholder')}
-                            {...field}
-                            value={field.value ?? ''}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    );
-                  }}
+                  labelKey="code"
+                  placeholderKey="category_code_placeholder"
+                  required
                 />
               </div>
             </div>
-            <div className="flex flex-wrap items-center justify-between gap-3 mt-5 md:justify-normal">
-              <Button type="button" variant="secondary" onClick={onClose}>
-                {t('cancel')}
-              </Button>
-              {id && (
-                <Button
-                  type="button"
-                  variant="destructive"
-                  onClick={() => {
-                    handleDelete(id);
-                  }}
-                >
-                  {t('delete')}
-                </Button>
-              )}
-              <Button type="submit" variant="info">
-                {t('save')}
-              </Button>
-            </div>
+
+            {buildFormButtons({ t, id, handleDelete, onClose })}
           </form>
         </Form>
       </CardContent>

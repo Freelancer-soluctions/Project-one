@@ -21,6 +21,156 @@ import { LuPlus, LuSearch, LuEraser } from 'react-icons/lu';
 import PropTypes from 'prop-types';
 import { FIELD_LIMITS } from '@/config/fieldLimits';
 
+/** Entity select filter (products/warehouses keyed by id). */
+function FilterEntitySelectField({
+  control,
+  name,
+  labelKey,
+  id,
+  placeholderKey,
+  dataItems,
+}) {
+  const { t } = useTranslation();
+  return (
+    <FormField
+      control={control}
+      name={name}
+      render={({ field }) => (
+        <FormItem className="flex flex-col flex-auto">
+          <FormLabel htmlFor={id}>{t(labelKey)}</FormLabel>
+          <Select
+            onValueChange={field.onChange}
+            value={field.value?.toString()} // Asegura que el valor sea string
+          >
+            <FormControl id={id}>
+              <SelectTrigger>
+                <SelectValue placeholder={t(placeholderKey)} />
+              </SelectTrigger>
+            </FormControl>
+            <SelectContent>
+              {dataItems.map((item, index) => (
+                <SelectItem value={item.id.toString()} key={index}>
+                  {item.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <FormMessage />
+        </FormItem>
+      )}
+    />
+  );
+}
+
+FilterEntitySelectField.propTypes = {
+  control: PropTypes.object.isRequired,
+  name: PropTypes.string.isRequired,
+  labelKey: PropTypes.string.isRequired,
+  id: PropTypes.string.isRequired,
+  placeholderKey: PropTypes.string.isRequired,
+  dataItems: PropTypes.array.isRequired,
+};
+
+/** Lot text filter. */
+function FilterLotField({ control }) {
+  const { t } = useTranslation();
+  return (
+    <FormField
+      control={control}
+      name="lot"
+      render={({ field }) => (
+        <FormItem className="flex flex-col flex-auto">
+          <FormLabel htmlFor="lot">{t('lot')}</FormLabel>
+          <FormControl>
+            <Input
+              id="lot"
+              name="lot"
+              placeholder={t('search_by_lot')}
+              type="text"
+              autoComplete="false"
+              maxLength={FIELD_LIMITS.stock.lot}
+              {...field}
+              value={field.value ?? ''}
+            />
+          </FormControl>
+          <FormMessage />
+        </FormItem>
+      )}
+    />
+  );
+}
+
+FilterLotField.propTypes = {
+  control: PropTypes.object.isRequired,
+};
+
+/** Unit-measure enum select filter. */
+function FilterUnitMeasureField({ control, unitMeasures }) {
+  const { t } = useTranslation();
+  return (
+    <FormField
+      control={control}
+      name="unitMeasure"
+      render={({ field }) => (
+        <FormItem className="flex flex-col flex-auto">
+          <FormLabel>{t('unit_measure')}</FormLabel>
+          <Select onValueChange={field.onChange} value={field.value}>
+            <FormControl>
+              <SelectTrigger>
+                <SelectValue placeholder={t('select_unit_measure')} />
+              </SelectTrigger>
+            </FormControl>
+            <SelectContent>
+              {unitMeasures.map((measure, index) => (
+                <SelectItem key={index} value={measure.value}>
+                  {measure.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </FormItem>
+      )}
+    />
+  );
+}
+
+FilterUnitMeasureField.propTypes = {
+  control: PropTypes.object.isRequired,
+  unitMeasures: PropTypes.array.isRequired,
+};
+
+/** Search / add / clear action buttons row. */
+function buildFilterButtons({ t, handleAdd, handleResetFilter }) {
+  return (
+    <div className="flex flex-wrap items-center justify-between gap-3 mt-5 md:justify-normal">
+      <Button
+        type="submit"
+        className="flex-1 md:flex-initial md:w-24"
+        variant="info"
+      >
+        {t('search')}
+        <LuSearch className="w-4 h-4 ml-auto opacity-50" />
+      </Button>
+      <Button
+        type="button"
+        className="flex-1 md:flex-initial md:w-24"
+        variant="success"
+        onClick={() => handleAdd()}
+      >
+        {t('add')} <LuPlus className="w-4 h-4 ml-auto opacity-50" />
+      </Button>
+      <Button
+        type="button"
+        className="flex-1 md:flex-initial md:w-24"
+        variant="outline"
+        onClick={() => handleResetFilter()}
+      >
+        {t('clear')} <LuEraser className="w-4 h-4 ml-auto opacity-50" />
+      </Button>
+    </div>
+  );
+}
+
 export const StockFiltersForm = ({
   onSubmit,
   onAddDialog,
@@ -63,140 +213,31 @@ export const StockFiltersForm = ({
       >
         {/* inputs */}
         <div className="flex flex-wrap flex-1 gap-3">
-          <FormField
+          <FilterEntitySelectField
             control={form.control}
             name="productId"
-            render={({ field }) => {
-              return (
-                <FormItem className="flex flex-col flex-auto">
-                  <FormLabel htmlFor="productId">{t('product')}</FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    value={field.value?.toString()} // Asegura que el valor sea string
-                  >
-                    <FormControl id="productId">
-                      <SelectTrigger>
-                        <SelectValue placeholder={t('select_product')} />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {products.map((item, index) => (
-                        <SelectItem value={item.id.toString()} key={index}>
-                          {item.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              );
-            }}
+            labelKey="product"
+            id="productId"
+            placeholderKey="select_product"
+            dataItems={products}
           />
-          <FormField
+          <FilterEntitySelectField
             control={form.control}
             name="warehouseId"
-            render={({ field }) => {
-              return (
-                <FormItem className="flex flex-col flex-auto">
-                  <FormLabel htmlFor="warehouseId">{t('warehouse')}</FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    value={field.value?.toString()} // Asegura que el valor sea string
-                  >
-                    <FormControl id="warehouseId">
-                      <SelectTrigger>
-                        <SelectValue placeholder={t('select_warehouse')} />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {warehouses.map((item, index) => (
-                        <SelectItem value={item.id.toString()} key={index}>
-                          {item.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              );
-            }}
+            labelKey="warehouse"
+            id="warehouseId"
+            placeholderKey="select_warehouse"
+            dataItems={warehouses}
           />
-          <FormField
-            control={form.control}
-            name="lot"
-            render={({ field }) => {
-              return (
-                <FormItem className="flex flex-col flex-auto">
-                  <FormLabel htmlFor="lot">{t('lot')}</FormLabel>
-                  <FormControl>
-                    <Input
-                      id="lot"
-                      name="lot"
-                      placeholder={t('search_by_lot')}
-                      type="text"
-                      autoComplete="false"
-                      maxLength={FIELD_LIMITS.stock.lot}
-                      {...field}
-                      value={field.value ?? ''}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              );
-            }}
-          />
+          <FilterLotField control={form.control} />
 
-          <FormField
+          <FilterUnitMeasureField
             control={form.control}
-            name="unitMeasure"
-            render={({ field }) => (
-              <FormItem className="flex flex-col flex-auto">
-                <FormLabel>{t('unit_measure')}</FormLabel>
-                <Select onValueChange={field.onChange} value={field.value}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder={t('select_unit_measure')} />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {unitMeasures.map((measure, index) => (
-                      <SelectItem key={index} value={measure.value}>
-                        {measure.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </FormItem>
-            )}
+            unitMeasures={unitMeasures}
           />
         </div>
         {/* buttons */}
-        <div className="flex flex-wrap items-center justify-between gap-3 mt-5 md:justify-normal">
-          <Button
-            type="submit"
-            className="flex-1 md:flex-initial md:w-24"
-            variant="info"
-          >
-            {t('search')}
-            <LuSearch className="w-4 h-4 ml-auto opacity-50" />
-          </Button>
-          <Button
-            type="button"
-            className="flex-1 md:flex-initial md:w-24"
-            variant="success"
-            onClick={() => handleAdd()}
-          >
-            {t('add')} <LuPlus className="w-4 h-4 ml-auto opacity-50" />
-          </Button>
-          <Button
-            type="button"
-            className="flex-1 md:flex-initial md:w-24"
-            variant="outline"
-            onClick={() => handleResetFilter()}
-          >
-            {t('clear')} <LuEraser className="w-4 h-4 ml-auto opacity-50" />
-          </Button>
-        </div>
+        {buildFilterButtons({ t, handleAdd, handleResetFilter })}
       </form>
     </Form>
   );

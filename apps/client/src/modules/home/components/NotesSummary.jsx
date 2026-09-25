@@ -28,6 +28,65 @@ const STATUS_STYLES = Object.fromEntries(
   })
 );
 
+/** Definición de cada alerta de estado: clave i18n + columna. */
+const NOTE_STATUS_ALERTS = [
+  {
+    countKey: 'backlog',
+    labelKey: 'backlog_notes',
+    status: StatusColumn.BACKLOG,
+  },
+  { countKey: 'active', labelKey: 'active_notes', status: StatusColumn.ACTIVE },
+  {
+    countKey: 'completed',
+    labelKey: 'completed_notes',
+    status: StatusColumn.COMPLETED,
+  },
+];
+
+/** Alerta navegable con el conteo de notas de un estado. */
+function buildStatusAlert({ t, navigate, scope, data, def }) {
+  const count = data?.[def.countKey];
+  if (!count || count <= 0) return null;
+
+  const styles = STATUS_STYLES[def.status];
+  return (
+    <Alert
+      className={styles.alert}
+      onClick={() =>
+        navigate('notes', { state: { filter: def.status, scope } })
+      }
+    >
+      <AlertDescription className="flex items-center justify-between">
+        <span>{t(def.labelKey)}</span>
+        <div className="flex items-center gap-2">
+          <span className={cn('font-semibold', styles.text)}>{count}</span>
+          <LuArrowRight className={cn('w-4 h-4', styles.text)} />
+        </div>
+      </AlertDescription>
+    </Alert>
+  );
+}
+
+/** Skeleton de carga del resumen. */
+function SummarySkeleton({ t }) {
+  return (
+    <Card className="border-0 shadow-none">
+      <CardHeader>
+        <CardTitle>{t('status_notes')}</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="space-y-4">
+          <p className="text-center">{t('loading')}</p>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+SummarySkeleton.propTypes = {
+  t: PropTypes.func.isRequired,
+};
+
 export function NotesSummary({ scope = 'mine' }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -36,18 +95,7 @@ export function NotesSummary({ scope = 'mine' }) {
   });
 
   if (isLoading) {
-    return (
-      <Card className="border-0 shadow-none">
-        <CardHeader>
-          <CardTitle>{t('status_notes')}</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="space-y-4">
-            <p className="text-center">{t('loading')}</p>
-          </div>
-        </CardContent>
-      </Card>
-    );
+    return <SummarySkeleton t={t} />;
   }
 
   return (
@@ -57,97 +105,14 @@ export function NotesSummary({ scope = 'mine' }) {
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="space-y-4">
-          {dataCountNotes?.data.backlog > 0 && (
-            <Alert
-              className={STATUS_STYLES[StatusColumn.BACKLOG].alert}
-              onClick={() =>
-                navigate('notes', {
-                  state: { filter: StatusColumn.BACKLOG, scope },
-                })
-              }
-            >
-              <AlertDescription className="flex items-center justify-between">
-                <span>{t('backlog_notes')}</span>
-                <div className="flex items-center gap-2">
-                  <span
-                    className={cn(
-                      'font-semibold',
-                      STATUS_STYLES[StatusColumn.BACKLOG].text
-                    )}
-                  >
-                    {dataCountNotes.data.backlog}
-                  </span>
-                  <LuArrowRight
-                    className={cn(
-                      'w-4 h-4',
-                      STATUS_STYLES[StatusColumn.BACKLOG].text
-                    )}
-                  />
-                </div>
-              </AlertDescription>
-            </Alert>
-          )}
-
-          {dataCountNotes?.data.active > 0 && (
-            <Alert
-              className={STATUS_STYLES[StatusColumn.ACTIVE].alert}
-              onClick={() =>
-                navigate('notes', {
-                  state: { filter: StatusColumn.ACTIVE, scope },
-                })
-              }
-            >
-              <AlertDescription className="flex items-center justify-between">
-                <span>{t('active_notes')}</span>
-                <div className="flex items-center gap-2">
-                  <span
-                    className={cn(
-                      'font-semibold',
-                      STATUS_STYLES[StatusColumn.ACTIVE].text
-                    )}
-                  >
-                    {dataCountNotes.data.active}
-                  </span>
-                  <LuArrowRight
-                    className={cn(
-                      'w-4 h-4',
-                      STATUS_STYLES[StatusColumn.ACTIVE].text
-                    )}
-                  />
-                </div>
-              </AlertDescription>
-            </Alert>
-          )}
-
-          {dataCountNotes?.data.completed > 0 && (
-            <Alert
-              className={STATUS_STYLES[StatusColumn.COMPLETED].alert}
-              onClick={() =>
-                navigate('notes', {
-                  state: { filter: StatusColumn.COMPLETED, scope },
-                })
-              }
-            >
-              <AlertDescription className="flex items-center justify-between">
-                <span>{t('completed_notes')}</span>
-                <div className="flex items-center gap-2">
-                  <span
-                    className={cn(
-                      'font-semibold',
-                      STATUS_STYLES[StatusColumn.COMPLETED].text
-                    )}
-                  >
-                    {dataCountNotes.data.completed}
-                  </span>
-                  <LuArrowRight
-                    className={cn(
-                      'w-4 h-4',
-                      STATUS_STYLES[StatusColumn.COMPLETED].text
-                    )}
-                  />
-                </div>
-              </AlertDescription>
-            </Alert>
+          {NOTE_STATUS_ALERTS.map((def) =>
+            buildStatusAlert({
+              t,
+              navigate,
+              scope,
+              data: dataCountNotes?.data,
+              def,
+            })
           )}
         </div>
 

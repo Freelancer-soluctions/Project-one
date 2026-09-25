@@ -13,31 +13,26 @@ import { useGetAllProductsFiltersQuery } from '@/modules/products/api/productsAP
 import { useGetAllClientsFiltersQuery } from '@/modules/clients/api/clientsApi';
 import AlertDialogComponent from '@/components/alertDialog/AlertDialog';
 import { Spinner } from '@/components/loader/Spinner';
+import { useLoadingState } from '@/hooks';
 import { useNavigate } from 'react-router';
 
-const Sales = () => {
-  const { t } = useTranslation();
-  const navigate = useNavigate();
-  const [selectedRow, setSelectedRow] = useState({});
-  const [openDialog, setOpenDialog] = useState(false);
-  const [openAlertDialog, setOpenAlertDialog] = useState(false);
-  const [alertProps, setAlertProps] = useState({});
-  const [actionDialog, setActionDialog] = useState('');
-  const [pagination, setPagination] = useState({
-    pageIndex: 0,
-    pageSize: 20,
-  });
-  const [details, setDetails] = useState([
-    {
-      productId: '',
-      quantity: 0,
-      price: 0,
-    },
-  ]);
-  const [filters, setFilters] = useState({});
+const EMPTY_DETAILS = [
+  {
+    productId: '',
+    quantity: 0,
+    price: 0,
+  },
+];
 
+/**
+ * Queries the sales list and the clients/products catalogs. El efecto
+ * de `triggerSales` es la única fuente de verdad para disparar la
+ * consulta al backend: se ejecuta al montar y cuando cambian página,
+ * tamaño de página o filtros.
+ */
+function useSalesQueries({ pagination, filters }) {
   const [
-    getAllSales,
+    triggerSales,
     {
       data: dataSales = { data: [] },
       isLoading: isLoadingSales,
@@ -50,6 +45,277 @@ const Sales = () => {
     isLoading: isLoadingClients,
     isFetching: isFetchingClients,
   } = useGetAllClientsFiltersQuery();
+
+  const {
+    data: dataProducts = { data: [] },
+    isLoading: isLoadingProducts,
+    isFetching: isFetchingProducts,
+  } = useGetAllProductsFiltersQuery();
+
+  useEffect(() => {
+    triggerSales({
+      page: pagination.pageIndex + 1,
+      limit: pagination.pageSize,
+      ...filters,
+    });
+  }, [pagination.pageIndex, pagination.pageSize, filters, triggerSales]);
+
+  const { isLoading: isLoadingQueries, isFetching: isFetchingQueries } =
+    useLoadingState([
+      { isLoading: isLoadingSales, isFetching: isFetchingSales },
+      { isLoading: isLoadingClients, isFetching: isFetchingClients },
+      { isLoading: isLoadingProducts, isFetching: isFetchingProducts },
+    ]);
+
+  return {
+    dataSales,
+    dataClients,
+    dataProducts,
+    isLoadingQueries,
+    isFetchingQueries,
+  };
+}
+
+/** Delete-confirmation alert props. */
+const buildDeleteConfirmAlertProps = ({ t, onDelete }) => ({
+  alertTitle: t('delete_record'),
+  alertMessage: t('request_delete_record'),
+  cancel: true,
+  success: false,
+  destructive: true,
+  variantSuccess: '',
+  variantDestructive: 'destructive',
+  onSuccess: () => {},
+  onDelete,
+});
+
+/** Success alert props for the create/update flow. */
+const buildSuccessAlertProps = ({ t, isEdit, setOpenDialog }) => ({
+  alertTitle: t(isEdit ? 'update_record' : 'add_record'),
+  alertMessage: t(isEdit ? 'updated_successfully' : 'added_successfully'),
+  cancel: false,
+  success: true,
+  onSuccess: () => {
+    setOpenDialog(false);
+  },
+  variantSuccess: 'info',
+});
+
+/** Success alert props after a record is deleted. */
+const buildDeletedAlertProps = ({ t, setOpenDialog }) => ({
+  alertTitle: '',
+  alertMessage: t('deleted_successfully'),
+  cancel: false,
+  success: true,
+  onSuccess: () => {
+    setOpenDialog(false);
+  },
+  variantSuccess: 'info',
+});
+
+/** Filter setter that also resets pagination to the first page. */
+const makeFilterHandlers = ({ setPagination, setFilters }) => ({
+  /**
+   * Al aplicar nuevos filtros:
+   * - Se resetea la página a la primera (pageIndex = 0)
+   * - Se actualiza el estado de filtros
+   *
+   * No se llama directamente al backend aquí.
+   * El cambio de estado dispara el useEffect, manteniendo
+   * un flujo reactivo y predecible.
+   */
+  handleSubmitFilters: (newFilters) => {
+    setPagination((prev) => ({
+      ...prev,
+      pageIndex: 0,
+    }));
+
+    setFilters(newFilters);
+  },
+});
+
+/** Save handler: create or update, then show the success alert. */
+const makeSaveHandler =
+  ({
+    t,
+    updateSaleById,
+    createSale,
+    setAlertProps,
+    setOpenAlertDialog,
+    setOpenDialog,
+  }) =>
+  async (result) => {
+    try {
+      if (result?.id) {
+        // edit → result = { id, body } with only changed fields (PATCH)
+        await updateSaleById({ id: result.id, data: result.body }).unwrap();
+      } else {
+        // create → result = form values (POST)
+        await createSale(result).unwrap();
+      }
+
+      setAlertProps(
+        buildSuccessAlertProps({ t, isEdit: !!result?.id, setOpenDialog })
+      );
+      setOpenAlertDialog(true);
+    } catch (err) {
+      console.error('Error:', err);
+    }
+  };
+
+/** Dialog open/close/edit handlers (details reset on open). */
+const makeDialogHandlers = ({
+  t,
+  setOpenDialog,
+  setActionDialog,
+  setSelectedRow,
+  setDetails,
+}) => ({
+  handleAddDialog: () => {
+    setActionDialog(t('add_sale'));
+    setOpenDialog(true);
+    setSelectedRow({});
+    setDetails(EMPTY_DETAILS);
+  },
+  handleEditDialog: (row) => {
+    setActionDialog(t('edit_sale'));
+    setOpenDialog(true);
+    setSelectedRow(row);
+    setDetails(
+      row.details && row.details.length > 0 ? row.details : EMPTY_DETAILS
+    );
+  },
+  handleCloseDialog: () => {
+    setOpenDialog(false);
+  },
+});
+
+/** Delete-confirmation handler for a sale. */
+const makeDeleteHandler =
+  ({ t, deleteSaleById, setAlertProps, setOpenAlertDialog, setOpenDialog }) =>
+  async (id) => {
+    try {
+      setAlertProps(
+        buildDeleteConfirmAlertProps({
+          t,
+          onDelete: async () => {
+            try {
+              await deleteSaleById(id).unwrap();
+
+              setAlertProps(buildDeletedAlertProps({ t, setOpenDialog }));
+              setOpenAlertDialog(true);
+            } catch (err) {
+              console.error('Error deleting:', err);
+            }
+          },
+        })
+      );
+      setOpenAlertDialog(true);
+    } catch (err) {
+      console.error('Error deleting:', err);
+    }
+  };
+
+/** Removes the detail at `index` from state. */
+const updateDetails = (setDetails) => (index) => {
+  setDetails((prev) => {
+    const newDetails = [...prev];
+    if (index !== -1) {
+      newDetails.splice(index, 1); // Elimina el atributo en el índice encontrado
+    }
+    return newDetails;
+  });
+};
+
+/** Delete-confirmation handler for a sale detail. */
+const makeRemoveDetailHandler =
+  ({
+    t,
+    deleteSaleDetailById,
+    setDetails,
+    setAlertProps,
+    setOpenAlertDialog,
+    navigate,
+  }) =>
+  async (index, item) => {
+    //Eliminacion logica
+    if (item.id) {
+      setAlertProps(
+        buildDeleteConfirmAlertProps({
+          t,
+          onDelete: async () => {
+            try {
+              await deleteSaleDetailById(item.id).unwrap();
+              updateDetails(setDetails)(index);
+              setAlertProps({
+                alertTitle: '',
+                alertMessage: t('deleted_successfully'),
+                cancel: false,
+                success: true,
+                onSuccess: () => {
+                  navigate('/home/products');
+                },
+                variantSuccess: 'info',
+              });
+              setOpenAlertDialog(true); // Open alert dialog
+            } catch (err) {
+              console.error('Error deleting:', err);
+            }
+          },
+        })
+      );
+      setOpenAlertDialog(true);
+    } else {
+      updateDetails(setDetails)(index);
+    }
+  };
+
+/** Mirrors detail edits into state (marks the row dirty). */
+const makeEditDetailHandler =
+  ({ setDetails }) =>
+  (index, field, value) => {
+    setDetails((prev) =>
+      prev.map((detail, i) =>
+        i === index ? { ...detail, [field]: value, save: true } : detail
+      )
+    );
+  };
+
+/** Add a new empty detail row. */
+const makeAddDetailHandler =
+  ({ setDetails }) =>
+  () => {
+    setDetails((prev) => [
+      ...prev,
+      {
+        productId: '',
+        quantity: 0,
+        price: 0,
+      },
+    ]);
+  };
+
+/**
+ * Page state: lazy query trigger, clients/products catalogs,
+ * mutations, sale details list and dialog/alert/pagination state.
+ * El efecto de `triggerSales` es la única fuente de verdad para
+ * disparar la consulta al backend: se ejecuta al montar y cuando
+ * cambian página, tamaño de página o filtros.
+ */
+function useSalesPageState() {
+  const navigate = useNavigate();
+  const [selectedRow, setSelectedRow] = useState({});
+  const [openDialog, setOpenDialog] = useState(false);
+  const [openAlertDialog, setOpenAlertDialog] = useState(false);
+  const [alertProps, setAlertProps] = useState({});
+  const [actionDialog, setActionDialog] = useState('');
+  const [pagination, setPagination] = useState({
+    pageIndex: 0,
+    pageSize: 20,
+  });
+  const [details, setDetails] = useState(EMPTY_DETAILS);
+  const [filters, setFilters] = useState({});
+
   const [updateSaleById, { isLoading: isLoadingPut }] =
     useUpdateSaleByIdMutation();
 
@@ -62,274 +328,162 @@ const Sales = () => {
     useDeleteSaleDetailByIdMutation();
 
   const {
-    data: dataProducts = { data: [] },
-    isLoading: isLoadingProducts,
-    isFetching: isFetchingProducts,
-  } = useGetAllProductsFiltersQuery();
+    dataSales,
+    dataClients,
+    dataProducts,
+    isLoadingQueries,
+    isFetchingQueries,
+  } = useSalesQueries({ pagination, filters });
 
-  /**
-   * Este efecto es la única fuente de verdad para disparar
-   * la consulta al backend.
-   *
-   * Se ejecuta automáticamente:
-   * - Al montar el componente (primer render)
-   * - Cuando cambia la página
-   * - Cuando cambia el tamaño de página
-   * - Cuando cambian los filtros
-   *
-   * No se realizan llamadas manuales al backend desde handlers
-   * para evitar duplicación de lógica y estados inconsistentes.
-   */
-  useEffect(() => {
-    getAllSales({
-      page: pagination.pageIndex + 1,
-      limit: pagination.pageSize,
-      ...filters,
-    });
-  }, [pagination.pageIndex, pagination.pageSize, filters, getAllSales]);
+  const isLoadingPage =
+    isLoadingQueries ||
+    isFetchingQueries ||
+    isLoadingPut ||
+    isLoadingPost ||
+    isLoadingDelete ||
+    isLoadingDeleteDetail;
 
-  /**
-   * Al aplicar nuevos filtros:
-   * - Se resetea la página a la primera (pageIndex = 0)
-   * - Se actualiza el estado de filtros
-   *
-   * No se llama directamente al backend aquí.
-   * El cambio de estado dispara el useEffect, manteniendo
-   * un flujo reactivo y predecible.
-   */
-  const handleSubmitFilters = (newFilters) => {
-    setPagination((prev) => ({
-      ...prev,
-      pageIndex: 0,
-    }));
-
-    setFilters(newFilters);
+  return {
+    navigate,
+    selectedRow,
+    setSelectedRow,
+    openDialog,
+    setOpenDialog,
+    openAlertDialog,
+    setOpenAlertDialog,
+    alertProps,
+    setAlertProps,
+    actionDialog,
+    setActionDialog,
+    details,
+    setDetails,
+    pagination,
+    setPagination,
+    setFilters,
+    dataSales,
+    dataClients,
+    dataProducts,
+    isLoadingPage,
+    updateSaleById,
+    createSale,
+    deleteSaleById,
+    deleteSaleDetailById,
   };
+}
 
-  const handleSubmit = async (result) => {
-    try {
-      if (result?.id) {
-        await updateSaleById({ id: result.id, data: result.body }).unwrap();
-      } else {
-        await createSale(result).unwrap();
-      }
+/** Static page layout for the sales module. */
+const buildSalesLayout = ({
+  t,
+  page,
+  filterHandlers,
+  dialogHandlers,
+  saveHandler,
+  deleteHandler,
+  detailHandlers,
+}) => (
+  <>
+    <BackDashBoard link={'/home'} moduleName={t('sales')} />
+    <div className="relative">
+      {/* Show spinner when loading or fetching */}
+      {page.isLoadingPage && <Spinner />}
 
-      setAlertProps({
-        alertTitle: t(result?.id ? 'update_record' : 'add_record'),
-        alertMessage: t(
-          result?.id ? 'updated_successfully' : 'added_successfully'
-        ),
-        cancel: false,
-        success: true,
-        onSuccess: () => {
-          setOpenDialog(false);
-        },
-        variantSuccess: 'info',
-      });
-      setOpenAlertDialog(true);
-    } catch (err) {
-      console.error('Error:', err);
-    }
-  };
-
-  const handleAddDialog = () => {
-    setActionDialog(t('add_sale'));
-    setOpenDialog(true);
-    setSelectedRow({});
-    setDetails([
-      {
-        productId: '',
-        quantity: 0,
-        price: 0,
-      },
-    ]);
-  };
-
-  const handleEditDialog = (row) => {
-    setActionDialog(t('edit_sale'));
-    setOpenDialog(true);
-    setSelectedRow(row);
-    setDetails(
-      row.details && row.details.length > 0
-        ? row.details
-        : [
-            {
-              productId: '',
-              quantity: 0,
-              price: 0,
-            },
-          ]
-    );
-  };
-
-  const handleCloseDialog = () => {
-    setOpenDialog(false);
-  };
-
-  const handleDelete = async (id) => {
-    try {
-      setAlertProps({
-        alertTitle: t('delete_record'),
-        alertMessage: t('request_delete_record'),
-        cancel: true,
-        success: false,
-        destructive: true,
-        variantSuccess: '',
-        variantDestructive: 'destructive',
-        onSuccess: () => {},
-        onDelete: async () => {
-          try {
-            await deleteSaleById(id).unwrap();
-
-            setAlertProps({
-              alertTitle: '',
-              alertMessage: t('deleted_successfully'),
-              cancel: false,
-              success: true,
-              onSuccess: () => {
-                setOpenDialog(false);
-              },
-              variantSuccess: 'info',
-            });
-            setOpenAlertDialog(true);
-          } catch (err) {
-            console.error('Error deleting:', err);
-          }
-        },
-      });
-      setOpenAlertDialog(true);
-    } catch (err) {
-      console.error('Error deleting:', err);
-    }
-  };
-
-  const handleEditDetail = (index, field, value) => {
-    setDetails((prev) =>
-      prev.map((detail, i) =>
-        i === index ? { ...detail, [field]: value, save: true } : detail
-      )
-    );
-  };
-
-  const handleRemoveDetail = async (index, item) => {
-    //Eliminacion logica
-    if (item.id) {
-      setAlertProps({
-        alertTitle: t('delete_record'),
-        alertMessage: t('request_delete_record'),
-        cancel: true,
-        success: false,
-        destructive: true,
-        variantSuccess: '',
-        variantDestructive: 'destructive',
-        onSuccess: () => {},
-        onDelete: async () => {
-          try {
-            await deleteSaleDetailById(item.id).unwrap();
-            updateDetails(index);
-            setAlertProps({
-              alertTitle: '',
-              alertMessage: t('deleted_successfully'),
-              cancel: false,
-              success: true,
-              onSuccess: () => {
-                navigate('/home/products');
-              },
-              variantSuccess: 'info',
-            });
-            setOpenAlertDialog(true); // Open alert dialog
-          } catch (err) {
-            console.error('Error deleting:', err);
-          }
-        },
-      });
-      setOpenAlertDialog(true);
-    } else {
-      updateDetails(index);
-    }
-  };
-
-  const updateDetails = (index) => {
-    setDetails((prev) => {
-      const newDetails = [...prev];
-      if (index !== -1) {
-        newDetails.splice(index, 1); // Elimina el atributo en el índice encontrado
-      }
-      return newDetails;
-    });
-  };
-
-  const handleAddDetail = () => {
-    setDetails([
-      ...details,
-      {
-        productId: '',
-        quantity: 0,
-        price: 0,
-      },
-    ]);
-  };
-
-  return (
-    <>
-      <BackDashBoard link={'/home'} moduleName={t('sales')} />
-      <div className="relative">
-        {/* Show spinner when loading or fetching */}
-        {(isLoadingSales ||
-          isLoadingPut ||
-          isLoadingPost ||
-          isLoadingProducts ||
-          isLoadingDelete ||
-          isLoadingDeleteDetail ||
-          isLoadingClients ||
-          isFetchingSales ||
-          isFetchingClients ||
-          isFetchingProducts) && <Spinner />}
-
-        <div className="grid grid-cols-2 grid-rows-4 gap-4 md:grid-cols-5">
-          {/* filters */}
-          <div className="col-span-2 row-span-1 md:col-span-5">
-            <SalesFiltersForm
-              onSubmit={handleSubmitFilters}
-              onAddDialog={handleAddDialog}
-              clients={dataClients.data}
-            />
-          </div>
-          {/* Datatable */}
-          <div className="flex flex-wrap w-full col-span-2 row-span-3 row-start-2 md:col-span-5">
-            <SalesDatatable
-              dataSales={dataSales}
-              onEditDialog={handleEditDialog}
-              pagination={pagination}
-              onPaginationChange={setPagination}
-            />
-          </div>
-          {/* Dialog */}
-          <SalesDialog
-            openDialog={openDialog}
-            onCloseDialog={handleCloseDialog}
-            selectedRow={selectedRow}
-            onSubmit={handleSubmit}
-            onDeleteById={handleDelete}
-            actionDialog={actionDialog}
-            onEditDetail={handleEditDetail}
-            onAddDetail={handleAddDetail}
-            onRemoveDetail={handleRemoveDetail}
-            products={dataProducts.data}
-            details={details}
-            clients={dataClients.data}
-            setDetails={setDetails}
-          />
-
-          <AlertDialogComponent
-            openAlertDialog={openAlertDialog}
-            setOpenAlertDialog={setOpenAlertDialog}
-            alertProps={alertProps}
+      <div className="grid grid-cols-2 grid-rows-4 gap-4 md:grid-cols-5">
+        {/* filters */}
+        <div className="col-span-2 row-span-1 md:col-span-5">
+          <SalesFiltersForm
+            onSubmit={filterHandlers.handleSubmitFilters}
+            onAddDialog={dialogHandlers.handleAddDialog}
+            clients={page.dataClients.data}
           />
         </div>
+        {/* Datatable */}
+        <div className="flex flex-wrap w-full col-span-2 row-span-3 row-start-2 md:col-span-5">
+          <SalesDatatable
+            dataSales={page.dataSales}
+            onEditDialog={dialogHandlers.handleEditDialog}
+            pagination={page.pagination}
+            onPaginationChange={page.setPagination}
+          />
+        </div>
+        {/* Dialog */}
+        <SalesDialog
+          openDialog={page.openDialog}
+          onCloseDialog={dialogHandlers.handleCloseDialog}
+          selectedRow={page.selectedRow}
+          onSubmit={saveHandler}
+          onDeleteById={deleteHandler}
+          actionDialog={page.actionDialog}
+          onEditDetail={detailHandlers.handleEditDetail}
+          onAddDetail={detailHandlers.handleAddDetail}
+          onRemoveDetail={detailHandlers.handleRemoveDetail}
+          products={page.dataProducts.data}
+          details={page.details}
+          clients={page.dataClients.data}
+          setDetails={page.setDetails}
+        />
+
+        <AlertDialogComponent
+          openAlertDialog={page.openAlertDialog}
+          setOpenAlertDialog={page.setOpenAlertDialog}
+          alertProps={page.alertProps}
+        />
       </div>
-    </>
-  );
+    </div>
+  </>
+);
+
+const Sales = () => {
+  const { t } = useTranslation();
+  const page = useSalesPageState();
+
+  const filterHandlers = makeFilterHandlers({
+    setPagination: page.setPagination,
+    setFilters: page.setFilters,
+  });
+  const dialogHandlers = makeDialogHandlers({
+    t,
+    setOpenDialog: page.setOpenDialog,
+    setActionDialog: page.setActionDialog,
+    setSelectedRow: page.setSelectedRow,
+    setDetails: page.setDetails,
+  });
+  const saveHandler = makeSaveHandler({
+    t,
+    updateSaleById: page.updateSaleById,
+    createSale: page.createSale,
+    setAlertProps: page.setAlertProps,
+    setOpenAlertDialog: page.setOpenAlertDialog,
+    setOpenDialog: page.setOpenDialog,
+  });
+  const deleteHandler = makeDeleteHandler({
+    t,
+    deleteSaleById: page.deleteSaleById,
+    setAlertProps: page.setAlertProps,
+    setOpenAlertDialog: page.setOpenAlertDialog,
+    setOpenDialog: page.setOpenDialog,
+  });
+  const detailHandlers = {
+    handleEditDetail: makeEditDetailHandler({ setDetails: page.setDetails }),
+    handleAddDetail: makeAddDetailHandler({ setDetails: page.setDetails }),
+    handleRemoveDetail: makeRemoveDetailHandler({
+      t,
+      deleteSaleDetailById: page.deleteSaleDetailById,
+      setDetails: page.setDetails,
+      setAlertProps: page.setAlertProps,
+      setOpenAlertDialog: page.setOpenAlertDialog,
+      navigate: page.navigate,
+    }),
+  };
+
+  return buildSalesLayout({
+    t,
+    page,
+    filterHandlers,
+    dialogHandlers,
+    saveHandler,
+    deleteHandler,
+    detailHandlers,
+  });
 };
 
 export default Sales;
