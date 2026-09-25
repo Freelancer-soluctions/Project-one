@@ -418,7 +418,7 @@ jobs:
     # NOT in ci-complete.needs — SAST is a standalone gate, not coupled to CI_MINIMAL
 
   # ═══════════════════════════════════════════════════════════════
-  # SUBSTAGE 2B: CODE QUALITY — lint, format-check, typecheck, complexity, dead-code, import-bounds, actionlint
+  # SUBSTAGE 2B: CODE QUALITY — lint, format-check, typecheck, complexity, dead-code, import-bounds, e2e-lint, actionlint, openspec-validate
   # ═══════════════════════════════════════════════════════════════
   # --- Client Pre-Build ---
   client-lint:
@@ -594,6 +594,23 @@ jobs:
         run: npx dependency-cruiser src --config .dependency-cruiser.cjs
         working-directory: apps/server
 
+  # --- E2E Pre-Build ---
+  # Lint estático del workspace e2e (sin navegador): specs, page objects y
+  # playwright.config.js. Mismo patrón que client-lint/server-lint; el umbral
+  # de complejidad de e2e/tests/** es 'off' vía bloque de tests de la config.
+  e2e-lint:
+    if: needs.repo-discovery.outputs.e2e == 'true' && github.event_name == 'pull_request'
+    name: "Quality: E2E Lint"
+    needs: repo-discovery
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - uses: ./.github/actions/setup-monorepo
+      - run: npm run lint --workspace=e2e
+
   # --- Shared Pre-Build ---
   actionlint:
     if: needs.repo-discovery.outputs.shared == 'true' && github.event_name == 'pull_request'
@@ -610,6 +627,26 @@ jobs:
           bash <(curl https://raw.githubusercontent.com/rhysd/actionlint/main/scripts/download-actionlint.bash) 1.7.12
           ./actionlint -color
         shell: bash
+
+  # --- Specs Pre-Build ---
+  # Validación estructural de las specs canónicas de OpenSpec (openspec/specs/**).
+  # `--specs` valida SOLO main specs; los deltas de changes/ activos se validan
+  # aparte. `--strict` convierte warnings en errores. Mismo patrón que
+  # actionlint: barato, sin dependencia de paths-filter (openspec/ no está en
+  # los filtros de repo-discovery).
+  openspec-validate:
+    if: github.event_name == 'pull_request'
+    name: "Quality: OpenSpec Validate"
+    needs: repo-discovery
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - uses: ./.github/actions/setup-monorepo
+      - name: Validate OpenSpec main specs (strict)
+        run: npx openspec validate --specs --strict
 
   # ═══════════════════════════════════════════════════════════════
   # SUBSTAGE 2D: UNIT TESTING — test-unit-client, test-unit-server, test-integration, test-smoke
@@ -1087,7 +1124,9 @@ jobs:
       - server-complexity
       - server-dead-code
       - server-import-bounds
+      - e2e-lint
       - actionlint
+      - openspec-validate
     steps:
       - name: Check for failures
         run: |
