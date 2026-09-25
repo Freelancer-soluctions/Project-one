@@ -374,7 +374,7 @@ PR title is valid: "feat(auth): add refresh token rotation"
 #### Qué herramientas usamos y qué son
 
 - **[lint-staged](https://github.com/lint-staged/lint-staged)** (raíz, `package.json`): corre comandos solo sobre los archivos **staged**, no sobre todo el repo — ahí está su valor: el feedback es inmediato y el costo es proporcional al cambio.
-- **[prettier](https://prettier.io)** (`.prettierrc` + `.prettierignore`): formateador opinado (printWidth 80, singleQuote, semi, eol lf).
+- **[prettier](https://prettier.io)** (`.prettierrc.yaml` + `.prettierignore`): formateador opinado (printWidth 80, singleQuote, semi, eol lf).
 - **[eslint](https://eslint.org)** (`eslint.config.js`): lint de JS/JSX.
 
 #### Qué valida

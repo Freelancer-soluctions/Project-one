@@ -52,13 +52,13 @@ El repositorio presentaba **~391 phantom diffs LF↔CRLF en Windows** causados p
 
 ### Contrato en 3 capas
 
-| Layer     | File             | Setting                                                                                                           |
-| --------- | ---------------- | ----------------------------------------------------------------------------------------------------------------- |
-| Git       | `.gitattributes` | `* text=auto eol=lf` (explicit `text eol=lf` for `.js/.jsx/.ts/.tsx/.cjs/.mjs/.json/.md/.css/.yml/.yaml/.prisma`) |
-| Editor    | `.editorconfig`  | `[*] end_of_line = lf` (root = true)                                                                              |
-| Formatter | `.prettierrc`    | `"endOfLine": "lf"`                                                                                               |
+| Layer     | File               | Setting                                                                                                           |
+| --------- | ------------------ | ----------------------------------------------------------------------------------------------------------------- |
+| Git       | `.gitattributes`   | `* text=auto eol=lf` (explicit `text eol=lf` for `.js/.jsx/.ts/.tsx/.cjs/.mjs/.json/.md/.css/.yml/.yaml/.prisma`) |
+| Editor    | `.editorconfig`    | `[*] end_of_line = lf` (root = true)                                                                              |
+| Formatter | `.prettierrc.yaml` | `"endOfLine": "lf"`                                                                                               |
 
-**Decisión deliberada (`.prettierrc`)**: `endOfLine` es `"lf"`, no `"auto"`. `auto` reintroduce CRLF en Windows porque Prettier detecta el default de la plataforma. `lf` es el gate correcto e independiente de la plataforma.
+**Decisión deliberada (`.prettierrc.yaml`)**: `endOfLine` es `"lf"`, no `"auto"`. `auto` reintroduce CRLF en Windows porque Prettier detecta el default de la plataforma. `lf` es el gate correcto e independiente de la plataforma.
 
 ### Cómo funciona operativamente
 
@@ -68,11 +68,11 @@ Las 3 capas intervienen en momentos distintos del pipeline de edición:
 | ---------------------------- | ----------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Checkout**                 | Git (`.gitattributes`)        | Aplica `eol=lf` al desmaterializar blobs del index al working tree. Ignora `core.autocrlf` local. Override CRLF para `*.bat`/`*.cmd`/`*.ps1`.                                                               |
 | **Edición/save**             | Editor (`.editorconfig`)      | El editor lee `.editorconfig` (root=true) y respeta `end_of_line=lf` al escribir. Override CRLF para `*.bat`/`*.cmd`/`*.ps1`.                                                                               |
-| **Save/format**              | Prettier (`.prettierrc`)      | Al ejecutar `prettier --write` (manual o vía lint-staged), reescribe el archivo con `endOfLine: "lf"`. Última línea de defensa.                                                                             |
+| **Save/format**              | Prettier (`.prettierrc.yaml`) | Al ejecutar `prettier --write` (manual o vía lint-staged), reescribe el archivo con `endOfLine: "lf"`. Última línea de defensa.                                                                             |
 | **Commit (pre-commit hook)** | lint-staged + Prettier/ESLint | Pasa sólo los archivos staged a `prettier --write` (glob `*.{js,jsx,ts,tsx,cjs,mjs,json,jsonc,md}`) y `eslint --fix --max-warnings 0` (glob `*.{js,jsx,cjs,mjs}`). Re-normaliza cualquier CRLF introducido. |
 | **Status/diff**              | Git (`.gitattributes`)        | Compara working tree vs index aplicando el filter clean → al ser ambos LF, no hay phantom diffs.                                                                                                            |
 
-**Orden de precedencia**: `.gitattributes` es el contrato repo-level y **siempre gana** sobre el `core.autocrlf` local. `.editorconfig` y `.prettierrc` son complementarios (alinean editores y formatter al mismo LF). Ninguna capa depende de la otra para funcionar — son defense-in-depth.
+**Orden de precedencia**: `.gitattributes` es el contrato repo-level y **siempre gana** sobre el `core.autocrlf` local. `.editorconfig` y `.prettierrc.yaml` son complementarios (alinean editores y formatter al mismo LF). Ninguna capa depende de la otra para funcionar — son defense-in-depth.
 
 ### Windows Shell Script Exception
 

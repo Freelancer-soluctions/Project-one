@@ -591,6 +591,8 @@ When GitHub Secret Scanning detects a secret:
 
 ### Layer 2: Gitleaks in CI
 
+> **Estado operativo (verificado 2026-09-23):** `security.yml` (Security Pipeline) y `scheduled-security.yml` (Scheduled Security Scan) están **`disabled_manually`** en GitHub — no se ejecutan hoy (ver `docs/CONTEXT-CICD.md` §3.4/§3.5). El YAML es correcto y validado con `actionlint`; la protección activa actualmente es el pre-commit hook local (Gitleaks staged, capa L1) y Semgrep `p/secrets` en el `ci.yml` activo. Re-habilitación: `gh workflow enable "Security Pipeline" && gh workflow enable "Scheduled Security Scan"`. El job `Secret Detection` tampoco figura como required check en el ruleset de la rama (solo los 4 checks de governance).
+
 #### PR-Time Gate (Pull Request Scan)
 
 - **Trigger:** Every PR targeting `main`
@@ -603,7 +605,7 @@ When GitHub Secret Scanning detects a secret:
 
 - **Trigger:** Weekly cron (Monday 03:00 UTC) + manual `workflow_dispatch`
 - **Scope:** Full repository history (`--log-opts="--all"`) — all refs and commits
-- **Behavior:** **Fail-closed** — findings fail the run; report artifacts still uploaded (if: always())
+- **Behavior:** **Audit mode** — findings do NOT fail the run (`continue-on-error: true`); el run reporta hallazgos (artifact JSON + SARIF) y continúa, de modo que los findings siguen visibles sin romper la automatización (spec `ci-secret-scanning`, R2). Solo falla ante errores de infra (y entonces `notify-failure` abre un issue)
 - **Outputs:**
   - JSON artifact (`gitleaks-report`) uploaded for 30 days (with `--redact` to avoid exposing secrets in the artifact)
   - SARIF uploaded to **Security tab** for centralized visibility (requires `security-events: write` permission)
@@ -658,6 +660,8 @@ When GitHub Secret Scanning detects a secret:
 
 ### Layer 2: Gitleaks in CI
 
+> **Estado operativo (verificado 2026-09-23):** `security.yml` (Security Pipeline) y `scheduled-security.yml` (Scheduled Security Scan) están **`disabled_manually`** en GitHub — no se ejecutan hoy (ver `docs/CONTEXT-CICD.md` §3.4/§3.5). El YAML es correcto y validado con `actionlint`; la protección activa actualmente es el pre-commit hook local (Gitleaks staged, capa L1) y Semgrep `p/secrets` en el `ci.yml` activo. Re-habilitación: `gh workflow enable "Security Pipeline" && gh workflow enable "Scheduled Security Scan"`. El job `Secret Detection` tampoco figura como required check en el ruleset de la rama (solo los 4 checks de governance).
+
 #### PR-Time Gate (Pull Request Scan)
 
 - **Trigger:** Every PR targeting `main`
@@ -670,7 +674,7 @@ When GitHub Secret Scanning detects a secret:
 
 - **Trigger:** Weekly cron (Monday 03:00 UTC) + manual `workflow_dispatch`
 - **Scope:** Full repository history (`--log-opts="--all"`) — all refs and commits
-- **Behavior:** **Fail-closed** — findings fail the run; report artifacts still uploaded (if: always())
+- **Behavior:** **Audit mode** — findings do NOT fail the run (`continue-on-error: true`); el run reporta hallazgos (artifact JSON + SARIF) y continúa, de modo que los findings siguen visibles sin romper la automatización (spec `ci-secret-scanning`, R2). Solo falla ante errores de infra (y entonces `notify-failure` abre un issue)
 - **Outputs:**
   - JSON artifact (`gitleaks-report`) uploaded for 30 days (with `--redact` to avoid exposing secrets in the artifact)
   - SARIF uploaded to **Security tab** for centralized visibility (requires `security-events: write` permission)
