@@ -1,54 +1,51 @@
-# Specs: Notas con Menciones - API y Modelo
+# notes-mentions-api Specification
 
-## Contexto
-- Este spec describe el MVP para soportar menciones dentro del texto de notas.
+## Purpose
 
-## Alcance del cambio
-- Modelo de datos:
-  - notes.has_mentions: Boolean
-  - Nueva tabla mentions con: id, note_id, mentioned_user_id, mentioned_by_user_id, position_start, position_end, createdOn, is_read
-  - Relaciones: notes <-> mentions, users (mentioned) y users (mentioner)
-- Backend:
-  - Parsea menciones en el contenido de las notas al crear/editar.
-  - Crea entradas en mentions para cada mención válida y actualiza has_mentions a true.
-  - Endpoint MVP para consultar menciones por nota (opcional en la primera entrega).
-- Frontend:
-  - Resalta menciones dentro del contenido y enlaza a perfiles de usuarios mencionados.
+Soporta menciones dentro del texto de notas (`@usuario`): modelo de datos, parsing al crear/editar, consultas por nota y validaciones de seguridad. Alcance MVP; mejoras futuras (autocompletado, notificaciones, filtrado, rendimiento) quedan fuera.
 
-## Modelo de datos (diff de alto nivel)
-- En model notes: añadir has_mentions Boolean @default(false) y relation hacia mentions.
-- Nuevo model mentions:
-  - id Int @id @default(autoincrement())
-  - note_id Int
-  - mentioned_user_id Int
-  - mentioned_by_user_id Int
-  - position_start Int
-  - position_end Int
-  - createdOn DateTime @default(now())
-  - is_read Boolean @default(false)
-  - note Notes @relation("NoteMentions", fields: [note_id], references: [id])
-  - mentionedUser Users @relation("MentionedUser", fields: [mentioned_user_id], references: [id])
-  - mentionedByUser Users @relation("MentionedByUser", fields: [mentioned_by_user_id], references: [id])
+## Requirements
 
-## Flujos de negocio
-- Crear nota con contenido que contenga @usuario:
-  - Detectar menciones; validar usuarios; crear entradas en mentions; setear has_mentions = true.
-- Editar nota:
-  - Re-evaluar menciones y sincronizar la tabla mentions; actualizar has_mentions según corresponda.
+### Requirement: Modelo de datos de menciones
 
-## Migración de datos
-- Se debe generar una migración Prisma que implemente el nuevo campo y la nueva tabla.
-- En iteraciones futuras se puede considerar migración de menciones históricas si existieran.
+El sistema SHALL añadir el campo `has_mentions` al modelo `notes` y SHALL crear la tabla `mentions` con sus relaciones hacia `notes` y `users`.
 
-## Criterios de aceptación
-- Presencia del campo has_mentions en notes y del modelo mentions con las relaciones descritas.
-- Migración que crea la columna y la tabla.
-- Lógica de parsing funcional para MVP (detectar @usuario, validar existencia y crear entries en mentions).
-- Possibilidad de consultar menciones por nota (endpoint MVP) o incluirlas en GET /notes/:id.
+#### Scenario: Estructura del modelo
 
-## Seguridad y validaciones
-- Menciones solo a usuarios existentes y activos; evitar menciones a usuarios no válidos.
-- Considerar reglas de permisos para ver menciones, si aplica.
+- **WHEN** se inspecciona el esquema de Prisma, **THEN** `notes` SHALL tener `has_mentions Boolean @default(false)` y la relación hacia `mentions`
+- **THEN** el modelo `mentions` SHALL tener: `id Int @id @default(autoincrement())`, `note_id Int`, `mentioned_user_id Int`, `mentioned_by_user_id Int`, `position_start Int`, `position_end Int`, `createdOn DateTime @default(now())`, `is_read Boolean @default(false)`
+- **AND** SHALL tener las relaciones `note Notes @relation("NoteMentions", fields: [note_id], references: [id])`, `mentionedUser Users @relation("MentionedUser", ...)` y `mentionedByUser Users @relation("MentionedByUser", ...)`
 
-## Notas
-- Este spec cubre MVP; mejoras futuras pueden incluir autocompletado, notificaciones, filtrado y rendimiento optimizado.
+#### Scenario: Migración de datos
+
+- **WHEN** se aplican las migraciones, **THEN** SHALL existir una migración Prisma que cree la columna `has_mentions` y la tabla `mentions`
+- **AND** la migración de menciones históricas SHALL quedar para iteraciones futuras si existieran
+
+### Requirement: Parseo de menciones al crear o editar notas
+
+El backend SHALL parsear las menciones del contenido de las notas al crear o editar, creando entradas en `mentions` y actualizando `has_mentions`.
+
+#### Scenario: Crear nota con menciones
+
+- **GIVEN** contenido que contenga `@usuario`, **WHEN** se crea la nota, **THEN** el sistema SHALL detectar las menciones, validar los usuarios, crear las entradas en `mentions` y setear `has_mentions = true`
+
+#### Scenario: Editar nota con menciones
+
+- **WHEN** se edita una nota, **THEN** el sistema SHALL re-evaluar las menciones y sincronizar la tabla `mentions`, actualizando `has_mentions` según corresponda
+
+### Requirement: Consulta de menciones por nota
+
+El sistema SHALL exponer un endpoint MVP para consultar menciones por nota, o alternativamente incluirlas en `GET /notes/:id`.
+
+#### Scenario: Consulta de menciones
+
+- **WHEN** se consultan las menciones de una nota, **THEN** SHALL poder obtenerse vía endpoint MVP de menciones por nota o incluidas en la respuesta de `GET /notes/:id`
+
+### Requirement: Seguridad y validaciones de menciones
+
+Las menciones SHALL restringirse a usuarios existentes y activos, y SHALL considerarse reglas de permisos para ver menciones si aplica.
+
+#### Scenario: Usuarios válidos
+
+- **WHEN** se procesa una mención a un usuario inexistente o inactivo, **THEN** el sistema SHALL evitar crear la mención
+- **AND** SHALL considerarse reglas de permisos para ver menciones, si aplica
