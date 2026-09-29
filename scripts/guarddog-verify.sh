@@ -59,4 +59,9 @@ esac
 # defecto (mitiga CVE-2022-23530/31, CVE-2026-22870/871). En Windows
 # nativo fallará (GuardDog solo soporta Windows vía Docker): los
 # consumidores llaman este script con `|| true` (advisory).
-exec uvx "guarddog==${GUARDDOG_PIN}" npm verify package.json "$@"
+#
+# `--output-format sarif` es OBLIGATORIO: los jobs `typosquat-guarddog` /
+# `guarddog-weekly` y el hook pre-commit redirigen stdout a un .sarif que
+# se sube a Code Scanning (upload-sarif valida el JSON). Sin el flag,
+# GuardDog imprime texto plano y el "SARIF" queda corrupto/invalido.
+exec uvx "guarddog==${GUARDDOG_PIN}" npm verify package.json --output-format sarif "$@"

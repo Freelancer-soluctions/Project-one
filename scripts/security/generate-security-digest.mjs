@@ -16,8 +16,14 @@ import { readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { resolve } from 'node:path';
 
 // ============================================================================
-// LICENSE_DENY_LIST — aligned with actions/dependency-review-action default deny-list
-// https://github.com/actions/dependency-review-action/blob/main/src/license-check.ts
+// LICENSE_DENY_LIST — superset of the PR gate deny-list (ci.yml job
+// dependency-review, key `deny-licenses`): GPL/LGPL/AGPL extended family
+// (aligned with actions/dependency-review-action default deny-list, see
+// https://github.com/actions/dependency-review-action/blob/main/src/license-check.ts)
+// plus SSPL-1.0 and CC-BY-NC-4.0 from the gate policy
+// (docs/learning/license-policy.md, spec openspec/specs/license-compliance).
+// Note: every gate entry MUST be a valid SPDX id — the action fails fast on
+// invalid tokens; `Proprietary` is not a valid SPDX id (removed 2026-09-29).
 // ============================================================================
 const LICENSE_DENY_LIST = [
   'GPL-2.0',
@@ -35,6 +41,11 @@ const LICENSE_DENY_LIST = [
   'LGPL-1.0+',
   'AGPL-1.0',
   'AGPL-1.0+',
+  // Gate PR deny-list entries (license-policy.md) — superset requirement
+  // (openspec/specs/license-compliance): the weekly digest must flag at least
+  // everything the blocking gate denies.
+  'SSPL-1.0',
+  'CC-BY-NC-4.0',
 ];
 
 // Severity ordering for consistent output
