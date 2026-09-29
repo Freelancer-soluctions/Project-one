@@ -2,8 +2,10 @@ name: Scheduled Security Scan
 
 on:
   schedule:
-    - cron: '0 3 * * 1'  # Monday 03:00 UTC
+    - cron: '0 3 * * 1' # Monday 03:00 UTC
   workflow_dispatch:
+  # task 2.2 (change sast-weekly-scan): compatibilidad futura con merge queue
+  merge_group:
 
 permissions:
   contents: read
@@ -14,6 +16,14 @@ jobs:
     name: Gitleaks Full History Scan
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    # Outcomes de los scan steps propagados a nivel de job: con
+    # continue-on-error: true el JOB siempre acaba en success, así que
+    # notify-failure no puede usar needs.*.result (siempre 'success' — dead
+    # path del `if: failure()` anterior). La señal real es steps.<id>.outcome,
+    # que SOLO es legible dentro del mismo job → se captura aquí en outputs.
+    outputs:
+      scan-json-outcome: ${{ steps.scan-json.outcome }}
+      scan-sarif-outcome: ${{ steps.scan-sarif.outcome }}
 
     steps:
       - uses: actions/checkout@v5
@@ -21,10 +31,11 @@ jobs:
           fetch-depth: 0
 
       # Audit mode (spec ci-secret-scanning — "Secret found in historical commit"):
-      # el run NO falla por hallazgos; los reporta (artifact JSON) y continúa
+      # el run NO falla por hallazgos; los reporta (artifact JSON) y continúa.
       - name: Run Gitleaks full history scan (JSON report)
+        id: scan-json
         continue-on-error: true
-        uses: docker://zricethezav/gitleaks:v8.22.1
+        uses: docker://zricethezav/gitleaks:v8.30.1
         env:
           # Lookups de config contra la API de GitHub — 403 sin token
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -41,8 +52,9 @@ jobs:
 
       # Audit mode también aquí: el SARIF se genera/sube aunque haya hallazgos
       - name: Run Gitleaks full history scan (SARIF report)
+        id: scan-sarif
         continue-on-error: true
-        uses: docker://zricethezav/gitleaks:v8.22.1
+        uses: docker://zricethezav/gitleaks:v8.30.1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
@@ -58,12 +70,19 @@ jobs:
   notify-failure:
     name: Notify on Failure
     needs: gitleaks-full-scan
-    if: failure()
+    # always(): el job corre aunque el upstream haya acabado en success
+    # (siempre lo está, por continue-on-error en los scan steps).
+    if: always()
     runs-on: ubuntu-latest
     permissions:
       issues: write
     steps:
-      - uses: actions/github-script@v8
+      # Con `steps.<id>.outcome` capturado en outputs del job upstream, esta
+      # condición crea el Issue EXACTAMENTE cuando un scan step falló
+      # (hallazgos con exit 1 o error de tool) y se salta en runs limpios.
+      - name: Create failure issue when a scan step failed
+        if: needs.gitleaks-full-scan.outputs.scan-json-outcome == 'failure' || needs.gitleaks-full-scan.outputs.scan-sarif-outcome == 'failure'
+        uses: actions/github-script@v8
         with:
           script: |
             await github.rest.issues.create({
@@ -72,3 +91,240 @@ jobs:
               title: `Scheduled security scan failed: ${context.workflow} (${new Date().toISOString().split('T')[0]})`,
               body: `See run: ${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`
             })
+
+  # ═══════════════════════════════════════════════════════════════
+  # License audit L3 — ScanCode (change `license-compliance`)
+  # ═══════════════════════════════════════════════════════════════
+  # Audit de licencia/copyright POR ARCHIVO (complementario al gate PR
+  # `dependency-review`, que solo ve el manifiesto del diff; y a Trivy,
+  # que solo ve CVE). Taxonomía: advisory (scheduled) — el scan step
+  # lleva continue-on-error: true (hallazgos NO fallan el job, audit
+  # mode igual que gitleaks-full-scan arriba); la evidencia es el
+  # artifact JSON con retención 90d. Sin `needs` de agregadores ni
+  # required_status_checks; findings → issues manuales (D3 del design).
+  scancode-license-audit:
+    name: ScanCode License Audit (Weekly)
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Run ScanCode license audit (JSON report)
+        id: scan-json
+        continue-on-error: true
+        run: |
+          docker run --rm -v ${{ github.workspace }}:/project aboutcode/scancode-toolkit:32.5.0 \
+            scancode --license --copyright --only-findings \
+            --exclude node_modules --exclude dist --exclude build \
+            --exclude coverage --exclude .git --exclude reports \
+            --exclude '*.min.js' \
+            --json-pp /project/scancode-report.json /project
+
+      - name: Upload ScanCode report artifact (retention 90d)
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: scancode-report
+          path: scancode-report.json
+          retention-days: 90
+          if-no-files-found: warn
+
+      - name: Summarize license findings
+        if: always()
+        run: |
+          if [ -f scancode-report.json ]; then
+            node -e "
+              const r = require('./scancode-report.json');
+              const files = (r.files || []).filter(f => (f.licenses || []).length || (f.copyrights || []).length);
+              const licCounts = {};
+              for (const f of files) for (const l of (f.licenses || [])) licCounts[l.spdx_license_key || l.key || 'unknown'] = (licCounts[l.spdx_license_key || l.key || 'unknown'] || 0) + 1;
+              const top = Object.entries(licCounts).sort((a,b) => b[1]-a[1]).slice(0, 15);
+              console.log('Files with license/copyright findings:', files.length);
+              console.log('Top licenses:');
+              for (const [k, v] of top) console.log('  ' + k + ': ' + v);
+              const deny = /GPL|AGPL|SSPL|CC-BY-NC/i;
+              const hits = Object.keys(licCounts).filter(k => deny.test(k));
+              console.log(hits.length ? 'DENY-LIST FAMILY DETECTED (review manually): ' + hits.join(', ') : 'No deny-list family licenses detected.');
+            " || echo 'Report parse failed (see artifact)'
+          else
+            echo 'scancode-report.json not produced (see step outcome)'
+          fi
+
+  # Auditoría semanal de lockfile (change `sca-lockfile-compliance`, capa 3):
+  # npm audit sobre el lockfile commiteado (sin npm ci) + SBOM npm-native.
+  # SIN nuevo escaneo Trivy: el CVE de filesystem semanal ya corre en
+  # security.yml (job dependency-scan, mismo cron, SARIF category: trivy) —
+  # duplicarlo multiplicaría hallazgos idénticos en el Security tab.
+  # Taxonomía: advisory (scheduled) — audit mode, evidencia por artifact 90d.
+  lockfile-audit-weekly:
+    name: Lockfile Audit (Weekly)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Audit resolved lockfile (npm audit, threshold moderate)
+        id: audit-json
+        continue-on-error: true
+        run: |
+          npm audit --audit-level=moderate --json > audit-weekly.json
+
+      - name: Upload npm audit report artifact (retention 90d)
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: lockfile-audit-weekly
+          path: audit-weekly.json
+          retention-days: 90
+          if-no-files-found: warn
+
+      - name: Summarize lockfile findings
+        if: always()
+        run: |
+          if [ -f audit-weekly.json ]; then
+            node -e "
+              const r = JSON.parse(require('fs').readFileSync('audit-weekly.json', 'utf8'));
+              const v = (r.metadata && r.metadata.vulnerabilities) || {};
+              console.log('npm audit — vulnerabilities:', JSON.stringify(v));
+              const hits = (v.moderate || 0) + (v.high || 0) + (v.critical || 0);
+              console.log(hits > 0 ? 'HALLAZGOS >= moderate: ' + hits + ' (revisar artifact; advisory)' : 'Sin hallazgos >= moderate en el lockfile resuelto.');
+            " || echo 'Report parse failed (see artifact)'
+          else
+            echo 'audit-weekly.json not produced (see step outcome)'
+          fi
+
+      - name: Generate SBOM of resolved tree (npm sbom)
+        id: sbom-json
+        continue-on-error: true
+        run: |
+          npm sbom --sbom-format cyclonedx > sbom-lockfile-weekly.json
+
+      - name: Upload SBOM artifact (retention 90d)
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: sbom-lockfile-weekly
+          path: sbom-lockfile-weekly.json
+          retention-days: 90
+          if-no-files-found: warn
+
+  # IaC semanal — Policy as Code (change `sca-lockfile-compliance`, capa 4):
+  # Checkov sobre Dockerfile/terraform/kubernetes, audit mode. SARIF a Code
+  # Scanning con category: checkov-iac (sin colisionar con category: trivy de
+  # security.yml). Taxonomía: advisory (scheduled), SIN ruta blocking (D5 del
+  # design solo aplica a los jobs PR-time).
+  checkov-iac-weekly:
+    name: Checkov IaC (Weekly)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Run Checkov IaC scan (soft fail, SARIF)
+        id: checkov-sarif
+        continue-on-error: true
+        run: |
+          docker run --rm -v "$PWD":/io bridgecrew/checkov:3 --directory /io \
+            --framework dockerfile terraform kubernetes \
+            --config-file /io/.checkov.yml --output sarif \
+            --output-file-path /io/checkov-weekly.sarif || true
+          # checkov escribe junto al path dado; normalizar a la raíz si aplica
+          if [ ! -f checkov-weekly.sarif ] && [ -f checkov-weekly/checkov-weekly.sarif ]; then
+            mv checkov-weekly/checkov-weekly.sarif checkov-weekly.sarif
+          fi
+
+      - name: Upload Checkov SARIF to Code Scanning
+        if: always() && hashFiles('checkov-weekly.sarif') != ''
+        uses: github/codeql-action/upload-sarif@v4
+        with:
+          sarif_file: checkov-weekly.sarif
+          category: checkov-iac
+
+      - name: Upload Checkov report artifact (retention 90d)
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: checkov-iac-weekly
+          path: checkov-weekly.sarif
+          retention-days: 90
+          if-no-files-found: warn
+
+  # Auditoría semanal de calidad del Containerfile (change `containerfile-lint`):
+  # Hadolint = calidad/higiene del Dockerfile (NO IaC policy — capa separada de
+  # `checkov-iac-weekly`; taxonomía en `quality-gates.md` §2). `continue-on-error:
+  # true` (taxonomía `advisory (scheduled)`), sin ruta blocking y sin agregador.
+  # Política `.hadolint.yaml` montada en el contenedor (sin flags de ignore
+  # inline). Evidencia: SARIF `category: hadolint-weekly` (única) + artifact 90d.
+  containerfile-lint-weekly:
+    name: Containerfile Lint (Weekly)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Run Hadolint Containerfile lint (SARIF)
+        id: hadolint-sarif
+        continue-on-error: true
+        run: |
+          # Repo montado en /io: el config se lee de /io/.hadolint.yaml y el
+          # SARIF se escribe a /io/ (visible como $PWD en el runner). El
+          # Dockerfile entra por stdin (stdin abierto con -i).
+          docker run --rm -i -v "$PWD":/io hadolint/hadolint:v2.15.1 \
+            hadolint --config /io/.hadolint.yaml --format sarif \
+            --output /io/hadolint-weekly.sarif - < apps/server/Dockerfile || true
+
+      - name: Upload Hadolint SARIF to Code Scanning
+        if: always() && hashFiles('hadolint-weekly.sarif') != ''
+        uses: github/codeql-action/upload-sarif@v4
+        with:
+          sarif_file: hadolint-weekly.sarif
+          category: hadolint-weekly
+
+      - name: Upload Hadolint report artifact (retention 90d)
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: hadolint-report-weekly
+          path: hadolint-weekly.sarif
+          retention-days: 90
+          if-no-files-found: warn
+
+  # Auditoría semanal de pipeline config scan (change `pipeline-config-scan`):
+  # zizmor cubre el gap `unpinned-uses` (y `unpinned-images`/`unpinned-tools`/
+  # `typosquat-uses`) que actionlint no detecta. Misma instalación fijada que
+  # el job PR (A4): setup-uv SHA-pinned (v6.7.0) + `uvx zizmor@1.30.1` con
+  # verificación de versión. `--format=sarif` SIEMPRE exit 0 → se valida el
+  # fichero (`test -s` + `jq -e .`), nunca el exit code. Política
+  # `.github/zizmor.yml` incondicional (A3). `continue-on-error: true`
+  # (taxonomía `advisory (scheduled)`), sin ruta blocking y sin agregador.
+  zizmor-weekly:
+    name: Pipeline Config Scan (Weekly)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v5
+      - uses: astral-sh/setup-uv@b75a909f75acd358c2196fb9a5f1299a9a8868a4 # v6.7.0 (SHA-pinned, nunca @main/@v*)
+      - name: Run zizmor (SARIF, advisory)
+        run: |
+          uvx zizmor@1.30.1 --version | grep -q '1.30.1' || { echo 'zizmor version mismatch'; exit 1; }
+          uvx zizmor@1.30.1 --format=sarif -c .github/zizmor.yml .github/workflows/ > zizmor-weekly.sarif || true
+          test -s zizmor-weekly.sarif || { echo 'zizmor-weekly.sarif vacio'; exit 1; }
+          jq -e . zizmor-weekly.sarif > /dev/null || { echo 'zizmor-weekly.sarif no parseable'; exit 1; }
+        shell: bash
+      - name: Upload zizmor SARIF to Code Scanning
+        if: always() && hashFiles('zizmor-weekly.sarif') != ''
+        uses: github/codeql-action/upload-sarif@v4
+        with:
+          sarif_file: zizmor-weekly.sarif
+          category: zizmor-weekly
+      - name: Upload zizmor report artifact (retention 90d)
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: zizmor-weekly
+          path: zizmor-weekly.sarif
+          retention-days: 90
+          if-no-files-found: warn
+

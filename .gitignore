@@ -25,7 +25,8 @@ coverage/
 /.nyc_output
 e2e/test-results/
 *.lcov
-**/reports/
+**/reports/*
+!**/reports/.gitkeep
 *.info
 
 # IDEs and editors

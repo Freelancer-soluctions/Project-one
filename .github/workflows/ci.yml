@@ -43,6 +43,11 @@ jobs:
               - 'package.json'
               - 'package-lock.json'
               - '.github/workflows/**'
+              # Configs de import boundaries (dependency-cruiser): cambiarlos
+              # dispara los jobs `*-import-bounds` de ambos workspaces.
+              - '.dependency-cruiser.cjs'
+              - 'apps/client/.dependency-cruiser.cjs'
+              - 'apps/server/.dependency-cruiser.cjs'
 
   # ═══════════════════════════════════════════════════════════════
   # STAGE 1: PRE-COMMIT HOOKS (local — skippable via --no-verify) [SL]
@@ -448,7 +453,7 @@ jobs:
       - run: npm run format:check --workspace=apps/client
 
   client-typecheck:
-    if: false  # Disabled for incremental CI — change to true to re-enable
+    if: needs.repo-discovery.outputs.client == 'true' && github.event_name == 'pull_request'
     name: "Quality: Client TypeCheck"
     needs: repo-discovery
     runs-on: ubuntu-latest
@@ -458,10 +463,14 @@ jobs:
         with:
           fetch-depth: 0
       - uses: ./.github/actions/setup-monorepo
-      - name: TypeCheck (no-op until TS migration)
-        run: 'npx tsc --noEmit 2>/dev/null || echo "TypeCheck: no-op until TS migration"'
+      # Gate blocking real (change `quality-gates`): sin `|| echo` ni
+      # `2>/dev/null` que enmascaren el exit code — un error de compilación
+      # falla el job. El client es 100% JS: compila vía tsconfig base
+      # (allowJs + checkJs off); flags strict llegan con typescript-strict-check.
+      - name: TypeCheck
+        run: npx tsc --noEmit
         working-directory: apps/client
-
+        
   client-complexity:
     if: needs.repo-discovery.outputs.client == 'true' && github.event_name == 'pull_request'
     name: "Quality: Client Complexity"
@@ -473,8 +482,10 @@ jobs:
         with:
           fetch-depth: 0
       - uses: ./.github/actions/setup-monorepo
+      # Gate blocking (change `quality-gates`): sin `--rule` CLI override —
+      # los umbrales vienen de eslint.config.js (15 core / 10 utils / off tests).
       - name: Check complexity
-        run: 'npx eslint --rule ''{"complexity": ["error", 20]}'' "src/**/*.{js,jsx}"'
+        run: npx eslint "src/**/*.{js,jsx}"
         working-directory: apps/client
 
   client-dead-code:
@@ -503,9 +514,24 @@ jobs:
         with:
           fetch-depth: 0
       - uses: ./.github/actions/setup-monorepo
-      - name: Check import boundaries
-        run: npx dependency-cruiser src --config .dependency-cruiser.cjs
-        working-directory: apps/client
+      # Gate: corre desde la RAÍZ (config raíz + regex `^apps/...`);
+      # --ignore-known respeta el baseline (.dependency-cruiser-known-violations.json).
+      - name: Check import boundaries (gate)
+        run: npm run depcruise:client -- --output-type err --ignore-known
+      # Report no-blocking del grafo combinado (siempre corre, exit code
+      # ignorado aquí): el HTML queda como artefacto para inspección del grafo.
+      - name: Import boundaries report (no-blocking)
+        if: always()
+        run: npm run depcruise:report
+        continue-on-error: true
+      - name: Upload dependency-cruiser report
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: dependency-cruiser-report-client
+          path: reports/dependency-cruiser.html
+          if-no-files-found: warn
+          retention-days: 7
 
   # --- Server Pre-Build ---
   server-lint:
@@ -535,7 +561,7 @@ jobs:
       - run: npm run format:check --workspace=apps/server
 
   server-typecheck:
-    if: false  # Disabled for incremental CI — change to true to re-enable
+    if: needs.repo-discovery.outputs.server == 'true' && github.event_name == 'pull_request'
     name: "Quality: Server TypeCheck"
     needs: repo-discovery
     runs-on: ubuntu-latest
@@ -545,12 +571,15 @@ jobs:
         with:
           fetch-depth: 0
       - uses: ./.github/actions/setup-monorepo
-      - name: TypeCheck (no-op until TS migration)
-        run: 'npx tsc --noEmit 2>/dev/null || echo "TypeCheck: no-op until TS migration"'
+      # Gate blocking real (change `quality-gates`): `tsc --noEmit -p apps/server`
+      # contra apps/server/tsconfig.json (allowJs, checkJs off — código 100% JS;
+      # flags strict vía typescript-strict-check). Sin `|| echo` que enmascare.
+      - name: TypeCheck
+        run: npm run type-check
         working-directory: apps/server
-
+        
   server-complexity:
-    if: false  # Disabled for incremental CI — change to true to re-enable
+    if: needs.repo-discovery.outputs.server == 'true' && github.event_name == 'pull_request'
     name: "Quality: Server Complexity"
     needs: repo-discovery
     runs-on: ubuntu-latest
@@ -560,8 +589,10 @@ jobs:
         with:
           fetch-depth: 0
       - uses: ./.github/actions/setup-monorepo
+      # Gate blocking (change `quality-gates`): sin `--rule` CLI override —
+      # umbrales desde eslint.config.js (15 core / 10 utils / off tests).
       - name: Check complexity
-        run: 'npx eslint --rule ''{"complexity": ["error", 15]}'' "src/**/*.js"'
+        run: npx eslint "src/**/*.js"
         working-directory: apps/server
 
   server-dead-code:
@@ -580,7 +611,7 @@ jobs:
         working-directory: apps/server
 
   server-import-bounds:
-    if: false  # Disabled for incremental CI — change to true to re-enable
+    if: needs.repo-discovery.outputs.server == 'true' && github.event_name == 'pull_request'
     name: "Quality: Server Import Bounds"
     needs: repo-discovery
     runs-on: ubuntu-latest
@@ -590,9 +621,22 @@ jobs:
         with:
           fetch-depth: 0
       - uses: ./.github/actions/setup-monorepo
-      - name: Check import boundaries
-        run: npx dependency-cruiser src --config .dependency-cruiser.cjs
-        working-directory: apps/server
+      # Activado por change `import-boundaries` (antes `if: false`). Gate desde
+      # la RAÍZ con config raíz (regex `^apps/...`) + baseline --ignore-known.
+      - name: Check import boundaries (gate)
+        run: npm run depcruise:server -- --output-type err --ignore-known
+      - name: Import boundaries report (no-blocking)
+        if: always()
+        run: npm run depcruise:report
+        continue-on-error: true
+      - name: Upload dependency-cruiser report
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: dependency-cruiser-report-server
+          path: reports/dependency-cruiser.html
+          if-no-files-found: warn
+          retention-days: 7
 
   # --- E2E Pre-Build ---
   # Lint estático del workspace e2e (sin navegador): specs, page objects y
@@ -627,6 +671,99 @@ jobs:
           bash <(curl https://raw.githubusercontent.com/rhysd/actionlint/main/scripts/download-actionlint.bash) 1.7.12
           ./actionlint -color
         shell: bash
+
+  # Job advisory de pipeline config scan (change `pipeline-config-scan`):
+  # actionlint con salida SARIF para la Security tab. Misma instalación que el
+  # job bloqueante `actionlint` (download-script pinned 1.7.12 — nunca
+  # rhysd/actionlint-action@master ni curl artesanal: los assets reales son
+  # linux_amd64). La plantilla SARIF oficial se versiona en
+  # `.github/actionlint-sarif.tmpl` y se pasa como CONTENIDO de `-format` (la
+  # pseudo-plantilla inline produce 0 bytes con exit 0 — verificado v1.7.12).
+  # El step lleva `|| true`: con hallazgos actionlint sale 1 y la evidencia
+  # debe generarse igual; el carácter advisory en FASE 1 lo aporta
+  # `continue-on-error: true` a nivel job. NO entra en los `needs` de los
+  # agregadores en FASE 1 (FASE 2: scope de bloqueo solo en este step, con
+  # uploads step-COE). Política del gate bloqueante `.github/actionlint.yaml`
+  # intacta (se reutiliza aquí, no se modifica).
+  actionlint-advisory:
+    if: github.event_name == 'pull_request'
+    name: "Quality: ActionLint Advisory (SARIF, FASE 1)"
+    needs: repo-discovery
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    continue-on-error: true
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - name: Run actionlint (SARIF, advisory)
+        run: |
+          bash <(curl https://raw.githubusercontent.com/rhysd/actionlint/main/scripts/download-actionlint.bash) 1.7.12
+          ./actionlint -no-color -config-file .github/actionlint.yaml \
+            -format "$(cat .github/actionlint-sarif.tmpl)" .github/workflows/ > actionlint.sarif || true
+          test -s actionlint.sarif || { echo 'actionlint.sarif vacio'; exit 1; }
+          jq -e . actionlint.sarif > /dev/null || { echo 'actionlint.sarif no parseable'; exit 1; }
+        shell: bash
+      - name: Upload actionlint SARIF to Code Scanning
+        if: always() && hashFiles('actionlint.sarif') != ''
+        uses: github/codeql-action/upload-sarif@v4
+        with:
+          sarif_file: actionlint.sarif
+          category: actionlint
+      - name: Upload actionlint report artifact (retention 14d)
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: actionlint-report-pr
+          path: actionlint.sarif
+          retention-days: 14
+          if-no-files-found: warn
+
+  # Job advisory zizmor (change `pipeline-config-scan`): cubre el gap
+  # `unpinned-uses` que actionlint no detecta. Instalación fijada (A4):
+  # setup-uv SHA-pinned (v6.7.0, ubuntu-latest NO trae uv) + `uvx zizmor@1.30.1`
+  # (versión exacta, no latest) + verificación de versión antes del scan.
+  # `--format=sarif` SIEMPRE termina exit 0 → se valida el fichero (`test -s`
+  # + `jq -e .`), nunca el exit code. Política `.github/zizmor.yml`
+  # referenciada incondicionalmente (A3). FASE 1 advisory; FASE 2: gating
+  # `jq -e '.runs[0].results | length == 0'` + `prebuild-security-complete.needs`.
+  zizmor-advisory:
+    if: github.event_name == 'pull_request'
+    name: "Security: Zizmor Advisory (unpinned-uses, FASE 1)"
+    needs: repo-discovery
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    continue-on-error: true
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - uses: actions/checkout@v5
+      - uses: astral-sh/setup-uv@b75a909f75acd358c2196fb9a5f1299a9a8868a4 # v6.7.0 (SHA-pinned, nunca @main/@v*)
+      - name: Run zizmor (SARIF, advisory)
+        run: |
+          uvx zizmor@1.30.1 --version | grep -q '1.30.1' || { echo 'zizmor version mismatch'; exit 1; }
+          uvx zizmor@1.30.1 --format=sarif -c .github/zizmor.yml .github/workflows/ > zizmor.sarif || true
+          test -s zizmor.sarif || { echo 'zizmor.sarif vacio'; exit 1; }
+          jq -e . zizmor.sarif > /dev/null || { echo 'zizmor.sarif no parseable'; exit 1; }
+        shell: bash
+      - name: Upload zizmor SARIF to Code Scanning
+        if: always() && hashFiles('zizmor.sarif') != ''
+        uses: github/codeql-action/upload-sarif@v4
+        with:
+          sarif_file: zizmor.sarif
+          category: zizmor
+      - name: Upload zizmor report artifact (retention 14d)
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: zizmor-report-pr
+          path: zizmor.sarif
+          retention-days: 14
+          if-no-files-found: warn
 
   # --- Specs Pre-Build ---
   # Validación estructural de las specs canónicas de OpenSpec (openspec/specs/**).
@@ -740,7 +877,329 @@ jobs:
           # Security intent: vulnerability + license checks
           vulnerability-check: true
           license-check: true
+          # License policy (change `dependency-review`, D2): deny-list aligned with
+          # LICENSE_DENY_LIST in scripts/generate-security-digest.mjs. NOTE:
+          # allow-licenses is the stricter allow-list alternative and is MUTUALLY
+          # EXCLUSIVE with deny-licenses — exactly one of the two may be set.
+          # Validated locally: no package in the current tree carries these
+          # licenses (see docs/learning/dependency-review.md §4.2).
+          # Canonical license policy (deny-list, waivers, fail-on-scopes):
+          # docs/learning/license-policy.md (change license-compliance)
+          deny-licenses: GPL-3.0, AGPL-3.0, SSPL-1.0, Proprietary, CC-BY-NC-4.0
+          # Publish the findings summary as a PR comment when the gate fails,
+          # exercising the already-declared pull-requests: write permission.
+          # on-failure keeps green PRs clean; on fork PRs the comment may fail
+          # (accepted: the job still fails on findings, see design Risks).
+          comment-summary-in-pr: on-failure
+          # fail-on-scopes decision (task 4.1): default `runtime` KEPT for now —
+          # devDependencies here are build/test tooling, and enabling `development`
+          # without a test PR risks blocking tooling-update PRs. Revisit after a
+          # controlled PR test (docs/learning/dependency-review.md §4).
+          # fail-on-scopes: runtime, development
     # Job-level continue-on-error: false (default) — failures block the check
+
+  secrets:
+    name: Secret Detection
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    if: github.event_name == 'pull_request'
+    permissions:
+      contents: read
+      security-events: read
+    env:
+      GIT_LEAKS: ${{ secrets.GIT_LEAKS }}
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - name: Scan PR diff for secrets (Gitleaks OSS)
+        uses: docker://zricethezav/gitleaks:v8.30.1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          args: git --log-opts="${{ github.event.pull_request.base.sha }}..${{ github.event.pull_request.head.sha }}" --redact --verbose
+      - name: Scan for secrets (licensed action - optional)
+        if: ${{ env.GIT_LEAKS != '' }}
+        uses: gitleaks/gitleaks-action@v3
+        env:
+          GITLEAKS_LICENSE: ${{ secrets.GIT_LEAKS }}
+      - name: "Warn: licensed Gitleaks scan unavailable"
+        if: ${{ env.GIT_LEAKS == '' }}
+        run: echo "::warning::GIT_LEAKS secret not configured - licensed Gitleaks scan skipped. Using open-source Gitleaks only."
+
+  # Job PR-diff de licencias por archivo (change `license-compliance`, capa L2b,
+  # dual job con el audit semanal — D4 del design): ScanCode 32.5.0 sobre los
+  # archivos ACMR (Added/Copied/Modified/Renamed) del diff del PR — cierra el gap
+  # de `dependency-review`, que solo evalúa manifiestos/lockfiles. FASE 1
+  # advisory: `continue-on-error: true` a nivel job → `prebuild-security-complete`
+  # ve needs.*.result = success (actions/toolkit#581, mismo patrón que dead-code)
+  # y el PR no se bloquea; la evidencia es el artifact `pr-license-report.json`
+  # (retención 14d ≠ 90d del audit semanal). FASE 2 (blocking gradual): remover
+  # `continue-on-error` de este job y actualizar `docs/learning/quality-gates.md`
+  # + `docs/learning/license-policy.md` tras 2-4 semanas de runs limpios con
+  # hallazgos triados. Deny-list única: se lee en runtime de la clave
+  # `deny-licenses` del job `dependency-review` (fuente canónica:
+  # docs/learning/license-policy.md) — sin duplicar la lista aquí.
+  # `LicenseRef-scancode-unknown*` = warning permanente (nunca bloquea, ni en
+  # FASE 2). Sin `scan-list.txt` estático: la lista vive en el diff. El scan
+  # corre sobre una copia de los archivos del diff (scope) → node_modules/dist/
+  # build/coverage/.git quedan fuera estructuralmente; `*.min.js` se excluye
+  # por paridad con el audit semanal.
+  scancode-license-pr-diff:
+    if: github.event_name == 'pull_request'
+    name: "Security: ScanCode License PR-Diff (advisory, FASE 1)"
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: List changed files (ACMR vs base)
+        id: diff
+        run: |
+          git diff --name-only --diff-filter=ACMR \
+            "${{ github.event.pull_request.base.sha }}" \
+            "${{ github.event.pull_request.head.sha }}" > pr-diff-files.txt
+          echo "Changed files (ACMR): $(wc -l < pr-diff-files.txt | tr -d ' ')"
+
+      - name: ScanCode license scan of changed files
+        id: scan-json
+        continue-on-error: true
+        run: |
+          mkdir -p scancode-scope
+          while IFS= read -r f; do
+            if [ -f "$f" ]; then
+              mkdir -p "scancode-scope/$(dirname "$f")"
+              cp "$f" "scancode-scope/$f"
+            fi
+          done < pr-diff-files.txt
+          if [ -z "$(ls -A scancode-scope 2>/dev/null)" ]; then
+            echo "No scannable files in the ACMR diff (all deleted). Writing empty report."
+            echo '{"files": []}' > scancode-scope/pr-license-report.json
+            exit 0
+          fi
+          docker run --rm -v "$PWD/scancode-scope:/project" aboutcode/scancode-toolkit:32.5.0 \
+            scancode --license --copyright --only-findings \
+            --exclude '*.min.js' \
+            --json-pp /project/pr-license-report.json /project
+
+      - name: Evaluate licenses against unified deny-list (FASE 1 advisory)
+        run: |
+          REPORT=scancode-scope/pr-license-report.json
+          if [ ! -f "$REPORT" ]; then
+            echo "Report not produced (see scan step outcome); nothing to evaluate."
+            exit 0
+          fi
+          # Deny-list única: leída de la config real del job dependency-review.
+          DENY_LIST=$(grep -E '^[[:space:]]*deny-licenses:' .github/workflows/ci.yml \
+            | head -1 | sed 's/.*deny-licenses:[[:space:]]*//' | tr -d '"')
+          if [ -z "$DENY_LIST" ]; then
+            echo "::error::deny-licenses not found in ci.yml job dependency-review"
+            exit 1
+          fi
+          DENY_LIST="$DENY_LIST" REPORT_PATH="$REPORT" node -e "
+            const fs = require('fs');
+            const r = JSON.parse(fs.readFileSync(process.env.REPORT_PATH, 'utf8'));
+            const denyList = process.env.DENY_LIST.split(',').map((s) => s.trim()).filter(Boolean);
+            const denySet = new Set(denyList);
+            const normalize = (k) => k.split('-or-later')[0].split('-only')[0];
+            const unknownRe = /^LicenseRef-scancode-unknown/;
+            const violations = [];
+            const warnings = [];
+            for (const f of r.files || []) {
+              for (const l of f.licenses || []) {
+                const k = l.spdx_license_key || l.key || 'unknown';
+                if (unknownRe.test(k)) warnings.push(k + ' @ ' + f.path);
+                else if (denySet.has(normalize(k))) violations.push(k + ' @ ' + f.path);
+              }
+            }
+            console.log('Deny-list (from ci.yml dependency-review):', denyList.join(', '));
+            console.log('Files with license findings:', (r.files || []).length);
+            console.log('Warnings (LicenseRef-scancode-unknown, nunca bloquea):', warnings.length);
+            for (const w of warnings) console.log('::warning::' + w);
+            if (violations.length) {
+              console.log('::error::Licencias en deny-list (FASE 1 advisory, no bloquea): ' + violations.length);
+              for (const v of violations) console.log('  - ' + v);
+            } else {
+              console.log('Sin licencias de la deny-list en el diff del PR.');
+            }
+          "
+
+      - name: Upload PR license report artifact (retention 14d)
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: pr-license-report
+          path: scancode-scope/pr-license-report.json
+          retention-days: 14
+          if-no-files-found: warn
+
+  # Job PR-time de auditoría de lockfile (change `sca-lockfile-compliance`, capa 2):
+  # `npm audit` lee package-lock.json directamente (sin `npm ci`: el audit no
+  # necesita el árbol instalado y una instalación añadiría 1-3 min por PR).
+  # Umbral moderate (coincide con dependency-review; fuente distinta: CVE del
+  # lockfile RESUELTO, incluidos transitivos — no manifiesto). FASE 1 advisory:
+  # continue-on-error a nivel JOB (patrón dead-code, actions/toolkit#581). Esta
+  # capa NO entra a prebuild-security-complete.needs en FASE 1 (spec); FASE 2
+  # (2-4 semanas de runs limpios) quita el flag y la añade al agregador.
+  # Evidencia: artifact `lockfile-audit-pr` 14d. Detecta CVE, no licencias —
+  # `deny-licenses` (clave del job dependency-review) NO aplica aquí.
+  lockfile-audit:
+    if: github.event_name == 'pull_request'
+    name: "Security: Lockfile Audit (advisory, FASE 1)"
+    needs: repo-discovery
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Audit resolved lockfile (npm audit, threshold moderate)
+        id: audit-json
+        continue-on-error: true
+        run: |
+          npm audit --audit-level=moderate --json > audit-report.json
+
+      - name: Summarize npm audit findings
+        if: always()
+        run: |
+          if [ -f audit-report.json ]; then
+            node -e "
+              const r = JSON.parse(require('fs').readFileSync('audit-report.json', 'utf8'));
+              const v = (r.metadata && r.metadata.vulnerabilities) || {};
+              console.log('npm audit — vulnerabilities:', JSON.stringify(v));
+              if ((v.moderate || 0) + (v.high || 0) + (v.critical || 0) > 0) {
+                console.log('::warning::Hallazgos >= moderate en lockfile (FASE 1 advisory, no bloquea)');
+              } else {
+                console.log('Sin hallazgos >= moderate en el lockfile resuelto.');
+              }
+            " || echo 'Report parse failed (see artifact)'
+          else
+            echo 'audit-report.json not produced (see step outcome)'
+          fi
+
+      - name: Upload npm audit report artifact (retention 14d)
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: lockfile-audit-pr
+          path: audit-report.json
+          retention-days: 14
+          if-no-files-found: warn
+
+  # Job PR-time IaC — Policy as Code (change `sca-lockfile-compliance`, capa 4):
+  # Checkov sobre Dockerfile/terraform/kubernetes. `soft_fail: true` (FASE 1
+  # advisory: hallazgos con exit 0). Política versionada en `.checkov.yml`,
+  # pasada explícita vía input `config_file` (la CLI además la auto-lee del
+  # cwd). NO entra a prebuild-security-complete.needs en FASE 1 (spec); FASE 2:
+  # baseline `.checkov.baseline` (fail-on-new) + quitar soft-fail tras 2-4
+  # semanas de runs limpios. Complementaria a SAST (código) y SCA
+  # (dependencias): configura infraestructura, no analiza licencias ni CVE.
+  checkov-iac:
+    if: github.event_name == 'pull_request'
+    name: "Security: Checkov IaC (advisory, FASE 1)"
+    needs: repo-discovery
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Run Checkov IaC scan (soft fail, SARIF)
+        id: checkov-sarif
+        uses: bridgecrewio/checkov-action@v12
+        with:
+          directory: .
+          framework: dockerfile terraform kubernetes
+          config_file: .checkov.yml
+          output_format: sarif
+          output_file_path: checkov-report.sarif
+          soft_fail: true
+
+      - name: Upload Checkov report artifact (retention 14d)
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: checkov-report-pr
+          path: checkov-report.sarif
+          retention-days: 14
+          if-no-files-found: warn
+
+  # Job PR-time de calidad del Containerfile (change `containerfile-lint`):
+  # Hadolint = higiene/calidad del Dockerfile (ShellCheck sobre RUN, pin de
+  # versiones, capas consolidadas, registry allowlist). NO es capa IaC: eso ya
+  # lo cubre `checkov-iac` (CKV_DOCKER_*, política `.checkov.yml`) — separación
+  # de capas documentada en `quality-gates.md` §2. Política versionada
+  # `.hadolint.yaml` vía input `config` (nunca flags de ignore inline: el flag
+  # de CLI anula la lista del config). FASE 1 advisory: `continue-on-error:
+  # true` y NO entra en el `needs` del agregador; FASE 2 (tras 2-4 semanas sin
+  # falsos positivos): `failure-threshold: warning` + añadir al `needs`.
+  containerfile-lint:
+    if: github.event_name == 'pull_request'
+    name: "Security: Containerfile Lint (advisory, FASE 1)"
+    needs: repo-discovery
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    continue-on-error: true
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Run Hadolint Containerfile lint (SARIF)
+        id: hadolint-sarif
+        uses: hadolint/hadolint-action@v3.1.0
+        with:
+          dockerfile: apps/server/Dockerfile
+          config: .hadolint.yaml
+          format: sarif
+          output-file: hadolint.sarif
+          failure-threshold: info
+
+      - name: Upload Hadolint SARIF to Code Scanning
+        if: always() && hashFiles('hadolint.sarif') != ''
+        uses: github/codeql-action/upload-sarif@v4
+        with:
+          sarif_file: hadolint.sarif
+          category: hadolint
+
+      - name: Upload Hadolint report artifact (retention 14d)
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: hadolint-report-pr
+          path: hadolint.sarif
+          retention-days: 14
+          if-no-files-found: warn
+
+  # Job advisory de validación de documentación (change `quality-gates`, fase 1):
+  # markdownlint (estructura) + publication de reporte. NO entra en
+  # `prebuild-quality-complete.needs` — un hallazgo de docs NO bloquea el PR;
+  # el reporte debe sobrevivir (`if: always()`) aunque el job "falle".
+  # Fase 2 (bloqueante) queda fuera de este change hasta que docs/ pase limpio.
+  docs-validation:
+    if: github.event_name == 'pull_request'
+    name: "Quality: Docs Validation (advisory)"
+    needs: repo-discovery
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v5
+      - uses: ./.github/actions/setup-monorepo
+      - name: Lint markdown structure (markdownlint)
+        run: npm run docs:lint
+      - name: Publish docs lint summary
+        if: always()
+        run: |
+          COUNT=$(npx markdownlint "docs/**/*.md" "docs/*.md" 2>/dev/null | wc -l || echo 0)
+          echo "## Docs Validation (advisory, fase 1)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "markdownlint violations: ${COUNT##* } (fase 1: NO bloquea el PR)" >> $GITHUB_STEP_SUMMARY
+          echo "Config: .markdownlint.json + .markdownlintignore · vale fase 2 (ver docs/learning/docs-changelog-validation.md)" >> $GITHUB_STEP_SUMMARY
 
   # ═══════════════════════════════════════════════════════════════
   # STAGE 3: BUILD (compilación, empaquetado, artifact)
@@ -777,7 +1236,7 @@ jobs:
 
   # --- Client Post-Build ---
   client-sonarqube:
-    if: false  # Disabled for incremental CI — change to true to re-enable
+    if: false  # Sin credenciales: no existe SONAR_TOKEN/SONAR_HOST_URL en los secrets del repo (change `quality-gates` D2 — gate documentado como inactivo, nunca rojo)
     name: "Quality: Client SonarQube"
     needs: [client-build, test-unit-client]
     runs-on: ubuntu-latest
@@ -838,7 +1297,7 @@ jobs:
 
   # --- Server Post-Build ---
   server-sonarqube:
-    if: false  # Disabled for incremental CI — change to true to re-enable
+    if: false  # Sin credenciales: no existe SONAR_TOKEN/SONAR_HOST_URL en los secrets del repo (change `quality-gates` D2 — gate documentado como inactivo, nunca rojo)
     name: "Quality: Server SonarQube"
     needs: [server-build, test-unit-server]
     runs-on: ubuntu-latest
@@ -1105,6 +1564,10 @@ jobs:
             echo "❌ One or more governance jobs failed"
             exit 1
           fi
+          if [[ "${{ contains(needs.*.result, 'cancelled') }}" == "true" ]]; then
+            echo "❌ One or more governance jobs were cancelled"
+            exit 1
+          fi
           echo "✅ Governance substage succeeded or was skipped"
 
   prebuild-quality-complete:
@@ -1134,6 +1597,10 @@ jobs:
             echo "❌ One or more quality jobs failed"
             exit 1
           fi
+          if [[ "${{ contains(needs.*.result, 'cancelled') }}" == "true" ]]; then
+            echo "❌ One or more quality jobs were cancelled"
+            exit 1
+          fi
           echo "✅ Quality substage succeeded or was skipped"
 
   prebuild-security-complete:
@@ -1142,11 +1609,17 @@ jobs:
     runs-on: ubuntu-latest
     needs:
       - dependency-review
+      - secrets
+      - scancode-license-pr-diff
     steps:
       - name: Check for failures
         run: |
           if [[ "${{ contains(needs.*.result, 'failure') }}" == "true" ]]; then
             echo "❌ One or more security jobs failed"
+            exit 1
+          fi
+          if [[ "${{ contains(needs.*.result, 'cancelled') }}" == "true" ]]; then
+            echo "❌ One or more security jobs were cancelled"
             exit 1
           fi
           echo "✅ Security substage succeeded or was skipped"
@@ -1165,6 +1638,10 @@ jobs:
         run: |
           if [[ "${{ contains(needs.*.result, 'failure') }}" == "true" ]]; then
             echo "❌ One or more unit-test jobs failed"
+            exit 1
+          fi
+          if [[ "${{ contains(needs.*.result, 'cancelled') }}" == "true" ]]; then
+            echo "❌ One or more unit-test jobs were cancelled"
             exit 1
           fi
           echo "✅ Unit-testing substage succeeded or was skipped"
