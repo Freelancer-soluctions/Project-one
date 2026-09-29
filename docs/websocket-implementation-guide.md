@@ -82,9 +82,11 @@ apps/client/src/
 ## Nivel 2: Servidor + Cliente
 
 **Archivos productivos:**
+
 - `level-02-server.js` ⚠️ **ES EL SERVIDOR WS PRODUCTIVO**
 
 **Qué implementa:**
+
 - Socket.IO adjuntado al mismo servidor HTTP que Express (puerto 3000) vía `attachSocketServer(httpServer)`
 - También ejecutable standalone en puerto 3001: `node src/socket/levels/level-02-server.js`
 - CORS para `http://localhost:5173`
@@ -101,6 +103,7 @@ apps/client/src/
 - ✅ Conexión con adapter (Redis/memoria)
 
 **Archivos cliente:**
+
 - `level-03-client.js` — Cliente Node.js educativo
 - `test-client.html` — Cliente HTML educativo
 - `useSocket.js` — Hook React (conexión, auth, refresh token, room join)
@@ -112,15 +115,18 @@ apps/client/src/
 ## Nivel 3: Autenticación JWT
 
 **Archivos productivos:**
+
 - `auth.js` — Middleware `io.use(createAuthMiddleware())`
 
 **Qué hace:**
+
 - Verifica JWT desde `socket.handshake.auth.token` (no query params)
 - Misma clave `SECRETKEY` y algoritmo `HS256` que Express
 - Payload decodificado → `socket.data.user`
 - Rechazo → `next(new Error('UNAUTHORIZED'))` → cliente recibe `connect_error`
 
 **Cliente:**
+
 - `useSocket.js` lee token de Redux (`state.auth.user.data.accessToken`)
 - En `connect_error` UNAUTHORIZED → intenta `refreshTokenFecth()` → actualiza `socket.auth.token` → reconecta
 - Si refresh falla → `dispatch(logout())`
@@ -132,6 +138,7 @@ apps/client/src/
 ## Nivel 4: Rooms (Salas)
 
 **Archivos productivos:**
+
 - `rooms.js` — `joinUserRoom()`, `leaveUserRoom()`, `getActiveUserSockets()`, `isUserOnline()`, `getActiveRoomCount()`
 
 **Convención:** `user:<ID>` — cada usuario tiene su sala personal. Multi-tab soportado naturalmente (varios sockets en misma sala). Socket.IO maneja cleanup automático al desconectar.
@@ -145,25 +152,27 @@ apps/client/src/
 ## Nivel 5: Sistema de Eventos
 
 **Archivos productivos:**
+
 - `events/schemas.js` — Validación Joi: envelope + payload, XSS prevention (`noHtml`)
 - `events/mentionEvents.js` — Handlers `mention:new` (envía a sala del mencionado) y `mention:read` (broadcast a otros sockets del mismo usuario)
 
 **Catálogo de eventos:**
 
-| Evento | Dirección | Descripción |
-|--------|-----------|-------------|
-| `mention:new` | Server → Client | Nueva mención @usuario en nota |
-| `mention:read` | Client → Server | Marcar menciones como leídas |
-| `mention:backlog` | Server → Client | Menciones perdidas durante desconexión |
-| `room:join` | Client → Server | Unirse a sala personal |
-| `error:validation` | Server → Client | Payload inválido |
-| `error:unknown` | Server → Client | Tipo de evento no registrado |
-| `error:rate_limit` | Server → Client | Demasiados eventos |
-| `error:auth` | Server → Client | No autorizado |
-| `error:server` | Server → Client | Error interno |
-| `welcome` | Server → Client | Confirmación de conexión |
+| Evento             | Dirección       | Descripción                            |
+| ------------------ | --------------- | -------------------------------------- |
+| `mention:new`      | Server → Client | Nueva mención @usuario en nota         |
+| `mention:read`     | Client → Server | Marcar menciones como leídas           |
+| `mention:backlog`  | Server → Client | Menciones perdidas durante desconexión |
+| `room:join`        | Client → Server | Unirse a sala personal                 |
+| `error:validation` | Server → Client | Payload inválido                       |
+| `error:unknown`    | Server → Client | Tipo de evento no registrado           |
+| `error:rate_limit` | Server → Client | Demasiados eventos                     |
+| `error:auth`       | Server → Client | No autorizado                          |
+| `error:server`     | Server → Client | Error interno                          |
+| `welcome`          | Server → Client | Confirmación de conexión               |
 
 **Cliente:**
+
 - `socketService.js` — Constantes centralizadas (`SERVER_EVENTS`, `CLIENT_EVENTS`)
 - `useMentionNotifications.js` — Escucha `mention:new` y muestra toast shadcn
 
@@ -185,6 +194,7 @@ Controller HTTP → Service Layer → notificationBus → Socket.IO → Cliente
 **Archivo productivo:** `notificationBus.js`
 
 **Qué hace:**
+
 - Singleton `EventEmitter` con `setMaxListeners(50)`
 - Eventos definidos: `MENTION_CREATED`, `MENTION_READ`
 - **Desacopla** services de Socket.IO — un service NO importa Socket.IO, solo emite en el bus
@@ -192,6 +202,7 @@ Controller HTTP → Service Layer → notificationBus → Socket.IO → Cliente
 - **Extensibilidad** — agregar Slack/Discord = un listener más en el bus
 
 **Conexión en level-02-server.js:**
+
 ```js
 const bus = getBus()
 bus.on(BUS_EVENTS.MENTION_CREATED, (payload) => {
@@ -208,12 +219,14 @@ bus.on(BUS_EVENTS.MENTION_CREATED, (payload) => {
 **Archivos productivos:** `handler.js`
 
 **Estrategia dual:**
+
 1. **ConnectionStateRecovery** (Socket.IO v4+) — restaura salas si reconexión <2 min
 2. **DB Fallback** — consulta `mentions` table (`isRead: false`) y emite `mention:backlog` con hasta 50 menciones
 
 **Handler:**
+
 ```js
-handleConnection(io, socket, getBacklogFn)
+handleConnection(io, socket, getBacklogFn);
 // Si !socket.recovered → getBacklogFn(userId) → socket.emit('mention:backlog')
 ```
 
@@ -226,6 +239,7 @@ handleConnection(io, socket, getBacklogFn)
 ## Nivel 8: Hardening (Producción)
 
 **Archivos productivos:**
+
 - `rateLimiter.js` — Token Bucket: 100 conexiones/min por IP, 30 eventos/s por usuario, cleanup en disconnect
 - `monitor/metrics.js` — 5 métricas Prometheus:
   - `ws_connected_users` (Gauge)
@@ -237,6 +251,7 @@ handleConnection(io, socket, getBacklogFn)
 - `app.js` — Endpoint `GET /metrics`
 
 **Archivos educativos:**
+
 - `levels/level-09-hardening-server.js` — Demo standalone puerto 3007 con rate limiting + métricas + Joi validation
 - `levels/level-09-hardening-client.js` — Script de carga para probar rate limiting
 
@@ -247,6 +262,7 @@ handleConnection(io, socket, getBacklogFn)
 ## Nivel 9: WSS + Docker
 
 **Archivos:**
+
 - `nginx.conf` — Reverse proxy con TLS, WebSocket upgrade headers, timeout 86400s
 - `Dockerfile` — Node 20 alpine
 - `docker-compose.yml` — API + NGINX + Prometheus + Grafana + Postgres + pgAdmin
@@ -263,6 +279,7 @@ handleConnection(io, socket, getBacklogFn)
 **Archivos productivos:** `adapter.js`
 
 **Árbol de decisión:**
+
 ```
 ¿Un servidor alcanza? → Sí → Fin
    ↓ No
@@ -284,6 +301,7 @@ handleConnection(io, socket, getBacklogFn)
 ## Gap #1: Socket.IO integrado en bootstrap ✅
 
 **Archivos modificados:**
+
 - `src/bin/index.js` — ahora usa `createServer(app)`, importa `attachSocketServer(httpServer)`, graceful shutdown unificado
 - `src/socket/levels/level-02-server.js` — refactorizado a función `attachSocketServer(httpServer)` exportada
 
@@ -296,6 +314,7 @@ handleConnection(io, socket, getBacklogFn)
 **Archivo modificado:** `src/modules/notes/service.js`
 
 **Cambios:**
+
 - Importado `bus, { BUS_EVENTS }` desde notificationBus
 - `createNote()` — emite `MENTION_CREATED` por cada mención detectada después de guardar
 - `updateNoteById()` — emite `MENTION_CREATED` por cada mención al actualizar contenido

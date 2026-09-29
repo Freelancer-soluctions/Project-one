@@ -1,152 +1,225 @@
 # Configuración de Import Boundaries con Dependency-Cruiser
 
-## 1. Implementación actual (`.dependency-cruiser.cjs` por workspace)
+> **Estado (2026-09-25):** IMPLEMENTADO por el change `import-boundaries`. Config raíz como única
+> fuente de verdad, scripts `depcruise:*`, jobs CI `*-import-bounds` activos (gate + report),
+> `lint-staged` en pre-commit y baseline gradual. Este documento es la referencia canónica del
+> flujo: qué regla existe, por qué, dónde se aplica y cómo operarla.
 
-El proyecto `project-one` usa `dependency-cruiser` 18.2.0 con 2 configs por workspace (`apps/client/.dependency-cruiser.cjs`, `apps/server/.dependency-cruiser.cjs`), formato CJS con `IConfiguration` exportado. Cada workspace define `no-circular`, `no-orphans`, `no-cross-workspace-imports` (`from.path`/`to.path`) y `no-controller-to-controller`. El CI (`.github/workflows/ci.yml`) corre `npx dependency-cruiser src --config .dependency-cruiser.cjs` en `client-import-bounds` (activo) y `server-import-bounds` (`if: false` desactivado por defecto).
+## 1. Implementación actual
 
-**Problemas documentados**: las reglas `no-cross-workspace-imports` usan paths como `^apps/client`/`^apps/server`, pero CI ejecuta con `working-directory: apps/*`, por lo que los paths relativos al CWD empiezan en `src/` — **la regla nunca matchea (dead rule)**. No hay config raíz unificada, ni `exclude` global, ni scripts npm (`package.json` no tiene `depcruise`), ni `lint-staged`, ni `e2e`, ni reporte `err-html`.
+`dependency-cruiser` 18.2.0 (devDependency raíz, pin exacto) valida el grafo de imports del
+monorepo con **una sola configuración fuente de verdad**:
 
-Referencia: `.github/workflows/ci.yml` (l.508/596), `package.json` (sin scripts depcruise), `apps/client/.dependency-cruiser.cjs`, `apps/server/.dependency-cruiser.cjs`.
+| Archivo                                     | Rol                                                                                                                                       |
+| ------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| **`.dependency-cruiser.cjs`** (raíz)        | Única fuente de verdad: `$schema`, `extends: ['dependency-cruiser/configs/recommended']`, reglas `forbidden` por capa, `options` globales |
+| `apps/client/.dependency-cruiser.cjs`       | Capa fina: solo `extends: ['../../.dependency-cruiser.cjs']` (sin reglas duplicadas)                                                      |
+| `apps/server/.dependency-cruiser.cjs`       | Capa fina: solo `extends: ['../../.dependency-cruiser.cjs']` (sin reglas duplicadas)                                                      |
+| `apps/client/webpack.depcruise.config.cjs`  | Resolve-only: alias `@` del client (`@/...` → `apps/client/src/...`). NO es un build config; Vite no lo lee                               |
+| `.dependency-cruiser-known-violations.json` | Baseline fase 1 (violaciones conocidas), generado por `npm run depcruise:baseline`                                                        |
+| `reports/.gitkeep`                          | Directorio de salida de `npm run depcruise:report` (contenido gitignored)                                                                 |
+
+**Problema histórico resuelto (dead-rule):** antes de este change, cada workspace tenía su propio
+config con reglas `no-cross-workspace-imports` cuyos paths usaban `^apps/client`/`^apps/server`,
+pero el CI corría con `working-directory: apps/*`, de modo que los paths relativos al CWD empezaban
+en `src/` y **las reglas nunca matcheaban**. Hoy todo corre desde la RAÍZ (`npm run depcruise:*` y
+los jobs CI sin `working-directory`), por lo que los paths `^apps/...` y `^e2e/...` matchean.
+
+**Por qué webpack config y no `--ts-config`:** dependency-cruiser lee los `paths` del
+tsConfig/jsconfig vía `parseJsonConfigFileContent` de TypeScript, que resuelve los globs `include`
+contra el CWD actual. Con CWD=raíz, `apps/client/jsconfig.json` matchea 0 archivos
+(error TS18003). El alias se resuelve entonces vía `options.webpackConfig`
+(`apps/client/webpack.depcruise.config.cjs`, sección `resolve.alias` con `__dirname`), que es
+independiente del CWD. `jsconfig.json` queda como referencia del editor, sin `include`.
 
 ## 2. Por qué Dependency-Cruiser
 
-`dependency-cruiser` analiza el grafo de imports (dependencias entre archivos) sin depender de `package.json`. Detecta: ciclos (`no-circular`), orfanos (`no-orphan`), cross-workspace (`forbidden` con `severity`), y exportaciones no alcanzables (`reachable: false`). Complementa `knip` (que busca archivos/exports/deps sin usar): `knip` = limpieza de dependencias; `dependency-cruiser` = arquitectura de imports. Ambos deben coexistir con `knip.jsonc` (workspaces unificados) y `.dependency-cruiser.cjs` (reglas por capa).
+`dependency-cruiser` analiza el grafo de imports (dependencias entre archivos) sin depender de
+`package.json`. Detecta: ciclos (`no-circular`), huérfanos (`no-orphans`), cross-workspace
+(`forbidden` con `severity`) e imports no resolubles (`not-to-unresolvable`).
 
-Referencia oficial: https://github.com/sverweij/dependency-cruiser (docs `rules-reference.md`, `options-reference.md`, `cli.md`).
+- **knip** (`knip.jsonc`): limpieza de dependencias — archivos/exports/deps sin usar.
+- **dependency-cruiser** (`.dependency-cruiser.cjs`): arquitectura de imports — boundaries y capas.
+- **eslint** (`eslint.config.js`): calidad de código por archivo (complejidad, estilo). Los
+  límites de import son propiedad **exclusiva** de dependency-cruiser: `eslint-plugin-import`
+  permanece desinstalado (decisión registrada en `docs/learning/eslint-configuration.md`).
 
-## 3. Configuración profesional (`.dependency-cruiser.cjs` raíz)
+Coherencia knip ↔ depcruise: los archivos muertos que knip ignora en `ignore` (p. ej.
+`apps/server/src/utils/prisma-dinamic-service/`) están excluidos del grafo en
+`options.exclude` del config raíz — ambos tools ven el mismo código.
 
-Config raíz (`.dependency-cruiser.cjs`) con comentarios ES explicativos (`#` no permitido en CJS; usar `//`). Cada bloque explica `QUÉ` (regla) y `POR QUÉ` (decisión). Patrón de secciones:
+Referencia oficial: <https://github.com/sverweij/dependency-cruiser> (docs `rules-reference.md`,
+`options-reference.md`, `cli.md`).
 
-- `extends: ['dependency-cruiser/configs/recommended']`: base recomendada sin duplicar reglas.
-- `$schema`: `https://json.schemastore.org/dependency-cruiser.json` (o `node_modules/dependency-cruiser/src/schema/configuration.schema.json`) — autocompletado y validación en editores.
-- `exclude`: `node_modules`, `dist`, `build`, `storybook-static`, `coverage`, `prisma/generated`, `package-lock.json`, `tests/`, `.storybook/`, `.env`, `*.log`.
-- `doNotFollow`: `node_modules` (crucea pero no sigue; evita recursión innecesaria).
-- `options`: `maxDepth` (límite profundidad grafo; 0 = infinito por defecto; 30 para CI rápido), `tsPreCompilationDeps: true`, `enhancedResolveOptions` (exportsFields/conditionNames/mainFields/alias `@`).
-- `forbidden` (reglas con `severity`, `from`, `to`, `comment`):
-  - `no-client-to-server`: `from: {path: '^apps/client'}` → `to: {path: '^(apps/server|node_modules/.*/server)'}`, `severity: error`, comentario ES.
-  - `no-server-to-client`: inverso, `severity: error`.
-  - `no-e2e-to-apps`: `from: {path: '^e2e'}` → `to: {path: '^apps/'}`, `severity: error` (opcional; si `e2e` debe importar fixtures de `client`, usar `allowed` o excluir con `exclude`/`doNotFollow`).
-  - `no-circular`: `severity: warn` (client), `error` (server); con `viaNot` para excluir ciclos documentados (deuda 24 ciclos en `client`, ver notas proyecto).
-  - `no-orphan`: `severity: warn`; usar `from.pathNot` para excluir tests/fixture/mocks (`\.test\.|\.spec\.|\.stories\.`).
-- `allowed` (`allowedSeverity`): `warn` por defecto; solo `allowedSeverity: error` si se quiere bloquear explícito.
-- `required`: módulos obligatorios (ej. `client/src/main.jsx` debe importar `client/src/App.jsx` si aplica).
+## 3. Reglas por capa
 
-Referencia config: `dependency-cruiser` docs `rules-reference.md`, `options-reference.md`. Comentario `Decisión:` en CJS: `// Decisión: severity error para cross-workspace porque fuga de capas rompe arquitectura monorepo; warn para circular porque deuda existente (client 24 ciclos) requiere baseline gradual.`.
+Todas las reglas viven en el config raíz. Severidades: `error` = bloquea PR (exit ≠ 0 en
+`--output-type err`), `warn` = visible pero no bloquea (deuda controlada, en baseline).
 
-## 4. Integración profesional
+| Regla                         | Severidad | From                                                       | To                                          | Comentario                                                                 |
+| ----------------------------- | --------- | ---------------------------------------------------------- | ------------------------------------------- | -------------------------------------------------------------------------- |
+| `no-client-to-server`         | error     | `^apps/client/`                                            | `^apps/server/`                             | Comunicación client→server solo por HTTP/WS contra la API                  |
+| `no-server-to-client`         | error     | `^apps/server/`                                            | `^apps/client/`                             | React/DOM no existen en Node; duplicar o extraer paquete compartido        |
+| `no-e2e-to-apps`              | error     | `^e2e/`                                                    | `^apps/`                                    | Los tests E2E ejercitan el sistema desplegado, no importan código de apps  |
+| `no-circular-server`          | error     | `^apps/server/`                                            | `circular: true`                            | El server no tolera ciclos (inicialización CJS + acoplamiento de capas)    |
+| `no-circular`                 | warn      | todo menos `^apps/server/`                                 | `circular: true`                            | Deuda conocida del client (~24 ciclos vía `config/axios → redux/store`)    |
+| `no-cross-module-client`      | warn      | `^apps/client/src/modules/([^/]+)/`                        | `^apps/client/src/modules/` ≠ `$1`          | Compartir vía `src/components`, `src/hooks`, `src/services`, `src/utils`   |
+| `no-redux-in-components`      | warn      | `^apps/client/src/components/`                             | `^apps/client/src/redux/`                   | Usar hooks (useQueryData, useLoadingState) en vez del store directo        |
+| `no-controller-to-controller` | warn      | `^apps/server/src/modules/([^/]+)/.*controller\.(js\|ts)$` | controllers de OTRO módulo (`$1`)           | Compartir vía services/utils; regex `(js\|ts)` coordinado con TS-migration |
+| `no-dao-in-routes`            | warn      | `^apps/server/src/routes/`                                 | `^apps/server/src/modules/.*dao\.(js\|ts)$` | Las rutas pasan por la capa service, nunca al DAO directo                  |
+| `not-to-dev-dep`              | error     | todo menos `*\.(test\|spec\|stories)\.*`                   | `dependencyTypes: ['npm-dev']`              | El runtime no puede depender de devDependencies                            |
+| `no-orphans`                  | warn      | `orphan: true` (excluye tests/stories/configs)             | —                                           | Módulo que nadie importa: eliminarlo o integrarlo                          |
 
-### 4.1 Pre-commit (shifting-left)
+Notas de implementación:
 
-En `.husky/pre-commit`: ejecutar `npm exec lint-staged`. En `package.json` (`lint-staged`):
+- **`extends` merge:** las reglas con el mismo `name` se fusionan por nombre y los atributos del
+  config extendido **ganan** (así el client hereda `no-circular` de `recommended` y lo baja a
+  `warn`; el server añade `no-circular-server` con `error`). Al reemplazar el `from` de
+  `no-orphans` hay que re-declarar sus exclusiones de archivos de configuración (dotfiles,
+  `.d.ts`, tsconfig, babel/webpack configs), acopladas a la v18.
+- **Placeholders `$1`:** el `to.path` puede interpolar grupos del `from.path` con `$1`, y matchea
+  contra el path **resuelto**. La variante histórica con `\1` era inválida en JavaScript (referencia
+  octal) y no matcheaba nada. Para "mismo módulo" se usa `pathNot: '^apps/client/src/modules/$1/'`
+  — el lookahead `(?!$1/)` en `to.path` NO funciona porque `$1` se sustituye antes de compilar.
+- **`no-orphans` del client:** además de las exclusiones globales, excluye
+  `src/{hooks,services,lib,redux}/` (infraestructura de bajo nivel entryless por diseño, falsos
+  positivos documentados por knip).
+- **`exclude` vs `ignore`:** `options.exclude` saca módulos del grafo **sin generar mensajes**;
+  el `ignore` de `--ignore-known` silencia violaciones ya registradas en el baseline; el
+  `--max-warnings 0` de ESLint no tiene equivalente (el control fino aquí es `severity` +
+  `exclude` + baseline).
+
+## 4. Scripts npm (siempre desde la raíz)
+
+| Script                       | Qué hace                                                                                       |
+| ---------------------------- | ---------------------------------------------------------------------------------------------- |
+| `npm run depcruise`          | Grafo combinado (client + server + e2e) con el config raíz — diagnóstico                       |
+| `npm run depcruise:client`   | Solo `apps/client/src`                                                                         |
+| `npm run depcruise:server`   | Solo `apps/server/src`                                                                         |
+| `npm run depcruise:ci`       | Gate CI: `--output-type err --ignore-known` (exit = nº de errores **nuevos**)                  |
+| `npm run depcruise:report`   | Reporte standalone: `--output-type err-html -f reports/dependency-cruiser.html --ignore-known` |
+| `npm run depcruise:baseline` | Regenera `.dependency-cruiser-known-violations.json` (alias de `depcruise-baseline`)           |
+
+El alias `@` se resuelve vía `options.webpackConfig` (config raíz), así que **no hay flags
+`--ts-config` ni `working-directory`**: todos los comandos funcionan idénticos en local y CI.
+
+Baseline fase 1: el baseline contiene las 58 violaciones conocidas (50 client: 24 ciclos
+`no-circular` + cross-module/orphans; 8 server: orphans de código muerto knip-ignorado).
+`--ignore-known` las descuenta; **las violaciones `error` nuevas sí bloquean** (verificado: un
+import temporal client→server produce `error no-client-to-server` y exit 1 incluso con
+`--ignore-known`). Cuando la deuda se limpie, quitar `--ignore-known` de `depcruise:ci` y
+regenerar/eliminar el baseline (fase 2).
+
+## 5. Integración profesional (4 capas)
+
+### 5.1 Pre-commit (shifting-left)
+
+`lint-staged` (en `package.json`, invocado por `.husky/pre-commit`):
 
 ```json
-"*.{js,jsx,cjs,mjs}": ["prettier --write", "eslint --fix --max-warnings 0 --no-warn-ignored", "depcruise --config .dependency-cruiser.cjs --output-type err-long"],
+"*.{js,jsx,ts,tsx,cjs,mjs}": "depcruise --config .dependency-cruiser.cjs --output-type err-long --ignore-known"
 ```
 
-Nota: `lint-staged` pasa solo archivos staged a `depcruise`; `dependency-cruiser` acepta archivos individuales y cruza su grafo (verifica cross-workspace si CWD = root). `--output-type err-long` muestra `comment` legible por violación (`name`, `severity`, `comment`). Sin `--max-warnings`: equivalente es `severity` + `exclude`; sin `--no-warn-ignored`: equivalente es `exclude` (archivo fuera del grafo, cero mensajes).
+`lint-staged` pasa solo los archivos staged; dependency-cruiser los cruza contra su grafo completo
+(el baseline `--ignore-known` evita bloquear por deuda conocida). `--output-type err-long` imprime
+el `comment` de la regla violada — mensaje accionable antes del push. Como el hook corre desde la
+raíz, los paths `^apps/...` matchean.
 
-Baseline fase 1: `npm run depcruise-baseline` (o `npx depcruise-baseline --config .dependency-cruiser.cjs`) genera `.dependency-cruiser-baseline.json`; luego CI con `--ignore-known` no bloquea violaciones conocidas. Tras limpiar deuda (ciclos `client` con `viaNot`, fixtures), se quita `--ignore-known` y se pasa `severity` a `error` para nuevas.
+### 5.2 CI (`.github/workflows/ci.yml`)
 
-### 4.2 CI (`.github/workflows/ci.yml`)
+- `client-import-bounds` (activo desde 2026-09-25): gate
+  `npm run depcruise:client -- --output-type err --ignore-known` + report
+  `npm run depcruise:report` (`if: always()`, `continue-on-error: true`) +
+  `actions/upload-artifact` (`dependency-cruiser-report-client`, retención 7 días).
+- `server-import-bounds` (activado por este change, antes `if: false`): mismo patrón con
+  `depcruise:server` y artefacto `dependency-cruiser-report-server`.
+- Ambos corren **sin `working-directory`** (CWD = raíz) y se disparan vía el path-filter `shared`
+  de `repo-discovery`, que incluye `.dependency-cruiser.cjs`, `apps/client/.dependency-cruiser.cjs`
+  y `apps/server/.dependency-cruiser.cjs` (cambiar el config dispara ambos jobs).
+- **No renombrar los jobs**: los ids están fijados por `openspec/specs/ci-prebuild-substage-structure/spec.md`
+  (15 jobs en `prebuild-quality-complete.needs`) y los agregadores dependen de ellos.
 
-Jobs existentes: `client-import-bounds` (activo, bloqueante vía agregador `prebuild-quality-complete`), `server-import-bounds` (`if: false`, debe activarse).
+### 5.3 Editor
 
-- **Gate** (`block`): `npm run depcruise:ci -- --output-type err` → exit = nº errores. Separación correcta con `format:check` (prettier) ya existente.
-- **Report** (`no-block`): `if: always()`, `npm run depcruise:report -- --output-type err-html -f report.html` + `actions/upload-artifact`. No debe ser `if: failure()` porque queremos reporte incluso con éxito (para inspección de grafo).
-- **Cache**: `npm run depcruise:ci -- --cache` + `actions/cache` de `node_modules`.
-- **Filtro `shared` (`repo-discovery`)**: añadir `.dependency-cruiser.cjs` y `apps/*/.dependency-cruiser.cjs` para que cambios de configuración disparen ambos jobs.
-- **No renombrar jobs**: `client-import-bounds`/`server-import-bounds` mantienen ids (spec `ci-prebuild-substage-structure` fija 13 jobs con `needs` l.716/733 + agregadores l.1085/1091).
-- **Fase 1 no-blocking**: `continue-on-error: true` (patrón `*-dead-code`) o usar `severity: warn` + `--ignore-known`. Fase 2 (`error` + quitar `continue-on-error`) tras limpiar deuda.
+El `$schema` (`https://json.schemastore.org/dependency-cruiser.json`) más el JSDoc
+`@type {import('dependency-cruiser').IConfiguration}` dan autocompletado/validación en el editor.
 
-Referencia CI: `docs/CONTEXT-CICD.md` (§13.4 tabla configs, estados jobs), `.github/workflows/ci.yml` (l.508/596).
+### 5.4 Rollback
 
-## 5. Pipeline / Proyecto
+`git revert` del commit del change: dependency-cruiser no modifica código fuente (solo analiza);
+revertir restaura configs/scripts/CI. Las reglas y severidades también se ajustan en caliente
+editando `.dependency-cruiser.cjs` (p. ej. bajar una regla a `warn` mientras se limpia deuda).
 
-1. **Editor**: `.dependency-cruiser.cjs` + `$schema` → autocompletado de reglas y opciones; `comment` explica cada `forbidden`/`allowed`. No hay `format-on-save` automático (no es prettier), pero el editor valida con `JSON` schema.
-2. **Pre-commit (`lint-staged`)**: `depcruise --output-type err-long` sobre staged files → detecta violaciones antes del push; baseline (`--ignore-known`) evita rojo masivo inicial; `severity: warn` en fase 1.
-3. **CI (`client-import-bounds`/`server-import-bounds`)**: gate `err` bloquea PR con `error` (cross-workspace, `not-to-dev-dep`, `circular` si se activa `error`); report `err-html` guarda grafo para inspección; `--cache` acelera; `shared` filter mantiene sincronía.
-4. **Rollback / Reversión**: `git revert <sha>` de cambio `import-boundaries`; `dependency-cruiser` no modifica código fuente (solo analiza) → rollback = restaurar `.dependency-cruiser.cjs` o quitar reglas nuevas.
-5. **Comparación con `knip.jsonc`**: `knip.jsonc` (root) unifica `workspaces` (`.`/`client`/`server`/`e2e`) y analiza `unused`/`exports`/`dependencies`; `dependency-cruiser` analiza el grafo de imports entre archivos. Ambos deben ser coherentes: `knip` ignora archivos en `ignoreDependencies`/`ignoreIssues`; `dependency-cruiser` los excluye con `exclude`. Si `knip` muestra un archivo `unused`, `dependency-cruiser` podría mostrarlo como `unreachable` (`reachable: false`) — usar ambos como señales de limpieza.
+## 6. Pipeline completo
 
-Referencia `knip.jsonc`: `docs/learning/knip-configuration.md`; `docs/CONTEXT-CICD.md` (§13.4).
+1. **Editor**: `$schema` + JSDoc → autocompletado; el `comment` de cada regla documenta el POR QUÉ.
+2. **Pre-commit (lint-staged)**: `err-long` sobre archivos staged con `--ignore-known` → feedback
+   inmediato, cero ruido de deuda conocida.
+3. **CI gate**: `depcruise:client`/`depcruise:server` con `--output-type err --ignore-known` →
+   exit ≠ 0 solo por violaciones `error` nuevas (cross-workspace, dev-deps, ciclos de server).
+4. **CI report**: `err-html` `if: always()` + upload-artifact → grafo inspeccionable en la UI
+   (el reporte usa el grafo combinado client+server+e2e).
 
-## 6. Referencias oficiales
+## 7. Coordinación con otros changes
 
-- `https://github.com/sverweij/dependency-cruiser/blob/master/doc/rules-reference.md`
-- `https://github.com/sverweij/dependency-cruiser/blob/master/doc/options-reference.md`
-- `https://github.com/sverweij/dependency-cruiser/blob/master/doc/cli.md`
-- Config JSON schema: `node_modules/dependency-cruiser/src/schema/configuration.schema.json`
-- `package.json` `dependency-cruiser` 18.2.0 (pin exacto, sin `^`, para reproducibilidad del grafo)
+- **`server-typescript-migration`** (activo): los regex de las reglas de server ya cubren
+  `(js|ts)` (`no-controller-to-controller`, `no-dao-in-routes`) y la raíz activa
+  `tsPreCompilationDeps: true` — cuando exista `apps/server/tsconfig.json` bastará añadir
+  `options.tsConfig.fileName` en `apps/server/.dependency-cruiser.cjs`.
+- **`eslint-configuration`** (archivado): `eslint-plugin-import` desinstalado — dependency-cruiser
+  es dueño único de boundaries (no reinstalar).
+- **`knip-consolidation`** (archivado): coherencia knip ↔ depcruise en archivos muertos (ver §2).
+- **`docs-changelog-validation`**: este doc sigue las convenciones de `docs/learning/`
+  (markdownlint-cli + vale).
 
-## 7. Tabla de reglas (Markdown)
+## 8. Referencias oficiales
 
-| Regla               | Severidad                     | From          | To            | Comentario ES                                                                               |
-| ------------------- | ----------------------------- | ------------- | ------------- | ------------------------------------------------------------------------------------------- | -------------------------------------------------------- |
-| no-client-to-server | error                         | ^apps/client/ | ^(apps/server | node_modules/.\*/server)                                                                    | Evita fugas de capa client→server sin contrato explícito |
-| no-server-to-client | error                         | ^apps/server/ | ^apps/client/ | Evita fugas de capa server→client sin contrato explícito                                    |
-| no-e2e-to-apps      | error                         | ^e2e/         | ^apps/        | e2e solo importa fixtures de test, no código de aplicación                                  |
-| no-circular         | warn (client), error (server) | any           | any           | Evita dependencias circulares; viaNot para excluir ciclos documentados (deuda 24 en client) |
-| no-orphan           | warn                          | any           | any           | Evita archivos no requeridos por ningún entrypoint; excluye tests/mocks/stories             |
-| not-to-dev-dep      | error                         | any           | any           | Runtime no debe depender de devDependencies                                                 |
-| not-to-unresolvable | error                         | any           | any           | Evita imports que no pueden resolverse (error de build)                                     |
+- <https://github.com/sverweij/dependency-cruiser/blob/master/doc/rules-reference.md>
+- <https://github.com/sverweij/dependency-cruiser/blob/master/doc/options-reference.md>
+- <https://github.com/sverweij/dependency-cruiser/blob/master/doc/cli.md>
+- <https://dependency-cruiser.org/>
+- Schema local: `node_modules/dependency-cruiser/src/schema/configuration.schema.mjs` (el validador
+  real de v18; `enhancedResolveOptions.alias` NO existe en el schema — el alias va por webpackConfig)
+- Base recomendada: `node_modules/dependency-cruiser/configs/recommended.cjs`
 
-## 8. Notas de implementación (para change `import-boundaries`)
+## 9. Comparación con `knip.jsonc` y `eslint.config.js`
 
-- Coordinación con `server-typescript-migration`: regexes `.ts` y `tsconfig.json` server → `import-boundaries` amplía regexes `.js$`→`\.(js|ts)$` en `.dependency-cruiser.cjs`; config `client` mantiene `jsconfig.json` (`--ts-config apps/client/jsconfig.json`).
-- `eslint-plugin-import`: no reinstalar (desinstalado, decision registrada en `docs/learning/eslint-configuration.md` l.529 — `dependency-cruiser` es dueño único de boundaries).
-- `e2e`: si `e2e` debe importar `client`/`server` (ej. fixtures de datos), usar `allowed` o `exclude`; si no, `no-e2e-to-apps` error + `options.exclude`. En proyecto hoy: Playwright no importa código de apps → regla `error` es segura.
-- Fase 1: `continue-on-error: true` + `warn` + `--ignore-known`; fase 2: quitar `continue-on-error`, `severity: error`, sin `--ignore-known`. Reporte `err-html` debe mantenerse siempre (no-blocking) para inspección de grafo.
-- **Ejemplo de uso de baseline**: tras generar `.dependency-cruiser-baseline.json`, ejecutar `npx depcruise --config .dependency-cruiser.cjs --output-type err --ignore-known .` para validar solo nuevas violaciones.
-- **Configuración de cache en CI**: usar `actions/cache` con clave `dependency-cruiser-${{ runner.os }}-${{ hashFiles('package-lock.json') }}` para acelerar ejecuciones posteriores.
-- **Integración con TypeScript**: para proyectos TS, usar `--ts-config` o `enhancedResolveOptions.alias` para resolver `@` y `baseUrl`; en monorepo, cada workspace puede tener su propio `tsconfig.json` o `jsconfig.json`.
-- **Comparación con otras herramientas**: vs `madge` (detecta ciclos pero sin reglas por capa), vs `dependency-check` (enfocado en vulnerabilidades de seguridad), `dependency-cruiser` brinda control fino de boundaries con severidad y reporte.
+| Tool                 | Unidad de análisis              | Detecta                                             | No detecta                                                         |
+| -------------------- | ------------------------------- | --------------------------------------------------- | ------------------------------------------------------------------ |
+| `knip` (knip.jsonc)  | archivos, exports, dependencias | código muerto, deps sin uso, exports no consumidos  | dirección/arquitectura de imports                                  |
+| `dependency-cruiser` | grafo de imports                | ciclos, orphans, boundaries cruzadas, no-resolubles | deps de package.json sin usar                                      |
+| `eslint`             | archivo (AST)                   | complejidad, estilo, bugs por patrón                | relaciones entre archivos (salvo plugins de import, desinstalados) |
 
-## 9. Pipeline completo (4 capas)
+Los tres se complementan: knip = limpieza, dependency-cruiser = arquitectura, eslint = calidad.
+Señales cruzadas: si knip marca un archivo `unused`, dependency-cruiser lo mostrará como orphan —
+coordinar ambos (`ignore` de knip ↔ `exclude` de depcruise) para que vean lo mismo.
 
-1. **Editor (opcional)**: autocompletado de reglas via `$schema` en `.dependency-cruiser.cjs`; comentarios explicativos en CJS/JS.
-2. **Pre-commit (shifting-left)**: `lint-staged` ejecuta `depcruise --config .dependency-cruiser.cjs --output-type err-long` sobre archivos staged; detecta violaciones antes del push; baseline (`depcruise-baseline.json` + `--ignore-known`) en fase 1 evita bloqueo por deuda conocida.
-3. **CI (gate)**: `client-import-bounds` y `server-import-bounds` ejecutan `depcruise --config .dependency-cruiser.cjs --output-type err`; exit code distinto de 0 bloquea el PR (solo violaciones `severity: error`).
-4. **CI (report)**: job/step `if: always()` ejecuta `depcruise --config .dependency-cruiser.cjs --output-type err-html -f report.html` + `actions/upload-artifact`; reporte disponible en UI de GitHub Actions para inspección de grafo y tendencias.
+## 10. Glosario
 
-## 10. Comparación con `knip.jsonc` y `eslint.config.js`
-
-- `knip.jsonc`: analiza archivos sin usar, exports sin usar, dependencias innecesarias en `package.json`; trabaja a nivel de archivos y paquetes.
-- `dependency-cruiser`: analiza el grafo de imports entre archivos; detecta ciclos, orfanos, boundaries cruzadas, alcance.
-- `eslint.config.js`: analiza calidad y estilo de código (complexity, formato, mejores prácticas); no analiza dependencias entre archivos.
-- Los tres se complementan: `knip` para limpieza de paquetes, `dependency-cruiser` para arquitectura de imports, `eslint` para calidad de código.
-
-## 11. Referencias a documentación existente
-
-- `docs/learning/knip-configuration.md`: explica trabajo con workspaces y detección de código muerto.
-- `docs/CONTEXT-CICD.md` (§13.4): tabla de herramientas de calidad y estados de jobs CI.
-- `docs/learning/eslint-configuration.md` (l.529): ownership de import boundaries asignado a `dependency-cruiser` (no a `eslint-plugin-import`).
-- `docs/learning/typescript-migration-server.md` (l.69): regexes para detección de archivos `.ts` en change activo `server-typescript-migration`.
-
-## 12. Próximos pasos (post-implementación)
-
-- Medir baseline actual: `npx depcruise --config .dependency-cruiser.cjs --output-type err .` para ver violaciones iniciales.
-- Generar baseline: `npx depcruise-baseline --config .dependency-cruiser.cjs` o `npx depcruise --config .dependency-cruiser.cjs --output-type baseline .dependency-cruiser-baseline.json`.
-- Fase 1: activar `server-import-bounds` con `continue-on-error: true` y `severity: warn` en rules (o usar `--ignore-known`).
-- Revisar deuda: ciclos documentados en `client` (24 ciclos vía `modules/*/api → config/axios → redux/store`), fixtures en `tests/`.
-- Fase 2: tras limpiar deuda, quitar `continue-on-error` y cambiar `severity` a `error` para reglas críticas.
-- Mantener reporte `err-html` en CI para inspección de grafo y evolución de dependencias.
-
-## 13. Glosario
-
-- **Boundary**: límite entre módulos o capas (ej. client vs server).
-- **Entrypoint**: archivo desde el cual comienza el análisis (ej. `src/main.jsx`, `src/bin/index.js`).
-- **Orphan**: módulo no requerido por ningún entrypoint.
-- **Unreachable**: módulo que no puede alcanzarse desde ningún entrypoint (similar a orphan pero considerando el grafo completo).
+- **Boundary**: límite entre módulos/capas (client ↔ server ↔ e2e; módulos internos).
+- **Orphan**: módulo que nadie importa.
 - **Circular**: ciclo de dependencias (A → B → C → A).
-- **Severity**: nivel de importancia de una violación (`error` bloquea, `warn` advertencia, `info` informativo).
-- **Baseline**: archivo JSON con violaciones conocidas que se ignoran en ejecuciones posteriores (`--ignore-known`).
-- **Shifting-left**: mover verificaciones temprano en el ciclo de desarrollo (pre-commit antes de CI).
-- **Gate**: trabajo CI que bloquea el PR si falla (exit code ≠ 0).
-- **Report**: trabajo CI que genera artefacto sin bloquear (siempre se ejecuta, `if: always()`).
+- **Severity**: `error` bloquea (gate), `warn` advierte (deuda), `info` informativo, `ignore` silencio.
+- **Baseline**: `.dependency-cruiser-known-violations.json`; con `--ignore-known` las violaciones
+  registradas no se reportan ni bloquean.
+- **Shifting-left**: mover verificaciones lo más temprano posible (editor → pre-commit → CI).
+- **Gate**: step/job que bloquea el PR si su exit code ≠ 0.
+- **Report**: salida no-bloqueante (`if: always()` + `continue-on-error`) para inspección.
 
-## 14. Conclusión
+## 11. Operación práctica
 
-La implementación profesional de import boundaries con `dependency-cruiser` en un monorepo requiere: configuración raíz única con `$schema` y `extends`, reglas por capa con severidad adecuada, integración en shifting-left (`lint-staged` + baseline), CI separado en gate (`err`) y report (`err-html`), documentación canónica en español, y coordinación con cambios relacionados (ej. `server-typescript-migration`). Este enfoque garantiza que la arquitectura del monorepo se mantenga intencional y visible, evitando fugas de capas y dependencias no deseadas, mientras permite una adopción gradual mediante baseline y fases de severidad.
+```bash
+# Ver TODAS las violaciones (incluidas las del baseline):
+npx depcruise apps/client/src apps/server/src e2e/tests --config .dependency-cruiser.cjs --output-type err --no-ignore-known
 
-Referencias adicionales: https://dependency-cruiser.org/, https://github.com/sverweij/dependency-cruiser#readme.
+# Ver el grafo combinado en el navegador:
+npm run depcruise:report && start reports/dependency-cruiser.html
+
+# Simular un bloqueo (true positive):
+# crear apps/client/src/tmp.js con: import x from '../../server/src/config/db.js';
+npm run depcruise:client -- --output-type err --ignore-known   # → exit 1, error no-client-to-server
+
+# Tras limpiar deuda (fase 2):
+rm .dependency-cruiser-known-violations.json
+# y quitar --ignore-known del script depcruise:ci en package.json
+```

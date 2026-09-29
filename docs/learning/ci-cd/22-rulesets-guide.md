@@ -109,16 +109,17 @@ Ambos se aplican **simultáneamente**. Si branch protection dice 2 reviews y rul
 - Múltiples criterios de targeting por ruleset
 
 **fnmatch syntax:**
-| Patron | Significado |
-|---|---|
-| `*` | Matchea cualquier string (NO matchea `/`) |
-| `**` | Matchea recursivamente (incluye `/`) |
-| `?` | Matchea un solo carácter |
-| `[abc]` | Matchea caracteres en el set |
-| `main` | Solo la branch main |
-| `feature/**` | Todas las branches bajo feature/ |
-| `qa/**/*` | Todos los branches bajo qa/ con cualquier profundidad |
-| `releases/**/*` | Branches que empiezan con releases/ |
+
+| Patron          | Significado                                           |
+| --------------- | ----------------------------------------------------- |
+| `*`             | Matchea cualquier string (NO matchea `/`)             |
+| `**`            | Matchea recursivamente (incluye `/`)                  |
+| `?`             | Matchea un solo carácter                              |
+| `[abc]`         | Matchea caracteres en el set                          |
+| `main`          | Solo la branch main                                   |
+| `feature/**`    | Todas las branches bajo feature/                      |
+| `qa/**/*`       | Todos los branches bajo qa/ con cualquier profundidad |
+| `releases/**/*` | Branches que empiezan con releases/                   |
 
 **Limitaciones fnmatch:**
 

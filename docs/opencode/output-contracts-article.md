@@ -45,15 +45,15 @@ En una arquitectura multi-agente típica, el orchestrator delega tareas a agente
 
 El equipo de investigación (`@researcher`) evaluó la severidad del problema:
 
-| Factor | Valor |
-|--------|-------|
-| Tasa de malformación (modelos gama baja) | 10-15% por llamada |
-| Agentes en el chain (Project One) | 8 |
-| Probabilidad de al menos 1 fallo por ciclo | `1 - (0.85^8) ≈ 57%` |
-| Fallos que degradan la experiencia | 5-10% (el resto se recovera) |
-| Severidad asignada | **Grade A = Critical** |
+| Factor                                     | Valor                        |
+| ------------------------------------------ | ---------------------------- |
+| Tasa de malformación (modelos gama baja)   | 10-15% por llamada           |
+| Agentes en el chain (Project One)          | 8                            |
+| Probabilidad de al menos 1 fallo por ciclo | `1 - (0.85^8) ≈ 57%`         |
+| Fallos que degradan la experiencia         | 5-10% (el resto se recovera) |
+| Severidad asignada                         | **Grade A = Critical**       |
 
-*Fuente: Engram observation `obs-eb7ffaad1db19a27`, tema `architecture/output-contracts-cost-benefit`*
+_Fuente: Engram observation `obs-eb7ffaad1db19a27`, tema `architecture/output-contracts-cost-benefit`_
 
 ### 2.3 OpenCode Issue #25918
 
@@ -120,12 +120,12 @@ validateSubSchema dispatches to responseTypes.success/failure sub-schemas based 
 
 ### 4.2 Campos base (todos los agentes)
 
-| Campo | Tipo | Requerido | Descripción |
-|-------|------|-----------|-------------|
-| `agent` | string | ✅ | Nombre del agente que produjo la respuesta |
-| `timestamp` | string (ISO 8601) | ✅ | Fecha/hora de generación |
-| `responseType` | enum | ✅ | `"success"` o `"failure"` |
-| `version` | integer | ✅ | Versión del contrato (siempre `1`) |
+| Campo          | Tipo              | Requerido | Descripción                                |
+| -------------- | ----------------- | --------- | ------------------------------------------ |
+| `agent`        | string            | ✅        | Nombre del agente que produjo la respuesta |
+| `timestamp`    | string (ISO 8601) | ✅        | Fecha/hora de generación                   |
+| `responseType` | enum              | ✅        | `"success"` o `"failure"`                  |
+| `version`      | integer           | ✅        | Versión del contrato (siempre `1`)         |
 
 ### 4.3 Campos por agente
 
@@ -187,9 +187,13 @@ function validateWithAjv(schema, payload) {
   }
   const valid = validate(payload);
   if (valid) return { valid: true, errors: [] };
-  const errors = validate.errors.map(e => ({
-    field: e.instancePath?.replace(/^\//, '').replace(/\//g, '.') || e.params?.missingProperty || e.params?.additionalProperty || 'unknown',
-    message: e.message
+  const errors = validate.errors.map((e) => ({
+    field:
+      e.instancePath?.replace(/^\//, '').replace(/\//g, '.') ||
+      e.params?.missingProperty ||
+      e.params?.additionalProperty ||
+      'unknown',
+    message: e.message,
   }));
   return { valid: false, errors };
 }
@@ -217,7 +221,7 @@ Unchanged from previous version.
 
 ## 6. Caveman Protocol
 
-**DROPPED** — Caveman compression removed in output-contracts-ajv migration. 
+**DROPPED** — Caveman compression removed in output-contracts-ajv migration.
 Replaced by prompt-level aliasing.
 
 ---
@@ -252,7 +256,9 @@ En runtime de producción y CI, degraded mode debería treated como fallo:
 
 ```javascript
 if (verdict.degraded) {
-  throw new Error(`Agent ${agentName} is degraded — schema missing in production.`);
+  throw new Error(
+    `Agent ${agentName} is degraded — schema missing in production.`
+  );
 }
 ```
 
@@ -260,20 +266,20 @@ if (verdict.degraded) {
 
 ## 8. Decisiones de diseño (12 decisiones)
 
-| # | Decisión | Problema | Solución |
-|---|----------|----------|----------|
-| 1 | withRetry reissue callback | Sin reissue, retry siempre usa la misma respuesta (garantizado fallar) | Callback opcional `reissue()` que retorna respuesta fresca; async soportado |
-| 2 | canonical-wins en caveman | `last-writer-wins` descarta silenciosamente valores canónicos explícitos | Solo asigna si canónica no está en `payload`; warning en colisión |
-| 3 | Null guard en checkTypes | `typeof null === 'object'` causa que null pase como objeto válido | Check explícito `value === null && type !== 'null'` → error claro |
-| 4 | XML regex permisivo | Regex estricto falla con comillas simples, orden variable, whitespace trailing | Regex con backreferences y alternancia; acepta 4 variaciones de envelope |
-| 5 | **DROPPED** — Caveman mode removed | Caveman compression was a presentation concern; removed to simplify validation pipeline | Caveman field expansion and CAVEMAN_FIELD_MAP deleted; validation now purely canonical |
-| 6 | Recursive nested-object walker | Walker anterior solo validaba campos planos; nested `properties.properties` ignorados | Walker recursivo valida required+types+format a cualquier profundidad |
-| 7 | Base field re-validation | Campos base no se re-validaban en el payload ya parseado | Validate contra `base.schema.json` antes de schema específico del agente |
-| 8 | Degraded mode con clearDegraded | DEGRADED_AGENTS no tenía forma de salir de degraded | `clearDegraded(agentName)` elimina del Set y limpia schemaCache |
-| 9 | Prompt heading hierarchy fix | `# REMEMBER` (h1) rompe heading hierarchy en 3 agent prompts | Cambiar a `## REMEMBER` (h2) en spec-manager.md, git-manager.md, project-manager.md |
-| 10 | Orchestrator runtime hook | `validateContract` documentado pero nunca invocado por el orchestrator | Thin shim en task-result handling post-delegación (bloqueado por Issue #25918) |
-| 11 | Ajv validates all fields, no custom FORMAT_VALIDATORS needed | Hand-rolled validators didn't cover full JSON Schema | Ajv with `ajv-formats` handles uri/date-time and all standard formats; removed ~100 lines hand-rolled |
-| 12 | Self-Validation per Agent (Opción D) | Issue #25918 bloquea orchestrator runtime hook | Cada agente valida su envelope antes de emitir; activo en 8/8 prompts |
+| #   | Decisión                                                     | Problema                                                                                | Solución                                                                                              |
+| --- | ------------------------------------------------------------ | --------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| 1   | withRetry reissue callback                                   | Sin reissue, retry siempre usa la misma respuesta (garantizado fallar)                  | Callback opcional `reissue()` que retorna respuesta fresca; async soportado                           |
+| 2   | canonical-wins en caveman                                    | `last-writer-wins` descarta silenciosamente valores canónicos explícitos                | Solo asigna si canónica no está en `payload`; warning en colisión                                     |
+| 3   | Null guard en checkTypes                                     | `typeof null === 'object'` causa que null pase como objeto válido                       | Check explícito `value === null && type !== 'null'` → error claro                                     |
+| 4   | XML regex permisivo                                          | Regex estricto falla con comillas simples, orden variable, whitespace trailing          | Regex con backreferences y alternancia; acepta 4 variaciones de envelope                              |
+| 5   | **DROPPED** — Caveman mode removed                           | Caveman compression was a presentation concern; removed to simplify validation pipeline | Caveman field expansion and CAVEMAN_FIELD_MAP deleted; validation now purely canonical                |
+| 6   | Recursive nested-object walker                               | Walker anterior solo validaba campos planos; nested `properties.properties` ignorados   | Walker recursivo valida required+types+format a cualquier profundidad                                 |
+| 7   | Base field re-validation                                     | Campos base no se re-validaban en el payload ya parseado                                | Validate contra `base.schema.json` antes de schema específico del agente                              |
+| 8   | Degraded mode con clearDegraded                              | DEGRADED_AGENTS no tenía forma de salir de degraded                                     | `clearDegraded(agentName)` elimina del Set y limpia schemaCache                                       |
+| 9   | Prompt heading hierarchy fix                                 | `# REMEMBER` (h1) rompe heading hierarchy en 3 agent prompts                            | Cambiar a `## REMEMBER` (h2) en spec-manager.md, git-manager.md, project-manager.md                   |
+| 10  | Orchestrator runtime hook                                    | `validateContract` documentado pero nunca invocado por el orchestrator                  | Thin shim en task-result handling post-delegación (bloqueado por Issue #25918)                        |
+| 11  | Ajv validates all fields, no custom FORMAT_VALIDATORS needed | Hand-rolled validators didn't cover full JSON Schema                                    | Ajv with `ajv-formats` handles uri/date-time and all standard formats; removed ~100 lines hand-rolled |
+| 12  | Self-Validation per Agent (Opción D)                         | Issue #25918 bloquea orchestrator runtime hook                                          | Cada agente valida su envelope antes de emitir; activo en 8/8 prompts                                 |
 
 > **Nota**: Las decisiones 9-11 corresponden a las decisiones D9-D11 del archivo [`design.md`](openspec/changes/archive/2026-07-08-output-contracts-hardening/design.md) del change. La decisión "Non-object payload guard" (guard en línea 310) es parte del P0 Fix Task 1.5 — subsumida en la decisión D3. La decisión "Integer type special-case" (`Number.isInteger`) es una implementación menor internal a D6; no requiere una fila separada en esta tabla.
 
@@ -318,6 +324,7 @@ if (verdict.degraded) {
 ### 10.1 Latencia adicional
 
 Cada llamada a `validateContract` implica:
+
 - Regex match en el envelope XML
 - JSON.parse del payload
 - Hasta 3 lecturas de archivo (base schema + agent schema + opcional cache)
@@ -334,6 +341,7 @@ En un chain de 8 agentes, esto añade latencia cumulativa. Mediciones previas su
 ### 10.3 Limitación del self-validation (Opción D)
 
 La self-validation por agente solo cacha errores en el output del agente que se valida a sí mismo. No detecta:
+
 - Errors de parseo del orchestrator al recibir la respuesta
 - Errors en el transporte de la respuesta entre agentes
 - Bugs en el orchestrator que procesa la respuesta
@@ -345,6 +353,7 @@ El Layer 2 (orchestrator runtime hook, Issue #25918) abordaría esto cuando est�
 Los schemas usan **JSON Schema 2020-12** (según `$schema` en `base.schema.json`: `"https://json-schema.org/draft/2020-12/schema"`), pero no todas las features están implementadas en el validator hand-rolled anterior. **Ahora usamos Ajv para validación**, por lo que los validadores de formato hand-rolled (FORMAT_VALIDATORS) han sido eliminados. Ajv maneja la mayoría de features de JSON Schema nativamente.
 
 Lo que sigue sin soporte en nuestros schemas (limitación consciente):
+
 - `additionalProperties`, `patternProperties` no están implementados en nuestros schemas
 - `anyOf`, `oneOf`, `allOf` no están implementados en nuestros schemas
 
@@ -370,6 +379,7 @@ Si un agente está en degraded mode con un payload genuinamente malformado, el v
 ```typescript
 type OrchestratorResponse = { agent: string; status: string; ... }
 ```
+
 **Pro**: Type safety compile-time.
 **Contra**: No hay validación runtime de respuestas externas; el orchestrator solo puede asumir que el tipo es correcto. Si un agente devuelve `status: 42`, TypeScript no lo detecta porque el tipo solo existe en el lado consumer.
 
@@ -390,16 +400,16 @@ type OrchestratorResponse = { agent: string; status: string; ... }
 
 ### 11.6 Tabla comparativa
 
-| Criterio | Output Contracts | TypeScript-only | Protobuf | Zod | GraphQL |
-|----------|-----------------|-----------------|----------|-----|---------|
-| Validación runtime | ✅ | ❌ | ✅ | ✅ | ✅ |
-| Schema files externos | ✅ JSON Schema | ❌ | ✅ .proto | ❌ | ✅ SDL |
-| Type safety compile-time | ❌ | ✅ | ✅ | Partial | ✅ |
-| LLM-friendly XML+JSON | ✅ | ❌ | ❌ | ❌ | ❌ |
-| Caveman compression | **Dropped** | ❌ | ❌ | ❌ | ❌ |
-| Degraded mode | ✅ | ❌ | ❌ | ❌ | ❌ |
-| Setup complexity | Baja | Baja | Alta | Baja | Alta |
-| Coverage del change | ✅ /opsx-verify | ❌ | ❌ | ❌ | ❌ |
+| Criterio                 | Output Contracts | TypeScript-only | Protobuf  | Zod     | GraphQL |
+| ------------------------ | ---------------- | --------------- | --------- | ------- | ------- |
+| Validación runtime       | ✅               | ❌              | ✅        | ✅      | ✅      |
+| Schema files externos    | ✅ JSON Schema   | ❌              | ✅ .proto | ❌      | ✅ SDL  |
+| Type safety compile-time | ❌               | ✅              | ✅        | Partial | ✅      |
+| LLM-friendly XML+JSON    | ✅               | ❌              | ❌        | ❌      | ❌      |
+| Caveman compression      | **Dropped**      | ❌              | ❌        | ❌      | ❌      |
+| Degraded mode            | ✅               | ❌              | ❌        | ❌      | ❌      |
+| Setup complexity         | Baja             | Baja            | Alta      | Baja    | Alta    |
+| Coverage del change      | ✅ /opsx-verify  | ❌              | ❌        | ❌      | ❌      |
 
 ---
 
@@ -418,18 +428,18 @@ type OrchestratorResponse = { agent: string; status: string; ... }
 
 10/10 escenarios validados (63/63 unit + 10/10 simulation después del fix):
 
-| Escenario | Resultado |
-|-----------|-----------|
-| Envelope válido (orchestrator completo) | ✅ |
-| Agent mismatch detection | ✅ |
-| Missing required field | ✅ |
-| Caveman expansion + canonical-wins | ✅ |
-| Degraded mode (agente sin schema) | ✅ |
-| Null payload rejection | ✅ |
-| Format validators (uri + date-time) | ✅ |
-| withRetry reissue callback | ✅ |
-| canonical-wins collision | ✅ |
-| Invalid responseType rejection | ✅ |
+| Escenario                               | Resultado |
+| --------------------------------------- | --------- |
+| Envelope válido (orchestrator completo) | ✅        |
+| Agent mismatch detection                | ✅        |
+| Missing required field                  | ✅        |
+| Caveman expansion + canonical-wins      | ✅        |
+| Degraded mode (agente sin schema)       | ✅        |
+| Null payload rejection                  | ✅        |
+| Format validators (uri + date-time)     | ✅        |
+| withRetry reissue callback              | ✅        |
+| canonical-wins collision                | ✅        |
+| Invalid responseType rejection          | ✅        |
 
 ### 12.3 Coverage
 
@@ -448,6 +458,7 @@ Layer 1 (self-validation por agente) + Layer 2 (runtime hook del orchestrator) s
 ### 13.2 Schema evolution strategy
 
 Cuando un agente existente añade un campo nuevo:
+
 1. Añadir el campo al schema `.schema.json` del agente
 2. Actualizar el example en el prompt del agente
 3. Ejecutar `npm run test` para verificar que los tests existentes siguen pasando
@@ -466,9 +477,11 @@ Persistencia de decisiones de validación y patrones de errores como memory obse
 ### 13.5 Production CI gate
 
 Integrar `contractValidator.test.js` en el CI pipeline del proyecto con:
+
 ```bash
 cd docs/opencode/prompts/contracts && npm install && npm run coverage
 ```
+
 Fallo de coverage o tests = block de merge.
 
 ---
@@ -525,6 +538,6 @@ Fallo de coverage o tests = block de merge.
 
 ---
 
-*Documento generado: 2026-07-09*
-*Change: `output-contracts-hardening` — 20 tareas, 8 fases, 12 decisiones de diseño*
-*Test suite: 63 tests, 95% coverage sobre contractValidator.js*
+_Documento generado: 2026-07-09_
+_Change: `output-contracts-hardening` — 20 tareas, 8 fases, 12 decisiones de diseño_
+_Test suite: 63 tests, 95% coverage sobre contractValidator.js_

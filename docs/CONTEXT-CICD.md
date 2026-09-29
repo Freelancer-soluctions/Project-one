@@ -1,6 +1,22 @@
 # CONTEXT CI/CD — Documento Central (auto-cargable)
 
-> **Única fuente de verdad operativa del CI/CD de Project One.** Auto-cargado cada sesión (`opencode.jsonc` L49). Verificado 2026-08-28; re-verificación de config GitHub por API 2026-08-30 (ver §3.4/§3.5/§5.9); verificación merge queue + pr-title-lint 2026-08-31 (ver §3.3/§5.3/§9.3.3); capa local DCO + PR-title wrapper 2026-09-02 (ver §10.3/§10.4/§11.1); convención de trazabilidad DCO auto-signoff global 2026-09-02 (ver §10.5); corrección DCO del slash command `/commit-all` 2026-09-02 (ver §10.4); fix input `model` en opencode-review 2026-09-03 (ver §9.3.8); fix env `GITHUB_TOKEN` en opencode-review 2026-09-04 (ver §9.3.8); fix modelID `openai/gpt-oss-120b` en opencode-review 2026-09-04 (ver §9.3.8); switch to `groq/compound-mini` model 2026-09-04 (ver §9.3.8); switch a `google/gemini-2.5-flash` + fix env `GOOGLE_GENERATIVE_AI_API_KEY` + pin `small_model` en opencode-review 2026-09-04 (ver §9.3.8); switch a `google/gemini-3.6-flash` (2.5-flash 404 para nuevas keys) en opencode-review 2026-09-05 (ver §9.3.8); fix 400 thinkingBudget-vs-thinkingLevel (eliminar thinkingConfig, opencode inyecta thinkingLevel para gemini-3) en opencode-review 2026-09-05 (ver §9.3.8); fix rate-limit opencode-review 2026-09-14: reemplazo de composite action `anomalyco/opencode/github` por steps inline (install binario pineado v1.18.31 + `opencode github run`) + workflow `opencode-review.yml` auditado ACTIVE por API (ver §9.3.8); flip CI_MINIMAL=false + archivo ci-prebuild-quality-lint 2026-09-17 (ver §3.1/§5.5/§9.1); consolidación knip a config raíz única `/knip.jsonc` + jobs `*-dead-code` desde la raíz (change `knip-consolidation`) y complejidad ESLint fuente única sin `--rule` + globals backend Node-only (change `eslint-configuration`), ambos archivados 2026-09-23 (ver §3.1/§3.3/§9.1/§12.2/§12.3).
+> **Única fuente de verdad operativa del CI/CD de Project One.** Auto-cargado cada sesión (`opencode.jsonc` L49).
+> Verificado 2026-08-28; re-verificación de config GitHub por API 2026-08-30 (ver §3.4/§3.5/§5.9); verificación merge
+> queue + pr-title-lint 2026-08-31 (ver §3.3/§5.3/§9.3.3); capa local DCO + PR-title wrapper 2026-09-02 (ver
+> §10.3/§10.4/§11.1); convención de trazabilidad DCO auto-signoff global 2026-09-02 (ver §10.5); corrección DCO del
+> slash command `/commit-all` 2026-09-02 (ver §10.4); fix input `model` en opencode-review 2026-09-03 (ver §9.3.8);
+> fix env `GITHUB_TOKEN` en opencode-review 2026-09-04 (ver §9.3.8); fix modelID `openai/gpt-oss-120b` en
+> opencode-review 2026-09-04 (ver §9.3.8); switch to `groq/compound-mini` model 2026-09-04 (ver §9.3.8); switch a
+> `google/gemini-2.5-flash` + fix env `GOOGLE_GENERATIVE_AI_API_KEY` + pin `small_model` en opencode-review 2026-09-04
+> (ver §9.3.8); switch a `google/gemini-3.6-flash` (2.5-flash 404 para nuevas keys) en opencode-review 2026-09-05 (ver
+> §9.3.8); fix 400 thinkingBudget-vs-thinkingLevel (eliminar thinkingConfig, opencode inyecta thinkingLevel para
+> gemini-3) en opencode-review 2026-09-05 (ver §9.3.8); fix rate-limit opencode-review 2026-09-14: reemplazo de
+> composite action `anomalyco/opencode/github` por steps inline (install binario pineado v1.18.31 + `opencode github
+run`) + workflow `opencode-review.yml` auditado ACTIVE por API (ver §9.3.8); flip CI_MINIMAL=false + archivo
+> ci-prebuild-quality-lint 2026-09-17 (ver §3.1/§5.5/§9.1); consolidación knip a config raíz única `/knip.jsonc` +
+> jobs `*-dead-code` desde la raíz (change `knip-consolidation`) y complejidad ESLint fuente única sin `--rule` +
+> globals backend Node-only (change `eslint-configuration`), ambos archivados 2026-09-23 (ver
+> §3.1/§3.3/§9.1/§12.2/§12.3).
 > **Antes de crear un change nuevo de CI/CD: LEER este documento** (sección 7) para no asumir cambios erróneos.
 
 ---
@@ -15,14 +31,33 @@
 | 📋 **Pendiente/Futuro**           | No implementado, requiere change                 |
 
 > **⚠️ DOS NIVELES DE DESACTIVACIÓN (distinción crítica, verificada por API 2026-08-30):**
-> GitHub tiene **dos mecanismos independientes** para que un workflow no corra, y este doc los distingue porque tienen causas, remediación y semántica MUY diferentes:
+> GitHub tiene **dos mecanismos independientes** para que un workflow no corra, y este doc los distingue porque tienen
+> causas, remediación y semántica MUY diferentes:
 >
-> 1. **Gate a nivel de código YAML** (`if: false` / `if: CI_MINIMAL != 'true'` / `if: vars.AWS_ROLE_ARN != ''`): condición **dentro** del archivo `.yml` que hace saltar **jobs individuales** (o el workflow completo) en tiempo de ejecución. El workflow sigue **habilitado** en GitHub, pero sus jobs evalúan `false` y se marcan `SKIPPED`. Es diseño incremental intencional (ver §3.1).
-> 2. **Toggle a nivel de GitHub (`disabled_manually`)**: interruptor **fuera** del código, en la UI/API de GitHub (Settings → Actions → General, o por workflow). Deshabilita el workflow **entero**: NO corre NINGÚN trigger (push/PR/cron/workflow_dispatch), independientemente de lo que diga el YAML. El archivo sigue en el repo pero GitHub lo ignora.
+> 1. **Gate a nivel de código YAML** (`if: false` / `if: CI_MINIMAL != 'true'` / `if: vars.AWS_ROLE_ARN != ''`):
+>    condición **dentro** del archivo `.yml` que hace saltar **jobs individuales** (o el workflow completo) en tiempo de
+>    ejecución. El workflow sigue **habilitado** en GitHub, pero sus jobs evalúan `false` y se marcan `SKIPPED`. Es
+>    diseño incremental intencional (ver §3.1).
+> 2. **Toggle a nivel de GitHub (`disabled_manually`)**: interruptor **fuera** del código, en la UI/API de GitHub
+>    (Settings → Actions → General, o por workflow). Deshabilita el workflow **entero**: NO corre NINGÚN trigger
+>    (push/PR/cron/workflow_dispatch), independientemente de lo que diga el YAML. El archivo sigue en el repo pero GitHub
+>    lo ignora.
 >
-> **Resultado de la auditoría real (API, 2026-08-30):** de los 8 workflows .yml en scope entonces (excluía `opencode-review.yml`, aún `disabled_manually`; hoy son 9 .yml + config dinámica `dependabot-updates`), **SOLO `ci.yml` está habilitado**. Los otros **7 están `disabled_manually`** en GitHub (no corren en absoluto): `security.yml`, `security-digest.yml`, `scheduled-security.yml`, `deploy.yml`, `preview.yml`, `release.yml`, `ci-enterprise.yml`. Esto se suma a los gates YAML internos. Ver estados exactos en §3.4/§3.5 y el inventario completo en §5.9.
+> **Resultado de la auditoría real (API, 2026-08-30):** de los 8 workflows .yml en scope entonces (excluía
+> `opencode-review.yml`, aún `disabled_manually`; hoy son 9 .yml + config dinámica `dependabot-updates`), **SOLO
+> `ci.yml` está habilitado**. Los otros **7 están `disabled_manually`** en GitHub (no corren en absoluto):
+> `security.yml`, `security-digest.yml`, `scheduled-security.yml`, `deploy.yml`, `preview.yml`, `release.yml`,
+> `ci-enterprise.yml`. Esto se suma a los gates YAML internos. Ver estados exactos en §3.4/§3.5 y el inventario
+> completo en §5.9.
 >
-> **Actualización (API, 2026-09-14):** `opencode-review.yml` está **ACTIVE** → ahora hay **3 activos**: `ci.yml` + `opencode-review.yml` + config dinámica `dependabot-updates`. Los 7 restantes (`security.yml`, `security-digest.yml`, `scheduled-security.yml`, `deploy.yml`, `preview.yml`, `release.yml`, `ci-enterprise.yml`) siguen `disabled_manually`.
+> **Actualización (API, 2026-09-14):** `opencode-review.yml` está **ACTIVE** → ahora hay **3 activos**: `ci.yml` +
+> `opencode-review.yml` + config dinámica `dependabot-updates`. Los 7 restantes (`security.yml`,
+> `security-digest.yml`, `scheduled-security.yml`, `deploy.yml`, `preview.yml`, `release.yml`, `ci-enterprise.yml`)
+> siguen `disabled_manually`.
+>
+> **Actualización (API, 2026-09-25, change `secret-scanning`):** `security.yml` y `scheduled-security.yml`
+> re-habilitados con `gh workflow enable` → **5 activos**: los 3 anteriores + estos 2. Siguen `disabled_manually`:
+> `security-digest.yml`, `deploy.yml`, `preview.yml`, `release.yml`, `ci-enterprise.yml`.
 
 | Área                                             | Estado          | Detalle                                                                                                                                                      |
 | ------------------------------------------------ | --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
@@ -69,15 +104,45 @@ gh api repos/Freelancer-soluctions/Project-one/branches/main/protection/required
 
 ### 3.1 CI Incremental — por diseño
 
-- `vars.CI_MINIMAL=false` desde 2026-09-17 (flip por change `ci-prebuild-quality-lint`, task 8; antes `true` = modo mínimo/incremental INTENCIONAL).
-- Muchos jobs `if: false` (disabled a propósito): \*-build, sonarqube, coverage, depcheck, test-unit-\*, test-integration, test-smoke, e2e, format-check, typecheck, server-complexity, \*-import-bounds. NO son bugs; **no activarlos** "para que funcione". (Desde 2026-09-23: `client-dead-code`/`server-dead-code` corren knip no-bloqueante y `client-complexity` corre sin `--rule` — changes `knip-consolidation`/`eslint-configuration`; quedan activos aunque NO required por el ruleset.)
-- `ci-complete` corre SOLO si `CI_MINIMAL != 'true'`. Como CI_MINIMAL=false desde 2026-09-17, **corre en el próximo PR** → "CI Complete" se reportará y será añadible al ruleset tras ≥1 run (§5.5). Apunte: si a futuro se re-activa minimal mode, revertir el flip (`CI_MINIMAL=true`) y `ci-complete` volverá a SKIPPED.
-- **El job `sast` (SAST Semgrep) NO está gated por `CI_MINIMAL`**: corre en todos los PRs a `main` independientemente de este valor, como capa de governance standalone (precedente §9.3.5 dependency-review).
-- **Jobs lint activos path-scoped (change `ci-prebuild-quality-lint`, MERGED 2026-09-17 vía PRs #127/#128/#129):** `client-lint`, `server-lint` y `actionlint` corren standalone en PRs a `main` (`if: needs.repo-discovery.outputs.<client|server|shared> == 'true' && github.event_name == 'pull_request'`), SIN gate de `CI_MINIMAL` — mismo patrón standalone que `sast`/`dependency-review`. Supresiones intencionales en `.github/actionlint.yaml` (restos `if: false` + `secrets` en `security.yml` deshabilitado). Threshold complexity ESLint 15→20 en `eslint.config.js` (baseline c16-c18; el override `--rule` 15 de CI fue eliminado en `eslint-configuration`, 2026-09-23 — ver bullets siguientes).
-- **Jobs dead-code knip activos (change `knip-consolidation`, 2026-09-23):** `client-dead-code` (`npx knip --workspace=apps/client --no-progress --reporter json`) y `server-dead-code` (`npx knip --workspace=apps/server --no-progress`) corren desde la RAÍZ del repo (sin `working-directory`), path-scoped en PRs a `main`, `continue-on-error: true` (fase 1 no bloqueante). Config knip ÚNICA `/knip.jsonc` (eliminados el `knip.json` raíz antiguo y los anidados `apps/*/knip.json`); knip NO sube directorios desde un workspace (`configFilePath: undefined`, verificado con `--debug`) — usar siempre los scripts raíz `npm run knip` / `knip:client` / `knip:server` / `knip:ci`.
-- **Complejidad ESLint fuente única (change `eslint-configuration`, 2026-09-23):** `client-complexity`/`server-complexity` ya NO pasan `--rule '{"complexity": ...}'` — heredan el umbral 20 de `eslint.config.js` (antes: server CI=15 vía CLI vs local=20). Además `globals.browser` eliminado del bloque backend (globals Node+Vitest only) y `eslint-plugin-import` desinstalado (los límites de import los aplica `dependency-cruiser` vía jobs `*-import-bounds`).
+- `vars.CI_MINIMAL=false` desde 2026-09-17 (flip por change `ci-prebuild-quality-lint`, task 8; antes `true` = modo
+  mínimo/incremental INTENCIONAL).
+- Muchos jobs `if: false` (disabled a propósito): \*-build, sonarqube (sin credenciales `SONAR_TOKEN`), coverage,
+  depcheck, test-unit-\*, test-integration, test-smoke, e2e, format-check (server). NO son bugs; **no activarlos**
+  "para que funcione". (Desde 2026-09-23: `client-dead-code`/`server-dead-code` corren knip no-bloqueante y
+  `client-complexity` corre sin `--rule` — changes `knip-consolidation`/`eslint-configuration`; quedan activos aunque
+  NO required por el ruleset. Desde 2026-09-25: `client-import-bounds`/`server-import-bounds` están **activados** por
+  change `import-boundaries` — corren desde la raíz con config raíz `.dependency-cruiser.cjs` + baseline
+  `--ignore-known`, gate `--output-type err` + report `err-html` no-bloqueante con artefacto. Desde 2026-09-26, change
+  `quality-gates`: `client-typecheck`/`server-typecheck` **activados y bloqueantes** (tsconfigs mínimos
+  `allowJs`/`checkJs: false` + script `type-check`, sin `\|\| echo`), `server-complexity` **activado** sin `--rule`, y
+  `docs-validation` existe como **advisory** (`continue-on-error: true`, reporte en step summary, fuera de `needs`).)
+- `ci-complete` corre SOLO si `CI_MINIMAL != 'true'`. Como CI_MINIMAL=false desde 2026-09-17, **corre en el próximo
+  PR** → "CI Complete" se reportará y será añadible al ruleset tras ≥1 run (§5.5). Apunte: si a futuro se re-activa
+  minimal mode, revertir el flip (`CI_MINIMAL=true`) y `ci-complete` volverá a SKIPPED.
+- **El job `sast` (SAST Semgrep) NO está gated por `CI_MINIMAL`**: corre en todos los PRs a `main` independientemente
+  de este valor, como capa de governance standalone (precedente §9.3.5 dependency-review).
+- **Jobs lint activos path-scoped (change `ci-prebuild-quality-lint`, MERGED 2026-09-17 vía PRs #127/#128/#129):**
+  `client-lint`, `server-lint` y `actionlint` corren standalone en PRs a `main` (`if:
+needs.repo-discovery.outputs.<client|server|shared> == 'true' && github.event_name == 'pull_request'`), SIN gate de
+  `CI_MINIMAL` — mismo patrón standalone que `sast`/`dependency-review`. Supresiones intencionales en
+  `.github/actionlint.yaml` (restos `if: false` + `secrets` en `security.yml` deshabilitado). Threshold complexity
+  ESLint 15→20 en `eslint.config.js` (baseline c16-c18; el override `--rule` 15 de CI fue eliminado en
+  `eslint-configuration`, 2026-09-23 — ver bullets siguientes).
+- **Jobs dead-code knip activos (change `knip-consolidation`, 2026-09-23):** `client-dead-code` (`npx knip
+--workspace=apps/client --no-progress --reporter json`) y `server-dead-code` (`npx knip --workspace=apps/server
+--no-progress`) corren desde la RAÍZ del repo (sin `working-directory`), path-scoped en PRs a `main`,
+  `continue-on-error: true` (fase 1 no bloqueante). Config knip ÚNICA `/knip.jsonc` (eliminados el `knip.json` raíz
+  antiguo y los anidados `apps/*/knip.json`); knip NO sube directorios desde un workspace (`configFilePath:
+undefined`, verificado con `--debug`) — usar siempre los scripts raíz `npm run knip` / `knip:client` / `knip:server`
+  / `knip:ci`.
+- **Complejidad ESLint fuente única (change `eslint-configuration`, 2026-09-23):**
+  `client-complexity`/`server-complexity` ya NO pasan `--rule '{"complexity": ...}'` — heredan el umbral 20 de
+  `eslint.config.js` (antes: server CI=15 vía CLI vs local=20). Además `globals.browser` eliminado del bloque backend
+  (globals Node+Vitest only) y `eslint-plugin-import` desinstalado (los límites de import los aplica
+  `dependency-cruiser` vía jobs `*-import-bounds`).
 - NUNCA interpretar un job skipped/disabled por CI_MINIMAL como algo roto. Es diseño incremental.
-- Status checks selectables: GitHub solo deja elegir un check si se reportó ≥1 vez. Un job que nunca corrió NO aparece en búsqueda del ruleset.
+- Status checks selectables: GitHub solo deja elegir un check si se reportó ≥1 vez. Un job que nunca corrió NO aparece
+  en búsqueda del ruleset.
 
 ### 3.2 Los 4 status checks del ruleset (nombres EXACTOS)
 
@@ -86,7 +151,8 @@ gh api repos/Freelancer-soluctions/Project-one/branches/main/protection/required
 3. `PR Title Lint`
 4. `DCO`
 
-- `CI Complete` NO está vinculado al ruleset 21227644 (job saltaba mientras CI_MINIMAL=true; CI_MINIMAL=false desde 2026-09-17 → corre y será añadible tras ≥1 run).
+- `CI Complete` NO está vinculado al ruleset 21227644 (job saltaba mientras CI_MINIMAL=true; CI_MINIMAL=false desde
+  2026-09-17 → corre y será añadible tras ≥1 run).
 - Integration ID para los 4 checks: `15368` (origen: config del ruleset vía API; no derivable de los workflows).
 - Los nombres DEBEN coincidir EXACTO con el `name:` del job (renombrar rompe el binding del ruleset).
 
@@ -94,87 +160,124 @@ gh api repos/Freelancer-soluctions/Project-one/branches/main/protection/required
 
 **Triggers:** `pull_request` main + `merge_group`
 
-> **⚠️ Merge queue NO está activo (verificado API 2026-08-31):** el trigger `merge_group` es **código muerto** — el ruleset 21227644 **no tiene regla `merge_queue`** y `allow_auto_merge=false`, así que GitHub **nunca dispara** `merge_group`. Los steps `if: merge_group` de commit-lint/pr-title-lint/dco son **preparación preventiva**. Conclusión: **NO añadir validación extra para merge_group** mientras no exista merge queue (ver §5.3).
+> **⚠️ Merge queue NO está activo (verificado API 2026-08-31):** el trigger `merge_group` es **código muerto** — el
+> ruleset 21227644 **no tiene regla `merge_queue`** y `allow_auto_merge=false`, así que GitHub **nunca dispara**
+> `merge_group`. Los steps `if: merge_group` de commit-lint/pr-title-lint/dco son **preparación preventiva**.
+> Conclusión: **NO añadir validación extra para merge_group** mientras no exista merge queue (ver §5.3).
 
-| Job                                                                                                                                | name (exacto)                          | Required?      | continue-on-error?                                                                      |
-| ---------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------- | -------------- | --------------------------------------------------------------------------------------- |
-| repo-discovery                                                                                                                     | Detect Changes                         | N/A (no check) | -                                                                                       |
-| verify-signatures                                                                                                                  | **Verify Commit Signatures**           | ✅ ruleset     | ❌                                                                                      |
-| commit-lint                                                                                                                        | **Commit Lint (Conventional Commits)** | ✅ ruleset     | ❌                                                                                      |
-| pr-title-lint                                                                                                                      | **PR Title Lint**                      | ✅ ruleset     | ❌ (bloqueante desde 2026-08-31)                                                        |
-| dco                                                                                                                                | **DCO**                                | ✅ ruleset     | ❌ (bloqueante desde 2026-08-31)                                                        |
-| dependency-review                                                                                                                  | Dependency Review                      | ❌             | ❌                                                                                      |
-| sast                                                                                                                               | **SAST (Semgrep)**                     | ❌             | ✅                                                                                      |
-| zombie-workflow-guard                                                                                                              | Zombie Workflow Guard                  | ❌             | ❌                                                                                      |
-| client-lint                                                                                                                        | Quality: Client Lint                   | ❌             | ❌                                                                                      |
-| server-lint                                                                                                                        | Quality: Server Lint                   | ❌             | ❌                                                                                      |
-| actionlint                                                                                                                         | Quality: ActionLint                    | ❌             | ❌                                                                                      |
-| client/server-format-check, \*-typecheck, \*-import-bounds, \*-build, sonarqube, coverage, depcheck, unit, integration, smoke, e2e | Quality/Build/Test                     | ❌             | N/A (`if: false`)                                                                       |
-| client-complexity                                                                                                                  | Quality: Client Complexity             | ❌             | ❌ — sin `--rule`; threshold 20 heredado de `eslint.config.js` (2026-09-23)             |
-| server-complexity                                                                                                                  | Quality: Server Complexity             | ❌             | N/A (`if: false`); contenido corregido sin `--rule` (2026-09-23)                        |
-| client-dead-code                                                                                                                   | Quality: Client Dead Code              | ❌             | ✅ `continue-on-error: true`; `knip --workspace=apps/client` desde la raíz (2026-09-23) |
-| server-dead-code                                                                                                                   | Quality: Server Dead Code              | ❌             | ✅ `continue-on-error: true`; `knip --workspace=apps/server` desde la raíz (2026-09-23) |
-| ci-complete                                                                                                                        | CI Complete                            | ❌ (no bound)  | N/A (`if: CI_MINIMAL != 'true'`)                                                        |
+| Job                                                                                         | name (exacto)                          | Required?      | continue-on-error?                                                                                                                             |
+| ------------------------------------------------------------------------------------------- | -------------------------------------- | -------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| repo-discovery                                                                              | Detect Changes                         | N/A (no check) | -                                                                                                                                              |
+| verify-signatures                                                                           | **Verify Commit Signatures**           | ✅ ruleset     | ❌                                                                                                                                             |
+| commit-lint                                                                                 | **Commit Lint (Conventional Commits)** | ✅ ruleset     | ❌                                                                                                                                             |
+| pr-title-lint                                                                               | **PR Title Lint**                      | ✅ ruleset     | ❌ (bloqueante desde 2026-08-31)                                                                                                               |
+| dco                                                                                         | **DCO**                                | ✅ ruleset     | ❌ (bloqueante desde 2026-08-31)                                                                                                               |
+| dependency-review                                                                           | Dependency Review                      | ❌             | ❌                                                                                                                                             |
+| sast                                                                                        | **SAST (Semgrep)**                     | ❌             | ✅                                                                                                                                             |
+| zombie-workflow-guard                                                                       | Zombie Workflow Guard                  | ❌             | ❌                                                                                                                                             |
+| client-lint                                                                                 | Quality: Client Lint                   | ❌             | ❌                                                                                                                                             |
+| server-lint                                                                                 | Quality: Server Lint                   | ❌             | ❌                                                                                                                                             |
+| actionlint                                                                                  | Quality: ActionLint                    | ❌             | ❌                                                                                                                                             |
+| client-format-check                                                                         | Quality: Client Format                 | ❌             | ✅ (bloquea; server-format-check sigue `if: false`)                                                                                            |
+| client/server-typecheck                                                                     | Quality: Client/Server TypeCheck       | ❌             | ✅ activos y bloqueantes (change `quality-gates`, 2026-09-26: tsconfigs mínimos, sin `\|\| echo`)                                              |
+| server-complexity                                                                           | Quality: Server Complexity             | ❌             | ✅ activo y bloqueante sin `--rule` (change `quality-gates`, 2026-09-26)                                                                       |
+| docs-validation                                                                             | Quality: Docs Validation (advisory)    | ❌             | ✅ advisory (`continue-on-error: true` + reporte; NO en `needs` del agregador — fase 1)                                                        |
+| \*-build, sonarqube, coverage, depcheck, unit, integration, smoke, e2e, server-format-check | Quality/Build/Test                     | ❌             | N/A (`if: false`; sonarqube sin credenciales)                                                                                                  |
+| client-import-bounds                                                                        | Quality: Client Import Bounds          | ❌             | ✅ activo (change `import-boundaries`, 2026-09-25): gate `depcruise:client --output-type err --ignore-known` + report `err-html` con artefacto |
+| server-import-bounds                                                                        | Quality: Server Import Bounds          | ❌             | ✅ activo (change `import-boundaries`, 2026-09-25): gate `depcruise:server --output-type err --ignore-known` + report `err-html` con artefacto |
+| client-complexity                                                                           | Quality: Client Complexity             | ❌             | ❌ — sin `--rule`; threshold 20 heredado de `eslint.config.js` (2026-09-23)                                                                    |
+| server-complexity                                                                           | Quality: Server Complexity             | ❌             | N/A (`if: false`); contenido corregido sin `--rule` (2026-09-23)                                                                               |
+| client-dead-code                                                                            | Quality: Client Dead Code              | ❌             | ✅ `continue-on-error: true`; `knip --workspace=apps/client` desde la raíz (2026-09-23)                                                        |
+| server-dead-code                                                                            | Quality: Server Dead Code              | ❌             | ✅ `continue-on-error: true`; `knip --workspace=apps/server` desde la raíz (2026-09-23)                                                        |
+| ci-complete                                                                                 | CI Complete                            | ❌ (no bound)  | N/A (`if: CI_MINIMAL != 'true'`)                                                                                                               |
 
-> **Path-scoping de los 3 lint activos (change `ci-prebuild-quality-lint`, MERGED 2026-09-17 vía PRs #127/#128/#129):** `client-lint` → `if: needs.repo-discovery.outputs.client == 'true' && github.event_name == 'pull_request'`; `server-lint` → idem con `outputs.server`; `actionlint` → idem con `outputs.shared`. Standalone (sin gate `CI_MINIMAL`), NO required por el ruleset.
+> **Path-scoping de los 3 lint activos (change `ci-prebuild-quality-lint`, MERGED 2026-09-17 vía PRs
+> #127/#128/#129):** `client-lint` → `if: needs.repo-discovery.outputs.client == 'true' && github.event_name ==
+'pull_request'`; `server-lint` → idem con `outputs.server`; `actionlint` → idem con `outputs.shared`. Standalone
+> (sin gate `CI_MINIMAL`), NO required por el ruleset.
 
 ### 3.4 Pipelines
 
-> **Estado real del toggle GitHub (verificado por API 2026-08-30; actualización `opencode-review.yml` → ACTIVE verificada por API 2026-09-14):** de los workflows del repo, **`ci.yml` y `opencode-review.yml` están habilitados** (+ config dinámica `dependabot-updates`). Los 7 restantes están **`disabled_manually`** en GitHub — un interruptor a nivel de GitHub (Settings/Actions o API) que deshabilita el workflow **completo**: NO corren en ningún trigger (push/PR/cron/workflow_dispatch), aunque los archivos existan y su YAML tenga `on:` válido. Esto es **independiente** de los gates `if:` internos (§3.1). En la siguiente lista, cada pipeline indica su `on:` de fuente de verdad y su **estado toggle real**:
+> **Estado real del toggle GitHub (verificado por API 2026-08-30; actualización `opencode-review.yml` → ACTIVE
+> verificada por API 2026-09-14):** de los workflows del repo, **`ci.yml` y `opencode-review.yml` están habilitados**
+> (+ config dinámica `dependabot-updates`). Los 7 restantes están **`disabled_manually`** en GitHub — un interruptor a
+> nivel de GitHub (Settings/Actions o API) que deshabilita el workflow **completo**: NO corren en ningún trigger
+> (push/PR/cron/workflow_dispatch), aunque los archivos existan y su YAML tenga `on:` válido. Esto es
+> **independiente** de los gates `if:` internos (§3.1). En la siguiente lista, cada pipeline indica su `on:` de fuente
+> de verdad y su **estado toggle real**:
 
-| Workflow                   | Triggers (`on:`)                         | Estado toggle GitHub                 | Detalle                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
-| -------------------------- | ---------------------------------------- | ------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **ci.yml**                 | `pull_request` main + `merge_group`      | ✅ **HABILITADO**                    | Único gate de gobernanza vivo. 4 checks required + dependency-review + zombie-guard. Ver §3.3/§9.3                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
-| **opencode-review.yml**    | PR main (`opened/synchronize/reopened`)  | ✅ **HABILITADO** (desde 2026-09-14) | Review IA advisory (NO required, `continue-on-error: true`). Steps inline (install binario v1.18.31 + `opencode github run`); composite action eliminada por bug rate-limit. Ver §9.3.8                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
-| **security.yml**           | `workflow_call` + PR main + push main    | ⛔ `disabled_manually`               | Dependency Scan SCA (Trivy), SAST (CodeQL), Secret Detection (Gitleaks OSS + licensed opcional), SBOM (Anchore). Spec `ci-secret-scanning` — Notes de estado operativo (2026-09-23): R1 (gate PR-time) NO operativo mientras esté `disabled_manually`; re-habilitación con `gh workflow enable`. Jobs NO wireados a ci-complete; `dependency-review` vive en `ci.yml` (inline, job `Dependency Review`, L~732; también en `ci-complete.needs` L~769)                                                                                                                                                                                          |
-| **scheduled-security.yml** | cron Mon 03:00 UTC                       | ⛔ `disabled_manually`               | Gitleaks full-history SARIF + upload a Security tab (audit mode: hallazgos NO fallan el run, `continue-on-error: true`). Contiene job `notify-failure` (crea un GitHub Issue si algún scan falla). Spec `ci-secret-scanning` Notes 2026-09-23: R2 (scan semanal) NO operativo mientras esté `disabled_manually`                                                                                                                                                                                                                                                                                                                               |
-| **security-digest.yml**    | cron Mon 03:00 UTC                       | ⛔ `disabled_manually`               | SBOM (Anchore) + OSV Scanner + digest; cross-downloads Gitleaks artifact. Contiene job `notify-failure` (crea un GitHub Issue si falla)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
-| **preview.yml**            | PR main + `workflow_dispatch`            | ⛔ `disabled_manually`               | Floci + Postgres emulación backend validation + PR comment (Vercel URL + backend status). NO required status check                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
-| **deploy.yml**             | push main                                | ⛔ `disabled_manually`               | Phase 1 `docker-build` siempre (Floci + Postgres, prisma migrate, health 200/503, smoke). Phase 2 `ecr-push` + `deploy-staging` + `deploy-production` gated por `vars.AWS_ROLE_ARN != ''` (si no, 3 jobs "skipped" explícitos `ecr-push-skipped`, `deploy-staging-skipped`, `deploy-production-skipped` que reportan notice visible, exit 0 — no "silent failure"). Targets ECR + ECS Fargate. **0 environments definidos en GitHub**                                                                                                                                                                                                         |
-| **release.yml**            | push main                                | ⛔ `disabled_manually`               | `changesets/action@v2.1.2` (pin exacto, 2026-09-22) + `@changesets/cli` v3, modo API (`push-with-git-cli: false`, auto-firma web-flow) + GitHub App token vía input `github-token` (`secrets.APP_ID`, `APP_PRIVATE_KEY`) + re-verifica firma del tip de main. **Historial:** pin `@v2` roto 2026-08-12→2026-09-21 (action v2 exige CLI v3; repo usaba v2 — runs `32609462623`/`32609700337` fallidos) → reparado con pin `@v1.9.0` (`ci-release-action-v2-fix`) → migrado a la pareja soportada v2↔CLI v3 (`ci-changesets-cli-v3-upgrade`: `privatePackages: true` por #2186, `changeset git-tag` por #2128, exit-1 no-op aceptado por #1860) |
-| **ci-enterprise.yml**      | `workflow_dispatch`/`workflow_call` only | ⛔ `disabled_manually`               | template; paths `frontend/`/`backend/` inexistentes (deuda conocida; no usado)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| Workflow                   | Triggers (`on:`)                         | Estado toggle GitHub                                   | Detalle                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
+| -------------------------- | ---------------------------------------- | ------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **ci.yml**                 | `pull_request` main + `merge_group`      | ✅ **HABILITADO**                                      | Único gate de gobernanza vivo. 4 checks required + dependency-review + zombie-guard. Ver §3.3/§9.3                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
+| **opencode-review.yml**    | PR main (`opened/synchronize/reopened`)  | ✅ **HABILITADO** (desde 2026-09-14)                   | Review IA advisory (NO required, `continue-on-error: true`). Steps inline (install binario v1.18.31 + `opencode github run`); composite action eliminada por bug rate-limit. Ver §9.3.8                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
+| **security.yml**           | `workflow_call` + PR main + push main    | ✅ `active` (API 2026-09-25, change `secret-scanning`) | Dependency Scan SCA (Trivy), SAST (CodeQL), SBOM (Anchore). **El job `secrets` (Secret Detection) migró a `ci.yml` substage 2C** (wireado a `prebuild-security-complete.needs`) — R1 operativo a nivel check + ruleset. `dependency-review` también vive en `ci.yml` (inline). Re-habilitado con `gh workflow enable`                                                                                                                                                                                                                                                                                                                         |
+| **scheduled-security.yml** | cron Mon 03:00 UTC                       | ✅ `active` (API 2026-09-25, change `secret-scanning`) | Gitleaks full-history JSON/SARIF + upload a Security tab (audit mode: hallazgos NO fallan el run, `continue-on-error: true`, pins `v8.30.1`). Job `notify-failure` arreglado: `if: always()` + condición sobre `needs.gitleaks-full-scan.outputs.*-outcome == 'failure'` (el `if: failure()` anterior era dead path porque los steps con `continue-on-error` dejan el job en success) — R2 operativo. Re-habilitado con `gh workflow enable`                                                                                                                                                                                                  |
+| **security-digest.yml**    | cron Mon 03:00 UTC                       | ⛔ `disabled_manually`                                 | SBOM (Anchore) + OSV Scanner + digest; cross-downloads Gitleaks artifact. Contiene job `notify-failure` (crea un GitHub Issue si falla)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
+| **preview.yml**            | PR main + `workflow_dispatch`            | ⛔ `disabled_manually`                                 | Floci + Postgres emulación backend validation + PR comment (Vercel URL + backend status). NO required status check                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
+| **deploy.yml**             | push main                                | ⛔ `disabled_manually`                                 | Phase 1 `docker-build` siempre (Floci + Postgres, prisma migrate, health 200/503, smoke). Phase 2 `ecr-push` + `deploy-staging` + `deploy-production` gated por `vars.AWS_ROLE_ARN != ''` (si no, 3 jobs "skipped" explícitos `ecr-push-skipped`, `deploy-staging-skipped`, `deploy-production-skipped` que reportan notice visible, exit 0 — no "silent failure"). Targets ECR + ECS Fargate. **0 environments definidos en GitHub**                                                                                                                                                                                                         |
+| **release.yml**            | push main                                | ⛔ `disabled_manually`                                 | `changesets/action@v2.1.2` (pin exacto, 2026-09-22) + `@changesets/cli` v3, modo API (`push-with-git-cli: false`, auto-firma web-flow) + GitHub App token vía input `github-token` (`secrets.APP_ID`, `APP_PRIVATE_KEY`) + re-verifica firma del tip de main. **Historial:** pin `@v2` roto 2026-08-12→2026-09-21 (action v2 exige CLI v3; repo usaba v2 — runs `32609462623`/`32609700337` fallidos) → reparado con pin `@v1.9.0` (`ci-release-action-v2-fix`) → migrado a la pareja soportada v2↔CLI v3 (`ci-changesets-cli-v3-upgrade`: `privatePackages: true` por #2186, `changeset git-tag` por #2128, exit-1 no-op aceptado por #1860) |
+| **ci-enterprise.yml**      | `workflow_dispatch`/`workflow_call` only | ⛔ `disabled_manually`                                 | template; paths `frontend/`/`backend/` inexistentes (deuda conocida; no usado)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
 
-> **Implicación operativa:** mientras los 7 workflows security/deploy/release/preview/scheduled/enterprise sigan `disabled_manually`, un push a `main` **solo** dispara `ci.yml` (gobernanza) en push; en PR a `main` disparan `ci.yml` + `opencode-review.yml` (advisory, NO required). No corren deploy/release/security/preview ni en push ni en cron. Para activar cualquiera de los 7 restantes: GitHub UI → Actions → workflow → Enable, o `gh workflow enable <file>`. Esta es la causa **adicional** a los gates `if:` internos por la que hoy "no pasa nada" más allá del gate de gobernanza (+ review IA advisory en PRs).
+> **Implicación operativa:** mientras los 7 workflows security/deploy/release/preview/scheduled/enterprise sigan
+> `disabled_manually`, un push a `main` **solo** dispara `ci.yml` (gobernanza) en push; en PR a `main` disparan
+> `ci.yml` + `opencode-review.yml` (advisory, NO required). No corren deploy/release/security/preview ni en push ni en
+> cron. Para activar cualquiera de los 7 restantes: GitHub UI → Actions → workflow → Enable, o `gh workflow enable
+<file>`. Esta es la causa **adicional** a los gates `if:` internos por la que hoy "no pasa nada" más allá del gate
+> de gobernanza (+ review IA advisory en PRs).
 
 ### 3.5 GitHub config actual
 
-> **Verificado por API 2026-08-30** (read-only `gh api`, 0 modificaciones). Toda la config estructural de esta sección coincide 1:1 con lo auditado; el único delta operativo relevante es el estado `disabled_manually` de 7 workflows (§3.4) y la inexistencia de `ISSUE_TEMPLATE/`. **Actualización 2026-09-14:** `opencode-review.yml` auditado **ACTIVE** por API (ver §5.9) → 3 activos (`ci.yml` + `opencode-review.yml` + `dependabot-updates`).
+> **Verificado por API 2026-08-30** (read-only `gh api`, 0 modificaciones). Toda la config estructural de esta sección
+> coincide 1:1 con lo auditado; el único delta operativo relevante es el estado `disabled_manually` de 7 workflows
+> (§3.4) y la inexistencia de `ISSUE_TEMPLATE/`. **Actualización 2026-09-14:** `opencode-review.yml` auditado
+> **ACTIVE** por API (ver §5.9) → 3 activos (`ci.yml` + `opencode-review.yml` + `dependabot-updates`).
 
 **Repo:** PUBLIC · **Default branch:** `main` · **Webhooks:** 0 · **Environments:** 0
 
-| **Workflow toggle state (API `actions/workflows`):**                                                                                                      | total 9 |
-| --------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- |
-| `ci.yml` — ✅ active                                                                                                                                      |
-| `opencode-review.yml` — ✅ active (desde 2026-09-14)                                                                                                      |
-| `security.yml`, `security-digest.yml`, `scheduled-security.yml`, `deploy.yml`, `release.yml`, `preview.yml`, `ci-enterprise.yml` — ⛔ `disabled_manually` |
-| (config dinámico `dynamic/dependabot/dependabot-updates` — ✅ active)                                                                                     |
+| **Workflow toggle state (API `actions/workflows`)**                                                             | total 9 |
+| --------------------------------------------------------------------------------------------------------------- | ------- |
+| `ci.yml` — ✅ active                                                                                            | —       |
+| `opencode-review.yml` — ✅ active (desde 2026-09-14)                                                            | —       |
+| `security.yml`, `scheduled-security.yml` — ✅ active (desde 2026-09-25, change `secret-scanning`)               | —       |
+| `security-digest.yml`, `deploy.yml`, `release.yml`, `preview.yml`, `ci-enterprise.yml` — ⛔ `disabled_manually` | —       |
+| (config dinámico `dynamic/dependabot/dependabot-updates` — ✅ active)                                           | —       |
 
 **Ruleset 21227644 "Pre-Merge Governance Gate"** (active, enforcement, ~DEFAULT_BRANCH):
 
 - **6 reglas** (ID 21227644, `bypass_actors: []`, `current_user_can_bypass: never`):
   - `deletion` + `non_fast_forward` + `required_signatures`
   - `required_status_checks`: strict=true, 4 checks (los 4 de §3.2), todos con `integration_id=15368`
-  - `pull_request`: `required_approving_review_count=1`, `dismiss_stale_reviews_on_push`, `require_code_owner_review`, `require_last_push_approval`, `required_review_thread_resolution`, `required_extra_approval_for_unattributed_changes`, `allowed_merge_methods: merge/squash/rebase`
+  - `pull_request`: `required_approving_review_count=1`, `dismiss_stale_reviews_on_push`, `require_code_owner_review`,
+    `require_last_push_approval`, `required_review_thread_resolution`,
+    `required_extra_approval_for_unattributed_changes`, `allowed_merge_methods: merge/squash/rebase`
   - `required_linear_history`
 
-**Classic branch protection (overlap heredado en main):** checks vacíos, 0 reviews, `required_signatures=false`, `linear_history=true`, `block_creations=true`, `required_conversation_resolution=true`, `enforce_admins=false`. **Ruleset es el enforcer real**; classic es legacy overlap → deuda.
+**Classic branch protection (overlap heredado en main):** checks vacíos, 0 reviews, `required_signatures=false`,
+`linear_history=true`, `block_creations=true`, `required_conversation_resolution=true`, `enforce_admins=false`.
+**Ruleset es el enforcer real**; classic es legacy overlap → deuda.
 
 **Merge settings:**
 
-- `squash_merge_commit_title=PR_TITLE`, `squash_merge_commit_message=COMMIT_MESSAGES` (preserva DCO trailers en PRs 1 commit; gotcha multi-commit: subjects list puede omitir bodies)
+- `squash_merge_commit_title=PR_TITLE`, `squash_merge_commit_message=COMMIT_MESSAGES` (preserva DCO trailers en PRs 1
+  commit; gotcha multi-commit: subjects list puede omitir bodies)
 - `merge_commit_title=MERGE_MESSAGE`, `merge_commit_message=PR_TITLE`
 - `allow_squash=merge/rebase=true`, `allow_auto_merge=false`, `delete_branch_on_merge=false`, `allow_forking=true`
 
-**Actions permissions:** default=read, `can_approve_pull_request_reviews=false`, `allowed_actions=all`, `sha_pinning_required=false` (considerar pinning/allow-list).
+**Actions permissions:** default=read, `can_approve_pull_request_reviews=false`, `allowed_actions=all`,
+`sha_pinning_required=false` (considerar pinning/allow-list).
 
 **Secrets (5):** `APP_ID`, `APP_PRIVATE_KEY`, `APP_SSH_KEY`, `APP_SSH_PUB`, `GIT_LEAKS`
-**Vars (1):** `CI_MINIMAL=false` (flip desde `true` el 2026-09-17 por change `ci-prebuild-quality-lint`, task 8; verificado vía `gh api` mismo día — ver §5.5)
+**Vars (1):** `CI_MINIMAL=false` (flip desde `true` el 2026-09-17 por change `ci-prebuild-quality-lint`, task 8;
+verificado vía `gh api` mismo día — ver §5.5)
 
-**GHAS/secret scanning/dependabot security updates:** DISABLED. dependency-review@v5 funciona hoy (repo público); si repo → privado requiere GHAS.
+**GHAS/secret scanning/dependabot security updates:** DISABLED. dependency-review@v5 funciona hoy (repo público); si
+repo → privado requiere GHAS.
 
-**CODEOWNERS:** core-team default + frontend/backend/devops/qa/architects por path → ruleset `require_code_owner_review=true`.
+**CODEOWNERS:** core-team default + frontend/backend/devops/qa/architects por path → ruleset
+`require_code_owner_review=true`.
 
-**dependabot.yml:** 3 ecosistemas (npm, github-actions, docker), schedule weekly Mon 03:00 UTC, prefixes `fix`/`ci`, groups, limit 10.
+**dependabot.yml:** 3 ecosistemas (npm, github-actions, docker), schedule weekly Mon 03:00 UTC, prefixes `fix`/`ci`,
+groups, limit 10.
 
 ## 4. Arquitectura — flujo por trigger
 
@@ -259,9 +362,17 @@ flowchart TD
     class ECR,STG,PRD,SKIP skipped;
 ```
 
-**Leyenda:** ⭐ = Required status check (ruleset, todos **BLOCKING** desde 2026-08-31) · ✅ = Siempre se ejecuta (Phase 1 deploy) · ⏸️ = Gated/Skipped (esperan `AWS_ROLE_ARN` o `CI_MINIMAL != 'true'`)
+**Leyenda:** ⭐ = Required status check (ruleset, todos **BLOCKING** desde 2026-08-31) · ✅ = Siempre se ejecuta (Phase
+1 deploy) · ⏸️ = Gated/Skipped (esperan `AWS_ROLE_ARN` o `CI_MINIMAL != 'true'`)
 
-> **⚠️ Lectura del diagrama (importante, verificado por API 2026-08-30; actualización `opencode-review.yml` → ACTIVE 2026-09-14):** el diagrama describe la **arquitectura por diseño** (cómo respondería cada pipeline a su trigger una vez habilitado). **En GitHub, 7 de los 9 workflows están `disabled_manually`** (§3.4/§3.5) — `ci.yml` (Gate Governance) está habilitado y responde a PR/push, y `opencode-review.yml` (review IA advisory) responde a PRs a `main` desde 2026-09-14. Los subgrafos `PREVIEW`, `SECURITY_PR`, `DEPLOY`, `RELEASE`, `SCHED_SEC`, `SEC_DIGEST` **no corren en la práctica** hasta que se re-habilite su workflow (UI → Actions → Enable o `gh workflow enable`). Esto es independiente de los gates `if:` internos (jobs Quality/Build/Test `if:false`, Phase 2 `AWS_ROLE_ARN`, `ci-complete` `CI_MINIMAL`).
+> **⚠️ Lectura del diagrama (importante, verificado por API 2026-08-30; actualización `opencode-review.yml` → ACTIVE
+> 2026-09-14):** el diagrama describe la **arquitectura por diseño** (cómo respondería cada pipeline a su trigger una
+> vez habilitado). **En GitHub, 7 de los 9 workflows están `disabled_manually`** (§3.4/§3.5) — `ci.yml` (Gate
+> Governance) está habilitado y responde a PR/push, y `opencode-review.yml` (review IA advisory) responde a PRs a
+> `main` desde 2026-09-14. Los subgrafos `PREVIEW`, `SECURITY_PR`, `DEPLOY`, `RELEASE`, `SCHED_SEC`, `SEC_DIGEST` **no
+> corren en la práctica** hasta que se re-habilite su workflow (UI → Actions → Enable o `gh workflow enable`). Esto es
+> independiente de los gates `if:` internos (jobs Quality/Build/Test `if:false`, Phase 2 `AWS_ROLE_ARN`, `ci-complete`
+> `CI_MINIMAL`).
 
 ### 4.1 Flujo de trabajo del equipo (hoy en adelante)
 
@@ -305,51 +416,92 @@ flowchart TD
 
 ### 5.2 Classic Branch Protection (overlap)
 
-Legacy que coexiste: `linear_history=true`, `block_creations=true`, `required_conversation_resolution=true`, `required_signatures=false`, `enforce_admins=false`, `required_status_checks: []`. **Recomendación:** consolidar a ruleset-only a futuro.
+Legacy que coexiste: `linear_history=true`, `block_creations=true`, `required_conversation_resolution=true`,
+`required_signatures=false`, `enforce_admins=false`, `required_status_checks: []`. **Recomendación:** consolidar a
+ruleset-only a futuro.
 
 ### 5.3 Merge Settings
 
-`PR_TITLE` + `COMMIT_MESSAGES` en squash (gotcha: PRs multi-commit pueden perder trailers DCO — release.yml re-verifica firma del tip post-merge) · merge commit `MERGE_MESSAGE` + `PR_TITLE` · squash/merge/rebase habilitados · auto-merge off · no borrar rama · forks permitidos.
+`PR_TITLE` + `COMMIT_MESSAGES` en squash (gotcha: PRs multi-commit pueden perder trailers DCO — release.yml
+re-verifica firma del tip post-merge) · merge commit `MERGE_MESSAGE` + `PR_TITLE` · squash/merge/rebase habilitados ·
+auto-merge off · no borrar rama · forks permitidos.
 
-> **Merge queue (verificado API 2026-08-31) — NO activo:** el repo **no usa merge queue**. No existe regla `merge_queue` en el ruleset 21227644 ni en la branch protection clásica, y `allow_auto_merge=false`. Por tanto el trigger `merge_group` de `ci.yml` es **código muerto** (nunca se dispara). Si en el futuro se quisiera activar merge queue, habría que (1) añadir `type: "merge_queue"` al ruleset (con timeout/entries/method), (2) opcionalmente `allow_auto_merge=true`, y (3) reevaluar la validación de PR title en `merge_group` (§3.3). Hasta entonces, **no añadir checks para merge_group**.
+> **Merge queue (verificado API 2026-08-31) — NO activo:** el repo **no usa merge queue**. No existe regla
+> `merge_queue` en el ruleset 21227644 ni en la branch protection clásica, y `allow_auto_merge=false`. Por tanto el
+> trigger `merge_group` de `ci.yml` es **código muerto** (nunca se dispara). Si en el futuro se quisiera activar merge
+> queue, habría que (1) añadir `type: "merge_queue"` al ruleset (con timeout/entries/method), (2) opcionalmente
+> `allow_auto_merge=true`, y (3) reevaluar la validación de PR title en `merge_group` (§3.3). Hasta entonces, **no
+> añadir checks para merge_group**.
 
 ### 5.4 Actions Permissions
 
-default=read · workflows no aprueban reviews · `allowed_actions=all` (🔴 riesgo supply chain; considerar allow-list + SHA pinning) · `sha_pinning_required=false`.
+default=read · workflows no aprueban reviews · `allowed_actions=all` (🔴 riesgo supply chain; considerar allow-list +
+SHA pinning) · `sha_pinning_required=false`.
 
-> **Inconsistencia de versiones de actions (deuda observada, no bloqueante):** las versiones de GitHub Actions **no son uniformes** entre workflows — `actions/checkout@v6` (release.yml) vs `@v5` (ci.yml, deploy.yml, preview.yml, security.yml); `actions/setup-node@v4` en ci.yml/ci-enterprise.yml vs `@v5` en el resto; `dorny/paths-filter@v4` (ci.yml) vs `@v3` (ci-enterprise.yml); `download-artifact@v5` (security-digest.yml) vs `@v4`/`@v7` en otros. Esto no rompe nada hoy, pero amplía la superficie de supply chain (§5.4) y dificulta un SHA-pinning uniforme. Ver §6 deuda.
+> **Inconsistencia de versiones de actions (deuda observada, no bloqueante):** las versiones de GitHub Actions **no
+> son uniformes** entre workflows — `actions/checkout@v6` (release.yml) vs `@v5` (ci.yml, deploy.yml, preview.yml,
+> security.yml); `actions/setup-node@v4` en ci.yml/ci-enterprise.yml vs `@v5` en el resto; `dorny/paths-filter@v4`
+> (ci.yml) vs `@v3` (ci-enterprise.yml); `download-artifact@v5` (security-digest.yml) vs `@v4`/`@v7` en otros. Esto no
+> rompe nada hoy, pero amplía la superficie de supply chain (§5.4) y dificulta un SHA-pinning uniforme. Ver §6 deuda.
 
 ### 5.5 Variable CI_MINIMAL=false (flip 2026-09-17)
 
-`CI_MINIMAL=false` desde 2026-09-17 (flip ejecutado como task 8 del change `ci-prebuild-quality-lint`, verificado vía `gh api actions/variables` mismo día; antes `true` = modo mínimo/incremental intencional). Con `false`, `ci-complete` (`if: CI_MINIMAL != 'true'`) **corre** y se reportará en el próximo PR → añadible al ruleset tras ≥1 run. Los jobs quality/build/test restantes siguen `if: false` (diseño incremental, §3.1). Apunte: si a futuro se re-activa minimal mode, revertir el flip (`CI_MINIMAL=true`) y `ci-complete` volverá a SKIPPED. Gate completo = change OpenSpec que justifique costo.
+`CI_MINIMAL=false` desde 2026-09-17 (flip ejecutado como task 8 del change `ci-prebuild-quality-lint`, verificado vía
+`gh api actions/variables` mismo día; antes `true` = modo mínimo/incremental intencional). Con `false`, `ci-complete`
+(`if: CI_MINIMAL != 'true'`) **corre** y se reportará en el próximo PR → añadible al ruleset tras ≥1 run. Los jobs
+quality/build/test restantes siguen `if: false` (diseño incremental, §3.1). Apunte: si a futuro se re-activa minimal
+mode, revertir el flip (`CI_MINIMAL=true`) y `ci-complete` volverá a SKIPPED. Gate completo = change OpenSpec que
+justifique costo.
 
-> **`client-lint`, `server-lint` y `actionlint` YA NO están gated por `CI_MINIMAL`** (change `ci-prebuild-quality-lint`, MERGED 2026-09-17 vía PRs #127/#128/#129): son standalone path-scoped en PRs a `main`, mismo patrón que `sast`/`dependency-review` (§3.1/§3.3).
+> **`client-lint`, `server-lint` y `actionlint` YA NO están gated por `CI_MINIMAL`** (change
+> `ci-prebuild-quality-lint`, MERGED 2026-09-17 vía PRs #127/#128/#129): son standalone path-scoped en PRs a `main`,
+> mismo patrón que `sast`/`dependency-review` (§3.1/§3.3).
 
 ### 5.6 Secrets
 
-| Secret            | Usado en                | Propósito                                                                        |
-| ----------------- | ----------------------- | -------------------------------------------------------------------------------- |
-| `APP_ID`          | release.yml             | GitHub App ID                                                                    |
-| `APP_PRIVATE_KEY` | release.yml             | Private key App (PEM)                                                            |
-| `APP_SSH_KEY`     | — (no usado)            | SSH key git push — NO referenciado en ningún workflow (verificado grep ago 2026) |
-| `APP_SSH_PUB`     | — (no usado)            | Public key correspondiente — NO referenciado en ningún workflow                  |
-| `GIT_LEAKS`       | security.yml (licensed) | Licencia Gitleaks (opcional; sin ella solo OSS)                                  |
+| Secret            | Usado en                                  | Propósito                                                                            |
+| ----------------- | ----------------------------------------- | ------------------------------------------------------------------------------------ |
+| `APP_ID`          | release.yml                               | GitHub App ID                                                                        |
+| `APP_PRIVATE_KEY` | release.yml                               | Private key App (PEM)                                                                |
+| `APP_SSH_KEY`     | — (no usado)                              | SSH key git push — NO referenciado en ningún workflow (verificado grep ago 2026)     |
+| `APP_SSH_PUB`     | — (no usado)                              | Public key correspondiente — NO referenciado en ningún workflow                      |
+| `GIT_LEAKS`       | ci.yml job `secrets` (licensed, opcional) | Licencia Gitleaks (opcional; sin ella solo OSS + `::warning::` — nunca falla el job) |
 
-> **Secrets AWS de Phase 2 (deploy.yml) — NO PROVISIONADOS:** el workflow `deploy.yml` referencia 16+ secrets que **no existen** en GitHub (0 environments, 0 secrets AWS): `STAGING_TASK_EXECUTION_ROLE_ARN`, `STAGING_TASK_ROLE_ARN`, `STAGING_DATABASE_URL_SECRET_ARN`, `STAGING_JWT_SECRET_SECRET_ARN`, `STAGING_REFRESH_SECRETKEY_SECRET_ARN`, `STAGING_AES_GCM_KEY_SECRET_ARN`, `STAGING_AWS_REGION_SECRET_ARN`, `PROD_TASK_EXECUTION_ROLE_ARN`, `PROD_TASK_ROLE_ARN`, `PROD_DATABASE_URL_SECRET_ARN`, `PROD_JWT_SECRET_SECRET_ARN`, `PROD_REFRESH_SECRETKEY_SECRET_ARN`, `PROD_AES_GCM_KEY_SECRET_ARN`, `PROD_AWS_REGION_SECRET_ARN`, `STAGING_URL`, `PROD_URL`. Hasta que se provisione AWS, la Phase 2 queda SKIPPED (jobs `*-skipped`, `vars.AWS_ROLE_ARN == ''`). Relacionado: §6 deuda "0 environments / vars AWS".
+> **Secrets AWS de Phase 2 (deploy.yml) — NO PROVISIONADOS:** el workflow `deploy.yml` referencia 16+ secrets que **no
+> existen** en GitHub (0 environments, 0 secrets AWS): `STAGING_TASK_EXECUTION_ROLE_ARN`, `STAGING_TASK_ROLE_ARN`,
+> `STAGING_DATABASE_URL_SECRET_ARN`, `STAGING_JWT_SECRET_SECRET_ARN`, `STAGING_REFRESH_SECRETKEY_SECRET_ARN`,
+> `STAGING_AES_GCM_KEY_SECRET_ARN`, `STAGING_AWS_REGION_SECRET_ARN`, `PROD_TASK_EXECUTION_ROLE_ARN`,
+> `PROD_TASK_ROLE_ARN`, `PROD_DATABASE_URL_SECRET_ARN`, `PROD_JWT_SECRET_SECRET_ARN`,
+> `PROD_REFRESH_SECRETKEY_SECRET_ARN`, `PROD_AES_GCM_KEY_SECRET_ARN`, `PROD_AWS_REGION_SECRET_ARN`, `STAGING_URL`,
+> `PROD_URL`. Hasta que se provisione AWS, la Phase 2 queda SKIPPED (jobs `*-skipped`, `vars.AWS_ROLE_ARN == ''`).
+> Relacionado: §6 deuda "0 environments / vars AWS".
 
 ### 5.7 GHAS / Secret Scanning / Dependabot
 
-DISABLED. Repo público → OK hoy. Repo privado → dependency-review@v5 requiere GHAS (404/403). Secret scanning push protection off. Sin dependabot security updates.
+DISABLED (nativo de GitHub). Repo público → OK hoy. Repo privado → dependency-review@v5 requiere GHAS (404/403).
+Secret scanning push protection off. Sin dependabot security updates.
+
+> **Follow-up (change `secret-scanning`, 2026-09-25):** habilitar `secret_scanning` +
+> `secret_scanning_push_protection` en Settings → Code security (gratis en repo público; partner program notifica al
+> proveedor para revocación). Decisión de UI/API de GitHub, fuera del repo — el gate gitleaks de `ci.yml` (job
+> `secrets`, substage 2C) NO depende de esto.
 
 ### 5.8 CODEOWNERS y Dependabot
 
-CODEOWNERS: core-team default; frontend/backend/devops/qa/architects por path; `require_code_owner_review=true`. Dependabot: npm+github-actions+docker, weekly Mon, prefixes fix/ci, PRs pasan por mismo gate (¿firma? verificar).
+CODEOWNERS: core-team default; frontend/backend/devops/qa/architects por path; `require_code_owner_review=true`.
+Dependabot: npm+github-actions+docker, weekly Mon, prefixes fix/ci, PRs pasan por mismo gate (¿firma? verificar).
 
 ### 5.9 GitHub-level workflow toggle (`disabled_manually`) — inventario y operación
 
-> Hasta aquí el doc explicaba los gates **dentro** del YAML. Pero hay una segunda capa de control, a nivel de GitHub, que decide si un workflow corre **o no** (independiente del YAML). Esta subsección la documenta en profundidad porque es la causa real de que hoy "no pase nada" salvo el gate de gobernanza.
+> Hasta aquí el doc explicaba los gates **dentro** del YAML. Pero hay una segunda capa de control, a nivel de GitHub,
+> que decide si un workflow corre **o no** (independiente del YAML). Esta subsección la documenta en profundidad
+> porque es la causa real de que hoy "no pase nada" salvo el gate de gobernanza.
 
-**¿Qué es `disabled_manually`?** Estado del workflow en el registro de GitHub (`GH Actions`, do `actions/workflows` API). Cuando un workflow está así, GitHub **no ejecuta ninguno de sus triggers** (push/PR/cron/workflow*dispatch/merge_group), aunque el `.yml` exista y tenga `on:` perfectamente válido. El YAML no se evalúa: GitHub lo ignora por completo. Los archivos siguen en el repo (controlados por git), pero el \_toggle* está apagado.
+**¿Qué es `disabled_manually`?** Estado del workflow en el registro de GitHub (`GH Actions`, do `actions/workflows`
+API). Cuando un workflow está así, GitHub **no ejecuta ninguno de sus triggers**
+(push/PR/cron/workflow*dispatch/merge_group), aunque el `.yml` exista y tenga `on:` perfectamente válido. El YAML no
+se evalúa: GitHub lo ignora por completo. Los archivos siguen en el repo (controlados por git), pero el \_toggle* está
+apagado.
 
 **Diferencia con los gates `if:` del YAML (§3.1):**
 
@@ -381,24 +533,30 @@ O via UI: repo → Actions → <workflow> → ⋯ → Enable workflow.
 
 **Inventario real (API 2026-08-30; actualización `opencode-review.yml` → ACTIVE verificada por API 2026-09-14):**
 
-| Workflow                    | Estado                       | Qué esperaría dispararse hoy si NO estuviera deshabilitado                                                                  |
-| --------------------------- | ---------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
-| `ci.yml`                    | ✅ active                    | PR/push → 4 checks + dependency-review + zombie-guard                                                                       |
-| `opencode-review.yml`       | ✅ active (desde 2026-09-14) | PR main → comentario informativo de code review IA (check NO-required, GOVERNANCE; steps inline tras fix rate-limit §9.3.8) |
-| `security.yml`              | ⛔ disabled                  | PR/push main → SCA/SAST/secrets/SBOM                                                                                        |
-| `scheduled-security.yml`    | ⛔ disabled                  | cron Lun 03:00 → Gitleaks full-history + SARIF                                                                              |
-| `security-digest.yml`       | ⛔ disabled                  | cron Lun 03:00 → SBOM/OSV/digest                                                                                            |
-| `preview.yml`               | ⛔ disabled                  | PR main → backend validation + PR comment                                                                                   |
-| `deploy.yml`                | ⛔ disabled                  | push main → docker-build (+ Phase 2 si AWS)                                                                                 |
-| `release.yml`               | ⛔ disabled                  | push main → changesets + verifica firma                                                                                     |
-| `ci-enterprise.yml`         | ⛔ disabled                  | dispatch/call only (template inerte)                                                                                        |
-| (dependabot-updates config) | ✅ active                    | config dinámica de dependabot                                                                                               |
+| Workflow                    | Estado                                           | Qué esperaría dispararse hoy si NO estuviera deshabilitado                                                                  |
+| --------------------------- | ------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------- |
+| `ci.yml`                    | ✅ active                                        | PR/push → 4 checks + dependency-review + zombie-guard                                                                       |
+| `opencode-review.yml`       | ✅ active (desde 2026-09-14)                     | PR main → comentario informativo de code review IA (check NO-required, GOVERNANCE; steps inline tras fix rate-limit §9.3.8) |
+| `security.yml`              | ✅ active (2026-09-25, change `secret-scanning`) | PR/push main → SCA/SAST/SBOM (el gate de secretos vive en `ci.yml` job `secrets` substage 2C)                               |
+| `scheduled-security.yml`    | ✅ active (2026-09-25, change `secret-scanning`) | cron Lun 03:00 → Gitleaks full-history JSON/SARIF (advisory) + notify-failure por step-outcome                              |
+| `security-digest.yml`       | ⛔ disabled                                      | cron Lun 03:00 → SBOM/OSV/digest                                                                                            |
+| `preview.yml`               | ⛔ disabled                                      | PR main → backend validation + PR comment                                                                                   |
+| `deploy.yml`                | ⛔ disabled                                      | push main → docker-build (+ Phase 2 si AWS)                                                                                 |
+| `release.yml`               | ⛔ disabled                                      | push main → changesets + verifica firma                                                                                     |
+| `ci-enterprise.yml`         | ⛔ disabled                                      | dispatch/call only (template inerte)                                                                                        |
+| (dependabot-updates config) | ✅ active                                        | config dinámica de dependabot                                                                                               |
 
-> **Regla práctica:** un archive de change (evidence §9) prueba que el **código** del workflow existe y fue implementado; pero **NO prueba que el workflow esté habilitado** en GitHub. Para saber si algo corre hoy, consultar siempre la API de `actions/workflows` (§3.4/§3.5) — no asumir "activo" solo porque el archivo existe.
+> **Regla práctica:** un archive de change (evidence §9) prueba que el **código** del workflow existe y fue
+> implementado; pero **NO prueba que el workflow esté habilitado** en GitHub. Para saber si algo corre hoy, consultar
+> siempre la API de `actions/workflows` (§3.4/§3.5) — no asumir "activo" solo porque el archivo existe.
 
 ### 5.10 Snapshot granular — seguridad avanzada, protección y config fina del repo
 
-> Verificado por API 2026-08-30 (12 consultas read-only: `security_and_analysis`, `dependabot/secrets`, `actions/permissions/workflow`, `keys`, `rules/branches/main`, `automated-security-fixes`, `community/profile`, `topics`, flags finos del repo). **Resultado: 0 errores 403 (acceso de lectura completo confirmado).** Un único 404 esperado: `/dependabot/alert_rules` (feature enterprise, no aplica). Los siguientes bloques complementan §3.5/§5 con los campos que aquella auditoría no cubría.
+> Verificado por API 2026-08-30 (12 consultas read-only: `security_and_analysis`, `dependabot/secrets`,
+> `actions/permissions/workflow`, `keys`, `rules/branches/main`, `automated-security-fixes`, `community/profile`,
+> `topics`, flags finos del repo). **Resultado: 0 errores 403 (acceso de lectura completo confirmado).** Un único 404
+> esperado: `/dependabot/alert_rules` (feature enterprise, no aplica). Los siguientes bloques complementan §3.5/§5 con
+> los campos que aquella auditoría no cubría.
 
 **Advanced Security / Secret Scanning (`security_and_analysis`) — TODO DISABLED:**
 
@@ -410,9 +568,12 @@ O via UI: repo → Actions → <workflow> → ⋯ → Enable workflow.
 | `dependabot_security_updates`     | ❌ disabled | Dependabot solo abre version bumps (via config), no fix de seguridad                             |
 | `code_scanning`                   | ❌ disabled | No CodeQL push alerts; el SAST (CodeQL) de `security.yml` está además `disabled_manually` (§3.4) |
 
-> **Relación con §5.7:** el repo es PÚBLICO, así que hoy no falla nada. Pero esto explica por qué `dependency-review@v5` y Gitleaks/CodeQL corren fuera de GHAS. Si el repo pasa a privado, estas features se necesitarán sí o sí.
+> **Relación con §5.7:** el repo es PÚBLICO, así que hoy no falla nada. Pero esto explica por qué
+> `dependency-review@v5` y Gitleaks/CodeQL corren fuera de GHAS. Si el repo pasa a privado, estas features se
+> necesitarán sí o sí.
 
-**Deploy keys:** **0** (`[ ]`) — sin llaves de deploy; el acceso a deploy de GitHub Actions usa `APP_SSH_KEY`/`APP_SSH_PUB` (secretos, no deploy keys; y esos 2 NI SIQUIERA se referencian en workflows, §5.6).
+**Deploy keys:** **0** (`[ ]`) — sin llaves de deploy; el acceso a deploy de GitHub Actions usa
+`APP_SSH_KEY`/`APP_SSH_PUB` (secretos, no deploy keys; y esos 2 NI SIQUIERA se referencian en workflows, §5.6).
 
 **Dependabot secrets:** **0** — no hay secrets separados para dependabot (solo los 5 repo-level de §5.6).
 
@@ -420,7 +581,9 @@ O via UI: repo → Actions → <workflow> → ⋯ → Enable workflow.
 
 **Automated security fixes:** **disabled** (consistente con `security_and_analysis`).
 
-**Community profile:** **health 62%** — gaps confirmados por API: **no** Code of Conduct, **no** `ISSUE_TEMPLATE/` (ya en §6), **no** `LICENSE`. Files presentes: `README`, `CONTRIBUTING`, `PULL_REQUEST_TEMPLATE`. Coherente con repo público pero sin pulido community.
+**Community profile:** **health 62%** — gaps confirmados por API: **no** Code of Conduct, **no** `ISSUE_TEMPLATE/` (ya
+en §6), **no** `LICENSE`. Files presentes: `README`, `CONTRIBUTING`, `PULL_REQUEST_TEMPLATE`. Coherente con repo
+público pero sin pulido community.
 
 **Action workflow-level (granular):**
 
@@ -431,7 +594,11 @@ O via UI: repo → Actions → <workflow> → ⋯ → Enable workflow.
 | `can_approve_pull_request_reviews` | `false` | Los workflows/github-token NO pueden aprobar reviews (bien, previene auto-aprobación) |
 | `default workflow permissions`     | `read`  | El `GITHUB_TOKEN` por defecto es read-only                                            |
 
-**Branch protection clásica (raw, cross-check §5.2):** `required_signatures=false`, `enforce_admins=false`, `restrictions` vacío (sin users/teams/apps), `required_status_checks` con arrays vacíos, `required_conversation_resolution=true`, `block_creations=true`, `allow_force_pushes=false`, `allow_deletions=false`, `required_linear_history=true`. **Vestigial — el ruleset 21227644 es el enforcer real.** No hay `rules/branches/main` v2 adicionales (el control vive en el ruleset v2, §3.5).
+**Branch protection clásica (raw, cross-check §5.2):** `required_signatures=false`, `enforce_admins=false`,
+`restrictions` vacío (sin users/teams/apps), `required_status_checks` con arrays vacíos,
+`required_conversation_resolution=true`, `block_creations=true`, `allow_force_pushes=false`, `allow_deletions=false`,
+`required_linear_history=true`. **Vestigial — el ruleset 21227644 es el enforcer real.** No hay `rules/branches/main`
+v2 adicionales (el control vive en el ruleset v2, §3.5).
 
 **Flags finos del repo:**
 
@@ -446,7 +613,10 @@ O via UI: repo → Actions → <workflow> → ⋯ → Enable workflow.
 | `license`                                                    | ninguno (sin LICENSE, contribuye al health 62%) |
 | `homepage`                                                   | vacío                                           |
 
-> **Observación de auditoría:** el snapshot confirma que **toda la capa de seguridad avanzada está apagada** y el repo, pese a ser público, no tiene pulido community (sin LICENSE ni CoC ni issue template). Ninguno de estos gaps rompe el CI/CD de gobernanza hoy, pero son los candidatos a change OpenSpec si se quiere endurecer el repo (→ §7 regla 4: SECURITY/GOVERNANCE sin mezclar stages).
+> **Observación de auditoría:** el snapshot confirma que **toda la capa de seguridad avanzada está apagada** y el
+> repo, pese a ser público, no tiene pulido community (sin LICENSE ni CoC ni issue template). Ninguno de estos gaps
+> rompe el CI/CD de gobernanza hoy, pero son los candidatos a change OpenSpec si se quiere endurecer el repo (→ §7
+> regla 4: SECURITY/GOVERNANCE sin mezclar stages).
 
 ## 6. Deudas / Observaciones (verified 2026-08-28; re-verificación granular 2026-08-30 §5.10)
 
@@ -470,37 +640,61 @@ O via UI: repo → Actions → <workflow> → ⋯ → Enable workflow.
 
 1. **Leer este documento completo** antes de crear/implementar un change de CI/CD.
 2. **Verificar con `gh api` (§2)** antes de asumir estado — no confiar en docs viejas ni en memoria.
-3. **NO activar jobs `if: false` ni `CI_MINIMAL`** — son diseño incremental intencional, no bugs. Cualquier activación requiere change OpenSpec que justifique costo.
-4. **Clasificar la spec en un solo dominio**: GOVERNANCE (PRE-PR/merge) · SECURITY (SCA/SBOM/SAST/secrets/GHAS) · DEPLOY (POST-merge gating) · AUDIT (POST-merge logs/evidencia). **Regla de oro: un change NO mezcla stages** (un change de governance NO contiene items de otro stage).
-5. **Commits SIEMPRE firmados** (`git commit -S`, ED25519 dedicada). **NUNCA `--no-verify`** (rompe ruleset `required_signatures` y supply chain). Conventional Commits obligatorio.
-6. **dependency-review es SECURITY, no governance**: vive en `ci.yml` (inline, job `Dependency Review`), NO en `security.yml`; el change `ci-governance-pre-merge-gates` NO lo reclama como entregable (spec en archive del change, no en `openspec/specs/`).
-7. **"CI Complete" aún NO es status check del ruleset** (CI_MINIMAL=false desde 2026-09-17 → corre desde entonces) — no asumirlo como gate; para añadirlo, primero debe reportarse ≥1 vez.
+3. **NO activar jobs `if: false` ni `CI_MINIMAL`** — son diseño incremental intencional, no bugs. Cualquier activación
+   requiere change OpenSpec que justifique costo.
+4. **Clasificar la spec en un solo dominio**: GOVERNANCE (PRE-PR/merge) · SECURITY (SCA/SBOM/SAST/secrets/GHAS) ·
+   DEPLOY (POST-merge gating) · AUDIT (POST-merge logs/evidencia). **Regla de oro: un change NO mezcla stages** (un
+   change de governance NO contiene items de otro stage).
+5. **Commits SIEMPRE firmados** (`git commit -S`, ED25519 dedicada). **NUNCA `--no-verify`** (rompe ruleset
+   `required_signatures` y supply chain). Conventional Commits obligatorio.
+6. **dependency-review es SECURITY, no governance**: vive en `ci.yml` (inline, job `Dependency Review`), NO en
+   `security.yml`; el change `ci-governance-pre-merge-gates` NO lo reclama como entregable (spec en archive del
+   change, no en `openspec/specs/`).
+7. **"CI Complete" aún NO es status check del ruleset** (CI_MINIMAL=false desde 2026-09-17 → corre desde entonces) —
+   no asumirlo como gate; para añadirlo, primero debe reportarse ≥1 vez.
 8. **Cambiar el `name:` de un job del ruleset rompe el binding** de los 4 status checks. Nombres EXACTOS en §3.2.
-9. **Ver el historial**: change `ci-governance-pre-merge-gates` ARCHIVADO (2026-08-28) → `openspec/changes/archive/2026-08-28-ci-governance-pre-merge-gates/`. Sus specs OUT-OF-SCOPE (deploy-gating, rollback-strategy, audit-streaming, dependency-review) viven SOLO en el archive — los changes futuros de post-merge derivan de ahí (deferred).
+9. **Ver el historial**: change `ci-governance-pre-merge-gates` ARCHIVADO (2026-08-28) →
+   `openspec/changes/archive/2026-08-28-ci-governance-pre-merge-gates/`. Sus specs OUT-OF-SCOPE (deploy-gating,
+   rollback-strategy, audit-streaming, dependency-review) viven SOLO en el archive — los changes futuros de post-merge
+   derivan de ahí (deferred).
 10. **`.nvmrc` es la única fuente de verdad de Node** — nunca editar `node-version:` workflow por workflow.
 
 ## 8. Referencias
 
 - `.github/workflows/` — implementación real (fuente de verdad)
-- `.github/actions/setup-monorepo/action.yml` — composite action (setup-node con `node-version-file: .nvmrc`, npm ci, `actions/cache@v5` para Vitest; **NO hace checkout**)
+- `.github/actions/setup-monorepo/action.yml` — composite action (setup-node con `node-version-file: .nvmrc`, npm ci,
+  `actions/cache@v5` para Vitest; **NO hace checkout**)
 - `.github/CODEOWNERS`, `.github/dependabot.yml` — configs declarativas
-- `docs/learning/ci-cd/workflows-mantenimiento-guia.md` — runbook de mantenimiento (playbooks, checklist trimestral, inventario de actions)
-- `openspec/changes/archive/2026-08-28-ci-governance-pre-merge-gates/` — change archivado (proposal/design/tasks/specs + OUT-OF-SCOPE)
+- `docs/learning/ci-cd/workflows-mantenimiento-guia.md` — runbook de mantenimiento (playbooks, checklist trimestral,
+  inventario de actions)
+- `openspec/changes/archive/2026-08-28-ci-governance-pre-merge-gates/` — change archivado (proposal/design/tasks/specs
+  - OUT-OF-SCOPE)
 - `openspec/specs/ruleset-expansion/spec.md` — spec main sincronizada (7 requirements)
-- `docs/learning/eslint-configuration.md` — doc canónica ESLint flat config (capability `documentation-canónica-es`; sincronizada con `eslint.config.js` y jobs `*-complexity`)
-- `docs/learning/knip-configuration.md` — doc canónica knip (config única `/knip.jsonc`, descubrimiento CWD, semántica de merging)
+- `docs/learning/eslint-configuration.md` — doc canónica ESLint flat config (capability `documentation-canónica-es`;
+  sincronizada con `eslint.config.js` y jobs `*-complexity`)
+- `docs/learning/knip-configuration.md` — doc canónica knip (config única `/knip.jsonc`, descubrimiento CWD, semántica
+  de merging)
 - `docs/learning/ci-cd/` — curso de aprendizaje (00-20 + READMEs nivel)
 - `docs/ci-cd-pipeline-empresarial.md` — fuente conceptual del curso (NO modificar)
-- `docs/cicd-plantilla-completa.md` — doc vivo RETENIDO (estado actual + plan de implementación + índice cruzado; única copia de cicd-estado-actual.md y cicd-plan-implementacion.md)
+- `docs/cicd-plantilla-completa.md` — doc vivo RETENIDO (estado actual + plan de implementación + índice cruzado;
+  única copia de cicd-estado-actual.md y cicd-plan-implementacion.md)
 - `docs/archive/governance-roadmap.md` — matriz de cobertura governance (archivada)
 
 ---
 
 ## 9. Implementaciones — changes que ya están vivos
 
-> Catálogo de los changes OpenSpec **implementados** en el CI/CD de Project One, con el artefacto vivo que produjo cada uno. Verificado contra `.github/workflows/` y `openspec/changes/archive/` (2026-08-29). El change archivado en el que nace cada pieza es la trazabilidad; la implementación real (fuente de verdad) está en `.github/workflows/`.
+> Catálogo de los changes OpenSpec **implementados** en el CI/CD de Project One, con el artefacto vivo que produjo
+> cada uno. Verificado contra `.github/workflows/` y `openspec/changes/archive/` (2026-08-29). El change archivado en
+> el que nace cada pieza es la trazabilidad; la implementación real (fuente de verdad) está en `.github/workflows/`.
 >
-> **⚠️ "Implementado" ≠ "corriendo hoy":** este catálogo prueba que el **código** de cada pieza existe y fue implementado. Pero el **estado runtime** en GitHub es distinto: los workflows habilitados son **`ci.yml` y `opencode-review.yml`** (+ config dinámica `dependabot-updates`); los 7 restantes (`security.yml`, `security-digest.yml`, `scheduled-security.yml`, `deploy.yml`, `release.yml`, `preview.yml`, `ci-enterprise.yml`) están **`disabled_manually`** y NO corren en ningún trigger (§3.4/§3.5/§5.9). Es decir: las implementaciones de gobernanza (4 checks, jobs de ci.yml) + review IA advisory están **vivas**; las implementaciones de security/deploy/release/preview **existen en el código pero su workflow está apagado en GitHub**.
+> **⚠️ "Implementado" ≠ "corriendo hoy":** este catálogo prueba que el **código** de cada pieza existe y fue
+> implementado. Pero el **estado runtime** en GitHub es distinto: los workflows habilitados son **`ci.yml` y
+> `opencode-review.yml`** (+ config dinámica `dependabot-updates`); los 7 restantes (`security.yml`,
+> `security-digest.yml`, `scheduled-security.yml`, `deploy.yml`, `release.yml`, `preview.yml`, `ci-enterprise.yml`)
+> están **`disabled_manually`** y NO corren en ningún trigger (§3.4/§3.5/§5.9). Es decir: las implementaciones de
+> gobernanza (4 checks, jobs de ci.yml) + review IA advisory están **vivas**; las implementaciones de
+> security/deploy/release/preview **existen en el código pero su workflow está apagado en GitHub**.
 
 ### 9.1 Mapa changes implementados → artefactos vivos
 
@@ -526,7 +720,8 @@ O via UI: repo → Actions → <workflow> → ⋯ → Enable workflow.
 
 ### 9.2 Changes en curso (activos, no archivados)
 
-Estos cambios existen en `openspec/changes/` pero **aún no están archivados**; su estado de implementación varía y NO deben darse por cerrados:
+Estos cambios existen en `openspec/changes/` pero **aún no están archivados**; su estado de implementación varía y NO
+deben darse por cerrados:
 
 | Change                                                        | Estado probable      | Nota                                                                                               |
 | ------------------------------------------------------------- | -------------------- | -------------------------------------------------------------------------------------------------- |
@@ -539,16 +734,28 @@ Estos cambios existen en `openspec/changes/` pero **aún no están archivados**;
 
 ### 9.3 Cómo funciona cada implementación del gate (detalle verificado en `ci.yml`)
 
-Esta subsección explica el **mecanismo real** de las implementaciones que protegen el merge a `main` (los 4 checks vinculados al ruleset 21227644, más los jobs no-required). Todo verificado contra `.github/workflows/ci.yml` (1189 líneas tras `knip-consolidation`/`eslint-configuration`, 2026-09-23).
+Esta subsección explica el **mecanismo real** de las implementaciones que protegen el merge a `main` (los 4 checks
+vinculados al ruleset 21227644, más los jobs no-required). Todo verificado contra `.github/workflows/ci.yml` (1189
+líneas tras `knip-consolidation`/`eslint-configuration`, 2026-09-23).
 
-**Contexto de triggers y scoping:** `ci.yml` corre en `pull_request → main` y `merge_group`. Usa `dorny/paths-filter` para detectar qué workspace cambió (`client`/`server`/`e2e`/`shared`) — los jobs quality/build dependen de ese filtro (hoy `if: false`, excepto `client-lint`/`server-lint`/`actionlint`, path-scoped activos desde `ci-prebuild-quality-lint`, §9.1). El `concurrency` cancela runs previos del mismo PR (`pr-<n>`) o merge queue (`merge-group-<ref>`).
+**Contexto de triggers y scoping:** `ci.yml` corre en `pull_request → main` y `merge_group`. Usa `dorny/paths-filter`
+para detectar qué workspace cambió (`client`/`server`/`e2e`/`shared`) — los jobs quality/build dependen de ese filtro
+(hoy `if: false`, excepto `client-lint`/`server-lint`/`actionlint`, path-scoped activos desde
+`ci-prebuild-quality-lint`, §9.1). El `concurrency` cancela runs previos del mismo PR (`pr-<n>`) o merge queue
+(`merge-group-<ref>`).
 
 #### 9.3.1 `verify-signatures` → check "Verify Commit Signatures" (REQUIRED)
 
-- **Qué hace:** valida que cada commit NUEVO del PR esté firmado **y verificado** por GitHub (`.commit.verification.verified == true`), consultando la REST API.
-- **Cómo lo logra:** usa el endpoint `compare/base.sha...head.sha` (límite 250 commits/llamada) en lugar de paginar `GET /pulls/{n}/commits` — así solo evalúa los commits nuevos del PR, no los históricos de main.
-- **Grandfathering (corte):** commits con `author.date < ROLLOUT_DATE="2026-08-01"` se consideran exonerados (`grandfathered`) y NO fallan — evita exigir firma retroactiva a commits previos al rollout de _ci-commit-signing_. El lote contaminado de PR #99 nunca entró a main (squash).
-- **Anti-stale retry:** tolera el retraso de propagación de verificación de firma (~30s post-push). Con hasta 5 reintentos individuales por run, recupera SHAs que GitHub aún no marcó verified (bug ref: run 32661559666). El fallo solo cuenta si el check individual TAMBIÉN da no-verificado y NO es grandfathered.
+- **Qué hace:** valida que cada commit NUEVO del PR esté firmado **y verificado** por GitHub
+  (`.commit.verification.verified == true`), consultando la REST API.
+- **Cómo lo logra:** usa el endpoint `compare/base.sha...head.sha` (límite 250 commits/llamada) en lugar de paginar
+  `GET /pulls/{n}/commits` — así solo evalúa los commits nuevos del PR, no los históricos de main.
+- **Grandfathering (corte):** commits con `author.date < ROLLOUT_DATE="2026-08-01"` se consideran exonerados
+  (`grandfathered`) y NO fallan — evita exigir firma retroactiva a commits previos al rollout de _ci-commit-signing_.
+  El lote contaminado de PR #99 nunca entró a main (squash).
+- **Anti-stale retry:** tolera el retraso de propagación de verificación de firma (~30s post-push). Con hasta 5
+  reintentos individuales por run, recupera SHAs que GitHub aún no marcó verified (bug ref: run 32661559666). El fallo
+  solo cuenta si el check individual TAMBIÉN da no-verificado y NO es grandfathered.
 - **Null tolerance:** `jq ... // false` para que `verification: null` no crashee y no se pase como verified.
 - **Merge group:** evalúa un solo SHA (`github.sha`) vía `GET /commits/{sha}`.
 - **Si falla:** `exit 1` → propaga al ruleset (bloquea merge).
@@ -556,69 +763,172 @@ Esta subsección explica el **mecanismo real** de las implementaciones que prote
 #### 9.3.2 `commit-lint` → check "Commit Lint (Conventional Commits)" (REQUIRED)
 
 - **Qué hace:** valida que los mensajes de commit del PR sigan **Conventional Commits** con `commitlint --verbose`.
-- **PR:** `npx commitlint --from BASE_SHA --to HEAD_SHA --verbose` (con guard que falla si el rango base..head está vacío).
+- **PR:** `npx commitlint --from BASE_SHA --to HEAD_SHA --verbose` (con guard que falla si el rango base..head está
+  vacío).
 - **Merge group:** `npx commitlint --last --verbose` (valida el título del squash commit).
 
 #### 9.3.3 `pr-title-lint` → check "PR Title Lint" (REQUIRED, BLOCKING desde 2026-08-31)
 
-- **Qué hace:** valida el **título del PR** contra Conventional Commits usando `amannn/action-semantic-pull-request@v6` (must/standard: Vite, Electron, PostHog).
-- **Tipos permitidos:** feat/fix/docs/style/refactor/perf/test/build/ci/chore/revert/**ops** (ops añadido 2026-08-31 para infra); `requireScope: false`; subject sin mayúscula inicial (`^(?![A-Z]).+$` — permite acrónimos internos como "AWS"; cambiado desde `^[a-z]` 2026-08-31); `ignoreLabels: bot`, `ignore-semantic-pull-request`.
-- **Merge group:** skip (el título del squash ya lo valida commitlint). **Merge queue NO está activo** → step `if: merge_group` es dead code (ver §3.3/§5.3).
-- **`continue-on-error`:** **removido** 2026-08-31 → **BLOCKING**. Nota: el análisis @researcher señaló que un check "required pero `continue-on-error: true`" es anti-patrón de gobernanza ("required pero non-blocking" erosiona confianza).
+- **Qué hace:** valida el **título del PR** contra Conventional Commits usando
+  `amannn/action-semantic-pull-request@v6` (must/standard: Vite, Electron, PostHog).
+- **Tipos permitidos:** feat/fix/docs/style/refactor/perf/test/build/ci/chore/revert/**ops** (ops añadido 2026-08-31
+  para infra); `requireScope: false`; subject sin mayúscula inicial (`^(?![A-Z]).+$` — permite acrónimos internos como
+  "AWS"; cambiado desde `^[a-z]` 2026-08-31); `ignoreLabels: bot`, `ignore-semantic-pull-request`.
+- **Merge group:** skip (el título del squash ya lo valida commitlint). **Merge queue NO está activo** → step `if:
+merge_group` es dead code (ver §3.3/§5.3).
+- **`continue-on-error`:** **removido** 2026-08-31 → **BLOCKING**. Nota: el análisis @researcher señaló que un check
+  "required pero `continue-on-error: true`" es anti-patrón de gobernanza ("required pero non-blocking" erosiona
+  confianza).
 
 #### 9.3.4 `dco` → check "DCO" (REQUIRED, BLOCKING desde 2026-08-31)
 
 - **Qué hace:** exige `Signed-off-by` en cada commit del PR vía `KineticCafe/actions-dco@v3.2.0`.
-- **Bot policy:** `[bot] policy="well-known"` con categoría `dependency-updaters` (bots conocidos como Dependabot no fallan).
+- **Bot policy:** `[bot] policy="well-known"` con categoría `dependency-updaters` (bots conocidos como Dependabot no
+  fallan).
 - **Merge group:** skip (DCO es a nivel PR; el squash no lleva trailers individuales).
 - **`continue-on-error`:** **removido** 2026-08-31 → **BLOCKING** (mismo criterio que pr-title-lint §9.3.3).
 
 #### 9.3.5 `dependency-review` → check "Dependency Review" (NO REQUIRED)
 
-- **Qué hace:** `actions/dependency-review-action@v5` en PR; bloquea dependencias con vulnerabilidades `>= moderate` (`fail-on-severity: moderate`) + checks de licencia.
-- **No está en el ruleset** (no es status check; es gate de seguridad, NO governance — ver §7 regla 6). Vive inline en `ci.yml` (no en `security.yml`) para que `ci-complete.needs` resuelva.
+- **Qué hace:** `actions/dependency-review-action@v5` en PR; bloquea dependencias con vulnerabilidades `>= moderate`
+  (`fail-on-severity: moderate`) + checks de licencia. Política de licencias: `deny-licenses` (lista negra alineada
+  con `LICENSE_DENY_LIST`) + `comment-summary-in-pr: on-failure` (change `dependency-review`, 2026-09-25 — ver
+  `docs/learning/dependency-review.md` §4.2 y la tabla canónica de `quality-gates.md` §2).
+- **No está en el ruleset** (no es status check; es gate de seguridad, NO governance — ver §7 regla 6). Vive inline en
+  `ci.yml` (no en `security.yml`) para que `ci-complete.needs` resuelva.
 
 #### 9.3.6 `zombie-workflow-guard` → check "Zombie Workflow Guard" (NO REQUIRED)
 
-- **Qué hace:** faila el build si reaparece un workflow que debía estar eliminado (`pr-validation.yml`, `lint.yml`, `formatter.yml`, `quality.yml`). Previene regresiones de archivos borrados.
+- **Qué hace:** faila el build si reaparece un workflow que debía estar eliminado (`pr-validation.yml`, `lint.yml`,
+  `formatter.yml`, `quality.yml`). Previene regresiones de archivos borrados.
 - `needs: repo-discovery`; timeout 2 min.
 
 #### 9.3.7 `ci-complete` → check "CI Complete" (NO REQUIRED, agrega todos)
 
 - **Qué hace:** agregador único que pasa si TODOS los jobs upstream (quality/build/test/lint/sec) pasan o se saltan.
-- **`if: ${{ vars.CI_MINIMAL != 'true' && always() }}`** → con `CI_MINIMAL=false` (desde 2026-09-17, change `ci-prebuild-quality-lint` task 8) CORRE y se reporta. Por eso "CI Complete" aún NO es status check del ruleset (debe reportarse ≥1 vez para vincularlo).
+- **`if: ${{ vars.CI_MINIMAL != 'true' && always() }}`** → con `CI_MINIMAL=false` (desde 2026-09-17, change
+  `ci-prebuild-quality-lint` task 8) CORRE y se reporta. Por eso "CI Complete" aún NO es status check del ruleset
+  (debe reportarse ≥1 vez para vincularlo).
 
 #### 9.3.8 `opencode-review` → check "OpenCode AI Code Review" (NO REQUIRED, informativo)
 
-> Workflow aparte `opencode-review.yml` (change `ci-opencode-code-review`, 2026-09-02). NO forma parte de `ci.yml`; es un workflow independiente, **ACTIVE desde 2026-09-14** (antes `disabled_manually` por defecto, §5.9; fix rate-limit `ci-opencode-review-fix`) y **NO está vinculado al ruleset** (no es status check requerido).
+> Workflow aparte `opencode-review.yml` (change `ci-opencode-code-review`, 2026-09-02). NO forma parte de `ci.yml`; es
+> un workflow independiente, **ACTIVE desde 2026-09-14** (antes `disabled_manually` por defecto, §5.9; fix rate-limit
+> `ci-opencode-review-fix`) y **NO está vinculado al ruleset** (no es status check requerido).
 
-- **Qué hace:** dispara un **comentario informativo de code review IA** en el PR (al abrirlo y en cada `synchronize`/`reopened`) hacia `main`. Es feedback temprano de **calidad/bugs/seguridad/rendimiento/convenciones** del diff, en bullets, con "LGTM" si no hay issues.
-- **GOVERNANCE informativo (§7 regla 6):** `continue-on-error: true` y **NO es status check del ruleset** → **NO bloquea el merge ni sustituye la aprobación humana** (`required_approving_review_count` sigue exigiendo review humano/CODEOWNERS). Es una capa de feedback, no un gate.
-- **Modelo (config):** steps inline (`Install opencode` + `opencode github run`, desde fix 2026-09-14; antes composite action `anomalyco/opencode/github`) usando Google Gemini `google/gemini-3.6-flash` (free, ~10 RPM, 250K TPM, 1M context, thinking soportado) vía **dos mecanismos complementarios**: (1) la env var **`MODEL=google/gemini-3.6-flash`** (antes input `model:` de la action, que lo seteaba internamente; opencode lo consume al ejecutar `opencode github run`; **sin esta var, el job falla con `Environment variable "MODEL" is not set`** — bug detectado en el primer run real 2026-09-03) y (2) el env **`OPENCODE_CONFIG_CONTENT`** que define el provider Google. Google Gemini es **built-in** en opencode → no requiere npm custom ni configuración compleja. Requiere el secret **`GEMINI_API_KEY`** (obtenible en https://aistudio.google.com/apikey; **debe ser auth key**, las standard keys se rechazan desde sep 2026). **API key env (fix 2026-09-04):** el primer run real con Gemini falló con `AI_LoadAPIKeyError: Google Generative AI API key is missing. Pass it using the 'apiKey' parameter or the GOOGLE_GENERATIVE_AI_API_KEY environment variable` → **`@ai-sdk/google` espera `GOOGLE_GENERATIVE_AI_API_KEY`** (no `GEMINI_API_KEY`). Se configuran las **3 variantes** (`GEMINI_API_KEY`, `GOOGLE_GENERATIVE_AI_API_KEY`, `GOOGLE_API_KEY`) apuntando al mismo secret para compatibilidad. **Modelo deprecado (fix 2026-09-05):** `google/gemini-2.5-flash` devolvió 404 `no longer available to new users` en el primer run con API key válida → migrado a `google/gemini-3.6-flash` (GA julio 2026; endpoint legacy `generateContent` sigue soportado, la mención a Interactions API es recomendación no requisito). **Small model (fix 2026-09-04):** el agente `title` resolvía `gemini-3.8-flash` del catálogo models.dev (modelo más barato/rápido auto-seleccionado); se fija `small_model: google/gemini-3.6-flash` en el config para determinismo. **Thinking mode (fix 2026-09-05):** se intentó habilitar con `thinkingConfig: { thinkingBudget: 8192 }` pero dio 400 `You can only set only one of thinking budget and thinking level` — Google exige **mutua exclusividad**; `thinkingBudget` es param de Gemini 2.5 y opencode ya **inyecta internamente** `thinkingLevel: 'high'` para modelos gemini-3 (`options()` en transform.ts). Fix: **eliminar `thinkingConfig` por completo** del config; opencode maneja el thinking correctamente (orchestrator → `high`, title/small → `minimal`). **Nota (2026-09-02-04):** el workflow pasó por varios modelos de Groq que fallaron: `groq/llama-3.3-70b-versatile` (deprecado), `gpt-oss-120b` (404 + reasoning_content), `openai/gpt-oss-120b` (413 TPM + 400 reasoning_content), `groq/compound-mini` (404). Decisión final: migrar a Google Gemini que es built-in, tiene ~15 RPM free tier, 1M context, y no tiene issues de reasoning_content.
-- **Rate-limit / fallback (2.3):** Groq free-tier puede agotarse (~30 RPM). Fallback previsto a `opencode/free` (modelo del `opencode.jsonc` vía `omniroute`/`oc/free`); si ambos se agotan, postear advisory de rate-limit y salir de forma limpia (el job NO debe fallar el build por esto — `continue-on-error: true`).
-- **Prompt-injection (4.2):** la revisión es **advisory-only**. El código revisado podría contener instrucciones maliciosas dirigidas al modelo; el comentario NO debe tratarse como gate ni como aprobación, y un humano decide el merge.
-- **Supply chain (4.3):** steps inline descargan el binario pineado **v1.18.31** desde `https://github.com/anomalyco/opencode/releases/download/v1.18.31/opencode-linux-x64.tar.gz` (releases inmutables; URL hardcodeada, sin lookup dinámico; Linux usa `.tar.gz` extraído con `tar xzf`, macOS/Windows usan `.zip`). Antes: `anomalyco/opencode/github@5d5c35ee71c095464b9eb3c3e991df906f12a152` (SHA-pinned 2026-09-04, verificado GPG-signed). **Corrección 2026-09-17:** el fix 2026-09-14 asumió `.zip` en Linux, pero el asset `opencode-linux-x64.zip` NO existe en v1.18.31 (verificado vía GitHub Releases API; sha256 `e9312be75ed803b7415fc2aeabda1f4fe938912a39673762dc0c38c0e11ebde4`). **Caveat (issue #39163, aplica al diseño anterior):** SHA-pinning protegía contra tampering de action.yml/scripts pero NO contra binary supply chain — el binario opencode se resolvía desde GitHub releases API en runtime, no desde el SHA fijado. El diseño inline elimina la action intermedia (menor superficie) pero mantiene la misma dependencia del release upstream; si la URL cambia, actualizar el step `Install opencode`.
-- **Toggle / enablement (3.1/4.4):** el workflow nació `disabled_manually`. Para activarlo: (1) provisionar secret `GEMINI_API_KEY` (https://aistudio.google.com/apikey), (2) `gh workflow enable .github/workflows/opencode-review.yml` (o UI → Actions → Enable), (3) verificar en un PR de prueba que comenta y NO bloquea. **Estado 2026-09-14: ACTIVE (auditado por API).**
-- **Causa raíz + fix aplicado (2026-09-14, change `ci-opencode-review-fix`):** el step interno `Get opencode version` de la composite action fallaba con exit 1 — `curl -sf` sin auth contra la API de releases sufre rate-limit (403/429 en runners compartidos) y con `bash -e -o pipefail` el script muere antes de alcanzar el fallback `${VERSION:-latest}` (dead code). Upstream `not_planned` (#32635/#35120/#31387), sin input para overriding de versión. **Fix:** eliminar la composite action; dos steps inline — (1) `Install opencode`: descarga tar.gz v1.18.31, `tar xzf` a `$HOME/.opencode/bin` (Linux usa `.tar.gz`; macOS/Windows usan `.zip`), `chmod +x`, añade a `GITHUB_PATH`, verifica con `opencode --version` (**corrección 2026-09-17:** el diseño 2026-09-14 asumió `.zip` + `unzip`, pero ese asset no existe en v1.18.31); (2) `Run OpenCode AI review`: `opencode github run` con env `MODEL`, `USE_GITHUB_TOKEN=true`, `GITHUB_TOKEN`, `PROMPT` (mismo texto del antiguo `with: prompt:` — el CLI NO acepta flag `--prompt`; la action lo pasaba vía env `PROMPT`, `github/action.yml` L62), `OPENCODE_CONFIG_CONTENT` + las 3 variantes de API key. Comportamiento externo idéntico: trigger, permisos, concurrencia, timeout 10, `continue-on-error: true`, exclusiones fork/dependabot/draft.
+- **Qué hace:** dispara un **comentario informativo de code review IA** en el PR (al abrirlo y en cada
+  `synchronize`/`reopened`) hacia `main`. Es feedback temprano de **calidad/bugs/seguridad/rendimiento/convenciones**
+  del diff, en bullets, con "LGTM" si no hay issues.
+- **GOVERNANCE informativo (§7 regla 6):** `continue-on-error: true` y **NO es status check del ruleset** → **NO
+  bloquea el merge ni sustituye la aprobación humana** (`required_approving_review_count` sigue exigiendo review
+  humano/CODEOWNERS). Es una capa de feedback, no un gate.
+- **Modelo (config):** steps inline (`Install opencode` + `opencode github run`, desde fix 2026-09-14; antes composite
+  action `anomalyco/opencode/github`) usando Google Gemini `google/gemini-3.6-flash` (free, ~10 RPM, 250K TPM, 1M
+  context, thinking soportado) vía **dos mecanismos complementarios**: (1) la env var
+  **`MODEL=google/gemini-3.6-flash`** (antes input `model:` de la action, que lo seteaba internamente; opencode lo
+  consume al ejecutar `opencode github run`; **sin esta var, el job falla con `Environment variable "MODEL" is not
+set`** — bug detectado en el primer run real 2026-09-03) y (2) el env **`OPENCODE_CONFIG_CONTENT`** que define el
+  provider Google. Google Gemini es **built-in** en opencode → no requiere npm custom ni configuración compleja.
+  Requiere el secret **`GEMINI_API_KEY`** (obtenible en https://aistudio.google.com/apikey; **debe ser auth key**, las
+  standard keys se rechazan desde sep 2026). **API key env (fix 2026-09-04):** el primer run real con Gemini falló con
+  `AI_LoadAPIKeyError: Google Generative AI API key is missing. Pass it using the 'apiKey' parameter or the
+GOOGLE_GENERATIVE_AI_API_KEY environment variable` → **`@ai-sdk/google` espera `GOOGLE_GENERATIVE_AI_API_KEY`** (no
+  `GEMINI_API_KEY`). Se configuran las **3 variantes** (`GEMINI_API_KEY`, `GOOGLE_GENERATIVE_AI_API_KEY`,
+  `GOOGLE_API_KEY`) apuntando al mismo secret para compatibilidad. **Modelo deprecado (fix 2026-09-05):**
+  `google/gemini-2.5-flash` devolvió 404 `no longer available to new users` en el primer run con API key válida →
+  migrado a `google/gemini-3.6-flash` (GA julio 2026; endpoint legacy `generateContent` sigue soportado, la mención a
+  Interactions API es recomendación no requisito). **Small model (fix 2026-09-04):** el agente `title` resolvía
+  `gemini-3.8-flash` del catálogo models.dev (modelo más barato/rápido auto-seleccionado); se fija `small_model:
+google/gemini-3.6-flash` en el config para determinismo. **Thinking mode (fix 2026-09-05):** se intentó habilitar
+  con `thinkingConfig: { thinkingBudget: 8192 }` pero dio 400 `You can only set only one of thinking budget and
+thinking level` — Google exige **mutua exclusividad**; `thinkingBudget` es param de Gemini 2.5 y opencode ya
+  **inyecta internamente** `thinkingLevel: 'high'` para modelos gemini-3 (`options()` en transform.ts). Fix:
+  **eliminar `thinkingConfig` por completo** del config; opencode maneja el thinking correctamente (orchestrator →
+  `high`, title/small → `minimal`). **Nota (2026-09-02-04):** el workflow pasó por varios modelos de Groq que
+  fallaron: `groq/llama-3.3-70b-versatile` (deprecado), `gpt-oss-120b` (404 + reasoning_content),
+  `openai/gpt-oss-120b` (413 TPM + 400 reasoning_content), `groq/compound-mini` (404). Decisión final: migrar a Google
+  Gemini que es built-in, tiene ~15 RPM free tier, 1M context, y no tiene issues de reasoning_content.
+- **Rate-limit / fallback (2.3):** Groq free-tier puede agotarse (~30 RPM). Fallback previsto a `opencode/free`
+  (modelo del `opencode.jsonc` vía `omniroute`/`oc/free`); si ambos se agotan, postear advisory de rate-limit y salir
+  de forma limpia (el job NO debe fallar el build por esto — `continue-on-error: true`).
+- **Prompt-injection (4.2):** la revisión es **advisory-only**. El código revisado podría contener instrucciones
+  maliciosas dirigidas al modelo; el comentario NO debe tratarse como gate ni como aprobación, y un humano decide el
+  merge.
+- **Supply chain (4.3):** steps inline descargan el binario pineado **v1.18.31** desde
+  `https://github.com/anomalyco/opencode/releases/download/v1.18.31/opencode-linux-x64.tar.gz` (releases inmutables;
+  URL hardcodeada, sin lookup dinámico; Linux usa `.tar.gz` extraído con `tar xzf`, macOS/Windows usan `.zip`). Antes:
+  `anomalyco/opencode/github@5d5c35ee71c095464b9eb3c3e991df906f12a152` (SHA-pinned 2026-09-04, verificado GPG-signed).
+  **Corrección 2026-09-17:** el fix 2026-09-14 asumió `.zip` en Linux, pero el asset `opencode-linux-x64.zip` NO
+  existe en v1.18.31 (verificado vía GitHub Releases API; sha256
+  `e9312be75ed803b7415fc2aeabda1f4fe938912a39673762dc0c38c0e11ebde4`). **Caveat (issue #39163, aplica al diseño
+  anterior):** SHA-pinning protegía contra tampering de action.yml/scripts pero NO contra binary supply chain — el
+  binario opencode se resolvía desde GitHub releases API en runtime, no desde el SHA fijado. El diseño inline elimina
+  la action intermedia (menor superficie) pero mantiene la misma dependencia del release upstream; si la URL cambia,
+  actualizar el step `Install opencode`.
+- **Toggle / enablement (3.1/4.4):** el workflow nació `disabled_manually`. Para activarlo: (1) provisionar secret
+  `GEMINI_API_KEY` (https://aistudio.google.com/apikey), (2) `gh workflow enable
+.github/workflows/opencode-review.yml` (o UI → Actions → Enable), (3) verificar en un PR de prueba que comenta y NO
+  bloquea. **Estado 2026-09-14: ACTIVE (auditado por API).**
+- **Causa raíz + fix aplicado (2026-09-14, change `ci-opencode-review-fix`):** el step interno `Get opencode version`
+  de la composite action fallaba con exit 1 — `curl -sf` sin auth contra la API de releases sufre rate-limit (403/429
+  en runners compartidos) y con `bash -e -o pipefail` el script muere antes de alcanzar el fallback
+  `${VERSION:-latest}` (dead code). Upstream `not_planned` (#32635/#35120/#31387), sin input para overriding de
+  versión. **Fix:** eliminar la composite action; dos steps inline — (1) `Install opencode`: descarga tar.gz v1.18.31,
+  `tar xzf` a `$HOME/.opencode/bin` (Linux usa `.tar.gz`; macOS/Windows usan `.zip`), `chmod +x`, añade a
+  `GITHUB_PATH`, verifica con `opencode --version` (**corrección 2026-09-17:** el diseño 2026-09-14 asumió `.zip` +
+  `unzip`, pero ese asset no existe en v1.18.31); (2) `Run OpenCode AI review`: `opencode github run` con env `MODEL`,
+  `USE_GITHUB_TOKEN=true`, `GITHUB_TOKEN`, `PROMPT` (mismo texto del antiguo `with: prompt:` — el CLI NO acepta flag
+  `--prompt`; la action lo pasaba vía env `PROMPT`, `github/action.yml` L62), `OPENCODE_CONFIG_CONTENT` + las 3
+  variantes de API key. Comportamiento externo idéntico: trigger, permisos, concurrencia, timeout 10,
+  `continue-on-error: true`, exclusiones fork/dependabot/draft.
 
-> **Conclusión de contexto:** hoy, los ÚNICOS checks que bloquean el merge a `main` son los 4 del ruleset (`Verify Commit Signatures`, `Commit Lint`, `PR Title Lint`, `DCO`) — y desde 2026-08-31 los 4 son **BLOCKING** (se removió `continue-on-error` en pr-title-lint y dco). Jobs de calidad activos hoy (path-scoped, NO required): `client-lint`/`server-lint`/`actionlint` (desde 2026-09-17), `client-dead-code`/`server-dead-code` (knip, `continue-on-error: true`) y `client-complexity` (desde `knip-consolidation`/`eslint-configuration`, 2026-09-23). El resto (format-check, typecheck, \*-import-bounds, \*-build, sonarqube, coverage, depcheck, tests, server-complexity) sigue `if: false` por diseño de CI incremental (§3.1), NO por fallo. `CI_MINIMAL=false` desde 2026-09-17 (change `ci-prebuild-quality-lint`, task 8) → `ci-complete` corre desde entonces.
+> **Conclusión de contexto:** hoy, los ÚNICOS checks que bloquean el merge a `main` son los 4 del ruleset (`Verify
+Commit Signatures`, `Commit Lint`, `PR Title Lint`, `DCO`) — y desde 2026-08-31 los 4 son **BLOCKING** (se removió
+> `continue-on-error` en pr-title-lint y dco). Jobs de calidad activos hoy (path-scoped, NO required):
+> `client-lint`/`server-lint`/`actionlint` (desde 2026-09-17), `client-dead-code`/`server-dead-code` (knip,
+> `continue-on-error: true`), `client-complexity` (desde 2026-09-23), `client/server-typecheck` + +
+> `server-complexity` + `docs-validation` (desde `quality-gates`, 2026-09-26) y `client/server-import-bounds` (desde
+> `import-boundaries`, 2026-09-25). El resto (server-format-check, \*-build, sonarqube, coverage,
+> depcheck, tests) sigue `if: false` por
+> diseño de CI incremental (§3.1), NO por fallo. Taxonomía blocking/advisory canónica:
+> `docs/learning/quality-gates.md` §2. `CI_MINIMAL=false` desde 2026-09-17 (change `ci-prebuild-quality-lint`, task 8)
+> → `ci-complete` corre desde entonces.
 
 #### 9.3.9 `sast` → job "SAST (Semgrep)" en `ci.yml` (SAST Governance Layer)
 
-**Descripción del job:** job `sast` en `.github/workflows/ci.yml` corriendo sobre `docker run --rm -v ${{ github.workspace }}:/src semgrep/semgrep:1.176.1 semgrep scan`. Configuración clave:
+**Descripción del job:** job `sast` en `.github/workflows/ci.yml` corriendo sobre `docker run --rm -v ${{
+github.workspace }}:/src semgrep/semgrep:1.176.1 semgrep scan`. Configuración clave:
 
 - **Imagen:** `semgrep/semgrep:1.176.1` (pinado Docker, verified 2026-09-04).
-- **Packs inline (9):** `p/owasp-top-ten`, `p/security-audit`, `p/secrets`, `p/nodejs`, `p/expressjs`, `p/sql-injection`, `p/command-injection`, `p/react`, `p/xss`.
-- **Reglas custom (`--config .semgrep/rules`):** cargadas **antes** que los packs `p/...`. El directorio `.semgrep/rules/` está versionado en el repo y contiene reglas YAML custom. En Semgrep, las reglas local tienen prioridad sobre los packs remotos si cubren el mismo CWE.
-- **8 excludes:** `node_modules`, `dist`, `build`, `coverage`, `.env`, `* .min.js`, `prisma/generated`, `e2` (patrones de directorio simple, paridad con `.semgrepignore`; FIX-1: `prisma/generated` usa forma simple sin glob `**`).
-- **Severidad y fail-on:** `--severity ERROR --error` — solo reporta reglas ERROR y sale con exit 1 si hay findings; los warnings no bloquean. (Antes `semgrep ci --severity ERROR --fail-on error`, roto: `ci` no soporta `--severity` — issue #5075 wontfix — ni `--fail-on`; `scan` sí soporta ambos vía `--error`.)
-- **Telemetría:** `--metrics off` — desactiva el envío de métricas en CI (con `--config p/...` del registry el default `auto` las enviaría).
-- **Baseline con `--baseline-commit`:** usa `${{ github.event.pull_request.base.sha }}` para comparar contra el commit base del PR (diff-scoped), no sobre toda la historia. Esto permite detectar nuevas vulnerabilidades en el PR sin ruido del código existente.
-- **Modo non-blocking (F1):** `continue-on-error: true` — el job **nunca bloquea el merge**. Los resultados aparecen como advertencia en la pestaña Code Scanning de GitHub, pero no impiden el merge. Esto permite un rollout phased: F1 non-blocking en la fase actual, con intención de hacer F2 blocking después de validar resultados (Regla 8).
+- **Packs inline (9):** `p/owasp-top-ten`, `p/security-audit`, `p/secrets`, `p/nodejs`, `p/expressjs`,
+  `p/sql-injection`, `p/command-injection`, `p/react`, `p/xss`.
+- **Reglas custom (`--config .semgrep/rules`):** cargadas **antes** que los packs `p/...`. El directorio
+  `.semgrep/rules/` está versionado en el repo y contiene reglas YAML custom. En Semgrep, las reglas local tienen
+  prioridad sobre los packs remotos si cubren el mismo CWE.
+- **8 excludes:** `node_modules`, `dist`, `build`, `coverage`, `.env`, `* .min.js`, `prisma/generated`, `e2` (patrones
+  de directorio simple, paridad con `.semgrepignore`; FIX-1: `prisma/generated` usa forma simple sin glob `**`).
+- **Severidad y fail-on:** `--severity ERROR --error` — solo reporta reglas ERROR y sale con exit 1 si hay findings;
+  los warnings no bloquean. (Antes `semgrep ci --severity ERROR --fail-on error`, roto: `ci` no soporta `--severity` —
+  issue #5075 wontfix — ni `--fail-on`; `scan` sí soporta ambos vía `--error`.)
+- **Telemetría:** `--metrics off` — desactiva el envío de métricas en CI (con `--config p/...` del registry el default
+  `auto` las enviaría).
+- **Baseline con `--baseline-commit`:** usa `${{ github.event.pull_request.base.sha }}` para comparar contra el commit
+  base del PR (diff-scoped), no sobre toda la historia. Esto permite detectar nuevas vulnerabilidades en el PR sin
+  ruido del código existente.
+- **Modo non-blocking (F1):** `continue-on-error: true` — el job **nunca bloquea el merge**. Los resultados aparecen
+  como advertencia en la pestaña Code Scanning de GitHub, pero no impiden el merge. Esto permite un rollout phased: F1
+  non-blocking en la fase actual, con intención de hacer F2 blocking después de validar resultados (Regla 8).
 
-**Caveat — Regla 8 (name exacto para future binding ruleset):** El nombre del job `SAST (Semgrep)` DEBE coincidir EXACTAMENTE con el nombre del status check en el ruleset 21227644 para que el binding F2 funcione. Si se renombra el job en `ci.yml`, el binding del ruleset se rompe en silencio y el check deja de aplicarse. Este precedente viene de `pr-title-lint`/`dco` donde el nombre exacto es crítico (§3.2, §3.3).
+**Caveat — Regla 8 (name exacto para future binding ruleset):** El nombre del job `SAST (Semgrep)` DEBE coincidir
+EXACTAMENTE con el nombre del status check en el ruleset 21227644 para que el binding F2 funcione. Si se renombra el
+job en `ci.yml`, el binding del ruleset se rompe en silencio y el check deja de aplicarse. Este precedente viene de
+`pr-title-lint`/`dco` donde el nombre exacto es crítico (§3.2, §3.3).
 
-**Independencia respecto a `ci-complete.needs`:** El job `sast` **NO está en** `ci-complete.needs` array. Es un job standalone, independiente del pipeline completo. No está acoplado a `CI_MINIMAL` — corre siempre que hay un `pull_request` a `main`, independientemente del valor de `CI_MINIMAL`. Este precedente viene de `dependency-review` (§9.3.5): jobs de seguridad governance pueden ser standalone sin necesidad de reportarse en el agregador `ci-complete`.
+**Independencia respecto a `ci-complete.needs`:** El job `sast` **NO está en** `ci-complete.needs` array. Es un job
+standalone, independiente del pipeline completo. No está acoplado a `CI_MINIMAL` — corre siempre que hay un
+`pull_request` a `main`, independientemente del valor de `CI_MINIMAL`. Este precedente viene de `dependency-review`
+(§9.3.5): jobs de seguridad governance pueden ser standalone sin necesidad de reportarse en el agregador
+`ci-complete`.
 
 ---
 
@@ -626,7 +936,10 @@ Esta subsección explica el **mecanismo real** de las implementaciones que prote
 
 ## 10. Git hooks — capa local de gobernanza (shifting-left)
 
-> La **capa local** del CI/CD: hooks de Git (Husky v9) que ejecutan checks **antes** de que el código llegue al remoto. Implementan la estrategia **shifting-left** (ver §11): validar temprano, rápido y barato en el dev, y dejar la regresión completa para pre-push + CI. Esta capa NO está en GitHub — vive en `.husky/` y se activa vía `prepare: husky` en el package.json raíz (Husky v9, `^9.1.7`).
+> La **capa local** del CI/CD: hooks de Git (Husky v9) que ejecutan checks **antes** de que el código llegue al
+> remoto. Implementan la estrategia **shifting-left** (ver §11): validar temprano, rápido y barato en el dev, y dejar
+> la regresión completa para pre-push + CI. Esta capa NO está en GitHub — vive en `.husky/` y se activa vía `prepare:
+husky` en el package.json raíz (Husky v9, `^9.1.7`).
 
 ### 10.1 Los 3 hooks activos
 
@@ -638,50 +951,87 @@ Esta subsección explica el **mecanismo real** de las implementaciones que prote
 
 ### 10.2 Mecanismo del pre-commit (`.husky/pre-commit`)
 
-1. **`lint-staged` primero** — aplica format/lint solo a archivos **staged** (config en `package.json` raíz): `prettier --write` sobre `*.{js,jsx,ts,tsx,cjs,mjs,json,jsonc,md}` y `eslint --fix --max-warnings 0` sobre `*.{js,jsx,cjs,mjs}`. Si falla o modifica → `exit 1` (bloquea).
+1. **`lint-staged` primero** — aplica format/lint solo a archivos **staged** (config en `package.json` raíz):
+   `prettier --write` sobre `*.{js,jsx,ts,tsx,cjs,mjs,json,jsonc,md}` y `eslint --fix --max-warnings 0` sobre
+   `*.{js,jsx,cjs,mjs}`. Si falla o modifica → `exit 1` (bloquea).
 2. **SAST + Secrets en paralelo** (`set -e` + `&` + `wait` capturando exit codes):
-   - `npm run sast:semgrep` → `scripts/security/semgrep-staged.ps1` (PowerShell + `docker run semgrep/semgrep`, staged-only). **Gotcha cross-platform:** requiere `pwsh` + Docker (Windows/WSL centric); en macOS/Linux sin ellos falla el hook.
-   - `npm run security:secrets` → `gitleaks protect --staged --verbose --redact --config .gitleaks.toml` (solo staged).
+   - `npm run sast:semgrep` → `scripts/security/semgrep-staged.ps1` (PowerShell + `docker run semgrep/semgrep`,
+     staged-only). **Gotcha cross-platform:** requiere `pwsh` + Docker (Windows/WSL centric); en macOS/Linux sin ellos
+     falla el hook.
+   - `npm run security:secrets` → `gitleaks git --pre-commit --staged --verbose --redact --config .gitleaks.toml`
+     (solo staged; migrado desde `gitleaks protect` deprecado — change `secret-scanning`, 2026-09-25).
 3. Si cualquiera falla → `exit 1` (bloquea el commit).
 
-> **Notas de operación:** Husky v9 tiene scripts `husky:disable` / `husky:enable` (`ren .husky .husky.disabled`) para desactivar/activar los hooks puntualmente. **NUNCA** usar `git commit --no-verify` salvo emergencia extrema (rompe la cadena). El pre-commit ejecuta SOLO checks rápidos (lint/format/SAST/secrets-staged); la **regresión completa** (tests) se movió a `pre-push` + CI por diseño (velocidad del ciclo de commit).
+> **Notas de operación:** Husky v9 tiene scripts `husky:disable` / `husky:enable` (`ren .husky .husky.disabled`) para
+> desactivar/activar los hooks puntualmente. **NUNCA** usar `git commit --no-verify` salvo emergencia extrema (rompe
+> la cadena). El pre-commit ejecuta SOLO checks rápidos (lint/format/SAST/secrets-staged); la **regresión completa**
+> (tests) se movió a `pre-push` + CI por diseño (velocidad del ciclo de commit).
 
 ### 10.3 Mecanismo DCO local (commit-msg + pre-push)
 
-Los hooks `commit-msg` y `pre-push` añaden una validación DCO **local** (L1/L2) que adelanta el feedback del check CI `DCO` (KineticCafe, L3 — el enforcer autoritativo e inbypassable).
+Los hooks `commit-msg` y `pre-push` añaden una validación DCO **local** (L1/L2) que adelanta el feedback del check CI
+`DCO` (KineticCafe, L3 — el enforcer autoritativo e inbypassable).
 
-- **`commit-msg` (L1, antes de commitlint):** lee el mensaje desde `$1`. Si la primera línea coincide con `^Merge ` (merge commit) **salta** el check (los merge commits no llevan `Signed-off-by:`). Si no, hace `grep` case-sensitive de la cadena literal `Signed-off-by:` sobre el mensaje completo (presence-only: NO valida posición ni sección de trailers — eso lo hace CI). Si falta, imprime un error accionable (`git commit -s` / `git config --global commit.signoff true`) y sale con `exit 1`. Si pasa (o es merge), corre `commitlint` como paso final.
-- **`pre-push` (L2, antes de vitest):** Git pasa los refs pusheados por **STDIN**, una línea por ref: `<local-ref> <local-sha> <remote-ref> <remote-sha>`. Por cada línea:
+- **`commit-msg` (L1, antes de commitlint):** lee el mensaje desde `$1`. Si la primera línea coincide con `^Merge `
+  (merge commit) **salta** el check (los merge commits no llevan `Signed-off-by:`). Si no, hace `grep` case-sensitive
+  de la cadena literal `Signed-off-by:` sobre el mensaje completo (presence-only: NO valida posición ni sección de
+  trailers — eso lo hace CI). Si falta, imprime un error accionable (`git commit -s` / `git config --global
+commit.signoff true`) y sale con `exit 1`. Si pasa (o es merge), corre `commitlint` como paso final.
+- **`pre-push` (L2, antes de vitest):** Git pasa los refs pusheados por **STDIN**, una línea por ref: `<local-ref>
+<local-sha> <remote-ref> <remote-sha>`. Por cada línea:
   - Salta pushes de borrado (remote-sha == `(delete)`).
-  - Si remote-sha es todo ceros (primer push de una rama nueva), el ref remoto aún no existe → fallback a iterar `origin/main..HEAD --no-merges` (depende del `git fetch origin main` que ya corrió antes en el hook; **no mover el DCO por encima del fetch**).
+  - Si remote-sha es todo ceros (primer push de una rama nueva), el ref remoto aún no existe → fallback a iterar
+    `origin/main..HEAD --no-merges` (depende del `git fetch origin main` que ya corrió antes en el hook; **no mover el
+    DCO por encima del fetch**).
   - En caso contrario itera `git log --no-merges --format="%H" "$REMOTE_REF..$LOCAL_REF"`.
-  - Para cada SHA corre `git log -1 --format="%B" $SHA | grep "Signed-off-by:"` (case-sensitive) y acumula los fallos por commit.
-  - Si alguno falla, imprime la lista de commits sin signoff (con short-SHA), instruye el fix (`git rebase --signoff origin/main`) y sale con `exit 1`. Solo si todos pasan corren los tests scoped de vitest.
+  - Para cada SHA corre `git log -1 --format="%B" $SHA | grep "Signed-off-by:"` (case-sensitive) y acumula los fallos
+    por commit.
+  - Si alguno falla, imprime la lista de commits sin signoff (con short-SHA), instruye el fix (`git rebase --signoff
+origin/main`) y sale con `exit 1`. Solo si todos pasan corren los tests scoped de vitest.
 
 ### 10.4 Ajuste DCO de `/commit-all` (git-manager prompt + slash command)
 
 El comando `/commit-all` exige DCO en **dos puntos de materialización** (defense-in-depth, ambos aplicados):
 
-1. **System prompt del agente git-manager** (`docs/opencode/prompts/git-manager.md`) — vía regla de comportamiento nº 10: que **todo** commit use `git commit -S -s` (firma SSH + signoff), de modo que cada commit no-merge incluya el trailer `Signed-off-by: Name <email>` en el formato KineticCafe DCO que exige el check CI `DCO`. `-s` es **no-opcional** aunque `git config commit.signoff true` esté activo: la config puede faltar en otras máquinas, clones frescos o runners (defense-in-depth). Es una regla a nivel de prompt (sin script wrapper); sigue prohibido `--no-verify`.
+1. **System prompt del agente git-manager** (`docs/opencode/prompts/git-manager.md`) — vía regla de comportamiento nº
+   10: que **todo** commit use `git commit -S -s` (firma SSH + signoff), de modo que cada commit no-merge incluya el
+   trailer `Signed-off-by: Name <email>` en el formato KineticCafe DCO que exige el check CI `DCO`. `-s` es
+   **no-opcional** aunque `git config commit.signoff true` esté activo: la config puede faltar en otras máquinas,
+   clones frescos o runners (defense-in-depth). Es una regla a nivel de prompt (sin script wrapper); sigue prohibido
+   `--no-verify`.
 
-2. **Slash command `/commit-all`** (`.opencode/command/commit-all.md`) — el comando invocable directamente (no solo vía agente) exige ahora `git commit -S -s` para TODOS los commits (regla añadida 2026-09-02). Antes solo exigía `-S` (firma SSH) sin el trailer DCO; se alineó con el prompt del agente para evitar commits sin `Signed-off-by:` cuando `/commit-all` se ejecuta sin pasar por @git-manager. Los usos de ejemplo del flujo usan `git commit -S -s -m "type(scope): description"`.
+2. **Slash command `/commit-all`** (`.opencode/command/commit-all.md`) — el comando invocable directamente (no solo
+   vía agente) exige ahora `git commit -S -s` para TODOS los commits (regla añadida 2026-09-02). Antes solo exigía
+   `-S` (firma SSH) sin el trailer DCO; se alineó con el prompt del agente para evitar commits sin `Signed-off-by:`
+   cuando `/commit-all` se ejecuta sin pasar por @git-manager. Los usos de ejemplo del flujo usan `git commit -S -s -m
+"type(scope): description"`.
 
-> ⚠️ **Nota de trazabilidad:** el change archivado `2026-09-02-ci-shifting-left-dco-pr-lint` afirmaba (design.md §7) que "no existe `.opencode/command/commit-all.md` (glob found no such file)". Esa verificación fue un **falso negativo** del glob en paths ocultos de Windows — el archivo SÍ existía. El hueco real (comando sin DCO) se corrigió aquí el 2026-09-02. El prompt del agente (punto 1) ya cubría DCO desde aquel change; el comando (punto 2) no, y es lo que faltaba ajustar.
+> ⚠️ **Nota de trazabilidad:** el change archivado `2026-09-02-ci-shifting-left-dco-pr-lint` afirmaba (design.md §7)
+> que "no existe `.opencode/command/commit-all.md` (glob found no such file)". Esa verificación fue un **falso
+> negativo** del glob en paths ocultos de Windows — el archivo SÍ existía. El hueco real (comando sin DCO) se corrigió
+> aquí el 2026-09-02. El prompt del agente (punto 1) ya cubría DCO desde aquel change; el comando (punto 2) no, y es
+> lo que faltaba ajustar.
 
 ### 10.5 Trazabilidad DCO — auto-signoff global (convención del repo)
 
-> **Decisión de trazabilidad (2026-09-02):** la convención del repo para garantizar trazabilidad de autoría en **todos** los commits es activar el auto-signoff global:
+> **Decisión de trazabilidad (2026-09-02):** la convención del repo para garantizar trazabilidad de autoría en
+> **todos** los commits es activar el auto-signoff global:
 >
 > ```bash
 > git config --global commit.signoff true
 > ```
 >
-> Con esto, **cada commit** (`git commit` y/o `/commit-all`) inyecta automáticamente el trailer `Signed-off-by: Nombre <email>` sin necesidad de pasarlo a mano en cada commit. El trailer hace trazable quién autoriza cada cambio frente al check CI `DCO`.
+> Con esto, **cada commit** (`git commit` y/o `/commit-all`) inyecta automáticamente el trailer `Signed-off-by: Nombre
+<email>` sin necesidad de pasarlo a mano en cada commit. El trailer hace trazable quién autoriza cada cambio frente
+> al check CI `DCO`.
 
 **Por qué es la base de la trazabilidad:**
 
-- El trailer `Signed-off-by:` es el mecanismo de **trazabilidad de autoría** del repo: documenta explícitamente quién (y con qué identidad) autoriza/reconoce cada cambio, y es lo que el check `DCO` (KineticCafe, L3, requerido y bloqueante) valida de forma estricta y no-bypasseable (`docs/CONTEXT-CICD.md` §3.3/§9.3.4).
-- La config global es **local a la máquina** → comodidad del dev: evita olvidar `-s` y cubre el 100% de los commits hechos desde esta instalación. Permite hacer `git commit -S` (solo firma) y que el trailer DCO se añada solo.
+- El trailer `Signed-off-by:` es el mecanismo de **trazabilidad de autoría** del repo: documenta explícitamente quién
+  (y con qué identidad) autoriza/reconoce cada cambio, y es lo que el check `DCO` (KineticCafe, L3, requerido y
+  bloqueante) valida de forma estricta y no-bypasseable (`docs/CONTEXT-CICD.md` §3.3/§9.3.4).
+- La config global es **local a la máquina** → comodidad del dev: evita olvidar `-s` y cubre el 100% de los commits
+  hechos desde esta instalación. Permite hacer `git commit -S` (solo firma) y que el trailer DCO se añada solo.
 
 **Cómo convive con las demás capas (defense-in-depth, §11):**
 
@@ -699,13 +1049,17 @@ El comando `/commit-all` exige DCO en **dos puntos de materialización** (defens
 git config --global commit.signoff true   # una sola vez, en cada máquina del dev
 ```
 
-> Nota: la regla 10 de `/commit-all` (§10.4) se mantiene **aunque** actives este auto-signoff, porque es defensa en profundidad para cualquier contexto sin la config global (clones frescos, otras máquinas, runners de CI). Confirmado por decisión del usuario 2026-09-02 (memoria `decision/…`).
+> Nota: la regla 10 de `/commit-all` (§10.4) se mantiene **aunque** actives este auto-signoff, porque es defensa en
+> profundidad para cualquier contexto sin la config global (clones frescos, otras máquinas, runners de CI). Confirmado
+> por decisión del usuario 2026-09-02 (memoria `decision/…`).
 
 ---
 
 ## 11. Estrategia shifting-left (capa local → CI)
 
-> La estrategia **shifting-left** mueve la validación lo más temprano posible en el ciclo de vida del desarrollo: valida en el dev (barato y rápido) antes de llegar al remoto (caro y lento). Se compone de **3 capas espaciadas** que aumentan en costo y cobertura.
+> La estrategia **shifting-left** mueve la validación lo más temprano posible en el ciclo de vida del desarrollo:
+> valida en el dev (barato y rápido) antes de llegar al remoto (caro y lento). Se compone de **3 capas espaciadas**
+> que aumentan en costo y cobertura.
 
 ### 11.1 Las 3 capas de validación
 
@@ -718,25 +1072,31 @@ git config --global commit.signoff true   # una sola vez, en cada máquina del d
 
 ### 11.2 Por qué está espaciada así (por diseño)
 
-- **Loop interno (L1)**: checks rápidos se ejecutan en cada `git commit` — segundos, sin infra. Fallan temprano y evitan contaminar el historial.
-- **Loop intermedio (L2)**: la regresión de tests vive en `pre-push` (no en pre-commit) para mantener el ciclo de commit veloz; corre justo antes de que el código salga del dev.
-- **Loop externo (L3)**: el CI en GitHub es el enforcer final de gobernanza e integridad (firma, calidad de mensajes, supply chain). El ruleset lo hace **obligatorio**, no opcional.
+- **Loop interno (L1)**: checks rápidos se ejecutan en cada `git commit` — segundos, sin infra. Fallan temprano y
+  evitan contaminar el historial.
+- **Loop intermedio (L2)**: la regresión de tests vive en `pre-push` (no en pre-commit) para mantener el ciclo de
+  commit veloz; corre justo antes de que el código salga del dev.
+- **Loop externo (L3)**: el CI en GitHub es el enforcer final de gobernanza e integridad (firma, calidad de mensajes,
+  supply chain). El ruleset lo hace **obligatorio**, no opcional.
 
-> **Regla de oro shifting-left:** la validación temprana (L1/L2) previene el _wasted feedback loop_ de esperar al CI para descubrir un error trivial de lint/format/secreto. La capa GitHub (L3) es la red de seguridad _non-bypassable_ (ruleset sin `bypass_actors`).
+> **Regla de oro shifting-left:** la validación temprana (L1/L2) previene el _wasted feedback loop_ de esperar al CI
+> para descubrir un error trivial de lint/format/secreto. La capa GitHub (L3) es la red de seguridad _non-bypassable_
+> (ruleset sin `bypass_actors`).
 
 ---
 
 ## 12. Tooling local de seguridad y calidad (raíz del repo)
 
-> Herramientas y configs que viven en la **raíz** del monorepo y soportan la capa local (pre-commit/pre-push) y los workflows de CI. Verificadas contra los archivos del repo.
+> Herramientas y configs que viven en la **raíz** del monorepo y soportan la capa local (pre-commit/pre-push) y los
+> workflows de CI. Verificadas contra los archivos del repo.
 
 ### 12.1 Seguridad local
 
-| Herramienta            | Script npm / comando                                                                     | Config                                 | Para qué                                                                                                                                                                    |
-| ---------------------- | ---------------------------------------------------------------------------------------- | -------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Semgrep (SAST)**     | `sast:semgrep` (staged) / `sast:semgrep:full`                                            | `.semgrep/.semgrep.yml`                | Análisis estático; staged-only via Docker (`semgrep/semgrep`); regla `no-console-log` + packs p/ comentados (owasp-top-ten, security-audit, secrets, nodejs, react, xss...) |
-| **Gitleaks (secrets)** | `security:secrets` (staged, `protect`) / `security:secrets:full` (`detect` full history) | `.gitleaks.toml` + `.gitleaksignore`   | Detección de secretos; `useDefault=true` + reglas custom (api-key, jwt-secret, generic-secret, password, database-url) + allowlists (node_modules, dist, test fixtures...)  |
-| **Trivy (SCA)**        | `security:trivy:deps`                                                                    | `scripts/security/dependency-scan.ps1` | Escaneo de vulnerabilidades de dependencias (software composition analysis) local                                                                                           |
+| Herramienta            | Script npm / comando                                                                                    | Config                                 | Para qué                                                                                                                                                                                                                                                                                  |
+| ---------------------- | ------------------------------------------------------------------------------------------------------- | -------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Semgrep (SAST)**     | `sast:semgrep` (staged) / `sast:semgrep:full`                                                           | `.semgrep/.semgrep.yml`                | Análisis estático; staged-only via Docker (`semgrep/semgrep`); regla `no-console-log` + packs p/ comentados (owasp-top-ten, security-audit, secrets, nodejs, react, xss...)                                                                                                               |
+| **Gitleaks (secrets)** | `security:secrets` (staged, `git --pre-commit --staged`) / `security:secrets:full` (`git` full history) | `.gitleaks.toml` + `.gitleaksignore`   | Detección de secretos; `useDefault=true` + `disabledRules=["generic-api-key"]` + 5 reglas custom con `keywords`/`entropy` (custom-api-key, jwt-secret, generic-secret, password, database-url) + allowlists ancladas + baseline histórico en `.gitleaksignore` (change `secret-scanning`) |
+| **Trivy (SCA)**        | `security:trivy:deps`                                                                                   | `scripts/security/dependency-scan.ps1` | Escaneo de vulnerabilidades de dependencias (software composition analysis) local                                                                                                                                                                                                         |
 
 ### 12.2 Calidad y formato
 
@@ -749,7 +1109,14 @@ git config --global commit.signoff true   # una sola vez, en cada máquina del d
 | **editorconfig**  | `.editorconfig`                                                    | Normas de edición (utf-8, eol lf, indent 2)                                                                                                                                                   |
 | **gitattributes** | `.gitattributes`                                                   | Normaliza eol=lf en todo el repo; crlf solo para `.bat/.cmd/.ps1`; binarios marcados binary                                                                                                   |
 
-> **Migración TypeScript de `apps/server` — change activo `server-typescript-migration` (2026-09-23, en curso, no archivado):** su Fase 0 ampliará el tooling de esta sección a `.ts` ANTES de convertir el primer archivo — globs backend/complexity de `eslint.config.js` (fila eslint), scripts `lint`/`format` de `apps/server/package.json`, sección `apps/server` de `/knip.jsonc` (fila knip §12.3), regexes de `apps/server/.dependency-cruiser.cjs` (§13.4), `include` de `apps/server/vitest.config.js` y glob eslint de `lint-staged`. Incluye además crear `apps/server/tsconfig.json` (`allowJs`+`noEmit`+`nodenext`, sin build step — strangler fig) y habilitar el job `server-typecheck` de `ci.yml` (hoy `if: false`, ver §1). Investigación canónica: `docs/learning/typescript-migration-server.md`. Estado detallado: `openspec/changes/server-typescript-migration/`.
+> **Migración TypeScript de `apps/server` — change activo `server-typescript-migration` (2026-09-23, en curso, no
+> archivado):** su Fase 0 ampliará el tooling de esta sección a `.ts` ANTES de convertir el primer archivo — globs
+> backend/complexity de `eslint.config.js` (fila eslint), scripts `lint`/`format` de `apps/server/package.json`,
+> sección `apps/server` de `/knip.jsonc` (fila knip §12.3), regexes de `apps/server/.dependency-cruiser.cjs` (§13.4),
+> `include` de `apps/server/vitest.config.js` y glob eslint de `lint-staged`. Incluye además crear
+> `apps/server/tsconfig.json` (`allowJs`+`noEmit`+`nodenext`, sin build step — strangler fig) y habilitar el job
+> `server-typecheck` de `ci.yml` (hoy `if: false`, ver §1). Investigación canónica:
+> `docs/learning/typescript-migration-server.md`. Estado detallado: `openspec/changes/server-typescript-migration/`.
 
 ### 12.3 Herramientas de análisis (devDependencies raíz)
 
@@ -774,7 +1141,8 @@ git config --global commit.signoff true   # una sola vez, en cada máquina del d
 
 ## 13. Scripts de CI/CD locales y release (Changesets)
 
-> Scripts ejecutables en la raíz (`scripts/`) y comandos npm (`package.json`) que materializan las operaciones de CI/CD local y de release. Verificados contra el repo.
+> Scripts ejecutables en la raíz (`scripts/`) y comandos npm (`package.json`) que materializan las operaciones de
+> CI/CD local y de release. Verificados contra el repo.
 
 ### 13.1 Scripts de seguridad (`scripts/security/`)
 
@@ -797,25 +1165,33 @@ Valida umbrales de cobertura de tests — insumo de los jobs de coverage (hoy `i
 | **`version:packages`** | `changeset version && npm install --ignore-scripts`           | Aplicar bumps de versión y actualizar lockfile |
 | **`release`**          | `changeset git-tag` (CLI v3 renombró `changeset tag` — #2128) | Crear tags de release tras publicar            |
 
-> Estos comandos locales alimentan el workflow **`release.yml`** (GitHub, push → main): `changesets/action` versiona paquetes con GitHub App token y re-verifica la firma del tip de main (ver §3.4).
+> Estos comandos locales alimentan el workflow **`release.yml`** (GitHub, push → main): `changesets/action` versiona
+> paquetes con GitHub App token y re-verifica la firma del tip de main (ver §3.4).
 
 ### 13.4 Artefactos CI a nivel de app (referenciados por workflows)
 
-Archivos que los workflows y hooks referencian pero residen en `apps/*`, no en la raíz. Verificados contra los workflows.
+Archivos que los workflows y hooks referencian pero residen en `apps/*`, no en la raíz. Verificados contra los
+workflows.
 
-| Archivo                                                                               | Función                                                                                                   | Referenciado en                                                                  |
-| ------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------- |
-| **`apps/server/scripts/preview-smoke.mjs`**                                           | Smoke test del backend en el entorno preview (valida health + rutas críticas tras Floci/Postgres emulado) | `preview.yml` (step 8)                                                           |
-| **`apps/server/vitest.config.js`** + **`apps/client/vitest.config.js`**               | Config de Vitest por workspace (usada por tests scoped y `check-coverage.mjs`)                            | `.husky/pre-push`, `scripts/ci/check-coverage.mjs`                               |
-| **`apps/server/.dependency-cruiser.cjs`** + **`apps/client/.dependency-cruiser.cjs`** | Config de `dependency-cruiser` para validar límites de imports por app                                    | `ci.yml` (jobs `client-import-bounds`, `server-import-bounds` — hoy `if: false`) |
-| **`apps/server/Dockerfile`**                                                          | Build de la imagen del server (Phase 1 `docker-build` de deploy.yml)                                      | `deploy.yml`                                                                     |
-| **`apps/server/ecosystem.config.js`**                                                 | Config PM2 del server (referenciada en allowlist de `.gitleaks.toml`)                                     | `.gitleaks.toml` (allowlist)                                                     |
+| Archivo                                                                               | Función                                                                                                                                                                                             | Referenciado en                                                                                                                 |
+| ------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| **`apps/server/scripts/preview-smoke.mjs`**                                           | Smoke test del backend en el entorno preview (valida health + rutas críticas tras Floci/Postgres emulado)                                                                                           | `preview.yml` (step 8)                                                                                                          |
+| **`apps/server/vitest.config.js`** + **`apps/client/vitest.config.js`**               | Config de Vitest por workspace (usada por tests scoped y `check-coverage.mjs`)                                                                                                                      | `.husky/pre-push`, `scripts/ci/check-coverage.mjs`                                                                              |
+| **`.dependency-cruiser.cjs` (raíz)**                                                  | Única fuente de verdad de los import boundaries del monorepo (change `import-boundaries`); los configs por workspace solo hacen `extends` + baseline en `.dependency-cruiser-known-violations.json` | `ci.yml` (jobs `client-import-bounds`, `server-import-bounds` — activos desde 2026-09-25), scripts `depcruise:*`, `lint-staged` |
+| **`apps/client/.dependency-cruiser.cjs`** + **`apps/server/.dependency-cruiser.cjs`** | Capa fina de workspace: `extends` del config raíz (sin reglas duplicadas)                                                                                                                           | Scripts `depcruise:*` (siempre desde la raíz)                                                                                   |
+| **`apps/client/webpack.depcruise.config.cjs`**                                        | Resolve-only: da a dependency-cruiser el alias `@` del client (no es un build config; Vite no lo lee)                                                                                               | `.dependency-cruiser.cjs` (`options.webpackConfig`)                                                                             |
+| **`apps/server/Dockerfile`**                                                          | Build de la imagen del server (Phase 1 `docker-build` de deploy.yml)                                                                                                                                | `deploy.yml`                                                                                                                    |
+| **`apps/server/ecosystem.config.js`**                                                 | Config PM2 del server (referenciada en allowlist de `.gitleaks.toml`)                                                                                                                               | `.gitleaks.toml` (allowlist)                                                                                                    |
 
-> **Observación:** `preview-smoke.mjs` no está bajo el directorio raíz `scripts/` (convención §13.1/§13.2), sino en `apps/server/scripts/`. Cambiarlo de ubicación alinearía la convención, pero requiere actualizar la referencia en `preview.yml`.
+> **Observación:** `preview-smoke.mjs` no está bajo el directorio raíz `scripts/` (convención §13.1/§13.2), sino en
+> `apps/server/scripts/`. Cambiarlo de ubicación alinearía la convención, pero requiere actualizar la referencia en
+> `preview.yml`.
 
 ### 13.5 Inventario de acciones y versiones de tooling
 
-Versiones EXACTAS de GitHub Actions de terceros y del tooling de test, verificadas contra `.github/workflows/*.yml` y los `package.json` (2026-08-30). Útiles para auditoría de supply chain y permiten fijar SHA-pinning de forma uniforme (hoy `allowed_actions=all`, §5.4).
+Versiones EXACTAS de GitHub Actions de terceros y del tooling de test, verificadas contra `.github/workflows/*.yml` y
+los `package.json` (2026-08-30). Útiles para auditoría de supply chain y permiten fijar SHA-pinning de forma uniforme
+(hoy `allowed_actions=all`, §5.4).
 
 **Actions oficiales de GitHub (`actions/*`) — versiones inconsistentes entre workflows:**
 
@@ -857,11 +1233,15 @@ Versiones EXACTAS de GitHub Actions de terceros y del tooling de test, verificad
 | `vitest`                          | `4.0.18` (raíz + server `^4.0.18`), `^4.1.0` (client) | tests unit/integration, `check-coverage.mjs`, pre-push |
 | `@playwright/test` / `playwright` | `1.58.2`                                              | e2e/ (Playwright E2E)                                  |
 
-> **Lectura:** la columna "versiones usadas" evidencia la falta de uniformidad (checkout v6/v5/v5.0.0, setup-node v5/v4, paths-filter v4/v3, download-artifact v4/v5, codeql v4/v3). Esto NO rompe nada hoy, pero amplía la superficie de supply chain y dificulta un `allow-list`/SHA-pinning coherente (§5.4, §6).
+> **Lectura:** la columna "versiones usadas" evidencia la falta de uniformidad (checkout v6/v5/v5.0.0, setup-node
+> v5/v4, paths-filter v4/v3, download-artifact v4/v5, codeql v4/v3). Esto NO rompe nada hoy, pero amplía la superficie
+> de supply chain y dificulta un `allow-list`/SHA-pinning coherente (§5.4, §6).
 
 ---
 
-> **Regla:** un change **archivado** (con fecha en `openspec/changes/archive/`) es evidencia de implementación completada. Un change que sigue en `openspec/changes/` es trabajo abierto — verificar con `gh api` (§3) antes de asumir que algo está vivo.
+> **Regla:** un change **archivado** (con fecha en `openspec/changes/archive/`) es evidencia de implementación
+> completada. Un change que sigue en `openspec/changes/` es trabajo abierto — verificar con `gh api` (§3) antes de
+> asumir que algo está vivo.
 
 ---
 

@@ -34,23 +34,23 @@
 
 ## 1. Metadatos del Documento e Historial de Revisiones
 
-| Campo | Valor |
-| ---------------- | ------------------------------------------------ |
-| **Módulo** | `stock` |
-| **Estado** | Released / Implementado |
-| **Versión** | `1.0.0` |
-| **Owner** | Backend Guild — Express Track |
-| **Path Server** | `apps/server/src/modules/stock/` |
-| **Path Client** | `apps/client/src/modules/stock/` |
-| **Base URL API** | `/api/v1/stock` |
-| **Estándar** | arc42 + C4 (L1/L2) + IEEE 1016 |
-| **Audiencia** | Engineers, Architects, QA, Security Reviewers |
+| Campo            | Valor                                         |
+| ---------------- | --------------------------------------------- |
+| **Módulo**       | `stock`                                       |
+| **Estado**       | Released / Implementado                       |
+| **Versión**      | `1.0.0`                                       |
+| **Owner**        | Backend Guild — Express Track                 |
+| **Path Server**  | `apps/server/src/modules/stock/`              |
+| **Path Client**  | `apps/client/src/modules/stock/`              |
+| **Base URL API** | `/api/v1/stock`                               |
+| **Estándar**     | arc42 + C4 (L1/L2) + IEEE 1016                |
+| **Audiencia**    | Engineers, Architects, QA, Security Reviewers |
 
 ### Historial de Revisiones
 
-| Versión | Fecha | Autor | Cambios |
-| ------- | ----------- | ------------ | -------------------------------------------------------------------------------------------------- |
-| 1.0.0 | 2026-06-11 | Docs Bot | Creación inicial del documento integral (server + client) siguiendo arc42/C4/IEEE 1016. Se documentan 6 endpoints server, 6 hooks RTK Query client, 3 componentes client, esquemas Joi/Zod, 1 modelo Prisma. |
+| Versión | Fecha      | Autor    | Cambios                                                                                                                                                                                                      |
+| ------- | ---------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 1.0.0   | 2026-06-11 | Docs Bot | Creación inicial del documento integral (server + client) siguiendo arc42/C4/IEEE 1016. Se documentan 6 endpoints server, 6 hooks RTK Query client, 3 componentes client, esquemas Joi/Zod, 1 modelo Prisma. |
 
 ---
 
@@ -70,28 +70,28 @@ Funcionalidades principales:
 
 ### 2.2 Alcance Funcional
 
-| ID | Función | Actor | Cubre |
-| ------ | ---------------------------------------------------------------- | --------- | --------------------------------------------------------------------------------------------------------- |
-| F-001 | Listar stock con filtros y paginación | Autenticado | GET `/api/v1/stock` con `checkRoleAuthOrPermisssion(canViewStock)` |
-| F-002 | Obtener stock por ID de producto | Autenticado | GET `/api/v1/stock/:id` con `checkRoleAuthOrPermisssion(canViewStock)` |
-| F-003 | Obtener alertas de stock (vencidos + bajo mínimo) | Autenticado | GET `/api/v1/stock/alerts` con `checkRoleAuthOrPermisssion(canViewStock)` |
-| F-004 | Crear registro de stock | ADMIN/MANAGER/USER | POST `/api/v1/stock` con `checkRoleAuthOrPermisssion(canCreateStock)` |
-| F-005 | Actualizar registro de stock (parcial) | ADMIN/MANAGER/USER | PATCH `/api/v1/stock/:id` con `checkRoleAuthOrPermisssion(canEditStock)` |
-| F-006 | Eliminar registro de stock | ADMIN/MANAGER/USER | DELETE `/api/v1/stock/:id` con `checkRoleAuthOrPermisssion(canDeleteStock)` |
-| F-007 | Filtrar stock por producto (UI) | Autenticado | Filtro en `StockFiltersForm` con `productId` |
-| F-008 | Filtrar stock por almacén (UI) | Autenticado | Filtro en `StockFiltersForm` con `warehouseId` |
-| F-009 | Filtrar stock por lote (UI) | Autenticado | Filtro en `StockFiltersForm` con `lot` |
-| F-010 | Filtrar stock por unidad de medida (UI) | Autenticado | Filtro en `StockFiltersForm` con `unitMeasure` |
-| F-011 | Alertas de stock vencido | Autenticado | Cálculo automático `expirationStatus` (EXPIRED/NOT EXPIRED) vía raw SQL |
+| ID    | Función                                           | Actor              | Cubre                                                                       |
+| ----- | ------------------------------------------------- | ------------------ | --------------------------------------------------------------------------- |
+| F-001 | Listar stock con filtros y paginación             | Autenticado        | GET `/api/v1/stock` con `checkRoleAuthOrPermisssion(canViewStock)`          |
+| F-002 | Obtener stock por ID de producto                  | Autenticado        | GET `/api/v1/stock/:id` con `checkRoleAuthOrPermisssion(canViewStock)`      |
+| F-003 | Obtener alertas de stock (vencidos + bajo mínimo) | Autenticado        | GET `/api/v1/stock/alerts` con `checkRoleAuthOrPermisssion(canViewStock)`   |
+| F-004 | Crear registro de stock                           | ADMIN/MANAGER/USER | POST `/api/v1/stock` con `checkRoleAuthOrPermisssion(canCreateStock)`       |
+| F-005 | Actualizar registro de stock (parcial)            | ADMIN/MANAGER/USER | PATCH `/api/v1/stock/:id` con `checkRoleAuthOrPermisssion(canEditStock)`    |
+| F-006 | Eliminar registro de stock                        | ADMIN/MANAGER/USER | DELETE `/api/v1/stock/:id` con `checkRoleAuthOrPermisssion(canDeleteStock)` |
+| F-007 | Filtrar stock por producto (UI)                   | Autenticado        | Filtro en `StockFiltersForm` con `productId`                                |
+| F-008 | Filtrar stock por almacén (UI)                    | Autenticado        | Filtro en `StockFiltersForm` con `warehouseId`                              |
+| F-009 | Filtrar stock por lote (UI)                       | Autenticado        | Filtro en `StockFiltersForm` con `lot`                                      |
+| F-010 | Filtrar stock por unidad de medida (UI)           | Autenticado        | Filtro en `StockFiltersForm` con `unitMeasure`                              |
+| F-011 | Alertas de stock vencido                          | Autenticado        | Cálculo automático `expirationStatus` (EXPIRED/NOT EXPIRED) vía raw SQL     |
 
 ### 2.3 Dependencias
 
-| Módulo | Relación | Detalle |
-| --------- | ----------- | ------------------------------------------------------------------- |
-| **Products** | FK `productId` | Cada registro de stock pertenece a un producto (relación `stockProduct`) |
-| **Warehouse** | FK `warehouseId` | Cada registro de stock está en un almacén (relación `stockWarehouse`) |
-| **Users** | FK `createdBy` / `updatedBy` | Auditoría de creación y modificación |
-| **InventoryMovement** | Lógica de negocio | Movimientos de inventario modifican cantidades en stock (no implementado directamente — es manual vía creación/edición de stock) |
+| Módulo                | Relación                     | Detalle                                                                                                                          |
+| --------------------- | ---------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| **Products**          | FK `productId`               | Cada registro de stock pertenece a un producto (relación `stockProduct`)                                                         |
+| **Warehouse**         | FK `warehouseId`             | Cada registro de stock está en un almacén (relación `stockWarehouse`)                                                            |
+| **Users**             | FK `createdBy` / `updatedBy` | Auditoría de creación y modificación                                                                                             |
+| **InventoryMovement** | Lógica de negocio            | Movimientos de inventario modifican cantidades en stock (no implementado directamente — es manual vía creación/edición de stock) |
 
 ---
 
@@ -104,6 +104,7 @@ El módulo Stock es el núcleo del sistema de inventario. Cada producto puede te
 ### 3.4 Límites del Módulo
 
 **Incluye:**
+
 - CRUD completo de registros de stock
 - Filtros por producto, almacén, lote, unidad de medida, stock vencido, stock bajo
 - Cómputo de campos derivados: `expirationStatus` y `totalCost`
@@ -111,6 +112,7 @@ El módulo Stock es el núcleo del sistema de inventario. Cada producto puede te
 - Segregación por permisos CRUD (canViewStock, canCreateStock, canEditStock, canDeleteStock)
 
 **No incluye:**
+
 - Movimientos de inventario automáticos (el módulo `inventoryMovement` es independiente)
 - Notificaciones push para alertas de stock (solo cómputo consultable)
 - Integración con órdenes de compra/venta para actualización automática de stock
@@ -120,33 +122,33 @@ El módulo Stock es el núcleo del sistema de inventario. Cada producto puede te
 
 ## 4. Restricciones
 
-| ID | Restricción | Tipo |
-| --- | -------------------------------------------------------------------------------- | --------- |
-| R-01 | PostgreSQL como única base de datos soportada (raw SQL + Prisma ORM) | Técnica |
-| R-02 | Paginación obligatoria en GET `/` — `getSafePagination` requiere `limit` y `page` | Técnica |
-| R-03 | Los campos `expirationStatus` y `totalCost` son computados en SQL (no persistidos) | Diseño |
-| R-04 | `unitMeasure` restringido a enum `unitMeasureStock` (PIECES, KILOGRAMS, LITERS, METERS) | Dominio |
-| R-05 | Unique constraint compuesta: `[productId, warehouseId, lot, expirationDate]` | Datos |
-| R-06 | Autenticación JWT obligatoria en todos los endpoints (middleware global `verifyToken`) | Seguridad |
+| ID   | Restricción                                                                             | Tipo      |
+| ---- | --------------------------------------------------------------------------------------- | --------- |
+| R-01 | PostgreSQL como única base de datos soportada (raw SQL + Prisma ORM)                    | Técnica   |
+| R-02 | Paginación obligatoria en GET `/` — `getSafePagination` requiere `limit` y `page`       | Técnica   |
+| R-03 | Los campos `expirationStatus` y `totalCost` son computados en SQL (no persistidos)      | Diseño    |
+| R-04 | `unitMeasure` restringido a enum `unitMeasureStock` (PIECES, KILOGRAMS, LITERS, METERS) | Dominio   |
+| R-05 | Unique constraint compuesta: `[productId, warehouseId, lot, expirationDate]`            | Datos     |
+| R-06 | Autenticación JWT obligatoria en todos los endpoints (middleware global `verifyToken`)  | Seguridad |
 
 ---
 
 ## 5. Stack Tecnológico
 
-| Capa | Tecnología | Versión | Uso |
-| -------- | ------------ | ------- | ------------------------------------------------------ |
-| Server Runtime | Node.js | — | Entorno de ejecución del backend |
-| Server Framework | Express.js | — | Router HTTP y middleware pipeline |
-| ORM | Prisma | — | `prisma.stock.*` para CRUD, `$queryRaw` para consultas complejas |
-| DB | PostgreSQL | — | Persistencia de datos |
-| Validation | Joi | — | Esquemas de validación en server (`stock.joi.js`) |
-| Auth | JWT + custom middleware | — | `verifyToken`, `checkRoleAuthOrPermisssion` |
-| Client Runtime | React 18 | — | UI del módulo |
-| Client State | Redux Toolkit (RTK Query) | — | API calls y caching (`stockApi.js`) |
-| Client Forms | react-hook-form + Zod | — | Validación de formularios client-side |
-| Client UI | shadcn/ui + Tailwind | — | Componentes de UI (DataTable, Dialog, Calendar, Select) |
-| Client Dates | date-fns | — | Formateo de fechas en tabla |
-| Client i18n | react-i18next | — | Traducciones |
+| Capa             | Tecnología                | Versión | Uso                                                              |
+| ---------------- | ------------------------- | ------- | ---------------------------------------------------------------- |
+| Server Runtime   | Node.js                   | —       | Entorno de ejecución del backend                                 |
+| Server Framework | Express.js                | —       | Router HTTP y middleware pipeline                                |
+| ORM              | Prisma                    | —       | `prisma.stock.*` para CRUD, `$queryRaw` para consultas complejas |
+| DB               | PostgreSQL                | —       | Persistencia de datos                                            |
+| Validation       | Joi                       | —       | Esquemas de validación en server (`stock.joi.js`)                |
+| Auth             | JWT + custom middleware   | —       | `verifyToken`, `checkRoleAuthOrPermisssion`                      |
+| Client Runtime   | React 18                  | —       | UI del módulo                                                    |
+| Client State     | Redux Toolkit (RTK Query) | —       | API calls y caching (`stockApi.js`)                              |
+| Client Forms     | react-hook-form + Zod     | —       | Validación de formularios client-side                            |
+| Client UI        | shadcn/ui + Tailwind      | —       | Componentes de UI (DataTable, Dialog, Calendar, Select)          |
+| Client Dates     | date-fns                  | —       | Formateo de fechas en tabla                                      |
+| Client i18n      | react-i18next             | —       | Traducciones                                                     |
 
 ---
 
@@ -213,14 +215,14 @@ apps/server/src/modules/stock/
 
 **Middleware global:** `router.use(verifyToken)` — todas las rutas requieren JWT.
 
-| Método | Ruta | Middleware Adicional | Handler | Permiso |
-| ------ | ------- | ------------------------------- | --------------- | --------------- |
-| GET | `/` | `checkRoleAuthOrPermisssion(canViewStock)`, `validateQueryParams(stockFiltersSchema)` | `getAllStock` | canViewStock |
-| GET | `/` | `checkRoleAuthOrPermisssion(canViewStock)` | `getStockByProductId` | canViewStock |
-| GET | `/alerts` | `checkRoleAuthOrPermisssion(canViewStock)` | `getStockAlerts` | canViewStock |
-| POST | `/` | `checkRoleAuthOrPermisssion(canCreateStock)`, `validateSchema(stockCreateSchema)` | `createStock` | canCreateStock |
-| PATCH | `/:id` | `checkRoleAuthOrPermisssion(canEditStock)`, `validatePathParam`, `validateSchema(stockUpdateSchema)` | `patchStockById` | canEditStock |
-| DELETE | `/:id` | `checkRoleAuthOrPermisssion(canDeleteStock)`, `validatePathParam` | `deleteStockById` | canDeleteStock |
+| Método | Ruta      | Middleware Adicional                                                                                 | Handler               | Permiso        |
+| ------ | --------- | ---------------------------------------------------------------------------------------------------- | --------------------- | -------------- |
+| GET    | `/`       | `checkRoleAuthOrPermisssion(canViewStock)`, `validateQueryParams(stockFiltersSchema)`                | `getAllStock`         | canViewStock   |
+| GET    | `/`       | `checkRoleAuthOrPermisssion(canViewStock)`                                                           | `getStockByProductId` | canViewStock   |
+| GET    | `/alerts` | `checkRoleAuthOrPermisssion(canViewStock)`                                                           | `getStockAlerts`      | canViewStock   |
+| POST   | `/`       | `checkRoleAuthOrPermisssion(canCreateStock)`, `validateSchema(stockCreateSchema)`                    | `createStock`         | canCreateStock |
+| PATCH  | `/:id`    | `checkRoleAuthOrPermisssion(canEditStock)`, `validatePathParam`, `validateSchema(stockUpdateSchema)` | `patchStockById`      | canEditStock   |
+| DELETE | `/:id`    | `checkRoleAuthOrPermisssion(canDeleteStock)`, `validatePathParam`                                    | `deleteStockById`     | canDeleteStock |
 
 **⚠️ Bug R-001:** Dos handlers GET en la misma ruta `/` — Express solo ejecuta el primero registrado (`getAllStock`). El segundo (`getStockByProductId`) es inalcanzable. Ver §18.
 
@@ -232,14 +234,14 @@ apps/server/src/modules/stock/
 
 6 funciones exportadas, todas envueltas en `handleCatchErrorAsync`:
 
-| Función | Parámetros | Respuesta |
-| ----------- | ---------- | --------- |
-| `getAllStock` | `req.safeQuery` (productId, warehouseId, lot, unitMeasure, stocksExpirated, stocksLow) | `globalResponse(res, 200, stock)` |
-| `getStockByProductId` | `req.params.id` (productId) | `globalResponse(res, 200, stock)` |
-| `getStockAlerts` | — | `globalResponse(res, 200, stockAlerts)` |
-| `createStock` | `req.body`, `req.userId` | `globalResponse(res, 201, ...)` |
-| `patchStockById` | `req.params.id`, `req.body`, `req.userId` | `globalResponse(res, 200, ...)` |
-| `deleteStockById` | `req.params.id` | `globalResponse(res, 200, ...)` |
+| Función               | Parámetros                                                                             | Respuesta                               |
+| --------------------- | -------------------------------------------------------------------------------------- | --------------------------------------- |
+| `getAllStock`         | `req.safeQuery` (productId, warehouseId, lot, unitMeasure, stocksExpirated, stocksLow) | `globalResponse(res, 200, stock)`       |
+| `getStockByProductId` | `req.params.id` (productId)                                                            | `globalResponse(res, 200, stock)`       |
+| `getStockAlerts`      | —                                                                                      | `globalResponse(res, 200, stockAlerts)` |
+| `createStock`         | `req.body`, `req.userId`                                                               | `globalResponse(res, 201, ...)`         |
+| `patchStockById`      | `req.params.id`, `req.body`, `req.userId`                                              | `globalResponse(res, 200, ...)`         |
+| `deleteStockById`     | `req.params.id`                                                                        | `globalResponse(res, 200, ...)`         |
 
 ### 7.4 Capa de Servicio (`service.js`)
 
@@ -255,6 +257,7 @@ Delegación directa a DAO con transformación mínima:
 ### 7.5 Capa de Acceso a Datos (`dao.js`)
 
 **Dos modalidades:**
+
 - **Raw SQL** (`prisma.$queryRaw`) para `getAllStock` y `getStockAlerts` (requieren JOINs y funciones agregadas)
 - **Prisma ORM** para CRUD directo (`prisma.stock.create/update/delete/findUnique`)
 
@@ -287,10 +290,12 @@ LIMIT ${take} OFFSET ${skip}
 **JOINs:** 4 LEFT JOINs (users x2 para creador/actualizador, products, warehouse)
 
 **Campos computados:**
+
 - `expirationStatus`: `NULL` si `expirationDate` es null, `'EXPIRED'` si es pasado, `'NOT EXPIRED'` si es futuro
 - `totalCost`: `quantity * price` (precio del producto)
 
 **Filtros condicionales:**
+
 - `productId`: igualdad exacta si presente
 - `warehouseId`: igualdad exacta si presente
 - `lot`: ILIKE `%{valor}%` si presente
@@ -305,7 +310,7 @@ LIMIT ${take} OFFSET ${skip}
 #### `getStockByProductId` — Prisma findUnique
 
 ```js
-prisma.stock.findUnique({ where: { productId: id } })
+prisma.stock.findUnique({ where: { productId: id } });
 ```
 
 Nota: `productId` no es unique en el modelo stock (solo en la constraint compuesta). `findUnique` con un campo no-único lanza error Prisma si hay múltiples registros para el mismo producto. **⚠️ Bug R-004.**
@@ -326,12 +331,18 @@ Retorna `{ expired: number, lowStock: number }`.
 ```js
 prisma.stock.create({
   data: {
-    quantity, minimum, maximum, lot, unitMeasure, expirationDate, createdOn,
+    quantity,
+    minimum,
+    maximum,
+    lot,
+    unitMeasure,
+    expirationDate,
+    createdOn,
     warehouse: { connect: { id } },
     product: { connect: { id } },
     userStockCreated: { connect: { id } },
-  }
-})
+  },
+});
 ```
 
 #### `updateStock` — Prisma update
@@ -378,14 +389,14 @@ const stockApi = createApi({
 
 **Endpoints mapeados:**
 
-| Hook | Método | Ruta | Query/Body | Tags |
-| ----- | ------ | ------- | ----------- | ---- |
-| `useLazyGetAllStockQuery` | GET | `/stock` | `params` (filtros + paginación) | `providesTags: ['Stock']` |
-| `useLazyGetStockByProductIdQuery` | GET | `/stock/:id` | `id` en path | `providesTags: ['Stock']` |
-| `useGetStockAlertsQuery` | GET | `/stock/alerts` | — | `providesTags: ['Stock']` |
-| `useCreateStockMutation` | POST | `/stock/` | `body: data` | `invalidatesTags: ['Stock']` |
-| `useUpdateStockByIdMutation` | PATCH | `/stock/:id` | `{ id, data }` | `invalidatesTags: ['Stock']` |
-| `useDeleteStockByIdMutation` | DELETE | `/stock/:id` | `id` en path | `invalidatesTags: ['Stock']` |
+| Hook                              | Método | Ruta            | Query/Body                      | Tags                         |
+| --------------------------------- | ------ | --------------- | ------------------------------- | ---------------------------- |
+| `useLazyGetAllStockQuery`         | GET    | `/stock`        | `params` (filtros + paginación) | `providesTags: ['Stock']`    |
+| `useLazyGetStockByProductIdQuery` | GET    | `/stock/:id`    | `id` en path                    | `providesTags: ['Stock']`    |
+| `useGetStockAlertsQuery`          | GET    | `/stock/alerts` | —                               | `providesTags: ['Stock']`    |
+| `useCreateStockMutation`          | POST   | `/stock/`       | `body: data`                    | `invalidatesTags: ['Stock']` |
+| `useUpdateStockByIdMutation`      | PATCH  | `/stock/:id`    | `{ id, data }`                  | `invalidatesTags: ['Stock']` |
+| `useDeleteStockByIdMutation`      | DELETE | `/stock/:id`    | `id` en path                    | `invalidatesTags: ['Stock']` |
 
 ### 8.3 Página Principal (`Stock.jsx`)
 
@@ -407,12 +418,12 @@ Página funcional con ciclo de vida reactivo:
 
 Formulario con `react-hook-form` con 4 campos:
 
-| Campo | Tipo | Placeholder | Source |
-| ----- | ---- | ----------- | ------ |
-| `productId` | Select | `select_product` | `products` prop (data de `useGetAllProductsFiltersQuery`) |
-| `warehouseId` | Select | `select_warehouse` | `warehouses` prop (data de `useGetAllWarehousesFiltersQuery`) |
-| `lot` | Text input | `search_by_lot` | `maxLength={FIELD_LIMITS.stock.lot}` (50) |
-| `unitMeasure` | Select | `select_unit_measure` | `unitMeasures` prop (PIECES, KILOGRAMS, LITERS, METERS) |
+| Campo         | Tipo       | Placeholder           | Source                                                        |
+| ------------- | ---------- | --------------------- | ------------------------------------------------------------- |
+| `productId`   | Select     | `select_product`      | `products` prop (data de `useGetAllProductsFiltersQuery`)     |
+| `warehouseId` | Select     | `select_warehouse`    | `warehouses` prop (data de `useGetAllWarehousesFiltersQuery`) |
+| `lot`         | Text input | `search_by_lot`       | `maxLength={FIELD_LIMITS.stock.lot}` (50)                     |
+| `unitMeasure` | Select     | `select_unit_measure` | `unitMeasures` prop (PIECES, KILOGRAMS, LITERS, METERS)       |
 
 Botones: Search (submit), Add (abre dialog), Clear (resetea form).
 
@@ -420,21 +431,21 @@ Botones: Search (submit), Add (abre dialog), Clear (resetea form).
 
 Tabla con `DataTable` componente genérico, 13 columnas:
 
-| Columna | Accessor | Formato |
-| --------- | ------------ | --------- |
-| createdOn | `createdOn` | `format(new Date(), 'PPP')` |
-| product | `productName` | `toUpperCase()` |
-| price | `productPrice` | `toLocaleString('es-CO', { style: 'currency', currency: 'COP' })` |
-| quantity | `quantity` | raw number |
-| totalCost | `totalCost` | `toLocaleString('es-CO', { style: 'currency', currency: 'COP' })` |
-| warehouse | `warehouseName` | `toUpperCase()` |
-| unitMeasure | `unitMeasure` | `toUpperCase()` |
-| lot | `lot` | `toUpperCase()` |
-| expirationDate | `expirationDate` | `format(new Date(), 'PPP')` o null |
-| expirationStatus | `expirationStatus` | `toUpperCase()` |
-| createdBy | `userStockCreatedName` | `toUpperCase()` |
-| updatedBy | `userStockUpdatedName` | `toUpperCase()` |
-| updatedOn | `updatedOn` | `format(new Date(), 'PPP')` o null |
+| Columna          | Accessor               | Formato                                                           |
+| ---------------- | ---------------------- | ----------------------------------------------------------------- |
+| createdOn        | `createdOn`            | `format(new Date(), 'PPP')`                                       |
+| product          | `productName`          | `toUpperCase()`                                                   |
+| price            | `productPrice`         | `toLocaleString('es-CO', { style: 'currency', currency: 'COP' })` |
+| quantity         | `quantity`             | raw number                                                        |
+| totalCost        | `totalCost`            | `toLocaleString('es-CO', { style: 'currency', currency: 'COP' })` |
+| warehouse        | `warehouseName`        | `toUpperCase()`                                                   |
+| unitMeasure      | `unitMeasure`          | `toUpperCase()`                                                   |
+| lot              | `lot`                  | `toUpperCase()`                                                   |
+| expirationDate   | `expirationDate`       | `format(new Date(), 'PPP')` o null                                |
+| expirationStatus | `expirationStatus`     | `toUpperCase()`                                                   |
+| createdBy        | `userStockCreatedName` | `toUpperCase()`                                                   |
+| updatedBy        | `userStockUpdatedName` | `toUpperCase()`                                                   |
+| updatedOn        | `updatedOn`            | `format(new Date(), 'PPP')` o null                                |
 
 Row click → `handleEditDialog(row)`.
 
@@ -445,6 +456,7 @@ Dialog de creación/actualización con `react-hook-form` + `zodResolver(StockSch
 **Modo creación:** Todos los campos editables.
 
 **Modo edición:**
+
 - Campos editables: productId, warehouseId, expirationDate, unitMeasure, quantity, minimum, maximum, lot
 - Campos de solo lectura (condicionales con `selectedRow?.productId`): price, totalCost
 - Campos de solo lectura (condicionales con `selectedRow?.createdOn`): userStockCreatedName, createdOn (calendar deshabilitado)
@@ -501,16 +513,16 @@ Dialog de creación/actualización con `react-hook-form` + `zodResolver(StockSch
 
 ### 9.4 Mapa de Estados (State Machine)
 
-| Estado | Trigger | Siguiente Estado |
-| --------- | --------- | ----------------- |
-| Idle (carga inicial) | `useEffect[2]` dispara `getAllStock` | Loading |
-| Loading | Respuesta OK | Data (tabla renderizada) |
-| Data | Usuario cambia filtros | Loading (resetea pageIndex a 0) |
-| Data | Usuario cambia página | Loading (nueva pageIndex) |
-| Data | Usuario abre dialog | Dialog (create o edit) |
-| Dialog visible | Submit exitoso | Data (refetch automático vía invalidatesTags) |
-| Dialog visible | Delete exitoso | Data (refetch automático) |
-| Cualquiera | Error | Console.error (sin manejo visual de error) |
+| Estado               | Trigger                              | Siguiente Estado                              |
+| -------------------- | ------------------------------------ | --------------------------------------------- |
+| Idle (carga inicial) | `useEffect[2]` dispara `getAllStock` | Loading                                       |
+| Loading              | Respuesta OK                         | Data (tabla renderizada)                      |
+| Data                 | Usuario cambia filtros               | Loading (resetea pageIndex a 0)               |
+| Data                 | Usuario cambia página                | Loading (nueva pageIndex)                     |
+| Data                 | Usuario abre dialog                  | Dialog (create o edit)                        |
+| Dialog visible       | Submit exitoso                       | Data (refetch automático vía invalidatesTags) |
+| Dialog visible       | Delete exitoso                       | Data (refetch automático)                     |
+| Cualquiera           | Error                                | Console.error (sin manejo visual de error)    |
 
 **⚠️ Bug R-005:** Sin manejo visual de errores en UI — errores solo se loguean a consola.
 
@@ -579,32 +591,32 @@ enum unitMeasureStock {
 
 ### 10.3 Mapeo de Tipos
 
-| Campo | Prisma | PostgreSQL | Joi | Zod Client |
-| --------- | --------- | ------------ | ----- | ----------- |
-| id | Int | INTEGER | — | — |
-| quantity | Int | INTEGER | number().integer().min(0) | string → number().int().min(0) |
-| minimum | Int | INTEGER | number().integer().min(0) | string → number().int().min(0) |
-| maximum | Int? | INTEGER | number().integer().min(0).allow(null) | string → number().int().min(0) |
-| lot | String?(50) | VARCHAR(50) | string().max(50).allow('') | string().max(50).optional().nullable() |
-| unitMeasure | enum | "unitMeasureStock" | valid('PIECES','KILOGRAMS','LITERS','METERS') | refine(['PIECES','KILOGRAMS','LITERS','METERS']) |
-| expirationDate | DateTime? | TIMESTAMP(3) | date().allow(null) | date().nullable().optional() |
-| productId | Int | INTEGER | number().integer() | string → number() |
-| warehouseId | Int | INTEGER | number().integer() | string → number() |
-| createdOn | DateTime | TIMESTAMP(3) | — | — |
-| updatedOn | DateTime? | TIMESTAMP(3) | — | — |
-| createdBy | Int | INTEGER | — | — |
-| updatedBy | Int? | INTEGER | — | — |
+| Campo          | Prisma      | PostgreSQL         | Joi                                           | Zod Client                                       |
+| -------------- | ----------- | ------------------ | --------------------------------------------- | ------------------------------------------------ |
+| id             | Int         | INTEGER            | —                                             | —                                                |
+| quantity       | Int         | INTEGER            | number().integer().min(0)                     | string → number().int().min(0)                   |
+| minimum        | Int         | INTEGER            | number().integer().min(0)                     | string → number().int().min(0)                   |
+| maximum        | Int?        | INTEGER            | number().integer().min(0).allow(null)         | string → number().int().min(0)                   |
+| lot            | String?(50) | VARCHAR(50)        | string().max(50).allow('')                    | string().max(50).optional().nullable()           |
+| unitMeasure    | enum        | "unitMeasureStock" | valid('PIECES','KILOGRAMS','LITERS','METERS') | refine(['PIECES','KILOGRAMS','LITERS','METERS']) |
+| expirationDate | DateTime?   | TIMESTAMP(3)       | date().allow(null)                            | date().nullable().optional()                     |
+| productId      | Int         | INTEGER            | number().integer()                            | string → number()                                |
+| warehouseId    | Int         | INTEGER            | number().integer()                            | string → number()                                |
+| createdOn      | DateTime    | TIMESTAMP(3)       | —                                             | —                                                |
+| updatedOn      | DateTime?   | TIMESTAMP(3)       | —                                             | —                                                |
+| createdBy      | Int         | INTEGER            | —                                             | —                                                |
+| updatedBy      | Int?        | INTEGER            | —                                             | —                                                |
 
 ### 10.4 Índices y Constraints
 
-| Nombre | Tipo | Columnas |
-| --------- | ---- | ----------- |
-| `unique_stock_entry` | UNIQUE | `(productId, warehouseId, lot, expirationDate)` |
-| `stock_pkey` | PK | `(id)` |
-| FK `stockProduct` | FOREIGN KEY | `productId` → `products(id)` |
-| FK `stockWarehouse` | FOREIGN KEY | `warehouseId` → `warehouse(id)` |
-| FK `userStockCreated` | FOREIGN KEY | `createdBy` → `users(id)` |
-| FK `userStockUpdated` | FOREIGN KEY | `updatedBy` → `users(id)` |
+| Nombre                | Tipo        | Columnas                                        |
+| --------------------- | ----------- | ----------------------------------------------- |
+| `unique_stock_entry`  | UNIQUE      | `(productId, warehouseId, lot, expirationDate)` |
+| `stock_pkey`          | PK          | `(id)`                                          |
+| FK `stockProduct`     | FOREIGN KEY | `productId` → `products(id)`                    |
+| FK `stockWarehouse`   | FOREIGN KEY | `warehouseId` → `warehouse(id)`                 |
+| FK `userStockCreated` | FOREIGN KEY | `createdBy` → `users(id)`                       |
+| FK `userStockUpdated` | FOREIGN KEY | `updatedBy` → `users(id)`                       |
 
 ---
 
@@ -614,16 +626,16 @@ enum unitMeasureStock {
 
 **Query Parameters:**
 
-| Parámetro | Tipo | Requerido | Descripción |
-| ----------- | ------ | --------- | --------------- |
-| page | number | Sí | Número de página |
-| limit | number | Sí | Items por página |
-| productId | number | No | Filtrar por producto |
-| warehouseId | number | No | Filtrar por almacén |
-| lot | string | No | Búsqueda parcial por lote (ILIKE) |
-| unitMeasure | enum | No | Filtrar por unidad de medida |
-| stocksExpirated | boolean | No | Filtrar vencidos |
-| stocksLow | boolean | No | Filtrar bajo mínimo |
+| Parámetro       | Tipo    | Requerido | Descripción                       |
+| --------------- | ------- | --------- | --------------------------------- |
+| page            | number  | Sí        | Número de página                  |
+| limit           | number  | Sí        | Items por página                  |
+| productId       | number  | No        | Filtrar por producto              |
+| warehouseId     | number  | No        | Filtrar por almacén               |
+| lot             | string  | No        | Búsqueda parcial por lote (ILIKE) |
+| unitMeasure     | enum    | No        | Filtrar por unidad de medida      |
+| stocksExpirated | boolean | No        | Filtrar vencidos                  |
+| stocksLow       | boolean | No        | Filtrar bajo mínimo               |
 
 **Response 200:**
 
@@ -650,11 +662,11 @@ enum unitMeasureStock {
       "userStockCreatedName": "John Doe",
       "userStockUpdatedName": null,
       "productName": "Widget A",
-      "productPrice": 25.50,
-      "productCost": 15.00,
+      "productPrice": 25.5,
+      "productCost": 15.0,
       "warehouseName": "Main Warehouse",
       "expirationStatus": "NOT EXPIRED",
-      "totalCost": 2550.00
+      "totalCost": 2550.0
     }
   ]
 }
@@ -760,27 +772,27 @@ enum unitMeasureStock {
 
 #### `stockFiltersSchema`
 
-| Campo | Tipo | Reglas |
-| --------- | ------ | --------- |
-| productId | string | `.allow('').optional()` |
-| warehouseId | string | `.allow('').optional()` |
-| lot | string | `.max(50).allow('').optional()` |
-| unitMeasure | string | `.valid('PIECES','KILOGRAMS','LITERS','METERS').allow('').optional()` |
-| stocksExpirated | boolean | `.allow('').optional()` |
-| stocksLow | boolean | `.allow('').optional()` |
+| Campo           | Tipo    | Reglas                                                                |
+| --------------- | ------- | --------------------------------------------------------------------- |
+| productId       | string  | `.allow('').optional()`                                               |
+| warehouseId     | string  | `.allow('').optional()`                                               |
+| lot             | string  | `.max(50).allow('').optional()`                                       |
+| unitMeasure     | string  | `.valid('PIECES','KILOGRAMS','LITERS','METERS').allow('').optional()` |
+| stocksExpirated | boolean | `.allow('').optional()`                                               |
+| stocksLow       | boolean | `.allow('').optional()`                                               |
 
 #### `stockCreateSchema`
 
-| Campo | Tipo | Reglas |
-| --------- | ------ | --------- |
-| quantity | number | `.integer().min(0).required()` |
-| minimum | number | `.integer().min(0).required()` |
-| maximum | number | `.integer().min(0).allow(null)` |
-| lot | string | `.max(50).allow('')` |
-| unitMeasure | string | `.valid('PIECES','KILOGRAMS','LITERS','METERS').required()` |
-| expirationDate | date | `.allow(null)` |
-| productId | number | `.integer().required()` |
-| warehouseId | number | `.integer().required()` |
+| Campo          | Tipo   | Reglas                                                      |
+| -------------- | ------ | ----------------------------------------------------------- |
+| quantity       | number | `.integer().min(0).required()`                              |
+| minimum        | number | `.integer().min(0).required()`                              |
+| maximum        | number | `.integer().min(0).allow(null)`                             |
+| lot            | string | `.max(50).allow('')`                                        |
+| unitMeasure    | string | `.valid('PIECES','KILOGRAMS','LITERS','METERS').required()` |
+| expirationDate | date   | `.allow(null)`                                              |
+| productId      | number | `.integer().required()`                                     |
+| warehouseId    | number | `.integer().required()`                                     |
 
 #### `stockUpdateSchema`
 
@@ -790,18 +802,19 @@ Mismos campos que create, todos `.optional()`, más `.min(1)` para evitar PATCH 
 
 **`StockSchema`** — validación completa con transform string→number:
 
-| Campo | Tipo | Reglas |
-| --------- | ------ | --------- |
-| quantity | string → number | `min(1)`, transform a int, `int()`, `min(0)` |
-| minimum | string → number | `min(1)`, transform a int, `int()`, `min(0)` |
-| maximum | string → number | `min(1)`, transform a int, `int()`, `min(0)` |
-| lot | string | `.max(50).optional().nullable()` |
-| unitMeasure | string | `.min(1)`, `.refine(val => ['PIECES','KILOGRAMS','LITERS','METERS'].includes(val))` |
-| expirationDate | date | `.date().nullable().optional().refine(date => !date || !isNaN(date.getTime()))` |
-| productId | string → number | `.min(1)`, transform a Number |
-| warehouseId | string → number | `.min(1)`, transform a Number |
+| Campo          | Tipo            | Reglas                                                                              |
+| -------------- | --------------- | ----------------------------------------------------------------------------------- | --- | ------------------------ |
+| quantity       | string → number | `min(1)`, transform a int, `int()`, `min(0)`                                        |
+| minimum        | string → number | `min(1)`, transform a int, `int()`, `min(0)`                                        |
+| maximum        | string → number | `min(1)`, transform a int, `int()`, `min(0)`                                        |
+| lot            | string          | `.max(50).optional().nullable()`                                                    |
+| unitMeasure    | string          | `.min(1)`, `.refine(val => ['PIECES','KILOGRAMS','LITERS','METERS'].includes(val))` |
+| expirationDate | date            | `.date().nullable().optional().refine(date => !date                                 |     | !isNaN(date.getTime()))` |
+| productId      | string → number | `.min(1)`, transform a Number                                                       |
+| warehouseId    | string → number | `.min(1)`, transform a Number                                                       |
 
 **Refinements entre campos:**
+
 - `minimum <= maximum` (error en campo `minimum`)
 - `quantity <= maximum` (error en campo `quantity`)
 
@@ -811,11 +824,11 @@ Mismos campos que create, todos `.optional()`, más `.min(1)` para evitar PATCH 
 
 ### 12.3 Field Limits
 
-| Ubicación | Campo | Límite |
-| ----------- | --------- | ----- |
+| Ubicación                | Campo        | Límite        |
+| ------------------------ | ------------ | ------------- |
 | `FIELD_LIMITS.stock.lot` | lot (client) | 50 caracteres |
-| Joi schema | lot (server) | `max(50)` |
-| Prisma schema | lot | `VarChar(50)` |
+| Joi schema               | lot (server) | `max(50)`     |
+| Prisma schema            | lot          | `VarChar(50)` |
 
 **Consistente:** Límite 50 en las 3 capas.
 
@@ -830,11 +843,11 @@ Mismos campos que create, todos `.optional()`, más `.min(1)` para evitar PATCH 
 
 ### 13.2 Permisos CRUD
 
-| Acción | Permiso | Roles |
-| --------- | ----------- | ----- |
-| Ver stock | `canViewStock` | ADMIN, MANAGER, USER |
-| Crear stock | `canCreateStock` | ADMIN, MANAGER, USER |
-| Editar stock | `canEditStock` | ADMIN, MANAGER, USER |
+| Acción         | Permiso          | Roles                |
+| -------------- | ---------------- | -------------------- |
+| Ver stock      | `canViewStock`   | ADMIN, MANAGER, USER |
+| Crear stock    | `canCreateStock` | ADMIN, MANAGER, USER |
+| Editar stock   | `canEditStock`   | ADMIN, MANAGER, USER |
 | Eliminar stock | `canDeleteStock` | ADMIN, MANAGER, USER |
 
 **Nota:** A diferencia de otros módulos (Products), aquí USER tiene permisos completos CRUD. Esto podría ser riesgoso si la intención era restringir eliminación a ADMIN/MANAGER.
@@ -847,11 +860,11 @@ Mismos campos que create, todos `.optional()`, más `.min(1)` para evitar PATCH 
 
 ### 13.4 OWASP Consideraciones
 
-| Riesgo | Mitigación |
-| --------- | -------------- |
-| SQL Injection | Uso de `Prisma.sql` tagged templates (parametriza automáticamente). Sin embargo, `ILIKE ${'%' + (lot || '') + '%'}` usa interpolación directa — ⚠️ riesgo potencial si Prisma no sanitiza en ese contexto |
-| IDOR | No hay verificación de propiedad del registro — cualquier usuario autenticado puede modificar/eliminar cualquier registro de stock |
-| Mass Assignment | `validateSchema` con Joi evita campos extra. Zod usa `.passthrough()` que permite campos extra aunque no los procesa |
+| Riesgo          | Mitigación                                                                                                                         |
+| --------------- | ---------------------------------------------------------------------------------------------------------------------------------- | --- | ------------------------------------------------------------------------------------------------- |
+| SQL Injection   | Uso de `Prisma.sql` tagged templates (parametriza automáticamente). Sin embargo, `ILIKE ${'%' + (lot                               |     | '') + '%'}` usa interpolación directa — ⚠️ riesgo potencial si Prisma no sanitiza en ese contexto |
+| IDOR            | No hay verificación de propiedad del registro — cualquier usuario autenticado puede modificar/eliminar cualquier registro de stock |
+| Mass Assignment | `validateSchema` con Joi evita campos extra. Zod usa `.passthrough()` que permite campos extra aunque no los procesa               |
 
 ---
 
@@ -913,6 +926,7 @@ Mismos campos que create, todos `.optional()`, más `.min(1)` para evitar PATCH 
 ### 15.2 i18n
 
 Todas las etiquetas UI usan `useTranslation()` con claves como:
+
 - `add_stock`, `edit_stock`, `search_by_lot`, `select_product`, `select_warehouse`, `select_unit_measure`
 - `created_on`, `updated_on`, `expiration_date`, `expiration_status`, `total_cost`
 - `zod.stock.*` — mensajes de error Zod internacionalizados
@@ -932,14 +946,14 @@ Todas las etiquetas UI usan `useTranslation()` con claves como:
 
 ## 16. Requisitos de Calidad
 
-| ID | Atributo | Escenario | Métrica |
-| --- | ----------- | ------------ | --------- |
-| Q-01 | Rendimiento | GET `/` con JOINs en 4 tablas + computed fields | < 200ms para 10K registros |
-| Q-02 | Consistencia | Unique constraint evita duplicados exactos | Zero duplicados en BD |
-| Q-03 | Seguridad | Todos los endpoints requieren JWT + permiso específico | 100% de rutas protegidas |
-| Q-04 | Mantenibilidad | Arquitectura 4-capas (routes→controller→service→dao) | Bajo acoplamiento |
-| Q-05 | Experiencia UX | Filtros + paginación reactiva sin recarga de página | Sin page reloads |
-| Q-06 | Cobertura | Sin tests unitarios ni de integración | ❌ 0% cobertura |
+| ID   | Atributo       | Escenario                                              | Métrica                    |
+| ---- | -------------- | ------------------------------------------------------ | -------------------------- |
+| Q-01 | Rendimiento    | GET `/` con JOINs en 4 tablas + computed fields        | < 200ms para 10K registros |
+| Q-02 | Consistencia   | Unique constraint evita duplicados exactos             | Zero duplicados en BD      |
+| Q-03 | Seguridad      | Todos los endpoints requieren JWT + permiso específico | 100% de rutas protegidas   |
+| Q-04 | Mantenibilidad | Arquitectura 4-capas (routes→controller→service→dao)   | Bajo acoplamiento          |
+| Q-05 | Experiencia UX | Filtros + paginación reactiva sin recarga de página    | Sin page reloads           |
+| Q-06 | Cobertura      | Sin tests unitarios ni de integración                  | ❌ 0% cobertura            |
 
 ---
 
@@ -947,35 +961,35 @@ Todas las etiquetas UI usan `useTranslation()` con claves como:
 
 ### ADR-001: Raw SQL para listado vs Prisma ORM
 
-| Contexto | `getAllStock` requiere JOINs en 4 tablas + computed fields (CASE WHEN, multiplicación) |
-| ----------- | ------------------------------------------------------------------------------------------- |
-| Decisión | Usar `prisma.$queryRaw` con `Prisma.sql` tagged template |
+| Contexto     | `getAllStock` requiere JOINs en 4 tablas + computed fields (CASE WHEN, multiplicación)                                           |
+| ------------ | -------------------------------------------------------------------------------------------------------------------------------- |
+| Decisión     | Usar `prisma.$queryRaw` con `Prisma.sql` tagged template                                                                         |
 | Consecuencia | + Control total sobre SQL optimizado. - Pérdida de type-safety de Prisma. - Riesgo de SQL injection mitigado por parametrización |
-| Alternativa | Prisma `findMany` con `include` anidado y post-procesamiento JS de computed fields |
+| Alternativa  | Prisma `findMany` con `include` anidado y post-procesamiento JS de computed fields                                               |
 
 ### ADR-002: Unique Constraint Compuesta vs Simple
 
-| Contexto | Un producto puede tener stock en múltiples almacenes con diferentes lotes |
-| ----------- | ---------------------------------------------------------------------------- |
-| Decisión | `@@unique([productId, warehouseId, lot, expirationDate])` |
+| Contexto     | Un producto puede tener stock en múltiples almacenes con diferentes lotes                                                             |
+| ------------ | ------------------------------------------------------------------------------------------------------------------------------------- |
+| Decisión     | `@@unique([productId, warehouseId, lot, expirationDate])`                                                                             |
 | Consecuencia | + Flexibilidad para múltiples registros por producto. + Evita duplicados accidentales. - Complejidad en UI para manejar combinaciones |
-| Alternativa | PK compuesta con los mismos campos |
+| Alternativa  | PK compuesta con los mismos campos                                                                                                    |
 
 ### ADR-003: Computed Fields en SQL vs Aplicación
 
-| Contexto | `expirationStatus` y `totalCost` son derivados de datos existentes |
-| ----------- | --------------------------------------------------------------------- |
-| Decisión | Calcular en SQL (CASE WHEN + multiplicación en SELECT) |
+| Contexto     | `expirationStatus` y `totalCost` son derivados de datos existentes                                |
+| ------------ | ------------------------------------------------------------------------------------------------- |
+| Decisión     | Calcular en SQL (CASE WHEN + multiplicación en SELECT)                                            |
 | Consecuencia | + Sin datos duplicados. + Cálculo siempre actualizado. - Mayor carga en BD. - No se puede indexar |
-| Alternativa | Campos persistidos actualizados vía triggers o en capa de aplicación |
+| Alternativa  | Campos persistidos actualizados vía triggers o en capa de aplicación                              |
 
 ### ADR-004: Paginación Sin COUNT Total
 
-| Contexto | El listado paginado no retorna metadatos de paginación (total de registros) |
-| ----------- | --------------------------------------------------------------------------- |
-| Decisión | No implementar COUNT separado (actual) |
+| Contexto     | El listado paginado no retorna metadatos de paginación (total de registros)                                |
+| ------------ | ---------------------------------------------------------------------------------------------------------- |
+| Decisión     | No implementar COUNT separado (actual)                                                                     |
 | Consecuencia | - UI de paginación muestra datos incorrectos (no hay total). - El cliente no puede mostrar "página X de Y" |
-| Alternativa | Agregar subquery COUNT con mismos filtros |
+| Alternativa  | Agregar subquery COUNT con mismos filtros                                                                  |
 
 ---
 
@@ -983,45 +997,45 @@ Todas las etiquetas UI usan `useTranslation()` con claves como:
 
 ### 18.1 Bugs Conocidos
 
-| ID | Severidad | Descripción | Archivo | Línea |
-| --- | --------- | ----------- | --------- | ----- |
-| **R-001** | 🔴 **High** | Dos handlers GET en la misma ruta `/` (getAllStock y getStockByProductId). Express solo ejecuta el primero. `getStockByProductId` nunca se ejecuta. | `routes.js` | L78-86 vs L137-144 |
-| **R-002** | 🟠 **Medium** | `getAllStock` DAO no incluye query COUNT para paginación. `total` no es poblado → UI de paginación no funciona correctamente | `dao.js` | — |
-| **R-003** | 🟠 **Medium** | Filtro `stocksExpirated = true` incluye registros con `expirationDate IS NULL` (condición OR `s."expirationDate" IS NULL`) | `dao.js` | L66-68 |
-| **R-004** | 🔴 **High** | `getStockByProductId` usa `prisma.stock.findUnique({ where: { productId: id } })`. `productId` no es unique (solo en constraint compuesta). Si hay múltiples registros para el mismo producto, Prisma lanza error | `dao.js` | L91-93 |
-| **R-005** | 🟡 **Low** | Sin manejo visual de errores en UI — `catch (err) { console.error(...) }` silencioso | `Stock.jsx` | L136-138, L184-186, L191-192 |
-| **R-006** | 🟡 **Low** | Zod schema requiere `maximum` con `min(1)` pero en BD y Joi es opcional/allow(null). Crear stock sin maximum falla en cliente | `schema.js` | L27-36 |
-| **R-007** | 🟠 **Medium** | Prisma `P2002` (unique constraint violation) sin manejo — devuelve 500 en lugar de 409 Conflict | `dao.js` | — |
-| **R-008** | 🟠 **Medium** | Prisma `P2025` (record not found) sin manejo — update/delete de ID inexistente devuelve 500 en lugar de 404 | `dao.js` | — |
-| **R-009** | 🟡 **Low** | `totalCost` computado como `quantity * price` usa precio de venta, no costo (`cost`). Posible inconsistencia contable | `dao.js` | L39 |
-| **R-010** | 🟢 **Info** | Sin unit tests ni integration tests para el módulo Stock | — | — |
+| ID        | Severidad     | Descripción                                                                                                                                                                                                       | Archivo     | Línea                        |
+| --------- | ------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------- | ---------------------------- |
+| **R-001** | 🔴 **High**   | Dos handlers GET en la misma ruta `/` (getAllStock y getStockByProductId). Express solo ejecuta el primero. `getStockByProductId` nunca se ejecuta.                                                               | `routes.js` | L78-86 vs L137-144           |
+| **R-002** | 🟠 **Medium** | `getAllStock` DAO no incluye query COUNT para paginación. `total` no es poblado → UI de paginación no funciona correctamente                                                                                      | `dao.js`    | —                            |
+| **R-003** | 🟠 **Medium** | Filtro `stocksExpirated = true` incluye registros con `expirationDate IS NULL` (condición OR `s."expirationDate" IS NULL`)                                                                                        | `dao.js`    | L66-68                       |
+| **R-004** | 🔴 **High**   | `getStockByProductId` usa `prisma.stock.findUnique({ where: { productId: id } })`. `productId` no es unique (solo en constraint compuesta). Si hay múltiples registros para el mismo producto, Prisma lanza error | `dao.js`    | L91-93                       |
+| **R-005** | 🟡 **Low**    | Sin manejo visual de errores en UI — `catch (err) { console.error(...) }` silencioso                                                                                                                              | `Stock.jsx` | L136-138, L184-186, L191-192 |
+| **R-006** | 🟡 **Low**    | Zod schema requiere `maximum` con `min(1)` pero en BD y Joi es opcional/allow(null). Crear stock sin maximum falla en cliente                                                                                     | `schema.js` | L27-36                       |
+| **R-007** | 🟠 **Medium** | Prisma `P2002` (unique constraint violation) sin manejo — devuelve 500 en lugar de 409 Conflict                                                                                                                   | `dao.js`    | —                            |
+| **R-008** | 🟠 **Medium** | Prisma `P2025` (record not found) sin manejo — update/delete de ID inexistente devuelve 500 en lugar de 404                                                                                                       | `dao.js`    | —                            |
+| **R-009** | 🟡 **Low**    | `totalCost` computado como `quantity * price` usa precio de venta, no costo (`cost`). Posible inconsistencia contable                                                                                             | `dao.js`    | L39                          |
+| **R-010** | 🟢 **Info**   | Sin unit tests ni integration tests para el módulo Stock                                                                                                                                                          | —           | —                            |
 
 ### 18.2 Deuda Técnica
 
-| ID | Deuda | Impacto | Esfuerzo estimado |
-| --- | ----- | --------- | ----------------- |
-| D-01 | Rutas duplicadas en `/` (R-001) | Funcional — `getStockByProductId` inalcanzable | Bajo (mover a `/:id`) |
-| D-02 | Falta COUNT paginación (R-002) | UX — paginación no muestra total | Medio |
-| D-03 | `findUnique` con campo no único (R-004) | Funcional — error con productos multi-stock | Bajo (cambiar a findFirst o findMany) |
-| D-04 | Sin manejo de errores 404/409 | UX — errores opacos al usuario | Bajo (agregar try-catch en DAO o controller) |
-| D-05 | Sin tests | QA — riesgo de regresiones | Alto |
+| ID   | Deuda                                   | Impacto                                        | Esfuerzo estimado                            |
+| ---- | --------------------------------------- | ---------------------------------------------- | -------------------------------------------- |
+| D-01 | Rutas duplicadas en `/` (R-001)         | Funcional — `getStockByProductId` inalcanzable | Bajo (mover a `/:id`)                        |
+| D-02 | Falta COUNT paginación (R-002)          | UX — paginación no muestra total               | Medio                                        |
+| D-03 | `findUnique` con campo no único (R-004) | Funcional — error con productos multi-stock    | Bajo (cambiar a findFirst o findMany)        |
+| D-04 | Sin manejo de errores 404/409           | UX — errores opacos al usuario                 | Bajo (agregar try-catch en DAO o controller) |
+| D-05 | Sin tests                               | QA — riesgo de regresiones                     | Alto                                         |
 
 ---
 
 ## 19. Glosario
 
-| Término | Definición |
-| --------- | ------------ |
-| **Stock** | Registro de existencias de un producto en un almacén específico |
-| **Lote** | Identificador alfanumérico (max 50 chars) que agrupa unidades producidas/recibidas juntas |
-| **Unidad de Medida** | Enum que define cómo se mide el stock: PIECES (unidades), KILOGRAMS (peso), LITERS (volumen), METERS (longitud) |
-| **ExpirationStatus** | Campo computado: EXPIRED (fecha pasada), NOT EXPIRED (fecha futura), NULL (sin fecha) |
-| **TotalCost** | Campo computado: `quantity * product.price` |
-| **Stock Bajo (Low Stock)** | Estado donde `quantity < minimum` |
-| **Stock Vencido (Expired)** | Estado donde `expirationDate < CURRENT_DATE` |
-| **Alertas de Stock** | Conteo agregado de registros vencidos y con stock bajo |
-| **Umbral (Threshold)** | Valores `minimum` y `maximum` que definen el rango aceptable de inventario |
-| **Constraint Única Compuesta** | `@@unique([productId, warehouseId, lot, expirationDate])` — garantiza unicidad de la combinación |
+| Término                        | Definición                                                                                                      |
+| ------------------------------ | --------------------------------------------------------------------------------------------------------------- |
+| **Stock**                      | Registro de existencias de un producto en un almacén específico                                                 |
+| **Lote**                       | Identificador alfanumérico (max 50 chars) que agrupa unidades producidas/recibidas juntas                       |
+| **Unidad de Medida**           | Enum que define cómo se mide el stock: PIECES (unidades), KILOGRAMS (peso), LITERS (volumen), METERS (longitud) |
+| **ExpirationStatus**           | Campo computado: EXPIRED (fecha pasada), NOT EXPIRED (fecha futura), NULL (sin fecha)                           |
+| **TotalCost**                  | Campo computado: `quantity * product.price`                                                                     |
+| **Stock Bajo (Low Stock)**     | Estado donde `quantity < minimum`                                                                               |
+| **Stock Vencido (Expired)**    | Estado donde `expirationDate < CURRENT_DATE`                                                                    |
+| **Alertas de Stock**           | Conteo agregado de registros vencidos y con stock bajo                                                          |
+| **Umbral (Threshold)**         | Valores `minimum` y `maximum` que definen el rango aceptable de inventario                                      |
+| **Constraint Única Compuesta** | `@@unique([productId, warehouseId, lot, expirationDate])` — garantiza unicidad de la combinación                |
 
 ---
 
@@ -1029,57 +1043,57 @@ Todas las etiquetas UI usan `useTranslation()` con claves como:
 
 ### 20.1 Referencias
 
-| Recurso | Ubicación |
-| --------- | ----------- |
-| Prisma Model | `apps/server/prisma/schema.prisma` (línea 367, model `stock`) |
-| Server Routes | `apps/server/src/modules/stock/routes.js` |
-| Server Controller | `apps/server/src/modules/stock/controller.js` |
-| Server Service | `apps/server/src/modules/stock/service.js` |
-| Server DAO | `apps/server/src/modules/stock/dao.js` |
-| Server Joi Schemas | `apps/server/src/modules/stock/schemas/stock.joi.js` |
-| Client API | `apps/client/src/modules/stock/api/stockAPI.js` |
-| Client Page | `apps/client/src/modules/stock/pages/Stock.jsx` |
-| Client Filters | `apps/client/src/modules/stock/components/StockFiltersForm.jsx` |
-| Client Datatable | `apps/client/src/modules/stock/components/StockDatatable.jsx` |
-| Client Dialog | `apps/client/src/modules/stock/components/StockDialog.jsx` |
-| Client Zod Schema | `apps/client/src/modules/stock/utils/schema.js` |
-| Client Enums | `apps/client/src/modules/stock/utils/enums.js` |
-| Field Limits Config | `apps/client/src/config/fieldLimits.js` (línea 67: `stock: { lot: 50 }`) |
+| Recurso               | Ubicación                                                                       |
+| --------------------- | ------------------------------------------------------------------------------- |
+| Prisma Model          | `apps/server/prisma/schema.prisma` (línea 367, model `stock`)                   |
+| Server Routes         | `apps/server/src/modules/stock/routes.js`                                       |
+| Server Controller     | `apps/server/src/modules/stock/controller.js`                                   |
+| Server Service        | `apps/server/src/modules/stock/service.js`                                      |
+| Server DAO            | `apps/server/src/modules/stock/dao.js`                                          |
+| Server Joi Schemas    | `apps/server/src/modules/stock/schemas/stock.joi.js`                            |
+| Client API            | `apps/client/src/modules/stock/api/stockAPI.js`                                 |
+| Client Page           | `apps/client/src/modules/stock/pages/Stock.jsx`                                 |
+| Client Filters        | `apps/client/src/modules/stock/components/StockFiltersForm.jsx`                 |
+| Client Datatable      | `apps/client/src/modules/stock/components/StockDatatable.jsx`                   |
+| Client Dialog         | `apps/client/src/modules/stock/components/StockDialog.jsx`                      |
+| Client Zod Schema     | `apps/client/src/modules/stock/utils/schema.js`                                 |
+| Client Enums          | `apps/client/src/modules/stock/utils/enums.js`                                  |
+| Field Limits Config   | `apps/client/src/config/fieldLimits.js` (línea 67: `stock: { lot: 50 }`)        |
 | Permissions Constants | `apps/server/src/utils/constants/enums.js` (PERMISSIONCODES.canViewStock, etc.) |
 
 ### 20.2 Endpoints Resumidos
 
-| Método | Ruta | Permiso | Uso |
-| ------ | ------- | --------- | ---- |
-| GET | `/api/v1/stock` | canViewStock | Listar stock con filtros |
-| GET | `/api/v1/stock/:id` | canViewStock | Obtener stock por producto (⚠️ Bug R-004) |
-| GET | `/api/v1/stock/alerts` | canViewStock | Alertas (vencidos + bajo mínimo) |
-| POST | `/api/v1/stock` | canCreateStock | Crear registro |
-| PATCH | `/api/v1/stock/:id` | canEditStock | Actualizar registro |
-| DELETE | `/api/v1/stock/:id` | canDeleteStock | Eliminar registro |
+| Método | Ruta                   | Permiso        | Uso                                       |
+| ------ | ---------------------- | -------------- | ----------------------------------------- |
+| GET    | `/api/v1/stock`        | canViewStock   | Listar stock con filtros                  |
+| GET    | `/api/v1/stock/:id`    | canViewStock   | Obtener stock por producto (⚠️ Bug R-004) |
+| GET    | `/api/v1/stock/alerts` | canViewStock   | Alertas (vencidos + bajo mínimo)          |
+| POST   | `/api/v1/stock`        | canCreateStock | Crear registro                            |
+| PATCH  | `/api/v1/stock/:id`    | canEditStock   | Actualizar registro                       |
+| DELETE | `/api/v1/stock/:id`    | canDeleteStock | Eliminar registro                         |
 
 ### 20.3 Hooks RTK Exportados
 
 ```js
-useLazyGetAllStockQuery       // GET /stock (lazy, con parámetros)
-useLazyGetStockByProductIdQuery // GET /stock/:id (lazy)
-useGetStockAlertsQuery        // GET /stock/alerts (auto)
-useCreateStockMutation        // POST /stock
-useUpdateStockByIdMutation    // PATCH /stock/:id
-useDeleteStockByIdMutation    // DELETE /stock/:id
+useLazyGetAllStockQuery; // GET /stock (lazy, con parámetros)
+useLazyGetStockByProductIdQuery; // GET /stock/:id (lazy)
+useGetStockAlertsQuery; // GET /stock/alerts (auto)
+useCreateStockMutation; // POST /stock
+useUpdateStockByIdMutation; // PATCH /stock/:id
+useDeleteStockByIdMutation; // DELETE /stock/:id
 ```
 
 ### 20.4 Checklist de Verificación
 
-| Aspecto | Estado | Notas |
-| --------- | ------ | ----- |
-| Server endpoints documentados | ✅ | 6 endpoints completos con OpenAPI docs |
-| Client hooks documentados | ✅ | 6 hooks RTK Query |
-| Componentes documentados | ✅ | 3 componentes (FiltersForm, Datatable, Dialog) |
-| Validación server (Joi) | ✅ | 3 schemas |
-| Validación client (Zod) | ✅ | 1 schema con refinements |
-| Modelo de datos (Prisma) | ✅ | Modelo stock + enum unitMeasureStock |
-| Seguridad/Auth | ✅ | verifyToken + 4 permisos CRUD |
-| Filtros documentados | ✅ | 6 filtros (productId, warehouseId, lot, unitMeasure, stocksExpirated, stocksLow) |
-| Bugs documentados | ✅ | 10 bugs (R-001 a R-010) |
-| Tests | ❌ | Sin tests unitarios ni de integración |
+| Aspecto                       | Estado | Notas                                                                            |
+| ----------------------------- | ------ | -------------------------------------------------------------------------------- |
+| Server endpoints documentados | ✅     | 6 endpoints completos con OpenAPI docs                                           |
+| Client hooks documentados     | ✅     | 6 hooks RTK Query                                                                |
+| Componentes documentados      | ✅     | 3 componentes (FiltersForm, Datatable, Dialog)                                   |
+| Validación server (Joi)       | ✅     | 3 schemas                                                                        |
+| Validación client (Zod)       | ✅     | 1 schema con refinements                                                         |
+| Modelo de datos (Prisma)      | ✅     | Modelo stock + enum unitMeasureStock                                             |
+| Seguridad/Auth                | ✅     | verifyToken + 4 permisos CRUD                                                    |
+| Filtros documentados          | ✅     | 6 filtros (productId, warehouseId, lot, unitMeasure, stocksExpirated, stocksLow) |
+| Bugs documentados             | ✅     | 10 bugs (R-001 a R-010)                                                          |
+| Tests                         | ❌     | Sin tests unitarios ni de integración                                            |

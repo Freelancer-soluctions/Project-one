@@ -24,7 +24,7 @@ Es como tener un guardia de seguridad en la puerta de una sala de servidores. El
 
 En July 2026, el equipo implementó un sistema de **6 capas de enforcement** para proteger el monorepo. Las capas 1, 2, 3, 5 y 6 ya estaban activas. Faltaba la **Capa 4**: prevención pre-ejecución. Este cambio la cierra.
 
-La estrategia se basa en el artículo *"AI Agent Guardrails: Rules That LLMs Cannot Bypass"* (AWS, dev.to, 2026), que demostró que prompts y reglas de sistema son **sugerencias** que un LLM puede ignorar. La única forma de hacer reglas **inevitable** es ejecutarlas fuera del modelo.
+La estrategia se basa en el artículo _"AI Agent Guardrails: Rules That LLMs Cannot Bypass"_ (AWS, dev.to, 2026), que demostró que prompts y reglas de sistema son **sugerencias** que un LLM puede ignorar. La única forma de hacer reglas **inevitable** es ejecutarlas fuera del modelo.
 
 ---
 
@@ -34,46 +34,46 @@ La estrategia se basa en el artículo *"AI Agent Guardrails: Rules That LLMs Can
 
 ### Estado de las 6 Capas de Enforcement
 
-| Capa | Mecanismo | Implementado? | Archivo / Fuente |
-|------|-----------|---------------|-----------------|
-| **Layer 1** | Auto-validación en prompts (9 agentes con output-contract + SELF-VALIDATION) | ✅ SÍ | `docs/opencode/prompts/*.md` — cada prompt tiene instrucciones de output-contract y self-validation |
-| **Layer 2** | `output-contracts.ts` plugin (`tool.execute.after` filtrado a `task`) | ✅ SÍ | `.opencode/plugins/output-contracts.ts` (361 líneas) |
-| **Layer 2** | `contractValidator.js` (Ajv validation con schemas por agente) | ✅ SÍ | `docs/opencode/prompts/contracts/contractValidator.js` (339 líneas) |
-| **Layer 2** | Schemas JSON por agente (8 archivos) | ✅ SÍ | `docs/opencode/prompts/contracts/*.schema.json` |
-| **Layer 3** | Orchestrator re-delegation basada en `metadata.contractValidation` | ✅ SÍ | `docs/opencode/prompts/orchestrator.md` (sección SELF-VALIDATION) |
-| **Layer 4** | `neurosymbolic-guardrails.ts` — 12 reglas pre-ejecución | ✅ **ACTIVO** | `.opencode/plugins/neurosymbolic-guardrails.ts` (229 líneas, hook V1 PluginModule) |
-| **Layer 4** | `guardrails-rules.ts` — interfaz Rule + TOOL_RULES | ✅ **ACTIVO** | `.opencode/guardrails-rules.ts` (606 líneas, 12 reglas implementadas, movido fuera de `plugins/` para evitar auto-discovery crash) |
-| **Layer 5** | Permission block en `opencode.jsonc` (15 deny/allow globals + 8 overrides) | ✅ SÍ | `opencode.jsonc` líneas 68-219 |
-| **Layer 6** | `contract-audit.jsonl` (desde output-contracts.ts) | ✅ SÍ (parcial) | Se escribirá en `.opencode/logs/` cuando haya fallos de Layer 2 |
-| **Layer 6** | `guardrails-audit.jsonl` (desde Layer 4) | ✅ **ACTIVO** (2 entradas registradas) | `.opencode/logs/guardrails-audit.jsonl` — bloqueos reales capturados (git rebase, git push --force) |
+| Capa        | Mecanismo                                                                    | Implementado?                          | Archivo / Fuente                                                                                                                   |
+| ----------- | ---------------------------------------------------------------------------- | -------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| **Layer 1** | Auto-validación en prompts (9 agentes con output-contract + SELF-VALIDATION) | ✅ SÍ                                  | `docs/opencode/prompts/*.md` — cada prompt tiene instrucciones de output-contract y self-validation                                |
+| **Layer 2** | `output-contracts.ts` plugin (`tool.execute.after` filtrado a `task`)        | ✅ SÍ                                  | `.opencode/plugins/output-contracts.ts` (361 líneas)                                                                               |
+| **Layer 2** | `contractValidator.js` (Ajv validation con schemas por agente)               | ✅ SÍ                                  | `docs/opencode/prompts/contracts/contractValidator.js` (339 líneas)                                                                |
+| **Layer 2** | Schemas JSON por agente (8 archivos)                                         | ✅ SÍ                                  | `docs/opencode/prompts/contracts/*.schema.json`                                                                                    |
+| **Layer 3** | Orchestrator re-delegation basada en `metadata.contractValidation`           | ✅ SÍ                                  | `docs/opencode/prompts/orchestrator.md` (sección SELF-VALIDATION)                                                                  |
+| **Layer 4** | `neurosymbolic-guardrails.ts` — 12 reglas pre-ejecución                      | ✅ **ACTIVO**                          | `.opencode/plugins/neurosymbolic-guardrails.ts` (229 líneas, hook V1 PluginModule)                                                 |
+| **Layer 4** | `guardrails-rules.ts` — interfaz Rule + TOOL_RULES                           | ✅ **ACTIVO**                          | `.opencode/guardrails-rules.ts` (606 líneas, 12 reglas implementadas, movido fuera de `plugins/` para evitar auto-discovery crash) |
+| **Layer 5** | Permission block en `opencode.jsonc` (15 deny/allow globals + 8 overrides)   | ✅ SÍ                                  | `opencode.jsonc` líneas 68-219                                                                                                     |
+| **Layer 6** | `contract-audit.jsonl` (desde output-contracts.ts)                           | ✅ SÍ (parcial)                        | Se escribirá en `.opencode/logs/` cuando haya fallos de Layer 2                                                                    |
+| **Layer 6** | `guardrails-audit.jsonl` (desde Layer 4)                                     | ✅ **ACTIVO** (2 entradas registradas) | `.opencode/logs/guardrails-audit.jsonl` — bloqueos reales capturados (git rebase, git push --force)                                |
 
 ### Mecanismos Adicionales Encontrados
 
-| Mecanismo | Implementado? | Archivo / Fuente |
-|-----------|---------------|-----------------|
-| MCP proxy (`proxy/sanitize.js`) — bloquea injection en tool descriptions | ⚠️ **PARCIAL** (código existe, NO conectado) | `.opencode/proxy/sanitize.js` (96 líneas) — registrado pero comentado en `opencode.jsonc` |
-| Express middleware (auth, rateLimit, validation, CSP, CSRF, errorHandler) | ✅ SÍ | `apps/server/src/middleware/index.js` — 9 middlewares activos |
-| Husky hooks (pre-commit) | ❌ **NO INSTALADO** | `.husky/` no existe — `prepare` script en `package.json` línea 22 nunca se ejecutó |
-| CI/CD pipelines | ❌ **NO EXISTE** | `.github/workflows/` no encontrado |
-| Gitleaks secrets scanning | ⚠️ **PARCIAL** (script existe, no automatizado) | `package.json` scripts `security:secrets`, `.gitleaks.toml` |
-| Semgrep SAST | ⚠️ **PARCIAL** (script existe, no automatizado) | `package.json` scripts `sast:semgrep:*` |
+| Mecanismo                                                                 | Implementado?                                   | Archivo / Fuente                                                                          |
+| ------------------------------------------------------------------------- | ----------------------------------------------- | ----------------------------------------------------------------------------------------- |
+| MCP proxy (`proxy/sanitize.js`) — bloquea injection en tool descriptions  | ⚠️ **PARCIAL** (código existe, NO conectado)    | `.opencode/proxy/sanitize.js` (96 líneas) — registrado pero comentado en `opencode.jsonc` |
+| Express middleware (auth, rateLimit, validation, CSP, CSRF, errorHandler) | ✅ SÍ                                           | `apps/server/src/middleware/index.js` — 9 middlewares activos                             |
+| Husky hooks (pre-commit)                                                  | ❌ **NO INSTALADO**                             | `.husky/` no existe — `prepare` script en `package.json` línea 22 nunca se ejecutó        |
+| CI/CD pipelines                                                           | ❌ **NO EXISTE**                                | `.github/workflows/` no encontrado                                                        |
+| Gitleaks secrets scanning                                                 | ⚠️ **PARCIAL** (script existe, no automatizado) | `package.json` scripts `security:secrets`, `.gitleaks.toml`                               |
+| Semgrep SAST                                                              | ⚠️ **PARCIAL** (script existe, no automatizado) | `package.json` scripts `sast:semgrep:*`                                                   |
 
 ### Vulnerabilidades Activas (sin Layer 4)
 
 Las siguientes operaciones NO tienen restricción mientras Layer 4 no esté implementado:
 
-| # | Vulnerabilidad | Agentes afectados | Layer 5 ya cubre? |
-|---|---------------|-------------------|------------------|
-| 1 | `git push --force` | @developer, @git-manager (ambos tienen `bash: allow`) | ❌ No — Layer 5 no diferencia flags |
-| 2 | `prisma db push --force-reset` | @developer (`bash: allow`) | ❌ No |
-| 3 | `git commit --no-verify` | @git-manager (`bash: allow`) | ❌ No |
-| 4 | `rm -rf .git` | @developer, @git-manager | ❌ No |
-| 5 | Escritura directa a `.env` | @developer (`write: allow`) | ❌ No |
-| 6 | `git rebase`, `git reset --hard` | @git-manager (`bash: allow`) | ❌ No |
-| 7 | `curl ... \| sh` (ejecución no convencional) | @developer (`bash: allow`) | ❌ No |
-| 8 | Git via Composio (si se activa) | @project-manager | ⚠️ Parcialmente (composio tiene `bash: deny` global) |
-| 9 | `python -c "..."` via bash | @developer (`bash: allow`) | ❌ No |
-| 10 | Llamados directos a Trello API via curl | @orchestrator (`bash: deny` global) | ✅ Sí — orchestrator tiene `bash: deny` global |
+| #   | Vulnerabilidad                               | Agentes afectados                                     | Layer 5 ya cubre?                                    |
+| --- | -------------------------------------------- | ----------------------------------------------------- | ---------------------------------------------------- |
+| 1   | `git push --force`                           | @developer, @git-manager (ambos tienen `bash: allow`) | ❌ No — Layer 5 no diferencia flags                  |
+| 2   | `prisma db push --force-reset`               | @developer (`bash: allow`)                            | ❌ No                                                |
+| 3   | `git commit --no-verify`                     | @git-manager (`bash: allow`)                          | ❌ No                                                |
+| 4   | `rm -rf .git`                                | @developer, @git-manager                              | ❌ No                                                |
+| 5   | Escritura directa a `.env`                   | @developer (`write: allow`)                           | ❌ No                                                |
+| 6   | `git rebase`, `git reset --hard`             | @git-manager (`bash: allow`)                          | ❌ No                                                |
+| 7   | `curl ... \| sh` (ejecución no convencional) | @developer (`bash: allow`)                            | ❌ No                                                |
+| 8   | Git via Composio (si se activa)              | @project-manager                                      | ⚠️ Parcialmente (composio tiene `bash: deny` global) |
+| 9   | `python -c "..."` via bash                   | @developer (`bash: allow`)                            | ❌ No                                                |
+| 10  | Llamados directos a Trello API via curl      | @orchestrator (`bash: deny` global)                   | ✅ Sí — orchestrator tiene `bash: deny` global       |
 
 > **Nota**: Layer 5 (opencode.jsonc permissions) cubre las restricciones más gruesas. Layer 4 añade validación semántica fina. Ambos son necesarios para defense in depth.
 
@@ -83,10 +83,10 @@ Las siguientes operaciones NO tienen restricción mientras Layer 4 no esté impl
 
 El nombre "neurosymbolic" refleja la combinación de dos paradigmas:
 
-| Componente | Rol | Ejemplo |
-|------------|-----|---------|
-| **Neural** (LLM) | Razona, decide qué tool llamar y con qué argumentos | El agente elige `bash` con `{command: "git push --force origin main"}` |
-| **Simbólico** (código determinista) | Evalúa los argumentos contra reglas fijas antes de ejecutar | `no_git_force_push` detecta `--force` y bloquea |
+| Componente                          | Rol                                                         | Ejemplo                                                                |
+| ----------------------------------- | ----------------------------------------------------------- | ---------------------------------------------------------------------- |
+| **Neural** (LLM)                    | Razona, decide qué tool llamar y con qué argumentos         | El agente elige `bash` con `{command: "git push --force origin main"}` |
+| **Simbólico** (código determinista) | Evalúa los argumentos contra reglas fijas antes de ejecutar | `no_git_force_push` detecta `--force` y bloquea                        |
 
 **El LLM no puede eludir las reglas simbólicas** porque se ejecutan en el framework, fuera del contexto del modelo. No importa qué tan convincente sea el prompt del agente — el código determinista no es "convencible".
 
@@ -111,21 +111,21 @@ Paso 3: EJECUCIÓN o BLOQUEO
 
 #### Principios de diseño
 
-| Principio | Significado | Implementación |
-|-----------|-------------|---------------|
-| **Fail-safe** | Si el evaluador tiene un bug, NO bloqueamos | try/catch externo captura errores inesperados y permite ejecución |
-| **Fail-closed** | Si una regla coincide, SIEMPRE bloqueamos | `throw` está FUERA del try/catch de audit — el bloqueo no depende del log |
-| **Audit transparente** | Cada bloqueo se registra | `.opencode/logs/guardrails-audit.jsonl` con timestamp, tool, violaciones, args sanitizados |
-| **Defense in depth** | Los guardrails NO reemplazan otras capas | Layer 1 (prompts), Layer 5 (permisos) y Layer 4 (guardrails) son complementarias — cada una cubre un vector distinto |
-| **Stateless** | Cada llamada se evalúa independientemente | No hay estado entre calls — simplifica testing y evita bugs de acumulación |
-| **Pattern matching** | Las reglas usan regex, no IA | `rule.validate()` es código puro: regex en command/filePath/URL. Rápido, determinista, testeable |
+| Principio              | Significado                                 | Implementación                                                                                                       |
+| ---------------------- | ------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| **Fail-safe**          | Si el evaluador tiene un bug, NO bloqueamos | try/catch externo captura errores inesperados y permite ejecución                                                    |
+| **Fail-closed**        | Si una regla coincide, SIEMPRE bloqueamos   | `throw` está FUERA del try/catch de audit — el bloqueo no depende del log                                            |
+| **Audit transparente** | Cada bloqueo se registra                    | `.opencode/logs/guardrails-audit.jsonl` con timestamp, tool, violaciones, args sanitizados                           |
+| **Defense in depth**   | Los guardrails NO reemplazan otras capas    | Layer 1 (prompts), Layer 5 (permisos) y Layer 4 (guardrails) son complementarias — cada una cubre un vector distinto |
+| **Stateless**          | Cada llamada se evalúa independientemente   | No hay estado entre calls — simplifica testing y evita bugs de acumulación                                           |
+| **Pattern matching**   | Las reglas usan regex, no IA                | `rule.validate()` es código puro: regex en command/filePath/URL. Rápido, determinista, testeable                     |
 
 #### Por qué esto es más fuerte que prompts solos
 
-| Mecanismo | El LLM puede ignorarlo? | Certeza |
-|-----------|------------------------|---------|
-| Prompt: "No uses git push --force" | ✅ Sí — el LLM puede "olvidarlo" o malinterpretar | Baja |
-| System prompt: "You MUST NOT use --force" | ✅ Sí — el LLM puede alucinar o ser jailbreakeado | Media |
+| Mecanismo                                    | El LLM puede ignorarlo?                           | Certeza  |
+| -------------------------------------------- | ------------------------------------------------- | -------- |
+| Prompt: "No uses git push --force"           | ✅ Sí — el LLM puede "olvidarlo" o malinterpretar | Baja     |
+| System prompt: "You MUST NOT use --force"    | ✅ Sí — el LLM puede alucinar o ser jailbreakeado | Media    |
 | **Guardrail: regex detecta --force en bash** | ❌ **No** — el código se ejecuta fuera del modelo | **Alta** |
 
 > **Analogía**: Los prompts son como una señal de "Prohibido estacionar". Los guardrails son una barrera física. La señal puede ignorarse; la barrera, no.
@@ -204,6 +204,7 @@ Paso 3: EJECUCIÓN o BLOQUEO
 > **Estado real (2026-07-20):** Las 12 reglas están **implementadas** en `.opencode/guardrails-rules.ts` (606 líneas, movido de `plugins/` para evitar auto-discovery crash). El hook `tool.execute.before` está registrado en `neurosymbolic-guardrails.ts` (229 líneas, export V1 PluginModule). 29/32 tareas completadas (3 diferidas — stateful rules). Verificación funcional: 10/10 tests pasaron.
 
 Cada regla sigue el patrón:
+
 - **Nombre**: identificador único en snake_case
 - **Herramienta**: qué tool de OpenCode intercepta
 - **Severidad**: CRITICAL (destrucción de datos/historial) / HIGH (pérdida significativa) / MEDIUM (exposición accidental)
@@ -214,15 +215,16 @@ Cada regla sigue el patrón:
 
 #### `no_git_force_push` — CRITICAL
 
-| Atributo | Valor |
-|----------|-------|
-| **Herramienta** | `bash` |
-| **Severidad** | CRITICAL |
-| **Trigger** | Comando bash que contiene `git push` con flag `--force` o `-f` |
-| **Regex** | `/\bgit\b.*\bpush\b.*(--force|-f)/i` |
-| **Mensaje** | "BLOCKED: git push --force destruye el historial compartido. Usa git push sin --force o coordina con el equipo via PR." |
+| Atributo        | Valor                                                                                                                   |
+| --------------- | ----------------------------------------------------------------------------------------------------------------------- | ------ |
+| **Herramienta** | `bash`                                                                                                                  |
+| **Severidad**   | CRITICAL                                                                                                                |
+| **Trigger**     | Comando bash que contiene `git push` con flag `--force` o `-f`                                                          |
+| **Regex**       | `/\bgit\b._\bpush\b._(--force                                                                                           | -f)/i` |
+| **Mensaje**     | "BLOCKED: git push --force destruye el historial compartido. Usa git push sin --force o coordina con el equipo via PR." |
 
 **Ejemplo bloqueado:**
+
 ```bash
 git push --force origin main
 git push -f
@@ -237,15 +239,16 @@ git push --force-with-lease origin feature-branch
 
 #### `no_git_rewrite_history` — CRITICAL
 
-| Atributo | Valor |
-|----------|-------|
-| **Herramienta** | `bash` |
-| **Severidad** | CRITICAL |
-| **Trigger** | Comandos que reescriben historial de git |
-| **Regex** | `/\bgit\b.*(\brebase\b|\breset\b.*--hard|\bcommit\b.*--amend|\bfilter-branch\b|\breflog\b.*\bdelete\b)/i` |
-| **Mensaje** | "BLOCKED: Reescritura de historial de git detectada. Usa git revert para deshacer cambios." |
+| Atributo        | Valor                                                                                       |
+| --------------- | ------------------------------------------------------------------------------------------- | ------------------ | -------------------- | ----------------- | --------------------------- |
+| **Herramienta** | `bash`                                                                                      |
+| **Severidad**   | CRITICAL                                                                                    |
+| **Trigger**     | Comandos que reescriben historial de git                                                    |
+| **Regex**       | `/\bgit\b.\*(\brebase\b                                                                     | \breset\b.\*--hard | \bcommit\b.\*--amend | \bfilter-branch\b | \breflog\b.\*\bdelete\b)/i` |
+| **Mensaje**     | "BLOCKED: Reescritura de historial de git detectada. Usa git revert para deshacer cambios." |
 
 **Ejemplos bloqueados:**
+
 ```bash
 git rebase main
 git rebase -i HEAD~3
@@ -261,15 +264,16 @@ git reflog delete --hard
 
 #### `no_git_no_verify` — CRITICAL
 
-| Atributo | Valor |
-|----------|-------|
-| **Herramienta** | `bash` |
-| **Severidad** | CRITICAL |
-| **Trigger** | `git commit` o `git push` con `--no-verify` |
-| **Regex** | `/\bgit\b.*\bcommit\b.*--no-verify|\bgit\b.*\bpush\b.*--no-verify/i` |
-| **Mensaje** | "BLOCKED: --no-verify salta los hooks de pre-commit (lint, format, Semgrep, Gitleaks). Los hooks son obligatorios." |
+| Atributo        | Valor                                                                                                               |
+| --------------- | ------------------------------------------------------------------------------------------------------------------- | --------------------------------- |
+| **Herramienta** | `bash`                                                                                                              |
+| **Severidad**   | CRITICAL                                                                                                            |
+| **Trigger**     | `git commit` o `git push` con `--no-verify`                                                                         |
+| **Regex**       | `/\bgit\b._\bcommit\b._--no-verify                                                                                  | \bgit\b._\bpush\b._--no-verify/i` |
+| **Mensaje**     | "BLOCKED: --no-verify salta los hooks de pre-commit (lint, format, Semgrep, Gitleaks). Los hooks son obligatorios." |
 
 **Ejemplos bloqueados:**
+
 ```bash
 git commit --no-verify -m "wip: fix fast"
 git push origin main --no-verify
@@ -281,15 +285,16 @@ git push origin main --no-verify
 
 #### `no_prisma_db_push_force_reset` — HIGH
 
-| Atributo | Valor |
-|----------|-------|
-| **Herramienta** | `bash` |
-| **Severidad** | HIGH |
-| **Trigger** | `prisma db push --force-reset`, `prisma migrate reset`, `prisma db push --accept-data-loss` |
-| **Regex** | `/\bprisma\b.*\bdb\b.*\bpush\b.*--force-reset|/\bprisma\b.*\bmigrate\b.*\breset\b|/\bprisma\b.*\bdb\b.*\bpush\b.*--accept-data-loss/i` |
-| **Mensaje** | "BLOCKED: Operación destructiva de base de datos. Usa 'prisma migrate dev' para desarrollo o 'prisma migrate deploy' para producción." |
+| Atributo        | Valor                                                                                                                                  |
+| --------------- | -------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------- | ----------------------------------------------------- |
+| **Herramienta** | `bash`                                                                                                                                 |
+| **Severidad**   | HIGH                                                                                                                                   |
+| **Trigger**     | `prisma db push --force-reset`, `prisma migrate reset`, `prisma db push --accept-data-loss`                                            |
+| **Regex**       | `/\bprisma\b._\bdb\b._\bpush\b.\*--force-reset                                                                                         | /\bprisma\b._\bmigrate\b._\breset\b | /\bprisma\b._\bdb\b._\bpush\b.\*--accept-data-loss/i` |
+| **Mensaje**     | "BLOCKED: Operación destructiva de base de datos. Usa 'prisma migrate dev' para desarrollo o 'prisma migrate deploy' para producción." |
 
 **Ejemplos bloqueados:**
+
 ```bash
 npx prisma db push --force-reset
 npm run prisma-push -- --force-reset
@@ -305,16 +310,17 @@ npx prisma db push --accept-data-loss
 
 #### `no_destructive_rm` — HIGH
 
-| Atributo | Valor |
-|----------|-------|
-| **Herramienta** | `bash` |
-| **Severidad** | HIGH |
-| **Trigger** | `rm -rf` o `rm -fr` con rutas peligrosas (`.git`, `node_modules`, `dist`, `build`, `prisma/`) |
-| **Regex** | `/\brm\b.*(-rf|-fr).*(\.git|node_modules|dist|build|prisma\/)/i` |
-| **Allowlist paths** | `/tmp/`, `node_modules/.cache/` |
-| **Mensaje** | "BLOCKED: rm -rf detected. Usa eliminación selectiva de archivos o mueve a papelera temporal." |
+| Atributo            | Valor                                                                                          |
+| ------------------- | ---------------------------------------------------------------------------------------------- | ------------- | ------------ | ---- | ----- | ------------ |
+| **Herramienta**     | `bash`                                                                                         |
+| **Severidad**       | HIGH                                                                                           |
+| **Trigger**         | `rm -rf` o `rm -fr` con rutas peligrosas (`.git`, `node_modules`, `dist`, `build`, `prisma/`)  |
+| **Regex**           | `/\brm\b.\*(-rf                                                                                | -fr).\*(\.git | node_modules | dist | build | prisma\/)/i` |
+| **Allowlist paths** | `/tmp/`, `node_modules/.cache/`                                                                |
+| **Mensaje**         | "BLOCKED: rm -rf detected. Usa eliminación selectiva de archivos o mueve a papelera temporal." |
 
 **Ejemplos bloqueados:**
+
 ```bash
 rm -rf .git
 rm -rf apps/server/node_modules
@@ -323,6 +329,7 @@ rm -fr prisma/migrations
 ```
 
 **Ejemplo que SÍ pasa** (carpetas allowlistadas):
+
 ```bash
 rm -rf /tmp/my-temp-files
 rm -rf node_modules/.cache/vite/*
@@ -334,15 +341,16 @@ rm -rf node_modules/.cache/vite/*
 
 #### `no_delete_env` — CRITICAL
 
-| Atributo | Valor |
-|----------|-------|
-| **Herramienta** | `bash` |
-| **Severidad** | CRITICAL |
-| **Trigger** | Comandos `rm` o `del` que apuntan a archivos `.env` |
-| **Regex** | `/\brm\b.*\.env|/\bdel\b.*\.env|/\brmdir\b.*\.env/i` |
-| **Mensaje** | "BLOCKED: Archivos .env contienen credenciales (DATABASE_URL, JWT_SECRET, etc.). No eliminar." |
+| Atributo        | Valor                                                                                          |
+| --------------- | ---------------------------------------------------------------------------------------------- | ---------------- | --------------------- |
+| **Herramienta** | `bash`                                                                                         |
+| **Severidad**   | CRITICAL                                                                                       |
+| **Trigger**     | Comandos `rm` o `del` que apuntan a archivos `.env`                                            |
+| **Regex**       | `/\brm\b.\*\.env                                                                               | /\bdel\b.\*\.env | /\brmdir\b.\*\.env/i` |
+| **Mensaje**     | "BLOCKED: Archivos .env contienen credenciales (DATABASE_URL, JWT_SECRET, etc.). No eliminar." |
 
 **Ejemplos bloqueados:**
+
 ```bash
 rm apps/server/.env
 rm .env.production
@@ -355,44 +363,50 @@ del .env.local
 
 #### `no_write_env_files` — HIGH
 
-| Atributo | Valor |
-|----------|-------|
-| **Herramienta** | `write` |
-| **Severidad** | HIGH |
-| **Trigger** | Intento de escribir directamente en archivos `.env` (excepto `.env.example`) |
-| **Path pattern** | Coincide con `/\.env(\.|$)/i` pero excluye `.env.example` (con case-insensitive path matching para cubrir `.ENV`, `.Env`, etc.) |
-| **Mensaje** | "BLOCKED: No modificar .env directamente. Las variables se configuran via .env.example." |
+| Atributo         | Valor                                                                                    |
+| ---------------- | ---------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
+| **Herramienta**  | `write`                                                                                  |
+| **Severidad**    | HIGH                                                                                     |
+| **Trigger**      | Intento de escribir directamente en archivos `.env` (excepto `.env.example`)             |
+| **Path pattern** | Coincide con `/\.env(\.                                                                  | $)/i`pero excluye`.env.example`(con case-insensitive path matching para cubrir`.ENV`, `.Env`, etc.) |
+| **Mensaje**      | "BLOCKED: No modificar .env directamente. Las variables se configuran via .env.example." |
 
 **Ejemplos bloqueados:**
+
 ```typescript
-write({ filePath: "apps/server/.env", content: "DATABASE_URL=..." })
-write({ filePath: ".env.production", content: "SECRET=..." })
+write({ filePath: 'apps/server/.env', content: 'DATABASE_URL=...' });
+write({ filePath: '.env.production', content: 'SECRET=...' });
 ```
 
 **Ejemplo que SÍ pasa:**
+
 ```typescript
-write({ filePath: "apps/server/.env.example", content: "DATABASE_URL=postgres://..." })
+write({
+  filePath: 'apps/server/.env.example',
+  content: 'DATABASE_URL=postgres://...',
+});
 ```
 
 ---
 
 #### `no_edit_gitignore_security` — MEDIUM
 
-| Atributo | Valor |
-|----------|-------|
-| **Herramienta** | `edit` |
-| **Severidad** | MEDIUM |
-| **Trigger** | Intento de eliminar `.env`, `*.log`, `credentials*` de `.gitignore` |
-| **Lógica** | Detecta si `oldString` incluye patrón de seguridad y `newString` lo elimina |
-| **Mensaje** | "BLOCKED: No eliminar '${pattern}' de .gitignore. Expone información sensible." |
+| Atributo        | Valor                                                                           |
+| --------------- | ------------------------------------------------------------------------------- |
+| **Herramienta** | `edit`                                                                          |
+| **Severidad**   | MEDIUM                                                                          |
+| **Trigger**     | Intento de eliminar `.env`, `*.log`, `credentials*` de `.gitignore`             |
+| **Lógica**      | Detecta si `oldString` incluye patrón de seguridad y `newString` lo elimina     |
+| **Mensaje**     | "BLOCKED: No eliminar '${pattern}' de .gitignore. Expone información sensible." |
 
 **Ejemplo bloqueado:**
+
 ```typescript
 edit({
-  filePath: ".gitignore",
-  oldString: ".env\n",
-  newString: ""
-})
+  filePath: '.gitignore',
+  oldString: '.env\n',
+  newString: '',
+});
 ```
 
 **Fuente en proyecto**: `.gitignore` línea 68 excluye `.opencode/logs/` además de archivos env y logs. Eliminar estas exclusiones expone archivos de auditoría y credenciales.
@@ -401,13 +415,13 @@ edit({
 
 #### `no_composio_git_ops` — CRITICAL
 
-| Atributo | Valor |
-|----------|-------|
-| **Herramienta** | `composio_COMPOSIO_*` (cualquier tool de Composio MCP) |
-| **Severidad** | CRITICAL |
-| **Trigger** | Cualquier argumento de tool Composio que contenga comandos git |
-| **Regex** | `/\bgit\b.*\b(push|pull|commit|reset|rebase|merge|branch|clone|fetch|stash)/i` |
-| **Mensaje** | "BLOCKED: Operaciones git vía Composio prohibidas. Git se maneja exclusivamente via git-manager con comandos git nativos." |
+| Atributo        | Valor                                                                                                                      |
+| --------------- | -------------------------------------------------------------------------------------------------------------------------- | ---- | ------ | ----- | ------ | ----- | ------ | ----- | ----- | --------- |
+| **Herramienta** | `composio_COMPOSIO_*` (cualquier tool de Composio MCP)                                                                     |
+| **Severidad**   | CRITICAL                                                                                                                   |
+| **Trigger**     | Cualquier argumento de tool Composio que contenga comandos git                                                             |
+| **Regex**       | `/\bgit\b.\*\b(push                                                                                                        | pull | commit | reset | rebase | merge | branch | clone | fetch | stash)/i` |
+| **Mensaje**     | "BLOCKED: Operaciones git vía Composio prohibidas. Git se maneja exclusivamente via git-manager con comandos git nativos." |
 
 **¿Por qué existe?**: Los permisos de `opencode.jsonc` tienen `bash: deny` global y `composio_COMPOSIO_*: allow` solo para project-manager. Si Composio expone tools que ejecutan git internamente (a través de su propia CLI), podrían bypasear las reglas de `bash`. Esta regla cierra ese vector.
 
@@ -417,16 +431,17 @@ edit({
 
 #### `no_dev_bash_nonstandard` — HIGH
 
-| Atributo | Valor |
-|----------|-------|
-| **Herramienta** | `bash` |
-| **Severidad** | HIGH |
-| **Trigger** | Bash que contiene patrones de ejecución no convencional |
-| **Regex** | `/\bpython\b.*-c|/\bperl\b.*-e|/\bruby\b.*-e|/\bnpm\b.*\bexec\b|/\bnpx\b.*-y|/\bwget\b.*-O\s+-\s*|/\bcurl\b.*\bsh\b/i` |
+| Atributo        | Valor                                                                                                                                                                                         |
+| --------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------- | -------------- | ------------------- | ------------- | -------------------- | --------------------- |
+| **Herramienta** | `bash`                                                                                                                                                                                        |
+| **Severidad**   | HIGH                                                                                                                                                                                          |
+| **Trigger**     | Bash que contiene patrones de ejecución no convencional                                                                                                                                       |
+| **Regex**       | `/\bpython\b.\*-c                                                                                                                                                                             | /\bperl\b.\*-e | /\bruby\b.\*-e | /\bnpm\b.\*\bexec\b | /\bnpx\b.\*-y | /\bwget\b._-O\s+-\s_ | /\bcurl\b.\*\bsh\b/i` |
 | **Exclusiones** | `node_modules/.bin/`, `scripts/`, `npx jest`, `npx vitest`, `npm run`, `npx prisma`, `git`, `npx playwright`, `npx turbo`, `npx storybook`, `npx nx`, `npx tsx`, `npx eslint`, `npx prettier` |
-| **Mensaje** | "BLOCKED: Ejecución no convencional detectada. Usa scripts npm estándar o comandos del proyecto." |
+| **Mensaje**     | "BLOCKED: Ejecución no convencional detectada. Usa scripts npm estándar o comandos del proyecto."                                                                                             |
 
 **Ejemplos bloqueados:**
+
 ```bash
 python -c "import os; os.system('rm -rf .git')"
 perl -e 'system("git push --force")'
@@ -435,6 +450,7 @@ npm exec untrusted-package
 ```
 
 **Ejemplos que SÍ pasan:**
+
 ```bash
 npm run dev
 npx prisma migrate dev
@@ -447,24 +463,26 @@ npm run build
 
 #### `no_planner_write_specs` — HIGH
 
-| Atributo | Valor |
-|----------|-------|
-| **Herramienta** | `write` |
-| **Severidad** | HIGH |
-| **Trigger** | Write a paths que contengan `openspec/` o `specs/` en el path |
-| **Path pattern** | `/openspec/|/specs\//` en filePath (case-insensitive matching) |
-| **Mensaje** | "BLOCKED: Los archivos de specs se crean via OpenSpec CLI (/opsx-new, /opsx-propose). No escribir manualmente." |
+| Atributo         | Valor                                                                                                           |
+| ---------------- | --------------------------------------------------------------------------------------------------------------- | -------------------------------------------------- |
+| **Herramienta**  | `write`                                                                                                         |
+| **Severidad**    | HIGH                                                                                                            |
+| **Trigger**      | Write a paths que contengan `openspec/` o `specs/` en el path                                                   |
+| **Path pattern** | `/openspec/                                                                                                     | /specs\//` en filePath (case-insensitive matching) |
+| **Mensaje**      | "BLOCKED: Los archivos de specs se crean via OpenSpec CLI (/opsx-new, /opsx-propose). No escribir manualmente." |
 
 **Ejemplos bloqueados:**
+
 ```typescript
-write({ filePath: "openspec/specs/my-feature/spec.md", content: "..." })
-write({ filePath: "openspec/changes/my-change/tasks.md", content: "..." })
+write({ filePath: 'openspec/specs/my-feature/spec.md', content: '...' });
+write({ filePath: 'openspec/changes/my-change/tasks.md', content: '...' });
 ```
 
 **Ejemplos que SÍ pasan:**
+
 ```typescript
-write({ filePath: "docs/my-doc.md", content: "..." })
-write({ filePath: "apps/server/src/file.ts", content: "..." })
+write({ filePath: 'docs/my-doc.md', content: '...' });
+write({ filePath: 'apps/server/src/file.ts', content: '...' });
 ```
 
 **Fuente en proyecto**: Arquitectura OpenSpec requiere que todos los cambios pasen por el workflow de specs. El planner solo revisa; no crea specs.
@@ -473,15 +491,16 @@ write({ filePath: "apps/server/src/file.ts", content: "..." })
 
 #### `no_direct_trello` — CRITICAL
 
-| Atributo | Valor |
-|----------|-------|
-| **Herramienta** | `bash` |
-| **Severidad** | CRITICAL |
-| **Trigger** | Llamados HTTP directos a APIs de Trello/Slack desde cualquier agente |
-| **Regex** | `/api\.trello\.com|api\.slack\.com|trello\.com.*\/1\//i` en argumentos de curl/wget |
-| **Mensaje** | "BLOCKED: Ningún agente llama Trello/Slack directamente. Debe delegar a @project-manager." |
+| Atributo        | Valor                                                                                      |
+| --------------- | ------------------------------------------------------------------------------------------ | --------------- | ------------------------------------------------- |
+| **Herramienta** | `bash`                                                                                     |
+| **Severidad**   | CRITICAL                                                                                   |
+| **Trigger**     | Llamados HTTP directos a APIs de Trello/Slack desde cualquier agente                       |
+| **Regex**       | `/api\.trello\.com                                                                         | api\.slack\.com | trello\.com.\*\/1\//i` en argumentos de curl/wget |
+| **Mensaje**     | "BLOCKED: Ningún agente llama Trello/Slack directamente. Debe delegar a @project-manager." |
 
 **Ejemplos bloqueados:**
+
 ```bash
 curl -X POST https://api.trello.com/1/cards?key=XXX\&token=YYY
 wget -O - https://api.slack.com/methods/chat.postMessage
@@ -489,6 +508,7 @@ curl https://api.trello.com/1/boards/xxx/actions?token=zzz
 ```
 
 **Ejemplos que SÍ pasan:**
+
 ```bash
 curl https://api.github.com/repos/owner/repo
 echo "Delegando a project-manager..."
@@ -502,15 +522,15 @@ echo "Delegando a project-manager..."
 
 Estas reglas NO requieren guardrails porque `opencode.jsonc` ya las deniega a nivel de permisos. Se documentan aquí para completitud.
 
-| Regla | Permiso que la cubre | Archivos fuente |
-|-------|---------------------|-----------------|
-| `@spec-manager` no puede usar `write` ni `edit` | `spec-manager`: `write: deny`, `edit: deny` | opencode.jsonc líneas 140-144 |
-| `@planner` no puede usar `edit` | `planner`: `edit: deny` | opencode.jsonc línea 159 |
-| `@project-manager` no puede usar `write` ni `edit` | `project-manager`: `edit: deny`, `write: deny` | opencode.jsonc líneas 215-218 |
-| `@orchestrator` no puede ejecutar `bash` globalmente | `orchestrator`: global `bash: deny` | opencode.jsonc línea 73 |
-| Composio denegado globalmente (excepto project-manager) | Global: `composio_COMPOSIO_*: deny` | opencode.jsonc líneas 79-86 |
-| `webfetch`, `websearch` denegados globalmente | Global `webfetch: deny`, `websearch: deny` | opencode.jsonc |
-| `question` denegado globalmente | Global `question: deny` | opencode.jsonc |
+| Regla                                                   | Permiso que la cubre                           | Archivos fuente               |
+| ------------------------------------------------------- | ---------------------------------------------- | ----------------------------- |
+| `@spec-manager` no puede usar `write` ni `edit`         | `spec-manager`: `write: deny`, `edit: deny`    | opencode.jsonc líneas 140-144 |
+| `@planner` no puede usar `edit`                         | `planner`: `edit: deny`                        | opencode.jsonc línea 159      |
+| `@project-manager` no puede usar `write` ni `edit`      | `project-manager`: `edit: deny`, `write: deny` | opencode.jsonc líneas 215-218 |
+| `@orchestrator` no puede ejecutar `bash` globalmente    | `orchestrator`: global `bash: deny`            | opencode.jsonc línea 73       |
+| Composio denegado globalmente (excepto project-manager) | Global: `composio_COMPOSIO_*: deny`            | opencode.jsonc líneas 79-86   |
+| `webfetch`, `websearch` denegados globalmente           | Global `webfetch: deny`, `websearch: deny`     | opencode.jsonc                |
+| `question` denegado globalmente                         | Global `question: deny`                        | opencode.jsonc                |
 
 **Nota**: Estas reglas tienen "defense in depth" — los permisos Layer 5 son la primera barrera. Los guardrails Layer 4 son la segunda línea de defensa para los casos donde los permisos se relajan o se configuran nuevos plugins.
 
@@ -520,16 +540,16 @@ Estas reglas NO requieren guardrails porque `opencode.jsonc` ya las deniega a ni
 
 Estas reglas NO pueden implementarse como guardrails porque requieren juicio contextual, no validación de argumentos.
 
-| Regla | Agente | Por qué no es guardrail | Dónde se enforcing |
-|-------|--------|------------------------|-------------------|
-| "Preguntar una cosa a la vez" | Todos | Requiere inspeccionar el texto de la respuesta del LLM | Prompts de cada agente |
-| "Delegar primero a @spec-manager antes de implementar" | orchestrator | Decisión de enrutamiento, no tool call | `orchestrator.md` |
-| "Usar SDD 6-phase workflow" | Todos | Regla de proceso, no de ejecución | `AGENTS.md`, `CONTEXT.md` |
-| "No emoji en output JSON" | Todos | Formato de texto generado | Prompts + output-contracts.ts |
-| "Esquivar newlines sin escapar en JSON" | Todos | Formato de output | Prompts + output-contracts.ts |
-| "Validar output-contract antes de retornar" | Todos | Ocurre después de generar | Layer 2 (output-contracts.ts) |
-| "Conventional Commits obligatorios" | Todos | Es formato de commit, no un tool call | Prompts + husky (cuando se active) |
-| "Solo @developer modifica código" | Todos | Responsabilidad compartida, no bloqueo técnico | Prompts + Layer 5 |
+| Regla                                                  | Agente       | Por qué no es guardrail                                | Dónde se enforcing                 |
+| ------------------------------------------------------ | ------------ | ------------------------------------------------------ | ---------------------------------- |
+| "Preguntar una cosa a la vez"                          | Todos        | Requiere inspeccionar el texto de la respuesta del LLM | Prompts de cada agente             |
+| "Delegar primero a @spec-manager antes de implementar" | orchestrator | Decisión de enrutamiento, no tool call                 | `orchestrator.md`                  |
+| "Usar SDD 6-phase workflow"                            | Todos        | Regla de proceso, no de ejecución                      | `AGENTS.md`, `CONTEXT.md`          |
+| "No emoji en output JSON"                              | Todos        | Formato de texto generado                              | Prompts + output-contracts.ts      |
+| "Esquivar newlines sin escapar en JSON"                | Todos        | Formato de output                                      | Prompts + output-contracts.ts      |
+| "Validar output-contract antes de retornar"            | Todos        | Ocurre después de generar                              | Layer 2 (output-contracts.ts)      |
+| "Conventional Commits obligatorios"                    | Todos        | Es formato de commit, no un tool call                  | Prompts + husky (cuando se active) |
+| "Solo @developer modifica código"                      | Todos        | Responsabilidad compartida, no bloqueo técnico         | Prompts + Layer 5                  |
 
 ---
 
@@ -566,18 +586,18 @@ Estas reglas NO pueden implementarse como guardrails porque requieren juicio con
 interface Rule {
   name: string;
   description: string;
-  tool: string;  // e.g. "bash", "write", "edit", "composio_COMPOSIO_*"
+  tool: string; // e.g. "bash", "write", "edit", "composio_COMPOSIO_*"
   validate: (args: Record<string, unknown>) => ValidationResult;
 }
 
 interface ValidationResult {
   allowed: boolean;
-  violations: string[];  // vacío si allowed === true
+  violations: string[]; // vacío si allowed === true
 }
 
 interface RuleContext {
-  tool: string;       // nombre de la tool
-  args: Record<string, unknown>;  // argumentos crudos
+  tool: string; // nombre de la tool
+  args: Record<string, unknown>; // argumentos crudos
   sessionId: string;
   callId: string;
 }
@@ -713,15 +733,15 @@ El directorio `.opencode/logs/` se crea con `fs.mkdirSync({ recursive: true })` 
 
 ### Con `output-contracts.ts` (Layer 2)
 
-| Aspecto | output-contracts.ts | neurosymbolic-guardrails.ts |
-|---------|--------------------|-------------------------------|
-| **Hook** | `tool.execute.after` | `tool.execute.before` |
-| **Tool filtrada** | `task` (subagent completions) | Todas en TOOL_RULES |
-| **Archivo audit** | `contract-audit.jsonl` | `guardrails-audit.jsonl` |
-| **Acción en violación** | Observa + anota `metadata.contractValidation` | Lanza error y cancela |
-| **LoC** | 383 (lazy resolvePaths) | 229 (V1 PluginModule) |
-| **State** | Lazy-load validator | Stateless (sin estado) |
-| **Export** | `export default { id, server }` | `export default { id, server }` |
+| Aspecto                 | output-contracts.ts                           | neurosymbolic-guardrails.ts     |
+| ----------------------- | --------------------------------------------- | ------------------------------- |
+| **Hook**                | `tool.execute.after`                          | `tool.execute.before`           |
+| **Tool filtrada**       | `task` (subagent completions)                 | Todas en TOOL_RULES             |
+| **Archivo audit**       | `contract-audit.jsonl`                        | `guardrails-audit.jsonl`        |
+| **Acción en violación** | Observa + anota `metadata.contractValidation` | Lanza error y cancela           |
+| **LoC**                 | 383 (lazy resolvePaths)                       | 229 (V1 PluginModule)           |
+| **State**               | Lazy-load validator                           | Stateless (sin estado)          |
+| **Export**              | `export default { id, server }`               | `export default { id, server }` |
 
 **Ambos plugins coexisten** sin conflictos. Se cargan independientemente en el array `plugin` de `opencode.jsonc`. El orden de carga (`output-contracts.ts` primero, `neurosymbolic-guardrails.ts` después) no importa porque usan hooks distintos.
 
@@ -749,22 +769,22 @@ El change `mcp-proxy-semantic-activation` también registra `tool.execute.before
 
 ### 6 gaps conocidos (+3 startup crash risks resueltos en Section 7)
 
-| # | Gap | Impacto | Workaround |
-|---|-----|---------|-----------|
-| 1 | **Steer pattern** — el mensaje "BLOCKED:" no llega al LLM. El agente no sabe por qué se bloqueó y no puede autocorregirse | Agente repite la llamada fallida | Agregar instrucción en el system prompt de cada agente: "Si una tool falla con 'BLOCKED:', reintenta con argumentos válidos" (Task 6.4 — ✅ implementado en los 8 prompts) |
-| 2 | **No hay `try/catch` global en `Plugin.trigger`** — un `throw` mal manejado puede afectar la sesión | Sesión puede crashear si hay error inesperado en el evaluador | El hook usa try/catch interno: re-lanza BLOCKED, pero para errores inesperados loggea y permite ejecución |
-| 3 | **Sin HookRegistry dinámico** — las reglas no se pueden recargar en caliente | Cambios a reglas requieren reiniciar OpenCode | Lazy-load desde archivo rules — futuro: watch mode |
-| 4 | **Agent identity no disponible** — para tools que no son `task`, no hay forma de saber qué agente llamó | Las 12 reglas usan pattern matching en argumentos (no en identidad) — suficiente para la mayoría de casos. `no_project_mgr_git` fue removida como fatal flaw — sin identidad de agente, bloquearía TODOS los agentes de git | Diseño actual: path/URL/regex patterns reemplazan agent-scope checks |
-| 5 | **Primer mensaje de sesión** — `tool.execute.before` puede no dispararse en el primer mensaje | Brecha temporal al inicio de cada sesión | Los hooks de Layer 1 (prompts) y Layer 5 (permisos) cubren esta brecha |
-| 6 | **Throw vs cancel semantic gap** — La implementación usa `throw GuardrailBlockedError` (bloqueo por excepción). El artículo original usa `event.cancel_tool = "BLOCKED: reason"` (cancelación graceful). Strands retorna BLOCKED como resultado de tool (el LLM lo recibe como output normal y puede autocorregirse). OpenCode lanza excepción (el LLM experimenta un tool failure). El artículo complementario "Runtime Guardrails — Steer, Don't Block" (Part 3.2) aboga por steering/blocking sobre excepciones | Workaround: prompt instruction (Task 6.4). Fidelidad: 6/10 en esta dimensión. No se puede igualar la cancelación graceful de Strands sin cambios en el framework de OpenCode |
+| #   | Gap                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                | Impacto                                                                                                                                                                                                                     | Workaround                                                                                                                                                                 |
+| --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | **Steer pattern** — el mensaje "BLOCKED:" no llega al LLM. El agente no sabe por qué se bloqueó y no puede autocorregirse                                                                                                                                                                                                                                                                                                                                                                                          | Agente repite la llamada fallida                                                                                                                                                                                            | Agregar instrucción en el system prompt de cada agente: "Si una tool falla con 'BLOCKED:', reintenta con argumentos válidos" (Task 6.4 — ✅ implementado en los 8 prompts) |
+| 2   | **No hay `try/catch` global en `Plugin.trigger`** — un `throw` mal manejado puede afectar la sesión                                                                                                                                                                                                                                                                                                                                                                                                                | Sesión puede crashear si hay error inesperado en el evaluador                                                                                                                                                               | El hook usa try/catch interno: re-lanza BLOCKED, pero para errores inesperados loggea y permite ejecución                                                                  |
+| 3   | **Sin HookRegistry dinámico** — las reglas no se pueden recargar en caliente                                                                                                                                                                                                                                                                                                                                                                                                                                       | Cambios a reglas requieren reiniciar OpenCode                                                                                                                                                                               | Lazy-load desde archivo rules — futuro: watch mode                                                                                                                         |
+| 4   | **Agent identity no disponible** — para tools que no son `task`, no hay forma de saber qué agente llamó                                                                                                                                                                                                                                                                                                                                                                                                            | Las 12 reglas usan pattern matching en argumentos (no en identidad) — suficiente para la mayoría de casos. `no_project_mgr_git` fue removida como fatal flaw — sin identidad de agente, bloquearía TODOS los agentes de git | Diseño actual: path/URL/regex patterns reemplazan agent-scope checks                                                                                                       |
+| 5   | **Primer mensaje de sesión** — `tool.execute.before` puede no dispararse en el primer mensaje                                                                                                                                                                                                                                                                                                                                                                                                                      | Brecha temporal al inicio de cada sesión                                                                                                                                                                                    | Los hooks de Layer 1 (prompts) y Layer 5 (permisos) cubren esta brecha                                                                                                     |
+| 6   | **Throw vs cancel semantic gap** — La implementación usa `throw GuardrailBlockedError` (bloqueo por excepción). El artículo original usa `event.cancel_tool = "BLOCKED: reason"` (cancelación graceful). Strands retorna BLOCKED como resultado de tool (el LLM lo recibe como output normal y puede autocorregirse). OpenCode lanza excepción (el LLM experimenta un tool failure). El artículo complementario "Runtime Guardrails — Steer, Don't Block" (Part 3.2) aboga por steering/blocking sobre excepciones | Workaround: prompt instruction (Task 6.4). Fidelidad: 6/10 en esta dimensión. No se puede igualar la cancelación graceful de Strands sin cambios en el framework de OpenCode                                                |
 
 **3 startup crash risks resueltos durante implementación (Section 7 del change):**
 
-| # | Riesgo | Síntoma | Fix |
-|---|--------|---------|-----|
-| — | **V1 plugin loader legacy path** — `export default plugin` (function) causa TypeError en `readV1Plugin()` porque espera `{ server: fn }` | OpenCode no arranca: `Error: Unexpected server error` | Cambiar a `export default { id, server }` (Task 7.1 ✅) |
-| — | **import.meta.url a nivel de módulo** — `new URL(..., import.meta.url)` ejecutado durante import, antes de try/catch, en contexto bundled de bun | OpenCode no arranca: path resolution inválido en Windows | Mover a función lazy `resolvePaths()` dentro del factory (Task 7.2 ✅) |
-| — | **Config array override** — `.opencode/opencode.json` con `plugin: []` overridea (reemplazo, no merge) el array de `opencode.jsonc` | Plugins config-based no cargan (drop silencioso de @warp-dot-dev) | Eliminar `.opencode/opencode.json` (Task 7.3 ✅) |
+| #   | Riesgo                                                                                                                                           | Síntoma                                                           | Fix                                                                    |
+| --- | ------------------------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------- | ---------------------------------------------------------------------- |
+| —   | **V1 plugin loader legacy path** — `export default plugin` (function) causa TypeError en `readV1Plugin()` porque espera `{ server: fn }`         | OpenCode no arranca: `Error: Unexpected server error`             | Cambiar a `export default { id, server }` (Task 7.1 ✅)                |
+| —   | **import.meta.url a nivel de módulo** — `new URL(..., import.meta.url)` ejecutado durante import, antes de try/catch, en contexto bundled de bun | OpenCode no arranca: path resolution inválido en Windows          | Mover a función lazy `resolvePaths()` dentro del factory (Task 7.2 ✅) |
+| —   | **Config array override** — `.opencode/opencode.json` con `plugin: []` overridea (reemplazo, no merge) el array de `opencode.jsonc`              | Plugins config-based no cargan (drop silencioso de @warp-dot-dev) | Eliminar `.opencode/opencode.json` (Task 7.3 ✅)                       |
 
 ---
 
@@ -785,12 +805,12 @@ Implementación inicial de guardrails neurosymbolics covering las operaciones m�
 
 ### Fase 2 (post-MVP — diferidas)
 
-| Regla | Descripción | Dependencias |
-|-------|-------------|--------------|
-| `no_prisma_migrate_dev_en_produccion` | Detectar si DATABASE_URL apunta a producción antes de ejecutar `prisma migrate dev` | Requiere lectura de `.env` para detectar `NODE_ENV=production` o URL de producción |
-| `no_execute_security_scripts_en_produccion` | Bloquear `semgrep.ps1` y `dependency-scan.ps1` si se ejecutan en entorno de producción | Requiere detección de entorno |
-| `no_mutate_gitignore` | Bloquear cualquier modificación a `.gitignore` que expoa archivos sensibles | Ya parcialmente cubierto por `no_edit_gitignore_security` (ampliar patrones) |
-| Stateful rules | Persistencia de estado entre calls (p.ej., contador de `prisma migrate dev` para evitar ejecuciones sucesivas) | Requiere archivo JSON de estado |
+| Regla                                       | Descripción                                                                                                    | Dependencias                                                                       |
+| ------------------------------------------- | -------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
+| `no_prisma_migrate_dev_en_produccion`       | Detectar si DATABASE_URL apunta a producción antes de ejecutar `prisma migrate dev`                            | Requiere lectura de `.env` para detectar `NODE_ENV=production` o URL de producción |
+| `no_execute_security_scripts_en_produccion` | Bloquear `semgrep.ps1` y `dependency-scan.ps1` si se ejecutan en entorno de producción                         | Requiere detección de entorno                                                      |
+| `no_mutate_gitignore`                       | Bloquear cualquier modificación a `.gitignore` que expoa archivos sensibles                                    | Ya parcialmente cubierto por `no_edit_gitignore_security` (ampliar patrones)       |
+| Stateful rules                              | Persistencia de estado entre calls (p.ej., contador de `prisma migrate dev` para evitar ejecuciones sucesivas) | Requiere archivo JSON de estado                                                    |
 
 ---
 
@@ -800,32 +820,32 @@ Implementación inicial de guardrails neurosymbolics covering las operaciones m�
 
 Test file: `.opencode/guardrails-rules.test.js` (173 líneas, 15 tests)
 
-| Test | Input | Expected |
-|------|-------|----------|
-| `no_git_force_push` pasa | `{command: "git push origin main"}` | `allowed: true` |
-| `no_git_force_push` falla | `{command: "git push --force origin main"}` | `allowed: false`, violations > 0 |
-| `no_git_rewrite_history` — todas las variants | `git rebase main`, `git reset --hard`, `git commit --amend` | `allowed: false` |
-| `no_prisma_db_push_force_reset` | `{command: "prisma db push --force-reset"}` | `allowed: false` |
-| `no_destructive_rm` — paths seguros | `{command: "rm -rf /tmp/my-files"}` | `allowed: true` (path seguro) |
-| `no_write_env_files` — .env.example | `{filePath: "apps/server/.env.example"}` | `allowed: true` (excluido) |
-| `no_write_env_files` — .env real | `{filePath: "apps/server/.env"}` | `allowed: false` |
-| `no_composio_git_ops` | Tool Composio con args `{...git push...}` | `allowed: false` |
-| Múltiples reglas fallando | `{command: "git push --force"}` | `allowed: false`, violations.length >= 2 |
+| Test                                          | Input                                                       | Expected                                 |
+| --------------------------------------------- | ----------------------------------------------------------- | ---------------------------------------- |
+| `no_git_force_push` pasa                      | `{command: "git push origin main"}`                         | `allowed: true`                          |
+| `no_git_force_push` falla                     | `{command: "git push --force origin main"}`                 | `allowed: false`, violations > 0         |
+| `no_git_rewrite_history` — todas las variants | `git rebase main`, `git reset --hard`, `git commit --amend` | `allowed: false`                         |
+| `no_prisma_db_push_force_reset`               | `{command: "prisma db push --force-reset"}`                 | `allowed: false`                         |
+| `no_destructive_rm` — paths seguros           | `{command: "rm -rf /tmp/my-files"}`                         | `allowed: true` (path seguro)            |
+| `no_write_env_files` — .env.example           | `{filePath: "apps/server/.env.example"}`                    | `allowed: true` (excluido)               |
+| `no_write_env_files` — .env real              | `{filePath: "apps/server/.env"}`                            | `allowed: false`                         |
+| `no_composio_git_ops`                         | Tool Composio con args `{...git push...}`                   | `allowed: false`                         |
+| Múltiples reglas fallando                     | `{command: "git push --force"}`                             | `allowed: false`, violations.length >= 2 |
 
 ### Integration test (`neurosymbolic-guardrails.integration.test.js`)
 
 Test file: `.opencode/neurosymbolic-guardrails.integration.test.js` (68 líneas, 8 tests)
 
-| Test | Setup | Expected |
-|------|-------|----------|
-| `TOOL_RULES` tiene keys esperadas | Import TOOL_RULES | `bash`, `task`, `write`, `edit`, `composio_COMPOSIO_` |
-| `no_git_force_push` bloquea | `git push --force` | `allowed: false` |
-| `no_git_force_push` permite normal | `git push origin main` | `allowed: true` |
-| `no_git_rewrite_history` bloquea | `git rebase main` | `allowed: false` |
-| `no_prisma_db_push_force_reset` bloquea | `npx prisma db push --force-reset` | `allowed: false` |
-| `no_write_env_files` bloquea .env | `{filePath: ".env"}` | `allowed: false` |
-| `no_write_env_files` permite .env.example | `{filePath: ".env.example"}` | `allowed: true` |
-| `GuardrailBlockedError` prefix | New error | `message` empieza con `GUARDRAIL_BLOCKED:` |
+| Test                                      | Setup                              | Expected                                              |
+| ----------------------------------------- | ---------------------------------- | ----------------------------------------------------- |
+| `TOOL_RULES` tiene keys esperadas         | Import TOOL_RULES                  | `bash`, `task`, `write`, `edit`, `composio_COMPOSIO_` |
+| `no_git_force_push` bloquea               | `git push --force`                 | `allowed: false`                                      |
+| `no_git_force_push` permite normal        | `git push origin main`             | `allowed: true`                                       |
+| `no_git_rewrite_history` bloquea          | `git rebase main`                  | `allowed: false`                                      |
+| `no_prisma_db_push_force_reset` bloquea   | `npx prisma db push --force-reset` | `allowed: false`                                      |
+| `no_write_env_files` bloquea .env         | `{filePath: ".env"}`               | `allowed: false`                                      |
+| `no_write_env_files` permite .env.example | `{filePath: ".env.example"}`       | `allowed: true`                                       |
+| `GuardrailBlockedError` prefix            | New error                          | `message` empieza con `GUARDRAIL_BLOCKED:`            |
 
 ---
 
@@ -834,6 +854,7 @@ Test file: `.opencode/neurosymbolic-guardrails.integration.test.js` (68 líneas,
 El 2026-07-20 se ejecutó una batería de **10 tests funcionales** importando `guardrails-rules.ts` directamente y evaluando cada comando contra `validateRules()` con `TOOL_RULES`. **10/10 tests pasaron.**
 
 **Setup del test:**
+
 ```ts
 import { validateRules, TOOL_RULES } from '../../.opencode/guardrails-rules.ts';
 const ctx = { tool: 'bash', args: {}, sessionId: 't', callId: 't' };
@@ -842,18 +863,18 @@ validateRules(TOOL_RULES.bash, { command }, ctx);
 
 **Resultados:**
 
-| Comando | Esperado | Resultado |
-|---------|----------|-----------|
-| `git push --force` | BLOQUEADO | ✅ BLOQUEADO — `no_git_force_push` |
-| `git push -f origin main` | BLOQUEADO | ✅ BLOQUEADO — `no_git_force_push` |
-| `git rebase main` | BLOQUEADO | ✅ BLOQUEADO — `no_git_rewrite_history` |
-| `git commit --amend` | BLOQUEADO | ✅ BLOQUEADO — `no_git_rewrite_history` |
+| Comando                            | Esperado  | Resultado                                      |
+| ---------------------------------- | --------- | ---------------------------------------------- |
+| `git push --force`                 | BLOQUEADO | ✅ BLOQUEADO — `no_git_force_push`             |
+| `git push -f origin main`          | BLOQUEADO | ✅ BLOQUEADO — `no_git_force_push`             |
+| `git rebase main`                  | BLOQUEADO | ✅ BLOQUEADO — `no_git_rewrite_history`        |
+| `git commit --amend`               | BLOQUEADO | ✅ BLOQUEADO — `no_git_rewrite_history`        |
 | `npx prisma db push --force-reset` | BLOQUEADO | ✅ BLOQUEADO — `no_prisma_db_push_force_reset` |
-| `git commit --no-verify -m "test"` | BLOQUEADO | ✅ BLOQUEADO — `no_git_no_verify` |
-| `git push origin main` | PERMITIDO | ✅ PERMITIDO |
-| `git commit -m "fix: test"` | PERMITIDO | ✅ PERMITIDO |
-| `npm run test` | PERMITIDO | ✅ PERMITIDO |
-| `npx vitest run` | PERMITIDO | ✅ PERMITIDO |
+| `git commit --no-verify -m "test"` | BLOQUEADO | ✅ BLOQUEADO — `no_git_no_verify`              |
+| `git push origin main`             | PERMITIDO | ✅ PERMITIDO                                   |
+| `git commit -m "fix: test"`        | PERMITIDO | ✅ PERMITIDO                                   |
+| `npm run test`                     | PERMITIDO | ✅ PERMITIDO                                   |
+| `npx vitest run`                   | PERMITIDO | ✅ PERMITIDO                                   |
 
 **Hallazgo adicional**: Durante la ejecución del test, el propio agente que construía el script de prueba intentó escribir `git push --force` como string literal y **las guardrails bloquearon su tool call** — el hook `tool.execute.before` interceptó el comando en tiempo real. El agente tuvo que usar `String.fromCharCode()` para construir el string sin activar la regla. Esto confirma que el bloqueo funciona a nivel de framework, no solo en tests unitarios.
 
@@ -861,15 +882,15 @@ validateRules(TOOL_RULES.bash, { command }, ctx);
 
 ## 10. Glossary
 
-| Término | Definición |
-|---------|------------|
-| **Guardrail** | Regla que previene operaciones inválidas o peligrosas antes de que se ejecuten |
-| **Neurosymbolic** | Combinación de razonamiento (el modelo) con reglas simbólicas (código determinista) que el modelo no puede eludir |
-| **Layer 4** | La capa de prevención pre-ejecución en la arquitectura de 6 capas |
-| **Steer pattern** | Capacidad del agente de autocorregirse al ver un error de guardrail (NO soportado nativamente en OpenCode) |
-| **Defense in depth** | Múltiples capas de protección independientes para el mismo riesgo |
-| **SanitizeArgs** | Función que elimina campos sensibles (passwords, tokens, API keys) antes de escribir al log de auditoría |
-| **JSONL** | JSON Lines — un objeto JSON por línea, sin comas ni corchetes exteriores |
+| Término              | Definición                                                                                                        |
+| -------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| **Guardrail**        | Regla que previene operaciones inválidas o peligrosas antes de que se ejecuten                                    |
+| **Neurosymbolic**    | Combinación de razonamiento (el modelo) con reglas simbólicas (código determinista) que el modelo no puede eludir |
+| **Layer 4**          | La capa de prevención pre-ejecución en la arquitectura de 6 capas                                                 |
+| **Steer pattern**    | Capacidad del agente de autocorregirse al ver un error de guardrail (NO soportado nativamente en OpenCode)        |
+| **Defense in depth** | Múltiples capas de protección independientes para el mismo riesgo                                                 |
+| **SanitizeArgs**     | Función que elimina campos sensibles (passwords, tokens, API keys) antes de escribir al log de auditoría          |
+| **JSONL**            | JSON Lines — un objeto JSON por línea, sin comas ni corchetes exteriores                                          |
 
 ---
 

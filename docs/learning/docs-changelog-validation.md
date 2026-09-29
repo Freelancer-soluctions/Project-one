@@ -23,13 +23,58 @@ Referencias oficiales:
 
 ## 3. Estado de herramientas (versionado y pin)
 
-| Herramienta           | Versión actual                      | Comando / Instalación                                                                                                                                              | Notas de versión                                                                                                                                                                                                                                                                        |
-| --------------------- | ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `markdownlint-cli`    | v0.49.1 (2026-09-20)                | `npm install --save-dev markdownlint-cli@0.49.1` (o `markdownlint-cli2` 0.23.3)                                                                                    | `markdownlint-cli` soporta `.markdownlintignore`; `cli2` usa `ignores` en `.markdownlint-cli2.jsonc`. Ambas validan contra esquema `Rules.md`. `markdownlint-cli` permite `--fix` para reglas fijables (MD004/005/007/009/010/011/012/014/018-022/030/031/032/047/049/050/055/056/058). |
-| `.markdownlintignore` | Solo `markdownlint-cli` (no `cli2`) | `node_modules/`, `dist/`, `build/`, `coverage/`, `storybook-static/`, `.github/styles/`                                                                            | Si se usa `cli2`, reemplazar por `ignores` en `.markdownlint-cli2.jsonc`. Decisión: usar `markdownlint-cli` por compatibilidad con `.markdownlintignore`.                                                                                                                               |
-| `vale`                | v3.22.0 (2026-09-17)                | Descargar desde GitHub Releases (NO usar `npm install vale`; el paquete npm está huérfano desde 2023). Usar `brew install vale` (macOS) o `.zip` de release en CI. | `vale sync` instala estilos desde `packages`. `vale --minAlertLevel=error` para CI; `suggestion` para adopción inicial (`onlyAnnotateModifiedLines` en `vale-action`).                                                                                                                  |
-| `.vale.ini`           | Formato INI, no JSON                | `StylesPath=.github/styles`, `Packages=Microsoft, write-good`, `[*.{md,mdx}]` con `BasedOnStyles = Vale, MiEstiloES`                                               | Configuración por workspace se hace con `[*.md]` y secciones específicas para `CHANGELOG.md` (ver abajo).                                                                                                                                                                               |
-| `.markdownlint.json`  | JSON                                | `default: true`, reglas individuales (`MD013`, `MD033`, etc.), `extends` (opcional), `ignore` o `overrides`                                                        | `MD013` line-length: `line_length: 120`, `heading_line_length: 120`, `code_block_line_length: 120`, `tables: false` (ej. para tablas de docs con muchas columnas como en `docs/learning/eslint-complexity-configuration.md`).                                                           |
+| Herramienta           | Versión actual                      | Comando / Instalación                                                                                                                                              | Notas de versión                                                                                                                                                                                                                                                                                                                                                        |
+| --------------------- | ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `markdownlint-cli`    | v0.49.1 (2026-09-20)                | `npm install --save-dev markdownlint-cli@0.49.1` (o `markdownlint-cli2` 0.23.3)                                                                                    | `markdownlint-cli` soporta `.markdownlintignore`; `cli2` usa `ignores` en `.markdownlint-cli2.jsonc`. Ambas validan contra esquema `Rules.md`. `markdownlint-cli` permite `--fix` para reglas fijables (MD004/005/007/009/010/011/012/014/018-022/030/031/032/047/049/050/055/056/058). Lección del upgrade 0.45.0 → 0.49.1 (regla MD060 + tablas rotas): **ver §3.1**. |
+| `.markdownlintignore` | Solo `markdownlint-cli` (no `cli2`) | `node_modules/`, `dist/`, `build/`, `coverage/`, `storybook-static/`, `.github/styles/`                                                                            | Si se usa `cli2`, reemplazar por `ignores` en `.markdownlint-cli2.jsonc`. Decisión: usar `markdownlint-cli` por compatibilidad con `.markdownlintignore`.                                                                                                                                                                                                               |
+| `vale`                | v3.22.0 (2026-09-17)                | Descargar desde GitHub Releases (NO usar `npm install vale`; el paquete npm está huérfano desde 2023). Usar `brew install vale` (macOS) o `.zip` de release en CI. | `vale sync` instala estilos desde `packages`. `vale --minAlertLevel=error` para CI; `suggestion` para adopción inicial (`onlyAnnotateModifiedLines` en `vale-action`).                                                                                                                                                                                                  |
+| `.vale.ini`           | Formato INI, no JSON                | `StylesPath=.github/styles`, `Packages=Microsoft, write-good`, `[*.{md,mdx}]` con `BasedOnStyles = Vale, MiEstiloES`                                               | Configuración por workspace se hace con `[*.md]` y secciones específicas para `CHANGELOG.md` (ver abajo).                                                                                                                                                                                                                                                               |
+| `.markdownlint.json`  | JSON                                | `default: true`, reglas individuales (`MD013`, `MD033`, etc.), `extends` (opcional), `ignore` o `overrides`                                                        | `MD013` line-length: `line_length: 120`, `heading_line_length: 120`, `code_block_line_length: 120`, `tables: false` (ej. para tablas de docs con muchas columnas como en `docs/learning/eslint-complexity-configuration.md`).                                                                                                                                           |
+
+### 3.1 Lección de upgrade `markdownlint-cli` 0.45.0 → 0.49.1: regla MD060 y tablas rotas (verified 2026-09-27)
+
+> Contexto: el bump se ejecutó durante el triage `npm audit` del change `sca-lockfile-compliance` (task 5.1b) —
+> `markdownlint-cli@0.45.0` era vulnerable y la versión fijada por este doc (0.49.1) era el objetivo. Este doc
+> investigaba 0.49.1 desde 2026-09-20, pero el repo seguía en 0.45.0: el upgrade activó comportamiento no
+> documentado en la investigación inicial.
+
+**Qué cambió entre versiones (medido repo-wide, `docs/**/_.md`+`docs/_.md`, config `.markdownlint.json` del repo):\*\*
+
+| Métrica                                      | 0.45.0 (baseline) | 0.49.1 sin remediar | 0.49.1 tras remediación |
+| -------------------------------------------- | ----------------- | ------------------- | ----------------------- |
+| Total violaciones                            | 6557              | 8106                | **5643**                |
+| MD060 `table-column-style` (regla **nueva**) | no existe         | 1500 (36 archivos)  | **0**                   |
+| MD013                                        | 3887              | 3936                | 3891                    |
+| Resto de reglas (MD034/040/032/031/022/…)    | —                 | **idénticas**       | idénticas               |
+
+**Hallazgo principal — la regla nueva no era ruido, era un bug de render real:** ~18 tablas en 7 archivos interrumpían
+un párrafo (`**Pros:**` con la primera fila pipe en la línea siguiente, sin línea en blanco). GFM **no** permite que
+una tabla interrumpa un párrafo → **se renderizaban rotas en GitHub** (párrafo + pipes como texto plano). La
+discrepancia que hizo visible el problema: markdownlint 0.49 las detecta como tabla (su tokenizador permite la
+interrupción) y les aplica MD060, pero prettier/remark **no las parsean como tabla** y no las normalizan. El par
+`prettier` (normalizar) + `markdownlint` (detectar) es complementario, no redundante.
+
+**Remediación aplicada (2026-09-27):**
+
+1. `prettier --write` sobre los 36 archivos con MD060 → normaliza a estilo espaciado (1500 → 94).
+2. Inserción de línea en blanco antes de filas pipe pegadas a un párrafo (script respetando fences de código; 18
+   inserciones en 7 archivos) → las pseudo-tablas se convierten en tablas reales y prettier ya puede alinearlas
+   (94 → 4).
+3. Fix manual 1:1 de la última pseudo-tabla (`docs/opencode/agent-architecture-analysis.md`, caso donde GFM **sí**
+   permite la interrupción) → MD060: 0.
+4. MD013: el tokenizador nuevo ya no absuelve blockquotes largos adyacentes a tablas → 141 líneas >120 expuestas en
+   `docs/CONTEXT-CICD.md`; envueltas preservando el prefijo de cita (mayor-que + espacio) y la indentación de lista,
+   con 2 artefactos reparados (una línea sin prefijo de cita y una continuación que empezaba con `+` y parseaba como
+   ítem de lista). Sin tocar tablas/fences/headings/setext.
+
+**Lecciones accionables para futuros bumps de markdownlint:**
+
+- Comparar **por regla** (`grep -oE 'MD[0-9]+' | sort | uniq -c` antes/después), no solo el total: el delta total
+  mezcla reglas nuevas con churn del tokenizador.
+- Esperar churn de MD013 aunque ninguna línea cambie: el tokenizador decide qué líneas quedan fuera del contexto de
+  tabla/blockquote.
+- Violaciones de reglas nuevas sobre docs legacy suelen ser defectos reales de render — auditar una muestra con
+  `sed -n` antes de desactivar la regla en `.markdownlint.json` (aquí no hizo falta ninguna excepción nueva).
 
 ## 4. Configuración profesional (`markdownlint-cli`) — `.markdownlint.json` / `.markdownlintignore`
 

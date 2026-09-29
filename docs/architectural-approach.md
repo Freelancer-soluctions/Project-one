@@ -17,11 +17,13 @@ Components that render data should declare their own data dependencies. Avoid pr
 **Why:** Reduces coupling, improves movability, eliminates dead props in intermediaries.
 
 **When to apply:**
+
 - A leaf component uses data from a single API endpoint
 - The data passes through ≥1 intermediate component that doesn't use it
 - The component appears in only a few places
 
 **When NOT to apply:**
+
 - Multiple siblings share the same data (keep query in parent)
 - Parent needs to transform/aggregate before passing down
 - Child is a generic presentational component
@@ -37,6 +39,7 @@ All server-state management uses RTK Query. No direct `axios` calls in component
 Adopt patterns as the need arises, not prematurely. Start with the simplest correct approach and add complexity only when the use case demands it.
 
 **Examples:**
+
 - Start with plain `useQuery`; add `selectFromResult` only when list rendering perf becomes a concern
 - Start with tag invalidation; add optimistic updates only for high-frequency interactions
 - Start with polling; upgrade to WebSocket streaming only when polling volume is problematic
@@ -65,6 +68,7 @@ Home.jsx
 ```
 
 Problems:
+
 - `Home.jsx` must know that `NotesSummary` needs `dataCountNotes`
 - Moving `NotesSummary` to another route requires updating `Home.jsx`
 - Intermediate components (`SideBar`, `QuickAccessButton`) pass props they don't use
@@ -82,6 +86,7 @@ Home.jsx  ← no import from notesAPI
 ```
 
 Benefits:
+
 - `NotesSummary` can be rendered anywhere without parent changes
 - No unused intermediate props
 - Clear data ownership — the component that renders the data declares it
@@ -135,7 +140,7 @@ import { axiosPrivateBaseQuery } from './axios';
 export const baseApi = createApi({
   reducerPath: 'api',
   baseQuery: axiosPrivateBaseQuery,
-  tagTypes: [],  // auto-inference: injectEndpoints registers tag types automatically from endpoint definitions
+  tagTypes: [], // auto-inference: injectEndpoints registers tag types automatically from endpoint definitions
   endpoints: () => ({}),
 });
 ```
@@ -145,12 +150,15 @@ export const baseApi = createApi({
 import { baseApi } from '../../../config/baseApi';
 
 export const notesApi = baseApi.injectEndpoints({
-  endpoints: (builder) => ({ /* ... */ }),
+  endpoints: (builder) => ({
+    /* ... */
+  }),
   overrideExisting: false,
 });
 ```
 
 **Why:**
+
 - Single middleware registration in store
 - Global config changes (retry, refetchOnFocus) apply everywhere automatically
 - Enables code splitting if needed later
@@ -186,12 +194,14 @@ updateProductById: builder.mutation({
 ```
 
 **Why:**
+
 - Plain string tags (`['Products']`) cause blanket refetch of ALL queries on ANY mutation
 - Per-ID tags mean editing product #5 only refetches product #5
 - `LIST` tag ensures creates/deletes still refresh the list
 - Reduces network requests proportional to number of list subscribers
 
 **Migration priority (high-traffic first):**
+
 1. Products, Sales, Stock, Notes
 2. Remaining 20 modules
 
@@ -208,12 +218,14 @@ export const axiosPrivateBaseQueryWithRetry = retry(axiosPrivateBaseQuery, {
 ```
 
 **Why:**
+
 - Network blips, DNS timeouts, and temporary backend unavailability are common
 - Exponential backoff (600ms → 9600ms with jitter) avoids thundering herd
 - No custom retry logic needed per endpoint
 - Endpoints can opt out: `extraOptions: { maxRetries: 0 }`
 
 **When to opt out of retry:**
+
 - DELETE operations (retrying could cause unintended side effects)
 - Operations where idempotency isn't guaranteed
 - Endpoints where stale data is worse than an error
@@ -234,6 +246,7 @@ export const baseApi = createApi({
 Requires `setupListeners(store.dispatch)` in store setup.
 
 **Why:**
+
 - Users expect fresh data when returning to the app (tab switch → refocus)
 - Data may be stale after network reconnection
 - Zero effort — one-time config
@@ -252,6 +265,7 @@ getDefaultMiddleware({
 ```
 
 **Why:**
+
 - `serializableCheck: false` hides ALL serialization bugs, including legitimate ones
 - redux-persist lifecycle actions contain non-serializable values (Promise, Subscription) — these are safe to ignore
 - All other actions remain protected
@@ -270,11 +284,13 @@ getAllProducts: builder.query({
 ```
 
 **Why:**
+
 - Eliminates `data?.data` pattern scattered across components
 - Eliminates need for `useQueryData` wrapper helper
 - Single point of change if API response shape changes
 
 **When NOT to use:**
+
 - When different consumers need different slices of the response
 - Use `selectFromResult` for per-component transformations instead
 
@@ -286,29 +302,29 @@ Each pattern below was evaluated against complexity, impact, and applicability.
 
 ### 4.1 Adopted Patterns
 
-| Pattern | Complexity | Impact | Applied Where |
-|---------|-----------|--------|---------------|
-| Data co-location | Low | Medium | NotesSummary (proving ground), then systematic audit |
-| Shared baseApi | Medium | High | All 24 API slices migrate to injectEndpoints |
-| Composite tags | Low | High | All 24 API slices adopt LIST ID pattern |
-| retry() wrapper | Low | Medium | Single change in baseQuery |
-| refetchOnFocus/Reconnect | Low | Medium | Single config in baseApi |
-| serializableCheck fixes | Low | Medium | Single change in store.js |
-| transformResponse unwrap | Low | Low | Per-endpoint, as applicable |
+| Pattern                  | Complexity | Impact | Applied Where                                        |
+| ------------------------ | ---------- | ------ | ---------------------------------------------------- |
+| Data co-location         | Low        | Medium | NotesSummary (proving ground), then systematic audit |
+| Shared baseApi           | Medium     | High   | All 24 API slices migrate to injectEndpoints         |
+| Composite tags           | Low        | High   | All 24 API slices adopt LIST ID pattern              |
+| retry() wrapper          | Low        | Medium | Single change in baseQuery                           |
+| refetchOnFocus/Reconnect | Low        | Medium | Single config in baseApi                             |
+| serializableCheck fixes  | Low        | Medium | Single change in store.js                            |
+| transformResponse unwrap | Low        | Low    | Per-endpoint, as applicable                          |
 
 ### 4.2 Candidate Patterns (Not Yet Adopted)
 
 These are documented recommendations for future evaluation:
 
-| Pattern | Complexity | When to Evaluate |
-|---------|-----------|-----------------|
-| `usePrefetch` for navigation | Low | When user reports navigation latency. Implement on hover/intersection of navigation elements |
-| `selectFromResult` for list rendering | Medium | When a list view shows 50+ items and re-render perf is measured as a problem |
-| Optimistic updates | High | When implementing high-frequency interactions (reactions, toggles, drag-drop reorder) |
-| `pollingInterval` vs WebSocket streaming | Low/High | When real-time data freshness is needed. Start with polling; upgrade to WebSocket if volume demands it |
-| Code splitting with `injectEndpoints` | Medium | When the bundle grows large enough that lazy-loading API logic matters |
-| `entityAdapter` in `transformResponse` | Medium | When a single collection exceeds ~100 items and O(1) lookups by ID are needed in multiple components |
-| Middleware-based side effects (matchers) | Low | When cross-cutting logic (toasts, analytics, navigation after mutations) becomes repetitive in components |
+| Pattern                                  | Complexity | When to Evaluate                                                                                          |
+| ---------------------------------------- | ---------- | --------------------------------------------------------------------------------------------------------- |
+| `usePrefetch` for navigation             | Low        | When user reports navigation latency. Implement on hover/intersection of navigation elements              |
+| `selectFromResult` for list rendering    | Medium     | When a list view shows 50+ items and re-render perf is measured as a problem                              |
+| Optimistic updates                       | High       | When implementing high-frequency interactions (reactions, toggles, drag-drop reorder)                     |
+| `pollingInterval` vs WebSocket streaming | Low/High   | When real-time data freshness is needed. Start with polling; upgrade to WebSocket if volume demands it    |
+| Code splitting with `injectEndpoints`    | Medium     | When the bundle grows large enough that lazy-loading API logic matters                                    |
+| `entityAdapter` in `transformResponse`   | Medium     | When a single collection exceeds ~100 items and O(1) lookups by ID are needed in multiple components      |
+| Middleware-based side effects (matchers) | Low        | When cross-cutting logic (toasts, analytics, navigation after mutations) becomes repetitive in components |
 
 ---
 
@@ -359,8 +375,8 @@ Systematic changes follow this workflow:
 
 ## 7. Related Documents
 
-| Document | Covers |
-|----------|--------|
-| [Code Style](./code-style.md) | Coding conventions and formatting |
-| [Testing Architecture](./testing-architecture.md) | Testing strategy and patterns |
-| [WebSocket Implementation Guide](./websocket-implementation-guide.md) | Socket communication patterns |
+| Document                                                              | Covers                            |
+| --------------------------------------------------------------------- | --------------------------------- |
+| [Code Style](./code-style.md)                                         | Coding conventions and formatting |
+| [Testing Architecture](./testing-architecture.md)                     | Testing strategy and patterns     |
+| [WebSocket Implementation Guide](./websocket-implementation-guide.md) | Socket communication patterns     |

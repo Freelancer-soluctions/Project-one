@@ -3,6 +3,7 @@
 > Documentación técnica sobre la configuración, funcionamiento y finalidad de npm workspaces en el monorepo Project One.
 
 ## Tabla de contenidos
+
 - [1. ¿Qué son los npm workspaces?](#1-qué-son-los-npm-workspaces)
 - [2. ¿Por qué usamos workspaces?](#2-por-qué-usamos-workspaces)
 - [3. Configuración actual](#3-configuración-actual)
@@ -25,27 +26,32 @@
 **npm workspaces** es una funcionalidad nativa de npm (desde v7, estable en v8+) que permite gestionar múltiples paquetes dentro de un único repositorio (monorepo) usando **un solo lockfile** (`package-lock.json` en la raíz) y una única instalación de dependencias.
 
 ### Modelo de un solo lockfile
+
 - Ejecutas `npm install` **una sola vez** en la raíz.
 - Se genera **un único** `package-lock.json` en la raíz del monorepo.
 - Todas las dependencias de todos los workspaces se resuelven juntas, permitiendo deduplicación máxima.
 
 ### Hoisting automático
+
 npm "hoistea" (eleva) las dependencias compartidas al `node_modules` de la raíz. Las dependencias exclusivas de un workspace permanecen en su propio `node_modules`.
 
 ### Protocolo de dependencias entre workspaces
+
 > **Crítico:** **npm NO soporta el protocolo `workspace:*`** — ese protocolo es exclusivo de **pnpm** y **Yarn**. En npm workspaces nativos, las dependencias entre workspaces se declaran con el protocolo **`file:`** o rutas relativas, por ejemplo:
+>
 > ```json
 > "@project-one/client": "file:../client"
 > ```
 
 ### Contraste rápido
-| Característica | npm workspaces | pnpm workspaces | Yarn workspaces |
-|---|---|---|---|
-| Lockfile único | ✅ Sí | ✅ Sí | ✅ Sí |
-| Protocolo `workspace:*` | ❌ No | ✅ Sí | ✅ Sí |
-| Protocolo `file:` | ✅ Sí | ✅ Sí | ✅ Sí |
-| Aislamiento estricto (node_modules) | ❌ No (hoisting laxo) | ✅ Sí (hard links) | ⚠️ Parcial (plug'n'play) |
-| Herramienta externa requerida | ❌ No | ❌ No (pero pnpm CLI) | ✅ Yarn CLI |
+
+| Característica                      | npm workspaces        | pnpm workspaces       | Yarn workspaces          |
+| ----------------------------------- | --------------------- | --------------------- | ------------------------ |
+| Lockfile único                      | ✅ Sí                 | ✅ Sí                 | ✅ Sí                    |
+| Protocolo `workspace:*`             | ❌ No                 | ✅ Sí                 | ✅ Sí                    |
+| Protocolo `file:`                   | ✅ Sí                 | ✅ Sí                 | ✅ Sí                    |
+| Aislamiento estricto (node_modules) | ❌ No (hoisting laxo) | ✅ Sí (hard links)    | ⚠️ Parcial (plug'n'play) |
+| Herramienta externa requerida       | ❌ No                 | ❌ No (pero pnpm CLI) | ✅ Yarn CLI              |
 
 ---
 
@@ -53,15 +59,15 @@ npm "hoistea" (eleva) las dependencias compartidas al `node_modules` de la raíz
 
 Project One adopta npm workspaces por las siguientes razones, alineadas con la estructura del monorepo (`apps/client`, `apps/server`, `e2e`):
 
-| Beneficio | Cómo se aplica en Project One |
-|---|---|
-| **Un solo `npm install`** | Un comando en la raíz instala dependencias de `apps/client`, `apps/server` y `e2e` de una vez. |
-| **Un solo lockfile** | `package-lock.json` único en la raíz garantiza builds reproducibles en CI/CD. |
-| **Hoisting de `devDependencies` compartidas** | TypeScript, ESLint, Prettier, Vitest, Playwright, Husky, etc., se instalan una sola vez en la raíz y se comparten. |
-| **Enlace local de paquetes internos** | Posibilidad de usar `file:../client` para que `e2e` importe directamente de `client`/`server` sin publicar a npm. |
-| **Orquestación de scripts cross-workspace** | Flags `--workspace`, `--workspaces`, `--if-present` permiten lanzar tests, builds, lint en todos los workspaces o en uno específico desde la raíz. |
-| **Flujo de CI unificado** | Un solo `npm ci` en la raíz instala todo; los pipelines de CI no necesitan múltiples pasos de instalación. |
-| **Cero dependencias externas de tooling** | No requiere Lerna, Turborepo, Nx, pnpm ni Yarn — solo npm nativo (incluido en Node.js). |
+| Beneficio                                     | Cómo se aplica en Project One                                                                                                                      |
+| --------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Un solo `npm install`**                     | Un comando en la raíz instala dependencias de `apps/client`, `apps/server` y `e2e` de una vez.                                                     |
+| **Un solo lockfile**                          | `package-lock.json` único en la raíz garantiza builds reproducibles en CI/CD.                                                                      |
+| **Hoisting de `devDependencies` compartidas** | TypeScript, ESLint, Prettier, Vitest, Playwright, Husky, etc., se instalan una sola vez en la raíz y se comparten.                                 |
+| **Enlace local de paquetes internos**         | Posibilidad de usar `file:../client` para que `e2e` importe directamente de `client`/`server` sin publicar a npm.                                  |
+| **Orquestación de scripts cross-workspace**   | Flags `--workspace`, `--workspaces`, `--if-present` permiten lanzar tests, builds, lint en todos los workspaces o en uno específico desde la raíz. |
+| **Flujo de CI unificado**                     | Un solo `npm ci` en la raíz instala todo; los pipelines de CI no necesitan múltiples pasos de instalación.                                         |
+| **Cero dependencias externas de tooling**     | No requiere Lerna, Turborepo, Nx, pnpm ni Yarn — solo npm nativo (incluido en Node.js).                                                            |
 
 ---
 
@@ -74,10 +80,7 @@ Project One adopta npm workspaces por las siguientes razones, alineadas con la e
   "name": "project-one",
   "type": "module",
   "private": true,
-  "workspaces": [
-    "apps/*",
-    "e2e"
-  ],
+  "workspaces": ["apps/*", "e2e"],
   "scripts": {
     "prepare": "husky",
     "husky:disable": "ren .husky .husky.disabled",
@@ -96,6 +99,7 @@ Project One adopta npm workspaces por las siguientes razones, alineadas con la e
 ```
 
 **Observaciones clave:**
+
 - `"workspaces": ["apps/*", "e2e"]` usa un **glob** (`apps/*`) para `client` y `server`, más una entrada explícita `e2e` (ubicada en la raíz, no en `apps/e2e`).
 - `"private": true` está presente — **buena práctica** para evitar `npm publish` accidental.
 - `"type": "module"` está declarado en la raíz — **ESM nativo** para el monorepo.
@@ -206,17 +210,18 @@ Project One adopta npm workspaces por las siguientes razones, alineadas con la e
 
 ### 3.3 Resumen de workspaces descubiertos
 
-| Workspace | Ruta | `name` en package.json | `private` | `type` |
-|---|---|---|---|---|
-| Client | `apps/client/` | `client-react` | ✅ true | `module` (ESM) |
-| Server | `apps/server/` | `server-express` | ✅ true | `module` (ESM) |
-| E2E | `e2e/` | `e2e` | ❌ **falta** | (CommonJS) |
+| Workspace | Ruta           | `name` en package.json | `private`    | `type`         |
+| --------- | -------------- | ---------------------- | ------------ | -------------- |
+| Client    | `apps/client/` | `client-react`         | ✅ true      | `module` (ESM) |
+| Server    | `apps/server/` | `server-express`       | ✅ true      | `module` (ESM) |
+| E2E       | `e2e/`         | `e2e`                  | ❌ **falta** | (CommonJS)     |
 
 ---
 
 ## 4. Cómo funciona el hoisting
 
 ### Modelo de hoisting de npm
+
 Cuando ejecutas `npm install` en la raíz:
 
 1. **Resolución unificada**: npm resuelve **todas** las dependencias de **todos** los workspaces en una sola pasada, produciendo un único `package-lock.json` en la raíz.
@@ -242,11 +247,13 @@ Cuando ejecutas `npm install` en la raíz:
    ```
 
 ### Beneficios del hoisting
+
 - **Ahorro de espacio en disco**: Una sola copia de `typescript`, `eslint`, `vitest`, etc.
 - **Instalación más rápida**: Una sola resolución de árbol de dependencias.
 - **Consistencia**: Mismas versiones de herramientas compartidas en todo el monorepo.
 
 ### Riesgo: **Phantom dependencies** (dependencias fantasma)
+
 Como npm **no aísla estrictamente** `node_modules` por workspace (a diferencia de pnpm), un workspace puede `require`/`import` un paquete que **no declara en su propio `package.json`** pero que está hoisteado en la raíz porque otro workspace lo usa.
 
 > **Ejemplo**: `apps/server` usa `zod`. `apps/client` **no** declara `zod` en su `package.json`. Como `zod` está hoisteado en la raíz, `import { z } from 'zod'` en `client` **funciona en dev** pero **falla en CI/producción** si el hoisting cambia.
@@ -254,6 +261,7 @@ Como npm **no aísla estrictamente** `node_modules` por workspace (a diferencia 
 **Mitigación:** Declarar **todas** las dependencias directas en el `package.json` del workspace que las usa. No confiar en el hoisting implícito.
 
 ### Gap: Ausencia de `.npmrc` en la raíz
+
 Sin `.npmrc`, el hoisting usa **comportamiento por defecto** de npm (sin `legacy-peer-deps`, sin `save-exact`, sin preferencias de hoisting). Ver §9 y §10.
 
 ---
@@ -262,44 +270,44 @@ Sin `.npmrc`, el hoisting usa **comportamiento por defecto** de npm (sin `legacy
 
 ### Tabla de comandos raíz + por workspace
 
-| Comando | Dónde ejecutarlo | Qué hace |
-|---|---|---|
-| `npm install` | Raíz (`project-one/`) | Instala **todos** los workspaces, genera **un** `package-lock.json` en la raíz, hoistea deps compartidas. |
-| `npm ci` | Raíz | Instalación limpia y determinista desde `package-lock.json` raíz (ideal para CI). |
-| `npm run build` | Raíz | `npm run build --workspaces --if-present` — ejecuta `build` en **cada workspace** que lo tenga definido. |
-| `npm run test` | Raíz | Ejecuta suite completa: unit + integration + e2e (ver scripts root). **Nota:** tests de integración del servidor requieren PostgreSQL corriendo. |
-| `npm run test:unit` | Raíz | `npm run test:unit --workspaces --if-present` — corre tests unitarios en **todos** los workspaces que tengan el script. |
-| `npm run test:integration` | Raíz | `npm run test:integration --workspaces --if-present` — corre tests de integración en todos los workspaces. |
-| `npm run test:e2e` | Raíz | `npm run test --workspace=e2e` — corre **solo** tests e2e (Playwright). |
-| `npm run test:watch` | Raíz | Modo watch en todos los workspaces con script `test:watch`. |
-| `npm run test:ci` | Raíz | Ejecuta todos los tests con reporter JUnit (CI). |
-| `npm run test:server` | Raíz | `npm run test --workspace=server-express` — tests solo del servidor. |
-| `npm run test:client` | Raíz | `npm run test --workspace=client-react` — tests solo del cliente. |
-| `npm run dev` | Raíz | `concurrently` — levanta **client (Vite) + server (nodemon)** simultáneamente con logs coloreados. |
-| `npm run dev:client` | Raíz | `npm run dev --workspace=client-react` — levanta solo el cliente (Vite, puerto 5173). |
-| `npm run dev:server` | Raíz | `npm run dev --workspace=server-express` — levanta solo el servidor (nodemon, puerto 4000). |
-| `npm run lint` | Raíz | `npm run lint --workspaces --if-present` — ESLint en **todos** los workspaces. |
-| `npm run format` | Raíz | `npm run format --workspaces --if-present` — Prettier en **todos** los workspaces. |
-| `npm run dev` | `apps/client/` | `vite` — levanta dev server Vite (puerto 5173 por defecto). |
-| `npm run dev` | `apps/server/` | `nodemon src/bin/index.js` — levanta Express con hot-reload (puerto 4000 típicamente). |
-| `npm run build` | `apps/client/` | `tsc && vite build` — build de producción del cliente. |
-| `npm run build` | `apps/server/` | **NO TIENE script `build`** — servidor se ejecuta directo con `dev` o `node`. |
-| `npm run test` | `apps/client/` | `vitest run` — tests unitarios cliente. |
-| `npm run test` | `apps/server/` | `vitest run` — todos los tests servidor (unit + integration). |
-| `npm run test` | `e2e/` | `playwright test` — tests E2E completos. |
-| `npm run lint` | `apps/client/` \| `apps/server/` | ESLint en cada workspace. |
-| `npm run format` | `apps/client/` \| `apps/server/` | Prettier formateo. |
-| `npm run storybook` | `apps/client/` | Storybook dev server (puerto 6006). |
+| Comando                    | Dónde ejecutarlo                 | Qué hace                                                                                                                                         |
+| -------------------------- | -------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `npm install`              | Raíz (`project-one/`)            | Instala **todos** los workspaces, genera **un** `package-lock.json` en la raíz, hoistea deps compartidas.                                        |
+| `npm ci`                   | Raíz                             | Instalación limpia y determinista desde `package-lock.json` raíz (ideal para CI).                                                                |
+| `npm run build`            | Raíz                             | `npm run build --workspaces --if-present` — ejecuta `build` en **cada workspace** que lo tenga definido.                                         |
+| `npm run test`             | Raíz                             | Ejecuta suite completa: unit + integration + e2e (ver scripts root). **Nota:** tests de integración del servidor requieren PostgreSQL corriendo. |
+| `npm run test:unit`        | Raíz                             | `npm run test:unit --workspaces --if-present` — corre tests unitarios en **todos** los workspaces que tengan el script.                          |
+| `npm run test:integration` | Raíz                             | `npm run test:integration --workspaces --if-present` — corre tests de integración en todos los workspaces.                                       |
+| `npm run test:e2e`         | Raíz                             | `npm run test --workspace=e2e` — corre **solo** tests e2e (Playwright).                                                                          |
+| `npm run test:watch`       | Raíz                             | Modo watch en todos los workspaces con script `test:watch`.                                                                                      |
+| `npm run test:ci`          | Raíz                             | Ejecuta todos los tests con reporter JUnit (CI).                                                                                                 |
+| `npm run test:server`      | Raíz                             | `npm run test --workspace=server-express` — tests solo del servidor.                                                                             |
+| `npm run test:client`      | Raíz                             | `npm run test --workspace=client-react` — tests solo del cliente.                                                                                |
+| `npm run dev`              | Raíz                             | `concurrently` — levanta **client (Vite) + server (nodemon)** simultáneamente con logs coloreados.                                               |
+| `npm run dev:client`       | Raíz                             | `npm run dev --workspace=client-react` — levanta solo el cliente (Vite, puerto 5173).                                                            |
+| `npm run dev:server`       | Raíz                             | `npm run dev --workspace=server-express` — levanta solo el servidor (nodemon, puerto 4000).                                                      |
+| `npm run lint`             | Raíz                             | `npm run lint --workspaces --if-present` — ESLint en **todos** los workspaces.                                                                   |
+| `npm run format`           | Raíz                             | `npm run format --workspaces --if-present` — Prettier en **todos** los workspaces.                                                               |
+| `npm run dev`              | `apps/client/`                   | `vite` — levanta dev server Vite (puerto 5173 por defecto).                                                                                      |
+| `npm run dev`              | `apps/server/`                   | `nodemon src/bin/index.js` — levanta Express con hot-reload (puerto 4000 típicamente).                                                           |
+| `npm run build`            | `apps/client/`                   | `tsc && vite build` — build de producción del cliente.                                                                                           |
+| `npm run build`            | `apps/server/`                   | **NO TIENE script `build`** — servidor se ejecuta directo con `dev` o `node`.                                                                    |
+| `npm run test`             | `apps/client/`                   | `vitest run` — tests unitarios cliente.                                                                                                          |
+| `npm run test`             | `apps/server/`                   | `vitest run` — todos los tests servidor (unit + integration).                                                                                    |
+| `npm run test`             | `e2e/`                           | `playwright test` — tests E2E completos.                                                                                                         |
+| `npm run lint`             | `apps/client/` \| `apps/server/` | ESLint en cada workspace.                                                                                                                        |
+| `npm run format`           | `apps/client/` \| `apps/server/` | Prettier formateo.                                                                                                                               |
+| `npm run storybook`        | `apps/client/`                   | Storybook dev server (puerto 6006).                                                                                                              |
 
 ### Flags de npm CLI relevantes para workspaces
 
-| Flag | Uso | Ejemplo |
-|---|---|---|
-| `--workspace=<name>` / `-w` | Ejecuta el comando **solo** en el workspace nombrado | `npm run test --workspace=server-express` |
-| `--workspaces` / `-ws` | Ejecuta el comando en **todos** los workspaces | `npm run lint --workspaces` |
-| `--workspaces=all` | Alias de `--workspaces` (explícito) | `npm run build --workspaces=all` |
-| `--if-present` | No falla si el workspace no tiene el script | `npm run test:unit --workspaces --if-present` |
-| `--ignore-scripts` | Salta scripts `prepare`, `preinstall`, etc. | `npm ci --ignore-scripts` |
+| Flag                        | Uso                                                  | Ejemplo                                       |
+| --------------------------- | ---------------------------------------------------- | --------------------------------------------- |
+| `--workspace=<name>` / `-w` | Ejecuta el comando **solo** en el workspace nombrado | `npm run test --workspace=server-express`     |
+| `--workspaces` / `-ws`      | Ejecuta el comando en **todos** los workspaces       | `npm run lint --workspaces`                   |
+| `--workspaces=all`          | Alias de `--workspaces` (explícito)                  | `npm run build --workspaces=all`              |
+| `--if-present`              | No falla si el workspace no tiene el script          | `npm run test:unit --workspaces --if-present` |
+| `--ignore-scripts`          | Salta scripts `prepare`, `preinstall`, etc.          | `npm ci --ignore-scripts`                     |
 
 > **Nota:** Los scripts de la raíz **ya usan** estos flags correctamente (ver §3.1). La excepción es `npm run build` en la raíz, que **no usa `--workspaces`** y en su lugar orquesta manualmente — ver gap en §9.
 
@@ -319,6 +327,7 @@ Sin `.npmrc`, el hoisting usa **comportamiento por defecto** de npm (sin `legacy
 8. **Ejecuta** scripts `prepare`/`postinstall` de cada workspace (ej. `husky` en la raíz).
 
 ### ⚠️ No hagas esto
+
 ```bash
 # MAL — Crea lockfile anidado y rompe el modelo single-lockfile
 cd apps/e2e && npm install
@@ -330,10 +339,11 @@ cd apps/client && npm install
 > **Hecho real en este repo:** `e2e/package-lock.json` existe (2.3 KB) — **evidencia de que alguien corrió `npm install` dentro de `e2e/`**. Ver §9 Gap Crítico #1.
 
 ### Flujo correcto para CI
+
 ```yaml
 # .github/workflows/ci.yml
 - name: Install dependencies
-  run: npm ci           # Usa lockfile raíz, instalación limpia y determinista
+  run: npm ci # Usa lockfile raíz, instalación limpia y determinista
 - name: Build
   run: npm run build
 - name: Test
@@ -345,6 +355,7 @@ cd apps/client && npm install
 ## 7. Resolución de dependencias
 
 ### Algoritmo de resolución de Node.js + Workspaces
+
 Cuando un módulo en `apps/client/src/App.tsx` hace `import { z } from 'zod'`:
 
 1. Node busca en `apps/client/node_modules/zod` → **no está** (no hoisteado, no declarado en client).
@@ -353,17 +364,19 @@ Cuando un módulo en `apps/client/src/App.tsx` hace `import { z } from 'zod'`:
 4. **Resuelve correctamente en dev**, pero **falla en producción/CI** si el hoisting cambia o si `zod` no está en `client/package.json`.
 
 ### `devDependencies` compartidas en la raíz
+
 Herramientas de desarrollo (TypeScript, ESLint, Prettier, Vitest, Playwright, Husky, lint-staged) se instalan **una vez** en la raíz y están disponibles en todos los workspaces vía hoisting.
 
-| Herramienta | Declarada en | Disponible en |
-|---|---|---|
-| `typescript` | Root `devDependencies` (implícito) | Todos |
-| `eslint` | Root `devDependencies` | Todos |
-| `prettier` | Root `devDependencies` | Todos |
-| `vitest` | Root `devDependencies` + `apps/server/devDependencies` | Todos (hoisted) |
-| `@playwright/test` | `e2e/devDependencies` | Solo `e2e` (no hoisteado — solo e2e lo usa) |
+| Herramienta        | Declarada en                                           | Disponible en                               |
+| ------------------ | ------------------------------------------------------ | ------------------------------------------- |
+| `typescript`       | Root `devDependencies` (implícito)                     | Todos                                       |
+| `eslint`           | Root `devDependencies`                                 | Todos                                       |
+| `prettier`         | Root `devDependencies`                                 | Todos                                       |
+| `vitest`           | Root `devDependencies` + `apps/server/devDependencies` | Todos (hoisted)                             |
+| `@playwright/test` | `e2e/devDependencies`                                  | Solo `e2e` (no hoisteado — solo e2e lo usa) |
 
 ### Diferencia clave vs pnpm
+
 - **pnpm**: `node_modules` tiene **hard links** al store global + symlinks estrictos por workspace. **Imposible** acceder a dep de otro workspace sin declararla.
 - **npm**: `node_modules` es plano en la raíz. **Posible** acceder a dep de otro workspace sin declararla (phantom dep). **Responsabilidad del desarrollador** declarar todo.
 
@@ -372,6 +385,7 @@ Herramientas de desarrollo (TypeScript, ESLint, Prettier, Vitest, Playwright, Hu
 ## 8. Dependencias entre workspaces
 
 ### El protocolo `file:` (nativo de npm)
+
 Para que un workspace dependa de otro **sin publicar a npm**, se usa `file:` con ruta relativa:
 
 ```json
@@ -388,21 +402,23 @@ Para que un workspace dependa de otro **sin publicar a npm**, se usa `file:` con
 > **Regla:** La ruta en `file:` es **relativa al package.json que la declara** (aquí `e2e/` → `../apps/client`).
 
 ### Estado actual en Project One
+
 **NO hay dependencias `file:` declaradas.** El workspace `e2e` (Playwright) **testea los artefactos construidos/servidores corriendo** (puertos 3000/4000), **no importa código fuente** de `client` ni `server` directamente.
 
-| Workspace | Depende de | Mecanismo actual | ¿Debería usar `file:`? |
-|---|---|---|---|
-| `e2e` → `client` | UI construida + servidor dev | `baseURL: http://localhost:3000` en Playwright | **Opcional** — si tests E2E importan utils/types de client, sí. |
-| `e2e` → `server` | API corriendo | `API_URL: http://localhost:4000` | **Opcional** — si tests E2E importan tipos DTO/validación, sí. |
-| `client` → `server` | API types, schemas | **Ninguno** (duplicación manual o fetch runtime) | **Sí recomendado** — compartir tipos Zod/DTOs via `file:../server` o paquete compartido. |
+| Workspace           | Depende de                   | Mecanismo actual                                 | ¿Debería usar `file:`?                                                                   |
+| ------------------- | ---------------------------- | ------------------------------------------------ | ---------------------------------------------------------------------------------------- |
+| `e2e` → `client`    | UI construida + servidor dev | `baseURL: http://localhost:3000` en Playwright   | **Opcional** — si tests E2E importan utils/types de client, sí.                          |
+| `e2e` → `server`    | API corriendo                | `API_URL: http://localhost:4000`                 | **Opcional** — si tests E2E importan tipos DTO/validación, sí.                           |
+| `client` → `server` | API types, schemas           | **Ninguno** (duplicación manual o fetch runtime) | **Sí recomendado** — compartir tipos Zod/DTOs via `file:../server` o paquete compartido. |
 
 ### Cuándo usar `file:` vs testear contra artefactos
-| Escenario | Recomendación |
-|---|---|
-| Compartir **tipos TypeScript**, schemas Zod, constantes, utilidades puras | `file:../shared` o `file:../server` — evita duplicación y drift. |
-| Tests E2E que **solo hacen peticiones HTTP** a servidores corriendo | **No** usar `file:` — testea la API real (contrato). |
-| Tests E2E que **importan componentes React** para testing unitario de UI | Usar `file:../client` (o mover componentes a paquete compartido). |
-| Build de producción | Publicar paquetes internos a registry privado (npm/GitHub Packages) y usar `workspace:*` en pnpm/Yarn, o version fija en npm. |
+
+| Escenario                                                                 | Recomendación                                                                                                                 |
+| ------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| Compartir **tipos TypeScript**, schemas Zod, constantes, utilidades puras | `file:../shared` o `file:../server` — evita duplicación y drift.                                                              |
+| Tests E2E que **solo hacen peticiones HTTP** a servidores corriendo       | **No** usar `file:` — testea la API real (contrato).                                                                          |
+| Tests E2E que **importan componentes React** para testing unitario de UI  | Usar `file:../client` (o mover componentes a paquete compartido).                                                             |
+| Build de producción                                                       | Publicar paquetes internos a registry privado (npm/GitHub Packages) y usar `workspace:*` en pnpm/Yarn, o version fija en npm. |
 
 ---
 
@@ -412,39 +428,40 @@ Basado en la investigación (hallazgos § Crítico/Importante/Mejora opcional), 
 
 ### 🔴 Crítico
 
-| # | Gap | Archivo/Ubicación | Impacto | Solución |
-|---|---|---|---|---|
-| 1 | **`e2e/package-lock.json` existe** (2.3 KB) — duplica el lockfile raíz, rompe modelo single-lockfile. | `e2e/package-lock.json` | Instalaciones no deterministas; `npm ci` en raíz no limpia el lockfile anidado; posibles versiones divergentes. | ✅ **RESUELTO en change fix-workspaces-gaps:** Eliminado `e2e/package-lock.json` y `e2e/node_modules`, regenerado lockfile único con `npm install` en raíz. |
-| 2 | **Sin `.npmrc` en la raíz** — hoisting sin configuración explícita. | (archivo inexistente) | Comportamiento por defecto de npm: sin `save-exact`, sin `legacy-peer-deps`, hoisting impredecible entre versiones de npm. | ✅ **RESUELTO en change fix-workspaces-gaps:** Creado `.npmrc` en raíz con `save-exact=true`, `engine-strict=true`, `workspaces-update=true`, `include-workspace-root=true`, `fund=false`, `audit-level=moderate`, `legacy-peer-deps=false`. |
-| 3 | **Sin scripts `dev`, `dev:client`, `dev:server` en raíz** — UX pobre para levantar entorno de desarrollo. | `package.json` (raíz), scripts | Desarrollador debe `cd apps/client && npm run dev` y `cd apps/server && npm run dev` en terminales separadas. | ✅ **RESUELTO en change fix-workspaces-gaps:** Añadidos scripts `dev`, `dev:client`, `dev:server` en raíz con `concurrently` como devDependency. |
+| #   | Gap                                                                                                       | Archivo/Ubicación              | Impacto                                                                                                                    | Solución                                                                                                                                                                                                                                     |
+| --- | --------------------------------------------------------------------------------------------------------- | ------------------------------ | -------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | **`e2e/package-lock.json` existe** (2.3 KB) — duplica el lockfile raíz, rompe modelo single-lockfile.     | `e2e/package-lock.json`        | Instalaciones no deterministas; `npm ci` en raíz no limpia el lockfile anidado; posibles versiones divergentes.            | ✅ **RESUELTO en change fix-workspaces-gaps:** Eliminado `e2e/package-lock.json` y `e2e/node_modules`, regenerado lockfile único con `npm install` en raíz.                                                                                  |
+| 2   | **Sin `.npmrc` en la raíz** — hoisting sin configuración explícita.                                       | (archivo inexistente)          | Comportamiento por defecto de npm: sin `save-exact`, sin `legacy-peer-deps`, hoisting impredecible entre versiones de npm. | ✅ **RESUELTO en change fix-workspaces-gaps:** Creado `.npmrc` en raíz con `save-exact=true`, `engine-strict=true`, `workspaces-update=true`, `include-workspace-root=true`, `fund=false`, `audit-level=moderate`, `legacy-peer-deps=false`. |
+| 3   | **Sin scripts `dev`, `dev:client`, `dev:server` en raíz** — UX pobre para levantar entorno de desarrollo. | `package.json` (raíz), scripts | Desarrollador debe `cd apps/client && npm run dev` y `cd apps/server && npm run dev` en terminales separadas.              | ✅ **RESUELTO en change fix-workspaces-gaps:** Añadidos scripts `dev`, `dev:client`, `dev:server` en raíz con `concurrently` como devDependency.                                                                                             |
 
 ### 🟠 Importante
 
-| # | Gap | Archivo/Ubicación | Impacto | Solución |
-|---|---|---|---|---|
-| 4 | **Sin campo `engines`** en ningún `package.json` — versiones Node/npm no acotadas. | `package.json` (raíz), `apps/client/package.json`, `apps/server/package.json`, `e2e/package.json` | Builds inconsistentes entre máquinas/CI; actualizaciones de Node rompen builds silenciosamente. | ✅ **RESUELTO en change fix-workspaces-gaps:** Añadido `"engines": { "node": ">=20.0.0", "npm": ">=10.0.0" }` en todos los `package.json`. Con `.npmrc` `engine-strict=true`, npm validará en install. |
-| 5 | **`e2e` no formaliza dependencia hacia `client`/`server` con `file:`**. | `e2e/package.json` | Imposible importar tipos/utils compartidos desde E2E; acoplamiento solo por puertos de red. | ✅ **Investigado en change fix-workspaces-gaps — no aplica:** `e2e/` no importa código de `client-react` ni `server-express` (solo levanta dev servers vía `playwright.config.js` con `npm run dev --workspace=...`). No se requieren deps `file:`. |
-| 6 | **Sin `type: "module"` documentado/uniforme** — root, client y server son ESM (`apps/server/package.json:6` declara `"type": "module"`), solo e2e es CommonJS. | `package.json` (raíz, client, server, e2e) | Confusión al importar entre workspaces; `import` vs `require` mixing. | Pendiente: documentar decisión; considerar migrar e2e a ESM o usar `.cjs`/`.mjs`. |
-| 7 | **Root `package.json` sin `"private": true` explícito** (está presente, ver §3.1 — **NOTA: en este repo SÍ está**, pero se documenta como gap genérico). | `package.json` (raíz) | Riesgo de `npm publish` accidental si se quita. | Verificar que `"private": true` permanezca. |
-| 8 | **Scripts raíz `build` no usan `--workspaces`** — orquesta manualmente cada workspace. | `package.json` (raíz), script `build` | Mantenimiento manual; si se añade workspace, hay que editar script raíz. | ✅ **RESUELTO en change fix-workspaces-gaps:** Script `build` en raíz ya usa `"npm run build --ws --if-present"` (equivalente a `--workspaces --if-present`). |
+| #   | Gap                                                                                                                                                            | Archivo/Ubicación                                                                                 | Impacto                                                                                         | Solución                                                                                                                                                                                                                                            |
+| --- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 4   | **Sin campo `engines`** en ningún `package.json` — versiones Node/npm no acotadas.                                                                             | `package.json` (raíz), `apps/client/package.json`, `apps/server/package.json`, `e2e/package.json` | Builds inconsistentes entre máquinas/CI; actualizaciones de Node rompen builds silenciosamente. | ✅ **RESUELTO en change fix-workspaces-gaps:** Añadido `"engines": { "node": ">=20.0.0", "npm": ">=10.0.0" }` en todos los `package.json`. Con `.npmrc` `engine-strict=true`, npm validará en install.                                              |
+| 5   | **`e2e` no formaliza dependencia hacia `client`/`server` con `file:`**.                                                                                        | `e2e/package.json`                                                                                | Imposible importar tipos/utils compartidos desde E2E; acoplamiento solo por puertos de red.     | ✅ **Investigado en change fix-workspaces-gaps — no aplica:** `e2e/` no importa código de `client-react` ni `server-express` (solo levanta dev servers vía `playwright.config.js` con `npm run dev --workspace=...`). No se requieren deps `file:`. |
+| 6   | **Sin `type: "module"` documentado/uniforme** — root, client y server son ESM (`apps/server/package.json:6` declara `"type": "module"`), solo e2e es CommonJS. | `package.json` (raíz, client, server, e2e)                                                        | Confusión al importar entre workspaces; `import` vs `require` mixing.                           | Pendiente: documentar decisión; considerar migrar e2e a ESM o usar `.cjs`/`.mjs`.                                                                                                                                                                   |
+| 7   | **Root `package.json` sin `"private": true` explícito** (está presente, ver §3.1 — **NOTA: en este repo SÍ está**, pero se documenta como gap genérico).       | `package.json` (raíz)                                                                             | Riesgo de `npm publish` accidental si se quita.                                                 | Verificar que `"private": true` permanezca.                                                                                                                                                                                                         |
+| 8   | **Scripts raíz `build` no usan `--workspaces`** — orquesta manualmente cada workspace.                                                                         | `package.json` (raíz), script `build`                                                             | Mantenimiento manual; si se añade workspace, hay que editar script raíz.                        | ✅ **RESUELTO en change fix-workspaces-gaps:** Script `build` en raíz ya usa `"npm run build --ws --if-present"` (equivalente a `--workspaces --if-present`).                                                                                       |
 
 > **Nota sobre Gap #7**: En este repositorio **sí existe** `"private": true` en el root `package.json` (línea 16). Se incluye en la tabla como referencia del hallazgo original, pero **no aplica como gap real aquí**.
 
 ### 🟡 Mejora opcional
 
-| # | Gap | Archivo/Ubicación | Acción sugerida |
-|---|---|---|---|
-| 9 | Sin alineación documentada de **TypeScript Project References** con workspaces. | `tsconfig.json` (raíz y workspaces) | Documentar si se usa `references` en `tsconfig.json` raíz apuntando a `apps/*/tsconfig.json`. |
-| 10 | Sin rationale documentado para **glob `apps/*` vs array explícito** `["apps/client", "apps/server"]`. | `package.json` (raíz), campo `workspaces` | Añadir comentario en `package.json` o documentar aquí. |
-| 11 | Sin sección de **troubleshooting** previa en docs del repo. | (Ninguna) | Este documento cubre el gap (§11). |
-| 12 | Sin **workflow documentado** para añadir un nuevo workspace. | (Ninguno) | Este documento cubre el gap (§12). |
-| 13 | Ubicación de `e2e` en raíz (`e2e/`) vs `apps/e2e/` **no documentada**. | Estructura de carpetas | Documentar decisión: E2E es "cross-cutting", no una "app" más. |
+| #   | Gap                                                                                                   | Archivo/Ubicación                         | Acción sugerida                                                                               |
+| --- | ----------------------------------------------------------------------------------------------------- | ----------------------------------------- | --------------------------------------------------------------------------------------------- |
+| 9   | Sin alineación documentada de **TypeScript Project References** con workspaces.                       | `tsconfig.json` (raíz y workspaces)       | Documentar si se usa `references` en `tsconfig.json` raíz apuntando a `apps/*/tsconfig.json`. |
+| 10  | Sin rationale documentado para **glob `apps/*` vs array explícito** `["apps/client", "apps/server"]`. | `package.json` (raíz), campo `workspaces` | Añadir comentario en `package.json` o documentar aquí.                                        |
+| 11  | Sin sección de **troubleshooting** previa en docs del repo.                                           | (Ninguna)                                 | Este documento cubre el gap (§11).                                                            |
+| 12  | Sin **workflow documentado** para añadir un nuevo workspace.                                          | (Ninguno)                                 | Este documento cubre el gap (§12).                                                            |
+| 13  | Ubicación de `e2e` en raíz (`e2e/`) vs `apps/e2e/` **no documentada**.                                | Estructura de carpetas                    | Documentar decisión: E2E es "cross-cutting", no una "app" más.                                |
 
 ---
 
 ## 10. Recomendaciones
 
 ### 10.1 Crear `.npmrc` en la raíz (Gap #2)
+
 ```ini
 # C:\Users\user\Desktop\Programacion\Node-express-nest\project-one\.npmrc
 # Hoisting y lockfile
@@ -466,6 +483,7 @@ engine-strict=true
 ```
 
 ### 10.2 Añadir `engines` a todos los `package.json` (Gap #4)
+
 ```json
 // En CADA package.json (raíz, apps/client, apps/server, e2e)
 "engines": {
@@ -475,10 +493,13 @@ engine-strict=true
 ```
 
 ### 10.3 Scripts de desarrollo en la raíz (Gap #3)
+
 **Opción A — `concurrently` (recomendada):**
+
 ```bash
 npm install -D concurrently -w .
 ```
+
 ```json
 // package.json (raíz)
 "scripts": {
@@ -489,9 +510,11 @@ npm install -D concurrently -w .
 ```
 
 **Opción B — `npm-run-all` (más ligero):**
+
 ```bash
 npm install -D npm-run-all -w .
 ```
+
 ```json
 "scripts": {
   "dev": "npm-run-all --parallel dev:*",
@@ -501,6 +524,7 @@ npm install -D npm-run-all -w .
 ```
 
 ### 10.4 Eliminar `e2e/package-lock.json` y reinstalar (Gap #1)
+
 ```bash
 # Desde la raíz del monorepo
 rm -rf e2e/node_modules e2e/package-lock.json
@@ -508,6 +532,7 @@ npm install
 ```
 
 ### 10.5 Usar `--workspaces` en script `build` raíz (Gap #8)
+
 ```json
 // package.json (raíz) - ANTES
 "build": "npm run build --workspace=client-react && npm run build --workspace=server-express"
@@ -517,6 +542,7 @@ npm install
 ```
 
 ### 10.6 Wiring `file:` para e2e si se comparten tipos (Gap #5)
+
 ```json
 // e2e/package.json
 {
@@ -528,9 +554,11 @@ npm install
   }
 }
 ```
+
 > **Nota:** Los nombres `@project-one/client` y `@project-one/server` deben coincidir con el campo `"name"` en los respectivos `package.json` (`client-react`, `server-express`). Alternativamente, usa los nombres exactos o crea un paquete `@project-one/shared` para tipos comunes.
 
 ### 10.7 Añadir `"private": true` a `e2e/package.json` (Gap #7 aplicado a e2e)
+
 ```json
 // e2e/package.json
 {
@@ -541,7 +569,9 @@ npm install
 ```
 
 ### 10.8 Documentar decisión de ESM vs CommonJS (Gap #6)
+
 Añadir en `docs/architecture.md` o aquí una sección explicando:
+
 - Root: ESM (`"type": "module"`)
 - Client: ESM (`"type": "module"`)
 - Server: CommonJS (sin `"type"`)
@@ -553,23 +583,28 @@ Añadir en `docs/architecture.md` o aquí una sección explicando:
 ## 11. Troubleshooting
 
 ### Problema: `Error: Cannot find module 'X'` / `Module not found: Error: Can't resolve 'X'`
+
 **Causa:** **Phantom dependency** — el módulo `X` está hoisteado en la raíz porque otro workspace lo usa, pero **este workspace no lo declara en su `package.json`**.
 
 **Solución:**
+
 ```bash
 # En el workspace que falla
 npm install X --save        # o --save-dev si es herramienta de dev
 # O manualmente en package.json
 "dependencies": { "X": "^1.0.0" }
 ```
+
 Luego `npm install` en la raíz.
 
 ---
 
 ### Problema: `npm ci` falla o `package-lock.json` tiene conflictos / versiones divergentes
+
 **Causa:** Existe un **lockfile anidado** (ej. `e2e/package-lock.json`) o se corrió `npm install` dentro de un workspace.
 
 **Solución:**
+
 ```bash
 # Desde la raíz
 rm -rf e2e/node_modules e2e/package-lock.json
@@ -580,9 +615,11 @@ npm install
 ---
 
 ### Problema: Dos workspaces necesitan versiones diferentes de la misma dependencia
+
 **Comportamiento npm:** Hoistea la versión **compatible** (la más alta que satisface ambos rangos) a la raíz. La versión incompatible se **anida** en el `node_modules` del workspace que la requiere.
 
 **Verificación:**
+
 ```bash
 npm ls <paquete> --workspaces
 # Muestra árbol de dependencias por workspace
@@ -591,9 +628,11 @@ npm ls <paquete> --workspaces
 ---
 
 ### Problema: `npm run <script>` solo ejecuta el script de la raíz
+
 **Causa:** El script existe en la raíz y en workspaces, pero no usaste flags de workspace.
 
 **Solución:**
+
 ```bash
 # Ejecutar en TODOS los workspaces que tengan el script
 npm run lint --workspaces --if-present
@@ -608,9 +647,11 @@ npm run build --workspaces --if-present
 ---
 
 ### Problema: `npm ERR! ERESOLVE unable to resolve dependency tree` / Peer dependency conflict
+
 **Causa:** Dependencias de pares (peer deps) con versiones incompatibles entre workspaces.
 
 **Soluciones (orden de preferencia):**
+
 1. **Alinear versiones** en los workspaces afectados (mejor).
 2. **Añadir en `.npmrc` raíz:**
    ```ini
@@ -626,14 +667,17 @@ npm run build --workspaces --if-present
 ---
 
 ### Problema: Cambios en `node_modules` de un workspace no se reflejan en otro
+
 **Causa:** Son `node_modules` separados (no hoisteado). Cada workspace tiene su propia copia si la versión difiere.
 
 **Verificación:**
+
 ```bash
 ls -la apps/client/node_modules/<pkg>
 ls -la apps/server/node_modules/<pkg>
 ls -la node_modules/<pkg>   # raíz
 ```
+
 Si son carpetas distintas (no symlinks al mismo inode), son copias separadas.
 
 ---
@@ -643,17 +687,20 @@ Si son carpetas distintas (no symlinks al mismo inode), son copias separadas.
 ### Paso a paso
 
 1. **Crear directorio** bajo `apps/` (o raíz si es cross-cutting como `e2e`):
+
    ```bash
    mkdir apps/nuevo-workspace
    ```
 
 2. **Inicializar `package.json`** dentro del nuevo directorio:
+
    ```bash
    cd apps/nuevo-workspace
    npm init -y
    ```
 
 3. **Editar `package.json`** con campos obligatorios:
+
    ```json
    {
      "name": "@project-one/nuevo-workspace",
@@ -668,18 +715,22 @@ Si son carpetas distintas (no symlinks al mismo inode), son copias separadas.
      }
    }
    ```
+
    - Usa **scope `@project-one/`** para consistencia.
    - `private: true` **obligatorio**.
    - `type: "module"` si usas ESM (recomendado para nuevo código).
 
 4. **Volver a la raíz y instalar**:
+
    ```bash
    cd ../..
    npm install
    ```
+
    > npm detecta automáticamente el nuevo workspace vía el glob `apps/*`.
 
 5. **Verificar** que aparece en la lista de workspaces:
+
    ```bash
    npm ls --workspaces --depth=0
    # Debe mostrar @project-one/nuevo-workspace
@@ -688,6 +739,7 @@ Si son carpetas distintas (no symlinks al mismo inode), son copias separadas.
 6. **Añadir scripts de raíz** si procede (ej. `dev:nuevo`, `test:nuevo`).
 
 7. **Si depende de un workspace hermano**, usa `file:`:
+
    ```json
    // apps/nuevo-workspace/package.json
    "dependencies": {
@@ -718,12 +770,12 @@ Si son carpetas distintas (no symlinks al mismo inode), son copias separadas.
 
 ### Decisión por workspace
 
-| Workspace | `"type"` en package.json | Sistema | Razón |
-|---|---|---|---|
-| Raíz | `"module"` | ESM | Scripts de build/test/lint usan `import`. Necesario para ESM en archivos de configuración que el root ejecuta directamente. |
-| `apps/client` | `"module"` | ESM | Vite y React requieren ESM. Builds de Vite generan ESM. |
-| `apps/server` | `"module"` (línea 6 de `apps/server/package.json`) | ESM | ESM moderno — permite top-level `await`, `import` statements. Compatibilidad con `@prisma/client` ESM build y otros paquetes ESM-only. |
-| `e2e` | (sin campo — default) | CommonJS | Playwright config utiliza `require`. CJS es el sistema por defecto cuando no se declara `"type"` en package.json. |
+| Workspace     | `"type"` en package.json                           | Sistema  | Razón                                                                                                                                  |
+| ------------- | -------------------------------------------------- | -------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| Raíz          | `"module"`                                         | ESM      | Scripts de build/test/lint usan `import`. Necesario para ESM en archivos de configuración que el root ejecuta directamente.            |
+| `apps/client` | `"module"`                                         | ESM      | Vite y React requieren ESM. Builds de Vite generan ESM.                                                                                |
+| `apps/server` | `"module"` (línea 6 de `apps/server/package.json`) | ESM      | ESM moderno — permite top-level `await`, `import` statements. Compatibilidad con `@prisma/client` ESM build y otros paquetes ESM-only. |
+| `e2e`         | (sin campo — default)                              | CommonJS | Playwright config utiliza `require`. CJS es el sistema por defecto cuando no se declara `"type"` en package.json.                      |
 
 ### Estrategia de interoperabilidad
 
@@ -754,6 +806,7 @@ Si el módulo CJS exporta con `module.exports`, usar `import` con `default` o `i
 #### 3. Archivos `.cjs` y `.mjs` como escape hatch
 
 Si un workspace necesita scripts en el otro sistema:
+
 - En workspace ESM, archivos `.cjs` se ejecutan como CommonJS.
 - En workspace CJS, archivos `.mjs` se ejecutan como ESM.
 
@@ -783,4 +836,4 @@ grep -L '"type": "module"' e2e/package.json
 
 ---
 
-*Documento generado basado en la investigación de la configuración real del monorepo Project One (fecha: 2025-07-22).*
+_Documento generado basado en la investigación de la configuración real del monorepo Project One (fecha: 2025-07-22)._

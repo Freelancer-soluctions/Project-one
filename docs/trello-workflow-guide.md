@@ -57,12 +57,12 @@
 
 ### Key Components
 
-| Component | Path | Purpose |
-|-----------|------|---------|
-| **project-manager agent** | `opencode.jsonc` | AI agent that executes Trello commands |
-| **Commands** | `.opencode/command/trello-*.md` | Instruction files the agent reads to know what to do |
-| **Context file** | `.opencode/trello-context.json` | Board registry mapping names → Trello IDs |
-| **Composio MCP** | MCP config | Actual Trello API connection via Composio |
+| Component                 | Path                            | Purpose                                              |
+| ------------------------- | ------------------------------- | ---------------------------------------------------- |
+| **project-manager agent** | `opencode.jsonc`                | AI agent that executes Trello commands               |
+| **Commands**              | `.opencode/command/trello-*.md` | Instruction files the agent reads to know what to do |
+| **Context file**          | `.opencode/trello-context.json` | Board registry mapping names → Trello IDs            |
+| **Composio MCP**          | MCP config                      | Actual Trello API connection via Composio            |
 
 ---
 
@@ -70,11 +70,11 @@
 
 Three commands cover the full card lifecycle:
 
-| Command | File | Purpose |
-|---------|------|---------|
-| `/trello-create-card` | `trello-create-card.md` | Create a card in a list |
+| Command               | File                    | Purpose                                  |
+| --------------------- | ----------------------- | ---------------------------------------- |
+| `/trello-create-card` | `trello-create-card.md` | Create a card in a list                  |
 | `/trello-update-card` | `trello-update-card.md` | Update card fields or move between lists |
-| `/trello-delete-card` | `trello-delete-card.md` | Permanently delete a card |
+| `/trello-delete-card` | `trello-delete-card.md` | Permanently delete a card                |
 
 ### 2.1 /trello-create-card
 
@@ -86,6 +86,7 @@ Creates a card by parsing `$ARGUMENTS` as `key:"value"` pairs.
 ```
 
 **Flow:**
+
 1. Read context file → get default board and its lists/labels/members
 2. Resolve `list:` name → ID (context → fallback to Trello API)
 3. Resolve `labels:` names → IDs
@@ -104,6 +105,7 @@ Updates card fields or moves it to another list.
 ```
 
 **Flow:**
+
 1. Find card by name or shortLink via `TRELLO_GET_SEARCH`
 2. Resolve `list:` name → ID (context → fallback)
 3. Resolve `labels:` / `members:` names → IDs
@@ -119,6 +121,7 @@ Permanently deletes a card. If the card is open, archives it first.
 ```
 
 **Flow:**
+
 1. Find card by name or shortLink
 2. If card is open, archive it via `TRELLO_UPDATE_CARDS_BY_ID_CARD(closed:"true")`
 3. Execute `TRELLO_DELETE_CARDS_BY_ID_CARD`
@@ -151,7 +154,10 @@ Stores board mappings so commands can resolve friendly names to Trello IDs witho
         "Web": { "id": "663aa79b4bb80987bc7757d1", "color": "green" }
       },
       "members": {
-        "johangarcia6": { "id": "6606187e712266870ad3e9a8", "fullName": "johan Garcia" }
+        "johangarcia6": {
+          "id": "6606187e712266870ad3e9a8",
+          "fullName": "johan Garcia"
+        }
       }
     }
   }
@@ -218,57 +224,60 @@ Direct tool access (for reference, but prefer using commands).
 
 ### Card Operations
 
-| Operation | Tool Slug | Required Params |
-|-----------|-----------|----------------|
-| Create card | `TRELLO_ADD_CARDS` | `idList` |
-| Get card | `TRELLO_GET_CARDS_BY_ID_CARD` | `idCard` |
-| Update card | `TRELLO_UPDATE_CARDS_BY_ID_CARD` | `idCard` |
-| Delete card | `TRELLO_DELETE_CARDS_BY_ID_CARD` | `idCard` |
-| Search cards | `TRELLO_GET_SEARCH` | `query` |
-| Add comment | `TRELLO_ADD_CARDS_ACTIONS_COMMENTS_BY_ID_CARD` | `idCard`, `text` |
-| Add label | `TRELLO_ADD_CARDS_ID_LABELS_BY_ID_CARD` | `idCard`, `value` |
-| Assign member | `TRELLO_ADD_MEMBER_TO_CARD` | `idCard`, `value` |
+| Operation     | Tool Slug                                      | Required Params   |
+| ------------- | ---------------------------------------------- | ----------------- |
+| Create card   | `TRELLO_ADD_CARDS`                             | `idList`          |
+| Get card      | `TRELLO_GET_CARDS_BY_ID_CARD`                  | `idCard`          |
+| Update card   | `TRELLO_UPDATE_CARDS_BY_ID_CARD`               | `idCard`          |
+| Delete card   | `TRELLO_DELETE_CARDS_BY_ID_CARD`               | `idCard`          |
+| Search cards  | `TRELLO_GET_SEARCH`                            | `query`           |
+| Add comment   | `TRELLO_ADD_CARDS_ACTIONS_COMMENTS_BY_ID_CARD` | `idCard`, `text`  |
+| Add label     | `TRELLO_ADD_CARDS_ID_LABELS_BY_ID_CARD`        | `idCard`, `value` |
+| Assign member | `TRELLO_ADD_MEMBER_TO_CARD`                    | `idCard`, `value` |
 
 ### Board & List Operations
 
-| Operation | Tool Slug | Required Params |
-|-----------|-----------|----------------|
-| List boards | `TRELLO_GET_MEMBERS_BOARDS_BY_ID_MEMBER` | `idMember` |
-| Get board | `TRELLO_GET_BOARDS_BY_ID_BOARD` | `idBoard` |
-| List lists | `TRELLO_GET_BOARDS_LISTS_BY_ID_BOARD` | `idBoard` |
-| List cards | `TRELLO_GET_BOARDS_CARDS_BY_ID_BOARD` | `idBoard` |
-| Create list | `TRELLO_ADD_LISTS` | `idBoard`, `name` |
+| Operation   | Tool Slug                                | Required Params   |
+| ----------- | ---------------------------------------- | ----------------- |
+| List boards | `TRELLO_GET_MEMBERS_BOARDS_BY_ID_MEMBER` | `idMember`        |
+| Get board   | `TRELLO_GET_BOARDS_BY_ID_BOARD`          | `idBoard`         |
+| List lists  | `TRELLO_GET_BOARDS_LISTS_BY_ID_BOARD`    | `idBoard`         |
+| List cards  | `TRELLO_GET_BOARDS_CARDS_BY_ID_BOARD`    | `idBoard`         |
+| Create list | `TRELLO_ADD_LISTS`                       | `idBoard`, `name` |
 
 ### Key Parameters
 
 **TRELLO_ADD_CARDS:**
-| Param | Required | Description |
-|-------|----------|-------------|
-| `idList` | ✅ | List ID (24-char hex) |
-| `name` | Recommended | Card title |
-| `desc` | No | Description (0-16384 chars) |
-| `due` | No | ISO 8601 date |
-| `pos` | No | "top", "bottom", or float |
-| `idLabels` | No | Comma-separated label IDs |
-| `idMembers` | No | Comma-separated member IDs |
+
+| Param       | Required    | Description                 |
+| ----------- | ----------- | --------------------------- |
+| `idList`    | ✅          | List ID (24-char hex)       |
+| `name`      | Recommended | Card title                  |
+| `desc`      | No          | Description (0-16384 chars) |
+| `due`       | No          | ISO 8601 date               |
+| `pos`       | No          | "top", "bottom", or float   |
+| `idLabels`  | No          | Comma-separated label IDs   |
+| `idMembers` | No          | Comma-separated member IDs  |
 
 **TRELLO_UPDATE_CARDS_BY_ID_CARD:**
-| Param | Required | Description |
-|-------|----------|-------------|
-| `idCard` | ✅ | Card ID or shortLink |
-| `idList` | No | Move to list |
-| `name` | No | New title |
-| `desc` | No | New description |
-| `due` | No | ISO 8601 date |
-| `pos` | No | "top", "bottom", or float |
-| `idLabels` | No | Replaces all labels |
-| `idMembers` | No | Replaces all members |
-| `closed` | No | "true" to archive |
+
+| Param       | Required | Description               |
+| ----------- | -------- | ------------------------- |
+| `idCard`    | ✅       | Card ID or shortLink      |
+| `idList`    | No       | Move to list              |
+| `name`      | No       | New title                 |
+| `desc`      | No       | New description           |
+| `due`       | No       | ISO 8601 date             |
+| `pos`       | No       | "top", "bottom", or float |
+| `idLabels`  | No       | Replaces all labels       |
+| `idMembers` | No       | Replaces all members      |
+| `closed`    | No       | "true" to archive         |
 
 **TRELLO_DELETE_CARDS_BY_ID_CARD:**
-| Param | Required | Description |
-|-------|----------|-------------|
-| `idCard` | ✅ | Card ID or shortLink (card must be archived) |
+
+| Param    | Required | Description                                  |
+| -------- | -------- | -------------------------------------------- |
+| `idCard` | ✅       | Card ID or shortLink (card must be archived) |
 
 ---
 
@@ -303,15 +312,15 @@ The `.opencode/trello-context.json` file eliminates the need to query Trello for
 
 ### 6.5 Workflow state mapping
 
-| Workflow State | Trello List |
-|----------------|-------------|
-| Backlog / To Do | Backlog, Sprint Backlog |
-| In Progress | In Progress |
-| Review / Testing | Testing |
-| Done | Done, Sprint Complete |
-| Failed / Blocked | Failed |
+| Workflow State   | Trello List             |
+| ---------------- | ----------------------- |
+| Backlog / To Do  | Backlog, Sprint Backlog |
+| In Progress      | In Progress             |
+| Review / Testing | Testing                 |
+| Done             | Done, Sprint Complete   |
+| Failed / Blocked | Failed                  |
 
 ---
 
-*Document updated for OpenCode command-driven Trello workflow*
-*Last updated: May 2026*
+_Document updated for OpenCode command-driven Trello workflow_
+_Last updated: May 2026_

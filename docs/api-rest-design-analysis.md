@@ -15,14 +15,15 @@ Se realizó un análisis exhaustivo del diseño de la API REST del proyecto "Pro
 
 **Justificación:**
 
-| Nivel | Característica | Estado |
-|-------|---------------|--------|
-| **0** | El Swamp of POX (un solo endpoint, un solo verbo) | ❌ Superado |
+| Nivel | Característica                                    | Estado                                 |
+| ----- | ------------------------------------------------- | -------------------------------------- |
+| **0** | El Swamp of POX (un solo endpoint, un solo verbo) | ❌ Superado                            |
 | **1** | Recursos individuales (URIs con `/products/{id}`) | ✅ 100% módulos usan URIs con recursos |
-| **2** | Verbos HTTP (GET, POST, PUT, DELETE) | ✅ Parcial — falta `PATCH` |
-| **3** | HATEOAS (enlaces de navegación en respuestas) | ❌ Ausente |
+| **2** | Verbos HTTP (GET, POST, PUT, DELETE)              | ✅ Parcial — falta `PATCH`             |
+| **3** | HATEOAS (enlaces de navegación en respuestas)     | ❌ Ausente                             |
 
 **Problemas que impiden Nivel 3:**
+
 - No hay enlaces HATEOAS en ninguna respuesta
 - No hay representaciones de recursos vinculadas (self, related, collection)
 - No hay Content-Type negotiation avanzada
@@ -32,9 +33,11 @@ Se realizó un análisis exhaustivo del diseño de la API REST del proyecto "Pro
 ## 3. Evaluación por Criterio
 
 ### 3.1 Naming de Recursos
+
 **Estado: ⚠️ Parcialmente consistente**
 
 **Lo que funciona:**
+
 - Nombres en plural: `/products`, `/clients`, `/users`, `/settings`
 - Nombres en inglés consistente
 - Anidamiento lógico: `/products/attributes/{id}`, `/settings/product/categories/{id}`
@@ -50,15 +53,16 @@ Se realizó un análisis exhaustivo del diseño de la API REST del proyecto "Pro
 4. **Auth inconsistente**: `POST /auth/signin` usa `signin` (mezcla inglés/español). Debería ser `login` para consistencia.
 
 ### 3.2 Verbos HTTP
+
 **Estado: ⚠️ Parcial**
 
-| Verbo | Presente | Uso correcto |
-|-------|----------|--------------|
-| `GET` | ✅ | Lectura de colecciones y elementos individuales. Correcto y consistente. |
-| `POST` | ✅ | Creación de recursos (201) y acciones RPC como `/auth/signin`. Correcto. |
-| `PUT` | ⚠️ | Presente pero con ambigüedad semántica (ver caso crítico abajo). |
-| `DELETE` | ✅ | Eliminación de recursos. Correcto. |
-| `PATCH` | ❌ **AUSENTE** | No existe en ningún módulo. |
+| Verbo    | Presente       | Uso correcto                                                             |
+| -------- | -------------- | ------------------------------------------------------------------------ |
+| `GET`    | ✅             | Lectura de colecciones y elementos individuales. Correcto y consistente. |
+| `POST`   | ✅             | Creación de recursos (201) y acciones RPC como `/auth/signin`. Correcto. |
+| `PUT`    | ⚠️             | Presente pero con ambigüedad semántica (ver caso crítico abajo).         |
+| `DELETE` | ✅             | Eliminación de recursos. Correcto.                                       |
+| `PATCH`  | ❌ **AUSENTE** | No existe en ningún módulo.                                              |
 
 #### Caso crítico: PUT se comporta como PATCH internamente
 
@@ -67,24 +71,27 @@ En settings, el schema `SettingsProductCategoryUpdate` permite campos vacíos (`
 **Conclusión**: No hay una decisión arquitectónica clara entre `PUT` y `PATCH`. Los módulos implementan cada uno una interpretación distinta.
 
 ### 3.3 Códigos de Estado HTTP
+
 **Estado: ⚠️ Parcialmente correcto**
 
-| Código | Uso | Evaluación |
-|--------|-----|-----------|
-| `200` | GET, PUT, DELETE | ✅ Correcto |
-| `201` | POST (crear) | ✅ Correcto |
-| `400` | Validación Joi fallida | ✅ Correcto |
-| `401` | Token inválido/ausente | ✅ Correcto |
-| `403` | Rol/permiso insuficiente | ✅ Correcto |
-| `404` | ❌ **Ausente** — no se usa en ningún controlador | ❌ Crítico |
-| `429` | Rate limiting | ✅ Correcto |
-| `500` | Error interno | ✅ Correcto |
+| Código | Uso                                              | Evaluación  |
+| ------ | ------------------------------------------------ | ----------- |
+| `200`  | GET, PUT, DELETE                                 | ✅ Correcto |
+| `201`  | POST (crear)                                     | ✅ Correcto |
+| `400`  | Validación Joi fallida                           | ✅ Correcto |
+| `401`  | Token inválido/ausente                           | ✅ Correcto |
+| `403`  | Rol/permiso insuficiente                         | ✅ Correcto |
+| `404`  | ❌ **Ausente** — no se usa en ningún controlador | ❌ Crítico  |
+| `429`  | Rate limiting                                    | ✅ Correcto |
+| `500`  | Error interno                                    | ✅ Correcto |
 
 **Problemas:**
+
 - **No hay 404**: Cuando un recurso no existe, Prisma lanza `P2025` (RecordNotFound) que cae como 500, no como 404.
 - El error handler global solo maneja `P2002` (unique constraint); el resto de errores Prisma se devuelven como 500.
 
 ### 3.4 Formato de Respuesta
+
 **Estado: ❌ Inconsistente entre módulos**
 
 **Problemas críticos:**
@@ -100,19 +107,23 @@ En settings, el schema `SettingsProductCategoryUpdate` permite campos vacíos (`
    El frontend no puede parsear errores de forma unificada.
 
 ### 3.5 Validación de Datos
+
 **Estado: ✅ Bueno, con oportunidades de mejora**
 
 **Aciertos:**
+
 - `allowUnknown: false` (whitelisting estricto)
 - `abortEarly: false` (todos los errores)
 - `validatePathParam` con regex `^[0-9]+$` + `Number.isSafeInteger`
 
 **Problemas:**
+
 - Products y ProductsUpdate son **idénticos** — código duplicado, riesgo de divergencia
 - Settings usa `.allow('')` en vez de `.optional()` — semántica distinta
 - Arrays sin `.items()` in users.joi.js — permiten datos inválidos
 
 ### 3.6 Manejo de Errores
+
 **Estado: ⚠️ Funcional pero con problemas**
 
 - `handleCatchErrorAsync` wrapper — patrón correcto
@@ -121,6 +132,7 @@ En settings, el schema `SettingsProductCategoryUpdate` permite campos vacíos (`
 - No hay diferenciación dev/prod
 
 ### 3.7 Autenticación y Autorización
+
 **Estado: ✅ Bien diseñado**
 
 - JWT HS256 con issuer/audience — correcto
@@ -129,11 +141,13 @@ En settings, el schema `SettingsProductCategoryUpdate` permite campos vacíos (`
 - Admin bypass automático — correcto
 
 **Problemas:**
+
 - Consulta a DB `getUserRoleByUserId` en cada request — sin caché, N+1
 - `console.log('auth', authHeader)` expone token en consola
 - Typo: `checkRoleAuthOrPermisssion` (3 s)
 
 ### 3.8 Documentación OpenAPI
+
 **Estado: ❌ Inconsistente**
 
 - **15 módulos con OpenAPI**: clients, settings, warehouse, stock, purchase, providers, etc.
@@ -142,6 +156,7 @@ En settings, el schema `SettingsProductCategoryUpdate` permite campos vacíos (`
 - No hay Swagger UI expuesta
 
 ### 3.9 Idempotencia y Concurrencia
+
 **Estado: ❌ Sin protección**
 
 - No hay ETags ni If-Match
@@ -150,9 +165,11 @@ En settings, el schema `SettingsProductCategoryUpdate` permite campos vacíos (`
 - Lost updates: el último PUT gana, sobrescribe cambios del primero
 
 ### 3.10 Seguridad
+
 **Estado: ✅ Buenas prácticas implementadas**
 
 **Aciertos:**
+
 - Rate limiting por capas (general, login, refresh, password)
 - CSRF con `crypto.timingSafeEqual`
 - CORS con orígenes explícitos, credentials: true
@@ -161,6 +178,7 @@ En settings, el schema `SettingsProductCategoryUpdate` permite campos vacíos (`
 - Path param validation estricta
 
 **Problemas:**
+
 - `console.log('auth', authHeader)` expone token
 - No hay Helmet (X-Frame-Options, X-XSS-Protection, etc.)
 - No hay input normalization (trimming)
@@ -169,18 +187,18 @@ En settings, el schema `SettingsProductCategoryUpdate` permite campos vacíos (`
 
 ## 4. Tabla Resumen de Hallazgos
 
-| Criterio | Estado | Prioridad | Impacto |
-|----------|--------|-----------|---------|
-| **3.4 Formato de respuesta UPDATE** | ❌ Inconsistente | **Alta** | Clientes reciben datos distintos según módulo |
-| **3.3 Códigos de estado** | ⚠️ Sin 404 | **Alta** | Errores 500 cuando deberían ser 404 |
-| **3.2 Verbo PATCH ausente** | ❌ No implementado | **Alta** | Clientes forzados a PUT con datos completos |
-| **3.8 OpenAPI en products** | ❌ Ausente | **Alta** | Módulo más complejo sin documentación |
-| **3.4 Error format inconsistente** | ❌ 3 formatos | **Alta** | Frontend no puede parsear unificadamente |
-| **3.1 Dos rutas GET /** | ❌ Bug funcional | **Alta** | Filtros de productos no funcionan |
-| **3.9 Idempotencia** | ❌ Sin protección | **Media** | Lost updates en operaciones concurrentes |
-| **3.5 Duplicación schemas** | ⚠️ Products = ProductsUpdate | **Media** | Código duplicado, riesgo de divergencia |
-| **3.7 Auth query por request** | ⚠️ Sin caché | **Media** | N+1 queries de roles |
-| **3.10 Helmet ausente** | ⚠️ No implementado | **Baja** | Headers de seguridad faltantes |
+| Criterio                            | Estado                       | Prioridad | Impacto                                       |
+| ----------------------------------- | ---------------------------- | --------- | --------------------------------------------- |
+| **3.4 Formato de respuesta UPDATE** | ❌ Inconsistente             | **Alta**  | Clientes reciben datos distintos según módulo |
+| **3.3 Códigos de estado**           | ⚠️ Sin 404                   | **Alta**  | Errores 500 cuando deberían ser 404           |
+| **3.2 Verbo PATCH ausente**         | ❌ No implementado           | **Alta**  | Clientes forzados a PUT con datos completos   |
+| **3.8 OpenAPI en products**         | ❌ Ausente                   | **Alta**  | Módulo más complejo sin documentación         |
+| **3.4 Error format inconsistente**  | ❌ 3 formatos                | **Alta**  | Frontend no puede parsear unificadamente      |
+| **3.1 Dos rutas GET /**             | ❌ Bug funcional             | **Alta**  | Filtros de productos no funcionan             |
+| **3.9 Idempotencia**                | ❌ Sin protección            | **Media** | Lost updates en operaciones concurrentes      |
+| **3.5 Duplicación schemas**         | ⚠️ Products = ProductsUpdate | **Media** | Código duplicado, riesgo de divergencia       |
+| **3.7 Auth query por request**      | ⚠️ Sin caché                 | **Media** | N+1 queries de roles                          |
+| **3.10 Helmet ausente**             | ⚠️ No implementado           | **Baja**  | Headers de seguridad faltantes                |
 
 ---
 
@@ -239,4 +257,4 @@ Se recomienda abordar las correcciones de Prioridad Alta en una sprint dedicada.
 
 ---
 
-*Documento generado el 28 de mayo de 2026 basado en el análisis de 22 módulos del backend Express (apps/server/src/modules/) y su consumo desde el frontend React con RTK Query (apps/client/src/modules/).*
+_Documento generado el 28 de mayo de 2026 basado en el análisis de 22 módulos del backend Express (apps/server/src/modules/) y su consumo desde el frontend React con RTK Query (apps/client/src/modules/)._
