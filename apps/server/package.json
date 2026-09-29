@@ -58,13 +58,13 @@
     "socket.io-client": "^4.8.3",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.0",
-    "vite": "7.3.1",
+    "vite": "^7.3.6",
     "winston": "^3.13.0",
     "zxcvbn": "^4.4.2",
     "@socket.io/redis-adapter": "^8.3.0"
   },
   "devDependencies": {
-    "@prisma/language-server": "^31.11.0",
+    "@prisma/language-server": "31.0.7766",
     "@vitest/coverage-v8": "^4.0.18",
     "@vitest/ui": "^4.0.18",
     "nodemon": "^3.1.0",
