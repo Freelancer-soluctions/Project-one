@@ -1,0 +1,26 @@
+# Checkov — política como código (capa IaC, change `sca-lockfile-compliance`)
+#
+# NOTA de auto-read (lección `.scancode.yml`): la CLI de checkov SÍ auto-lee
+# este archivo del working directory (`--config-file` por defecto = .checkov.yml
+# en el cwd). Aun así, los jobs de CI lo pasan EXPLÍCITO vía el input
+# `config_file` de bridgecrewio/checkov-action (ancla estable, independiente
+# del cwd) — ver .github/workflows/ci.yml job `checkov-iac` y
+# scheduled-security.yml job `checkov-iac-weekly`.
+#
+# FASE 1 (advisory): soft-fail activo — los hallazgos se reportan con exit 0
+# y no bloquean PR ni release. FASE 2 (blocking gradual, D5 del design):
+# quitar soft-fail SOLO tras 2-4 semanas de runs limpios y crear
+# `.checkov.baseline` (`checkov -b .checkov.baseline --fail-on-new`) para no
+# penalizar deuda histórica.
+#
+soft-fail: true
+compact: true
+quiet: true
+framework:
+  - dockerfile
+  - terraform
+  - kubernetes
+# skip-check: exenciones explícitas con justificación (revisar trimestralmente).
+# Vacío en FASE 1: sin deuda conocida en el repo (no hay .tf/ ni k8s/ hoy;
+# el framework dockerfile cubre los Dockerfiles existentes).
+skip-check: []

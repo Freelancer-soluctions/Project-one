@@ -1,0 +1,29 @@
+# ScanCode Toolkit — configuración de escaneo local (capa L1, change `license-compliance`)
+# Uso: ver docs/learning/license-policy.md §7 (docker o CLI).
+# NOTA: salida SIEMPRE --json-pp; --csv está deprecado (scancode-toolkit issue #3043).
+#
+# `scancode` no lee este archivo automáticamente (a diferencia de otras tools):
+# documenta las opciones acordadas para copiar/pegar en la invocación local
+# y para los jobs L2b `scancode-license-pr-diff` (.github/workflows/ci.yml,
+# diff ACMR del PR, FASE 1 advisory) y L3 `scancode-license-audit`
+# (.github/workflows/scheduled-security.yml, repo completo, semanal).
+
+# Opciones de escaneo acordadas (capa L1 y L3):
+#   --license        detección de licencias por archivo (expresiones SPDX)
+#   --copyright      detección de titulares de copyright
+#   --only-findings  omite archivos sin hallazgos (reporte más pequeño/rápido)
+#   --json-pp scancode-report.json   salida JSON pretty-printed (machine-readable)
+#
+# Exclusiones recomendadas (flags --exclude en la invocación):
+#   node_modules, dist, build, coverage, .git, reports, *.min.js
+#
+# Ejemplo completo:
+#   scancode --license --copyright --only-findings \
+#     --exclude node_modules --exclude dist --exclude build --exclude coverage \
+#     --exclude .git --json-pp scancode-report.json .
+#
+# El reporte JSON alimenta:
+#   - revisión manual de licencias/copyright (L1)
+#   - artifact semanal `scancode-report.json` con retention 90d (L3)
+#
+# Política de licencias (qué se considera violación): docs/learning/license-policy.md
