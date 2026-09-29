@@ -51,7 +51,7 @@ jobs:
       - name: Run Trivy filesystem scan
         id: scan-sarif
         continue-on-error: true # L3 audit mode: hallazgos (exit 1) no fallan el job
-        uses: aquasecurity/trivy-action@0.36.0
+        uses: aquasecurity/trivy-action@v0.36.0
         with:
           scan-type: fs
           scan-ref: .

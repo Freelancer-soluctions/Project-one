@@ -703,7 +703,7 @@ jobs:
         run: |
           bash <(curl https://raw.githubusercontent.com/rhysd/actionlint/main/scripts/download-actionlint.bash) 1.7.12
           ./actionlint -no-color -config-file .github/actionlint.yaml \
-            -format "$(cat .github/actionlint-sarif.tmpl)" .github/workflows/ > actionlint.sarif || true
+            -format "$(cat .github/actionlint-sarif.tmpl)" .github/workflows/*.y*ml > actionlint.sarif || true
           test -s actionlint.sarif || { echo 'actionlint.sarif vacio'; exit 1; }
           jq -e . actionlint.sarif > /dev/null || { echo 'actionlint.sarif no parseable'; exit 1; }
         shell: bash
@@ -926,11 +926,18 @@ jobs:
           # LICENSE_DENY_LIST in scripts/generate-security-digest.mjs. NOTE:
           # allow-licenses is the stricter allow-list alternative and is MUTUALLY
           # EXCLUSIVE with deny-licenses — exactly one of the two may be set.
+          # SPDX-only: every entry MUST be a valid SPDX identifier — the action
+          # validates the config at startup (validateLicenses → spdx-expression-parse)
+          # and fails fast before scanning any dependency (`Invalid license(s) in
+          # deny-licenses`). `Proprietary` is NOT a valid SPDX id (removed 2026-09-29:
+          # it made the job fail unconditionally); npm-custom/private licenses surface
+          # as `Other`/`NOASSERTION`, which a deny-list cannot match anyway — those
+          # are covered by the ScanCode PR-diff layer (scancode-license-pr-diff).
           # Validated locally: no package in the current tree carries these
           # licenses (see docs/learning/dependency-review.md §4.2).
           # Canonical license policy (deny-list, waivers, fail-on-scopes):
           # docs/learning/license-policy.md (change license-compliance)
-          deny-licenses: GPL-3.0, AGPL-3.0, SSPL-1.0, Proprietary, CC-BY-NC-4.0
+          deny-licenses: GPL-3.0, AGPL-3.0, SSPL-1.0, CC-BY-NC-4.0
           # Publish the findings summary as a PR comment when the gate fails,
           # exercising the already-declared pull-requests: write permission.
           # on-failure keeps green PRs clean; on fork PRs the comment may fail
@@ -968,6 +975,9 @@ jobs:
         uses: gitleaks/gitleaks-action@v3
         env:
           GITLEAKS_LICENSE: ${{ secrets.GIT_LEAKS }}
+          # gitleaks-action v3 exige GITHUB_TOKEN para escanear pull requests
+          # (breaking change anunciado en su README)
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: "Warn: licensed Gitleaks scan unavailable"
         if: ${{ env.GIT_LEAKS == '' }}
         run: echo "::warning::GIT_LEAKS secret not configured - licensed Gitleaks scan skipped. Using open-source Gitleaks only."
