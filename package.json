@@ -101,7 +101,7 @@
   "lint-staged": {
     "*.{js,jsx,ts,tsx,cjs,mjs,json,jsonc,md}": "prettier --write",
     "*.{js,jsx,cjs,mjs}": "eslint --fix --max-warnings 0 --no-warn-ignored",
-    "*.{js,jsx,ts,tsx,cjs,mjs}": "depcruise --config .dependency-cruiser.cjs --output-type err-long --ignore-known"
+    "*.{js,jsx,ts,tsx,cjs,mjs}": "depcruise --config .dependency-cruiser.cjs --output-type err-long --ignore-known=.dependency-cruiser-known-violations.json"
   },
   "version": "1.0.0",
   "directories": {
