@@ -2843,8 +2843,8 @@ Además de los gates puntuales de GOVERNANCE que aparecen dentro de cada stage (
 │  │  │   │   --only-findings, excludes, timeout 45min, continue-on-error:true,      │  │
 │  │  │   │   artifact 90d (OSADL/SPDX 2.3 evidencia, drift/90d)                     │  │
 │  │  │   ├─ PR-DIFF (ci.yml) ACTIVA FASE 1: git diff ACMR → scancode               │  │
-│  │  │   │   --json-pp → deny-list regex (deny-licenses: GPL-3.0/AGPL-3.0/SSPL-1.0/ │  │
-│  │  │   │   Proprietary/CC-BY-NC-4.0) → artifact 14d (pr-license-report.json)     │  │
+│  │  │   │   --json-pp → deny-list regex (deny-licenses: GPL-3.0/AGPL-3.0/          │  │
+│  │  │   │   SSPL-1.0/CC-BY-NC-4.0) → artifact 14d (pr-license-report.json)        │  │
 │  │  │   ├─ gap: dependency-review cubre solo manifiestos; PR-diff cierra archivos  │  │
 │  │  │   │   fuente/vendor; no reemplaza semanal (ambos necesarios)                  │  │
 │  │  │   ├─ FASE 1 advisory ACTIVA (2026-09-26); FASE 2 gradual (2-4 sem)         │  │

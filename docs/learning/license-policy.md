@@ -13,7 +13,7 @@
 Configurada en `.github/workflows/ci.yml` job `dependency-review`:
 
 ```yaml
-deny-licenses: GPL-3.0, AGPL-3.0, SSPL-1.0, Proprietary, CC-BY-NC-4.0
+deny-licenses: GPL-3.0, AGPL-3.0, SSPL-1.0, CC-BY-NC-4.0
 ```
 
 | Licencia       | Por qué está denegada                                                              |
@@ -21,14 +21,25 @@ deny-licenses: GPL-3.0, AGPL-3.0, SSPL-1.0, Proprietary, CC-BY-NC-4.0
 | `GPL-3.0`      | Copyleft fuerte: obligaría a liberar código propio si se distribuye                |
 | `AGPL-3.0`     | Copyleft de red: dispara obligaciones por simple acceso vía red                    |
 | `SSPL-1.0`     | Copyleft agravado de servicio (MongoDB): incompatibilidad práctica con SaaS propio |
-| `Proprietary`  | Sin derecho auditado a redistribución/modificación                                 |
 | `CC-BY-NC-4.0` | No comercial: incompatible con uso productivo                                      |
+
+> **Nota SPDX (2026-09-29):** toda entrada de `deny-licenses` DEBE ser un identificador
+> SPDX válido: la acción valida la config al arrancar (`validateLicenses` →
+> `spdx-expression-parse`) y falla antes de analizar dependencias si hay un token
+> inválido (`Invalid license(s) in deny-licenses`). `Proprietary` NO es un identificador
+> SPDX (fue eliminado de la lista: rompía el gate de forma incondicional) y además sería
+> inefectivo: las licencias custom/privadas llegan a la Dependency Graph como
+> `Other`/`NOASSERTION`, que una deny-list no puede matchear. El software propietario
+> se cubre en la capa **ScanCode PR-diff** (`scancode-license-pr-diff`, L2b), que analiza
+> archivos del diff con detección de licencia por contenido.
 
 **Alineación con el digest semanal:** `LICENSE_DENY_LIST` en
 `scripts/security/generate-security-digest.mjs` usa la **familia GPL/LGPL/AGPL extendida**
-(15 entradas: versiones base + variantes `-+` "or later" de GPL/AGPL + LGPL 1.0/2.0/2.1/3.0).
-Es un superconjunto intencional del gate PR: el digest (advisory) alerta más amplio, el gate
-PR (blocking) castiga solo las 5 anteriores. El digest omite deliberadamente `LGPL-2.0+`,
+(15 entradas: versiones base + variantes `-+` "or later" de GPL/AGPL + LGPL 1.0/2.0/2.1/3.0)
+**más `SSPL-1.0` y `CC-BY-NC-4.0`** heredadas de esta deny-list (17 entradas totales), de modo
+que el digest sea un **superconjunto** del gate PR como exige la spec
+`openspec/specs/license-compliance`. El digest (advisory) alerta más amplio, el gate
+PR (blocking) castiga solo las 4 anteriores. El digest omite deliberadamente `LGPL-2.0+`,
 `LGPL-2.1+` y `LGPL-3.0+` para evitar sobre-bloqueo (decisión documentada en el change
 `ci-scheduled-security`, tasks 4.2).
 
