@@ -35,7 +35,7 @@ Gaps verificados: (a) `quality-gates.md` §2 sin fila `dependency-review`; (b) `
 
 `deny-licenses` y `allow-licenses` son mutuamente excluyentes en `actions/dependency-review-action@v5`.
 
-- **Recomendado para este repo: `deny-licenses`** (`GPL-3.0`, `AGPL-3.0`, `SSPL-1.0`, `Proprietary`, `CC-BY-NC-4.0`), alineado con el `LICENSE_DENY_LIST` de `generate-security-digest.mjs` (15 entradas familia GPL/LGPL/AGPL, documentado en `docs/security/SECURITY.md`). Bajo riesgo de roturas: una licencia desconocida/`NOASSERTION` no falla con lista negra.
+- **Recomendado para este repo: `deny-licenses`** (`GPL-3.0`, `AGPL-3.0`, `SSPL-1.0`, `CC-BY-NC-4.0`; nota 2026-09-29: `Proprietary` se descartó porque NO es un identificador SPDX válido — la acción valida la config al arranque y falla antes de escanear dependencias), alineado con el `LICENSE_DENY_LIST` de `generate-security-digest.mjs` (17 entradas: familia GPL/LGPL/AGPL + `SSPL-1.0`/`CC-BY-NC-4.0`, documentado en `docs/security/SECURITY.md`). Bajo riesgo de roturas: una licencia desconocida/`NOASSERTION` no falla con lista negra.
 - **Alternativa `allow-licenses`** (`MIT`, `Apache-2.0`, `BSD-2-Clause`, `BSD-3-Clause`, `ISC`, `0BSD`, `CC0-1.0`, `Unlicense`, `MPL-2.0`): más estricta, falla ante cualquier licencia fuera de lista. Requiere revisión previa del árbol: `npm ls --depth=0 --json | jq '.dependencies | to_entries[] | .value.license'`.
 - La elección y la validación local se documentan en `docs/learning/dependency-review.md` §4.2. Modo solo-auditoría (`warn-only: true`) descartado: el gate ya es blocking por diseño.
 

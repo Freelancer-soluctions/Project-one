@@ -44,6 +44,25 @@
 - [x] 2.4 Artifact `guarddog-report-pr` con `actions/upload-artifact`, `path: guarddog.sarif`, `retention-days: 14`, `if-no-files-found: warn`, `if: always()`. — ✅
 - [x] 2.5 `typosquat-guarddog` NO añadido al `needs` de `prebuild-security-complete` (parse YAML: sigue `[dependency-review, secrets, scancode-license-pr-diff]`); `actionlint` 9/9 workflows exit 0 (per-file — quirk Windows con dir-args); `grep -c "^  typosquat-guarddog:" ci.yml` = 1. — ✅
 
+### Nota de auditoría (2026-09-29 — falsos positivos del job en PR #133)
+
+El run de CI del PR #133 reportó `ERROR: Package/Version X not on NPM` para 5 entradas
+(`client-react`, `e2e`, `string-width-cjs`, `strip-ansi-cjs`, `wrap-ansi-cjs`). Causa raíz
+**no está en esta change** sino en el manifest raíz de `main`, aplanado con ~700 entradas
+en `dependencies` que incluían (a) los nombres internos de los workspaces
+(`client-react`, `e2e`, `server-express` — paquetes `private` inexistentes en el registro,
+con agravante de colisión: `e2e`/`server-express` SÍ existen en NPM de terceros) y (b) los
+aliases internos de `@isaacs/cliui` (`string-width-cjs` etc., real `npm:string-width@4.2.3`
+según lockfile) promovidos indebidamente a la raíz. El aplanado rompió también el
+`--output-format sarif` documentado en esta spec (el wrapper nunca lo tuvo: 1 commit).
+Corrección aplicada en el PR #133: se eliminaron las 6 entradas espurias de
+`dependencies` (los workspaces siguen linkeados vía `workspaces`/lockfile y cliui sigue
+recibiendo sus `-cjs`) y el wrapper recupera `--output-format sarif` (alineado con la spec
+L1/L2/L3 de esta change). Adicionalmente verificado: GuardDog v3.0.x resolvía aliases
+`npm:` (`NPM_ALIAS_PATTERN`), v3.1.0/v3.2.0 perdieron esa capacidad (regresión upstream
+sin release con fix a la fecha) — dejar de pixear aliases en manifests y limpiar el
+aplanado evita depender de ese comportamiento.
+
 ## 3. Job semanal `guarddog-weekly` en `scheduled-security.yml` (capa L3)
 
 - [x] 3.1 Job `guarddog-weekly` añadido tras `zizmor-weekly`: trigger del workflow (schedule + workflow_dispatch ya existentes), `continue-on-error: true`, sin dependencia de agregadores, `timeout-minutes: 10`. — ✅ parse YAML: scheduled = 8 jobs

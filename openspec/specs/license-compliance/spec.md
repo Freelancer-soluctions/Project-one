@@ -24,7 +24,8 @@ El repo SHALL mantener un documento de política de licencias que explique la li
 
 - **WHEN** se busca la política de licencias en `docs/`
 - **THEN** existe `docs/learning/license-policy.md`
-- **AND** documenta la lista deny (`GPL-3.0`, `AGPL-3.0`, `SSPL-1.0`, `Proprietary`, `CC-BY-NC-4.0`)
+- **AND** documenta la lista deny (`GPL-3.0`, `AGPL-3.0`, `SSPL-1.0`, `CC-BY-NC-4.0`)
+- **AND** explica la restricción SPDX: toda entrada de `deny-licenses` DEBE ser un identificador SPDX válido (la acción valida la config al arranque y falla antes de escanear dependencias ante tokens inválidos; las licencias privadas llegan como `Other`/`NOASSERTION` y se cubren en la capa ScanCode PR-diff)
 - **AND** explica que `allow-licenses` y `deny-licenses` son mutuamente excluyentes (exactamente una puede definirse)
 
 #### Scenario: Waivers documentados
@@ -47,7 +48,7 @@ La lista de licencias denegadas en `.github/workflows/ci.yml` SHALL coincidir ex
 - **WHEN** se comparan `deny-licenses` en `ci.yml`, `LICENSE_DENY_LIST` en `generate-security-digest.mjs` y la lista de `license-policy.md`
 - **THEN** la deny-list del gate `ci.yml` y la lista de `license-policy.md` contienen exactamente los mismos identificadores de licencia
 - **AND** `LICENSE_DENY_LIST` del digest es un superconjunto: contiene cada identificador de la deny-list del gate
-- **AND** toda omisión o extensión del digest respecto del gate está justificada por escrito en `license-policy.md` (superconjunto intencional de la familia GPL/LGPL/AGPL)
+- **AND** toda omisión o extensión del digest respecto del gate está justificada por escrito en `license-policy.md` (superconjunto intencional: familia GPL/LGPL/AGPL extendida + `SSPL-1.0` y `CC-BY-NC-4.0` del gate)
 - **AND** ningún archivo declara `allow-licenses` mientras `deny-licenses` esté activo
 
 ### Requirement: Resumen de hallazgos publicado en el PR
@@ -206,7 +207,7 @@ El workflow `ci.yml` SHALL ejecutar un job `scancode-license-pr-diff` que escane
 #### Scenario: Evaluación contra la deny-list unificada
 
 - **WHEN** el reporte JSON declara licencias para un archivo del diff
-- **THEN** cada licencia se evalúa contra la clave `deny-licenses` del bloque `with:` del job `dependency-review` en `.github/workflows/ci.yml` (`GPL-3.0`, `AGPL-3.0`, `SSPL-1.0`, `Proprietary`, `CC-BY-NC-4.0`), la misma configuración que evalúa `dependency-review`
+- **THEN** cada licencia se evalúa contra la clave `deny-licenses` del bloque `with:` del job `dependency-review` en `.github/workflows/ci.yml` (`GPL-3.0`, `AGPL-3.0`, `SSPL-1.0`, `CC-BY-NC-4.0`), la misma configuración que evalúa `dependency-review`
 - **AND** `docs/learning/license-policy.md` documenta esa configuración como fuente única para ambas capas
 
 #### Scenario: LicenseRef-scancode-unknown\* clasificado como warning
