@@ -328,3 +328,41 @@ jobs:
           retention-days: 90
           if-no-files-found: warn
 
+  # Auditoría semanal de typosquatting (change `typosquatting-detection`):
+  # GuardDog v3.2.0 sobre package.json vía el wrapper versionado
+  # `scripts/guarddog-verify.sh` (política única: pin + devDeps + sandbox).
+  # Re-evaluación semanal de la superficie de dependencias con datos frescos
+  # de top-packages (los runners son efímeros: cada run los descarga de
+  # nuevo). Misma instalación fijada que el job PR. `verify` requiere red y
+  # puede morir a medias → `|| true` + `test -s` + `jq -e .` antes de subir.
+  # `continue-on-error: true` (taxonomía `advisory (scheduled)`), sin ruta
+  # blocking y sin agregador.
+  guarddog-weekly:
+    name: Typosquat GuardDog (Weekly)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v5
+      - uses: astral-sh/setup-uv@b75a909f75acd358c2196fb9a5f1299a9a8868a4 # v6.7.0 (SHA-pinned, nunca @main/@v*)
+      - name: Run GuardDog verify (SARIF, advisory)
+        run: |
+          bash scripts/guarddog-verify.sh > guarddog-weekly.sarif || true
+          test -s guarddog-weekly.sarif || { echo 'guarddog-weekly.sarif vacio'; exit 1; }
+          jq -e . guarddog-weekly.sarif > /dev/null || { echo 'guarddog-weekly.sarif no parseable'; exit 1; }
+        shell: bash
+      - name: Upload GuardDog SARIF to Code Scanning
+        if: always() && hashFiles('guarddog-weekly.sarif') != ''
+        uses: github/codeql-action/upload-sarif@v4
+        with:
+          sarif_file: guarddog-weekly.sarif
+          category: guarddog-weekly
+      - name: Upload GuardDog report artifact (retention 90d)
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: guarddog-weekly
+          path: guarddog-weekly.sarif
+          retention-days: 90
+          if-no-files-found: warn
+

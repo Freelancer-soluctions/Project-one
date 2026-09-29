@@ -51,6 +51,14 @@ echo "🔧 ActionLint workflows (advisory)..."
 echo "🛡️ Zizmor workflows (advisory)..."
 (command -v zizmor >/dev/null 2>&1 && zizmor -c .github/zizmor.yml .github/workflows/) || echo "⚠️  zizmor no disponible o findings — advisory, no bloquea (política: .github/zizmor.yml)"
 
+echo "🐍 GuardDog typosquat (advisory)..."
+# Política única: scripts/guarddog-verify.sh (pin guarddog==3.2.0 + devDeps
+# excluidas + sandbox obligatorio). Requiere red (registry npm) y uvx; solo
+# macOS/Linux nativo (GuardDog v3.2.0 en Windows exige Docker) → si falta
+# uvx o la plataforma no soporta el sandbox, degrada a advisory silencioso.
+# Reporte: .tmp/guarddog.sarif (gitignored).
+(bash scripts/guarddog-verify.sh > .tmp/guarddog.sarif 2>/dev/null) || echo "⚠️  guarddog no disponible o findings — advisory, no bloquea (política: scripts/guarddog-verify.sh, reporte: .tmp/guarddog.sarif)"
+
 echo "✅ All pre-commit checks passed (lint-staged, SAST, Secrets)."
 
-echo "ℹ️  Advisory layers completed (lockfile + IaC + Containerfile + pipeline config): findings do NOT block (docs/learning/quality-gates.md §2)."
+echo "ℹ️  Advisory layers completed (lockfile + IaC + Containerfile + pipeline config + typosquat): findings do NOT block (docs/learning/quality-gates.md §2)."

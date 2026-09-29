@@ -765,6 +765,51 @@ jobs:
           retention-days: 14
           if-no-files-found: warn
 
+  # Job advisory de typosquatting / dependency confusion (change
+  # `typosquatting-detection`): GuardDog v3.2.0 (DataDog, OSS, sin credenciales)
+  # sobre package.json — detección por metadatos + YARA que NO duplica a Trivy
+  # (CVE/secretos), dependency-review (manifiesto PR) ni lockfile-audit (CVE
+  # lockfile). Toda la política vive en el wrapper versionado
+  # `scripts/guarddog-verify.sh` (GuardDog no soporta config files): pin 3.2.0
+  # con verificación de versión, devDeps excluidas, sandbox obligatorio (nunca
+  # --no-sandbox), exclusiones justificadas. `verify` requiere red y puede morir
+  # a medias → `|| true` + `test -s` + `jq -e .` antes de subir. FASE 1 advisory
+  # (`continue-on-error: true` a nivel job); NO entra en los `needs` de los
+  # agregadores (FASE 2 diferida: 2-4 semanas sin FP, luego gating + needs).
+  typosquat-guarddog:
+    if: github.event_name == 'pull_request'
+    name: "Security: Typosquat GuardDog (advisory, FASE 1)"
+    needs: repo-discovery
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    continue-on-error: true
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - uses: actions/checkout@v5
+      - uses: astral-sh/setup-uv@b75a909f75acd358c2196fb9a5f1299a9a8868a4 # v6.7.0 (SHA-pinned, nunca @main/@v*)
+      - name: Run GuardDog verify (SARIF, advisory)
+        run: |
+          bash scripts/guarddog-verify.sh > guarddog.sarif || true
+          test -s guarddog.sarif || { echo 'guarddog.sarif vacio'; exit 1; }
+          jq -e . guarddog.sarif > /dev/null || { echo 'guarddog.sarif no parseable'; exit 1; }
+        shell: bash
+      - name: Upload GuardDog SARIF to Code Scanning
+        if: always() && hashFiles('guarddog.sarif') != ''
+        uses: github/codeql-action/upload-sarif@v4
+        with:
+          sarif_file: guarddog.sarif
+          category: guarddog
+      - name: Upload GuardDog report artifact (retention 14d)
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: guarddog-report-pr
+          path: guarddog.sarif
+          retention-days: 14
+          if-no-files-found: warn
+
   # --- Specs Pre-Build ---
   # Validación estructural de las specs canónicas de OpenSpec (openspec/specs/**).
   # `--specs` valida SOLO main specs; los deltas de changes/ activos se validan
