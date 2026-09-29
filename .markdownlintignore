@@ -1,0 +1,19 @@
+# Exclusiones de markdownlint (gitignore syntax; solo markdownlint-cli lo soporta,
+# decisión documentada en docs/learning/docs-changelog-validation.md §3)
+
+# Dependencias y artefactos de build
+node_modules/
+dist/
+build/
+coverage/
+storybook-static/
+
+# Estilos de vale (no son docs)
+.github/styles/
+
+# Reportes generados
+reports/
+
+# Lockfiles y generado
+package-lock.json
+apps/server/prisma/generated/
