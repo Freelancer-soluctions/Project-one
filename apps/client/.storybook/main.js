@@ -27,8 +27,7 @@ const config = {
   stories: ['../src/**/*.mdx', '../src/**/*.stories.@(js|jsx)'],
 
   addons: [
-    '@storybook/addon-essentials',
-    '@storybook/addon-interactions',
+    // SB9: addon-essentials y addon-interactions fueron absorbidos por el core (no existen @9)
     '@storybook/addon-links',
     '@storybook/addon-styling-webpack',
   ],
