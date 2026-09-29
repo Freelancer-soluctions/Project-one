@@ -93,6 +93,25 @@ export default [
   js.configs.recommended,
 
   // ---------------------------------------------------------------------------
+  // (2b) CommonJS de configuración (dependency-cruiser, webpack resolve-only,
+  // hooks): archivos .cjs que Node ejecuta con require — necesitan globals.node
+  // (module, require, __dirname, process...). La extensión .cjs ya activa
+  // sourceType 'commonjs'; se declara explícito y se dan los globals para que
+  // `no-undef` no falle en configs legítimos de Node (change import-boundaries).
+  // ---------------------------------------------------------------------------
+
+  {
+    files: ['**/*.cjs'],
+    languageOptions: {
+      ecmaVersion: 'latest',
+      sourceType: 'commonjs',
+      globals: {
+        ...globals.node,
+      },
+    },
+  },
+
+  // ---------------------------------------------------------------------------
   // (3) Backend Node.js (apps/server).
   // ---------------------------------------------------------------------------
 
