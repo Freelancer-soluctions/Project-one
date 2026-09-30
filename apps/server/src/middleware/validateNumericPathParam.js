@@ -45,8 +45,15 @@ export const validateNumericPathParam = (paramName) => {
       });
     }
 
-    // Sobrescribo el parámetro validado en el request
-    req.params[paramName] = numericId;
+    // Sobrescribo el parámetro validado en el request usando defineProperty:
+    // evita la escritura por computed key (prototype pollution reportada por
+    // Semgrep) y respeta los getters/setters existentes de req.params.
+    Object.defineProperty(req.params, paramName, {
+      value: numericId,
+      writable: true,
+      enumerable: true,
+      configurable: true,
+    });
 
     next();
   };

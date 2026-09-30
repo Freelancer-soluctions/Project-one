@@ -43,6 +43,9 @@ RUN npm ci --workspace=apps/server --ignore-scripts \
 # Copiar código fuente del server (sobrescribe package.json del workspace, OK: deps ya instaladas)
 COPY apps/server/. .
 
+# Usuario no-root para runtime (menor superficie si hay RCE); node:image trae el usuario `node`
+USER node
+
 # El servidor Express corre en puerto 3000
 EXPOSE 3000
 
