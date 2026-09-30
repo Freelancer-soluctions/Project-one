@@ -58,7 +58,11 @@ según lockfile) promovidos indebidamente a la raíz. El aplanado rompió tambi�
 Corrección aplicada en el PR #133: se eliminaron las 6 entradas espurias de
 `dependencies` (los workspaces siguen linkeados vía `workspaces`/lockfile y cliui sigue
 recibiendo sus `-cjs`) y el wrapper recupera `--output-format sarif` (alineado con la spec
-L1/L2/L3 de esta change). Adicionalmente verificado: GuardDog v3.0.x resolvía aliases
+L1/L2/L3 de esta change). **Generalización (change `root-manifest-cleanup`, 2026-09-29):**
+el aplanado completo del manifest raíz fue eliminado (825 → 0 `dependencies`; el tooling
+del raíz vive en `devDependencies`, 24 entradas todas verificadas en el registro) y el
+job `root-manifest-guard` en `ci.yml` bloquea la re-aplanación. Los FPs de clase
+`not on NPM` quedan eliminados por causa raíz. Adicionalmente verificado: GuardDog v3.0.x resolvía aliases
 `npm:` (`NPM_ALIAS_PATTERN`), v3.1.0/v3.2.0 perdieron esa capacidad (regresión upstream
 sin release con fix a la fecha) — dejar de pixear aliases en manifests y limpiar el
 aplanado evita depender de ese comportamiento.
