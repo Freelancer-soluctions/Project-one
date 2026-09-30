@@ -51,6 +51,13 @@ echo "🔧 ActionLint workflows (advisory)..."
 echo "🛡️ Zizmor workflows (advisory)..."
 (command -v zizmor >/dev/null 2>&1 && zizmor -c .github/zizmor.yml .github/workflows/) || echo "⚠️  zizmor no disponible o findings — advisory, no bloquea (política: .github/zizmor.yml)"
 
+echo "📦 Root manifest hygiene (advisory)..."
+# Guard de higiene del manifest raíz (change `root-manifest-cleanup`): falla si
+# `dependencies` del raíz tiene entradas no justificadas (transitivas promovidas,
+# workspaces internos, residuos). Aquí es advisory; en CI es blocking
+# (job `root-manifest-guard`). Sin red, en milisegundos.
+(node scripts/check-root-manifest.mjs 2>/dev/null) || echo "⚠️  manifest raíz con entradas no justificadas — advisory, no bloquea (política: scripts/check-root-manifest.mjs)"
+
 echo "🐍 GuardDog typosquat (advisory)..."
 # Política única: scripts/guarddog-verify.sh (pin guarddog==3.2.0 + devDeps
 # excluidas + sandbox obligatorio). Requiere red (registry npm) y uvx; solo

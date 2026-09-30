@@ -500,7 +500,8 @@ jobs:
           fetch-depth: 0
       - uses: ./.github/actions/setup-monorepo
       - name: Detect dead code
-        run: npx knip --workspace=. --no-progress --reporter json
+        # Selector de workspace explícito (la config raíz knip.jsonc aplica)
+        run: npx knip --workspace=apps/client --no-progress --reporter json
         working-directory: apps/client
 
   client-import-bounds:
@@ -574,8 +575,11 @@ jobs:
       # Gate blocking real (change `quality-gates`): `tsc --noEmit -p apps/server`
       # contra apps/server/tsconfig.json (allowJs, checkJs off — código 100% JS;
       # flags strict vía typescript-strict-check). Sin `|| echo` que enmascare.
+      # Corrección 2026-09-29: `npx tsc --noEmit` con working-directory (patrón
+      # client-typecheck) — `npm run type-check` fallaba porque ese script vive
+      # solo en el manifest RAÍZ, no en apps/server (Missing script: "type-check").
       - name: TypeCheck
-        run: npm run type-check
+        run: npx tsc --noEmit
         working-directory: apps/server
         
   server-complexity:
@@ -607,7 +611,10 @@ jobs:
           fetch-depth: 0
       - uses: ./.github/actions/setup-monorepo
       - name: Detect dead code
-        run: npx knip
+        # Desde la raíz: knip lee la config raíz knip.jsonc (con los falsos
+        # positivos justificados en ignoreIssues). Correr desde apps/server
+        # elude la config (knip busca config desde el cwd y aplica defaults).
+        run: npx knip --workspace=apps/server --no-progress
         working-directory: apps/server
 
   server-import-bounds:
@@ -656,6 +663,25 @@ jobs:
       - run: npm run lint --workspace=e2e
 
   # --- Shared Pre-Build ---
+  # Guard de higiene del manifest raíz (change `root-manifest-cleanup`, spec
+  # `root-manifest-hygiene`): falla si `dependencies` del raíz contiene entradas
+  # no declaradas como requisitos directos (workspaces/devDeps raíz) ni en la
+  # allowlist versionada de scripts/check-root-manifest.mjs. Blocking en PR
+  # que toque el manifest raíz (outputs.shared). Sin red, en segundos.
+  root-manifest-guard:
+    if: needs.repo-discovery.outputs.shared == 'true' && github.event_name == 'pull_request'
+    name: "Quality: Root Manifest Guard"
+    needs: repo-discovery
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - name: Validate root manifest inventory
+        run: node scripts/check-root-manifest.mjs
+
   actionlint:
     if: needs.repo-discovery.outputs.shared == 'true' && github.event_name == 'pull_request'
     name: "Quality: ActionLint"
@@ -1254,7 +1280,7 @@ jobs:
           echo "## Docs Validation (advisory, fase 1)" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "markdownlint violations: ${COUNT##* } (fase 1: NO bloquea el PR)" >> $GITHUB_STEP_SUMMARY
-          echo "Config: .markdownlint.json + .markdownlintignore · vale fase 2 (ver docs/learning/docs-changelog-validation.md)" >> $GITHUB_STEP_SUMMARY
+          echo "Config: .markdownlint.json (JSON estricto) + .markdownlintignore (grandfathering del inventario legacy, 2026-09-29) · vale fase 2 (ver docs/learning/docs-changelog-validation.md)" >> $GITHUB_STEP_SUMMARY
 
   # ═══════════════════════════════════════════════════════════════
   # STAGE 3: BUILD (compilación, empaquetado, artifact)
@@ -1644,6 +1670,7 @@ jobs:
       - server-import-bounds
       - e2e-lint
       - actionlint
+      - root-manifest-guard
       - openspec-validate
     steps:
       - name: Check for failures
