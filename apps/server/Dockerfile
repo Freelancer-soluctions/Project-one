@@ -14,9 +14,11 @@ WORKDIR /app
 # `prisma generate`. Alpine trae libssl3 (OpenSSL 3) pero NO el CLI; sin él, generate
 # produce el engine "linux-musl" (OpenSSL 1.1) que no puede cargar sobre libssl.so.3
 # del node:20-alpine actual (Error: libssl.so.1.1: No such file or directory).
-# hadolint ignore=DL3018 — sin pin de versión a propósito: la versión de openssl
-# debe seguir a la release de Alpine de la imagen base (node:20-alpine móvil);
-# un pin quedaría desincronizado en cada bump de la base y rompería el build.
+# Sin pin de versión a propósito: la versión de openssl debe seguir a la release de
+# Alpine de la imagen base (node:20-alpine móvil); un pin quedaría desincronizado en
+# cada bump de la base y rompería el build. (PrAGMA: hadolint exige que la línea de
+# ignore sea EXACTA e inmediatamente superior al RUN.)
+# hadolint ignore=DL3018
 RUN apk add --no-cache openssl
 
 # Copiar root package.json + lockfile, luego workspace package.json y prisma schema

@@ -500,9 +500,11 @@ jobs:
           fetch-depth: 0
       - uses: ./.github/actions/setup-monorepo
       - name: Detect dead code
-        # Selector de workspace explícito (la config raíz knip.jsonc aplica)
+        # DESDE LA RAÍZ (sin working-directory): el selector --workspace de knip
+        # se resuelve relativo al cwd (con cwd=apps/client buscaría
+        # apps/client/apps/client → exit 2), y correr desde el workspace eludiría
+        # la config raíz knip.jsonc. Selector explícito por workspace.
         run: npx knip --workspace=apps/client --no-progress --reporter json
-        working-directory: apps/client
 
   client-import-bounds:
     if: needs.repo-discovery.outputs.client == 'true' && github.event_name == 'pull_request'
@@ -611,11 +613,10 @@ jobs:
           fetch-depth: 0
       - uses: ./.github/actions/setup-monorepo
       - name: Detect dead code
-        # Desde la raíz: knip lee la config raíz knip.jsonc (con los falsos
-        # positivos justificados en ignoreIssues). Correr desde apps/server
-        # elude la config (knip busca config desde el cwd y aplica defaults).
+        # DESDE LA RAÍZ (mismo motivo que client-dead-code): knip lee la config
+        # raíz knip.jsonc (con los falsos positivos justificados en ignoreIssues)
+        # y el selector se resuelve correctamente.
         run: npx knip --workspace=apps/server --no-progress
-        working-directory: apps/server
 
   server-import-bounds:
     if: needs.repo-discovery.outputs.server == 'true' && github.event_name == 'pull_request'
