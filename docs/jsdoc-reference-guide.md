@@ -276,10 +276,10 @@ async function updateEmployee(employeeId, updateData) {
 
 ### @throws Documentation Rules
 
-| Error Type | When to Use | Status Code |
-|------------|------------|-------------|
-| `Error` | Validation errors, missing parameters, invalid types | N/A (or 500) |
-| `ClientError` | Business logic errors, not found, conflicts | 400, 404, 409, etc. |
+| Error Type    | When to Use                                          | Status Code         |
+| ------------- | ---------------------------------------------------- | ------------------- |
+| `Error`       | Validation errors, missing parameters, invalid types | N/A (or 500)        |
+| `ClientError` | Business logic errors, not found, conflicts          | 400, 404, 409, etc. |
 
 ---
 
@@ -302,7 +302,7 @@ Use `@example` to provide usage examples for functions.
  * console.log(total); // 116
  */
 function calculateTotal(subtotal, taxRate) {
-  return subtotal + (subtotal * taxRate);
+  return subtotal + subtotal * taxRate;
 }
 ```
 
@@ -378,32 +378,32 @@ async function authenticateUser(email, password) {
 
 The following **24 modules** exist in `apps/server/src/modules/`:
 
-| # | Module Name | Description |
-|---|-------------|-------------|
-| 1 | `attendance` | Employee attendance tracking |
-| 2 | `auth` | Authentication and authorization |
-| 3 | `clientOrder` | Client order management |
-| 4 | `clients` | Client management |
-| 5 | `employees` | Employee management |
-| 6 | `events` | Event management |
-| 7 | `expenses` | Expense tracking |
-| 8 | `inventoryMovement` | Inventory movement tracking |
-| 9 | `news` | News/articles management |
-| 10 | `notes` | Notes management |
-| 11 | `payroll` | Payroll processing |
-| 12 | `performanceEvaluation` | Employee performance evaluations |
-| 13 | `permission` | Permission management |
-| 14 | `products` | Product management |
-| 15 | `providerOrder` | Provider order management |
-| 16 | `providers` | Provider management |
-| 17 | `purchase` | Purchase management |
-| 18 | `sales` | Sales management |
-| 19 | `security` | Security settings and logs |
-| 20 | `settings` | Application settings |
-| 21 | `stock` | Stock management |
-| 22 | `users` | User management |
-| 23 | `vacation` | Vacation request management |
-| 24 | `warehouse` | Warehouse management |
+| #   | Module Name             | Description                      |
+| --- | ----------------------- | -------------------------------- |
+| 1   | `attendance`            | Employee attendance tracking     |
+| 2   | `auth`                  | Authentication and authorization |
+| 3   | `clientOrder`           | Client order management          |
+| 4   | `clients`               | Client management                |
+| 5   | `employees`             | Employee management              |
+| 6   | `events`                | Event management                 |
+| 7   | `expenses`              | Expense tracking                 |
+| 8   | `inventoryMovement`     | Inventory movement tracking      |
+| 9   | `news`                  | News/articles management         |
+| 10  | `notes`                 | Notes management                 |
+| 11  | `payroll`               | Payroll processing               |
+| 12  | `performanceEvaluation` | Employee performance evaluations |
+| 13  | `permission`            | Permission management            |
+| 14  | `products`              | Product management               |
+| 15  | `providerOrder`         | Provider order management        |
+| 16  | `providers`             | Provider management              |
+| 17  | `purchase`              | Purchase management              |
+| 18  | `sales`                 | Sales management                 |
+| 19  | `security`              | Security settings and logs       |
+| 20  | `settings`              | Application settings             |
+| 21  | `stock`                 | Stock management                 |
+| 22  | `users`                 | User management                  |
+| 23  | `vacation`              | Vacation request management      |
+| 24  | `warehouse`             | Warehouse management             |
 
 ---
 
@@ -415,46 +415,46 @@ Modules are classified by priority to help focus documentation and testing effor
 
 These modules are critical to the core business operations and should be documented first.
 
-| Module | Priority | Reason |
-|--------|----------|--------|
-| `auth` | High | Authentication is required for all operations |
-| `users` | High | User management is foundational |
-| `clients` | High | Clients are essential for sales operations |
-| `products` | High | Products are the core business entity |
+| Module     | Priority | Reason                                        |
+| ---------- | -------- | --------------------------------------------- |
+| `auth`     | High     | Authentication is required for all operations |
+| `users`    | High     | User management is foundational               |
+| `clients`  | High     | Clients are essential for sales operations    |
+| `products` | High     | Products are the core business entity         |
 
 ### Priority Medium (Business Operations)
 
 These modules handle day-to-day business operations.
 
-| Module | Priority | Reason |
-|--------|----------|--------|
-| `sales` | Medium | Core sales operations |
-| `purchase` | Medium | Core purchasing operations |
-| `stock` | Medium | Inventory management |
-| `inventoryMovement` | Medium | Stock movement tracking |
-| `employees` | Medium | Employee management |
-| `payroll` | Medium | Payroll processing |
-| `attendance` | Medium | Attendance tracking |
-| `vacation` | Medium | Vacation management |
-| `performanceEvaluation` | Medium | Performance review process |
+| Module                  | Priority | Reason                     |
+| ----------------------- | -------- | -------------------------- |
+| `sales`                 | Medium   | Core sales operations      |
+| `purchase`              | Medium   | Core purchasing operations |
+| `stock`                 | Medium   | Inventory management       |
+| `inventoryMovement`     | Medium   | Stock movement tracking    |
+| `employees`             | Medium   | Employee management        |
+| `payroll`               | Medium   | Payroll processing         |
+| `attendance`            | Medium   | Attendance tracking        |
+| `vacation`              | Medium   | Vacation management        |
+| `performanceEvaluation` | Medium   | Performance review process |
 
 ### Priority Low (Management & Config)
 
 These modules handle auxiliary functions and configuration.
 
-| Module | Priority | Reason |
-|--------|----------|--------|
-| `providers` | Low | Provider management |
-| `providerOrder` | Low | Provider order processing |
-| `clientOrder` | Low | Client order processing |
-| `expenses` | Low | Expense tracking |
-| `events` | Low | Event management |
-| `news` | Low | News/articles |
-| `notes` | Low | Notes management |
-| `settings` | Low | Application configuration |
-| `permission` | Low | Permission management |
-| `security` | Low | Security settings |
-| `warehouse` | Low | Warehouse management |
+| Module          | Priority | Reason                    |
+| --------------- | -------- | ------------------------- |
+| `providers`     | Low      | Provider management       |
+| `providerOrder` | Low      | Provider order processing |
+| `clientOrder`   | Low      | Client order processing   |
+| `expenses`      | Low      | Expense tracking          |
+| `events`        | Low      | Event management          |
+| `news`          | Low      | News/articles             |
+| `notes`         | Low      | Notes management          |
+| `settings`      | Low      | Application configuration |
+| `permission`    | Low      | Permission management     |
+| `security`      | Low      | Security settings         |
+| `warehouse`     | Low      | Warehouse management      |
 
 ---
 
@@ -469,6 +469,7 @@ The following files/patterns are **excluded** from JSDoc documentation requireme
 - **Documentation Method**: Use OpenAPI/Swagger annotations and schema definitions
 
 Example of what NOT to do in routes.js:
+
 ```javascript
 // ❌ DON'T use JSDoc in routes.js
 /**
@@ -486,31 +487,31 @@ Instead, use Swagger documentation in the route or controller for API spec gener
 
 ### Common JSDoc Tags
 
-| Tag | Purpose | Example |
-|-----|---------|---------|
-| `@param` | Function parameter | `@param {string} name - Description` |
-| `@returns` | Return value | `@returns {Promise<Object>}` |
-| `@throws` | Possible errors | `@throws {ClientError} When...` |
-| `@example` | Usage example | `@example // code here` |
-| `@type` | Variable type | `@type {number}` |
-| `@typedef` | Custom type | `@typedef {Object} User` |
-| `@property` | Object property | `@property {string} name` |
-| `@async` | Async function | `@async` |
+| Tag         | Purpose            | Example                              |
+| ----------- | ------------------ | ------------------------------------ |
+| `@param`    | Function parameter | `@param {string} name - Description` |
+| `@returns`  | Return value       | `@returns {Promise<Object>}`         |
+| `@throws`   | Possible errors    | `@throws {ClientError} When...`      |
+| `@example`  | Usage example      | `@example // code here`              |
+| `@type`     | Variable type      | `@type {number}`                     |
+| `@typedef`  | Custom type        | `@typedef {Object} User`             |
+| `@property` | Object property    | `@property {string} name`            |
+| `@async`    | Async function     | `@async`                             |
 
 ### Type Annotation Quick Reference
 
-| Syntax | Meaning |
-|--------|---------|
-| `{string}` | String type |
-| `{number}` | Number type |
-| `{boolean}` | Boolean type |
-| `{Object}` | Generic object |
-| `{Array}` | Generic array |
-| `{Array<string>}` | Array of strings |
-| `{Object\|null}` | Object or null |
-| `{Promise<void>}` | Promise that resolves to undefined |
+| Syntax              | Meaning                            |
+| ------------------- | ---------------------------------- |
+| `{string}`          | String type                        |
+| `{number}`          | Number type                        |
+| `{boolean}`         | Boolean type                       |
+| `{Object}`          | Generic object                     |
+| `{Array}`           | Generic array                      |
+| `{Array<string>}`   | Array of strings                   |
+| `{Object\|null}`    | Object or null                     |
+| `{Promise<void>}`   | Promise that resolves to undefined |
 | `{Promise<Object>}` | Promise that resolves to an object |
-| `{string\|number}` | String or number |
+| `{string\|number}`  | String or number                   |
 
 ---
 
@@ -523,4 +524,4 @@ Instead, use Swagger documentation in the route or controller for API spec gener
 
 ---
 
-*Last updated: 2026-05-03*
+_Last updated: 2026-05-03_

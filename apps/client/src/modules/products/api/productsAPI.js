@@ -3,15 +3,10 @@
 import { createApi } from '@reduxjs/toolkit/query/react';
 import { axiosPrivateBaseQuery } from '@/config/axios';
 
-// Define a service using a base URL and expected endpoints
-const productsApi = createApi({
-  reducerPath: 'productsApi',
-  baseQuery: axiosPrivateBaseQuery({
-    baseUrl: import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1',
-  }),
-  tagTypes: ['Products', 'ProductAttributes'], // Agrega un tag identificador
-  endpoints: (builder) => ({
-    getAllProducts: builder.query({
+/** Product catalog + CRUD endpoint definitions. */
+const productEndpoints = {
+  getAllProducts: (builder) =>
+    builder.query({
       query: (args) => ({
         url: `/products`,
         method: 'GET',
@@ -19,27 +14,30 @@ const productsApi = createApi({
       }),
       providesTags: ['Products'], // Indica que este endpoint usa el tag 'Notes'
     }),
-    getAllProductsFilters: builder.query({
+  getAllProductsFilters: (builder) =>
+    builder.query({
       query: () => ({
         url: `/products/productsFilters`,
         method: 'GET',
       }),
       providesTags: ['Products'], // Indica que este endpoint usa el tag 'Notes'
     }),
-    getAllProductsStatus: builder.query({
+  getAllProductsStatus: (builder) =>
+    builder.query({
       query: () => ({
         url: `/products/status`,
         method: 'GET',
       }),
     }),
-    getAllProductCategories: builder.query({
+  getAllProductCategories: (builder) =>
+    builder.query({
       query: () => ({
         url: `/products/category`,
         method: 'GET',
       }),
     }),
-
-    updateProductById: builder.mutation({
+  updateProductById: (builder) =>
+    builder.mutation({
       query: ({ id, data }) => ({
         url: `/products/${id}`,
         method: 'PATCH',
@@ -47,7 +45,8 @@ const productsApi = createApi({
       }),
       invalidatesTags: ['Products'], // Invalida el cache de 'Notes' para volver a consultar
     }),
-    createProduct: builder.mutation({
+  createProduct: (builder) =>
+    builder.mutation({
       query(body) {
         return {
           url: `/products/`,
@@ -57,7 +56,8 @@ const productsApi = createApi({
       },
       invalidatesTags: ['Products'], // Invalida el cache de 'Notes' para volver a consultar
     }),
-    deleteProductById: builder.mutation({
+  deleteProductById: (builder) =>
+    builder.mutation({
       query(id) {
         return {
           url: `/products/${id}`,
@@ -66,14 +66,20 @@ const productsApi = createApi({
       },
       invalidatesTags: ['Products'], // Invalida el cache de 'Notes' para volver a consultar
     }),
-    getAllProductAttributes: builder.query({
+};
+
+/** Product attributes endpoint definitions. */
+const productAttributeEndpoints = {
+  getAllProductAttributes: (builder) =>
+    builder.query({
       query: (id) => ({
         url: `/products/attributes/${id}`,
         method: 'GET',
       }),
       //providesTags: ['ProductAttributes'] // no funciona invalidar la cache ya que es un lazy
     }),
-    deleteProductAttributeById: builder.mutation({
+  deleteProductAttributeById: (builder) =>
+    builder.mutation({
       query(id) {
         return {
           url: `/products/attributes/${id}`,
@@ -82,7 +88,8 @@ const productsApi = createApi({
       },
       invalidatesTags: ['ProductAttributes'], // Invalida el cache de 'Notes' para volver a consultar
     }),
-    saveProductAttributes: builder.mutation({
+  saveProductAttributes: (builder) =>
+    builder.mutation({
       query(body) {
         return {
           url: `/products/attributes/`,
@@ -92,6 +99,27 @@ const productsApi = createApi({
       },
       invalidatesTags: ['ProductAttributes'], // Invalida el cache de 'Notes' para volver a consultar
     }),
+};
+
+/** Resolve { name: (builder) => definition } maps into RTK endpoint defs */
+const resolveEndpoints = (builder, endpointDefs) =>
+  Object.fromEntries(
+    Object.entries(endpointDefs).map(([name, define]) => [
+      name,
+      define(builder),
+    ])
+  );
+
+// Define a service using a base URL and expected endpoints
+const productsApi = createApi({
+  reducerPath: 'productsApi',
+  baseQuery: axiosPrivateBaseQuery({
+    baseUrl: import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1',
+  }),
+  tagTypes: ['Products', 'ProductAttributes'], // Agrega un tag identificador
+  endpoints: (builder) => ({
+    ...resolveEndpoints(builder, productEndpoints),
+    ...resolveEndpoints(builder, productAttributeEndpoints),
   }),
 });
 

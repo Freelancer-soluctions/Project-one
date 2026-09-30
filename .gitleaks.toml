@@ -16,6 +16,11 @@ title = "Enterprise Secret Detection Policy"
 # Private keys
 useDefault = true
 
+# La regla default `generic-api-key` se desactiva porque abajo se redefine
+# como `custom-api-key` (mismo regex, con keywords/entropy propias). Sin
+# `disabledRules`, un `[[rules]]` con el mismo id OVERRIDEARÍA la regla
+# default completa (keywords + entropy + allowlists propias se pierden).
+disabledRules = ["generic-api-key"]
 
 # ==========================================================
 # GLOBAL ALLOWLIST (DIRECTORIES THAT SHOULD NOT BE SCANNED)
@@ -39,37 +44,46 @@ paths = [
   '''.agents''',          # Skills
   '''.opencode''',        # opencode configuration
   '''openspec''',          # openspec configuration
-  '''locale'''
+  '''locale''',
+  '''.vscode/''',         # configuración del editor
+  '''.gitleaks\.toml'''   # la propia config (contiene los regex)
 ]
-
 
 # ==========================================================
 # TESTING DIRECTORIES
 # ==========================================================
+# Anchored: `(^|/)tests?/` matchea SOLO directorios de test como segmento de
+# path. La versión anterior (substring `tests`) ocultaba secretos reales en
+# cualquier path que contuviera "tests" (p. ej. `src/modules/lowest-price.js`).
 
 [[allowlists]]
-description = "Ignore test fixtures and mocks"
+description = "Ignore test fixtures and mocks (anchored paths)"
 
 paths = [
-  '''__tests__''',
-  '''tests''',
-  '''fixtures''',
-  '''mocks''',
-  '''apps/client/tests''',
-  '''apps/server/tests'''
+  '''(^|/)__tests__/''',
+  '''(^|/)tests?/''',
+  '''(^|/)fixtures/''',
+  '''(^|/)mocks/'''
 ]
-
 
 # ==========================================================
 # CUSTOM RULES FOR NODE PROJECTS
 # ==========================================================
+# `keywords`: prefiltro pre-regex (gitleaks solo evalúa la regex en chunks que
+# contienen una keyword) → gran ganancia de perf en full-history scan.
+# `entropy` + `secretGroup`: umbral de Shannon sobre el grupo del valor →
+# menos falsos positivos en assignments con valores placeholder/constantes.
 
 [[rules]]
-id = "generic-api-key"
+id = "custom-api-key"
 
 description = "Generic API key assignment"
 
-regex = '''(?i)api[_-]?key['"]?\s*[:=]\s*['"][A-Za-z0-9_\-]{16,}['"]'''
+regex = '''(?i)api[_-]?key['\"]?\s*[:=]\s*['\"][A-Za-z0-9_\-]{16,}['\"]'''
+
+keywords = ["api_key", "api-key", "apikey"]
+
+entropy = 3.0
 
 tags = ["api","key"]
 
@@ -80,7 +94,12 @@ id = "jwt-secret-variable"
 
 description = "JWT secret assignment"
 
-regex = '''(?i)jwt[_-]?secret['"]?\s*[:=]\s*['"].{10,}['"]'''
+regex = '''(?i)(jwt[_-]?secret)['\"]?\s*[:=]\s*['\"]([^'"\n]{10,})['\"]'''
+
+keywords = ["jwt_secret", "jwt-secret", "jwtsecret"]
+
+entropy = 3.5
+secretGroup = 2
 
 tags = ["jwt","secret"]
 
@@ -91,7 +110,12 @@ id = "generic-secret-variable"
 
 description = "Generic secret variable"
 
-regex = '''(?i)secret['"]?\s*[:=]\s*['"].{10,}['"]'''
+regex = '''(?i)(secret)['\"]?\s*[:=]\s*['\"]([^'\"\n]{10,})['\"]'''
+
+keywords = ["secret"]
+
+entropy = 3.5
+secretGroup = 2
 
 tags = ["secret"]
 
@@ -102,7 +126,12 @@ id = "password-assignment"
 
 description = "Password assignment in code"
 
-regex = '''(?i)password['"]?\s*[:=]\s*['"].{8,}['"]'''
+regex = '''(?i)(password)['\"]?\s*[:=]\s*['\"]([^'\"\n]{8,})['\"]'''
+
+keywords = ["password", "passwd"]
+
+entropy = 3.0
+secretGroup = 2
 
 tags = ["password"]
 
@@ -113,7 +142,25 @@ id = "database-url"
 
 description = "Database connection string"
 
-regex = '''(?i)(postgres|mysql|mongodb|redis):\/\/[^ \n]+'''
+regex = '''(?i)((?:postgres|mysql|mongodb|redis):\/\/[^ \n]+)'''
+
+keywords = ["postgres://", "mysql://", "mongodb://", "redis://"]
+
+entropy = 3.0
+secretGroup = 1
+
+# Placeholders documentados (docs, .env.example, prisma) NO son secretos:
+# se permite por MATCH (la URL completa), no por línea, y con AND implícito
+# de esta lista con la regla (rule-scoped allowlist).
+[[rules.allowlists]]
+description = "Placeholder/example database URLs (not real credentials)"
+regexTarget = "match"
+regexes = [
+  '''example''',
+  '''placeholder''',
+  '''localhost''',
+  '''postgres(ql)?:\/\/postgres:[^@]*@localhost'''
+]
 
 tags = ["database","connection"]
 
@@ -129,6 +176,7 @@ paths = [
   '''apps/server/src/socket/levels/README.md''',
   '''apps/server/src/socket/levels/level-11-scale.js'''
 ]
+
 
 
 [[allowlists]]

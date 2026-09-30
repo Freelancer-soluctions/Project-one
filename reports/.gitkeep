@@ -1,0 +1,3 @@
+# Directorio de reportes locales generados por herramientas (dependency-cruiser,
+# knip, etc.). El contenido está gitignored; este .gitkeep solo garantiza que
+# el directorio exista para `npm run depcruise:report`.

@@ -20,6 +20,68 @@ import {
 import { createAdapter } from '../adapter.js';
 
 /**
+ * Resolves un mensaje 'mention:backlog:request' del socket.
+ * Devuelve el backlog de menciones del usuario autenticado (vacío si no hay).
+ *
+ * @param {Object} socket - Socket conectado (con socket.data.user ya validado).
+ * @returns {Promise<Array>} Backlog de menciones.
+ */
+const getBacklogForSocket = async (socket) => {
+  try {
+    const userId = socket.data.user?.id;
+    if (!userId) {
+      return [];
+    }
+    const backlog = await getMentionsBacklog(userId);
+    return backlog && backlog.length > 0 ? backlog : [];
+  } catch (err) {
+    console.error('❌ Error getting mentions backlog:', err.message);
+    return [];
+  }
+};
+
+/**
+ * Procesa un mensaje entrante del socket según su tipo (mention:new,
+ * mention:read, mention:backlog:request). Las respuestas de error se emiten
+ * por el mismo socket.
+ *
+ * @param {Object} io - Instancia Socket.IO (para emitir a salas).
+ * @param {Object} socket - Socket conectado.
+ * @param {{type: string, payload: Object}} data - Mensaje recibido.
+ * @returns {Promise<void>}
+ */
+const handleSocketMessage = async (io, socket, data) => {
+  const { type, payload } = data;
+
+  switch (type) {
+    case 'mention:new': {
+      const validation = validateMessage({ type, payload }, mentionNewSchema);
+      if (!validation.valid) {
+        return socket.emit('error:validation', { errors: validation.error });
+      }
+      handleMentionNew(io, socket, validation.value.payload);
+      break;
+    }
+    case 'mention:read': {
+      const validation = validateMessage({ type, payload }, mentionReadSchema);
+      if (!validation.valid) {
+        return socket.emit('error:validation', { errors: validation.error });
+      }
+      await handleMentionRead(io, socket, validation.value.payload);
+      break;
+    }
+    case 'mention:backlog:request': {
+      const mentions = await getBacklogForSocket(socket);
+      socket.emit('mention:backlog', { mentions });
+      break;
+    }
+    default:
+      console.log(`⚠️ Tipo de evento desconocido: ${type}`);
+      socket.emit('error:unknown', { type });
+  }
+};
+
+/**
  * Attaches Socket.IO to an existing HTTP server from Express.
  * @param {import('http').Server} httpServer - The shared HTTP server
  * @returns {import('socket.io').Server} The Socket.IO server instance
@@ -84,57 +146,7 @@ export function attachSocketServer(httpServer) {
 
     socket.on('message', async (data) => {
       try {
-        const { type, payload } = data;
-        switch (type) {
-          case 'mention:new': {
-            const validation = validateMessage(
-              { type, payload },
-              mentionNewSchema
-            );
-            if (!validation.valid) {
-              return socket.emit('error:validation', {
-                errors: validation.error,
-              });
-            }
-            handleMentionNew(io, socket, validation.value.payload);
-            break;
-          }
-          case 'mention:read': {
-            const validation = validateMessage(
-              { type, payload },
-              mentionReadSchema
-            );
-            if (!validation.valid) {
-              return socket.emit('error:validation', {
-                errors: validation.error,
-              });
-            }
-            await handleMentionRead(io, socket, validation.value.payload);
-            break;
-          }
-          case 'mention:backlog:request': {
-            try {
-              const userId = socket.data.user?.id;
-              if (!userId) {
-                socket.emit('mention:backlog', { mentions: [] });
-                break;
-              }
-              const backlog = await getMentionsBacklog(userId);
-              if (backlog && backlog.length > 0) {
-                socket.emit('mention:backlog', { mentions: backlog });
-              } else {
-                socket.emit('mention:backlog', { mentions: [] });
-              }
-            } catch (err) {
-              console.error('❌ Error getting mentions backlog:', err.message);
-              socket.emit('mention:backlog', { mentions: [] });
-            }
-            break;
-          }
-          default:
-            console.log(`⚠️ Tipo de evento desconocido: ${type}`);
-            socket.emit('error:unknown', { type });
-        }
+        await handleSocketMessage(io, socket, data);
       } catch (err) {
         console.error('❌ Error procesando mensaje:', err.message);
         socket.emit('error:server', { message: 'Error interno del servidor' });

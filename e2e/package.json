@@ -11,7 +11,10 @@
     "test": "tests"
   },
   "scripts": {
-    "test": "playwright test"
+    "test": "playwright test",
+    "lint": "eslint \"tests/**/*.js\" playwright.config.js --max-warnings 0",
+    "format": "prettier --write \"**/*.{js,json,md}\" \"!test-results/**\" \"!playwright-report/**\"",
+    "format:check": "prettier --check \"**/*.{js,json,md}\" \"!test-results/**\" \"!playwright-report/**\""
   },
   "keywords": [],
   "author": "",

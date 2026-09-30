@@ -7,6 +7,7 @@ JSDoc documentation has been standardized across all controller, service, and da
 ## What Changed
 
 ### Before (Old Pattern)
+
 ```javascript
 /**
  * Creates a new user
@@ -17,6 +18,7 @@ async function createUser(req, res) {
 ```
 
 ### After (New Standard)
+
 ```javascript
 /**
  * Creates a new user account.
@@ -67,32 +69,32 @@ async function createUser(req, res) {
 
 All **24 modules** in `apps/server/src/modules/` have been updated:
 
-| # | Module Name | Controller | Service | DAO |
-|---|-------------|------------|---------|-----|
-| 1 | `attendance` | ✅ | ✅ | ✅ |
-| 2 | `auth` | ✅ | ✅ | ✅ |
-| 3 | `clientOrder` | ✅ | ✅ | ✅ |
-| 4 | `clients` | ✅ | ✅ | ✅ |
-| 5 | `employees` | ✅ | ✅ | ✅ |
-| 6 | `events` | ✅ | ✅ | ✅ |
-| 7 | `expenses` | ✅ | ✅ | ✅ |
-| 8 | `inventoryMovement` | ✅ | ✅ | ✅ |
-| 9 | `news` | ✅ | ✅ | ✅ |
-| 10 | `notes` | ✅ | ✅ | ✅ |
-| 11 | `payroll` | ✅ | ✅ | ✅ |
-| 12 | `performanceEvaluation` | ✅ | ✅ | ✅ |
-| 13 | `permission` | ✅ | ✅ | ✅ |
-| 14 | `products` | ✅ | ✅ | ✅ |
-| 15 | `providerOrder` | ✅ | ✅ | ✅ |
-| 16 | `providers` | ✅ | ✅ | ✅ |
-| 17 | `purchase` | ✅ | ✅ | ✅ |
-| 18 | `sales` | ✅ | ✅ | ✅ |
-| 19 | `security` | N/A | N/A | N/A |
-| 20 | `settings` | ✅ | ✅ | ✅ |
-| 21 | `stock` | ✅ | ✅ | ✅ |
-| 22 | `users` | ✅ | ✅ | ✅ |
-| 23 | `vacation` | ✅ | ✅ | ✅ |
-| 24 | `warehouse` | ✅ | ✅ | ✅ |
+| #   | Module Name             | Controller | Service | DAO |
+| --- | ----------------------- | ---------- | ------- | --- |
+| 1   | `attendance`            | ✅         | ✅      | ✅  |
+| 2   | `auth`                  | ✅         | ✅      | ✅  |
+| 3   | `clientOrder`           | ✅         | ✅      | ✅  |
+| 4   | `clients`               | ✅         | ✅      | ✅  |
+| 5   | `employees`             | ✅         | ✅      | ✅  |
+| 6   | `events`                | ✅         | ✅      | ✅  |
+| 7   | `expenses`              | ✅         | ✅      | ✅  |
+| 8   | `inventoryMovement`     | ✅         | ✅      | ✅  |
+| 9   | `news`                  | ✅         | ✅      | ✅  |
+| 10  | `notes`                 | ✅         | ✅      | ✅  |
+| 11  | `payroll`               | ✅         | ✅      | ✅  |
+| 12  | `performanceEvaluation` | ✅         | ✅      | ✅  |
+| 13  | `permission`            | ✅         | ✅      | ✅  |
+| 14  | `products`              | ✅         | ✅      | ✅  |
+| 15  | `providerOrder`         | ✅         | ✅      | ✅  |
+| 16  | `providers`             | ✅         | ✅      | ✅  |
+| 17  | `purchase`              | ✅         | ✅      | ✅  |
+| 18  | `sales`                 | ✅         | ✅      | ✅  |
+| 19  | `security`              | N/A        | N/A     | N/A |
+| 20  | `settings`              | ✅         | ✅      | ✅  |
+| 21  | `stock`                 | ✅         | ✅      | ✅  |
+| 22  | `users`                 | ✅         | ✅      | ✅  |
+| 23  | `vacation`              | ✅         | ✅      | ✅  |
+| 24  | `warehouse`             | ✅         | ✅      | ✅  |
 
 **Note**: The `security` module only has `routes.js` (no controller, service, or dao files), so it was excluded from JSDoc documentation.
 
@@ -104,6 +106,7 @@ All **24 modules** in `apps/server/src/modules/` have been updated:
 ## How to Maintain the Standard Going Forward
 
 ### For New Functions
+
 1. Reference `docs/jsdoc-reference-guide.md` for the correct pattern
 2. Copy the pattern from similar existing functions in the module
 3. Ensure all parameters are documented with types and descriptions
@@ -111,12 +114,14 @@ All **24 modules** in `apps/server/src/modules/` have been updated:
 5. Use `@example` for complex functions (recommended but not required)
 
 ### For Code Reviews
+
 1. Use the checklist in `docs/code-review-checklist.md`
 2. Verify all new controller, service, and dao functions have proper JSDoc
 3. Check that `@throws` is used for functions that throw errors
 4. Ensure no JSDoc is added to `routes.js` files
 
 ### Enforcement
+
 - Pull requests missing proper JSDoc will be flagged during code review
 - Linting will help maintain formatting consistency
 - The reference guide should be updated when new patterns emerge
@@ -130,10 +135,11 @@ All **24 modules** in `apps/server/src/modules/` have been updated:
 ## Questions?
 
 For questions about the JSDoc standards, refer to:
+
 - Full reference guide: `docs/jsdoc-reference-guide.md`
 - Code style guide: `docs/code-style.md`
 - Code review checklist: `docs/code-review-checklist.md`
 
 ---
 
-*Migration completed: 2026-05-03*
+_Migration completed: 2026-05-03_

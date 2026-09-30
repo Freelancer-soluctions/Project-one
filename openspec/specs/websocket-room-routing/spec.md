@@ -1,8 +1,11 @@
 # websocket-room-routing Specification
 
 ## Purpose
-TBD - created by archiving change websocket-level-04-rooms. Update Purpose after archive.
+
+Enruta mensajes a salas personales por usuario, con auto-limpieza al desconectar.
+
 ## Requirements
+
 ### Requirement: User joins personal room on authenticated connection
 
 The system SHALL automatically join an authenticated WebSocket connection into a room named `user:<userId>` immediately after auth verification succeeds.
@@ -69,4 +72,3 @@ The system SHALL provide helper functions to query active user sessions and room
 
 - **WHEN** `getActiveRoomCount(io)` is called with 3 active user rooms
 - **THEN** it SHALL return `3`
-

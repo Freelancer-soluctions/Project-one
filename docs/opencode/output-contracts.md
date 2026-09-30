@@ -5,6 +5,7 @@
 The Output Contract system provides **structured response formatting** for agent-to-orchestrator communication in the multi-agent orchestration layer. Every agent response is wrapped in an XML envelope containing a JSON payload that conforms to a defined JSON Schema.
 
 **Benefits:**
+
 - Machine-parseable responses for automated validation
 - Consistent structure across all agents
 - Two-tier validation: JSON Schema (runtime) + prompt template (flexibility)
@@ -12,6 +13,7 @@ The Output Contract system provides **structured response formatting** for agent
 - Graceful degradation when schemas are missing
 
 > **📌 Current State (2026-07-16)**: The output contract system is enforced via a **HYBRID 3-layer architecture** (see §Runtime Enforcement — Architecture below).
+>
 > - **Layer 1** — Prompt Self-Validation: Active since `output-contracts-hardening` (archived 2026-07-08). **Reinforced 2026-07-16**: CRITICAL first-line instruction added to all 8 prompts to prevent context-truncation envelope loss.
 > - **Layer 2** — Hook Runtime Validation: Active since `output-contracts-hook-migration` (archived 2026-07-16). Runtime-verified: 16 JSONL audit entries (all pre-fix), 0 post-fix entries after envelope-position fix.
 > - **Layer 3** — Orchestrator Escalation: Active. Reads `metadata.contractValidation` from Layer 2.
@@ -44,10 +46,11 @@ All agent responses use the XML-enveloped JSON format:
 ```
 
 **XML Attributes:**
-| Attribute | Description |
-|-----------|-------------|
-| `agent` | Agent name (e.g., "developer", "spec-manager") |
-| `version` | Contract version (currently `1`) |
+
+| Attribute | Description                                    |
+| --------- | ---------------------------------------------- |
+| `agent`   | Agent name (e.g., "developer", "spec-manager") |
+| `version` | Contract version (currently `1`)               |
 
 ---
 
@@ -55,12 +58,12 @@ All agent responses use the XML-enveloped JSON format:
 
 Every contract payload includes these base fields (from `base.schema.json`):
 
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `agent` | string | ✅ | Agent name that produced the response |
-| `timestamp` | string (ISO 8601) | ✅ | When the response was generated |
-| `responseType` | string | ✅ | Either `"success"` or `"failure"` |
-| `version` | integer | ✅ | Contract version (always `1`) |
+| Field          | Type              | Required | Description                           |
+| -------------- | ----------------- | -------- | ------------------------------------- |
+| `agent`        | string            | ✅       | Agent name that produced the response |
+| `timestamp`    | string (ISO 8601) | ✅       | When the response was generated       |
+| `responseType` | string            | ✅       | Either `"success"` or `"failure"`     |
+| `version`      | integer           | ✅       | Contract version (always `1`)         |
 
 ---
 
@@ -68,108 +71,108 @@ Every contract payload includes these base fields (from `base.schema.json`):
 
 ### Developer
 
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `status` | enum: completed, in-progress, blocked, failed | ✅ | Task execution status |
-| `action` | string | ✅ | Action taken (e.g., "implement-task") |
-| `filesChanged` | array of strings | ❌ | Files created or modified |
-| `details` | string | ✅ | Human-readable description |
-| `nextSteps` | array of strings | ❌ | Recommended next steps |
-| `taskId` | string | ❌ | Task ID from tasks.md |
-| `changeName` | string | ❌ | OpenSpec change name |
+| Field          | Type                                          | Required | Description                           |
+| -------------- | --------------------------------------------- | -------- | ------------------------------------- |
+| `status`       | enum: completed, in-progress, blocked, failed | ✅       | Task execution status                 |
+| `action`       | string                                        | ✅       | Action taken (e.g., "implement-task") |
+| `filesChanged` | array of strings                              | ❌       | Files created or modified             |
+| `details`      | string                                        | ✅       | Human-readable description            |
+| `nextSteps`    | array of strings                              | ❌       | Recommended next steps                |
+| `taskId`       | string                                        | ❌       | Task ID from tasks.md                 |
+| `changeName`   | string                                        | ❌       | OpenSpec change name                  |
 
 ### Spec-Manager
 
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `status` | enum: completed, failed | ✅ | Command execution status |
-| `command` | string | ✅ | OpenSpec command executed |
-| `changeName` | string | ❌ | Change name |
-| `artifactId` | string | ❌ | Artifact created/modified |
-| `details` | string | ✅ | Human-readable description |
-| `artifactsCreated` | array of strings | ❌ | List of created artifacts |
-| `workflowState` | string | ❌ | Current workflow state |
+| Field              | Type                    | Required | Description                |
+| ------------------ | ----------------------- | -------- | -------------------------- |
+| `status`           | enum: completed, failed | ✅       | Command execution status   |
+| `command`          | string                  | ✅       | OpenSpec command executed  |
+| `changeName`       | string                  | ❌       | Change name                |
+| `artifactId`       | string                  | ❌       | Artifact created/modified  |
+| `details`          | string                  | ✅       | Human-readable description |
+| `artifactsCreated` | array of strings        | ❌       | List of created artifacts  |
+| `workflowState`    | string                  | ❌       | Current workflow state     |
 
 ### Git-Manager
 
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `status` | enum: completed, failed | ✅ | Operation status |
-| `operation` | string | ✅ | Git/GitHub operation (e.g., "commit-all") |
-| `branch` | string | ❌ | Current branch |
-| `commitHash` | string | ❌ | Commit hash |
-| `details` | string | ✅ | Human-readable description |
-| `filesStaged` | array of strings | ❌ | Staged files |
-| `conventionalCommit` | string | ❌ | Conventional commit message |
-| `githubResult` | object | ❌ | GitHub API result (for gists, issues, PRs) |
+| Field                | Type                    | Required | Description                                |
+| -------------------- | ----------------------- | -------- | ------------------------------------------ |
+| `status`             | enum: completed, failed | ✅       | Operation status                           |
+| `operation`          | string                  | ✅       | Git/GitHub operation (e.g., "commit-all")  |
+| `branch`             | string                  | ❌       | Current branch                             |
+| `commitHash`         | string                  | ❌       | Commit hash                                |
+| `details`            | string                  | ✅       | Human-readable description                 |
+| `filesStaged`        | array of strings        | ❌       | Staged files                               |
+| `conventionalCommit` | string                  | ❌       | Conventional commit message                |
+| `githubResult`       | object                  | ❌       | GitHub API result (for gists, issues, PRs) |
 
 ### Reviewer
 
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `status` | enum: completed, failed | ✅ | Review status |
-| `verdict` | enum: APPROVED, NEEDS CHANGES, REJECTED | ✅ | Review verdict |
-| `details` | string | ✅ | Human-readable summary |
-| `criticalIssues` | array of objects | ❌ | Critical issues found |
-| `highPriority` | array of objects | ❌ | High priority issues |
-| `mediumPriority` | array of objects | ❌ | Medium priority issues |
-| `lowPriority` | array of objects | ❌ | Low priority issues |
-| `testCoverage` | object | ❌ | Test coverage assessment |
-| `securityAssessment` | string | ❌ | Security assessment result |
+| Field                | Type                                    | Required | Description                |
+| -------------------- | --------------------------------------- | -------- | -------------------------- |
+| `status`             | enum: completed, failed                 | ✅       | Review status              |
+| `verdict`            | enum: APPROVED, NEEDS CHANGES, REJECTED | ✅       | Review verdict             |
+| `details`            | string                                  | ✅       | Human-readable summary     |
+| `criticalIssues`     | array of objects                        | ❌       | Critical issues found      |
+| `highPriority`       | array of objects                        | ❌       | High priority issues       |
+| `mediumPriority`     | array of objects                        | ❌       | Medium priority issues     |
+| `lowPriority`        | array of objects                        | ❌       | Low priority issues        |
+| `testCoverage`       | object                                  | ❌       | Test coverage assessment   |
+| `securityAssessment` | string                                  | ❌       | Security assessment result |
 
 ### Planner
 
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `verdict` | enum: APPROVED, NEEDS CHANGES, NEEDS CLARIFICATION | ✅ | Plan review verdict |
-| `criticalIssues` | array of objects | ✅ | Critical issues (can be empty) |
-| `suggestions` | array of objects | ❌ | Improvement suggestions |
-| `taskAmendments` | array of objects | ❌ | Proposed task changes |
-| `details` | string | ✅ | Human-readable summary |
-| `designAlignment` | enum: ALIGNED, MISALIGNED, PARTIAL | ❌ | Design alignment |
-| `specCompleteness` | enum: COMPLETE, INCOMPLETE, PARTIAL | ❌ | Spec completeness |
-| `riskAssessment` | enum: LOW, MEDIUM, HIGH | ❌ | Risk assessment |
+| Field              | Type                                               | Required | Description                    |
+| ------------------ | -------------------------------------------------- | -------- | ------------------------------ |
+| `verdict`          | enum: APPROVED, NEEDS CHANGES, NEEDS CLARIFICATION | ✅       | Plan review verdict            |
+| `criticalIssues`   | array of objects                                   | ✅       | Critical issues (can be empty) |
+| `suggestions`      | array of objects                                   | ❌       | Improvement suggestions        |
+| `taskAmendments`   | array of objects                                   | ❌       | Proposed task changes          |
+| `details`          | string                                             | ✅       | Human-readable summary         |
+| `designAlignment`  | enum: ALIGNED, MISALIGNED, PARTIAL                 | ❌       | Design alignment               |
+| `specCompleteness` | enum: COMPLETE, INCOMPLETE, PARTIAL                | ❌       | Spec completeness              |
+| `riskAssessment`   | enum: LOW, MEDIUM, HIGH                            | ❌       | Risk assessment                |
 
 ### Orchestrator
 
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `status` | enum: completed, in-progress, blocked, failed | ✅ | Orchestration step status |
-| `delegatedAgent` | string | ✅ | Agent delegated to |
-| `workflowStep` | enum: exploration, specification, review, implementation, verification, archive | ✅ | Current workflow step |
-| `result` | enum: success, partial, failed, retry, escalated | ✅ | Delegation result |
-| `details` | string | ✅ | Human-readable description |
-| `changeName` | string | ❌ | Change name |
-| `validationErrors` | array of objects | ❌ | Contract validation errors |
-| `retryCount` | integer | ❌ | Retry attempts |
-| `nextSteps` | array of strings | ❌ | Next steps |
+| Field              | Type                                                                            | Required | Description                |
+| ------------------ | ------------------------------------------------------------------------------- | -------- | -------------------------- |
+| `status`           | enum: completed, in-progress, blocked, failed                                   | ✅       | Orchestration step status  |
+| `delegatedAgent`   | string                                                                          | ✅       | Agent delegated to         |
+| `workflowStep`     | enum: exploration, specification, review, implementation, verification, archive | ✅       | Current workflow step      |
+| `result`           | enum: success, partial, failed, retry, escalated                                | ✅       | Delegation result          |
+| `details`          | string                                                                          | ✅       | Human-readable description |
+| `changeName`       | string                                                                          | ❌       | Change name                |
+| `validationErrors` | array of objects                                                                | ❌       | Contract validation errors |
+| `retryCount`       | integer                                                                         | ❌       | Retry attempts             |
+| `nextSteps`        | array of strings                                                                | ❌       | Next steps                 |
 
 ### Project-Manager
 
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `status` | enum: completed, failed | ✅ | Action status |
-| `command` | string | ✅ | Trello command executed |
-| `details` | string | ✅ | Human-readable description |
-| `changeName` | string | ❌ | OpenSpec change name |
-| `cardId` | string | ❌ | Trello card ID |
-| `cardUrl` | string (URI) | ❌ | Trello card URL |
-| `listName` | string | ❌ | Trello list name |
-| `workflowState` | enum: backlog, specification, review, in-progress, verification, done | ❌ | Workflow state |
+| Field           | Type                                                                  | Required | Description                |
+| --------------- | --------------------------------------------------------------------- | -------- | -------------------------- |
+| `status`        | enum: completed, failed                                               | ✅       | Action status              |
+| `command`       | string                                                                | ✅       | Trello command executed    |
+| `details`       | string                                                                | ✅       | Human-readable description |
+| `changeName`    | string                                                                | ❌       | OpenSpec change name       |
+| `cardId`        | string                                                                | ❌       | Trello card ID             |
+| `cardUrl`       | string (URI)                                                          | ❌       | Trello card URL            |
+| `listName`      | string                                                                | ❌       | Trello list name           |
+| `workflowState` | enum: backlog, specification, review, in-progress, verification, done | ❌       | Workflow state             |
 
 ### Researcher
 
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `status` | enum: completed, partial, failed | ✅ | Research status |
-| `topic` | string | ✅ | Topic investigated |
-| `findings` | array of strings | ✅ | Key findings |
-| `details` | string | ✅ | Human-readable summary |
-| `recommendation` | string | ❌ | Primary recommendation |
-| `sources` | array of strings | ❌ | Sources consulted |
-| `alternatives` | array of {name, reason} | ❌ | Alternatives considered |
-| `risks` | array of strings | ❌ | Identified risks |
-| `nextSteps` | array of strings | ❌ | Recommended next steps |
+| Field            | Type                             | Required | Description             |
+| ---------------- | -------------------------------- | -------- | ----------------------- |
+| `status`         | enum: completed, partial, failed | ✅       | Research status         |
+| `topic`          | string                           | ✅       | Topic investigated      |
+| `findings`       | array of strings                 | ✅       | Key findings            |
+| `details`        | string                           | ✅       | Human-readable summary  |
+| `recommendation` | string                           | ❌       | Primary recommendation  |
+| `sources`        | array of strings                 | ❌       | Sources consulted       |
+| `alternatives`   | array of {name, reason}          | ❌       | Alternatives considered |
+| `risks`          | array of strings                 | ❌       | Identified risks        |
+| `nextSteps`      | array of strings                 | ❌       | Recommended next steps  |
 
 ---
 
@@ -202,11 +205,12 @@ Every contract payload includes these base fields (from `base.schema.json`):
 ```
 
 **Error structure** (required for all failure responses):
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `error.code` | string | ✅ | Machine-readable error code |
-| `error.message` | string | ✅ | Human-readable error message |
-| `error.details` | string | ❌ | Additional context |
+
+| Field           | Type   | Required | Description                  |
+| --------------- | ------ | -------- | ---------------------------- |
+| `error.code`    | string | ✅       | Machine-readable error code  |
+| `error.message` | string | ✅       | Human-readable error message |
+| `error.details` | string | ❌       | Additional context           |
 
 ---
 
@@ -216,15 +220,15 @@ Location: `docs/opencode/prompts/contracts/contractValidator.js`
 
 **API:**
 
-| Function | Parameters | Returns |
-|----------|-----------|---------|
-| `parseContractEnvelope(response)` | Raw agent response string | `{agent, version, payload}` or throws `ContractParseError` |
-| `loadAgentSchema(agentName)` | Agent name string | Schema object or `null` (if missing); registers with Ajv |
-| `validateContract(response, agentName)` | Raw response + agent name | `{valid, agent, version, errors, payload, degraded?}` |
+| Function                                   | Parameters                                                 | Returns                                                                                            |
+| ------------------------------------------ | ---------------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
+| `parseContractEnvelope(response)`          | Raw agent response string                                  | `{agent, version, payload}` or throws `ContractParseError`                                         |
+| `loadAgentSchema(agentName)`               | Agent name string                                          | Schema object or `null` (if missing); registers with Ajv                                           |
+| `validateContract(response, agentName)`    | Raw response + agent name                                  | `{valid, agent, version, errors, payload, degraded?}`                                              |
 | `withRetry(agentName, response, options?)` | Agent name + response + optional `{maxRetries?, reissue?}` | `Promise<{exhausted, reissueRequired, reissuePossible, validationErrors, retryCount, maxRetries}>` |
-| `createEscalationReport(...)` | All params | Escalation report object |
-| `isDegraded(agentName)` | Agent name | boolean |
-| `clearDegraded(agentName)` | Agent name | void (clears DEGRADED_AGENTS + schemaCache + validatorCache) |
+| `createEscalationReport(...)`              | All params                                                 | Escalation report object                                                                           |
+| `isDegraded(agentName)`                    | Agent name                                                 | boolean                                                                                            |
+| `clearDegraded(agentName)`                 | Agent name                                                 | void (clears DEGRADED_AGENTS + schemaCache + validatorCache)                                       |
 
 ---
 
@@ -304,13 +308,14 @@ Closing tag uses `lastIndexOf('</output-contract>')` (not regex) to handle neste
 
 #### Stage 4 — Degraded Mode: Fast-path vs Cold-path
 
-| Path | Trigger | Disk I/O? | Return |
-|------|---------|-----------|--------|
-| **Fast-path** | `DEGRADED_AGENTS.has(agentName)` is true | None | `{valid:true, degraded:true, warning:"...fast-path"}` |
-| **Cold-path Entry** | `loadAgentSchema()` returns `null` | `fs.existsSync` → schema missing | Adds to Set, returns degraded |
-| **Cold-path Success** | `loadAgentSchema()` returns schema | One `fs.readFileSync` | Continues to Stage 5 |
+| Path                  | Trigger                                  | Disk I/O?                        | Return                                                |
+| --------------------- | ---------------------------------------- | -------------------------------- | ----------------------------------------------------- |
+| **Fast-path**         | `DEGRADED_AGENTS.has(agentName)` is true | None                             | `{valid:true, degraded:true, warning:"...fast-path"}` |
+| **Cold-path Entry**   | `loadAgentSchema()` returns `null`       | `fs.existsSync` → schema missing | Adds to Set, returns degraded                         |
+| **Cold-path Success** | `loadAgentSchema()` returns schema       | One `fs.readFileSync`            | Continues to Stage 5                                  |
 
 `loadAgentSchema` also:
+
 1. Strips `$schema` from loaded JSON (to prevent Ajv from attempting meta-schema URI resolution)
 2. Stores in `schemaCache` (Map)
 3. Registers with Ajv via `ajv.addSchema(schema, '${agentName}.schema.json')` — required for `$ref` resolution
@@ -319,7 +324,7 @@ Closing tag uses `lastIndexOf('</output-contract>')` (not regex) to handle neste
 
 ```javascript
 // contractValidator.js:105-117 — error field mapping
-const errors = validate.errors.map(e => {
+const errors = validate.errors.map((e) => {
   let field;
   if (e.instancePath && e.instancePath !== '') {
     // JSON Pointer "/status/code" → "status.code"
@@ -337,13 +342,13 @@ const errors = validate.errors.map(e => {
 });
 ```
 
-| Ajv error condition | `instancePath` | Result `field` |
-|---------------------|----------------|----------------|
-| Field at root | `"/status"` | `"status"` |
-| Nested field | `"/error/code"` | `"error.code"` |
-| Array item | `"/filesChanged/0"` | `"filesChanged/0"` (kept as-is) |
-| Missing required | `""` + `params.missingProperty: "action"` | `"action"` |
-| Extra field | `""` + `params.additionalProperty: "extra"` | `"extra"` |
+| Ajv error condition | `instancePath`                              | Result `field`                  |
+| ------------------- | ------------------------------------------- | ------------------------------- |
+| Field at root       | `"/status"`                                 | `"status"`                      |
+| Nested field        | `"/error/code"`                             | `"error.code"`                  |
+| Array item          | `"/filesChanged/0"`                         | `"filesChanged/0"` (kept as-is) |
+| Missing required    | `""` + `params.missingProperty: "action"`   | `"action"`                      |
+| Extra field         | `""` + `params.additionalProperty: "extra"` | `"extra"`                       |
 
 #### Stage 6 — Sub-Schema Dispatch
 
@@ -417,10 +422,10 @@ If `responseTypes.success` / `responseTypes.failure` is missing from an agent's 
 
 Two caches (both Map):
 
-| Cache | Key | Populated | Cleared by |
-|-------|-----|-----------|------------|
-| `schemaCache` | `agentName` (e.g., `"developer"`) | On first `loadAgentSchema` call | `clearDegraded(agentName)` |
-| `validatorCache` | `agentName`, `${agentName}_success`, `${agentName}_failure` | On first sub-schema compile | `clearDegraded(agentName)` |
+| Cache            | Key                                                         | Populated                       | Cleared by                 |
+| ---------------- | ----------------------------------------------------------- | ------------------------------- | -------------------------- |
+| `schemaCache`    | `agentName` (e.g., `"developer"`)                           | On first `loadAgentSchema` call | `clearDegraded(agentName)` |
+| `validatorCache` | `agentName`, `${agentName}_success`, `${agentName}_failure` | On first sub-schema compile     | `clearDegraded(agentName)` |
 
 `clearDegraded` clears all 3 validatorCache entries (base + success + failure variants).
 
@@ -451,6 +456,7 @@ async function withRetry(agentName, response, {maxRetries: 2, reissue}) {
 ```
 
 Key behaviors:
+
 - **No reissue**: short-circuits immediately on first failure — no point retrying the same broken string
 - **Async reissue**: `await`ed if it returns a Promise; used directly if sync
 - **"Always exhaust"**: `withRetry` never returns a `shouldRetry` flag — it always exhausts the budget internally
@@ -462,7 +468,7 @@ Key behaviors:
 ```javascript
 // contractValidator.js:26-41 — module initialization
 const ajv = new Ajv({ allErrors: true, strict: 'log' });
-addFormats(ajv);  // registers uri, date-time, email, uuid, etc.
+addFormats(ajv); // registers uri, date-time, email, uuid, etc.
 
 // base.schema.json pre-registered for $ref resolution
 const { $schema: _baseSchemaRef, ...baseSchema } = baseSchemaRaw;
@@ -470,15 +476,19 @@ ajv.addSchema(baseSchema, 'base.schema.json');
 
 // responseTypes is a custom branching keyword — not JSON Schema standard
 // Ajv strict:'log' would warn without this; registers as no-op
-ajv.addKeyword({ keyword: 'responseTypes', validate: () => true, errors: false });
+ajv.addKeyword({
+  keyword: 'responseTypes',
+  validate: () => true,
+  errors: false,
+});
 ```
 
-| Ajv option | Value | Effect |
-|------------|-------|--------|
-| `allErrors` | `true` | Collect **all** validation errors in one pass, not just the first |
-| `strict` | `'log'` | Warn (don't throw) on unknown keywords or schema issues — required because `responseTypes` is not JSON Schema standard |
-| `ajv-formats` | `addFormats(ajv)` | Validates `format: "uri"` and `format: "date-time"` per RFC 3339 / RFC 3986 |
-| `$schema` stripping | `{ $schema: _, ...schema }` | Prevents Ajv from resolving the meta-schema URI; uses Ajv's built-in draft-2020-12 validator |
+| Ajv option          | Value                       | Effect                                                                                                                 |
+| ------------------- | --------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| `allErrors`         | `true`                      | Collect **all** validation errors in one pass, not just the first                                                      |
+| `strict`            | `'log'`                     | Warn (don't throw) on unknown keywords or schema issues — required because `responseTypes` is not JSON Schema standard |
+| `ajv-formats`       | `addFormats(ajv)`           | Validates `format: "uri"` and `format: "date-time"` per RFC 3339 / RFC 3986                                            |
+| `$schema` stripping | `{ $schema: _, ...schema }` | Prevents Ajv from resolving the meta-schema URI; uses Ajv's built-in draft-2020-12 validator                           |
 
 ---
 
@@ -559,16 +569,20 @@ When an agent's `*.schema.json` file is missing or fails to load, `validateContr
 
 ### Lifecycle
 
-| Phase | Trigger | Behavior | Exit |
-|-------|---------|----------|------|
-| **Entry** | `loadAgentSchema(agentName)` returns `null` (schema file absent) | `validateContract` returns `{valid:true, degraded:true, warning:'No schema for agent X, running in degraded mode', agent, version, errors:[], payload}`. The agent is added to the exported `DEGRADED_AGENTS` set. | n/a |
-| **Steady-state** | Subsequent calls for the same agent | Returns the same `degraded:true` shape — fast-path via the `DEGRADED_AGENTS` set membership check (no disk hit). | n/a |
-| **Exit** | Deploy the missing schema file, then call `clearDegraded(agentName)` | `clearDegraded` removes the agent from `DEGRADED_AGENTS` AND deletes its entry from the `schemaCache`, forcing a fresh load on the next `validateContract` call. | Switches to full validation. |
+| Phase            | Trigger                                                              | Behavior                                                                                                                                                                                                           | Exit                         |
+| ---------------- | -------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------- |
+| **Entry**        | `loadAgentSchema(agentName)` returns `null` (schema file absent)     | `validateContract` returns `{valid:true, degraded:true, warning:'No schema for agent X, running in degraded mode', agent, version, errors:[], payload}`. The agent is added to the exported `DEGRADED_AGENTS` set. | n/a                          |
+| **Steady-state** | Subsequent calls for the same agent                                  | Returns the same `degraded:true` shape — fast-path via the `DEGRADED_AGENTS` set membership check (no disk hit).                                                                                                   | n/a                          |
+| **Exit**         | Deploy the missing schema file, then call `clearDegraded(agentName)` | `clearDegraded` removes the agent from `DEGRADED_AGENTS` AND deletes its entry from the `schemaCache`, forcing a fresh load on the next `validateContract` call.                                                   | Switches to full validation. |
 
 ### Usage Pattern
 
 ```js
-import { validateContract, clearDegraded, isDegraded } from './contractValidator.js';
+import {
+  validateContract,
+  clearDegraded,
+  isDegraded,
+} from './contractValidator.js';
 
 // 1. Validate as usual. Missing schema returns degraded:true but doesn't block.
 const verdict = validateContract(rawResponse, 'newagent');
@@ -588,7 +602,9 @@ For both **runtime enforcement** (Phase 7, see `docs/opencode/prompts/orchestrat
 
 ```js
 if (verdict.degraded) {
-  throw new Error(`Agent ${agentName} is degraded — schema file missing in production.`);
+  throw new Error(
+    `Agent ${agentName} is degraded — schema file missing in production.`
+  );
 }
 ```
 
@@ -615,6 +631,7 @@ When running `openspec-verify-change` (Phase 5 of SDD), add this **Contract Vali
 4. **Test Suite Check**: Verify `contractValidator.test.js` passes via `npm test` from `docs/opencode/prompts/contracts/` (per the local `package.json` defined in `openchange = output-contracts-hardening` Phase 7.2). Coverage ≥90% for `contractValidator.js` is the goal.
 
 **Verification Criteria:**
+
 - All 8 agent schemas exist and are valid JSON Schema
 - All 8 agent prompts have `## OUTPUT CONTRACT` immediately before `## REMEMBER` (which is h2-level, not h1-level)
 - All 8 example payloads validate `strict` (not degraded)
@@ -647,6 +664,7 @@ The output contract system uses three enforcement layers:
    - On `contractValidation.valid === false`: orchestrator may re-delegate or escalate.
 
 **Migration path**: Complete.
+
 - **2026-07-08**: `output-contracts-hardening` archived. Layer 1 (self-validation) active in 8 agent prompts.
 - **2026-07-15**: `output-contracts-hook-migration` archived (UTC date 2026-07-16). Layer 2 (hook plugin) active. Runtime evidence: 7 audit log entries captured during the same day at `.opencode/logs/contract-audit.jsonl`, proving the hook fires for `task` tool invocations by subagents (`spec-manager`, `reviewer`, `developer`, `researcher`).
 - Layer 3 (orchestrator escalation) always available — reads `metadata.contractValidation` from Layer 2 when present.
@@ -656,6 +674,7 @@ The original premise blocker (Issue #25918) was invalidated by external research
 **Issue #25918 correction**: The original design doc noted Issue #25918 as a blocker for hook-based validation. External research confirmed this was a **false alarm** — `tool.execute.after` has always fired for native `task` tool calls in OpenCode v1.18.1+. The blocker was invalid.
 
 **Verification status (post-archive)**:
+
 - Spec coverage: 17/17 scenarios in `output-contracts-hook-migration/specs/output-contract-validation/spec.md` covered by the plugin code at `.opencode/plugins/output-contracts.ts`. See per-scenario implementation line references in the archived `proposal.md` Why section.
 - Main spec updated: `openspec/specs/output-contract-validation/spec.md` now contains 82 total scenarios (65 original + 17 new from Layer 2 plugin delta spec). All original scenarios preserved verbatim, no modifications.
 - @reviewer code review verdict: 1 minor SUGGESTION (`fileURLToPath` more idiomatic than `pathname.replace` for Windows path normalization) at `output-contracts.ts:54`. Non-blocking.
@@ -666,9 +685,11 @@ The original premise blocker (Issue #25918) was invalidated by external research
 ## Layer 2: Hook Runtime Validation
 
 ### Plugin Location
+
 `.opencode/plugins/output-contracts.ts`
 
 ### Hook Registration
+
 ```typescript
 "tool.execute.after": async (input, output) => { ... }
 ```
@@ -676,10 +697,13 @@ The original premise blocker (Issue #25918) was invalidated by external research
 The hook fires after **every** tool execution. The plugin filters to only process `input.tool === "task"` (subagent completions). Native tool executions (bash, read, write, edit, glob, grep, etc.) are ignored.
 
 ### Agent Identification
+
 Agent name extracted from `input.args.subagent_type` (e.g., `"developer"`, `"spec-manager"`, `"orchestrator"`). This works because the `task` tool's Parameters schema requires `subagent_type` — no session-lookup hack needed (OpenCode PR #15412 not required).
 
 ### Output Extraction
+
 The `task` tool wraps the subagent's final message in:
+
 ```xml
 task_id: <session-id>
 
@@ -693,15 +717,19 @@ task_id: <session-id>
 The plugin extracts content between `<task_result>` and `</task_result>` tags via regex. If extraction fails (format change), logs `console.warn` and skips validation (graceful fallback).
 
 ### Validation Call
+
 ```typescript
 const verdict = mod.validateContract(subagentMessage, agentName);
 ```
+
 Uses `contractValidator.js` `validateContract()` — same function agents call in Layer 1 self-validation.
 
 ### Audit Log (JSONL)
+
 **Path**: `.opencode/logs/contract-audit.jsonl` (not committed — `.gitignore` excludes `.opencode/logs/`)
 
 **Schema** (one JSON object per line):
+
 ```json
 {
   "timestamp": "2025-01-15T10:30:00.000Z",
@@ -710,7 +738,10 @@ Uses `contractValidator.js` `validateContract()` — same function agents call i
   "sessionId": "sess_abc123",
   "callId": "call_xyz789",
   "validationErrors": [
-    { "field": "status", "message": "must be one of: completed, in-progress, blocked, failed" }
+    {
+      "field": "status",
+      "message": "must be one of: completed, in-progress, blocked, failed"
+    }
   ],
   "retryCount": 0,
   "degraded": false
@@ -722,16 +753,21 @@ Uses `contractValidator.js` `validateContract()` — same function agents call i
 - Directory created lazily via `fs.mkdirSync(dirname, { recursive: true })` on first write.
 
 ### Telemetry Counters (In-Memory)
+
 Per-agent counters reset on plugin reload (OpenCode restart or hot-reload):
+
 ```typescript
 telemetry[agentName] = { total: number, failed: number };
 ```
+
 - `total`: all `task` tool invocations for this agent
 - `failed`: validation failures
 - Persistent record is the JSONL audit log.
 
 ### Metadata Annotation (Layer 3 Bridge)
+
 On validation failure, the plugin annotates:
+
 ```typescript
 output.metadata.contractValidation = {
   valid: false,
@@ -741,6 +777,7 @@ output.metadata.contractValidation = {
   degraded: verdict.degraded
 };
 ```
+
 This enables Layer 3 (orchestrator) to programmatically detect failures and decide whether to re-delegate.
 
 If metadata propagation fails (MCP/native boundary issue), the audit log still captures the failure — falls back to JSONL-only mode.
@@ -781,6 +818,7 @@ Two log files capture complementary views of this problem:
 **Trigger**: The `extractTaskResult()` function in `.opencode/plugins/output-contracts.ts` returns `null` (empty `<task_result>` body or missing wrapper).
 
 **Entry Schema**:
+
 ```json
 {
   "eventType": "silent_exit_candidate",
@@ -793,16 +831,18 @@ Two log files capture complementary views of this problem:
 ```
 
 **Fields**:
-| Field | Type | Description |
-|-------|------|-------------|
-| `eventType` | string | Always `"silent_exit_candidate"` |
-| `timestamp` | ISO 8601 | When the candidate was detected |
-| `agent` | string | Subagent name from `input.args.subagent_type` |
-| `sessionId` | string | OpenCode session ID from `input.sessionID` |
-| `task` | string | Task title from `output.title` or `"(unknown task)"` |
-| `retryCount` | integer | Always `0` — this is detection, not recovery |
 
-**Behavior**: 
+| Field        | Type     | Description                                          |
+| ------------ | -------- | ---------------------------------------------------- |
+| `eventType`  | string   | Always `"silent_exit_candidate"`                     |
+| `timestamp`  | ISO 8601 | When the candidate was detected                      |
+| `agent`      | string   | Subagent name from `input.args.subagent_type`        |
+| `sessionId`  | string   | OpenCode session ID from `input.sessionID`           |
+| `task`       | string   | Task title from `output.title` or `"(unknown task)"` |
+| `retryCount` | integer  | Always `0` — this is detection, not recovery         |
+
+**Behavior**:
+
 - Logged in addition to the existing `console.warn`
 - Write failure is non-fatal (caught + `console.error`, session continues)
 - **Does not** fire for envelope-less responses (text without `<output-contract>` envelope) — those produce a `"contract-validation"` entry instead
@@ -814,6 +854,7 @@ Two log files capture complementary views of this problem:
 **Trigger**: Orchestrator detects silent exit per the `orchestrator-retry-protocol` spec (Layer-3 Retry Protocol section in `orchestrator.md`).
 
 **Entry Schema**:
+
 ```json
 {
   "eventType": "subagent.silent_exit",
@@ -826,29 +867,31 @@ Two log files capture complementary views of this problem:
 ```
 
 **Fields**:
-| Field | Type | Description |
-|-------|------|-------------|
-| `eventType` | string | Always `"subagent.silent_exit"` |
-| `timestamp` | ISO 8601 | When the silent exit was detected |
-| `session_id` | string | OpenCode session ID |
-| `delegatedAgent` | string | Target subagent name |
-| `retryCount` | integer | Retry attempt number (1, 2, or 3) |
-| `failureReason` | enum | `"empty_task_result"` \| `"missing_envelope"` |
+
+| Field            | Type     | Description                                   |
+| ---------------- | -------- | --------------------------------------------- |
+| `eventType`      | string   | Always `"subagent.silent_exit"`               |
+| `timestamp`      | ISO 8601 | When the silent exit was detected             |
+| `session_id`     | string   | OpenCode session ID                           |
+| `delegatedAgent` | string   | Target subagent name                          |
+| `retryCount`     | integer  | Retry attempt number (1, 2, or 3)             |
+| `failureReason`  | enum     | `"empty_task_result"` \| `"missing_envelope"` |
 
 **Write Mechanism**: Bash append via `mkdir -p .opencode/logs && echo '<JSON>' >> .opencode/logs/subagent-silent-exit-audit.jsonl`
 
 ### Relationship Between Layers
 
-| Aspect | Layer 2 (Plugin) | Layer 3 (Orchestrator) |
-|--------|------------------|------------------------|
-| **Timing** | Immediately on hook fire (after tool execution) | After parsing `<task_result>` in orchestrator prompt |
-| **Ownership** | Validator observes empty extraction | Orchestrator recovers via re-delegation |
-| **Log File** | `contract-audit.jsonl` | `subagent-silent-exit-audit.jsonl` |
-| **Retry Context** | `retryCount: 0` (detection only) | `retryCount: 1..3` (recovery attempt) |
+| Aspect            | Layer 2 (Plugin)                                | Layer 3 (Orchestrator)                               |
+| ----------------- | ----------------------------------------------- | ---------------------------------------------------- |
+| **Timing**        | Immediately on hook fire (after tool execution) | After parsing `<task_result>` in orchestrator prompt |
+| **Ownership**     | Validator observes empty extraction             | Orchestrator recovers via re-delegation              |
+| **Log File**      | `contract-audit.jsonl`                          | `subagent-silent-exit-audit.jsonl`                   |
+| **Retry Context** | `retryCount: 0` (detection only)                | `retryCount: 1..3` (recovery attempt)                |
 
 ### Classification Boundary (Important)
 
 **Envelope-less responses** (raw text output without `<output-contract>` XML envelope):
+
 - **Plugin (Layer 2)**: Produces a `"contract-validation"` entry (validation failure on missing envelope) — **NOT** `"silent_exit_candidate"`
 - **Orchestrator (Layer 3)**: Treats as silent exit per `orchestrator-retry-protocol` spec — parses `<task_result>`, finds no envelope, classifies as silent exit, triggers retry protocol
 
@@ -858,11 +901,11 @@ This boundary exists because the plugin's `extractTaskResult()` successfully ext
 
 ## Related OpenSpec Changes
 
-| Change | Status | Description |
-|--------|--------|-------------|
-| `output-contracts-hardening` | Archived 2026-07-08 | Original 12-stage validator hardening, 47 scenarios in main spec. Established Layer 1 prompt self-validation in 8 agent prompts. Archive path: `openspec/changes/archive/2026-07-08-output-contracts-hardening/` |
-| `output-contracts-ajv` | Archived 2026-07-12 | Migration from hand-rolled validation functions to Ajv JSON Schema validator. |
-| `output-contracts-hook-migration` | Archived 2026-07-16 (UTC) | Layer 2 hook plugin activation. +7 requirements, +17 scenarios merged into main spec. Archive path: `openspec/changes/archive/2026-07-16-output-contracts-hook-migration/` |
+| Change                            | Status                    | Description                                                                                                                                                                                                      |
+| --------------------------------- | ------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `output-contracts-hardening`      | Archived 2026-07-08       | Original 12-stage validator hardening, 47 scenarios in main spec. Established Layer 1 prompt self-validation in 8 agent prompts. Archive path: `openspec/changes/archive/2026-07-08-output-contracts-hardening/` |
+| `output-contracts-ajv`            | Archived 2026-07-12       | Migration from hand-rolled validation functions to Ajv JSON Schema validator.                                                                                                                                    |
+| `output-contracts-hook-migration` | Archived 2026-07-16 (UTC) | Layer 2 hook plugin activation. +7 requirements, +17 scenarios merged into main spec. Archive path: `openspec/changes/archive/2026-07-16-output-contracts-hook-migration/`                                       |
 
 For task-level detail, audit log schema, and per-scenario implementation evidence, see the archived `tasks.md` and `proposal.md` files.
 
@@ -871,10 +914,13 @@ For task-level detail, audit log schema, and per-scenario implementation evidenc
 ## Envelope-Position Fix (2026-07-16)
 
 ### Problem
+
 Audit log `.opencode/logs/contract-audit.jsonl` showed persistent "Invalid or missing output-contract envelope" errors across all subagent tasks (developer, spec-manager, reviewer, researcher). The `## OUTPUT CONTRACT` section existed in all 8 prompts, but subagents were not producing the envelope.
 
 ### Root Cause
+
 The `## OUTPUT CONTRACT` section sat in the **MIDDLE** of each prompt file:
+
 - `developer.md` line 48 of 137
 - `orchestrator.md` line 370 of 475
 - `spec-manager.md` line 273 of 374
@@ -883,6 +929,7 @@ The `## OUTPUT CONTRACT` section sat in the **MIDDLE** of each prompt file:
 When context windows filled or models didn't fully process the prompt, the envelope instruction was lost. Subagents produced raw output without the required `<output-contract>` wrapper.
 
 ### Fix
+
 Added a **CRITICAL first-line instruction** to the TOP of all 8 agent prompts:
 
 ```markdown
@@ -892,24 +939,27 @@ Added a **CRITICAL first-line instruction** to the TOP of all 8 agent prompts:
 This line survives context truncation because it's at position 1 of the system prompt. The existing `## OUTPUT CONTRACT` section (with the full envelope template, schema reference, and examples) remains in its current mid-file location as the detailed spec.
 
 ### Verification
+
 - **Pre-fix audit log**: 16 entries with "Invalid or missing output-contract envelope" (all from 2026-07-15 to 2026-07-16 before the fix)
 - **Post-fix audit log**: 0 new error entries
 - **Runtime test**: Trivial task delegated to @developer (`read .gitignore`) produced a valid `<output-contract>` envelope — the hook validated it successfully and did NOT log an audit entry
 
 ### Files Changed
-| File | Change |
-|------|--------|
-| `docs/opencode/prompts/orchestrator.md` | +2 lines (critical instruction at line 1) |
-| `docs/opencode/prompts/developer.md` | +2 lines |
-| `docs/opencode/prompts/spec-manager.md` | +2 lines |
-| `docs/opencode/prompts/reviewer.md` | +2 lines |
-| `docs/opencode/prompts/planner.md` | +2 lines |
-| `docs/opencode/prompts/researcher.md` | +2 lines |
-| `docs/opencode/prompts/git-manager.md` | +2 lines |
-| `docs/opencode/prompts/project-manager.md` | +2 lines |
-| `.opencode/plugins/output-contracts.ts` | Hardened: mkdir recursive, retry logic, timestamped warns, load-time dir check |
+
+| File                                       | Change                                                                         |
+| ------------------------------------------ | ------------------------------------------------------------------------------ |
+| `docs/opencode/prompts/orchestrator.md`    | +2 lines (critical instruction at line 1)                                      |
+| `docs/opencode/prompts/developer.md`       | +2 lines                                                                       |
+| `docs/opencode/prompts/spec-manager.md`    | +2 lines                                                                       |
+| `docs/opencode/prompts/reviewer.md`        | +2 lines                                                                       |
+| `docs/opencode/prompts/planner.md`         | +2 lines                                                                       |
+| `docs/opencode/prompts/researcher.md`      | +2 lines                                                                       |
+| `docs/opencode/prompts/git-manager.md`     | +2 lines                                                                       |
+| `docs/opencode/prompts/project-manager.md` | +2 lines                                                                       |
+| `.opencode/plugins/output-contracts.ts`    | Hardened: mkdir recursive, retry logic, timestamped warns, load-time dir check |
 
 ### Key Takeaway
+
 **Prompt position matters.** Critical instructions must be placed at line 1 of the system prompt to survive context truncation. Instructions in the middle of the prompt get lost when the context window fills. The Layer 2 hook plugin detects missing envelopes but cannot fix them — the fix must be in Layer 1 (prompt instructions) so agents produce valid envelopes in the first place.
 
 ---
@@ -917,48 +967,55 @@ This line survives context truncation because it's at position 1 of the system p
 ## JSON-Payload-Parse Fix (2026-07-16)
 
 ### Problem
+
 Audit log `.opencode/logs/contract-audit.jsonl` showed "Failed to parse JSON payload" errors from `researcher` (2 occurrences) and `spec-manager` (2 occurrences). The `contractValidator.js` Stage 1 (`parseContractEnvelope`) successfully matched the `<output-contract>` XML envelope, but `JSON.parse()` (line 86) failed on the content between the tags.
 
 ### Root Cause
+
 Four agent prompts had **competing output-format sections** that conflicted with the `## OUTPUT CONTRACT` JSON requirement:
 
-| Agent | Conflicting Section | Lines | Format |
-|-------|---------------------|-------|--------|
-| `researcher.md` | `## OUTPUT FORMAT` | 24-60 | Markdown template (headings, code blocks, bullet lists) |
-| `spec-manager.md` | `# REPORTING FORMAT` | 174-204 | Text template with ✅/❌ emoji prefixes |
-| `reviewer.md` | `## OUTPUT FORMAT` | 104-143 | Markdown template (APPROVED/NEEDS CHANGES, severity lists) |
-| `project-manager.md` | `# REPORTING FORMAT` | 111-141 | Text template with ✅/❌ emoji prefixes |
+| Agent                | Conflicting Section  | Lines   | Format                                                     |
+| -------------------- | -------------------- | ------- | ---------------------------------------------------------- |
+| `researcher.md`      | `## OUTPUT FORMAT`   | 24-60   | Markdown template (headings, code blocks, bullet lists)    |
+| `spec-manager.md`    | `# REPORTING FORMAT` | 174-204 | Text template with ✅/❌ emoji prefixes                    |
+| `reviewer.md`        | `## OUTPUT FORMAT`   | 104-143 | Markdown template (APPROVED/NEEDS CHANGES, severity lists) |
+| `project-manager.md` | `# REPORTING FORMAT` | 111-141 | Text template with ✅/❌ emoji prefixes                    |
 
 The model (deepseek-v4-flash-free) tried to obey BOTH the `## OUTPUT CONTRACT` (JSON in XML envelope) AND the competing format section, producing malformed JSON inside the envelope:
+
 - Markdown headings inside JSON values
 - Unescaped newlines in strings
 - Trailing commas
 - JavaScript comments (`//`)
-- ```` ```json ```` code block wrappers inside the envelope
+- ` ```json ` code block wrappers inside the envelope
 
 ### Fix
+
 1. **Converted all 4 competing sections** to "JSON Content Guidance" — they now describe what content goes in which JSON field, not a standalone output template.
 2. **Added `**JSON Escaping Rules** block** to all 8 OUTPUT CONTRACT sections. The block explicitly forbids:
    - Trailing commas
    - Single quotes
    - JavaScript comments (`//` or `/* */`)
-   - Markdown code block wrappers (```` ```json ````) inside the envelope
+   - Markdown code block wrappers (` ```json `) inside the envelope
    - Unescaped newlines (use `\n`)
    - Unescaped double quotes (use `\"`)
 
 ### Verification
+
 - Pre-fix audit log: 4 entries with "Failed to parse JSON payload" (researcher: 2, spec-manager: 2)
 - Post-fix audit log: pending runtime test (run a trivial delegation to @researcher and @spec-manager to confirm)
 - Developer unaffected by this error class (no competing format section, uses different model)
 
 ### Files Changed
-| File | Change |
-|------|--------|
-| `docs/opencode/prompts/researcher.md` | `## OUTPUT FORMAT` → `## OUTPUT FORMAT — JSON Content Guidance` |
-| `docs/opencode/prompts/spec-manager.md` | `# REPORTING FORMAT` → `## REPORTING FORMAT — JSON Content Guidance` |
-| `docs/opencode/prompts/reviewer.md` | `## OUTPUT FORMAT` → `## OUTPUT FORMAT — JSON Content Guidance` |
-| `docs/opencode/prompts/project-manager.md` | `# REPORTING FORMAT` → `## REPORTING FORMAT — JSON Content Guidance` |
-| All 8 prompts | Added `**JSON Escaping Rules**` block to `## OUTPUT CONTRACT` section |
+
+| File                                       | Change                                                                |
+| ------------------------------------------ | --------------------------------------------------------------------- |
+| `docs/opencode/prompts/researcher.md`      | `## OUTPUT FORMAT` → `## OUTPUT FORMAT — JSON Content Guidance`       |
+| `docs/opencode/prompts/spec-manager.md`    | `# REPORTING FORMAT` → `## REPORTING FORMAT — JSON Content Guidance`  |
+| `docs/opencode/prompts/reviewer.md`        | `## OUTPUT FORMAT` → `## OUTPUT FORMAT — JSON Content Guidance`       |
+| `docs/opencode/prompts/project-manager.md` | `# REPORTING FORMAT` → `## REPORTING FORMAT — JSON Content Guidance`  |
+| All 8 prompts                              | Added `**JSON Escaping Rules**` block to `## OUTPUT CONTRACT` section |
 
 ### Key Takeaway
+
 **One output format per agent.** Competing format sections (markdown templates, emoji-prefix text templates) confuse the model into producing hybrid output that fails JSON parsing. The `## OUTPUT CONTRACT` section must be the ONLY authority on response format. Content guidance sections should describe what goes IN the JSON fields, not alternative response templates.

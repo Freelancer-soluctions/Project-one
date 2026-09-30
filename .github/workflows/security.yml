@@ -3,9 +3,16 @@ name: Security Pipeline
 on:
   workflow_call:
   pull_request:
-    branches: [ main ]
+    branches: [main]
   push:
-    branches: [ main ]
+    branches: [main]
+  # D2 (change sast-weekly-scan): L3 full-history semanal + triaje on-demand
+  # + compatibilidad futura con merge queue. El cron (lunes 03:00 UTC) es la
+  # base semanal; workflow_dispatch permite reproducibilidad manual.
+  merge_group:
+  schedule:
+    - cron: '0 3 * * 1' # Monday 03:00 UTC — weekly full-history audit
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -20,6 +27,13 @@ jobs:
     name: Dependency Scan (SCA)
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    # D1 (change sast-weekly-scan): con continue-on-error: true el step puede
+    # fallar por hallazgos sin que el job acabe en failure (audit mode). La
+    # señal real para notify-failure es steps.<id>.outcome, que SOLO es legible
+    # dentro del job → se exporta aquí como output (needs.*.result sería dead
+    # path: siempre 'success' con continue-on-error).
+    outputs:
+      scan-sarif-outcome: ${{ steps.scan-sarif.outcome }}
 
     steps:
       - uses: actions/checkout@v5
@@ -35,7 +49,9 @@ jobs:
         run: npm ci
 
       - name: Run Trivy filesystem scan
-        uses: aquasecurity/trivy-action@0.36.0
+        id: scan-sarif
+        continue-on-error: true # L3 audit mode: hallazgos (exit 1) no fallan el job
+        uses: aquasecurity/trivy-action@v0.36.0
         with:
           scan-type: fs
           scan-ref: .
@@ -45,7 +61,16 @@ jobs:
           exit-code: '1'
           ignore-unfixed: 'true'
 
-      - name: Upload Trivy SARIF
+      - name: Upload Trivy SARIF artifact (retention 90d)
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: trivy-results-sarif
+          path: trivy-results.sarif
+          retention-days: 90
+          if-no-files-found: warn
+
+      - name: Upload Trivy SARIF to Security tab
         if: always()
         uses: github/codeql-action/upload-sarif@v4
         with:
@@ -59,6 +84,8 @@ jobs:
     name: SAST - CodeQL
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    outputs:
+      sast-outcome: ${{ steps.analyze.outcome }}
 
     steps:
       - uses: actions/checkout@v5
@@ -73,61 +100,68 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
-   
+
       - name: Analyze
+        id: analyze
+        continue-on-error: true # L3 audit mode (change sast-weekly-scan, task 2.4)
         uses: github/codeql-action/analyze@v4
+        with:
+          # Subida SARIF integrada del action (task 3.1): NO añadir un paso
+          # upload-sarif separado para CodeQL — crearía categoría duplicada.
+          category: codeql
 
   # =========================
-  # Secret Scanning
+  # SAST — Semgrep FULL scan (L3 weekly audit)
   # =========================
-  secrets:
-    name: Secret Detection
+  # Change `sast-weekly-scan` (task 2.3): scan completo SIN --baseline-commit
+  # (el diff-scoped con baseline es L2: job `sast` de ci.yml, spec
+  # sast-governance-diff). Modo audit (D1): continue-on-error en los scan
+  # steps; los outcomes se exportan para notify-failure.
+  semgrep-full-scan:
+    name: SAST - Semgrep Full Scan (Weekly Audit)
     runs-on: ubuntu-latest
-    timeout-minutes: 10
-    if: github.event_name == 'pull_request'
-    # El contexto `secrets` NO está disponible en `steps.if` (Context availability,
-    # GitHub Docs) — se proyecta a env a nivel de job para poder condicionar los
-    # steps sobre env.GIT_LEAKS (la condicional sobre secrets era código muerto)
-    env:
-      GIT_LEAKS: ${{ secrets.GIT_LEAKS }}
+    timeout-minutes: 20
+    outputs:
+      scan-json-outcome: ${{ steps.scan-json.outcome }}
+      scan-sarif-outcome: ${{ steps.scan-sarif.outcome }}
 
     steps:
       - uses: actions/checkout@v5
+
+      - name: Run Semgrep full scan (JSON report)
+        id: scan-json
+        continue-on-error: true
+        run: docker run --rm -v ${{ github.workspace }}:/src semgrep/semgrep:1.176.1 semgrep scan --config .semgrep/rules --config p/owasp-top-ten --config p/security-audit --exclude node_modules --exclude dist --exclude build --exclude coverage --exclude .env --exclude '*.min.js' --exclude prisma/generated --exclude e2e --json --json-output semgrep-report.json --error --metrics off
+
+      - name: Upload Semgrep JSON report artifact (retention 30d)
+        if: always()
+        uses: actions/upload-artifact@v7
         with:
-          fetch-depth: 0
+          name: semgrep-report
+          path: semgrep-report.json
+          retention-days: 30
+          if-no-files-found: warn
 
-      - name: Scan PR diff for secrets (Gitleaks OSS)
-        uses: docker://zricethezav/gitleaks:v8.22.1
-        env:
-          # Gitleaks consulta la API de GitHub (lookup de config org/repo) cuando
-          # detecta que corre en Actions — sin token falla con 403
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Run Semgrep full scan (SARIF report)
+        id: scan-sarif
+        continue-on-error: true
+        run: docker run --rm -v ${{ github.workspace }}:/src semgrep/semgrep:1.176.1 semgrep scan --config .semgrep/rules --config p/owasp-top-ten --config p/security-audit --exclude node_modules --exclude dist --exclude build --exclude coverage --exclude .env --exclude '*.min.js' --exclude prisma/generated --exclude e2e --sarif-output semgrep.sarif --error --metrics off
+
+      - name: Upload Semgrep SARIF artifact (retention 90d)
+        if: always()
+        uses: actions/upload-artifact@v7
         with:
-          args: git --log-opts="${{ github.event.pull_request.base.sha }}..${{ github.event.pull_request.head.sha }}" --redact --verbose
+          name: semgrep-sarif
+          path: semgrep.sarif
+          retention-days: 90
+          if-no-files-found: warn
 
-      - name: Scan for secrets (licensed action - optional)
-        if: ${{ env.GIT_LEAKS != '' }}
-        uses: gitleaks/gitleaks-action@v3
-        env:
-          GITLEAKS_LICENSE: ${{ secrets.GIT_LEAKS }}
-      - name: "Warn: licensed Gitleaks scan unavailable"
-        if: ${{ env.GIT_LEAKS == '' }}
-        run: echo "::warning::GIT_LEAKS secret not configured - licensed Gitleaks scan skipped. Using open-source Gitleaks only."
-
-# =========================
-  # Infrastructure as Code Security
-  # =========================
-  # iac-security:
-  #   name: IaC Security Scan
-  #   runs-on: ubuntu-latest
-  #
-  #   steps:
-  #     - uses: actions/checkout@v5
-  #
-  #     - name: Run Semgrep IaC rules
-  #       uses: returntocorp/semgrep-action@v1
-  #       with:
-  #         config: p/terraform
+      - name: Upload Semgrep SARIF to Security tab
+        if: always()
+        uses: github/codeql-action/upload-sarif@v4
+        with:
+          sarif_file: semgrep.sarif
+          category: semgrep
 
   # =========================
   # SBOM generation
@@ -149,9 +183,67 @@ jobs:
           output-file: sbom-project-one.json
 
       - name: Upload SBOM artifact
+        if: always() # task 5.0: evidencia SBOM aunque otro step falle
         uses: actions/upload-artifact@v7
         with:
           name: sbom
           path: sbom-project-one.json
           if-no-files-found: error
           retention-days: 365
+
+  # =========================
+  # Notify on failed scan steps (D1)
+  # =========================
+  notify-failure:
+    name: Notify on Failure
+    needs: [dependency-scan, sast, semgrep-full-scan]
+    # always(): corre aunque los upstream estén en success (lo están siempre,
+    # por continue-on-error en los scan steps). La señal es steps.<id>.outcome
+    # exportada como outputs del job upstream (needs.*.result es dead path).
+    if: always()
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write # task 3.3: creación/comentario del issue de auditoría
+    steps:
+      - name: Create or update failure issue when a scan step failed
+        # Decisión (open question del design): UN issue abierto por workflow
+        # (dedupe por marcador en título); runs siguientes comentan en el
+        # existente en vez de acumular issues semanales. Los runs de
+        # pull_request NO crean issues (los findings del PR se reportan en el
+        # propio PR); el issue es evidencia del triaje semanal (schedule/
+        # dispatch/push/merge_group).
+        if: >
+          needs.dependency-scan.outputs.scan-sarif-outcome == 'failure' ||
+          needs.sast.outputs.sast-outcome == 'failure' ||
+          needs.semgrep-full-scan.outputs.scan-json-outcome == 'failure' ||
+          needs.semgrep-full-scan.outputs.scan-sarif-outcome == 'failure'
+        uses: actions/github-script@v8
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+        with:
+          script: |
+            if (process.env.EVENT_NAME === 'pull_request') {
+              core.info('pull_request run: no audit issue created (findings are reported in the PR run).');
+              return;
+            }
+            const marker = '[weekly-security-scan]';
+            const runUrl = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+            const body = `Un scan step falló (hallazgos con exit != 0 o error de tool) en modo audit.\n\nRun: ${runUrl}`;
+            const q = `repo:${context.repo.owner}/${context.repo.repo} is:issue is:open "${marker}" in:title`;
+            const res = await github.rest.search.issuesAndPullRequests({ q, per_page: 1 });
+            const existing = res.data.items[0];
+            if (existing) {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: existing.number,
+                body: `${body}\n\n(comentario en issue existente — dedupe semanal)`
+              });
+            } else {
+              await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title: `${marker} Security scan findings/failed step (${new Date().toISOString().split('T')[0]})`,
+                body
+              });
+            }

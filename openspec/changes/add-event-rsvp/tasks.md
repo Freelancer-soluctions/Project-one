@@ -12,10 +12,10 @@
 
 ## 2. Permission Codes & Enums
 
-- [ ] 2.1 Add `canRegisterForEvent` permission code to the PERMISSIONCODES enum (self-service registration)
-- [ ] 2.2 Add `canCancelRegistration` permission code to the PERMISSIONCODES enum (self-service cancellation)
-- [ ] 2.3 Add `canViewAttendees` permission code to the PERMISSIONCODES enum (admin list attendees)
-- [ ] 2.4 Add `canManageAttendees` permission code to the PERMISSIONCODES enum (admin update attendee status)
+- [x] 2.1 Add `canRegisterForEvent` permission code to the PERMISSIONCODES enum (self-service registration)
+- [x] 2.2 Add `canCancelRegistration` permission code to the PERMISSIONCODES enum (self-service cancellation)
+- [x] 2.3 Add `canViewAttendees` permission code to the PERMISSIONCODES enum (admin list attendees)
+- [x] 2.4 Add `canManageAttendees` permission code to the PERMISSIONCODES enum (admin update attendee status)
 - [x] 2.5 Add `canViewAttendeeDetail` permission code to the PERMISSIONCODES enum (view attendee details)
 - [x] 2.6 Seed the 5 new permission codes into the `permissions` table (IDs 78-82, appended to prisma/seed.js)
 
@@ -72,14 +72,14 @@
 
 ## 8. Frontend — API Layer
 
-- [ ] 8.1 Create API functions in `api/eventAttendeeApi.js`
-- [ ] 8.2 Add RTK Query endpoints or fetch wrappers for RSVP operations
+- [x] 8.1 Create API functions in `api/eventAttendeeApi.js`
+- [x] 8.2 Add RTK Query endpoints or fetch wrappers for RSVP operations
 
 ## 9. Frontend — Components
 
-- [ ] 9.1 Create `AttendButton` component
-- [ ] 9.2 Create `AttendeeStatus` component
-- [ ] 9.3 Create `AttendeeList` component (admin)
+- [x] 9.1 Create `AttendButton` component
+- [x] 9.2 Create `AttendeeStatus` component
+- [x] 9.3 Create `AttendeeList` component (admin)
 - [ ] 9.4 Integrate `AttendButton` and `AttendeeStatus` into the event detail page
 - [ ] 9.5 Integrate `AttendeeList` into the event admin view
 
@@ -116,6 +116,7 @@
 ## Refactored Module Structure
 
 Original (proposed):
+
 ```
 events/
   dao/eventAttendeeDao.js
@@ -125,6 +126,7 @@ events/
 ```
 
 Actual (layered architecture):
+
 ```
 events/
   attendee/

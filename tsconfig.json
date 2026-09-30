@@ -1,0 +1,18 @@
+{
+  // Base compartida del monorepo (change `quality-gates`, mínimo del plan
+  // `typescript-strict-check` §1). `checkJs: false`: el código es 100% JS hoy —
+  // el typecheck valida que el proyecto COMPILE (sintaxis, resolución de
+  // módulos) sin exigir tipos; `typescript-strict-check` activará los flags
+  // strict gradualmente sobre esta base.
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
+    "allowJs": true,
+    "checkJs": false,
+    "noEmit": true,
+    "skipLibCheck": true,
+    "resolveJsonModule": true,
+    "esModuleInterop": true
+  }
+}

@@ -1,0 +1,127 @@
+# Exclusiones de markdownlint (gitignore syntax; solo markdownlint-cli lo soporta,
+# decisión documentada en docs/learning/docs-changelog-validation.md §3)
+
+# Dependencias y artefactos de build
+node_modules/
+dist/
+build/
+coverage/
+storybook-static/
+
+# Estilos de vale (no son docs)
+.github/styles/
+
+# Reportes generados
+reports/
+
+# Lockfiles y generado
+package-lock.json
+apps/server/prisma/generated/
+
+# ============================================================
+# Grandfathering (FASE 1 del gate docs-validation, PR #133, 2026-09-29)
+#
+# El gate adopta un config exigente (MD013@120, MD040, MD034, ...) sobre un
+# árbol de documentación legacy con ~5.9k violaciones acumuladas. Estrategia
+# de adopción (docs/learning/docs-changelog-validation.md §6.3): el gate
+# arranca en fase advisory sobre el contenido NORMALIZADO y todo doc nuevo
+# que se cree a partir de ahora; los archivos de abajo quedan excluidos
+# temporalmente y salen de esta lista uno a uno cuando se normalice su
+# contenido (`npx markdownlint --fix <archivo>` + revisión manual).
+#
+# Nota: la primera lista se generó con `npx markdownlint "docs/**/*.md" "docs/*.md"`
+# sobre el inventario al adoptar el gate (75 archivos con violaciones).
+# ============================================================
+
+# Curso/aula CI-CD extenso (normalización pendiente, directorio completo)
+docs/learning/ci-cd/
+
+# Internals de tooling de agentes (no son docs de producto)
+docs/opencode/
+
+# Inventario legacy al adoptar el gate (2026-09-29)
+docs/CONTEXT-CICD.md
+docs/api-rest-design-analysis.md
+docs/architectural-approach.md
+docs/aws-cd-learning-path.md
+docs/aws-dev-local-floci.md
+docs/aws-learning-with-floci.md
+docs/ci-cd-pipeline-empresarial.md
+docs/jsdoc-migration-notes.md
+docs/omniroute-install-tutorial.md
+docs/pre-merge-gates-governance.md
+docs/testing-architecture.md
+docs/adr-template.md
+docs/adr/turborepo-evaluation.md
+docs/aws-deploy-architecture.md
+docs/changelog.md
+docs/ci-prebuild-substage-structure-phase2-verification.md
+docs/code-review-checklist.md
+docs/code-style.md
+docs/estandar-usequerydata-useloadingstate.md
+docs/jsdoc-review-checklist.md
+docs/learning/containerfile-lint.md
+docs/learning/dependency-review.md
+docs/learning/docs-changelog-validation.md
+docs/learning/eslint-configuration.md
+docs/learning/iac-scanning.md
+docs/learning/knip-configuration.md
+docs/learning/license-compliance.md
+docs/learning/license-policy.md
+docs/learning/panorama-resumen.md
+docs/learning/pipeline-config-scan.md
+docs/learning/prettier-configuration.md
+docs/learning/quality-gates.md
+docs/learning/sast-implementation.md
+docs/learning/sca-dependency-lockfile-scan.md
+docs/learning/secret-scanning.md
+docs/learning/typescript-migration-server.md
+docs/learning/typescript-strict-check.md
+docs/learning/typosquatting-detection.md
+docs/modules/INDEX.md
+docs/modules/attendance.md
+docs/modules/auth.md
+docs/modules/client-auth.md
+docs/modules/client-notes.md
+docs/modules/client-stock.md
+docs/modules/client-users.md
+docs/modules/clientOrder.md
+docs/modules/clients.md
+docs/modules/employees.md
+docs/modules/events.md
+docs/modules/expenses.md
+docs/modules/home.md
+docs/modules/inventoryMovement.md
+docs/modules/news.md
+docs/modules/notes.md
+docs/modules/payroll.md
+docs/modules/performanceEvaluation.md
+docs/modules/permission.md
+docs/modules/products.md
+docs/modules/providerOrder.md
+docs/modules/providers.md
+docs/modules/purchase.md
+docs/modules/sales.md
+docs/modules/security.md
+docs/modules/server-auth.md
+docs/modules/server-stock.md
+docs/modules/server-users.md
+docs/modules/settings.md
+docs/modules/settingsProductCategories.md
+docs/modules/stock.md
+docs/modules/users.md
+docs/modules/vacation.md
+docs/modules/warehouse.md
+docs/nivel-experiencia-analisis.md
+docs/omniroute-opencode-integration.md
+docs/openspec-implementation-audit.md
+docs/rbac-system.md
+docs/security/SECURITY.md
+docs/security/security-design.md
+docs/security/security-enterprise-guide.md
+docs/security/segremp-rules.md
+docs/server-bootstrap-env-vars.md
+docs/trello-card-standards.md
+docs/trello-workflow-guide.md
+docs/websocket-implementation-guide.md
+docs/workspaces.md

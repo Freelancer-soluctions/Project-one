@@ -15,53 +15,53 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 **`DELETE /api/v1/events/:id`** — Changed from **hard delete** to **soft delete**
 
-| Aspect | Before | After |
-|--------|--------|-------|
-| **Operation** | `prisma.events.delete()` — row removed from database | `prisma.events.update()` — sets `deletedAt`, `deletedBy`, `updatedOn` |
-| **Response (success)** | `200 OK` with `{ message }` | `200 OK` with soft-deleted event object |
-| **Response (not found)** | `404 Not Found` | `404 Not Found` — `{ success: false, statusCode: 404, message: "Event not found" }` |
-| **Response (already deleted)** | N/A (hard delete would fail silently or error) | `409 Conflict` — `{ success: false, statusCode: 409, message: "Event already deleted" }` |
+| Aspect                         | Before                                               | After                                                                                    |
+| ------------------------------ | ---------------------------------------------------- | ---------------------------------------------------------------------------------------- |
+| **Operation**                  | `prisma.events.delete()` — row removed from database | `prisma.events.update()` — sets `deletedAt`, `deletedBy`, `updatedOn`                    |
+| **Response (success)**         | `200 OK` with `{ message }`                          | `200 OK` with soft-deleted event object                                                  |
+| **Response (not found)**       | `404 Not Found`                                      | `404 Not Found` — `{ success: false, statusCode: 404, message: "Event not found" }`      |
+| **Response (already deleted)** | N/A (hard delete would fail silently or error)       | `409 Conflict` — `{ success: false, statusCode: 409, message: "Event already deleted" }` |
 
 **New Query Parameter: `GET /api/v1/events?showDeleted=true`**
 
-| Aspect | Details |
-|--------|---------|
-| **Parameter** | `showDeleted` (boolean, optional) |
-| **Values** | `true`, `1`, `false`, `0` (parsed via Joi/Zod) |
-| **Default** | `false` — soft-deleted events excluded |
-| **Access Control** | **ADMIN role only** — non-ADMIN receives `403 Forbidden` |
-| **Effect on Response** | Includes soft-deleted events in `dataList`; `total` count includes deleted events |
-| **Event Object** | Soft-deleted events include `deletedAt` (ISO timestamp) and `deletedBy` (user ID) fields |
+| Aspect                 | Details                                                                                  |
+| ---------------------- | ---------------------------------------------------------------------------------------- |
+| **Parameter**          | `showDeleted` (boolean, optional)                                                        |
+| **Values**             | `true`, `1`, `false`, `0` (parsed via Joi/Zod)                                           |
+| **Default**            | `false` — soft-deleted events excluded                                                   |
+| **Access Control**     | **ADMIN role only** — non-ADMIN receives `403 Forbidden`                                 |
+| **Effect on Response** | Includes soft-deleted events in `dataList`; `total` count includes deleted events        |
+| **Event Object**       | Soft-deleted events include `deletedAt` (ISO timestamp) and `deletedBy` (user ID) fields |
 
 **Restoration via `PATCH /api/v1/events/:id`**
 
-| Aspect | Details |
-|--------|---------|
-| **Trigger** | Request body contains `deletedAt: null` |
-| **Precondition** | Event must be soft-deleted (`deletedAt` is not null) |
-| **Permission** | Requires `canEditEvents` permission (existing guard) |
-| **Behavior** | Clears `deletedAt` and `deletedBy`; sets `updatedOn` |
+| Aspect               | Details                                                                                               |
+| -------------------- | ----------------------------------------------------------------------------------------------------- |
+| **Trigger**          | Request body contains `deletedAt: null`                                                               |
+| **Precondition**     | Event must be soft-deleted (`deletedAt` is not null)                                                  |
+| **Permission**       | Requires `canEditEvents` permission (existing guard)                                                  |
+| **Behavior**         | Clears `deletedAt` and `deletedBy`; sets `updatedOn`                                                  |
 | **Combined Updates** | If body includes other fields (e.g., `title: "New"`), restoration and field update applied atomically |
-| **No-op Case** | Active event (`deletedAt` already null) with `deletedAt: null` in body → normal update (no error) |
+| **No-op Case**       | Active event (`deletedAt` already null) with `deletedAt: null` in body → normal update (no error)     |
 
 **New Response Codes for Events Endpoints**
 
-| Endpoint | Code | Condition |
-|----------|------|-----------|
-| `DELETE /events/:id` | `409 Conflict` | Event already soft-deleted |
-| `DELETE /events/:id` | `404 Not Found` | Event does not exist |
+| Endpoint                       | Code            | Condition                                         |
+| ------------------------------ | --------------- | ------------------------------------------------- |
+| `DELETE /events/:id`           | `409 Conflict`  | Event already soft-deleted                        |
+| `DELETE /events/:id`           | `404 Not Found` | Event does not exist                              |
 | `GET /events?showDeleted=true` | `403 Forbidden` | Non-ADMIN role attempts to use `showDeleted=true` |
-| `PATCH /events/:id` (restore) | `404 Not Found` | Event does not exist |
-| `PATCH /events/:id` (restore) | `403 Forbidden` | User lacks `canEditEvents` permission |
+| `PATCH /events/:id` (restore)  | `404 Not Found` | Event does not exist                              |
+| `PATCH /events/:id` (restore)  | `403 Forbidden` | User lacks `canEditEvents` permission             |
 
 **Database Schema Changes**
 
-| Model | Field | Type | Notes |
-|-------|-------|------|-------|
-| `events` | `deletedAt` | `DateTime?` | Timestamp of soft deletion |
-| `events` | `deletedBy` | `Int?` | FK → `users.id` (nullable) |
-| `events` | `userEventDeleted` | Relation | `@relation("userEventDeleted", fields: [deletedBy], references: [id])` |
-| `users` | `eventsDeleted` | Relation[] | Reverse relation `@relation("userEventDeleted")` |
+| Model    | Field              | Type        | Notes                                                                  |
+| -------- | ------------------ | ----------- | ---------------------------------------------------------------------- |
+| `events` | `deletedAt`        | `DateTime?` | Timestamp of soft deletion                                             |
+| `events` | `deletedBy`        | `Int?`      | FK → `users.id` (nullable)                                             |
+| `events` | `userEventDeleted` | Relation    | `@relation("userEventDeleted", fields: [deletedBy], references: [id])` |
+| `users`  | `eventsDeleted`    | Relation[]  | Reverse relation `@relation("userEventDeleted")`                       |
 
 **Cross-Change Compatibility**
 
@@ -72,12 +72,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 **`.husky/pre-push`** — Replaced full test suite with scoped execution
 
-| Aspect | Before | After |
-|--------|--------|-------|
-| **Hook content** | `npm run test:unit` + `npm run test:integration` (full suites) | `npx vitest run --changed origin/main` scoped per workspace |
-| **Execution time** | Several minutes (frequently exceeded GitHub SSH ~30s timeout) | ~10-15s typical |
-| **origin/main check** | ❌ No check — would fail with cryptic error if missing | ✅ `git rev-parse --verify origin/main` with clear error + `git fetch origin main --depth=1` |
-| **Failure feedback** | ❌ `set -e` suppressed echo on failure | ✅ `|| { echo "❌ ...failed"; exit 1; }` pattern per command |
+| Aspect                | Before                                                         | After                                                                                        |
+| --------------------- | -------------------------------------------------------------- | -------------------------------------------------------------------------------------------- | --- | ----------------------------------------------------- |
+| **Hook content**      | `npm run test:unit` + `npm run test:integration` (full suites) | `npx vitest run --changed origin/main` scoped per workspace                                  |
+| **Execution time**    | Several minutes (frequently exceeded GitHub SSH ~30s timeout)  | ~10-15s typical                                                                              |
+| **origin/main check** | ❌ No check — would fail with cryptic error if missing         | ✅ `git rev-parse --verify origin/main` with clear error + `git fetch origin main --depth=1` |
+| **Failure feedback**  | ❌ `set -e` suppressed echo on failure                         | ✅ `                                                                                         |     | { echo "❌ ...failed"; exit 1; }` pattern per command |
 
 **`docs/testing-architecture.md`** — New section 7.5 "Estrategia de Ejecución por Capas" documenting three-tier testing strategy (pre-commit <10s / pre-push ~30s / CI unlimited) and updated section 11 ADR table.
 
@@ -86,6 +86,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.0.0] - 2026-06-13
 
 ### Added
+
 - Initial API release with Events, Users, Notes, News, Products, and other modules
 - JWT authentication with role-based permissions
 - Pagination, filtering, and search across list endpoints
@@ -101,21 +102,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Version] - YYYY-MM-DD
 
 ### Added
+
 - New endpoints, features, or capabilities
 
 ### Changed
+
 - Modifications to existing behavior (breaking or non-breaking)
 
 ### Deprecated
+
 - Features marked for removal in future versions
 
 ### Removed
+
 - Features removed in this version
 
 ### Fixed
+
 - Bug fixes
 
 ### Security
+
 - Vulnerability fixes or security improvements
 ```
 

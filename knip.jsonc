@@ -1,0 +1,216 @@
+// Config Knip monorepo: detecta exports, archivos y deps sin uso
+// Nota: entry/paths/plugins no se usan a nivel raiz, Knip usa defaults + plugins auto-detectados;
+// en repos con workspaces, `entry`/`project` de nivel superior se ignoran: van en `workspaces["."]`
+{
+  // Esquema oficial Knip v6 para autocompletado y validación
+  "$schema": "https://unpkg.com/knip@6/schema-jsonc.json",
+  // Combinación de los workspaces del monorepo (unica fuente de verdad: sin knip.json anidados)
+  "workspaces": {
+    // Workspace raiz: scripts, config de lint y hooks (entry/project explicitos abajo)
+    ".": {
+      // Archivos raiz que Knip analiza como entries del workspace "."
+      // (eslint.config.js lo detecta el plugin eslint: patron redundante)
+      "entry": ["scripts/**/*.{js,mjs}", ".husky/*"],
+      // Alcance del workspace raiz
+      "project": ["scripts/**/*.js", "*.js"],
+      // (PR #133, 2026-09-29 — change root-manifest-cleanup): residuos del aplanado
+      // del manifest raíz resueltos: @eslint/js y why-is-node-running movidos a
+      // devDeps reales. FPs justificados:
+      // - vitest.shared.js: config compartida importada por los workspaces (root
+      //   del análisis de cada workspace, no del raíz) — file no alcanzable desde
+      //   los entries del workspace ".".
+      // - lint-staged: invocado por husky (binario en .husky/pre-commit, no en
+      //   scripts npm) → knip no lo atribuye a package.json#scripts.
+      // - actionlint/jsdoc/omniroute/depcheck: binarios o CLI invocados fuera de
+      //   scripts npm (hooks, CI, tooling manual) — auditados, no dead deps.
+      // - ren/gitleaks/vale: binarios de sistema/standalone llamados en scripts.
+      "ignore": ["vitest.shared.js"],
+      "ignoreDependencies": [
+        "actionlint",
+        "jsdoc",
+        "lint-staged",
+        "omniroute",
+        "depcheck",
+      ],
+      // ren (Windows rename), gitleaks y vale: binarios standalone llamados
+      // directamente en scripts npm — no son paquetes npm declarables.
+      "ignoreBinaries": ["ren", "gitleaks", "vale"],
+    },
+    // Workspace frontend React (Vite)
+    "apps/client": {
+      // Archivos que Knip analiza en client (widened: tests/.storybook/config atribuyen sus deps)
+      "project": [
+        "src/**/*.{js,jsx}",
+        "tests/**/*.{js,jsx}",
+        ".storybook/**/*.{js,jsx}",
+        "*.config.{js,mjs}",
+      ],
+      // Alias `@/` -> `src/` de Vite (sin esto, imports `@/...` se reportan como `unresolved`)
+      "paths": {
+        "@": ["./src"],
+        "@/*": ["./src/*"],
+      },
+      // Archivos excluidos del análisis en client
+      // (union root + nested con precedencia root; fieldLimits/socketService pasaron a ignoreIssues)
+      // Entradas sin issues verificados por knip fueron removidas (hints "Remove from ignore");
+      // los archivos restantes SÍ generan hallazgos si se quitan del ignore.
+      // Hints residuales "Compiled extension excluded by project" (.css/.mdx/.prisma) son estructurales
+      // (cualquier glob `project` explícito los emite): solo informativos, no suman hallazgos.
+      "ignore": [
+        "src/**/*.test.{js,jsx}",
+        "src/hooks/useGetTranslation.js",
+        "tests/setup/*.js",
+      ],
+      // Deps que Knip no marca como sin uso en client:
+      // (auditado tras ampliar `project`: msw/globals/@storybook ahora cubiertas por globs; removidas del ignore).
+      // @radix-ui/react-collapsible: componente shadcn/ui usado (carousel/collapsible borrados, pero componente base aún presente).
+      // date-fns-tz / embla-carousel-autoplay / embla-carousel-react: plugins/runtime de calendario/playwright (usados indirectamente).
+      // quill / shadcn-ui / why-is-node-running: CLI/debug o runtime; no importados directamente en `src/` pero requeridos por scripts/config.
+      // NOTA: `add` y `command` fueron removidos de este bloque (instalaciones accidentales, desinstalados con `npm uninstall`).
+      "ignoreDependencies": [
+        // Collapsible UI library — usado por componentes shadcn/ui en el frontend.
+        "@radix-ui/react-collapsible",
+        // Peer/optional de plugins de calendario/carousel (embed usado en runtime por Storybook/Playwright).
+        "date-fns-tz",
+        // Auto-play carousel plugin — usado por componentes de productos/eventos en client.
+        "embla-carousel-autoplay",
+        // Carousel base — usado por componentes de slides en client.
+        "embla-carousel-react",
+        // Editor rich-text (Quill) — usado por módulos de notas/documentos; no importado en `src/` pero consumido por plugin/config.
+        "quill",
+        // CLI de shadcn/ui — usado en scripts de generación de componentes.
+        "shadcn-ui",
+        // Debug CLI — invocado por scripts internos / parser de knip para detectar procesos activos.
+        "why-is-node-running",
+        // (PR #133, 2026-09-29): addon de Chromatic referenciado solo en comentario de
+        // .storybook/main.js (desactivado en el addon array); se integra vía npm script
+        // cuando se reactive la integración de visual testing. `globals` es consumido
+        // indirectamente por la config de eslint (eslint.config.js, enviroment globals).
+        "@chromatic-com/storybook",
+        "globals",
+      ],
+      // (sin ignoreBinaries: hints confirmaron que eslint/prettier no generan hallazgos aquí)
+      // No reporta exports solo usados en mismo archivo (client)
+      "ignoreExportsUsedInFile": true,
+      // Falsos positivos de exports silenciados quirúrgicamente (no blanket `ignore`):
+      // Se mantiene solo para archivos que exportan intencionalmente (barrels, schemas, middleware, constantes) para reutilización futura.
+      // `fieldLimits.js` y `socketService.js` pasaron de `ignore` a `ignoreIssues` (`exports`) para no ocultar otros problemas.
+      "ignoreIssues": {
+        "src/components/ui/dropdown-menu.jsx": ["exports"],
+        "src/components/ui/popover.jsx": ["exports"],
+        "src/components/ui/select.jsx": ["exports"],
+        "src/config/fieldLimits.js": ["exports"],
+        "src/config/zod-i18n.js": ["exports"],
+        "src/hooks/useFetch.js": ["exports"],
+        "src/hooks/useInitializeI18n.js": ["exports"],
+        "src/modules/auth/api/authAPI.js": ["exports"],
+        "src/modules/clientOrder/api/clientOrderApi.js": ["exports"],
+        "src/modules/events/constants.js": ["exports"],
+        "src/modules/events/utils/enums.js": ["exports"],
+        "src/modules/events/utils/schema.js": ["exports"],
+        "src/modules/expenses/utils/enums.js": ["exports"],
+        "src/modules/news/utils/adapters.js": ["exports"],
+        "src/modules/products/utils/currencyFormat.js": ["exports"],
+        "src/modules/providerOrder/api/providerOrderApi.js": ["exports"],
+        "src/modules/providers/utils/enums.js": ["exports"],
+        "src/services/socketService.js": ["exports"],
+        "src/modules/settings/api/settingsAPI.js": ["exports"],
+        // (PR #133): export default duplicado del named (deuda a refactorizar);
+        // silenciado para el gate hasta que se unifique el patrón de export.
+        "src/hooks/useChangedFields.js": ["exports"],
+        "src/modules/settingsProductCategories/components/index.js": [
+          "exports",
+        ],
+      },
+    },
+    // Workspace backend Express
+    "apps/server": {
+      // Archivos que Knip analiza en server (widened: prisma/tests atribuyen sus deps)
+      "project": ["src/**/*.js", "prisma/**/*.js", "tests/**/*.js"],
+      // Archivos excluidos del análisis en server (identico al nested: union sin conflictos).
+      // Incluye docs (no análisis de código), niveles de socket internos, controllers/DAOs/routes de módulos específicos
+      // (clientOrder, providerOrder, users, settings) que son archivos muertos o duplicados de servicios.
+      // Todos verificados con `grep` contra `main`; ninguno tiene referencias vivas fuera de su módulo.
+      "ignore": [
+        "src/docs/**",
+        "src/socket/levels/**",
+        "src/config/aws/secrets.js",
+        "src/modules/clientOrder/controller.js",
+        "src/modules/clientOrder/dao.js",
+        "src/modules/clientOrder/routes.js",
+        "src/modules/clientOrder/service.js",
+        "src/modules/providerOrder/controller.js",
+        "src/modules/providerOrder/dao.js",
+        "src/modules/providerOrder/routes.js",
+        "src/modules/providerOrder/schemas/providerOrder.joi.js",
+        "src/modules/providerOrder/service.js",
+        "src/modules/users/constants/users.js",
+        "src/utils/cloudinary/cloudinary.js",
+        "src/utils/joiSchemas/joi.js",
+        "src/utils/prisma-dinamic-service/service.js",
+        "src/utils/responses&Errors/globalErrorResponse.js",
+        // (PR #133, 2026-09-29): utilidades de tests manuales/huérfanos —
+        // carpeta `tests/orphans/` intentionally kept + helpers manuales
+        // (test-server, manual-test) que no corre el runner automático.
+        "tests/orphans/**",
+        "tests/test-server.js",
+        "tests/unit/manual-test.js",
+      ],
+      // Deps que Knip no marca como sin uso en server
+      "ignoreDependencies": [
+        // Solo de editor (language server, nunca importado en runtime)
+        "@prisma/language-server",
+        // Resueltas por plugin/config fuera de `project` o en runtime
+        "cloudinary",
+        "knex",
+        "socket.io-client",
+        "vite",
+        // CLI debug invocado por script parser
+        "why-is-node-running",
+      ],
+      // No reporta exports solo usados en mismo archivo (server)
+      "ignoreExportsUsedInFile": true,
+      // Falsos positivos de exports silenciados por archivo (server)
+      "ignoreIssues": {
+        "src/middleware/encription-prisma-middleware.js": ["exports"],
+        "src/middleware/rateLimit.js": ["exports"],
+        "src/middleware/validateNumericPathParam.js": ["exports"],
+        "src/middleware/verifyCsrf.js": ["exports"],
+        "src/middleware/verifyRole.js": ["exports"],
+        "src/modules/attendance/service.js": ["exports"],
+        "src/modules/auth/controller.js": ["exports"],
+        "src/modules/auth/dao.js": ["exports"],
+        "src/modules/events/attendee/service.js": ["exports"],
+        "src/modules/events/schemas/event-rsvp.js": ["exports"],
+        "src/modules/news/schemas/news.joi.js": ["exports"],
+        "src/modules/notes/dao.js": ["exports"],
+        "src/modules/products/controller.js": ["exports"],
+        "src/modules/products/service.js": ["exports"],
+        "src/modules/settings/schemas/settings.joi.js": ["exports"],
+        "src/modules/users/dao.js": ["exports"],
+        "src/modules/users/schemas/users.joi.js": ["exports"],
+        "src/modules/users/service.js": ["exports"],
+        "src/socket/events/mentionEvents.js": ["exports"],
+        "src/socket/events/schemas.js": ["exports"],
+        "src/socket/rooms.js": ["exports"],
+        "src/utils/constants/enums.js": ["exports"],
+        "src/utils/jwt/createToken.js": ["exports"],
+        "src/utils/prisma/dao.js": ["exports"],
+        // (PR #133): helper compartido del suite smoke; el export se consume
+        // desde los tests vía import default o se reserva para reutilización.
+        "tests/smoke/helpers/request.js": ["exports"],
+      },
+    },
+    // Workspace E2E Playwright (en package.json#workspaces, antes con defaults implicitos)
+    "e2e": {
+      // Tests como alcance explicito (playwright.config.js lo detecta el plugin playwright)
+      "project": ["tests/**/*.js"],
+    },
+  },
+  // Reglas de severidad de Knip (gradación profesional: `files` y `dependencies` como `error`, `exports` y `duplicates` como `warn`/`off` para adopción gradual)
+  // Estrategia: empezar con `warn` para `exports` y `cycles`; graduar a `error` cuando el baseline llegue a cero.
+  "rules": {
+    // Desactiva reporte de archivos duplicados
+    "duplicates": "off",
+  },
+}

@@ -29,4 +29,43 @@ if [ $FAILED -ne 0 ]; then
   exit 1
 fi
 
+# 3. Capas advisory (change `sca-lockfile-compliance`): solo informan, NUNCA
+# bloquean el commit — la cadena bloqueante sigue siendo lint-staged + SAST +
+# secrets. Reporte local a .tmp/ (ignorado por .gitignore). Nota: estas líneas
+# van tras el gate bloqueante; cada paso lleva su propia protección de fallo
+# (|| true), así que un hallazgo o un tool ausente no interrumpe nada.
+echo "📦 Lockfile audit (advisory)..."
+(npm audit --audit-level=moderate --json > .tmp/audit-local.json) || echo "⚠️  npm audit: hallazgos >= moderate o error — reporte en .tmp/audit-local.json (advisory, no bloquea)"
+
+echo "🧱 Checkov IaC (advisory)..."
+(command -v checkov >/dev/null 2>&1 && checkov -d . --soft-fail --config-file .checkov.yml) || echo "⚠️  checkov no disponible localmente o hallazgos — advisory, no bloquea (política: .checkov.yml)"
+
+echo "🐳 Hadolint Containerfile (advisory)..."
+(command -v hadolint >/dev/null 2>&1 && hadolint -c .hadolint.yaml --failure-threshold warning apps/server/Dockerfile) || echo "⚠️  hadolint no disponible o findings — advisory, no bloquea (política: .hadolint.yaml)"
+
+echo "🔧 ActionLint workflows (advisory)..."
+# Nota: el stub npm `actionlint` (WASM) NO equivale al binario real v1.7.12 de CI;
+# si `actionlint -version` no reporta v1.7.x real, se degrada a advisory silencioso.
+(command -v actionlint >/dev/null 2>&1 && actionlint -config-file .github/actionlint.yaml) || echo "⚠️  actionlint no disponible o findings — advisory, no bloquea (política: .github/actionlint.yaml)"
+
+echo "🛡️ Zizmor workflows (advisory)..."
+(command -v zizmor >/dev/null 2>&1 && zizmor -c .github/zizmor.yml .github/workflows/) || echo "⚠️  zizmor no disponible o findings — advisory, no bloquea (política: .github/zizmor.yml)"
+
+echo "📦 Root manifest hygiene (advisory)..."
+# Guard de higiene del manifest raíz (change `root-manifest-cleanup`): falla si
+# `dependencies` del raíz tiene entradas no justificadas (transitivas promovidas,
+# workspaces internos, residuos). Aquí es advisory; en CI es blocking
+# (job `root-manifest-guard`). Sin red, en milisegundos.
+(node scripts/check-root-manifest.mjs 2>/dev/null) || echo "⚠️  manifest raíz con entradas no justificadas — advisory, no bloquea (política: scripts/check-root-manifest.mjs)"
+
+echo "🐍 GuardDog typosquat (advisory)..."
+# Política única: scripts/guarddog-verify.sh (pin guarddog==3.2.0 + devDeps
+# excluidas + sandbox obligatorio). Requiere red (registry npm) y uvx; solo
+# macOS/Linux nativo (GuardDog v3.2.0 en Windows exige Docker) → si falta
+# uvx o la plataforma no soporta el sandbox, degrada a advisory silencioso.
+# Reporte: .tmp/guarddog.sarif (gitignored).
+(bash scripts/guarddog-verify.sh > .tmp/guarddog.sarif 2>/dev/null) || echo "⚠️  guarddog no disponible o findings — advisory, no bloquea (política: scripts/guarddog-verify.sh, reporte: .tmp/guarddog.sarif)"
+
 echo "✅ All pre-commit checks passed (lint-staged, SAST, Secrets)."
+
+echo "ℹ️  Advisory layers completed (lockfile + IaC + Containerfile + pipeline config + typosquat): findings do NOT block (docs/learning/quality-gates.md §2)."

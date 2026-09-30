@@ -123,65 +123,7 @@ export const getAllEvents = async ({
 
   // Status filter: derive upcoming/past from server UTC time
   if (status && status !== 'all') {
-    const now = new Date();
-    const endOfTodayUTC = new Date(
-      Date.UTC(
-        now.getUTCFullYear(),
-        now.getUTCMonth(),
-        now.getUTCDate(),
-        23,
-        59,
-        59,
-        999
-      )
-    );
-    const startOfTodayUTC = new Date(
-      Date.UTC(
-        now.getUTCFullYear(),
-        now.getUTCMonth(),
-        now.getUTCDate(),
-        0,
-        0,
-        0,
-        0
-      )
-    );
-    const currentTimeOnEpoch = new Date(
-      Date.UTC(
-        1970,
-        0,
-        1,
-        now.getUTCHours(),
-        now.getUTCMinutes(),
-        now.getUTCSeconds()
-      )
-    );
-
-    if (status === 'upcoming') {
-      conditions.push({
-        OR: [
-          { eventDate: { gt: endOfTodayUTC } },
-          {
-            AND: [
-              { eventDate: { gte: startOfTodayUTC, lte: endOfTodayUTC } },
-              { endTime: { gt: currentTimeOnEpoch } },
-            ],
-          },
-        ],
-      });
-    } else if (status === 'past') {
-      conditions.push({
-        OR: [
-          { eventDate: { lt: startOfTodayUTC } },
-          {
-            AND: [
-              { eventDate: { gte: startOfTodayUTC, lte: endOfTodayUTC } },
-              { endTime: { lte: currentTimeOnEpoch } },
-            ],
-          },
-        ],
-      });
-    }
+    conditions.push(buildEventStatusFilter(status));
   }
 
   // Modality filter: exact match on modality enum
@@ -206,6 +148,87 @@ export const getAllEvents = async ({
   ]);
 
   return { data, total, page, pageSize };
+};
+
+/**
+ * Builds the UTC day boundaries used to derive upcoming/past from server time.
+ *
+ * @param {Date} now - Reference instant (server UTC time).
+ * @returns {{startOfTodayUTC: Date, endOfTodayUTC: Date, currentTimeOnEpoch: Date}} Boundary instants.
+ */
+const buildTodayBoundaries = (now) => {
+  const startOfTodayUTC = new Date(
+    Date.UTC(
+      now.getUTCFullYear(),
+      now.getUTCMonth(),
+      now.getUTCDate(),
+      0,
+      0,
+      0,
+      0
+    )
+  );
+  const endOfTodayUTC = new Date(
+    Date.UTC(
+      now.getUTCFullYear(),
+      now.getUTCMonth(),
+      now.getUTCDate(),
+      23,
+      59,
+      59,
+      999
+    )
+  );
+  const currentTimeOnEpoch = new Date(
+    Date.UTC(
+      1970,
+      0,
+      1,
+      now.getUTCHours(),
+      now.getUTCMinutes(),
+      now.getUTCSeconds()
+    )
+  );
+  return { startOfTodayUTC, endOfTodayUTC, currentTimeOnEpoch };
+};
+
+/**
+ * Builds the Prisma filter that derives upcoming/past events from server UTC time.
+ * 'upcoming' keeps events later today (endTime not passed) or in future dates;
+ * 'past' keeps events from earlier days or already finished today.
+ *
+ * @param {'upcoming'|'past'} status - Derived status requested by the caller.
+ * @returns {Object} Prisma WHERE fragment for the requested status.
+ */
+const buildEventStatusFilter = (status) => {
+  const { startOfTodayUTC, endOfTodayUTC, currentTimeOnEpoch } =
+    buildTodayBoundaries(new Date());
+
+  if (status === 'upcoming') {
+    return {
+      OR: [
+        { eventDate: { gt: endOfTodayUTC } },
+        {
+          AND: [
+            { eventDate: { gte: startOfTodayUTC, lte: endOfTodayUTC } },
+            { endTime: { gt: currentTimeOnEpoch } },
+          ],
+        },
+      ],
+    };
+  }
+  // 'past'
+  return {
+    OR: [
+      { eventDate: { lt: startOfTodayUTC } },
+      {
+        AND: [
+          { eventDate: { gte: startOfTodayUTC, lte: endOfTodayUTC } },
+          { endTime: { lte: currentTimeOnEpoch } },
+        ],
+      },
+    ],
+  };
 };
 
 /**

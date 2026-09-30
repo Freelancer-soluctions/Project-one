@@ -37,11 +37,11 @@ Remote MCP servers (Composio, Context7)
 
 The sanitization module blocks:
 
-| Severity | Patterns |
-|----------|----------|
+| Severity | Patterns                                                                                   |
+| -------- | ------------------------------------------------------------------------------------------ |
 | Critical | `ignore previous`, `system:`, `<system>`, `override`, authority framing (`**[CRITICAL]**`) |
-| High | Unicode invisible chars (`\u200B-\u200D`), sensitive paths (`~/.ssh`, `/etc/passwd`) |
-| Medium | Credential keywords, excessive whitespace |
+| High     | Unicode invisible chars (`\u200B-\u200D`), sensitive paths (`~/.ssh`, `/etc/passwd`)       |
+| Medium   | Credential keywords, excessive whitespace                                                  |
 
 **Truncation:** Descriptions capped at 500 chars with `...` suffix.
 
@@ -126,24 +126,24 @@ Return result or throw error
 
 ### Environment Variables
 
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `COMPOSIO_API_KEY` | Composio API key fallback | - |
-| `CONTEXT7_API_KEY` | Context7 API key fallback | - |
-| `PROXY_TASK_CONTEXT` | Task context for semantic filtering | `""` |
-| `PROXY_TOP_K` | Max tools to return | `8` |
-| `PROXY_THRESHOLD` | Min similarity score | `0.25` |
+| Variable             | Description                         | Default |
+| -------------------- | ----------------------------------- | ------- |
+| `COMPOSIO_API_KEY`   | Composio API key fallback           | -       |
+| `CONTEXT7_API_KEY`   | Context7 API key fallback           | -       |
+| `PROXY_TASK_CONTEXT` | Task context for semantic filtering | `""`    |
+| `PROXY_TOP_K`        | Max tools to return                 | `8`     |
+| `PROXY_THRESHOLD`    | Min similarity score                | `0.25`  |
 
 ## Why Proxy Over Direct MCP?
 
-| Aspect | Direct Remote MCP | Proxy |
-|--------|-------------------|-------|
-| Tool filtering | None | Semantic TOP_K |
-| Injection sanitization | None | Regex blocklist + truncation |
-| Description truncation | None | 500 char cap |
-| Cache | None | 5 min TTL |
-| Error handling | Basic | Full with fallback |
-| Auth | Per-request | Centralized in targets.js |
+| Aspect                 | Direct Remote MCP | Proxy                        |
+| ---------------------- | ----------------- | ---------------------------- |
+| Tool filtering         | None              | Semantic TOP_K               |
+| Injection sanitization | None              | Regex blocklist + truncation |
+| Description truncation | None              | 500 char cap                 |
+| Cache                  | None              | 5 min TTL                    |
+| Error handling         | Basic             | Full with fallback           |
+| Auth                   | Per-request       | Centralized in targets.js    |
 
 ## Troubleshooting
 

@@ -1,0 +1,15 @@
+{
+  "name": "opencode-agent-tooling",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Tooling del agente opencode (plugins, schemas); no forma parte del runtime del producto",
+  "type": "module",
+  "dependencies": {
+    "@opencode-ai/plugin": "^1.18.2",
+    "ajv": "^8.17.1",
+    "ajv-formats": "^3.0.1"
+  },
+  "overrides": {
+    "fast-uri": "^3.1.8"
+  }
+}

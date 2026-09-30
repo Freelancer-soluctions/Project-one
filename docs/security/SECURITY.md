@@ -591,6 +591,8 @@ When GitHub Secret Scanning detects a secret:
 
 ### Layer 2: Gitleaks in CI
 
+> **Estado operativo (verificado 2026-09-23):** `security.yml` (Security Pipeline) y `scheduled-security.yml` (Scheduled Security Scan) están **`disabled_manually`** en GitHub — no se ejecutan hoy (ver `docs/CONTEXT-CICD.md` §3.4/§3.5). El YAML es correcto y validado con `actionlint`; la protección activa actualmente es el pre-commit hook local (Gitleaks staged, capa L1) y Semgrep `p/secrets` en el `ci.yml` activo. Re-habilitación: `gh workflow enable "Security Pipeline" && gh workflow enable "Scheduled Security Scan"`. El job `Secret Detection` tampoco figura como required check en el ruleset de la rama (solo los 4 checks de governance).
+
 #### PR-Time Gate (Pull Request Scan)
 
 - **Trigger:** Every PR targeting `main`
@@ -603,7 +605,7 @@ When GitHub Secret Scanning detects a secret:
 
 - **Trigger:** Weekly cron (Monday 03:00 UTC) + manual `workflow_dispatch`
 - **Scope:** Full repository history (`--log-opts="--all"`) — all refs and commits
-- **Behavior:** **Fail-closed** — findings fail the run; report artifacts still uploaded (if: always())
+- **Behavior:** **Audit mode** — findings do NOT fail the run (`continue-on-error: true`); el run reporta hallazgos (artifact JSON + SARIF) y continúa, de modo que los findings siguen visibles sin romper la automatización (spec `ci-secret-scanning`, R2). Solo falla ante errores de infra (y entonces `notify-failure` abre un issue)
 - **Outputs:**
   - JSON artifact (`gitleaks-report`) uploaded for 30 days (with `--redact` to avoid exposing secrets in the artifact)
   - SARIF uploaded to **Security tab** for centralized visibility (requires `security-events: write` permission)
@@ -658,6 +660,8 @@ When GitHub Secret Scanning detects a secret:
 
 ### Layer 2: Gitleaks in CI
 
+> **Estado operativo (verificado 2026-09-23):** `security.yml` (Security Pipeline) y `scheduled-security.yml` (Scheduled Security Scan) están **`disabled_manually`** en GitHub — no se ejecutan hoy (ver `docs/CONTEXT-CICD.md` §3.4/§3.5). El YAML es correcto y validado con `actionlint`; la protección activa actualmente es el pre-commit hook local (Gitleaks staged, capa L1) y Semgrep `p/secrets` en el `ci.yml` activo. Re-habilitación: `gh workflow enable "Security Pipeline" && gh workflow enable "Scheduled Security Scan"`. El job `Secret Detection` tampoco figura como required check en el ruleset de la rama (solo los 4 checks de governance).
+
 #### PR-Time Gate (Pull Request Scan)
 
 - **Trigger:** Every PR targeting `main`
@@ -670,7 +674,7 @@ When GitHub Secret Scanning detects a secret:
 
 - **Trigger:** Weekly cron (Monday 03:00 UTC) + manual `workflow_dispatch`
 - **Scope:** Full repository history (`--log-opts="--all"`) — all refs and commits
-- **Behavior:** **Fail-closed** — findings fail the run; report artifacts still uploaded (if: always())
+- **Behavior:** **Audit mode** — findings do NOT fail the run (`continue-on-error: true`); el run reporta hallazgos (artifact JSON + SARIF) y continúa, de modo que los findings siguen visibles sin romper la automatización (spec `ci-secret-scanning`, R2). Solo falla ante errores de infra (y entonces `notify-failure` abre un issue)
 - **Outputs:**
   - JSON artifact (`gitleaks-report`) uploaded for 30 days (with `--redact` to avoid exposing secrets in the artifact)
   - SARIF uploaded to **Security tab** for centralized visibility (requires `security-events: write` permission)
@@ -850,27 +854,28 @@ The sibling `gitleaks-report` artifact (from `scheduled-security.yml`) has 30-da
 
 The following licenses are flagged as **deny-listed** in the digest. This list is aligned with the default deny-list of `actions/dependency-review-action` (used in the sibling `security.yml` workflow):
 
-| License     | Family |
-| ----------- | ------ |
-| `GPL-1.0`   | GPL    |
-| `GPL-1.0+`  | GPL    |
-| `GPL-2.0`   | GPL    |
-| `GPL-2.0+`  | GPL    |
-| `GPL-3.0`   | GPL    |
-| `GPL-3.0+`  | GPL    |
-| `LGPL-1.0`  | LGPL   |
-| `LGPL-1.0+` | LGPL   |
-| `LGPL-2.0`  | LGPL   |
-| `LGPL-2.1`  | LGPL   |
-| `LGPL-3.0`  | LGPL   |
-| `AGPL-1.0`  | AGPL   |
-| `AGPL-1.0+` | AGPL   |
-| `AGPL-3.0`  | AGPL   |
-| `AGPL-3.0+` | AGPL   |
+| License        | Family              |
+| -------------- | ------------------- | --- | ---------- | ---- |
+| `GPL-1.0`      | GPL                 |
+| `GPL-1.0+`     | GPL                 |
+| `GPL-2.0`      | GPL                 |
+| `GPL-2.0+`     | GPL                 |
+| `GPL-3.0`      | GPL                 |
+| `GPL-3.0+`     | GPL                 |
+| `LGPL-1.0`     | LGPL                |
+| `LGPL-1.0+`    | LGPL                |
+| `LGPL-2.0`     | LGPL                |
+| `LGPL-2.1`     | LGPL                |
+| `LGPL-3.0`     | LGPL                |     | `AGPL-1.0` | AGPL |
+| `AGPL-1.0+`    | AGPL                |
+| `AGPL-3.0`     | AGPL                |
+| `AGPL-3.0+`    | AGPL                |
+| `SSPL-1.0`     | SSPL                |
+| `CC-BY-NC-4.0` | CC (non-commercial) |
 
-**Rationale**: These copyleft licenses impose redistribution requirements that may be incompatible with the project's distribution model. The deny-list is defined as a static constant in `scripts/security/generate-security-digest.mjs` and documented here for auditability.
+**Rationale**: These copyleft licenses impose redistribution requirements that may be incompatible with the project's distribution model. `SSPL-1.0` is aggravated service copyleft and `CC-BY-NC-4.0` is non-commercial (incompatible with production use). The deny-list is defined as a static constant in `scripts/security/generate-security-digest.mjs` and documented here for auditability.
 
-**Note on scope**: This list intentionally contains **15 entries** rather than the full 18-entry default deny-list of `actions/dependency-review-action`. The three omitted variants — `LGPL-2.0+`, `LGPL-2.1+`, `LGPL-3.0+` — are excluded by design: the base LGPL family (`LGPL-2.0`, `LGPL-2.1`, `LGPL-3.0`) is already covered, and the `-+` "or later" suffix variants are omitted to avoid over-blocking. This is a deliberate scope reduction, not an oversight.
+**Note on scope**: This list contains **17 entries**: the 15 GPL/LGPL/AGPL family entries below, **plus `SSPL-1.0` and `CC-BY-NC-4.0`** so that it remains a **superset of the PR gate deny-list** (`ci.yml` job `dependency-review`, key `deny-licenses` — requirement of `openspec/specs/license-compliance`). The digest (weekly, advisory) must flag at least everything the blocking gate denies. The list still omits the `LGPL-2.0+`, `LGPL-2.1+`, `LGPL-3.0+` "or later" variants of the action's default: the base LGPL family is already covered and the `-+` suffixes are omitted to avoid over-blocking. This is a deliberate scope reduction, not an oversight.
 
 ---
 

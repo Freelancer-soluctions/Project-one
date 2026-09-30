@@ -8,12 +8,26 @@ updates:
       time: "03:00"
       timezone: "UTC"
     open-pull-requests-limit: 10
+    # cooldown: reduce ruido — espera 7 días tras cada release antes de abrir
+    # el PR (change `sca-lockfile-compliance`, capa prevención).
+    cooldown:
+      default-days: 7
     labels:
       - "dependencies"
       - "automated"
     commit-message:
       prefix: "fix"
+    # security-patches PRIMERO: Dependabot asigna cada paquete al primer grupo
+    # que matchea — así los parches de seguridad (patch) no se mezclan con los
+    # version-updates de dev-dependencies (applies-to: security-updates limita
+    # el grupo a PRs de seguridad; change `sca-lockfile-compliance`).
     groups:
+      security-patches:
+        applies-to: security-updates
+        patterns:
+          - "*"
+        update-types:
+          - "patch"
       dev-dependencies:
         patterns:
           - "eslint*"

@@ -24,18 +24,24 @@ Single config file at project root. Schema: `https://opencode.ai/config.json`. A
   "skills": { "paths": [".opencode/skills", ".agents/skills"] },
   "tool_output": {
     "max_lines": 200,
-    "max_bytes": 8192
+    "max_bytes": 8192,
   },
   "compaction": {
     "auto": true,
     "prune": true,
-    "reserved": 10000
+    "reserved": 10000,
   },
   "watcher": {
-    "ignore": ["node_modules/**", ".git/**", "dist/**", "coverage/**", "build/**"]
+    "ignore": [
+      "node_modules/**",
+      ".git/**",
+      "dist/**",
+      "coverage/**",
+      "build/**",
+    ],
   },
   "experimental": {
-    "mcp_timeout": 30000
+    "mcp_timeout": 30000,
   },
   "permission": {
     "read": "allow",
@@ -52,13 +58,23 @@ Single config file at project root. Schema: `https://opencode.ai/config.json`. A
     "lsp": "deny",
     "todowrite": "allow",
     "doom_loop": "ask",
-    "external_directory": "ask"
+    "external_directory": "ask",
   },
-  "provider": { /* see §2 */ },
-  "agent": { /* see §3 */ },
-  "command": { /* see §4 */ },
-  "mcp": { /* see §6 */ },
-  "plugin": [ /* see §7 */ ]
+  "provider": {
+    /* see §2 */
+  },
+  "agent": {
+    /* see §3 */
+  },
+  "command": {
+    /* see §4 */
+  },
+  "mcp": {
+    /* see §6 */
+  },
+  "plugin": [
+    /* see §7 */
+  ],
 }
 ```
 
@@ -137,26 +153,26 @@ Model ID format: `provider/model-name` (e.g., `anthropic/claude-sonnet-4-6`, `op
 
 ### 3.3 Modes
 
-| Mode | Description | Invoked by |
-|------|-------------|------------|
-| `primary` | Main agent, receives user requests | User directly |
+| Mode       | Description                                  | Invoked by                           |
+| ---------- | -------------------------------------------- | ------------------------------------ |
+| `primary`  | Main agent, receives user requests           | User directly                        |
 | `subagent` | Specialized agent, cannot be called directly | Only by other agents via `task` tool |
 
 ### 3.4 Tools vs Permissions
 
-| Field | Scope | Values |
-|-------|-------|--------|
-| `tools.write` (deprecated) | Can create files | `bool` |
-| `tools.edit` (deprecated) | Can modify files | `bool` |
-| `tools.bash` (deprecated) | Can execute shell | `bool` |
-| `permission.read` | Read files | `allow`/`deny`/`ask` |
-| `permission.write` | Create files | `allow`/`deny`/`ask` |
-| `permission.edit` | Modify files | `allow`/`deny`/`ask` |
-| `permission.bash` | Execute shell | `allow`/`deny`/`ask` or `{"git *": "allow", "*": "deny"}` |
-| `permission.webfetch` | Fetch URLs | `allow`/`deny`/`ask` |
-| `permission.question` | Ask user questions | `allow`/`deny`/`ask` |
-| `permission.skill` | Load skills | `allow`/`deny`/`ask` |
-| `permission.task` | Subagent delegation | glob object |
+| Field                      | Scope               | Values                                                    |
+| -------------------------- | ------------------- | --------------------------------------------------------- |
+| `tools.write` (deprecated) | Can create files    | `bool`                                                    |
+| `tools.edit` (deprecated)  | Can modify files    | `bool`                                                    |
+| `tools.bash` (deprecated)  | Can execute shell   | `bool`                                                    |
+| `permission.read`          | Read files          | `allow`/`deny`/`ask`                                      |
+| `permission.write`         | Create files        | `allow`/`deny`/`ask`                                      |
+| `permission.edit`          | Modify files        | `allow`/`deny`/`ask`                                      |
+| `permission.bash`          | Execute shell       | `allow`/`deny`/`ask` or `{"git *": "allow", "*": "deny"}` |
+| `permission.webfetch`      | Fetch URLs          | `allow`/`deny`/`ask`                                      |
+| `permission.question`      | Ask user questions  | `allow`/`deny`/`ask`                                      |
+| `permission.skill`         | Load skills         | `allow`/`deny`/`ask`                                      |
+| `permission.task`          | Subagent delegation | glob object                                               |
 
 > **Note:** `tools` (boolean) is deprecated. Use `permission` (allow/deny/ask) instead. OpenCode uses default-allow: all tools implicitly allowed unless explicitly denied.
 
@@ -261,6 +277,7 @@ description: Group changes into Conventional Commits
 Group all current changes into meaningful Conventional Commits.
 
 Flow:
+
 1. Inspect repo state: `git status`, `git diff`, `git log`
 2. Group related files by intent
 3. Commit each group with Conventional Commit format
@@ -271,23 +288,23 @@ Flow:
 
 ### 4.3 Built-in Commands
 
-| Command | Purpose |
-|---------|---------|
-| `/init` | Initialize OpenCode in directory |
-| `/undo` | Undo last action |
-| `/redo` | Redo undone action |
-| `/share` | Share conversation |
-| `/help` | Show help |
+| Command  | Purpose                          |
+| -------- | -------------------------------- |
+| `/init`  | Initialize OpenCode in directory |
+| `/undo`  | Undo last action                 |
+| `/redo`  | Redo undone action               |
+| `/share` | Share conversation               |
+| `/help`  | Show help                        |
 
 Custom commands can override built-in commands by name.
 
 ### 4.4 Frontmatter Properties
 
-| Property | Required | Description |
-|----------|----------|-------------|
-| `description` | ✅ | Shown in TUI command palette |
-| `agent` | ❌ | Target agent for execution |
-| `model` | ❌ | Override model for this command |
+| Property      | Required | Description                     |
+| ------------- | -------- | ------------------------------- |
+| `description` | ✅       | Shown in TUI command palette    |
+| `agent`       | ❌       | Target agent for execution      |
+| `model`       | ❌       | Override model for this command |
 
 ---
 
@@ -297,14 +314,14 @@ Custom commands can override built-in commands by name.
 
 OpenCode loads skills from these directories (recursive, hierarchical):
 
-| Priority | Path | Scope |
-|:--------:|------|-------|
-| 1 | `.opencode/skills/*/SKILL.md` | Project-specific workflow skills |
-| 2 | `.agents/skills/*/SKILL.md` | Project-specific domain skills |
-| 3 | `.claude/skills/*/SKILL.md` | Project-specific (legacy) |
-| 4 | `~/.config/opencode/skills/*/SKILL.md` | Global user skills |
-| 5 | `~/.agents/skills/*/SKILL.md` | Global domain skills |
-| 6 | `~/.claude/skills/*/SKILL.md` | Global (legacy) |
+| Priority | Path                                   | Scope                            |
+| :------: | -------------------------------------- | -------------------------------- |
+|    1     | `.opencode/skills/*/SKILL.md`          | Project-specific workflow skills |
+|    2     | `.agents/skills/*/SKILL.md`            | Project-specific domain skills   |
+|    3     | `.claude/skills/*/SKILL.md`            | Project-specific (legacy)        |
+|    4     | `~/.config/opencode/skills/*/SKILL.md` | Global user skills               |
+|    5     | `~/.agents/skills/*/SKILL.md`          | Global domain skills             |
+|    6     | `~/.claude/skills/*/SKILL.md`          | Global (legacy)                  |
 
 ### 5.2 Skill Structure
 
@@ -318,14 +335,15 @@ OpenCode loads skills from these directories (recursive, hierarchical):
 
 ### 5.3 Skill Layers (project-one)
 
-| Layer | Directory | Purpose | Count |
-|-------|-----------|---------|:-----:|
-| **Workflow (OpenSpec)** | `.opencode/skills/` | SDD lifecycle (propose, apply, verify, archive) | 11 |
-| **Domain (Knowledge)** | `.agents/skills/` | Technical expertise (React, Node, TDD, security) | 15 |
+| Layer                   | Directory           | Purpose                                          | Count |
+| ----------------------- | ------------------- | ------------------------------------------------ | :---: |
+| **Workflow (OpenSpec)** | `.opencode/skills/` | SDD lifecycle (propose, apply, verify, archive)  |  11   |
+| **Domain (Knowledge)**  | `.agents/skills/`   | Technical expertise (React, Node, TDD, security) |  15   |
 
 ### 5.4 Loading a Skill
 
 Load via `/skill` command in conversation:
+
 ```
 /skill grill-me
 /skill caveman
@@ -335,6 +353,7 @@ Load via `/skill` command in conversation:
 ### 5.5 Installing External Skills
 
 Use `find-skills` skill to discover, then install from GitHub:
+
 ```jsonc
 // .opencode/skills-lock.json auto-generated on install
 ```
@@ -381,15 +400,15 @@ Skills can be auto-triggered when detecting specific developer actions (configur
 
 ### 6.3 MCP Properties
 
-| Property | Type | Required | Description |
-|----------|------|:--------:|-------------|
-| `type` | `"local"` \| `"remote"` | ✅ | Connection type |
-| `url` | string | for `remote` | SSE endpoint URL |
-| `command` | string[] | for `local` | Command + args for stdio |
-| `headers` | object | ❌ | HTTP headers for remote |
-| `oauth` | object | ❌ | OAuth config |
-| `env` | object | ❌ | Environment variables (local) |
-| `enabled` | bool | ❌ | Enable/disable (default: true) |
+| Property  | Type                    |   Required   | Description                    |
+| --------- | ----------------------- | :----------: | ------------------------------ |
+| `type`    | `"local"` \| `"remote"` |      ✅      | Connection type                |
+| `url`     | string                  | for `remote` | SSE endpoint URL               |
+| `command` | string[]                | for `local`  | Command + args for stdio       |
+| `headers` | object                  |      ❌      | HTTP headers for remote        |
+| `oauth`   | object                  |      ❌      | OAuth config                   |
+| `env`     | object                  |      ❌      | Environment variables (local)  |
+| `enabled` | bool                    |      ❌      | Enable/disable (default: true) |
 
 ---
 
@@ -406,6 +425,7 @@ Skills can be auto-triggered when detecting specific developer actions (configur
 ```
 
 Plugins can be:
+
 - npm package names (`@scope/name`)
 - npm package with version (`name@1.2.3`)
 - Local file paths (`./local-plugin.ts`)
@@ -418,6 +438,7 @@ Plugins can be:
 ### 8.1 Global Permissions
 
 Apply to all agents unless overridden at agent level:
+
 ```jsonc
 "permission": {
   "edit": "deny",
@@ -427,12 +448,12 @@ Apply to all agents unless overridden at agent level:
 
 ### 8.2 Permission States
 
-| State | Description |
-|-------|-------------|
-| `allow` | Auto-approved, no user prompt |
-| `deny` | Rejected, tool call fails |
-| `ask` | User prompted for approval |
-| `auto` | Session-wide auto-approval (non-interactive) |
+| State   | Description                                  |
+| ------- | -------------------------------------------- |
+| `allow` | Auto-approved, no user prompt                |
+| `deny`  | Rejected, tool call fails                    |
+| `ask`   | User prompted for approval                   |
+| `auto`  | Session-wide auto-approval (non-interactive) |
 
 ### 8.3 Permission Events (Go internals)
 
@@ -446,27 +467,27 @@ Any → Auto (session has auto-approval)
 
 ## 9. Project-Specific Differences
 
-| Aspect | Official Docs | project-one | Notes |
-|--------|---------------|-------------|-------|
-| Command dir | `.opencode/commands/` | `.opencode/command/` | Verify compatibility |
-| Skill paths | `.opencode/skills/`, `.agents/skills/` | Both used | ✅ Aligned |
-| Subagent mode | Documented as `"mode": "subagent"` | Used correctly | ✅ |
-| Tools vs Permissions | Both `tools` (bool) and `permission` (allow/deny/ask) | Uses `permission` only | `permission` is newer/richer, `tools` deprecated |
-| Global defaults + overrides | Not required (default-allow) | 15 tools at root, agents override only diffs | Inheritance model for config size reduction |
-| `steps` | "limit max agentic iterations" | Configured per agent (range: 10-45) | ✅ Aligned |
-| MCP | remote + local supported | 2 remote MCPs | ✅ |
+| Aspect                      | Official Docs                                         | project-one                                  | Notes                                            |
+| --------------------------- | ----------------------------------------------------- | -------------------------------------------- | ------------------------------------------------ |
+| Command dir                 | `.opencode/commands/`                                 | `.opencode/command/`                         | Verify compatibility                             |
+| Skill paths                 | `.opencode/skills/`, `.agents/skills/`                | Both used                                    | ✅ Aligned                                       |
+| Subagent mode               | Documented as `"mode": "subagent"`                    | Used correctly                               | ✅                                               |
+| Tools vs Permissions        | Both `tools` (bool) and `permission` (allow/deny/ask) | Uses `permission` only                       | `permission` is newer/richer, `tools` deprecated |
+| Global defaults + overrides | Not required (default-allow)                          | 15 tools at root, agents override only diffs | Inheritance model for config size reduction      |
+| `steps`                     | "limit max agentic iterations"                        | Configured per agent (range: 10-45)          | ✅ Aligned                                       |
+| MCP                         | remote + local supported                              | 2 remote MCPs                                | ✅                                               |
 
 ---
 
 ## 10. Quick Troubleshooting
 
-| Problem | Likely Cause | Fix |
-|---------|-------------|-----|
-| Agent stops mid-task | `steps` too low | Trace workflow turns, increase |
-| Command not found | Wrong directory name | Check `.opencode/command/` vs `.opencode/commands/` |
-| Skill not loading | Wrong path or missing SKILL.md | Verify `skills/*/SKILL.md` exists |
-| MCP not connecting | Missing API key or OAuth | Check env vars, re-auth |
-| Agent ignores instructions | Prompt file path wrong | Verify `{file:path}` resolves |
+| Problem                    | Likely Cause                   | Fix                                                 |
+| -------------------------- | ------------------------------ | --------------------------------------------------- |
+| Agent stops mid-task       | `steps` too low                | Trace workflow turns, increase                      |
+| Command not found          | Wrong directory name           | Check `.opencode/command/` vs `.opencode/commands/` |
+| Skill not loading          | Wrong path or missing SKILL.md | Verify `skills/*/SKILL.md` exists                   |
+| MCP not connecting         | Missing API key or OAuth       | Check env vars, re-auth                             |
+| Agent ignores instructions | Prompt file path wrong         | Verify `{file:path}` resolves                       |
 
 ---
 

@@ -83,3 +83,10 @@ The repository SHALL document how to enable GitHub native secret scanning and pu
 - **WHEN** GitHub secret scanning detects a secret already in the repository
 - **THEN** an alert SHALL appear in the Security tab for maintainers to review
 - **AND** the documentation SHALL describe how to respond to and dismiss alerts
+
+## Notes
+
+- **Operational status (verified 2026-09-23):** both implementing workflows exist with correct YAML (`actionlint` passes) but are **`disabled_manually` in GitHub** — confirmed via API (`gh workflow list`): `Security Pipeline` (security.yml) and `Scheduled Security Scan` (scheduled-security.yml). This is an intentional ops decision documented in `docs/CONTEXT-CICD.md` §3.4/§3.5 (only `ci.yml`, `opencode-review.yml` and `dependabot-updates` are active), NOT an implementation gap: the YAML satisfies R1–R3 as written.
+- **Consequence:** the PR-time gate (R1) and the weekly full-history scan (R2) do not execute today. Actual secret protection relies on the local pre-commit hook (Gitleaks staged scan, layer L1 per `docs/pre-merge-gates-governance.md` §7.6) plus Semgrep `p/secrets` in the active `ci.yml` SAST job.
+- **Re-enablement path:** `gh workflow enable "Security Pipeline" && gh workflow enable "Scheduled Security Scan"` (or Settings → Actions → Workflows). No YAML changes required.
+- **Merge-blocking caveat:** even when enabled, `Secret Detection` is not a required status check in the branch ruleset (only the 4 governance checks are) — R1's "blocking merge" holds at the check level, not at the ruleset level.

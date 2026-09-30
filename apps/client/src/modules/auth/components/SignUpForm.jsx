@@ -22,6 +22,106 @@ import { CalendarIcon } from '@radix-ui/react-icons';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { useTranslation } from 'react-i18next';
+import PropTypes from 'prop-types';
+
+/** Sign-up input field (parametrized name/label/placeholder/type). */
+function SignUpTextField({ control, name, labelKey, placeholderKey, type }) {
+  const { t } = useTranslation();
+  return (
+    <FormField
+      control={control}
+      name={name}
+      render={({ field }) => (
+        <FormItem>
+          <FormLabel>{t(labelKey)}</FormLabel>
+          <FormControl>
+            <Input
+              id={name}
+              name={name}
+              placeholder={t(placeholderKey)}
+              type={type}
+              {...field}
+              value={field.value ?? ''}
+            />
+          </FormControl>
+          <FormMessage />
+        </FormItem>
+      )}
+    />
+  );
+}
+
+SignUpTextField.propTypes = {
+  control: PropTypes.object.isRequired,
+  name: PropTypes.string.isRequired,
+  labelKey: PropTypes.string.isRequired,
+  placeholderKey: PropTypes.string.isRequired,
+  type: PropTypes.string.isRequired,
+};
+
+/** Date-of-birth picker (past dates only). */
+function SignUpDobField({ control }) {
+  const { t } = useTranslation();
+  return (
+    <FormField
+      control={control}
+      name="dob"
+      render={({ field }) => (
+        <FormItem className="flex flex-col">
+          <FormLabel>{t('date_of_birth')}</FormLabel>
+          <Popover>
+            <PopoverTrigger asChild>
+              <FormControl>
+                <Button
+                  variant={'outline'}
+                  className={cn(
+                    ' pl-3 text-left font-normal',
+                    !field.value && 'text-muted-foreground'
+                  )}
+                >
+                  {field.value ? (
+                    format(field.value, 'PPP')
+                  ) : (
+                    <span>{t('pick_date')}</span>
+                  )}
+                  <CalendarIcon className="w-4 h-4 ml-auto opacity-50" />
+                </Button>
+              </FormControl>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              <Calendar
+                mode="single"
+                selected={field.value}
+                onSelect={field.onChange}
+                disabled={(date) =>
+                  date > new Date() || date < new Date('1900-01-01')
+                }
+                initialFocus
+              />
+            </PopoverContent>
+          </Popover>
+
+          <FormMessage />
+        </FormItem>
+      )}
+    />
+  );
+}
+
+SignUpDobField.propTypes = {
+  control: PropTypes.object.isRequired,
+};
+
+/** Centered submit row. */
+function buildSubmitRow({ t }) {
+  return (
+    <div className="flex items-center justify-center">
+      <Button type="submit" className="flex-1">
+        {t('sign_up_button')}
+      </Button>
+    </div>
+  );
+}
 
 export const SignUpForm = () => {
   const { t } = useTranslation();
@@ -41,168 +141,48 @@ export const SignUpForm = () => {
             onSubmit={form.handleSubmit(onSubmit)}
             className="w-full p-10 space-y-5 "
           >
-            <FormField
+            <SignUpTextField
               control={form.control}
               name="fname"
-              render={({ field }) => {
-                return (
-                  <FormItem>
-                    <FormLabel>{t('first_name')}</FormLabel>
-                    <FormControl>
-                      <Input
-                        id="fname"
-                        name="fname"
-                        placeholder={t('sign_name_placeholder')}
-                        type="text"
-                        {...field}
-                        value={field.value ?? ''}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                );
-              }}
+              labelKey="first_name"
+              placeholderKey="sign_name_placeholder"
+              type="text"
             />
 
-            <FormField
+            <SignUpTextField
               control={form.control}
               name="lname"
-              render={({ field }) => {
-                return (
-                  <FormItem>
-                    <FormLabel>{t('last_name')}</FormLabel>
-                    <FormControl>
-                      <Input
-                        id="lname"
-                        name="lname"
-                        placeholder={t('sign_last_name_placeholder')}
-                        type="text"
-                        {...field}
-                        value={field.value ?? ''}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                );
-              }}
+              labelKey="last_name"
+              placeholderKey="sign_last_name_placeholder"
+              type="text"
             />
 
-            <FormField
+            <SignUpTextField
               control={form.control}
               name="email"
-              render={({ field }) => {
-                return (
-                  <FormItem>
-                    <FormLabel>{t('email')}</FormLabel>
-                    <FormControl>
-                      <Input
-                        id="email"
-                        name="email"
-                        placeholder={t('sign_email_placeholder')}
-                        type="email"
-                        {...field}
-                        value={field.value ?? ''}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                );
-              }}
+              labelKey="email"
+              placeholderKey="sign_email_placeholder"
+              type="email"
             />
 
-            <FormField
+            <SignUpTextField
               control={form.control}
               name="password"
-              render={({ field }) => {
-                return (
-                  <FormItem>
-                    <FormLabel>{t('password')}</FormLabel>
-                    <FormControl>
-                      <Input
-                        id="password"
-                        name="password"
-                        placeholder={t('sign_password_placeholder')}
-                        // autoComplete="current-password"
-                        type="password"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                );
-              }}
+              labelKey="password"
+              placeholderKey="sign_password_placeholder"
+              type="password"
             />
-            <FormField
+            <SignUpTextField
               control={form.control}
               name="rpassword"
-              render={({ field }) => {
-                return (
-                  <FormItem>
-                    <FormLabel>{t('password')}</FormLabel>
-                    <FormControl>
-                      <Input
-                        id="rpassword"
-                        name="rpassword"
-                        placeholder={t('sign_confirm_password_placeholder')}
-                        // autoComplete="current-password"
-                        type="password"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                );
-              }}
+              labelKey="password"
+              placeholderKey="sign_confirm_password_placeholder"
+              type="password"
             />
 
-            <FormField
-              control={form.control}
-              name="dob"
-              render={({ field }) => (
-                <FormItem className="flex flex-col">
-                  <FormLabel>{t('date_of_birth')}</FormLabel>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <FormControl>
-                        <Button
-                          variant={'outline'}
-                          className={cn(
-                            ' pl-3 text-left font-normal',
-                            !field.value && 'text-muted-foreground'
-                          )}
-                        >
-                          {field.value ? (
-                            format(field.value, 'PPP')
-                          ) : (
-                            <span>{t('pick_date')}</span>
-                          )}
-                          <CalendarIcon className="w-4 h-4 ml-auto opacity-50" />
-                        </Button>
-                      </FormControl>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar
-                        mode="single"
-                        selected={field.value}
-                        onSelect={field.onChange}
-                        disabled={(date) =>
-                          date > new Date() || date < new Date('1900-01-01')
-                        }
-                        initialFocus
-                      />
-                    </PopoverContent>
-                  </Popover>
+            <SignUpDobField control={form.control} />
 
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <div className="flex items-center justify-center">
-              <Button type="submit" className="flex-1">
-                {t('sign_up_button')}
-              </Button>
-            </div>
+            {buildSubmitRow({ t })}
           </form>
         </Form>
       </div>

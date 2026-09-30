@@ -13,32 +13,7 @@ import { prisma, Prisma } from '../../config/db.js';
  * @returns {Promise<Object>} Object containing vacations list and total count.
  */
 export const getAllVacation = async (filters, take, skip) => {
-  const whereClauses = [];
-
-  if (filters.employeeId) {
-    whereClauses.push(
-      Prisma.sql`va."employeeId" = ${Number(filters.employeeId)}`
-    );
-  }
-
-  if (filters.startDate) {
-    whereClauses.push(Prisma.sql`va."createdOn" >= ${filters.fromDate}`);
-  }
-
-  if (filters.endDate) {
-    whereClauses.push(Prisma.sql`va."createdOn" <= ${filters.toDate}`);
-  }
-
-  if (filters.status) {
-    // Using ILIKE for case-insensitive search for description
-    whereClauses.push(
-      Prisma.sql`va."status" ILIKE ${'%' + filters.status + '%'}`
-    );
-  }
-  if (filters.type) {
-    // Using ILIKE for case-insensitive search for description
-    whereClauses.push(Prisma.sql`va."type" ILIKE ${'%' + filters.type + '%'}`);
-  }
+  const whereClauses = buildVacationWhereClauses(filters);
 
   const whereSql = whereClauses.length
     ? Prisma.sql`WHERE ${Prisma.join(whereClauses, Prisma.sql` AND `)}`
@@ -96,6 +71,44 @@ export const getAllVacation = async (filters, take, skip) => {
   });
 
   return { dataList: vacations, total };
+};
+
+/**
+ * Builds the raw SQL WHERE fragments for the vacation list query.
+ * Kept apart from getAllVacation to keep both small and single-purpose.
+ *
+ * @param {Object} filters - Filter criteria (employeeId, fromDate, toDate, status, type).
+ * @returns {Array<Object>} Prisma.sql fragments joined later with AND.
+ */
+const buildVacationWhereClauses = (filters) => {
+  const whereClauses = [];
+
+  if (filters.employeeId) {
+    whereClauses.push(
+      Prisma.sql`va."employeeId" = ${Number(filters.employeeId)}`
+    );
+  }
+
+  if (filters.startDate) {
+    whereClauses.push(Prisma.sql`va."createdOn" >= ${filters.fromDate}`);
+  }
+
+  if (filters.endDate) {
+    whereClauses.push(Prisma.sql`va."createdOn" <= ${filters.toDate}`);
+  }
+
+  if (filters.status) {
+    // Using ILIKE for case-insensitive search for description
+    whereClauses.push(
+      Prisma.sql`va."status" ILIKE ${'%' + filters.status + '%'}`
+    );
+  }
+  if (filters.type) {
+    // Using ILIKE for case-insensitive search for description
+    whereClauses.push(Prisma.sql`va."type" ILIKE ${'%' + filters.type + '%'}`);
+  }
+
+  return whereClauses;
 };
 
 /**

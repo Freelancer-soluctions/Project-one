@@ -318,14 +318,15 @@ Mes 6: 1 deployment/día    (elite: CI/CD maduro + cultura de cambios pequeños)
 **En este proyecto**: el CI completo tarda < 15 minutos y el CD ~10 minutos, así que un cambio en `main` puede estar en producción en menos de una hora — asumiendo aprobación manual.
 
 **Desglose típico del lead time en este proyecto**:
-| Fase | Tiempo típico | Qué ocurre |
-|------|---------------|------------|
-| Commit → PR open | 0-30 min | Dev hace push, abre PR |
-| PR → CI complete | 10-15 min | ci.yml + security.yml |
-| CI → Merge | 15-60 min | Code review + approvals |
-| Merge → Deploy staging | 8-10 min | deploy.yml: docker-build + ecr-push + deploy-staging |
-| Staging → Production | 5-30 min | Manual approval + deploy-production |
-| **Total** | **~40-120 min** | **Objetivo: < 60 min** |
+
+| Fase                   | Tiempo típico   | Qué ocurre                                           |
+| ---------------------- | --------------- | ---------------------------------------------------- |
+| Commit → PR open       | 0-30 min        | Dev hace push, abre PR                               |
+| PR → CI complete       | 10-15 min       | ci.yml + security.yml                                |
+| CI → Merge             | 15-60 min       | Code review + approvals                              |
+| Merge → Deploy staging | 8-10 min        | deploy.yml: docker-build + ecr-push + deploy-staging |
+| Staging → Production   | 5-30 min        | Manual approval + deploy-production                  |
+| **Total**              | **~40-120 min** | **Objetivo: < 60 min**                               |
 
 **Cómo reducirlo más**:
 
@@ -342,12 +343,13 @@ Mes 6: 1 deployment/día    (elite: CI/CD maduro + cultura de cambios pequeños)
 **En este proyecto**: `deploy.yml` usa `deploymentCircuitBreaker={enable=true,rollback=true}` — si el despliegue falla el health check, ECS revierte automáticamente a la revisión anterior.
 
 **MTTR real en este pipeline**:
-| Escenario | Detección | Recuperación | MTTR estimado |
-|-----------|-----------|--------------|---------------|
-| Deploy falla health check | Automático (circuit breaker) | Rollback auto ECS | **< 2 min** |
-| Bug en staging detectado | Smoke test post-deploy | Re-deploy previo SHA | **~5 min** |
-| Bug en producción | Monitoring / alerta | Rollback manual + fix | **~15-30 min** |
-| Incidente de seguridad | Security digest / SAST | Revert + patch + re-deploy | **~1-4 horas** |
+
+| Escenario                 | Detección                    | Recuperación               | MTTR estimado  |
+| ------------------------- | ---------------------------- | -------------------------- | -------------- |
+| Deploy falla health check | Automático (circuit breaker) | Rollback auto ECS          | **< 2 min**    |
+| Bug en staging detectado  | Smoke test post-deploy       | Re-deploy previo SHA       | **~5 min**     |
+| Bug en producción         | Monitoring / alerta          | Rollback manual + fix      | **~15-30 min** |
+| Incidente de seguridad    | Security digest / SAST       | Revert + patch + re-deploy | **~1-4 horas** |
 
 **Runbook mental para MTTR bajo**:
 
@@ -365,16 +367,17 @@ Mes 6: 1 deployment/día    (elite: CI/CD maduro + cultura de cambios pequeños)
 **En este proyecto**: los quality gates multi-capa (lint → unit → integration → e2e → smoke post-deploy) reducen la probabilidad de que un cambio defectuoso llegue a producción.
 
 **Quality gates que protegen el CFR en este repo**:
-| Gate | Qué atrapa | Workflow/Job |
-|------|------------|--------------|
-| Lint + format | Syntax errors, style drift, unused vars | `ci.yml` (jobs inline `if: false`) |
-| TypeScript check | Type errors, breaking API changes | `ci.yml` |
-| Unit tests | Logic regressions, edge cases | `ci.yml` test-unit-\* |
-| Integration tests | DB schema drift, API contract breaks | `ci.yml` test-integration |
-| E2E tests | User journey breaks, UI regressions | `ci.yml` e2e |
-| Security scan | Vulnerabilities, secrets, SAST findings | `security.yml` |
-| Smoke tests (staging) | Runtime config, env vars, connectivity | `deploy.yml` deploy-staging |
-| Smoke tests (prod) | Production config, real traffic paths | `deploy.yml` deploy-production |
+
+| Gate                  | Qué atrapa                              | Workflow/Job                       |
+| --------------------- | --------------------------------------- | ---------------------------------- |
+| Lint + format         | Syntax errors, style drift, unused vars | `ci.yml` (jobs inline `if: false`) |
+| TypeScript check      | Type errors, breaking API changes       | `ci.yml`                           |
+| Unit tests            | Logic regressions, edge cases           | `ci.yml` test-unit-\*              |
+| Integration tests     | DB schema drift, API contract breaks    | `ci.yml` test-integration          |
+| E2E tests             | User journey breaks, UI regressions     | `ci.yml` e2e                       |
+| Security scan         | Vulnerabilities, secrets, SAST findings | `security.yml`                     |
+| Smoke tests (staging) | Runtime config, env vars, connectivity  | `deploy.yml` deploy-staging        |
+| Smoke tests (prod)    | Production config, real traffic paths   | `deploy.yml` deploy-production     |
 
 **Cálculo práctico**: `CFR = (deployments_with_incidents / total_deployments) × 100`
 

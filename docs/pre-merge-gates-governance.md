@@ -374,7 +374,7 @@ PR title is valid: "feat(auth): add refresh token rotation"
 #### Qué herramientas usamos y qué son
 
 - **[lint-staged](https://github.com/lint-staged/lint-staged)** (raíz, `package.json`): corre comandos solo sobre los archivos **staged**, no sobre todo el repo — ahí está su valor: el feedback es inmediato y el costo es proporcional al cambio.
-- **[prettier](https://prettier.io)** (`.prettierrc` + `.prettierignore`): formateador opinado (printWidth 80, singleQuote, semi, eol lf).
+- **[prettier](https://prettier.io)** (`.prettierrc.yaml` + `.prettierignore`): formateador opinado (printWidth 80, singleQuote, semi, eol lf).
 - **[eslint](https://eslint.org)** (`eslint.config.js`): lint de JS/JSX.
 
 #### Qué valida
@@ -436,7 +436,7 @@ npm exec lint-staged || { echo "lint-staged failed"; exit 1; }
 FAILED=0
 npm run sast:semgrep &        # -> scripts/security/semgrep-staged.ps1
 SAST_PID=$!
-npm run security:secrets &    # -> gitleaks protect --staged
+npm run security:secrets &    # -> gitleaks git --pre-commit --staged (change secret-scanning)
 SECRETS_PID=$!
 wait $SAST_PID || { echo "SAST scan failed"; FAILED=1; }
 wait $SECRETS_PID || { echo "Secret scan failed"; FAILED=1; }
@@ -505,14 +505,14 @@ En esta rama (`ci/governance-gates`) el job CI de Semgrep **no está en `ci.yml`
 
 ### 4.9 Detección de secretos — Gitleaks
 
-**Capa:** L1 (staged) + scheduled (workflow semanal, hoy `disabled_manually`) · **No es check del ruleset**
+**Capa:** L1 (staged) + PR gate (`ci.yml` job `secrets` substage 2C, wireado a `prebuild-security-complete.needs`; check `Secret Detection` en el ruleset — change `secret-scanning`) + scheduled full-history (`scheduled-security.yml`, `active` desde 2026-09-25, advisory/audit) · **SÍ es check del ruleset** (`Secret Detection`, strict)
 
 #### Qué herramienta usamos y qué es
 
-**[Gitleaks](https://gitleaks.io)**, scanner de secretos open source que detecta credenciales hardcodeadas en el código (API keys, tokens, passwords, connection strings) usando un motor de reglas basado en regex + entropía. Corremos gitleaks **solo sobre lo staged** (patrón `protect`) en el pre-commit:
+**[Gitleaks](https://gitleaks.io)**, scanner de secretos open source que detecta credenciales hardcodeadas en el código (API keys, tokens, passwords, connection strings) usando un motor de reglas basado en regex + entropía. Corremos gitleaks **solo sobre lo staged** (comando vigente `git --pre-commit --staged`; el patrón `protect` fue deprecado en gitleaks v8.19.0) en el pre-commit:
 
 ```bash
-npx gitleaks protect --staged --verbose --redact --config .gitleaks.toml
+npx gitleaks git --pre-commit --staged --verbose --redact --config .gitleaks.toml
 ```
 
 #### Qué valida — nuestra config (` .gitleaks.toml`, trackeada)
@@ -523,14 +523,21 @@ npx gitleaks protect --staged --verbose --redact --config .gitleaks.toml
 [extend]
 useDefault = true
 
-# Reglas custom para nuestros patrones de Node
+# Reglas custom para nuestros patrones de Node (change secret-scanning:
+# disabledRules=["generic-api-key"] + renombrada custom-api-key;
+# keywords/entropy/secretGroup en todas; allowlists de tests ancladas)
 [[rules]]
-id = "generic-api-key"
+id = "custom-api-key"
 regex = '''(?i)api[_-]?key['"]?\s*[:=]\s*['"][A-Za-z0-9_\-]{16,}['"]'''
+keywords = ["api_key", "api-key", "apikey"]
+entropy = 3.0
 
 [[rules]]
 id = "jwt-secret-variable"
-regex = '''(?i)jwt[_-]?secret['"]?\s*[:=]\s*['"].{10,}['"]'''
+regex = '''(?i)(jwt[_-]?secret)['"]?\s*[:=]\s*['\"]([^'"\n]{10,})['\"]'''
+keywords = ["jwt_secret", "jwt-secret", "jwtsecret"]
+entropy = 3.5
+secretGroup = 2
 
 [[rules]]
 id = "generic-secret-variable"
@@ -651,7 +658,7 @@ Sin path-scoping, un cambio trivial de README dispararía todo el pipeline de ca
 
 #### Qué herramienta usamos y qué es
 
-**[actions/dependency-review-action@v5](https://github.com/actions/dependency-review)**: diff de dependencias del PR vs la rama base, consulta el GitHub Advisory Database y bloquea si introduce vulnerabilidades conocidas o licencias incompatibles.
+**[actions/dependency-review-action@v5](https://github.com/actions/dependency-review-action)**: diff de dependencias del PR vs la rama base, consulta el GitHub Advisory Database y bloquea si introduce vulnerabilidades conocidas o licencias incompatibles.
 
 ```yaml
 # ci.yml — job Dependency Review (inline, no en security.yml)
@@ -675,7 +682,7 @@ Sin path-scoping, un cambio trivial de README dispararía todo el pipeline de ca
 
 #### Importancia
 
-Es un gate **no-bloqueante a nivel ruleset pero bloqueante a nivel PR**: si falla, el PR se marca en rojo pero no es uno de los 4 checks requeridos — porque es una capa de _seguridad_, no de _gobernanza del historial_. Configuramos `fail-on-severity: moderate` (el default de GitHub es `high`), lo que lo hace más estricto que el estándar.
+Es un gate **no-bloqueante a nivel ruleset pero bloqueante a nivel PR**: si falla, el PR se marca en rojo pero no es uno de los 4 checks requeridos — porque es una capa de _seguridad_, no de _gobernanza del historial_. Configuramos `fail-on-severity: moderate`. **Nota (change `dependency-review`, 2026-09-25):** el default de `actions/dependency-review-action` es `low` (no `high`, como afirmaba esta sección antes de corregirse — verificado en `src/schemas.ts` de la acción); `moderate` es más estricto que ese default y coherente con la política enterprise del repo.
 
 #### Dónde está implementada
 
@@ -731,6 +738,10 @@ Es el gate de **higiene de configuración**: el único que no valida código _de
 - **Deuda de limpieza:** sin una herramienta, "borrar lo que no se usa" es una tarea manual que se pospone indefinidamente.
 
 En el change activo se activa knip (dead-code) como uno de los substages de calidad del PRE-BUILD, junto con format-check, typecheck, complexity e import-bounds.
+
+**Gates de calidad reales (change `quality-gates` — 2026-09-26):** la taxonomía `blocking`/`advisory` de todos los jobs del substage 2B es contrato y su tabla canónica vive en `docs/learning/quality-gates.md` §2 (este doc la referencia, NO la duplica). Estado resultante: `client/server-typecheck` activos y bloqueantes (tsconfigs mínimos `allowJs`/`checkJs: false` + script `type-check`; el `|| echo "no-op"` que simulaba pasar fue eliminado), `server-complexity` activo sin `--rule` (umbrales desde `eslint.config.js`), `docs-validation` nuevo como advisory (`continue-on-error: true` + reporte en step summary, fuera de `needs` del agregador en fase 1) y `sonarqube` documentado como inactivo por falta de credenciales (`SONAR_TOKEN` no existe en el repo). Los 4 agregadores `prebuild-*-complete` evalúan `failure` **y** `cancelled` bajo `if: always()` — un run cancelado a medias ya no pasa en verde.
+
+**Import boundaries (`dependency-cruiser`, change `import-boundaries` — 2026-09-25):** la propiedad de los límites de import es exclusiva de dependency-cruiser (config raíz `.dependency-cruiser.cjs` como única fuente de verdad; `eslint-plugin-import` permanece desinstalado — ver `docs/learning/import-boundaries.md`). Desde 2026-09-25 los dos jobs están activos y son bloqueantes vía el agregador `prebuild-quality-complete`: `client-import-bounds` y `server-import-bounds` corren `depcruise:client`/`depcruise:server` con `--output-type err --ignore-known` desde la RAÍZ (los regex `^apps/...` del config raíz nunca matchearían con `working-directory` por workspace — esa era la dead-rule histórica), más un report `err-html` no-bloqueante (`continue-on-error: true`, `if: always()`) que sube el grafo como artefacto. Fase 1: baseline `.dependency-cruiser-known-violations.json` (58 violaciones conocidas: ciclos y cross-module del client, orphans de código muerto del server) respeta la deuda existente sin bloquearla; nuevas violaciones `error` (cross-workspace) sí bloquean. Fase 2 (post-limpieza): quitar `--ignore-known` del script `depcruise:ci`.
 
 #### Importancia
 
@@ -810,7 +821,7 @@ La propuesta enterprise (`docs/ci-cd-pipeline-empresarial.md` §23.3, STAGE 2 PR
 | SAST como capa del gate                                                    | SAST local staged (activo) + evolución CI diseñada (F1 no-bloqueante)                                                   | La capa CI aún no está en el árbol; la local ya produce resultados                                                                                |
 | "CI Complete" como check agregador                                         | `ci-complete` existe pero se SKIPPA con `CI_MINIMAL=true`                                                               | No se vincula al ruleset hasta reportarse ≥1 vez (GitHub solo permite elegir checks que hayan corrido)                                            |
 | Governance sobre _todo_ el pipeline                                        | Governance distribuida que hoy cubre el **pre-merge**; el post-merge (deploy/release) tiene workflows con gates propios | Expansión planificada por changes separados (regla 4: un change NO mezcla stages)                                                                 |
-| Política de dependencias                                                   | `dependency-review` con `fail-on-severity: moderate`                                                                    | Más estricto que el default (high)                                                                                                                |
+| Política de dependencias                                                   | `dependency-review` con `fail-on-severity: moderate`                                                                    | Más estricto que el default (low) — política en `docs/learning/license-policy.md`                                                                 |
 
 **Por qué estas desviaciones son diseño, no deuda:** nuestro contexto es un monorepo pequeño-medio con 1 develop, no una enterprise. Correr los 25+ jobs de calidad en cada PR costaría minutos y bloquearía la iteración sin beneficio proporcional. El diseño incremental (gobernanza primero, calidad después, cada pieza con change propio) es lo que hizo el sistema sostenible.
 

@@ -17,6 +17,198 @@ import { MenuBar } from './MenuBar';
 import { MentionList } from './MentionList';
 import PropTypes from 'prop-types';
 
+/**
+ * Factoría del renderer de sugerencias de mención (TipTap Suggestion API).
+ * Crea el MentionList con ReactRenderer y lo posiciona con tippy; devuelve el
+ * ciclo onStart/onUpdate/onKeyDown/onExit que espera la API.
+ *
+ * @returns {Function} Callback `render` para Mention.configure({ suggestion }).
+ */
+const createMentionRenderer = () =>
+  function mentionRender() {
+    let component = null;
+    let popup = null;
+
+    return {
+      onStart: (props) => {
+        component = new ReactRenderer(MentionList, {
+          props,
+          editor: props.editor,
+        });
+
+        if (!props.clientRect) {
+          return;
+        }
+
+        popup = tippy('body', {
+          getReferenceClientRect: props.clientRect,
+          appendTo: () => document.body,
+          content: component.element,
+          showOnCreate: true,
+          interactive: true,
+          trigger: 'manual',
+          placement: 'bottom-start',
+        });
+      },
+
+      onUpdate(props) {
+        component?.updateProps(props);
+
+        if (!props.clientRect) {
+          return;
+        }
+
+        popup?.[0]?.setProps({
+          getReferenceClientRect: props.clientRect,
+        });
+      },
+
+      onKeyDown(props) {
+        if (props.event.key === 'Escape') {
+          popup?.[0]?.hide();
+          return true;
+        }
+
+        return component?.ref?.onKeyDown(props) ?? false;
+      },
+
+      onExit() {
+        popup?.[0]?.destroy();
+        component?.destroy();
+      },
+    };
+  };
+
+/**
+ * Filtra las sugerencias de mención por el texto tecleado (máx. 5).
+ *
+ * @param {Array<{label: string}>} mentionSuggestions - Sugerencias disponibles.
+ * @returns {Function} Callback `items` para la sugerencia de mención.
+ */
+const buildMentionItems =
+  (mentionSuggestions) =>
+  ({ query }) =>
+    mentionSuggestions
+      .filter((item) => item.label.toLowerCase().includes(query.toLowerCase()))
+      .slice(0, 5);
+
+/**
+ * Clases de estilo del área editable (prose + contención de texto largo).
+ *
+ * @returns {string} Clases para editorProps.attributes.
+ */
+const EDITOR_CONTENT_CLASS = [
+  'prose prose-sm dark:prose-invert max-w-none min-h-[120px] w-full px-3 py-2 focus:outline-none',
+  'whitespace-pre-wrap break-all',
+  '[overflow-wrap:anywhere]',
+  '[word-break:break-word]',
+  '[&_p]:my-1 [&_h1]:text-2xl [&_h1]:font-bold [&_h1]:my-2 [&_h2]:text-xl [&_h2]:font-semibold [&_h2]:my-2 [&_h3]:text-lg [&_h3]:font-semibold [&_h3]:my-2',
+  '[&_ul]:list-disc [&_ul]:pl-4 [&_ol]:list-decimal [&_ol]:pl-4',
+  '[&_blockquote]:border-l-2 [&_blockquote]:border-muted-foreground [&_blockquote]:pl-4 [&_blockquote]:italic',
+  '[&_code]:bg-muted [&_code]:px-1 [&_code]:py-0.5 [&_code]:rounded [&_code]:text-sm',
+  '[&_.mention]:bg-primary/10 [&_.mention]:text-primary [&_.mention]:px-1 [&_.mention]:py-0.5 [&_.mention]:rounded [&_.mention]:font-medium',
+  '[&_mark]:bg-yellow-200 [&_mark]:dark:bg-yellow-800 [&_mark]:px-0.5 [&_mark]:rounded-sm',
+  '[&_hr]:my-4 [&_hr]:border-border',
+].join(' ');
+
+/**
+ * Barra inferior del editor: contadores de palabras/caracteres y barra de
+ * progreso del límite.
+ *
+ * @param {Object} p - Props de la barra.
+ * @param {number} p.characterCount - Nº de caracteres actuales.
+ * @param {number} p.wordCount - Nº de palabras actuales.
+ * @param {number} [p.characterLimit] - Límite de caracteres (opcional).
+ * @returns {JSX.Element} Footer del editor.
+ */
+const EditorStatusBar = ({ characterCount, wordCount, characterLimit }) => {
+  const percentage = characterLimit
+    ? Math.round((100 / characterLimit) * characterCount)
+    : 0;
+
+  return (
+    <div className="flex items-center justify-between border-t border-border px-3 py-2 text-xs text-muted-foreground">
+      <div className="flex items-center gap-4">
+        <span>{wordCount} palabras</span>
+        <span>
+          {characterCount} / {characterLimit} caracteres
+        </span>
+      </div>
+      <div className="flex items-center gap-2">
+        <div className="h-2 w-24 rounded-full bg-muted overflow-hidden">
+          <div
+            className={cn(
+              'h-full transition-all duration-300',
+              percentage < 80
+                ? 'bg-primary'
+                : percentage < 95
+                  ? 'bg-yellow-500'
+                  : 'bg-destructive'
+            )}
+            style={{ width: `${Math.min(percentage, 100)}%` }}
+          />
+        </div>
+        <span>{percentage}%</span>
+      </div>
+    </div>
+  );
+};
+
+EditorStatusBar.propTypes = {
+  characterCount: PropTypes.number.isRequired,
+  wordCount: PropTypes.number.isRequired,
+  characterLimit: PropTypes.number,
+};
+
+/**
+ * Construye la lista de extensiones del editor TipTap.
+ *
+ * @param {Object} p - Configuración del editor.
+ * @param {string} [p.placeholder] - Placeholder del editor vacío.
+ * @param {number} [p.characterLimit] - Límite de caracteres.
+ * @param {Array<{label: string}>} p.mentionSuggestions - Sugerencias de mención.
+ * @returns {Array<Object>} Extensiones configuradas.
+ */
+const buildEditorExtensions = ({
+  placeholder,
+  characterLimit,
+  mentionSuggestions,
+}) => [
+  StarterKit,
+  Placeholder.configure({
+    placeholder,
+    emptyEditorClass:
+      'before:content-[attr(data-placeholder)] before:text-muted-foreground before:float-left before:h-0 before:pointer-events-none',
+  }),
+  CharacterCount.configure({
+    limit: characterLimit,
+  }),
+  Underline,
+  TextAlign.configure({
+    types: ['heading', 'paragraph'],
+  }),
+  Highlight.configure({
+    multicolor: false,
+  }),
+  Link.configure({
+    openOnClick: false,
+    HTMLAttributes: {
+      class: 'text-primary underline cursor-pointer hover:text-primary/80',
+    },
+  }),
+  Subscript,
+  Superscript,
+  Mention.configure({
+    HTMLAttributes: {
+      class: 'mention',
+    },
+    suggestion: {
+      items: buildMentionItems(mentionSuggestions),
+      render: createMentionRenderer(),
+    },
+  }),
+];
+
 export function TiptapEditor({
   value = '',
   onChange,
@@ -27,102 +219,11 @@ export function TiptapEditor({
   characterLimit,
 }) {
   const editor = useEditor({
-    extensions: [
-      StarterKit,
-      Placeholder.configure({
-        placeholder,
-        emptyEditorClass:
-          'before:content-[attr(data-placeholder)] before:text-muted-foreground before:float-left before:h-0 before:pointer-events-none',
-      }),
-      CharacterCount.configure({
-        limit: characterLimit,
-      }),
-      Underline,
-      TextAlign.configure({
-        types: ['heading', 'paragraph'],
-      }),
-      Highlight.configure({
-        multicolor: false,
-      }),
-      Link.configure({
-        openOnClick: false,
-        HTMLAttributes: {
-          class: 'text-primary underline cursor-pointer hover:text-primary/80',
-        },
-      }),
-      Subscript,
-      Superscript,
-      Mention.configure({
-        HTMLAttributes: {
-          class: 'mention',
-        },
-        suggestion: {
-          items: ({ query }) => {
-            return mentionSuggestions
-              .filter((item) =>
-                item.label.toLowerCase().includes(query.toLowerCase())
-              )
-              .slice(0, 5);
-          },
-          // tiptap suggestion callbacks, not React components — suppress prop-types false positive
-          /* eslint-disable react/prop-types */
-          render: () => {
-            let component = null;
-            let popup = null;
-
-            return {
-              onStart: (props) => {
-                component = new ReactRenderer(MentionList, {
-                  props,
-                  editor: props.editor,
-                });
-
-                if (!props.clientRect) {
-                  return;
-                }
-
-                popup = tippy('body', {
-                  getReferenceClientRect: props.clientRect,
-                  appendTo: () => document.body,
-                  content: component.element,
-                  showOnCreate: true,
-                  interactive: true,
-                  trigger: 'manual',
-                  placement: 'bottom-start',
-                });
-              },
-
-              onUpdate(props) {
-                component?.updateProps(props);
-
-                if (!props.clientRect) {
-                  return;
-                }
-
-                popup?.[0]?.setProps({
-                  getReferenceClientRect: props.clientRect,
-                });
-              },
-
-              onKeyDown(props) {
-                if (props.event.key === 'Escape') {
-                  popup?.[0]?.hide();
-                  return true;
-                }
-
-                return component?.ref?.onKeyDown(props) ?? false;
-              },
-
-              onExit() {
-                popup?.[0]?.destroy();
-                component?.destroy();
-              },
-            };
-          },
-          /* eslint-enable react/prop-types */
-        },
-      }),
-    ],
+    extensions: buildEditorExtensions({
+      placeholder,
+      characterLimit,
+      mentionSuggestions,
+    }),
     content: value,
     editable: !disabled,
     immediatelyRender: false,
@@ -131,19 +232,7 @@ export function TiptapEditor({
     },
     editorProps: {
       attributes: {
-        class: cn(
-          'prose prose-sm dark:prose-invert max-w-none min-h-[120px] w-full px-3 py-2 focus:outline-none',
-          'whitespace-pre-wrap break-all',
-          '[overflow-wrap:anywhere]',
-          '[word-break:break-word]',
-          '[&_p]:my-1 [&_h1]:text-2xl [&_h1]:font-bold [&_h1]:my-2 [&_h2]:text-xl [&_h2]:font-semibold [&_h2]:my-2 [&_h3]:text-lg [&_h3]:font-semibold [&_h3]:my-2',
-          '[&_ul]:list-disc [&_ul]:pl-4 [&_ol]:list-decimal [&_ol]:pl-4',
-          '[&_blockquote]:border-l-2 [&_blockquote]:border-muted-foreground [&_blockquote]:pl-4 [&_blockquote]:italic',
-          '[&_code]:bg-muted [&_code]:px-1 [&_code]:py-0.5 [&_code]:rounded [&_code]:text-sm',
-          '[&_.mention]:bg-primary/10 [&_.mention]:text-primary [&_.mention]:px-1 [&_.mention]:py-0.5 [&_.mention]:rounded [&_.mention]:font-medium',
-          '[&_mark]:bg-yellow-200 [&_mark]:dark:bg-yellow-800 [&_mark]:px-0.5 [&_mark]:rounded-sm',
-          '[&_hr]:my-4 [&_hr]:border-border'
-        ),
+        class: EDITOR_CONTENT_CLASS,
       },
     },
   });
@@ -156,9 +245,6 @@ export function TiptapEditor({
 
   const characterCount = editor?.storage.characterCount.characters() ?? 0;
   const wordCount = editor?.storage.characterCount.words() ?? 0;
-  const percentage = characterLimit
-    ? Math.round((100 / characterLimit) * characterCount)
-    : 0;
 
   return (
     <div
@@ -172,30 +258,11 @@ export function TiptapEditor({
       <div className="max-h-[200px] overflow-y-auto">
         <EditorContent editor={editor} />
       </div>
-      <div className="flex items-center justify-between border-t border-border px-3 py-2 text-xs text-muted-foreground">
-        <div className="flex items-center gap-4">
-          <span>{wordCount} palabras</span>
-          <span>
-            {characterCount} / {characterLimit} caracteres
-          </span>
-        </div>
-        <div className="flex items-center gap-2">
-          <div className="h-2 w-24 rounded-full bg-muted overflow-hidden">
-            <div
-              className={cn(
-                'h-full transition-all duration-300',
-                percentage < 80
-                  ? 'bg-primary'
-                  : percentage < 95
-                    ? 'bg-yellow-500'
-                    : 'bg-destructive'
-              )}
-              style={{ width: `${Math.min(percentage, 100)}%` }}
-            />
-          </div>
-          <span>{percentage}%</span>
-        </div>
-      </div>
+      <EditorStatusBar
+        characterCount={characterCount}
+        wordCount={wordCount}
+        characterLimit={characterLimit}
+      />
     </div>
   );
 }

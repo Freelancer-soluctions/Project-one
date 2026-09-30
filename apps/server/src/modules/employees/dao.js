@@ -4,20 +4,13 @@ import { hashValue } from '../../common/crypto/index.js';
 import { decryptResults } from '../../utils/prisma/prisma-query.js';
 
 /**
- * Get all employees with optional filters.
+ * Builds the raw SQL WHERE fragments for the employee list query.
+ * Kept apart from getAllEmployees to keep both small and single-purpose.
  *
- * @param {Object} filters - Filter parameters.
- * @param {string} [filters.name] - Filter by employee name.
- * @param {string} [filters.lastName] - Filter by employee last name.
- * @param {string} [filters.dni] - Filter by employee DNI.
- * @param {string} [filters.email] - Filter by employee email.
- * @param {string} [filters.department] - Filter by employee department.
- * @param {string} [filters.position] - Filter by employee position.
- * @param {number} take - Number of records to retrieve.
- * @param {number} skip - Number of records to skip.
- * @returns {Promise<Object>} Object containing dataList and total count.
+ * @param {Object} filters - Filter parameters (name, lastName, dni, email, department, position).
+ * @returns {Array<Object>} Prisma.sql fragments joined later with AND.
  */
-export const getAllEmployees = async (filters = {}, take, skip) => {
+const buildEmployeeWhereClauses = (filters) => {
   const whereClauses = [];
 
   if (filters.name) {
@@ -51,6 +44,26 @@ export const getAllEmployees = async (filters = {}, take, skip) => {
       Prisma.sql`e."position" ILIKE ${`%${filters.position}%`}`
     );
   }
+
+  return whereClauses;
+};
+
+/**
+ * Get all employees with optional filters.
+ *
+ * @param {Object} filters - Filter parameters.
+ * @param {string} [filters.name] - Filter by employee name.
+ * @param {string} [filters.lastName] - Filter by employee last name.
+ * @param {string} [filters.dni] - Filter by employee DNI.
+ * @param {string} [filters.email] - Filter by employee email.
+ * @param {string} [filters.department] - Filter by employee department.
+ * @param {string} [filters.position] - Filter by employee position.
+ * @param {number} take - Number of records to retrieve.
+ * @param {number} skip - Number of records to skip.
+ * @returns {Promise<Object>} Object containing dataList and total count.
+ */
+export const getAllEmployees = async (filters = {}, take, skip) => {
+  const whereClauses = buildEmployeeWhereClauses(filters);
 
   const whereSql = whereClauses.length
     ? Prisma.sql`WHERE ${Prisma.join(whereClauses, Prisma.sql` AND `)}`

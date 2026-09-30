@@ -42,8 +42,8 @@ Unit (Client + Server)
 
 #### Client (React)
 
-* Herramientas: Vitest + Testing Library
-* Entorno: `jsdom`
+- Herramientas: Vitest + Testing Library
+- Entorno: `jsdom`
 
 **Objetivo:**
 Validar comportamiento de componentes y hooks sin depender de implementación interna.
@@ -52,8 +52,8 @@ Validar comportamiento de componentes y hooks sin depender de implementación in
 
 #### Server (Express)
 
-* Herramienta: Vitest
-* Entorno: `node`
+- Herramienta: Vitest
+- Entorno: `node`
 
 **Objetivo:**
 Validar lógica de negocio, servicios y funciones puras.
@@ -62,7 +62,7 @@ Validar lógica de negocio, servicios y funciones puras.
 
 ### 4.2 Integration Testing (Server)
 
-* Herramientas: Vitest + Supertest
+- Herramientas: Vitest + Supertest
 
 **Objetivo:**
 Validar endpoints HTTP, controladores y flujo entre capas del backend (Server).
@@ -71,14 +71,14 @@ Validar endpoints HTTP, controladores y flujo entre capas del backend (Server).
 
 ### 4.3 End-to-End Testing (E2E)
 
-* Herramienta: Playwright
-* Ubicación: `e2e/tests`
+- Herramienta: Playwright
+- Ubicación: `e2e/tests`
 
 **Características:**
 
-* Ejecuta pruebas sobre el sistema completo
-* Levanta frontend y backend automáticamente
-* Simula interacción real del usuario
+- Ejecuta pruebas sobre el sistema completo
+- Levanta frontend y backend automáticamente
+- Simula interacción real del usuario
 
 **Objetivo:**
 Validar flujos críticos desde la perspectiva del usuario final.
@@ -87,13 +87,13 @@ Validar flujos críticos desde la perspectiva del usuario final.
 
 ### 4.4 UI Testing (Storybook)
 
-* Herramienta: Storybook
+- Herramienta: Storybook
 
 **Objetivo:**
 
-* Documentación visual de componentes
-* Testing de estados de UI
-* Base para visual regression
+- Documentación visual de componentes
+- Testing de estados de UI
+- Base para visual regression
 
 ---
 
@@ -134,23 +134,23 @@ Cada workspace define sus propios scripts granulares (`test:unit`, `test:integra
 
 ### 6.1 Aislamiento
 
-* Cada capa se prueba de forma independiente
-* No se comparten estados entre tests
+- Cada capa se prueba de forma independiente
+- No se comparten estados entre tests
 
 ---
 
 ### 6.2 Independencia por entorno
 
-* Client usa `jsdom`
-* Server usa `node`
-* E2E usa entorno real (browser)
+- Client usa `jsdom`
+- Server usa `node`
+- E2E usa entorno real (browser)
 
 ---
 
 ### 6.3 Determinismo
 
-* Tests no dependen de datos externos
-* Uso de mocks, fixtures o entornos controlados
+- Tests no dependen de datos externos
+- Uso de mocks, fixtures o entornos controlados
 
 ---
 
@@ -158,10 +158,10 @@ Cada workspace define sus propios scripts granulares (`test:unit`, `test:integra
 
 La arquitectura permite añadir fácilmente:
 
-* Contract testing
-* Visual regression testing
-* Performance testing
-* Testing con bases de datos reales
+- Contract testing
+- Visual regression testing
+- Performance testing
+- Testing con bases de datos reales
 
 ---
 
@@ -169,11 +169,11 @@ La arquitectura permite añadir fácilmente:
 
 ### Naming
 
-*.unit.test.js         → lógica pura (unit testing)
-*.ui.test.js           → componentes (UI testing con React Testing Library)
-*.integration.test.js  → integración entre módulos (store, router, APIs)
+_.unit.test.js → lógica pura (unit testing)
+_.ui.test.js → componentes (UI testing con React Testing Library)
+\*.integration.test.js → integración entre módulos (store, router, APIs)
 
-Se evita el uso genérico de *.test.js o *.spec.js sin contexto, ya que no permite identificar la intención del test.
+Se evita el uso genérico de _.test.js o _.spec.js sin contexto, ya que no permite identificar la intención del test.
 
 ---
 
@@ -276,9 +276,11 @@ modules/
 
 
 ```
+
 Excepciones
 
 Las pruebas que requieren entorno completo o navegador real se ubican fuera de src:
+
 ```plaintext
 tests/
   e2e/   → Playwright / Cypress
@@ -290,32 +292,38 @@ tests/
 
 Los tests se ejecutan en tres capas, cada una con un objetivo y presupuesto de tiempo distinto:
 
-| Capa | Objetivo | Timeout | Qué ejecuta |
-|------|----------|---------|-------------|
-| **Pre-commit** | Feedback inmediato en staged files | < 10s | ESLint + Prettier + type-check |
-| **Pre-push** | Validación rápida de cambios afectados | ~30s (límite SSH GitHub) | `vitest --changed origin/main` (scoped) |
-| **CI** | Validación completa del sistema | Ilimitado | Full unit + integration + E2E + coverage + security |
+| Capa           | Objetivo                               | Timeout                  | Qué ejecuta                                         |
+| -------------- | -------------------------------------- | ------------------------ | --------------------------------------------------- |
+| **Pre-commit** | Feedback inmediato en staged files     | < 10s                    | ESLint + Prettier + type-check                      |
+| **Pre-push**   | Validación rápida de cambios afectados | ~30s (límite SSH GitHub) | `vitest --changed origin/main` (scoped)             |
+| **CI**         | Validación completa del sistema        | Ilimitado                | Full unit + integration + E2E + coverage + security |
 
 ### 7.5.1 Pre-commit
+
 Se ejecuta vía Husky `pre-commit` hook. Corre ESLint, Prettier y type-check **solo sobre staged files** (`lint-staged`). Tiempo esperado: < 10 segundos.
 
 ### 7.5.2 Pre-push
+
 Se ejecuta vía Husky `pre-push` hook. Corre únicamente tests afectados por cambios desde `origin/main` usando `npx vitest run --changed origin/main`. El límite duro es ~30 segundos (timeout de SSH de GitHub).
 
 **Por qué `origin/main` como diff base:**
+
 - `HEAD~1` solo cubre el último commit — si una rama tiene múltiples commits, solo el último dispararía tests
 - `origin/main` cubre TODOS los commits de la rama desde el fork point
 - Es el estándar de la industria: Nx Affected, Turborepo `--filter`, y Vitest `--changed` usan `origin/main`
 - Compatible con TBD (Trunk-Based Development): branches cortas, pushes frecuentes
 
 **Excluidos de pre-push:**
+
 - Tests E2E (Playwright) — requieren browser binaries, lentos, pertenecen a CI
 - Tests de integración con DB (Prisma + Supertest) — requieren PostgreSQL, no disponible en hook
 
 ### 7.5.3 CI
+
 Se ejecuta en GitHub Actions (o similar) ante cada push/PR. Corre la suite completa: unit + integration + E2E + coverage + security scans. Sin límite de tiempo artificial.
 
 ### 7.5.4 Caching
+
 `vitest --changed` usa la cache de Vitest por defecto (`node_modules/.cache/vitest`). En CI, considerar `--reporter=blob` para fusionar reportes. En local, la cache acelera ejecuciones sucesivas.
 
 ---
@@ -326,15 +334,15 @@ Backend adopta un **enfoque híbrido** para la organización de tests: unit test
 
 ### 8.1 Colocated vs Centralized — Comparación
 
-| Dimensión | Colocado (unit) | Centralizado (integration/E2E) |
-|-----------|-----------------|--------------------------------|
-| Descubrimiento | ✅ Test a 1 archivo de distancia, visible en la misma carpeta | ❌ Debe navegar árbol paralelo o buscar |
-| Refactoring | ✅ Mover/renombrar source = test se mueve automáticamente | ❌ Debe espejar cada cambio estructural en 2 lugares |
-| Acoplamiento estructural | ❌ Más acoplado (Clean Architecture advierte contra esto) | ✅ Test independiente, componente desplegable |
-| Visibilidad de cobertura | ✅ Falta `.test.js` = señal visual inmediata | ❌ Debe cruzar 2 árboles para detectar gaps |
-| Empaquetado para deploy | ⚠️ Debe excluir `*.test.js` del dist/pkg | ✅ Carpeta única `tests/` fácil de excluir |
-| Cohesión de código | ✅ Source + test = una unidad de trabajo; ownership claro | ❌ Tests físicamente separados del código que verifican |
-| Simplicidad de imports | ✅ `import { X } from './X'` | ❌ `import { X } from '../../src/modules/X'` |
+| Dimensión                | Colocado (unit)                                               | Centralizado (integration/E2E)                          |
+| ------------------------ | ------------------------------------------------------------- | ------------------------------------------------------- |
+| Descubrimiento           | ✅ Test a 1 archivo de distancia, visible en la misma carpeta | ❌ Debe navegar árbol paralelo o buscar                 |
+| Refactoring              | ✅ Mover/renombrar source = test se mueve automáticamente     | ❌ Debe espejar cada cambio estructural en 2 lugares    |
+| Acoplamiento estructural | ❌ Más acoplado (Clean Architecture advierte contra esto)     | ✅ Test independiente, componente desplegable           |
+| Visibilidad de cobertura | ✅ Falta `.test.js` = señal visual inmediata                  | ❌ Debe cruzar 2 árboles para detectar gaps             |
+| Empaquetado para deploy  | ⚠️ Debe excluir `*.test.js` del dist/pkg                      | ✅ Carpeta única `tests/` fácil de excluir              |
+| Cohesión de código       | ✅ Source + test = una unidad de trabajo; ownership claro     | ❌ Tests físicamente separados del código que verifican |
+| Simplicidad de imports   | ✅ `import { X } from './X'`                                  | ❌ `import { X } from '../../src/modules/X'`            |
 
 ### 8.2 Qué Recomienda Cada Autoridad
 
@@ -342,7 +350,7 @@ Industria técnica consultada (2025-2026):
 
 #### NestJS (Documentación oficial)
 
-> *"Co-locate unit tests with the code they test. Put E2E tests in a separate top-level folder."*
+> _"Co-locate unit tests with the code they test. Put E2E tests in a separate top-level folder."_
 
 - **Posición**: Colocación fuerte para unit tests (`*.spec.ts` junto al módulo). E2E en `test/` separado.
 - **Por qué**: NestJS CLI genera `*.spec.ts` junto al archivo del módulo. El contenedor DI hace trivial el mocking, así los unit tests están inherentemente acoplados al módulo. E2E cruza módulos y necesita su propio espacio.
@@ -350,7 +358,7 @@ Industria técnica consultada (2025-2026):
 
 #### Kent C. Dodds (Blog "Colocation", 2019)
 
-> *"Co-locate unit test files next to source files. Put integration/E2E at root level."*
+> _"Co-locate unit test files next to source files. Put integration/E2E at root level."_
 
 - **Posición**: Colocar unit tests. E2E tests en raíz del proyecto.
 - **Por qué**: Testing debe ser como los comentarios de código — mantenerlos cerca de lo que describen. Refactors que mueven source mueven tests automáticamente. Import paths cortos. Si fuera otra ubicación, sería como un `DOCUMENTATION.md` gigante — nobody wants that.
@@ -358,7 +366,7 @@ Industria técnica consultada (2025-2026):
 
 #### TypeScript TV (2026)
 
-> *"Co-located Tests Scale Better"*
+> _"Co-located Tests Scale Better"_
 
 - **Posición**: Colocación gana a centralizado en codebases TypeScript.
 - **Por qué**: Discovery instantáneo (test es el siguiente archivo en el sidebar), refactors sobreviven (mover carpeta = mover tests), visibilidad de gaps (no test file = señal visual), import paths cortos, ownership claro por squad.
@@ -366,7 +374,7 @@ Industria técnica consultada (2025-2026):
 
 #### Clean Architecture (Robert C. Martin)
 
-> *"Tests are independently deployable components. Strong structural coupling between test and production code is an anti-pattern."*
+> _"Tests are independently deployable components. Strong structural coupling between test and production code is an anti-pattern."_
 
 - **Posición**: Tests como componentes independientes. Acoplamiento estructural entre test y producción code es dañino.
 - **Por qué**: El "Fragile Tests Problem" ocurre cuando tests están estructuralmente acoplados al código de producción. Una Testing API debería desacoplarlos. La colocación inherentemente crea acoplamiento estructural.
@@ -393,22 +401,22 @@ Industria técnica consultada (2025-2026):
 
 #### Proyectos Express a gran escala (referencia empírica)
 
-| Proyecto | Estructura | Stars | Notas |
-|----------|-----------|-------|-------|
-| Ghost | Centralizado `test/` | 54K | Herencia histórica — predata colocación trend |
-| KeystoneJS | Centralizado `tests/` + `tests2/` | 10K | Herencia |
-| Strapi | Centralizado `test/` folder | 65K | Herencia |
-| Payload CMS | Centralizado `tests/` | 30K | Herencia |
+| Proyecto    | Estructura                        | Stars | Notas                                         |
+| ----------- | --------------------------------- | ----- | --------------------------------------------- |
+| Ghost       | Centralizado `test/`              | 54K   | Herencia histórica — predata colocación trend |
+| KeystoneJS  | Centralizado `tests/` + `tests2/` | 10K   | Herencia                                      |
+| Strapi      | Centralizado `test/` folder       | 65K   | Herencia                                      |
+| Payload CMS | Centralizado `tests/`             | 30K   | Herencia                                      |
 
 **Patrón**: Enterprise Express projects overwhelmingly use centralized test directories — pero es históricamente cultural, no óptimo. Estos proyectos pre-datan la trend de colocación.
 
 ### 8.3 Consenso Híbrido (2025-2026)
 
-| Tipo de Test | Ubicación | Rationale |
-|--------------|-----------|-----------|
-| **Unit tests** (lógica pura, single module) | **Colocado**: `src/modules/X/X.service.unit.test.js` | Feedback rápido, sobrevive refactors, ownership claro |
-| **Integration tests** (multi-module, DB, HTTP) | **Centralizado**: `tests/integration/` | Cruza módulos, no pertenece a un solo módulo; necesita DB setup |
-| **E2E tests** (API completa, browser) | **Top-level**: `e2e/` | Span del sistema completo; NO debe acoplarse a la estructura de source |
+| Tipo de Test                                   | Ubicación                                            | Rationale                                                              |
+| ---------------------------------------------- | ---------------------------------------------------- | ---------------------------------------------------------------------- |
+| **Unit tests** (lógica pura, single module)    | **Colocado**: `src/modules/X/X.service.unit.test.js` | Feedback rápido, sobrevive refactors, ownership claro                  |
+| **Integration tests** (multi-module, DB, HTTP) | **Centralizado**: `tests/integration/`               | Cruza módulos, no pertenece a un solo módulo; necesita DB setup        |
+| **E2E tests** (API completa, browser)          | **Top-level**: `e2e/`                                | Span del sistema completo; NO debe acoplarse a la estructura de source |
 
 **Endorsado por**: NestJS, Kent C. Dodds, TypeScript TV, y crecientemente la comunidad Node.js.
 
@@ -424,9 +432,9 @@ La estrategia "move-when-touched" sigue siendo válida para **futuros cambios**:
 // apps/server/vitest.config.js
 test: {
   include: [
-    'src/**/*.unit.test.js',                    // Unit tests colocados en src/
-    'tests/integration/**/*.integration.test.js' // Integration centralizados por módulo
-  ]
+    'src/**/*.unit.test.js', // Unit tests colocados en src/
+    'tests/integration/**/*.integration.test.js', // Integration centralizados por módulo
+  ];
 }
 ```
 
@@ -447,6 +455,7 @@ Esto permite coexistencia sin fricción durante la migración incremental.
 - Clean Architecture (Robert C. Martin) — libro, capítulo sobre testing
 
 ---
+
 ## 9. Estrategia de Mocks
 
 La estrategia de mocks define cómo se controlan las dependencias externas durante el testing, garantizando pruebas deterministas, rápidas y mantenibles. En este proyecto, se adopta un enfoque por capas alineado con buenas prácticas modernas en aplicaciones React con Redux Toolkit y RTK Query.
@@ -465,12 +474,14 @@ La estrategia de mocks define cómo se controlan las dependencias externas duran
 ### 9.2 Qué se Mockea
 
 #### ✅ Se mockea:
+
 - Requests HTTP (APIs externas)
 - Navegación (`react-router`)
 - Funciones de librerías externas no deterministas
 - Tiempo (`Date`, `setTimeout`, etc.)
 
 #### ❌ No se mockea:
+
 - Lógica de negocio interna
 - Selectores de Redux
 - Hooks propios (salvo casos muy específicos)
@@ -487,6 +498,7 @@ La estrategia de mocks define cómo se controlan las dependencias externas duran
 Objetivo: Validar lógica aislada.
 
 **Características:**
+
 - Uso de `vi.mock`
 - Sin conexión a red
 - Sin MSW
@@ -496,28 +508,33 @@ Objetivo: Validar lógica aislada.
 
 ```js
 vi.mock('react-router', () => ({
-  useNavigate: () => vi.fn()
+  useNavigate: () => vi.fn(),
 }));
 ```
 
 #### 🔗 Integration Testing
+
 **Objetivo:** Validar la interacción entre componentes y el estado de la aplicación.
 
 ### Características
-* **MSW:** Uso de *Mock Service Worker* para simular APIs.
-* **Store:** Uso del store real de **Redux Toolkit**.
-* **Router:** Uso del router real.
-* **Hooks:** No se mockean los hooks de RTK Query.
+
+- **MSW:** Uso de _Mock Service Worker_ para simular APIs.
+- **Store:** Uso del store real de **Redux Toolkit**.
+- **Router:** Uso del router real.
+- **Hooks:** No se mockean los hooks de RTK Query.
 
 ### Flujo de Datos
+
 Componente → RTK Query → fetch → **MSW intercepta** → MSW responde mock
 
 ---
 
 ## 9.4 Mocking de APIs con MSW
+
 Se utiliza **Mock Service Worker (MSW)** como herramienta principal para interceptar y simular requests HTTP.
 
 ### Definición de handlers
+
 ```javascript
 import { http, HttpResponse } from 'msw';
 
@@ -527,7 +544,9 @@ export const handlers = [
   }),
 ];
 ```
+
 ### Configuración del servidor
+
 ```javascript
 import { setupServer } from 'msw/node';
 import { handlers } from './handlers';
@@ -536,6 +555,7 @@ export const server = setupServer(...handlers);
 ```
 
 ### Setup global de tests
+
 ```javascript
 beforeAll(() => server.listen());
 afterEach(() => server.resetHandlers());
@@ -547,6 +567,7 @@ afterAll(() => server.close());
 ## 9.5 Estrategia con RTK Query
 
 Se definen dos enfoques según el tipo de test:
+
 ```javascript
 vi.mock('../services/api', () => ({
   useGetUsersQuery: () => ({
@@ -555,10 +576,13 @@ vi.mock('../services/api', () => ({
   }),
 }));
 ```
+
 ---
 
-## 9.6 Organización de 
+## 9.6 Organización de
+
 Estructura recomendada:
+
 ```plaintext
 tests/
   mocks/
@@ -569,17 +593,22 @@ tests/
     fixtures/
       user.fixture.js
 ```
+
 Fixtures (datos reutilizables)
+
 ```javascript
 export const userMock = {
   id: 1,
   name: 'John Doe',
 };
-``` 
+```
+
 ---
+
 ## 9.7 Overrides por Test
 
 Permite modificar el comportamiento de la API en tests específicos:
+
 ```javascript
 server.use(
   http.get('/api/users', () => {
@@ -587,6 +616,7 @@ server.use(
   })
 );
 ```
+
 Casos de uso:
 
 - Manejo de errores
@@ -594,7 +624,9 @@ Casos de uso:
 - Testing de reintentos
 
 ---
+
 ## 9.8 Buenas Prácticas
+
 - Centralizar mocks de API en MSW
 - Evitar mocks duplicados
 - Mantener fixtures reutilizables
@@ -602,46 +634,57 @@ Casos de uso:
 - Limitar mocks manuales a unit tests
 
 ---
+
 ## 9.9 Anti-Patrones
+
 - Mockear fetch manualmente cuando se usa MSW
 - Mockear RTK Query en integration tests
 - Tests dependientes entre sí
 - Mezclar múltiples estrategias de mocking sin control
 - Mockear lógica de negocio
+
 ---
+
 ## 9.10 Resumen Estratégico
-- Unit ->	vi.mock
-- Integration	-> MSW + Redux real
-- E2E ->	Sin mocks (o mínimos)
+
+- Unit -> vi.mock
+- Integration -> MSW + Redux real
+- E2E -> Sin mocks (o mínimos)
+
 ---
+
 ## 9.11 Regla General
+
 - MSW es la fuente de verdad para todo mocking HTTP.
 - Los mocks manuales se usan únicamente para aislamiento en unit tests.
+
 ---
+
 ## 10. Cobertura (Coverage)
 
 Se recomienda:
 
-* ≥ 80% en lógica crítica
-* No forzar coverage en componentes triviales
+- ≥ 80% en lógica crítica
+- No forzar coverage en componentes triviales
 
 ---
+
 ## 11. Decisiones Arquitectónicas
 
-| Decisión                  | Justificación                             |
-| ------------------------- | ----------------------------------------- |
-| Separar `e2e/` de `apps/` | Evita acoplamiento con aplicaciones       |
-| Usar Vitest               | Alto rendimiento y compatibilidad moderna |
-| Usar Testing Library      | Testing orientado a comportamiento        |
-| Usar Supertest            | Testing de APIs estándar                  |
-| Usar Playwright           | E2E robusto y paralelo                    |
-| Compartir config Vitest via `vitest.shared.js` | Reduce duplicación entre workspaces, unifica cobertura |
-| Usar `--workspaces --if-present` en scripts root | Auto-descubre workspaces, no requiere mantener lista manual |
-| Adoptar enfoque híbrido (unit colocado + integration centralizado) | Consenso industria 2025-2026 (NestJS, Kent C. Dodds, TypeScript TV). Unit tests junto al source → discovery + refactoring. Integration tests centralizados → cruzan módulos + DB setup. **Migración completada** — 161 unit tests movidos a `src/` |
-| Migración move-when-touched completada — 161 unit tests movidos a `src/` | Migración ejecutada en change `refactor-test-architecture`. Tests legados en `tests/unit/` migrados a ubicaciones coloadas en `src/`. Estrategia move-when-touched permanece para futuros cambios |
-| Three-tier hook strategy (pre-commit / pre-push / CI) | Pre-commit: lint + type-check en staged (<10s). Pre-push: scoped tests via `vitest --changed origin/main` (~30s). CI: full suite (sin límite) |
-| `origin/main` como diff base para scoped testing | `origin/main` cubre todos los commits de la rama, no solo el último (`HEAD~1`). Estándar industria (Nx, Turborepo, Vitest) |
-| E2E + DB-integration tests diferidos a CI | Requieren browser binaries (Playwright) y PostgreSQL — no disponibles en pre-push. CI provee infraestructura + caching + retry |
+| Decisión                                                                 | Justificación                                                                                                                                                                                                                                      |
+| ------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Separar `e2e/` de `apps/`                                                | Evita acoplamiento con aplicaciones                                                                                                                                                                                                                |
+| Usar Vitest                                                              | Alto rendimiento y compatibilidad moderna                                                                                                                                                                                                          |
+| Usar Testing Library                                                     | Testing orientado a comportamiento                                                                                                                                                                                                                 |
+| Usar Supertest                                                           | Testing de APIs estándar                                                                                                                                                                                                                           |
+| Usar Playwright                                                          | E2E robusto y paralelo                                                                                                                                                                                                                             |
+| Compartir config Vitest via `vitest.shared.js`                           | Reduce duplicación entre workspaces, unifica cobertura                                                                                                                                                                                             |
+| Usar `--workspaces --if-present` en scripts root                         | Auto-descubre workspaces, no requiere mantener lista manual                                                                                                                                                                                        |
+| Adoptar enfoque híbrido (unit colocado + integration centralizado)       | Consenso industria 2025-2026 (NestJS, Kent C. Dodds, TypeScript TV). Unit tests junto al source → discovery + refactoring. Integration tests centralizados → cruzan módulos + DB setup. **Migración completada** — 161 unit tests movidos a `src/` |
+| Migración move-when-touched completada — 161 unit tests movidos a `src/` | Migración ejecutada en change `refactor-test-architecture`. Tests legados en `tests/unit/` migrados a ubicaciones coloadas en `src/`. Estrategia move-when-touched permanece para futuros cambios                                                  |
+| Three-tier hook strategy (pre-commit / pre-push / CI)                    | Pre-commit: lint + type-check en staged (<10s). Pre-push: scoped tests via `vitest --changed origin/main` (~30s). CI: full suite (sin límite)                                                                                                      |
+| `origin/main` como diff base para scoped testing                         | `origin/main` cubre todos los commits de la rama, no solo el último (`HEAD~1`). Estándar industria (Nx, Turborepo, Vitest)                                                                                                                         |
+| E2E + DB-integration tests diferidos a CI                                | Requieren browser binaries (Playwright) y PostgreSQL — no disponibles en pre-push. CI provee infraestructura + caching + retry                                                                                                                     |
 
 ---
 
@@ -671,17 +714,20 @@ Convención de nombres: `*.smoke.test.js` — permite filtrado fácil con `--tes
 ### 12.3 Ejecución
 
 **Local / Manual (post-deploy):**
+
 ```bash
 cd apps/server
 npm run test:smoke
 ```
 
 **CI (pipeline post-deploy):**
+
 ```bash
 npm run test:smoke:ci
 ```
 
 **Configuración Vitest** (`apps/server/vitest.smoke.config.js`):
+
 - `testTimeout: 15000` (timeout estricto para feedback rápido)
 - `pool: 'forks'` con `singleFork: true` (evita fork overhead en CI)
 - `include: ['tests/smoke/**/*.smoke.test.js']` (solo smoke tests)
@@ -689,18 +735,19 @@ npm run test:smoke:ci
 
 ### 12.4 APIs Cubiertas
 
-| Categoría | Endpoints | Justificación |
-|-----------|-----------|---------------|
-| **Health / Metrics** | `GET /health`, `GET /metrics` | Infraestructura viva, Prometheus scrape |
-| **Database** | `GET /health/db` (Prisma `$queryRaw`) | Conectividad PostgreSQL real |
-| **Auth** | `POST /api/auth/signin`, `POST /api/auth/signup` | Puerta de entrada del sistema |
-| **Endpoints Críticos ERP (6)** | `GET /api/sales`, `GET /api/payroll`, `GET /api/purchases`, `GET /api/client-orders`, `GET /api/users`, `GET /api/products` | Módulos que mueven dinero o usuarios |
+| Categoría                      | Endpoints                                                                                                                   | Justificación                           |
+| ------------------------------ | --------------------------------------------------------------------------------------------------------------------------- | --------------------------------------- |
+| **Health / Metrics**           | `GET /health`, `GET /metrics`                                                                                               | Infraestructura viva, Prometheus scrape |
+| **Database**                   | `GET /health/db` (Prisma `$queryRaw`)                                                                                       | Conectividad PostgreSQL real            |
+| **Auth**                       | `POST /api/auth/signin`, `POST /api/auth/signup`                                                                            | Puerta de entrada del sistema           |
+| **Endpoints Críticos ERP (6)** | `GET /api/sales`, `GET /api/payroll`, `GET /api/purchases`, `GET /api/client-orders`, `GET /api/users`, `GET /api/products` | Módulos que mueven dinero o usuarios    |
 
 > **Nota**: Los 6 endpoints críticos corresponden a los módulos de prioridad CRÍTICA definidos en Sección 14.
 
 ### 12.5 Integración CI
 
 En GitHub Actions (post-deploy job):
+
 ```yaml
 - name: Smoke Tests
   run: npm run test:smoke:ci
@@ -726,11 +773,13 @@ Regression testing es la suite que protege contra regresiones en módulos core. 
 ### 13.2 Ejecución
 
 **Comando unificado (root):**
+
 ```bash
 npm run test:regression
 ```
 
 **Qué ejecuta internamente:**
+
 ```bash
 # Server: unit + integration de módulos críticos/alto
 cd apps/server && vitest run --config vitest.regression.config.js
@@ -740,6 +789,7 @@ cd apps/client && vitest run --config vitest.regression.config.js
 ```
 
 **Configuración Vitest** (`vitest.regression.config.js` en cada workspace):
+
 - `include`: patterns que cubren solo módulos críticos/alto
 - `exclude`: módulos NORMAL, tests E2E, smoke tests
 - `testTimeout: 30000`, `hookTimeout: 15000`
@@ -747,6 +797,7 @@ cd apps/client && vitest run --config vitest.regression.config.js
 ### 13.3 Integración lint-staged (Pre-commit)
 
 `lint-staged` **NO ejecuta tests de regresión** en pre-commit (muy lento para <10s). Solo corre:
+
 - ESLint + Prettier (staged files)
 - Type-check (staged files)
 
@@ -767,11 +818,11 @@ vitest run --changed origin/main --config vitest.regression.config.js
 
 ### 13.5 Módulos Críticos Cubiertos
 
-| Prioridad | Módulos | Tests Incluidos |
-|-----------|---------|-----------------|
-| **CRÍTICO** | sale, payroll, purchase, clientOrder, users | Unit + Integration |
-| **ALTO** | inventoryMovement, stock, products, employees, attendance, vacation, permission | Unit + Integration |
-| **NORMAL** | news, notes, events, settings, clients, providers | **Excluidos** de regression suite |
+| Prioridad   | Módulos                                                                         | Tests Incluidos                   |
+| ----------- | ------------------------------------------------------------------------------- | --------------------------------- |
+| **CRÍTICO** | sale, payroll, purchase, clientOrder, users                                     | Unit + Integration                |
+| **ALTO**    | inventoryMovement, stock, products, employees, attendance, vacation, permission | Unit + Integration                |
+| **NORMAL**  | news, notes, events, settings, clients, providers                               | **Excluidos** de regression suite |
 
 ---
 
@@ -781,38 +832,41 @@ La priorización de testing sigue el principio de **riesgo de negocio**: módulo
 
 ### 14.1 Tabla de Prioridades (3 Niveles)
 
-| Prioridad | Módulos | Justificación (Riesgo) |
-|-----------|---------|------------------------|
-| **CRÍTICO** 🔴 | `sale`, `payroll`, `purchase`, `clientOrder`, `users` | **Dinero + Identidad**: Transacciones financieras directas, nómina, compras, pedidos clientes, autenticación/autorización. Fallo = pérdida económica, legal, o breach seguridad. |
-| **ALTO** 🟠 | `inventoryMovement`, `stock`, `products`, `employees`, `attendance`, `vacation`, `permission` | **Negocio core**: Operaciones diarias del ERP. Fallo = parálisis operativa, datos inconsistentes, compliance laboral. |
-| **NORMAL** 🟢 | `news`, `notes`, `events`, `settings`, `clients`, `providers` | **Soporte / Auxiliar**: Funcionalidad secundaria. Fallo = degradación UX, no bloqueo crítico. |
+| Prioridad      | Módulos                                                                                       | Justificación (Riesgo)                                                                                                                                                           |
+| -------------- | --------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **CRÍTICO** 🔴 | `sale`, `payroll`, `purchase`, `clientOrder`, `users`                                         | **Dinero + Identidad**: Transacciones financieras directas, nómina, compras, pedidos clientes, autenticación/autorización. Fallo = pérdida económica, legal, o breach seguridad. |
+| **ALTO** 🟠    | `inventoryMovement`, `stock`, `products`, `employees`, `attendance`, `vacation`, `permission` | **Negocio core**: Operaciones diarias del ERP. Fallo = parálisis operativa, datos inconsistentes, compliance laboral.                                                            |
+| **NORMAL** 🟢  | `news`, `notes`, `events`, `settings`, `clients`, `providers`                                 | **Soporte / Auxiliar**: Funcionalidad secundaria. Fallo = degradación UX, no bloqueo crítico.                                                                                    |
 
 ### 14.2 Justificación por Riesgo (Design Decision D4)
 
 **CRÍTICO (Dinero/Identidad)**:
+
 - **sale / clientOrder**: Facturación, revenue recognition, impuestos. Error = multas, pérdida confianza cliente.
 - **payroll**: Nómina, seguridad social, contratos. Error = demandas laborales, multas gubernamentales.
 - **purchase**: Cuentas por pagar, inventario valuado. Error = desbalance financiero, auditoría.
 - **users**: AuthN/AuthZ, roles, permisos. Error = escalada privilegios, data breach.
 
 **ALTO (Negocio Core)**:
+
 - **inventoryMovement / stock / products**: Trazabilidad inventario, costo promedio, stockouts. Error = rupture stock, valuación errónea.
 - **employees / attendance / vacation / permission**: RRHH core, compliance laboral, liquidaciones. Error = incumplimiento legal, conflictos internos.
 
 **NORMAL (Soporte)**:
+
 - **news / notes / events**: Comunicación interna, no bloquea operación.
 - **settings**: Configuración, cambios infrecuentes.
 - **clients / providers**: Maestros de datos — importantes pero no transaccionales en tiempo real.
 
 ### 14.3 Implicaciones Prácticas
 
-| Acción | CRÍTICO | ALTO | NORMAL |
-|--------|---------|------|--------|
-| **Coverage target** | ≥80% | ≥60% | Best effort |
-| **Regression suite** | ✅ Incluido | ✅ Incluido | ❌ Excluido |
-| **E2E tests** | 2-3 flows | 1-2 flows | 0-1 flow |
-| **Code review** | Obligatorio 2 aprobaciones | 1 aprobación | 1 aprobación |
-| **Deploy gate** | Smoke test obligatorio | Smoke test | Solo CI |
+| Acción               | CRÍTICO                    | ALTO         | NORMAL       |
+| -------------------- | -------------------------- | ------------ | ------------ |
+| **Coverage target**  | ≥80%                       | ≥60%         | Best effort  |
+| **Regression suite** | ✅ Incluido                | ✅ Incluido  | ❌ Excluido  |
+| **E2E tests**        | 2-3 flows                  | 1-2 flows    | 0-1 flow     |
+| **Code review**      | Obligatorio 2 aprobaciones | 1 aprobación | 1 aprobación |
+| **Deploy gate**      | Smoke test obligatorio     | Smoke test   | Solo CI      |
 
 ### 14.4 Evolución de Prioridades
 
@@ -829,11 +883,11 @@ Guía completa para ejecutar, mantener y extender la suite E2E con Playwright.
 
 ### 15.1 Stack
 
-| Componente | Versión | Propósito |
-|------------|---------|-----------|
-| **Playwright Test** | ^1.40+ | Test runner, parallelización, reporters |
-| **Playwright Core** | ^1.40+ | Browser automation (Chromium, Firefox, WebKit) |
-| **@playwright/test** | ^1.40+ | Test framework con fixtures, assertions |
+| Componente           | Versión | Propósito                                      |
+| -------------------- | ------- | ---------------------------------------------- |
+| **Playwright Test**  | ^1.40+  | Test runner, parallelización, reporters        |
+| **Playwright Core**  | ^1.40+  | Browser automation (Chromium, Firefox, WebKit) |
+| **@playwright/test** | ^1.40+  | Test framework con fixtures, assertions        |
 
 ### 15.2 Estructura de Tests
 
@@ -893,6 +947,7 @@ export default defineConfig({
 ```
 
 **Puntos clave:**
+
 - `baseURL`: Apunta al frontend Vite dev server (puerto 5173)
 - `webServer`: Levanta `npm run dev` (client + server concurrentemente via concurrently)
 - `reuseExistingServer`: En local reusa server corriendo; en CI siempre levanta fresco
@@ -926,6 +981,7 @@ export class LoginPage {
 ```
 
 **Beneficios:**
+
 - Encapsula selectores y acciones
 - Tests legibles: `await loginPage.login('user@test.com', 'pass')`
 - Mantenimiento centralizado cuando UI cambia
@@ -934,24 +990,28 @@ export class LoginPage {
 ### 15.5 Ejecución
 
 **Local (con dev server):**
+
 ```bash
 cd e2e
 npm run test:e2e
 ```
 
 **CI (headless, multi-browser):**
+
 ```bash
 cd e2e
 npm run test:e2e:ci
 ```
 
 **Debug (headed, slow motion):**
+
 ```bash
 cd e2e
 npm run test:e2e:debug
 ```
 
 **Solo Chromium (rápido):**
+
 ```bash
 cd e2e
 npm run test:e2e -- --project=chromium
@@ -959,23 +1019,24 @@ npm run test:e2e -- --project=chromium
 
 ### 15.6 Cobertura Actual (Implementada)
 
-| Test | Archivo | Estado | Qué Valida |
-|------|---------|--------|------------|
-| Login | `auth/login.spec.js` | ✅ | Login exitoso, redirect a dashboard, error handling |
-| Logout | `auth/logout.spec.js` | ✅ | Logout limpia session, redirect a login |
-| Dashboard | `dashboard/dashboard.spec.js` | ✅ | Carga widgets, navegación lateral, user menu |
-| Users CRUD | `users/users-crud.spec.js` | ✅ | Listar, crear, editar, eliminar usuarios |
-| Sales View | `sales/sales-view.spec.js` | ✅ | Listar ventas, filtros, paginación, detalle |
+| Test       | Archivo                       | Estado | Qué Valida                                          |
+| ---------- | ----------------------------- | ------ | --------------------------------------------------- |
+| Login      | `auth/login.spec.js`          | ✅     | Login exitoso, redirect a dashboard, error handling |
+| Logout     | `auth/logout.spec.js`         | ✅     | Logout limpia session, redirect a login             |
+| Dashboard  | `dashboard/dashboard.spec.js` | ✅     | Carga widgets, navegación lateral, user menu        |
+| Users CRUD | `users/users-crud.spec.js`    | ✅     | Listar, crear, editar, eliminar usuarios            |
+| Sales View | `sales/sales-view.spec.js`    | ✅     | Listar ventas, filtros, paginación, detalle         |
 
 ### 15.7 Tests Skipeados y Por Qué
 
-| Test | Motivo Skip | Qué Requiere |
-|------|-------------|--------------|
-| `payroll-flow.spec.js` | `test.skip` | Datos nómina complejos (contratos, convenios, deducciones) — requiere seed DB específico |
-| `inventory-movement.spec.js` | `test.skip` | Movimientos stock requieren productos, almacenes, lotes pre-creados |
-| `purchase-order.spec.js` | `test.skip` | Flujo compra: proveedor + productos + aprobaciones — setup DB pesado |
+| Test                         | Motivo Skip | Qué Requiere                                                                             |
+| ---------------------------- | ----------- | ---------------------------------------------------------------------------------------- |
+| `payroll-flow.spec.js`       | `test.skip` | Datos nómina complejos (contratos, convenios, deducciones) — requiere seed DB específico |
+| `inventory-movement.spec.js` | `test.skip` | Movimientos stock requieren productos, almacenes, lotes pre-creados                      |
+| `purchase-order.spec.js`     | `test.skip` | Flujo compra: proveedor + productos + aprobaciones — setup DB pesado                     |
 
 **Patrón recomendado para habilitar:**
+
 1. Crear fixtures/seed scripts en `e2e/tests/fixtures/`
 2. Usar `test.beforeAll` para setup DB via API o Prisma seed
 3. Marcar como `test.skip` hasta que fixtures estén listos
@@ -989,20 +1050,22 @@ Metas de cobertura diferenciadas por criticidad del módulo. No existe un target
 
 ### 16.1 Targets por Prioridad
 
-| Prioridad | Módulos | Coverage Target | Justificación |
-|-----------|---------|-----------------|---------------|
-| **CRÍTICO** | sale, payroll, purchase, clientOrder, users | **≥ 80%** | Dinero + identidad. Bugs = impacto financiero/legal directo. |
-| **ALTO** | inventoryMovement, stock, products, employees, attendance, vacation, permission | **≥ 60%** | Negocio core. Bugs = parálisis operativa, datos inconsistentes. |
-| **NORMAL** | news, notes, events, settings, clients, providers | **Best effort** (sin target obligatorio) | Soporte. Tests de valor, no métrica. |
+| Prioridad   | Módulos                                                                         | Coverage Target                          | Justificación                                                   |
+| ----------- | ------------------------------------------------------------------------------- | ---------------------------------------- | --------------------------------------------------------------- |
+| **CRÍTICO** | sale, payroll, purchase, clientOrder, users                                     | **≥ 80%**                                | Dinero + identidad. Bugs = impacto financiero/legal directo.    |
+| **ALTO**    | inventoryMovement, stock, products, employees, attendance, vacation, permission | **≥ 60%**                                | Negocio core. Bugs = parálisis operativa, datos inconsistentes. |
+| **NORMAL**  | news, notes, events, settings, clients, providers                               | **Best effort** (sin target obligatorio) | Soporte. Tests de valor, no métrica.                            |
 
 ### 16.2 Cómo Medir Coverage
 
 **Comando unificado (root):**
+
 ```bash
 npm run test:coverage
 ```
 
 **Qué ejecuta:**
+
 ```bash
 # Server
 cd apps/server && vitest run --coverage
@@ -1023,15 +1086,15 @@ export const coverageConfig = {
   reportsDirectory: './coverage',
   exclude: [
     'node_modules/**',
-    'tests/**',              // Tests no se miden a sí mismos
-    '**/*.test.js',          // Archivos de test
+    'tests/**', // Tests no se miden a sí mismos
+    '**/*.test.js', // Archivos de test
     '**/*.spec.js',
-    '**/*.smoke.test.js',    // Smoke tests excluidos
-    '**/vitest.*.js',        // Config files
-    '**/prisma/**',          // Generated Prisma client
-    '**/migrations/**',      // DB migrations
-    'dist/**',               // Build output
-    '**/*.d.ts',             // Type definitions
+    '**/*.smoke.test.js', // Smoke tests excluidos
+    '**/vitest.*.js', // Config files
+    '**/prisma/**', // Generated Prisma client
+    '**/migrations/**', // DB migrations
+    'dist/**', // Build output
+    '**/*.d.ts', // Type definitions
   ],
   thresholds: {
     // Thresholds globales (warning only, no fail build)
@@ -1047,21 +1110,22 @@ export const coverageConfig = {
 
 ### 16.4 Exclusiones Estándar
 
-| Patrón | Razón |
-|--------|-------|
-| `node_modules/**` | Dependencias externas |
-| `tests/**` | Tests no se testean a sí mismos |
-| `**/*.test.js`, `**/*.spec.js` | Archivos de test |
-| `**/*.smoke.test.js` | Smoke tests (no testean lógica) |
-| `**/vitest.*.js` | Config files |
-| `**/prisma/**` | Generated client |
-| `**/migrations/**` | SQL migrations |
-| `dist/**` | Build output |
-| `**/*.d.ts` | Type definitions |
+| Patrón                         | Razón                           |
+| ------------------------------ | ------------------------------- |
+| `node_modules/**`              | Dependencias externas           |
+| `tests/**`                     | Tests no se testean a sí mismos |
+| `**/*.test.js`, `**/*.spec.js` | Archivos de test                |
+| `**/*.smoke.test.js`           | Smoke tests (no testean lógica) |
+| `**/vitest.*.js`               | Config files                    |
+| `**/prisma/**`                 | Generated client                |
+| `**/migrations/**`             | SQL migrations                  |
+| `dist/**`                      | Build output                    |
+| `**/*.d.ts`                    | Type definitions                |
 
 ### 16.5 Validación en Code Review
 
 En PR que toque módulos CRÍTICOS/ALTO:
+
 1. Revisar `npm run test:coverage` output
 2. Verificar que archivos modificados en módulos críticos cumplan ≥80% / ≥60%
 3. Si no: requerir tests adicionales antes de merge
@@ -1073,10 +1137,10 @@ En PR que toque módulos CRÍTICOS/ALTO:
 
 La arquitectura de testing:
 
-* Separa responsabilidades por capas
-* Mantiene independencia entre módulos
-* Escala con el crecimiento del proyecto
-* Facilita pipelines eficientes
+- Separa responsabilidades por capas
+- Mantiene independencia entre módulos
+- Escala con el crecimiento del proyecto
+- Facilita pipelines eficientes
 
 No está diseñada alrededor de herramientas, sino de validación del sistema.
 
@@ -1091,10 +1155,12 @@ Esta sección documenta los problemas de compatibilidad multiplataforma encontra
 **Problema:** En Windows con Git Bash (MSYS2), `npx` invoca un shim `.cmd` que no propaga correctamente `EOF`/`SIGTERM`, causando procesos colgados (spawn loop) que no terminan — visible en Task Manager como múltiples procesos `node.exe` huérfanos tras ejecutar `npm run test`.
 
 **Referencias:**
+
 - [npm/cli#8259](https://github.com/npm/cli/issues/8259) — `npx` no propaga señales en Windows
 - [nodejs/node#52681](https://github.com/nodejs/node/issues/52681) — Child process handling en Windows
 
 **Solución adoptada (D5, D12):** Eliminar `npx` de **todos** los scripts npm. Usar bins directos resolvidos por npm automáticamente desde `node_modules/.bin/`:
+
 ```json
 // ❌ MALO - causa spawn loop en Windows
 "test": "npx vitest run"
@@ -1104,6 +1170,7 @@ Esta sección documenta los problemas de compatibilidad multiplataforma encontra
 ```
 
 **Aplicado a:**
+
 - Root `package.json`: todos los scripts `test*`, `lint`, `format`, `build`
 - Workspace `package.json` (server, client): scripts internos
 - `.husky/pre-push`: reemplazado `npx vitest` → `vitest`
@@ -1114,6 +1181,7 @@ Esta sección documenta los problemas de compatibilidad multiplataforma encontra
 **Problema:** Scripts root que invocan `npx vitest --config apps/X/vitest.config.js` ejecutan desde CWD incorrecto, rompen resolución de paths y añaden proceso intermediario. Adicionalmente, scripts root que encadenan workspaces con `&&` (ej. `npm run X --workspace=A && npm run X --workspace=B`) causan spawn loops en Windows: npm envuelve el `&&` en `cmd.exe /d /s /c`, perdiendo PATH y propagación de EOF (ver npm/cli#8259, npm/cli#7768).
 
 **Solución (D6 + corrección Windows):** Usar `--workspaces --if-present` para delegar a todos los workspaces, o `concurrently -m 1 --kill-others-on-fail` para cadenas secuenciales:
+
 ```json
 // ✅ Multi-workspace — npm maneja iteración internamente, sin cmd.exe wrapper
 "test:unit": "npm run test:unit --workspaces --if-present"
@@ -1126,6 +1194,7 @@ Esta sección documenta los problemas de compatibilidad multiplataforma encontra
 ```
 
 **Anti-patrón (NO USAR en Windows):**
+
 ```json
 // ❌ && con --workspace causa spawn loop en Windows
 "test:unit": "npm run test:unit --workspace=server-express && npm run test:unit --workspace=client-react"
@@ -1135,6 +1204,7 @@ Esta sección documenta los problemas de compatibilidad multiplataforma encontra
 ```
 
 **Ventajas:**
+
 - CWD correcto automáticamente
 - Hereda `.npmrc` y config del workspace
 - Sin proceso `npx` intermediario
@@ -1145,14 +1215,17 @@ Esta sección documenta los problemas de compatibilidad multiplataforma encontra
 ### 18.3 `hanging-process` Reporter para Diagnóstico
 
 **Configuración (D8):** Agregar reporter `hanging-process` en `vitest.config.js`:
+
 ```javascript
-reporters: ['default', 'hanging-process']
+reporters: ['default', 'hanging-process'];
 ```
+
 **Uso:** Cuando vitest no termina, este reporter imprime handles abiertos (timers, connections, file handles) para identificar la causa raíz.
 
 ### 18.4 Pool Forks + `singleFork` Condicional (CI-only)
 
 **Configuración (D7):** En `apps/server/vitest.config.js`:
+
 ```javascript
 pool: 'forks',
 poolOptions: {
@@ -1161,12 +1234,14 @@ poolOptions: {
   }
 }
 ```
+
 - **Dev local:** Paralelismo completo (múltiples forks) → velocidad
 - **CI (Windows GitHub Actions):** `singleFork: true` → un solo proceso hijo → evita agotamiento de recursos / spawn issues en runners Windows
 
 ### 18.5 Husky Hooks sin `npx` (D12)
 
 **Antes (problemático):**
+
 ```sh
 # .husky/pre-push
 npx vitest run --changed origin/main --config apps/server/vitest.config.js
@@ -1174,6 +1249,7 @@ npx --no-install commitlint --edit "$1"
 ```
 
 **Después (corregido):**
+
 ```sh
 # .husky/pre-push
 vitest run --changed origin/main
@@ -1186,16 +1262,19 @@ commitlint --edit "$1"
 ### 18.6 Timeouts Globales Explícitos (D11)
 
 **Configuración en `vitest.shared.js`:**
+
 ```javascript
 testTimeout: 30000,
 hookTimeout: 15000,
 teardownTimeout: 5000
 ```
+
 Previene tests colgados indefinidamente. Fail-fast principle.
 
 ### 18.7 Script de Diagnóstico: `npm run test:debug`
 
 **Root `package.json`:**
+
 ```json
 "test:debug": "node --import why-is-node-running/include node_modules/vitest/vitest.mjs run --config apps/server/vitest.config.js"
 ```
@@ -1206,18 +1285,19 @@ Previene tests colgados indefinidamente. Fail-fast principle.
 
 ### 18.8 Resumen de Patrones Cross-Platform
 
-| Patrón | Windows (Git Bash) | Linux/macOS | Recomendación |
-|--------|-------------------|-------------|---------------|
-| `npx cmd` | ❌ Spawn loop | ✅ Funciona | **Nunca usar `npx` en scripts** |
-| `npm run X --workspace=Y` | ✅ Correcto | ✅ Correcto | **Patrón estándar** |
-| `concurrently` | ✅ Funciona | ✅ Funciona | Usar para paralelismo CI (`test:all`) |
-| `&&` en scripts | ✅ Funciona | ✅ Funciona | OK para fail-fast (prepush) |
-| `vitest` (bin directo) | ✅ Correcto | ✅ Correcto | **Siempre preferir a `npx vitest`** |
-| `#!/usr/bin/env sh` shebang | ✅ Git Bash | ✅ Bash/Zsh | **Hooks husky portables** |
+| Patrón                      | Windows (Git Bash) | Linux/macOS | Recomendación                         |
+| --------------------------- | ------------------ | ----------- | ------------------------------------- |
+| `npx cmd`                   | ❌ Spawn loop      | ✅ Funciona | **Nunca usar `npx` en scripts**       |
+| `npm run X --workspace=Y`   | ✅ Correcto        | ✅ Correcto | **Patrón estándar**                   |
+| `concurrently`              | ✅ Funciona        | ✅ Funciona | Usar para paralelismo CI (`test:all`) |
+| `&&` en scripts             | ✅ Funciona        | ✅ Funciona | OK para fail-fast (prepush)           |
+| `vitest` (bin directo)      | ✅ Correcto        | ✅ Correcto | **Siempre preferir a `npx vitest`**   |
+| `#!/usr/bin/env sh` shebang | ✅ Git Bash        | ✅ Bash/Zsh | **Hooks husky portables**             |
 
 ### 18.9 Checklist de Validación Cross-Platform
 
 Antes de mergear cambios a testing:
+
 - [ ] Ningún script en `package.json` usa `npx`
 - [ ] Scripts root delegan con `--workspace=`
 - [ ] Hooks `.husky/*` usan bins directos (`vitest`, `commitlint`, etc.)
@@ -1238,11 +1318,13 @@ Esta sección documenta cómo diagnosticar tests que **cuelgan** (no terminan, n
 `test:debug` es un script de diagnóstico que utiliza `why-is-node-running` para imprimir todos los handles abiertos (timers, sockets, conexiones de base de datos, file handles, etc.) que mantienen el proceso de Node.js vivo después de que los tests deberían haber terminado.
 
 **Cuándo usarlo:**
+
 - Tests que no terminan (hang) tras ejecutar `npm run test`
 - Procesos huérfanos visibles en Task Manager (Windows) o `ps aux` (Linux/macOS)
 - Cuando el reporter `hanging-process` no da suficiente detalle
 
 **Cuándo NO usarlo:**
+
 - Tests que **fallan** (assertions rotas, errores de código) — usa `npm run test` normal
 - Tests que **pasan** pero son lentos — usa `--reporter=verbose` para ver tiempo por test
 - Debugging de lógica de negocio — usa `console.log` o debugger de VS Code
@@ -1288,13 +1370,13 @@ TCPWRAP (socket)
 
 ### 19.5 Cómo Interpretar el Output
 
-| Tipo de Handle | Qué Indica | Acción Típica |
-|----------------|------------|---------------|
+| Tipo de Handle                     | Qué Indica                                    | Acción Típica                                      |
+| ---------------------------------- | --------------------------------------------- | -------------------------------------------------- |
 | **Timer (setTimeout/setInterval)** | Timer no limpiado en `afterAll` / `afterEach` | Agregar `vi.useFakeTimers()` o limpiar en teardown |
-| **TCPWRAP / Socket** | Conexión DB (Prisma/PostgreSQL) no cerrada | Llamar `await prisma.$disconnect()` en `afterAll` |
-| **TCPWRAP (HTTP)** | Servidor Express no cerrado | `await app.close()` o `server.close()` en teardown |
-| **FSReqCallback** | File handle abierto (logs, uploads) | Cerrar streams, usar `await fileHandle.close()` |
-| **Immediate** | `setImmediate` no limpiado | Raro — revisar librerías terceras |
+| **TCPWRAP / Socket**               | Conexión DB (Prisma/PostgreSQL) no cerrada    | Llamar `await prisma.$disconnect()` en `afterAll`  |
+| **TCPWRAP (HTTP)**                 | Servidor Express no cerrado                   | `await app.close()` o `server.close()` en teardown |
+| **FSReqCallback**                  | File handle abierto (logs, uploads)           | Cerrar streams, usar `await fileHandle.close()`    |
+| **Immediate**                      | `setImmediate` no limpiado                    | Raro — revisar librerías terceras                  |
 
 **Patrón común en este proyecto:** Prisma Client mantiene pool de conexiones. Asegurar `afterAll(async () => { await prisma.$disconnect() })` en tests de integración.
 
@@ -1309,4 +1391,3 @@ TCPWRAP (socket)
 
 - Documentación oficial: https://github.com/nuxt/why-is-node-running
 - Issue relacionado en este repo: Cross-Platform Considerations §18.7
-

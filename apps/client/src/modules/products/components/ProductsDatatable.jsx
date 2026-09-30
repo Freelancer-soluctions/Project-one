@@ -3,6 +3,75 @@ import { useTranslation } from 'react-i18next';
 import { format } from 'date-fns';
 import PropTypes from 'prop-types';
 
+/** Cell renderer for short dates (empty when absent). */
+const buildFormattedShortDateCell = (info) =>
+  info.getValue() ? format(info.getValue(), 'dd/MM/yyyy') : '';
+
+/** Cell renderer for text truncated to 30 chars. */
+const buildTruncatedCell = (info) => {
+  const value = info.getValue();
+  return value.length > 30 ? `${value.slice(0, 30)}...` : value;
+};
+
+/** Cell renderer for user-name columns (uppercase, empty when absent). */
+const buildRowNameCell = (rowKey) => (info) => {
+  const name = info.row.original[rowKey]; // Accede al dato original de la fila
+  return name ? name.toUpperCase() : null; // Retorna null para mantener la celda vacía
+};
+
+/** Cell renderer for timestamps (empty when absent). */
+const buildFormattedTimestampCell = (info) =>
+  info.getValue() ? format(info.getValue(), 'dd/MM/yyyy/hh:mm:s aaa') : '';
+
+/** Column definitions for the products table. */
+const buildProductsColumns = (t) => [
+  {
+    accessorKey: 'createdOn',
+    header: t('created_on'),
+    cell: buildFormattedShortDateCell,
+  },
+  {
+    accessorKey: 'sku',
+    header: t('sku'),
+  },
+  {
+    accessorKey: 'name',
+    header: t('name'),
+    cell: buildTruncatedCell,
+  },
+  {
+    accessorKey: 'categoryDescription',
+    header: t('category'),
+  },
+  {
+    accessorKey: 'providerDescription',
+    header: t('provider'),
+  },
+  {
+    accessorKey: 'price',
+    header: t('price'),
+  },
+  {
+    accessorKey: 'cost',
+    header: t('cost'),
+  },
+  {
+    accessorKey: 'userProductCreatedName',
+    header: t('created_by'),
+    cell: buildRowNameCell('userProductCreatedName'),
+  },
+  {
+    accessorKey: 'userProductUpdatedName',
+    header: t('updated_by'),
+    cell: buildRowNameCell('userProductUpdatedName'),
+  },
+  {
+    accessorKey: 'updatedOn',
+    header: t('updated_on'),
+    cell: buildFormattedTimestampCell,
+  },
+];
+
 export const ProductsDatatable = ({
   dataProducts,
   onOpenProductsForms,
@@ -12,83 +81,15 @@ export const ProductsDatatable = ({
   const { t } = useTranslation();
   const { dataList, total } = dataProducts;
 
-  const columnDef = [
-    {
-      accessorKey: 'createdOn',
-      header: t('created_on'),
-      cell: (info) =>
-        info.getValue() ? format(info.getValue(), 'dd/MM/yyyy') : '',
-    },
-    {
-      accessorKey: 'sku',
-      header: t('sku'),
-    },
-    {
-      accessorKey: 'name',
-      header: t('name'),
-      cell: (info) => {
-        const value = info.getValue();
-        return value.length > 30 ? `${value.slice(0, 30)}...` : value;
-      },
-    },
-    {
-      accessorKey: 'categoryDescription',
-      header: t('category'),
-    },
-    {
-      accessorKey: 'providerDescription',
-      header: t('provider'),
-    },
-    {
-      accessorKey: 'price',
-      header: t('price'),
-    },
-    {
-      accessorKey: 'cost',
-      header: t('cost'),
-    },
-
-    {
-      accessorKey: 'userProductCreatedName',
-      header: t('created_by'),
-      cell: (info) => {
-        const userCreated = info.row.original.userProductCreatedName; // Accede al dato original de la fila
-        return userCreated ? userCreated.toUpperCase() : null; // Retorna null para mantener la celda vacía
-      },
-    },
-    {
-      accessorKey: 'userProductUpdatedName',
-      header: t('updated_by'),
-      cell: (info) => {
-        const userUpdated = info.row.original.userProductUpdatedName; // Accede al dato original de la fila
-        return userUpdated ? userUpdated.toUpperCase() : null; // Retorna null para mantener la celda vacía
-      },
-    },
-    {
-      accessorKey: 'updatedOn',
-      header: t('updated_on'),
-      cell: (info) =>
-        info.getValue()
-          ? format(info.getValue(), 'dd/MM/yyyy/hh:mm:s aaa')
-          : '',
-    },
-  ];
-
-  const handleEditDialog = (row) => {
-    onOpenProductsForms(row);
-  };
-
   return (
-    <>
-      <DataTable
-        columns={columnDef}
-        data={dataList}
-        totalRows={total}
-        handleRow={(row) => handleEditDialog(row)}
-        pagination={pagination}
-        onPaginationChange={onPaginationChange}
-      />
-    </>
+    <DataTable
+      columns={buildProductsColumns(t)}
+      data={dataList}
+      totalRows={total}
+      handleRow={onOpenProductsForms}
+      pagination={pagination}
+      onPaginationChange={onPaginationChange}
+    />
   );
 };
 

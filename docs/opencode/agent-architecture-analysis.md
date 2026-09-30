@@ -69,15 +69,15 @@ In its most recent evolution, the architecture has incorporated three key innova
 
 ### Core Principles
 
-| Principle | Description |
-|-----------|-------------|
-| **Single Responsibility Agent** | Each agent has exactly one domain of responsibility |
-| **Centralized Orchestration** | The orchestrator is the single entry point for delegation |
-| **Zero Implementation by Coordinator** | The orchestrator NEVER writes code, specs, or performs reviews |
-| **Command-Driven Operations** | Each workflow is triggered by predefined slash commands |
-| **Specification-First** | Every implementation must be preceded by formal specifications |
-| **Token Efficiency First** | All inter-agent communication must prioritize lexical compression: CONTEXT.md, /caveman, 20-word rule |
-| **Phase 0 Interrogation** | Before specifying, the orchestrator must ask the user ≥3 critical questions using the `grill-me` skill |
+| Principle                              | Description                                                                                            |
+| -------------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| **Single Responsibility Agent**        | Each agent has exactly one domain of responsibility                                                    |
+| **Centralized Orchestration**          | The orchestrator is the single entry point for delegation                                              |
+| **Zero Implementation by Coordinator** | The orchestrator NEVER writes code, specs, or performs reviews                                         |
+| **Command-Driven Operations**          | Each workflow is triggered by predefined slash commands                                                |
+| **Specification-First**                | Every implementation must be preceded by formal specifications                                         |
+| **Token Efficiency First**             | All inter-agent communication must prioritize lexical compression: CONTEXT.md, /caveman, 20-word rule  |
+| **Phase 0 Interrogation**              | Before specifying, the orchestrator must ask the user ≥3 critical questions using the `grill-me` skill |
 
 ---
 
@@ -85,16 +85,17 @@ In its most recent evolution, the architecture has incorporated three key innova
 
 ### 3.1 Orchestrator
 
-| Property | Value |
-|----------|-------|
-| **ID** | `orchestrator` |
-| **Mode** | `primary` |
-| **Model** | `opencode/big-pickle` |
-| **Steps** | 45 |
+| Property        | Value                                                                                                                                                                                     |
+| --------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **ID**          | `orchestrator`                                                                                                                                                                            |
+| **Mode**        | `primary`                                                                                                                                                                                 |
+| **Model**       | `opencode/big-pickle`                                                                                                                                                                     |
+| **Steps**       | 45                                                                                                                                                                                        |
 | **Permissions** | read=✅, write=❌, edit=❌, bash=❌, glob=✅, grep=✅, webfetch=❌, websearch=❌, question=✅, task=⚙️8 agents, skill=✅, lsp=❌, todowrite=✅, doom_loop=⚠️ask, external_directory=⚠️ask |
-| **Prompt** | `docs/opencode/prompts/orchestrator.md` (374 lines) |
+| **Prompt**      | `docs/opencode/prompts/orchestrator.md` (374 lines)                                                                                                                                       |
 
 **Responsibilities:**
+
 - Workflow coordination
 - Phase sequencing
 - Delegation to specialized agents
@@ -104,6 +105,7 @@ In its most recent evolution, the architecture has incorporated three key innova
 - Token Efficiency Protocols application (CONTEXT.md injection, /caveman in delegations)
 
 **Critical Restrictions:**
+
 - ❌ Does not write code
 - ❌ Does not create specifications
 - ❌ Does not perform reviews
@@ -112,16 +114,17 @@ In its most recent evolution, the architecture has incorporated three key innova
 
 ### 3.2 Spec-Manager
 
-| Property | Value |
-|----------|-------|
-| **ID** | `spec-manager` |
-| **Mode** | `subagent` |
-| **Model** | `nvidia/minimaxai/minimax-m2.7` |
-| **Steps** | 15 |
+| Property        | Value                                                                                                                                                                       |
+| --------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **ID**          | `spec-manager`                                                                                                                                                              |
+| **Mode**        | `subagent`                                                                                                                                                                  |
+| **Model**       | `nvidia/minimaxai/minimax-m2.7`                                                                                                                                             |
+| **Steps**       | 15                                                                                                                                                                          |
 | **Permissions** | read=✅, write=❌, edit=❌, bash=✅, glob=✅, grep=✅, webfetch=❌, websearch=❌, question=❌, task=❌, skill=✅, lsp=❌, todowrite=✅, doom_loop=⚠️, external_directory=⚠️ |
-| **Prompt** | `docs/opencode/prompts/spec-manager.md` (274 lines) |
+| **Prompt**      | `docs/opencode/prompts/spec-manager.md` (274 lines)                                                                                                                         |
 
 **Responsibilities:**
+
 - OpenSpec CLI command execution (`/opsx-*`)
 - Specification generation
 - Specification validation
@@ -129,16 +132,17 @@ In its most recent evolution, the architecture has incorporated three key innova
 
 ### 3.3 Git-Manager
 
-| Property | Value |
-|----------|-------|
-| **ID** | `git-manager` |
-| **Mode** | `subagent` |
-| **Model** | `nvidia/minimaxai/minimax-m2.7` |
-| **Steps** | 20 |
+| Property        | Value                                                                                                                                                                               |
+| --------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **ID**          | `git-manager`                                                                                                                                                                       |
+| **Mode**        | `subagent`                                                                                                                                                                          |
+| **Model**       | `nvidia/minimaxai/minimax-m2.7`                                                                                                                                                     |
+| **Steps**       | 20                                                                                                                                                                                  |
 | **Permissions** | read=✅, write=❌, edit=❌, bash=🎯git only, glob=✅, grep=✅, webfetch=❌, websearch=❌, question=❌, task=❌, skill=✅, lsp=❌, todowrite=❌, doom_loop=⚠️, external_directory=⚠️ |
-| **Prompt** | `docs/opencode/prompts/git-manager.md` (89 lines) |
+| **Prompt**      | `docs/opencode/prompts/git-manager.md` (89 lines)                                                                                                                                   |
 
 **Responsibilities:**
+
 - Git workflows
 - Conventional Commits
 - Repository state management
@@ -146,16 +150,17 @@ In its most recent evolution, the architecture has incorporated three key innova
 
 ### 3.4 Planner
 
-| Property | Value |
-|----------|-------|
-| **ID** | `planner` |
-| **Mode** | `subagent` |
-| **Model** | `opencode/ring-2.6-1t-free` |
-| **Steps** | 15 |
+| Property        | Value                                                                                                                                                                       |
+| --------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **ID**          | `planner`                                                                                                                                                                   |
+| **Mode**        | `subagent`                                                                                                                                                                  |
+| **Model**       | `opencode/ring-2.6-1t-free`                                                                                                                                                 |
+| **Steps**       | 15                                                                                                                                                                          |
 | **Permissions** | read=✅, write=✅, edit=❌, bash=❌, glob=✅, grep=✅, webfetch=❌, websearch=❌, question=✅, task=❌, skill=✅, lsp=❌, todowrite=✅, doom_loop=⚠️, external_directory=⚠️ |
-| **Prompt** | `docs/opencode/prompts/planner.md` (67 lines) |
+| **Prompt**      | `docs/opencode/prompts/planner.md` (67 lines)                                                                                                                               |
 
 **Responsibilities:**
+
 - Technical specification review
 - Technical feasibility validation
 - Improvement suggestions
@@ -163,16 +168,17 @@ In its most recent evolution, the architecture has incorporated three key innova
 
 ### 3.5 Developer
 
-| Property | Value |
-|----------|-------|
-| **ID** | `developer` |
-| **Mode** | `subagent` |
-| **Model** | `opencode/qwen3.6-plus-free` |
-| **Steps** | 25 |
+| Property        | Value                                                                                                                                                                       |
+| --------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **ID**          | `developer`                                                                                                                                                                 |
+| **Mode**        | `subagent`                                                                                                                                                                  |
+| **Model**       | `opencode/qwen3.6-plus-free`                                                                                                                                                |
+| **Steps**       | 25                                                                                                                                                                          |
 | **Permissions** | read=✅, write=✅, edit=✅, bash=✅, glob=✅, grep=✅, webfetch=✅, websearch=✅, question=✅, task=❌, skill=✅, lsp=✅, todowrite=✅, doom_loop=⚠️, external_directory=⚠️ |
-| **Prompt** | `docs/opencode/prompts/developer.md` (33 lines) |
+| **Prompt**      | `docs/opencode/prompts/developer.md` (33 lines)                                                                                                                             |
 
 **Responsibilities:**
+
 - Code implementation following tasks
 - Sequential task execution from `tasks.md`
 - Test writing
@@ -180,32 +186,34 @@ In its most recent evolution, the architecture has incorporated three key innova
 
 ### 3.6 Reviewer
 
-| Property | Value |
-|----------|-------|
-| **ID** | `reviewer` |
-| **Mode** | `subagent` |
-| **Model** | `opencode/nemotron-3-super-free` |
-| **Steps** | 10 |
+| Property        | Value                                                                                                                                                                       |
+| --------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **ID**          | `reviewer`                                                                                                                                                                  |
+| **Mode**        | `subagent`                                                                                                                                                                  |
+| **Model**       | `opencode/nemotron-3-super-free`                                                                                                                                            |
+| **Steps**       | 10                                                                                                                                                                          |
 | **Permissions** | read=✅, write=❌, edit=❌, bash=❌, glob=✅, grep=✅, webfetch=❌, websearch=❌, question=❌, task=❌, skill=✅, lsp=✅, todowrite=✅, doom_loop=⚠️, external_directory=⚠️ |
-| **Prompt** | `docs/opencode/prompts/reviewer.md` (155 lines) |
+| **Prompt**      | `docs/opencode/prompts/reviewer.md` (155 lines)                                                                                                                             |
 
 **Responsibilities:**
+
 - Code validation against specifications
 - Correctness, security, performance, quality, testing checklist
 - Structured report with severities (CRITICAL/HIGH/MEDIUM/LOW)
 
 ### 3.7 Researcher
 
-| Property | Value |
-|----------|-------|
-| **ID** | `researcher` |
-| **Mode** | `subagent` |
-| **Model** | `opencode/minimax-m2.5` |
-| **Steps** | 12 |
+| Property        | Value                                                                                                                                                                       |
+| --------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **ID**          | `researcher`                                                                                                                                                                |
+| **Mode**        | `subagent`                                                                                                                                                                  |
+| **Model**       | `opencode/minimax-m2.5`                                                                                                                                                     |
+| **Steps**       | 12                                                                                                                                                                          |
 | **Permissions** | read=✅, write=❌, edit=❌, bash=❌, glob=✅, grep=✅, webfetch=✅, websearch=✅, question=✅, task=❌, skill=✅, lsp=❌, todowrite=✅, doom_loop=⚠️, external_directory=⚠️ |
-| **Prompt** | `docs/opencode/prompts/researcher.md` (85 lines) |
+| **Prompt**      | `docs/opencode/prompts/researcher.md` (85 lines)                                                                                                                            |
 
 **Responsibilities:**
+
 - Technical research
 - Official documentation analysis
 - Best practices and pattern research
@@ -213,16 +221,17 @@ In its most recent evolution, the architecture has incorporated three key innova
 
 ### 3.8 Project-Manager
 
-| Property | Value |
-|----------|-------|
-| **ID** | `project-manager` |
-| **Mode** | `subagent` |
-| **Model** | `nvidia/minimaxai/minimax-m2.7` |
-| **Steps** | 15 |
+| Property        | Value                                                                                                                                                                       |
+| --------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **ID**          | `project-manager`                                                                                                                                                           |
+| **Mode**        | `subagent`                                                                                                                                                                  |
+| **Model**       | `nvidia/minimaxai/minimax-m2.7`                                                                                                                                             |
+| **Steps**       | 15                                                                                                                                                                          |
 | **Permissions** | read=✅, write=❌, edit=❌, bash=❌, glob=✅, grep=✅, webfetch=❌, websearch=❌, question=✅, task=❌, skill=✅, lsp=❌, todowrite=✅, doom_loop=⚠️, external_directory=⚠️ |
-| **Prompt** | `docs/opencode/prompts/project-manager.md` (176 lines) |
+| **Prompt**      | `docs/opencode/prompts/project-manager.md` (176 lines)                                                                                                                      |
 
 **Responsibilities:**
+
 - Trello flow management
 - Card creation/movement/deletion
 - State synchronization with development cycle
@@ -230,18 +239,19 @@ In its most recent evolution, the architecture has incorporated three key innova
 
 ### 3.9 Agent Comparison Table
 
-| Agent | Model | Steps | Prompt | r | w | e | b | g | gr | wf | ws | q | t | sk | l | td | dl | ed | engram |
-|-------|-------|-------|--------|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| **Orchestrator** | big-pickle | 45 | 374 | ✅ | ❌ | ❌ | ❌ | ✅ | ✅ | ❌ | ❌ | ✅ | ⚙️ | ✅ | ❌ | ✅ | ⚠️ | ⚠️ | ✅ |
-| **Spec-Manager** | minimax-m2.7 | 15 | 274 | ✅ | ❌ | ❌ | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ | ✅ | ❌ | ✅ | ⚠️ | ⚠️ | ✅ |
-| **Git-Manager** | minimax-m2.7 | 20 | 89 | ✅ | ❌ | ❌ | 🎯 | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ | ✅ | ❌ | ❌ | ⚠️ | ⚠️ | ✅ |
-| **Planner** | ring-2.6-1t | 15 | 67 | ✅ | ✅ | ❌ | ❌ | ✅ | ✅ | ❌ | ❌ | ✅ | ❌ | ✅ | ❌ | ✅ | ⚠️ | ⚠️ | ✅ |
-| **Developer** | qwen3.6-plus | 25 | 33 | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ | ✅ | ✅ | ✅ | ✅ | ⚠️ | ✅ |
-| **Reviewer** | nemotron-3-s | 10 | 155 | ✅ | ❌ | ❌ | ❌ | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ | ✅ | ✅ | ✅ | ✅ | ⚠️ | ✅ |
-| **Researcher** | minimax-m2.5 | 12 | 86 | ✅ | ❌ | ❌ | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ | ✅ | ❌ | ✅ | ⚠️ | ⚠️ | ✅ |
-| **Project-Manager** | minimax-m2.7 | 15 | 176 | ✅ | ❌ | ❌ | ❌ | ✅ | ✅ | ❌ | ❌ | ✅ | ❌ | ✅ | ❌ | ✅ | ⚠️ | ⚠️ | ✅ |
+| Agent               | Model        | Steps | Prompt | r   | w   | e   | b   | g   | gr  | wf  | ws  | q   | t   | sk  | l   | td  | dl  | ed  | engram |
+| ------------------- | ------------ | ----- | ------ | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | ------ |
+| **Orchestrator**    | big-pickle   | 45    | 374    | ✅  | ❌  | ❌  | ❌  | ✅  | ✅  | ❌  | ❌  | ✅  | ⚙️  | ✅  | ❌  | ✅  | ⚠️  | ⚠️  | ✅     |
+| **Spec-Manager**    | minimax-m2.7 | 15    | 274    | ✅  | ❌  | ❌  | ✅  | ✅  | ✅  | ❌  | ❌  | ❌  | ❌  | ✅  | ❌  | ✅  | ⚠️  | ⚠️  | ✅     |
+| **Git-Manager**     | minimax-m2.7 | 20    | 89     | ✅  | ❌  | ❌  | 🎯  | ✅  | ✅  | ❌  | ❌  | ❌  | ❌  | ✅  | ❌  | ❌  | ⚠️  | ⚠️  | ✅     |
+| **Planner**         | ring-2.6-1t  | 15    | 67     | ✅  | ✅  | ❌  | ❌  | ✅  | ✅  | ❌  | ❌  | ✅  | ❌  | ✅  | ❌  | ✅  | ⚠️  | ⚠️  | ✅     |
+| **Developer**       | qwen3.6-plus | 25    | 33     | ✅  | ✅  | ✅  | ✅  | ✅  | ✅  | ✅  | ✅  | ✅  | ❌  | ✅  | ✅  | ✅  | ✅  | ⚠️  | ✅     |
+| **Reviewer**        | nemotron-3-s | 10    | 155    | ✅  | ❌  | ❌  | ❌  | ✅  | ✅  | ❌  | ❌  | ❌  | ❌  | ✅  | ✅  | ✅  | ✅  | ⚠️  | ✅     |
+| **Researcher**      | minimax-m2.5 | 12    | 86     | ✅  | ❌  | ❌  | ❌  | ✅  | ✅  | ✅  | ✅  | ✅  | ❌  | ✅  | ❌  | ✅  | ⚠️  | ⚠️  | ✅     |
+| **Project-Manager** | minimax-m2.7 | 15    | 176    | ✅  | ❌  | ❌  | ❌  | ✅  | ✅  | ❌  | ❌  | ✅  | ❌  | ✅  | ❌  | ✅  | ⚠️  | ⚠️  | ✅     |
 
 Column header key:
+
 - r=read, w=write, e=edit, b=bash, g=glob, gr=grep, wf=webfetch, ws=websearch, q=question, t=task, sk=skill, l=lsp, td=todowrite, dl=doom_loop, ed=external_directory
 
 ---
@@ -253,6 +263,7 @@ Column header key:
 The architecture follows the **Centralized Orchestrator** pattern where a primary agent (orchestrator) receives all requests and delegates to specialized subagents.
 
 **Characteristics:**
+
 - **Explicit coordination**: The orchestrator handles sequencing and dependencies
 - **Separation of concerns**: Each subagent has a bounded domain
 - **Mandatory delegation**: The orchestrator cannot execute domain tasks
@@ -291,10 +302,10 @@ Every operation in the system is triggered by predefined slash commands. This en
 
 Each agent operates in two modes depending on context:
 
-| Mode | When | Behavior |
-|------|------|----------|
-| **OpenSpec Active (SDD)** | Active change exists in `openspec/changes/` | Strictly follows `tasks.md` and `design.md` |
-| **Normal Mode** | No active SDD | Uses own judgment, creates documentation, implements directly |
+| Mode                      | When                                        | Behavior                                                      |
+| ------------------------- | ------------------------------------------- | ------------------------------------------------------------- |
+| **OpenSpec Active (SDD)** | Active change exists in `openspec/changes/` | Strictly follows `tasks.md` and `design.md`                   |
+| **Normal Mode**           | No active SDD                               | Uses own judgment, creates documentation, implements directly |
 
 ### 4.5 Agent Permission Model
 
@@ -304,36 +315,36 @@ OpenCode uses a **default-allow** model. All tools are implicitly `"allow"` unle
 
 OpenCode exposes 15 permission keys:
 
-| # | Tool | Default | Description | Supports Pattern |
-|:-:|------|:-------:|-------------|:----------------:|
-| 1 | `read` | ✅ allow | Read file contents | ✅ (glob) |
-| 2 | `write` | ✅ allow | Create new files | ❌ |
-| 3 | `edit` | ✅ allow | Modify existing files | ✅ (glob) |
-| 4 | `bash` | ✅ allow | Execute shell commands | ✅ (glob pattern) |
-| 5 | `glob` | ✅ allow | Find files by pattern | ❌ |
-| 6 | `grep` | ✅ allow | Search file contents | ❌ |
-| 7 | `webfetch` | ✅ allow | Fetch URLs | ❌ |
-| 8 | `websearch` | ✅ allow | Search the web | ❌ |
-| 9 | `question` | ✅ allow | Ask user questions | ❌ |
-| 10 | `task` | ✅ allow | Delegate to subagents | ✅ (agent names) |
-| 11 | `skill` | ✅ allow | Load and execute skills | ✅ (glob) |
-| 12 | `lsp` | ✅ allow | Language Server Protocol | ✅ (glob) |
-| 13 | `todowrite` | ✅ allow | Create/update todo lists | ❌ |
-| 14 | `doom_loop` | ⚠️ ask | Prevent repetitive tool calls | ❌ |
-| 15 | `external_directory` | ⚠️ ask | Access paths outside working dir | ✅ (path patterns) |
+|  #  | Tool                 | Default  | Description                      |  Supports Pattern  |
+| :-: | -------------------- | :------: | -------------------------------- | :----------------: |
+|  1  | `read`               | ✅ allow | Read file contents               |     ✅ (glob)      |
+|  2  | `write`              | ✅ allow | Create new files                 |         ❌         |
+|  3  | `edit`               | ✅ allow | Modify existing files            |     ✅ (glob)      |
+|  4  | `bash`               | ✅ allow | Execute shell commands           | ✅ (glob pattern)  |
+|  5  | `glob`               | ✅ allow | Find files by pattern            |         ❌         |
+|  6  | `grep`               | ✅ allow | Search file contents             |         ❌         |
+|  7  | `webfetch`           | ✅ allow | Fetch URLs                       |         ❌         |
+|  8  | `websearch`          | ✅ allow | Search the web                   |         ❌         |
+|  9  | `question`           | ✅ allow | Ask user questions               |         ❌         |
+| 10  | `task`               | ✅ allow | Delegate to subagents            |  ✅ (agent names)  |
+| 11  | `skill`              | ✅ allow | Load and execute skills          |     ✅ (glob)      |
+| 12  | `lsp`                | ✅ allow | Language Server Protocol         |     ✅ (glob)      |
+| 13  | `todowrite`          | ✅ allow | Create/update todo lists         |         ❌         |
+| 14  | `doom_loop`          |  ⚠️ ask  | Prevent repetitive tool calls    |         ❌         |
+| 15  | `external_directory` |  ⚠️ ask  | Access paths outside working dir | ✅ (path patterns) |
 
 **Note:** This project uses **global defaults + per-agent overrides** — all 15 tools are declared once at root level, and each agent only overrides the tools that differ. This leverages OpenCode's permission inheritance (deep merge) to reduce configuration size while maintaining explicit clarity.
 
 #### Permission Level Reference
 
-| Level | Syntax | Description |
-|-------|--------|-------------|
-| **Allow** | `"allow"` | Tool available without prompting |
-| **Deny** | `"deny"` | Tool call fails immediately |
-| **Ask** | `"ask"` | User prompted for approval per call |
-| **Glob pattern** | `{ "git *": "allow", "*": "deny" }` | Pattern-based rules (bash only) |
-| **Agent map** | `{ "*": "deny", "dev": "allow" }` | Subagent invocation rules (task only) |
-| **MCP wildcard** | `"composio_*": "deny"` | Wildcard patterns match MCP tool names (e.g., `composio_*` matches `composio_COMPOSIO_SEARCH_TOOLS`) |
+| Level            | Syntax                              | Description                                                                                          |
+| ---------------- | ----------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| **Allow**        | `"allow"`                           | Tool available without prompting                                                                     |
+| **Deny**         | `"deny"`                            | Tool call fails immediately                                                                          |
+| **Ask**          | `"ask"`                             | User prompted for approval per call                                                                  |
+| **Glob pattern** | `{ "git *": "allow", "*": "deny" }` | Pattern-based rules (bash only)                                                                      |
+| **Agent map**    | `{ "*": "deny", "dev": "allow" }`   | Subagent invocation rules (task only)                                                                |
+| **MCP wildcard** | `"composio_*": "deny"`              | Wildcard patterns match MCP tool names (e.g., `composio_*` matches `composio_COMPOSIO_SEARCH_TOOLS`) |
 
 #### Global Defaults + Per-Agent Overrides
 
@@ -425,12 +436,13 @@ This reduces the configuration from ~120 lines (15 tools × 8 agents) to ~34 lin
 
 ##### Inheritance Rules
 
-| Rule | Description |
-|------|-------------|
-| **Deep merge** | Agent values are merged into global defaults, not replaced |
-| **Tool-level granularity** | Each tool is resolved independently |
-| **Agent wins** | When a tool is defined in both, agent value takes precedence |
-| **Missing = inherit** | Tools not listed in agent block inherit the global default |
+| Rule                       | Description                                                  |
+| -------------------------- | ------------------------------------------------------------ |
+| **Deep merge**             | Agent values are merged into global defaults, not replaced   |
+| **Tool-level granularity** | Each tool is resolved independently                          |
+| **Agent wins**             | When a tool is defined in both, agent value takes precedence |
+| **Missing = inherit**      | Tools not listed in agent block inherit the global default   |
+
 ```
 
 ### 4.6 Document-Driven Artifacts
@@ -438,15 +450,17 @@ This reduces the configuration from ~120 lines (15 tools × 8 agents) to ~34 lin
 The specification system uses an artifact-based model:
 
 ```
+
 openspec/changes/<change-name>/
-├── .openspec.yaml       # Metadata (schema, created date)
-├── proposal.md          # What & Why (problem, solution, scope)
-├── specs/               # Delta specs (incremental changes)
-│   └── <capability>/
-│       └── spec.md      # Requirements in WHEN/THEN format
-├── design.md            # How (technical decisions, architecture)
-└── tasks.md             # Implementation checklist with checkboxes
-```
+├── .openspec.yaml # Metadata (schema, created date)
+├── proposal.md # What & Why (problem, solution, scope)
+├── specs/ # Delta specs (incremental changes)
+│ └── <capability>/
+│ └── spec.md # Requirements in WHEN/THEN format
+├── design.md # How (technical decisions, architecture)
+└── tasks.md # Implementation checklist with checkboxes
+
+````
 
 ### 4.7 Steps Configuration Analysis
 
@@ -601,38 +615,38 @@ Slash commands are defined in Markdown files inside `.opencode/command/` with YA
 description: <functional description>
 ---
 <detailed execution instructions>
-```
+````
 
 ### 6.2 Command Catalog
 
 #### OpenSpec Commands (11 commands)
 
-| File | Command | Purpose |
-|------|---------|---------|
-| `opsx-explore.md` | `/opsx-explore` | Exploration mode: think, investigate, clarify |
-| `opsx-new.md` | `/opsx-new` | Create new change step by step |
-| `opsx-propose.md` | `/opsx-propose` | Create change + all artifacts in one step |
-| `opsx-ff.md` | `/opsx-ff` | Fast-forward: create all artifacts at once |
-| `opsx-apply.md` | `/opsx-apply` | Implement tasks from a change |
-| `opsx-continue.md` | `/opsx-continue` | Continue working on a change |
-| `opsx-verify.md` | `/opsx-verify` | Verify implementation against artifacts |
-| `opsx-archive.md` | `/opsx-archive` | Archive completed change |
-| `opsx-bulk-archive.md` | `/opsx-bulk-archive` | Archive multiple changes |
-| `opsx-sync.md` | `/opsx-sync` | Sync delta specs with main specs |
-| `opsx-onboard.md` | `/opsx-onboard` | Guided OpenSpec flow onboarding |
+| File                   | Command              | Purpose                                       |
+| ---------------------- | -------------------- | --------------------------------------------- |
+| `opsx-explore.md`      | `/opsx-explore`      | Exploration mode: think, investigate, clarify |
+| `opsx-new.md`          | `/opsx-new`          | Create new change step by step                |
+| `opsx-propose.md`      | `/opsx-propose`      | Create change + all artifacts in one step     |
+| `opsx-ff.md`           | `/opsx-ff`           | Fast-forward: create all artifacts at once    |
+| `opsx-apply.md`        | `/opsx-apply`        | Implement tasks from a change                 |
+| `opsx-continue.md`     | `/opsx-continue`     | Continue working on a change                  |
+| `opsx-verify.md`       | `/opsx-verify`       | Verify implementation against artifacts       |
+| `opsx-archive.md`      | `/opsx-archive`      | Archive completed change                      |
+| `opsx-bulk-archive.md` | `/opsx-bulk-archive` | Archive multiple changes                      |
+| `opsx-sync.md`         | `/opsx-sync`         | Sync delta specs with main specs              |
+| `opsx-onboard.md`      | `/opsx-onboard`      | Guided OpenSpec flow onboarding               |
 
 #### Git Commands (1 command)
 
-| File | Command | Purpose |
-|------|---------|---------|
+| File            | Command       | Purpose                                 |
+| --------------- | ------------- | --------------------------------------- |
 | `commit-all.md` | `/commit-all` | Group changes into Conventional Commits |
 
 #### Trello Commands (3 commands)
 
-| File | Command | Purpose |
-|------|---------|---------|
-| `trello-create-card.md` | `/trello-create-card` | Create Trello card |
-| `trello-update-card.md` | `/trello-update-card` | Update/move card |
+| File                    | Command               | Purpose                 |
+| ----------------------- | --------------------- | ----------------------- |
+| `trello-create-card.md` | `/trello-create-card` | Create Trello card      |
+| `trello-update-card.md` | `/trello-update-card` | Update/move card        |
 | `trello-delete-card.md` | `/trello-delete-card` | Permanently delete card |
 
 ### 6.3 CDD Principles
@@ -674,60 +688,60 @@ Skills that handle the change lifecycle. Loaded via `/skill` and correspond 1:1 
 
 Skills that provide specialized technical knowledge for implementation:
 
-| Skill | Source | Purpose |
-|-------|--------|---------|
-| `caveman` | `mattpocock/skills` (GitHub) | Ultra-compressed communication (token efficiency) |
-| `grill-me` | `mattpocock/skills` (GitHub) | Exhaustive user interrogation (Phase 0) |
-| `modern-javascript-patterns` | `wshobson/agents` (GitHub) | Modern ES6+ patterns |
-| `nodejs-backend-patterns` | `wshobson/agents` (GitHub) | Production-ready Node.js backend |
-| `owasp-security-check` | `sergiodxa/agent-skills` (GitHub) | OWASP security audit |
-| `playwright-best-practices` | `currents-dev/...` (GitHub) | E2E testing with Playwright |
-| `postgresql-table-design` | `wshobson/agents` (GitHub) | PostgreSQL schema design |
-| `prisma-postgres` | `prisma/skills` (GitHub) | Prisma setup and operations |
-| `react-testing-library` | `itechmeat/llm-code` (GitHub) | React component testing |
-| `shadcn` | `vercel/vercel-plugin` (GitHub) | shadcn/ui components |
-| `storybook` | `dalestudy/skills` (GitHub) | Storybook CSF 3.0 |
-| `tailwind-design-system` | `wshobson/agents` (GitHub) | Design systems with Tailwind |
-| `test-driven-development` | `obra/superpowers` (GitHub) | TDD: test-first development |
-| `vercel-react-best-practices` | `vercel-labs/agent-skills` (GitHub) | React/Vercel optimization |
-| `vitest` | `onmax/nuxt-skills` (GitHub) | Unit testing with Vitest |
+| Skill                         | Source                              | Purpose                                           |
+| ----------------------------- | ----------------------------------- | ------------------------------------------------- |
+| `caveman`                     | `mattpocock/skills` (GitHub)        | Ultra-compressed communication (token efficiency) |
+| `grill-me`                    | `mattpocock/skills` (GitHub)        | Exhaustive user interrogation (Phase 0)           |
+| `modern-javascript-patterns`  | `wshobson/agents` (GitHub)          | Modern ES6+ patterns                              |
+| `nodejs-backend-patterns`     | `wshobson/agents` (GitHub)          | Production-ready Node.js backend                  |
+| `owasp-security-check`        | `sergiodxa/agent-skills` (GitHub)   | OWASP security audit                              |
+| `playwright-best-practices`   | `currents-dev/...` (GitHub)         | E2E testing with Playwright                       |
+| `postgresql-table-design`     | `wshobson/agents` (GitHub)          | PostgreSQL schema design                          |
+| `prisma-postgres`             | `prisma/skills` (GitHub)            | Prisma setup and operations                       |
+| `react-testing-library`       | `itechmeat/llm-code` (GitHub)       | React component testing                           |
+| `shadcn`                      | `vercel/vercel-plugin` (GitHub)     | shadcn/ui components                              |
+| `storybook`                   | `dalestudy/skills` (GitHub)         | Storybook CSF 3.0                                 |
+| `tailwind-design-system`      | `wshobson/agents` (GitHub)          | Design systems with Tailwind                      |
+| `test-driven-development`     | `obra/superpowers` (GitHub)         | TDD: test-first development                       |
+| `vercel-react-best-practices` | `vercel-labs/agent-skills` (GitHub) | React/Vercel optimization                         |
+| `vitest`                      | `onmax/nuxt-skills` (GitHub)        | Unit testing with Vitest                          |
 
 ### 7.4 Classification by Agent and Component
 
 Each skill is discriminated to load ONLY in the corresponding context:
 
-| Category | Skills | Agent | Component | SDD Phase |
-|----------|--------|-------|-----------|-----------|
-| **Meta-Skills** | `grill-me`, `caveman` | Orchestrator / Reviewer / Git-Manager | Cross-cutting | Phase 0, delegations |
-| **OpenSpec Workflow** | `openspec-*` (11) | Spec-Manager | Cross-cutting | Phases 1-6 |
-| **Backend** | `nodejs-backend-patterns`, `postgresql-table-design`, `prisma-postgres` | Developer | `apps/server/`, `prisma/` | Phase 4 |
-| **Frontend** | `vercel-react-best-practices`, `shadcn`, `tailwind-design-system`, `storybook`, `modern-javascript-patterns` | Developer | `apps/client/`, `components/ui/` | Phase 4 |
-| **Testing** | `vitest`, `react-testing-library`, `playwright-best-practices`, `test-driven-development` | Developer | `apps/*/tests/`, `apps/e2e/` | Phase 4 |
-| **Security** | `owasp-security-check` | Reviewer | Cross-cutting | Phase 5 |
+| Category              | Skills                                                                                                       | Agent                                 | Component                        | SDD Phase            |
+| --------------------- | ------------------------------------------------------------------------------------------------------------ | ------------------------------------- | -------------------------------- | -------------------- |
+| **Meta-Skills**       | `grill-me`, `caveman`                                                                                        | Orchestrator / Reviewer / Git-Manager | Cross-cutting                    | Phase 0, delegations |
+| **OpenSpec Workflow** | `openspec-*` (11)                                                                                            | Spec-Manager                          | Cross-cutting                    | Phases 1-6           |
+| **Backend**           | `nodejs-backend-patterns`, `postgresql-table-design`, `prisma-postgres`                                      | Developer                             | `apps/server/`, `prisma/`        | Phase 4              |
+| **Frontend**          | `vercel-react-best-practices`, `shadcn`, `tailwind-design-system`, `storybook`, `modern-javascript-patterns` | Developer                             | `apps/client/`, `components/ui/` | Phase 4              |
+| **Testing**           | `vitest`, `react-testing-library`, `playwright-best-practices`, `test-driven-development`                    | Developer                             | `apps/*/tests/`, `apps/e2e/`     | Phase 4              |
+| **Security**          | `owasp-security-check`                                                                                       | Reviewer                              | Cross-cutting                    | Phase 5              |
 
 ### 7.5 Auto-Invoke Mapping
 
 When performing these actions, the corresponding skill MUST be loaded automatically:
 
-| Action | Skill to Load | Context |
-|--------|---------------|---------|
-| Audit security pre-merge | `owasp-security-check` | Reviewer |
-| Build API endpoint or middleware | `nodejs-backend-patterns` | Developer in server/ |
-| Change Prisma schema or migrations | `prisma-postgres` | Developer in server/ |
-| Create shadcn/ui components | `shadcn` | Developer in client/ |
-| Create OpenSpec change | `openspec-propose` | Spec-Manager |
-| Design PostgreSQL tables | `postgresql-table-design` | Developer |
-| Write E2E tests | `playwright-best-practices` | Developer in e2e/ |
-| Write unit tests | `vitest` | Developer |
-| Explore topic before change | `openspec-explore` | Spec-Manager |
-| Do TDD (bugfix/feature) | `test-driven-development` | Developer |
-| Interrogate user (Phase 0) | `grill-me` | Orchestrator |
-| Compressed communication mode | `caveman` | Orchestrator / Reviewer / Git-Manager |
-| Optimize React performance | `vercel-react-best-practices` | Developer in client/ |
-| Refactor to modern JS | `modern-javascript-patterns` | Developer |
-| Storybook stories | `storybook` | Developer in client/ |
-| Tailwind styling | `tailwind-design-system` | Developer in client/ |
-| Verify implementation | `openspec-verify` | Spec-Manager |
+| Action                             | Skill to Load                 | Context                               |
+| ---------------------------------- | ----------------------------- | ------------------------------------- |
+| Audit security pre-merge           | `owasp-security-check`        | Reviewer                              |
+| Build API endpoint or middleware   | `nodejs-backend-patterns`     | Developer in server/                  |
+| Change Prisma schema or migrations | `prisma-postgres`             | Developer in server/                  |
+| Create shadcn/ui components        | `shadcn`                      | Developer in client/                  |
+| Create OpenSpec change             | `openspec-propose`            | Spec-Manager                          |
+| Design PostgreSQL tables           | `postgresql-table-design`     | Developer                             |
+| Write E2E tests                    | `playwright-best-practices`   | Developer in e2e/                     |
+| Write unit tests                   | `vitest`                      | Developer                             |
+| Explore topic before change        | `openspec-explore`            | Spec-Manager                          |
+| Do TDD (bugfix/feature)            | `test-driven-development`     | Developer                             |
+| Interrogate user (Phase 0)         | `grill-me`                    | Orchestrator                          |
+| Compressed communication mode      | `caveman`                     | Orchestrator / Reviewer / Git-Manager |
+| Optimize React performance         | `vercel-react-best-practices` | Developer in client/                  |
+| Refactor to modern JS              | `modern-javascript-patterns`  | Developer                             |
+| Storybook stories                  | `storybook`                   | Developer in client/                  |
+| Tailwind styling                   | `tailwind-design-system`      | Developer in client/                  |
+| Verify implementation              | `openspec-verify`             | Spec-Manager                          |
 
 ---
 
@@ -735,27 +749,28 @@ When performing these actions, the corresponding skill MUST be loaded automatica
 
 ### 8.1 Base Platform
 
-| Component | Technology | Version |
-|-----------|------------|---------|
-| **Agent Platform** | OpenCode | Latest |
-| **Plugin** | `@warp-dot-dev/opencode-warp` | - |
-| **Plugin Core** | `@opencode-ai/plugin` | 1.4.3 |
-| **Config Format** | `opencode.jsonc` | JSON with Comments |
+| Component          | Technology                    | Version            |
+| ------------------ | ----------------------------- | ------------------ |
+| **Agent Platform** | OpenCode                      | Latest             |
+| **Plugin**         | `@warp-dot-dev/opencode-warp` | -                  |
+| **Plugin Core**    | `@opencode-ai/plugin`         | 1.4.3              |
+| **Config Format**  | `opencode.jsonc`              | JSON with Comments |
 
 ### 8.2 AI Models
 
-| Agent | Model | Provider |
-|-------|-------|----------|
-| Orchestrator | `opencode/big-pickle` | OpenCode |
-| Spec-Manager | `nvidia/minimaxai/minimax-m2.7` | NVIDIA/NVIDIA NIM |
-| Git-Manager | `nvidia/minimaxai/minimax-m2.7` | NVIDIA/NVIDIA NIM |
-| Planner | `opencode/ring-2.6-1t-free` | OpenCode |
-| Developer | `opencode/qwen3.6-plus-free` | OpenCode |
-| Reviewer | `opencode/nemotron-3-super-free` | OpenCode |
-| Researcher | `opencode/minimax-m2.5` | OpenCode |
-| Project-Manager | `nvidia/minimaxai/minimax-m2.7` | NVIDIA/NVIDIA NIM |
+| Agent           | Model                            | Provider          |
+| --------------- | -------------------------------- | ----------------- |
+| Orchestrator    | `opencode/big-pickle`            | OpenCode          |
+| Spec-Manager    | `nvidia/minimaxai/minimax-m2.7`  | NVIDIA/NVIDIA NIM |
+| Git-Manager     | `nvidia/minimaxai/minimax-m2.7`  | NVIDIA/NVIDIA NIM |
+| Planner         | `opencode/ring-2.6-1t-free`      | OpenCode          |
+| Developer       | `opencode/qwen3.6-plus-free`     | OpenCode          |
+| Reviewer        | `opencode/nemotron-3-super-free` | OpenCode          |
+| Researcher      | `opencode/minimax-m2.5`          | OpenCode          |
+| Project-Manager | `nvidia/minimaxai/minimax-m2.7`  | NVIDIA/NVIDIA NIM |
 
 **Local Model (Fallback):**
+
 ```jsonc
 "ollama-local": {
   "npm": "@ai-sdk/openai-compatible",
@@ -766,24 +781,24 @@ When performing these actions, the corresponding skill MUST be loaded automatica
 
 ### 8.3 Integration Protocols & APIs
 
-| Protocol | Use |
-|----------|-----|
-| **MCP (Model Context Protocol)** | Communication with external services |
-| **Composio MCP (Remote)** | Trello integration (`https://connect.composio.dev/mcp`) |
-| **Context7 MCP (Remote)** | Library documentation (`https://mcp.context7.com/mcp`) |
-| **OpenAI-compatible SDK** | Local Ollama provider (`@ai-sdk/openai-compatible`) |
+| Protocol                         | Use                                                     |
+| -------------------------------- | ------------------------------------------------------- |
+| **MCP (Model Context Protocol)** | Communication with external services                    |
+| **Composio MCP (Remote)**        | Trello integration (`https://connect.composio.dev/mcp`) |
+| **Context7 MCP (Remote)**        | Library documentation (`https://mcp.context7.com/mcp`)  |
+| **OpenAI-compatible SDK**        | Local Ollama provider (`@ai-sdk/openai-compatible`)     |
 
 ### 8.4 Host Project Stack
 
-| Layer | Technology |
-|-------|------------|
-| **Runtime** | Node.js |
-| **Frontend** | React 18, Vite, Tailwind, shadcn/ui, Redux Toolkit, RTK Query |
-| **Backend** | Express, Prisma ORM, PostgreSQL |
-| **Testing** | Vitest, Testing Library, Playwright, MSW |
-| **Monorepo** | npm workspaces |
-| **Code Quality** | ESLint, Prettier, Husky, commitlint |
-| **Security** | Gitleaks, Semgrep, Trivy |
+| Layer            | Technology                                                    |
+| ---------------- | ------------------------------------------------------------- |
+| **Runtime**      | Node.js                                                       |
+| **Frontend**     | React 18, Vite, Tailwind, shadcn/ui, Redux Toolkit, RTK Query |
+| **Backend**      | Express, Prisma ORM, PostgreSQL                               |
+| **Testing**      | Vitest, Testing Library, Playwright, MSW                      |
+| **Monorepo**     | npm workspaces                                                |
+| **Code Quality** | ESLint, Prettier, Husky, commitlint                           |
+| **Security**     | Gitleaks, Semgrep, Trivy                                      |
 
 ---
 
@@ -797,6 +812,7 @@ When performing these actions, the corresponding skill MUST be loaded automatica
 - **Purpose:** Trello board management for project management
 
 **Trello Context:**
+
 ```json
 {
   "defaultBoard": "project-one",
@@ -813,6 +829,7 @@ When performing these actions, the corresponding skill MUST be loaded automatica
 
 **MCP Permission Restriction:**
 Since May 19, 2026, Composio MCP tools are restricted via the `permission` system to prevent context bloat and accidental invocations:
+
 - All agents except `project-manager` have Composio tools denied globally via `"composio_*": "deny"`
 - Only `project-manager` has `"composio_*": "allow"` for Trello operations
 - See [section 9.3](#93-mcp-permission-control) for full analysis
@@ -838,7 +855,7 @@ The `composio` MCP server was configured with `"enabled": true`, making all its 
 
 OpenCode's `permission` system supports wildcard pattern matching against MCP tool names:
 
-> *"Permission keys are matched as wildcard patterns against the underlying tool name... denying all tools from an MCP server with `"mymcp_*": "deny"`"*
+> \_"Permission keys are matched as wildcard patterns against the underlying tool name... denying all tools from an MCP server with `"mymcp\__": "deny"`"\*
 
 Two approaches were implemented and tested:
 
@@ -883,11 +900,11 @@ Matches the exact tool name prefix as seen by the model:
 
 Both patterns were tested in a fresh TUI session:
 
-| Test | `"composio_*"` | `"composio_COMPOSIO_*"` |
-|------|:--------------:|:-----------------------:|
-| Orchestrator — Composio tools blocked | ✅ Not available | ✅ Not available |
-| Project-manager — create Trello card | ✅ Card created | ✅ Card created |
-| Card URL | [v2EpoES3](https://trello.com/c/v2EpoES3/46-test-composio-permission-check) | [tYaGsYeA](https://trello.com/c/tYaGsYeA/47-test-composio-composio-*-pattern) |
+| Test                                  |                               `"composio_*"`                                |                            `"composio_COMPOSIO_*"`                            |
+| ------------------------------------- | :-------------------------------------------------------------------------: | :---------------------------------------------------------------------------: |
+| Orchestrator — Composio tools blocked |                              ✅ Not available                               |                               ✅ Not available                                |
+| Project-manager — create Trello card  |                               ✅ Card created                               |                                ✅ Card created                                |
+| Card URL                              | [v2EpoES3](https://trello.com/c/v2EpoES3/46-test-composio-permission-check) | [tYaGsYeA](https://trello.com/c/tYaGsYeA/47-test-composio-composio-*-pattern) |
 
 #### Decision
 
@@ -902,6 +919,7 @@ Both patterns work because `"composio_*"` is a prefix of the actual tool name `c
 **Why:** Replaces ephemeral session context with persistent, searchable memory that survives compactions and agent restarts.
 
 **Integration:**
+
 ```jsonc
 // Global — allow for all agents
 "permission": {
@@ -910,6 +928,7 @@ Both patterns work because `"composio_*"` is a prefix of the actual tool name `c
 ```
 
 **MCP Configuration:**
+
 ```jsonc
 "mcp": {
   "engram": {
@@ -921,16 +940,18 @@ Both patterns work because `"composio_*"` is a prefix of the actual tool name `c
 ```
 
 **Key Engram Tools:**
-| Tool | Purpose |
-|------|---------|
-| `mem_save` | Save observation with title/type/content/scope/topic_key |
-| `mem_search` | Full-text search across memories |
-| `mem_context` | Get recent session context |
-| `mem_session_summary` | Save end-of-session summary |
-| `mem_get_observation` | Get full content by ID |
-| `mem_judge` | Resolve memory conflicts |
+
+| Tool                  | Purpose                                                  |
+| --------------------- | -------------------------------------------------------- |
+| `mem_save`            | Save observation with title/type/content/scope/topic_key |
+| `mem_search`          | Full-text search across memories                         |
+| `mem_context`         | Get recent session context                               |
+| `mem_session_summary` | Save end-of-session summary                              |
+| `mem_get_observation` | Get full content by ID                                   |
+| `mem_judge`           | Resolve memory conflicts                                 |
 
 **Usage Pattern:**
+
 1. At session start: `mem_current_project` → `mem_context`
 2. During work: `mem_save` after significant decisions/work
 3. At session end: `mem_session_summary` with Goal/Discoveries/Accomplished/Next Steps
@@ -959,14 +980,14 @@ Backlog ──► Sprint Backlog ──► In Progress ──► Testing
 
 ### 10.2 OpenSpec Sync
 
-| OpenSpec Phase | Trello Status | Action |
-|----------------|---------------|--------|
-| Exploration | Backlog | Card created with `/trello-create-card` |
-| Spec Creation | Sprint Backlog | Move with `/trello-update-card` |
-| Spec Review | Sprint Backlog | - |
-| Implementation | In Progress | Move card |
-| Verification | Testing | Move card |
-| Archive | Complete | Move card + archive |
+| OpenSpec Phase | Trello Status  | Action                                  |
+| -------------- | -------------- | --------------------------------------- |
+| Exploration    | Backlog        | Card created with `/trello-create-card` |
+| Spec Creation  | Sprint Backlog | Move with `/trello-update-card`         |
+| Spec Review    | Sprint Backlog | -                                       |
+| Implementation | In Progress    | Move card                               |
+| Verification   | Testing        | Move card                               |
+| Archive        | Complete       | Move card + archive                     |
 
 ### 10.3 Repository Protections
 
@@ -1019,21 +1040,21 @@ The `reviewer` agent executes a multidimensional checklist:
 
 ### 12.1 Active Changes (6 changes in progress)
 
-| Change | Status | Artifacts |
-|--------|--------|-----------|
-| `add-field-limits-to-shadcn-components` | Completed | 5/5 artifacts ✅, 58/58 tasks ✅ |
-| `add-users-by-status-endpoint` | In progress | 5/5 artifacts |
-| `client-i18n-full-coverage` | In progress | 5/5 artifacts |
-| `improve-jsdoc-documentation` | In progress | 6/5 artifacts (+1 extra) |
-| `notes-mentions` | In progress | 5/5 artifacts |
-| `testing-strategy` | In progress | 5/5 artifacts |
+| Change                                  | Status      | Artifacts                        |
+| --------------------------------------- | ----------- | -------------------------------- |
+| `add-field-limits-to-shadcn-components` | Completed   | 5/5 artifacts ✅, 58/58 tasks ✅ |
+| `add-users-by-status-endpoint`          | In progress | 5/5 artifacts                    |
+| `client-i18n-full-coverage`             | In progress | 5/5 artifacts                    |
+| `improve-jsdoc-documentation`           | In progress | 6/5 artifacts (+1 extra)         |
+| `notes-mentions`                        | In progress | 5/5 artifacts                    |
+| `testing-strategy`                      | In progress | 5/5 artifacts                    |
 
 ### 12.2 Archived Changes (2 changes)
 
-| Change | Date | Artifacts |
-|--------|------|-----------|
-| `2026-04-19-document-system-modules` | 2026-04-19 | `design.md`, `tasks.md` |
-| `2026-04-29-refactor-joi-schemas` | 2026-04-29 | `.openspec.yaml`, `design.md`, `proposal.md`, `specs/`, `tasks.md` |
+| Change                               | Date       | Artifacts                                                          |
+| ------------------------------------ | ---------- | ------------------------------------------------------------------ |
+| `2026-04-19-document-system-modules` | 2026-04-19 | `design.md`, `tasks.md`                                            |
+| `2026-04-29-refactor-joi-schemas`    | 2026-04-29 | `.openspec.yaml`, `design.md`, `proposal.md`, `specs/`, `tasks.md` |
 
 ### 12.3 Case Study: field-limits
 
@@ -1112,65 +1133,65 @@ The `reviewer` agent executes a multidimensional checklist:
 
 ### 14.1 Agent Architecture Terms
 
-| Term | Definition |
-|------|------------|
-| **Orchestrator** | Primary agent that coordinates and delegates to specialized subagents. Never executes domain tasks directly. |
-| **Subagent** | Secondary agent with a single, bounded domain of responsibility. |
-| **Primary Agent** | Main agent that receives all user requests and redirects them. |
-| **Subagent Mode** | Agent that can only be invoked by another agent (the orchestrator), not directly by the user. |
-| **Steps** | Maximum number of interactions an agent can have. Primary token-saving mechanism. |
-| **Tool Permissions** | Granular per-agent permissions for `write`, `edit`, `bash`. |
-| **Task Permissions** | Control over which subagents an agent can invoke. |
+| Term                 | Definition                                                                                                   |
+| -------------------- | ------------------------------------------------------------------------------------------------------------ |
+| **Orchestrator**     | Primary agent that coordinates and delegates to specialized subagents. Never executes domain tasks directly. |
+| **Subagent**         | Secondary agent with a single, bounded domain of responsibility.                                             |
+| **Primary Agent**    | Main agent that receives all user requests and redirects them.                                               |
+| **Subagent Mode**    | Agent that can only be invoked by another agent (the orchestrator), not directly by the user.                |
+| **Steps**            | Maximum number of interactions an agent can have. Primary token-saving mechanism.                            |
+| **Tool Permissions** | Granular per-agent permissions for `write`, `edit`, `bash`.                                                  |
+| **Task Permissions** | Control over which subagents an agent can invoke.                                                            |
 
 ### 14.2 Development Methodology Terms
 
-| Term | Definition |
-|------|------------|
+| Term                                       | Definition                                                                                                                                                         |
+| ------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | **Specification-Driven Development (SDD)** | Methodology where every implementation must be preceded by formal specifications. 6 phases: Exploration → Spec → Review → Implementation → Verification → Archive. |
-| **Command-Driven Development (CDD)** | Approach where every operation is triggered by predefined slash commands with deterministic behavior. |
-| **System Design Document (SDD)** | Artifact that documents technical decisions, architecture, trade-offs, and implementation approach. |
-| **Artifact-Driven Workflow** | Workflow based on sequential artifact creation (proposal → specs → design → tasks). |
-| **Delta Specs** | Incremental specifications representing changes relative to main specifications. |
-| **Conventional Commits** | Commit message standard: `type(scope): description`. |
+| **Command-Driven Development (CDD)**       | Approach where every operation is triggered by predefined slash commands with deterministic behavior.                                                              |
+| **System Design Document (SDD)**           | Artifact that documents technical decisions, architecture, trade-offs, and implementation approach.                                                                |
+| **Artifact-Driven Workflow**               | Workflow based on sequential artifact creation (proposal → specs → design → tasks).                                                                                |
+| **Delta Specs**                            | Incremental specifications representing changes relative to main specifications.                                                                                   |
+| **Conventional Commits**                   | Commit message standard: `type(scope): description`.                                                                                                               |
 
 ### 14.3 OpenSpec Terms
 
-| Term | Definition |
-|------|------------|
-| **Change** | Container for all work related to a modification. Lives in `openspec/changes/<name>/`. |
-| **Proposal** | Artifact capturing the "why" and "what" of the change. |
-| **Spec** | Detailed requirement specification in WHEN/THEN format. |
-| **Design** | Document of technical decisions, architecture, and approach. |
-| **Tasks** | Implementation task list with checkboxes. |
-| **OpenSpec Schema** | Defines what artifacts a change must have and in what order to create them. |
-| **Fast-Forward (FF)** | Create all artifacts of a change in a single operation. |
+| Term                  | Definition                                                                             |
+| --------------------- | -------------------------------------------------------------------------------------- |
+| **Change**            | Container for all work related to a modification. Lives in `openspec/changes/<name>/`. |
+| **Proposal**          | Artifact capturing the "why" and "what" of the change.                                 |
+| **Spec**              | Detailed requirement specification in WHEN/THEN format.                                |
+| **Design**            | Document of technical decisions, architecture, and approach.                           |
+| **Tasks**             | Implementation task list with checkboxes.                                              |
+| **OpenSpec Schema**   | Defines what artifacts a change must have and in what order to create them.            |
+| **Fast-Forward (FF)** | Create all artifacts of a change in a single operation.                                |
 
 ### 14.4 Technical Terms
 
-| Term | Definition |
-|------|------------|
-| **MCP (Model Context Protocol)** | Protocol for AI models to communicate with external services. |
-| **Composio** | Integration platform that connects apps through unified APIs. |
-| **Context7** | Library documentation query service optimized for LLMs. |
-| **SAST (Static Application Security Testing)** | Static security analysis of source code. |
-| **Trunk-Based Development (TBD)** | Branching strategy where all developers work on a main branch. |
+| Term                                           | Definition                                                     |
+| ---------------------------------------------- | -------------------------------------------------------------- |
+| **MCP (Model Context Protocol)**               | Protocol for AI models to communicate with external services.  |
+| **Composio**                                   | Integration platform that connects apps through unified APIs.  |
+| **Context7**                                   | Library documentation query service optimized for LLMs.        |
+| **SAST (Static Application Security Testing)** | Static security analysis of source code.                       |
+| **Trunk-Based Development (TBD)**              | Branching strategy where all developers work on a main branch. |
 
 ### 14.5 Skill Terms
 
-| Term | Definition |
-|------|------------|
-| **Skill** | Set of specialized instructions loaded on-demand for specific tasks. |
-| **Workflow Skill** | Skill that handles the OpenSpec change lifecycle (`.opencode/skills/`). |
-| **Knowledge Skill** | Skill that provides domain technical knowledge (`.agents/skills/`). |
-| **Skill Lock** | `skills-lock.json` file that records hashes and sources of installed skills. |
-| **grill-me** | Skill from `mattpocock/skills` for relentlessly interviewing the user. Loaded in Phase 0. |
-| **caveman** | Skill from `mattpocock/skills` for ultra-compressed communication (~75% fewer tokens). |
-| **Context Injection** | Technique of injecting `CONTEXT.md` into the subagent prompt before delegating. |
-| **20-Word Rule** | Rule requiring a term to be defined in `CONTEXT.md` if a concept requires >20 words. |
-| **CONTEXT.md** | Glossary file at the project root defining compressed technical terms. |
-| **Token Efficiency Protocols** | Set of 3 rules (Context Injection, 20-Word Rule, /caveman) for token savings. |
-| **Skill Discrimination** | System that assigns each skill to the precise agent, component, and phase where it should execute. |
-| **Auto-Invoke** | Mechanism that triggers automatic skill loading when detecting a specific action. |
+| Term                           | Definition                                                                                         |
+| ------------------------------ | -------------------------------------------------------------------------------------------------- |
+| **Skill**                      | Set of specialized instructions loaded on-demand for specific tasks.                               |
+| **Workflow Skill**             | Skill that handles the OpenSpec change lifecycle (`.opencode/skills/`).                            |
+| **Knowledge Skill**            | Skill that provides domain technical knowledge (`.agents/skills/`).                                |
+| **Skill Lock**                 | `skills-lock.json` file that records hashes and sources of installed skills.                       |
+| **grill-me**                   | Skill from `mattpocock/skills` for relentlessly interviewing the user. Loaded in Phase 0.          |
+| **caveman**                    | Skill from `mattpocock/skills` for ultra-compressed communication (~75% fewer tokens).             |
+| **Context Injection**          | Technique of injecting `CONTEXT.md` into the subagent prompt before delegating.                    |
+| **20-Word Rule**               | Rule requiring a term to be defined in `CONTEXT.md` if a concept requires >20 words.               |
+| **CONTEXT.md**                 | Glossary file at the project root defining compressed technical terms.                             |
+| **Token Efficiency Protocols** | Set of 3 rules (Context Injection, 20-Word Rule, /caveman) for token savings.                      |
+| **Skill Discrimination**       | System that assigns each skill to the precise agent, component, and phase where it should execute. |
+| **Auto-Invoke**                | Mechanism that triggers automatic skill loading when detecting a specific action.                  |
 
 ---
 
@@ -1179,39 +1200,44 @@ The `reviewer` agent executes a multidimensional checklist:
 The `output-contracts-standardization` implementation employed a comprehensive set of prompting techniques to ensure reliable, structured, and efficient agent communication. Below is a catalog of the techniques used, with evidence from the implementation and analysis of their effectiveness.
 
 ### 1. Role Prompting
+
 - **Where used**: Every agent's prompt `## YOUR IDENTITY` section; formalized via `<output-contract agent="[AGENT_NAME]" version="1">` envelope.
-- **Evidence**: 
+- **Evidence**:
   - Developer: "You are a senior full-stack developer who implements features according to specifications."
   - Orchestrator: XML envelope includes `agent="developer"` field.
 - **Effectiveness**: Establishes clear behavioral boundaries and expectations; the envelope makes the role explicit in machine-parsable output.
 
 ### 2. Positive Constraint Prompting
+
 - **Where used**: Orchestrator's Critical Rules (lines 319-347) and agent prompt updates.
-- **Evidence**: 
+- **Evidence**:
   - 26 instances of `✅ ALWAYS` directives (e.g., "✅ ALWAYS delegate code implementation to @developer").
   - Replacement of `❌ NEVER` statements with affirmative actions (e.g., "NEVER write code yourself" → "ALWAYS delegate code implementation to @developer").
 - **Effectiveness**: Reduces cognitive load by focusing on desired behaviors; mitigates the "pink elephant problem" where negations increase fixation on forbidden actions.
 
 ### 3. Output Contract / Structured Output Prompting
+
 - **Where used**: Core of the change; XML envelope + JSON schemas.
-- **Evidence**: 
+- **Evidence**:
   - Envelope format: `<output-contract agent="developer" version="1"> { ... } </output-contract>`
   - JSON schemas in `docs/opencode/prompts/contracts/*.schema.json` with strict field definitions.
   - Example from developer schema: `{"task_id": "...", "status": "complete", "files_changed": [...], "tests": {...}}`
 - **Effectiveness**: Transforms free-form text into deterministic, machine-parsable responses; enables automated workflow tracking, validation, and gating.
 
 ### 4. Formatting Prompting
+
 - **Where used**: Prompt structure, YAML frontmatter in command files, consistent heading hierarchy.
-- **Evidence**: 
+- **Evidence**:
   - Use of `##` sections (e.g., `## OUTPUT CONTRACT`, `## TASK EXECUTION PROTOCOL`).
-  - Code fenced examples (```json ... ```) for clarity.
+  - Code fenced examples (`json ... `) for clarity.
   - Bullet points and tables for scannability.
 - **Effectiveness**: Improves readability while providing structural cues that help the model organize its response.
 
 ### 5. Few-Shot / Example-Driven Prompting
+
 - **Where used**: Prompt updates with example JSON payloads; command files with usage examples.
-- **Evidence**: 
-  - Planner prompt includes example: 
+- **Evidence**:
+  - Planner prompt includes example:
     ```json
     {
       "verdict": "sound",
@@ -1224,96 +1250,106 @@ The `output-contracts-standardization` implementation employed a comprehensive s
 - **Effectiveness**: Demonstrates expected format more effectively than abstract descriptions; reduces formatting errors.
 
 ### 6. Recency / Positional Bias Prompting
+
 - **Where used**: Task 2.8 in `tasks.md` requiring penultimate placement of Output Contract section.
-- **Evidence**: 
+- **Evidence**:
   - Task 2.8: "Position all `## Output Contract` sections as penultimate (immediately before Tools/Execution Rules) in each prompt."
   - Placement ensures the contract is among the last tokens seen before generation.
 - **Effectiveness**: Leverages recency bias in LLMs; critical formatting instructions are more likely to be followed when near the end of the prompt.
 
 ### 7. Caveman / Compressed Communication
+
 - **Where used**: Delegation format and agent responses in compressed mode.
-- **Evidence**: 
+- **Evidence**:
   - Delegation: `@developer: impl task-3 user-status. ref: design.md#api`
   - Response compression: Ultrashort envelope `<oc a="dev" v="1">{"s":"ok","fc":[{"p":"auth.ts","c":"create"}]}</oc>`.
   - Skill activation: `/skill caveman` persisted across responses.
 - **Effectiveness**: Reduces token usage by ~75% while preserving technical accuracy; compatible with output contracts when using compressed field names.
 
 ### 8. Context Injection
+
 - **Where used**: Pre-delegation protocol requiring CONTEXT.md injection.
-- **Evidence**: 
+- **Evidence**:
   - Orchestrator rule: "✅ ALWAYS inject CONTEXT.md into subagent prompts before delegation" (line 339).
   - CONTEXT.md defines terms like "Output Contract", "Schema", "Envelope".
 - **Effectiveness**: Ensures consistent terminology across agents; reduces need to repeat long definitions in every prompt.
 
 ### 9. System Prompt vs User Prompt Separation
+
 - **Where used**: Clear distinction between `docs/opencode/prompts/*.md` (system prompts) and delegation instructions (`@agent: ...`).
-- **Evidence**: 
+- **Evidence**:
   - System prompts contain identity, rules, and output contract sections.
   - User/orchestrator delegations are concise: `@developer: Implement task 1 for <change-name>`.
 - **Effectiveness**: Separates invariant agent behavior (prompt) from variable task specifications (delegation); enables reuse and clarity.
 
 ### 10. Phase-Gated Prompting
+
 - **Where used**: Phase 0 (`/grill-me`) interrogation and sequential task execution.
-- **Evidence**: 
+- **Evidence**:
   - Phase 0 requires ≥3 confirmed questions before proceeding to Phase 1.
   - Tasks must be executed sequentially: "Each task is marked complete (`[x]`) before continuing" (developer prompt).
 - **Effectiveness**: Prevents premature implementation; ensures shared understanding and reduces rework due to unclear requirements.
 
 ### 11. Schema-First Prompting
+
 - **Where used**: JSON schemas defined before prompt updates and implementation.
-- **Evidence**: 
+- **Evidence**:
   - Schema files created first (`developer.schema.json`, etc.).
   - Prompts reference schemas: "Schema: docs/opencode/prompts/contracts/developer.schema.json".
   - Task 1.9/1.10 define success/failure structures before integration.
 - **Effectiveness**: Guarantees consistency between expected structure and actual implementation; enables validation.
 
 ### 12. Delegation Pattern Prompting
+
 - **Where used**: Standardized `@<agent>: <action>. focus: <areas>. context: <files>` format.
-- **Evidence**: 
+- **Evidence**:
   - Orchestrator examples: `@spec-manager: /opsx-explore authentication`, `@developer: impl task-3 user-status. ref: design.md#api`.
   - Enforced via caveman mode persistence and orchestrator rules.
 - **Effectiveness**: Creates a predictable, parseable interface for the orchestrator; reduces ambiguity in task specification.
 
 ### 13. Chain-of-Thought / Reasoning Prompting
+
 - **Where used**: Explore mode stances and reviewer structured checklist.
-- **Evidence**: 
+- **Evidence**:
   - Reviewer's multidimensional checklist (Correctness → Security → Performance → Code Quality → Testing → React-Specific → Express-Specific).
   - Explore mode instructions: "Investigate existing context — thinking partner for exploring ideas, investigating problems, and clarifying requirements."
 - **Effectiveness**: Breaks down complex tasks into logical steps; improves accuracy by forcing structured reasoning before conclusion.
 
 ### 14. Self-Validation / Self-Correction Prompting
+
 - **Where used**: 决赛 logic (max 2 retries) and severity guidelines.
-- **Evidence**: 
+- **Evidence**:
   - Orchestrator retry logic: "Implement retry logic — on validation failure, request retry with specific error details (max 2 retries)".
   - Reviewer severity guidelines: **CRITICAL** (security vulnerabilities, data loss risks, crashes) → **LOW** (style preferences).
 - **Effectiveness**: Enables error recovery and continuous improvement; provides graded feedback for prioritization.
 
 ### 15. Tool-Use / Function Calling Prompting
+
 - **Where used**: MCP permission system and Context7 `ask` level.
-- **Evidence**: 
+- **Evidence**:
   - MCP permissions: `"composio_*": "deny"` globally, `"composio_*": "allow"` only for project-manager.
   - Context7 guidance: "✅ Attempt #context7 when researching specific API details, version differences, or official documentation" (researcher prompt).
 - **Effectiveness**: Controls access to external tools; prevents unsafe or unnecessary tool invocations while enabling powerful capabilities when needed.
 
 ## Summary of Techniques
 
-| Technique | Primary Benefit | Agents Most Impacted |
-|-----------|----------------|----------------------|
-| Role Promoting | Clear boundaries and expectations | All |
-| Positive Constraints | Reduced fixation on forbidden actions | Orchestrator (rules), all agents |
-| Output Contracts | Machine-parsable, deterministic responses | Developer, Reviewer, Spec-Manager, Researcher, Planner |
-| Formatting Prompting | Improved readability and structure | All (prompt files) |
-| Few-Shot Examples | Reduced ambiguity in expected output | All (prompt updates, command files) |
-| Recency Bias | Increased compliance with critical instructions | All (penultimate section placement) |
-| Caveman Communication | ~75% token reduction in delegations | Orchestrator ↔ Agent internal comms |
-| Context Injection | Consistent terminology, reduced repetition | All agents (pre-delegation) |
-| System/User Prompt Separation | Clear division of static behavior vs. dynamic tasks | All |
-| Phase-Gated Prompting | Ensures shared understanding before action | Orchestrator (Phase 0), Developer (sequential tasks) |
-| Schema-First Prompting | Guarantees structural consistency | All (schema-driven validation) |
-| Delegation Pattern Prompting | Predictable, parseable task specifications | Orchestrator ↔ Agents |
-| Chain-of-Thought Reasoning | Improved accuracy through structured thinking | Reviewer, Explore mode |
-| Self-Validation/Self-Correction | Error recovery and graded feedback | Orchestrator (retries), Reviewer (severity) |
-| Tool-Use Prompting | Safe, controlled access to external capabilities | All (MCP, Context7, etc.) |
+| Technique                       | Primary Benefit                                     | Agents Most Impacted                                   |
+| ------------------------------- | --------------------------------------------------- | ------------------------------------------------------ |
+| Role Promoting                  | Clear boundaries and expectations                   | All                                                    |
+| Positive Constraints            | Reduced fixation on forbidden actions               | Orchestrator (rules), all agents                       |
+| Output Contracts                | Machine-parsable, deterministic responses           | Developer, Reviewer, Spec-Manager, Researcher, Planner |
+| Formatting Prompting            | Improved readability and structure                  | All (prompt files)                                     |
+| Few-Shot Examples               | Reduced ambiguity in expected output                | All (prompt updates, command files)                    |
+| Recency Bias                    | Increased compliance with critical instructions     | All (penultimate section placement)                    |
+| Caveman Communication           | ~75% token reduction in delegations                 | Orchestrator ↔ Agent internal comms                    |
+| Context Injection               | Consistent terminology, reduced repetition          | All agents (pre-delegation)                            |
+| System/User Prompt Separation   | Clear division of static behavior vs. dynamic tasks | All                                                    |
+| Phase-Gated Prompting           | Ensures shared understanding before action          | Orchestrator (Phase 0), Developer (sequential tasks)   |
+| Schema-First Prompting          | Guarantees structural consistency                   | All (schema-driven validation)                         |
+| Delegation Pattern Prompting    | Predictable, parseable task specifications          | Orchestrator ↔ Agents                                  |
+| Chain-of-Thought Reasoning      | Improved accuracy through structured thinking       | Reviewer, Explore mode                                 |
+| Self-Validation/Self-Correction | Error recovery and graded feedback                  | Orchestrator (retries), Reviewer (severity)            |
+| Tool-Use Prompting              | Safe, controlled access to external capabilities    | All (MCP, Context7, etc.)                              |
 
 The combination of these techniques creates a robust prompting ecosystem that balances human readability with machine parseability, optimizes token efficiency, and ensures reliable agent behavior in complex multi-agent workflows.
 
@@ -1331,7 +1367,7 @@ The combination of these techniques creates a robust prompting ecosystem that ba
 8. **Integrated Token Efficiency**: Phase 0, CONTEXT.md, and /caveman drastically reduce token consumption across all interactions.
 9. **Context-discriminated skills**: Each skill loads only where relevant (client, server, e2e), avoiding cognitive noise in agents.
 10. **Output Contract + Caveman dual schema**: Structured responses with automatic field expansion allows token-efficient communication while maintaining validation. Caveman fields (e.g., `da` → `delegatedAgent`) expand to canonical schema before validation.
-  11. **Token-efficient contracts**: ~11% overhead vs free prose (caveman mode), enabling structure without excessive cost.
+11. **Token-efficient contracts**: ~11% overhead vs free prose (caveman mode), enabling structure without excessive cost.
 
 ### 15.2 Potential Improvement Areas
 
@@ -1358,6 +1394,6 @@ The combination of these techniques creates a robust prompting ecosystem that ba
 ---
 
 > **Document generated through complete filesystem analysis of the project-one project.**  
-> *May 19, 2026*
+> _May 19, 2026_
 
 ---

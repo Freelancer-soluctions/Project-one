@@ -516,13 +516,14 @@ services:
 ```
 
 **Paralelo directo con compose:**
-| Compose | GitHub Actions `services:` |
-|---------|----------------------------|
-| `services.db.image` | `services.db.image` |
-| `healthcheck` | `options: --health-cmd ...` |
+
+| Compose                                 | GitHub Actions `services:`                                          |
+| --------------------------------------- | ------------------------------------------------------------------- |
+| `services.db.image`                     | `services.db.image`                                                 |
+| `healthcheck`                           | `options: --health-cmd ...`                                         |
 | `depends_on.condition: service_healthy` | Job **espera automáticamente** a que service container esté healthy |
-| `environment` | `env:` |
-| `ports` | `ports:` (accesible en `localhost:port` desde steps) |
+| `environment`                           | `env:`                                                              |
+| `ports`                                 | `ports:` (accesible en `localhost:port` desde steps)                |
 
 ---
 

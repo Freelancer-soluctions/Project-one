@@ -1,7 +1,26 @@
+# Prettier ignore patterns (gitignore syntax).
+# Docs: https://prettier.io/docs/ignore
+
+# Dependencies
 node_modules
+
+# Compiled build output
 dist
 build
+storybook-static
+
+# Test coverage
 coverage
+
+# Generated Prisma migrations
+apps/server/prisma/migrations
+
+# Lockfiles
+package-lock.json
+
+# Environment files
 .env
 .env.*
+
+# Logs
 *.log

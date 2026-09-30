@@ -40,32 +40,35 @@ Engram is a **local-first, agent-agnostic persistent memory system** designed fo
 
 ### Key Differentiators
 
-| Feature | Engram | Traditional Context | claude-mem (Legacy) |
-|---------|--------|---------------------|---------------------|
-| **Persistence** | SQLite + FTS5 (local) | Session-only | File-based (JSON) |
-| **Search** | Full-text (FTS5) + semantic | None | Basic grep |
-| **Project Detection** | Auto (git, package.json, dir) | Manual | Manual |
-| **Session Management** | Explicit start/end + summaries | Implicit | None |
-| **Conflict Resolution** | Structured judgment workflow | None | None |
-| **Cloud Sync** | Optional (team sharing) | No | No |
-| **Agent Agnostic** | Yes (MCP standard) | N/A | Claude-specific |
-| **Structured Memory** | Title, type, scope, topic_key | Unstructured | Basic key-value |
-| **Dependencies** | Zero (single binary) | N/A | Python/Node |
-| **Cross-compaction** | Survives context resets | Lost on compaction | Manual backup needed |
+| Feature                 | Engram                         | Traditional Context | claude-mem (Legacy)  |
+| ----------------------- | ------------------------------ | ------------------- | -------------------- |
+| **Persistence**         | SQLite + FTS5 (local)          | Session-only        | File-based (JSON)    |
+| **Search**              | Full-text (FTS5) + semantic    | None                | Basic grep           |
+| **Project Detection**   | Auto (git, package.json, dir)  | Manual              | Manual               |
+| **Session Management**  | Explicit start/end + summaries | Implicit            | None                 |
+| **Conflict Resolution** | Structured judgment workflow   | None                | None                 |
+| **Cloud Sync**          | Optional (team sharing)        | No                  | No                   |
+| **Agent Agnostic**      | Yes (MCP standard)             | N/A                 | Claude-specific      |
+| **Structured Memory**   | Title, type, scope, topic_key  | Unstructured        | Basic key-value      |
+| **Dependencies**        | Zero (single binary)           | N/A                 | Python/Node          |
+| **Cross-compaction**    | Survives context resets        | Lost on compaction  | Manual backup needed |
 
 ### Why Engram?
 
 **For Individual Developers:**
+
 - Never lose a design decision or bug fix again
 - Resume work seamlessly after compaction or context reset
 - Build a personal knowledge base that grows with you
 
 **For Teams:**
+
 - Share institutional memory across team members
 - Onboard new developers faster with searchable project history
 - Maintain consistency in architectural decisions
 
 **For Agent Developers:**
+
 - Standard MCP interface works with any compatible agent
 - Structured memory enables better reasoning and planning
 - Conflict detection prevents contradictory guidance
@@ -98,6 +101,7 @@ Engram is a **local-first, agent-agnostic persistent memory system** designed fo
 ```
 
 **Flow:**
+
 1. **Agent encounters something worth remembering** (decision, bug fix, discovery, pattern)
 2. **Agent calls `mem_save`** with structured data (title, type, content with What/Why/Where/Learned format)
 3. **Engram stores** in SQLite with FTS5 indexing for full-text search
@@ -181,7 +185,7 @@ Engram automatically detects the current project using this priority order:
 └─────────────────────────────────────────────────────────────────┘
 ```
 
-*Vector index is optional and requires additional dependencies.
+\*Vector index is optional and requires additional dependencies.
 
 ### Project Structure
 
@@ -294,6 +298,7 @@ CREATE INDEX idx_sessions_project ON sessions(project);
 **Custom Location:** Set via `ENGRAM_DB_PATH` environment variable or `--db-path` CLI flag.
 
 **SQLite Pragmas (Auto-configured):**
+
 ```sql
 PRAGMA journal_mode = WAL;           -- Write-Ahead Logging for concurrency
 PRAGMA synchronous = NORMAL;         -- Balance safety/performance
@@ -304,6 +309,7 @@ PRAGMA page_size = 4096;             -- 4KB pages
 ```
 
 **FTS5 Configuration:**
+
 - Tokenizer: `unicode61` (Unicode-aware, good for code)
 - Prefix indexing: Enabled for 2-3 character prefixes
 - Contentless: No (stores content for snippet generation)
@@ -326,12 +332,14 @@ engram --version
 ### Windows
 
 **Option 1: Go Install (Recommended if Go toolchain present)**
+
 ```powershell
 go install github.com/engram-memory/engram/cmd/engram@latest
 # Ensure $env:GOPATH/bin or $env:GOBIN is in PATH
 ```
 
 **Option 2: Download Pre-built Binary**
+
 ```powershell
 # Download latest release
 $url = "https://github.com/engram-memory/engram/releases/latest/download/engram_windows_amd64.zip"
@@ -341,6 +349,7 @@ Expand-Archive -Path "engram.zip" -DestinationPath "$env:USERPROFILE\bin"
 ```
 
 **Option 3: Build from Source**
+
 ```powershell
 git clone https://github.com/engram-memory/engram.git
 cd engram
@@ -349,6 +358,7 @@ go build -o engram.exe ./cmd/engram
 ```
 
 **Option 4: Scoop (Community)**
+
 ```powershell
 scoop bucket add extras
 scoop install engram
@@ -412,6 +422,7 @@ Edit `~/.config/opencode/opencode.json` (or `opencode.jsonc`):
 **3. Restart OpenCode** — The MCP server will start automatically
 
 **4. Verify in OpenCode**
+
 ```
 > /mcp
 # Should show "engram" with 20 tools available
@@ -434,6 +445,7 @@ If you only want Engram for memory (not as default agent):
 ```
 
 Then invoke tools manually:
+
 ```
 > mem_save title="Fixed auth bug" type="bugfix" content="**What**: Fixed JWT validation..."
 > mem_search query="JWT authentication"
@@ -449,54 +461,65 @@ Add this to your agent's system prompt or instructions:
 You have access to Engram, a persistent memory system that survives across sessions and compactions.
 
 ### CORE TOOLS (always available — use without ToolSearch):
-  mem_save — save decisions, bugs, discoveries, conventions PROACTIVELY (do not wait to be asked)
-  mem_search — find past work, decisions, or context from previous sessions
-  mem_context — get recent session history (call at session start or after compaction)
-  mem_session_summary — save end-of-session summary (MANDATORY before saying "done")
-  mem_get_observation — get full untruncated content of a search result by ID
-  mem_save_prompt — save user prompt for context
-  mem_current_project — detect current project from cwd (recommended first call)
+
+mem_save — save decisions, bugs, discoveries, conventions PROACTIVELY (do not wait to be asked)
+mem_search — find past work, decisions, or context from previous sessions
+mem_context — get recent session history (call at session start or after compaction)
+mem_session_summary — save end-of-session summary (MANDATORY before saying "done")
+mem_get_observation — get full untruncated content of a search result by ID
+mem_save_prompt — save user prompt for context
+mem_current_project — detect current project from cwd (recommended first call)
 
 ### DEFERRED TOOLS (use ToolSearch when needed):
-  mem_update, mem_review, mem_pin, mem_unpin, mem_suggest_topic_key, mem_session_start, mem_session_end,
-  mem_stats, mem_delete, mem_timeline, mem_capture_passive, mem_merge_projects
+
+mem_update, mem_review, mem_pin, mem_unpin, mem_suggest_topic_key, mem_session_start, mem_session_end,
+mem_stats, mem_delete, mem_timeline, mem_capture_passive, mem_merge_projects
 
 ### PROACTIVE SAVE RULE: Call mem_save immediately after ANY decision, bug fix, discovery, or convention — not just when asked.
 
 ### FORMAT for mem_save content — use this structured format:
-  **What**: [concise description of what was done]
-  **Why**: [the reasoning, user request, or problem that drove it]
-  **Where**: [files/paths affected, e.g. src/auth/middleware.ts, internal/store/store.go]
-  **Learned**: [any gotchas, edge cases, or decisions made — omit if none]
+
+**What**: [concise description of what was done]
+**Why**: [the reasoning, user request, or problem that drove it]
+**Where**: [files/paths affected, e.g. src/auth/middleware.ts, internal/store/store.go]
+**Learned**: [any gotchas, edge cases, or decisions made — omit if none]
 
 ### TITLE should be short and searchable, like: "JWT auth middleware", "FTS5 query sanitization", "Fixed N+1 in user list"
 
 ### WHEN TO SEARCH MEMORY
+
 When user asks to recall something — "remember", "recall", "what did we do", "how did we solve" — call mem_context first, then mem_search.
 
 Also search PROACTIVELY when starting work on something that might have been done before.
 
 ### SESSION CLOSE PROTOCOL (mandatory)
+
 Before ending a session or saying "done", you MUST call mem_session_summary with this structure:
 
 ## Goal
+
 [What we were working on this session]
 
 ## Instructions
+
 [User preferences or constraints discovered — skip if none]
 
 ## Discoveries
+
 - [Technical findings, gotchas, non-obvious learnings]
 
 ## Accomplished
+
 - ✅ [Completed task 1 — with key implementation details]
 - ✅ [Completed task 2 — mention files changed]
 - 🔲 [Identified but not yet done — for next session]
 
 ## Next Steps
+
 - [What remains to be done — for the next session]
 
 ## Relevant Files
+
 - path/to/file.ts — [what it does or what changed]
 
 This is NOT optional. If you skip this, the next session starts blind.
@@ -510,9 +533,11 @@ For the `project-one` monorepo, add this to your agent instructions:
 ## Project-One Specific Memory Protocol
 
 ### Project Detection
+
 This is a monorepo with multiple apps. Engram will detect the project as "project-one" from the git root.
 
 ### Key Topic Keys to Use
+
 - `architecture/monorepo-structure` — Monorepo organization decisions
 - `architecture/auth-model` — Authentication/authorization patterns
 - `backend/api-design` — REST API conventions
@@ -527,18 +552,24 @@ This is a monorepo with multiple apps. Engram will detect the project as "projec
 
 **After setting up Prisma with PostgreSQL:**
 ```
+
 mem_save title="Prisma Postgres setup for project-one" type="config" topic_key="backend/prisma-patterns" content="**What**: Configured Prisma with PostgreSQL for apps/server\n**Why**: Need type-safe database access for Express backend\n**Where**: apps/server/prisma/schema.prisma, apps/server/package.json\n**Learned**: Use prisma-migration script for migrations, not prisma db push in prod"
+
 ```
 
 **After deciding on authentication approach:**
 ```
+
 mem_save title="JWT auth with httpOnly cookies" type="decision" topic_key="architecture/auth-model" content="**What**: Chose JWT in httpOnly cookies over sessions\n**Why**: Stateless, scales across instances, CSRF protection via SameSite\n**Where**: apps/server/src/auth/middleware.ts, apps/server/src/auth/routes.ts\n**Learned**: Must implement refresh token rotation, secure flag in production"
+
 ```
 
 **After fixing a React rendering issue:**
 ```
+
 mem_save title="Fixed infinite re-render in UserList" type="bugfix" topic_key="frontend/state-management" content="**What**: Fixed UserList component re-rendering on every keystroke\n**Why**: useSelector was returning new object reference each render\n**Where**: apps/client/src/features/users/UserList.tsx\n**Learned**: Use shallowEqual or select individual fields, not entire state slice"
-```
+
+````
 
 ---
 
@@ -612,9 +643,10 @@ mem_save title="Fixed infinite re-render in UserList" type="bugfix" topic_key="f
     "content": "**What**: Selected Zustand for global client state\n**Why**: Simpler API, smaller bundle, no Provider wrapper needed\n**Where**: apps/client/src/store/\n**Learned**: Middleware pattern differs from Redux; immer integration built-in"
   }
 }
-```
+````
 
 #### Search Patterns
+
 ```json
 // Natural language search (default: all tokens must match)
 {
@@ -647,6 +679,7 @@ mem_save title="Fixed infinite re-render in UserList" type="bugfix" topic_key="f
 ```
 
 #### Session Management
+
 ```json
 // At session start
 {
@@ -677,6 +710,7 @@ mem_save title="Fixed infinite re-render in UserList" type="bugfix" topic_key="f
 ```
 
 #### Conflict Resolution
+
 ```json
 // When mem_save returns judgment_required=true
 // Iterate candidates and call mem_judge for each
@@ -692,6 +726,7 @@ mem_save title="Fixed infinite re-render in UserList" type="bugfix" topic_key="f
 ```
 
 #### Topic Key Suggestion
+
 ```json
 // Before saving evolving decisions
 {
@@ -710,6 +745,7 @@ mem_save title="Fixed infinite re-render in UserList" type="bugfix" topic_key="f
 ## CLI Reference
 
 ### Global Options
+
 ```
 engram [global options] <command> [command options]
 
@@ -726,6 +762,7 @@ Global Options:
 ### Commands
 
 #### Memory Operations
+
 ```bash
 # Save observation
 engram save --title "Fixed N+1 query" --type bugfix \
@@ -752,6 +789,7 @@ engram stats --project project-one
 ```
 
 #### Session Management
+
 ```bash
 # Start session
 engram session start --id "sess-001" --dir "/path/to/project"
@@ -770,6 +808,7 @@ engram context --project project-one --limit 3
 ```
 
 #### Project Management
+
 ```bash
 # Detect current project
 engram project detect
@@ -785,6 +824,7 @@ engram project merge --source old-name --target new-name
 ```
 
 #### MCP Server
+
 ```bash
 # Start MCP server (stdio transport)
 engram mcp --stdio
@@ -797,6 +837,7 @@ engram mcp tools
 ```
 
 #### Configuration
+
 ```bash
 # Show current config
 engram config show
@@ -812,6 +853,7 @@ engram config validate
 ```
 
 #### Diagnostics & Maintenance
+
 ```bash
 # Run health checks
 engram doctor
@@ -830,6 +872,7 @@ engram restore --input ~/backups/engram-20260629.db
 ```
 
 #### Cloud Sync (Optional)
+
 ```bash
 # Login to sync service
 engram sync login
@@ -881,6 +924,7 @@ Engram's session model provides explicit continuity management for agent workflo
 ### Phase Details
 
 #### Phase 1: Explore (Session Start)
+
 ```bash
 # Agent starts work
 engram session start --id "sess-20260629-auth" --dir "/project-one"
@@ -891,9 +935,11 @@ mem_session_start(id="sess-20260629-auth", directory="/project-one")
 # Immediately get context
 mem_context(project="project-one", limit=3)
 ```
+
 **Purpose:** Register session, recover context from previous sessions, understand current state.
 
 #### Phase 2: Specify (Active Work)
+
 ```bash
 # Save decisions, specs, designs as they're made
 mem_save(title="Auth API spec", type="spec", topic_key="backend/api-design", content="...")
@@ -901,9 +947,11 @@ mem_save(title="Auth API spec", type="spec", topic_key="backend/api-design", con
 # Search for relevant prior work
 mem_search(query="password reset flow", type="design")
 ```
+
 **Purpose:** Build specification artifacts, reference past decisions, avoid re-work.
 
 #### Phase 3: Implement (Active Work)
+
 ```bash
 # Save implementation decisions, bug fixes, patterns
 mem_save(title="JWT middleware implementation", type="pattern", topic_key="backend/api-design", content="...")
@@ -911,9 +959,11 @@ mem_save(title="JWT middleware implementation", type="pattern", topic_key="backe
 # Save discoveries during implementation
 mem_save(title="Prisma transaction handling", type="discovery", topic_key="backend/prisma-patterns", content="...")
 ```
+
 **Purpose:** Capture implementation knowledge, document gotchas, create reusable patterns.
 
 #### Phase 4: Verify (Active Work)
+
 ```bash
 # Save test results, verification outcomes
 mem_save(title="Auth integration tests passing", type="learning", topic_key="testing/strategy", content="...")
@@ -921,9 +971,11 @@ mem_save(title="Auth integration tests passing", type="learning", topic_key="tes
 # Mark observations for review if needed
 mem_review(action="list", project="project-one")
 ```
+
 **Purpose:** Document verification results, flag items needing review.
 
 #### Phase 5: Archive (Session End)
+
 ```bash
 # MANDATORY: Save comprehensive summary
 mem_session_summary(session_id="sess-20260629-auth", content="## Goal\n...")
@@ -931,11 +983,13 @@ mem_session_summary(session_id="sess-20260629-auth", content="## Goal\n...")
 # End session
 mem_session_end(id="sess-20260629-auth", summary="Completed JWT auth implementation")
 ```
+
 **Purpose:** Create durable summary for future sessions, mark session complete.
 
 ### Session Continuity Management
 
 #### After Compaction/Context Reset
+
 ```bash
 # 1. Detect project
 mem_current_project()
@@ -952,6 +1006,7 @@ mem_session_start(id="sess-20260629-auth-continued", directory="/project-one")
 ```
 
 #### Multi-Agent Session Handoff
+
 ```
 Agent A (Explorer)          Engram              Agent B (Implementer)
     │                        │                        │
@@ -969,6 +1024,7 @@ Agent A (Explorer)          Engram              Agent B (Implementer)
 ```
 
 #### Long-Running Feature Branches
+
 ```bash
 # Tag session with feature branch
 mem_session_start(
@@ -1024,15 +1080,15 @@ mem_save(topic_key="backend/database-indexing", ...)
 
 ### Topic Key Conventions
 
-| Domain | Prefix | Examples |
-|--------|--------|----------|
-| Architecture | `architecture/` | `architecture/auth-model`, `architecture/microservices` |
-| Backend | `backend/` | `backend/api-design`, `backend/prisma-patterns` |
-| Frontend | `frontend/` | `frontend/state-management`, `frontend/component-library` |
-| Testing | `testing/` | `testing/strategy`, `testing/e2e-patterns` |
-| Config | `config/` | `config/tailwind-setup`, `config/typescript-config` |
-| Features | `feature/` | `feature/user-dashboard`, `feature/payment-integration` |
-| Security | `security/` | `security/cors-policy`, `security/rate-limiting` |
+| Domain       | Prefix          | Examples                                                  |
+| ------------ | --------------- | --------------------------------------------------------- |
+| Architecture | `architecture/` | `architecture/auth-model`, `architecture/microservices`   |
+| Backend      | `backend/`      | `backend/api-design`, `backend/prisma-patterns`           |
+| Frontend     | `frontend/`     | `frontend/state-management`, `frontend/component-library` |
+| Testing      | `testing/`      | `testing/strategy`, `testing/e2e-patterns`                |
+| Config       | `config/`       | `config/tailwind-setup`, `config/typescript-config`       |
+| Features     | `feature/`      | `feature/user-dashboard`, `feature/payment-integration`   |
+| Security     | `security/`     | `security/cors-policy`, `security/rate-limiting`          |
 
 ### Upsert Behavior Details
 
@@ -1058,29 +1114,30 @@ All `mem_save` content **MUST** follow this format:
 
 ### Type Taxonomy
 
-| Type | Use For | Examples |
-|------|---------|----------|
-| `decision` | Architectural/technical choices | "Chose PostgreSQL over MongoDB" |
-| `architecture` | System design, high-level structure | "Monorepo with shared packages" |
-| `bugfix` | Bug fixes and root causes | "Fixed N+1 query in UserList" |
-| `pattern` | Reusable code patterns | "Prisma transaction wrapper" |
-| `config` | Configuration decisions | "Tailwind v4 CSS variables setup" |
-| `discovery` | Non-obvious findings | "FTS5 tokenizer behavior" |
-| `learning` | General learnings | "Vitest parallel execution limits" |
-| `spec` | Specification artifacts | "Auth API OpenAPI spec" |
-| `design` | Design documents | "Database schema v3" |
-| `manual` | Uncategorized (default) | — |
+| Type           | Use For                             | Examples                           |
+| -------------- | ----------------------------------- | ---------------------------------- |
+| `decision`     | Architectural/technical choices     | "Chose PostgreSQL over MongoDB"    |
+| `architecture` | System design, high-level structure | "Monorepo with shared packages"    |
+| `bugfix`       | Bug fixes and root causes           | "Fixed N+1 query in UserList"      |
+| `pattern`      | Reusable code patterns              | "Prisma transaction wrapper"       |
+| `config`       | Configuration decisions             | "Tailwind v4 CSS variables setup"  |
+| `discovery`    | Non-obvious findings                | "FTS5 tokenizer behavior"          |
+| `learning`     | General learnings                   | "Vitest parallel execution limits" |
+| `spec`         | Specification artifacts             | "Auth API OpenAPI spec"            |
+| `design`       | Design documents                    | "Database schema v3"               |
+| `manual`       | Uncategorized (default)             | —                                  |
 
 ### Scope Taxonomy
 
-| Scope | Use For | Visibility |
-|-------|---------|------------|
-| `project` | Project-specific knowledge | Current project only |
+| Scope      | Use For                         | Visibility                |
+| ---------- | ------------------------------- | ------------------------- |
+| `project`  | Project-specific knowledge      | Current project only      |
 | `personal` | Personal preferences, workflows | All projects (user-level) |
 
 ### Proactive Save Triggers
 
 **Call `mem_save` IMMEDIATELY after:**
+
 - ✅ Making an architectural decision
 - ✅ Fixing a non-trivial bug
 - ✅ Discovering a gotcha or edge case
@@ -1090,6 +1147,7 @@ All `mem_save` content **MUST** follow this format:
 - ✅ Finishing a coding session (via `mem_session_summary`)
 
 **Do NOT wait for:**
+
 - User asking "save this"
 - End of day
 - "Good stopping point"
@@ -1098,20 +1156,20 @@ All `mem_save` content **MUST** follow this format:
 
 ## Environment Variables
 
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `ENGRAM_DB_PATH` | Database file path | `~/.engram/engram.db` |
-| `ENGRAM_CONFIG_PATH` | Config file path | `~/.engram/config.toml` |
-| `ENGRAM_PROJECT` | Override project name | Auto-detected |
-| `ENGRAM_SCOPE` | Default scope | `project` |
-| `ENGRAM_LOG_LEVEL` | Log level (debug, info, warn, error) | `info` |
-| `ENGRAM_LOG_FILE` | Log file path | `~/.engram/logs/engram.log` |
-| `ENGRAM_SYNC_ENABLED` | Enable cloud sync | `false` |
-| `ENGRAM_SYNC_ENDPOINT` | Sync server URL | `https://sync.engram.dev` |
-| `ENGRAM_SYNC_TOKEN` | Sync auth token | — |
-| `ENGRAM_MCP_TRANSPORT` | MCP transport (stdio, http) | `stdio` |
-| `ENGRAM_MCP_PORT` | HTTP port for MCP | `3001` |
-| `ENGRAM_FTS_TOKENIZER` | FTS5 tokenizer | `unicode61` |
+| Variable               | Description                          | Default                     |
+| ---------------------- | ------------------------------------ | --------------------------- |
+| `ENGRAM_DB_PATH`       | Database file path                   | `~/.engram/engram.db`       |
+| `ENGRAM_CONFIG_PATH`   | Config file path                     | `~/.engram/config.toml`     |
+| `ENGRAM_PROJECT`       | Override project name                | Auto-detected               |
+| `ENGRAM_SCOPE`         | Default scope                        | `project`                   |
+| `ENGRAM_LOG_LEVEL`     | Log level (debug, info, warn, error) | `info`                      |
+| `ENGRAM_LOG_FILE`      | Log file path                        | `~/.engram/logs/engram.log` |
+| `ENGRAM_SYNC_ENABLED`  | Enable cloud sync                    | `false`                     |
+| `ENGRAM_SYNC_ENDPOINT` | Sync server URL                      | `https://sync.engram.dev`   |
+| `ENGRAM_SYNC_TOKEN`    | Sync auth token                      | —                           |
+| `ENGRAM_MCP_TRANSPORT` | MCP transport (stdio, http)          | `stdio`                     |
+| `ENGRAM_MCP_PORT`      | HTTP port for MCP                    | `3001`                      |
+| `ENGRAM_FTS_TOKENIZER` | FTS5 tokenizer                       | `unicode61`                 |
 
 ### Example .env File
 
@@ -1229,20 +1287,20 @@ engram config reset
 
 > **Note:** "claude-mem" appears to be a legacy or hypothetical comparison target. Engram was designed as a modern, agent-agnostic replacement for earlier memory systems. The comparison below reflects typical legacy memory system limitations.
 
-| Aspect | Engram (Current) | Legacy Memory Systems |
-|--------|------------------|----------------------|
-| **Architecture** | Single Go binary, SQLite + FTS5 | Often Python/Node, JSON files |
-| **Search** | Full-text (FTS5) + optional vectors | Grep or basic keyword |
-| **Project Awareness** | Auto-detect + explicit | Manual project switching |
-| **Session Model** | Explicit start/end + summaries | Implicit or none |
-| **Conflict Handling** | Structured judgment workflow | Manual resolution |
-| **Sync** | Optional cloud, e2e encrypted | Usually none or basic git |
-| **Agent Compatibility** | MCP standard (any agent) | Often Claude-specific |
-| **Memory Structure** | Typed, scoped, topic-keyed | Key-value or unstructured |
-| **Performance** | Sub-ms queries, WAL mode | Degrades with size |
-| **Dependencies** | Zero (static binary) | Runtime + packages |
-| **Cross-platform** | Windows, macOS, Linux | Often Unix-only |
-| **Maintenance** | Active development | Often abandoned |
+| Aspect                  | Engram (Current)                    | Legacy Memory Systems         |
+| ----------------------- | ----------------------------------- | ----------------------------- |
+| **Architecture**        | Single Go binary, SQLite + FTS5     | Often Python/Node, JSON files |
+| **Search**              | Full-text (FTS5) + optional vectors | Grep or basic keyword         |
+| **Project Awareness**   | Auto-detect + explicit              | Manual project switching      |
+| **Session Model**       | Explicit start/end + summaries      | Implicit or none              |
+| **Conflict Handling**   | Structured judgment workflow        | Manual resolution             |
+| **Sync**                | Optional cloud, e2e encrypted       | Usually none or basic git     |
+| **Agent Compatibility** | MCP standard (any agent)            | Often Claude-specific         |
+| **Memory Structure**    | Typed, scoped, topic-keyed          | Key-value or unstructured     |
+| **Performance**         | Sub-ms queries, WAL mode            | Degrades with size            |
+| **Dependencies**        | Zero (static binary)                | Runtime + packages            |
+| **Cross-platform**      | Windows, macOS, Linux               | Often Unix-only               |
+| **Maintenance**         | Active development                  | Often abandoned               |
 
 ### Migration from Legacy Systems
 
@@ -1264,6 +1322,7 @@ engram import --format claude-mem --input ~/.claude-mem/
 ## Best Practices
 
 ### 1. Save Proactively, Not Reactively
+
 ```bash
 # ❌ BAD: Wait until asked
 User: "Save this decision"
@@ -1274,6 +1333,7 @@ Agent makes decision → mem_save(...) → Continue working
 ```
 
 ### 2. Use Structured Content Format
+
 ```bash
 # ❌ BAD: Unstructured
 content: "Fixed the auth bug by changing the middleware"
@@ -1283,6 +1343,7 @@ content: "**What**: Fixed JWT validation in auth middleware\n**Why**: Token expi
 ```
 
 ### 3. Choose Stable Topic Keys
+
 ```bash
 # ❌ BAD: Too specific, changes often
 topic_key: "backend/auth/jwt-middleware-v2"
@@ -1292,6 +1353,7 @@ topic_key: "backend/auth-model"
 ```
 
 ### 4. Use Appropriate Types
+
 ```bash
 # Decision → type: "decision"
 # Bug fix → type: "bugfix"
@@ -1301,12 +1363,14 @@ topic_key: "backend/auth-model"
 ```
 
 ### 5. Scope Correctly
+
 ```bash
 # Project-specific → scope: "project" (default)
 # Personal preference → scope: "personal"
 ```
 
 ### 6. Search Before Starting
+
 ```bash
 # At session start
 mem_context(project="current", limit=3)
@@ -1314,6 +1378,7 @@ mem_search(query="what you're about to work on")
 ```
 
 ### 7. Write Quality Session Summaries
+
 ```bash
 # ❌ BAD: Vague
 "Worked on auth stuff"
@@ -1327,6 +1392,7 @@ mem_search(query="what you're about to work on")
 ```
 
 ### 8. Resolve Conflicts Promptly
+
 ```bash
 # When mem_save returns judgment_required
 # Don't ignore — judge immediately
@@ -1335,12 +1401,14 @@ for candidate in response.candidates:
 ```
 
 ### 9. Pin Important Observations
+
 ```bash
 # For frequently referenced memories
 mem_pin(id=42)  # Architecture decisions, key patterns
 ```
 
 ### 10. Regular Maintenance
+
 ```bash
 # Weekly
 engram doctor
@@ -1357,6 +1425,7 @@ engram backup --output ~/backups/engram-$(date +%Y%m).db
 ### Common Issues
 
 #### "Database locked" Error
+
 ```bash
 # Cause: Multiple processes accessing database
 # Fix: Ensure only one Engram instance runs
@@ -1367,6 +1436,7 @@ engram doctor --check locks
 ```
 
 #### "Project not detected"
+
 ```bash
 # Cause: No git remote, no package.json, generic directory name
 # Fix: Set explicitly
@@ -1376,6 +1446,7 @@ engram project set my-project
 ```
 
 #### "MCP tools not showing in agent"
+
 ```bash
 # Check MCP server runs
 engram mcp --stdio
@@ -1387,6 +1458,7 @@ cat ~/.config/opencode/opencode.json | jq '.mcp.engram'
 ```
 
 #### "Search returns no results"
+
 ```bash
 # Check FTS index
 engram doctor --check fts
@@ -1399,6 +1471,7 @@ engram search "auth" --match-mode any
 ```
 
 #### "Sync not working"
+
 ```bash
 # Check credentials
 engram sync status
@@ -1412,6 +1485,7 @@ curl -v https://sync.engram.dev/health
 ```
 
 #### "Memory growing too large"
+
 ```bash
 # Check stats
 engram stats
@@ -1424,6 +1498,7 @@ engram config set retention.max_age_days 180
 ```
 
 #### "Conflicts not surfacing"
+
 ```bash
 # Check judgment status
 engram list --judgment-status pending
@@ -1485,6 +1560,7 @@ engram <command> --help
 ## Appendix: Quick Reference Card
 
 ### Most Used Commands
+
 ```bash
 engram save -t "Title" -T bugfix -c "**What**: ...\n**Why**: ...\n**Where**: ..."
 engram search "query"
@@ -1494,24 +1570,27 @@ engram doctor
 ```
 
 ### Most Used MCP Tools
+
 ```javascript
-mem_save({title, type, topic_key, content})
-mem_search({query, limit: 5})
-mem_context({project, limit: 3})
-mem_session_summary({session_id, content})
-mem_get_observation({id})
-mem_judge({judgment_id, relation, reason})
+mem_save({ title, type, topic_key, content });
+mem_search({ query, limit: 5 });
+mem_context({ project, limit: 3 });
+mem_session_summary({ session_id, content });
+mem_get_observation({ id });
+mem_judge({ judgment_id, relation, reason });
 ```
 
 ### Content Template
+
 ```markdown
-**What**: 
-**Why**: 
-**Where**: 
-**Learned**: 
+**What**:
+**Why**:
+**Where**:
+**Learned**:
 ```
 
 ### Topic Key Pattern
+
 ```
 domain/subdomain
 backend/api-design
@@ -1521,4 +1600,4 @@ architecture/auth-model
 
 ---
 
-*Last updated: 2026-06-29 | Engram v0.3+ | For project-one monorepo*
+_Last updated: 2026-06-29 | Engram v0.3+ | For project-one monorepo_

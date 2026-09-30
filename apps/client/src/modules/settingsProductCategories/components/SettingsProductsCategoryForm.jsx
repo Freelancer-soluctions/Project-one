@@ -11,21 +11,41 @@ import AlertDialogComponent from '@/components/alertDialog/AlertDialog';
 import { useState } from 'react';
 import PropTypes from 'prop-types';
 
-export function SettingsProductsCategoryForm({ onClose, selectedRow }) {
-  const { t } = useTranslation();
-  const [openAlertDialog, setOpenAlertDialog] = useState(false); //alert dialog open/close
-  const [alertProps, setAlertProps] = useState({});
+/** Success alert props for the create/update flow (closes on OK). */
+const buildSuccessAlertProps = ({ t, isEdit, onClose }) => ({
+  alertTitle: t(isEdit ? 'update_record' : 'add_record'),
+  alertMessage: t(isEdit ? 'updated_successfully' : 'added_successfully'),
+  cancel: false,
+  success: true,
+  onSuccess: () => {
+    onClose();
+  },
+  variantSuccess: 'info',
+});
 
-  const [updateCategoryById, { isLoading: isLoadingPut }] =
-    useUpdateCategoryByIdMutation();
+/** Success alert props after a record is deleted. */
+const buildDeletedAlertProps = ({ t, onClose }) => ({
+  alertTitle: '',
+  alertMessage: t('deleted_successfully'),
+  cancel: false,
+  success: true,
+  onSuccess: () => {
+    onClose();
+  },
+  variantSuccess: 'info',
+});
 
-  const [createCategory, { isLoading: isLoadingPost }] =
-    useCreateCategoryMutation();
-
-  const [deleteCategoryById, { isLoading: isLoadingDelete }] =
-    useDeleteCategoryByIdMutation();
-
-  const handleSubmitCreateEdit = async (data) => {
+/** Save handler: create or update the category, then show the alert. */
+const makeSaveHandler =
+  ({
+    t,
+    updateCategoryById,
+    createCategory,
+    setAlertProps,
+    setOpenAlertDialog,
+    onClose,
+  }) =>
+  async (data) => {
     if (!data) return;
 
     if (data.id) {
@@ -44,21 +64,13 @@ export function SettingsProductsCategoryForm({ onClose, selectedRow }) {
     }
 
     setOpenAlertDialog(true);
-    setAlertProps({
-      alertTitle: data.id ? t('update_record') : t('add_record'),
-      alertMessage: data.id
-        ? t('updated_successfully')
-        : t('added_successfully'),
-      cancel: false,
-      success: true,
-      onSuccess: () => {
-        onClose();
-      },
-      variantSuccess: 'info',
-    });
+    setAlertProps(buildSuccessAlertProps({ t, isEdit: !!data.id, onClose }));
   };
 
-  const handleDeleteProductById = async (id) => {
+/** Delete-confirmation handler for a product category. */
+const makeDeleteHandler =
+  ({ t, deleteCategoryById, setAlertProps, setOpenAlertDialog, onClose }) =>
+  async (id) => {
     if (!id) return;
     try {
       setAlertProps({
@@ -74,16 +86,7 @@ export function SettingsProductsCategoryForm({ onClose, selectedRow }) {
           try {
             await deleteCategoryById(id).unwrap();
 
-            setAlertProps({
-              alertTitle: '',
-              alertMessage: t('deleted_successfully'),
-              cancel: false,
-              success: true,
-              onSuccess: () => {
-                onClose();
-              },
-              variantSuccess: 'info',
-            });
+            setAlertProps(buildDeletedAlertProps({ t, onClose }));
             setOpenAlertDialog(true); // Open alert dialog
           } catch (err) {
             console.error('Error deleting:', err);
@@ -96,37 +99,98 @@ export function SettingsProductsCategoryForm({ onClose, selectedRow }) {
     }
   };
 
-  return (
-    <>
-      <div className="relative">
-        {(isLoadingPost || isLoadingPut || isLoadingDelete) && <Spinner />}
+/**
+ * Page state: category mutations and alert state for the category
+ * form inside the settings product tab.
+ */
+function useCategoryFormPageState({ onClose }) {
+  const { t } = useTranslation();
+  const [openAlertDialog, setOpenAlertDialog] = useState(false); //alert dialog open/close
+  const [alertProps, setAlertProps] = useState({});
 
-        <div className="container flex flex-col min-h-screen">
-          <main className="container flex-1 py-6">
-            <Tabs defaultValue="info" className="mb-6">
-              <TabsList className="grid w-full grid-cols-1">
-                <TabsTrigger value="info">{t('basic_information')}</TabsTrigger>
-              </TabsList>
+  const [updateCategoryById, { isLoading: isLoadingPut }] =
+    useUpdateCategoryByIdMutation();
 
-              <TabsContent value="info" className="mt-4">
-                <SettingsProductCategoriesBasicInfo
-                  onSubmitCreateEdit={handleSubmitCreateEdit}
-                  onDelete={handleDeleteProductById}
-                  selectedRow={selectedRow}
-                  onClose={onClose}
-                />
-              </TabsContent>
-            </Tabs>
-            <AlertDialogComponent
-              openAlertDialog={openAlertDialog}
-              setOpenAlertDialog={setOpenAlertDialog}
-              alertProps={alertProps}
-            />
-          </main>
-        </div>
+  const [createCategory, { isLoading: isLoadingPost }] =
+    useCreateCategoryMutation();
+
+  const [deleteCategoryById, { isLoading: isLoadingDelete }] =
+    useDeleteCategoryByIdMutation();
+
+  const isLoadingPage = isLoadingPost || isLoadingPut || isLoadingDelete;
+
+  return {
+    t,
+    onClose,
+    openAlertDialog,
+    setOpenAlertDialog,
+    alertProps,
+    setAlertProps,
+    isLoadingPage,
+    updateCategoryById,
+    createCategory,
+    deleteCategoryById,
+  };
+}
+
+/** Static layout for the product category form. */
+const buildCategoryFormLayout = ({ t, page, saveHandler, deleteHandler }) => (
+  <>
+    <div className="relative">
+      {page.isLoadingPage && <Spinner />}
+
+      <div className="container flex flex-col min-h-screen">
+        <main className="container flex-1 py-6">
+          <Tabs defaultValue="info" className="mb-6">
+            <TabsList className="grid w-full grid-cols-1">
+              <TabsTrigger value="info">{t('basic_information')}</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="info" className="mt-4">
+              <SettingsProductCategoriesBasicInfo
+                onSubmitCreateEdit={saveHandler}
+                onDelete={deleteHandler}
+                selectedRow={page.selectedRow}
+                onClose={page.onClose}
+              />
+            </TabsContent>
+          </Tabs>
+          <AlertDialogComponent
+            openAlertDialog={page.openAlertDialog}
+            setOpenAlertDialog={page.setOpenAlertDialog}
+            alertProps={page.alertProps}
+          />
+        </main>
       </div>
-    </>
-  );
+    </div>
+  </>
+);
+
+export function SettingsProductsCategoryForm({ onClose, selectedRow }) {
+  const page = useCategoryFormPageState({ onClose });
+
+  const saveHandler = makeSaveHandler({
+    t: page.t,
+    updateCategoryById: page.updateCategoryById,
+    createCategory: page.createCategory,
+    setAlertProps: page.setAlertProps,
+    setOpenAlertDialog: page.setOpenAlertDialog,
+    onClose: page.onClose,
+  });
+  const deleteHandler = makeDeleteHandler({
+    t: page.t,
+    deleteCategoryById: page.deleteCategoryById,
+    setAlertProps: page.setAlertProps,
+    setOpenAlertDialog: page.setOpenAlertDialog,
+    onClose: page.onClose,
+  });
+
+  return buildCategoryFormLayout({
+    t: page.t,
+    page: { ...page, selectedRow },
+    saveHandler,
+    deleteHandler,
+  });
 }
 
 SettingsProductsCategoryForm.propTypes = {

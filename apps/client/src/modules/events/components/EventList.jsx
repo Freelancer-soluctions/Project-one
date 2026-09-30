@@ -7,6 +7,78 @@ import { useMemo } from 'react';
 import PropTypes from 'prop-types';
 import { PaginationControls } from '@/components/PaginationControls';
 
+/**
+ * Tarjeta de un evento dentro de su grupo de fecha: horario, datos,
+ * badges de tipo/modalidad, link de reunión y acciones de edición/borrado.
+ *
+ * @param {Object} p - Props de la tarjeta.
+ * @param {Object} p.event - Evento a renderizar.
+ * @param {Function} p.onEdit - Callback de edición.
+ * @param {Function} p.onDelete - Callback de borrado.
+ * @returns {JSX.Element} Grid del evento.
+ */
+const EventCard = ({ event, onEdit, onDelete }) => (
+  <div
+    key={event.id}
+    className="grid grid-cols-1 sm:grid-cols-[120px_1fr] gap-4 items-start rounded-lg border p-4 transition-colors hover:bg-muted/50"
+  >
+    <div className="flex items-center justify-between text-sm sm:block">
+      <div className="font-medium">{event.startTime}</div>
+      <div className="text-muted-foreground">{event.endTime}</div>
+    </div>
+    <div className="flex flex-col justify-between gap-4 sm:flex-row">
+      <div className="space-y-1">
+        <div className="font-semibold">{event.title}</div>
+        <div className="text-sm text-muted-foreground">{event.speaker}</div>
+        <div className="text-sm">{event.description}</div>
+        <div className="mt-2 flex flex-wrap gap-2 items-center">
+          <span
+            className={`text-xs px-2 py-1 rounded-full ${getEventTypeColor(event.eventTypes?.code)}`}
+          >
+            {event.eventTypes?.description}
+          </span>
+          {event.modality && (
+            <span
+              className={`text-xs px-2 py-1 rounded-full flex items-center gap-1 ${getModalityColor(event.modality)}`}
+            >
+              {getModalityIcon(event.modality)}
+              {event.modality === 'ONLINE' && 'Online'}
+              {event.modality === 'IN_PERSON' && 'Presencial'}
+              {event.modality === 'HYBRID' && 'Híbrido'}
+            </span>
+          )}
+          {(event.modality === 'ONLINE' || event.modality === 'HYBRID') &&
+            event.meetingUrl && (
+              <a
+                href={event.meetingUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-xs px-2 py-1 rounded-full bg-green-100 text-green-800 flex items-center gap-1 hover:bg-green-200 transition-colors"
+              >
+                <LuExternalLink className="h-3 w-3" />
+                Unirse
+              </a>
+            )}
+        </div>
+      </div>
+      <div className="flex gap-2">
+        <Button variant="ghost" size="icon" onClick={() => onEdit(event)}>
+          <LuPencil className="w-4 h-4" />
+        </Button>
+        <Button variant="ghost" size="icon" onClick={() => onDelete(event.id)}>
+          <LuTrash2 className="w-4 h-4" />
+        </Button>
+      </div>
+    </div>
+  </div>
+);
+
+EventCard.propTypes = {
+  event: PropTypes.object.isRequired,
+  onEdit: PropTypes.func.isRequired,
+  onDelete: PropTypes.func.isRequired,
+};
+
 export function EventList({
   events,
   pageIndex,
@@ -37,70 +109,12 @@ export function EventList({
             {format(new Date(date), "EEEE d 'de' MMMM, yyyy", { locale: es })}
           </h2>
           {dateEvents.map((event) => (
-            <div
+            <EventCard
               key={event.id}
-              className="grid grid-cols-1 sm:grid-cols-[120px_1fr] gap-4 items-start rounded-lg border p-4 transition-colors hover:bg-muted/50"
-            >
-              <div className="flex items-center justify-between text-sm sm:block">
-                <div className="font-medium">{event.startTime}</div>
-                <div className="text-muted-foreground">{event.endTime}</div>
-              </div>
-              <div className="flex flex-col justify-between gap-4 sm:flex-row">
-                <div className="space-y-1">
-                  <div className="font-semibold">{event.title}</div>
-                  <div className="text-sm text-muted-foreground">
-                    {event.speaker}
-                  </div>
-                  <div className="text-sm">{event.description}</div>
-                  <div className="mt-2 flex flex-wrap gap-2 items-center">
-                    <span
-                      className={`text-xs px-2 py-1 rounded-full ${getEventTypeColor(event.eventTypes?.code)}`}
-                    >
-                      {event.eventTypes?.description}
-                    </span>
-                    {event.modality && (
-                      <span
-                        className={`text-xs px-2 py-1 rounded-full flex items-center gap-1 ${getModalityColor(event.modality)}`}
-                      >
-                        {getModalityIcon(event.modality)}
-                        {event.modality === 'ONLINE' && 'Online'}
-                        {event.modality === 'IN_PERSON' && 'Presencial'}
-                        {event.modality === 'HYBRID' && 'Híbrido'}
-                      </span>
-                    )}
-                    {(event.modality === 'ONLINE' ||
-                      event.modality === 'HYBRID') &&
-                      event.meetingUrl && (
-                        <a
-                          href={event.meetingUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-xs px-2 py-1 rounded-full bg-green-100 text-green-800 flex items-center gap-1 hover:bg-green-200 transition-colors"
-                        >
-                          <LuExternalLink className="h-3 w-3" />
-                          Unirse
-                        </a>
-                      )}
-                  </div>
-                </div>
-                <div className="flex gap-2">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => onEdit(event)}
-                  >
-                    <LuPencil className="w-4 h-4" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => onDelete(event.id)}
-                  >
-                    <LuTrash2 className="w-4 h-4" />
-                  </Button>
-                </div>
-              </div>
-            </div>
+              event={event}
+              onEdit={onEdit}
+              onDelete={onDelete}
+            />
           ))}
         </div>
       ))}

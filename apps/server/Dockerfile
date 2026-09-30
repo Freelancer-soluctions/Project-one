@@ -14,6 +14,11 @@ WORKDIR /app
 # `prisma generate`. Alpine trae libssl3 (OpenSSL 3) pero NO el CLI; sin él, generate
 # produce el engine "linux-musl" (OpenSSL 1.1) que no puede cargar sobre libssl.so.3
 # del node:20-alpine actual (Error: libssl.so.1.1: No such file or directory).
+# Sin pin de versión a propósito: la versión de openssl debe seguir a la release de
+# Alpine de la imagen base (node:20-alpine móvil); un pin quedaría desincronizado en
+# cada bump de la base y rompería el build. (PrAGMA: hadolint exige que la línea de
+# ignore sea EXACTA e inmediatamente superior al RUN.)
+# hadolint ignore=DL3018
 RUN apk add --no-cache openssl
 
 # Copiar root package.json + lockfile, luego workspace package.json y prisma schema
@@ -22,23 +27,24 @@ COPY package.json package-lock.json ./
 COPY apps/server/package.json ./apps/server/package.json
 COPY apps/server/prisma ./apps/server/prisma/
 
-# Instalar dependencias del workspace (incluye devDeps: prisma CLI para npx prisma generate)
-# --ignore-scripts evita el prepare script del root (husky) Y TAMBIÉN suprime el postinstall
-# "prisma generate" de apps/server → por eso el client se genera explícitamente en la capa siguiente
-RUN npm ci --workspace=apps/server --ignore-scripts
-
-# Generar el client de Prisma explícitamente (postinstall suprimido por --ignore-scripts).
-# El schema ya fue copiado (COPY apps/server/prisma) y @prisma/client queda hoisted en el
-# node_modules raíz → output en node_modules/.prisma/client.
-# DEBE correr ANTES de npm prune, que elimina el CLI de prisma (devDependency).
-RUN npx prisma generate --schema=apps/server/prisma/schema.prisma
-
-# Eliminar devDependencies del workspace para imagen de producción más pequeña
-# (no debe tocar el client generado en node_modules/.prisma — se verifica en CI)
-RUN npm prune --workspace=apps/server --omit=dev
+# Instalar dependencias del workspace (incluye devDeps: prisma CLI), generar el client
+# de Prisma y podar devDeps — TODO EN UNA SOLA CAPA:
+# 1) `--ignore-scripts` evita el prepare del root (husky) Y suprime el postinstall
+#    "prisma generate" de apps/server → por eso generate corre explícito aquí.
+# 2) El schema ya fue copiado (COPY apps/server/prisma) y @prisma/client queda hoisted
+#    en el node_modules raíz → output en node_modules/.prisma/client.
+# 3) El orden importa: generate DEBE correr ANTES de prune (prune elimina el CLI).
+# Consolidación (hadolint DL3059 + tamaño de imagen): una sola capa = las devDeps
+# nunca persisten en capa intermedia (npm ci + prune separados las dejaban enterradas).
+RUN npm ci --workspace=apps/server --ignore-scripts \
+ && npx prisma generate --schema=apps/server/prisma/schema.prisma \
+ && npm prune --workspace=apps/server --omit=dev
 
 # Copiar código fuente del server (sobrescribe package.json del workspace, OK: deps ya instaladas)
 COPY apps/server/. .
+
+# Usuario no-root para runtime (menor superficie si hay RCE); node:image trae el usuario `node`
+USER node
 
 # El servidor Express corre en puerto 3000
 EXPOSE 3000

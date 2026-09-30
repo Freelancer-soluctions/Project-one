@@ -1,0 +1,56 @@
+# ============================================================
+# Hadolint — política como código (change `containerfile-lint`)
+# ============================================================
+# Única fuente de configuración de Hadolint para: job PR
+# `containerfile-lint` (ci.yml, input `config`), job semanal
+# `containerfile-lint-weekly` (scheduled-security.yml, montaje en
+# contenedor), pre-commit advisory (.husky/pre-commit, auto-lee del
+# cwd) y validación local (D6).
+#
+# IMPORTANTE (documentación oficial):
+# - La CLI auto-lee este archivo desde $PWD (.hadolint.yaml).
+# - El flag `--ignore` de CLI ANULA la lista `ignored:` de este
+#   archivo → prohibido en workflows; las ignoras viven SOLO aquí.
+# - Cambios de política = PR normal (auditable), nunca editar los
+#   workflows para cambiar reglas.
+#
+# Esquema completo: github.com/hadolint/hadolint#configure
+# (failure-threshold, format, ignored, label-schema, no-color,
+#  no-fail, override, strict-labels, trustedRegistries).
+
+# FASE 1 (advisory): `info` = el job reporta todo pero nunca bloquea
+# (además lleva `continue-on-error: true` a nivel job).
+# FASE 2 (blocking, diferida): subir a `warning` — el umbral `info`
+# haría fallar DL3059 (capas RUN consecutivas, severidad info).
+failure-threshold: info
+
+# Formato por defecto para ejecución local; el job PR fuerza SARIF
+# vía input `format: sarif` de hadolint-action (el weekly monta este
+# archivo y corre hadolint con --format sarif explícito).
+format: sarif
+
+# Salida sin color (logs CI / SARIF limpio).
+no-color: true
+
+# DL3026 (Error): solo registros permitidos en `FROM`.
+# El binario oficial de Node vive en Docker Hub y GHCR.
+trustedRegistries:
+  - docker.io
+  - ghcr.io
+
+# Ignoras GLOBALES selectivas — cada una justificada. PROHIBIDO
+# ignorar en bloque reglas de calidad: DL3018 (pin apk), DL3016
+# (pin npm), DL3059 (capas RUN), DL3026 (registry), DL3025 (CMD
+# JSON), DL3002 (USER root). Cualquier añadirse aquí = PR con
+# justificación; para excepciones puntuales prefiera el pragma
+# inline `# hadolint ignore=DLxxxx` (auditable en el diff).
+#
+# Revisión de apps/server/Dockerfile (2026-09-28, task 3.2):
+# - DL3003 (`cd` en RUN) / DL3006 (imagen sin tag): NO aplican
+#   (no hay `cd`; `node:20-alpine` está taggeado) → sin ignora.
+# - Hallazgos reales previstos, NO ignorados (deuda para FASE 2):
+#   DL3018 (warning: `apk add --no-cache openssl` sin pin) y
+#   DL3059 ×2 (info: RUN npm ci / npx / npm prune consecutivos).
+#   DL3059 no tripia el umbral `warning` de FASE 2; DL3018 se
+#   remedia con pin o pragma inline en su momento.
+ignored: []

@@ -85,6 +85,9 @@ const authSlice = createSlice({
       state.isAuth = false;
       state.isError = false;
       state.errorMessage = '';
+      // Espeja el patrón de fulfilled: el token vive en sessionStorage y
+      // debe morir con la sesión.
+      sessionStorage.removeItem('accessToken');
     },
   },
   extraReducers: (builder) => {

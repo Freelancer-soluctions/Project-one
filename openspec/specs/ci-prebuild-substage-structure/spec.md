@@ -53,13 +53,15 @@ The `prebuild-governance-complete` aggregator SHALL depend on exactly `[verify-s
 
 ### Requirement: prebuild-quality-complete
 
-The `prebuild-quality-complete` aggregator SHALL depend on exactly 13 jobs from Substage 2B CODE QUALITY: `[client-lint, client-format-check, client-typecheck, client-complexity, client-dead-code, client-import-bounds, server-lint, server-format-check, server-typecheck, server-complexity, server-dead-code, server-import-bounds, actionlint]`.
+The `prebuild-quality-complete` aggregator SHALL depend on exactly 15 jobs from Substage 2B CODE QUALITY: `[client-lint, client-format-check, client-typecheck, client-complexity, client-dead-code, client-import-bounds, server-lint, server-format-check, server-typecheck, server-complexity, server-dead-code, server-import-bounds, e2e-lint, actionlint, openspec-validate]`.
 
 #### Scenario: Quality aggregator needs resolution
 
 - **When** `prebuild-quality-complete` runs
-- **Then** its `needs` array contains exactly those 13 jobs — no more, no less
-- **And** all 13 jobs are from Substage 2B CODE QUALITY
+- **Then** its `needs` array contains exactly those 15 jobs — no more, no less
+- **And** all 15 jobs are from Substage 2B CODE QUALITY
+- **And** `e2e-lint` follows the same activation pattern as the other quality jobs: gated on `repo-discovery` output (`e2e == 'true'`), `pull_request` only, and aggregated by the same failure-propagation logic
+- **And** `openspec-validate` runs on every `pull_request` (not path-filtered), is aggregated by the same failure-propagation logic, and runs `npx openspec validate --specs --strict` against the canonical specs in `openspec/specs/**`
 
 ### Requirement: prebuild-unit-tests-complete
 
@@ -93,24 +95,24 @@ The `ci-complete` aggregator SHALL NOT depend directly on quality or test jobs w
 
 ### Requirement: Phase 1 non-blocking knip activation
 
-The system SHALL activate `client-dead-code` and `server-dead-code` jobs with `continue-on-error: true` so they report but do not block the merge.
+The system SHALL activate `client-dead-code` and `server-dead-code` jobs with `continue-on-error: true` so they report but do not block the merge. Each dead-code job SHALL run knip from the repository root against the root `knip.jsonc` (`npx knip --workspace=apps/client …`, `npx knip --workspace=apps/server …`).
 
 #### Scenario: PR touches client workspace
 
-- **When** a PR targets `main` and `repo-discovery` outputs `client=true`
-- **Then** the `client-dead-code` job runs `npx knip` with `continue-on-error: true`
-- **And** the job does NOT block the merge regardless of knip findings
+- **WHEN** a PR targets `main` and `repo-discovery` outputs `client=true`
+- **THEN** the `client-dead-code` job runs `npx knip --workspace=apps/client --no-progress` with `continue-on-error: true`, with the repository root as working directory
+- **AND** the job does NOT block the merge regardless of knip findings
 
 #### Scenario: PR touches server workspace
 
-- **When** a PR targets `main` and `repo-discovery` outputs `server=true`
-- **Then** the `server-dead-code` job runs `npx knip` with `continue-on-error: true`
-- **And** the job does NOT block the merge regardless of knip findings
+- **WHEN** a PR targets `main` and `repo-discovery` outputs `server=true`
+- **THEN** the `server-dead-code` job runs `npx knip --workspace=apps/server --no-progress` with `continue-on-error: true`, with the repository root as working directory
+- **AND** the job does NOT block the merge regardless of knip findings
 
 #### Scenario: PR does not touch the workspace
 
-- **When** a PR targets `main` and `repo-discovery` outputs `client=false` (or `server=false`)
-- **Then** the corresponding dead-code job is skipped via `if: needs.repo-discovery.outputs.client == 'true'` (or server equivalent)
+- **WHEN** a PR targets `main` and `repo-discovery` outputs `client=false` (or `server=false`)
+- **THEN** the corresponding dead-code job is skipped via `if: needs.repo-discovery.outputs.client == 'true'` (or server equivalent)
 
 ### Requirement: Phase 2 blocking promotion
 
@@ -124,23 +126,29 @@ The system SHALL remove `continue-on-error` from dead-code jobs after 1 sprint o
 
 ### Requirement: Per-workspace knip.json with correct schema
 
-knip SHALL use per-workspace configuration files with `$schema: "https://unpkg.com/knip@6/schema.json"` matching the installed version (6.32.2).
+knip SHALL use a single configuration file, the root `/knip.jsonc`, with `$schema: "https://unpkg.com/knip@6/schema-jsonc.json"` (the JSONC variant of the official schema) matching the installed version (6.32.2). Per-workspace behavior SHALL be expressed through its `workspaces` sections (`"."`, `"apps/client"`, `"apps/server"`, `"e2e"`), never through nested per-workspace config files.
 
 #### Scenario: knip runs in CI and locally
 
-- **When** knip runs via `client-dead-code` or `server-dead-code` in CI, or via `npx knip --workspace apps/client` locally
-- **Then** it uses `apps/client/knip.json` or `apps/server/knip.json` respectively
-- **And** the `$schema` field references `knip@6` (not `knip@5`)
+- **WHEN** knip runs via `client-dead-code` or `server-dead-code` in CI, or via `npx knip --workspace apps/client` locally
+- **THEN** it uses the root `knip.jsonc` in every case — `--workspace` filters the analyzed workspaces but does NOT switch configuration files
+- **AND** the `$schema` field references `knip@6` (not `knip@5`)
+
+#### Scenario: No nested config files
+
+- **WHEN** the repository is inspected after this change
+- **THEN** `apps/client/knip.json` and `apps/server/knip.json` do not exist
+- **AND** all knip invocations from any working directory resolve `/knip.jsonc`
 
 ### Requirement: Baseline calibration of ignores
 
-The system SHALL calibrate ignores in per-workspace `knip.json` files when the knip baseline reports false positives, and document them in the change.
+The system SHALL calibrate ignores in the `workspaces` sections of the root `knip.jsonc` when the knip baseline reports false positives, and document them in the change.
 
 #### Scenario: False positives on first run
 
-- **When** `npx knip` runs for the first time against the codebase and reports false positives
-- **Then** the false positives are added to the `ignore` array in the corresponding `knip.json`
-- **And** the calibration is documented in the change artifacts
+- **WHEN** `npx knip` runs for the first time against the codebase and reports false positives
+- **THEN** the false positives are added to the `ignore` (or more surgically, `ignoreIssues`) array of the corresponding workspace section in the root `knip.jsonc`
+- **AND** the calibration is documented in the change artifacts
 
 ### Requirement: Visual substage delimitation
 
@@ -151,7 +159,7 @@ The CI workflow file SHALL contain commented YAML headers that visually delimit 
 - **When** a developer opens `.github/workflows/ci.yml` and navigates to STAGE 2
 - **Then** the following headers are visible as comments before their respective job groups:
   - `# SUBSTAGE 2A: GOVERNANCE — verify-signatures, commit-lint, pr-title-lint, dco, sast`
-  - `# SUBSTAGE 2B: CODE QUALITY — lint, format-check, typecheck, complexity, dead-code, import-bounds, actionlint`
+  - `# SUBSTAGE 2B: CODE QUALITY — lint, format-check, typecheck, complexity, dead-code, import-bounds, e2e-lint, actionlint, openspec-validate`
   - `# SUBSTAGE 2C: SECURITY — dependency-review (+ security.yml when enabled)`
   - `# SUBSTAGE 2D: UNIT TESTING — test-unit-client, test-unit-server`
 

@@ -39,9 +39,6 @@ export default defineConfig({
     },
   ],
   reporter: process.env.CI
-    ? [
-        ['junit', { outputFile: 'reports/junit-e2e.xml' }],
-        ['list'],
-      ]
+    ? [['junit', { outputFile: 'reports/junit-e2e.xml' }], ['list']]
     : 'list',
 });

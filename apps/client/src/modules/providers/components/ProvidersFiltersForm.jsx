@@ -8,7 +8,6 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
-
 import {
   Select,
   SelectContent,
@@ -19,9 +18,126 @@ import {
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { LuPlus, LuSearch, LuEraser } from 'react-icons/lu';
-
 import PropTypes from 'prop-types';
 import { FIELD_LIMITS } from '@/config/fieldLimits';
+
+/** Parametrized text input for the provider filters. */
+function FilterProviderTextField({ control, name, labelKey, placeholderKey }) {
+  const { t } = useTranslation();
+  return (
+    <FormField
+      control={control}
+      name={name}
+      render={({ field }) => (
+        <FormItem className="flex flex-col flex-auto">
+          <FormLabel htmlFor={name}>{t(labelKey)}</FormLabel>
+          <FormControl>
+            <Input
+              id={name}
+              name={name}
+              placeholder={t(placeholderKey)}
+              type="text"
+              autoComplete="off"
+              maxLength={FIELD_LIMITS.productProviders[name]}
+              {...field}
+              value={field.value ?? ''}
+            />
+          </FormControl>
+          <FormMessage />
+        </FormItem>
+      )}
+    />
+  );
+}
+
+FilterProviderTextField.propTypes = {
+  control: PropTypes.object.isRequired,
+  name: PropTypes.string.isRequired,
+  labelKey: PropTypes.string.isRequired,
+  placeholderKey: PropTypes.string.isRequired,
+};
+
+/** Boolean status select ('true'/'false' strings ↔ boolean). */
+function FilterProviderStatusField({ control, dataStatus }) {
+  const { t } = useTranslation();
+  return (
+    <FormField
+      control={control}
+      name="status"
+      render={({ field }) => (
+        <FormItem className="flex flex-col flex-auto">
+          <FormLabel htmlFor="status">{t('status')}</FormLabel>
+          <Select
+            onValueChange={(value) => field.onChange(value === 'true')}
+            value={field.value?.toString()} // Asegura que el valor sea string
+          >
+            <FormControl id="status">
+              <SelectTrigger>
+                <SelectValue placeholder={t('select_status')} />
+              </SelectTrigger>
+            </FormControl>
+            <SelectContent>
+              {dataStatus.map((item, index) => (
+                <SelectItem value={item.value.toString()} key={index}>
+                  {item.description}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <FormMessage />
+        </FormItem>
+      )}
+    />
+  );
+}
+
+FilterProviderStatusField.propTypes = {
+  control: PropTypes.object.isRequired,
+  dataStatus: PropTypes.array.isRequired,
+};
+
+/** Filter inputs row: name and status. */
+const buildFilterFields = ({ control, dataStatus }) => (
+  <div className="flex flex-wrap flex-1 gap-3">
+    <FilterProviderTextField
+      control={control}
+      name="name"
+      labelKey="name"
+      placeholderKey="provider_name_placeholder"
+    />
+    <FilterProviderStatusField control={control} dataStatus={dataStatus} />
+  </div>
+);
+
+/** Action buttons row: search, add and clear. */
+const buildFilterButtons = ({ t, onAdd, onReset }) => (
+  <div className="flex flex-wrap items-center justify-between gap-3 mt-5 md:justify-normal">
+    <Button
+      type="submit"
+      className="flex-1 md:flex-initial md:w-24"
+      variant="info"
+    >
+      {t('search')}
+      <LuSearch className="w-4 h-4 ml-auto opacity-50" />
+    </Button>
+    <Button
+      type="button"
+      className="flex-1 md:flex-initial md:w-24"
+      variant="success"
+      onClick={onAdd}
+    >
+      {t('add')} <LuPlus className="w-4 h-4 ml-auto opacity-50" />
+    </Button>
+    <Button
+      type="button"
+      className="flex-1 md:flex-initial md:w-24"
+      variant="outline"
+      onClick={onReset}
+    >
+      {t('clear')} <LuEraser className="w-4 h-4 ml-auto opacity-50" />
+    </Button>
+  </div>
+);
 
 export const ProvidersFiltersForm = ({ onSubmit, dataStatus, onAddDialog }) => {
   const { t } = useTranslation();
@@ -31,10 +147,6 @@ export const ProvidersFiltersForm = ({ onSubmit, dataStatus, onAddDialog }) => {
       status: true,
     },
   });
-
-  const handleSubmit = (data) => {
-    onSubmit(data);
-  };
 
   const handleAdd = () => {
     onAddDialog();
@@ -51,93 +163,17 @@ export const ProvidersFiltersForm = ({ onSubmit, dataStatus, onAddDialog }) => {
         action=""
         id="provider-filters-form"
         noValidate
-        onSubmit={form.handleSubmit(handleSubmit)}
+        onSubmit={form.handleSubmit(onSubmit)}
         className="flex flex-col flex-wrap gap-5"
       >
         {/* inputs */}
-        <div className="flex flex-wrap flex-1 gap-3">
-          <FormField
-            control={form.control}
-            name="name"
-            render={({ field }) => {
-              return (
-                <FormItem className="flex flex-col flex-auto">
-                  <FormLabel htmlFor="name">{t('name')}</FormLabel>
-                  <FormControl>
-                    <Input
-                      id="name"
-                      name="name"
-                      placeholder={t('provider_name_placeholder')}
-                      type="text"
-                      autoComplete="off"
-                      maxLength={FIELD_LIMITS.productProviders.name}
-                      {...field}
-                      value={field.value ?? ''}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              );
-            }}
-          />
-
-          <FormField
-            control={form.control}
-            name="status"
-            render={({ field }) => {
-              return (
-                <FormItem className="flex flex-col flex-auto">
-                  <FormLabel htmlFor="status">{t('status')}</FormLabel>
-                  <Select
-                    onValueChange={(value) => field.onChange(value === 'true')}
-                    value={field.value?.toString()} // Asegura que el valor sea string
-                  >
-                    <FormControl id="status">
-                      <SelectTrigger>
-                        <SelectValue placeholder={t('select_status')} />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {dataStatus.map((item, index) => (
-                        <SelectItem value={item.value.toString()} key={index}>
-                          {item.description}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              );
-            }}
-          />
-        </div>
+        {buildFilterFields({ control: form.control, dataStatus })}
         {/* buttons */}
-        <div className="flex flex-wrap items-center justify-between gap-3 mt-5 md:justify-normal">
-          <Button
-            type="submit"
-            className="flex-1 md:flex-initial md:w-24"
-            variant="info"
-          >
-            {t('search')}
-            <LuSearch className="w-4 h-4 ml-auto opacity-50" />
-          </Button>
-          <Button
-            type="button"
-            className="flex-1 md:flex-initial md:w-24"
-            variant="success"
-            onClick={handleAdd}
-          >
-            {t('add')} <LuPlus className="w-4 h-4 ml-auto opacity-50" />
-          </Button>
-          <Button
-            type="button"
-            className="flex-1 md:flex-initial md:w-24"
-            variant="outline"
-            onClick={() => handleResetFilter()}
-          >
-            {t('clear')} <LuEraser className="w-4 h-4 ml-auto opacity-50" />
-          </Button>
-        </div>
+        {buildFilterButtons({
+          t,
+          onAdd: handleAdd,
+          onReset: () => handleResetFilter(),
+        })}
       </form>
     </Form>
   );

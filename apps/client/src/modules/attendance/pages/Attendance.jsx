@@ -17,69 +17,8 @@ import { useQueryData, useLoadingState } from '@/hooks';
 import AlertDialogComponent from '@/components/alertDialog/AlertDialog';
 import { Spinner } from '@/components/loader/Spinner';
 
-const Attendance = () => {
-  const { t } = useTranslation();
-  const [selectedRow, setSelectedRow] = useState({});
-  const [openDialog, setOpenDialog] = useState(false);
-  const [openAlertDialog, setOpenAlertDialog] = useState(false);
-  const [alertProps, setAlertProps] = useState({});
-  const [actionDialog, setActionDialog] = useState('');
-  const [pagination, setPagination] = useState({
-    pageIndex: 0,
-    pageSize: 20,
-  });
-  const [filters, setFilters] = useState({});
-
-  const [triggerAttendance, queryStateAttendance] =
-    useLazyGetAllAttendanceQuery();
-  const {
-    data: dataAttendance = [],
-    isLoading: isLoadingAtt,
-    isFetching: isFetchingAtt,
-  } = useQueryData(queryStateAttendance);
-
-  const {
-    data: dataEmployees = [],
-    isLoading: isLoadingEmp,
-    isFetching: isFetchingEmp,
-  } = useQueryData(useGetAllEmployeesFiltersQuery());
-
-  const { isLoading: isLoadingAny, isFetching: isFetchingAny } =
-    useLoadingState([
-      { isLoading: isLoadingAtt, isFetching: isFetchingAtt },
-      { isLoading: isLoadingEmp, isFetching: isFetchingEmp },
-    ]);
-
-  const [updateAttendanceById, { isLoading: isLoadingPut }] =
-    useUpdateAttendanceByIdMutation();
-
-  const [createAttendance, { isLoading: isLoadingPost }] =
-    useCreateAttendanceMutation();
-
-  const [deleteAttendanceById, { isLoading: isLoadingDelete }] =
-    useDeleteAttendanceByIdMutation();
-
-  /**
-   * Este efecto es la única fuente de verdad para disparar
-   * la consulta al backend.
-   *
-   * Se ejecuta automáticamente:
-   * - Al montar el componente (primer render)
-   * - Cuando cambia la página
-   * - Cuando cambia el tamaño de página
-   * - Cuando cambian los filtros
-   *
-   * No se realizan llamadas manuales al backend desde handlers
-   * para evitar duplicación de lógica y estados inconsistentes.
-   */
-  useEffect(() => {
-    triggerAttendance({
-      page: pagination.pageIndex + 1,
-      limit: pagination.pageSize,
-      ...filters,
-    });
-  }, [pagination.pageIndex, pagination.pageSize, filters, triggerAttendance]);
-
+/** Filter setter that also resets pagination to the first page. */
+const makeFilterHandlers = ({ setPagination, setFilters }) => ({
   /**
    * Al aplicar nuevos filtros:
    * - Se resetea la página a la primera (pageIndex = 0)
@@ -89,16 +28,52 @@ const Attendance = () => {
    * El cambio de estado dispara el useEffect, manteniendo
    * un flujo reactivo y predecible.
    */
-  const handleSubmitFilters = (newFilters) => {
+  handleSubmitFilters: (newFilters) => {
     setPagination((prev) => ({
       ...prev,
       pageIndex: 0,
     }));
 
     setFilters(newFilters);
-  };
+  },
+});
 
-  const handleSubmit = async (result) => {
+/** Success alert props for the create/update flow. */
+const buildSuccessAlertProps = ({ t, isEdit, setOpenDialog }) => ({
+  alertTitle: t(isEdit ? 'update_record' : 'add_record'),
+  alertMessage: t(isEdit ? 'updated_successfully' : 'added_successfully'),
+  cancel: false,
+  success: true,
+  onSuccess: () => {
+    setOpenDialog(false);
+  },
+  variantSuccess: 'info',
+});
+
+/** Error alert props for the create/update flow. */
+const buildErrorAlertProps = ({ t, err }) => ({
+  alertTitle: t('error_occurred_message'),
+  alertMessage:
+    err.data?.message || err.message || t('operation_failed_message'),
+  cancel: false,
+  success: true, // To show only one button "OK"
+  onSuccess: () => {
+    /* stay on dialog or close if needed */
+  },
+  variantSuccess: 'destructive', // Show error styling
+});
+
+/** Save handler: create or update, then show success/error alert. */
+const makeSaveHandler =
+  ({
+    t,
+    updateAttendanceById,
+    createAttendance,
+    setAlertProps,
+    setOpenAlertDialog,
+    setOpenDialog,
+  }) =>
+  async (result) => {
     try {
       if (result?.id) {
         // edit → result = { id, body } with only changed fields (PATCH)
@@ -111,53 +86,49 @@ const Attendance = () => {
         await createAttendance(result).unwrap();
       }
 
-      setAlertProps({
-        alertTitle: t(result?.id ? 'update_record' : 'add_record'),
-        alertMessage: t(
-          result?.id ? 'updated_successfully' : 'added_successfully'
-        ),
-        cancel: false,
-        success: true,
-        onSuccess: () => {
-          setOpenDialog(false);
-        },
-        variantSuccess: 'info',
-      });
+      setAlertProps(
+        buildSuccessAlertProps({ t, isEdit: !!result?.id, setOpenDialog })
+      );
       setOpenAlertDialog(true);
     } catch (err) {
       // Handle error display, perhaps another AlertDialog
-      setAlertProps({
-        alertTitle: t('error_occurred_message'),
-        alertMessage:
-          err.data?.message || err.message || t('operation_failed_message'),
-        cancel: false,
-        success: true, // To show only one button "OK"
-        onSuccess: () => {
-          /* stay on dialog or close if needed */
-        },
-        variantSuccess: 'destructive', // Show error styling
-      });
+      setAlertProps(buildErrorAlertProps({ t, err }));
       setOpenAlertDialog(true);
     }
   };
 
-  const handleAddDialog = () => {
-    setActionDialog(t('add_attendance')); // Adjust translation key
+/** Dialog open/close/edit handlers. */
+const makeDialogHandlers = ({
+  t,
+  setOpenDialog,
+  setActionDialog,
+  setSelectedRow,
+}) => ({
+  handleAddDialog: () => {
+    setActionDialog(t('add_attendance'));
     setOpenDialog(true);
-  };
-
-  const handleEditDialog = (row) => {
-    setActionDialog(t('edit_attendance')); // Adjust translation key
+  },
+  handleEditDialog: (row) => {
+    setActionDialog(t('edit_attendance'));
     setOpenDialog(true);
     setSelectedRow(row);
-  };
-
-  const handleCloseDialog = () => {
+  },
+  handleCloseDialog: () => {
     setSelectedRow({});
     setOpenDialog(false);
-  };
+  },
+});
 
-  const handleDelete = async (id) => {
+/** Delete-confirmation handler for an attendance record. */
+const makeDeleteHandler =
+  ({
+    t,
+    deleteAttendanceById,
+    setAlertProps,
+    setOpenAlertDialog,
+    setOpenDialog,
+  }) =>
+  async (id) => {
     try {
       setAlertProps({
         alertTitle: t('delete_record'),
@@ -204,55 +175,182 @@ const Attendance = () => {
     }
   };
 
-  return (
-    <>
-      <BackDashBoard link={'/home'} moduleName={t('attendance')} />
-      {/* Adjust module name */}
-      <div className="relative">
-        {/* Show spinner when loading or fetching */}
-        {(isLoadingAny ||
-          isFetchingAny ||
-          isLoadingPut ||
-          isLoadingPost ||
-          isLoadingDelete) && <Spinner />}
+/**
+ * Page state: lazy query trigger, mutations and dialog/alert/pagination
+ * state. El efecto de `triggerAttendance` es la única fuente de verdad
+ * para disparar la consulta al backend: se ejecuta al montar y cuando
+ * cambian página, tamaño de página o filtros.
+ */
+function useAttendancePageState() {
+  const [selectedRow, setSelectedRow] = useState({});
+  const [openDialog, setOpenDialog] = useState(false);
+  const [openAlertDialog, setOpenAlertDialog] = useState(false);
+  const [alertProps, setAlertProps] = useState({});
+  const [actionDialog, setActionDialog] = useState('');
+  const [pagination, setPagination] = useState({
+    pageIndex: 0,
+    pageSize: 20,
+  });
+  const [filters, setFilters] = useState({});
 
-        <div className="grid grid-cols-2 grid-rows-4 gap-4 md:grid-cols-5">
-          <div className="col-span-2 row-span-1 md:col-span-5">
-            {/* Span full width */}
-            <AttendanceFiltersForm
-              onSubmit={handleSubmitFilters}
-              onAddDialog={handleAddDialog}
-              dataEmployees={dataEmployees} // Pass employee data for filters
-            />
-          </div>
-          {/* Datatable */}
-          <div className="flex flex-wrap w-full col-span-2 row-span-3 row-start-2 md:col-span-5">
-            <AttendanceDatatable
-              dataAttendance={dataAttendance} // Pass attendance data
-              onEditDialog={handleEditDialog}
-              pagination={pagination}
-              onPaginationChange={setPagination}
-            />
-          </div>
-          {/* Dialog */}
-          <AttendanceDialog
-            openDialog={openDialog}
-            onCloseDialog={handleCloseDialog}
-            selectedRow={selectedRow}
-            onSubmit={handleSubmit}
-            onDeleteById={handleDelete}
-            actionDialog={actionDialog}
-            dataEmployees={dataEmployees} // Pass employee data for filters
-          />
-          <AlertDialogComponent
-            openAlertDialog={openAlertDialog}
-            setOpenAlertDialog={setOpenAlertDialog}
-            alertProps={alertProps}
+  const [triggerAttendance, queryStateAttendance] =
+    useLazyGetAllAttendanceQuery();
+  const {
+    data: dataAttendance = [],
+    isLoading: isLoadingAtt,
+    isFetching: isFetchingAtt,
+  } = useQueryData(queryStateAttendance);
+
+  const {
+    data: dataEmployees = [],
+    isLoading: isLoadingEmp,
+    isFetching: isFetchingEmp,
+  } = useQueryData(useGetAllEmployeesFiltersQuery());
+
+  const { isLoading: isLoadingAny, isFetching: isFetchingAny } =
+    useLoadingState([
+      { isLoading: isLoadingAtt, isFetching: isFetchingAtt },
+      { isLoading: isLoadingEmp, isFetching: isFetchingEmp },
+    ]);
+
+  const [updateAttendanceById, { isLoading: isLoadingPut }] =
+    useUpdateAttendanceByIdMutation();
+
+  const [createAttendance, { isLoading: isLoadingPost }] =
+    useCreateAttendanceMutation();
+
+  const [deleteAttendanceById, { isLoading: isLoadingDelete }] =
+    useDeleteAttendanceByIdMutation();
+
+  useEffect(() => {
+    triggerAttendance({
+      page: pagination.pageIndex + 1,
+      limit: pagination.pageSize,
+      ...filters,
+    });
+  }, [pagination.pageIndex, pagination.pageSize, filters, triggerAttendance]);
+
+  const isLoadingPage =
+    isLoadingAny ||
+    isFetchingAny ||
+    isLoadingPut ||
+    isLoadingPost ||
+    isLoadingDelete;
+
+  return {
+    selectedRow,
+    setSelectedRow,
+    openDialog,
+    setOpenDialog,
+    openAlertDialog,
+    setOpenAlertDialog,
+    alertProps,
+    setAlertProps,
+    actionDialog,
+    setActionDialog,
+    pagination,
+    setPagination,
+    setFilters,
+    dataAttendance,
+    dataEmployees,
+    isLoadingPage,
+    updateAttendanceById,
+    createAttendance,
+    deleteAttendanceById,
+  };
+}
+
+/** Static page layout for the attendance module. */
+const buildAttendanceLayout = ({
+  t,
+  page,
+  filterHandlers,
+  dialogHandlers,
+  saveHandler,
+  deleteHandler,
+}) => (
+  <>
+    <BackDashBoard link={'/home'} moduleName={t('attendance')} />
+    <div className="relative">
+      {/* Show spinner when loading or fetching */}
+      {page.isLoadingPage && <Spinner />}
+
+      <div className="grid grid-cols-2 grid-rows-4 gap-4 md:grid-cols-5">
+        <div className="col-span-2 row-span-1 md:col-span-5">
+          {/* Span full width */}
+          <AttendanceFiltersForm
+            onSubmit={filterHandlers.handleSubmitFilters}
+            onAddDialog={dialogHandlers.handleAddDialog}
+            dataEmployees={page.dataEmployees}
           />
         </div>
+        {/* Datatable */}
+        <div className="flex flex-wrap w-full col-span-2 row-span-3 row-start-2 md:col-span-5">
+          <AttendanceDatatable
+            dataAttendance={page.dataAttendance}
+            onEditDialog={dialogHandlers.handleEditDialog}
+            pagination={page.pagination}
+            onPaginationChange={page.setPagination}
+          />
+        </div>
+        {/* Dialog */}
+        <AttendanceDialog
+          openDialog={page.openDialog}
+          onCloseDialog={dialogHandlers.handleCloseDialog}
+          selectedRow={page.selectedRow}
+          onSubmit={saveHandler}
+          onDeleteById={deleteHandler}
+          actionDialog={page.actionDialog}
+          dataEmployees={page.dataEmployees}
+        />
+        <AlertDialogComponent
+          openAlertDialog={page.openAlertDialog}
+          setOpenAlertDialog={page.setOpenAlertDialog}
+          alertProps={page.alertProps}
+        />
       </div>
-    </>
-  );
+    </div>
+  </>
+);
+
+const Attendance = () => {
+  const { t } = useTranslation();
+  const page = useAttendancePageState();
+
+  const filterHandlers = makeFilterHandlers({
+    setPagination: page.setPagination,
+    setFilters: page.setFilters,
+  });
+  const dialogHandlers = makeDialogHandlers({
+    t,
+    setOpenDialog: page.setOpenDialog,
+    setActionDialog: page.setActionDialog,
+    setSelectedRow: page.setSelectedRow,
+  });
+  const saveHandler = makeSaveHandler({
+    t,
+    updateAttendanceById: page.updateAttendanceById,
+    createAttendance: page.createAttendance,
+    setAlertProps: page.setAlertProps,
+    setOpenAlertDialog: page.setOpenAlertDialog,
+    setOpenDialog: page.setOpenDialog,
+  });
+  const deleteHandler = makeDeleteHandler({
+    t,
+    deleteAttendanceById: page.deleteAttendanceById,
+    setAlertProps: page.setAlertProps,
+    setOpenAlertDialog: page.setOpenAlertDialog,
+    setOpenDialog: page.setOpenDialog,
+  });
+
+  return buildAttendanceLayout({
+    t,
+    page,
+    filterHandlers,
+    dialogHandlers,
+    saveHandler,
+    deleteHandler,
+  });
 };
 
 export default Attendance;

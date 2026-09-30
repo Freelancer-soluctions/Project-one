@@ -46,6 +46,24 @@ const SENSITIVE_FIELDS = [
   'email',
 ];
 
+/**
+ * Desencripta los campos sensibles de un objeto plano.
+ *
+ * @param {Object} data - Objeto (ya copiado) con posibles campos cifrados.
+ * @returns {Object} El mismo objeto con los campos sensibles descifrados.
+ */
+const decryptSensitiveFields = (data) => {
+  const result = { ...data };
+
+  for (const field of SENSITIVE_FIELDS) {
+    if (result[field] && typeof result[field] === 'string') {
+      result[field] = decrypt(result[field]);
+    }
+  }
+
+  return result;
+};
+
 // Función de desencriptación recursiva
 export function decryptResults(data) {
   if (!data) return data;
@@ -55,19 +73,12 @@ export function decryptResults(data) {
     return data.map((item) => decryptResults(item));
   }
 
-  // No objeto
+  // No objeto (Date incluido)
   if (typeof data !== 'object' || data instanceof Date) {
     return data;
   }
 
-  // Objeto
-  const result = { ...data };
-
-  for (const field of SENSITIVE_FIELDS) {
-    if (result[field] && typeof result[field] === 'string') {
-      result[field] = decrypt(result[field]);
-    }
-  }
+  const result = decryptSensitiveFields(data);
 
   // Recursión para objetos anidados
   for (const key in result) {

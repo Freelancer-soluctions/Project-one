@@ -29,6 +29,252 @@ import {
 } from 'lucide-react';
 import { Toggle } from '@/components/ui/toggle';
 
+/**
+ * Grupo 1: formato de texto básico (negrita, itálica, subrayado, tachado,
+ * código, resaltado).
+ */
+const TEXT_FORMAT_TOGGLES = [
+  {
+    icon: Bold,
+    isActive: (e) => e.isActive('bold'),
+    run: (c) => c.toggleBold(),
+    label: 'Toggle bold',
+  },
+  {
+    icon: Italic,
+    isActive: (e) => e.isActive('italic'),
+    run: (c) => c.toggleItalic(),
+    label: 'Toggle italic',
+  },
+  {
+    icon: UnderlineIcon,
+    isActive: (e) => e.isActive('underline'),
+    run: (c) => c.toggleUnderline(),
+    label: 'Toggle underline',
+  },
+  {
+    icon: Strikethrough,
+    isActive: (e) => e.isActive('strike'),
+    run: (c) => c.toggleStrike(),
+    label: 'Toggle strikethrough',
+  },
+  {
+    icon: Code,
+    isActive: (e) => e.isActive('code'),
+    run: (c) => c.toggleCode(),
+    label: 'Toggle code',
+  },
+  {
+    icon: Highlighter,
+    isActive: (e) => e.isActive('highlight'),
+    run: (c) => c.toggleHighlight(),
+    label: 'Toggle highlight',
+  },
+];
+
+/**
+ * Grupo 2: superíndice y subíndice.
+ */
+const SCRIPT_TOGGLES = [
+  {
+    icon: SuperscriptIcon,
+    isActive: (e) => e.isActive('superscript'),
+    run: (c) => c.toggleSuperscript(),
+    label: 'Toggle superscript',
+  },
+  {
+    icon: SubscriptIcon,
+    isActive: (e) => e.isActive('subscript'),
+    run: (c) => c.toggleSubscript(),
+    label: 'Toggle subscript',
+  },
+];
+
+/**
+ * Grupo 3: encabezados (H1–H3).
+ */
+const HEADING_TOGGLES = [
+  {
+    icon: Heading1,
+    isActive: (e) => e.isActive('heading', { level: 1 }),
+    run: (c) => c.toggleHeading({ level: 1 }),
+    label: 'Toggle heading 1',
+  },
+  {
+    icon: Heading2,
+    isActive: (e) => e.isActive('heading', { level: 2 }),
+    run: (c) => c.toggleHeading({ level: 2 }),
+    label: 'Toggle heading 2',
+  },
+  {
+    icon: Heading3,
+    isActive: (e) => e.isActive('heading', { level: 3 }),
+    run: (c) => c.toggleHeading({ level: 3 }),
+    label: 'Toggle heading 3',
+  },
+];
+
+/**
+ * Grupo 4: alineación de texto.
+ */
+const ALIGN_TOGGLES = [
+  {
+    icon: AlignLeft,
+    isActive: (e) => e.isActive({ textAlign: 'left' }),
+    run: (c) => c.setTextAlign('left'),
+    label: 'Align left',
+  },
+  {
+    icon: AlignCenter,
+    isActive: (e) => e.isActive({ textAlign: 'center' }),
+    run: (c) => c.setTextAlign('center'),
+    label: 'Align center',
+  },
+  {
+    icon: AlignRight,
+    isActive: (e) => e.isActive({ textAlign: 'right' }),
+    run: (c) => c.setTextAlign('right'),
+    label: 'Align right',
+  },
+  {
+    icon: AlignJustify,
+    isActive: (e) => e.isActive({ textAlign: 'justify' }),
+    run: (c) => c.setTextAlign('justify'),
+    label: 'Align justify',
+  },
+];
+
+/**
+ * Grupo 5: listas y citas.
+ */
+const LIST_TOGGLES = [
+  {
+    icon: List,
+    isActive: (e) => e.isActive('bulletList'),
+    run: (c) => c.toggleBulletList(),
+    label: 'Toggle bullet list',
+  },
+  {
+    icon: ListOrdered,
+    isActive: (e) => e.isActive('orderedList'),
+    run: (c) => c.toggleOrderedList(),
+    label: 'Toggle ordered list',
+  },
+  {
+    icon: Quote,
+    isActive: (e) => e.isActive('blockquote'),
+    run: (c) => c.toggleBlockquote(),
+    label: 'Toggle blockquote',
+  },
+];
+
+/**
+ * Grupo 6: acciones simples sin estado activo (línea, limpiar formato,
+ * deshacer/rehacer). `canRun` habilita/deshabilita el botón.
+ */
+const ACTION_TOGGLES = [
+  {
+    icon: Minus,
+    isActive: () => false,
+    run: (c) => c.setHorizontalRule(),
+    label: 'Add horizontal rule',
+  },
+  {
+    icon: RemoveFormatting,
+    isActive: () => false,
+    run: (c) => c.unsetAllMarks().clearNodes(),
+    label: 'Clear formatting',
+  },
+  {
+    icon: Undo,
+    isActive: () => false,
+    run: (c) => c.undo(),
+    label: 'Undo',
+    canRun: (e) => e.can().undo(),
+  },
+  {
+    icon: Redo,
+    isActive: () => false,
+    run: (c) => c.redo(),
+    label: 'Redo',
+    canRun: (e) => e.can().redo(),
+  },
+];
+
+/**
+ * Botón de la barra: envuelve un Toggle de shadcn con la convención
+ * editor.chain().focus()...run() del editor TipTap.
+ *
+ * @param {Object} p - Props del botón.
+ * @param {Object} p.editor - Instancia del editor TipTap.
+ * @param {Object} p.def - Definición del toggle (icon/isActive/run/label/canRun/pressed/disabled/onPressedChange).
+ * @returns {JSX.Element} Toggle listo.
+ */
+const ToolbarToggle = ({ editor, def }) => (
+  <Toggle
+    size="sm"
+    pressed={def.pressed ? def.pressed(editor) : def.isActive(editor)}
+    onPressedChange={
+      def.onPressedChange || (() => def.run(editor.chain().focus()).run())
+    }
+    disabled={def.disabled ? def.disabled(editor) : false}
+    aria-label={def.label}
+  >
+    <def.icon className="h-4 w-4" />
+  </Toggle>
+);
+
+ToolbarToggle.propTypes = {
+  editor: PropTypes.object.isRequired,
+  def: PropTypes.object.isRequired,
+};
+
+/**
+ * Renderiza un grupo de toggles separado por un divisor vertical.
+ *
+ * @param {Object} p - Props del grupo.
+ * @param {Object} p.editor - Instancia del editor TipTap.
+ * @param {Array<Object>} p.toggles - Definiciones de toggles del grupo.
+ * @param {boolean} [p.dividerAfter=true] - Pintar divisor después del grupo.
+ * @returns {JSX.Element} Fragmento con los toggles (+ divisor).
+ */
+const ToggleGroup = ({ editor, toggles, dividerAfter = true }) => (
+  <>
+    {toggles.map((def) => (
+      <ToolbarToggle key={def.label} editor={editor} def={def} />
+    ))}
+    {dividerAfter && <div className="mx-1 w-px bg-border" />}
+  </>
+);
+
+ToggleGroup.propTypes = {
+  editor: PropTypes.object.isRequired,
+  toggles: PropTypes.array.isRequired,
+  dividerAfter: PropTypes.bool,
+};
+
+/**
+ * Definiciones de los toggles de Links (necesitan setLink del componente).
+ *
+ * @param {Function} setLink - Callback que pide la URL y aplica el link.
+ * @returns {Array<Object>} Toggles del grupo Links.
+ */
+const buildLinkToggles = (setLink) => [
+  {
+    icon: LinkIcon,
+    isActive: (e) => e.isActive('link'),
+    onPressedChange: setLink,
+    label: 'Add link',
+  },
+  {
+    icon: Unlink,
+    isActive: () => false,
+    run: (c) => c.unsetLink(),
+    disabled: (e) => !e.isActive('link'),
+    label: 'Remove link',
+  },
+];
+
 export const MenuBar = ({ editor }) => {
   const setLink = React.useCallback(() => {
     const previousUrl = editor.getAttributes('link').href;
@@ -50,361 +296,37 @@ export const MenuBar = ({ editor }) => {
     return null;
   }
 
+  const linkToggles = buildLinkToggles(setLink);
+
   return (
     <div className="flex flex-wrap gap-1 border-b border-border p-1">
       {/* Formato de texto básico */}
-      <Toggle
-        size="sm"
-        pressed={editor.isActive('bold')}
-        onPressedChange={() => editor.chain().focus().toggleBold().run()}
-        aria-label="Toggle bold"
-      >
-        <Bold className="h-4 w-4" />
-      </Toggle>
-      <Toggle
-        size="sm"
-        pressed={editor.isActive('italic')}
-        onPressedChange={() => editor.chain().focus().toggleItalic().run()}
-        aria-label="Toggle italic"
-      >
-        <Italic className="h-4 w-4" />
-      </Toggle>
-      <Toggle
-        size="sm"
-        pressed={editor.isActive('underline')}
-        onPressedChange={() => editor.chain().focus().toggleUnderline().run()}
-        aria-label="Toggle underline"
-      >
-        <UnderlineIcon className="h-4 w-4" />
-      </Toggle>
-      <Toggle
-        size="sm"
-        pressed={editor.isActive('strike')}
-        onPressedChange={() => editor.chain().focus().toggleStrike().run()}
-        aria-label="Toggle strikethrough"
-      >
-        <Strikethrough className="h-4 w-4" />
-      </Toggle>
-      <Toggle
-        size="sm"
-        pressed={editor.isActive('code')}
-        onPressedChange={() => editor.chain().focus().toggleCode().run()}
-        aria-label="Toggle code"
-      >
-        <Code className="h-4 w-4" />
-      </Toggle>
-      <Toggle
-        size="sm"
-        pressed={editor.isActive('highlight')}
-        onPressedChange={() => editor.chain().focus().toggleHighlight().run()}
-        aria-label="Toggle highlight"
-      >
-        <Highlighter className="h-4 w-4" />
-      </Toggle>
-
-      <div className="mx-1 w-px bg-border" />
+      <ToggleGroup editor={editor} toggles={TEXT_FORMAT_TOGGLES} />
 
       {/* Superscript y Subscript */}
-      <Toggle
-        size="sm"
-        pressed={editor.isActive('superscript')}
-        onPressedChange={() => editor.chain().focus().toggleSuperscript().run()}
-        aria-label="Toggle superscript"
-      >
-        <SuperscriptIcon className="h-4 w-4" />
-      </Toggle>
-      <Toggle
-        size="sm"
-        pressed={editor.isActive('subscript')}
-        onPressedChange={() => editor.chain().focus().toggleSubscript().run()}
-        aria-label="Toggle subscript"
-      >
-        <SubscriptIcon className="h-4 w-4" />
-      </Toggle>
-
-      <div className="mx-1 w-px bg-border" />
+      <ToggleGroup editor={editor} toggles={SCRIPT_TOGGLES} />
 
       {/* Encabezados */}
-      <Toggle
-        size="sm"
-        pressed={editor.isActive('heading', { level: 1 })}
-        onPressedChange={() =>
-          editor.chain().focus().toggleHeading({ level: 1 }).run()
-        }
-        aria-label="Toggle heading 1"
-      >
-        <Heading1 className="h-4 w-4" />
-      </Toggle>
-      <Toggle
-        size="sm"
-        pressed={editor.isActive('heading', { level: 2 })}
-        onPressedChange={() =>
-          editor.chain().focus().toggleHeading({ level: 2 }).run()
-        }
-        aria-label="Toggle heading 2"
-      >
-        <Heading2 className="h-4 w-4" />
-      </Toggle>
-      <Toggle
-        size="sm"
-        pressed={editor.isActive('heading', { level: 3 })}
-        onPressedChange={() =>
-          editor.chain().focus().toggleHeading({ level: 3 }).run()
-        }
-        aria-label="Toggle heading 3"
-      >
-        <Heading3 className="h-4 w-4" />
-      </Toggle>
-
-      <div className="mx-1 w-px bg-border" />
+      <ToggleGroup editor={editor} toggles={HEADING_TOGGLES} />
 
       {/* Alineación de texto */}
-      <Toggle
-        size="sm"
-        pressed={editor.isActive({ textAlign: 'left' })}
-        onPressedChange={() =>
-          editor.chain().focus().setTextAlign('left').run()
-        }
-        aria-label="Align left"
-      >
-        <AlignLeft className="h-4 w-4" />
-      </Toggle>
-      <Toggle
-        size="sm"
-        pressed={editor.isActive({ textAlign: 'center' })}
-        onPressedChange={() =>
-          editor.chain().focus().setTextAlign('center').run()
-        }
-        aria-label="Align center"
-      >
-        <AlignCenter className="h-4 w-4" />
-      </Toggle>
-      <Toggle
-        size="sm"
-        pressed={editor.isActive({ textAlign: 'right' })}
-        onPressedChange={() =>
-          editor.chain().focus().setTextAlign('right').run()
-        }
-        aria-label="Align right"
-      >
-        <AlignRight className="h-4 w-4" />
-      </Toggle>
-      <Toggle
-        size="sm"
-        pressed={editor.isActive({ textAlign: 'justify' })}
-        onPressedChange={() =>
-          editor.chain().focus().setTextAlign('justify').run()
-        }
-        aria-label="Align justify"
-      >
-        <AlignJustify className="h-4 w-4" />
-      </Toggle>
-
-      <div className="mx-1 w-px bg-border" />
+      <ToggleGroup editor={editor} toggles={ALIGN_TOGGLES} />
 
       {/* Listas y citas */}
-      <Toggle
-        size="sm"
-        pressed={editor.isActive('bulletList')}
-        onPressedChange={() => editor.chain().focus().toggleBulletList().run()}
-        aria-label="Toggle bullet list"
-      >
-        <List className="h-4 w-4" />
-      </Toggle>
-      <Toggle
-        size="sm"
-        pressed={editor.isActive('orderedList')}
-        onPressedChange={() => editor.chain().focus().toggleOrderedList().run()}
-        aria-label="Toggle ordered list"
-      >
-        <ListOrdered className="h-4 w-4" />
-      </Toggle>
-      <Toggle
-        size="sm"
-        pressed={editor.isActive('blockquote')}
-        onPressedChange={() => editor.chain().focus().toggleBlockquote().run()}
-        aria-label="Toggle blockquote"
-      >
-        <Quote className="h-4 w-4" />
-      </Toggle>
-
-      <div className="mx-1 w-px bg-border" />
+      <ToggleGroup editor={editor} toggles={LIST_TOGGLES} />
 
       {/* Links */}
-      <Toggle
-        size="sm"
-        pressed={editor.isActive('link')}
-        onPressedChange={setLink}
-        aria-label="Add link"
-      >
-        <LinkIcon className="h-4 w-4" />
-      </Toggle>
-      <Toggle
-        size="sm"
-        pressed={false}
-        onPressedChange={() => editor.chain().focus().unsetLink().run()}
-        disabled={!editor.isActive('link')}
-        aria-label="Remove link"
-      >
-        <Unlink className="h-4 w-4" />
-      </Toggle>
+      <ToggleGroup editor={editor} toggles={linkToggles} />
 
-      <div className="mx-1 w-px bg-border" />
-
-      {/* Línea horizontal */}
-      <Toggle
-        size="sm"
-        pressed={false}
-        onPressedChange={() => editor.chain().focus().setHorizontalRule().run()}
-        aria-label="Add horizontal rule"
-      >
-        <Minus className="h-4 w-4" />
-      </Toggle>
-
-      {/* Limpiar formato */}
-      <Toggle
-        size="sm"
-        pressed={false}
-        onPressedChange={() =>
-          editor.chain().focus().unsetAllMarks().clearNodes().run()
-        }
-        aria-label="Clear formatting"
-      >
-        <RemoveFormatting className="h-4 w-4" />
-      </Toggle>
-
-      <div className="mx-1 w-px bg-border" />
-
-      {/* Deshacer y rehacer */}
-      <Toggle
-        size="sm"
-        pressed={false}
-        onPressedChange={() => editor.chain().focus().undo().run()}
-        disabled={!editor.can().undo()}
-        aria-label="Undo"
-      >
-        <Undo className="h-4 w-4" />
-      </Toggle>
-      <Toggle
-        size="sm"
-        pressed={false}
-        onPressedChange={() => editor.chain().focus().redo().run()}
-        disabled={!editor.can().redo()}
-        aria-label="Redo"
-      >
-        <Redo className="h-4 w-4" />
-      </Toggle>
+      {/* Línea horizontal, limpiar formato, deshacer y rehacer */}
+      <ToggleGroup
+        editor={editor}
+        toggles={ACTION_TOGGLES}
+        dividerAfter={false}
+      />
     </div>
   );
 };
-
-// export const MenuBar = ({ editor }) => {
-//   if (!editor) {
-//     return null
-//   }
-
-//   return (
-//     <div className="flex flex-wrap gap-1 border-b border-border p-1">
-//       <Toggle
-//         size="sm"
-//         pressed={editor.isActive("bold")}
-//         onPressedChange={() => editor.chain().focus().toggleBold().run()}
-//         aria-label="Toggle bold"
-//       >
-//         <Bold className="h-4 w-4" />
-//       </Toggle>
-//       <Toggle
-//         size="sm"
-//         pressed={editor.isActive("italic")}
-//         onPressedChange={() => editor.chain().focus().toggleItalic().run()}
-//         aria-label="Toggle italic"
-//       >
-//         <Italic className="h-4 w-4" />
-//       </Toggle>
-//       <Toggle
-//         size="sm"
-//         pressed={editor.isActive("strike")}
-//         onPressedChange={() => editor.chain().focus().toggleStrike().run()}
-//         aria-label="Toggle strikethrough"
-//       >
-//         <Strikethrough className="h-4 w-4" />
-//       </Toggle>
-//       <Toggle
-//         size="sm"
-//         pressed={editor.isActive("code")}
-//         onPressedChange={() => editor.chain().focus().toggleCode().run()}
-//         aria-label="Toggle code"
-//       >
-//         <Code className="h-4 w-4" />
-//       </Toggle>
-//       <div className="mx-1 w-px bg-border" />
-//       <Toggle
-//         size="sm"
-//         pressed={editor.isActive("heading", { level: 1 })}
-//         onPressedChange={() =>
-//           editor.chain().focus().toggleHeading({ level: 1 }).run()
-//         }
-//         aria-label="Toggle heading 1"
-//       >
-//         <Heading1 className="h-4 w-4" />
-//       </Toggle>
-//       <Toggle
-//         size="sm"
-//         pressed={editor.isActive("heading", { level: 2 })}
-//         onPressedChange={() =>
-//           editor.chain().focus().toggleHeading({ level: 2 }).run()
-//         }
-//         aria-label="Toggle heading 2"
-//       >
-//         <Heading2 className="h-4 w-4" />
-//       </Toggle>
-//       <div className="mx-1 w-px bg-border" />
-//       <Toggle
-//         size="sm"
-//         pressed={editor.isActive("bulletList")}
-//         onPressedChange={() => editor.chain().focus().toggleBulletList().run()}
-//         aria-label="Toggle bullet list"
-//       >
-//         <List className="h-4 w-4" />
-//       </Toggle>
-//       <Toggle
-//         size="sm"
-//         pressed={editor.isActive("orderedList")}
-//         onPressedChange={() => editor.chain().focus().toggleOrderedList().run()}
-//         aria-label="Toggle ordered list"
-//       >
-//         <ListOrdered className="h-4 w-4" />
-//       </Toggle>
-//       <Toggle
-//         size="sm"
-//         pressed={editor.isActive("blockquote")}
-//         onPressedChange={() => editor.chain().focus().toggleBlockquote().run()}
-//         aria-label="Toggle blockquote"
-//       >
-//         <Quote className="h-4 w-4" />
-//       </Toggle>
-//       <div className="mx-1 w-px bg-border" />
-//       <Toggle
-//         size="sm"
-//         pressed={false}
-//         onPressedChange={() => editor.chain().focus().undo().run()}
-//         disabled={!editor.can().undo()}
-//         aria-label="Undo"
-//       >
-//         <Undo className="h-4 w-4" />
-//       </Toggle>
-//       <Toggle
-//         size="sm"
-//         pressed={false}
-//         onPressedChange={() => editor.chain().focus().redo().run()}
-//         disabled={!editor.can().redo()}
-//         aria-label="Redo"
-//       >
-//         <Redo className="h-4 w-4" />
-//       </Toggle>
-//     </div>
-//   )
-// }
 
 MenuBar.propTypes = {
   editor: PropTypes.any,

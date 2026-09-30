@@ -9,10 +9,10 @@
 
 La colaboración humano-IA funciona mejor cuando se define una **frontera clara de responsabilidades**:
 
-| Rol | Responsabilidad | ¿Qué hace la IA? |
-|-----|----------------|-------------------|
-| **Architect** (humano) | Define límites, trade-offs, contexto histórico, decisiones rechazadas | — |
-| **Typist** (IA) | Implementa dentro de los límites definidos por el Architect | Escribe código, sigue patrones, aplica decisiones ya tomadas |
+| Rol                    | Responsabilidad                                                       | ¿Qué hace la IA?                                             |
+| ---------------------- | --------------------------------------------------------------------- | ------------------------------------------------------------ |
+| **Architect** (humano) | Define límites, trade-offs, contexto histórico, decisiones rechazadas | —                                                            |
+| **Typist** (IA)        | Implementa dentro de los límites definidos por el Architect           | Escribe código, sigue patrones, aplica decisiones ya tomadas |
 
 ### La regla fundamental
 
@@ -47,17 +47,17 @@ Crear un ADR cuando se tome una decisión que:
 
 ## Estructura del ADR (Plantilla MADR 4.0.0)
 
-```markdown
+````markdown
 # ADR-{NNN}: {Título corto del problema resuelto y la solución}
 
 ## Status
 
-| Campo | Valor |
-|-------|-------|
-| **Status** | `proposed` · `accepted` · `rejected` · `deprecated` · `superseded by ADR-NNN` |
-| **Date** | {YYYY-MM-DD} |
-| **Decision Makers** | {lista de personas} |
-| **Confidence** | `high` · `medium` · `low` (opcional, Microsoft WAF recomienda este campo) |
+| Campo               | Valor                                                                         |
+| ------------------- | ----------------------------------------------------------------------------- |
+| **Status**          | `proposed` · `accepted` · `rejected` · `deprecated` · `superseded by ADR-NNN` |
+| **Date**            | {YYYY-MM-DD}                                                                  |
+| **Decision Makers** | {lista de personas}                                                           |
+| **Confidence**      | `high` · `medium` · `low` (opcional, Microsoft WAF recomienda este campo)     |
 
 ## Context and Problem Statement
 
@@ -128,6 +128,7 @@ Para decisiones menores o resúmenes ejecutivos, usar el formato Y-Statement:
 > we decided for {opción} and neglected {otras opciones},
 > to achieve {calidad}, accepting {downside}.
 ```
+````
 
 **Ejemplo:**
 
@@ -156,6 +157,7 @@ openspec/
 ```
 
 **Regla**: Cuando un change hace una decisión arquitectural, debe:
+
 1. Escribir o referenciar un ADR en `docs/adr/`
 2. El PR del change debe incluir el ADR o una referencia a uno existente
 
@@ -186,11 +188,11 @@ fi
 
 ## Índice
 
-| # | Título | Status | Date |
-|---|--------|--------|------|
-| 0001 | {título} | `accepted` | 2026-01-15 |
+| #    | Título   | Status                   | Date       |
+| ---- | -------- | ------------------------ | ---------- |
+| 0001 | {título} | `accepted`               | 2026-01-15 |
 | 0002 | {título} | `superseded by ADR-0003` | 2026-02-20 |
-| 0003 | {título} | `accepted` | 2026-03-10 |
+| 0003 | {título} | `accepted`               | 2026-03-10 |
 
 ## Formato
 

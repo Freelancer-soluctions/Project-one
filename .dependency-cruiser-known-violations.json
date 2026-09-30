@@ -1,0 +1,996 @@
+[
+  {
+    "type": "cycle",
+    "from": "apps/client/src/config/axios.js",
+    "to": "apps/client/src/modules/auth/slice/authSlice.js",
+    "unresolvedTo": "../modules/auth/slice/authSlice",
+    "dependencyTypes": ["local", "import"],
+    "rule": {
+      "severity": "warn",
+      "name": "no-circular"
+    },
+    "cycle": [
+      {
+        "name": "apps/client/src/modules/auth/slice/authSlice.js",
+        "dependencyTypes": ["local", "import"]
+      },
+      {
+        "name": "apps/client/src/modules/auth/api/authAPI.js",
+        "dependencyTypes": ["aliased", "aliased-webpack", "local", "import"]
+      },
+      {
+        "name": "apps/client/src/config/axios.js",
+        "dependencyTypes": ["aliased", "aliased-webpack", "local", "import"]
+      }
+    ]
+  },
+  {
+    "type": "cycle",
+    "from": "apps/client/src/config/axios.js",
+    "to": "apps/client/src/redux/store.js",
+    "unresolvedTo": "../redux/store",
+    "dependencyTypes": ["local", "import"],
+    "rule": {
+      "severity": "warn",
+      "name": "no-circular"
+    },
+    "cycle": [
+      {
+        "name": "apps/client/src/redux/store.js",
+        "dependencyTypes": ["local", "import"]
+      },
+      {
+        "name": "apps/client/src/modules/auth/slice/authSlice.js",
+        "dependencyTypes": ["local", "import"]
+      },
+      {
+        "name": "apps/client/src/modules/auth/api/authAPI.js",
+        "dependencyTypes": ["aliased", "aliased-webpack", "local", "import"]
+      },
+      {
+        "name": "apps/client/src/config/axios.js",
+        "dependencyTypes": ["aliased", "aliased-webpack", "local", "import"]
+      }
+    ]
+  },
+  {
+    "type": "cycle",
+    "from": "apps/client/src/modules/attendance/api/attendanceApi.js",
+    "to": "apps/client/src/config/axios.js",
+    "unresolvedTo": "@/config/axios",
+    "dependencyTypes": ["aliased", "aliased-webpack", "local", "import"],
+    "rule": {
+      "severity": "warn",
+      "name": "no-circular"
+    },
+    "cycle": [
+      {
+        "name": "apps/client/src/config/axios.js",
+        "dependencyTypes": ["aliased", "aliased-webpack", "local", "import"]
+      },
+      {
+        "name": "apps/client/src/redux/store.js",
+        "dependencyTypes": ["local", "import"]
+      },
+      {
+        "name": "apps/client/src/modules/attendance/api/attendanceApi.js",
+        "dependencyTypes": ["aliased", "aliased-webpack", "local", "import"]
+      }
+    ]
+  },
+  {
+    "type": "cycle",
+    "from": "apps/client/src/modules/clientOrder/api/clientOrderApi.js",
+    "to": "apps/client/src/config/axios.js",
+    "unresolvedTo": "@/config/axios",
+    "dependencyTypes": ["aliased", "aliased-webpack", "local", "import"],
+    "rule": {
+      "severity": "warn",
+      "name": "no-circular"
+    },
+    "cycle": [
+      {
+        "name": "apps/client/src/config/axios.js",
+        "dependencyTypes": ["aliased", "aliased-webpack", "local", "import"]
+      },
+      {
+        "name": "apps/client/src/redux/store.js",
+        "dependencyTypes": ["local", "import"]
+      },
+      {
+        "name": "apps/client/src/modules/clientOrder/api/clientOrderApi.js",
+        "dependencyTypes": ["aliased", "aliased-webpack", "local", "import"]
+      }
+    ]
+  },
+  {
+    "type": "cycle",
+    "from": "apps/client/src/modules/clients/api/clientsApi.js",
+    "to": "apps/client/src/config/axios.js",
+    "unresolvedTo": "@/config/axios",
+    "dependencyTypes": ["aliased", "aliased-webpack", "local", "import"],
+    "rule": {
+      "severity": "warn",
+      "name": "no-circular"
+    },
+    "cycle": [
+      {
+        "name": "apps/client/src/config/axios.js",
+        "dependencyTypes": ["aliased", "aliased-webpack", "local", "import"]
+      },
+      {
+        "name": "apps/client/src/redux/store.js",
+        "dependencyTypes": ["local", "import"]
+      },
+      {
+        "name": "apps/client/src/modules/clients/api/clientsApi.js",
+        "dependencyTypes": ["aliased", "aliased-webpack", "local", "import"]
+      }
+    ]
+  },
+  {
+    "type": "cycle",
+    "from": "apps/client/src/modules/employees/api/employeesApi.js",
+    "to": "apps/client/src/config/axios.js",
+    "unresolvedTo": "@/config/axios",
+    "dependencyTypes": ["aliased", "aliased-webpack", "local", "import"],
+    "rule": {
+      "severity": "warn",
+      "name": "no-circular"
+    },
+    "cycle": [
+      {
+        "name": "apps/client/src/config/axios.js",
+        "dependencyTypes": ["aliased", "aliased-webpack", "local", "import"]
+      },
+      {
+        "name": "apps/client/src/redux/store.js",
+        "dependencyTypes": ["local", "import"]
+      },
+      {
+        "name": "apps/client/src/modules/employees/api/employeesApi.js",
+        "dependencyTypes": ["aliased", "aliased-webpack", "local", "import"]
+      }
+    ]
+  },
+  {
+    "type": "cycle",
+    "from": "apps/client/src/modules/events/api/eventsAPI.js",
+    "to": "apps/client/src/config/axios.js",
+    "unresolvedTo": "@/config/axios",
+    "dependencyTypes": ["aliased", "aliased-webpack", "local", "import"],
+    "rule": {
+      "severity": "warn",
+      "name": "no-circular"
+    },
+    "cycle": [
+      {
+        "name": "apps/client/src/config/axios.js",
+        "dependencyTypes": ["aliased", "aliased-webpack", "local", "import"]
+      },
+      {
+        "name": "apps/client/src/redux/store.js",
+        "dependencyTypes": ["local", "import"]
+      },
+      {
+        "name": "apps/client/src/modules/events/api/eventsAPI.js",
+        "dependencyTypes": ["aliased", "aliased-webpack", "local", "import"]
+      }
+    ]
+  },
+  {
+    "type": "cycle",
+    "from": "apps/client/src/modules/expenses/api/expensesApi.js",
+    "to": "apps/client/src/config/axios.js",
+    "unresolvedTo": "@/config/axios",
+    "dependencyTypes": ["aliased", "aliased-webpack", "local", "import"],
+    "rule": {
+      "severity": "warn",
+      "name": "no-circular"
+    },
+    "cycle": [
+      {
+        "name": "apps/client/src/config/axios.js",
+        "dependencyTypes": ["aliased", "aliased-webpack", "local", "import"]
+      },
+      {
+        "name": "apps/client/src/redux/store.js",
+        "dependencyTypes": ["local", "import"]
+      },
+      {
+        "name": "apps/client/src/modules/expenses/api/expensesApi.js",
+        "dependencyTypes": ["aliased", "aliased-webpack", "local", "import"]
+      }
+    ]
+  },
+  {
+    "type": "cycle",
+    "from": "apps/client/src/modules/home/api/homeAPI.js",
+    "to": "apps/client/src/config/axios.js",
+    "unresolvedTo": "@/config/axios",
+    "dependencyTypes": ["aliased", "aliased-webpack", "local", "import"],
+    "rule": {
+      "severity": "warn",
+      "name": "no-circular"
+    },
+    "cycle": [
+      {
+        "name": "apps/client/src/config/axios.js",
+        "dependencyTypes": ["aliased", "aliased-webpack", "local", "import"]
+      },
+      {
+        "name": "apps/client/src/redux/store.js",
+        "dependencyTypes": ["local", "import"]
+      },
+      {
+        "name": "apps/client/src/modules/home/api/homeAPI.js",
+        "dependencyTypes": ["aliased", "aliased-webpack", "local", "import"]
+      }
+    ]
+  },
+  {
+    "type": "cycle",
+    "from": "apps/client/src/modules/inventoryMovement/api/inventoryMovementAPI.js",
+    "to": "apps/client/src/config/axios.js",
+    "unresolvedTo": "@/config/axios",
+    "dependencyTypes": ["aliased", "aliased-webpack", "local", "import"],
+    "rule": {
+      "severity": "warn",
+      "name": "no-circular"
+    },
+    "cycle": [
+      {
+        "name": "apps/client/src/config/axios.js",
+        "dependencyTypes": ["aliased", "aliased-webpack", "local", "import"]
+      },
+      {
+        "name": "apps/client/src/redux/store.js",
+        "dependencyTypes": ["local", "import"]
+      },
+      {
+        "name": "apps/client/src/modules/inventoryMovement/api/inventoryMovementAPI.js",
+        "dependencyTypes": ["aliased", "aliased-webpack", "local", "import"]
+      }
+    ]
+  },
+  {
+    "type": "cycle",
+    "from": "apps/client/src/modules/news/api/newsAPI.js",
+    "to": "apps/client/src/config/axios.js",
+    "unresolvedTo": "@/config/axios",
+    "dependencyTypes": ["aliased", "aliased-webpack", "local", "import"],
+    "rule": {
+      "severity": "warn",
+      "name": "no-circular"
+    },
+    "cycle": [
+      {
+        "name": "apps/client/src/config/axios.js",
+        "dependencyTypes": ["aliased", "aliased-webpack", "local", "import"]
+      },
+      {
+        "name": "apps/client/src/redux/store.js",
+        "dependencyTypes": ["local", "import"]
+      },
+      {
+        "name": "apps/client/src/modules/news/api/newsAPI.js",
+        "dependencyTypes": ["local", "import"]
+      }
+    ]
+  },
+  {
+    "type": "cycle",
+    "from": "apps/client/src/modules/notes/api/notesAPI.js",
+    "to": "apps/client/src/config/axios.js",
+    "unresolvedTo": "@/config/axios",
+    "dependencyTypes": ["aliased", "aliased-webpack", "local", "import"],
+    "rule": {
+      "severity": "warn",
+      "name": "no-circular"
+    },
+    "cycle": [
+      {
+        "name": "apps/client/src/config/axios.js",
+        "dependencyTypes": ["aliased", "aliased-webpack", "local", "import"]
+      },
+      {
+        "name": "apps/client/src/redux/store.js",
+        "dependencyTypes": ["local", "import"]
+      },
+      {
+        "name": "apps/client/src/modules/notes/api/notesAPI.js",
+        "dependencyTypes": ["local", "import"]
+      }
+    ]
+  },
+  {
+    "type": "cycle",
+    "from": "apps/client/src/modules/payroll/api/payrollApi.js",
+    "to": "apps/client/src/config/axios.js",
+    "unresolvedTo": "@/config/axios",
+    "dependencyTypes": ["aliased", "aliased-webpack", "local", "import"],
+    "rule": {
+      "severity": "warn",
+      "name": "no-circular"
+    },
+    "cycle": [
+      {
+        "name": "apps/client/src/config/axios.js",
+        "dependencyTypes": ["aliased", "aliased-webpack", "local", "import"]
+      },
+      {
+        "name": "apps/client/src/redux/store.js",
+        "dependencyTypes": ["local", "import"]
+      },
+      {
+        "name": "apps/client/src/modules/payroll/api/payrollApi.js",
+        "dependencyTypes": ["aliased", "aliased-webpack", "local", "import"]
+      }
+    ]
+  },
+  {
+    "type": "cycle",
+    "from": "apps/client/src/modules/performanceEvaluation/api/performanceEvaluationApi.js",
+    "to": "apps/client/src/config/axios.js",
+    "unresolvedTo": "@/config/axios",
+    "dependencyTypes": ["aliased", "aliased-webpack", "local", "import"],
+    "rule": {
+      "severity": "warn",
+      "name": "no-circular"
+    },
+    "cycle": [
+      {
+        "name": "apps/client/src/config/axios.js",
+        "dependencyTypes": ["aliased", "aliased-webpack", "local", "import"]
+      },
+      {
+        "name": "apps/client/src/redux/store.js",
+        "dependencyTypes": ["local", "import"]
+      },
+      {
+        "name": "apps/client/src/modules/performanceEvaluation/api/performanceEvaluationApi.js",
+        "dependencyTypes": ["aliased", "aliased-webpack", "local", "import"]
+      }
+    ]
+  },
+  {
+    "type": "cycle",
+    "from": "apps/client/src/modules/permission/api/permissionApi.js",
+    "to": "apps/client/src/config/axios.js",
+    "unresolvedTo": "@/config/axios",
+    "dependencyTypes": ["aliased", "aliased-webpack", "local", "import"],
+    "rule": {
+      "severity": "warn",
+      "name": "no-circular"
+    },
+    "cycle": [
+      {
+        "name": "apps/client/src/config/axios.js",
+        "dependencyTypes": ["aliased", "aliased-webpack", "local", "import"]
+      },
+      {
+        "name": "apps/client/src/redux/store.js",
+        "dependencyTypes": ["local", "import"]
+      },
+      {
+        "name": "apps/client/src/modules/permission/api/permissionApi.js",
+        "dependencyTypes": ["aliased", "aliased-webpack", "local", "import"]
+      }
+    ]
+  },
+  {
+    "type": "cycle",
+    "from": "apps/client/src/modules/products/api/productsAPI.js",
+    "to": "apps/client/src/config/axios.js",
+    "unresolvedTo": "@/config/axios",
+    "dependencyTypes": ["aliased", "aliased-webpack", "local", "import"],
+    "rule": {
+      "severity": "warn",
+      "name": "no-circular"
+    },
+    "cycle": [
+      {
+        "name": "apps/client/src/config/axios.js",
+        "dependencyTypes": ["aliased", "aliased-webpack", "local", "import"]
+      },
+      {
+        "name": "apps/client/src/redux/store.js",
+        "dependencyTypes": ["local", "import"]
+      },
+      {
+        "name": "apps/client/src/modules/products/api/productsAPI.js",
+        "dependencyTypes": ["aliased", "aliased-webpack", "local", "import"]
+      }
+    ]
+  },
+  {
+    "type": "cycle",
+    "from": "apps/client/src/modules/providerOrder/api/providerOrderApi.js",
+    "to": "apps/client/src/config/axios.js",
+    "unresolvedTo": "@/config/axios",
+    "dependencyTypes": ["aliased", "aliased-webpack", "local", "import"],
+    "rule": {
+      "severity": "warn",
+      "name": "no-circular"
+    },
+    "cycle": [
+      {
+        "name": "apps/client/src/config/axios.js",
+        "dependencyTypes": ["aliased", "aliased-webpack", "local", "import"]
+      },
+      {
+        "name": "apps/client/src/redux/store.js",
+        "dependencyTypes": ["local", "import"]
+      },
+      {
+        "name": "apps/client/src/modules/providerOrder/api/providerOrderApi.js",
+        "dependencyTypes": ["aliased", "aliased-webpack", "local", "import"]
+      }
+    ]
+  },
+  {
+    "type": "cycle",
+    "from": "apps/client/src/modules/providers/api/providersAPI.js",
+    "to": "apps/client/src/config/axios.js",
+    "unresolvedTo": "@/config/axios",
+    "dependencyTypes": ["aliased", "aliased-webpack", "local", "import"],
+    "rule": {
+      "severity": "warn",
+      "name": "no-circular"
+    },
+    "cycle": [
+      {
+        "name": "apps/client/src/config/axios.js",
+        "dependencyTypes": ["aliased", "aliased-webpack", "local", "import"]
+      },
+      {
+        "name": "apps/client/src/redux/store.js",
+        "dependencyTypes": ["local", "import"]
+      },
+      {
+        "name": "apps/client/src/modules/providers/api/providersAPI.js",
+        "dependencyTypes": ["aliased", "aliased-webpack", "local", "import"]
+      }
+    ]
+  },
+  {
+    "type": "cycle",
+    "from": "apps/client/src/modules/purchase/api/purchaseAPI.js",
+    "to": "apps/client/src/config/axios.js",
+    "unresolvedTo": "@/config/axios",
+    "dependencyTypes": ["aliased", "aliased-webpack", "local", "import"],
+    "rule": {
+      "severity": "warn",
+      "name": "no-circular"
+    },
+    "cycle": [
+      {
+        "name": "apps/client/src/config/axios.js",
+        "dependencyTypes": ["aliased", "aliased-webpack", "local", "import"]
+      },
+      {
+        "name": "apps/client/src/redux/store.js",
+        "dependencyTypes": ["local", "import"]
+      },
+      {
+        "name": "apps/client/src/modules/purchase/api/purchaseAPI.js",
+        "dependencyTypes": ["aliased", "aliased-webpack", "local", "import"]
+      }
+    ]
+  },
+  {
+    "type": "cycle",
+    "from": "apps/client/src/modules/sales/api/salesAPI.js",
+    "to": "apps/client/src/config/axios.js",
+    "unresolvedTo": "@/config/axios",
+    "dependencyTypes": ["aliased", "aliased-webpack", "local", "import"],
+    "rule": {
+      "severity": "warn",
+      "name": "no-circular"
+    },
+    "cycle": [
+      {
+        "name": "apps/client/src/config/axios.js",
+        "dependencyTypes": ["aliased", "aliased-webpack", "local", "import"]
+      },
+      {
+        "name": "apps/client/src/redux/store.js",
+        "dependencyTypes": ["local", "import"]
+      },
+      {
+        "name": "apps/client/src/modules/sales/api/salesAPI.js",
+        "dependencyTypes": ["aliased", "aliased-webpack", "local", "import"]
+      }
+    ]
+  },
+  {
+    "type": "cycle",
+    "from": "apps/client/src/modules/settings/slice/settingsSlice.js",
+    "to": "apps/client/src/modules/settings/api/settingsAPI.js",
+    "unresolvedTo": "@/modules/settings/api/settingsAPI",
+    "dependencyTypes": ["aliased", "aliased-webpack", "local", "import"],
+    "rule": {
+      "severity": "warn",
+      "name": "no-circular"
+    },
+    "cycle": [
+      {
+        "name": "apps/client/src/modules/settings/api/settingsAPI.js",
+        "dependencyTypes": ["aliased", "aliased-webpack", "local", "import"]
+      },
+      {
+        "name": "apps/client/src/config/axios.js",
+        "dependencyTypes": ["aliased", "aliased-webpack", "local", "import"]
+      },
+      {
+        "name": "apps/client/src/redux/store.js",
+        "dependencyTypes": ["local", "import"]
+      },
+      {
+        "name": "apps/client/src/modules/settings/slice/settingsSlice.js",
+        "dependencyTypes": ["aliased", "aliased-webpack", "local", "import"]
+      }
+    ]
+  },
+  {
+    "type": "cycle",
+    "from": "apps/client/src/modules/settingsProductCategories/api/SettingsProductCategoriesAPI.js",
+    "to": "apps/client/src/config/axios.js",
+    "unresolvedTo": "@/config/axios",
+    "dependencyTypes": ["aliased", "aliased-webpack", "local", "import"],
+    "rule": {
+      "severity": "warn",
+      "name": "no-circular"
+    },
+    "cycle": [
+      {
+        "name": "apps/client/src/config/axios.js",
+        "dependencyTypes": ["aliased", "aliased-webpack", "local", "import"]
+      },
+      {
+        "name": "apps/client/src/redux/store.js",
+        "dependencyTypes": ["local", "import"]
+      },
+      {
+        "name": "apps/client/src/modules/settingsProductCategories/api/SettingsProductCategoriesAPI.js",
+        "dependencyTypes": ["aliased", "aliased-webpack", "local", "import"]
+      }
+    ]
+  },
+  {
+    "type": "cycle",
+    "from": "apps/client/src/modules/stock/api/stockAPI.js",
+    "to": "apps/client/src/config/axios.js",
+    "unresolvedTo": "@/config/axios",
+    "dependencyTypes": ["aliased", "aliased-webpack", "local", "import"],
+    "rule": {
+      "severity": "warn",
+      "name": "no-circular"
+    },
+    "cycle": [
+      {
+        "name": "apps/client/src/config/axios.js",
+        "dependencyTypes": ["aliased", "aliased-webpack", "local", "import"]
+      },
+      {
+        "name": "apps/client/src/redux/store.js",
+        "dependencyTypes": ["local", "import"]
+      },
+      {
+        "name": "apps/client/src/modules/stock/api/stockAPI.js",
+        "dependencyTypes": ["aliased", "aliased-webpack", "local", "import"]
+      }
+    ]
+  },
+  {
+    "type": "cycle",
+    "from": "apps/client/src/modules/users/api/usersApi.js",
+    "to": "apps/client/src/config/axios.js",
+    "unresolvedTo": "@/config/axios",
+    "dependencyTypes": ["aliased", "aliased-webpack", "local", "import"],
+    "rule": {
+      "severity": "warn",
+      "name": "no-circular"
+    },
+    "cycle": [
+      {
+        "name": "apps/client/src/config/axios.js",
+        "dependencyTypes": ["aliased", "aliased-webpack", "local", "import"]
+      },
+      {
+        "name": "apps/client/src/redux/store.js",
+        "dependencyTypes": ["local", "import"]
+      },
+      {
+        "name": "apps/client/src/modules/users/api/usersApi.js",
+        "dependencyTypes": ["aliased", "aliased-webpack", "local", "import"]
+      }
+    ]
+  },
+  {
+    "type": "cycle",
+    "from": "apps/client/src/modules/vacation/api/vacationApi.js",
+    "to": "apps/client/src/config/axios.js",
+    "unresolvedTo": "@/config/axios",
+    "dependencyTypes": ["aliased", "aliased-webpack", "local", "import"],
+    "rule": {
+      "severity": "warn",
+      "name": "no-circular"
+    },
+    "cycle": [
+      {
+        "name": "apps/client/src/config/axios.js",
+        "dependencyTypes": ["aliased", "aliased-webpack", "local", "import"]
+      },
+      {
+        "name": "apps/client/src/redux/store.js",
+        "dependencyTypes": ["local", "import"]
+      },
+      {
+        "name": "apps/client/src/modules/vacation/api/vacationApi.js",
+        "dependencyTypes": ["aliased", "aliased-webpack", "local", "import"]
+      }
+    ]
+  },
+  {
+    "type": "cycle",
+    "from": "apps/client/src/modules/warehouse/api/warehouseAPI.js",
+    "to": "apps/client/src/config/axios.js",
+    "unresolvedTo": "@/config/axios",
+    "dependencyTypes": ["aliased", "aliased-webpack", "local", "import"],
+    "rule": {
+      "severity": "warn",
+      "name": "no-circular"
+    },
+    "cycle": [
+      {
+        "name": "apps/client/src/config/axios.js",
+        "dependencyTypes": ["aliased", "aliased-webpack", "local", "import"]
+      },
+      {
+        "name": "apps/client/src/redux/store.js",
+        "dependencyTypes": ["local", "import"]
+      },
+      {
+        "name": "apps/client/src/modules/warehouse/api/warehouseAPI.js",
+        "dependencyTypes": ["aliased", "aliased-webpack", "local", "import"]
+      }
+    ]
+  },
+  {
+    "type": "dependency",
+    "from": "apps/client/src/modules/attendance/pages/Attendance.jsx",
+    "to": "apps/client/src/modules/employees/api/employeesApi.js",
+    "unresolvedTo": "@/modules/employees/api/employeesApi",
+    "dependencyTypes": ["aliased", "aliased-webpack", "local", "import"],
+    "rule": {
+      "severity": "warn",
+      "name": "no-cross-module-client"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "apps/client/src/modules/home/components/EventCalendarWidget.jsx",
+    "to": "apps/client/src/modules/events/api/eventsAPI.js",
+    "unresolvedTo": "@/modules/events/api/eventsAPI",
+    "dependencyTypes": ["aliased", "aliased-webpack", "local", "import"],
+    "rule": {
+      "severity": "warn",
+      "name": "no-cross-module-client"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "apps/client/src/modules/home/components/EventCalendarWidget.jsx",
+    "to": "apps/client/src/modules/events/utils/index.js",
+    "unresolvedTo": "@/modules/events/utils",
+    "dependencyTypes": ["aliased", "aliased-webpack", "local", "import"],
+    "rule": {
+      "severity": "warn",
+      "name": "no-cross-module-client"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "apps/client/src/modules/home/components/NotesSummary.jsx",
+    "to": "apps/client/src/modules/notes/api/notesAPI.js",
+    "unresolvedTo": "@/modules/notes/api/notesAPI",
+    "dependencyTypes": ["aliased", "aliased-webpack", "local", "import"],
+    "rule": {
+      "severity": "warn",
+      "name": "no-cross-module-client"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "apps/client/src/modules/home/components/NotesSummary.jsx",
+    "to": "apps/client/src/modules/notes/utils/enums.js",
+    "unresolvedTo": "@/modules/notes/utils/enums",
+    "dependencyTypes": ["aliased", "aliased-webpack", "local", "import"],
+    "rule": {
+      "severity": "warn",
+      "name": "no-cross-module-client"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "apps/client/src/modules/home/components/NotesSummary.jsx",
+    "to": "apps/client/src/modules/notes/utils/noteStyles.js",
+    "unresolvedTo": "@/modules/notes/utils/noteStyles",
+    "dependencyTypes": ["aliased", "aliased-webpack", "local", "import"],
+    "rule": {
+      "severity": "warn",
+      "name": "no-cross-module-client"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "apps/client/src/modules/home/components/SideBar.jsx",
+    "to": "apps/client/src/modules/auth/slice/authSlice.js",
+    "unresolvedTo": "@/modules/auth/slice/authSlice",
+    "dependencyTypes": ["aliased", "aliased-webpack", "local", "import"],
+    "rule": {
+      "severity": "warn",
+      "name": "no-cross-module-client"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "apps/client/src/modules/home/pages/Home.jsx",
+    "to": "apps/client/src/modules/stock/api/stockAPI.js",
+    "unresolvedTo": "@/modules/stock/api/stockAPI",
+    "dependencyTypes": ["aliased", "aliased-webpack", "local", "import"],
+    "rule": {
+      "severity": "warn",
+      "name": "no-cross-module-client"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "apps/client/src/modules/inventoryMovement/pages/InventoryMovement.jsx",
+    "to": "apps/client/src/modules/products/api/productsAPI.js",
+    "unresolvedTo": "@/modules/products/api/productsAPI",
+    "dependencyTypes": ["aliased", "aliased-webpack", "local", "import"],
+    "rule": {
+      "severity": "warn",
+      "name": "no-cross-module-client"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "apps/client/src/modules/inventoryMovement/pages/InventoryMovement.jsx",
+    "to": "apps/client/src/modules/warehouse/api/warehouseAPI.js",
+    "unresolvedTo": "@/modules/warehouse/api/warehouseAPI",
+    "dependencyTypes": ["aliased", "aliased-webpack", "local", "import"],
+    "rule": {
+      "severity": "warn",
+      "name": "no-cross-module-client"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "apps/client/src/modules/notes/hooks/useGetActiveUsers.js",
+    "to": "apps/client/src/modules/users/api/usersApi.js",
+    "unresolvedTo": "@/modules/users/api/usersApi",
+    "dependencyTypes": ["aliased", "aliased-webpack", "local", "import"],
+    "rule": {
+      "severity": "warn",
+      "name": "no-cross-module-client"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "apps/client/src/modules/notes/hooks/useGetActiveUsers.js",
+    "to": "apps/client/src/modules/users/constants/users.js",
+    "unresolvedTo": "@/modules/users/constants/users",
+    "dependencyTypes": ["aliased", "aliased-webpack", "local", "import"],
+    "rule": {
+      "severity": "warn",
+      "name": "no-cross-module-client"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "apps/client/src/modules/payroll/pages/Payroll.jsx",
+    "to": "apps/client/src/modules/employees/api/employeesApi.js",
+    "unresolvedTo": "@/modules/employees/api/employeesApi",
+    "dependencyTypes": ["aliased", "aliased-webpack", "local", "import"],
+    "rule": {
+      "severity": "warn",
+      "name": "no-cross-module-client"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "apps/client/src/modules/performanceEvaluation/pages/PerformanceEvaluation.jsx",
+    "to": "apps/client/src/modules/employees/api/employeesApi.js",
+    "unresolvedTo": "@/modules/employees/api/employeesApi",
+    "dependencyTypes": ["aliased", "aliased-webpack", "local", "import"],
+    "rule": {
+      "severity": "warn",
+      "name": "no-cross-module-client"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "apps/client/src/modules/permission/pages/Permission.jsx",
+    "to": "apps/client/src/modules/employees/api/employeesApi.js",
+    "unresolvedTo": "@/modules/employees/api/employeesApi",
+    "dependencyTypes": ["aliased", "aliased-webpack", "local", "import"],
+    "rule": {
+      "severity": "warn",
+      "name": "no-cross-module-client"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "apps/client/src/modules/products/hooks/useProductsFilterData.js",
+    "to": "apps/client/src/modules/providers/api/providersAPI.js",
+    "unresolvedTo": "../../providers/api/providersAPI",
+    "dependencyTypes": ["local", "import"],
+    "rule": {
+      "severity": "warn",
+      "name": "no-cross-module-client"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "apps/client/src/modules/purchase/pages/Purchase.jsx",
+    "to": "apps/client/src/modules/products/api/productsAPI.js",
+    "unresolvedTo": "@/modules/products/api/productsAPI",
+    "dependencyTypes": ["aliased", "aliased-webpack", "local", "import"],
+    "rule": {
+      "severity": "warn",
+      "name": "no-cross-module-client"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "apps/client/src/modules/purchase/pages/Purchase.jsx",
+    "to": "apps/client/src/modules/providers/api/providersAPI.js",
+    "unresolvedTo": "@/modules/providers/api/providersAPI",
+    "dependencyTypes": ["aliased", "aliased-webpack", "local", "import"],
+    "rule": {
+      "severity": "warn",
+      "name": "no-cross-module-client"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "apps/client/src/modules/sales/pages/Sales.jsx",
+    "to": "apps/client/src/modules/clients/api/clientsApi.js",
+    "unresolvedTo": "@/modules/clients/api/clientsApi",
+    "dependencyTypes": ["aliased", "aliased-webpack", "local", "import"],
+    "rule": {
+      "severity": "warn",
+      "name": "no-cross-module-client"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "apps/client/src/modules/sales/pages/Sales.jsx",
+    "to": "apps/client/src/modules/products/api/productsAPI.js",
+    "unresolvedTo": "@/modules/products/api/productsAPI",
+    "dependencyTypes": ["aliased", "aliased-webpack", "local", "import"],
+    "rule": {
+      "severity": "warn",
+      "name": "no-cross-module-client"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "apps/client/src/modules/settings/components/SettingsProduct.jsx",
+    "to": "apps/client/src/modules/settingsProductCategories/page/SettingsProductCategories.jsx",
+    "unresolvedTo": "@/modules/settingsProductCategories/page/SettingsProductCategories",
+    "dependencyTypes": ["aliased", "aliased-webpack", "local", "import"],
+    "rule": {
+      "severity": "warn",
+      "name": "no-cross-module-client"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "apps/client/src/modules/stock/pages/Stock.jsx",
+    "to": "apps/client/src/modules/products/api/productsAPI.js",
+    "unresolvedTo": "@/modules/products/api/productsAPI",
+    "dependencyTypes": ["aliased", "aliased-webpack", "local", "import"],
+    "rule": {
+      "severity": "warn",
+      "name": "no-cross-module-client"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "apps/client/src/modules/stock/pages/Stock.jsx",
+    "to": "apps/client/src/modules/warehouse/api/warehouseAPI.js",
+    "unresolvedTo": "@/modules/warehouse/api/warehouseAPI",
+    "dependencyTypes": ["aliased", "aliased-webpack", "local", "import"],
+    "rule": {
+      "severity": "warn",
+      "name": "no-cross-module-client"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "apps/client/src/modules/vacation/pages/Vacation.jsx",
+    "to": "apps/client/src/modules/employees/api/employeesApi.js",
+    "unresolvedTo": "@/modules/employees/api/employeesApi",
+    "dependencyTypes": ["aliased", "aliased-webpack", "local", "import"],
+    "rule": {
+      "severity": "warn",
+      "name": "no-cross-module-client"
+    }
+  },
+  {
+    "type": "module",
+    "from": "apps/server/src/docs/schemas.js",
+    "to": "apps/server/src/docs/schemas.js",
+    "rule": {
+      "severity": "warn",
+      "name": "no-orphans"
+    }
+  },
+  {
+    "type": "module",
+    "from": "apps/server/src/modules/clientOrder/routes.js",
+    "to": "apps/server/src/modules/clientOrder/routes.js",
+    "rule": {
+      "severity": "warn",
+      "name": "no-orphans"
+    }
+  },
+  {
+    "type": "module",
+    "from": "apps/server/src/modules/users/constants/users.js",
+    "to": "apps/server/src/modules/users/constants/users.js",
+    "rule": {
+      "severity": "warn",
+      "name": "no-orphans"
+    }
+  },
+  {
+    "type": "module",
+    "from": "apps/server/src/socket/levels/level-01-conceptos.js",
+    "to": "apps/server/src/socket/levels/level-01-conceptos.js",
+    "rule": {
+      "severity": "warn",
+      "name": "no-orphans"
+    }
+  },
+  {
+    "type": "module",
+    "from": "apps/server/src/socket/levels/level-03-client.js",
+    "to": "apps/server/src/socket/levels/level-03-client.js",
+    "rule": {
+      "severity": "warn",
+      "name": "no-orphans"
+    }
+  },
+  {
+    "type": "module",
+    "from": "apps/server/src/socket/levels/level-09-hardening-client.js",
+    "to": "apps/server/src/socket/levels/level-09-hardening-client.js",
+    "rule": {
+      "severity": "warn",
+      "name": "no-orphans"
+    }
+  },
+  {
+    "type": "module",
+    "from": "apps/server/src/socket/levels/level-11-scale.js",
+    "to": "apps/server/src/socket/levels/level-11-scale.js",
+    "rule": {
+      "severity": "warn",
+      "name": "no-orphans"
+    }
+  },
+  {
+    "type": "module",
+    "from": "apps/server/src/utils/joiSchemas/joi.js",
+    "to": "apps/server/src/utils/joiSchemas/joi.js",
+    "rule": {
+      "severity": "warn",
+      "name": "no-orphans"
+    }
+  }
+]

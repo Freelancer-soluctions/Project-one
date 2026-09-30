@@ -3,6 +3,69 @@ import { DataTable } from '@/components/dataTable';
 import { format } from 'date-fns';
 import PropTypes from 'prop-types';
 
+/** Cell renderer for uppercase text. */
+const buildUppercaseCell = (info) => info.getValue()?.toUpperCase();
+
+/** Cell renderer for formatted dates (null keeps the cell empty). */
+const buildFormattedDateCell = (info) => {
+  const date = info.getValue();
+  return date ? format(new Date(date), 'PPP') : null;
+};
+
+/** Cell renderer for user-name columns (uppercase, empty when absent). */
+const buildRowNameCell = (rowKey) => (info) => {
+  const name = info.row.original[rowKey]; // Accede al dato original de la fila
+  return name ? name.toUpperCase() : null; // null mantiene la celda vacía
+};
+
+/** Column definitions for the performance evaluations table. */
+const buildEvaluationColumns = (t) => [
+  {
+    accessorKey: 'employeeName',
+    header: t('employee'),
+    cell: buildUppercaseCell,
+  },
+  {
+    accessorKey: 'date',
+    header: t('date'),
+    cell: (info) => format(new Date(info.getValue()), 'PPP'),
+  },
+  {
+    accessorKey: 'calification',
+    header: t('calification'),
+    cell: (info) => info.getValue(), // Display the number directly
+  },
+  {
+    accessorKey: 'comments',
+    header: t('comments'),
+    // Optional: Truncate long comments if needed
+    cell: (info) => {
+      const comments = info.getValue();
+      return comments || '';
+    },
+  },
+  {
+    accessorKey: 'userPerformanceCreatedName',
+    header: t('created_by'),
+    cell: buildRowNameCell('userPerformanceCreatedName'),
+  },
+  {
+    accessorKey: 'createdOn',
+    header: t('created_on'),
+    cell: buildFormattedDateCell,
+  },
+  {
+    accessorKey: 'userPerformanceUpdatedName',
+    header: t('created_by'),
+    cell: buildRowNameCell('userPerformanceUpdatedName'),
+  },
+  {
+    accessorKey: 'updatedOn',
+    header: t('updated_on'),
+    cell: buildFormattedDateCell,
+  },
+];
+
 export const PerformanceEvaluationDatatable = ({
   dataEvaluations,
   onEditDialog,
@@ -13,79 +76,12 @@ export const PerformanceEvaluationDatatable = ({
 
   const { dataList, total } = dataEvaluations.data;
 
-  const columnDefEvaluations = [
-    {
-      accessorKey: 'employeeName',
-      header: t('employee'),
-      cell: (info) => info.getValue()?.toUpperCase(),
-    },
-    {
-      accessorKey: 'date',
-      header: t('date'),
-      cell: (info) => format(new Date(info.getValue()), 'PPP'),
-    },
-    {
-      accessorKey: 'calification',
-      header: t('calification'),
-      cell: (info) => info.getValue(), // Display the number directly
-    },
-    {
-      accessorKey: 'comments',
-      header: t('comments'),
-      // Optional: Truncate long comments if needed
-      cell: (info) => {
-        const comments = info.getValue();
-        // return comments && comments.length > 50 ? `${comments.substring(0, 50)}...` : comments;
-        return comments || '';
-      },
-    },
-    {
-      accessorKey: 'userPerformanceCreatedName',
-      header: t('created_by'),
-      cell: (info) => {
-        const userPerformanceCreatedName =
-          info.row.original.userPerformanceCreatedName; // Accede al dato original de la fila
-        return userPerformanceCreatedName
-          ? userPerformanceCreatedName.toUpperCase()
-          : null; // Retorna null para mantener la celda vacía
-      },
-    },
-    {
-      accessorKey: 'createdOn',
-      header: t('created_on'),
-      cell: (info) => format(new Date(info.getValue()), 'PPP'),
-    },
-    {
-      accessorKey: 'userPerformanceUpdatedName',
-      header: t('created_by'),
-      cell: (info) => {
-        const userPerformanceUpdatedName =
-          info.row.original.userPerformanceUpdatedName; // Accede al dato original de la fila
-        return userPerformanceUpdatedName
-          ? userPerformanceUpdatedName.toUpperCase()
-          : null; // Retorna null para mantener la celda vacía
-      },
-    },
-    {
-      accessorKey: 'updatedOn',
-      header: t('updated_on'),
-      cell: (info) => {
-        const date = info.getValue();
-        return date ? format(new Date(date), 'PPP') : null;
-      },
-    },
-  ];
-
-  const handleEditDialog = (row) => {
-    onEditDialog(row);
-  };
-
   return (
     <DataTable
-      columns={columnDefEvaluations}
+      columns={buildEvaluationColumns(t)}
       data={dataList}
       totalRows={total}
-      handleRow={(row) => handleEditDialog(row)}
+      handleRow={onEditDialog}
       pagination={pagination}
       onPaginationChange={onPaginationChange}
     />

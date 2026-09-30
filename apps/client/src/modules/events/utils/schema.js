@@ -20,6 +20,9 @@ const baseDialogSchema = z.object({
 
 export const createEventsDialogSchema = (isEditMode = false) =>
   baseDialogSchema
+    // `.passthrough()` solo existe en ZodObject: debe encadenarse ANTES de
+    // los `.refine()` (que devuelven ZodEffects, sin `.passthrough()`).
+    .passthrough()
     .refine((data) => data.startTime < data.endTime, {
       message: getZodMessage('zod.events.startTime.beforeEndTime'),
       path: ['startTime'],
@@ -42,8 +45,7 @@ export const createEventsDialogSchema = (isEditMode = false) =>
         message: getZodMessage('zod.events.modality.fieldsRequired'),
         path: ['meetingUrl'],
       }
-    )
-    .passthrough();
+    );
 
 // Legacy export for backward compatibility (non-edit mode)
 export const EventsDialogSchema = createEventsDialogSchema(false);

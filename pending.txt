@@ -180,3 +180,5 @@ O alternativamente, muchos equipos usan TIA como un job adicional y rápido que 
 - crear comandos de openspec como openspec status --change changename --json y openspec validate ci-release-workflow-signing --strict
 - ver si opencode reconoce commands o command ya que aparentemente hace lo mismo y command es legacy
 - agregar los proveedores con tokens free como cerebras, nvidiam operoure entre otros a omniroute y esta al developer u otro agent 
+- knip debe de ser bloqueante al ejecutarse en CI ? knip suele implementarse en shifting left ?, que otras reglas podemos usar dentro de la configuracion ?
+- que jobs deben de ser bloqueantes y cuales solo deben de ser informativos

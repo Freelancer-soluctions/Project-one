@@ -10,10 +10,10 @@
 
 El sistema maneja **dos dominios de "permisos" distintos** que NO deben confundirse:
 
-| Dominio | Propósito | Módulo | Modelo Prisma |
-|---------|-----------|--------|---------------|
-| **RBAC (Control de Acceso)** | Determina qué usuarios pueden acceder a qué funciones del sistema | `users/`, `auth/` | `roles`, `permissions`, `userPermits` |
-| **Permisos Laborales (Leave)** | Gestión de ausencias, licencias y permisos de empleados | `permission/` | `permission` (modelo independiente) |
+| Dominio                        | Propósito                                                         | Módulo            | Modelo Prisma                         |
+| ------------------------------ | ----------------------------------------------------------------- | ----------------- | ------------------------------------- |
+| **RBAC (Control de Acceso)**   | Determina qué usuarios pueden acceder a qué funciones del sistema | `users/`, `auth/` | `roles`, `permissions`, `userPermits` |
+| **Permisos Laborales (Leave)** | Gestión de ausencias, licencias y permisos de empleados           | `permission/`     | `permission` (modelo independiente)   |
 
 Este documento cubre exclusivamente el **dominio RBAC**.
 
@@ -44,10 +44,10 @@ Este documento cubre exclusivamente el **dominio RBAC**.
 
 ### 2.2 Modelo `roles`
 
-| Columna | Tipo | Descripción |
-|---------|------|-------------|
-| `id` | `Int (PK)` | Identificador numérico |
-| `code` | `String(3) @unique` | Código del rol: `C01`, `C02`, `C03` |
+| Columna       | Tipo                 | Descripción                                |
+| ------------- | -------------------- | ------------------------------------------ |
+| `id`          | `Int (PK)`           | Identificador numérico                     |
+| `code`        | `String(3) @unique`  | Código del rol: `C01`, `C02`, `C03`        |
 | `description` | `String(50) @unique` | Nombre legible: `admin`, `user`, `manager` |
 
 ```prisma
@@ -61,11 +61,11 @@ model roles {
 
 ### 2.3 Modelo `permissions`
 
-| Columna | Tipo | Descripción |
-|---------|------|-------------|
-| `id` | `Int (PK)` | Identificador numérico |
-| `code` | `String(50) @unique` | Código del permiso, ej: `canViewUser` |
-| `description` | `String(100)` | Descripción legible |
+| Columna       | Tipo                 | Descripción                           |
+| ------------- | -------------------- | ------------------------------------- |
+| `id`          | `Int (PK)`           | Identificador numérico                |
+| `code`        | `String(50) @unique` | Código del permiso, ej: `canViewUser` |
+| `description` | `String(100)`        | Descripción legible                   |
 
 ```prisma
 model permissions {
@@ -78,11 +78,11 @@ model permissions {
 
 ### 2.4 Modelo `userPermits` (Many-to-Many: usuario → permiso)
 
-| Columna | Tipo | Descripción |
-|---------|------|-------------|
-| `id` | `Int (PK)` | Identificador numérico |
-| `userId` | `Int (FK)` → `users.id` | Usuario al que se asigna el permiso |
-| `permissionId` | `Int (FK)` → `permissions.id` | Permiso asignado |
+| Columna        | Tipo                          | Descripción                         |
+| -------------- | ----------------------------- | ----------------------------------- |
+| `id`           | `Int (PK)`                    | Identificador numérico              |
+| `userId`       | `Int (FK)` → `users.id`       | Usuario al que se asigna el permiso |
+| `permissionId` | `Int (FK)` → `permissions.id` | Permiso asignado                    |
 
 ```prisma
 model userPermits {
@@ -127,11 +127,11 @@ El modelo que permitiría asignar permisos directamente a roles está **comentad
 
 ## 3. Roles y Códigos
 
-| Rol | Código | Descripción | Comportamiento |
-|-----|--------|-------------|----------------|
-| **ADMIN** | `C01` | Administrador total | Bypass completo de permisos |
-| **USER** | `C02` | Usuario estándar | Default al registrarse. Acceso según permisos individuales |
-| **MANAGER** | `C03` | Gestión intermedia | Acceso a funciones administrativas limitadas |
+| Rol         | Código | Descripción         | Comportamiento                                             |
+| ----------- | ------ | ------------------- | ---------------------------------------------------------- |
+| **ADMIN**   | `C01`  | Administrador total | Bypass completo de permisos                                |
+| **USER**    | `C02`  | Usuario estándar    | Default al registrarse. Acceso según permisos individuales |
+| **MANAGER** | `C03`  | Gestión intermedia  | Acceso a funciones administrativas limitadas               |
 
 **Fuente:** `apps/server/src/utils/constants/enums.js`
 
@@ -163,27 +163,27 @@ Para cambiar el rol, ADMIN o MANAGER usa `PATCH /users/:id`.
 
 Los códigos se definen en `PERMISSIONCODES` en `apps/server/src/utils/constants/enums.js`. ~65 códigos activos, ~8 comentados como "futuro".
 
-| Categoría | Códigos |
-|-----------|---------|
-| News | canViewNews, canCreateNews, canEditNews, canDeleteNews |
-| Categories | canViewCategory, canCreateCategory, canEditCategory, canDeleteCategory |
-| Events | canViewEvents, canCreateEvents, canEditEvents, canDeleteEvents |
-| Products | canViewProduct, canCreateProduct, canEditProduct, canDeleteProduct |
-| Providers | canViewProvider, canCreateProvider, canEditProvider, canDeleteProvider |
-| Warehouses | canViewWarehouse, canCreatedWarehouse, canEditWarehouse, canDeleteWarehouse |
-| Stock | canViewStock, canCreateStock, canEditStock, canDeletStock |
-| Inventory | canViewInventory, canCreateInventory, canEditInventory, canDeleteInventory |
-| Sales | canViewSale, canCreateSale, canEditSale, canDeleteSale |
-| Clients | canViewClient, canCreateClient, canEditClient, canDeleteClient |
-| Purchases | canViewPurchase, canCreatePurchase, canEditPurchase, canDeletePurchase |
-| Employees | canViewEmployee, canCreateEmployee, canEditEmployee, canDeleteEmployee |
-| Attendance | canViewAttendance, canCreateAttendance, canEditAttendance, canDeleteAttendance |
-| Payroll | canViewPayroll, canCreatePayroll, canEditPayroll, canDeletePayroll |
-| Vacations | canViewVacations, canRequestVacation, canEditRequestVacation, canDeleteVacation |
-| Permission (leave) | canViewPermission, canCreatePermission, canEditPermission, canDeletePermission |
-| Users | canViewUser, canCreateUser, canEditUser, canDeleteUser |
-| Expenses | canViewExpense, canCreateExpense, canEditExpense, canDeleteExpense |
-| Performance | canViewPerformanceEvaluations, canEvaluatePerformance, canCreateEvaluatePerformance, canEditEvaluatePerformance, canDeleteEvaluationPerformance |
+| Categoría          | Códigos                                                                                                                                         |
+| ------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| News               | canViewNews, canCreateNews, canEditNews, canDeleteNews                                                                                          |
+| Categories         | canViewCategory, canCreateCategory, canEditCategory, canDeleteCategory                                                                          |
+| Events             | canViewEvents, canCreateEvents, canEditEvents, canDeleteEvents                                                                                  |
+| Products           | canViewProduct, canCreateProduct, canEditProduct, canDeleteProduct                                                                              |
+| Providers          | canViewProvider, canCreateProvider, canEditProvider, canDeleteProvider                                                                          |
+| Warehouses         | canViewWarehouse, canCreatedWarehouse, canEditWarehouse, canDeleteWarehouse                                                                     |
+| Stock              | canViewStock, canCreateStock, canEditStock, canDeletStock                                                                                       |
+| Inventory          | canViewInventory, canCreateInventory, canEditInventory, canDeleteInventory                                                                      |
+| Sales              | canViewSale, canCreateSale, canEditSale, canDeleteSale                                                                                          |
+| Clients            | canViewClient, canCreateClient, canEditClient, canDeleteClient                                                                                  |
+| Purchases          | canViewPurchase, canCreatePurchase, canEditPurchase, canDeletePurchase                                                                          |
+| Employees          | canViewEmployee, canCreateEmployee, canEditEmployee, canDeleteEmployee                                                                          |
+| Attendance         | canViewAttendance, canCreateAttendance, canEditAttendance, canDeleteAttendance                                                                  |
+| Payroll            | canViewPayroll, canCreatePayroll, canEditPayroll, canDeletePayroll                                                                              |
+| Vacations          | canViewVacations, canRequestVacation, canEditRequestVacation, canDeleteVacation                                                                 |
+| Permission (leave) | canViewPermission, canCreatePermission, canEditPermission, canDeletePermission                                                                  |
+| Users              | canViewUser, canCreateUser, canEditUser, canDeleteUser                                                                                          |
+| Expenses           | canViewExpense, canCreateExpense, canEditExpense, canDeleteExpense                                                                              |
+| Performance        | canViewPerformanceEvaluations, canEvaluatePerformance, canCreateEvaluatePerformance, canEditEvaluatePerformance, canDeleteEvaluationPerformance |
 
 ### 4.2 Permisos Comentados ("Futuro")
 
@@ -236,25 +236,33 @@ POST /auth/signin  →  JWT { id, rol }
 **Archivo:** `apps/server/src/middleware/verifyRole.js`
 
 ```javascript
-export const checkRoleAuthOrPermisssion = (options) => async (req, res, next) => {
-  const user = await getUserRoleByUserId(req.userId);
-  // → user.roles.code, user.permits[].permissions.code
+export const checkRoleAuthOrPermisssion =
+  (options) => async (req, res, next) => {
+    const user = await getUserRoleByUserId(req.userId);
+    // → user.roles.code, user.permits[].permissions.code
 
-  if (user.roles.code === ROLESCODES.ADMIN) return next(); // bypass
+    if (user.roles.code === ROLESCODES.ADMIN) return next(); // bypass
 
-  if (options.allowedRoles?.length && !options.allowedRoles.includes(user.roles.code)) {
-    return res.status(403).json({ message: 'No tienes permisos' });
-  }
+    if (
+      options.allowedRoles?.length &&
+      !options.allowedRoles.includes(user.roles.code)
+    ) {
+      return res.status(403).json({ message: 'No tienes permisos' });
+    }
 
-  if (!options.permissions?.length) return next(); // solo role check
+    if (!options.permissions?.length) return next(); // solo role check
 
-  // ⚠️ BUG: user.rolePermits no existe. Debería ser user.permits
-  const userPermitCodes = user.rolePermits?.map((rp) => rp.permissions.code) || [];
+    // ⚠️ BUG: user.rolePermits no existe. Debería ser user.permits
+    const userPermitCodes =
+      user.rolePermits?.map((rp) => rp.permissions.code) || [];
 
-  const hasPermission = options.permissions.some((p) => userPermitCodes.includes(p));
-  if (!hasPermission) return res.status(403).json({ message: 'No tienes permisos' });
-  next();
-};
+    const hasPermission = options.permissions.some((p) =>
+      userPermitCodes.includes(p)
+    );
+    if (!hasPermission)
+      return res.status(403).json({ message: 'No tienes permisos' });
+    next();
+  };
 ```
 
 ### ⚠️ Bug Conocido
@@ -263,7 +271,8 @@ En `verifyRole.js` línea ~109:
 
 ```javascript
 // ACTUAL (ROTO):
-const rolePermissions = user.rolePermits?.map((rp) => rp.permissions.code) || [];
+const rolePermissions =
+  user.rolePermits?.map((rp) => rp.permissions.code) || [];
 
 // DEBERÍA SER:
 const rolePermissions = user.permits?.map((rp) => rp.permissions.code) || [];
@@ -275,19 +284,21 @@ La propiedad `user.permits` es la que existe en la relación de Prisma. `user.ro
 
 ## 6. Aplicación por Módulo
 
-| Módulo | Roles Permitidos | Permisos Requeridos |
-|--------|-----------------|---------------------|
-| Users | ADMIN, MANAGER | canViewUser, canCreateUser, canEditUser, canDeleteUser |
-| Events | ADMIN, MANAGER, USER | canViewEvents, canCreateEvents, canEditEvents, canDeleteEvents |
-| Notes | ADMIN, MANAGER, USER | *(ninguno — solo role check)* |
+| Módulo             | Roles Permitidos     | Permisos Requeridos                                                            |
+| ------------------ | -------------------- | ------------------------------------------------------------------------------ |
+| Users              | ADMIN, MANAGER       | canViewUser, canCreateUser, canEditUser, canDeleteUser                         |
+| Events             | ADMIN, MANAGER, USER | canViewEvents, canCreateEvents, canEditEvents, canDeleteEvents                 |
+| Notes              | ADMIN, MANAGER, USER | _(ninguno — solo role check)_                                                  |
 | Permission (leave) | ADMIN, MANAGER, USER | canViewPermission, canCreatePermission, canEditPermission, canDeletePermission |
-| Auth | Público | *(sin middleware)* |
+| Auth               | Público              | _(sin middleware)_                                                             |
 
 ### Patrones de uso en rutas
 
 **Patrón A — Rol + Permiso (mayoría de módulos):**
+
 ```javascript
-router.get('/',
+router.get(
+  '/',
   checkRoleAuthOrPermisssion({
     allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER],
     permissions: [PERMISSIONCODES.canViewEvents],
@@ -297,11 +308,14 @@ router.get('/',
 ```
 
 **Patrón B — Solo rol (módulo notes):**
+
 ```javascript
 router.use(verifyToken);
-router.use(checkRoleAuthOrPermisssion({
-  allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER, ROLESCODES.USER],
-}));
+router.use(
+  checkRoleAuthOrPermisssion({
+    allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER, ROLESCODES.USER],
+  })
+);
 ```
 
 ---
@@ -310,21 +324,21 @@ router.use(checkRoleAuthOrPermisssion({
 
 ### 7.1 Lo que existe
 
-| Archivo | Propósito |
-|---------|-----------|
-| `apps/client/src/modules/auth/slice/authSlice.js` | Redux: user, isAuth, accessToken |
-| `apps/client/src/modules/auth/api/authAPI.js` | SignIn, SignUp, RefreshToken |
-| `apps/client/src/modules/users/api/usersApi.js` | RTK Query: getAllUsersRol, getAllUserPermits, CRUD |
+| Archivo                                           | Propósito                                          |
+| ------------------------------------------------- | -------------------------------------------------- |
+| `apps/client/src/modules/auth/slice/authSlice.js` | Redux: user, isAuth, accessToken                   |
+| `apps/client/src/modules/auth/api/authAPI.js`     | SignIn, SignUp, RefreshToken                       |
+| `apps/client/src/modules/users/api/usersApi.js`   | RTK Query: getAllUsersRol, getAllUserPermits, CRUD |
 
 ### 7.2 Lo que falta
 
-| Componente/Hook | Propósito |
-|----------------|-----------|
-| `usePermission(code)` | Verificar si usuario tiene permiso específico |
-| `useRole()` | Obtener rol del usuario actual |
-| `useCan(permissionCode)` | Generic permission check |
-| `PermissionGate` | Render condicional basado en permisos |
-| `RoleGuard` | Proteger rutas en frontend |
+| Componente/Hook          | Propósito                                     |
+| ------------------------ | --------------------------------------------- |
+| `usePermission(code)`    | Verificar si usuario tiene permiso específico |
+| `useRole()`              | Obtener rol del usuario actual                |
+| `useCan(permissionCode)` | Generic permission check                      |
+| `PermissionGate`         | Render condicional basado en permisos         |
+| `RoleGuard`              | Proteger rutas en frontend                    |
 
 Actualmente el control de acceso es **100% server-side**. El frontend solo sabe si el usuario está autenticado (`isAuth`), no qué puede hacer.
 
@@ -345,26 +359,26 @@ Actualmente el control de acceso es **100% server-side**. El frontend solo sabe 
 
 ### Server
 
-| Archivo | Rol |
-|---------|-----|
-| `apps/server/prisma/schema.prisma` | Modelos de datos (roles, permissions, userPermits) |
-| `apps/server/src/utils/constants/enums.js` | Constantes ROLESCODES, PERMISSIONCODES |
-| `apps/server/src/middleware/verifyToken.js` | JWT verification |
-| `apps/server/src/middleware/verifyRole.js` | checkRoleAuthOrPermisssion |
-| `apps/server/src/middleware/index.js` | Re-exporta middleware |
-| `apps/server/src/modules/users/dao.js` | getUserRoleByUserId (carga usuario + roles + permisos) |
-| `apps/server/src/modules/users/service.js` | Wrapper de DAO |
-| `apps/server/src/modules/users/controller.js` | CRUD usuarios + roles + permisos |
-| `apps/server/src/modules/users/routes.js` | Rutas con RBAC |
-| `apps/server/src/modules/auth/dao.js` | signIn incluye roles relation |
-| `apps/server/src/modules/auth/service.js` | signUp asigna USER default; signIn retorna role |
-| `apps/server/src/modules/auth/routes.js` | Rutas públicas de auth |
-| `apps/server/src/routes/v1/index.js` | Ensambla rutas de todos los módulos |
+| Archivo                                       | Rol                                                    |
+| --------------------------------------------- | ------------------------------------------------------ |
+| `apps/server/prisma/schema.prisma`            | Modelos de datos (roles, permissions, userPermits)     |
+| `apps/server/src/utils/constants/enums.js`    | Constantes ROLESCODES, PERMISSIONCODES                 |
+| `apps/server/src/middleware/verifyToken.js`   | JWT verification                                       |
+| `apps/server/src/middleware/verifyRole.js`    | checkRoleAuthOrPermisssion                             |
+| `apps/server/src/middleware/index.js`         | Re-exporta middleware                                  |
+| `apps/server/src/modules/users/dao.js`        | getUserRoleByUserId (carga usuario + roles + permisos) |
+| `apps/server/src/modules/users/service.js`    | Wrapper de DAO                                         |
+| `apps/server/src/modules/users/controller.js` | CRUD usuarios + roles + permisos                       |
+| `apps/server/src/modules/users/routes.js`     | Rutas con RBAC                                         |
+| `apps/server/src/modules/auth/dao.js`         | signIn incluye roles relation                          |
+| `apps/server/src/modules/auth/service.js`     | signUp asigna USER default; signIn retorna role        |
+| `apps/server/src/modules/auth/routes.js`      | Rutas públicas de auth                                 |
+| `apps/server/src/routes/v1/index.js`          | Ensambla rutas de todos los módulos                    |
 
 ### Client
 
-| Archivo | Rol |
-|---------|-----|
+| Archivo                                           | Rol                                    |
+| ------------------------------------------------- | -------------------------------------- |
 | `apps/client/src/modules/auth/slice/authSlice.js` | Redux store: user, isAuth, accessToken |
-| `apps/client/src/modules/auth/api/authAPI.js` | Llamadas a /auth endpoints |
-| `apps/client/src/modules/users/api/usersApi.js` | RTK Query: roles, permits, CRUD users |
+| `apps/client/src/modules/auth/api/authAPI.js`     | Llamadas a /auth endpoints             |
+| `apps/client/src/modules/users/api/usersApi.js`   | RTK Query: roles, permits, CRUD users  |

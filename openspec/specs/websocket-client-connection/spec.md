@@ -1,10 +1,17 @@
-## ADDED Requirements
+# websocket-client-connection Specification
+
+## Purpose
+
+Gestiona el ciclo de conexión del cliente Socket.IO: conexión, reconexión, apagado ordenado y página de prueba.
+
+## Requirements
 
 ### Requirement: Socket.IO client connection lifecycle
 
 The system SHALL provide a Socket.IO client that connects to the server at `http://localhost:3001`, handles the full connection lifecycle (connect, disconnect, reconnect, connect_error), supports bidirectional communication via custom events, and performs graceful shutdown on termination.
 
 The client SHALL exist in two forms:
+
 1. **Node.js client** (`level-03-client.js`) — educational script with every line commented in Spanish
 2. **Browser client** (`test-client.html`) — self-contained HTML page with CDN-loaded socket.io
 
@@ -65,13 +72,26 @@ The system SHALL provide a self-contained HTML page for browser-based testing.
 - **THEN** the client SHALL disconnect from the server
 - **AND** the connection status indicator SHALL update to "Desconectado"
 
+### Requirement: React Hook useSocket
 
-### Requisito: React Hook useSocket
+El hook `useSocket` SHALL gestionar una conexión Socket.IO compartida para los componentes React, exponiendo el estado de conexión y limpiando los listeners al desmontar.
 
-| ID | Given | When | Then |
-|----|-------|------|------|
-| R-HT-01 | Notes component esta montado | socket.connect() a localhost:3001 | Conexion establecida |
-| R-HT-02 | Componente se desmonta | useEffect cleanup | socket.disconnect() ejecutado |
-| R-HT-03 | Conexion exitosa | socket emite 'connect' | isConnected = true |
-| R-HT-04 | Conexion falla | socket emite 'connect_error' | isError = true |
-| R-HT-05 | Strict Mode (doble montaje) | Segundo mount | socketRef previene duplicado (singleton module-level) |
+#### Scenario: Conexión establecida al montar
+
+- **GIVEN** el componente Notes está montado, **WHEN** el hook ejecuta `socket.connect()` hacia `localhost:3001`, **THEN** la conexión SHALL establecerse
+
+#### Scenario: Desconexión al desmontar
+
+- **GIVEN** el componente se desmonta, **WHEN** se ejecuta el cleanup de `useEffect`, **THEN** `socket.disconnect()` SHALL ejecutarse
+
+#### Scenario: Estado conectado
+
+- **GIVEN** una conexión exitosa, **WHEN** el socket emite `connect`, **THEN** `isConnected` SHALL pasar a `true`
+
+#### Scenario: Estado de error
+
+- **GIVEN** una conexión fallida, **WHEN** el socket emite `connect_error`, **THEN** `isError` SHALL pasar a `true`
+
+#### Scenario: Singleton bajo Strict Mode
+
+- **GIVEN** Strict Mode con doble montaje, **WHEN** ocurre el segundo mount, **THEN** `socketRef` SHALL prevenir la duplicación de conexión (singleton a nivel de módulo)

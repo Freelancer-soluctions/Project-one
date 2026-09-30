@@ -1,0 +1,30 @@
+# ============================================================
+# zizmor — política como código (change `pipeline-config-scan`)
+# ============================================================
+# Única fuente de configuración de zizmor para: job PR
+# `zizmor-advisory` (ci.yml), job semanal `zizmor-weekly`
+# (scheduled-security.yml) y pre-commit/validación local — los tres
+# la referencian INCONDICIONALMENTE vía `-c .github/zizmor.yml`
+# (sin guards `[ -f ]`: su ausencia es error de implementación).
+#
+# Esquema verificado contra support/zizmor.schema.json del repo
+# upstream (top-level `additionalProperties: false`, solo `rules`):
+# NO existen claves `output:` ni `enabled:`; el mapa `policies`
+# define QUÉ cuenta como suficientemente pinned (todos los audits
+# se aplican por defecto). Formato y severidad mínima se pasan por
+# CLI (`--format=sarif`), no por este fichero.
+#
+# FASE 1 (advisory): `"*": ref-pin` — los tags `@v5` de las actions
+# oficiales bastan; endurecer progresivamente a `hash-pin` por owner
+# solo tras clasificar el ruido del primer SARIF (via PR auditable,
+# patrón `.checkov.yml` / `.hadolint.yaml`).
+#
+# Nota: `"*": ref-pin` NO desactiva nada — sigue reportando uses
+# totalmente unpinned (`@master`, `@main`, sin ref). Endurecer es
+# apretar, nunca aflojar.
+
+rules:
+  unpinned-uses:
+    config:
+      policies:
+        "*": ref-pin

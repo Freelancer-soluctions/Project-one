@@ -1,0 +1,16 @@
+{
+  // Typecheck del client (change `quality-gates`). Extiende la raíz; el client
+  // es React 100% JS/JSX: `allowJs` + `checkJs: false` valida compilación y
+  // resolución de imports (incluye el alias `@` de Vite vía jsconfig paths
+  // espejado abajo) sin exigir tipos. `jsx: react-jsx` = transform moderno.
+  // Flags strict llegarán con typescript-strict-check.
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "jsx": "react-jsx",
+    "paths": {
+      "@/*": ["./src/*"]
+    }
+  },
+  "include": ["src/**/*", "tests/**/*"],
+  "exclude": ["node_modules", "dist", "coverage", "storybook-static"]
+}

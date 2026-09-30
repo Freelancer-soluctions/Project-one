@@ -1,0 +1,53 @@
+# Configuración Prettier profesional para Project One — formato consistente en frontend (React/JSX) y backend (Express)
+# Se mantiene paridad total con el anterior .prettierrc JSON: mismos valores, solo cambia el formato a YAML comentado.
+
+# Esquema oficial para autocompletado y validación en editores.
+$schema: 'https://json.schemastore.org/prettierrc'
+
+# Ancho máximo de línea: 80 caracteres.
+# Decisión: legibilidad en pantallas divididas y diffs de PR más estrechos; estándar histórico compatible con ESLint y editoriales.
+printWidth: 80
+
+# Tamaño de tabulación: 2 espacios.
+# Decisión: convención dominante en JS/TS (React + Express); ahorra sangrado horizontal en JSX anidado.
+tabWidth: 2
+
+# Usar espacios en lugar de tabuladores.
+# Decisión: evita renders inconsistentes entre editores/terminales y facilita el copiado de snippets.
+useTabs: false
+
+# Punto y coma al final de cada sentencia: activado.
+# Decisión: evita ambigüedades del ASI de JavaScript (return, IIFE, throw) y mantiene estilo explícito en backend y frontend.
+semi: true
+
+# Comillas simples en JS/TS: activadas.
+# Decisión: menos ruido visual y tecla más rápida en teclado ES; coherente con el estilo Airbnb/Standard extendido en el monorepo.
+singleQuote: true
+
+# Comillas en propiedades de objeto solo cuando sean necesarias.
+# Decisión: "as-needed" reduce ruido ({"a": 1} -> {a: 1}) pero conserva comillas en claves con guiones o palabras reservadas.
+quoteProps: 'as-needed'
+
+# Comillas simples en JSX: desactivado (se usan dobles).
+# Decisión: respeta la convención React/HTML (atributos con dobles) y evita conflictos con linters jsx; el JS interno sigue con simples.
+jsxSingleQuote: false
+
+# Comas finales donde sean válidas en ES5 (objetos, arrays, no en parámetros).
+# Decisión: "es5" equilibra diffs limpios en Git sin romper compatibilidad con entornos antiguos que no soportan trailing en funciones.
+trailingComma: 'es5'
+
+# Espacios dentro de llaves: activados ({ foo: bar }).
+# Decisión: mejora la legibilidad de objetos/imports frente a {foo: bar}; estándar en la mayoría de guías de estilo JS.
+bracketSpacing: true
+
+# Corchete de cierre de JSX/multilínea en línea propia: desactivado (bracket en nueva línea).
+# Decisión: "bracketSameLine: false" separa visualmente el cierre de props largas en React, facilitando la lectura de componentes con muchas props.
+bracketSameLine: false
+
+# Paréntesis en arrow functions de un solo parámetro: siempre.
+# Decisión: "always" da consistencia (x) => x y evita churn al añadir tipos TS o parámetros extra; recomendado por la guía TypeScript.
+arrowParens: 'always'
+
+# Finales de línea LF (Unix).
+# Decisión: normaliza saltos entre Windows/macOS/Linux, evita ruido en Git (mixed CRLF/LF) y es lo esperado en CI/contenedores.
+endOfLine: 'lf'

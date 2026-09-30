@@ -14,24 +14,144 @@ import PropTypes from 'prop-types';
 import { NOTE_CARD_STYLES } from '../utils/noteStyles';
 import { toast } from '@/components/ui/use-toast';
 
-export function NotesCard({ note, onDragStart, onDelete, onEdit, columnCode }) {
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
-  const [toggleFavorite, { isLoading: isTogglingFav }] =
-    useToggleFavoriteMutation();
+/** Owner quick-actions: edit + delete. */
+function OwnerActions({ onEdit, onDelete }) {
+  return (
+    <>
+      <Button
+        variant="ghost"
+        size="icon"
+        className="w-8 h-8 text-gray-500 hover:text-blue-600"
+        onClick={(e) => {
+          e.preventDefault();
+          onEdit();
+        }}
+      >
+        <LuPencil className="w-4 h-4" />
+      </Button>
+      <Button
+        variant="ghost"
+        size="icon"
+        className="w-8 h-8 text-gray-500 hover:text-red-600"
+        onClick={(e) => {
+          e.preventDefault();
+          onDelete();
+        }}
+      >
+        <LuTrash2 className="w-4 h-4" />
+      </Button>
+    </>
+  );
+}
+
+OwnerActions.propTypes = {
+  onEdit: PropTypes.func.isRequired,
+  onDelete: PropTypes.func.isRequired,
+};
+
+/** Mention quick-actions: view + mark-as-read. */
+function MentionActions({ onView, onMarkAsRead }) {
+  return (
+    <>
+      <Button
+        variant="ghost"
+        size="icon"
+        className="w-8 h-8 text-gray-500 hover:text-green-600"
+        onClick={(e) => {
+          e.preventDefault();
+          onView();
+        }}
+      >
+        <LuEye className="w-4 h-4" />
+      </Button>
+      <Button
+        variant="ghost"
+        size="icon"
+        className="w-8 h-8 text-gray-500 hover:text-blue-600"
+        onClick={onMarkAsRead}
+      >
+        <LuCheck className="w-4 h-4" />
+      </Button>
+    </>
+  );
+}
+
+MentionActions.propTypes = {
+  onView: PropTypes.func.isRequired,
+  onMarkAsRead: PropTypes.func.isRequired,
+};
+
+/** Badges shown on a mentioned (non-owner) card header. */
+function MentionBadges({ hasUnreadMentions }) {
+  const { t } = useTranslation();
+  return (
+    <>
+      <span className="bg-blue-500 text-white text-xs rounded-full px-1.5 py-0.5 ml-2">
+        {t('mentioned_badge')}
+      </span>
+      {hasUnreadMentions && (
+        <span
+          className="w-2 h-2 rounded-full bg-blue-600 ml-1 inline-block"
+          title={t('unread_mentions')}
+        />
+      )}
+    </>
+  );
+}
+
+MentionBadges.propTypes = {
+  hasUnreadMentions: PropTypes.bool,
+};
+
+/** Card header: favorite toggle, title, mention badges, hover actions. */
+function NoteCardHeader({
+  cardStyles,
+  isOwner,
+  isMentioned,
+  favoriteToggle,
+  title,
+  badges,
+  actions,
+}) {
+  return (
+    <CardHeader
+      className={cn(
+        'font-semibold p-3 flex flex-row items-center justify-between',
+        cardStyles,
+        !isOwner && 'bg-gray-50'
+      )}
+    >
+      <div className="flex items-center gap-1 min-w-0 truncate">
+        {isOwner && favoriteToggle}
+        <span className="truncate">{title}</span>
+        {isMentioned && badges}
+      </div>
+      <div className="flex gap-1 transition-opacity opacity-0 group-hover:opacity-100 shrink-0">
+        {actions}
+      </div>
+    </CardHeader>
+  );
+}
+
+NoteCardHeader.propTypes = {
+  cardStyles: PropTypes.string,
+  isOwner: PropTypes.bool.isRequired,
+  isMentioned: PropTypes.bool.isRequired,
+  favoriteToggle: PropTypes.node,
+  title: PropTypes.string.isRequired,
+  badges: PropTypes.node,
+  actions: PropTypes.node,
+};
+
+/** Favorite-toggle and mark-as-read actions for a note card. */
+function useNoteCardActions({ note, toggleFavorite }) {
   const { t } = useTranslation();
   const { socket } = useSocket();
-
-  const { isOwner, isMentioned, hasUnreadMentions } = note;
-
-  const cardStyles = NOTE_CARD_STYLES[note.color] || NOTE_CARD_STYLES.gray;
 
   const handleToggleFavorite = async () => {
     try {
       await toggleFavorite(note.id).unwrap();
-    } catch (_err) {
-      // eslint-disable-next-line no-unused-vars
-      const _ = _err;
+    } catch {
       toast({
         title: t('error'),
         description: t('error_occurred_message'),
@@ -49,6 +169,52 @@ export function NotesCard({ note, onDragStart, onDelete, onEdit, columnCode }) {
     }
   };
 
+  return { handleToggleFavorite, handleMarkAsRead };
+}
+
+/** Edit and view dialogs controlled by the card. */
+function buildNoteDialogs({
+  note,
+  onEdit,
+  isEditDialogOpen,
+  setIsEditDialogOpen,
+  isViewDialogOpen,
+  setIsViewDialogOpen,
+}) {
+  return (
+    <>
+      <NotesEditDialog
+        open={isEditDialogOpen}
+        onOpenChange={setIsEditDialogOpen}
+        onEditNote={onEdit}
+        note={note}
+      />
+
+      <NotesViewDialog
+        note={note}
+        open={isViewDialogOpen}
+        onOpenChange={setIsViewDialogOpen}
+      />
+    </>
+  );
+}
+
+export function NotesCard({ note, onDragStart, onDelete, onEdit, columnCode }) {
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
+  const [toggleFavorite, { isLoading: isTogglingFav }] =
+    useToggleFavoriteMutation();
+  const { t } = useTranslation();
+
+  const { isOwner, isMentioned, hasUnreadMentions } = note;
+
+  const cardStyles = NOTE_CARD_STYLES[note.color] || NOTE_CARD_STYLES.gray;
+
+  const { handleToggleFavorite, handleMarkAsRead } = useNoteCardActions({
+    note,
+    toggleFavorite,
+  });
+
   return (
     <>
       <Card
@@ -64,90 +230,38 @@ export function NotesCard({ note, onDragStart, onDelete, onEdit, columnCode }) {
           isMentioned && !isOwner && 'border-l-4 border-l-blue-400'
         )}
       >
-        <CardHeader
-          className={cn(
-            'font-semibold p-3 flex flex-row items-center justify-between',
-            cardStyles.header,
-            !isOwner && 'bg-gray-50'
-          )}
-        >
-          <div className="flex items-center gap-1 min-w-0 truncate">
-            {isOwner && (
-              <FavoriteToggle
-                checked={note.isFavorited}
-                onChange={handleToggleFavorite}
-                isLoading={isTogglingFav}
-                size="sm"
-                className="p-0 hover:bg-transparent"
-              />
-            )}
-            <span className="truncate">{note.title}</span>
-            {isMentioned && !isOwner && (
-              <>
-                <span className="bg-blue-500 text-white text-xs rounded-full px-1.5 py-0.5 ml-2">
-                  {t('mentioned_badge')}
-                </span>
-                {hasUnreadMentions && (
-                  <span
-                    className="w-2 h-2 rounded-full bg-blue-600 ml-1 inline-block"
-                    title={t('unread_mentions')}
-                  />
-                )}
-              </>
-            )}
-          </div>
-          <div className="flex gap-1 transition-opacity opacity-0 group-hover:opacity-100 shrink-0">
-            {isOwner && (
-              <>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="w-8 h-8 text-gray-500 hover:text-blue-600"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    setIsEditDialogOpen(true);
-                  }}
-                >
-                  <LuPencil className="w-4 h-4" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="w-8 h-8 text-gray-500 hover:text-red-600"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    onDelete(note.id);
-                  }}
-                >
-                  <LuTrash2 className="w-4 h-4" />
-                </Button>
-              </>
-            )}
-            {isMentioned && !isOwner && (
-              <>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="w-8 h-8 text-gray-500 hover:text-green-600"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    setIsViewDialogOpen(true);
-                  }}
-                >
-                  <LuEye className="w-4 h-4" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="w-8 h-8 text-gray-500 hover:text-blue-600"
-                  onClick={handleMarkAsRead}
-                >
-                  <LuCheck className="w-4 h-4" />
-                </Button>
-              </>
-            )}
-          </div>
-        </CardHeader>
+        <NoteCardHeader
+          cardStyles={cardStyles.header}
+          isOwner={isOwner}
+          isMentioned={isMentioned && !isOwner}
+          title={note.title}
+          favoriteToggle={
+            <FavoriteToggle
+              checked={note.isFavorited}
+              onChange={handleToggleFavorite}
+              isLoading={isTogglingFav}
+              size="sm"
+              className="p-0 hover:bg-transparent"
+            />
+          }
+          badges={<MentionBadges hasUnreadMentions={hasUnreadMentions} />}
+          actions={
+            <>
+              {isOwner && (
+                <OwnerActions
+                  onEdit={() => setIsEditDialogOpen(true)}
+                  onDelete={() => onDelete(note.id)}
+                />
+              )}
+              {isMentioned && !isOwner && (
+                <MentionActions
+                  onView={() => setIsViewDialogOpen(true)}
+                  onMarkAsRead={handleMarkAsRead}
+                />
+              )}
+            </>
+          }
+        />
         <CardContent className="p-3 pt-0">
           <p className="text-sm text-gray-600">
             {t('created_on')}: {format(note.createdOn, 'PPP')}
@@ -155,18 +269,14 @@ export function NotesCard({ note, onDragStart, onDelete, onEdit, columnCode }) {
         </CardContent>
       </Card>
 
-      <NotesEditDialog
-        open={isEditDialogOpen}
-        onOpenChange={setIsEditDialogOpen}
-        onEditNote={onEdit}
-        note={note}
-      />
-
-      <NotesViewDialog
-        note={note}
-        open={isViewDialogOpen}
-        onOpenChange={setIsViewDialogOpen}
-      />
+      {buildNoteDialogs({
+        note,
+        onEdit,
+        isEditDialogOpen,
+        setIsEditDialogOpen,
+        isViewDialogOpen,
+        setIsViewDialogOpen,
+      })}
     </>
   );
 }

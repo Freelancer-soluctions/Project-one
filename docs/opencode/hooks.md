@@ -35,21 +35,22 @@ Los hooks se declaran en un archivo dentro de `.opencode/plugins/` (o `~/.config
 
 Los hooks se organizan en las siguientes categorías:
 
-| Categoría | Hooks | Propósito general |
-|-----------|-------|-------------------|
-| **Configuración y registro** | `config`, `tool`, `auth` | Extender la configuración, registrar herramientas y proveedores de autenticación |
-| **Ciclo de chat/LLM** | `chat.message`, `chat.params`, `chat.headers`, `experimental.chat.messages.transform`, `experimental.chat.system.transform`, `experimental.text.complete` | Interceptar y modificar mensajes, parámetros y prompts enviados al modelo |
-| **Ejecución de herramientas** | `tool.execute.before`, `tool.execute.after`, `command.execute.before` | Intervenir antes/después de ejecutar herramientas o comandos |
-| **Permisos** | `permission.ask` | Controlar solicitudes de permiso programáticamente |
-| **Shell** | `shell.env` | Inyectar variables de entorno en ejecuciones de shell |
-| **Ciclo de sesión** | `experimental.session.compacting` | Personalizar la compresión de contexto |
-| **Suscripción a eventos** | `event` | Escuchar todos los eventos del sistema (observer) |
+| Categoría                     | Hooks                                                                                                                                                     | Propósito general                                                                |
+| ----------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------- |
+| **Configuración y registro**  | `config`, `tool`, `auth`                                                                                                                                  | Extender la configuración, registrar herramientas y proveedores de autenticación |
+| **Ciclo de chat/LLM**         | `chat.message`, `chat.params`, `chat.headers`, `experimental.chat.messages.transform`, `experimental.chat.system.transform`, `experimental.text.complete` | Interceptar y modificar mensajes, parámetros y prompts enviados al modelo        |
+| **Ejecución de herramientas** | `tool.execute.before`, `tool.execute.after`, `command.execute.before`                                                                                     | Intervenir antes/después de ejecutar herramientas o comandos                     |
+| **Permisos**                  | `permission.ask`                                                                                                                                          | Controlar solicitudes de permiso programáticamente                               |
+| **Shell**                     | `shell.env`                                                                                                                                               | Inyectar variables de entorno en ejecuciones de shell                            |
+| **Ciclo de sesión**           | `experimental.session.compacting`                                                                                                                         | Personalizar la compresión de contexto                                           |
+| **Suscripción a eventos**     | `event`                                                                                                                                                   | Escuchar todos los eventos del sistema (observer)                                |
 
 ---
 
 ## 3. Catálogo Detallado de Hooks
 
 Cada hook se documenta con la siguiente estructura:
+
 - **En una frase (no técnico):** Resumen en lenguaje sencillo
 - **Resumen técnico:** Descripción precisa para desarrolladores
 - **Disparador:** Cuándo se ejecuta
@@ -72,19 +73,21 @@ Cada hook se documenta con la siguiente estructura:
 - **Retorno (output):** Modifica el objeto `input` directamente (mutación in-place).
 - **¿Bloqueante?:** Sí — la inicialización espera a que termine.
 - **Ejemplo:**
+
   ```typescript
-  import type { Plugin } from "@opencode-ai/plugin";
+  import type { Plugin } from '@opencode-ai/plugin';
 
   export const MiPlugin: Plugin = async (ctx) => ({
     config: async (config) => {
       config.command = config.command || {};
-      config.command["saludar"] = {
-        template: "Di hola a $ARGUMENTS",
-        description: "Saluda a alguien",
+      config.command['saludar'] = {
+        template: 'Di hola a $ARGUMENTS',
+        description: 'Saluda a alguien',
       };
     },
   });
   ```
+
 - **Fuente:** Confirmado — Documentación oficial [opencode.ai/docs/plugins/](https://opencode.ai/docs/plugins/) y OpenCode Book §13.2.2.
 
 ---
@@ -98,13 +101,14 @@ Cada hook se documenta con la siguiente estructura:
 - **Retorno (output):** Un objeto `{ [key: string]: ToolDefinition }`. No hay mutación de output.
 - **¿Bloqueante?:** Sí — se registra antes de que los agentes puedan usarlas.
 - **Ejemplo:**
+
   ```typescript
-  import { type Plugin, tool } from "@opencode-ai/plugin";
+  import { type Plugin, tool } from '@opencode-ai/plugin';
 
   export const MiPlugin: Plugin = async (ctx) => ({
     tool: {
       timestamp: tool({
-        description: "Obtiene el timestamp actual",
+        description: 'Obtiene el timestamp actual',
         args: {},
         async execute(args, context) {
           return new Date().toISOString();
@@ -113,6 +117,7 @@ Cada hook se documenta con la siguiente estructura:
     },
   });
   ```
+
 - **Fuente:** Confirmado — Documentación oficial y OpenCode Book §13.2.1.
 
 ---
@@ -129,14 +134,16 @@ Cada hook se documenta con la siguiente estructura:
   ```typescript
   export const MiPlugin: Plugin = async (ctx) => ({
     auth: {
-      provider: "mi-servicio-llm",
+      provider: 'mi-servicio-llm',
       methods: [
         {
-          type: "api",
-          label: "API Key",
-          prompts: [{ type: "text", key: "apiKey", message: "Ingresa tu API key" }],
+          type: 'api',
+          label: 'API Key',
+          prompts: [
+            { type: 'text', key: 'apiKey', message: 'Ingresa tu API key' },
+          ],
           async authorize(inputs) {
-            return { type: "success", key: inputs.apiKey };
+            return { type: 'success', key: inputs.apiKey };
           },
         },
       ],
@@ -160,10 +167,10 @@ Cada hook se documenta con la siguiente estructura:
 - **Ejemplo:**
   ```typescript
   export const MiPlugin: Plugin = async (ctx) => ({
-    "chat.message": async (input, output) => {
+    'chat.message': async (input, output) => {
       output.parts.push({
-        type: "text",
-        text: "\n[Contexto: El proyecto usa TypeScript con modo estricto]",
+        type: 'text',
+        text: '\n[Contexto: El proyecto usa TypeScript con modo estricto]',
       });
     },
   });
@@ -183,14 +190,14 @@ Cada hook se documenta con la siguiente estructura:
 - **Ejemplo:**
   ```typescript
   export const MiPlugin: Plugin = async (ctx) => ({
-    "chat.params": async (input, output) => {
-      if (input.message.text?.includes("creativo")) {
+    'chat.params': async (input, output) => {
+      if (input.message.text?.includes('creativo')) {
         output.temperature = 1.5;
       }
       // Inyectar 'effort' para modelos Anthropic
-      if (input.provider.info.id === "anthropic") {
-        output.options["anthropic"] = {
-          thinking: { type: "enabled", budget_tokens: 10000 },
+      if (input.provider.info.id === 'anthropic') {
+        output.options['anthropic'] = {
+          thinking: { type: 'enabled', budget_tokens: 10000 },
         };
       }
     },
@@ -211,10 +218,10 @@ Cada hook se documenta con la siguiente estructura:
 - **Ejemplo:**
   ```typescript
   export const MiPlugin: Plugin = async (ctx) => ({
-    "chat.headers": async (input, output) => {
+    'chat.headers': async (input, output) => {
       output.headers = {
         ...output.headers,
-        "X-Custom-Header": "valor-personalizado",
+        'X-Custom-Header': 'valor-personalizado',
       };
     },
   });
@@ -234,10 +241,10 @@ Cada hook se documenta con la siguiente estructura:
 - **Ejemplo:**
   ```typescript
   export const MiPlugin: Plugin = async (ctx) => ({
-    "experimental.chat.messages.transform": async (input, output) => {
+    'experimental.chat.messages.transform': async (input, output) => {
       // Filtrar mensajes de depuración del historial
       output.messages = output.messages.filter(
-        (m) => !m.info.role?.startsWith("debug-")
+        (m) => !m.info.role?.startsWith('debug-')
       );
     },
   });
@@ -257,9 +264,9 @@ Cada hook se documenta con la siguiente estructura:
 - **Ejemplo:**
   ```typescript
   export const MiPlugin: Plugin = async (ctx) => ({
-    "experimental.chat.system.transform": async (input, output) => {
+    'experimental.chat.system.transform': async (input, output) => {
       output.system.push(
-        "## Regla del proyecto\nSiempre preguntar antes de eliminar archivos."
+        '## Regla del proyecto\nSiempre preguntar antes de eliminar archivos.'
       );
     },
   });
@@ -279,7 +286,7 @@ Cada hook se documenta con la siguiente estructura:
 - **Ejemplo:**
   ```typescript
   export const MiPlugin: Plugin = async (ctx) => ({
-    "experimental.text.complete": async (input, output) => {
+    'experimental.text.complete': async (input, output) => {
       // Ejemplo hipotético: sanitizar la salida
       // output.text = output.text.replace(/datos-sensibles/g, "[REDACTED]");
     },
@@ -302,9 +309,9 @@ Cada hook se documenta con la siguiente estructura:
 - **Ejemplo:**
   ```typescript
   export const EnvProtection: Plugin = async (ctx) => ({
-    "tool.execute.before": async (input, output) => {
-      if (input.tool === "read" && output.args.filePath?.includes(".env")) {
-        throw new Error("No leer archivos .env");
+    'tool.execute.before': async (input, output) => {
+      if (input.tool === 'read' && output.args.filePath?.includes('.env')) {
+        throw new Error('No leer archivos .env');
       }
     },
   });
@@ -322,16 +329,17 @@ Cada hook se documenta con la siguiente estructura:
 - **Retorno (output):** `{ title: string, output: string, metadata: any }` — mutable.
 - **¿Bloqueante?:** Sí — el resultado no se entrega al LLM hasta que el hook termina.
 - **Ejemplo (del proyecto local):**
+
   ```typescript
   export const plugin: Plugin = async () => ({
-    "tool.execute.after": async (input, output) => {
-      if (input.tool !== "task") return; // Solo subagentes
+    'tool.execute.after': async (input, output) => {
+      if (input.tool !== 'task') return; // Solo subagentes
 
       const agentName = input.args?.subagent_type;
       if (!agentName) return;
 
       // Validar el contrato de salida y registrar en auditoría
-      const subagentMessage = extractTaskResult(output.output ?? "");
+      const subagentMessage = extractTaskResult(output.output ?? '');
       if (!subagentMessage) return;
 
       const verdict = validateContract(subagentMessage, agentName);
@@ -346,6 +354,7 @@ Cada hook se documenta con la siguiente estructura:
     },
   });
   ```
+
 - **Fuente:** Confirmado — Implementación real en el proyecto local (`.opencode/plugins/output-contracts.ts`) y documentación oficial.
 
 ---
@@ -361,7 +370,7 @@ Cada hook se documenta con la siguiente estructura:
 - **Ejemplo:**
   ```typescript
   export const MiPlugin: Plugin = async (ctx) => ({
-    "command.execute.before": async (input, output) => {
+    'command.execute.before': async (input, output) => {
       console.log(`Comando ejecutado: ${input.name}`);
     },
   });
@@ -383,12 +392,12 @@ Cada hook se documenta con la siguiente estructura:
 - **Ejemplo:**
   ```typescript
   export const MiPlugin: Plugin = async (ctx) => ({
-    "permission.ask": async (input, output) => {
-      if (input.tool === "read") {
-        output.status = "allow"; // Auto-aprobar lecturas
+    'permission.ask': async (input, output) => {
+      if (input.tool === 'read') {
+        output.status = 'allow'; // Auto-aprobar lecturas
       }
-      if (input.tool === "bash" && input.args?.includes("rm -rf")) {
-        output.status = "deny"; // Auto-denegar rm -rf
+      if (input.tool === 'bash' && input.args?.includes('rm -rf')) {
+        output.status = 'deny'; // Auto-denegar rm -rf
       }
     },
   });
@@ -410,8 +419,8 @@ Cada hook se documenta con la siguiente estructura:
 - **Ejemplo (de la documentación oficial):**
   ```typescript
   export const InjectEnvPlugin: Plugin = async () => ({
-    "shell.env": async (input, output) => {
-      output.env.MI_API_KEY = "secreto";
+    'shell.env': async (input, output) => {
+      output.env.MI_API_KEY = 'secreto';
       output.env.RAIZ_DEL_PROYECTO = input.cwd;
     },
   });
@@ -431,11 +440,12 @@ Cada hook se documenta con la siguiente estructura:
 - **Retorno (output):** `{ context: string[], prompt?: string }` — si se establece `prompt`, se reemplaza completamente el prompt de compactación por defecto.
 - **¿Bloqueante?:** Sí — la compactación espera.
 - **Ejemplo (de la documentación oficial):**
+
   ```typescript
-  import type { Plugin } from "@opencode-ai/plugin";
+  import type { Plugin } from '@opencode-ai/plugin';
 
   export const CompactionPlugin: Plugin = async (ctx) => ({
-    "experimental.session.compacting": async (input, output) => {
+    'experimental.session.compacting': async (input, output) => {
       output.context.push(`## Contexto Personalizado
   Estado que debe persistir entre compactaciones:
   - Tarea actual
@@ -444,6 +454,7 @@ Cada hook se documenta con la siguiente estructura:
     },
   });
   ```
+
 - **Fuente:** Confirmado — Documentación oficial (sección "Compaction hooks") y OpenCode Book §13.2.9.
 
 ---
@@ -460,32 +471,32 @@ Cada hook se documenta con la siguiente estructura:
 - **¿Bloqueante?:** Sí (para ese plugin), pero asíncrono no bloqueante para el sistema (otros plugins continúan).
 - **Eventos disponibles (confirmados):**
 
-  | Categoría | Eventos |
-  |-----------|---------|
-  | **Sesión** | `session.created`, `session.updated`, `session.deleted`, `session.diff`, `session.error`, `session.status`, `session.idle`, `session.compacted` |
-  | **Mensajes** | `message.updated`, `message.removed`, `message.part.updated`, `message.part.removed` |
-  | **Archivos** | `file.edited`, `file.watcher.updated` |
-  | **Herramientas** | `tool.execute.before`, `tool.execute.after` |
-  | **Permisos** | `permission.updated`, `permission.replied` |
-  | **Comandos** | `command.executed` |
-  | **TUI** | `tui.prompt.append`, `tui.command.execute`, `tui.toast.show` |
-  | **LSP** | `lsp.updated`, `lsp.client.diagnostics` |
-  | **Todo** | `todo.updated` |
-  | **Instalación** | `installation.updated`, `installation.update.available` |
-  | **Shell/PTY** | `pty.created`, `pty.updated`, `pty.exited`, `pty.deleted` |
-  | **VCS** | `vcs.branch.updated` |
-  | **IDE** | `ide.installed` |
-  | **Servidor** | `server.connected` |
+  | Categoría        | Eventos                                                                                                                                         |
+  | ---------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+  | **Sesión**       | `session.created`, `session.updated`, `session.deleted`, `session.diff`, `session.error`, `session.status`, `session.idle`, `session.compacted` |
+  | **Mensajes**     | `message.updated`, `message.removed`, `message.part.updated`, `message.part.removed`                                                            |
+  | **Archivos**     | `file.edited`, `file.watcher.updated`                                                                                                           |
+  | **Herramientas** | `tool.execute.before`, `tool.execute.after`                                                                                                     |
+  | **Permisos**     | `permission.updated`, `permission.replied`                                                                                                      |
+  | **Comandos**     | `command.executed`                                                                                                                              |
+  | **TUI**          | `tui.prompt.append`, `tui.command.execute`, `tui.toast.show`                                                                                    |
+  | **LSP**          | `lsp.updated`, `lsp.client.diagnostics`                                                                                                         |
+  | **Todo**         | `todo.updated`                                                                                                                                  |
+  | **Instalación**  | `installation.updated`, `installation.update.available`                                                                                         |
+  | **Shell/PTY**    | `pty.created`, `pty.updated`, `pty.exited`, `pty.deleted`                                                                                       |
+  | **VCS**          | `vcs.branch.updated`                                                                                                                            |
+  | **IDE**          | `ide.installed`                                                                                                                                 |
+  | **Servidor**     | `server.connected`                                                                                                                              |
 
 - **Ejemplo:**
   ```typescript
   export const NotificationPlugin: Plugin = async ({ $ }) => ({
     event: async ({ event }) => {
-      if (event.type === "session.idle") {
+      if (event.type === 'session.idle') {
         await $`osascript -e 'display notification "Sesión completada" with title "OpenCode"'`;
       }
-      if (event.type === "file.edited") {
-        console.log("Archivo editado:", event.properties.file);
+      if (event.type === 'file.edited') {
+        console.log('Archivo editado:', event.properties.file);
       }
     },
   });
@@ -505,9 +516,15 @@ Los hooks se declaran dentro de plugins. Un plugin es un archivo JavaScript o Ty
 
 ```typescript
 // .opencode/plugins/mi-plugin.ts
-import type { Plugin } from "@opencode-ai/plugin";
+import type { Plugin } from '@opencode-ai/plugin';
 
-export const MiPlugin: Plugin = async ({ project, client, $, directory, worktree }) => {
+export const MiPlugin: Plugin = async ({
+  project,
+  client,
+  $,
+  directory,
+  worktree,
+}) => {
   console.log(`Plugin iniciado para: ${project.name}`);
 
   return {
@@ -515,7 +532,7 @@ export const MiPlugin: Plugin = async ({ project, client, $, directory, worktree
     config: async (config) => {
       // ...
     },
-    "tool.execute.after": async (input, output) => {
+    'tool.execute.after': async (input, output) => {
       // ...
     },
     event: async ({ event }) => {
@@ -534,19 +551,20 @@ Los plugins se registran en `opencode.json` o `opencode.jsonc` en la clave `plug
 {
   "$schema": "https://opencode.ai/config.json",
   "plugin": [
-    "nombre-del-plugin-npm",                    // Plugin desde npm
-    "./.opencode/plugins/mi-plugin-local.ts"    // Plugin local
-  ]
+    "nombre-del-plugin-npm", // Plugin desde npm
+    "./.opencode/plugins/mi-plugin-local.ts", // Plugin local
+  ],
 }
 ```
 
 **Ejemplo del proyecto local (opencode.jsonc):**
+
 ```jsonc
 {
   "plugin": [
     "@warp-dot-dev/opencode-warp",
-    "./.opencode/plugins/output-contracts.ts"
-  ]
+    "./.opencode/plugins/output-contracts.ts",
+  ],
 }
 ```
 
@@ -594,24 +612,24 @@ OpenCode ejecuta `bun install` automáticamente al iniciar.
 
 ## 5. Tabla Resumen
 
-| Hook | ¿Confirmado? | Categoría | ¿Bloqueante? | ¿Modifica? |
-|------|-------------|-----------|-------------|------------|
-| `config` | ✅ Sí | Configuración | Sí | Config global |
-| `tool` | ✅ Sí | Registro | Sí | N/A (declara) |
-| `auth` | ✅ Sí | Autenticación | Sí | N/A (declara) |
-| `chat.message` | ✅ Sí | Chat/LLM | Sí | Mensaje y partes |
-| `chat.params` | ✅ Sí | Chat/LLM | Sí | Temperatura, topP, options |
-| `chat.headers` | ⚠️ Inferido | Chat/LLM | Sí | Encabezados HTTP |
-| `experimental.chat.messages.transform` | ⚠️ Inferido | Chat/LLM | Sí | Lista de mensajes |
-| `experimental.chat.system.transform` | ⚠️ Inferido | Chat/LLM | Sí | System prompt |
-| `experimental.text.complete` | ⚠️ Inferido | Chat/LLM | Sí | Texto generado |
-| `tool.execute.before` | ✅ Sí | Ejecución | Sí | Argumentos de tool |
-| `tool.execute.after` | ✅ Sí | Ejecución | Sí | Output de tool |
-| `command.execute.before` | ⚠️ Inferido | Ejecución | Sí | Args de comando |
-| `permission.ask` | ✅ Sí | Permisos | Sí | Status (allow/deny/ask) |
-| `shell.env` | ✅ Sí | Shell | No | Variables de entorno |
-| `experimental.session.compacting` | ✅ Sí | Sesión | Sí | Contexto/prompt |
-| `event` | ✅ Sí | Observer | Sí (aislado) | N/A (solo observa) |
+| Hook                                   | ¿Confirmado? | Categoría     | ¿Bloqueante? | ¿Modifica?                 |
+| -------------------------------------- | ------------ | ------------- | ------------ | -------------------------- |
+| `config`                               | ✅ Sí        | Configuración | Sí           | Config global              |
+| `tool`                                 | ✅ Sí        | Registro      | Sí           | N/A (declara)              |
+| `auth`                                 | ✅ Sí        | Autenticación | Sí           | N/A (declara)              |
+| `chat.message`                         | ✅ Sí        | Chat/LLM      | Sí           | Mensaje y partes           |
+| `chat.params`                          | ✅ Sí        | Chat/LLM      | Sí           | Temperatura, topP, options |
+| `chat.headers`                         | ⚠️ Inferido  | Chat/LLM      | Sí           | Encabezados HTTP           |
+| `experimental.chat.messages.transform` | ⚠️ Inferido  | Chat/LLM      | Sí           | Lista de mensajes          |
+| `experimental.chat.system.transform`   | ⚠️ Inferido  | Chat/LLM      | Sí           | System prompt              |
+| `experimental.text.complete`           | ⚠️ Inferido  | Chat/LLM      | Sí           | Texto generado             |
+| `tool.execute.before`                  | ✅ Sí        | Ejecución     | Sí           | Argumentos de tool         |
+| `tool.execute.after`                   | ✅ Sí        | Ejecución     | Sí           | Output de tool             |
+| `command.execute.before`               | ⚠️ Inferido  | Ejecución     | Sí           | Args de comando            |
+| `permission.ask`                       | ✅ Sí        | Permisos      | Sí           | Status (allow/deny/ask)    |
+| `shell.env`                            | ✅ Sí        | Shell         | No           | Variables de entorno       |
+| `experimental.session.compacting`      | ✅ Sí        | Sesión        | Sí           | Contexto/prompt            |
+| `event`                                | ✅ Sí        | Observer      | Sí (aislado) | N/A (solo observa)         |
 
 ---
 
@@ -632,20 +650,24 @@ OpenCode ejecuta `bun install` automáticamente al iniciar.
 ## 7. Fuentes
 
 ### Documentación oficial
+
 - [OpenCode Docs — Plugins](https://opencode.ai/docs/plugins/) — Guía oficial de plugins, eventos y hooks de compactación
 - [OpenCode Docs — Config](https://opencode.ai/docs/config/) — Documentación de configuración (formato `opencode.json`)
 - [OpenCode Config Schema](https://opencode.ai/config.json) — Schema JSON de validación
 
 ### OpenCode Book (comunitario)
+
 - [Chapter 13.1 — Plugin Interface Definition](https://www.opencodebook.xyz/en/chapter_13_plugin_system/13.1_plugin_interface_definition) — Definición completa de la interfaz `Hooks` con tipos TypeScript
 - [Chapter 13.2 — Plugin Lifecycle Hooks](https://www.opencodebook.xyz/en/chapter_13_plugin_system/13.2_plugin_lifecycle_hooks) — Documentación detallada de cada hook con firmas, timing y ejemplos
 
 ### OpenCode Plugins Manual (comunitario)
+
 - [04-hooks-reference.md](https://github.com/joshuadavidthomas/opencode-plugins-manual/blob/main/docs/04-hooks-reference.md) — Referencia de 10 hooks con firmas y ejemplos
 - [07-events.md](https://github.com/joshuadavidthomas/opencode-plugins-manual/blob/main/docs/07-events.md) — Sistema de eventos con 30+ eventos documentados
 - [05-config-hook.md](https://github.com/joshuadavidthomas/opencode-plugins-manual/blob/main/docs/05-config-hook.md) — Hook `config` no documentado oficialmente
 
 ### Código fuente de OpenCode (referencias)
+
 - [packages/opencode/src/bus/index.ts](https://github.com/sst/opencode/blob/3efc95b/packages/opencode/src/bus/index.ts) — Implementación del bus de eventos
 - [packages/opencode/src/session/index.ts](https://github.com/sst/opencode/blob/3efc95b/packages/opencode/src/session/index.ts) — Eventos de sesión
 - [packages/opencode/src/session/prompt.ts](https://github.com/sst/opencode/blob/3efc95b/packages/opencode/src/session/prompt.ts) — Disparo de hooks `chat.message` y `chat.params`
@@ -653,6 +675,7 @@ OpenCode ejecuta `bun install` automáticamente al iniciar.
 - [packages/plugin/src/index.ts](https://github.com/anomalyco/opencode/blob/dev/packages/plugin/src/index.ts) — Definiciones de tipos del paquete `@opencode-ai/plugin`
 
 ### Proyecto local
+
 - `C:\Users\user\Desktop\Programacion\Node-express-nest\project-one\opencode.jsonc` — Configuración con plugins registrados
 - `C:\Users\user\Desktop\Programacion\Node-express-nest\project-one\.opencode\plugins\output-contracts.ts` — Implementación real del hook `tool.execute.after`
 - `C:\Users\user\Desktop\Programacion\Node-express-nest\project-one\.opencode\package.json` — Dependencia `@opencode-ai/plugin@^1.18.2`

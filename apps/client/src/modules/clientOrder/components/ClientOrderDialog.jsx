@@ -24,34 +24,136 @@ import { Button } from '@/components/ui/button';
 import { LuUsersRound } from 'react-icons/lu';
 import PropTypes from 'prop-types';
 import { pickDirty } from '@/utils/pickDirty';
-// import { ClientOrderSchema } from '../utils';
-// import { orderStatus } from '@/lib/constants';
-// import {
-//   Select,
-//   SelectContent,
-//   SelectItem,
-//   SelectTrigger,
-//   SelectValue,
-// } from '@/components/ui/select';
 
-export const ClientOrderDialog = ({
-  openDialog,
-  onCloseDialog,
-  selectedRow,
-  onSubmit,
-  onDeleteById,
-  actionDialog,
-}) => {
-  const { t } = useTranslation();
+const EMPTY_FORM_VALUES = {
+  clientId: '',
+  status: '',
+  notes: '',
+  saleId: '',
+};
 
+/** Maps a selected row to the form values shape. */
+const mapRowToFormValues = (selectedRow) => ({
+  clientId: selectedRow.clientId,
+  status: selectedRow.status,
+  notes: selectedRow.notes,
+  saleId: selectedRow.saleId,
+});
+
+/** Generic parametrized input field for the client order form. */
+const ClientOrderInputField = ({ control, name, label, placeholder, type }) => (
+  <FormField
+    control={control}
+    name={name}
+    render={({ field }) => (
+      <FormItem>
+        <FormLabel htmlFor={name}>{label}</FormLabel>
+        <FormControl>
+          <Input
+            id={name}
+            name={name}
+            placeholder={placeholder}
+            type={type}
+            autoComplete="off"
+            {...field}
+            value={field.value ?? ''}
+          />
+        </FormControl>
+        <FormMessage />
+      </FormItem>
+    )}
+  />
+);
+
+ClientOrderInputField.propTypes = {
+  control: PropTypes.object.isRequired,
+  name: PropTypes.string.isRequired,
+  label: PropTypes.string.isRequired,
+  placeholder: PropTypes.string.isRequired,
+  type: PropTypes.string.isRequired,
+};
+
+/** Form grid with the client order input fields. */
+const buildClientOrderFields = ({ control, t }) => (
+  <div className="grid grid-cols-2 gap-6 py-4 auto-rows-auto">
+    <ClientOrderInputField
+      control={control}
+      name="clientId"
+      label={`${t('clientId')}*`}
+      placeholder={t('clientOrder_clientId_placeholder')}
+      type="number"
+    />
+    <ClientOrderInputField
+      control={control}
+      name="notes"
+      label={t('notes')}
+      placeholder={t('clientOrder_notes_placeholder')}
+      type="text"
+    />
+    <ClientOrderInputField
+      control={control}
+      name="saleId"
+      label={t('saleId')}
+      placeholder={t('clientOrder_saleId_placeholder')}
+      type="number"
+    />
+  </div>
+);
+
+/** Dialog header with the module icon and add/edit description. */
+const buildDialogHeader = ({ t, actionDialog, isEdit }) => (
+  <DialogHeader>
+    <DialogTitle className="flex items-center gap-2">
+      <LuUsersRound className="inline mr-3 w-7 h-7" />
+      {actionDialog}
+    </DialogTitle>
+    <DialogDescription>
+      {isEdit ? t('edit_message') : t('add_message')}
+    </DialogDescription>
+  </DialogHeader>
+);
+
+/** Dialog footer with cancel, conditional delete and submit buttons. */
+const buildDialogFooter = ({ t, isEdit, onDelete }) => (
+  <DialogFooter>
+    <DialogClose asChild>
+      <Button
+        type="button"
+        variant="secondary"
+        className="flex-1 md:flex-initial md:w-24"
+      >
+        {t('cancel')}
+      </Button>
+    </DialogClose>
+
+    {isEdit && (
+      <Button
+        type="button"
+        variant="destructive"
+        className="flex-1 md:flex-initial md:w-24"
+        onClick={onDelete}
+      >
+        {t('delete')}
+      </Button>
+    )}
+    <Button
+      type="submit"
+      variant="info"
+      className="flex-1 md:flex-initial md:w-24"
+    >
+      {isEdit ? t('update') : t('save')}
+    </Button>
+  </DialogFooter>
+);
+
+/**
+ * Form state for the client order dialog: reset on row change and on
+ * close, plus the memoized editing id.
+ */
+function useClientOrderDialogForm({ selectedRow, openDialog }) {
   const form = useForm({
     resolver: zodResolver(),
-    defaultValues: {
-      clientId: '',
-      status: '',
-      notes: '',
-      saleId: '',
-    },
+    defaultValues: EMPTY_FORM_VALUES,
   });
   const {
     formState: { dirtyFields },
@@ -66,27 +168,21 @@ export const ClientOrderDialog = ({
   useEffect(() => {
     if (selectedRow?.id) {
       // Filtra y mapea solo los valores necesarios
-      const mappedValues = {
-        clientId: selectedRow.clientId,
-        status: selectedRow.status,
-        notes: selectedRow.notes,
-        saleId: selectedRow.saleId,
-      };
-
-      form.reset(mappedValues);
+      form.reset(mapRowToFormValues(selectedRow));
     }
 
     if (!openDialog) {
-      form.reset({
-        clientId: '',
-        status: '',
-        notes: '',
-        saleId: '',
-      });
+      form.reset(EMPTY_FORM_VALUES);
     }
   }, [selectedRow, openDialog, form]);
 
-  const handleSubmit = (data) => {
+  return { form, dirtyFields, clientOrderId };
+}
+
+/** Submit handler: PATCH with only dirty fields on edit, POST otherwise. */
+const makeSubmitHandler =
+  ({ clientOrderId, dirtyFields, onSubmit }) =>
+  (data) => {
     if (clientOrderId) {
       const changes = pickDirty(data, dirtyFields);
       onSubmit({ id: clientOrderId, body: changes });
@@ -95,6 +191,25 @@ export const ClientOrderDialog = ({
     }
   };
 
+export const ClientOrderDialog = ({
+  openDialog,
+  onCloseDialog,
+  selectedRow,
+  onSubmit,
+  onDeleteById,
+  actionDialog,
+}) => {
+  const { t } = useTranslation();
+  const { form, dirtyFields, clientOrderId } = useClientOrderDialogForm({
+    selectedRow,
+    openDialog,
+  });
+
+  const handleSubmit = makeSubmitHandler({
+    clientOrderId,
+    dirtyFields,
+    onSubmit,
+  });
   const handleDelete = () => {
     onDeleteById(selectedRow.id);
   };
@@ -102,15 +217,7 @@ export const ClientOrderDialog = ({
   return (
     <Dialog open={openDialog} onOpenChange={onCloseDialog}>
       <DialogContent className="sm:max-w-[600px]">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <LuUsersRound className="inline mr-3 w-7 h-7" />
-            {actionDialog}
-          </DialogTitle>
-          <DialogDescription>
-            {clientOrderId ? t('edit_message') : t('add_message')}
-          </DialogDescription>
-        </DialogHeader>
+        {buildDialogHeader({ t, actionDialog, isEdit: !!clientOrderId })}
         <Form {...form}>
           <form
             method="post"
@@ -120,137 +227,12 @@ export const ClientOrderDialog = ({
             onSubmit={form.handleSubmit(handleSubmit)}
             className="flex flex-col flex-wrap gap-5"
           >
-            <div className="grid grid-cols-2 gap-6 py-4 auto-rows-auto">
-              <FormField
-                control={form.control}
-                name="clientId"
-                render={({ field }) => {
-                  return (
-                    <FormItem>
-                      <FormLabel htmlFor="clientId">{t('clientId')}*</FormLabel>
-                      <FormControl>
-                        <Input
-                          id="clientId"
-                          name="clientId"
-                          placeholder={t('clientOrder_clientId_placeholder')}
-                          type="number"
-                          autoComplete="off"
-                          {...field}
-                          value={field.value ?? ''}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  );
-                }}
-              />
-              {/*     <FormField
-                control={form.control}
-                name="status"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel htmlFor="status">{t('status')}</FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder={t('Select a status')} />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {orderStatus.map((status) => (
-                          <SelectItem key={status.value} value={status.value}>
-                            {status.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />  */}
-
-              <FormField
-                control={form.control}
-                name="notes"
-                render={({ field }) => {
-                  return (
-                    <FormItem>
-                      <FormLabel htmlFor="notes">{t('notes')}</FormLabel>
-                      <FormControl>
-                        <Input
-                          id="notes"
-                          name="notes"
-                          placeholder={t('clientOrder_notes_placeholder')}
-                          type="text"
-                          autoComplete="off"
-                          {...field}
-                          value={field.value ?? ''}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  );
-                }}
-              />
-
-              <FormField
-                control={form.control}
-                name="saleId"
-                render={({ field }) => {
-                  return (
-                    <FormItem>
-                      <FormLabel htmlFor="saleId">{t('saleId')}</FormLabel>
-                      <FormControl>
-                        <Input
-                          id="saleId"
-                          name="saleId"
-                          placeholder={t('clientOrder_saleId_placeholder')}
-                          type="number"
-                          autoComplete="off"
-                          {...field}
-                          value={field.value ?? ''}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  );
-                }}
-              />
-            </div>
-            <DialogFooter>
-              <DialogClose asChild>
-                <Button
-                  type="button"
-                  variant="secondary"
-                  className="flex-1 md:flex-initial md:w-24"
-                >
-                  {t('cancel')}
-                </Button>
-              </DialogClose>
-
-              {clientOrderId && (
-                <Button
-                  type="button"
-                  variant="destructive"
-                  className="flex-1 md:flex-initial md:w-24"
-                  onClick={() => {
-                    handleDelete();
-                  }}
-                >
-                  {t('delete')}
-                </Button>
-              )}
-              <Button
-                type="submit"
-                variant="info"
-                className="flex-1 md:flex-initial md:w-24"
-              >
-                {clientOrderId ? t('update') : t('save')}
-              </Button>
-            </DialogFooter>
+            {buildClientOrderFields({ control: form.control, t })}
+            {buildDialogFooter({
+              t,
+              isEdit: !!clientOrderId,
+              onDelete: handleDelete,
+            })}
           </form>
         </Form>
       </DialogContent>

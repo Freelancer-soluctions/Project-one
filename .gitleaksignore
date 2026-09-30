@@ -4,3 +4,34 @@
 60136374f4f226c8d4cc5699bccd88d360a0d633:server/config/db.sequalize.js:password-assignment:11
 4b420c0ccfd917b780662362adaa2092b48cb051:client/src/locale/en.json:password-assignment:50
 4b420c0ccfd917b780662362adaa2092b48cb051:client/src/locale/en.json:password-assignment:59
+# ============================================================
+# Fase de PR-time: hallazgos en DOCUMENTACIÓN — placeholders de ejemplo (no
+# credenciales): URLs de conexión de base de datos en guías/ADRs, en formato
+# plano y su variante JSON-quoted. Política: FP por contenido de docs —
+# marcado por fingerprint (commit:file:rule:line) según el mecanismo estándar
+# de gitleaks. (2026-09-29, PR #133: los 2 leaks del job Secret Detection)
+# ============================================================
+1bd1124238768d3d3c8ac1b72fa2930c03a60b0e:openspec/changes/secret-scanning/tasks.md:database-url:8
+2eecdfc9ffc30371c508e783614ece230da9a544:docs/opencode/neurosymbolic-guardrails.md:database-url:386
+# ============================================================
+# Baseline change `secret-scanning` (2026-09-25): hallazgos HISTÓRICOS del
+# full-history tras arreglar .gitleaks.toml (regla renombrada a custom-api-key
+# + keywords/entropy nuevas re-introducen hallazgos latentes en commits viejos).
+# PR-time es diff-scoped (base..head) y no barre historial. Los 3 valores en
+# server/libs/cloudinary.js + server/utils/cloudinary/ son la MISMA credencial
+# de Cloudinary ya rotada/eliminada del código (hoy via dotenv); el resto son
+# placeholders de tutorial (sk-tu-key-aqui, sk-omniroute-local) o docs.
+# Política: rotación de credenciales vivas fuera de alcance (design.md Non-Goals).
+# ============================================================
+8e8b0c3ba169d43e721e7b5bbb4567cf2257f0f1:docs/omniroute-install-tutorial.md:custom-api-key:50
+8e8b0c3ba169d43e721e7b5bbb4567cf2257f0f1:docs/omniroute-install-tutorial.md:custom-api-key:51
+8e8b0c3ba169d43e721e7b5bbb4567cf2257f0f1:docs/omniroute-install-tutorial.md:custom-api-key:52
+06cd9a682f0346366b24de4745946d7dbc9ee874:docs/omniroute-install-tutorial.md:custom-api-key:50
+06cd9a682f0346366b24de4745946d7dbc9ee874:docs/omniroute-install-tutorial.md:custom-api-key:51
+06cd9a682f0346366b24de4745946d7dbc9ee874:docs/omniroute-install-tutorial.md:custom-api-key:52
+c2fb49fb5feac2f322aae154bc006b0b8b52ad07:server/src/components/news/routes.js:jwt:148
+ef99d5e4307706ac2728a6367e68410849f614e2:server/config/db.sequalize.js:password-assignment:4
+aea2324620107b9d7ba2f3dceee0f05af0d29ab9:server/docs/schemas.js:jwt:231
+aea2324620107b9d7ba2f3dceee0f05af0d29ab9:server/utils/cloudinary/cloudinary.js:generic-secret-variable:6
+0f73cf9468d22931e4741b8ba46eb66df55f7322:server/docs/schemas.js:jwt:10
+124c5881b56c5d78e588b892a475e226bb27e9fa:server/libs/cloudinary.js:generic-secret-variable:6

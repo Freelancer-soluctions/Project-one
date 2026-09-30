@@ -35,16 +35,319 @@ import PropTypes from 'prop-types';
 import { UserSchema } from '../utils';
 import { FIELD_LIMITS } from '@/config/fieldLimits';
 
-export const UsersDialog = ({
+/** Text input field (parametrized name/label/placeholder/type). */
+function UserTextField({
+  control,
+  name,
+  labelKey,
+  placeholderKey,
+  type = 'text',
+  required = false,
+}) {
+  const { t } = useTranslation();
+  return (
+    <FormField
+      control={control}
+      name={name}
+      render={({ field }) => (
+        <FormItem>
+          <FormLabel htmlFor={name}>
+            {t(labelKey)}
+            {required ? '*' : ''}
+          </FormLabel>
+          <FormControl>
+            <Input
+              id={name}
+              name={name}
+              placeholder={t(placeholderKey)}
+              type={type}
+              autoComplete="off"
+              maxLength={FIELD_LIMITS.users[name]}
+              {...field}
+              value={field.value ?? ''}
+            />
+          </FormControl>
+          <FormMessage />
+        </FormItem>
+      )}
+    />
+  );
+}
+
+UserTextField.propTypes = {
+  control: PropTypes.object.isRequired,
+  name: PropTypes.string.isRequired,
+  labelKey: PropTypes.string.isRequired,
+  placeholderKey: PropTypes.string.isRequired,
+  type: PropTypes.string,
+  required: PropTypes.bool,
+};
+
+/** Date picker field (dates before 1900 disabled). */
+function UserDateField({ control, name, labelKey, required = false }) {
+  const { t } = useTranslation();
+  return (
+    <FormField
+      control={control}
+      name={name}
+      render={({ field }) => (
+        <FormItem className="flex flex-col flex-auto">
+          <FormLabel htmlFor={name}>
+            {t(labelKey)}
+            {required ? '*' : ''}
+          </FormLabel>
+          <Popover>
+            <PopoverTrigger asChild>
+              <FormControl>
+                <Button
+                  id={name}
+                  variant={'outline'}
+                  className={cn(
+                    'pl-3 text-left font-normal',
+                    !field.value && 'text-muted-foreground'
+                  )}
+                >
+                  {field.value && format(field.value, 'PPP')}
+                  <CalendarIcon className="w-4 h-4 ml-auto opacity-50" />
+                </Button>
+              </FormControl>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              <Calendar
+                mode="single"
+                selected={field.value}
+                onSelect={field.onChange}
+                disabled={(date) => date < new Date('1900-01-01')}
+              />
+            </PopoverContent>
+          </Popover>
+          <FormMessage />
+        </FormItem>
+      )}
+    />
+  );
+}
+
+UserDateField.propTypes = {
+  control: PropTypes.object.isRequired,
+  name: PropTypes.string.isRequired,
+  labelKey: PropTypes.string.isRequired,
+  required: PropTypes.bool,
+};
+
+/** Admin checkbox field. */
+function UserAdminCheckboxField({ control }) {
+  const { t } = useTranslation();
+  return (
+    <FormField
+      control={control}
+      name="isAdmin"
+      render={({ field }) => (
+        <FormItem className="flex items-center space-x-2">
+          <FormLabel htmlFor="isAdmin">{t('is_admin')}</FormLabel>
+          <FormControl>
+            <Input
+              type="checkbox"
+              id="isAdmin"
+              checked={field.value}
+              {...field}
+            />
+          </FormControl>
+          <FormMessage />
+        </FormItem>
+      )}
+    />
+  );
+}
+
+UserAdminCheckboxField.propTypes = {
+  control: PropTypes.object.isRequired,
+};
+
+/** Renders a list of text-field definitions in order. */
+const renderTextFields = (form, defs) =>
+  defs.map((def) => (
+    <UserTextField key={def.name} control={form.control} {...def} />
+  ));
+
+/** Text fields before the date pickers. */
+const TOP_TEXT_FIELDS = [
+  {
+    name: 'name',
+    labelKey: 'name',
+    placeholderKey: 'user_name_placeholder',
+    required: true,
+  },
+  {
+    name: 'email',
+    labelKey: 'email',
+    placeholderKey: 'user_email_placeholder',
+    type: 'email',
+    required: true,
+  },
+  {
+    name: 'telephone',
+    labelKey: 'telephone',
+    placeholderKey: 'user_telephone_placeholder',
+    type: 'tel',
+    required: true,
+  },
+  {
+    name: 'address',
+    labelKey: 'address',
+    placeholderKey: 'user_address_placeholder',
+  },
+];
+
+/** Text fields after the admin checkbox. */
+const BOTTOM_TEXT_FIELDS = [
+  {
+    name: 'picture',
+    labelKey: 'picture',
+    placeholderKey: 'user_picture_placeholder',
+    type: 'document',
+  },
+  {
+    name: 'document',
+    labelKey: 'document',
+    placeholderKey: 'user_document_placeholder',
+    type: 'document',
+  },
+  {
+    name: 'roleId',
+    labelKey: 'role_id',
+    placeholderKey: 'user_role_id_placeholder',
+    type: 'number',
+    required: true,
+  },
+  {
+    name: 'statusId',
+    labelKey: 'status_id',
+    placeholderKey: 'user_status_id_placeholder',
+    type: 'number',
+    required: true,
+  },
+  {
+    name: 'userPermitId',
+    labelKey: 'user_permit_id',
+    placeholderKey: 'user_permit_id_placeholder',
+    type: 'number',
+    required: true,
+  },
+];
+
+/** Text fields between the date pickers and the admin checkbox. */
+const MID_TEXT_FIELDS = [
+  {
+    name: 'socialSecurity',
+    labelKey: 'social_security',
+    placeholderKey: 'user_social_security_placeholder',
+    required: true,
+  },
+  {
+    name: 'zipcode',
+    labelKey: 'zipcode',
+    placeholderKey: 'user_zipcode_placeholder',
+    required: true,
+  },
+  {
+    name: 'state',
+    labelKey: 'state',
+    placeholderKey: 'user_state_placeholder',
+  },
+  {
+    name: 'city',
+    labelKey: 'city',
+    placeholderKey: 'user_city_placeholder',
+  },
+];
+
+/** Grid of dialog form fields in display order. */
+function buildUserFields({ form }) {
+  return (
+    <div className="grid grid-cols-2 gap-6 py-4 auto-rows-auto">
+      {renderTextFields(form, TOP_TEXT_FIELDS)}
+
+      <UserDateField
+        control={form.control}
+        name="birthday"
+        labelKey="birthday"
+        required
+      />
+      <UserDateField
+        control={form.control}
+        name="startDate"
+        labelKey="start_date"
+        required
+      />
+
+      {renderTextFields(form, MID_TEXT_FIELDS)}
+
+      <UserAdminCheckboxField control={form.control} />
+
+      {renderTextFields(form, BOTTOM_TEXT_FIELDS)}
+    </div>
+  );
+}
+
+/** Dialog header: users icon, action title and edit description. */
+function buildDialogHeader({ t, actionDialog }) {
+  return (
+    <DialogHeader>
+      <DialogTitle className="flex items-center gap-2">
+        <LuUsersRound className="inline mr-3 w-7 h-7" />
+        {actionDialog}
+      </DialogTitle>
+      <DialogDescription>{t('edit_message')}</DialogDescription>
+    </DialogHeader>
+  );
+}
+
+/** Dialog footer: cancel, delete (edit only) and save/update. */
+function buildDialogFooter({ t, userId, handleDelete }) {
+  return (
+    <DialogFooter>
+      <DialogClose asChild>
+        <Button
+          type="button"
+          variant="secondary"
+          className="flex-1 md:flex-initial md:w-24"
+        >
+          {t('cancel')}
+        </Button>
+      </DialogClose>
+
+      {userId && (
+        <Button
+          type="button"
+          variant="destructive"
+          className="flex-1 md:flex-initial md:w-24"
+          onClick={handleDelete}
+        >
+          {t('delete')}
+        </Button>
+      )}
+      <Button
+        type="submit"
+        variant="info"
+        className="flex-1 md:flex-initial md:w-24"
+      >
+        {userId ? t('update') : t('save')}
+      </Button>
+    </DialogFooter>
+  );
+}
+
+/**
+ * Dialog form state: reset from the selected row, submit passes the
+ * user id alongside the values.
+ */
+function useUserDialogForm({
   openDialog,
-  onCloseDialog,
   selectedRow,
   onSubmit,
   onDeleteById,
-  actionDialog,
-}) => {
-  const { t } = useTranslation();
-
+}) {
   const form = useForm({
     resolver: zodResolver(UserSchema),
   });
@@ -55,7 +358,7 @@ export const UsersDialog = ({
   useEffect(() => {
     if (selectedRow?.id) {
       // Filtra y mapea solo los valores necesarios
-      const mappedValues = {
+      form.reset({
         name: selectedRow.name,
         email: selectedRow.email,
         telephone: selectedRow.telephone,
@@ -71,9 +374,7 @@ export const UsersDialog = ({
         document: selectedRow.document,
         roleId: selectedRow.roleId,
         statusId: selectedRow.statusId,
-      };
-
-      form.reset(mappedValues);
+      });
     }
 
     if (!openDialog) {
@@ -105,16 +406,29 @@ export const UsersDialog = ({
     onDeleteById(selectedRow.id);
   };
 
+  return { form, userId, handleSubmit, handleDelete };
+}
+
+export const UsersDialog = ({
+  openDialog,
+  onCloseDialog,
+  selectedRow,
+  onSubmit,
+  onDeleteById,
+  actionDialog,
+}) => {
+  const { t } = useTranslation();
+  const { form, userId, handleSubmit, handleDelete } = useUserDialogForm({
+    openDialog,
+    selectedRow,
+    onSubmit,
+    onDeleteById,
+  });
+
   return (
     <Dialog open={openDialog} onOpenChange={onCloseDialog}>
       <DialogContent className="sm:max-w-[600px]">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <LuUsersRound className="inline mr-3 w-7 h-7" />
-            {actionDialog}
-          </DialogTitle>
-          <DialogDescription>{t('edit_message')}</DialogDescription>
-        </DialogHeader>
+        {buildDialogHeader({ t, actionDialog })}
         <Form {...form}>
           <form
             method="post"
@@ -124,460 +438,9 @@ export const UsersDialog = ({
             onSubmit={form.handleSubmit(handleSubmit)}
             className="flex flex-col flex-wrap gap-5"
           >
-            <div className="grid grid-cols-2 gap-6 py-4 auto-rows-auto">
-              <FormField
-                control={form.control}
-                name="name"
-                render={({ field }) => {
-                  return (
-                    <FormItem>
-                      <FormLabel htmlFor="name">{t('name')}*</FormLabel>
-                      <FormControl>
-                        <Input
-                          id="name"
-                          name="name"
-                          placeholder={t('user_name_placeholder')}
-                          type="text"
-                          autoComplete="off"
-                          maxLength={FIELD_LIMITS.users.name}
-                          {...field}
-                          value={field.value ?? ''}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  );
-                }}
-              />
+            {buildUserFields({ form })}
 
-              <FormField
-                control={form.control}
-                name="email"
-                render={({ field }) => {
-                  return (
-                    <FormItem>
-                      <FormLabel htmlFor="email">{t('email')}*</FormLabel>
-                      <FormControl>
-                        <Input
-                          id="email"
-                          name="email"
-                          placeholder={t('user_email_placeholder')}
-                          type="email"
-                          autoComplete="off"
-                          maxLength={FIELD_LIMITS.users.email}
-                          {...field}
-                          value={field.value ?? ''}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  );
-                }}
-              />
-
-              <FormField
-                control={form.control}
-                name="telephone"
-                render={({ field }) => {
-                  return (
-                    <FormItem>
-                      <FormLabel htmlFor="telephone">
-                        {t('telephone')}*
-                      </FormLabel>
-                      <FormControl>
-                        <Input
-                          id="telephone"
-                          name="telephone"
-                          placeholder={t('user_telephone_placeholder')}
-                          type="tel"
-                          autoComplete="off"
-                          maxLength={FIELD_LIMITS.users.telephone}
-                          {...field}
-                          value={field.value ?? ''}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  );
-                }}
-              />
-
-              <FormField
-                control={form.control}
-                name="address"
-                render={({ field }) => {
-                  return (
-                    <FormItem>
-                      <FormLabel htmlFor="address">{t('address')}</FormLabel>
-                      <FormControl>
-                        <Input
-                          id="address"
-                          name="address"
-                          placeholder={t('user_address_placeholder')}
-                          type="text"
-                          autoComplete="off"
-                          maxLength={FIELD_LIMITS.users.address}
-                          {...field}
-                          value={field.value ?? ''}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  );
-                }}
-              />
-
-              <FormField
-                control={form.control}
-                name="birthday"
-                render={({ field }) => (
-                  <FormItem className="flex flex-col flex-auto">
-                    <FormLabel htmlFor="birthday">{t('birthday')}*</FormLabel>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <FormControl>
-                          <Button
-                            id="birthday"
-                            variant={'outline'}
-                            className={cn(
-                              'pl-3 text-left font-normal',
-                              !field.value && 'text-muted-foreground'
-                            )}
-                          >
-                            {field.value && format(field.value, 'PPP')}
-                            <CalendarIcon className="w-4 h-4 ml-auto opacity-50" />
-                          </Button>
-                        </FormControl>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0" align="start">
-                        <Calendar
-                          mode="single"
-                          selected={field.value}
-                          onSelect={field.onChange}
-                          disabled={(date) => date < new Date('1900-01-01')}
-                        />
-                      </PopoverContent>
-                    </Popover>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="startDate"
-                render={({ field }) => (
-                  <FormItem className="flex flex-col flex-auto">
-                    <FormLabel htmlFor="startDate">
-                      {t('start_date')}*
-                    </FormLabel>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <FormControl>
-                          <Button
-                            id="startDate"
-                            variant={'outline'}
-                            className={cn(
-                              'pl-3 text-left font-normal',
-                              !field.value && 'text-muted-foreground'
-                            )}
-                          >
-                            {field.value && format(field.value, 'PPP')}
-                            <CalendarIcon className="w-4 h-4 ml-auto opacity-50" />
-                          </Button>
-                        </FormControl>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0" align="start">
-                        <Calendar
-                          mode="single"
-                          selected={field.value}
-                          onSelect={field.onChange}
-                          disabled={(date) => date < new Date('1900-01-01')}
-                        />
-                      </PopoverContent>
-                    </Popover>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="socialSecurity"
-                render={({ field }) => {
-                  return (
-                    <FormItem>
-                      <FormLabel htmlFor="socialSecurity">
-                        {t('social_security')}*
-                      </FormLabel>
-                      <FormControl>
-                        <Input
-                          id="socialSecurity"
-                          name="socialSecurity"
-                          placeholder={t('user_social_security_placeholder')}
-                          type="text"
-                          autoComplete="off"
-                          maxLength={FIELD_LIMITS.users.socialSecurity}
-                          {...field}
-                          value={field.value ?? ''}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  );
-                }}
-              />
-
-              <FormField
-                control={form.control}
-                name="zipcode"
-                render={({ field }) => {
-                  return (
-                    <FormItem>
-                      <FormLabel htmlFor="zipcode">{t('zipcode')}*</FormLabel>
-                      <FormControl>
-                        <Input
-                          id="zipcode"
-                          name="zipcode"
-                          placeholder={t('user_zipcode_placeholder')}
-                          type="text"
-                          autoComplete="off"
-                          maxLength={FIELD_LIMITS.users.zipcode}
-                          {...field}
-                          value={field.value ?? ''}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  );
-                }}
-              />
-
-              <FormField
-                control={form.control}
-                name="state"
-                render={({ field }) => {
-                  return (
-                    <FormItem>
-                      <FormLabel htmlFor="state">{t('state')}</FormLabel>
-                      <FormControl>
-                        <Input
-                          id="state"
-                          name="state"
-                          placeholder={t('user_state_placeholder')}
-                          type="text"
-                          autoComplete="off"
-                          maxLength={FIELD_LIMITS.users.state}
-                          {...field}
-                          value={field.value ?? ''}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  );
-                }}
-              />
-
-              <FormField
-                control={form.control}
-                name="city"
-                render={({ field }) => {
-                  return (
-                    <FormItem>
-                      <FormLabel htmlFor="city">{t('city')}</FormLabel>
-                      <FormControl>
-                        <Input
-                          id="city"
-                          name="city"
-                          placeholder={t('user_city_placeholder')}
-                          type="text"
-                          autoComplete="off"
-                          maxLength={FIELD_LIMITS.users.city}
-                          {...field}
-                          value={field.value ?? ''}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  );
-                }}
-              />
-
-              <FormField
-                control={form.control}
-                name="isAdmin"
-                render={({ field }) => (
-                  <FormItem className="flex items-center space-x-2">
-                    <FormLabel htmlFor="isAdmin">{t('is_admin')}</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="checkbox"
-                        id="isAdmin"
-                        checked={field.value}
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="picture"
-                render={({ field }) => {
-                  return (
-                    <FormItem>
-                      <FormLabel htmlFor="picture">{t('picture')}</FormLabel>
-                      <FormControl>
-                        <Input
-                          id="picture"
-                          name="picture"
-                          placeholder={t('user_picture_placeholder')}
-                          type="document"
-                          autoComplete="off"
-                          {...field}
-                          value={field.value ?? ''}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  );
-                }}
-              />
-
-              <FormField
-                control={form.control}
-                name="document"
-                render={({ field }) => {
-                  return (
-                    <FormItem>
-                      <FormLabel htmlFor="document">{t('document')}</FormLabel>
-                      <FormControl>
-                        <Input
-                          id="document"
-                          name="document"
-                          placeholder={t('user_document_placeholder')}
-                          type="document"
-                          autoComplete="off"
-                          maxLength={FIELD_LIMITS.users.document}
-                          {...field}
-                          value={field.value ?? ''}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  );
-                }}
-              />
-
-              <FormField
-                control={form.control}
-                name="roleId"
-                render={({ field }) => {
-                  return (
-                    <FormItem>
-                      <FormLabel htmlFor="roleId">{t('role_id')}*</FormLabel>
-                      <FormControl>
-                        <Input
-                          id="roleId"
-                          name="roleId"
-                          placeholder={t('user_role_id_placeholder')}
-                          type="number"
-                          autoComplete="off"
-                          {...field}
-                          value={field.value ?? ''}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  );
-                }}
-              />
-
-              <FormField
-                control={form.control}
-                name="statusId"
-                render={({ field }) => {
-                  return (
-                    <FormItem>
-                      <FormLabel htmlFor="statusId">
-                        {t('status_id')}*
-                      </FormLabel>
-                      <FormControl>
-                        <Input
-                          id="statusId"
-                          name="statusId"
-                          placeholder={t('user_status_id_placeholder')}
-                          type="number"
-                          autoComplete="off"
-                          {...field}
-                          value={field.value ?? ''}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  );
-                }}
-              />
-
-              <FormField
-                control={form.control}
-                name="userPermitId"
-                render={({ field }) => {
-                  return (
-                    <FormItem>
-                      <FormLabel htmlFor="userPermitId">
-                        {t('user_permit_id')}*
-                      </FormLabel>
-                      <FormControl>
-                        <Input
-                          id="userPermitId"
-                          name="userPermitId"
-                          placeholder={t('user_permit_id_placeholder')}
-                          type="number"
-                          autoComplete="off"
-                          {...field}
-                          value={field.value ?? ''}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  );
-                }}
-              />
-            </div>
-            <DialogFooter>
-              <DialogClose asChild>
-                <Button
-                  type="button"
-                  variant="secondary"
-                  className="flex-1 md:flex-initial md:w-24"
-                >
-                  {t('cancel')}
-                </Button>
-              </DialogClose>
-
-              {userId && (
-                <Button
-                  type="button"
-                  variant="destructive"
-                  className="flex-1 md:flex-initial md:w-24"
-                  onClick={() => {
-                    handleDelete();
-                  }}
-                >
-                  {t('delete')}
-                </Button>
-              )}
-              <Button
-                type="submit"
-                variant="info"
-                className="flex-1 md:flex-initial md:w-24"
-              >
-                {userId ? t('update') : t('save')}
-              </Button>
-            </DialogFooter>
+            {buildDialogFooter({ t, userId, handleDelete })}
           </form>
         </Form>
       </DialogContent>

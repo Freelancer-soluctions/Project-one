@@ -50,33 +50,511 @@ import { Button } from '@/components/ui/button';
 import { CalendarIcon } from '@radix-ui/react-icons'; // Using ClipboardIcon
 import { LuClipboard } from 'react-icons/lu';
 
-export const PermissionDialog = ({
+/** Normalizes a raw row to form values (dates as Date for the Calendar). */
+const mapRowToFormValues = (row) => ({
+  employeeId: row.employeeId,
+  type: row.type,
+  startDate: row.startDate ? new Date(row.startDate) : null,
+  endDate: row.endDate ? new Date(row.endDate) : null,
+  reason: row.reason ?? '',
+  status: row.status ?? 'PENDING',
+  comments: row.comments ?? '',
+  createdOn: row.createdOn,
+  updatedOn: row.updatedOn,
+  userPermissionCreatedName: row.userPermissionCreatedName,
+  userPermissionUpdatedName: row.userPermissionUpdatedName,
+  // approvedBy and approvedAt are likely handled by the backend
+});
+
+const EMPTY_FORM_VALUES = {
+  employeeId: '',
+  type: undefined, // Use undefined for initial Select state
+  startDate: null,
+  endDate: null,
+  reason: '',
+  status: 'PENDING',
+  comments: '',
+};
+
+/** Converts form dates to ISO strings for submission. */
+const toSubmissionValues = (data) => ({
+  ...data,
+  startDate: data.startDate ? format(data.startDate, 'yyyy-MM-dd') : null,
+  endDate: data.endDate ? format(data.endDate, 'yyyy-MM-dd') : null,
+});
+
+/** Employee select field. */
+function PermissionEmployeeField({ control, dataEmployees }) {
+  const { t } = useTranslation();
+  return (
+    <FormField
+      control={control}
+      name="employeeId"
+      render={({ field }) => (
+        <FormItem>
+          <FormLabel>{t('employee')}*</FormLabel>
+          <Select
+            onValueChange={field.onChange}
+            value={field.value?.toString() ?? ''}
+          >
+            <FormControl>
+              <SelectTrigger>
+                <SelectValue placeholder={t('select_employee_placeholder')} />
+              </SelectTrigger>
+            </FormControl>
+            <SelectContent>
+              {dataEmployees.map((employee) => (
+                <SelectItem key={employee.id} value={employee.id.toString()}>
+                  {`${employee.name} ${employee.lastName}`}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <FormMessage />
+        </FormItem>
+      )}
+    />
+  );
+}
+
+PermissionEmployeeField.propTypes = {
+  control: PropTypes.object.isRequired,
+  dataEmployees: PropTypes.array.isRequired,
+};
+
+/** Type select field. */
+function PermissionTypeField({ control }) {
+  const { t } = useTranslation();
+  return (
+    <FormField
+      control={control}
+      name="type"
+      render={({ field }) => (
+        <FormItem>
+          <FormLabel>{t('type')}*</FormLabel>
+          <Select onValueChange={field.onChange} value={field.value ?? ''}>
+            <FormControl>
+              <SelectTrigger>
+                <SelectValue
+                  placeholder={t('select_permission_type_placeholder')}
+                />
+              </SelectTrigger>
+            </FormControl>
+            <SelectContent>
+              {PERMISSION_TYPES.map((type) => (
+                <SelectItem key={type} value={type}>
+                  {t(`permission_type.${type}`)}{' '}
+                  {/* Assumes translations like permission_type.SICK */}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <FormMessage />
+        </FormItem>
+      )}
+    />
+  );
+}
+
+PermissionTypeField.propTypes = {
+  control: PropTypes.object.isRequired,
+};
+
+/** Status select field. */
+function PermissionStatusField({ control }) {
+  const { t } = useTranslation();
+  return (
+    <FormField
+      control={control}
+      name="status"
+      render={({ field }) => (
+        <FormItem>
+          <FormLabel>{t('status')}*</FormLabel>
+          <Select
+            onValueChange={field.onChange}
+            value={field.value ?? 'PENDING'}
+            // Consider disabling based on user role
+          >
+            <FormControl>
+              <SelectTrigger>
+                <SelectValue placeholder={t('select_status_placeholder')} />
+              </SelectTrigger>
+            </FormControl>
+            <SelectContent>
+              {PERMISSION_STATUS.map((status) => (
+                <SelectItem key={status} value={status}>
+                  {t(`status.${status}`)}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <FormMessage />
+        </FormItem>
+      )}
+    />
+  );
+}
+
+PermissionStatusField.propTypes = {
+  control: PropTypes.object.isRequired,
+};
+
+/** Date picker field (endDate disables dates before startDate). */
+function PermissionDateField({ control, form, name, labelKey }) {
+  const { t } = useTranslation();
+  return (
+    <FormField
+      control={control}
+      name={name}
+      render={({ field }) => (
+        <FormItem className="flex flex-col">
+          <FormLabel>{t(labelKey)}*</FormLabel>
+          <Popover>
+            <PopoverTrigger asChild>
+              <FormControl>
+                <Button
+                  variant={'outline'}
+                  className={cn(
+                    'w-full pl-3 text-left font-normal',
+                    !field.value && 'text-muted-foreground'
+                  )}
+                >
+                  {field.value ? (
+                    format(field.value, 'PPP')
+                  ) : (
+                    <span>{t('pick_date')}</span>
+                  )}
+                  <CalendarIcon className="w-4 h-4 ml-auto opacity-50" />
+                </Button>
+              </FormControl>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              <Calendar
+                mode="single"
+                selected={field.value}
+                onSelect={field.onChange}
+                disabled={
+                  name === 'endDate'
+                    ? (date) =>
+                        form.getValues('startDate') &&
+                        date < form.getValues('startDate')
+                    : undefined
+                }
+                initialFocus
+              />
+            </PopoverContent>
+          </Popover>
+          <FormMessage />
+        </FormItem>
+      )}
+    />
+  );
+}
+
+PermissionDateField.propTypes = {
+  control: PropTypes.object.isRequired,
+  form: PropTypes.object.isRequired,
+  name: PropTypes.string.isRequired,
+  labelKey: PropTypes.string.isRequired,
+};
+
+/** Textarea field spanning the full grid width. */
+function PermissionTextareaField({
+  control,
+  name,
+  labelKey,
+  placeholderKey,
+  required = false,
+}) {
+  const { t } = useTranslation();
+  return (
+    <FormField
+      control={control}
+      name={name}
+      render={({ field }) => (
+        <FormItem className="md:col-span-3">
+          {' '}
+          {/* Span across grid */}
+          <FormLabel htmlFor={name}>
+            {t(labelKey)}
+            {required ? '*' : ''}
+          </FormLabel>
+          <FormControl>
+            <Textarea
+              id={name}
+              name={name}
+              placeholder={t(placeholderKey)}
+              maxLength={FIELD_LIMITS.permission[name]}
+              rows={3}
+              {...field}
+              value={field.value ?? ''}
+            />
+          </FormControl>
+          <FormMessage />
+        </FormItem>
+      )}
+    />
+  );
+}
+
+PermissionTextareaField.propTypes = {
+  control: PropTypes.object.isRequired,
+  name: PropTypes.string.isRequired,
+  labelKey: PropTypes.string.isRequired,
+  placeholderKey: PropTypes.string.isRequired,
+  required: PropTypes.bool,
+};
+
+/** Disabled text field for audit data (created/updated by). */
+function PermissionReadonlyTextField({ control, name, labelKey }) {
+  const { t } = useTranslation();
+  return (
+    <FormField
+      control={control}
+      name={name}
+      render={({ field }) => (
+        <FormItem>
+          <FormLabel htmlFor={name}>{t(labelKey)}</FormLabel>
+          <FormControl>
+            <Input
+              id={name}
+              name={name}
+              disabled
+              {...field}
+              value={field.value ?? ''}
+            />
+          </FormControl>
+          <FormMessage />
+        </FormItem>
+      )}
+    />
+  );
+}
+
+PermissionReadonlyTextField.propTypes = {
+  control: PropTypes.object.isRequired,
+  name: PropTypes.string.isRequired,
+  labelKey: PropTypes.string.isRequired,
+};
+
+/** Disabled date display with calendar popover (created/updated on). */
+function PermissionReadonlyDateField({ control, name, labelKey }) {
+  const { t } = useTranslation();
+  return (
+    <FormField
+      control={control}
+      name={name}
+      render={({ field }) => (
+        <FormItem className="flex flex-col flex-auto">
+          <FormLabel htmlFor={name}>{t(labelKey)}</FormLabel>
+          <Popover>
+            <PopoverTrigger asChild>
+              <FormControl>
+                <Button
+                  id={name}
+                  disabled={true}
+                  readOnly={true}
+                  variant={'outline'}
+                  className={cn(
+                    'pl-3 text-left font-normal',
+                    !field.value && 'text-muted-foreground'
+                  )}
+                >
+                  {field.value && format(new Date(field.value), 'PPP')}
+                  <CalendarIcon className="w-4 h-4 ml-auto opacity-50" />
+                </Button>
+              </FormControl>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              <Calendar
+                mode="single"
+                selected={field.value ? new Date(field.value) : null}
+                disabled={true}
+              />
+            </PopoverContent>
+          </Popover>
+          <FormMessage />
+        </FormItem>
+      )}
+    />
+  );
+}
+
+PermissionReadonlyDateField.propTypes = {
+  control: PropTypes.object.isRequired,
+  name: PropTypes.string.isRequired,
+  labelKey: PropTypes.string.isRequired,
+};
+
+/** Read-only audit pair with the grid spacer after it. */
+function buildAuditPair({ form, nameKey, dateKey, byLabelKey, onLabelKey }) {
+  return (
+    <>
+      <PermissionReadonlyTextField
+        control={form.control}
+        name={nameKey}
+        labelKey={byLabelKey}
+      />
+      <PermissionReadonlyDateField
+        control={form.control}
+        name={dateKey}
+        labelKey={onLabelKey}
+      />
+      {/* Spacer */}
+      <div className="md:col-span-1"></div>
+    </>
+  );
+}
+
+/** Grid of dialog form fields in display order. */
+function buildPermissionFields({
+  form,
+  dataEmployees,
+  hasCreated,
+  hasUpdated,
+}) {
+  return (
+    <div className="grid grid-cols-1 gap-6 py-4 md:grid-cols-3 auto-rows-auto">
+      {/* Employee Select */}
+      <PermissionEmployeeField
+        control={form.control}
+        dataEmployees={dataEmployees}
+      />
+
+      {/* Type Select */}
+      <PermissionTypeField control={form.control} />
+
+      {/* Status Select */}
+      <PermissionStatusField control={form.control} />
+
+      {/* Start Date Picker */}
+      <PermissionDateField
+        control={form.control}
+        form={form}
+        name="startDate"
+        labelKey="start_date"
+      />
+
+      {/* End Date Picker */}
+      <PermissionDateField
+        control={form.control}
+        form={form}
+        name="endDate"
+        labelKey="end_date"
+      />
+
+      {/* Spacer - Can add another field like approvedBy if needed and handled by FE */}
+      <div className="md:col-span-1"></div>
+
+      {/* Reason Textarea */}
+      <PermissionTextareaField
+        control={form.control}
+        name="reason"
+        labelKey="reason"
+        placeholderKey="permission_reason_placeholder"
+        required
+      />
+
+      {/* Comments Textarea */}
+      <PermissionTextareaField
+        control={form.control}
+        name="comments"
+        labelKey="comments"
+        placeholderKey="permission_comments_placeholder"
+      />
+
+      {/* Created By/On Fields */}
+      {hasCreated &&
+        buildAuditPair({
+          form,
+          nameKey: 'userPermissionCreatedName',
+          dateKey: 'createdOn',
+          byLabelKey: 'created_by',
+          onLabelKey: 'created_on',
+        })}
+
+      {/* Updated By/On Fields */}
+      {hasUpdated &&
+        buildAuditPair({
+          form,
+          nameKey: 'userPermissionUpdatedName',
+          dateKey: 'updatedOn',
+          byLabelKey: 'updated_by',
+          onLabelKey: 'updated_on',
+        })}
+    </div>
+  );
+}
+
+/** Dialog header: clipboard icon, action title and edit/add description. */
+function buildDialogHeader({ t, actionDialog, permissionId }) {
+  return (
+    <DialogHeader>
+      <DialogTitle className="flex items-center gap-2">
+        <LuClipboard className="inline mr-3 w-7 h-7" /> {/* Changed Icon */}
+        {actionDialog}
+      </DialogTitle>
+      <DialogDescription>
+        {permissionId
+          ? t('edit_permission_message')
+          : t('add_permission_message')}
+      </DialogDescription>
+    </DialogHeader>
+  );
+}
+
+/** Dialog footer: cancel, delete (edit only) and save/update. */
+function buildDialogFooter({ t, permissionId, handleDelete }) {
+  return (
+    <DialogFooter>
+      <DialogClose asChild>
+        <Button
+          type="button"
+          variant="secondary"
+          className="flex-1 md:flex-initial md:w-24"
+        >
+          {t('cancel')}
+        </Button>
+      </DialogClose>
+
+      {permissionId && (
+        <Button
+          type="button"
+          variant="destructive"
+          className="flex-1 md:flex-initial md:w-24"
+          onClick={handleDelete}
+        >
+          {t('delete')}
+        </Button>
+      )}
+      <Button
+        type="submit"
+        variant="info"
+        className="flex-1 md:flex-initial md:w-24"
+      >
+        {permissionId ? t('update') : t('save')}
+      </Button>
+    </DialogFooter>
+  );
+}
+
+/**
+ * Dialog form state: reset from the selected row, date formatting +
+ * dirty-field PATCH payloads on edit.
+ */
+function usePermissionDialogForm({
   openDialog,
-  onCloseDialog,
   selectedRow,
   onSubmit,
   onDeleteById,
-  actionDialog,
-  dataEmployees,
-}) => {
-  const { t } = useTranslation();
-
+}) {
   const form = useForm({
     resolver: zodResolver(PermissionSchema),
-    defaultValues: {
-      employeeId: '',
-      type: undefined, // Use undefined for initial Select state
-      startDate: null,
-      endDate: null,
-      reason: '',
-      status: 'PENDING',
-      comments: '',
-    },
+    defaultValues: EMPTY_FORM_VALUES,
   });
   const {
     formState: { dirtyFields },
   } = form;
-
   const permissionId = useMemo(
     () => selectedRow?.id ?? null,
     [selectedRow?.id]
@@ -84,46 +562,20 @@ export const PermissionDialog = ({
 
   useEffect(() => {
     if (selectedRow?.id) {
-      const mappedValues = {
-        employeeId: selectedRow.employeeId,
-        type: selectedRow.type,
-        startDate: selectedRow.startDate
-          ? new Date(selectedRow.startDate)
-          : null,
-        endDate: selectedRow.endDate ? new Date(selectedRow.endDate) : null,
-        reason: selectedRow.reason ?? '',
-        status: selectedRow.status ?? 'PENDING',
-        comments: selectedRow.comments ?? '',
-        createdOn: selectedRow.createdOn,
-        updatedOn: selectedRow.updatedOn,
-        userPermissionCreatedName: selectedRow.userPermissionCreatedName,
-        userPermissionUpdatedName: selectedRow.userPermissionUpdatedName,
-        // approvedBy and approvedAt are likely handled by the backend
-      };
-      form.reset(mappedValues);
+      form.reset(mapRowToFormValues(selectedRow));
     } else {
-      form.reset({
-        employeeId: '',
-        type: undefined,
-        startDate: null,
-        endDate: null,
-        reason: '',
-        status: 'PENDING',
-        comments: '',
-      });
+      form.reset(EMPTY_FORM_VALUES);
     }
   }, [selectedRow, openDialog, form]);
 
   const handleSubmit = (data) => {
-    const submissionData = {
-      ...data,
-      startDate: data.startDate ? format(data.startDate, 'yyyy-MM-dd') : null,
-      endDate: data.endDate ? format(data.endDate, 'yyyy-MM-dd') : null,
-    };
+    const submissionData = toSubmissionValues(data);
     if (permissionId) {
+      // edit → send only changed fields (PATCH)
       const changes = pickDirty(submissionData, dirtyFields);
       onSubmit({ id: permissionId, body: changes });
     } else {
+      // create → send all fields (POST)
       onSubmit(submissionData);
     }
   };
@@ -134,21 +586,35 @@ export const PermissionDialog = ({
     }
   };
 
+  return { form, permissionId, handleSubmit, handleDelete };
+}
+
+export const PermissionDialog = ({
+  openDialog,
+  onCloseDialog,
+  selectedRow,
+  onSubmit,
+  onDeleteById,
+  actionDialog,
+  dataEmployees,
+}) => {
+  const { t } = useTranslation();
+  const { form, permissionId, handleSubmit, handleDelete } =
+    usePermissionDialogForm({
+      openDialog,
+      selectedRow,
+      onSubmit,
+      onDeleteById,
+    });
+
+  const hasCreated = selectedRow?.createdOn && permissionId;
+  const hasUpdated = selectedRow?.updatedOn && permissionId;
+
   return (
     <Dialog open={openDialog} onOpenChange={onCloseDialog}>
       {/* Increased max width for more fields */}
       <DialogContent className="sm:max-w-[750px]">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <LuClipboard className="inline mr-3 w-7 h-7" /> {/* Changed Icon */}
-            {actionDialog}
-          </DialogTitle>
-          <DialogDescription>
-            {permissionId
-              ? t('edit_permission_message')
-              : t('add_permission_message')}
-          </DialogDescription>
-        </DialogHeader>
+        {buildDialogHeader({ t, actionDialog, permissionId })}
         <Form {...form}>
           <form
             method="post"
@@ -159,416 +625,14 @@ export const PermissionDialog = ({
             className="flex flex-col flex-wrap gap-5"
           >
             {/* Use grid-cols-3 for potentially more fields per row */}
-            <div className="grid grid-cols-1 gap-6 py-4 md:grid-cols-3 auto-rows-auto">
-              {/* Employee Select */}
-              <FormField
-                control={form.control}
-                name="employeeId"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t('employee')}*</FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      value={field.value?.toString() ?? ''}
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue
-                            placeholder={t('select_employee_placeholder')}
-                          />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {dataEmployees.map((employee) => (
-                          <SelectItem
-                            key={employee.id}
-                            value={employee.id.toString()}
-                          >
-                            {`${employee.name} ${employee.lastName}`}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+            {buildPermissionFields({
+              form,
+              dataEmployees,
+              hasCreated,
+              hasUpdated,
+            })}
 
-              {/* Type Select */}
-              <FormField
-                control={form.control}
-                name="type"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t('type')}*</FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      value={field.value ?? ''}
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue
-                            placeholder={t(
-                              'select_permission_type_placeholder'
-                            )}
-                          />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {PERMISSION_TYPES.map((type) => (
-                          <SelectItem key={type} value={type}>
-                            {t(`permission_type.${type}`)}{' '}
-                            {/* Assumes translations like permission_type.SICK */}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              {/* Status Select */}
-              <FormField
-                control={form.control}
-                name="status"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t('status')}*</FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      value={field.value ?? 'PENDING'}
-                      // Consider disabling based on user role
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue
-                            placeholder={t('select_status_placeholder')}
-                          />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {PERMISSION_STATUS.map((status) => (
-                          <SelectItem key={status} value={status}>
-                            {t(`status.${status}`)}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              {/* Start Date Picker */}
-              <FormField
-                control={form.control}
-                name="startDate"
-                render={({ field }) => (
-                  <FormItem className="flex flex-col">
-                    <FormLabel>{t('start_date')}*</FormLabel>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <FormControl>
-                          <Button
-                            variant={'outline'}
-                            className={cn(
-                              'w-full pl-3 text-left font-normal',
-                              !field.value && 'text-muted-foreground'
-                            )}
-                          >
-                            {field.value ? (
-                              format(field.value, 'PPP')
-                            ) : (
-                              <span>{t('pick_date')}</span>
-                            )}
-                            <CalendarIcon className="w-4 h-4 ml-auto opacity-50" />
-                          </Button>
-                        </FormControl>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0" align="start">
-                        <Calendar
-                          mode="single"
-                          selected={field.value}
-                          onSelect={field.onChange}
-                          initialFocus
-                        />
-                      </PopoverContent>
-                    </Popover>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              {/* End Date Picker */}
-              <FormField
-                control={form.control}
-                name="endDate"
-                render={({ field }) => (
-                  <FormItem className="flex flex-col">
-                    <FormLabel>{t('end_date')}*</FormLabel>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <FormControl>
-                          <Button
-                            variant={'outline'}
-                            className={cn(
-                              'w-full pl-3 text-left font-normal',
-                              !field.value && 'text-muted-foreground'
-                            )}
-                          >
-                            {field.value ? (
-                              format(field.value, 'PPP')
-                            ) : (
-                              <span>{t('pick_date')}</span>
-                            )}
-                            <CalendarIcon className="w-4 h-4 ml-auto opacity-50" />
-                          </Button>
-                        </FormControl>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0" align="start">
-                        <Calendar
-                          mode="single"
-                          selected={field.value}
-                          onSelect={field.onChange}
-                          disabled={(date) =>
-                            form.getValues('startDate') &&
-                            date < form.getValues('startDate')
-                          }
-                          initialFocus
-                        />
-                      </PopoverContent>
-                    </Popover>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              {/* Spacer - Can add another field like approvedBy if needed and handled by FE */}
-              <div className="md:col-span-1"></div>
-
-              {/* Reason Textarea */}
-              <FormField
-                control={form.control}
-                name="reason"
-                render={({ field }) => (
-                  <FormItem className="md:col-span-3">
-                    {' '}
-                    {/* Span across grid */}
-                    <FormLabel htmlFor="reason">{t('reason')}*</FormLabel>
-                    <FormControl>
-                      <Textarea
-                        id="reason"
-                        name="reason"
-                        placeholder={t('permission_reason_placeholder')}
-                        maxLength={FIELD_LIMITS.permission.reason}
-                        rows={3}
-                        {...field}
-                        value={field.value ?? ''}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              {/* Comments Textarea */}
-              <FormField
-                control={form.control}
-                name="comments"
-                render={({ field }) => (
-                  <FormItem className="md:col-span-3">
-                    {' '}
-                    {/* Span across grid */}
-                    <FormLabel htmlFor="comments">{t('comments')}</FormLabel>
-                    <FormControl>
-                      <Textarea
-                        id="comments"
-                        name="comments"
-                        placeholder={t('permission_comments_placeholder')}
-                        maxLength={FIELD_LIMITS.permission.comments}
-                        rows={3}
-                        {...field}
-                        value={field.value ?? ''}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              {/* Created By/On Fields */}
-              {selectedRow?.createdOn && permissionId && (
-                <>
-                  <FormField
-                    control={form.control}
-                    name="userPermissionCreatedName"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel htmlFor="userPermissionCreatedName">
-                          {t('created_by')}
-                        </FormLabel>
-                        <FormControl>
-                          <Input
-                            id="userPermissionCreatedName"
-                            name="userPermissionCreatedName"
-                            disabled
-                            {...field}
-                            value={field.value ?? ''}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="createdOn"
-                    render={({ field }) => (
-                      <FormItem className="flex flex-col flex-auto">
-                        <FormLabel htmlFor="createdOn">
-                          {t('created_on')}
-                        </FormLabel>
-                        <Popover>
-                          <PopoverTrigger asChild>
-                            <FormControl>
-                              <Button
-                                id="createdOn"
-                                disabled={true}
-                                readOnly={true}
-                                variant={'outline'}
-                                className={cn(
-                                  'pl-3 text-left font-normal',
-                                  !field.value && 'text-muted-foreground'
-                                )}
-                              >
-                                {field.value &&
-                                  format(new Date(field.value), 'PPP')}
-                                <CalendarIcon className="w-4 h-4 ml-auto opacity-50" />
-                              </Button>
-                            </FormControl>
-                          </PopoverTrigger>
-                          <PopoverContent className="w-auto p-0" align="start">
-                            <Calendar
-                              mode="single"
-                              selected={
-                                field.value ? new Date(field.value) : null
-                              }
-                              disabled={true}
-                            />
-                          </PopoverContent>
-                        </Popover>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  {/* Spacer */}
-                  <div className="md:col-span-1"></div>
-                </>
-              )}
-
-              {/* Updated By/On Fields */}
-              {selectedRow?.updatedOn && permissionId && (
-                <>
-                  <FormField
-                    control={form.control}
-                    name="userPermissionUpdatedName"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel htmlFor="userPermissionUpdatedName">
-                          {t('updated_by')}
-                        </FormLabel>
-                        <FormControl>
-                          <Input
-                            id="userPermissionUpdatedName"
-                            name="userPermissionUpdatedName"
-                            disabled
-                            {...field}
-                            value={field.value ?? ''}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="updatedOn"
-                    render={({ field }) => (
-                      <FormItem className="flex flex-col flex-auto">
-                        <FormLabel htmlFor="updatedOn">
-                          {t('updated_on')}
-                        </FormLabel>
-                        <Popover>
-                          <PopoverTrigger asChild>
-                            <FormControl>
-                              <Button
-                                id="updatedOn"
-                                disabled={true}
-                                readOnly={true}
-                                variant={'outline'}
-                                className={cn(
-                                  'pl-3 text-left font-normal',
-                                  !field.value && 'text-muted-foreground'
-                                )}
-                              >
-                                {field.value &&
-                                  format(new Date(field.value), 'PPP')}
-                                <CalendarIcon className="w-4 h-4 ml-auto opacity-50" />
-                              </Button>
-                            </FormControl>
-                          </PopoverTrigger>
-                          <PopoverContent className="w-auto p-0" align="start">
-                            <Calendar
-                              mode="single"
-                              selected={
-                                field.value ? new Date(field.value) : null
-                              }
-                              disabled={true}
-                            />
-                          </PopoverContent>
-                        </Popover>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  {/* Spacer */}
-                  <div className="md:col-span-1"></div>
-                </>
-              )}
-            </div>
-
-            <DialogFooter>
-              <DialogClose asChild>
-                <Button
-                  type="button"
-                  variant="secondary"
-                  className="flex-1 md:flex-initial md:w-24"
-                >
-                  {t('cancel')}
-                </Button>
-              </DialogClose>
-
-              {permissionId && (
-                <Button
-                  type="button"
-                  variant="destructive"
-                  className="flex-1 md:flex-initial md:w-24"
-                  onClick={handleDelete}
-                >
-                  {t('delete')}
-                </Button>
-              )}
-              <Button
-                type="submit"
-                variant="info"
-                className="flex-1 md:flex-initial md:w-24"
-              >
-                {permissionId ? t('update') : t('save')}
-              </Button>
-            </DialogFooter>
+            {buildDialogFooter({ t, permissionId, handleDelete })}
           </form>
         </Form>
       </DialogContent>

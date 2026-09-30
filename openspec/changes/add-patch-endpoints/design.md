@@ -7,6 +7,7 @@ Enterprise REST practice (Microsoft REST Guidelines, GitHub API, Stripe API) rec
 ## Goals / Non-Goals
 
 **Goals:**
+
 - Add PATCH endpoints alongside existing PUT in all 23+ backend modules
 - Create partial-update Joi schemas (`XxxUpdatePartial`) with all fields optional + `.min(1)`
 - Implement conditional DAO `connect` patterns for safe partial updates
@@ -14,6 +15,7 @@ Enterprise REST practice (Microsoft REST Guidelines, GitHub API, Stripe API) rec
 - Create shared `useChangedFields` hook for diff-based partial form submissions
 
 **Non-Goals:**
+
 - No changes to existing PUT endpoints or their schemas
 - No 404 handling (separate change)
 - No response format unification (separate change)
@@ -46,6 +48,7 @@ Three patterns exist in the codebase, each requiring different handling:
 Modules like `warehouse`, `inventoryMovement` spread `data` directly into Prisma. These need **zero DAO changes** — Prisma ignores undefined.
 
 **Pattern B — Conditional `connect`:**
+
 ```js
 ...(data.productCategoryId !== undefined && {
   productCategories: { connect: { id: data.productCategoryId } }
@@ -54,6 +57,7 @@ Modules like `warehouse`, `inventoryMovement` spread `data` directly into Prisma
 
 **Pattern C — `deleteMany` + `create` (CRITICAL):**
 Found in: `users` (permissions), `sales` (saleDetail), `purchase` (purchaseDetail), `notes` (hashtags).
+
 ```js
 // UNSAFE for PATCH — runs even when field absent, deleting data
 userPermits: {
@@ -61,7 +65,9 @@ userPermits: {
   create: data.permissions.map(...) // ¡Crashea si permissions undefined!
 }
 ```
+
 For PATCH, wrap in conditional:
+
 ```js
 ...(data.permissions !== undefined && {
   userPermits: {
@@ -81,6 +87,21 @@ A utility hook that diffs initial vs current form values. Returns `{ changedFiel
 
 **Why a hook and not a utility function:** Hooks integrate naturally with React form state; can be memoized with useMemo internally.
 
+### Desvío documentado (auditoría 2026-09-27): PUT reemplazado por PATCH
+
+La implementación real **no adoptó el modelo dual PUT+PATCH** de este design: los updates de
+recursos usan **exclusivamente PATCH** — 0 `router.put` en los módulos server, y las mutaciones
+client `updateXxxById` envían `method: 'PATCH'` (RTK Query). La motivación práctica fue evitar
+mantener dos rutas y dos schemas por módulo (23×2) con el riesgo de drift entre ambas; el
+semantismo parcial de PATCH cubre tanto updates completos como parciales.
+
+Consecuencias aceptadas: (1) la Decision 5 (naming `usePatchXxxByIdMutation` aparte de
+`useUpdateXxxByIdMutation`) no aplica — la mutación existente `updateXxxById` usa PATCH; el hook
+`useChangedFields` sigue siendo válido para enviar solo el diff; (2) el task 7.4 (regresión PUT)
+es n/a; (3) el escenario del spec "alongside the existing PUT endpoint" debe leerse como
+"reemplazándolo". PUT solo pervive donde nunca existió update por id (auth, clientOrder,
+security — sin update de recurso).
+
 ### Decision 5 — RTK Query naming convention
 
 ```js
@@ -94,23 +115,27 @@ The `patch` verb prefix clearly distinguishes PATCH mutations from existing `upd
 
 The frontend must decide which verb to use per request. The rule is:
 
-| Scenario | Verb | Reason |
-|----------|------|--------|
-| Form has initial data + detects changed fields | **PATCH** | Send only the diff — smaller payload, explicit intent, avoids accidental overwrites |
-| Form sends complete object (create-form, bulk operations) | **PUT** | Full replacement semantics — all fields are intentionally set |
-| First-time save or no initial data to diff against | **PUT** | No baseline for diff; sending complete object is correct |
-| Changed fields include relational deletes/recreates | **PATCH** | The diff naturally detects these; DAO handles them via conditional patterns |
-| Only 1 field changed | **PATCH** | Optimal — minimal payload, clear intent |
-| All fields changed | **Either** | Both are semantically correct. PATCH preferred for consistency with the hook pattern |
+| Scenario                                                  | Verb       | Reason                                                                               |
+| --------------------------------------------------------- | ---------- | ------------------------------------------------------------------------------------ |
+| Form has initial data + detects changed fields            | **PATCH**  | Send only the diff — smaller payload, explicit intent, avoids accidental overwrites  |
+| Form sends complete object (create-form, bulk operations) | **PUT**    | Full replacement semantics — all fields are intentionally set                        |
+| First-time save or no initial data to diff against        | **PUT**    | No baseline for diff; sending complete object is correct                             |
+| Changed fields include relational deletes/recreates       | **PATCH**  | The diff naturally detects these; DAO handles them via conditional patterns          |
+| Only 1 field changed                                      | **PATCH**  | Optimal — minimal payload, clear intent                                              |
+| All fields changed                                        | **Either** | Both are semantically correct. PATCH preferred for consistency with the hook pattern |
 
 **Implementation rule in code:**
+
 ```js
 // If useChangedFields is available and hasChanges:
 //   → PATCH with changedFields
 // Otherwise:
 //   → PUT with full object
 
-const { changedFields, hasChanges } = useChangedFields(initialValues, formValues);
+const { changedFields, hasChanges } = useChangedFields(
+  initialValues,
+  formValues
+);
 
 if (editing && hasChanges) {
   await patchProductById({ id, data: changedFields });
@@ -138,6 +163,7 @@ if (editing && hasChanges) {
 **Root cause**: 19 dialog useEffect blocks include `id: selectedRow.id || ''` in `mappedValues` passed to `form.reset()`. When creating a new record, `selectedRow` is `{}` (truthy but no id), so `id: ''` gets inserted into form state. On submit in creation mode, the form data (including `id: ''`) is sent to POST endpoint. Backend `validateSchema` middleware uses Joi with `allowUnknown: false`, rejecting the unexpected `id` field.
 
 **Affected modules (5 with bug active):**
+
 - `events/EventDialog.jsx` — guard is `if (event)` without `?.id`
 - `warehouse/WarehouseDialog.jsx` — guard is `if (selectedRow)` without `?.id`
 - `news/NewsDialog.jsx` — guard is `if (selectedRow)` without `?.id`
@@ -146,7 +172,8 @@ if (editing && hasChanges) {
 
 **14 additional files** already have `if (selectedRow?.id)` guard so the bug doesn't manifest, but still include unnecessary `id` in mappedValues.
 
-**Fix**: 
+**Fix**:
+
 1. Remove `id` from `mappedValues` in all 19 dialog files
 2. Fix useEffect guard in the 5 unprotected files to use `if (selectedRow?.id)`
 3. No impact on update flow — `id` is never a dirty field (no corresponding UI input), and edit mode uses `pickDirty` which only extracts dirty fields
