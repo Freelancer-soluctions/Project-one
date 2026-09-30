@@ -69,7 +69,7 @@
     "@vitest/ui": "^4.0.18",
     "nodemon": "^3.1.0",
     "prisma": "^5.17.0",
-    "supertest": "^7.0.0",
+    "supertest": "^7.3.0",
     "vitest": "^4.0.18",
     "why-is-node-running": "^3.1.0"
   }
