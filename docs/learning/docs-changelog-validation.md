@@ -242,6 +242,12 @@ Actual (`.husky/pre-commit` en repo): `npm exec lint-staged`; luego `semgrep` / 
 npm exec lint-staged  # prettier + eslint + depcruise (si se activa)
 # docs validation: solo si se instalan markdownlint-cli y vale (opcional para adopción incremental)
 # npx markdownlint-cli2 --config .markdownlint.json --fix "*.md" "docs/**/*.md"  # o markdownlint-cli
+# NOTA (PR #133, 2026-09-29): `.markdownlint.json` DEBE ser JSON estricto (sin
+# comentarios //): markdownlint-cli ignora silenciosamente un JSON inválido y
+# evalúa con defaults (MD013@80) — fue la causa de 5.9k violaciones fantasma
+# al activar el gate. Adopción sobre árbol legacy: grandfathering en
+# `.markdownlintignore` (75 archivos listados al adoptar; salen de la lista
+# uno a uno al normalizarse con `markdownlint --fix` + revisión).
 # npx vale --minAlertLevel=warning --output=line --glob='*.{md,mdx}' .
 ```
 

@@ -1,24 +1,14 @@
 {
-  // Config de markdownlint (change `quality-gates`; diseño en
-  // docs/learning/docs-changelog-validation.md). `default: true` activa el set
-  // estándar MD001-MD060; las excepciones abajo son las consientes para este
-  // repo (docs en ES con tablas anchas generadas por prettier).
   "default": true,
-  // MD013 line-length: 120 con tablas exentas (las tablas de
-  // docs/learning/*.md son formateadas por prettier y superan 80 chars).
   "MD013": {
     "line_length": 120,
     "tables": false,
     "code_blocks": false
   },
-  // MD033 inline HTML: los docs usan <br>, <sub>, detalles puntuales.
   "MD033": false,
-  // MD041 first-line heading: los fragmentos/incisos no siempre empiezan en H1.
   "MD041": false,
-  // MD024 duplicated headings: secciones repetidas en docs largos (§ repetidos).
   "MD024": {
     "siblings_only": true
   },
-  // MD013 ya cubre longitud; MD036 énfasis-como-heading es común en legacy.
   "MD036": false
 }
