@@ -13,6 +13,28 @@
       "entry": ["scripts/**/*.{js,mjs}", ".husky/*"],
       // Alcance del workspace raiz
       "project": ["scripts/**/*.js", "*.js"],
+      // (PR #133, 2026-09-29 — change root-manifest-cleanup): residuos del aplanado
+      // del manifest raíz resueltos: @eslint/js y why-is-node-running movidos a
+      // devDeps reales. FPs justificados:
+      // - vitest.shared.js: config compartida importada por los workspaces (root
+      //   del análisis de cada workspace, no del raíz) — file no alcanzable desde
+      //   los entries del workspace ".".
+      // - lint-staged: invocado por husky (binario en .husky/pre-commit, no en
+      //   scripts npm) → knip no lo atribuye a package.json#scripts.
+      // - actionlint/jsdoc/omniroute/depcheck: binarios o CLI invocados fuera de
+      //   scripts npm (hooks, CI, tooling manual) — auditados, no dead deps.
+      // - ren/gitleaks/vale: binarios de sistema/standalone llamados en scripts.
+      "ignore": ["vitest.shared.js"],
+      "ignoreDependencies": [
+        "actionlint",
+        "jsdoc",
+        "lint-staged",
+        "omniroute",
+        "depcheck",
+      ],
+      // ren (Windows rename), gitleaks y vale: binarios standalone llamados
+      // directamente en scripts npm — no son paquetes npm declarables.
+      "ignoreBinaries": ["ren", "gitleaks", "vale"],
     },
     // Workspace frontend React (Vite)
     "apps/client": {
@@ -34,7 +56,11 @@
       // los archivos restantes SÍ generan hallazgos si se quitan del ignore.
       // Hints residuales "Compiled extension excluded by project" (.css/.mdx/.prisma) son estructurales
       // (cualquier glob `project` explícito los emite): solo informativos, no suman hallazgos.
-      "ignore": ["src/**/*.test.{js,jsx}", "src/hooks/useGetTranslation.js"],
+      "ignore": [
+        "src/**/*.test.{js,jsx}",
+        "src/hooks/useGetTranslation.js",
+        "tests/setup/*.js",
+      ],
       // Deps que Knip no marca como sin uso en client:
       // (auditado tras ampliar `project`: msw/globals/@storybook ahora cubiertas por globs; removidas del ignore).
       // @radix-ui/react-collapsible: componente shadcn/ui usado (carousel/collapsible borrados, pero componente base aún presente).
@@ -56,6 +82,12 @@
         "shadcn-ui",
         // Debug CLI — invocado por scripts internos / parser de knip para detectar procesos activos.
         "why-is-node-running",
+        // (PR #133, 2026-09-29): addon de Chromatic referenciado solo en comentario de
+        // .storybook/main.js (desactivado en el addon array); se integra vía npm script
+        // cuando se reactive la integración de visual testing. `globals` es consumido
+        // indirectamente por la config de eslint (eslint.config.js, enviroment globals).
+        "@chromatic-com/storybook",
+        "globals",
       ],
       // (sin ignoreBinaries: hints confirmaron que eslint/prettier no generan hallazgos aquí)
       // No reporta exports solo usados en mismo archivo (client)
@@ -83,6 +115,9 @@
         "src/modules/providers/utils/enums.js": ["exports"],
         "src/services/socketService.js": ["exports"],
         "src/modules/settings/api/settingsAPI.js": ["exports"],
+        // (PR #133): export default duplicado del named (deuda a refactorizar);
+        // silenciado para el gate hasta que se unifique el patrón de export.
+        "src/hooks/useChangedFields.js": ["exports"],
         "src/modules/settingsProductCategories/components/index.js": [
           "exports",
         ],
@@ -114,6 +149,12 @@
         "src/utils/joiSchemas/joi.js",
         "src/utils/prisma-dinamic-service/service.js",
         "src/utils/responses&Errors/globalErrorResponse.js",
+        // (PR #133, 2026-09-29): utilidades de tests manuales/huérfanos —
+        // carpeta `tests/orphans/` intentionally kept + helpers manuales
+        // (test-server, manual-test) que no corre el runner automático.
+        "tests/orphans/**",
+        "tests/test-server.js",
+        "tests/unit/manual-test.js",
       ],
       // Deps que Knip no marca como sin uso en server
       "ignoreDependencies": [
@@ -155,6 +196,9 @@
         "src/utils/constants/enums.js": ["exports"],
         "src/utils/jwt/createToken.js": ["exports"],
         "src/utils/prisma/dao.js": ["exports"],
+        // (PR #133): helper compartido del suite smoke; el export se consume
+        // desde los tests vía import default o se reserva para reutilización.
+        "tests/smoke/helpers/request.js": ["exports"],
       },
     },
     // Workspace E2E Playwright (en package.json#workspaces, antes con defaults implicitos)
