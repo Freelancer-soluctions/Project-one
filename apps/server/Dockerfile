@@ -6,7 +6,7 @@
 #   docker build -f apps/server/Dockerfile .
 # ============================================================
 
-FROM node:20-alpine
+FROM node:26-alpine
 
 WORKDIR /app
 
