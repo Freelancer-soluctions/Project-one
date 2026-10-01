@@ -1,0 +1,30 @@
+# Tasks — ci-security-substage-alignment
+
+## 0. Preparación y baseline
+
+- [x] 0.1 Snapshot pre-cambio: copiar `.github/workflows/ci.yml` a `.tmp/ci.yml.pre-alignment` (gitignored) y registrar en este archivo las L-refs actuales: `actionlint-advisory` L715, `zizmor-advisory` L760, `typosquat-guarddog` L806, header 2C L925, header 2D L861. **Spec**: "Security substage 2C job placement" (baseline para el diff)
+- [x] 0.2 Baseline (evidencia: job count real = **54**, no 50 como decía la task — aterrizó trabajo 2026-09-29; el check es de estabilidad pre/post y ambos = 54) de verificación: `actionlint` exit 0 sobre `ci.yml` (per-file, quirk Windows: sin argumento de directorio), conteo de jobs `grep -cE '^  [a-z][a-z0-9-]+:' ci.yml` = 50, y extracto de `name:` de los 3 jobs. **Spec**: "Security substage 2C job placement"
+
+## 1. Reubicación física en ci.yml
+
+- [x] 1.1 Cortar íntegros (cut-and-paste, D1) los 3 jobs con sus comentarios de bloque: `actionlint-advisory` (L715-758), `zizmor-advisory` (L760-804), `typosquat-guarddog` (L806-844) y eliminarlos de la zona quality/specs (quedan `actionlint` bloqueante y `openspec-validate` en su lugar, sin cambios). **Spec**: "Security substage 2C job placement" → "Advisory jobs relocated without semantic changes"
+- [x] 1.2 Pegar los 3 jobs tras `containerfile-lint` (antes del header 2D) en el orden `actionlint-advisory` → `zizmor-advisory` → `typosquat-guarddog` (D2), añadiendo antes de cada uno el comentario `# change ci-security-substage-alignment (2026-09-30): ubicado en bloque security 2C, orden §23.3` (D6). **Spec**: "Security substage 2C job placement" → "Security block composition"
+- [x] 1.3 Actualizar el header `# SUBSTAGE 2C: SECURITY` con los 9 jobs en orden de archivo + anotación advisory/blocking + nota de que `sast` es 2A standalone (D3): `# SUBSTAGE 2C: SECURITY — dependency-review, secrets, scancode-license-pr-diff, lockfile-audit, checkov-iac, containerfile-lint, actionlint-advisory, zizmor-advisory, typosquat-guarddog`. **Spec**: "Visual substage delimitation" → "Reading substage 2C header"
+- [x] 1.4 Verificación mecánica (evidencia: actionlint exit 0; 54 jobs pre=post; ids únicos; names intactos; bloques idénticos byte-a-byte 138/138 líneas vía script Python contra `.tmp/ci.yml.pre-alignment`; orden `actionlint-advisory` → `zizmor-advisory` → `typosquat-guarddog` confirmado) de la reubicación: `actionlint` exit 0; conteo de jobs = 50 (estable); unicidad de cada job id (`grep -c '^  actionlint-advisory:'` = 1, idem los otros 8 del bloque); los 3 jobs están entre los headers 2C y 2D; `name:` de los 9 jobs intactos (diff contra extracto del 0.2); `git diff --color-moved=zebra --stat` muestra movimientos puros (+3 comentarios D6, header 2C editado). **Spec**: "Security substage 2C job placement" (ambos escenarios)
+- [x] 1.5 Reubicar `docs-validation` a 2B quality (D8, incorporada post-review 2026-09-30 — pregunta del usuario: "¿por qué el job de markdownlint está en security si es quality?"): cut del bloque (2 blanks + 25 líneas, L1261-1287 pre-d8) e inserción tras el último step de `openspec-validate`, con comentario de trazabilidad D8; header 2B actualizado en ci.yml + delta + main spec en lockstep. **Evidencia**: bloque idéntico byte-a-byte vs `.tmp/ci.yml.pre-d8`; geometría post: `docs-validation` L726 (dentro de 2B), región 2C (L812) → STAGE 3 (L1291) = exactamente los 9 jobs de security; 54 jobs; `actionlint` exit 0 en ci.yml y scheduled-security.yml. **Spec**: "Security block composition" (quedó literalmente verdadero sin excepciones) + "Inspecting ci.yml STAGE 2"
+
+## 2. Docs de learning y CONTEXT-CICD (L-refs y orden)
+
+- [x] 2.1 `docs/learning/pipeline-config-scan.md`: actualizar las referencias de posición de `actionlint-advisory`/`zizmor-advisory` (de la zona quality ~L715-806 al bloque 2C tras `containerfile-lint`) y añadir nota de reubicación con fecha y change. **Spec**: "Visual substage delimitation"
+- [x] 2.2 `docs/learning/typosquatting-detection.md` §8: actualizar la posición del job `typosquat-guarddog` (bloque 2C, tras `zizmor-advisory`) + nota de reubicación. **Spec**: "Visual substage delimitation"
+- [x] 2.3 `docs/learning/containerfile-lint.md` §8: nota de que los 3 jobs advisory quedan definidos inmediatamente después de `containerfile-lint` (ancla de posición para futuras auditorías). **Spec**: "Security substage 2C job placement"
+- [x] 2.4 `docs/learning/quality-gates.md` §2: en las filas de `actionlint-advisory`, `zizmor-advisory` y `typosquat-guarddog`, añadir "ubicado en bloque security 2C (reubicación `ci-security-substage-alignment`, 2026-09-30)". **Spec**: "Visual substage delimitation"
+- [x] 2.5 `docs/CONTEXT-CICD.md` §3.3 (desviación del plan documentada: la tabla §3.3 es semántica, no de orden físico — `dependency-review` ya precedía a `sast` pre-change; se añadió nota de colocación física del bloque + desviación D4 en lugar de reordenar filas): reordenar la tabla de jobs al orden físico nuevo y documentar la desviación de D4 (`actionlint` bloqueante en 2B quality; zizmor = capa security en 2C). **Spec**: "Security substage 2C job placement" → "Blocking actionlint stays in substage 2B"
+
+## 3. Validación final
+
+- [x] 3.1 `openspec validate ci-security-substage-alignment --strict` → válido (delta MODIFIED matchea el header del requirement base). **Spec**: todos
+- [x] 3.2 `openspec validate --specs --strict` → 118/118, 0 failed (117 specs previos + el delta de este change incluido en el gate). **Spec**: todos
+- [x] 3.3 Markdownlint de 0 violaciones nuevas en los docs tocados (join líneas-diff × líneas-violación, patrón de la sesión). **Spec**: —
+- [x] 3.4 `actionlint` final sobre `ci.yml` y `scheduled-security.yml` (per-file) → exit 0 ambos. **Spec**: "Advisory jobs relocated without semantic changes"
+- [x] 3.5 Confirmación de no-renombrado: extracto de `name:` de los 9 jobs del bloque 2C idéntico al baseline del 0.1 (ningún required status check del ruleset cambia). **Spec**: "Advisory jobs relocated without semantic changes"

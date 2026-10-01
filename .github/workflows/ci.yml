@@ -59,12 +59,12 @@ jobs:
   # STAGE 2: PRE-BUILD — VALIDATE (source code, 0 dependencia de build)
   # ═══════════════════════════════════════════════════════════════
   # ═══════════════════════════════════════════════════════════════
-  # SUBSTAGE 2A: GOVERNANCE — verify-signatures, commit-lint, pr-title-lint, dco, sast
+  # SUBSTAGE 2A: GOVERNANCE — verify-signatures, commit-lint, pr-title-lint, dco, sast diff
   # ═══════════════════════════════════════════════════════════════
-# verify-signatures (G3) — Verifica firma de commits vía GitHub REST API
-# ════════════════════════════════════════════════════════════════
-# Required status check in ruleset 21227644 — bound by job NAME 'Verify Commit Signatures';
-# renaming name: silently breaks ruleset binding
+  # verify-signatures (G3) — Verifica firma de commits vía GitHub REST API
+  # ════════════════════════════════════════════════════════════════
+  # Required status check in ruleset 21227644 — bound by job NAME 'Verify Commit Signatures';
+  # renaming name: silently breaks ruleset binding
   verify-signatures:
     name: Verify Commit Signatures
     runs-on: ubuntu-latest
@@ -306,7 +306,6 @@ jobs:
         timeout-minutes: 5
     # Job-level continue-on-error for non-blocking mode
     # (removed — signature verification failures must propagate to ruleset 21227644)
-
   commit-lint:
     name: Commit Lint (Conventional Commits)
     runs-on: ubuntu-latest
@@ -403,7 +402,6 @@ jobs:
         run: echo "✅ Merge queue — DCO validated at PR level"
     # Phase 1: non-blocking. Remove after team adjusts (1 sprint).
     # continue-on-error: true
-
   # --- GOVERNANCE: SAST early-abort gate (diff-scoped, standalone) ---
   sast:
     name: SAST (Semgrep)
@@ -423,7 +421,7 @@ jobs:
     # NOT in ci-complete.needs — SAST is a standalone gate, not coupled to CI_MINIMAL
 
   # ═══════════════════════════════════════════════════════════════
-  # SUBSTAGE 2B: CODE QUALITY — lint, format-check, typecheck, complexity, dead-code, import-bounds, e2e-lint, actionlint, openspec-validate
+  # SUBSTAGE 2B: CODE QUALITY — lint, format-check, typecheck, complexity, dead-code, import-bounds, e2e-lint, actionlint, openspec-validate, docs-validation (advisory)
   # ═══════════════════════════════════════════════════════════════
   # --- Client Pre-Build ---
   client-lint:
@@ -683,160 +681,6 @@ jobs:
       - name: Validate root manifest inventory
         run: node scripts/check-root-manifest.mjs
 
-  actionlint:
-    if: needs.repo-discovery.outputs.shared == 'true' && github.event_name == 'pull_request'
-    name: "Quality: ActionLint"
-    needs: repo-discovery
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-      - uses: actions/checkout@v5
-        with:
-          fetch-depth: 0
-      - name: Check workflow files with actionlint
-        run: |
-          bash <(curl https://raw.githubusercontent.com/rhysd/actionlint/main/scripts/download-actionlint.bash) 1.7.12
-          ./actionlint -color
-        shell: bash
-
-  # Job advisory de pipeline config scan (change `pipeline-config-scan`):
-  # actionlint con salida SARIF para la Security tab. Misma instalación que el
-  # job bloqueante `actionlint` (download-script pinned 1.7.12 — nunca
-  # rhysd/actionlint-action@master ni curl artesanal: los assets reales son
-  # linux_amd64). La plantilla SARIF oficial se versiona en
-  # `.github/actionlint-sarif.tmpl` y se pasa como CONTENIDO de `-format` (la
-  # pseudo-plantilla inline produce 0 bytes con exit 0 — verificado v1.7.12).
-  # El step lleva `|| true`: con hallazgos actionlint sale 1 y la evidencia
-  # debe generarse igual; el carácter advisory en FASE 1 lo aporta
-  # `continue-on-error: true` a nivel job. NO entra en los `needs` de los
-  # agregadores en FASE 1 (FASE 2: scope de bloqueo solo en este step, con
-  # uploads step-COE). Política del gate bloqueante `.github/actionlint.yaml`
-  # intacta (se reutiliza aquí, no se modifica).
-  actionlint-advisory:
-    if: github.event_name == 'pull_request'
-    name: "Quality: ActionLint Advisory (SARIF, FASE 1)"
-    needs: repo-discovery
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    continue-on-error: true
-    permissions:
-      contents: read
-      security-events: write
-    steps:
-      - uses: actions/checkout@v5
-        with:
-          fetch-depth: 0
-      - name: Run actionlint (SARIF, advisory)
-        run: |
-          bash <(curl https://raw.githubusercontent.com/rhysd/actionlint/main/scripts/download-actionlint.bash) 1.7.12
-          ./actionlint -no-color -config-file .github/actionlint.yaml \
-            -format "$(cat .github/actionlint-sarif.tmpl)" .github/workflows/*.y*ml > actionlint.sarif || true
-          test -s actionlint.sarif || { echo 'actionlint.sarif vacio'; exit 1; }
-          jq -e . actionlint.sarif > /dev/null || { echo 'actionlint.sarif no parseable'; exit 1; }
-        shell: bash
-      - name: Upload actionlint SARIF to Code Scanning
-        if: always() && hashFiles('actionlint.sarif') != ''
-        uses: github/codeql-action/upload-sarif@v4
-        with:
-          sarif_file: actionlint.sarif
-          category: actionlint
-      - name: Upload actionlint report artifact (retention 14d)
-        if: always()
-        uses: actions/upload-artifact@v7
-        with:
-          name: actionlint-report-pr
-          path: actionlint.sarif
-          retention-days: 14
-          if-no-files-found: warn
-
-  # Job advisory zizmor (change `pipeline-config-scan`): cubre el gap
-  # `unpinned-uses` que actionlint no detecta. Instalación fijada (A4):
-  # setup-uv SHA-pinned (v6.7.0, ubuntu-latest NO trae uv) + `uvx zizmor@1.30.1`
-  # (versión exacta, no latest) + verificación de versión antes del scan.
-  # `--format=sarif` SIEMPRE termina exit 0 → se valida el fichero (`test -s`
-  # + `jq -e .`), nunca el exit code. Política `.github/zizmor.yml`
-  # referenciada incondicionalmente (A3). FASE 1 advisory; FASE 2: gating
-  # `jq -e '.runs[0].results | length == 0'` + `prebuild-security-complete.needs`.
-  zizmor-advisory:
-    if: github.event_name == 'pull_request'
-    name: "Security: Zizmor Advisory (unpinned-uses, FASE 1)"
-    needs: repo-discovery
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    continue-on-error: true
-    permissions:
-      contents: read
-      security-events: write
-    steps:
-      - uses: actions/checkout@v5
-      - uses: astral-sh/setup-uv@b75a909f75acd358c2196fb9a5f1299a9a8868a4 # v6.7.0 (SHA-pinned, nunca @main/@v*)
-      - name: Run zizmor (SARIF, advisory)
-        run: |
-          uvx zizmor@1.30.1 --version | grep -q '1.30.1' || { echo 'zizmor version mismatch'; exit 1; }
-          uvx zizmor@1.30.1 --format=sarif -c .github/zizmor.yml .github/workflows/ > zizmor.sarif || true
-          test -s zizmor.sarif || { echo 'zizmor.sarif vacio'; exit 1; }
-          jq -e . zizmor.sarif > /dev/null || { echo 'zizmor.sarif no parseable'; exit 1; }
-        shell: bash
-      - name: Upload zizmor SARIF to Code Scanning
-        if: always() && hashFiles('zizmor.sarif') != ''
-        uses: github/codeql-action/upload-sarif@v4
-        with:
-          sarif_file: zizmor.sarif
-          category: zizmor
-      - name: Upload zizmor report artifact (retention 14d)
-        if: always()
-        uses: actions/upload-artifact@v7
-        with:
-          name: zizmor-report-pr
-          path: zizmor.sarif
-          retention-days: 14
-          if-no-files-found: warn
-
-  # Job advisory de typosquatting / dependency confusion (change
-  # `typosquatting-detection`): GuardDog v3.2.0 (DataDog, OSS, sin credenciales)
-  # sobre package.json — detección por metadatos + YARA que NO duplica a Trivy
-  # (CVE/secretos), dependency-review (manifiesto PR) ni lockfile-audit (CVE
-  # lockfile). Toda la política vive en el wrapper versionado
-  # `scripts/guarddog-verify.sh` (GuardDog no soporta config files): pin 3.2.0
-  # con verificación de versión, devDeps excluidas, sandbox obligatorio (nunca
-  # --no-sandbox), exclusiones justificadas. `verify` requiere red y puede morir
-  # a medias → `|| true` + `test -s` + `jq -e .` antes de subir. FASE 1 advisory
-  # (`continue-on-error: true` a nivel job); NO entra en los `needs` de los
-  # agregadores (FASE 2 diferida: 2-4 semanas sin FP, luego gating + needs).
-  typosquat-guarddog:
-    if: github.event_name == 'pull_request'
-    name: "Security: Typosquat GuardDog (advisory, FASE 1)"
-    needs: repo-discovery
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    continue-on-error: true
-    permissions:
-      contents: read
-      security-events: write
-    steps:
-      - uses: actions/checkout@v5
-      - uses: astral-sh/setup-uv@b75a909f75acd358c2196fb9a5f1299a9a8868a4 # v6.7.0 (SHA-pinned, nunca @main/@v*)
-      - name: Run GuardDog verify (SARIF, advisory)
-        run: |
-          bash scripts/guarddog-verify.sh > guarddog.sarif || true
-          test -s guarddog.sarif || { echo 'guarddog.sarif vacio'; exit 1; }
-          jq -e . guarddog.sarif > /dev/null || { echo 'guarddog.sarif no parseable'; exit 1; }
-        shell: bash
-      - name: Upload GuardDog SARIF to Code Scanning
-        if: always() && hashFiles('guarddog.sarif') != ''
-        uses: github/codeql-action/upload-sarif@v4
-        with:
-          sarif_file: guarddog.sarif
-          category: guarddog
-      - name: Upload GuardDog report artifact (retention 14d)
-        if: always()
-        uses: actions/upload-artifact@v7
-        with:
-          name: guarddog-report-pr
-          path: guarddog.sarif
-          retention-days: 14
-          if-no-files-found: warn
-
   # --- Specs Pre-Build ---
   # Validación estructural de las specs canónicas de OpenSpec (openspec/specs/**).
   # `--specs` valida SOLO main specs; los deltas de changes/ activos se validan
@@ -856,6 +700,33 @@ jobs:
       - uses: ./.github/actions/setup-monorepo
       - name: Validate OpenSpec main specs (strict)
         run: npx openspec validate --specs --strict
+
+  # change ci-security-substage-alignment (2026-09-30): reubicado a 2B quality (D8) — job quality que quedó al cierre del stage 2
+  # Job advisory de validación de documentación (change `quality-gates`, fase 1):
+  # markdownlint (estructura) + publication de reporte. NO entra en
+  # `prebuild-quality-complete.needs` — un hallazgo de docs NO bloquea el PR;
+  # el reporte debe sobrevivir (`if: always()`) aunque el job "falle".
+  # Fase 2 (bloqueante) queda fuera de este change hasta que docs/ pase limpio.
+  docs-validation:
+    if: github.event_name == 'pull_request'
+    name: "Quality: Docs Validation (advisory)"
+    needs: repo-discovery
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v5
+      - uses: ./.github/actions/setup-monorepo
+      - name: Lint markdown structure (markdownlint)
+        run: npm run docs:lint
+      - name: Publish docs lint summary
+        if: always()
+        run: |
+          COUNT=$(npx markdownlint "docs/**/*.md" "docs/*.md" 2>/dev/null | wc -l || echo 0)
+          echo "## Docs Validation (advisory, fase 1)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "markdownlint violations: ${COUNT##* } (fase 1: NO bloquea el PR)" >> $GITHUB_STEP_SUMMARY
+          echo "Config: .markdownlint.json (JSON estricto) + .markdownlintignore (grandfathering del inventario legacy, 2026-09-29) · vale fase 2 (ver docs/learning/docs-changelog-validation.md)" >> $GITHUB_STEP_SUMMARY
 
   # ═══════════════════════════════════════════════════════════════
   # SUBSTAGE 2D: UNIT TESTING — test-unit-client, test-unit-server, test-integration, test-smoke
@@ -922,7 +793,9 @@ jobs:
           reporter: java-junit
 
   # ═══════════════════════════════════════════════════════════════
-  # SUBSTAGE 2C: SECURITY — dependency-review (+ security.yml when enabled)
+  # SUBSTAGE 2C: SECURITY — dependency-review, secrets, scancode-license-pr-diff, lockfile-audit, checkov-iac, containerfile-lint, actionlint-advisory, zizmor-advisory, typosquat-guarddog
+  # (bloqueantes en needs del agregador: dependency-review, secrets, scancode-license-pr-diff · advisory FASE 1: el resto)
+  # (sast es 2A GOVERNANCE standalone, no 2C — ver header 2A; change ci-security-substage-alignment 2026-09-30)
   # ═══════════════════════════════════════════════════════════════
   # ════════════════════════════════════════════════════════════════
   # SECURITY — Dependency Review (inline so ci-complete.needs resolves)
@@ -1257,31 +1130,162 @@ jobs:
           retention-days: 14
           if-no-files-found: warn
 
-  # Job advisory de validación de documentación (change `quality-gates`, fase 1):
-  # markdownlint (estructura) + publication de reporte. NO entra en
-  # `prebuild-quality-complete.needs` — un hallazgo de docs NO bloquea el PR;
-  # el reporte debe sobrevivir (`if: always()`) aunque el job "falle".
-  # Fase 2 (bloqueante) queda fuera de este change hasta que docs/ pase limpio.
-  docs-validation:
+  actionlint:
+    if: needs.repo-discovery.outputs.shared == 'true' && github.event_name == 'pull_request'
+    name: "Quality: ActionLint"
+    needs: repo-discovery
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - name: Check workflow files with actionlint
+        run: |
+          bash <(curl https://raw.githubusercontent.com/rhysd/actionlint/main/scripts/download-actionlint.bash) 1.7.12
+          ./actionlint -color
+        shell: bash
+
+  # Job advisory de pipeline config scan (change `pipeline-config-scan`):
+  # actionlint con salida SARIF para la Security tab. Misma instalación que el
+  # job bloqueante `actionlint` (download-script pinned 1.7.12 — nunca
+  # rhysd/actionlint-action@master ni curl artesanal: los assets reales son
+  # linux_amd64). La plantilla SARIF oficial se versiona en
+  # `.github/actionlint-sarif.tmpl` y se pasa como CONTENIDO de `-format` (la
+  # pseudo-plantilla inline produce 0 bytes con exit 0 — verificado v1.7.12).
+  # El step lleva `|| true`: con hallazgos actionlint sale 1 y la evidencia
+  # debe generarse igual; el carácter advisory en FASE 1 lo aporta
+  # `continue-on-error: true` a nivel job. NO entra en los `needs` de los
+  # agregadores en FASE 1 (FASE 2: scope de bloqueo solo en este step, con
+  # uploads step-COE). Política del gate bloqueante `.github/actionlint.yaml`
+  # intacta (se reutiliza aquí, no se modifica).
+  # change ci-security-substage-alignment (2026-09-30): ubicado en bloque security 2C, orden §23.3
+  actionlint-advisory:
     if: github.event_name == 'pull_request'
-    name: "Quality: Docs Validation (advisory)"
+    name: "Quality: ActionLint Advisory (SARIF, FASE 1)"
     needs: repo-discovery
     runs-on: ubuntu-latest
     timeout-minutes: 5
     continue-on-error: true
+    permissions:
+      contents: read
+      security-events: write
     steps:
       - uses: actions/checkout@v5
-      - uses: ./.github/actions/setup-monorepo
-      - name: Lint markdown structure (markdownlint)
-        run: npm run docs:lint
-      - name: Publish docs lint summary
-        if: always()
+        with:
+          fetch-depth: 0
+      - name: Run actionlint (SARIF, advisory)
         run: |
-          COUNT=$(npx markdownlint "docs/**/*.md" "docs/*.md" 2>/dev/null | wc -l || echo 0)
-          echo "## Docs Validation (advisory, fase 1)" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "markdownlint violations: ${COUNT##* } (fase 1: NO bloquea el PR)" >> $GITHUB_STEP_SUMMARY
-          echo "Config: .markdownlint.json (JSON estricto) + .markdownlintignore (grandfathering del inventario legacy, 2026-09-29) · vale fase 2 (ver docs/learning/docs-changelog-validation.md)" >> $GITHUB_STEP_SUMMARY
+          bash <(curl https://raw.githubusercontent.com/rhysd/actionlint/main/scripts/download-actionlint.bash) 1.7.12
+          ./actionlint -no-color -config-file .github/actionlint.yaml \
+            -format "$(cat .github/actionlint-sarif.tmpl)" .github/workflows/*.y*ml > actionlint.sarif || true
+          test -s actionlint.sarif || { echo 'actionlint.sarif vacio'; exit 1; }
+          jq -e . actionlint.sarif > /dev/null || { echo 'actionlint.sarif no parseable'; exit 1; }
+        shell: bash
+      - name: Upload actionlint SARIF to Code Scanning
+        if: always() && hashFiles('actionlint.sarif') != ''
+        uses: github/codeql-action/upload-sarif@v4
+        with:
+          sarif_file: actionlint.sarif
+          category: actionlint
+      - name: Upload actionlint report artifact (retention 14d)
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: actionlint-report-pr
+          path: actionlint.sarif
+          retention-days: 14
+          if-no-files-found: warn
+
+  # Job advisory zizmor (change `pipeline-config-scan`): cubre el gap
+  # `unpinned-uses` que actionlint no detecta. Instalación fijada (A4):
+  # setup-uv SHA-pinned (v6.7.0, ubuntu-latest NO trae uv) + `uvx zizmor@1.30.1`
+  # (versión exacta, no latest) + verificación de versión antes del scan.
+  # `--format=sarif` SIEMPRE termina exit 0 → se valida el fichero (`test -s`
+  # + `jq -e .`), nunca el exit code. Política `.github/zizmor.yml`
+  # referenciada incondicionalmente (A3). FASE 1 advisory; FASE 2: gating
+  # `jq -e '.runs[0].results | length == 0'` + `prebuild-security-complete.needs`.
+  # change ci-security-substage-alignment (2026-09-30): ubicado en bloque security 2C, orden §23.3
+  zizmor-advisory:
+    if: github.event_name == 'pull_request'
+    name: "Security: Zizmor Advisory (unpinned-uses, FASE 1)"
+    needs: repo-discovery
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    continue-on-error: true
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - uses: actions/checkout@v5
+      - uses: astral-sh/setup-uv@b75a909f75acd358c2196fb9a5f1299a9a8868a4 # v6.7.0 (SHA-pinned, nunca @main/@v*)
+      - name: Run zizmor (SARIF, advisory)
+        run: |
+          uvx zizmor@1.30.1 --version | grep -q '1.30.1' || { echo 'zizmor version mismatch'; exit 1; }
+          uvx zizmor@1.30.1 --format=sarif -c .github/zizmor.yml .github/workflows/ > zizmor.sarif || true
+          test -s zizmor.sarif || { echo 'zizmor.sarif vacio'; exit 1; }
+          jq -e . zizmor.sarif > /dev/null || { echo 'zizmor.sarif no parseable'; exit 1; }
+        shell: bash
+      - name: Upload zizmor SARIF to Code Scanning
+        if: always() && hashFiles('zizmor.sarif') != ''
+        uses: github/codeql-action/upload-sarif@v4
+        with:
+          sarif_file: zizmor.sarif
+          category: zizmor
+      - name: Upload zizmor report artifact (retention 14d)
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: zizmor-report-pr
+          path: zizmor.sarif
+          retention-days: 14
+          if-no-files-found: warn
+
+  # Job advisory de typosquatting / dependency confusion (change
+  # `typosquatting-detection`): GuardDog v3.2.0 (DataDog, OSS, sin credenciales)
+  # sobre package.json — detección por metadatos + YARA que NO duplica a Trivy
+  # (CVE/secretos), dependency-review (manifiesto PR) ni lockfile-audit (CVE
+  # lockfile). Toda la política vive en el wrapper versionado
+  # `scripts/guarddog-verify.sh` (GuardDog no soporta config files): pin 3.2.0
+  # con verificación de versión, devDeps excluidas, sandbox obligatorio (nunca
+  # --no-sandbox), exclusiones justificadas. `verify` requiere red y puede morir
+  # a medias → `|| true` + `test -s` + `jq -e .` antes de subir. FASE 1 advisory
+  # (`continue-on-error: true` a nivel job); NO entra en los `needs` de los
+  # agregadores (FASE 2 diferida: 2-4 semanas sin FP, luego gating + needs).
+  # change ci-security-substage-alignment (2026-09-30): ubicado en bloque security 2C, orden §23.3
+  typosquat-guarddog:
+    if: github.event_name == 'pull_request'
+    name: "Security: Typosquat GuardDog (advisory, FASE 1)"
+    needs: repo-discovery
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    continue-on-error: true
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - uses: actions/checkout@v5
+      - uses: astral-sh/setup-uv@b75a909f75acd358c2196fb9a5f1299a9a8868a4 # v6.7.0 (SHA-pinned, nunca @main/@v*)
+      - name: Run GuardDog verify (SARIF, advisory)
+        run: |
+          bash scripts/guarddog-verify.sh > guarddog.sarif || true
+          test -s guarddog.sarif || { echo 'guarddog.sarif vacio'; exit 1; }
+          jq -e . guarddog.sarif > /dev/null || { echo 'guarddog.sarif no parseable'; exit 1; }
+        shell: bash
+      - name: Upload GuardDog SARIF to Code Scanning
+        if: always() && hashFiles('guarddog.sarif') != ''
+        uses: github/codeql-action/upload-sarif@v4
+        with:
+          sarif_file: guarddog.sarif
+          category: guarddog
+      - name: Upload GuardDog report artifact (retention 14d)
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: guarddog-report-pr
+          path: guarddog.sarif
+          retention-days: 14
+          if-no-files-found: warn
 
   # ═══════════════════════════════════════════════════════════════
   # STAGE 3: BUILD (compilación, empaquetado, artifact)
