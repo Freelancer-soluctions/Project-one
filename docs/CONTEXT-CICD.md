@@ -210,6 +210,17 @@ undefined`, verificado con `--debug`) — usar siempre los scripts raíz `npm ru
 | typosquat-guarddog (GuardDog v3.2.0, advisory FASE 1)                                       | Security: Typosquat GuardDog (advisory, FASE 1)   | ❌             | ✅ job-COE; wrapper único `scripts/guarddog-verify.sh` (pin + devDeps + sandbox); SARIF `category: guarddog` + artifact 14d (change `typosquatting-detection`) |
 | ci-complete                                                                                 | CI Complete                                       | ❌ (no bound)  | N/A (`if: CI_MINIMAL != 'true'`)                                                                                                                               |
 
+> **Colocación física del bloque security 2C (change `ci-security-substage-alignment`, 2026-09-30):** los 9 jobs de
+> security (`dependency-review`, `secrets`, `scancode-license-pr-diff`, `lockfile-audit`, `checkov-iac`,
+> `containerfile-lint`, `actionlint-advisory`, `zizmor-advisory`, `typosquat-guarddog`) están definidos consecutivamente
+> en `ci.yml` entre el header `# SUBSTAGE 2C: SECURITY` y `docs-validation`, en el orden del diagrama §23.3. Esta tabla
+> es semántica (por categoría), no de orden físico. Desviación documentada: el `actionlint` bloqueante pertenece a 2B
+> quality (lint de sintaxis); la capa security de pipeline config es `zizmor-advisory` (unpinned-uses). Los 3 jobs
+> advisory fueron reubicados desde la zona quality (movimiento puro, sin cambios de semántica; evidencia byte-a-byte en
+> el change). En la misma pasada (D8) `docs-validation` — job quality advisory preexistente que había quedado
+> físicamente al cierre del stage 2 — se reubicó a 2B quality (tras `openspec-validate`), de modo que entre el header
+> 2C y el banner STAGE 3 hay exactamente los 9 jobs de security.
+>
 > **Path-scoping de los 3 lint activos (change `ci-prebuild-quality-lint`, MERGED 2026-09-17 vía PRs
 > #127/#128/#129):** `client-lint` → `if: needs.repo-discovery.outputs.client == 'true' && github.event_name ==
 'pull_request'`; `server-lint` → idem con `outputs.server`; `actionlint` → idem con `outputs.shared`. Standalone
