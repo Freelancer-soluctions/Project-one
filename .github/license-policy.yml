@@ -1,0 +1,20 @@
+# ============================================================================
+# Política de licencias ejecutable — única fuente de verdad de la deny-list
+# ============================================================================
+# Consumida por:
+#   - job `dependency-review` (ci.yml) vía input `config-file` de
+#     dependency-review-action (formato: config-schema nativo de la acción)
+#   - job `scancode-license-pr-diff` (ci.yml) vía lectura directa validada
+#
+# Política narrativa (waivers, scopes, racional SPDX): docs/learning/license-policy.md
+# Coherencia: LICENSE_DENY_LIST en scripts/security/generate-security-digest.mjs
+# es un superconjunto documentado de esta lista (spec license-compliance).
+# NOTA: `deny-licenses` y `allow-licenses` son mutuamente excluyentes — declarar
+# exactamente una. Todos los identificadores deben ser SPDX válidos.
+# ============================================================================
+
+deny-licenses:
+  - GPL-3.0
+  - AGPL-3.0
+  - SSPL-1.0
+  - CC-BY-NC-4.0

@@ -421,7 +421,7 @@ jobs:
     # NOT in ci-complete.needs — SAST is a standalone gate, not coupled to CI_MINIMAL
 
   # ═══════════════════════════════════════════════════════════════
-  # SUBSTAGE 2B: CODE QUALITY — lint, format-check, typecheck, complexity, dead-code, import-bounds, e2e-lint, actionlint, openspec-validate, docs-validation (advisory)
+  # SUBSTAGE 2B: CODE QUALITY — lint, format-check, typecheck, complexity, dead-code, import-bounds, e2e-lint, openspec-validate, docs-validation (advisory)
   # ═══════════════════════════════════════════════════════════════
   # --- Client Pre-Build ---
   client-lint:
@@ -822,22 +822,22 @@ jobs:
           # Security intent: vulnerability + license checks
           vulnerability-check: true
           license-check: true
-          # License policy (change `dependency-review`, D2): deny-list aligned with
-          # LICENSE_DENY_LIST in scripts/generate-security-digest.mjs. NOTE:
-          # allow-licenses is the stricter allow-list alternative and is MUTUALLY
-          # EXCLUSIVE with deny-licenses — exactly one of the two may be set.
-          # SPDX-only: every entry MUST be a valid SPDX identifier — the action
-          # validates the config at startup (validateLicenses → spdx-expression-parse)
-          # and fails fast before scanning any dependency (`Invalid license(s) in
-          # deny-licenses`). `Proprietary` is NOT a valid SPDX id (removed 2026-09-29:
-          # it made the job fail unconditionally); npm-custom/private licenses surface
-          # as `Other`/`NOASSERTION`, which a deny-list cannot match anyway — those
-          # are covered by the ScanCode PR-diff layer (scancode-license-pr-diff).
-          # Validated locally: no package in the current tree carries these
-          # licenses (see docs/learning/dependency-review.md §4.2).
-          # Canonical license policy (deny-list, waivers, fail-on-scopes):
+          # License policy: externalizada en `.github/license-policy.yml` (fuente
+          # única ejecutable, consumida también por scancode-license-pr-diff vía
+          # lectura directa). La clave inline `deny-licenses` estaba deprecated
+          # por la acción (issue #938). NOTE: allow-licenses es la alternativa
+          # allow-list más estricta y MUTUAMENTE EXCLUYENTE con deny-licenses.
+          # SPDX-only: toda entrada debe ser identificador SPDX válido — la
+          # acción valida la config al arranque (validateLicenses →
+          # spdx-expression-parse) y falla antes de escanear dependencias.
+          # npm-custom/private licenses surface como `Other`/`NOASSERTION`, que
+          # una deny-list no puede matchear — las cubre la capa ScanCode
+          # PR-diff (scancode-license-pr-diff). Validado localmente: ningún
+          # paquete del árbol actual porta estas licencias (ver
+          # docs/learning/dependency-review.md §4.2).
+          # Política narrativa (deny-list, waivers, fail-on-scopes):
           # docs/learning/license-policy.md (change license-compliance)
-          deny-licenses: GPL-3.0, AGPL-3.0, SSPL-1.0, CC-BY-NC-4.0
+          config-file: .github/license-policy.yml
           # Publish the findings summary as a PR comment when the gate fails,
           # exercising the already-declared pull-requests: write permission.
           # on-failure keeps green PRs clean; on fork PRs the comment may fail
@@ -892,9 +892,10 @@ jobs:
   # (retención 14d ≠ 90d del audit semanal). FASE 2 (blocking gradual): remover
   # `continue-on-error` de este job y actualizar `docs/learning/quality-gates.md`
   # + `docs/learning/license-policy.md` tras 2-4 semanas de runs limpios con
-  # hallazgos triados. Deny-list única: se lee en runtime de la clave
-  # `deny-licenses` del job `dependency-review` (fuente canónica:
-  # docs/learning/license-policy.md) — sin duplicar la lista aquí.
+  # hallazgos triados. Deny-list única: se lee en runtime de la fuente de
+  # verdad ejecutable `.github/license-policy.yml` (fuente canónica:
+  # docs/learning/license-policy.md) — sin duplicar la lista aquí ni scrape
+  # del workflow; dependency-review la consume vía `config-file`.
   # `LicenseRef-scancode-unknown*` = warning permanente (nunca bloquea, ni en
   # FASE 2). Sin `scan-list.txt` estático: la lista vive en el diff. El scan
   # corre sobre una copia de los archivos del diff (scope) → node_modules/dist/
@@ -947,11 +948,27 @@ jobs:
             echo "Report not produced (see scan step outcome); nothing to evaluate."
             exit 0
           fi
-          # Deny-list única: leída de la config real del job dependency-review.
-          DENY_LIST=$(grep -E '^[[:space:]]*deny-licenses:' .github/workflows/ci.yml \
-            | head -1 | sed 's/.*deny-licenses:[[:space:]]*//' | tr -d '"')
+          # Deny-list única: leída de la fuente de verdad ejecutable
+          # .github/license-policy.yml (la misma que consume dependency-review
+          # vía config-file). Sin scrape del YAML del workflow.
+          DENY_LIST=$(DENY_POLICY=".github/license-policy.yml" node -e '
+            const fs = require("fs");
+            const src = fs.readFileSync(process.env.DENY_POLICY, "utf8");
+            const lines = src.split(/\r?\n/);
+            const start = lines.findIndex((l) => /^deny-licenses:\s*$/.test(l));
+            if (start === -1) { console.error("deny-licenses key not found"); process.exit(1); }
+            const items = [];
+            for (let i = start + 1; i < lines.length; i++) {
+              const l = lines[i];
+              if (/^\s*-/.test(l)) items.push(l.replace(/^\s*-\s*/, "").trim());
+              else if (l.trim() === "" || l.trim().startsWith("#")) continue;
+              else break;
+            }
+            if (items.length === 0) { console.error("deny-licenses empty"); process.exit(1); }
+            console.log(items.join(", "));
+          ')
           if [ -z "$DENY_LIST" ]; then
-            echo "::error::deny-licenses not found in ci.yml job dependency-review"
+            echo "::error::deny-licenses not parseable from .github/license-policy.yml"
             exit 1
           fi
           DENY_LIST="$DENY_LIST" REPORT_PATH="$REPORT" node -e "
@@ -970,7 +987,7 @@ jobs:
                 else if (denySet.has(normalize(k))) violations.push(k + ' @ ' + f.path);
               }
             }
-            console.log('Deny-list (from ci.yml dependency-review):', denyList.join(', '));
+            console.log('Deny-list (from .github/license-policy.yml):', denyList.join(', '));
             console.log('Files with license findings:', (r.files || []).length);
             console.log('Warnings (LicenseRef-scancode-unknown, nunca bloquea):', warnings.length);
             for (const w of warnings) console.log('::warning::' + w);
@@ -1130,35 +1147,22 @@ jobs:
           retention-days: 14
           if-no-files-found: warn
 
-  actionlint:
-    if: needs.repo-discovery.outputs.shared == 'true' && github.event_name == 'pull_request'
-    name: "Quality: ActionLint"
-    needs: repo-discovery
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-      - uses: actions/checkout@v5
-        with:
-          fetch-depth: 0
-      - name: Check workflow files with actionlint
-        run: |
-          bash <(curl https://raw.githubusercontent.com/rhysd/actionlint/main/scripts/download-actionlint.bash) 1.7.12
-          ./actionlint -color
-        shell: bash
-
   # Job advisory de pipeline config scan (change `pipeline-config-scan`):
-  # actionlint con salida SARIF para la Security tab. Misma instalación que el
-  # job bloqueante `actionlint` (download-script pinned 1.7.12 — nunca
-  # rhysd/actionlint-action@master ni curl artesanal: los assets reales son
-  # linux_amd64). La plantilla SARIF oficial se versiona en
+  # actionlint con salida SARIF para la Security tab. Único job de actionlint
+  # por PR: consolida al ex-gate bloqueante de 2B (removido — su cobertura
+  # vive aquí vía SARIF + Code Scanning y en `zizmor-advisory`; la FASE 2 de
+  # pipeline-config-scan puede restablecer el bloqueo quitando
+  # `continue-on-error`). Ejecución vía imagen Docker pinneada
+  # `rhysd/actionlint:1.7.12` (sin curl|bash de scripts remotos; imagen
+  # oficial del autor del binario). La plantilla SARIF oficial se versiona en
   # `.github/actionlint-sarif.tmpl` y se pasa como CONTENIDO de `-format` (la
   # pseudo-plantilla inline produce 0 bytes con exit 0 — verificado v1.7.12).
   # El step lleva `|| true`: con hallazgos actionlint sale 1 y la evidencia
   # debe generarse igual; el carácter advisory en FASE 1 lo aporta
   # `continue-on-error: true` a nivel job. NO entra en los `needs` de los
   # agregadores en FASE 1 (FASE 2: scope de bloqueo solo en este step, con
-  # uploads step-COE). Política del gate bloqueante `.github/actionlint.yaml`
-  # intacta (se reutiliza aquí, no se modifica).
+  # uploads step-COE). Política `.github/actionlint.yaml` intacta (montada
+  # read-only en el contenedor, no se modifica).
   # change ci-security-substage-alignment (2026-09-30): ubicado en bloque security 2C, orden §23.3
   actionlint-advisory:
     if: github.event_name == 'pull_request'
@@ -1176,8 +1180,8 @@ jobs:
           fetch-depth: 0
       - name: Run actionlint (SARIF, advisory)
         run: |
-          bash <(curl https://raw.githubusercontent.com/rhysd/actionlint/main/scripts/download-actionlint.bash) 1.7.12
-          ./actionlint -no-color -config-file .github/actionlint.yaml \
+          docker run --rm -v "$PWD:/repo" -w /repo rhysd/actionlint:1.7.12 \
+            -no-color -config-file .github/actionlint.yaml \
             -format "$(cat .github/actionlint-sarif.tmpl)" .github/workflows/*.y*ml > actionlint.sarif || true
           test -s actionlint.sarif || { echo 'actionlint.sarif vacio'; exit 1; }
           jq -e . actionlint.sarif > /dev/null || { echo 'actionlint.sarif no parseable'; exit 1; }
@@ -1674,7 +1678,6 @@ jobs:
       - server-dead-code
       - server-import-bounds
       - e2e-lint
-      - actionlint
       - root-manifest-guard
       - openspec-validate
     steps:
