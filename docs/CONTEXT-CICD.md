@@ -789,8 +789,10 @@ para detectar qué workspace cambió (`client`/`server`/`e2e`/`shared`) — los 
   (`.commit.verification.verified == true`), consultando la REST API.
 - **Cómo lo logra:** usa el endpoint `compare/base.sha...head.sha` (límite 250 commits/llamada) en lugar de paginar
   `GET /pulls/{n}/commits` — así solo evalúa los commits nuevos del PR, no los históricos de main.
-- **Grandfathering (corte):** commits con `author.date < ROLLOUT_DATE="2026-08-01"` se consideran exonerados
+- **Grandfathering (corte):** commits con `author.date < ROLLOUT_DATE` se consideran exonerados
   (`grandfathered`) y NO fallan — evita exigir firma retroactiva a commits previos al rollout de _ci-commit-signing_.
+  El corte vive en la repo variable `vars.SIGNING_ROLLOUT_DATE` (fallback inline `2026-08-01` mientras no esté definida en
+  Settings → Secrets and variables → Actions → Variables).
   El lote contaminado de PR #99 nunca entró a main (squash).
 - **Anti-stale retry:** tolera el retraso de propagación de verificación de firma (~30s post-push). Con hasta 5
   reintentos individuales por run, recupera SHAs que GitHub aún no marcó verified (bug ref: run 32661559666). El fallo

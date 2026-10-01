@@ -134,7 +134,8 @@ for SHA in $FAILED_SHAS; do
   ...
 done
 
-# 3) Grandfathering: commits con fecha anterior al rollout (2026-08-01)
+# 3) Grandfathering: commits con fecha anterior al rollout
+#    (repo variable vars.SIGNING_ROLLOUT_DATE, fallback inline "2026-08-01")
 #    se exoneran para no exigir firma retroactiva
 if [[ -n "$AUTHOR_DATE" && "$AUTHOR_DATE" < "$ROLLOUT_DATE" ]]; then
   echo "SKIP (grandfathered via anti-stale, $AUTHOR_DATE): $SHA"
