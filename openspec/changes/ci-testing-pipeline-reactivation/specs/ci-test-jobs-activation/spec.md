@@ -8,7 +8,7 @@ Reactiva en CI los jobs de testing de STAGE 2 (unit client/server, integration, 
 
 ### Requirement: Test jobs execute on pull requests
 
-The CI jobs `test-unit-client`, `test-unit-server`, `test-integration`, `test-smoke`, `client-coverage` and `server-coverage` SHALL execute on `pull_request` events instead of being disabled with `if: false`, and each test job SHALL be scoped by the `repo-discovery` path filter of its workspace (with `shared` changes triggering it as well). On `merge_group` events these 6 jobs SHALL be skipped by design (decision D14): their `if:` condition SHALL include `github.event_name == 'pull_request'`, consistent with every other `repo-discovery`-dependent job of `ci.yml`, because path discovery and PR-scoped impact analysis are computed for the `pull_request` event; with the merge queue currently disabled the trigger is inert, and re-validating tests on `merge_group` is a separate re-evaluation (paths discovery + TIA base for that event) to perform before the merge queue is ever enabled.
+The CI jobs `test-unit-client`, `test-unit-server`, `test-integration`, `test-smoke`, `client-coverage` and `server-coverage` SHALL execute on `pull_request` events instead of being disabled with `if: false`, and each test job SHALL be scoped by the `repo-discovery` path filter of its workspace (with `shared` changes triggering it as well). On `merge_group` events these 6 jobs SHALL be skipped by design (decision D17): their `if:` condition SHALL include `github.event_name == 'pull_request'`, consistent with every other `repo-discovery`-dependent job of `ci.yml`, because path discovery and PR-scoped impact analysis are computed for the `pull_request` event; with the merge queue currently disabled the trigger is inert, and re-validating tests on `merge_group` is a separate re-evaluation (paths discovery + TIA base for that event) to perform before the merge queue is ever enabled.
 
 #### Scenario: PR touches one workspace
 
@@ -30,7 +30,7 @@ The CI jobs `test-unit-client`, `test-unit-server`, `test-integration`, `test-sm
 #### Scenario: merge_group event skips the test jobs
 
 - **WHEN** `ci.yml` is triggered by a `merge_group` event
-- **THEN** the 6 test jobs are skipped by their `github.event_name == 'pull_request'` condition (documented decision D14, not an accident)
+- **THEN** the 6 test jobs are skipped by their `github.event_name == 'pull_request'` condition (documented decision D17, not an accident)
 - **AND** `prebuild-unit-tests-complete` finalizes with success (skipped counted as passing), while enabling tests on `merge_group` remains an explicit follow-up if the merge queue is ever enabled — no required status check is renamed
 
 ### Requirement: FASE 1 advisory activation
@@ -70,7 +70,7 @@ Every activated test job SHALL emit the JUnit XML file at the exact path its `do
 
 ### Requirement: Coverage artifact contract between test and coverage jobs
 
-Each unit test job SHALL upload its coverage output from the directory its workspace Vitest config declares as `reportsDirectory` (client: `apps/client/coverage`, server: `apps/server/tests/coverage`), and the corresponding `*-coverage` job SHALL download that artifact and run `scripts/ci/check-coverage.mjs` against the SAME directory, reading thresholds from the workspace `vitest.config.js` as single source of truth with `coverage.thresholds.autoUpdate` never enabled in CI.
+Each unit test job SHALL upload its coverage output from the directory its workspace Vitest config declares as `reportsDirectory` (client: `apps/client/coverage`, server: `apps/server/tests/coverage`), and the corresponding `*-coverage` job SHALL download that artifact and run `scripts/ci/check-coverage.mjs` against the SAME directory, reading thresholds from the workspace `vitest.config.js` as single source of truth with `coverage.thresholds.autoUpdate` never enabled in CI. When the artifact was produced by a diff-scoped TIA run (`test:changed:ci`), the guard SHALL still require the artifact to exist but SHALL defer threshold evaluation to the next full-suite run, because global totals from a partial run are not comparable to the thresholds (decision D18).
 
 #### Scenario: Server coverage guard resolves its summary
 
@@ -82,6 +82,12 @@ Each unit test job SHALL upload its coverage output from the directory its works
 
 - **WHEN** measured statements/branches/functions/lines fall below the thresholds declared in the workspace config
 - **THEN** `check-coverage.mjs` exits 1, the coverage job fails, and the failure propagates to `prebuild-unit-tests-complete`
+
+#### Scenario: Diff-scoped TIA run defers threshold evaluation
+
+- **WHEN** a PR without `shared` path changes runs `test:changed:ci` and uploads a diff-scoped coverage artifact
+- **THEN** `client-coverage`/`server-coverage` verify the artifact exists but do not evaluate global thresholds against partial totals
+- **AND** thresholds are evaluated on the next full-suite run (a `shared` PR or the nightly workflow)
 
 ### Requirement: Coverage jobs depend only on their test job
 

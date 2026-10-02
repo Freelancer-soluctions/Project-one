@@ -8,7 +8,7 @@ Escopea la ejecución de tests en CI al diff del pull request (Test Impact Analy
 
 ### Requirement: Diff-scoped unit test execution in CI
 
-When a workspace test job runs for a PR, it SHALL execute only the tests affected by the diff between the PR head and `origin/main` via the workspace CI script `test:changed:ci` (`test:changed` plus coverage, explicit `--outputFile=reports/junit.xml` for JUnit, and the `.unit.test.js` scope on the server), with the full git history already provided by the checkout of `ci.yml` (`fetch-depth: 0` is declared today — nothing to add) so `origin/main` is available.
+When a workspace test job runs for a PR, it SHALL execute only the tests affected by the diff between the PR head and `origin/main` via the workspace CI script `test:changed:ci`, defined in BOTH workspaces as `vitest run --changed origin/main --coverage --reporter=junit --outputFile=reports/junit.xml` (client) and `vitest run ".unit.test.js" --changed origin/main --coverage --reporter=junit --outputFile=reports/junit.xml` (server, unit filter first) — the JUnit output path explicit, never left to a default — with the full git history already provided by the checkout of `ci.yml` (`fetch-depth: 0` is declared today — confirm, nothing to add) so `origin/main` is available, and with threshold evaluation of this diff-scoped coverage deferred to full-suite runs (decision D18).
 
 #### Scenario: PR touches a single client module
 
@@ -32,7 +32,7 @@ When `repo-discovery.outputs.shared == 'true'` (root `package.json`, lockfile, `
 
 ### Requirement: Scheduled full-suite safety net
 
-A scheduled (nightly) workflow SHALL run the complete unit suites of both workspaces regardless of any diff, and its failures SHALL be reported and triaged — starting advisory and promoted to blocking by the same FASE 1 → FASE 2 pattern.
+A scheduled (nightly) workflow SHALL run the complete unit suites of both workspaces regardless of any diff — including full-suite coverage evaluated by `scripts/ci/check-coverage.mjs` advisory — and its failures SHALL be reported and triaged — starting advisory and promoted to blocking by the same FASE 1 → FASE 2 pattern.
 
 #### Scenario: Nightly run detects what TIA missed
 

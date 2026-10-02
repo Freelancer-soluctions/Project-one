@@ -18,7 +18,7 @@ The repository SHALL maintain exactly ONE `.github/dependabot.yml` at the reposi
 
 #### Scenario: Extension instead of recreation
 
-- **WHEN** a future change adds a new ecosystem (e.g., `docker`)
+- **WHEN** a future change adds a new ecosystem (e.g., `docker`, currently NOT declared even though the repo ships Dockerfiles and a root `.dockerignore`)
 - **THEN** it appends the new entry to the existing `.github/dependabot.yml`
 - **AND** the existing npm and github-actions entries remain unchanged
 

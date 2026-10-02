@@ -12,7 +12,7 @@ Además, la infraestructura periférica que sostiene el pipeline de testing est�
 
 **P0 — Re-activación (FASE 1 advisory → FASE 2 blocking):**
 
-1. Quitar `if: false` a `test-unit-client`, `test-unit-server`, `test-integration` y `test-smoke`, adoptando el patrón de los jobs quality activos: `if: needs.repo-discovery.outputs.<ws> == 'true' || shared == 'true'` y `github.event_name == 'pull_request'` (path-scoped, con `shared` disparando la suite completa del workspace).
+1. Quitar `if: false` a `test-unit-client`, `test-unit-server`, `test-integration` y `test-smoke`, adoptando el patrón de los jobs quality activos: `if: (needs.repo-discovery.outputs.<ws> == 'true' || needs.repo-discovery.outputs.shared == 'true') && github.event_name == 'pull_request'` (paréntesis explícitos agrupando los `||`; path-scoped, con `shared` disparando la suite completa del workspace, `merge_group` omitido por diseño — D17).
 2. Activar la FASE 1 del patrón de gobierno del repo: `continue-on-error: true` a nivel job durante la ventana de calibración (2-4 semanas de runs limpios) — el job reporta (`dorny/test-reporter` + anotación roja) pero no bloquea; la FASE 2 quita el flag y actualiza `docs/learning/quality-gates.md` en lockstep.
 3. Re-activar `client-coverage` / `server-coverage` (tripwire `check-coverage.mjs`) y **añadirlos a `prebuild-unit-tests-complete.needs`** (requisito explícito de `quality-gates.md` §4.2 / L77), lo que modifica el contrato de `needs` del agregador especificado en `ci-prebuild-substage-structure` (4 → 6 jobs).
 4. Corregir los bloqueadores latentes que solo afloran al activar: (a) el guard de server apunta por defecto a `<ws>/coverage` pero el server reporta en `apps/server/tests/coverage`; (b) los jobs `test-unit-*` no emiten `reports/junit.xml` que exige `dorny/test-reporter`; (c) `test:coverage` del server ejecuta también `*.integration.test.js` (sin servicio PostgreSQL en ese job).
@@ -20,7 +20,7 @@ Además, la infraestructura periférica que sostiene el pipeline de testing est�
 
 **P1 — TIA en CI, flaky quarantine y retries acotados:**
 
-6. TIA (Test Impact Analysis) en CI: scoping de los jobs de test con los outputs de `repo-discovery` + `vitest run --changed origin/main` (ya soportado por los scripts `test:changed`), con suite completa cuando cambian rutas `shared` y **run full nocturno** como red de seguridad (patrón Affected de Nx/Turborepo).
+6. TIA (Test Impact Analysis) en CI: scoping de los jobs de test con los outputs de `repo-discovery` + nuevos scripts `test:changed:ci` en ambos workspaces (`vitest run --changed origin/main --coverage --reporter=junit --outputFile=reports/junit.xml`, con filtro `.unit.test.js` en server), con suite completa cuando cambian rutas `shared` y **run full nocturno** como red de seguridad (patrón Affected de Nx/Turborepo); el guard de thresholds solo evalúa cobertura de suite completa (`design.md` D18).
 7. Flaky quarantine: métrica semanal de tests intermitentes (pass-rate <70% → candidato), lista `.github/flaky-quarantine.yml` con restauración **humana**, `retry` limitado a CI y visible en el reporte — nunca "reintentar hasta que pase" en silencio (§23.3 regla 20). Los retries Playwright/Vitest ya configurados (`retries: CI ? 2 : 0`, `retry: 2`) quedan especificados en `ci-flaky-retry` y alineados con `ci-flaky-quarantine`.
 
 **P1b — Infraestructura del pipeline absorbida de `ci-test-integration` (modernizada):**
