@@ -109,7 +109,11 @@ jobs:
           # Signing rollout date: commits anteriores son grandfathered (exonerados).
           # El lote contaminado del PR #99 jamás entró a main (squash); desde el
           # rollout TODO commit nuevo debe estar firmado y verificado.
-          ROLLOUT_DATE="2026-08-01"
+          # Configurable via repo variable (Settings → Secrets and variables →
+          # Actions → Variables); el fallback inline es el valor canónico mientras
+          # la variable no esté definida.
+          ROLLOUT_DATE="${{ vars.SIGNING_ROLLOUT_DATE || '2026-08-01' }}"
+          echo "Signing rollout cutoff (effective): $ROLLOUT_DATE"
 
           # R1: Scoping base..head via compare endpoint
           # Replaces pagination GET /pulls/{n}/commits with server-side range filtering
@@ -408,7 +412,6 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     if: github.event_name == 'pull_request'
-    needs: repo-discovery
     permissions:
       contents: read
     continue-on-error: true
@@ -464,7 +467,7 @@ jobs:
       # Gate blocking real (change `quality-gates`): sin `|| echo` ni
       # `2>/dev/null` que enmascaren el exit code — un error de compilación
       # falla el job. El client es 100% JS: compila vía tsconfig base
-      # (allowJs + checkJs off); flags strict llegan con typescript-strict-check.
+      # (allowJs + checkJs off); flags strict llegan con server-typescript-migration (Fase 4).
       - name: TypeCheck
         run: npx tsc --noEmit
         working-directory: apps/client
@@ -548,8 +551,11 @@ jobs:
       - uses: ./.github/actions/setup-monorepo
       - run: npm run lint --workspace=apps/server
 
+  # FASE 1 (diferido): server aún no pasa `npm run format:check` limpio.
+  # FASE 2: re-activar (`if: true`) cuando el workspace server pase el check —
+  # misma convención FASE 1/FASE 2 del bloque Security.
   server-format-check:
-    if: false  # Disabled for incremental CI — change to true to re-enable
+    if: false
     name: "Quality: Server Format"
     needs: repo-discovery
     runs-on: ubuntu-latest
@@ -574,7 +580,7 @@ jobs:
       - uses: ./.github/actions/setup-monorepo
       # Gate blocking real (change `quality-gates`): `tsc --noEmit -p apps/server`
       # contra apps/server/tsconfig.json (allowJs, checkJs off — código 100% JS;
-      # flags strict vía typescript-strict-check). Sin `|| echo` que enmascare.
+      # flags strict vía server-typescript-migration Fase 4). Sin `|| echo` que enmascare.
       # Corrección 2026-09-29: `npx tsc --noEmit` con working-directory (patrón
       # client-typecheck) — `npm run type-check` fallaba porque ese script vive
       # solo en el manifest RAÍZ, no en apps/server (Missing script: "type-check").
@@ -685,12 +691,12 @@ jobs:
   # Validación estructural de las specs canónicas de OpenSpec (openspec/specs/**).
   # `--specs` valida SOLO main specs; los deltas de changes/ activos se validan
   # aparte. `--strict` convierte warnings en errores. Mismo patrón que
-  # actionlint: barato, sin dependencia de paths-filter (openspec/ no está en
-  # los filtros de repo-discovery).
+  # openspec-validate: barato, sin dependencia de paths-filter (openspec/ no
+  # está en los filtros de repo-discovery) y sin needs: no consume outputs de
+  # repo-discovery, así que corre desde t=0 del workflow en paralelo.
   openspec-validate:
     if: github.event_name == 'pull_request'
     name: "Quality: OpenSpec Validate"
-    needs: repo-discovery
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
