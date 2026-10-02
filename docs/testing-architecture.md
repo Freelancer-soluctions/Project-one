@@ -320,11 +320,35 @@ Se ejecuta vía Husky `pre-push` hook. Corre únicamente tests afectados por cam
 
 ### 7.5.3 CI
 
-Se ejecuta en GitHub Actions (o similar) ante cada push/PR. Corre la suite completa: unit + integration + E2E + coverage + security scans. Sin límite de tiempo artificial.
+En GitHub Actions, por pull request. Los tres tiers forman **una estrategia coherente**, no tres capas aisladas:
+
+| Tier              | Ámbito de ejecución        | Cuándo corre                                        | Si el developer hace `--no-verify`      |
+| ----------------- | -------------------------- | --------------------------------------------------- | --------------------------------------- |
+| Pre-commit        | staged files (lint/format) | en cada commit                                      | no aplica                               |
+| Pre-push          | diff-scoped local          | en cada push                                        | **se salta** → lo cubre CI              |
+| **CI (PR)**       | **diff-scoped (TIA)**      | por PR; suite completa si cambian rutas compartidas | **no se puede saltar** — es el fallback |
+| **CI (nocturno)** | **suite completa**         | diario, sin importar el diff                        | n/a                                     |
+
+En el tier de CI:
+
+- Los jobs `test-unit-client` / `test-unit-server` ejecutan solo los tests afectados por el diff contra `origin/main`
+  (`test:changed:ci`), y **caen a suite completa** cuando cambian rutas compartidas (root `package.json`, lockfile,
+  `.github/workflows/**`) o cuando la base no es resoluble — nunca "0 tests afectados" en silencio.
+- El **nightly** (`nightly-full-suite.yml`) corre las suites completas a diario: es la red que detecta lo que el
+  diff-scoped dejó fuera (orden, cache, deriva de dependencias).
+- El **tripwire de cobertura** solo evaluye corridas de suite completa; en diff-scoped verifica la presencia del
+  artefacto y difiere el umbral (`coverage.changed` por glob es P3).
+- Los tests intermitentes en cuarentena (`.github/flaky-quarantine.yml`) se excluyen en los runs bloqueantes de PR, pero
+  **el nocturno los ejecuta** — su resultado es la evidencia de restauración.
+
+Estado de FASE: los 6 jobs de unit/coverage corren en **FASE 1 advisory** (`continue-on-error: true`); la promoción a
+blocking ocurre tras la ventana de calibración. Integration, smoke y E2E siguen declarados pero inactivos (`if: false`).
 
 ### 7.5.4 Caching
 
-`vitest --changed` usa la cache de Vitest por defecto (`node_modules/.cache/vitest`). En CI, considerar `--reporter=blob` para fusionar reportes. En local, la cache acelera ejecuciones sucesivas.
+`vitest --changed` usa la cache de Vitest por defecto (`node_modules/.cache/vitest`), cacheada en CI por
+`actions/cache@v5` desde la composite `setup-monorepo`. En local la cache acelera ejecuciones sucesivas. Con sharding
+(pendiente, P2) habría que pasar a `--reporter=blob` y fusionar reportes.
 
 ---
 

@@ -780,14 +780,27 @@ jobs:
           fi
         shell: bash
 
+      # Exclusiones de cuarentena — spec ci-flaky-quarantine (D9, task 5.2).
+      # Derivadas EXCLUSIVAMENTE de .github/flaky-quarantine.yml (nada de
+      # test.skip ni markers en la fuente). Vacío = ningún exclude.
+      - name: Derive quarantine exclusions
+        id: quarantine
+        run: echo "args=$(node scripts/ci/quarantine-exclude.mjs --format=argv)" >> "$GITHUB_OUTPUT"
+        shell: bash
+
+      - name: Report quarantine exclusions in the run
+        if: always()
+        run: node scripts/ci/quarantine-exclude.mjs --format=md >> "$GITHUB_STEP_SUMMARY"
+        shell: bash
+
       - name: Run Client Unit Tests (TIA / full suite)
         run: |
           mkdir -p apps/client/reports
           echo "scope=${{ steps.tia.outputs.scope }}" > apps/client/reports/tia-scope.txt
           if [ "${{ steps.tia.outputs.scope }}" = "changed" ]; then
-            npm run test:changed:ci --workspace=apps/client
+            npm run test:changed:ci --workspace=apps/client -- ${{ steps.quarantine.outputs.args }}
           else
-            npm run test:coverage:ci --workspace=apps/client
+            npm run test:coverage:ci --workspace=apps/client -- ${{ steps.quarantine.outputs.args }}
           fi
         shell: bash
 
@@ -797,14 +810,18 @@ jobs:
           name: coverage-client
           path: apps/client/coverage/
           if-no-files-found: warn
-      # D7: el scope resuelto se propaga al job de coverage para que el guard de
-      # thresholds sepa si la corrida fue diff-scoped (D18).
+      # Evidencia de flakiness (retryCount/flaky por test) para la métrica
+      # semanal — D8. El JUnit colapsa los retries, por eso este artifact.
       - uses: actions/upload-artifact@v7
         if: always()
         with:
-          name: tia-scope-client
-          path: apps/client/reports/tia-scope.txt
-          retention-days: 7
+          name: flaky-evidence-client
+          path: |
+            apps/client/reports/junit.xml
+            apps/client/reports/vitest-results.json
+            apps/client/reports/flaky-retries.json
+            apps/client/reports/tia-scope.txt
+          retention-days: 30
           if-no-files-found: warn
       - name: Report Client Unit Tests
         if: success() || failure()
@@ -850,14 +867,25 @@ jobs:
           fi
         shell: bash
 
+      # Exclusiones de cuarentena — spec ci-flaky-quarantine (D9, task 5.2).
+      - name: Derive quarantine exclusions
+        id: quarantine
+        run: echo "args=$(node scripts/ci/quarantine-exclude.mjs --format=argv)" >> "$GITHUB_OUTPUT"
+        shell: bash
+
+      - name: Report quarantine exclusions in the run
+        if: always()
+        run: node scripts/ci/quarantine-exclude.mjs --format=md >> "$GITHUB_STEP_SUMMARY"
+        shell: bash
+
       - name: Run Server Unit Tests (TIA / full suite)
         run: |
           mkdir -p apps/server/reports
           echo "scope=${{ steps.tia.outputs.scope }}" > apps/server/reports/tia-scope.txt
           if [ "${{ steps.tia.outputs.scope }}" = "changed" ]; then
-            npm run test:changed:ci --workspace=apps/server
+            npm run test:changed:ci --workspace=apps/server -- ${{ steps.quarantine.outputs.args }}
           else
-            npm run test:coverage:unit:ci --workspace=apps/server
+            npm run test:coverage:unit:ci --workspace=apps/server -- ${{ steps.quarantine.outputs.args }}
           fi
         shell: bash
 
@@ -867,12 +895,18 @@ jobs:
           name: coverage-server
           path: apps/server/tests/coverage/
           if-no-files-found: warn
+      # Evidencia de flakiness (retryCount/flaky por test) para la métrica
+      # semanal — D8. El JUnit colapsa los retries, por eso este artifact.
       - uses: actions/upload-artifact@v7
         if: always()
         with:
-          name: tia-scope-server
-          path: apps/server/reports/tia-scope.txt
-          retention-days: 7
+          name: flaky-evidence-server
+          path: |
+            apps/server/reports/junit.xml
+            apps/server/reports/vitest-results.json
+            apps/server/reports/flaky-retries.json
+            apps/server/reports/tia-scope.txt
+          retention-days: 30
           if-no-files-found: warn
       - name: Report Server Unit Tests
         if: success() || failure()
@@ -1482,7 +1516,7 @@ jobs:
           path: apps/client/coverage/
       - uses: actions/download-artifact@v4
         with:
-          name: tia-scope-client
+          name: flaky-evidence-client
           path: apps/client/reports/
       # D18: el tripwire de thresholds SOLO evalúa cobertura de suite completa.
       # Una corrida TIA solo carga los tests afectados, así que sus totales no son
@@ -1565,7 +1599,7 @@ jobs:
           path: apps/server/tests/coverage/
       - uses: actions/download-artifact@v4
         with:
-          name: tia-scope-server
+          name: flaky-evidence-server
           path: apps/server/reports/
       # D18: el guard de thresholds solo evalúa cobertura de suite completa; en
       # corridas diff-scoped (TIA) se verifica la presencia del artefacto y se
