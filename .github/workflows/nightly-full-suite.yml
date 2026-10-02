@@ -1,0 +1,130 @@
+name: Nightly Full Suite
+
+# Red de seguridad del TIA — change `ci-testing-pipeline-reactivation`, D7
+# (spec `ci-test-impact-analysis`, "Scheduled full-suite safety net").
+#
+# POR QUÉ UN WORKFLOW NUEVO y no un bloque `schedule:` en ci.yml (D7):
+#   - El `concurrency` de ci.yml referencia `github.event.pull_request.number`,
+#     inexistente en `schedule`: todos los runs nocturnos colisionarían en el
+#     mismo grupo `pr-` y se cancelarían entre sí.
+#   - El `on:` de ci.yml está pensado para PR/merge_group.
+#   - Separar el nocturno simplifica el FASE-gating (advisory aquí, sin tocar
+#     el gate de merge).
+#
+# CONTRATO:
+#   - Suite COMPLETA de ambos workspaces, sin importar el diff (nunca TIA).
+#   - NO aplica las exclusiones de `.github/flaky-quarantine.yml` (D9): el
+#     nocturno EJECUTA los tests en cuarentena y su resultado es la evidencia de
+#     restauración que necesita el owner (spec ci-flaky-quarantine).
+#   - Cobertura + `check-coverage.mjs` ADVISORY (D18): el guard informa, no
+#     bloquea. Las salidas que cierran el círculo son los PRs `shared` de ci.yml.
+#   - FASE 1 advisory: los fallos se reportan y se triagean, no rompen el merge.
+
+on:
+  schedule:
+    # Diario 02:40 UTC. Offset deliberado respecto de `scheduled-security.yml`
+    # (lunes 03:00) para no competir por los runners de GitHub.
+    - cron: '40 2 * * *'
+  workflow_dispatch:
+
+# Least-privilege explícito (task 4.3): `checks: write` es lo que permite a
+# `dorny/test-reporter` publicar el check de test; `contents: read` para el
+# checkout. Nada de `security-events` (este workflow no sube SARIF).
+permissions:
+  contents: read
+  checks: write
+
+# Sin `cancel-in-progress`: un run nocturno debe completarse entero (si dos
+# runs se solapan, el segundo espera).
+concurrency:
+  group: nightly-full-suite
+  cancel-in-progress: false
+
+jobs:
+  nightly-client:
+    name: Nightly - Client Full Suite
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - uses: ./.github/actions/setup-monorepo
+
+      # Suite completa explícita (NO `test:changed:ci`): el nocturno es la red
+      # de seguridad contra lo que el diff-scoped dejó fuera.
+      - name: Run Client full suite with coverage
+        run: npm run test:coverage:ci --workspace=apps/client
+        shell: bash
+
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: nightly-coverage-client
+          path: apps/client/coverage/
+          retention-days: 14
+          if-no-files-found: warn
+
+      # Guard ADVISORY (D18): informa del desvío pero no falla el workflow.
+      # El bloqueo por thresholds vive en el gate de merge de ci.yml.
+      - name: Report coverage thresholds (advisory)
+        if: always()
+        run: |
+          if [ ! -f apps/client/coverage/coverage-summary.json ]; then
+            echo "::warning::coverage summary missing — nothing to compare"
+            exit 0
+          fi
+          node scripts/ci/check-coverage.mjs apps/client || \
+            echo "::warning::coverage below thresholds (ADVISORY nightly — no bloquea el merge)"
+        shell: bash
+
+      - name: Report Client Unit Tests
+        if: always()
+        uses: dorny/test-reporter@v3
+        with:
+          name: Nightly Client Unit Tests
+          path: apps/client/reports/junit.xml
+          reporter: java-junit
+
+  nightly-server:
+    name: Nightly - Server Full Suite
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - uses: ./.github/actions/setup-monorepo
+
+      # Suite unitaria completa del server (filtro `.unit.test.js`): los tests
+      # de integración necesitan PostgreSQL y viven en su propio pipeline.
+      - name: Run Server full unit suite with coverage
+        run: npm run test:coverage:unit:ci --workspace=apps/server
+        shell: bash
+
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: nightly-coverage-server
+          path: apps/server/tests/coverage/
+          retention-days: 14
+          if-no-files-found: warn
+
+      - name: Report coverage thresholds (advisory)
+        if: always()
+        run: |
+          if [ ! -f apps/server/tests/coverage/coverage-summary.json ]; then
+            echo "::warning::coverage summary missing — nothing to compare"
+            exit 0
+          fi
+          node scripts/ci/check-coverage.mjs apps/server apps/server/tests/coverage || \
+            echo "::warning::coverage below thresholds (ADVISORY nightly — no bloquea el merge)"
+        shell: bash
+
+      - name: Report Server Unit Tests
+        if: always()
+        uses: dorny/test-reporter@v3
+        with:
+          name: Nightly Server Unit Tests
+          path: apps/server/reports/junit.xml
+          reporter: java-junit

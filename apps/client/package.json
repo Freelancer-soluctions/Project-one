@@ -24,7 +24,8 @@
     "test:integration": "vitest run",
     "test:changed": "vitest run --changed",
     "test:coverage": "vitest run --coverage",
-    "test:coverage:ci": "vitest run --coverage --reporter=default --reporter=junit --outputFile=reports/junit.xml"
+    "test:coverage:ci": "vitest run --coverage --reporter=default --reporter=junit --reporter=json --reporter=../../scripts/ci/vitest-flaky-reporter.mjs --outputFile.junit=reports/junit.xml --outputFile.json=reports/vitest-results.json",
+    "test:changed:ci": "vitest run --changed origin/main --coverage --reporter=default --reporter=junit --reporter=json --reporter=../../scripts/ci/vitest-flaky-reporter.mjs --outputFile.junit=reports/junit.xml --outputFile.json=reports/vitest-results.json"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.0",

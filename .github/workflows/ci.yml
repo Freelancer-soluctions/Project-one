@@ -1,4 +1,4 @@
-name: "CI"
+name: 'CI'
 
 permissions:
   contents: read
@@ -85,12 +85,12 @@ jobs:
             echo "event_type=pull_request" >> $GITHUB_OUTPUT
             echo "pr_number=${{ github.event.pull_request.number }}" >> $GITHUB_OUTPUT
           fi
-  
+
       - name: Debug PR number
         if: steps.detect_event.outputs.event_type == 'pull_request'
         run: |
           echo "PR number: ${{ steps.detect_event.outputs.pr_number }}"
-  
+
       - name: Fetch PR commits via compare endpoint
         if: steps.detect_event.outputs.event_type == 'pull_request'
         id: fetch_commits
@@ -253,7 +253,7 @@ jobs:
           echo "  Excluded by scoping (base..head): $EXCLUDED_COUNT (handled by compare endpoint)" >&2
           echo "  Recovered by anti-stale retry: $ANTI_STALE_COUNT" >&2
         timeout-minutes: 10
-  
+
       - name: Fetch single commit verification (merge_group fallback)
         if: steps.detect_event.outputs.event_type == 'merge_group'
         run: |
@@ -266,7 +266,7 @@ jobs:
           else
             echo "$SHA" >> failed_shas.txt
           fi
-  
+
       - name: Check verification results
         id: verify_results
         run: |
@@ -429,7 +429,7 @@ jobs:
   # --- Client Pre-Build ---
   client-lint:
     if: needs.repo-discovery.outputs.client == 'true' && github.event_name == 'pull_request'
-    name: "Quality: Client Lint"
+    name: 'Quality: Client Lint'
     needs: repo-discovery
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -442,7 +442,7 @@ jobs:
 
   client-format-check:
     if: needs.repo-discovery.outputs.client == 'true' && github.event_name == 'pull_request'
-    name: "Quality: Client Format"
+    name: 'Quality: Client Format'
     needs: repo-discovery
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -455,7 +455,7 @@ jobs:
 
   client-typecheck:
     if: needs.repo-discovery.outputs.client == 'true' && github.event_name == 'pull_request'
-    name: "Quality: Client TypeCheck"
+    name: 'Quality: Client TypeCheck'
     needs: repo-discovery
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -471,10 +471,10 @@ jobs:
       - name: TypeCheck
         run: npx tsc --noEmit
         working-directory: apps/client
-        
+
   client-complexity:
     if: needs.repo-discovery.outputs.client == 'true' && github.event_name == 'pull_request'
-    name: "Quality: Client Complexity"
+    name: 'Quality: Client Complexity'
     needs: repo-discovery
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -491,7 +491,7 @@ jobs:
 
   client-dead-code:
     if: needs.repo-discovery.outputs.client == 'true' && github.event_name == 'pull_request'
-    name: "Quality: Client Dead Code"
+    name: 'Quality: Client Dead Code'
     needs: repo-discovery
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -509,7 +509,7 @@ jobs:
 
   client-import-bounds:
     if: needs.repo-discovery.outputs.client == 'true' && github.event_name == 'pull_request'
-    name: "Quality: Client Import Bounds"
+    name: 'Quality: Client Import Bounds'
     needs: repo-discovery
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -540,7 +540,7 @@ jobs:
   # --- Server Pre-Build ---
   server-lint:
     if: needs.repo-discovery.outputs.server == 'true' && github.event_name == 'pull_request'
-    name: "Quality: Server Lint"
+    name: 'Quality: Server Lint'
     needs: repo-discovery
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -556,7 +556,7 @@ jobs:
   # misma convención FASE 1/FASE 2 del bloque Security.
   server-format-check:
     if: false
-    name: "Quality: Server Format"
+    name: 'Quality: Server Format'
     needs: repo-discovery
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -569,7 +569,7 @@ jobs:
 
   server-typecheck:
     if: needs.repo-discovery.outputs.server == 'true' && github.event_name == 'pull_request'
-    name: "Quality: Server TypeCheck"
+    name: 'Quality: Server TypeCheck'
     needs: repo-discovery
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -587,10 +587,10 @@ jobs:
       - name: TypeCheck
         run: npx tsc --noEmit
         working-directory: apps/server
-        
+
   server-complexity:
     if: needs.repo-discovery.outputs.server == 'true' && github.event_name == 'pull_request'
-    name: "Quality: Server Complexity"
+    name: 'Quality: Server Complexity'
     needs: repo-discovery
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -607,7 +607,7 @@ jobs:
 
   server-dead-code:
     if: needs.repo-discovery.outputs.server == 'true' && github.event_name == 'pull_request'
-    name: "Quality: Server Dead Code"
+    name: 'Quality: Server Dead Code'
     needs: repo-discovery
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -624,7 +624,7 @@ jobs:
 
   server-import-bounds:
     if: needs.repo-discovery.outputs.server == 'true' && github.event_name == 'pull_request'
-    name: "Quality: Server Import Bounds"
+    name: 'Quality: Server Import Bounds'
     needs: repo-discovery
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -656,7 +656,7 @@ jobs:
   # de complejidad de e2e/tests/** es 'off' vía bloque de tests de la config.
   e2e-lint:
     if: needs.repo-discovery.outputs.e2e == 'true' && github.event_name == 'pull_request'
-    name: "Quality: E2E Lint"
+    name: 'Quality: E2E Lint'
     needs: repo-discovery
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -675,7 +675,7 @@ jobs:
   # que toque el manifest raíz (outputs.shared). Sin red, en segundos.
   root-manifest-guard:
     if: needs.repo-discovery.outputs.shared == 'true' && github.event_name == 'pull_request'
-    name: "Quality: Root Manifest Guard"
+    name: 'Quality: Root Manifest Guard'
     needs: repo-discovery
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -696,7 +696,7 @@ jobs:
   # repo-discovery, así que corre desde t=0 del workflow en paralelo.
   openspec-validate:
     if: github.event_name == 'pull_request'
-    name: "Quality: OpenSpec Validate"
+    name: 'Quality: OpenSpec Validate'
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -715,7 +715,7 @@ jobs:
   # Fase 2 (bloqueante) queda fuera de este change hasta que docs/ pase limpio.
   docs-validation:
     if: github.event_name == 'pull_request'
-    name: "Quality: Docs Validation (advisory)"
+    name: 'Quality: Docs Validation (advisory)'
     needs: repo-discovery
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -760,13 +760,51 @@ jobs:
         with:
           fetch-depth: 0
       - uses: ./.github/actions/setup-monorepo
-      - name: Run Client Unit Tests with Coverage
-        run: npm run test:coverage:ci --workspace=apps/client
+
+      # TIA — spec ci-test-impact-analysis (D7). Diff-scoped cuando el diff
+      # contra origin/main resuelve; suite completa cuando `shared == 'true'`
+      # (lockfile, workflows, raíz) o cuando origin/main NO es resoluble
+      # (fallback a suite completa: nunca "0 tests afectados" en silencio).
+      - name: Resolve TIA scope (diff-scoped vs full suite)
+        id: tia
+        run: |
+          if [ "${{ needs.repo-discovery.outputs.shared }}" = "true" ]; then
+            echo "scope=full" >> "$GITHUB_OUTPUT"
+            echo "::notice::shared path changed (root manifest, lockfile or workflows) — running the FULL client suite."
+          elif git rev-parse --verify --quiet origin/main > /dev/null; then
+            echo "scope=changed" >> "$GITHUB_OUTPUT"
+            echo "::notice::origin/main resolved — running the diff-scoped client suite."
+          else
+            echo "scope=full" >> "$GITHUB_OUTPUT"
+            echo "::warning::origin/main is NOT resolvable in this checkout; falling back to the FULL suite (never reporting '0 affected tests')."
+          fi
+        shell: bash
+
+      - name: Run Client Unit Tests (TIA / full suite)
+        run: |
+          mkdir -p apps/client/reports
+          echo "scope=${{ steps.tia.outputs.scope }}" > apps/client/reports/tia-scope.txt
+          if [ "${{ steps.tia.outputs.scope }}" = "changed" ]; then
+            npm run test:changed:ci --workspace=apps/client
+          else
+            npm run test:coverage:ci --workspace=apps/client
+          fi
+        shell: bash
+
       - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: coverage-client
           path: apps/client/coverage/
+          if-no-files-found: warn
+      # D7: el scope resuelto se propaga al job de coverage para que el guard de
+      # thresholds sepa si la corrida fue diff-scoped (D18).
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: tia-scope-client
+          path: apps/client/reports/tia-scope.txt
+          retention-days: 7
           if-no-files-found: warn
       - name: Report Client Unit Tests
         if: success() || failure()
@@ -793,13 +831,48 @@ jobs:
         with:
           fetch-depth: 0
       - uses: ./.github/actions/setup-monorepo
-      - name: Run Server Unit Tests with Coverage
-        run: npm run test:coverage:unit:ci --workspace=apps/server
+
+      # TIA — spec ci-test-impact-analysis (D7). Misma política que el job client:
+      # diff-scoped si origin/main resuelve, suite completa si `shared == 'true'`
+      # o si la base no es resoluble (fallback ruidoso, nunca "0 tests afectados").
+      - name: Resolve TIA scope (diff-scoped vs full suite)
+        id: tia
+        run: |
+          if [ "${{ needs.repo-discovery.outputs.shared }}" = "true" ]; then
+            echo "scope=full" >> "$GITHUB_OUTPUT"
+            echo "::notice::shared path changed (root manifest, lockfile or workflows) — running the FULL server suite."
+          elif git rev-parse --verify --quiet origin/main > /dev/null; then
+            echo "scope=changed" >> "$GITHUB_OUTPUT"
+            echo "::notice::origin/main resolved — running the diff-scoped server suite."
+          else
+            echo "scope=full" >> "$GITHUB_OUTPUT"
+            echo "::warning::origin/main is NOT resolvable in this checkout; falling back to the FULL suite (never reporting '0 affected tests')."
+          fi
+        shell: bash
+
+      - name: Run Server Unit Tests (TIA / full suite)
+        run: |
+          mkdir -p apps/server/reports
+          echo "scope=${{ steps.tia.outputs.scope }}" > apps/server/reports/tia-scope.txt
+          if [ "${{ steps.tia.outputs.scope }}" = "changed" ]; then
+            npm run test:changed:ci --workspace=apps/server
+          else
+            npm run test:coverage:unit:ci --workspace=apps/server
+          fi
+        shell: bash
+
       - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: coverage-server
           path: apps/server/tests/coverage/
+          if-no-files-found: warn
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: tia-scope-server
+          path: apps/server/reports/tia-scope.txt
+          retention-days: 7
           if-no-files-found: warn
       - name: Report Server Unit Tests
         if: success() || failure()
@@ -835,7 +908,7 @@ jobs:
           # Fail on new vulnerabilities with severity >= moderate (governance intent)
           fail-on-severity: moderate
           # Allow specific vulnerabilities if needed (empty by default)
-          allow-ghsas: ""
+          allow-ghsas: ''
           # Security intent: vulnerability + license checks
           vulnerability-check: true
           license-check: true
@@ -895,7 +968,7 @@ jobs:
           # gitleaks-action v3 exige GITHUB_TOKEN para escanear pull requests
           # (breaking change anunciado en su README)
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - name: "Warn: licensed Gitleaks scan unavailable"
+      - name: 'Warn: licensed Gitleaks scan unavailable'
         if: ${{ env.GIT_LEAKS == '' }}
         run: echo "::warning::GIT_LEAKS secret not configured - licensed Gitleaks scan skipped. Using open-source Gitleaks only."
 
@@ -920,7 +993,7 @@ jobs:
   # por paridad con el audit semanal.
   scancode-license-pr-diff:
     if: github.event_name == 'pull_request'
-    name: "Security: ScanCode License PR-Diff (advisory, FASE 1)"
+    name: 'Security: ScanCode License PR-Diff (advisory, FASE 1)'
     runs-on: ubuntu-latest
     timeout-minutes: 30
     continue-on-error: true
@@ -1037,7 +1110,7 @@ jobs:
   # `deny-licenses` (clave del job dependency-review) NO aplica aquí.
   lockfile-audit:
     if: github.event_name == 'pull_request'
-    name: "Security: Lockfile Audit (advisory, FASE 1)"
+    name: 'Security: Lockfile Audit (advisory, FASE 1)'
     needs: repo-discovery
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -1088,7 +1161,7 @@ jobs:
   # (dependencias): configura infraestructura, no analiza licencias ni CVE.
   checkov-iac:
     if: github.event_name == 'pull_request'
-    name: "Security: Checkov IaC (advisory, FASE 1)"
+    name: 'Security: Checkov IaC (advisory, FASE 1)'
     needs: repo-discovery
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -1127,7 +1200,7 @@ jobs:
   # falsos positivos): `failure-threshold: warning` + añadir al `needs`.
   containerfile-lint:
     if: github.event_name == 'pull_request'
-    name: "Security: Containerfile Lint (advisory, FASE 1)"
+    name: 'Security: Containerfile Lint (advisory, FASE 1)'
     needs: repo-discovery
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -1183,7 +1256,7 @@ jobs:
   # change ci-security-substage-alignment (2026-09-30): ubicado en bloque security 2C, orden §23.3
   actionlint-advisory:
     if: github.event_name == 'pull_request'
-    name: "Quality: ActionLint Advisory (SARIF, FASE 1)"
+    name: 'Quality: ActionLint Advisory (SARIF, FASE 1)'
     needs: repo-discovery
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -1229,7 +1302,7 @@ jobs:
   # change ci-security-substage-alignment (2026-09-30): ubicado en bloque security 2C, orden §23.3
   zizmor-advisory:
     if: github.event_name == 'pull_request'
-    name: "Security: Zizmor Advisory (unpinned-uses, FASE 1)"
+    name: 'Security: Zizmor Advisory (unpinned-uses, FASE 1)'
     needs: repo-discovery
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -1276,7 +1349,7 @@ jobs:
   # change ci-security-substage-alignment (2026-09-30): ubicado en bloque security 2C, orden §23.3
   typosquat-guarddog:
     if: github.event_name == 'pull_request'
-    name: "Security: Typosquat GuardDog (advisory, FASE 1)"
+    name: 'Security: Typosquat GuardDog (advisory, FASE 1)'
     needs: repo-discovery
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -1312,9 +1385,17 @@ jobs:
   # STAGE 3: BUILD (compilación, empaquetado, artifact)
   # ═══════════════════════════════════════════════════════════════
   client-build:
-    if: false  # Disabled for incremental CI — change to true to re-enable
+    if: false # Disabled for incremental CI — change to true to re-enable
     name: Build - Client
-    needs: [client-lint, client-format-check, client-typecheck, client-complexity, client-dead-code, client-import-bounds]
+    needs:
+      [
+        client-lint,
+        client-format-check,
+        client-typecheck,
+        client-complexity,
+        client-dead-code,
+        client-import-bounds,
+      ]
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -1329,9 +1410,17 @@ jobs:
           path: apps/client/dist/
 
   server-build:
-    if: false  # Disabled for incremental CI — change to true to re-enable
+    if: false # Disabled for incremental CI — change to true to re-enable
     name: Build - Server
-    needs: [server-lint, server-format-check, server-typecheck, server-complexity, server-dead-code, server-import-bounds]
+    needs:
+      [
+        server-lint,
+        server-format-check,
+        server-typecheck,
+        server-complexity,
+        server-dead-code,
+        server-import-bounds,
+      ]
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -1343,8 +1432,8 @@ jobs:
 
   # --- Client Post-Build ---
   client-sonarqube:
-    if: false  # Sin credenciales: no existe SONAR_TOKEN/SONAR_HOST_URL en los secrets del repo (change `quality-gates` D2 — gate documentado como inactivo, nunca rojo)
-    name: "Quality: Client SonarQube"
+    if: false # Sin credenciales: no existe SONAR_TOKEN/SONAR_HOST_URL en los secrets del repo (change `quality-gates` D2 — gate documentado como inactivo, nunca rojo)
+    name: 'Quality: Client SonarQube'
     needs: [client-build, test-unit-client]
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -1378,7 +1467,7 @@ jobs:
     # job se saltaría siempre. La propagación cubre el mismo conjunto: corre ⇔ corrió su test job.
     if: github.event_name == 'pull_request'
     continue-on-error: true
-    name: "Quality: Client Coverage"
+    name: 'Quality: Client Coverage'
     needs: [test-unit-client]
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -1391,12 +1480,34 @@ jobs:
         with:
           name: coverage-client
           path: apps/client/coverage/
-      - name: Enforce coverage thresholds
-        run: node scripts/ci/check-coverage.mjs apps/client
+      - uses: actions/download-artifact@v4
+        with:
+          name: tia-scope-client
+          path: apps/client/reports/
+      # D18: el tripwire de thresholds SOLO evalúa cobertura de suite completa.
+      # Una corrida TIA solo carga los tests afectados, así que sus totales no son
+      # comparables con los thresholds globales (falso fail al reportar 0% en lo no
+      # corrido, o fail-silencioso al subir el % al testear solo lo ya cubierto).
+      # En diff-scoped se exige la presencia del artefacto y se difiere el umbral
+      # a la próxima full-suite (que cierran los PRs `shared` y el nocturno).
+      - name: Enforce coverage thresholds (full suite only, D18)
+        run: |
+          SCOPE=$(tr -d '[:space:]' < apps/client/reports/tia-scope.txt 2>/dev/null || true)
+          SCOPE=${SCOPE:-full}
+          echo "TIA scope: $SCOPE"
+          if [ ! -f apps/client/coverage/coverage-summary.json ]; then
+            echo "::error::coverage artifact missing — the test job did not produce coverage"
+            exit 1
+          fi
+          if [ "${SCOPE}" != "full" ]; then
+            echo "::notice::diff-scoped run: coverage thresholds DEFERRED to the next full-suite run (D18). Artifact presence verified."
+            exit 0
+          fi
+          node scripts/ci/check-coverage.mjs apps/client
 
   client-depcheck:
-    if: false  # Disabled for incremental CI — change to true to re-enable
-    name: "Quality: Client DepCheck"
+    if: false # Disabled for incremental CI — change to true to re-enable
+    name: 'Quality: Client DepCheck'
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -1410,8 +1521,8 @@ jobs:
 
   # --- Server Post-Build ---
   server-sonarqube:
-    if: false  # Sin credenciales: no existe SONAR_TOKEN/SONAR_HOST_URL en los secrets del repo (change `quality-gates` D2 — gate documentado como inactivo, nunca rojo)
-    name: "Quality: Server SonarQube"
+    if: false # Sin credenciales: no existe SONAR_TOKEN/SONAR_HOST_URL en los secrets del repo (change `quality-gates` D2 — gate documentado como inactivo, nunca rojo)
+    name: 'Quality: Server SonarQube'
     needs: [server-build, test-unit-server]
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -1439,7 +1550,7 @@ jobs:
     # el guard recibe el reportsDirectory real del server como 3.er argumento.
     if: github.event_name == 'pull_request'
     continue-on-error: true
-    name: "Quality: Server Coverage"
+    name: 'Quality: Server Coverage'
     needs: [test-unit-server]
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -1452,12 +1563,31 @@ jobs:
         with:
           name: coverage-server
           path: apps/server/tests/coverage/
-      - name: Enforce coverage thresholds
-        run: node scripts/ci/check-coverage.mjs apps/server apps/server/tests/coverage
+      - uses: actions/download-artifact@v4
+        with:
+          name: tia-scope-server
+          path: apps/server/reports/
+      # D18: el guard de thresholds solo evalúa cobertura de suite completa; en
+      # corridas diff-scoped (TIA) se verifica la presencia del artefacto y se
+      # difiere el umbral a la próxima full-suite.
+      - name: Enforce coverage thresholds (full suite only, D18)
+        run: |
+          SCOPE=$(tr -d '[:space:]' < apps/server/reports/tia-scope.txt 2>/dev/null || true)
+          SCOPE=${SCOPE:-full}
+          echo "TIA scope: $SCOPE"
+          if [ ! -f apps/server/tests/coverage/coverage-summary.json ]; then
+            echo "::error::coverage artifact missing — the test job did not produce coverage"
+            exit 1
+          fi
+          if [ "${SCOPE}" != "full" ]; then
+            echo "::notice::diff-scoped run: coverage thresholds DEFERRED to the next full-suite run (D18). Artifact presence verified."
+            exit 0
+          fi
+          node scripts/ci/check-coverage.mjs apps/server apps/server/tests/coverage
 
   server-depcheck:
-    if: false  # Disabled for incremental CI — change to true to re-enable
-    name: "Quality: Server DepCheck"
+    if: false # Disabled for incremental CI — change to true to re-enable
+    name: 'Quality: Server DepCheck'
     needs: server-build
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -1571,7 +1701,7 @@ jobs:
           reporter: java-junit
 
   e2e:
-    if: false  # Disabled for incremental CI — change to true to re-enable
+    if: false # Disabled for incremental CI — change to true to re-enable
     name: E2E Tests
     needs: repo-discovery
     runs-on: ubuntu-latest
