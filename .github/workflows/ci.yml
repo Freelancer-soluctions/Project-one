@@ -736,10 +736,18 @@ jobs:
 
   # ═══════════════════════════════════════════════════════════════
   # SUBSTAGE 2D: UNIT TESTING — test-unit-client, test-unit-server, test-integration, test-smoke
+  # FASE 1 advisory (continue-on-error: reporta sin bloquear) → FASE 2 blocking al
+  # cerrar la ventana de calibración (2-4 semanas; docs/learning/quality-gates.md en lockstep).
+  # Coverage: client-coverage/server-coverage se scopean por propagación de skip de su
+  # test job (needs), NO vía repo-discovery — ci-runtime-config-hygiene prohíbe needs
+  # sin consumo de outputs.
   # ═══════════════════════════════════════════════════════════════
   # --- TESTING (pre-build): unit tests, source-level, no artifact needed ---
   test-unit-client:
-    if: false  # Disabled for incremental CI — change to true to re-enable
+    # FASE 1 advisory: continue-on-error reporta (log + JUnit + artifacts) sin bloquear
+    # el agregador (actions/toolkit#581). FASE 2: quitar el flag tras la calibración.
+    if: (needs.repo-discovery.outputs.client == 'true' || needs.repo-discovery.outputs.shared == 'true') && github.event_name == 'pull_request'
+    continue-on-error: true
     name: Unit Tests - Client
     needs: repo-discovery
     runs-on: ubuntu-latest
@@ -753,7 +761,7 @@ jobs:
           fetch-depth: 0
       - uses: ./.github/actions/setup-monorepo
       - name: Run Client Unit Tests with Coverage
-        run: npm run test:coverage --workspace=apps/client
+        run: npm run test:coverage:ci --workspace=apps/client
       - uses: actions/upload-artifact@v7
         if: always()
         with:
@@ -769,7 +777,10 @@ jobs:
           reporter: java-junit
 
   test-unit-server:
-    if: false  # Disabled for incremental CI — change to true to re-enable
+    # FASE 1 advisory; suite unit-scoped (*.unit.test.js, sin PostgreSQL) con junit
+    # para dorny/test-reporter. FASE 2: quitar continue-on-error tras la calibración.
+    if: (needs.repo-discovery.outputs.server == 'true' || needs.repo-discovery.outputs.shared == 'true') && github.event_name == 'pull_request'
+    continue-on-error: true
     name: Unit Tests - Server
     needs: repo-discovery
     runs-on: ubuntu-latest
@@ -783,7 +794,7 @@ jobs:
           fetch-depth: 0
       - uses: ./.github/actions/setup-monorepo
       - name: Run Server Unit Tests with Coverage
-        run: npm run test:coverage --workspace=apps/server
+        run: npm run test:coverage:unit:ci --workspace=apps/server
       - uses: actions/upload-artifact@v7
         if: always()
         with:
@@ -1360,9 +1371,15 @@ jobs:
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
 
   client-coverage:
-    if: false  # Disabled for incremental CI — change to true to re-enable
+    # FASE 1 advisory. Scoping por PROPAGACIÓN de skip del upstream (needs = exactamente
+    # su test job; client-build sigue if: false — deadlock de skipped). NOTA D17: el if
+    # explícito con needs.repo-discovery.outputs NO es viable aquí — GHA solo expone el
+    # contexto needs de jobs DECLARADOS en needs (actionlint: property not defined) y el
+    # job se saltaría siempre. La propagación cubre el mismo conjunto: corre ⇔ corrió su test job.
+    if: github.event_name == 'pull_request'
+    continue-on-error: true
     name: "Quality: Client Coverage"
-    needs: [client-build, test-unit-client]
+    needs: [test-unit-client]
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -1418,9 +1435,12 @@ jobs:
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
 
   server-coverage:
-    if: false  # Disabled for incremental CI — change to true to re-enable
+    # FASE 1 advisory. Scoping por propagación (misma corrección D17 que client-coverage);
+    # el guard recibe el reportsDirectory real del server como 3.er argumento.
+    if: github.event_name == 'pull_request'
+    continue-on-error: true
     name: "Quality: Server Coverage"
-    needs: [server-build, test-unit-server]
+    needs: [test-unit-server]
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -1433,7 +1453,7 @@ jobs:
           name: coverage-server
           path: apps/server/tests/coverage/
       - name: Enforce coverage thresholds
-        run: node scripts/ci/check-coverage.mjs apps/server
+        run: node scripts/ci/check-coverage.mjs apps/server apps/server/tests/coverage
 
   server-depcheck:
     if: false  # Disabled for incremental CI — change to true to re-enable
@@ -1451,8 +1471,13 @@ jobs:
         working-directory: apps/server
 
   # --- TESTING (post-build): integration / smoke / e2e requieren artifact compilado ---
+  # JUnit de integration/smoke: flags `--reporter=junit --outputFile=reports/junit.xml` inline
+  # (contrato "in the workspace CI script" de ci-test-reporting relajado aquí: el `--` de npm
+  # los añade a un script existente; moverlos a scripts `*:ci` nuevos duplicaría configuración).
   test-integration:
-    if: false  # Disabled for incremental CI — change to true to re-enable
+    # FASE 1 advisory; FASE 2: quitar continue-on-error tras la calibración.
+    if: (needs.repo-discovery.outputs.server == 'true' || needs.repo-discovery.outputs.shared == 'true') && github.event_name == 'pull_request'
+    continue-on-error: true
     name: Integration Tests - Server
     needs: repo-discovery
     runs-on: ubuntu-latest
@@ -1498,7 +1523,9 @@ jobs:
           reporter: java-junit
 
   test-smoke:
-    if: false  # Disabled for incremental CI — change to true to re-enable
+    # FASE 1 advisory; FASE 2: quitar continue-on-error tras la calibración.
+    if: (needs.repo-discovery.outputs.server == 'true' || needs.repo-discovery.outputs.shared == 'true') && github.event_name == 'pull_request'
+    continue-on-error: true
     name: Smoke Tests - Server
     needs: repo-discovery
     runs-on: ubuntu-latest
@@ -1729,6 +1756,8 @@ jobs:
       - test-unit-server
       - test-integration
       - test-smoke
+      - client-coverage
+      - server-coverage
     steps:
       - name: Check for failures
         run: |
