@@ -945,7 +945,7 @@ jobs:
   # SECURITY — Dependency Review (inline so ci-complete.needs resolves)
   # ════════════════════════════════════════════════════════════════
   dependency-review:
-    name: Dependency Review
+    name: 'Security: Dependency Review'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     if: github.event_name == 'pull_request'
@@ -995,7 +995,7 @@ jobs:
     # Job-level continue-on-error: false (default) — failures block the check
 
   secrets:
-    name: Secret Detection
+    name: 'Security: Secret Detection'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     if: github.event_name == 'pull_request'
@@ -1310,7 +1310,7 @@ jobs:
   # change ci-security-substage-alignment (2026-09-30): ubicado en bloque security 2C, orden §23.3
   actionlint-advisory:
     if: github.event_name == 'pull_request'
-    name: 'Quality: ActionLint Advisory (SARIF, FASE 1)'
+    name: 'Security: ActionLint Advisory (SARIF, FASE 1)'
     needs: repo-discovery
     runs-on: ubuntu-latest
     timeout-minutes: 5
