@@ -77,11 +77,19 @@ Política (§23.3 regla 5, línea de análisis 520):
 
 ### 2.3 TIA (Test Impact Analysis) — changed-only
 
-- **Local (implementado):** `.husky/pre-push` ejecuta `vitest run --changed origin/main --config
-apps/server/vitest.config.js` y lo mismo para client, ambos bloqueantes (`set -e` + `|| exit 1`). Diff base
-  `origin/main` (no `HEAD~1`): cubre todos los commits de la rama, estándar de industria (Nx affected, Turborepo
-  `--filter`), compatible con trunk-based development.
-- Scripts `test:changed` (`vitest run --changed`) en ambos `package.json` de workspace.
+- **Local (implementado):** `.husky/pre-push` invoca `npm run test:changed --workspace=apps/<ws>` en ambos
+  workspaces, bloqueantes (`|| exit 1`). Usa los MISMOS scripts npm que ejecuta CI (`test:changed:ci` es su
+  equivalente con coverage y reporters), de modo que la definición de "qué tests corren" vive en un solo sitio y
+  local y CI no pueden divergir. Diff base `origin/main` (no `HEAD~1`): cubre todos los commits de la rama, estándar
+  de industria (Nx affected, Turborepo `--filter`), compatible con trunk-based development.
+- Scripts `test:changed` en ambos `package.json`: server = `vitest run ".unit.test.js" --changed origin/main`,
+  client = `vitest run --changed origin/main`.
+- **Por qué el server es unit-scoped y el client no:** el filtro `.unit.test.js` existe para dejar fuera
+  `tests/integration/**`, que necesita PostgreSQL. El "integration" de client es de componente (jsdom) y no toca
+  base de datos, así que corre también en local. Antes de 2026-10-03 el hook usaba la config COMPLETA de ambos
+  workspaces, lo que exigía una DB local para poder pushear — un gate local MÁS estricto que el de CI, en dirección
+  contraria a la intención de esta doc (§7.5 de `testing-architecture.md`: CI como fallback obligatorio). La integración
+  se cubre en el job `test-integration` de `ci.yml`, que sí levanta el service container.
 - **CI (implementado en P1, change `ci-testing-pipeline-reactivation`):** scripts `test:changed:ci` en ambos
   workspaces (`vitest run --changed origin/main …` + filtro `.unit.test.js` en server). Los jobs `test-unit-client` /
   `test-unit-server` resuelven el scope en un paso previo: diff-scoped si `origin/main` es resoluble (el checkout ya
@@ -106,12 +114,9 @@ apps/server/vitest.config.js` y lo mismo para client, ambos bloqueantes (`set -e
 - Limitación documentada (`docs/adr/turborepo-evaluation.md`): `vitest --changed` es **local y no persistente
   cross-machine** — en CI no hay cache de la memoria de tests entre runs (R5 del design: por eso el nocturno).
 - Excluidos por diseño de pre-push: E2E (Playwright) e integration con DB (requieren PostgreSQL) — pertenecen a CI.
-- **Asimetría conocida (2026-10-03, sin corregir):** el hook `pre-push` corre `vitest run --changed` con la config
-  COMPLETA del server, que incluye `tests/integration/**` y por tanto **exige PostgreSQL local para poder pushear**.
-  El job de CI equivalente (`test-unit-server`) corre `test:coverage:unit:ci`, solo `*.unit.test.js`, sin DB. El gate
-  local es por tanto MÁS estricto que el de CI, en dirección contraria a la intención de `docs/testing-architecture.md`
-  §7.5 (CI como fallback). Se detectó al fallar un push con 14 tests de integración en rojo por `ECONNREFUSED`.
-  Pendiente de alinear; hasta entonces, quien no tenga DB local no puede pushear.
+- **Asimetría del hook: CORREGIDA 2026-10-03.** Ver §2.3 (principio de arriba). El hook pasó de la config completa
+  (exigía PostgreSQL, 14 tests de integración en rojo por `ECONNREFUSED` al intentar pushear) a los scripts
+  `test:changed` unit-scoped, idénticos en selección a los jobs de CI.
 - **Duración medida (2026-10-03, baseline local):** server full = 5-6s / 218 tests; client full = 14s / 26 ficheros.
   Es la evidencia que decidió el grupo 6 como `N/A`: sharding está pensado para suites de >5-8 min y aquí el orden de
   magnitud es de segundos. Reevaluar si la suite crece.
