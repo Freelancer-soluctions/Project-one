@@ -1,5 +1,13 @@
 # Spec Delta — ci-test-sharding
 
+> **Estado: DORMIDA al archivar (2026-10-03).** Sharding **no está activado**. El requirement de precondición por
+> duración se evalúo con evidencia y dio negativo (tarea 6.0 de `ci-testing-pipeline-reactivation`): suites medidas en
+> 5-6s (server, 218 tests) y 14s (client, 26 ficheros) frente a un umbral de activación de 5-8 min por workspace —
+> entre 15x y 80x por debajo. Activarlo costaría un `npm ci` por shard y el merge de cobertura descrito abajo para
+> partir en paralelo algo que tarda segundos. El capability se conserva **latente**: los requirements siguientes
+> siguen siendo el contrato si el repo crece y se cumple el umbral, y no se revisan por calendario sino con evidencia
+> nueva.
+
 ## Purpose
 
 Divide las suites de tests de CI en shards deterministas con merge de reportes JUnit y un coverage merge gate obligatorio previo, para reducir el wall-time de los jobs de test sin perder tests, sin debilitar el tripwire de cobertura y sin romper el contrato de `needs` del agregador de merge.
@@ -14,6 +22,12 @@ Sharding SHALL be enabled for a workspace only when measured CI evidence shows i
 
 - **WHEN** the `test-unit-server` suite completes in 3.5 minutes single-runner in CI
 - **THEN** no shard matrix is configured for that job and it keeps running as a single runner
+
+#### Scenario: Current repo state leaves sharding disabled
+
+- **WHEN** the recorded evidence shows both workspaces running their full suite well under the 5-8 minute threshold
+- **THEN** no `strategy.matrix` of shards exists in `.github/workflows/ci.yml` for any test job
+- **AND** the capability stays dormant until measured evidence crosses the threshold, not merely because time passed
 
 #### Scenario: Suite duration justifies sharding
 

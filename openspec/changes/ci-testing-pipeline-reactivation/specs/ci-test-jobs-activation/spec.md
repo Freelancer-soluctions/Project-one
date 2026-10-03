@@ -46,17 +46,12 @@ The first activation of the 6 jobs SHALL use job-level `continue-on-error: true`
 #### Scenario: Calibration window elapses cleanly
 
 - **WHEN** the calibration window (2-4 weeks of runs) completes without infrastructure-caused failures
-- **THEN** the change is promoted to FASE 2 per the promotion requirement below
+- **THEN** the change is promoted to FASE 2 per the promotion requirement of `ci-testing-gate-promotion`
 
-### Requirement: FASE 2 blocking promotion
-
-After the calibration window, `continue-on-error` SHALL be removed from the 6 jobs so test and coverage failures block the merge through `prebuild-unit-tests-complete` → `ci-complete`, and `docs/learning/quality-gates.md` SHALL be updated in lockstep with the new blocking state.
-
-#### Scenario: Red test after promotion
-
-- **WHEN** a test job fails after FASE 2 promotion
-- **THEN** `prebuild-unit-tests-complete` reports failure and `ci-complete` fails, blocking the merge
-- **AND** `docs/learning/quality-gates.md` lists the 6 jobs as blocking (no stale `if: false` rows)
+> **Alcance recortado al archivar (2026-10-03).** El requirement "FASE 2 blocking promotion" se retiró de este delta
+> y vive en el change `ci-testing-gate-promotion`. Motivo: la calibración es esperar a que la realidad ocurra, no
+> implementación pendiente — sincronizar aquí un requirement con `SHALL` incumplido habría dejado el spec asserting
+> un estado que el repo no tiene. Los 6 jobs quedan en FASE 1 advisory al archivar este change.
 
 ### Requirement: JUnit report production by test jobs
 
