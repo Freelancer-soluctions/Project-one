@@ -799,6 +799,17 @@ jobs:
           echo "scope=${{ steps.tia.outputs.scope }}" > apps/client/reports/tia-scope.txt
           if [ "${{ steps.tia.outputs.scope }}" = "changed" ]; then
             npm run test:changed:ci --workspace=apps/client -- ${{ steps.quarantine.outputs.args }}
+            # Guard D7: un diff válido puede no tener NINGÚN test relacionado, y con
+            # passWithNoTests (default en Vitest 4) eso sale "No test files found"
+            # con exit 0 — un verde VACÍO que el agregador contaría como tests
+            # ejecutados. Si la corrida no ejecutó ningún test, se cae a suite
+            # completa en vez de fingir cobertura.
+            RAN=$(node -p "require('./apps/client/reports/vitest-results.json').numTotalTests" 2> /dev/null || echo 0)
+            if [ "${RAN:-0}" -eq 0 ]; then
+              echo "::warning::TIA matched 0 tests for this diff (numTotalTests=${RAN:-0}); running the FULL client suite instead of reporting a vacuous green."
+              echo "scope=full" > apps/client/reports/tia-scope.txt
+              npm run test:coverage:ci --workspace=apps/client -- ${{ steps.quarantine.outputs.args }}
+            fi
           else
             npm run test:coverage:ci --workspace=apps/client -- ${{ steps.quarantine.outputs.args }}
           fi
@@ -884,6 +895,15 @@ jobs:
           echo "scope=${{ steps.tia.outputs.scope }}" > apps/server/reports/tia-scope.txt
           if [ "${{ steps.tia.outputs.scope }}" = "changed" ]; then
             npm run test:changed:ci --workspace=apps/server -- ${{ steps.quarantine.outputs.args }}
+            # Guard D7: ver la nota del job client. Con passWithNoTests un diff sin
+            # tests relacionados sale verde vacío; aquí se cae a la suite unit
+            # completa y el scope se corrige a `full` para que D18 aplique umbral.
+            RAN=$(node -p "require('./apps/server/reports/vitest-results.json').numTotalTests" 2> /dev/null || echo 0)
+            if [ "${RAN:-0}" -eq 0 ]; then
+              echo "::warning::TIA matched 0 tests for this diff (numTotalTests=${RAN:-0}); running the FULL server suite instead of reporting a vacuous green."
+              echo "scope=full" > apps/server/reports/tia-scope.txt
+              npm run test:coverage:unit:ci --workspace=apps/server -- ${{ steps.quarantine.outputs.args }}
+            fi
           else
             npm run test:coverage:unit:ci --workspace=apps/server -- ${{ steps.quarantine.outputs.args }}
           fi
