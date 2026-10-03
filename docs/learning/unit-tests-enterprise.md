@@ -88,6 +88,14 @@ apps/server/vitest.config.js` y lo mismo para client, ambos bloqueantes (`set -e
   declara `fetch-depth: 0`), **suite completa** si `repo-discovery.outputs.shared == 'true'` (root manifest, lockfile o
   workflows) **o si `origin/main` no resuelve** — el fallback es explícito y ruidoso, nunca "0 tests afectados" en
   silencio.
+- **Guard de "cero tests" (P1, hallazgo 2026-10-03):** el paso anterior solo cubre el caso de `origin/main` no
+  resoluble. Existe un segundo modo de fallo, más peligroso: un diff perfectamente válido cuyos archivos **no tienen
+  ningún test relacionado**. Con `passWithNoTests` (default en Vitest 4) eso imprime `No test files found` y sale con
+  **código 0** — el job queda VERDE sin haber ejecutado un solo test. Reproducido con
+  `apps/server/src/utils/jwt/createToken.js`. Por eso, tras la corrida diff-scoped se lee `numTotalTests` del reporter
+  JSON y, si es 0, se cae a la suite completa reescribiendo el scope a `full` (así D18 sigue aplicando umbrales sobre
+  cobertura real). Sin este guard, cualquier PR que toque código sin tocar tests entra al agregador como cobertura
+  ejecutada: un verde falso, que es el peor modo de fallo posible en un gate.
 - **El guard de thresholds NO come cobertura diff-scoped (D18):** `check-coverage.mjs` compara totales de
   suite completa contra los thresholds globales; una corrida `--changed` solo carga los tests afectados, así que sus
   totales no son comparables. `client-coverage` / `server-coverage` verifican la **presencia del artefacto** y difieren
@@ -98,6 +106,15 @@ apps/server/vitest.config.js` y lo mismo para client, ambos bloqueantes (`set -e
 - Limitación documentada (`docs/adr/turborepo-evaluation.md`): `vitest --changed` es **local y no persistente
   cross-machine** — en CI no hay cache de la memoria de tests entre runs (R5 del design: por eso el nocturno).
 - Excluidos por diseño de pre-push: E2E (Playwright) e integration con DB (requieren PostgreSQL) — pertenecen a CI.
+- **Asimetría conocida (2026-10-03, sin corregir):** el hook `pre-push` corre `vitest run --changed` con la config
+  COMPLETA del server, que incluye `tests/integration/**` y por tanto **exige PostgreSQL local para poder pushear**.
+  El job de CI equivalente (`test-unit-server`) corre `test:coverage:unit:ci`, solo `*.unit.test.js`, sin DB. El gate
+  local es por tanto MÁS estricto que el de CI, en dirección contraria a la intención de `docs/testing-architecture.md`
+  §7.5 (CI como fallback). Se detectó al fallar un push con 14 tests de integración en rojo por `ECONNREFUSED`.
+  Pendiente de alinear; hasta entonces, quien no tenga DB local no puede pushear.
+- **Duración medida (2026-10-03, baseline local):** server full = 5-6s / 218 tests; client full = 14s / 26 ficheros.
+  Es la evidencia que decidió el grupo 6 como `N/A`: sharding está pensado para suites de >5-8 min y aquí el orden de
+  magnitud es de segundos. Reevaluar si la suite crece.
 
 ### 2.3-bis Flaky quarantine, métrica semanal y retries (implementado en P1)
 
