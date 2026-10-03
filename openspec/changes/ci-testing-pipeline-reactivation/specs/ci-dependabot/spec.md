@@ -1,14 +1,14 @@
-# Spec Delta — ci-dependabot (absorbida de `ci-test-integration`, verificada 2026-10-01)
+# Spec Delta — ci-dependabot (absorbida de `ci-test-integration`, verificada 2026-10-02)
 
 ## Purpose
 
-Dependabot para PRs automáticos de actualización de dependencias, con el ecosistema npm (agrupación de dev-dependencies) y el ecosistema GitHub Actions en un único `.github/dependabot.yml`. El archivo ya existe en el árbol; esta capability especifica su contrato y prohíbe recrearlo (EXTEND-NOT-RECREATE).
+Dependabot para PRs automáticos de actualización de dependencias, con el ecosistema npm (agrupación de dev-dependencies) y el ecosistema GitHub Actions en un único `.github/dependabot.yml`. El archivo ya existe en el árbol; esta capability especifica su contrato y prohíbe recrearlo (EXTEND-NOT-RECREATE). El ecosistema `docker` se añadió después (directory `/apps/server`, donde vive el único `Dockerfile`) siguiendo precisamente la vía EXTEND prevista aquí, sin tocar las entradas npm ni github-actions.
 
 ## ADDED Requirements
 
 ### Requirement: Single Dependabot configuration file
 
-The repository SHALL maintain exactly ONE `.github/dependabot.yml` at the repository root covering the npm and GitHub Actions ecosystems; any future change that needs additional ecosystems SHALL extend this file and SHALL NOT create a second Dependabot configuration.
+The repository SHALL maintain exactly ONE `.github/dependabot.yml` at the repository root covering the npm and GitHub Actions ecosystems (plus `docker` for `apps/server`, added by extension); any future change that needs additional ecosystems SHALL extend this file and SHALL NOT create a second Dependabot configuration.
 
 #### Scenario: One config file for all ecosystems
 
@@ -18,7 +18,7 @@ The repository SHALL maintain exactly ONE `.github/dependabot.yml` at the reposi
 
 #### Scenario: Extension instead of recreation
 
-- **WHEN** a future change adds a new ecosystem (e.g., `docker`, currently NOT declared even though the repo ships Dockerfiles and a root `.dockerignore`)
+- **WHEN** a future change adds a new ecosystem beyond the npm and github-actions ones (the `docker` ecosystem, declared at `/apps/server` for the repo's only `Dockerfile`, is the existing precedent)
 - **THEN** it appends the new entry to the existing `.github/dependabot.yml`
 - **AND** the existing npm and github-actions entries remain unchanged
 
