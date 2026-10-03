@@ -53,25 +53,36 @@ The `prebuild-governance-complete` aggregator SHALL depend on exactly `[verify-s
 
 ### Requirement: prebuild-quality-complete
 
-The `prebuild-quality-complete` aggregator SHALL depend on exactly 15 jobs from Substage 2B CODE QUALITY: `[client-lint, client-format-check, client-typecheck, client-complexity, client-dead-code, client-import-bounds, server-lint, server-format-check, server-typecheck, server-complexity, server-dead-code, server-import-bounds, e2e-lint, actionlint, openspec-validate]`.
+The `prebuild-quality-complete` aggregator SHALL depend on exactly 15 jobs from Substage 2B CODE QUALITY: `[client-lint, client-format-check, client-typecheck, client-complexity, client-dead-code, client-import-bounds, server-lint, server-format-check, server-typecheck, server-complexity, server-dead-code, server-import-bounds, e2e-lint, root-manifest-guard, openspec-validate]`. (Nota de calibración: la lista base declaraba 15 jobs sin `root-manifest-guard`, que se incorporó al agregador con el change `root-manifest-cleanup` sin actualizar la spec — estado real pre-`ci-supply-chain-hygiene`: 16 jobs con `actionlint`; post-change: 15.)
 
 #### Scenario: Quality aggregator needs resolution
 
 - **When** `prebuild-quality-complete` runs
 - **Then** its `needs` array contains exactly those 15 jobs — no more, no less
 - **And** all 15 jobs are from Substage 2B CODE QUALITY
+- **And** the blocking `actionlint` job is no longer a dependency (consolidated into `actionlint-advisory` of substage 2C, per change `ci-supply-chain-hygiene`)
 - **And** `e2e-lint` follows the same activation pattern as the other quality jobs: gated on `repo-discovery` output (`e2e == 'true'`), `pull_request` only, and aggregated by the same failure-propagation logic
 - **And** `openspec-validate` runs on every `pull_request` (not path-filtered), is aggregated by the same failure-propagation logic, and runs `npx openspec validate --specs --strict` against the canonical specs in `openspec/specs/**`
 
 ### Requirement: prebuild-unit-tests-complete
 
-The `prebuild-unit-tests-complete` aggregator SHALL depend on exactly 4 jobs from Substage 2D UNIT TESTING: `[test-unit-client, test-unit-server, test-integration, test-smoke]`. The jobs `test-e2e` and `coverage` do NOT exist as job names in ci.yml; coverage is provided by separate `client-coverage`/`server-coverage` jobs outside Substage 2D.
+The `prebuild-unit-tests-complete` aggregator SHALL depend on exactly 6 jobs: `[test-unit-client, test-unit-server, test-integration, test-smoke, client-coverage, server-coverage]`. The first 4 are the test jobs of Substage 2D UNIT TESTING; `client-coverage` and `server-coverage` are the coverage-tripwire jobs and SHALL remain defined outside the Substage 2D block (their physical location does not move). The jobs `test-e2e` and `coverage` do NOT exist as job names in ci.yml, and `e2e` stays excluded (`if: false`, explicitly out of scope).
 
 #### Scenario: Unit-tests aggregator needs resolution
 
-- **When** `prebuild-unit-tests-complete` runs
-- **Then** its `needs` array contains exactly those 4 jobs — no more, no less
-- **And** all 4 jobs are from Substage 2D UNIT TESTING
+- **WHEN** `prebuild-unit-tests-complete` runs
+- **THEN** its `needs` array contains exactly those 6 jobs — no more, no less
+- **AND** the first 4 jobs are from Substage 2D UNIT TESTING while `client-coverage`/`server-coverage` remain outside the substage block
+
+#### Scenario: Path-skipped jobs count as passing
+
+- **WHEN** a PR touches only `apps/client/**`, so `test-unit-server`, `test-integration`, `test-smoke` and `server-coverage` are skipped by their path conditions
+- **THEN** the aggregator treats the skipped `needs` as passing and finalizes with success if the client-side chain (`test-unit-client`, `client-coverage`) is green
+
+#### Scenario: Coverage tripwire failure propagates
+
+- **WHEN** `server-coverage` finalizes with `failure` (coverage below the workspace thresholds or a missing/stale summary)
+- **THEN** `prebuild-unit-tests-complete` finalizes with failure and `ci-complete` blocks the merge
 
 ### Requirement: ci-complete depends on aggregators
 
@@ -159,9 +170,15 @@ The CI workflow file SHALL contain commented YAML headers that visually delimit 
 - **When** a developer opens `.github/workflows/ci.yml` and navigates to STAGE 2
 - **Then** the following headers are visible as comments before their respective job groups:
   - `# SUBSTAGE 2A: GOVERNANCE — verify-signatures, commit-lint, pr-title-lint, dco, sast`
-  - `# SUBSTAGE 2B: CODE QUALITY — lint, format-check, typecheck, complexity, dead-code, import-bounds, e2e-lint, actionlint, openspec-validate`
-  - `# SUBSTAGE 2C: SECURITY — dependency-review (+ security.yml when enabled)`
-  - `# SUBSTAGE 2D: UNIT TESTING — test-unit-client, test-unit-server`
+  - `# SUBSTAGE 2B: CODE QUALITY — lint, format-check, typecheck, complexity, dead-code, import-bounds, e2e-lint, openspec-validate, docs-validation (advisory)`
+  - `# SUBSTAGE 2C: SECURITY — dependency-review, secrets, scancode-license-pr-diff, lockfile-audit, checkov-iac, containerfile-lint, actionlint-advisory, zizmor-advisory, typosquat-guarddog`
+  - `# SUBSTAGE 2D: UNIT TESTING — test-unit-client, test-unit-server, test-integration, test-smoke`
+
+#### Scenario: Reading substage 2C header
+
+- **When** a developer reads the `# SUBSTAGE 2C: SECURITY` header
+- **Then** all 9 security jobs of the pre-build security block are listed in file order
+- **And** the header no longer references `security.yml` (its PR-time security responsibility was absorbed by `ci.yml` since change `secret-scanning`; `security.yml` remains as push-main defense-in-depth per §23.3 mapping)
 
 ### Requirement: sast documented as standalone in substage 2A
 
@@ -172,6 +189,43 @@ The substage 2A header SHALL list `sast` for visual grouping, but document that 
 - **When** a developer reads the `# SUBSTAGE 2A: GOVERNANCE` header
 - **Then** `sast` is listed among the governance jobs for visual classification
 - **And** the header implies sast is in this substage even though it is not in `prebuild-governance-complete.needs` (asymmetric classification per design D5)
+
+### Requirement: Security substage 2C job placement
+
+The substage 2C security block of `ci.yml` SHALL contain exactly the 9 jobs of the pre-build security layers of `docs/ci-cd-pipeline-empresarial.md` §23.3 (`dependency-review`, `secrets`, `scancode-license-pr-diff`, `lockfile-audit`, `checkov-iac`, `containerfile-lint`, `actionlint-advisory`, `zizmor-advisory`, `typosquat-guarddog`), and no other job SHALL be defined inside the block. The 3 advisory jobs `actionlint-advisory`, `zizmor-advisory` and `typosquat-guarddog` SHALL be defined after `containerfile-lint` at the close of the block; the relative order of the 6 pre-existing jobs SHALL be unchanged. The relocation SHALL be physical only (cut-and-paste): job `id`, `name:`, `needs`, `if`, `continue-on-error`, steps, SARIF categories, artifacts and timeouts SHALL be unchanged.
+
+#### Scenario: Security block composition
+
+- **When** a developer inspects the job definitions between the `# SUBSTAGE 2C: SECURITY` header and the `# STAGE 3: BUILD` banner
+- **Then** the job ids found are exactly the 9 listed above, in the order stated, with no other job definitions interleaved
+- **And** the 3 relocated jobs appear after `containerfile-lint` in the order `actionlint-advisory`, `zizmor-advisory`, `typosquat-guarddog`
+
+#### Scenario: Advisory jobs relocated without semantic changes
+
+- **When** the relocation diff is reviewed or `actionlint` runs against `ci.yml`
+- **Then** each relocated job keeps its exact `name:` (the `Security: …` check titles), `needs: [repo-discovery]`, `if: github.event_name == 'pull_request'`, `continue-on-error: true`, steps and SARIF categories/artifacts
+- **And** no required status check name of the ruleset changes (relocation does not rename jobs)
+
+#### Scenario: Blocking actionlint stays in substage 2B
+
+- **When** a developer inspects where the blocking `actionlint` job (workflow syntax lint) is defined
+- **Then** it remains inside the substage 2B quality block (before the 2C header) and in `prebuild-quality-complete.needs`
+- **And** it is NOT part of the 2C security block (documented deviation from §23.3, decision 2026-09-30: syntax lint = quality; `zizmor` = the security layer of pipeline config via `unpinned-uses`)
+
+### Requirement: prebuild-security-complete needs contract
+
+The `prebuild-security-complete` aggregator SHALL depend on exactly 3 jobs: `[dependency-review, secrets, scancode-license-pr-diff]`. The advisory jobs of the substage (`lockfile-audit`, `checkov-iac`, `containerfile-lint`, `actionlint-advisory`, `zizmor-advisory`, `typosquat-guarddog`) SHALL NOT be part of its `needs` in FASE 1; their promotion to FASE 2 blocking is governed by their origin changes (`sca-lockfile-compliance`, `iac-scanning`, `containerfile-lint`, `pipeline-config-scan`, `typosquatting-detection`), not by this capability.
+
+#### Scenario: Security aggregator needs resolution
+
+- **When** `prebuild-security-complete` runs
+- **Then** its `needs` array contains exactly `dependency-review`, `secrets`, `scancode-license-pr-diff` — no more, no less
+
+#### Scenario: Advisory job failure does not affect security aggregator
+
+- **When** any advisory job of substage 2C fails on a PR
+- **Then** `prebuild-security-complete` does not report that failure (the job is not in its `needs` and the job-level `continue-on-error: true` absorbs it)
+- **And** the finding remains visible via the job's SARIF upload and artifact
 
 ## Notes
 

@@ -1,0 +1,40 @@
+# Flaky quarantine list — CI test jobs (change `ci-testing-pipeline-reactivation`, D9)
+#
+# ÚNICA fuente de exclusión de tests intermitentes en los runs bloqueantes de PR.
+# Los jobs de test derivan el conjunto excluido parseando ESTE fichero vía
+# `scripts/ci/quarantine-exclude.mjs`; el run nocturno
+# (`nightly-full-suite.yml`) NO aplica estas exclusiones (evidencia de restauración).
+#
+# REGLAS DURAS
+#  1. Prohibido silenciar un intermitente con `test.skip`, comentando o borrando
+#     el test: es el anti-pattern documentado (§3.4.7). La cuarentena se declara
+#     AQUÍ, con owner y motivo.
+#  2. Solo un PR HUMANO añade o borra entradas. Ningún workflow modifica este
+#     fichero automáticamente — la métrica semanal aporta evidencia, no edita.
+#  3. Campos obligatorios por entrada (validados por el parser; un fichero mal
+#     formado hace fallar el job en vez de degenerar en "excluir nada"):
+#       test   — nombre del test (así aparece en el reporte JUnit)
+#       file   — ruta del fichero de test, relativa a la raíz del repo
+#       date   — YYYY-MM-DD de entrada en cuarentena
+#       reason — causa conocida o "under investigation"
+#       owner  — persona o equipo responsable de la restauración
+#  4. `file` acepta un glob (`**/*.integration.test.js`) si la exclusión debe
+#     abarcar varios ficheros del mismo patrón; en ese caso `test` describe el
+#     conjunto excluido.
+#
+# RESTAURACIÓN (task 5.5)
+#   La métrica semanal (`flaky-weekly.yml`) lista los tests de esta lista con
+#   pass-rate ≥70% en los últimos 14 días como "ready for review". Quien lo
+#  .restore borra la entrada en un PR — nadie más, ninguna automatización.
+#
+# COMPARTIMIENTO SALUDABLE: share de cuarentena <1% del total de la suite. Al
+# alcanzar 1% la métrica semanal emite alerta advisory de triaje (no bloquea).
+
+quarantine: []
+# Formato de una entrada (descomentada como plantilla; nunca activa por defecto):
+# quarantine:
+#   - test: "Events DAO > soft delete > keeps the row when actor is undefined"
+#     file: "apps/server/src/modules/events/events-dao-soft-delete.unit.test.js"
+#     date: "2026-10-05"
+#     reason: "Relies on wall-clock ordering; fails when the suite runs under parallel forks"
+#     owner: "backend-team"

@@ -1,0 +1,138 @@
+name: Weekly Flaky Metric
+
+# Métrica semanal de flakiness — change `ci-testing-pipeline-reactivation`, D8
+# (spec `ci-flaky-quarantine`, requirement "Weekly flaky metric with quarantine
+# threshold").
+#
+# CÓMO FUNCIONA (sin infraestructura nueva — D8):
+#   1. Lista las corridas de `ci.yml` de los últimos 14 días vía GitHub API.
+#   2. Descarga los artifacts `flaky-evidence-{client,server}` de cada corrida
+#      (los suben los jobs `test-unit-*` con `retention-days: 30`, así que la
+#      ventana de 14 días siempre tiene datos).
+#   3. `scripts/ci/flaky-metric.mjs` agrega los JUnit + la evidencia de retries
+#      y produce: candidatos a cuarentena, "insufficient data", flaky y el share
+#      de cuarentena.
+#
+# RESTRICCIONES DURAS:
+#   - NUNCA edita `.github/flaky-quarantine.yml`. La métrica aporta EVIDENCIA;
+#     la restauración la hace un PR humano (spec ci-flaky-quarantine, task 5.5).
+#   - Totalmente ADVISORY: no es un required status check y no toca `ci-complete`
+#     ni el merge gate. Los candidatos y la alerta de share ≥1% se publican como
+#     anotación + step summary.
+#   - `permissions` least-privilege (OQ3 cerrado en D8): `actions: read` para
+#     leer corridas y artifacts vía API, `contents: read` para el checkout.
+
+on:
+  schedule:
+    # Lunes 04:20 UTC — después del lunes 03:00 de `scheduled-security.yml` y
+    # del nightly diario de 02:40, con datos ya asentados.
+    - cron: '20 4 * * 1'
+  workflow_dispatch:
+
+permissions:
+  actions: read
+  contents: read
+
+concurrency:
+  group: flaky-weekly-metric
+  cancel-in-progress: false
+
+jobs:
+  flaky-metric:
+    name: Weekly Flaky Pass-Rate Metric
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: '.nvmrc'
+
+      # 1) Descarga de artifacts vía API. `actions/download-artifact` con
+      #    `run-id` + `github-token` es la vía admitida; se itera sobre las
+      #    corridas del workflow `ci.yml` de la ventana.
+      - name: Download JUnit + retry evidence from the last 14 days of ci.yml runs
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DATA_DIR: .flaky-data
+          WINDOW_DAYS: 14
+        run: |
+          set -euo pipefail
+          mkdir -p "$DATA_DIR"
+          SINCE=$(date -u -d "${WINDOW_DAYS} days ago" +%Y-%m-%dT%H:%M:%SZ)
+          echo "Window start: $SINCE"
+
+          # Listado de corridas de ci.yml en la ventana (API, paginada).
+          PAGE=1
+          RUN_IDS=""
+          while : ; do
+            JSON=$(gh api "repos/${GITHUB_REPOSITORY}/actions/workflows/ci.yml/runs?created=>=${SINCE}&per_page=100&page=${PAGE}")
+            COUNT=$(echo "$JSON" | jq '.workflow_runs | length')
+            [ "$COUNT" -eq 0 ] && break
+            IDS=$(echo "$JSON" | jq -r '.workflow_runs[] | select(.conclusion != "skipped") | .id')
+            RUN_IDS="${RUN_IDS}${IDS}"$'\n'
+            PAGE=$((PAGE + 1))
+            [ "$PAGE" -gt 10 ] && break
+          done
+
+          echo "Runs in window: $(echo -n "$RUN_IDS" | grep -c . || true)"
+
+          # Descarga de los artifacts de evidencia por corrida. `gh run download`
+          # encapsula la llamada a la API de artifacts (evita el id-por-id y el
+          # unzip manual); cada corrida va a su propio directorio para que el
+          # agregador distinga "una ejecución por test".
+          DOWNLOADED=0
+          while read -r RUN_ID; do
+            [ -z "$RUN_ID" ] && continue
+            ARTS=$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${RUN_ID}/artifacts" \
+                    | jq -r '.artifacts[] | select(.name | startswith("flaky-evidence-")) | .name')
+            [ -z "$ARTS" ] && continue
+            while read -r ART; do
+              [ -z "$ART" ] && continue
+              if gh run download "$RUN_ID" -n "$ART" -D "$DATA_DIR/${RUN_ID}/${ART}" > /dev/null 2>&1; then
+                DOWNLOADED=$((DOWNLOADED + 1))
+              else
+                echo "::warning::could not download ${ART} from run ${RUN_ID}"
+              fi
+            done <<< "$ARTS"
+          done <<< "$RUN_IDS"
+
+          echo "Artifacts downloaded: $DOWNLOADED"
+          find "$DATA_DIR" -name 'junit.xml' | head -20
+          test -n "$(find "$DATA_DIR" -name 'junit.xml' -print -quit)" || {
+            echo "::error::no JUnit artifacts found in the window — cannot compute the metric"
+            exit 1
+          }
+        shell: bash
+
+      # 2) Cálculo de la métrica. Falla si no hay datos (preferible a reportar
+      #    "todo verde"); los candidatos y la alerta de share son advisory.
+      - name: Compute weekly flaky metric
+        run: |
+          node scripts/ci/flaky-metric.mjs \
+            --data-dir=.flaky-data \
+            --quarantine=.github/flaky-quarantine.yml \
+            --json-out=flaky-metric.json \
+            | tee flaky-metric.md
+          cat flaky-metric.md >> "$GITHUB_STEP_SUMMARY"
+        shell: bash
+
+      - name: Publish advisory alerts (non-blocking)
+        if: always()
+        run: |
+          echo "::group::Métrica semanal de flakiness (advisory)"
+          cat flaky-metric.md 2>/dev/null || echo "Métrica no disponible"
+          echo "::endgroup::"
+          echo "Nota: este workflow NO edita .github/flaky-quarantine.yml — la restauración es siempre un PR humano."
+        shell: bash
+
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: flaky-weekly-report
+          path: |
+            flaky-metric.md
+            flaky-metric.json
+          retention-days: 90
+          if-no-files-found: warn

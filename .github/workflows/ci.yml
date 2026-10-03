@@ -1,4 +1,4 @@
-name: "CI"
+name: 'CI'
 
 permissions:
   contents: read
@@ -59,12 +59,12 @@ jobs:
   # STAGE 2: PRE-BUILD — VALIDATE (source code, 0 dependencia de build)
   # ═══════════════════════════════════════════════════════════════
   # ═══════════════════════════════════════════════════════════════
-  # SUBSTAGE 2A: GOVERNANCE — verify-signatures, commit-lint, pr-title-lint, dco, sast
+  # SUBSTAGE 2A: GOVERNANCE — verify-signatures, commit-lint, pr-title-lint, dco, sast diff
   # ═══════════════════════════════════════════════════════════════
-# verify-signatures (G3) — Verifica firma de commits vía GitHub REST API
-# ════════════════════════════════════════════════════════════════
-# Required status check in ruleset 21227644 — bound by job NAME 'Verify Commit Signatures';
-# renaming name: silently breaks ruleset binding
+  # verify-signatures (G3) — Verifica firma de commits vía GitHub REST API
+  # ════════════════════════════════════════════════════════════════
+  # Required status check in ruleset 21227644 — bound by job NAME 'Verify Commit Signatures';
+  # renaming name: silently breaks ruleset binding
   verify-signatures:
     name: Verify Commit Signatures
     runs-on: ubuntu-latest
@@ -85,12 +85,12 @@ jobs:
             echo "event_type=pull_request" >> $GITHUB_OUTPUT
             echo "pr_number=${{ github.event.pull_request.number }}" >> $GITHUB_OUTPUT
           fi
-  
+
       - name: Debug PR number
         if: steps.detect_event.outputs.event_type == 'pull_request'
         run: |
           echo "PR number: ${{ steps.detect_event.outputs.pr_number }}"
-  
+
       - name: Fetch PR commits via compare endpoint
         if: steps.detect_event.outputs.event_type == 'pull_request'
         id: fetch_commits
@@ -109,7 +109,11 @@ jobs:
           # Signing rollout date: commits anteriores son grandfathered (exonerados).
           # El lote contaminado del PR #99 jamás entró a main (squash); desde el
           # rollout TODO commit nuevo debe estar firmado y verificado.
-          ROLLOUT_DATE="2026-08-01"
+          # Configurable via repo variable (Settings → Secrets and variables →
+          # Actions → Variables); el fallback inline es el valor canónico mientras
+          # la variable no esté definida.
+          ROLLOUT_DATE="${{ vars.SIGNING_ROLLOUT_DATE || '2026-08-01' }}"
+          echo "Signing rollout cutoff (effective): $ROLLOUT_DATE"
 
           # R1: Scoping base..head via compare endpoint
           # Replaces pagination GET /pulls/{n}/commits with server-side range filtering
@@ -249,7 +253,7 @@ jobs:
           echo "  Excluded by scoping (base..head): $EXCLUDED_COUNT (handled by compare endpoint)" >&2
           echo "  Recovered by anti-stale retry: $ANTI_STALE_COUNT" >&2
         timeout-minutes: 10
-  
+
       - name: Fetch single commit verification (merge_group fallback)
         if: steps.detect_event.outputs.event_type == 'merge_group'
         run: |
@@ -262,7 +266,7 @@ jobs:
           else
             echo "$SHA" >> failed_shas.txt
           fi
-  
+
       - name: Check verification results
         id: verify_results
         run: |
@@ -306,7 +310,6 @@ jobs:
         timeout-minutes: 5
     # Job-level continue-on-error for non-blocking mode
     # (removed — signature verification failures must propagate to ruleset 21227644)
-
   commit-lint:
     name: Commit Lint (Conventional Commits)
     runs-on: ubuntu-latest
@@ -403,14 +406,12 @@ jobs:
         run: echo "✅ Merge queue — DCO validated at PR level"
     # Phase 1: non-blocking. Remove after team adjusts (1 sprint).
     # continue-on-error: true
-
   # --- GOVERNANCE: SAST early-abort gate (diff-scoped, standalone) ---
   sast:
     name: SAST (Semgrep)
     runs-on: ubuntu-latest
     timeout-minutes: 15
     if: github.event_name == 'pull_request'
-    needs: repo-discovery
     permissions:
       contents: read
     continue-on-error: true
@@ -423,12 +424,12 @@ jobs:
     # NOT in ci-complete.needs — SAST is a standalone gate, not coupled to CI_MINIMAL
 
   # ═══════════════════════════════════════════════════════════════
-  # SUBSTAGE 2B: CODE QUALITY — lint, format-check, typecheck, complexity, dead-code, import-bounds, e2e-lint, actionlint, openspec-validate
+  # SUBSTAGE 2B: CODE QUALITY — lint, format-check, typecheck, complexity, dead-code, import-bounds, e2e-lint, openspec-validate, docs-validation (advisory)
   # ═══════════════════════════════════════════════════════════════
   # --- Client Pre-Build ---
   client-lint:
     if: needs.repo-discovery.outputs.client == 'true' && github.event_name == 'pull_request'
-    name: "Quality: Client Lint"
+    name: 'Quality: Client Lint'
     needs: repo-discovery
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -441,7 +442,7 @@ jobs:
 
   client-format-check:
     if: needs.repo-discovery.outputs.client == 'true' && github.event_name == 'pull_request'
-    name: "Quality: Client Format"
+    name: 'Quality: Client Format'
     needs: repo-discovery
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -454,7 +455,7 @@ jobs:
 
   client-typecheck:
     if: needs.repo-discovery.outputs.client == 'true' && github.event_name == 'pull_request'
-    name: "Quality: Client TypeCheck"
+    name: 'Quality: Client TypeCheck'
     needs: repo-discovery
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -466,14 +467,14 @@ jobs:
       # Gate blocking real (change `quality-gates`): sin `|| echo` ni
       # `2>/dev/null` que enmascaren el exit code — un error de compilación
       # falla el job. El client es 100% JS: compila vía tsconfig base
-      # (allowJs + checkJs off); flags strict llegan con typescript-strict-check.
+      # (allowJs + checkJs off); flags strict llegan con server-typescript-migration (Fase 4).
       - name: TypeCheck
         run: npx tsc --noEmit
         working-directory: apps/client
-        
+
   client-complexity:
     if: needs.repo-discovery.outputs.client == 'true' && github.event_name == 'pull_request'
-    name: "Quality: Client Complexity"
+    name: 'Quality: Client Complexity'
     needs: repo-discovery
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -490,7 +491,7 @@ jobs:
 
   client-dead-code:
     if: needs.repo-discovery.outputs.client == 'true' && github.event_name == 'pull_request'
-    name: "Quality: Client Dead Code"
+    name: 'Quality: Client Dead Code'
     needs: repo-discovery
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -508,7 +509,7 @@ jobs:
 
   client-import-bounds:
     if: needs.repo-discovery.outputs.client == 'true' && github.event_name == 'pull_request'
-    name: "Quality: Client Import Bounds"
+    name: 'Quality: Client Import Bounds'
     needs: repo-discovery
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -539,7 +540,7 @@ jobs:
   # --- Server Pre-Build ---
   server-lint:
     if: needs.repo-discovery.outputs.server == 'true' && github.event_name == 'pull_request'
-    name: "Quality: Server Lint"
+    name: 'Quality: Server Lint'
     needs: repo-discovery
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -550,9 +551,12 @@ jobs:
       - uses: ./.github/actions/setup-monorepo
       - run: npm run lint --workspace=apps/server
 
+  # FASE 1 (diferido): server aún no pasa `npm run format:check` limpio.
+  # FASE 2: re-activar (`if: true`) cuando el workspace server pase el check —
+  # misma convención FASE 1/FASE 2 del bloque Security.
   server-format-check:
-    if: false  # Disabled for incremental CI — change to true to re-enable
-    name: "Quality: Server Format"
+    if: false
+    name: 'Quality: Server Format'
     needs: repo-discovery
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -565,7 +569,7 @@ jobs:
 
   server-typecheck:
     if: needs.repo-discovery.outputs.server == 'true' && github.event_name == 'pull_request'
-    name: "Quality: Server TypeCheck"
+    name: 'Quality: Server TypeCheck'
     needs: repo-discovery
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -576,17 +580,17 @@ jobs:
       - uses: ./.github/actions/setup-monorepo
       # Gate blocking real (change `quality-gates`): `tsc --noEmit -p apps/server`
       # contra apps/server/tsconfig.json (allowJs, checkJs off — código 100% JS;
-      # flags strict vía typescript-strict-check). Sin `|| echo` que enmascare.
+      # flags strict vía server-typescript-migration Fase 4). Sin `|| echo` que enmascare.
       # Corrección 2026-09-29: `npx tsc --noEmit` con working-directory (patrón
       # client-typecheck) — `npm run type-check` fallaba porque ese script vive
       # solo en el manifest RAÍZ, no en apps/server (Missing script: "type-check").
       - name: TypeCheck
         run: npx tsc --noEmit
         working-directory: apps/server
-        
+
   server-complexity:
     if: needs.repo-discovery.outputs.server == 'true' && github.event_name == 'pull_request'
-    name: "Quality: Server Complexity"
+    name: 'Quality: Server Complexity'
     needs: repo-discovery
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -603,7 +607,7 @@ jobs:
 
   server-dead-code:
     if: needs.repo-discovery.outputs.server == 'true' && github.event_name == 'pull_request'
-    name: "Quality: Server Dead Code"
+    name: 'Quality: Server Dead Code'
     needs: repo-discovery
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -620,7 +624,7 @@ jobs:
 
   server-import-bounds:
     if: needs.repo-discovery.outputs.server == 'true' && github.event_name == 'pull_request'
-    name: "Quality: Server Import Bounds"
+    name: 'Quality: Server Import Bounds'
     needs: repo-discovery
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -652,7 +656,7 @@ jobs:
   # de complejidad de e2e/tests/** es 'off' vía bloque de tests de la config.
   e2e-lint:
     if: needs.repo-discovery.outputs.e2e == 'true' && github.event_name == 'pull_request'
-    name: "Quality: E2E Lint"
+    name: 'Quality: E2E Lint'
     needs: repo-discovery
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -671,7 +675,7 @@ jobs:
   # que toque el manifest raíz (outputs.shared). Sin red, en segundos.
   root-manifest-guard:
     if: needs.repo-discovery.outputs.shared == 'true' && github.event_name == 'pull_request'
-    name: "Quality: Root Manifest Guard"
+    name: 'Quality: Root Manifest Guard'
     needs: repo-discovery
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -683,170 +687,16 @@ jobs:
       - name: Validate root manifest inventory
         run: node scripts/check-root-manifest.mjs
 
-  actionlint:
-    if: needs.repo-discovery.outputs.shared == 'true' && github.event_name == 'pull_request'
-    name: "Quality: ActionLint"
-    needs: repo-discovery
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-      - uses: actions/checkout@v5
-        with:
-          fetch-depth: 0
-      - name: Check workflow files with actionlint
-        run: |
-          bash <(curl https://raw.githubusercontent.com/rhysd/actionlint/main/scripts/download-actionlint.bash) 1.7.12
-          ./actionlint -color
-        shell: bash
-
-  # Job advisory de pipeline config scan (change `pipeline-config-scan`):
-  # actionlint con salida SARIF para la Security tab. Misma instalación que el
-  # job bloqueante `actionlint` (download-script pinned 1.7.12 — nunca
-  # rhysd/actionlint-action@master ni curl artesanal: los assets reales son
-  # linux_amd64). La plantilla SARIF oficial se versiona en
-  # `.github/actionlint-sarif.tmpl` y se pasa como CONTENIDO de `-format` (la
-  # pseudo-plantilla inline produce 0 bytes con exit 0 — verificado v1.7.12).
-  # El step lleva `|| true`: con hallazgos actionlint sale 1 y la evidencia
-  # debe generarse igual; el carácter advisory en FASE 1 lo aporta
-  # `continue-on-error: true` a nivel job. NO entra en los `needs` de los
-  # agregadores en FASE 1 (FASE 2: scope de bloqueo solo en este step, con
-  # uploads step-COE). Política del gate bloqueante `.github/actionlint.yaml`
-  # intacta (se reutiliza aquí, no se modifica).
-  actionlint-advisory:
-    if: github.event_name == 'pull_request'
-    name: "Quality: ActionLint Advisory (SARIF, FASE 1)"
-    needs: repo-discovery
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    continue-on-error: true
-    permissions:
-      contents: read
-      security-events: write
-    steps:
-      - uses: actions/checkout@v5
-        with:
-          fetch-depth: 0
-      - name: Run actionlint (SARIF, advisory)
-        run: |
-          bash <(curl https://raw.githubusercontent.com/rhysd/actionlint/main/scripts/download-actionlint.bash) 1.7.12
-          ./actionlint -no-color -config-file .github/actionlint.yaml \
-            -format "$(cat .github/actionlint-sarif.tmpl)" .github/workflows/*.y*ml > actionlint.sarif || true
-          test -s actionlint.sarif || { echo 'actionlint.sarif vacio'; exit 1; }
-          jq -e . actionlint.sarif > /dev/null || { echo 'actionlint.sarif no parseable'; exit 1; }
-        shell: bash
-      - name: Upload actionlint SARIF to Code Scanning
-        if: always() && hashFiles('actionlint.sarif') != ''
-        uses: github/codeql-action/upload-sarif@v4
-        with:
-          sarif_file: actionlint.sarif
-          category: actionlint
-      - name: Upload actionlint report artifact (retention 14d)
-        if: always()
-        uses: actions/upload-artifact@v7
-        with:
-          name: actionlint-report-pr
-          path: actionlint.sarif
-          retention-days: 14
-          if-no-files-found: warn
-
-  # Job advisory zizmor (change `pipeline-config-scan`): cubre el gap
-  # `unpinned-uses` que actionlint no detecta. Instalación fijada (A4):
-  # setup-uv SHA-pinned (v6.7.0, ubuntu-latest NO trae uv) + `uvx zizmor@1.30.1`
-  # (versión exacta, no latest) + verificación de versión antes del scan.
-  # `--format=sarif` SIEMPRE termina exit 0 → se valida el fichero (`test -s`
-  # + `jq -e .`), nunca el exit code. Política `.github/zizmor.yml`
-  # referenciada incondicionalmente (A3). FASE 1 advisory; FASE 2: gating
-  # `jq -e '.runs[0].results | length == 0'` + `prebuild-security-complete.needs`.
-  zizmor-advisory:
-    if: github.event_name == 'pull_request'
-    name: "Security: Zizmor Advisory (unpinned-uses, FASE 1)"
-    needs: repo-discovery
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    continue-on-error: true
-    permissions:
-      contents: read
-      security-events: write
-    steps:
-      - uses: actions/checkout@v5
-      - uses: astral-sh/setup-uv@b75a909f75acd358c2196fb9a5f1299a9a8868a4 # v6.7.0 (SHA-pinned, nunca @main/@v*)
-      - name: Run zizmor (SARIF, advisory)
-        run: |
-          uvx zizmor@1.30.1 --version | grep -q '1.30.1' || { echo 'zizmor version mismatch'; exit 1; }
-          uvx zizmor@1.30.1 --format=sarif -c .github/zizmor.yml .github/workflows/ > zizmor.sarif || true
-          test -s zizmor.sarif || { echo 'zizmor.sarif vacio'; exit 1; }
-          jq -e . zizmor.sarif > /dev/null || { echo 'zizmor.sarif no parseable'; exit 1; }
-        shell: bash
-      - name: Upload zizmor SARIF to Code Scanning
-        if: always() && hashFiles('zizmor.sarif') != ''
-        uses: github/codeql-action/upload-sarif@v4
-        with:
-          sarif_file: zizmor.sarif
-          category: zizmor
-      - name: Upload zizmor report artifact (retention 14d)
-        if: always()
-        uses: actions/upload-artifact@v7
-        with:
-          name: zizmor-report-pr
-          path: zizmor.sarif
-          retention-days: 14
-          if-no-files-found: warn
-
-  # Job advisory de typosquatting / dependency confusion (change
-  # `typosquatting-detection`): GuardDog v3.2.0 (DataDog, OSS, sin credenciales)
-  # sobre package.json — detección por metadatos + YARA que NO duplica a Trivy
-  # (CVE/secretos), dependency-review (manifiesto PR) ni lockfile-audit (CVE
-  # lockfile). Toda la política vive en el wrapper versionado
-  # `scripts/guarddog-verify.sh` (GuardDog no soporta config files): pin 3.2.0
-  # con verificación de versión, devDeps excluidas, sandbox obligatorio (nunca
-  # --no-sandbox), exclusiones justificadas. `verify` requiere red y puede morir
-  # a medias → `|| true` + `test -s` + `jq -e .` antes de subir. FASE 1 advisory
-  # (`continue-on-error: true` a nivel job); NO entra en los `needs` de los
-  # agregadores (FASE 2 diferida: 2-4 semanas sin FP, luego gating + needs).
-  typosquat-guarddog:
-    if: github.event_name == 'pull_request'
-    name: "Security: Typosquat GuardDog (advisory, FASE 1)"
-    needs: repo-discovery
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    continue-on-error: true
-    permissions:
-      contents: read
-      security-events: write
-    steps:
-      - uses: actions/checkout@v5
-      - uses: astral-sh/setup-uv@b75a909f75acd358c2196fb9a5f1299a9a8868a4 # v6.7.0 (SHA-pinned, nunca @main/@v*)
-      - name: Run GuardDog verify (SARIF, advisory)
-        run: |
-          bash scripts/guarddog-verify.sh > guarddog.sarif || true
-          test -s guarddog.sarif || { echo 'guarddog.sarif vacio'; exit 1; }
-          jq -e . guarddog.sarif > /dev/null || { echo 'guarddog.sarif no parseable'; exit 1; }
-        shell: bash
-      - name: Upload GuardDog SARIF to Code Scanning
-        if: always() && hashFiles('guarddog.sarif') != ''
-        uses: github/codeql-action/upload-sarif@v4
-        with:
-          sarif_file: guarddog.sarif
-          category: guarddog
-      - name: Upload GuardDog report artifact (retention 14d)
-        if: always()
-        uses: actions/upload-artifact@v7
-        with:
-          name: guarddog-report-pr
-          path: guarddog.sarif
-          retention-days: 14
-          if-no-files-found: warn
-
   # --- Specs Pre-Build ---
   # Validación estructural de las specs canónicas de OpenSpec (openspec/specs/**).
   # `--specs` valida SOLO main specs; los deltas de changes/ activos se validan
   # aparte. `--strict` convierte warnings en errores. Mismo patrón que
-  # actionlint: barato, sin dependencia de paths-filter (openspec/ no está en
-  # los filtros de repo-discovery).
+  # openspec-validate: barato, sin dependencia de paths-filter (openspec/ no
+  # está en los filtros de repo-discovery) y sin needs: no consume outputs de
+  # repo-discovery, así que corre desde t=0 del workflow en paralelo.
   openspec-validate:
     if: github.event_name == 'pull_request'
-    name: "Quality: OpenSpec Validate"
-    needs: repo-discovery
+    name: 'Quality: OpenSpec Validate'
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -857,12 +707,47 @@ jobs:
       - name: Validate OpenSpec main specs (strict)
         run: npx openspec validate --specs --strict
 
+  # change ci-security-substage-alignment (2026-09-30): reubicado a 2B quality (D8) — job quality que quedó al cierre del stage 2
+  # Job advisory de validación de documentación (change `quality-gates`, fase 1):
+  # markdownlint (estructura) + publication de reporte. NO entra en
+  # `prebuild-quality-complete.needs` — un hallazgo de docs NO bloquea el PR;
+  # el reporte debe sobrevivir (`if: always()`) aunque el job "falle".
+  # Fase 2 (bloqueante) queda fuera de este change hasta que docs/ pase limpio.
+  docs-validation:
+    if: github.event_name == 'pull_request'
+    name: 'Quality: Docs Validation (advisory)'
+    needs: repo-discovery
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v5
+      - uses: ./.github/actions/setup-monorepo
+      - name: Lint markdown structure (markdownlint)
+        run: npm run docs:lint
+      - name: Publish docs lint summary
+        if: always()
+        run: |
+          COUNT=$(npx markdownlint "docs/**/*.md" "docs/*.md" 2>/dev/null | wc -l || echo 0)
+          echo "## Docs Validation (advisory, fase 1)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "markdownlint violations: ${COUNT##* } (fase 1: NO bloquea el PR)" >> $GITHUB_STEP_SUMMARY
+          echo "Config: .markdownlint.json (JSON estricto) + .markdownlintignore (grandfathering del inventario legacy, 2026-09-29) · vale fase 2 (ver docs/learning/docs-changelog-validation.md)" >> $GITHUB_STEP_SUMMARY
+
   # ═══════════════════════════════════════════════════════════════
   # SUBSTAGE 2D: UNIT TESTING — test-unit-client, test-unit-server, test-integration, test-smoke
+  # FASE 1 advisory (continue-on-error: reporta sin bloquear) → FASE 2 blocking al
+  # cerrar la ventana de calibración (2-4 semanas; docs/learning/quality-gates.md en lockstep).
+  # Coverage: client-coverage/server-coverage se scopean por propagación de skip de su
+  # test job (needs), NO vía repo-discovery — ci-runtime-config-hygiene prohíbe needs
+  # sin consumo de outputs.
   # ═══════════════════════════════════════════════════════════════
   # --- TESTING (pre-build): unit tests, source-level, no artifact needed ---
   test-unit-client:
-    if: false  # Disabled for incremental CI — change to true to re-enable
+    # FASE 1 advisory: continue-on-error reporta (log + JUnit + artifacts) sin bloquear
+    # el agregador (actions/toolkit#581). FASE 2: quitar el flag tras la calibración.
+    if: (needs.repo-discovery.outputs.client == 'true' || needs.repo-discovery.outputs.shared == 'true') && github.event_name == 'pull_request'
+    continue-on-error: true
     name: Unit Tests - Client
     needs: repo-discovery
     runs-on: ubuntu-latest
@@ -875,13 +760,79 @@ jobs:
         with:
           fetch-depth: 0
       - uses: ./.github/actions/setup-monorepo
-      - name: Run Client Unit Tests with Coverage
-        run: npm run test:coverage --workspace=apps/client
+
+      # TIA — spec ci-test-impact-analysis (D7). Diff-scoped cuando el diff
+      # contra origin/main resuelve; suite completa cuando `shared == 'true'`
+      # (lockfile, workflows, raíz) o cuando origin/main NO es resoluble
+      # (fallback a suite completa: nunca "0 tests afectados" en silencio).
+      - name: Resolve TIA scope (diff-scoped vs full suite)
+        id: tia
+        run: |
+          if [ "${{ needs.repo-discovery.outputs.shared }}" = "true" ]; then
+            echo "scope=full" >> "$GITHUB_OUTPUT"
+            echo "::notice::shared path changed (root manifest, lockfile or workflows) — running the FULL client suite."
+          elif git rev-parse --verify --quiet origin/main > /dev/null; then
+            echo "scope=changed" >> "$GITHUB_OUTPUT"
+            echo "::notice::origin/main resolved — running the diff-scoped client suite."
+          else
+            echo "scope=full" >> "$GITHUB_OUTPUT"
+            echo "::warning::origin/main is NOT resolvable in this checkout; falling back to the FULL suite (never reporting '0 affected tests')."
+          fi
+        shell: bash
+
+      # Exclusiones de cuarentena — spec ci-flaky-quarantine (D9, task 5.2).
+      # Derivadas EXCLUSIVAMENTE de .github/flaky-quarantine.yml (nada de
+      # test.skip ni markers en la fuente). Vacío = ningún exclude.
+      - name: Derive quarantine exclusions
+        id: quarantine
+        run: echo "args=$(node scripts/ci/quarantine-exclude.mjs --format=argv)" >> "$GITHUB_OUTPUT"
+        shell: bash
+
+      - name: Report quarantine exclusions in the run
+        if: always()
+        run: node scripts/ci/quarantine-exclude.mjs --format=md >> "$GITHUB_STEP_SUMMARY"
+        shell: bash
+
+      - name: Run Client Unit Tests (TIA / full suite)
+        run: |
+          mkdir -p apps/client/reports
+          echo "scope=${{ steps.tia.outputs.scope }}" > apps/client/reports/tia-scope.txt
+          if [ "${{ steps.tia.outputs.scope }}" = "changed" ]; then
+            npm run test:changed:ci --workspace=apps/client -- ${{ steps.quarantine.outputs.args }}
+            # Guard D7: un diff válido puede no tener NINGÚN test relacionado, y con
+            # passWithNoTests (default en Vitest 4) eso sale "No test files found"
+            # con exit 0 — un verde VACÍO que el agregador contaría como tests
+            # ejecutados. Si la corrida no ejecutó ningún test, se cae a suite
+            # completa en vez de fingir cobertura.
+            RAN=$(node -p "require('./apps/client/reports/vitest-results.json').numTotalTests" 2> /dev/null || echo 0)
+            if [ "${RAN:-0}" -eq 0 ]; then
+              echo "::warning::TIA matched 0 tests for this diff (numTotalTests=${RAN:-0}); running the FULL client suite instead of reporting a vacuous green."
+              echo "scope=full" > apps/client/reports/tia-scope.txt
+              npm run test:coverage:ci --workspace=apps/client -- ${{ steps.quarantine.outputs.args }}
+            fi
+          else
+            npm run test:coverage:ci --workspace=apps/client -- ${{ steps.quarantine.outputs.args }}
+          fi
+        shell: bash
+
       - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: coverage-client
           path: apps/client/coverage/
+          if-no-files-found: warn
+      # Evidencia de flakiness (retryCount/flaky por test) para la métrica
+      # semanal — D8. El JUnit colapsa los retries, por eso este artifact.
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: flaky-evidence-client
+          path: |
+            apps/client/reports/junit.xml
+            apps/client/reports/vitest-results.json
+            apps/client/reports/flaky-retries.json
+            apps/client/reports/tia-scope.txt
+          retention-days: 30
           if-no-files-found: warn
       - name: Report Client Unit Tests
         if: success() || failure()
@@ -892,7 +843,10 @@ jobs:
           reporter: java-junit
 
   test-unit-server:
-    if: false  # Disabled for incremental CI — change to true to re-enable
+    # FASE 1 advisory; suite unit-scoped (*.unit.test.js, sin PostgreSQL) con junit
+    # para dorny/test-reporter. FASE 2: quitar continue-on-error tras la calibración.
+    if: (needs.repo-discovery.outputs.server == 'true' || needs.repo-discovery.outputs.shared == 'true') && github.event_name == 'pull_request'
+    continue-on-error: true
     name: Unit Tests - Server
     needs: repo-discovery
     runs-on: ubuntu-latest
@@ -905,13 +859,74 @@ jobs:
         with:
           fetch-depth: 0
       - uses: ./.github/actions/setup-monorepo
-      - name: Run Server Unit Tests with Coverage
-        run: npm run test:coverage --workspace=apps/server
+
+      # TIA — spec ci-test-impact-analysis (D7). Misma política que el job client:
+      # diff-scoped si origin/main resuelve, suite completa si `shared == 'true'`
+      # o si la base no es resoluble (fallback ruidoso, nunca "0 tests afectados").
+      - name: Resolve TIA scope (diff-scoped vs full suite)
+        id: tia
+        run: |
+          if [ "${{ needs.repo-discovery.outputs.shared }}" = "true" ]; then
+            echo "scope=full" >> "$GITHUB_OUTPUT"
+            echo "::notice::shared path changed (root manifest, lockfile or workflows) — running the FULL server suite."
+          elif git rev-parse --verify --quiet origin/main > /dev/null; then
+            echo "scope=changed" >> "$GITHUB_OUTPUT"
+            echo "::notice::origin/main resolved — running the diff-scoped server suite."
+          else
+            echo "scope=full" >> "$GITHUB_OUTPUT"
+            echo "::warning::origin/main is NOT resolvable in this checkout; falling back to the FULL suite (never reporting '0 affected tests')."
+          fi
+        shell: bash
+
+      # Exclusiones de cuarentena — spec ci-flaky-quarantine (D9, task 5.2).
+      - name: Derive quarantine exclusions
+        id: quarantine
+        run: echo "args=$(node scripts/ci/quarantine-exclude.mjs --format=argv)" >> "$GITHUB_OUTPUT"
+        shell: bash
+
+      - name: Report quarantine exclusions in the run
+        if: always()
+        run: node scripts/ci/quarantine-exclude.mjs --format=md >> "$GITHUB_STEP_SUMMARY"
+        shell: bash
+
+      - name: Run Server Unit Tests (TIA / full suite)
+        run: |
+          mkdir -p apps/server/reports
+          echo "scope=${{ steps.tia.outputs.scope }}" > apps/server/reports/tia-scope.txt
+          if [ "${{ steps.tia.outputs.scope }}" = "changed" ]; then
+            npm run test:changed:ci --workspace=apps/server -- ${{ steps.quarantine.outputs.args }}
+            # Guard D7: ver la nota del job client. Con passWithNoTests un diff sin
+            # tests relacionados sale verde vacío; aquí se cae a la suite unit
+            # completa y el scope se corrige a `full` para que D18 aplique umbral.
+            RAN=$(node -p "require('./apps/server/reports/vitest-results.json').numTotalTests" 2> /dev/null || echo 0)
+            if [ "${RAN:-0}" -eq 0 ]; then
+              echo "::warning::TIA matched 0 tests for this diff (numTotalTests=${RAN:-0}); running the FULL server suite instead of reporting a vacuous green."
+              echo "scope=full" > apps/server/reports/tia-scope.txt
+              npm run test:coverage:unit:ci --workspace=apps/server -- ${{ steps.quarantine.outputs.args }}
+            fi
+          else
+            npm run test:coverage:unit:ci --workspace=apps/server -- ${{ steps.quarantine.outputs.args }}
+          fi
+        shell: bash
+
       - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: coverage-server
           path: apps/server/tests/coverage/
+          if-no-files-found: warn
+      # Evidencia de flakiness (retryCount/flaky por test) para la métrica
+      # semanal — D8. El JUnit colapsa los retries, por eso este artifact.
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: flaky-evidence-server
+          path: |
+            apps/server/reports/junit.xml
+            apps/server/reports/vitest-results.json
+            apps/server/reports/flaky-retries.json
+            apps/server/reports/tia-scope.txt
+          retention-days: 30
           if-no-files-found: warn
       - name: Report Server Unit Tests
         if: success() || failure()
@@ -922,13 +937,15 @@ jobs:
           reporter: java-junit
 
   # ═══════════════════════════════════════════════════════════════
-  # SUBSTAGE 2C: SECURITY — dependency-review (+ security.yml when enabled)
+  # SUBSTAGE 2C: SECURITY — dependency-review, secrets, scancode-license-pr-diff, lockfile-audit, checkov-iac, containerfile-lint, actionlint-advisory, zizmor-advisory, typosquat-guarddog
+  # (bloqueantes en needs del agregador: dependency-review, secrets, scancode-license-pr-diff · advisory FASE 1: el resto)
+  # (sast es 2A GOVERNANCE standalone, no 2C — ver header 2A; change ci-security-substage-alignment 2026-09-30)
   # ═══════════════════════════════════════════════════════════════
   # ════════════════════════════════════════════════════════════════
   # SECURITY — Dependency Review (inline so ci-complete.needs resolves)
   # ════════════════════════════════════════════════════════════════
   dependency-review:
-    name: Dependency Review
+    name: 'Security: Dependency Review'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     if: github.event_name == 'pull_request'
@@ -945,26 +962,26 @@ jobs:
           # Fail on new vulnerabilities with severity >= moderate (governance intent)
           fail-on-severity: moderate
           # Allow specific vulnerabilities if needed (empty by default)
-          allow-ghsas: ""
+          allow-ghsas: ''
           # Security intent: vulnerability + license checks
           vulnerability-check: true
           license-check: true
-          # License policy (change `dependency-review`, D2): deny-list aligned with
-          # LICENSE_DENY_LIST in scripts/generate-security-digest.mjs. NOTE:
-          # allow-licenses is the stricter allow-list alternative and is MUTUALLY
-          # EXCLUSIVE with deny-licenses — exactly one of the two may be set.
-          # SPDX-only: every entry MUST be a valid SPDX identifier — the action
-          # validates the config at startup (validateLicenses → spdx-expression-parse)
-          # and fails fast before scanning any dependency (`Invalid license(s) in
-          # deny-licenses`). `Proprietary` is NOT a valid SPDX id (removed 2026-09-29:
-          # it made the job fail unconditionally); npm-custom/private licenses surface
-          # as `Other`/`NOASSERTION`, which a deny-list cannot match anyway — those
-          # are covered by the ScanCode PR-diff layer (scancode-license-pr-diff).
-          # Validated locally: no package in the current tree carries these
-          # licenses (see docs/learning/dependency-review.md §4.2).
-          # Canonical license policy (deny-list, waivers, fail-on-scopes):
+          # License policy: externalizada en `.github/license-policy.yml` (fuente
+          # única ejecutable, consumida también por scancode-license-pr-diff vía
+          # lectura directa). La clave inline `deny-licenses` estaba deprecated
+          # por la acción (issue #938). NOTE: allow-licenses es la alternativa
+          # allow-list más estricta y MUTUAMENTE EXCLUYENTE con deny-licenses.
+          # SPDX-only: toda entrada debe ser identificador SPDX válido — la
+          # acción valida la config al arranque (validateLicenses →
+          # spdx-expression-parse) y falla antes de escanear dependencias.
+          # npm-custom/private licenses surface como `Other`/`NOASSERTION`, que
+          # una deny-list no puede matchear — las cubre la capa ScanCode
+          # PR-diff (scancode-license-pr-diff). Validado localmente: ningún
+          # paquete del árbol actual porta estas licencias (ver
+          # docs/learning/dependency-review.md §4.2).
+          # Política narrativa (deny-list, waivers, fail-on-scopes):
           # docs/learning/license-policy.md (change license-compliance)
-          deny-licenses: GPL-3.0, AGPL-3.0, SSPL-1.0, CC-BY-NC-4.0
+          config-file: .github/license-policy.yml
           # Publish the findings summary as a PR comment when the gate fails,
           # exercising the already-declared pull-requests: write permission.
           # on-failure keeps green PRs clean; on fork PRs the comment may fail
@@ -978,7 +995,7 @@ jobs:
     # Job-level continue-on-error: false (default) — failures block the check
 
   secrets:
-    name: Secret Detection
+    name: 'Security: Secret Detection'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     if: github.event_name == 'pull_request'
@@ -1005,7 +1022,7 @@ jobs:
           # gitleaks-action v3 exige GITHUB_TOKEN para escanear pull requests
           # (breaking change anunciado en su README)
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - name: "Warn: licensed Gitleaks scan unavailable"
+      - name: 'Warn: licensed Gitleaks scan unavailable'
         if: ${{ env.GIT_LEAKS == '' }}
         run: echo "::warning::GIT_LEAKS secret not configured - licensed Gitleaks scan skipped. Using open-source Gitleaks only."
 
@@ -1019,9 +1036,10 @@ jobs:
   # (retención 14d ≠ 90d del audit semanal). FASE 2 (blocking gradual): remover
   # `continue-on-error` de este job y actualizar `docs/learning/quality-gates.md`
   # + `docs/learning/license-policy.md` tras 2-4 semanas de runs limpios con
-  # hallazgos triados. Deny-list única: se lee en runtime de la clave
-  # `deny-licenses` del job `dependency-review` (fuente canónica:
-  # docs/learning/license-policy.md) — sin duplicar la lista aquí.
+  # hallazgos triados. Deny-list única: se lee en runtime de la fuente de
+  # verdad ejecutable `.github/license-policy.yml` (fuente canónica:
+  # docs/learning/license-policy.md) — sin duplicar la lista aquí ni scrape
+  # del workflow; dependency-review la consume vía `config-file`.
   # `LicenseRef-scancode-unknown*` = warning permanente (nunca bloquea, ni en
   # FASE 2). Sin `scan-list.txt` estático: la lista vive en el diff. El scan
   # corre sobre una copia de los archivos del diff (scope) → node_modules/dist/
@@ -1029,7 +1047,7 @@ jobs:
   # por paridad con el audit semanal.
   scancode-license-pr-diff:
     if: github.event_name == 'pull_request'
-    name: "Security: ScanCode License PR-Diff (advisory, FASE 1)"
+    name: 'Security: ScanCode License PR-Diff (advisory, FASE 1)'
     runs-on: ubuntu-latest
     timeout-minutes: 30
     continue-on-error: true
@@ -1074,11 +1092,27 @@ jobs:
             echo "Report not produced (see scan step outcome); nothing to evaluate."
             exit 0
           fi
-          # Deny-list única: leída de la config real del job dependency-review.
-          DENY_LIST=$(grep -E '^[[:space:]]*deny-licenses:' .github/workflows/ci.yml \
-            | head -1 | sed 's/.*deny-licenses:[[:space:]]*//' | tr -d '"')
+          # Deny-list única: leída de la fuente de verdad ejecutable
+          # .github/license-policy.yml (la misma que consume dependency-review
+          # vía config-file). Sin scrape del YAML del workflow.
+          DENY_LIST=$(DENY_POLICY=".github/license-policy.yml" node -e '
+            const fs = require("fs");
+            const src = fs.readFileSync(process.env.DENY_POLICY, "utf8");
+            const lines = src.split(/\r?\n/);
+            const start = lines.findIndex((l) => /^deny-licenses:\s*$/.test(l));
+            if (start === -1) { console.error("deny-licenses key not found"); process.exit(1); }
+            const items = [];
+            for (let i = start + 1; i < lines.length; i++) {
+              const l = lines[i];
+              if (/^\s*-/.test(l)) items.push(l.replace(/^\s*-\s*/, "").trim());
+              else if (l.trim() === "" || l.trim().startsWith("#")) continue;
+              else break;
+            }
+            if (items.length === 0) { console.error("deny-licenses empty"); process.exit(1); }
+            console.log(items.join(", "));
+          ')
           if [ -z "$DENY_LIST" ]; then
-            echo "::error::deny-licenses not found in ci.yml job dependency-review"
+            echo "::error::deny-licenses not parseable from .github/license-policy.yml"
             exit 1
           fi
           DENY_LIST="$DENY_LIST" REPORT_PATH="$REPORT" node -e "
@@ -1097,7 +1131,7 @@ jobs:
                 else if (denySet.has(normalize(k))) violations.push(k + ' @ ' + f.path);
               }
             }
-            console.log('Deny-list (from ci.yml dependency-review):', denyList.join(', '));
+            console.log('Deny-list (from .github/license-policy.yml):', denyList.join(', '));
             console.log('Files with license findings:', (r.files || []).length);
             console.log('Warnings (LicenseRef-scancode-unknown, nunca bloquea):', warnings.length);
             for (const w of warnings) console.log('::warning::' + w);
@@ -1130,7 +1164,7 @@ jobs:
   # `deny-licenses` (clave del job dependency-review) NO aplica aquí.
   lockfile-audit:
     if: github.event_name == 'pull_request'
-    name: "Security: Lockfile Audit (advisory, FASE 1)"
+    name: 'Security: Lockfile Audit (advisory, FASE 1)'
     needs: repo-discovery
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -1181,7 +1215,7 @@ jobs:
   # (dependencias): configura infraestructura, no analiza licencias ni CVE.
   checkov-iac:
     if: github.event_name == 'pull_request'
-    name: "Security: Checkov IaC (advisory, FASE 1)"
+    name: 'Security: Checkov IaC (advisory, FASE 1)'
     needs: repo-discovery
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -1220,7 +1254,7 @@ jobs:
   # falsos positivos): `failure-threshold: warning` + añadir al `needs`.
   containerfile-lint:
     if: github.event_name == 'pull_request'
-    name: "Security: Containerfile Lint (advisory, FASE 1)"
+    name: 'Security: Containerfile Lint (advisory, FASE 1)'
     needs: repo-discovery
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -1257,39 +1291,165 @@ jobs:
           retention-days: 14
           if-no-files-found: warn
 
-  # Job advisory de validación de documentación (change `quality-gates`, fase 1):
-  # markdownlint (estructura) + publication de reporte. NO entra en
-  # `prebuild-quality-complete.needs` — un hallazgo de docs NO bloquea el PR;
-  # el reporte debe sobrevivir (`if: always()`) aunque el job "falle".
-  # Fase 2 (bloqueante) queda fuera de este change hasta que docs/ pase limpio.
-  docs-validation:
+  # Job advisory de pipeline config scan (change `pipeline-config-scan`):
+  # actionlint con salida SARIF para la Security tab. Único job de actionlint
+  # por PR: consolida al ex-gate bloqueante de 2B (removido — su cobertura
+  # vive aquí vía SARIF + Code Scanning y en `zizmor-advisory`; la FASE 2 de
+  # pipeline-config-scan puede restablecer el bloqueo quitando
+  # `continue-on-error`). Ejecución vía imagen Docker pinneada
+  # `rhysd/actionlint:1.7.12` (sin curl|bash de scripts remotos; imagen
+  # oficial del autor del binario). La plantilla SARIF oficial se versiona en
+  # `.github/actionlint-sarif.tmpl` y se pasa como CONTENIDO de `-format` (la
+  # pseudo-plantilla inline produce 0 bytes con exit 0 — verificado v1.7.12).
+  # El step lleva `|| true`: con hallazgos actionlint sale 1 y la evidencia
+  # debe generarse igual; el carácter advisory en FASE 1 lo aporta
+  # `continue-on-error: true` a nivel job. NO entra en los `needs` de los
+  # agregadores en FASE 1 (FASE 2: scope de bloqueo solo en este step, con
+  # uploads step-COE). Política `.github/actionlint.yaml` intacta (montada
+  # read-only en el contenedor, no se modifica).
+  # change ci-security-substage-alignment (2026-09-30): ubicado en bloque security 2C, orden §23.3
+  actionlint-advisory:
     if: github.event_name == 'pull_request'
-    name: "Quality: Docs Validation (advisory)"
+    name: 'Security: ActionLint Advisory (SARIF, FASE 1)'
     needs: repo-discovery
     runs-on: ubuntu-latest
     timeout-minutes: 5
     continue-on-error: true
+    permissions:
+      contents: read
+      security-events: write
     steps:
       - uses: actions/checkout@v5
-      - uses: ./.github/actions/setup-monorepo
-      - name: Lint markdown structure (markdownlint)
-        run: npm run docs:lint
-      - name: Publish docs lint summary
-        if: always()
+        with:
+          fetch-depth: 0
+      - name: Run actionlint (SARIF, advisory)
         run: |
-          COUNT=$(npx markdownlint "docs/**/*.md" "docs/*.md" 2>/dev/null | wc -l || echo 0)
-          echo "## Docs Validation (advisory, fase 1)" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "markdownlint violations: ${COUNT##* } (fase 1: NO bloquea el PR)" >> $GITHUB_STEP_SUMMARY
-          echo "Config: .markdownlint.json (JSON estricto) + .markdownlintignore (grandfathering del inventario legacy, 2026-09-29) · vale fase 2 (ver docs/learning/docs-changelog-validation.md)" >> $GITHUB_STEP_SUMMARY
+          docker run --rm -v "$PWD:/repo" -w /repo rhysd/actionlint:1.7.12 \
+            -no-color -config-file .github/actionlint.yaml \
+            -format "$(cat .github/actionlint-sarif.tmpl)" .github/workflows/*.y*ml > actionlint.sarif || true
+          test -s actionlint.sarif || { echo 'actionlint.sarif vacio'; exit 1; }
+          jq -e . actionlint.sarif > /dev/null || { echo 'actionlint.sarif no parseable'; exit 1; }
+        shell: bash
+      - name: Upload actionlint SARIF to Code Scanning
+        if: always() && hashFiles('actionlint.sarif') != ''
+        uses: github/codeql-action/upload-sarif@v4
+        with:
+          sarif_file: actionlint.sarif
+          category: actionlint
+      - name: Upload actionlint report artifact (retention 14d)
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: actionlint-report-pr
+          path: actionlint.sarif
+          retention-days: 14
+          if-no-files-found: warn
+
+  # Job advisory zizmor (change `pipeline-config-scan`): cubre el gap
+  # `unpinned-uses` que actionlint no detecta. Instalación fijada (A4):
+  # setup-uv SHA-pinned (v6.7.0, ubuntu-latest NO trae uv) + `uvx zizmor@1.30.1`
+  # (versión exacta, no latest) + verificación de versión antes del scan.
+  # `--format=sarif` SIEMPRE termina exit 0 → se valida el fichero (`test -s`
+  # + `jq -e .`), nunca el exit code. Política `.github/zizmor.yml`
+  # referenciada incondicionalmente (A3). FASE 1 advisory; FASE 2: gating
+  # `jq -e '.runs[0].results | length == 0'` + `prebuild-security-complete.needs`.
+  # change ci-security-substage-alignment (2026-09-30): ubicado en bloque security 2C, orden §23.3
+  zizmor-advisory:
+    if: github.event_name == 'pull_request'
+    name: 'Security: Zizmor Advisory (unpinned-uses, FASE 1)'
+    needs: repo-discovery
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    continue-on-error: true
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - uses: actions/checkout@v5
+      - uses: astral-sh/setup-uv@b75a909f75acd358c2196fb9a5f1299a9a8868a4 # v6.7.0 (SHA-pinned, nunca @main/@v*)
+      - name: Run zizmor (SARIF, advisory)
+        run: |
+          uvx zizmor@1.30.1 --version | grep -q '1.30.1' || { echo 'zizmor version mismatch'; exit 1; }
+          uvx zizmor@1.30.1 --format=sarif -c .github/zizmor.yml .github/workflows/ > zizmor.sarif || true
+          test -s zizmor.sarif || { echo 'zizmor.sarif vacio'; exit 1; }
+          jq -e . zizmor.sarif > /dev/null || { echo 'zizmor.sarif no parseable'; exit 1; }
+        shell: bash
+      - name: Upload zizmor SARIF to Code Scanning
+        if: always() && hashFiles('zizmor.sarif') != ''
+        uses: github/codeql-action/upload-sarif@v4
+        with:
+          sarif_file: zizmor.sarif
+          category: zizmor
+      - name: Upload zizmor report artifact (retention 14d)
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: zizmor-report-pr
+          path: zizmor.sarif
+          retention-days: 14
+          if-no-files-found: warn
+
+  # Job advisory de typosquatting / dependency confusion (change
+  # `typosquatting-detection`): GuardDog v3.2.0 (DataDog, OSS, sin credenciales)
+  # sobre package.json — detección por metadatos + YARA que NO duplica a Trivy
+  # (CVE/secretos), dependency-review (manifiesto PR) ni lockfile-audit (CVE
+  # lockfile). Toda la política vive en el wrapper versionado
+  # `scripts/guarddog-verify.sh` (GuardDog no soporta config files): pin 3.2.0
+  # con verificación de versión, devDeps excluidas, sandbox obligatorio (nunca
+  # --no-sandbox), exclusiones justificadas. `verify` requiere red y puede morir
+  # a medias → `|| true` + `test -s` + `jq -e .` antes de subir. FASE 1 advisory
+  # (`continue-on-error: true` a nivel job); NO entra en los `needs` de los
+  # agregadores (FASE 2 diferida: 2-4 semanas sin FP, luego gating + needs).
+  # change ci-security-substage-alignment (2026-09-30): ubicado en bloque security 2C, orden §23.3
+  typosquat-guarddog:
+    if: github.event_name == 'pull_request'
+    name: 'Security: Typosquat GuardDog (advisory, FASE 1)'
+    needs: repo-discovery
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    continue-on-error: true
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - uses: actions/checkout@v5
+      - uses: astral-sh/setup-uv@b75a909f75acd358c2196fb9a5f1299a9a8868a4 # v6.7.0 (SHA-pinned, nunca @main/@v*)
+      - name: Run GuardDog verify (SARIF, advisory)
+        run: |
+          bash scripts/guarddog-verify.sh > guarddog.sarif || true
+          test -s guarddog.sarif || { echo 'guarddog.sarif vacio'; exit 1; }
+          jq -e . guarddog.sarif > /dev/null || { echo 'guarddog.sarif no parseable'; exit 1; }
+        shell: bash
+      - name: Upload GuardDog SARIF to Code Scanning
+        if: always() && hashFiles('guarddog.sarif') != ''
+        uses: github/codeql-action/upload-sarif@v4
+        with:
+          sarif_file: guarddog.sarif
+          category: guarddog
+      - name: Upload GuardDog report artifact (retention 14d)
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: guarddog-report-pr
+          path: guarddog.sarif
+          retention-days: 14
+          if-no-files-found: warn
 
   # ═══════════════════════════════════════════════════════════════
   # STAGE 3: BUILD (compilación, empaquetado, artifact)
   # ═══════════════════════════════════════════════════════════════
   client-build:
-    if: false  # Disabled for incremental CI — change to true to re-enable
+    if: false # Disabled for incremental CI — change to true to re-enable
     name: Build - Client
-    needs: [client-lint, client-format-check, client-typecheck, client-complexity, client-dead-code, client-import-bounds]
+    needs:
+      [
+        client-lint,
+        client-format-check,
+        client-typecheck,
+        client-complexity,
+        client-dead-code,
+        client-import-bounds,
+      ]
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -1304,9 +1464,17 @@ jobs:
           path: apps/client/dist/
 
   server-build:
-    if: false  # Disabled for incremental CI — change to true to re-enable
+    if: false # Disabled for incremental CI — change to true to re-enable
     name: Build - Server
-    needs: [server-lint, server-format-check, server-typecheck, server-complexity, server-dead-code, server-import-bounds]
+    needs:
+      [
+        server-lint,
+        server-format-check,
+        server-typecheck,
+        server-complexity,
+        server-dead-code,
+        server-import-bounds,
+      ]
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -1318,8 +1486,8 @@ jobs:
 
   # --- Client Post-Build ---
   client-sonarqube:
-    if: false  # Sin credenciales: no existe SONAR_TOKEN/SONAR_HOST_URL en los secrets del repo (change `quality-gates` D2 — gate documentado como inactivo, nunca rojo)
-    name: "Quality: Client SonarQube"
+    if: false # Sin credenciales: no existe SONAR_TOKEN/SONAR_HOST_URL en los secrets del repo (change `quality-gates` D2 — gate documentado como inactivo, nunca rojo)
+    name: 'Quality: Client SonarQube'
     needs: [client-build, test-unit-client]
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -1346,9 +1514,15 @@ jobs:
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
 
   client-coverage:
-    if: false  # Disabled for incremental CI — change to true to re-enable
-    name: "Quality: Client Coverage"
-    needs: [client-build, test-unit-client]
+    # FASE 1 advisory. Scoping por PROPAGACIÓN de skip del upstream (needs = exactamente
+    # su test job; client-build sigue if: false — deadlock de skipped). NOTA D17: el if
+    # explícito con needs.repo-discovery.outputs NO es viable aquí — GHA solo expone el
+    # contexto needs de jobs DECLARADOS en needs (actionlint: property not defined) y el
+    # job se saltaría siempre. La propagación cubre el mismo conjunto: corre ⇔ corrió su test job.
+    if: github.event_name == 'pull_request'
+    continue-on-error: true
+    name: 'Quality: Client Coverage'
+    needs: [test-unit-client]
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -1360,12 +1534,34 @@ jobs:
         with:
           name: coverage-client
           path: apps/client/coverage/
-      - name: Enforce coverage thresholds
-        run: node scripts/ci/check-coverage.mjs apps/client
+      - uses: actions/download-artifact@v4
+        with:
+          name: flaky-evidence-client
+          path: apps/client/reports/
+      # D18: el tripwire de thresholds SOLO evalúa cobertura de suite completa.
+      # Una corrida TIA solo carga los tests afectados, así que sus totales no son
+      # comparables con los thresholds globales (falso fail al reportar 0% en lo no
+      # corrido, o fail-silencioso al subir el % al testear solo lo ya cubierto).
+      # En diff-scoped se exige la presencia del artefacto y se difiere el umbral
+      # a la próxima full-suite (que cierran los PRs `shared` y el nocturno).
+      - name: Enforce coverage thresholds (full suite only, D18)
+        run: |
+          SCOPE=$(tr -d '[:space:]' < apps/client/reports/tia-scope.txt 2>/dev/null || true)
+          SCOPE=${SCOPE:-full}
+          echo "TIA scope: $SCOPE"
+          if [ ! -f apps/client/coverage/coverage-summary.json ]; then
+            echo "::error::coverage artifact missing — the test job did not produce coverage"
+            exit 1
+          fi
+          if [ "${SCOPE}" != "full" ]; then
+            echo "::notice::diff-scoped run: coverage thresholds DEFERRED to the next full-suite run (D18). Artifact presence verified."
+            exit 0
+          fi
+          node scripts/ci/check-coverage.mjs apps/client
 
   client-depcheck:
-    if: false  # Disabled for incremental CI — change to true to re-enable
-    name: "Quality: Client DepCheck"
+    if: false # Disabled for incremental CI — change to true to re-enable
+    name: 'Quality: Client DepCheck'
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -1379,8 +1575,8 @@ jobs:
 
   # --- Server Post-Build ---
   server-sonarqube:
-    if: false  # Sin credenciales: no existe SONAR_TOKEN/SONAR_HOST_URL en los secrets del repo (change `quality-gates` D2 — gate documentado como inactivo, nunca rojo)
-    name: "Quality: Server SonarQube"
+    if: false # Sin credenciales: no existe SONAR_TOKEN/SONAR_HOST_URL en los secrets del repo (change `quality-gates` D2 — gate documentado como inactivo, nunca rojo)
+    name: 'Quality: Server SonarQube'
     needs: [server-build, test-unit-server]
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -1404,9 +1600,12 @@ jobs:
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
 
   server-coverage:
-    if: false  # Disabled for incremental CI — change to true to re-enable
-    name: "Quality: Server Coverage"
-    needs: [server-build, test-unit-server]
+    # FASE 1 advisory. Scoping por propagación (misma corrección D17 que client-coverage);
+    # el guard recibe el reportsDirectory real del server como 3.er argumento.
+    if: github.event_name == 'pull_request'
+    continue-on-error: true
+    name: 'Quality: Server Coverage'
+    needs: [test-unit-server]
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -1418,12 +1617,31 @@ jobs:
         with:
           name: coverage-server
           path: apps/server/tests/coverage/
-      - name: Enforce coverage thresholds
-        run: node scripts/ci/check-coverage.mjs apps/server
+      - uses: actions/download-artifact@v4
+        with:
+          name: flaky-evidence-server
+          path: apps/server/reports/
+      # D18: el guard de thresholds solo evalúa cobertura de suite completa; en
+      # corridas diff-scoped (TIA) se verifica la presencia del artefacto y se
+      # difiere el umbral a la próxima full-suite.
+      - name: Enforce coverage thresholds (full suite only, D18)
+        run: |
+          SCOPE=$(tr -d '[:space:]' < apps/server/reports/tia-scope.txt 2>/dev/null || true)
+          SCOPE=${SCOPE:-full}
+          echo "TIA scope: $SCOPE"
+          if [ ! -f apps/server/tests/coverage/coverage-summary.json ]; then
+            echo "::error::coverage artifact missing — the test job did not produce coverage"
+            exit 1
+          fi
+          if [ "${SCOPE}" != "full" ]; then
+            echo "::notice::diff-scoped run: coverage thresholds DEFERRED to the next full-suite run (D18). Artifact presence verified."
+            exit 0
+          fi
+          node scripts/ci/check-coverage.mjs apps/server apps/server/tests/coverage
 
   server-depcheck:
-    if: false  # Disabled for incremental CI — change to true to re-enable
-    name: "Quality: Server DepCheck"
+    if: false # Disabled for incremental CI — change to true to re-enable
+    name: 'Quality: Server DepCheck'
     needs: server-build
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -1437,8 +1655,13 @@ jobs:
         working-directory: apps/server
 
   # --- TESTING (post-build): integration / smoke / e2e requieren artifact compilado ---
+  # JUnit de integration/smoke: flags `--reporter=junit --outputFile=reports/junit.xml` inline
+  # (contrato "in the workspace CI script" de ci-test-reporting relajado aquí: el `--` de npm
+  # los añade a un script existente; moverlos a scripts `*:ci` nuevos duplicaría configuración).
   test-integration:
-    if: false  # Disabled for incremental CI — change to true to re-enable
+    # FASE 1 advisory; FASE 2: quitar continue-on-error tras la calibración.
+    if: (needs.repo-discovery.outputs.server == 'true' || needs.repo-discovery.outputs.shared == 'true') && github.event_name == 'pull_request'
+    continue-on-error: true
     name: Integration Tests - Server
     needs: repo-discovery
     runs-on: ubuntu-latest
@@ -1484,7 +1707,9 @@ jobs:
           reporter: java-junit
 
   test-smoke:
-    if: false  # Disabled for incremental CI — change to true to re-enable
+    # FASE 1 advisory; FASE 2: quitar continue-on-error tras la calibración.
+    if: (needs.repo-discovery.outputs.server == 'true' || needs.repo-discovery.outputs.shared == 'true') && github.event_name == 'pull_request'
+    continue-on-error: true
     name: Smoke Tests - Server
     needs: repo-discovery
     runs-on: ubuntu-latest
@@ -1530,7 +1755,7 @@ jobs:
           reporter: java-junit
 
   e2e:
-    if: false  # Disabled for incremental CI — change to true to re-enable
+    if: false # Disabled for incremental CI — change to true to re-enable
     name: E2E Tests
     needs: repo-discovery
     runs-on: ubuntu-latest
@@ -1670,7 +1895,6 @@ jobs:
       - server-dead-code
       - server-import-bounds
       - e2e-lint
-      - actionlint
       - root-manifest-guard
       - openspec-validate
     steps:
@@ -1716,6 +1940,8 @@ jobs:
       - test-unit-server
       - test-integration
       - test-smoke
+      - client-coverage
+      - server-coverage
     steps:
       - name: Check for failures
         run: |

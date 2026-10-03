@@ -182,3 +182,6 @@ O alternativamente, muchos equipos usan TIA como un job adicional y rápido que 
 - agregar los proveedores con tokens free como cerebras, nvidiam operoure entre otros a omniroute y esta al developer u otro agent 
 - knip debe de ser bloqueante al ejecutarse en CI ? knip suele implementarse en shifting left ?, que otras reglas podemos usar dentro de la configuracion ?
 - que jobs deben de ser bloqueantes y cuales solo deben de ser informativos
+- todos lo jobs deben de contener comentario explicando que hacen 
+- job openspec-validate ver si no lo ahorramos en quality y lo aplicamos a shifting left ya que es especifico de openspec una herramienta externa
+- ver si github tiene un scanner de secretos nativo

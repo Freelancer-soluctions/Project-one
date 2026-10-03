@@ -2863,6 +2863,7 @@ Además de los gates puntuales de GOVERNANCE que aparecen dentro de cada stage (
 │  │  ├─ Complexity Rules — ESLint complexity/max-lines-per-rule [SL][F1]           │  │
 │  │  ├─ Dead Code Detection (knip/ts-prune)                                        │  │
 │  │  ├─ Import Boundaries (dependency-cruiser)                                     │  │
+│  │  ├─ Root Manifest Guard — manifest ⊆ directos ∪ allowlist (CI) [DD]            │  │
 │  │  ├─ PR Review Automation (DeepSource/CodeRabbit/SonarQube PR checks)           │  │
 │  │  └─ Docs/CHANGELOG Validation (markdownlint/vale) [SL]                         │  │
 │  └────────────────────────────────────────────────────────────────────────────────┘  │
@@ -3174,6 +3175,10 @@ Además de los gates puntuales de GOVERNANCE que aparecen dentro de cada stage (
  │  Ver §36.3 item 5 para análisis completo y fuentes (StrykerJS, CircleCI, Pitest).    │
  └──────────────────────────────────────────────────────────────────────────────────────┘
 ```
+
+**Root Manifest Guard — higiene del `package.json` raíz (QUALITY, blocking en PR):** la caja QUALITY (Grupo A — source code) del Stage 2 incluye el job `root-manifest-guard` de `ci.yml` (substage 2B quality, `name: "Quality: Root Manifest Guard"`; change `root-manifest-cleanup`, spec `openspec/specs/root-manifest-hygiene`). Razón de ser: el manifest raíz del monorepo quedó "aplanado" (~825 entradas en `dependencies`, 92% transitivas promovidas), causa de falsos positivos de typosquatting (`Package/Version X not on NPM` en GuardDog), riesgo de dependency confusion (workspaces privados declarados como dependencias públicas) y ruido en knip/dependency-review. El guard impide la re-aplanación: cuando el PR toca `package.json`/`package-lock.json` raíz, ejecuta `node scripts/check-root-manifest.mjs` (Node puro, sin red, segundos) y valida que `dependencies` del raíz ⊆ requisitos directos (unión de los manifests de los workspaces + `devDependencies` del raíz) ∪ allowlist versionada del script, con `reason` obligatoria por entrada (una allowlist sin `reason` hace fallar el guard).
+
+Clasificación QUALITY por mecanismo, no por motivación: compara manifests contra manifests, sin consultar bases de amenazas ni el registro — misma lógica que mantiene `actionlint` bloqueante en 2B quality (desviación D4 del change `ci-security-substage-alignment`) y que movió `docs-validation` a 2B (D8). Es **blocking**: wireado a `prebuild-quality-complete.needs` (16 jobs); un PR que re-aplana el manifest queda bloqueado. Espejo local (convención del diagrama: cada check local DEBE tener espejo en CI): `npm run check:manifest` + advisory pre-commit en `.husky/pre-commit`. Los controles SECURITY contra las amenazas subyacentes (dependency confusion, typosquatting) son jobs distintos del bloque 2C: `dependency-review`, `lockfile-audit` y `typosquat-guarddog`.
 
 **GOVERNANCE TRANSVERSAL (CONTINUOUS) — capa continua que recorre todo el pipeline (commit → audit)**
 
