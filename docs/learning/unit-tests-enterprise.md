@@ -86,10 +86,12 @@ Política (§23.3 regla 5, línea de análisis 520):
   client = `vitest run --changed origin/main`.
 - **Por qué el server es unit-scoped y el client no:** el filtro `.unit.test.js` existe para dejar fuera
   `tests/integration/**`, que necesita PostgreSQL. El "integration" de client es de componente (jsdom) y no toca
-  base de datos, así que corre también en local. Antes de 2026-10-03 el hook usaba la config COMPLETA de ambos
-  workspaces, lo que exigía una DB local para poder pushear — un gate local MÁS estricto que el de CI, en dirección
-  contraria a la intención de esta doc (§7.5 de `testing-architecture.md`: CI como fallback obligatorio). La integración
-  se cubre en el job `test-integration` de `ci.yml`, que sí levanta el service container.
+  base de datos, así que corre también en local. Antes de 2026-10-03 el hook invocaba vitest con la config completa de
+  cada workspace, sin ese filtro: eso no lo convertía en "suite entera", seguía siendo diff-scoped, pero su selección
+  incluía los tests de integración relacionados con el diff — un gate local MÁS estricto que el de CI y en dirección
+  contraria a la intención de esta doc (§7.5 de `testing-architecture.md`: CI como fallback obligatorio). La
+  integración se cubre en el job `test-integration` de `ci.yml`, que sí levanta el service container. Detalle completo
+  en `docs/CONTEXT-CICD.md` §10.6.
 - **CI (implementado en P1, change `ci-testing-pipeline-reactivation`):** scripts `test:changed:ci` en ambos
   workspaces (`vitest run --changed origin/main …` + filtro `.unit.test.js` en server). Los jobs `test-unit-client` /
   `test-unit-server` resuelven el scope en un paso previo: diff-scoped si `origin/main` es resoluble (el checkout ya
@@ -114,9 +116,11 @@ Política (§23.3 regla 5, línea de análisis 520):
 - Limitación documentada (`docs/adr/turborepo-evaluation.md`): `vitest --changed` es **local y no persistente
   cross-machine** — en CI no hay cache de la memoria de tests entre runs (R5 del design: por eso el nocturno).
 - Excluidos por diseño de pre-push: E2E (Playwright) e integration con DB (requieren PostgreSQL) — pertenecen a CI.
-- **Asimetría del hook: CORREGIDA 2026-10-03.** Ver §2.3 (principio de arriba). El hook pasó de la config completa
-  (exigía PostgreSQL, 14 tests de integración en rojo por `ECONNREFUSED` al intentar pushear) a los scripts
-  `test:changed` unit-scoped, idénticos en selección a los jobs de CI.
+- **Asimetría del hook: CORREGIDA 2026-10-03.** Ver §2.3 y `docs/CONTEXT-CICD.md` §10.6. Precisión importante: el hook
+  **siempre fue diff-scoped** (`--changed origin/main`); lo que no tenía era el **filtro `.unit.test.js`**, por lo que su
+  selección diff-scoped también arrastraba los tests de integración relacionados con el diff. Verificado sobre un diff
+  de un archivo (`src/modules/events/service.js`): antes 6 ficheros (3 unit + 3 integration), ahora 3 (solo unit). El
+  fallo observado al pushear (14 tests de integración en rojo por `ECONNREFUSED`) venía de esa selección más ancha.
 - **Duración medida (2026-10-03, baseline local):** server full = 5-6s / 218 tests; client full = 14s / 26 ficheros.
   Es la evidencia que decidió el grupo 6 como `N/A`: sharding está pensado para suites de >5-8 min y aquí el orden de
   magnitud es de segundos. Reevaluar si la suite crece.

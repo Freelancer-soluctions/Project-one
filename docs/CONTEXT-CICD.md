@@ -984,11 +984,11 @@ husky` en el package.json raíz (Husky v9, `^9.1.7`).
 
 ### 10.1 Los 3 hooks activos
 
-| Hook             | Cuándo corre             | Qué ejecuta (verificado)                                                                                                                                                                                                                           | Bloquea                                                  |
-| ---------------- | ------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------- |
-| **`pre-commit`** | Antes de crear el commit | 1) `lint-staged` → 2) en paralelo `sast:semgrep` (Semgrep SAST vía `sast:semgrep`) + `security:secrets` (Gitleaks `--staged`)                                                                                                                      | ✅ SÍ (solo checks rápidos; regresión movida a pre-push) |
-| **`commit-msg`** | Al redactar el mensaje   | 1) **DCO presence check** (grep case-sensitive de `Signed-off-by:`, skip de merge commits `^Merge `) → 2) `npx --no -- commitlint --edit "$1"` (Conventional Commits; flag `--no` añadido por Husky v9). DCO corre ANTES de commitlint (fail fast) | ✅ SÍ                                                    |
-| **`pre-push`**   | Antes de `git push`      | 1) **DCO re-check** por commit pusheado (`Signed-off-by:` por SHA, refs leídos de STDIN) → 2) Tests scoped: `vitest run --changed origin/main` en server + client (regresión). DCO corre ANTES de vitest                                           | ✅ SÍ                                                    |
+| Hook             | Cuándo corre             | Qué ejecuta (verificado)                                                                                                                                                                                                                                      | Bloquea                                                  |
+| ---------------- | ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------- |
+| **`pre-commit`** | Antes de crear el commit | 1) `lint-staged` → 2) en paralelo `sast:semgrep` (Semgrep SAST vía `sast:semgrep`) + `security:secrets` (Gitleaks `--staged`)                                                                                                                                 | ✅ SÍ (solo checks rápidos; regresión movida a pre-push) |
+| **`commit-msg`** | Al redactar el mensaje   | 1) **DCO presence check** (grep case-sensitive de `Signed-off-by:`, skip de merge commits `^Merge `) → 2) `npx --no -- commitlint --edit "$1"` (Conventional Commits; flag `--no` añadido por Husky v9). DCO corre ANTES de commitlint (fail fast)            | ✅ SÍ                                                    |
+| **`pre-push`**   | Antes de `git push`      | 1) **DCO re-check** por commit pusheado (`Signed-off-by:` por SHA, refs leídos de STDIN) → 2) Regresión scoped vía `npm run test:changed --workspace=apps/<ws>` en server + client (**mismo contrato de selección que CI**, §10.6). DCO corre ANTES de vitest | ✅ SÍ                                                    |
 
 ### 10.2 Mecanismo del pre-commit (`.husky/pre-commit`)
 
@@ -1103,6 +1103,51 @@ git config --global commit.signoff true   # una sola vez, en cada máquina del d
 > profundidad para cualquier contexto sin la config global (clones frescos, otras máquinas, runners de CI). Confirmado
 > por decisión del usuario 2026-09-02 (memoria `decision/…`).
 
+### 10.6 Contrato de selección del `pre-push` — por qué NO usa la config completa (corregido 2026-10-03)
+
+El `pre-push` ejecuta la **regresión scoped** de los dos workspaces. La definición de _qué tests corren_ vive en los
+scripts `test:changed` de cada workspace — el hook los invoca, no monta su propia línea de vitest:
+
+| Workspace | Script                                             | Selección                                                                                  |
+| --------- | -------------------------------------------------- | ------------------------------------------------------------------------------------------ |
+| server    | `vitest run ".unit.test.js" --changed origin/main` | **Solo unit.** `tests/integration/**` queda fuera (necesita PostgreSQL)                    |
+| client    | `vitest run --changed origin/main`                 | Unit + "integration" de componente (jsdom). No toca base de datos → corre también en local |
+
+Son los mismos scripts que consumen los jobs de CI `test-unit-client` / `test-unit-server` (allí con `--coverage` y
+reporters). Que el hook reutilice los scripts no es cosmético: evita que local y CI definan "affected tests" por
+separado y divergan sin que se note.
+
+**Qué pasaba antes (2026-10-03).** El hook llamaba a vitest con la config **completa** de cada workspace
+(`vitest run --changed origin/main --config apps/server/vitest.config.js`). Conviene ser precisos sobre qué
+cambió, porque la diferencia NO fue "el hook dejó de ser diff-scoped":
+
+- El hook **siempre** fue diff-scoped. `--changed origin/main` estaba ahí desde el principio.
+- Lo que no tenía era el **filtro `.unit.test.js`**. Sin él, la selección diff-scoped también arrastraba los tests de
+  integración **relacionados** con el diff. Verificado sobre un diff de un único archivo
+  (`src/modules/events/service.js`):
+
+  | Invocación              | Ficheros de test | Integración ejecutada                |
+  | ----------------------- | ---------------- | ------------------------------------ |
+  | config completa (antes) | **6**            | **3** (`tests/integration/events/*`) |
+  | `test:changed` (ahora)  | **3**            | 0                                    |
+
+- Con un diff estrecho y sin `package.json`, el viejo hook corría 6 ficheros; el nuevo corre 3. Sobre una rama que
+  además toca `apps/server/package.json`, el viejo llegaba a los 20 ficheros (suite entera), porque Vitest trata un
+  `package.json` del workspace como relacionado con todos sus tests.
+
+**Por qué importa.** Los tests de integración del server necesitan PostgreSQL. Exigirlos en el gate local dejaba el
+gate local **más estricto que el de CI**: sin DB en la máquina no se podía pushear, mientras que en CI esos tests no se
+ejecutan. Eso contradice el sentido de §11 (CI como red de seguridad del dev, no como obstáculo adicional) y se
+manifestó en la práctica: un push falló con 14 tests de integración en rojo por `ECONNREFUSED`. La integración se
+cubre en el job `test-integration` de `ci.yml`, que sí levanta el service container (`postgres:16-alpine` + `pg_isready`
+
+- `prisma migrate deploy`, contrato `ci-e2e`/§8.5 del change `ci-testing-pipeline-reactivation`).
+
+> **Hueco conocido (tarea 8.8, abierto).** El guard de "cero tests" que existe en los jobs de CI (cae a suite completa
+> si el diff no matchea ningún test, para no reportar un verde vacío) **no** está en el hook: Vitest imprime
+> `No test files found` y devuelve 0, así que un diff sin tests relacionados da un falso verde local. El impacto está
+> acotado porque CI lo vuelve a comprobar, pero no está cerrado.
+
 ---
 
 ## 11. Estrategia shifting-left (capa local → CI)
@@ -1116,7 +1161,7 @@ git config --global commit.signoff true   # una sola vez, en cada máquina del d
 | Capa                | Punto de ejecución                           | Qué valida                                                                                                                                                                                                                                                                                   | Costo      | Bloqueo               |
 | ------------------- | -------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------- | --------------------- |
 | **L1 — Pre-commit** | En el dev (hook `pre-commit` + `commit-msg`) | Format (prettier), lint (eslint), SAST (Semgrep staged), secrets (Gitleaks staged), **DCO presence** (`Signed-off-by:` en commit-msg). Defense-in-depth adicional: `git config commit.signoff true` (auto-signoff) + regla `/commit-all` del git-manager prompt (`-S -s` obligatorio, §10.4) | Muy bajo   | ✅                    |
-| **L2 — Pre-push**   | En el dev (hook `pre-push`)                  | **DCO re-check** por commit pusheado + regresión de tests scoped (`vitest run --changed origin/main`) en server + client                                                                                                                                                                     | Bajo-medio | ✅                    |
+| **L2 — Pre-push**   | En el dev (hook `pre-push`)                  | **DCO re-check** por commit pusheado + regresión scoped vía `npm run test:changed --workspace=apps/<ws>` (server: solo `*.unit.test.js`; client: unit + integración de componente). Mismo contrato de selección que CI — §10.6                                                               | Bajo-medio | ✅                    |
 | **L2.5 — PR title** | En el dev (wrapper npm)                      | Validación del título de PR contra Conventional Commits vía `npm run pr:create` (script `scripts/hooks/pr-title-check.js`) ANTES de `gh pr create`                                                                                                                                           | Muy bajo   | ⚠️ (wrapper, no hook) |
 | **L3 — CI**         | En GitHub (PR → main)                        | Gates de gobernanza: firma de commits, Conventional Commits, DCO, dependency-review (ver §9)                                                                                                                                                                                                 | Alto       | ✅ (4 checks ruleset) |
 
