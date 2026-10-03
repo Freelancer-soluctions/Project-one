@@ -422,7 +422,8 @@ ci-complete:
 | `commit-lint`           | Commit Lint (Conventional Commits) | ✅ Ruleset | ❌                 | No (corre siempre)              |
 | `pr-title-lint`         | PR Title Lint                      | ✅ Ruleset | ❌                 | No (corre siempre)              |
 | `dco`                   | DCO                                | ✅ Ruleset | ❌                 | No (corre siempre)              |
-| `dependency-review`     | Dependency Review                  | ❌         | ❌                 | `if: pull_request`              |
+| `dependency-review`     | Security: Dependency Review        | ❌         | ❌                 | `if: pull_request`              |
+| `sast`                  | Governance: SAST (Semgrep)         | ❌         | ✅                 | No (corre siempre, standalone)  |
 | `zombie-workflow-guard` | Zombie Workflow Guard              | ❌         | ❌                 | No (corre siempre)              |
 | `client-lint`           | Quality: Client Lint               | ❌         | ❌                 | `outputs.client == 'true'` + PR |
 | `server-lint`           | Quality: Server Lint               | ❌         | ❌                 | `outputs.server == 'true'` + PR |
@@ -430,7 +431,7 @@ ci-complete:
 
 > **Nota (2026-09-14, change `ci-prebuild-quality-lint`, rama `ci/prebuild-stages`):** `client-lint`/`server-lint`/`actionlint` son standalone path-scoped (patrón `sast`/`dependency-review`, sin gate `CI_MINIMAL`), NO required por el ruleset. Supresiones intencionales en `.github/actionlint.yaml`; complexity ESLint 15→20.
 
-> **Nota (2026-09-14, change `ci-workflow-readability`):** el job `sast` ("SAST Semgrep", ci.yml L400-415, con `continue-on-error: true`, standalone governance, NO en `ci-complete.needs`) vive en el bloque `STAGE 2: PRE-BUILD — VALIDATE`, inmediatamente después de `dco` y junto a los 4 checks del ruleset. Es un gate standalone non-blocking (F1).
+> **Nota (2026-09-14, change `ci-workflow-readability`):** el job `sast` ("Governance: SAST (Semgrep)" — prefijo de bloque adoptado el 2026-10-03 por el change `ci-job-naming-normalization`, ver `docs/CONTEXT-CICD.md` §3.3.1; ci.yml L409-411, con `continue-on-error: true`, standalone governance, NO en `ci-complete.needs`) vive en el bloque `STAGE 2: PRE-BUILD — VALIDATE`, inmediatamente después de `dco` y junto a los 4 checks del ruleset. Es un gate standalone non-blocking (F1).
 
 ### 1.5 Jobs `if: false` — DAG con nodos deshabilitados
 
@@ -519,8 +520,8 @@ flowchart TD
     end
 
     subgraph SEC [Seguridad / Governance]
-        SAST["sast\nSAST (Semgrep)\n(standalone, non-blocking)"]
-        DR["dependency-review\nDependency Review\n(if: pull_request)"]
+        SAST["sast\nGovernance: SAST (Semgrep)\n(standalone, non-blocking)"]
+        DR["dependency-review\nSecurity: Dependency Review\n(if: pull_request)"]
         ZWG["zombie-workflow-guard\nZombie Workflow Guard"]
     end
 

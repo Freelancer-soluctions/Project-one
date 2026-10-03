@@ -506,7 +506,7 @@ En esta rama (`ci/governance-gates`) el job CI de Semgrep **no está en `ci.yml`
 
 ### 4.9 Detección de secretos — Gitleaks
 
-**Capa:** L1 (staged) + PR gate (`ci.yml` job `secrets` substage 2C, wireado a `prebuild-security-complete.needs`; check `Secret Detection` en el ruleset — change `secret-scanning`) + scheduled full-history (`scheduled-security.yml`, `active` desde 2026-09-25, advisory/audit) · **SÍ es check del ruleset** (`Secret Detection`, strict)
+**Capa:** L1 (staged) + PR gate (`ci.yml` job `secrets` substage 2C, check `Security: Secret Detection`, wireado a `prebuild-security-complete.needs`; change `secret-scanning`) + scheduled full-history (`scheduled-security.yml`, `active` desde 2026-09-25, advisory/audit) · **NO es check del ruleset** — verificado contra la API del ruleset 21227644 el 2026-10-03: exige solo los 4 contexts de `CONTEXT-CICD.md` §3.2 (`Verify Commit Signatures`, `Commit Lint (Conventional Commits)`, `PR Title Lint`, `DCO`). El texto anterior de esta línea afirmaba que `Secret Detection` era check del ruleset en modo strict; es incorrecto.
 
 #### Qué herramienta usamos y qué es
 
@@ -662,7 +662,7 @@ Sin path-scoping, un cambio trivial de README dispararía todo el pipeline de ca
 **[actions/dependency-review-action@v5](https://github.com/actions/dependency-review-action)**: diff de dependencias del PR vs la rama base, consulta el GitHub Advisory Database y bloquea si introduce vulnerabilidades conocidas o licencias incompatibles.
 
 ```yaml
-# ci.yml — job Dependency Review (inline, no en security.yml)
+# ci.yml — job 'Security: Dependency Review' (inline, no en security.yml)
 - uses: actions/dependency-review-action@v5
   with:
     fail-on-severity: moderate # bloquea desde severidad "moderate"
@@ -687,7 +687,7 @@ Es un gate **no-bloqueante a nivel ruleset pero bloqueante a nivel PR**: si fall
 
 #### Dónde está implementada
 
-- L3: job **Dependency Review** (inline en `ci.yml`, no requiere workflow aparte). Runs solo en `pull_request`. Su historial: nació en `security.yml` y se movió inline a `ci.yml` para que `ci-complete.needs` pudiera agregarlo — un detalle de arquitectura del change `ci-governance-pre-merge-gates`.
+- L3: job **`Security: Dependency Review`** (`dependency-review`, inline en `ci.yml`, no requiere workflow aparte). Runs solo en `pull_request`. Su historial: nació en `security.yml` y se movió inline a `ci.yml` para que `ci-complete.needs` pudiera agregarlo — un detalle de arquitectura del change `ci-governance-pre-merge-gates`.
 
 ---
 

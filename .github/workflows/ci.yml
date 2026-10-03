@@ -408,7 +408,7 @@ jobs:
     # continue-on-error: true
   # --- GOVERNANCE: SAST early-abort gate (diff-scoped, standalone) ---
   sast:
-    name: SAST (Semgrep)
+    name: 'Governance: SAST (Semgrep)'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     if: github.event_name == 'pull_request'
@@ -748,7 +748,7 @@ jobs:
     # el agregador (actions/toolkit#581). FASE 2: quitar el flag tras la calibración.
     if: (needs.repo-discovery.outputs.client == 'true' || needs.repo-discovery.outputs.shared == 'true') && github.event_name == 'pull_request'
     continue-on-error: true
-    name: Unit Tests - Client
+    name: 'Tests: Unit - Client'
     needs: repo-discovery
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -847,7 +847,7 @@ jobs:
     # para dorny/test-reporter. FASE 2: quitar continue-on-error tras la calibración.
     if: (needs.repo-discovery.outputs.server == 'true' || needs.repo-discovery.outputs.shared == 'true') && github.event_name == 'pull_request'
     continue-on-error: true
-    name: Unit Tests - Server
+    name: 'Tests: Unit - Server'
     needs: repo-discovery
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -1440,7 +1440,7 @@ jobs:
   # ═══════════════════════════════════════════════════════════════
   client-build:
     if: false # Disabled for incremental CI — change to true to re-enable
-    name: Build - Client
+    name: 'Build: Client'
     needs:
       [
         client-lint,
@@ -1465,7 +1465,7 @@ jobs:
 
   server-build:
     if: false # Disabled for incremental CI — change to true to re-enable
-    name: Build - Server
+    name: 'Build: Server'
     needs:
       [
         server-lint,
@@ -1662,7 +1662,7 @@ jobs:
     # FASE 1 advisory; FASE 2: quitar continue-on-error tras la calibración.
     if: (needs.repo-discovery.outputs.server == 'true' || needs.repo-discovery.outputs.shared == 'true') && github.event_name == 'pull_request'
     continue-on-error: true
-    name: Integration Tests - Server
+    name: 'Tests: Integration - Server'
     needs: repo-discovery
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -1710,7 +1710,7 @@ jobs:
     # FASE 1 advisory; FASE 2: quitar continue-on-error tras la calibración.
     if: (needs.repo-discovery.outputs.server == 'true' || needs.repo-discovery.outputs.shared == 'true') && github.event_name == 'pull_request'
     continue-on-error: true
-    name: Smoke Tests - Server
+    name: 'Tests: Smoke - Server'
     needs: repo-discovery
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -1756,7 +1756,7 @@ jobs:
 
   e2e:
     if: false # Disabled for incremental CI — change to true to re-enable
-    name: E2E Tests
+    name: 'Tests: E2E'
     needs: repo-discovery
     runs-on: ubuntu-latest
     timeout-minutes: 15

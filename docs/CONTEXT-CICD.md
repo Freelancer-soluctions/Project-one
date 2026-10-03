@@ -170,8 +170,9 @@ undefined`, verificado con `--debug`) — usar siempre los scripts raíz `npm ru
 - Los nombres DEBEN coincidir EXACTO con el `name:` del job (renombrar rompe el binding del ruleset).
 
 > **Estos 4 son la excepción documentada a la convención de prefijos por substage.** Todos los demás jobs de `ci.yml`
-> llevan el prefijo de su substage (`Quality:`, `Security:`, `Prebuild … Complete`); estos 4 no lo llevan y **no deben
-> añadírselo**. El ruleset hace match por cadena exacta contra el `name:`: si el job se renombra y el ruleset no, el
+> llevan el prefijo de su bloque (`Governance:`, `Quality:`, `Security:`, `Tests:`, `Build:`, `Prebuild … Complete`); estos 4
+> no lo llevan y **no deben añadírselo**. El ruleset hace match por cadena exacta contra el `name:`: si el job se renombra y el
+> ruleset no, el
 > check requerido nunca se emite y el PR queda bloqueado indefinidamente con `Expected — Waiting for status to be
 reported`, un mensaje que no sugiere en absoluto que la causa sea un nombre. Prefijarlos daría `Governance: DCO` en la
 > UI —ganancia estética— a cambio de arriesgar el merge de todo el equipo, porque el ruleset protege `main`.
@@ -198,7 +199,7 @@ reported`, un mensaje que no sugiere en absoluto que la causa sea un nombre. Pre
 | pr-title-lint                                                                               | **PR Title Lint**                                 | ✅ ruleset     | ❌ (bloqueante desde 2026-08-31)                                                                                                                               |
 | dco                                                                                         | **DCO**                                           | ✅ ruleset     | ❌ (bloqueante desde 2026-08-31)                                                                                                                               |
 | dependency-review                                                                           | Security: Dependency Review                       | ❌             | ❌                                                                                                                                                             |
-| sast                                                                                        | **SAST (Semgrep)**                                | ❌             | ✅                                                                                                                                                             |
+| sast                                                                                        | **Governance: SAST (Semgrep)**                    | ❌             | ✅                                                                                                                                                             |
 | zombie-workflow-guard                                                                       | Zombie Workflow Guard                             | ❌             | ❌                                                                                                                                                             |
 | client-lint                                                                                 | Quality: Client Lint                              | ❌             | ❌                                                                                                                                                             |
 | server-lint                                                                                 | Quality: Server Lint                              | ❌             | ❌                                                                                                                                                             |
@@ -207,7 +208,7 @@ reported`, un mensaje que no sugiere en absoluto que la causa sea un nombre. Pre
 | client/server-typecheck                                                                     | Quality: Client/Server TypeCheck                  | ❌             | ✅ activos y bloqueantes (change `quality-gates`, 2026-09-26: tsconfigs mínimos, sin `\|\| echo`)                                                              |
 | server-complexity                                                                           | Quality: Server Complexity                        | ❌             | ✅ activo y bloqueante sin `--rule` (change `quality-gates`, 2026-09-26)                                                                                       |
 | docs-validation                                                                             | Quality: Docs Validation (advisory)               | ❌             | ✅ advisory (`continue-on-error: true` + reporte; NO en `needs` del agregador — fase 1)                                                                        |
-| \*-build, sonarqube, coverage, depcheck, unit, integration, smoke, e2e, server-format-check | Quality/Build/Test                                | ❌             | N/A (`if: false`; sonarqube sin credenciales)                                                                                                                  |
+| \*-build, sonarqube, coverage, depcheck, unit, integration, smoke, e2e, server-format-check | Quality/Build/Tests                               | ❌             | N/A (`if: false`; sonarqube sin credenciales)                                                                                                                  |
 | client-import-bounds                                                                        | Quality: Client Import Bounds                     | ❌             | ✅ activo (change `import-boundaries`, 2026-09-25): gate `depcruise:client --output-type err --ignore-known` + report `err-html` con artefacto                 |
 | server-import-bounds                                                                        | Quality: Server Import Bounds                     | ❌             | ✅ activo (change `import-boundaries`, 2026-09-25): gate `depcruise:server --output-type err --ignore-known` + report `err-html` con artefacto                 |
 | client-complexity                                                                           | Quality: Client Complexity                        | ❌             | ❌ — sin `--rule`; threshold 20 heredado de `eslint.config.js` (2026-09-23)                                                                                    |
@@ -237,6 +238,41 @@ reported`, un mensaje que no sugiere en absoluto que la causa sea un nombre. Pre
 > #127/#128/#129):** `client-lint` → `if: needs.repo-discovery.outputs.client == 'true' && github.event_name ==
 'pull_request'`; `server-lint` → idem con `outputs.server`; `actionlint` → idem con `outputs.shared`. Standalone
 > (sin gate `CI_MINIMAL`), NO required por el ruleset.
+
+### 3.3.1 Convención de nombres de job por bloque (change `ci-job-naming-normalization`, 2026-10-03)
+
+El `name:` de un job es su interfaz humana: es lo que se lee en la pestaña Checks del PR. La convención del repo es
+que ese nombre **empiece por el prefijo del bloque al que pertenece el job**, para que un lector sepa a qué capa
+pertenece un check sin abrir el YAML.
+
+| Bloque físico en `ci.yml` | Prefijo               | Jobs                                                                     | Incumplen |
+| ------------------------- | --------------------- | ------------------------------------------------------------------------ | --------- |
+| ENTRY                     | (ninguno)             | `repo-discovery`                                                         | n/a\*     |
+| SUBSTAGE 2A GOVERNANCE    | `Governance:`         | `sast`                                                                   | 0         |
+| SUBSTAGE 2B CODE QUALITY  | `Quality:`            | 16 jobs                                                                  | 0         |
+| SUBSTAGE 2D UNIT TESTING  | `Tests:`              | `test-unit-client`, `test-unit-server`, `test-integration`, `test-smoke` | 0         |
+| SUBSTAGE 2C SECURITY      | `Security:`           | 9 jobs                                                                   | 0         |
+| STAGE 3 BUILD             | `Build:`              | `client-build`, `server-build`                                           | 0         |
+| STAGE 4 POST-BUILD        | `Quality:`            | sonarqube, coverage, depcheck (6)                                        | 0         |
+| TESTS post-build          | `Tests:`              | `e2e`                                                                    | 0         |
+| SUBSTAGE AGGREGATORS      | `Prebuild … Complete` | `prebuild-{governance,quality,security,unit-tests}-complete`             | 0         |
+
+\* **Excepciones por rol, no por descuido.** Hay cuatro categorías de jobs que legítimamente no llevan prefijo de bloque:
+
+1. **Los 4 atados al ruleset 21227644** (`Verify Commit Signatures`, `Commit Lint (Conventional Commits)`,
+   `PR Title Lint`, `DCO`). Intocables mientras el ruleset los liga — ver §3.2.
+2. **ENTRY** (`repo-discovery` → `Detect Changes`): es el path-filter que decide qué corre; es anterior a todos los
+   substage, no pertenece a ninguno.
+3. **GUARDS** (`zombie-workflow-guard` → `Zombie Workflow Guard`): aserción transversal sobre el propio repo, no
+   pertenece a ningún substage.
+4. **El agregador raíz** (`ci-complete` → `CI Complete`): por definición no pertenece a un substage. Los agregadores
+   de substage sí llevan el patrón `Prebuild <Substage> Complete`.
+
+Los ids (`test-unit-client`, `client-build`, …) **no** se renombran: son el contrato que referencian los `needs:` del
+agregador y los informes de fallo. El `name:` es lo que ve el humano; el `id:` es lo que consume la máquina.
+
+> **Gotcha YAML:** un valor con `:` sin comillas rompe el mapeo (`actionlint` lo reporta como `Nested mappings are not
+allowed in compact mappings`). Todos los nombres con prefijo llevan comillas simples: `name: 'Tests: Unit - Client'`.
 
 ### 3.4 Pipelines
 
@@ -343,7 +379,7 @@ flowchart TD
         DCO[dco: DCO ⭐]
         DR[dependency-review: Security: Dependency Review]
         ZWG[zombie-workflow-guard: Zombie Workflow Guard]
-        Q_DISABLED["⚠️ Quality/Build/Test (if: false)"]
+        Q_DISABLED["⚠️ Quality/Build/Tests (if: false)"]
         CC[ci-complete: CI Complete ⏸️]
     end
 
@@ -949,7 +985,7 @@ Commit Signatures`, `Commit Lint`, `PR Title Lint`, `DCO`) — y desde 2026-08-3
 > `docs/learning/quality-gates.md` §2. `CI_MINIMAL=false` desde 2026-09-17 (change `ci-prebuild-quality-lint`, task 8)
 > → `ci-complete` corre desde entonces.
 
-#### 9.3.9 `sast` → job "SAST (Semgrep)" en `ci.yml` (SAST Governance Layer)
+#### 9.3.9 `sast` → job "Governance: SAST (Semgrep)" en `ci.yml` (SAST Governance Layer)
 
 **Descripción del job:** job `sast` en `.github/workflows/ci.yml` corriendo sobre `docker run --rm -v ${{
 github.workspace }}:/src semgrep/semgrep:1.176.1 semgrep scan`. Configuración clave:
@@ -974,10 +1010,14 @@ github.workspace }}:/src semgrep/semgrep:1.176.1 semgrep scan`. Configuración c
   como advertencia en la pestaña Code Scanning de GitHub, pero no impiden el merge. Esto permite un rollout phased: F1
   non-blocking en la fase actual, con intención de hacer F2 blocking después de validar resultados (Regla 8).
 
-**Caveat — Regla 8 (name exacto para future binding ruleset):** El nombre del job `SAST (Semgrep)` DEBE coincidir
-EXACTAMENTE con el nombre del status check en el ruleset 21227644 para que el binding F2 funcione. Si se renombra el
-job en `ci.yml`, el binding del ruleset se rompe en silencio y el check deja de aplicarse. Este precedente viene de
-`pr-title-lint`/`dco` donde el nombre exacto es crítico (§3.2, §3.3).
+**Caveat — Regla 8 (name exacto para future binding ruleset):** El nombre del job `Governance: SAST (Semgrep)` DEBE
+coincidir EXACTAMENTE con el nombre del status check en el ruleset 21227644 para que el binding F2 funcione. **El
+contexto a añadir en F2 es `Governance: SAST (Semgrep)`**, no `SAST (Semgrep)`: el nombre se renombró el 2026-10-03
+(change `ci-job-naming-normalization`, §3.2) al adoptarse el prefijo de bloque, y las specs `sast-governance-gate` y
+`ruleset-expansion` se actualizaron en lockstep. `sast` **no** está en el ruleset hoy (`enforcement: active` exige
+solo los 4 de §3.2), así que el renombrado no ruptureó ningún binding; si se renombra en el futuro, el binding se rompe
+en silencio y el check deja de aplicarse. Este precedente viene de `pr-title-lint`/`dco` donde el nombre exacto es
+crítico (§3.2, §3.3).
 
 **Independencia respecto a `ci-complete.needs`:** El job `sast` **NO está en** `ci-complete.needs` array. Es un job
 standalone, independiente del pipeline completo. No está acoplado a `CI_MINIMAL` — corre siempre que hay un

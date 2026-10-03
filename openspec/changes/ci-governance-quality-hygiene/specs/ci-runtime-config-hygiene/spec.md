@@ -14,7 +14,7 @@ Un job de `ci.yml` SHALL declarar `needs: repo-discovery` únicamente si consume
 
 - **WHEN** se lee la definición del job `sast` en `ci.yml`
 - **THEN** no declara `needs: repo-discovery`
-- **AND** mantiene su condición `if: github.event_name == 'pull_request'` y su `name: SAST (Semgrep)` intactos
+- **AND** mantiene su condición `if: github.event_name == 'pull_request'` y su `name: 'Governance: SAST (Semgrep)'` intactos (el prefijo de bloque lo adoptó el change `ci-job-naming-normalization` el 2026-10-03)
 - **AND** el job sigue siendo standalone (fuera de `ci-complete.needs` y de los agregadores de substage, según `sast-governance-gate`)
 
 #### Scenario: openspec-validate corre en paralelo con el path-filter
@@ -27,7 +27,7 @@ Un job de `ci.yml` SHALL declarar `needs: repo-discovery` únicamente si consume
 
 - **WHEN** los agregadores de substage evalúan sus `needs`
 - **THEN** siguen resolviendo los mismos jobs con la misma lógica de propagación de fallos (`always()` + `contains(needs.*.result, ...)`)
-- **AND** ningún `required_status_check` del ruleset cambia (los `name:` de los jobs no se modifican)
+- **AND** ningún `required_status_check` del ruleset cambia (dentro de este change no se modifica ningún `name:` de job; el renombrado de `sast` es de otro change y no afecta al ruleset porque `sast` no está enlazado)
 
 #### Scenario: Los jobs que sí consumen outputs conservan la dependencia
 

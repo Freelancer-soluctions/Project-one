@@ -2,6 +2,15 @@
 
 > **Guía 10 de 6 del nivel Intermedio (última)** | Prerequisitos: **Fundamentos (00-04) + Guías 06 (ci.yml), 07 (reusable), 08 (composite) y 09 (caching)** | Anterior: [`09-caching-y-performance.md`](./09-caching-y-performance.md) | Siguiente: [Volver al índice intermedio](./intermedio-README.md)
 
+> ⚠️ **NOTA DE ACTUALIZACIÓN (2026-10-03):** los extractos YAML de esta guía son de una versión **anterior** del
+> `ci.yml` (el job de path-filter se llamaba `changes` con outputs `frontend`/`backend`; hoy es `repo-discovery` con
+> `client`/`server`). Los **nombres de check** que se muestran en los ejemplos tampoco son los actuales: desde el
+> change `ci-job-naming-normalization` los jobs de test llevan prefijo de bloque (`Tests: Unit - Client`,
+> `Tests: Unit - Server`, `Tests: Integration - Server`, `Tests: Smoke - Server`, `Tests: E2E`). Los conceptos
+> (pirámide de tests, path filtering, service containers, JUnit reporting) siguen siendo la lógica real.
+> **Estado real verificado: [`CONTEXT-CICD.md`](../../CONTEXT-CICD.md) §3.3 y §3.3.1.** Los extractos se conservan sin
+> editar porque son material didáctico congelado, no una especificación del `ci.yml`.
+
 ---
 
 ## 🎯 Objetivos de aprendizaje
