@@ -180,7 +180,7 @@ reported`, un mensaje que no sugiere en absoluto que la causa sea un nombre. Pre
 > Consecuencia práctica: un PR que renombre cualquiera de estos 4 debe actualizar el ruleset **en la misma operación**,
 > y no puede quedar un commit donde el YAML y el ruleset discrepen. La protección clásica de `main` tiene
 > `required_status_checks.contexts: []`, así que **no existe ningún otro binding**: fuera de estos 4, renombrar es
-> seguro. Verificado contra la API del ruleset el 2026-10-03 (change `ci-job-naming-normalization`).
+> seguro. Verificado contra la API del ruleset el 2026-10-03 (change `ci-job-naming-normalization`, archivado).
 
 ### 3.3 CI gate (ci.yml) — jobs habilitados hoy
 
@@ -239,7 +239,7 @@ reported`, un mensaje que no sugiere en absoluto que la causa sea un nombre. Pre
 'pull_request'`; `server-lint` → idem con `outputs.server`; `actionlint` → idem con `outputs.shared`. Standalone
 > (sin gate `CI_MINIMAL`), NO required por el ruleset.
 
-### 3.3.1 Convención de nombres de job por bloque (change `ci-job-naming-normalization`, 2026-10-03)
+### 3.3.1 Convención de nombres de job por bloque (change `ci-job-naming-normalization`, archivado 2026-10-03)
 
 El `name:` de un job es su interfaz humana: es lo que se lee en la pestaña Checks del PR. La convención del repo es
 que ese nombre **empiece por el prefijo del bloque al que pertenece el job**, para que un lector sepa a qué capa
@@ -778,6 +778,7 @@ v2 adicionales (el control vive en el ruleset v2, §3.5).
 
 | Change archivado (fecha) | Change                             | Qué implementa (artefacto vivo)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
 | ------------------------ | ---------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --- | ---------- | -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| 2026-10-03               | `ci-job-naming-normalization`      | 11 jobs de `ci.yml` renombrados al prefijo de su bloque (`Governance:`, `Quality:`, `Security:`, `Tests:`, `Build:`, `Prebuild … Complete`); convención + excepciones por rol documentadas en §3.3.1; 4 requirements en `ci-prebuild-substage-structure` (los 4 del ruleset quedan exentos); specs `sast-governance-gate`/`ruleset-expansion`/`ci-runtime-config-hygiene` sincronizadas por el renombrado de `sast`                                                                                            |
 | 2026-10-03               | `ci-testing-pipeline-reactivation` | 6 jobs de testing reactivados en FASE 1 advisory (`continue-on-error: true`); scripts `*:ci` con JUnit+JSON+flaky-reporter; TIA (`test:changed:ci` + guard de cero tests) con guard D18; `nightly-full-suite.yml`; `.github/flaky-quarantine.yml` + `quarantine-exclude.mjs` + `flaky-weekly.yml` + `flaky-metric.mjs`; absorption de `ci-test-integration`; 10 capabilities sincronizadas a `openspec/specs/`. **Lo que NO incluye**: la promoción a blocking, que vive en `ci-testing-gate-promotion` (§9.2) |
 | 2026-09-23               | `knip-consolidation`               | Config knip ÚNICA en raíz (`/knip.jsonc`; eliminados `knip.json` raíz + `apps/client/knip.json` + `apps/server/knip.json`), globs `project` ampliados (tests/`.storybook`/prisma/configs), npm scripts `knip`/`knip:client`/`knip:server`/`knip:ci`, jobs `*-dead-code` desde la raíz con `--workspace` (`continue-on-error: true` fase 1)                                                                                                                                                                     |
 | 2026-09-23               | `eslint-configuration`             | Jobs `*-complexity` sin `--rule` (threshold 20 único en `eslint.config.js`), `globals.browser` fuera del bloque backend, `eslint-plugin-import` desinstalado, doc canónica `docs/learning/eslint-configuration.md`                                                                                                                                                                                                                                                                                             |

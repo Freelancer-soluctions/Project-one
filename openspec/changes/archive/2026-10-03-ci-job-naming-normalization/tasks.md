@@ -17,10 +17,10 @@ Consolidación y extensión de una convención ya existente en `ci.yml`, no dise
 
 - [x] 2.1 `dependency-review`: `Dependency Review` → `Security: Dependency Review`. — El valor necesita comillas:
       `Security: Dependency Review` sin ellas rompe el mapeo YAML; `actionlint` lo detecta como `Nested mappings are not
-  allowed in compact mappings`.
+allowed in compact mappings`.
 - [x] 2.2 `secrets`: `Secret Detection` → `Security: Secret Detection` (misma razón de comillas).
 - [x] 2.3 `actionlint-advisory`: `Quality: ActionLint Advisory (SARIF, FASE 1)` → `Security: ActionLint Advisory
-  (SARIF, FASE 1)` — es el único cuyo prefijo **miente** sobre su bloque: vive en SUBSTAGE 2C SECURITY y se
+(SARIF, FASE 1)` — es el único cuyo prefijo **miente** sobre su bloque: vive en SUBSTAGE 2C SECURITY y se
       anunciaba como Quality.
 - [x] 2.4 Comprobar que ningún `id:` ni ninguna referencia de `needs:` cambia (design.md D4).
 - [x] 2.V Verificación: los 9 jobs de SUBSTAGE 2C llevan `Security:`; ningún job fuera de ese rango usa el prefijo;
@@ -106,9 +106,13 @@ paso manual F2. Sin actualizarlas, el manual de F2 nombraría un contexto que ni
 
 ## 8. Cierre
 
-- [ ] 8.1 `openspec validate ci-job-naming-normalization --strict` y `openspec validate --specs --strict` exit 0.
-- [ ] 8.2 `npx prettier --check` sobre los ficheros tocados.
-- [ ] 8.3 Verificación final: los 4 contexts del ruleset 21227644 intactos contra la API; los 6 `needs` de
-      `prebuild-unit-tests-complete` y los 7 de `ci-complete` sin cambios (referencian ids, no nombres — design.md D4);
-      `actionlint` exit 0.
-- [ ] 8.4 Sincronizar el delta a `openspec/specs/ci-prebuild-substage-structure/spec.md` y archivar.
+- [x] 8.1 `openspec validate ci-job-naming-normalization --strict` → `Change 'ci-job-naming-normalization' is valid`;
+      `openspec validate --specs --strict` → 129/129 passed, 0 failed (antes 128: el requirement nuevo de enumeración
+      de excepciones es el que suma el ítem).
+- [x] 8.2 `npx prettier --check` sobre los ficheros tocados → `All matched files use Prettier code style!` (la primera
+      pasada marcó `tasks.md`; corregido con `--write` y re-verificado).
+- [x] 8.3 Verificación final: los 4 contexts del ruleset 21227644 intactos contra la API (`Verify Commit Signatures`,
+      `Commit Lint (Conventional Commits)`, `PR Title Lint`, `DCO`); los 6 `needs` de `prebuild-unit-tests-complete` y
+      los 7 de `ci-complete` sin cambios (referencian ids, no nombres — design.md D4); `actionlint` exit 0 con
+      `-config-file .github/actionlint.yaml`.
+- [x] 8.4 Sincronizar el delta a `openspec/specs/ci-prebuild-substage-structure/spec.md` y archivar.
