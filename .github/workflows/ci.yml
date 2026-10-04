@@ -1694,7 +1694,10 @@ jobs:
         shell: bash
         working-directory: apps/server
       - name: Run Integration Tests
-        run: npm run test:integration --workspace=apps/server -- --reporter=junit --outputFile=reports/junit.xml
+        # `--reporter=default` explicito: sin el, el unico reporter activo es `junit`, que SILENCIA
+        # la salida de fallos y deja solo un `exit code 1` sin diagnostico en el log del step
+        # (coste real de diagnosticar el fallo de `test-smoke`: 4 runs de leitura de logs).
+        run: npm run test:integration --workspace=apps/server -- --reporter=default --reporter=junit --outputFile=reports/junit.xml
         env:
           DATABASE_URL: postgresql://test:test@localhost:5432/project_one_test
         shell: bash
@@ -1742,7 +1745,10 @@ jobs:
         shell: bash
         working-directory: apps/server
       - name: Run Smoke Tests
-        run: npm run test:smoke:ci --workspace=apps/server -- --reporter=junit --outputFile=reports/junit.xml
+        # `--reporter=default` explicito: sin el, el unico reporter activo es `junit`, que SILENCIA
+        # la salida de fallos y deja solo un `exit code 1` sin diagnostico en el log del step
+        # (coste real de diagnosticar el fallo de `test-smoke`: 4 runs de lectura de logs).
+        run: npm run test:smoke:ci --workspace=apps/server -- --reporter=default --reporter=junit --outputFile=reports/junit.xml
         env:
           DATABASE_URL: postgresql://test:test@localhost:5432/project_one_test
         shell: bash

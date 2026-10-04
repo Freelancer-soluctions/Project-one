@@ -16,7 +16,7 @@ rojo significa un defecto y no un artefacto del arnés de test.
       `Tests: Smoke - Server`, `Quality: Server Coverage`). Los 4 fallos son **preexistentes** (ya fallaban en los runs
       `7bba30b5` y `ece67e3c`, anteriores al renombrado de jobs) y son **una sola causa**, no cuatro:
       `TypeError: prisma.events.findUnique is not a function` y `No "findAttendeeById" export is defined on the
-  "./dao.js" mock`.
+"./dao.js" mock`.
 - [x] 0.2 Reproducir en local: `npx vitest run ".unit.test.js"` en verde (16/16), pero con `CI=true` en rojo
       (6 ficheros, 49 tests). La condición `process.env.CI === 'true'` activa `isolate: false`.
 - [x] 0.3 Aislar el mecanismo: con el registro de módulos compartido, el `vi.mock` del PRIMER fichero de test del
@@ -35,6 +35,32 @@ rojo significa un defecto y no un artefacto del arnés de test.
 - [x] 0.V Verificación: server unit **16/16 (161 tests)** con `CI=true`, server integration **4/4**, client unit
       **26/26 (41 tests)**, y `Flaky-reporter: 161 tests, 0 con retry, 0 flaky` (antes `41 con retry`, que era el
       sintoma visible de la reejecución fallida). Coste medido: +3.2s (1.2s → 4.4s) sobre un job de ~2m20s (~2%).
+
+## 0bis. Segundo bloqueante, mismo día — `test-smoke` nunca había podido pasar
+
+Descubierto mientras verificaba el grupo 0. **Es una causa raíz distinta**, aunque el síntoma inicial (exit 1 sin detalle) era el mismo.
+
+- [x] 0bis.1 Diagnosticar `Tests: Smoke - Server` y `Tests: Integration - Server`. Los dos fallaban en los 4 runs
+      previos, incluido `1bc7d3d4` (anterior a toda mi intervención). No era el `isolate: false` del grupo 0.
+- [x] 0bis.2 Hallazgo: `createRequest()` (`tests/smoke/helpers/request.js`) decide entre app in-process y remoto
+      con `if (process.env.BASE_URL)`. Pero **Vite inyecta `process.env.BASE_URL` con el valor de su opción `base`**,
+      cuyo default es `"/"` (`const BASE_URL = resolvedBase` en `vite/dist/node/chunks/config.js`). El guard es
+      por tanto **siempre verdadero**, y `request("/")` es una URL relativa que superagent no resuelve →
+      `ECONNREFUSED` en 14 de 17 smoke tests. Verificado con un probe que imprimía el valor.
+- [x] 0bis.3 Fix: el guard valida que `BASE_URL` sea una URL `http(s)` **absoluta**, no solo truthy. Así `"/"`, `""` y
+      cualquier valor no absoluto caen a la rama in-process, que es la que funciona. Smoke: **4/4 (16 passed, 1
+      skipped)**.
+- [x] 0bis.4 Integration: el mismo `exit 1` local era `Authentication failed` por credenciales de mi Postgres local
+      (`projectOne:123456@...projectoneDB_test`, no `test:test@...project_one_test`). Con las credenciales correctas:
+      **4/4**. En CI el service container crea `test:test`, así que el job de integration debería quedar verde con el
+      fix del reporter — a confirmar en el siguiente run.
+- [x] 0bis.5 Visibilidad: los steps usaban solo `--reporter=junit`, que **silencia la salida de fallos** y deja un
+      `exit code 1` sin diagnóstico. Añadido `--reporter=default` a `test-integration` y `test-smoke`. Costó 4 runs
+      de lectura de logs deducir la causa.
+- [x] 0bis.V Requirement "Remote smoke target requires an absolute http(s) BASE_URL" en `openspec/specs/
+  smoke-testing/`, con los 3 scenarios (Vite default, target remoto real, y diagnosabilidad desde el log).
+- [ ] 0bis.6 **Pendiente de confirmar en CI**: los 2 jobs deben pasar a verde. Es el unico punto del trabajo que no
+      se puede cerrar en local.
 
 ## 1. Ventana de calibración (migrada de 3.1-3.2)
 
