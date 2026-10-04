@@ -20,7 +20,14 @@ export default defineConfig(
       environment: 'jsdom',
       css: true,
       pool: 'forks',
-      ...(process?.env?.CI === 'true' ? { maxWorkers: 1, isolate: false } : {}),
+      // CI corre serializado (`maxWorkers: 1`). `isolate: false` se eliminó a propósito el
+      // 2026-10-03 por el mismo motivo que en `apps/server/vitest.config.js`: con el registro
+      // de módulos compartido el `vi.mock` del primer fichero de test se cachea y pisa al de
+      // los siguientes, haciendo que el resultado dependa del ORDEN de ejecución. Ver el
+      // requirement "Vitest CI runs keep module isolation" de `ci-flaky-retry`. El cliente no
+      // sufría el síntoma (26/26 con y sin), pero mantener la divergencia sería dejar la
+      // trampa armada para el próximo test que mockee un módulo compartido.
+      ...(process?.env?.CI === 'true' ? { maxWorkers: 1 } : {}),
       reporters: ['default', 'hanging-process'],
       coverage: {
         exclude: ['node_modules/', 'tests/', '**/*.config.js'],

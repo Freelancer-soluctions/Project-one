@@ -147,7 +147,7 @@ Política (§23.3 regla 5, línea de análisis 520):
   artifact `flaky-evidence-{client,server}` (retención 30d) y la métrica lo cruza con el JUnit para distinguir
   _verde limpio_ de _verde tras retry_.
 - **Retries acotados, solo CI y visibles:** `e2e/playwright.config.js` `retries: process.env.CI ? 2 : 0` y
-  `apps/server/vitest.config.js` `retry: 2` bajo la condición CI (con `maxWorkers: 1, isolate: false`). Cero retries en
+  `apps/server/vitest.config.js` `retry: 2` bajo la condición CI (con `maxWorkers: 1`). Cero retries en
   `.husky/*` (el tier local no enmascara flakiness).
 - **Restauración = PR humano.** La métrica lista los tests en cuarentena con pass-rate ≥70% como _ready for review_;
   ningún workflow crea, modifica ni borra entradas. Borrar una entrada es siempre un PR humano.
@@ -246,9 +246,12 @@ Razones (§23.3 regla 16, `testing-architecture.md` §7.5):
 Fast · Isolated · Repeatable · Self-validating · Timely. En este repo (`testing-architecture.md` §6):
 
 - Sin estado compartido entre tests; determinismo (reloj, red, DB siempre dobleados o controlados).
-- Server: `pool: 'forks'`, en CI `maxWorkers: 1, isolate: false` (server además `retry: 2`) — nota: `isolate: false` en
-  CI es una **optimización de memoria** que debilita el aislamiento; aceptable solo si no hay estado entre archivos, y
-  es la causa típica de order-dependence.
+- Server: `pool: 'forks'`, en CI `maxWorkers: 1` (server además `retry: 2`). **`isolate: false` se eliminó el
+  2026-10-03**: es una optimización de memoria que debilita el aislamiento y es la causa típica de
+  order-dependence (§7.5). Aquí se manifestó de forma concreta — con el registro de módulos compartido, el
+  `vi.mock` del primer fichero de test se cacheaba y pisaba al de los demás, y como cada fichero declaraba solo
+  un subconjunto de exports (4, 7, 8, 8 y 11 frente a los 12 reales de `attendee/dao.js`), el rojo dependía del
+  ORDEN de ejecución. Coste de quitarlo: +3.2s en una suite de ~4s (~2% del job de 2m20s).
 - Reporter `hanging-process` para diagnosticar handles abiertos (cross-platform §18.3).
 - Timeouts explícitos (D11): 30s/15s/5s — un test que necesite >30s es candidato a integration/smoke, no a unit.
 
@@ -277,7 +280,8 @@ cuando el contrato importa (`toHaveBeenCalledTimes(1)`). Tabla mental: Dummy/Stu
    config) → pasa por la razón equivocada. Regla: si el test depende de un side effect, mockear la operación
    lenta/externa de abajo, no el método de alto nivel.
 4. **Métodos solo-para-test en producción** (`destroyForTests()` etc.) → utilidades de test en su lugar.
-5. **Tests dependientes entre sí** (orden, estado compartido) — agravado por `isolate: false`.
+5. **Tests dependientes entre sí** (orden, estado compartido) — aggravado por cualquier cosa que comparta registro
+   de módulos; `isolate: false` en CI lo agravó de forma real aquí (ver §6).
 6. **Fetch manual cuando hay MSW**; mezclar estrategias de mocking sin control (§9.9).
 7. **Flaky silenciado**: `sleep`/reintentos ciegos, `test.skip` de tests intermitentes — política §23.3 regla 20:
    diagnosticar y corregir con prioridad; **quarantine con restauración humana** (pass-rate <70% → quarantine), nunca

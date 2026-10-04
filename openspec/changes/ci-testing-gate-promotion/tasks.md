@@ -7,6 +7,35 @@ tarea original va en la nota para poder rastrearlo. Ver `design.md` D1-D6.
 Convención: cada grupo cierra con una verificación (`x.V`). Orden: 1 (calibración) → 2 (guard local) → 3 (promoción);
 el grupo 4 es verificacion de corridas reales y se cierra cuando la ventana haya producido datos.
 
+## 0. Bloqueante descubierto 2026-10-03 — contaminación de mocks bajo `isolate: false`
+
+**Este grupo es prerrequisito del grupo 3.** Antes de promover los gates a blocking hay que poder confiar en que un
+rojo significa un defecto y no un artefacto del arnés de test.
+
+- [x] 0.1 Diagnosticar los 4 jobs rojos del PR #138 (`Tests: Unit - Server`, `Tests: Integration - Server`,
+      `Tests: Smoke - Server`, `Quality: Server Coverage`). Los 4 fallos son **preexistentes** (ya fallaban en los runs
+      `7bba30b5` y `ece67e3c`, anteriores al renombrado de jobs) y son **una sola causa**, no cuatro:
+      `TypeError: prisma.events.findUnique is not a function` y `No "findAttendeeById" export is defined on the
+  "./dao.js" mock`.
+- [x] 0.2 Reproducir en local: `npx vitest run ".unit.test.js"` en verde (16/16), pero con `CI=true` en rojo
+      (6 ficheros, 49 tests). La condición `process.env.CI === 'true'` activa `isolate: false`.
+- [x] 0.3 Aislar el mecanismo: con el registro de módulos compartido, el `vi.mock` del PRIMER fichero de test del
+      worker se cachea y pisa al de los siguientes. Cada fichero declaraba solo el subconjunto de exports que
+      exercise — 4, 7, 8, 8 y 11 frente a los **12** reales de `attendee/dao.js` —, así que el resultado dependía del
+      ORDEN de ejecución. Probado aislando parejas (`event-rsvp-promote` + `event-rsvp-admin`): juntos fallan,
+      separados pasan.
+- [x] 0.4 Corregir en la raíz: eliminar `isolate: false` de `apps/server/vitest.config.js` y de
+      `apps/client/vitest.config.js`. El cliente no sufría el síntoma (26/26 con y sin) pero arrastraba la misma
+      trampa, y mantener la divergencia dejaría la spec mintiendo.
+- [x] 0.5 Lockstep documental: requirement nuevo "Vitest CI runs keep module isolation" en
+      `openspec/specs/ci-flaky-retry/spec.md` (con el coste medido), y `docs/learning/unit-tests-enterprise.md` §6 y
+      §7.5, que ya describían `isolate: false` como _"causa típica de order-dependence"_ — el diagnóstico estaba
+      escrito, solo no aplicado. `openspec/changes/ci-testcontainers/` cita la config en 3 sitios; su tarea 4.2
+      (verificar compatibilidad con Testcontainers) sigue abierta y es donde corresponde re-verificar.
+- [x] 0.V Verificación: server unit **16/16 (161 tests)** con `CI=true`, server integration **4/4**, client unit
+      **26/26 (41 tests)**, y `Flaky-reporter: 161 tests, 0 con retry, 0 flaky` (antes `41 con retry`, que era el
+      sintoma visible de la reejecución fallida). Coste medido: +3.2s (1.2s → 4.4s) sobre un job de ~2m20s (~2%).
+
 ## 1. Ventana de calibración (migrada de 3.1-3.2)
 
 - [ ] 1.1 Ventana de calibración de 2-4 semanas sobre `ci.yml` real. En CADA corrida, triar el fallo explícitamente
@@ -46,7 +75,9 @@ el grupo 4 es verificacion de corridas reales y se cierra cuando la ventana haya
 
 - [ ] 3.1 Quitar `continue-on-error: true` de los **6** jobs en un único PR (design.md D2: nunca a medias, porque
       el `needs` del agregador es transitivo). Jobs: `test-unit-client`, `test-unit-server`, `test-integration`,
-      `test-smoke`, `client-coverage`, `server-coverage`.
+      `test-smoke`, `client-coverage`, `server-coverage`. **Prerrequisito: grupo 0 cerrado** — antes de esto,
+      `test-unit-server` fallaba en rojo por contaminación de mocks, no por defectos del código, y promover un gate
+      cuyo rojo no significa nada bloquearía todos los PRs del equipo.
 - [ ] 3.2 Lockstep documental en el MISMO PR (requirement del delta `ci-test-jobs-activation`): §2 y §4.2 de
       `docs/learning/quality-gates.md` pasan advisory → blocking, sin filas `if: false` obsoletas; `docs/CONTEXT-CICD.md`
       §3.3 (tabla de jobs habilitados) y §10.6 (nota del hueco 8.8, ya cerrado por el grupo 2).
