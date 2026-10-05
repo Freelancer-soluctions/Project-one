@@ -40,6 +40,7 @@ export default defineConfig(
       setupFiles: ['./tests/setupTest.js'],
       include: [
         'src/**/*.unit.test.js',
+        'tests/**/*.unit.test.js',
         'tests/integration/**/*.integration.test.js',
       ],
       testTimeout: 30000,
