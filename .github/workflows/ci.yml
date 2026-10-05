@@ -1689,18 +1689,8 @@ jobs:
           DATABASE_URL: postgresql://test:test@localhost:5432/project_one_test
         shell: bash
         working-directory: apps/server
-      - name: Seed Database
-        # Seeds users (id=1, id=2), roles, eventTypes, events and other
-        # reference data required by integration tests that rely on FK
-        # constraints (e.g. events.createdBy → users.id).
-        # Without this step the DB is empty after migrate deploy and
-        # upsert(create:{ createdBy: 1, eventTypeId: 1 }) throws FK violation.
-        run: npx prisma db seed
-        env:
-          DATABASE_URL: postgresql://test:test@localhost:5432/project_one_test
-          NODE_ENV: test
-        shell: bash
-        working-directory: apps/server
+      # Seeding is handled by vitest globalSetup (tests/setupGlobal.js)
+      # which loads .env.test and spawns prisma/seed.js before tests run.
       - name: Run Integration Tests
         # `--reporter=default` explicito: sin el, el unico reporter activo es `junit`, que SILENCIA
         # la salida de fallos y deja solo un `exit code 1` sin diagnostico en el log del step
@@ -1751,18 +1741,8 @@ jobs:
           DATABASE_URL: postgresql://test:test@localhost:5432/project_one_test
         shell: bash
         working-directory: apps/server
-      - name: Seed Database
-        # Seeds users (id=1, id=2), roles, eventTypes, events and other
-        # reference data required by smoke tests that rely on FK constraints
-        # (e.g. events.createdBy → users.id). Without this step the DB is
-        # empty after migrate deploy and upsert(create:{ createdBy: 1 })
-        # throws FK violation.
-        run: npx prisma db seed
-        env:
-          DATABASE_URL: postgresql://test:test@localhost:5432/project_one_test
-          NODE_ENV: test
-        shell: bash
-        working-directory: apps/server
+      # Seeding is handled by vitest globalSetup (tests/setupGlobal.js)
+      # which loads .env.test and spawns prisma/seed.js before tests run.
       - name: Run Smoke Tests
         # `--reporter=default` explicito: sin el, el unico reporter activo es `junit`, que SILENCIA
         # la salida de fallos y deja solo un `exit code 1` sin diagnostico en el log del step
