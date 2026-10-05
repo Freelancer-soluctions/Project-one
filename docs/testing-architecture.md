@@ -67,6 +67,65 @@ Validar lógica de negocio, servicios y funciones puras.
 **Objetivo:**
 Validar endpoints HTTP, controladores y flujo entre capas del backend (Server).
 
+#### Estrategia de Seeded Test Data (Database Seeding)
+
+Integration and smoke tests require a PostgreSQL test database populated with
+two essential kinds of seed data:
+
+1. **Reference data** — roles (C01/C02/C03), eventTypes (Session, Conference,
+   Workshop), permissions, noteColumns, userStatus, newsStatus, productStatus
+2. **Core entities** — users (admin id=1, user2 id=2) needed as FK targets
+
+Without this data, integration tests like `events-soft-delete` throw foreign-key
+constraint violations when they upsert events referencing `createdBy: 1`
+(users.id=1) and `eventTypeId: 1` (eventTypes.id=1).
+
+**Seeding strategy (defense-in-depth, two layers):**
+
+| Layer                         | Config                 | When                                    |
+| ----------------------------- | ---------------------- | --------------------------------------- |
+| **globalSetup**               | `tests/setupGlobal.js` | Before any test file loads (local + CI) |
+| **CI step** (legacy fallback) | `npx prisma db seed`   | Removed — globalSetup handles it        |
+
+`tests/setupGlobal.js` is a Vitest `globalSetup` that:
+
+- Loads `.env.test` via `dotenv.config` to provide `DATABASE_URL`,
+  `AES_GCM_KEY`, and `NODE_ENV=test` to the child seed process
+- Spawns `node prisma/seed.js` with `NODE_ENV=test` and `stdio: 'inherit'`
+- Guards against missing `DATABASE_URL` (skips seeding with a warning)
+- Warns on non-zero seed exit code (does not hard-fail the test run)
+
+The seed script (`prisma/seed.js`) is **idempotent** — it uses `upsert` for
+users/roles and `createMany({ skipDuplicates: true })` for bulk inserts, plus
+an `if (count() === 0)` guard before seeding events. This makes double-seeding
+safe (e.g., if both globalSetup and a CI step run).
+
+**Vitest config wiring:**
+
+```js
+// apps/server/vitest.config.js (integration + unit)
+test: {
+  globalSetup: [seedDb],
+  setupFiles: ['./tests/setupTest.js'],
+  include: [
+    'src/**/*.unit.test.js',
+    'tests/**/*.unit.test.js',
+    'tests/integration/**/*.integration.test.js',
+  ],
+}
+
+// apps/server/vitest.smoke.config.js (smoke)
+test: {
+  globalSetup: [seedDb],
+  setupFiles: ['./tests/setupTest.js'],
+  include: ['tests/smoke/**/*.smoke.test.js'],
+}
+```
+
+> **Note:** `globalSetup` runs **before** `setupFiles`. The `setupGlobal.js`
+> must load `.env.test` itself because `setupTest.js` (the setup file) runs after
+> the global setup has already completed.
+
 ---
 
 ### 4.3 End-to-End Testing (E2E)
@@ -455,14 +514,20 @@ La estrategia "move-when-touched" sigue siendo válida para **futuros cambios**:
 ```js
 // apps/server/vitest.config.js
 test: {
+  globalSetup: [seedDb],
   include: [
     'src/**/*.unit.test.js', // Unit tests colocados en src/
+    'tests/**/*.unit.test.js', // Unit tests for infra (setup, etc.)
     'tests/integration/**/*.integration.test.js', // Integration centralizados por módulo
   ];
 }
 ```
 
 Esto permite coexistencia sin fricción durante la migración incremental.
+
+> **globalSetup** (`tests/setupGlobal.js`) is wired in all server configs
+> (unit+integration and smoke) to seed the test database before any
+> test file loads. See §4.2 for the full seeding strategy.
 
 ### 8.6 REFERENCIAS
 
@@ -752,6 +817,8 @@ npm run test:smoke:ci
 
 **Configuración Vitest** (`apps/server/vitest.smoke.config.js`):
 
+- `globalSetup: [seedDb]` — seeds DB before tests (see §4.2)
+- `setupFiles: ['./tests/setupTest.js']` — loads `.env.test` before `db.js` import
 - `testTimeout: 15000` (timeout estricto para feedback rápido)
 - `pool: 'forks'` con `singleFork: true` (evita fork overhead en CI)
 - `include: ['tests/smoke/**/*.smoke.test.js']` (solo smoke tests)
