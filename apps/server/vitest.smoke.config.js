@@ -2,6 +2,7 @@ import { defineConfig, mergeConfig } from 'vitest/config';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import sharedConfig from '../../vitest.shared.js';
+import seedDb from './tests/setupGlobal.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -11,6 +12,8 @@ export default mergeConfig(
     test: {
       root: __dirname,
       environment: 'node',
+      globalSetup: [seedDb],
+      setupFiles: ['./tests/setupTest.js'],
       include: ['tests/smoke/**/*.smoke.test.js'],
       testTimeout: 15000,
       hookTimeout: 10000,

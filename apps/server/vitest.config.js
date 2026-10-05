@@ -2,6 +2,7 @@ import { defineConfig, mergeConfig } from 'vitest/config';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import sharedConfig from '../../vitest.shared.js';
+import seedDb from './tests/setupGlobal.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -11,6 +12,7 @@ export default defineConfig(
       root: __dirname,
       environment: 'node',
       pool: 'forks',
+      globalSetup: [seedDb],
       // CI corre serializado (`maxWorkers: 1`) y con `retry: 2`.
       //
       // `isolate: false` se elimino a proposito (2026-10-03). Con el registro de modulos
@@ -35,7 +37,7 @@ export default defineConfig(
           lines: 39,
         },
       },
-      setupFiles: './tests/setupTest.js',
+      setupFiles: ['./tests/setupTest.js'],
       include: [
         'src/**/*.unit.test.js',
         'tests/integration/**/*.integration.test.js',

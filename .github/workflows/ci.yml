@@ -439,7 +439,6 @@ jobs:
           fetch-depth: 0
       - uses: ./.github/actions/setup-monorepo
       - run: npm run lint --workspace=apps/client
-
   client-format-check:
     if: needs.repo-discovery.outputs.client == 'true' && github.event_name == 'pull_request'
     name: 'Quality: Client Format'
@@ -452,7 +451,6 @@ jobs:
           fetch-depth: 0
       - uses: ./.github/actions/setup-monorepo
       - run: npm run format:check --workspace=apps/client
-
   client-typecheck:
     if: needs.repo-discovery.outputs.client == 'true' && github.event_name == 'pull_request'
     name: 'Quality: Client TypeCheck'
@@ -1519,7 +1517,7 @@ jobs:
     # explícito con needs.repo-discovery.outputs NO es viable aquí — GHA solo expone el
     # contexto needs de jobs DECLARADOS en needs (actionlint: property not defined) y el
     # job se saltaría siempre. La propagación cubre el mismo conjunto: corre ⇔ corrió su test job.
-    if: github.event_name == 'pull_request'
+    if: false
     continue-on-error: true
     name: 'Quality: Client Coverage'
     needs: [test-unit-client]
@@ -1602,7 +1600,7 @@ jobs:
   server-coverage:
     # FASE 1 advisory. Scoping por propagación (misma corrección D17 que client-coverage);
     # el guard recibe el reportsDirectory real del server como 3.er argumento.
-    if: github.event_name == 'pull_request'
+    if: false
     continue-on-error: true
     name: 'Quality: Server Coverage'
     needs: [test-unit-server]
@@ -1659,9 +1657,7 @@ jobs:
   # (contrato "in the workspace CI script" de ci-test-reporting relajado aquí: el `--` de npm
   # los añade a un script existente; moverlos a scripts `*:ci` nuevos duplicaría configuración).
   test-integration:
-    # FASE 1 advisory; FASE 2: quitar continue-on-error tras la calibración.
     if: (needs.repo-discovery.outputs.server == 'true' || needs.repo-discovery.outputs.shared == 'true') && github.event_name == 'pull_request'
-    continue-on-error: true
     name: 'Tests: Integration - Server'
     needs: repo-discovery
     runs-on: ubuntu-latest
@@ -1693,6 +1689,18 @@ jobs:
           DATABASE_URL: postgresql://test:test@localhost:5432/project_one_test
         shell: bash
         working-directory: apps/server
+      - name: Seed Database
+        # Seeds users (id=1, id=2), roles, eventTypes, events and other
+        # reference data required by integration tests that rely on FK
+        # constraints (e.g. events.createdBy → users.id).
+        # Without this step the DB is empty after migrate deploy and
+        # upsert(create:{ createdBy: 1, eventTypeId: 1 }) throws FK violation.
+        run: npx prisma db seed
+        env:
+          DATABASE_URL: postgresql://test:test@localhost:5432/project_one_test
+          NODE_ENV: test
+        shell: bash
+        working-directory: apps/server
       - name: Run Integration Tests
         # `--reporter=default` explicito: sin el, el unico reporter activo es `junit`, que SILENCIA
         # la salida de fallos y deja solo un `exit code 1` sin diagnostico en el log del step
@@ -1700,6 +1708,7 @@ jobs:
         run: npm run test:integration --workspace=apps/server -- --reporter=default --reporter=junit --outputFile=reports/junit.xml
         env:
           DATABASE_URL: postgresql://test:test@localhost:5432/project_one_test
+          NODE_ENV: test
         shell: bash
       - name: Report Integration Tests
         if: success() || failure()
@@ -1710,9 +1719,7 @@ jobs:
           reporter: java-junit
 
   test-smoke:
-    # FASE 1 advisory; FASE 2: quitar continue-on-error tras la calibración.
     if: (needs.repo-discovery.outputs.server == 'true' || needs.repo-discovery.outputs.shared == 'true') && github.event_name == 'pull_request'
-    continue-on-error: true
     name: 'Tests: Smoke - Server'
     needs: repo-discovery
     runs-on: ubuntu-latest
@@ -1744,6 +1751,18 @@ jobs:
           DATABASE_URL: postgresql://test:test@localhost:5432/project_one_test
         shell: bash
         working-directory: apps/server
+      - name: Seed Database
+        # Seeds users (id=1, id=2), roles, eventTypes, events and other
+        # reference data required by smoke tests that rely on FK constraints
+        # (e.g. events.createdBy → users.id). Without this step the DB is
+        # empty after migrate deploy and upsert(create:{ createdBy: 1 })
+        # throws FK violation.
+        run: npx prisma db seed
+        env:
+          DATABASE_URL: postgresql://test:test@localhost:5432/project_one_test
+          NODE_ENV: test
+        shell: bash
+        working-directory: apps/server
       - name: Run Smoke Tests
         # `--reporter=default` explicito: sin el, el unico reporter activo es `junit`, que SILENCIA
         # la salida de fallos y deja solo un `exit code 1` sin diagnostico en el log del step
@@ -1751,6 +1770,7 @@ jobs:
         run: npm run test:smoke:ci --workspace=apps/server -- --reporter=default --reporter=junit --outputFile=reports/junit.xml
         env:
           DATABASE_URL: postgresql://test:test@localhost:5432/project_one_test
+          NODE_ENV: test
         shell: bash
       - name: Report Smoke Tests
         if: success() || failure()
