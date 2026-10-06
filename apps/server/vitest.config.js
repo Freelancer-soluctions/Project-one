@@ -2,7 +2,6 @@ import { defineConfig, mergeConfig } from 'vitest/config';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import sharedConfig from '../../vitest.shared.js';
-import seedDb from './tests/setupGlobal.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -12,7 +11,15 @@ export default defineConfig(
       root: __dirname,
       environment: 'node',
       pool: 'forks',
-      globalSetup: [seedDb],
+      // RUTA, no import. Vitest 4 resuelve cada entrada de `globalSetup` con
+      // `resolvePath()` → `pathe.normalizeWindowsPath()`, que llama `.replace()`
+      // sobre el valor: pasar la función importada (antes `import seedDb from
+      // './tests/setupGlobal.js'` + `globalSetup: [seedDb]`) lo hacia fallar con
+      // `TypeError: input.replace is not a function` al ARRANCAR el servidor de
+      // Vitest, con o sin `--coverage`. Como `test-unit-server` es FASE 1 advisory
+      // (`continue-on-error: true`), ese fallo quedaba invisible en CI: el job
+      // salía rojo y nadie lo leía, y la suite server no llegaba a correr.
+      globalSetup: ['./tests/setupGlobal.js'],
       // CI corre serializado (`maxWorkers: 1`) y con `retry: 2`.
       //
       // `isolate: false` se elimino a proposito (2026-10-03). Con el registro de modulos
