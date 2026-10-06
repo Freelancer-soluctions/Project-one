@@ -1496,11 +1496,11 @@ jobs:
         with:
           fetch-depth: 0
       - uses: ./.github/actions/setup-monorepo
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           name: client-dist
           path: apps/client/dist/
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           name: coverage-client
           path: apps/client/coverage/
@@ -1531,7 +1531,7 @@ jobs:
         with:
           fetch-depth: 0
       - uses: ./.github/actions/setup-monorepo
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           name: coverage-client
           path: apps/client/coverage/
@@ -1588,7 +1588,7 @@ jobs:
         with:
           fetch-depth: 0
       - uses: ./.github/actions/setup-monorepo
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           name: coverage-server
           path: apps/server/tests/coverage/
@@ -1617,7 +1617,7 @@ jobs:
         with:
           fetch-depth: 0
       - uses: ./.github/actions/setup-monorepo
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           name: coverage-server
           path: apps/server/tests/coverage/
