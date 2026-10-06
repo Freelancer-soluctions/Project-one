@@ -98,6 +98,8 @@ export default mergeConfig(
         'src/**/*.integration.test.{js,jsx}',
       ],
       setupFiles: ['./tests/setup/setupTest.js'],
+      snapshotFormat: { maxOutputLength: 10000 },
+      update: process.env.CI ? 'none' : 'new',
       testTimeout: 30000,
       hookTimeout: 15000,
       teardownTimeout: 5000,
