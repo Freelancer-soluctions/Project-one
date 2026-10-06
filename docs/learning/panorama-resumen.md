@@ -17,17 +17,17 @@
 
 ## 3. TESTING Prebuild (§23.3 L2824-2832) — Corregido por @researcher
 
-### Implementado pero DESACTIVADO en CI (todos `if: false`)
+### Estado real en CI (mixto: FASE 1 advisory ACTIVADO + activos no-advisory + `if: false`)
 
-| Job                          | ci.yml                 | Estado                                                                                 |
-| ---------------------------- | ---------------------- | -------------------------------------------------------------------------------------- |
-| test-unit-client             | L792 (if:false L793)   | declarado, no corre                                                                    |
-| test-unit-server             | L822 (if:false L823)   | declarado, no corre                                                                    |
-| client-coverage              | L1266 (if:false L1267) | thresholds en vitest.config.js:27-32                                                   |
-| server-coverage              | L1324 (if:false L1325) | thresholds en vitest.config.js:20-25                                                   |
-| test-integration             | L1358 (if:false L1359) | declarado                                                                              |
-| test-smoke                   | L1404 (if:false L1405) | declarado                                                                              |
-| prebuild-unit-tests-complete | L1627 agregador        | SUCCESS histórico (docs/ci-prebuild-substage-structure-phase2-verification.md L15/L34) |
+| Job                          | ci.yml                              | Estado                                                                                                                                                                                                                  |
+| ---------------------------- | ----------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| test-unit-client             | L744 (`if:`), COE L748              | ✅ **FASE 1 advisory ACTIVADO** (2026-10-01, change `coverage-tripwire-stage-2d`): `if:` sobre repo-discovery + `continue-on-error: true`; corre en PRs path-scoped. FASE 2: quitar COE tras 2-4 semanas de calibración |
+| test-unit-server             | L843 (`if:`), COE L847              | ✅ **FASE 1 advisory ACTIVADO** (2026-10-01, change `coverage-tripwire-stage-2d`): mismo patrón que client. FASE 2: quitar COE tras 2-4 semanas de calibración                                                          |
+| client-coverage              | L1514 (if: pull_request, COE L1524) | ✅ **FASE 1 advisory activado** — thresholds en vitest.config.js:27-32, check-coverage.mjs                                                                                                                              | L1514 | Activado (2026-10-01, change `coverage-tripwire-stage-2d`): `if: github.event_name == 'pull_request'` + `continue-on-error: true` + `needs: [test-unit-client]` (D17) + D18 tripwire (scope=diff se difiere). FASE 2: quitar COE tras calibración |
+| server-coverage              | L1603 (if: pull_request, COE L1610) | ✅ **FASE 1 advisory activado** — thresholds en vitest.config.js:20-25, check-coverage.mjs                                                                                                                              | L1603 | Activado (2026-10-01, change `coverage-tripwire-stage-2d`): `if: github.event_name == 'pull_request'` + `continue-on-error: true` + `needs: [test-unit-server]` (D17) + D18 tripwire (scope=diff se difiere). FASE 2: quitar COE tras calibración |
+| test-integration             | L1665 (`if:` activo)                | ✅ **Activo, NO advisory**: `if:` sobre repo-discovery, **sin** `continue-on-error` — su fallo propaga a `prebuild-unit-tests-complete` de forma real                                                                   |
+| test-smoke                   | L1717 (`if:` activo)                | ✅ **Activo, NO advisory**: mismo patrón que integration — corre, pero sin COE                                                                                                                                          |
+| prebuild-unit-tests-complete | L1946 agregador                     | ✅ Activo; `needs` = los **6** jobs (2 test-unit + test-integration + test-smoke + 2 coverage). SUCCESS histórico (docs/ci-prebuild-substage-structure-phase2-verification.md L15/L34)                                  |
 
 ### TIA local presente (no en CI)
 
@@ -50,4 +50,4 @@
 
 1. @spec-manager: tasks.md grupos 4-7 typosquatting + validate --strict.
 2. @developer: `/opsx-apply pipeline-config-scan` + typosquatting (FASE 1 advisory).
-3. Actualizar CONTEXT.md con 10 términos TESTING + registrar estado `if:false` en quality-gates.md.
+3. Actualizar CONTEXT.md con 10 términos TESTING + registrar el estado mixto (FASE 1 advisory activado en test-unit-\*/coverage, activos no-advisory en integration/smoke) en quality-gates.md.

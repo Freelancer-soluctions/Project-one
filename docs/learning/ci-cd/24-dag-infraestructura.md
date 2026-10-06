@@ -445,20 +445,36 @@ client-format-check:
   needs: repo-discovery
 ```
 
-**Jobs deshabilitados (verificados L431-993):**
+**Jobs deshabilitados (`if: false`) — refs re-verificados contra `ci.yml` 2026-10-01:**
 
-| Categoría      | Jobs                                                                                             | Líneas             |
-| -------------- | ------------------------------------------------------------------------------------------------ | ------------------ |
-| Client Quality | client-format-check, client-typecheck, client-complexity, client-dead-code, client-import-bounds | L431-502           |
-| Server Quality | server-format-check, server-typecheck, server-complexity, server-dead-code, server-import-bounds | L517-588           |
-| Shared Quality | — (`actionlint` reactivado, ver §1.4)                                                            | L590-601           |
-| Unit Tests     | test-unit-client, test-unit-server                                                               | L603-661           |
-| Build          | client-build, server-build                                                                       | L693-718           |
-| Coverage       | client-coverage, server-coverage                                                                 | L752-769, L810-827 |
-| DepCheck       | client-depcheck, server-depcheck                                                                 | L770-783, L828-841 |
-| Integration    | test-integration                                                                                 | L844-888           |
-| Smoke          | test-smoke                                                                                       | L890-934           |
-| E2E            | e2e                                                                                              | L936-993           |
+> **⚠️ Los números de línea de esta tabla quedaron obsoletos tras la incorporación de la capa advisory de seguridad
+> (cambios `secret-scanning`, `pipeline-config-scan`, `typosquatting-detection`, `containerfile-lint`,
+> `sca-lockfile-compliance`). Las referencias válidas son las de `docs/learning/unit-tests-enterprise.md` §4.1.**
+
+| Categoría      | Jobs                                                                                             | Líneas        |
+| -------------- | ------------------------------------------------------------------------------------------------ | ------------- |
+| Client Quality | client-format-check, client-typecheck, client-complexity, client-dead-code, client-import-bounds | ⚠️ stale      |
+| Server Quality | server-format-check, server-typecheck, server-complexity, server-dead-code, server-import-bounds | ⚠️ stale      |
+| Shared Quality | — (`actionlint` reactivado, ver §1.4)                                                            | ⚠️ stale      |
+| Unit Tests     | ⚠️ **YA NO deshabilitados** — ver tabla siguiente                                                | L744 / L843   |
+| Build          | client-build, server-build                                                                       | ⚠️ stale      |
+| Coverage       | ⚠️ **YA NO deshabilitados** — ver tabla siguiente                                                | L1514 / L1603 |
+| DepCheck       | client-depcheck, server-depcheck                                                                 | ⚠️ stale      |
+| Integration    | test-integration (activo, no advisory — **NO pertenece a esta tabla**)                           | L1665         |
+| Smoke          | test-smoke (activo, no advisory — **NO pertenece a esta tabla**)                                 | L1717         |
+| E2E            | e2e                                                                                              | L1769         |
+
+### Jobs de TESTING re-activados (change `coverage-tripwire-stage-2d`, 2026-10-01)
+
+| Job                          | Líneas (`if:` / COE) | Estado                                                                |
+| ---------------------------- | -------------------- | --------------------------------------------------------------------- |
+| test-unit-client             | L744 / L748          | ✅ FASE 1 advisory ACTIVADO (`continue-on-error: true`)               |
+| test-unit-server             | L843 / L847          | ✅ FASE 1 advisory ACTIVADO (`continue-on-error: true`)               |
+| client-coverage              | L1514 / L1524        | ✅ FASE 1 advisory ACTIVADO (`continue-on-error: true`)               |
+| server-coverage              | L1603 / L1610        | ✅ FASE 1 advisory ACTIVADO (`continue-on-error: true`)               |
+| test-integration             | L1665                | ✅ Activo — `if:` sobre repo-discovery, **sin** COE (bloqueante real) |
+| test-smoke                   | L1717                | ✅ Activo — `if:` sobre repo-discovery, **sin** COE (bloqueante real) |
+| prebuild-unit-tests-complete | L1946                | ✅ Agregador activo; `needs` = los 6 jobs anteriores                  |
 
 > **⚠️ CRÍTICO:** Estos nodos **NO están rotos**. Son diseño incremental de CI_MINIMAL=true (§3.1 de CONTEXT-CICD). Activarlos requiere un change OpenSpec que justifique el costo.
 >

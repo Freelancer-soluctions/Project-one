@@ -560,14 +560,14 @@ ci-complete:
     - server-build # existing
     - client-sonarqube # existing
     - server-sonarqube # existing
-    - client-coverage # existing
-    - server-coverage # existing
+    - client-coverage # existing → ⚠️ DESACTIVADO en 2026-10-01 (change `coverage-tripwire-stage-2d`): re-activado FASE 1 advisory
+    - server-coverage # existing → ⚠️ DESACTIVADO en 2026-10-01 (change `coverage-tripwire-stage-2d`): re-activado FASE 1 advisory
     - client-depcheck # existing
     - server-depcheck # existing
-    - test-unit-client # existing
-    - test-unit-server # existing
-    - test-integration # existing
-    - test-smoke # existing
+    - test-unit-client # existing → ⚠️ DESACTIVADO en 2026-10-01 (change `coverage-tripwire-stage-2d`): re-activado FASE 1 advisory
+    - test-unit-server # existing → ⚠️ DESACTIVADO en 2026-10-01 (change `coverage-tripwire-stage-2d`): re-activado FASE 1 advisory
+    - test-integration # existing → activo (if: sobre repo-discovery), NO advisory
+    - test-smoke # existing → activo (if: sobre repo-discovery), NO advisory
     - e2e # existing
     - verify-signatures # existing
     - zombie-workflow-guard # existing

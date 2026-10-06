@@ -1,6 +1,6 @@
 name: Nightly Full Suite
 
-# Red de seguridad del TIA — change `ci-testing-pipeline-reactivation`, D7
+# Red de seguridad del TIA — change `coverage-tripwire-stage-2d`, D7
 # (spec `ci-test-impact-analysis`, "Scheduled full-suite safety net").
 #
 # POR QUÉ UN WORKFLOW NUEVO y no un bloque `schedule:` en ci.yml (D7):

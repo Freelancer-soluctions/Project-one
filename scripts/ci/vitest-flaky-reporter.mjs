@@ -2,7 +2,7 @@
 /**
  * Custom Vitest reporter — evidencia de retry/flaky por test.
  *
- * POR QUÉ EXISTE (change `ci-testing-pipeline-reactivation`, D8, task 5.3)
+ * POR QUÉ EXISTE (change `coverage-tripwire-stage-2d`, D8, task 5.3)
  * ------------------------------------------------------------------------
  * La métrica semanal de flakiness necesita distinguir tres estados que el
  * pipeline trata de forma distinta:

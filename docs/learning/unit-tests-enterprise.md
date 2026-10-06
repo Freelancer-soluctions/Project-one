@@ -21,11 +21,12 @@ colocados junto al source, integration centralizados por módulo, E2E top-level)
 pre-push ~30s con `vitest --changed origin/main`, CI completo). El pipeline CI (`.github/workflows/ci.yml`) tiene la
 topología TESTING completa de §23.3 STAGE 2 — `test-unit-client`, `test-unit-server`, `test-integration`,
 `test-smoke`, `client-coverage`, `server-coverage`, agregador `prebuild-unit-tests-complete` y merge gate único
-`ci-complete` — pero **todos los jobs de testing están desactivados con `if: false # Disabled for incremental CI`**,
-de modo que el merge gate actual no valida ni un solo test. Faltan por completo: sharding (`--shard` + blob +
-`--merge-reports`), smart ordering explícito (solo el `BaseSequencer` por defecto de Vitest), TIA en CI (0 referencias
-a `test:changed` en `ci.yml`), coverage merge gate de shards, flaky quarantine y snapshots. Property-based testing
-tiene `fast-check` instalado (3.23.2) con 0 usos.
+`ci-complete` — pero los jobs de testing `test-unit-client`, `test-unit-server`, `client-coverage` y `server-coverage` están
+activados en **FASE 1 advisory** (change `coverage-tripwire-stage-2d`); `test-integration` y `test-smoke` están **activos
+pero NO advisory** (`if:` sobre repo-discovery, sin `continue-on-error`) y solo `e2e` permanece `if: false`.
+Faltan por completo: sharding (`--shard` + blob + `--merge-reports`), smart ordering explícito (solo el
+`BaseSequencer` por defecto de Vitest), TIA en CI (0 referencias a `test:changed` en `ci.yml`), coverage merge gate de
+shards, flaky quarantine y snapshots. Property-based testing tiene `fast-check` instalado (3.23.2) con 0 usos.
 
 ---
 
@@ -92,7 +93,7 @@ Política (§23.3 regla 5, línea de análisis 520):
   contraria a la intención de esta doc (§7.5 de `testing-architecture.md`: CI como fallback obligatorio). La
   integración se cubre en el job `test-integration` de `ci.yml`, que sí levanta el service container. Detalle completo
   en `docs/CONTEXT-CICD.md` §10.6.
-- **CI (implementado en P1, change `ci-testing-pipeline-reactivation`):** scripts `test:changed:ci` en ambos
+- **CI (implementado en P1, change `coverage-tripwire-stage-2d`):** scripts `test:changed:ci` en ambos
   workspaces (`vitest run --changed origin/main …` + filtro `.unit.test.js` en server). Los jobs `test-unit-client` /
   `test-unit-server` resuelven el scope en un paso previo: diff-scoped si `origin/main` es resoluble (el checkout ya
   declara `fetch-depth: 0`), **suite completa** si `repo-discovery.outputs.shared == 'true'` (root manifest, lockfile o
@@ -184,24 +185,24 @@ Política (§23.3 regla 5, línea de análisis 520):
 - Diseño §23.6: job `coverage-merge-gate` con `needs: [test-shard-1..3]` → descarga artifacts de cobertura → merge
   (blob/`json-summary` merge) → `check-coverage` contra thresholds absolutos.
 - Estado: gate **por workspace** existe (`scripts/ci/check-coverage.mjs`, usado en `client-coverage`/`server-coverage`,
-  ambos `if: false`); merge de shards **no** (es N/A hasta que haya sharding).
+  ambos en **FASE 1 advisory activado**); merge de shards **no** (es N/A hasta que haya sharding).
 
 ### 2.7 CI jobs — blocking vs advisory (estado real)
 
-| Job / agregador                                                                        | Rol                                                                                                                                             | Estado en `ci.yml`                                                                     |
-| -------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
-| `test-unit-client`                                                                     | Unit tests client **diff-scoped (TIA)** + coverage artifact + `dorny/test-reporter` (junit) + evidencia de flakiness                            | **FASE 1 advisory** — scoping `(client                                                 |
-| `test-unit-server`                                                                     | Unit tests server **diff-scoped (TIA)**, suite unit-scoped + coverage + reporter + evidencia de flakiness                                       | **FASE 1 advisory** — mismo patrón                                                     |
-| `client-coverage` / `server-coverage`                                                  | `node scripts/ci/check-coverage.mjs <ws>` — tripwire (**solo en full suite**, D18)                                                              | **FASE 1 advisory** — `needs` = su test job; difiere el umbral en corridas diff-scoped |
-| `test-integration`                                                                     | Suite integration server + service `postgres:16-alpine` + `prisma migrate deploy` + junit                                                       | **`if: false`** (L1449)                                                                |
-| `test-smoke`                                                                           | `test:smoke:ci` + postgres service                                                                                                              | **`if: false`** (L1495)                                                                |
-| `e2e`                                                                                  | Playwright + cache de browsers + postgres                                                                                                       | **`if: false`** (L1541)                                                                |
-| `prebuild-unit-tests-complete`                                                         | Agregador `needs:` los **6** jobs (4 test + 2 coverage) + `always()` + chequeo `failure`/`cancelled`                                            | **Activo** — propagando los resultados reales de los 6 jobs                            |
-| `nightly-full-suite.yml` (workflow aparte)                                             | Suites completas diarias de ambos workspaces + cobertura advisory + `dorny/test-reporter`                                                       | **Activo** (advisory) — red de seguridad del TIA, sin exclusiones de cuarentena        |
-| `flaky-weekly.yml` (workflow aparte)                                                   | Métrica semanal de pass-rate (14d) desde los artifacts de `ci.yml` + share de cuarentena                                                        | **Activo** (advisory) — nunca edita la lista de cuarentena                             |
-| `ci-complete`                                                                          | Merge gate único (required check del ruleset) — depende de los 4 agregadores + `verify-signatures` + `zombie-workflow-guard` + `repo-discovery` | **Activo** — hoy mergea **sin ejecutar ningún test**                                   |
-| `client-sonarqube` / `server-sonarqube`                                                | Gate autoritativo de cobertura new-code                                                                                                         | `if: false` (sin `SONAR_TOKEN`)                                                        |
-| `docs-validation`, `sast`, `lockfile-audit`, `checkov-iac`, `scancode-license-pr-diff` | **Advisory** (`continue-on-error: true` / fuera de `needs`) — patrón FASE 1 → FASE 2 tras 2-4 semanas de runs limpios                           | Activo (advisory)                                                                      |
+| Job / agregador                                                                        | Rol                                                                                                                                             | Estado en `ci.yml`                                                                                                               |
+| -------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| `test-unit-client`                                                                     | Unit tests client **diff-scoped (TIA)** + coverage artifact + `dorny/test-reporter` (junit) + evidencia de flakiness                            | **FASE 1 advisory activado** (change `coverage-tripwire-stage-2d`) — `if:` en L744, `COE` L748                                   |
+| `test-unit-server`                                                                     | Unit tests server **diff-scoped (TIA)**, suite unit-scoped + coverage + reporter + evidencia de flakiness                                       | **FASE 1 advisory activado** (change `coverage-tripwire-stage-2d`) — mismo patrón, `if:` en L843, `COE` L847                     |
+| `client-coverage` / `server-coverage`                                                  | `node scripts/ci/check-coverage.mjs <ws>` — tripwire (**solo en full suite**, D18)                                                              | **FASE 1 advisory activado** (change `coverage-tripwire-stage-2d`) — `if:` L1514/L1603, `COE` L1524/L1610, `needs` = su test job |
+| `test-integration`                                                                     | Suite integration server + service `postgres:16-alpine` + `prisma migrate deploy` + junit                                                       | **Activo, NO advisory** — `if:` L1665 sobre repo-discovery, **sin** `continue-on-error`; su fallo bloquea de forma real          |
+| `test-smoke`                                                                           | `test:smoke:ci` + postgres service                                                                                                              | **Activo, NO advisory** — `if:` L1717 sobre repo-discovery, **sin** `continue-on-error`                                          |
+| `e2e`                                                                                  | Playwright + cache de browsers + postgres                                                                                                       | **`if: false`** (L1769)                                                                                                          |
+| `prebuild-unit-tests-complete`                                                         | Agregador `needs:` los **6** jobs (2 test-unit + `test-integration` + `test-smoke` + 2 coverage) + `always()` + chequeo `failure`/`cancelled`   | **Activo** — propagando los resultados reales de los 6 jobs; L1946                                                               |
+| `nightly-full-suite.yml` (workflow aparte)                                             | Suites completas diarias de ambos workspaces + cobertura advisory + `dorny/test-reporter`                                                       | **Activo** (advisory) — red de seguridad del TIA, sin exclusiones de cuarentena                                                  |
+| `flaky-weekly.yml` (workflow aparte)                                                   | Métrica semanal de pass-rate (14d) desde los artifacts de `ci.yml` + share de cuarentena                                                        | **Activo** (advisory) — nunca edita la lista de cuarentena                                                                       |
+| `ci-complete`                                                                          | Merge gate único (required check del ruleset) — depende de los 4 agregadores + `verify-signatures` + `zombie-workflow-guard` + `repo-discovery` | **Activo** — hoy mergea **sin ejecutar ningún test**                                                                             |
+| `client-sonarqube` / `server-sonarqube`                                                | Gate autoritativo de cobertura new-code                                                                                                         | `if: false` (sin `SONAR_TOKEN`)                                                                                                  |
+| `docs-validation`, `sast`, `lockfile-audit`, `checkov-iac`, `scancode-license-pr-diff` | **Advisory** (`continue-on-error: true` / fuera de `needs`) — patrón FASE 1 → FASE 2 tras 2-4 semanas de runs limpios                           | Activo (advisory)                                                                                                                |
 
 Patrón del repo para gates: **FASE 1 advisory** (`continue-on-error` a nivel job, `actions/toolkit#581` → el agregador
 ve `success`) → **FASE 2 blocking** (quitar flag + actualizar docs) tras ventana de runs limpios. Aplicar exactamente
@@ -299,27 +300,27 @@ cuando el contrato importa (`toHaveBeenCalledTimes(1)`). Tabla mental: Dummy/Stu
 
 ### 4.1 Implementado (verificado en repo)
 
-| Elemento                                                                                         | Evidencia                                                                 |
-| ------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------- |
-| Config enterprise base (include por sufijo, shared config, timeouts, v8, reporters)              | `vitest.shared.js`, `apps/*/vitest.config.js`                             |
-| Thresholds de cobertura por workspace + guard ejecutable                                         | thresholds en configs; `scripts/ci/check-coverage.mjs`                    |
-| TIA changed-only **local** (pre-push, bloqueante, base `origin/main`)                            | `.husky/pre-push:52,56`                                                   |
-| Scripts `test:changed` por workspace                                                             | `apps/{server,client}/package.json`                                       |
-| Shift-left en 3 capas con presupuestos (<10s / ~30s / ilimitado)                                 | `.husky/pre-commit` (0 tests), `pre-push`, `testing-architecture.md` §7.5 |
-| Topología CI TESTING completa (4 jobs + 2 coverage + agregador + merge gate `ci-complete`)       | `ci.yml` L735-793, L1356-1446, L1717-1765                                 |
-| JUnit + `dorny/test-reporter` + artifacts de cobertura                                           | `ci.yml` test jobs                                                        |
-| Integration con `postgres:16-alpine` service + `prisma migrate deploy`                           | `ci.yml` `test-integration`/`test-smoke`                                  |
-| Organización híbrida completada (161 unit tests colocated)                                       | `testing-architecture.md` §8.4                                            |
-| Estrategia de mocks documentada por capa + anti-patrones                                         | `testing-architecture.md` §9                                              |
-| Targets de cobertura por criticidad (80/60/best-effort)                                          | `testing-architecture.md` §16.1                                           |
-| Diagnóstico cross-platform (`hanging-process`, `pool: forks`, timeouts D11, hooks sin `npx` D12) | `testing-architecture.md` §18                                             |
-| Patrón de gobierno blocking/advisory (FASE 1 → FASE 2)                                           | `ci.yml`, `quality-gates.md`                                              |
+| Elemento                                                                                         | Evidencia                                                                                                                                      |
+| ------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| Config enterprise base (include por sufijo, shared config, timeouts, v8, reporters)              | `vitest.shared.js`, `apps/*/vitest.config.js`                                                                                                  |
+| Thresholds de cobertura por workspace + guard ejecutable                                         | thresholds en configs; `scripts/ci/check-coverage.mjs`                                                                                         |
+| TIA changed-only **local** (pre-push, bloqueante, base `origin/main`)                            | `.husky/pre-push:52,56`                                                                                                                        |
+| Scripts `test:changed` por workspace                                                             | `apps/{server,client}/package.json`                                                                                                            |
+| Shift-left en 3 capas con presupuestos (<10s / ~30s / ilimitado)                                 | `.husky/pre-commit` (0 tests), `pre-push`, `testing-architecture.md` §7.5                                                                      |
+| Topología CI TESTING completa (6 jobs + agregador + merge gate `ci-complete`)                    | `ci.yml` L744 (`if:`), L748 (`COE`), L843 (`if:`), L847 (`COE`), L1514 (`if:`), L1524 (`COE`), L1603 (`if:`), L1610 (`COE`), L1946 (agregador) |
+| JUnit + `dorny/test-reporter` + artifacts de cobertura                                           | `ci.yml` test jobs                                                                                                                             |
+| Integration con `postgres:16-alpine` service + `prisma migrate deploy`                           | `ci.yml` `test-integration`/`test-smoke`                                                                                                       |
+| Organización híbrida completada (161 unit tests colocated)                                       | `testing-architecture.md` §8.4                                                                                                                 |
+| Estrategia de mocks documentada por capa + anti-patrones                                         | `testing-architecture.md` §9                                                                                                                   |
+| Targets de cobertura por criticidad (80/60/best-effort)                                          | `testing-architecture.md` §16.1                                                                                                                |
+| Diagnóstico cross-platform (`hanging-process`, `pool: forks`, timeouts D11, hooks sin `npx` D12) | `testing-architecture.md` §18                                                                                                                  |
+| Patrón de gobierno blocking/advisory (FASE 1 → FASE 2)                                           | `ci.yml`, `quality-gates.md`                                                                                                                   |
 
 ### 4.2 Faltante o desactivado (gap → impacto)
 
 | Gap                                                        | Estado                                         | Impacto                                                                            | Prioridad                           |
 | ---------------------------------------------------------- | ---------------------------------------------- | ---------------------------------------------------------------------------------- | ----------------------------------- |
-| `test-integration`, `test-smoke`, `e2e` en CI              | **`if: false`** — declarados, no corren        | `ci-complete` sigue mergeando sin validar integration/E2E                          | **P1**                              |
+| `e2e` en CI (test-integration/test-smoke ya corren)        | **`if: false`** (L1769) — declarado, no corre  | `ci-complete` sigue mergeando sin validar E2E                                      | **P1**                              |
 | Promoción FASE 2 (blocking) de los 6 jobs de unit/coverage | FASE 1 advisory (`continue-on-error: true`)    | Hoy los fallos no bloquean el merge: ventana de calibración de 2-4 semanas abierta | **P0** (tras calibrar)              |
 | Sharding (`--shard` + blob + `--merge-reports`)            | 0 evidencia                                    | Wall-time alto en cuanto la suite crezca                                           | P2 (activar cuando suite > 5-8 min) |
 | Coverage Merge Gate de shards                              | N/A (sin shards); guard por workspace sí       | Sin sharding no aplica; **obligatorio antes de habilitar sharding**                | P2                                  |
@@ -335,7 +336,7 @@ cuando el contrato importa (`toHaveBeenCalledTimes(1)`). Tabla mental: Dummy/Stu
 
 ## 5. Recomendación (orden de ejecución sugerido)
 
-1. ~~**P0 — Re-activar el pipeline de tests**~~ — **HECHO** (FASE 1 advisory): los 4 test jobs y los 2 coverage jobs
+1. ~~**P0 — Re-activar el pipeline de tests**~~ — **HECHO** (FASE 1 advisory): los 2 test-unit jobs y los 2 coverage jobs
    corren en PR con `continue-on-error: true`; el agregador `prebuild-unit-tests-complete` los sigue incluyendo en
    `needs` (4 → 6). **Pendiente**: ventana de calibración de 2-4 semanas y promoción a FASE 2 (quitar el
    `continue-on-error`) — mientras tanto `ci-complete` refleja el resultado pero no bloquea por fallos de test.
@@ -370,8 +371,10 @@ cuando el contrato importa (`toHaveBeenCalledTimes(1)`). Tabla mental: Dummy/Stu
 - `docs/learning/panorama-resumen.md` — matriz implementado≠activo y faltantes explícitos.
 - `docs/learning/quality-gates.md` — estado blocking/advisory por job y requisitos de activación.
 - `vitest.shared.js`, `apps/server/vitest.config.js`, `apps/client/vitest.config.js`, `scripts/ci/check-coverage.mjs`.
-- `.github/workflows/ci.yml` (test jobs L735-793/L1448-1596, coverage L1356-1446, agregadores L1637-1765).
+- `.github/workflows/ci.yml` (test-unit L744-847, client-coverage L1514-1524, server-coverage L1603-1610,
+  integration L1665, smoke L1717, e2e L1769, agregador L1946).
 - `.husky/pre-push`, `.husky/pre-commit`, `apps/{server,client}/package.json`.
+- `docs/learning/coverage-tripwire-floor-ratchet.md` — doc fully updated reference (CI + tier local + granularidad).
 - `docs/adr/turborepo-evaluation.md` (límites de `--changed` cross-machine), `docs/changelog.md` (migración del hook a
   scoped).
 

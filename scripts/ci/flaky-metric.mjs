@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /* globals process, console */
 /**
- * Métrica semanal de flakiness (change `ci-testing-pipeline-reactivation`, D8,
+ * Métrica semanal de flakiness (change `coverage-tripwire-stage-2d`, D8,
  * spec `ci-flaky-quarantine`, task 5.3).
  *
  * Agrega los artifacts de las corridas de `ci.yml` de la ventana de 14 días

@@ -1517,7 +1517,10 @@ jobs:
     # explícito con needs.repo-discovery.outputs NO es viable aquí — GHA solo expone el
     # contexto needs de jobs DECLARADOS en needs (actionlint: property not defined) y el
     # job se saltaría siempre. La propagación cubre el mismo conjunto: corre ⇔ corrió su test job.
-    if: false
+    # ACTIVADO (change `coverage-tripwire-stage-2d`): retirado `if: false`.
+    # O job corre ⇔ test-unit-client correu (propagación de skip). FASE 1 advisory
+    # (`continue-on-error: true`): reporta sen bloquear. FASE 2: retirar `continue-on-error`.
+    if: github.event_name == 'pull_request'
     continue-on-error: true
     name: 'Quality: Client Coverage'
     needs: [test-unit-client]
@@ -1600,7 +1603,10 @@ jobs:
   server-coverage:
     # FASE 1 advisory. Scoping por propagación (misma corrección D17 que client-coverage);
     # el guard recibe el reportsDirectory real del server como 3.er argumento.
-    if: false
+    # ACTIVADO (change `coverage-tripwire-stage-2d`): retirado `if: false`.
+    # O job corre ⇔ test-unit-server correu (propagación de skip). FASE 1 advisory
+    # (`continue-on-error: true`): reporta sen bloquear. FASE 2: retirar `continue-on-error`.
+    if: github.event_name == 'pull_request'
     continue-on-error: true
     name: 'Quality: Server Coverage'
     needs: [test-unit-server]

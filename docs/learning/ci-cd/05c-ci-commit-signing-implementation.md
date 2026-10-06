@@ -191,10 +191,14 @@ Jobs protegidos:
 
 - `actionlint` (L412)
 - `client-sonarqube` (L456)
-- `client-coverage` (L484)
 - `server-sonarqube` (L518)
-- `server-coverage` (L543)
 - `ci-complete` (L579)
+
+> **⚠️ Update 2026-10-01 (change `coverage-tripwire-stage-2d`):** `client-coverage` y `server-coverage` **ya NO están
+> protegidos por `CI_MINIMAL`** — se re-activaron como **FASE 1 advisory** (`if: pull_request` +
+> `continue-on-error: true`, `ci.yml` L1514/L1524 y L1603/L1610). Los refs L484/L543 de este doc corresponden a la
+> topología previa a la capa advisory de seguridad y quedan obsoletos; usar los refs vigentes de
+> `docs/learning/unit-tests-enterprise.md` §4.1.
 
 ### Cómo activar
 

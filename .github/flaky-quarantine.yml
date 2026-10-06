@@ -1,4 +1,4 @@
-# Flaky quarantine list — CI test jobs (change `ci-testing-pipeline-reactivation`, D9)
+# Flaky quarantine list — CI test jobs (change `coverage-tripwire-stage-2d`, D9)
 #
 # ÚNICA fuente de exclusión de tests intermitentes en los runs bloqueantes de PR.
 # Los jobs de test derivan el conjunto excluido parseando ESTE fichero vía

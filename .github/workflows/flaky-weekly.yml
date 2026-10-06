@@ -1,6 +1,6 @@
 name: Weekly Flaky Metric
 
-# Métrica semanal de flakiness — change `ci-testing-pipeline-reactivation`, D8
+# Métrica semanal de flakiness — change `coverage-tripwire-stage-2d`, D8
 # (spec `ci-flaky-quarantine`, requirement "Weekly flaky metric with quarantine
 # threshold").
 #
