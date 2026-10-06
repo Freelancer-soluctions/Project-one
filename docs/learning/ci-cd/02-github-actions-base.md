@@ -1,5 +1,10 @@
 # GitHub Actions Base — Anatomía, Triggers, Runners, Expresiones y Outputs
 
+> ⚠️ **NOTA DE ACTUALIZACIÓN (2026-10-03):** los extractos YAML de esta guía son material **didáctico genérico** y
+> arrastran nombres de un `ci.yml` anterior (p. ej. `Unit Tests - Client`; hoy `Tests: Unit - Client` — ver
+> `docs/CONTEXT-CICD.md` §3.3.1). Se conservan sin editar a propósito: el objetivo de la guía son los conceptos
+> (`runs-on`, `needs`, `if`, permisos, matriz), no la nomenclatura vigente.
+
 > **Guía 02 de 5 del nivel Fundamentos** | Prerequisitos: [`00-que-es-cicd.md`](00-que-es-cicd.md) + [`01-git-y-yaml.md`](01-git-y-yaml.md) completadas | Siguiente: [`03-secrets-variables.md`](03-secrets-variables.md)
 
 ---

@@ -8,7 +8,7 @@ Provides SAST (Static Application Security Testing) as a CI governance gate usin
 
 ### Requirement: SAST job runs on every pull request
 
-The system SHALL execute a Semgrep SAST scan as a job named `SAST (Semgrep)` in `.github/workflows/ci.yml` on every `pull_request` event targeting `main`.
+The system SHALL execute a Semgrep SAST scan as a job named `Governance: SAST (Semgrep)` in `.github/workflows/ci.yml` on every `pull_request` event targeting `main`. The `Governance:` prefix identifies the job's substage (SUBSTAGE 2A GOVERNANCE) in the Checks list; it is part of the name the ruleset would bind in F2.
 
 #### Scenario: PR triggers SAST scan
 
@@ -91,7 +91,7 @@ The scan SHALL exclude files via inline `--exclude` flags: `node_modules`, `dist
 The job SHALL be deployed in two phases:
 
 - **F1**: `continue-on-error: true` (non-blocking) — allows tuning false positives without blocking merges.
-- **F2**: Remove `continue-on-error` and add "SAST (Semgrep)" as required status check in ruleset 21227644.
+- **F2**: Remove `continue-on-error` and add "Governance: SAST (Semgrep)" as required status check in ruleset 21227644.
 
 #### Scenario: F1 mode — finding does not block merge
 
@@ -102,7 +102,7 @@ The job SHALL be deployed in two phases:
 #### Scenario: F2 mode — finding blocks merge
 
 - **WHEN** the job has `continue-on-error` removed (F2)
-- **AND** "SAST (Semgrep)" is a required check in ruleset 21227644
+- **AND** "Governance: SAST (Semgrep)" is a required check in ruleset 21227644
 - **AND** the scan finds an ERROR severity issue
 - **THEN** the PR merge is blocked until the finding is resolved
 

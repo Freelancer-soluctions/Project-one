@@ -48,10 +48,21 @@ if [ -n "$DCO_FAILED" ]; then
 fi
 echo "✅ DCO re-check passed (all pushed commits signed off)."
 
+# Scoped tests — MISMO contrato de selección que los jobs de CI
+# (`test-unit-client` / `test-unit-server`), a través de los scripts npm.
+#
+# Por qué el server va unit-scoped (`.unit.test.js`): los tests de integración
+# necesitan PostgreSQL, y exigirlos aquí hacía que el gate local fuera MÁS
+# estricto que el de CI — sin DB en la máquina no se podía pushear, mientras
+# que en CI esos tests ni se ejecutan. La integración se cubre en el job
+# `test-integration` de `ci.yml`, que sí levanta el service container.
+#
+# No añadir `--config` ni flags de reporter aquí: la definición vive en los
+# scripts de cada workspace para que local y CI no puedan divergir.
 echo "Running scoped tests (server)..."
-vitest run --changed origin/main --config apps/server/vitest.config.js || { echo "❌ Server scoped tests failed."; exit 1; }
+npm run test:changed --workspace=apps/server || { echo "❌ Server scoped tests failed."; exit 1; }
 echo "✅ Server scoped tests passed."
 
 echo "Running scoped tests (client)..."
-vitest run --changed origin/main --config apps/client/vitest.config.js || { echo "❌ Client scoped tests failed."; exit 1; }
+npm run test:changed --workspace=apps/client || { echo "❌ Client scoped tests failed."; exit 1; }
 echo "✅ Client scoped tests passed."

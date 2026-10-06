@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Measures and documents current test coverage baselines for both workspaces so the coverage thresholds configured in the ci-test-integration change are realistic and data-driven.
+Measures and documents current test coverage baselines for both workspaces so the coverage thresholds configured by the `ci-testing-pipeline-reactivation` change (successor of the absorbed `ci-test-integration`) are realistic and data-driven.
 
 ## Requirements
 
@@ -28,14 +28,14 @@ The measured baselines SHALL be recorded in `docs/cicd-plan-implementacion.md` s
 
 - **WHEN** coverage metrics are captured
 - **THEN** a "Coverage Baselines (Jul 2026)" section is added to `docs/cicd-plan-implementacion.md` as §14.5 (after §14, before §15)
-- **AND** it includes client and server coverage metrics, the measurement date, and a note that thresholds are configured in the `ci-test-integration` change
+- **AND** it includes client and server coverage metrics, the measurement date, and a note that thresholds are configured by the `ci-testing-pipeline-reactivation` change
 
-### Requirement: Dependency ordering with ci-test-integration
+### Requirement: Dependency ordering with the testing pipeline change
 
-This change SHALL be completed before `ci-test-integration` because the documented baselines feed its coverage thresholds.
+This change SHALL be completed before the coverage-threshold work of `ci-testing-pipeline-reactivation` (successor of the absorbed `ci-test-integration`) because the documented baselines feed its coverage thresholds.
 
 #### Scenario: Baselines feed thresholds
 
-- **WHEN** the `ci-test-integration` change configures `coverage.thresholds`
+- **WHEN** the `ci-testing-pipeline-reactivation` change configures `coverage.thresholds`
 - **THEN** the thresholds are set at or slightly below the baselines documented here
-- **AND** the dependency annotation (ci-quality-gates → ci-test-integration) is present in both changes
+- **AND** the dependency annotation (ci-quality-gates → ci-testing-pipeline-reactivation) is present in both changes

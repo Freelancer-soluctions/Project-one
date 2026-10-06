@@ -191,10 +191,14 @@ Jobs protegidos:
 
 - `actionlint` (L412)
 - `client-sonarqube` (L456)
-- `client-coverage` (L484)
 - `server-sonarqube` (L518)
-- `server-coverage` (L543)
 - `ci-complete` (L579)
+
+> **⚠️ Update 2026-10-01 (change `coverage-tripwire-stage-2d`):** `client-coverage` y `server-coverage` **ya NO están
+> protegidos por `CI_MINIMAL`** — se re-activaron como **FASE 1 advisory** (`if: pull_request` +
+> `continue-on-error: true`, `ci.yml` L1514/L1524 y L1603/L1610). Los refs L484/L543 de este doc corresponden a la
+> topología previa a la capa advisory de seguridad y quedan obsoletos; usar los refs vigentes de
+> `docs/learning/unit-tests-enterprise.md` §4.1.
 
 ### Cómo activar
 
@@ -546,11 +550,11 @@ Bypass temporal (**Repository admin**) del ruleset + **squash-merge del PR #99**
 
 ### 📍 Estado final
 
-| Elemento         | Estado                                         |
-| ---------------- | ---------------------------------------------- |
-| `main`           | Limpio — solo entran commits firmados          |
-| Feature branches | Muertas (historia huérfana, no mergeables)     |
-| Pendiente        | Restaurar `ROLLOUT_DATE` si se desea endurecer |
+| Elemento         | Estado                                                                         |
+| ---------------- | ------------------------------------------------------------------------------ |
+| `main`           | Limpio — solo entran commits firmados                                          |
+| Feature branches | Muertas (historia huérfana, no mergeables)                                     |
+| Pendiente        | Endurecer = definir `vars.SIGNING_ROLLOUT_DATE` (fallback inline `2026-08-01`) |
 
 ---
 
@@ -581,7 +585,7 @@ Bypass temporal (**Repository admin**) del ruleset + **squash-merge del PR #99**
 
 Tras el merge del PR #100, se ejecutó una limpieza adicional vía **PR #101 (`chore/ci-cleanup`)** para habilitar CI incremental durante desarrollo activo:
 
-1. **Restauración de `ROLLOUT_DATE=2026-08-01`** en `verify-signatures` (el cutover one-time del PR #99 cumplió su propósito; main limpio desde entonces).
+1. **Restauración de `ROLLOUT_DATE=2026-08-01`** en `verify-signatures` (el cutover one-time del PR #99 cumplió su propósito; main limpio desde entonces). _(2026-09-30: el literal fue luego externalizado a la repo variable `vars.SIGNING_ROLLOUT_DATE` con fallback inline — change `ci-governance-quality-hygiene`.)_
 2. **Eliminación de actions huérfanas** en `repo-discovery`:
    - `actions/create-github-app-token@v1` — token no consumido.
    - `peter-evans/git-commit-signer@v4` — action inexistente (404) que rompía Set up Job.

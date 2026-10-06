@@ -1,19 +1,23 @@
 # Política de Licencias (License Policy) — Fuente Canónica
 
 > **Change `license-compliance` (2026-09-25).** Este documento es la **fuente única de verdad**
-> de la política de licencias de `project-one`. La deny-list de `ci.yml` (gate PR), la constante
+> de la política de licencias de `project-one`. La deny-list ejecutable (`.github/license-policy.yml`, gate PR), la constante
 > `LICENSE_DENY_LIST` de `scripts/security/generate-security-digest.mjs` (digest semanal) y la
 > evaluación del audit de ScanCode apuntan a la misma lista. Si alguna fuente diverge, **manda la
-> config de `ci.yml`** (es el gate bloqueante); corregir las demás en el mismo PR.
+> de config ejecutable** (es la que consumen ambos gates); corregir las demás en el mismo PR.
 
 ---
 
 ## 1. Deny-list efectiva (gate PR)
 
-Configurada en `.github/workflows/ci.yml` job `dependency-review`:
+Configurada en `.github/license-policy.yml` (única fuente ejecutable; consumida por `dependency-review` vía `config-file` y por `scancode-license-pr-diff` vía lectura directa):
 
 ```yaml
-deny-licenses: GPL-3.0, AGPL-3.0, SSPL-1.0, CC-BY-NC-4.0
+deny-licenses:
+  - GPL-3.0
+  - AGPL-3.0
+  - SSPL-1.0
+  - CC-BY-NC-4.0
 ```
 
 | Licencia       | Por qué está denegada                                                              |
