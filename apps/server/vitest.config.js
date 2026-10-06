@@ -5,8 +5,15 @@ import sharedConfig from '../../vitest.shared.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-export default defineConfig(
-  mergeConfig(sharedConfig, {
+// ORDEN IMPORTANTE: `mergeConfig(shared, defineConfig({...}))`, NO
+// `defineConfig(mergeConfig(...))`. El `autoUpdate` de thresholds de Vitest reescribe
+// el config con magicast y solo reconoce tres formas: `export default {test:{}}`,
+// `defineConfig({...})` y `mergeConfig(..., defineConfig({...}))`. Con la forma
+// invertida lanza "Failed to update coverage thresholds. Configuration file is too
+// complex.", que es lo que rompía `npm run coverage:ratchet`.
+export default mergeConfig(
+  sharedConfig,
+  defineConfig({
     test: {
       root: __dirname,
       environment: 'node',
@@ -38,10 +45,56 @@ export default defineConfig(
       coverage: {
         reportsDirectory: './tests/coverage',
         thresholds: {
-          statements: 39,
-          branches: 18,
-          functions: 7,
-          lines: 39,
+          // PISO GLOBAL — describe el conjunto del workspace (144 ficheros). Lo fija
+          // `npm run coverage:ratchet` a la cobertura medida; solo sube, nunca baja.
+          // Es un piso bajo en términos absolutos (functions ~9%) porque la mayor
+          // parte del código son DAO/servicios sin tests unitarios; la granularidad
+          // de abajo es lo que evita que ese número oculte las áreas buenas.
+          statements: 42.28,
+          branches: 21.75,
+          functions: 8.98,
+          lines: 42.76,
+
+          // GRANULARIDAD ALTA — el piso global se queda donde esté y las áreas ya
+          // sólidas se blindan aparte, para que el total siga siendo comparable.
+          // `perFile: true` = CADA fichero casado debe llegar al umbral.
+          // Estos valores los sube `npm run coverage:ratchet` a la cobertura medida
+          // de cada área (no subirlos a mano sin añadir antes los tests).
+          'src/modules/**/schemas/**': {
+            statements: 100,
+            branches: 100,
+            functions: 100,
+            lines: 100,
+            perFile: true,
+          },
+          'src/utils/constants/**': {
+            statements: 100,
+            branches: 100,
+            functions: 100,
+            lines: 100,
+            perFile: true,
+          },
+          'src/utils/multer/**': {
+            statements: 100,
+            branches: 100,
+            functions: 100,
+            lines: 100,
+            perFile: true,
+          },
+          'src/utils/pagination/**': {
+            statements: 100,
+            branches: 100,
+            functions: 100,
+            lines: 100,
+            perFile: true,
+          },
+          'src/modules/security/**': {
+            statements: 100,
+            branches: 100,
+            functions: 100,
+            lines: 100,
+            perFile: true,
+          },
         },
       },
       setupFiles: ['./tests/setupTest.js'],
