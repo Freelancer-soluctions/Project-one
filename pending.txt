@@ -185,3 +185,4 @@ O alternativamente, muchos equipos usan TIA como un job adicional y rápido que 
 - todos lo jobs deben de contener comentario explicando que hacen 
 - job openspec-validate ver si no lo ahorramos en quality y lo aplicamos a shifting left ya que es especifico de openspec una herramienta externa
 - ver si github tiene un scanner de secretos nativo
+- cherry pick
