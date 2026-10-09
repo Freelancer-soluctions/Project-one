@@ -26,7 +26,7 @@ activados en **FASE 1 advisory** (change `coverage-tripwire-stage-2d`); `test-in
 pero NO advisory** (`if:` sobre repo-discovery, sin `continue-on-error`) y solo `e2e` permanece `if: false`.
 Faltan por completo: sharding (`--shard` + blob + `--merge-reports`), smart ordering explícito (solo el
 `BaseSequencer` por defecto de Vitest), TIA en CI (0 referencias a `test:changed` en `ci.yml`), coverage merge gate de
-shards, flaky quarantine y snapshots. Property-based testing tiene `fast-check` instalado (3.23.2) con 0 usos.
+shards y flaky quarantine. Snapshots: ya cubiertos — 335 (77 inline + 258 `.snap`) en 83 ficheros `*.ui.test.jsx`, change `client-snapshot-testing` (§4). Property-based testing tiene `fast-check` instalado (3.23.2) con 0 usos.
 
 ---
 
@@ -291,7 +291,7 @@ cuando el contrato importa (`toHaveBeenCalledTimes(1)`). Tabla mental: Dummy/Stu
 9. **Mega-setups de 50 líneas** → builders/fixtures reutilizables (`tests/mocks/fixtures/`).
 10. **Cobertura como meta** — tests triviales que solo suben el %; usar la matriz por criticidad (§16.1) y `perFile`
     para código crítico.
-11. **Snapshots de UI como gate** — 0 snapshots en el repo hoy; si se usan, revisarlos siempre en PR (los snapshots
+11. **Snapshots de UI como gate** — 335 snapshots en el repo (77 inline + 258 en `.snap`, 83 ficheros `*.ui.test.jsx`); si se usan, revisarlos siempre en PR (los snapshots
     grandes/autogenerados ocultan regresiones).
 
 ---
@@ -318,19 +318,19 @@ cuando el contrato importa (`toHaveBeenCalledTimes(1)`). Tabla mental: Dummy/Stu
 
 ### 4.2 Faltante o desactivado (gap → impacto)
 
-| Gap                                                        | Estado                                         | Impacto                                                                            | Prioridad                           |
-| ---------------------------------------------------------- | ---------------------------------------------- | ---------------------------------------------------------------------------------- | ----------------------------------- |
-| `e2e` en CI (test-integration/test-smoke ya corren)        | **`if: false`** (L1769) — declarado, no corre  | `ci-complete` sigue mergeando sin validar E2E                                      | **P1**                              |
-| Promoción FASE 2 (blocking) de los 6 jobs de unit/coverage | FASE 1 advisory (`continue-on-error: true`)    | Hoy los fallos no bloquean el merge: ventana de calibración de 2-4 semanas abierta | **P0** (tras calibrar)              |
-| Sharding (`--shard` + blob + `--merge-reports`)            | 0 evidencia                                    | Wall-time alto en cuanto la suite crezca                                           | P2 (activar cuando suite > 5-8 min) |
-| Coverage Merge Gate de shards                              | N/A (sin shards); guard por workspace sí       | Sin sharding no aplica; **obligatorio antes de habilitar sharding**                | P2                                  |
-| Smart ordering explícito / fail-first persistido           | Solo `BaseSequencer` por defecto (cache local) | Feedback fail-first no garantizado en CI                                           | P2                                  |
-| Snapshot tests                                             | 0 `.snap` / `toMatchSnapshot`                  | §23.3 lo contempla en STAGE 2; gap de regresión de UI                              | P3                                  |
-| Property-based testing                                     | `fast-check@3.23.2` instalado, **0 usos**      | Invariantes/parsers sin cubrir (§23.3 `[SL]`)                                      | P2                                  |
-| Gate autoritativo de cobertura (SonarQube new-code ≥80%)   | `if: false`, sin `SONAR_TOKEN`                 | El tripwire es el único guard y está desactivado                                   | P1                                  |
-| Balanceo de shards por duración                            | No existe en Vitest (#9184); custom sequencer  | Shards desbalanceados                                                              | P3                                  |
-| `coverage.changed` / thresholds por glob / `perFile`       | No implementados                               | TIA de cobertura y granularidad crítica no disponibles                             | P3                                  |
-| CONTEXT.md términos TESTING (0/10)                         | Pendiente (`panorama-resumen.md` §4)           | Onboarding/decisions drift                                                         | P3                                  |
+| Gap                                                        | Estado                                                                                                                                                                           | Impacto                                                                            | Prioridad                           |
+| ---------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- | ----------------------------------- |
+| `e2e` en CI (test-integration/test-smoke ya corren)        | **`if: false`** (L1769) — declarado, no corre                                                                                                                                    | `ci-complete` sigue mergeando sin validar E2E                                      | **P1**                              |
+| Promoción FASE 2 (blocking) de los 6 jobs de unit/coverage | FASE 1 advisory (`continue-on-error: true`)                                                                                                                                      | Hoy los fallos no bloquean el merge: ventana de calibración de 2-4 semanas abierta | **P0** (tras calibrar)              |
+| Sharding (`--shard` + blob + `--merge-reports`)            | 0 evidencia                                                                                                                                                                      | Wall-time alto en cuanto la suite crezca                                           | P2 (activar cuando suite > 5-8 min) |
+| Coverage Merge Gate de shards                              | N/A (sin shards); guard por workspace sí                                                                                                                                         | Sin sharding no aplica; **obligatorio antes de habilitar sharding**                | P2                                  |
+| Smart ordering explícito / fail-first persistido           | Solo `BaseSequencer` por defecto (cache local)                                                                                                                                   | Feedback fail-first no garantizado en CI                                           | P2                                  |
+| Snapshot tests                                             | **335 snapshots** (77 inline + 258 en `.snap` a lo largo de 83 ficheros de test: 37 F1, 20 F2, 26 F3; 157 matchers en código: 77 `toMatchInlineSnapshot` + 80 `toMatchSnapshot`) | Cobertura UI completada según la política de `client-snapshot-testing`             | **Cerrado (F0–F3)**                 |
+| Property-based testing                                     | `fast-check@3.23.2` instalado, **0 usos**                                                                                                                                        | Invariantes/parsers sin cubrir (§23.3 `[SL]`)                                      | P2                                  |
+| Gate autoritativo de cobertura (SonarQube new-code ≥80%)   | `if: false`, sin `SONAR_TOKEN`                                                                                                                                                   | El tripwire es el único guard y está desactivado                                   | P1                                  |
+| Balanceo de shards por duración                            | No existe en Vitest (#9184); custom sequencer                                                                                                                                    | Shards desbalanceados                                                              | P3                                  |
+| `coverage.changed` / thresholds por glob / `perFile`       | No implementados                                                                                                                                                                 | TIA de cobertura y granularidad crítica no disponibles                             | P3                                  |
+| CONTEXT.md términos TESTING (0/10)                         | Pendiente (`panorama-resumen.md` §4)                                                                                                                                             | Onboarding/decisions drift                                                         | P3                                  |
 
 ---
 
@@ -355,7 +355,7 @@ cuando el contrato importa (`toHaveBeenCalledTimes(1)`). Tabla mental: Dummy/Stu
    **`coverage-merge-gate` obligatorio** (§23.6) + `max-parallel` y `concurrency` group (control de costos, línea 3465).
 7. **P2 — Property-based** con `fast-check` ya instalado para parsers/invariantes (`mentionParser`, sanitizers, state
    machines).
-8. **P3 — Snapshots, thresholds por glob/`perFile`, SonarQube** (cuando haya token).
+8. **P3 — Snapshots (completado en `client-snapshot-testing`)**, thresholds por glob/`perFile`, SonarQube (cuando haya token).
 
 ---
 
