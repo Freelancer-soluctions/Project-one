@@ -6,6 +6,9 @@ import PropTypes from 'prop-types';
 export const ProviderOrdersDatatable = ({
   dataProviderOrders,
   onEditDialog,
+  totalRows = dataProviderOrders?.data?.length || 0,
+  pagination = { pageIndex: 0, pageSize: 20 },
+  onPaginationChange = () => {},
 }) => {
   const { t } = useTranslation();
 
@@ -43,7 +46,10 @@ export const ProviderOrdersDatatable = ({
     <DataTable
       columns={columnDefProviderOrders}
       data={dataProviderOrders.data}
+      totalRows={totalRows}
       handleRow={(row) => handleEditDialog(row)}
+      pagination={pagination}
+      onPaginationChange={onPaginationChange}
     />
   );
 };
@@ -51,4 +57,7 @@ export const ProviderOrdersDatatable = ({
 ProviderOrdersDatatable.propTypes = {
   dataProviderOrders: PropTypes.object.isRequired,
   onEditDialog: PropTypes.func.isRequired,
+  totalRows: PropTypes.number,
+  pagination: PropTypes.object,
+  onPaginationChange: PropTypes.func,
 };
