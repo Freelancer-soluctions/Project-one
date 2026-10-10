@@ -403,7 +403,59 @@ En el tier de CI:
 Estado de FASE: los 6 jobs de unit/coverage corren en **FASE 1 advisory** (`continue-on-error: true`); la promoción a
 blocking ocurre tras la ventana de calibración. Integration, smoke y E2E siguen declarados pero inactivos (`if: false`).
 
-### 7.5.4 Caching
+### 7.5.4 TIA local (Test Impact Analysis paridad CI↔local) — change `tia-hardening`
+
+El mismo contrato de selección que CI está disponible localmente para que el developer verifique qué correría
+antes de abrir el PR. Los scripts son idénticos al tracked `scripts/ci/tia-*.mjs` (selección en dos fases,
+ingestión de historial, cobertura limitada al diff) por lo que local y CI no pueden divergir.
+
+#### Comandos
+
+| Comando                                                          | Qué hace                                                                                                                                                                                                                  | Cuándo usar                                                                                                  |
+| ---------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| `npm run test:tia:audit` (raíz o workspace)                      | `vitest list --changed origin/main --filesOnly` — imprime los ficheros de test que Vitest seleccionaría SIN ejecutarlos                                                                                                   | Antes de abrir un PR: verificar que la selección cubre lo que toco                                           |
+| `npm run test:tia` (raíz o workspace)                            | Corre el subconjunto seleccionado con cobertura limitada al diff (`--coverage.changed=origin/main`) + thresholds anulados (`vitest.scoped.config.js`) + inyección de tests previamente fallidos si existe historial local | Después de cambios menores: feedback rápido sin correr la suite completa                                     |
+| `npm run test:coverage` / `npm run test:coverage:ci` (workspace) | Suite completa con coverage y thresholds reales                                                                                                                                                                           | Cambios en rutas compartidas (lockfile, workflows, configs), después de `test:tia:reset`, o antes de mergear |
+
+#### Cuándo el tier scoped basta (checklist pre-PR)
+
+1. Ejecuta `npm run test:tia:audit` y confirma que los ficheros listados son los que modificaste (o sus dependientes).
+2. Ejecuta `npm run test:tia` y revisa que pasa con la cobertura limitada al diff.
+3. Si tocaste `package.json`, `package-lock.json`, `.github/workflows/**` o `.dependency-cruiser.cjs` (cualquier ruta
+   `shared`), o si borraste la cache (`test:tia:reset`), corre el full suite localmente (`npm run test:coverage`) antes de
+   push — CI lo hará también, pero con timeout mayor.
+4. Revisa el step summary del PR cuando CI corra: el step **Resolve TIA shadow metric** muestra `N/T = %` y `scope=changed`
+   o `scope=full` — si es `full`, el diff tocó una ruta compartida; si `%` es bajo y `K ficheros` es el diff esperado, la
+   selección funciona como previsto.
+
+#### Estado persistente local
+
+La selección, la cache y el historial de tests fallidos se guardan en `node_modules/.cache/tia/` (el mismo directorio que
+CI cachea vía `setup-monorepo`). Está fuera de git (`.gitignore` ya lo cubre). Para reconstruir el estado desde cero:
+`npm run test:coverage` (full suite) o borra `node_modules/.cache/tia/` manualmente (el siguiente `test:tia` lo recalcula).
+
+#### Paridad local↔CI
+
+| Aspecto     | Local (`test:tia`)                                                                                             | CI (`test:changed:ci`)                                                                                 |
+| ----------- | -------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| Diff base   | `origin/main`                                                                                                  | `origin/main`                                                                                          |
+| Filtro unit | Idéntico al workspace (server: `.unit.test.js`; client: `src/**/*.unit.test.{js,jsx}` + integr. de componente) | Idéntico                                                                                               |
+| cobertura   | `--coverage.changed=origin/main` + `vitest.scoped.config.js` (thresholds a 0)                                  | `--coverage.changed=origin/main` + `vitest.scoped.config.js`                                           |
+| Inyección   | Si existe `node_modules/.cache/tia/tia-history.json` local (semado por un `test:tia` previo con fallos)        | Si existe artefacto `tia-history-*` del nightly (descargado en step `Inject previously-failing tests`) |
+| Thresholds  | Anulados en scoped (D18) — solo full suite los evalúa                                                          | Anulados en scoped — `client-coverage`/`server-coverage` evalúan solo si `scope=full`                  |
+
+> **Nota**: `test:tia` NO está cableado al hook `.husky/pre-push` — el hook sigue ejecutando solo `test:changed` según el
+> contrato de `pre-push-scoped-testing` (solo tests afectados, unit-only, sin DB/e2e). La inyección y cobertura diff-limited
+> viven en el script on-demand local y en CI.
+
+#### Auditoría on-demand sin ejecutar tests
+
+Cuando `origin/main` no es resoluble localmente (rama sin fetch), `test:tia:audit` falla con un mensaje explícito que
+invita a `git fetch origin main` — nunca reporta una selección vacía en silencio.
+
+---
+
+### 7.5.5 Caching
 
 `vitest --changed` usa la cache de Vitest por defecto (`node_modules/.cache/vitest`), cacheada en CI por
 `actions/cache@v5` desde la composite `setup-monorepo`. En local la cache acelera ejecuciones sucesivas. Con sharding

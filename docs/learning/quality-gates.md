@@ -156,3 +156,35 @@ Referencia a documentación de este doc creado en el proyecto: creado en `docs/l
 - `docs.sonarsource.com/sonarqube-server/2026/`: Sonar Quality Gate Check (`SonarSource/sonar-quality-gate-check`).
 - `www.typescriptlang.org/docs/handbook/compiler-options.html`: `strict`, `noEmit`, `noUncheckedIndexedAccess`.
 - `dependency-cruiser.org`: reglas `import-boundaries` (propiedad de `dependency-cruiser`, no `eslint-plugin-import`).
+
+## 7. Ventana de calibración (FASE 1 → FASE 2)
+
+**Ventana ÚNICA**, abierta el **2026-10-03** por el change `ci-testing-gate-promotion` (su task
+1.1; los bloqueantes 0.x/0bis.x se cerraron el mismo día): 2-4 semanas de runs reales sobre
+`ci.yml` antes de tocar ningún `continue-on-error`. Los changes que aportan evidencia a la misma
+ventana — p. ej. `tia-hardening` — **NO abren una segunda ventana**: editan esta misma sección en
+lockstep. La tabla de evidencia de gates (duración/fallos por job) vive en
+`openspec/changes/ci-testing-gate-promotion/tasks.md` (task 1.3).
+
+### 7.1 Calibración TIA (shadow metric) — change `tia-hardening`
+
+Rellenar en CADA corrida con la métrica del step summary **Resolve TIA shadow metric**
+(`scripts/ci/tia-metric.mjs`, advisory por contrato):
+
+| fecha / run | % suite seleccionado (N/T) | inyectados (M) | coverage map | fallbacks D7 | duración unit-client | duración unit-server | integration scoped vs full |
+| ----------- | -------------------------- | -------------- | ------------ | ------------ | -------------------- | -------------------- | -------------------------- |
+| _pendiente_ |                            |                |              |              |                      |                      |                            |
+
+Columnas: `% seleccionado` = N/T del step summary (solo `scope=changed`; `scope=full` se etiqueta
+aparte para excluirlo de los promedios) · `inyectados` = M distinguido de diff=N (task 4.5) ·
+`map=hit/miss` (task 7.3) · `fallbacks D7` = veces que `numTotalTests=0` forzó full-suite ·
+`duración` por job (tasks 1.2/1.4) · `integration scoped vs full` = evidencia para decidir si
+integration se queda scoped (task 6.3).
+
+**Reparto de propiedad (design D8, task 3.2):** quitar `continue-on-error: true` de los 6 jobs es
+responsabilidad de `ci-testing-gate-promotion` (su task 3.1); `tia-hardening` SOLO produce y
+registra esta evidencia. Verificado al implementar (2026-10-06):
+`grep -c continue-on-error .github/workflows/ci.yml` = **33, idéntico a `main`** — ningún safety
+net fue editado. La promoción no puede ejecutarse hasta que esta sección tenga la ventana
+completa rellena, y después de promover, el nocturno, el full-suite en rutas shared y el guard
+D7 siguen intactos.

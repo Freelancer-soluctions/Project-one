@@ -1,5 +1,4 @@
 #!/usr/bin/env node
-/* globals process, console, URL */
 /**
  * Local coverage ratchet — raises the coverage floor, never lowers it.
  *
@@ -47,6 +46,21 @@ const targets = requested.length
   ? WORKSPACES.filter((w) => requested.includes(w.id))
   : WORKSPACES;
 
+// How the suite runs inside the ratchet. The server workspace declares its
+// reportsDirectory under tests/coverage and the unit-only CI job
+// (test:coverage:unit:ci) is what produces the coverage artifact, so the
+// ratchet uses that command for the server. `test:coverage` is the full
+// suite (unit + integration) and needs a live PostgreSQL, which is not
+// available in a plain local checkout; it is a local convenience only.
+const SERVER_COVERAGE_CMD = 'test:coverage:unit:ci';
+const CLIENT_COVERAGE_CMD = 'test:coverage';
+
+// Coverage command per workspace. CI always runs unit-only (`test:coverage:unit:ci`
+// for server, the client equivalent) to produce its artifact, so the ratchet
+// honors the same split here.
+const coverageCmdFor = (id) =>
+  id === 'server' ? SERVER_COVERAGE_CMD : CLIENT_COVERAGE_CMD;
+
 // Compare the thresholds object before/after without parsing the whole config:
 // the numeric thresholds are the only thing this command is allowed to move.
 function snapshot(configPath) {
@@ -74,7 +88,7 @@ for (const ws of targets) {
     'npm',
     [
       'run',
-      'test:coverage',
+      coverageCmdFor(ws.id),
       `--workspace=apps/${ws.id}`,
       '--',
       '--coverage.thresholds.autoUpdate=true',
