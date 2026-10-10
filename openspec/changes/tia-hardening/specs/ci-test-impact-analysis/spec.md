@@ -2,22 +2,28 @@
 
 ## MODIFIED Requirements
 
-### Requirement: Diff-scoped unit test execution in CI
+### Requirement: MODIFIED Diff-scoped unit test execution in CI
 
 When a workspace test job runs for a PR, it SHALL execute the tests selected by the TIA selection
 contract: every test affected by the diff between the PR head and `origin/main`, plus any
 previously-failing test injected from recent full-suite history (see "Previously-failing test
 injection"), via the workspace CI script `test:changed:ci`, defined in BOTH workspaces on top of
-`vitest run --changed origin/main --coverage --reporter=junit --outputFile=reports/junit.xml`
-(client) and `vitest run ".unit.test.js" --changed origin/main --coverage --reporter=junit
---outputFile=reports/junit.xml` (server, unit filter first) — the JUnit output path explicit, never
-left to a default — extended with `--coverage.changed=origin/main` so the coverage report of a scoped
-run is limited to the files the diff touched instead of mixing executed with merely imported code,
+`vitest run --changed origin/main --coverage` (client) and `vitest run ".unit.test.js" --changed
+origin/main --coverage` (server, unit filter first) with reporters and output paths explicit, never
+left to defaults — JUnit AND JSON (`--outputFile.junit=reports/junit.xml`,
+`--outputFile.json=reports/vitest-results.json`, which the shadow-mode metric reads) plus the flaky
+reporter — extended with `--coverage.changed=origin/main` so the coverage report of a scoped run is
+limited to the files the diff touched instead of mixing executed with merely imported code, and
+executed with coverage thresholds neutralized for the scoped run itself,
 with the full git history already provided by the checkout of `ci.yml` (`fetch-depth: 0` is declared
 today — confirm, nothing to add) so `origin/main` is available, and with threshold evaluation of this
-diff-scoped coverage deferred to full-suite runs (decision D18): in diff-scoped scope
+diff-scoped coverage deferred to full-suite runs (decision D18): in diff-scoped scope the test run
+itself SHALL NOT evaluate coverage thresholds against the limited report — Vitest enforces
+`coverage.thresholds` natively, so the scoped run executes with them neutralized (a scoped Vitest
+config that zeroes the four global thresholds and declares no per-glob/per-file thresholds) — AND
 `scripts/ci/check-coverage.mjs` runs in advisory mode (it reports the diff-limited numbers but never
-fails the job), while `scope=full` keeps evaluating thresholds exactly as today.
+fails the job), while `scope=full` keeps evaluating thresholds exactly as today, natively in the run
+and via the guard.
 
 #### Scenario: PR touches a single client module
 
@@ -34,6 +40,7 @@ fails the job), while `scope=full` keeps evaluating thresholds exactly as today.
 
 - **WHEN** a `scope=changed` run finishes and produces `coverage-summary.json`
 - **THEN** the summary contains only the source files changed by the diff (`--coverage.changed=origin/main`)
+- **AND** the test run itself finishes without failing on coverage thresholds (neutralized for scoped runs)
 - **AND** `check-coverage.mjs` reports the numbers as advisory output without failing the job (D18 deferral preserved)
 
 #### Scenario: Full-suite coverage keeps enforcing thresholds
@@ -43,7 +50,7 @@ fails the job), while `scope=full` keeps evaluating thresholds exactly as today.
 
 ## ADDED Requirements
 
-### Requirement: Shadow-mode selection metric
+### Requirement: ADDED Shadow-mode selection metric
 
 Every workspace test job SHALL publish a shadow-mode selection metric to the GitHub step summary that
 records what TIA selected without ever changing what runs: the candidate test set computed with
@@ -66,7 +73,7 @@ empty result of the measurement step SHALL leave the job outcome and the execute
 - **THEN** the job still executes the selection defined by `test:changed:ci` and the metric is reported as unavailable
 - **AND** the job result is not flipped by the missing metric alone
 
-### Requirement: Previously-failing test injection
+### Requirement: ADDED Previously-failing test injection
 
 The TIA selection SHALL be extended with the tests that failed in the most recent N full-suite runs
 of `main` (nightly and `scope=full` PR runs), Microsoft-TIA style, independent of the diff graph, so
@@ -90,7 +97,7 @@ be reported separately from the diff-derived selection in the shadow-mode metric
 - **WHEN** injection adds M tests to the selection
 - **THEN** the shadow-mode metric reports M injected tests separately from the diff-derived count
 
-### Requirement: Persistent test-to-source coverage map
+### Requirement: ADDED Persistent test-to-source coverage map
 
 Full-suite runs (nightly and `scope=full` PR runs) SHALL publish a persistent test-to-source map
 artifact per workspace — the per-test dependency graph recorded during that run, including source
@@ -117,7 +124,7 @@ of the checkout and the run SHALL report the miss (`map=miss`) — never a silen
 - **THEN** the run falls back to the static import-graph selection and records `map=miss`
 - **AND** the D7 zero-test guard still applies
 
-### Requirement: TIA scope extension to integration and e2e tiers
+### Requirement: ADDED TIA scope extension to integration and e2e tiers
 
 The `Resolve TIA scope` contract (diff-scoped vs full, shared-path override, unresolvable-base
 fallback) and the D7 zero-test guard SHALL be extended to the integration test job, and to the e2e
@@ -140,7 +147,7 @@ pre-push tier stays unit-only and DB/e2e-free as specified by `pre-push-scoped-t
 - **WHEN** the `e2e` job is enabled and runs for a PR
 - **THEN** it resolves its scope with the same `Resolve TIA scope` logic and the same D7 fallback
 
-### Requirement: Fail-first ordering of scoped runs
+### Requirement: ADDED Fail-first ordering of scoped runs
 
 Scoped runs SHALL order the selected test files so that files with a recorded failure in the recent
 history run first, surfacing the first failure as early as possible (rule 21 / smart ordering of
@@ -158,7 +165,7 @@ order-dependence bugs stay reproducible.
 - **WHEN** no ordering history exists
 - **THEN** the selected files run in a stable, reproducible order and every selected test still executes
 
-### Requirement: Shadow-mode evidence before gate promotion
+### Requirement: ADDED Shadow-mode evidence before gate promotion
 
 The diff-scoped TIA jobs SHALL treat the accumulated shadow-mode metric as the evidence of the
 calibration window: any promotion of these jobs from advisory (FASE 1) to blocking (FASE 2) SHALL be
