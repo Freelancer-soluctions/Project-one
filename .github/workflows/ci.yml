@@ -813,6 +813,58 @@ jobs:
           fi
         shell: bash
 
+      # Shadow metric — spec ci-test-impact-analysis (D2/D10). Mide QUÉ habría
+      # seleccionado TIA sin alterar nada: advisory por contrato (el script
+      # siempre sale 0 y el step va con `if: always()`), D7 sigue siendo el
+      # único safety net de selección vacía.
+      # Inyección de tests previamente fallidos — spec ci-test-impact-analysis
+      # (task 4.3/4.4, design D4). Best-effort: descarga el artefacto de historial
+      # del nightly/full-suite más reciente resolviendo el run-id con `gh api` y
+      # `gh run download` (patrón de flaky-weekly.yml); ausente → no-op. Deja la
+      # lista inyectada en un fichero que `tia-select.mjs` lee en su fase 1b.
+      - name: Inject previously-failing tests
+        if: always()
+        id: inject
+        run: |
+          mkdir -p apps/client/reports
+          INJECTED=0
+          if gh api repos/${{ github.repository }}/actions/workflows/nightly-full-suite.yml/runs --jq '.workflow_runs[0].id' > /dev/null 2>&1; then
+            RUN_ID=$(gh api repos/${{ github.repository }}/actions/workflows/nightly-full-suite.yml/runs --jq '.workflow_runs[0].id')
+            if gh run download "$RUN_ID" -n tia-history-client -d /tmp/tia-history-client --dir > /dev/null 2>&1 && [ -f /tmp/tia-history-client/tia-history.json ]; then
+              cp /tmp/tia-history-client/tia-history.json apps/client/reports/tia-history.json
+              INJECTED=$(node scripts/ci/tia-history.mjs apps/client --inject | wc -l | tr -d ' ')
+              echo "injected=$INJECTED" >> "$GITHUB_OUTPUT"
+              echo "::notice::tia-history: injected $INJECTED previously-failing client file(s) from nightly run $RUN_ID."
+            else
+              echo "::notice::tia-history: no matching client history artifact found — injection is a no-op."
+            fi
+          else
+            echo "::notice::tia-history: github CLI not available or no nightly runs — injection is a no-op."
+          fi
+          echo "injected=$INJECTED" >> "$GITHUB_OUTPUT"
+        shell: bash      - name: Resolve TIA shadow metric
+        if: always()
+        run: node scripts/ci/tia-metric.mjs apps/client
+        shell: bash
+
+      # Coverage-map build — task 7.1/7.2 (design D5). El mapa se publica como
+      # artefacto versionado por base-sha para que los PRs scoped lo consuman
+      # (task 7.3). Best-effort: en diff-scoped el mapa es el del nightly; este
+      # step siempre escribe un coverage-map.json válido (aunque pueda ser vacío
+      # si no hubo cobertura en la corrida) para que el artefacto exista.
+      - name: Build coverage-map (best-effort)
+        if: always()
+        run: node scripts/ci/tia-map.mjs apps/client --build
+        shell: bash
+
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: coverage-map-client
+          path: apps/client/reports/coverage-map.json
+          retention-days: 30
+          if-no-files-found: warn
+
       - uses: actions/upload-artifact@v7
         if: always()
         with:
@@ -832,6 +884,36 @@ jobs:
             apps/client/reports/tia-scope.txt
           retention-days: 30
           if-no-files-found: warn
+      # Historial de tests fallidos en main — task 4.1 (tia-history.mjs).
+      # Source: reports/vitest-results.json (ya generado por el step de tests).
+      # Se consolida en tia-history.json y se sube como artefacto con retención
+      # 30 días (mismo patrón que flaky-evidence-*). Los jobs scoped lo
+      # descargan en el step `Inject previously-failing tests` (task 4.4).
+      - name: Record TIA history
+        if: always()
+        run: |
+          mkdir -p apps/client/reports
+          node scripts/ci/tia-history.mjs apps/client --record --out apps/client/reports/tia-history.json || true
+          mkdir -p apps/server/reports
+          node scripts/ci/tia-history.mjs apps/server --record --out apps/server/reports/tia-history.json || true
+        shell: bash
+
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: tia-history-client
+          path: apps/client/reports/tia-history.json
+          retention-days: 30
+          if-no-files-found: warn
+
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: tia-history-server
+          path: apps/server/reports/tia-history.json
+          retention-days: 30
+          if-no-files-found: warn
+
       - name: Report Client Unit Tests
         if: success() || failure()
         uses: dorny/test-reporter@v3
@@ -907,6 +989,40 @@ jobs:
           fi
         shell: bash
 
+      # Shadow metric — spec ci-test-impact-analysis (D2/D10). Ver nota del job
+      # client: advisory por contrato, `if: always()`, nunca voltea el resultado.
+      # Inyección de tests previamente fallidos — spec ci-test-impact-analysis
+      # (task 4.3/4.4, design D4). Best-effort: descarga el artefacto de historial
+      # del nightly/full-suite más reciente resolviendo el run-id con `gh api` y
+      # `gh run download` (patrón de flaky-weekly.yml); ausente → no-op. Deja la
+      # lista inyectada en un fichero que `tia-select.mjs` lee en su fase 1b.
+      - name: Inject previously-failing tests
+        if: always()
+        id: inject
+        run: |
+          mkdir -p apps/server/reports
+          INJECTED=0
+          if gh api repos/${{ github.repository }}/actions/workflows/nightly-full-suite.yml/runs --jq '.workflow_runs[0].id' > /dev/null 2>&1; then
+            RUN_ID=$(gh api repos/${{ github.repository }}/actions/workflows/nightly-full-suite.yml/runs --jq '.workflow_runs[0].id')
+            if gh run download "$RUN_ID" -n tia-history-server -d /tmp/tia-history-server --dir > /dev/null 2>&1 && [ -f /tmp/tia-history-server/tia-history.json ]; then
+              cp /tmp/tia-history-server/tia-history.json apps/server/reports/tia-history.json
+              INJECTED=$(node scripts/ci/tia-history.mjs apps/server --inject | wc -l | tr -d ' ')
+              echo "injected=$INJECTED" >> "$GITHUB_OUTPUT"
+              echo "::notice::tia-history: injected $INJECTED previously-failing server file(s) from nightly run $RUN_ID."
+            else
+              echo "::notice::tia-history: no matching server history artifact found — injection is a no-op."
+            fi
+          else
+            echo "::notice::tia-history: github CLI not available or no nightly runs — injection is a no-op."
+          fi
+          echo "injected=$INJECTED" >> "$GITHUB_OUTPUT"
+        shell: bash
+
+      - name: Resolve TIA shadow metric
+        if: always()
+        run: node scripts/ci/tia-metric.mjs apps/server
+        shell: bash
+
       - uses: actions/upload-artifact@v7
         if: always()
         with:
@@ -924,6 +1040,35 @@ jobs:
             apps/server/reports/vitest-results.json
             apps/server/reports/flaky-retries.json
             apps/server/reports/tia-scope.txt
+          retention-days: 30
+          if-no-files-found: warn
+      # Historial de tests fallidos en main — task 4.1 (tia-history.mjs).
+      # Source: reports/vitest-results.json (ya generado por el step de tests).
+      # Se consolida en tia-history.json y se sube como artefacto con retención
+      # 30 días (mismo patrón que flaky-evidence-*). Los jobs scoped lo
+      # descargan en el step `Inject previously-failing tests` (task 4.4).
+      - name: Record TIA history
+        if: always()
+        run: |
+          mkdir -p apps/client/reports
+          node scripts/ci/tia-history.mjs apps/client --record --out apps/client/reports/tia-history.json || true
+          mkdir -p apps/server/reports
+          node scripts/ci/tia-history.mjs apps/server --record --out apps/server/reports/tia-history.json || true
+        shell: bash
+
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: tia-history-client
+          path: apps/client/reports/tia-history.json
+          retention-days: 30
+          if-no-files-found: warn
+
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: tia-history-server
+          path: apps/server/reports/tia-history.json
           retention-days: 30
           if-no-files-found: warn
       - name: Report Server Unit Tests
@@ -1555,7 +1700,8 @@ jobs:
             exit 1
           fi
           if [ "${SCOPE}" != "full" ]; then
-            echo "::notice::diff-scoped run: coverage thresholds DEFERRED to the next full-suite run (D18). Artifact presence verified."
+            echo "::notice::diff-scoped run: thresholds deferred to the next full-suite run (D18) — reporting diff-limited coverage as advisory."
+            node scripts/ci/check-coverage.mjs apps/client --advisory
             exit 0
           fi
           node scripts/ci/check-coverage.mjs apps/client
@@ -1638,7 +1784,8 @@ jobs:
             exit 1
           fi
           if [ "${SCOPE}" != "full" ]; then
-            echo "::notice::diff-scoped run: coverage thresholds DEFERRED to the next full-suite run (D18). Artifact presence verified."
+            echo "::notice::diff-scoped run: thresholds deferred to the next full-suite run (D18) — reporting diff-limited coverage as advisory."
+            node scripts/ci/check-coverage.mjs apps/server apps/server/tests/coverage --advisory
             exit 0
           fi
           node scripts/ci/check-coverage.mjs apps/server apps/server/tests/coverage
