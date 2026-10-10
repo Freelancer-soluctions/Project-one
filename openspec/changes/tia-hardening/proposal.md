@@ -20,7 +20,9 @@ sin la contraparte local el tier de desarrollador queda fuera del contrato.
   % de suite seleccionado por PR y señal de falsos positivos; medición nunca altera la selección.
 - **P1 — `coverage.changed` activado**: `test:changed:ci` en ambos workspaces limita el reporte de
   cobertura a los ficheros del diff (`--coverage.changed=origin/main`), validado con
-  `scripts/ci/check-coverage.mjs` en modo advisory bajo D18 (los thresholds siguen solo en full).
+  `scripts/ci/check-coverage.mjs` en modo advisory bajo D18 (los thresholds siguen solo en full) y
+  con los thresholds nativos de Vitest anulados en los runs scoped (`vitest.scoped.config.js`) —
+  sin eso, el propio job de tests sale rojo con el informe limitado (F1).
 - **P2 — Inyección de previously-failing tests** (componente 2 de Microsoft TIA): la selección añade
   siempre los tests que fallaron en los últimos N runs full-suite de `main`; no-op si no hay
   historial; conteo visible en la métrica. La unión se calcula en dos fases (`vitest list

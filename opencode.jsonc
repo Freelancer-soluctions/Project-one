@@ -3,7 +3,7 @@
   "autoupdate": true,
   "plugin": [
     "@warp-dot-dev/opencode-warp",
-    "./.opencode/plugins/output-contracts.ts",
+    // "./.opencode/plugins/output-contracts.ts",
     "./.opencode/plugins/neurosymbolic-guardrails.ts",
   ],
   "provider": {
@@ -31,31 +31,52 @@
       "models": {
         "auto": {
           "name": "OmniRoute Auto (smart routing)",
-          "limit": { "context": 128000, "output": 65536 },
+          "limit": {
+            "context": 128000,
+            "output": 65536,
+          },
         },
         "felo/felo": {
           "name": "Felo (via OmniRoute)",
-          "limit": { "context": 32000, "output": 4096 },
+          "limit": {
+            "context": 32000,
+            "output": 4096,
+          },
         },
         "tllm/deepseek_v4": {
           "name": "DeepSeek V4 (via TheOldLLM)",
-          "limit": { "context": 128000, "output": 4096 },
+          "limit": {
+            "context": 128000,
+            "output": 4096,
+          },
         },
         "tllm/gemini_3_flash": {
           "name": "Gemini 3 Flash (via TheOldLLM)",
-          "limit": { "context": 128000, "output": 4096 },
+          "limit": {
+            "context": 128000,
+            "output": 4096,
+          },
         },
         "tllm/claude_sonnet_4": {
           "name": "Claude Sonnet 4 (via TheOldLLM)",
-          "limit": { "context": 200000, "output": 4096 },
+          "limit": {
+            "context": 200000,
+            "output": 4096,
+          },
         },
         "ddgw/claude-haiku-4-5": {
           "name": "Claude Haiku 4.5 (via DuckDuckGo)",
-          "limit": { "context": 200000, "output": 4096 },
+          "limit": {
+            "context": 200000,
+            "output": 4096,
+          },
         },
         "unc/qwen3.6:27b": {
           "name": "Qwen 3.6 27B (via UncloseAI)",
-          "limit": { "context": 32000, "output": 4096 },
+          "limit": {
+            "context": 32000,
+            "output": 4096,
+          },
         },
       },
     },
@@ -265,7 +286,6 @@
       },
       "enabled": true,
     },
-
     // "composio": {
     //   "type": "local",
     //   "command": [

@@ -50,10 +50,10 @@ export default mergeConfig(
           // Es un piso bajo en términos absolutos (functions ~9%) porque la mayor
           // parte del código son DAO/servicios sin tests unitarios; la granularidad
           // de abajo es lo que evita que ese número oculte las áreas buenas.
-          statements: 42.28,
-          branches: 21.75,
-          functions: 8.98,
-          lines: 42.76,
+          statements: 60.8,
+          branches: 64.48,
+          functions: 64.81,
+          lines: 61.49,
 
           // GRANULARIDAD ALTA — el piso global se queda donde esté y las áreas ya
           // sólidas se blindan aparte, para que el total siga siendo comparable.

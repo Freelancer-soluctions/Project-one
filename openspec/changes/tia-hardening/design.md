@@ -76,6 +76,24 @@ hoy; los thresholds se siguen evaluando únicamente en `scope=full` (nocturno + 
 _Alternativa descartada_: evaluar thresholds sobre la cobertura diff-limited — un diff de 3 ficheros
 siempre "aprueba" o siempre "suspende" el % global; no es comparable.
 
+**F1 — los thresholds nativos del runner también se anulan en scoped.** `vitest run --coverage`
+evalúa `coverage.thresholds` del config contra el informe QUE SEA: con el informe limitado al diff,
+un fichero poco cubierto en la PR hace salir 1 al propio job de tests (probado: informe limitado +
+floor 99 → `ERROR: Coverage for branches (92.68%) does not meet global threshold (99%)`). El riesgo
+existe hoy mismo, antes del change: un run scoped ya produce un informe parcial (probado con
+`vitest run --changed origin/main --coverage`: summary con 1 fichero, no la suite completa). Por eso
+los runs scoped pasan `--config vitest.scoped.config.js` (task 2.1): un fichero por workspace que
+importa el config principal y **reemplaza** `test.coverage.thresholds` por los cuatro globales a 0
+(sin globs ni `perFile`); el config principal queda intacto y `coverage:ratchet` sigue operando.
+_Mecanismos descartados_: ternario condicional en `vitest.config.js` — rompe el ratchet (probado:
+autoUpdate lanza `Unable to parse thresholds from configuration file: Casting
+"ConditionalExpression" is not supported`); overrides por CLI (`--coverage.thresholds.<métrica>=0`)
+— no llegan a los thresholds-_glob_ sin pasar cada clave-glob literal (`src/hooks/**`,
+`src/modules/**/schemas/**`, …) con quoting que varía entre bash y cmd.exe (D11); `mergeConfig` de
+overrides — deep-merge conserva los globs del base (probado: el glob sobrevive y solo se pisa el
+global), así que habría que reemplazar igualmente; env var con `cross-env` — dependencia nueva
+(ausente) contra D11, y el condicional en config cae en el mismo problema de magicast.
+
 ### D4 — Historial de fallidos: artefactos ya existentes, N=3, doble ubicación
 
 Fuente de verdad: los `reports/vitest-results.json` / `junit.xml` que ya producen los runs
@@ -131,7 +149,7 @@ se documenta con su duración medida (métrica shadow) para poder revertir a ful
 `test-smoke` queda fuera a propósito: es el tier de critical-path (~17 tests) y se ejecuta
 completo siempre — full-suite por diseño, sin scoping TIA.
 
-### D7 — Fail-first con `BaseSequencer` sobre `tia-history.json`
+### D7 — Fail-first con `BaseSequencer` sobre `tia-history.json` (design D7; no confundir con el guard D7 de 0 tests del repo)
 
 `sequence.sequencer` apunta a un sequencer propio que ordena los ficheros seleccionados por
 tasa de fallo reciente (del mismo historial de D4) y, sin historial, por ruta estable. Solo reordena:
@@ -185,6 +203,10 @@ el argv computado.
   resuelto sin invocar Vitest.
 - [`coverage.changed` puede ocultar una caída de cobertura en un PR] → D18 intacto: thresholds solo
   en full, y el nocturno advisory sigue publicando el % global.
+- [El propio runner se pone rojo con el informe limitado (F1)] → runs scoped con
+  `vitest.scoped.config.js` (thresholds a 0, sin globs) + guard `--advisory`; los thresholds se
+  evalúan solo en full. Verificado empíricamente: mismos floors sobre informe limitado → exit 1 sin
+  el config scoped y exit 0 con él.
 - [El historial reintroduce ruido (flaky inyectado en cada PR)] → N=3 acotado, se inyectan solo
   ficheros con fallo real en `main`, la cuarentena sigue excluyéndolos, y el inyectado se reporta
   aparte en la métrica para poder detectarlo.
@@ -210,6 +232,15 @@ el argv computado.
 Rollback: cada paso es un script/flag reversible por PR; ningún safety net se retira en el
 camino, y si un paso degrada el feedback loop basta con quitar su línea (la selección base
 `--changed` queda siempre operativa).
+
+## Verification log
+
+Evidencia local recogida al implementar (la evidencia de runs de CI queda como
+pending-CI en `tasks.md`):
+
+| Task | Evidencia                                                                       | Resultado                                                                           |
+| ---- | ------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
+| 1.4  | Duración de `node scripts/ci/tia-metric.mjs apps/client --format=md` (cwd raíz) | **1.1 s** (< 5 s ⇒ se mantiene `vitest list`, sin sustitución por diff ya resuelto) |
 
 ## Open Questions
 
