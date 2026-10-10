@@ -153,7 +153,6 @@ export default [
       },
     },
 
-    // Reglas específicas para backend.
     rules: {
       // Hereda las reglas recomendadas de Vitest (no-focused-tests, etc.).
       ...vitest.configs.recommended.rules,
@@ -166,6 +165,23 @@ export default [
       // NOTA: la regla `complexity` de este workspace vive en los bloques
       // "Umbrales de complejidad por capa" de abajo (core 15 / utils 10 /
       // tests off; fuente única: los jobs CI `*-complexity` no pasan `--rule`).
+    },
+  },
+
+  // ---------------------------------------------------------------------------
+  // (3b) Backend Node.js ESM scripts and shared configs (check-coverage,
+  // coverage-ratchet): these are ES modules whose globals (URL, etc.) must be
+  // declared explicitly for ESLint's no-undef.
+  {
+    files: ['**/*.mjs', '**/*.cjs'],
+    languageOptions: {
+      ecmaVersion: 'latest',
+      sourceType: 'module',
+      globals: {
+        ...globals.node,
+        ...globals.es2021,
+        ...vitest.environments.env.globals,
+      },
     },
   },
 
