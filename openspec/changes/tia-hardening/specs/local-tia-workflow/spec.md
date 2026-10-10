@@ -9,7 +9,7 @@ scoped tier is enough and when to run the full suite locally.
 
 ## ADDED Requirements
 
-### Requirement: On-demand selection audit
+### Requirement: ADDED On-demand selection audit
 
 The repository SHALL expose an npm script at the root and in BOTH workspaces (`test:tia:audit`) that
 prints which test files Vitest would select for the current diff WITHOUT executing any test —
@@ -30,7 +30,7 @@ resolved, mirroring the pre-push contract.
 - **THEN** the audit fails with a message instructing the developer to run `git fetch origin main`
 - **AND** it never silently reports an empty selection
 
-### Requirement: Scoped local run with CI parity
+### Requirement: ADDED Scoped local run with CI parity
 
 Each workspace SHALL expose an on-demand scoped run (`test:tia`, reachable from the root script of
 the same name) that shares the CI selection contract: the same diff base (`origin/main`), the same
@@ -45,6 +45,7 @@ specified by `pre-push-scoped-testing`.
 - **WHEN** a developer runs `npm run test:tia` after changing one server module
 - **THEN** it executes the same unit tests CI would select for that diff, plus injected previously-failing tests if local history exists
 - **AND** the coverage report it produces is limited to the changed files
+- **AND** the run exits 0 regardless of that limited report's percentages (coverage thresholds are neutralized in scoped runs, D18 parity; full-suite runs keep enforcing them)
 
 #### Scenario: No local history
 
@@ -56,7 +57,7 @@ specified by `pre-push-scoped-testing`.
 - **WHEN** the developer pushes
 - **THEN** `.husky/pre-push` keeps running only `test:changed` per workspace, without audit output, injection or coverage flags
 
-### Requirement: Persisted local selection state
+### Requirement: ADDED Persisted local selection state
 
 Selection-supporting state (Vitest cache, coverage/dependency map and the recently-failing history
 used by injection and fail-first ordering) SHALL be persisted locally in the shared root cache
@@ -81,7 +82,7 @@ full-suite run (`npm run test` / `npm run test:coverage`) instead of trusting a 
 - **THEN** selection falls back to the static import graph and the workflow instructs a full-suite local run to rebuild it
 - **AND** the audit/scoped run never reports a vacuous success from corrupt state
 
-### Requirement: Everyday TIA workflow documented
+### Requirement: ADDED Everyday TIA workflow documented
 
 `docs/testing-architecture.md` §7.5 SHALL document the everyday developer workflow for TIA as one
 coherent strategy: what the pre-push hook runs, how to audit the selection with `test:tia:audit`,
