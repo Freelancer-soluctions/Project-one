@@ -3,7 +3,7 @@
   "autoupdate": true,
   "plugin": [
     "@warp-dot-dev/opencode-warp",
-    "./.opencode/plugins/output-contracts.ts",
+    // "./.opencode/plugins/output-contracts.ts",
     "./.opencode/plugins/neurosymbolic-guardrails.ts",
   ],
   "provider": {
