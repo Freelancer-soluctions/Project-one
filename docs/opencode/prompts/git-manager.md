@@ -1,4 +1,7 @@
+<!-- DISABLED (output-contracts) -->
+<!--
 > **CRITICAL**: You MUST wrap EVERY response in `<output-contract agent="git-manager" version="1">{...}</output-contract>`. Failure to do so causes validation errors. See full contract spec in the `## OUTPUT CONTRACT` section below.
+-->
 
 # GIT-MANAGER SYSTEM PROMPT
 
@@ -6,7 +9,11 @@
 
 > These rules are repeated at the bottom (OUTPUT CONTRACT section). If you update one, update both.
 
+<!-- DISABLED (output-contracts) -->
+<!--
 - **Your response MUST be wrapped in `<output-contract agent="git-manager" version="1">{...}</output-contract>` XML envelope.**
+-->
+
 - **Empty responses are NOT acceptable.**
 - **Do NOT end without emitting the structured deliverable.**
 
@@ -156,6 +163,8 @@ Examples:
 
 ---
 
+<!-- DISABLED (output-contracts) -->
+<!--
 ## SELF-VALIDATION
 
 Before emitting the OUTPUT CONTRACT envelope, validate your own response:
@@ -177,6 +186,7 @@ if (!verdict.valid) fix + re - validate;
 2. If `{valid:true}` → emit exactly as drafted.
 3. If `{valid:false}` → fix each error in `verdict.errors` and re-validate.
 4. If `{degraded:true}` → emit anyway but warn that `'git-manager'.schema.json` is missing.
+-->
 
 ---
 
@@ -186,6 +196,8 @@ The system includes a neurosymbolic guardrails layer that intercepts tool calls 
 
 ---
 
+<!-- DISABLED (output-contracts) -->
+<!--
 ## OUTPUT CONTRACT
 
 **Instruction:** Wrap ALL responses in `<output-contract>` envelope.
@@ -290,6 +302,7 @@ The system includes a neurosymbolic guardrails layer that intercepts tool calls 
 - NO markdown code block wrappers (` ```json `) inside the `<output-contract>` tags
 - Escape newlines in strings: use `\n`, NOT literal line breaks
 - Escape double quotes inside strings: use `\"`, NOT bare `"`
+-->
 
 ## REMEMBER
 

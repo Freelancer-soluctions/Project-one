@@ -1,4 +1,7 @@
+<!-- DISABLED (output-contracts) -->
+<!--
 > **CRITICAL**: You MUST wrap EVERY response in `<output-contract agent="orchestrator" version="1">{...}</output-contract>`. Failure to do so causes validation errors. See full contract spec in the `## OUTPUT CONTRACT` section below.
+-->
 
 # ORCHESTRATOR SYSTEM PROMPT
 
@@ -6,7 +9,9 @@
 
 > These rules are repeated at the bottom (OUTPUT CONTRACT section). If you update one, update both.
 
-- **Your response MUST be wrapped in `<output-contract agent="orchestrator" version="1">{...}</output-contract>` XML envelope.**
+<!-- DISABLED (output-contracts) -->
+<!-- - **Your response MUST be wrapped in `<output-contract agent="orchestrator" version="1">{...}</output-contract>` XML envelope.** -->
+
 - **Empty responses are NOT acceptable.**
 - **Do NOT end without emitting the structured deliverable.**
 
@@ -301,13 +306,15 @@ Your final assistant message MUST contain the structured deliverable described a
 
 If you have nothing to report, report a brief explanation — empty responses are NOT acceptable.
 
-Wrap your response in `<output-contract agent="${agent-name}" version="1">{...}</output-contract>` per `docs/opencode/prompts/contracts/${agent-name}.schema.json`.
-
 --- END DELEGATION SUFFIX ---
 ```
 
+<!-- DISABLED (output-contracts): Wrap your response in `<output-contract agent="${agent-name}" version="1">{...}</output-contract>` per `docs/opencode/prompts/contracts/${agent-name}.schema.json`. -->
+
 **WHEN TO INJECT:** ALWAYS append as LAST instruction of every delegation. No other instruction may follow.
-**PLACEHOLDER RESOLUTION:** The orchestrator MUST replace `${agent-name}` with the actual target subagent name (e.g., `developer`, `planner`, `reviewer`, `researcher`, `git-manager`, `spec-manager`, `project-manager`) before injection.
+
+<!-- DISABLED (output-contracts) -->
+<!-- **PLACEHOLDER RESOLUTION:** The orchestrator MUST replace `${agent-name}` with the actual target subagent name (e.g., `developer`, `planner`, `reviewer`, `researcher`, `git-manager`, `spec-manager`, `project-manager`) before injection. -->
 
 ---
 
@@ -425,7 +432,8 @@ After every `task` tool call, parse the `<task_result>` wrapper in the tool resu
 - The `<task_result>` body does not contain a valid `<output-contract>` envelope (opening tag missing or malformed)
 -->
 
-Envelope-less responses (text output without `<output-contract>` XML envelope): do NOT trigger retry. Treat as `responseType: "failure"` with `error.code: "MISSING_ENVELOPE"`, preserve the subagent's text as the deliverable, report to user. The subagent's text output is the source of truth — the envelope is a wrapper, not the content.
+<!-- DISABLED (output-contracts) -->
+<!-- Envelope-less responses (text output without `<output-contract>` XML envelope): do NOT trigger retry. Treat as `responseType: "failure"` with `error.code: "MISSING_ENVELOPE"`, preserve the subagent's text as the deliverable, report to user. The subagent's text output is the source of truth — the envelope is a wrapper, not the content. -->
 
 ### Re-delegation with Resume
 
@@ -442,6 +450,8 @@ On silent exit detection, re-delegate to the same subagent with:
 - **Backoff between attempts**: 2s / 5s / 10s (max 30s total) — **best-effort SHOULD** (apply when a pause is possible within the turn; the plugin/guardrail layer supplies the real retry value)
 - **Escalation after 3 exhausted retries**: Report to user with summary of agent, task, and retryCount
 
+<!-- DISABLED (output-contracts) -->
+<!--
 ### Retry Envelope Format
 
 Retry envelopes SHALL use:
@@ -453,13 +463,16 @@ Retry envelopes SHALL use:
   - `code: "SILENT_EXIT"`
   - `message: "Subagent returned empty output, retrying delegation"`
   - `details: "<delegation summary>"` (truncated delegation text for correlation)
-
+-->
+<!-- DISABLED (output-contracts) -->
+<!--
 ### Exhausted Retries Escalation
 
 After 3 failed retries, escalate to user with envelope using:
 
 - `result: "escalated"` (per `orchestrator.schema.json` enum)
 - Include agent, task, retryCount=3 in `details`
+-->
 
 ### Telemetry (bash mechanism)
 
@@ -495,6 +508,8 @@ Examples:
 
 ---
 
+<!-- DISABLED (output-contracts) -->
+<!--
 ## OUTPUT CONTRACT
 
 **Instruction:** Wrap ALL responses in `<output-contract>` envelope.
@@ -578,7 +593,10 @@ Examples:
 - Escape double quotes inside strings: use `\"`, NOT bare `"`
 
 ---
+-->
 
+<!-- DISABLED (output-contracts) -->
+<!--
 ## SELF-VALIDATION
 
 Before emitting the OUTPUT CONTRACT envelope, validate your own response:
@@ -600,6 +618,7 @@ if (!verdict.valid) fix + re - validate;
 2. If `{valid:true}` → emit exactly as drafted.
 3. If `{valid:false}` → fix each error in `verdict.errors` and re-validate.
 4. If `{degraded:true}` → emit anyway but warn that `'orchestrator'.schema.json` is missing.
+-->
 
 ## Guardrails Layer 4 (Pre-Execution Prevention)
 
