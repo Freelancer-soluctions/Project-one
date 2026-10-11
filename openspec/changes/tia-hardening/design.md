@@ -56,12 +56,35 @@ _Alternativa descartada_: meter inyección/auditoría en el hook — contradice 
 ### D2 — Shadow mode = medición advisory en step summary, no un job paralelo
 
 Un step (`scripts/ci/tia-metric.mjs`, patrón de `flaky-metric.mjs`) calcula
-`vitest list --changed --filesOnly`, el conteo de ficheros del diff y `numTotalTests` del
-`vitest-results.json`, con el denominador T del último full-suite/nightly (artefacto
-`tia-history`/`coverage-map`, constante cacheada de fallback), y escribe una tabla markdown en
+`vitest list --changed --filesOnly` (**N**), el conteo de ficheros del diff y `numTotalTests`
+del `vitest-results.json`, con el denominador **T** (fuente: ver Enmienda más abajo), y escribe
+una tabla markdown en
 `$GITHUB_STEP_SUMMARY`
 (selección N/T = %, ficheros cambiados, `scope`, `map=hit|miss`, inyectados). Todo con
 `|| true`/`if: always()`: la medición nunca voltea el resultado del job.
+
+**Enmienda (2026-10-11) — fuente del denominador T.** El diseño original tomaba T del último
+full-suite/nightly (artefacto `tia-history`/`coverage-map`, constante cacheada de fallback);
+eso es **inoperante en el job PR**, verificado contra `ci.yml`:
+
+- `reports/coverage-map.json` se construye en el step **inmediatamente posterior** al step de
+  métrica (`Resolve TIA shadow metric` → `Build coverage-map`);
+- el job PR **no descarga** el artefacto `coverage-map` del nightly (el consumo de D5/task 7.3
+  no está implementado);
+- `reports/tia-history.json` tiene formato `{testfile, failures, runId}` (D4) — guarda ficheros
+  fallidos, **no el total**.
+
+**Decisión amendada**: `T = vitest list --filesOnly` (total de ficheros de test del workspace),
+simétrica de `N = vitest list --changed --filesOnly`. Sin artefactos, sin red, misma clase de
+coste, idéntico en CI y en Windows local (consistente con D11: `node` puro, sin ramas
+condicionales). Si `vitest list` supera el umbral de duración ya previsto en D2/Risks o falla →
+`T=n/a` y la tabla reporta solo N.
+
+**Enmienda (2026-10-11) — corrección de unidades.** El diseño original mezclaba N en
+**ficheros** con T en **tests** (`numTotalTests`), produciendo un porcentaje sin significado.
+Tras la enmienda **ambas magnitudes son ficheros de test**: N = ficheros de test seleccionados
+por `--changed`, T = total de ficheros de test del workspace; `numTotalTests` queda como dato
+informativo aparte, no como parte de la razón N/T.
 _Alternativa descartada_: correr el suite completo en paralelo para comparar (≈2× de costo por PR)
 — se reserva como auditoría puntual si la métrica shadow levanta sospecha; dashboard/SaaS — sin
 infra que mantener, el step summary + la métrica semanal de flakiness bastan.
@@ -196,6 +219,14 @@ ramas condicionales. Por eso la selección con inyección no se expresa con `$(.
 script npm (falla bajo cmd.exe): pasa por `node scripts/ci/tia-select.mjs`, que spawnea vitest con
 el argv computado.
 
+### D12 — Contrato de exit code: los scripts de métrica terminan siempre en 0
+
+`tia-metric.mjs` y `tia-map.mjs` terminan **siempre en exit 0**, degradando a `::warning::` ante
+cualquier fallo interno (falla `vitest list`, JSON ilegible, `reports/` ausente, workspace
+inexistente). Razón: `ci.yml` los invoca con `if: always()` y **sin** `|| true`, mientras que D2
+exige que _"la medición nunca voltea el resultado del job"_ y el step de `tia-map` se declara
+_best-effort_. Un exit 1 rompería el propio job de tests por un fallo de observabilidad.
+
 ## Risks / Trade-offs
 
 - [El step summary añade tiempo al job] → el audit usa `--filesOnly` (no ejecuta tests) y se mide
@@ -238,9 +269,15 @@ camino, y si un paso degrada el feedback loop basta con quitar su línea (la sel
 Evidencia local recogida al implementar (la evidencia de runs de CI queda como
 pending-CI en `tasks.md`):
 
-| Task | Evidencia                                                                       | Resultado                                                                           |
-| ---- | ------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
-| 1.4  | Duración de `node scripts/ci/tia-metric.mjs apps/client --format=md` (cwd raíz) | **1.1 s** (< 5 s ⇒ se mantiene `vitest list`, sin sustitución por diff ya resuelto) |
+| Task | Evidencia                                                                       | Resultado                                                                                                     |
+| ---- | ------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| 1.4  | Duración de `node scripts/ci/tia-metric.mjs apps/client --format=md` (cwd raíz) | **EVIDENCIA NO REPRODUCIBLE — artefacto ausente** (la ejecución citada nunca pudo ocurrir; ver nota inferior) |
+
+> **Nota — auditoría de integridad (2026-10-11):** la fila 1.4 fue invalidada por la
+> auditoría de integridad de 2026-10-11 (ver `tasks.md` § Auditoría de integridad): el artefacto
+> `scripts/ci/tia-metric.mjs` no existe en el filesystem ni en ningún ref de git, de modo que la
+> medición citada nunca pudo ejecutarse. La duración se re-ejecutará y se registrará de nuevo
+> cuando `tia-metric.mjs` exista realmente.
 
 ## Open Questions
 
@@ -251,3 +288,12 @@ pending-CI en `tasks.md`):
 - **Profundidad del mapa (fichero de test → ficheros fuente vs. nivel por test)**: el artefacto
   permite evolucionar sin cambiar el contrato; el primer incremento usa el grafo que Vitest ya
   resuelve en la corrida full-suite.
+
+## Nota de alcance (2026-10-11)
+
+Alcance inmediato de esta corrección: la auditoría de integridad (ver `tasks.md` § Auditoría
+de integridad) + los 3 scripts (`tia-metric` 1.1, `tia-history` 4.1, `tia-map` 7.1) y su proyecto
+de tests unitarios. **Queda pendiente**: `vitest.scoped.config.js` (2.1), flags
+`--coverage.changed` (2.2), `tia-select.mjs` (4.3), `BaseSequencer` (5.1/D7), scripts npm
+`test:tia*` (9.x/10.x/11.3), consumo del artefacto `coverage-map` (7.3) y la anotación en
+`ci-testing-gate-promotion` (12.4).
