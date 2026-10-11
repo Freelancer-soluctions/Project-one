@@ -842,7 +842,9 @@ jobs:
             echo "::notice::tia-history: github CLI not available or no nightly runs — injection is a no-op."
           fi
           echo "injected=$INJECTED" >> "$GITHUB_OUTPUT"
-        shell: bash      - name: Resolve TIA shadow metric
+        shell: bash
+
+      - name: Resolve TIA shadow metric
         if: always()
         run: node scripts/ci/tia-metric.mjs apps/client
         shell: bash
