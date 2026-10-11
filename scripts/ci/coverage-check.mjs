@@ -1,5 +1,4 @@
 #!/usr/bin/env node
-/* globals process, console, URL */
 /**
  * Local mirror of the CI coverage jobs (`client-coverage` / `server-coverage`).
  *

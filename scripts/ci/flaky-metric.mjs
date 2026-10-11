@@ -1,5 +1,4 @@
 #!/usr/bin/env node
-/* globals process, console */
 /**
  * Métrica semanal de flakiness (change `coverage-tripwire-stage-2d`, D8,
  * spec `ci-flaky-quarantine`, task 5.3).

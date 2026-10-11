@@ -1,4 +1,3 @@
-/* globals process, console */
 /**
  * Custom Vitest reporter — evidencia de retry/flaky por test.
  *
