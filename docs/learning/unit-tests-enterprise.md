@@ -26,7 +26,9 @@ activados en **FASE 1 advisory** (change `coverage-tripwire-stage-2d`); `test-in
 pero NO advisory** (`if:` sobre repo-discovery, sin `continue-on-error`) y solo `e2e` permanece `if: false`.
 Faltan por completo: sharding (`--shard` + blob + `--merge-reports`), smart ordering explícito (solo el
 `BaseSequencer` por defecto de Vitest), TIA en CI (0 referencias a `test:changed` en `ci.yml`), coverage merge gate de
-shards y flaky quarantine. Snapshots: ya cubiertos — 335 (77 inline + 258 `.snap`) en 83 ficheros `*.ui.test.jsx`, change `client-snapshot-testing` (§4). Property-based testing tiene `fast-check` instalado (3.23.2) con 0 usos.
+shards y flaky quarantine. Snapshots: ya cubiertos — 335 (77 inline + 258 `.snap`) en 83 ficheros
+`*.ui.test.jsx`, change `client-snapshot-testing` (§4). Property-based testing tiene `fast-check` instalado
+(3.23.2) con 0 usos.
 
 ---
 
@@ -291,8 +293,9 @@ cuando el contrato importa (`toHaveBeenCalledTimes(1)`). Tabla mental: Dummy/Stu
 9. **Mega-setups de 50 líneas** → builders/fixtures reutilizables (`tests/mocks/fixtures/`).
 10. **Cobertura como meta** — tests triviales que solo suben el %; usar la matriz por criticidad (§16.1) y `perFile`
     para código crítico.
-11. **Snapshots de UI como gate** — 335 snapshots en el repo (77 inline + 258 en `.snap`, 83 ficheros `*.ui.test.jsx`); si se usan, revisarlos siempre en PR (los snapshots
-    grandes/autogenerados ocultan regresiones).
+11. **Snapshots de UI como gate** — 335 snapshots en el repo (77 inline + 258 en `.snap`, 83 ficheros
+    `*.ui.test.jsx`); si se usan, revisarlos siempre en PR (los snapshots grandes/autogenerados ocultan
+    regresiones).
 
 ---
 
