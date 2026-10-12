@@ -39,6 +39,7 @@
     "test:server": "npm run test --workspace=server-express",
     "test:client": "npm run test --workspace=client-react",
     "test:coverage": "npm run test:coverage --workspaces --if-present",
+    "test:scripts": "vitest run --config vitest.scripts.config.js",
     "coverage:check": "node scripts/ci/coverage-check.mjs",
     "coverage:ratchet": "node scripts/ci/coverage-ratchet.mjs",
     "coverage:guard": "node scripts/ci/check-coverage.mjs",

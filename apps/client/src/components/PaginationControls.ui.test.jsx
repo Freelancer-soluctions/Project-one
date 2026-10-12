@@ -1,0 +1,68 @@
+import { render } from '@testing-library/react';
+import { describe, it, expect } from 'vitest';
+import { PaginationControls } from './PaginationControls';
+
+// Fixed fixture: page 3 of 10 (pageIndex is 0-based).
+const FIXTURE = { pageIndex: 2, pageSize: 10, total: 100 };
+
+describe('PaginationControls - UI snapshot', () => {
+  it('renders the active page link for page 3 of 10', () => {
+    const { container } = render(
+      <PaginationControls {...FIXTURE} onPageChange={() => {}} />
+    );
+    expect(
+      container.querySelector('[aria-current="page"]')
+    ).toMatchInlineSnapshot(
+      `
+      <a
+        aria-current="page"
+        class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground h-9 w-9"
+        href="#"
+      >
+        3
+      </a>
+    `,
+      'page 3 link marked active with aria-current'
+    );
+  });
+
+  it('renders the previous control', () => {
+    const { container } = render(
+      <PaginationControls {...FIXTURE} onPageChange={() => {}} />
+    );
+    expect(container.querySelectorAll('li')[0]).toMatchInlineSnapshot(
+      `
+      <li
+        class=""
+      >
+        <a
+          aria-label="Go to previous page"
+          class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 hover:bg-accent hover:text-accent-foreground h-9 px-4 py-2 gap-1 pl-2.5"
+          href="#"
+        >
+          <svg
+            class="lucide lucide-chevron-left h-4 w-4"
+            fill="none"
+            height="24"
+            stroke="currentColor"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            viewBox="0 0 24 24"
+            width="24"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="m15 18-6-6 6-6"
+            />
+          </svg>
+          <span>
+            Previous
+          </span>
+        </a>
+      </li>
+    `,
+      'previous page item with chevron and label'
+    );
+  });
+});

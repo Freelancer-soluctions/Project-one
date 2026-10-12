@@ -42,6 +42,12 @@ concurrency:
 
 jobs:
   nightly-client:
+    env:
+      # Opt-out del sequencer TIA (task 5.1, design D7): el nightly corre la
+      # suite completa SIN orden impuesto por fallos históricos, para no
+      # enmascarar order-dependence. La selección scoped (PRs) SÍ usa el
+      # sequencer vía tia-select.mjs / vitest.sequencer.js.
+      TIA_SEQUENCER: stable
     name: Nightly - Client Full Suite
     runs-on: ubuntu-latest
     timeout-minutes: 20

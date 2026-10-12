@@ -1,5 +1,4 @@
 #!/usr/bin/env node
-/* globals process, console, URL */
 /**
  * Deriva el conjunto de exclusiones de los runs bloqueantes de PR a partir de
  * `.github/flaky-quarantine.yml` (spec `ci-flaky-quarantine`, D9).

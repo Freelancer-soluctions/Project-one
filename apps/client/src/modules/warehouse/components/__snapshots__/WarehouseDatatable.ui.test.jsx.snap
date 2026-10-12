@@ -1,0 +1,457 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`WarehouseDatatable - UI snapshot > renders each column header with its filter > column header 1 with sort and filter 1`] = `
+<th
+  class="h-10 text-left align-middle font-medium text-muted-foreground [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-3 border"
+>
+  <div
+    class="cursor-pointer select-none text-center"
+  >
+    Name
+    <svg
+      class="inline-block"
+      fill="none"
+      height="15"
+      viewBox="0 0 15 15"
+      width="15"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path
+        clip-rule="evenodd"
+        d="M4.93179 5.43179C4.75605 5.60753 4.75605 5.89245 4.93179 6.06819C5.10753 6.24392 5.39245 6.24392 5.56819 6.06819L7.49999 4.13638L9.43179 6.06819C9.60753 6.24392 9.89245 6.24392 10.0682 6.06819C10.2439 5.89245 10.2439 5.60753 10.0682 5.43179L7.81819 3.18179C7.73379 3.0974 7.61933 3.04999 7.49999 3.04999C7.38064 3.04999 7.26618 3.0974 7.18179 3.18179L4.93179 5.43179ZM10.0682 9.56819C10.2439 9.39245 10.2439 9.10753 10.0682 8.93179C9.89245 8.75606 9.60753 8.75606 9.43179 8.93179L7.49999 10.8636L5.56819 8.93179C5.39245 8.75606 5.10753 8.75606 4.93179 8.93179C4.75605 9.10753 4.75605 9.39245 4.93179 9.56819L7.18179 11.8182C7.35753 11.9939 7.64245 11.9939 7.81819 11.8182L10.0682 9.56819Z"
+        fill="currentColor"
+        fill-rule="evenodd"
+      />
+    </svg>
+  </div>
+  <div
+    class="pt-2 "
+  >
+    <input
+      class="flex h-9 border-input bg-transparent px-3 py-1 text-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 w-full border rounded shadow"
+      placeholder="Search..."
+      type="text"
+      value=""
+    />
+  </div>
+</th>
+`;
+
+exports[`WarehouseDatatable - UI snapshot > renders each column header with its filter > column header 2 with sort and filter 1`] = `
+<th
+  class="h-10 text-left align-middle font-medium text-muted-foreground [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-3 border"
+>
+  <div
+    class="cursor-pointer select-none text-center"
+  >
+    Status
+    <svg
+      class="inline-block"
+      fill="none"
+      height="15"
+      viewBox="0 0 15 15"
+      width="15"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path
+        clip-rule="evenodd"
+        d="M4.93179 5.43179C4.75605 5.60753 4.75605 5.89245 4.93179 6.06819C5.10753 6.24392 5.39245 6.24392 5.56819 6.06819L7.49999 4.13638L9.43179 6.06819C9.60753 6.24392 9.89245 6.24392 10.0682 6.06819C10.2439 5.89245 10.2439 5.60753 10.0682 5.43179L7.81819 3.18179C7.73379 3.0974 7.61933 3.04999 7.49999 3.04999C7.38064 3.04999 7.26618 3.0974 7.18179 3.18179L4.93179 5.43179ZM10.0682 9.56819C10.2439 9.39245 10.2439 9.10753 10.0682 8.93179C9.89245 8.75606 9.60753 8.75606 9.43179 8.93179L7.49999 10.8636L5.56819 8.93179C5.39245 8.75606 5.10753 8.75606 4.93179 8.93179C4.75605 9.10753 4.75605 9.39245 4.93179 9.56819L7.18179 11.8182C7.35753 11.9939 7.64245 11.9939 7.81819 11.8182L10.0682 9.56819Z"
+        fill="currentColor"
+        fill-rule="evenodd"
+      />
+    </svg>
+  </div>
+  <div
+    class="pt-2 "
+  >
+    <input
+      class="flex h-9 border-input bg-transparent px-3 py-1 text-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 w-full border rounded shadow"
+      placeholder="Search..."
+      type="text"
+      value=""
+    />
+  </div>
+</th>
+`;
+
+exports[`WarehouseDatatable - UI snapshot > renders each column header with its filter > column header 3 with sort and filter 1`] = `
+<th
+  class="h-10 text-left align-middle font-medium text-muted-foreground [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-3 border"
+>
+  <div
+    class="cursor-pointer select-none text-center"
+  >
+    Description
+    <svg
+      class="inline-block"
+      fill="none"
+      height="15"
+      viewBox="0 0 15 15"
+      width="15"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path
+        clip-rule="evenodd"
+        d="M4.93179 5.43179C4.75605 5.60753 4.75605 5.89245 4.93179 6.06819C5.10753 6.24392 5.39245 6.24392 5.56819 6.06819L7.49999 4.13638L9.43179 6.06819C9.60753 6.24392 9.89245 6.24392 10.0682 6.06819C10.2439 5.89245 10.2439 5.60753 10.0682 5.43179L7.81819 3.18179C7.73379 3.0974 7.61933 3.04999 7.49999 3.04999C7.38064 3.04999 7.26618 3.0974 7.18179 3.18179L4.93179 5.43179ZM10.0682 9.56819C10.2439 9.39245 10.2439 9.10753 10.0682 8.93179C9.89245 8.75606 9.60753 8.75606 9.43179 8.93179L7.49999 10.8636L5.56819 8.93179C5.39245 8.75606 5.10753 8.75606 4.93179 8.93179C4.75605 9.10753 4.75605 9.39245 4.93179 9.56819L7.18179 11.8182C7.35753 11.9939 7.64245 11.9939 7.81819 11.8182L10.0682 9.56819Z"
+        fill="currentColor"
+        fill-rule="evenodd"
+      />
+    </svg>
+  </div>
+  <div
+    class="pt-2 "
+  >
+    <input
+      class="flex h-9 border-input bg-transparent px-3 py-1 text-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 w-full border rounded shadow"
+      placeholder="Search..."
+      type="text"
+      value=""
+    />
+  </div>
+</th>
+`;
+
+exports[`WarehouseDatatable - UI snapshot > renders each column header with its filter > column header 4 with sort and filter 1`] = `
+<th
+  class="h-10 text-left align-middle font-medium text-muted-foreground [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-3 border"
+>
+  <div
+    class="cursor-pointer select-none text-center"
+  >
+    Created on
+    <svg
+      class="inline-block"
+      fill="none"
+      height="15"
+      viewBox="0 0 15 15"
+      width="15"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path
+        clip-rule="evenodd"
+        d="M4.93179 5.43179C4.75605 5.60753 4.75605 5.89245 4.93179 6.06819C5.10753 6.24392 5.39245 6.24392 5.56819 6.06819L7.49999 4.13638L9.43179 6.06819C9.60753 6.24392 9.89245 6.24392 10.0682 6.06819C10.2439 5.89245 10.2439 5.60753 10.0682 5.43179L7.81819 3.18179C7.73379 3.0974 7.61933 3.04999 7.49999 3.04999C7.38064 3.04999 7.26618 3.0974 7.18179 3.18179L4.93179 5.43179ZM10.0682 9.56819C10.2439 9.39245 10.2439 9.10753 10.0682 8.93179C9.89245 8.75606 9.60753 8.75606 9.43179 8.93179L7.49999 10.8636L5.56819 8.93179C5.39245 8.75606 5.10753 8.75606 4.93179 8.93179C4.75605 9.10753 4.75605 9.39245 4.93179 9.56819L7.18179 11.8182C7.35753 11.9939 7.64245 11.9939 7.81819 11.8182L10.0682 9.56819Z"
+        fill="currentColor"
+        fill-rule="evenodd"
+      />
+    </svg>
+  </div>
+  <div
+    class="pt-2 "
+  >
+    <input
+      class="flex h-9 border-input bg-transparent px-3 py-1 text-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 w-full border rounded shadow"
+      placeholder="Search..."
+      type="text"
+      value=""
+    />
+  </div>
+</th>
+`;
+
+exports[`WarehouseDatatable - UI snapshot > renders each column header with its filter > column header 5 with sort and filter 1`] = `
+<th
+  class="h-10 text-left align-middle font-medium text-muted-foreground [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-3 border"
+>
+  <div
+    class="cursor-pointer select-none text-center"
+  >
+    Updated on
+    <svg
+      class="inline-block"
+      fill="none"
+      height="15"
+      viewBox="0 0 15 15"
+      width="15"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path
+        clip-rule="evenodd"
+        d="M4.93179 5.43179C4.75605 5.60753 4.75605 5.89245 4.93179 6.06819C5.10753 6.24392 5.39245 6.24392 5.56819 6.06819L7.49999 4.13638L9.43179 6.06819C9.60753 6.24392 9.89245 6.24392 10.0682 6.06819C10.2439 5.89245 10.2439 5.60753 10.0682 5.43179L7.81819 3.18179C7.73379 3.0974 7.61933 3.04999 7.49999 3.04999C7.38064 3.04999 7.26618 3.0974 7.18179 3.18179L4.93179 5.43179ZM10.0682 9.56819C10.2439 9.39245 10.2439 9.10753 10.0682 8.93179C9.89245 8.75606 9.60753 8.75606 9.43179 8.93179L7.49999 10.8636L5.56819 8.93179C5.39245 8.75606 5.10753 8.75606 4.93179 8.93179C4.75605 9.10753 4.75605 9.39245 4.93179 9.56819L7.18179 11.8182C7.35753 11.9939 7.64245 11.9939 7.81819 11.8182L10.0682 9.56819Z"
+        fill="currentColor"
+        fill-rule="evenodd"
+      />
+    </svg>
+  </div>
+  <div
+    class="pt-2 "
+  >
+    <input
+      class="flex h-9 border-input bg-transparent px-3 py-1 text-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 w-full border rounded shadow"
+      placeholder="Search..."
+      type="text"
+      value=""
+    />
+  </div>
+</th>
+`;
+
+exports[`WarehouseDatatable - UI snapshot > renders each frozen fixture row > fixture row 1 with cells 1`] = `
+<tr
+  class="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted"
+  data-state="false"
+>
+  <td
+    class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
+  >
+    <div
+      class="truncate"
+      data-state="closed"
+    >
+      MAIN WAREHOUSE
+    </div>
+  </td>
+  <td
+    class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
+  >
+    <div
+      class="truncate"
+      data-state="closed"
+    >
+      ACTIVE
+    </div>
+  </td>
+  <td
+    class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
+  >
+    <div
+      class="truncate"
+      data-state="closed"
+    >
+      PRIMARY DISTRIBUTION CENTER
+    </div>
+  </td>
+  <td
+    class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
+  >
+    <div
+      class="truncate"
+      data-state="closed"
+    >
+      January 5th, 2026
+    </div>
+  </td>
+  <td
+    class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
+  >
+    <div
+      class="truncate"
+      data-state="closed"
+    >
+      January 6th, 2026
+    </div>
+  </td>
+</tr>
+`;
+
+exports[`WarehouseDatatable - UI snapshot > renders each frozen fixture row > fixture row 2 with cells 1`] = `
+<tr
+  class="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted"
+  data-state="false"
+>
+  <td
+    class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
+  >
+    <div
+      class="truncate"
+      data-state="closed"
+    >
+      OVERFLOW WAREHOUSE
+    </div>
+  </td>
+  <td
+    class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
+  >
+    <div
+      class="truncate"
+      data-state="closed"
+    >
+      INACTIVE
+    </div>
+  </td>
+  <td
+    class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
+  >
+    <div
+      class="truncate"
+      data-state="closed"
+    >
+      OVERFLOW STORAGE FOR PEAK SEASON
+    </div>
+  </td>
+  <td
+    class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
+  >
+    <div
+      class="truncate"
+      data-state="closed"
+    >
+      January 6th, 2026
+    </div>
+  </td>
+  <td
+    class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
+  >
+    <div
+      class="truncate"
+      data-state="closed"
+    />
+  </td>
+</tr>
+`;
+
+exports[`WarehouseDatatable - UI snapshot > renders each frozen fixture row > fixture row 3 with cells 1`] = `
+<tr
+  class="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted"
+  data-state="false"
+>
+  <td
+    class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
+  >
+    <div
+      class="truncate"
+      data-state="closed"
+    >
+      COLD STORAGE
+    </div>
+  </td>
+  <td
+    class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
+  >
+    <div
+      class="truncate"
+      data-state="closed"
+    >
+      ACTIVE
+    </div>
+  </td>
+  <td
+    class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
+  >
+    <div
+      class="truncate"
+      data-state="closed"
+    >
+      REFRIGERATED GOODS FACILITY
+    </div>
+  </td>
+  <td
+    class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
+  >
+    <div
+      class="truncate"
+      data-state="closed"
+    >
+      January 7th, 2026
+    </div>
+  </td>
+  <td
+    class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
+  >
+    <div
+      class="truncate"
+      data-state="closed"
+    >
+      January 8th, 2026
+    </div>
+  </td>
+</tr>
+`;
+
+exports[`WarehouseDatatable - UI snapshot > renders the pagination controls > pagination buttons and page size select 1`] = `
+<div
+  class="flex flex-wrap items-center gap-2"
+>
+  <button
+    class="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 bg-primary text-primary-foreground shadow hover:bg-primary/90 h-9 p-1 border rounded"
+    disabled=""
+  >
+    &lt;&lt;
+  </button>
+  <button
+    class="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 bg-primary text-primary-foreground shadow hover:bg-primary/90 h-9 p-1 border rounded"
+    disabled=""
+  >
+    &lt;
+  </button>
+  <button
+    class="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 bg-primary text-primary-foreground shadow hover:bg-primary/90 h-9 p-1 border rounded"
+    disabled=""
+  >
+    &gt;
+  </button>
+  <button
+    class="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 bg-primary text-primary-foreground shadow hover:bg-primary/90 h-9 p-1 border rounded"
+    disabled=""
+  >
+    &gt;&gt;
+  </button>
+  <span
+    class="flex items-center gap-1"
+  >
+    <div>
+      Page
+    </div>
+    <strong>
+      1
+       of
+       
+      1
+    </strong>
+  </span>
+  <span
+    class="flex items-center gap-1"
+  >
+    | Go to page:
+    <input
+      class="border p-1 rounded w-16"
+      max="1"
+      min="1"
+      type="number"
+      value="1"
+    />
+  </span>
+  <select>
+    <option
+      value="10"
+    >
+      Show 
+      10
+    </option>
+    <option
+      value="20"
+    >
+      Show 
+      20
+    </option>
+    <option
+      value="30"
+    >
+      Show 
+      30
+    </option>
+    <option
+      value="40"
+    >
+      Show 
+      40
+    </option>
+    <option
+      value="50"
+    >
+      Show 
+      50
+    </option>
+  </select>
+</div>
+`;
+
+exports[`WarehouseDatatable - UI snapshot > renders the pagination controls > pagination showing row count 1`] = `
+<div>
+  Showing 
+  3
+   of
+   
+  3
+   Rows
+</div>
+`;

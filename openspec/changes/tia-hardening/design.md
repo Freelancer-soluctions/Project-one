@@ -56,12 +56,35 @@ _Alternativa descartada_: meter inyección/auditoría en el hook — contradice 
 ### D2 — Shadow mode = medición advisory en step summary, no un job paralelo
 
 Un step (`scripts/ci/tia-metric.mjs`, patrón de `flaky-metric.mjs`) calcula
-`vitest list --changed --filesOnly`, el conteo de ficheros del diff y `numTotalTests` del
-`vitest-results.json`, con el denominador T del último full-suite/nightly (artefacto
-`tia-history`/`coverage-map`, constante cacheada de fallback), y escribe una tabla markdown en
+`vitest list --changed --filesOnly` (**N**), el conteo de ficheros del diff y `numTotalTests`
+del `vitest-results.json`, con el denominador **T** (fuente: ver Enmienda más abajo), y escribe
+una tabla markdown en
 `$GITHUB_STEP_SUMMARY`
 (selección N/T = %, ficheros cambiados, `scope`, `map=hit|miss`, inyectados). Todo con
 `|| true`/`if: always()`: la medición nunca voltea el resultado del job.
+
+**Enmienda (2026-10-11) — fuente del denominador T.** El diseño original tomaba T del último
+full-suite/nightly (artefacto `tia-history`/`coverage-map`, constante cacheada de fallback);
+eso es **inoperante en el job PR**, verificado contra `ci.yml`:
+
+- `reports/coverage-map.json` se construye en el step **inmediatamente posterior** al step de
+  métrica (`Resolve TIA shadow metric` → `Build coverage-map`);
+- el job PR **no descarga** el artefacto `coverage-map` del nightly (el consumo de D5/task 7.3
+  no está implementado);
+- `reports/tia-history.json` tiene formato `{testfile, failures, runId}` (D4) — guarda ficheros
+  fallidos, **no el total**.
+
+**Decisión amendada**: `T = vitest list --filesOnly` (total de ficheros de test del workspace),
+simétrica de `N = vitest list --changed --filesOnly`. Sin artefactos, sin red, misma clase de
+coste, idéntico en CI y en Windows local (consistente con D11: `node` puro, sin ramas
+condicionales). Si `vitest list` supera el umbral de duración ya previsto en D2/Risks o falla →
+`T=n/a` y la tabla reporta solo N.
+
+**Enmienda (2026-10-11) — corrección de unidades.** El diseño original mezclaba N en
+**ficheros** con T en **tests** (`numTotalTests`), produciendo un porcentaje sin significado.
+Tras la enmienda **ambas magnitudes son ficheros de test**: N = ficheros de test seleccionados
+por `--changed`, T = total de ficheros de test del workspace; `numTotalTests` queda como dato
+informativo aparte, no como parte de la razón N/T.
 _Alternativa descartada_: correr el suite completo en paralelo para comparar (≈2× de costo por PR)
 — se reserva como auditoría puntual si la métrica shadow levanta sospecha; dashboard/SaaS — sin
 infra que mantener, el step summary + la métrica semanal de flakiness bastan.
@@ -75,6 +98,24 @@ limitado al diff. En `scope=changed` el job de cobertura invoca
 hoy; los thresholds se siguen evaluando únicamente en `scope=full` (nocturno + PR `shared`).
 _Alternativa descartada_: evaluar thresholds sobre la cobertura diff-limited — un diff de 3 ficheros
 siempre "aprueba" o siempre "suspende" el % global; no es comparable.
+
+**F1 — los thresholds nativos del runner también se anulan en scoped.** `vitest run --coverage`
+evalúa `coverage.thresholds` del config contra el informe QUE SEA: con el informe limitado al diff,
+un fichero poco cubierto en la PR hace salir 1 al propio job de tests (probado: informe limitado +
+floor 99 → `ERROR: Coverage for branches (92.68%) does not meet global threshold (99%)`). El riesgo
+existe hoy mismo, antes del change: un run scoped ya produce un informe parcial (probado con
+`vitest run --changed origin/main --coverage`: summary con 1 fichero, no la suite completa). Por eso
+los runs scoped pasan `--config vitest.scoped.config.js` (task 2.1): un fichero por workspace que
+importa el config principal y **reemplaza** `test.coverage.thresholds` por los cuatro globales a 0
+(sin globs ni `perFile`); el config principal queda intacto y `coverage:ratchet` sigue operando.
+_Mecanismos descartados_: ternario condicional en `vitest.config.js` — rompe el ratchet (probado:
+autoUpdate lanza `Unable to parse thresholds from configuration file: Casting
+"ConditionalExpression" is not supported`); overrides por CLI (`--coverage.thresholds.<métrica>=0`)
+— no llegan a los thresholds-_glob_ sin pasar cada clave-glob literal (`src/hooks/**`,
+`src/modules/**/schemas/**`, …) con quoting que varía entre bash y cmd.exe (D11); `mergeConfig` de
+overrides — deep-merge conserva los globs del base (probado: el glob sobrevive y solo se pisa el
+global), así que habría que reemplazar igualmente; env var con `cross-env` — dependencia nueva
+(ausente) contra D11, y el condicional en config cae en el mismo problema de magicast.
 
 ### D4 — Historial de fallidos: artefactos ya existentes, N=3, doble ubicación
 
@@ -131,7 +172,7 @@ se documenta con su duración medida (métrica shadow) para poder revertir a ful
 `test-smoke` queda fuera a propósito: es el tier de critical-path (~17 tests) y se ejecuta
 completo siempre — full-suite por diseño, sin scoping TIA.
 
-### D7 — Fail-first con `BaseSequencer` sobre `tia-history.json`
+### D7 — Fail-first con `BaseSequencer` sobre `tia-history.json` (design D7; no confundir con el guard D7 de 0 tests del repo)
 
 `sequence.sequencer` apunta a un sequencer propio que ordena los ficheros seleccionados por
 tasa de fallo reciente (del mismo historial de D4) y, sin historial, por ruta estable. Solo reordena:
@@ -178,6 +219,14 @@ ramas condicionales. Por eso la selección con inyección no se expresa con `$(.
 script npm (falla bajo cmd.exe): pasa por `node scripts/ci/tia-select.mjs`, que spawnea vitest con
 el argv computado.
 
+### D12 — Contrato de exit code: los scripts de métrica terminan siempre en 0
+
+`tia-metric.mjs` y `tia-map.mjs` terminan **siempre en exit 0**, degradando a `::warning::` ante
+cualquier fallo interno (falla `vitest list`, JSON ilegible, `reports/` ausente, workspace
+inexistente). Razón: `ci.yml` los invoca con `if: always()` y **sin** `|| true`, mientras que D2
+exige que _"la medición nunca voltea el resultado del job"_ y el step de `tia-map` se declara
+_best-effort_. Un exit 1 rompería el propio job de tests por un fallo de observabilidad.
+
 ## Risks / Trade-offs
 
 - [El step summary añade tiempo al job] → el audit usa `--filesOnly` (no ejecuta tests) y se mide
@@ -185,6 +234,10 @@ el argv computado.
   resuelto sin invocar Vitest.
 - [`coverage.changed` puede ocultar una caída de cobertura en un PR] → D18 intacto: thresholds solo
   en full, y el nocturno advisory sigue publicando el % global.
+- [El propio runner se pone rojo con el informe limitado (F1)] → runs scoped con
+  `vitest.scoped.config.js` (thresholds a 0, sin globs) + guard `--advisory`; los thresholds se
+  evalúan solo en full. Verificado empíricamente: mismos floors sobre informe limitado → exit 1 sin
+  el config scoped y exit 0 con él.
 - [El historial reintroduce ruido (flaky inyectado en cada PR)] → N=3 acotado, se inyectan solo
   ficheros con fallo real en `main`, la cuarentena sigue excluyéndolos, y el inyectado se reporta
   aparte en la métrica para poder detectarlo.
@@ -211,6 +264,21 @@ Rollback: cada paso es un script/flag reversible por PR; ningún safety net se r
 camino, y si un paso degrada el feedback loop basta con quitar su línea (la selección base
 `--changed` queda siempre operativa).
 
+## Verification log
+
+Evidencia local recogida al implementar (la evidencia de runs de CI queda como
+pending-CI en `tasks.md`):
+
+| Task | Evidencia                                                                       | Resultado                                                                                                     |
+| ---- | ------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| 1.4  | Duración de `node scripts/ci/tia-metric.mjs apps/client --format=md` (cwd raíz) | **EVIDENCIA NO REPRODUCIBLE — artefacto ausente** (la ejecución citada nunca pudo ocurrir; ver nota inferior) |
+
+> **Nota — auditoría de integridad (2026-10-11):** la fila 1.4 fue invalidada por la
+> auditoría de integridad de 2026-10-11 (ver `tasks.md` § Auditoría de integridad): el artefacto
+> `scripts/ci/tia-metric.mjs` no existe en el filesystem ni en ningún ref de git, de modo que la
+> medición citada nunca pudo ejecutarse. La duración se re-ejecutará y se registrará de nuevo
+> cuando `tia-metric.mjs` exista realmente.
+
 ## Open Questions
 
 - **N del historial** (3): se ajusta con la métrica sin tocar specs (el requirement solo pide
@@ -220,3 +288,12 @@ camino, y si un paso degrada el feedback loop basta con quitar su línea (la sel
 - **Profundidad del mapa (fichero de test → ficheros fuente vs. nivel por test)**: el artefacto
   permite evolucionar sin cambiar el contrato; el primer incremento usa el grafo que Vitest ya
   resuelve en la corrida full-suite.
+
+## Nota de alcance (2026-10-11)
+
+Alcance inmediato de esta corrección: la auditoría de integridad (ver `tasks.md` § Auditoría
+de integridad) + los 3 scripts (`tia-metric` 1.1, `tia-history` 4.1, `tia-map` 7.1) y su proyecto
+de tests unitarios. **Queda pendiente**: `vitest.scoped.config.js` (2.1), flags
+`--coverage.changed` (2.2), `tia-select.mjs` (4.3), `BaseSequencer` (5.1/D7), scripts npm
+`test:tia*` (9.x/10.x/11.3), consumo del artefacto `coverage-map` (7.3) y la anotación en
+`ci-testing-gate-promotion` (12.4).

@@ -2,15 +2,22 @@
 
 > **Fecha:** 2026-10-05
 > **Alcance:** Implementación del patrón _Coverage Tripwire (Floor Ratchet)_ usando Vitest + c8/V8 en este monorepo.
-> **Fuentes consultadas:** Documentación oficial Vitest v4, artículos de la comunidad (QASkills, Nerd Level Tech, Gaffer.sh, Javascript-Testing.com), y la arquitectura CI/CD ya establecida en `docs/ci-cd-pipeline-empresarial.md` y `docs/learning/unit-tests-enterprise.md`.
+> **Fuentes consultadas:** Documentación oficial Vitest v4, artículos de la comunidad (QASkills,
+> Nerd Level Tech, Gaffer.sh, Javascript-Testing.com), y la arquitectura CI/CD ya establecida en
+> `docs/ci-cd-pipeline-empresarial.md` y `docs/learning/unit-tests-enterprise.md`.
 
 ---
 
 ## 1. Introducción: ¿Qué es un Coverage Tripwire?
 
-Un **coverage tripwire** (o _coverage floor_) es un umbral mínimo de cobertura de código que, al ser violado, **falla el build**. Su propósito es atrapar regresiones catastróficas — un módulo nuevo con 0 tests, un refactor que elimina tests — , **no certificar calidad**. Es un _smoke detector_, no un _fireproof_.
+Un **coverage tripwire** (o _coverage floor_) es un umbral mínimo de cobertura de código que, al
+ser violado, **falla el build**. Su propósito es atrapar regresiones catastróficas — un módulo nuevo
+con 0 tests, un refactor que elimina tests — , **no certificar calidad**. Es un _smoke detector_, no
+un _fireproof_.
 
-Un **floor ratchet** (o simplemente _ratchet_) es una variante del tripwire donde el umbral solo puede **subir**, nunca bajar. Cada vez que la cobertura mejora, el piso se ajusta automáticamente (o manualmente) al nuevo nivel, asegurando que nunca retroceda.
+Un **floor ratchet** (o simplemente _ratchet_) es una variante del tripwire donde el umbral solo
+puede **subir**, nunca bajar. Cada vez que la cobertura mejora, el piso se ajusta automáticamente (o
+manualmente) al nuevo nivel, asegurando que nunca retroceda.
 
 ### Diferencia clave: Tripwire vs Quality Gate
 
@@ -19,7 +26,9 @@ Un **floor ratchet** (o simplemente _ratchet_) es una variante del tripwire dond
 | **Coverage Tripwire**         | Piso absoluto (ej. 60%)   | Atrapar abandono catastrófico       | PRE-BUILD (local + CI)   |
 | **Quality Gate autoritativo** | New-code ≥80% (SonarQube) | Certificar calidad del código nuevo | STAGE 4 post-deploy      |
 
-> **Veredicto del proyecto:** El tripwire es el **único guard bloqueante** de cobertura hoy (`scripts/ci/check-coverage.mjs`). El quality gate autoritativo (SonarQube new-code) está inactivo (`if: false`, sin `SONAR_TOKEN`). Ver §5.
+> **Veredicto del proyecto:** El tripwire es el **único guard bloqueante** de cobertura hoy
+> (`scripts/ci/check-coverage.mjs`). El quality gate autoritativo (SonarQube new-code) está inactivo
+> (`if: false`, sin `SONAR_TOKEN`). Ver §5.
 
 ---
 
@@ -87,7 +96,9 @@ coverage: {
 },
 ```
 
-> **Nota:** Los valores del server son bajos intencionalmente. El coverage global puede ser bajo por módulos NORMAL sin que falle CI — la métrica real se valida por módulo en code review (§16.1 de `testing-architecture.md`).
+> **Nota:** Los valores del server son bajos intencionalmente. El coverage global puede ser bajo
+> por módulos NORMAL sin que falle CI — la métrica real se valida por módulo en code review (§16.1
+> de `testing-architecture.md`).
 
 ### 3.2 Configuración del ratchet (autoUpdate)
 
@@ -175,9 +186,14 @@ En `apps/server/vitest.config.js` el piso global está en 42.28/21.75/8.98/42.76
 
 > **Extracto del `pending.txt` (notas de investigación del proyecto):**
 >
-> _El coverage ratchet asume que `vitest run --coverage` corre toda la suite y mide cobertura sobre el codebase completo. Si TIA solo corre un subconjunto de tests, el reporte de cobertura mostrará un número artificialmente bajo, porque c8 solo ve las líneas tocadas por los tests que efectivamente corrieron — el resto aparece como "no cubierto" aunque tenga tests que simplemente no se ejecutaron._
+> _El coverage ratchet asume que `vitest run --coverage` corre toda la suite y mide cobertura sobre
+> el codebase completo. Si TIA solo corre un subconjunto de tests, el reporte de cobertura mostrará
+> un número artificialmente bajo, porque c8 solo ve las líneas tocadas por los tests que
+> efectivamente corrieron — el resto aparece como "no cubierto" aunque tenga tests que simplemente
+> no se ejecutaron._
 >
-> _Peor: si el `autoUpdate` del ratchet llegara a correr sobre ese subconjunto, bajaría el piso incorrectamente, perdiendo la garantía de "el piso nunca baja"._
+> _Peor: si el `autoUpdate` del ratchet llegara a correr sobre ese subconjunto, bajaría el piso
+> incorrectamente, perdiendo la garantía de "el piso nunca baja"._
 
 ### 4.2 La solución: Jobs separados
 
@@ -215,7 +231,8 @@ En `apps/server/vitest.config.js` el piso global está en 42.28/21.75/8.98/42.76
 
 > El tripwire de thresholds SOLO evalúa cobertura de suite completa; la corrida TIA no lo alimenta.
 
-**Red de seguridad:** Si TIA corre sobre un subset y el coverage job difiere, los PRs `shared` y el nocturno (`nightly-full-suite.yml`) cubren la suite completa y actualizan el tripwire real.
+**Red de seguridad:** Si TIA corre sobre un subset y el coverage job difiere, los PRs `shared` y
+el nocturno (`nightly-full-suite.yml`) cubren la suite completa y actualizan el tripwire real.
 
 ---
 
@@ -511,8 +528,10 @@ coverage-merge-gate:
 **Proyecto (verificado en el repo):**
 
 - `docs/ci-cd-pipeline-empresarial.md` — §23.3 (diagrama STAGE 2), §23.6 (Coverage Merge Gate), §L520 (tripwire)
-- `docs/testing-architecture.md` — §4 (seeding), §6 (principios), §9 (mocks/anti-patrones), §16 (coverage targets), §18 (cross-platform)
-- `docs/learning/unit-tests-enterprise.md` — §2.2 (coverage tripwire), §2.3 (TIA), §2.6 (coverage merge gate), §2.7 (CI jobs)
+- `docs/testing-architecture.md` — §4 (seeding), §6 (principios), §9 (mocks/anti-patrones),
+  §16 (coverage targets), §18 (cross-platform)
+- `docs/learning/unit-tests-enterprise.md` — §2.2 (coverage tripwire), §2.3 (TIA),
+  §2.6 (coverage merge gate), §2.7 (CI jobs)
 - `pending.txt` — tensión entre TIA y floor ratchet (notas de investigación)
 - `vitest.shared.js`, `apps/{server,client}/vitest.config.js`, `scripts/ci/check-coverage.mjs`, `.github/workflows/ci.yml`
 

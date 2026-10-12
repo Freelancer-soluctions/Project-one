@@ -216,6 +216,45 @@ npx vitest list --changed --filesOnly --config apps/client/vitest.config.js
 git diff --name-only origin/main...HEAD
 ```
 
+### 4.3.1 Auditoría y run scoped local (change `tia-hardening`)
+
+El change `tia-hardening` expone los mismos scripts de selección que CI como comandos npm
+(local-tia-workflow): `test:tia:audit` (auditoría) y `test:tia` (run scoped con paridad CI).
+
+```bash
+# Auditoría: qué tests seleccionaría Vitest para el diff sin ejecutarlos
+git fetch origin main   # si la rama local no tiene el base resuelto
+npm run test:tia:audit              # raíz → ambos workspaces
+npm run test:tia:audit --workspace=apps/server   # un workspace
+
+# Run scoped local con cobertura limitada al diff + inyección de fallidos locales
+npm run test:tia              # raíz → ambos workspaces
+npm run test:tia --workspace=apps/client   # un workspace
+```
+
+Los scripts leen `node_modules/.cache/tia/tia-history.json` para inyectar tests previamente fallidos
+(mismo historial que CI, keyado por workspace) y corrigen a la selección estática si el historial está
+incorrecto o faltante. El estado se mantiene entre corridas y está fuera de git (misma cache que CI).
+
+> **Gap 2 (P1) — cubierto**: shadow mode está implementado en CI mediante el step
+> **Resolve TIA shadow metric** (`scripts/ci/tia-metric.mjs`), que publica en el step summary
+> `K ficheros`, `N/T = %`, `injected=M`, `map=hit|miss` y `scope=changed|full`. El script es
+> advisory por contrato (nunca sale distinto de 0), y la métrica se registra en la ventana de
+> calibración de `docs/learning/quality-gates.md` §7.1.
+>
+> **Gap 1 (P1) — cubierto**: `coverage.changed` está activo en `test:changed:ci` (ambos
+> workspaces) con `--coverage.changed=origin/main` y los thresholds nativos anulados vía
+> `vitest.scoped.config.js` (thresholds a 0 en scoped; los floors reales viven en
+> `vitest.config.js` y se evalúan solo en full suite). `check-coverage.mjs` corre en modo
+> `--advisory` cuando `tia-scope.txt != full`.
+
+### 4.3.2 Persistent coverage map (gap 3 — P2)
+
+Los runs full-suite publican `coverage-map.json` (artefacto `coverage-map-<workspace>`) que los PRs
+scoped consumen para enriquecer la selección: `hit` → el mapa contribuye al grafo; `miss`/ausente →
+fallback al grafo estático + `::notice:: map=miss` en la métrica (nunca selección vacía en silencio,
+cae a D7).
+
 ### 4.4 Red de seguridad, cuarentena y nivel local
 
 | Pieza                                                 | Papel en TIA                                                                                                                                                                                                                 |
@@ -248,16 +287,20 @@ git diff --name-only origin/main...HEAD
 > net nocturno + cuarentena + pre-push), es decir, ya cubre los _fallbacks obligatorios_ del
 > §3.2. Los 8 gaps son de **precisión, medición y madurez**, no de seguridad básica.
 
-| #   | Gap                                                                                                                                           | Prioridad | Acción propuesta                                                                                                                                        | Esfuerzo |
-| --- | --------------------------------------------------------------------------------------------------------------------------------------------- | --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- |
-| 1   | `coverage.changed` (Vitest 4) sin usar: la cobertura de `test:changed:ci` mezcla lo ejecutado con lo importado                                | **P1**    | Añadir `--coverage.changed=origin/main` a `test:changed:ci` y validar con `check-coverage.mjs` en modo advisory                                         | Bajo     |
-| 2   | Sin **shadow mode** ni métrica de precisión TIA (¿qué % del suite corre por PR? ¿cuántos falsos positivos por imports dinámicos tipo router?) | **P1**    | Loguear `vitest list --changed --filesOnly` + `numTotalTests/totalTests` en el step summary; revisar tras 2 semanas antes de promover FASE 2            | Bajo     |
-| 3   | Sin **coverage-map persistente** (solo grafo de imports en memoria)                                                                           | **P2**    | Artefacto de dependencias estilo testmon/Agoda: subir mapa de coverage desde `main` a cache/artifact y consumirlo en PRs                                | Alto     |
-| 4   | No se inyectan **previously failing tests** a la selección (componente 2 de Microsoft TIA)                                                    | **P2**    | Combinar con el historial de `vitest-results.json`/JUnit: re-ejecutar siempre los tests que fallaron en los últimos N runs de `main`                    | Medio    |
-| 5   | TIA solo cubre unit (client + server); `test-integration`, `test-smoke` y `e2e` no se scopean                                                 | **P3**    | Extender el mismo contrato (`Resolve TIA scope` + D7) a integration/e2e cuando su duración lo justifique                                                | Medio    |
-| 6   | Sin **smart ordering / fail-first** basado en histórico                                                                                       | **P3**    | `BaseSequencer` de Vitest + orden por tasa de fallo histórica (regla 21, `ci-cd-pipeline-empresarial.md` §23.3)                                         | Bajo     |
-| 7   | **Remote cache build+test** no compartido: diff-scoping y cache hashing calculados por separado                                               | **P3**    | Evaluar Turborepo (`--affected` + remote cache) según [`docs/adr/turborepo-evaluation.md`][adr]; o al menos declarar `outputs`/hash inputs consistentes | Medio    |
-| 8   | Jobs `test-unit-*` en **FASE 1 advisory** (`continue-on-error: true`) — TIA reporta pero no bloquea                                           | **P3**    | Promover a blocking tras la ventana de calibración (2–4 semanas, en lockstep con [`quality-gates.md`][qg])                                              | Bajo     |
+| #   | Gap                                                                                                                                           | Prioridad | Acción propuesta                                                                                                                                        | Esfuerzo | Estado                                                       |
+| --- | --------------------------------------------------------------------------------------------------------------------------------------------- | --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- | ------------------------------------------------------------ |
+| 1   | `coverage.changed` (Vitest 4) sin usar: la cobertura de `test:changed:ci` mezcla lo ejecutado con lo importado                                | **P1**    | Añadir `--coverage.changed=origin/main` a `test:changed:ci` y validar con `check-coverage.mjs` en modo advisory                                         | Bajo     | ✅ Implementado en change `tia-hardening` (task 2.2)         |
+| 2   | Sin **shadow mode** ni métrica de precisión TIA (¿qué % del suite corre por PR? ¿cuántos falsos positivos por imports dinámicos tipo router?) | **P1**    | Loguear `vitest list --changed --filesOnly` + `numTotalTests/totalTests` en el step summary; revisar tras 2 semanas antes de promover FASE 2            | Bajo     | ✅ Implementado en change `tia-hardening` (task 1.1/1.2)     |
+| 3   | Sin **coverage-map persistente** (solo grafo de imports en memoria)                                                                           | **P2**    | Artefacto de dependencias estilo testmon/Agoda: subir mapa de coverage desde `main` a cache/artifact y consumirlo en PRs                                | Alto     | ✅ Implementado en change `tia-hardening` (task 7.1/7.2/7.3) |
+| 4   | No se inyectan **previously failing tests** a la selección (componente 2 de Microsoft TIA)                                                    | **P2**    | Combinar con el historial de `vitest-results.json`/JUnit: re-ejecutar siempre los tests que fallaron en los últimos N runs de `main`                    | Medio    | ✅ Implementado en change `tia-hardening` (task 4.1/4.2/4.4) |
+| 5   | TIA solo cubre unit (client + server); `test-integration`, `test-smoke` y `e2e` no se scopean                                                 | **P3**    | Extender el mismo contrato (`Resolve TIA scope` + D7) a integration/e2e cuando su duración lo justifique                                                | Medio    | 🔲 Pendiente                                                 |
+| 6   | Sin **smart ordering / fail-first** basado en histórico                                                                                       | **P3**    | `BaseSequencer` de Vitest + orden por tasa de fallo histórica (regla 21, `ci-cd-pipeline-empresarial.md` §23.3)                                         | Bajo     | ✅ Implementado en change `tia-hardening` (task 5.1)         |
+| 7   | **Remote cache build+test** no compartido: diff-scoping y cache hashing calculados por separado                                               | **P3**    | Evaluar Turborepo (`--affected` + remote cache) según [`docs/adr/turborepo-evaluation.md`][adr]; o al menos declarar `outputs`/hash inputs consistentes | Medio    | 🔲 Pendiente (ADR update)                                    |
+| 8   | Jobs `test-unit-*` en **FASE 1 advisory** (`continue-on-error: true`) — TIA reporta pero no bloquea                                           | **P3**    | Promover a blocking tras la ventana de calibración (2–4 semanas, en lockstep con [`quality-gates.md`][qg])                                              | Bajo     | 🔲 Pendiente (dueño: `ci-testing-gate-promotion`)            |
+
+**Estado**: gaps 1, 2, 3, 4 y 6 implementados en `openspec/changes/tia-hardening`; gaps 5 y 7 quedan
+como pendientes (P3); gap 8 es responsabilidad de `ci-testing-gate-promotion` (D8) y este change
+solo aporta la evidencia de la ventana de calibración.
 
 **Orden recomendado**: 2 (medir) → 1 (quick win de cobertura) → 8 (convertir en gate) → 4 → 6
 → 5 → 3 → 7.

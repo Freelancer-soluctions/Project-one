@@ -44,6 +44,24 @@ Companion guide (the "why" behind each dimension): `docs/learning/ci-cd/21-code-
 - [ ] Integration tests added for new API endpoints
 - [ ] All tests pass locally and in CI
 
+### Snapshot Tests (apps/client)
+
+Reference: `docs/learning/snapshot-testing.md`. Invariant: CI never approves a snapshot —
+`vitest.config.js` resolves `update: 'none'` when `process.env.CI` is truthy and no CI script
+(`test`, `test:unit`, `test:integration`, `test:changed`, `test:changed:ci`, `test:coverage`,
+`test:coverage:ci`) passes `-u`/`--update`; only the local `test:snapshot` (`--update=new`) and
+`test:snapshot:refresh` (`-u`) scripts may write, so a snapshot can only change through a locally
+reviewed run.
+
+- [ ] Snapshot captures a single component/subtree (no page trees, no open animated menus)
+- [ ] Dates/uuids/randomness are frozen (`vi.setSystemTime`, fixtures, `server.use()` handlers)
+- [ ] Diff is reviewable (roughly under ~100 lines of rendered markup)
+- [ ] Markup in the diff is expected and intentional — not incidental churn
+- [ ] No update run (`-u`/`--update`) in any CI step or CI-consumed script
+- [ ] No obsolete snapshot entries left behind by renamed/deleted tests (refresh locally, commit the deletion)
+- [ ] Every snapshot created or updated locally (`update: 'new'` creates missing files) is committed
+      in the same PR **before pushing** — uncommitted snapshots fail CI (`update: 'none'` rejects them)
+
 ### Performance
 
 - [ ] No obvious N+1 queries or redundant DB round-trips (Prisma includes/joins used well)

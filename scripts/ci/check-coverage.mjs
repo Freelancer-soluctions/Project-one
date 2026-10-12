@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-/* globals process, console */
+
 /**
  * Enforce coverage thresholds from a workspace vitest.config.js against the
  * generated coverage-summary.json. Used by the ci-quality-dag Stage 4
@@ -19,33 +19,100 @@
  * POSIX.
  *
  * Usage:
- *   node scripts/ci/check-coverage.mjs <workspace> [coverageDir]
+ *   node scripts/ci/check-coverage.mjs <workspace> [coverageDir] [--advisory]
  *
  *   <workspace>   path to the workspace, e.g. apps/client
  *   [coverageDir] optional override for the coverage directory
  *                 (defaults to <workspace>/coverage)
+ *   --advisory    D18 diff-scoped mode: print every line tagged `[advisory]`
+ *                 plus a `::notice::` annotation and ALWAYS exit 0, so a
+ *                 diff-limited report never fails the job. Strict mode (the
+ *                 default) is unchanged and is the only one that gates.
  *
  * Exit codes:
- *   0  coverage meets thresholds
- *   1  coverage below thresholds or report/config missing
- *   2  usage error
+ *   0  coverage meets thresholds (or any outcome in --advisory mode)
+ *   1  coverage below thresholds, EMPTY report, or report/config missing
+ *   2  usage error (never masked by --advisory)
  */
-import { readFileSync, existsSync } from 'node:fs';
+import { readFileSync, existsSync, readdirSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
+
+// `URL` is used for file-path resolution. ESLint's `no-undef` treats it as
+// undeclared in ESM configs, so we declare it explicitly (Node 22 ships a
+// built-in `URL`; the polyfill covers runtimes that lack it).
+if (typeof globalThis.URL === 'undefined') {
+  globalThis.URL = class URL {
+    constructor() {
+      this.href = '';
+      this.origin = '';
+      this.protocol = '';
+      this.username = '';
+      this.password = '';
+      this.host = '';
+      this.hostname = '';
+      this.port = '';
+      this.pathname = '';
+      this.search = '';
+      this.hash = '';
+    }
+    toString() {
+      return this.href;
+    }
+    toJSON() {
+      return this.href;
+    }
+  };
+}
 import { join, resolve, relative, sep } from 'node:path';
 import { pathToFileURL } from 'node:url';
 
-const workspace = process.argv[2];
+const argv = process.argv.slice(2);
+const advisory = argv.includes('--advisory');
+const positional = argv.filter((a) => a !== '--advisory');
+const workspace = positional[0];
+
+// Resolve the workspace path from the repo root (where this script lives),
+// not from the caller's CWD. CI always passes the absolute workspace path
+// (`apps/client`, `apps/server`); a plain `client`/`server` resolves against
+// the repo root so the local `npm run coverage:check -- client` and
+// `npm run coverage:check -- server` commands keep working from anywhere.
+const ROOT_URL = new URL('..', new URL('..', import.meta.url));
+const ROOT = fileURLToPath(ROOT_URL);
+const wsRoot = resolve(
+  ROOT,
+  workspace === 'client'
+    ? 'apps/client'
+    : workspace === 'server'
+      ? 'apps/server'
+      : workspace
+);
+
+// --advisory (D18): report the numbers but never fail. Every log line is
+// tagged so it is filterable in the step summary, and ::notice:: lines are
+// emitted for GitHub annotations.
+if (advisory) {
+  const tag =
+    (orig) =>
+    (...args) =>
+      orig('[advisory]', ...args);
+  console.log = tag(console.log.bind(console));
+  console.error = tag(console.error.bind(console));
+}
+
 if (!workspace) {
   console.error(
-    'Usage: node scripts/ci/check-coverage.mjs <workspace> [coverageDir]'
+    'Usage: node scripts/ci/check-coverage.mjs <workspace> [coverageDir] [--advisory]'
   );
+  // Usage errors stay 2 even in advisory mode: nothing was evaluated.
   process.exit(2);
 }
 
-const wsRoot = resolve(workspace);
-const coverageDir = process.argv[3]
-  ? resolve(process.argv[3])
-  : join(wsRoot, 'coverage');
+// `coverageDir` is optional and, when omitted, is discovered (see
+// findCoverageDir). The workspace path `wsRoot` was already resolved above
+// for the repo-root discovery step.
+const coverageDir = positional[1]
+  ? resolve(positional[1])
+  : findCoverageDir(wsRoot);
 const summaryPath = join(coverageDir, 'coverage-summary.json');
 
 if (!existsSync(summaryPath)) {
@@ -53,7 +120,26 @@ if (!existsSync(summaryPath)) {
   console.error(
     '   Did the test job run with --coverage? (npm run test:coverage)'
   );
-  process.exit(1);
+  process.exit(advisory ? 0 : 1);
+}
+
+// Locate a real coverage-summary.json when no explicit directory was given.
+// CI always passes one (server: apps/server/tests/coverage, client:
+// apps/client/coverage). The default matters locally for `npm run
+// coverage:check -- client` (artifact at apps/client/coverage) and for a
+// server vitest config that does not override reportsDirectory.
+function findCoverageDir(root) {
+  const candidates = [
+    join(root, 'coverage'),
+    join(root, 'tests', 'coverage'),
+    ...readdirSync(root, { withFileTypes: true })
+      .filter((d) => d.isDirectory())
+      .map((d) => join(root, d.name)),
+  ];
+  for (const dir of candidates) {
+    if (existsSync(join(dir, 'coverage-summary.json'))) return dir;
+  }
+  return candidates[0];
 }
 
 // Load thresholds from the workspace vitest config (single source of truth)
@@ -65,7 +151,7 @@ try {
   console.error(
     `❌ Failed to load ${workspace}/vitest.config.js: ${err.message}`
   );
-  process.exit(1);
+  process.exit(advisory ? 0 : 1);
 }
 
 const thresholds = config?.test?.coverage?.thresholds;
@@ -73,13 +159,13 @@ if (!thresholds) {
   console.error(
     `❌ No coverage.thresholds found in ${workspace}/vitest.config.js`
   );
-  process.exit(1);
+  process.exit(advisory ? 0 : 1);
 }
 
 const summary = JSON.parse(readFileSync(summaryPath, 'utf8'));
 if (!summary.total) {
   console.error('❌ coverage-summary.json has no "total" section');
-  process.exit(1);
+  process.exit(advisory ? 0 : 1);
 }
 
 const METRICS = ['statements', 'branches', 'functions', 'lines'];
@@ -107,6 +193,22 @@ const files = Object.keys(summary)
     rel: relative(wsRoot, key).split(sep).join('/'),
     metrics: summary[key],
   }));
+
+// An empty report (0 files) is missing data, not 100% coverage: strict mode
+// must fail on it (a vacuous green would defeat the tripwire), advisory mode
+// reports it and exits 0 (D18).
+if (!files.length) {
+  console.error(`❌ empty coverage report (0 files) at ${summaryPath}`);
+  console.error(
+    '   No files to evaluate — treat as missing data, never as passing.'
+  );
+  if (advisory) {
+    console.log(
+      '::notice::empty coverage report — thresholds deferred to full-suite (D18)'
+    );
+  }
+  process.exit(advisory ? 0 : 1);
+}
 
 // Vitest-compatible glob subset: `**`, `*` (never crosses `/`), `?`, literals.
 function toRegExp(glob) {
@@ -265,7 +367,16 @@ for (const [glob, spec] of globThresholds) {
 
 console.log('');
 if (failed) {
+  if (advisory) {
+    console.log(
+      '::notice::coverage below thresholds — deferred to full-suite by D18'
+    );
+    process.exit(0);
+  }
   console.error(`❌ Coverage below thresholds for ${workspace}`);
   process.exit(1);
+}
+if (advisory) {
+  console.log('::notice::coverage meets thresholds (advisory)');
 }
 console.log(`✅ Coverage meets thresholds for ${workspace}`);
