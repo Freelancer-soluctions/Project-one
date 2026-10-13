@@ -7,9 +7,11 @@
 > **estado actual en este monorepo** (0 `sequence.sequencer`, historial en artefactos
 > `flaky-evidence-*`, gap de caché en CI) con gaps y plan alineado con `tia-hardening`.  
 > **Audiencia:** Equipo de ingeniería, CI/CD maintainers, QA lead.  
-> **Status:** ✅ Investigación completa — el repo NO tiene smart ordering explícito (solo el
-> `BaseSequencer` por defecto de Vitest, sin historial persistido en CI); la implementación queda
-> **en propiedad de `tia-hardening` (task 5.1)** para no duplicar ni conflictuar.
+> **Status:** ✅ Investigación completa e **implementada** por el change `smart-test-ordering`:
+> sequencer fail-first (`vitest.sequencer.js` + `sequence.sequencer` en `vitest.shared.js`), historial
+> N=3 restaurado en CI, degradación flaky/cuarentena, métrica TTFF/first-fail advisory y auditoría
+> semanal de order-dependence con seed fijo (ver §4.6). La receta §4.2 nació en propiedad de
+> `tia-hardening` (task 5.1); `smart-test-ordering` la materializa y la extiende.
 
 ---
 
@@ -185,23 +187,23 @@ panorama, apaga `bail` y deja que la matriz corra (`fail-fast: false`).
 
 ### 4.1 Qué hay hoy (audit 2026-10-06)
 
-| Pieza                                                       | Estado                                                                                                                                                                               |
-| ----------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `sequence.sequencer` configurado                            | **NO** — grep en el repo: 0 menciones fuera del lockfile (`@pnpm/deps.graph-sequencer`, ajeno).                                                                                      |
-| Orden por defecto                                           | `BaseSequencer` de Vitest 4: failed first → longer first **si hay caché**; sin caché: unknown first → larger first                                                                   |
-| **GAP: caché de orden en CI**                               | `setup-monorepo` cachea `node_modules/.cache` con `exclude: node_modules/.cache/vitest` ⇒ en CI la caché `results.json` **no se restaure** → el orden degrada a unknown/larger-first |
-| `vitest.shared.js`                                          | Solo `globals`, timeouts y coverage v8 — **aquí va `sequence.sequencer`** (task 5.1)                                                                                                 |
-| `maxWorkers: 1` bajo `CI=true` (ambos configs)              | Orden de ficheros = orden de ejecución → efecto directo 1:1 sobre el TTFF                                                                                                            |
-| `retry: 2` + `maxWorkers: 1` (server, solo CI)              | Reintenta fallos: el estado que llega a `vitest-results.json` es el final (flaky visibles en `flaky-retries.json`)                                                                   |
-| Historial de resultados                                     | `apps/*/reports/{vitest-results.json, junit.xml, flaky-retries.json, tia-scope.txt}` → artefacto `flaky-evidence-*` (30 días)                                                        |
-| Reporter de flaky                                           | `scripts/ci/vitest-flaky-reporter.mjs` → `reports/flaky-retries.json` (`retryCount`/`flaky` por test)                                                                                |
-| Métrica semanal                                             | `scripts/ci/flaky-metric.mjs` + `flaky-weekly.yml` (pass-rate 14d; nunca edita cuarentena)                                                                                           |
-| Cuarentena                                                  | `.github/flaky-quarantine.yml` + `scripts/ci/quarantine-exclude.mjs` (exclusiones por argv en los jobs unit)                                                                         |
-| Nightly                                                     | `nightly-full-suite.yml` cron `40 2 * * *` (02:40 UTC): suites **completas**, sin cuarentena, sin `--changed`                                                                        |
-| pre-push                                                    | `.husky/pre-push` → `test:changed` en ambos workspaces (mismo contrato que CI)                                                                                                       |
-| Guard D7 (TIA spec) / D18                                   | 0 tests → full suite ruidoso / thresholds solo en full — **intactos, no se tocan**                                                                                                   |
-| Regla 21 (`ci-cd-pipeline-empresarial.md` §23.3, línea 859) | Documentada como **pendiente** (tabla de optimizaciones ~línea 3412: "Smart Test Ordering — NO")                                                                                     |
-| Gap 6 de [`test-impact-analysis.md`][tia]                   | "Sin smart ordering / fail-first basado en histórico" — P3, acción: `BaseSequencer` + tasa de fallo histórica                                                                        |
+| Pieza                                                       | Estado                                                                                                                                                                                                                                                          |
+| ----------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `sequence.sequencer` configurado                            | **SÍ** — `vitest.sequencer.js` cableado en `vitest.shared.js` (change `smart-test-ordering`); sin historial degrada a orden determinista (ruta ascendente), con `TIA_SEQUENCER=stable` delega en `BaseSequencer`.                                               |
+| Orden por defecto                                           | `BaseSequencer` de Vitest 4: failed first → longer first **si hay caché**; sin caché: unknown first → larger first                                                                                                                                              |
+| **GAP: caché de orden en CI**                               | `setup-monorepo` cachea `node_modules/.cache` con `exclude: node_modules/.cache/vitest` ⇒ el historial propio (`tia-history.json` restaurado en `node_modules/.cache/tia/`) **sustituye** ese hueco; sin artefacto el orden degrada al determinista documentado |
+| `vitest.shared.js`                                          | Cablea `sequence.sequencer` → `vitest.sequencer.js` (fail-first) y respeta `TIA_SEQUENCER=stable`                                                                                                                                                               |
+| `maxWorkers: 1` bajo `CI=true` (ambos configs)              | Orden de ficheros = orden de ejecución → efecto directo 1:1 sobre el TTFF                                                                                                                                                                                       |
+| `retry: 2` + `maxWorkers: 1` (server, solo CI)              | Reintenta fallos: el estado que llega a `vitest-results.json` es el final (flaky visibles en `flaky-retries.json`)                                                                                                                                              |
+| Historial de resultados                                     | `apps/*/reports/{vitest-results.json, junit.xml, flaky-retries.json, tia-scope.txt}` → artefacto `flaky-evidence-*` (30 días)                                                                                                                                   |
+| Reporter de flaky                                           | `scripts/ci/vitest-flaky-reporter.mjs` → `reports/flaky-retries.json` (`retryCount`/`flaky` por test)                                                                                                                                                           |
+| Métrica semanal                                             | `scripts/ci/flaky-metric.mjs` + `flaky-weekly.yml` (pass-rate 14d; nunca edita cuarentena)                                                                                                                                                                      |
+| Cuarentena                                                  | `.github/flaky-quarantine.yml` + `scripts/ci/quarantine-exclude.mjs` (exclusiones por argv en los jobs unit)                                                                                                                                                    |
+| Nightly                                                     | `nightly-full-suite.yml` cron `40 2 * * *` (02:40 UTC): suites **completas**, sin cuarentena, sin `--changed`                                                                                                                                                   |
+| pre-push                                                    | `.husky/pre-push` → `test:changed` en ambos workspaces (mismo contrato que CI)                                                                                                                                                                                  |
+| Guard D7 (TIA spec) / D18                                   | 0 tests → full suite ruidoso / thresholds solo en full — **intactos, no se tocan**                                                                                                                                                                              |
+| Regla 21 (`ci-cd-pipeline-empresarial.md` §23.3, línea 859) | Documentada como **pendiente** (tabla de optimizaciones ~línea 3412: "Smart Test Ordering — NO")                                                                                                                                                                |
+| Gap 6 de [`test-impact-analysis.md`][tia]                   | "Sin smart ordering / fail-first basado en histórico" — P3, acción: `BaseSequencer` + tasa de fallo histórica                                                                                                                                                   |
 
 ### 4.2 Receta 1 — `vitest.sequencer.js` (propiedad de `tia-hardening` task 5.1)
 
@@ -295,7 +297,10 @@ corre con `TIA_SEQUENCER=stable`.
 ### 4.4 Receta 3 — auditoría de order-dependence (shuffle con seed)
 
 ```bash
-# Local o job advisory separado — NUNCA como comportamiento por defecto del nightly:
+# Local o job advisory separado — NUNCA como comportamiento por defecto del nightly.
+# Ejecutar DENTRO de un workspace (apps/client | apps/server): la raíz del monorepo no tiene
+# config de Vitest, así que ahí el comando no cargaría ni la suite ni el sequencer.
+cd apps/server   # o apps/client
 npx vitest run --sequence.shuffle --sequence.seed=4242
 # 2ª corrida con el mismo seed ⇒ mismo orden (reproducible); cambia el seed ⇒ otra permutación.
 # Un test que pasa solo en ciertas permutaciones es order-dependente: arreglarlo, no ordenarlo.
@@ -308,6 +313,29 @@ npx vitest run --sequence.shuffle --sequence.seed=4242
 npx vitest run --bail=1
 # En CI: no recomendarlo por defecto — oculta el resto de fallos de la corrida (§3.3).
 ```
+
+### 4.6 Estado de implementación (change `smart-test-ordering`)
+
+| Pieza                         | Artefacto                                                          | Comportamiento                                                                                                                                |
+| ----------------------------- | ------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| Sequencer fail-first          | `vitest.sequencer.js` + `sequence.sequencer` en `vitest.shared.js` | Ordena por fallos recientes (historial N=3) con tie-break por ruta; sin historial, orden determinista (ruta ascendente)                       |
+| Historial visible en CI       | Step de restore en los jobs unit de `ci.yml`                       | Restaura el artefacto `tia-history-<workspace>` en `node_modules/.cache/tia/tia-history.json` (best-effort: sin artefacto el job sigue verde) |
+| Degradación flaky             | `vitest.sequencer.js` (cuarentena + `flaky-retries.json`)          | Degrada — nunca asciende — ficheros en cuarentena o con retries; sin datos, orden = conteo de fallos                                          |
+| Métrica TTFF                  | `scripts/ci/ttff-metric.mjs`                                       | TTFF wall-clock, % de suite hasta el primer rojo, % de fallos en el primer X% (X=20) e hit-rate del historial; advisory, `if: always()`       |
+| Auditoría de order-dependence | `.github/workflows/order-dependence-audit.yml`                     | Semanal, advisory, `--sequence.shuffle --sequence.seed=4242` por workspace (mismo seed ⇒ misma permutación)                                   |
+| Opt-out del tier de seguridad | `TIA_SEQUENCER=stable`                                             | El nocturno corre sin orden impuesto (delega en `BaseSequencer`)                                                                              |
+
+**Ventana N.** Hoy **N=3** (`HISTORY_N_DEFAULT`). Se ajusta solo con evidencia del **historial
+hit-rate** que publica la métrica TTFF: ventana corta = frescura; ventana larga = memoria de fallos
+raros. Sin historial el orden degrada a **determinista**, nunca a aleatorio.
+
+**Protocolo de triage (order-dependence).** Un test que falla solo en ciertas permutaciones es
+order-dependente ⇒ **arreglarlo, no ordenarlo**. El shuffle con seed fijo es una auditoría, jamás el
+comportamiento por defecto del nocturno ni del tier PR (el nocturno corre `TIA_SEQUENCER=stable` y
+el run completo en orden natural; el shuffle no se añade a `.husky/pre-push`).
+
+**Paridad local.** El tier local hereda el mismo contrato de orden vía `vitest.shared.js`; el hook
+`.husky/pre-push` no se modifica (solo cambia el orden de los tests ya seleccionados, nunca cuáles).
 
 ---
 

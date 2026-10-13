@@ -170,15 +170,28 @@ Política (§23.3 regla 5, línea de análisis 520):
 
 ### 2.5 Smart test ordering
 
-- **No configurado explícitamente**, pero Vitest trae un `BaseSequencer` con orden por cache: **failed first → longer
-  first** (y sin cache: unknown first → larger first). Es "fail-first" parcial por defecto.
-- `sequence.sequencer` permite custom (extender `BaseSequencer` de `vitest/node`, métodos `sort`/`shard`);
-  `sequence.shuffle.files/tests` para aleatorización (detecta interdependencias; pierde el beneficio de precarga de
-  tests lentos primero).
-- §23.3 regla 21 (línea 859) pide fail-first basado en histórico (Launchable/Nx/Vitest `--changed`) como stage
-  pre-build. **Estado: 0 evidencia de configuración ni de persistencia de cache de orden en CI.**
-- Recomendación: en CI con `--shard`, el orden dentro del shard es irrelevante para el wall-time total; el valor del
-  fail-first está en **pre-push y en el job unit single-runner**.
+- **Implementado** (change `smart-test-ordering`): `sequence.sequencer` apunta a `vitest.sequencer.js`
+  (único sitio válido: la config root `vitest.shared.js`) y ordena **fail-first** — más fallos recientes primero
+  (historial N=3 de `scripts/ci/tia-history.mjs`), con tie-break estable por ruta. Sin historial el orden degrada a
+  **determinista** (ruta ascendente), nunca a aleatorio ni a "0 tests".
+- **Ventana N=3** (`HISTORY_N_DEFAULT`, override `TIA_HISTORY_N`). Criterio de tuning: ajustarla solo con evidencia del
+  **historial hit-rate** que publica `scripts/ci/ttff-metric.mjs` (frescura vs memoria de fallos raros) — es una decisión
+  de datos, no de preferencia.
+- **Métrica TTFF / first-fail** (advisory, nunca gate): TTFF wall-clock, % de suite ejecutado hasta el primer rojo,
+  % de fallos dentro del primer X% (X=20) y hit-rate del historial, publicadas en el step summary por
+  `scripts/ci/ttff-metric.mjs` (junto a `injected=M` de la métrica TIA). Corrida verde publica "sin primer fallo";
+  JSON ausente/corrupto ⇒ `metric=unavailable`.
+- **Degradación flaky-aware**: el ranking **degrada** (nunca asciende) los ficheros en cuarentena
+  (`.github/flaky-quarantine.yml`, leída sin modificarla) o con evidencia de retries (`flaky-retries.json`). Sin datos de
+  flaky el orden es el conteo de fallos puro; la exclusión del tier PR sigue ocurriendo por argv en
+  `quarantine-exclude.mjs` (el ranking no resucita un excluido).
+- **Auditoría de order-dependence** (`.github/workflows/order-dependence-audit.yml`, semanal advisory):
+  `npx vitest run --sequence.shuffle --sequence.seed=4242` — mismo seed ⇒ misma permutación, reproducible en cualquier
+  máquina. **Protocolo de triage: un test que falla solo en ciertas permutaciones es order-dependente ⇒ arreglarlo, no
+  ordenarlo**; el shuffle jamás es el comportamiento por defecto del nocturno ni del tier PR.
+- **Opt-out**: `TIA_SEQUENCER=stable` delega en `BaseSequencer` (tier de seguridad nocturno) para no enmascarar
+  order-dependence. Con `--shard` el orden dentro del shard no cambia el wall-time: el valor del fail-first está en el
+  job unit single-runner y en pre-push.
 
 ### 2.6 Coverage Merge Gate (requerido con sharding — §23.6)
 

@@ -73,6 +73,29 @@ caché por lockfile/versión con eviction de 7 días y datos por máquina, no hi
 cross-run con retención nombrada, y (c) ruido de invalidación en todos los jobs que usan la
 composite. Se deja constancia de la medición en la task 1.2.
 
+**Medición registrada (task 1.2 — 2026-10-13).** Evidencia recogida sobre el repo (este entorno no
+ejecuta GitHub Actions: no hubo experimento de cache-hit en CI; la medición es de la definición de
+la composite + el artefacto real en disco):
+
+- `setup-monorepo` cachea `path: node_modules/.cache` con `exclude: node_modules/.cache/vitest`
+  (`.github/actions/setup-monorepo/action.yml`). Ese `exclude` apunta a una ruta que **Vitest 4 no
+  escribe**: Vitest usa `viteConfig.cacheDir` (deprecó `cache.dir` avisando "caches will be written
+  to `cacheDir/vitest`") y el default de Vite es `node_modules/.vite`. Los ficheros reales están en
+  `node_modules/.vite/vitest/<sha1>/results.json` (uno en la raíz y uno por workspace).
+- Forma medida del artefacto: `{ "version": "4.1.11", "results": { "<clave>": { "duration", "failed" } } }`.
+  Consecuencias para un uso cross-run: (a) está versionado por la versión de Vitest (un bump
+  invalida el fichero entero — el repo acaba de subir a 4.x); (b) guarda solo el ÚLTIMO run local
+  (no hay ventana N); (c) las duraciones son de la máquina que escribió el fichero (ruido de runner).
+- Ruido de invalidación: incluir `node_modules/.vite` en la caché de la composite afectaría a TODOS
+  los jobs que la usan y a `ci-caching` (dueño de su spec), con entradas evictables sin retención
+  nombrada.
+
+**Decisión final — no se toca la composite:** el hueco se cierra en el otro lado con el artefacto
+`tia-history-<workspace>` (N=3, retención 30 días, publicado por el full-suite/nightly), restaurado
+best-effort a `node_modules/.cache/tia/tia-history.json` (task 1.1). Verificación:
+`grep -n "exclude: node_modules/.cache/vitest" .github/actions/setup-monorepo/action.yml` idéntico a
+`main`.
+
 ### D3 — Evidencia flaky para degradar: cuarentena commiteada + `flaky-evidence-*` previo
 
 El ranking degrada con la unión de (a) ficheros listados en `.github/flaky-quarantine.yml` (fuente

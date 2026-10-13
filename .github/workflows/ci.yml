@@ -751,6 +751,11 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
+      # `actions: read` es necesario para descargar el artefacto `tia-history-*`
+      # de OTRO run (restore del historial fail-first, task 1.1 de
+      # `smart-test-ordering`) — sin este scope el `gh run download` falla y el
+      # restore sería un no-op silencioso.
+      actions: read
       contents: read
       checks: write
     steps:
@@ -789,6 +794,28 @@ jobs:
       - name: Report quarantine exclusions in the run
         if: always()
         run: node scripts/ci/quarantine-exclude.mjs --format=md >> "$GITHUB_STEP_SUMMARY"
+        shell: bash
+
+      # Restore del historial fail-first — change `smart-test-ordering` (task 1.1,
+      # design D2). El artefacto `tia-history-client` del nightly/full-suite se
+      # descarga a la ruta EXACTA que lee el sequencer ANTES del step de tests
+      # (el step `Inject previously-failing tests` corre después, para la
+      # inyección de selección). Best-effort y exit 0 garantizado: sin artefacto
+      # o con JSON corrupto el orden degrada al determinista documentado y el job
+      # nunca falla por ello.
+      - name: Restore ordering history (fail-first)
+        if: always()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          mkdir -p apps/client/node_modules/.cache/tia || true
+          RUN_ID=$(gh api repos/${{ github.repository }}/actions/workflows/nightly-full-suite.yml/runs --jq '.workflow_runs[0].id' 2> /dev/null || true)
+          if [ -n "$RUN_ID" ] && gh run download "$RUN_ID" -n tia-history-client -d /tmp/tia-history-restore --dir > /dev/null 2>&1 && [ -f /tmp/tia-history-restore/tia-history.json ]; then
+            cp /tmp/tia-history-restore/tia-history.json apps/client/node_modules/.cache/tia/tia-history.json || true
+            echo "::notice::tia-history: restored fail-first ordering history from nightly run $RUN_ID."
+          else
+            echo "::notice::tia-history: no ordering history artifact available — fail-first runs in deterministic order."
+          fi
         shell: bash
 
       - name: Run Client Unit Tests (TIA / full suite)
@@ -847,6 +874,14 @@ jobs:
       - name: Resolve TIA shadow metric
         if: always()
         run: node scripts/ci/tia-metric.mjs apps/client
+        shell: bash
+
+      # Métrica first-failure / TTFF — change `smart-test-ordering` (task 2.2).
+      # Advisory con el mismo contrato no-gating que el summary TIA: `if: always()`
+      # y `|| true` para que un fallo de la observabilidad nunca voltee el job.
+      - name: Resolve first-failure metric
+        if: always()
+        run: node scripts/ci/ttff-metric.mjs apps/client || true
         shell: bash
 
       # Coverage-map build — task 7.1/7.2 (design D5). El mapa se publica como
@@ -934,6 +969,11 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
+      # `actions: read` es necesario para descargar el artefacto `tia-history-*`
+      # de OTRO run (restore del historial fail-first, task 1.1 de
+      # `smart-test-ordering`) — sin este scope el `gh run download` falla y el
+      # restore sería un no-op silencioso.
+      actions: read
       contents: read
       checks: write
     steps:
@@ -969,6 +1009,26 @@ jobs:
       - name: Report quarantine exclusions in the run
         if: always()
         run: node scripts/ci/quarantine-exclude.mjs --format=md >> "$GITHUB_STEP_SUMMARY"
+        shell: bash
+
+      # Restore del historial fail-first — change `smart-test-ordering` (task 1.1,
+      # design D2). El artefacto `tia-history-server` del nightly/full-suite se
+      # descarga a la ruta EXACTA que lee el sequencer ANTES del step de tests.
+      # Best-effort y exit 0 garantizado: sin artefacto o con JSON corrupto el
+      # orden degrada al determinista documentado y el job nunca falla por ello.
+      - name: Restore ordering history (fail-first)
+        if: always()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          mkdir -p apps/server/node_modules/.cache/tia || true
+          RUN_ID=$(gh api repos/${{ github.repository }}/actions/workflows/nightly-full-suite.yml/runs --jq '.workflow_runs[0].id' 2> /dev/null || true)
+          if [ -n "$RUN_ID" ] && gh run download "$RUN_ID" -n tia-history-server -d /tmp/tia-history-restore --dir > /dev/null 2>&1 && [ -f /tmp/tia-history-restore/tia-history.json ]; then
+            cp /tmp/tia-history-restore/tia-history.json apps/server/node_modules/.cache/tia/tia-history.json || true
+            echo "::notice::tia-history: restored fail-first ordering history from nightly run $RUN_ID."
+          else
+            echo "::notice::tia-history: no ordering history artifact available — fail-first runs in deterministic order."
+          fi
         shell: bash
 
       - name: Run Server Unit Tests (TIA / full suite)
@@ -1023,6 +1083,14 @@ jobs:
       - name: Resolve TIA shadow metric
         if: always()
         run: node scripts/ci/tia-metric.mjs apps/server
+        shell: bash
+
+      # Métrica first-failure / TTFF — change `smart-test-ordering` (task 2.2).
+      # Advisory con el mismo contrato no-gating que el summary TIA: `if: always()`
+      # y `|| true` para que un fallo de la observabilidad nunca voltee el job.
+      - name: Resolve first-failure metric
+        if: always()
+        run: node scripts/ci/ttff-metric.mjs apps/server || true
         shell: bash
 
       - uses: actions/upload-artifact@v7
