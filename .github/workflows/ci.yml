@@ -818,6 +818,15 @@ jobs:
           fi
         shell: bash
 
+      # Instrumentación de duración — G1.1 del change `test-sharding` (siempre,
+      # sin matriz). GitHub Actions no expone la duración de un step, así que se
+      # marca el inicio del step de tests aquí y el step advisory posterior calcula
+      # el delta. Append-only: no altera el run ni el argv de tests.
+      - name: Mark test step start
+        run: |
+          echo "TEST_STEP_START=$(date +%s)" >> "$GITHUB_ENV"
+        shell: bash
+
       - name: Run Client Unit Tests (TIA / full suite)
         run: |
           mkdir -p apps/client/reports
@@ -838,6 +847,31 @@ jobs:
           else
             npm run test:coverage:ci --workspace=apps/client -- ${{ steps.quarantine.outputs.args }}
           fi
+        shell: bash
+
+      # Duración del step de tests — G1.1 del change `test-sharding` (advisory:
+      # `if: always()`, append-only al step summary, nunca gate ni exit 1).
+      - name: Report test step duration (advisory)
+        if: always()
+        run: |
+          NOW=$(date +%s)
+          START="${TEST_STEP_START:-}"
+          case "$START" in
+            ''|*[!0-9]*)
+              echo "::notice::test-unit-client: test step duration not measured (no start marker)."
+              ;;
+            *)
+              SECS=$((NOW - START))
+              {
+                echo "### Test step duration — advisory"
+                echo ""
+                echo "| job | test step wall-time |"
+                echo "| --- | --- |"
+                echo "| \`test-unit-client\` | ${SECS}s |"
+              } >> "$GITHUB_STEP_SUMMARY"
+              echo "::notice::test-unit-client: test step duration ${SECS}s."
+              ;;
+          esac
         shell: bash
 
       # Shadow metric — spec ci-test-impact-analysis (D2/D10). Mide QUÉ habría
@@ -1031,6 +1065,14 @@ jobs:
           fi
         shell: bash
 
+      # Instrumentación de duración — G1.1 del change `test-sharding` (siempre,
+      # sin matriz). Ver la nota del job client: se marca el inicio del step de
+      # tests y el step advisory posterior calcula el delta. Append-only.
+      - name: Mark test step start
+        run: |
+          echo "TEST_STEP_START=$(date +%s)" >> "$GITHUB_ENV"
+        shell: bash
+
       - name: Run Server Unit Tests (TIA / full suite)
         run: |
           mkdir -p apps/server/reports
@@ -1049,6 +1091,31 @@ jobs:
           else
             npm run test:coverage:unit:ci --workspace=apps/server -- ${{ steps.quarantine.outputs.args }}
           fi
+        shell: bash
+
+      # Duración del step de tests — G1.1 del change `test-sharding` (advisory:
+      # `if: always()`, append-only al step summary, nunca gate ni exit 1).
+      - name: Report test step duration (advisory)
+        if: always()
+        run: |
+          NOW=$(date +%s)
+          START="${TEST_STEP_START:-}"
+          case "$START" in
+            ''|*[!0-9]*)
+              echo "::notice::test-unit-server: test step duration not measured (no start marker)."
+              ;;
+            *)
+              SECS=$((NOW - START))
+              {
+                echo "### Test step duration — advisory"
+                echo ""
+                echo "| job | test step wall-time |"
+                echo "| --- | --- |"
+                echo "| \`test-unit-server\` | ${SECS}s |"
+              } >> "$GITHUB_STEP_SUMMARY"
+              echo "::notice::test-unit-server: test step duration ${SECS}s."
+              ;;
+          esac
         shell: bash
 
       # Shadow metric — spec ci-test-impact-analysis (D2/D10). Ver nota del job

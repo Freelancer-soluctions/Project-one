@@ -157,7 +157,11 @@ Política (§23.3 regla 5, línea de análisis 520):
 
 ### 2.4 Sharding
 
-- **No implementado** (0 evidencia, `panorama-resumen.md`). Debe usar el patrón Vitest 4:
+- **Decisión N/A — capacidad dormida** (change `test-sharding`, G2): la duración medida
+  (`test-unit-client` ≈ 2m20s en CI y **205 s** serializado en local; `test-unit-server` ≈ 4 s) queda
+  **bajo el umbral de activación de 5 min**, así que **no aterriza ninguna matriz**
+  (`0 strategy.matrix` en `ci.yml`); se re-evalúa solo con nueva evidencia medida (el repo ya
+  instrumenta la duración con un step advisory en cada job unit). Debe usar el patrón Vitest 4:
   - `vitest run --reporter=blob --shard=1/3` … `--shard=3/3` por runner (matrix strategy con `max-parallel` explícito).
     - `vitest --merge-reports --reporter=junit` en un job `merge-reports` que descarga los artifacts
       (`include-hidden-files: true` para `.vitest/` o `.vitest-reports/`).
@@ -166,7 +170,8 @@ Política (§23.3 regla 5, línea de análisis 520):
       duración = custom `sequence.sequencer` user-land.
     - Costo: cada matrix necesita `max-parallel` explícito + `concurrency` group a nivel workflow para cancelar runs
       obsoletos por push (§23.3, línea 3465) — sin esto la factura escala linealmente.
-- **Prerrequisito:** solo tiene sentido cuando el duration de la suite lo justifica (>5-8 min). Hoy los jobs ni corren.
+- **Prerrequisito:** solo tiene sentido cuando el duration de la suite lo justifica (>5-8 min). Los
+  jobs unit corren; su duración medida está muy por debajo del umbral (ver arriba).
 
 ### 2.5 Smart test ordering
 
@@ -200,7 +205,10 @@ Política (§23.3 regla 5, línea de análisis 520):
 - Diseño §23.6: job `coverage-merge-gate` con `needs: [test-shard-1..3]` → descarga artifacts de cobertura → merge
   (blob/`json-summary` merge) → `check-coverage` contra thresholds absolutos.
 - Estado: gate **por workspace** existe (`scripts/ci/check-coverage.mjs`, usado en `client-coverage`/`server-coverage`,
-  ambos en **FASE 1 advisory activado**); merge de shards **no** (es N/A hasta que haya sharding).
+  ambos en **FASE 1 advisory activado**); merge de shards **no** — y sigue siendo N/A por diseño:
+  el change `test-sharding` cerró con decisión **G2 = N/A** (duración bajo el umbral), así que no
+  hay shards que fusionar; habilitar la matriz sin este merge haría que el tripwire mintiera con
+  cobertura parcial.
 
 ### 2.7 CI jobs — blocking vs advisory (estado real)
 

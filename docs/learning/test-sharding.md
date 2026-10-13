@@ -7,9 +7,13 @@
 > métricas y **estado actual en este monorepo** (0 matrix/shard, agregador de 6 jobs, `maxWorkers: 1`,
 > FASE 1) con gaps y plan priorizado.  
 > **Audiencia:** Equipo de ingeniería, CI/CD maintainers, QA lead.  
-> **Status:** ✅ Investigación completa — el repo NO tiene sharding; la implementación queda
-> **condicionada al Coverage Merge Gate y al umbral de duración (> 5-8 min)**, con ownership
-> coordinado para no duplicar `tia-hardening` ni `smart-test-ordering`.
+> **Status:** ✅ Investigación completa + **rollout decidido (N/A) por el change `test-sharding`**:
+> la duración medida (`test-unit-client` ≈ 2m20s en CI / **205 s** local serializado; `test-unit-server`
+> ≈ 4 s) queda **bajo el umbral de activación de 5 min**, así que la matriz N=2 queda **dormida**
+> (`0 strategy.matrix` en `ci.yml`) y solo se activa si nueva evidencia medida cruza el umbral. Es
+> un cierre deliberado: la implementación sigue condicionada al **Coverage Merge Gate** y al
+> umbral > 5-8 min, con ownership coordinado para no duplicar `tia-hardening` ni
+> `smart-test-ordering` (ver §5.1).
 
 ---
 
@@ -196,6 +200,10 @@ Claves del patrón:
   sharding aplicaría **después** de la selección (sobre el subconjunto ya filtrado).
 - **Cuarentena** (`.github/flaky-quarantine.yml` → `quarantine-exclude.mjs`) y **coverage en jobs
   separados** (`client-coverage`/`server-coverage` con D18: thresholds solo en full suite).
+- **Instrumentación de duración (change `test-sharding`, G1.1)**: `test-unit-client` y
+  `test-unit-server` añaden dos steps advisory (`Mark test step start` + `Report test step duration`,
+  `if: always()`, append-only) que publican el wall-time del step de tests en el step summary —
+  exactamente la medición que exige el umbral de §4.2, sin matriz y sin cambiar el run.
 
 ### 4.2 Prerequisitos antes de tocar nada
 
@@ -205,6 +213,10 @@ Claves del patrón:
    si `test-unit-client` sigue en pocos minutos, sharding es coste puro.
 3. **No tocar `sequence.sequencer`**: propiedad de `tia-hardening` (selección + sequencer + D7).
    El sharding vive en el workflow y en los flags de CLI, no en la config de sequencer.
+4. **Decisión medida (change `test-sharding`, G2)**: con la evidencia actual (CI ≈ 2m20s; local
+   serializado 205 s en cliente y ≈ 4 s en servidor) la decisión es **N/A** ⇒ no aterriza ninguna
+   matriz y la capacidad queda dormida. Se re-evalúa solo cuando la medición del step advisory
+   (punto 3.1) cruce la banda de 5-8 min.
 
 ### 4.3 Receta: matrix shard para `test-unit-client` preservando el contrato de 6 jobs
 
@@ -328,6 +340,22 @@ Notas de la receta:
   sin merge de informes (riesgo de carrera al actualizar snapshots en una shard).
 - Umbral y gate previo: [`unit-tests-enterprise.md`][ute] §2.4 (P2, > 5-8 min) y §2.6 / §23.6
   (Coverage Merge Gate obligatorio antes de sharding) — **respetar ese orden**.
+
+### 5.1 Estado del rollout — change `test-sharding` (2026-10-13)
+
+- **G1 (siempre, sin matriz)**: instrumentación de duración desplegada en ambos jobs unit
+  (`ci.yml`); verificación del prerequisito **Coverage Merge Gate** (§23.6: el gate por workspace
+  existe, el merge de shards no existe y queda diseñado); auditoría de ownership (este change solo
+  toca `ci.yml` — `sequence.sequencer`, selección D7, cuarentena y configs de cliente intactos).
+- **G2 (decisión, gate duro)**: **N/A**. Umbral: >8 min en 3 corridas ⇒ PROCEED; <5 min ⇒ N/A.
+  Evidencia: `test-unit-client` ≈ **2m20s** en CI (documentado) y **205 s** de suite serializada
+  medida en local (`CI=true`, `maxWorkers: 1`); `test-unit-server` ≈ **4 s**. Ambos por debajo del
+  umbral ⇒ **no aterriza ninguna matriz** y la capacidad queda dormida (gaps 3-5 en N/A).
+- **Estado del prerequisito**: merge de shards **ausente por diseño** (N/A hasta que exista
+  sharding); sin él, habilitar matriz haría que el tripwire D18 mintiera con cobertura parcial.
+- **Follow-up**: la tabla de Evidencia del change registrará ≥3 corridas reales de CI; si alguna
+  cruza el umbral, se abre G3 (matriz N=2 `test-unit-client` + puente único de nombre fijo, sin
+  tocar el contrato de 6 `needs`).
 
 ---
 
