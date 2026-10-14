@@ -289,22 +289,45 @@ usa modo parallel + webhook de finish (no verificado en esta ronda).
 
 ## 7. Estado en este monorepo + gaps + plan priorizado
 
-### 7.1 Estado actual (audit verificado 2026-10-06)
+> **Actualización 2026-10-13 — change `coverage-merge-gate`:** los gaps **a, b, c y d están
+> cerrados** (implementados con N=1, no-op observable). Los coverage jobs son ahora **puentes de
+> nombre fijo** operativos con matriz: descarga por patrón `coverage-<ws>-shard-*` +
+> `merge-multiple`, validación de presencia (blobs + summary) ANTES de medir, `vitest
+--merge-reports --coverage` y sólo entonces `check-coverage.mjs`, con propagación explícita del
+> fallo de shards. Quedan abiertos **e** (FASE 1 COE, `quality-gates`) y **f** (fuentes no
+> consultadas), y la matriz N=2 sigue **dormida** (`test-sharding` G2 = N/A).
+
+### 7.1 Estado actual (audit verificado 2026-10-06; puente operativo 2026-10-13)
 
 - **0 matrix / 0 `--shard` en `.github/workflows/ci.yml`**: todos los jobs de test son
   single-runner. Ver [`test-sharding.md`][sh] §4.1.
 - **STAGE 2 = exactamente 6 jobs** → agregador `prebuild-unit-tests-complete` → `ci-complete`
   (required check único): `test-unit-client`, `test-unit-server`, `test-integration`,
   `test-smoke`, `client-coverage`, `server-coverage`.
-- **Los coverage jobs YA son mini-merge-gates** (post-artifact, pre-D18):
-  - `client-coverage` (needs `test-unit-client`) descarga `coverage-client` +
-    `flaky-evidence-client`, exige `coverage-summary.json` (error `coverage artifact missing`),
-    lee `tia-scope.txt` y aplica D18: `full` → `node scripts/ci/check-coverage.mjs apps/client`;
-    `changed` → `--advisory` + `exit 0`.
-  - `server-coverage` idem con `apps/server/tests/coverage/` como 3.er argumento.
+- **Los coverage jobs YA son mini-merge-gates** (post-artifact, pre-D18) — y desde 2026-10-13
+  son los **puentes del merge gate**:
+  - `client-coverage` (needs `test-unit-client`) descarga **por patrón**
+    `coverage-client-shard-*` con `merge-multiple: true` hacia `apps/client/`, **valida** las dos
+    entradas (`.vitest-reports/` no vacío = entrada del merge; `coverage-summary.json` = entrada
+    del gate) con `::error::` distintos, ejecuta `vitest --merge-reports --coverage` con
+    `working-directory: apps/client` (sin `--reporter=blob`), lee `tia-scope.txt` y aplica D18:
+    `full` → `node scripts/ci/check-coverage.mjs apps/client`; `changed` → `--advisory` +
+    `exit 0`. Al final, `Propagate shard failure` (`contains(needs.…result, 'failure')`).
+  - `server-coverage` idem con `apps/server/.vitest-reports/`,
+    `apps/server/tests/coverage/` y `check-coverage.mjs apps/server apps/server/tests/coverage`.
+  - `if: ${{ !cancelled() && needs.test-unit-<ws>.result != 'skipped' }}` — corre cuando una shard
+    falla, no tras cancelación, e hereda el skip sin emitir un `::error::` falso (D2/D4).
   - Ambos con `continue-on-error: true` (**FASE 1 advisory**, change
     `coverage-tripwire-stage-2d`): informan pero **no bloquean** (por `actions/toolkit#581`,
     `needs.<job>.result` reporta `success` cuando el job-COE falla → el agregador no frena).
+- **Blob reporter: solo en CI.** `--reporter=blob` añadido a los scripts `*:ci` de ambos
+  workspaces (gap a cerrado); el tier local (`test:coverage`) **no** genera `.vitest-reports/`.
+  Verificado en local: con `CI=true` escribe `apps/<ws>/.vitest-reports/blob.json` y sin `CI`
+  no crea el directorio.
+- **Merge ejecutado localmente (N=1):** `vitest --merge-reports --coverage` regenera el
+  `coverage-summary.json` **incluso borrando `coverage/` antes** (lee los blobs), y con N=1 los
+  totales son **idénticos** a los pre-merge (no-op observable). Sin blobs, `--merge-reports`
+  lanza `ENOENT scandir .vitest-reports` — por eso la validación va ANTES (D4).
 - **Stack de tests:** Vitest `^4.1.11`, provider `v8` (`@vitest/coverage-v8`),
   reporters `['text','json-summary','html']` en `vitest.shared.js`. **NO hay `blob` reporter**
   configurado → `--shard` sería inoperante hoy (anti-patrón #2).
@@ -316,27 +339,27 @@ usa modo parallel + webhook de finish (no verificado en esta ronda).
 
 ### 7.2 Gaps
 
-| #   | Gap                                                         | Detalle                                                                                                                                                                                                     |
-| --- | ----------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| a   | **Blob reporter condicional a CI**                          | añadir `blob` a `coverage.reporter` (o `--reporter=blob` en scripts `*:ci`) solo cuando `CI=true`; sin esto no hay merge posible                                                                            |
-| b   | **Índice de shard en nombre de artifact**                   | `coverage-client` / `coverage-server` son nombres planos: colisionarán al shardar → `coverage-<ws>-shard-${{ matrix.shard }}`                                                                               |
-| c   | **Unificar `upload-artifact`/`download-artifact`**          | el workflow mezcla `upload-artifact@v7` (jobs de test) con `download-artifact@v4` (coverage/sonar) → alinear a un mismo major                                                                               |
-| d   | **Puente de nombre fijo como gate post-merge antes de D18** | hoy el gate es "1 test job → 1 coverage job"; con matriz hace falta job `*-merge` (receta en [sh] §4.3) que descargue N, mergée (`--merge-reports --coverage`) y **entonces** alimente `check-coverage.mjs` |
-| e   | **FASE 1 COE impide bloqueo real**                          | `continue-on-error: true` en `test-unit-*` y `*-coverage` = advisory; FASE 2 = retirar COE tras 2-4 semanas de runs limpios ([`quality-gates.md`][qg])                                                      |
-| f   | **Fuentes no consultadas**                                  | CircleCI, Coveralls y JaCoCo/gocovmerge/xcresult sin verificar (§2 y §5 con marcas "no verificado")                                                                                                         |
+| #   | Gap                                                                                 | Detalle                                                                                                                                                                                                                             |
+| --- | ----------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| a   | ✅ **Cerrado 2026-10-13** — Blob reporter condicional a CI                          | `--reporter=blob` en los scripts `*:ci` de `apps/client` y `apps/server` (D5: flag en scripts, no en `vitest.shared.js`); el tier local no genera blobs                                                                             |
+| b   | ✅ **Cerrado 2026-10-13** — Índice de shard en nombre de artifact                   | uploads ahora `coverage-<ws>-shard-1` (literal con N=1; `shard-${{ matrix.shard }}` al habilitar matriz) + `include-hidden-files: true` + `retention-days: 3`                                                                       |
+| c   | ✅ **Cerrado 2026-10-13** — Unificar `upload-artifact`/`download-artifact`          | los 7 `download-artifact` pasan de `@v4` a `@v7` (inputs `pattern`/`merge-multiple`/`path` verificados en el `action.yml` de `v7`); además `@v4` ya emitía el warning de deprecación de Node 20                                     |
+| d   | ✅ **Cerrado 2026-10-13** — Puente de nombre fijo como gate post-merge antes de D18 | el puente **es** el coverage job existente (D1, no hay job nuevo): descarga por patrón → validación (blobs + summary) → `--merge-reports --coverage` → `check-coverage.mjs` → propagación                                           |
+| e   | **FASE 1 COE impide bloqueo real**                                                  | `continue-on-error: true` en `test-unit-*` y `*-coverage` = advisory; FASE 2 = retirar COE tras 2-4 semanas de runs limpios ([`quality-gates.md`][qg]). La propagación (D7) ya está implementada y se activa sola al retirar el COE |
+| f   | **Fuentes no consultadas**                                                          | CircleCI, Coveralls y JaCoCo/gocovmerge/xcresult sin verificar (§2 y §5 con marcas "no verificado")                                                                                                                                 |
 
 ### 7.3 Plan priorizado
 
-| #   | Tarea                                                                                                                                                     | Prioridad | Esfuerzo | Dependencias / dueño                                        |
-| --- | --------------------------------------------------------------------------------------------------------------------------------------------------------- | --------- | -------- | ----------------------------------------------------------- |
-| 1   | **Cierre de FASE 1**: quitar `continue-on-error` de los 4 jobs → gate real                                                                                | P1        | Bajo     | [`quality-gates.md`][qg], ventana 2-4 semanas               |
-| 2   | Unificar majors de artifact (gap c)                                                                                                                       | P1        | Bajo     | CI maintainers                                              |
-| 3   | Validación "artifact presente por constructo" + contenedor de shards N=0 (mismo guard que hoy, generalizado)                                              | P1        | Bajo     | CI maintainers                                              |
-| 4   | **Coverage Merge Gate formal** (gap d): job puente de nombre fijo con `if: ${{ !cancelled() }}`, `--merge-reports --coverage`, luego `check-coverage.mjs` | P2        | Medio    | requisito previo de sharding ([sh] §5 tarea 1)              |
-| 5   | Blob reporter en CI (gap a) + artifact con índice (gap b)                                                                                                 | P2        | Bajo     | junto con (4)                                               |
-| 6   | Matrix shard N=2 advisory en `test-unit-client` usando el gate de (4)                                                                                     | P2        | Medio    | (4); umbral de duración > 5-8 min ([sh] §2.4)               |
-| 7   | Diff-coverage (patch) como segundo status — local o SaaS                                                                                                  | P3        | Medio    | opcional: Codecov `codecov/patch` o script sobre `git diff` |
-| 8   | Verificar fuentes faltantes (CircleCI/Coveralls/JaCoCo) y actualizar §2/§5                                                                                | P3        | Bajo     | este doc                                                    |
+| #   | Tarea                                                                                                                                                                                                                                                   | Prioridad | Esfuerzo | Dependencias / dueño                                        |
+| --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------- | -------- | ----------------------------------------------------------- |
+| 1   | **Cierre de FASE 1**: quitar `continue-on-error` de los 4 jobs → gate real                                                                                                                                                                              | P1        | Bajo     | [`quality-gates.md`][qg], ventana 2-4 semanas               |
+| 2   | ✅ **Hecho 2026-10-13** — Unificar majors de artifact (gap c)                                                                                                                                                                                           | P1        | Bajo     | CI maintainers                                              |
+| 3   | ✅ **Hecho 2026-10-13** — Validación "artifact presente por constructo" + guard N=0 (blobs vacíos ⇒ `::error::` distinto al del summary)                                                                                                                | P1        | Bajo     | CI maintainers                                              |
+| 4   | ✅ **Hecho 2026-10-13** — **Coverage Merge Gate formal** (gap d): el puente ES el coverage job (D1, sin job nuevo) con `if: ${{ !cancelled() && … != 'skipped' }}`, patrón + `merge-multiple`, `--merge-reports --coverage`, luego `check-coverage.mjs` | P2        | Medio    | satisface [sh] §5 tarea 1 (prerrequisito de la matriz)      |
+| 5   | ✅ **Hecho 2026-10-13** — Blob reporter en CI (gap a) + artifact con índice (gap b)                                                                                                                                                                     | P2        | Bajo     | junto con (4)                                               |
+| 6   | Matrix shard N=2 advisory en `test-unit-client` usando el gate de (4) — **el prerequisito ya está satisfecho**, pero el umbral de duración sigue en N/A ([sh] §5.1: suite 145-166 s, job 259-282 s < 5 min)                                             | P2        | Medio    | (4) ✅; umbral de duración > 5-8 min ([sh] §2.4) ❌         |
+| 7   | Diff-coverage (patch) como segundo status — local o SaaS                                                                                                                                                                                                | P3        | Medio    | opcional: Codecov `codecov/patch` o script sobre `git diff` |
+| 8   | Verificar fuentes faltantes (CircleCI/Coveralls/JaCoCo) y actualizar §2/§5                                                                                                                                                                              | P3        | Bajo     | este doc                                                    |
 
 **Coordinación:** el gate es requisito previo declarado de sharding ([sh] §5 tarea 1) y de la
 FASE 2 de los gates ([qg]); el ratchet solo puede medir post-merge ([tr] §6.4). Ownership:

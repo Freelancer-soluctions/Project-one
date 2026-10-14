@@ -733,7 +733,7 @@ jobs:
           echo "Config: .markdownlint.json (JSON estricto) + .markdownlintignore (grandfathering del inventario legacy, 2026-09-29) · vale fase 2 (ver docs/learning/docs-changelog-validation.md)" >> $GITHUB_STEP_SUMMARY
 
   # ═══════════════════════════════════════════════════════════════
-  # SUBSTAGE 2D: UNIT TESTING — test-unit-client, test-unit-server, test-integration, test-smoke
+  # SUBSTAGE 2D: UNIT TESTING — test-unit-client, test-unit-server, test-integration, test-smoke, property-tests
   # FASE 1 advisory (continue-on-error: reporta sin bloquear) → FASE 2 blocking al
   # cerrar la ventana de calibración (2-4 semanas; docs/learning/quality-gates.md en lockstep).
   # Coverage: client-coverage/server-coverage se scopean por propagación de skip de su
@@ -936,11 +936,27 @@ jobs:
           retention-days: 30
           if-no-files-found: warn
 
+      # Artefacto de cobertura del shard — change `coverage-merge-gate` (gap b).
+      # - Nombre con ÍNDICE de shard: `upload-artifact@v4+` es INMUTABLE; dos shards
+      #   subiendo `coverage-client` a la vez → solo gana una y la otra se pierde en
+      #   silencio. Con N=1 el índice es literal `shard-1`; al habilitar la matriz N=2
+      #   de `test-sharding` pasa a `shard-${{ matrix.shard }}` (su task).
+      # - `path` multilínea con LCA `apps/client` para que `coverage/` y
+      #   `.vitest-reports/` viajen con rutas relativas intactas y el puente los
+      #   restaure con `merge-multiple` hacia `apps/client/`.
+      # - `include-hidden-files: true`: `.vitest-reports/` es directorio OCULTO y
+      #   `upload-artifact@v4+` lo excluiría por defecto → el merge no tendría blobs.
+      # - `retention-days: 3`: con N shards cada una genera su coverage parcial (casi
+      #   siempre descartado); el merged es el único artefacto de verdad.
       - uses: actions/upload-artifact@v7
         if: always()
         with:
-          name: coverage-client
-          path: apps/client/coverage/
+          name: coverage-client-shard-1
+          path: |
+            apps/client/coverage/
+            apps/client/.vitest-reports/
+          include-hidden-files: true
+          retention-days: 3
           if-no-files-found: warn
       # Evidencia de flakiness (retryCount/flaky por test) para la métrica
       # semanal — D8. El JUnit colapsa los retries, por eso este artifact.
@@ -1160,11 +1176,19 @@ jobs:
         run: node scripts/ci/ttff-metric.mjs apps/server || true
         shell: bash
 
+      # Artefacto de cobertura del shard — change `coverage-merge-gate` (gap b). Mismo
+      # contrato que el de client: índice de shard literal con N=1 (inmutabilidad de
+      # `upload-artifact@v4+`), LCA `apps/server` para restaurar `tests/coverage/` y
+      # `.vitest-reports/` en el puente, directorio oculto incluido y retención corta.
       - uses: actions/upload-artifact@v7
         if: always()
         with:
-          name: coverage-server
-          path: apps/server/tests/coverage/
+          name: coverage-server-shard-1
+          path: |
+            apps/server/tests/coverage/
+            apps/server/.vitest-reports/
+          include-hidden-files: true
+          retention-days: 3
           if-no-files-found: warn
       # Evidencia de flakiness (retryCount/flaky por test) para la métrica
       # semanal — D8. El JUnit colapsa los retries, por eso este artifact.
@@ -1778,14 +1802,20 @@ jobs:
         with:
           fetch-depth: 0
       - uses: ./.github/actions/setup-monorepo
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v7
         with:
           name: client-dist
           path: apps/client/dist/
-      - uses: actions/download-artifact@v4
+      # change `coverage-merge-gate` (task 1.5): el artefacto pasa de nombre plano
+      # (`coverage-client`) a `coverage-client-shard-1`, así que este consumidor
+      # (hoy en `if: false`) se actualiza ya a patrón + `merge-multiple` hacia la
+      # LCA `apps/client/` — evita una bomba de reactivación con el rename y deja
+      # el patrón correcto para N>1.
+      - uses: actions/download-artifact@v7
         with:
-          name: coverage-client
-          path: apps/client/coverage/
+          pattern: coverage-client-shard-*
+          merge-multiple: true
+          path: apps/client/
       - uses: SonarSource/sonarqube-scan-action@v4
         with:
           projectBaseDir: apps/client
@@ -1802,7 +1832,19 @@ jobs:
     # ACTIVADO (change `coverage-tripwire-stage-2d`): retirado `if: false`.
     # O job corre ⇔ test-unit-client correu (propagación de skip). FASE 1 advisory
     # (`continue-on-error: true`): reporta sen bloquear. FASE 2: retirar `continue-on-error`.
-    if: github.event_name == 'pull_request'
+    #
+    # PUENTE DEL COVERAGE MERGE GATE — change `coverage-merge-gate` (D1/D2). Este job ES el
+    # puente de NOMBRE FIJO que fusiona la cobertura de TODAS las shards y evalúa los
+    # thresholds globales UNA SOLA VEZ, post-merge. No se crea ningún job nuevo: el
+    # agregador `prebuild-unit-tests-complete` sigue viendo sus mismos 6 `needs`.
+    # - `!cancelled()`: el default `success()` se saltaría el gate justo cuando una shard
+    #   falló (el informe importa más entonces); `always()` además correría tras una
+    #   cancelación explícita del usuario, gastando un runner en un run descartado.
+    # - `result != 'skipped'`: propaga el skip del upstream SIN ejecutar el job. Sin esa
+    #   cláusula, sólo `!cancelled()` correría con upstream SKIPPED y la validación de
+    #   presencia emitiría un `::error::` falso por artifacts legítimamente ausentes.
+    #   El carril PR queda cubierto por propagación: `test-unit-client` sólo corre en PRs.
+    if: ${{ !cancelled() && needs.test-unit-client.result != 'skipped' }}
     continue-on-error: true
     name: 'Quality: Client Coverage'
     needs: [test-unit-client]
@@ -1813,14 +1855,41 @@ jobs:
         with:
           fetch-depth: 0
       - uses: ./.github/actions/setup-monorepo
-      - uses: actions/download-artifact@v4
+      # change `coverage-merge-gate` (D3): TODOS los artifacts de shard por patrón +
+      # `merge-multiple` hacia la LCA `apps/client/`, restaurando `.vitest-reports/`
+      # y `coverage/` con sus rutas relativas intactas. Con N=1 el patrón captura el
+      # único artifact ⇒ mismo camino que con matriz (sin rama condicional que pueda
+      # divergir y romperse sólo al pasar a matriz).
+      - uses: actions/download-artifact@v7
         with:
-          name: coverage-client
-          path: apps/client/coverage/
-      - uses: actions/download-artifact@v4
+          pattern: coverage-client-shard-*
+          merge-multiple: true
+          path: apps/client/
+      - uses: actions/download-artifact@v7
         with:
           name: flaky-evidence-client
           path: apps/client/reports/
+      # Validación de presencia + guard N=0 — change `coverage-merge-gate` (D4). DOS
+      # entradas distintas, en este orden, ANTES de mergear ni de medir:
+      #  (1) entrada del MERGE: blobs de Vitest (`.vitest-reports/`) no vacíos;
+      #  (2) entrada del GATE: `coverage-summary.json` existente.
+      # La rama "upstream salteado" NO llega aquí: se resuelve en el `if` del job (task
+      # 2.1), así que la única situación posible en este step es "upstream corrió pero
+      # artifacts/blobs ausentes" ⇒ `exit 1`. Nunca se mergeará vacío ni se evaluará una
+      # cobertura 0% (anti-patrón: tratar un parcial como fuente de verdad).
+      - name: Validate shard artifacts (merge gate, N=0 guard)
+        run: |
+          test -d apps/client/.vitest-reports && [ -n "$(ls -A apps/client/.vitest-reports)" ] || { echo "::error::vitest blob reports missing — merge cannot proceed"; exit 1; }
+          test -f apps/client/coverage/coverage-summary.json || { echo "::error::coverage artifact missing"; exit 1; }
+      # Merge de shards — change `coverage-merge-gate` (orden canónico shard → merge →
+      # check-coverage). `working-directory: apps/client` para que la root de config de
+      # Vitest, el dir de blobs (default de `--merge-reports` = `.vitest-reports` relativo
+      # al cwd) y el `reportsDirectory` de coverage resuelvan sin flags extra. SIN
+      # `--reporter=blob`: el merge no ejecuta tests y el flag sólo emitiría un blob
+      # espurio que podría pisar los blobs merged.
+      - name: Merge shard reports (vitest --merge-reports --coverage)
+        working-directory: apps/client
+        run: npx vitest --merge-reports --coverage
       # D18: el tripwire de thresholds SOLO evalúa cobertura de suite completa.
       # Una corrida TIA solo carga los tests afectados, así que sus totales no son
       # comparables con los thresholds globales (falso fail al reportar 0% en lo no
@@ -1842,6 +1911,18 @@ jobs:
             exit 0
           fi
           node scripts/ci/check-coverage.mjs apps/client
+      # Propagación de fallo de shards — change `coverage-merge-gate` (D7). Un verde
+      # parcial que oculta shards rojas no es aceptable. Va DESPUÉS del D18 para que la
+      # evaluación de cobertura siga siendo visible en el log cuando una shard falla;
+      # el `exit 0` del carril diff-scoped vive dentro del step previo, así que no
+      # interfiere. HOY ES UN NO-OP: `test-unit-client` tiene `continue-on-error: true`
+      # (FASE 1, `quality-gates`) y `needs.*.result` reporta `success` aunque falle
+      # (`actions/toolkit#581`) — se activa SOLO al retirar el COE en FASE 2, sin retoque.
+      - name: Propagate shard failure
+        if: ${{ contains(needs.test-unit-client.result, 'failure') }}
+        run: |
+          echo "::error::test-unit-client reported failure — merged coverage above does not make this gate green"
+          exit 1
 
   client-depcheck:
     if: false # Disabled for incremental CI — change to true to re-enable
@@ -1871,10 +1952,14 @@ jobs:
         with:
           fetch-depth: 0
       - uses: ./.github/actions/setup-monorepo
-      - uses: actions/download-artifact@v4
+      # change `coverage-merge-gate` (task 1.4): mismo tratamiento que el consumidor
+      # client — patrón + `merge-multiple` hacia `apps/server/` (evita dejar un
+      # consumidor roto por el rename, aunque el job esté en `if: false`).
+      - uses: actions/download-artifact@v7
         with:
-          name: coverage-server
-          path: apps/server/tests/coverage/
+          pattern: coverage-server-shard-*
+          merge-multiple: true
+          path: apps/server/
       - uses: SonarSource/sonarqube-scan-action@v4
         with:
           projectBaseDir: apps/server
@@ -1889,7 +1974,14 @@ jobs:
     # ACTIVADO (change `coverage-tripwire-stage-2d`): retirado `if: false`.
     # O job corre ⇔ test-unit-server correu (propagación de skip). FASE 1 advisory
     # (`continue-on-error: true`): reporta sen bloquear. FASE 2: retirar `continue-on-error`.
-    if: github.event_name == 'pull_request'
+    #
+    # PUENTE DEL COVERAGE MERGE GATE — change `coverage-merge-gate` (D1/D2), espejo del
+    # client. Fusiona la cobertura de todas las shards y evalúa los thresholds UNA SOLA
+    # VEZ, post-merge, bajo el mismo nombre de job (los 6 `needs` del agregador no cambian).
+    # `!cancelled()`: corre cuando una shard falla, pero no tras una cancelación del usuario.
+    # `result != 'skipped'`: hereda el skip del upstream sin ejecutar (y sin emitir un
+    # `::error::` falso por artifacts ausentes legítimos).
+    if: ${{ !cancelled() && needs.test-unit-server.result != 'skipped' }}
     continue-on-error: true
     name: 'Quality: Server Coverage'
     needs: [test-unit-server]
@@ -1900,14 +1992,33 @@ jobs:
         with:
           fetch-depth: 0
       - uses: ./.github/actions/setup-monorepo
-      - uses: actions/download-artifact@v4
+      # change `coverage-merge-gate` (D3): descarga por patrón + `merge-multiple`
+      # hacia la LCA `apps/server/` (restaura `tests/coverage/` y `.vitest-reports/`).
+      - uses: actions/download-artifact@v7
         with:
-          name: coverage-server
-          path: apps/server/tests/coverage/
-      - uses: actions/download-artifact@v4
+          pattern: coverage-server-shard-*
+          merge-multiple: true
+          path: apps/server/
+      - uses: actions/download-artifact@v7
         with:
           name: flaky-evidence-server
           path: apps/server/reports/
+      # Validación de presencia + guard N=0 — change `coverage-merge-gate` (D4). Mismas
+      # DOS entradas que el client, con sus rutas específicas: blobs en `.vitest-reports/`
+      # y el summary en `tests/coverage/` (`reportsDirectory` del server). La rama
+      # "upstream salteado" se resuelve en el `if` del job; aquí sólo puede llegar
+      # "upstream corrió pero artifacts/blobs ausentes" ⇒ `exit 1` con mensaje distinto
+      # según la entrada faltante.
+      - name: Validate shard artifacts (merge gate, N=0 guard)
+        run: |
+          test -d apps/server/.vitest-reports && [ -n "$(ls -A apps/server/.vitest-reports)" ] || { echo "::error::vitest blob reports missing — merge cannot proceed"; exit 1; }
+          test -f apps/server/tests/coverage/coverage-summary.json || { echo "::error::coverage artifact missing"; exit 1; }
+      # Merge de shards — change `coverage-merge-gate`: `working-directory: apps/server`
+      # (root de config del server → `.vitest-reports/` y `tests/coverage/` resuelven sin
+      # flags extra). SIN `--reporter=blob` por la misma razón que en el client.
+      - name: Merge shard reports (vitest --merge-reports --coverage)
+        working-directory: apps/server
+        run: npx vitest --merge-reports --coverage
       # D18: el guard de thresholds solo evalúa cobertura de suite completa; en
       # corridas diff-scoped (TIA) se verifica la presencia del artefacto y se
       # difiere el umbral a la próxima full-suite.
@@ -1926,6 +2037,15 @@ jobs:
             exit 0
           fi
           node scripts/ci/check-coverage.mjs apps/server apps/server/tests/coverage
+      # Propagación de fallo de shards — change `coverage-merge-gate` (D7), tras el D18
+      # para no esconder la evaluación de cobertura. No-op mientras `test-unit-server`
+      # mantenga el `continue-on-error` de FASE 1 (`actions/toolkit#581`): se activa al
+      # retirarlo en FASE 2.
+      - name: Propagate shard failure
+        if: ${{ contains(needs.test-unit-server.result, 'failure') }}
+        run: |
+          echo "::error::test-unit-server reported failure — merged coverage above does not make this gate green"
+          exit 1
 
   server-depcheck:
     if: false # Disabled for incremental CI — change to true to re-enable
@@ -2049,6 +2169,23 @@ jobs:
           name: Server Smoke Tests
           path: apps/server/reports/junit.xml
           reporter: java-junit
+
+  property-tests:
+    if: (needs.repo-discovery.outputs.client == 'true' || needs.repo-discovery.outputs.server == 'true' || needs.repo-discovery.outputs.shared == 'true') && github.event_name == 'pull_request'
+    name: 'Tests: Property Tests'
+    needs: repo-discovery
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - uses: ./.github/actions/setup-monorepo
+      - name: Run Property Tests
+        run: npm run test:pbt
+        env:
+          CI: true
 
   e2e:
     if: false # Disabled for incremental CI — change to true to re-enable
