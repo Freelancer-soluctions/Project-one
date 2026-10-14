@@ -87,7 +87,11 @@ describe('Joi schema properties', () => {
       fc.property(
         fc.record({
           employeeId: fc.integer(),
-          date: fc.date({ min: new Date(0), max: new Date('2100-01-01') }),
+          date: fc.date({
+            min: new Date(0),
+            max: new Date('2100-01-01'),
+            noInvalidDate: true,
+          }),
           entryTime: fc.string({ minLength: 1, maxLength: 5 }),
           exitTime: fc.string({ minLength: 1, maxLength: 5 }),
           workedHours: fc.float({
