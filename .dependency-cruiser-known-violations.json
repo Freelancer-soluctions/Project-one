@@ -992,5 +992,16 @@
       "severity": "warn",
       "name": "no-orphans"
     }
+  },
+  {
+    "type": "dependency",
+    "from": ".opencode/plugins/neurosymbolic-guardrails.ts",
+    "to": "../guardrails-rules",
+    "unresolvedTo": "../guardrails-rules",
+    "dependencyTypes": ["unknown"],
+    "rule": {
+      "severity": "error",
+      "name": "not-to-unresolvable"
+    }
   }
 ]
