@@ -8,7 +8,10 @@ Este repo tiene **0 matrix / 0 `--shard`**: los jobs de test corren single-runne
 feedback `[FB]`), pero también dejó escrito que implementarlo a ciegas sería coste puro: (a) el
 **Coverage Merge Gate** de `unit-tests-enterprise` §23.6 no existe aún para shards (sin merge, el
 tripwire D18 miente con cobertura parcial) y (b) la evidencia medida hasta hoy (suites de 5-14 s,
-jobs de ~2m20s) está **muy por debajo** del umbral de activación de 5-8 min. Este change codifica
+jobs de ~2m20s) está por debajo del umbral de activación de 5-8 min — confirmado después por la
+medición de G1.2 sobre 4 corridas reales (suite de client **145-166 s**, job **259-282 s**, server
+**4-5 s**), que mantiene la decisión **N/A** con solo 18 s de margen en la lectura más
+conservadora. Este change codifica
 el rollout como secuencia **acotada** — medir → decidir → matriz — para que ningún `strategy.matrix`
 toque `ci.yml` antes de que ambos prerequisitos estén verificados y registrados, y cruza a los
 changes en vuelo en lugar de duplicar su ownership.

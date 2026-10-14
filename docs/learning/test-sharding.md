@@ -7,9 +7,10 @@
 > métricas y **estado actual en este monorepo** (0 matrix/shard, agregador de 6 jobs, `maxWorkers: 1`,
 > FASE 1) con gaps y plan priorizado.  
 > **Audiencia:** Equipo de ingeniería, CI/CD maintainers, QA lead.  
-> **Status:** ✅ Investigación completa + **rollout decidido (N/A) por el change `test-sharding`**:
-> la duración medida (`test-unit-client` ≈ 2m20s en CI / **205 s** local serializado; `test-unit-server`
-> ≈ 4 s) queda **bajo el umbral de activación de 5 min**, así que la matriz N=2 queda **dormida**
+> **Status:** ✅ Investigación completa + **rollout decidido (N/A) por el change `test-sharding`**
+> sobre **4 corridas reales de CI**: la suite completa de `test-unit-client` tarda **145-166 s**
+> (el job completo **259-282 s**, ≈100 s de setup) y `test-unit-server` **4-5 s**; todo queda **bajo el
+> umbral de activación de 5 min**, así que la matriz N=2 queda **dormida**
 > (`0 strategy.matrix` en `ci.yml`) y solo se activa si nueva evidencia medida cruza el umbral. Es
 > un cierre deliberado: la implementación sigue condicionada al **Coverage Merge Gate** y al
 > umbral > 5-8 min, con ownership coordinado para no duplicar `tia-hardening` ni
@@ -200,6 +201,11 @@ Claves del patrón:
   sharding aplicaría **después** de la selección (sobre el subconjunto ya filtrado).
 - **Cuarentena** (`.github/flaky-quarantine.yml` → `quarantine-exclude.mjs`) y **coverage en jobs
   separados** (`client-coverage`/`server-coverage` con D18: thresholds solo en full suite).
+- **Duración medida (change `test-sharding`, G1.1/G1.2)**: 4 corridas reales
+  (`38192749761`, `38192721658`, `38185719084`, `38159083416`, todas `success`) midieron la suite
+  **completa** de client (`Test Files 113 passed (113)`) en **145-166 s** y su job en **259-282 s**
+  (≈100 s de overhead: 89 s de `setup-monorepo`); server **4-5 s** de suite y 113-156 s de job.
+  Corrige la cifra heredada "job ≈ 2m20s", que describía el orden de la _suite_, no del job.
 - **Instrumentación de duración (change `test-sharding`, G1.1)**: `test-unit-client` y
   `test-unit-server` añaden dos steps advisory (`Mark test step start` + `Report test step duration`,
   `if: always()`, append-only) que publican el wall-time del step de tests en el step summary —
@@ -213,10 +219,11 @@ Claves del patrón:
    si `test-unit-client` sigue en pocos minutos, sharding es coste puro.
 3. **No tocar `sequence.sequencer`**: propiedad de `tia-hardening` (selección + sequencer + D7).
    El sharding vive en el workflow y en los flags de CLI, no en la config de sequencer.
-4. **Decisión medida (change `test-sharding`, G2)**: con la evidencia actual (CI ≈ 2m20s; local
-   serializado 205 s en cliente y ≈ 4 s en servidor) la decisión es **N/A** ⇒ no aterriza ninguna
-   matriz y la capacidad queda dormida. Se re-evalúa solo cuando la medición del step advisory
-   (punto 3.1) cruce la banda de 5-8 min.
+4. **Decisión medida (change `test-sharding`, G2)**: con la evidencia de **4 corridas reales de CI**
+   (suite de client 145-166 s; job 259-282 s; servidor 4-5 s) la decisión es **N/A** ⇒ no aterriza
+   ninguna matriz y la capacidad queda dormida. Se re-evalúa cuando la medición del step advisory
+   (**punto 3.1**, ya desplegado) o de la API muestre el job de client ≥ 300 s o la suite ≥ 240 s en
+   3 corridas.
 
 ### 4.3 Receta: matrix shard para `test-unit-client` preservando el contrato de 6 jobs
 
@@ -319,15 +326,27 @@ Notas de la receta:
 
 ## 5. Gaps y plan priorizado
 
-| #   | Gap / tarea                                                                                      | Prioridad | Esfuerzo | Dueño (evitar colisión)                                  |
-| --- | ------------------------------------------------------------------------------------------------ | --------- | -------- | -------------------------------------------------------- |
-| 1   | **Coverage Merge Gate** (requisito previo)                                                       | P1        | Medio    | CI maintainers — diseño en `unit-tests-enterprise` §23.6 |
-| 2   | **Medir duración real** de `test-unit-*` (¿> 5-8 min?)                                           | P1        | Bajo     | CI maintainers (step summary de tiempos)                 |
-| 3   | Matrix shard **N=2 advisory** en `test-unit-client` (FASE 1 `continue-on-error`)                 | P2        | Medio    | CI maintainers — este doc                                |
-| 4   | Job `merge-reports` + coverage merged (blob → `--merge-reports --coverage`)                      | P2        | Medio    | Depende de (1); CI maintainers                           |
-| 5   | Required-check = **agregador/puente de nombre fijo** (no por shard)                              | P2        | Bajo     | Coordinar con ruleset de `ci-complete`                   |
-| 6   | **Shards después de TIA**: matriz dinámica condicionada a `scope=full` (selección → luego shard) | P3        | Medio    | Depende de `tia-hardening` (D7)                          |
-| 7   | Balanceo por duración (custom sequencer user-land, issue #9184)                                  | P3        | Alto     | Tras `tia-hardening` (sequencer)                         |
+| #   | Gap / tarea                                                    | Prioridad | Esfuerzo | Dueño (evitar colisión)             |
+| --- | -------------------------------------------------------------- | --------- | -------- | ----------------------------------- |
+| 1   | ~~**Coverage Merge Gate**~~ — **hecho** (ver nota)             | P1        | Medio    | CI maintainers                      |
+| 2   | ~~**Medir duración real**~~ — **hecho** (G1.1/G1.2)            | P1        | Bajo     | CI maintainers (step summary)       |
+| 3   | Matrix shard **N=2 advisory** en `test-unit-client`            | P2        | Medio    | CI maintainers — este doc           |
+| 4   | ~~Job `merge-reports` + coverage merged~~ — **hecho**          | P2        | Medio    | Depende de (1) ✅; CI maintainers   |
+| 5   | Required-check = **puente de nombre fijo** (no por shard)      | P2        | Bajo     | Coordinar con ruleset `ci-complete` |
+| 6   | **Shards después de TIA** (matriz condicionada a `scope=full`) | P3        | Medio    | Depende de `tia-hardening` (D7)     |
+| 7   | Balanceo por duración (custom sequencer, issue #9184)          | P3        | Alto     | Tras `tia-hardening` (sequencer)    |
+
+> **Actualización 2026-10-13 — gaps 1, 2 y 4 cerrados.**
+>
+> - **(1) Coverage Merge Gate — SATISFECHO** por el change `coverage-merge-gate`: los jobs
+>   `client-coverage`/`server-coverage` son ya puentes de nombre fijo con descarga por patrón
+>   `coverage-<ws>-shard-*` + `merge-multiple`, validación de presencia (blobs + summary),
+>   `vitest --merge-reports --coverage` y sólo entonces `check-coverage.mjs`. Sin job nuevo: los
+>   6 `needs` del agregador no cambian.
+> - **(2) Duración medida — hecho** (G1.1/G1.2 de `test-sharding`, sobre 4 corridas reales de CI):
+>   suite de client **145-166 s**, job **259-282 s** ⇒ < 5 min ⇒ G2 = **N/A**.
+> - **(4) Job merge-reports — hecho**: no hizo falta un job adicional; el puente ES el coverage
+>   job (D1 de `coverage-merge-gate`).
 
 **Coordinación con changes en vuelo (no duplicar ownership):**
 
@@ -347,15 +366,24 @@ Notas de la receta:
   (`ci.yml`); verificación del prerequisito **Coverage Merge Gate** (§23.6: el gate por workspace
   existe, el merge de shards no existe y queda diseñado); auditoría de ownership (este change solo
   toca `ci.yml` — `sequence.sequencer`, selección D7, cuarentena y configs de cliente intactos).
-- **G2 (decisión, gate duro)**: **N/A**. Umbral: >8 min en 3 corridas ⇒ PROCEED; <5 min ⇒ N/A.
-  Evidencia: `test-unit-client` ≈ **2m20s** en CI (documentado) y **205 s** de suite serializada
-  medida en local (`CI=true`, `maxWorkers: 1`); `test-unit-server` ≈ **4 s**. Ambos por debajo del
-  umbral ⇒ **no aterriza ninguna matriz** y la capacidad queda dormida (gaps 3-5 en N/A).
-- **Estado del prerequisito**: merge de shards **ausente por diseño** (N/A hasta que exista
-  sharding); sin él, habilitar matriz haría que el tripwire D18 mintiera con cobertura parcial.
-- **Follow-up**: la tabla de Evidencia del change registrará ≥3 corridas reales de CI; si alguna
-  cruza el umbral, se abre G3 (matriz N=2 `test-unit-client` + puente único de nombre fijo, sin
-  tocar el contrato de 6 `needs`).
+- **G2 (decisión, gate duro)**: **N/A** sobre **4 corridas reales de CI**. Umbral: >8 min en 3
+  corridas ⇒ PROCEED; <5 min ⇒ N/A. Evidencia: suite de `test-unit-client` **145-166 s** (media
+  2m39s) y job **259-282 s** (media 4m30s, máx 4m42s); `test-unit-server` **4-5 s**. **Ambas
+  lecturas** (suite y job completo) quedan bajo 5 min y ninguna corrida entra en la banda 5-8 min ⇒
+  **no aterriza ninguna matriz** y la capacidad queda dormida (gaps 3-5 en N/A). Coste registrado:
+  N=2 daría ≈3m0s de job a cambio de **+36% de minutos facturados** (180 s × 2 vs 264 s).
+- **Estado del prerequisito**: ✅ **satisfecho desde 2026-10-13** por el change
+  `coverage-merge-gate` — los jobs `client-coverage`/`server-coverage` son ya puentes operativos
+  con matriz (descarga por patrón `coverage-<ws>-shard-*` + `merge-multiple`, validación de
+  presencia, `vitest --merge-reports --coverage` y sólo entonces `check-coverage.mjs`), probados
+  localmente con N=1 (no-op observable) y con regeneración del summary desde blobs. Por tanto la
+  **capacidad de sharding ya no está bloqueada por el gate**: lo único que mantiene la matriz
+  dormida es el umbral de duración de G2 (N/A).
+- **Follow-up**: la tabla de Evidencia del change ya registra **4 corridas reales** (G1.2, vía API
+  de GitHub) — ninguna cruza el umbral. Se abre G3 (matriz N=2 `test-unit-client` + puente único de
+  nombre fijo, sin tocar el contrato de 6 `needs`) solo si una medición futura muestra el job de
+  client ≥ 300 s o la suite ≥ 240 s en 3 corridas. Único pendiente de G1.1: la línea del step
+  summary en un run real (la rama de este change aún no está publicada).
 
 ---
 

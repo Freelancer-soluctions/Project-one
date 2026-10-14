@@ -4,9 +4,11 @@ Fuente de verdad: `docs/learning/test-sharding.md` (§4 prerequisitos, §5 plan)
 `design.md`. Spec: `specs/ci-test-sharding/spec.md`.
 
 **Gating (D1): G3-G5 solo se ejecutan si G2 = PROCEED.** Si G2 = N/A, se marcan como N/A con su
-evidencia y el change salta a G6 (docs + verificación) — cierre legítimo (la evidencia actual
-son suites de 5-14 s y jobs de ~2m20s, muy bajo el umbral de 5-8 min). Cada tarea = una invocación
-de developer. `[CI]` = toca `.github/workflows/ci.yml` o exige run real de CI.
+evidencia y el change salta a G6 (docs + verificación) — cierre legítimo. La evidencia son
+**4 corridas reales de CI** medidas con la API (§Evidencia): la suite completa de client tarda
+**145-166 s** y el job **259-282 s**; la suite de server **4-5 s** — todo **por debajo del umbral
+de activación de 5 min**. Cada tarea = una invocación de developer. `[CI]` = toca
+`.github/workflows/ci.yml` o exige run real de CI.
 
 **Cross-references (nunca duplicar):** `tia-hardening` posee selección D7 +
 `sequence.sequencer`; `smart-test-ordering` posee TTFF/shuffle; `ci-testing-gate-promotion` posee
@@ -15,11 +17,23 @@ quitar `continue-on-error` (FASE 1→2); `client-snapshot-testing` posee
 
 ## Evidencia (sección sin checkbox — la rellenan G1.2 y G2.1)
 
-| Corrida (run/fecha)               | `test-unit-client` | `test-unit-server` | Notas                                                                                                                      |
-| --------------------------------- | ------------------ | ------------------ | -------------------------------------------------------------------------------------------------------------------------- |
-| _(G1.2) ≥3 corridas reales de CI_ | _pendiente-CI_     | _pendiente-CI_     | requiere un run real del workflow: este entorno no ejecuta GitHub Actions                                                  |
-| local 2026-10-13 (proxy, no CI)   | **205 s** (wall)   | **4 s** (wall)     | `CI=true` + `maxWorkers: 1`; 196 tests / 113 ficheros (client) y 168 tests / 17 ficheros (server), ambos verdes (`exit 0`) |
-| evidencia previa documentada      | ≈ **2m20s** (job)  | —                  | job de test unit medido por `ci-testing-gate-promotion` (citado en Context de `design.md`)                                 |
+| Corrida (run · fecha · conclusión)                                                                                  | `test-unit-client` (job / step de tests) | `test-unit-server` (job / step de tests) | Notas                                                                                                                |
+| ------------------------------------------------------------------------------------------------------------------- | ---------------------------------------- | ---------------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| [38192749761](https://github.com/Freelancer-soluctions/Project-one/actions/runs/38192749761) · 2026-10-12 · success | **264 s** / **161 s**                    | 123 s / **4 s**                          | PR dependabot `supertest-7.3.0`; suite real completa (`Test Files 113 passed (113)`)                                 |
+| [38192721658](https://github.com/Freelancer-soluctions/Project-one/actions/runs/38192721658) · 2026-10-12 · success | **274 s** / **166 s**                    | 156 s / **5 s**                          | PR dependabot `osv-scanner-action-2.6.0`; `113 passed (113)`                                                         |
+| [38185719084](https://github.com/Freelancer-soluctions/Project-one/actions/runs/38185719084) · 2026-10-11 · success | **259 s** / **145 s**                    | 113 s / **5 s**                          | PR `ci-prebuild-improvement-v3`; `113 passed (113)`                                                                  |
+| [38159083416](https://github.com/Freelancer-soluctions/Project-one/actions/runs/38159083416) · 2026-10-11 · success | **282 s** / **163 s**                    | 130 s / **5 s**                          | PR `ci-prebuild-improvement-v3`; `113 passed (113)`                                                                  |
+| local 2026-10-13 (proxy, no CI)                                                                                     | **205 s** (suite serializada)            | **4 s** (suite)                          | `CI=true` + `maxWorkers: 1`; 196 tests / 113 ficheros (client) y 168 tests / 17 ficheros (server), verdes (`exit 0`) |
+
+**Método y matiz de honestidad.** "job" = `started_at` → `completed_at` del job y "step de tests" =
+step `Run Client Unit Tests (TIA / full suite)` / `Run Server Unit Tests (TIA / full suite)`, ambos
+leídos de `gh api .../actions/runs/<id>/jobs` y `.../actions/jobs/<id>`. Las 4 corridas son
+**anteriores al push** de la instrumentación de G1.1 (esta rama no está publicada), así que la
+medición es real y preexistente, pero el step advisory **todavía no ha impreso su línea en un run
+de CI**: eso queda como único pendiente de 1.1. La cifra heredada "job ≈ 2m20s" (citada en
+`design.md` y en `ci-testing-gate-promotion`) **no corresponde al job de client**: describe el orden
+de magnitud de la _suite_ (2m25s-2m46s), mientras que el job completo es 4m19s-4m42s (≈ 100 s de
+setup + suite). El cambio de cifra no altera la decisión (ver 2.1), pero sí el margen.
 
 ## 1. G1 — Prerequisitos y medición (siempre, SIN matriz)
 
@@ -27,9 +41,11 @@ quitar `continue-on-error` (FASE 1→2); `client-snapshot-testing` posee
       (`if: always()`, append-only, tras el step de tests) que mida la duración del step de tests
       y la publique en `$GITHUB_STEP_SUMMARY` — verificación: `actionlint .github/workflows/ci.yml`
       exit 0 y un run real muestra la línea de duración en ambas jobs.
-- [ ] 1.2 [CI] Recoger **≥3 corridas reales** de `test-unit-*` tras el paso 1.1 y registrar
-      fecha + duración en la tabla de Evidencia de este fichero — verificación: 3 filas
-      completas con enlace de run; ninguna celda vacía.
+- [x] 1.2 [CI] Recoger **≥3 corridas reales** de `test-unit-*` y registrar fecha + duración en la
+      tabla de Evidencia de este fichero — verificación: **4 filas completas** con enlace de run,
+      job y step de tests, ninguna celda vacía (método en la nota bajo la tabla). _Matiz_: las 4
+      corridas preceden al push de la instrumentación de 1.1, así que la medición del step de tests
+      es real pero vía API del job, no vía la línea del step summary (único pendiente de 1.1).
 - [x] 1.3 [CI] Verificar por escrito el prerequisito **Coverage Merge Gate** (§23.6 /
       `unit-tests-enterprise` §2.6): (a) gate por workspace existe
       (`scripts/ci/check-coverage.mjs` en `client-coverage`/`server-coverage`), (b) el merge de
@@ -48,11 +64,15 @@ quitar `continue-on-error` (FASE 1→2); `client-snapshot-testing` posee
 
 ## 2. G2 — Decisión (gate duro; N/A es un cierre válido)
 
-- [ ] 2.1 [CI] Calcular la duración medida de `test-unit-*` sobre las ≥3 corridas de G1.2 y
-      aplicar el umbral: **>8 min en 3 corridas consecutivas ⇒ PROCEED**; **<5 min ⇒ N/A**; banda
-      5-8 min ⇒ PROCEED solo con análisis de coste `N*(s+T/w)` vs ahorro de wall-time —
-      verificación: el cálculo (medias, comparación) queda escrito en la tabla/Notas.
-- [ ] 2.2 Registrar la decisión **PROCEED o N/A** en este fichero con enlaces a la evidencia.
+- [x] 2.1 [CI] Duración medida de `test-unit-*` sobre las 4 corridas de G1.2 y umbral aplicado —
+      verificación: cálculo escrito (abajo). **Las dos lecturas posibles dan N/A**: - **Suite (lo que el sharding reparte)**: client 161/166/145/163 s ⇒ media **158,8 s ≈ 2m39s**,
+      máx **166 s** ⇒ **< 5 min**. - **Job completo (lectura más conservadora)**: client 264/274/259/282 s ⇒ media
+      **269,8 s ≈ 4m30s**, máx **282 s = 4m42s** ⇒ también **< 5 min** (margen de 18 s ≈ 6%). - **Server**: suite 4-5 s, job 113-156 s ⇒ < 5 min (queda single-runner, task 5.4).
+      Ninguna corrida cae en la banda 5-8 min y ninguna supera 8 min ⇒ **PROCEED no aplica**.
+      El análisis de coste `N*(s+T/w)` se registra igualmente (2.2) porque el job está al ~94% del
+      umbral y la decisión debe quedar explicada, no solo afirmada.
+- [x] 2.2 Registrar la decisión **PROCEED o N/A** en este fichero con enlaces a la evidencia
+      (decisión: **N/A**, 4 runs enlazados en §Evidencia y análisis de coste en el Registro).
       Si N/A: marcar 3.1-3.4, 4.1-4.3, 5.1-5.4 y sus `.V` como N/A (nota en la propia línea,
       checkbox sin marcar) y **saltar directamente a G6** — verificación: la línea de decisión
       existe y G3-G5 quedan sin ejecutar; `grep -c "strategy.matrix" .github/workflows/ci.yml`
@@ -118,10 +138,15 @@ quitar `continue-on-error` (FASE 1→2); `client-snapshot-testing` posee
 ## 5. G5 — Required check y balanceo (SOLO si G2 = PROCEED)
 
 - [ ] 5.1 **[N/A — G2 = N/A]** [CI] Verificar contra la API del ruleset que los required checks siguen siendo solo
-      los 4 governance de `CONTEXT-CICD.md` §3.2 (`gh api .../rulesets/21227644` o
-      `branches/main/protection/required_status_checks`) y que NINGÚN check de shard está
-      requerido — verificación: salida de la API pegada en este fichero; si apareciera un binding
-      sobre `Tests: Unit - Client`, se documenta y se detiene (no se renombra nada).
+      los 4 governance de `CONTEXT-CICD.md` §3.2 y que NINGÚN check de shard está requerido.
+      **Auditoría ejecutada ya (lectura, sin sharding)** — `gh api repos/…/rulesets` ⇒ un único
+      ruleset activo `21227644` ("Require signed commits", target `branch`), cuyos
+      `required_status_checks` son exactamente los 4 governance: `Verify Commit Signatures`,
+      `Commit Lint (Conventional Commits)`, `PR Title Lint`, `DCO`. Ningún check `Tests: Unit - *`
+      ni `CI Complete` está ligado ⇒ el contrato de nombres puede cambiarse **siempre que** las
+      legs se absorban en el puente de nombre fijo, como exige la spec. La tarea queda sin marcar
+      porque su grupo (G5) no se ejecuta; si alguna vez se liga un check de shard, se documenta y
+      se detiene (no se renombra nada).
 - [ ] 5.2 **[N/A — G2 = N/A]** [CI] Publicar métricas advisory en el paso summary del puente (D8): duración por shard,
       ratio máx/mín (objetivo ≤1.15), straggler share y minutos facturados vs baseline, sin
       `exit 1` y sin afirmar mejora de TTFF — verificación: run real con las 4 métricas visibles
@@ -130,9 +155,11 @@ quitar `continue-on-error` (FASE 1→2); `client-snapshot-testing` posee
       en este fichero (delegado a `tia-hardening`/`vitest#9184`, **sin** tocar
       `sequence.sequencer`); si ≤1.15 ⇒ nota "balance aceptado" — verificación: la línea de
       resultado existe con el ratio del run real.
-- [ ] 5.4 **[N/A — G2 = N/A]** Documentar la decisión de `test-unit-server`: sin evidencia propia que supere G1/G2
-      queda **single-runner** (no se replica la matriz por simetría) — verificación:
-      `grep -A12 "test-unit-server:" .github/workflows/ci.yml` sin `strategy.matrix`.
+- [ ] 5.4 **[N/A — G2 = N/A]** Documentar la decisión de `test-unit-server`: **single-runner** (no se replica la matriz
+      por simetría) — evidencia propia **ya recogida** en G1.2: suite **4-5 s** y job **113-156 s**
+      en las 4 corridas reales, muy por debajo del umbral de 5 min. Verificación:
+      `grep -A12 "test-unit-server:" .github/workflows/ci.yml` sin `strategy.matrix` (el fichero
+      entero tiene **0 `matrix:`**).
 - [ ] 5.V **[N/A — G2 = N/A]** [CI] Verificación de grupo: cero checks por shard requeridos, agregador con 6 `needs`,
       métricas visibles y FASE 1 intacta (`grep -c "continue-on-error: true"` == `main`).
 
@@ -170,16 +197,26 @@ tests. Lógica verificada ejecutando el mismo `case` en local: con marcador ⇒
 `| \`test-unit-client\` | 100s |`; sin marcador ⇒ "not measured" (sin fallo). **pendiente-CI**: la
 línea en el step summary de un run real de ambas jobs.
 
-**1.2 — ≥3 corridas reales: pendiente-CI.** Medición local (proxy, `CI=true` + `maxWorkers: 1`):
-`test-unit-client` **205 s**, `test-unit-server` **4 s** (ambos `exit 0`). Evidencia previa
-documentada: job unit ≈ **2m20s**.
+**1.2 — 4 corridas reales de CI (obtenidas vía API).** `gh api .../actions/runs/<id>/jobs` para el
+wall-time del job y `.../actions/jobs/<id>` para el step de tests (los 4 runs son `success`, los 4
+ejecutaron la **suite completa** de client: `Test Files 113 passed (113)` — mismo conteo que la
+suite local, así que **no** son corridas diff-scoped): client job 264/274/259/282 s con step
+161/166/145/163 s; server job 123/156/113/130 s con step 4/5/5/5 s. Medición local (proxy,
+`CI=true` + `maxWorkers: 1`): client **205 s**, server **4 s** (ambos `exit 0`). **Corrección**: la
+cifra heredada "job ≈ 2m20s" no es el job de client (4m19s-4m42s) sino el orden de la suite
+(2m25s-2m46s) — se corrige aquí y en los dos docs de lockstep.
 
 **1.3 — Prerequisito Coverage Merge Gate (§23.6 / `unit-tests-enterprise` §2.6).**
 (a) El gate **por workspace existe**: `client-coverage` (`ci.yml` L1796) y `server-coverage`
 (L1886) ejecutan `scripts/ci/check-coverage.mjs` (L1841/L1844 y L1925/L1928).
-(b) El **merge de shards NO existe**: `grep -n "merge-reports" .github/workflows/ci.yml` ⇒ 0
-resultados; queda diseñado en `design.md` D3-D5 (puente `test-unit-client-merge` con
-`--merge-reports --coverage`).
+(b) El **merge de shards NO existía** en el momento de la auditoría: `grep -n "merge-reports"
+.github/workflows/ci.yml` ⇒ 0 resultados; queda diseñado en `design.md` D3-D5 (puente
+`test-unit-client-merge` con `--merge-reports --coverage`). **Actualizado 2026-10-13 —
+prerequisito SATISFECHO**: el change `coverage-merge-gate` implementó el merge sobre los propios
+jobs de coverage (su diseño D1, sin job nuevo) con validación de presencia, patrón de shard y
+propagación de fallo, verificado localmente con N=1. Por tanto G3-G5 ya **no** están bloqueados por
+este punto: su único bloqueante restante es el umbral de duración de G2 (N/A sobre la evidencia de
+4 corridas reales).
 (c) Ese merge debe correr **antes** de cualquier evaluación del tripwire (D5): el puente fusiona y
 recién entonces el gate lee el resumen fusionado; artifact ausente ⇒ `exit 1`, nunca un verde con
 cobertura parcial.
@@ -193,12 +230,27 @@ cobertura parcial.
 `prebuild-unit-tests-complete.needs` ⇒ exactamente **6**; `continue-on-error` ⇒ **33** = `HEAD`
 (los 6 jobs de test intactos, FASE 1 sin tocar).
 
-**2.1 / 2.2 — Decisión: N/A (evidencia medida).** Umbral: >8 min en 3 corridas ⇒ PROCEED;
-<5 min ⇒ N/A. Medición: **205 s** (cliente serializado) y **4 s** (server); job CI ≈ 2m20s ⇒
-**N/A**. Por tanto **no aterriza ninguna matriz**: `grep -c "strategy.matrix"` y
-`grep -c "matrix:"` en `ci.yml` siguen en **0** (idéntico a `HEAD`). G3-G5 quedan marcados
-**[N/A — G2 = N/A]**. _Provisional_: la tabla de Evidencia aún no tiene las ≥3 corridas reales de
-CI que pide 1.2; si alguna cruza el umbral, la decisión se revisa **antes** de abrir G3. El cierre
+**2.1 / 2.2 — Decisión: N/A (evidencia real medida).** Umbral: >8 min en 3 corridas
+consecutivas ⇒ PROCEED; <5 min ⇒ N/A; banda 5-8 min ⇒ PROCEED solo con el coste `N*(s+T/w)`.
+Medición: suite de client media **158,8 s** (máx 166 s); job de client media **269,8 s** (máx
+282 s); suite de server **4-5 s**. **Ambas lecturas** (suite y job completo) quedan bajo 5 min ⇒
+**N/A**, y ninguna corrida entra en la banda 5-8 min.
+
+_Análisis de coste `N*(s+T/w)` (registrado aunque el umbral no lo exija, porque el job está al 94%
+del umbral)._ Con s ≈ **100 s** de overhead por job medido en el run 38192749761 (Set up job 1 s +
+checkout 3 s + `setup-monorepo` 89 s + TIA/cuarentena ≈ 1 s + uploads ≈ 6 s) y T ≈ **161 s** de
+suite: N=2 daría `s + T/2 = 100 + 80 ≈ 180 s` de job (≈3m0s vs 4m24s, **-1m24s** de wall-time) a
+cambio de `2*180 = 360 s` facturados vs 264 s ⇒ **+36% de minutos** para repartir una suite que ya
+cabe en 2m39s. Con N=4 el overhead se paga 4 veces y el ahorro marginal es ~20 s. Conclusión: el
+sharding no compra wall-time relevante en esta suite; **la decisión N/A no depende de la lectura
+elegida**.
+
+Por tanto **no aterriza ninguna matriz**: `grep -c "strategy.matrix"` y `grep -c "matrix:"` en
+`ci.yml` = **0**, idéntico a `main` y a `HEAD` (verificado con `git show main:.github/workflows/ci.yml`);
+`git diff main -- .github/workflows/ci.yml` solo añade comentarios de la instrumentación, ninguna
+clave `matrix`. G3-G5 quedan marcados **[N/A — G2 = N/A]**. **Trigger de revisión**: si el step
+advisory de G1.1 (o la API) muestra el job de client ≥ **300 s** o la suite ≥ **240 s** en 3
+corridas, se reabre G2 con el coste recalculado **antes** de abrir cualquier tarea de G3. El cierre
 por N/A es legítimo (design D1) y no toca el contrato de 6 `needs`.
 
 **2.V — Coherencia decisión ↔ evidencia.** Revisada: la evidencia dice <5 min y la decisión NO es

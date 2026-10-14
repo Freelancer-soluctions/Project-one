@@ -15,7 +15,10 @@ Ver `proposal.md` (Why). Solo el contexto que moldea la decisión:
 - `docs/learning/test-sharding.md` §4/§5 fija los prerequisitos: Coverage Merge Gate (§23.6)
   **antes** de sharding, umbral de duración >5-8 min, y `sequence.sequencer` intocable.
 - Evidencia medida hasta hoy (`ci-testing-gate-promotion`): suites de 5-14 s, job ~2m20s ⇒ bajo
-  el umbral. El resultado esperado de G2 es **N/A**, no PROCEED.
+  el umbral. El resultado esperado de G2 es **N/A**, no PROCEED. **Medición real de G1.2 (4 corridas
+  de CI, `gh api`) que reemplaza esa estimación**: suite completa de client **145-166 s**, job
+  **259-282 s** (≈100 s de setup), server **4-5 s** ⇒ **N/A confirmado**, con margen de 18 s al
+  umbral en la lectura más conservadora (job).
 
 ## Goals / Non-Goals
 

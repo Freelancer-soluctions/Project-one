@@ -157,9 +157,10 @@ Política (§23.3 regla 5, línea de análisis 520):
 
 ### 2.4 Sharding
 
-- **Decisión N/A — capacidad dormida** (change `test-sharding`, G2): la duración medida
-  (`test-unit-client` ≈ 2m20s en CI y **205 s** serializado en local; `test-unit-server` ≈ 4 s) queda
-  **bajo el umbral de activación de 5 min**, así que **no aterriza ninguna matriz**
+- **Decisión N/A — capacidad dormida** (change `test-sharding`, G2): 4 corridas reales de CI
+  midieron la suite completa de `test-unit-client` en **145-166 s** (job completo **259-282 s**, con
+  ≈100 s de `setup-monorepo`) y la de `test-unit-server` en **4-5 s**; todo queda **bajo el umbral de
+  activación de 5 min**, así que **no aterriza ninguna matriz**
   (`0 strategy.matrix` en `ci.yml`); se re-evalúa solo con nueva evidencia medida (el repo ya
   instrumenta la duración con un step advisory en cada job unit). Debe usar el patrón Vitest 4:
   - `vitest run --reporter=blob --shard=1/3` … `--shard=3/3` por runner (matrix strategy con `max-parallel` explícito).
@@ -171,7 +172,9 @@ Política (§23.3 regla 5, línea de análisis 520):
     - Costo: cada matrix necesita `max-parallel` explícito + `concurrency` group a nivel workflow para cancelar runs
       obsoletos por push (§23.3, línea 3465) — sin esto la factura escala linealmente.
 - **Prerrequisito:** solo tiene sentido cuando el duration de la suite lo justifica (>5-8 min). Los
-  jobs unit corren; su duración medida está muy por debajo del umbral (ver arriba).
+  jobs unit corren; su duración medida está por debajo del umbral (ver arriba): la suite de client
+  (2m39s) es lo único que el sharding repartiría, y cada shard re-paga los ≈100 s de setup
+  (`N*(s+T/w)`: N=2 ⇒ ≈3m0s de job por **+36% de minutos facturados**).
 
 ### 2.5 Smart test ordering
 
@@ -350,7 +353,7 @@ cuando el contrato importa (`toHaveBeenCalledTimes(1)`). Tabla mental: Dummy/Stu
 | Coverage Merge Gate de shards                              | N/A (sin shards); guard por workspace sí                                                                                                                                         | Sin sharding no aplica; **obligatorio antes de habilitar sharding**                | P2                                  |
 | Smart ordering explícito / fail-first persistido           | Solo `BaseSequencer` por defecto (cache local)                                                                                                                                   | Feedback fail-first no garantizado en CI                                           | P2                                  |
 | Snapshot tests                                             | **335 snapshots** (77 inline + 258 en `.snap` a lo largo de 83 ficheros de test: 37 F1, 20 F2, 26 F3; 157 matchers en código: 77 `toMatchInlineSnapshot` + 80 `toMatchSnapshot`) | Cobertura UI completada según la política de `client-snapshot-testing`             | **Cerrado (F0–F3)**                 |
-| Property-based testing                                     | `fast-check@3.23.2` instalado, **0 usos**                                                                                                                                        | Invariantes/parsers sin cubrir (§23.3 `[SL]`)                                      | P2                                  |
+| Property-based testing                                     | `fast-check@4` instalado en workspaces (server/client), primeras properties                                                                                                      | Adopción en marcha (§23.3 `[SL]`)                                                  | P2                                  |
 | Gate autoritativo de cobertura (SonarQube new-code ≥80%)   | `if: false`, sin `SONAR_TOKEN`                                                                                                                                                   | El tripwire es el único guard y está desactivado                                   | P1                                  |
 | Balanceo de shards por duración                            | No existe en Vitest (#9184); custom sequencer                                                                                                                                    | Shards desbalanceados                                                              | P3                                  |
 | `coverage.changed` / thresholds por glob / `perFile`       | No implementados                                                                                                                                                                 | TIA de cobertura y granularidad crítica no disponibles                             | P3                                  |

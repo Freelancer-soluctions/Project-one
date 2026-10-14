@@ -81,7 +81,7 @@ until new measured evidence crosses the threshold.
 
 #### Scenario: Evidence below threshold closes the rollout as N/A
 
-- **WHEN** the recorded measurements show the workspace job finishing well under 5 minutes (current repo evidence: suites of seconds, job around 2m20s)
+- **WHEN** the recorded measurements show the workspace job finishing under 5 minutes (current repo evidence, G1.2 over 4 real CI runs: server suite of 4-5 s; client suite 145-166 s; client job 259-282 s, i.e. 4m19s-4m42s dominated by ≈100 s of setup)
 - **THEN** the decision record is N/A and no shard matrix exists in `.github/workflows/ci.yml`
 - **AND** the change documents the evidence and stops, leaving the capability dormant
 
