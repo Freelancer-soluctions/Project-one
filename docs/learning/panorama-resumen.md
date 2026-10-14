@@ -42,7 +42,7 @@
 - Smart test ordering: 0 evidencia.
 - Test sharding: 0 evidencia.
 - Coverage Merge Gate: gate por workspace sí (`scripts/ci/check-coverage.mjs`), merge de shards no.
-- Property-based: dep `fast-check` 3.23.2 (package.json:341) instalada, 0 usos en tests.
+- Property-based: `fast-check@4` instalado en workspaces (apps/server, apps/client), primeras properties creadas.
 - CONTEXT.md (40 líneas): 0/10 términos TESTING.
 - Docs inexistentes citados antes por error: `docs/learning/testing-architecture.md`, `docs/cicd-estado-actual.md` (real: `docs/testing-architecture.md`).
 

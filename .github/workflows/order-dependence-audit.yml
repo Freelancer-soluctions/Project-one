@@ -1,0 +1,84 @@
+name: Order-Dependence Audit
+
+# Auditoría de order-dependence — change `smart-test-ordering` (task 4.2, design D5)
+# (spec `smart-test-ordering`, requirement "Order-dependence audit with recorded seed").
+#
+# QUÉ HACE
+#   Ejecuta la suite unitaria de cada workspace bajo un shuffle de ficheros con
+#   un seed FIJO y REGISTRADO (`SHUFFLE_SEED`). Mismo seed ⇒ misma permutación
+#   en cualquier máquina; un test que solo pasa en ciertas permutaciones es
+#   order-dependente y se convierte en un run rojo visible para triage.
+#
+# RESTRICCIONES DURAS
+#   - NUNCA es un required status check ni entra en `needs` del agregador de
+#     `ci.yml`: el rojo informa, no bloquea el merge.
+#   - Deliberadamente SIN `continue-on-error` (esa semántica pertenece a
+#     `ci-testing-gate-promotion`); aquí el fallo ES la señal.
+#   - NUNCA es el comportamiento por defecto del nocturno ni del tier PR: el
+#     runner de esa ruta es el rojo del job, no el shuffle. `nightly-full-suite.yml`
+#     sigue corriendo la suite completa en orden natural (sin `--sequence.shuffle`).
+#   - Lista y seeds acotados a propósito: la auditoría fija UN caso por corrida
+#     (ampliar seeds es una decisión posterior, no de hoy).
+
+on:
+  schedule:
+    # Lunes 05:10 UTC — después del nocturno diario (02:40) y de la métrica
+    # semanal de flakiness (lunes 04:20), sin competir por runners.
+    - cron: '10 5 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: order-dependence-audit
+  cancel-in-progress: false
+
+env:
+  # Seed fijado y registrado (receta §4.4 del research doc). Cambiarlo es una
+  # decisión explícita: cada seed es una permutación distinta y reproducible.
+  SHUFFLE_SEED: '4242'
+
+jobs:
+  audit:
+    name: Order-dependence audit (${{ matrix.workspace }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      # Sin fail-fast: si un workspace detecta order-dependence, el otro debe
+      # completar para que el panorama quede completo en el mismo run.
+      fail-fast: false
+      matrix:
+        include:
+          - workspace: apps/client
+            label: client
+            script: test:unit
+          - workspace: apps/server
+            label: server
+            script: test:unit
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - uses: ./.github/actions/setup-monorepo
+
+      # Shuffle de ficheros con seed fijo. El sequencer propio produce una
+      # permutación determinista con ese seed (mismo seed ⇒ mismo orden).
+      - name: Run suite under seeded shuffle
+        run: |
+          npm run ${{ matrix.script }} --workspace=${{ matrix.workspace }} -- \
+            --sequence.shuffle --sequence.seed="$SHUFFLE_SEED"
+        shell: bash
+
+      - name: Explain audit result (advisory, never gates)
+        if: always()
+        run: |
+          {
+            echo "### Order-dependence audit — advisory (never gates)"
+            echo ""
+            echo "Seed: \`$SHUFFLE_SEED\` · workspace: \`${{ matrix.workspace }}\`"
+            echo ""
+            echo "Un test que falla solo en ciertas permutaciones es order-dependente:"
+            echo "**arreglarlo, no ordenarlo**. Este workflow NO es un required check."
+          } >> "$GITHUB_STEP_SUMMARY"
+        shell: bash

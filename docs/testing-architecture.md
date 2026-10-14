@@ -231,6 +231,7 @@ La arquitectura permite añadir fácilmente:
 _.unit.test.js → lógica pura (unit testing)
 _.ui.test.js → componentes (UI testing con React Testing Library)
 \*.integration.test.js → integración entre módulos (store, router, APIs)
+\*.properties.unit.test.js → property-based testing (fast-check)
 
 Se evita el uso genérico de _.test.js o _.spec.js sin contexto, ya que no permite identificar la intención del test.
 

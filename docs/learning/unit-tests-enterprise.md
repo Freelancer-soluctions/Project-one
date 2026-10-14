@@ -157,7 +157,12 @@ Política (§23.3 regla 5, línea de análisis 520):
 
 ### 2.4 Sharding
 
-- **No implementado** (0 evidencia, `panorama-resumen.md`). Debe usar el patrón Vitest 4:
+- **Decisión N/A — capacidad dormida** (change `test-sharding`, G2): 4 corridas reales de CI
+  midieron la suite completa de `test-unit-client` en **145-166 s** (job completo **259-282 s**, con
+  ≈100 s de `setup-monorepo`) y la de `test-unit-server` en **4-5 s**; todo queda **bajo el umbral de
+  activación de 5 min**, así que **no aterriza ninguna matriz**
+  (`0 strategy.matrix` en `ci.yml`); se re-evalúa solo con nueva evidencia medida (el repo ya
+  instrumenta la duración con un step advisory en cada job unit). Debe usar el patrón Vitest 4:
   - `vitest run --reporter=blob --shard=1/3` … `--shard=3/3` por runner (matrix strategy con `max-parallel` explícito).
     - `vitest --merge-reports --reporter=junit` en un job `merge-reports` que descarga los artifacts
       (`include-hidden-files: true` para `.vitest/` o `.vitest-reports/`).
@@ -166,19 +171,35 @@ Política (§23.3 regla 5, línea de análisis 520):
       duración = custom `sequence.sequencer` user-land.
     - Costo: cada matrix necesita `max-parallel` explícito + `concurrency` group a nivel workflow para cancelar runs
       obsoletos por push (§23.3, línea 3465) — sin esto la factura escala linealmente.
-- **Prerrequisito:** solo tiene sentido cuando el duration de la suite lo justifica (>5-8 min). Hoy los jobs ni corren.
+- **Prerrequisito:** solo tiene sentido cuando el duration de la suite lo justifica (>5-8 min). Los
+  jobs unit corren; su duración medida está por debajo del umbral (ver arriba): la suite de client
+  (2m39s) es lo único que el sharding repartiría, y cada shard re-paga los ≈100 s de setup
+  (`N*(s+T/w)`: N=2 ⇒ ≈3m0s de job por **+36% de minutos facturados**).
 
 ### 2.5 Smart test ordering
 
-- **No configurado explícitamente**, pero Vitest trae un `BaseSequencer` con orden por cache: **failed first → longer
-  first** (y sin cache: unknown first → larger first). Es "fail-first" parcial por defecto.
-- `sequence.sequencer` permite custom (extender `BaseSequencer` de `vitest/node`, métodos `sort`/`shard`);
-  `sequence.shuffle.files/tests` para aleatorización (detecta interdependencias; pierde el beneficio de precarga de
-  tests lentos primero).
-- §23.3 regla 21 (línea 859) pide fail-first basado en histórico (Launchable/Nx/Vitest `--changed`) como stage
-  pre-build. **Estado: 0 evidencia de configuración ni de persistencia de cache de orden en CI.**
-- Recomendación: en CI con `--shard`, el orden dentro del shard es irrelevante para el wall-time total; el valor del
-  fail-first está en **pre-push y en el job unit single-runner**.
+- **Implementado** (change `smart-test-ordering`): `sequence.sequencer` apunta a `vitest.sequencer.js`
+  (único sitio válido: la config root `vitest.shared.js`) y ordena **fail-first** — más fallos recientes primero
+  (historial N=3 de `scripts/ci/tia-history.mjs`), con tie-break estable por ruta. Sin historial el orden degrada a
+  **determinista** (ruta ascendente), nunca a aleatorio ni a "0 tests".
+- **Ventana N=3** (`HISTORY_N_DEFAULT`, override `TIA_HISTORY_N`). Criterio de tuning: ajustarla solo con evidencia del
+  **historial hit-rate** que publica `scripts/ci/ttff-metric.mjs` (frescura vs memoria de fallos raros) — es una decisión
+  de datos, no de preferencia.
+- **Métrica TTFF / first-fail** (advisory, nunca gate): TTFF wall-clock, % de suite ejecutado hasta el primer rojo,
+  % de fallos dentro del primer X% (X=20) y hit-rate del historial, publicadas en el step summary por
+  `scripts/ci/ttff-metric.mjs` (junto a `injected=M` de la métrica TIA). Corrida verde publica "sin primer fallo";
+  JSON ausente/corrupto ⇒ `metric=unavailable`.
+- **Degradación flaky-aware**: el ranking **degrada** (nunca asciende) los ficheros en cuarentena
+  (`.github/flaky-quarantine.yml`, leída sin modificarla) o con evidencia de retries (`flaky-retries.json`). Sin datos de
+  flaky el orden es el conteo de fallos puro; la exclusión del tier PR sigue ocurriendo por argv en
+  `quarantine-exclude.mjs` (el ranking no resucita un excluido).
+- **Auditoría de order-dependence** (`.github/workflows/order-dependence-audit.yml`, semanal advisory):
+  `npx vitest run --sequence.shuffle --sequence.seed=4242` — mismo seed ⇒ misma permutación, reproducible en cualquier
+  máquina. **Protocolo de triage: un test que falla solo en ciertas permutaciones es order-dependente ⇒ arreglarlo, no
+  ordenarlo**; el shuffle jamás es el comportamiento por defecto del nocturno ni del tier PR.
+- **Opt-out**: `TIA_SEQUENCER=stable` delega en `BaseSequencer` (tier de seguridad nocturno) para no enmascarar
+  order-dependence. Con `--shard` el orden dentro del shard no cambia el wall-time: el valor del fail-first está en el
+  job unit single-runner y en pre-push.
 
 ### 2.6 Coverage Merge Gate (requerido con sharding — §23.6)
 
@@ -187,7 +208,10 @@ Política (§23.3 regla 5, línea de análisis 520):
 - Diseño §23.6: job `coverage-merge-gate` con `needs: [test-shard-1..3]` → descarga artifacts de cobertura → merge
   (blob/`json-summary` merge) → `check-coverage` contra thresholds absolutos.
 - Estado: gate **por workspace** existe (`scripts/ci/check-coverage.mjs`, usado en `client-coverage`/`server-coverage`,
-  ambos en **FASE 1 advisory activado**); merge de shards **no** (es N/A hasta que haya sharding).
+  ambos en **FASE 1 advisory activado**); merge de shards **no** — y sigue siendo N/A por diseño:
+  el change `test-sharding` cerró con decisión **G2 = N/A** (duración bajo el umbral), así que no
+  hay shards que fusionar; habilitar la matriz sin este merge haría que el tripwire mintiera con
+  cobertura parcial.
 
 ### 2.7 CI jobs — blocking vs advisory (estado real)
 
@@ -329,7 +353,7 @@ cuando el contrato importa (`toHaveBeenCalledTimes(1)`). Tabla mental: Dummy/Stu
 | Coverage Merge Gate de shards                              | N/A (sin shards); guard por workspace sí                                                                                                                                         | Sin sharding no aplica; **obligatorio antes de habilitar sharding**                | P2                                  |
 | Smart ordering explícito / fail-first persistido           | Solo `BaseSequencer` por defecto (cache local)                                                                                                                                   | Feedback fail-first no garantizado en CI                                           | P2                                  |
 | Snapshot tests                                             | **335 snapshots** (77 inline + 258 en `.snap` a lo largo de 83 ficheros de test: 37 F1, 20 F2, 26 F3; 157 matchers en código: 77 `toMatchInlineSnapshot` + 80 `toMatchSnapshot`) | Cobertura UI completada según la política de `client-snapshot-testing`             | **Cerrado (F0–F3)**                 |
-| Property-based testing                                     | `fast-check@3.23.2` instalado, **0 usos**                                                                                                                                        | Invariantes/parsers sin cubrir (§23.3 `[SL]`)                                      | P2                                  |
+| Property-based testing                                     | `fast-check@4` instalado en workspaces (server/client), primeras properties                                                                                                      | Adopción en marcha (§23.3 `[SL]`)                                                  | P2                                  |
 | Gate autoritativo de cobertura (SonarQube new-code ≥80%)   | `if: false`, sin `SONAR_TOKEN`                                                                                                                                                   | El tripwire es el único guard y está desactivado                                   | P1                                  |
 | Balanceo de shards por duración                            | No existe en Vitest (#9184); custom sequencer                                                                                                                                    | Shards desbalanceados                                                              | P3                                  |
 | `coverage.changed` / thresholds por glob / `perFile`       | No implementados                                                                                                                                                                 | TIA de cobertura y granularidad crítica no disponibles                             | P3                                  |

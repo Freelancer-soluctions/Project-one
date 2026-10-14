@@ -186,6 +186,27 @@ export default [
   },
 
   // ---------------------------------------------------------------------------
+  // (3c) Configs de Vitest en la raíz del monorepo (ESM que corre en Node y lee
+  // `process.env`): sin este bloque caen fuera de todo `files` y `no-undef`
+  // marca `process`/`console` como indefinidos (los lint-staged los analizan al
+  // commitear). Change `smart-test-ordering` (sequencer fail-first).
+  // ---------------------------------------------------------------------------
+  {
+    files: [
+      'vitest.shared.js',
+      'vitest.sequencer.js',
+      'vitest.scripts.config.js',
+    ],
+    languageOptions: {
+      ecmaVersion: 'latest',
+      sourceType: 'module',
+      globals: {
+        ...globals.node,
+      },
+    },
+  },
+
+  // ---------------------------------------------------------------------------
   // (4) Frontend React + JSX (apps/client).
   // ---------------------------------------------------------------------------
 
