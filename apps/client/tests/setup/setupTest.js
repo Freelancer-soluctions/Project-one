@@ -3,6 +3,12 @@ import * as matchers from '@testing-library/jest-dom/matchers';
 import { cleanup } from '@testing-library/react';
 import { server } from './msw/server';
 import i18n from '@/config/i18n';
+import fc from 'fast-check';
+
+fc.configureGlobal({
+  numRuns: process.env.CI ? 1000 : 100,
+  ...(process.env.CI ? { seed: 42 } : {}),
+});
 
 // Shared mock for @tanstack/react-table - provides realistic flexRender
 // that calls the cell function with context, avoiding conflicts between
