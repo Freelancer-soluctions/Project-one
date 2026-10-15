@@ -1,5 +1,7 @@
 # Configuración de TypeScript Strict — Implementación Profesional
 
+> **Estado (2026-10-14): absorbido por `openspec/changes/server-typescript-migration` (Fase 4 — dueño único del strict gradual).** La §1 quedó obsoleta: `apps/server/tsconfig.json` ya existe (change `quality-gates`) y el job `server-typecheck` está activo y bloqueante en `ci.yml` desde 2026-09-26 (sin `if: false`). Fuente vigente: `docs/server-typescript-migration-research.md`.
+
 ## 1. Contexto y estado actual
 
 El monorepo `project-one` (React/Express) tiene `typescript: 5.9.3` en `dependencies` de raíz (`package.json` L858) y `apps/server/` adquiere `typescript-migration-server.md` como change activo. Actualmente `apps/server/` NO tiene `tsconfig.json`; `lint-staged` cubre `*.ts,tsx` solo para `prettier`; `eslint.config.js` no incluye `ts` en glob (`*.js`; falta `*.ts`); `server-typecheck` en `.github/workflows/ci.yml` (L538) tiene `if: false` y `|| echo "TypeCheck: no-op..."`; `package.json` raíz NO tiene script `type-check`; `lint-staged` raíz (l.91-94) cubre `*.{js,jsx,cjs,mjs}` pero NO `*.ts` para `eslint`.

@@ -1278,10 +1278,12 @@ cubre en el job `test-integration` de `ci.yml`, que sí levanta el service conta
 > archivado):** su Fase 0 ampliará el tooling de esta sección a `.ts` ANTES de convertir el primer archivo — globs
 > backend/complexity de `eslint.config.js` (fila eslint), scripts `lint`/`format` de `apps/server/package.json`,
 > sección `apps/server` de `/knip.jsonc` (fila knip §12.3), regexes de `apps/server/.dependency-cruiser.cjs` (§13.4),
-> `include` de `apps/server/vitest.config.js` y glob eslint de `lint-staged`. Incluye además crear
-> `apps/server/tsconfig.json` (`allowJs`+`noEmit`+`nodenext`, sin build step — strangler fig) y habilitar el job
-> `server-typecheck` de `ci.yml` (hoy `if: false`, ver §1). Investigación canónica:
-> `docs/learning/typescript-migration-server.md`. Estado detallado: `openspec/changes/server-typescript-migration/`.
+> `include` de `apps/server/vitest.config.js` y glob eslint de `lint-staged`. El `apps/server/tsconfig.json`
+> (`allowJs`+`noEmit`+`nodenext`, sin build step — strangler fig) **ya existe** y el job `server-typecheck` de `ci.yml`
+> **ya está activo y bloqueante** desde el change `quality-gates` (2026-09-26, ver §1 — la frase "hoy `if: false`" ya no
+> aplica). Investigación canónica: `docs/learning/typescript-migration-server.md`; fuente vigente (2026-10-14):
+> `docs/server-typescript-migration-research.md`. Estado detallado: `openspec/changes/server-typescript-migration/`.
+> **Contador de progreso de conversión: `0/236 .ts` en `apps/server` (baseline 2026-10-14).**
 
 ### 12.3 Herramientas de análisis (devDependencies raíz)
 

@@ -1,5 +1,7 @@
 # Migración de `apps/server` a TypeScript — Investigación y Plan Incremental
 
+> **⚠️ Superado parcialmente por [`docs/server-typescript-migration-research.md`](../server-typescript-migration-research.md) (2026-10-14, fuente vigente):** números corregidos allí — 236 archivos JS (208 `src/` + 23 `tests/` + configs/prisma/scripts), ~2.586 anotaciones JSDoc con `@typedef` = 0, 20 accesos `process.env`. Este doc se conserva como registro histórico de la investigación 2026-09-23.
+
 > **Objetivo del documento:** registrar la investigación del codebase de `apps/server` (verificada contra los archivos reales el 2026-09-23) y la estrategia de migración a TypeScript que permite convertir el workspace **sin romper la ejecución** en ningún momento.
 > **Estado:** investigación completada; la migración NO ha comenzado. Cada fase de la §4 requiere su change OpenSpec.
 > **Fuentes oficiales:** [TS Handbook — Migrating from JS](https://www.typescriptlang.org/docs/handbook/migrating-from-javascript.html) · [tsconfig reference](https://www.typescriptlang.org/tsconfig/) · [Node ESM + TypeScript](https://nodejs.org/api/typescript.html)

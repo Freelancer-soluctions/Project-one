@@ -45,6 +45,8 @@ cd apps/server && npm run test:unit         # Unit tests
 cd apps/server && npm run test:integration  # Integration tests
 ```
 
+> **Migración TS en curso** (2026-10-14): `apps/server` aún **0 `.ts`** (236 `.js`/`.cjs`/`.mjs`; alcance total: 0 al final). Runtime endgame `tsx` (`dev` deja de ser `nodemon src/bin/index.js` al convertirse el entry); filtros de test ganan `.ts` en Fase 0. Fuente: `docs/server-typescript-migration-research.md`.
+
 ### E2E
 
 ```bash
