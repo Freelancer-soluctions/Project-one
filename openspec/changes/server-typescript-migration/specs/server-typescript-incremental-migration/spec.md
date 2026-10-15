@@ -8,13 +8,14 @@ Incremental TypeScript migration of the `apps/server` workspace: Phase 0 infrast
 
 ### Requirement: Verification-only TypeScript infrastructure
 
-The `apps/server` workspace SHALL have a `tsconfig.json` that type-checks without emitting (`noEmit: true`), coexists with JavaScript during the migration (`allowJs: true`), and resolves modules with `module: nodenext` / `moduleResolution: nodenext`. The runtime SHALL continue executing the `.js` sources directly (no build step, no `dist/` output). `strict` SHALL be `false` during Phase 0 and enabled incrementally (one flag per change) in the final phase.
+The `apps/server` workspace SHALL have a `tsconfig.json` that type-checks without emitting (`noEmit: true`), coexists with JavaScript during the migration (`allowJs: true`), and resolves modules with `module: nodenext` / `moduleResolution: nodenext`. During Phases 0–2 the runtime SHALL continue executing the `.js` sources directly (no build step, no `dist/` output); the Phase 3 endgame switches the runtime to `tsx` running `src/bin/index.ts` (design decision 9, 2026-10-14). `strict` SHALL be `false` during Phase 0 and enabled incrementally (one flag per change) in the final phase.
 
 #### Scenario: tsconfig does not break execution
 
-- **WHEN** the server starts locally or in production (PM2 via `ecosystem.config.js`)
+- **WHEN** the server starts locally or in production (PM2 via `ecosystem.config.js`) during Phases 0–2
 - **THEN** Node SHALL execute `src/bin/index.js` directly, exactly as before the migration infrastructure existed
 - **AND** no `dist/` output, build script, or start-script change SHALL have been introduced
+- **AND** in the Phase 3 endgame the runtime SHALL instead be `tsx` running `src/bin/index.ts` (design decision 9, 2026-10-14)
 
 #### Scenario: tsconfig verifies both languages
 
@@ -39,7 +40,7 @@ The `apps/server` `devDependencies` SHALL include the `@types/*` packages requir
 
 ### Requirement: Toolchain `.ts` coverage precedes code conversion
 
-All quality-gate tooling that currently matches `apps/server` JavaScript SHALL cover `.ts` files BEFORE the first source file is converted: the backend and complexity blocks of `eslint.config.js`, the `lint` and `format` scripts of `apps/server/package.json`, the `apps/server` section of the root `knip.jsonc`, the path regexes of `apps/server/.dependency-cruiser.cjs`, the `include` globs of `apps/server/vitest.config.js`, and the eslint glob of the root `lint-staged` configuration. Prettier SHALL already cover `ts` via its existing glob.
+All quality-gate tooling that currently matches `apps/server` JavaScript SHALL cover `.ts` files BEFORE the first source file is converted: the backend and complexity blocks of `eslint.config.js`, the `lint` and `format` scripts of `apps/server/package.json`, the `apps/server` section of the root `knip.jsonc`, the `options.tsConfig.fileName` setting of `apps/server/.dependency-cruiser.cjs` (its path regexes live in the root `.dependency-cruiser.cjs` and already cover `.ts`), the `include` globs of `apps/server/vitest.config.js`, and the eslint glob of the root `lint-staged` configuration. Prettier SHALL already cover `ts` via its existing glob.
 
 #### Scenario: First converted file is covered by every gate
 
@@ -63,7 +64,8 @@ The `server-typecheck` job in `.github/workflows/ci.yml` SHALL be enabled (its `
 #### Scenario: Gate activation order
 
 - **WHEN** Phase 0 is implemented
-- **THEN** the job SHALL NOT be enabled before the local baseline verification (task order 1.3 → 1.4) has produced a green run
+- **THEN** the `server-typecheck` job SHALL remain enabled and blocking (it has been active since the `quality-gates` change, 2026-09-26) and SHALL NOT be disabled at any point
+- **AND** the local baseline verification (task order 1.3 → 1.4) SHALL confirm the baseline (widened `allowJs`, `checkJs`) is green under the already-active gate
 
 ### Requirement: Per-file conversion protocol guarantees a green tree
 
