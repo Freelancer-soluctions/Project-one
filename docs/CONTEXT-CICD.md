@@ -79,6 +79,7 @@ run`) + workflow `opencode-review.yml` auditado ACTIVE por API (ver §9.3.8); fl
 | `test-integration` / `test-smoke`                                | ✅ Activo                   | `if:` sobre repo-discovery — **NO advisory** (sin `continue-on-error`); ejecutan su lógica condicional pero no pertenecen a FASE 1 advisory                                |
 | `*-build`, `sonarqube`, `e2e`, `server-format-check`, `depcheck` | ⏸️ Inactivo                 | `if: false` — **diseño incremental intencional**                                                                                                                           |
 | `client-dead-code` / `server-dead-code` (knip)                   | ✅ Activo                   | Path-scoped PRs; corren desde la RAÍZ contra `/knip.jsonc` única (`--workspace=apps/*`); `continue-on-error: true` (fase 1, `knip-consolidation` 2026-09-23)               |
+| `server-typecheck` (TS migration Fase 0)                         | ✅ Activo                   | Bloqueante (change `quality-gates` 2026-09-26: sin `if: false` ni `\|\| echo`); baseline verde post-Fase 0b (2026-10-15): `checkJs: false`, 236 JS / 0 TS en `apps/server` |
 | `client-complexity`                                              | ✅ Activo                   | Path-scoped PRs; threshold 20 heredado de `eslint.config.js` — sin `--rule` desde `eslint-configuration` 2026-09-23                                                        |
 | `server-complexity`                                              | ⏸️ Inactivo                 | `if: false`; contenido ya corregido (sin `--rule`, hereda 20) — activación requiere change futuro                                                                          |
 | `ci-complete` ("CI Complete")                                    | ✅ Activo                   | `if: CI_MINIMAL != 'true'` → CORRE (CI_MINIMAL=false desde 2026-09-17, change `ci-prebuild-quality-lint` task 8); aún NO es status check del ruleset                       |
@@ -97,6 +98,12 @@ run`) + workflow `opencode-review.yml` auditado ACTIVE por API (ver §9.3.8); fl
 | AWS (environments, ECR, ECS)                                     | 📋 Pendiente                | 0 environments, 0 secrets AWS; provisión futura                                                                                                                            |
 | "CI Complete" añadido al ruleset                                 | 📋 Pendiente                | Solo tras reportarse ≥1 vez (CI_MINIMAL=false desde 2026-09-17)                                                                                                            |
 | Dependabot firma commits?                                        | 🔴 Dudosa                   | Verificar; si no firma, `verify-signatures` los falla                                                                                                                      |
+
+> **Métrica TS-migration (Fase 0b, 2026-10-15):** `apps/server` = **236 JS / 0 TS** (208 `src/` + 20 `tests/` +
+> 8 configs/prisma/scripts), imports relativos con sufijo `.js` 389/389, `server-typecheck` verde con
+> `checkJs: false` (baseline `checkJs: true` temporal = 639 errores > umbral ~200 → diferido a Fase 4; sin
+> `Cannot find module` de `@types/*` runtime — los 3 TS2307 son imports muertos de ficheros inexistentes).
+> Actualizar este contador al cierre de cada fase de `server-typescript-migration`.
 
 ## 2. Cómo verificar el estado (no asumir)
 

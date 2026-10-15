@@ -139,6 +139,23 @@ Reglas de conversión:
 - ❌ Convertir el entry (`bin/index.js`) antes que sus dependencias — dejaría al archivo principal sin los tipos de todo su árbol.
 - ❌ Tocar `prisma/seed.js` en Fase 2 (poco tráfico, cero ganancia; va al final).
 
+### 3.4 Protocolo de conversión por archivo (recap Fase 0b, verificado 2026-10-15)
+
+Recap normativo de las 6 reglas (fuente: `openspec/changes/server-typescript-migration/design.md` §5).
+Cualquier dev aplica una conversión sin decisiones ad-hoc siguiendo (a)–(f):
+
+- (a) **Un archivo = un commit** (o un módulo de 5 archivos cuando el patrón esté rodado); `git mv` + tipar firmas públicas — los imports de consumidores NO se tocan.
+- (b) **`git mv` + firmas públicas tipadas**: los imports con sufijo `.js` se conservan (convención `nodenext`; TS resuelve `.js` → `.ts` al verificar).
+- (c) **El `@typedef` del archivo convertido muere en el mismo commit** → `types.ts` del módulo o interfaces inline (hoy `@typedef`/`@type` = 0 en `src/`: regla preventiva).
+- (d) **Sin `any` nuevo**; `unknown` + narrowing o `// TODO(types)` tracked.
+- (e) **`@ts-nocheck` solo como excepción justificada** con fecha de expiración.
+- (f) **Validación del commit**: `npx tsc --noEmit` + lint + tests del módulo + smoke de arranque.
+
+Decisiones Fase 0b que condicionan el protocolo: `checkJs: false` permanente hasta Fase 4
+(baseline con `checkJs: true` = 639 errores sobre 236 archivos, umbral ≤~200 — ver tasks 1.3);
+métrica baseline **236 JS / 0 TS** (208 `src/` + 20 `tests/` + 8 configs/prisma/scripts),
+imports `.js`-sufijados 389/389, job `server-typecheck` activo con baseline verde.
+
 ---
 
 ## 4. Plan incremental por fases (cada fase = changes OpenSpec independientes)
