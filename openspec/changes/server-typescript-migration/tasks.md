@@ -19,7 +19,7 @@
 
 ## 2. Fase 1 — Hojas del grafo (change separado)
 
-- [ ] 2.1 Crear change OpenSpec `server-ts-phase1-leaves` cubriendo: `config/db.ts` (singleton Prisma tipado), `config/dotenv.ts` (firma `(key: EnvKey) => string`), `config/cors.ts`, `config/aws/*.ts`, `common/crypto/*.ts`, `logger/*.ts`, `utils/constants/enums.ts`, `schemas/*.ts` — cada archivo según el protocolo de conversión (design §5)
+- [x] 2.1 Crear change OpenSpec `server-ts-phase1-leaves` cubriendo: `config/db.ts` (singleton Prisma tipado), `config/dotenv.ts` (firma `(key: EnvKey) => string`), `config/cors.ts`, `config/aws/*.ts`, `common/crypto/*.ts`, `logger/*.ts`, `utils/constants/enums.ts`, `schemas/*.ts` — cada archivo según el protocolo de conversión (design §5) **CREADO (2026-10-15):** `openspec/changes/server-ts-phase1-leaves/` — 36 archivos objetivo verificados contra el grafo (31 hojas puras + 4 dependientes internos + `db` con dependencia externa a middleware), 3 lotes con gates, validate --strict PASS.
 
 ## 3. Fase 2 — Módulos (change separado)
 
