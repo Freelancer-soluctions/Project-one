@@ -117,5 +117,6 @@ When every migration phase is complete, the `apps/server` workspace SHALL contai
 
 - **WHEN** all migration phases (leaves, modules, core, configs, strict) are complete
 - **THEN** `git ls-files 'apps/server/**/*.js' 'apps/server/**/*.cjs' 'apps/server/**/*.mjs'` SHALL return 0 files
+- **AND** `git ls-files 'apps/server/*.js' 'apps/server/*.cjs' 'apps/server/*.mjs'` SHALL also return 0 files — the `**/` form requires at least one directory level and skips the 6 files directly under `apps/server/` (`.dependency-cruiser.cjs`, `ecosystem.config.js`, `test-sanitize.js`, `test-sanitize.mjs`, `vitest.config.js`, `vitest.smoke.config.js`); git pathspecs do not expand `{js,cjs,mjs}` braces (0 matches measured), so the root pathspec `apps/server/*.{js,cjs,mjs}` is verified as these three explicit patterns
 - **AND** `node_modules/`, `coverage/`, and `reports/` SHALL be excluded from the count
 - **AND** any file remaining SHALL be a documented exception with its justification recorded in this change
