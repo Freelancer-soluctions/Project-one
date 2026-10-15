@@ -2,6 +2,8 @@
 
 Express.js API with Prisma ORM and PostgreSQL.
 
+> **Migración a TypeScript en curso** (2026-10-14, `openspec/changes/server-typescript-migration`): alcance total — 0 `.js`/`.cjs`/`.mjs` al final; hoy **0 `.ts`** (236 archivos JS). Runtime endgame: `tsx` (`dev` y entry pasarán de `nodemon src/bin/index.js` al entry `.ts`). Los filtros/scripts de test ganarán cobertura `.ts` en Fase 0. Fuente: `docs/server-typescript-migration-research.md`.
+
 ## Commands
 
 ```bash

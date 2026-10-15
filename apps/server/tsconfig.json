@@ -5,6 +5,9 @@
   // `server-typescript-migration` convierta archivos a .ts y
   // `typescript-strict-check` active flags, este archivo es el punto de evolución.
   "extends": "../../tsconfig.json",
-  "include": ["src/**/*"],
+  "compilerOptions": {
+    "incremental": true
+  },
+  "include": ["src/**/*", "tests/**/*"],
   "exclude": ["node_modules"]
 }

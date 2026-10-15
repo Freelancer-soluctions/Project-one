@@ -21,4 +21,13 @@
 /** @type {import('dependency-cruiser').IConfiguration} */
 module.exports = {
   extends: ['../../.dependency-cruiser.cjs'],
+  options: {
+    // server-typescript-migration Fase 0 (task 1.2): tsconfig del workspace
+    // para que dep-cruiser resuelva imports TS pre-compilación
+    // (`tsPreCompilationDeps: true` se hereda de la raíz). Relativo a la
+    // RAÍZ como el resto de paths (scripts `depcruise:*` y CI corren desde ahí).
+    tsConfig: {
+      fileName: 'apps/server/tsconfig.json',
+    },
+  },
 };

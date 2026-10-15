@@ -1,21 +1,22 @@
 # ============================================================
 # Dockerfile para API Express + Socket.IO
 # ============================================================
-# Usamos Node 20 Alpine por tamaño reducido (~120MB vs ~300MB de node:20)
+# Usamos Node 22 Alpine por tamaño reducido (~120MB vs ~300MB de node:22)
+# (upgrade desde Node 20 por EOL 2026-04-30 — Fase 0 task 1.11)
 # Build context: monorepo root (to access package-lock.json)
 #   docker build -f apps/server/Dockerfile .
 # ============================================================
 
-FROM node:20-alpine
+FROM node:22-alpine
 
 WORKDIR /app
 
 # OpenSSL CLI: necesario para que Prisma detecte linux-musl-openssl-3.0.x durante
 # `prisma generate`. Alpine trae libssl3 (OpenSSL 3) pero NO el CLI; sin él, generate
 # produce el engine "linux-musl" (OpenSSL 1.1) que no puede cargar sobre libssl.so.3
-# del node:20-alpine actual (Error: libssl.so.1.1: No such file or directory).
+# del node:22-alpine actual (Error: libssl.so.1.1: No such file or directory).
 # Sin pin de versión a propósito: la versión de openssl debe seguir a la release de
-# Alpine de la imagen base (node:20-alpine móvil); un pin quedaría desincronizado en
+# Alpine de la imagen base (node:22-alpine móvil); un pin quedaría desincronizado en
 # cada bump de la base y rompería el build. (PrAGMA: hadolint exige que la línea de
 # ignore sea EXACTA e inmediatamente superior al RUN.)
 # hadolint ignore=DL3018

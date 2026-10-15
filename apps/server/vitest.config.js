@@ -99,9 +99,9 @@ export default mergeConfig(
       },
       setupFiles: ['./tests/setupTest.js'],
       include: [
-        'src/**/*.unit.test.js',
-        'tests/**/*.unit.test.js',
-        'tests/integration/**/*.integration.test.js',
+        'src/**/*.unit.test.{js,ts}',
+        'tests/**/*.unit.test.{js,ts}',
+        'tests/integration/**/*.integration.test.{js,ts}',
       ],
       testTimeout: 30000,
       hookTimeout: 15000,

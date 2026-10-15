@@ -2,11 +2,11 @@
 
 ## Context
 
-`apps/server` (Express + Prisma + socket.io, npm workspaces, ESM puro) suma 228 archivos JS (~29k líneas en `src/`, 24 módulos con convención uniforme `controller/dao/routes/schemas/service`). La investigación canónica `docs/learning/typescript-migration-server.md` verificó las condiciones favorables: **389/389 imports relativos terminan en `.js`** (convención exacta de `moduleResolution: nodenext`), ~2.556 anotaciones JSDoc que `checkJs` puede verificar hoy, ESM sin un solo `require()`, y un job `server-typecheck` en `ci.yml` (L538) que **ya está activo** — el change `quality-gates` lo habilitó con el comando real, sin `if: false` ni placeholder.
+`apps/server` (Express + Prisma + socket.io, npm workspaces, ESM puro) suma 236 archivos JS rastreados (`.js`/`.cjs`/`.mjs` vía `git ls-files`, re-verificado 2026-10-14: 208 en `src/`, 20 en `tests/`, 8 configs/prisma/scripts; ~29k líneas en `src/`, 24 módulos con convención uniforme `controller/dao/routes/schemas/service`). La investigación canónica `docs/learning/typescript-migration-server.md` verificó las condiciones favorables: **389/389 imports relativos terminan en `.js`** (convención exacta de `moduleResolution: nodenext`), ~2.586 anotaciones JSDoc (2.099 `@param` + 491 `@returns`; cero `@typedef`/`@type` en `src/`) que `checkJs` puede verificar hoy, ESM sin un solo `require()`, y un job `server-typecheck` en `ci.yml` (L568) que **ya está activo** — el change `quality-gates` lo habilitó con el comando real, sin `if: false` ni placeholder.
 
 El constraint dominante es no romper la ejecución en ningún momento: el server corre en AWS vía PM2 (`ecosystem.config.js` → `src/bin/index.js`) y no hay build step hoy (`npm run build` es no-op). Cualquier estrategia que introduzca una fase de compilación obligatoria (emit a `dist/`, rewrite masivo de imports, strict de golpe) multiplicaría el riesgo y el tiempo de migración.
 
-**Estado heredado del change absorbido `typescript-strict-check` (eliminado):** planeaba la otra mitad del viaje —adopción gradual de flags `strict` con orden de coste, scripts `type-check`, `lint-staged` para `*.ts` y doc con referencias `typescriptlang.org`— pero sus tasks 1.x (tsconfigs, scripts, activación del job) y 5.x (CI) quedaron **stale**: el árbol ya las cumple (creadas por `quality-gates`, verificadas 2026-10-01: ambos `tsconfig.json` presentes con `checkJs: false`, script `type-check` en raíz, `server-typecheck` sin `if: false`, `lint-staged` ya procesa `*.{js,jsx,ts,tsx,cjs,mjs}` con prettier + eslint + depcruise). Su valor no-duplicado es el **orden de adopción de flags**, que este change toma como Fase 4.
+**Estado heredado del change absorbido `typescript-strict-check` (eliminado):** planeaba la otra mitad del viaje —adopción gradual de flags `strict` con orden de coste, scripts `type-check`, `lint-staged` para `*.ts` y doc con referencias `typescriptlang.org`— pero sus tasks 1.x (tsconfigs, scripts, activación del job) y 5.x (CI) quedaron **stale**: el árbol ya las cumple (creadas por `quality-gates`, verificadas 2026-10-01: ambos `tsconfig.json` presentes con `checkJs: false`, script `type-check` en raíz, `server-typecheck` sin `if: false`, `lint-staged` ya procesa `*.{js,jsx,ts,tsx,cjs,mjs}` con prettier + depcruise — el step de eslint NO cubre `ts` hoy: glob `*.{js,jsx,cjs,mjs}` y sin parser typescript-eslint, verificado 2026-10-14). Su valor no-duplicado es el **orden de adopción de flags**, que este change toma como Fase 4.
 
 ## Goals / Non-Goals
 
@@ -20,7 +20,7 @@ El constraint dominante es no romper la ejecución en ningún momento: el server
 **Non-Goals:**
 
 - Convertir archivos en este change (Fases 1–3, changes separados ya esbozados en tasks 2.x–4.x)
-- Emitir `dist/` o introducir build step (Node ejecuta los `.js` nativos; vitest compila `.ts` con esbuild)
+- Emitir `dist/` o introducir build step (Node ejecuta los `.js` nativos; vitest compila `.ts` con esbuild; el endgame `tsx` ejecuta `.ts` igualmente sin build — decisión 9)
 - Reescribir imports a `.ts` (los `.js` actuales son la convención correcta para `nodenext`)
 - Migrar `docs/schemas.js` (2.868 líneas de JSDoc OpenAPI en strings — sin ganancia de tipos; evaluación aparte en Fase 3)
 - Tocar `apps/client` (ya soporta TS nativamente) salvo la verificación de su job `client-typecheck`, que ya está activo
@@ -30,19 +30,19 @@ El constraint dominante es no romper la ejecución en ningún momento: el server
 
 ### 1. Estrategia strangler fig con `noEmit` (no build step)
 
-**Decision:** `tsconfig.json` con `allowJs: true`, `noEmit: true`, `module: nodenext`, `moduleResolution: nodenext`, `strict` ausente, `incremental: true`. TypeScript SOLO verifica; Node sigue ejecutando los `.js` nativos, y vitest compila los `.ts` de test con esbuild.
+**Decision:** `tsconfig.json` con `allowJs: true`, `noEmit: true`, `module: nodenext`, `moduleResolution: nodenext`, `strict` ausente, `incremental: true` (**requerido**: hoy AUSENTE en los dos `tsconfig.json` — raíz y `apps/server`; se añade en task 1.5). TypeScript SOLO verifica; Node sigue ejecutando los `.js` nativos, y vitest compila los `.ts` de test con esbuild.
 
-**Rationale:** es la única estrategia que garantiza ejecución sin romper en cada commit. Sin `dist/`, no hay doble fuente de verdad ni scripts de arranque que cambiar (PM2/nodemon siguen apuntando a `src/bin/index.js`). Los 389 imports con `.js` son exactamente lo que `nodenext` exige, así que convertir un archivo NO requiere tocar los imports de sus consumidores (TS resuelve `.js` → `.ts` automáticamente al verificar).
+**Rationale:** es la única estrategia que garantiza ejecución sin romper en cada commit. Sin `dist/`, no hay doble fuente de verdad ni scripts de arranque que cambiar durante la migración (PM2/nodemon/Docker siguen apuntando a `src/bin/index.js`; el endgame `tsx` es la decisión 9). Los 389 imports con `.js` son exactamente lo que `nodenext` exige, así que convertir un archivo NO requiere tocar los imports de sus consumidores (TS resuelve `.js` → `.ts` automáticamente al verificar).
 
 **Alternatives considered:**
 
 - **Build step con emit a `dist/`** — runtime más "clásico" para TS, pero introduce dist/, cambia scripts dev/start/PM2, crea dos fuentes del código y rompe la ejecución si el build se olvida. Coste alto, ganancia nula hoy.
-- **Migración big-bang (228 archivos en un PR)** — historial y blame destruidos, revisión imposible, rollback global. Descartada por el propio tamaño del workspace.
+- **Migración big-bang (236 archivos en un PR)** — historial y blame destruidos, revisión imposible, rollback global. Descartada por el propio tamaño del workspace.
 - **JSDoc-only (sin TS)** — no da archivos `.ts` ni `strict`; el objetivo del equipo es TS real.
 
 ### 2. `checkJs` con gate de decisión (tarea 1.3)
 
-**Decision:** el árbol parte de `checkJs: false` (estado `quality-gates`). Este change mide el volumen de errores con `checkJs: true` sobre los 228 archivos JS con `tsc --noEmit` y decide: si el volumen es asumible (umbral de decisión: ≤~200 errores y sin bloquear archivos que nadie convertirá pronto), se activa `checkJs: true` y los JSDoc existentes producen verificación real gratis; si no, se queda `checkJs: false` y se reevalúa al inicio de la Fase 4. La decisión se registra en tasks.md con el número exacto.
+**Decision:** el árbol parte de `checkJs: false` (estado `quality-gates`). Este change mide el volumen de errores con `checkJs: true` sobre los 236 archivos JS con `tsc --noEmit` y decide: si el volumen es asumible (umbral de decisión: ≤~200 errores y sin bloquear archivos que nadie convertirá pronto), se activa `checkJs: true` y los JSDoc existentes producen verificación real gratis; si no, se queda `checkJs: false` y se reevalúa al inicio de la Fase 4. La decisión se registra en tasks.md con el número exacto. **Resultado de la medición (2026-10-14):** `checkJs: true` sobre los 236 JS → **639 errores** (TS2339×312, TS2769×130, TS2345×61, TS2307×3 imports muertos pre-existentes), muy por encima del umbral ≤~200 → decisión consumada: **`checkJs: false` hasta Fase 4** (reevaluación con el baseline de tasks 6.1).
 
 **Rationale:** la medición empírica evita tanto un baseline roto como renunciar prematuramente a la verificación de los JSDoc existentes. Difiere del diseño original solo en el punto de partida (el tsconfig ya existe).
 
@@ -73,7 +73,7 @@ El constraint dominante es no romper la ejecución en ningún momento: el server
 
 ### 5. Protocolo de conversión por archivo
 
-**Decision:** (a) un archivo = un commit (o un módulo de 5 archivos cuando el patrón esté rodado); (b) `git mv` + tipar firmas públicas — los imports de consumidores no se tocan; (c) el `@typedef` del archivo convertido muere en el mismo commit → `types.ts` del módulo o interfaces inline; (d) sin `any` nuevo; `unknown` + narrowing o `TODO(types)` tracked; (e) `@ts-nocheck` solo como excepción justificada con fecha de expiración; (f) validación del commit: `npx tsc --noEmit` + lint + tests del módulo + smoke de arranque.
+**Decision:** (a) un archivo = un commit (o un módulo de 5 archivos cuando el patrón esté rodado); (b) `git mv` + tipar firmas públicas — los imports de consumidores no se tocan; (c) el `@typedef` del archivo convertido muere en el mismo commit (hoy 0 `@typedef`/`@type` en `src/` — regla preventiva para cuando existan) → `types.ts` del módulo o interfaces inline; (d) sin `any` nuevo; `unknown` + narrowing o `TODO(types)` tracked; (e) `@ts-nocheck` solo como excepción justificada con fecha de expiración; (f) validación del commit: `npx tsc --noEmit` + lint + tests del módulo + smoke de arranque.
 
 **Rationale:** protocolo uniforme = revisión rápida y riesgo plano. La regla (c) evita la doble fuente de verdad de tipos, el modo de fallo clásico de las migraciones strangler.
 
@@ -105,7 +105,7 @@ El constraint dominante es no romper la ejecución en ningún momento: el server
 
 ### 8. lint-staged `*.ts` y doc lockstep (absorbidos)
 
-**Decision:** `lint-staged` raíz mantiene el glob `*.{js,jsx,ts,tsx,cjs,mjs}` (prettier ya cubre `ts`; eslint y depcruise ya listan `ts` en sus globs — verificado 2026-10-01): la tarea solo VERIFICA que el pipeline aplica a un `.ts` staged y que no exige un typecheck completo de proyecto en el hot path (eso es de `type-check` y CI). Doc: `docs/learning/typescript-strict-check.md` se actualiza al estado implementado (por este change) citando `typescriptlang.org/tsconfig/strict`, `/tsconfig/` y `docs/handbook/tsconfig-json.html` como referencias normativas, cross-linked con `typescript-migration-server.md`.
+**Decision:** `lint-staged` raíz mantiene el glob `*.{js,jsx,ts,tsx,cjs,mjs}` (prettier y depcruise YA cubren `ts`; eslint NO — su step usa `*.{js,jsx,cjs,mjs}` y `eslint.config.js` no tiene parser typescript-eslint — verificado 2026-10-14; cierre en Fase 0, task 1.9): la tarea VERIFICA que el pipeline aplica a un `.ts` staged (incluido el step de eslint una vez ampliado) y que no exige un typecheck completo de proyecto en el hot path (eso es de `type-check` y CI). Doc: `docs/learning/typescript-strict-check.md` se actualiza al estado implementado (por este change) citando `typescriptlang.org/tsconfig/strict`, `/tsconfig/` y `docs/handbook/tsconfig-json.html` como referencias normativas, cross-linked con `typescript-migration-server.md`.
 
 **Rationale:** el contrato absorbido se cumple con verificación en vez de implementación (mismo patrón que la decisión 3).
 
@@ -113,15 +113,26 @@ El constraint dominante es no romper la ejecución en ningún momento: el server
 
 - **Añadir `tsc --noEmit` a lint-staged** — typecheck completo por commit = hot path lento; la spec absorbida lo prohíbe explícitamente.
 
+### 9. Runtime endgame: `tsx` (decisión de usuario 2026-10-14)
+
+**Decision:** el runtime final de `apps/server` es **`tsx`**: PM2 (`ecosystem.config`), nodemon y el `CMD` del Dockerfile ejecutan `tsx src/bin/index.ts`. Se mantiene `noEmit` y NO se introduce build a `dist/`; los imports con sufijo `.js` se conservan definitivamente (convención `nodenext`); `engines: node >=20` se mantiene como línea base durante las Fases 0–2, con upgrade a `>=22` (o 24 LTS) en la Fase 0 (task 1.11, por EOL de Node 20 el 2026-04-30) — el endgame `tsx` es compatible con ambos. `tsx` se declara en `dependencies` de `apps/server` (no devDeps): el Dockerfile hace `npm prune --workspace=apps/server --omit=dev`, así que una devDep no llegaría a la imagen. Durante las Fases 0–2, PM2/nodemon/Docker siguen apuntando a `src/bin/index.js` (los `.js` corren nativamente en Node); el switch a `tsx src/bin/index.ts` ocurre junto a la conversión de `bin/index.ts` en la Fase 3 (task 4.1).
+
+**Rationale:** `tsx` permite ejecutar el código `.ts` final sin build step, conservando la convención de imports `.js` y el workflow de desarrollo; es el único punto del endgame que cambia scripts de arranque, y al posponerlo a Fase 3 el strangler nunca deja de correr.
+
+**Alternatives considered:**
+
+- **Build + emit a `dist/`** — ya descartado en la decisión 1 (doble fuente de verdad, build olvidable).
+- **`node --experimental-strip-types`** — no resuelve hoy los imports `.js` → `.ts` de `nodenext` sin flags adicionales; inmaduro para producción.
+
 ## Risks / Trade-offs
 
-| Riesgo                                                        | Impacto                                      | Mitigación                                                                              |
-| ------------------------------------------------------------- | -------------------------------------------- | --------------------------------------------------------------------------------------- |
-| `checkJs: true` revela miles de errores heredados             | Baseline roto, gate CI bloqueado             | Gate de decisión tarea 1.3 (umbral explícito); fallback `checkJs: false` registrado     |
-| Tooling ampliado introduce findings en `.ts` futuros          | Ruido en la primera conversión               | Cobertura se amplía con 0 archivos `.ts` — verificación gratuita hoy                    |
-| `tsc --noEmit` ralentiza CI                                   | Feedback más lento                           | `incremental: true` + cache de node_modules existente; medición en tarea 1.5            |
-| Mix JS/TS confunde la resolución en runtime                   | Servidor no arranca                          | `noEmit` (Node ejecuta `.js` nativo); smoke de arranque en el protocolo de conversión   |
-| Doble fuente de tipos (JSDoc + types.ts)                      | Tipos divergentes                            | Regla (c) del protocolo: `@typedef` muere en el commit de conversión                    |
-| Deuda oculta bajo `@ts-nocheck`                               | La migración se estanca                      | Solo excepción justificada con expiración, tracked en el change                         |
-| Un flag strict rompe el gate verde a mitad de Fase 4          | CI rojo en un paso                           | Delta de errores a 0 por flag antes del commit; un flag = un PR revertible (decisión 7) |
-| Referencias colgantes tras eliminar `typescript-strict-check` | Specs/docs apuntando a un change inexistente | Xrefs auditados (tarea 6.x); archive/ queda como historia inmutable                     |
+| Riesgo                                                        | Impacto                                      | Mitigación                                                                                                                  |
+| ------------------------------------------------------------- | -------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| `checkJs: true` revela miles de errores heredados             | Baseline roto, gate CI bloqueado             | Gate de decisión tarea 1.3 (umbral explícito); fallback `checkJs: false` registrado                                         |
+| Tooling ampliado introduce findings en `.ts` futuros          | Ruido en la primera conversión               | Cobertura se amplía con 0 archivos `.ts` — verificación gratuita hoy                                                        |
+| `tsc --noEmit` ralentiza CI                                   | Feedback más lento                           | `incremental: true` + cache de node_modules existente; medición en tarea 1.5                                                |
+| Mix JS/TS confunde la resolución en runtime                   | Servidor no arranca                          | `noEmit` (Node ejecuta `.js` nativo); smoke de arranque en el protocolo de conversión                                       |
+| Doble fuente de tipos (JSDoc + types.ts)                      | Tipos divergentes                            | Regla (c) del protocolo: `@typedef` muere en el commit de conversión                                                        |
+| Deuda oculta bajo `@ts-nocheck`                               | La migración se estanca                      | Solo excepción justificada con expiración, tracked en el change                                                             |
+| Un flag strict rompe el gate verde a mitad de Fase 4          | CI rojo en un paso                           | Delta de errores a 0 por flag antes del commit; un flag = un PR revertible (decisión 7)                                     |
+| Referencias colgantes tras eliminar `typescript-strict-check` | Specs/docs apuntando a un change inexistente | Xrefs auditados (tarea 7.x — sección renumerada al añadir Fase configs en tasks.md); archive/ queda como historia inmutable |

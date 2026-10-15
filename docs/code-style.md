@@ -43,6 +43,9 @@ Prettier handles all formatting. Run `npm run format` before committing.
 - Follow patterns from `auth/controller.js` and `products/service.js`
 - Reference the full guide at `docs/jsdoc-reference-guide.md`
 - Do not add JSDoc to `routes.js` files; use Swagger/OpenAPI instead
+- **JSDoc provisional en `apps/server`**: la migración JS→TS total lo sustituye por tipos TS, archivo a archivo (muere al convertir cada archivo; hoy solo `@param`/`@returns`, `@typedef` = 0)
+
+> **Nota TS (migración en curso):** los `.ts` del server usan `module: nodenext` — los imports relativos conservan la extensión `.js` (`./db.js` resuelve a `db.ts`); `any` explícito queda prohibido en código migrado (post-Fase 0; `unknown` + narrowing en su lugar).
 
 ## Line Endings
 

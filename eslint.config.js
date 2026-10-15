@@ -32,12 +32,23 @@ import globals from 'globals';
 // (describe, it, expect, vi) vía vitest.environments.env.globals.
 import vitest from '@vitest/eslint-plugin';
 
+// Paquete único `typescript-eslint` (Fase 0, task 1.9): parser + reglas
+// `recommended` para los futuros `.ts` del servidor. Sin typed-linting
+// (sin `projectService`/`parserOptions.project`) en Fase 0: solo parser y
+// reglas sintácticas, para no ralentizar el lint ni acoplar el hot path.
+import tseslint from 'typescript-eslint';
+
+// Helper `defineConfig` (ESLint 9+): identidad con tipos + soporte de
+// `extends` con `files` para acotar presets a un subconjunto de ficheros.
+import { defineConfig } from 'eslint/config';
+
 // Plugin oficial de Storybook: valida CSF (Component Story Format),
 // default-exports, nombres de stories, jerarquía, etc.
 import storybook from 'eslint-plugin-storybook';
 
 // Exporta la configuración usando Flat Config (formato recomendado por ESLint 9+)
-export default [
+// envuelta en `defineConfig` para tipado y `extends` acotado por `files`.
+export default defineConfig([
   // ---------------------------------------------------------------------------
   // (1) Ignores — qué se excluye del lint y por qué.
   // ---------------------------------------------------------------------------
@@ -118,7 +129,9 @@ export default [
   {
     // `files`: limita este bloque SOLO a fuentes del backend dentro del
     // monorepo, para no contaminar al frontend con globals/reglas de Node.
-    files: ['apps/server/**/*.js'],
+    // Cubre `.js` (espree, parser por defecto) y `.ts` (parser TS del
+    // bloque 3a, que va DESPUÉS para ganar el merge en `languageOptions`).
+    files: ['apps/server/**/*.{js,ts}'],
 
     // `plugins`: registra el plugin de Vitest porque los tests del servidor
     // (unitarios/integración con `*.test.js`) viven bajo apps/server/ y usan
@@ -166,6 +179,21 @@ export default [
       // "Umbrales de complejidad por capa" de abajo (core 15 / utils 10 /
       // tests off; fuente única: los jobs CI `*-complexity` no pasan `--rule`).
     },
+  },
+
+  // ---------------------------------------------------------------------------
+  // (3a) TypeScript del servidor (Fase 0, task 1.9).
+  // ---------------------------------------------------------------------------
+  // Parser + preset `recommended` de `typescript-eslint`, ACOTADO a los
+  // `.ts` del backend (`files` + `extends` de `defineConfig`). Va DESPUÉS
+  // del bloque (3) para que su `parser` gane el merge sobre espree en los
+  // `.ts`; los `.js` del server siguen con espree (bloque 3, sin cambios).
+  // SIN typed-linting en Fase 0: `recommended` a secas, nunca
+  // `recommendedTypeChecked` ni `parserOptions.project`/`projectService`
+  // (el typecheck completo vive en `npm run type-check` y en CI).
+  {
+    files: ['apps/server/**/*.{ts,cts,mts}'],
+    extends: [tseslint.configs.recommended],
   },
 
   // ---------------------------------------------------------------------------
@@ -379,8 +407,9 @@ export default [
   // Max 15 porque es la lógica de dominio: demasiadas ramas ocultan bugs y
   // dificultan testear. Sustituye a los dos bloques legacy "max 20 por
   // workspace": cualquier resto de esos bloques pisaría 15/10 (último gana).
+  // Cobertura `.ts`/`.tsx` (Fase 0, task 1.9): hoy 0 archivos TS, sin findings nuevos.
   {
-    files: ['apps/*/src/**/*.{js,jsx}'],
+    files: ['apps/*/src/**/*.{js,jsx,ts,tsx}'],
     rules: {
       complexity: ['error', { max: 15 }],
 
@@ -414,9 +443,13 @@ export default [
   // casos por función es normal) y la señal útil está en código de
   // producción. Es el ÚLTIMO de los tres bloques a propósito: hay
   // .unit.test.js dentro de src/utils/ y el test-off debe ganar sobre
-  // core (15) y utils (10).
+  // core (15) y utils (10). Cobertura `.ts`/`.tsx` (Fase 0, task 1.9).
   {
-    files: ['**/*.test.{js,jsx}', '**/*.spec.{js,jsx}', 'e2e/tests/**'],
+    files: [
+      '**/*.test.{js,jsx,ts,tsx}',
+      '**/*.spec.{js,jsx,ts,tsx}',
+      'e2e/tests/**',
+    ],
     rules: {
       complexity: 'off',
       // Espeja complexity: 'off' como defensa en profundidad: aunque el
@@ -459,4 +492,4 @@ export default [
   // para evitar conflictos con Prettier.
   // Debe ir siempre al final del array.
   prettier,
-];
+]);
