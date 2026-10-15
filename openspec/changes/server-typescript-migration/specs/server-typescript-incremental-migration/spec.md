@@ -91,7 +91,7 @@ Every conversion of a JavaScript file to TypeScript SHALL follow the protocol: o
 
 ### Requirement: Phased rollout from graph leaves to core
 
-The migration SHALL proceed in phases with the order: (1) graph leaves (`config/db`, `config/dotenv`, `config/cors`, `config/aws`, `common/crypto`, `logger`, `utils/constants/enums`, `schemas`), (2) the 24 business modules following the per-module file order schemas → dao → service → routes → controller, (3) transversal core (`middleware`, `socket`, then `app` and `bin/index` last), and (4) strict-mode hardening with one flag per change. Dead code flagged by knip (e.g., `clientOrder`, `providerOrder`) SHALL be audited for deletion before being migrated.
+The migration SHALL proceed in phases with the order: (1) graph leaves (`config/db`, `config/dotenv`, `config/cors`, `config/aws`, `common/crypto`, `logger`, `utils/constants/enums`, `schemas`), (2) the 24 business modules following the per-module file order schemas → dao → service → routes → controller, (3) transversal core (`middleware`, `socket`, then `app` and `bin/index` last), (4) the configurations and scripts phase (`Fase configs`, tasks §5: `vitest.config.js`, `vitest.smoke.config.js`, `ecosystem.config.js`, `prisma/seed.js`, `scripts/preview-smoke.mjs`, `test-sanitize`, `.dependency-cruiser.cjs`), and (5) strict-mode hardening (tasks §6) with one flag per change. Dead code flagged by knip (e.g., `clientOrder`, `providerOrder`) SHALL be audited for deletion before being migrated.
 
 #### Scenario: Phase 1 starts at the leaves
 
@@ -108,3 +108,14 @@ The migration SHALL proceed in phases with the order: (1) graph leaves (`config/
 - **WHEN** a file flagged as unused by knip is scheduled for conversion
 - **THEN** its usage SHALL be audited first
 - **AND** it SHALL be deleted instead of migrated if confirmed dead
+
+### Requirement: Workspace closes with zero JavaScript files
+
+When every migration phase is complete, the `apps/server` workspace SHALL contain zero tracked JavaScript files — covering `src/` (phases 1–3), `tests/` (task 3.2, converted alongside the modules they test), the root configs (`vitest.config.js`, `vitest.smoke.config.js`, `ecosystem.config.js`), `prisma/seed.js`, `scripts/` (e.g., `preview-smoke.mjs`), `test-sanitize`, and tool configs (the configs phase, tasks §5). Exceptions SHALL be documented and are permitted only when justified (candidate: `.dependency-cruiser.cjs` if dependency-cruiser does not support a `.ts` config — task 5.6).
+
+#### Scenario: Final closure leaves no tracked JS behind
+
+- **WHEN** all migration phases (leaves, modules, core, configs, strict) are complete
+- **THEN** `git ls-files 'apps/server/**/*.js' 'apps/server/**/*.cjs' 'apps/server/**/*.mjs'` SHALL return 0 files
+- **AND** `node_modules/`, `coverage/`, and `reports/` SHALL be excluded from the count
+- **AND** any file remaining SHALL be a documented exception with its justification recorded in this change

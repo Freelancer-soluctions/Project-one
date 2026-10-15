@@ -1,7 +1,7 @@
 # Investigación: Migración JS → TS de `apps/server` — Codebase + Internet (2026-10-14)
 
 > **Objetivo del documento:** consolidar (1) el análisis verificado del codebase `apps/server`, (2) la investigación de internet de 2026 sobre runtime TS en Node, estrategias de migración, strict flags, tipos y CI/Docker, y (3) el gap analysis contra el change OpenSpec activo `openspec/changes/server-typescript-migration/`, para cerrar las Fases B y C de la tarea de investigación.
-> **Estado:** investigación completada; el change NO fue modificado (correcciones listadas en §5, pendientes de aplicación en Fase D).
+> **Estado:** investigación completada; change corregido 2026-10-14 (commit `7fdd7024` + correcciones post-review de las Fases A–E); validación strict en verde.
 > **Complementa (no reemplaza):** [`docs/learning/typescript-migration-server.md`](learning/typescript-migration-server.md) (investigación canónica 2026-09-23) y [`openspec/changes/server-typescript-migration/`](../openspec/changes/server-typescript-migration/README.md).
 
 ---
