@@ -125,8 +125,13 @@
     },
     // Workspace backend Express
     "apps/server": {
-      // Archivos que Knip analiza en server (widened: prisma/tests atribuyen sus deps)
-      "project": ["src/**/*.js", "prisma/**/*.js", "tests/**/*.js"],
+      // Archivos que Knip analiza en server (widened: prisma/tests atribuyen sus deps;
+      // cobertura `.ts` añadida en Fase 0 — task 1.2 — antes de la primera conversión)
+      "project": [
+        "src/**/*.{js,ts}",
+        "prisma/**/*.{js,ts}",
+        "tests/**/*.{js,ts}",
+      ],
       // Archivos excluidos del análisis en server (identico al nested: union sin conflictos).
       // Incluye docs (no análisis de código), niveles de socket internos, controllers/DAOs/routes de módulos específicos
       // (clientOrder, providerOrder, users, settings) que son archivos muertos o duplicados de servicios.
