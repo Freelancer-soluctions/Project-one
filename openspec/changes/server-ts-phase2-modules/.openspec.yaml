@@ -1,0 +1,3 @@
+schema: spec-driven
+created: 2026-10-15
+goal: Convert the 24 server modules (dao/service/routes/controller + colocated tests), the routes registry and the tests/ directory (137 files) to TypeScript in ascending risk order, auditing knip dead code (clientOrder, providerOrder) before migration

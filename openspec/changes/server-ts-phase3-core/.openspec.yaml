@@ -1,0 +1,3 @@
+schema: spec-driven
+created: 2026-10-15
+goal: Convert the transversal core of apps/server (middleware, socket, docs, shared utils, app, bin — 55 files) to TypeScript and switch the runtime to tsx (PM2/nodemon/Dockerfile) as the final endgame step
