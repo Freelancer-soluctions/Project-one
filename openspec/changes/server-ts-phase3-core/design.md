@@ -34,9 +34,9 @@ middleware primero (todos los lotes posteriores lo consumen para `req.user`); so
 
 2.868 LOC de definiciones OpenAPI: conversión mecánica (objeto literal → tipado con `Record<string, ...>`/interfaces mínimas), sub-lote propio sin mezclar con lógica. Riesgo bajo, volumen alto — no bloquea el resto.
 
-## Decisión 5 — `req.user` y los controllers de Fase 2
+## Decisión 5 — `req.user` y los accesos desde Fase 2
 
-El `declare global` de Fase 3 tipifica `req.user` para TODOS los controllers convertidos en Fase 2 (que usaron cast local según su design §5). Tarea de limpieza explícita: reemplazar casts locales por el tipo global, con gates verdes. Si el payload real difiere (p.ej. campos opcionales), el tipo global se ajusta a la evidencia del JWT — nunca al revés.
+Evidencia verificada (2026-10-15): **95 accesos a `req.user` en 23 ficheros** de `src/` (controllers/services de Fase 2 y middleware), **0 casts `as any`** — el acceso es JS puro sin tipar. Por tanto el `declare global` de 1.1 tipifica automáticamente esos 95 accesos (no hay "casts locales que limpiar" — corrección de la premisa inicial). La tarea de verificación (5.2) comprueba que los 95 accesos type-chequean contra el tipo global y ajusta el tipo global a la evidencia del payload real del JWT — nunca al revés. Si algún acceso usa campos fuera del payload (`req.user?.campo` opcional), el tipo global los declara opcionales.
 
 ## Decisión 6 — Cierre de `src/` a 0 `.js`
 

@@ -40,6 +40,6 @@
 ## 5. Cierre y registro
 
 - [ ] 5.1 Cierre de src/: `git ls-files 'apps/server/src/*.js' 'apps/server/src/**/*.js'` → **0**; contador `docs/CONTEXT-CICD.md` §12.2 → `228/236 (Fase 3 — src en 0 .js)`; anotar task 1.8 del padre
-- [ ] 5.2 Limpieza de casts locales de `req.user` en controllers de Fase 2 → tipo global (design §5); grep sin casts residuales
+- [ ] 5.2 Verificación de los **95 accesos a `req.user` en 23 ficheros** contra el tipo global de 1.1 (design §5 — 0 casts previos, tipificación automática por `declare global`); ajustar el tipo global a la evidencia del payload si algún acceso usa campos opcionales; `grep` sin errores de tipo residual en los accesos
 - [ ] 5.3 Sin `any` nuevos (`grep -rn ": any" apps/server/src --include="*.ts"`); imports `.js` intactos
 - [ ] 5.4 `npx openspec validate server-ts-phase3-core --strict` → PASS; registrar las evidencias PM2/Docker en la task 4.1 del padre (ya `[x]` por creación — se completa con la ejecución real)

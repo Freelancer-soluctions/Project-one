@@ -30,5 +30,5 @@
 ## 4. Cierre y registro
 
 - [ ] 4.1 Actualizar contador de `docs/CONTEXT-CICD.md` §12.2: `0/236` → `36/236 (Fase 1 — hojas)` con fecha; anotar la task 1.8 del change padre con el delta (`36 TS / 200 JS`)
-- [ ] 4.2 Verificación de no-regresión de protocolo: `grep -rn ": any" apps/server/src --include="*.ts"` → 0 resultados nuevos (solo los que existieran por inferencia JS — registrar los hallados); los 389 imports `.js`-sufijados SIN churn (los que apuntan a archivos convertidos resuelven vía nodenext — verificado por type-check de los lotes)
+- [ ] 4.2 Verificación de no-regresión de protocolo: `grep -rn ": any" apps/server/src --include="*.ts"` → 0 resultados nuevos (solo los que existieran por inferencia JS — registrar los hallados); los 390 imports `.js`-sufijados SIN churn (389 estáticos `from` + 1 dinámico `import()` en `errorHandler.unit.test.js` — el baseline del padre contaba los 389 estáticos; los que apuntan a archivos convertidos resuelven vía nodenext — verificado por type-check de los lotes)
 - [ ] 4.3 Confirmar task 2.1 del padre marcada `[x]` (mismo commit de creación de este change) y ejecutar `npx openspec validate server-ts-phase1-leaves --strict` → PASS
