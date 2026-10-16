@@ -13,7 +13,7 @@ El núcleo transversal (middleware, socket, utils compartidas, app, bin) es la �
 ## What Changes
 
 - **middleware/ (12)** → `.ts`: `RequestHandler` genérico, `declare global { namespace Express { interface Request { user?: ... } } }` en `verifyToken`/`index`, errorHandler con narrowing `instanceof Error` (prepara `useUnknownInCatchVariables` de Fase 4), rateLimit/validate*/verify* con tipos express+joi.
-- **socket/ (22)** → `.ts`: `Server`/`Socket` de socket.io, `AuthenticatedSocket` (interfaz propia), handlers/rooms/rateLimiter/notificationBus/monitor tipados; `socket/levels/*` (11, documentos ejecutables) con mínimo tipado de superficie.
+- **socket/ (22)** → `.ts`: `Server`/`Socket` de socket.io, `AuthenticatedSocket` (interfaz propia), handlers/rooms/rateLimiter/notificationBus/monitor tipados; `socket/levels/*` (12, documentos ejecutables) con mínimo tipado de superficie.
 - **docs/ (2)** → `.ts`: `swagger.js` + `schemas.js` (2.868 LOC — tipos de definiciones OpenAPI, sin reescribir el contenido).
 - **utils/ restantes (17)** → `.ts`: `jwt/createToken` (tipos jsonwebtoken `SignOptions`), `bcrypt/encrypt` (Promise<string>), `cloudinary`, `multer`, `pagination`, `helmet/helmet.config`, `csrftoken`, `prisma/{dao,prisma-query,prisma-dinamic-service/service,sanitizePrismaMessage(+test)}`, `responses&Errors/{errors,globalErrorResponse,globalResponse,handleCatchErrorAsync(+test)}`.
 - **`app.js` → `app.ts`**: composición de middleware/routes tipada.

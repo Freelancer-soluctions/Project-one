@@ -48,7 +48,7 @@ Constants and enums SHALL be typed with `as const` objects plus derived union ty
 
 #### Scenario: typed access, unchanged behavior
 
-- **WHEN** the 6 consumers of dotenv call it after conversion
+- **WHEN** the 13 importers of dotenv (23 call sites) call it after conversion
 - **THEN** their calls type-check against `EnvKey` and their runtime behavior is identical (same fallback semantics)
 
 ### Requirement: Batch-ordered conversion with mandatory gates

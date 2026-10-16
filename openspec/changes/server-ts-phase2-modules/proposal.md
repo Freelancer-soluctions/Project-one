@@ -17,7 +17,7 @@ Los 24 módulos son el grueso del dominio: 116 archivos `src/modules/` restantes
 - **Patrón por módulo**: `dao.js` → `service.js` → `routes.js` → `controller.js` (schemas ya `.ts` desde Fase 1) + test colocalizado del módulo en el mismo lote. Un archivo = un commit; el módulo completo = un lote verificado.
 - **Extras de módulo**: `events/stateMachine.js` (máquina de estados RSVP — tipado de transiciones), `notes/utils/{colorMapper,index,mentionParser}.js` (+ tests), `users/constants/users.js`, submódulo `events/attendee/*` (4 + tests).
 - **Registro de rutas**: `src/routes/v1/index.js` → `.ts` al final del change (importa todos los routes de módulos).
-- **Suite de tests** (task 3.2): `tests/setupGlobal.js`, `setupTest.js`, `test-server.js`, `tests/smoke/*` (5), `tests/integration/*` (4), `tests/orphans/*` (3), `tests/unit/*` (4) — el `setupFiles` de las configs vitest se actualiza en el mismo commit que convierte `setupTest.js`/`setupGlobal.js`.
+- **Suite de tests** (task 3.2): `tests/setupGlobal.js` (+ `setupGlobal.unit.test.js`), `setupTest.js`, `test-server.js`, `tests/smoke/*` (5), `tests/integration/*` (4), `tests/orphans/*` (3), `tests/unit/*` (4) — total 20; las refs `setupFiles` **y `globalSetup`** de ambas configs vitest se actualizan en el mismo commit que convierte `setupTest.js`/`setupGlobal.js`.
 - **Auditoría de código muerto ANTES de migrar**: `npm run knip:server` sobre `clientOrder` y `providerOrder` → eliminar (commit `chore`) o justificar permanencia registrada en tasks.
 - **Verificación por lote**: los 4 gates del protocolo tras cada módulo/lote (`type-check`, `lint`, `test:unit`, `depcruise:server`).
 
@@ -31,15 +31,15 @@ Los 24 módulos son el grueso del dominio: 116 archivos `src/modules/` restantes
 
 ## Impact
 
-| File                                                              | Change                                                      |
-| ----------------------------------------------------------------- | ----------------------------------------------------------- |
-| `src/modules/settings/*` (4)                                      | primer lote (menor riesgo)                                  |
-| `src/modules/{attendance,news,users,auth,events}/*` (~30 + tests) | lotes 2-6 en orden de riesgo                                |
-| `src/modules/*` resto (18 módulos, ~82 archivos)                  | lotes 7+                                                    |
-| `src/routes/v1/index.js` → `.ts`                                  | penúltimo lote                                              |
-| `tests/*` (20) → `.ts`                                            | junto a sus módulos; setup al final de su lote              |
-| `knip.jsonc` / `apps/server/package.json`                         | sin cambios estructurales (globs ya `{js,ts}` desde Fase 0) |
-| `docs/CONTEXT-CICD.md` §12.2                                      | contador → `173/236 (Fase 2)` al cierre                     |
-| change padre                                                      | tasks 3.1/3.2 marcadas al crear/completar                   |
+| File                                                                           | Change                                                      |
+| ------------------------------------------------------------------------------ | ----------------------------------------------------------- |
+| `src/modules/settings/*` (4)                                                   | primer lote (menor riesgo)                                  |
+| `src/modules/{attendance,news,users,auth,events}/*` (38 + tests colocalizados) | lotes 2-6 en orden de riesgo                                |
+| `src/modules/*` resto (18 módulos, 78 archivos)                                | lotes 7+                                                    |
+| `src/routes/v1/index.js` → `.ts`                                               | penúltimo lote                                              |
+| `tests/*` (20) → `.ts`                                                         | junto a sus módulos; setup al final de su lote              |
+| `knip.jsonc` / `apps/server/package.json`                                      | sin cambios estructurales (globs ya `{js,ts}` desde Fase 0) |
+| `docs/CONTEXT-CICD.md` §12.2                                                   | contador → `173/236 (Fase 2)` al cierre                     |
+| change padre                                                                   | tasks 3.1/3.2 marcadas al crear/completar                   |
 
 **Riesgos:** (1) `test-server.js`/`setupTest.js` son dependencia de TODA la suite — se convierten al final de su lote con los 4 gates como red; (2) integración necesita PostgreSQL — gates locales usan `test:unit`; `test:integration` se valida en CI del PR; (3) el patrón RequestHandler/`req.user` declarado global llega en Fase 3 — los controllers de Fase 2 tipan req/res con tipos Express base sin `declare global` (sin duplicar la declaración).

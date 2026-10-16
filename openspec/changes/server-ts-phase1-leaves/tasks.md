@@ -4,7 +4,7 @@
 
 ## 1. Lote 1 — Hojas puras (31 archivos, commits individuales)
 
-- [ ] 1.1 `config/dotenv.js` → `dotenv.ts` con firma `(key: EnvKey) => string`; `EnvKey` = unión de las keys realmente leídas en `src/` (extraer de los accesos `process.env` existentes; design §4) — sin validación runtime nueva
+- [ ] 1.1 `config/dotenv.js` → `dotenv.ts` con firma `(key: EnvKey) => string`; `EnvKey` = unión de las keys pasadas a `dotenv()` — extraer con `grep -rn "dotenv('" src` (23 call sites, 14 keys; NO de las lecturas directas `process.env` — design §4) — sin validación runtime nueva
 - [ ] 1.2 `config/aws/secret-manager.client.js` → `.ts` (tipos AWS SDK; `GetSecretValueCommandOutput`/client tipado en la superficie pública)
 - [ ] 1.3 `common/crypto/hashValue.js` → `.ts` (tipos `node:crypto`; firma de `hashValue` explícita)
 - [ ] 1.4 `logger/{dev,uat,production}.js` → `.ts` (3 commits; tipos winston: `Logger`, `transport`; `format`/`transports` sin `any`)

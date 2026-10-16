@@ -35,7 +35,7 @@ Los `enums.js` y constantes se tipan con `as const` + union types derivados (`ty
 
 ## Decisión 4 — Firma de dotenv: `(key: EnvKey) => string` sin validación runtime
 
-`dotenv.js` gana su firma tipada con `EnvKey` = unión de las keys realmente leídas hoy (`NODE_ENV`, `AWS_ENDPOINT_URL`, `SECRET_NAME`, `REDIS_URL`, `ENABLE_SMOKE_ROUTE`, `AWS_REGION`, ... — extraídas de los 20 accesos `process.env` de `src/`, medidos en la Fase A). NO se añade validación runtime (zod/env-schema) — eso es un change de seguridad aparte; aquí solo tipos. El fallback de `process.env[key]` devuelve `string | undefined` internamente → la firma pública mantiene el comportamiento actual (el change no rompe a los 6 consumidores de dotenv).
+`dotenv.js` gana su firma tipada con `EnvKey` = unión de las keys **pasadas como argumento a `dotenv()`** — fuente: `grep -rn "dotenv('" src` (23 call sites, 14 keys distintas: `PORT`, `ORIGIN_CORS[_TEST]`, `ALGORITHM`, `AES_GCM_KEY`, `SECRETKEY`, `REFRESHSECRETKEY`, `CLOUD_*`, `FRONTEND_URL`, `DEFAULT/MAX_QUERY_LIMIT`, `NODE_ENV`; 13 ficheros importan dotenv). Las 19 lecturas DIRECTAS de `process.env.X` (AWS_ENDPOINT_URL, SECRET_NAME, ...) NO pasan por dotenv y quedan fuera de `EnvKey` (Fase 3 las tipa con `NodeJS.ProcessEnv` donde toque). NO se añade validación runtime (zod/env-schema) — change de seguridad aparte; aquí solo tipos. Touchpoint con Fase 4: `process.env[key]` devuelve `string | undefined` — hoy la firma `=> string` es inocua (sin `strictNullChecks`), pero la task 6.4 del padre (strictNullChecks) exigirá fallback o aserción en la definición; touchpoint documentado, decisión no reabierta.
 
 ## Decisión 5 — JSDoc: traducción selectiva, muerte del comentario convertido
 

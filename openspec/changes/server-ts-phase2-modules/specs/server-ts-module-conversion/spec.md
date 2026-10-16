@@ -18,13 +18,14 @@ The 24 modules SHALL be converted module-by-module (dao → service → routes �
 
 ### Requirement: Dead code is removed before conversion
 
-`clientOrder` and `providerOrder` (knip findings) SHALL be audited with `npm run knip:server` BEFORE any conversion: modules without live consumers SHALL be deleted in a `chore` commit; modules with live consumers SHALL be converted normally with the contradiction registered in tasks.
+`clientOrder` and `providerOrder` are SUPPRESSED in `knip.jsonc` (`workspaces.apps.server.ignore`) — `npm run knip:server` does not report them, so the audit SHALL use direct evidence (grep of consumers in `src/` + verification that `src/routes/v1/index.js` registers 23 modules) BEFORE any conversion: modules without live consumers SHALL be deleted in a `chore` commit (including cleanup of their `knip.jsonc` ignore entries); modules with live consumers SHALL be converted normally with the contradiction registered in tasks. The closure counter branch is frozen by this audit result.
 
 #### Scenario: dead module is not typed
 
-- **WHEN** the audit confirms `clientOrder`/`providerOrder` have no live consumers
-- **THEN** the files are deleted (never converted to `.ts`)
+- **WHEN** the audit confirms `clientOrder`/`providerOrder` have no live consumers (grep + routes registry)
+- **THEN** the files are deleted (never converted to `.ts`) and their `knip.jsonc` ignore entries are removed in the same commit
 - **AND** the deletion commit precedes any module conversion of that module
+- **AND** the closure counter becomes `164/227` (with deletion) instead of `173/236` (without deletion)
 
 ### Requirement: Tests convert with their modules
 
@@ -32,8 +33,8 @@ Colocated unit tests in `src/modules/` (14) SHALL convert in the same batch as t
 
 #### Scenario: suite keeps running through conversion
 
-- **WHEN** `tests/setupTest.js` becomes `setupTest.ts`
-- **THEN** `setupFiles` in `vitest.config.js`/`vitest.smoke.config.js` points to the new path in the same commit
+- **WHEN** `tests/setupTest.js` becomes `setupTest.ts` (and `setupGlobal.js` becomes `setupGlobal.ts`)
+- **THEN** `setupFiles` AND `globalSetup` in `vitest.config.js`/`vitest.smoke.config.js` point to the new paths in the same commit (`globalSetup` executes the DB seeding — breaking it breaks every run)
 - **AND** `npm run test:unit` reports the same passing test count as the pre-conversion baseline (175)
 
 ### Requirement: Routes registry converts after all modules
@@ -48,7 +49,7 @@ Colocated unit tests in `src/modules/` (14) SHALL convert in the same batch as t
 
 ### Requirement: Closure updates the migration counter
 
-At closure the progress counter SHALL read `173/236 (Fase 2 — módulos)` in `docs/CONTEXT-CICD.md` §12.2, parent tasks 3.1 (creation) and 3.2 (tests) SHALL be checked, and `npx openspec validate server-ts-phase2-modules --strict` SHALL pass.
+At closure the progress counter SHALL reflect the audit branch frozen by tasks 0.1/0.2 in `docs/CONTEXT-CICD.md` §12.2 — `173/236 (Fase 2 — módulos)` if `clientOrder`/`providerOrder` were migrated, `164/227 (Fase 2 — módulos, 9 muertos eliminados)` if deleted — parent task 3.2 SHALL be checked, and `npx openspec validate server-ts-phase2-modules --strict` SHALL pass.
 
 #### Scenario: closure state is verifiable
 

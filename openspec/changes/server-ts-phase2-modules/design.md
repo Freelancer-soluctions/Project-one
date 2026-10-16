@@ -12,11 +12,11 @@ Cada módulo se convierte completo (`dao → service → routes → controller` 
 
 ## Decisión 3 — Código muerto antes que tipos (knip audit)
 
-Antes de convertir `clientOrder` y `providerOrder` (hallazgos knip de Fase 0: `clientOrder` 4 archivos, `providerOrder` 5): ejecutar `npm run knip:server`, verificar que no tienen consumidores vivos (rutas registradas, imports) y ELIMINAR con commit `chore(server): remove dead code <module> (knip)`. Si algún consumidor vivo aparece, se migra normal y se registra la contradicción de knip en tasks. Nunca se tipa código destinado a borrarse.
+`clientOrder` (4 archivos) y `providerOrder` (5) están **suprimidos** en `knip.jsonc` (`workspaces.apps.server.ignore`) — `knip:server` NO los reporta, así que la auditoría usa evidencia directa: (1) `grep` de consumidores en `src/`, (2) verificación de que `src/routes/v1/index.js` registra 23 módulos (sin clientOrder ni providerOrder). Verificación previa (2026-10-15): cero imports → muerte confirmada. Si algún consumidor vivo apareciera al ejecutar: se migra normal y se registra la contradicción en tasks. **Nunca se tipa código destinado a borrarse.** Consecuencia aritmética (condicional): con borrado de los 9, F2 convierte 128 (no 137) y el total global pasa a 227 → contador de cierre `164/227`; sin borrado, `173/236`. La rama elegida se congela al ejecutar 0.1/0.2 y se propaga a task 4.1, a la task 1.8 del padre y a la Fase configs del padre (8 restantes → 227+8=235 o 236).
 
 ## Decisión 4 — Tests colocalizados conviven con su módulo
 
-Los 15 tests `.unit.test.js` dentro de `src/modules/` se convierten en el mismo lote que su módulo (imports de dao/service ya `.ts`). Los tests de `tests/` (integration/smoke/orphans/properties/setup) siguen la task 3.2: `setupGlobal`/`setupTest`/`test-server` al final (son dependencia de todo), suites por área. Los filtros vitest substring (`.unit.test`, `.integration.test`) ya cubren `.ts` (Fase 0) — cero cambio de scripts.
+Los 14 tests `.unit.test.js` dentro de `src/modules/` (12 de events incl. attendee + 2 de notes) se convierten en el mismo lote que su módulo (imports de dao/service ya `.ts`). Los tests de `tests/` (integration/smoke/orphans/properties/setup) siguen la task 3.2: `setupGlobal`/`setupTest`/`test-server` al final (son dependencia de todo — OJO `globalSetup` de ambas configs vitest), suites por área. Los filtros vitest substring (`.unit.test`, `.integration.test`) ya cubren `.ts` (Fase 0) — cero cambio de scripts.
 
 ## Decisión 5 — Tipado de capas (referencia rápida, detalle en ejecución)
 
