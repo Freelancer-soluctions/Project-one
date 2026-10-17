@@ -986,8 +986,8 @@
   },
   {
     "type": "module",
-    "from": "apps/server/src/utils/joiSchemas/joi.js",
-    "to": "apps/server/src/utils/joiSchemas/joi.js",
+    "from": "apps/server/src/utils/joiSchemas/joi.ts",
+    "to": "apps/server/src/utils/joiSchemas/joi.ts",
     "rule": {
       "severity": "warn",
       "name": "no-orphans"

@@ -104,14 +104,12 @@
         "src/hooks/useFetch.js": ["exports"],
         "src/hooks/useInitializeI18n.js": ["exports"],
         "src/modules/auth/api/authAPI.js": ["exports"],
-        "src/modules/clientOrder/api/clientOrderApi.js": ["exports"],
         "src/modules/events/constants.js": ["exports"],
         "src/modules/events/utils/enums.js": ["exports"],
         "src/modules/events/utils/schema.js": ["exports"],
         "src/modules/expenses/utils/enums.js": ["exports"],
         "src/modules/news/utils/adapters.js": ["exports"],
         "src/modules/products/utils/currencyFormat.js": ["exports"],
-        "src/modules/providerOrder/api/providerOrderApi.js": ["exports"],
         "src/modules/providers/utils/enums.js": ["exports"],
         "src/services/socketService.js": ["exports"],
         "src/modules/settings/api/settingsAPI.js": ["exports"],
@@ -132,6 +130,9 @@
         "prisma/**/*.{js,ts}",
         "tests/**/*.{js,ts}",
       ],
+      // Glob `{js,ts}` en las entradas cuyo archivo convierte la migración TS
+      // (`server-ts-phase1-leaves`): un path `.js` literal deja de matchear al
+      // renombrar, y knip reportaría el archivo como no usado.
       // Archivos excluidos del análisis en server (identico al nested: union sin conflictos).
       // Incluye docs (no análisis de código), niveles de socket internos, controllers/DAOs/routes de módulos específicos
       // (clientOrder, providerOrder, users, settings) que son archivos muertos o duplicados de servicios.
@@ -139,27 +140,18 @@
       "ignore": [
         "src/docs/**",
         "src/socket/levels/**",
-        "src/config/aws/secrets.js",
-        "src/modules/clientOrder/controller.js",
-        "src/modules/clientOrder/dao.js",
-        "src/modules/clientOrder/routes.js",
-        "src/modules/clientOrder/service.js",
-        "src/modules/providerOrder/controller.js",
-        "src/modules/providerOrder/dao.js",
-        "src/modules/providerOrder/routes.js",
-        "src/modules/providerOrder/schemas/providerOrder.joi.js",
-        "src/modules/providerOrder/service.js",
-        "src/modules/users/constants/users.js",
-        "src/utils/cloudinary/cloudinary.js",
-        "src/utils/joiSchemas/joi.js",
-        "src/utils/prisma-dinamic-service/service.js",
-        "src/utils/responses&Errors/globalErrorResponse.js",
+        "src/config/aws/secrets.{js,ts}",
+        "src/modules/users/constants/users.{js,ts}",
+        "src/utils/cloudinary/cloudinary.{js,ts}",
+        "src/utils/joiSchemas/joi.{js,ts}",
+        "src/utils/prisma-dinamic-service/service.{js,ts}",
+        "src/utils/responses&Errors/globalErrorResponse.{js,ts}",
         // (PR #133, 2026-09-29): utilidades de tests manuales/huérfanos —
         // carpeta `tests/orphans/` intentionally kept + helpers manuales
         // (test-server, manual-test) que no corre el runner automático.
         "tests/orphans/**",
-        "tests/test-server.js",
-        "tests/unit/manual-test.js",
+        "tests/test-server.{js,ts}",
+        "tests/unit/manual-test.{js,ts}",
       ],
       // Deps que Knip no marca como sin uso en server
       "ignoreDependencies": [
@@ -175,35 +167,38 @@
       ],
       // No reporta exports solo usados en mismo archivo (server)
       "ignoreExportsUsedInFile": true,
-      // Falsos positivos de exports silenciados por archivo (server)
+      // Falsos positivos de exports silenciados por archivo (server) — mismos
+      // globs `{js,ts}` que el bloque `ignore` de arriba
       "ignoreIssues": {
-        "src/middleware/encription-prisma-middleware.js": ["exports"],
-        "src/middleware/rateLimit.js": ["exports"],
-        "src/middleware/validateNumericPathParam.js": ["exports"],
-        "src/middleware/verifyCsrf.js": ["exports"],
-        "src/middleware/verifyRole.js": ["exports"],
-        "src/modules/attendance/service.js": ["exports"],
-        "src/modules/auth/controller.js": ["exports"],
-        "src/modules/auth/dao.js": ["exports"],
-        "src/modules/events/attendee/service.js": ["exports"],
-        "src/modules/events/schemas/event-rsvp.js": ["exports"],
-        "src/modules/news/schemas/news.joi.js": ["exports"],
-        "src/modules/notes/dao.js": ["exports"],
-        "src/modules/products/controller.js": ["exports"],
-        "src/modules/products/service.js": ["exports"],
-        "src/modules/settings/schemas/settings.joi.js": ["exports"],
-        "src/modules/users/dao.js": ["exports"],
-        "src/modules/users/schemas/users.joi.js": ["exports"],
-        "src/modules/users/service.js": ["exports"],
-        "src/socket/events/mentionEvents.js": ["exports"],
-        "src/socket/events/schemas.js": ["exports"],
-        "src/socket/rooms.js": ["exports"],
-        "src/utils/constants/enums.js": ["exports"],
-        "src/utils/jwt/createToken.js": ["exports"],
-        "src/utils/prisma/dao.js": ["exports"],
+        "src/middleware/encription-prisma-middleware.{js,ts}": ["exports"],
+        "src/middleware/rateLimit.{js,ts}": ["exports"],
+        "src/middleware/validateNumericPathParam.{js,ts}": ["exports"],
+        "src/middleware/verifyCsrf.{js,ts}": ["exports"],
+        "src/middleware/verifyRole.{js,ts}": ["exports"],
+        "src/modules/attendance/service.{js,ts}": ["exports"],
+        "src/modules/auth/controller.{js,ts}": ["exports"],
+        "src/modules/auth/dao.{js,ts}": ["exports"],
+        "src/modules/events/attendee/service.{js,ts}": ["exports"],
+        "src/modules/events/schemas/event-rsvp.{js,ts}": ["exports"],
+        "src/modules/news/schemas/news.joi.{js,ts}": ["exports"],
+        "src/modules/notes/dao.{js,ts}": ["exports"],
+        "src/modules/products/controller.{js,ts}": ["exports"],
+        "src/modules/products/service.{js,ts}": ["exports"],
+        "src/modules/settings/schemas/settings.joi.{js,ts}": ["exports"],
+        "src/modules/users/dao.{js,ts}": ["exports"],
+        "src/modules/users/schemas/users.joi.{js,ts}": ["exports"],
+        "src/modules/users/service.{js,ts}": ["exports"],
+        "src/socket/events/mentionEvents.{js,ts}": ["exports"],
+        "src/socket/events/schemas.{js,ts}": ["exports"],
+        "src/socket/rooms.{js,ts}": ["exports"],
+        // `types`: las uniones derivadas (`as const` → `typeof KEY[keyof typeof KEY]`)
+        // son la superficie tipada para Fases 2-3; knip las ve sin consumidor aún.
+        "src/utils/constants/enums.{js,ts}": ["exports", "types"],
+        "src/utils/jwt/createToken.{js,ts}": ["exports"],
+        "src/utils/prisma/dao.{js,ts}": ["exports"],
         // (PR #133): helper compartido del suite smoke; el export se consume
         // desde los tests vía import default o se reserva para reutilización.
-        "tests/smoke/helpers/request.js": ["exports"],
+        "tests/smoke/helpers/request.{js,ts}": ["exports"],
       },
     },
     // Workspace E2E Playwright (en package.json#workspaces, antes con defaults implicitos)
