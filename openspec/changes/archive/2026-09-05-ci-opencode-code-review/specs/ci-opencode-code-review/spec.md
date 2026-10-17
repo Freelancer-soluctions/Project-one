@@ -27,10 +27,10 @@ The system SHALL execute the `opencode-review.yml` workflow on pull requests tar
 
 The system SHALL configure the opencode model via the `OPENCODE_CONFIG_CONTENT` environment variable (or the action's native input), using Google Gemini as a built-in provider with the `GEMINI_API_KEY` secret. The `agent` input of `anomalyco/opencode/github` SHALL NOT be relied upon (Bug #36504: the `agent` input may be ignored by the action). The model/provider configuration in `opencode.jsonc` is OUT-OF-SCOPE / DEFERRED per user decision.
 
-#### Scenario: Workflow runs with Gemini model via OPENCODE_CONFIG_CONTENT
+#### Scenario: Workflow runs with Google Gemini model via OPENCODE_CONFIG_CONTENT
 
 - **WHEN** the `opencode-review.yml` workflow executes
-- **THEN** it invokes `anomalyco/opencode/github@5d5c35ee71c095464b9eb3c3e991df906f12a152` (SHA-pinned for supply chain safety, verified 2026-09-04) with `use_github_token: true`, `model: google/gemini-3.6-flash`, setting `OPENCODE_CONFIG_CONTENT` to the Google Gemini built-in provider configuration:
+- **THEN** it invokes `anomalyco/opencode/github@5d5c35ee71c095464b9eb3c3e991df906f12a152` (SHA-pinned 2026-09-04, verified GPG-signed) with `use_github_token: true`, `model: google/gemini-3.6-flash`, and `OPENCODE_CONFIG_CONTENT` set to the Google Gemini built-in provider configuration:
   ```json
   {
     "model": "google/gemini-3.6-flash",
@@ -126,12 +126,12 @@ The `opencode-review.yml` workflow SHALL be documented as `disabled_manually` by
 
 ### Requirement: The action version is documented and will be SHA-pinned
 
-The `anomalyco/opencode/github` action SHALL be pinned to a specific commit SHA for supply chain safety (§5.4). Current pin: `@5d5c35ee71c095464b9eb3c3e991df906f12a152` (verified 2026-09-04).
+The `anomalyco/opencode/github` action SHALL be pinned to a specific commit SHA for supply chain safety (§5.4). Current SHA: `5d5c35ee71c095464b9eb3c3e991df906f12a152` (verified 2026-09-04, GPG-signed).
 
 #### Scenario: Action version is documented
 
 - **WHEN** the workflow references the action
-- **THEN** it uses the SHA-pinned version `@5d5c35ee71c095464b9eb3c3e991df906f12a152` for supply chain safety
+- **THEN** it is pinned to a specific commit SHA (`anomalyco/opencode/github@5d5c35ee71c095464b9eb3c3e991df906f12a152`, verified 2026-09-04) for supply chain safety
 
 ### OUT-OF-SCOPE / DEFERRED
 

@@ -1,21 +1,41 @@
 # Investigación: Migración JS → TS de `apps/server` — Codebase + Internet (2026-10-14)
 
-> **Objetivo del documento:** consolidar (1) el análisis verificado del codebase `apps/server`, (2) la investigación de internet de 2026 sobre runtime TS en Node, estrategias de migración, strict flags, tipos y CI/Docker, y (3) el gap analysis contra el change OpenSpec activo `openspec/changes/server-typescript-migration/`, para cerrar las Fases B y C de la tarea de investigación.
-> **Estado:** investigación completada; change corregido 2026-10-14 (commit `7fdd7024` + correcciones post-review de las Fases A–E); validación strict en verde.
-> **Complementa (no reemplaza):** [`docs/learning/typescript-migration-server.md`](learning/typescript-migration-server.md) (investigación canónica 2026-09-23) y [`openspec/changes/server-typescript-migration/`](../openspec/changes/server-typescript-migration/README.md).
+> **Objetivo del documento:** consolidar (1) el análisis verificado del codebase `apps/server`, (2) la investigación
+> de internet de 2026 sobre runtime TS en Node, estrategias de migración, strict flags, tipos y CI/Docker, y (3) el
+> gap analysis contra el change OpenSpec activo `openspec/changes/server-typescript-migration/`, para cerrar las Fases
+> B y C de la tarea de investigación. **Estado:** investigación completada; change corregido 2026-10-14 (commit
+> `7fdd7024` + correcciones post-review de las Fases A–E); validación strict en verde. **Complementa (no reemplaza):**
+> [`docs/learning/typescript-migration-server.md`](learning/typescript-migration-server.md) (investigación canónica
+> 2026-09-23) y
+> [`openspec/changes/server-typescript-migration/`](../openspec/changes/server-typescript-migration/README.md).
 
 ---
 
 ## 1. Resumen ejecutivo
 
-El workspace `apps/server` sigue siendo 100% JavaScript (208 `.js` en `src/`, 29.121 LOC, 0 `.ts`) con las condiciones estructurales favorables ya documentadas (ESM puro, 389/389 imports relativos con `.js`, gate `server-typecheck` activo en CI). La investigación de internet confirma que la **estrategia del change es correcta en lo esencial** (strangler fig con `allowJs` + `noEmit`, conversión por archivo, strict por flags en orden de coste creciente con `noUncheckedIndexedAccess` al final) y coincide con el estado del arte 2025-2026. Sin embargo, revela **dos huecos nuevos y dos errores factuales** que ninguna fase anterior detectó:
+El workspace `apps/server` sigue siendo 100% JavaScript (208 `.js` en `src/`, 29.121 LOC, 0 `.ts`) con las condiciones
+estructurales favorables ya documentadas (ESM puro, 389/389 imports relativos con `.js`, gate `server-typecheck`
+activo en CI). La investigación de internet confirma que la **estrategia del change es correcta en lo esencial**
+(strangler fig con `allowJs` + `noEmit`, conversión por archivo, strict por flags en orden de coste creciente con
+`noUncheckedIndexedAccess` al final) y coincide con el estado del arte 2025-2026. Sin embargo, revela **dos huecos
+nuevos y dos errores factuales** que ninguna fase anterior detectó:
 
-1. **El runtime endgame está sin resolver y ahora tiene fecha:** Node 20 (la imagen Docker y el `engines` actual) llegó a **EOL el 2026-04-30**; el type-stripping nativo de TS (la vía "no build step" que el change asume) solo existe en Node ≥22.18 y **exige especificadores `./x.ts` explícitos**, lo que choca frontalmente con la decisión "rewriting imports a `.ts` fuera de scope para siempre". Hace falta una decisión de usuario ANTES de la Fase 3 (§6).
-2. **ESLint no puede lintear `.ts` hoy:** no hay parser TypeScript (`typescript-eslint`) en `eslint.config.js` — el change planifica ampliar globs a `{js,ts}` sin añadirlo; el primer archivo convertido revienta lint.
-3. **Los filtros de test por substring (`.unit.test.js`) perderían silenciosamente los tests convertidos a `.ts`** — no están en el alcance de la task 1.2.
-4. **Errores factuales en `design.md` §8** (lint-staged/eslint "ya cubre ts" — falso) y en el **target de dep-cruiser** (los regex a ampliar no están en `apps/server/.dependency-cruiser.cjs`, sino en la raíz, y ya cubren `(js|ts)`).
+1. **El runtime endgame está sin resolver y ahora tiene fecha:** Node 20 (la imagen Docker y el `engines` actual)
+   llegó a **EOL el 2026-04-30**; el type-stripping nativo de TS (la vía "no build step" que el change asume) solo
+   existe en Node ≥22.18 y **exige especificadores `./x.ts` explícitos**, lo que choca frontalmente con la decisión
+   "rewriting imports a `.ts` fuera de scope para siempre". Hace falta una decisión de usuario ANTES de la Fase 3
+   (§6).
+2. **ESLint no puede lintear `.ts` hoy:** no hay parser TypeScript (`typescript-eslint`) en `eslint.config.js` — el
+   change planifica ampliar globs a `{js,ts}` sin añadirlo; el primer archivo convertido revienta lint.
+3. **Los filtros de test por substring (`.unit.test.js`) perderían silenciosamente los tests convertidos a `.ts`** —
+   no están en el alcance de la task 1.2.
+4. **Errores factuales en `design.md` §8** (lint-staged/eslint "ya cubre ts" — falso) y en el **target de
+   dep-cruiser** (los regex a ampliar no están en `apps/server/.dependency-cruiser.cjs`, sino en la raíz, y ya cubren
+   `(js|ts)`).
 
-Además: `@types/express` debe **pinearse a `^4`** (la task 1.4 no fija versión; hoy publica 5.0.6 y rompe con runtime Express 4), `@typedef` es **0** en todo `src/` (la regla (c) del protocolo de conversión apunta a un anotación inexistente), y `incremental: true` se asume en el design pero no está en ningún tsconfig.
+Además: `@types/express` debe **pinearse a `^4`** (la task 1.4 no fija versión; hoy publica 5.0.6 y rompe con runtime
+Express 4), `@typedef` es **0** en todo `src/` (la regla (c) del protocolo de conversión apunta a un anotación
+inexistente), y `incremental: true` se asume en el design pero no está en ningún tsconfig.
 
 ---
 
@@ -49,7 +69,8 @@ Además: `@types/express` debe **pinearse a `^4`** (la task 1.4 no fija versión
 | `src/bin/`        | 1        | 45     | entry point `index.js`                                      |
 | `src/app.js`      | 1        | —      | raíz de la app                                              |
 
-> El baseline "228 JS files" del change es un conteo anterior; el conteo exacto de hoy es **236 `.js`** (o 208 si solo se mira `src/`). Actualizar al cierre de Fase 0 (task 1.8).
+> El baseline "228 JS files" del change es un conteo anterior; el conteo exacto de hoy es **236 `.js`** (o 208 si solo
+> se mira `src/`). Actualizar al cierre de Fase 0 (task 1.8).
 
 ### 2.2 Verificaciones de conversibilidad
 
@@ -69,6 +90,10 @@ Además: `@types/express` debe **pinearse a `^4`** (la task 1.4 no fija versión
 
 ### 2.3 Toolchain y CI (estado verificado hoy)
 
+<!-- markdownlint-disable MD013 -->
+<!-- Tabla con celdas que contienen pipes sin escapar en códigos inline (p. ej. `(js|ts)`);
+     markdownlint no la reconoce como tabla y `MD013.tables=false` no aplica. Excepción local. -->
+
 | Pieza                               | Estado actual                                                                                                                                                                                                           | ¿Listo para `.ts`?                                                                                |
 | ----------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- | ------------- | --------------------------------------------------------------- | --------------------- |
 | `tsconfig.json` raíz                | `target ES2022`, `module/moduleResolution: nodenext`, `allowJs`, `checkJs: false`, `noEmit`, `skipLibCheck`, `esModuleInterop`, `resolveJsonModule`; **sin `strict`, sin `incremental`, sin `types`**                   | Parcial                                                                                           |
@@ -86,76 +111,181 @@ Además: `@types/express` debe **pinearse a `^4`** (la task 1.4 no fija versión
 | Docker                              | `node:20-alpine` (⚠️ EOL), single-stage, `CMD ["node", "src/bin/index.js"]`, sin build step                                                                                                                             | Ver §6                                                                                            |
 | `@types/*`                          | **No instaladas** ni declaradas: `@types/express                                                                                                                                                                        | jsonwebtoken                                                                                      | bcrypt        | swagger-\*`ausentes;`@types/node` presente solo como transitive | task 1.4 pendiente ✅ |
 
+<!-- markdownlint-enable MD013 -->
+
 ---
 
 ## 3. Hallazgos de internet (con fuentes)
 
 ### 3.1 Runtime TS en Node 2025/2026 — type-stripping nativo vs tsx/ts-node
 
-- Type stripping está **habilitado por defecto desde Node 22.18.0 y 23.6.0**, sin warning experimental desde 22.18/24.3, y **estable desde 24.12.0 / 25.2.0**. `--experimental-transform-types` (enums, namespaces, parameter properties) se añadió en 22.7 y **se eliminó en Node 26.0.0** (erasable-syntax-only o precompilar). <br> <sub>https://nodejs.org/api/typescript.html · https://codewithnodejs.com/running-typescript-natively-in-node-js-22-24-and-26/</sub>
-- **Los especificadores de import deben llevar la extensión real**: `import './file.ts'`, no `'./file'` ni `'./file.js'` — Node no reescribe `.js`→`.ts`. `allowImportingTsExtensions` permite a `tsc` verificar esos specifiers. <br> <sub>https://nodejs.org/api/typescript.html</sub>
-- Sintaxis que exige emisión (enum, namespace con runtime, parameter properties, decorators, `import =`) → error **`ERR_UNSUPPORTED_TYPESCRIPT_SYNTAX`**. Node **ignora `tsconfig.json`** y **no typechequea** (tsc sigue siendo obligatorio en CI). `.tsx` no soportado. <br> <sub>https://nodejs.org/learn/typescript/run-natively · https://www.typescriptlang.org/tsconfig/erasableSyntaxOnly.html</sub>
-- Config base recomendada por Node (TS 5.8+): `noEmit`, `target: esnext`, `module: nodenext`, **`rewriteRelativeImportExtensions`**, **`erasableSyntaxOnly`**, **`verbatimModuleSyntax`**. <br> <sub>https://nodejs.org/api/typescript.html</sub>
-- **Node 20 EOL: 2026-04-30** (ya EOL ~5.5 meses); Node 22 = Maintenance LTS hasta **2027-04-30**; Node 24 = Active LTS hasta **2028-04-30**; Node 26 = Current. La guía oficial recomienda saltar de 20 directo a LTS. <br> <sub>https://nodejs.org/en/about/eol · https://github.com/nodejs/release/blob/main/README.md · https://nodejs.org/en/blog/announcements/node-18-eol-support</sub>
-- **tsx** es el runner recomendado por la propia doc de Node para "full TypeScript support" (respeta tsconfig, transforma toda la sintaxis); se registra con `node --import tsx` (el `--loader` está deprecado desde Node 20.6). No typechequea → `tsc --noEmit` separado. `ts-node` sigue vivo pero su ESM loader depende de APIs experimentales "que Node romperá" (su propio README lo desaconseja para producción). <br> <sub>https://nodejs.org/learn/typescript/run · https://tsx.hirok.io/dev-api/node-cli · https://github.com/TypeStrong/ts-node</sub>
+- Type stripping está **habilitado por defecto desde Node 22.18.0 y 23.6.0**, sin warning experimental desde
+  22.18/24.3, y **estable desde 24.12.0 / 25.2.0**. `--experimental-transform-types` (enums, namespaces, parameter
+  properties) se añadió en 22.7 y **se eliminó en Node 26.0.0** (erasable-syntax-only o precompilar). <br>
+  <sub>https://nodejs.org/api/typescript.html ·
+  https://codewithnodejs.com/running-typescript-natively-in-node-js-22-24-and-26/</sub>
+- **Los especificadores de import deben llevar la extensión real**: `import './file.ts'`, no `'./file'` ni
+  `'./file.js'` — Node no reescribe `.js`→`.ts`. `allowImportingTsExtensions` permite a `tsc` verificar esos
+  specifiers. <br> <sub>https://nodejs.org/api/typescript.html</sub>
+- Sintaxis que exige emisión (enum, namespace con runtime, parameter properties, decorators, `import =`) → error
+  **`ERR_UNSUPPORTED_TYPESCRIPT_SYNTAX`**. Node **ignora `tsconfig.json`** y **no typechequea** (tsc sigue siendo
+  obligatorio en CI). `.tsx` no soportado. <br> <sub>https://nodejs.org/learn/typescript/run-natively ·
+  https://www.typescriptlang.org/tsconfig/erasableSyntaxOnly.html</sub>
+- Config base recomendada por Node (TS 5.8+): `noEmit`, `target: esnext`, `module: nodenext`,
+  **`rewriteRelativeImportExtensions`**, **`erasableSyntaxOnly`**, **`verbatimModuleSyntax`**. <br>
+  <sub>https://nodejs.org/api/typescript.html</sub>
+- **Node 20 EOL: 2026-04-30** (ya EOL ~5.5 meses); Node 22 = Maintenance LTS hasta **2027-04-30**; Node 24 = Active
+  LTS hasta **2028-04-30**; Node 26 = Current. La guía oficial recomienda saltar de 20 directo a LTS. <br>
+  <sub>https://nodejs.org/en/about/eol · https://github.com/nodejs/release/blob/main/README.md ·
+  https://nodejs.org/en/blog/announcements/node-18-eol-support</sub>
+- **tsx** es el runner recomendado por la propia doc de Node para "full TypeScript support" (respeta tsconfig,
+  transforma toda la sintaxis); se registra con `node --import tsx` (el `--loader` está deprecado desde Node 20.6). No
+  typechequea → `tsc --noEmit` separado. `ts-node` sigue vivo pero su ESM loader depende de APIs experimentales "que
+  Node romperá" (su propio README lo desaconseja para producción). <br> <sub>https://nodejs.org/learn/typescript/run ·
+  https://tsx.hirok.io/dev-api/node-cli · https://github.com/TypeStrong/ts-node</sub>
 
 ### 3.2 TS 5.7+ `rewriteRelativeImportExtensions` + `allowImportingTsExtensions`
 
-- TS 5.7 añadió `rewriteRelativeImportExtensions`: reescribe `./foo.ts` → `./foo.js` **solo al emitir**; combinado con `allowImportingTsExtensions` (válido con `noEmit`, nuestro caso) permite escribir `.ts` y verificar sin emitir — el combo "in-place run + compile opcional". Maduro en TS 5.9 (la versión del repo). <br> <sub>https://www.typescriptlang.org/docs/handbook/release-notes/typescript-5-7.html · https://www.typescriptlang.org/tsconfig/allowImportingTsExtensions.html · https://www.typescriptlang.org/tsconfig/rewriteRelativeImportExtensions.html</sub>
-- Node publica un **codemod oficial de una sola pasada** `.js`→`.ts` en specifiers (verifica que el destino existe; respeta archivos ambiguos) — precisamente la operación que el change declara "out of scope forever". <br> <sub>https://nodejs.org/learn/userland-migrations/correct-ts-specifiers</sub>
-- `tsc --init` en TS 5.9 ya genera `nodenext` + `strict` + `noUncheckedIndexedAccess` + `verbatimModuleSyntax` — el set "moderno" por defecto. <br> <sub>https://www.typescriptlang.org/docs/handbook/release-notes/typescript-5-9.html</sub>
-- TypeScript 6.0 (transición a 7.0/Go) será "largamente compatible" con 5.9 — no hay urgencia por upgrades de compiler. <br> <sub>https://devblogs.microsoft.com/typescript/announcing-typescript-5-9/</sub>
+- TS 5.7 añadió `rewriteRelativeImportExtensions`: reescribe `./foo.ts` → `./foo.js` **solo al emitir**; combinado con
+  `allowImportingTsExtensions` (válido con `noEmit`, nuestro caso) permite escribir `.ts` y verificar sin emitir — el
+  combo "in-place run + compile opcional". Maduro en TS 5.9 (la versión del repo). <br>
+  <sub>https://www.typescriptlang.org/docs/handbook/release-notes/typescript-5-7.html ·
+  https://www.typescriptlang.org/tsconfig/allowImportingTsExtensions.html ·
+  https://www.typescriptlang.org/tsconfig/rewriteRelativeImportExtensions.html</sub>
+- Node publica un **codemod oficial de una sola pasada** `.js`→`.ts` en specifiers (verifica que el destino existe;
+  respeta archivos ambiguos) — precisamente la operación que el change declara "out of scope forever". <br>
+  <sub>https://nodejs.org/learn/userland-migrations/correct-ts-specifiers</sub>
+- `tsc --init` en TS 5.9 ya genera `nodenext` + `strict` + `noUncheckedIndexedAccess` + `verbatimModuleSyntax` — el
+  set "moderno" por defecto. <br>
+  <sub>https://www.typescriptlang.org/docs/handbook/release-notes/typescript-5-9.html</sub>
+- TypeScript 6.0 (transición a 7.0/Go) será "largamente compatible" con 5.9 — no hay urgencia por upgrades de
+  compiler. <br> <sub>https://devblogs.microsoft.com/typescript/announcing-typescript-5-9/</sub>
 
 ### 3.3 typescript-eslint con ESLint 9 (flat config)
 
-- Setup mínimo oficial: instalar **un solo paquete `typescript-eslint`** (+ `@eslint/js`, `eslint`, `typescript`) y usar `defineConfig` con `tseslint.configs.recommended`; los paquetes sueltos `@typescript-eslint/parser` y `.../eslint-plugin` **no se instalan por separado en ESLint 9** (incluidos como deps del meta-paquete). <br> <sub>https://typescript-eslint.io/getting-started/ · https://typescript-eslint.io/packages/typescript-eslint/</sub>
-- Las configs compartidas ya declaran parser y plugin — sin `languageOptions.parser` manual. **Typed linting** (`projectService: true`, `recommendedTypeChecked`) es opcional y debe posponerse (puede fallar con `checkJs` y archivos `.js` no incluidos en el tsconfig); para Fase 0 basta `recommended` sin tipo. <br> <sub>https://typescript-eslint.io/getting-started/typed-linting</sub>
-- `eslint.configs.recommended` + `tseslint.configs.recommended` restringido con `files: ['**/*.{js,ts}']` evita aplicar el parser TS a otros filetypes. <br> <sub>https://typescript-eslint.io/getting-started/</sub>
+- Setup mínimo oficial: instalar **un solo paquete `typescript-eslint`** (+ `@eslint/js`, `eslint`, `typescript`) y
+  usar `defineConfig` con `tseslint.configs.recommended`; los paquetes sueltos `@typescript-eslint/parser` y
+  `.../eslint-plugin` **no se instalan por separado en ESLint 9** (incluidos como deps del meta-paquete). <br>
+  <sub>https://typescript-eslint.io/getting-started/ · https://typescript-eslint.io/packages/typescript-eslint/</sub>
+- Las configs compartidas ya declaran parser y plugin — sin `languageOptions.parser` manual. **Typed linting**
+  (`projectService: true`, `recommendedTypeChecked`) es opcional y debe posponerse (puede fallar con `checkJs` y
+  archivos `.js` no incluidos en el tsconfig); para Fase 0 basta `recommended` sin tipo. <br>
+  <sub>https://typescript-eslint.io/getting-started/typed-linting</sub>
+- `eslint.configs.recommended` + `tseslint.configs.recommended` restringido con `files: ['**/*.{js,ts}']` evita
+  aplicar el parser TS a otros filetypes. <br> <sub>https://typescript-eslint.io/getting-started/</sub>
 
 ### 3.4 Estrategia de migración: gradual vs big-bang (estado 2025-2026)
 
-- **Estudio académico (Politowski et al., 102 proyectos GitHub)**: la mayoría migra de forma "sudden" (big-bang) sin reemplazar todo el JS; se identificaron 5 estrategias de "sudden" a gradual; la migración reduce issues de type-safety/maintainability pero **aumenta complejidad cognitiva** — el riesgo del big-bang es real. <br> <sub>https://papers.ssrn.com/sol3/papers.cfm?abstract_id=5614285</sub>
-- **Stripe (3.7M LOC Flow→TS en un PR)**: big-bang con codemod propio (heredado de Airtable), `@ts-expect-error` masivo depurado de 97k→37k supresiones, project references por memoria, actualización de TODA la toolchain (ESLint/Jest/Webpack) antes del merge — validación que nuestro Fase 0 sistematiza. Contra: requiere equipo dedicado y control total del tooling. <br> <sub>https://stripe.dev/blog/migrating-to-typescript</sub>
-- **WorkMade (160k LOC, Express + GraphQL, 6 semanas, zero downtime)**: branch dedicada con renombrado masivo + rebase periódico, tipado incremental de módulos críticos, CI en cada rebase, `ts-migrate` + `jscodeshift`, monitorización en staging antes del corte. Caso Express más parecido al nuestro. <br> <sub>https://benhowdle.im/migrating-js-to-ts-zero-downtime.html</sub>
-- **Consenso de guías 2025 incremental**: `allowJs` + `checkJs` **scoped** (por directorio o `// @ts-check` por archivo, no global — global ahoga con ruido de `node_modules`), JSDoc primero y rename después (separable en 2 commits), strict por flags uno a uno con `tsc --noEmit 2>&1 | wc -l` de baseline, **`strictNullChecks` al final**, CI que impide regresiones del baseline. <br> <sub>https://codezup.com/migrating-from-javascript-to-typescript-guide/ · https://devcerts.org/blog/migrating-javascript-to-typescript-without-stopping-delivery · https://typescript.page/migrate-large-js-to-typescript</sub>
-- **Codemods JSDoc→TS**: `cspotcode/js-to-ts-codemods` (jscodeshift, convierte anotaciones JSDoc→TS), `microsoft/ts-fix` (aplica el codefix "convert JSDoc typedef" a todo el proyecto), `ts-migrate` (Airbnb — pero inserta `any` grosero, inservible para nuestro "no new any"), TS quick-fix integrado (`fixJSDocTypes` — no borra el JSDoc). El handbook oficial sigue recomendando rename manual + arreglar errores. <br> <sub>https://github.com/cspotcode/js-to-ts-codemods · https://github.com/microsoft/TypeScript/issues/19285 · https://www.typescriptlang.org/docs/handbook/migrating-from-javascript.html</sub>
+- **Estudio académico (Politowski et al., 102 proyectos GitHub)**: la mayoría migra de forma "sudden" (big-bang) sin
+  reemplazar todo el JS; se identificaron 5 estrategias de "sudden" a gradual; la migración reduce issues de
+  type-safety/maintainability pero **aumenta complejidad cognitiva** — el riesgo del big-bang es real. <br>
+  <sub>https://papers.ssrn.com/sol3/papers.cfm?abstract_id=5614285</sub>
+- **Stripe (3.7M LOC Flow→TS en un PR)**: big-bang con codemod propio (heredado de Airtable), `@ts-expect-error`
+  masivo depurado de 97k→37k supresiones, project references por memoria, actualización de TODA la toolchain
+  (ESLint/Jest/Webpack) antes del merge — validación que nuestro Fase 0 sistematiza. Contra: requiere equipo dedicado
+  y control total del tooling. <br> <sub>https://stripe.dev/blog/migrating-to-typescript</sub>
+- **WorkMade (160k LOC, Express + GraphQL, 6 semanas, zero downtime)**: branch dedicada con renombrado masivo + rebase
+  periódico, tipado incremental de módulos críticos, CI en cada rebase, `ts-migrate` + `jscodeshift`, monitorización
+  en staging antes del corte. Caso Express más parecido al nuestro. <br>
+  <sub>https://benhowdle.im/migrating-js-to-ts-zero-downtime.html</sub>
+- **Consenso de guías 2025 incremental**: `allowJs` + `checkJs` **scoped** (por directorio o `// @ts-check` por
+  archivo, no global — global ahoga con ruido de `node_modules`), JSDoc primero y rename después (separable en 2
+  commits), strict por flags uno a uno con `tsc --noEmit 2>&1 | wc -l` de baseline, **`strictNullChecks` al final**,
+  CI que impide regresiones del baseline. <br> <sub>https://codezup.com/migrating-from-javascript-to-typescript-guide/
+  · https://devcerts.org/blog/migrating-javascript-to-typescript-without-stopping-delivery ·
+  https://typescript.page/migrate-large-js-to-typescript</sub>
+- **Codemods JSDoc→TS**: `cspotcode/js-to-ts-codemods` (jscodeshift, convierte anotaciones JSDoc→TS),
+  `microsoft/ts-fix` (aplica el codefix "convert JSDoc typedef" a todo el proyecto), `ts-migrate` (Airbnb — pero
+  inserta `any` grosero, inservible para nuestro "no new any"), TS quick-fix integrado (`fixJSDocTypes` — no borra el
+  JSDoc). El handbook oficial sigue recomendando rename manual + arreglar errores. <br>
+  <sub>https://github.com/cspotcode/js-to-ts-codemods · https://github.com/microsoft/TypeScript/issues/19285 ·
+  https://www.typescriptlang.org/docs/handbook/migrating-from-javascript.html</sub>
 
 ### 3.5 Orden de flags strict (validado con fuentes oficiales)
 
-- **tsconfig reference** (normativa): `strict` activa toda la familia; los opt-ins fuera de la familia son `noImplicitReturns`, `noFallthroughCasesInSwitch`, `noUncheckedIndexedAccess`, `noPropertyAccessFromIndexSignature`, etc. <br> <sub>https://www.typescriptlang.org/tsconfig/ · https://www.typescriptlang.org/tsconfig/strict</sub>
-- **`noUncheckedIndexedAccess` NO forma parte de `strict` por decisión deliberada** (microsoft/TypeScript#49169: "overwhelmingly false positives" en codebases existentes) → debe ser un paso propio y tardío: **el orden del change está confirmado por la fuente oficial**. <br> <sub>https://github.com/microsoft/TypeScript/issues/49169 · https://www.typescriptlang.org/tsconfig/noUncheckedIndexedAccess.html</sub>
-- **Handbook "Migrating from JS"**: `allowJs` → beneficios inmediatos con `noImplicitReturns`/`noFallthroughCasesInSwitch` → `noImplicitAny` **antes de modificar archivos** → `strictNullChecks` como paso mayor. El orden del change (cheap → familia → `useUnknownInCatchVariables` → `noUncheckedIndexedAccess` → `strict: true` consolidador) es coherente con todo lo anterior. <br> <sub>https://www.typescriptlang.org/docs/handbook/migrating-from-javascript.html</sub>
-- Nota: desde TS 5.6 `strict` incluye también `strictBuiltinIteratorReturn` — el "consolidador" task 5.7 (`strict: true`) lo absorbe automáticamente; no requiere task extra.
-- Práctica de referencia: guía de settings strict de Sentry (qué errores trae cada flag y cómo responder). <br> <sub>https://develop.sentry.dev/frontend/strict-typescript-settings-guide/</sub>
+- **tsconfig reference** (normativa): `strict` activa toda la familia; los opt-ins fuera de la familia son
+  `noImplicitReturns`, `noFallthroughCasesInSwitch`, `noUncheckedIndexedAccess`, `noPropertyAccessFromIndexSignature`,
+  etc. <br> <sub>https://www.typescriptlang.org/tsconfig/ · https://www.typescriptlang.org/tsconfig/strict</sub>
+- **`noUncheckedIndexedAccess` NO forma parte de `strict` por decisión deliberada** (microsoft/TypeScript#49169:
+  "overwhelmingly false positives" en codebases existentes) → debe ser un paso propio y tardío: **el orden del change
+  está confirmado por la fuente oficial**. <br> <sub>https://github.com/microsoft/TypeScript/issues/49169 ·
+  https://www.typescriptlang.org/tsconfig/noUncheckedIndexedAccess.html</sub>
+- **Handbook "Migrating from JS"**: `allowJs` → beneficios inmediatos con
+  `noImplicitReturns`/`noFallthroughCasesInSwitch` → `noImplicitAny` **antes de modificar archivos** →
+  `strictNullChecks` como paso mayor. El orden del change (cheap → familia → `useUnknownInCatchVariables` →
+  `noUncheckedIndexedAccess` → `strict: true` consolidador) es coherente con todo lo anterior. <br>
+  <sub>https://www.typescriptlang.org/docs/handbook/migrating-from-javascript.html</sub>
+- Nota: desde TS 5.6 `strict` incluye también `strictBuiltinIteratorReturn` — el "consolidador" task 5.7
+  (`strict: true`) lo absorbe automáticamente; no requiere task extra.
+- Práctica de referencia: guía de settings strict de Sentry (qué errores trae cada flag y cómo responder). <br>
+  <sub>https://develop.sentry.dev/frontend/strict-typescript-settings-guide/</sub>
 
 ### 3.6 `@types/*` — Express 4 vs 5, jsonwebtoken, bcrypt
 
-- **`@types/express` publica hoy 5.0.6** (DefinitelyTyped). Con runtime `express@^4.19.2` **hay que pinear `@types/express@^4.17.21`**: un rango `*`/sin pin resuelve a tipos v5 → errores TS2769, retorno `Response` incompatible con `void | Promise<void>`, etc. (incidente conocidísimo: expressjs/express#5987). **La task 1.4 del change no fija versión → debe corregirse.** <br> <sub>https://registry.npmjs.org/@types/express · https://github.com/expressjs/express/issues/5987 · https://github.com/DefinitelyTyped/DefinitelyTyped/pull/70563 · https://github.com/DefinitelyTyped/DefinitelyTyped/pull/71249</sub>
-- **`jsonwebtoken` NO incluye tipos**: sigue necesitándose `@types/jsonwebtoken` (9.0.x, en DT; `expiresIn` tipado vía `ms.StringValue` desde 9.0.8). <br> <sub>https://github.com/DefinitelyTyped/DefinitelyTyped/pull/71721</sub>
-- **`bcrypt@6` NO incluye tipos**: `@types/bcrypt@6.0.0` (DT, deps: `@types/node`). No hay motivo para bcryptjs (cambio de librería = fuera de alcance). <br> <sub>https://canirequire.com/package/bcrypt/ · https://www.npmjs.com/package/@types/bcrypt</sub>
-- `swagger-jsdoc`/`swagger-ui-express`: siguen en DT (`@types/swagger-jsdoc`, `@types/swagger-ui-express` — esta última arrastra `@types/express*`, otro motivo más para pinear express a `^4`).
+- **`@types/express` publica hoy 5.0.6** (DefinitelyTyped). Con runtime `express@^4.19.2` **hay que pinear
+  `@types/express@^4.17.21`**: un rango `*`/sin pin resuelve a tipos v5 → errores TS2769, retorno `Response`
+  incompatible con `void | Promise<void>`, etc. (incidente conocidísimo: expressjs/express#5987). **La task 1.4 del
+  change no fija versión → debe corregirse.** <br> <sub>https://registry.npmjs.org/@types/express ·
+  https://github.com/expressjs/express/issues/5987 · https://github.com/DefinitelyTyped/DefinitelyTyped/pull/70563 ·
+  https://github.com/DefinitelyTyped/DefinitelyTyped/pull/71249</sub>
+- **`jsonwebtoken` NO incluye tipos**: sigue necesitándose `@types/jsonwebtoken` (9.0.x, en DT; `expiresIn` tipado vía
+  `ms.StringValue` desde 9.0.8). <br> <sub>https://github.com/DefinitelyTyped/DefinitelyTyped/pull/71721</sub>
+- **`bcrypt@6` NO incluye tipos**: `@types/bcrypt@6.0.0` (DT, deps: `@types/node`). No hay motivo para bcryptjs
+  (cambio de librería = fuera de alcance). <br> <sub>https://canirequire.com/package/bcrypt/ ·
+  https://www.npmjs.com/package/@types/bcrypt</sub>
+- `swagger-jsdoc`/`swagger-ui-express`: siguen en DT (`@types/swagger-jsdoc`, `@types/swagger-ui-express` — esta
+  última arrastra `@types/express*`, otro motivo más para pinear express a `^4`).
 
 ### 3.7 Prisma + TS
 
-- **Singleton obligatorio**: una única instancia de `PrismaClient` en toda la app (cada instancia = un pool de conexiones; patrón `globalThis` en dev). El repo tiene **2 instancias** — `config/db.js` y `socket/handler.js` — consolidar en `config/db.ts` (Fase 1) es la mayor ganancia de la migración. <br> <sub>https://www.prisma.io/docs/orm/prisma-client/setup-and-configuration/databases-connections/connection-management · https://www.prisma.io/docs/orm/more/troubleshooting/nextjs</sub>
-- Los tipos generados (`.d.ts` en `node_modules/.prisma/client` con `prisma-client-js`, vía `postinstall: prisma generate`) fluyen sin configuración adicional con `allowJs`/`skipLibCheck`. <br> <sub>https://www.prisma.io/docs/orm/prisma-client/setup-and-configuration/introduction</sub>
-- **Prisma 7 (nov-2025)**: ESM-first, cliente rust-free, `output` obligatorio fuera de `node_modules`, driver adapters obligatorios, **eliminó el postinstall hook** (el `postinstall: prisma generate` del repo habría que hacerlo explícito al upgrades) y ofrece `importFileExtension = "ts"` para runtimes tsx. Upgrade de Prisma 5→7 es **fuerza mayor aparte** (5.x sigue funcionando) — no acoplarlo a esta migración. <br> <sub>https://www.prisma.io/changelog/2025-11-19-prisma-orm-7 · https://github.com/prisma/skills/blob/main/prisma-upgrade-v7/references/esm-support.md</sub>
+- **Singleton obligatorio**: una única instancia de `PrismaClient` en toda la app (cada instancia = un pool de
+  conexiones; patrón `globalThis` en dev). El repo tiene **2 instancias** — `config/db.js` y `socket/handler.js` —
+  consolidar en `config/db.ts` (Fase 1) es la mayor ganancia de la migración. <br>
+  <sub>https://www.prisma.io/docs/orm/prisma-client/setup-and-configuration/databases-connections/connection-management
+  · https://www.prisma.io/docs/orm/more/troubleshooting/nextjs</sub>
+- Los tipos generados (`.d.ts` en `node_modules/.prisma/client` con `prisma-client-js`, vía
+  `postinstall: prisma generate`) fluyen sin configuración adicional con `allowJs`/`skipLibCheck`. <br>
+  <sub>https://www.prisma.io/docs/orm/prisma-client/setup-and-configuration/introduction</sub>
+- **Prisma 7 (nov-2025)**: ESM-first, cliente rust-free, `output` obligatorio fuera de `node_modules`, driver adapters
+  obligatorios, **eliminó el postinstall hook** (el `postinstall: prisma generate` del repo habría que hacerlo
+  explícito al upgrades) y ofrece `importFileExtension = "ts"` para runtimes tsx. Upgrade de Prisma 5→7 es **fuerza
+  mayor aparte** (5.x sigue funcionando) — no acoplarlo a esta migración. <br>
+  <sub>https://www.prisma.io/changelog/2025-11-19-prisma-orm-7 ·
+  https://github.com/prisma/skills/blob/main/prisma-upgrade-v7/references/esm-support.md</sub>
 
 ### 3.8 Vitest 4 + TS
 
-- Vitest ejecuta TS nativamente (Vite/esbuild) — **sin tipo-checking** en runtime; el typecheck queda en `tsc --noEmit` (ya activo). No existe opción `tsconfig` por invocación: usa el tsconfig del proyecto. <br> <sub>https://vitest.dev/config/ · https://github.com/vitest-dev/vitest/discussions/1291</sub>
-- `test.include` default es `['**/*.{test,spec}.?(c|m)[jt]s?(x)']` — **los globs actuales del repo filtran `.js` explícitamente** y deben ganar variantes `.ts` (task 1.2 ✅), **y los filtros CLI por substring de `package.json` (`".unit.test.js"`, `".integration.test.js"`) excluirían los tests convertidos** (gap nuevo, §5). <br> <sub>https://vitest.dev/config/include · https://vitest.dev/guide/cli</sub>
-- Modo `typecheck` (tsc dentro de vitest) existe pero es redundante con el job `server-typecheck` — no adoptar. <br> <sub>https://vitest.dev/config/typecheck</sub>
+- Vitest ejecuta TS nativamente (Vite/esbuild) — **sin tipo-checking** en runtime; el typecheck queda en
+  `tsc --noEmit` (ya activo). No existe opción `tsconfig` por invocación: usa el tsconfig del proyecto. <br>
+  <sub>https://vitest.dev/config/ · https://github.com/vitest-dev/vitest/discussions/1291</sub>
+- `test.include` default es `['**/*.{test,spec}.?(c|m)[jt]s?(x)']` — **los globs actuales del repo filtran `.js`
+  explícitamente** y deben ganar variantes `.ts` (task 1.2 ✅), **y los filtros CLI por substring de `package.json`
+  (`".unit.test.js"`, `".integration.test.js"`) excluirían los tests convertidos** (gap nuevo, §5). <br>
+  <sub>https://vitest.dev/config/include · https://vitest.dev/guide/cli</sub>
+- Modo `typecheck` (tsc dentro de vitest) existe pero es redundante con el job `server-typecheck` — no adoptar. <br>
+  <sub>https://vitest.dev/config/typecheck</sub>
 
 ### 3.9 Docker / CI con TS
 
-- Patrón CI 2025-2026: **job `typecheck` (`tsc --noEmit`) en paralelo al job `build`** (bundler/esbuild), `needs` en deploy — el typecheck nunca emite; el build nunca typechequea. Nuestro `server-typecheck` ya es exactamente el primer job; el "build" sigue siendo no-op mientras no haya emit. <br> <sub>https://nodejs.codeguides.io/linting-formatting/typecheck-in-ci/ · https://jsmanifest.com/typescript-noemit-type-only-builds</sub>
-- Docker multi-stage TS clásico: `deps → build (tsc) → prod (node dist/main.js)`; alternativa sin build: imagen Node ≥22.18+ con strip-types nativo. En ambos casos, **`node:20-alpine` debe cambiarse** (EOL + sin strip-types). <br> <sub>https://nodejs.codeguides.io/docker/multi-stage-builds/ · https://nodejs.codeguides.io/typescript-node/typescript-to-node-pipeline/</sub>
-- Cuidado con `bcrypt` (nativo): compilar en la stage Linux de build, no localmente. <br> <sub>https://nodejs.codeguides.io/docker/multi-stage-builds/</sub>
+- Patrón CI 2025-2026: **job `typecheck` (`tsc --noEmit`) en paralelo al job `build`** (bundler/esbuild), `needs` en
+  deploy — el typecheck nunca emite; el build nunca typechequea. Nuestro `server-typecheck` ya es exactamente el
+  primer job; el "build" sigue siendo no-op mientras no haya emit. <br>
+  <sub>https://nodejs.codeguides.io/linting-formatting/typecheck-in-ci/ ·
+  https://jsmanifest.com/typescript-noemit-type-only-builds</sub>
+- Docker multi-stage TS clásico: `deps → build (tsc) → prod (node dist/main.js)`; alternativa sin build: imagen Node
+  ≥22.18+ con strip-types nativo. En ambos casos, **`node:20-alpine` debe cambiarse** (EOL + sin strip-types). <br>
+  <sub>https://nodejs.codeguides.io/docker/multi-stage-builds/ ·
+  https://nodejs.codeguides.io/typescript-node/typescript-to-node-pipeline/</sub>
+- Cuidado con `bcrypt` (nativo): compilar en la stage Linux de build, no localmente. <br>
+  <sub>https://nodejs.codeguides.io/docker/multi-stage-builds/</sub>
 
 ---
 
 ## 4. Gap analysis: hallazgos vs change actual
+
+<!-- markdownlint-disable MD013 -->
+<!-- Tabla §4 con celdas de ancho fijo (~400 chars) heredado del wrap; las columnas no pueden
+     dividirse sin romper la semántica de la tabla. Excepción local a MD013. -->
 
 | #   | Hallazgo                                                                                                                                              | ¿Cubre el change?                                                                                                                                                     | Gravedad                                                                       |
 | --- | ----------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------ | ------------------------- |
@@ -172,6 +302,8 @@ Además: `@types/express` debe **pinearse a `^4`** (la task 1.4 no fija versión
 | 11  | **`@types/node` solo transitive** (no declarado)                                                                                                      | ❌ task 1.4 no lo lista (lo traerá `@types/express`, pero conviene declararlo)                                                                                        | Baja                                                                           |
 | 12  | Orden de strict flags                                                                                                                                 | ✅ **validado** con tsconfig reference + TS#49169 + handbook — sin cambios                                                                                            | OK                                                                             |
 | 13  | Strangler fig `allowJs+noEmit`, conversión por archivo, job CI activo, vitest esbuild, knip/dep-cruiser ampliables                                    | ✅ coherente con state of the art 2025-2026 — sin cambios                                                                                                             | OK                                                                             |
+
+<!-- markdownlint-enable MD013 -->
 
 ---
 
@@ -195,7 +327,8 @@ Además: `@types/express` debe **pinearse a `^4`** (la task 1.4 no fija versión
 
 ### 6.1 Decisión PENDIENTE DE USUARIO — runtime endgame (bloquea Fase 3, no las Fases 0-2)
 
-Las Fases 0-2 **no se bloquean**: mientras exista al menos un `.js` en el grafo de arranque, Node ejecuta `.js` nativos y todo el plan vigente funciona. La decisión solo se necesita **antes de convertir `app.js`/`bin/index.js`**.
+Las Fases 0-2 **no se bloquean**: mientras exista al menos un `.js` en el grafo de arranque, Node ejecuta `.js`
+nativos y todo el plan vigente funciona. La decisión solo se necesita **antes de convertir `app.js`/`bin/index.js`**.
 
 | Opción                                                                                 | Cómo                                                                                           | Pros                                                                                                                                                                                                                   | Contras                                                                                                                                                                                                                                                                                                                |
 | -------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -203,30 +336,49 @@ Las Fases 0-2 **no se bloquean**: mientras exista al menos un `.js` en el grafo 
 | **B. Upgrade Node ≥22.18 (ideal 24 LTS) + strip-types nativo**                         | `node src/bin/index.ts` con `erasableSyntaxOnly` + `verbatimModuleSyntax` + specifiers `.ts`   | ✅ cero dependencias; ✅ estable (24.12+); ✅ resuelve de paso el **EOL de Node 20** (riesgo de seguridad real, hoy); ✅ camino de futuro oficial                                                                      | ❌ **requiere reabrir la decisión "imports `.js` forever"**: codemod único `.js`→`.ts` (codemod oficial Node disponible); ❌ sin enums/namespaces/decorators (verificar — el repo es JS puro, probablemente erasable al 100%); ❌ `transform-types` desaparece en Node 26; ❌ tocar Dockerfile/engines de todas formas |
 | **C. Build step (`tsc`/esbuild → `dist/`)**                                            | Multi-stage Docker `deps→build→prod`, PM2 sobre `dist/`                                        | ✅ runtime JS clásico sin loaders; ✅ patrón estándar documentado (§3.9); ✅ alineado con TS 6/7                                                                                                                       | ❌ rompe el Non-Goal actual: doble fuente de verdad, toca `dev`/`build`/`main`/PM2/Docker/e2e, riesgo de "build olvidado"; ❌ más trabajo que A/B                                                                                                                                                                      |
 
-**Recomendación del researcher:** **corto plazo → A (tsx)** para no reabrir decisiones ni reescribir imports durante las Fases 1-2; **paralelamente, sí o sí upgrade de Node 20→22/24 en Fase 0** por EOL (independiente de TS). Reevaluar B en la Fase 3: si el codebase es 100% erasable-syntax (medible con `erasableSyntaxOnly`), B queda preferente a medio plazo (cero dependencias, soporte oficial); A es el puente más seguro. C solo si se decide apostar por dist/ por otras razones.
+**Recomendación del researcher:** **corto plazo → A (tsx)** para no reabrir decisiones ni reescribir imports durante
+las Fases 1-2; **paralelamente, sí o sí upgrade de Node 20→22/24 en Fase 0** por EOL (independiente de TS). Reevaluar
+B en la Fase 3: si el codebase es 100% erasable-syntax (medible con `erasableSyntaxOnly`), B queda preferente a medio
+plazo (cero dependencias, soporte oficial); A es el puente más seguro. C solo si se decide apostar por dist/ por otras
+razones.
 
 ### 6.2 Plan validado por fases (con correcciones pendientes marcadas — Fase D)
 
-**Fase 0 — Infraestructura (1 change, sin convertir código)** — orden y alcance del change validados, con estos ajustes:
+**Fase 0 — Infraestructura (1 change, sin convertir código)** — orden y alcance del change validados, con estos
+ajustes:
 
 1. Task 1.1/1.3/1.5: sin cambios; **+ añadir `incremental: true` (y opcional `tsBuildInfoFile`)** al medir (gap 8).
-2. Task 1.2 — ampliar a: eslint (bloques backend L121 + complexity L383 + tests L419) **CON `typescript-eslint` instalado y config `tseslint.configs.recommended` acotada a `files` server** (gap 1); `lint`/`format` scripts; knip; vitest `include` **+ filtros substring de `test:*` scripts** (gap 2); dep-cruiser → apuntar a la raíz/verificación, no al config server (gap 5); lint-staged → **añadir `ts` al glob de eslint** (gap 4).
-3. Task 1.4 — **pinear `@types/express@^4.17.21`**, + `@types/jsonwebtoken`, `@types/bcrypt@^6`, `@types/swagger-*`, **+ `@types/node` declarado** (gaps 7, 11).
-4. **Nueva task:** upgrade de runtime (`engines`, `Dockerfile` base image) Node 20→22/24 — por EOL, no por TS; **+ añadir `Dockerfile` a la tabla de impact** (gap 6).
-5. Task 1.8 — actualizar baseline a **236 `.js` (208 src / 23 tests)**, `@typedef=0`, `process.env=20` (gap 10); reencuadrar regla (c) del protocolo (design §5) sin `@typedef`.
+2. Task 1.2 — ampliar a: eslint (bloques backend L121 + complexity L383 + tests L419) **CON `typescript-eslint`
+   instalado y config `tseslint.configs.recommended` acotada a `files` server** (gap 1); `lint`/`format` scripts;
+   knip; vitest `include` **+ filtros substring de `test:*` scripts** (gap 2); dep-cruiser → apuntar a la
+   raíz/verificación, no al config server (gap 5); lint-staged → **añadir `ts` al glob de eslint** (gap 4).
+3. Task 1.4 — **pinear `@types/express@^4.17.21`**, + `@types/jsonwebtoken`, `@types/bcrypt@^6`, `@types/swagger-*`,
+   **+ `@types/node` declarado** (gaps 7, 11).
+4. **Nueva task:** upgrade de runtime (`engines`, `Dockerfile` base image) Node 20→22/24 — por EOL, no por TS; **+
+   añadir `Dockerfile` a la tabla de impact** (gap 6).
+5. Task 1.8 — actualizar baseline a **236 `.js` (208 src / 23 tests)**, `@typedef=0`, `process.env=20` (gap 10);
+   reencuadrar regla (c) del protocolo (design §5) sin `@typedef`.
 
-**Fases 1-3 — Conversión** (changes separados `server-ts-phase*`): sin cambios estructurales. **+** al abrir la Fase 1: decidir ampliar `include` del tsconfig a `tests/**` cuando los primeros tests pasen a `.ts` (gap 9). `docs/schemas.js` fuera de alcance confirmado.
+**Fases 1-3 — Conversión** (changes separados `server-ts-phase*`): sin cambios estructurales. **+** al abrir la Fase
+1: decidir ampliar `include` del tsconfig a `tests/**` cuando los primeros tests pasen a `.ts` (gap 9).
+`docs/schemas.js` fuera de alcance confirmado.
 
-**Fase 4 — Strict gradual**: orden **validado sin cambios** (§3.5). Mantener `strict: true` como consolidador final (absorbe `strictBuiltinIteratorReturn`).
+**Fase 4 — Strict gradual**: orden **validado sin cambios** (§3.5). Mantener `strict: true` como consolidador final
+(absorbe `strictBuiltinIteratorReturn`).
 
-**Gate previo a Fase 3**: resolver la decisión de §6.1 (usuario) → actualizar `design.md` (Non-Goals + tasks 4.1) en la Fase D.
+**Gate previo a Fase 3**: resolver la decisión de §6.1 (usuario) → actualizar `design.md` (Non-Goals + tasks 4.1) en
+la Fase D.
 
 ---
 
 ## 7. Cross-links
 
-- Investigación canónica previa: [`docs/learning/typescript-migration-server.md`](learning/typescript-migration-server.md)
-- Change afectado (pendiente de correcciones §4-§5): [`openspec/changes/server-typescript-migration/`](../openspec/changes/server-typescript-migration/README.md) — `proposal.md`, `design.md`, `tasks.md`, `specs/server-typescript-incremental-migration/spec.md`, `specs/config-correctness/spec.md`
+- Investigación canónica previa:
+  [`docs/learning/typescript-migration-server.md`](learning/typescript-migration-server.md)
+- Change afectado (pendiente de correcciones §4-§5):
+  [`openspec/changes/server-typescript-migration/`](../openspec/changes/server-typescript-migration/README.md) —
+  `proposal.md`, `design.md`, `tasks.md`, `specs/server-typescript-incremental-migration/spec.md`,
+  `specs/config-correctness/spec.md`
 - Estado CI/CD y métricas de progreso: [`docs/CONTEXT-CICD.md`](CONTEXT-CICD.md)
 - Glosario de tooling (incluye el glob real de lint-staged): [`docs/code-style.md`](code-style.md)
 - Strict flags doc absorbido: [`docs/learning/typescript-strict-check.md`](learning/typescript-strict-check.md)
@@ -295,4 +447,7 @@ Las Fases 0-2 **no se bloquean**: mientras exista al menos un `.js` en el grafo 
 - <https://nodejs.codeguides.io/typescript-node/typescript-to-node-pipeline/>
 - <https://jsmanifest.com/typescript-noemit-type-only-builds>
 
-> **Verificación local** (2026-10-14): conteos de archivos/LOC/imports/JSDoc/`process.env`, lectura de `package.json` (raíz y server), `tsconfig.json` (raíz y server), `eslint.config.js`, `knip.jsonc`, `.dependency-cruiser.cjs` (raíz y server), `vitest.config.js`, `.husky/*`, `.github/workflows/ci.yml` (L568, L1777), `Dockerfile`, `docs/code-style.md` y del change completo.
+> **Verificación local** (2026-10-14): conteos de archivos/LOC/imports/JSDoc/`process.env`, lectura de `package.json`
+> (raíz y server), `tsconfig.json` (raíz y server), `eslint.config.js`, `knip.jsonc`, `.dependency-cruiser.cjs` (raíz
+> y server), `vitest.config.js`, `.husky/*`, `.github/workflows/ci.yml` (L568, L1777), `Dockerfile`,
+> `docs/code-style.md` y del change completo.

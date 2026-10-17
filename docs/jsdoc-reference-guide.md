@@ -1,6 +1,8 @@
 # JSDoc Reference Guide
 
-> **⚠️ Temporal (migración TS total, 2026-10-14):** el JSDoc de `apps/server` es provisional — **muere por archivo convertido** a `.ts` (tipos TS en su lugar). Hoy `src/` solo usa `@param`/`@returns` (~2.586); `@typedef`/`@type` = 0. Fuente: `docs/server-typescript-migration-research.md`.
+> **⚠️ Temporal (migración TS total, 2026-10-14):** el JSDoc de `apps/server` es provisional — **muere por archivo
+> convertido** a `.ts` (tipos TS en su lugar). Hoy `src/` solo usa `@param`/`@returns` (~2.586); `@typedef`/`@type`
+> = 0. Fuente: `docs/server-typescript-migration-research.md`.
 >
 > **Team Reference for JSDoc Documentation Standards**
 >

@@ -177,6 +177,7 @@ Rellenar en CADA corrida con la métrica del step summary **Resolve TIA shadow m
 
 | fecha / run | % suite seleccionado (N/T) | inyectados (M) | coverage map | fallbacks D7 | duración unit-client | duración unit-server | integration scoped vs full |
 | ----------- | -------------------------- | -------------- | ------------ | ------------ | -------------------- | -------------------- | -------------------------- |
+| 2026-10-15  | 21/114 (18%)               | 0              | hit          | 0s           | 1.999s               | -                    | scope=full (excl. average) |
 | _pendiente_ |                            |                |              |              |                      |                      |                            |
 
 Columnas: `% seleccionado` = N/T del step summary (solo `scope=changed`; `scope=full` se etiqueta
@@ -184,6 +185,19 @@ aparte para excluirlo de los promedios) · `inyectados` = M distinguido de diff=
 `map=hit/miss` (task 7.3) · `fallbacks D7` = veces que `numTotalTests=0` forzó full-suite ·
 `duración` por job (tasks 1.2/1.4) · `integration scoped vs full` = evidencia para decidir si
 integration se queda scoped (task 6.3).
+
+**Decisión provisional sobre integration (task 6.3, 2026-10-16):** integration se queda
+**scoped** — step `Resolve TIA scope` + rama `test:integration:changed` en el job
+`test-integration` (task 6.1). Criterios de reversión documentados: se vuelve a **full** si
+cualquiera de estos se cumple durante la ventana de calibración:
+
+1. La duración del job con `scope=changed` ≥ ~70% de la duración del job full (el scoping no
+   ahorra tiempo real).
+2. El guard D7 (0 tests seleccionados ⇒ full suite) se dispara en >50% de las corridas (el diff
+   rara vez selecciona integración y el fallback full anula el ahorro).
+
+La confirmación final (mantener scoped / revertir a full) se toma al cerrar la ventana (task
+12.1 de `tia-hardening`), rellenando la columna `integration scoped vs full` con datos reales.
 
 **Reparto de propiedad (design D8, task 3.2):** quitar `continue-on-error: true` de los 6 jobs es
 responsabilidad de `ci-testing-gate-promotion` (su task 3.1); `tia-hardening` SOLO produce y

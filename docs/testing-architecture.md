@@ -459,6 +459,19 @@ CI cachea vía `setup-monorepo`). Está fuera de git (`.gitignore` ya lo cubre).
 Cuando `origin/main` no es resoluble localmente (rama sin fetch), `test:tia:audit` falla con un mensaje explícito que
 invita a `git fetch origin main` — nunca reporta una selección vacía en silencio.
 
+#### Cláusula e2e: herencia del contrato TIA (change `tia-hardening`, task 6.2)
+
+El job `e2e` de `ci.yml` sigue inactivo (`if: false`, cambio `ci-e2e`). La cláusula acordada (design D6): cuando
+`ci-e2e` levante ese `if: false`, el job **hereda el mismo patrón** implementado para `test-integration` (task 6.1) —
+
+- step `Resolve TIA scope (diff-scoped vs full suite)` con su propio `reports/tia-scope.txt` (rutas shared o base no
+  resolutable ⇒ `scope=full`),
+- rama `test:e2e:changed` con el filtro del tier y `--changed origin/main`,
+- guard D7 detrás: 0 tests seleccionados ⇒ suite completa ruidosa (`::warning::`), nunca un verde vacío.
+
+El tier `test-smoke` queda **fuera** a propósito: critical-path, se ejecuta completo siempre (full-suite por diseño,
+sin scoping TIA). Ver el comentario junto al job `e2e` en `.github/workflows/ci.yml`.
+
 ---
 
 ### 7.5.5 Caching
