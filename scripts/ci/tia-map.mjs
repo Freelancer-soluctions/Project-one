@@ -29,9 +29,12 @@
  *
  * SALIDA: SIEMPRE escribe `<ws>/reports/coverage-map.json` con JSON valido,
  * aunque los inputs falten (estado vacio aceptado):
- *   { "generatedAt": "<iso>", "workspace": "<ws>", "testFiles": [],
- *     "sources": [], "coverageSummary": null }
- * El step de ci.yml es `best-effort` y `upload-artifact` lleva
+ *   { "generatedAt": "<iso>", "workspace": "<ws>", "baseSha": "<sha|null>",
+ *     "testFiles": [], "sources": [], "coverageSummary": null }
+ * `baseSha` <- `git rev-parse HEAD` (best-effort: null si git falla o el
+ * repo no resuelve — el consumidor valida contra su propia base y cae a
+ * `map=miss`, task 7.3). El step de ci.yml es `best-effort` y
+ * `upload-artifact` lleva
  * `if-no-files-found: warn`: el artefacto debe existir siempre.
  *
  * EXIT 0 SIEMPRE: cualquier fallo interno -> `::warning::` + mapa vacio.
@@ -39,6 +42,7 @@
  * PORTABILIDAD (D11): solo `node` + `path`, sin shell, sin `$(...)`, sin
  * ramas por plataforma.
  */
+import { spawnSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 import { listTestFiles, resolveWorkspaceDir } from './tia-metric.mjs';
@@ -98,16 +102,44 @@ export function readCoverageSources(summaryPath, wsDir) {
   }
 }
 
+/** SHA del checkout para versionar el mapa (D5, task 7.2/7.3). Best-effort:
+ *  `git` ausente o repo sin HEAD -> null (nunca lanza, nunca sale != 0). */
+export function resolveBaseSha() {
+  try {
+    const run = spawnSync('git', ['rev-parse', 'HEAD'], {
+      encoding: 'utf8',
+    });
+    const sha = run && typeof run.stdout === 'string' ? run.stdout.trim() : '';
+    return /^[0-9a-f]{40}$/i.test(sha) ? sha : null;
+  } catch {
+    return null;
+  }
+}
+
 export function buildCoverageMap(report) {
-  const { workspace, generatedAt, testFiles, sources, coverageSummary } =
-    report;
-  return { generatedAt, workspace, testFiles, sources, coverageSummary };
+  const {
+    workspace,
+    generatedAt,
+    baseSha = null,
+    testFiles,
+    sources,
+    coverageSummary,
+  } = report;
+  return {
+    generatedAt,
+    workspace,
+    baseSha: baseSha ?? null,
+    testFiles,
+    sources,
+    coverageSummary,
+  };
 }
 
 function emptyMap(workspaceLabel) {
   return buildCoverageMap({
     workspace: workspaceLabel,
     generatedAt: new Date().toISOString(),
+    baseSha: resolveBaseSha(),
     testFiles: [],
     sources: [],
     coverageSummary: null,
@@ -141,6 +173,7 @@ function main() {
     const map = buildCoverageMap({
       workspace: workspaceArg,
       generatedAt: new Date().toISOString(),
+      baseSha: resolveBaseSha(),
       testFiles: listed || [],
       sources: readCoverageSources(summary, wsDir),
       coverageSummary: summary ? relativize(summary, wsDir) : null,

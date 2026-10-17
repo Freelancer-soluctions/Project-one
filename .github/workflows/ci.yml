@@ -596,6 +596,36 @@ jobs:
           echo "injected=$INJECTED" >> "$GITHUB_OUTPUT"
         shell: bash
 
+      # Consumo del coverage-map — task 7.3 (design D5). Best-effort y exit 0
+      # garantizado (guardas `|| true` en shell, sin `continue-on-error`):
+      # resuelve el run-id satisfactorio más reciente de
+      # `nightly-full-suite.yml` con `gh api`, lista el artefacto por prefijo
+      # `coverage-map-client-` (el nombre lleva el sha, task 7.2 — se resuelve
+      # exacto por API como en `flaky-weekly.yml`) y lo descarga con
+      # `gh run download`. Si el JSON es válido se deja en
+      # `reports/coverage-map.json` y se anuncia `map=hit`; ausente o
+      # corrupto → `map=miss` y D7 sigue detrás. El aviso `::notice::`
+      # alimenta la métrica shadow.
+      - name: Consume coverage-map (best-effort)
+        if: always()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          mkdir -p apps/client/reports .tmp/cm-client || true
+          MAP=miss
+          if RUN_ID=$(gh api "repos/${{ github.repository }}/actions/workflows/nightly-full-suite.yml/runs?status=success&per_page=1" --jq '.workflow_runs[0].id' 2>/dev/null || true) && [ -n "$RUN_ID" ] && [ "$RUN_ID" != "null" ]; then
+            ART=$(gh api "repos/${{ github.repository }}/actions/runs/${RUN_ID}/artifacts" --jq '.artifacts[] | select(.name | startswith("coverage-map-client-")) | .name' 2>/dev/null | head -n 1 || true)
+            if [ -n "$ART" ] && gh run download "$RUN_ID" -n "$ART" -D .tmp/cm-client >/dev/null 2>&1; then
+              CM_JSON=$(find .tmp/cm-client -name 'coverage-map.json' -print -quit 2>/dev/null || true)
+              if [ -n "$CM_JSON" ] && CM_JSON="$CM_JSON" node -e "try { JSON.parse(require('fs').readFileSync(process.env.CM_JSON, 'utf8')); } catch (e) { process.exit(1); }"; then
+                cp "$CM_JSON" apps/client/reports/coverage-map.json || true
+                MAP=hit
+              fi
+            fi
+          fi
+          echo "::notice::coverage-map: map=$MAP (client)."
+        shell: bash
+
       - name: Resolve TIA shadow metric
         if: always()
         run: node scripts/ci/tia-metric.mjs apps/client
@@ -614,15 +644,23 @@ jobs:
       # (task 7.3). Best-effort: en diff-scoped el mapa es el del nightly; este
       # step siempre escribe un coverage-map.json válido (aunque pueda ser vacío
       # si no hubo cobertura en la corrida) para que el artefacto exista.
+      # La publicación del artefacto se limita a scope=full (task 7.2: "solo
+      # scope=full y nocturno") — el scope resuelto se expone como output del
+      # step leyendo reports/tia-scope.txt (mismo fichero que consume la
+      # métrica shadow y `Enforce coverage thresholds`).
       - name: Build coverage-map (best-effort)
+        id: coverage-map
         if: always()
-        run: node scripts/ci/tia-map.mjs apps/client --build
+        run: |
+          node scripts/ci/tia-map.mjs apps/client --build || true
+          SCOPE=$(tr -d '[:space:]' < apps/client/reports/tia-scope.txt 2>/dev/null || true)
+          echo "scope=${SCOPE}" >> "$GITHUB_OUTPUT"
         shell: bash
 
       - uses: actions/upload-artifact@v7
-        if: always()
+        if: always() && steps.coverage-map.outputs.scope == 'full'
         with:
-          name: coverage-map-client
+          name: coverage-map-client-${{ github.sha }}
           path: apps/client/reports/coverage-map.json
           retention-days: 30
           if-no-files-found: warn
@@ -672,8 +710,6 @@ jobs:
         run: |
           mkdir -p apps/client/reports
           node scripts/ci/tia-history.mjs apps/client --record --out apps/client/reports/tia-history.json || true
-          mkdir -p apps/server/reports
-          node scripts/ci/tia-history.mjs apps/server --record --out apps/server/reports/tia-history.json || true
         shell: bash
 
       - uses: actions/upload-artifact@v7
@@ -681,14 +717,6 @@ jobs:
         with:
           name: tia-history-client
           path: apps/client/reports/tia-history.json
-          retention-days: 30
-          if-no-files-found: warn
-
-      - uses: actions/upload-artifact@v7
-        if: always()
-        with:
-          name: tia-history-server
-          path: apps/server/reports/tia-history.json
           retention-days: 30
           if-no-files-found: warn
 
@@ -854,6 +882,30 @@ jobs:
           echo "injected=$INJECTED" >> "$GITHUB_OUTPUT"
         shell: bash
 
+      # Consumo del coverage-map — task 7.3 (design D5). Espejo del job
+      # client: mismo contrato best-effort (exit 0 garantizado, sin
+      # `continue-on-error`), artefacto `coverage-map-server-*` del nightly,
+      # `map=hit` solo con JSON válido en `reports/coverage-map.json`.
+      - name: Consume coverage-map (best-effort)
+        if: always()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          mkdir -p apps/server/reports .tmp/cm-server || true
+          MAP=miss
+          if RUN_ID=$(gh api "repos/${{ github.repository }}/actions/workflows/nightly-full-suite.yml/runs?status=success&per_page=1" --jq '.workflow_runs[0].id' 2>/dev/null || true) && [ -n "$RUN_ID" ] && [ "$RUN_ID" != "null" ]; then
+            ART=$(gh api "repos/${{ github.repository }}/actions/runs/${RUN_ID}/artifacts" --jq '.artifacts[] | select(.name | startswith("coverage-map-server-")) | .name' 2>/dev/null | head -n 1 || true)
+            if [ -n "$ART" ] && gh run download "$RUN_ID" -n "$ART" -D .tmp/cm-server >/dev/null 2>&1; then
+              CM_JSON=$(find .tmp/cm-server -name 'coverage-map.json' -print -quit 2>/dev/null || true)
+              if [ -n "$CM_JSON" ] && CM_JSON="$CM_JSON" node -e "try { JSON.parse(require('fs').readFileSync(process.env.CM_JSON, 'utf8')); } catch (e) { process.exit(1); }"; then
+                cp "$CM_JSON" apps/server/reports/coverage-map.json || true
+                MAP=hit
+              fi
+            fi
+          fi
+          echo "::notice::coverage-map: map=$MAP (server)."
+        shell: bash
+
       - name: Resolve TIA shadow metric
         if: always()
         run: node scripts/ci/tia-metric.mjs apps/server
@@ -866,6 +918,32 @@ jobs:
         if: always()
         run: node scripts/ci/ttff-metric.mjs apps/server || true
         shell: bash
+
+      # Coverage-map build — task 7.1/7.2 (design D5). Espejo del job client:
+      # el mapa se publica versionado por base-sha
+      # (`coverage-map-server-<sha>`, el sha interno lo escribe `tia-map.mjs`,
+      # task 7.1) para que los PRs scoped lo consuman (task 7.3).
+      # Best-effort: este step siempre escribe un coverage-map.json válido
+      # (aunque pueda ser vacío si no hubo cobertura en la corrida).
+      # La publicación del artefacto se limita a scope=full (task 7.2: "solo
+      # scope=full y nocturno") — el scope resuelto se expone como output del
+      # step leyendo reports/tia-scope.txt.
+      - name: Build coverage-map (best-effort)
+        id: coverage-map
+        if: always()
+        run: |
+          node scripts/ci/tia-map.mjs apps/server --build || true
+          SCOPE=$(tr -d '[:space:]' < apps/server/reports/tia-scope.txt 2>/dev/null || true)
+          echo "scope=${SCOPE}" >> "$GITHUB_OUTPUT"
+        shell: bash
+
+      - uses: actions/upload-artifact@v7
+        if: always() && steps.coverage-map.outputs.scope == 'full'
+        with:
+          name: coverage-map-server-${{ github.sha }}
+          path: apps/server/reports/coverage-map.json
+          retention-days: 30
+          if-no-files-found: warn
 
       # Artefacto de cobertura del shard — change `coverage-merge-gate` (gap b). Mismo
       # contrato que el de client: índice de shard literal con N=1 (inmutabilidad de
@@ -902,19 +980,9 @@ jobs:
       - name: Record TIA history
         if: always()
         run: |
-          mkdir -p apps/client/reports
-          node scripts/ci/tia-history.mjs apps/client --record --out apps/client/reports/tia-history.json || true
           mkdir -p apps/server/reports
           node scripts/ci/tia-history.mjs apps/server --record --out apps/server/reports/tia-history.json || true
         shell: bash
-
-      - uses: actions/upload-artifact@v7
-        if: always()
-        with:
-          name: tia-history-client
-          path: apps/client/reports/tia-history.json
-          retention-days: 30
-          if-no-files-found: warn
 
       - uses: actions/upload-artifact@v7
         if: always()
@@ -2022,13 +2090,68 @@ jobs:
           DATABASE_URL: postgresql://test:test@localhost:5432/project_one_test
         shell: bash
         working-directory: apps/server
+      # TIA — spec ci-test-impact-analysis (design D6, task 6.1 de `tia-hardening`):
+      # el contrato de selección se extiende a integration con el MISMO patrón de los
+      # jobs unit (diff contra origin/main + filtro del tier + guard D7). Este job NO
+      # es advisory (sin continue-on-error), así que el step de scope es informativo y
+      # la ejecución de tests es condicional: `scope=changed` corre solo la integración
+      # del diff; `scope=full` la suite completa. Cualquier duda (rutas shared, base no
+      # resoluble, diff vacío, 0 candidatos del filtro `.integration.test`) degrada a
+      # suite completa ruidosa — nunca "0 tests" en silencio.
+      # Verificación runtime PENDING-CI: requiere el service container PostgreSQL.
+      - name: Resolve TIA scope (diff-scoped vs full suite)
+        id: tia
+        run: |
+          if [ "${{ needs.repo-discovery.outputs.shared }}" = "true" ]; then
+            echo "scope=full" >> "$GITHUB_OUTPUT"
+            echo "::notice::shared path changed (root manifest, lockfile or workflows) — running the FULL integration suite."
+          elif ! git rev-parse --verify --quiet origin/main > /dev/null; then
+            echo "scope=full" >> "$GITHUB_OUTPUT"
+            echo "::warning::origin/main is NOT resolvable in this checkout; falling back to the FULL integration suite (never reporting '0 affected tests')."
+          elif [ -z "$(git diff --name-only origin/main...HEAD)" ]; then
+            echo "scope=full" >> "$GITHUB_OUTPUT"
+            echo "::notice::empty diff against origin/main — running the FULL integration suite."
+          else
+            CANDIDATES=$(cd apps/server && npx vitest list ".integration.test" --changed origin/main --filesOnly 2> /dev/null | wc -l | tr -d '[:space:]' || true)
+            case "${CANDIDATES}" in
+              ''|*[!0-9]*) CANDIDATES=0 ;;
+            esac
+            if [ "${CANDIDATES}" -gt 0 ]; then
+              echo "scope=changed" >> "$GITHUB_OUTPUT"
+              echo "::notice::origin/main resolved — ${CANDIDATES} integration test file(s) affected; running the diff-scoped integration suite."
+            else
+              echo "scope=full" >> "$GITHUB_OUTPUT"
+              echo "::warning::the diff touches no integration test file; running the FULL integration suite (never reporting '0 affected tests')."
+            fi
+          fi
+        shell: bash
       # Seeding is handled by vitest globalSetup (tests/setupGlobal.js)
       # which loads .env.test and spawns prisma/seed.js before tests run.
-      - name: Run Integration Tests
+      - name: Run Integration Tests (TIA / full suite)
         # `--reporter=default` explicito: sin el, el unico reporter activo es `junit`, que SILENCIA
         # la salida de fallos y deja solo un `exit code 1` sin diagnostico en el log del step
         # (coste real de diagnosticar el fallo de `test-smoke`: 4 runs de leitura de logs).
-        run: npm run test:integration --workspace=apps/server -- --reporter=default --reporter=junit --outputFile=reports/junit.xml
+        # Las ramas TIA (changed + fallback D7) añaden `--reporter=json` para que el guard
+        # D7 lea numTotalTests de reports/vitest-results.json; la rama full conserva el
+        # argv original byte a byte (task 6.1, `tia-hardening`).
+        run: |
+          mkdir -p apps/server/reports
+          echo "scope=${{ steps.tia.outputs.scope }}" > apps/server/reports/tia-scope.txt
+          if [ "${{ steps.tia.outputs.scope }}" = "changed" ]; then
+            npm run test:integration:changed --workspace=apps/server -- --reporter=default --reporter=junit --reporter=json --outputFile.junit=reports/junit.xml --outputFile.json=reports/vitest-results.json
+            # Guard D7: un diff valido puede no tener NINGUN test de integracion relacionado, y
+            # con passWithNoTests (default en Vitest 4) eso sale "No test files found" con exit
+            # 0 — un verde VACIO que el agregador contaria como tests ejecutados. Si la corrida
+            # no ejecuto ningun test, se cae a suite completa en vez de fingir cobertura.
+            RAN=$(node -p "require('./apps/server/reports/vitest-results.json').numTotalTests" 2> /dev/null || echo 0)
+            if [ "${RAN:-0}" -eq 0 ]; then
+              echo "::warning::TIA matched 0 integration tests for this diff (numTotalTests=${RAN:-0}); running the FULL integration suite instead of reporting a vacuous green."
+              echo "scope=full" > apps/server/reports/tia-scope.txt
+              npm run test:integration --workspace=apps/server -- --reporter=default --reporter=junit --reporter=json --outputFile.junit=reports/junit.xml --outputFile.json=reports/vitest-results.json
+            fi
+          else
+            npm run test:integration --workspace=apps/server -- --reporter=default --reporter=junit --outputFile=reports/junit.xml
+          fi
         env:
           DATABASE_URL: postgresql://test:test@localhost:5432/project_one_test
           NODE_ENV: test
@@ -2093,6 +2216,12 @@ jobs:
           path: apps/server/reports/junit.xml
           reporter: java-junit
 
+  # TIA clause (change `tia-hardening`, task 6.2 — design D6): cuando `ci-e2e` levante
+  # este `if: false`, el job hereda el patrón implementado en task 6.1 para
+  # `test-integration`: step `Resolve TIA scope` (diff-scoped vs full) con su propio
+  # `reports/tia-scope.txt`, rama `test:e2e:changed` (filtro del tier + `--changed
+  # origin/main`) y guard D7 detrás (0 tests seleccionados => suite completa ruidosa,
+  # nunca un verde vacío). Mientras el `if: false` permanezca, el tier e2e NO se toca.
   e2e:
     if: false # Disabled for incremental CI — change to true to re-enable
     name: 'Tests: E2E'

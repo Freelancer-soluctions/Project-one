@@ -79,7 +79,9 @@
     "depcruise:baseline": "depcruise-baseline apps/client/src apps/server/src e2e/tests --config .dependency-cruiser.cjs",
     "type-check": "tsc --noEmit -p apps/server",
     "docs:lint": "markdownlint \"docs/**/*.md\" \"docs/*.md\"",
-    "docs:vale": "vale --config .vale.ini --minAlertLevel=error docs/"
+    "docs:vale": "vale --config .vale.ini --minAlertLevel=error docs/",
+    "test:tia": "npm run test:tia --workspace=apps/client && npm run test:tia --workspace=apps/server",
+    "test:tia:audit": "npm run test:tia:audit --workspace=apps/client && npm run test:tia:audit --workspace=apps/server"
   },
   "devDependencies": {
     "@changesets/changelog-github": "^1.0.1",

@@ -269,15 +269,20 @@ camino, y si un paso degrada el feedback loop basta con quitar su línea (la sel
 Evidencia local recogida al implementar (la evidencia de runs de CI queda como
 pending-CI en `tasks.md`):
 
-| Task | Evidencia                                                                       | Resultado                                                                                                     |
-| ---- | ------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
-| 1.4  | Duración de `node scripts/ci/tia-metric.mjs apps/client --format=md` (cwd raíz) | **EVIDENCIA NO REPRODUCIBLE — artefacto ausente** (la ejecución citada nunca pudo ocurrir; ver nota inferior) |
+| Task | Evidencia                                                                                                      | Resultado                                                                                                                                                                                                                                |
+| ---- | -------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1.4  | Duración de `node scripts/ci/tia-metric.mjs <ws> --format=md` (cwd raíz, 2026-10-15, 2 corridas por workspace) | **MEDIDO 2026-10-15:** `apps/client` 2768 ms y 2128 ms (N=114/T=114 ficheros, 196 tests) · `apps/server` 1323 ms y 1336 ms (N=24/T=24, 225 tests) — ambos < umbral ~5 s → se mantiene `vitest list` (sin sustituir por diff ya resuelto) |
 
 > **Nota — auditoría de integridad (2026-10-11):** la fila 1.4 fue invalidada por la
 > auditoría de integridad de 2026-10-11 (ver `tasks.md` § Auditoría de integridad): el artefacto
 > `scripts/ci/tia-metric.mjs` no existe en el filesystem ni en ningún ref de git, de modo que la
 > medición citada nunca pudo ejecutarse. La duración se re-ejecutará y se registrará de nuevo
 > cuando `tia-metric.mjs` exista realmente.
+>
+> **Addendum 2026-10-15 (post-fix):** `tia-metric.mjs` ya existe (batch 1-2); medición
+> re-ejecutada y registrada en la fila 1.4 (client 2768/2128 ms, server 1323/1336 ms,
+> 2 corridas cada uno, ambos < ~5 s → sin nota de sustitución; N==T porque el working tree
+> contiene el diff amplio de la migración TS en vuelo).
 
 ## Open Questions
 
