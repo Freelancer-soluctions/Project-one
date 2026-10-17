@@ -1,12 +1,21 @@
 {
   // Typecheck del server (change `quality-gates`; base de `typescript-strict-check`
-  // §1.2). Extiende la raíz; `allowJs` + `checkJs: false` = valida compilación y
+  // §1.2). Extiende la
+  // `typescript-strict-check` §1.2). `allowJs` + `checkJs: false` = valida compilación y
   // resolución de imports del código JS actual sin exigir tipos. Cuando
   // `server-typescript-migration` convierta archivos a .ts y
   // `typescript-strict-check` active flags, este archivo es el punto de evolución.
   "extends": "../../tsconfig.json",
   "compilerOptions": {
-    "incremental": true
+    "incremental": true,
+    "allowJs": true,
+    "checkJs": false,
+    "allowImportingTsExtensions": true,
+    "noEmit": true,
+    "incremental": true,
+    "skipLibCheck": true,
+    "resolveJsonModule": true,
+    "esModuleInterop": true
   },
   "include": ["src/**/*", "tests/**/*"],
   "exclude": ["node_modules"]

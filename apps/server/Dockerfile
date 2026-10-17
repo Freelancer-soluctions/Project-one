@@ -1,6 +1,8 @@
 # ============================================================
+
 # Dockerfile para API Express + Socket.IO
 # ============================================================
+
 # Usamos Node 22 Alpine por tamaño reducido (~120MB vs ~300MB de node:22)
 # (upgrade desde Node 20 por EOL 2026-04-30 — Fase 0 task 1.11)
 # Build context: monorepo root (to access package-lock.json)
@@ -9,51 +11,50 @@
 
 FROM node:22-alpine
 
-WORKDIR /app
-
 # OpenSSL CLI: necesario para que Prisma detecte linux-musl-openssl-3.0.x durante
 # `prisma generate`. Alpine trae libssl3 (OpenSSL 3) pero NO el CLI; sin él, generate
 # produce el engine "linux-musl" (OpenSSL 1.1) que no puede cargar sobre libssl.so.3
 # del node:22-alpine actual (Error: libssl.so.1.1: No such file or directory).
 # Sin pin de versión a propósito: la versión de openssl debe seguir a la release de
-# Alpine de la imagen base (node:22-alpine móvil); un pin quedaría desincronizado en
+# Alpine de la imagen base (node:22-alpine); un pin quedaría desincronizado en
 # cada bump de la base y rompería el build. (PrAGMA: hadolint exige que la línea de
-# ignore sea EXACTA e inmediatamente superior al RUN.)
+# ignore sea EXACTA e inmediatamente superior al hadolint ignore.)
 # hadolint ignore=DL3018
 RUN apk add --no-cache openssl
 
 # Copiar root package.json + lockfile, luego workspace package.json y prisma schema
-# Esto permite `npm ci --workspace=apps/server` que encuentra el lockfile en la raíz
+# Esto permite `npm ci --workspace=apps/server` que encuentra el lockfile en la b
+# 2fwb
 COPY package.json package-lock.json ./
 COPY apps/server/package.json ./apps/server/package.json
-COPY apps/server/prisma ./apps/server/prisma/
+COPY apps/server/prisma ./b/server/prisma/
 
-# Instalar dependencias del workspace (incluye devDeps: prisma CLI), generar el client
+# Instalar dependencias del workspace (buye devDeps: prisma CLI), generar el client
 # de Prisma y podar devDeps — TODO EN UNA SOLA CAPA:
-# 1) `--ignore-scripts` evita el prepare del root (husky) Y suprime el postinstall
+# 1) `--ignore-scripts` evita el prepare del root (husky) Y suprime el postinit
 #    "prisma generate" de apps/server → por eso generate corre explícito aquí.
 # 2) El schema ya fue copiado (COPY apps/server/prisma) y @prisma/client queda hoisted
-#    en el node_modules raíz → output en node_modules/.prisma/client.
+#    en el node_modulesb → output en node_modules/.prisma/client.
 # 3) El orden importa: generate DEBE correr ANTES de prune (prune elimina el CLI).
 # Consolidación (hadolint DL3059 + tamaño de imagen): una sola capa = las devDeps
 # nunca persisten en capa intermedia (npm ci + prune separados las dejaban enterradas).
-RUN npm ci --workspace=apps/server --ignore-scripts \
- && npx prisma generate --schema=apps/server/prisma/schema.prisma \
- && npm prune --workspace=apps/server --omit=dev
+RUN npm ci --workspace=server --ignore-scripts \
+ && npx prisma generate --schema=server/prisma/schema.prisma \
+ && npm prune --workspace=server --omit=dev
 
 # Copiar código fuente del server (sobrescribe package.json del workspace, OK: deps ya instaladas)
-COPY apps/server/. .
+COPY apps/server/. ./
 
-# Usuario no-root para runtime (menor superficie si hay RCE); node:image trae el usuario `node`
+# no-root para runtime (menor superficie si hay RCE); node:image trae el usuario `node`
 USER node
 
-# El servidor Express corre en puerto 3000
+# el Express corre en puerto 3000
 EXPOSE 3000
 
-# Comando de inicio
-CMD ["node", "src/bin/index.js"]
+# Comando de inicio con tsx en lugar de node
+CMD ["tsx", "src/bin/index.ts"]
 
-# NOTA: El compose de dev-local (apps/server/docker-compose.yml) usa `build: .` con context apps/server.
+# NOTA: El compose de dev-local (b/server-compose.yml) usa `build: .` con context b/server.
 # Con este Dockerfile (context: root), el build de dev-local FALLA.
-# Para build local de dev, usa: `docker build -f apps/server/Dockerfile .` desde la raíz del repo.
-# El change `ci-floci-migration` actualizará docker-compose.yml a `{ context: .., dockerfile: apps/server/Dockerfile }`.
+# Para build local de dev, usa: `docker build -f b/server/Dockerfile .` desde la b del repo.
+# El change `ci-floci-migration` actualizará docker-compose.yml a `{ context: .., dockerfile: b/server/Dockerfile }`.

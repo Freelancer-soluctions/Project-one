@@ -26,7 +26,7 @@ export default mergeConfig(
       // Vitest, con o sin `--coverage`. Como `test-unit-server` es FASE 1 advisory
       // (`continue-on-error: true`), ese fallo quedaba invisible en CI: el job
       // salía rojo y nadie lo leía, y la suite server no llegaba a correr.
-      globalSetup: ['./tests/setupGlobal.js'],
+      globalSetup: ['./tests/setupGlobal.ts'],
       // CI corre serializado (`maxWorkers: 1`) y con `retry: 2`.
       //
       // `isolate: false` se elimino a proposito (2026-10-03). Con el registro de modulos
@@ -97,7 +97,7 @@ export default mergeConfig(
           },
         },
       },
-      setupFiles: ['./tests/setupTest.js'],
+      setupFiles: ['./tests/setupTest.ts'],
       include: [
         'src/**/*.unit.test.{js,ts}',
         'tests/**/*.unit.test.{js,ts}',
