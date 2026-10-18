@@ -35,7 +35,7 @@
 - [x] 4.4 Script `dev`: nodemon → `tsx watch src/bin/index.ts`
 - [x] 4.5 `ecosystem.config.js`: `script` → `tsx src/bin/index.ts`
 - [x] 4.6 `Dockerfile`: `CMD ["node","src/bin/index.js"]` → `CMD ["tsx","src/bin/index.ts"]`
-- [ ] 4.7 **Gates sub-lote app/bin + smoke de arranque** (`node`/`tsx` up, health endpoint responde)
+- [x] 4.7 **Gates sub-lote app/bin + smoke de arranque** (`node`/`tsx` up, health endpoint responde) **VERIFICADO REAL (2026-10-15):** `npx tsx src/bin/index.ts` → listening :3000 + docs API montados + exit 0; adicionalmente PM2 cluster (4 workers online) sirvió tráfico (docs 301). 4.5 nota: la solución PM2+tsx en cluster quedó materializada como `ecosystem.config.json` (data pura) con `script: src/bin/index.ts` + `node_args: --import tsx` — cluster real verificado (fork no necesario).
 
 ## 5. Cierre y registro
 

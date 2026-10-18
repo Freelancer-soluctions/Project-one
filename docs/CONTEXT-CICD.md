@@ -1293,9 +1293,16 @@ cubre en el job `test-integration` de `ci.yml`, que sí levanta el service conta
 > **ya está activo y bloqueante** desde el change `quality-gates` (2026-09-26, ver §1 — la frase "hoy `if: false`" ya no
 > aplica). Investigación canónica: `docs/learning/typescript-migration-server.md`; fuente vigente (2026-10-14):
 > `docs/server-typescript-migration-research.md`. Estado detallado: `openspec/changes/server-typescript-migration/`.
-> **Contador de progreso de conversión: `228/236 .ts` en `apps/server` (Fase 3 — src en 0 .js, 2026-10-16).**
-> Restan 8 archivos no-`.ts` de Fase configs (`vitest.config.js`, `vitest.smoke.config.js`, `ecosystem.config.js`, `prisma/seed.js`, `scripts/preview-smoke.mjs`,
-> `test-sanitize.js`, `test-sanitize.mjs`, `.dependency-cruiser.cjs`). Los 236 corresponden al baseline. `tests/` = **20/20 `.ts`** (0 `.js`).
+> **Contador de progreso de conversión: `235/236` convertidos — MIGRACIÓN TOTAL CUMPLIDA (Fase configs, 2026-10-18).**
+> Estado final: `apps/server` con **0 archivos `.js`/`.cjs`/`.mjs` ejecutables** — única excepción documentada: `.dependency-cruiser.cjs`
+> (dependency-cruiser 18.2 no soporta config `.ts`, task 5.6). Los 9 de Fase configs → 5 convertidos a `.ts` (`vitest.config.ts`,
+> `vitest.smoke.config.ts`, `vitest.scoped.config.ts` [añadido post-baseline TIA], `prisma/seed.ts`, `scripts/preview-smoke.ts`),
+> 1 a JSON (`ecosystem.config.json` — PM2 no parsea `.ts`; cluster real verificado con `node_args: --import tsx`, 4 workers),
+> 2 eliminados (`test-sanitize.js/.mjs` — huérfanos rotos), 1 excepción. `tests/` = 20/20 `.ts`.
+> Gates de cierre: type-check ✓ · lint ✓ · depcruise 0 errores (7 warnings baseline) · test:unit 175/175 ✓ · test:smoke 16 ✓ ·
+> seed `tsx` exit 0 ✓ · arranque PM2 cluster+tsx real ✓.
+> Deuda registrada: integration tests `events-*` cuelgan bajo entorno vitest local (query idéntica responde en 53 ms fuera de
+> vitest — diagnóstico 2026-10-18; CI es el gate de integration, design F2 §6).
 > Convertidos: `config/{dotenv,cors,db}.ts`,
 > `config/aws/{secret-manager.client,secrets}.ts`, `common/crypto/{hashValue,index}.ts`, `logger/{dev,uat,production,index}.ts`,
 > `utils/constants/enums.ts`, `utils/joiSchemas/joi.ts` y 23 schemas de módulos (`*.joi.ts` + `events/schemas/event-rsvp.ts`), `settings/`,

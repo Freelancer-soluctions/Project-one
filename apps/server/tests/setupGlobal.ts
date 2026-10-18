@@ -45,11 +45,15 @@ export default async function globalSetup() {
 
   console.log('🌱 [globalSetup] Seeding test database...');
 
-  const result = spawnSync('node', ['prisma/seed.js'], {
-    stdio: 'inherit',
-    cwd: path.join(__dirname, '..'),
-    env: { ...process.env, NODE_ENV: 'test' },
-  });
+  const result = spawnSync(
+    process.execPath,
+    ['--import', 'tsx', 'prisma/seed.ts'],
+    {
+      stdio: 'inherit',
+      cwd: path.join(__dirname, '..'),
+      env: { ...process.env, NODE_ENV: 'test' },
+    }
+  );
 
   if (result.status !== 0) {
     console.warn(

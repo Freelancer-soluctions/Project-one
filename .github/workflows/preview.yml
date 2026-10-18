@@ -134,7 +134,7 @@ jobs:
           AWS_SECRET_ACCESS_KEY=test \
           AWS_REGION=us-east-1 \
           SERVER_BASE_URL=http://localhost:3000 \
-          node apps/server/scripts/preview-smoke.mjs
+          npx tsx apps/server/scripts/preview-smoke.ts
         env:
           AWS_ENDPOINT_URL: http://localhost:4566
           AWS_ACCESS_KEY_ID: test

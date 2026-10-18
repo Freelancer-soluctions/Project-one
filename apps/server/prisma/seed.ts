@@ -1,4 +1,3 @@
-/* eslint-disable no-unused-vars */
 import { prisma } from '../src/config/db.js';
 import { encryptPassword } from '../src/utils/bcrypt/encrypt.js';
 
@@ -16,17 +15,6 @@ const roles = [
     description: 'manager',
   },
 ];
-
-const rolePermissionsMap = {
-  2: [1, 23, 37, 39, 40, 47, 78, 79], // user + RSVP self-service (canRegisterForEvent, canCancelRegistration)
-  3: [
-    1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21,
-    22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40,
-    41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59,
-    60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78,
-    79, 80, 81, 82,
-  ], // MANAGER (all permissions up to 82)
-};
 
 const permissions = [
   { code: 'canViewNews', description: 'Puede ver noticias' },
@@ -284,26 +272,6 @@ const user = {
   zipcode: '987654321',
 };
 
-const user1 = {
-  name: 'user1',
-  email: 'user@gmail.com',
-  password: '123456',
-  address: 'Robert Robertson, 1234 NW Bobcat Lane, St. Robert, MO 65584-5678',
-  birthday: new Date('1990-09-26T07:58:30.996+0200'),
-  city: 'Vegas',
-  isAdmin: false,
-  picture: 'abcd',
-  document: 'Not document',
-  lastUpdatedBy: 1,
-  lastUpdatedOn: new Date('2024-01-07T07:58:30.996+0200'),
-  roleId: 2,
-  socialSecurity: '123456789',
-  startDate: new Date('2024-01-07T07:58:30.996+0200'),
-  state: 'Texas',
-  statusId: 1,
-  telephone: '300456322445565',
-  zipcode: '987654321',
-};
 const user2 = {
   name: 'user2',
   email: 'user2@gmail.com',
@@ -324,19 +292,6 @@ const user2 = {
   telephone: '300456322445565',
   zipcode: '987654321',
 };
-const news = [
-  {
-    closedOn: null,
-    createdOn: '2024-08-05T00:19:58.867Z',
-    description: 'test1',
-    document: null,
-    documentId: null,
-    statusId: 1,
-    closedBy: 1,
-    createdBy: 1,
-  },
-];
-
 const hashtags = [
   { name: 'General', createdBy: 1, createdOn: new Date() },
   { name: 'Ideas', createdBy: 1, createdOn: new Date() },
@@ -369,14 +324,6 @@ const seedUser = async (u) => {
   });
 };
 
-const create = async (tableName, createObject) => {
-  createObject.password = await encryptPassword(createObject.password);
-  const createdItem = await prisma[tableName].create({
-    data: createObject,
-  });
-  return Promise.resolve(createdItem);
-};
-
 async function main() {
   await createVarious('roles', roles);
   await createVarious('userStatus', userStatus);
@@ -399,8 +346,6 @@ async function main() {
   await createVarious('hashtags', hashtags);
   await createVarious('newsStatus', newStatus);
   await createVarious('productStatus', productStatus);
-
-  // No necesarios por ahora
 
   // await createVarious('news', news)
   // await createVarious('productProviders', productProviders)

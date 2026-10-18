@@ -10,7 +10,7 @@
     "npm": ">=10.0.0"
   },
   "prisma": {
-    "seed": "node prisma/seed.js"
+    "seed": "tsx prisma/seed.ts"
   },
   "scripts": {
     "dev": "tsx watch src/bin/index.ts",
@@ -30,17 +30,17 @@
     "test:coverage:unit": "vitest run \".unit.test\" --coverage",
     "test:coverage:unit:ci": "vitest run \".unit.test\" --coverage --reporter=default --reporter=junit --reporter=json --reporter=../../scripts/ci/vitest-flaky-reporter.mjs --outputFile.junit=reports/junit.xml --outputFile.json=reports/vitest-results.json --reporter=blob",
     "test:coverage:ci": "vitest run --coverage --reporter=default --reporter=junit --reporter=json --reporter=../../scripts/ci/vitest-flaky-reporter.mjs --outputFile.junit=reports/junit.xml --outputFile.json=reports/vitest-results.json --reporter=blob",
-    "test:changed:ci": "node ../../scripts/ci/tia-select.mjs apps/server -- vitest run \".unit.test\" --coverage --coverage.changed=origin/main --config vitest.scoped.config.js --reporter=default --reporter=junit --reporter=json --reporter=../../scripts/ci/vitest-flaky-reporter.mjs --outputFile.junit=reports/junit.xml --outputFile.json=reports/vitest-results.json --reporter=blob",
-    "test:smoke": "vitest run --config vitest.smoke.config.js",
-    "test:smoke:ci": "vitest run --config vitest.smoke.config.js --reporter=junit",
-    "test:regression": "vitest run --config vitest.config.js",
+    "test:changed:ci": "node ../../scripts/ci/tia-select.mjs apps/server -- vitest run \".unit.test\" --coverage --coverage.changed=origin/main --config vitest.scoped.config.ts --reporter=default --reporter=junit --reporter=json --reporter=../../scripts/ci/vitest-flaky-reporter.mjs --outputFile.junit=reports/junit.xml --outputFile.json=reports/vitest-results.json --reporter=blob",
+    "test:smoke": "vitest run --config vitest.smoke.config.ts",
+    "test:smoke:ci": "vitest run --config vitest.smoke.config.ts --reporter=junit",
+    "test:regression": "vitest run --config vitest.config.ts",
     "test:pbt": "vitest run \".properties.unit.test\"",
     "type-check": "tsc --noEmit",
     "format": "prettier --write \"**/*.{js,ts,json,md}\"",
     "format:check": "prettier --check \"**/*.{js,ts,json,md}\"",
     "lint": "eslint \"**/*.{js,ts}\" --max-warnings 0",
     "lint:fix": "eslint \"**/*.{js,ts}\" --fix",
-    "test:tia": "node ../../scripts/ci/tia-select.mjs apps/server -- vitest run \".unit.test\" --coverage --coverage.changed=origin/main --changed origin/main --config vitest.scoped.config.js",
+    "test:tia": "node ../../scripts/ci/tia-select.mjs apps/server -- vitest run \".unit.test\" --coverage --coverage.changed=origin/main --changed origin/main --config vitest.scoped.config.ts",
     "test:tia:audit": "vitest list \".unit.test\" --changed origin/main --filesOnly"
   },
   "author": "Johan Garcia",

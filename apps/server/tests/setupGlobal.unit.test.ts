@@ -74,8 +74,8 @@ describe('globalSetup', () => {
 
     expect(spawnSync).toHaveBeenCalledTimes(1);
     expect(spawnSync).toHaveBeenCalledWith(
-      'node',
-      ['prisma/seed.js'],
+      process.execPath,
+      ['--import', 'tsx', 'prisma/seed.ts'],
       expect.objectContaining({
         stdio: 'inherit',
         cwd: expect.stringContaining('server'),

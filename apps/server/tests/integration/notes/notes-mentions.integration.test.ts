@@ -154,7 +154,7 @@ describe('Notes Mentions - API Route Structure', () => {
     const __dirname = path.dirname(__filename);
     const routesPath = path.resolve(
       __dirname,
-      '../../../src/modules/notes/routes.js'
+      '../../../src/modules/notes/routes.ts'
     );
 
     expect(fs.existsSync(routesPath)).toBe(true);
