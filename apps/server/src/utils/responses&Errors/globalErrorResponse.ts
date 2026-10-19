@@ -1,6 +1,12 @@
+import type { Response } from 'express';
 import logger from '../../logger/index.js';
 
-const globalErrorResponse = (res, statusCode = 500, code, message) => {
+const globalErrorResponse = (
+  res: Response,
+  statusCode: number = 500,
+  code: string,
+  message: string
+) => {
   const safeCode = code || 'INTERNAL_ERROR';
   const safeMessage = message || 'An unexpected error occurred';
   logger.error({ message: safeMessage, code: safeCode, statusCode });

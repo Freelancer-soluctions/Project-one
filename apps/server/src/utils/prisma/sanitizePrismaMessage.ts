@@ -48,11 +48,17 @@ const DEFAULT_SAFE = 'An unexpected database error occurred.';
  * @param {boolean} [includeOriginal=false] - Append original Prisma message
  * @returns {string} Sanitized message
  */
-export const sanitizePrismaMessage = (err, includeOriginal = false) => {
+export const sanitizePrismaMessage = (
+  err: unknown,
+  includeOriginal = false
+) => {
   if (!err || typeof err !== 'object') return DEFAULT_SAFE;
-  const safeMessage = SAFE_MESSAGES[err.code] || DEFAULT_SAFE;
+  const prismaError = err as { code?: string; message?: string };
+  const safeMessage =
+    SAFE_MESSAGES[prismaError.code as keyof typeof SAFE_MESSAGES] ||
+    DEFAULT_SAFE;
   if (includeOriginal) {
-    return `[DEV] ${safeMessage} (original: ${err.message})`;
+    return `[DEV] ${safeMessage} (original: ${prismaError.message})`;
   }
   return safeMessage;
 };

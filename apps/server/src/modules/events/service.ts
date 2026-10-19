@@ -63,7 +63,10 @@ export const formatTime = (date: Date | null | undefined): string | null => {
 
 // Reglas por modalidad: campo a limpiar + campos requeridos + mensaje exacto
 // (los mensajes se preservan igual que en la versión con if/else encadenado).
-const MODALITY_RULES = {
+const MODALITY_RULES: Record<
+  string,
+  { clearField: string | null; requiredFields: string[]; errorMessage: string }
+> = {
   ONLINE: {
     clearField: 'location',
     requiredFields: ['meetingUrl'],
@@ -112,9 +115,10 @@ export const validateEventModality = (
 
   // Modality-specific field clearing AND required-field validation
   if (rule.clearField) {
-    validatedData[rule.clearField] = null;
+    (validatedData as Record<string, unknown>)[rule.clearField] = null;
   }
-  if (rule.requiredFields.some((field) => !effectiveFields[field])) {
+  const effectiveRecord = effectiveFields as Record<string, unknown>;
+  if (rule.requiredFields.some((field) => !effectiveRecord[field])) {
     throw new Error(rule.errorMessage);
   }
 

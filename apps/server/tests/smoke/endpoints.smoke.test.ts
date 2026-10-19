@@ -13,7 +13,12 @@ describe('Smoke Test: Critical API Endpoints', () => {
 
   describe.each(criticalEndpoints)('$method $path', ({ path, method }) => {
     it(`should respond with valid HTTP status (not 404, not 500)`, async () => {
-      const response = await createRequest()[method](path);
+      const response = await (
+        createRequest() as unknown as Record<
+          string,
+          (p: string) => { status: number; body: unknown }
+        >
+      )[method](path);
 
       // Valid responses: 200 (OK), 401 (Unauthorized), 403 (Forbidden), 422 (Validation)
       // Invalid responses: 404 (Not Found - route missing), 500 (Server Error)
@@ -28,7 +33,12 @@ describe('Smoke Test: Critical API Endpoints', () => {
 
     for (const { path, method } of criticalEndpoints) {
       try {
-        const response = await createRequest()[method](path);
+        const response = await (
+          createRequest() as unknown as Record<
+            string,
+            (p: string) => { status: number; body: unknown }
+          >
+        )[method](path);
         if ([200, 401, 403, 422].includes(response.status)) {
           successCount++;
         }

@@ -151,7 +151,7 @@ syntax — so every developer machine of the team gets the same auto-signoff beh
 The `commit-msg` hook's DCO presence validation SHALL be preserved unchanged in behaviour and SHALL
 be the ONLY local DCO validation layer: the merge skip (`^Merge ` first-line pattern), the
 case-sensitive grep for `Signed-off-by:`, and the non-zero exit all stay byte-identical to the
-current hook. Only the guidance text emitted on failure MAY be corrected (it SHALL stop recommending
+current hook. Only the guidance text emitted on failure, and the non-behavioral layer label in the header comment (`# DCO check (L1)` -> `# DCO check (L2)`), MAY be corrected (it SHALL stop recommending
 the no-op `git config --global commit.signoff true` and SHALL give actionable signoff instructions
 plus a note about auto-signoff) without altering that logic. Auto-signoff (`prepare-commit-msg`)
 plus this gate provide defense-in-depth at commit time; no other local hook validates DCO, and the

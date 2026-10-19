@@ -10,7 +10,7 @@ import dotenv from '../../config/dotenv.js';
 const ALGORITHM = dotenv('ALGORITHM') as crypto.CipherGCMTypes;
 const ENCRYPTION_KEY = Buffer.from(dotenv('AES_GCM_KEY'), 'base64');
 
-function decrypt(ciphertext) {
+function decrypt(ciphertext: unknown) {
   if (!ciphertext || typeof ciphertext !== 'string') return ciphertext;
 
   try {
@@ -56,7 +56,7 @@ const SENSITIVE_FIELDS = [
  * @param {Object} data - Objeto (ya copiado) con posibles campos cifrados.
  * @returns {Object} El mismo objeto con los campos sensibles descifrados.
  */
-const decryptSensitiveFields = (data) => {
+const decryptSensitiveFields = (data: Record<string, unknown>) => {
   const result = { ...data };
 
   for (const field of SENSITIVE_FIELDS) {
@@ -69,12 +69,14 @@ const decryptSensitiveFields = (data) => {
 };
 
 // Función de desencriptación recursiva
-export function decryptResults(data) {
+export function decryptResults<T>(data: T): T {
   if (!data) return data;
 
   // Array
   if (Array.isArray(data)) {
-    return data.map((item) => decryptResults(item));
+    return (data as unknown[]).map((item) =>
+      decryptResults(item)
+    ) as unknown as T;
   }
 
   // No objeto (Date incluido)
@@ -82,7 +84,7 @@ export function decryptResults(data) {
     return data;
   }
 
-  const result = decryptSensitiveFields(data);
+  const result = decryptSensitiveFields(data as Record<string, unknown>);
 
   // Recursión para objetos anidados
   for (const key in result) {
@@ -91,5 +93,5 @@ export function decryptResults(data) {
     }
   }
 
-  return result;
+  return result as T;
 }

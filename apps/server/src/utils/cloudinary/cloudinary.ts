@@ -6,7 +6,7 @@ cloudinary.config({
   api_secret: dotenv('CLOUD_API_SECRET'),
 });
 
-export const handleUpload = async (image) => {
+export const handleUpload = async (image: string) => {
   const { secure_url, public_id } = await cloudinary.uploader.upload(image, {
     overwrite: true,
   });
@@ -14,7 +14,7 @@ export const handleUpload = async (image) => {
   return { secure_url, public_id };
 };
 
-export const handleUploadUpdate = async (image, publicId) => {
+export const handleUploadUpdate = async (image: string, publicId: string) => {
   const { secure_url } = await cloudinary.uploader.upload(image, {
     public_id: publicId,
     invalidate: true,
@@ -23,5 +23,5 @@ export const handleUploadUpdate = async (image, publicId) => {
   return { secure_url };
 };
 
-export const handleDeleteFile = async (image) =>
+export const handleDeleteFile = async (image: string) =>
   cloudinary.uploader.destroy(image);

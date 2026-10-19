@@ -28,7 +28,7 @@ describe('Smoke Test: Authentication Endpoint', () => {
       const response = await createRequest()
         .post('/api/v1/auth/signin')
         .send({ email: testEmail, password: testPassword })
-        .expect((res) => {
+        .expect((res: Response) => {
           expect([200, 201]).toContain(res.status);
         });
 

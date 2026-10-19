@@ -1,0 +1,7 @@
+# Trust store for local commit-signature verification (.husky/pre-push).
+# Format: principals [options] keytype key -- public keys only, never private material.
+# Add/remove a key via PR, then register/revoke the .pub as a Signing Key on GitHub.
+# See docs/learning/ci-cd/05b-commit-signing.md (sections F1.1 and 8.3).
+# app_signing.pub excluida: no firma commits de este repo (los releases los firma web-flow en GitHub).
+jamaringarciabusiness@gmail.com namespaces="git" ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDdszbQYMtKJ0KE69sBfbUiclCBcQ7p00N4pwcApzmTp
+jamaringarciabusiness@gmail.com namespaces="git" ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIBH68suK9Ho+eCMu1z/pwVRWT8o96kLJHhZUve53/WD/

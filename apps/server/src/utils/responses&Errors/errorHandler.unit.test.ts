@@ -1,3 +1,4 @@
+import type { NextFunction, Request, Response } from 'express';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
 // Mock logger BEFORE importing errorHandler
@@ -10,15 +11,17 @@ import ClientError from './errors.js';
 const { errorHandler } = await import('../../middleware/errorHandler.js');
 
 describe('errorHandler', () => {
-  let req, res, next;
+  let req: Request;
+  let res: Response;
+  let next: NextFunction;
   const ORIGINAL_NODE_ENV = process.env.NODE_ENV;
 
   beforeEach(() => {
-    req = {};
+    req = {} as Request;
     res = {
       status: vi.fn().mockReturnThis(),
       json: vi.fn().mockReturnThis(),
-    };
+    } as unknown as Response;
     next = vi.fn();
   });
 
@@ -128,7 +131,8 @@ describe('errorHandler', () => {
       { code: 'P2002', clientVersion: '5.22.0' }
     );
     errorHandler(err, req, res, next);
-    const callArgs = res.json.mock.calls[0][0];
+    const callArgs = (res.json as unknown as ReturnType<typeof vi.fn>).mock
+      .calls[0][0];
     expect(callArgs.message).not.toContain('email');
     expect(callArgs.message).not.toContain('Unique constraint');
     expect(callArgs.details).toBeUndefined();
@@ -138,7 +142,8 @@ describe('errorHandler', () => {
     process.env.NODE_ENV = 'development';
     const err = new Error('test error');
     errorHandler(err, req, res, next);
-    const callArgs = res.json.mock.calls[0][0];
+    const callArgs = (res.json as unknown as ReturnType<typeof vi.fn>).mock
+      .calls[0][0];
     expect(callArgs.details).toEqual(err.stack);
   });
 

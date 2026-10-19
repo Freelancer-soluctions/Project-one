@@ -24,7 +24,9 @@
  * @param {import('socket.io').Server} server - Instancia del servidor Socket.IO
  * @returns {Promise<void>}
  */
-export const createAdapter = async (server) => {
+import type { Server } from 'socket.io';
+
+export const createAdapter = async (server: Server): Promise<void> => {
   const redisUrl = process.env.REDIS_URL;
 
   if (!redisUrl) {

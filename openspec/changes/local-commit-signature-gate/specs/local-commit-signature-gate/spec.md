@@ -263,7 +263,7 @@ El riesgo de **envenenamiento del trust store** (introducir una clave ajena vía
 
 ### Requirement: Documentación del gate y corrección factual de §3.5
 
-`docs/CONTEXT-CICD.md` SHALL documentar el gate de firma como **capa L2** en §10 (contratos de los hooks), §11.1 (tabla de las capas de validación) y §12 (tooling local de seguridad/calidad), **enlazando sin duplicar** `docs/learning/ci-cd/05b-commit-signing.md` (líneas 134-135 sintaxis de `allowed_signers`, 198-231 por qué NO usar `%G?` en CI sin trust store, 476-516 troubleshooting).
+`docs/CONTEXT-CICD.md` SHALL documentar el gate de firma como **capa L2** en §10 (contratos de los hooks), §11.1 (tabla de las capas de validación) y §12 (tooling local de seguridad/calidad), **enlazando sin duplicar** `docs/learning/ci-cd/05b-commit-signing.md` (§F1.1 sintaxis de `allowed_signers`, §F2 por qué NO usar `%G?` en CI sin trust store, §8.1 troubleshooting — citado **por sección, nunca por número de línea**, porque `local-dco-auto-signoff` desplazará las líneas de ese doc).
 
 Además, SHALL corregir la deuda factual de **§3.5** y sus reflejos (§1, §3.4, §5.1, §5.9) con la auditoría de API del **2026-10-18**. **Normativo — solo hechos estables:** el ruleset 21227644 se llama **`"Require signed commits"`** (NO `"Pre-Merge Governance Gate"`; `updated_at=2026-09-02`); los 4 status checks (`Verify Commit Signatures`, `Commit Lint (Conventional Commits)`, `PR Title Lint`, `DCO`) con `integration_id 15368`; `required_signatures` presente con `enforcement: active`; y la protección clásica de `main` con `required_signatures.enabled=false`.
 
@@ -295,5 +295,5 @@ Además, SHALL corregir la deuda factual de **§3.5** y sus reflejos (§1, §3.4
 
 #### Scenario: Sin duplicación del doc de signing
 
-- **WHEN** se compara la nueva documentación con `docs/learning/ci-cd/05b-commit-signing.md:134-135,198-231,476-516`
+- **WHEN** se compara la nueva documentación con `docs/learning/ci-cd/05b-commit-signing.md` (§F1.1 sintaxis, §F2 por qué NO `%G?` en CI sin trust store, §8.1 troubleshooting)
 - **THEN** la documentación del gate delega en esas secciones mediante enlace y no reproduce su troubleshooting ni su sintaxis

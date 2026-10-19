@@ -1,3 +1,4 @@
+import type { Express, Request, Response } from 'express';
 import swaggerJSDoc from 'swagger-jsdoc';
 import swaggerUi from 'swagger-ui-express';
 
@@ -17,11 +18,11 @@ const options = {
 const swaggerSpec = swaggerJSDoc(options);
 
 // Function to setup our docs
-export const swaggerDocs = (app, port) => {
+export const swaggerDocs = (app: Express, port: number | string): void => {
   // Route-Handler to visit our docs
   app.use('/api/v1/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
   // Make our docs in JSON format available
-  app.get('/api/v1/docs.json', (req, res) => {
+  app.get('/api/v1/docs.json', (req: Request, res: Response) => {
     res.setHeader('Content-Type', 'application/json');
     res.send(swaggerSpec);
   });

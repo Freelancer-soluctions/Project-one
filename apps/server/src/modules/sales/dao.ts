@@ -148,7 +148,7 @@ export const patchSaleById = async (id: number, data: SalePatchData) => {
  * @param {number} id - Sale ID.
  * @returns {Promise<Object>} Deleted sale.
  */
-export const deleteSaleById = async (id) => {
+export const deleteSaleById = async (id: number) => {
   // First delete all related details
   await prisma.saleDetail.deleteMany({
     where: { saleId: id },
@@ -166,7 +166,7 @@ export const deleteSaleById = async (id) => {
  * @param {number} id - Sale detail ID.
  * @returns {Promise<Object>} Deleted sale detail.
  */
-export const deleteSaleDetailById = async (id) => {
+export const deleteSaleDetailById = async (id: number) => {
   await prisma.saleDetail.delete({
     where: { id },
   });

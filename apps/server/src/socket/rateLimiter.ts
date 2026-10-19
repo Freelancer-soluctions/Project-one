@@ -6,6 +6,7 @@
 // Si el bucket está vacío, se rechaza el mensaje.
 // ============================================================
 
+import type { AuthenticatedSocket } from './auth.js';
 /**
  * Token Bucket para rate limiting en memoria.
  * Por ahora no requiere Redis (single-instancia). Redis se añade
@@ -106,7 +107,10 @@ export const createSocketRateLimiter = (
    * @param {Function} next - Callback para continuar la cadena de middleware
    * @returns {void}
    */
-  const connectionMiddleware = (socket, next) => {
+  const connectionMiddleware = (
+    socket: AuthenticatedSocket,
+    next: (err?: Error) => void
+  ) => {
     const clientIp = socket.handshake.address;
     if (!connectionBuckets.has(clientIp)) {
       // 100 conexiones por minuto ≈ ~1.67 tokens/segundo, capacity 100
@@ -135,7 +139,7 @@ export const createSocketRateLimiter = (
      * Se ejecuta en cada evento entrante ANTES del handler.
      * @param {import('socket.io').Socket} socket - Socket activo
      */
-    event: (socket) => {
+    event: (socket: AuthenticatedSocket) => {
       socket.use(([event], next) => {
         if (
           event === 'connect' ||
@@ -170,7 +174,7 @@ export const createSocketRateLimiter = (
      * Sin cleanup, cada IP/usuario deja buckets en memoria permanentemente.
      * @param {import('socket.io').Socket} socket - Socket que se desconecta
      */
-    cleanup: (socket) => {
+    cleanup: (socket: AuthenticatedSocket) => {
       const clientIp = socket.handshake.address;
       connectionBuckets.delete(clientIp);
       const userId = socket.data.user?.id || socket.id;

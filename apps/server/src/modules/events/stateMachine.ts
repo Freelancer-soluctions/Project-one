@@ -18,7 +18,9 @@ export const canTransition = (
 ): boolean => {
   const key =
     fromStatus === null || fromStatus === undefined ? 'null' : fromStatus;
-  const allowed = validTransitions[key];
+  const allowed = validTransitions[
+    key as keyof typeof validTransitions
+  ] as readonly string[];
   if (!allowed) return false;
   return allowed.includes(toStatus);
 };
@@ -35,5 +37,9 @@ export const getAllowedNextStates = (
     currentStatus === null || currentStatus === undefined
       ? 'null'
       : currentStatus;
-  return validTransitions[key] || [];
+  return (
+    (validTransitions[key as keyof typeof validTransitions] as unknown as
+      | string[]
+      | undefined) || []
+  );
 };

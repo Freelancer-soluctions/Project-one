@@ -33,7 +33,7 @@ import dontenv from '../../config/dotenv.js';
  * ✔ La contraseña NUNCA se reutiliza como clave de cifrado
  *   ni se transforma directamente en una key.
  */
-export const encryptPassword = async (password) => {
+export const encryptPassword = async (password: string): Promise<string> => {
   // ------------------------------------------------
   // Se obtiene el factor de costo desde variables
   // de entorno, evitando valores hardcodeados
@@ -69,7 +69,10 @@ export const encryptPassword = async (password) => {
  * Compara la contraseña ingresada con el hash almacenado.
  * - bcrypt.compare es seguro contra timing attacks.
  */
-export const comparePassword = async (password, savedPassword) => {
+export const comparePassword = async (
+  password: string,
+  savedPassword: string
+): Promise<boolean> => {
   return bcrypt.compare(password, savedPassword);
 };
 
@@ -79,7 +82,7 @@ export const comparePassword = async (password, savedPassword) => {
  * - OWASP recomienda políticas basadas en entropía, no en reglas estáticas.
  * - Score mínimo aceptable = 3 (aceptable/seguro).
  */
-export const validatePasswordStrength = (password) => {
+export const validatePasswordStrength = (password: string): boolean => {
   const evaluation = zxcvbn(password);
   return evaluation.score >= 3;
 };

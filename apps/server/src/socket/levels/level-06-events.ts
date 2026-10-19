@@ -7,6 +7,7 @@
 // Cada línea está comentada en español explicando el flujo de eventos WebSocket
 // ============================================================
 
+import type { AuthenticatedSocket } from '../auth.js';
 import http from 'http';
 import { Server } from 'socket.io';
 import Joi from 'joi';
@@ -56,7 +57,7 @@ const mentionReadSchema = Joi.object({
 });
 
 // Validador genérico: recibe mensaje completo (envelope) y valida contra envelope + schema específico
-const validateMessage = (message, payloadSchema) => {
+const validateMessage = (message: unknown, payloadSchema: Joi.ObjectSchema) => {
   const { error: envelopeError, value: envelopeValue } =
     envelopeSchema.validate(message, {
       stripUnknown: true,
@@ -74,7 +75,12 @@ const validateMessage = (message, payloadSchema) => {
     }
   );
   if (payloadError) {
-    return { valid: false, error: payloadError.details.map((d) => d.message) };
+    return {
+      valid: false,
+      error: payloadError.details.map(
+        (d: Joi.ValidationErrorItem) => d.message
+      ),
+    };
   }
 
   return { valid: true, value: { ...envelopeValue, payload: payloadValue } };
@@ -82,7 +88,11 @@ const validateMessage = (message, payloadSchema) => {
 
 // Manejadores de eventos relacionados con menciones en notas.
 // Cada handler recibe (io, socket, payload) y ejecuta la lógica del evento.
-const handleMentionNew = (io, socket, payload) => {
+const handleMentionNew = (
+  io: Server,
+  socket: AuthenticatedSocket,
+  payload: Record<string, unknown>
+) => {
   // io.to() envía el evento a TODOS los sockets en la sala del usuario mencionado
   // (incluyendo múltiples pestañas del mismo usuario)
   io.to(`user:${payload.mentionedUserId}`).emit('mention:new', {
@@ -97,7 +107,11 @@ const handleMentionNew = (io, socket, payload) => {
   });
 };
 
-const handleMentionRead = (io, socket, payload) => {
+const handleMentionRead = (
+  io: Server,
+  socket: AuthenticatedSocket,
+  payload: { mentionIds: number[] }
+) => {
   // En este nivel educativo, simulamos marcar menciones como leídas
   // En una implementación real, esto haría una actualización en la base de datos vía Prisma
   console.log(

@@ -56,7 +56,6 @@
     "format:check": "npm run format:check --workspaces --if-present",
     "lint": "npm run lint --workspaces --if-present",
     "lint:fix": "npm run lint:fix --workspaces --if-present",
-    "sast:semgrep": "powershell -ExecutionPolicy Bypass -File scripts/security/semgrep-staged.ps1",
     "sast:semgrep:full": "powershell -ExecutionPolicy Bypass -File scripts/security/semgrep.ps1",
     "security:secrets": "gitleaks git --pre-commit --staged --verbose --redact --config .gitleaks.toml",
     "security:secrets:full": "gitleaks git --verbose --config .gitleaks.toml",

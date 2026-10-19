@@ -3,7 +3,13 @@ import dotenv from '../../config/dotenv.js';
 // Esta función centraliza y normaliza la paginación que llega desde el cliente.
 // El objetivo principal es evitar consultas sin límites o con límites excesivos,
 // lo cual es un riesgo claro frente a inyección y exposición masiva de datos (OWASP A03).
-export const getSafePagination = ({ page, limit }) => {
+export const getSafePagination = ({
+  page,
+  limit,
+}: {
+  page?: unknown;
+  limit?: unknown;
+}): { take: number; skip: number } => {
   // Defino un límite por defecto tomado desde variables de entorno.
   // Esto evita que, si el cliente no envía 'limit', la consulta devuelva todos los registros.
   // Tenerlo en ENV permite ajustarlo sin tocar código.

@@ -1,6 +1,6 @@
 import app from '../src/app.js';
 
-let testServer;
+let testServer: ReturnType<typeof app.listen> | null = null;
 export const startServer = () => {
   return new Promise((resolve, reject) => {
     testServer = app.listen(process.env.PORT, () => {
@@ -14,7 +14,7 @@ export const startServer = () => {
 export const stopServer = () => {
   return new Promise<void>((resolve, reject) => {
     if (testServer) {
-      testServer.close((err) => {
+      testServer.close((err: Error | null) => {
         if (err) return reject(err);
         console.log('Server stopped');
         resolve();

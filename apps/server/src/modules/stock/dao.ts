@@ -115,7 +115,12 @@ export const getStockAlerts = async (): Promise<StockAlerts> => {
     FROM "stock" s
   `;
 
-  const { expired, lowStock } = stockAlerts[0];
+  const { expired, lowStock } = (
+    stockAlerts as Array<{ expired: number; lowStock: number }>
+  )[0] as {
+    expired: number;
+    lowStock: number;
+  };
   return { expired, lowStock };
 };
 

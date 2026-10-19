@@ -8,6 +8,7 @@
   "extends": "../../tsconfig.json",
   "compilerOptions": {
     "allowJs": true,
+    "noImplicitAny": true,
     "checkJs": false,
     "allowImportingTsExtensions": true,
     "noEmit": true,

@@ -8,9 +8,21 @@ const TIME_REGEX = /^([01]\d|2[0-3]):[0-5]\d$/;
  * Runs after individual field validation, so both values are valid HH:mm strings.
  * Lexicographic comparison works for HH:mm format (e.g., "09:00" < "17:00").
  */
-const startBeforeEndValidator = (value, helpers) => {
+const startBeforeEndValidator = (
+  value: { startTime?: string; endTime?: string },
+  helpers: Joi.CustomHelpers
+) => {
   if (value.startTime && value.endTime && value.startTime >= value.endTime) {
-    return helpers.message('startTime must be earlier than endTime');
+    // helpers.message() acepta un string plano con el mensaje de error personalizado.
+    // La forma `helpers.message({ 'any.custom': '...' })` que usaba este validator
+    // devolvía el mensaje genérico "Error code \"custom\" is not defined..." en Joi
+    // 17.x porque el código de error 'custom' no está registrado en el diccionario de
+    // mensajes por defecto; usar el string directamente es la API correcta.
+    return helpers.message(
+      'startTime must be earlier than endTime' as unknown as Parameters<
+        typeof helpers.message
+      >[0]
+    );
   }
   return value;
 };

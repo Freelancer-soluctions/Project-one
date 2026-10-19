@@ -46,21 +46,27 @@ describe('Events DAO – Combined Filters (Unit)', () => {
   describe('individual filter conditions', () => {
     it('type filter adds exact match on eventTypeId', async () => {
       await mockedEventDao.getAllEvents({ type: 2 });
-      const whereArg = mockedPrisma.events.findMany.mock.calls[0][0].where;
+      const whereArg = mockedPrisma.events.findMany.mock.calls[0][0].where as {
+        AND: Array<Record<string, unknown>>;
+      };
       expect(whereArg.AND).toContainEqual({ eventTypeId: 2 });
     });
 
     it('dateFrom filter adds gte on eventDate', async () => {
       const dateFrom = new Date('2025-01-01');
       await mockedEventDao.getAllEvents({ dateFrom });
-      const whereArg = mockedPrisma.events.findMany.mock.calls[0][0].where;
+      const whereArg = mockedPrisma.events.findMany.mock.calls[0][0].where as {
+        AND: Array<Record<string, unknown>>;
+      };
       expect(whereArg.AND).toContainEqual({ eventDate: { gte: dateFrom } });
     });
 
     it('dateTo filter adds lte on eventDate normalized to end-of-day', async () => {
       const dateTo = new Date('2025-12-31');
       await mockedEventDao.getAllEvents({ dateTo });
-      const whereArg = mockedPrisma.events.findMany.mock.calls[0][0].where;
+      const whereArg = mockedPrisma.events.findMany.mock.calls[0][0].where as {
+        AND: Array<Record<string, unknown>>;
+      };
       const expectedEndOfDay = new Date(
         dateTo.getTime() + 24 * 60 * 60 * 1000 - 1
       );
@@ -73,7 +79,9 @@ describe('Events DAO – Combined Filters (Unit)', () => {
       const dateFrom = new Date('2025-01-01');
       const dateTo = new Date('2025-12-31');
       await mockedEventDao.getAllEvents({ dateFrom, dateTo });
-      const whereArg = mockedPrisma.events.findMany.mock.calls[0][0].where;
+      const whereArg = mockedPrisma.events.findMany.mock.calls[0][0].where as {
+        AND: Array<Record<string, unknown>>;
+      };
       const expectedEndOfDay = new Date(
         dateTo.getTime() + 24 * 60 * 60 * 1000 - 1
       );
@@ -84,7 +92,9 @@ describe('Events DAO – Combined Filters (Unit)', () => {
 
     it('speaker filter adds case-insensitive contains', async () => {
       await mockedEventDao.getAllEvents({ speaker: 'John' });
-      const whereArg = mockedPrisma.events.findMany.mock.calls[0][0].where;
+      const whereArg = mockedPrisma.events.findMany.mock.calls[0][0].where as {
+        AND: Array<Record<string, unknown>>;
+      };
       expect(whereArg.AND).toContainEqual({
         speaker: { contains: 'John', mode: 'insensitive' },
       });
@@ -92,7 +102,9 @@ describe('Events DAO – Combined Filters (Unit)', () => {
 
     it('status=upcoming adds OR condition for future dates or today with endTime > now', async () => {
       await mockedEventDao.getAllEvents({ status: 'upcoming' });
-      const whereArg = mockedPrisma.events.findMany.mock.calls[0][0].where;
+      const whereArg = mockedPrisma.events.findMany.mock.calls[0][0].where as {
+        AND: Array<Record<string, unknown>>;
+      };
       const statusCondition = andOf(whereArg).find((c) => c.OR);
       expect(statusCondition).toBeDefined();
       expect(statusCondition.OR).toHaveLength(2);
@@ -102,7 +114,9 @@ describe('Events DAO – Combined Filters (Unit)', () => {
 
     it('status=past adds OR condition for past dates or today with endTime <= now', async () => {
       await mockedEventDao.getAllEvents({ status: 'past' });
-      const whereArg = mockedPrisma.events.findMany.mock.calls[0][0].where;
+      const whereArg = mockedPrisma.events.findMany.mock.calls[0][0].where as {
+        AND: Array<Record<string, unknown>>;
+      };
       const statusCondition = andOf(whereArg).find((c) => c.OR);
       expect(statusCondition).toBeDefined();
       expect(statusCondition.OR).toHaveLength(2);
@@ -112,7 +126,9 @@ describe('Events DAO – Combined Filters (Unit)', () => {
 
     it('status=all adds no status condition', async () => {
       await mockedEventDao.getAllEvents({ status: 'all' });
-      const whereArg = mockedPrisma.events.findMany.mock.calls[0][0].where;
+      const whereArg = mockedPrisma.events.findMany.mock.calls[0][0].where as {
+        AND: Array<Record<string, unknown>>;
+      };
       const statusCondition = andOf(whereArg).find(
         (c) => c.OR && c.OR.some((o) => o.eventDate)
       );
@@ -121,7 +137,9 @@ describe('Events DAO – Combined Filters (Unit)', () => {
 
     it('searchQuery adds OR block on title/description/speaker', async () => {
       await mockedEventDao.getAllEvents({ searchQuery: 'tech' });
-      const whereArg = mockedPrisma.events.findMany.mock.calls[0][0].where;
+      const whereArg = mockedPrisma.events.findMany.mock.calls[0][0].where as {
+        AND: Array<Record<string, unknown>>;
+      };
       const searchCondition = andOf(whereArg).find((c) => c.OR);
       expect(searchCondition).toBeDefined();
       expect(searchCondition.OR).toHaveLength(3);
@@ -145,7 +163,9 @@ describe('Events DAO – Combined Filters (Unit)', () => {
         dateFrom: new Date('2025-01-01'),
         speaker: 'Smith',
       });
-      const whereArg = mockedPrisma.events.findMany.mock.calls[0][0].where;
+      const whereArg = mockedPrisma.events.findMany.mock.calls[0][0].where as {
+        AND: Array<Record<string, unknown>>;
+      };
       expect(whereArg.AND).toContainEqual({ eventTypeId: 1 });
       expect(whereArg.AND).toContainEqual({
         eventDate: { gte: new Date('2025-01-01') },
@@ -160,7 +180,9 @@ describe('Events DAO – Combined Filters (Unit)', () => {
         status: 'upcoming',
         dateFrom: new Date('2025-06-01'),
       });
-      const whereArg = mockedPrisma.events.findMany.mock.calls[0][0].where;
+      const whereArg = mockedPrisma.events.findMany.mock.calls[0][0].where as {
+        AND: Array<Record<string, unknown>>;
+      };
       const statusCond = andOf(whereArg).find((c) => c.OR);
       const dateCond = andOf(whereArg).find(hasDateFrom);
       expect(statusCond).toBeDefined();
@@ -175,7 +197,9 @@ describe('Events DAO – Combined Filters (Unit)', () => {
         dateFrom: new Date('2025-01-01'),
         dateTo: new Date('2025-06-30'),
       });
-      const whereArg = mockedPrisma.events.findMany.mock.calls[0][0].where;
+      const whereArg = mockedPrisma.events.findMany.mock.calls[0][0].where as {
+        AND: Array<Record<string, unknown>>;
+      };
       expect(whereArg.AND).toContainEqual({ eventTypeId: 3 });
       expect(whereArg.AND).toContainEqual({
         speaker: { contains: 'Johnson', mode: 'insensitive' },
@@ -191,14 +215,18 @@ describe('Events DAO – Combined Filters (Unit)', () => {
   describe('empty conditions (only deletedAt: null)', () => {
     it('no user filters provides only deletedAt: null condition', async () => {
       await mockedEventDao.getAllEvents({});
-      const whereArg = mockedPrisma.events.findMany.mock.calls[0][0].where;
+      const whereArg = mockedPrisma.events.findMany.mock.calls[0][0].where as {
+        AND: Array<Record<string, unknown>>;
+      };
       expect(whereArg.AND).toHaveLength(1);
       expect(whereArg.AND[0]).toEqual({ deletedAt: null });
     });
 
     it('showDeleted=true with no filters produces empty where', async () => {
       await mockedEventDao.getAllEvents({ showDeleted: true });
-      const whereArg = mockedPrisma.events.findMany.mock.calls[0][0].where;
+      const whereArg = mockedPrisma.events.findMany.mock.calls[0][0].where as {
+        AND: Array<Record<string, unknown>>;
+      };
       expect(whereArg).toEqual({});
     });
 
@@ -210,7 +238,9 @@ describe('Events DAO – Combined Filters (Unit)', () => {
         speaker: undefined,
         status: undefined,
       });
-      const whereArg = mockedPrisma.events.findMany.mock.calls[0][0].where;
+      const whereArg = mockedPrisma.events.findMany.mock.calls[0][0].where as {
+        AND: Array<Record<string, unknown>>;
+      };
       expect(whereArg.AND).toHaveLength(1);
       expect(whereArg.AND[0]).toEqual({ deletedAt: null });
     });

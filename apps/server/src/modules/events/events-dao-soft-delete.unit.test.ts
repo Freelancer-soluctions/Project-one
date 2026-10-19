@@ -100,7 +100,9 @@ describe('Events DAO – Soft Delete (Unit)', () => {
     mockedPrisma.events.findMany.mockResolvedValue([mockEvent]);
     mockedPrisma.events.count.mockResolvedValue(1);
     await mockedEventDao.getAllEvents({ showDeleted: false });
-    const whereArg = mockedPrisma.events.findMany.mock.calls[0][0].where;
+    const whereArg = mockedPrisma.events.findMany.mock.calls[0][0].where as {
+      AND: Array<Record<string, unknown>>;
+    };
     expect(whereArg.AND[0]).toHaveProperty('deletedAt', null);
   });
 
@@ -109,7 +111,9 @@ describe('Events DAO – Soft Delete (Unit)', () => {
     mockedPrisma.events.findMany.mockResolvedValue([]);
     mockedPrisma.events.count.mockResolvedValue(0);
     await mockedEventDao.getAllEvents({ showDeleted: true });
-    const whereArg = mockedPrisma.events.findMany.mock.calls[0][0].where;
+    const whereArg = mockedPrisma.events.findMany.mock.calls[0][0].where as {
+      AND: Array<Record<string, unknown>>;
+    };
     expect(whereArg).not.toHaveProperty('deletedAt');
   });
 

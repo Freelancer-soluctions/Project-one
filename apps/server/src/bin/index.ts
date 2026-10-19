@@ -25,7 +25,7 @@ async function bootstrap() {
   httpServer.headersTimeout = 60 * 1000 + 2000;
 
   // Graceful shutdown unificado
-  const shutdown = async (b) => {
+  const shutdown = async (b: string): Promise<void> => {
     console.log('🛑 Recibida señal ' + b + '. Cerrando...');
     io.close(() => {
       httpServer.close(() => {

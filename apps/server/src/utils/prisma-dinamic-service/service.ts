@@ -5,7 +5,17 @@ import { getModel } from '../prisma/prisma-model.js';
  *@param {String} tableName
  * @returns all items from db
  */
-export const getAll = async ({ tableName, where, include, select }) => {
+export const getAll = async ({
+  tableName,
+  where,
+  include,
+  select,
+}: {
+  tableName: string;
+  where?: Record<string, unknown>;
+  include?: Record<string, boolean>;
+  select?: Record<string, boolean>;
+}) => {
   const items = await getModel(tableName).findMany({
     ...(where && { where }),
     ...(include && { include }),
@@ -25,6 +35,12 @@ export const getAllPaginate = async ({
   page = 1,
   limit = 50,
   include,
+}: {
+  tableName: string;
+  where?: Record<string, unknown>;
+  page?: number;
+  limit?: number;
+  include?: Record<string, boolean>;
 }) => {
   limit = limit || 50;
   const total = await getModel(tableName).count({
@@ -55,7 +71,15 @@ export const getAllPaginate = async ({
  *
  * @returns One row by ID
  */
-export const getOne = async ({ tableName, where, include }) => {
+export const getOne = async ({
+  tableName,
+  where,
+  include,
+}: {
+  tableName: string;
+  where?: Record<string, unknown>;
+  include?: Record<string, boolean>;
+}) => {
   const foundObject = await getModel(tableName).findUnique({
     ...(where && { where }),
     ...(include && { include }),
@@ -69,7 +93,7 @@ export const getOne = async ({ tableName, where, include }) => {
  * @param {object} createObject
  *
  */
-export const create = async (tableName, createObject) => {
+export const create = async (tableName: string, createObject: object) => {
   const createdItem = await getModel(tableName).create({
     data: createObject,
   });
@@ -82,7 +106,10 @@ export const create = async (tableName, createObject) => {
  * @param {object} createObjects
  *
  */
-export const createMany = async (tableName, createObjects) => {
+export const createMany = async (
+  tableName: string,
+  createObjects: object[]
+) => {
   const createdObjects = await getModel(tableName).createMany({
     data: createObjects,
     skipDuplicates: true,
@@ -97,7 +124,11 @@ export const createMany = async (tableName, createObjects) => {
  * @param {String} slug
  *
  */
-export const updateRowById = async (tableName, slug, updateObject) => {
+export const updateRowById = async (
+  tableName: string,
+  slug: string,
+  updateObject: object
+) => {
   const updatedObject = await getModel(tableName).update({
     where: {
       slug,
@@ -113,7 +144,7 @@ export const updateRowById = async (tableName, slug, updateObject) => {
  * @param {String} slug
  *
  */
-export const deleteRowById = async (tableName, slug) => {
+export const deleteRowById = async (tableName: string, slug: string) => {
   const deletedObject = await getModel(tableName).delete({
     where: {
       slug,
@@ -128,7 +159,10 @@ export const deleteRowById = async (tableName, slug) => {
  * @returnsdata item without excluded fields
 
  */
-export const excludefromObject = (item, keys) => {
+export const excludefromObject = (
+  item: Record<string, unknown>,
+  keys: string[]
+) => {
   return Object.fromEntries(
     Object.entries(item).filter(([key]) => !keys.includes(key))
   );
@@ -141,5 +175,7 @@ export const excludefromObject = (item, keys) => {
  * @returnsdata items without excluded fields
 
  */
-export const excludefromArray = (items, keys) =>
-  items.map((item) => excludefromObject(item, keys));
+export const excludefromArray = (
+  items: Array<Record<string, unknown>>,
+  keys: string[]
+) => items.map((item) => excludefromObject(item, keys));

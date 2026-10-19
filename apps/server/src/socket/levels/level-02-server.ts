@@ -1,4 +1,6 @@
+import type { Server as HTTPServer } from 'node:http';
 import { Server } from 'socket.io';
+import type { AuthenticatedSocket } from '../auth.js';
 import { createAuthMiddleware } from '../auth.js';
 import { joinUserRoom } from '../rooms.js';
 import {
@@ -26,7 +28,7 @@ import { createAdapter } from '../adapter.js';
  * @param {Object} socket - Socket conectado (con socket.data.user ya validado).
  * @returns {Promise<Array>} Backlog de menciones.
  */
-const getBacklogForSocket = async (socket) => {
+const getBacklogForSocket = async (socket: AuthenticatedSocket) => {
   try {
     const userId = socket.data.user?.id;
     if (!userId) {
@@ -50,7 +52,11 @@ const getBacklogForSocket = async (socket) => {
  * @param {{type: string, payload: Object}} data - Mensaje recibido.
  * @returns {Promise<void>}
  */
-const handleSocketMessage = async (io, socket, data) => {
+const handleSocketMessage = async (
+  io: Server,
+  socket: AuthenticatedSocket,
+  data: { type: string; payload: Record<string, unknown> }
+) => {
   const { type, payload } = data;
 
   switch (type) {
@@ -86,7 +92,7 @@ const handleSocketMessage = async (io, socket, data) => {
  * @param {import('http').Server} httpServer - The shared HTTP server
  * @returns {import('socket.io').Server} The Socket.IO server instance
  */
-export function attachSocketServer(httpServer) {
+export function attachSocketServer(httpServer: HTTPServer): Server {
   const io = new Server(httpServer, {
     cors: {
       origin: 'http://localhost:5173',

@@ -154,7 +154,7 @@ const createTokenWithKey = (
  * });
  * console.log(token); // eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
  */
-export const createToken = (payload) =>
+export const createToken = <T extends { id: number }>(payload: T) =>
   createTokenWithKey(payload, dotenv('SECRETKEY'), '900000', SIGN_OPTIONS);
 
 /**
@@ -173,7 +173,10 @@ export const createToken = (payload) =>
  * // Store in secure HTTP-only cookie
  * res.cookie('refreshToken', refreshToken, { httpOnly: true, secure: true });
  */
-export const createRefreshToken = (payload) =>
+export const createRefreshToken = (payload: {
+  id: number;
+  [key: string]: unknown;
+}) =>
   createTokenWithKey(
     payload,
     dotenv('REFRESHSECRETKEY'),

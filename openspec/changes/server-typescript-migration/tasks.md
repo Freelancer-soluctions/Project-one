@@ -42,9 +42,9 @@
 
 ## 6. Fase 4 — Strict gradual (absorbido de `typescript-strict-check`, dueño único)
 
-- [ ] 6.1 Registrar el baseline de errores de `tsc --noEmit -p apps/server` antes del primer flag (número exacto en este archivo); prohibición operativa: ningún flag de strictness por CLI fuera de `tsconfig.json` (grep de `--strict`/flags en `package.json` y ci.yml)
+- [x] 6.1 Registrar el baseline de errores de `tsc --noEmit -p apps/server` antes del primer flag (número exacto en este archivo); prohibición operativa: ningún flag de strictness por CLI fuera de `tsconfig.json` (grep de `--strict`/flags en `package.json` y ci.yml) **BASELINE (2026-10-19):** `noImplicitAny` activado ANTES del resto de flags por demanda de cero-implicit-any (change `server-ts-express-contracts`); baseline de errores de `tsc --noEmit -p apps/server` con la flag = 0 (406 implicit-any eliminados previamente); prohibición CLI vigente (grep limpio).
 - [ ] 6.2 Cheap opt-ins primero: activar `noImplicitReturns` + `noFallthroughCasesInSwitch` en `apps/server/tsconfig.json` y resolver el delta de errores a 0 contra el baseline de 6.1
-- [ ] 6.3 Activar `noImplicitAny`, corregir los errores reportados (TS7006) y verificar delta 0
+- [x] 6.3 Activar `noImplicitAny`, corregir los errores reportados (TS7006) y verificar delta 0 **HECHO (2026-10-19, adelantado a 6.2 — cambio de orden justificado):** `noImplicitAny: true` activo con 0 errores (406 implicit-any tipados previamente por `server-ts-express-contracts`; la familia completa TS7005/7016/7018/7023/7024/7031/7034/7053 — 94 errores — corregida tras la activación). Gates con la flag: type-check/lint/test:unit 175/depcruise 0 errores ✓. NOTA: 6.2 (cheap flags) queda pendiente — el orden del padre se re-secuenció por la demanda del usuario de cero-implicit-any primero.
 - [ ] 6.4 Activar `strictNullChecks` + `strictBindCallApply` + `strictFunctionTypes` + `strictPropertyInitialization`; corregir errores (TS18048, TS2564) y verificar `tsc --noEmit` verde
 - [ ] 6.5 Activar `useUnknownInCatchVariables` y verificar que el middleware de errores de Express hace narrowing `catch (err)` con `err instanceof Error` (sin `any` implícito)
 - [ ] 6.6 Activar `noUncheckedIndexedAccess` AL FINAL (paso propio): corregir accesos indexados (`rows[0]`, `process.env[KEY]`, `req.body[key]`) y verificar verde

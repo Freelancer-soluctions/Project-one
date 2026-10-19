@@ -1,0 +1,45 @@
+#!/bin/sh
+set -e
+
+# prepare-commit-msg — auto-signoff DCO (capa L1). SOLO repara, NUNCA bloquea: exit 0 en todo camino.
+# Arg $1 = fichero de mensaje; $2 = source (message|template|merge|squash|commit|vacío);
+# $3 = SHA de origen (solo cuando $2=commit). Permitido: editar $1 in place.
+# Husky v9 lo despacha como `sh -e "$s"` → todo comando con estatus no-cero posible va guardado.
+
+msg="$1"
+src="$2"
+
+# D2 — merge commits exentos (git no tiene flag de signoff para merge; ambos tools los exentan).
+[ "$src" = "merge" ] && exit 0
+
+# Sin fichero legible no hay nada que reparar — salir sin tocar nada.
+[ -n "$msg" ] && [ -f "$msg" ] && [ -r "$msg" ] || exit 0
+
+# D5 — idempotencia: interpret-trailers no duplica un valor idéntico, pero SÍ añade uno distinto.
+# El grep es la guarda cargada (cubre también el caso hook + `-s` explícito, que corre ANTES).
+# Case-sensitive sobre el mensaje completo (misma semántica que commit-msg).
+grep -q "Signed-off-by:" "$msg" && exit 0
+
+# D4 (ASSUMPTION) — identidad: committer primero (equivale a `git commit -s`), luego author.
+ident=$(git var GIT_COMMITTER_IDENT 2>/dev/null) || ident=""
+[ -n "$ident" ] || ident=$(git var GIT_AUTHOR_IDENT 2>/dev/null) || ident=""
+
+# Quitar el sufijo " <epoch> <tz>" para quedar en "Name <email>".
+# PATRÓN CORRECTO: `s/ [0-9]+ [+-][0-9]{4}$//` — `git var` imprime `Name <email> <epoch> <tz>`
+# SIN `>` tras el tz (verificado 2026-10-18, git 2.52.0.windows.1); un patrón anclado a un `>`
+# final jamás matchea y el `case` de abajo fallaría en cerrado → hook no-op silencioso.
+# `|| signoff=""` ES OBLIGATORIO: sin el guard, un fallo de proceso del sed (status ≠0, no "sin
+# match") abortaría ANTES del `case` bajo `set -e` y BLOQUEARÍA el commit.
+signoff=$(printf '%s\n' "$ident" | sed -E 's/ [0-9]+ [+-][0-9]{4}$//') || signoff=""
+
+# Fallback: sin nombre+email válidos NO se adivina — salir sin editar.
+# commit-msg sigue siendo quien rechaza si el trailer falta (gate local único, D1').
+# El `case` exige que la cadena TERMINE en `>`; sin el strip correcto cae a `*) exit 0` (fail-closed).
+case "$signoff" in
+  *" <"*">") ;;
+  *) exit 0 ;;
+esac
+
+# D5 — inyección: bloque de trailers estrictamente parseable para el parser strict de CI.
+git interpret-trailers --in-place --trailer "Signed-off-by: $signoff" "$msg" 2>/dev/null || true
+exit 0

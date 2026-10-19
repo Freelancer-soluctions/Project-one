@@ -19,7 +19,7 @@ import app from '../../../src/app.js';
  */
 const REMOTE_URL_PATTERN = /^https?:\/\/[^\s/]+/;
 
-export function createRequest() {
+export function createRequest(): ReturnType<typeof request> {
   const baseUrl = process.env.BASE_URL;
 
   if (baseUrl && REMOTE_URL_PATTERN.test(baseUrl)) {

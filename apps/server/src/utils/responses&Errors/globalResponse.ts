@@ -1,3 +1,4 @@
+import type { Response } from 'express';
 /**
  * Sends a standardized success response to clients
  * @param {Object} res - Express response object
@@ -6,7 +7,12 @@
  * @param {string|null} message - Optional message to include in response
  * @description Creates a consistent response format across the API with error flag set to false
  */
-const globalResponse = (res, statusCode, data, message = null) => {
+const globalResponse = (
+  res: Response,
+  statusCode: number,
+  data: unknown,
+  message: string | null = null
+) => {
   res.status(statusCode).json({
     success: true,
     statusCode,

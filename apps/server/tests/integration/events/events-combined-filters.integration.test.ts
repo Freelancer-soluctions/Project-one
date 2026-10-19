@@ -1,8 +1,9 @@
+import type { NextFunction, Request, Response } from 'express';
 import { describe, it, expect, vi } from 'vitest';
 
 // Mock encryption - AES_GCM_KEY is provided in .env.test for CI
 vi.mock('../../../src/utils/prisma/prisma-query.js', () => ({
-  decryptResults: (data) => data,
+  decryptResults: (data: unknown) => data,
 }));
 
 // Hoisted constants for use in mocks
@@ -28,23 +29,31 @@ vi.mock('../../../src/middleware/index.js', () => {
   };
 
   // Passthrough validation middleware factories - return middleware that calls next()
-  const passthroughFactory = (schema) => (req, res, next) => {
-    void schema; // schema intentionally ignored - passthrough mock
-    return next();
-  };
-  const passthroughMiddleware = (req, res, next) => next();
-  const passthroughFactoryWithParam = (paramName) => (req, res, next) => {
-    void paramName; // paramName intentionally ignored - passthrough mock
-    return next();
-  };
-  const passthroughFactoryWithLogger = (logger) => (req, res, next) => {
-    void logger; // logger intentionally ignored - passthrough mock
-    return next();
-  };
+  const passthroughFactory =
+    (schema: unknown) => (req: Request, res: Response, next: NextFunction) => {
+      void schema; // schema intentionally ignored - passthrough mock
+      return next();
+    };
+  const passthroughMiddleware = (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => next();
+  const passthroughFactoryWithParam =
+    (paramName: string) =>
+    (req: Request, res: Response, next: NextFunction) => {
+      void paramName; // paramName intentionally ignored - passthrough mock
+      return next();
+    };
+  const passthroughFactoryWithLogger =
+    (logger: unknown) => (req: Request, res: Response, next: NextFunction) => {
+      void logger; // logger intentionally ignored - passthrough mock
+      return next();
+    };
 
   return {
     // Auth middleware
-    verifyToken: (req, res, next) => {
+    verifyToken: (req: Request, res: Response, next: NextFunction) => {
       const authHeader = req.headers.authorization || req.headers.Authorization;
       if (authHeader === `Bearer ${adminToken}`) {
         req.userId = 1;
@@ -63,9 +72,9 @@ vi.mock('../../../src/middleware/index.js', () => {
     // Role middleware factories
     checkRoleAuth:
       ({ allowedRoles = [] }) =>
-      (req, res, next) => {
+      (req: Request, res: Response, next: NextFunction) => {
         try {
-          const user = mockUsers[req.userId];
+          const user = mockUsers[req.userId as keyof typeof mockUsers];
           if (!user || !user?.roles?.code) {
             return res.status(403).json({ error: 'Could not verify role' });
           }
@@ -83,9 +92,9 @@ vi.mock('../../../src/middleware/index.js', () => {
 
     checkRoleAuthOrPermisssion:
       ({ allowedRoles = [], permissions = [] }) =>
-      (req, res, next) => {
+      (req: Request, res: Response, next: NextFunction) => {
         try {
-          const user = mockUsers[req.userId];
+          const user = mockUsers[req.userId as keyof typeof mockUsers];
           if (!user || !user.roles?.code) {
             return res
               .status(403)
@@ -104,7 +113,9 @@ vi.mock('../../../src/middleware/index.js', () => {
             return next();
           }
           const rolePermissions =
-            user.permits?.map((rp) => rp.permissions.code) || [];
+            user.permits?.map(
+              (rp: { permissions: { code: string } }) => rp.permissions.code
+            ) || [];
           const hasSomePermission = permissions.some((p) =>
             rolePermissions.includes(p)
           );
@@ -143,9 +154,9 @@ vi.mock('../../../src/middleware/index.js', () => {
 
 // Mock CSRF verification for non-GET requests (DELETE, PATCH)
 vi.mock('../../../src/middleware/verifyCsrf.js', () => ({
-  verifyCsrf: (req, res, next) => next(),
-  verifyCsrfOld: (req, res, next) => next(),
-  csrfConditional: (req, res, next) => next(),
+  verifyCsrf: (req: Request, res: Response, next: NextFunction) => next(),
+  verifyCsrfOld: (req: Request, res: Response, next: NextFunction) => next(),
+  csrfConditional: (req: Request, res: Response, next: NextFunction) => next(),
 }));
 
 import request from 'supertest';

@@ -19,7 +19,15 @@ import { getModel } from './prisma-model.js';
  *   include: { profile: true }
  * });
  */
-export const getOneRow = async ({ tableName, where, include }) => {
+export const getOneRow = async ({
+  tableName,
+  where,
+  include,
+}: {
+  tableName: string;
+  where?: Record<string, unknown>;
+  include?: Record<string, boolean>;
+}) => {
   return getModel(tableName).findUnique({
     ...(where && { where }),
     ...(include && { include }),
@@ -31,7 +39,7 @@ export const getOneRow = async ({ tableName, where, include }) => {
  * @param {*} data :: Argument to create an item in DB
  * @returns Created row in db
  */
-export const createRow = async (tableName, data) => {
+export const createRow = async (tableName: string, data: object) => {
   return getModel(tableName).create({ data });
 };
 
@@ -41,7 +49,15 @@ export const createRow = async (tableName, data) => {
  *
  * @returns One row by ramdon param
  */
-export const getRow = async ({ tableName, where, include }) => {
+export const getRow = async ({
+  tableName,
+  where,
+  include,
+}: {
+  tableName: string;
+  where?: Record<string, unknown>;
+  include?: Record<string, boolean>;
+}) => {
   return getModel(tableName).findFirst({
     ...(where && { where }),
     ...(include && { include }),
@@ -69,7 +85,7 @@ export const getRow = async ({ tableName, where, include }) => {
  * });
  */
 
-export const createManyRows = async (tableName, data) => {
+export const createManyRows = async (tableName: string, data: object[]) => {
   return getModel(tableName).createMany({
     skipDuplicates: true,
     data,
@@ -103,7 +119,11 @@ export const createManyRows = async (tableName, data) => {
  *   data: { lastLogin: new Date() }
  * });
  */
-export const updateRow = async (tableName, data, where) => {
+export const updateRow = async (
+  tableName: string,
+  data: Record<string, unknown>,
+  where: Record<string, unknown>
+) => {
   return getModel(tableName).update({
     where,
     data,
@@ -119,7 +139,10 @@ export const updateRow = async (tableName, data, where) => {
  * @param {Object} where - Prisma where clause to identify the record
  * @returns {Promise<Object>} The deleted record
  */
-export const deleteRow = async (tableName, where) => {
+export const deleteRow = async (
+  tableName: string,
+  where: Record<string, unknown>
+) => {
   return getModel(tableName).delete({ where });
 };
 
@@ -130,7 +153,10 @@ export const deleteRow = async (tableName, where) => {
  * @returnsdata item without excluded fields
 
  */
-export const excludefromObject = (item, keys) => {
+export const excludefromObject = (
+  item: Record<string, unknown>,
+  keys: string[]
+) => {
   return Object.fromEntries(
     Object.entries(item).filter(([key]) => !keys.includes(key))
   );
@@ -143,5 +169,8 @@ export const excludefromObject = (item, keys) => {
    * @returnsdata items without excluded fields
 
    */
-export const excludefromArray = (items, keys) =>
-  items.map((item) => excludefromObject(item, keys));
+export const excludefromArray = (
+  items: Array<Record<string, unknown>>,
+  keys: string[]
+) =>
+  items.map((item: Record<string, unknown>) => excludefromObject(item, keys));

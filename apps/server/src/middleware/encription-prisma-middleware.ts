@@ -155,7 +155,7 @@ function encryptFields(model: string, data: Record<string, unknown>) {
 function decryptFields(
   model: string,
   data: Record<string, unknown> | Array<Record<string, unknown>>
-) {
+): Record<string, unknown> | Array<Record<string, unknown>> {
   if (!data) return data;
 
   const fields = ENCRYPTED_FIELDS[model];
@@ -169,7 +169,9 @@ function decryptFields(
     console.log(
       `🔓 Desencriptando array de ${data.length} elementos del modelo ${model}`
     );
-    return data.map((item) => decryptFields(model, item));
+    return data.map((item) => decryptFields(model, item)) as Array<
+      Record<string, unknown>
+    >;
   }
 
   // Si es objeto
@@ -240,7 +242,9 @@ export function encryptionMiddleware(prisma: PrismaClient) {
       console.log('📝 Acción createMany');
       if (args.data && Array.isArray(args.data)) {
         console.log(`🔐 Encriptando ${args.data.length} registros...`);
-        args.data = args.data.map((item) => encryptFields(model, item));
+        args.data = args.data.map((item: Record<string, unknown>) =>
+          encryptFields(model, item)
+        );
       }
     }
 

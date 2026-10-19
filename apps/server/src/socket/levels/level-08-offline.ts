@@ -21,7 +21,15 @@ const PORT = 3006;
 
 // Almacenamiento en memoria para simular menciones pendientes
 // Estructura: { userId: [{ mention objeto }, ...] }
-const mentionStore = new Map();
+const mentionStore = new Map<
+  number,
+  Array<{
+    id: number;
+    mentionedByUserId: number;
+    createdOn: Date;
+    [key: string]: unknown;
+  }>
+>();
 
 // Contador para generar IDs únicos de menciones
 let mentionIdCounter = 1;

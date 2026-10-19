@@ -60,7 +60,7 @@ io.on('connection', (socket) => {
 });
 
 // --- Capa Servicio: simula el service.js que emite eventos ---
-const simulateMention = (payload) => {
+const simulateMention = (payload: Record<string, unknown>) => {
   console.log(
     `📝 Servicio: mención creada por usuario ${payload.mentionedByUserId} para usuario ${payload.mentionedUserId}`
   );
