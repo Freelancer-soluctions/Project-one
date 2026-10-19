@@ -1,6 +1,14 @@
 import handleCatchErrorAsync from '../../utils/responses&Errors/handleCatchErrorAsync.js';
 import globalResponse from '../../utils/responses&Errors/globalResponse.js';
 import * as settingsService from './service.js';
+import type {
+  CreateProductCategoryInput,
+  ProductCategoryFilters,
+  SettingDisplayInput,
+  SettingLanguageInput,
+  UpdateProductCategoryInput,
+  UpdateSettingInput,
+} from './types.js';
 
 /**
  * Create or update a user's language settings.
@@ -15,7 +23,9 @@ import * as settingsService from './service.js';
  */
 export const createOrUpdateSettingsLanguage = handleCatchErrorAsync(
   async (req, res) => {
-    const { body, userId } = req;
+    const { userId } = req;
+    // Cast único del body validado por Joi (settings.joi.ts → SettingsLanguage)
+    const body = req.body as SettingLanguageInput;
     const result = await settingsService.createOrUpdateSettingsLanguage(
       body,
       userId
@@ -37,7 +47,9 @@ export const createOrUpdateSettingsLanguage = handleCatchErrorAsync(
  */
 export const createOrUpdateSettingsDisplay = handleCatchErrorAsync(
   async (req, res) => {
-    const { body, userId } = req;
+    const { userId } = req;
+    // Cast único del body validado por Joi (settings.joi.ts → SettingsDisplay)
+    const body = req.body as SettingDisplayInput;
     const result = await settingsService.createOrUpdateSettingsDisplay(
       body,
       userId
@@ -73,7 +85,9 @@ export const getSettingsById = handleCatchErrorAsync(async (req, res) => {
  */
 export const getAllProductCategories = handleCatchErrorAsync(
   async (req, res) => {
-    const data = await settingsService.getAllProductCategories(req.safeQuery);
+    // Cast único de la query validada por Joi (SettingsProductCategoryFilters)
+    const filters = req.safeQuery as ProductCategoryFilters;
+    const data = await settingsService.getAllProductCategories(filters);
     globalResponse(res, 200, data);
   }
 );
@@ -89,7 +103,9 @@ export const getAllProductCategories = handleCatchErrorAsync(
  * @returns {Promise<void>} Sends a response confirming the creation
  */
 export const createProductCategory = handleCatchErrorAsync(async (req, res) => {
-  await settingsService.createProductCategory(req.body);
+  // Cast único del body validado por Joi (SettingsProductCategoryCreate)
+  const body = req.body as CreateProductCategoryInput;
+  await settingsService.createProductCategory(body);
   globalResponse(res, 201, { message: 'Item created successfully' });
 });
 
@@ -108,7 +124,9 @@ export const createProductCategory = handleCatchErrorAsync(async (req, res) => {
 export const updateProductCategoryById = handleCatchErrorAsync(
   async (req, res) => {
     const categoryId = req.params.id;
-    await settingsService.updateProductCategoryById(categoryId, req.body);
+    // Cast único del body validado por Joi (SettingsProductCategoryUpdateSchema)
+    const body = req.body as UpdateProductCategoryInput;
+    await settingsService.updateProductCategoryById(categoryId, body);
     globalResponse(res, 200, { message: 'Item updated successfully' });
   }
 );
@@ -147,10 +165,7 @@ export const patchSettingsById = handleCatchErrorAsync(async (req, res) => {
   const { language, displayOptions } = req.body;
 
   // Build update object with only provided fields
-  const updateData: {
-    language?: string;
-    displayOptions?: Record<string, unknown>;
-  } = {};
+  const updateData: UpdateSettingInput = {};
   if (language !== undefined) {
     updateData.language = language;
   }
