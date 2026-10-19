@@ -4,19 +4,25 @@
 
 ## 1. Módulo patrón de referencia
 
-- [ ] 1.1 `settings`: `types.ts` (Setting entity derivada de Prisma + Create/Update/Filters + ServiceResult) + refactor dao/service/controller + gates verdes — **validar el patrón aquí antes de replicar**; si el patrón cambia, actualizar design §1 y re-revisar
+- [x] 1.1 `settings`: `types.ts` (Setting entity derivada de Prisma + Create/Update/Filters + ServiceResult) + refactor dao/service/controller + gates verdes — **validar el patrón aquí antes de replicar**; si el patrón cambia, actualizar design §1 y re-revisar **PATRÓN VALIDADO (2026-10-18, re-revisión @planner):** types.ts 103 líneas (split Input API vs Data persistencia), dao con contratos + `Prisma.*WhereUniqueInput` idiomático, service ya tipado de F2 (destructure, firma 2 args — el "bug de aridad" reportado era FALSO POSITIVO: la firma de 3 args es del DAO; `Number(id)` presente; tsc en vivo EXIT 0). Design §1 amendado (ServiceResult espeja respuesta real). Pendiente antes de 2.1: gates lint/test:unit/depcruise del lote.
+  - Evidencia (2026-10-18): `types.ts` con `Setting`/`ProductCategory` derivadas de Prisma, inputs alineados a `settings.joi.ts`, payloads de persistencia, `ProductCategoryFilters` y `ProductCategoryServiceResult`; commits `a879b2e9`, `02c9e0ac`, `f2e2a2bc`, `3d52a3b9` (uno por archivo). Gates: `tsc --noEmit` 0 errores, `eslint src/modules/settings/**/*.ts` 0 warnings, `vitest run ".unit.test"` 20 archivos/175 tests PASS, `npm run depcruise:server` 0 errores. Patrón validado y coincidente con design §1 enmendado (ServiceResult espeja la respuesta real `{dataList,total}`; los Inputs de API (Joi) se separan de los payloads de persistencia del dao (`*Data`)), así que se replica tal cual en el resto de módulos.
 
 ## 2. Módulos de riesgo (mismo orden que F2)
 
-- [ ] 2.1 `attendance` (types.ts + refactor + gates)
-- [ ] 2.2 `news` (idem)
-- [ ] 2.3 `users` (idem — incluye `constants/users.ts` ya tipado: sus exports se re-exportan/referencian desde users/types.ts sin moverlos)
-- [ ] 2.4 `auth` (idem — AuthPayload/TokenPair alineados a `utils/jwt/createToken.ts` existente, import de utils permitido)
+- [x] 2.1 `attendance` (types.ts + refactor + gates)
+  - Evidencia: `Attendance`/`AttendanceListRow` (proyección derivada del `$queryRaw` + `AttendanceServiceResult`), `Create`/`UpdateAttendanceInput`, `AttendanceFilters`/`AttendanceDaoFilters`, `Create`/`UpdateAttendanceData`; `$queryRaw<AttendanceListRow[]>` en vez de cast. Gates: tsc 0, prettier OK, eslint del módulo 0, 175 unit PASS, depcruise 0 errores.
+- [x] 2.2 `news` (idem)
+  - Evidencia: `News`/`NewsStatus`, `NewsListItem` derivado del `include` real, `Create`/`UpdateNewsInput`, `NewsFilters`, `Create`/`UpdateNewsData`; `buildNewsWhere(...): Prisma.newsWhereInput`. Gates verdes (mismos 175 unit).
+- [x] 2.3 `users` (idem — incluye `constants/users.ts` ya tipado: sus exports se re-exportan/referencian desde users/types.ts sin moverlos)
+  - Evidencia: `User`/`Role`/`UserStatusRow`/`Permission`/`UserPermit` + payloads derivados (`UserWithDetails`, `UserWithRoleAndPermits`, `UserWithRoles`, `UserWithPermits`, `PermissionOption`, `UserStatusOption`, `UserListRow`), `UserServiceResult`, `UserPermitsResult`, `PermissionWithAssignment`, `UserSelectOption`; `export type { UserStatusCode } from './constants/users.js'` (re-export sin mover). 2 casts documentados: (a) `userData as UserCreateData` porque `userCreateSchema` no declara `password` y el input unchecked de Prisma lo exige (gap preexistente de POST /users); (b) `parseInt(id, 10)` → `parseInt(String(id), 10)` (semántica idéntica) porque el helper acepta `string | number`. Gates verdes.
+- [x] 2.4 `auth` (idem — AuthPayload/TokenPair alineados a `utils/jwt/createToken.ts` existente, import de utils permitido)
+  - Evidencia: `AuthTokenPayload` (= `createToken({ id, rol? })`), `AuthUserRecord` (fila genérica + `firstName`/`role` que el service lee aunque el modelo no los declare), `SignUpInput`/`SignInInput`, `AuthCookies`, `StoreRefreshTokenInput`, `SignUp`/`SignIn`/`RefreshToken`/`SessionResult`. 4 casts controlados y comentados por gaps de utils ya tipados en F3: `encryptPassword` (async, sin `await` en el código actual — bugfix fuera de alcance), `createRefreshTokenOpaque`/`createCsrfToken` (aún resuelven `unknown`). Gates verdes.
 - [ ] 2.5 `events` (idem — el mayor: events + submódulo `attendee/types.ts` propio + alineación con `stateMachine.ts` ya tipado)
 - [ ] 2.6 resto alfabético: `clients`, `employees`, `expenses`, `inventoryMovement`, `notes` (+ utils internos en notes/types.ts), `payroll`, `performanceEvaluation`, `permission`, `products`, `providers`, `purchase`, `sales`, `security` (types mínimos de routes), `stock`, `vacation`, `warehouse` — gates cada 3-4 módulos, evidencia registrada aquí
 
 ## 3. Cierre
 
-- [ ] 3.1 Verificación de aislamiento: `grep -rn "from '\.\./\.\./" apps/server/src/modules/*/types.ts` → solo imports de `utils/constants` permitidos; 0 tipos cruzando módulos
-- [ ] 3.2 Verificación de no-regresión: `grep -rn ": any" apps/server/src/modules --include="*.ts"` → 0 nuevos; los 4 gates verdes en suite completa; `npm run depcruise:server` 0 errores
-- [ ] 3.3 Contador `docs/CONTEXT-CICD.md` §12.2: "24/24 módulos con contratos de dominio (types.ts)" + `npx openspec validate server-ts-domain-interfaces --strict` → PASS
+- [ ] 3.1 Verificación de aislamiento (patrón UN nivel — detecta imports prohibidos entre módulos): `grep -rn "from '\.\./" apps/server/src/modules/*/types.ts apps/server/src/modules/*/*/types.ts` → SOLO se permite `../../utils/constants` (allowlist); 0 matches de `../<otro-modulo>/types.js` o `../<otro-modulo>/`
+- [ ] 3.2 Verificación de no-regresión: `grep -rnE ": any|as any" apps/server/src/modules --include="*.ts"` → 0 nuevos; los 4 gates verdes en suite completa; `npm run depcruise:server` 0 errores
+- [ ] 3.3 Contador `docs/CONTEXT-CICD.md` §12.2: "23/23 módulos con contratos de dominio (types.ts — 22 dirs + events/attendee)" verificado con `find apps/server/src/modules -name types.ts | wc -l`; + `npx openspec validate server-ts-domain-interfaces --strict` → PASS
+- [ ] 3.4 Registrar bug latente PRE-EXISTENTE descubierto por el tipado (NO fix en este change — zero-behavior-change): PATCH `/settings/:id` construye `{language, displayOptions}` anidado contra columnas planas del modelo `settings` (displayEvents, ...) — Prisma lo rechazaría en runtime; reproducible idéntico en HEAD (confirmado por @planner via git diff). Candidato a change de bugs.

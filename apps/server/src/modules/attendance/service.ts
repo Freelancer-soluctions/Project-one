@@ -4,6 +4,13 @@ import {
   updateAttendanceById as updateAttendanceByIdDao,
   deleteAttendanceById as deleteAttendanceByIdDao,
 } from './dao.js';
+import type {
+  Attendance,
+  AttendanceFilters,
+  AttendanceServiceResult,
+  CreateAttendanceInput,
+  UpdateAttendanceInput,
+} from './types.js';
 import { getSafePagination } from '../../utils/pagination/pagination.js';
 
 /**
@@ -24,7 +31,7 @@ export const getAllAttendance = async ({
   toDate,
   limit,
   page,
-}) => {
+}: AttendanceFilters): Promise<AttendanceServiceResult> => {
   const { take, skip } = getSafePagination({
     page,
     limit,
@@ -50,7 +57,10 @@ export const getAllAttendance = async ({
  * @param {number} userId - User ID who created the record.
  * @returns {Promise<Object>} Created attendance record.
  */
-export const createAttendance = async (data, userId) => {
+export const createAttendance = async (
+  data: CreateAttendanceInput,
+  userId: number
+): Promise<Attendance> => {
   const dataAttendance = {
     ...data,
     employeeId: Number(data.employeeId),
@@ -75,7 +85,11 @@ export const createAttendance = async (data, userId) => {
  * @param {number} userId - User ID who updated the record.
  * @returns {Promise<Object>} Updated attendance record.
  */
-export const updateAttendanceById = async (id, data, userId) => {
+export const updateAttendanceById = async (
+  id: number,
+  data: UpdateAttendanceInput,
+  userId: number
+): Promise<Attendance> => {
   const dataAttendance = {
     ...data,
     updatedOn: new Date(),
@@ -92,7 +106,7 @@ export const updateAttendanceById = async (id, data, userId) => {
  * @param {number} id - Attendance ID.
  * @returns {Promise<Object>} Deleted attendance record.
  */
-export const deleteAttendanceById = async (id) => {
+export const deleteAttendanceById = async (id: number): Promise<Attendance> => {
   return deleteAttendanceByIdDao(Number(id));
 };
 
@@ -104,7 +118,11 @@ export const deleteAttendanceById = async (id) => {
  * @param {number} userId - User ID who updated the record.
  * @returns {Promise<Object>} Updated attendance record.
  */
-export const patchAttendanceById = async (id, data, userId) => {
+export const patchAttendanceById = async (
+  id: number,
+  data: UpdateAttendanceInput,
+  userId: number
+): Promise<Attendance> => {
   const dataAttendance = {
     ...data,
     updatedOn: new Date(),

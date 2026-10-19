@@ -1,6 +1,13 @@
 import { createRow, getOneRow, updateRow } from '../../utils/prisma/dao.js';
 import { TABLESNAMES } from '../../utils/constants/enums.js';
 import { prisma } from '../../config/db.js';
+import type { Prisma } from '@prisma/client';
+import type {
+  AuthUserRecord,
+  RefreshTokenRecord,
+  SignUpInput,
+  StoreRefreshTokenInput,
+} from './types.js';
 
 const tableName = TABLESNAMES.USERS;
 
@@ -10,7 +17,7 @@ const tableName = TABLESNAMES.USERS;
  * @param {Object} user - The user data to create.
  * @returns {Promise<Object>} The created user.
  */
-export const signUp = async (user) => {
+export const signUp = async (user: SignUpInput): Promise<AuthUserRecord> => {
   const userRes = await createRow(tableName, user);
   return Promise.resolve(userRes);
 };
@@ -21,7 +28,7 @@ export const signUp = async (user) => {
  * @param {string} email - The email of the user to retrieve.
  * @returns {Promise<Object>} The user with the given email.
  */
-export const signIn = async (email) => {
+export const signIn = async (email: string): Promise<AuthUserRecord | null> => {
   const user = await getOneRow({
     tableName,
     where: { email },
@@ -37,7 +44,7 @@ export const signIn = async (email) => {
  * @param {number} id - The ID of the session to retrieve.
  * @returns {Promise<Object>} The session data.
  */
-export const session = async (id) => {
+export const session = async (id: number): Promise<AuthUserRecord | null> => {
   const user = await getOneRow({
     tableName,
     where: { id },
@@ -53,7 +60,9 @@ export const session = async (id) => {
  * @param {number} id - The ID of the user to retrieve.
  * @returns {Promise<Object>} The user with the given ID.
  */
-export const getUserById = async (id) => {
+export const getUserById = async (
+  id: number
+): Promise<AuthUserRecord | null> => {
   const user = await getOneRow({
     tableName,
     where: { id },
@@ -71,7 +80,10 @@ export const getUserById = async (id) => {
  * @param {number} id - The ID of the user to associate with the token.
  * @returns {Promise<Object>} The updated user data.
  */
-export const saveRefreshToken = async (refreshToken, id) => {
+export const saveRefreshToken = async (
+  refreshToken: string,
+  id: number
+): Promise<AuthUserRecord> => {
   const data = { refreshToken };
   const where = { id };
   const user = await updateRow(tableName, data, where);
@@ -88,7 +100,11 @@ export const saveRefreshToken = async (refreshToken, id) => {
  * @param {number} data.issuedAt - The timestamp when the token was issued.
  * @returns {Promise<Object>} The created refresh token record.
  */
-export const storeRefreshToken = async ({ token, userId, issuedAt }) => {
+export const storeRefreshToken = async ({
+  token,
+  userId,
+  issuedAt,
+}: StoreRefreshTokenInput): Promise<RefreshTokenRecord> => {
   return prisma.refreshToken.create({
     data: { token, userId, issuedAt: new Date(issuedAt) },
   });
@@ -100,7 +116,9 @@ export const storeRefreshToken = async ({ token, userId, issuedAt }) => {
  * @param {string} refreshToken - The refresh token string to search for.
  * @returns {Promise<Object|null>} The refresh token record or null if not found.
  */
-export const findByToken = async (refreshToken) => {
+export const findByToken = async (
+  refreshToken: string
+): Promise<RefreshTokenRecord | null> => {
   return prisma.refreshToken.findUnique({ where: { token: refreshToken } });
 };
 
@@ -110,7 +128,9 @@ export const findByToken = async (refreshToken) => {
  * @param {number} id - The ID of the refresh token to revoke.
  * @returns {Promise<Object>} The updated refresh token record.
  */
-export const revokeRefreshToken = async (id) => {
+export const revokeRefreshToken = async (
+  id: number
+): Promise<RefreshTokenRecord> => {
   return prisma.refreshToken.update({
     where: { id },
     data: { revoked: true, revokedAt: new Date() },
@@ -123,7 +143,9 @@ export const revokeRefreshToken = async (id) => {
  * @param {number} userId - The user ID whose refresh tokens should be revoked.
  * @returns {Promise<Object>} The result of the update operation.
  */
-export const revokeAllRefreshTojeForUser = async (userId) => {
+export const revokeAllRefreshTojeForUser = async (
+  userId: number
+): Promise<Prisma.BatchPayload> => {
   return prisma.refreshToken.updateMany({
     where: { userId },
     data: { revoked: true, revokedAt: new Date() },

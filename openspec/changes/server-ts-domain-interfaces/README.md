@@ -1,6 +1,6 @@
 # server-ts-domain-interfaces
 
-Interfaces de dominio tipadas para los 24 módulos de `apps/server` (post-migración total a TS, 2026-10-18).
+Interfaces de dominio tipadas para los 23 módulos de `apps/server` (post-migración total a TS, 2026-10-18).
 
 **Principio AUTOCONTENIDO:** cada módulo es dueño de sus tipos — `src/modules/<modulo>/types.ts` (imports solo de Prisma/joi/comunes, nunca de otros módulos). Nada de un `types/` global.
 

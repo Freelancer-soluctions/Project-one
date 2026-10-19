@@ -10,6 +10,7 @@ import {
 } from './service.js';
 import handleCatchErrorAsync from '../../utils/responses&Errors/handleCatchErrorAsync.js';
 import globalResponse from '../../utils/responses&Errors/globalResponse.js';
+import type { CreateUserInput, UpdateUserInput, UserFilters } from './types.js';
 
 /**
  * Get all users with optional filters.
@@ -24,7 +25,9 @@ import globalResponse from '../../utils/responses&Errors/globalResponse.js';
  * @returns {Promise<void>} Returns paginated list of users
  */
 export const getAllUsers = handleCatchErrorAsync(async (req, res) => {
-  const users = await getAllUsersService(req.safeQuery);
+  // Cast único de la query validada por Joi (userFiltersSchema)
+  const filters = req.safeQuery as UserFilters;
+  const users = await getAllUsersService(filters);
   globalResponse(res, 200, users);
 });
 
@@ -52,7 +55,8 @@ export const getAllUserPermits = handleCatchErrorAsync(async (req, res) => {
  * @returns {Promise<void>} Returns users filtered by status.
  */
 export const getUsersByStatus = handleCatchErrorAsync(async (req, res) => {
-  const { statusCode } = req.safeQuery;
+  // Cast único de la query validada por Joi (byStatusCode)
+  const { statusCode } = req.safeQuery as { statusCode: string };
   console.log('STATUSCODE', statusCode);
   const data = await getUsersByStatusService(statusCode);
   console.log('result', data);
@@ -97,8 +101,10 @@ export const getAllUsersRoles = handleCatchErrorAsync(async (req, res) => {
  * @returns {Promise<void>} Creates new user and returns user object
  */
 export const createUser = handleCatchErrorAsync(async (req, res) => {
+  // Cast único del body validado por Joi (userCreateSchema)
+  const body = req.body as Omit<CreateUserInput, 'lastUpdatedBy'>;
   const user = await createUserService({
-    ...req.body,
+    ...body,
     lastUpdatedBy: req.userId,
   });
   globalResponse(res, 201, user);
@@ -115,9 +121,9 @@ export const createUser = handleCatchErrorAsync(async (req, res) => {
  * @returns {Promise<void>} Updates user and returns updated user object
  */
 export const patchUserById = handleCatchErrorAsync(async (req, res) => {
-  const user = await patchUserByIdService(req.params.id, {
-    ...req.body,
-  });
+  // Cast único del body validado por Joi (userUpdateSchema)
+  const body = req.body as UpdateUserInput;
+  const user = await patchUserByIdService(req.params.id, body);
   globalResponse(res, 200, user);
 });
 

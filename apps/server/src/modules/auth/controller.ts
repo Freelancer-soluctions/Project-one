@@ -2,6 +2,7 @@ import * as authService from './service.js';
 import handleCatchErrorAsync from '../../utils/responses&Errors/handleCatchErrorAsync.js';
 import globalResponse from '../../utils/responses&Errors/globalResponse.js';
 import dotenv from '../../config/dotenv.js';
+import type { AuthCookies, SignInInput, SignUpInput } from './types.js';
 
 const isProduction = dotenv('NODE_ENV') === 'production';
 
@@ -17,7 +18,8 @@ const isProduction = dotenv('NODE_ENV') === 'production';
  * @returns {Promise<void>} Creates new user account and returns user object
  */
 export const signUp = handleCatchErrorAsync(async (req, res) => {
-  const { body } = req;
+  // Cast único del body validado por Joi (SignUpSchema)
+  const body = req.body as SignUpInput;
   const user = await authService.signUp(body);
   globalResponse(res, 201, user);
 });
@@ -35,7 +37,8 @@ export const signUp = handleCatchErrorAsync(async (req, res) => {
  * @returns {Promise<void>} Authenticates user and returns user data with security tokens
  */
 export const signIn = handleCatchErrorAsync(async (req, res) => {
-  const body = req.body;
+  // Cast único del body validado por Joi (SignInSchema)
+  const body = req.body as SignInInput;
   const user = await authService.signIn(body, req);
   // Creates Secure Cookie with refresh token
   res.cookie('jwt', user.refreshToken, {
@@ -85,7 +88,8 @@ export const session = handleCatchErrorAsync(async (req, res) => {
  * @returns {Promise<void>} Returns new access token and updates refresh token cookie
  */
 export const refreshToken = handleCatchErrorAsync(async (req, res) => {
-  const cookies = req.cookies;
+  // Cast único de las cookies leídas por cookie-parser (guard: `jwt`)
+  const cookies = req.cookies as AuthCookies;
   const data = await authService.refreshToken(cookies, req);
   // Creates Secure Cookie with refresh token
   res.cookie('jwt', data.refreshToken, {
@@ -120,7 +124,8 @@ export const refreshToken = handleCatchErrorAsync(async (req, res) => {
  */
 export const logOut = handleCatchErrorAsync(async (req, res) => {
   // Clear the refresh token cookie
-  const cookies = req.cookies;
+  // Cast único de las cookies leídas por cookie-parser (guard: `jwt`)
+  const cookies = req.cookies as AuthCookies;
   // revoke refresh token
   await authService.logout(cookies);
   res.cookie('jwt', '', {

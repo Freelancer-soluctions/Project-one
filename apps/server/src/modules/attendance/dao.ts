@@ -1,4 +1,12 @@
 import { prisma, Prisma } from '../../config/db.js';
+import type {
+  Attendance,
+  AttendanceDaoFilters,
+  AttendanceListRow,
+  AttendanceServiceResult,
+  CreateAttendanceData,
+  UpdateAttendanceData,
+} from './types.js';
 
 /**
  * Get all attendance records with optional filters.
@@ -13,15 +21,10 @@ import { prisma, Prisma } from '../../config/db.js';
  * @returns {Promise<Object>} Object containing dataList and total count.
  */
 export const getAllAttendance = async (
-  filters: {
-    employeeId?: number;
-    date?: Date;
-    fromDate?: Date;
-    toDate?: Date;
-  } = {},
+  filters: AttendanceDaoFilters = {},
   take: number,
   skip: number
-) => {
+): Promise<AttendanceServiceResult> => {
   console.log('filters', filters);
   const whereClauses = [];
 
@@ -48,7 +51,7 @@ export const getAllAttendance = async (
   console.log('whereClauses:', whereClauses);
   console.log('whereSql:', whereSql);
   console.log('take:', take, 'skip:', skip);
-  const attendance = await prisma.$queryRaw`
+  const attendance = await prisma.$queryRaw<AttendanceListRow[]>`
   SELECT 
      a.*,
      e.name AS "employeeName",
@@ -98,15 +101,9 @@ export const getAllAttendance = async (
  * @param {number} data.createdBy - User ID who created the attendance record.
  * @returns {Promise<Object>} Created attendance record with related data.
  */
-export const createAttendance = async (data: {
-  employeeId: number;
-  date: Date;
-  entryTime: string;
-  exitTime: string;
-  workedHours: number;
-  createdBy: number;
-  createdOn?: Date;
-}) => {
+export const createAttendance = async (
+  data: CreateAttendanceData
+): Promise<Attendance> => {
   return prisma.attendance.create({
     data: {
       date: data.date,
@@ -144,16 +141,8 @@ export const createAttendance = async (data: {
  */
 export const updateAttendanceById = async (
   id: number,
-  data: {
-    employeeId?: number;
-    date?: Date;
-    entryTime?: string;
-    exitTime?: string;
-    workedHours?: number;
-    updatedOn?: Date;
-    updatedBy?: number;
-  }
-) => {
+  data: UpdateAttendanceData
+): Promise<Attendance> => {
   const updateData: Prisma.attendanceUpdateInput = {};
 
   // Scalar fields
@@ -201,7 +190,7 @@ export const updateAttendanceById = async (
  * @param {number} id - Attendance ID.
  * @returns {Promise<Object>} Deleted attendance record.
  */
-export const deleteAttendanceById = async (id: number) => {
+export const deleteAttendanceById = async (id: number): Promise<Attendance> => {
   return prisma.attendance.delete({
     where: { id },
   });

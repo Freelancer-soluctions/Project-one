@@ -6,6 +6,11 @@ import {
 } from './service.js';
 import handleCatchErrorAsync from '../../utils/responses&Errors/handleCatchErrorAsync.js';
 import globalResponse from '../../utils/responses&Errors/globalResponse.js';
+import type {
+  AttendanceFilters,
+  CreateAttendanceInput,
+  UpdateAttendanceInput,
+} from './types.js';
 
 /**
  * Get all attendance records with optional filters.
@@ -22,7 +27,9 @@ import globalResponse from '../../utils/responses&Errors/globalResponse.js';
  * @returns {Promise<void>} Returns paginated list of attendance records
  */
 export const getAllAttendance = handleCatchErrorAsync(async (req, res) => {
-  const attendance = await getAllAttendanceService(req.safeQuery);
+  // Cast único de la query validada por Joi (attendanceFiltersSchema)
+  const filters = req.safeQuery as AttendanceFilters;
+  const attendance = await getAllAttendanceService(filters);
   globalResponse(res, 200, attendance);
 });
 
@@ -42,12 +49,9 @@ export const getAllAttendance = handleCatchErrorAsync(async (req, res) => {
  * @returns {Promise<void>} Creates new attendance record and returns attendance object
  */
 export const createAttendance = handleCatchErrorAsync(async (req, res) => {
-  const attendance = await createAttendanceService(
-    {
-      ...req.body,
-    },
-    req.userId
-  );
+  // Cast único del body validado por Joi (attendanceCreateSchema)
+  const body = req.body as CreateAttendanceInput;
+  const attendance = await createAttendanceService(body, req.userId);
   globalResponse(res, 201, attendance);
 });
 
@@ -84,11 +88,11 @@ export const deleteAttendanceById = handleCatchErrorAsync(async (req, res) => {
  * @returns {Promise<void>} Updates attendance record and returns updated attendance object
  */
 export const patchAttendanceById = handleCatchErrorAsync(async (req, res) => {
+  // Cast único del body validado por Joi (attendanceUpdateSchema)
+  const body = req.body as UpdateAttendanceInput;
   const attendance = await patchAttendanceByIdService(
     req.params.id,
-    {
-      ...req.body,
-    },
+    body,
     req.userId
   );
   globalResponse(res, 200, attendance);

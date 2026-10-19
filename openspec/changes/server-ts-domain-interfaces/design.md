@@ -4,21 +4,24 @@
 
 ## Decisión 1 — `types.ts` autocontenido: estructura canónica
 
-Cada módulo recibe `src/modules/<modulo>/types.ts` con EXACTAMENTE estas secciones (en orden):
+Cada módulo recibe `src/modules/<modulo>/types.ts` con estas secciones (en orden). **Precedencia (enmendado tras validar el patrón en settings, 2026-10-18):** el shape de `ServiceResult` ESPEJA la respuesta real existente del módulo — la regla zero-behavior-change prima sobre la uniformidad de la plantilla; y los Inputs de API (body Joi) se separan de los payloads de persistencia del dao (`Data`) cuando el módulo los distingue:
 
 ```ts
 // 1. Entidad — shape de fila, derivado de Prisma (fuente de verdad del schema)
 export type <Entity> = Prisma.<Model>GetPayload<object>;
 
-// 2. Inputs de escritura — lo que el service RECIBE (no Prisma.CreateInput crudo)
+// 2. Inputs de escritura — lo que el service RECIBE (contrato de API, escrito a mano)
 export interface Create<Entity>Input { /* campos del body validado por Joi */ }
 export interface Update<Entity>Input extends Partial<Create<Entity>Input> {}
+// (si el dao necesita un payload de persistencia distinto del body:
+//  <Entity><Layer>Data — p.ej. SettingLanguageData con createdOn/updatedOn)
 
 // 3. Query/filtros — lo que controller extrae de req.query
 export interface <Entity>Filters { page?: number; limit?: number; searchQuery?: string; /* ... */ }
 
-// 4. Resultados de service — las fronteras públicas
-export interface <Entity>ServiceResult { data: <Entity>[]; total: number; page: number; pageSize: number; }
+// 4. Resultados de service — ESPEJAN la respuesta real del módulo
+//    (settings: { dataList, total } — NO forzar { data, total, page, pageSize })
+export interface <Entity>ServiceResult { /* shape real del módulo */ }
 ```
 
 Reglas: (a) `<Entity>` se DERIVA de Prisma (`GetPayload`) — nunca duplicado a mano (si el schema cambia, el tipo cambia solo); (b) los Inputs son interfaces ESCRITAS a mano (contrato de API, no derivado — el Joi valida en runtime, la interfaz documenta); (c) nada de tipos de OTROS módulos.
@@ -47,4 +50,4 @@ Mismo orden de F2: settings (patrón de referencia — CRUD puro) → attendance
 
 ## Decisión 6 — Cierre y métrica
 
-Cierre: 24/24 módulos con `types.ts` (verifiable: `ls apps/server/src/modules/*/types.ts | wc -l` ≥ 24 con attendee), 0 `any` nuevos, gates verdes, contador en `docs/CONTEXT-CICD.md` §12.2 ("24/24 módulos con contratos de dominio"), `validate --strict` PASS.
+**Inventario real (verificado por @planner 2026-10-18): 23 módulos** — 22 directorios en `src/modules/` + submódulo `events/attendee`. Cierre: `find apps/server/src/modules -name types.ts | wc -l` ≥ 23 (el glob `*/types.ts` NO incluye attendee), 0 `any` nuevos, gates verdes, contador en `docs/CONTEXT-CICD.md` §12.2 ("23/23 módulos con contratos de dominio"), `validate --strict` PASS. Excepción: `security` (solo routes) recibe types mínimos de su superficie — no Entity/Inputs/Filters completos.

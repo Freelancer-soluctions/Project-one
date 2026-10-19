@@ -1,5 +1,21 @@
 import { prisma, Prisma } from '../../config/db.js';
 import { decryptResults } from '../../utils/prisma/prisma-query.js';
+import type {
+  PermissionOption,
+  Role,
+  UpdateUserInput,
+  User,
+  UserCreateData,
+  UserDaoFilters,
+  UserListRow,
+  UserPermitsResult,
+  UserServiceResult,
+  UserStatusOption,
+  UserStatusRow,
+  UserWithDetails,
+  UserWithRoleAndPermits,
+  UserWithRoles,
+} from './types.js';
 
 /**
  * Get all users with optional filters
@@ -11,14 +27,10 @@ import { decryptResults } from '../../utils/prisma/prisma-query.js';
  * @returns {Promise<Array>} List of users with their related data
  */
 export const getAllUsers = async (
-  filters: {
-    name?: string;
-    email?: string;
-    status?: string;
-  } = {},
+  filters: UserDaoFilters = {},
   take: number,
   skip: number
-) => {
+): Promise<UserServiceResult> => {
   const whereClauses = [];
 
   if (filters.name) {
@@ -39,7 +51,7 @@ export const getAllUsers = async (
     ? Prisma.sql`WHERE ${Prisma.join(whereClauses, ' AND ')}`
     : Prisma.empty;
 
-  const users = await prisma.$queryRaw`
+  const users = await prisma.$queryRaw<UserListRow[]>`
    SELECT 
       u.*,
       uu.name AS "lastUpdatedByName",
@@ -95,7 +107,9 @@ export const getAllUsers = async (
  * @param {number} id - User ID.
  * @returns {Promise<Object|null>} User object with role and permissions or null if not found.
  */
-export const getUserRoleByUserId = async (id) => {
+export const getUserRoleByUserId = async (
+  id: number
+): Promise<UserWithRoleAndPermits | null> => {
   const user = await prisma.users.findUnique({
     where: {
       id,
@@ -119,7 +133,9 @@ export const getUserRoleByUserId = async (id) => {
  * @param {string} status - Status code to filter users by.
  * @returns {Promise<Array>} Array of user objects containing id and name.
  */
-export const getUsersByStatus = async (status) => {
+export const getUsersByStatus = async (
+  status: string
+): Promise<UserStatusOption[]> => {
   return prisma.users.findMany({
     where: {
       userStatus: {
@@ -140,8 +156,10 @@ export const getUsersByStatus = async (status) => {
  * @returns {Promise<Object>} Object containing allPermissions and user data.
  */
 
-export const getAllUserPermits = async (id) => {
-  const allPermissions = await prisma.permissions.findMany({
+export const getAllUserPermits = async (
+  id: number
+): Promise<UserPermitsResult> => {
+  const allPermissions: PermissionOption[] = await prisma.permissions.findMany({
     select: {
       id: true,
       description: true,
@@ -165,7 +183,7 @@ export const getAllUserPermits = async (id) => {
  * @returns {Promise<Array>} A list of users statuses.
  */
 
-export const getAllUsersStatus = async () => {
+export const getAllUsersStatus = async (): Promise<UserStatusRow[]> => {
   const status = await prisma.userStatus.findMany();
   return Promise.resolve(status);
 };
@@ -176,7 +194,7 @@ export const getAllUsersStatus = async () => {
  * @returns {Promise<Array>} A list of users roles.
  */
 
-export const getAllUsersRoles = async () => {
+export const getAllUsersRoles = async (): Promise<Role[]> => {
   const roles = await prisma.roles.findMany();
   return Promise.resolve(roles);
 };
@@ -210,7 +228,9 @@ export const getAllUsersRoles = async () => {
  * y `refreshTokens` la relación con el modelo `refreshToken`), por lo que Prisma rechazaba la
  * llamada completa con `Unknown argument`. Se restaura así la creación de usuarios.
  */
-export const createUser = async (data: Prisma.usersUncheckedCreateInput) => {
+export const createUser = async (
+  data: UserCreateData
+): Promise<UserWithDetails> => {
   return prisma.users.create({
     data: {
       name: data.name,
@@ -276,7 +296,7 @@ export const createUser = async (data: Prisma.usersUncheckedCreateInput) => {
  * @param {Object} data - Patch payload from the service layer.
  * @returns {Object} Scalar fields for prisma.users.update.
  */
-const buildUserScalarFields = (data) => ({
+const buildUserScalarFields = (data: UpdateUserInput) => ({
   ...(data.name !== undefined && { name: data.name }),
   ...(data.email !== undefined && { email: data.email }),
   ...(data.address !== undefined && { address: data.address }),
@@ -305,7 +325,7 @@ const buildUserScalarFields = (data) => ({
  * @param {Object} data - Patch payload from the service layer.
  * @returns {Object} Relation fields for prisma.users.update.
  */
-const buildUserRelationFields = (data) => ({
+const buildUserRelationFields = (data: UpdateUserInput) => ({
   ...(data.statusId !== undefined && {
     userStatus: {
       connect: { id: data.statusId },
@@ -321,16 +341,19 @@ const buildUserRelationFields = (data) => ({
       deleteMany: {},
       ...(data.permissions.length > 0 && {
         create: data.permissions.map((permissionId) => ({
-          permissions: { connect: { id: parseInt(permissionId, 10) } },
+          permissions: { connect: { id: parseInt(String(permissionId), 10) } },
         })),
       }),
     },
   }),
 });
 
-export const updateUserById = async (id, data) => {
+export const updateUserById = async (
+  id: string | number,
+  data: UpdateUserInput
+): Promise<User> => {
   return prisma.users.update({
-    where: { id: parseInt(id, 10) },
+    where: { id: parseInt(String(id), 10) },
     data: {
       // Scalar fields — only include if provided (PATCH partial)
       ...buildUserScalarFields(data),
@@ -346,9 +369,9 @@ export const updateUserById = async (id, data) => {
  * @param {number} id - The ID of the user to delete.
  * @returns {Promise<Object>} The deleted user object.
  */
-export const deleteUserById = async (id) => {
+export const deleteUserById = async (id: string | number): Promise<User> => {
   return prisma.users.delete({
-    where: { id: parseInt(id, 10) },
+    where: { id: parseInt(String(id), 10) },
   });
 };
 
@@ -359,7 +382,9 @@ export const deleteUserById = async (id) => {
  * @param {string} email - The email of the user to retrieve.
  * @returns {Promise<Object|null>} The user object or null if not found.
  */
-export const getUserByEmail = async (email: string) => {
+export const getUserByEmail = async (
+  email: string
+): Promise<UserWithDetails | null> => {
   return prisma.users.findUnique({
     where: { email },
     include: {
@@ -377,7 +402,9 @@ export const getUserByEmail = async (email: string) => {
  * @param {string} email - The email to check.
  * @returns {Promise<Object>} User object if registered, empty object if not.
  */
-export const getUserRegisteredByEmail = async (email: string) => {
+export const getUserRegisteredByEmail = async (
+  email: string
+): Promise<UserWithRoles | Record<string, never>> => {
   const userExist = await prisma.users.findUnique({
     where: {
       email,
@@ -396,7 +423,7 @@ export const getUserRegisteredByEmail = async (email: string) => {
  * @param {string} code - Role code (e.g., 'ADMIN', 'USER').
  * @returns {Promise<Object|null>} User role object or null if not found.
  */
-export const getUserRoleByCode = async (code) => {
+export const getUserRoleByCode = async (code: string): Promise<Role | null> => {
   const rolUser = await prisma.roles.findUnique({
     where: {
       code,

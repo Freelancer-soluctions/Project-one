@@ -10,6 +10,20 @@ import {
   getAllUserPermits as getAllUserPermitsDao,
   getUsersByStatus as getUsersByStatusDao,
 } from './dao.js';
+import type {
+  CreateUserInput,
+  PermissionWithAssignment,
+  Role,
+  UpdateUserInput,
+  User,
+  UserCreateData,
+  UserFilters,
+  UserSelectOption,
+  UserServiceResult,
+  UserStatusRow,
+  UserWithDetails,
+  UserWithRoleAndPermits,
+} from './types.js';
 import { getSafePagination } from '../../utils/pagination/pagination.js';
 
 /**
@@ -23,7 +37,9 @@ import { getSafePagination } from '../../utils/pagination/pagination.js';
  * @returns {Promise<Object>} Paginated list of users with metadata.
  * @throws {Error} When pagination parameters are missing or invalid.
  */
-export const getAllUsers = async (filters) => {
+export const getAllUsers = async (
+  filters: UserFilters
+): Promise<UserServiceResult> => {
   const { take, skip } = getSafePagination({
     page: filters.page,
     limit: filters.limit,
@@ -41,7 +57,9 @@ export const getAllUsers = async (filters) => {
  * @param {string} status - Status code to filter users by.
  * @returns {Promise<Array>} Array of user objects containing id and name.
  */
-export const getUsersByStatus = async (status) => {
+export const getUsersByStatus = async (
+  status: string
+): Promise<UserSelectOption[]> => {
   const data = await getUsersByStatusDao(status);
   // Transform the data to map 'name' field to 'label' field to align with frontend expectations
   return data.map((item) => ({
@@ -56,7 +74,9 @@ export const getUsersByStatus = async (status) => {
  * @param {number} id - User ID.
  * @returns {Promise<Array>} List of permissions with assignment status.
  */
-export const getAllUserPermits = async (id) => {
+export const getAllUserPermits = async (
+  id: number | string
+): Promise<PermissionWithAssignment[]> => {
   const { allPermissions, user } = await getAllUserPermitsDao(Number(id));
 
   const userPermits = user?.permits || [];
@@ -76,7 +96,7 @@ export const getAllUserPermits = async (id) => {
  * @returns {Promise<Array>} A list of all user statuses.
  */
 
-export const getAllUsersStatus = async () => {
+export const getAllUsersStatus = async (): Promise<UserStatusRow[]> => {
   const data = await getAllUserStatusDao();
   return data;
 };
@@ -87,7 +107,7 @@ export const getAllUsersStatus = async () => {
  * @returns {Promise<Array>} A list of all user roles.
  */
 
-export const getAllUsersRoles = async () => {
+export const getAllUsersRoles = async (): Promise<Role[]> => {
   const data = await getAllUserRolesDao();
   return data;
 };
@@ -103,12 +123,17 @@ export const getAllUsersRoles = async () => {
  * @param {number} data.lastUpdatedBy - User ID who last updated the record.
  * @returns {Promise<Object>} Created user.
  */
-export const createUser = async (data) => {
+export const createUser = async (
+  data: CreateUserInput
+): Promise<UserWithDetails> => {
   const userData = {
     ...data,
     lastUpdatedOn: new Date(),
   };
-  return createDao(userData);
+  // Cast único hacia el payload de persistencia: el dao usa el input unchecked
+  // de Prisma, que exige `password` mientras `userCreateSchema` aún no lo valida
+  // (gap preexistente de POST /users; el runtime no cambia).
+  return createDao(userData as UserCreateData);
 };
 
 /**
@@ -118,7 +143,10 @@ export const createUser = async (data) => {
  * @param {Object} data - Partial user data to update.
  * @returns {Promise<Object>} Updated user.
  */
-export const patchUserById = async (id, data) => {
+export const patchUserById = async (
+  id: number | string,
+  data: UpdateUserInput
+): Promise<User> => {
   const userData = {
     ...data,
     lastUpdatedBy: Number(id),
@@ -133,7 +161,7 @@ export const patchUserById = async (id, data) => {
  * @param {number} id - User ID.
  * @returns {Promise<Object>} Deleted user.
  */
-export const deleteUserById = async (id) => {
+export const deleteUserById = async (id: number | string): Promise<User> => {
   return deleteDao(Number(id));
 };
 
@@ -143,7 +171,7 @@ export const deleteUserById = async (id) => {
  * @param {string} code - Role code (e.g., 'ADMIN', 'USER').
  * @returns {Promise<Object>} User role object.
  */
-export const getUserRoleByCode = async (code) => {
+export const getUserRoleByCode = async (code: string): Promise<Role | null> => {
   return getUserRoleByCodeDao(code);
 };
 
@@ -153,6 +181,8 @@ export const getUserRoleByCode = async (code) => {
  * @param {number} userId - User ID.
  * @returns {Promise<Object>} User role object.
  */
-export const getUserRoleByUserId = async (userId) => {
+export const getUserRoleByUserId = async (
+  userId: number | string
+): Promise<UserWithRoleAndPermits | null> => {
   return getUserRoleByUserIdDao(Number(userId));
 };

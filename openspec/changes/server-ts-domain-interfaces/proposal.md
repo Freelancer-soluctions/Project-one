@@ -4,7 +4,7 @@
 
 ## Why
 
-La migración total convirtió 235 archivos a `.ts` pero el tipado resultante es **inferido**: los dao/service devuelven `Prisma.<Model>GetPayload`/`Awaited<ReturnType<...>>` sin contratos de dominio explícitos. Verificado (2026-10-18): solo **11 `export interface/type`** en todo `src/` — 0 en los 24 módulos. Consecuencias:
+La migración total convirtió 235 archivos a `.ts` pero el tipado resultante es **inferido**: los dao/service devuelven `Prisma.<Model>GetPayload`/`Awaited<ReturnType<...>>` sin contratos de dominio explícitos. Verificado (2026-10-18): solo **11 `export interface/type`** en todo `src/` — 0 en los 23 módulos. Consecuencias:
 
 1. **Contratos invisibles**: un cambio de schema de Prisma rompe service/controller en runtime silenciosamente — con interfaces de dominio el compilador lo detecta.
 2. **Duplicación de shapes**: cada función re-declara inline su objeto de entrada (params type literals) — mantenimiento triple.
@@ -29,11 +29,11 @@ El principio **autocontenido** (decisión del usuario, 2026-10-18): las interfac
 
 ## Impact
 
-| File                                                       | Change                                                       |
-| ---------------------------------------------------------- | ------------------------------------------------------------ |
-| `src/modules/*/types.ts` (24 nuevos)                       | contrato de dominio del módulo                               |
-| `src/modules/*/dao.ts`, `service.ts`, `controller.ts` (72) | imports de `./types.js` reemplazan type-literals inline      |
-| `.dependency-cruiser.cjs` (raíz)                           | opcional: regla `module-isolation` (tipos no cruzan módulos) |
-| `docs/CONTEXT-CICD.md` §12.2                               | nota de contratos (24/24 módulos con types.ts)               |
+| File                                                             | Change                                                       |
+| ---------------------------------------------------------------- | ------------------------------------------------------------ |
+| `src/modules/*/types.ts` (23 nuevos — 22 dirs + events/attendee) | contrato de dominio del módulo                               |
+| `src/modules/*/dao.ts`, `service.ts`, `controller.ts` (72)       | imports de `./types.js` reemplazan type-literals inline      |
+| `.dependency-cruiser.cjs` (raíz)                                 | opcional: regla `module-isolation` (tipos no cruzan módulos) |
+| `docs/CONTEXT-CICD.md` §12.2                                     | nota de contratos (24/23 módulos con types.ts)               |
 
 **Riesgos**: (1) desalineación Entity↔Prisma schema — mitigada con `satisfies Prisma.<Model>GetPayload<{select: ...}>`-checks o derivación `Prisma.<Model>GetPayload`; (2) churn masivo de imports — mitigado por lote con gates; (3) tentación de `any` en gaps del schema — prohibido por protocolo del padre.

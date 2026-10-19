@@ -1,6 +1,7 @@
 import globalResponse from '../../utils/responses&Errors/globalResponse.js';
 import handleCatchErrorAsync from '../../utils/responses&Errors/handleCatchErrorAsync.js';
 import * as newsService from './service.js';
+import type { CreateNewsInput, NewsFilters, UpdateNewsInput } from './types.js';
 
 /**
  * Get all news with optional filters.
@@ -17,7 +18,8 @@ import * as newsService from './service.js';
  * @returns {Promise<void>} Returns paginated list of news items
  */
 export const getAllNews = handleCatchErrorAsync(async (req, res) => {
-  const queryParams = req.safeQuery;
+  // Cast único de la query validada por Joi (NewsFilters)
+  const queryParams = req.safeQuery as NewsFilters;
   const items = await newsService.getAllNews(queryParams);
   globalResponse(res, 200, items);
 });
@@ -37,7 +39,8 @@ export const getAllNews = handleCatchErrorAsync(async (req, res) => {
  */
 export const createNew = handleCatchErrorAsync(async (req, res) => {
   const userId = req.userId; // viene del token cambiar al body
-  const { body } = req;
+  // Cast único del body validado por Joi (NewsCreateSchema)
+  const body = req.body as CreateNewsInput;
   await newsService.createNew(userId, body);
   globalResponse(res, 201, { message: 'Item created successfully' });
 });
@@ -60,7 +63,8 @@ export const createNew = handleCatchErrorAsync(async (req, res) => {
 export const updateById = handleCatchErrorAsync(async (req, res) => {
   const userId = req.userId;
   const { id } = req.params;
-  const { body } = req;
+  // Cast único del body validado por Joi (NewsUpdate)
+  const body = req.body as UpdateNewsInput;
   await newsService.updateById(userId, id, body);
   globalResponse(res, 200, { message: 'Item updated successfully' });
 });

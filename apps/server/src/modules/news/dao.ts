@@ -1,6 +1,15 @@
 import * as prismaService from '../../utils/prisma/dao.js';
 import { TABLESNAMES } from '../../utils/constants/enums.js';
 import { prisma } from '../../config/db.js';
+import type { Prisma } from '@prisma/client';
+import type {
+  CreateNewsData,
+  News,
+  NewsFilters,
+  NewsServiceResult,
+  NewsStatus,
+  UpdateNewsData,
+} from './types.js';
 
 const tableName = TABLESNAMES.NEWS;
 
@@ -16,13 +25,13 @@ const tableName = TABLESNAMES.NEWS;
  * @returns {Promise<Object>} Object containing dataList and total count.
  */
 export const getAllNews = async (
-  description,
-  fromDate,
-  toDate,
-  statusCode,
-  take,
-  skip
-) => {
+  description: string | undefined,
+  fromDate: Date | undefined,
+  toDate: Date | undefined,
+  statusCode: string | undefined,
+  take: number,
+  skip: number
+): Promise<NewsServiceResult> => {
   const where = buildNewsWhere({ description, fromDate, toDate, statusCode });
   const news = await prisma.news.findMany({
     where,
@@ -66,7 +75,12 @@ export const getAllNews = async (
  * @param {string} [p.statusCode] - Status code to filter by.
  * @returns {Object} Prisma WHERE object.
  */
-const buildNewsWhere = ({ description, fromDate, toDate, statusCode }) => ({
+const buildNewsWhere = ({
+  description,
+  fromDate,
+  toDate,
+  statusCode,
+}: NewsFilters): Prisma.newsWhereInput => ({
   ...(description
     ? {
         AND: [
@@ -106,7 +120,7 @@ const buildNewsWhere = ({ description, fromDate, toDate, statusCode }) => ({
  *
  * @returns {Promise<Array>} A list of all possible news statuses.
  */
-export const getAllNewsStatus = async () => {
+export const getAllNewsStatus = async (): Promise<NewsStatus[]> => {
   // const statusId = 1
   const news = await prisma.newsStatus.findMany({
     // include: {
@@ -130,7 +144,7 @@ export const getAllNewsStatus = async () => {
  * @param {Date} [data.pendingOn] - Optional timestamp when the news was marked as pending.
  * @returns {Promise<Object>} The newly created news entry.
  */
-export const createNew = async (data) => {
+export const createNew = async (data: CreateNewsData): Promise<News> => {
   const result = await prisma.news.create({
     data: {
       description: data.description,
@@ -176,7 +190,10 @@ export const createNew = async (data) => {
  * @param {Object} where - The conditions to identify the news entry to update.
  * @returns {Promise<Object>} The updated news entry.
  */
-export const updateRow = async (data, where) => {
+export const updateRow = async (
+  data: UpdateNewsData,
+  where: Prisma.newsWhereUniqueInput
+): Promise<News> => {
   const result = await prisma.news.update({
     where,
     data: {
@@ -217,5 +234,6 @@ export const updateRow = async (data, where) => {
  * @param {Object} where - The conditions to identify the news entry to delete.
  * @returns {Promise<Object>} The deleted news entry.
  */
-export const deleteRow = async (where) =>
-  prismaService.deleteRow(tableName, where);
+export const deleteRow = async (
+  where: Prisma.newsWhereUniqueInput
+): Promise<News> => prismaService.deleteRow(tableName, where);

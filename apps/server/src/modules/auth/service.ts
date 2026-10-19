@@ -13,6 +13,17 @@ import {
   validatePasswordStrength,
 } from '../../utils/bcrypt/encrypt.js';
 import logger from '../../logger/index.js';
+import type { Request } from 'express';
+import type {
+  AuthCookies,
+  AuthTokenPayload,
+  RefreshTokenResult,
+  SessionResult,
+  SignInInput,
+  SignInResult,
+  SignUpInput,
+  SignUpResult,
+} from './types.js';
 // import jwt from 'jsonwebtoken'
 // import dontenv from '../../config/dotenv.js'
 
@@ -28,7 +39,7 @@ import logger from '../../logger/index.js';
  * @throws {ClientError} When password is too weak (400)
  * @throws {ClientError} When email is already registered (400)
  */
-export const signUp = async (user) => {
+export const signUp = async (user: SignUpInput): Promise<SignUpResult> => {
   // get the user role id
   const role = await getUserRoleByCode(ROLESCODES.USER);
   user.roleId = role?.id;
@@ -41,7 +52,10 @@ export const signUp = async (user) => {
     );
   }
   // encryt password
-  user.password = encryptPassword(user.password);
+  // Cast controlado: `encryptPassword` es async y el valor que sigue viajando al
+  // dao es la promesa (comportamiento actual de la ruta; convertirlo en `await`
+  // sería un bugfix fuera del alcance de este change type-only).
+  user.password = encryptPassword(user.password) as unknown as string;
   // verify if the email is already registered
   const emailExists = await getUserRegisteredByEmail(user.email);
   if (Object.keys(emailExists).length) {
@@ -49,7 +63,8 @@ export const signUp = async (user) => {
   }
   const userSaved = await authDao.signUp(user);
   // create the token
-  const token = await createToken({ id: userSaved.id, rol: { ...role } });
+  const payload: AuthTokenPayload = { id: userSaved.id, rol: { ...role } };
+  const token = await createToken(payload);
   return {
     accessToken: token,
     user: {
@@ -74,7 +89,10 @@ export const signUp = async (user) => {
  * @throws {ClientError} When email is not registered (400)
  * @throws {ClientError} When password is invalid (400)
  */
-export const signIn = async (user, req) => {
+export const signIn = async (
+  user: SignInInput,
+  req: Request
+): Promise<SignInResult> => {
   const { email, password } = user;
 
   // verify if the user is already registered
@@ -90,11 +108,13 @@ export const signIn = async (user, req) => {
     throw new ClientError('Contrase�a invalida.', 400);
   }
   // create the token
-  const token = await createToken({
+  const payload: AuthTokenPayload = {
     id: userExists.id,
     rol: { ...userExists.roles },
-  });
-  const refreshToken = await createRefreshTokenOpaque();
+  };
+  const token = await createToken(payload);
+  // `createRefreshTokenOpaque` aún resuelve `unknown` (util de F3): cast controlado
+  const refreshToken = (await createRefreshTokenOpaque()) as string;
   // save the user refresh token
   await authDao.storeRefreshToken({
     token: refreshToken,
@@ -103,7 +123,8 @@ export const signIn = async (user, req) => {
   });
 
   // create csrf token
-  const csrfToken = await createCsrfToken();
+  // `createCsrfToken` aún resuelve `unknown` (util de F3): cast controlado
+  const csrfToken = (await createCsrfToken()) as string;
   // Log de login exitoso
   logger.info('? LOGIN EXITOSO', {
     userId: userExists.id,
@@ -133,7 +154,7 @@ export const signIn = async (user, req) => {
  * @throws {ClientError} When user is not found (400)
  */
 
-export const session = async (id) => {
+export const session = async (id: number): Promise<SessionResult> => {
   const session = await authDao.session(id);
   if (!session) {
     throw new ClientError('No se ha encontrado al usuario', 400);
@@ -157,7 +178,10 @@ export const session = async (id) => {
  * @throws {ClientError} When refresh token reuse is detected (403)
  */
 
-export const refreshToken = async (cookies, req) => {
+export const refreshToken = async (
+  cookies: AuthCookies | undefined,
+  req: Request
+): Promise<RefreshTokenResult> => {
   const refreshCookie = cookies?.jwt;
   if (!refreshCookie) {
     // ?? LOGGING: Intento sin refresh token
@@ -190,16 +214,19 @@ export const refreshToken = async (cookies, req) => {
 
   // rotar
   await authDao.revokeRefreshToken(stored.id); // invalidar el antiguo
-  const newRefresh = await createRefreshTokenOpaque();
+  // `createRefreshTokenOpaque` aún resuelve `unknown` (util de F3): cast controlado
+  const newRefresh = (await createRefreshTokenOpaque()) as string;
   await authDao.storeRefreshToken({
     token: newRefresh,
     userId: stored.userId,
     issuedAt: Date.now(),
   });
 
-  const accessToken = await createToken({ id: stored.userId });
+  const refreshPayload: AuthTokenPayload = { id: stored.userId };
+  const accessToken = await createToken(refreshPayload);
   // renovar csrf token tambi�n
-  const csrfToken = await createCsrfToken();
+  // `createCsrfToken` aún resuelve `unknown` (util de F3): cast controlado
+  const csrfToken = (await createCsrfToken()) as string;
 
   return { accessToken, csrfToken, refreshToken: newRefresh };
 };
@@ -232,7 +259,9 @@ export const refreshToken = async (cookies, req) => {
  * @returns {Promise<boolean>} True when logout is successful
  */
 
-export const logout = async (cookies) => {
+export const logout = async (
+  cookies: AuthCookies | undefined
+): Promise<boolean> => {
   // ? Revocar token en BD si existe
   const refreshCookie = cookies?.jwt;
 

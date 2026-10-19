@@ -6,6 +6,14 @@ import * as newsDao from './dao.js';
 // } from '../../utils/cloudinary/cloudinary.js';
 import { NEWSSTATUSCODE } from '../../utils/constants/enums.js';
 import { getSafePagination } from '../../utils/pagination/pagination.js';
+import type {
+  CreateNewsInput,
+  News,
+  NewsFilters,
+  NewsServiceResult,
+  NewsStatus,
+  UpdateNewsInput,
+} from './types.js';
 
 /**
  * Retrieves all news from the database with optional filters.
@@ -27,7 +35,7 @@ export const getAllNews = async ({
   statusCode,
   page,
   limit,
-}) => {
+}: NewsFilters): Promise<NewsServiceResult> => {
   const { take, skip } = getSafePagination({ page, limit });
 
   if (!take || take <= 0) {
@@ -53,7 +61,10 @@ export const getAllNews = async ({
  * @param {string} data.statusCode - The status code of the news item.
  * @returns {Promise<Object>} The created news item.
  */
-export const createNew = async (userId, data) => {
+export const createNew = async (
+  userId: number,
+  data: CreateNewsInput
+): Promise<News> => {
   const createData = {
     description: data.description,
     statusId: Number(data.statusId),
@@ -86,7 +97,11 @@ export const createNew = async (userId, data) => {
  * @param {string} [data.statusCode] - The status code of the news item.
  * @returns {Promise<Object>} The updated news item.
  */
-export const updateById = async (userId, newId, data) => {
+export const updateById = async (
+  userId: number,
+  newId: number,
+  data: UpdateNewsInput
+): Promise<News> => {
   const rowId = Number(newId);
 
   if (data.statusCode === NEWSSTATUSCODE.CLOSED) {
@@ -121,7 +136,7 @@ export const updateById = async (userId, newId, data) => {
  * @param {number} id - The ID of the news item to delete.
  * @returns {Promise<Object>} The result of the deletion.
  */
-export const deleteById = async (id) => {
+export const deleteById = async (id: number): Promise<News> => {
   const rowId = Number(id);
   // const { documentId } = await getOneById(rowId)
 
@@ -137,7 +152,7 @@ export const deleteById = async (id) => {
  *
  * @returns {Promise<Array>} A list of all news statuses.
  */
-export const getAllNewsStatus = async () => {
+export const getAllNewsStatus = async (): Promise<NewsStatus[]> => {
   const data = await newsDao.getAllNewsStatus();
   return data;
 };
