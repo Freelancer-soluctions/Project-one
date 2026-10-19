@@ -8,6 +8,17 @@ import {
   deleteProductCategory as deleteProductCategoryByIdDao,
   patchSettingsById as patchSettingsByIdDao,
 } from './dao.js';
+import type {
+  CreateProductCategoryInput,
+  ProductCategory,
+  ProductCategoryFilters,
+  ProductCategoryServiceResult,
+  Setting,
+  SettingDisplayInput,
+  SettingLanguageInput,
+  UpdateProductCategoryInput,
+  UpdateSettingInput,
+} from './types.js';
 import { getSafePagination } from '../../utils/pagination/pagination.js';
 
 /**
@@ -21,9 +32,9 @@ import { getSafePagination } from '../../utils/pagination/pagination.js';
  * @throws {ClientError} If there is an error during the database operation.
  */
 export const createOrUpdateSettingsLanguage = async (
-  { language, id },
-  userId
-) => {
+  { language, id }: SettingLanguageInput,
+  userId: number
+): Promise<Setting> => {
   const rowId = Number(id);
   const user = Number(userId);
   const timestamp = new Date();
@@ -46,9 +57,9 @@ export const createOrUpdateSettingsLanguage = async (
  * @throws {ClientError} If there is an error during the database operation.
  */
 export const createOrUpdateSettingsDisplay = async (
-  { id, displayOptions },
-  userId
-) => {
+  { id, displayOptions }: SettingDisplayInput,
+  userId: number
+): Promise<Setting> => {
   const rowId = Number(id);
   const user = Number(userId);
   const timestamp = new Date();
@@ -67,7 +78,9 @@ export const createOrUpdateSettingsDisplay = async (
  * @returns {Promise<Object|null>} The settings associated with the given user ID.
  * @throws {ClientError} If there is an error during the database operation.
  */
-export const getSettingsById = async (userId) => {
+export const getSettingsById = async (
+  userId: number
+): Promise<Setting | null> => {
   const rowId = Number(userId);
   return await getSettingsByIdDao(rowId);
 };
@@ -88,7 +101,7 @@ export const getAllProductCategories = async ({
   code,
   limit,
   page,
-}) => {
+}: ProductCategoryFilters): Promise<ProductCategoryServiceResult> => {
   const { take, skip } = getSafePagination({ page, limit });
 
   if (!take || take <= 0) {
@@ -105,7 +118,9 @@ export const getAllProductCategories = async ({
  * @param {string} data.description - The description of the category.
  * @returns {Promise<Object>} The created category.
  */
-export const createProductCategory = async (data) => {
+export const createProductCategory = async (
+  data: CreateProductCategoryInput
+): Promise<ProductCategory> => {
   console.log('data', data);
   const createData = {
     code: data.code,
@@ -125,7 +140,10 @@ export const createProductCategory = async (data) => {
  * @param {string} [data.code] - The updated code of the category.
  * @returns {Promise<Object>} The updated category.
  */
-export const updateProductCategoryById = async (categoryId, data) => {
+export const updateProductCategoryById = async (
+  categoryId: number,
+  data: UpdateProductCategoryInput
+): Promise<ProductCategory> => {
   const updateData = {
     ...data,
     updatedOn: new Date(),
@@ -140,7 +158,9 @@ export const updateProductCategoryById = async (categoryId, data) => {
  * @param {number} categoryId - The ID of the category to delete.
  * @returns {Promise<Object>} The deleted category.
  */
-export const deleteProductCategoryById = async (categoryId) => {
+export const deleteProductCategoryById = async (
+  categoryId: number
+): Promise<ProductCategory> => {
   return deleteProductCategoryByIdDao({ id: Number(categoryId) });
 };
 
@@ -153,6 +173,9 @@ export const deleteProductCategoryById = async (categoryId) => {
  * @param {Object} [data.displayOptions] - Display options to update.
  * @returns {Promise<Object>} The updated settings.
  */
-export const patchSettingsById = async (settingsId, data) => {
+export const patchSettingsById = async (
+  settingsId: number,
+  data: UpdateSettingInput
+): Promise<Setting> => {
   return await patchSettingsByIdDao(Number(settingsId), data);
 };
