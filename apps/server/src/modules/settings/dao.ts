@@ -1,4 +1,14 @@
 import { prisma } from '../../config/db.js';
+import type { Prisma } from '@prisma/client';
+import type {
+  CreateProductCategoryInput,
+  ProductCategory,
+  ProductCategoryServiceResult,
+  Setting,
+  SettingDisplayData,
+  SettingLanguageData,
+  UpdateProductCategoryInput,
+} from './types.js';
 
 /**
  * Create or update language settings.
@@ -11,7 +21,11 @@ import { prisma } from '../../config/db.js';
  * @param {number} userId - User ID to associate settings with.
  * @returns {Promise<Object>} The created or updated settings object.
  */
-export const createOrUpdateSettingsLanguage = async (id, data, userId) => {
+export const createOrUpdateSettingsLanguage = async (
+  id: number | undefined,
+  data: SettingLanguageData,
+  userId: number
+): Promise<Setting> => {
   if (id) {
     // Actualiza el registro si el id existe
     return await prisma.settings.update({
@@ -45,7 +59,11 @@ export const createOrUpdateSettingsLanguage = async (id, data, userId) => {
  * @param {number} userId - User ID to associate settings with.
  * @returns {Promise<Object>} The created or updated settings object.
  */
-export const createOrUpdateSettingsDisplay = async (id, data, userId) => {
+export const createOrUpdateSettingsDisplay = async (
+  id: number | undefined,
+  data: SettingDisplayData,
+  userId: number
+): Promise<Setting> => {
   if (id) {
     // Actualiza el registro si el id existe
     return await prisma.settings.update({
@@ -73,7 +91,9 @@ export const createOrUpdateSettingsDisplay = async (id, data, userId) => {
  * @param {number} userId - User ID.
  * @returns {Promise<Object|null>} The settings for the specified user, or null if not found.
  */
-export const getSettingsById = async (userId) => {
+export const getSettingsById = async (
+  userId: number
+): Promise<Setting | null> => {
   const result = await prisma.settings.findFirst({
     where: {
       userId,
@@ -92,11 +112,11 @@ export const getSettingsById = async (userId) => {
  * @returns {Promise<Object>} Object containing dataList and total count.
  */
 export const getAllProductCategories = async (
-  description = '',
-  code = '',
-  take,
-  skip
-) => {
+  description: string = '',
+  code: string = '',
+  take: number,
+  skip: number
+): Promise<ProductCategoryServiceResult> => {
   const dataList = await prisma.productCategories.findMany({
     where: {
       description: {
@@ -140,7 +160,9 @@ export const getAllProductCategories = async (
  * @param {string} data.description - The description of the category.
  * @returns {Promise<Object>} The created category.
  */
-export const createProductCategory = async (data) => {
+export const createProductCategory = async (
+  data: CreateProductCategoryInput
+): Promise<ProductCategory> => {
   return prisma.productCategories.create({
     data: {
       code: data.code,
@@ -160,7 +182,10 @@ export const createProductCategory = async (data) => {
  * @param {number} where.id - The ID of the category to update.
  * @returns {Promise<Object>} The updated category.
  */
-export const updateProductCategory = async (data, where) => {
+export const updateProductCategory = async (
+  data: UpdateProductCategoryInput,
+  where: Prisma.productCategoriesWhereUniqueInput
+): Promise<ProductCategory> => {
   return prisma.productCategories.update({
     where,
     data: {
@@ -178,7 +203,9 @@ export const updateProductCategory = async (data, where) => {
  * @param {number} where.id - The ID of the category to delete.
  * @returns {Promise<Object>} The deleted category.
  */
-export const deleteProductCategory = async (where) => {
+export const deleteProductCategory = async (
+  where: Prisma.productCategoriesWhereUniqueInput
+): Promise<ProductCategory> => {
   return prisma.productCategories.delete({
     where,
   });
@@ -193,7 +220,10 @@ export const deleteProductCategory = async (where) => {
  * @param {Object} [data.displayOptions] - Display options to update.
  * @returns {Promise<Object>} The updated settings object.
  */
-export const patchSettingsById = async (id, data) => {
+export const patchSettingsById = async (
+  id: number,
+  data: Prisma.settingsUpdateInput
+): Promise<Setting> => {
   return await prisma.settings.update({
     where: { id },
     data,
