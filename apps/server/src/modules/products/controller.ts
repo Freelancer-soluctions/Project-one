@@ -1,6 +1,12 @@
 import globalResponse from '../../utils/responses&Errors/globalResponse.js';
 import handleCatchErrorAsync from '../../utils/responses&Errors/handleCatchErrorAsync.js';
 import * as productsService from './service.js';
+import type {
+  ProductAttributeInput,
+  ProductInput,
+  ProductsQuery,
+  ProductUpdateData,
+} from './types.js';
 
 /**
  * Get all products with query parameters.
@@ -17,7 +23,7 @@ import * as productsService from './service.js';
  * @returns {Promise<void>} Sends a response containing the product items.
  */
 export const getAllProducts = handleCatchErrorAsync(async (req, res) => {
-  const queryParams = req.safeQuery;
+  const queryParams = req.safeQuery as ProductsQuery;
   const items = await productsService.getAllProducts(queryParams);
   console.log('products3232', items);
   globalResponse(res, 200, items);
@@ -97,7 +103,7 @@ export const getAllProductProviders = handleCatchErrorAsync(
  */
 export const createOne = handleCatchErrorAsync(async (req, res) => {
   const userId = req.userId; // viene del token cambiar al body
-  const { body } = req;
+  const body = req.body as ProductInput;
   await productsService.createOne(userId, body);
   globalResponse(res, 201, { message: 'Item created successfully' });
 });
@@ -145,7 +151,7 @@ export const getAllProductAttributesByProductId = handleCatchErrorAsync(
  * @returns {Promise<void>} Sends a response confirming the creation of the product attributes.
  */
 export const saveProductAttributes = handleCatchErrorAsync(async (req, res) => {
-  const { body } = req;
+  const body = req.body as ProductAttributeInput[];
   await productsService.saveProductAttributes(body);
   globalResponse(res, 201, {
     message: 'Product Attributes saved successfully',
@@ -166,7 +172,7 @@ export const saveProductAttributes = handleCatchErrorAsync(async (req, res) => {
 export const patchById = handleCatchErrorAsync(async (req, res) => {
   const userId = req.userId;
   const { id } = req.params;
-  const { body } = req;
+  const body = req.body as ProductUpdateData;
   await productsService.patchById(userId, id, body);
   globalResponse(res, 200, { message: 'Item updated successfully' });
 });

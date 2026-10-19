@@ -1,4 +1,10 @@
-import { prisma } from '../../config/db.js';
+import { prisma, Prisma } from '../../config/db.js';
+import type { warehouseStatus } from '@prisma/client';
+import type {
+  WarehouseCreateData,
+  WarehousePatchData,
+  WarehousesPage,
+} from './types.js';
 
 /**
  * Get all warehouses with optional filters.
@@ -9,7 +15,12 @@ import { prisma } from '../../config/db.js';
  * @param {number} skip - Number of records to skip (pagination).
  * @returns {Promise<Object>} Object containing dataList and total count.
  */
-export const getAllWarehouses = async (name, status, take, skip) => {
+export const getAllWarehouses = async (
+  name: string | undefined,
+  status: warehouseStatus | undefined,
+  take: number,
+  skip: number
+): Promise<WarehousesPage> => {
   const warehouses = await prisma.warehouse.findMany({
     where: {
       ...(name
@@ -88,7 +99,7 @@ export const getAllWarehousesFilters = async () => {
  * @param {Date} data.createdOn - Creation timestamp.
  * @returns {Promise<Object>} Created warehouse.
  */
-export const createWarehouse = async (data) => {
+export const createWarehouse = async (data: WarehouseCreateData) => {
   const warehouse = await prisma.warehouse.create({
     data,
   });
@@ -103,7 +114,9 @@ export const createWarehouse = async (data) => {
  * @param {number} where.id - Warehouse ID to delete.
  * @returns {Promise<Object>} Deleted warehouse record.
  */
-export const deleteWarehouse = async (where) => {
+export const deleteWarehouse = async (
+  where: Prisma.warehouseWhereUniqueInput
+) => {
   const warehouse = await prisma.warehouse.delete({
     where,
   });
@@ -122,7 +135,10 @@ export const deleteWarehouse = async (where) => {
  * @param {boolean} [data.status] - Warehouse status.
  * @returns {Promise<Object>} The updated warehouse record.
  */
-export const patchWarehouseById = async (id, data) => {
+export const patchWarehouseById = async (
+  id: number,
+  data: WarehousePatchData
+) => {
   return await prisma.warehouse.update({
     where: { id },
     data,

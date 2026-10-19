@@ -4,6 +4,14 @@ import {
   updatePermissionById as updatePermissionByIdDao,
   deletePermissionById as deletePermissionByIdDao,
 } from './dao.js';
+import type {
+  CreateEmployeePermissionData,
+  CreateEmployeePermissionInput,
+  EmployeePermission,
+  EmployeePermissionFilters,
+  EmployeePermissionServiceResult,
+  UpdateEmployeePermissionInput,
+} from './types.js';
 import { getSafePagination } from '../../utils/pagination/pagination.js';
 
 /**
@@ -20,7 +28,9 @@ import { getSafePagination } from '../../utils/pagination/pagination.js';
  * @returns {Promise<Array>} List of permissions matching the filters
  * @throws {Error} If pagination parameters are invalid or missing
  */
-export const getAllPermissions = async (filters) => {
+export const getAllPermissions = async (
+  filters: EmployeePermissionFilters
+): Promise<EmployeePermissionServiceResult> => {
   const { take, skip } = getSafePagination({
     page: filters.page,
     limit: filters.limit,
@@ -44,8 +54,13 @@ export const getAllPermissions = async (filters) => {
  * @param {string} [data.status] - Permission status (defaults to PENDING)
  * @returns {Promise<Object>} Created permission record
  */
-export const createPermission = async (data, userId) => {
-  const permissionData = {
+export const createPermission = async (
+  data: CreateEmployeePermissionInput,
+  userId: number
+): Promise<EmployeePermission> => {
+  // El objeto se declara con el payload de persistencia: el service normaliza el
+  // empleado, los timestamps y el autor antes de llegar al dao.
+  const permissionData: CreateEmployeePermissionData = {
     ...data,
     employeeId: Number(data.employeeId),
     createdOn: new Date(),
@@ -72,7 +87,11 @@ export const createPermission = async (data, userId) => {
  * @param {number} [userId] - ID of the user performing the update (updatedBy)
  * @returns {Promise<Object>} Updated permission record
  */
-export const updatePermissionById = async (id, data, userId?) => {
+export const updatePermissionById = async (
+  id: number | string,
+  data: UpdateEmployeePermissionInput,
+  userId?: number
+): Promise<EmployeePermission> => {
   const permissionData = {
     ...data,
     employeeId: Number(data.employeeId),
@@ -90,6 +109,8 @@ export const updatePermissionById = async (id, data, userId?) => {
  * @param {number|string} id - Permission ID
  * @returns {Promise<Object>} Deleted permission record
  */
-export const deletePermissionById = async (id) => {
+export const deletePermissionById = async (
+  id: number | string
+): Promise<EmployeePermission> => {
   return await deletePermissionByIdDao(Number(id));
 };

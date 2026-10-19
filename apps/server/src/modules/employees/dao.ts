@@ -2,6 +2,14 @@ import { prisma, Prisma } from '../../config/db.js';
 // import { decryptSensitiveFields, encryptSensitiveFields } from '../../utils/security/sensitive-transform.js'
 import { hashValue } from '../../common/crypto/index.js';
 import { decryptResults } from '../../utils/prisma/prisma-query.js';
+import type {
+  CreateEmployeeData,
+  Employee,
+  EmployeeDaoFilters,
+  EmployeeListRow,
+  EmployeeServiceResult,
+  UpdateEmployeeData,
+} from './types.js';
 
 /**
  * Builds the raw SQL WHERE fragments for the employee list query.
@@ -10,8 +18,10 @@ import { decryptResults } from '../../utils/prisma/prisma-query.js';
  * @param {Object} filters - Filter parameters (name, lastName, dni, email, department, position).
  * @returns {Array<Object>} Prisma.sql fragments joined later with AND.
  */
-const buildEmployeeWhereClauses = (filters) => {
-  const whereClauses = [];
+const buildEmployeeWhereClauses = (
+  filters: EmployeeDaoFilters
+): Prisma.Sql[] => {
+  const whereClauses: Prisma.Sql[] = [];
 
   if (filters.name) {
     whereClauses.push(Prisma.sql`e."name" ILIKE ${`%${filters.name}%`}`);
@@ -63,24 +73,17 @@ const buildEmployeeWhereClauses = (filters) => {
  * @returns {Promise<Object>} Object containing dataList and total count.
  */
 export const getAllEmployees = async (
-  filters: {
-    name?: string;
-    lastName?: string;
-    dni?: string;
-    email?: string;
-    department?: string;
-    position?: string;
-  } = {},
+  filters: EmployeeDaoFilters = {},
   take: number,
   skip: number
-) => {
+): Promise<EmployeeServiceResult> => {
   const whereClauses = buildEmployeeWhereClauses(filters);
 
   const whereSql = whereClauses.length
     ? Prisma.sql`WHERE ${Prisma.join(whereClauses, ' AND ')}`
     : Prisma.empty;
 
-  const employees = await prisma.$queryRaw`
+  const employees = await prisma.$queryRaw<EmployeeListRow[]>`
   SELECT 
      e.*,
      u.name AS "userEmployeeCreatedName",
@@ -151,7 +154,7 @@ export const getAllEmployees = async (
  *
  * @returns {Promise<Array>} List of all employees.
  */
-export const getAllEmployeesFilters = async () => {
+export const getAllEmployeesFilters = async (): Promise<Employee[]> => {
   return await prisma.employees.findMany();
 };
 
@@ -172,7 +175,9 @@ export const getAllEmployeesFilters = async () => {
  * @param {number} data.createdBy - User ID who created the employee.
  * @returns {Promise<Object>} Created employee with related data.
  */
-export const createEmployee = async (data) => {
+export const createEmployee = async (
+  data: CreateEmployeeData
+): Promise<Employee> => {
   return prisma.employees.create({
     data: {
       name: data.name,
@@ -214,7 +219,10 @@ export const createEmployee = async (data) => {
  * @param {number} data.updatedBy - User ID who updated the employee.
  * @returns {Promise<Object>} Updated employee with related data.
  */
-export const updateEmployeeById = async (id, data) => {
+export const updateEmployeeById = async (
+  id: number,
+  data: UpdateEmployeeData
+): Promise<Employee> => {
   return prisma.employees.update({
     where: { id },
     data: {
@@ -247,7 +255,7 @@ export const updateEmployeeById = async (id, data) => {
  * @param {number} id - Employee ID.
  * @returns {Promise<Object>} Deleted employee.
  */
-export const deleteEmployeeById = async (id) => {
+export const deleteEmployeeById = async (id: number): Promise<Employee> => {
   return prisma.employees.delete({
     where: { id },
   });

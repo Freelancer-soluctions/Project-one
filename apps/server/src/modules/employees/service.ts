@@ -5,6 +5,13 @@ import {
   updateEmployeeById as updateEmployeeByIdDao,
   deleteEmployeeById as deleteEmployeeByIdDao,
 } from './dao.js';
+import type {
+  CreateEmployeeInput,
+  Employee,
+  EmployeeFilters,
+  EmployeeServiceResult,
+  UpdateEmployeeInput,
+} from './types.js';
 import { getSafePagination } from '../../utils/pagination/pagination.js';
 
 /**
@@ -19,7 +26,9 @@ import { getSafePagination } from '../../utils/pagination/pagination.js';
  * @returns {Promise<Object>} Paginated list of employees with metadata.
  * @throws {Error} When pagination parameters are missing or invalid.
  */
-export const getAllEmployees = async (filters) => {
+export const getAllEmployees = async (
+  filters: EmployeeFilters
+): Promise<EmployeeServiceResult> => {
   const { take, skip } = getSafePagination({
     page: filters.page,
     limit: filters.limit,
@@ -36,7 +45,7 @@ export const getAllEmployees = async (filters) => {
  *
  * @returns {Promise<Array>} List of all employees.
  */
-export const getAllEmployeesFilters = async () => {
+export const getAllEmployeesFilters = async (): Promise<Employee[]> => {
   return getAllEmployeesFiltersDao();
 };
 
@@ -53,7 +62,9 @@ export const getAllEmployeesFilters = async () => {
  * @param {number} data.createdBy - User ID who created the employee.
  * @returns {Promise<Object>} Created employee.
  */
-export const createEmployee = async (data) => {
+export const createEmployee = async (
+  data: CreateEmployeeInput
+): Promise<Employee> => {
   const dataEmployee = {
     ...data,
     createdOn: new Date(),
@@ -74,7 +85,10 @@ export const createEmployee = async (data) => {
  * @param {number} data.updatedBy - User ID who updated the employee.
  * @returns {Promise<Object>} Updated employee.
  */
-export const updateEmployeeById = async (id, data) => {
+export const updateEmployeeById = async (
+  id: number | string,
+  data: UpdateEmployeeInput
+): Promise<Employee> => {
   const dataEmployee = {
     ...data,
     updatedOn: new Date(),
@@ -88,6 +102,8 @@ export const updateEmployeeById = async (id, data) => {
  * @param {number} id - Employee ID.
  * @returns {Promise<Object>} Deleted employee.
  */
-export const deleteEmployeeById = async (id) => {
+export const deleteEmployeeById = async (
+  id: number | string
+): Promise<Employee> => {
   return deleteEmployeeByIdDao(Number(id));
 };

@@ -6,6 +6,11 @@ import {
 } from './service.js';
 import handleCatchErrorAsync from '../../utils/responses&Errors/handleCatchErrorAsync.js';
 import globalResponse from '../../utils/responses&Errors/globalResponse.js';
+import type {
+  CreatePerformanceEvaluationInput,
+  PerformanceEvaluationFilters,
+  UpdatePerformanceEvaluationInput,
+} from './types.js';
 
 /**
  * Get all performance evaluations with optional filters.
@@ -22,9 +27,9 @@ import globalResponse from '../../utils/responses&Errors/globalResponse.js';
  */
 export const getAllPerformanceEvaluations = handleCatchErrorAsync(
   async (req, res) => {
-    const evaluations = await getAllPerformanceEvaluationsService(
-      req.safeQuery
-    );
+    // Cast único de la query validada por Joi
+    const filters = req.safeQuery as PerformanceEvaluationFilters;
+    const evaluations = await getAllPerformanceEvaluationsService(filters);
     globalResponse(res, 200, evaluations);
   }
 );
@@ -45,10 +50,9 @@ export const getAllPerformanceEvaluations = handleCatchErrorAsync(
  */
 export const createPerformanceEvaluation = handleCatchErrorAsync(
   async (req, res) => {
+    // Cast único del body validado por Joi
     const evaluation = await createPerformanceEvaluationService(
-      {
-        ...req.body,
-      },
+      req.body as CreatePerformanceEvaluationInput,
       req.userId
     );
     globalResponse(res, 201, evaluation);
@@ -72,11 +76,10 @@ export const createPerformanceEvaluation = handleCatchErrorAsync(
  */
 export const patchPerformanceEvaluationById = handleCatchErrorAsync(
   async (req, res) => {
+    // Cast único del body validado por Joi
     const evaluation = await patchPerformanceEvaluationByIdService(
       req.params.id,
-      {
-        ...req.body,
-      },
+      req.body as UpdatePerformanceEvaluationInput,
       req.userId
     );
     globalResponse(res, 200, evaluation);

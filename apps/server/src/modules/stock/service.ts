@@ -7,6 +7,15 @@ import {
   getStockByProductId as getStockByProductIdDao,
 } from './dao.js';
 import { getSafePagination } from '../../utils/pagination/pagination.js';
+import type { unitMeasureStock } from '@prisma/client';
+import type {
+  StockAlerts,
+  StockCreateData,
+  StockRecord,
+  StockInput,
+  StockQuery,
+  StockUpdateData,
+} from './types.js';
 
 /**
  * Get all stock entries with optional filters.
@@ -32,16 +41,7 @@ export const getAllStock = async ({
   stocksLow,
   limit,
   page,
-}: {
-  productId?: number;
-  warehouseId?: number;
-  lot?: string;
-  unitMeasure?: string;
-  stocksExpirated?: boolean;
-  stocksLow?: boolean;
-  limit?: number;
-  page?: number;
-}) => {
+}: StockQuery) => {
   const { take, skip } = getSafePagination({ page, limit });
 
   if (!take || take <= 0) {
@@ -65,7 +65,7 @@ export const getAllStock = async ({
  * @param {number} id - Product ID.
  * @returns {Promise<Object>} Stock entry for the specified product.
  */
-export const getStockByProductId = async (id) => {
+export const getStockByProductId = async (id: number | string) => {
   return getStockByProductIdDao(Number(id));
 };
 
@@ -74,7 +74,7 @@ export const getStockByProductId = async (id) => {
  *
  * @returns {Promise<Object>} Stock alerts including expired and low stock items.
  */
-export const getStockAlerts = async () => {
+export const getStockAlerts = async (): Promise<StockAlerts> => {
   return getStockAlertsDao();
 };
 
@@ -93,11 +93,21 @@ export const getStockAlerts = async () => {
  * @param {number} data.warehouseId - Warehouse ID.
  * @returns {Promise<Object>} Created stock entry.
  */
-export const createStock = async (userId, data) => {
-  const createData = {
-    ...data,
-    createdBy: Number(userId),
+export const createStock = async (
+  userId: number | string,
+  data: StockInput
+): Promise<StockRecord> => {
+  const createData: StockCreateData = {
+    quantity: Number(data.quantity),
+    minimum: Number(data.minimum),
+    maximum: data.maximum ?? null,
+    lot: data.lot ?? null,
+    unitMeasure: data.unitMeasure as unitMeasureStock,
+    expirationDate: data.expirationDate ? new Date(data.expirationDate) : null,
     createdOn: new Date(),
+    createdBy: Number(userId),
+    warehouseId: Number(data.warehouseId),
+    productId: Number(data.productId),
   };
 
   return createStockDao(createData);
@@ -117,9 +127,21 @@ export const createStock = async (userId, data) => {
  * @param {number} userId - User ID who updated the entry.
  * @returns {Promise<Object>} Updated stock entry.
  */
-export const updateStockById = async (stockId, data, userId) => {
-  const updateData = {
+export const updateStockById = async (
+  stockId: number | string,
+  data: StockInput,
+  userId: number | string
+): Promise<StockRecord> => {
+  const updateData: StockUpdateData & {
+    quantity?: number;
+    minimum?: number;
+    warehouseId?: number;
+    productId?: number;
+  } = {
     ...data,
+    expirationDate: data.expirationDate
+      ? new Date(data.expirationDate)
+      : undefined,
     updatedBy: Number(userId),
     updatedOn: new Date(),
   };
@@ -133,6 +155,6 @@ export const updateStockById = async (stockId, data, userId) => {
  * @param {number} stockId - ID of the stock entry to delete.
  * @returns {Promise<Object>} Deleted stock entry.
  */
-export const deleteStockById = async (stockId) => {
+export const deleteStockById = async (stockId: number | string) => {
   return deleteStockDao({ id: Number(stockId) });
 };

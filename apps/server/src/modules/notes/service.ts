@@ -2,6 +2,19 @@ import * as notesDao from './dao.js';
 import { computeColorFromCode, extractMentionIds } from './utils/index.js';
 import bus, { BUS_EVENTS } from '../../socket/notificationBus.js';
 import ClientError from '../../utils/responses&Errors/errors.js';
+import type {
+  FavoriteToggleResult,
+  NoteColumnRecord,
+  NoteColumnUpdateInput,
+  NoteColumnWithNotes,
+  NoteCreateData,
+  NoteCreateInput,
+  NoteMentionData,
+  NotesCount,
+  NoteScope,
+  NoteUpdateData,
+  NoteUpdateInput,
+} from './types.js';
 
 /**
  * Get all notes with optional filters.
@@ -14,13 +27,13 @@ import ClientError from '../../utils/responses&Errors/errors.js';
  * @returns {Promise<Array>} Filtered notes array.
  */
 export const getAllNotes = async (
-  searchTerm,
-  statusCode,
-  hashtagIds,
-  userId,
-  isFavorite,
-  scope
-) => {
+  searchTerm?: string,
+  statusCode?: string,
+  hashtagIds?: number[],
+  userId?: number,
+  isFavorite?: boolean,
+  scope?: NoteScope
+): Promise<NoteColumnWithNotes[]> => {
   const data = await notesDao.getAllNotes(
     searchTerm,
     statusCode,
@@ -44,27 +57,34 @@ export const getAllNotes = async (
  * @param {number} userId - Authenticated user ID.
  * @returns {Promise<Object>} Created note.
  */
-export const createNote = async (data, userId) => {
+export const createNote = async (
+  data: NoteCreateInput,
+  userId: number
+): Promise<{ id: number; title: string }> => {
   const { columnId, hashtagIds, isFavorite, ...dataWithOutForeignKeys } = data;
-  dataWithOutForeignKeys.createdOn = new Date();
 
   // Compute color from column
   const column = await notesDao.getColumnById(Number(columnId));
-  dataWithOutForeignKeys.color = computeColorFromCode(column.code);
+
+  const noteData: NoteCreateData = {
+    ...dataWithOutForeignKeys,
+    createdOn: new Date(),
+    color: computeColorFromCode(column.code),
+  };
 
   const createdNote = await notesDao.createNote(
-    dataWithOutForeignKeys,
+    noteData,
     Number(userId),
     Number(columnId),
     isFavorite
   );
 
-  if (dataWithOutForeignKeys.content) {
-    const mentionsId = await extractMentionIds(dataWithOutForeignKeys.content);
+  if (noteData.content) {
+    const mentionsId = await extractMentionIds(noteData.content);
     // Filter out self-mentions (don't create mentions for the user themselves)
     const filteredMentions = mentionsId.filter((m) => m.id !== Number(userId));
     if (filteredMentions.length > 0) {
-      const mentionsData = [];
+      const mentionsData: NoteMentionData[] = [];
       for (const mention of filteredMentions) {
         mentionsData.push({
           noteId: createdNote.id,
@@ -83,7 +103,7 @@ export const createNote = async (data, userId) => {
             noteTitle: createdNote.title,
             mentionedByUserId: mention.mentionedByUserId,
             mentionedUserId: mention.mentionedUserId,
-            excerpt: (dataWithOutForeignKeys.content || '').substring(0, 200),
+            excerpt: (noteData.content || '').substring(0, 200),
           });
         }
       }
@@ -102,7 +122,7 @@ export const createNote = async (data, userId) => {
  *
  * @returns {Promise<Array>} Columns array.
  */
-export const getAllNotesColumns = async () => {
+export const getAllNotesColumns = async (): Promise<NoteColumnRecord[]> => {
   const data = await notesDao.getAllNotesColumns();
   return data;
 };
@@ -115,7 +135,7 @@ export const getAllNotesColumns = async () => {
  * @param {number} data.columnId - New column ID.
  * @returns {Promise<Object>} Updated note.
  */
-export const updateNoteColumId = async (data) => {
+export const updateNoteColumId = async (data: NoteColumnUpdateInput) => {
   const { id, columnId } = data;
   const column = await notesDao.getColumnById(Number(columnId));
   return notesDao.updateNoteColumId(Number(id), {
@@ -138,9 +158,14 @@ export const updateNoteColumId = async (data) => {
  * @param {number} userId - Authenticated user ID.
  * @returns {Promise<Object>} Success message.
  */
-export const updateNoteById = async (id, data, userId) => {
+export const updateNoteById = async (
+  id: string,
+  data: NoteUpdateInput,
+  userId: number
+): Promise<{ message: string }> => {
   const { hashtagIds, columnId, ...restData } = data;
-  restData.updatedOn = new Date();
+  const dataToSave: NoteUpdateData = { ...restData };
+  dataToSave.updatedOn = new Date();
 
   // If columnId changed, recompute color
   if (columnId) {
@@ -149,20 +174,20 @@ export const updateNoteById = async (id, data, userId) => {
 
     if (Number(columnId) !== currentNote.columnId) {
       const column = await notesDao.getColumnById(Number(columnId));
-      restData.color = computeColorFromCode(column.code);
-      restData.columnId = Number(columnId);
+      dataToSave.color = computeColorFromCode(column.code);
+      dataToSave.columnId = Number(columnId);
     }
   }
 
-  await notesDao.updateNoteById(Number(id), restData, Number(userId));
+  await notesDao.updateNoteById(Number(id), dataToSave, Number(userId));
 
-  if (restData.content) {
+  if (dataToSave.content) {
     await notesDao.deleteMentionsByNoteId(Number(id));
-    const mentionsId = await extractMentionIds(restData.content);
+    const mentionsId = await extractMentionIds(dataToSave.content);
     // Filter out self-mentions (don't create mentions for the user themselves)
     const filteredMentions = mentionsId.filter((m) => m.id !== Number(userId));
     if (filteredMentions.length > 0) {
-      const mentionsData = [];
+      const mentionsData: NoteMentionData[] = [];
       for (const mention of filteredMentions) {
         mentionsData.push({
           noteId: Number(id),
@@ -178,10 +203,10 @@ export const updateNoteById = async (id, data, userId) => {
         for (const mention of mentionsData) {
           bus.emit(BUS_EVENTS.MENTION_CREATED, {
             noteId: mention.noteId,
-            noteTitle: restData.title || 'Nota',
+            noteTitle: dataToSave.title || 'Nota',
             mentionedByUserId: mention.mentionedByUserId,
             mentionedUserId: mention.mentionedUserId,
-            excerpt: (restData.content || '').substring(0, 200),
+            excerpt: (dataToSave.content || '').substring(0, 200),
           });
         }
       }
@@ -208,7 +233,10 @@ export const updateNoteById = async (id, data, userId) => {
  * @param {number} noteId - Note ID to toggle.
  * @returns {Promise<Object>} New favorite state { isFavorited: boolean }.
  */
-export const toggleFavorite = async (userId, noteId) => {
+export const toggleFavorite = async (
+  userId: number,
+  noteId: number
+): Promise<FavoriteToggleResult> => {
   // Check if note exists
   const note = await notesDao.getNoteById(noteId);
   if (!note) {
@@ -225,7 +253,8 @@ export const toggleFavorite = async (userId, noteId) => {
       await notesDao.createFavorite(userId, noteId);
     } catch (err) {
       // Prisma P2002 = unique constraint violation → already favorited
-      if (err.code === 'P2002') {
+      // (cast para leer `code` sin imponer un gate instanceof — cero cambio de comportamiento)
+      if ((err as { code?: string }).code === 'P2002') {
         return { isFavorited: true };
       }
       throw err;
@@ -238,9 +267,9 @@ export const toggleFavorite = async (userId, noteId) => {
  * Delete a note by ID.
  *
  * @param {string} id - Note ID to delete.
- * @returns {Promise<Object>} Deletion result.
+ * @returns {Promise<void>}
  */
-export const deleteById = async (id) => {
+export const deleteById = async (id: string): Promise<void> => {
   const rowId = Number(id);
   return notesDao.deleteRow(rowId);
 };
@@ -253,7 +282,10 @@ export const deleteById = async (id) => {
  * @returns {Promise<Object>} Object with counts for each column status (backlog, active, completed).
  * When scope is provided, counts are filtered by the scope; when omitted, all notes are counted.
  */
-export const getAllNotesCount = async (scope, userId) => {
+export const getAllNotesCount = async (
+  scope: NoteScope | undefined,
+  userId: number
+): Promise<NotesCount> => {
   const data = await notesDao.getAllNotesCount(scope, userId);
   return data;
 };
@@ -264,7 +296,7 @@ export const getAllNotesCount = async (scope, userId) => {
  * @param {number} noteId - Note ID.
  * @returns {Promise<Array>} Mentions array.
  */
-export const getMentionsByNoteId = async (noteId) => {
+export const getMentionsByNoteId = async (noteId: number) => {
   return await notesDao.getMentionsByNoteId(Number(noteId));
 };
 
@@ -288,7 +320,7 @@ export const getAllHashtags = async () => {
  * @param {number} userId - ID of the creating user.
  * @returns {Promise<Object>} Created hashtag.
  */
-export const createHashtag = async (name, userId) => {
+export const createHashtag = async (name: string, userId: number) => {
   return notesDao.createHashtag(name, userId);
 };
 
@@ -299,7 +331,7 @@ export const createHashtag = async (name, userId) => {
  * @param {string} name - New hashtag name.
  * @returns {Promise<Object>} Updated hashtag.
  */
-export const updateHashtag = async (id, name) => {
+export const updateHashtag = async (id: string, name: string) => {
   return notesDao.updateHashtag(Number(id), name);
 };
 
@@ -309,6 +341,6 @@ export const updateHashtag = async (id, name) => {
  * @param {string} id - Hashtag ID to delete.
  * @returns {Promise<Object>} Deletion result.
  */
-export const deleteHashtag = async (id) => {
+export const deleteHashtag = async (id: string) => {
   return notesDao.deleteHashtag(Number(id));
 };

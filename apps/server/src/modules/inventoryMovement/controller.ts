@@ -6,6 +6,11 @@ import {
 } from './service.js';
 import globalResponse from '../../utils/responses&Errors/globalResponse.js';
 import handleCatchErrorAsync from '../../utils/responses&Errors/handleCatchErrorAsync.js';
+import type {
+  CreateInventoryMovementInput,
+  InventoryMovementFilters,
+  UpdateInventoryMovementInput,
+} from './types.js';
 
 /**
  * Get all inventory movements with optional filters.
@@ -22,7 +27,9 @@ import handleCatchErrorAsync from '../../utils/responses&Errors/handleCatchError
  */
 export const getAllInventoryMovements = handleCatchErrorAsync(
   async (req, res) => {
-    const { productId, warehouseId, type, limit, page } = req.safeQuery;
+    // Cast único de la query validada por Joi
+    const { productId, warehouseId, type, limit, page } =
+      req.safeQuery as InventoryMovementFilters;
     const inventoryMovements = await getAllInventoryMovementsService({
       productId,
       warehouseId,
@@ -49,7 +56,10 @@ export const getAllInventoryMovements = handleCatchErrorAsync(
  */
 export const createInventoryMovement = handleCatchErrorAsync(
   async (req, res) => {
-    await createInventoryMovementService(req.body);
+    // Cast único del body validado por Joi
+    await createInventoryMovementService(
+      req.body as CreateInventoryMovementInput
+    );
     globalResponse(res, 201, {
       message: 'Inventory movement created successfully',
     });
@@ -72,7 +82,11 @@ export const createInventoryMovement = handleCatchErrorAsync(
 export const updateInventoryMovementById = handleCatchErrorAsync(
   async (req, res) => {
     const { id } = req.params;
-    await updateInventoryMovementByIdService(id, req.body);
+    // Cast único del body validado por Joi
+    await updateInventoryMovementByIdService(
+      id,
+      req.body as UpdateInventoryMovementInput
+    );
     globalResponse(res, 200, {
       message: 'Inventory movement updated successfully',
     });

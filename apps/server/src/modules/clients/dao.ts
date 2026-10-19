@@ -1,4 +1,12 @@
 import { prisma, Prisma } from '../../config/db.js';
+import type {
+  Client,
+  ClientDaoFilters,
+  ClientListRow,
+  ClientServiceResult,
+  CreateClientData,
+  UpdateClientData,
+} from './types.js';
 
 /**
  * Get all clients with optional filters.
@@ -12,15 +20,11 @@ import { prisma, Prisma } from '../../config/db.js';
  * @returns {Promise<Object>} Object containing dataList and total count.
  */
 export const getAllClients = async (
-  filters: {
-    name?: string;
-    email?: string;
-    phone?: string;
-  } = {},
+  filters: ClientDaoFilters = {},
   take: number,
   skip: number
-) => {
-  const whereClauses = [];
+): Promise<ClientServiceResult> => {
+  const whereClauses: Prisma.Sql[] = [];
 
   if (filters.name) {
     whereClauses.push(Prisma.sql`c."name" ILIKE ${filters.name}`);
@@ -34,7 +38,7 @@ export const getAllClients = async (
     ? Prisma.sql`WHERE ${Prisma.join(whereClauses, ' AND ')}`
     : Prisma.empty;
 
-  const clients = await prisma.$queryRaw`
+  const clients = await prisma.$queryRaw<ClientListRow[]>`
   SELECT 
      c.*,
      u.name AS "userClientCreatedName",
@@ -75,7 +79,7 @@ export const getAllClients = async (
  * @returns {Promise<Array>} List of all clients.
  */
 
-export const getAllClientsFilters = async () => {
+export const getAllClientsFilters = async (): Promise<Client[]> => {
   return prisma.clients.findMany();
 };
 
@@ -90,7 +94,7 @@ export const getAllClientsFilters = async () => {
  * @param {number} data.createdBy - User ID who created the client.
  * @returns {Promise<Object>} Created client with related data.
  */
-export const createClient = async (data) => {
+export const createClient = async (data: CreateClientData): Promise<Client> => {
   return prisma.clients.create({
     data: {
       name: data.name,
@@ -119,7 +123,10 @@ export const createClient = async (data) => {
  * @param {number} data.updatedBy - User ID who updated the client.
  * @returns {Promise<Object>} Updated client with related data.
  */
-export const updateClientById = async (id, data) => {
+export const updateClientById = async (
+  id: number,
+  data: UpdateClientData
+): Promise<Client> => {
   return prisma.clients.update({
     where: { id },
     data: {
@@ -145,7 +152,7 @@ export const updateClientById = async (id, data) => {
  * @param {number} id - Client ID.
  * @returns {Promise<Object>} Deleted client.
  */
-export const deleteClientById = async (id) => {
+export const deleteClientById = async (id: number): Promise<Client> => {
   return prisma.clients.delete({
     where: { id },
   });

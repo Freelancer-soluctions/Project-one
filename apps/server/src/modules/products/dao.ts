@@ -1,6 +1,13 @@
 import * as prismaService from '../../utils/prisma/dao.js';
 import { TABLESNAMES } from '../../utils/constants/enums.js';
 import { prisma, Prisma } from '../../config/db.js';
+import type {
+  ProductAttributeInput,
+  ProductCreateData,
+  ProductListItem,
+  ProductsPage,
+  ProductUpdateData,
+} from './types.js';
 
 const tableName = TABLESNAMES.PRODUCTS;
 const tableName2 = TABLESNAMES.PRODUCTATTRIBUTES;
@@ -17,14 +24,14 @@ const tableName2 = TABLESNAMES.PRODUCTATTRIBUTES;
  */
 
 export const getAllProducts = async (
-  name,
-  productProviderCode,
-  productCategoryCode,
-  statusCode,
-  take,
-  skip
-) => {
-  const whereClauses = [];
+  name: string | undefined,
+  productProviderCode: string | undefined,
+  productCategoryCode: string | undefined,
+  statusCode: string | undefined,
+  take: number,
+  skip: number
+): Promise<ProductsPage> => {
+  const whereClauses: Prisma.Sql[] = [];
 
   if (name) {
     whereClauses.push(Prisma.sql`p."name" ILIKE ${'%' + name + '%'}`);
@@ -47,7 +54,7 @@ export const getAllProducts = async (
     ? Prisma.sql`WHERE ${Prisma.join(whereClauses, ' AND ')}`
     : Prisma.empty;
 
-  const products = await prisma.$queryRaw`
+  const products = await prisma.$queryRaw<ProductListItem[]>`
     SELECT p.*, 
     pc.id AS "categoryId", 
     pc.code AS "categoryCode",     
@@ -156,7 +163,7 @@ export const getAllProductProviders = async () => {
  * @param {number} data.createdBy - The ID of the user creating the product.
  * @returns {Promise<Object>} The created product.
  */
-export const createRow = async (data) => {
+export const createRow = async (data: ProductCreateData) => {
   const savedProduct = await prisma.products.create({
     data: {
       sku: data.sku,
@@ -204,7 +211,10 @@ export const createRow = async (data) => {
  * @param {Object} where - The conditions to identify the product to update.
  * @returns {Promise<Object>} The updated product.
  */
-export const updateRow = async (data, where) => {
+export const updateRow = async (
+  data: ProductUpdateData,
+  where: Prisma.productsWhereUniqueInput
+) => {
   const result = await prisma.products.update({
     where,
     data: {
@@ -248,7 +258,7 @@ export const updateRow = async (data, where) => {
  * @param {Object} where - The conditions to identify the product to delete.
  * @returns {Promise<Object>} The deleted product.
  */
-export const deleteRow = async (where) =>
+export const deleteRow = async (where: Prisma.productsWhereUniqueInput) =>
   prismaService.deleteRow(tableName, where);
 
 /**
@@ -258,7 +268,9 @@ export const deleteRow = async (where) =>
  * @returns {Promise<Array>} List of attributes for the specified product.
  */
 
-export const getAllProductAttributesByProductId = async (where) => {
+export const getAllProductAttributesByProductId = async (
+  where: Prisma.productAttributesWhereInput
+) => {
   const attributes = await prisma.productAttributes.findMany({
     where,
   });
@@ -276,7 +288,9 @@ export const getAllProductAttributesByProductId = async (where) => {
  * @param {string} attributes[].description - The attribute description.
  * @returns {Promise<Array>} The saved or updated attributes.
  */
-export const saveProductAttributes = async (attributes) => {
+export const saveProductAttributes = async (
+  attributes: ProductAttributeInput[]
+) => {
   const transaction = attributes.map((attr) => {
     if (attr.id) {
       // Si el atributo tiene ID, actualizarlo
@@ -294,7 +308,7 @@ export const saveProductAttributes = async (attributes) => {
           productId: attr.productId,
           name: attr.name,
           description: attr.description,
-          createdOn: attr.createdOn,
+          createdOn: attr.createdOn ?? new Date(),
         },
       });
     }
@@ -310,5 +324,6 @@ export const saveProductAttributes = async (attributes) => {
  * @param {Object} where - The conditions to identify the attribute to delete.
  * @returns {Promise<Object>} The deleted attribute.
  */
-export const deleteProductsAttributeById = async (where) =>
-  prismaService.deleteRow(tableName2, where);
+export const deleteProductsAttributeById = async (
+  where: Prisma.productAttributesWhereUniqueInput
+) => prismaService.deleteRow(tableName2, where);

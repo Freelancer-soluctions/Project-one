@@ -1,4 +1,5 @@
 import { load } from 'cheerio';
+import type { ParsedMention } from '../types.js';
 
 /**
  * Extract user IDs from mentions in HTML content.
@@ -21,7 +22,9 @@ import { load } from 'cheerio';
  * extractMentionIds(null)
  * // Returns: []
  */
-export const extractMentionIds = async (content) => {
+export const extractMentionIds = async (
+  content: string | null | undefined
+): Promise<{ id: number }[]> => {
   if (!content || typeof content !== 'string') {
     return [];
   }
@@ -35,7 +38,7 @@ export const extractMentionIds = async (content) => {
       return id && !isNaN(Number(id)) ? parseInt(String(id), 10) : null;
     })
     .get()
-    .filter((id) => id !== null);
+    .filter((id): id is number => id !== null);
 
   // Remove duplicates by comparing the id values
   const uniqueIds = [...new Set(mentionIds)];
@@ -63,14 +66,16 @@ export const extractMentionIds = async (content) => {
  * parseMentions(null)
  * // Returns: []
  */
-export const parseMentions = (content) => {
+export const parseMentions = (
+  content: string | null | undefined
+): ParsedMention[] => {
   if (!content || typeof content !== 'string') {
     return [];
   }
 
   const mentionRegex = /@([a-zA-Z0-9_]+)/g;
-  const mentions = [];
-  let match;
+  const mentions: ParsedMention[] = [];
+  let match: RegExpExecArray | null;
 
   while ((match = mentionRegex.exec(content)) !== null) {
     mentions.push({

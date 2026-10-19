@@ -1,6 +1,12 @@
 import globalResponse from '../../utils/responses&Errors/globalResponse.js';
 import handleCatchErrorAsync from '../../utils/responses&Errors/handleCatchErrorAsync.js';
 import * as notesService from './service.js';
+import type {
+  NoteColumnUpdateInput,
+  NoteCreateInput,
+  NoteScope,
+  NoteUpdateInput,
+} from './types.js';
 
 /**
  * Get all notes with optional filtering by search term, status code, hashtag IDs, and scope.
@@ -24,12 +30,12 @@ export const getAllNotes = handleCatchErrorAsync(async (req, res) => {
       : [hashtagId]
     : undefined;
   const items = await notesService.getAllNotes(
-    searchTerm,
-    statusCode,
+    searchTerm as string,
+    statusCode as string,
     hashtagIds,
     userId,
-    isFavorite,
-    scope
+    isFavorite as boolean | undefined,
+    scope as NoteScope | undefined
   );
   globalResponse(res, 200, items);
 });
@@ -49,7 +55,7 @@ export const getAllNotes = handleCatchErrorAsync(async (req, res) => {
  */
 export const createNote = handleCatchErrorAsync(async (req, res) => {
   const userId = req.userId;
-  const { body } = req;
+  const body = req.body as NoteCreateInput;
   const createdNote = await notesService.createNote(body, userId);
   globalResponse(res, 201, createdNote, 'Item created successfully');
 });
@@ -77,7 +83,7 @@ export const getAllNotesColumns = handleCatchErrorAsync(async (req, res) => {
  * @returns {Promise<void>} Responds with 200 and success message.
  */
 export const updateNoteColumId = handleCatchErrorAsync(async (req, res) => {
-  const { body } = req;
+  const body = req.body as NoteColumnUpdateInput;
   await notesService.updateNoteColumId(body);
   globalResponse(res, 200, { message: 'Item updated successfully' });
 });
@@ -97,7 +103,7 @@ export const updateNoteColumId = handleCatchErrorAsync(async (req, res) => {
  * @returns {Promise<void>} Responds with 200 and success message.
  */
 export const updateNoteById = handleCatchErrorAsync(async (req, res) => {
-  const { body } = req;
+  const body = req.body as NoteUpdateInput;
   const { id } = req.params;
   const userId = req.userId;
   await notesService.updateNoteById(id, body, userId);
@@ -115,7 +121,7 @@ export const updateNoteById = handleCatchErrorAsync(async (req, res) => {
  */
 export const getMentionsByNoteId = handleCatchErrorAsync(async (req, res) => {
   const { id } = req.params;
-  const data = await notesService.getMentionsByNoteId(id);
+  const data = await notesService.getMentionsByNoteId(Number(id));
   globalResponse(res, 200, data);
 });
 
@@ -146,7 +152,7 @@ export const deleteById = handleCatchErrorAsync(async (req, res) => {
 export const getAllNotesCount = handleCatchErrorAsync(async (req, res) => {
   const { scope } = req.safeQuery;
   const userId = req.userId;
-  const data = await notesService.getAllNotesCount(scope, userId);
+  const data = await notesService.getAllNotesCount(scope as NoteScope, userId);
   globalResponse(res, 200, data);
 });
 

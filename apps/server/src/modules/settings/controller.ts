@@ -69,7 +69,7 @@ export const createOrUpdateSettingsDisplay = handleCatchErrorAsync(
  */
 export const getSettingsById = handleCatchErrorAsync(async (req, res) => {
   const { id } = req.params;
-  const result = await settingsService.getSettingsById(id);
+  const result = await settingsService.getSettingsById(Number(id));
   globalResponse(res, 200, result);
 });
 
@@ -126,7 +126,7 @@ export const updateProductCategoryById = handleCatchErrorAsync(
     const categoryId = req.params.id;
     // Cast único del body validado por Joi (SettingsProductCategoryUpdateSchema)
     const body = req.body as UpdateProductCategoryInput;
-    await settingsService.updateProductCategoryById(categoryId, body);
+    await settingsService.updateProductCategoryById(Number(categoryId), body);
     globalResponse(res, 200, { message: 'Item updated successfully' });
   }
 );
@@ -143,7 +143,7 @@ export const updateProductCategoryById = handleCatchErrorAsync(
 export const deleteProductCategoryById = handleCatchErrorAsync(
   async (req, res) => {
     const categoryId = req.params.id;
-    await settingsService.deleteProductCategoryById(categoryId);
+    await settingsService.deleteProductCategoryById(Number(categoryId));
     globalResponse(res, 200, { message: 'Item deleted successfully' });
   }
 );
@@ -182,7 +182,7 @@ export const patchSettingsById = handleCatchErrorAsync(async (req, res) => {
   }
 
   const result = await settingsService.patchSettingsById(
-    settingsId,
+    Number(settingsId),
     updateData
   );
   globalResponse(res, 200, result);

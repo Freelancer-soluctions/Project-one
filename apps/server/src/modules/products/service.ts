@@ -1,5 +1,17 @@
 import * as productsDao from './dao.js';
 import { getSafePagination } from '../../utils/pagination/pagination.js';
+import type {
+  ProductAttributeRecord,
+  ProductAttributeInput,
+  ProductCategoryRecord,
+  ProductCreateData,
+  ProductInput,
+  ProductsPage,
+  ProductsQuery,
+  ProductProviderRecord,
+  ProductStatusRecord,
+  ProductUpdateData,
+} from './types.js';
 
 /**
  * Get all products from the database with optional filters.
@@ -21,7 +33,7 @@ export const getAllProducts = async ({
   statusCode,
   limit,
   page,
-}) => {
+}: ProductsQuery): Promise<ProductsPage> => {
   const { take, skip } = getSafePagination({ page, limit });
 
   if (!take || take <= 0) {
@@ -63,8 +75,8 @@ export const getAllProductsFilters = async () => {
  * @param {string} [data.barCode] - The optional barcode of the product (max 25 characters).
  * @returns {Promise<Object>} The created product.
  */
-export const createOne = async (userId, data) => {
-  const newProduct = {
+export const createOne = async (userId: number, data: ProductInput) => {
+  const newProduct: ProductCreateData = {
     sku: String(data.sku),
     name: String(data.name),
     productCategoryId: Number(data.productCategoryId),
@@ -92,7 +104,11 @@ export const createOne = async (userId, data) => {
  * @returns {Promise<Object>} The updated product.
  */
 
-export const updateById = async (userId, id, data) => {
+export const updateById = async (
+  userId: number,
+  id: number | string,
+  data: ProductUpdateData
+) => {
   const rowId = Number(id);
   const product = {
     ...data,
@@ -109,7 +125,7 @@ export const updateById = async (userId, id, data) => {
  * @param {number} id - The ID of the product to delete.
  * @returns {Promise<Object>} The result of the deletion.
  */
-export const deleteById = async (id) => {
+export const deleteById = async (id: number | string) => {
   const rowId = Number(id);
   return productsDao.deleteRow({ id: rowId });
 };
@@ -122,7 +138,11 @@ export const deleteById = async (id) => {
  * @param {Object} data - The partial data for the product.
  * @returns {Promise<Object>} The updated product.
  */
-export const patchById = async (userId, id, data) => {
+export const patchById = async (
+  userId: number,
+  id: number | string,
+  data: ProductUpdateData
+) => {
   const rowId = Number(id);
   const product = {
     ...data,
@@ -139,7 +159,7 @@ export const patchById = async (userId, id, data) => {
  * @returns {Promise<Array>} A list of all product statuses.
  */
 
-export const getAllProductStatus = async () => {
+export const getAllProductStatus = async (): Promise<ProductStatusRecord[]> => {
   const data = await productsDao.getAllProductStatus();
   return data;
 };
@@ -150,7 +170,9 @@ export const getAllProductStatus = async () => {
  * @returns {Promise<Array>} A list of all product categories.
  */
 
-export const getAllProductCategories = async () => {
+export const getAllProductCategories = async (): Promise<
+  ProductCategoryRecord[]
+> => {
   const data = await productsDao.getAllProductCategories();
   return data;
 };
@@ -161,7 +183,9 @@ export const getAllProductCategories = async () => {
  * @returns {Promise<Array>} A list of all product providers.
  */
 
-export const getAllProductProviders = async () => {
+export const getAllProductProviders = async (): Promise<
+  ProductProviderRecord[]
+> => {
   const data = await productsDao.getAllProductProviders();
   return data;
 };
@@ -173,7 +197,9 @@ export const getAllProductProviders = async () => {
  * @returns {Promise<Array>} A list of attributes for the specified product.
  */
 
-export const getAllProductAttributesByProductId = async (id) => {
+export const getAllProductAttributesByProductId = async (
+  id: number | string
+): Promise<ProductAttributeRecord[]> => {
   const rowId = Number(id);
   const data = await productsDao.getAllProductAttributesByProductId({
     productId: rowId,
@@ -188,7 +214,7 @@ export const getAllProductAttributesByProductId = async (id) => {
  * @returns {Promise<Object>} The created product attributes.
  */
 
-export const saveProductAttributes = async (data) => {
+export const saveProductAttributes = async (data: ProductAttributeInput[]) => {
   return productsDao.saveProductAttributes(data);
 };
 
@@ -198,7 +224,7 @@ export const saveProductAttributes = async (data) => {
  * @param {number} id - The ID of the product attribute to delete.
  * @returns {Promise<Object>} The result of the deletion.
  */
-export const deleteProductsAttributeById = async (id) => {
+export const deleteProductsAttributeById = async (id: number | string) => {
   const rowId = Number(id);
   return productsDao.deleteProductsAttributeById({ id: rowId });
 };

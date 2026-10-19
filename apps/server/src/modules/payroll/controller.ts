@@ -1,6 +1,11 @@
 import * as payrollService from './service.js';
 import handleCatchErrorAsync from '../../utils/responses&Errors/handleCatchErrorAsync.js';
 import globalResponse from '../../utils/responses&Errors/globalResponse.js';
+import type {
+  CreatePayrollInput,
+  PayrollFilters,
+  UpdatePayrollInput,
+} from './types.js';
 
 /**
  * Get all payroll records with optional filters.
@@ -16,7 +21,8 @@ import globalResponse from '../../utils/responses&Errors/globalResponse.js';
  * @returns {Promise<void>} Returns paginated list of payroll records
  */
 export const getAllPayroll = handleCatchErrorAsync(async (req, res) => {
-  const filters = req.safeQuery;
+  // Cast único de la query validada por Joi
+  const filters = req.safeQuery as PayrollFilters;
   const payroll = await payrollService.getAllPayroll(filters);
   globalResponse(res, 200, payroll, 'Payroll retrieved successfully');
 });
@@ -38,7 +44,11 @@ export const getAllPayroll = handleCatchErrorAsync(async (req, res) => {
  * @returns {Promise<void>} Creates new payroll record and returns payroll object
  */
 export const createPayroll = handleCatchErrorAsync(async (req, res) => {
-  const payroll = await payrollService.createPayroll(req.body, req.userId);
+  // Cast único del body validado por Joi
+  const payroll = await payrollService.createPayroll(
+    req.body as CreatePayrollInput,
+    req.userId
+  );
   globalResponse(res, 201, payroll, 'Payroll created successfully');
 });
 
@@ -71,9 +81,10 @@ export const deletePayrollById = handleCatchErrorAsync(async (req, res) => {
 export const updatePayrollByIdPartial = handleCatchErrorAsync(
   async (req, res) => {
     const { id } = req.params;
+    // Cast único del body validado por Joi
     const payroll = await payrollService.updatePayrollByIdPartial(
       id,
-      req.body,
+      req.body as UpdatePayrollInput,
       req.userId
     );
     globalResponse(res, 200, payroll, 'Payroll partially updated successfully');

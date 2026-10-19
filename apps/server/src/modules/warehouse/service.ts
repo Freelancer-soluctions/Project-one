@@ -6,6 +6,11 @@ import {
   patchWarehouseById as patchWarehouseByIdDao,
 } from './dao.js';
 import { getSafePagination } from '../../utils/pagination/pagination.js';
+import type {
+  WarehouseCreateData,
+  WarehouseInput,
+  WarehousesQuery,
+} from './types.js';
 
 /**
  * Get all warehouses with optional filters.
@@ -23,12 +28,7 @@ export const getAllWarehouses = async ({
   status,
   limit,
   page,
-}: {
-  name?: string;
-  status?: boolean;
-  limit?: number;
-  page?: number;
-}) => {
+}: WarehousesQuery) => {
   const { take, skip } = getSafePagination({ page, limit });
 
   if (!take || take <= 0) {
@@ -54,9 +54,10 @@ export const getAllWarehousesFilters = async () => {
  * @param {boolean} data.status - Warehouse status
  * @returns {Promise<Object>} Created warehouse
  */
-export const createWarehouse = async (data) => {
-  const createData = {
+export const createWarehouse = async (data: WarehouseInput) => {
+  const createData: WarehouseCreateData = {
     ...data,
+    name: String(data.name),
     createdOn: new Date(),
   };
 
@@ -68,7 +69,7 @@ export const createWarehouse = async (data) => {
  * @param {number} warehouseId - ID of the warehouse to delete
  * @returns {Promise<void>}
  */
-export const deleteWarehouseById = async (warehouseId) => {
+export const deleteWarehouseById = async (warehouseId: number | string) => {
   return deleteWarehouseDao({ id: Number(warehouseId) });
 };
 
@@ -83,7 +84,10 @@ export const deleteWarehouseById = async (warehouseId) => {
  * @param {boolean} [data.status] - Warehouse status
  * @returns {Promise<Object>} Updated warehouse
  */
-export const patchWarehouseById = async (warehouseId, data) => {
+export const patchWarehouseById = async (
+  warehouseId: number | string,
+  data: WarehouseInput
+) => {
   const updateData = {
     ...data,
     updatedOn: new Date(),

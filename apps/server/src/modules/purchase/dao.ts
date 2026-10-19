@@ -1,4 +1,11 @@
 import { prisma } from '../../config/db.js';
+import type {
+  PurchaseCreateData,
+  PurchaseListItem,
+  PurchaseListFilters,
+  PurchasesPage,
+  PurchasePatchData,
+} from './types.js';
 
 /**
  * Get all purchases with optional filters.
@@ -14,16 +21,10 @@ import { prisma } from '../../config/db.js';
  * @returns {Promise<Object>} Object containing dataList and total count.
  */
 export const getAllPurchases = async (
-  filters: {
-    providerId?: number;
-    startDate?: Date;
-    endDate?: Date;
-    minTotal?: number;
-    maxTotal?: number;
-  } = {},
+  filters: PurchaseListFilters = {},
   take: number,
   skip: number
-) => {
+): Promise<PurchasesPage> => {
   const where = {
     ...(filters.providerId && { providerId: filters.providerId }),
     ...(filters.startDate && { createdOn: { gte: filters.startDate } }),
@@ -32,7 +33,7 @@ export const getAllPurchases = async (
     ...(filters.maxTotal && { total: { lte: filters.maxTotal } }),
   };
 
-  const purchases = await prisma.purchase.findMany({
+  const purchases: PurchaseListItem[] = await prisma.purchase.findMany({
     where,
     include: {
       provider: true,
@@ -69,7 +70,7 @@ export const getAllPurchases = async (
  * @param {number} data.createdBy - User ID who created the purchase.
  * @returns {Promise<Object>} Created purchase with its details and related data.
  */
-export const createPurchase = async (data) => {
+export const createPurchase = async (data: PurchaseCreateData) => {
   const { details, ...purchaseData } = data;
 
   return prisma.purchase.create({
@@ -101,7 +102,10 @@ export const createPurchase = async (data) => {
  * @param {number} data.updatedBy - User ID who updated the purchase.
  * @returns {Promise<Object>} Updated purchase with its details and related data.
  */
-export const patchPurchaseById = async (id, data) => {
+export const patchPurchaseById = async (
+  id: number,
+  data: PurchasePatchData
+): Promise<PurchaseListItem | null> => {
   const { details, ...purchaseData } = data;
   const updateData = { ...purchaseData, updatedBy: data.updatedBy };
 
@@ -153,7 +157,7 @@ export const patchPurchaseById = async (id, data) => {
  * @param {number} id - Purchase ID.
  * @returns {Promise<Object>} Deleted purchase.
  */
-export const deletePurchaseById = async (id) => {
+export const deletePurchaseById = async (id: number) => {
   // First, delete all related details
   await prisma.purchaseDetail.deleteMany({
     where: { purchaseId: id },
@@ -171,7 +175,7 @@ export const deletePurchaseById = async (id) => {
  * @param {number} id - Purchase detail ID.
  * @returns {Promise<Object>} Deleted purchase detail.
  */
-export const deletePurchaseDetailById = async (id) => {
+export const deletePurchaseDetailById = async (id: number) => {
   await prisma.purchaseDetail.delete({
     where: { id },
   });

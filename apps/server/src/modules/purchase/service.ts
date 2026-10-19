@@ -6,6 +6,13 @@ import {
   patchPurchaseById as patchPurchaseByIdDao,
 } from './dao.js';
 import { getSafePagination } from '../../utils/pagination/pagination.js';
+import type {
+  PurchaseCreateData,
+  PurchasesPage,
+  PurchasesQuery,
+  PurchaseListItem,
+  PurchasePatchData,
+} from './types.js';
 
 /**
  * Get all purchases with optional filters.
@@ -21,7 +28,9 @@ import { getSafePagination } from '../../utils/pagination/pagination.js';
  * @returns {Promise<Object>} Paginated list of purchases with metadata.
  * @throws {Error} When pagination parameters are missing or invalid.
  */
-export const getAllPurchases = async (filters) => {
+export const getAllPurchases = async (
+  filters: PurchasesQuery
+): Promise<PurchasesPage> => {
   const { take, skip } = getSafePagination({
     page: filters.page,
     limit: filters.limit,
@@ -43,7 +52,7 @@ export const getAllPurchases = async (filters) => {
  * @param {number} data.createdBy - User ID who created the purchase.
  * @returns {Promise<Object>} Created purchase.
  */
-export const createPurchase = async (data) => {
+export const createPurchase = async (data: PurchaseCreateData) => {
   return createPurchaseDao(data);
 };
 
@@ -53,7 +62,7 @@ export const createPurchase = async (data) => {
  * @param {number} id - Purchase ID.
  * @returns {Promise<Object>} Deleted purchase.
  */
-export const deletePurchaseById = async (id) => {
+export const deletePurchaseById = async (id: number) => {
   return deletePurchaseByIdDao(id);
 };
 
@@ -63,7 +72,7 @@ export const deletePurchaseById = async (id) => {
  * @param {number} id - Purchase detail ID.
  * @returns {Promise<Object>} Deleted purchase detail.
  */
-export const deletePurchaseDetailById = async (id) => {
+export const deletePurchaseDetailById = async (id: number) => {
   return deletePurchaseDetailByIdDao(id);
 };
 
@@ -78,6 +87,9 @@ export const deletePurchaseDetailById = async (id) => {
  * @param {number} data.updatedBy - User ID who updated the purchase.
  * @returns {Promise<Object>} Updated purchase.
  */
-export const patchPurchaseById = async (id, data) => {
+export const patchPurchaseById = async (
+  id: number,
+  data: PurchasePatchData
+): Promise<PurchaseListItem | null> => {
   return patchPurchaseByIdDao(id, data);
 };

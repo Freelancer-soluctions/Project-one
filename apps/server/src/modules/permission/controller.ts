@@ -6,6 +6,11 @@ import {
 } from './service.js';
 import handleCatchErrorAsync from '../../utils/responses&Errors/handleCatchErrorAsync.js';
 import globalResponse from '../../utils/responses&Errors/globalResponse.js';
+import type {
+  CreateEmployeePermissionInput,
+  EmployeePermissionFilters,
+  UpdateEmployeePermissionInput,
+} from './types.js';
 
 /**
  * Get all permissions with optional filters.
@@ -21,7 +26,8 @@ import globalResponse from '../../utils/responses&Errors/globalResponse.js';
  * @returns {Promise<void>} Sends response with list of permissions
  */
 export const getAllPermissions = handleCatchErrorAsync(async (req, res) => {
-  const filters = req.safeQuery;
+  // Cast único de la query validada por Joi
+  const filters = req.safeQuery as EmployeePermissionFilters;
   const permissions = await getAllPermissionsService(filters);
   return globalResponse(res, 200, permissions);
 });
@@ -42,7 +48,11 @@ export const getAllPermissions = handleCatchErrorAsync(async (req, res) => {
  * @returns {Promise<void>} Sends response with created permission
  */
 export const createPermission = handleCatchErrorAsync(async (req, res) => {
-  const permission = await createPermissionService(req.body, req.userId);
+  // Cast único del body validado por Joi
+  const permission = await createPermissionService(
+    req.body as CreateEmployeePermissionInput,
+    req.userId
+  );
   return globalResponse(res, 201, permission);
 });
 
@@ -76,6 +86,10 @@ export const deletePermissionById = handleCatchErrorAsync(async (req, res) => {
  */
 export const patchPermissionById = handleCatchErrorAsync(async (req, res) => {
   const { id } = req.params;
-  const permission = await patchPermissionByIdService(id, req.body);
+  // Cast único del body validado por Joi
+  const permission = await patchPermissionByIdService(
+    id,
+    req.body as UpdateEmployeePermissionInput
+  );
   return globalResponse(res, 200, permission);
 });

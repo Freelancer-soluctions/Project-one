@@ -1,4 +1,9 @@
 import { prisma, Prisma } from '../../config/db.js';
+import type {
+  SaleCreateData,
+  SaleListFilters,
+  SalePatchData,
+} from './types.js';
 
 /**
  * Get all sales with optional filters.
@@ -14,13 +19,7 @@ import { prisma, Prisma } from '../../config/db.js';
  * @returns {Promise<Array>} List of sales with their related data.
  */
 export const getAllSales = async (
-  filters: {
-    clientId?: number;
-    fromDate?: Date;
-    toDate?: Date;
-    minTotal?: number;
-    maxTotal?: number;
-  } = {},
+  filters: SaleListFilters = {},
   take: number,
   skip: number
 ) => {
@@ -68,7 +67,7 @@ export const getAllSales = async (
  * @param {number} data.createdBy - User ID who created the sale.
  * @returns {Promise<Object>} Created sale with related data.
  */
-export const createSale = async (data) => {
+export const createSale = async (data: SaleCreateData) => {
   const { details, ...saleData } = data;
   return prisma.sale.create({
     data: {
@@ -98,15 +97,7 @@ export const createSale = async (data) => {
  * @param {number} data.updatedBy - User ID who updated the sale.
  * @returns {Promise<Object>} Updated sale with related data.
  */
-export const patchSaleById = async (
-  id: number,
-  data: {
-    clientId?: number;
-    total?: number;
-    details?: Array<{ productId: number; quantity: number; price: number }>;
-    updatedBy?: number;
-  }
-) => {
+export const patchSaleById = async (id: number, data: SalePatchData) => {
   const { details, ...saleData } = data;
 
   // Build update object dynamically based on provided fields

@@ -8,6 +8,7 @@ import {
 } from './service.js';
 import globalResponse from '../../utils/responses&Errors/globalResponse.js';
 import handleCatchErrorAsync from '../../utils/responses&Errors/handleCatchErrorAsync.js';
+import type { StockInput, StockQuery } from './types.js';
 
 /**
  * Get all stock entries with optional filters.
@@ -31,7 +32,7 @@ export const getAllStock = handleCatchErrorAsync(async (req, res) => {
     unitMeasure,
     stocksExpirated,
     stocksLow,
-  } = req.safeQuery;
+  } = req.safeQuery as StockQuery;
   const stock = await getAllStockService({
     productId,
     warehouseId,
@@ -86,7 +87,7 @@ export const getStockAlerts = handleCatchErrorAsync(async (req, res) => {
  */
 export const createStock = handleCatchErrorAsync(async (req, res) => {
   const userId = req.userId;
-  await createStockService(userId, req.body);
+  await createStockService(userId, req.body as StockInput);
   globalResponse(res, 201, { message: 'Stock entry created successfully' });
 });
 
@@ -119,6 +120,6 @@ export const deleteStockById = handleCatchErrorAsync(async (req, res) => {
 export const patchStockById = handleCatchErrorAsync(async (req, res) => {
   const { id } = req.params;
   const userId = req.userId;
-  await updateStockByIdService(id, req.body, userId);
+  await updateStockByIdService(id, req.body as StockInput, userId);
   globalResponse(res, 200, { message: 'Stock entry updated successfully' });
 });

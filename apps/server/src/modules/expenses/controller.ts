@@ -6,6 +6,11 @@ import {
 } from './service.js';
 import handleCatchErrorAsync from '../../utils/responses&Errors/handleCatchErrorAsync.js';
 import globalResponse from '../../utils/responses&Errors/globalResponse.js';
+import type {
+  CreateExpenseInput,
+  ExpenseFilters,
+  UpdateExpenseInput,
+} from './types.js';
 
 /**
  * Get all expenses with optional filters.
@@ -25,7 +30,9 @@ import globalResponse from '../../utils/responses&Errors/globalResponse.js';
  */
 export const getAllExpenses = handleCatchErrorAsync(async (req, res) => {
   // console.log(req.safeQuery); // Keep for debugging if needed
-  const expenses = await getAllExpensesService(req.safeQuery);
+  // Cast único de la query validada por Joi
+  const filters = req.safeQuery as ExpenseFilters;
+  const expenses = await getAllExpensesService(filters);
   globalResponse(res, 200, expenses);
 });
 
@@ -46,9 +53,8 @@ export const getAllExpenses = handleCatchErrorAsync(async (req, res) => {
  */
 export const createExpense = handleCatchErrorAsync(async (req, res) => {
   // console.log(req.body); // Keep for debugging if needed
-  const expenseData = {
-    ...req.body,
-  };
+  // Cast único del body validado por Joi
+  const expenseData = { ...(req.body as CreateExpenseInput) };
   const expense = await createExpenseService(expenseData, req.userId);
   globalResponse(res, 201, expense);
 });
@@ -86,9 +92,8 @@ export const deleteExpenseById = handleCatchErrorAsync(async (req, res) => {
  * @access Private
  */
 export const patchExpenseById = handleCatchErrorAsync(async (req, res) => {
-  const expenseData = {
-    ...req.body,
-  };
+  // Cast único del body validado por Joi
+  const expenseData = { ...(req.body as UpdateExpenseInput) };
   const expense = await patchExpenseByIdService(
     req.params.id,
     expenseData,

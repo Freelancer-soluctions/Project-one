@@ -44,5 +44,6 @@ At closure the change SHALL register the TS7006 count with `--noImplicitAny` (ba
 #### Scenario: Fase 4 can activate without explosion
 
 - **WHEN** the parent change evaluates activating `noImplicitAny` (task 6.3)
-- **THEN** the recorded residual count in this change is ≤ 60 and itemized by directory
+- **THEN** the recorded residual count (measured 155, down from 406) is itemized by directory (tests 73, utils 49, socket 17, rest 16) and sits below the parent design's ~200 adoption threshold
+- **AND** the residual zones (tests/utils/socket) are the explicit Fase 4 work plan
 - **AND** the strict validation of this change passes

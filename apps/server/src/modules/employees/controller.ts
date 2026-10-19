@@ -7,6 +7,11 @@ import {
 } from './service.js';
 import handleCatchErrorAsync from '../../utils/responses&Errors/handleCatchErrorAsync.js';
 import globalResponse from '../../utils/responses&Errors/globalResponse.js';
+import type {
+  CreateEmployeeInput,
+  EmployeeFilters,
+  UpdateEmployeeInput,
+} from './types.js';
 
 /**
  * Get all employees with optional filters.
@@ -22,7 +27,9 @@ import globalResponse from '../../utils/responses&Errors/globalResponse.js';
  * @returns {Promise<void>} Returns paginated list of employees
  */
 export const getAllEmployees = handleCatchErrorAsync(async (req, res) => {
-  const employees = await getAllEmployeesService(req.safeQuery);
+  // Cast único de la query validada por Joi
+  const filters = req.safeQuery as EmployeeFilters;
+  const employees = await getAllEmployeesService(filters);
   globalResponse(res, 200, employees);
 });
 
@@ -57,8 +64,10 @@ export const getAllEmployeesFilters = handleCatchErrorAsync(
  */
 export const createEmployee = handleCatchErrorAsync(async (req, res) => {
   console.log(req.body);
+  // Cast único del body validado por Joi
+  const body = req.body as Omit<CreateEmployeeInput, 'createdBy'>;
   const employee = await createEmployeeService({
-    ...req.body,
+    ...body,
     createdBy: req.userId,
   });
   globalResponse(res, 201, employee);
@@ -81,8 +90,10 @@ export const createEmployee = handleCatchErrorAsync(async (req, res) => {
  * @returns {Promise<void>} Updates employee and returns updated employee object
  */
 export const updateEmployeeById = handleCatchErrorAsync(async (req, res) => {
+  // Cast único del body validado por Joi
+  const body = req.body as Omit<UpdateEmployeeInput, 'updatedBy'>;
   const employee = await updateEmployeeByIdService(req.params.id, {
-    ...req.body,
+    ...body,
     updatedBy: req.userId,
   });
   globalResponse(res, 200, employee);

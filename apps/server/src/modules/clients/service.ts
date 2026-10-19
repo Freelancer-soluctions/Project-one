@@ -5,6 +5,13 @@ import {
   updateClientById as updateClientByIdDao,
   deleteClientById as deleteClientByIdDao,
 } from './dao.js';
+import type {
+  Client,
+  ClientFilters,
+  ClientServiceResult,
+  CreateClientInput,
+  UpdateClientInput,
+} from './types.js';
 import { getSafePagination } from '../../utils/pagination/pagination.js';
 
 /**
@@ -19,7 +26,9 @@ import { getSafePagination } from '../../utils/pagination/pagination.js';
  * @returns {Promise<Object>} Paginated list of clients with metadata.
  * @throws {Error} When pagination parameters are missing or invalid.
  */
-export const getAllClients = async (filters) => {
+export const getAllClients = async (
+  filters: ClientFilters
+): Promise<ClientServiceResult> => {
   const { take, skip } = getSafePagination({
     page: filters.page,
     limit: filters.limit,
@@ -36,7 +45,7 @@ export const getAllClients = async (filters) => {
  *
  * @returns {Promise<Array>} List of all clients.
  */
-export const getAllClientsFilters = async () => {
+export const getAllClientsFilters = async (): Promise<Client[]> => {
   return getAllClientsFiltersDao();
 };
 
@@ -51,7 +60,9 @@ export const getAllClientsFilters = async () => {
  * @param {number} data.createdBy - User ID who created the client.
  * @returns {Promise<Object>} Created client.
  */
-export const createClient = async (data) => {
+export const createClient = async (
+  data: CreateClientInput
+): Promise<Client> => {
   const dataClient = {
     ...data,
     createdOn: new Date(),
@@ -71,7 +82,10 @@ export const createClient = async (data) => {
  * @param {number} data.updatedBy - User ID who updated the client.
  * @returns {Promise<Object>} Updated client.
  */
-export const updateClientById = async (id, data) => {
+export const updateClientById = async (
+  id: number | string,
+  data: UpdateClientInput
+): Promise<Client> => {
   const dataClient = {
     ...data,
     updatedOn: new Date(),
@@ -85,6 +99,8 @@ export const updateClientById = async (id, data) => {
  * @param {number} id - Client ID.
  * @returns {Promise<Object>} Deleted client.
  */
-export const deleteClientById = async (id) => {
+export const deleteClientById = async (
+  id: number | string
+): Promise<Client> => {
   return deleteClientByIdDao(Number(id));
 };

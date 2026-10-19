@@ -7,6 +7,11 @@ import {
 } from './service.js';
 import handleCatchErrorAsync from '../../utils/responses&Errors/handleCatchErrorAsync.js';
 import globalResponse from '../../utils/responses&Errors/globalResponse.js';
+import type {
+  ClientFilters,
+  CreateClientInput,
+  UpdateClientInput,
+} from './types.js';
 
 /**
  * Get all clients with optional filters.
@@ -22,7 +27,9 @@ import globalResponse from '../../utils/responses&Errors/globalResponse.js';
  * @returns {Promise<void>} Returns paginated list of clients
  */
 export const getAllClients = handleCatchErrorAsync(async (req, res) => {
-  const clients = await getAllClientsService(req.safeQuery);
+  // Cast único de la query validada por Joi
+  const filters = req.safeQuery as ClientFilters;
+  const clients = await getAllClientsService(filters);
   globalResponse(res, 200, clients);
 });
 
@@ -52,8 +59,10 @@ export const getAllClientsFilters = handleCatchErrorAsync(async (req, res) => {
  * @returns {Promise<void>} Creates new client and returns client object
  */
 export const createClient = handleCatchErrorAsync(async (req, res) => {
+  // Cast único del body validado por Joi
+  const body = req.body as Omit<CreateClientInput, 'createdBy'>;
   const client = await createClientService({
-    ...req.body,
+    ...body,
     createdBy: req.userId,
   });
   globalResponse(res, 201, client);
@@ -75,8 +84,10 @@ export const createClient = handleCatchErrorAsync(async (req, res) => {
  * @returns {Promise<void>} Updates client and returns updated client object
  */
 export const updateClientById = handleCatchErrorAsync(async (req, res) => {
+  // Cast único del body validado por Joi
+  const body = req.body as Omit<UpdateClientInput, 'updatedBy'>;
   const client = await updateClientByIdService(req.params.id, {
-    ...req.body,
+    ...body,
     updatedBy: req.userId,
   });
   globalResponse(res, 200, client);

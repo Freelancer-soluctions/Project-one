@@ -5,6 +5,7 @@ import {
   patchVacationById as patchVacationByIdService,
 } from './service.js';
 import handleCatchErrorAsync from '../../utils/responses&Errors/handleCatchErrorAsync.js';
+import type { VacationInput, VacationsQuery } from './types.js';
 import globalResponse from '../../utils/responses&Errors/globalResponse.js';
 
 /**
@@ -22,7 +23,7 @@ import globalResponse from '../../utils/responses&Errors/globalResponse.js';
  * @returns {Promise<void>} Returns paginated list of vacation records
  */
 export const getAllVacation = handleCatchErrorAsync(async (req, res) => {
-  const filters = req.safeQuery;
+  const filters = req.safeQuery as VacationsQuery;
   const data = await getAllVacationService(filters);
   return globalResponse(res, 200, data);
 });
@@ -42,7 +43,7 @@ export const getAllVacation = handleCatchErrorAsync(async (req, res) => {
  * @returns {Promise<void>} Creates new vacation record and returns vacation object
  */
 export const createVacation = handleCatchErrorAsync(async (req, res) => {
-  const data = await createVacationService(req.body);
+  const data = await createVacationService(req.body as VacationInput);
   return globalResponse(res, 201, data);
 });
 
@@ -77,6 +78,6 @@ export const deleteVacationById = handleCatchErrorAsync(async (req, res) => {
  */
 export const patchVacationById = handleCatchErrorAsync(async (req, res) => {
   const { id } = req.params;
-  const data = await patchVacationByIdService(id, req.body);
+  const data = await patchVacationByIdService(id, req.body as VacationInput);
   return globalResponse(res, 200, data);
 });

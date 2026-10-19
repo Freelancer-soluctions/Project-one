@@ -1,5 +1,13 @@
 import { prisma, Prisma } from '../../config/db.js';
 import { decryptResults } from '../../utils/prisma/prisma-query.js';
+import type {
+  CreatePayrollData,
+  Payroll,
+  PayrollDaoFilters,
+  PayrollListRow,
+  PayrollServiceResult,
+  UpdatePayrollData,
+} from './types.js';
 
 /**
  * Get all payroll records with optional filters.
@@ -13,15 +21,11 @@ import { decryptResults } from '../../utils/prisma/prisma-query.js';
  * @returns {Promise<Object>} Object containing dataList and total count.
  */
 export const getAllPayroll = async (
-  filters: {
-    employeeId?: number;
-    month?: number;
-    year?: number;
-  },
+  filters: PayrollDaoFilters,
   take: number,
   skip: number
-) => {
-  const whereClauses = [];
+): Promise<PayrollServiceResult> => {
+  const whereClauses: Prisma.Sql[] = [];
 
   if (filters.employeeId) {
     whereClauses.push(
@@ -41,7 +45,7 @@ export const getAllPayroll = async (
     ? Prisma.sql`WHERE ${Prisma.join(whereClauses, ' AND ')}`
     : Prisma.empty;
 
-  const payrolls = await prisma.$queryRaw`
+  const payrolls = await prisma.$queryRaw<PayrollListRow[]>`
      SELECT 
        p.*,
         e.name AS "employeeName",
@@ -95,7 +99,9 @@ export const getAllPayroll = async (
  * @param {number} data.createdBy - User ID who created the payroll.
  * @returns {Promise<Object>} Created payroll record with related data.
  */
-export const createPayroll = async (data) => {
+export const createPayroll = async (
+  data: CreatePayrollData
+): Promise<Payroll> => {
   return await prisma.payroll.create({
     data: {
       month: data.month,
@@ -136,9 +142,12 @@ export const createPayroll = async (data) => {
  * @param {number} [data.updatedBy] - User ID who updated the payroll.
  * @returns {Promise<Object>} Updated payroll record with related data.
  */
-export const updatePayrollById = async (id, data) => {
+export const updatePayrollById = async (
+  id: number | string,
+  data: UpdatePayrollData
+): Promise<Payroll> => {
   return await prisma.payroll.update({
-    where: { id: parseInt(id) },
+    where: { id: parseInt(String(id), 10) },
     data: {
       ...(data.month !== undefined && { month: data.month }),
       ...(data.year !== undefined && { year: data.year }),
@@ -165,7 +174,7 @@ export const updatePayrollById = async (id, data) => {
  * @param {number} id - Payroll ID.
  * @returns {Promise<Object>} Deleted payroll record.
  */
-export const deletePayrollById = async (id) => {
+export const deletePayrollById = async (id: number): Promise<Payroll> => {
   return await prisma.payroll.delete({
     where: { id },
   });

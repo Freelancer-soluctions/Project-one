@@ -1,5 +1,11 @@
 import { prisma, Prisma } from '../../config/db.js';
-import type { vacationStatus } from '@prisma/client';
+import type {
+  VacationCreateData,
+  VacationListItem,
+  VacationListFilters,
+  VacationUpdateData,
+  VacationsPage,
+} from './types.js';
 
 /**
  * Get all vacation records with optional filters.
@@ -14,22 +20,17 @@ import type { vacationStatus } from '@prisma/client';
  * @returns {Promise<Object>} Object containing vacations list and total count.
  */
 export const getAllVacation = async (
-  filters: {
-    employeeId?: number;
-    status?: vacationStatus;
-    fromDate?: Date | string;
-    toDate?: Date | string;
-  },
+  filters: VacationListFilters,
   take: number,
   skip: number
-) => {
+): Promise<VacationsPage> => {
   const whereClauses = buildVacationWhereClauses(filters);
 
   const whereSql = whereClauses.length
     ? Prisma.sql`WHERE ${Prisma.join(whereClauses, ' AND ')}`
     : Prisma.empty;
 
-  const vacations = await prisma.$queryRaw`
+  const vacations = await prisma.$queryRaw<VacationListItem[]>`
        SELECT 
          va.*,
          e.name AS "employeeName",
@@ -85,8 +86,10 @@ export const getAllVacation = async (
  * @param {Object} filters - Filter criteria (employeeId, fromDate, toDate, status).
  * @returns {Array<Object>} Prisma.sql fragments joined later with AND.
  */
-const buildVacationWhereClauses = (filters) => {
-  const whereClauses = [];
+const buildVacationWhereClauses = (
+  filters: VacationListFilters
+): Prisma.Sql[] => {
+  const whereClauses: Prisma.Sql[] = [];
 
   if (filters.employeeId) {
     whereClauses.push(
@@ -122,7 +125,7 @@ const buildVacationWhereClauses = (filters) => {
  * @param {Date} data.createdOn - Creation timestamp.
  * @returns {Promise<Object>} Created vacation record.
  */
-export const createVacation = async (data) => {
+export const createVacation = async (data: VacationCreateData) => {
   return await prisma.vacation.create({
     data: {
       employeeId: data.employeeId,
@@ -150,14 +153,7 @@ export const createVacation = async (data) => {
  */
 export const updateVacationById = async (
   id: number,
-  data: {
-    employeeId?: number;
-    startDate?: Date;
-    endDate?: Date;
-    status?: vacationStatus;
-    updatedBy?: number;
-    updatedOn?: Date;
-  }
+  data: VacationUpdateData
 ) => {
   const updateData: Prisma.vacationUncheckedUpdateInput = {};
   if (data.employeeId !== undefined) updateData.employeeId = data.employeeId;
@@ -178,8 +174,8 @@ export const updateVacationById = async (
  * @param {number} id - ID of the vacation record to delete.
  * @returns {Promise<Object>} Deleted vacation record.
  */
-export const deleteVacationById = async (id) => {
+export const deleteVacationById = async (id: number | string) => {
   return await prisma.vacation.delete({
-    where: { id: parseInt(id) },
+    where: { id: parseInt(String(id)) },
   });
 };

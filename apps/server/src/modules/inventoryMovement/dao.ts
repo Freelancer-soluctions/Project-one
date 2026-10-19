@@ -1,4 +1,12 @@
 import { prisma } from '../../config/db.js';
+import type {
+  CreateInventoryMovementData,
+  InventoryMovement,
+  InventoryMovementDaoFilters,
+  InventoryMovementServiceResult,
+  InventoryMovementWithRelations,
+  UpdateInventoryMovementData,
+} from './types.js';
 
 /**
  * Get all inventory movements with optional filters.
@@ -17,7 +25,7 @@ export const getAllInventoryMovements = async ({
   type,
   take,
   skip,
-}) => {
+}: InventoryMovementDaoFilters): Promise<InventoryMovementServiceResult> => {
   const inventoryMovements = await prisma.inventoryMovement.findMany({
     where: {
       ...(productId
@@ -88,7 +96,9 @@ export const getAllInventoryMovements = async ({
  * @param {Object} data - Inventory movement data.
  * @returns {Promise<Object>} Created inventory movement.
  */
-export const createInventoryMovement = async (data) => {
+export const createInventoryMovement = async (
+  data: CreateInventoryMovementData
+): Promise<InventoryMovementWithRelations> => {
   const inventoryMovement = await prisma.inventoryMovement.create({
     data,
     include: {
@@ -107,9 +117,14 @@ export const createInventoryMovement = async (data) => {
  * @param {Object} data - Updated inventory movement data.
  * @returns {Promise<Object>} Updated inventory movement.
  */
-export const updateInventoryMovementById = async (id, data) => {
+export const updateInventoryMovementById = async (
+  id: number | string,
+  data: UpdateInventoryMovementData
+): Promise<InventoryMovementWithRelations> => {
   const inventoryMovement = await prisma.inventoryMovement.update({
-    where: { id },
+    // Cast: la ruta entrega el `id` de la URL (string) tal cual y el modelo lo
+    // declara Int; se preserva ese comportamiento (gap preexistente, fuera de alcance).
+    where: { id: id as number },
     data,
     include: {
       product: true,
@@ -126,9 +141,12 @@ export const updateInventoryMovementById = async (id, data) => {
  * @param {number} id - Inventory movement ID.
  * @returns {Promise<Object>} Deleted inventory movement.
  */
-export const deleteInventoryMovementById = async (id) => {
+export const deleteInventoryMovementById = async (
+  id: number | string
+): Promise<InventoryMovement> => {
   const inventoryMovement = await prisma.inventoryMovement.delete({
-    where: { id },
+    // Mismo cast documentado que en la actualización.
+    where: { id: id as number },
   });
 
   return inventoryMovement;

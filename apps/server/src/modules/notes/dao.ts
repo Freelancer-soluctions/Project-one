@@ -1,4 +1,16 @@
 import { prisma, Prisma } from '../../config/db.js';
+import type {
+  HashtagWithCount,
+  MentionWithUsers,
+  NoteColumnWithNotes,
+  NoteCreateData,
+  NoteMentionData,
+  NotesCount,
+  NoteColumnChangeData,
+  NotesFilters,
+  NoteUpdatePayload,
+  NoteScope,
+} from './types.js';
 
 /**
  * Get all notes from the database with optional filters.
@@ -14,13 +26,13 @@ import { prisma, Prisma } from '../../config/db.js';
  *  - isMentioned: boolean indicating if the current user is mentioned in the note
  */
 export const getAllNotes = async (
-  searchTerm,
-  statusCode,
-  hashtagIds,
-  userId,
-  isFavorite,
-  scope: 'mine' | 'mixed' = 'mine'
-) => {
+  searchTerm: string | undefined,
+  statusCode: string | undefined,
+  hashtagIds: number[] | undefined,
+  userId: number | undefined,
+  isFavorite: boolean | undefined,
+  scope: NoteScope = 'mine'
+): Promise<NoteColumnWithNotes[]> => {
   const columns = await prisma.noteColumns.findMany({
     include: {
       notes: {
@@ -46,7 +58,7 @@ export const getAllNotes = async (
   });
 
   // Batch lookup: get all note IDs favorited by current user
-  let favoriteNoteIds = new Set();
+  let favoriteNoteIds = new Set<number>();
   if (userId) {
     const userFavorites = await prisma.user_notes_favorites.findMany({
       where: { userId },
@@ -56,7 +68,10 @@ export const getAllNotes = async (
   }
 
   // Batch lookup: get all note IDs and mention IDs where current user is mentioned
-  const mentionsByNote = new Map();
+  const mentionsByNote = new Map<
+    number,
+    { id: number; noteId: number; isRead: boolean }[]
+  >();
   if (userId) {
     const userMentions = await prisma.mentions.findMany({
       where: { mentionedUserId: userId },
@@ -114,14 +129,7 @@ const buildNoteFilters = ({
   userId,
   isFavorite,
   scope,
-}: {
-  searchTerm?: string;
-  statusCode?: string;
-  hashtagIds?: number[];
-  userId?: number;
-  isFavorite?: boolean;
-  scope?: 'mine' | 'mixed';
-}): Prisma.notesWhereInput[] => [
+}: NotesFilters): Prisma.notesWhereInput[] => [
   searchTerm
     ? {
         OR: [
@@ -175,10 +183,16 @@ const buildNoteFilters = ({
  * @returns {Promise<Object>} The created note.
  */
 
-export const createNote = async (data, userId, columnId, isFavorite) => {
+export const createNote = async (
+  data: NoteCreateData,
+  userId: number,
+  columnId: number,
+  isFavorite?: boolean
+) => {
   const result = await prisma.notes.create({
     data: {
       ...data,
+      createdOn: data.createdOn ?? new Date(),
       userNoteCreated: {
         connect: {
           id: userId,
@@ -217,7 +231,10 @@ export const getAllNotesColumns = async () => {
  * @param {Object} data - Updated data.
  * @returns {Promise<Object>} The updated note.
  */
-export const updateNoteColumId = async (id, data) => {
+export const updateNoteColumId = async (
+  id: number,
+  data: NoteColumnChangeData
+) => {
   const result = await prisma.notes.update({
     where: { id },
     data,
@@ -233,8 +250,12 @@ export const updateNoteColumId = async (id, data) => {
  * @param {number} [userId] - User ID (for isFavorite handling).
  * @returns {Promise<Object>} The updated note.
  */
-export const updateNoteById = async (id, data, userId?) => {
-  const updateData = { ...data };
+export const updateNoteById = async (
+  id: number,
+  data: NoteUpdatePayload,
+  userId?: number
+) => {
+  const updateData: NoteUpdatePayload = { ...data };
 
   // Extract and handle isFavorite (not a note field, handled separately)
   const { isFavorite } = updateData;
@@ -243,7 +264,7 @@ export const updateNoteById = async (id, data, userId?) => {
   // Handle columnId -> columnStatus connect
   if (updateData.columnId !== undefined) {
     updateData.columnStatus = {
-      connect: { id: updateData.columnId },
+      connect: { id: Number(updateData.columnId) },
     };
     delete updateData.columnId;
   }
@@ -252,10 +273,11 @@ export const updateNoteById = async (id, data, userId?) => {
   const hashtagIds = updateData.hashtagIds;
   delete updateData.hashtagIds;
 
-  // Update the note
+  // Update the note. `columnId` was already translated to `columnStatus`,
+  // so the remaining fields match Prisma's checked update input.
   const result = await prisma.notes.update({
     where: { id },
-    data: updateData,
+    data: updateData as Prisma.notesUpdateInput,
   });
 
   // Sync hashtags if provided
@@ -287,7 +309,7 @@ export const updateNoteById = async (id, data, userId?) => {
  * @param {number} id - Note ID.
  * @returns {Promise<Object>} The deleted note.
  */
-export const deleteRow = async (id) => {
+export const deleteRow = async (id: number) => {
   await prisma.notes.delete({ where: { id } });
 };
 
@@ -296,7 +318,7 @@ export const deleteRow = async (id) => {
  * @param {number} id - Note ID
  * @returns {Promise<Object|null>} Note record or null
  */
-export const getNoteById = async (id) => {
+export const getNoteById = async (id: number) => {
   return prisma.notes.findUnique({ where: { id } });
 };
 
@@ -305,7 +327,7 @@ export const getNoteById = async (id) => {
  * @param {number} id - Column ID
  * @returns {Promise<Object|null>} Column record or null
  */
-export const getColumnById = async (id) => {
+export const getColumnById = async (id: number) => {
   return prisma.noteColumns.findUnique({ where: { id } });
 };
 
@@ -317,9 +339,12 @@ export const getColumnById = async (id) => {
  * @returns {Promise<Object>} Object with counts for each column status (backlog, active, completed).
  * When scope is provided, counts are filtered by the scope; when omitted, all notes are counted.
  */
-export const getAllNotesCount = async (scope = 'mine', userId) => {
+export const getAllNotesCount = async (
+  scope: NoteScope = 'mine',
+  userId: number
+): Promise<NotesCount> => {
   // Build scope conditions similar to getAllNotes
-  const scopeConditions = [];
+  const scopeConditions: Prisma.notesWhereInput[] = [];
 
   if (scope === 'mine') {
     scopeConditions.push({ createdBy: userId });
@@ -364,7 +389,9 @@ export const getAllNotesCount = async (scope = 'mine', userId) => {
  * @param {number} noteId - Note ID.
  * @returns {Promise<Array>} List of mentions with user details.
  */
-export const getMentionsByNoteId = async (noteId) => {
+export const getMentionsByNoteId = async (
+  noteId: number
+): Promise<MentionWithUsers[]> => {
   return await prisma.mentions.findMany({
     where: { noteId },
     include: {
@@ -383,7 +410,7 @@ export const getMentionsByNoteId = async (noteId) => {
  *
  * @param {Object} mentionsData - The data for the new note.
  */
-export const saveNoteMentions = async (mentionsData) => {
+export const saveNoteMentions = async (mentionsData: NoteMentionData[]) => {
   await prisma.mentions.createMany({
     data: mentionsData,
   });
@@ -393,7 +420,7 @@ export const saveNoteMentions = async (mentionsData) => {
  * Dellete Mentions by note id
  * @param {Number} noteId
  */
-export const deleteMentionsByNoteId = async (noteId) => {
+export const deleteMentionsByNoteId = async (noteId: number) => {
   await prisma.mentions.deleteMany({
     where: { noteId },
   });
@@ -408,7 +435,7 @@ export const deleteMentionsByNoteId = async (noteId) => {
  * @param {number} noteId - Note ID.
  * @returns {Promise<Object>} Created favorite record.
  */
-export const createFavorite = async (userId, noteId) => {
+export const createFavorite = async (userId: number, noteId: number) => {
   return prisma.user_notes_favorites.create({
     data: { userId, noteId },
   });
@@ -421,7 +448,7 @@ export const createFavorite = async (userId, noteId) => {
  * @param {number} noteId - Note ID.
  * @returns {Promise<Object>} Deletion result.
  */
-export const deleteFavorite = async (userId, noteId) => {
+export const deleteFavorite = async (userId: number, noteId: number) => {
   return prisma.user_notes_favorites.deleteMany({
     where: { userId, noteId },
   });
@@ -434,7 +461,10 @@ export const deleteFavorite = async (userId, noteId) => {
  * @param {number} noteId - Note ID.
  * @returns {Promise<boolean>} True if favorited.
  */
-export const isFavorited = async (userId, noteId) => {
+export const isFavorited = async (
+  userId: number,
+  noteId: number
+): Promise<boolean> => {
   const count = await prisma.user_notes_favorites.count({
     where: { userId, noteId },
   });
@@ -450,7 +480,7 @@ export const isFavorited = async (userId, noteId) => {
  * @param {number} userId - ID of the creating user.
  * @returns {Promise<Object>} Created hashtag record.
  */
-export const createHashtag = async (name, userId) => {
+export const createHashtag = async (name: string, userId: number) => {
   return prisma.hashtags.create({
     data: { name, createdBy: userId },
   });
@@ -462,7 +492,7 @@ export const createHashtag = async (name, userId) => {
  *
  * @returns {Promise<Array>} Array of hashtag objects with _count.notes.
  */
-export const getAllHashtags = async () => {
+export const getAllHashtags = async (): Promise<HashtagWithCount[]> => {
   return prisma.hashtags.findMany({
     orderBy: { name: 'asc' },
     include: { _count: { select: { notes: true } } },
@@ -475,7 +505,7 @@ export const getAllHashtags = async () => {
  * @param {string} name - Hashtag name to search for.
  * @returns {Promise<Object|null>} Hashtag record or null if not found.
  */
-export const findHashtagByName = async (name) => {
+export const findHashtagByName = async (name: string) => {
   return prisma.hashtags.findUnique({ where: { name } });
 };
 
@@ -485,7 +515,7 @@ export const findHashtagByName = async (name) => {
  * @param {number} id - Hashtag ID.
  * @returns {Promise<Object|null>} Hashtag record or null if not found.
  */
-export const findHashtagById = async (id) => {
+export const findHashtagById = async (id: number) => {
   return prisma.hashtags.findUnique({ where: { id } });
 };
 
@@ -496,7 +526,7 @@ export const findHashtagById = async (id) => {
  * @param {string} name - New hashtag name.
  * @returns {Promise<Object>} Updated hashtag record.
  */
-export const updateHashtag = async (id, name) => {
+export const updateHashtag = async (id: number, name: string) => {
   return prisma.hashtags.update({
     where: { id },
     data: { name, updatedOn: new Date() },
@@ -509,7 +539,7 @@ export const updateHashtag = async (id, name) => {
  * @param {number} id - Hashtag ID to delete.
  * @returns {Promise<Object>} Deleted hashtag record.
  */
-export const deleteHashtag = async (id) => {
+export const deleteHashtag = async (id: number) => {
   return prisma.hashtags.delete({ where: { id } });
 };
 
@@ -521,7 +551,10 @@ export const deleteHashtag = async (id) => {
  * @param {number[]} hashtagIds - Array of hashtag IDs to associate.
  * @returns {Promise<void>}
  */
-export const syncNoteHashtags = async (noteId, hashtagIds) => {
+export const syncNoteHashtags = async (
+  noteId: number,
+  hashtagIds: number[]
+) => {
   await prisma.note_hashtags.deleteMany({ where: { noteId } });
   if (hashtagIds && hashtagIds.length > 0) {
     const data = hashtagIds.map((hashtagId) => ({
@@ -539,7 +572,7 @@ export const syncNoteHashtags = async (noteId, hashtagIds) => {
  * @param {number} noteId - Note ID.
  * @returns {Promise<Array>} Array of note_hashtags records with included hashtag data.
  */
-export const getNoteHashtags = async (noteId) => {
+export const getNoteHashtags = async (noteId: number) => {
   return prisma.note_hashtags.findMany({
     where: { noteId },
     include: { hashtag: true },

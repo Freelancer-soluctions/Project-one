@@ -1,5 +1,12 @@
 import { prisma, Prisma } from '../../config/db.js';
-import type { permissionStatus } from '@prisma/client';
+import type {
+  CreateEmployeePermissionData,
+  EmployeePermission,
+  EmployeePermissionDaoFilters,
+  EmployeePermissionListRow,
+  EmployeePermissionServiceResult,
+  UpdateEmployeePermissionData,
+} from './types.js';
 
 /**
  * Get all permissions with optional filters.
@@ -15,17 +22,11 @@ import type { permissionStatus } from '@prisma/client';
  * @returns {Promise<Object>} Object containing dataList and total count.
  */
 export const getAllPermissions = async (
-  filters: {
-    employeeId?: number;
-    type?: string;
-    status?: permissionStatus;
-    fromDate?: Date | string;
-    toDate?: Date | string;
-  },
+  filters: EmployeePermissionDaoFilters,
   take: number,
   skip: number
-) => {
-  const whereClauses = [];
+): Promise<EmployeePermissionServiceResult> => {
+  const whereClauses: Prisma.Sql[] = [];
 
   if (filters.employeeId) {
     whereClauses.push(
@@ -56,7 +57,7 @@ export const getAllPermissions = async (
     ? Prisma.sql`WHERE ${Prisma.join(whereClauses, ' AND ')}`
     : Prisma.empty;
 
-  const permissions = await prisma.$queryRaw`
+  const permissions = await prisma.$queryRaw<EmployeePermissionListRow[]>`
       SELECT 
         pe.*,
         e.name AS "employeeName",
@@ -121,7 +122,9 @@ export const getAllPermissions = async (
  * @param {string} [data.comments] - Additional comments.
  * @returns {Promise<Object>} Created permission record with related data.
  */
-export const createPermission = async (data) => {
+export const createPermission = async (
+  data: CreateEmployeePermissionData
+): Promise<EmployeePermission> => {
   return await prisma.permission.create({
     data: {
       createdOn: data.createdOn,
@@ -157,9 +160,14 @@ export const createPermission = async (data) => {
  * @param {string} [data.comments] - Additional comments.
  * @returns {Promise<Object>} Updated permission record with related data.
  */
-export const updatePermissionById = async (id, data) => {
+export const updatePermissionById = async (
+  id: number | string,
+  data: UpdateEmployeePermissionData
+): Promise<EmployeePermission> => {
   return await prisma.permission.update({
-    where: { id },
+    // Cast: la ruta entrega el `id` de la URL (string) tal cual y el modelo lo
+    // declara Int; se preserva ese comportamiento (gap preexistente, fuera de alcance).
+    where: { id: id as number },
     data: {
       updatedOn: data.updatedOn,
       startDate: data.startDate,
@@ -185,8 +193,11 @@ export const updatePermissionById = async (id, data) => {
  * @param {number|string} id - Permission ID.
  * @returns {Promise<Object>} Deleted permission record.
  */
-export const deletePermissionById = async (id) => {
+export const deletePermissionById = async (
+  id: number | string
+): Promise<EmployeePermission> => {
   return await prisma.permission.delete({
-    where: { id },
+    // Mismo cast documentado que en la actualización.
+    where: { id: id as number },
   });
 };

@@ -1,4 +1,11 @@
 import { prisma, Prisma } from '../../config/db.js';
+import type {
+  StockAlerts,
+  StockCreateData,
+  StockListFilters,
+  StockRecord,
+  StockUpdateData,
+} from './types.js';
 
 /**
  * Get all stock entries with optional filters.
@@ -20,7 +27,7 @@ export const getAllStock = async ({
   stocksLow,
   take,
   skip,
-}) => {
+}: StockListFilters) => {
   const stocks = await prisma.$queryRaw(
     Prisma.sql`
       SELECT s.*, 
@@ -100,7 +107,7 @@ export const getStockByProductId = async (id: number) => {
  *
  * @returns {Promise<Object>} Stock alerts including expired and low stock counts.
  */
-export const getStockAlerts = async () => {
+export const getStockAlerts = async (): Promise<StockAlerts> => {
   const stockAlerts = await prisma.$queryRaw`
    SELECT 
       CAST(COUNT(CASE WHEN s."expirationDate" < CURRENT_DATE THEN 1 END) AS INTEGER) AS "expired",
@@ -118,7 +125,9 @@ export const getStockAlerts = async () => {
  * @param {Object} data - Stock entry data.
  * @returns {Promise<Object>} Created stock entry.
  */
-export const createStock = async (data) => {
+export const createStock = async (
+  data: StockCreateData
+): Promise<StockRecord> => {
   const stock = await prisma.stock.create({
     data: {
       quantity: data.quantity,
@@ -156,7 +165,10 @@ export const createStock = async (data) => {
  * @param {Object} where - Query conditions.
  * @returns {Promise<Object>} Updated stock entry.
  */
-export const updateStock = async (data, where) => {
+export const updateStock = async (
+  data: StockUpdateData,
+  where: Prisma.stockWhereUniqueInput
+): Promise<StockRecord> => {
   const stock = await prisma.stock.update({
     where,
     data: {
@@ -194,7 +206,9 @@ export const updateStock = async (data, where) => {
  * @param {Object} where - Query conditions.
  * @returns {Promise<Object>} Deleted stock entry.
  */
-export const deleteStock = async (where) => {
+export const deleteStock = async (
+  where: Prisma.stockWhereUniqueInput
+): Promise<StockRecord> => {
   const stock = await prisma.stock.delete({
     where,
   });

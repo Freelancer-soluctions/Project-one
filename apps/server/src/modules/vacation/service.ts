@@ -5,6 +5,13 @@ import {
   deleteVacationById as deleteVacationByIdDao,
 } from './dao.js';
 import { getSafePagination } from '../../utils/pagination/pagination.js';
+import type { vacationStatus } from '@prisma/client';
+import type {
+  VacationCreateData,
+  VacationInput,
+  VacationsQuery,
+  VacationUpdateData,
+} from './types.js';
 
 /**
  * Get all vacation records with optional filters.
@@ -19,7 +26,7 @@ import { getSafePagination } from '../../utils/pagination/pagination.js';
  * @returns {Promise<Object>} Paginated list of vacation records with metadata.
  * @throws {Error} When pagination parameters are missing or invalid.
  */
-export const getAllVacation = async (filters) => {
+export const getAllVacation = async (filters: VacationsQuery) => {
   const { take, skip } = getSafePagination({
     page: filters.page,
     limit: filters.limit,
@@ -43,9 +50,13 @@ export const getAllVacation = async (filters) => {
  * @param {string} data.reason - Reason for the vacation.
  * @returns {Promise<Object>} Created vacation record.
  */
-export const createVacation = async (data) => {
-  const vacation = {
-    ...data,
+export const createVacation = async (data: VacationInput) => {
+  const vacation: VacationCreateData = {
+    employeeId: Number(data.employeeId),
+    startDate: new Date(data.startDate as Date | string),
+    endDate: new Date(data.endDate as Date | string),
+    status: data.status as vacationStatus | undefined,
+    createdBy: data.createdBy,
     createdOn: new Date(),
   };
   return await createVacationDao(vacation);
@@ -57,7 +68,7 @@ export const createVacation = async (data) => {
  * @param {number} id - ID of the vacation record to delete.
  * @returns {Promise<Object>} Deleted vacation record.
  */
-export const deleteVacationById = async (id) => {
+export const deleteVacationById = async (id: number | string) => {
   return await deleteVacationByIdDao(id);
 };
 
@@ -76,10 +87,17 @@ export const deleteVacationById = async (id) => {
  * @param {Date} [data.updatedOn] - Update timestamp.
  * @returns {Promise<Object>} Updated vacation record.
  */
-export const patchVacationById = async (id, data) => {
-  const vacation = {
+export const patchVacationById = async (
+  id: number | string,
+  data: VacationInput
+) => {
+  const vacation: VacationUpdateData & { updatedOn?: Date } = {
     ...data,
+    startDate: data.startDate
+      ? new Date(data.startDate as Date | string)
+      : undefined,
+    endDate: data.endDate ? new Date(data.endDate as Date | string) : undefined,
     updatedOn: new Date(),
   };
-  return await updateVacationByIdDao(id, vacation);
+  return await updateVacationByIdDao(Number(id), vacation);
 };

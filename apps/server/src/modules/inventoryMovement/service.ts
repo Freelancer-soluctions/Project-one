@@ -4,6 +4,15 @@ import {
   updateInventoryMovementById as updateInventoryMovementByIdDao,
   deleteInventoryMovementById as deleteInventoryMovementByIdDao,
 } from './dao.js';
+import type {
+  CreateInventoryMovementData,
+  CreateInventoryMovementInput,
+  InventoryMovement,
+  InventoryMovementFilters,
+  InventoryMovementServiceResult,
+  InventoryMovementWithRelations,
+  UpdateInventoryMovementInput,
+} from './types.js';
 import { getSafePagination } from '../../utils/pagination/pagination.js';
 
 /**
@@ -24,7 +33,7 @@ export const getAllInventoryMovements = async ({
   type,
   limit,
   page,
-}) => {
+}: InventoryMovementFilters): Promise<InventoryMovementServiceResult> => {
   const { take, skip } = getSafePagination({ page, limit });
 
   if (!take || take <= 0) {
@@ -50,8 +59,14 @@ export const getAllInventoryMovements = async ({
  * @param {string} data.reason - Reason for the movement.
  * @returns {Promise<Object>} Created inventory movement.
  */
-export const createInventoryMovement = async (data) => {
-  const inventoryMovement = await createInventoryMovementDao(data);
+export const createInventoryMovement = async (
+  data: CreateInventoryMovementInput
+): Promise<InventoryMovementWithRelations> => {
+  // Cast único al payload de persistencia: el modelo exige `createdBy`/`createdOn`
+  // que esta ruta todavía no completa (gap preexistente; el runtime no cambia).
+  const inventoryMovement = await createInventoryMovementDao(
+    data as CreateInventoryMovementData
+  );
   return inventoryMovement;
 };
 
@@ -65,7 +80,10 @@ export const createInventoryMovement = async (data) => {
  * @param {string} [data.reason] - Reason for the movement.
  * @returns {Promise<Object>} Updated inventory movement.
  */
-export const updateInventoryMovementById = async (id, data) => {
+export const updateInventoryMovementById = async (
+  id: number | string,
+  data: UpdateInventoryMovementInput
+): Promise<InventoryMovementWithRelations> => {
   const inventoryMovement = await updateInventoryMovementByIdDao(id, data);
   return inventoryMovement;
 };
@@ -76,7 +94,9 @@ export const updateInventoryMovementById = async (id, data) => {
  * @param {number} id - Inventory movement ID.
  * @returns {Promise<Object>} Deleted inventory movement.
  */
-export const deleteInventoryMovementById = async (id) => {
+export const deleteInventoryMovementById = async (
+  id: number | string
+): Promise<InventoryMovement> => {
   const inventoryMovement = await deleteInventoryMovementByIdDao(id);
   return inventoryMovement;
 };

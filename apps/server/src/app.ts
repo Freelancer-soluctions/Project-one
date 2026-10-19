@@ -9,20 +9,6 @@ import { register } from './socket/monitor/metrics.js';
 import { secretsClient } from './config/aws/secret-manager.client.js';
 import { GetSecretValueCommand } from '@aws-sdk/client-secrets-manager';
 import { prisma } from './config/db.js';
-import type { JwtPayload } from 'jsonwebtoken';
-
-// Declaración global para tipar req.user con el payload JWT verificado
-declare global {
-  // Express global augmentation for req.user (JwtPayload): declaration merging
-  // requires a namespace — there is no module-scope equivalent for this.
-  // eslint-disable-next-line @typescript-eslint/no-namespace
-  namespace Express {
-    interface Request {
-      user?: JwtPayload;
-    }
-  }
-}
-
 const app = express();
 
 // middleware

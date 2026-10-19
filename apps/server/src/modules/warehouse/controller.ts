@@ -7,6 +7,7 @@ import {
 } from './service.js';
 import globalResponse from '../../utils/responses&Errors/globalResponse.js';
 import handleCatchErrorAsync from '../../utils/responses&Errors/handleCatchErrorAsync.js';
+import type { WarehouseInput, WarehousesQuery } from './types.js';
 
 /**
  * Get all warehouses with optional filters.
@@ -19,7 +20,7 @@ import handleCatchErrorAsync from '../../utils/responses&Errors/handleCatchError
  * @returns {Promise<void>} Returns paginated list of warehouses
  */
 export const getAllWarehouses = handleCatchErrorAsync(async (req, res) => {
-  const { name, status } = req.safeQuery;
+  const { name, status } = req.safeQuery as WarehousesQuery;
   const warehouses = await getAllWarehousesService({ name, status });
   globalResponse(res, 200, warehouses);
 });
@@ -50,7 +51,7 @@ export const getAllWarehousesFilters = handleCatchErrorAsync(
  * @returns {Promise<void>} Creates new warehouse and returns success message
  */
 export const createWarehouse = handleCatchErrorAsync(async (req, res) => {
-  await createWarehouseService(req.body);
+  await createWarehouseService(req.body as WarehouseInput);
   globalResponse(res, 201, { message: 'Warehouse created successfully' });
 });
 
@@ -85,7 +86,7 @@ export const deleteWarehouseById = handleCatchErrorAsync(async (req, res) => {
  */
 export const patchWarehouseById = handleCatchErrorAsync(async (req, res) => {
   const { id } = req.params;
-  await patchWarehouseByIdService(id, req.body);
+  await patchWarehouseByIdService(id, req.body as WarehouseInput);
   globalResponse(res, 200, {
     message: 'Warehouse partially updated successfully',
   });

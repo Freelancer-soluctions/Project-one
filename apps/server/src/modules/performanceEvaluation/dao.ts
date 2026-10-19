@@ -1,4 +1,12 @@
 import { prisma, Prisma } from '../../config/db.js';
+import type {
+  CreatePerformanceEvaluationData,
+  PerformanceEvaluation,
+  PerformanceEvaluationDaoFilters,
+  PerformanceEvaluationListRow,
+  PerformanceEvaluationServiceResult,
+  UpdatePerformanceEvaluationData,
+} from './types.js';
 
 /**
  * Get all performance evaluations with optional filters.
@@ -12,15 +20,11 @@ import { prisma, Prisma } from '../../config/db.js';
  * @returns {Promise<Object>} Object containing dataList and total count.
  */
 export const getAllPerformanceEvaluations = async (
-  filters: {
-    employeeId?: string;
-    startDate?: string;
-    endDate?: string;
-  } = {},
+  filters: PerformanceEvaluationDaoFilters = {},
   take: number,
   skip: number
-) => {
-  const whereClauses = [];
+): Promise<PerformanceEvaluationServiceResult> => {
+  const whereClauses: Prisma.Sql[] = [];
 
   if (filters.employeeId) {
     whereClauses.push(
@@ -40,7 +44,7 @@ export const getAllPerformanceEvaluations = async (
     ? Prisma.sql`WHERE ${Prisma.join(whereClauses, ' AND ')}`
     : Prisma.empty;
 
-  const evaluations = await prisma.$queryRaw`
+  const evaluations = await prisma.$queryRaw<PerformanceEvaluationListRow[]>`
     SELECT 
       pe.*,
       e.name AS "employeeName",
@@ -99,14 +103,9 @@ export const getAllPerformanceEvaluations = async (
  * @param {Date} data.creationOn - Creation timestamp.
  * @returns {Promise<Object>} Created performance evaluation with related data.
  */
-export const createPerformanceEvaluation = async (data: {
-  employeeId: number;
-  date: Date;
-  calification: number;
-  comments: string;
-  createdBy: number;
-  createdOn?: Date;
-}) => {
+export const createPerformanceEvaluation = async (
+  data: CreatePerformanceEvaluationData
+): Promise<PerformanceEvaluation> => {
   const evaluation = await prisma.performanceEvaluation.create({
     data: {
       date: data.date,
@@ -133,15 +132,8 @@ export const createPerformanceEvaluation = async (data: {
  */
 export const patchPerformanceEvaluationById = async (
   id: number,
-  data: {
-    employeeId?: number;
-    date?: Date;
-    calification?: number;
-    comments?: string;
-    updatedOn?: Date;
-    updatedBy?: number;
-  }
-) => {
+  data: UpdatePerformanceEvaluationData
+): Promise<PerformanceEvaluation> => {
   const updateData: Prisma.performanceEvaluationUpdateInput = {};
   if (data.date !== undefined) updateData.date = data.date;
   if (data.calification !== undefined)
@@ -169,7 +161,9 @@ export const patchPerformanceEvaluationById = async (
  * @param {number} id - Performance evaluation ID.
  * @returns {Promise<Object>} Deleted performance evaluation.
  */
-export const deletePerformanceEvaluationById = async (id: number) => {
+export const deletePerformanceEvaluationById = async (
+  id: number
+): Promise<PerformanceEvaluation> => {
   const evaluation = await prisma.performanceEvaluation.delete({
     where: { id },
   });

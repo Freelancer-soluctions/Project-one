@@ -5,6 +5,13 @@ import {
   deleteExpenseById as deleteExpenseByIdDao, // Renamed
   patchExpenseById as patchExpenseByIdDao, // Renamed
 } from './dao.js'; // Assuming dao.js will be adapted for expenses
+import type {
+  CreateExpenseInput,
+  Expense,
+  ExpenseFilters,
+  ExpenseServiceResult,
+  UpdateExpenseInput,
+} from './types.js';
 import { getSafePagination } from '../../utils/pagination/pagination.js';
 
 /**
@@ -20,7 +27,9 @@ import { getSafePagination } from '../../utils/pagination/pagination.js';
  * @returns {Promise<Object>} A paginated list of expenses matching the filters.
  * @throws {Error} When pagination parameters are missing or invalid.
  */
-export const getAllExpenses = async (filters) => {
+export const getAllExpenses = async (
+  filters: ExpenseFilters
+): Promise<ExpenseServiceResult> => {
   const { take, skip } = getSafePagination({
     page: filters.page,
     limit: filters.limit,
@@ -43,7 +52,10 @@ export const getAllExpenses = async (filters) => {
  * @param {number} userId - The ID of the user creating the expense.
  * @returns {Promise<Object>} The created expense.
  */
-export const createExpense = async (data, userId) => {
+export const createExpense = async (
+  data: CreateExpenseInput,
+  userId: number
+): Promise<Expense> => {
   const expenseData = {
     ...data,
     createdOn: new Date(),
@@ -58,7 +70,9 @@ export const createExpense = async (data, userId) => {
  * @param {string} id - The ID of the expense to delete.
  * @returns {Promise<Object>} The result of the deletion.
  */
-export const deleteExpenseById = async (id) => {
+export const deleteExpenseById = async (
+  id: number | string
+): Promise<Expense> => {
   // ID is already a string, no Number() conversion needed for CUID
   return deleteExpenseByIdDao(Number(id));
 };
@@ -74,7 +88,11 @@ export const deleteExpenseById = async (id) => {
  * @param {number} userId - The ID of the user updating the expense.
  * @returns {Promise<Object>} The updated expense.
  */
-export const patchExpenseById = async (id, data, userId) => {
+export const patchExpenseById = async (
+  id: number | string,
+  data: UpdateExpenseInput,
+  userId: number
+): Promise<Expense> => {
   const expenseData = {
     ...data,
     updatedOn: new Date(),

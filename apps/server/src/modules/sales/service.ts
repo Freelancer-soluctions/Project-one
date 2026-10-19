@@ -6,6 +6,12 @@ import {
   patchSaleById as patchSaleByIdDao,
 } from './dao.js';
 import { getSafePagination } from '../../utils/pagination/pagination.js';
+import type {
+  SaleCreateData,
+  SaleInput,
+  SalePatchData,
+  SalesQuery,
+} from './types.js';
 
 /**
  * Get all sales with optional filters.
@@ -21,7 +27,7 @@ import { getSafePagination } from '../../utils/pagination/pagination.js';
  * @returns {Promise<Object>} Paginated list of sales with metadata.
  * @throws {Error} When pagination parameters are missing or invalid.
  */
-export const getAllSales = async (filters) => {
+export const getAllSales = async (filters: SalesQuery) => {
   const formatedFilters = {
     ...filters,
     clientId: Number(filters.clientId),
@@ -47,8 +53,8 @@ export const getAllSales = async (filters) => {
  * @param {number} data.createdBy - User ID who created the sale.
  * @returns {Promise<Object>} Created sale.
  */
-export const createSale = async (data) => {
-  const dataToCreate = {
+export const createSale = async (data: SaleInput) => {
+  const dataToCreate: SaleCreateData = {
     clientId: Number(data.clientId),
     total: Number(data.total),
     details: data.details,
@@ -69,8 +75,8 @@ export const createSale = async (data) => {
  * @param {number} data.updatedBy - User ID who updated the sale.
  * @returns {Promise<Object>} Updated sale.
  */
-export const patchSaleById = async (id, data) => {
-  const dataToUpdate = {
+export const patchSaleById = async (id: number | string, data: SaleInput) => {
+  const dataToUpdate: SalePatchData & { updatedOn?: Date } = {
     clientId: data.clientId !== undefined ? Number(data.clientId) : undefined,
     total: data.total !== undefined ? Number(data.total) : undefined,
     details: data.details,
@@ -79,7 +85,7 @@ export const patchSaleById = async (id, data) => {
     updatedOn: new Date(),
   };
   // Remove undefined values
-  Object.keys(dataToUpdate).forEach(
+  (Object.keys(dataToUpdate) as (keyof typeof dataToUpdate)[]).forEach(
     (key) => dataToUpdate[key] === undefined && delete dataToUpdate[key]
   );
   return patchSaleByIdDao(Number(id), dataToUpdate);
@@ -91,7 +97,7 @@ export const patchSaleById = async (id, data) => {
  * @param {number} id - Sale ID.
  * @returns {Promise<Object>} Deleted sale.
  */
-export const deleteSaleById = async (id) => {
+export const deleteSaleById = async (id: number | string) => {
   return deleteSaleByIdDao(Number(id));
 };
 
@@ -101,6 +107,6 @@ export const deleteSaleById = async (id) => {
  * @param {number} id - Sale detail ID.
  * @returns {Promise<Object>} Deleted sale detail.
  */
-export const deleteSaleDetailById = async (id) => {
+export const deleteSaleDetailById = async (id: number | string) => {
   return deleteSaleDetailByIdDao(Number(id));
 };

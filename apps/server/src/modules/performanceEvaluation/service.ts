@@ -4,6 +4,13 @@ import {
   deletePerformanceEvaluationById as deletePerformanceEvaluationByIdDao,
   patchPerformanceEvaluationById as patchPerformanceEvaluationByIdDao,
 } from './dao.js';
+import type {
+  CreatePerformanceEvaluationInput,
+  PerformanceEvaluation,
+  PerformanceEvaluationFilters,
+  PerformanceEvaluationServiceResult,
+  UpdatePerformanceEvaluationInput,
+} from './types.js';
 import { getSafePagination } from '../../utils/pagination/pagination.js';
 
 /**
@@ -18,7 +25,9 @@ import { getSafePagination } from '../../utils/pagination/pagination.js';
  * @returns {Promise<Object>} Paginated list of performance evaluations with metadata.
  * @throws {Error} When pagination parameters are missing or invalid.
  */
-export const getAllPerformanceEvaluations = async (filters) => {
+export const getAllPerformanceEvaluations = async (
+  filters: PerformanceEvaluationFilters
+): Promise<PerformanceEvaluationServiceResult> => {
   const { take, skip } = getSafePagination({
     page: filters.page,
     limit: filters.limit,
@@ -43,7 +52,10 @@ export const getAllPerformanceEvaluations = async (filters) => {
  * @param {number} userId - User ID who created the evaluation.
  * @returns {Promise<Object>} Created performance evaluation.
  */
-export const createPerformanceEvaluation = async (data, userId) => {
+export const createPerformanceEvaluation = async (
+  data: CreatePerformanceEvaluationInput,
+  userId: number
+): Promise<PerformanceEvaluation> => {
   const evaluationData = {
     ...data,
     createdOn: new Date(),
@@ -61,7 +73,11 @@ export const createPerformanceEvaluation = async (data, userId) => {
  * @param {number} userId - User ID who updated.
  * @returns {Promise<Object>} Updated performance evaluation.
  */
-export const patchPerformanceEvaluationById = async (id, data, userId) => {
+export const patchPerformanceEvaluationById = async (
+  id: number | string,
+  data: UpdatePerformanceEvaluationInput,
+  userId: number
+): Promise<PerformanceEvaluation> => {
   const evaluationData = {
     ...data,
     updatedOn: new Date(),
@@ -76,6 +92,8 @@ export const patchPerformanceEvaluationById = async (id, data, userId) => {
  * @param {number} id - Performance evaluation ID.
  * @returns {Promise<Object>} Deleted performance evaluation.
  */
-export const deletePerformanceEvaluationById = async (id) => {
+export const deletePerformanceEvaluationById = async (
+  id: number | string
+): Promise<PerformanceEvaluation> => {
   return deletePerformanceEvaluationByIdDao(Number(id));
 };

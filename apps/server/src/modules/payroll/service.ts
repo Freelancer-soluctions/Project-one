@@ -1,4 +1,12 @@
 import * as payrollDao from './dao.js';
+import type {
+  CreatePayrollData,
+  CreatePayrollInput,
+  Payroll,
+  PayrollFilters,
+  PayrollServiceResult,
+  UpdatePayrollInput,
+} from './types.js';
 import { getSafePagination } from '../../utils/pagination/pagination.js';
 
 /**
@@ -13,7 +21,9 @@ import { getSafePagination } from '../../utils/pagination/pagination.js';
  * @returns {Promise<Object>} Paginated list of payroll records with metadata.
  * @throws {Error} When pagination parameters are missing or invalid.
  */
-export const getAllPayroll = async (filters) => {
+export const getAllPayroll = async (
+  filters: PayrollFilters
+): Promise<PayrollServiceResult> => {
   const { take, skip } = getSafePagination({
     page: filters.page,
     limit: filters.limit,
@@ -39,8 +49,13 @@ export const getAllPayroll = async (filters) => {
  * @param {number} userId - User ID who created the payroll.
  * @returns {Promise<Object>} Created payroll record.
  */
-export const createPayroll = async (data, userId) => {
-  const payroll = {
+export const createPayroll = async (
+  data: CreatePayrollInput,
+  userId: number
+): Promise<Payroll> => {
+  // Se declara el payload del dao en lugar de confiar en la inferencia: los
+  // importes ya se normalizan a `string` justo debajo.
+  const payroll: CreatePayrollData = {
     ...data,
     baseSalary: String(data.baseSalary),
     extraHours: String(data.extraHours),
@@ -58,7 +73,9 @@ export const createPayroll = async (data, userId) => {
  * @param {number} id - Payroll ID.
  * @returns {Promise<Object>} Deleted payroll record.
  */
-export const deletePayrollById = async (id) => {
+export const deletePayrollById = async (
+  id: number | string
+): Promise<Payroll> => {
   return await payrollDao.deletePayrollById(Number(id));
 };
 
@@ -70,7 +87,11 @@ export const deletePayrollById = async (id) => {
  * @param {number} userId - ID of the user performing the update.
  * @returns {Promise<Object>} Updated payroll record.
  */
-export const updatePayrollByIdPartial = async (id, data, userId) => {
+export const updatePayrollByIdPartial = async (
+  id: number | string,
+  data: UpdatePayrollInput,
+  userId: number
+): Promise<Payroll> => {
   const payroll = {
     ...data,
     updatedOn: new Date(),

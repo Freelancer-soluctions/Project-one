@@ -28,6 +28,8 @@ declare global {
       user?: JwtPayload;
       /** `user.id` en cortocircuito: es el acceso usado por los controllers. */
       userId?: number;
+      /** Código de rol verificado (C01/C02/...). Set por `verifyRole`. */
+      userRole?: string;
       /** Query ya validada/normalizada por Joi. Set por `validateQueryParams`. */
       safeQuery?: Record<string, unknown>;
     }

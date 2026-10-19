@@ -65,7 +65,7 @@ export const createAttendance = handleCatchErrorAsync(async (req, res) => {
  * @returns {Promise<void>} Deletes attendance record and returns confirmation message
  */
 export const deleteAttendanceById = handleCatchErrorAsync(async (req, res) => {
-  await deleteAttendanceByIdService(req.params.id);
+  await deleteAttendanceByIdService(Number(req.params.id));
   globalResponse(res, 200, {
     message: 'Attendance record deleted successfully',
   });
@@ -91,7 +91,7 @@ export const patchAttendanceById = handleCatchErrorAsync(async (req, res) => {
   // Cast único del body validado por Joi (attendanceUpdateSchema)
   const body = req.body as UpdateAttendanceInput;
   const attendance = await patchAttendanceByIdService(
-    req.params.id,
+    Number(req.params.id),
     body,
     req.userId
   );

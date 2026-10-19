@@ -1,6 +1,12 @@
 import * as prismaService from '../../utils/prisma/dao.js';
 import { TABLESNAMES } from '../../utils/constants/enums.js';
 import { prisma, Prisma } from '../../config/db.js';
+import type {
+  ProviderCreateData,
+  ProviderListItem,
+  ProvidersPage,
+  ProviderUpdateData,
+} from './types.js';
 
 const tableName = TABLESNAMES.PROVIDERS;
 
@@ -14,8 +20,13 @@ const tableName = TABLESNAMES.PROVIDERS;
  * @returns {Promise<Object>} Object containing dataList and total count.
  */
 
-export const getAllProviders = async (name, status, take, skip) => {
-  const whereClauses = [];
+export const getAllProviders = async (
+  name: string | undefined,
+  status: boolean | null,
+  take: number,
+  skip: number
+): Promise<ProvidersPage> => {
+  const whereClauses: Prisma.Sql[] = [];
 
   if (name) {
     whereClauses.push(Prisma.sql`p."name" ILIKE ${'%' + name + '%'}`);
@@ -27,7 +38,7 @@ export const getAllProviders = async (name, status, take, skip) => {
     ? Prisma.sql`WHERE ${Prisma.join(whereClauses, ' AND ')}`
     : Prisma.empty;
 
-  const providers = await prisma.$queryRaw`
+  const providers = await prisma.$queryRaw<ProviderListItem[]>`
     SELECT p.*, 
     CASE 
       WHEN p."status" = TRUE THEN 'ACTIVE'
@@ -87,7 +98,7 @@ export const getAllProvidersFilters = async () => {
  * @param {number} data.createdBy - The ID of the user who created the provider.
  * @returns {Promise<Object>} The created provider.
  */
-export const createProvider = async (data) => {
+export const createProvider = async (data: ProviderCreateData) => {
   const savedProvider = await prisma.productProviders.create({
     data: {
       code: data.code,
@@ -126,7 +137,10 @@ export const createProvider = async (data) => {
  * @param {number} data.updatedBy - The ID of the user updating the provider.
  * @returns {Promise<Object>} The updated provider.
  */
-export const updateRow = async (data, where) => {
+export const updateRow = async (
+  data: ProviderUpdateData,
+  where: Prisma.productProvidersWhereUniqueInput
+) => {
   const result = await prisma.productProviders.update({
     where,
     data: {
@@ -156,5 +170,6 @@ export const updateRow = async (data, where) => {
  * @param {Object} where - The conditions to identify the provider to delete.
  * @returns {Promise<Object>} The deleted provider.
  */
-export const deleteRow = async (where) =>
-  prismaService.deleteRow(tableName, where);
+export const deleteRow = async (
+  where: Prisma.productProvidersWhereUniqueInput
+) => prismaService.deleteRow(tableName, where);

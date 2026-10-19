@@ -7,6 +7,7 @@ import {
 } from './service.js';
 import globalResponse from '../../utils/responses&Errors/globalResponse.js';
 import handleCatchErrorAsync from '../../utils/responses&Errors/handleCatchErrorAsync.js';
+import type { SaleInput, SalesQuery } from './types.js';
 
 /**
  * Get all sales with optional filters.
@@ -24,7 +25,7 @@ import handleCatchErrorAsync from '../../utils/responses&Errors/handleCatchError
  * @returns {Promise<void>} Returns paginated list of sales
  */
 export const getAllSales = handleCatchErrorAsync(async (req, res) => {
-  const sales = await getAllSalesService(req.safeQuery);
+  const sales = await getAllSalesService(req.safeQuery as SalesQuery);
   globalResponse(res, 200, sales);
 });
 
@@ -42,7 +43,7 @@ export const getAllSales = handleCatchErrorAsync(async (req, res) => {
  */
 export const createSale = handleCatchErrorAsync(async (req, res) => {
   const sale = await createSaleService({
-    ...req.body,
+    ...(req.body as SaleInput),
     createdBy: req.userId,
   });
   globalResponse(res, 201, sale);
@@ -64,7 +65,7 @@ export const createSale = handleCatchErrorAsync(async (req, res) => {
  */
 export const patchSaleById = handleCatchErrorAsync(async (req, res) => {
   const sale = await patchSaleByIdService(req.params.id, {
-    ...req.body,
+    ...(req.body as SaleInput),
     updatedBy: req.userId,
   });
   globalResponse(res, 200, sale);

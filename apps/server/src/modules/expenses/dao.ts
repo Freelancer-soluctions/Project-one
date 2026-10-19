@@ -1,6 +1,13 @@
 // Fully replace the content with the correct version for expenses DAO
 import { prisma, Prisma } from '../../config/db.js';
-import type { expenseCategory } from '@prisma/client';
+import type {
+  CreateExpenseData,
+  Expense,
+  ExpenseDaoFilters,
+  ExpenseListRow,
+  ExpenseServiceResult,
+  UpdateExpenseData,
+} from './types.js';
 
 /**
  * Get all expenses with optional filters.
@@ -14,15 +21,11 @@ import type { expenseCategory } from '@prisma/client';
  * @returns {Promise<Object>} Object containing dataList and total count.
  */
 export const getAllExpenses = async (
-  filters: {
-    description?: string;
-    category?: expenseCategory;
-    status?: string;
-  } = {},
+  filters: ExpenseDaoFilters = {},
   take: number,
   skip: number
-) => {
-  const whereClauses = [];
+): Promise<ExpenseServiceResult> => {
+  const whereClauses: Prisma.Sql[] = [];
 
   if (filters.description) {
     // Using ILIKE for case-insensitive search for description
@@ -45,7 +48,7 @@ export const getAllExpenses = async (
     ? Prisma.sql`WHERE ${Prisma.join(whereClauses, ' AND ')}`
     : Prisma.empty;
 
-  const expenses = await prisma.$queryRaw`
+  const expenses = await prisma.$queryRaw<ExpenseListRow[]>`
     SELECT 
       e.*,
       u.name AS "userExpenseCreatedName",
@@ -92,13 +95,9 @@ export const getAllExpenses = async (
  * @param {number} data.createdBy - User ID who created the expense.
  * @returns {Promise<Object>} Created expense.
  */
-export const createExpense = async (data: {
-  description: string;
-  total: number;
-  category: Prisma.expensesCreateInput['category'];
-  createdOn: Date;
-  createdBy: number;
-}) => {
+export const createExpense = async (
+  data: CreateExpenseData
+): Promise<Expense> => {
   return prisma.expenses.create({
     data: {
       description: data.description,
@@ -121,7 +120,7 @@ export const createExpense = async (data: {
  * @param {number} id - Expense ID.
  * @returns {Promise<Object>} Deleted expense.
  */
-export const deleteExpenseById = async (id: number) => {
+export const deleteExpenseById = async (id: number): Promise<Expense> => {
   return prisma.expenses.delete({
     where: { id }, // id es Int (autoincrement) en el schema Prisma
   });
@@ -141,14 +140,8 @@ export const deleteExpenseById = async (id: number) => {
  */
 export const patchExpenseById = async (
   id: number,
-  data: {
-    description?: string;
-    total?: number;
-    category?: Prisma.expensesUpdateInput['category'];
-    updatedOn?: Date;
-    updatedBy?: number;
-  }
-) => {
+  data: UpdateExpenseData
+): Promise<Expense> => {
   // Build update object dynamically - only include fields that are provided
   const updateData: Prisma.expensesUpdateInput = {};
 

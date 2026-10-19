@@ -1,19 +1,26 @@
+import type { NextFunction, Request, RequestHandler, Response } from 'express';
+
 /**
- * Higher-order function that wraps async route handlers to catch errors automatically
+ * Higher-order function that wraps async route handlers to catch errors automatically.
  *
- * @param {Function} fn - Async function to wrap (typically an Express route handler).
- *   Deliberadamente sin firma explícita: los handlers leen `req.userId` (inyectado por
- *   `verifyToken`) y `req.safeQuery` (inyectado por `validateQueryParams`), propiedades que
- *   todavía NO están declaradas en el namespace Express — el `declare global` llega en la
- *   Fase 3 (`server-ts-phase3-core`), que tipea este wrapper y los controllers con tipos
- *   Express reales. Tipear `fn` aquí antes de esa declaración obligaría a castear en los 20
- *   controllers sin ganar seguridad.
- * @returns {import('express').RequestHandler} Middleware function that handles errors and passes them to next()
- * @description This eliminates the need for try-catch blocks in async route handlers
+ * Firma tipada: por contextual typing, TODOS los handlers envueltos reciben
+ * `req: Request` / `res: Response` sin tocar sus cuerpos (el `declare global`
+ * completo vive en `middleware/verifyToken.ts` — change `server-ts-express-contracts`).
+ *
+ * @param fn - Async Express route handler (retorna Promise — síncronos lanzan y
+ *             Express 4 los captura por sí mismo).
+ * @returns RequestHandler que maneja errores y los pasa a `next(err)` (`err: unknown`,
+ *          alineado con `useUnknownInCatchVariables` — Fase 4, task 6.5).
  */
-const handleCatchErrorAsync = (fn) => {
+type AsyncHandler = (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => Promise<unknown>;
+
+const handleCatchErrorAsync = (fn: AsyncHandler): RequestHandler => {
   return (req, res, next) => {
-    fn(req, res).catch((err) => {
+    fn(req, res, next).catch((err: unknown) => {
       next(err);
     });
   };

@@ -65,7 +65,7 @@ export const updateById = handleCatchErrorAsync(async (req, res) => {
   const { id } = req.params;
   // Cast único del body validado por Joi (NewsUpdate)
   const body = req.body as UpdateNewsInput;
-  await newsService.updateById(userId, id, body);
+  await newsService.updateById(userId, Number(id), body);
   globalResponse(res, 200, { message: 'Item updated successfully' });
 });
 
@@ -80,7 +80,7 @@ export const updateById = handleCatchErrorAsync(async (req, res) => {
  */
 export const deleteById = handleCatchErrorAsync(async (req, res) => {
   const { id } = req.params;
-  await newsService.deleteById(id);
+  await newsService.deleteById(Number(id));
   globalResponse(res, 200, { message: 'Item deleted successfully' });
 });
 

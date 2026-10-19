@@ -1,6 +1,7 @@
 import globalResponse from '../../utils/responses&Errors/globalResponse.js';
 import handleCatchErrorAsync from '../../utils/responses&Errors/handleCatchErrorAsync.js';
 import * as providersService from './service.js';
+import type { ProviderInput, ProvidersQuery } from './types.js';
 
 /**
  * Retrieves all providers based on query parameters.
@@ -16,7 +17,7 @@ import * as providersService from './service.js';
  * @returns {Promise<void>} Sends a response containing the list of providers.
  */
 export const getAllProviders = handleCatchErrorAsync(async (req, res) => {
-  const queryParams = req.safeQuery;
+  const queryParams = req.safeQuery as ProvidersQuery;
   const items = await providersService.getAllProviders(queryParams);
   globalResponse(res, 200, items);
 });
@@ -51,7 +52,7 @@ export const getAllProvidersFilters = handleCatchErrorAsync(
  */
 export const createProvider = handleCatchErrorAsync(async (req, res) => {
   const userId = req.userId; // viene del token cambiar al body
-  const { body } = req;
+  const body = req.body as ProviderInput;
   await providersService.createProvider(userId, body);
   globalResponse(res, 201, { message: 'Item created successfully' });
 });
@@ -90,7 +91,7 @@ export const deleteProviderById = handleCatchErrorAsync(async (req, res) => {
 export const patchProviderById = handleCatchErrorAsync(async (req, res) => {
   const userId = req.userId;
   const { id } = req.params;
-  const { body } = req;
+  const body = req.body as ProviderInput;
   await providersService.updateById(userId, id, body);
   globalResponse(res, 200, { message: 'Item updated successfully' });
 });
