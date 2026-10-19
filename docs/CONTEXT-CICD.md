@@ -1293,6 +1293,8 @@ cubre en el job `test-integration` de `ci.yml`, que sí levanta el service conta
 > **ya está activo y bloqueante** desde el change `quality-gates` (2026-09-26, ver §1 — la frase "hoy `if: false`" ya no
 > aplica). Investigación canónica: `docs/learning/typescript-migration-server.md`; fuente vigente (2026-10-14):
 > `docs/server-typescript-migration-research.md`. Estado detallado: `openspec/changes/server-typescript-migration/`.
+> **Contratos de dominio por módulo: `23/23 módulos con contratos de dominio (types.ts — 22 dirs + events/attendee)`** (change activo `server-ts-domain-interfaces`, 2026-10-18): cada módulo bajo `src/modules/` posee un `types.ts` autocontenido (entidad derivada de `Prisma.*GetPayload`, inputs `Create`/`Update`, `Filters` y tipo de resultado de servicio espejo de la respuesta real) cuyas firmas de dao/service/controller consumen — **cero cambio de comportamiento**, sin imports de tipos entre módulos (allowlist `@prisma/client`/`joi`/`src/utils/constants`). Verificado con `find apps/server/src/modules -name types.ts | wc -l` → 23. Gates: type-check ✓ · lint ✓ · test:unit 175/175 ✓ · depcruise 0 errores · `openspec validate --strict` PASS.
+>
 > **Contador de progreso de conversión: `235/236` convertidos — MIGRACIÓN TOTAL CUMPLIDA (Fase configs, 2026-10-18).**
 > Estado final: `apps/server` con **0 archivos `.js`/`.cjs`/`.mjs` ejecutables** — única excepción documentada: `.dependency-cruiser.cjs`
 > (dependency-cruiser 18.2 no soporta config `.ts`, task 5.6). Los 9 de Fase configs → 5 convertidos a `.ts` (`vitest.config.ts`,
