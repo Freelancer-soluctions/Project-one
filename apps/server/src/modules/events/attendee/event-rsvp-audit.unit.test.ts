@@ -2,6 +2,14 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import * as eventAttendeeService from './service.js';
 import * as attendeeDao from './dao.js';
 const mockedAttendeeDao = vi.mocked(attendeeDao);
+import type { Prisma } from '@prisma/client';
+import {
+  attendeeRow,
+  attendeeWithUserRow,
+  auditLogRow,
+  eventCapacityRow,
+  eventRow,
+} from './rsvp-fixtures.js';
 
 vi.mock('./dao.js', () => ({
   findEventById: vi.fn(),
@@ -25,12 +33,7 @@ vi.mock('../../../config/db.js', () => ({
 }));
 
 describe('Event RSVP — audit log', () => {
-  const mockEvent = {
-    id: 1,
-    capacity: 10,
-    attendeeCount: 5,
-    eventDate: '2099-06-30',
-  };
+  const mockEvent = eventCapacityRow({ id: 1, capacity: 10, attendeeCount: 5 });
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -41,13 +44,10 @@ describe('Event RSVP — audit log', () => {
     mockedAttendeeDao.findAttendeeByUserAndEvent.mockResolvedValue(null);
     mockedAttendeeDao.countConfirmedAttendees.mockResolvedValue(4);
     mockedAttendeeDao.updateEventAttendeeCountWithLock.mockResolvedValue(1);
-    mockedAttendeeDao.createAttendee.mockResolvedValue({
-      id: 1,
-      eventId: 1,
-      userId: 1,
-      status: 'CONFIRMED',
-    });
-    mockedAttendeeDao.createAuditLog.mockResolvedValue({});
+    mockedAttendeeDao.createAttendee.mockResolvedValue(
+      attendeeRow({ id: 1, userId: 1 })
+    );
+    mockedAttendeeDao.createAuditLog.mockResolvedValue(auditLogRow());
 
     await eventAttendeeService.register(1, 1);
 
@@ -64,12 +64,11 @@ describe('Event RSVP — audit log', () => {
   });
 
   it('register creates audit log with previousStatus=CANCELLED (re-registration)', async () => {
-    const cancelledAttendee = {
+    const cancelledAttendee = attendeeRow({
       id: 1,
-      eventId: 1,
       userId: 1,
       status: 'CANCELLED',
-    };
+    });
     mockedAttendeeDao.findEventById.mockResolvedValue(mockEvent);
     mockedAttendeeDao.findAttendeeByUserAndEvent.mockResolvedValue(
       cancelledAttendee
@@ -80,7 +79,7 @@ describe('Event RSVP — audit log', () => {
       ...cancelledAttendee,
       status: 'CONFIRMED',
     });
-    mockedAttendeeDao.createAuditLog.mockResolvedValue({});
+    mockedAttendeeDao.createAuditLog.mockResolvedValue(auditLogRow());
 
     await eventAttendeeService.register(1, 1);
 
@@ -96,12 +95,7 @@ describe('Event RSVP — audit log', () => {
   });
 
   it('cancel creates audit log', async () => {
-    const confirmedAttendee = {
-      id: 1,
-      eventId: 1,
-      userId: 1,
-      status: 'CONFIRMED',
-    };
+    const confirmedAttendee = attendeeRow({ id: 1, userId: 1 });
     mockedAttendeeDao.findAttendeeByUserAndEvent.mockResolvedValue(
       confirmedAttendee
     );
@@ -109,8 +103,8 @@ describe('Event RSVP — audit log', () => {
       ...confirmedAttendee,
       status: 'CANCELLED',
     });
-    mockedAttendeeDao.decrementAttendeeCount.mockResolvedValue({});
-    mockedAttendeeDao.createAuditLog.mockResolvedValue({});
+    mockedAttendeeDao.decrementAttendeeCount.mockResolvedValue(eventRow());
+    mockedAttendeeDao.createAuditLog.mockResolvedValue(auditLogRow());
     mockedAttendeeDao.findEarliestWaitlist.mockResolvedValue(null);
 
     await eventAttendeeService.cancel(1, 1);
@@ -128,12 +122,11 @@ describe('Event RSVP — audit log', () => {
   });
 
   it('admin status change creates audit log with changedBy = adminUserId', async () => {
-    const waitlistAttendee = {
+    const waitlistAttendee = attendeeWithUserRow({
       id: 1,
-      eventId: 1,
       userId: 5,
       status: 'WAITLIST',
-    };
+    });
     mockedAttendeeDao.findAttendeeById.mockResolvedValue(waitlistAttendee);
     mockedAttendeeDao.findEventById.mockResolvedValue(mockEvent);
     mockedAttendeeDao.countConfirmedAttendees.mockResolvedValue(5);
@@ -141,8 +134,8 @@ describe('Event RSVP — audit log', () => {
       ...waitlistAttendee,
       status: 'CONFIRMED',
     });
-    mockedAttendeeDao.incrementAttendeeCount.mockResolvedValue({});
-    mockedAttendeeDao.createAuditLog.mockResolvedValue({});
+    mockedAttendeeDao.incrementAttendeeCount.mockResolvedValue(eventRow());
+    mockedAttendeeDao.createAuditLog.mockResolvedValue(auditLogRow());
 
     await eventAttendeeService.updateAttendeeStatus(1, 'CONFIRMED', 99);
 
@@ -159,22 +152,19 @@ describe('Event RSVP — audit log', () => {
   });
 
   it('promoteFromWaitlist creates audit log with changedBy = null', async () => {
-    mockedAttendeeDao.findEarliestWaitlist.mockResolvedValue({
-      id: 5,
-      eventId: 1,
-      userId: 10,
-      status: 'WAITLIST',
-    });
-    mockedAttendeeDao.updateAttendeeStatus.mockResolvedValue({
-      id: 5,
-      eventId: 1,
-      userId: 10,
-      status: 'CONFIRMED',
-    });
-    mockedAttendeeDao.incrementAttendeeCount.mockResolvedValue({});
-    mockedAttendeeDao.createAuditLog.mockResolvedValue({});
+    mockedAttendeeDao.findEarliestWaitlist.mockResolvedValue(
+      attendeeRow({ id: 5, userId: 10, status: 'WAITLIST' })
+    );
+    mockedAttendeeDao.updateAttendeeStatus.mockResolvedValue(
+      attendeeRow({ id: 5, userId: 10 })
+    );
+    mockedAttendeeDao.incrementAttendeeCount.mockResolvedValue(eventRow());
+    mockedAttendeeDao.createAuditLog.mockResolvedValue(auditLogRow());
 
-    await eventAttendeeService.promoteFromWaitlist(1, {});
+    await eventAttendeeService.promoteFromWaitlist(
+      1,
+      {} as Prisma.TransactionClient
+    );
 
     expect(mockedAttendeeDao.createAuditLog).toHaveBeenCalledWith(
       expect.objectContaining({

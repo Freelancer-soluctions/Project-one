@@ -1,5 +1,18 @@
 import * as eventDao from './dao.js';
 import { getSafePagination } from '../../utils/pagination/pagination.js';
+import type {
+  CreateEventInput,
+  CreateEventResult,
+  DeleteEventResult,
+  Event,
+  EventFilters,
+  EventResponse,
+  EventServiceResult,
+  EventType,
+  UpdateEventData,
+  UpdateEventInput,
+  UpdateEventPayload,
+} from './types.js';
 
 /**
  * Converts a time string in "HH:mm" format to a Date object on the fixed epoch date (1970-01-01).
@@ -8,7 +21,7 @@ import { getSafePagination } from '../../utils/pagination/pagination.js';
  * @param {string} timeStr - Time string in "HH:mm" format (e.g., "14:30")
  * @returns {Date} Date object with the time set on 1970-01-01
  */
-export const timeStrToDate = (timeStr) => {
+export const timeStrToDate = (timeStr: string): Date => {
   if (!timeStr || typeof timeStr !== 'string') {
     throw new Error(
       `timeStrToDate: expected a valid HH:mm string, got ${typeof timeStr}`
@@ -29,7 +42,7 @@ export const timeStrToDate = (timeStr) => {
  * @param {Date} date - Date object (typically from Prisma Time(0) column)
  * @returns {string|null} Time string in "HH:mm" format (e.g., "09:05") or null if date is falsy
  */
-export const formatTime = (date) => {
+export const formatTime = (date: Date | null | undefined): string | null => {
   if (!date) return null;
   const hours = date.getUTCHours();
   const minutes = date.getUTCMinutes();
@@ -68,7 +81,10 @@ const MODALITY_RULES = {
   },
 };
 
-export const validateEventModality = (data, currentEvent = null) => {
+export const validateEventModality = (
+  data: CreateEventInput | UpdateEventInput,
+  currentEvent: Event | null = null
+): CreateEventInput | UpdateEventInput => {
   const effectiveModality = data.modality || currentEvent?.modality;
 
   // Skip if no modality at all
@@ -119,7 +135,10 @@ export const validateEventModality = (data, currentEvent = null) => {
  * @param {number} userId - The ID of the user creating the event.
  * @returns {Promise<Object>} The created event item.
  */
-export const createEvent = async (data, userId) => {
+export const createEvent = async (
+  data: CreateEventInput,
+  userId: number
+): Promise<CreateEventResult> => {
   // Validate modality-specific requirements before creating
   validateEventModality(data);
   // BEFORE: const { type, ...dataToSave } = data;
@@ -151,7 +170,7 @@ export const createEvent = async (data, userId) => {
  *
  * @returns {Promise<Array>} A list of all event types.
  */
-export const getAllEventTypes = async () => {
+export const getAllEventTypes = async (): Promise<EventType[]> => {
   const data = await eventDao.getAllEventTypes();
   return data;
 };
@@ -183,18 +202,7 @@ export const getAllEvents = async ({
   speaker,
   status,
   modality,
-}: {
-  searchQuery?: string;
-  page?: number;
-  limit?: number;
-  showDeleted?: boolean;
-  type?: number;
-  dateFrom?: Date | string;
-  dateTo?: Date | string;
-  speaker?: string;
-  status?: string;
-  modality?: string;
-}) => {
+}: EventFilters): Promise<EventServiceResult> => {
   const { take, skip } = getSafePagination({ page, limit });
   const result = await eventDao.getAllEvents({
     searchQuery,
@@ -243,11 +251,16 @@ export const getAllEvents = async ({
  * @param {number|null} [data.deletedBy] - User ID who deleted (cleared on restore).
  * @returns {Promise<Object|null>} The updated/restored event item, or null if not found.
  */
-export const updateEventById = async (eventId, data) => {
+export const updateEventById = async (
+  eventId: number | string,
+  data: UpdateEventInput
+): Promise<EventResponse | null> => {
   const rowId = Number(eventId);
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { type, startTime, endTime, deletedAt, _deletedBy, ...dataToSave } =
-    data;
+  const { type, startTime, endTime, deletedAt, _deletedBy, ...restData } = data;
+  // El payload vuelve a aceptar `startTime`/`endTime` (ya como `Date`) tras la
+  // normalización de abajo, igual que en el objeto original sin tipos.
+  const dataToSave: UpdateEventPayload = { ...restData };
   const isRestoreRequest = deletedAt === null;
 
   // Fetch current event for modality validation when modality-related fields are updated
@@ -273,6 +286,9 @@ export const updateEventById = async (eventId, data) => {
   }
   dataToSave.updatedOn = new Date();
   const foreignKeys = { type: Number(type) };
+  // En este punto las horas ya son `Date` (timeStrToDate): el cast único documenta
+  // esa garantía frente al payload de persistencia del dao.
+  const updateData = dataToSave as UpdateEventData;
 
   if (isRestoreRequest) {
     // Attempt restore first — DAO returns null if not found
@@ -285,7 +301,7 @@ export const updateEventById = async (eventId, data) => {
     if (Object.keys(dataToSave).length > 1) {
       // more than just updatedOn
       const updatedEvent = await eventDao.updateEventById(
-        dataToSave,
+        updateData,
         foreignKeys,
         { id: rowId }
       );
@@ -304,7 +320,7 @@ export const updateEventById = async (eventId, data) => {
   }
 
   // Normal update (no restore)
-  const updatedEvent = await eventDao.updateEventById(dataToSave, foreignKeys, {
+  const updatedEvent = await eventDao.updateEventById(updateData, foreignKeys, {
     id: rowId,
   });
   return {
@@ -321,7 +337,10 @@ export const updateEventById = async (eventId, data) => {
  * @param {number} userId - The ID of the user performing the deletion.
  * @returns {Promise<Object>} The result with status code and event data or error message.
  */
-export const deleteEventById = async (id, userId) => {
+export const deleteEventById = async (
+  id: number | string,
+  userId: number
+): Promise<DeleteEventResult> => {
   const rowId = Number(id);
   const result = await eventDao.softDeleteEventById(rowId, userId);
 

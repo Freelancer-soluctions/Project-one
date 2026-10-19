@@ -1,4 +1,17 @@
 import { prisma } from '../../config/db.js';
+import type { Prisma } from '@prisma/client';
+import type {
+  CreateEventData,
+  CreateEventForeignKeys,
+  Event,
+  EventDaoFilters,
+  EventDaoResult,
+  EventStatusBoundaries,
+  EventType,
+  SoftDeleteEventResult,
+  UpdateEventData,
+  UpdateEventForeignKeys,
+} from './types.js';
 
 /**
  * Creates a new event in the database.
@@ -16,7 +29,10 @@ import { prisma } from '../../config/db.js';
  * @param {number} foreignKeys.type - The ID of the event type.
  * @returns {Promise<Object>} The created event in the database.
  */
-export const createEvent = async (data, foreignKeys) => {
+export const createEvent = async (
+  data: CreateEventData,
+  foreignKeys: CreateEventForeignKeys
+): Promise<Event> => {
   const result = await prisma.events.create({
     data: {
       ...data,
@@ -56,7 +72,7 @@ export const getEventById = async (id: number) => {
  *
  * @returns {Promise<Array>} A list of event types from the database.
  */
-export const getAllEventTypes = async () => {
+export const getAllEventTypes = async (): Promise<EventType[]> => {
   const events = await prisma.eventTypes.findMany();
   return Promise.resolve(events);
 };
@@ -92,21 +108,8 @@ export const getAllEvents = async ({
   speaker,
   status,
   modality,
-}: {
-  searchQuery?: string;
-  take?: number;
-  skip?: number;
-  page?: number;
-  pageSize?: number;
-  showDeleted?: boolean;
-  type?: number;
-  dateFrom?: Date;
-  dateTo?: Date;
-  speaker?: string;
-  status?: string;
-  modality?: string;
-}) => {
-  const conditions = [];
+}: EventDaoFilters): Promise<EventDaoResult> => {
+  const conditions: Prisma.eventsWhereInput[] = [];
 
   // Deleted filter (present unless showDeleted=true)
   if (!showDeleted) conditions.push({ deletedAt: null });
@@ -183,7 +186,7 @@ export const getAllEvents = async ({
  * @param {Date} now - Reference instant (server UTC time).
  * @returns {{startOfTodayUTC: Date, endOfTodayUTC: Date, currentTimeOnEpoch: Date}} Boundary instants.
  */
-const buildTodayBoundaries = (now) => {
+const buildTodayBoundaries = (now: Date): EventStatusBoundaries => {
   const startOfTodayUTC = new Date(
     Date.UTC(
       now.getUTCFullYear(),
@@ -227,7 +230,7 @@ const buildTodayBoundaries = (now) => {
  * @param {'upcoming'|'past'} status - Derived status requested by the caller.
  * @returns {Object} Prisma WHERE fragment for the requested status.
  */
-const buildEventStatusFilter = (status) => {
+const buildEventStatusFilter = (status: string): Prisma.eventsWhereInput => {
   const { startOfTodayUTC, endOfTodayUTC, currentTimeOnEpoch } =
     buildTodayBoundaries(new Date());
 
@@ -274,7 +277,11 @@ const buildEventStatusFilter = (status) => {
  * @param {Object} where - The conditions to identify the event to update.
  * @returns {Promise<Object>} The updated event in the database.
  */
-export const updateEventById = async (data, foreignKeys, where) => {
+export const updateEventById = async (
+  data: UpdateEventData,
+  foreignKeys: UpdateEventForeignKeys,
+  where: Prisma.eventsWhereUniqueInput
+): Promise<Event> => {
   const result = await prisma.events.update({
     where,
     data: {
@@ -299,7 +306,10 @@ export const updateEventById = async (data, foreignKeys, where) => {
  * @returns {Promise<Object>} Result object with status and event data.
  * @throws {Error} If database operation fails.
  */
-export const softDeleteEventById = async (id, userId) => {
+export const softDeleteEventById = async (
+  id: number,
+  userId: number
+): Promise<SoftDeleteEventResult> => {
   const event = await prisma.events.findUnique({ where: { id } });
 
   if (!event) {
@@ -329,7 +339,7 @@ export const softDeleteEventById = async (id, userId) => {
  * @returns {Promise<Object|null>} The restored event or null if not found.
  * @throws {Error} If database operation fails.
  */
-export const restoreEventById = async (id) => {
+export const restoreEventById = async (id: number): Promise<Event | null> => {
   const event = await prisma.events.findUnique({ where: { id } });
 
   if (!event) {

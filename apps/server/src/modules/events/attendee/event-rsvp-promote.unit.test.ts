@@ -2,6 +2,8 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import * as eventAttendeeService from './service.js';
 import * as attendeeDao from './dao.js';
 const mockedAttendeeDao = vi.mocked(attendeeDao);
+import type { Prisma } from '@prisma/client';
+import { attendeeRow, auditLogRow, eventRow } from './rsvp-fixtures.js';
 
 vi.mock('./dao.js', () => ({
   findEarliestWaitlist: vi.fn(),
@@ -16,15 +18,11 @@ vi.mock('../../../config/db.js', () => ({
 }));
 
 describe('Event RSVP — promoteFromWaitlist', () => {
-  const mockTx = {};
-  const mockWaitlist = {
-    id: 5,
-    eventId: 1,
-    userId: 10,
-    status: 'WAITLIST',
-    createdAt: new Date('2026-01-01'),
-  };
-  const mockPromoted = { ...mockWaitlist, status: 'CONFIRMED' };
+  // `{}` basta como cliente de transacción en el test; el cast documenta que el
+  // dao recibe el `Prisma.TransactionClient` real en producción.
+  const mockTx = {} as Prisma.TransactionClient;
+  const mockWaitlist = attendeeRow({ id: 5, userId: 10, status: 'WAITLIST' });
+  const mockPromoted = attendeeRow({ ...mockWaitlist, status: 'CONFIRMED' });
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -40,8 +38,8 @@ describe('Event RSVP — promoteFromWaitlist', () => {
   it('promotes earliest waitlisted attendee to CONFIRMED', async () => {
     mockedAttendeeDao.findEarliestWaitlist.mockResolvedValue(mockWaitlist);
     mockedAttendeeDao.updateAttendeeStatus.mockResolvedValue(mockPromoted);
-    mockedAttendeeDao.incrementAttendeeCount.mockResolvedValue({});
-    mockedAttendeeDao.createAuditLog.mockResolvedValue({});
+    mockedAttendeeDao.incrementAttendeeCount.mockResolvedValue(eventRow());
+    mockedAttendeeDao.createAuditLog.mockResolvedValue(auditLogRow());
 
     const result = await eventAttendeeService.promoteFromWaitlist(1, mockTx);
 
@@ -74,8 +72,8 @@ describe('Event RSVP — promoteFromWaitlist', () => {
   it('passes tx object correctly to all DAO calls', async () => {
     mockedAttendeeDao.findEarliestWaitlist.mockResolvedValue(mockWaitlist);
     mockedAttendeeDao.updateAttendeeStatus.mockResolvedValue(mockPromoted);
-    mockedAttendeeDao.incrementAttendeeCount.mockResolvedValue({});
-    mockedAttendeeDao.createAuditLog.mockResolvedValue({});
+    mockedAttendeeDao.incrementAttendeeCount.mockResolvedValue(eventRow());
+    mockedAttendeeDao.createAuditLog.mockResolvedValue(auditLogRow());
 
     await eventAttendeeService.promoteFromWaitlist(1, mockTx);
 
@@ -90,34 +88,35 @@ describe('Event RSVP — promoteFromWaitlist', () => {
   });
 
   it('creates multiple promoted entries when called repeatedly (FIFO chain)', async () => {
-    const firstWaitlist = { id: 5, eventId: 1, userId: 10, status: 'WAITLIST' };
-    const secondWaitlist = {
+    const firstWaitlist = attendeeRow({
+      id: 5,
+      userId: 10,
+      status: 'WAITLIST',
+    });
+    const secondWaitlist = attendeeRow({
       id: 6,
-      eventId: 1,
       userId: 11,
       status: 'WAITLIST',
-    };
+    });
 
     mockedAttendeeDao.findEarliestWaitlist
       .mockResolvedValueOnce(firstWaitlist)
       .mockResolvedValueOnce(secondWaitlist)
       .mockResolvedValueOnce(null);
-    mockedAttendeeDao.updateAttendeeStatus.mockResolvedValue({
-      ...firstWaitlist,
-      status: 'CONFIRMED',
-    });
-    mockedAttendeeDao.incrementAttendeeCount.mockResolvedValue({});
-    mockedAttendeeDao.createAuditLog.mockResolvedValue({});
+    mockedAttendeeDao.updateAttendeeStatus.mockResolvedValue(
+      attendeeRow({ ...firstWaitlist, status: 'CONFIRMED' })
+    );
+    mockedAttendeeDao.incrementAttendeeCount.mockResolvedValue(eventRow());
+    mockedAttendeeDao.createAuditLog.mockResolvedValue(auditLogRow());
 
     // First promotion
     await eventAttendeeService.promoteFromWaitlist(1, mockTx);
     expect(mockedAttendeeDao.findEarliestWaitlist).toHaveBeenCalledTimes(1);
 
     // Second promotion
-    mockedAttendeeDao.updateAttendeeStatus.mockResolvedValue({
-      ...secondWaitlist,
-      status: 'CONFIRMED',
-    });
+    mockedAttendeeDao.updateAttendeeStatus.mockResolvedValue(
+      attendeeRow({ ...secondWaitlist, status: 'CONFIRMED' })
+    );
     await eventAttendeeService.promoteFromWaitlist(1, mockTx);
     expect(mockedAttendeeDao.updateAttendeeStatus).toHaveBeenLastCalledWith(
       6,

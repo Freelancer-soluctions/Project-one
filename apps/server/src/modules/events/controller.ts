@@ -2,6 +2,11 @@ import globalResponse from '../../utils/responses&Errors/globalResponse.js';
 import handleCatchErrorAsync from '../../utils/responses&Errors/handleCatchErrorAsync.js';
 import * as eventService from './service.js';
 import { EventsFilters } from './schemas/events.joi.js';
+import type {
+  CreateEventInput,
+  EventFilters,
+  UpdateEventInput,
+} from './types.js';
 
 /**
  * Get all events with optional filters.
@@ -25,7 +30,8 @@ export const getAllEvents = handleCatchErrorAsync(async (req, res) => {
     abortEarly: false,
     allowUnknown: false,
   });
-  const query = validated.value;
+  // Cast único de la query validada por Joi (EventsFilters)
+  const query = validated.value as EventFilters;
 
   // Validation failed -> return 400 with error messages
   if (validated.error) {
@@ -78,7 +84,8 @@ export const getAllEvents = handleCatchErrorAsync(async (req, res) => {
  */
 export const createEvent = handleCatchErrorAsync(async (req, res) => {
   const userId = req.userId; // viene del token
-  const { body } = req;
+  // Cast único del body validado por Joi (EventsCreateSchema)
+  const body = req.body as CreateEventInput;
   const createdEvent = await eventService.createEvent(body, userId);
   globalResponse(res, 201, createdEvent, 'Item created successfully');
 });
@@ -111,8 +118,9 @@ export const getAllEventTypes = handleCatchErrorAsync(async (req, res) => {
  * @returns {Promise<void>} Updates event and returns confirmation message
  */
 export const updateEventById = handleCatchErrorAsync(async (req, res) => {
-  const { body } = req;
   const { id } = req.params;
+  // Cast único del body validado por Joi (EventsUpdateSchema)
+  const body = req.body as UpdateEventInput;
   const result = await eventService.updateEventById(id, body);
   if (result === null) {
     return res

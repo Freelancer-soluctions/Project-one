@@ -2,6 +2,12 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import * as eventAttendeeService from './service.js';
 import * as attendeeDao from './dao.js';
 const mockedAttendeeDao = vi.mocked(attendeeDao);
+import {
+  attendeeRow,
+  auditLogRow,
+  eventCapacityRow,
+  eventRow,
+} from './rsvp-fixtures.js';
 
 vi.mock('./dao.js', () => ({
   findEventById: vi.fn(),
@@ -22,24 +28,18 @@ vi.mock('../../../config/db.js', () => ({
 }));
 
 describe('Event RSVP — register', () => {
-  const mockEvent = {
-    id: 1,
-    capacity: 10,
-    attendeeCount: 5,
-    eventDate: '2099-06-30',
-  };
-  const mockPastEvent = {
+  const mockEvent = eventCapacityRow({ id: 1, capacity: 10, attendeeCount: 5 });
+  const mockPastEvent = eventCapacityRow({
     id: 2,
     capacity: 10,
     attendeeCount: 0,
-    eventDate: '2020-01-01',
-  };
-  const mockUnlimitedEvent = {
+    eventDate: new Date('2020-01-01T00:00:00.000Z'),
+  });
+  const mockUnlimitedEvent = eventCapacityRow({
     id: 3,
     capacity: 0,
     attendeeCount: 0,
-    eventDate: '2099-06-30',
-  };
+  });
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -60,12 +60,7 @@ describe('Event RSVP — register', () => {
   });
 
   it('returns existing attendee if already registered (CONFIRMED) — idempotent', async () => {
-    const existingAttendee = {
-      id: 1,
-      eventId: 1,
-      userId: 1,
-      status: 'CONFIRMED',
-    };
+    const existingAttendee = attendeeRow({ id: 1, userId: 1 });
     mockedAttendeeDao.findEventById.mockResolvedValue(mockEvent);
     mockedAttendeeDao.findAttendeeByUserAndEvent.mockResolvedValue(
       existingAttendee
@@ -76,12 +71,11 @@ describe('Event RSVP — register', () => {
   });
 
   it('returns existing attendee if already registered (WAITLIST) — idempotent', async () => {
-    const existingAttendee = {
+    const existingAttendee = attendeeRow({
       id: 2,
-      eventId: 1,
       userId: 2,
       status: 'WAITLIST',
-    };
+    });
     mockedAttendeeDao.findEventById.mockResolvedValue(mockEvent);
     mockedAttendeeDao.findAttendeeByUserAndEvent.mockResolvedValue(
       existingAttendee
@@ -94,14 +88,11 @@ describe('Event RSVP — register', () => {
   it('creates CONFIRMED when capacity = 0 (unlimited)', async () => {
     mockedAttendeeDao.findEventById.mockResolvedValue(mockUnlimitedEvent);
     mockedAttendeeDao.findAttendeeByUserAndEvent.mockResolvedValue(null);
-    mockedAttendeeDao.createAttendee.mockResolvedValue({
-      id: 1,
-      eventId: 3,
-      userId: 1,
-      status: 'CONFIRMED',
-    });
-    mockedAttendeeDao.incrementAttendeeCount.mockResolvedValue({});
-    mockedAttendeeDao.createAuditLog.mockResolvedValue({});
+    mockedAttendeeDao.createAttendee.mockResolvedValue(
+      attendeeRow({ id: 1, eventId: 3, userId: 1 })
+    );
+    mockedAttendeeDao.incrementAttendeeCount.mockResolvedValue(eventRow());
+    mockedAttendeeDao.createAuditLog.mockResolvedValue(auditLogRow());
 
     const result = await eventAttendeeService.register(3, 1);
 
@@ -122,13 +113,10 @@ describe('Event RSVP — register', () => {
     mockedAttendeeDao.findAttendeeByUserAndEvent.mockResolvedValue(null);
     mockedAttendeeDao.countConfirmedAttendees.mockResolvedValue(4); // 4 < 10
     mockedAttendeeDao.updateEventAttendeeCountWithLock.mockResolvedValue(1); // lock succeeds
-    mockedAttendeeDao.createAttendee.mockResolvedValue({
-      id: 2,
-      eventId: 1,
-      userId: 1,
-      status: 'CONFIRMED',
-    });
-    mockedAttendeeDao.createAuditLog.mockResolvedValue({});
+    mockedAttendeeDao.createAttendee.mockResolvedValue(
+      attendeeRow({ id: 2, userId: 1 })
+    );
+    mockedAttendeeDao.createAuditLog.mockResolvedValue(auditLogRow());
 
     const result = await eventAttendeeService.register(1, 1);
 
@@ -146,13 +134,10 @@ describe('Event RSVP — register', () => {
     mockedAttendeeDao.findEventById.mockResolvedValue(mockEvent);
     mockedAttendeeDao.findAttendeeByUserAndEvent.mockResolvedValue(null);
     mockedAttendeeDao.countConfirmedAttendees.mockResolvedValue(10); // 10 >= 10
-    mockedAttendeeDao.createAttendee.mockResolvedValue({
-      id: 3,
-      eventId: 1,
-      userId: 1,
-      status: 'WAITLIST',
-    });
-    mockedAttendeeDao.createAuditLog.mockResolvedValue({});
+    mockedAttendeeDao.createAttendee.mockResolvedValue(
+      attendeeRow({ id: 3, userId: 1, status: 'WAITLIST' })
+    );
+    mockedAttendeeDao.createAuditLog.mockResolvedValue(auditLogRow());
 
     const result = await eventAttendeeService.register(1, 1);
 
@@ -168,13 +153,10 @@ describe('Event RSVP — register', () => {
     mockedAttendeeDao.findAttendeeByUserAndEvent.mockResolvedValue(null);
     mockedAttendeeDao.countConfirmedAttendees.mockResolvedValue(9); // 9 < 10, so target = CONFIRMED
     mockedAttendeeDao.updateEventAttendeeCountWithLock.mockResolvedValue(0); // lock fails
-    mockedAttendeeDao.createAttendee.mockResolvedValue({
-      id: 4,
-      eventId: 1,
-      userId: 1,
-      status: 'WAITLIST',
-    });
-    mockedAttendeeDao.createAuditLog.mockResolvedValue({});
+    mockedAttendeeDao.createAttendee.mockResolvedValue(
+      attendeeRow({ id: 4, userId: 1, status: 'WAITLIST' })
+    );
+    mockedAttendeeDao.createAuditLog.mockResolvedValue(auditLogRow());
 
     const result = await eventAttendeeService.register(1, 1);
 
@@ -186,12 +168,11 @@ describe('Event RSVP — register', () => {
   });
 
   it('re-registers from CANCELLED status (update instead of create)', async () => {
-    const cancelledAttendee = {
+    const cancelledAttendee = attendeeRow({
       id: 5,
-      eventId: 1,
       userId: 1,
       status: 'CANCELLED',
-    };
+    });
     mockedAttendeeDao.findEventById.mockResolvedValue(mockEvent);
     mockedAttendeeDao.findAttendeeByUserAndEvent.mockResolvedValue(
       cancelledAttendee
@@ -202,7 +183,7 @@ describe('Event RSVP — register', () => {
       ...cancelledAttendee,
       status: 'CONFIRMED',
     });
-    mockedAttendeeDao.createAuditLog.mockResolvedValue({});
+    mockedAttendeeDao.createAuditLog.mockResolvedValue(auditLogRow());
 
     const result = await eventAttendeeService.register(1, 1);
 

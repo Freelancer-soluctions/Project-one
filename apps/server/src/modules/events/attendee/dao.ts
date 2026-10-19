@@ -1,4 +1,17 @@
 import { prisma } from '../../../config/db.js';
+import type { Prisma } from '@prisma/client';
+import type {
+  Attendee,
+  AttendeeListQuery,
+  AttendeeListResult,
+  AttendeeStatus,
+  AttendeeWithUser,
+  CreateAttendeeInput,
+  CreateAuditLogInput,
+  EventCapacityRow,
+  EventRow,
+  RegistrationLog,
+} from './types.js';
 
 /**
  * Finds an attendee by event ID and user ID.
@@ -8,7 +21,11 @@ import { prisma } from '../../../config/db.js';
  * @param {Prisma.TransactionClient} [tx] - Optional Prisma transaction client.
  * @returns {Promise<Object|null>} The attendee or null if not found.
  */
-export const findAttendeeByUserAndEvent = async (eventId, userId, tx?) => {
+export const findAttendeeByUserAndEvent = async (
+  eventId: number,
+  userId: number,
+  tx?: Prisma.TransactionClient
+): Promise<Attendee | null> => {
   const client = tx || prisma;
   const attendee = await client.attendees.findFirst({
     where: {
@@ -26,7 +43,10 @@ export const findAttendeeByUserAndEvent = async (eventId, userId, tx?) => {
  * @param {Prisma.TransactionClient} [tx] - Optional Prisma transaction client.
  * @returns {Promise<Object|null>} The attendee with user relation (id, name, email) or null if not found.
  */
-export const findAttendeeById = async (attendeeId, tx?) => {
+export const findAttendeeById = async (
+  attendeeId: number,
+  tx?: Prisma.TransactionClient
+): Promise<AttendeeWithUser | null> => {
   const client = tx || prisma;
   const attendee = await client.attendees.findUnique({
     where: { id: attendeeId },
@@ -50,7 +70,10 @@ export const findAttendeeById = async (attendeeId, tx?) => {
  * @param {Prisma.TransactionClient} [tx] - Optional Prisma transaction client.
  * @returns {Promise<number>} Count of confirmed attendees.
  */
-export const countConfirmedAttendees = async (eventId, tx?) => {
+export const countConfirmedAttendees = async (
+  eventId: number,
+  tx?: Prisma.TransactionClient
+): Promise<number> => {
   const client = tx || prisma;
   const count = await client.attendees.count({
     where: {
@@ -68,7 +91,10 @@ export const countConfirmedAttendees = async (eventId, tx?) => {
  * @param {Prisma.TransactionClient} [tx] - Optional Prisma transaction client.
  * @returns {Promise<Object|null>} The earliest waitlisted attendee or null if none.
  */
-export const findEarliestWaitlist = async (eventId, tx?) => {
+export const findEarliestWaitlist = async (
+  eventId: number,
+  tx?: Prisma.TransactionClient
+): Promise<Attendee | null> => {
   const client = tx || prisma;
   const attendee = await client.attendees.findFirst({
     where: {
@@ -90,7 +116,10 @@ export const findEarliestWaitlist = async (eventId, tx?) => {
  * @param {Prisma.TransactionClient} [tx] - Optional Prisma transaction client.
  * @returns {Promise<Object>} The created attendee.
  */
-export const createAttendee = async (data, tx?) => {
+export const createAttendee = async (
+  data: CreateAttendeeInput,
+  tx?: Prisma.TransactionClient
+): Promise<Attendee> => {
   const client = tx || prisma;
   const attendee = await client.attendees.create({
     data: {
@@ -111,7 +140,11 @@ export const createAttendee = async (data, tx?) => {
  * @param {Prisma.TransactionClient} [tx] - Optional Prisma transaction client.
  * @returns {Promise<Object>} The updated attendee.
  */
-export const updateAttendeeStatus = async (attendeeId, newStatus, tx?) => {
+export const updateAttendeeStatus = async (
+  attendeeId: number,
+  newStatus: AttendeeStatus,
+  tx?: Prisma.TransactionClient
+): Promise<Attendee> => {
   const client = tx || prisma;
   const attendee = await client.attendees.update({
     where: { id: attendeeId },
@@ -130,7 +163,10 @@ export const updateAttendeeStatus = async (attendeeId, newStatus, tx?) => {
  * @param {Prisma.TransactionClient} [tx] - Optional Prisma transaction client.
  * @returns {Promise<Object>} The updated event.
  */
-export const incrementAttendeeCount = async (eventId, tx?) => {
+export const incrementAttendeeCount = async (
+  eventId: number,
+  tx?: Prisma.TransactionClient
+): Promise<EventRow> => {
   const client = tx || prisma;
   const event = await client.events.update({
     where: { id: eventId },
@@ -148,7 +184,10 @@ export const incrementAttendeeCount = async (eventId, tx?) => {
  * @param {Prisma.TransactionClient} [tx] - Optional Prisma transaction client.
  * @returns {Promise<Object>} The updated event.
  */
-export const decrementAttendeeCount = async (eventId, tx?) => {
+export const decrementAttendeeCount = async (
+  eventId: number,
+  tx?: Prisma.TransactionClient
+): Promise<EventRow> => {
   const client = tx || prisma;
   const event = await client.events.update({
     where: { id: eventId },
@@ -171,7 +210,10 @@ export const decrementAttendeeCount = async (eventId, tx?) => {
  * @param {Prisma.TransactionClient} [tx] - Optional Prisma transaction client.
  * @returns {Promise<Object>} The created audit log entry.
  */
-export const createAuditLog = async (data, tx?) => {
+export const createAuditLog = async (
+  data: CreateAuditLogInput,
+  tx?: Prisma.TransactionClient
+): Promise<RegistrationLog> => {
   const client = tx || prisma;
   const log = await client.registration_log.create({
     data: {
@@ -197,13 +239,17 @@ export const createAuditLog = async (data, tx?) => {
  * @param {Prisma.TransactionClient} [tx] - Optional Prisma transaction client.
  * @returns {Promise<Object>} Paginated result: { data, total, page, limit, totalPages }.
  */
-export const listAttendees = async (eventId, query, tx?) => {
+export const listAttendees = async (
+  eventId: number,
+  query: AttendeeListQuery,
+  tx?: Prisma.TransactionClient
+): Promise<AttendeeListResult> => {
   const client = tx || prisma;
   const page = query.page ?? 1;
   const limit = query.limit ?? 20;
   const skip = (page - 1) * limit;
 
-  const where = {
+  const where: Prisma.attendeesWhereInput = {
     eventId,
     ...(query.status
       ? { status: query.status }
@@ -241,7 +287,10 @@ export const listAttendees = async (eventId, query, tx?) => {
  * @param {Prisma.TransactionClient} [tx] - Optional Prisma transaction client.
  * @returns {Promise<Object|null>} The event (id, capacity, attendeeCount, eventDate) or null.
  */
-export const findEventById = async (eventId, tx?) => {
+export const findEventById = async (
+  eventId: number,
+  tx?: Prisma.TransactionClient
+): Promise<EventCapacityRow | null> => {
   const client = tx || prisma;
   const event = await client.events.findUnique({
     where: { id: eventId },
@@ -265,10 +314,10 @@ export const findEventById = async (eventId, tx?) => {
  * @returns {Promise<number>} The count of updated rows (0 = lock failed, 1 = success).
  */
 export const updateEventAttendeeCountWithLock = async (
-  eventId,
-  expectedCount,
-  tx?
-) => {
+  eventId: number,
+  expectedCount: number,
+  tx?: Prisma.TransactionClient
+): Promise<number> => {
   const client = tx || prisma;
   const result = await client.events.updateMany({
     where: {

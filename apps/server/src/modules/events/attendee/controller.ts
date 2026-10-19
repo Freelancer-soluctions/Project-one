@@ -1,6 +1,7 @@
 import globalResponse from '../../../utils/responses&Errors/globalResponse.js';
 import handleCatchErrorAsync from '../../../utils/responses&Errors/handleCatchErrorAsync.js';
 import * as eventAttendeeService from './service.js';
+import type { AttendeeListQuery, UpdateAttendeeStatusInput } from './types.js';
 
 /**
  * Register self for an event.
@@ -42,7 +43,8 @@ export const cancelRegistration = handleCatchErrorAsync(async (req, res) => {
  */
 export const listEventAttendees = handleCatchErrorAsync(async (req, res) => {
   const { eventId } = req.params;
-  const query = req.safeQuery;
+  // Cast único de la query (page, limit, status?)
+  const query = req.safeQuery as AttendeeListQuery;
   const result = await eventAttendeeService.listAttendees(
     Number(eventId),
     query
@@ -62,7 +64,8 @@ export const listEventAttendees = handleCatchErrorAsync(async (req, res) => {
 export const updateAttendeeStatus = handleCatchErrorAsync(async (req, res) => {
   const userId = req.userId;
   const { attendeeId } = req.params;
-  const { status } = req.body;
+  // Cast único del body ({ status, reason? })
+  const { status } = req.body as UpdateAttendeeStatusInput;
   const attendee = await eventAttendeeService.updateAttendeeStatus(
     Number(attendeeId),
     status,

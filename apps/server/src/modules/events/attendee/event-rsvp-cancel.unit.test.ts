@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import * as eventAttendeeService from './service.js';
 import * as attendeeDao from './dao.js';
 const mockedAttendeeDao = vi.mocked(attendeeDao);
+import { attendeeRow, auditLogRow, eventRow } from './rsvp-fixtures.js';
 import * as stateMachine from '../stateMachine.js';
 const mockedStateMachine = vi.mocked(stateMachine);
 
@@ -28,9 +29,9 @@ vi.mock('../../../config/db.js', () => ({
 }));
 
 describe('Event RSVP — cancel', () => {
-  const mockConfirmed = { id: 1, eventId: 1, userId: 1, status: 'CONFIRMED' };
-  const mockWaitlist = { id: 2, eventId: 1, userId: 2, status: 'WAITLIST' };
-  const mockCancelled = { id: 3, eventId: 1, userId: 3, status: 'CANCELLED' };
+  const mockConfirmed = attendeeRow({ id: 1, userId: 1 });
+  const mockWaitlist = attendeeRow({ id: 2, userId: 2, status: 'WAITLIST' });
+  const mockCancelled = attendeeRow({ id: 3, userId: 3, status: 'CANCELLED' });
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -71,8 +72,8 @@ describe('Event RSVP — cancel', () => {
       ...mockConfirmed,
       status: 'CANCELLED',
     });
-    mockedAttendeeDao.decrementAttendeeCount.mockResolvedValue({});
-    mockedAttendeeDao.createAuditLog.mockResolvedValue({});
+    mockedAttendeeDao.decrementAttendeeCount.mockResolvedValue(eventRow());
+    mockedAttendeeDao.createAuditLog.mockResolvedValue(auditLogRow());
     mockedAttendeeDao.findEarliestWaitlist.mockResolvedValue(null);
 
     const result = await eventAttendeeService.cancel(1, 1);
@@ -99,7 +100,7 @@ describe('Event RSVP — cancel', () => {
       ...mockWaitlist,
       status: 'CANCELLED',
     });
-    mockedAttendeeDao.createAuditLog.mockResolvedValue({});
+    mockedAttendeeDao.createAuditLog.mockResolvedValue(auditLogRow());
 
     const result = await eventAttendeeService.cancel(1, 2);
 
@@ -115,7 +116,11 @@ describe('Event RSVP — cancel', () => {
   });
 
   it('promotes first waitlisted when cancelling CONFIRMED with waitlist', async () => {
-    const waitlistUser = { id: 10, eventId: 1, userId: 10, status: 'WAITLIST' };
+    const waitlistUser = attendeeRow({
+      id: 10,
+      userId: 10,
+      status: 'WAITLIST',
+    });
     mockedStateMachine.canTransition.mockReturnValue(true);
     mockedAttendeeDao.findAttendeeByUserAndEvent.mockResolvedValue(
       mockConfirmed
@@ -123,10 +128,10 @@ describe('Event RSVP — cancel', () => {
     mockedAttendeeDao.updateAttendeeStatus
       .mockResolvedValueOnce({ ...mockConfirmed, status: 'CANCELLED' }) // cancel
       .mockResolvedValueOnce({ ...waitlistUser, status: 'CONFIRMED' }); // promote
-    mockedAttendeeDao.decrementAttendeeCount.mockResolvedValue({});
-    mockedAttendeeDao.createAuditLog.mockResolvedValue({});
+    mockedAttendeeDao.decrementAttendeeCount.mockResolvedValue(eventRow());
+    mockedAttendeeDao.createAuditLog.mockResolvedValue(auditLogRow());
     mockedAttendeeDao.findEarliestWaitlist.mockResolvedValue(waitlistUser);
-    mockedAttendeeDao.incrementAttendeeCount.mockResolvedValue({});
+    mockedAttendeeDao.incrementAttendeeCount.mockResolvedValue(eventRow());
 
     await eventAttendeeService.cancel(1, 1);
 

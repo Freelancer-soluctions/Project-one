@@ -2,6 +2,15 @@ import * as attendeeDao from './dao.js';
 import { canTransition } from '../stateMachine.js';
 import { prisma } from '../../../config/db.js';
 import ClientError from '../../../utils/responses&Errors/errors.js';
+import type { Prisma } from '@prisma/client';
+import type {
+  Attendee,
+  AttendeeListQuery,
+  AttendeeListResult,
+  AttendeeStatus,
+  CreateAuditLogInput,
+  RegistrationLog,
+} from './types.js';
 
 /**
  * Custom error creator with statusCode property for consistent error handling.
@@ -9,7 +18,7 @@ import ClientError from '../../../utils/responses&Errors/errors.js';
  * @param {string} message - Error message
  * @returns {Error} Error with statusCode property
  */
-const createError = (statusCode, message) => {
+const createError = (statusCode: number, message: string): ClientError => {
   const error = new ClientError(message, statusCode);
   return error;
 };
@@ -22,7 +31,10 @@ const createError = (statusCode, message) => {
  * @returns {Promise<Object>} The created or updated attendee record.
  * @throws {Error} If event not found, event is in the past, already registered, or capacity exceeded.
  */
-export const register = async (eventId, userId) => {
+export const register = async (
+  eventId: number,
+  userId: number
+): Promise<Attendee> => {
   // 1. Find event
   const event = await attendeeDao.findEventById(eventId);
   if (!event) {
@@ -47,7 +59,7 @@ export const register = async (eventId, userId) => {
   }
 
   // 4. Determine status based on capacity
-  let status;
+  let status: AttendeeStatus;
   if (event.capacity === 0) {
     // Unlimited capacity
     status = 'CONFIRMED';
@@ -75,7 +87,7 @@ export const register = async (eventId, userId) => {
       }
     }
 
-    let attendee;
+    let attendee: Attendee;
     const previousStatus = existing?.status || null;
 
     if (existing) {
@@ -124,7 +136,10 @@ export const register = async (eventId, userId) => {
  * @returns {Promise<Object>} The updated attendee record with CANCELLED status.
  * @throws {Error} If registration not found, already cancelled, or invalid transition.
  */
-export const cancel = async (eventId, userId) => {
+export const cancel = async (
+  eventId: number,
+  userId: number
+): Promise<Attendee> => {
   // 1. Find attendee
   const attendee = await attendeeDao.findAttendeeByUserAndEvent(
     eventId,
@@ -191,7 +206,10 @@ export const cancel = async (eventId, userId) => {
  * @param {string} [query.status] - Optional status filter (CONFIRMED, WAITLIST, CANCELLED).
  * @returns {Promise<Object>} Paginated result: { data, total, page, limit, totalPages }.
  */
-export const listAttendees = async (eventId, query) => {
+export const listAttendees = async (
+  eventId: number,
+  query: AttendeeListQuery
+): Promise<AttendeeListResult> => {
   return attendeeDao.listAttendees(eventId, query);
 };
 
@@ -205,10 +223,10 @@ export const listAttendees = async (eventId, query) => {
  * @throws {Error} If attendee not found, already in target status, invalid transition, or capacity exceeded.
  */
 export const updateAttendeeStatus = async (
-  attendeeId,
-  newStatus,
-  adminUserId
-) => {
+  attendeeId: number,
+  newStatus: AttendeeStatus,
+  adminUserId: number
+): Promise<Attendee> => {
   // 1. Find attendee
   const attendee = await attendeeDao.findAttendeeById(attendeeId);
   if (!attendee) {
@@ -292,7 +310,10 @@ export const updateAttendeeStatus = async (
  * @param {Prisma.TransactionClient} tx - Prisma transaction client.
  * @returns {Promise<Object|null>} The promoted attendee or null if no waitlist.
  */
-export const promoteFromWaitlist = async (eventId, tx) => {
+export const promoteFromWaitlist = async (
+  eventId: number,
+  tx: Prisma.TransactionClient
+): Promise<Attendee | null> => {
   // 1. Find earliest waitlisted attendee
   const waitlistAttendee = await attendeeDao.findEarliestWaitlist(eventId, tx);
   if (!waitlistAttendee) {
@@ -336,13 +357,13 @@ export const promoteFromWaitlist = async (eventId, tx) => {
  * @returns {Promise<Object>} The created audit log entry.
  */
 export const createAuditLog = async (
-  attendeeId,
-  eventId,
-  previousStatus,
-  newStatus,
-  changedBy,
-  tx
-) => {
+  attendeeId: number,
+  eventId: number,
+  previousStatus: CreateAuditLogInput['previousStatus'],
+  newStatus: string,
+  changedBy: CreateAuditLogInput['changedBy'],
+  tx?: Prisma.TransactionClient
+): Promise<RegistrationLog> => {
   return attendeeDao.createAuditLog(
     {
       attendeeId,
