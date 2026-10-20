@@ -17,6 +17,7 @@
     "noFallthroughCasesInSwitch": true,
     "useUnknownInCatchVariables": true,
     "noUncheckedIndexedAccess": true,
+    "strict": true,
     "checkJs": false,
     "allowImportingTsExtensions": true,
     "noEmit": true,
