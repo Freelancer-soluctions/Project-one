@@ -46,6 +46,15 @@ function runScript(args, env = {}) {
   });
 }
 
+/** Env para corridas E2E en un fixture repo: modo ci SIN baseline. */
+function ciEnvWithoutBaseline() {
+  const env = { ...process.env, SAST_MODE: 'ci', SAST_DOCKER_BIN: NO_DOCKER };
+  delete env.SAST_BASELINE_COMMIT;
+  delete env.GITHUB_ACTIONS;
+  delete env.SAST_TIMEOUT_MS;
+  return env;
+}
+
 /** Git fixture: repo con origin/main simulado y un único commit base. */
 function makeFixtureRepo() {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'sast-diff-fixture-'));
@@ -313,6 +322,35 @@ describe('sast-diff.mjs — matchers de skip sobre fixture git (task 2.7, RF-PP-
     git('commit', '-q', '-m', 'ts change');
     expect(diffTouchesScannedFiles(dir, baseSha)).toBe(true);
   });
+
+  it('diff con ruta no-ASCII (git la cita por core.quotepath) -> sí escaneable (false negative corregido)', () => {
+    const { dir, baseSha } = makeFixtureRepo();
+    cleanups.push(dir);
+    const git = (...a) =>
+      spawnSync('git', ['-C', dir, ...a], { encoding: 'utf8' });
+
+    fs.writeFileSync(
+      path.join(dir, 'configuración.js'),
+      'export const x = 1;\n'
+    );
+    git('add', '.');
+    git('commit', '-q', '-m', 'acento');
+    // Demostración del bug original: con core.quotepath (default true) el
+    // nombre sale citado y escapado — `"configuraci\303\263n.js"` — y
+    // path.extname ve `.js"`, que no matchea (el hook saltaba el escaneo).
+    const quoted = git(
+      '-c',
+      'core.quotepath=true',
+      'diff',
+      '--name-only',
+      baseSha,
+      'HEAD'
+    );
+    expect(quoted.stdout).toContain('"configuraci\\303\\263n.js"');
+    // Con la corrección (core.quotepath=false en el propio git del matcher)
+    // el diff SÍ se considera escaneable.
+    expect(diffTouchesScannedFiles(dir, baseSha)).toBe(true);
+  });
 });
 
 describe('sast-diff.mjs — ejecución end-to-end sin Docker (tasks 2.6/2.7/2.12)', () => {
@@ -410,9 +448,56 @@ describe('sast-diff.mjs — ejecución end-to-end sin Docker (tasks 2.6/2.7/2.12
   });
 
   it('ci + SAST_BASELINE_COMMIT ausente: falla cerrado con mensaje que lo nombra', () => {
-    const res = runScript([], { SAST_MODE: 'ci', SAST_DOCKER_BIN: NO_DOCKER });
+    // Fixture repo: desde el fix del reporte en el path de baseline roto,
+    // esta corrida ESCRIBE `.tmp/sast-report.json` en la raíz que resuelve —
+    // ejecutarla contra el repo real dejaría un side effect innecesario.
+    const { dir } = makeFixtureRepo();
+    cleanups.push(dir);
+    const res = spawnSync(process.execPath, [SCRIPT], {
+      cwd: dir,
+      encoding: 'utf8',
+      env: ciEnvWithoutBaseline(),
+    });
     expect(res.status).toBe(1);
     expect(res.stderr).toContain('SAST_BASELINE_COMMIT');
+  });
+
+  it('ci + baseline ausente: exit 1 Y reporte con classification tool-broken (RF-CI-02, evidencia en misconfiguration)', () => {
+    const { dir } = makeFixtureRepo();
+    cleanups.push(dir);
+    const res = spawnSync(process.execPath, [SCRIPT], {
+      cwd: dir,
+      encoding: 'utf8',
+      env: ciEnvWithoutBaseline(),
+    });
+    expect(res.status).toBe(1);
+    expect(res.stderr).toContain('SAST_BASELINE_COMMIT');
+    // El artefacto SIEMPRE existe en ci, también cuando resolveBaseline lanza
+    // (antes: el upload se quedaba sin input justo en el escenario roto).
+    const report = JSON.parse(
+      fs.readFileSync(path.join(dir, REPORT_PATH), 'utf8')
+    );
+    expect(report.mode).toBe('ci');
+    expect(report.classification).toBe('tool-broken');
+    expect(report.baselineCommit).toBe('unknown');
+    expect(report.findings).toEqual([]);
+    expect(report.toolError).toContain('SAST_BASELINE_COMMIT');
+  });
+
+  it('ci + baseline ausente + reporte NO escribible: sigue exit 1 (writeReport no cambia el veredicto)', () => {
+    const { dir } = makeFixtureRepo();
+    cleanups.push(dir);
+    // `.tmp` como ARCHIVO (no directorio): mkdirSync falla -> writeReport
+    // devuelve ok:false sin lanzar (best-effort, RF-CI-02).
+    fs.writeFileSync(path.join(dir, '.tmp'), 'not a directory');
+    const res = spawnSync(process.execPath, [SCRIPT], {
+      cwd: dir,
+      encoding: 'utf8',
+      env: ciEnvWithoutBaseline(),
+    });
+    expect(res.status).toBe(1); // el veredicto es idéntico al de la corrida con reporte ok
+    expect(res.stderr).toContain('SAST_BASELINE_COMMIT'); // el error original se conserva
+    expect(res.stderr).toContain('could NOT be written'); // aviso best-effort, no crash
   });
 });
 

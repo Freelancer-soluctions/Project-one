@@ -353,11 +353,24 @@ export function isWorkingTreeDirty(root) {
 
 /** Does the committed diff (baseline..HEAD) touch any scannable file? */
 export function diffTouchesScannedFiles(root, baseline) {
-  const res = spawnSync('git', ['diff', '--name-only', baseline, 'HEAD'], {
-    cwd: root,
-    encoding: 'utf8',
-  });
-  const files = (res.stdout || '').split('\n').filter(Boolean);
+  // core.quotepath=false: with the default (true) git CITES+escapes non-ASCII
+  // paths ("configuraci\303\263n.js"), so path.extname() saw `.js"` and the
+  // scan was silently SKIPPED on accent-only diffs (false negative, RF-PP-03).
+  const res = spawnSync(
+    'git',
+    ['-c', 'core.quotepath=false', 'diff', '--name-only', baseline, 'HEAD'],
+    {
+      cwd: root,
+      encoding: 'utf8',
+    }
+  );
+  const files = (res.stdout || '')
+    .split('\n')
+    // Belt-and-braces: even with quotepath=false, paths containing `"` or
+    // control chars are still C-quoted by git; strip the surrounding quotes so
+    // the extension check sees the real tail (return contract unchanged).
+    .map((f) => f.replace(/^"(.*)"$/, '$1'))
+    .filter(Boolean);
   return files.some((f) =>
     SCANNED_EXTENSIONS.includes(path.extname(f).toLowerCase())
   );
@@ -544,6 +557,26 @@ function printSkip(reason) {
   );
 }
 
+/**
+ * CI-mode report emission (RF-CI-02): write + log outcome. Best-effort by
+ * contract — writeReport never throws and this helper never changes the exit
+ * code (the "could NOT be written" path just warns).
+ */
+function emitCiReport(root, payload) {
+  const written = writeReport(root, payload);
+  if (written.ok) {
+    console.log(
+      `📝 Scan report written to ${REPORT_PATH} (retained by the job as a 14-day artifact).`
+    );
+  } else {
+    console.warn(
+      `⚠️  Scan report could NOT be written to ${REPORT_PATH}: ${written.error}`
+    );
+    console.warn('   The exit code still reflects the scan outcome.');
+  }
+  return written;
+}
+
 async function main() {
   const mode = resolveMode(); // throws (user-facing) on invalid/unset-in-runner
   const timeoutMs =
@@ -572,6 +605,17 @@ async function main() {
       return EXIT_OK;
     }
     console.error(`❌ SAST configuration error (fail-closed): ${err.message}`);
+    // RF-CI-02: in ci mode the report artifact is produced on THIS path too,
+    // otherwise the evidence is missing precisely in the misconfiguration
+    // scenario. Best-effort: writeReport never throws, so the verdict below
+    // (EXIT_BLOCKED) cannot be altered by a write failure.
+    emitCiReport(root, {
+      mode,
+      baseline: null,
+      classification: 'tool-broken',
+      findings: [],
+      toolError: err.message,
+    });
     return EXIT_BLOCKED;
   }
   console.log(
@@ -612,23 +656,13 @@ async function main() {
           : result.launchError ||
             result.stderr.trim().split('\n').slice(-3).join(' | ')
         : null;
-    const written = writeReport(root, {
+    emitCiReport(root, {
       mode,
       baseline,
       classification,
       findings,
       toolError,
     });
-    if (written.ok) {
-      console.log(
-        `📝 Scan report written to ${REPORT_PATH} (retained by the job as a 14-day artifact).`
-      );
-    } else {
-      console.warn(
-        `⚠️  Scan report could NOT be written to ${REPORT_PATH}: ${written.error}`
-      );
-      console.warn('   The exit code still reflects the scan outcome.');
-    }
   }
 
   // -- Verdict ----------------------------------------------------------------
