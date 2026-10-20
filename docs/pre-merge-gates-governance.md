@@ -144,7 +144,7 @@ fi
 
 #### Dónde está implementada
 
-- Local: `git config commit.signoff true` (DCO automático) + convención `git commit -S` (firma) obligatorio (ver §4.3).
+- Local: hook `.husky/prepare-commit-msg` (auto-signoff) + convención `git commit -S -s` (firma + signoff) obligatoria (ver §4.3).
 - CI: job `verify-signatures` en `.github/workflows/ci.yml` (check name exacto: **Verify Commit Signatures**).
 - Ruleset `21227644` → regla `required_signatures` + status check requerido (¡renombrar el nombre del job rompe el binding del ruleset!).
 - El job forma parte de `ci-complete.needs` (ci.yml L796) — el agregador solo reporta cuando `CI_MINIMAL != 'true'`.
@@ -241,7 +241,7 @@ Signed-off-by: Ana García <ana.garcia@example.com>
 #### Qué herramientas usamos
 
 - **GitHub Action `KineticCafe/actions-dco@v3.2.0`** en CI — valida que cada commit del PR tenga su trailer `Signed-off-by`.
-- **Config global de git** `commit.signoff true` — añade el trailer automáticamente a cada commit.
+- **Hook `.husky/prepare-commit-msg`** — añade el trailer automáticamente a cada commit nuevo (`-s` explícito sigue siendo la convención).
 - **Convención del equipo**: `git commit -S -s` es la forma canónica (firma + sign-off) en los flujos de commit asistidos.
 
 #### Qué valida exactamente
@@ -257,7 +257,7 @@ Signed-off-by: Ana García <ana.garcia@example.com>
 
 **Bot policy:** los commits firmados por bots _well-known_ (como Dependabot) no fallan el check — de lo contrario, cada update automático de dependencias rompería el pipeline. Los seres humanos sí deben firmar.
 
-**Defensa local del trailer:** el hook `pre-push` **no** re-chequea el trailer — solo corre los tests scoped (ver §4.8). La defensa local del DCO se apoya en dos mecanismos: la config global `commit.signoff true` — que añade el trailer automáticamente en cada commit — y nuestra regla de flujo asistido (git-manager exige `git commit -S -s`). El enforcement real del trailer es el check bloqueante de CI (L3).
+**Defensa local del trailer:** el hook `pre-push` **no** valida DCO — solo corre el fetch + guard y los tests scoped (ver §4.8). La defensa local se apoya en el hook `.husky/prepare-commit-msg` — que añade el trailer automáticamente en cada commit nuevo — y en la regla de flujo asistido (git-manager exige `git commit -S -s`); el gate local único de validación es `commit-msg`. El enforcement real del trailer es el check bloqueante de CI (L3).
 
 > **Nota de auditoría:** CONTEXT-CICD §11.1 afirmaba un re-check de DCO en pre-push que el código no implementa (misma clase de discrepancia docs-código que el job SAST del §4.6). Este artículo refleja el código real.
 
@@ -273,7 +273,7 @@ Es el gate que **más fricción cultural** generó al inicio (la gente olvidaba 
 
 #### Dónde está implementada
 
-- L1: `git config commit.signoff true` (auto-signoff) + hook `commit-msg` (commitlint) + regla git-manager `-S -s`.
+- L1/L2: hook `prepare-commit-msg` (auto-signoff) + hook `commit-msg` (valida DCO antes de commitlint; único gate local) + regla git-manager `-S -s`.
 - L3: job `dco` en `ci.yml` (name exacto: **DCO**), BLOQUEANTE.
 
 ---
@@ -354,7 +354,7 @@ $ node scripts/hooks/pr-title-check.js "Fix login bug"
 Invalid PR title: "Fix login bug"
    Reason: does not match Conventional Commits format "type(scope): description"
    Allowed types: feat, fix, docs, style, refactor, perf, test, build, ci, chore, revert, ops
-   Example: feat(server): add DCO check to pre-push hook
+   Example: feat(server): add DCO check to commit-msg hook
 
 # Bien
 $ node scripts/hooks/pr-title-check.js "feat(auth): add refresh token rotation"
@@ -409,55 +409,50 @@ Es la validación de _menor severidad técnica y mayor impacto cultural_: es la 
 
 ---
 
-### 4.6 SAST — Semgrep (capa local staged + evolución CI)
+### 4.6 SAST — Semgrep (capa local diff-scoped + CI governance)
 
-**Capa:** L1 (activo hoy: staged con Docker) · L3 (diseñado, job documentado; ver nota de estado)
+**Capa:** L2 pre-push (hallazgo ERROR nuevo bloquea el push; herramienta rota fail-open) · L3 CI (job `sast`, FASE 1 advisory con artifact de 14 días → FASE 2 bloqueante tras la calibración)
+
+> **Actualización (change `sast-shift-left-hooks-parity`, 2026-10-19):** este artículo describía la
+> implementación anterior (fast scan en `pre-commit` con ocho fallos de diseño). El cambio la **reemplazó
+> por completo**: un único script Node (`scripts/sast-diff.mjs`) compartido por el hook `pre-push` y el
+> job `sast` del CI; el `pre-commit` quedó sin SAST; el PowerShell de staged fue eliminado; el full scan
+> on-demand (`sast:semgrep:full`) se conserva deduplicado y pineado. La descripción siguiente es la
+> realidad vigente.
 
 #### Qué herramienta usamos y qué es
 
-**[Semgrep](https://semgrep.dev)**, motor de SAST (Static Application Security Testing) que analiza código fuente **sin ejecutarlo**. Se distribuye como imagen Docker (`semgrep/semgrep`), lo que lo hace portable: el mismo binario corre en Windows, Linux y CI sin instalar nada en el host.
+**[Semgrep](https://semgrep.dev)**, motor de SAST (Static Application Security Testing) que analiza código fuente **sin ejecutarlo**. Se distribuye como imagen Docker (`semgrep/semgrep:<versión pineada>`), lo que lo hace portable: el mismo binario corre en Windows, Linux y CI sin instalar nada en el host — invocado desde el script Node, sin dependencia de PowerShell.
 
 Dos cosas de nuestra implementación:
 
-1. **Un conjunto curado de ~100 reglas del registry** (`r/...`), seleccionadas para nuestro stack (Express + React + JSON Web Tokens + Playwright), desglosadas en líneas individuales en `scripts/security/semgrep-staged.ps1`:
-   - **Express (autenticación):** `express-check-csurf-middleware-usage`, `express-jwt-hardcoded-secret`, `express-session-hardcoded-secret`, `express-cookie-session-no-httponly`, `-no-secure`, `-no-expires`, `jsonwebtoken.security.jwt-none-alg` (¡algoritmo `none` = token sin verificar!).
-   - **Inyección:** `tainted-sql-string`, `sqli.node-postgres-sqli` (SQLi en Postgres), `express-ssrf`, `path-traversal`, `spawn-shell-true` (command injection), `detect-eval-with-expression`.
-   - **XSS frontend:** `react-dangerouslysetinnerhtml`, `dom-based-xss`, `raw-html-concat`, `insecure-innerhtml`, `jwt-in-localstorage` (JWT en localStorage = exfiltrable por XSS).
-   - **Cripto:** `md5-used-as-password`, `detect-pseudoRandomBytes`, `gcm-no-tag-length`, `aead-no-final`.
-   - **Prototype pollution y deserialización:** `prototype-pollution-assignment`, `express-third-party-object-deserialization`.
-
+1. **Los gates (hook `pre-push` + job `sast` del CI) usan REGISTRY PACKS** desde `scripts/sast-diff.mjs` (fuente única): `p/owasp-top-ten`, `p/security-audit`, `p/secrets`, `p/nodejs`, `p/expressjs`, `p/sql-injection`, `p/command-injection`, `p/react`, `p/xss`, con `--severity ERROR --error --metrics off` y 8 exclusiones inline. Incluyen detecciones como `express-jwt-hardcoded-secret`, `jwt-none-alg` (¡algoritmo `none` = token sin verificar!), `tainted-sql-string`, `detect-child-process`, `react-dangerouslysetinnerhtml`, `gcm-no-tag-length`, `aead-no-final`, etc.
 2. **Reglas custom propias** en `.semgrep/`:
-   - `.semgrep/.semgrep.yml` (trackeada): regla local `no-console-log` (severity WARNING, lenguajes javascript/typescript) que prohíbe `console.log(...)` en producción — además los packs `p/*` están comentados _a propósito_: preferimos reglas puntuales del registry a packs masivos que generan ruido de falsos positivos.
-   - `.semgrep/rules/` (5 reglas custom, **aún no trackeadas** en esta rama): `prisma-raw-sqli`, `prototype-pollution`, `ssrf`, `unsafe-deserialization`, `xss-dom-intermediate` — reglas específicas de nuestros patrones Prisma/ORM y DOM.
+   - `.semgrep/.semgrep.yml` (trackeada): regla local `no-console-log` (severity WARNING) — LEGACY: los gates no la referencian (los packs p/ están comentados a propósito).
+   - `.semgrep/rules/` (5 reglas custom **versionadas con fixtures**: `prisma-raw-sqli`, `prototype-pollution`, `ssrf`, `unsafe-deserialization`, `xss-dom-intermediate`), cargadas ANTES que los packs para que las reglas locales tengan prioridad.
+3. **Excepción documentada — el full scan on-demand** (`npm run sast:semgrep:full`, `scripts/security/semgrep.ps1`): conserva su lista individual de **93 reglas `r/...`** (deduplicada de 98 entradas) seleccionadas para nuestro stack (Express + React + JWT + Playwright), con la versión leída en runtime de la constante del script compartido. 93 peticiones al registro son inviables en un hook pero aceptables en un escaneo completo manual. Auditoría de cobertura packs vs `r/...` (93/93 clasificadas): `docs/security/semgrep-rules.md` §Coverage audit.
 
 ```bash
-# .husky/pre-commit — SAST + Gitleaks en paralelo, espera por PID capturando fallos
-npm exec lint-staged || { echo "lint-staged failed"; exit 1; }
-
-FAILED=0
-npm run sast:semgrep &        # -> scripts/security/semgrep-staged.ps1
-SAST_PID=$!
-npm run security:secrets &    # -> gitleaks git --pre-commit --staged (change secret-scanning)
-SECRETS_PID=$!
-wait $SAST_PID || { echo "SAST scan failed"; FAILED=1; }
-wait $SECRETS_PID || { echo "Secret scan failed"; FAILED=1; }
-[ $FAILED -ne 0 ] && exit 1
+# .husky/pre-push — la etapa SAST diff-scoped (entre el gate de firma y los tests scoped)
+node scripts/sast-diff.mjs   # modo local por default (SAST_MODE)
+#   - hallazgo ERROR nuevo en el diff  -> BLOQUEA el push
+#   - herramienta rota (Docker/timeout/red) -> fail-open con aviso visible
+#   - skips visibles: working tree sucio / diff sin .js/.jsx/.cjs/.mjs/.ts/.tsx
 ```
 
-```powershell
-# scripts/security/semgrep-staged.ps1 — solo staged, solo cambios "adelante"
-$files = git diff --cached --name-only --diff-filter=ACM
-if (-not $files) { Write-Host "No staged files to scan."; exit 0 }
-
-docker run --rm -v "${PWD}:/src" -w /src semgrep/semgrep:latest semgrep scan `
-  --config="r/javascript.express.security.audit.express-jwt-hardcoded-secret.express-jwt-hardcoded-secret" `
-  --config="r/javascript.lang.security.audit.sqli.node-postgres-sqli.node-postgres-sqli" `
-  # ... ~100 reglas más ...
+```bash
+# .github/workflows/ci.yml — job `sast` (el MISMO script, modo enforcement)
+- name: Run diff-scoped Semgrep scan (shared script)
+  env:
+    SAST_BASELINE_COMMIT: ${{ github.event.pull_request.base.sha }}
+  run: SAST_MODE=ci node scripts/sast-diff.mjs
 ```
+
+El comando efectivo (una sola fuente en `scripts/sast-diff.mjs`): `docker run --rm -v <repo>:/src -w /src semgrep/semgrep:<pinned> semgrep scan --baseline-commit <sha> --config .semgrep/rules --config p/owasp-top-ten ... --config p/xss --exclude node_modules ... --exclude e2e --severity ERROR --error --metrics off --json`.
 
 #### Qué valida
 
-Solo los archivos staged (`git diff --cached`) — no todo el repo. Así el análisis es **proporcional al cambio** y detecta la vulnerabilidad _antes_ de que el código se commitee.
+Solo lo que el cambio **introduce** (`--baseline-commit` contra el merge base con `origin/main` en local, o el base del PR en CI) — no todo el repo. Los hallazgos preexistentes en el baseline no se reportan (RF-PP-02). El análisis es **proporcional al cambio** y detecta la vulnerabilidad _antes_ de que el código salga del equipo.
 
 #### Por qué existe / qué riesgo mitiga
 
@@ -469,14 +464,21 @@ Solo los archivos staged (`git diff --cached`) — no todo el repo. Así el aná
 
 Es la validación más **nueva y en evolución** de nuestro stack. Su severidad hoy es WARNING en local custom (`no-console-log`) y las reglas del registry son el verdadero filtro de seguridad. La evolución planificada (change `ci-sast-governance`) es un job CI F1 no-bloqueante con `--baseline-commit` (solo diff del PR) que posteriormente migraría a F2 bloqueante — el mismo camino que recorrieron `pr-title-lint` y `dco` (primero informativos, luego BLOQUEANTES).
 
-#### Nota de estado (honestidad del artículo)
+#### Nota de estado (honestidad del artículo — corregida 2026-10-19)
 
-En esta rama (`ci/governance-gates`) el job CI de Semgrep **no está en `ci.yml`**: la capa activa hoy es la local staged (L1). El job `sast` que existe en `security.yml` es **CodeQL** (`name: "SAST - CodeQL"`), y ese workflow está `disabled_manually` en GitHub (ver §10). La documentación de referencia (CONTEXT-CICD §9.3.9) describe el job Semgrep como existente en `ci.yml`; al verificar el código real encontramos la discrepancia y la registramos — este artículo describe **lo implementado y verificado**, no lo asumido.
+La versión anterior de este artículo afirmaba que "el job CI de Semgrep **no está en `ci.yml`**". Era **drift
+verificado contra el código**: el job `sast` (Semgrep diff-scoped, `name: 'Governance: SAST (Semgrep)'`)
+sí vive en `ci.yml` — existía desde antes y desde el change `sast-shift-left-hooks-parity` además
+delega en `scripts/sast-diff.mjs` con artifact de 14 días. El job `sast` de `security.yml` es **CodeQL**
+(`name: "SAST - CodeQL"`), workflow `disabled_manually` en GitHub (ver §10) — no confundir los dos.
+Este artículo describe **lo implementado y verificado**, no lo asumido; por eso la discrepancia se
+corrigió aquí en lugar de dejarse anotada.
 
 #### Dónde está implementada
 
-- L1: `.husky/pre-commit` → `npm run sast:semgrep` → `scripts/security/semgrep-staged.ps1` (Docker). Reglas: registry `r/...` (~100) + `.semgrep/.semgrep.yml` (custom, trackeada) + `.semgrep/rules/` (5 custom, pending de commit).
-- L3: diseñado en change `ci-sast-governance` (no presente en la rama actual).
+- L2: `.husky/pre-push` → etapa SAST diff-scoped `node scripts/sast-diff.mjs` (modo local) — misma fuente de reglas/version que CI.
+- L3: job `sast` en `.github/workflows/ci.yml` → `SAST_MODE=ci node scripts/sast-diff.mjs` (FASE 1 advisory + artifact `sast-report` 14d; FASE 2: `prebuild-governance-complete.needs`).
+- Política de reglas y de fallos + auditoría de cobertura: `docs/security/semgrep-rules.md`.
 - Referencia enterprise: §23.3 + diagrama con "SAST 3 capas" (local/CI/scheduled).
 
 ---
@@ -830,7 +832,7 @@ La propuesta enterprise (`docs/ci-cd-pipeline-empresarial.md` §23.3, STAGE 2 PR
 
 ## 8. Las 5 estrategias de governance (y cómo se ven en nuestro código)
 
-1. **Shift-left (validar antes):** cada validación corre en la capa más barata — `pr-title-check.js` local (L2.5) antes que `pr-title-lint` CI (L3); `semgrep-staged` (L1) antes que un hipotético job CI; `vitest --changed` (L2) antes que la suite completa.
+1. **Shift-left (validar antes):** cada validación corre en la capa más barata — `pr-title-check.js` local (L2.5) antes que `pr-title-lint` CI (L3); SAST diff-scoped en `pre-push` (L2) antes que el job `sast` de CI (mismo script, dos invocadores); `vitest --changed` (L2) antes que la suite completa.
 2. **Policy-as-code (la política es código):** ruleset 21227644 versionado por API; `commitlint.config.js`, `.gitleaks.toml`, `.semgrep/`, `.husky/` — todo trackeado y revisable con git blame.
 3. **Enforcement no-bypassable:** `bypass_actors: []` + `current_user_can_bypass: never` — ni admins pueden saltarse el ruleset. Las herramientas locales pueden desactivarse (husky disable), por eso la red de seguridad vive en CI, donde no se puede.
 4. **Gates escalonados severity-first:** primero los checks de _identidad/autenticidad_ (firma, CC, DCO, título), luego los de _seguridad_ (dependency-review, secretos, SAST), luego los de _calidad_ (lint/tests/dead-code, hoy `if:false`). Cada cambio documenta su justificación de costo.
@@ -905,7 +907,7 @@ Para que este artículo no sea un ejercicio de deseos, el estado **verificado** 
 - `.github/workflows/ci.yml` — implementación real (1049 líneas): jobs `repo-discovery` (L20), `verify-signatures` (+L239 merge_group fallback, +L252 check results, +L275 reporte), `commit-lint`, `pr-title-lint`, `dco`, `dependency-review` (L733), `ci-complete` (L760, `needs` completo), `zombie-workflow-guard` (L1024)
 - `.husky/pre-commit`, `.husky/commit-msg`, `.husky/pre-push` — capa local L1/L2
 - `.gitleaks.toml` (139 líneas) + `.gitleaksignore` — política de secretos
-- `.semgrep/.semgrep.yml` + `.semgrep/rules/` (5 reglas, untracked) + `scripts/security/semgrep-staged.ps1` (~100 reglas registry) — SAST local
+- `.semgrep/.semgrep.yml` + `.semgrep/rules/` (5 reglas custom con fixtures) + `scripts/sast-diff.mjs` (SAST diff-scoped del hook `pre-push` y del job `sast` de CI) + `scripts/security/semgrep.ps1` (full scan on-demand, 93 reglas `r/...` pineadas)
 - `scripts/hooks/pr-title-check.js` + `scripts/hooks/pr-create.js` — L2.5
 - `commitlint.config.js` — config Conventional Commits
 - `docs/ci-cd-pipeline-empresarial.md` §23.3 — propuesta enterprise (Governance Lifecycle 7 pasos, GOVERNANCE TRANSVERSAL) y §13.10

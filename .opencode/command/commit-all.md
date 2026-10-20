@@ -51,9 +51,10 @@ Rules:
 - ALWAYS add the DCO sign-off with `-s` (`git commit -S -s`) so every
   non-merge commit includes a `Signed-off-by: Name <email>` trailer matching
   the KineticCafe DCO format enforced in CI (case-sensitive `Signed-off-by:`,
-  trailer identity matching the author/committer). `-s` is NON-OPTIONAL even
-  when `git config commit.signoff true` is set — the config may be absent on
-  other machines, fresh clones, or CI runners (defense-in-depth). Plain
+  trailer identity matching the author/committer). `-s` is NON-OPTIONAL:
+  `commit.signoff` is not a git variable and injects no trailer (the
+  `.husky/prepare-commit-msg` hook is the auto-signoff layer, not a substitute
+  for `-s` in contexts without local hooks). Plain
   `git commit -S` (without `-s`) is forbidden. See `docs/CONTEXT-CICD.md`
   §10.4/§10.5 for the local DCO layers.
 - If signing fails because the SSH agent has no key loaded (`ssh-add -l`

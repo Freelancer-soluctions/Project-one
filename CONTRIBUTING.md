@@ -35,7 +35,7 @@ type(scope): description
 - `fix(server): handle null user in middleware`
 - `docs(api): update endpoint documentation`
 
-**DCO Sign-off**: All commits must include a `Signed-off-by` trailer. Commit with both flags: `git commit -S -s` (`-S` SSH-signs, `-s` adds the signoff). To add the trailer automatically on every commit, run `git config --global commit.signoff true` — the repo's traceability convention (see `docs/CONTEXT-CICD.md` §10.5).
+**DCO Sign-off**: All commits must include a `Signed-off-by` trailer. Commit with both flags: `git commit -S -s` (`-S` SSH-signs, `-s` adds the signoff). The `.husky/prepare-commit-msg` hook adds the trailer automatically on new commits; `commit.signoff` is not a git variable and injects nothing (see `docs/learning/dco.md`).
 
 ## Pull Request Guidelines
 
@@ -53,9 +53,9 @@ Follow Conventional Commits: `type(scope): description`
 
 All commits must include `Signed-off-by: Your Name <your@email.com>`
 
-- Use `git commit -S -s` to SSH-sign and auto-add the trailer
-- Or enable automatic signoff (the repo's traceability convention): `git config --global commit.signoff true` (see `docs/CONTEXT-CICD.md` §10.5)
-- A local `commit-msg` hook (L1) and a `pre-push` re-check (L2) reject commits missing the trailer before CI does
+- Use `git commit -S -s` to SSH-sign and add the trailer
+- The `.husky/prepare-commit-msg` hook adds the trailer automatically on new commits; `commit.signoff` is a no-op myth (see `docs/learning/dco.md`)
+- The local `commit-msg` hook (L2) is the single gate that rejects commits missing the trailer before CI does; `pre-push` does not validate DCO
 - Email must match your Git author email
 - Exemption: dependabot and other automated bots
 

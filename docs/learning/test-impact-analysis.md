@@ -257,13 +257,13 @@ cae a D7).
 
 ### 4.4 Red de seguridad, cuarentena y nivel local
 
-| Pieza                                                 | Papel en TIA                                                                                                                                                                                                                 |
-| ----------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [`.github/workflows/nightly-full-suite.yml`][nightly] | **Safety net**: cron `40 2 * * *` (02:40 UTC), suite COMPLETA de ambos workspaces, _nunca_ TIA, **sin** exclusiones de cuarentena (la evidencia de restauración), coverage advisory (D18)                                    |
-| [`scripts/ci/quarantine-exclude.mjs`][quarantine]     | Deriva `--exclude=<glob>` **exclusivamente** de `.github/flaky-quarantine.yml`; fichero corrupto → `exit 1` (nunca "excluir todo" ni "excluir nada" en silencio); los args pasan a `test:changed:ci` y a `test:coverage*:ci` |
-| [`.husky/pre-push`][prepush]                          | `git fetch origin main --depth=1` + verificación de `origin/main` + DCO + `npm run test:changed --workspace=apps/{server,client}` — **mismo contrato de selección que CI** (§10.6 de `docs/CONTEXT-CICD.md`)                 |
-| Artefacto `reports/tia-scope.txt`                     | Comunica el scope decidido al job de cobertura (entrada de D18); se sube con la evidencia de flakiness (retención 30 días)                                                                                                   |
-| FASE 1 advisory                                       | Los jobs `test-unit-*` corren hoy con `continue-on-error: true` → **reportan sin bloquear**; FASE 2 los promueve a blocking tras la calibración                                                                              |
+| Pieza                                                 | Papel en TIA                                                                                                                                                                                                                              |
+| ----------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [`.github/workflows/nightly-full-suite.yml`][nightly] | **Safety net**: cron `40 2 * * *` (02:40 UTC), suite COMPLETA de ambos workspaces, _nunca_ TIA, **sin** exclusiones de cuarentena (la evidencia de restauración), coverage advisory (D18)                                                 |
+| [`scripts/ci/quarantine-exclude.mjs`][quarantine]     | Deriva `--exclude=<glob>` **exclusivamente** de `.github/flaky-quarantine.yml`; fichero corrupto → `exit 1` (nunca "excluir todo" ni "excluir nada" en silencio); los args pasan a `test:changed:ci` y a `test:coverage*:ci`              |
+| [`.husky/pre-push`][prepush]                          | `git fetch origin main --depth=1` + verificación de `origin/main` + gate de firma + `npm run test:changed --workspace=apps/{server,client}` — **mismo contrato de selección que CI** (§10.6 de `docs/CONTEXT-CICD.md`); **no valida DCO** |
+| Artefacto `reports/tia-scope.txt`                     | Comunica el scope decidido al job de cobertura (entrada de D18); se sube con la evidencia de flakiness (retención 30 días)                                                                                                                |
+| FASE 1 advisory                                       | Los jobs `test-unit-*` corren hoy con `continue-on-error: true` → **reportan sin bloquear**; FASE 2 los promueve a blocking tras la calibración                                                                                           |
 
 ### 4.5 Dónde está etiquetado TIA en la documentación
 

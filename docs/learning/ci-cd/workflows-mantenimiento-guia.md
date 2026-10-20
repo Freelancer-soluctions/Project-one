@@ -274,11 +274,11 @@ strategy:
 
 ### Hooks actuales
 
-| Hook         | Archivo             | Qué hace                                                                                            |
-| ------------ | ------------------- | --------------------------------------------------------------------------------------------------- |
-| `pre-commit` | `.husky/pre-commit` | `lint-staged` (prettier+eslint) → paralelizado: `npm run sast:semgrep` + `npm run security:secrets` |
-| `commit-msg` | `.husky/commit-msg` | `commitlint --edit $1` (Conventional Commits)                                                       |
-| `pre-push`   | `.husky/pre-push`   | `git fetch origin main --depth=1` → `vitest run --changed origin/main` (server + client)            |
+| Hook         | Archivo             | Qué hace                                                                                                                                                                            |
+| ------------ | ------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `pre-commit` | `.husky/pre-commit` | `lint-staged` (prettier+eslint) → `npm run security:secrets` (Gitleaks staged, salida capturada; **sin SAST** — change `sast-shift-left-hooks-parity`)                              |
+| `commit-msg` | `.husky/commit-msg` | DCO presence check + `commitlint --edit $1` (Conventional Commits)                                                                                                                  |
+| `pre-push`   | `.husky/pre-push`   | `git fetch origin main --depth=1` → gate de firma de commits → **SAST diff-scoped** (`node scripts/sast-diff.mjs`) → `npm run test:changed --workspace=apps/<ws>` (server + client) |
 
 ### ⚠️ TIMEOUT GOTCHA — bash default 120s
 

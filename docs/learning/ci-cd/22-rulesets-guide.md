@@ -543,11 +543,11 @@ required_status_checks:
 
 **Estado REAL hoy:**
 
-| Capa                                       | Dónde                                                                                                                | Estado                                               |
-| ------------------------------------------ | -------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------- |
-| **L1 — Semgrep local (staged)**            | `.husky/pre-commit` → `npm run sast:semgrep` → `scripts/security/semgrep-staged.ps1` (Docker)                        | ✅ Activo en dev                                     |
-| **L3 — `security.yml:sast` (CodeQL)**      | Job `sast` → `name: "SAST - CodeQL"`, `github/codeql-action/init@v4` + `analyze@v4`, `languages: javascript,actions` | ⛔ Workflow `disabled_manually` (NO corre en GitHub) |
-| **L3 — `ci.yml:sast` (Semgrep, planeado)** | Capability del change `ci-sast-governance` (activo en `openspec/changes/`)                                           | 📋 NO implementado (F1 pendiente)                    |
+| Capa                                         | Dónde                                                                                                                                                 | Estado                                                                                                                            |
+| -------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| **L2 — Semgrep local (diff-scoped)**         | `.husky/pre-push` → `node scripts/sast-diff.mjs` (Docker, versión pineada, 9 packs; hallazgo ERROR nuevo bloquea el push, herramienta rota fail-open) | ✅ Activo en dev (change `sast-shift-left-hooks-parity`, 2026-10-19)                                                              |
+| **L3 — `security.yml:sast` (CodeQL)**        | Job `sast` → `name: "SAST - CodeQL"`, `github/codeql-action/init@v4` + `analyze@v4`, `languages: javascript,actions`                                  | ⛔ Workflow `disabled_manually` (NO corre en GitHub)                                                                              |
+| **L3 — `ci.yml:sast` (Semgrep diff-scoped)** | Job `sast` → `SAST_MODE=ci node scripts/sast-diff.mjs` (mismo script que el hook; artifact `sast-report` 14d)                                         | ✅ Activo — FASE 1 advisory (`continue-on-error: true`); FASE 2 blocking tras la ventana de calibración (`quality-gates.md` §7.2) |
 
 **Por qué SAST es governance pero NO está en el ruleset:**
 

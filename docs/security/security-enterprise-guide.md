@@ -15,7 +15,7 @@
 Esta guía establece el **marco de seguridad enterprise** para el monorepo **Project One** (Node.js/Express + Prisma + PostgreSQL + React/Vite + JWT + GitHub Actions + AWS ECS/RDS + Vercel + Floci). Su objetivo es:
 
 - **Unificar** criterios, estándares y prácticas de seguridad en un solo documento de referencia
-- **Complementar** (no duplicar) la documentación existente: `SECURITY.md` (políticas OWASP Top 10 implementadas), `security-design.md` (defense in depth post-implementación), `segremp-rules.md` (reglas Semgrep SAST)
+- **Complementar** (no duplicar) la documentación existente: `SECURITY.md` (políticas OWASP Top 10 implementadas), `security-design.md` (defense in depth post-implementación), `semgrep-rules.md` (reglas Semgrep SAST)
 - **Proveer** una hoja de ruta madurez seguridad (niveles 1–5) con gap analysis accionable
 - **Servir** como evidencia para auditorías (ISO 27001, SOC 2, FedRAMP, PCI-DSS, GDPR/CCPA)
 
@@ -35,7 +35,7 @@ Esta guía establece el **marco de seguridad enterprise** para el monorepo **Pro
 | -------------------------------------------------------------- | -------------------------------------------------------------- |
 | Arquitectura Zero Trust, IAM enterprise, criptografía aplicada | Políticas OWASP Top 10 detalle implementación (`SECURITY.md`)  |
 | SSDLC, threat modeling metodologías, secure coding standards   | Diseño defensa en profundidad post-impl (`security-design.md`) |
-| CI/CD security enterprise (SLSA, sigstore, SBOM, VEX)          | Reglas Semgrep específicas (`segremp-rules.md`)                |
+| CI/CD security enterprise (SLSA, sigstore, SBOM, VEX)          | Reglas Semgrep específicas (`semgrep-rules.md`)                |
 | Cloud/container/K8s security, runtime observability            | Estado actual CI/CD (`cicd-estado-actual.md`)                  |
 | Vulnerability management, incident response, compliance        | Plan implementación CI/CD (`cicd-plan-implementacion.md`)      |
 | Cultura DevSecOps, roadmap madurez, catálogo herramientas      |                                                                |
@@ -4481,6 +4481,6 @@ flowchart LR
 
 | Versión | Fecha      | Cambios                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         | Autores                                                                                 |
 | ------- | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
-| 1.0     | 2026-08-02 | Documento creado. Investiga y sintetiza marcos enterprise (NIST CSF 2.0, SLSA v1.0, OWASP API Top 10 2023, sigstore, CycloneDX 1.6, SPDX 3.0), threat modeling, SSDLC, Zero Trust, IAM, seguridad API/Node/React/PostgreSQL, criptografía, secret management, AST family, CI/CD security, runtime, cloud AWS, container/K8s, vuln management, incident response, compliance, secure coding, cultura DevSecOps, roadmap madurez y catálogo de herramientas. Complementa SECURITY.md, security-design.md, segremp-rules.md y cicd-estado-actual.md + cicd-plan-implementacion.md. | @researcher (investigación), @developer (escritura parcial), @orchestrator (completado) |
+| 1.0     | 2026-08-02 | Documento creado. Investiga y sintetiza marcos enterprise (NIST CSF 2.0, SLSA v1.0, OWASP API Top 10 2023, sigstore, CycloneDX 1.6, SPDX 3.0), threat modeling, SSDLC, Zero Trust, IAM, seguridad API/Node/React/PostgreSQL, criptografía, secret management, AST family, CI/CD security, runtime, cloud AWS, container/K8s, vuln management, incident response, compliance, secure coding, cultura DevSecOps, roadmap madurez y catálogo de herramientas. Complementa SECURITY.md, security-design.md, semgrep-rules.md y cicd-estado-actual.md + cicd-plan-implementacion.md. | @researcher (investigación), @developer (escritura parcial), @orchestrator (completado) |
 
 > Documento vivo. Próxima revisión: Q4 2026 o ante cambio mayor en estándares (NIST, OWASP, SLSA).

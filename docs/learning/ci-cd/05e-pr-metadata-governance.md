@@ -132,11 +132,11 @@ categories = ["dependency-updaters"]
 
 El DCO se valida en **3 capas** (de más temprana a más autoritativa):
 
-1. **L1/L2 — hooks locales:** `commit-msg` (presence check de `Signed-off-by:` antes de commitlint; salta merge commits) y `pre-push` (re-check por commit pusheado, refs leídos de STDIN, fallback `origin/main..HEAD --no-merges` en primer push de rama). Feedback inmediato, antes de CI.
-2. **`/commit-all` (git-manager prompt, regla 10):** los commits generados por el agente usan SIEMPRE `git commit -S -s` → trailer `Signed-off-by: Name <email>` garantizado incluso sin `git config commit.signoff true` (defense-in-depth).
-3. **L3 — CI KineticCafe:** el check `DCO` del ruleset (no-bypassable) — parser autoritativo de trailers.
+1. **L1/L2 — hooks locales:** `prepare-commit-msg` añade el trailer automáticamente (idempotente, no suprimible por `--no-verify`) y `commit-msg` valida la presencia antes de commitlint (salta merge commits) — **único gate local**; `pre-push` **no valida DCO** (solo fetch + guard de `origin/main` + tests scoped). Feedback inmediato, antes de CI.
+2. **`/commit-all` (git-manager prompt, regla 10):** los commits generados por el agente usan SIEMPRE `git commit -S -s` → trailer `Signed-off-by: Name <email>` garantizado (defense-in-depth; `commit.signoff` no existe en git).
+3. **L3 — CI KineticCafe:** el check `DCO` del ruleset (no-bypassable en el flujo normal) — parser autoritativo de trailers.
 
-Recomendado: `git config --global commit.signoff true` para añadir el trailer automáticamente (**convención de trazabilidad**, `docs/CONTEXT-CICD.md` §10.5 — convive con la regla 10 de `/commit-all` §10.4 y los hooks §10.3). Detalle operativo de las capas: `docs/CONTEXT-CICD.md` §10-§11.
+El auto-signoff real lo aporta `.husky/prepare-commit-msg`; `commit.signoff` no existe en git y no inyecta nada (ver `docs/learning/dco.md` y `docs/CONTEXT-CICD.md` §10.3/§10.5). Detalle operativo de las capas: `docs/CONTEXT-CICD.md` §10-§11.
 
 ---
 

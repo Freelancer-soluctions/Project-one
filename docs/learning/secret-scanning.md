@@ -120,7 +120,7 @@ Rollout histórico sin romper CI: `gitleaks git --report-path base.json` → `gi
 
 ### 5.1 Pre-commit (L1, dev local) — actual
 
-`.husky/pre-commit`: `lint-staged` → en paralelo `sast:semgrep` + `security:secrets` (`gitleaks git --pre-commit --staged --verbose --redact --config .gitleaks.toml`) → `exit 1` bloquea commit. Correcto según patrón oficial (fast-only; regresión en `pre-push` + CI). Alternativa oficial: hook `pre-commit` framework (`repos: gitleaks rev: v8.24.2, id: gitleaks`; `SKIP=gitleaks git commit` para saltarlo) — innecesario aquí, Husky ya orquesta.
+`.husky/pre-commit`: `lint-staged` → `security:secrets` (`gitleaks git --pre-commit --staged --verbose --redact --config .gitleaks.toml`, salida capturada y mostrada solo si falla) → `exit 1` bloquea commit SOLO ante hallazgo; herramienta rota (binario ausente) = fail-open con aviso visible (change `sast-shift-left-hooks-parity`). Correcto según patrón oficial (fast-only; regresión en `pre-push` + CI). Alternativa oficial: hook `pre-commit` framework (`repos: gitleaks rev: v8.24.2, id: gitleaks`; `SKIP=gitleaks git commit` para saltarlo) — innecesario aquí, Husky ya orquesta.
 
 **Deuda RESUELTA (change `secret-scanning`)**: scripts migrados a comandos vigentes:
 `"security:secrets": "gitleaks git --pre-commit --staged --verbose --redact --config .gitleaks.toml"` ·
@@ -154,7 +154,7 @@ Regla de oro (consistente con `quality-gates.md`): PR-time secret scan = **gate 
 ### 5.4 Capas complementarias activas hoy
 
 - Semgrep `p/secrets` + `--severity ERROR --error` en `ci.yml` (job SAST, activo) → red de seguridad mientras `security.yml` esté disabled.
-- Hook L1 local + DCO en `pre-push`.
+- Hooks locales L1/L2 (`prepare-commit-msg` auto-signoff + `commit-msg` validación DCO); `pre-push` no valida DCO.
 - GitHub native secret scanning (**gratis en repo público**) = capa primaria recomendada (partner program notifica al proveedor para revocación; custom patterns; validity checks; exclusión de paths vía `secret_scanning.yml`). Hoy `secret_scanning` + `secret_scanning_push_protection` = **disabled** (`CONTEXT-CICD` §5.7/§7) → habilitar en Settings → Code security.
 
 ## 6. Comparación con `docs/CONTEXT-CICD.md` (§13.4 + gates)

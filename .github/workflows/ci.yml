@@ -406,7 +406,28 @@ jobs:
         run: echo "✅ Merge queue — DCO validated at PR level"
     # Phase 1: non-blocking. Remove after team adjusts (1 sprint).
     # continue-on-error: true
-  # --- GOVERNANCE: SAST early-abort gate (diff-scoped, standalone) ---
+  # --- GOVERNANCE: SAST diff-scoped (script compartido; FASE 1 advisory) ---
+  # Paridad local/CI por construcción (change sast-shift-left-hooks-parity,
+  # RF-CI-01): el job delega en `scripts/sast-diff.mjs` — misma versión pineada,
+  # mismos packs, mismas exclusiones y mismo `--severity ERROR --error --metrics
+  # off` que el hook `pre-push`. Sin `docker run` inline ni listas duplicadas.
+  #
+  # FASE 1 (actual): `continue-on-error: true` — un hallazgo ERROR deja el step
+  # y el job en rojo y el resultado se retiene como artifact de 14 días
+  # (evidencia de la ventana), pero el merge NO se bloquea.
+  #
+  # Criterio de graduación a FASE 2 (RF-CI-03; en lockstep con
+  # docs/learning/quality-gates.md §7 — ventana ÚNICA de calibración, abierta
+  # 2026-10-03):
+  #   1) ≥2 semanas de corridas reales del job sobre PRs;
+  #   2) ningún hallazgo ERROR sin triar (todo hallazgo clasificado como true
+  #      positive corregido, o false positive justificado y remediado);
+  #   3) evidencia registrada en el artifact `sast-report` (retención 14 días).
+  # Al cumplirse: quitar `continue-on-error: true` y añadir `sast` a
+  # `prebuild-governance-complete.needs` (de 4 a 5 entradas). El ruleset
+  # 21227644 y `ci-complete.needs` NO se tocan (FASE 2 llega a `CI Complete`
+  # solo de forma transitiva, por diseño). Rollback de FASE 2: revertir esas
+  # dos líneas.
   sast:
     name: 'Governance: SAST (Semgrep)'
     runs-on: ubuntu-latest
@@ -419,9 +440,31 @@ jobs:
       - uses: actions/checkout@v5
         with:
           fetch-depth: 0
-      - name: Run Semgrep SAST scan
-        run: docker run --rm -v ${{ github.workspace }}:/src semgrep/semgrep:1.176.1 semgrep scan --baseline-commit ${{ github.event.pull_request.base.sha }} --config .semgrep/rules --config p/owasp-top-ten --config p/security-audit --config p/secrets --config p/nodejs --config p/expressjs --config p/sql-injection --config p/command-injection --config p/react --config p/xss --exclude node_modules --exclude dist --exclude build --exclude coverage --exclude .env --exclude '*.min.js' --exclude prisma/generated --exclude e2e --severity ERROR --error --metrics off
+      - name: Run diff-scoped Semgrep scan (shared script)
+        env:
+          # Baseline = pull-request base commit (design D13). El hook local usa
+          # `git merge-base origin/main HEAD`: bases distintas, declaradas por
+          # cada lado junto al commit que usó — el contrato es mismo diff →
+          # mismo veredicto.
+          SAST_BASELINE_COMMIT: ${{ github.event.pull_request.base.sha }}
+        run: SAST_MODE=ci node scripts/sast-diff.mjs
+      # Evidencia de la ventana de calibración (RF-CI-02 / design D18): el modo
+      # `ci` escribe SIEMPRE `.tmp/sast-report.json` (también en corrida limpia,
+      # con findings vacíos), por eso el upload nunca se queda sin input;
+      # `if-no-files-found: warn` es la red de seguridad. El reporte distingue
+      # hallazgo de herramienta rota. `include-hidden-files: true` es obligatorio:
+      # `.tmp/` es un path OCULTO y upload-artifact@v4+ lo excluye por defecto.
+      - name: Upload SAST report (14-day calibration evidence)
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: sast-report
+          path: .tmp/sast-report.json
+          retention-days: 14
+          if-no-files-found: warn
+          include-hidden-files: true
     # NOT in ci-complete.needs — SAST is a standalone gate, not coupled to CI_MINIMAL
+    # (FASE 2 adds it to prebuild-governance-complete.needs, never to ci-complete.needs)
 
   # ═══════════════════════════════════════════════════════════════
   # SUBSTAGE 2D: UNIT TESTING — test-unit-client, test-unit-server, test-integration, test-smoke, property-tests

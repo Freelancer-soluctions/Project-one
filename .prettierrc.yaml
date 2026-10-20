@@ -51,3 +51,13 @@ arrowParens: 'always'
 # Finales de línea LF (Unix).
 # Decisión: normaliza saltos entre Windows/macOS/Linux, evita ruido en Git (mixed CRLF/LF) y es lo esperado en CI/contenedores.
 endOfLine: 'lf'
+
+# Overrides por ruta.
+# opencode.jsonc: OpenCode lo acepta con o sin comas finales (JSONC), pero algunos editores
+# que abren el fichero como JSON en lugar de JSONC fallan al parsear una coma antes de un
+# cierre y con ello pierden el autocompletado del $schema. Sin este override, `trailingComma:
+# es5` (arriba) hace que Prettier las REINTRODUZCA en cada lint-staged.
+overrides:
+  - files: ['opencode.jsonc']
+    options:
+      trailingComma: 'none'

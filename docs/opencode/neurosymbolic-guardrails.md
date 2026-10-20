@@ -56,7 +56,7 @@ La estrategia se basa en el artículo _"AI Agent Guardrails: Rules That LLMs Can
 | Husky hooks (pre-commit)                                                  | ❌ **NO INSTALADO**                             | `.husky/` no existe — `prepare` script en `package.json` línea 22 nunca se ejecutó        |
 | CI/CD pipelines                                                           | ❌ **NO EXISTE**                                | `.github/workflows/` no encontrado                                                        |
 | Gitleaks secrets scanning                                                 | ⚠️ **PARCIAL** (script existe, no automatizado) | `package.json` scripts `security:secrets`, `.gitleaks.toml`                               |
-| Semgrep SAST                                                              | ⚠️ **PARCIAL** (script existe, no automatizado) | `package.json` scripts `sast:semgrep:*`                                                   |
+| Semgrep SAST                                                              | ✅ **ACTIVO** (hook `pre-push` + CI)            | `scripts/sast-diff.mjs` (compartido) + `npm run sast:semgrep:full` (full scan on-demand)  |
 
 ### Vulnerabilidades Activas (sin Layer 4)
 

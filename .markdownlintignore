@@ -119,7 +119,7 @@ docs/rbac-system.md
 docs/security/SECURITY.md
 docs/security/security-design.md
 docs/security/security-enterprise-guide.md
-docs/security/segremp-rules.md
+docs/security/semgrep-rules.md
 docs/server-bootstrap-env-vars.md
 docs/trello-card-standards.md
 docs/trello-workflow-guide.md

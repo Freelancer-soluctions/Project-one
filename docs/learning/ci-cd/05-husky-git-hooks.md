@@ -90,9 +90,9 @@ Al hacer `npm install` (o `npm ci` en CI), el script `prepare` se ejecuta autom�
 
 ```
 .husky/
-├── pre-commit      # 32 líneas: lint-staged → Semgrep + Gitleaks paralelo
-├── commit-msg      # 1 línea: commitlint --edit $1
-├── pre-push        # 22 líneas: git fetch + vitest --changed (server + client)
+├── pre-commit      # lint-staged → secret scan staged (capturado; sin SAST)
+├── commit-msg      # DCO presence check + commitlint --edit $1
+├── pre-push        # fetch + firma de commits + SAST diff-scoped + tests scoped
 └── _/
     └── husky.sh    # Interno de Husky (no tocar)
 ```
@@ -106,11 +106,14 @@ Al hacer `npm install` (o `npm ci` en CI), el script `prepare` se ejecuta autom�
 
 ### 2.1 Archivo completo: `.husky/pre-commit`
 
-```bash
-# Source: ../../../.husky/pre-commit
-#!/usr/bin/env sh
-# Pre-commit hook: lint-staged + SAST + Secrets (fast-only; regression moved to pre-push + CI)
+> **Actualización (change `sast-shift-left-hooks-parity`, 2026-10-19):** el bloque SAST fue **retirado** de
+> `pre-commit` — SAST diff-scoped necesita un baseline (`--baseline-commit`) que en commit time no existe,
+> así que vive en `pre-push` + CI. El paralelismo `&`/`wait` desapareció porque queda un único fast scan
+> bloqueante (secretos). El gate bloqueante de hoy:
 
+```bash
+# Source: ../../../.husky/pre-commit (bloque bloqueante; los pasos advisory se omiten)
+#!/usr/bin/env sh
 set -e
 
 echo "🔍 Running pre-commit checks..."
@@ -119,44 +122,37 @@ echo "🔍 Running pre-commit checks..."
 echo "🔧 Running lint-staged..."
 npm exec lint-staged || { echo "❌ lint-staged failed"; exit 1; }
 
-# 2. SAST + Secrets in parallel (fast-only pre-commit; regression moved to pre-push + CI)
-echo "🔬 Starting SAST scan..."
-npm run sast:semgrep &
-SAST_PID=$!
-
-echo "🔐 Starting secret detection..."
-npm run security:secrets &
-SECRETS_PID=$!
-
-# Wait for all and capture exit codes
-FAILED=0
-
-wait $SAST_PID || { echo "❌ SAST scan failed."; FAILED=1; }
-wait $SECRETS_PID || { echo "❌ Secret scan failed."; FAILED=1; }
-
-if [ $FAILED -ne 0 ]; then
-  echo "❌ Pre-commit checks failed. Commit blocked."
-  exit 1
+# 2. Secret detection staged-only; salida capturada, mostrada SOLO si falla
+if ! command -v gitleaks > /dev/null 2>&1; then
+  echo "⚠️  gitleaks binary not found in PATH — NO secret scan ran (fail-open)."
+else
+  SECRETS_OUT=$(npm run security:secrets 2>&1) && SECRETS_EXIT=0 || SECRETS_EXIT=$?
+  if [ "$SECRETS_EXIT" -eq 0 ]; then
+    echo "✅ Staged secret scan passed."
+  elif [ "$SECRETS_EXIT" -eq 1 ]; then
+    echo "$SECRETS_OUT"
+    echo "❌ Staged secret detected — commit blocked."
+    exit 1
+  else
+    echo "$SECRETS_OUT"
+    echo "⚠️  Secret scanner failed (exit $SECRETS_EXIT) — fail-open: commit proceeds."
+  fi
 fi
-
-echo "✅ All pre-commit checks passed (lint-staged, SAST, Secrets)."
 ```
 
 ---
 
 ### 2.2 Desglose paso a paso
 
-| Sección                      | Qué hace                                     | Por qué así                                                                  |
-| ---------------------------- | -------------------------------------------- | ---------------------------------------------------------------------------- |
-| `#!/usr/bin/env sh`          | Shebang portable (funciona en sh, bash, zsh) | Compatibilidad cross-shell                                                   |
-| `set -e`                     | Exit inmediato si cualquier comando falla    | Fail-fast: no continuar si hay error                                         |
-| `npm exec lint-staged`       | Corre linters solo en archivos **staged**    | Velocidad: no lintorea todo el repo, solo lo que vas a commitear             |
-| `npm run sast:semgrep &`     | Lanza Semgrep en **background** (`&`)        | Paralelismo: SAST y secrets corren a la vez                                  |
-| `SAST_PID=$!`                | Captura PID del proceso background           | Para `wait` posterior y capturar exit code                                   |
-| `npm run security:secrets &` | Lanza Gitleaks en **background**             | Paralelismo                                                                  |
-| `wait $SAST_PID`             | Espera a que termine y captura su exit code  | Si falla, `FAILED=1` pero **espera al otro** también                         |
-| `wait $SECRETS_PID`          | Idem para Gitleaks                           | Ambos corren a completion aunque uno falle                                   |
-| `exit 1` si `FAILED=1`       | Bloquea el commit si cualquiera falló        | Calidad: no permite commit con lint errors, SAST findings nuevos, o secretos |
+| Sección                      | Qué hace                                     | Por qué así                                                                                 |
+| ---------------------------- | -------------------------------------------- | ------------------------------------------------------------------------------------------- |
+| `#!/usr/bin/env sh`          | Shebang portable (funciona en sh, bash, zsh) | Compatibilidad cross-shell                                                                  |
+| `set -e`                     | Exit inmediato si cualquier comando falla    | Fail-fast: no continuar si hay error                                                        |
+| `npm exec lint-staged`       | Corre linters solo en archivos **staged**    | Velocidad: no lintorea todo el repo, solo lo que vas a commitear                            |
+| `command -v gitleaks`        | Pre-flight de disponibilidad del scanner     | RF-SEC-03: binario ausente → aviso + commit pasa (fail-open), distinguible de un hallazgo   |
+| `SECRETS_OUT=$(...)`         | Captura la salida del scan                   | RF-SEC-05: en verde no se intercala salida de la herramienta; en rojo se imprime el detalle |
+| `SECRETS_EXIT=$?` vía `\|\|` | Exit code sin abortar por `set -e`           | 0 = pasa, 1 = hallazgo (bloquea), otro = herramienta rota (fail-open)                       |
+| `exit 1` si hallazgo         | Bloquea el commit SOLO por hallazgo          | Calidad: no permite commits con secretos staged; los fallos de herramienta no bloquean      |
 
 ---
 
@@ -179,22 +175,25 @@ echo "✅ All pre-commit checks passed (lint-staged, SAST, Secrets)."
 
 ---
 
-### 2.4 `npm run sast:semgrep` — SAST con Semgrep
+### 2.4 SAST ya NO corre en `pre-commit` — vive en `pre-push` + CI
 
-```json
-// Source: ../../../package.json (línea 55)
-"sast:semgrep": "powershell -ExecutionPolicy Bypass -File scripts/security/semgrep-staged.ps1"
-```
+> **Historial**: hasta 2026-10-19 el hook ejecutaba un fast scan SAST vía un npm script que invocaba un
+> script PowerShell con `docker run semgrep/semgrep:latest` sobre los archivos staged. Tenía ocho fallos
+> de diseño (escaneaba el repo completo, sin `--error`, exit code de Docker no propagado, tag flotante,
+> ~98 peticiones al registro, sin filtro de extensión, PowerShell-only, y el CI no podía reutilizarlo).
+> El change `sast-shift-left-hooks-parity` lo **eliminó** junto con su npm script.
 
-**⚠️ IMPORTANTE — Windows/Docker-céntrico**: Este comando ejecuta un **script PowerShell** que a su vez corre `docker run semgrep/semgrep:latest`.
+Hoy SAST corre en dos puntos, con **un único script Node** (`scripts/sast-diff.mjs`):
 
-**Qué significa para ti**:
+- **`pre-push` (modo `local`)**: escaneo diff-scoped contra `git merge-base origin/main HEAD` con la
+  versión de Semgrep pineada y los 9 packs. Un hallazgo ERROR **nuevo** bloquea el push; herramienta
+  rota (Docker apagado, timeout, sin red) = fail-open con aviso; skips visibles si el working tree está
+  sucio o el diff no toca `.js/.jsx/.cjs/.mjs/.ts/.tsx`.
+- **CI (job `sast`, modo `ci`)**: el mismo script con `SAST_MODE=ci` y baseline = base del PR — el punto
+  de enforcement (FASE 1 advisory con artifact de 14 días; FASE 2 bloqueante tras la calibración).
 
-- En **Windows (PowerShell)**: Funciona nativamente
-- En **macOS/Linux/WSL**: **FALLARÁ** si no tienes PowerShell (`pwsh`) instalado **Y** Docker corriendo
-- El hook pre-commit **no es cross-platform** por diseño — asume entorno con Docker + PowerShell
-
-> 💡 **Si estás en macOS/Linux/WSL y el hook falla en `sast:semgrep`**: No es tu código. Es que `semgrep-staged.ps1` requiere `pwsh` + Docker. Opciones: (1) Instalar `pwsh` + Docker Desktop, (2) Saltar hook temporalmente con `git commit --no-verify` (solo emergencia), (3) Reportar al equipo para hacer el hook cross-platform.
+El full scan on-demand (`npm run sast:semgrep:full`, PowerShell + Docker) se conserva como excepción
+documentada con sus 93 reglas `r/...`. Ver `docs/security/semgrep-rules.md` para la política completa.
 
 **Semgrep baseline — 19 findings pre-existentes**:
 
@@ -225,20 +224,24 @@ echo "✅ All pre-commit checks passed (lint-staged, SAST, Secrets)."
 
 ---
 
-### 2.6 Paralelismo con `&` + `wait` — Patrón Shell Avanzado
+### 2.6 Paralelismo con `&` + `wait` — Patrón Shell (histórico)
+
+> **Nota (change `sast-shift-left-hooks-parity`)**: el hook ya no usa este patrón — con un único fast scan
+> bloqueante (secretos) no hay nada que paralelizar. Se conserva la explicación del patrón porque es
+> conocimiento transferible a cualquier hook con varios scans.
 
 ```bash
-# Lanzar en background
-npm run sast:semgrep &
-SAST_PID=$!
+# Patrón (histórico) — paralelizar dos scans rápidos en un hook
+npm run scan-a &
+PID_A=$!
 
-npm run security:secrets &
-SECRETS_PID=$!
+npm run scan-b &
+PID_B=$!
 
 # Esperar ambos y capturar exit codes
 FAILED=0
-wait $SAST_PID || { echo "❌ SAST scan failed."; FAILED=1; }
-wait $SECRETS_PID || { echo "❌ Secret scan failed."; FAILED=1; }
+wait $PID_A || { echo "❌ scan-a failed."; FAILED=1; }
+wait $PID_B || { echo "❌ scan-b failed."; FAILED=1; }
 
 if [ $FAILED -ne 0 ]; then exit 1; fi
 ```
@@ -474,25 +477,31 @@ Estos findings son **baseline** — existen desde antes, son conocidos, y **no s
 
 ---
 
-### 6.2 Comportamiento del hook
+### 6.2 Comportamiento del gate SAST (hoy: `pre-push` + CI)
 
-El hook `pre-commit` ejecuta `semgrep` **solo en archivos staged** (via `semgrep-staged.ps1`).
+SAST **no corre en `pre-commit`**: corre en el hook `pre-push` y en el job `sast` del CI, vía el script
+compartido `scripts/sast-diff.mjs` con **escaneo diff-scoped** (`--baseline-commit`).
 
-- Si **tus archivos staged** introducen **nuevos findings** → hook **FALLA** (correcto)
-- Si **tus archivos staged** no tienen findings nuevos → hook **PASA** (aunque el repo tenga 19 baseline en otros archivos)
+- Si **tu diff** (contra el merge base con `origin/main`) introduce **hallazgos ERROR nuevos** → el push
+  **se bloquea** (correcto)
+- Si el diff no introduce hallazgos nuevos → el push **pasa**, aunque el repo tenga hallazgos antiguos:
+  los preexistentes en el baseline **no se reportan** (RF-PP-02)
+- Herramienta rota (Docker apagado, timeout, sin red) → **fail-open con aviso**: el gate local no bloquea
+  por problemas de entorno (RF-FAIL-02); el CI es el enforcement
 
-> **No intentes "arreglar" los 19 findings baseline** a menos que se planifique un sprint dedicado de remediation. Son deuda técnica conocida, no tu responsabilidad en este commit.
+> **No intentes "arreglar" los findings baseline** del full scan a menos que se planifique un sprint
+> dedicado de remediation. Son deuda técnica conocida; el gate diff-scoped no te bloquea por ellos.
 
 ---
 
 ### 6.3 Cómo verificar
 
 ```bash
-# Ver todos los findings (incluyendo baseline)
+# Full scan (repo completo, con las 93 reglas r/... del on-demand scan)
 npm run sast:semgrep:full
 
-# Ver solo findings en staged (lo que hace el hook)
-npm run sast:semgrep
+# Lo que hace el hook pre-push / el job CI sobre tu diff (modo local)
+node scripts/sast-diff.mjs
 ```
 
 > 📖 **Referencia**: [`docs/workflows-mantenimiento-guia.md#8-mantenimiento-de-pre-commit-hooks-locales`](../../workflows-mantenimiento-guia.md#8-mantenimiento-de-pre-commit-hooks-locales) — "Semgrep baseline"
@@ -546,13 +555,13 @@ El ADR [`docs/adr/turborepo-evaluation.md`](../../adr/turborepo-evaluation.md) d
 Antes de pasar a la siguiente guía, verifica que puedes:
 
 - [ ] Explicar qué es un git hook y cómo Husky los gestiona (`.husky/` + `prepare: husky`)
-- [ ] Desglosar `.husky/pre-commit` línea por línea: `set -e`, `lint-staged`, `&` + `wait`, captura exit codes
+- [ ] Desglosar `.husky/pre-commit` línea por línea: `set -e`, `lint-staged`, secret scan staged con salida capturada (0/1/otro)
 - [ ] Explicar `lint-staged` config en `package.json` (prettier + eslint `--max-warnings 0`)
-- [ ] Explicar `npm run sast:semgrep`: PowerShell + Docker + Semgrep, Windows/Docker-céntrico
-- [ ] Explicar `npm run security:secrets`: Gitleaks `--staged` con config `.gitleaks.toml`
-- [ ] Explicar el patrón `&` + `wait` + captura de PIDs + exit codes
-- [ ] Desglosar `.husky/commit-msg`: `commitlint --edit $1`, config `commitlint.config.js`
-- [ ] Desglosar `.husky/pre-push`: `git fetch --depth=1`, verificación `origin/main`, `vitest --changed origin/main` (server + client)
+- [ ] Explicar por qué SAST NO corre en `pre-commit` y vive en `pre-push` + CI (necesita `--baseline-commit`)
+- [ ] Explicar `npm run security:secrets`: Gitleaks `--staged --redact` con config `.gitleaks.toml`, fail-open solo ante herramienta rota
+- [ ] Explicar el patrón histórico `&` + `wait` + captura de PIDs + exit codes
+- [ ] Desglosar `.husky/commit-msg`: DCO presence check + `commitlint --edit $1`, config `commitlint.config.js`
+- [ ] Desglosar `.husky/pre-push`: `git fetch --depth=1`, verificación `origin/main`, gate de firma, etapa SAST diff-scoped (`scripts/sast-diff.mjs`), `test:changed` (server + client)
 - [ ] Explicar por qué `--depth=1` en pre-push vs `fetch-depth: 0` en CI
 - [ ] Explicar el gotcha timeout bash 120s (commits `cf5e1bb`, `32d35a8`) y mitigación `timeout 600`
 - [ ] Explicar el baseline Semgrep: 19 findings pre-existentes no bloqueadores
@@ -643,9 +652,14 @@ git commit -m "chore: limpiar test gitleaks"
 
 ## ❓ Preguntas Frecuentes (FAQ)
 
-### ¿Por qué el pre-commit usa PowerShell + Docker para Semgrep?
+### ¿Por qué el pre-commit ya no ejecuta Semgrep?
 
-Porque Semgrep se distribuye oficialmente como **imagen Docker** (`semgrep/semgrep:latest`). El script `scripts/security/semgrep-staged.ps1` orquesta el `docker run` con los argumentos correctos (staged files, config, output). En Windows nativo, PowerShell es el shell estándar. En macOS/Linux/WSL, necesitas `pwsh` (PowerShell Core) instalado.
+Porque SAST necesita un baseline (`--baseline-commit`) para no bloquear por hallazgos antiguos, y en
+commit time no existe un commit contra el cual comparar. El escaneo diff-scoped vive en `pre-push`
+(donde ya existe `origin/main`) y en el job `sast` del CI, compartiendo un único script Node
+(`scripts/sast-diff.mjs`) que corre igual en Windows y en ubuntu — sin PowerShell. Semgrep se ejecuta
+como imagen Docker **pineada** (`semgrep/semgrep:<versión>`, constante única en el script). El full scan
+on-demand (`sast:semgrep:full`) sí conserva PowerShell + Docker, como excepción documentada.
 
 ### ¿Puedo deshabilitar un hook temporalmente?
 
@@ -846,27 +860,33 @@ keywords = ["eyJ"]
 
 ## 🧪 14. Ejercicio integrador: diagnóstico combinado
 
-Combina los tres gotchas (timeout, baseline, Windows/Docker) en un solo diagnóstico:
+Combina los gotchas de esta guía en un solo diagnóstico:
 
-**Escenario**: Tu compañera en macOS hace `git commit` y ve:
+**Escenario**: haces `git push` y ves:
 
 ```
-🔍 Running pre-commit checks...
-🔧 Running lint-staged...
-🔬 Starting SAST scan...
-npm ERR! missing script: sast:semgrep
-❌ SAST scan failed.
-❌ Pre-commit checks failed. Commit blocked.
+🔬 Running diff-scoped SAST (shared script: scripts/sast-diff.mjs...
+🔬 SAST diff-scoped scan (mode: local, Semgrep 1.176.1)
+   Baseline commit: 8dc24d6e... (git merge-base origin/main HEAD)
+⚠️  SAST tool failure: Docker daemon is not reachable (`docker info` failed). No scan ran.
+   Local policy: fail-open — the push proceeds. This is a tooling problem, NOT a security verdict.
+✅ SAST stage passed (scan ran, was skipped with a visible notice, or failed open on a broken tool).
 ```
 
 **Guía de razonamiento** (inténtalo tú primero, luego lee):
 
-1. **Síntoma**: `missing script: sast:semgrep`. NO es timeout (falló antes de empezar Semgrep). NO es baseline (no llegó a escanear).
-2. **Causa raíz**: tu compañera está en macOS y `npm run sast:semgrep` ejecuta `scripts/security/semgrep-staged.ps1` — un PowerShell script. Si `pwsh` no está instalado o el `PATH` no lo expone, `npm` no encuentra el comando y reporta "missing script" (realmente falla el spawn del wrapper).
-3. **Fix inmediato** (sin tocar config de equipo): `git commit --no-verify` para emergencias puntuales + abrir issue "pre-commit hook no cross-platform en macOS".
-4. **Fix estructural**: migrar `semgrep-staged.ps1` a un script POSIX (`semgrep-staged.sh`) o usar `npx semgrep` directo, eliminando la dependencia de PowerShell. Esto es una decisión de equipo — **no lo hagas en un commit de feature**.
+1. **Síntoma**: el escaneo NO corrió ("No scan ran") y aun así el push continúa.
+2. **Causa raíz**: Docker daemon apagado — el pre-flight `docker info` del script clasificó el resultado
+   como "herramienta rota" (nunca como hallazgo).
+3. **Por qué no bloquea**: política local fail-open (RF-FAIL-02): un gate local no bloquea por problemas
+   de entorno. En CI la misma condición SÍ fallaría el job (fail-closed, RF-FAIL-03).
+4. **Fix**: arrancar Docker Desktop para restaurar el gate local. Escape explícito y visible si lo
+   necesitas ya: `git push --no-verify` o `HUSKY=0 git push`.
 
-**Lección**: El mensaje de error rara vez apunta directo a la causa raíz. Separa **síntoma** (qué falló) → **causa** (por qué el comando falló) → **contexto** (qué condición del entorno lo causó) → **fix** (inmediato vs estructural).
+**Lección**: el mensaje de error rara vez apunta directo a la causa raíz. Separa **síntoma** (qué falló)
+→ **causa** (por qué el comando falló) → **contexto** (qué condición del entorno lo causó) → **fix**
+(inmediato vs estructural). Y distingue siempre **hallazgo** (tu código) de **herramienta rota** (tu
+entorno): el contrato de exit codes del script (0/1/otro) existe exactamente para no confundirlos.
 
 ---
 
