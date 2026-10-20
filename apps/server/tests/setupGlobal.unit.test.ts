@@ -93,7 +93,7 @@ describe('globalSetup', () => {
 
     await globalSetup();
 
-    const callOptions = mockedSpawnSync.mock.calls[0][2];
+    const callOptions = mockedSpawnSync.mock.calls[0]![2];
     expect(callOptions!.env!.NODE_ENV).toBe('test');
   });
 

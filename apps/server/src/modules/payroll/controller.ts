@@ -63,7 +63,7 @@ export const createPayroll = handleCatchErrorAsync(async (req, res) => {
  */
 export const deletePayrollById = handleCatchErrorAsync(async (req, res) => {
   const { id } = req.params;
-  await payrollService.deletePayrollById(id);
+  await payrollService.deletePayrollById(id as string | number);
   globalResponse(res, 200, 'Payroll deleted successfully');
 });
 
@@ -81,9 +81,10 @@ export const deletePayrollById = handleCatchErrorAsync(async (req, res) => {
 export const updatePayrollByIdPartial = handleCatchErrorAsync(
   async (req, res) => {
     const { id } = req.params;
+    const numericId = Number(id);
     // Cast único del body validado por Joi
     const payroll = await payrollService.updatePayrollByIdPartial(
-      id,
+      numericId,
       req.body as UpdatePayrollInput,
       req.userId as number
     );

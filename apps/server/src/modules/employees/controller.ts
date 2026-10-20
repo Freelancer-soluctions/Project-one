@@ -92,7 +92,7 @@ export const createEmployee = handleCatchErrorAsync(async (req, res) => {
 export const updateEmployeeById = handleCatchErrorAsync(async (req, res) => {
   // Cast único del body validado por Joi
   const body = req.body as Omit<UpdateEmployeeInput, 'updatedBy'>;
-  const employee = await updateEmployeeByIdService(req.params.id, {
+  const employee = await updateEmployeeByIdService(Number(req.params.id), {
     ...body,
     updatedBy: req.userId as number,
   });
@@ -109,6 +109,6 @@ export const updateEmployeeById = handleCatchErrorAsync(async (req, res) => {
  * @returns {Promise<void>} Deletes employee and returns confirmation message
  */
 export const deleteEmployeeById = handleCatchErrorAsync(async (req, res) => {
-  await deleteEmployeeByIdService(req.params.id);
+  await deleteEmployeeByIdService(Number(req.params.id));
   globalResponse(res, 200, { message: 'Employee deleted successfully' });
 });

@@ -38,7 +38,10 @@ io.use((socket, next) => {
     socket.data.user = decoded;
     next();
   } catch (err) {
-    console.log('❌ Conexión rechazada: token inválido', err.message);
+    console.log(
+      '❌ Conexión rechazada: token inválido',
+      err instanceof Error ? err.message : String(err)
+    );
     return next(new Error('UNAUTHORIZED'));
   }
 });

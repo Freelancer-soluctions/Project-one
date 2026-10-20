@@ -28,7 +28,7 @@ export const timeStrToDate = (timeStr: string): Date => {
     );
   }
   const [hours, minutes] = timeStr.split(':').map(Number);
-  if (isNaN(hours) || isNaN(minutes)) {
+  if (isNaN(Number(hours)) || isNaN(Number(minutes))) {
     throw new Error(`timeStrToDate: invalid time string "${timeStr}"`);
   }
   // Use UTC to avoid local timezone offset shifting the time

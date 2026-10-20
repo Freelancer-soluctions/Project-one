@@ -64,7 +64,7 @@ export const createPerformanceEvaluation = handleCatchErrorAsync(
  *
  * @param {Object} req - The HTTP request object.
  * @param {Object} req.params - Request parameters
- * @param {string} req.params.id - Performance evaluation ID from URL
+ * @param {string} req.params.id as string | number - Performance evaluation ID from URL
  * @param {Object} req.body - Request body containing evaluation data to update
  * @param {number} [req.body.employeeId] - Employee ID
  * @param {string} [req.body.date] - Evaluation date (ISO format)
@@ -78,7 +78,7 @@ export const patchPerformanceEvaluationById = handleCatchErrorAsync(
   async (req, res) => {
     // Cast único del body validado por Joi
     const evaluation = await patchPerformanceEvaluationByIdService(
-      req.params.id,
+      Number(req.params.id),
       req.body as UpdatePerformanceEvaluationInput,
       req.userId as number
     );
@@ -98,7 +98,7 @@ export const patchPerformanceEvaluationById = handleCatchErrorAsync(
 export const deletePerformanceEvaluationById = handleCatchErrorAsync(
   async (req, res) => {
     const evaluation = await deletePerformanceEvaluationByIdService(
-      req.params.id
+      req.params.id as string | number
     );
     globalResponse(res, 200, evaluation);
   }

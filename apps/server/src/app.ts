@@ -47,7 +47,10 @@ app.get('/health', async (req, res) => {
       ),
     ]);
   } catch (error) {
-    console.warn('Health check: DB connectivity failed', error.message);
+    console.warn(
+      'Health check: DB connectivity failed',
+      error instanceof Error ? error.message : String(error)
+    );
     dbStatus = 'degraded';
   }
 
@@ -75,10 +78,13 @@ if (
         value: response.SecretString,
       });
     } catch (error) {
-      console.error('Smoke secrets route error:', error.message);
+      console.error(
+        'Smoke secrets route error:',
+        error instanceof Error ? error.message : String(error)
+      );
       res.status(500).json({
         success: false,
-        error: error.message,
+        error: error instanceof Error ? error.message : String(error),
       });
     }
   });

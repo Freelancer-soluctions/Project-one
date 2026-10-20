@@ -82,9 +82,10 @@ export const createInventoryMovement = handleCatchErrorAsync(
 export const updateInventoryMovementById = handleCatchErrorAsync(
   async (req, res) => {
     const { id } = req.params;
+    const numericId = Number(id);
     // Cast único del body validado por Joi
     await updateInventoryMovementByIdService(
-      id,
+      numericId,
       req.body as UpdateInventoryMovementInput
     );
     globalResponse(res, 200, {
@@ -105,7 +106,7 @@ export const updateInventoryMovementById = handleCatchErrorAsync(
 export const deleteInventoryMovementById = handleCatchErrorAsync(
   async (req, res) => {
     const { id } = req.params;
-    await deleteInventoryMovementByIdService(id);
+    await deleteInventoryMovementByIdService(Number(id));
     globalResponse(res, 200, {
       message: 'Inventory movement deleted successfully',
     });

@@ -120,7 +120,7 @@ export const createOne = handleCatchErrorAsync(async (req, res) => {
 
 export const deleteById = handleCatchErrorAsync(async (req, res) => {
   const { id } = req.params;
-  await productsService.deleteById(id);
+  await productsService.deleteById(Number(id));
   globalResponse(res, 200, { message: 'Items deleted successfully' });
 });
 
@@ -136,7 +136,9 @@ export const deleteById = handleCatchErrorAsync(async (req, res) => {
 export const getAllProductAttributesByProductId = handleCatchErrorAsync(
   async (req, res) => {
     const { id } = req.params;
-    const data = await productsService.getAllProductAttributesByProductId(id);
+    const data = await productsService.getAllProductAttributesByProductId(
+      Number(id)
+    );
     globalResponse(res, 200, data);
   }
 );
@@ -172,8 +174,9 @@ export const saveProductAttributes = handleCatchErrorAsync(async (req, res) => {
 export const patchById = handleCatchErrorAsync(async (req, res) => {
   const userId = req.userId as number;
   const { id } = req.params;
+  const numericId = Number(id);
   const body = req.body as ProductUpdateData;
-  await productsService.patchById(userId, id, body);
+  await productsService.patchById(userId, numericId, body);
   globalResponse(res, 200, { message: 'Item updated successfully' });
 });
 
@@ -189,7 +192,7 @@ export const patchById = handleCatchErrorAsync(async (req, res) => {
 export const deleteProductsAttributeById = handleCatchErrorAsync(
   async (req, res) => {
     const { id } = req.params;
-    await productsService.deleteProductsAttributeById(id);
+    await productsService.deleteProductsAttributeById(Number(id));
     globalResponse(res, 200, { message: 'Item deleted successfully' });
   }
 );

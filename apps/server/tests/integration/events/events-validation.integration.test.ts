@@ -55,7 +55,7 @@ describe('Events Validation Integration', () => {
       const invalid = { ...validPayload, startTime: '10:00', endTime: '09:00' };
       const { error } = EventsCreateSchema.validate(invalid);
       expect(error).toBeDefined();
-      expect(error!.details[0].message).toContain(
+      expect(error!.details[0]!.message).toContain(
         'startTime must be earlier than endTime'
       );
     });
@@ -64,7 +64,7 @@ describe('Events Validation Integration', () => {
       const invalid = { ...validPayload, startTime: '10:00', endTime: '10:00' };
       const { error } = EventsCreateSchema.validate(invalid);
       expect(error).toBeDefined();
-      expect(error!.details[0].message).toContain(
+      expect(error!.details[0]!.message).toContain(
         'startTime must be earlier than endTime'
       );
     });
@@ -73,7 +73,7 @@ describe('Events Validation Integration', () => {
       const invalid = { ...validPayload, startTime: '25:00' };
       const { error } = EventsCreateSchema.validate(invalid);
       expect(error).toBeDefined();
-      expect(error!.details[0].message).toContain('HH:mm');
+      expect(error!.details[0]!.message).toContain('HH:mm');
     });
 
     it('should reject missing required speaker', () => {
@@ -103,7 +103,7 @@ describe('Events Validation Integration', () => {
         endTime: '13:00',
       });
       expect(error).toBeDefined();
-      expect(error!.details[0].message).toContain(
+      expect(error!.details[0]!.message).toContain(
         'startTime must be earlier than endTime'
       );
     });

@@ -205,7 +205,10 @@ io.on('connection', (socket) => {
           socket.emit('error:unknown', { type });
       }
     } catch (err) {
-      console.error('❌ Error procesando mensaje:', err.message);
+      console.error(
+        '❌ Error procesando mensaje:',
+        err instanceof Error ? err.message : String(err)
+      );
       socket.emit('error:server', { message: 'Error interno del servidor' });
     }
   });

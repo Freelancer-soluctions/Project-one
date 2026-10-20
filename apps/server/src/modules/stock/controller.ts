@@ -55,7 +55,7 @@ export const getAllStock = handleCatchErrorAsync(async (req, res) => {
  */
 export const getStockByProductId = handleCatchErrorAsync(async (req, res) => {
   const { id } = req.params;
-  const stock = await getStockByProductIdService(id);
+  const stock = await getStockByProductIdService(Number(id));
   globalResponse(res, 200, stock);
 });
 
@@ -102,7 +102,7 @@ export const createStock = handleCatchErrorAsync(async (req, res) => {
  */
 export const deleteStockById = handleCatchErrorAsync(async (req, res) => {
   const { id } = req.params;
-  await deleteStockByIdService(id);
+  await deleteStockByIdService(Number(id));
   globalResponse(res, 200, { message: 'Stock entry deleted successfully' });
 });
 
@@ -120,6 +120,6 @@ export const deleteStockById = handleCatchErrorAsync(async (req, res) => {
 export const patchStockById = handleCatchErrorAsync(async (req, res) => {
   const { id } = req.params;
   const userId = req.userId as number;
-  await updateStockByIdService(id, req.body as StockInput, userId);
+  await updateStockByIdService(Number(id), req.body as StockInput, userId);
   globalResponse(res, 200, { message: 'Stock entry updated successfully' });
 });

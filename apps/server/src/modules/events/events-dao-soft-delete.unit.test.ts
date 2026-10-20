@@ -124,7 +124,7 @@ describe('Events DAO – Soft Delete (Unit)', () => {
     mockedPrisma.events.count.mockResolvedValue(1);
     const result = await mockedEventDao.getAllEvents({ showDeleted: true });
     expect(result.total).toBe(1);
-    expect(result.data[0].deletedAt).not.toBeNull();
+    expect(result.data[0]!.deletedAt).not.toBeNull();
   });
 
   // 9.7 restoreEventById clears deletedAt and deletedBy

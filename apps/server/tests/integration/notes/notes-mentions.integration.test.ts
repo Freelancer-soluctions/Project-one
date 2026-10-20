@@ -17,9 +17,9 @@ describe('Notes Mentions - Parsing & Service Tests', () => {
       const mentions = parseMentions(content);
 
       expect(mentions).toHaveLength(1);
-      expect(mentions[0].username).toBe('john');
-      expect(mentions[0].positionStart).toBe(6);
-      expect(mentions[0].positionEnd).toBe(11);
+      expect(mentions[0]!.username).toBe('john');
+      expect(mentions[0]!.positionStart).toBe(6);
+      expect(mentions[0]!.positionEnd).toBe(11);
     });
 
     it('should parse multiple mentions correctly', async () => {
@@ -30,8 +30,8 @@ describe('Notes Mentions - Parsing & Service Tests', () => {
       const mentions = parseMentions(content);
 
       expect(mentions).toHaveLength(2);
-      expect(mentions[0].username).toBe('alice');
-      expect(mentions[1].username).toBe('bob');
+      expect(mentions[0]!.username).toBe('alice');
+      expect(mentions[1]!.username).toBe('bob');
     });
 
     it('should handle empty content', async () => {
@@ -58,12 +58,12 @@ describe('Notes Mentions - Parsing & Service Tests', () => {
       // Start
       let mentions = parseMentions('@admin please check');
       expect(mentions).toHaveLength(1);
-      expect(mentions[0].positionStart).toBe(0);
+      expect(mentions[0]!.positionStart).toBe(0);
 
       // End: "Check with @admin" has 17 characters (indices 0-16), so positionEnd = 17
       mentions = parseMentions('Check with @admin');
       expect(mentions).toHaveLength(1);
-      expect(mentions[0].positionEnd).toBe(17);
+      expect(mentions[0]!.positionEnd).toBe(17);
     });
 
     it('should handle usernames with numbers', async () => {
@@ -74,7 +74,7 @@ describe('Notes Mentions - Parsing & Service Tests', () => {
       const mentions = parseMentions(content);
 
       expect(mentions).toHaveLength(1);
-      expect(mentions[0].username).toBe('user123');
+      expect(mentions[0]!.username).toBe('user123');
     });
 
     it('should handle consecutive mentions', async () => {

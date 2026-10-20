@@ -37,7 +37,10 @@ const getBacklogForSocket = async (socket: AuthenticatedSocket) => {
     const backlog = await getMentionsBacklog(userId);
     return backlog && backlog.length > 0 ? backlog : [];
   } catch (err) {
-    console.error('❌ Error getting mentions backlog:', err.message);
+    console.error(
+      '❌ Error getting mentions backlog:',
+      err instanceof Error ? err.message : String(err)
+    );
     return [];
   }
 };
@@ -160,7 +163,10 @@ export function attachSocketServer(httpServer: HTTPServer): Server {
       try {
         await handleSocketMessage(io, socket, data);
       } catch (err) {
-        console.error('❌ Error procesando mensaje:', err.message);
+        console.error(
+          '❌ Error procesando mensaje:',
+          err instanceof Error ? err.message : String(err)
+        );
         socket.emit('error:server', { message: 'Error interno del servidor' });
       }
     });

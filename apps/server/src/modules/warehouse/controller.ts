@@ -66,7 +66,7 @@ export const createWarehouse = handleCatchErrorAsync(async (req, res) => {
  */
 export const deleteWarehouseById = handleCatchErrorAsync(async (req, res) => {
   const { id } = req.params;
-  await deleteWarehouseByIdService(id);
+  await deleteWarehouseByIdService(Number(id));
   globalResponse(res, 200, { message: 'Warehouse deleted successfully' });
 });
 
@@ -86,7 +86,7 @@ export const deleteWarehouseById = handleCatchErrorAsync(async (req, res) => {
  */
 export const patchWarehouseById = handleCatchErrorAsync(async (req, res) => {
   const { id } = req.params;
-  await patchWarehouseByIdService(id, req.body as WarehouseInput);
+  await patchWarehouseByIdService(Number(id), req.body as WarehouseInput);
   globalResponse(res, 200, {
     message: 'Warehouse partially updated successfully',
   });

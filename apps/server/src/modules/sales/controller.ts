@@ -64,7 +64,7 @@ export const createSale = handleCatchErrorAsync(async (req, res) => {
  * @returns {Promise<void>} Partially updates sale and returns updated sale object
  */
 export const patchSaleById = handleCatchErrorAsync(async (req, res) => {
-  const sale = await patchSaleByIdService(req.params.id, {
+  const sale = await patchSaleByIdService(Number(req.params.id), {
     ...(req.body as SaleInput),
     updatedBy: req.userId as number,
   });
@@ -81,7 +81,7 @@ export const patchSaleById = handleCatchErrorAsync(async (req, res) => {
  * @returns {Promise<void>} Deletes sale and returns confirmation message
  */
 export const deleteSaleById = handleCatchErrorAsync(async (req, res) => {
-  await deleteSaleByIdService(req.params.id);
+  await deleteSaleByIdService(Number(req.params.id));
   globalResponse(res, 200, { message: 'Sale deleted successfully' });
 });
 
@@ -95,6 +95,6 @@ export const deleteSaleById = handleCatchErrorAsync(async (req, res) => {
  * @returns {Promise<void>} Deletes sale detail and returns confirmation message
  */
 export const deleteSaleDetailById = handleCatchErrorAsync(async (req, res) => {
-  await deleteSaleDetailByIdService(req.params.id);
+  await deleteSaleDetailByIdService(Number(req.params.id));
   globalResponse(res, 200, { message: 'Sale deleted successfully' });
 });

@@ -71,7 +71,7 @@ export const createExpense = handleCatchErrorAsync(async (req, res) => {
  * @access Private
  */
 export const deleteExpenseById = handleCatchErrorAsync(async (req, res) => {
-  await deleteExpenseByIdService(req.params.id);
+  await deleteExpenseByIdService(Number(req.params.id));
   globalResponse(res, 200, { message: 'Expense deleted successfully' });
 });
 
@@ -95,7 +95,7 @@ export const patchExpenseById = handleCatchErrorAsync(async (req, res) => {
   // Cast único del body validado por Joi
   const expenseData = { ...(req.body as UpdateExpenseInput) };
   const expense = await patchExpenseByIdService(
-    req.params.id,
+    Number(req.params.id),
     expenseData,
     req.userId as number
   );

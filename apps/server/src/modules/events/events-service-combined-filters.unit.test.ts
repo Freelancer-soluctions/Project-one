@@ -88,7 +88,7 @@ describe('Events Service – Combined Filters (Unit)', () => {
       expect(mockedEventDao.getAllEvents).toHaveBeenCalledWith(
         expect.objectContaining({ dateFrom: expect.any(Date) })
       );
-      const callArg = mockedEventDao.getAllEvents.mock.calls[0][0];
+      const callArg = mockedEventDao.getAllEvents.mock.calls[0]![0];
       expect(callArg.dateFrom).toEqual(new Date('2025-01-01'));
     });
 
@@ -97,7 +97,7 @@ describe('Events Service – Combined Filters (Unit)', () => {
       expect(mockedEventDao.getAllEvents).toHaveBeenCalledWith(
         expect.objectContaining({ dateTo: expect.any(Date) })
       );
-      const callArg = mockedEventDao.getAllEvents.mock.calls[0][0];
+      const callArg = mockedEventDao.getAllEvents.mock.calls[0]![0];
       expect(callArg.dateTo).toEqual(new Date('2025-12-31'));
     });
 
@@ -172,7 +172,7 @@ describe('Events Service – Combined Filters (Unit)', () => {
         speaker: undefined,
         status: undefined,
       });
-      const callArg = mockedEventDao.getAllEvents.mock.calls[0][0];
+      const callArg = mockedEventDao.getAllEvents.mock.calls[0]![0];
       expect(callArg.type).toBeUndefined();
       expect(callArg.dateFrom).toBeUndefined();
       expect(callArg.dateTo).toBeUndefined();
@@ -203,8 +203,8 @@ describe('Events Service – Combined Filters (Unit)', () => {
 
       const result = await eventService.getAllEvents({});
 
-      expect(result.data[0].startTime).toBe('14:30');
-      expect(result.data[0].endTime).toBe('16:45');
+      expect(result.data[0]!.startTime).toBe('14:30');
+      expect(result.data[0]!.endTime).toBe('16:45');
     });
   });
 });

@@ -86,7 +86,7 @@ export const createClient = handleCatchErrorAsync(async (req, res) => {
 export const updateClientById = handleCatchErrorAsync(async (req, res) => {
   // Cast único del body validado por Joi
   const body = req.body as Omit<UpdateClientInput, 'updatedBy'>;
-  const client = await updateClientByIdService(req.params.id, {
+  const client = await updateClientByIdService(Number(req.params.id), {
     ...body,
     updatedBy: req.userId as number,
   });
@@ -103,6 +103,6 @@ export const updateClientById = handleCatchErrorAsync(async (req, res) => {
  * @returns {Promise<void>} Deletes client and returns confirmation message
  */
 export const deleteClientById = handleCatchErrorAsync(async (req, res) => {
-  await deleteClientByIdService(req.params.id);
+  await deleteClientByIdService(Number(req.params.id));
   globalResponse(res, 200, { message: 'Client deleted successfully' });
 });

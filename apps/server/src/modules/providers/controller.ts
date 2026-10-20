@@ -68,7 +68,7 @@ export const createProvider = handleCatchErrorAsync(async (req, res) => {
  */
 export const deleteProviderById = handleCatchErrorAsync(async (req, res) => {
   const { id } = req.params;
-  await providersService.deleteById(id);
+  await providersService.deleteById(Number(id));
   globalResponse(res, 200, { message: 'Item deleted successfully' });
 });
 
@@ -91,7 +91,8 @@ export const deleteProviderById = handleCatchErrorAsync(async (req, res) => {
 export const patchProviderById = handleCatchErrorAsync(async (req, res) => {
   const userId = req.userId as number;
   const { id } = req.params;
+  const numericId = Number(id);
   const body = req.body as ProviderInput;
-  await providersService.updateById(userId, id, body);
+  await providersService.updateById(userId, numericId, body);
   globalResponse(res, 200, { message: 'Item updated successfully' });
 });

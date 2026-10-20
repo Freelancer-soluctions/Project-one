@@ -17,7 +17,7 @@ describe('logic properties', () => {
       fc.property(fc.array(fc.integer()), (xs) => {
         const s = [...xs].sort((a, b) => a - b);
         for (let i = 1; i < s.length; i++) {
-          expect(s[i - 1]).toBeLessThanOrEqual(s[i]);
+          expect(s[i - 1] as number).toBeLessThanOrEqual(s[i] as number);
         }
       })
     );

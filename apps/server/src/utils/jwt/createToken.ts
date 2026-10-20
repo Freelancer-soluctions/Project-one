@@ -126,7 +126,7 @@ const createTokenWithKey = (
       );
     } catch (error) {
       // Handle any error that occurred in the function
-      reject(error.message);
+      reject(error instanceof Error ? error.message : String(error));
     }
   });
 };

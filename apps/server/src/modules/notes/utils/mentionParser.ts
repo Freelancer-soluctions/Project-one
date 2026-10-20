@@ -79,7 +79,7 @@ export const parseMentions = (
 
   while ((match = mentionRegex.exec(content)) !== null) {
     mentions.push({
-      username: match[1],
+      username: match[1] ?? '',
       positionStart: match.index,
       positionEnd: match.index + match[0].length,
     });

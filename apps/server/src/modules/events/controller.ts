@@ -125,7 +125,7 @@ export const updateEventById = handleCatchErrorAsync(async (req, res) => {
   const { id } = req.params;
   // Cast único del body validado por Joi (EventsUpdateSchema)
   const body = req.body as UpdateEventInput;
-  const result = await eventService.updateEventById(id, body);
+  const result = await eventService.updateEventById(Number(id), body);
   if (result === null) {
     res
       .status(404)
@@ -154,7 +154,7 @@ export const updateEventById = handleCatchErrorAsync(async (req, res) => {
 export const deleteEventById = handleCatchErrorAsync(async (req, res) => {
   const { id } = req.params;
   const userId = req.userId as number; // viene del token JWT
-  const result = await eventService.deleteEventById(id, userId);
+  const result = await eventService.deleteEventById(Number(id), userId);
 
   // Handle status codes from service (Task 6.1)
   if (result.status === 404) {

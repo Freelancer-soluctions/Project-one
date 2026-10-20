@@ -67,7 +67,7 @@ export const createPermission = handleCatchErrorAsync(async (req, res) => {
  */
 export const deletePermissionById = handleCatchErrorAsync(async (req, res) => {
   const { id } = req.params;
-  const permission = await deletePermissionByIdService(id);
+  const permission = await deletePermissionByIdService(Number(id));
   return globalResponse(res, 200, {
     message: 'Permission deleted successfully',
     permission,
@@ -86,9 +86,10 @@ export const deletePermissionById = handleCatchErrorAsync(async (req, res) => {
  */
 export const patchPermissionById = handleCatchErrorAsync(async (req, res) => {
   const { id } = req.params;
+  const numericId = Number(id);
   // Cast único del body validado por Joi
   const permission = await patchPermissionByIdService(
-    id,
+    numericId,
     req.body as UpdateEmployeePermissionInput
   );
   return globalResponse(res, 200, permission);

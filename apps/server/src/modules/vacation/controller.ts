@@ -58,7 +58,7 @@ export const createVacation = handleCatchErrorAsync(async (req, res) => {
  */
 export const deleteVacationById = handleCatchErrorAsync(async (req, res) => {
   const { id } = req.params;
-  const data = await deleteVacationByIdService(id);
+  const data = await deleteVacationByIdService(Number(id));
   return globalResponse(res, 200, data, 'Vacation record deleted successfully');
 });
 
@@ -78,6 +78,9 @@ export const deleteVacationById = handleCatchErrorAsync(async (req, res) => {
  */
 export const patchVacationById = handleCatchErrorAsync(async (req, res) => {
   const { id } = req.params;
-  const data = await patchVacationByIdService(id, req.body as VacationInput);
+  const data = await patchVacationByIdService(
+    Number(id),
+    req.body as VacationInput
+  );
   return globalResponse(res, 200, data);
 });

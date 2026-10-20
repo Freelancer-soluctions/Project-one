@@ -131,8 +131,8 @@ describe('errorHandler', () => {
       { code: 'P2002', clientVersion: '5.22.0' }
     );
     errorHandler(err, req, res, next);
-    const callArgs = (res.json as unknown as ReturnType<typeof vi.fn>).mock
-      .calls[0][0];
+    const callArgs = (res.json as unknown as { mock: { calls: unknown[][] } })
+      .mock!.calls[0]![0] as { message?: string; details?: unknown };
     expect(callArgs.message).not.toContain('email');
     expect(callArgs.message).not.toContain('Unique constraint');
     expect(callArgs.details).toBeUndefined();
@@ -142,8 +142,8 @@ describe('errorHandler', () => {
     process.env.NODE_ENV = 'development';
     const err = new Error('test error');
     errorHandler(err, req, res, next);
-    const callArgs = (res.json as unknown as ReturnType<typeof vi.fn>).mock
-      .calls[0][0];
+    const callArgs = (res.json as unknown as { mock: { calls: unknown[][] } })
+      .mock!.calls[0]![0] as { message?: string; details?: unknown };
     expect(callArgs.details).toEqual(err.stack);
   });
 

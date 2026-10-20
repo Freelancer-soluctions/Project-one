@@ -78,13 +78,13 @@ describe('Event RSVP — promoteFromWaitlist', () => {
     await eventAttendeeService.promoteFromWaitlist(1, mockTx);
 
     // All DAO calls should receive the same tx
-    expect(mockedAttendeeDao.updateAttendeeStatus.mock.calls[0][2]).toBe(
+    expect(mockedAttendeeDao.updateAttendeeStatus.mock.calls[0]![2]).toBe(
       mockTx
     );
-    expect(mockedAttendeeDao.incrementAttendeeCount.mock.calls[0][1]).toBe(
+    expect(mockedAttendeeDao.incrementAttendeeCount.mock.calls[0]![1]).toBe(
       mockTx
     );
-    expect(mockedAttendeeDao.createAuditLog.mock.calls[0][1]).toBe(mockTx);
+    expect(mockedAttendeeDao.createAuditLog.mock.calls[0]![1]).toBe(mockTx);
   });
 
   it('creates multiple promoted entries when called repeatedly (FIFO chain)', async () => {

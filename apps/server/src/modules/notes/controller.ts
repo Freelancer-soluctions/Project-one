@@ -112,7 +112,7 @@ export const updateNoteById = handleCatchErrorAsync(async (req, res) => {
   const body = req.body as NoteUpdateInput;
   const { id } = req.params;
   const userId = req.userId as number;
-  await notesService.updateNoteById(id, body, userId);
+  await notesService.updateNoteById(id!, body, userId);
   globalResponse(res, 200, { message: 'Item updated successfully' });
 });
 
@@ -142,7 +142,7 @@ export const getMentionsByNoteId = handleCatchErrorAsync(async (req, res) => {
  */
 export const deleteById = handleCatchErrorAsync(async (req, res) => {
   const { id } = req.params;
-  await notesService.deleteById(id);
+  await notesService.deleteById(id!);
   globalResponse(res, 200, { message: 'Item deleted successfully' });
 });
 
@@ -230,7 +230,7 @@ export const createHashtag = handleCatchErrorAsync(async (req, res) => {
 export const updateHashtag = handleCatchErrorAsync(async (req, res) => {
   const { name } = req.body;
   const { id } = req.params;
-  const hashtag = await notesService.updateHashtag(id, name);
+  const hashtag = await notesService.updateHashtag(id!, name);
   globalResponse(res, 200, hashtag, 'Hashtag updated successfully');
 });
 
@@ -245,6 +245,6 @@ export const updateHashtag = handleCatchErrorAsync(async (req, res) => {
  */
 export const deleteHashtag = handleCatchErrorAsync(async (req, res) => {
   const { id } = req.params;
-  await notesService.deleteHashtag(id);
+  await notesService.deleteHashtag(id!);
   globalResponse(res, 200, { message: 'Hashtag deleted successfully' });
 });

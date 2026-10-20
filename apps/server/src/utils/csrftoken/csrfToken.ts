@@ -11,7 +11,7 @@ export const createCsrfToken = () => {
     try {
       resolve(crypto.randomBytes(32).toString('hex'));
     } catch (error) {
-      reject(error.message);
+      reject(error instanceof Error ? error.message : String(error));
     }
   });
 };

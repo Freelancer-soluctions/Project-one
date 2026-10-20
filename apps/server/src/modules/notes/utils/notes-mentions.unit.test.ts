@@ -53,8 +53,8 @@ describe('parseMentions', () => {
     const mentions = parseMentions(content);
 
     expect(mentions).toHaveLength(1);
-    expect(mentions[0].username).toBe('admin');
-    expect(mentions[0].positionStart).toBe(0);
+    expect(mentions[0]!.username).toBe('admin');
+    expect(mentions[0]!.positionStart).toBe(0);
   });
 
   it('should handle mentions at the end of content', () => {
@@ -62,8 +62,8 @@ describe('parseMentions', () => {
     const mentions = parseMentions(content);
 
     expect(mentions).toHaveLength(1);
-    expect(mentions[0].username).toBe('admin');
-    expect(mentions[0].positionEnd).toBe(content.length);
+    expect(mentions[0]!.username).toBe('admin');
+    expect(mentions[0]!.positionEnd).toBe(content.length);
   });
 
   it('should handle consecutive mentions', () => {
@@ -71,8 +71,8 @@ describe('parseMentions', () => {
     const mentions = parseMentions(content);
 
     expect(mentions).toHaveLength(2);
-    expect(mentions[0].username).toBe('user1');
-    expect(mentions[1].username).toBe('user2');
+    expect(mentions[0]!.username).toBe('user1');
+    expect(mentions[1]!.username).toBe('user2');
   });
 
   it('should handle usernames with numbers', () => {
@@ -80,6 +80,6 @@ describe('parseMentions', () => {
     const mentions = parseMentions(content);
 
     expect(mentions).toHaveLength(1);
-    expect(mentions[0].username).toBe('user123');
+    expect(mentions[0]!.username).toBe('user123');
   });
 });
