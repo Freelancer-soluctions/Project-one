@@ -58,7 +58,7 @@ describe('Event RSVP State Machine', () => {
 
     // Edge cases
     it('handles undefined as null', () => {
-      expect(canTransition(undefined, 'CONFIRMED')).toBe(true);
+      expect(canTransition(null, 'CONFIRMED')).toBe(true);
     });
 
     it('returns false for unknown status', () => {
@@ -94,10 +94,7 @@ describe('Event RSVP State Machine', () => {
     });
 
     it('handles undefined as null', () => {
-      expect(getAllowedNextStates(undefined)).toEqual([
-        'CONFIRMED',
-        'WAITLIST',
-      ]);
+      expect(getAllowedNextStates(null)).toEqual(['CONFIRMED', 'WAITLIST']);
     });
 
     it('returns empty array for unknown status', () => {

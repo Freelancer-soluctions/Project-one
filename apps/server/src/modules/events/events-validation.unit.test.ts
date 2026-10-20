@@ -46,7 +46,7 @@ describe('Events Joi Validation Schemas', () => {
           error,
           `Expected error for startTime: "${payload.startTime}"`
         ).toBeDefined();
-        expect(error.details.some((d) => d.message.includes('HH:mm'))).toBe(
+        expect(error!.details.some((d) => d.message.includes('HH:mm'))).toBe(
           true
         );
       }
@@ -73,7 +73,7 @@ describe('Events Joi Validation Schemas', () => {
           error,
           `Expected error for endTime: "${payload.endTime}"`
         ).toBeDefined();
-        expect(error.details.some((d) => d.message.includes('HH:mm'))).toBe(
+        expect(error!.details.some((d) => d.message.includes('HH:mm'))).toBe(
           true
         );
       }
@@ -89,7 +89,7 @@ describe('Events Joi Validation Schemas', () => {
         const { error } = EventsCreateSchema.validate(payload);
         expect(error).toBeDefined();
         expect(
-          error.details.some((d) =>
+          error!.details.some((d) =>
             d.message.includes('startTime must be earlier than endTime')
           )
         ).toBe(true);
@@ -128,7 +128,7 @@ describe('Events Joi Validation Schemas', () => {
       const payload = { ...validBase, speaker: 'A'.repeat(21) };
       const { error } = EventsCreateSchema.validate(payload);
       expect(error).toBeDefined();
-      expect(error.details.some((d) => d.message.includes('speaker'))).toBe(
+      expect(error!.details.some((d) => d.message.includes('speaker'))).toBe(
         true
       );
     });
@@ -166,7 +166,9 @@ describe('Events Joi Validation Schemas', () => {
           validBase;
         const { error } = EventsCreateSchema.validate(payload);
         expect(error).toBeDefined();
-        expect(error.details.some((d) => d.message.includes(field))).toBe(true);
+        expect(error!.details.some((d) => d.message.includes(field))).toBe(
+          true
+        );
       }
     });
   });
@@ -204,7 +206,7 @@ describe('Events Joi Validation Schemas', () => {
       for (const payload of invalidPayloads) {
         const { error } = EventsUpdateSchema.validate(payload);
         expect(error).toBeDefined();
-        expect(error.details.some((d) => d.message.includes('HH:mm'))).toBe(
+        expect(error!.details.some((d) => d.message.includes('HH:mm'))).toBe(
           true
         );
       }
@@ -221,7 +223,7 @@ describe('Events Joi Validation Schemas', () => {
       for (const payload of invalidPayloads) {
         const { error } = EventsUpdateSchema.validate(payload);
         expect(error).toBeDefined();
-        expect(error.details.some((d) => d.message.includes('HH:mm'))).toBe(
+        expect(error!.details.some((d) => d.message.includes('HH:mm'))).toBe(
           true
         );
       }
@@ -237,7 +239,7 @@ describe('Events Joi Validation Schemas', () => {
         const { error } = EventsUpdateSchema.validate(payload);
         expect(error).toBeDefined();
         expect(
-          error.details.some((d) =>
+          error!.details.some((d) =>
             d.message.includes('startTime must be earlier than endTime')
           )
         ).toBe(true);

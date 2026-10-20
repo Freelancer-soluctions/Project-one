@@ -72,8 +72,8 @@ describe('Events DAO – Soft Delete (Unit)', () => {
       },
     });
     expect(result.status).toBe('deleted');
-    expect(result.event.deletedAt).not.toBeNull();
-    expect(result.event.deletedBy).toBe(99);
+    expect(result!.event!.deletedAt).not.toBeNull();
+    expect(result!.event!.deletedBy).toBe(99);
   });
 
   // 9.2 Returns { status: 'not-found' } for non-existent event
@@ -100,7 +100,7 @@ describe('Events DAO – Soft Delete (Unit)', () => {
     mockedPrisma.events.findMany.mockResolvedValue([mockEvent]);
     mockedPrisma.events.count.mockResolvedValue(1);
     await mockedEventDao.getAllEvents({ showDeleted: false });
-    const whereArg = mockedPrisma.events.findMany.mock.calls[0][0].where as {
+    const whereArg = mockedPrisma.events.findMany.mock.calls[0]![0]!.where as {
       AND: Array<Record<string, unknown>>;
     };
     expect(whereArg.AND[0]).toHaveProperty('deletedAt', null);
@@ -111,7 +111,7 @@ describe('Events DAO – Soft Delete (Unit)', () => {
     mockedPrisma.events.findMany.mockResolvedValue([]);
     mockedPrisma.events.count.mockResolvedValue(0);
     await mockedEventDao.getAllEvents({ showDeleted: true });
-    const whereArg = mockedPrisma.events.findMany.mock.calls[0][0].where as {
+    const whereArg = mockedPrisma.events.findMany.mock.calls[0]![0]!.where as {
       AND: Array<Record<string, unknown>>;
     };
     expect(whereArg).not.toHaveProperty('deletedAt');
@@ -146,7 +146,7 @@ describe('Events DAO – Soft Delete (Unit)', () => {
         updatedOn: expect.any(Date),
       },
     });
-    expect(result.deletedAt).toBeNull();
-    expect(result.deletedBy).toBeNull();
+    expect(result!.deletedAt).toBeNull();
+    expect(result!.deletedBy).toBeNull();
   });
 });

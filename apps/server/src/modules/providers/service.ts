@@ -31,7 +31,7 @@ export const getAllProviders = async ({
   if (!take || take <= 0) {
     throw new Error('Pagination is required');
   }
-  return await productsDao.getAllProviders(name, status, take, skip);
+  return await productsDao.getAllProviders(name, status ?? null, take, skip);
 };
 
 /**

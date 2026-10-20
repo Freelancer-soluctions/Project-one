@@ -38,7 +38,7 @@ export const getAllNews = handleCatchErrorAsync(async (req, res) => {
  * @returns {Promise<void>} Creates new news item and returns confirmation message
  */
 export const createNew = handleCatchErrorAsync(async (req, res) => {
-  const userId = req.userId; // viene del token cambiar al body
+  const userId = req.userId as number; // viene del token cambiar al body
   // Cast único del body validado por Joi (NewsCreateSchema)
   const body = req.body as CreateNewsInput;
   await newsService.createNew(userId, body);
@@ -61,7 +61,7 @@ export const createNew = handleCatchErrorAsync(async (req, res) => {
  * @returns {Promise<void>} Updates news item and returns confirmation message
  */
 export const updateById = handleCatchErrorAsync(async (req, res) => {
-  const userId = req.userId;
+  const userId = req.userId as number;
   const { id } = req.params;
   // Cast único del body validado por Joi (NewsUpdate)
   const body = req.body as UpdateNewsInput;

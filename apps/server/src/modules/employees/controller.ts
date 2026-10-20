@@ -68,7 +68,7 @@ export const createEmployee = handleCatchErrorAsync(async (req, res) => {
   const body = req.body as Omit<CreateEmployeeInput, 'createdBy'>;
   const employee = await createEmployeeService({
     ...body,
-    createdBy: req.userId,
+    createdBy: req.userId as number,
   });
   globalResponse(res, 201, employee);
 });
@@ -94,7 +94,7 @@ export const updateEmployeeById = handleCatchErrorAsync(async (req, res) => {
   const body = req.body as Omit<UpdateEmployeeInput, 'updatedBy'>;
   const employee = await updateEmployeeByIdService(req.params.id, {
     ...body,
-    updatedBy: req.userId,
+    updatedBy: req.userId as number,
   });
   globalResponse(res, 200, employee);
 });

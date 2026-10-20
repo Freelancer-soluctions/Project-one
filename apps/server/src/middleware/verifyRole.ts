@@ -36,6 +36,9 @@ export function checkRoleAuth({ allowedRoles = [] }: RoleAuthOptions) {
     next: NextFunction
   ): Promise<Response | void> => {
     try {
+      if (!req.userId) {
+        return res.status(401).json({ error: 'Unauthorized: missing userId' });
+      }
       const user = await getUserRoleByUserId(req.userId);
       if (!user || !user?.roles.code) {
         return res.status(403).json({ error: 'Could not verify role' });
@@ -92,7 +95,7 @@ export const checkRoleAuthOrPermisssion =
     // console.log('Required Permissions:', permissions)
 
     try {
-      const user = await getUserRoleByUserId(userId);
+      const user = await getUserRoleByUserId(userId as number);
       // console.log('User Role and Permissions:', user)
 
       if (!user || !user.roles?.code) {

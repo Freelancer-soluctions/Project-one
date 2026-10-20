@@ -94,7 +94,7 @@ describe('globalSetup', () => {
     await globalSetup();
 
     const callOptions = mockedSpawnSync.mock.calls[0][2];
-    expect(callOptions.env.NODE_ENV).toBe('test');
+    expect(callOptions!.env!.NODE_ENV).toBe('test');
   });
 
   it('should skip seeding and warn when DATABASE_URL is not set', async () => {
@@ -142,6 +142,6 @@ describe('globalSetup', () => {
 
     await globalSetup();
 
-    expect(mockedSpawnSync.mock.calls[0][2].stdio).toBe('inherit');
+    expect(mockedSpawnSync.mock.calls[0]![2]!.stdio).toBe('inherit');
   });
 });

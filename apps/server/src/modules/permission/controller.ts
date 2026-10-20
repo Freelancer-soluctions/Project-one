@@ -51,7 +51,7 @@ export const createPermission = handleCatchErrorAsync(async (req, res) => {
   // Cast único del body validado por Joi
   const permission = await createPermissionService(
     req.body as CreateEmployeePermissionInput,
-    req.userId
+    req.userId as number
   );
   return globalResponse(res, 201, permission);
 });

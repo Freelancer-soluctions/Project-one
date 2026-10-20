@@ -81,14 +81,14 @@ vi.mock('../../../src/middleware/index.js', () => {
 
     // Role middleware factories
     checkRoleAuth:
-      ({ allowedRoles = [] }) =>
+      ({ allowedRoles = [] }: { allowedRoles?: string[] }) =>
       (req: Request, res: Response, next: NextFunction): Response | void => {
         try {
           const user = mockUsers[req.userId as keyof typeof mockUsers];
           if (!user || !user?.roles?.code) {
             return res.status(403).json({ error: 'Could not verify role' });
           }
-          const userRole = user.roles.code;
+          const userRole = user!.roles!.code;
           if (!allowedRoles.includes(userRole)) {
             return res
               .status(403)
@@ -101,7 +101,13 @@ vi.mock('../../../src/middleware/index.js', () => {
       },
 
     checkRoleAuthOrPermisssion:
-      ({ allowedRoles = [], permissions = [] }) =>
+      ({
+        allowedRoles = [],
+        permissions = [],
+      }: {
+        allowedRoles?: string[];
+        permissions?: string[];
+      }) =>
       (req: Request, res: Response, next: NextFunction): Response | void => {
         try {
           const user = mockUsers[req.userId as keyof typeof mockUsers];

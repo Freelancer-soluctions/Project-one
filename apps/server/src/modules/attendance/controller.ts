@@ -51,7 +51,7 @@ export const getAllAttendance = handleCatchErrorAsync(async (req, res) => {
 export const createAttendance = handleCatchErrorAsync(async (req, res) => {
   // Cast único del body validado por Joi (attendanceCreateSchema)
   const body = req.body as CreateAttendanceInput;
-  const attendance = await createAttendanceService(body, req.userId);
+  const attendance = await createAttendanceService(body, req.userId as number);
   globalResponse(res, 201, attendance);
 });
 
@@ -93,7 +93,7 @@ export const patchAttendanceById = handleCatchErrorAsync(async (req, res) => {
   const attendance = await patchAttendanceByIdService(
     Number(req.params.id),
     body,
-    req.userId
+    req.userId as number
   );
   globalResponse(res, 200, attendance);
 });

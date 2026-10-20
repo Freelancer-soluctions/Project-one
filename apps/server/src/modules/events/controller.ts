@@ -87,7 +87,7 @@ export const getAllEvents = handleCatchErrorAsync(async (req, res) => {
  * @returns {Promise<void>} Creates new event and returns event object
  */
 export const createEvent = handleCatchErrorAsync(async (req, res) => {
-  const userId = req.userId; // viene del token
+  const userId = req.userId as number; // viene del token
   // Cast único del body validado por Joi (EventsCreateSchema)
   const body = req.body as CreateEventInput;
   const createdEvent = await eventService.createEvent(body, userId);
@@ -153,7 +153,7 @@ export const updateEventById = handleCatchErrorAsync(async (req, res) => {
  */
 export const deleteEventById = handleCatchErrorAsync(async (req, res) => {
   const { id } = req.params;
-  const userId = req.userId; // viene del token JWT
+  const userId = req.userId as number; // viene del token JWT
   const result = await eventService.deleteEventById(id, userId);
 
   // Handle status codes from service (Task 6.1)

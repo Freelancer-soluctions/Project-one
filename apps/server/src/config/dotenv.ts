@@ -32,4 +32,4 @@ export type EnvKey =
   | 'REFRESHSECRETKEY'
   | 'SECRETKEY';
 
-export default (key: EnvKey): string => process.env[key];
+export default (key: EnvKey): string => process.env[key] ?? '';

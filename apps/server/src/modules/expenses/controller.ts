@@ -55,7 +55,7 @@ export const createExpense = handleCatchErrorAsync(async (req, res) => {
   // console.log(req.body); // Keep for debugging if needed
   // Cast único del body validado por Joi
   const expenseData = { ...(req.body as CreateExpenseInput) };
-  const expense = await createExpenseService(expenseData, req.userId);
+  const expense = await createExpenseService(expenseData, req.userId as number);
   globalResponse(res, 201, expense);
 });
 
@@ -97,7 +97,7 @@ export const patchExpenseById = handleCatchErrorAsync(async (req, res) => {
   const expense = await patchExpenseByIdService(
     req.params.id,
     expenseData,
-    req.userId
+    req.userId as number
   );
   globalResponse(res, 200, expense);
 });

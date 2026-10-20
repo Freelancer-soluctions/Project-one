@@ -122,7 +122,7 @@ export const createSocketRateLimiter = (
         })
       );
     }
-    const bucket = connectionBuckets.get(clientIp);
+    const bucket = connectionBuckets.get(clientIp)!;
     if (!bucket.consume()) {
       return next(
         new Error('RATE_LIMITED: Demasiadas conexiones desde esta IP')
@@ -158,7 +158,7 @@ export const createSocketRateLimiter = (
             })
           );
         }
-        const bucket = eventBuckets.get(userId);
+        const bucket = eventBuckets.get(userId)!;
         if (!bucket.consume()) {
           socket.emit('error:rate_limit', {
             message: 'Demasiados eventos. Intenta de nuevo en un momento.',

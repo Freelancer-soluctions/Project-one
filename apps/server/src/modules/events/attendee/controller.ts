@@ -12,7 +12,7 @@ import type { AttendeeListQuery, UpdateAttendeeStatusInput } from './types.js';
  * @param {Object} res - Response object
  */
 export const registerForEvent = handleCatchErrorAsync(async (req, res) => {
-  const userId = req.userId;
+  const userId = req.userId as number;
   const { eventId } = req.params;
   const attendee = await eventAttendeeService.register(Number(eventId), userId);
   globalResponse(res, 201, attendee, 'Registration successful');
@@ -27,7 +27,7 @@ export const registerForEvent = handleCatchErrorAsync(async (req, res) => {
  * @param {Object} res - Response object
  */
 export const cancelRegistration = handleCatchErrorAsync(async (req, res) => {
-  const userId = req.userId;
+  const userId = req.userId as number;
   const { eventId } = req.params;
   const attendee = await eventAttendeeService.cancel(Number(eventId), userId);
   globalResponse(res, 200, attendee, 'Registration cancelled');
@@ -62,7 +62,7 @@ export const listEventAttendees = handleCatchErrorAsync(async (req, res) => {
  * @param {Object} res - Response object
  */
 export const updateAttendeeStatus = handleCatchErrorAsync(async (req, res) => {
-  const userId = req.userId;
+  const userId = req.userId as number;
   const { attendeeId } = req.params;
   // Cast único del body ({ status, reason? })
   const { status } = req.body as UpdateAttendeeStatusInput;

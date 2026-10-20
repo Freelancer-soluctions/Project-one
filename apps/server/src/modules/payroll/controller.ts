@@ -47,7 +47,7 @@ export const createPayroll = handleCatchErrorAsync(async (req, res) => {
   // Cast único del body validado por Joi
   const payroll = await payrollService.createPayroll(
     req.body as CreatePayrollInput,
-    req.userId
+    req.userId as number
   );
   globalResponse(res, 201, payroll, 'Payroll created successfully');
 });
@@ -85,7 +85,7 @@ export const updatePayrollByIdPartial = handleCatchErrorAsync(
     const payroll = await payrollService.updatePayrollByIdPartial(
       id,
       req.body as UpdatePayrollInput,
-      req.userId
+      req.userId as number
     );
     globalResponse(res, 200, payroll, 'Payroll partially updated successfully');
   }

@@ -110,7 +110,7 @@ export const createAttendance = async (
       entryTime: data.entryTime,
       exitTime: data.exitTime,
       workedHours: data.workedHours,
-      createdOn: data.createdOn,
+      createdOn: data.createdOn ?? new Date(),
       userAttendanceCreated: {
         connect: {
           id: data.createdBy,

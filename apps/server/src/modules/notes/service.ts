@@ -69,7 +69,7 @@ export const createNote = async (
   const noteData: NoteCreateData = {
     ...dataWithOutForeignKeys,
     createdOn: new Date(),
-    color: computeColorFromCode(column.code),
+    color: computeColorFromCode(column!.code),
   };
 
   const createdNote = await notesDao.createNote(
@@ -140,7 +140,7 @@ export const updateNoteColumId = async (data: NoteColumnUpdateInput) => {
   const column = await notesDao.getColumnById(Number(columnId));
   return notesDao.updateNoteColumId(Number(id), {
     columnId: Number(columnId),
-    color: computeColorFromCode(column.code),
+    color: computeColorFromCode(column!.code),
     updatedOn: new Date(),
   });
 };
@@ -174,7 +174,7 @@ export const updateNoteById = async (
 
     if (Number(columnId) !== currentNote.columnId) {
       const column = await notesDao.getColumnById(Number(columnId));
-      dataToSave.color = computeColorFromCode(column.code);
+      dataToSave.color = computeColorFromCode(column!.code);
       dataToSave.columnId = Number(columnId);
     }
   }

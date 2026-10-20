@@ -28,7 +28,7 @@ export const createOrUpdateSettingsLanguage = handleCatchErrorAsync(
     const body = req.body as SettingLanguageInput;
     const result = await settingsService.createOrUpdateSettingsLanguage(
       body,
-      userId
+      userId as number
     );
     globalResponse(res, 200, result);
   }
@@ -52,7 +52,7 @@ export const createOrUpdateSettingsDisplay = handleCatchErrorAsync(
     const body = req.body as SettingDisplayInput;
     const result = await settingsService.createOrUpdateSettingsDisplay(
       body,
-      userId
+      userId as number
     );
     globalResponse(res, 200, result);
   }

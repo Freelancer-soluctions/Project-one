@@ -51,7 +51,7 @@ export const getAllPurchases = handleCatchErrorAsync(async (req, res) => {
 export const createPurchase = handleCatchErrorAsync(async (req, res) => {
   const purchase = await createPurchaseService({
     ...req.body,
-    createdBy: req.user.id,
+    createdBy: req.user!.id,
   } as PurchaseCreateData);
   globalResponse(res, 201, purchase);
 });
@@ -106,7 +106,7 @@ export const deletePurchaseDetailById = handleCatchErrorAsync(
 export const patchPurchaseById = handleCatchErrorAsync(async (req, res) => {
   const purchase = await patchPurchaseByIdService(Number(req.params.id), {
     ...req.body,
-    updatedBy: req.user.id,
+    updatedBy: req.user!.id,
   } as PurchasePatchData);
   globalResponse(res, 200, purchase);
 });

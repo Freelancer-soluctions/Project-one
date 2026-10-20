@@ -53,7 +53,7 @@ export const createPerformanceEvaluation = handleCatchErrorAsync(
     // Cast único del body validado por Joi
     const evaluation = await createPerformanceEvaluationService(
       req.body as CreatePerformanceEvaluationInput,
-      req.userId
+      req.userId as number
     );
     globalResponse(res, 201, evaluation);
   }
@@ -80,7 +80,7 @@ export const patchPerformanceEvaluationById = handleCatchErrorAsync(
     const evaluation = await patchPerformanceEvaluationByIdService(
       req.params.id,
       req.body as UpdatePerformanceEvaluationInput,
-      req.userId
+      req.userId as number
     );
     globalResponse(res, 200, evaluation);
   }

@@ -140,7 +140,7 @@ export const signIn = async (
       id: userExists.id,
       firstName: userExists.firstName,
       picture: userExists.picture,
-      roleName: userExists.roles.description,
+      roleName: userExists.roles!.description,
       roleId: userExists.roleId,
     },
   };
@@ -161,7 +161,12 @@ export const session = async (id: number): Promise<SessionResult> => {
   }
 
   return {
-    user: { name: session.name, picture: session.picture, role: session.role },
+    user: {
+      name: session.name,
+      picture: session.picture,
+      role: session.role ?? null,
+      id: session.id ?? 0,
+    },
   };
 };
 
@@ -206,7 +211,7 @@ export const refreshToken = async (
       timestamp: new Date().toISOString(),
     });
     // posible reuse: revocar todo y forzar login
-    console.log('stored user', stored.userId);
+    console.log('stored user', stored!.userId);
     if (stored?.userId)
       await authDao.revokeAllRefreshTojeForUser(stored.userId);
     throw new ClientError('Forbidden', 403);

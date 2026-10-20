@@ -129,10 +129,10 @@ export const createVacation = async (data: VacationCreateData) => {
   return await prisma.vacation.create({
     data: {
       employeeId: data.employeeId,
+      status: data.status ?? 'PENDING',
+      createdBy: data.createdBy as number,
       startDate: data.startDate,
       endDate: data.endDate,
-      status: data.status,
-      createdBy: data.createdBy,
       createdOn: data.createdOn,
     },
   });

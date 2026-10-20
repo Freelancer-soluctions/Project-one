@@ -118,9 +118,9 @@ describe('Events Service – Soft Delete (Unit)', () => {
     });
 
     expect(mockedEventDao.restoreEventById).toHaveBeenCalledWith(1);
-    expect(result.deletedAt).toBeNull();
-    expect(result.deletedBy).toBeNull();
-    expect(result.title).toBe('New Title');
+    expect(result!.deletedAt).toBeNull();
+    expect(result!.deletedBy).toBeNull();
+    expect(result!.title).toBe('New Title');
   });
 
   // 9.10 restore-only request results in no-op on active event
@@ -132,7 +132,7 @@ describe('Events Service – Soft Delete (Unit)', () => {
 
     // Service always calls restoreEventById for restore requests
     expect(mockedEventDao.restoreEventById).toHaveBeenCalledWith(1);
-    expect(result.deletedAt).toBeNull();
-    expect(result.id).toBe(1);
+    expect(result!.deletedAt).toBeNull();
+    expect(result!.id).toBe(1);
   });
 });

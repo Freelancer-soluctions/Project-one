@@ -98,10 +98,10 @@ export const createClient = async (data: CreateClientData): Promise<Client> => {
   return prisma.clients.create({
     data: {
       name: data.name,
-      email: data.email,
+      email: data.email!,
       phone: data.phone,
-      address: data.address,
-      createdOn: data.createdOn,
+      address: data.address!,
+      createdOn: data.createdOn ? new Date(data.createdOn) : new Date(),
       userClientCreated: {
         connect: {
           id: data.createdBy,
@@ -131,7 +131,7 @@ export const updateClientById = async (
     where: { id },
     data: {
       name: data.name,
-      email: data.email,
+      email: data.email!,
       phone: data.phone,
       address: data.address,
       updatedOn: data.updatedOn,

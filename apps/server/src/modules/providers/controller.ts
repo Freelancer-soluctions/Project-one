@@ -51,7 +51,7 @@ export const getAllProvidersFilters = handleCatchErrorAsync(
  * @returns {Promise<void>} Sends a response confirming the creation of the provider.
  */
 export const createProvider = handleCatchErrorAsync(async (req, res) => {
-  const userId = req.userId; // viene del token cambiar al body
+  const userId = req.userId as number; // viene del token cambiar al body
   const body = req.body as ProviderInput;
   await providersService.createProvider(userId, body);
   globalResponse(res, 201, { message: 'Item created successfully' });
@@ -89,7 +89,7 @@ export const deleteProviderById = handleCatchErrorAsync(async (req, res) => {
  * @returns {Promise<void>} Sends a response confirming the update of the provider.
  */
 export const patchProviderById = handleCatchErrorAsync(async (req, res) => {
-  const userId = req.userId;
+  const userId = req.userId as number;
   const { id } = req.params;
   const body = req.body as ProviderInput;
   await providersService.updateById(userId, id, body);

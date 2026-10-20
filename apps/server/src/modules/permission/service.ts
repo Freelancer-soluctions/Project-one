@@ -64,8 +64,8 @@ export const createPermission = async (
     ...data,
     employeeId: Number(data.employeeId),
     createdOn: new Date(),
-    fromDate: new Date(data.fromDate),
-    toDate: new Date(data.toDate),
+    fromDate: new Date(data.fromDate!),
+    toDate: new Date(data.toDate!),
     createdBy: userId,
   };
   return await createPermissionDao(permissionData);
@@ -96,8 +96,8 @@ export const updatePermissionById = async (
     ...data,
     employeeId: Number(data.employeeId),
     updatedOn: new Date(),
-    fromDate: new Date(data.fromDate),
-    toDate: new Date(data.toDate),
+    fromDate: new Date(data.fromDate!),
+    toDate: new Date(data.toDate!),
     updatedBy: userId,
   };
   return await updatePermissionByIdDao(id, permissionData);

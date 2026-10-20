@@ -115,5 +115,6 @@ export interface SessionResult {
     name: string;
     picture: string | null;
     role: number | null;
+    id: number | null;
   };
 }

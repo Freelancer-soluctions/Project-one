@@ -22,20 +22,26 @@ import type {
  */
 export const getAllNotes = handleCatchErrorAsync(async (req, res) => {
   const { searchTerm, statusCode, hashtagId, isFavorite, scope } =
-    req.safeQuery;
-  const userId = req.userId;
+    req.safeQuery as {
+      searchTerm?: string;
+      statusCode?: string;
+      hashtagId?: string | string[];
+      isFavorite?: boolean;
+      scope?: NoteScope;
+    };
+  const userId = req.userId as number;
   const hashtagIds = hashtagId
     ? Array.isArray(hashtagId)
       ? hashtagId
       : [hashtagId]
     : undefined;
   const items = await notesService.getAllNotes(
-    searchTerm as string,
-    statusCode as string,
-    hashtagIds,
+    searchTerm,
+    statusCode,
+    (hashtagIds as Array<string | undefined>).map((h) => Number(h)),
     userId,
-    isFavorite as boolean | undefined,
-    scope as NoteScope | undefined
+    isFavorite,
+    scope
   );
   globalResponse(res, 200, items);
 });
@@ -54,7 +60,7 @@ export const getAllNotes = handleCatchErrorAsync(async (req, res) => {
  * @returns {Promise<void>} Responds with 201 and created note.
  */
 export const createNote = handleCatchErrorAsync(async (req, res) => {
-  const userId = req.userId;
+  const userId = req.userId as number;
   const body = req.body as NoteCreateInput;
   const createdNote = await notesService.createNote(body, userId);
   globalResponse(res, 201, createdNote, 'Item created successfully');
@@ -105,7 +111,7 @@ export const updateNoteColumId = handleCatchErrorAsync(async (req, res) => {
 export const updateNoteById = handleCatchErrorAsync(async (req, res) => {
   const body = req.body as NoteUpdateInput;
   const { id } = req.params;
-  const userId = req.userId;
+  const userId = req.userId as number;
   await notesService.updateNoteById(id, body, userId);
   globalResponse(res, 200, { message: 'Item updated successfully' });
 });
@@ -150,8 +156,8 @@ export const deleteById = handleCatchErrorAsync(async (req, res) => {
  * @returns {Promise<void>} Responds with 200 and count object.
  */
 export const getAllNotesCount = handleCatchErrorAsync(async (req, res) => {
-  const { scope } = req.safeQuery;
-  const userId = req.userId;
+  const { scope } = req.safeQuery as { scope?: NoteScope };
+  const userId = req.userId as number;
   const data = await notesService.getAllNotesCount(scope as NoteScope, userId);
   globalResponse(res, 200, data);
 });
@@ -171,7 +177,7 @@ export const getAllNotesCount = handleCatchErrorAsync(async (req, res) => {
  * @returns {Promise<void>} Responds with 200 and new favorite state.
  */
 export const toggleFavorite = handleCatchErrorAsync(async (req, res) => {
-  const userId = req.userId;
+  const userId = req.userId as number;
   const { id } = req.params;
   const result = await notesService.toggleFavorite(userId, Number(id));
   globalResponse(res, 200, result);
@@ -204,7 +210,7 @@ export const getAllHashtags = handleCatchErrorAsync(async (req, res) => {
  * @returns {Promise<void>} Responds with 201 and created hashtag.
  */
 export const createHashtag = handleCatchErrorAsync(async (req, res) => {
-  const userId = req.userId;
+  const userId = req.userId as number;
   const { name } = req.body;
   const hashtag = await notesService.createHashtag(name, userId);
   globalResponse(res, 201, hashtag, 'Hashtag created successfully');

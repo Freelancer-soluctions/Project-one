@@ -81,7 +81,7 @@ export const getAllNotes = async (
       if (!mentionsByNote.has(m.noteId)) {
         mentionsByNote.set(m.noteId, []);
       }
-      mentionsByNote.get(m.noteId).push(m);
+      mentionsByNote.get(m.noteId)!.push(m);
     });
   }
 

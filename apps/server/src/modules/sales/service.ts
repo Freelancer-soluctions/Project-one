@@ -57,7 +57,7 @@ export const createSale = async (data: SaleInput) => {
   const dataToCreate: SaleCreateData = {
     clientId: Number(data.clientId),
     total: Number(data.total),
-    details: data.details,
+    details: data.details ?? [],
     createdBy: Number(data.createdBy),
     createdOn: new Date(),
   };

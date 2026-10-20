@@ -86,7 +86,7 @@ export const getStockAlerts = handleCatchErrorAsync(async (req, res) => {
  * @returns {Promise<void>} Creates new stock entry and returns confirmation
  */
 export const createStock = handleCatchErrorAsync(async (req, res) => {
-  const userId = req.userId;
+  const userId = req.userId as number;
   await createStockService(userId, req.body as StockInput);
   globalResponse(res, 201, { message: 'Stock entry created successfully' });
 });
@@ -119,7 +119,7 @@ export const deleteStockById = handleCatchErrorAsync(async (req, res) => {
  */
 export const patchStockById = handleCatchErrorAsync(async (req, res) => {
   const { id } = req.params;
-  const userId = req.userId;
+  const userId = req.userId as number;
   await updateStockByIdService(id, req.body as StockInput, userId);
   globalResponse(res, 200, { message: 'Stock entry updated successfully' });
 });

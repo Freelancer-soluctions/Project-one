@@ -66,7 +66,7 @@ describe('Event RSVP — promoteFromWaitlist', () => {
       },
       mockTx
     );
-    expect(result.status).toBe('CONFIRMED');
+    expect(result!.status).toBe('CONFIRMED');
   });
 
   it('passes tx object correctly to all DAO calls', async () => {

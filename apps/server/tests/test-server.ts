@@ -14,7 +14,7 @@ export const startServer = () => {
 export const stopServer = () => {
   return new Promise<void>((resolve, reject) => {
     if (testServer) {
-      testServer.close((err: Error | null) => {
+      testServer.close((err?: Error | null) => {
         if (err) return reject(err);
         console.log('Server stopped');
         resolve();

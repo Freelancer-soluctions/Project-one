@@ -64,7 +64,7 @@ export const createAttendance = async (
   const dataAttendance = {
     ...data,
     employeeId: Number(data.employeeId),
-    date: new Date(data.date),
+    date: new Date(data.date as string | Date),
     createdOn: new Date(),
     createdBy: userId,
   };
@@ -95,7 +95,7 @@ export const updateAttendanceById = async (
     updatedOn: new Date(),
     employeeId: Number(data.employeeId),
     updatedBy: userId,
-    date: new Date(data.date),
+    date: new Date(data.date as string | Date),
   };
   return updateAttendanceByIdDao(Number(id), dataAttendance);
 };

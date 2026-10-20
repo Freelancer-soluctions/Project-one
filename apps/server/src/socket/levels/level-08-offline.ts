@@ -60,7 +60,7 @@ function simulateOfflineMentions() {
     if (!mentionStore.has(userId)) {
       mentionStore.set(userId, []);
     }
-    mentionStore.get(userId).push(fakeMention);
+    mentionStore.get(userId)!.push(fakeMention);
 
     console.log(
       `📝 Simulando mention creada para usuario ${userId} mientras estaba offline`

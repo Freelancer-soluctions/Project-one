@@ -56,8 +56,8 @@ export const signIn = handleCatchErrorAsync(async (req, res) => {
     path: '/',
   });
   // deletion of user object before sending response
-  delete user.refreshToken;
-  delete user.csrfToken;
+  (user as { refreshToken?: string }).refreshToken = undefined;
+  (user as { csrfToken?: string }).csrfToken = undefined;
 
   globalResponse(res, 200, user);
 });
@@ -72,8 +72,8 @@ export const signIn = handleCatchErrorAsync(async (req, res) => {
  * @returns {Promise<void>} Returns user session data including profile information
  */
 export const session = handleCatchErrorAsync(async (req, res) => {
-  const userId = req.userId;
-  const userSession = await authService.session(userId);
+  const userId = req.userId as number;
+  const userSession = await authService.session(userId as number);
   globalResponse(res, 200, userSession);
 });
 
@@ -107,8 +107,8 @@ export const refreshToken = handleCatchErrorAsync(async (req, res) => {
     path: '/',
   });
   // deletion of user object before sending response
-  delete data.refreshToken;
-  delete data.csrfToken;
+  (data as { refreshToken?: string }).refreshToken = undefined;
+  (data as { csrfToken?: string }).csrfToken = undefined;
   globalResponse(res, 200, { accessToken: data.accessToken });
 });
 
