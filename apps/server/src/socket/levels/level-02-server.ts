@@ -56,14 +56,16 @@ const handleSocketMessage = async (
   io: Server,
   socket: AuthenticatedSocket,
   data: { type: string; payload: Record<string, unknown> }
-) => {
+): Promise<void> => {
   const { type, payload } = data;
 
   switch (type) {
     case 'mention:new': {
       const validation = validateMessage({ type, payload }, mentionNewSchema);
       if (!validation.valid) {
-        return socket.emit('error:validation', { errors: validation.error });
+        socket.emit('error:validation', { errors: validation.error });
+
+        return;
       }
       handleMentionNew(io, socket, validation.value.payload);
       break;
@@ -71,7 +73,9 @@ const handleSocketMessage = async (
     case 'mention:read': {
       const validation = validateMessage({ type, payload }, mentionReadSchema);
       if (!validation.valid) {
-        return socket.emit('error:validation', { errors: validation.error });
+        socket.emit('error:validation', { errors: validation.error });
+
+        return;
       }
       await handleMentionRead(io, socket, validation.value.payload);
       break;
@@ -132,9 +136,11 @@ export function attachSocketServer(httpServer: HTTPServer): Server {
         console.log(
           `⚠️ Intento de room:join no autorizado: ${currentUserId} → ${userId}`
         );
-        return socket.emit('error:auth', {
+        socket.emit('error:auth', {
           message: 'FORBIDDEN: No puedes unirte a la sala de otro usuario',
         });
+
+        return;
       }
       joinUserRoom(io, socket, userId);
     });
@@ -150,7 +156,7 @@ export function attachSocketServer(httpServer: HTTPServer): Server {
       console.log(`⚠️ Error en el socket ${socket.id}:`, error);
     });
 
-    socket.on('message', async (data) => {
+    socket.on('message', async (data): Promise<void> => {
       try {
         await handleSocketMessage(io, socket, data);
       } catch (err) {

@@ -97,7 +97,7 @@ io.on('connection', (socket) => {
   });
 
   // Procesar eventos entrantes con validación de esquema Joi
-  socket.on('message', async (data) => {
+  socket.on('message', async (data): Promise<void> => {
     try {
       const { type, payload } = data;
 
@@ -108,9 +108,11 @@ io.on('connection', (socket) => {
             mentionNewSchema
           );
           if (!validation.valid) {
-            return socket.emit('error:validation', {
+            socket.emit('error:validation', {
               errors: validation.error,
             });
+
+            return;
           }
           handleMentionNew(io, socket, validation.value.payload);
           break;
@@ -121,9 +123,11 @@ io.on('connection', (socket) => {
             mentionReadSchema
           );
           if (!validation.valid) {
-            return socket.emit('error:validation', {
+            socket.emit('error:validation', {
               errors: validation.error,
             });
+
+            return;
           }
           await handleMentionRead(io, socket, validation.value.payload);
           break;

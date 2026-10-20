@@ -53,7 +53,7 @@ export const verifyToken = async (
   req: Request,
   res: Response,
   next: NextFunction
-) => {
+): Promise<Response | void> => {
   try {
     // Get the token from the headers
     const authHeader = req.headers.authorization || req.headers.Authorization;

@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Reactivates lint-staged in the pre-commit hook so ESLint and Prettier run automatically on staged files before the existing SAST and secret scanning checks.
+Reactivates lint-staged in the pre-commit hook so ESLint and Prettier run automatically on staged files before the staged secret scan. (SAST no longer runs in `pre-commit`: diff-scoped SAST requires a baseline commit and lives in the `pre-push` hook and the CI `sast` job — capability `sast-diff-scanning`.)
 
 ## Requirements
 

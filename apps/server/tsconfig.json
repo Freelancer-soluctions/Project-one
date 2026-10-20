@@ -9,6 +9,8 @@
   "compilerOptions": {
     "allowJs": true,
     "noImplicitAny": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
     "checkJs": false,
     "allowImportingTsExtensions": true,
     "noEmit": true,

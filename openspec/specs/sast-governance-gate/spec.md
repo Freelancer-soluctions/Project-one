@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Provides SAST (Static Application Security Testing) as a CI governance gate using Semgrep in `.github/workflows/ci.yml`. Scans only the PR diff for ERROR-severity findings using inline packs (no local config dependency). Non-blocking in F1, blocking in F2 after ruleset binding.
+Provides SAST (Static Application Security Testing) as a CI governance gate using Semgrep in `.github/workflows/ci.yml`. Scans only the PR diff for ERROR-severity findings using the registry packs **plus** the versioned custom rules in `.semgrep/rules/` (loaded before the packs), both supplied by the shared script `scripts/sast-diff.mjs` — the single source of version, packs and exclusions for this job and for the local `pre-push` hook. In F1 the gate is non-blocking for merges: the step is still reported red on an ERROR finding and the result is retained as a 14-day artifact (evidence for the calibration window). F2 removes `continue-on-error` and adds `sast` to `prebuild-governance-complete.needs`; the ruleset 21227644 is not touched.
 
 ## Requirements
 

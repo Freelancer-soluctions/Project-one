@@ -5,7 +5,7 @@ export const verifyCsrfOld = (
   req: Request,
   res: Response,
   next: NextFunction
-) => {
+): Response | void => {
   const csrfCookie = req.cookies.csrfToken;
   const csrfHeader = req.headers['csrf-token'];
 
@@ -15,7 +15,11 @@ export const verifyCsrfOld = (
   next();
 };
 
-export const verifyCsrf = (req: Request, res: Response, next: NextFunction) => {
+export const verifyCsrf = (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Response | void => {
   try {
     const csrfCookie = req.cookies?.csrfToken;
     const csrfHeader = req.headers['csrf-token']; // express siempre los pasa en minúscula

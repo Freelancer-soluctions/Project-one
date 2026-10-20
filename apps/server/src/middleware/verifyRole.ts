@@ -30,7 +30,11 @@ type RoleAuthOptions = {
  * router.get('/profile', verifyToken, userOrAdmin, profileController);
  */
 export function checkRoleAuth({ allowedRoles = [] }: RoleAuthOptions) {
-  return async (req: Request, res: Response, next: NextFunction) => {
+  return async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<Response | void> => {
     try {
       const user = await getUserRoleByUserId(req.userId);
       if (!user || !user?.roles.code) {
@@ -79,7 +83,11 @@ export function checkRoleAuth({ allowedRoles = [] }: RoleAuthOptions) {
  */
 export const checkRoleAuthOrPermisssion =
   ({ allowedRoles = [], permissions = [] }: RoleAuthOptions) =>
-  async (req: Request, res: Response, next: NextFunction) => {
+  async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<Response | void> => {
     const { userId } = req;
     // console.log('Required Permissions:', permissions)
 

@@ -14,7 +14,7 @@ const NUMERIC_ID_REGEX = /^[0-9]+$/;
  * @returns {import('express').RequestHandler} Express middleware function
  */
 export const validateNumericPathParam = (paramName: string) => {
-  return (req: Request, res: Response, next: NextFunction) => {
+  return (req: Request, res: Response, next: NextFunction): Response | void => {
     const paramValue = req.params[paramName];
 
     // Verifico que el parámetro exista

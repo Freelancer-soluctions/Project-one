@@ -30,12 +30,14 @@ describe('Joi schema properties', () => {
           productId: fc.integer(),
           warehouseId: fc.integer(),
         }),
-        (cand) => {
+        (cand): boolean => {
           const { value } = stockCreateSchema.validate(cand, {
             convert: true,
             stripUnknown: true,
           });
           expect(stockCreateSchema.validate(value).error).toBeUndefined();
+
+          return true;
         }
       )
     );
@@ -64,7 +66,7 @@ describe('Joi schema properties', () => {
           productId: fc.option(fc.integer(), { nil: undefined }),
           warehouseId: fc.option(fc.integer(), { nil: undefined }),
         }),
-        (cand) => {
+        (cand): boolean => {
           const filtered = Object.fromEntries(
             Object.entries(cand).filter(([, v]) => v !== undefined)
           );
@@ -77,6 +79,8 @@ describe('Joi schema properties', () => {
             stripUnknown: true,
           });
           expect(stockUpdateSchema.validate(value).error).toBeUndefined();
+
+          return true;
         }
       )
     );

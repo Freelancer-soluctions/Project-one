@@ -15,7 +15,7 @@ export const validatePathParam = (
   req: Request,
   res: Response,
   next: NextFunction
-) => {
+): Response | void => {
   // Extraigo el id desde los parámetros de la URL
   const { id } = req.params;
 

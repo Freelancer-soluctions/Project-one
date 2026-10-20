@@ -34,7 +34,8 @@ vi.mock('../../../src/middleware/index.js', () => {
 
   // Passthrough validation middleware factories - return middleware that calls next()
   const passthroughFactory =
-    (schema: unknown) => (req: Request, res: Response, next: NextFunction) => {
+    (schema: unknown) =>
+    (req: Request, res: Response, next: NextFunction): Response | void => {
       void schema; // schema intentionally ignored - passthrough mock
       return next();
     };
@@ -45,19 +46,24 @@ vi.mock('../../../src/middleware/index.js', () => {
   ) => next();
   const passthroughFactoryWithParam =
     (paramName: string) =>
-    (req: Request, res: Response, next: NextFunction) => {
+    (req: Request, res: Response, next: NextFunction): Response | void => {
       void paramName; // paramName intentionally ignored - passthrough mock
       return next();
     };
   const passthroughFactoryWithLogger =
-    (logger: unknown) => (req: Request, res: Response, next: NextFunction) => {
+    (logger: unknown) =>
+    (req: Request, res: Response, next: NextFunction): Response | void => {
       void logger; // logger intentionally ignored - passthrough mock
       return next();
     };
 
   return {
     // Auth middleware
-    verifyToken: (req: Request, res: Response, next: NextFunction) => {
+    verifyToken: (
+      req: Request,
+      res: Response,
+      next: NextFunction
+    ): Response | void => {
       const authHeader = req.headers.authorization || req.headers.Authorization;
       if (authHeader === `Bearer ${adminToken}`) {
         req.userId = 1;
@@ -76,7 +82,7 @@ vi.mock('../../../src/middleware/index.js', () => {
     // Role middleware factories
     checkRoleAuth:
       ({ allowedRoles = [] }) =>
-      (req: Request, res: Response, next: NextFunction) => {
+      (req: Request, res: Response, next: NextFunction): Response | void => {
         try {
           const user = mockUsers[req.userId as keyof typeof mockUsers];
           if (!user || !user?.roles?.code) {
@@ -96,7 +102,7 @@ vi.mock('../../../src/middleware/index.js', () => {
 
     checkRoleAuthOrPermisssion:
       ({ allowedRoles = [], permissions = [] }) =>
-      (req: Request, res: Response, next: NextFunction) => {
+      (req: Request, res: Response, next: NextFunction): Response | void => {
         try {
           const user = mockUsers[req.userId as keyof typeof mockUsers];
           if (!user || !user.roles?.code) {

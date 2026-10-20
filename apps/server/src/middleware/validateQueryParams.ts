@@ -5,7 +5,7 @@ import type { Schema } from 'joi';
 
 export const validateQueryParams = (schema: Schema) => {
   // Middleware estándar de Express
-  return (req: Request, res: Response, next: NextFunction) => {
+  return (req: Request, res: Response, next: NextFunction): Response | void => {
     // Se extraen explícitamente los query params de la request
     // Esto limita el alcance únicamente a req.query
     const { query } = req;

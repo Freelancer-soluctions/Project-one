@@ -5,7 +5,7 @@ export const validateSchema = (schema: Schema) => {
   // Este middleware recibe un esquema de validación (Joi)
   // y permite reutilizar la misma lógica de validación
   // en múltiples rutas del backend.
-  return (req: Request, res: Response, next: NextFunction) => {
+  return (req: Request, res: Response, next: NextFunction): Response | void => {
     // Se extrae el body de la petición HTTP.
     // Todo lo que venga en req.body se considera input NO confiable
     // hasta que sea validado explícitamente.
