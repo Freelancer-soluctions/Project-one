@@ -1,6 +1,6 @@
 # Configuración de TypeScript Strict — Implementación Profesional
 
-> **Estado (2026-10-14): absorbido por `openspec/changes/server-typescript-migration` (Fase 4 — dueño único del strict gradual).** La §1 quedó obsoleta: `apps/server/tsconfig.json` ya existe (change `quality-gates`) y el job `server-typecheck` está activo y bloqueante en `ci.yml` desde 2026-09-26 (sin `if: false`). Fuente vigente: `docs/server-typescript-migration-research.md`.
+> **Estado (2026-10-20): IMPLEMENTADO — la §1 es histórica.** La Fase 4 del change `openspec/changes/server-typescript-migration` completó el strict gradual: **`strict: true` activo en `apps/server/tsconfig.json` con 0 errores** (noImplicitAny → noImplicitReturns/noFallthrough → strictNullChecks/BindCallApply/FunctionTypes/PropertyInitialization → useUnknownInCatchVariables → noUncheckedIndexedAccess → strict, en ese orden, un flag por commit con gates). Fuente vigente: `docs/server-typescript-migration-research.md` + contador en `docs/CONTEXT-CICD.md` §12.2.
 
 ## 1. Contexto y estado actual
 
@@ -129,7 +129,6 @@ Este documento (`typescript-strict-check.md`) complementa ese orden con:
 
 - **Tabla de flags** con errores típicos (`TS7006`, `TS18048`, `TS2366`, `TS7029`) y costo estimado en `apps/server/` (alta para `noImplicitAny` y `strictNullChecks`; baja para `alwaysStrict` y `noImplicitReturns`).
 - **CI concreto** (`npm run type-check` + `lint-staged` + `tsc --noEmit --incremental` + `prebuild-quality-complete`).
-  etr bounce использовании Паспорт
 - **TS 6.0 advertencia** (`strict: true` por defecto; `noEmitOnError` cambiado; `module` default `esnext`; `rootDir` default `.`; `esModuleInterop` siempre habilitado; `alwaysStrict` deprecated `false`).
 - **Referencia oficial** (`typescriptlang.org/tsconfig/strict` + `typescriptlang.org/tsconfig/` + `typescriptlang.org/docs/handbook/tsconfig-json.html` + `microsoft/TypeScript` repo + `json.schemastore.org/tsconfig`).
 
