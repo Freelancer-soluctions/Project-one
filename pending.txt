@@ -193,11 +193,11 @@ O alternativamente, muchos equipos usan TIA como un job adicional y rápido que 
 Se implementa con actions/github-script, leyendo context.payload.pull_request.body y comprobando las secciones con regex. Nunca interpoles ${{ github.event.pull_request.body }} 
 dentro de un run:, porque es un vector de inyección de comandos. Lo mismo vale para el título.
 Cuerpo (te falta). Hoy no se valida nada del cuerpo. El gate mínimo es:
-
 Cuerpo no vacío.
 Las secciones obligatorias de la plantilla están presentes y tienen contenido (no solo el comentario placeholder).
 Referencia a ticket o issue, solo si ese es tu requisito de trazabilidad.
-Checkboxes sin marcar: advertencia, no bloqueo.
+Checkboxes sin marcar: advertencia, no bloqueo. x
+
 - ver viabilidad para sacar todo lo de governance a un yml aprte ya que se necesita volver a disparar el job de pr title al editarlo en git hub
 Problemas en tu configuración actual
 El check no se re-ejecuta al editar el título. Tu on: pull_request no declara types:, así que solo dispara en opened, synchronize y reopened. Si el check falla y corriges el título, queda rojo hasta que hagas otro push. Hace falta edited.
@@ -205,3 +205,4 @@ Agregar edited re-dispara los ~50 jobs. Y con cancel-in-progress en el mismo gru
 ignoreLabels es un bypass. Cualquiera con permiso de escritura puede poner ignore-semantic-pull-request y saltarse el gate. Para bots es más sólido filtrar por actor (github.actor == 'dependabot[bot]') que por label.
 ci-complete no incluye este check si lo sacas a otro workflow. No hay problema, pero asegúrate de añadirlo como required check en el ruleset por separado.
 - Como deberia de vivir un PRD DENTRO DEL PROYECTO EN DONDE VIVIRIA
+- Hueco real en el gate local: .husky/pre-push usa %G? contra allowed_signers, que valida criptografía pero no cruza el email del commit con el principal firmante. Por eso dio verde a los 9 commits inválidos. Recomiendo un change OpenSpec para endurecerlo (comparar %ae/%ce contra el principal del trust store o gh api user/emails). ¿Lo abro con /opsx-new?
