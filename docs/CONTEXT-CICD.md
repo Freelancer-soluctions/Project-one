@@ -1074,6 +1074,51 @@ standalone, independiente del pipeline completo. No está acoplado a `CI_MINIMAL
 
 ---
 
+### 9.4 Bugs latentes del server corregidos (2026-10-20) — `server-ts-latent-defects`
+
+La migración a TypeScript no cambió comportamiento (regla zero-behavior-change), así que los defectos de runtime que
+destapó quedaron **registrados, no arreglados**. El change `server-ts-latent-defects` los corrige con tests de
+regresión. Ninguno de los tres toca CI/CD: el detalle que importa aquí es que **ninguno está cubierto por un gate de
+compilación**, y por eso el mecanismo de detección fue una suite unitaria, no `type-check`.
+
+| Defecto                                                                                                            | Fix                                                                                                                                                  | Por qué ningún gate lo detectaba                                                                                       |
+| ------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| `req.userRole` se leía pero nadie lo asignaba → `showDeleted` no filtraba por rol                                  | setter en los **4 caminos de éxito** de `checkRoleAuth` (1) y `checkRoleAuthOrPermisssion` (3) + guard comparado contra `ROLESCODES.ADMIN` (`'C01'`) | `req.userRole` es `string \| undefined`: leerlo es válido para `tsc`; el literal `'ADMIN'` tampoco es un error de tipo |
+| `PATCH /settings/:id` pasaba `displayOptions` anidado a Prisma (columna inexistente)                               | aplanado a las 8 columnas planas en el **service**, preservando `language`                                                                           | `updateData` es una variable → el excess-property check no aplica; solo el mock del dao ve el payload final            |
+| `dotenv(key): string` devolvía `''` para keys críticas ausentes (firma JWT vacía, descifrado con clave de 0 bytes) | nuevo `requireEnv(key: CriticalEnvKey)` con throw perezoso `❌ Missing required env var: <key>` en los ~10 call-sites críticos                       | la firma `string` **oculta** el `undefined` de `process.env[key]`: el tipo miente, el compilador no                    |
+
+**Consecuencia para los gates:** `npm run test:unit` pasó de 175 a **197 tests** (3 suites nuevas: `middleware/verifyRole`, `config/dotenv`, `modules/settings/settings-patch-display`). Los cuatro gates del change
+(`type-check`, `eslint --max-warnings 0`, `test:unit`, `depcruise:server`) siguen en verde; el `pre-push` scoped y el
+job `test-unit-server` ejecutan las suites nuevas por el patrón `.unit.test`.
+
+**Follow-up 4.3 (autorización por permisos) — `server-fix-role-permits-authorization` (2026-10-20).** El camino 3 de
+`checkRoleAuthOrPermisssion` leía `user.rolePermits`, pero el DAO devuelve `permits` (`userPermits → permissions`):
+`rolePermissions` era siempre `[]` y **todo no-ADMIN recibía 403** en las 102 rutas con `permissions` no vacío
+(inventario en `openspec/changes/server-fix-role-permits-authorization/tasks.md`, 21 archivos de rutas / 103 montajes /
+20 módulos).
+
+El fix es de una expresión (`user.permits?.map((permit) => permit.permissions.code) ?? []`, sin el cast `as unknown as`)
+más 4 tests del camino 3: `test:unit` pasa a **201 tests**. Queda **fail-closed** por diseño: sin `permits` o sin el
+permiso exigido, 403 (el bug era fail-closed por accidente; el fix abre solo el camino de concesión).
+
+**Smoke real (task 3.1):** `tests/integration/authorization/permission-grant-path.integration.test.ts` ejecuta la cadena
+completa contra la BD de test, sin mocks (JWT real → `checkRoleAuthOrPermisssion` → DAO Prisma real → `GET
+/api/v1/events`): USER con `canViewEvents` → 200; sin el permiso → 403; ADMIN → 200. Con el acceso pre-fix restaurado
+el test de concesión falla con `expected 403 to be 200`, así que el smoke reproduce el defecto y no solo el contrato.
+
+**Barrido del inventario (task 3.2, mitad "nada se abre"):** `tests/integration/authorization/permission-guard-inventory.integration.test.ts`
+descubre las rutas con `permissions` en el código de rutas y verifica que un USER sin `userPermits` recibe 403 en las
+**98** distintas (102 montajes − 4 handlers duplicados); las 2 `detail/:id` que Express no registra responden 404. Es
+mutation-checked: quitando el 403 del middleware fallan **44 rutas abiertas**. Queda pendiente el otro lado del cruce
+(que cada ruta conceda exactamente lo que declara la matriz de producción), bloqueado por 1.1.
+
+**Gate de producto:** este fix cambia autorización en runtime (403 → acceso para quien ya tiene el permiso asignado),
+así que `tasks.md` 1.1 (matriz `userPermits`×`permissions`×`users` de producción) y el cruce ruta-por-ruta de 3.2 son
+**bloqueantes de merge**: sin ese sign-off el change queda implementado-en-rama con los gates en verde y **no se
+mergea**. Es el caso donde la verificación técnica no puede cerrar el change sola.
+
+---
+
 ---
 
 ## 10. Git hooks — capa local de gobernanza (shifting-left)
