@@ -19,3 +19,9 @@ openspec/                   @Freelancer-soluctions/architects
 
 # Learning docs
 docs/learning/              @Freelancer-soluctions/core-team
+# CI/CD — módulos de política que ejecuta CI (change `pr-metadata-workflow`).
+# DEBE ir AL FINAL del archivo: GitHub resuelve por el PATRÓN COINCIDENTE
+# ÚLTIMO, así que una entrada por encima de la línea 2 (`*`) sería un no-op
+# silencioso. `scripts/ci/pr-body-lint.mjs` se lee desde el base ref del PR y
+# juzga su descripción (D9b): cambiarlo exige la misma revisión que `.github/**`.
+scripts/ci/               @Freelancer-soluctions/devops-team
