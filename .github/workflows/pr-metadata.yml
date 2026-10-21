@@ -124,6 +124,8 @@ jobs:
           ref: ${{ github.event.pull_request.base.sha }}
           sparse-checkout: scripts/ci
           sparse-checkout-cone-mode: false
+          # El job solo LEE la política: nada que push-ear (zizmor `artipacked`).
+          persist-credentials: false
       - name: Validate PR body against governance policy
         if: github.event_name == 'pull_request'
         uses: actions/github-script@v9
