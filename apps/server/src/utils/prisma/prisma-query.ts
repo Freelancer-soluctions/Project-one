@@ -5,10 +5,14 @@
 
 // Importar la función decrypt del middleware
 import crypto from 'crypto';
-import dotenv from '../../config/dotenv.js';
+// `requireEnv`: antes `dotenv('AES_GCM_KEY')` devolvía `''` y
+// `Buffer.from('', 'base64')` daba una clave de 0 bytes; el `catch` de
+// `decrypt` se tragaba el fallo y el wrapper devolvía el CIPHERTEXT como si
+// fuera texto plano, sin avisar (server-ts-latent-defects, fix 3).
+import { requireEnv } from '../../config/dotenv.js';
 
-const ALGORITHM = dotenv('ALGORITHM') as crypto.CipherGCMTypes;
-const ENCRYPTION_KEY = Buffer.from(dotenv('AES_GCM_KEY'), 'base64');
+const ALGORITHM = requireEnv('ALGORITHM') as crypto.CipherGCMTypes;
+const ENCRYPTION_KEY = Buffer.from(requireEnv('AES_GCM_KEY'), 'base64');
 
 function decrypt(ciphertext: unknown) {
   if (!ciphertext || typeof ciphertext !== 'string') return ciphertext;

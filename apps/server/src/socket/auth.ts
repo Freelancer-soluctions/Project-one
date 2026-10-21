@@ -1,7 +1,9 @@
 import jwt from 'jsonwebtoken';
 import type { JwtPayload } from 'jsonwebtoken';
 import type { Socket } from 'socket.io';
-import dotenv from '../config/dotenv.js'; // misma importación que verifyToken.js
+// Misma key crítica que verifyToken.ts: `requireEnv` falla si falta SECRETKEY
+// (server-ts-latent-defects, fix 3).
+import { requireEnv } from '../config/dotenv.js';
 import logger from '../logger/index.js';
 
 /**
@@ -40,7 +42,7 @@ export const createAuthMiddleware = () => {
 
       // Verificar token con HS256. Mismas opciones que verifyToken.js de Express:
       // issuer 'mi-api', audience 'mi-front'
-      const decoded = jwt.verify(token, dotenv('SECRETKEY'), {
+      const decoded = jwt.verify(token, requireEnv('SECRETKEY'), {
         algorithms: ['HS256'],
         issuer: 'mi-api',
         audience: 'mi-front',

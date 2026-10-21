@@ -1,7 +1,9 @@
 import jwt from 'jsonwebtoken';
 import type { JwtPayload } from 'jsonwebtoken';
 import type { NextFunction, Request, Response } from 'express';
-import dontenv from '../config/dotenv.js';
+// `requireEnv`: SECRETKEY es crítica — sin ella `jwt.verify` correría con una
+// clave vacía en vez de fallar ruidoso (server-ts-latent-defects, fix 3).
+import { requireEnv } from '../config/dotenv.js';
 import logger from '../logger/index.js';
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -83,7 +85,7 @@ export const verifyToken = async (
     }
 
     // decode the token and verify the time
-    const decoded = jwt.verify(token, dontenv('SECRETKEY'), {
+    const decoded = jwt.verify(token, requireEnv('SECRETKEY'), {
       algorithms: ['HS256'],
       issuer: 'mi-api',
       audience: 'mi-front',

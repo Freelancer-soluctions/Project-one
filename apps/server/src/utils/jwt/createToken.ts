@@ -1,4 +1,4 @@
-import dotenv from '../../config/dotenv.js';
+import { requireEnv } from '../../config/dotenv.js';
 import jwt from 'jsonwebtoken';
 import type { SignOptions, Secret, Algorithm } from 'jsonwebtoken';
 import crypto from 'crypto';
@@ -7,7 +7,7 @@ export const createTokenOld = (payload = {}) => {
   return new Promise((resolve, reject) => {
     jwt.sign(
       { ...payload },
-      dotenv('SECRETKEY'),
+      requireEnv('SECRETKEY'),
       {
         // expiresIn: '120000' // 2 min
         // expiresIn: '10m'
@@ -31,7 +31,7 @@ export const createRefreshTokenOld = (payload = {}) => {
   return new Promise((resolve, reject) => {
     jwt.sign(
       { ...payload },
-      dotenv('REFRESHSECRETKEY'),
+      requireEnv('REFRESHSECRETKEY'),
       {
         expiresIn: '1d',
       },
@@ -155,7 +155,7 @@ const createTokenWithKey = (
  * console.log(token); // eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
  */
 export const createToken = <T extends { id: number }>(payload: T) =>
-  createTokenWithKey(payload, dotenv('SECRETKEY'), '900000', SIGN_OPTIONS);
+  createTokenWithKey(payload, requireEnv('SECRETKEY'), '900000', SIGN_OPTIONS);
 
 /**
  * Creates a JWT refresh token for token rotation mechanism.
@@ -179,7 +179,7 @@ export const createRefreshToken = (payload: {
 }) =>
   createTokenWithKey(
     payload,
-    dotenv('REFRESHSECRETKEY'),
+    requireEnv('REFRESHSECRETKEY'),
     '86400000',
     SIGN_REFRESH_OPTIONS
   );

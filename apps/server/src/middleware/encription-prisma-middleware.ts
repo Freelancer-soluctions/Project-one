@@ -1,4 +1,4 @@
-import dotenv from '../config/dotenv.js';
+import { requireEnv } from '../config/dotenv.js';
 import crypto from 'crypto';
 import type { PrismaClient } from '@prisma/client';
 
@@ -11,17 +11,15 @@ type MigratableModel = {
   }) => Promise<unknown>;
 };
 
-// `dotenv` devuelve `string`, pero el algoritmo del entorno ES AES-256-GCM:
+// `requireEnv` devuelve `string`, pero el algoritmo del entorno ES AES-256-GCM:
 // se tipa como `CipherGCMTypes` para que `createCipheriv`/`createDecipheriv`
 // devuelvan `CipherGCM`/`DecipherGCM` (con `getAuthTag`/`setAuthTag`).
-const ALGORITHM = dotenv('ALGORITHM') as crypto.CipherGCMTypes;
+const ALGORITHM = requireEnv('ALGORITHM') as crypto.CipherGCMTypes;
 
-// Validar que existe la clave
-if (!dotenv('AES_GCM_KEY')) {
-  throw new Error('❌ AES_GCM_KEY no está definida en variables de entorno');
-}
-
-const ENCRYPTION_KEY = Buffer.from(dotenv('AES_GCM_KEY'), 'base64');
+// `requireEnv` reemplaza el guard manual: mismo fail-loud, pero con el nombre
+// de la key en el mensaje (`❌ Missing required env var: AES_GCM_KEY`) y una
+// sola lectura del entorno (server-ts-latent-defects, fix 3).
+const ENCRYPTION_KEY = Buffer.from(requireEnv('AES_GCM_KEY'), 'base64');
 
 if (ENCRYPTION_KEY.length !== 32) {
   throw new Error(
