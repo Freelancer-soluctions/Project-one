@@ -396,12 +396,18 @@ La branch protection clásica sigue existiendo pero es **vestigial** en repos qu
 
 ### 8.3 Los 4 Status Checks Requeridos
 
-| Check                                | Job en ci.yml     | integration_id |
+| Check                                | Job (emisor)      | integration_id |
 | ------------------------------------ | ----------------- | -------------- |
 | `Verify Commit Signatures`           | verify-signatures | 15368          |
 | `Commit Lint (Conventional Commits)` | commit-lint       | 15368          |
 | `PR Title Lint`                      | pr-title-lint     | 15368          |
 | `DCO`                                | dco               | 15368          |
+
+> **Actualización (2026-10-20, change `pr-metadata-workflow`):** `PR Title Lint` sigue siendo el contexto exacto
+> y el job-id `pr-title-lint`, pero su emisor ahora es `.github/workflows/pr-metadata.yml` (el ruleset bindea el
+> NOMBRE del contexto, no el archivo). Un **5º contexto**, `Governance: PR Body Lint`, se añade en la FASE 3 del
+> mismo change — solo después de que haya reportado ≥1 vez, vía GET → modificar → PUT (nunca PATCH, que reemplaza
+> el array completo).
 
 ### 8.4 Configuración de Reviews (pull_request)
 

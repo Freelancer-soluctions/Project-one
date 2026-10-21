@@ -76,7 +76,10 @@ npm error }
 
 **Propagación:** 8 workflows + 1 composite action leen `node-version-file: '.nvmrc'`. Un solo commit actualizó la versión efectiva en **todos** ellos:
 
-- `ci.yml` (jobs: verify-signatures, commit-lint, pr-title-lint, dco, dependency-review, zombie-workflow-guard + jobs quality/build/test `if: false`)
+- `ci.yml` (jobs: verify-signatures, commit-lint, dco, sast, dependency-review, zombie-workflow-guard + jobs quality/build/test
+  `if: false`; **sin** `pr-title-lint` — ver siguiente punto)
+- `pr-metadata.yml` (jobs: `pr-title-lint` → check `PR Title Lint`, y `pr-body-lint` → check
+  `Governance: PR Body Lint`; change `pr-metadata-workflow`, 2026-10-20)
 - `security.yml` (jobs: dependency-scan, sast, sbom, dependency-review)
 - `release.yml`
 - `deploy.yml` (job: docker-build)

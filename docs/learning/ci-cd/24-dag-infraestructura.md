@@ -1,5 +1,10 @@
 # 24 — Infraestructura del DAG en Pipelines CI/CD
 
+> ⚠️ **NOTA DE ACTUALIZACIÓN (2026-10-20, change `pr-metadata-workflow`):** el job `pr-title-lint` (check
+> `PR Title Lint`) ya **NO vive en `ci.yml`** — emigró a `.github/workflows/pr-metadata.yml` junto al nuevo gate
+> `Governance: PR Body Lint`. Las referencias de esta guía a `ci.yml:pr-title-lint` describen el estado **previo**
+> (histórico). Fuente de verdad: `docs/CONTEXT-CICD.md` §3.2 / §9.3.3 / §9.3.4.
+
 > **Nivel Profesional · Guía 24**
 > En esta guía aprenderás qué es un DAG (Directed Acyclic Graph) aplicado a pipelines CI/CD, los conceptos clave de orquestación de jobs, y cómo el DAG está implementado _realmente_ en `ci.yml` de Project One. Cubre patrones de la industria (fan-out/fan-in, path-scoping, skip-propagation) y cruza con la documentación existente del repo.
 

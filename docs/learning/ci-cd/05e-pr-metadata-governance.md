@@ -696,19 +696,25 @@ política debe cambiar en el mismo PR (test de lockstep).
 
 ---
 
-### P2.1: pr-body-lint — job de governance (FASE 1 advisory)
+### P2.1: pr-body-lint — job de governance (ADOPTADO: workflow propio, gate duro desde el 1er commit)
 
-> **Estado**: **job a implementar** — esta sección es la _implementación de referencia_ de este doc.
-> `pr-body-lint` **no existe aún en `ci.yml`**; este texto precede al change que lo aterrice.
-
-**Posición**: SUBSTAGE 2A de `ci.yml`, físicamente entre `dco` y `sast` (convención de prefijo por
-bloque: el `name:` lleva `Governance:`; **no** es check del ruleset, así que renombrarlo es seguro
-hasta que se decida lo contrario — ver P2.4).
-
-**Versiones**: `actions/github-script@v9` es **opt-in** — el repo hoy usa `@v8` en `security.yml`,
-`scheduled-security.yml` y `security-digest.yml` (5 usos), y la coexistencia v9/v8 entre workflows
-es válida: **no se requiere migrar** los `@v8` existentes. El único breaking change relevante de v9
-(`require('@actions/github')` roto) no aplica aquí porque el wrapper no importa ese paquete.
+> **Estado (2026-10-20, change `pr-metadata-workflow`): IMPLEMENTADO.** El job vive en
+> `.github/workflows/pr-metadata.yml` (NO en `ci.yml`), es **blocking desde su primer commit** (FASE 1 advisory
+> descartada por decisión explícita del usuario — design D8) y su contexto `Governance: PR Body Lint` entra al
+> ruleset 21227644 como **FASE 3** en cuanto reporte ≥1 vez. La variante "job en `ci.yml` + `continue-on-error`"
+> que describía esta sección quedó **rechazada por estructura**: `ci.yml` no dispara en `edited` (el body no se
+> re-validaría al corregirlo) y su `concurrency: cancel-in-progress: true` cancelaría el pipeline en vuelo por una
+> edición de texto (design D1/D8/D9b).
+>
+> **Posición**: workflow `.github/workflows/pr-metadata.yml`, job `pr-body-lint`. **Versiones**:
+> `actions/github-script@v9` (tag real verificado: v9.0.0). El repo aún usa `@v8` en 5 call-sites de otros
+> workflows — la coexistencia es válida y no exige migrar nada.
+>
+> **El YAML siguiente es un BORRADOR HISTÓRICO** (plan FASE 1 advisory, previo al change). La versión vigente es la
+> del workflow propio: checkout desde `base.sha` con sparse-checkout (D9b), job-level `if` por AUTOR bot, steps
+> `if: github.event_name == 'pull_request'`, upload con `if: always()` y no-op explícito de `merge_group` (D5).
+> La ruta "FASE 1 → FASE 2" que comenta el bloque fue reemplazada por el gate duro del día 1, con las
+> mitigaciones que listaba P2.4.
 
 ```yaml
 # --- GOVERNANCE: PR body lint (job a implementar; FASE 1 advisory) ---
@@ -963,6 +969,12 @@ confiable y puede contener líneas `::` que el runner interpretaría como workfl
 
 ### P2.5: Staleness — el body editable
 
+> **ADOPTADO (2026-10-20): la opción (b), workflow aparte.** `.github/workflows/pr-metadata.yml` dispara en
+> `opened, edited, synchronize, reopened` + `merge_group` con `concurrency: pr-metadata-<n>` y
+> `cancel-in-progress: false`, así que **corregir el body (o el título) sin hacer push re-valida el check en el
+> mismo head SHA**. El hueco residual H7 no desaparece del todo: un merge puede aterrizar en los segundos entre la
+> edición y el nuevo veredicto (design D10, riesgo aceptado y documentado).
+
 **H7**: un check required está atado al **head SHA** del PR; editar el body **no mueve el SHA** ⇒ un
 verde previo **sigue verde** aunque el autor vacíe la descripción después (documentado en
 "Troubleshooting required status checks"). El hueco es **estructural** de cualquier check basado en
@@ -974,28 +986,30 @@ body, no un bug de este job.
 | **(b) Workflow aparte `pr-body-lint-edit.yml`** (FASE 2b) | `on: pull_request: types: [opened, edited, reopened]` — solo ese job (~6 s)       | Cierra el hueco sin tocar el monolito            | Un workflow más que mantener          |
 | **(c) No requerirlo nunca en el ruleset**                 | El advisory nunca puede dar falso verde de merge                                  | Elimina el hueco por definición                  | No habrá gate blocking de body        |
 
-**Por qué NO añadir `edited` al trigger de `ci.yml`**: `edited` cubre body **y** título **y**
-retarget de base; re-ejecutaría **~45 jobs** (SAST con Docker, tests, lints…) en cada edición, y el
-`concurrency` con `cancel-in-progress: true` **cancelaría el run en curso** del PR — editar un body
-mataría una corrida verde legítima. La mitigación de staleness no pasa por el monolito: si se
-necesita, va en el workflow aparte de la opción (b).
+**Por qué NO añadir `edited` al trigger de `ci.yml`** (razón estructural que motivó el workflow propio): `edited`
+cubre body **y** título **y** retarget de base; re-ejecutaría **~45 jobs** (SAST con Docker, tests, lints…) en cada
+edición, y el `concurrency` con `cancel-in-progress: true` **cancelaría el run en curso** del PR — editar un body
+mataría una corrida verde legítima. `on:` y `concurrency` son workflow-scoped: la solución es el workflow aparte de
+la opción (b), que es la que quedó implementada.
 
 ---
 
 ### P2.6: Bots, forks y drafts — matriz de skip
 
-| Caso                                              | Detección / condición                                                                                                                                                                                       | Comportamiento                                                                                 |
-| ------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
-| **Bots** (dependabot, changesets, release-please) | `context.payload.pull_request.user.type === 'Bot'` **o** `/\[bot\]$/i` sobre `user.login` — **nunca** `github.actor`, que es el triggerer (un maintainer editando un PR de bot cambia `actor`, no el autor) | Skip con `core.notice` + job summary "omitido"                                                 |
-| **Forks**                                         | `GITHUB_TOKEN` **read-only** y sin secrets (hecho de GitHub)                                                                                                                                                | **Sin comentarios en el PR**: solo annotations (`setFailed`/`warning`), job summary y artifact |
-| **Drafts**                                        | `POLICY.skipDrafts = false` — corre siempre; `# TODO(adapt): true` en FASE 2 si se decide eximir drafts                                                                                                     | Igual que un PR normal (los drafts se crean con body)                                          |
-| **`merge_group`**                                 | `if: github.event_name == 'pull_request'`                                                                                                                                                                   | Job completo SKIPPED; **sin** steps `if: merge_group` (merge queue inactiva ⇒ dead code)       |
-| **Body editable post-aprobación**                 | El check no se invalida (H7)                                                                                                                                                                                | Ver P2.5 — hueco estructural, aceptado en FASE 1                                               |
-| **`gh pr create --fill` / `--body ""`**           | Reemplaza el template (**no** lo fusiona)                                                                                                                                                                   | Body vacío ⇒ R1+R2 fallan correctamente: es el caso real que el gate captura                   |
+| Caso                                              | Detección / condición                                                                                                                                                                                       | Comportamiento                                                                                        |
+| ------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| **Bots** (dependabot, changesets, release-please) | `context.payload.pull_request.user.type === 'Bot'` **o** `/\[bot\]$/i` sobre `user.login` — **nunca** `github.actor`, que es el triggerer (un maintainer editando un PR de bot cambia `actor`, no el autor) | Skip con `core.notice` + job summary "omitido"                                                        |
+| **Forks**                                         | `GITHUB_TOKEN` **read-only** y sin secrets (hecho de GitHub)                                                                                                                                                | **Sin comentarios en el PR**: solo annotations (`setFailed`/`warning`), job summary y artifact        |
+| **Drafts**                                        | `POLICY.skipDrafts = false` — corre siempre; `# TODO(adapt): true` en FASE 2 si se decide eximir drafts                                                                                                     | Igual que un PR normal (los drafts se crean con body)                                                 |
+| **`merge_group`**                                 | Workflow declara `merge_group: {}` y las DOS jobs concluyen con un no-op explícito `if: merge_group` (D5); el job-level `if` del body excluye SOLO a autores bot, nunca a merge_group                       | Conclusión garantizada en la cola: un required check que no reporta bloquea la entrada de merge queue |
+| **Body editable post-aprobación**                 | `edited` re-valida en el mismo head SHA (workflow propio); el residual (merge entre edición y veredicto) queda aceptado (D10)                                                                               | Ver P2.5 — hueco estructural reducido, aceptado y documentado                                         |
+| **`gh pr create --fill` / `--body ""`**           | Reemplaza el template (**no** lo fusiona)                                                                                                                                                                   | Body vacío ⇒ R1+R2 fallan correctamente: es el caso real que el gate captura                          |
 
-**Escape hatch**: el label **`skip-pr-body-lint`** (o `bot`) exime un PR concreto — mismo patrón que
-`ignoreLabels` de `amannn/action-semantic-pull-request` y `template-check-overridden` de
-external-secrets. Red de seguridad contra over-blocking a drive-by contributors.
+**Escape hatch**: **NO existe** — el label `skip-pr-body-lint` fue **rechazado explícitamente** (design D9): un
+label lo puede aplicar cualquiera con acceso de escritura y deja solo un evento en la timeline, así que el
+control se degradaría a una convención. La única exención efectiva es la **por autor bot** (fila «Bots») y el
+único override humano es el **bypass actor del ruleset** (`RepositoryRole id 5`, modo `pull_request`),
+auditable en el merge. El wrapper local `scripts/hooks/pr-title-check.js` (L2.5) valida el TÍTULO, no el body.
 
 ---
 
