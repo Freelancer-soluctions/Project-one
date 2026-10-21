@@ -52,6 +52,12 @@ export function checkRoleAuth({ allowedRoles = [] }: RoleAuthOptions) {
           .json({ error: 'You do not have sufficient permissions' });
       }
 
+      // Publicar el rol verificado para los guards de los controllers (p. ej.
+      // `showDeleted` en events). Sin esta asignación `req.userRole` era
+      // SIEMPRE `undefined` y `undefined !== 'ADMIN'` daba `true`: el guard no
+      // podía distinguir roles (server-ts-latent-defects, fix 1).
+      req.userRole = userRole;
+
       // Opcional: puedes guardar el user completo en req.user si lo necesitas después
       // req.user = user;
 
@@ -106,8 +112,14 @@ export const checkRoleAuthOrPermisssion =
 
       const userRoleCode = user.roles.code;
 
+      // El rol verificado se publica en TODOS los caminos de éxito (3 aquí +
+      // 1 en `checkRoleAuth`): si solo se asignara en uno, el guard de
+      // `showDeleted` seguiría leyendo `undefined` en el resto
+      // (server-ts-latent-defects, design §1).
+
       // 1. If ADMIN, passes without extra permission validations. Admin doesn't need permissions since they have full system control.
       if (userRoleCode === ROLESCODES.ADMIN) {
+        req.userRole = userRoleCode;
         return next();
       }
 
@@ -120,24 +132,19 @@ export const checkRoleAuthOrPermisssion =
 
       // 3. If no specific permissions required, allow (role already validated)
       if (permissions.length === 0) {
+        req.userRole = userRoleCode;
         return next();
       }
 
-      // 4. Get role permissions. Get array of permissions from user's role, for example:
-      // HALLAZGO Fase 3 (pre-existente, comportamiento PRESERVADO): el DAO
-      // (`users/dao.getUserRoleByUserId`) incluye `permits` (relación con
-      // `userPermits`), no `rolePermits` — este acceso es siempre `undefined`,
-      // así que `rolePermissions` queda vacío y cualquier no-admin que necesite
-      // permisos cae en "Insufficient permissions". Corregirlo cambiaría la
-      // autorización en runtime, así que queda registrado en las tasks del
-      // change y aquí solo se tipa el acceso tal como existe hoy.
-      const rolePermits = (
-        user as unknown as {
-          rolePermits?: Array<{ permissions: { code: string } }>;
-        }
-      ).rolePermits;
+      // 4. Get the user's permissions from the `permits` relation. The DAO
+      // (`users/dao.getUserRoleByUserId`) includes `permits: { permissions }`
+      // (`users → userPermits → permissions`), so this cast disappears: the
+      // shape comes from `UserWithRoleAndPermits`. Antes se leía `rolePermits`
+      // — una propiedad inexistente — así que el array quedaba siempre vacío y
+      // TODO no-ADMIN caía en 403 aunque tuviera el permiso asignado
+      // (server-fix-role-permits-authorization).
       const rolePermissions =
-        rolePermits?.map((rp) => rp.permissions.code) || [];
+        user.permits?.map((permit) => permit.permissions.code) ?? [];
       // 5. Validate if user has at least one of the required permissions
       const hasSomePermission = permissions.some((p) =>
         rolePermissions.includes(p)
@@ -149,6 +156,7 @@ export const checkRoleAuthOrPermisssion =
           .json({ error: 'Insufficient permissions for this operation' });
       }
 
+      req.userRole = userRoleCode;
       return next();
     } catch (error) {
       console.error('Middleware auth error:', error);

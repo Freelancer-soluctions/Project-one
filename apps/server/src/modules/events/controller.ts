@@ -1,5 +1,6 @@
 import globalResponse from '../../utils/responses&Errors/globalResponse.js';
 import handleCatchErrorAsync from '../../utils/responses&Errors/handleCatchErrorAsync.js';
+import { ROLESCODES } from '../../utils/constants/enums.js';
 import * as eventService from './service.js';
 import { EventsFilters } from './schemas/events.joi.js';
 import type {
@@ -19,7 +20,7 @@ import type {
  * @param {Date} [req.safeQuery.dateFrom] - Filter by start date
  * @param {Date} [req.safeQuery.dateTo] - Filter by end date
  * @param {boolean} [req.safeQuery.showDeleted] - Show deleted events (admin only)
- * @param {string} [req.userRole] - User role from JWT token
+ * @param {string} [req.userRole] - Código de rol verificado por `verifyRole` (C01/C02/C03)
  * @param {Object} res - The HTTP response object.
  * @returns {Promise<void>} Returns paginated list of events
  */
@@ -49,7 +50,10 @@ export const getAllEvents = handleCatchErrorAsync(async (req, res) => {
   const showDeleted = query.showDeleted ?? false;
 
   // Admin-only showDeleted guard (Task 6.4)
-  if (showDeleted && req.userRole !== 'ADMIN') {
+  // El rol se compara con el CÓDIGO real (`ROLESCODES.ADMIN === 'C01'`): con el
+  // literal 'ADMIN' el guard habría rechazado incluso a un ADMIN
+  // (server-ts-latent-defects, fix 1).
+  if (showDeleted && req.userRole !== ROLESCODES.ADMIN) {
     res.status(403).json({
       success: false,
       statusCode: 403,

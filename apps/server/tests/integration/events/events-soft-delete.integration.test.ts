@@ -67,11 +67,11 @@ vi.mock('../../../src/middleware/index.js', () => {
       const authHeader = req.headers.authorization || req.headers.Authorization;
       if (authHeader === `Bearer ${adminToken}`) {
         req.userId = 1;
-        req.userRole = 'ADMIN';
+        req.userRole = 'C01'; // ROLESCODES.ADMIN — contrato real tras server-ts-latent-defects fix 1
         req.user = { id: 1, role: 'ADMIN' };
       } else if (authHeader === `Bearer ${userToken}`) {
         req.userId = 2;
-        req.userRole = 'USER';
+        req.userRole = 'C02'; // ROLESCODES.USER
         req.user = { id: 2, role: 'USER' };
       } else {
         return res.status(401).json({ message: 'Unauthorized' });
