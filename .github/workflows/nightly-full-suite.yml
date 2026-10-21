@@ -71,6 +71,45 @@ jobs:
           retention-days: 14
           if-no-files-found: warn
 
+      # Historial de tests fallidos en main — task 4.2 (tia-hardening, D4).
+      # El nocturno es la fuente full-suite: consolida `vitest-results.json`
+      # en `tia-history.json` y lo publica 30 días para que los jobs scoped
+      # de ci.yml lo consuman (`Inject previously-failing tests`).
+      - name: Record TIA history
+        if: always()
+        run: |
+          mkdir -p apps/client/reports
+          node scripts/ci/tia-history.mjs apps/client --record --out apps/client/reports/tia-history.json || true
+        shell: bash
+
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: tia-history-client
+          path: apps/client/reports/tia-history.json
+          retention-days: 30
+          if-no-files-found: warn
+
+      # Coverage-map — task 7.2 (tia-hardening, design D5). Espejo del job
+      # unit de ci.yml: el nocturno es el run full-suite cuyo artefacto
+      # `coverage-map-<ws>-<sha>` consume `Consume coverage-map (best-effort)`
+      # de ci.yml (resuelve el último run satisfactorio de ESTE workflow) —
+      # sin este par de steps `map=hit` era inalcanzable. Best-effort (D12):
+      # `tia-map.mjs` escribe siempre un JSON válido y sale 0; el upload no
+      # bloquea (`if-no-files-found: warn`).
+      - name: Build coverage-map (best-effort)
+        if: always()
+        run: node scripts/ci/tia-map.mjs apps/client --build || true
+        shell: bash
+
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: coverage-map-client-${{ github.sha }}
+          path: apps/client/reports/coverage-map.json
+          retention-days: 30
+          if-no-files-found: warn
+
       # Guard ADVISORY (D18): informa del desvío pero no falla el workflow.
       # El bloqueo por thresholds vive en el gate de merge de ci.yml.
       - name: Report coverage thresholds (advisory)
@@ -114,6 +153,42 @@ jobs:
           name: nightly-coverage-server
           path: apps/server/tests/coverage/
           retention-days: 14
+          if-no-files-found: warn
+
+      # Historial de tests fallidos en main — task 4.2 (tia-hardening, D4).
+      # Espejo del job client: el nocturno publica el historial unitario del
+      # server para `Inject previously-failing tests` de ci.yml.
+      - name: Record TIA history
+        if: always()
+        run: |
+          mkdir -p apps/server/reports
+          node scripts/ci/tia-history.mjs apps/server --record --out apps/server/reports/tia-history.json || true
+        shell: bash
+
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: tia-history-server
+          path: apps/server/reports/tia-history.json
+          retention-days: 30
+          if-no-files-found: warn
+
+      # Coverage-map — task 7.2 (tia-hardening, design D5). Espejo del job
+      # client: fuente full-suite del consumidor `Consume coverage-map
+      # (best-effort)` de ci.yml (`coverage-map-server-<sha>`). Best-effort
+      # (D12): `tia-map.mjs` escribe siempre un JSON válido y sale 0; el
+      # upload no bloquea (`if-no-files-found: warn`).
+      - name: Build coverage-map (best-effort)
+        if: always()
+        run: node scripts/ci/tia-map.mjs apps/server --build || true
+        shell: bash
+
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: coverage-map-server-${{ github.sha }}
+          path: apps/server/reports/coverage-map.json
+          retention-days: 30
           if-no-files-found: warn
 
       - name: Report coverage thresholds (advisory)

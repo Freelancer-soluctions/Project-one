@@ -252,9 +252,9 @@ export const checkRoleAuthOrPermisssion =
 
     if (!options.permissions?.length) return next(); // solo role check
 
-    // ⚠️ BUG: user.rolePermits no existe. Debería ser user.permits
+    // El DAO incluye `permits` (relación userPermits → permissions)
     const userPermitCodes =
-      user.rolePermits?.map((rp) => rp.permissions.code) || [];
+      user.permits?.map((rp) => rp.permissions.code) ?? [];
 
     const hasPermission = options.permissions.some((p) =>
       userPermitCodes.includes(p)
@@ -265,20 +265,25 @@ export const checkRoleAuthOrPermisssion =
   };
 ```
 
-### ⚠️ Bug Conocido
+### ✅ Bug corregido (2026-10-20) — `server-fix-role-permits-authorization`
 
-En `verifyRole.js` línea ~109:
+`src/middleware/verifyRole.ts` leía `user.rolePermits`, una propiedad que **no existe**: el DAO
+(`users/dao.getUserRoleByUserId`) incluye `permits` (relación `userPermits → permissions`). El array quedaba siempre
+vacío, así que `hasSomePermission` era siempre `false` y **todo no-ADMIN recibía 403** en las rutas con
+`permissions: [...]`, aunque tuviera el permiso asignado en BD.
 
-```javascript
-// ACTUAL (ROTO):
+```typescript
+// ANTES (ROTO):
 const rolePermissions =
-  user.rolePermits?.map((rp) => rp.permissions.code) || [];
+  (user as unknown as { rolePermits?: … }).rolePermits?.map((rp) => rp.permissions.code) || [];
 
-// DEBERÍA SER:
-const rolePermissions = user.permits?.map((rp) => rp.permissions.code) || [];
+// AHORA:
+const rolePermissions =
+  user.permits?.map((permit) => permit.permissions.code) ?? [];
 ```
 
-La propiedad `user.permits` es la que existe en la relación de Prisma. `user.rolePermits` apunta a un modelo que no existe en la DB. Esto causa que **el chequeo de permisos individuales siempre falle** para usuarios no-admin.
+Sin `permits` (o con permisos que no incluyen el exigido) el guard sigue devolviendo 403: el fix solo abre el camino
+de concesión, no relaja el fail-closed. Cubierto por `middleware/verifyRole.unit.test.ts` (camino 3 grant/deny).
 
 ---
 
@@ -346,7 +351,7 @@ Actualmente el control de acceso es **100% server-side**. El frontend solo sabe 
 
 ## 8. Inconsistencias y Deuda Técnica
 
-1. **Bug: `user.rolePermits`** → Debe ser `user.permits` en `verifyRole.js` línea ~109. El chequeo de permisos individuales no funciona para no-admin.
+1. ~~**Bug: `user.rolePermits`** → Debe ser `user.permits` en `verifyRole.ts`.~~ **Corregido 2026-10-20** (`server-fix-role-permits-authorization`); el merge queda pendiente del sign-off de la matriz `userPermits` de producción.
 2. **Ruta DELETE duplicada** en `users/routes.js` — definida dos veces, causa conflictos en Express.
 3. **`rolePermits` comentado** — No hay herencia rol→permiso. Cada permiso debe asignarse por usuario.
 4. **Notes sin permisos granulares** — El módulo notes solo usa role check. Cualquier USER puede hacer todo.

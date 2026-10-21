@@ -211,6 +211,23 @@ tu-email@example.com namespaces="git" ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAI... c
 
 > **Nota:** la clave pública de este archivo debe coincidir **exactamente** con la subida a GitHub (F1, paso 2). Si difieren, GitHub marca el commit como **"Unverified"**.
 
+#### Trust store versionado del repo (gate de `pre-push`)
+
+El repo versiona su propio trust store en la **raíz** (`allowed_signers`): solo claves públicas, formato OpenSSH y
+namespace `git`. El allowed_signers versionado es el trust store compartido: su alta/baja va por PR (§8.3). El hook `.husky/pre-push` lo resuelve con `git rev-parse --show-toplevel` y lo pasa con
+`-c gpg.ssh.allowedSignersFile=<ruta absoluta>`, de modo que el gate funciona en un clon fresco **sin depender** del
+`gpg.ssh.allowedSignersFile` global de la máquina.
+
+Para que la verificación **interactiva** (`git log --show-signature`, `git verify-commit`) use el fichero versionado:
+
+```bash
+git config gpg.ssh.allowedSignersFile allowed_signers   # nivel repo; ruta relativa al top-level del worktree
+```
+
+La ruta relativa se resuelve contra la **raíz del worktree**, no contra el CWD (verificado desde un subdirectorio).
+Un dev cuyo `user.email` no coincida con el principal de su línea en `allowed_signers` verá `%G? = U` (warning del
+gate, no bloqueo): corregir/añadir su línea vía PR.
+
 ---
 
 ### F2 — Job verify-signatures en ci.yml Stage 2 PRE-Build
@@ -455,13 +472,13 @@ Desarrollador: git commit -m "feat: x" (sign-ed25519)
 
 ## 7. Qué NO hace este cambio
 
-| Qué NO hace                 | Explicación                                                                                                                                 |
-| --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
-| **No reescribe 374 legacy** | Los commits históricos anteriores a la política se dejan tal cual; `Unverified` es visual solo.                                             |
-| **No toca Husky**           | Los hooks de Husky (pre-commit, commit-msg, pre-push) siguen funcionando como antes; la firma es independiente de los hooks.                |
-| **No firma tags release**   | Los tags de release (`git tag v1.2.3`) no se firman automáticamente por este cambio (a menos que se agregue configuración extra para tags). |
-| **No usa sigstore/gitsign** | El cambio explícitamente **no** usa sigstore/gitsign (su estatus es `Unverified` en GitHub, issue #40). Se usa SSH ed25519 nativo.          |
-| **No activa todo el golpe** | Cada fase tiene _rollback_ controlado: F4 deja legacy en `Unverified` sin romper nada; F5 tiene bypass admin para emergencias.              |
+| Qué NO hace                         | Explicación                                                                                                                                 |
+| ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| **No reescribe 374 legacy**         | Los commits históricos anteriores a la política se dejan tal cual; `Unverified` es visual solo.                                             |
+| **No cambia pre-commit/commit-msg** | La firma se verifica en `pre-push` como gate L2 (ver `docs/CONTEXT-CICD.md` §10.7); `pre-commit` y `commit-msg` conservan su contrato.      |
+| **No firma tags release**           | Los tags de release (`git tag v1.2.3`) no se firman automáticamente por este cambio (a menos que se agregue configuración extra para tags). |
+| **No usa sigstore/gitsign**         | El cambio explícitamente **no** usa sigstore/gitsign (su estatus es `Unverified` en GitHub, issue #40). Se usa SSH ed25519 nativo.          |
+| **No activa todo el golpe**         | Cada fase tiene _rollback_ controlado: F4 deja legacy en `Unverified` sin romper nada; F5 tiene bypass admin para emergencias.              |
 
 ---
 
@@ -471,11 +488,14 @@ Desarrollador: git commit -m "feat: x" (sign-ed25519)
 
 ### 8.1 Troubleshooting
 
-| Síntoma                                                    | Causa                                                               | Fix                                                                                                                                                                                          |
-| ---------------------------------------------------------- | ------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `! [remote rejected] main -> main (push declined)`         | Commit sin firma o firma no verificada por GitHub                   | Re-firmar: `git commit --amend -S` (o `git rebase --signoff origin/main`); confirmar que `user.signingkey` coincide con la pública subida a GitHub; verificar con `git log --show-signature` |
-| Badge **Unverified** en commits legacy                     | Los 374 commits previos al rollout (2026-08-01) no estaban firmados | **Esperado.** No reescribir la historia — el check `Verify Commit Signatures` los trata como grandfathered (ver F4)                                                                          |
-| `error: gpg.ssh.allowedSignersFile needs to be configured` | Falta el archivo o el config                                        | Crear `~/.ssh/allowed_signers` (F1.1) y configurar `git config --global gpg.ssh.allowedSignersFile ~/.ssh/allowed_signers`                                                                   |
+| Síntoma                                                      | Causa                                                                | Fix                                                                                                                                                                                                                                                    |
+| ------------------------------------------------------------ | -------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `! [remote rejected] main -> main (push declined)`           | Commit sin firma o firma no verificada por GitHub                    | Re-firmar: `git commit --amend -S` (último commit) o `git rebase origin/main --exec 'git commit --amend --no-edit -S'` (anteriores); confirmar que `user.signingkey` coincide con la pública subida a GitHub; verificar con `git log --show-signature` |
+| `❌ Commit signature gate failed … sin firma` (pre-push)     | Commit posterior al cutoff sin firma (o con firma corrupta)          | `git commit --amend -S` (último) o `git rebase origin/main --exec 'git commit --amend --no-edit -S'` (anteriores). Un `rebase` destruye las firmas existentes: re-firmar después                                                                       |
+| `⚠️ Commit signature gate skipped: trust store not readable` | Falta `allowed_signers` en la raíz o `ssh-keygen` no está en el PATH | `git pull` para restaurar el trust store versionado; instalar `ssh-keygen` (MSYS2). El preflight **no bloquea**; CI sigue siendo el enforcer autoritativo                                                                                              |
+| `⚠️ … clave ausente del trust store local` (`%G? = U`)       | La clave del commit no está en `allowed_signers`                     | Añadir la `.pub` con el principal correcto vía PR (§8.3)                                                                                                                                                                                               |
+| Badge **Unverified** en commits legacy                       | Los 374 commits previos al rollout (2026-08-01) no estaban firmados  | **Esperado.** No reescribir la historia — el check `Verify Commit Signatures` los trata como grandfathered (ver F4)                                                                                                                                    |
+| `error: gpg.ssh.allowedSignersFile needs to be configured`   | Falta el archivo o el config                                         | Crear `~/.ssh/allowed_signers` (F1.1) y configurar `git config --global gpg.ssh.allowedSignersFile ~/.ssh/allowed_signers`                                                                                                                             |
 
 ### 8.2 Setup rápido condensado (Windows / MSYS2)
 
@@ -492,11 +512,11 @@ cat ~/.ssh/id_ed25519_projectERP.pub
 git config --global gpg.format ssh
 git config --global user.signingkey ~/.ssh/id_ed25519_projectERP.pub
 git config --global commit.gpgsign true
-git config --global commit.signoff true   # trailer DCO — lo exige el check CI "DCO"
+# El hook .husky/prepare-commit-msg añade el trailer DCO en commits nuevos (o usa -s)
 git config --global gpg.ssh.allowedSignersFile ~/.ssh/allowed_signers
 ```
 
-> **`commit.signoff true`** añade el trailer `Signed-off-by:` a cada commit — es la convención de trazabilidad DCO del repo (ver `docs/CONTEXT-CICD.md` §10.5) y lo exige el check CI `DCO`, bloqueante.
+> **DCO:** el trailer `Signed-off-by:` lo añade el hook `.husky/prepare-commit-msg` (o `-s` explícito) y lo valida el check CI `DCO` (bloqueante). `commit.signoff` **no existe en git** y no inyecta nada: ver `docs/learning/dco.md` y `docs/CONTEXT-CICD.md` §10.5.
 
 Verificación:
 
@@ -510,8 +530,12 @@ Tras push, el commit debe mostrar badge **Verified** en GitHub.
 ### 8.3 Rotación / revocación de la clave
 
 1. Generar clave nueva (mismo procedimiento de F1, nombre de archivo distinto).
-2. En GitHub → Settings → SSH and GPG keys: **subir la nueva** como Signing Key y **eliminar la vieja**.
-3. Actualizar `~/.ssh/allowed_signers`: reemplazar la línea con la pública nueva (F1.1).
+2. En GitHub → Settings → SSH and GPG keys: **subir la nueva** como Signing Key; revocar la vieja tras el solapamiento.
+3. Actualizar los dos trust stores (F1.1):
+   - local: reemplazar la línea en `~/.ssh/allowed_signers`;
+   - **versionado**: PR que reemplaza la línea en `allowed_signers` (raíz) — tras el merge, todo el equipo clasifica la
+     clave nueva con `%G? = G`. El `allowed_signers` versionado es la fuente del gate `pre-push`, así que su alta/baja
+     sigue el mismo flujo que cualquier otro cambio: **PR + revisión de CODEOWNERS**, nunca edición local silenciosa.
 4. Actualizar `user.signingkey` a la nueva pública.
 5. Re-verificar: commit de prueba → `git log --show-signature` → badge Verified en GitHub.
 

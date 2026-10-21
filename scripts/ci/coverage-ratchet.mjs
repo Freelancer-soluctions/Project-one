@@ -22,7 +22,7 @@
  *   2  usage error
  */
 import { spawnSync } from 'node:child_process';
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -31,7 +31,10 @@ const ROOT = resolve(fileURLToPath(new URL('../..', import.meta.url)));
 const WORKSPACES = ['client', 'server'].map((id) => ({
   id,
   dir: join(ROOT, 'apps', id),
-  configPath: join(ROOT, 'apps', id, 'vitest.config.js'),
+  // Server vitest config is .ts (TS migration), client is still .js — .ts-first fallback.
+  configPath: existsSync(join(ROOT, 'apps', id, 'vitest.config.ts'))
+    ? join(ROOT, 'apps', id, 'vitest.config.ts')
+    : join(ROOT, 'apps', id, 'vitest.config.js'),
 }));
 
 const requested = process.argv.slice(2);

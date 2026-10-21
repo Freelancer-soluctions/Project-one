@@ -13,50 +13,128 @@ if ! git rev-parse --verify origin/main > /dev/null 2>&1; then
   exit 1
 fi
 
-# DCO re-check (L2): every pushed commit must carry a Signed-off-by trailer.
-# Runs AFTER the fetch above (the null-SHA first-push fallback depends on origin/main).
-# Git passes pushed refs on STDIN: <local-ref> <local-sha> <remote-ref> <remote-sha>
-DCO_FAILED=""
+# --- Commit signature gate (L2) ---------------------------------------------
+# Classifies every pushed commit with %G? against the versioned trust store
+# (`allowed_signers` at the worktree root). Unsigned (N) or corrupted (B)
+# commits created after the rollout cutoff are blocked; signatures that cannot
+# be verified locally (E/U/X/Y/R) only warn. The authoritative enforcer remains
+# the CI check `Verify Commit Signatures` plus the ruleset.
+# Escapes are explicit and visible in the command itself:
+#   HUSKY=0 git push ...      git push --no-verify
+# Setup and troubleshooting: docs/learning/ci-cd/05b-commit-signing.md
+ROOT=$(git rev-parse --show-toplevel 2>/dev/null || true)
+SIGNATURE_GATE=1
 
-while read -r LOCAL_REF LOCAL_SHA REMOTE_REF REMOTE_SHA; do
-  # Skip branch deletions — nothing was pushed
-  if [ "$REMOTE_SHA" = "(delete)" ] || [ "$LOCAL_SHA" = "0000000000000000000000000000000000000000" ]; then
-    continue
-  fi
+if [ -z "$ROOT" ]; then
+  echo "⚠️  Commit signature gate skipped: could not resolve the worktree root."
+  SIGNATURE_GATE=0
+elif ! test -r "$ROOT/allowed_signers"; then
+  echo "⚠️  Commit signature gate skipped: trust store not readable at $ROOT/allowed_signers."
+  echo "   The versioned trust store lives at the repo root; run 'git pull' if it is missing."
+  SIGNATURE_GATE=0
+elif ! command -v ssh-keygen > /dev/null 2>&1; then
+  echo "⚠️  Commit signature gate skipped: ssh-keygen not found in PATH."
+  SIGNATURE_GATE=0
+fi
 
-  if [ "$REMOTE_SHA" = "0000000000000000000000000000000000000000" ]; then
-    # First push of a new branch: remote ref does not exist yet.
-    # Fall back to commits not yet on origin/main (fetch above guarantees it exists).
-    COMMITS=$(git log --no-merges --format="%H" origin/main..HEAD)
-  else
-    COMMITS=$(git log --no-merges --format="%H" "$REMOTE_REF..$LOCAL_REF")
-  fi
+if [ "$SIGNATURE_GATE" -eq 1 ]; then
+  echo "Verifying commit signatures..."
+  ROLLOUT="${SIGNING_ROLLOUT_DATE:-2026-08-01}"
+  BLOCKED=0
 
-  for SHA in $COMMITS; do
-    if ! git log -1 --format="%B" "$SHA" | grep -q 'Signed-off-by:'; then
-      SHORT=$(git log -1 --format="%h" "$SHA")
-      DCO_FAILED="${DCO_FAILED}  - commit $SHORT is missing 'Signed-off-by:' trailer\n"
+  while read -r LOCAL_REF LOCAL_SHA REMOTE_REF REMOTE_SHA; do
+    # Tags are out of scope: a tag line does not represent new branch commits.
+    case "$LOCAL_REF:$REMOTE_REF" in
+      *refs/tags/*) continue ;;
+    esac
+
+    # Branch deletion arrives as "(delete) <zeros> refs/heads/<branch> <remote-sha>",
+    # so the marker is in LOCAL_REF; skip it (and any null LOCAL_SHA) unevaluated.
+    if [ "$LOCAL_REF" = "(delete)" ] || [ -z "$LOCAL_SHA" ] || [ "$LOCAL_SHA" = "0000000000000000000000000000000000000000" ]; then
+      continue
     fi
-  done
-done
 
-if [ -n "$DCO_FAILED" ]; then
-  echo "❌ DCO: the following commits are missing a Signed-off-by trailer:"
-  printf "%b" "$DCO_FAILED"
-  echo "   Fix with 'git rebase --signoff origin/main' or amend with 'git commit -s --amend'."
+    # Enumerate by SHAs: the ref names are identical on both sides, so a range
+    # by names would yield 0 commits. A first push falls back to origin/main..
+    # $LOCAL_SHA (the tip actually pushed, never the checked-out HEAD).
+    if [ -z "$REMOTE_SHA" ] || [ "$REMOTE_SHA" = "0000000000000000000000000000000000000000" ]; then
+      RANGE="origin/main..$LOCAL_SHA"
+    else
+      RANGE="$REMOTE_SHA..$LOCAL_SHA"
+    fi
+
+    # --no-merges: this repo keeps linear history, so no real commit is lost.
+    for SHA in $(git rev-list --no-merges "$RANGE" </dev/null 2>/dev/null || true); do
+      SIGNING_INFO=$(git -c gpg.ssh.allowedSignersFile="$ROOT/allowed_signers" log -1 --format='%h %G? %aI' "$SHA" </dev/null 2>/dev/null || true)
+      [ -n "$SIGNING_INFO" ] || continue
+
+      set -- $SIGNING_INFO
+      SHORT_SHA=$1
+      STATUS=$2
+      AUTHOR_DATE=$3
+
+      # Grandfathering: same cutoff as CI (SIGNING_ROLLOUT_DATE default
+      # 2026-08-01), lexicographic ISO-8601 comparison; earlier commits are
+      # exempt (grandfathered) and never block.
+      if [ "$STATUS" != "G" ] && [ "$AUTHOR_DATE" \< "$ROLLOUT" ]; then
+        echo "  • $SHORT_SHA ($STATUS): exento (grandfathered, author date $AUTHOR_DATE < $ROLLOUT)"
+        continue
+      fi
+
+      case "$STATUS" in
+        'G') : ;;
+        'N') echo "  ❌ $SHORT_SHA ($STATUS): sin firma"; BLOCKED=1 ;;
+        'B') echo "  ❌ $SHORT_SHA ($STATUS): firma corrupta"; BLOCKED=1 ;;
+        'E') echo "  ⚠️  $SHORT_SHA ($STATUS): firma no comprobable localmente (p. ej. squash de web-flow)" ;;
+        'U') echo "  ⚠️  $SHORT_SHA ($STATUS): clave ausente del trust store local (No principal matched)" ;;
+        'X') echo "  ⚠️  $SHORT_SHA ($STATUS): firma válida pero la clave ha expirado" ;;
+        'Y') echo "  ⚠️  $SHORT_SHA ($STATUS): firma válida pero la clave ha sido revocada" ;;
+        'R') echo "  ⚠️  $SHORT_SHA ($STATUS): firma de una clave revocada o no confiable" ;;
+        *) echo "  ⚠️  $SHORT_SHA ($STATUS): estado de firma no reconocido (fail-open, no bloquea)" ;;
+      esac
+    done
+  done
+
+  if [ "$BLOCKED" -eq 1 ]; then
+    echo "❌ Commit signature gate failed: unsigned or corrupted commits cannot be pushed."
+    echo "   Fix the latest commit:  git commit --amend -S"
+    echo "   Fix older commits:      git rebase origin/main --exec 'git commit --amend --no-edit -S'"
+    echo "   Setup and troubleshooting: docs/learning/ci-cd/05b-commit-signing.md"
+    exit 1
+  fi
+
+  echo "✅ Commit signatures verified."
+fi
+
+# --- SAST diff-scoped stage ------------------------------------------------
+# Diff-scoped SAST via the SHARED script (capability sast-diff-scanning):
+# mismo script, versión pineada, packs y exclusiones que el job `sast` del CI
+# (RF-PAR-01..06). Este hook corre en modo `local` (el default del script):
+#   - hallazgo ERROR nuevo en el diff  -> BLOQUEA el push (RF-PP-01)
+#   - herramienta rota (Docker apagado, timeout, sin red) -> fail-open con
+#     aviso visible (RF-FAIL-02): un gate local no bloquea por el entorno
+#   - skips por contrato: working tree sucio (RF-PP-04) y diff sin
+#     .js/.jsx/.cjs/.mjs/.ts/.tsx (RF-PP-03), ambos con aviso y exit 0
+# Si SAST bloquea, los tests scoped NO se ejecutan (se ahorra la suite).
+# Sin re-check DCO (commit-msg es el único gate local de DCO).
+# Escape explícito y visible: git push --no-verify / HUSKY=0 git push
+
+echo "🔬 Running diff-scoped SAST (shared script: scripts/sast-diff.mjs)..."
+if ! node scripts/sast-diff.mjs; then
+  echo "❌ SAST blocked the push (new ERROR finding in the diff)."
+  echo "   Scoped tests were NOT executed. Fix the findings printed above."
   exit 1
 fi
-echo "✅ DCO re-check passed (all pushed commits signed off)."
+
+echo "✅ SAST stage passed (scan ran, was skipped with a visible notice, or failed open on a broken tool)."
 
 # Scoped tests — MISMO contrato de selección que los jobs de CI
 # (`test-unit-client` / `test-unit-server`), a través de los scripts npm.
-#
 # Por qué el server va unit-scoped (`.unit.test.js`): los tests de integración
 # necesitan PostgreSQL, y exigirlos aquí hacía que el gate local fuera MÁS
 # estricto que el de CI — sin DB en la máquina no se podía pushear, mientras
 # que en CI esos tests ni se ejecutan. La integración se cubre en el job
 # `test-integration` de `ci.yml`, que sí levanta el service container.
-#
 # No añadir `--config` ni flags de reporter aquí: la definición vive en los
 # scripts de cada workspace para que local y CI no puedan divergir.
 echo "Running scoped tests (server)..."

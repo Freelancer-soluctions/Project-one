@@ -2755,7 +2755,8 @@ Además de los gates puntuales de GOVERNANCE que aparecen dentro de cada stage (
        │          ├─ QUALITY: Lint+Format (lint-staged), large-file guard
        │          ├─ TESTING: Pre-push hooks — scoped tests (Vitest changed-only) [SL][F1]
        │          ├─ GOVERNANCE: Commit signing (GPG/sigstore gitsign)
-       │          └─ GOVERNANCE: Commit lint (commitlint — Conventional Commits)
+       │          ├─ GOVERNANCE: Commit lint (commitlint — Conventional Commits)
+       │          └─ SUPPLY CHAIN (advisory): SBOM on-demand (npm sbom / syft dir:.) · NO se firma en local (identidad = workflow, Stage 5)
         │
         │  ┌─────────────────────────────────────────────────────────────────────────┐
         │  │  GOVERNANCE LIFECYCLE (7 pasos, NO es un stage paralelo — es el flujo   │
@@ -2776,26 +2777,33 @@ Además de los gates puntuales de GOVERNANCE que aparecen dentro de cada stage (
         │  │     │    required_approving_review_count + CODEOWNERS                   │
         │  │     └─ AUTOMATIZADA → informativa (no gate)                             │
         │  │          opencode / PR Review Automation (§5.9.15) [PV]                 │
-        │  │                                                                         │
+        │  │     (No hecho)                                                          │
         │  │  4. CODE PIPELINE (STAGES 2-8 — testing, security, quality, build)      │
-        │  │     └─ GOVERNANCE: artifacts firmados (Cosign), SBOM, provenance        │
+        │  │     ├─ PRODUCE (el pipeline, NO governance): Stage 3 genera SBOM;       │
+        │  │     │    Stage 5 firma (Cosign) y emite provenance, siempre por digest  │
+        │  │     └─ GOVERNANCE solo EXIGE y archiva (no produce): gate pre-deploy    │
+        │  │          en paso 5 + evidencia en pasos 6-7                             │
         │  │                                                                         │
-        │  │  5. BRANCH PROTECTION (GitHub Rulesets — PASSIVO, lee resultados)       │
+        │  │  5. BRANCH PROTECTION (pasivo, lee) + GATE PRE-DEPLOY (exige)           │
         │  │     ├─ Lee: ¿todos los required checks en verde?                        │
-        │  │     ├─ Lee: ¿hay approval de reviewer? (viene de paso 3)                │
+        │  │     ├─ Lee: ¿hay approval de reviewer? (viene de paso 3)  (No hecho)    │
         │  │     ├─ Lee: ¿commits están firmados?                                    │
         │  │     ├─ SÍ a todo → botón "Merge" habilitado                             │
-        │  │     └─ NO a alguno → botón bloqueado, muestra qué falta                 │
+        │  │     ├─ NO a alguno → botón bloqueado, muestra qué falta                 │
+        │  │     └─ GATE PRE-DEPLOY (job de verificación, antes del Stage 6):        │
+        │  │          cosign verify + verify-attestation (identidad+issuer fijados), │
+        │  │          SBOM + provenance del digest a desplegar; falla → NO despliega │
         │  │                                                                         │
-        │  │  6. POST-DEPLOY GOVERNANCE (stages 6-7)                                 │
+        │  │  6. POST-DEPLOY GOVERNANCE (stages 6-7)  (No hecho)                     │
         │  │     ├─ Change record/ticket linkage (ServiceNow/Jira)                   │
         │  │     ├─ Release readiness dashboard + sign-off evidence                  │
         │  │     └─ Acceptance record (who approved what, evidence archive)          │
         │  │                                                                         │
-        │  │  7. MERGE + CLEANUP (post-merge)                                        │
-        │  │     ├─ Deployment event record (timestamp, commit, artifact SHA)        │
+        │  │  7. MERGE + CLEANUP (post-merge)   (No hecho)                           │
+        │  │     ├─ Deployment event record (timestamp, commit, digest+attestations) │
         │  │     ├─ DORA Metrics capture (deploy frequency, lead time)               │
         │  │     ├─ Audit trail export (immutable, compliance-ready)                 │
+        │  │     ├─ SBOM/Provenance archival (immutable store)                       │
         │  │     └─ Stale branch cleanup, artifact retention, secrets rotation       │
         │  └─────────────────────────────────────────────────────────────────────────┘
        ▼
@@ -2950,15 +2958,16 @@ Además de los gates puntuales de GOVERNANCE que aparecen dentro de cada stage (
  │  │  ├─ Publish to registry (npm/GHCR/ECR/Artifactory)                             │  │
  │  │  ├─ Artifact Signing (Cosign/Sigstore) — containers + binaries                 │  │
  │  │  ├─ SLSA Provenance Generation (slsa-github-generator)                         │  │
- │  │  ├─ SBOM Attach as signed attestation (cosign attach)                          │  │
+ │  │  ├─ SBOM signed attestation (cosign attest --type spdxjson)                    │  │
  │  │  ├─ Notarization platform (Apple notarization / Windows signtool)              │  │
  │  │  ├─ Immutable Digest Pinning (SHA256, not tag)                                 │  │
  │  │  ├─ Registry-side continuous re-scan (ECR/Trivy registry)                      │  │
- │  │  └─ Signature + Provenance verification gate (cosign verify/slsa-verifier)     │  │
+ │  │  └─ Self-check de firma (cosign verify/slsa-verifier) — gate real: Governance  │  │
  │  └────────────────────────────────────────────────────────────────────────────────┘  │
  │  ┌────────────────────────────────────────────────────────────────────────────────┐  │
- │  │  GOVERNANCE (Paso 3 del ciclo — artifacts firmados)                            │  │
- │  │  ├─ Artifact promotion policy (staging registry → prod via pipeline)           │  │
+ │  │  GOVERNANCE (Paso 4 del ciclo — EXIGE artifacts firmados; no los produce)      │  │
+ │  │  ├─ Supply-chain policy: sin firma válida + SBOM + provenance → no despliega   │  │
+ │  │  ├─ Artifact promotion policy (staging → prod: MISMO digest, sin rebuild)      │  │
  │  │  └─ Retention/immutability policy (no tag overwrite)                           │  │
  │  └────────────────────────────────────────────────────────────────────────────────┘  │
  └──────────────────────────────────────────────────────────────────────────────────────┘
@@ -2994,8 +3003,10 @@ Además de los gates puntuales de GOVERNANCE que aparecen dentro de cada stage (
 │  │  └─ Admission policy (signed+scanned images — Kyverno/Gatekeeper)              │  │
 │  └────────────────────────────────────────────────────────────────────────────────┘  │
 │  ┌────────────────────────────────────────────────────────────────────────────────┐  │
-│  │  GOVERNANCE (Paso 5 del ciclo — post-deploy)                                   │  │
-│  │  └─ Change record/ticket linkage (ServiceNow/Jira)                             │  │
+│  │  GOVERNANCE (Pasos 5 y 6 del ciclo — gate pre-deploy + registro)               │  │
+│  │  ├─ Gate pre-deploy (Paso 5): cosign verify + verify-attestation (identidad +  │  │
+│  │  │    issuer fijados) sobre el digest a desplegar · falla → NO despliega       │  │
+│  │  └─ Change record/ticket linkage (ServiceNow/Jira) (Paso 6)                    │  │
 │  └────────────────────────────────────────────────────────────────────────────────┘  │
 └──────────────────────────────────────────────────────────────────────────────────────┘
        │
@@ -3027,7 +3038,7 @@ Además de los gates puntuales de GOVERNANCE que aparecen dentro de cada stage (
 │  │  └─ Content/brand review gate (manual)                                         │  │
 │  └────────────────────────────────────────────────────────────────────────────────┘  │
 │  ┌────────────────────────────────────────────────────────────────────────────────┐  │
-│  │  GOVERNANCE (Paso 5 del ciclo — post-deploy)                                   │  │
+│  │  GOVERNANCE (Paso 6 del ciclo — post-deploy)                                   │  │
 │  │  ├─ Release readiness dashboard + sign-off evidence                            │  │
 │  │  └─ Acceptance record (who approved what, evidence archive)                    │  │
 │  └────────────────────────────────────────────────────────────────────────────────┘  │
@@ -3063,7 +3074,7 @@ Además de los gates puntuales de GOVERNANCE que aparecen dentro de cada stage (
  │  │  └─ UAT / Acceptance gate (manual QA sign-off)                                 │  │
  │  └────────────────────────────────────────────────────────────────────────────────┘  │
  │  ┌────────────────────────────────────────────────────────────────────────────────┐  │
- │  │  GOVERNANCE (Paso 4 del ciclo — Branch Protection lee esto)                    │  │
+ │  │  GOVERNANCE (Paso 5 del ciclo — Branch Protection lee esto)                    │  │
  │  │  ├─ Manual/Environment Protection Rules (GitHub environment approval)          │  │
  │  │  ├─ Security Review Board approval (for high-risk changes)                     │  │
  │  │  ├─ Quality gate (SonarQube quality gate pass)                                 │  │
@@ -3081,7 +3092,7 @@ Además de los gates puntuales de GOVERNANCE que aparecen dentro de cada stage (
  │  └────────────────────────────────────────────────────────────────────────────────┘  │
  │                                                                                      │
  │  Sequential: testing → security → governance approval chain.                         │
- │  Branch Protection (Paso 4 del ciclo) lee todos estos resultados passivamente.       │
+ │  Branch Protection (Paso 5 del ciclo) lee todos estos resultados passivamente.       │
  └──────────────────────────────────────────────────────────────────────────────────────┘
        │
        ▼
@@ -3104,8 +3115,8 @@ Además de los gates puntuales de GOVERNANCE que aparecen dentro de cada stage (
  │  │  └─ Synthetic Monitoring activation (Checkly/Datadog)                          │  │
  │  └────────────────────────────────────────────────────────────────────────────────┘  │
  │  ┌────────────────────────────────────────────────────────────────────────────────┐  │
- │  │  GOVERNANCE (Paso 6 del ciclo — post-merge)                                    │  │
- │  │  ├─ Deployment event record (timestamp, commit, artifact SHA)                  │  │
+ │  │  GOVERNANCE (Paso 7 del ciclo — post-merge)                                    │  │
+ │  │  ├─ Deployment event record (timestamp, commit, digest + attestations)         │  │
  │  │  ├─ License Compliance final gate (FOSSA/ScanCode)                             │  │
  │  │  └─ CI/CD DORA Metrics capture (deploy frequency, lead time)                   │  │
  │  └────────────────────────────────────────────────────────────────────────────────┘  │
@@ -3141,7 +3152,7 @@ Además de los gates puntuales de GOVERNANCE que aparecen dentro de cada stage (
  │  │  └─ Feature flag kill-switch (LaunchDarkly kill-switch)                        │  │
  │  └────────────────────────────────────────────────────────────────────────────────┘  │
  │  ┌────────────────────────────────────────────────────────────────────────────────┐  │
- │  │  CLEANUP + GOVERNANCE (Paso 6 del ciclo — post-merge)                          │  │
+ │  │  CLEANUP + GOVERNANCE (Paso 7 del ciclo — post-merge)                          │  │
  │  │  ├─ Stale branch cleanup (gh, >30 days)                                        │  │
  │  │  ├─ Preview env cleanup (ephemeral, auto-destroy)                              │  │
  │  │  ├─ Container registry cleanup (untagged, old digests)                         │  │

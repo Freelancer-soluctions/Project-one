@@ -10,6 +10,7 @@ import {
   findCoverageSummary,
   readCoverageSources,
   relativize,
+  resolveBaseSha,
 } from './tia-map.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
@@ -86,6 +87,7 @@ describe('buildCoverageMap', () => {
     const map = buildCoverageMap({
       workspace: 'apps/client',
       generatedAt: '2026-10-11T00:00:00.000Z',
+      baseSha: null,
       testFiles: [],
       sources: [],
       coverageSummary: null,
@@ -93,11 +95,30 @@ describe('buildCoverageMap', () => {
     expect(map).toEqual({
       generatedAt: '2026-10-11T00:00:00.000Z',
       workspace: 'apps/client',
+      baseSha: null,
       testFiles: [],
       sources: [],
       coverageSummary: null,
     });
     expect(() => JSON.stringify(map)).not.toThrow();
+  });
+
+  it('defaults a missing baseSha to null (never undefined)', () => {
+    const map = buildCoverageMap({
+      workspace: 'apps/client',
+      generatedAt: '2026-10-11T00:00:00.000Z',
+      testFiles: [],
+      sources: [],
+      coverageSummary: null,
+    });
+    expect(map.baseSha).toBeNull();
+  });
+});
+
+describe('resolveBaseSha', () => {
+  it('returns HEAD or null, never throws', () => {
+    const sha = resolveBaseSha();
+    expect(sha === null || /^[0-9a-f]{40}$/i.test(sha)).toBe(true);
   });
 });
 
@@ -133,5 +154,26 @@ describe('exit-0 contract', () => {
     expect(map.workspace).toBe(ws);
     expect(Array.isArray(map.testFiles)).toBe(true);
     expect(Array.isArray(map.sources)).toBe(true);
+  });
+
+  it('--build map carries baseSha = HEAD (or null when git fails)', () => {
+    const ws = makeWs();
+    const run = spawnSync(process.execPath, [SCRIPT, ws, '--build'], {
+      encoding: 'utf8',
+      env: { ...process.env, TIA_VITEST_TIMEOUT_MS: '1000' },
+    });
+    expect(run.status).toBe(0);
+    const map = JSON.parse(
+      fs.readFileSync(path.join(ws, 'reports', 'coverage-map.json'), 'utf8')
+    );
+    expect('baseSha' in map).toBe(true);
+    const head = spawnSync('git', ['rev-parse', 'HEAD'], {
+      encoding: 'utf8',
+    });
+    const expected =
+      head.status === 0 && /^[0-9a-f]{40}$/i.test(head.stdout.trim())
+        ? head.stdout.trim()
+        : null;
+    expect(map.baseSha).toBe(expected);
   });
 });

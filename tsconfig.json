@@ -11,6 +11,7 @@
     "allowJs": true,
     "checkJs": false,
     "noEmit": true,
+    "incremental": true,
     "skipLibCheck": true,
     "resolveJsonModule": true,
     "esModuleInterop": true

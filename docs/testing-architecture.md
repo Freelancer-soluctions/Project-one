@@ -126,6 +126,11 @@ test: {
 > must load `.env.test` itself because `setupTest.js` (the setup file) runs after
 > the global setup has already completed.
 
+> **Nota gap C2 (migración TS, Fase 0):** los `include` anteriores y los filtros por
+> substring de `apps/server/package.json` (`".unit.test.js"` / `".integration.test.js"`)
+> deben ampliarse a `.{js,ts}` ANTES del primer test convertido; si no, los tests `.ts`
+> quedan fuera de la suite en silencio. Fuente: `docs/server-typescript-migration-research.md`.
+
 ---
 
 ### 4.3 End-to-End Testing (E2E)
@@ -360,25 +365,97 @@ Los tests se ejecutan en tres capas, cada una con un objetivo y presupuesto de t
 
 ### 7.5.1 Pre-commit
 
-Se ejecuta vía Husky `pre-commit` hook. Corre ESLint, Prettier y type-check **solo sobre staged files** (`lint-staged`). Tiempo esperado: < 10 segundos.
+Se ejecuta vía Husky `pre-commit` hook. Corre ESLint y Prettier **solo sobre staged files**
+(`lint-staged`) y después el **escaneo de secretos staged** (Gitleaks, `gitleaks git --pre-commit
+--staged --verbose --redact`, salida capturada y mostrada solo si falla). **Sin SAST** — el SAST
+diff-scoped necesita un baseline (`--baseline-commit`) que en commit time no existe y vive en
+`pre-push` + CI (change `sast-shift-left-hooks-parity`). Presupuesto de la etapa de secretos:
+< 5 segundos en un commit típico (medido: **1.2-1.6 s** vía `npm run security:secrets` — el comando
+que invoca el hook — y **0.55 s** con el binario `gitleaks` directo, sobre 47 archivos staged /
+225 KB; 2026-10-19). Tiempo esperado del hook completo: < 10 segundos.
 
 ### 7.5.2 Pre-push
 
-Se ejecuta vía Husky `pre-push` hook. Corre únicamente tests afectados por cambios desde `origin/main` usando `npx vitest run --changed origin/main`. El límite duro es ~30 segundos (timeout de SSH de GitHub).
+Se ejecuta vía Husky `pre-push` hook, en este orden exacto:
+
+1. `git fetch origin main --depth=1` + guard de disponibilidad de `origin/main`;
+2. gate de **firma de commits** (`%G?` contra el trust store `allowed_signers`);
+3. etapa **SAST diff-scoped** — `node scripts/sast-diff.mjs` (modo local): hallazgo ERROR **nuevo**
+   bloquea el push; herramienta rota (Docker apagado, timeout, sin red) = fail-open con aviso;
+   skips visibles con working tree sucio o diff sin `.js/.jsx/.cjs/.mjs/.ts/.tsx`;
+4. tests **scoped** — `npm run test:changed --workspace=apps/{server,client}` (server: solo
+   `*.unit.test.js`; client: unit + integración de componente), afectados por el diff contra
+   `origin/main`.
+
+Si la firma o el SAST bloquean, los tests **no se ejecutan** (la etapa más barata decide antes de
+pagar la suite). **No hay re-check DCO** en este hook (`commit-msg` es el único gate local de DCO).
 
 **Por qué `origin/main` como diff base:**
 
 - `HEAD~1` solo cubre el último commit — si una rama tiene múltiples commits, solo el último dispararía tests
 - `origin/main` cubre TODOS los commits de la rama desde el fork point
-- Es el estándar de la industria: Nx Affected, Turborepo `--filter`, y Vitest `--changed` usan `origin/main`
+- Es el estándar de la industria: Nx Affected, Turbo­repo `--filter`, y Vitest `--changed` usan `origin/main`
 - Compatible con TBD (Trunk-Based Development): branches cortas, pushes frecuentes
+- El SAST usa además `git merge-base origin/main HEAD` (no `origin/main` a secas) para no atribuir al cambio hallazgos introducidos por terceros si `main` avanzó desde que se abrió la rama
 
 **Excluidos de pre-push:**
 
 - Tests E2E (Playwright) — requieren browser binaries, lentos, pertenecen a CI
 - Tests de integración con DB (Prisma + Supertest) — requieren PostgreSQL, no disponible en hook
 
-### 7.5.3 CI
+### 7.5.3 Presupuestos del pre-push: DOS etapas, DOS presupuestos
+
+El hook `pre-push` tiene **dos etapas con presupuestos distintos** — no uno solo para todo el hook:
+
+| Etapa            | Presupuesto                                                                                | Medición registrada                                                                                                                                                                                                                                                                                            | Ante excedido                                                                                                                                                                                                                            |
+| ---------------- | ------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **SAST**         | < 60 s (objetivo RF-PP-06, **no** techo de ejecución); red de seguridad 300 s en el script | **Medición 2026-10-20 (Windows + Docker Desktop, imagen cacheada, 385 archivos / 81 reglas): 135 s (clon limpio) · 149 s (linked worktree) · 207 s (worktree con la máquina cargada) · 22.7 s en `ubuntu-latest`** · cifras anteriores (42-45 s típico / 68 s peor caso, 2026-10-19) describían un árbol menor | Timeout de 300 s corta el contenedor → clasifica como "herramienta rota" → **fail-open con aviso** (el push no se bloquea por entorno). El timeout de 60 s que había antes degradaba a fail-open _siempre_ en Windows, por eso se elevó. |
+| **Tests scoped** | ~30 s (timeout de SSH de GitHub)                                                           | Convención M-4 del repo; se mide por job (`test:changed` de cada workspace)                                                                                                                                                                                                                                    | Excede → el hook bloquea el push (es un gate de calidad, no de entorno)                                                                                                                                                                  |
+
+La duración de una etapa **no** se mide junto a la otra: el presupuesto de 30 s aplica SOLO a la etapa
+de tests; el SAST tiene el suyo, medido y documentado por separado.
+
+#### 7.5.3.1 Qué mide el presupuesto del SAST y por qué no escala con el diff
+
+Medición real (Windows + Docker Desktop, imagen `semgrep/semgrep:1.176.1` pineada, 2026-10-19), sobre el
+repo real y con el script compartido (`scripts/sast-diff.mjs`):
+
+| Escenario                                                                   | Modo    | Resultado                                                                                                  |
+| --------------------------------------------------------------------------- | ------- | ---------------------------------------------------------------------------------------------------------- |
+| PR típico: 1 archivo / 3 líneas, imagen cacheada                            | `ci`    | 42.4 / 42.4 / 42.8 / 43.8 / 45.1 s (5 corridas)                                                            |
+| PR típico: 1 archivo / 3 líneas, **caché Docker fría**                      | `ci`    | 68.2 s (pull de la imagen: 19.0 s aislados)                                                                |
+| PR típico: 1 archivo / 3 líneas, imagen cacheada                            | `local` | 41.7 / 44.6 / 61.9 s → **el timeout de 60 s puede cortar la corrida**                                      |
+| PR típico: 1 archivo / 3 líneas, **caché Docker fría**                      | `local` | **62.1 s → `⚠️ SAST tool failure: scan timed out after 60s` → fail-open, exit 0, sin contenedor huérfano** |
+| Diff de la rama `typescript-migration`: **282 archivos**, 7 101 inserciones | `ci`    | **1 811.7 s (30 min)** → 1 hallazgo ERROR (`prototype-pollution`)                                          |
+
+**Por qué el tiempo no escala con el tamaño del diff:** `--baseline-commit` no escanea "solo el diff".
+Semgrep escanea el **árbol completo en la revisión actual** y luego **crea un worktree de la revisión
+baseline y lo escanea también**; el baseline sirve para _filtrar_ los hallazgos (solo se reportan los
+nuevos), no para acotar el alcance del escaneo. Por eso el coste escala con el **tamaño del repo**, no
+con el número de archivos tocados: un PR de 1 archivo sobre este repo sigue costando ~43 s.
+
+**Consecuencia sobre el presupuesto de 60 s:** el objetivo de RF-PP-06 se cumple en el caso típico
+(cacheado, ~43 s), pero **no** en el peor caso de caché fría (~68 s), que es precisamente el escenario
+que la tarea de medición pide cubrir. **Actualización 2026-10-20:** el árbol creció y la re-medición da
+**135 s (clon limpio) / 149 s (linked worktree)** con la imagen ya cacheada, 385 archivos y 81 reglas —
+es decir, el escenario "típico" también excede 60 s. Como RF-PP-06 es un **objetivo de rendimiento** y
+no un techo de ejecución, el timeout local se elevó a **300 s** (red de seguridad) para que un scan
+lento pero correcto no se degrade a `tool-broken` → fail-open. El comportamiento del corte sigue
+definido y verificado: se clasifica como **herramienta rota** (no como hallazgo) y aplica la política
+**fail-open local** con aviso visible; en CI el mismo corte es **fail-closed**. La medición vieja se
+conserva arriba como histórico, no como expectativa.
+
+**Consecuencia sobre el CI:** con la rama `typescript-migration` (282 archivos), la medición arriba
+(1 811.7 s) **no se reproduce en GitHub Actions**: el run `39508915508` (PR #141, mismo baseline
+`8dc24d6`) tardó **22.7 s** en `ubuntu-latest` y cerró con 1 hallazgo. Esa cifra de 30 min se tomó en
+**modo `ci` sobre Windows + Docker Desktop**, donde el bind-mount es el cuello de botella — no es un
+escenario de runner. Conclusión corregida: el `timeout-minutes: 15` del job **no** se ve amenazado por
+el tamaño de la rama en Linux; el riesgo de timeout es **local**, y por eso el presupuesto local es el
+que se ajustó (300 s). Se conserva la fila como histórico con esta salvedad, para que nadie dimensione
+la FASE 2 con un número medido en el entorno equivocado — y porque un PR grande **sí** condiciona la
+FASE 2: antes de volverlo bloqueante hay que decidir qué hacer con PRs de ese tamaño.
+
+### 7.5.4 CI
 
 En GitHub Actions, por pull request. Los tres tiers forman **una estrategia coherente**, no tres capas aisladas:
 
@@ -404,7 +481,7 @@ En el tier de CI:
 Estado de FASE: los 6 jobs de unit/coverage corren en **FASE 1 advisory** (`continue-on-error: true`); la promoción a
 blocking ocurre tras la ventana de calibración. Integration, smoke y E2E siguen declarados pero inactivos (`if: false`).
 
-### 7.5.4 TIA local (Test Impact Analysis paridad CI↔local) — change `tia-hardening`
+### 7.5.5 TIA local (Test Impact Analysis paridad CI↔local) — change `tia-hardening`
 
 El mismo contrato de selección que CI está disponible localmente para que el developer verifique qué correría
 antes de abrir el PR. Los scripts son idénticos al tracked `scripts/ci/tia-*.mjs` (selección en dos fases,
@@ -454,9 +531,22 @@ CI cachea vía `setup-monorepo`). Está fuera de git (`.gitignore` ya lo cubre).
 Cuando `origin/main` no es resoluble localmente (rama sin fetch), `test:tia:audit` falla con un mensaje explícito que
 invita a `git fetch origin main` — nunca reporta una selección vacía en silencio.
 
+#### Cláusula e2e: herencia del contrato TIA (change `tia-hardening`, task 6.2)
+
+El job `e2e` de `ci.yml` sigue inactivo (`if: false`, cambio `ci-e2e`). La cláusula acordada (design D6): cuando
+`ci-e2e` levante ese `if: false`, el job **hereda el mismo patrón** implementado para `test-integration` (task 6.1) —
+
+- step `Resolve TIA scope (diff-scoped vs full suite)` con su propio `reports/tia-scope.txt` (rutas shared o base no
+  resolutable ⇒ `scope=full`),
+- rama `test:e2e:changed` con el filtro del tier y `--changed origin/main`,
+- guard D7 detrás: 0 tests seleccionados ⇒ suite completa ruidosa (`::warning::`), nunca un verde vacío.
+
+El tier `test-smoke` queda **fuera** a propósito: critical-path, se ejecuta completo siempre (full-suite por diseño,
+sin scoping TIA). Ver el comentario junto al job `e2e` en `.github/workflows/ci.yml`.
+
 ---
 
-### 7.5.5 Caching
+### 7.5.6 Caching
 
 `vitest --changed` usa la cache de Vitest por defecto (`node_modules/.cache/vitest`), cacheada en CI por
 `actions/cache@v5` desde la composite `setup-monorepo`. En local la cache acelera ejecuciones sucesivas. Con sharding

@@ -142,23 +142,30 @@ function findCoverageDir(root) {
   return candidates[0];
 }
 
-// Load thresholds from the workspace vitest config (single source of truth)
-const configUrl = pathToFileURL(join(wsRoot, 'vitest.config.js')).href;
+// Load thresholds from the workspace vitest config (single source of truth).
+// Server is .ts (TS migration), client is still .js — resolve with .ts-first fallback.
+const configCandidates = ['vitest.config.ts', 'vitest.config.js'].map((f) =>
+  join(wsRoot, f)
+);
+const configFile = configCandidates.find((p) => existsSync(p));
+if (!configFile) {
+  console.error(
+    `❌ No vitest.config.{ts,js} found in ${workspace}: expected one of ${configCandidates.join(', ')}`
+  );
+  process.exit(advisory ? 0 : 1);
+}
+const configUrl = pathToFileURL(configFile).href;
 let config;
 try {
   ({ default: config } = await import(configUrl));
 } catch (err) {
-  console.error(
-    `❌ Failed to load ${workspace}/vitest.config.js: ${err.message}`
-  );
+  console.error(`❌ Failed to load ${configFile}: ${err.message}`);
   process.exit(advisory ? 0 : 1);
 }
 
 const thresholds = config?.test?.coverage?.thresholds;
 if (!thresholds) {
-  console.error(
-    `❌ No coverage.thresholds found in ${workspace}/vitest.config.js`
-  );
+  console.error(`❌ No coverage.thresholds found in ${configFile}`);
   process.exit(advisory ? 0 : 1);
 }
 

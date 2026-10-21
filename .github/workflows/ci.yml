@@ -59,7 +59,9 @@ jobs:
   # STAGE 2: PRE-BUILD — VALIDATE (source code, 0 dependencia de build)
   # ═══════════════════════════════════════════════════════════════
   # ═══════════════════════════════════════════════════════════════
-  # SUBSTAGE 2A: GOVERNANCE — verify-signatures, commit-lint, pr-title-lint, dco, sast diff
+  # SUBSTAGE 2A: GOVERNANCE — verify-signatures, commit-lint, dco, sast diff
+  # (los checks de METADATA — `PR Title Lint` y `Governance: PR Body Lint` —
+  #  viven en `.github/workflows/pr-metadata.yml`; change `pr-metadata-workflow`)
   # ═══════════════════════════════════════════════════════════════
   # verify-signatures (G3) — Verifica firma de commits vía GitHub REST API
   # ════════════════════════════════════════════════════════════════
@@ -346,44 +348,13 @@ jobs:
       - name: Lint squash commit (merge queue)
         if: github.event_name == 'merge_group'
         run: npx commitlint --last --verbose
-  pr-title-lint:
-    name: PR Title Lint
-    runs-on: ubuntu-latest
-    permissions:
-      pull-requests: read
-    steps:
-      # PR events: validate PR title against Conventional Commits
-      - name: Lint PR title
-        if: github.event_name == 'pull_request'
-        uses: amannn/action-semantic-pull-request@v6
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          types: |
-            feat
-            fix
-            docs
-            style
-            refactor
-            perf
-            test
-            build
-            ci
-            chore
-            revert
-            ops
-          requireScope: false
-          ignoreLabels: |
-            bot
-            ignore-semantic-pull-request
-          subjectPattern: '^(?![A-Z]).+$'
-          subjectPatternError: 'PR title must follow Conventional Commits format: type(scope): description with lowercase subject'
-      # Merge queue: squash commit title already validated by commitlint --last
-      - name: Skip on merge_group (covered by commitlint)
-        if: github.event_name == 'merge_group'
-        run: echo "✅ Merge queue — squash commit title validated by commitlint"
-    # Phase 1: non-blocking. Remove after team adjusts (1 sprint).
-    # continue-on-error: true
+  # `pr-title-lint` (job `PR Title Lint`) EMIGRÓ a `.github/workflows/pr-metadata.yml`
+  # (change `pr-metadata-workflow`, migración ATÓMICA en un solo commit).
+  # Motivo: el título se re-valida en el evento `edited` sin re-ejecutar el
+  # pipeline de código. El contexto requerido del ruleset 21227644 conserva el
+  # mismo `name:`, y ahora tiene EMISOR ÚNICO — NO reintroducir el job aquí:
+  # dos emisores producen dos check runs con el mismo contexto y el ruleset
+  # resuelve por el más reciente, enmascarando un rojo con un verde.
   dco:
     name: DCO
     runs-on: ubuntu-latest
@@ -406,7 +377,38 @@ jobs:
         run: echo "✅ Merge queue — DCO validated at PR level"
     # Phase 1: non-blocking. Remove after team adjusts (1 sprint).
     # continue-on-error: true
-  # --- GOVERNANCE: SAST early-abort gate (diff-scoped, standalone) ---
+  # --- GOVERNANCE: SAST diff-scoped (script compartido; FASE 2 BLOCKING) ---
+  # Paridad local/CI por construcción (change sast-shift-left-hooks-parity,
+  # RF-CI-01): el job delega en `scripts/sast-diff.mjs` — misma versión pineada,
+  # mismos packs, mismas exclusiones y mismo `--severity ERROR --error --metrics
+  # off` que el hook `pre-push`. Sin `docker run` inline ni listas duplicadas.
+  #
+  # FASE 2 (graduado 2026-10-20): SIN `continue-on-error` y presente en
+  # `prebuild-governance-complete.needs` — un hallazgo ERROR nuevo deja el job
+  # en rojo y hace fallar el agregador de governance.
+  # ALCANCE REAL (no confundir): ese agregador NO es status check del ruleset
+  # 21227644 (solo los 4 de `docs/CONTEXT-CICD.md` §3.2 lo son), así que el
+  # bloqueo DURO del merge exige bindear `Governance: SAST (Semgrep)` al
+  # ruleset, y eso es un change de gobernanza aparte (spec `sast-governance-gate`,
+  # requisito F2). Mientras no exista ese binding, el rojo es visible y `CI
+  # Complete` falla, pero GitHub no impide el merge por sí solo.
+  # El artifact de 14 días se conserva como evidencia (RF-CI-02).
+  #
+  # Criterio de graduación que se cumplió (RF-CI-03; en lockstep con
+  # docs/learning/quality-gates.md §7):
+  #   1) corridas reales del job sobre PRs (run 39508915508, PR #141, y las
+  #      mediciones locales de paridad con el mismo baseline);
+  #   2) ningún hallazgo ERROR sin triar: el único finding
+  #      (`prototype-pollution` @ validatePathParam.ts) se clasificó como FALSO
+  #      POSITIVO y se remedió con `nosemgrep:` + justificación en el propio
+  #      archivo (clave literal + valor numérico validado, sin claves del
+  #      usuario);
+  #   3) evidencia registrada en el artifact `sast-report`.
+  #
+  # El ruleset 21227644 y `ci-complete.needs` NO se tocan: el gate llega a
+  # `CI Complete` solo de forma transitiva vía el agregador de substage.
+  # Rollback de FASE 2: reponer `continue-on-error: true` y quitar `sast` de
+  # `prebuild-governance-complete.needs` (2 líneas).
   sast:
     name: 'Governance: SAST (Semgrep)'
     runs-on: ubuntu-latest
@@ -414,323 +416,38 @@ jobs:
     if: github.event_name == 'pull_request'
     permissions:
       contents: read
-    continue-on-error: true
+    # FASE 2 (2026-10-20): blocking. El único hallazgo de la ventana de
+    # calibración se trió como falso positivo y se remedió con `nosemgrep`.
     steps:
       - uses: actions/checkout@v5
         with:
           fetch-depth: 0
-      - name: Run Semgrep SAST scan
-        run: docker run --rm -v ${{ github.workspace }}:/src semgrep/semgrep:1.176.1 semgrep scan --baseline-commit ${{ github.event.pull_request.base.sha }} --config .semgrep/rules --config p/owasp-top-ten --config p/security-audit --config p/secrets --config p/nodejs --config p/expressjs --config p/sql-injection --config p/command-injection --config p/react --config p/xss --exclude node_modules --exclude dist --exclude build --exclude coverage --exclude .env --exclude '*.min.js' --exclude prisma/generated --exclude e2e --severity ERROR --error --metrics off
+      - name: Run diff-scoped Semgrep scan (shared script)
+        env:
+          # Baseline = pull-request base commit (design D13). El hook local usa
+          # `git merge-base origin/main HEAD`: bases distintas, declaradas por
+          # cada lado junto al commit que usó — el contrato es mismo diff →
+          # mismo veredicto.
+          SAST_BASELINE_COMMIT: ${{ github.event.pull_request.base.sha }}
+        run: SAST_MODE=ci node scripts/sast-diff.mjs
+      # Evidencia de la ventana de calibración (RF-CI-02 / design D18): el modo
+      # `ci` escribe SIEMPRE `.tmp/sast-report.json` (también en corrida limpia,
+      # con findings vacíos), por eso el upload nunca se queda sin input;
+      # `if-no-files-found: warn` es la red de seguridad. El reporte distingue
+      # hallazgo de herramienta rota. `include-hidden-files: true` es obligatorio:
+      # `.tmp/` es un path OCULTO y upload-artifact@v4+ lo excluye por defecto.
+      - name: Upload SAST report (14-day calibration evidence)
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: sast-report
+          path: .tmp/sast-report.json
+          retention-days: 14
+          if-no-files-found: warn
+          include-hidden-files: true
     # NOT in ci-complete.needs — SAST is a standalone gate, not coupled to CI_MINIMAL
-
-  # ═══════════════════════════════════════════════════════════════
-  # SUBSTAGE 2B: CODE QUALITY — lint, format-check, typecheck, complexity, dead-code, import-bounds, e2e-lint, openspec-validate, docs-validation (advisory)
-  # ═══════════════════════════════════════════════════════════════
-  # --- Client Pre-Build ---
-  client-lint:
-    if: needs.repo-discovery.outputs.client == 'true' && github.event_name == 'pull_request'
-    name: 'Quality: Client Lint'
-    needs: repo-discovery
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-      - uses: actions/checkout@v5
-        with:
-          fetch-depth: 0
-      - uses: ./.github/actions/setup-monorepo
-      - run: npm run lint --workspace=apps/client
-  client-format-check:
-    if: needs.repo-discovery.outputs.client == 'true' && github.event_name == 'pull_request'
-    name: 'Quality: Client Format'
-    needs: repo-discovery
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-      - uses: actions/checkout@v5
-        with:
-          fetch-depth: 0
-      - uses: ./.github/actions/setup-monorepo
-      - run: npm run format:check --workspace=apps/client
-  client-typecheck:
-    if: needs.repo-discovery.outputs.client == 'true' && github.event_name == 'pull_request'
-    name: 'Quality: Client TypeCheck'
-    needs: repo-discovery
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-      - uses: actions/checkout@v5
-        with:
-          fetch-depth: 0
-      - uses: ./.github/actions/setup-monorepo
-      # Gate blocking real (change `quality-gates`): sin `|| echo` ni
-      # `2>/dev/null` que enmascaren el exit code — un error de compilación
-      # falla el job. El client es 100% JS: compila vía tsconfig base
-      # (allowJs + checkJs off); flags strict llegan con server-typescript-migration (Fase 4).
-      - name: TypeCheck
-        run: npx tsc --noEmit
-        working-directory: apps/client
-
-  client-complexity:
-    if: needs.repo-discovery.outputs.client == 'true' && github.event_name == 'pull_request'
-    name: 'Quality: Client Complexity'
-    needs: repo-discovery
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-      - uses: actions/checkout@v5
-        with:
-          fetch-depth: 0
-      - uses: ./.github/actions/setup-monorepo
-      # Gate blocking (change `quality-gates`): sin `--rule` CLI override —
-      # los umbrales vienen de eslint.config.js (15 core / 10 utils / off tests).
-      - name: Check complexity
-        run: npx eslint "src/**/*.{js,jsx}"
-        working-directory: apps/client
-
-  client-dead-code:
-    if: needs.repo-discovery.outputs.client == 'true' && github.event_name == 'pull_request'
-    name: 'Quality: Client Dead Code'
-    needs: repo-discovery
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-      - uses: actions/checkout@v5
-        with:
-          fetch-depth: 0
-      - uses: ./.github/actions/setup-monorepo
-      - name: Detect dead code
-        # DESDE LA RAÍZ (sin working-directory): el selector --workspace de knip
-        # se resuelve relativo al cwd (con cwd=apps/client buscaría
-        # apps/client/apps/client → exit 2), y correr desde el workspace eludiría
-        # la config raíz knip.jsonc. Selector explícito por workspace.
-        run: npx knip --workspace=apps/client --no-progress --reporter json
-
-  client-import-bounds:
-    if: needs.repo-discovery.outputs.client == 'true' && github.event_name == 'pull_request'
-    name: 'Quality: Client Import Bounds'
-    needs: repo-discovery
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-      - uses: actions/checkout@v5
-        with:
-          fetch-depth: 0
-      - uses: ./.github/actions/setup-monorepo
-      # Gate: corre desde la RAÍZ (config raíz + regex `^apps/...`);
-      # --ignore-known respeta el baseline (.dependency-cruiser-known-violations.json).
-      - name: Check import boundaries (gate)
-        run: npm run depcruise:client -- --output-type err --ignore-known
-      # Report no-blocking del grafo combinado (siempre corre, exit code
-      # ignorado aquí): el HTML queda como artefacto para inspección del grafo.
-      - name: Import boundaries report (no-blocking)
-        if: always()
-        run: npm run depcruise:report
-        continue-on-error: true
-      - name: Upload dependency-cruiser report
-        if: always()
-        uses: actions/upload-artifact@v7
-        with:
-          name: dependency-cruiser-report-client
-          path: reports/dependency-cruiser.html
-          if-no-files-found: warn
-          retention-days: 7
-
-  # --- Server Pre-Build ---
-  server-lint:
-    if: needs.repo-discovery.outputs.server == 'true' && github.event_name == 'pull_request'
-    name: 'Quality: Server Lint'
-    needs: repo-discovery
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-      - uses: actions/checkout@v5
-        with:
-          fetch-depth: 0
-      - uses: ./.github/actions/setup-monorepo
-      - run: npm run lint --workspace=apps/server
-
-  # FASE 1 (diferido): server aún no pasa `npm run format:check` limpio.
-  # FASE 2: re-activar (`if: true`) cuando el workspace server pase el check —
-  # misma convención FASE 1/FASE 2 del bloque Security.
-  server-format-check:
-    if: false
-    name: 'Quality: Server Format'
-    needs: repo-discovery
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-      - uses: actions/checkout@v5
-        with:
-          fetch-depth: 0
-      - uses: ./.github/actions/setup-monorepo
-      - run: npm run format:check --workspace=apps/server
-
-  server-typecheck:
-    if: needs.repo-discovery.outputs.server == 'true' && github.event_name == 'pull_request'
-    name: 'Quality: Server TypeCheck'
-    needs: repo-discovery
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-      - uses: actions/checkout@v5
-        with:
-          fetch-depth: 0
-      - uses: ./.github/actions/setup-monorepo
-      # Gate blocking real (change `quality-gates`): `tsc --noEmit -p apps/server`
-      # contra apps/server/tsconfig.json (allowJs, checkJs off — código 100% JS;
-      # flags strict vía server-typescript-migration Fase 4). Sin `|| echo` que enmascare.
-      # Corrección 2026-09-29: `npx tsc --noEmit` con working-directory (patrón
-      # client-typecheck) — `npm run type-check` fallaba porque ese script vive
-      # solo en el manifest RAÍZ, no en apps/server (Missing script: "type-check").
-      - name: TypeCheck
-        run: npx tsc --noEmit
-        working-directory: apps/server
-
-  server-complexity:
-    if: needs.repo-discovery.outputs.server == 'true' && github.event_name == 'pull_request'
-    name: 'Quality: Server Complexity'
-    needs: repo-discovery
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-      - uses: actions/checkout@v5
-        with:
-          fetch-depth: 0
-      - uses: ./.github/actions/setup-monorepo
-      # Gate blocking (change `quality-gates`): sin `--rule` CLI override —
-      # umbrales desde eslint.config.js (15 core / 10 utils / off tests).
-      - name: Check complexity
-        run: npx eslint "src/**/*.js"
-        working-directory: apps/server
-
-  server-dead-code:
-    if: needs.repo-discovery.outputs.server == 'true' && github.event_name == 'pull_request'
-    name: 'Quality: Server Dead Code'
-    needs: repo-discovery
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-      - uses: actions/checkout@v5
-        with:
-          fetch-depth: 0
-      - uses: ./.github/actions/setup-monorepo
-      - name: Detect dead code
-        # DESDE LA RAÍZ (mismo motivo que client-dead-code): knip lee la config
-        # raíz knip.jsonc (con los falsos positivos justificados en ignoreIssues)
-        # y el selector se resuelve correctamente.
-        run: npx knip --workspace=apps/server --no-progress
-
-  server-import-bounds:
-    if: needs.repo-discovery.outputs.server == 'true' && github.event_name == 'pull_request'
-    name: 'Quality: Server Import Bounds'
-    needs: repo-discovery
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-      - uses: actions/checkout@v5
-        with:
-          fetch-depth: 0
-      - uses: ./.github/actions/setup-monorepo
-      # Activado por change `import-boundaries` (antes `if: false`). Gate desde
-      # la RAÍZ con config raíz (regex `^apps/...`) + baseline --ignore-known.
-      - name: Check import boundaries (gate)
-        run: npm run depcruise:server -- --output-type err --ignore-known
-      - name: Import boundaries report (no-blocking)
-        if: always()
-        run: npm run depcruise:report
-        continue-on-error: true
-      - name: Upload dependency-cruiser report
-        if: always()
-        uses: actions/upload-artifact@v7
-        with:
-          name: dependency-cruiser-report-server
-          path: reports/dependency-cruiser.html
-          if-no-files-found: warn
-          retention-days: 7
-
-  # --- E2E Pre-Build ---
-  # Lint estático del workspace e2e (sin navegador): specs, page objects y
-  # playwright.config.js. Mismo patrón que client-lint/server-lint; el umbral
-  # de complejidad de e2e/tests/** es 'off' vía bloque de tests de la config.
-  e2e-lint:
-    if: needs.repo-discovery.outputs.e2e == 'true' && github.event_name == 'pull_request'
-    name: 'Quality: E2E Lint'
-    needs: repo-discovery
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-      - uses: actions/checkout@v5
-        with:
-          fetch-depth: 0
-      - uses: ./.github/actions/setup-monorepo
-      - run: npm run lint --workspace=e2e
-
-  # --- Shared Pre-Build ---
-  # Guard de higiene del manifest raíz (change `root-manifest-cleanup`, spec
-  # `root-manifest-hygiene`): falla si `dependencies` del raíz contiene entradas
-  # no declaradas como requisitos directos (workspaces/devDeps raíz) ni en la
-  # allowlist versionada de scripts/check-root-manifest.mjs. Blocking en PR
-  # que toque el manifest raíz (outputs.shared). Sin red, en segundos.
-  root-manifest-guard:
-    if: needs.repo-discovery.outputs.shared == 'true' && github.event_name == 'pull_request'
-    name: 'Quality: Root Manifest Guard'
-    needs: repo-discovery
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-      - uses: actions/checkout@v5
-      - uses: actions/setup-node@v4
-        with:
-          node-version-file: .nvmrc
-      - name: Validate root manifest inventory
-        run: node scripts/check-root-manifest.mjs
-
-  # --- Specs Pre-Build ---
-  # Validación estructural de las specs canónicas de OpenSpec (openspec/specs/**).
-  # `--specs` valida SOLO main specs; los deltas de changes/ activos se validan
-  # aparte. `--strict` convierte warnings en errores. Mismo patrón que
-  # openspec-validate: barato, sin dependencia de paths-filter (openspec/ no
-  # está en los filtros de repo-discovery) y sin needs: no consume outputs de
-  # repo-discovery, así que corre desde t=0 del workflow en paralelo.
-  openspec-validate:
-    if: github.event_name == 'pull_request'
-    name: 'Quality: OpenSpec Validate'
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-      - uses: actions/checkout@v5
-        with:
-          fetch-depth: 0
-      - uses: ./.github/actions/setup-monorepo
-      - name: Validate OpenSpec main specs (strict)
-        run: npx openspec validate --specs --strict
-
-  # change ci-security-substage-alignment (2026-09-30): reubicado a 2B quality (D8) — job quality que quedó al cierre del stage 2
-  # Job advisory de validación de documentación (change `quality-gates`, fase 1):
-  # markdownlint (estructura) + publication de reporte. NO entra en
-  # `prebuild-quality-complete.needs` — un hallazgo de docs NO bloquea el PR;
-  # el reporte debe sobrevivir (`if: always()`) aunque el job "falle".
-  # Fase 2 (bloqueante) queda fuera de este change hasta que docs/ pase limpio.
-  docs-validation:
-    if: github.event_name == 'pull_request'
-    name: 'Quality: Docs Validation (advisory)'
-    needs: repo-discovery
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    continue-on-error: true
-    steps:
-      - uses: actions/checkout@v5
-      - uses: ./.github/actions/setup-monorepo
-      - name: Lint markdown structure (markdownlint)
-        run: npm run docs:lint
-      - name: Publish docs lint summary
-        if: always()
-        run: |
-          COUNT=$(npx markdownlint "docs/**/*.md" "docs/*.md" 2>/dev/null | wc -l || echo 0)
-          echo "## Docs Validation (advisory, fase 1)" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "markdownlint violations: ${COUNT##* } (fase 1: NO bloquea el PR)" >> $GITHUB_STEP_SUMMARY
-          echo "Config: .markdownlint.json (JSON estricto) + .markdownlintignore (grandfathering del inventario legacy, 2026-09-29) · vale fase 2 (ver docs/learning/docs-changelog-validation.md)" >> $GITHUB_STEP_SUMMARY
+    # (FASE 2, 2026-10-20: it IS in prebuild-governance-complete.needs; never in
+    # ci-complete.needs)
 
   # ═══════════════════════════════════════════════════════════════
   # SUBSTAGE 2D: UNIT TESTING — test-unit-client, test-unit-server, test-integration, test-smoke, property-tests
@@ -905,6 +622,36 @@ jobs:
           echo "injected=$INJECTED" >> "$GITHUB_OUTPUT"
         shell: bash
 
+      # Consumo del coverage-map — task 7.3 (design D5). Best-effort y exit 0
+      # garantizado (guardas `|| true` en shell, sin `continue-on-error`):
+      # resuelve el run-id satisfactorio más reciente de
+      # `nightly-full-suite.yml` con `gh api`, lista el artefacto por prefijo
+      # `coverage-map-client-` (el nombre lleva el sha, task 7.2 — se resuelve
+      # exacto por API como en `flaky-weekly.yml`) y lo descarga con
+      # `gh run download`. Si el JSON es válido se deja en
+      # `reports/coverage-map.json` y se anuncia `map=hit`; ausente o
+      # corrupto → `map=miss` y D7 sigue detrás. El aviso `::notice::`
+      # alimenta la métrica shadow.
+      - name: Consume coverage-map (best-effort)
+        if: always()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          mkdir -p apps/client/reports .tmp/cm-client || true
+          MAP=miss
+          if RUN_ID=$(gh api "repos/${{ github.repository }}/actions/workflows/nightly-full-suite.yml/runs?status=success&per_page=1" --jq '.workflow_runs[0].id' 2>/dev/null || true) && [ -n "$RUN_ID" ] && [ "$RUN_ID" != "null" ]; then
+            ART=$(gh api "repos/${{ github.repository }}/actions/runs/${RUN_ID}/artifacts" --jq '.artifacts[] | select(.name | startswith("coverage-map-client-")) | .name' 2>/dev/null | head -n 1 || true)
+            if [ -n "$ART" ] && gh run download "$RUN_ID" -n "$ART" -D .tmp/cm-client >/dev/null 2>&1; then
+              CM_JSON=$(find .tmp/cm-client -name 'coverage-map.json' -print -quit 2>/dev/null || true)
+              if [ -n "$CM_JSON" ] && CM_JSON="$CM_JSON" node -e "try { JSON.parse(require('fs').readFileSync(process.env.CM_JSON, 'utf8')); } catch (e) { process.exit(1); }"; then
+                cp "$CM_JSON" apps/client/reports/coverage-map.json || true
+                MAP=hit
+              fi
+            fi
+          fi
+          echo "::notice::coverage-map: map=$MAP (client)."
+        shell: bash
+
       - name: Resolve TIA shadow metric
         if: always()
         run: node scripts/ci/tia-metric.mjs apps/client
@@ -923,15 +670,23 @@ jobs:
       # (task 7.3). Best-effort: en diff-scoped el mapa es el del nightly; este
       # step siempre escribe un coverage-map.json válido (aunque pueda ser vacío
       # si no hubo cobertura en la corrida) para que el artefacto exista.
+      # La publicación del artefacto se limita a scope=full (task 7.2: "solo
+      # scope=full y nocturno") — el scope resuelto se expone como output del
+      # step leyendo reports/tia-scope.txt (mismo fichero que consume la
+      # métrica shadow y `Enforce coverage thresholds`).
       - name: Build coverage-map (best-effort)
+        id: coverage-map
         if: always()
-        run: node scripts/ci/tia-map.mjs apps/client --build
+        run: |
+          node scripts/ci/tia-map.mjs apps/client --build || true
+          SCOPE=$(tr -d '[:space:]' < apps/client/reports/tia-scope.txt 2>/dev/null || true)
+          echo "scope=${SCOPE}" >> "$GITHUB_OUTPUT"
         shell: bash
 
       - uses: actions/upload-artifact@v7
-        if: always()
+        if: always() && steps.coverage-map.outputs.scope == 'full'
         with:
-          name: coverage-map-client
+          name: coverage-map-client-${{ github.sha }}
           path: apps/client/reports/coverage-map.json
           retention-days: 30
           if-no-files-found: warn
@@ -981,8 +736,6 @@ jobs:
         run: |
           mkdir -p apps/client/reports
           node scripts/ci/tia-history.mjs apps/client --record --out apps/client/reports/tia-history.json || true
-          mkdir -p apps/server/reports
-          node scripts/ci/tia-history.mjs apps/server --record --out apps/server/reports/tia-history.json || true
         shell: bash
 
       - uses: actions/upload-artifact@v7
@@ -990,14 +743,6 @@ jobs:
         with:
           name: tia-history-client
           path: apps/client/reports/tia-history.json
-          retention-days: 30
-          if-no-files-found: warn
-
-      - uses: actions/upload-artifact@v7
-        if: always()
-        with:
-          name: tia-history-server
-          path: apps/server/reports/tia-history.json
           retention-days: 30
           if-no-files-found: warn
 
@@ -1163,6 +908,30 @@ jobs:
           echo "injected=$INJECTED" >> "$GITHUB_OUTPUT"
         shell: bash
 
+      # Consumo del coverage-map — task 7.3 (design D5). Espejo del job
+      # client: mismo contrato best-effort (exit 0 garantizado, sin
+      # `continue-on-error`), artefacto `coverage-map-server-*` del nightly,
+      # `map=hit` solo con JSON válido en `reports/coverage-map.json`.
+      - name: Consume coverage-map (best-effort)
+        if: always()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          mkdir -p apps/server/reports .tmp/cm-server || true
+          MAP=miss
+          if RUN_ID=$(gh api "repos/${{ github.repository }}/actions/workflows/nightly-full-suite.yml/runs?status=success&per_page=1" --jq '.workflow_runs[0].id' 2>/dev/null || true) && [ -n "$RUN_ID" ] && [ "$RUN_ID" != "null" ]; then
+            ART=$(gh api "repos/${{ github.repository }}/actions/runs/${RUN_ID}/artifacts" --jq '.artifacts[] | select(.name | startswith("coverage-map-server-")) | .name' 2>/dev/null | head -n 1 || true)
+            if [ -n "$ART" ] && gh run download "$RUN_ID" -n "$ART" -D .tmp/cm-server >/dev/null 2>&1; then
+              CM_JSON=$(find .tmp/cm-server -name 'coverage-map.json' -print -quit 2>/dev/null || true)
+              if [ -n "$CM_JSON" ] && CM_JSON="$CM_JSON" node -e "try { JSON.parse(require('fs').readFileSync(process.env.CM_JSON, 'utf8')); } catch (e) { process.exit(1); }"; then
+                cp "$CM_JSON" apps/server/reports/coverage-map.json || true
+                MAP=hit
+              fi
+            fi
+          fi
+          echo "::notice::coverage-map: map=$MAP (server)."
+        shell: bash
+
       - name: Resolve TIA shadow metric
         if: always()
         run: node scripts/ci/tia-metric.mjs apps/server
@@ -1175,6 +944,32 @@ jobs:
         if: always()
         run: node scripts/ci/ttff-metric.mjs apps/server || true
         shell: bash
+
+      # Coverage-map build — task 7.1/7.2 (design D5). Espejo del job client:
+      # el mapa se publica versionado por base-sha
+      # (`coverage-map-server-<sha>`, el sha interno lo escribe `tia-map.mjs`,
+      # task 7.1) para que los PRs scoped lo consuman (task 7.3).
+      # Best-effort: este step siempre escribe un coverage-map.json válido
+      # (aunque pueda ser vacío si no hubo cobertura en la corrida).
+      # La publicación del artefacto se limita a scope=full (task 7.2: "solo
+      # scope=full y nocturno") — el scope resuelto se expone como output del
+      # step leyendo reports/tia-scope.txt.
+      - name: Build coverage-map (best-effort)
+        id: coverage-map
+        if: always()
+        run: |
+          node scripts/ci/tia-map.mjs apps/server --build || true
+          SCOPE=$(tr -d '[:space:]' < apps/server/reports/tia-scope.txt 2>/dev/null || true)
+          echo "scope=${SCOPE}" >> "$GITHUB_OUTPUT"
+        shell: bash
+
+      - uses: actions/upload-artifact@v7
+        if: always() && steps.coverage-map.outputs.scope == 'full'
+        with:
+          name: coverage-map-server-${{ github.sha }}
+          path: apps/server/reports/coverage-map.json
+          retention-days: 30
+          if-no-files-found: warn
 
       # Artefacto de cobertura del shard — change `coverage-merge-gate` (gap b). Mismo
       # contrato que el de client: índice de shard literal con N=1 (inmutabilidad de
@@ -1211,19 +1006,9 @@ jobs:
       - name: Record TIA history
         if: always()
         run: |
-          mkdir -p apps/client/reports
-          node scripts/ci/tia-history.mjs apps/client --record --out apps/client/reports/tia-history.json || true
           mkdir -p apps/server/reports
           node scripts/ci/tia-history.mjs apps/server --record --out apps/server/reports/tia-history.json || true
         shell: bash
-
-      - uses: actions/upload-artifact@v7
-        if: always()
-        with:
-          name: tia-history-client
-          path: apps/client/reports/tia-history.json
-          retention-days: 30
-          if-no-files-found: warn
 
       - uses: actions/upload-artifact@v7
         if: always()
@@ -1239,6 +1024,203 @@ jobs:
           name: Server Unit Tests
           path: apps/server/reports/junit.xml
           reporter: java-junit
+
+  client-coverage:
+    # FASE 1 advisory. Scoping por PROPAGACIÓN de skip del upstream (needs = exactamente
+    # su test job; client-build sigue if: false — deadlock de skipped). NOTA D17: el if
+    # explícito con needs.repo-discovery.outputs NO es viable aquí — GHA solo expone el
+    # contexto needs de jobs DECLARADOS en needs (actionlint: property not defined) y el
+    # job se saltaría siempre. La propagación cubre el mismo conjunto: corre ⇔ corrió su test job.
+    # ACTIVADO (change `coverage-tripwire-stage-2d`): retirado `if: false`.
+    # O job corre ⇔ test-unit-client correu (propagación de skip). FASE 1 advisory
+    # (`continue-on-error: true`): reporta sen bloquear. FASE 2: retirar `continue-on-error`.
+    #
+    # PUENTE DEL COVERAGE MERGE GATE — change `coverage-merge-gate` (D1/D2). Este job ES el
+    # puente de NOMBRE FIJO que fusiona la cobertura de TODAS las shards y evalúa los
+    # thresholds globales UNA SOLA VEZ, post-merge. No se crea ningún job nuevo: el
+    # agregador `prebuild-unit-tests-complete` sigue viendo sus mismos 6 `needs`.
+    # - `!cancelled()`: el default `success()` se saltaría el gate justo cuando una shard
+    #   falló (el informe importa más entonces); `always()` además correría tras una
+    #   cancelación explícita del usuario, gastando un runner en un run descartado.
+    # - `result != 'skipped'`: propaga el skip del upstream SIN ejecutar el job. Sin esa
+    #   cláusula, sólo `!cancelled()` correría con upstream SKIPPED y la validación de
+    #   presencia emitiría un `::error::` falso por artifacts legítimamente ausentes.
+    #   El carril PR queda cubierto por propagación: `test-unit-client` sólo corre en PRs.
+    if: ${{ !cancelled() && needs.test-unit-client.result != 'skipped' }}
+    continue-on-error: true
+    name: 'Quality: Client Coverage'
+    needs: [test-unit-client]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - uses: ./.github/actions/setup-monorepo
+      # change `coverage-merge-gate` (D3): TODOS los artifacts de shard por patrón +
+      # `merge-multiple` hacia la LCA `apps/client/`, restaurando `.vitest-reports/`
+      # y `coverage/` con sus rutas relativas intactas. Con N=1 el patrón captura el
+      # único artifact ⇒ mismo camino que con matriz (sin rama condicional que pueda
+      # divergir y romperse sólo al pasar a matriz).
+      - uses: actions/download-artifact@v7
+        with:
+          pattern: coverage-client-shard-*
+          merge-multiple: true
+          path: apps/client/
+      - uses: actions/download-artifact@v7
+        with:
+          name: flaky-evidence-client
+          path: apps/client/reports/
+      # Validación de presencia + guard N=0 — change `coverage-merge-gate` (D4). DOS
+      # entradas distintas, en este orden, ANTES de mergear ni de medir:
+      #  (1) entrada del MERGE: blobs de Vitest (`.vitest-reports/`) no vacíos;
+      #  (2) entrada del GATE: `coverage-summary.json` existente.
+      # La rama "upstream salteado" NO llega aquí: se resuelve en el `if` del job (task
+      # 2.1), así que la única situación posible en este step es "upstream corrió pero
+      # artifacts/blobs ausentes" ⇒ `exit 1`. Nunca se mergeará vacío ni se evaluará una
+      # cobertura 0% (anti-patrón: tratar un parcial como fuente de verdad).
+      - name: Validate shard artifacts (merge gate, N=0 guard)
+        run: |
+          test -d apps/client/.vitest-reports && [ -n "$(ls -A apps/client/.vitest-reports)" ] || { echo "::error::vitest blob reports missing — merge cannot proceed"; exit 1; }
+          test -f apps/client/coverage/coverage-summary.json || { echo "::error::coverage artifact missing"; exit 1; }
+      # Merge de shards — change `coverage-merge-gate` (orden canónico shard → merge →
+      # check-coverage). `working-directory: apps/client` para que la root de config de
+      # Vitest, el dir de blobs (default de `--merge-reports` = `.vitest-reports` relativo
+      # al cwd) y el `reportsDirectory` de coverage resuelvan sin flags extra. SIN
+      # `--reporter=blob`: el merge no ejecuta tests y el flag sólo emitiría un blob
+      # espurio que podría pisar los blobs merged.
+      - name: Merge shard reports (vitest --merge-reports --coverage)
+        working-directory: apps/client
+        run: npx vitest --merge-reports --coverage
+      # D18: el tripwire de thresholds SOLO evalúa cobertura de suite completa.
+      # Una corrida TIA solo carga los tests afectados, así que sus totales no son
+      # comparables con los thresholds globales (falso fail al reportar 0% en lo no
+      # corrido, o fail-silencioso al subir el % al testear solo lo ya cubierto).
+      # En diff-scoped se exige la presencia del artefacto y se difiere el umbral
+      # a la próxima full-suite (que cierran los PRs `shared` y el nocturno).
+      - name: Enforce coverage thresholds (full suite only, D18)
+        run: |
+          SCOPE=$(tr -d '[:space:]' < apps/client/reports/tia-scope.txt 2>/dev/null || true)
+          SCOPE=${SCOPE:-full}
+          echo "TIA scope: $SCOPE"
+          if [ ! -f apps/client/coverage/coverage-summary.json ]; then
+            echo "::error::coverage artifact missing — the test job did not produce coverage"
+            exit 1
+          fi
+          if [ "${SCOPE}" != "full" ]; then
+            echo "::notice::diff-scoped run: thresholds deferred to the next full-suite run (D18) — reporting diff-limited coverage as advisory."
+            node scripts/ci/check-coverage.mjs apps/client --advisory
+            exit 0
+          fi
+          node scripts/ci/check-coverage.mjs apps/client
+      # Propagación de fallo de shards — change `coverage-merge-gate` (D7). Un verde
+      # parcial que oculta shards rojas no es aceptable. Va DESPUÉS del D18 para que la
+      # evaluación de cobertura siga siendo visible en el log cuando una shard falla;
+      # el `exit 0` del carril diff-scoped vive dentro del step previo, así que no
+      # interfiere. HOY ES UN NO-OP: `test-unit-client` tiene `continue-on-error: true`
+      # (FASE 1, `quality-gates`) y `needs.*.result` reporta `success` aunque falle
+      # (`actions/toolkit#581`) — se activa SOLO al retirar el COE en FASE 2, sin retoque.
+      - name: Propagate shard failure
+        if: ${{ contains(needs.test-unit-client.result, 'failure') }}
+        run: |
+          echo "::error::test-unit-client reported failure — merged coverage above does not make this gate green"
+          exit 1
+
+  server-coverage:
+    # FASE 1 advisory. Scoping por propagación (misma corrección D17 que client-coverage);
+    # el guard recibe el reportsDirectory real del server como 3.er argumento.
+    # ACTIVADO (change `coverage-tripwire-stage-2d`): retirado `if: false`.
+    # O job corre ⇔ test-unit-server correu (propagación de skip). FASE 1 advisory
+    # (`continue-on-error: true`): reporta sen bloquear. FASE 2: retirar `continue-on-error`.
+    #
+    # PUENTE DEL COVERAGE MERGE GATE — change `coverage-merge-gate` (D1/D2), espejo del
+    # client. Fusiona la cobertura de todas las shards y evalúa los thresholds UNA SOLA
+    # VEZ, post-merge, bajo el mismo nombre de job (los 6 `needs` del agregador no cambian).
+    # `!cancelled()`: corre cuando una shard falla, pero no tras una cancelación del usuario.
+    # `result != 'skipped'`: hereda el skip del upstream sin ejecutar (y sin emitir un
+    # `::error::` falso por artifacts ausentes legítimos).
+    if: ${{ !cancelled() && needs.test-unit-server.result != 'skipped' }}
+    continue-on-error: true
+    name: 'Quality: Server Coverage'
+    needs: [test-unit-server]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - uses: ./.github/actions/setup-monorepo
+      # change `coverage-merge-gate` (D3): descarga por patrón + `merge-multiple`
+      # hacia la LCA `apps/server/` (restaura `tests/coverage/` y `.vitest-reports/`).
+      - uses: actions/download-artifact@v7
+        with:
+          pattern: coverage-server-shard-*
+          merge-multiple: true
+          path: apps/server/
+      - uses: actions/download-artifact@v7
+        with:
+          name: flaky-evidence-server
+          path: apps/server/reports/
+      # Validación de presencia + guard N=0 — change `coverage-merge-gate` (D4). Mismas
+      # DOS entradas que el client, con sus rutas específicas: blobs en `.vitest-reports/`
+      # y el summary en `tests/coverage/` (`reportsDirectory` del server). La rama
+      # "upstream salteado" se resuelve en el `if` del job; aquí sólo puede llegar
+      # "upstream corrió pero artifacts/blobs ausentes" ⇒ `exit 1` con mensaje distinto
+      # según la entrada faltante.
+      - name: Validate shard artifacts (merge gate, N=0 guard)
+        run: |
+          test -d apps/server/.vitest-reports && [ -n "$(ls -A apps/server/.vitest-reports)" ] || { echo "::error::vitest blob reports missing — merge cannot proceed"; exit 1; }
+          test -f apps/server/tests/coverage/coverage-summary.json || { echo "::error::coverage artifact missing"; exit 1; }
+      # Merge de shards — change `coverage-merge-gate`: `working-directory: apps/server`
+      # (root de config del server → `.vitest-reports/` y `tests/coverage/` resuelven sin
+      # flags extra). SIN `--reporter=blob` por la misma razón que en el client.
+      - name: Merge shard reports (vitest --merge-reports --coverage)
+        working-directory: apps/server
+        run: npx vitest --merge-reports --coverage
+      # D18: el guard de thresholds solo evalúa cobertura de suite completa; en
+      # corridas diff-scoped (TIA) se verifica la presencia del artefacto y se
+      # difiere el umbral a la próxima full-suite.
+      - name: Enforce coverage thresholds (full suite only, D18)
+        run: |
+          SCOPE=$(tr -d '[:space:]' < apps/server/reports/tia-scope.txt 2>/dev/null || true)
+          SCOPE=${SCOPE:-full}
+          echo "TIA scope: $SCOPE"
+          if [ ! -f apps/server/tests/coverage/coverage-summary.json ]; then
+            echo "::error::coverage artifact missing — the test job did not produce coverage"
+            exit 1
+          fi
+          if [ "${SCOPE}" != "full" ]; then
+            echo "::notice::diff-scoped run: thresholds deferred to the next full-suite run (D18) — reporting diff-limited coverage as advisory."
+            node scripts/ci/check-coverage.mjs apps/server apps/server/tests/coverage --advisory
+            exit 0
+          fi
+          node scripts/ci/check-coverage.mjs apps/server apps/server/tests/coverage
+      # Propagación de fallo de shards — change `coverage-merge-gate` (D7), tras el D18
+      # para no esconder la evaluación de cobertura. No-op mientras `test-unit-server`
+      # mantenga el `continue-on-error` de FASE 1 (`actions/toolkit#581`): se activa al
+      # retirarlo en FASE 2.
+      - name: Propagate shard failure
+        if: ${{ contains(needs.test-unit-server.result, 'failure') }}
+        run: |
+          echo "::error::test-unit-server reported failure — merged coverage above does not make this gate green"
+          exit 1
+
+  property-tests:
+    if: (needs.repo-discovery.outputs.client == 'true' || needs.repo-discovery.outputs.server == 'true' || needs.repo-discovery.outputs.shared == 'true') && github.event_name == 'pull_request'
+    name: 'Tests: Property Tests'
+    needs: repo-discovery
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - uses: ./.github/actions/setup-monorepo
+      - name: Run Property Tests
+        run: npm run test:pbt
+        env:
+          CI: true
 
   # ═══════════════════════════════════════════════════════════════
   # SUBSTAGE 2C: SECURITY — dependency-review, secrets, scancode-license-pr-diff, lockfile-audit, checkov-iac, containerfile-lint, actionlint-advisory, zizmor-advisory, typosquat-guarddog
@@ -1740,6 +1722,324 @@ jobs:
           if-no-files-found: warn
 
   # ═══════════════════════════════════════════════════════════════
+  # SUBSTAGE 2B: CODE QUALITY — lint, format-check, typecheck, complexity, dead-code, import-bounds, e2e-lint, openspec-validate, docs-validation (advisory)
+  # ═══════════════════════════════════════════════════════════════
+  # --- Client Pre-Build ---
+  client-lint:
+    if: needs.repo-discovery.outputs.client == 'true' && github.event_name == 'pull_request'
+    name: 'Quality: Client Lint'
+    needs: repo-discovery
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - uses: ./.github/actions/setup-monorepo
+      - run: npm run lint --workspace=apps/client
+  client-format-check:
+    if: needs.repo-discovery.outputs.client == 'true' && github.event_name == 'pull_request'
+    name: 'Quality: Client Format'
+    needs: repo-discovery
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - uses: ./.github/actions/setup-monorepo
+      - run: npm run format:check --workspace=apps/client
+  client-typecheck:
+    if: needs.repo-discovery.outputs.client == 'true' && github.event_name == 'pull_request'
+    name: 'Quality: Client TypeCheck'
+    needs: repo-discovery
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - uses: ./.github/actions/setup-monorepo
+      # Gate blocking real (change `quality-gates`): sin `|| echo` ni
+      # `2>/dev/null` que enmascaren el exit code — un error de compilación
+      # falla el job. El client es 100% JS: compila vía tsconfig base
+      # (allowJs + checkJs off); flags strict llegan con server-typescript-migration (Fase 4).
+      - name: TypeCheck
+        run: npx tsc --noEmit
+        working-directory: apps/client
+
+  client-complexity:
+    if: needs.repo-discovery.outputs.client == 'true' && github.event_name == 'pull_request'
+    name: 'Quality: Client Complexity'
+    needs: repo-discovery
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - uses: ./.github/actions/setup-monorepo
+      # Gate blocking (change `quality-gates`): sin `--rule` CLI override —
+      # los umbrales vienen de eslint.config.js (15 core / 10 utils / off tests).
+      - name: Check complexity
+        run: npx eslint "src/**/*.{js,jsx}"
+        working-directory: apps/client
+
+  client-dead-code:
+    if: needs.repo-discovery.outputs.client == 'true' && github.event_name == 'pull_request'
+    name: 'Quality: Client Dead Code'
+    needs: repo-discovery
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - uses: ./.github/actions/setup-monorepo
+      - name: Detect dead code
+        # DESDE LA RAÍZ (sin working-directory): el selector --workspace de knip
+        # se resuelve relativo al cwd (con cwd=apps/client buscaría
+        # apps/client/apps/client → exit 2), y correr desde el workspace eludiría
+        # la config raíz knip.jsonc. Selector explícito por workspace.
+        run: npx knip --workspace=apps/client --no-progress --reporter json
+
+  client-import-bounds:
+    if: needs.repo-discovery.outputs.client == 'true' && github.event_name == 'pull_request'
+    name: 'Quality: Client Import Bounds'
+    needs: repo-discovery
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - uses: ./.github/actions/setup-monorepo
+      # Gate: corre desde la RAÍZ (config raíz + regex `^apps/...`);
+      # --ignore-known respeta el baseline (.dependency-cruiser-known-violations.json).
+      - name: Check import boundaries (gate)
+        run: npm run depcruise:client -- --output-type err --ignore-known
+      # Report no-blocking del grafo combinado (siempre corre, exit code
+      # ignorado aquí): el HTML queda como artefacto para inspección del grafo.
+      - name: Import boundaries report (no-blocking)
+        if: always()
+        run: npm run depcruise:report
+        continue-on-error: true
+      - name: Upload dependency-cruiser report
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: dependency-cruiser-report-client
+          path: reports/dependency-cruiser.html
+          if-no-files-found: warn
+          retention-days: 7
+
+  # --- Server Pre-Build ---
+  server-lint:
+    if: needs.repo-discovery.outputs.server == 'true' && github.event_name == 'pull_request'
+    name: 'Quality: Server Lint'
+    needs: repo-discovery
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - uses: ./.github/actions/setup-monorepo
+      - run: npm run lint --workspace=apps/server
+
+  # FASE 1 (diferido): server aún no pasa `npm run format:check` limpio.
+  # FASE 2: re-activar (`if: true`) cuando el workspace server pase el check —
+  # misma convención FASE 1/FASE 2 del bloque Security.
+  server-format-check:
+    if: false
+    name: 'Quality: Server Format'
+    needs: repo-discovery
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - uses: ./.github/actions/setup-monorepo
+      - run: npm run format:check --workspace=apps/server
+
+  server-typecheck:
+    if: needs.repo-discovery.outputs.server == 'true' && github.event_name == 'pull_request'
+    name: 'Quality: Server TypeCheck'
+    needs: repo-discovery
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - uses: ./.github/actions/setup-monorepo
+      # Gate blocking real (change `quality-gates`): `tsc --noEmit -p apps/server`
+      # contra apps/server/tsconfig.json (allowJs, checkJs off — código 100% JS;
+      # flags strict vía server-typescript-migration Fase 4). Sin `|| echo` que enmascare.
+      # Corrección 2026-09-29: `npx tsc --noEmit` con working-directory (patrón
+      # client-typecheck) — `npm run type-check` fallaba porque ese script vive
+      # solo en el manifest RAÍZ, no en apps/server (Missing script: "type-check").
+      - name: TypeCheck
+        run: npx tsc --noEmit
+        working-directory: apps/server
+
+  server-complexity:
+    if: needs.repo-discovery.outputs.server == 'true' && github.event_name == 'pull_request'
+    name: 'Quality: Server Complexity'
+    needs: repo-discovery
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - uses: ./.github/actions/setup-monorepo
+      # Gate blocking (change `quality-gates`): sin `--rule` CLI override —
+      # umbrales desde eslint.config.js (15 core / 10 utils / off tests).
+      - name: Check complexity
+        run: npx eslint "src/**/*.{js,ts}"
+        working-directory: apps/server
+
+  server-dead-code:
+    if: needs.repo-discovery.outputs.server == 'true' && github.event_name == 'pull_request'
+    name: 'Quality: Server Dead Code'
+    needs: repo-discovery
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - uses: ./.github/actions/setup-monorepo
+      - name: Detect dead code
+        # DESDE LA RAÍZ (mismo motivo que client-dead-code): knip lee la config
+        # raíz knip.jsonc (con los falsos positivos justificados en ignoreIssues)
+        # y el selector se resuelve correctamente.
+        run: npx knip --workspace=apps/server --no-progress
+
+  server-import-bounds:
+    if: needs.repo-discovery.outputs.server == 'true' && github.event_name == 'pull_request'
+    name: 'Quality: Server Import Bounds'
+    needs: repo-discovery
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - uses: ./.github/actions/setup-monorepo
+      # Activado por change `import-boundaries` (antes `if: false`). Gate desde
+      # la RAÍZ con config raíz (regex `^apps/...`) + baseline --ignore-known.
+      - name: Check import boundaries (gate)
+        run: npm run depcruise:server -- --output-type err --ignore-known
+      - name: Import boundaries report (no-blocking)
+        if: always()
+        run: npm run depcruise:report
+        continue-on-error: true
+      - name: Upload dependency-cruiser report
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: dependency-cruiser-report-server
+          path: reports/dependency-cruiser.html
+          if-no-files-found: warn
+          retention-days: 7
+
+  # --- E2E Pre-Build ---
+  # Lint estático del workspace e2e (sin navegador): specs, page objects y
+  # playwright.config.js. Mismo patrón que client-lint/server-lint; el umbral
+  # de complejidad de e2e/tests/** es 'off' vía bloque de tests de la config.
+  e2e-lint:
+    if: needs.repo-discovery.outputs.e2e == 'true' && github.event_name == 'pull_request'
+    name: 'Quality: E2E Lint'
+    needs: repo-discovery
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - uses: ./.github/actions/setup-monorepo
+      - run: npm run lint --workspace=e2e
+
+  # --- Shared Pre-Build ---
+  # Guard de higiene del manifest raíz (change `root-manifest-cleanup`, spec
+  # `root-manifest-hygiene`): falla si `dependencies` del raíz contiene entradas
+  # no declaradas como requisitos directos (workspaces/devDeps raíz) ni en la
+  # allowlist versionada de scripts/check-root-manifest.mjs. Blocking en PR
+  # que toque el manifest raíz (outputs.shared). Sin red, en segundos.
+  root-manifest-guard:
+    if: needs.repo-discovery.outputs.shared == 'true' && github.event_name == 'pull_request'
+    name: 'Quality: Root Manifest Guard'
+    needs: repo-discovery
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - name: Validate root manifest inventory
+        run: node scripts/check-root-manifest.mjs
+
+  # --- Specs Pre-Build ---
+  # Validación estructural de las specs canónicas de OpenSpec (openspec/specs/**).
+  # `--specs` valida SOLO main specs; los deltas de changes/ activos se validan
+  # aparte. `--strict` convierte warnings en errores. Mismo patrón que
+  # openspec-validate: barato, sin dependencia de paths-filter (openspec/ no
+  # está en los filtros de repo-discovery) y sin needs: no consume outputs de
+  # repo-discovery, así que corre desde t=0 del workflow en paralelo.
+  openspec-validate:
+    if: github.event_name == 'pull_request'
+    name: 'Quality: OpenSpec Validate'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - uses: ./.github/actions/setup-monorepo
+      - name: Validate OpenSpec main specs (strict)
+        run: npx openspec validate --specs --strict
+      # Gate del lockstep plantilla ↔ política del PR body (change
+      # `pr-metadata-workflow`, task 1.9): `scripts/ci/pr-body-lint.test.mjs`
+      # incluye el test que FALLA si un heading de
+      # `.github/PULL_REQUEST_TEMPLATE.md` se renombra sin actualizar
+      # `scripts/ci/pr-body-lint.mjs` (design D11). Va aquí y no en
+      # `actionlint-advisory` porque ese job es `continue-on-error: true` y no
+      # podría bloquear nada — ver nota de desviación en tasks.md.
+      - name: Run CI scripts suite (PR body policy + template lockstep)
+        run: npm run test:scripts
+
+  # change ci-security-substage-alignment (2026-09-30): reubicado a 2B quality (D8) — job quality que quedó al cierre del stage 2
+  # Job advisory de validación de documentación (change `quality-gates`, fase 1):
+  # markdownlint (estructura) + publication de reporte. NO entra en
+  # `prebuild-quality-complete.needs` — un hallazgo de docs NO bloquea el PR;
+  # el reporte debe sobrevivir (`if: always()`) aunque el job "falle".
+  # Fase 2 (bloqueante) queda fuera de este change hasta que docs/ pase limpio.
+  docs-validation:
+    if: github.event_name == 'pull_request'
+    name: 'Quality: Docs Validation (advisory)'
+    needs: repo-discovery
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v5
+      - uses: ./.github/actions/setup-monorepo
+      - name: Lint markdown structure (markdownlint)
+        run: npm run docs:lint
+      - name: Publish docs lint summary
+        if: always()
+        run: |
+          COUNT=$(npx markdownlint "docs/**/*.md" "docs/*.md" 2>/dev/null | wc -l || echo 0)
+          echo "## Docs Validation (advisory, fase 1)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "markdownlint violations: ${COUNT##* } (fase 1: NO bloquea el PR)" >> $GITHUB_STEP_SUMMARY
+          echo "Config: .markdownlint.json (JSON estricto) + .markdownlintignore (grandfathering del inventario legacy, 2026-09-29) · vale fase 2 (ver docs/learning/docs-changelog-validation.md)" >> $GITHUB_STEP_SUMMARY
+
+  # ═══════════════════════════════════════════════════════════════
   # STAGE 3: BUILD (compilación, empaquetado, artifact)
   # ═══════════════════════════════════════════════════════════════
   client-build:
@@ -1788,280 +2088,6 @@ jobs:
   # STAGE 4: POST-BUILD — INTEGRATE (requieren artifact compilado)
   # ═══════════════════════════════════════════════════════════════
 
-  # --- Client Post-Build ---
-  client-sonarqube:
-    if: false # Sin credenciales: no existe SONAR_TOKEN/SONAR_HOST_URL en los secrets del repo (change `quality-gates` D2 — gate documentado como inactivo, nunca rojo)
-    name: 'Quality: Client SonarQube'
-    needs: [client-build, test-unit-client]
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    permissions:
-      pull-requests: write
-    steps:
-      - uses: actions/checkout@v5
-        with:
-          fetch-depth: 0
-      - uses: ./.github/actions/setup-monorepo
-      - uses: actions/download-artifact@v7
-        with:
-          name: client-dist
-          path: apps/client/dist/
-      # change `coverage-merge-gate` (task 1.5): el artefacto pasa de nombre plano
-      # (`coverage-client`) a `coverage-client-shard-1`, así que este consumidor
-      # (hoy en `if: false`) se actualiza ya a patrón + `merge-multiple` hacia la
-      # LCA `apps/client/` — evita una bomba de reactivación con el rename y deja
-      # el patrón correcto para N>1.
-      - uses: actions/download-artifact@v7
-        with:
-          pattern: coverage-client-shard-*
-          merge-multiple: true
-          path: apps/client/
-      - uses: SonarSource/sonarqube-scan-action@v4
-        with:
-          projectBaseDir: apps/client
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
-
-  client-coverage:
-    # FASE 1 advisory. Scoping por PROPAGACIÓN de skip del upstream (needs = exactamente
-    # su test job; client-build sigue if: false — deadlock de skipped). NOTA D17: el if
-    # explícito con needs.repo-discovery.outputs NO es viable aquí — GHA solo expone el
-    # contexto needs de jobs DECLARADOS en needs (actionlint: property not defined) y el
-    # job se saltaría siempre. La propagación cubre el mismo conjunto: corre ⇔ corrió su test job.
-    # ACTIVADO (change `coverage-tripwire-stage-2d`): retirado `if: false`.
-    # O job corre ⇔ test-unit-client correu (propagación de skip). FASE 1 advisory
-    # (`continue-on-error: true`): reporta sen bloquear. FASE 2: retirar `continue-on-error`.
-    #
-    # PUENTE DEL COVERAGE MERGE GATE — change `coverage-merge-gate` (D1/D2). Este job ES el
-    # puente de NOMBRE FIJO que fusiona la cobertura de TODAS las shards y evalúa los
-    # thresholds globales UNA SOLA VEZ, post-merge. No se crea ningún job nuevo: el
-    # agregador `prebuild-unit-tests-complete` sigue viendo sus mismos 6 `needs`.
-    # - `!cancelled()`: el default `success()` se saltaría el gate justo cuando una shard
-    #   falló (el informe importa más entonces); `always()` además correría tras una
-    #   cancelación explícita del usuario, gastando un runner en un run descartado.
-    # - `result != 'skipped'`: propaga el skip del upstream SIN ejecutar el job. Sin esa
-    #   cláusula, sólo `!cancelled()` correría con upstream SKIPPED y la validación de
-    #   presencia emitiría un `::error::` falso por artifacts legítimamente ausentes.
-    #   El carril PR queda cubierto por propagación: `test-unit-client` sólo corre en PRs.
-    if: ${{ !cancelled() && needs.test-unit-client.result != 'skipped' }}
-    continue-on-error: true
-    name: 'Quality: Client Coverage'
-    needs: [test-unit-client]
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-      - uses: actions/checkout@v5
-        with:
-          fetch-depth: 0
-      - uses: ./.github/actions/setup-monorepo
-      # change `coverage-merge-gate` (D3): TODOS los artifacts de shard por patrón +
-      # `merge-multiple` hacia la LCA `apps/client/`, restaurando `.vitest-reports/`
-      # y `coverage/` con sus rutas relativas intactas. Con N=1 el patrón captura el
-      # único artifact ⇒ mismo camino que con matriz (sin rama condicional que pueda
-      # divergir y romperse sólo al pasar a matriz).
-      - uses: actions/download-artifact@v7
-        with:
-          pattern: coverage-client-shard-*
-          merge-multiple: true
-          path: apps/client/
-      - uses: actions/download-artifact@v7
-        with:
-          name: flaky-evidence-client
-          path: apps/client/reports/
-      # Validación de presencia + guard N=0 — change `coverage-merge-gate` (D4). DOS
-      # entradas distintas, en este orden, ANTES de mergear ni de medir:
-      #  (1) entrada del MERGE: blobs de Vitest (`.vitest-reports/`) no vacíos;
-      #  (2) entrada del GATE: `coverage-summary.json` existente.
-      # La rama "upstream salteado" NO llega aquí: se resuelve en el `if` del job (task
-      # 2.1), así que la única situación posible en este step es "upstream corrió pero
-      # artifacts/blobs ausentes" ⇒ `exit 1`. Nunca se mergeará vacío ni se evaluará una
-      # cobertura 0% (anti-patrón: tratar un parcial como fuente de verdad).
-      - name: Validate shard artifacts (merge gate, N=0 guard)
-        run: |
-          test -d apps/client/.vitest-reports && [ -n "$(ls -A apps/client/.vitest-reports)" ] || { echo "::error::vitest blob reports missing — merge cannot proceed"; exit 1; }
-          test -f apps/client/coverage/coverage-summary.json || { echo "::error::coverage artifact missing"; exit 1; }
-      # Merge de shards — change `coverage-merge-gate` (orden canónico shard → merge →
-      # check-coverage). `working-directory: apps/client` para que la root de config de
-      # Vitest, el dir de blobs (default de `--merge-reports` = `.vitest-reports` relativo
-      # al cwd) y el `reportsDirectory` de coverage resuelvan sin flags extra. SIN
-      # `--reporter=blob`: el merge no ejecuta tests y el flag sólo emitiría un blob
-      # espurio que podría pisar los blobs merged.
-      - name: Merge shard reports (vitest --merge-reports --coverage)
-        working-directory: apps/client
-        run: npx vitest --merge-reports --coverage
-      # D18: el tripwire de thresholds SOLO evalúa cobertura de suite completa.
-      # Una corrida TIA solo carga los tests afectados, así que sus totales no son
-      # comparables con los thresholds globales (falso fail al reportar 0% en lo no
-      # corrido, o fail-silencioso al subir el % al testear solo lo ya cubierto).
-      # En diff-scoped se exige la presencia del artefacto y se difiere el umbral
-      # a la próxima full-suite (que cierran los PRs `shared` y el nocturno).
-      - name: Enforce coverage thresholds (full suite only, D18)
-        run: |
-          SCOPE=$(tr -d '[:space:]' < apps/client/reports/tia-scope.txt 2>/dev/null || true)
-          SCOPE=${SCOPE:-full}
-          echo "TIA scope: $SCOPE"
-          if [ ! -f apps/client/coverage/coverage-summary.json ]; then
-            echo "::error::coverage artifact missing — the test job did not produce coverage"
-            exit 1
-          fi
-          if [ "${SCOPE}" != "full" ]; then
-            echo "::notice::diff-scoped run: thresholds deferred to the next full-suite run (D18) — reporting diff-limited coverage as advisory."
-            node scripts/ci/check-coverage.mjs apps/client --advisory
-            exit 0
-          fi
-          node scripts/ci/check-coverage.mjs apps/client
-      # Propagación de fallo de shards — change `coverage-merge-gate` (D7). Un verde
-      # parcial que oculta shards rojas no es aceptable. Va DESPUÉS del D18 para que la
-      # evaluación de cobertura siga siendo visible en el log cuando una shard falla;
-      # el `exit 0` del carril diff-scoped vive dentro del step previo, así que no
-      # interfiere. HOY ES UN NO-OP: `test-unit-client` tiene `continue-on-error: true`
-      # (FASE 1, `quality-gates`) y `needs.*.result` reporta `success` aunque falle
-      # (`actions/toolkit#581`) — se activa SOLO al retirar el COE en FASE 2, sin retoque.
-      - name: Propagate shard failure
-        if: ${{ contains(needs.test-unit-client.result, 'failure') }}
-        run: |
-          echo "::error::test-unit-client reported failure — merged coverage above does not make this gate green"
-          exit 1
-
-  client-depcheck:
-    if: false # Disabled for incremental CI — change to true to re-enable
-    name: 'Quality: Client DepCheck'
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-      - uses: actions/checkout@v5
-        with:
-          fetch-depth: 0
-      - uses: ./.github/actions/setup-monorepo
-      - name: Check unused/missing dependencies
-        run: npx depcheck
-        working-directory: apps/client
-
-  # --- Server Post-Build ---
-  server-sonarqube:
-    if: false # Sin credenciales: no existe SONAR_TOKEN/SONAR_HOST_URL en los secrets del repo (change `quality-gates` D2 — gate documentado como inactivo, nunca rojo)
-    name: 'Quality: Server SonarQube'
-    needs: [server-build, test-unit-server]
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    permissions:
-      pull-requests: write
-    steps:
-      - uses: actions/checkout@v5
-        with:
-          fetch-depth: 0
-      - uses: ./.github/actions/setup-monorepo
-      # change `coverage-merge-gate` (task 1.4): mismo tratamiento que el consumidor
-      # client — patrón + `merge-multiple` hacia `apps/server/` (evita dejar un
-      # consumidor roto por el rename, aunque el job esté en `if: false`).
-      - uses: actions/download-artifact@v7
-        with:
-          pattern: coverage-server-shard-*
-          merge-multiple: true
-          path: apps/server/
-      - uses: SonarSource/sonarqube-scan-action@v4
-        with:
-          projectBaseDir: apps/server
-          projectKey: project-one-server
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
-
-  server-coverage:
-    # FASE 1 advisory. Scoping por propagación (misma corrección D17 que client-coverage);
-    # el guard recibe el reportsDirectory real del server como 3.er argumento.
-    # ACTIVADO (change `coverage-tripwire-stage-2d`): retirado `if: false`.
-    # O job corre ⇔ test-unit-server correu (propagación de skip). FASE 1 advisory
-    # (`continue-on-error: true`): reporta sen bloquear. FASE 2: retirar `continue-on-error`.
-    #
-    # PUENTE DEL COVERAGE MERGE GATE — change `coverage-merge-gate` (D1/D2), espejo del
-    # client. Fusiona la cobertura de todas las shards y evalúa los thresholds UNA SOLA
-    # VEZ, post-merge, bajo el mismo nombre de job (los 6 `needs` del agregador no cambian).
-    # `!cancelled()`: corre cuando una shard falla, pero no tras una cancelación del usuario.
-    # `result != 'skipped'`: hereda el skip del upstream sin ejecutar (y sin emitir un
-    # `::error::` falso por artifacts ausentes legítimos).
-    if: ${{ !cancelled() && needs.test-unit-server.result != 'skipped' }}
-    continue-on-error: true
-    name: 'Quality: Server Coverage'
-    needs: [test-unit-server]
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-      - uses: actions/checkout@v5
-        with:
-          fetch-depth: 0
-      - uses: ./.github/actions/setup-monorepo
-      # change `coverage-merge-gate` (D3): descarga por patrón + `merge-multiple`
-      # hacia la LCA `apps/server/` (restaura `tests/coverage/` y `.vitest-reports/`).
-      - uses: actions/download-artifact@v7
-        with:
-          pattern: coverage-server-shard-*
-          merge-multiple: true
-          path: apps/server/
-      - uses: actions/download-artifact@v7
-        with:
-          name: flaky-evidence-server
-          path: apps/server/reports/
-      # Validación de presencia + guard N=0 — change `coverage-merge-gate` (D4). Mismas
-      # DOS entradas que el client, con sus rutas específicas: blobs en `.vitest-reports/`
-      # y el summary en `tests/coverage/` (`reportsDirectory` del server). La rama
-      # "upstream salteado" se resuelve en el `if` del job; aquí sólo puede llegar
-      # "upstream corrió pero artifacts/blobs ausentes" ⇒ `exit 1` con mensaje distinto
-      # según la entrada faltante.
-      - name: Validate shard artifacts (merge gate, N=0 guard)
-        run: |
-          test -d apps/server/.vitest-reports && [ -n "$(ls -A apps/server/.vitest-reports)" ] || { echo "::error::vitest blob reports missing — merge cannot proceed"; exit 1; }
-          test -f apps/server/tests/coverage/coverage-summary.json || { echo "::error::coverage artifact missing"; exit 1; }
-      # Merge de shards — change `coverage-merge-gate`: `working-directory: apps/server`
-      # (root de config del server → `.vitest-reports/` y `tests/coverage/` resuelven sin
-      # flags extra). SIN `--reporter=blob` por la misma razón que en el client.
-      - name: Merge shard reports (vitest --merge-reports --coverage)
-        working-directory: apps/server
-        run: npx vitest --merge-reports --coverage
-      # D18: el guard de thresholds solo evalúa cobertura de suite completa; en
-      # corridas diff-scoped (TIA) se verifica la presencia del artefacto y se
-      # difiere el umbral a la próxima full-suite.
-      - name: Enforce coverage thresholds (full suite only, D18)
-        run: |
-          SCOPE=$(tr -d '[:space:]' < apps/server/reports/tia-scope.txt 2>/dev/null || true)
-          SCOPE=${SCOPE:-full}
-          echo "TIA scope: $SCOPE"
-          if [ ! -f apps/server/tests/coverage/coverage-summary.json ]; then
-            echo "::error::coverage artifact missing — the test job did not produce coverage"
-            exit 1
-          fi
-          if [ "${SCOPE}" != "full" ]; then
-            echo "::notice::diff-scoped run: thresholds deferred to the next full-suite run (D18) — reporting diff-limited coverage as advisory."
-            node scripts/ci/check-coverage.mjs apps/server apps/server/tests/coverage --advisory
-            exit 0
-          fi
-          node scripts/ci/check-coverage.mjs apps/server apps/server/tests/coverage
-      # Propagación de fallo de shards — change `coverage-merge-gate` (D7), tras el D18
-      # para no esconder la evaluación de cobertura. No-op mientras `test-unit-server`
-      # mantenga el `continue-on-error` de FASE 1 (`actions/toolkit#581`): se activa al
-      # retirarlo en FASE 2.
-      - name: Propagate shard failure
-        if: ${{ contains(needs.test-unit-server.result, 'failure') }}
-        run: |
-          echo "::error::test-unit-server reported failure — merged coverage above does not make this gate green"
-          exit 1
-
-  server-depcheck:
-    if: false # Disabled for incremental CI — change to true to re-enable
-    name: 'Quality: Server DepCheck'
-    needs: server-build
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-      - uses: actions/checkout@v5
-        with:
-          fetch-depth: 0
-      - uses: ./.github/actions/setup-monorepo
-      - name: Check unused/missing dependencies
-        run: npx depcheck
-        working-directory: apps/server
-
   # --- TESTING (post-build): integration / smoke / e2e requieren artifact compilado ---
   # JUnit de integration/smoke: flags `--reporter=junit --outputFile=reports/junit.xml` inline
   # (contrato "in the workspace CI script" de ci-test-reporting relajado aquí: el `--` de npm
@@ -2099,13 +2125,68 @@ jobs:
           DATABASE_URL: postgresql://test:test@localhost:5432/project_one_test
         shell: bash
         working-directory: apps/server
+      # TIA — spec ci-test-impact-analysis (design D6, task 6.1 de `tia-hardening`):
+      # el contrato de selección se extiende a integration con el MISMO patrón de los
+      # jobs unit (diff contra origin/main + filtro del tier + guard D7). Este job NO
+      # es advisory (sin continue-on-error), así que el step de scope es informativo y
+      # la ejecución de tests es condicional: `scope=changed` corre solo la integración
+      # del diff; `scope=full` la suite completa. Cualquier duda (rutas shared, base no
+      # resoluble, diff vacío, 0 candidatos del filtro `.integration.test`) degrada a
+      # suite completa ruidosa — nunca "0 tests" en silencio.
+      # Verificación runtime PENDING-CI: requiere el service container PostgreSQL.
+      - name: Resolve TIA scope (diff-scoped vs full suite)
+        id: tia
+        run: |
+          if [ "${{ needs.repo-discovery.outputs.shared }}" = "true" ]; then
+            echo "scope=full" >> "$GITHUB_OUTPUT"
+            echo "::notice::shared path changed (root manifest, lockfile or workflows) — running the FULL integration suite."
+          elif ! git rev-parse --verify --quiet origin/main > /dev/null; then
+            echo "scope=full" >> "$GITHUB_OUTPUT"
+            echo "::warning::origin/main is NOT resolvable in this checkout; falling back to the FULL integration suite (never reporting '0 affected tests')."
+          elif [ -z "$(git diff --name-only origin/main...HEAD)" ]; then
+            echo "scope=full" >> "$GITHUB_OUTPUT"
+            echo "::notice::empty diff against origin/main — running the FULL integration suite."
+          else
+            CANDIDATES=$(cd apps/server && npx vitest list ".integration.test" --changed origin/main --filesOnly 2> /dev/null | wc -l | tr -d '[:space:]' || true)
+            case "${CANDIDATES}" in
+              ''|*[!0-9]*) CANDIDATES=0 ;;
+            esac
+            if [ "${CANDIDATES}" -gt 0 ]; then
+              echo "scope=changed" >> "$GITHUB_OUTPUT"
+              echo "::notice::origin/main resolved — ${CANDIDATES} integration test file(s) affected; running the diff-scoped integration suite."
+            else
+              echo "scope=full" >> "$GITHUB_OUTPUT"
+              echo "::warning::the diff touches no integration test file; running the FULL integration suite (never reporting '0 affected tests')."
+            fi
+          fi
+        shell: bash
       # Seeding is handled by vitest globalSetup (tests/setupGlobal.js)
       # which loads .env.test and spawns prisma/seed.js before tests run.
-      - name: Run Integration Tests
+      - name: Run Integration Tests (TIA / full suite)
         # `--reporter=default` explicito: sin el, el unico reporter activo es `junit`, que SILENCIA
         # la salida de fallos y deja solo un `exit code 1` sin diagnostico en el log del step
         # (coste real de diagnosticar el fallo de `test-smoke`: 4 runs de leitura de logs).
-        run: npm run test:integration --workspace=apps/server -- --reporter=default --reporter=junit --outputFile=reports/junit.xml
+        # Las ramas TIA (changed + fallback D7) añaden `--reporter=json` para que el guard
+        # D7 lea numTotalTests de reports/vitest-results.json; la rama full conserva el
+        # argv original byte a byte (task 6.1, `tia-hardening`).
+        run: |
+          mkdir -p apps/server/reports
+          echo "scope=${{ steps.tia.outputs.scope }}" > apps/server/reports/tia-scope.txt
+          if [ "${{ steps.tia.outputs.scope }}" = "changed" ]; then
+            npm run test:integration:changed --workspace=apps/server -- --reporter=default --reporter=junit --reporter=json --outputFile.junit=reports/junit.xml --outputFile.json=reports/vitest-results.json
+            # Guard D7: un diff valido puede no tener NINGUN test de integracion relacionado, y
+            # con passWithNoTests (default en Vitest 4) eso sale "No test files found" con exit
+            # 0 — un verde VACIO que el agregador contaria como tests ejecutados. Si la corrida
+            # no ejecuto ningun test, se cae a suite completa en vez de fingir cobertura.
+            RAN=$(node -p "require('./apps/server/reports/vitest-results.json').numTotalTests" 2> /dev/null || echo 0)
+            if [ "${RAN:-0}" -eq 0 ]; then
+              echo "::warning::TIA matched 0 integration tests for this diff (numTotalTests=${RAN:-0}); running the FULL integration suite instead of reporting a vacuous green."
+              echo "scope=full" > apps/server/reports/tia-scope.txt
+              npm run test:integration --workspace=apps/server -- --reporter=default --reporter=junit --reporter=json --outputFile.junit=reports/junit.xml --outputFile.json=reports/vitest-results.json
+            fi
+          else
+            npm run test:integration --workspace=apps/server -- --reporter=default --reporter=junit --outputFile=reports/junit.xml
+          fi
         env:
           DATABASE_URL: postgresql://test:test@localhost:5432/project_one_test
           NODE_ENV: test
@@ -2170,23 +2251,12 @@ jobs:
           path: apps/server/reports/junit.xml
           reporter: java-junit
 
-  property-tests:
-    if: (needs.repo-discovery.outputs.client == 'true' || needs.repo-discovery.outputs.server == 'true' || needs.repo-discovery.outputs.shared == 'true') && github.event_name == 'pull_request'
-    name: 'Tests: Property Tests'
-    needs: repo-discovery
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    continue-on-error: true
-    steps:
-      - uses: actions/checkout@v5
-        with:
-          fetch-depth: 0
-      - uses: ./.github/actions/setup-monorepo
-      - name: Run Property Tests
-        run: npm run test:pbt
-        env:
-          CI: true
-
+  # TIA clause (change `tia-hardening`, task 6.2 — design D6): cuando `ci-e2e` levante
+  # este `if: false`, el job hereda el patrón implementado en task 6.1 para
+  # `test-integration`: step `Resolve TIA scope` (diff-scoped vs full) con su propio
+  # `reports/tia-scope.txt`, rama `test:e2e:changed` (filtro del tier + `--changed
+  # origin/main`) y guard D7 detrás (0 tests seleccionados => suite completa ruidosa,
+  # nunca un verde vacío). Mientras el `if: false` permanezca, el tier e2e NO se toca.
   e2e:
     if: false # Disabled for incremental CI — change to true to re-enable
     name: 'Tests: E2E'
@@ -2245,6 +2315,100 @@ jobs:
           path: e2e/reports/junit-e2e.xml
           reporter: java-junit
 
+  # --- Client Post-Build ---
+  client-sonarqube:
+    if: false # Sin credenciales: no existe SONAR_TOKEN/SONAR_HOST_URL en los secrets del repo (change `quality-gates` D2 — gate documentado como inactivo, nunca rojo)
+    name: 'Quality: Client SonarQube'
+    needs: [client-build, test-unit-client]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - uses: ./.github/actions/setup-monorepo
+      - uses: actions/download-artifact@v7
+        with:
+          name: client-dist
+          path: apps/client/dist/
+      # change `coverage-merge-gate` (task 1.5): el artefacto pasa de nombre plano
+      # (`coverage-client`) a `coverage-client-shard-1`, así que este consumidor
+      # (hoy en `if: false`) se actualiza ya a patrón + `merge-multiple` hacia la
+      # LCA `apps/client/` — evita una bomba de reactivación con el rename y deja
+      # el patrón correcto para N>1.
+      - uses: actions/download-artifact@v7
+        with:
+          pattern: coverage-client-shard-*
+          merge-multiple: true
+          path: apps/client/
+      - uses: SonarSource/sonarqube-scan-action@v4
+        with:
+          projectBaseDir: apps/client
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+
+  client-depcheck:
+    if: false # Disabled for incremental CI — change to true to re-enable
+    name: 'Quality: Client DepCheck'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - uses: ./.github/actions/setup-monorepo
+      - name: Check unused/missing dependencies
+        run: npx depcheck
+        working-directory: apps/client
+
+  # --- Server Post-Build ---
+  server-sonarqube:
+    if: false # Sin credenciales: no existe SONAR_TOKEN/SONAR_HOST_URL en los secrets del repo (change `quality-gates` D2 — gate documentado como inactivo, nunca rojo)
+    name: 'Quality: Server SonarQube'
+    needs: [server-build, test-unit-server]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - uses: ./.github/actions/setup-monorepo
+      # change `coverage-merge-gate` (task 1.4): mismo tratamiento que el consumidor
+      # client — patrón + `merge-multiple` hacia `apps/server/` (evita dejar un
+      # consumidor roto por el rename, aunque el job esté en `if: false`).
+      - uses: actions/download-artifact@v7
+        with:
+          pattern: coverage-server-shard-*
+          merge-multiple: true
+          path: apps/server/
+      - uses: SonarSource/sonarqube-scan-action@v4
+        with:
+          projectBaseDir: apps/server
+          projectKey: project-one-server
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+
+  server-depcheck:
+    if: false # Disabled for incremental CI — change to true to re-enable
+    name: 'Quality: Server DepCheck'
+    needs: server-build
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - uses: ./.github/actions/setup-monorepo
+      - name: Check unused/missing dependencies
+        run: npx depcheck
+        working-directory: apps/server
+
   # ═══════════════════════════════════════════════════════════════
   # STAGE 5: ARTIFACT & SIGN (empaquetado, firma, publicación)
   # Vive en security.yml / deploy.yml (ambos disabled_manually) — NO en ci.yml.
@@ -2295,8 +2459,16 @@ jobs:
     needs:
       - verify-signatures
       - commit-lint
-      - pr-title-lint
+      # `pr-title-lint`/`pr-body-lint` NO pueden aparecer aquí: viven en
+      # `.github/workflows/pr-metadata.yml` y un `needs` no puede referenciar
+      # un job de OTRO workflow (lo invalidaría, no lo haría más completo).
+      # Su cobertura llega al PR vía sus propios required checks del ruleset.
       - dco
+      # FASE 2 del gate SAST (2026-10-20): 5ª entrada. Un hallazgo ERROR hace
+      # fallar este agregador (que no es status check del ruleset: ver el
+      # comentario de alcance en el job `sast`). El job sigue fuera de
+      # `ci-complete.needs` por diseño.
+      - sast
     steps:
       - name: Check for failures
         run: |

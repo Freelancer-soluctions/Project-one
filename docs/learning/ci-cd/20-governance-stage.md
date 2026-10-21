@@ -1,5 +1,10 @@
 # 20. Governance en CI/CD: Por Qué Controlamos Cada Paso del Camino al Deploy
 
+> ⚠️ **NOTA DE ACTUALIZACIÓN (2026-10-20, change `pr-metadata-workflow`):** el job `pr-title-lint` (check
+> `PR Title Lint`) ya **NO vive en `ci.yml`** — emigró a `.github/workflows/pr-metadata.yml` junto al nuevo gate
+> `Governance: PR Body Lint`. Las referencias de esta guía a `ci.yml:pr-title-lint` describen el estado **previo**
+> (histórico). Fuente de verdad: `docs/CONTEXT-CICD.md` §3.2 / §9.3.3 / §9.3.4.
+
 > Artículo explicativo de la **Stage 11 — Approval / Governance** del pipeline CI/CD empresarial.
 > Basado en `docs/ci-cd-pipeline-empresarial.md` (diagrama 23.3, §13, §23.3.1; **governance a lo largo de todo el ciclo de vida §13.10**; **ciclo completo de 7 momentos §23.3.1.1**; **matriz completa de governance por momento §23.3.2**) y la implementación real del proyecto.
 >

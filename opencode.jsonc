@@ -4,82 +4,82 @@
   "plugin": [
     "@warp-dot-dev/opencode-warp",
     // "./.opencode/plugins/output-contracts.ts",
-    "./.opencode/plugins/neurosymbolic-guardrails.ts",
+    "./.opencode/plugins/neurosymbolic-guardrails.ts"
   ],
   "provider": {
     "ollama-local": {
       "npm": "@ai-sdk/openai-compatible",
       "name": "Ollama Local",
       "options": {
-        "baseURL": "http://127.0.0.1:11434",
+        "baseURL": "http://127.0.0.1:11434"
         //"timeout":
         //"setCacheKy": (bool)
       },
       "models": {
         "qwen2.5-coder:7b": {
-          "name": "Qwen 2.5 Coder 7B Local",
-        },
-      },
+          "name": "Qwen 2.5 Coder 7B Local"
+        }
+      }
     },
     "omniroute": {
       "npm": "@ai-sdk/openai-compatible",
       "name": "OmniRoute Gateway",
       "options": {
         "baseURL": "http://localhost:20128/v1",
-        "apiKey": "{env:OMNIROUTE_API_KEY}",
+        "apiKey": "{env:OMNIROUTE_API_KEY}"
       },
       "models": {
         "auto": {
           "name": "OmniRoute Auto (smart routing)",
           "limit": {
             "context": 128000,
-            "output": 65536,
-          },
+            "output": 65536
+          }
         },
         "felo/felo": {
           "name": "Felo (via OmniRoute)",
           "limit": {
             "context": 32000,
-            "output": 4096,
-          },
+            "output": 4096
+          }
         },
         "tllm/deepseek_v4": {
           "name": "DeepSeek V4 (via TheOldLLM)",
           "limit": {
             "context": 128000,
-            "output": 4096,
-          },
+            "output": 4096
+          }
         },
         "tllm/gemini_3_flash": {
           "name": "Gemini 3 Flash (via TheOldLLM)",
           "limit": {
             "context": 128000,
-            "output": 4096,
-          },
+            "output": 4096
+          }
         },
         "tllm/claude_sonnet_4": {
           "name": "Claude Sonnet 4 (via TheOldLLM)",
           "limit": {
             "context": 200000,
-            "output": 4096,
-          },
+            "output": 4096
+          }
         },
         "ddgw/claude-haiku-4-5": {
           "name": "Claude Haiku 4.5 (via DuckDuckGo)",
           "limit": {
             "context": 200000,
-            "output": 4096,
-          },
+            "output": 4096
+          }
         },
         "unc/qwen3.6:27b": {
           "name": "Qwen 3.6 27B (via UncloseAI)",
           "limit": {
             "context": 32000,
-            "output": 4096,
-          },
-        },
-      },
-    },
+            "output": 4096
+          }
+        }
+      }
+    }
   },
   //subagents configuration
   "default_agent": "orchestrator",
@@ -89,11 +89,11 @@
   // },
   "shell": "bash",
   "skills": {
-    "paths": [".opencode/skills", ".agents/skills"],
+    "paths": [".opencode/skills", ".agents/skills"]
   },
   "tool_output": {
     "max_lines": 400,
-    "max_bytes": 65536,
+    "max_bytes": 65536
   },
   // Formatter disabled by design — formatting is handled by Husky + lint-staged + Prettier
   // in pre-commit hooks. Enabling OpenCode formatter would duplicate this pipeline,
@@ -110,8 +110,8 @@
   "lsp": {
     "prisma": {
       "command": ["npx", "@prisma/language-server", "--stdio"],
-      "extensions": [".prisma"],
-    },
+      "extensions": [".prisma"]
+    }
   },
   "permission": {
     "read": "allow",
@@ -131,7 +131,7 @@
     "lsp": "deny",
     "todowrite": "allow",
     "doom_loop": "ask",
-    "external_directory": "ask",
+    "external_directory": "ask"
   },
   "agent": {
     // OpenCode built-in agents — disabled, not used
@@ -162,40 +162,40 @@
           "reviewer": "allow",
           "researcher": "allow",
           "git-manager": "allow",
-          "project-manager": "allow",
-        },
-      },
+          "project-manager": "allow"
+        }
+      }
     },
     "spec-manager": {
       "mode": "subagent",
       "hidden": false,
-      "model": "opencode/mimo-v2.6-flash-free",
+      "model": "opencode/deepseek-v4.1-flash-free",
       "description": "Executes OpenSpec CLI - explore, propose, verify, archive",
       "prompt": "{file:docs/opencode/prompts/spec-manager.md}",
       "steps": 30,
       "temperature": 0,
       "permission": {
         "bash": "allow",
-        "edit": "deny",
-      },
+        "edit": "deny"
+      }
     },
     "git-manager": {
       "mode": "subagent",
       "hidden": false,
-      "model": "opencode/mimo-v2.6-flash-free",
+      "model": "opencode/deepseek-v4.1-flash-free",
       "description": "SCM and Conventional Commit specialist",
       "prompt": "{file:docs/opencode/prompts/git-manager.md}",
       "steps": 20,
       "permission": {
         "bash": "allow",
         "todowrite": "deny",
-        "edit": "deny",
-      },
+        "edit": "deny"
+      }
     },
     "planner": {
       "mode": "subagent",
       "hidden": false,
-      "model": "opencode/mimo-v2.6-flash-free",
+      "model": "opencode/deepseek-v4.1-flash-free",
       "description": "Planning specialist",
       "prompt": "{file:docs/opencode/prompts/planner.md}",
       "steps": 20,
@@ -204,13 +204,13 @@
         "write": "allow",
         "question": "allow",
         "context7_*": "ask",
-        "edit": "deny",
-      },
+        "edit": "deny"
+      }
     },
     "developer": {
       "mode": "subagent",
       "hidden": false,
-      "model": "opencode/muse-spark-1.3-contributor-free",
+      "model": "opencode/mimo-v2.6-flash-free",
       "description": "Implementation agent",
       "prompt": "{file:docs/opencode/prompts/developer.md}",
       "steps": 35,
@@ -222,26 +222,26 @@
         "websearch": "allow",
         "question": "allow",
         "lsp": "allow",
-        "context7_*": "ask",
-      },
+        "context7_*": "ask"
+      }
     },
     "reviewer": {
       "mode": "subagent",
       "hidden": false,
-      "model": "opencode/mimo-v2.6-flash-free",
+      "model": "opencode/deepseek-v4.1-flash-free",
       "description": "Code reviewer",
       "prompt": "{file:docs/opencode/prompts/reviewer.md}",
       "steps": 15,
       "temperature": 0,
       "permission": {
         "lsp": "allow",
-        "edit": "deny",
-      },
+        "edit": "deny"
+      }
     },
     "researcher": {
       "mode": "subagent",
       "hidden": false,
-      "model": "opencode/mimo-v2.6-flash-free",
+      "model": "opencode/deepseek-v4.1-flash-free",
       "description": "Research agent",
       "prompt": "{file:docs/opencode/prompts/researcher.md}",
       "steps": 20,
@@ -250,8 +250,8 @@
         "websearch": "allow",
         "question": "allow",
         "context7_*": "ask",
-        "edit": "ask", // workaround: bug #26758 — edit:deny corrompe herencia de read/glob/grep allow del global; ask preserva restriccion (pedira permiso si researcher intenta editar) sin disparar el bug
-      },
+        "edit": "ask" // workaround: bug #26758 — edit:deny corrompe herencia de read/glob/grep allow del global; ask preserva restriccion (pedira permiso si researcher intenta editar) sin disparar el bug
+      }
     },
     "project-manager": {
       "mode": "subagent",
@@ -264,9 +264,9 @@
         "question": "allow",
         "bash": "allow",
         "composio_COMPOSIO_*": "allow",
-        "edit": "deny",
-      },
-    },
+        "edit": "deny"
+      }
+    }
   },
   "mcp": {
     "composio": {
@@ -276,16 +276,16 @@
       //   "x-consumer-api-key": "{env:COMPOSIO_API_KEY}"
       // },
       "oauth": {},
-      "enabled": true,
+      "enabled": true
     },
     "context7": {
       "type": "remote",
       "url": "https://mcp.context7.com/mcp",
       "headers": {
-        "CONTEXT7_API_KEY": "{env:CONTEXT7_API_KEY}",
+        "CONTEXT7_API_KEY": "{env:CONTEXT7_API_KEY}"
       },
-      "enabled": true,
-    },
+      "enabled": true
+    }
     // "composio": {
     //   "type": "local",
     //   "command": [
@@ -308,7 +308,7 @@
   "compaction": {
     "auto": true,
     "prune": true,
-    "reserved": 10000,
+    "reserved": 10000
   },
   "watcher": {
     "ignore": [
@@ -316,7 +316,7 @@
       ".git/**",
       "dist/**",
       "coverage/**",
-      "build/**",
-    ],
-  },
+      "build/**"
+    ]
+  }
 }

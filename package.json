@@ -56,7 +56,6 @@
     "format:check": "npm run format:check --workspaces --if-present",
     "lint": "npm run lint --workspaces --if-present",
     "lint:fix": "npm run lint:fix --workspaces --if-present",
-    "sast:semgrep": "powershell -ExecutionPolicy Bypass -File scripts/security/semgrep-staged.ps1",
     "sast:semgrep:full": "powershell -ExecutionPolicy Bypass -File scripts/security/semgrep.ps1",
     "security:secrets": "gitleaks git --pre-commit --staged --verbose --redact --config .gitleaks.toml",
     "security:secrets:full": "gitleaks git --verbose --config .gitleaks.toml",
@@ -79,7 +78,9 @@
     "depcruise:baseline": "depcruise-baseline apps/client/src apps/server/src e2e/tests --config .dependency-cruiser.cjs",
     "type-check": "tsc --noEmit -p apps/server",
     "docs:lint": "markdownlint \"docs/**/*.md\" \"docs/*.md\"",
-    "docs:vale": "vale --config .vale.ini --minAlertLevel=error docs/"
+    "docs:vale": "vale --config .vale.ini --minAlertLevel=error docs/",
+    "test:tia": "npm run test:tia --workspace=apps/client && npm run test:tia --workspace=apps/server",
+    "test:tia:audit": "npm run test:tia:audit --workspace=apps/client && npm run test:tia:audit --workspace=apps/server"
   },
   "devDependencies": {
     "@changesets/changelog-github": "^1.0.1",
@@ -107,12 +108,13 @@
     "omniroute": "3.8.50",
     "prettier": "3.7.4",
     "typescript": "5.9.3",
+    "typescript-eslint": "8.71.2",
     "vitest": "^4.1.11",
     "why-is-node-running": "2.3.0"
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx,cjs,mjs,json,jsonc,md}": "prettier --write",
-    "*.{js,jsx,cjs,mjs}": "eslint --fix --max-warnings 0 --no-warn-ignored",
+    "*.{js,jsx,ts,cts,mts,cjs,mjs}": "eslint --fix --max-warnings 0 --no-warn-ignored",
     "*.{js,jsx,ts,tsx,cjs,mjs}": "depcruise --config .dependency-cruiser.cjs --output-type err-long --ignore-known=.dependency-cruiser-known-violations.json"
   },
   "version": "1.0.0",

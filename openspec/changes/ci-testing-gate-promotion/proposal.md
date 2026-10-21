@@ -31,6 +31,7 @@ y su propia evidencia.
 - **Sharding**: cerrado como `N/A` con evidencia en `ci-testing-pipeline-reactivation` (tarea 6.0). Las suites
   miden 5-6s (server) y 14s (client) frente a un umbral de activación de 5-8 min. No se reabre sin evidencia nueva.
 - **E2E**: el job `e2e` sigue `if: false`; su activación es otro change (`ci-e2e` contract ya está especificado).
+- **TIA evidence coordination**: este change recoge la evidencia TIA (shadow metric, coverage.changed, inyección de fallidos) que alimenta el grupo de promoción `ci-testing-gate-promotion`. Ambos cambios editan `docs/learning/quality-gates.md` (ventana de calibración lockstep) y `.github/workflows/ci.yml` (steps advisory de este change vs. quitar `continue-on-error` del otro), así que hay que secuenciar los PRs o resolver el merge — ver documentación §7.1.
 - Cambios de comportamiento en TIA, quarantine o métrica semanal: ya están implementados y verificados.
 
 ## Impact

@@ -132,13 +132,12 @@ Cada commit debe estar **firmado** (SSH) y llevar el trailer DCO:
 # -S firma SSH, -s añade "Signed-off-by: Tu Nombre <tu@email.com>"
 git commit -S -s
 
-# Recomendado: signoff automático en TODOS los commits (no hace falta -s)
-# Convención de trazabilidad del repo (ver docs/CONTEXT-CICD.md §10.5)
-git config --global commit.signoff true
+# Recomendado: el hook .husky/prepare-commit-msg añade el signoff automáticamente
+# (`commit.signoff` no existe en git; ver docs/learning/dco.md)
 ```
 
 - **Formato del trailer (KineticCafe DCO):** `Signed-off-by: Name <email>` — case-sensitive, el email debe coincidir con el autor del commit.
-- **Validación local:** el hook `commit-msg` (L1) rechaza el commit si falta `Signed-off-by:` (salta en merge commits); el hook `pre-push` (L2) re-verifica cada commit antes de subirlo.
+- **Validación local:** el hook `commit-msg` (L2) rechaza el commit si falta `Signed-off-by:` (salta en merge commits) y es el **único gate local**; `pre-push` no valida DCO (solo fetch + guard + tests scoped).
 - **Agentes:** la regla `/commit-all` de git-manager exige `git commit -S -s` siempre (ver `docs/opencode/prompts/git-manager.md`, regla 10).
 - El enforcer final no-bypassable es el check `DCO` de CI (KineticCafe). Ver guía [05e](./05e-pr-metadata-governance.md).
 

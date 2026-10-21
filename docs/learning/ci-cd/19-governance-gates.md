@@ -1,5 +1,10 @@
 # 19 — Governance Gates: Framework Enterprise de Control CI/CD
 
+> ⚠️ **NOTA DE ACTUALIZACIÓN (2026-10-20, change `pr-metadata-workflow`):** el job `pr-title-lint` (check
+> `PR Title Lint`) ya **NO vive en `ci.yml`** — emigró a `.github/workflows/pr-metadata.yml` junto al nuevo gate
+> `Governance: PR Body Lint`. Las referencias de esta guía a `ci.yml:pr-title-lint` describen el estado **previo**
+> (histórico). Fuente de verdad: `docs/CONTEXT-CICD.md` §3.2 / §9.3.3 / §9.3.4.
+
 > **Guía 19 — Enterprise CI/CD** | Anterior: [18-trunk-based-development.md](./18-trunk-based-development.md)
 >
 > Governance gates son puntos de enforcement a través del ciclo de vida del software delivery. Esta guía define el framework completo: commit-level, PR-level, merge-level, post-merge, y audit/recovery gates.

@@ -76,7 +76,10 @@ npm error }
 
 **Propagación:** 8 workflows + 1 composite action leen `node-version-file: '.nvmrc'`. Un solo commit actualizó la versión efectiva en **todos** ellos:
 
-- `ci.yml` (jobs: verify-signatures, commit-lint, pr-title-lint, dco, dependency-review, zombie-workflow-guard + jobs quality/build/test `if: false`)
+- `ci.yml` (jobs: verify-signatures, commit-lint, dco, sast, dependency-review, zombie-workflow-guard + jobs quality/build/test
+  `if: false`; **sin** `pr-title-lint` — ver siguiente punto)
+- `pr-metadata.yml` (jobs: `pr-title-lint` → check `PR Title Lint`, y `pr-body-lint` → check
+  `Governance: PR Body Lint`; change `pr-metadata-workflow`, 2026-10-20)
 - `security.yml` (jobs: dependency-scan, sast, sbom, dependency-review)
 - `release.yml`
 - `deploy.yml` (job: docker-build)
@@ -274,11 +277,11 @@ strategy:
 
 ### Hooks actuales
 
-| Hook         | Archivo             | Qué hace                                                                                            |
-| ------------ | ------------------- | --------------------------------------------------------------------------------------------------- |
-| `pre-commit` | `.husky/pre-commit` | `lint-staged` (prettier+eslint) → paralelizado: `npm run sast:semgrep` + `npm run security:secrets` |
-| `commit-msg` | `.husky/commit-msg` | `commitlint --edit $1` (Conventional Commits)                                                       |
-| `pre-push`   | `.husky/pre-push`   | `git fetch origin main --depth=1` → `vitest run --changed origin/main` (server + client)            |
+| Hook         | Archivo             | Qué hace                                                                                                                                                                            |
+| ------------ | ------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `pre-commit` | `.husky/pre-commit` | `lint-staged` (prettier+eslint) → `npm run security:secrets` (Gitleaks staged, salida capturada; **sin SAST** — change `sast-shift-left-hooks-parity`)                              |
+| `commit-msg` | `.husky/commit-msg` | DCO presence check + `commitlint --edit $1` (Conventional Commits)                                                                                                                  |
+| `pre-push`   | `.husky/pre-push`   | `git fetch origin main --depth=1` → gate de firma de commits → **SAST diff-scoped** (`node scripts/sast-diff.mjs`) → `npm run test:changed --workspace=apps/<ws>` (server + client) |
 
 ### ⚠️ TIMEOUT GOTCHA — bash default 120s
 

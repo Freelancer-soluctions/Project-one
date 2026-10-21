@@ -22,6 +22,12 @@ module.exports = {
     alias: {
       '@': path.resolve(__dirname, 'src'),
     },
-    extensions: ['.js', '.jsx', '.json'],
+    // extensionAlias + extensiones TS: sin `.ts`/`.tsx` en esta lista,
+    // enhanced-resolve no resuelve los specifiers `.js` de los consumidores
+    // hacia su gemelo `.ts` (retry interno de dependency-cruiser), así que el
+    // server migrado a TypeScript reportaba `not-to-unresolvable` en todos sus
+    // imports convertidos. Alineado con los defaults de dependency-cruiser
+    // para proyectos TS.
+    extensions: ['.js', '.jsx', '.ts', '.tsx', '.json'],
   },
 };

@@ -204,7 +204,7 @@ EN/ES (`locale/*.json`, i18next); shadcn/ui + Tailwind + DataTable; socketServic
 - **Herramientas:** ESLint 9 `--max-warnings 0` , Prettier, knip, dependency-cruiser, actionlint, zizmor, checkov,
   hadolint, markdownlint, vale, `tsc --noEmit` + JSDoc sobre JS.
 - **Husky:** pre-commit bloqueante (lint-staged + Semgrep + Gitleaks) y advisory (npm audit, checkov, hadolint,
-  GuardDog); pre-push (DCO + tests scoped); commit-msg (commitlint).
+  GuardDog); pre-push (fetch + gate de firma + tests scoped; **sin DCO**); commit-msg (DCO + commitlint).
 - **CI (11 workflows):** `ci.yml` ~2.100 líneas con verify-signatures, DCO, SAST, tests con TIA + flaky quarantine +
   coverage gates, SonarQube, SBOM…; `security.yml` con Trivy, CodeQL, Semgrep semanal; `deploy.yml` (CD), `preview.yml`
   , `release.yml` (changesets), nightly/flaky/security scheduled.

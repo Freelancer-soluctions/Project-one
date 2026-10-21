@@ -79,3 +79,4 @@ test-results/
 # Runtime session artifacts
 output-contract.json
 report.json
+*.tsbuildinfo

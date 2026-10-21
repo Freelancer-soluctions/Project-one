@@ -1,0 +1,26 @@
+import app from '../src/app.js';
+
+let testServer: ReturnType<typeof app.listen> | null = null;
+export const startServer = () => {
+  return new Promise((resolve, reject) => {
+    testServer = app.listen(process.env.PORT, () => {
+      console.log(`Test server listening on port: ${process.env.PORT}`);
+      resolve(testServer); // Devuelve el servidor para ser utilizado por Supertest
+    });
+    testServer.on('error', reject);
+  });
+};
+
+export const stopServer = () => {
+  return new Promise<void>((resolve, reject) => {
+    if (testServer) {
+      testServer.close((err?: Error | null) => {
+        if (err) return reject(err);
+        console.log('Server stopped');
+        resolve();
+      });
+    } else {
+      resolve();
+    }
+  });
+};

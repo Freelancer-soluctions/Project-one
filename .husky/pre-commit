@@ -1,5 +1,5 @@
 #!/usr/bin/env sh
-# Pre-commit hook: lint-staged + SAST + Secrets (fast-only; regression moved to pre-push + CI)
+# Pre-commit hook: lint-staged + Secrets (fast-only; SAST moved to pre-push + CI)
 
 set -e
 
@@ -9,55 +9,60 @@ echo "🔍 Running pre-commit checks..."
 echo "🔧 Running lint-staged..."
 npm exec lint-staged || { echo "❌ lint-staged failed"; exit 1; }
 
-# 2. SAST + Secrets in parallel (fast-only pre-commit; regression moved to pre-push + CI)
-echo "🔬 Starting SAST scan..."
-npm run sast:semgrep &
-SAST_PID=$!
-
-echo "🔐 Starting secret detection..."
-npm run security:secrets &
-SECRETS_PID=$!
-
-# Wait for all and capture exit codes
-FAILED=0
-
-wait $SAST_PID || { echo "❌ SAST scan failed."; FAILED=1; }
-wait $SECRETS_PID || { echo "❌ Secret scan failed."; FAILED=1; }
-
-if [ $FAILED -ne 0 ]; then
-  echo "❌ Pre-commit checks failed. Commit blocked."
-  exit 1
+# 2. Secret detection staged-only (RF-SEC-01..05): escanea SOLO lo staged
+#    (commiteado => reescribir historia + rotar credenciales, por eso el punto
+#    más temprano posible). SAST NO corre aquí: necesita --baseline-commit, que
+#    en pre-commit no existe — vive en pre-push + CI (capability
+#    sast-diff-scanning). Salida capturada y mostrada SOLO si falla (RF-SEC-05).
+echo "🔐 Starting secret detection (staged content only)..."
+# Pre-flight de disponibilidad (RF-SEC-03): el escenario "binario inaccesible"
+# se resuelve explícitamente, porque gitleaks devuelve 1 tanto para hallazgos
+# como para errores de arranque y un hallazgo jamás debe confundirse con un
+# fallo de herramienta (ni a la inversa).
+if ! command -v gitleaks > /dev/null 2>&1; then
+  echo "⚠️  gitleaks binary not found in PATH — NO secret scan ran for this commit."
+  echo "   Fail-open policy: the commit proceeds (tooling problem, not a finding)."
+  echo "   Remediation: install gitleaks (https://github.com/gitleaks/gitleaks) to restore the gate."
+else
+  SECRETS_OUT=$(npm run security:secrets 2>&1) && SECRETS_EXIT=0 || SECRETS_EXIT=$?
+  if [ "$SECRETS_EXIT" -eq 0 ]; then
+    echo "✅ Staged secret scan passed."
+  elif [ "$SECRETS_EXIT" -eq 1 ]; then
+    # Hallazgo: BLOQUEA (RF-SEC-01). El valor del secreto ya viene redactado
+    # por gitleaks --redact (RF-SEC-02); solo se muestran regla/archivo/ubicación.
+    echo "$SECRETS_OUT"
+    echo "❌ Staged secret detected — commit blocked. Remove the secret or unstage the file."
+    exit 1
+  else
+    # Cualquier otro código: herramienta rota -> fail-open con aviso VISIBLE
+    # (RF-SEC-03), distinguible de un hallazgo.
+    echo "$SECRETS_OUT"
+    echo "⚠️  Secret scanner failed (exit $SECRETS_EXIT) — NO secret scan ran for this commit."
+    echo "   Fail-open policy: the commit proceeds (tooling problem, not a finding)."
+    echo "   Remediation: reinstall/repair gitleaks to restore the staged secret gate."
+  fi
 fi
 
-# 3. Capas advisory (change `sca-lockfile-compliance`): solo informan, NUNCA
-# bloquean el commit — la cadena bloqueante sigue siendo lint-staged + SAST +
-# secrets. Reporte local a .tmp/ (ignorado por .gitignore). Nota: estas líneas
-# van tras el gate bloqueante; cada paso lleva su propia protección de fallo
-# (|| true), así que un hallazgo o un tool ausente no interrumpe nada.
+# 3. Capas advisory (solo informan, NUNCA bloquean el commit — la cadena bloqueante
+# es lint-staged + secret scanning staged). Reporte local a .tmp/ (ignorado por .gitignore).
 echo "📦 Lockfile audit (advisory)..."
 (npm audit --audit-level=moderate --json > .tmp/audit-local.json) || echo "⚠️  npm audit: hallazgos >= moderate o error — reporte en .tmp/audit-local.json (advisory, no bloquea)"
-
 echo "🧱 Checkov IaC (advisory)..."
 (command -v checkov >/dev/null 2>&1 && checkov -d . --soft-fail --config-file .checkov.yml) || echo "⚠️  checkov no disponible localmente o hallazgos — advisory, no bloquea (política: .checkov.yml)"
-
 echo "🐳 Hadolint Containerfile (advisory)..."
 (command -v hadolint >/dev/null 2>&1 && hadolint -c .hadolint.yaml --failure-threshold warning apps/server/Dockerfile) || echo "⚠️  hadolint no disponible o findings — advisory, no bloquea (política: .hadolint.yaml)"
-
 echo "🔧 ActionLint workflows (advisory)..."
 # Nota: el stub npm `actionlint` (WASM) NO equivale al binario real v1.7.12 de CI;
 # si `actionlint -version` no reporta v1.7.x real, se degrada a advisory silencioso.
 (command -v actionlint >/dev/null 2>&1 && actionlint -config-file .github/actionlint.yaml) || echo "⚠️  actionlint no disponible o findings — advisory, no bloquea (política: .github/actionlint.yaml)"
-
 echo "🛡️ Zizmor workflows (advisory)..."
 (command -v zizmor >/dev/null 2>&1 && zizmor -c .github/zizmor.yml .github/workflows/) || echo "⚠️  zizmor no disponible o findings — advisory, no bloquea (política: .github/zizmor.yml)"
-
 echo "📦 Root manifest hygiene (advisory)..."
 # Guard de higiene del manifest raíz (change `root-manifest-cleanup`): falla si
 # `dependencies` del raíz tiene entradas no justificadas (transitivas promovidas,
 # workspaces internos, residuos). Aquí es advisory; en CI es blocking
 # (job `root-manifest-guard`). Sin red, en milisegundos.
 (node scripts/check-root-manifest.mjs 2>/dev/null) || echo "⚠️  manifest raíz con entradas no justificadas — advisory, no bloquea (política: scripts/check-root-manifest.mjs)"
-
 echo "🐍 GuardDog typosquat (advisory)..."
 # Política única: scripts/guarddog-verify.sh (pin guarddog==3.2.0 + devDeps
 # excluidas + sandbox obligatorio). Requiere red (registry npm) y uvx; solo
@@ -66,6 +71,5 @@ echo "🐍 GuardDog typosquat (advisory)..."
 # Reporte: .tmp/guarddog.sarif (gitignored).
 (bash scripts/guarddog-verify.sh > .tmp/guarddog.sarif 2>/dev/null) || echo "⚠️  guarddog no disponible o findings — advisory, no bloquea (política: scripts/guarddog-verify.sh, reporte: .tmp/guarddog.sarif)"
 
-echo "✅ All pre-commit checks passed (lint-staged, SAST, Secrets)."
-
+echo "✅ All pre-commit checks passed (lint-staged, Secrets)."
 echo "ℹ️  Advisory layers completed (lockfile + IaC + Containerfile + pipeline config + typosquat): findings do NOT block (docs/learning/quality-gates.md §2)."

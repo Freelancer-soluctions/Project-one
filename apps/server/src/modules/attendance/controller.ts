@@ -1,0 +1,99 @@
+import {
+  getAllAttendance as getAllAttendanceService,
+  createAttendance as createAttendanceService,
+  deleteAttendanceById as deleteAttendanceByIdService,
+  patchAttendanceById as patchAttendanceByIdService,
+} from './service.js';
+import handleCatchErrorAsync from '../../utils/responses&Errors/handleCatchErrorAsync.js';
+import globalResponse from '../../utils/responses&Errors/globalResponse.js';
+import type {
+  AttendanceFilters,
+  CreateAttendanceInput,
+  UpdateAttendanceInput,
+} from './types.js';
+
+/**
+ * Get all attendance records with optional filters.
+ *
+ * @param {Object} req - The HTTP request object.
+ * @param {Object} req.safeQuery - Safe query parameters with filters
+ * @param {number} [req.safeQuery.page] - Page number for pagination
+ * @param {number} [req.safeQuery.limit] - Number of items per page
+ * @param {number} [req.safeQuery.employeeId] - Filter by employee ID
+ * @param {Date} [req.safeQuery.startDate] - Filter by start date
+ * @param {Date} [req.safeQuery.endDate] - Filter by end date
+ * @param {string} [req.safeQuery.status] - Filter by attendance status
+ * @param {Object} res - The HTTP response object.
+ * @returns {Promise<void>} Returns paginated list of attendance records
+ */
+export const getAllAttendance = handleCatchErrorAsync(async (req, res) => {
+  // Cast único de la query validada por Joi (attendanceFiltersSchema)
+  const filters = req.safeQuery as AttendanceFilters;
+  const attendance = await getAllAttendanceService(filters);
+  globalResponse(res, 200, attendance);
+});
+
+/**
+ * Create a new attendance record.
+ *
+ * @param {Object} req - The HTTP request object.
+ * @param {Object} req.body - Request body containing attendance data
+ * @param {number} req.body.employeeId - Employee ID
+ * @param {Date} req.body.date - Attendance date
+ * @param {Date} req.body.checkInTime - Check-in time
+ * @param {Date} req.body.checkOutTime - Check-out time
+ * @param {string} req.body.status - Attendance status (PRESENT, ABSENT, LATE, HALF_DAY)
+ * @param {string} req.body.notes - Attendance notes
+ * @param {string} req.userId - Authenticated user ID from token verification
+ * @param {Object} res - The HTTP response object.
+ * @returns {Promise<void>} Creates new attendance record and returns attendance object
+ */
+export const createAttendance = handleCatchErrorAsync(async (req, res) => {
+  // Cast único del body validado por Joi (attendanceCreateSchema)
+  const body = req.body as CreateAttendanceInput;
+  const attendance = await createAttendanceService(body, req.userId as number);
+  globalResponse(res, 201, attendance);
+});
+
+/**
+ * Delete an attendance record by ID.
+ *
+ * @param {Object} req - The HTTP request object.
+ * @param {Object} req.params - Request parameters
+ * @param {string} req.params.id - Attendance ID from URL
+ * @param {Object} res - The HTTP response object.
+ * @returns {Promise<void>} Deletes attendance record and returns confirmation message
+ */
+export const deleteAttendanceById = handleCatchErrorAsync(async (req, res) => {
+  await deleteAttendanceByIdService(Number(req.params.id));
+  globalResponse(res, 200, {
+    message: 'Attendance record deleted successfully',
+  });
+});
+
+/**
+ * Partially update an attendance record by ID.
+ *
+ * @param {Object} req - The HTTP request object.
+ * @param {Object} req.params - Request parameters
+ * @param {string} req.params.id - Attendance ID from URL
+ * @param {Object} req.body - Request body containing attendance data to update (partial)
+ * @param {number} [req.body.employeeId] - Employee ID
+ * @param {Date} [req.body.date] - Attendance date
+ * @param {string} [req.body.entryTime] - Entry time
+ * @param {string} [req.body.exitTime] - Exit time
+ * @param {number} [req.body.workedHours] - Worked hours
+ * @param {string} req.userId - Authenticated user ID from token verification
+ * @param {Object} res - The HTTP response object.
+ * @returns {Promise<void>} Updates attendance record and returns updated attendance object
+ */
+export const patchAttendanceById = handleCatchErrorAsync(async (req, res) => {
+  // Cast único del body validado por Joi (attendanceUpdateSchema)
+  const body = req.body as UpdateAttendanceInput;
+  const attendance = await patchAttendanceByIdService(
+    Number(req.params.id),
+    body,
+    req.userId as number
+  );
+  globalResponse(res, 200, attendance);
+});

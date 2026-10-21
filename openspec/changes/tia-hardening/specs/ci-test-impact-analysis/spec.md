@@ -2,7 +2,7 @@
 
 ## MODIFIED Requirements
 
-### Requirement: MODIFIED Diff-scoped unit test execution in CI
+### Requirement: Diff-scoped unit test execution in CI
 
 When a workspace test job runs for a PR, it SHALL execute the tests selected by the TIA selection
 contract: every test affected by the diff between the PR head and `origin/main`, plus any

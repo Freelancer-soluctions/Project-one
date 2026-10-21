@@ -1,0 +1,239 @@
+import * as prismaService from '../../utils/prisma/dao.js';
+import { TABLESNAMES } from '../../utils/constants/enums.js';
+import { prisma } from '../../config/db.js';
+import type { Prisma } from '@prisma/client';
+import type {
+  CreateNewsData,
+  News,
+  NewsFilters,
+  NewsServiceResult,
+  NewsStatus,
+  UpdateNewsData,
+} from './types.js';
+
+const tableName = TABLESNAMES.NEWS;
+
+/**
+ * Get all news with optional filters.
+ *
+ * @param {string} description - Description to filter by.
+ * @param {Date} fromDate - Start date to filter by.
+ * @param {Date} toDate - End date to filter by.
+ * @param {string} statusCode - Status code to filter by.
+ * @param {number} take - Number of records to retrieve.
+ * @param {number} skip - Number of records to skip.
+ * @returns {Promise<Object>} Object containing dataList and total count.
+ */
+export const getAllNews = async (
+  description: string | undefined,
+  fromDate: Date | undefined,
+  toDate: Date | undefined,
+  statusCode: string | undefined,
+  take: number,
+  skip: number
+): Promise<NewsServiceResult> => {
+  const where = buildNewsWhere({ description, fromDate, toDate, statusCode });
+  const news = await prisma.news.findMany({
+    where,
+    include: {
+      status: { select: { id: true, code: true, description: true } },
+      userNewsCreated: { select: { name: true } },
+      userNewsClosed: { select: { name: true } },
+      userNewsPending: { select: { name: true } },
+    },
+    take,
+    skip,
+
+    // select: {
+    //   id: true,
+    //   closedOn: true,
+    //   createdOn: true,
+    //   description: true,
+    //   document: true,
+    //   documentId: true,
+    //   statusId: true,
+    //   closedBy: true,
+    //   createdBy: true,
+    //   status: { select: { description: true } }
+
+    // }
+  });
+
+  const total = await prisma.news.count({ where });
+
+  return { dataList: news, total };
+};
+
+/**
+ * Builds the shared Prisma WHERE for the news list (findMany + count).
+ * Kept apart from getAllNews so both queries stay guaranteed in sync.
+ *
+ * @param {Object} p - Filters.
+ * @param {string} [p.description] - Description to filter by.
+ * @param {Date} [p.fromDate] - Start date to filter by.
+ * @param {Date} [p.toDate] - End date to filter by.
+ * @param {string} [p.statusCode] - Status code to filter by.
+ * @returns {Object} Prisma WHERE object.
+ */
+const buildNewsWhere = ({
+  description,
+  fromDate,
+  toDate,
+  statusCode,
+}: NewsFilters): Prisma.newsWhereInput => ({
+  ...(description
+    ? {
+        AND: [
+          {
+            description: { contains: description },
+          },
+        ],
+      }
+    : {}),
+
+  ...(fromDate && toDate
+    ? {
+        AND: [
+          {
+            createdOn: {
+              gte: new Date(fromDate),
+              lte: new Date(toDate),
+            },
+          },
+        ],
+      }
+    : {}),
+
+  ...(statusCode
+    ? {
+        status: {
+          code: {
+            equals: statusCode,
+          },
+        },
+      }
+    : {}),
+});
+
+/**
+ * Retrieves all available news statuses from the database.
+ *
+ * @returns {Promise<Array>} A list of all possible news statuses.
+ */
+export const getAllNewsStatus = async (): Promise<NewsStatus[]> => {
+  // const statusId = 1
+  const news = await prisma.newsStatus.findMany({
+    // include: {
+    //   news: { where: { statusId } }
+    // }
+  });
+  return Promise.resolve(news);
+};
+
+/**
+ * Create a new news entry in the database.
+ *
+ * @param {Object} data - The data for the new news entry.
+ * @param {string} data.description - The description of the news.
+ * @param {string} [data.document] - Optional document attached to the news.
+ * @param {string} [data.documentId] - Optional document identifier.
+ * @param {Date} data.createdOn - The timestamp when the news was created.
+ * @param {number} data.createdBy - The ID of the user who created the news.
+ * @param {number} data.statusId - The ID of the associated status.
+ * @param {number} [data.pendingBy] - Optional ID of the user pending the news.
+ * @param {Date} [data.pendingOn] - Optional timestamp when the news was marked as pending.
+ * @returns {Promise<Object>} The newly created news entry.
+ */
+export const createNew = async (data: CreateNewsData): Promise<News> => {
+  const result = await prisma.news.create({
+    data: {
+      description: data.description,
+      document: data.document,
+      documentId: data.documentId,
+      createdOn: data.createdOn,
+      userNewsCreated: {
+        connect: {
+          id: data.createdBy,
+        },
+      },
+
+      userNewsPending: data.pendingBy
+        ? {
+            connect: {
+              id: data.pendingBy, // Si no hay un id, no incluyas esta propiedad
+            },
+          }
+        : undefined,
+      pendingOn: data.pendingOn ? data.pendingOn : undefined,
+      status: {
+        connect: {
+          id: data.statusId,
+        },
+      },
+    },
+  });
+  return Promise.resolve(result);
+};
+
+/**
+ * Update a news entry by conditions.
+ *
+ * @param {Object} data - The fields to update in the news entry.
+ * @param {string} [data.description] - Optional new description.
+ * @param {string} [data.document] - Optional new document.
+ * @param {string} [data.documentId] - Optional new document identifier.
+ * @param {Date} [data.pendingOn] - Optional new pending timestamp.
+ * @param {number} [data.pendingBy] - Optional ID of the user marking the news as pending.
+ * @param {Date} [data.closedOn] - Optional new closed timestamp.
+ * @param {number} [data.closedBy] - Optional ID of the user closing the news.
+ * @param {number} data.statusId - The new status ID for the news.
+ * @param {Object} where - The conditions to identify the news entry to update.
+ * @returns {Promise<Object>} The updated news entry.
+ */
+export const updateRow = async (
+  data: UpdateNewsData,
+  where: Prisma.newsWhereUniqueInput
+): Promise<News> => {
+  const result = await prisma.news.update({
+    where,
+    data: {
+      ...(data.description !== undefined && { description: data.description }),
+      ...(data.document !== undefined && { document: data.document }),
+      ...(data.documentId !== undefined && { documentId: data.documentId }),
+      pendingOn: data.pendingOn ? data.pendingOn : undefined,
+      userNewsPending: data.pendingBy
+        ? {
+            connect: {
+              id: data.pendingBy,
+            },
+          }
+        : undefined,
+      closedOn: data.closedOn ? data.closedOn : undefined,
+      userNewsClosed: data.closedBy
+        ? {
+            connect: {
+              id: data.closedBy,
+            },
+          }
+        : undefined,
+      ...(data.statusId !== undefined && {
+        status: {
+          connect: {
+            id: data.statusId,
+          },
+        },
+      }),
+    },
+  });
+  return Promise.resolve(result);
+};
+
+/**
+ * Delete a news entry by conditions.
+ *
+ * @param {Object} where - The conditions to identify the news entry to delete.
+ * @returns {Promise<Object>} The deleted news entry.
+ */
+export const deleteRow = async (
+  where: Prisma.newsWhereUniqueInput
+): Promise<News> => prismaService.deleteRow(tableName, where);

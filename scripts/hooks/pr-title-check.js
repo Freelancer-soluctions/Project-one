@@ -3,8 +3,10 @@
 /**
  * Local PR title validator (L2.5 — "shifting left").
  *
- * Canonical source of truth: .github/workflows/ci.yml → job `pr-title-lint`
- * (amannn/action-semantic-pull-request@v6).
+ * Canonical source of truth: .github/workflows/pr-metadata.yml → job `PR Title Lint`
+ * (amannn/action-semantic-pull-request@v6). El job emigró de `ci.yml` en el
+ * change `pr-metadata-workflow` (2026-10-20): `ci.yml` YA NO contiene esa
+ * configuración, así que apuntar allí sería señalar un archivo que no la tiene.
  *
  * Allowed types : feat, fix, docs, style, refactor, perf, test, build, ci, chore, revert, ops
  * Subject rule  : ^(?![A-Z]).+$  (subject must NOT start with an uppercase letter)

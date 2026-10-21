@@ -1,0 +1,3 @@
+schema: spec-driven
+created: 2026-10-15
+goal: Convert the 36 dependency-graph leaf files of apps/server (config, crypto, logger, enums, schemas) to TypeScript following the parent change protocol, keeping every commit green (type-check, lint, unit tests)

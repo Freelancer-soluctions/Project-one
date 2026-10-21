@@ -1,5 +1,7 @@
 # Migración de `apps/server` a TypeScript — Investigación y Plan Incremental
 
+> **⚠️ Superado parcialmente por [`docs/server-typescript-migration-research.md`](../server-typescript-migration-research.md) (2026-10-14, fuente vigente):** números corregidos allí — 236 archivos JS (208 `src/` + 23 `tests/` + configs/prisma/scripts), ~2.586 anotaciones JSDoc con `@typedef` = 0, 20 accesos `process.env`. Este doc se conserva como registro histórico de la investigación 2026-09-23.
+
 > **Objetivo del documento:** registrar la investigación del codebase de `apps/server` (verificada contra los archivos reales el 2026-09-23) y la estrategia de migración a TypeScript que permite convertir el workspace **sin romper la ejecución** en ningún momento.
 > **Estado:** investigación completada; la migración NO ha comenzado. Cada fase de la §4 requiere su change OpenSpec.
 > **Fuentes oficiales:** [TS Handbook — Migrating from JS](https://www.typescriptlang.org/docs/handbook/migrating-from-javascript.html) · [tsconfig reference](https://www.typescriptlang.org/tsconfig/) · [Node ESM + TypeScript](https://nodejs.org/api/typescript.html)
@@ -136,6 +138,23 @@ Reglas de conversión:
 - ❌ Migrar `docs/schemas.js` (2.868 líneas de JSDoc OpenAPI en strings) — no aporta tipos; evaluar en Fase 3 separar OpenAPI specs a YAML/JSON.
 - ❌ Convertir el entry (`bin/index.js`) antes que sus dependencias — dejaría al archivo principal sin los tipos de todo su árbol.
 - ❌ Tocar `prisma/seed.js` en Fase 2 (poco tráfico, cero ganancia; va al final).
+
+### 3.4 Protocolo de conversión por archivo (recap Fase 0b, verificado 2026-10-15)
+
+Recap normativo de las 6 reglas (fuente: `openspec/changes/server-typescript-migration/design.md` §5).
+Cualquier dev aplica una conversión sin decisiones ad-hoc siguiendo (a)–(f):
+
+- (a) **Un archivo = un commit** (o un módulo de 5 archivos cuando el patrón esté rodado); `git mv` + tipar firmas públicas — los imports de consumidores NO se tocan.
+- (b) **`git mv` + firmas públicas tipadas**: los imports con sufijo `.js` se conservan (convención `nodenext`; TS resuelve `.js` → `.ts` al verificar).
+- (c) **El `@typedef` del archivo convertido muere en el mismo commit** → `types.ts` del módulo o interfaces inline (hoy `@typedef`/`@type` = 0 en `src/`: regla preventiva).
+- (d) **Sin `any` nuevo**; `unknown` + narrowing o `// TODO(types)` tracked.
+- (e) **`@ts-nocheck` solo como excepción justificada** con fecha de expiración.
+- (f) **Validación del commit**: `npx tsc --noEmit` + lint + tests del módulo + smoke de arranque.
+
+Decisiones Fase 0b que condicionan el protocolo: `checkJs: false` permanente hasta Fase 4
+(baseline con `checkJs: true` = 639 errores sobre 236 archivos, umbral ≤~200 — ver tasks 1.3);
+métrica baseline **236 JS / 0 TS** (208 `src/` + 20 `tests/` + 8 configs/prisma/scripts),
+imports `.js`-sufijados 389/389, job `server-typecheck` activo con baseline verde.
 
 ---
 

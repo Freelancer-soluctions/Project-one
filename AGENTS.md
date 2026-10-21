@@ -45,6 +45,8 @@ cd apps/server && npm run test:unit         # Unit tests
 cd apps/server && npm run test:integration  # Integration tests
 ```
 
+> **Migración TS en curso** (2026-10-14): `apps/server` aún **0 `.ts`** (236 `.js`/`.cjs`/`.mjs`; alcance total: 0 al final). Runtime endgame `tsx` (`dev` deja de ser `nodemon src/bin/index.js` al convertirse el entry); filtros de test ganan `.ts` en Fase 0. Fuente: `docs/server-typescript-migration-research.md`.
+
 ### E2E
 
 ```bash
@@ -62,7 +64,7 @@ cd e2e && npm run test
 ## Important Conventions
 
 - **Commits**: Conventional Commits enforced by Husky
-- **Commit Signing**: Cada commit debe firmarse localmente con la SSH key ed25519 dedicada (`git commit -S`). **Nunca usar `--no-verify` ni commits sin firmar** — rompe el ruleset `Pre-Merge Governance Gate` y la cadena de suministro. Ver docs/learning/ci-cd/05b-commit-signing.md para el setup rápido.
+- **Commit Signing & DCO**: Cada commit debe firmarse con la SSH key ed25519 dedicada y llevar signoff DCO: convención `git commit -S -s`. El hook `.husky/prepare-commit-msg` añade el trailer `Signed-off-by:` automáticamente con la identidad real de git (el mito `commit.signoff` es un no-op: no existe en git), y `.husky/commit-msg` es el único gate local que valida su presencia; CI `DCO` (required + blocking) es el backstop. El gate local de `pre-push` verifica la firma de cada commit contra el trust store versionado `allowed_signers` (raíz del repo, solo claves públicas) y bloquea los commits sin firma o con firma corrupta posteriores al cutoff. **Nunca usar `--no-verify` ni commits sin firmar** — rompe el ruleset `Require signed commits` y la cadena de suministro. Ver docs/learning/ci-cd/05b-commit-signing.md (setup de firma), docs/learning/dco.md (DCO) y docs/CONTEXT-CICD.md §10.7 (gate).
 - **Testing**: See [docs/testing-architecture.md](docs/testing-architecture.md)
 - **Code Style**: See [docs/code-style.md](docs/code-style.md)
 

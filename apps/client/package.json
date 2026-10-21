@@ -25,10 +25,12 @@
     "test:changed": "vitest run --changed origin/main",
     "test:coverage": "vitest run --coverage",
     "test:coverage:ci": "vitest run --coverage --reporter=default --reporter=junit --reporter=json --reporter=../../scripts/ci/vitest-flaky-reporter.mjs --outputFile.junit=reports/junit.xml --outputFile.json=reports/vitest-results.json --reporter=blob",
-    "test:changed:ci": "vitest run --changed origin/main --coverage --reporter=default --reporter=junit --reporter=json --reporter=../../scripts/ci/vitest-flaky-reporter.mjs --outputFile.junit=reports/junit.xml --outputFile.json=reports/vitest-results.json --reporter=blob",
+    "test:changed:ci": "node ../../scripts/ci/tia-select.mjs apps/client -- vitest run --coverage --coverage.changed=origin/main --config vitest.scoped.config.js --reporter=default --reporter=junit --reporter=json --reporter=../../scripts/ci/vitest-flaky-reporter.mjs --outputFile.junit=reports/junit.xml --outputFile.json=reports/vitest-results.json --reporter=blob",
     "test:snapshot": "vitest run --update=new",
     "test:snapshot:refresh": "vitest run -u",
-    "test:pbt": "vitest run \".properties.unit.test\""
+    "test:pbt": "vitest run \".properties.unit.test\"",
+    "test:tia": "node ../../scripts/ci/tia-select.mjs apps/client -- vitest run --coverage --coverage.changed=origin/main --changed origin/main --config vitest.scoped.config.js",
+    "test:tia:audit": "vitest list --changed origin/main --filesOnly"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.0",

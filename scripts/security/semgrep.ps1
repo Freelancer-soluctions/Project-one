@@ -3,11 +3,34 @@
 # Full documentation: docs/security/semgrep-rules.md
 Write-Host "▶ Running Semgrep SAST scan..." -ForegroundColor Cyan
 
+#
+# EXCEPCIÓN DELIBERADA Y DOCUMENTADA (change sast-shift-left-hooks-parity, design D5):
+# este full scan on-demand conserva su lista individual de 93 reglas r/... (deduplicada
+# de 98 entradas; el conjunto efectivo es idéntico). El hook `pre-push` y el job `sast`
+# del CI NO usan esta lista: consumen los packs desde scripts/sast-diff.mjs (fuente
+# única de reglas para los gates). 93 peticiones al registro son inviables en un hook
+# pero aceptables en un escaneo completo manual.
+#
+# Versión de Semgrep: única fuente en el repo = constante SEMGREP_VERSION de
+# scripts/sast-diff.mjs (RNF-02 — nunca un tag flotante). Se lee en runtime.
+# sast-diff.mjs vive en scripts/ (un nivel ARRIBA de scripts/security/): el
+# padre de $PSScriptRoot es scripts/, no scripts/security/.
+$SastDiff  = Join-Path (Split-Path $PSScriptRoot -Parent) 'sast-diff.mjs'
+$Match     = Select-String -Path $SastDiff -Pattern "SEMGREP_VERSION = '([^']+)'" | Select-Object -First 1
+$Version   = if ($Match) { $Match.Matches[0].Groups[1].Value } else { $null }
+# Falla ruidosa si la versión no se pudo resolver: un tag vacío
+# (`semgrep/semgrep:`) oculta el bug y arrastra el scan entero.
+if (-not $Version) {
+  Write-Error "Could not read SEMGREP_VERSION from $SastDiff - refusing to run docker with an empty image tag."
+  exit 1
+}
+Write-Host "   Semgrep version: $Version (single source: scripts/sast-diff.mjs)" -ForegroundColor DarkGray
+
 
 docker run --rm `
   -v "${PWD}:/src" `
   -w /src `
-  semgrep/semgrep:latest `
+  semgrep/semgrep:$Version `
   semgrep scan `
     --config="r/javascript.browser.security.open-redirect.js-open-redirect" `
     --config="r/javascript.browser.security.open-redirect-from-function.js-open-redirect-from-function" `
@@ -61,7 +84,6 @@ docker run --rm `
     --config="r/javascript.express.security.express-jwt-hardcoded-secret.express-jwt-hardcoded-secret" `
     --config="r/javascript.jsonwebtoken.security.jwt-hardcode.hardcoded-jwt-secret" `
     --config="r/javascript.lang.security.audit.hardcoded-hmac-key.hardcoded-hmac-key" `
-    --config="r/javascript.audit.detect-replaceall-sanitization.detect-replaceall-sanitization" `
     --config="r/javascript.express.security.express-insecure-template-usage.express-insecure-template-usage" `
     --config="r/javascript.express.security.express-sandbox-injection.express-sandbox-code-injection" `
     --config="r/javascript.express.security.injection.tainted-sql-string.tainted-sql-string" `
@@ -70,7 +92,6 @@ docker run --rm `
     --config="r/javascript.lang.security.audit.detect-non-literal-require.detect-non-literal-require" `
     --config="r/javascript.lang.security.audit.incomplete-sanitization.incomplete-sanitization" `
     --config="r/javascript.lang.security.audit.spawn-shell-true.spawn-shell-true" `
-    --config="r/javascript.lang.security.audit.unknown-value-with-script-tag.unknown-value-with-script-tag" `
     --config="r/javascript.lang.security.audit.unsafe-dynamic-method.unsafe-dynamic-method" `
     --config="r/javascript.lang.security.detect-child-process.detect-child-process" `
     --config="r/javascript.lang.security.detect-disable-mustache-escape.detect-disable-mustache-escape" `
@@ -79,9 +100,6 @@ docker run --rm `
     --config="r/javascript.lang.security.spawn-git-clone.spawn-git-clone" `
     --config="r/javascript.playwright.security.audit.playwright-exposed-chrome-devtools.playwright-exposed-chrome-devtools" `
     --config="r/javascript.express.security.audit.express-third-party-object-deserialization.express-third-party-object-deserialization" `
-    --config="r/javascript.express.security.audit.express-cookie-settings.express-cookie-session-default-name" `
-    --config="r/javascript.express.security.audit.express-cookie-settings.express-cookie-session-no-domain" `
-    --config="r/javascript.express.security.audit.express-cookie-settings.express-cookie-session-no-expires" `
     --config="r/javascript.express.security.audit.express-res-sendfile.express-res-sendfile" `
     --config="r/javascript.express.security.x-frame-options-misconfiguration.x-frame-options-misconfiguration" `
     --config="r/javascript.lang.security.audit.detect-non-literal-regexp.detect-non-literal-regexp" `

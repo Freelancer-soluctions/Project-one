@@ -1,5 +1,7 @@
 # JSDoc Documentation Migration Notes
 
+> **⚠️ Temporal (migración TS total, 2026-10-14):** el JSDoc de `apps/server` vive mientras dure la migración JS→TS y **muere por archivo convertido** (se reemplaza por tipos TS). Hoy `src/` solo usa `@param`/`@returns` (~2.586); `@typedef`/`@type` = 0. No añadir JSDoc a archivos ya convertidos a `.ts`. Fuente: `docs/server-typescript-migration-research.md`.
+
 ## Summary of the Change
 
 JSDoc documentation has been standardized across all controller, service, and dao modules in the server application. This initiative ensures consistent, maintainable, and well-documented code throughout the `apps/server/src/modules/` directory.

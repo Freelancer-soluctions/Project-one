@@ -4,14 +4,15 @@ import { defineConfig } from 'vitest/config';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-// Proyecto vitest MINIMO y AUTONOMO para `scripts/ci/**`.
+// Proyecto vitest MINIMO y AUTONOMO para `scripts/ci/**` y los tests de
+// scripts de la raiz (`scripts/*.test.mjs`, p. ej. sast-diff.test.mjs).
 // Motivo: los configs de los workspaces usan `root: <workspace>`, asi que
 // `scripts/` queda fuera de su `include`; este proyecto lo cubre sin tocar
 // esos configs ni el array `workspaces` del manifest raiz.
 export default defineConfig({
   test: {
     root: __dirname,
-    include: ['scripts/ci/*.test.mjs'],
+    include: ['scripts/ci/*.test.mjs', 'scripts/*.test.mjs'],
     environment: 'node',
   },
 });

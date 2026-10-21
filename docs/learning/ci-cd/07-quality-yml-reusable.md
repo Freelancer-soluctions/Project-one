@@ -590,15 +590,15 @@ En este repo conviven **tres mecanismos** de reutilización. Confundirlos es la 
 
 ### 8.1 La tabla comparativa definitiva
 
-| Criterio                             | Reusable workflow                         | Composite action                             | Script JS/PS vendored                                     |
-| ------------------------------------ | ----------------------------------------- | -------------------------------------------- | --------------------------------------------------------- |
-| Dónde vive                           | `.github/workflows/*.yml`                 | `.github/actions/*/action.yml`               | `scripts/` (p. ej. `scripts/security/semgrep-staged.ps1`) |
-| Qué reutiliza                        | **Jobs completos** (con su propio runner) | **Steps** dentro del job del caller          | Lógica arbitraria (no necesariamente CI)                  |
-| ¿Hace checkout?                      | Sí, es su propio job                      | **NO** — el caller ya hizo checkout (Caso 2) | Depende del script                                        |
-| ¿Puede tener secrets propios?        | Sí (`secrets: inherit` o explícitos)      | No — usa los del job                         | No aplica                                                 |
-| ¿Puede llamar a otro del mismo tipo? | **4 niveles** de anidamiento (límite)     | Sí, anidación libre                          | Sí                                                        |
-| Visibilidad en checks                | Aparece como job separado                 | Aparece como steps del job                   | Aparece como steps del job                                |
-| Ejemplo en el repo                   | `quality.yml` invocado por `ci.yml`       | `setup-monorepo` usado por 5+ jobs           | `semgrep-staged.ps1` en el hook `pre-commit`              |
+| Criterio                             | Reusable workflow                         | Composite action                             | Script JS/PS vendored                                                              |
+| ------------------------------------ | ----------------------------------------- | -------------------------------------------- | ---------------------------------------------------------------------------------- |
+| Dónde vive                           | `.github/workflows/*.yml`                 | `.github/actions/*/action.yml`               | `scripts/` (p. ej. `scripts/sast-diff.mjs`)                                        |
+| Qué reutiliza                        | **Jobs completos** (con su propio runner) | **Steps** dentro del job del caller          | Lógica arbitraria (no necesariamente CI)                                           |
+| ¿Hace checkout?                      | Sí, es su propio job                      | **NO** — el caller ya hizo checkout (Caso 2) | Depende del script                                                                 |
+| ¿Puede tener secrets propios?        | Sí (`secrets: inherit` o explícitos)      | No — usa los del job                         | No aplica                                                                          |
+| ¿Puede llamar a otro del mismo tipo? | **4 niveles** de anidamiento (límite)     | Sí, anidación libre                          | Sí                                                                                 |
+| Visibilidad en checks                | Aparece como job separado                 | Aparece como steps del job                   | Aparece como steps del job                                                         |
+| Ejemplo en el repo                   | `quality.yml` invocado por `ci.yml`       | `setup-monorepo` usado por 5+ jobs           | `sast-diff.mjs`: mismo script en el hook `pre-push` y en el job `sast` de `ci.yml` |
 
 ### 8.2 La heurística de decisión (árbol mental)
 
@@ -614,17 +614,26 @@ En este repo conviven **tres mecanismos** de reutilización. Confundirlos es la 
 
 **Regla práctica**: si el bloque que quieres reutilizar necesita su **propio runner** (p. ej. `runs-on: windows-latest` para un script PowerShell), es un reusable workflow. Si solo agrupa pasos que corren en el runner del caller, es una composite action. Si la lógica la necesitas **también en local** (hooks de husky), es un script vendored.
 
-### 8.3 Caso real: el hook `pre-commit` y `semgrep-staged.ps1`
+### 8.3 Caso real: el hook `pre-push` y el job `sast` comparten `scripts/sast-diff.mjs`
 
-El hook `pre-commit` de `.husky/` no es un workflow ni una action — es un **script** que corre en local. Pero comparte lógica con CI:
+El hook `pre-push` de `.husky/` no es un workflow ni una action — es un **script** que corre en local. Pero comparte lógica con CI:
 
 ```bash
-# .husky/pre-commit (fragmento conceptual)
-npx lint-staged
-./scripts/security/semgrep-staged.ps1   # SAST en local
+# .husky/pre-push (fragmento conceptual)
+node scripts/sast-diff.mjs             # SAST diff-scoped en local (SAST_MODE=local por default)
 ```
 
-La misma lógica de seguridad aparece en CI vía `security.yml`. **No dupliques**: si el script vive en `scripts/`, tanto el hook local como el workflow de CI pueden invocarlo. Ese es el patrón "una fuente de verdad, dos invocadores" — el mismo principio que `.nvmrc` (sección 2.6) aplicado a scripts.
+```yaml
+# .github/workflows/ci.yml — job `sast` (fragmento conceptual)
+- run: SAST_MODE=ci node scripts/sast-diff.mjs # el MISMO script en CI
+```
+
+La misma lógica de seguridad aparece en ambos lados. **No dupliques**: si el script vive en `scripts/`,
+tanto el hook local como el workflow de CI pueden invocarlo — solo cambia el modo (`SAST_MODE`) y la
+política de fallos. Ese es el patrón "una fuente de verdad, dos invocadores" — el mismo principio que
+`.nvmrc` (sección 2.6) aplicado a scripts. Es además la corrección del problema histórico: antes había
+dos implementaciones divergentes (un PowerShell para el hook y un `docker run` inline en el CI) que
+podían dar veredictos distintos sobre el mismo diff.
 
 ### 8.4 Cuándo NO reutilizar
 

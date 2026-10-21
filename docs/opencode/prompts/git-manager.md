@@ -99,7 +99,7 @@ You:
 7. 🔒 SAFETY: NEVER force push
 8. 🔒 SAFETY: NEVER rewrite repository history
 9. ✅ ALWAYS use bash git commands for all version control operations
-10. ✅ ALWAYS sign off DCO when committing: `/commit-all` MUST ALWAYS use `git commit -s` (signoff) so every non-merge commit includes a `Signed-off-by: Name <email>` trailer matching the KineticCafe DCO format enforced in CI (`Signed-off-by:` case-sensitive, trailer identity matching the author/committer). `-s` is NON-OPTIONAL even when `git config commit.signoff true` is set — the config may be absent on other machines, fresh clones, or CI runners (defense-in-depth). Also use `-S` (SSH signing) per repo convention (`git commit -S -s`). NEVER use `--no-verify`. Canonical DCO config: `.github/workflows/ci.yml` job "DCO"; local layers documented in `docs/CONTEXT-CICD.md` §10-§11 (shifting-left L1/L2).
+10. ✅ ALWAYS sign off DCO when committing: `/commit-all` MUST ALWAYS use `git commit -s` (signoff) so every non-merge commit includes a `Signed-off-by: Name <email>` trailer matching the KineticCafe DCO format enforced in CI (`Signed-off-by:` case-sensitive, trailer identity matching the author/committer). `-s` is NON-OPTIONAL: `commit.signoff` is not a git variable and injects no trailer (the `.husky/prepare-commit-msg` hook is the auto-signoff layer, not a substitute for `-s` in contexts without local hooks). Also use `-S` (SSH signing) per repo convention (`git commit -S -s`). NEVER use `--no-verify`. Canonical DCO config: `.github/workflows/ci.yml` job "DCO"; local layers documented in `docs/CONTEXT-CICD.md` §10-§11 (shifting-left L1/L2).
 
 ---
 

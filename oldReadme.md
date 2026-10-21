@@ -1,4 +1,5 @@
-Front end 
+Front end
+
 - Persitencia de datos como el inicio de sesion con redux-persist
 - Proteccion de rutas solo accesibles cuando la sesion es valida por medio de un guard, trabajando conjuntamente con jwt
 - Internalizacion con i18next y react-i18next soportando dos idiomas (ingles y español)
@@ -6,11 +7,12 @@ Front end
 - Uso de hooks personalizados para organizar y separalar la logica de la pagina para su mejor comprension.
 - Uso de logger para monitoreo y registro de acciones o errores del front end
 - React hook forma para manejo de formularios en combinacion con zod schema validation
-- RTK QUERY  para manejo de estado global
+- RTK QUERY para manejo de estado global
 - Redux persist para la persitencia de estados necesarios como lo son las configuraciones o informacion de usuario
 - Editor WYSIWYG usando quill para texto Enriquecido (Textarea) (Pendiente)
 
 Back end
+
 - Documentación: Swagger/OpenAPI para la documentacion y prueba APIs REST
 - Documentacion basada en jsdoc complementaria a la de Swagger/OpenAPI
 - Arquitectura layered o capas
@@ -18,7 +20,7 @@ Back end
 - Uso de prima ORM con sistema de consultas naviva y uso de sql raw para consultas mas complejas.
 - Uso de JWT para la autenticacion y autorizacion de usuarios en rutas privadas
 - HOF (hihg order function) para manejo de errores en cada uno de los controller del sistema
-- Códigos HTTP apropiados en reapuestas 
+- Códigos HTTP apropiados en reapuestas
 - Rate limiting en endpoints criticos (Nombrar enpoints)
 - Logging Estructurado: Winston (Pulir)
 - Versionado y Auditoría (Pendiente)
@@ -27,6 +29,7 @@ Back end
 - Internalizacion en el back end (Pendiente)
 
 Global
+
 - El sistema posee varias capas de seguridad siendo tales como middlewares de control de acceso para verificacion de tokens jwt, roles y permisos, (Broken access control owasp top 10)
 - Se esta usando workspaces de npm
 - Paginacion y ordenamiento nativo para tablas implaemntadas con tanstack table
@@ -34,9 +37,8 @@ Global
 - Formateo de fechas/números según locale (Ajustar)
 - Tema ocuro y blanco (Pendiente)
 
-
 PASAR LA LOGICA DE NEGOCIO A LA DOCUMENTACION DE LOS MODULOS Y REFERENCIAR AQUI EN EL README
-1️⃣ Módulo de Gestión de Productos 
+1️⃣ Módulo de Gestión de Productos
 📌 Objetivo: Administrar los productos y sus características.
 🔹 CRUD de productos (crear, leer, actualizar, eliminar).
 🔹 Manejo de categorías y atributos personalizables.
@@ -108,113 +110,107 @@ Posibilidad de personalizar los campos de los productos y reportes según necesi
 Automatización de compras si el stock baja de un nivel crítico.
 
 Tabla: Acceso por rol a los módulos del ERP
-| Módulo                  | Admin | Manager | User |
+| Módulo | Admin | Manager | User |
 | ----------------------- | :---: | :-----: | :--: |
-| Dashboard               |   ✅   |    ✅    |   ✅  |
-| Gestión de productos    |   ✅   |    ✅    |  🔲  |
-| Proveedores             |   ✅   |    ✅    |  🔲  |
-| Inventario              |   ✅   |    ✅    |  🔲  |
-| Categorías de productos |   ✅   |    ✅    |  🔲  |
-| Atributos de producto   |   ✅   |    ✅    |  🔲  |
-| Gestión de ventas       |   ✅   |    ✅    |  🔲  |
-| Gestión de compras      |   ✅   |    ✅    |  🔲  |
-| Gestión de clientes     |   ✅   |    ✅    |   ✅  |
-| Gestión de empleados    |   ✅   |    ✅    |  🔲  |
-| Evaluación de desempeño |   ✅   |    ✅    |  🔲  |
-| Nómina                  |   ✅   |    ✅    |  🔲  |
-| Asistencia              |   ✅   |    ✅    |  🔲  |
-| Vacaciones              |   ✅   |    ✅    |  🔲  |
-| Noticias                |   ✅   |    ✅    |   ✅  |
-| Configuración de acceso |   ✅   |    🔲   |  🔲  |
-| Gestión de usuarios     |   ✅   |    🔲   |  🔲  |
-| Órdenes de clientes     |   ✅   |    ✅    |   ✅  |
-| Órdenes de proveedores  |   ✅   |    ✅    |  🔲  |
-| Gastos                  |   ✅   |    ✅    |  🔲  |
-| Reportes / Estadísticas |   ✅   |    ✅    |   ✅  |
-
-
-
+| Dashboard | ✅ | ✅ | ✅ |
+| Gestión de productos | ✅ | ✅ | 🔲 |
+| Proveedores | ✅ | ✅ | 🔲 |
+| Inventario | ✅ | ✅ | 🔲 |
+| Categorías de productos | ✅ | ✅ | 🔲 |
+| Atributos de producto | ✅ | ✅ | 🔲 |
+| Gestión de ventas | ✅ | ✅ | 🔲 |
+| Gestión de compras | ✅ | ✅ | 🔲 |
+| Gestión de clientes | ✅ | ✅ | ✅ |
+| Gestión de empleados | ✅ | ✅ | 🔲 |
+| Evaluación de desempeño | ✅ | ✅ | 🔲 |
+| Nómina | ✅ | ✅ | 🔲 |
+| Asistencia | ✅ | ✅ | 🔲 |
+| Vacaciones | ✅ | ✅ | 🔲 |
+| Noticias | ✅ | ✅ | ✅ |
+| Configuración de acceso | ✅ | 🔲 | 🔲 |
+| Gestión de usuarios | ✅ | 🔲 | 🔲 |
+| Órdenes de clientes | ✅ | ✅ | ✅ |
+| Órdenes de proveedores | ✅ | ✅ | 🔲 |
+| Gastos | ✅ | ✅ | 🔲 |
+| Reportes / Estadísticas | ✅ | ✅ | ✅ |
 
 Tabla de permisos booleanos por rol (para manager y user) SDSD
 
-| ID  | Código del Permiso              | Descripción                               | Manager | User |
-|-----|----------------------------------|-------------------------------------------|---------|------|
-| 1   | canViewDashboard                 | Puede ver el dashboard                    | ✅      | ✅  |
-| 2   | canCreateProduct                 | Puede crear productos                     | ✅      |      |
-| 3   | canEditProduct                   | Puede editar productos                    | ✅      |      |
-| 4   | canDeleteProduct                 | Puede eliminar productos                  | ✅      |      |
-| 5   | canViewProduct                   | Puede ver productos                       | ✅      | ✅   |
-| 6   | canCreateProvider                | Puede crear proveedores                   | ✅      |      |
-| 7   | canEditProvider                  | Puede editar proveedores                  | ✅      |      |
-| 8   | canDeleteProvider                | Puede eliminar proveedores                | ✅      |      |
-| 9   | canViewProvider                  | Puede ver proveedores                     | ✅      | ✅   |
-| 10  | canCreateInventory               | Puede crear inventario                    | ✅      |      |
-| 11  | canEditInventory                 | Puede editar inventario                   | ✅      |      |
-| 12  | canViewInventory                 | Puede ver inventario                      | ✅      | ✅   |
-| -   | canDeleteInventory               | Puede eliminar inventario                 | ✅      |      |
-| 13  | canCreateCategory                | Puede crear categorías                    | ✅      |      |
-| 14  | canEditCategory                  | Puede editar categorías                   | ✅      |      |
-| 15  | canViewCategory                  | Puede ver categorías                      | ✅      | ✅   |
-| -   | canDeleteCategory                | Puede eliminar inventario                 | ✅      |      |
-| 16  | canCreateSale                    | Puede crear ventas                        | ✅      | ✅   |
-| 17  | canEditSale                      | Puede editar ventas                       | ✅      | ✅  |
-| 18  | canViewSale                      | Puede ver ventas                          | ✅      | ✅   |
-| -   | canDeleteSale                    | Puede eliminar un sale                    | ✅      |      |
-| 19  | canCreatePurchase                | Puede crear compras                       | ✅      |      |
-| 20  | canEditPurchase                  | Puede editar compras                      | ✅      |      |
-| 21  | canViewPurchase                  | Puede ver compras                         | ✅      |      |
-| -   | canDeletePurchase                | Puede eliminar un compras                 | ✅      |      |
-| 22  | canCreateClient                  | Puede crear clientes                      | ✅      |      |
-| 23  | canEditClient                    | Puede editar clientes                     | ✅      |      |
-| 24  | canViewClient                    | Puede ver clientes                        | ✅      | ✅   |
-| -   | canDeleteClient                  | Puede eliminar un cliente                 | ✅      |      |
-| 25  | canCreateEmployee                | Puede crear empleados                     | ✅      |      |
-| 26  | canEditEmployee                  | Puede editar empleados                    | ✅      |      |
-| 27  | canViewEmployee                  | Puede ver empleados                       | ✅      |      |
-| -   | canDeleteEmployee                | Puede eliminar un empleados               | ✅      |      |
+| ID  | Código del Permiso | Descripción                 | Manager | User |
+| --- | ------------------ | --------------------------- | ------- | ---- |
+| 1   | canViewDashboard   | Puede ver el dashboard      | ✅      | ✅   |
+| 2   | canCreateProduct   | Puede crear productos       | ✅      |      |
+| 3   | canEditProduct     | Puede editar productos      | ✅      |      |
+| 4   | canDeleteProduct   | Puede eliminar productos    | ✅      |      |
+| 5   | canViewProduct     | Puede ver productos         | ✅      | ✅   |
+| 6   | canCreateProvider  | Puede crear proveedores     | ✅      |      |
+| 7   | canEditProvider    | Puede editar proveedores    | ✅      |      |
+| 8   | canDeleteProvider  | Puede eliminar proveedores  | ✅      |      |
+| 9   | canViewProvider    | Puede ver proveedores       | ✅      | ✅   |
+| 10  | canCreateInventory | Puede crear inventario      | ✅      |      |
+| 11  | canEditInventory   | Puede editar inventario     | ✅      |      |
+| 12  | canViewInventory   | Puede ver inventario        | ✅      | ✅   |
+| -   | canDeleteInventory | Puede eliminar inventario   | ✅      |      |
+| 13  | canCreateCategory  | Puede crear categorías      | ✅      |      |
+| 14  | canEditCategory    | Puede editar categorías     | ✅      |      |
+| 15  | canViewCategory    | Puede ver categorías        | ✅      | ✅   |
+| -   | canDeleteCategory  | Puede eliminar inventario   | ✅      |      |
+| 16  | canCreateSale      | Puede crear ventas          | ✅      | ✅   |
+| 17  | canEditSale        | Puede editar ventas         | ✅      | ✅   |
+| 18  | canViewSale        | Puede ver ventas            | ✅      | ✅   |
+| -   | canDeleteSale      | Puede eliminar un sale      | ✅      |      |
+| 19  | canCreatePurchase  | Puede crear compras         | ✅      |      |
+| 20  | canEditPurchase    | Puede editar compras        | ✅      |      |
+| 21  | canViewPurchase    | Puede ver compras           | ✅      |      |
+| -   | canDeletePurchase  | Puede eliminar un compras   | ✅      |      |
+| 22  | canCreateClient    | Puede crear clientes        | ✅      |      |
+| 23  | canEditClient      | Puede editar clientes       | ✅      |      |
+| 24  | canViewClient      | Puede ver clientes          | ✅      | ✅   |
+| -   | canDeleteClient    | Puede eliminar un cliente   | ✅      |      |
+| 25  | canCreateEmployee  | Puede crear empleados       | ✅      |      |
+| 26  | canEditEmployee    | Puede editar empleados      | ✅      |      |
+| 27  | canViewEmployee    | Puede ver empleados         | ✅      |      |
+| -   | canDeleteEmployee  | Puede eliminar un empleados | ✅      |      |
 
-| 28  | canCreateEvaluatePerformance     | Puede crear evaluar desempeño             | ✅      |      |
-| -   | canEditEvaluatePerformance       | Puede editar evaluar desempeño            | ✅      |      |
-| -   | canDeleteEvaluationPerformance   | Puede eliminar un empleados               | ✅      |      |
-| 29  | canViewPerformanceEvaluations    | Puede ver evaluaciones de desempeño       | ✅      |      |
-| 30  | canCreatePayroll                 | Puede crear nóminas                       | ✅      |      |
-| 31  | canEditPayroll                   | Puede editar nóminas                      | ✅      |      |
-| 32  | canViewPayroll                   | Puede ver nóminas                         | ✅      |      |
-| -   | canDeletePayroll                 | Puede eliminar un empleados               | ✅      |      |
+| 28 | canCreateEvaluatePerformance | Puede crear evaluar desempeño | ✅ | |
+| - | canEditEvaluatePerformance | Puede editar evaluar desempeño | ✅ | |
+| - | canDeleteEvaluationPerformance | Puede eliminar un empleados | ✅ | |
+| 29 | canViewPerformanceEvaluations | Puede ver evaluaciones de desempeño | ✅ | |
+| 30 | canCreatePayroll | Puede crear nóminas | ✅ | |
+| 31 | canEditPayroll | Puede editar nóminas | ✅ | |
+| 32 | canViewPayroll | Puede ver nóminas | ✅ | |
+| - | canDeletePayroll | Puede eliminar un empleados | ✅ | |
 
-| 33  | canCreateAttendance              | Puede registrar asistencia                | ✅      |      |
-| -   | canEditAttendance                | Puede registrar asistencia                | ✅      |      |
-| -   | canDeleteAttendance              | Puede eliminar un empleados               | ✅      |      |
-| 34  | canViewAttendance                | Puede ver asistencia                      | ✅      | ✅   |
-| 35  | canRequestVacation               | Puede solicitar vacaciones                | ✅      | ✅   |
-| -   | canEditRequestVacation           | Puede solicitar vacaciones                | ✅      | ✅   |
-| -   | canDeleteVacation              | Puede eliminar un empleados               | ✅      |   ✅   |
-| 36  | canViewVacations                 | Puede ver vacaciones                      | ✅      | ✅   |
-| 37  | canViewNews                      | Puede ver noticias                        | ✅      | ✅   |
-| 37  | canCreateNews                      | Puede ver noticias                        | ✅      | ✅   |
-| 37  | canEditNews                      | Puede ver noticias                        | ✅      | ✅   |
-| 37  | canDeleteNews                      | Puede ver noticias                        | ✅      | ✅   |
+| 33 | canCreateAttendance | Puede registrar asistencia | ✅ | |
+| - | canEditAttendance | Puede registrar asistencia | ✅ | |
+| - | canDeleteAttendance | Puede eliminar un empleados | ✅ | |
+| 34 | canViewAttendance | Puede ver asistencia | ✅ | ✅ |
+| 35 | canRequestVacation | Puede solicitar vacaciones | ✅ | ✅ |
+| - | canEditRequestVacation | Puede solicitar vacaciones | ✅ | ✅ |
+| - | canDeleteVacation | Puede eliminar un empleados | ✅ | ✅ |
+| 36 | canViewVacations | Puede ver vacaciones | ✅ | ✅ |
+| 37 | canViewNews | Puede ver noticias | ✅ | ✅ |
+| 37 | canCreateNews | Puede ver noticias | ✅ | ✅ |
+| 37 | canEditNews | Puede ver noticias | ✅ | ✅ |
+| 37 | canDeleteNews | Puede ver noticias | ✅ | ✅ |
 
+| 38 | canCreateClientOrder | Puede crear órdenes de cliente | ✅ | ✅ |
+| 39 | canEditClientOrder | Puede editar órdenes de cliente | ✅ | |
+| 40 | canViewClientOrder | Puede ver órdenes de cliente | ✅ | ✅ |
 
+| 41 | canCreateProviderOrder | Puede crear órdenes a proveedores | ✅ | |
+| 42 | canEditProviderOrder | Puede editar órdenes a proveedores | ✅ | |
+| 43 | canViewProviderOrder | Puede ver órdenes a proveedores | ✅ | |
+| 37 | canDeleteProviderOrder | Puede ver noticias | ✅ | |
 
-| 38  | canCreateClientOrder             | Puede crear órdenes de cliente            | ✅      | ✅   |
-| 39  | canEditClientOrder               | Puede editar órdenes de cliente           | ✅      |      |
-| 40  | canViewClientOrder               | Puede ver órdenes de cliente              | ✅      | ✅   |
+| 44 | canCreateExpense | Puede crear gastos | ✅ | |
+| 45 | canEditExpense | Puede editar gastos | ✅ | |
+| 46 | canViewExpense | Puede ver gastos | ✅ | |
+| 37 | canDeleteExpense | Puede ver noticias | ✅ | |
 
-| 41  | canCreateProviderOrder           | Puede crear órdenes a proveedores         | ✅      |      |
-| 42  | canEditProviderOrder             | Puede editar órdenes a proveedores        | ✅      |      |
-| 43  | canViewProviderOrder             | Puede ver órdenes a proveedores           | ✅      |      |
-| 37  | canDeleteProviderOrder           | Puede ver noticias                      | ✅      |    |
-
-| 44  | canCreateExpense                 | Puede crear gastos                        | ✅      |      |
-| 45  | canEditExpense                   | Puede editar gastos                       | ✅      |      |
-| 46  | canViewExpense                   | Puede ver gastos                          | ✅      |      |
-| 37  | canDeleteExpense             | Puede ver noticias                      | ✅      |    |
-
-| 47  | canViewReports                   | Puede ver reportes                        | ✅      |      |
+| 47 | canViewReports | Puede ver reportes | ✅ | |
 
 No se han aplicado los de client order y reports queda faltando mas modulos
-
 
 Segmentación de Permisos por Funcionalidad
 Decidiste que el sistema crecerá, por lo tanto optamos por segmentar los permisos en categorías lógicas para mayor claridad y control granular:
@@ -237,15 +233,11 @@ user tiene acceso parcial (ver dashboard, clientes, órdenes, etc.).
 
 Esto se convirtió en data semilla para la tabla RolePermit, uniendo cada roleId con los permissionId correspondientes.
 
-
-
-Quiero que hagas lo siguiente: 1- crea la estructura para expenses siguiendo como ejemplo clients y lo hecho en el server de clients, 2- usa la misma estructura de codigo, es importante que respetes como esta escrito el codigo lo que quiero es que lo adaptes a expenses siguiendo la misma estructura que esta en clients . 3- crealo dentro de modules siguiendo la estructura de archivos. 4- usa el mismo codigo de clients  pero adaptado a expenses, y estos cambios son los del front end, no debes de realizar ningun cambio en el back end, 5 verifica los modelos de expenses  en el back end (server) para que sepas como es la estructura del fromulario en el front end, antes de hacer algun cambio por favor lee la estructura y el codebase de clients que es el ejemplo no crees ni añadas codigo que no existe en clients quiero estrictamente la misma estructura adapatada apara a expenses, preguntame si tienes dudas
+Quiero que hagas lo siguiente: 1- crea la estructura para expenses siguiendo como ejemplo clients y lo hecho en el server de clients, 2- usa la misma estructura de codigo, es importante que respetes como esta escrito el codigo lo que quiero es que lo adaptes a expenses siguiendo la misma estructura que esta en clients . 3- crealo dentro de modules siguiendo la estructura de archivos. 4- usa el mismo codigo de clients pero adaptado a expenses, y estos cambios son los del front end, no debes de realizar ningun cambio en el back end, 5 verifica los modelos de expenses en el back end (server) para que sepas como es la estructura del fromulario en el front end, antes de hacer algun cambio por favor lee la estructura y el codebase de clients que es el ejemplo no crees ni añadas codigo que no existe en clients quiero estrictamente la misma estructura adapatada apara a expenses, preguntame si tienes dudas
 
 Quiero que hagas lo siguiente: 1- crea la estructura para vacation siguiendo como ejemplo clients y el modelo de prisma de vacation, 2- usa la misma estructura de codigo, es importante que respetes como esta escrito el codigo lo que quiero es que lo adaptes a vacation siguiendo la misma estructura que esta en clients. 3- crealo dentro de components siguiendo la estructura de archivos. reviza el codigo porque no lo estas haciendo bien quiero que sea exacto yo estoy usando esmodules y tu lo estas haciendo de otra forma, tambien ten presente las HOF que tienen los controladores porque no estoy haciendo uso de try catch 4- Crea los esquemas de Joi específicos para vacation, también la documentacion de Swagger correspondientes en folder docs/schemas.js y los comentarios de jsdoc en controller, service y dao
 
-
-
-llaves de env generadas 
+llaves de env generadas
 node -e "console.log(require('crypto').randomBytes(32).toString('base64'))" <- se uso esta
 usar alguna de estas opciones para crear las llaves secretas
 node -e "console.log('SECRETKEY=', require('crypto').randomBytes(32).toString('hex'))"
@@ -256,69 +248,70 @@ AESGCM KEY
 node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"
 
 A02 CRYPTOGRAPHID FAILURES
-Cifrado de datos en campos sensibles (AES-GCM) 
+Cifrado de datos en campos sensibles (AES-GCM)
 
 Configuracion de prettier
 {
-  // Esquema oficial para que editores (VS Code, WebStorm)
-  // validen y autocompleten las opciones de Prettier
-  "$schema": "https://json.schemastore.org/prettierrc",
+// Esquema oficial para que editores (VS Code, WebStorm)
+// validen y autocompleten las opciones de Prettier
+"$schema": "https://json.schemastore.org/prettierrc",
 
-  // Longitud máxima de una línea antes de que Prettier haga saltos
-  // Valor recomendado por Prettier y estándar en equipos
-  "printWidth": 80,
+// Longitud máxima de una línea antes de que Prettier haga saltos
+// Valor recomendado por Prettier y estándar en equipos
+"printWidth": 80,
 
-  // Número de espacios por nivel de indentación
-  "tabWidth": 2,
+// Número de espacios por nivel de indentación
+"tabWidth": 2,
 
-  // Fuerza el uso de espacios en lugar de tabs
-  // Garantiza consistencia entre editores y CI
-  "useTabs": false,
+// Fuerza el uso de espacios en lugar de tabs
+// Garantiza consistencia entre editores y CI
+"useTabs": false,
 
-  // Obliga a usar punto y coma al final de las sentencias
-  // Evita edge cases del ASI en JavaScript
-  "semi": true,
+// Obliga a usar punto y coma al final de las sentencias
+// Evita edge cases del ASI en JavaScript
+"semi": true,
 
-  // Usa comillas simples en JavaScript
-  // No afecta a JSX ni a JSON
-  "singleQuote": true,
+// Usa comillas simples en JavaScript
+// No afecta a JSX ni a JSON
+"singleQuote": true,
 
-  // Solo añade comillas a propiedades de objetos cuando es necesario
-  // Reduce ruido visual sin romper compatibilidad
-  "quoteProps": "as-needed",
+// Solo añade comillas a propiedades de objetos cuando es necesario
+// Reduce ruido visual sin romper compatibilidad
+"quoteProps": "as-needed",
 
-  // En JSX se mantienen comillas dobles (convención HTML)
-  // Recomendado por la documentación oficial
-  "jsxSingleQuote": false,
+// En JSX se mantienen comillas dobles (convención HTML)
+// Recomendado por la documentación oficial
+"jsxSingleQuote": false,
 
-  // Añade coma final donde ES5 lo permite (objetos, arrays, parámetros)
-  // Mejora los diffs en Git
-  "trailingComma": "es5",
+// Añade coma final donde ES5 lo permite (objetos, arrays, parámetros)
+// Mejora los diffs en Git
+"trailingComma": "es5",
 
-  // Añade espacios dentro de llaves en objetos: { foo: bar }
-  // Mejora la legibilidad
-  "bracketSpacing": true,
+// Añade espacios dentro de llaves en objetos: { foo: bar }
+// Mejora la legibilidad
+"bracketSpacing": true,
 
-  // Mantiene el cierre de JSX en una nueva línea
-  // Evita JSX compacto difícil de leer
-  "bracketSameLine": false,
+// Mantiene el cierre de JSX en una nueva línea
+// Evita JSX compacto difícil de leer
+"bracketSameLine": false,
 
-  // Siempre incluye paréntesis en funciones flecha
-  // Mejora legibilidad y evita ambigüedades
-  "arrowParens": "always",
+// Siempre incluye paréntesis en funciones flecha
+// Mejora legibilidad y evita ambigüedades
+"arrowParens": "always",
 
-  // Fuerza finales de línea LF
-  // CRÍTICO para evitar errores en CI/CD (Linux) y conflictos Windows
-  "endOfLine": "lf"
+// Fuerza finales de línea LF
+// CRÍTICO para evitar errores en CI/CD (Linux) y conflictos Windows
+"endOfLine": "lf"
 }
-----------------------------------------------------------------------------------------------
 
-Uso en CI/CD (muy importante)   
+---
+
+Uso en CI/CD (muy importante)
 
 {
-  "scripts": {
-    "format:check": "prettier --check \"apps/**/*.{js,jsx,json,md}\""
-  }
+"scripts": {
+"format:check": "prettier --check \"apps/\*_/_.{js,jsx,json,md}\""
+}
 }
 En el pipeline
 npm ci
@@ -330,14 +323,13 @@ No modifica código en CI
 
 Refuerza Husky (defensa en capas)
 
-
 Uso correcto en CI/CD (clave)
 En CI NO se usa --fix.
 
 {
-  "scripts": {
-    "lint": "eslint \"apps/**/*.{js,jsx}\""
-  }
+"scripts": {
+"lint": "eslint \"apps/\*_/_.{js,jsx}\""
+}
 }
 npm ci
 npm run lint:ci
@@ -351,8 +343,7 @@ El código no se modifica
 
 Husky + CI se refuerzan mutuamente
 
-Se uso trunk based development como estrategia de ramas en compañia de feature flags
--------------------------------------------------------------------------------------------------
+## Se uso trunk based development como estrategia de ramas en compañia de feature flags
 
 Análisis Arquitectónico (Monorepo + PR CI)
 
@@ -376,17 +367,18 @@ Eso ya es nivel intermedio-alto.
 
 Branch-Based Pipeline:
 Feature Branch → PR Pipeline (build, test, Code Quality, security scan)
-       ↓
+↓
 Main Branch → Full Pipeline (build, test, scan, deploy to staging)
-       ↓
+↓
 Release Tag → Production Pipeline (deploy to prod)
 
+---
 
------------------------------------------------------------------------------------------
 Uso de semgrep con docker
 Uso de gitleaks con chocolatey
 
 ## Security Scanning
+
 ## Static Application Security Testing (SAST)
 
 This project integrates **Semgrep** for **Static Application Security Testing (SAST)** as part of a **Shift-Left security strategy**.
@@ -394,12 +386,12 @@ Semgrep analyzes the source code to detect common vulnerabilities during develop
 
 Security rules are aligned with common web application vulnerabilities such as:
 
-* Broken Access Control
-* Injection
-* Cross-Site Scripting (XSS)
-* Cryptographic Failures
-* Server-Side Request Forgery (SSRF)
-* Security Misconfiguration
+- Broken Access Control
+- Injection
+- Cross-Site Scripting (XSS)
+- Cryptographic Failures
+- Server-Side Request Forgery (SSRF)
+- Security Misconfiguration
 
 The full list of rules is documented in:
 
@@ -453,9 +445,9 @@ scripts/security/semgrep-staged.ps1
 
 This scan analyzes **the complete repository**, which is useful for:
 
-* manual security checks
-* validating a branch before opening a pull request
-* full security audits
+- manual security checks
+- validating a branch before opening a pull request
+- full security audits
 
 ```bash
 npm run sast:semgrep:full
@@ -493,22 +485,21 @@ This ensures vulnerabilities are detected **before code is pushed to the reposit
 
 ---
 
-
 # Security Documentation
 
 Additional security documentation can be found in:
 
 ```
 docs/security/SECURITY.md (Static Application Security Testing (SAST))
-docs/security/segremp-rules.md 
+docs/security/semgrep-rules.md
 
 ```
 
 These documents describe:
 
-* security policies
-* rule configuration
-* vulnerability coverage
+- security policies
+- rule configuration
+- vulnerability coverage
 
 ## Dependency Vulnerability Scanning
 
@@ -520,17 +511,17 @@ The scan evaluates both **direct and transitive dependencies** defined in the re
 
 Dependency vulnerabilities are detected using public vulnerability databases such as:
 
-* NVD (National Vulnerability Database)
-* GitHub Security Advisories
-* Vendor security advisories
+- NVD (National Vulnerability Database)
+- GitHub Security Advisories
+- Vendor security advisories
 
 These vulnerabilities may affect packages used by the application and can introduce risks such as:
 
-* Remote Code Execution (RCE)
-* Prototype Pollution
-* Denial of Service (DoS)
-* Authentication bypass
-* Privilege escalation
+- Remote Code Execution (RCE)
+- Prototype Pollution
+- Denial of Service (DoS)
+- Authentication bypass
+- Privilege escalation
 
 ---
 
@@ -606,10 +597,10 @@ lodash    CVE-2021-23337     HIGH
 
 Severity levels reported by Trivy include:
 
-* LOW
-* MEDIUM
-* HIGH
-* CRITICAL
+- LOW
+- MEDIUM
+- HIGH
+- CRITICAL
 
 Developers should prioritize fixing **HIGH and CRITICAL vulnerabilities**.
 
@@ -651,12 +642,9 @@ docs/security/SECURITY.md (Dependency Vulnerability Scanning)
 
 These documents describe:
 
-* security policies
-* vulnerability management process
-* dependency risk mitigation strategy
-
-
-
+- security policies
+- vulnerability management process
+- dependency risk mitigation strategy
 
 ## Secret Detection (Gitleaks)
 
@@ -694,7 +682,6 @@ root
 │ ├── client
 │ └── server
 
-
 Because scanning runs from the root, **all workspaces are included automatically** without additional configuration.
 
 ---
@@ -707,7 +694,6 @@ In this project the tool is installed using **Chocolatey**.
 
 Install Gitleaks with: choco install gitleaks
 
-
 After installation, verify the installation: gitleaks version
 
 ---
@@ -717,10 +703,10 @@ After installation, verify the installation: gitleaks version
 The project provides npm scripts to run secret detection.
 
 ### Scan staged files (used by Git hooks)
+
 npm run security:secrets
 
 Script definition: "security:secrets": "gitleaks protect --staged --verbose --redact --config .gitleaks.toml"
-
 
 This command:
 
@@ -734,10 +720,10 @@ This mode is optimized for **fast local execution during commits**.
 ---
 
 ### Full repository scan
+
 npm run security:secrets:full
 
 Script definition: "security:secrets:full": "gitleaks detect --source . --verbose --config .gitleaks.toml"
-
 
 This command scans the **entire repository** and is useful when:
 
@@ -750,7 +736,6 @@ This command scans the **entire repository** and is useful when:
 ## Configuration
 
 Secret detection rules are defined in: .gitleaks.toml
-
 
 The configuration file contains:
 
@@ -773,7 +758,6 @@ Secret detection is integrated into the development workflow using a **Git pre-c
 
 Before a commit is created, the repository automatically runs the secret scan.
 
-
 This mechanism ensures that **sensitive information never reaches the repository history**.
 
 ---
@@ -795,13 +779,11 @@ API_KEY="my-secret-key"
 
 Use environment variables: API_KEY=process.env.API_KEY
 
-
 ---
 
 ## Ignoring False Positives
- 
-If a detection is determined to be a false positive, it can be suppressed using: .gitleaksignore
 
+If a detection is determined to be a false positive, it can be suppressed using: .gitleaksignore
 
 This file allows the repository to ignore specific findings while keeping the scanner active for real secrets.
 
@@ -816,21 +798,19 @@ Developer Machine
 ├─ Secret Detection (Gitleaks)
 └─ Dependency Vulnerability Scanning
 
-
 Running security checks **locally before code is committed** helps catch security issues earlier in the development lifecycle.
 
 The security:secrets command runs gitleaks protect --staged, which scans only the files currently staged for commit in Git (i.e., the files added with git add). This command is typically executed as part of a pre-commit hook to prevent secrets such as API keys, tokens, passwords, or private keys from being committed to the repository. The --verbose flag provides detailed output about the scan process, while --redact ensures that detected secrets are masked in the console output to avoid exposing them in logs.
 
 The security:secrets:full command runs gitleaks detect --source ., which performs a full repository scan, including the entire Git history and all files in the project. This allows detection of secrets that may have been committed in the past, even if the files were later modified or removed. This type of scan is typically executed in CI pipelines or security audits to identify historical credential leaks and ensure the repository remains free of exposed secrets over time.
 
-
 # 🧠 OpenSpec + Multi-Agent Orchestration
 
 Este proyecto implementa un sistema de desarrollo asistido por IA basado en:
 
-* **OpenSpec (SDD)** → Define el flujo, artefactos y ciclo de vida
-* **Orchestrator Agent** → Controla el flujo de ejecución
-* **Subagents (multi-LLM)** → Ejecutan tareas especializadas
+- **OpenSpec (SDD)** → Define el flujo, artefactos y ciclo de vida
+- **Orchestrator Agent** → Controla el flujo de ejecución
+- **Subagents (multi-LLM)** → Ejecutan tareas especializadas
 
 ---
 
@@ -852,10 +832,10 @@ Subagents       → Ejecutan HOW
 
 Responsabilidades:
 
-* Ejecutar comandos `/opsx:*`
-* Controlar el flujo de OpenSpec
-* Delegar tareas a subagentes
-* NO implementar código directamente
+- Ejecutar comandos `/opsx:*`
+- Controlar el flujo de OpenSpec
+- Delegar tareas a subagentes
+- NO implementar código directamente
 
 ---
 
@@ -882,13 +862,13 @@ El sistema sigue estrictamente el workflow de OpenSpec:
 /opsx:explore
 ```
 
-* Analiza el problema y el codebase
-* No genera artefactos
+- Analiza el problema y el codebase
+- No genera artefactos
 
 **Delegación:**
 
-* `researcher`
-* `planner`
+- `researcher`
+- `planner`
 
 ---
 
@@ -910,16 +890,16 @@ openspec/changes/<feature>/
 
 **Responsabilidades:**
 
-* El orchestrator asegura la creación de artefactos
-* `planner` valida la propuesta
+- El orchestrator asegura la creación de artefactos
+- `planner` valida la propuesta
 
 ---
 
 ## 3. Planning Phase
 
-* Se interpreta `tasks.md`
-* Se descompone en pasos ejecutables
-* Se preparan las tareas para ejecución
+- Se interpreta `tasks.md`
+- Se descompone en pasos ejecutables
+- Se preparan las tareas para ejecución
 
 ---
 
@@ -952,9 +932,9 @@ developer
 
 ### Reglas
 
-* El `developer` es el **ejecutor principal**
-* El orchestrator **NO implementa código**
-* Todas las tareas deben seguir `tasks.md`
+- El `developer` es el **ejecutor principal**
+- El orchestrator **NO implementa código**
+- Todas las tareas deben seguir `tasks.md`
 
 ---
 
@@ -966,13 +946,13 @@ developer
 
 **Delegación:**
 
-* `reviewer`
+- `reviewer`
 
 Valida:
 
-* Correctitud del código
-* Alineación con `design.md`
-* Compleción de tareas
+- Correctitud del código
+- Alineación con `design.md`
+- Compleción de tareas
 
 ---
 
@@ -982,8 +962,8 @@ Valida:
 /opsx:archive
 ```
 
-* Se ejecuta cuando la verificación es exitosa
-* Marca el cierre del cambio
+- Se ejecuta cuando la verificación es exitosa
+- Marca el cierre del cambio
 
 ---
 
@@ -1015,20 +995,20 @@ END
 
 El orchestrator DEBE:
 
-* Ejecutar todos los comandos `/opsx:*`
-* Seguir el flujo de OpenSpec estrictamente
-* Delegar toda implementación al `developer`
-* Validar el estado del sistema antes de avanzar
+- Ejecutar todos los comandos `/opsx:*`
+- Seguir el flujo de OpenSpec estrictamente
+- Delegar toda implementación al `developer`
+- Validar el estado del sistema antes de avanzar
 
 ---
 
 # 🚫 Anti-Patterns
 
-* Implementar sin `/opsx:propose`
-* Ignorar `tasks.md`
-* Saltar `/opsx:apply`
-* Mezclar planificación con ejecución
-* Permitir que el orchestrator escriba código
+- Implementar sin `/opsx:propose`
+- Ignorar `tasks.md`
+- Saltar `/opsx:apply`
+- Mezclar planificación con ejecución
+- Permitir que el orchestrator escriba código
 
 ---
 
@@ -1044,11 +1024,11 @@ El Orchestrator controla el WHEN y WHO
 
 # 🚀 Beneficios de esta arquitectura
 
-* Separación clara de responsabilidades
-* Uso eficiente de múltiples LLMs
-* Flujo determinista (SDD)
-* Escalabilidad en sistemas multiagente
-* Reducción de errores por improvisación
+- Separación clara de responsabilidades
+- Uso eficiente de múltiples LLMs
+- Flujo determinista (SDD)
+- Escalabilidad en sistemas multiagente
+- Reducción de errores por improvisación
 
 ---
 
@@ -1058,16 +1038,6 @@ OpenSpec es agnóstico a agentes y modelos.
 
 Esto permite:
 
-* Usar múltiples LLMs
-* Diseñar arquitecturas personalizadas
-* Mantener control total del flujo mediante el orchestrator
-
-
-
-
-
-
-
-
-
-
+- Usar múltiples LLMs
+- Diseñar arquitecturas personalizadas
+- Mantener control total del flujo mediante el orchestrator

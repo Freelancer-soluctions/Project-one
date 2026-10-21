@@ -6,15 +6,16 @@ El proyecto `project-one` implementa SAST en múltiples capas con diverso grado 
 
 ### Capas SAST existentes (verificado código)
 
-| Capa            | Herramienta                     | Workflow / Hook                             | Estado actual                            | Bloquea merge? | Notas                                                                    |
-| --------------- | ------------------------------- | ------------------------------------------- | ---------------------------------------- | -------------- | ------------------------------------------------------------------------ |
-| **L1 local**    | Semgrep + Gitleaks              | `.husky/pre-commit`                         | **Activo**                               | Sí             | `npm run sast:semgrep` + `npm run security:secrets` bloquean commit      |
-| **L3 CI diff**  | Semgrep (OWASP Top 10 + custom) | `.github/workflows/ci.yml` job `sast`       | **Advisory** (`continue-on-error: true`) | No             | No en `ci-complete.needs`; solo reporting en PR                          |
-| **L3 CI diff**  | Gitleaks (secret scanning)      | `.github/workflows/ci.yml` job `secrets`    | **Blocking** (técnicamente)              | Sí             | Paso OSS sin `continue-on-error`; wireado a `prebuild-security-complete` |
-| **L3 CI SCA**   | Trivy + Dependency Review       | `.github/workflows/security.yml`            | **Deshabilitado** (`disabled_manually`)  | No             | Trivy filesystem scan; `dependency-review` activo en ci.yml              |
-| **L3 CI full**  | CodeQL                          | `.github/workflows/security.yml` job `sast` | **Deshabilitado** (`disabled_manually`)  | No             | CodeQL init@v4 + analyze (javascript, actions)                           |
-| **Full weekly** | Gitleaks (full-history)         | `.github/workflows/scheduled-security.yml`  | **Deshabilitado** (`disabled_manually`)  | No             | JSON/SARIF artifacts + `notify-failure` por `steps.*.outcome`            |
-| **Full weekly** | CodeQL + Trivy + SBOM           | `.github/workflows/security.yml`            | **Deshabilitado** (`disabled_manually`)  | No             | Jobs `sast` (CodeQL), `dependency-scan` (Trivy), `sbom` (SBOM)           |
+| Capa            | Herramienta                     | Workflow / Hook                                  | Estado actual                                      | Bloquea merge?                                                    | Notas                                                                                                                            |
+| --------------- | ------------------------------- | ------------------------------------------------ | -------------------------------------------------- | ----------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| **L2 local**    | Semgrep (diff-scoped)           | `.husky/pre-push` → `node scripts/sast-diff.mjs` | **Activo** (change `sast-shift-left-hooks-parity`) | Sí (hallazgo ERROR nuevo; herramienta rota = fail-open con aviso) | Mismo script/versión/packs que el CI; baseline = `git merge-base origin/main HEAD`; skips visibles (tree sucio / diff sin JS/TS) |
+| **L1 local**    | Gitleaks                        | `.husky/pre-commit` → `npm run security:secrets` | **Activo**                                         | Sí (hallazgo)                                                     | Staged-only, `--redact`, fail-open solo ante herramienta rota; **SAST salió de pre-commit** (necesita baseline)                  |
+| **L3 CI diff**  | Semgrep (OWASP Top 10 + custom) | `.github/workflows/ci.yml` job `sast`            | **Advisory** (`continue-on-error: true`)           | No                                                                | No en `ci-complete.needs`; solo reporting en PR                                                                                  |
+| **L3 CI diff**  | Gitleaks (secret scanning)      | `.github/workflows/ci.yml` job `secrets`         | **Blocking** (técnicamente)                        | Sí                                                                | Paso OSS sin `continue-on-error`; wireado a `prebuild-security-complete`                                                         |
+| **L3 CI SCA**   | Trivy + Dependency Review       | `.github/workflows/security.yml`                 | **Deshabilitado** (`disabled_manually`)            | No                                                                | Trivy filesystem scan; `dependency-review` activo en ci.yml                                                                      |
+| **L3 CI full**  | CodeQL                          | `.github/workflows/security.yml` job `sast`      | **Deshabilitado** (`disabled_manually`)            | No                                                                | CodeQL init@v4 + analyze (javascript, actions)                                                                                   |
+| **Full weekly** | Gitleaks (full-history)         | `.github/workflows/scheduled-security.yml`       | **Deshabilitado** (`disabled_manually`)            | No                                                                | JSON/SARIF artifacts + `notify-failure` por `steps.*.outcome`                                                                    |
+| **Full weekly** | CodeQL + Trivy + SBOM           | `.github/workflows/security.yml`                 | **Deshabilitado** (`disabled_manually`)            | No                                                                | Jobs `sast` (CodeQL), `dependency-scan` (Trivy), `sbom` (SBOM)                                                                   |
 
 **Gap crítico**: Los workflows `security.yml` y `scheduled-security.yml` están `disabled_manually` → hoy NO se ejecuta SAST full-history ni análisis CodeQL profundo. La protección real depende de L1 local (pre-commit) + Semgrep diff en `ci.yml` (advisory).
 
@@ -321,8 +322,9 @@ El proyecto `project-one` implementa SAST en múltiples capas con diverso grado 
 
 ### 6.1 Lo que ya existe y funciona
 
-- **L1 pre-commit**: `.husky/pre-commit` ejecuta `npm run sast:semgrep` y `npm run security:secrets` en paralelo; bloquea commit en exit != 0
-- **Semgrep L3 diff**: Job `sast` en `ci.yml` corre scan diff-scoped con múltiples configs (OWASP Top 10, Node.js, Express, React, etc.) y reglas custom
+- **L1 pre-commit**: `.husky/pre-commit` ejecuta SOLO `npm run security:secrets` (Gitleaks staged) en el bloque bloqueante; SAST **no** corre aquí (change `sast-shift-left-hooks-parity`)
+- **L2 pre-push SAST**: etapa SAST diff-scoped vía `node scripts/sast-diff.mjs` (modo local) entre el gate de firma y los tests scoped; un hallazgo ERROR nuevo bloquea el push
+- **Semgrep L3 diff**: Job `sast` en `ci.yml` delega en el MISMO script con `SAST_MODE=ci` (packs OWASP Top 10, Node.js, Express, React, etc. + reglas custom `.semgrep/rules/`), FASE 1 advisory con artifact `sast-report` de 14 días
 - **Gitleaks L3 diff**: En `ci.yml` agregado recientemente (substage 2C) con wireado a `prebuild-security-complete.needs` (blocking técnicamente)
 - **Reglas custom**: En `.semgrep/rules/` con tests fixtures en `.semgrep/rules/tests/` (excluidos de eslint via `eslint.config.js`)
 - **Dependency Review**: Bloqueante por defecto en ci.yml (fail-on-severity: moderate, vuln + license check)

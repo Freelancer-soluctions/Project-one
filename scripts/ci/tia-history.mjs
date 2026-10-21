@@ -217,7 +217,8 @@ function runInject(wsDir, inPath, argvFormat) {
     // OJO: stderr, nunca stdout (el workflow cuenta lineas de stdout).
     console.error(
       `::warning::tia-history: history at ${input} is unreadable — ` +
-        `injecting nothing.`
+        `injecting nothing (diff-derived selection only, never an empty run). ` +
+        `Delete the file or run the full suite: \`npm run test\` / \`npm run test:coverage\`.`
     );
   }
   const files = selectFailingFiles(history);
