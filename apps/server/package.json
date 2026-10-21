@@ -2,7 +2,7 @@
   "name": "server-express",
   "version": "1.0.0",
   "description": "Back-end application with good practices using node.js and express",
-  "main": "src/bin/index.js",
+  "main": "src/bin/index.ts",
   "type": "module",
   "private": true,
   "engines": {

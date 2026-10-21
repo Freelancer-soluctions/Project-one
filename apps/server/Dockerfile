@@ -11,6 +11,8 @@
 
 FROM node:22-alpine
 
+WORKDIR /app
+
 # OpenSSL CLI: necesario para que Prisma detecte linux-musl-openssl-3.0.x durante
 # `prisma generate`. Alpine trae libssl3 (OpenSSL 3) pero NO el CLI; sin él, generate
 # produce el engine "linux-musl" (OpenSSL 1.1) que no puede cargar sobre libssl.so.3
@@ -23,24 +25,23 @@ FROM node:22-alpine
 RUN apk add --no-cache openssl
 
 # Copiar root package.json + lockfile, luego workspace package.json y prisma schema
-# Esto permite `npm ci --workspace=apps/server` que encuentra el lockfile en la b
-# 2fwb
+# Esto permite `npm ci --workspace=apps/server` que encuentra el lockfile en la raíz
 COPY package.json package-lock.json ./
 COPY apps/server/package.json ./apps/server/package.json
-COPY apps/server/prisma ./b/server/prisma/
+COPY apps/server/prisma ./apps/server/prisma/
 
-# Instalar dependencias del workspace (buye devDeps: prisma CLI), generar el client
+# Instalar dependencias del workspace (incluye devDeps: prisma CLI), generar el client
 # de Prisma y podar devDeps — TODO EN UNA SOLA CAPA:
 # 1) `--ignore-scripts` evita el prepare del root (husky) Y suprime el postinit
 #    "prisma generate" de apps/server → por eso generate corre explícito aquí.
 # 2) El schema ya fue copiado (COPY apps/server/prisma) y @prisma/client queda hoisted
-#    en el node_modulesb → output en node_modules/.prisma/client.
+#    en el node_modules raíz → output en node_modules/.prisma/client.
 # 3) El orden importa: generate DEBE correr ANTES de prune (prune elimina el CLI).
 # Consolidación (hadolint DL3059 + tamaño de imagen): una sola capa = las devDeps
 # nunca persisten en capa intermedia (npm ci + prune separados las dejaban enterradas).
-RUN npm ci --workspace=server --ignore-scripts \
- && npx prisma generate --schema=server/prisma/schema.prisma \
- && npm prune --workspace=server --omit=dev
+RUN npm ci --workspace=apps/server --ignore-scripts \
+ && npx prisma generate --schema=apps/server/prisma/schema.prisma \
+ && npm prune --workspace=apps/server --omit=dev
 
 # Copiar código fuente del server (sobrescribe package.json del workspace, OK: deps ya instaladas)
 COPY apps/server/. ./
@@ -51,10 +52,13 @@ USER node
 # el Express corre en puerto 3000
 EXPOSE 3000
 
+# tsx vive en node_modules/.bin (no en el PATH por defecto del exec-form CMD):
+ENV PATH="/app/node_modules/.bin:$PATH"
+
 # Comando de inicio con tsx en lugar de node
 CMD ["tsx", "src/bin/index.ts"]
 
-# NOTA: El compose de dev-local (b/server-compose.yml) usa `build: .` con context b/server.
+# NOTA: El compose de dev-local (apps/server/docker-compose.yml) usa `build: .` con context apps/server.
 # Con este Dockerfile (context: root), el build de dev-local FALLA.
-# Para build local de dev, usa: `docker build -f b/server/Dockerfile .` desde la b del repo.
-# El change `ci-floci-migration` actualizará docker-compose.yml a `{ context: .., dockerfile: b/server/Dockerfile }`.
+# Para build local de dev, usa: `docker build -f apps/server/Dockerfile .` desde la raíz del repo.
+# El change `ci-floci-migration` actualizará docker-compose.yml a `{ context: .., dockerfile: apps/server/Dockerfile }`.

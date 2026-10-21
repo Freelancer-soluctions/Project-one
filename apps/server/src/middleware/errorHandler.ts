@@ -105,7 +105,7 @@ export const errorHandler = (
     process.exitCode = 1; // Signal process restart
   } else if (err instanceof ClientError) {
     statusCode = err.statusCode || 400;
-    // `ClientError` (JS, Fase 3) solo declara `statusCode`; `code` no existe en
+    // `ClientError` (ClientError.ts) solo declara `statusCode`; `code` no existe en
     // la clase, así que el fallback 'CLIENT_ERROR' es el camino real hoy.
     code = (err as ClientError & { code?: string }).code || 'CLIENT_ERROR';
     message = err.message;

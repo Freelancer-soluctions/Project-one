@@ -41,5 +41,5 @@
 
 - [x] 5.1 Cierre de src/: `git ls-files 'apps/server/src/*.js' 'apps/server/src/**/*.js'` → **0**
 - [x] 5.2 Verificación de los accesos a `req.user` contra el tipo global
-- [x] 5.3 Sin `any` nuevos (`grep -rn ": any" apps/server/src --include="*.ts"`); imports `.js` intactos
+- [x] 5.3 Sin `any` nuevos (`grep -rn ": any" apps/server/src --include="*.ts"`); imports `.js` intactos **NOTA:** la única excepción `any` de src/ vive en `utils/prisma/prisma-model.ts` (boundary deliberado de acceso dinámico a modelos, documentado en código como EXCEPCIÓN) — el grep de 5.3 excluye este boundary documentado
 - [x] 5.4 `npx openspec validate server-ts-phase3-core --strict` → PASS

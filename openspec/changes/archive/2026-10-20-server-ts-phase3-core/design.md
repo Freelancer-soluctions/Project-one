@@ -22,7 +22,7 @@ middleware primero (todos los lotes posteriores lo consumen para `req.user`); so
 | Punto                                   | Antes                             | Después                                                                          |
 | --------------------------------------- | --------------------------------- | -------------------------------------------------------------------------------- |
 | `apps/server/package.json` script `dev` | `nodemon src/bin/index.js`        | `tsx watch src/bin/index.ts` (nodemon queda para configs si aplica, o se retira) |
-| `ecosystem.config.js` (PM2)             | `script: 'src/bin/index.js'`      | `script: 'tsx', args: 'src/bin/index.ts'`                                        |
+| `ecosystem.config.json` (PM2)           | `script: 'src/bin/index.js'`      | `script: 'tsx', args: 'src/bin/index.ts'`                                        |
 | Dockerfile CMD                          | `CMD ["node","src/bin/index.js"]` | `CMD ["tsx","src/bin/index.ts"]`                                                 |
 | `tsx`                                   | —                                 | **`dependencies`** (no devDeps: el Dockerfile ejecuta `npm prune --omit=dev`)    |
 
@@ -41,3 +41,7 @@ Evidencia verificada (2026-10-15): **95 accesos a `req.user` en 23 ficheros** de
 ## Decisión 6 — Cierre de `src/` a 0 `.js`
 
 Al cerrar: `git ls-files 'src/**/*.js' 'src/*.js'` → 0; contador del padre → `228/236`; los 8 restantes (configs/prisma/scripts) pertenecen a la Fase configs del padre (secciones 5.1-5.7), NO a este change. Gates de cierre: 4 gates + suite unit completa + (CI) integration/smoke + arranque PM2 real + validate `--strict`.
+
+## Desviación registrada — protocolo de commits (post-review 2026-10-20)
+
+El protocolo "un archivo = un commit" NO se cumplió en la implementación ejecutada por la sesión paralela: las 55 conversiones de Fase 3 se aplastaron en commits de Fase 2/3 (`bf3cf1f2`), perdiendo la trazabilidad task↔commit. La verificación @reviewer (2026-10-20) confirmó la implementación correcta por inspección del árbol (no por git). Además el Dockerfile quedó corrupto por un find/replace fallido (`b/` paths, workspace/schema incorrectos, `WORKDIR` eliminado) — restaurado y verificado END-TO-END: `docker build` exit 0 + contenedor arranca con tsx + docs 301 (ENV PATH=/app/node_modules/.bin añadido para el exec-form CMD). La excepción `any` de `prisma-model.ts` quedó documentada en código.
