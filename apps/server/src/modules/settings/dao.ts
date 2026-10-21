@@ -2,6 +2,7 @@ import { prisma } from '../../config/db.js';
 import type { Prisma } from '@prisma/client';
 import type {
   CreateProductCategoryInput,
+  PatchSettingData,
   ProductCategory,
   ProductCategoryServiceResult,
   Setting,
@@ -214,15 +215,19 @@ export const deleteProductCategory = async (
 /**
  * Partially update settings by ID.
  *
+ * Recibe el payload YA APLANADO por el service (`PatchSettingData`): columnas
+ * de `settings` + `language`. El tipo es deliberadamente más estrecho que
+ * `Prisma.settingsUpdateInput` para que una clave inexistente en el modelo
+ * (p. ej. `displayOptions`) no pueda volver a colarse desde el service.
+ *
  * @param {number} id - Settings ID.
- * @param {Object} data - Partial settings data to update.
+ * @param {Object} data - Partial settings data to update (columnas planas).
  * @param {string} [data.language] - Language code to update.
- * @param {Object} [data.displayOptions] - Display options to update.
  * @returns {Promise<Object>} The updated settings object.
  */
 export const patchSettingsById = async (
   id: number,
-  data: Prisma.settingsUpdateInput
+  data: PatchSettingData
 ): Promise<Setting> => {
   return await prisma.settings.update({
     where: { id },

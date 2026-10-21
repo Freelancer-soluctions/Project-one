@@ -10,6 +10,7 @@ import {
 } from './dao.js';
 import type {
   CreateProductCategoryInput,
+  PatchSettingData,
   ProductCategory,
   ProductCategoryFilters,
   ProductCategoryServiceResult,
@@ -167,15 +168,34 @@ export const deleteProductCategoryById = async (
 /**
  * Partially update settings by ID.
  *
+ * El body del PATCH llega con `displayOptions` ANIDADO, pero el modelo
+ * `settings` no tiene esa columna: guarda 8 columnas planas. El aplanado se
+ * hace aquí (mismo criterio que `createOrUpdateSettingsDisplay`, que ya
+ * despliega `{ ...displayOptions }`) para que el dao reciba siempre una fila
+ * válida de Prisma. Sin esto, `prisma.settings.update` rechaza la clave
+ * `displayOptions` en runtime y el endpoint queda roto
+ * (server-ts-latent-defects, fix 2).
+ *
+ * `language` se preserva cuando llega junto a `displayOptions` en el mismo
+ * PATCH: el controller acepta ambos campos y un spread de solo `displayOptions`
+ * lo descartaría.
+ *
  * @param {number} settingsId - The ID of the settings to update.
  * @param {Object} data - Partial settings data to update.
  * @param {string} [data.language] - Language code to update.
- * @param {Object} [data.displayOptions] - Display options to update.
+ * @param {Object} [data.displayOptions] - Display options to update (se aplana).
  * @returns {Promise<Object>} The updated settings.
  */
 export const patchSettingsById = async (
   settingsId: number,
   data: UpdateSettingInput
 ): Promise<Setting> => {
-  return await patchSettingsByIdDao(Number(settingsId), data);
+  const { language, displayOptions } = data;
+
+  const updateData: PatchSettingData = {
+    ...(language !== undefined && { language }),
+    ...(displayOptions !== undefined && { ...displayOptions }),
+  };
+
+  return await patchSettingsByIdDao(Number(settingsId), updateData);
 };

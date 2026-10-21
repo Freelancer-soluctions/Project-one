@@ -66,6 +66,19 @@ export interface SettingDisplayData extends SettingDisplayOptions {
   updatedOn?: Date;
 }
 
+/**
+ * Payload de persistencia de `PATCH /settings/:id`.
+ *
+ * `setting` NO tiene una columna `displayOptions`: el modelo guarda 8 columnas
+ * planas (`displayEvents`…`displayStock`). Por eso el body anidado se aplana en
+ * el service antes de llegar al dao — pasar `{ displayOptions }` a
+ * `prisma.settings.update` hace fallar el PATCH en runtime (la variable no
+ * dispara el excess-property check del compilador).
+ */
+export interface PatchSettingData extends SettingDisplayOptions {
+  language?: string;
+}
+
 /** Body de `POST /settings/product/categories` (`SettingsProductCategoryCreate`). */
 export interface CreateProductCategoryInput {
   /** Código único de la categoría (VarChar(3)). */
