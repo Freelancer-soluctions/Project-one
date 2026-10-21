@@ -2777,7 +2777,7 @@ Además de los gates puntuales de GOVERNANCE que aparecen dentro de cada stage (
         │  │     │    required_approving_review_count + CODEOWNERS                   │
         │  │     └─ AUTOMATIZADA → informativa (no gate)                             │
         │  │          opencode / PR Review Automation (§5.9.15) [PV]                 │
-        │  │                                                                         │
+        │  │     (No hecho)                                                          │
         │  │  4. CODE PIPELINE (STAGES 2-8 — testing, security, quality, build)      │
         │  │     ├─ PRODUCE (el pipeline, NO governance): Stage 3 genera SBOM;       │
         │  │     │    Stage 5 firma (Cosign) y emite provenance, siempre por digest  │
@@ -2786,7 +2786,7 @@ Además de los gates puntuales de GOVERNANCE que aparecen dentro de cada stage (
         │  │                                                                         │
         │  │  5. BRANCH PROTECTION (pasivo, lee) + GATE PRE-DEPLOY (exige)           │
         │  │     ├─ Lee: ¿todos los required checks en verde?                        │
-        │  │     ├─ Lee: ¿hay approval de reviewer? (viene de paso 3)                │
+        │  │     ├─ Lee: ¿hay approval de reviewer? (viene de paso 3)  (No hecho)    │
         │  │     ├─ Lee: ¿commits están firmados?                                    │
         │  │     ├─ SÍ a todo → botón "Merge" habilitado                             │
         │  │     ├─ NO a alguno → botón bloqueado, muestra qué falta                 │
@@ -2794,12 +2794,12 @@ Además de los gates puntuales de GOVERNANCE que aparecen dentro de cada stage (
         │  │          cosign verify + verify-attestation (identidad+issuer fijados), │
         │  │          SBOM + provenance del digest a desplegar; falla → NO despliega │
         │  │                                                                         │
-        │  │  6. POST-DEPLOY GOVERNANCE (stages 6-7)                                 │
+        │  │  6. POST-DEPLOY GOVERNANCE (stages 6-7)  (No hecho)                     │
         │  │     ├─ Change record/ticket linkage (ServiceNow/Jira)                   │
         │  │     ├─ Release readiness dashboard + sign-off evidence                  │
         │  │     └─ Acceptance record (who approved what, evidence archive)          │
         │  │                                                                         │
-        │  │  7. MERGE + CLEANUP (post-merge)                                        │
+        │  │  7. MERGE + CLEANUP (post-merge)   (No hecho)                           │
         │  │     ├─ Deployment event record (timestamp, commit, digest+attestations) │
         │  │     ├─ DORA Metrics capture (deploy frequency, lead time)               │
         │  │     ├─ Audit trail export (immutable, compliance-ready)                 │
