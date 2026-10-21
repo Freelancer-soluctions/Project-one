@@ -262,6 +262,17 @@ resultado alimenta la sección §7.5.3 de `docs/testing-architecture.md`, que do
 CI y ahora también el de la etapa local. Si el peor caso excede el presupuesto, la mitigación ya está en el diseño
 (fail-open por timeout, sin bloqueo) y el número se documenta en vez de ocultarse.
 
+**Re-medición 2026-10-20 (post-review):** con el árbol ya crecido, Windows + Docker Desktop e imagen
+**cacheada**, el scan tarda **135 s** (clon limpio), **149 s** (linked worktree) y **207 s** (worktree con la máquina cargada por otro proceso) sobre 385 archivos / 81
+reglas; el mismo diff en `ubuntu-latest` tarda **22.7 s**. El timeout local de 60 s, por tanto, **no era
+un presupuesto sino un interruptor**: cortaba scans correctos y los degradaba a `tool-broken` →
+fail-open, es decir, el gate local no bloqueaba nada. RF-PP-06 pide un _objetivo_ <60 s, no un techo de
+ejecución, así que `LOCAL_TIMEOUT_MS` pasa a **300 s** (red de seguridad) y el objetivo de 60 s se
+documenta como **no alcanzado en Windows con Docker Desktop**, con esta medición como evidencia.
+También se corrigió que el script no funcionaba dentro de un `git worktree` (el git dir vive fuera del
+bind mount → "not a git repository" → fail-open silencioso): ahora monta el common dir y pasa
+`GIT_DIR=<common>/worktrees/<name>`, `GIT_COMMON_DIR`, `GIT_WORK_TREE` y un `[safe] directory` efímero.
+
 ### D18 — El reporte de CI es el input real del artifact
 
 El artifact de 14 días (RF-CI-02) necesitaba una fuente concreta: el modo `ci` escribe **siempre**

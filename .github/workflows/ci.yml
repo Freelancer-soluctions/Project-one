@@ -59,7 +59,9 @@ jobs:
   # STAGE 2: PRE-BUILD — VALIDATE (source code, 0 dependencia de build)
   # ═══════════════════════════════════════════════════════════════
   # ═══════════════════════════════════════════════════════════════
-  # SUBSTAGE 2A: GOVERNANCE — verify-signatures, commit-lint, pr-title-lint, dco, sast diff
+  # SUBSTAGE 2A: GOVERNANCE — verify-signatures, commit-lint, dco, sast diff
+  # (los checks de METADATA — `PR Title Lint` y `Governance: PR Body Lint` —
+  #  viven en `.github/workflows/pr-metadata.yml`; change `pr-metadata-workflow`)
   # ═══════════════════════════════════════════════════════════════
   # verify-signatures (G3) — Verifica firma de commits vía GitHub REST API
   # ════════════════════════════════════════════════════════════════
@@ -346,44 +348,13 @@ jobs:
       - name: Lint squash commit (merge queue)
         if: github.event_name == 'merge_group'
         run: npx commitlint --last --verbose
-  pr-title-lint:
-    name: PR Title Lint
-    runs-on: ubuntu-latest
-    permissions:
-      pull-requests: read
-    steps:
-      # PR events: validate PR title against Conventional Commits
-      - name: Lint PR title
-        if: github.event_name == 'pull_request'
-        uses: amannn/action-semantic-pull-request@v6
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          types: |
-            feat
-            fix
-            docs
-            style
-            refactor
-            perf
-            test
-            build
-            ci
-            chore
-            revert
-            ops
-          requireScope: false
-          ignoreLabels: |
-            bot
-            ignore-semantic-pull-request
-          subjectPattern: '^(?![A-Z]).+$'
-          subjectPatternError: 'PR title must follow Conventional Commits format: type(scope): description with lowercase subject'
-      # Merge queue: squash commit title already validated by commitlint --last
-      - name: Skip on merge_group (covered by commitlint)
-        if: github.event_name == 'merge_group'
-        run: echo "✅ Merge queue — squash commit title validated by commitlint"
-    # Phase 1: non-blocking. Remove after team adjusts (1 sprint).
-    # continue-on-error: true
+  # `pr-title-lint` (job `PR Title Lint`) EMIGRÓ a `.github/workflows/pr-metadata.yml`
+  # (change `pr-metadata-workflow`, migración ATÓMICA en un solo commit).
+  # Motivo: el título se re-valida en el evento `edited` sin re-ejecutar el
+  # pipeline de código. El contexto requerido del ruleset 21227644 conserva el
+  # mismo `name:`, y ahora tiene EMISOR ÚNICO — NO reintroducir el job aquí:
+  # dos emisores producen dos check runs con el mismo contexto y el ruleset
+  # resuelve por el más reciente, enmascarando un rojo con un verde.
   dco:
     name: DCO
     runs-on: ubuntu-latest
@@ -406,28 +377,38 @@ jobs:
         run: echo "✅ Merge queue — DCO validated at PR level"
     # Phase 1: non-blocking. Remove after team adjusts (1 sprint).
     # continue-on-error: true
-  # --- GOVERNANCE: SAST diff-scoped (script compartido; FASE 1 advisory) ---
+  # --- GOVERNANCE: SAST diff-scoped (script compartido; FASE 2 BLOCKING) ---
   # Paridad local/CI por construcción (change sast-shift-left-hooks-parity,
   # RF-CI-01): el job delega en `scripts/sast-diff.mjs` — misma versión pineada,
   # mismos packs, mismas exclusiones y mismo `--severity ERROR --error --metrics
   # off` que el hook `pre-push`. Sin `docker run` inline ni listas duplicadas.
   #
-  # FASE 1 (actual): `continue-on-error: true` — un hallazgo ERROR deja el step
-  # y el job en rojo y el resultado se retiene como artifact de 14 días
-  # (evidencia de la ventana), pero el merge NO se bloquea.
+  # FASE 2 (graduado 2026-10-20): SIN `continue-on-error` y presente en
+  # `prebuild-governance-complete.needs` — un hallazgo ERROR nuevo deja el job
+  # en rojo y hace fallar el agregador de governance.
+  # ALCANCE REAL (no confundir): ese agregador NO es status check del ruleset
+  # 21227644 (solo los 4 de `docs/CONTEXT-CICD.md` §3.2 lo son), así que el
+  # bloqueo DURO del merge exige bindear `Governance: SAST (Semgrep)` al
+  # ruleset, y eso es un change de gobernanza aparte (spec `sast-governance-gate`,
+  # requisito F2). Mientras no exista ese binding, el rojo es visible y `CI
+  # Complete` falla, pero GitHub no impide el merge por sí solo.
+  # El artifact de 14 días se conserva como evidencia (RF-CI-02).
   #
-  # Criterio de graduación a FASE 2 (RF-CI-03; en lockstep con
-  # docs/learning/quality-gates.md §7 — ventana ÚNICA de calibración, abierta
-  # 2026-10-03):
-  #   1) ≥2 semanas de corridas reales del job sobre PRs;
-  #   2) ningún hallazgo ERROR sin triar (todo hallazgo clasificado como true
-  #      positive corregido, o false positive justificado y remediado);
-  #   3) evidencia registrada en el artifact `sast-report` (retención 14 días).
-  # Al cumplirse: quitar `continue-on-error: true` y añadir `sast` a
-  # `prebuild-governance-complete.needs` (de 4 a 5 entradas). El ruleset
-  # 21227644 y `ci-complete.needs` NO se tocan (FASE 2 llega a `CI Complete`
-  # solo de forma transitiva, por diseño). Rollback de FASE 2: revertir esas
-  # dos líneas.
+  # Criterio de graduación que se cumplió (RF-CI-03; en lockstep con
+  # docs/learning/quality-gates.md §7):
+  #   1) corridas reales del job sobre PRs (run 39508915508, PR #141, y las
+  #      mediciones locales de paridad con el mismo baseline);
+  #   2) ningún hallazgo ERROR sin triar: el único finding
+  #      (`prototype-pollution` @ validatePathParam.ts) se clasificó como FALSO
+  #      POSITIVO y se remedió con `nosemgrep:` + justificación en el propio
+  #      archivo (clave literal + valor numérico validado, sin claves del
+  #      usuario);
+  #   3) evidencia registrada en el artifact `sast-report`.
+  #
+  # El ruleset 21227644 y `ci-complete.needs` NO se tocan: el gate llega a
+  # `CI Complete` solo de forma transitiva vía el agregador de substage.
+  # Rollback de FASE 2: reponer `continue-on-error: true` y quitar `sast` de
+  # `prebuild-governance-complete.needs` (2 líneas).
   sast:
     name: 'Governance: SAST (Semgrep)'
     runs-on: ubuntu-latest
@@ -435,7 +416,8 @@ jobs:
     if: github.event_name == 'pull_request'
     permissions:
       contents: read
-    continue-on-error: true
+    # FASE 2 (2026-10-20): blocking. El único hallazgo de la ventana de
+    # calibración se trió como falso positivo y se remedió con `nosemgrep`.
     steps:
       - uses: actions/checkout@v5
         with:
@@ -464,7 +446,8 @@ jobs:
           if-no-files-found: warn
           include-hidden-files: true
     # NOT in ci-complete.needs — SAST is a standalone gate, not coupled to CI_MINIMAL
-    # (FASE 2 adds it to prebuild-governance-complete.needs, never to ci-complete.needs)
+    # (FASE 2, 2026-10-20: it IS in prebuild-governance-complete.needs; never in
+    # ci-complete.needs)
 
   # ═══════════════════════════════════════════════════════════════
   # SUBSTAGE 2D: UNIT TESTING — test-unit-client, test-unit-server, test-integration, test-smoke, property-tests
@@ -2019,6 +2002,15 @@ jobs:
       - uses: ./.github/actions/setup-monorepo
       - name: Validate OpenSpec main specs (strict)
         run: npx openspec validate --specs --strict
+      # Gate del lockstep plantilla ↔ política del PR body (change
+      # `pr-metadata-workflow`, task 1.9): `scripts/ci/pr-body-lint.test.mjs`
+      # incluye el test que FALLA si un heading de
+      # `.github/PULL_REQUEST_TEMPLATE.md` se renombra sin actualizar
+      # `scripts/ci/pr-body-lint.mjs` (design D11). Va aquí y no en
+      # `actionlint-advisory` porque ese job es `continue-on-error: true` y no
+      # podría bloquear nada — ver nota de desviación en tasks.md.
+      - name: Run CI scripts suite (PR body policy + template lockstep)
+        run: npm run test:scripts
 
   # change ci-security-substage-alignment (2026-09-30): reubicado a 2B quality (D8) — job quality que quedó al cierre del stage 2
   # Job advisory de validación de documentación (change `quality-gates`, fase 1):
@@ -2467,8 +2459,16 @@ jobs:
     needs:
       - verify-signatures
       - commit-lint
-      - pr-title-lint
+      # `pr-title-lint`/`pr-body-lint` NO pueden aparecer aquí: viven en
+      # `.github/workflows/pr-metadata.yml` y un `needs` no puede referenciar
+      # un job de OTRO workflow (lo invalidaría, no lo haría más completo).
+      # Su cobertura llega al PR vía sus propios required checks del ruleset.
       - dco
+      # FASE 2 del gate SAST (2026-10-20): 5ª entrada. Un hallazgo ERROR hace
+      # fallar este agregador (que no es status check del ruleset: ver el
+      # comentario de alcance en el job `sast`). El job sigue fuera de
+      # `ci-complete.needs` por diseño.
+      - sast
     steps:
       - name: Check for failures
         run: |

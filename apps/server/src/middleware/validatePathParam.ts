@@ -60,6 +60,11 @@ export const validatePathParam = (
   // middleware SUSTITUYE el string por el número ya validado (contrato
   // heredado: los controllers reciben `req.params.id` como número).
   // `Object.assign` conserva el mismo runtime sin asignación directa ilegal.
+  // Falso positivo de `semgrep.rules.prototype-pollution` (taint `req` → `Object.assign`):
+  // el sink recibe un objeto LITERAL con clave fija `id` y un valor numérico ya validado
+  // (`Number.isSafeInteger(...) && > 0`); no hay claves controladas por el usuario, así que
+  // `__proto__`/`constructor` no son alcanzables.
+  // nosemgrep: prototype-pollution
   Object.assign(req.params, { id: numericId });
 
   // Continúa hacia el controller
