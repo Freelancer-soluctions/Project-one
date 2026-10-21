@@ -80,13 +80,20 @@ The script interprets the scan result through a fixed contract (RF-FAIL-01):
   pushed diff touching none of `.js .jsx .cjs .mjs .ts .tsx` (RF-PP-03). Neither skip applies in
   `ci` mode — the enforcement path has no silent skip.
 - **Timeout** (RF-PP-06, objective < 60 s local): the container is cut and force-removed, the
-  outcome is classified as broken tool and resolved by the mode's policy. **Measured on this repo**
-  (Windows + Docker Desktop, 2026-10-19): the typical case (a 1-file PR, image cached) takes
-  **42-45 s**, and the worst case (cold Docker cache + first resolution of the 9 packs) takes
-  **68 s** — which exceeds the 60 s objective and therefore trips the timeout. The behaviour is
-  verified end-to-end: `⚠️ SAST tool failure: scan timed out after 60s` → fail-open locally
-  (exit 0, no orphan container) / fail-closed in CI. Note that `--baseline-commit` scans the
-  **whole tree at both revisions**, so the cost tracks the repo size, not the diff size.
+  outcome is classified as broken tool and resolved by the mode's policy. The timeout is a **safety
+  net, not an objective enforcer**: it is **300 s** locally (13 min in CI). Using 60 s as the kill
+  switch turned a slow-but-working scan into `tool-broken` → fail-open, i.e. the local gate blocked
+  nothing on Windows. **Re-measured on this repo (2026-10-20)**: Windows + Docker Desktop, image
+  already cached, 385 files / 81 rules → **135 s** on a clean clone, **149 s** in a linked
+  worktree and **207 s** in a worktree while another process loaded the machine; the same diff on `ubuntu-latest` took **22.7 s**. The earlier 42-45 s / 68 s figures
+  described a much smaller tree and no longer hold. Note that `--baseline-commit` scans the **whole
+  tree at both revisions**, so the cost tracks the repo size, not the diff size.
+- **Linked worktrees**: the git dir of a linked worktree lives outside the tree, so the plain
+  `-v <root>:/src` produced `fatal: not a git repository` → exit 2 → fail-open, silently disabling
+  the gate. The script now resolves `--absolute-git-dir` / `--git-common-dir`, mounts the common dir
+  and passes `GIT_DIR=<common>/worktrees/<name>`, `GIT_COMMON_DIR`, `GIT_WORK_TREE=/src`, plus an
+  ephemeral `[safe] directory = *` config at `.tmp/sast-gitconfig`. The chosen strategy is printed
+  on every run (`Git strategy in container: …`) so a degrade can never be silent.
 - **CI report**: in `ci` mode the script always writes `.tmp/sast-report.json` (rule, severity,
   file, line per finding, plus resolved mode and baseline commit; never secret values). The job
   retains it as a 14-day artifact. The verdict never depends on the report.

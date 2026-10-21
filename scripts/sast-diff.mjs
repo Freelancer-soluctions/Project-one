@@ -38,9 +38,11 @@
 // Local-only skips (never applied in ci - H-1, the enforcement path has no
 // silent skip): dirty working tree (RF-PP-04) and diff touching none of
 // .js .jsx .cjs .mjs .ts .tsx (RF-PP-03). Both print the reason and exit 0.
-// Timeout (RF-PP-06, objective < 60s local) degrades to "broken tool" and
-// goes through the mode's failure policy; the container is force-removed
-// (design D15) so no orphan container survives between pushes.
+// Timeout (RF-PP-06: 60 s is the performance OBJECTIVE; the script enforces a
+// 300 s safety net - re-measured 135 s clean clone / 149 s worktree / 207 s
+// worktree under CPU contention on Windows, 2026-10-20) degrades to
+// "broken tool" and goes through the mode's failure policy; the container is
+// force-removed (design D15) so no orphan container survives between pushes.
 //
 // Portability (RNF-01): Node + Docker only, no PowerShell, runs unmodified on
 // Windows (Git Bash / MSYS2) and ubuntu-latest.
@@ -98,10 +100,23 @@ export const SCANNED_EXTENSIONS = [
 // Deterministic report path (RF-CI-02 / design D18), repo-root relative.
 export const REPORT_PATH = '.tmp/sast-report.json';
 
-// Timeouts (RF-PP-06): local budget < 60s; CI below the job's 15-minute
-// timeout-minutes. SAST_TIMEOUT_MS overrides both (used by the tests).
-const LOCAL_TIMEOUT_MS = 60 * 1000;
-const CI_TIMEOUT_MS = 13 * 60 * 1000;
+// Timeouts (RF-PP-06). The "< 60 s" of RF-PP-06 is a PERFORMANCE OBJECTIVE,
+// not an execution ceiling: the timeout below is the SAFETY NET that degrades
+// to "broken tool" (RF-FAIL-01), so it must stay comfortably above any
+// realistic healthy run — otherwise the net itself disables the gate.
+// Measured on this repo (Windows + Docker Desktop, image already cached,
+// 385 files / 81 rules, baseline 8dc24d6, 2026-10-20): **135 s** on a clean
+// clone, **149 s** in a linked worktree and **207 s** in a linked worktree
+// while another process was loading the machine. The old 60 s ceiling killed
+// every healthy Windows run -> tool-broken -> fail-open, i.e. the local gate
+// NEVER blocked anything on Windows. The 60 s objective is documented as not
+// attained on Windows + Docker Desktop (design D17). The net is 300 s so that
+// CPU contention does not silently disable the gate; a genuinely hung
+// container still gets cut.
+// CI stays below the job's 15-minute timeout-minutes.
+// SAST_TIMEOUT_MS overrides both (used by the tests).
+export const LOCAL_TIMEOUT_MS = 300 * 1000; // safety net (300 s), NOT the 60 s objective
+export const CI_TIMEOUT_MS = 13 * 60 * 1000;
 
 const EXIT_OK = 0;
 const EXIT_BLOCKED = 1; // same code Semgrep uses for "finding"
@@ -309,12 +324,122 @@ function hasCustomRules(root) {
   }
 }
 
+// ---------------------------------------------------------------------------
+// Git layout inside the container (defect B, 2026-10-20)
+// ---------------------------------------------------------------------------
+// In a LINKED `git worktree` the checkout's `.git` is a FILE pointing at
+// <main-repo>/.git/worktrees/<n>, which is NOT under the mounted root: inside
+// the container git then reports `fatal: not a git repository`, semgrep exits
+// 2, the verdict becomes tool-broken and (local) fails OPEN — the gate was
+// silently disabled. Strategy (minimal + observable):
+//   - common dir INSIDE the root (normal clone) -> command unchanged;
+//   - common dir OUTSIDE the root (linked worktree) -> mount it at /git and
+//     point GIT_DIR / GIT_WORK_TREE at the mounts;
+// plus, in BOTH cases, an ephemeral global git config with
+// `[safe]\n\tdirectory = *` (also covers container-root vs host-file
+// ownership mismatches, which produce the very same refusal).
+
+/** Log phrase for the normal case (no git-specific mounts needed). */
+export const GIT_STRATEGY_INSIDE = 'git dir: dentro del árbol';
+/** Log phrase when `git rev-parse` fails: no mounts, and the run will fail. */
+export const GIT_STRATEGY_UNAVAILABLE =
+  'git NO disponible (sin mounts: el scan fallará como herramienta rota)';
+
+/** Repo-root-relative path of the ephemeral config, lockstep with REPORT_PATH. */
+export const GIT_CONFIG_PATH = `${path.posix.dirname(REPORT_PATH)}/sast-gitconfig`;
+/** Same path as seen FROM THE CONTAINER (root is mounted at /src). */
+export const GIT_CONFIG_CONTAINER_PATH = `/src/${GIT_CONFIG_PATH}`;
+
+function gitRevParse(root, args) {
+  const res = spawnSync('git', ['rev-parse', ...args], {
+    cwd: root,
+    encoding: 'utf8',
+  });
+  if (res.status !== 0 || !res.stdout || !res.stdout.trim()) return null;
+  return res.stdout.trim();
+}
+
+/**
+ * Resolve the git-dir / common-dir layout of `root` (spawnSync, cwd: root).
+ * `insideRoot` decides the docker strategy; `strategy` is the human-readable
+ * phrase printed on every run so a worktree skip can never be silent again.
+ */
+export function resolveGitDirs(root) {
+  // Normalize to native separators: git emits C:/..., tests and callers compare
+  // against fs paths (C:...), and path.relative() already tolerates both.
+  const norm = (p) => (p ? path.resolve(root, p) : null);
+  const gitDir = norm(gitRevParse(root, ['--absolute-git-dir']));
+  let commonDir = gitRevParse(root, [
+    '--path-format=absolute',
+    '--git-common-dir',
+  ]);
+  if (commonDir === null) {
+    // git < 2.31 has no --path-format: the plain value is relative to cwd.
+    const raw = gitRevParse(root, ['rev-parse', '--git-common-dir']);
+    if (raw) commonDir = path.resolve(root, raw);
+  }
+  commonDir = norm(commonDir);
+  if (!commonDir) {
+    // Review L-4: distinguish "git indisponible" from "git dir dentro del árbol".
+    // Antes ambos casos devolvían la misma frase, así que un fallo de git dentro
+    // del contenedor no se podía atribuir desde el log.
+    return {
+      gitDir,
+      commonDir: null,
+      insideRoot: true,
+      strategy: GIT_STRATEGY_UNAVAILABLE,
+    };
+  }
+  const rel = path.relative(root, commonDir);
+  const insideRoot =
+    rel === '' ||
+    (rel !== '..' && !rel.startsWith(`..${path.sep}`) && !path.isAbsolute(rel));
+  return {
+    gitDir,
+    commonDir,
+    insideRoot,
+    strategy: insideRoot
+      ? GIT_STRATEGY_INSIDE
+      : `compactado desde ${commonDir}`,
+  };
+}
+
+/**
+ * Write the ephemeral `[safe]` global config for the container.
+ * Scoped to the two mount points the container actually sees (`/src`, `/git`)
+ * instead of a blanket `*` (review L-3): a global wildcard would also trust any
+ * other path that ends up mounted by mistake.
+ * Best-effort by contract (RF-SEC-05-style): a write failure is reported via
+ * `ok: false` and NEVER changes the verdict — the caller warns and continues.
+ */
+export function writeGitSafeConfig(root) {
+  const target = path.join(root, GIT_CONFIG_PATH);
+  try {
+    fs.mkdirSync(path.dirname(target), { recursive: true });
+    fs.writeFileSync(
+      target,
+      '[safe]\n\tdirectory = /src\n\tdirectory = /git\n'
+    );
+    return { ok: true, target, containerPath: GIT_CONFIG_CONTAINER_PATH };
+  } catch (err) {
+    return { ok: false, target, error: err.message };
+  }
+}
+
 /**
  * Build the `docker run ... semgrep scan ...` argument vector (no `=` form on
  * any flag). Reproducible snapshot of the effective command: printed on every
  * run and recorded in tasks.md (L-1).
+ * `gitDirs` / `gitConfig` are optional (resolveGitDirs / writeGitSafeConfig);
+ * when omitted the command is the pre-worktree one, unchanged.
  */
-export function buildScanArgs({ root, baseline, containerName }) {
+export function buildScanArgs({
+  root,
+  baseline,
+  containerName,
+  gitDirs = null,
+  gitConfig = null,
+}) {
   const args = [
     'run',
     '--rm',
@@ -324,12 +449,32 @@ export function buildScanArgs({ root, baseline, containerName }) {
     '/src',
     '--name',
     containerName,
-    SEMGREP_IMAGE,
-    'semgrep',
-    'scan',
-    '--baseline-commit',
-    baseline,
   ];
+  // Linked worktree: the common dir lives outside the mounted root (defect B).
+  if (gitDirs && !gitDirs.insideRoot) {
+    // In a linked worktree HEAD lives in <common>/worktrees/<name>, so GIT_DIR
+    // must point THERE (not at the common dir): pointing at the common dir makes
+    // git read the main worktree's HEAD against /src and abort with exit 2.
+    const relGitDir = path.relative(gitDirs.commonDir, gitDirs.gitDir);
+    const containerGitDir = relGitDir
+      ? `/git/${relGitDir.split(path.sep).join('/')}`
+      : '/git';
+    args.push(
+      '-v',
+      `${gitDirs.commonDir.replace(/\\/g, '/')}:/git`,
+      '-e',
+      `GIT_DIR=${containerGitDir}`,
+      '-e',
+      'GIT_COMMON_DIR=/git',
+      '-e',
+      'GIT_WORK_TREE=/src'
+    );
+  }
+  // Ephemeral safe.directory config, in BOTH cases (ownership mismatch).
+  if (gitConfig && gitConfig.ok) {
+    args.push('-e', `GIT_CONFIG_GLOBAL=${gitConfig.containerPath}`);
+  }
+  args.push(SEMGREP_IMAGE, 'semgrep', 'scan', '--baseline-commit', baseline);
   if (hasCustomRules(root)) {
     args.push('--config', '.semgrep/rules'); // BEFORE the packs: local priority
   }
@@ -638,8 +783,27 @@ async function main() {
 
   // -- Build + run ------------------------------------------------------------
   const containerName = `sast-diff-${process.pid}`;
-  const args = buildScanArgs({ root, baseline, containerName });
+  const gitDirs = resolveGitDirs(root);
+  const gitConfig = writeGitSafeConfig(root);
+  if (!gitConfig.ok) {
+    console.warn(
+      `⚠️  Ephemeral git config could NOT be written to ${GIT_CONFIG_PATH}: ${gitConfig.error}`
+    );
+    console.warn(
+      '   Continuing without it (best-effort): the container may refuse the repo on an ownership mismatch.'
+    );
+  }
+  const args = buildScanArgs({
+    root,
+    baseline,
+    containerName,
+    gitDirs,
+    gitConfig,
+  });
   console.log(`   Command: docker ${args.join(' ')}`);
+  // Always print the git strategy so a worktree/ownership failure can never
+  // degrade to a silent fail-open without leaving a trace (defect B).
+  console.log(`   Git strategy in container: ${gitDirs.strategy}`);
 
   const result = await runDockerScan(args, timeoutMs, containerName);
   const classification = classifyExitCode(result.code, result.timedOut);

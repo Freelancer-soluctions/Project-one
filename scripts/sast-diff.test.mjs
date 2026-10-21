@@ -17,12 +17,19 @@ import {
   PACKS,
   EXCLUSIONS,
   REPORT_PATH,
+  LOCAL_TIMEOUT_MS,
+  CI_TIMEOUT_MS,
+  GIT_STRATEGY_INSIDE,
+  GIT_STRATEGY_UNAVAILABLE,
+  GIT_CONFIG_PATH,
   resolveMode,
   classifyExitCode,
   policyExitCode,
   parseFindings,
   writeReport,
   buildScanArgs,
+  resolveGitDirs,
+  writeGitSafeConfig,
   isWorkingTreeDirty,
   diffTouchesScannedFiles,
   describeToolFailure,
@@ -79,6 +86,36 @@ function makeFixtureRepo() {
   // Simulate the remote-tracking ref the hook fetches before invoking us.
   git('update-ref', 'refs/remotes/origin/main', baseSha);
   return { dir, baseSha };
+}
+
+/**
+ * Linked worktree fixture (defect B, 2026-10-20): repo con un commit .ts por
+ * delante de `origin/main` MÁS un worktree detachado a HEAD — el escenario que
+ * rompía el gate (`docker run -v <worktree>:/src` no monta el git común).
+ */
+function makeFixtureWorktree() {
+  const { dir, baseSha } = makeFixtureRepo();
+  const git = (...a) => {
+    const res = spawnSync('git', ['-C', dir, ...a], { encoding: 'utf8' });
+    if (res.status !== 0) {
+      throw new Error(`fixture git ${a.join(' ')} failed: ${res.stderr}`);
+    }
+    return res;
+  };
+  fs.writeFileSync(path.join(dir, 'src.ts'), 'export const x = 1;\n');
+  git('add', '.');
+  git('commit', '-q', '-m', 'ts change');
+  const head = git('rev-parse', 'HEAD').stdout.trim();
+  const wt = fs.mkdtempSync(path.join(os.tmpdir(), 'sast-diff-wt-'));
+  const add = spawnSync(
+    'git',
+    ['-C', dir, 'worktree', 'add', '--detach', wt, head],
+    { encoding: 'utf8' }
+  );
+  if (add.status !== 0) {
+    throw new Error(`fixture git worktree add failed: ${add.stderr}`);
+  }
+  return { dir, wt, baseSha, head };
 }
 
 const cleanups = [];
@@ -148,6 +185,20 @@ describe('sast-diff.mjs — política de fallos por modo (task 2.6, RF-FAIL-02/0
 });
 
 describe('sast-diff.mjs — timeout propio (task 2.8, RF-PP-06)', () => {
+  it('el default local es la red de seguridad de 300 s (NO el objetivo de 60 s)', () => {
+    // Re-medición 2026-10-20 (Windows + Docker Desktop, imagen cacheada,
+    // 385 archivos / 81 reglas): 135 s (clon limpio) / 149 s (worktree) /
+    // 207 s (worktree con la máquina cargada por otro proceso). Con el viejo
+    // techo de 60 s TODO scan sano en Windows se cortaba -> tool-broken ->
+    // fail-open, es decir el gate local nunca bloqueaba. RF-PP-06 fija un
+    // objetivo de rendimiento (< 60 s), no un techo de ejecución: la red debe
+    // quedar por encima del peor caso observado (207 s), no del típico.
+    expect(LOCAL_TIMEOUT_MS).toBe(300 * 1000);
+    expect(LOCAL_TIMEOUT_MS).toBeGreaterThan(207 * 1000); // margen sobre el peor caso medido
+    // El override sigue disponible y CI conserva su propio presupuesto.
+    expect(CI_TIMEOUT_MS).toBe(13 * 60 * 1000);
+  });
+
   it('el motivo del timeout se nombra en el veredicto (no "code null")', () => {
     const reason = describeToolFailure(
       { timedOut: true, code: null },
@@ -286,14 +337,133 @@ describe('sast-diff.mjs — comando efectivo (task 2.3/2.4, RF-PAR-05)', () => {
     expect(excludeFlags).toEqual(EXCLUSIONS);
     expect(excludeFlags).toHaveLength(8);
 
-    // forma sin `=` (H-1/M-3): jamás --config=... ni --exclude=...
-    expect(args.some((a) => a.includes('='))).toBe(false);
+    // forma sin `=` (H-1/M-3): jamás --config=... ni --exclude=... Los `-e
+    // KEY=value` del soporte de worktree (defecto B) NO son flags: solo se
+    // prohíbe la forma `--flag=value`.
+    expect(args.some((a) => a.startsWith('--') && a.includes('='))).toBe(false);
     expect(args.join(' ')).toContain('--severity ERROR --error --metrics off');
     expect(args.join(' ')).toContain(`semgrep/semgrep:${SEMGREP_VERSION}`);
     expect(args.join(' ')).toContain('--json');
     // lista única: sin packs duplicados
     expect(new Set(PACKS).size).toBe(PACKS.length);
     expect(new Set(EXCLUSIONS).size).toBe(EXCLUSIONS.length);
+  });
+});
+
+describe('sast-diff.mjs — git en el contenedor / linked worktree (defecto B, 2026-10-20)', () => {
+  it('repo normal: common dir DENTRO de la raíz -> estrategia "dentro del árbol"', () => {
+    const { dir } = makeFixtureRepo();
+    cleanups.push(dir);
+    const gitDirs = resolveGitDirs(dir);
+    expect(gitDirs.insideRoot).toBe(true);
+    expect(gitDirs.strategy).toBe(GIT_STRATEGY_INSIDE);
+    expect(gitDirs.commonDir).toBeTruthy();
+  });
+
+  it('sin git: la estrategia lo dice explícitamente (review L-4)', () => {
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), 'sast-diff-nogit-'));
+    cleanups.push(root);
+    const gitDirs = resolveGitDirs(root);
+    // No hay mounts que añadir (mismo comando que antes), pero el log ya no
+    // confunde "git ausente" con "git dir dentro del árbol".
+    expect(gitDirs.insideRoot).toBe(true);
+    expect(gitDirs.commonDir).toBeNull();
+    expect(gitDirs.strategy).toBe(GIT_STRATEGY_UNAVAILABLE);
+    expect(gitDirs.strategy).not.toBe(GIT_STRATEGY_INSIDE);
+  });
+
+  it('linked worktree: common dir FUERA de la raíz -> estrategia "compactado desde <commonDir>"', () => {
+    const { dir, wt } = makeFixtureWorktree();
+    cleanups.push(dir);
+    cleanups.push(wt);
+    const gitDirs = resolveGitDirs(wt);
+    expect(gitDirs.insideRoot).toBe(false);
+    expect(gitDirs.strategy).toMatch(/^compactado desde /);
+    expect(gitDirs.strategy).toContain(gitDirs.commonDir);
+    // El common dir del worktree es el .git del repo principal, fuera del árbol.
+    expect(gitDirs.commonDir.startsWith(dir)).toBe(true);
+    expect(gitDirs.gitDir).not.toBe(gitDirs.commonDir);
+  });
+
+  it('buildScanArgs: fuera de la raíz monta commonDir + GIT_DIR/GIT_WORK_TREE; dentro, no', () => {
+    const { dir, wt } = makeFixtureWorktree();
+    cleanups.push(dir);
+    cleanups.push(wt);
+    const gitConfig = writeGitSafeConfig(wt);
+    expect(gitConfig.ok).toBe(true);
+
+    const outside = buildScanArgs({
+      root: wt,
+      baseline: 'abc1234',
+      containerName: 'sast-test-outside',
+      gitDirs: resolveGitDirs(wt),
+      gitConfig,
+    });
+    const outsideJoined = outside.join(' ');
+    expect(outsideJoined).toContain(
+      `-v ${resolveGitDirs(wt).commonDir.replace(/\\/g, '/')}:/git`
+    );
+    // GIT_DIR must point at the worktree's OWN gitdir, not the common dir.
+    const outsideGitDir = outside.find((a) => a.startsWith('GIT_DIR='));
+    expect(outsideGitDir).toBeDefined();
+    expect(outsideGitDir.startsWith('GIT_DIR=/git/worktrees/')).toBe(true);
+    expect(outside).toContain('GIT_COMMON_DIR=/git');
+    expect(outside).toContain('GIT_WORK_TREE=/src');
+    // El config efímero se pasa en AMBOS casos (ownership mismatch).
+    expect(outside).toContain('GIT_CONFIG_GLOBAL=/src/.tmp/sast-gitconfig');
+    // Los mounts/env van ANTES de la imagen.
+    expect(outside.indexOf(outsideGitDir)).toBeLessThan(
+      outside.indexOf(`semgrep/semgrep:${SEMGREP_VERSION}`)
+    );
+
+    const inside = buildScanArgs({
+      root: dir,
+      baseline: 'abc1234',
+      containerName: 'sast-test-inside',
+      gitDirs: resolveGitDirs(dir),
+      gitConfig,
+    });
+    expect(inside).not.toContain('GIT_DIR=/git');
+    expect(inside).not.toContain('GIT_WORK_TREE=/src');
+    expect(inside).toContain('GIT_CONFIG_GLOBAL=/src/.tmp/sast-gitconfig');
+  });
+
+  it('writeGitSafeConfig acota [safe] a /src y /git (review L-3)', () => {
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), 'sast-diff-gitcfg-'));
+    cleanups.push(root);
+    const res = writeGitSafeConfig(root);
+    expect(res.ok).toBe(true);
+    expect(GIT_CONFIG_PATH).toBe('.tmp/sast-gitconfig'); // lockstep con REPORT_PATH
+    expect(fs.readFileSync(res.target, 'utf8')).toBe(
+      '[safe]\n\tdirectory = /src\n\tdirectory = /git\n'
+    );
+    // Best-effort: ruta no escribible -> ok:false SIN lanzar (no cambia el veredicto)
+    const fileInWay = path.join(root, 'file-in-the-way');
+    fs.writeFileSync(fileInWay, 'x');
+    const blocked = writeGitSafeConfig(fileInWay);
+    expect(blocked.ok).toBe(false);
+    expect(blocked.error).toBeTruthy();
+  });
+
+  it('E2E sin Docker: en un worktree real resuelve y anuncia la estrategia (fail-open visible)', () => {
+    const { dir, wt } = makeFixtureWorktree();
+    cleanups.push(dir);
+    cleanups.push(wt);
+    // El script corre DESDE el worktree (cwd), con el binario docker inexistente:
+    // debe pasar los skips, resolver los git dirs y degradar a fail-open con
+    // el comando y la estrategía impresos (nunca un skip silencioso).
+    const res = spawnSync(process.execPath, [SCRIPT], {
+      cwd: wt,
+      encoding: 'utf8',
+      env: { ...process.env, SAST_MODE: 'local', SAST_DOCKER_BIN: NO_DOCKER },
+    });
+    expect(res.status).toBe(0); // fail-open por herramienta rota (RF-FAIL-02)
+    expect(res.stderr).toContain('fail-open');
+    expect(res.stdout).toContain('Git strategy in container: compactado desde');
+    expect(res.stdout).toContain('GIT_DIR=/git');
+    expect(res.stdout).toContain('GIT_CONFIG_GLOBAL=/src/.tmp/sast-gitconfig');
+    // El baseline se resuelve en el host SIN romper el worktree.
+    expect(res.stdout).toContain('Baseline commit:');
   });
 });
 

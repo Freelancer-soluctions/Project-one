@@ -407,10 +407,10 @@ pagar la suite). **No hay re-check DCO** en este hook (`commit-msg` es el único
 
 El hook `pre-push` tiene **dos etapas con presupuestos distintos** — no uno solo para todo el hook:
 
-| Etapa            | Presupuesto                                             | Medición registrada                                                                                                                                                                                                              | Ante excedido                                                                                                                        |
-| ---------------- | ------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
-| **SAST**         | < 60 s (objetivo RF-PP-06); timeout propio en el script | **Peor caso (caché Docker fría + primera resolución de los 9 packs, Windows): 68 s** (1 archivo / 3 líneas) · **caso típico (imagen cacheada): 42-45 s** (5 corridas) (change `sast-shift-left-hooks-parity`, medido 2026-10-19) | Timeout propio corta el contenedor → clasifica como "herramienta rota" → **fail-open con aviso** (el push no se bloquea por entorno) |
-| **Tests scoped** | ~30 s (timeout de SSH de GitHub)                        | Convención M-4 del repo; se mide por job (`test:changed` de cada workspace)                                                                                                                                                      | Excede → el hook bloquea el push (es un gate de calidad, no de entorno)                                                              |
+| Etapa            | Presupuesto                                                                                | Medición registrada                                                                                                                                                                                                                                                                                            | Ante excedido                                                                                                                                                                                                                            |
+| ---------------- | ------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **SAST**         | < 60 s (objetivo RF-PP-06, **no** techo de ejecución); red de seguridad 300 s en el script | **Medición 2026-10-20 (Windows + Docker Desktop, imagen cacheada, 385 archivos / 81 reglas): 135 s (clon limpio) · 149 s (linked worktree) · 207 s (worktree con la máquina cargada) · 22.7 s en `ubuntu-latest`** · cifras anteriores (42-45 s típico / 68 s peor caso, 2026-10-19) describían un árbol menor | Timeout de 300 s corta el contenedor → clasifica como "herramienta rota" → **fail-open con aviso** (el push no se bloquea por entorno). El timeout de 60 s que había antes degradaba a fail-open _siempre_ en Windows, por eso se elevó. |
+| **Tests scoped** | ~30 s (timeout de SSH de GitHub)                                                           | Convención M-4 del repo; se mide por job (`test:changed` de cada workspace)                                                                                                                                                                                                                                    | Excede → el hook bloquea el push (es un gate de calidad, no de entorno)                                                                                                                                                                  |
 
 La duración de una etapa **no** se mide junto a la otra: el presupuesto de 30 s aplica SOLO a la etapa
 de tests; el SAST tiene el suyo, medido y documentado por separado.
@@ -436,16 +436,24 @@ con el número de archivos tocados: un PR de 1 archivo sobre este repo sigue cos
 
 **Consecuencia sobre el presupuesto de 60 s:** el objetivo de RF-PP-06 se cumple en el caso típico
 (cacheado, ~43 s), pero **no** en el peor caso de caché fría (~68 s), que es precisamente el escenario
-que la tarea de medición pide cubrir. El comportamiento está definido y verificado: el timeout propio
-corta el contenedor, lo clasifica como **herramienta rota** (no como hallazgo) y aplica la política
-**fail-open local** — el push continúa con un aviso visible. En CI el mismo corte es **fail-closed**.
+que la tarea de medición pide cubrir. **Actualización 2026-10-20:** el árbol creció y la re-medición da
+**135 s (clon limpio) / 149 s (linked worktree)** con la imagen ya cacheada, 385 archivos y 81 reglas —
+es decir, el escenario "típico" también excede 60 s. Como RF-PP-06 es un **objetivo de rendimiento** y
+no un techo de ejecución, el timeout local se elevó a **300 s** (red de seguridad) para que un scan
+lento pero correcto no se degrade a `tool-broken` → fail-open. El comportamiento del corte sigue
+definido y verificado: se clasifica como **herramienta rota** (no como hallazgo) y aplica la política
+**fail-open local** con aviso visible; en CI el mismo corte es **fail-closed**. La medición vieja se
+conserva arriba como histórico, no como expectativa.
 
-**Consecuencia sobre el CI:** con la rama `typescript-migration` (282 archivos), el escaneo tarda
-**30 min**, por encima tanto del `timeout-minutes: 15` del job como del timeout propio de 13 min del
-script en modo `ci`. El job se cerraría por timeout con el reporte `.tmp/sast-report.json` retenido como
-artifact de 14 días (clasificación `tool-broken`). No es un defecto del gate — el diff es
-extraordinariamente grande — pero condiciona la **FASE 2**: un PR de ese tamaño no debe pasar a
-bloqueante sin decidir antes qué hacer con los PRs grandes.
+**Consecuencia sobre el CI:** con la rama `typescript-migration` (282 archivos), la medición arriba
+(1 811.7 s) **no se reproduce en GitHub Actions**: el run `39508915508` (PR #141, mismo baseline
+`8dc24d6`) tardó **22.7 s** en `ubuntu-latest` y cerró con 1 hallazgo. Esa cifra de 30 min se tomó en
+**modo `ci` sobre Windows + Docker Desktop**, donde el bind-mount es el cuello de botella — no es un
+escenario de runner. Conclusión corregida: el `timeout-minutes: 15` del job **no** se ve amenazado por
+el tamaño de la rama en Linux; el riesgo de timeout es **local**, y por eso el presupuesto local es el
+que se ajustó (300 s). Se conserva la fila como histórico con esta salvedad, para que nadie dimensione
+la FASE 2 con un número medido en el entorno equivocado — y porque un PR grande **sí** condiciona la
+FASE 2: antes de volverlo bloqueante hay que decidir qué hacer con PRs de ese tamaño.
 
 ### 7.5.4 CI
 
