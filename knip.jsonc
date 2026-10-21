@@ -4,6 +4,16 @@
 {
   // Esquema oficial Knip v6 para autocompletado y validación
   "$schema": "https://unpkg.com/knip@6/schema-jsonc.json",
+  // Excepción acotada al archivo real (review M-4): `ignoreExportsUsedInFile` es
+  // por TIPO de issue (interface/type/class/enum/member), no por archivo, así que
+  // la granularidad correcta aquí es `ignoreIssues`. Los 3 exports de
+  // `vitest.sequencer.js` (`QUARANTINE_PATH`, `flakyCandidates`, `quarantinedFiles`)
+  // se usan dentro del propio archivo y la suite `scripts/ci/vitest-sequencer.test.mjs`
+  // consume otros exports del mismo; knip no les ve consumidor externo. Al ser por
+  // archivo, un export muerto en cualquier otro script de la raíz sigue reportándose.
+  "ignoreIssues": {
+    "vitest.sequencer.js": ["exports"],
+  },
   // Combinación de los workspaces del monorepo (unica fuente de verdad: sin knip.json anidados)
   "workspaces": {
     // Workspace raiz: scripts, config de lint y hooks (entry/project explicitos abajo)
@@ -45,6 +55,11 @@
         ".storybook/**/*.{js,jsx}",
         "*.config.{js,mjs}",
       ],
+      // (2026-10-20, tarea 9.4): config de vitest invocada por los scripts `test:changed:ci`
+      // y `test:tia` vía `--config vitest.scoped.config.js`; el plugin vitest solo declara
+      // `vitest.config.*` / `vitest.{workspace,projects}.*` como config, así que knip la ve
+      // como archivo sin uso. Declararla como entry es el modelado correcto (no es un ignore).
+      "entry": ["vitest.scoped.config.js"],
       // Alias `@/` -> `src/` de Vite (sin esto, imports `@/...` se reportan como `unresolved`)
       "paths": {
         "@": ["./src"],
@@ -157,6 +172,16 @@
       "ignoreDependencies": [
         // Solo de editor (language server, nunca importado en runtime)
         "@prisma/language-server",
+        // (2026-10-20, tarea 9.4 — deuda de la rama `typescript-migration`, NO de este
+        // change): `helmet` y `nodemon` quedaron sin consumidor en la Fase 2 de la
+        // migración TS (commit bf3cf1f2) — `dev` pasó de nodemon a `tsx watch`, y el
+        // mismo commit eliminó `import { helmetConfig }` + `app.use(helmetConfig)` de
+        // `src/app.ts` (¡regresión de seguridad a restaurar en un change dedicado!),
+        // dejando `src/utils/helmet/helmet.config.ts` huérfano. Eliminar estas deps
+        // exige tocar el manifest (congelado en esta tarea), así que la excepción queda
+        // documentada como deuda hasta el cambio correspondiente.
+        "helmet",
+        "nodemon",
         // Resueltas por plugin/config fuera de `project` o en runtime
         "cloudinary",
         "knex",
@@ -184,6 +209,17 @@
         "src/modules/notes/dao.{js,ts}": ["exports"],
         "src/modules/products/controller.{js,ts}": ["exports"],
         "src/modules/products/service.{js,ts}": ["exports"],
+        // (2026-10-20, tarea 9.4 — deuda de la rama `typescript-migration`, NO de este
+        // change): 2 archivos contractivos/dead code que knip reporta como `files`.
+        // - `security/types.ts`: contrato de dominio de `server-ts-domain-interfaces`
+        //   (módulo routes-only sin dao/service/controller); huérfano DOCUMENTADO en el
+        //   tasks de ese change; no se borra porque la spec exige el contrato.
+        // - `utils/helmet/helmet.config.ts`: la Fase 2 (bf3cf1f2) eliminó
+        //   `app.use(helmetConfig)` de `src/app.ts` (regresión de seguridad) y el
+        //   archivo quedó sin importador. Restaurar el middleware o eliminar el código
+        //   muerto requiere una decisión fuera de esta tarea.
+        "src/modules/security/types.ts": ["files"],
+        "src/utils/helmet/helmet.config.ts": ["files"],
         "src/modules/settings/schemas/settings.joi.{js,ts}": ["exports"],
         "src/modules/users/dao.{js,ts}": ["exports"],
         "src/modules/users/schemas/users.joi.{js,ts}": ["exports"],
@@ -194,6 +230,21 @@
         // `types`: las uniones derivadas (`as const` → `typeof KEY[keyof typeof KEY]`)
         // son la superficie tipada para Fases 2-3; knip las ve sin consumidor aún.
         "src/utils/constants/enums.{js,ts}": ["exports", "types"],
+        // (2026-10-20, tarea 9.4 — change `sast-shift-left-hooks-parity`): contratos
+        // de dominio de `server-ts-domain-interfaces` (23/23 módulos con `types.ts`
+        // autocontenido). Están exportados A PROPÓSITO como contrato del módulo para
+        // consumidores futuros — la spec de ese change exige que el contrato exista,
+        // así que NO se borran ni se des-exportan; deuda registrada en ese change.
+        // Símbolos exactos: HashtagRecord, MentionRecord (notes); PurchaseRecord,
+        // PurchaseDetailRecord, PurchaseInput (purchase); SaleRecord, SaleDetailRecord,
+        // SaleListItem (sales); UserStatusCode, Permission, UserPermit (users).
+        // Granularidad disponible en knip v6: `ignoreIssues` es por archivo + tipo de
+        // issue (no por símbolo), así que cubre los `types` sin consumidor de hoy y
+        // los futuros de estos 4 archivos hasta que haya consumidores reales.
+        "src/modules/notes/types.{js,ts}": ["types"],
+        "src/modules/purchase/types.{js,ts}": ["types"],
+        "src/modules/sales/types.{js,ts}": ["types"],
+        "src/modules/users/types.{js,ts}": ["types"],
         "src/utils/jwt/createToken.{js,ts}": ["exports"],
         "src/utils/prisma/dao.{js,ts}": ["exports"],
         // (PR #133): helper compartido del suite smoke; el export se consume
