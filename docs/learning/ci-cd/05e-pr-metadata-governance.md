@@ -6,9 +6,10 @@
 >
 > **Estado**: Implementado en `feat/ci-governance` (commits `128a0e8` → `31d445f`). Blocking desde
 > 2026-08-31. Admin-1 (squash = PR_TITLE) verificado por API; el resto de este doc se conserva como
-> runbook. La validación del **body** está
-> documentada con su implementación de referencia en FASE 1 advisory (`pr-body-lint`, P2.1-P2.7):
-> el job **aún no existe en `ci.yml`** — este doc precede al change que lo aterrice.
+> runbook. La validación del **body** (`pr-body-lint`, P2.1-P2.7) está implementada en el workflow
+> propio `.github/workflows/pr-metadata.yml` (change `pr-metadata-workflow`, 2026-10-20):
+> **blocking desde su primer commit**, con el contexto `Governance: PR Body Lint` **unido al ruleset 21227644
+> el 2026-10-22** (FASE 3 completada: GET → modify → PUT tras ≥1 reporte real).
 
 ---
 
@@ -24,11 +25,11 @@ Responder tres preguntas concretas:
 
 ## 📋 Resumen Ejecutivo
 
-| Check             | Qué valida                                                  | Enterprise value                                                 | Effort | Priority                               |
-| ----------------- | ----------------------------------------------------------- | ---------------------------------------------------------------- | ------ | -------------------------------------- |
-| **PR Title Lint** | Título del PR sigue Conventional Commits                    | Alto — cierra gap del squash message final                       | S      | **P1**                                 |
-| **DCO Sign-off**  | Cada commit tiene `Signed-off-by` (trazabilidad de autoría) | Alto — audit trail compliance                                    | S      | **P1.5**                               |
-| **PR Body Lint**  | Body con contenido significativo + 3 secciones nucleares    | Alto — trazabilidad real y evidencia de documentación del cambio | S-M    | **P2 (automatizado, FASE 1 advisory)** |
+| Check             | Qué valida                                                  | Enterprise value                                                 | Effort | Priority                                            |
+| ----------------- | ----------------------------------------------------------- | ---------------------------------------------------------------- | ------ | --------------------------------------------------- |
+| **PR Title Lint** | Título del PR sigue Conventional Commits                    | Alto — cierra gap del squash message final                       | S      | **P1**                                              |
+| **DCO Sign-off**  | Cada commit tiene `Signed-off-by` (trazabilidad de autoría) | Alto — audit trail compliance                                    | S      | **P1.5**                                            |
+| **PR Body Lint**  | Body con contenido significativo + 3 secciones nucleares    | Alto — trazabilidad real y evidencia de documentación del cambio | S-M    | **P2 (automatizado, BLOCKING — `pr-metadata.yml`)** |
 
 > **Dato medido**: template intacto = 1.134 caracteres de body → **0 caracteres de contenido útil**
 > tras normalizar — por eso un check "non-empty" es teatro puro.
@@ -379,9 +380,10 @@ persisten aunque se rellene la sección).
 **No automatizado por diseño**: calidad y veracidad del contenido (p. ej. la veracidad de "How Has This
 Been Tested?") — eso es review humana + CODEOWNERS.
 
-**Fase**: FASE 1 advisory (`continue-on-error: true`) + artifact 14 d; graduación a blocking tras 2 semanas
-de corridas reales / 0 falsos positivos sin triar / evidencia en `pr-body-lint-report`. El ruleset **no** se
-toca (el check no es required).
+**Fase**: **blocking desde el primer commit** (change `pr-metadata-workflow`, D8: la ventana de
+calibración se omitió por decisión explícita del usuario) + artifact 14 d como evidencia de triaje.
+El ruleset 21227644 ganó `Governance: PR Body Lint` como 5.º required check (FASE 3) el 2026-10-22,
+DESPUÉS de ≥1 reporte real, vía GET → modify → PUT (nunca PATCH).
 
 ---
 
@@ -407,7 +409,8 @@ toca (el check no es required).
 
 ### P1: PR Title Lint — `amannn/action-semantic-pull-request@v6`
 
-**Ubicación**: `.github/workflows/ci.yml`
+**Ubicación**: `.github/workflows/pr-metadata.yml` (desde 2026-10-20, change
+`pr-metadata-workflow`; antes `.github/workflows/ci.yml`, de donde se migró en un commit atómico)
 
 #### Por qué esta herramienta
 
@@ -701,7 +704,7 @@ política debe cambiar en el mismo PR (test de lockstep).
 > **Estado (2026-10-20, change `pr-metadata-workflow`): IMPLEMENTADO.** El job vive en
 > `.github/workflows/pr-metadata.yml` (NO en `ci.yml`), es **blocking desde su primer commit** (FASE 1 advisory
 > descartada por decisión explícita del usuario — design D8) y su contexto `Governance: PR Body Lint` entra al
-> ruleset 21227644 como **FASE 3** en cuanto reporte ≥1 vez. La variante "job en `ci.yml` + `continue-on-error`"
+> ruleset 21227644 como **FASE 3** el 2026-10-22 (tras ≥1 reporte real). La variante "job en `ci.yml` + `continue-on-error`"
 > que describía esta sección quedó **rechazada por estructura**: `ci.yml` no dispara en `edited` (el body no se
 > re-validaría al corregirlo) y su `concurrency: cancel-in-progress: true` cancelaría el pipeline en vuelo por una
 > edición de texto (design D1/D8/D9b).
@@ -771,24 +774,15 @@ pr-body-lint:
         include-hidden-files: true
 ```
 
-**Wiring** — ADD-only en el agregador de substage:
+**Wiring** — SIN wiring en el agregador (el plan ADD-only inicial fue corregido por el change
+`pr-metadata-workflow`):
 
-```yaml
-prebuild-governance-complete:
-  if: ${{ vars.CI_MINIMAL != 'true' && always() }}
-  name: Prebuild Governance Complete
-  needs:
-    - verify-signatures
-    - commit-lint
-    - pr-title-lint
-    - dco
-    - pr-body-lint # ← AÑADIR (5.ª entrada)
-```
-
-> **No** añadir a `ci-complete.needs` — mismo precedente que `sast`: FASE 2 llega a `CI Complete`
-> solo de forma transitiva vía `prebuild-governance-complete`.
-> `prebuild-governance-complete` está gated por `vars.CI_MINIMAL != 'true'`; con `CI_MINIMAL=false`
-> (desde 2026-09-17) corre. ✅
+> **`pr-body-lint` y `pr-title-lint` NO entran en `prebuild-governance-complete.needs`**: ambos jobs
+> viven en `.github/workflows/pr-metadata.yml` y un `needs` no puede referenciar un job de OTRO
+> workflow — lo invalidaría, no lo haría más completo. El agregador depende de exactamente
+> `[verify-signatures, commit-lint, dco, sast]`. La cobertura de metadata llega al PR por sus
+> propios required checks del ruleset, que la atan directamente.
+> **Tampoco** a `ci-complete.needs` — mismo precedente que `sast`.
 
 ---
 
@@ -951,15 +945,15 @@ confiable y puede contener líneas `::` que el runner interpretaría como workfl
   `gh pr view --json body,reviews,statusCheckRollup`. El job summary y el artifact son apoyo.
 - No vender esto como "control de compliance": es **higiene de trazabilidad** + evidencia operativa.
 
-**Graduación FASE 1 → 2 → 3**:
+**Roadmap de fases — REEMPLAZADO por el gate duro del día 1 (change `pr-metadata-workflow`, D8)**:
 
-| Fase                  | Estado                     | Acción                                                                                                                                        |
-| --------------------- | -------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
-| **FASE 1**            | Advisory (esta referencia) | `continue-on-error: true` + artifact 14 d + wiring ADD-only                                                                                   |
-| **FASE 2**            | Blocking                   | Quitar `continue-on-error: true` cuando se cumplan los 3 criterios del comentario del job (2 semanas, 0 FPs sin triar, evidencia en artifact) |
-| **FASE 3** (opcional) | Required en ruleset        | Añadir `Governance: PR Body Lint` al ruleset 21227644 — **solo** con decisión de gobernanza explícita y tras resolver el staleness (P2.5)     |
+| Fase                | Estado vigente                                                              | Acción                                                                                                                                                |
+| ------------------- | --------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **FASE 1 advisory** | **Descartada** — decisión explícita del usuario: sin ventana de calibración | El job nace **blocking** (`continue-on-error` nunca existió en la versión vigente); el artifact de 14 d sigue como evidencia de triaje                |
+| **FASE 2 blocking** | **Alcanzada desde el 1er commit**                                           | No hay `continue-on-error` que quitar                                                                                                                 |
+| **FASE 3 required** | **COMPLETADA el 2026-10-22** (D7)                                           | `Governance: PR Body Lint` añadido al ruleset 21227644 vía GET → modify → PUT (nunca PATCH) tras ≥1 reporte real; el repo tiene **5** required checks |
 
-> **Gotcha exact-string (futuro binding en FASE 3)**: el ruleset matchea por **cadena exacta** contra
+> **Gotcha exact-string (binding FASE 3, hecho 2026-10-22)**: el ruleset matchea por **cadena exacta** contra
 > el `name:` del job. El contexto a enlazar sería `Governance: PR Body Lint`; renombrar el job tras
 > hacerlo required rompe el binding **en silencio** y el PR queda
 > `Expected — Waiting for status to be reported` (precedente documentado: los 4 checks de §3.2 de
@@ -1000,7 +994,7 @@ la opción (b), que es la que quedó implementada.
 | ------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
 | **Bots** (dependabot, changesets, release-please) | `context.payload.pull_request.user.type === 'Bot'` **o** `/\[bot\]$/i` sobre `user.login` — **nunca** `github.actor`, que es el triggerer (un maintainer editando un PR de bot cambia `actor`, no el autor) | Skip con `core.notice` + job summary "omitido"                                                        |
 | **Forks**                                         | `GITHUB_TOKEN` **read-only** y sin secrets (hecho de GitHub)                                                                                                                                                | **Sin comentarios en el PR**: solo annotations (`setFailed`/`warning`), job summary y artifact        |
-| **Drafts**                                        | `POLICY.skipDrafts = false` — corre siempre; `# TODO(adapt): true` en FASE 2 si se decide eximir drafts                                                                                                     | Igual que un PR normal (los drafts se crean con body)                                                 |
+| **Drafts**                                        | Sin exención: los drafts se evalúan exactamente igual que un PR listo para merge (spec `pr-body-lint-governance`)                                                                                           | Igual que un PR normal (los drafts se crean con body)                                                 |
 | **`merge_group`**                                 | Workflow declara `merge_group: {}` y las DOS jobs concluyen con un no-op explícito `if: merge_group` (D5); el job-level `if` del body excluye SOLO a autores bot, nunca a merge_group                       | Conclusión garantizada en la cola: un required check que no reporta bloquea la entrada de merge queue |
 | **Body editable post-aprobación**                 | `edited` re-valida en el mismo head SHA (workflow propio); el residual (merge entre edición y veredicto) queda aceptado (D10)                                                                               | Ver P2.5 — hueco estructural reducido, aceptado y documentado                                         |
 | **`gh pr create --fill` / `--body ""`**           | Reemplaza el template (**no** lo fusiona)                                                                                                                                                                   | Body vacío ⇒ R1+R2 fallan correctamente: es el caso real que el gate captura                          |
@@ -1145,16 +1139,16 @@ docs/learning/ @Freelancer-soluctions/core-team
 
 ### Design Decisions — Estado Final
 
-| Decision                                                        | Implementada | Notas                                                                          |
-| --------------------------------------------------------------- | :----------: | ------------------------------------------------------------------------------ |
-| D1: PR Title Lint + DCO tools (jobs separados)                  |      ✅      | amannn/action-semantic-pull-request@v6 + KineticCafe/actions-dco@v3.2.0        |
-| D2: Squash setting PR_TITLE                                     |      ✅      | Verificado por API (PR_TITLE + COMMIT_MESSAGES)                                |
-| D3: Body enforcement (contenido significativo, FASE 1 advisory) |      📋      | Documentado (P2.1-P2.7); job `pr-body-lint` pendiente de aterrizar en `ci.yml` |
-| D4: CI pattern parallel/ADD-only                                |      ✅      | Agregadores por substage; CI_MINIMAL guard preservado                          |
-| D5: Ruleset required checks                                     |      ✅      | 4 checks en ruleset 21227644 (required + blocking)                             |
-| D6: Evidence (job summary + artifact 14d)                       |      ✅      | Patrón `sast-report` para la ventana de calibración                            |
-| D7: Rollout continue-on-error → Active                          |      ✅      | Blocking desde 2026-08-31 (F2 alcanzada)                                       |
-| D8: Merge queue neutral success                                 |      ✅      | Ambos jobs emiten success en merge_group                                       |
+| Decision                                                  | Implementada | Notas                                                                               |
+| --------------------------------------------------------- | :----------: | ----------------------------------------------------------------------------------- |
+| D1: PR Title Lint + DCO tools (jobs separados)            |      ✅      | amannn/action-semantic-pull-request@v6 + KineticCafe/actions-dco@v3.2.0             |
+| D2: Squash setting PR_TITLE                               |      ✅      | Verificado por API (PR_TITLE + COMMIT_MESSAGES)                                     |
+| D3: Body enforcement (contenido significativo, gate duro) |      ✅      | Implementado (P2.1-P2.7); job `pr-body-lint` en `.github/workflows/pr-metadata.yml` |
+| D4: CI pattern parallel/ADD-only                          |      ✅      | Agregadores por substage; CI_MINIMAL guard preservado                               |
+| D5: Ruleset required checks                               |      ✅      | 5 checks en ruleset 21227644 (required + blocking)                                  |
+| D6: Evidence (job summary + artifact 14d)                 |      ✅      | Patrón `sast-report` para la ventana de calibración                                 |
+| D7: Rollout continue-on-error → Active                    |      ✅      | Blocking desde 2026-08-31 (F2 alcanzada)                                            |
+| D8: Merge queue neutral success                           |      ✅      | Ambos jobs emiten success en merge_group                                            |
 
 ---
 
@@ -1180,8 +1174,8 @@ docs/learning/ @Freelancer-soluctions/core-team
 
 **Registrar** `PR Title Lint` y `DCO` como required checks en ruleset 21227644.
 
-**Estado**: hecho — los 4 checks ya están registrados (required + blocking desde 2026-08-31). El
-procedimiento se conserva como runbook para checks futuros (p. ej. `Governance: PR Body Lint` en FASE 3).
+**Estado**: hecho — los 4 checks ya están registrados (required + blocking desde 2026-08-31) y el 5º
+(`Governance: PR Body Lint`) el 2026-10-22. El procedimiento se conserva como runbook para checks futuros.
 
 **CRITICAL**: usar **GET → modify → PUT**, NO PATCH. PATCH borra todos los checks existentes.
 
@@ -1204,7 +1198,7 @@ Required status checks:
   ├── Commit Lint (Conventional Commits)  ← existing
   ├── PR Title Lint                       ← registrado (2026-08-31)
   ├── DCO                                 ← registrado (2026-08-31)
-  # Governance: PR Body Lint              ← futuro, FASE 3 — requiere decisión de gobernanza
+  # Governance: PR Body Lint              ← FASE 3 completada 2026-10-22 (5º required check)
 
 Bypass actors: NONE
 ```
@@ -1324,7 +1318,7 @@ d8fdd6f fix(openspec): fix 5 critical planner issues in ci-pr-metadata-governanc
 > - **Multi-repo governance**: cómo escalar PR metadata checks a nivel organization (org-wide rulesets, shared Actions, reusable workflows).
 > - **Patrones de Mantycore/MorganStanley/Netflix**: cómo empresas fintech/enterprise reales implementan DCO + CLA + CODEOWNERS como stack de compliance.
 > - **Danger.js para reglas multi-archivo** (p. ej. validar que el diff toca tests) — descartado para
->   body: cubierto por el diseño de `pr-body-lint` (P2.1-P2.7; job aún no aterrizado) sin infraestructura extra.
+>   body: cubierto por el diseño de `pr-body-lint` (P2.1-P2.7; aterrizado en `pr-metadata.yml`) sin infraestructura extra.
 
 ---
 
@@ -1333,6 +1327,8 @@ d8fdd6f fix(openspec): fix 5 critical planner issues in ci-pr-metadata-governanc
 > **Has completado el research brief + implementación de PR Metadata Checks** — junto con 05c (signing) y 05d (commit-lint), cubre las tres capas de gobernanza de commits: quién firma, cómo se escribe, y qué metadatos acompaña cada PR.
 >
 > **Estado actual**: implementación completa en `feat/ci-governance`. Blocking desde 2026-08-31.
-> Admin-1 verificado por API; pendiente el change que aterrice `pr-body-lint` (P2.1-P2.7).
+> Admin-1 verificado por API; `pr-body-lint` aterrizado en `.github/workflows/pr-metadata.yml`
+> (change `pr-metadata-workflow`, blocking desde su 1er commit; el binding del ruleset FASE 3 se
+> completó el 2026-10-22, en el orden D7).
 
 > **Índice**: [README Avanzado](./avanzado-README.md) · **Anterior**: [05d-ci-commit-lint-implementation.md](./05d-ci-commit-lint-implementation.md)
