@@ -1,4 +1,4 @@
-# Spec Delta
+# server-security-headers Specification
 
 ## Purpose
 
@@ -8,7 +8,7 @@ seguía exportándose, pero nadie lo montaba. La capability cubre la posición d
 observable de cabeceras, la reconexión del reporte CSP al endpoint que ya existe, y el test de regresión que impide que
 la línea vuelva a desaparecer en silencio.
 
-## ADDED Requirements
+## Requirements
 
 ### Requirement: Helmet is mounted as the first middleware
 
@@ -83,4 +83,4 @@ the observable header contract, so that removing the mount line fails the unit s
 
 - **WHEN** `src/app.unit.test.ts` runs under `npm run test:unit --workspace=server-express`
 - **THEN** it SHALL NOT require PostgreSQL, AWS credentials or a network listener
-- **AND** it SHALL obtain headers from an in-process request to a non-existent route served by the existing error handler
+- **AND** it SHALL obtain headers from an in-process request to POST /api/v1/security/csp-report (a real route, no DB needed; the 404 of a non-existent route is NOT valid for CSP assertions because Express finalhandler overrides the CSP with its own default-src 'none' on error responses)
