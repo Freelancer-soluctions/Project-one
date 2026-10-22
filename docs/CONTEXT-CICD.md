@@ -194,14 +194,14 @@ undefined`, verificado con `--debug`) — usar siempre los scripts raíz `npm ru
 3. `PR Title Lint`
 4. `DCO`
 
-**5º en camino (FASE 3, change `pr-metadata-workflow`):** `Governance: PR Body Lint` — emisor nuevo en
-`.github/workflows/pr-metadata.yml`. Se añade al ruleset **solo después** de que haya reportado al menos una vez
+**5º context (FASE 3 completada 2026-10-22, change `pr-metadata-workflow`):** `Governance: PR Body Lint` — emisor
+nuevo en `.github/workflows/pr-metadata.yml`. Se añadió al ruleset **después** de que hubiera reportado al menos una vez
 (GitHub no permite seleccionar un check que nunca reportó; adjuntarlo antes produciría `Expected — Waiting` en todo
-el repo). Hasta esa acción de admin sigue siendo **4**.
+el repo). Desde el 2026-10-22 el repo tiene **5** required checks.
 
 - `CI Complete` NO está vinculado al ruleset 21227644 (job saltaba mientras CI_MINIMAL=true; CI_MINIMAL=false desde
   2026-09-17 → corre y será añadible tras ≥1 run).
-- Integration ID para los 4 checks: `15368` (origen: config del ruleset vía API; no derivable de los workflows).
+- Integration ID para los 5 checks: `15368` (origen: config del ruleset vía API; no derivable de los workflows).
 - Los nombres DEBEN coincidir EXACTO con el `name:` del job (renombrar rompe el binding del ruleset).
 
 > **Estos 4 son la excepción documentada a la convención de prefijos por substage.** Todos los demás jobs de `ci.yml`
@@ -226,37 +226,38 @@ reported`, un mensaje que no sugiere en absoluto que la causa sea un nombre. Pre
 > `merge_group`. Los steps `if: merge_group` de commit-lint/pr-title-lint/dco son **preparación preventiva**.
 > Conclusión: **NO añadir validación extra para merge_group** mientras no exista merge queue (ver §5.3).
 
-| Job                                                                                         | name (exacto)                                     | Required?                   | continue-on-error?                                                                                                                                             |
-| ------------------------------------------------------------------------------------------- | ------------------------------------------------- | --------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- | --- | ------------------------------------ | ----------------- | ---------- | -------------------------------- |
-| repo-discovery                                                                              | Detect Changes                                    | N/A (no check)              | -                                                                                                                                                              |
-| verify-signatures                                                                           | **Verify Commit Signatures**                      | ✅ ruleset                  | ❌                                                                                                                                                             |
-| commit-lint                                                                                 | **Commit Lint (Conventional Commits)**            | ✅ ruleset                  | ❌                                                                                                                                                             |     | pr-title-lint (en `pr-metadata.yml`) | **PR Title Lint** | ✅ ruleset | ❌ (bloqueante desde 2026-08-31) |
-| pr-body-lint (en `pr-metadata.yml`)                                                         | **Governance: PR Body Lint**                      | ⏳ pendiente admin (FASE 3) | ❌ (blocking desde su 1er commit)                                                                                                                              |
-| dco                                                                                         | **DCO**                                           | ✅ ruleset                  | ❌ (bloqueante desde 2026-08-31)                                                                                                                               |
-| dependency-review                                                                           | Security: Dependency Review                       | ❌                          | ❌                                                                                                                                                             |
-| sast                                                                                        | **Governance: SAST (Semgrep)**                    | ❌                          | ❌ (FASE 2 blocking desde 2026-10-20; 5ª entrada de `prebuild-governance-complete.needs`)                                                                      |
-| zombie-workflow-guard                                                                       | Zombie Workflow Guard                             | ❌                          | ❌                                                                                                                                                             |
-| client-lint                                                                                 | Quality: Client Lint                              | ❌                          | ❌                                                                                                                                                             |
-| server-lint                                                                                 | Quality: Server Lint                              | ❌                          | ❌                                                                                                                                                             |
-| actionlint                                                                                  | Quality: ActionLint                               | ❌                          | ❌                                                                                                                                                             |
-| client-format-check                                                                         | Quality: Client Format                            | ❌                          | ✅ (bloquea; server-format-check sigue `if: false`)                                                                                                            |
-| client/server-typecheck                                                                     | Quality: Client/Server TypeCheck                  | ❌                          | ✅ activos y bloqueantes (change `quality-gates`, 2026-09-26: tsconfigs mínimos, sin `\|\| echo`)                                                              |
-| server-complexity                                                                           | Quality: Server Complexity                        | ❌                          | ✅ activo y bloqueante sin `--rule` (change `quality-gates`, 2026-09-26)                                                                                       |
-| docs-validation                                                                             | Quality: Docs Validation (advisory)               | ❌                          | ✅ advisory (`continue-on-error: true` + reporte; NO en `needs` del agregador — fase 1)                                                                        |
-| \*-build, sonarqube, coverage, depcheck, unit, integration, smoke, e2e, server-format-check | Quality/Build/Tests                               | ❌                          | N/A (`if: false`; sonarqube sin credenciales)                                                                                                                  |
-| client-import-bounds                                                                        | Quality: Client Import Bounds                     | ❌                          | ✅ activo (change `import-boundaries`, 2026-09-25): gate `depcruise:client --output-type err --ignore-known` + report `err-html` con artefacto                 |
-| server-import-bounds                                                                        | Quality: Server Import Bounds                     | ❌                          | ✅ activo (change `import-boundaries`, 2026-09-25): gate `depcruise:server --output-type err --ignore-known` + report `err-html` con artefacto                 |
-| client-complexity                                                                           | Quality: Client Complexity                        | ❌                          | ❌ — sin `--rule`; threshold 20 heredado de `eslint.config.js` (2026-09-23)                                                                                    |
-| server-complexity                                                                           | Quality: Server Complexity                        | ❌                          | N/A (`if: false`); contenido corregido sin `--rule` (2026-09-23)                                                                                               |
-| client-dead-code                                                                            | Quality: Client Dead Code                         | ❌                          | ✅ `continue-on-error: true`; `knip --workspace=apps/client` desde la raíz (2026-09-23)                                                                        |
-| server-dead-code                                                                            | Quality: Server Dead Code                         | ❌                          | ✅ `continue-on-error: true`; `knip --workspace=apps/server` desde la raíz (2026-09-23)                                                                        |
-| lockfile-audit (SCA lockfile CVE, advisory FASE 1)                                          | Security: Lockfile Audit (advisory, FASE 1)       | ❌                          | ✅ job-COE; artifact 14d; FUERA de `prebuild-security-complete.needs` (change `sca-lockfile-compliance`, 2026-09-26)                                           |
-| checkov-iac (IaC policy, advisory FASE 1)                                                   | Security: Checkov IaC (advisory, FASE 1)          | ❌                          | ✅ job-COE + `soft_fail`; política `.checkov.yml`; artifact 14d; fuera del agregador (mismo change)                                                            |
-| containerfile-lint (Hadolint, advisory FASE 1)                                              | Security: Containerfile Lint (advisory, FASE 1)   | ❌                          | ✅ job-COE; política `.hadolint.yaml`; SARIF `category: hadolint` + artifact 14d (change `containerfile-lint`, 2026-09-28)                                     |
-| actionlint-advisory (SARIF, advisory FASE 1)                                                | Security: ActionLint Advisory (SARIF, FASE 1)     | ❌                          | ✅ job-COE; plantilla versionada `.github/actionlint-sarif.tmpl` como `-format`; bloqueante `actionlint` intacto (change `pipeline-config-scan`)               |
-| zizmor-advisory (unpinned-uses, advisory FASE 1)                                            | Security: Zizmor Advisory (unpinned-uses, FASE 1) | ❌                          | ✅ job-COE; `setup-uv` SHA-pinned + `uvx zizmor@1.30.1` + version check; política `.github/zizmor.yml` incondicional (mismo change)                            |
-| typosquat-guarddog (GuardDog v3.2.0, advisory FASE 1)                                       | Security: Typosquat GuardDog (advisory, FASE 1)   | ❌                          | ✅ job-COE; wrapper único `scripts/guarddog-verify.sh` (pin + devDeps + sandbox); SARIF `category: guarddog` + artifact 14d (change `typosquatting-detection`) |
-| ci-complete                                                                                 | CI Complete                                       | ❌ (no bound)               | N/A (`if: CI_MINIMAL != 'true'`)                                                                                                                               |
+| Job                                                                                         | name (exacto)                                     | Required?                       | continue-on-error?                                                                                                                                             |
+| ------------------------------------------------------------------------------------------- | ------------------------------------------------- | ------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| repo-discovery                                                                              | Detect Changes                                    | N/A (no check)                  | -                                                                                                                                                              |
+| verify-signatures                                                                           | **Verify Commit Signatures**                      | ✅ ruleset                      | ❌                                                                                                                                                             |
+| commit-lint                                                                                 | **Commit Lint (Conventional Commits)**            | ✅ ruleset                      | ❌                                                                                                                                                             |
+| pr-title-lint (en `pr-metadata.yml`)                                                        | **PR Title Lint**                                 | ✅ ruleset                      | ❌ (bloqueante desde 2026-08-31; emigrado de `ci.yml` 2026-10-20)                                                                                              |
+| pr-body-lint (en `pr-metadata.yml`)                                                         | **Governance: PR Body Lint**                      | ✅ ruleset (FASE 3, 2026-10-22) | ❌ (blocking desde su 1er commit)                                                                                                                              |
+| dco                                                                                         | **DCO**                                           | ✅ ruleset                      | ❌ (bloqueante desde 2026-08-31)                                                                                                                               |
+| dependency-review                                                                           | Security: Dependency Review                       | ❌                              | ❌                                                                                                                                                             |
+| sast                                                                                        | **Governance: SAST (Semgrep)**                    | ❌                              | ❌ (FASE 2 blocking desde 2026-10-20; 5ª entrada de `prebuild-governance-complete.needs`)                                                                      |
+| zombie-workflow-guard                                                                       | Zombie Workflow Guard                             | ❌                              | ❌                                                                                                                                                             |
+| client-lint                                                                                 | Quality: Client Lint                              | ❌                              | ❌                                                                                                                                                             |
+| server-lint                                                                                 | Quality: Server Lint                              | ❌                              | ❌                                                                                                                                                             |
+| actionlint                                                                                  | Quality: ActionLint                               | ❌                              | ❌                                                                                                                                                             |
+| client-format-check                                                                         | Quality: Client Format                            | ❌                              | ✅ (bloquea; server-format-check sigue `if: false`)                                                                                                            |
+| client/server-typecheck                                                                     | Quality: Client/Server TypeCheck                  | ❌                              | ✅ activos y bloqueantes (change `quality-gates`, 2026-09-26: tsconfigs mínimos, sin `\|\| echo`)                                                              |
+| server-complexity                                                                           | Quality: Server Complexity                        | ❌                              | ✅ activo y bloqueante sin `--rule` (change `quality-gates`, 2026-09-26)                                                                                       |
+| docs-validation                                                                             | Quality: Docs Validation (advisory)               | ❌                              | ✅ advisory (`continue-on-error: true` + reporte; NO en `needs` del agregador — fase 1)                                                                        |
+| \*-build, sonarqube, coverage, depcheck, unit, integration, smoke, e2e, server-format-check | Quality/Build/Tests                               | ❌                              | N/A (`if: false`; sonarqube sin credenciales)                                                                                                                  |
+| client-import-bounds                                                                        | Quality: Client Import Bounds                     | ❌                              | ✅ activo (change `import-boundaries`, 2026-09-25): gate `depcruise:client --output-type err --ignore-known` + report `err-html` con artefacto                 |
+| server-import-bounds                                                                        | Quality: Server Import Bounds                     | ❌                              | ✅ activo (change `import-boundaries`, 2026-09-25): gate `depcruise:server --output-type err --ignore-known` + report `err-html` con artefacto                 |
+| client-complexity                                                                           | Quality: Client Complexity                        | ❌                              | ❌ — sin `--rule`; threshold 20 heredado de `eslint.config.js` (2026-09-23)                                                                                    |
+| server-complexity                                                                           | Quality: Server Complexity                        | ❌                              | N/A (`if: false`); contenido corregido sin `--rule` (2026-09-23)                                                                                               |
+| client-dead-code                                                                            | Quality: Client Dead Code                         | ❌                              | ✅ `continue-on-error: true`; `knip --workspace=apps/client` desde la raíz (2026-09-23)                                                                        |
+| server-dead-code                                                                            | Quality: Server Dead Code                         | ❌                              | ✅ `continue-on-error: true`; `knip --workspace=apps/server` desde la raíz (2026-09-23)                                                                        |
+| lockfile-audit (SCA lockfile CVE, advisory FASE 1)                                          | Security: Lockfile Audit (advisory, FASE 1)       | ❌                              | ✅ job-COE; artifact 14d; FUERA de `prebuild-security-complete.needs` (change `sca-lockfile-compliance`, 2026-09-26)                                           |
+| checkov-iac (IaC policy, advisory FASE 1)                                                   | Security: Checkov IaC (advisory, FASE 1)          | ❌                              | ✅ job-COE + `soft_fail`; política `.checkov.yml`; artifact 14d; fuera del agregador (mismo change)                                                            |
+| containerfile-lint (Hadolint, advisory FASE 1)                                              | Security: Containerfile Lint (advisory, FASE 1)   | ❌                              | ✅ job-COE; política `.hadolint.yaml`; SARIF `category: hadolint` + artifact 14d (change `containerfile-lint`, 2026-09-28)                                     |
+| actionlint-advisory (SARIF, advisory FASE 1)                                                | Security: ActionLint Advisory (SARIF, FASE 1)     | ❌                              | ✅ job-COE; plantilla versionada `.github/actionlint-sarif.tmpl` como `-format`; bloqueante `actionlint` intacto (change `pipeline-config-scan`)               |
+| zizmor-advisory (unpinned-uses, advisory FASE 1)                                            | Security: Zizmor Advisory (unpinned-uses, FASE 1) | ❌                              | ✅ job-COE; `setup-uv` SHA-pinned + `uvx zizmor@1.30.1` + version check; política `.github/zizmor.yml` incondicional (mismo change)                            |
+| typosquat-guarddog (GuardDog v3.2.0, advisory FASE 1)                                       | Security: Typosquat GuardDog (advisory, FASE 1)   | ❌                              | ✅ job-COE; wrapper único `scripts/guarddog-verify.sh` (pin + devDeps + sandbox); SARIF `category: guarddog` + artifact 14d (change `typosquatting-detection`) |
+| ci-complete                                                                                 | CI Complete                                       | ❌ (no bound)                   | N/A (`if: CI_MINIMAL != 'true'`)                                                                                                                               |
 
 > **Colocación física del bloque security 2C (change `ci-security-substage-alignment`, 2026-09-30):** los 9 jobs de
 > security (`dependency-review`, `secrets`, `scancode-license-pr-diff`, `lockfile-audit`, `checkov-iac`,
@@ -295,7 +296,7 @@ pertenece un check sin abrir el YAML.
 \* **Excepciones por rol, no por descuido.** Hay cuatro categorías de jobs que legítimamente no llevan prefijo de bloque:
 
 1. **Los atados al ruleset 21227644** (`Verify Commit Signatures`, `Commit Lint (Conventional Commits)`,
-   `PR Title Lint`, `DCO`; se suma `Governance: PR Body Lint` al completarse la FASE 3). Intocables mientras el
+   `PR Title Lint`, `DCO` y `Governance: PR Body Lint` — FASE 3 completada el 2026-10-22). Intocables mientras el
    ruleset los liga — ver §3.2.
 2. **ENTRY** (`repo-discovery` → `Detect Changes`): es el path-filter que decide qué corre; es anterior a todos los
    substage, no pertenece a ninguno.
@@ -325,7 +326,7 @@ allowed in compact mappings`). Todos los nombres con prefijo llevan comillas sim
 
 | Workflow                   | Triggers (`on:`)                        | Estado toggle GitHub                                   | Detalle                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
 | -------------------------- | --------------------------------------- | ------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **ci.yml**                 | `pull_request` main + `merge_group`     | ✅ **HABILITADO**                                      | Único gate de gobernanza vivo. 4 checks required + dependency-review + zombie-guard. Ver §3.3/§9.3                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
+| **ci.yml**                 | `pull_request` main + `merge_group`     | ✅ **HABILITADO**                                      | Gate de gobernanza vivo. Emite 3 de los 5 checks required (`Verify Commit Signatures`, `Commit Lint`, `DCO`; los otros 2 los emite `pr-metadata.yml`) + dependency-review + zombie-guard. Ver §3.3/§9.3                                                                                                                                                                                                                                                                                                                                                                                                                                       |
 | **opencode-review.yml**    | PR main (`opened/synchronize/reopened`) | ✅ **HABILITADO** (desde 2026-09-14)                   | Review IA advisory (NO required, `continue-on-error: true`). Steps inline (install binario v1.18.31 + `opencode github run`); composite action eliminada por bug rate-limit. Ver §9.3.8                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
 | **security.yml**           | `workflow_call` + PR main + push main   | ✅ `active` (API 2026-09-25, change `secret-scanning`) | Dependency Scan SCA (Trivy), SAST (CodeQL), SBOM (Anchore). **El job `secrets` (Security: Secret Detection) migró a `ci.yml` substage 2C** (wireado a `prebuild-security-complete.needs`) — R1 operativo a nivel check + ruleset. `dependency-review` también vive en `ci.yml` (inline). Re-habilitado con `gh workflow enable`                                                                                                                                                                                                                                                                                                               |
 | **scheduled-security.yml** | cron Mon 03:00 UTC                      | ✅ `active` (API 2026-09-25, change `secret-scanning`) | Gitleaks full-history JSON/SARIF + upload a Security tab (audit mode: hallazgos NO fallan el run, `continue-on-error: true`, pins `v8.30.1`). Job `notify-failure` arreglado: `if: always()` + condición sobre `needs.gitleaks-full-scan.outputs.*-outcome == 'failure'` (el `if: failure()` anterior era dead path porque los steps con `continue-on-error` dejan el job en success) — R2 operativo. Re-habilitado con `gh workflow enable`                                                                                                                                                                                                  |
@@ -367,7 +368,7 @@ allowed in compact mappings`). Todos los nombres con prefijo llevan comillas sim
   opera **solo vía PR**, nunca como push directo sin firma). La existencia, el modo y el actor se re-auditan con §2.
   Las reglas estables son:
   - `deletion` + `non_fast_forward` + `required_signatures`
-  - `required_status_checks`: strict=true, 4 checks (los 4 de §3.2), todos con `integration_id=15368`
+  - `required_status_checks`: strict=true, 5 checks (los 5 de §3.2), todos con `integration_id=15368`
   - `pull_request`: `required_approving_review_count=1`, `dismiss_stale_reviews_on_push`, `require_code_owner_review`,
     `require_last_push_approval`, `required_review_thread_resolution`,
     `required_extra_approval_for_unattributed_changes`, `allowed_merge_methods: merge/squash/rebase`
@@ -419,12 +420,16 @@ flowchart TD
         RD[repo-discovery: Detect Changes]
         VS[verify-signatures: Verify Commit Signatures ⭐]
         CL[commit-lint: Commit Lint (Conventional Commits) ⭐]
-        PTL["PR Title Lint ⭐ (pr-metadata.yml, no ci.yml)"]
         DCO[dco: DCO ⭐]
         DR[dependency-review: Security: Dependency Review]
         ZWG[zombie-workflow-guard: Zombie Workflow Guard]
         Q_DISABLED["⚠️ Quality/Build/Tests (if: false)"]
         CC[ci-complete: CI Complete ⏸️]
+    end
+
+    subgraph PR_METADATA_GOV [pr-metadata.yml — PR Metadata Governance (change pr-metadata-workflow)]
+        PTL["pr-title-lint: PR Title Lint ⭐"]
+        PBL["pr-body-lint: Governance: PR Body Lint ⭐"]
     end
 
     subgraph PREVIEW [preview.yml — Preview Validation]
@@ -477,15 +482,16 @@ flowchart TD
     classDef skipped fill:#f5f5f5,stroke:#9e9e9e,stroke-width:1px,stroke-dasharray: 5 5;
     classDef always fill:#e3f2fd,stroke:#1565c0,stroke-width:2px;
 
-    class VS,CL,PTL,DCO required;
+    class VS,CL,PTL,DCO,PBL required;
     class DR,ZWG always;
     class Q_DISABLED,CC skipped;
     class DB,FL2,MIG,HC,SMK always;
     class ECR,STG,PRD,SKIP skipped;
 ```
 
-**Leyenda:** ⭐ = Required status check (ruleset, todos **BLOCKING** desde 2026-08-31) · ✅ = Siempre se ejecuta (Phase
-1 deploy) · ⏸️ = Gated/Skipped (esperan `AWS_ROLE_ARN` o `CI_MINIMAL != 'true'`)
+**Leyenda:** ⭐ = Required status check (ruleset, todos **BLOCKING** desde 2026-08-31; `Governance: PR Body Lint`
+se sumó el 2026-10-22) · ✅ = Siempre se ejecuta (Phase 1 deploy) · ⏸️ = Gated/Skipped (esperan `AWS_ROLE_ARN`
+o `CI_MINIMAL != 'true'`)
 
 > **⚠️ Lectura del diagrama (importante, verificado por API 2026-08-30; actualización `opencode-review.yml` → ACTIVE
 > 2026-09-14):** el diagrama describe la **arquitectura por diseño** (cómo respondería cada pipeline a su trigger una
@@ -503,7 +509,7 @@ flowchart TD
     FB[Feature Branch] --> COMMITS[Commits firmados git commit -S ED25519]
     COMMITS --> CC[Conventional Commits commitlint]
     CC --> PR[Pull Request → main]
-    PR --> GATE[4 checks requeridos + Review 1 aprobación]
+    PR --> GATE[5 checks requeridos + Review 1 aprobación]
     GATE --> CODEOWNERS[CODEOWNERS review por path]
     CODEOWNERS --> LAST_PUSH[Last-push approval requerido]
     LAST_PUSH --> THREADS[Thread resolution requerido]
@@ -519,22 +525,34 @@ flowchart TD
 
 ### 5.1 Ruleset "Require signed commits" (ID 21227644; rename 2026-09-02)
 
-| Regla                                              | Qué hace                                                              | Relación con workflows/jobs                                         |
-| -------------------------------------------------- | --------------------------------------------------------------------- | ------------------------------------------------------------------- |
-| `deletion`                                         | Bloquea eliminación de la rama                                        | Protección nativa                                                   |
-| `non_fast_forward`                                 | Bloquea force-push                                                    | Protección nativa                                                   |
-| `required_signatures`                              | Exige commits firmados y verificados                                  | `verify-signatures` valida `.commit.verification.verified == true`  |
-| `required_status_checks` (strict, 4)               | Exige 4 status checks exactos                                         | Jobs ci.yml con names EXACTOS (§3.2). Renombrar rompe binding       |
-| `required_approving_review_count=1`                | Mínimo 1 aprobación                                                   | UI PR                                                               |
-| `dismiss_stale_reviews_on_push`                    | Push invalida reviews previas                                         | Nativo                                                              |
-| `require_code_owner_review=true`                   | Review de CODEOWNERS por path                                         | `CODEOWNERS` → teams                                                |
-| `require_last_push_approval=true`                  | Push final debe aprobarse                                             | Previene merge sin último push visto                                |
-| `required_review_thread_resolution=true`           | Hilos deben resolverse                                                | UI PR                                                               |
-| `required_extra_approval_for_unattributed_changes` | Commits sin autor → aprobación extra                                  | Edge case bots                                                      |
-| `allowed_merge_methods: merge/squash/rebase`       | Solo 3 métodos                                                        | Botones merge                                                       |
-| `required_linear_history`                          | Historial lineal                                                      | Impide merge commits no squash/rebase                               |
-| `bypass_actors` (snapshot 2026-10-18)              | Un actor `RepositoryRole` (`actor_id 5`), `bypass_mode: pull_request` | Bypass solo vía PR; nunca push directo sin firma. Re-auditar con §2 |
-| `current_user_can_bypass` (snapshot 2026-10-18)    | `pull_requests_only` para el usuario actual                           | No permite saltarse `required_signatures` por push directo          |
+| Regla                                              | Qué hace                                                              | Relación con workflows/jobs                                                            |
+| -------------------------------------------------- | --------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
+| `deletion`                                         | Bloquea eliminación de la rama                                        | Protección nativa                                                                      |
+| `non_fast_forward`                                 | Bloquea force-push                                                    | Protección nativa                                                                      |
+| `required_signatures`                              | Exige commits firmados y verificados                                  | `verify-signatures` valida `.commit.verification.verified == true`                     |
+| `required_status_checks` (strict, 5)               | Exige 5 status checks exactos                                         | Jobs de `ci.yml` y `pr-metadata.yml` con names EXACTOS (§3.2). Renombrar rompe binding |
+| `required_approving_review_count=1`                | Mínimo 1 aprobación                                                   | UI PR                                                                                  |
+| `dismiss_stale_reviews_on_push`                    | Push invalida reviews previas                                         | Nativo                                                                                 |
+| `require_code_owner_review=true`                   | Review de CODEOWNERS por path                                         | `CODEOWNERS` → teams                                                                   |
+| `require_last_push_approval=true`                  | Push final debe aprobarse                                             | Previene merge sin último push visto                                                   |
+| `required_review_thread_resolution=true`           | Hilos deben resolverse                                                | UI PR                                                                                  |
+| `required_extra_approval_for_unattributed_changes` | Commits sin autor → aprobación extra                                  | Edge case bots                                                                         |
+| `allowed_merge_methods: merge/squash/rebase`       | Solo 3 métodos                                                        | Botones merge                                                                          |
+| `required_linear_history`                          | Historial lineal                                                      | Impide merge commits no squash/rebase                                                  |
+| `bypass_actors` (snapshot 2026-10-18)              | Un actor `RepositoryRole` (`actor_id 5`), `bypass_mode: pull_request` | Bypass solo vía PR; nunca push directo sin firma. Re-auditar con §2                    |
+| `current_user_can_bypass` (snapshot 2026-10-18)    | `pull_requests_only` para el usuario actual                           | No permite saltarse `required_signatures` por push directo                             |
+
+> **Rollback del binding de `Governance: PR Body Lint` (FASE 3, change `pr-metadata-workflow`) — procedimiento en
+> papel, sin tocar workflows:** el 5.º required check se revierte SOLO en el ruleset, vía **GET → modificar → PUT**
+> (nunca `PATCH`: reemplaza el array `rules` completo y descarta silenciosamente el resto). Con esto los PRs vuelven
+> a exigir únicamente los 4 checks previos a la FASE 3; `pr-metadata.yml` sigue emitiendo ambos contextos (emisión ≠
+> exigencia) y no requiere ningún cambio (rollback verificado en papel — task 4.6):
+>
+> ```bash
+> gh api repos/{owner}/{repo}/rulesets/21227644 > ruleset.json
+> # editar ruleset.json → required_status_checks.contexts: quitar "Governance: PR Body Lint" (volver a 4 contextos)
+> gh api -X PUT repos/{owner}/{repo}/rulesets/21227644 --input ruleset.json
+> ```
 
 ### 5.2 Classic Branch Protection (overlap)
 
@@ -657,7 +675,7 @@ O via UI: repo → Actions → <workflow> → ⋯ → Enable workflow.
 
 | Workflow                     | Estado      | Qué esperaría dispararse hoy si NO estuviera deshabilitado                                                                  |
 | ---------------------------- | ----------- | --------------------------------------------------------------------------------------------------------------------------- |
-| `ci.yml`                     | ✅ active   | PR/push → 4 checks + dependency-review + zombie-guard                                                                       |
+| `ci.yml`                     | ✅ active   | PR/push → 3 de los 5 checks required + dependency-review + zombie-guard                                                     |
 | `opencode-review.yml`        | ✅ active   | PR main → comentario informativo de code review IA (check NO-required, GOVERNANCE; steps inline tras fix rate-limit §9.3.8) |
 | `security.yml`               | ✅ active   | PR/push main → SCA/SAST/SBOM (el gate de secretos vive en `ci.yml` job `secrets` substage 2C)                               |
 | `scheduled-security.yml`     | ✅ active   | cron Lun 03:00 → Gitleaks full-history JSON/SARIF (advisory) + notify-failure por step-outcome                              |
@@ -763,7 +781,7 @@ v2 adicionales (el control vive en el ruleset v2, §3.5).
 | `cicd-estado-actual.md` + `cicd-plan-implementacion.md` NO existen | Referenciados por ~31 + ~14 docs (enlaces rotos pre-existentes, verificados 2026-08-29 con `git ls-tree -r HEAD`). Su contenido sobrevive SOLO en `docs/cicd-plantilla-completa.md` (Parte I = estado, Parte II = plan)                               | Documentar; reparar enlaces en change futuro                                                                                                      |
 | Plantilla RETENIDA (decisión 2026-08-29)                           | `docs/cicd-plantilla-completa.md` NO se elimina: Parte II (plan: sprints 8 sem/48 SP, AWS+Floci, rollback, DORA, catálogo enterprise, brechas) + Parte III (índice D1-D10) son ÚNICOS — no están en este doc                                          | ~1.200+ líneas únicas preservadas como doc vivo                                                                                                   |
 | Semántica de `cancelled` divergente (registrado 2026-10-20)        | `ci-complete` trata `cancelled` como **éxito** (exit 0) mientras los agregadores de substage (`prebuild-*-complete`) lo tratan como **fallo**. Deuda pre-existente, declarada fuera de alcance en el change `pr-metadata-workflow` (design Non-Goals) |
-| FASE 3 del body gate pendiente de admin (2026-10-20)               | `Governance: PR Body Lint` reporta pero aún NO está en el ruleset 21227644: el binding requiere ≥1 run real y una acción de admin (tasks 4.1-4.6 del change). Hasta entonces el repo tiene **4** required checks, no 5                                |
+| FASE 3 del body gate completada (2026-10-22)                       | `Governance: PR Body Lint` **añadido** al ruleset 21227644 como **5º** required check (`integration_id=15368`) vía GET → modify → PUT (nunca `PATCH`: descartaría el resto de `rules`). El repo tiene **5** required checks                           |
 | `merge_group` trigger = dead code (API 2026-08-31)                 | Merge queue NO activo: sin regla `merge_queue` en ruleset/clásica, `allow_auto_merge=false`. Los steps `if: merge_group` de ci.yml nunca corren                                                                                                       | Paso 1 para activarlo en el futuro: añadir `type: "merge_queue"` al ruleset (§3.3/§5.3)                                                           |
 
 ## 7. Reglas de oro para nuevos changes de CI/CD (LEER ANTES DE CREAR)
@@ -823,7 +841,7 @@ v2 adicionales (el control vive en el ruleset v2, §3.5).
 > `opencode-review.yml`** (+ config dinámica `dependabot-updates`); los 7 restantes (`security.yml`,
 > `security-digest.yml`, `scheduled-security.yml`, `deploy.yml`, `release.yml`, `preview.yml`, `ci-enterprise.yml`)
 > están **`disabled_manually`** y NO corren en ningún trigger (§3.4/§3.5/§5.9). Es decir: las implementaciones de
-> gobernanza (4 checks, jobs de ci.yml) + review IA advisory están **vivas**; las implementaciones de
+> gobernanza (5 checks: 3 en jobs de ci.yml + 2 en `pr-metadata.yml`) + review IA advisory están **vivas**; las implementaciones de
 > security/deploy/release/preview **existen en el código pero su workflow está apagado en GitHub**.
 
 ### 9.1 Mapa changes implementados → artefactos vivos
@@ -876,7 +894,7 @@ deben darse por cerrados:
 
 ### 9.3 Cómo funciona cada implementación del gate (detalle verificado en `ci.yml`)
 
-Esta subsección explica el **mecanismo real** de las implementaciones que protegen el merge a `main` (los 4 checks
+Esta subsección explica el **mecanismo real** de las implementaciones que protegen el merge a `main` (los 5 checks
 vinculados al ruleset 21227644, más los jobs no-required). Todo verificado contra `.github/workflows/ci.yml` (1189
 líneas tras `knip-consolidation`/`eslint-configuration`, 2026-09-23).
 
@@ -934,7 +952,7 @@ merge_group` es dead code (ver §3.3/§5.3).
   "required pero `continue-on-error: true`" es anti-patrón de gobernanza ("required pero non-blocking" erosiona
   confianza).
 
-#### 9.3.4 `pr-body-lint` → check "Governance: PR Body Lint" (nuevo 2026-10-20; FASE 3 pendiente de admin)
+#### 9.3.4 `pr-body-lint` → check "Governance: PR Body Lint" (nuevo 2026-10-20; FASE 3 completada 2026-10-22)
 
 - **Qué hace:** valida la **descripción del PR** contra `.github/PULL_REQUEST_TEMPLATE.md` con la política versionada
   en `scripts/ci/pr-body-lint.mjs` (R1 ≥40 chars útiles · R2a `Summary` ≥20 · R2b `Related Issue` con ref `#\d+` o
@@ -956,8 +974,9 @@ github.event.pull_request.user.type != 'Bot'` — un maintainer editando un PR d
   (exentos) y **los 72 humanos fallarían el gate hoy** — 49 con cuerpo vacío, 52 sin encabezados de plantilla, 18
   con `Related Issue` presente y **0** de esos 18 fallando R2b (la política no rechaza contenido sancionado por la
   plantilla). Es el coste aceptado de omitir la ventana de calibración (D8, decisión del usuario).
-- **Estado:** el workflow y la política están en `main`; el binding al ruleset (FASE 3) es una acción de admin que
-  se ejecuta DESPUÉS de al menos un reporte real — ver tasks 4.1-4.6.
+- **Estado:** el workflow y la política están en `main` y el contexto está **unido al ruleset 21227644 desde el
+  2026-10-22** (5º required check, `integration_id=15368`), aplicado DESPUÉS de al menos un reporte real — ver tasks
+  4.1-4.5.
 
 #### 9.3.5 `dco` → check "DCO" (REQUIRED, BLOCKING desde 2026-08-31)
 
@@ -1398,7 +1417,7 @@ local no lo sustituye.
 | **L1 — Pre-commit** | En el dev (hooks `prepare-commit-msg`, `pre-commit` + `commit-msg`) | Format (prettier), lint (eslint), secrets (Gitleaks staged-only, fail-open solo ante herramienta rota), **DCO**: auto-signoff (`prepare-commit-msg`, inyección) + presencia (`Signed-off-by:` en `commit-msg`, validación y único gate local). Defense-in-depth: regla `/commit-all` del git-manager prompt (`-S -s` obligatorio, §10.4). **Sin SAST** — SAST diff-scoped vive en L2 + CI                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               | Muy bajo   | ✅                    |
 | **L2 — Pre-push**   | En el dev (hook `pre-push`)                                         | `git fetch origin main --depth=1` + guard de `origin/main` + **verificación de firma** de commits con `%G?` contra `allowed_signers` (bloquea `N`/`B`; advierte `E`/`U`/`X`/`Y`/`R`) + **SAST diff-scoped** (`scripts/sast-diff.mjs`, modo local — mismo script/versión/packs que el CI: hallazgo ERROR nuevo bloquea, herramienta rota fail-open, skips visibles por tree sucio o diff sin JS/TS; presupuesto propio: objetivo < 60 s (RF-PP-06) **no alcanzado en Windows con Docker Desktop** — re-medido 2026-10-20: **135 s** con imagen cacheada sobre 385 archivos / 81 reglas (149 s en linked worktree), 22.7 s en `ubuntu-latest`; por eso el timeout del script es una **red de seguridad de 300 s**, no el enforcement del objetivo — con 60 s un scan correcto se degradaba a `tool-broken` → fail-open, y el corte por timeout degrada a fail-open con aviso) + regresión scoped vía `npm run test:changed --workspace=apps/<ws>` (server: solo `*.unit.test.js`; client: unit + integración de componente). **No valida DCO** (`commit-msg` es el único gate local). Mismo contrato de selección que CI — §10.6; detalle de firma en §10.7 y `docs/learning/ci-cd/05b-commit-signing.md` | Bajo-medio | ✅                    |
 | **L2.5 — PR title** | En el dev (wrapper npm)                                             | Validación del título de PR contra Conventional Commits vía `npm run pr:create` (script `scripts/hooks/pr-title-check.js`) ANTES de `gh pr create`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      | Muy bajo   | ⚠️ (wrapper, no hook) |
-| **L3 — CI**         | En GitHub (PR → main)                                               | Gates de gobernanza: firma de commits, Conventional Commits, DCO, dependency-review (ver §9)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            | Alto       | ✅ (4 checks ruleset) |
+| **L3 — CI**         | En GitHub (PR → main)                                               | Gates de gobernanza: firma de commits, Conventional Commits, DCO, dependency-review (ver §9)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            | Alto       | ✅ (5 checks ruleset) |
 
 > **Dos taxonomías — no confundirlas.** Esta tabla usa **tiempos de ejecución** (L1 pre-commit, L2 pre-push, L2.5 PR
 > title, L3 CI). `docs/learning/dco.md` usa el **modelo de capas DCO** (L0 identidad, L1 `prepare-commit-msg`, L2

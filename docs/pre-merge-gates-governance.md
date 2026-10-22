@@ -3,6 +3,11 @@
 > Artículo técnico basado en la implementación real de governance pre-build/pre-merge de project-one: `.github/workflows/ci.yml` (1049 líneas), ruleset `21227644`, hooks de Husky (`.husky/`), configs locales (`.gitleaks.toml`, `.semgrep/`, `commitlint.config.js`, `scripts/hooks/`) y su contraste con la propuesta enterprise de `docs/ci-cd-pipeline-empresarial.md` §23.3 (STAGE 2 PRE-BUILD — VALIDATE) y el `Governance Lifecycle` de 7 pasos.
 >
 > **Nota de trazabilidad:** todo lo afirmado aquí fue verificado contra el árbol de trabajo en la rama `ci/governance-gates` (HEAD `3b54db7`). Cuando algo está diseñado pero aún no activo, se dice explícitamente. No asumimos nada.
+>
+> ⚠️ **NOTA DE ACTUALIZACIÓN (2026-10-20, change `pr-metadata-workflow`):** el job `pr-title-lint` (check
+> `PR Title Lint`) ya **NO vive en `ci.yml`** — emigró a `.github/workflows/pr-metadata.yml` junto al nuevo gate
+> `Governance: PR Body Lint` (PR body policy). Las referencias de este artículo a `ci.yml:pr-title-lint` describen el
+> estado **previo** al cambio (HEAD `3b54db7`). Estado real: [`CONTEXT-CICD.md`](./CONTEXT-CICD.md) §3.3/§9.3.3-9.3.4.
 
 ---
 
@@ -364,7 +369,8 @@ PR title is valid: "feat(auth): add refresh token rotation"
 #### Dónde está implementada
 
 - L2.5: `scripts/hooks/pr-title-check.js` + `scripts/hooks/pr-create.js` (wrapper de `gh pr create`).
-- L3: job `pr-title-lint` en `ci.yml` (name exacto: **PR Title Lint**), BLOQUEANTE.
+- L3: job `pr-title-lint` en `.github/workflows/pr-metadata.yml` (name exacto: **PR Title Lint**), BLOQUEANTE
+  (emigró de `ci.yml` en el change `pr-metadata-workflow`, 2026-10-20; el wrapper local es el espejo de esa config).
 
 ---
 

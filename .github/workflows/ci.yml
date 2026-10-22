@@ -43,6 +43,11 @@ jobs:
               - 'package.json'
               - 'package-lock.json'
               - '.github/workflows/**'
+              # Scripts de CI (política `pr-body-lint`, coverage, TIA…):
+              # change `pr-metadata-workflow` task 1.9 — un cambio aquí debe
+              # disparar los jobs shared (p. ej. el lockstep plantilla↔política
+              # que corre en `openspec-validate` vía `npm run test:scripts`).
+              - 'scripts/**'
               # Configs de import boundaries (dependency-cruiser): cambiarlos
               # dispara los jobs `*-import-bounds` de ambos workspaces.
               - '.dependency-cruiser.cjs'
