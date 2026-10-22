@@ -69,6 +69,16 @@
   >    ⚠️ El PR #142 fue **fusionado por error** durante la verificación de 4.5 (el token de la sesión tiene el rol
   >    admin = bypass actor del ruleset): el marker `PR_METADATA_CANARY.md` se revirtió de inmediato en el PR #143
   >    y `main` quedó como estaba. El canary siguió siendo válido porque su verificación ya estaba hecha.
+  >
+  > ✅ **Segunda prueba, esta vez sobre un PR real y con el check ya fallido (2026-10-21): el PR #145.** Nació rojo
+  > (el body que genera `/push-pr` es la plantilla vacía: R2a/R2b/R2c/R3). Se rellenó con el flag `--body-file` de
+  > `gh pr edit` y **sin push**: head `4d990da2…` idéntico antes y después, `Governance: PR Body Lint`
+  > `failure` → `success` (runs `39719555968` → `39719736257`), se creó un **check-run nuevo** (el rojo
+  > permanece inmutable en `/check-runs?filter=all`; el ruleset resuelve el más reciente), y el `ci.yml` del
+  > mismo SHA quedó `in_progress` sin cancelarse ni re-ejecutarse — exactamente la razón estructural de separar
+  > el workflow (design D2). El `report.json` del artifact lleva `headSha: 4d990da2…` y `bodyChars: 4157`,
+  > igual al body vivo: el reporte juzgó el cuerpo real, no una copia. La prueba (a)-(c) del canary queda así
+  > replicada sobre el camino que usa el equipo, no solo sobre una rama desechable.
 
 - [x] 2.7 Confirm the canary does not disturb the existing pipeline: `ci.yml` unchanged, `PR Title Lint` and `DCO` still reported by `ci.yml` for that PR, and no duplicate context exists yet.
 
@@ -173,9 +183,11 @@
 - [x] 6.2 Validate the workflows with the real binaries (`bash <(curl -s https://raw.githubusercontent.com/rhysd/actionlint/main/scripts/download-actionlint.bash) 1.7.12 && ./actionlint` and `uvx zizmor@1.30.1 -c .github/zizmor.yml .github/workflows/`), or rely on the `Security: ActionLint Advisory (SARIF, FASE 1)` / `Security: Zizmor Advisory` CI jobs if the binaries are unavailable locally (`npx actionlint` is a WASM stub with no bin, `npx zizmor` does not exist); confirm zero errors and no new advisory findings attributable to `pr-metadata.yml`.
 
   > ✅ Binarios reales disponibles en local: actionlint **1.7.12** → **0 errores** (`pr-metadata.yml` y repo completo);
-  > zizmor **1.30.1** → `pr-metadata.yml` **0 findings (2 suppressed)**. El baseline es el **directorio completo**
-  > `.github/workflows/`: 237 findings pre-existentes, todos advisory. zizmor corre **offline por defecto**; se
-  > repitió online con `--gh-token` y el resultado fue idéntico (0 findings en el workflow nuevo).
+  > zizmor **1.30.1** → `pr-metadata.yml` **0 findings (2 suppressed)**. Los números del baseline deben citarse con
+  > su alcance exacto, porque no coinciden entre invocaciones: **`ci.yml` solo = 124 findings** (50 suppressed)
+  > frente a **`.github/workflows/` completo = 237** (117 suppressed; 34 informational / 25 low / 59 medium /
+  > 2 high). Todos pre-existentes y advisory. zizmor corre **offline por defecto**; se repitió online con
+  > `--gh-token` y el resultado fue idéntico (0 findings en el workflow nuevo).
 
 - [x] 6.3 Run `npx markdownlint-cli2 "docs/learning/ci-cd/*.md"` and confirm no NEW errors versus the pre-change baseline (the directory is grandfathered in `.markdownlintignore`).
 
