@@ -64,7 +64,6 @@ export const validatePathParam = (
   // el sink recibe un objeto LITERAL con clave fija `id` y un valor numérico ya validado
   // (`Number.isSafeInteger(...) && > 0`); no hay claves controladas por el usuario, así que
   // `__proto__`/`constructor` no son alcanzables.
-  // nosemgrep: prototype-pollution
   Object.assign(req.params, { id: numericId });
 
   // Continúa hacia el controller
