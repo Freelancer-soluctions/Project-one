@@ -498,10 +498,12 @@ possible in the development lifecycle:
 2. **`pre-push`** — diff-scoped SAST (`scripts/sast-diff.mjs`, local mode) between the
    commit-signature gate and the scoped tests: a new `ERROR` finding blocks the push before the
    test suite is paid for; broken tooling never blocks.
-3. **CI (`sast` job)** — the same script in `ci` mode: the enforcement point. FASE 1 advisory
-   (`continue-on-error: true` + 14-day report artifact, graduation criterion in the workflow and in
-   `docs/learning/quality-gates.md` §7); FASE 2 blocking through
-   `prebuild-governance-complete.needs` once the calibration window closes.
+3. **CI (`sast` job)** — the same script in `ci` mode: the enforcement point. **FASE 2 blocking
+   since 2026-10-20** (`sast-shift-left-hooks-parity`): no `continue-on-error`, and `sast` is the
+   fifth entry of `prebuild-governance-complete.needs`, so a new `ERROR` finding takes the
+   governance aggregator red and `CI Complete` fails with it. A 14-day report artifact is retained.
+   Binding the check `Governance: SAST (Semgrep)` to the ruleset — the only path to blocking the
+   _merge_ itself — is a separate governance change.
 4. **On demand** — `npm run sast:semgrep:full` for the complete repository with the full `r/...`
    ruleset.
 

@@ -1123,7 +1123,7 @@ github.event.pull_request.base.sha }}` (commit base del PR, diff-scoped); el hoo
   21227644 (solo los 4 de §3.2), de modo que el **bloqueo duro del merge** exige bindear el check — change de
   gobernanza aparte, fuera del scope de `sast-shift-left-hooks-parity`. La ventana de calibración
   cerró con un único hallazgo, triado como falso positivo y remediado con `nosemgrep: prototype-pollution` +
-  justificación en `apps/server/src/middleware/validatePathParam.ts:63` (clave literal `id` + valor numérico ya
+  justificación en `apps/server/src/middleware/validatePathParam.ts:67` (clave literal `id` + valor numérico ya
   validado → `__proto__`/`constructor` inalcanzables); verificado con `semgrep scan --config .semgrep/rules` sobre
   ese archivo → 0 findings. El resultado se retiene como **artifact `sast-report`**
   (`.tmp/sast-report.json` con findings/modo/baseline, `retention-days: 14`, `if: always()`,

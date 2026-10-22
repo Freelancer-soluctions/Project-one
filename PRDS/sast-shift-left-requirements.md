@@ -99,12 +99,12 @@ Prioridad: **M** = debe, **S** = debería.
 
 ### 4.6 CI
 
-| ID       | Requerimiento                                                                                              | Pri.         | Criterio de aceptación                   |
-| -------- | ---------------------------------------------------------------------------------------------------------- | ------------ | ---------------------------------------- |
-| RF-CI-01 | El job `sast` DEBE sustituir el `docker run` inline por `SAST_MODE=ci node scripts/sast-diff.mjs`          | M            | El YAML invoca el script                 |
-| RF-CI-02 | FASE 1: el job conserva `continue-on-error: true` y retiene el resultado como artifact (14 d)              | M            | El PR no se bloquea y el artifact existe |
-| RF-CI-03 | El comentario del job DEBE documentar el criterio de graduación (2-4 semanas sin falsos positivos triados) | M            | Criterio escrito en el YAML              |
-| RF-CI-04 | FASE 2: se quita `continue-on-error` y `sast` se añade a `prebuild-governance-complete.needs`              | M (diferido) | Un hallazgo ERROR nuevo bloquea el merge |
+| ID       | Requerimiento                                                                                              | Pri.                                | Criterio de aceptación                                                                                                                                                    |
+| -------- | ---------------------------------------------------------------------------------------------------------- | ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| RF-CI-01 | El job `sast` DEBE sustituir el `docker run` inline por `SAST_MODE=ci node scripts/sast-diff.mjs`          | M                                   | El YAML invoca el script                                                                                                                                                  |
+| RF-CI-02 | FASE 1: el job conserva `continue-on-error: true` y retiene el resultado como artifact (14 d)              | M (histórico · superado por FASE 2) | El PR no se bloquea y el artifact existe                                                                                                                                  |
+| RF-CI-03 | El comentario del job DEBE documentar el criterio de graduación (2-4 semanas sin falsos positivos triados) | M                                   | Criterio escrito en el YAML                                                                                                                                               |
+| RF-CI-04 | FASE 2: se quita `continue-on-error` y `sast` se añade a `prebuild-governance-complete.needs`              | M (implementado 2026-10-20)         | Un ERROR deja el job y el agregador de governance en rojo → falla `CI Complete`; el bloqueo del **merge** exige bindear el check al ruleset (change de gobernanza aparte) |
 
 ### 4.7 Limpieza y documentación
 

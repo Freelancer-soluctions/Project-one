@@ -335,9 +335,9 @@ function hasCustomRules(root) {
 //   - common dir INSIDE the root (normal clone) -> command unchanged;
 //   - common dir OUTSIDE the root (linked worktree) -> mount it at /git and
 //     point GIT_DIR / GIT_WORK_TREE at the mounts;
-// plus, in BOTH cases, an ephemeral global git config with
-// `[safe]\n\tdirectory = *` (also covers container-root vs host-file
-// ownership mismatches, which produce the very same refusal).
+// plus, in BOTH cases, an ephemeral global git config whose `[safe]`
+// entries are scoped to `/src` and `/git` only (NOT `*`), which also covers
+// container-root vs host-file ownership mismatches — the very same refusal.
 
 /** Log phrase for the normal case (no git-specific mounts needed). */
 export const GIT_STRATEGY_INSIDE = 'git dir: dentro del árbol';

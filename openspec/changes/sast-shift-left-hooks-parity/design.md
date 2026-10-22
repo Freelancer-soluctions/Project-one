@@ -82,16 +82,16 @@ Matriz de decisión. La **única** diferencia de configuración entre modos es e
 (local: `git merge-base origin/main HEAD`; CI: `github.event.pull_request.base.sha`). Versión, packs, exclusiones y
 filtro de severidad son idénticos, por eso la tabla comparte todo salvo las dos últimas columnas.
 
-| Resultado de Semgrep                   | Clasificación           | Modo `local`                       | Modo `ci` (FASE 1)                                                               |
-| -------------------------------------- | ----------------------- | ---------------------------------- | -------------------------------------------------------------------------------- |
-| exit `0`                               | sin hallazgo bloqueante | ✅ continúa                        | ✅ step verde                                                                    |
-| exit `1`                               | hallazgo ERROR nuevo    | 🛑 bloquea el push                 | ❌ step falla; con `continue-on-error` el merge **no** se bloquea (en FASE 2 sí) |
-| exit ≠ `0`,`1`                         | herramienta rota        | ⚠️ avisa y **deja pasar**          | ❌ step falla y el job se reporta fallido (fail-closed en ambas fases)           |
-| no arranca (Docker/imagen/red)         | herramienta rota        | ⚠️ avisa y **deja pasar**          | ❌ step falla                                                                    |
-| timeout excedido                       | herramienta rota        | ⚠️ avisa y **deja pasar**          | ❌ step falla                                                                    |
-| working tree sucio                     | skip por contrato       | ⚠️ avisa y **deja pasar**          | n/a — el skip **no** se aplica (checkout limpio)                                 |
-| diff sin `.js/.jsx/.cjs/.mjs/.ts/.tsx` | skip por contrato       | ⚠️ avisa (skip)                    | n/a — el skip de idioma **no** se aplica (el CI siempre analiza)                 |
-| `SAST_MODE` sin definir en un runner   | configuración inválida  | n/a (el default `local` sí aplica) | ❌ falla pidiendo la variable explícita                                          |
+| Resultado de Semgrep                   | Clasificación           | Modo `local`                       | Modo `ci` (FASE 2, graduado 2026-10-20)                                                                                                                    |
+| -------------------------------------- | ----------------------- | ---------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| exit `0`                               | sin hallazgo bloqueante | ✅ continúa                        | ✅ step verde                                                                                                                                              |
+| exit `1`                               | hallazgo ERROR nuevo    | 🛑 bloquea el push                 | ❌ step falla y tumba `prebuild-governance-complete` → falla `CI Complete`; el **merge** solo se bloquea si el check se bindea al ruleset (hoy no lo está) |
+| exit ≠ `0`,`1`                         | herramienta rota        | ⚠️ avisa y **deja pasar**          | ❌ step falla y el job se reporta fallido (fail-closed en ambas fases)                                                                                     |
+| no arranca (Docker/imagen/red)         | herramienta rota        | ⚠️ avisa y **deja pasar**          | ❌ step falla                                                                                                                                              |
+| timeout excedido                       | herramienta rota        | ⚠️ avisa y **deja pasar**          | ❌ step falla                                                                                                                                              |
+| working tree sucio                     | skip por contrato       | ⚠️ avisa y **deja pasar**          | n/a — el skip **no** se aplica (checkout limpio)                                                                                                           |
+| diff sin `.js/.jsx/.cjs/.mjs/.ts/.tsx` | skip por contrato       | ⚠️ avisa (skip)                    | n/a — el skip de idioma **no** se aplica (el CI siempre analiza)                                                                                           |
+| `SAST_MODE` sin definir en un runner   | configuración inválida  | n/a (el default `local` sí aplica) | ❌ falla pidiendo la variable explícita                                                                                                                    |
 
 **Fallo de step vs fallo de gate (H-2).** En FASE 1 ambos son el mismo evento de step, pero **no** el mismo efecto:
 el step falla y el job se reporta fallido, mientras el merge sigue permitido porque `continue-on-error: true` está
@@ -272,6 +272,14 @@ documenta como **no alcanzado en Windows con Docker Desktop**, con esta medició
 También se corrigió que el script no funcionaba dentro de un `git worktree` (el git dir vive fuera del
 bind mount → "not a git repository" → fail-open silencioso): ahora monta el common dir y pasa
 `GIT_DIR=<common>/worktrees/<name>`, `GIT_COMMON_DIR`, `GIT_WORK_TREE` y un `[safe] directory` efímero.
+
+**Verificado el 2026-10-21 — el cabo suelto ya no lo es:** se ejercitó el caso **worktree real** con Docker
+(worktree enlazado, common dir fuera de la raíz) y, dentro del contenedor, con el gitconfig efímero que
+genera el script (`[safe] directory = /src` + `directory = /git`): `git rev-parse` resuelve `HEAD` y
+`git diff --name-only <baseline> HEAD` lista **490** archivos → el acotado de L-3 **no** rompe el acceso a
+git, ni en worktree ni en clon normal. Queda solo el límite conocido de tamaño: ese diff de 490 archivos
+excede el net local de 300 s (probe con `SAST_TIMEOUT_MS=60000` → `tool-broken` → fail-open **visible**,
+exit 0), que es el presupuesto ya documentado arriba, no un fallo de resolución.
 
 ### D18 — El reporte de CI es el input real del artifact
 
