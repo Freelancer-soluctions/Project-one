@@ -172,11 +172,33 @@ The sections SHALL be matched against the document's heading structure: a sectio
 heading and the next heading of any level. A section with no content is treated as present but empty, which fails R2a
 rather than being reported as missing.
 
+Heading lines inside a fenced code block are content, never structure: every line a backtick or tilde fence spans —
+`## ` and `### ` lines included — belongs to the surrounding section and never splits the document, as long as the
+fence has a matching closer (an unterminated fence is not treated as suppressing structure, so a stray backtick cannot
+swallow the headings that follow it).
+
+When a canonical section heading appears more than once, the first occurrence is the section and later duplicates are
+ignored — their content is not merged into the first occurrence — and the ignored duplicate headings are reported in
+`metrics.duplicateSections`.
+
 #### Scenario: Heading case and punctuation do not matter
 
 - **WHEN** a body uses `## SUMMARY` or `## Summary:` instead of `## Summary`
 - **THEN** the section is recognized as the canonical `Summary` section
 - **AND** its content is measured normally
+
+#### Scenario: Heading lines inside a fenced code block are content
+
+- **WHEN** the `Summary` section contains a fenced code block whose lines include `## Not a heading`
+- **THEN** those fenced heading lines are measured as part of `Summary` and do not create a section of their own
+- **AND** the next real heading after the closed fence still locates its own section
+
+#### Scenario: The first occurrence of a duplicated section heading wins
+
+- **WHEN** a body contains two headings that canonicalize to `Summary`, the first carrying short content and the
+  second long content
+- **THEN** R2a measures the first occurrence, because duplicates are never merged into it
+- **AND** the ignored duplicate heading is reported in `metrics.duplicateSections`
 
 #### Scenario: Present but empty section
 

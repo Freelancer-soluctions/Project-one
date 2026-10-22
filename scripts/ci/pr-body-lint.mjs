@@ -10,9 +10,14 @@
  * Module contract (design D14):
  *   - `normalize(text)`            six-step pipeline, normative order (spec:
  *                                  "Normalization runs before any rule…")
- *   - `splitSections(body)`        Map<canonicalHeading, rawSectionBody>; the
+ *   - `splitSections(body, opts)`  Map<canonicalHeading, rawSectionBody>; the
  *                                  split happens on the RAW body because step 3
- *                                  of the pipeline erases heading lines
+ *                                  of the pipeline erases heading lines.
+ *                                  Fence-aware (headings inside a ``` / ~~~
+ *                                  block are content) and
+ *                                  first-occurrence-wins (ignored duplicate
+ *                                  headings are collected for
+ *                                  `metrics.duplicateSections`)
  *   - `evaluateBody({body,author}) PURE seam: R1-R5, no `core`, no filesystem,
  *                                  no clock — what the tests and the offline
  *                                  calibration corpus call
@@ -59,6 +64,8 @@ const RELATED_ISSUE_MIN_CHARS_WITHOUT_REF = 20;
 
 const UNCHECKED_TASK_LINE = /^\s*(?:[-*+]\s+)?\[\s*\]/;
 const HEADING_LINE = /^\s*#{1,6}\s/;
+/** Opening/closing marker of an ATX code fence (``` or ~~~). */
+const FENCE_MARKER = /^\s*(`{3,}|~{3,})/;
 const CHECKED_TASK_LINE = /^\s*(?:[-*+]\s+)?\[[xX]\]/;
 /** Spec regex: `/Closes\s*#(?!\\s*\\d)/g` — `Closes #123` survives. */
 const PLACEHOLDER_CLOSES = /Closes\s*#(?!\s*\d)/;
@@ -108,13 +115,69 @@ export const normalize = (text) => {
 };
 
 /**
+ * Pre-scan pass for `splitSections`: mark every line that lies inside a
+ * **matched** fence pair — opener → closer of the same marker character, at
+ * least as long as the opener, with nothing but whitespace after the closer.
+ * A fence never opens inside another fence. An opener with no matching closer
+ * is forgivingly ignored: an unterminated fence simply stops at the end of the
+ * document without ever suppressing structure, so a stray backtick cannot
+ * swallow the headings that follow it.
+ *
+ * @param {string[]} lines raw body lines
+ * @returns {boolean[]} per-line mask: true = inside a matched fence
+ */
+const computeFenceMask = (lines) => {
+  const mask = new Array(lines.length).fill(false);
+  let open = null;
+
+  for (let i = 0; i < lines.length; i += 1) {
+    const match = FENCE_MARKER.exec(lines[i]);
+    if (open === null) {
+      if (match) {
+        open = { char: match[1][0], length: match[1].length, start: i };
+      }
+      continue;
+    }
+    const closes =
+      match !== null &&
+      match[1][0] === open.char &&
+      match[1].length >= open.length &&
+      lines[i].slice(match[0].length).trim() === '';
+    if (closes) {
+      for (let j = open.start; j <= i; j += 1) mask[j] = true;
+      open = null;
+    }
+  }
+
+  // Unterminated opener: no lines are masked (forgiving by design).
+  return mask;
+};
+
+/**
  * Split the RAW body on its `##` headings. A section's content is the text
  * between its heading and the next heading of any level. Keyed by the
  * canonicalized heading.
+ *
+ * Two behaviours are normative (spec: "Core sections are located by
+ * canonicalized heading"):
+ * - **Fence-aware:** heading lines inside a fenced code block (``` / ~~~) are
+ *   content, never structure. An unterminated fence is forgivingly ignored, so
+ *   a stray backtick does not turn later real headings into content.
+ * - **First occurrence wins:** a repeated canonical heading never overwrites
+ *   the earlier section. The duplicate is ignored (its content is NOT merged
+ *   into the first occurrence) and its raw heading text is pushed to
+ *   `duplicateSections` when a collector is provided, so the report can
+ *   explain why that content was not measured.
+ *
+ * @param {string} body raw pull request body
+ * @param {{ duplicateSections?: string[] }} [options] collector receiving the
+ *   raw heading text of each ignored duplicate, in document order
+ * @returns {Map<string, string>} canonical heading → raw section body
  */
-export const splitSections = (body) => {
+export const splitSections = (body, { duplicateSections = [] } = {}) => {
   const sections = new Map();
   const lines = String(body ?? '').split(/\r?\n/);
+  const fenced = computeFenceMask(lines);
   let current = null;
   let buffer = [];
 
@@ -126,16 +189,29 @@ export const splitSections = (body) => {
     buffer = [];
   };
 
-  for (const line of lines) {
-    const level2 = /^##\s+(.*)$/.exec(line);
-    if (level2) {
-      close();
-      current = canonicalizeHeading(level2[1]);
-      continue;
-    }
-    if (HEADING_LINE.test(line)) {
-      close();
-      continue;
+  for (let i = 0; i < lines.length; i += 1) {
+    const line = lines[i];
+    // Inside a fenced code block every line — `## ` and `### ` included — is
+    // content, never structure.
+    if (!fenced[i]) {
+      const level2 = /^##\s+(.*)$/.exec(line);
+      if (level2) {
+        const key = canonicalizeHeading(level2[1]);
+        // First occurrence wins: a repeat of the section we are inside or of
+        // one already closed is a duplicate — ignore it, do not merge it.
+        const duplicate = key === current || sections.has(key);
+        close();
+        if (duplicate) {
+          duplicateSections.push(level2[1].trim());
+        } else {
+          current = key;
+        }
+        continue;
+      }
+      if (HEADING_LINE.test(line)) {
+        close();
+        continue;
+      }
     }
     if (current !== null) buffer.push(line);
   }
@@ -166,13 +242,15 @@ export const evaluateBody = ({ body = '', author = null } = {}) => {
   const raw = String(body ?? '');
   const commentStripped = stripHtmlComments(raw);
   const normalized = normalize(raw);
-  const sections = splitSections(raw);
+  const duplicateSections = [];
+  const sections = splitSections(raw, { duplicateSections });
 
   const metrics = {
     bodyChars: raw.length,
     meaningfulChars: normalized.length,
     checkedCheckboxes: countCheckedCheckboxes(raw),
     sectionsFound: [...sections.keys()],
+    duplicateSections,
   };
   const failures = [];
   const warnings = [];
@@ -345,6 +423,7 @@ const renderSummary = (result, reportPath) => {
     `| meaningfulChars | ${result.metrics.meaningfulChars} |`,
     `| checkedCheckboxes | ${result.metrics.checkedCheckboxes} |`,
     `| sectionsFound | ${result.metrics.sectionsFound.join(', ') || '—'} |`,
+    `| duplicateSections | ${result.metrics.duplicateSections.join(', ') || '—'} |`,
     '',
   ];
   if (result.failures.length > 0) {
