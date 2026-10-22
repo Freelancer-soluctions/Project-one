@@ -1,5 +1,5 @@
 import { ENVIROMENTS } from '../constants/enums.js';
-import dotenv from '../../config/dotenv.js';
+import { requireEnv } from '../../config/dotenv.js';
 import helmet from 'helmet';
 import type { HelmetOptions } from 'helmet';
 
@@ -14,8 +14,11 @@ import type { HelmetOptions } from 'helmet';
 // a desarrollo vs producción.
 // -----------------------------------------------------------
 
-const FRONTEND_URL = dotenv('FRONTEND_URL');
-const NODE_ENV = dotenv('NODE_ENV');
+// El throw de requireEnv ocurre en MODULE SCOPE (helmet.config es importado por
+// app.ts): sin estas variables el servidor NO ARRANCA — falla ruidoso en el
+// arranque, no por request (change server-restore-helmet-middleware, task 2.2).
+const FRONTEND_URL = requireEnv('FRONTEND_URL');
+const NODE_ENV = requireEnv('NODE_ENV');
 const isProduction = NODE_ENV === ENVIROMENTS.PRODUCTION;
 
 export const helmetConfig = helmet({

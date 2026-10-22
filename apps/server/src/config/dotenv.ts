@@ -40,6 +40,8 @@ export type EnvKey =
 export type CriticalEnvKey =
   | 'AES_GCM_KEY'
   | 'ALGORITHM'
+  | 'FRONTEND_URL'
+  | 'NODE_ENV'
   | 'REFRESHSECRETKEY'
   | 'SECRETKEY';
 

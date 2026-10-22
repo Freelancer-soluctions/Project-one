@@ -172,16 +172,6 @@
       "ignoreDependencies": [
         // Solo de editor (language server, nunca importado en runtime)
         "@prisma/language-server",
-        // (2026-10-20, tarea 9.4 — deuda de la rama `typescript-migration`, NO de este
-        // change): `helmet` y `nodemon` quedaron sin consumidor en la Fase 2 de la
-        // migración TS (commit bf3cf1f2) — `dev` pasó de nodemon a `tsx watch`, y el
-        // mismo commit eliminó `import { helmetConfig }` + `app.use(helmetConfig)` de
-        // `src/app.ts` (¡regresión de seguridad a restaurar en un change dedicado!),
-        // dejando `src/utils/helmet/helmet.config.ts` huérfano. Eliminar estas deps
-        // exige tocar el manifest (congelado en esta tarea), así que la excepción queda
-        // documentada como deuda hasta el cambio correspondiente.
-        "helmet",
-        "nodemon",
         // Resueltas por plugin/config fuera de `project` o en runtime
         "cloudinary",
         "knex",
@@ -210,16 +200,11 @@
         "src/modules/products/controller.{js,ts}": ["exports"],
         "src/modules/products/service.{js,ts}": ["exports"],
         // (2026-10-20, tarea 9.4 — deuda de la rama `typescript-migration`, NO de este
-        // change): 2 archivos contractivos/dead code que knip reporta como `files`.
+        // change): 1 archivo contractual/dead code que knip reporta como `files`.
         // - `security/types.ts`: contrato de dominio de `server-ts-domain-interfaces`
         //   (módulo routes-only sin dao/service/controller); huérfano DOCUMENTADO en el
         //   tasks de ese change; no se borra porque la spec exige el contrato.
-        // - `utils/helmet/helmet.config.ts`: la Fase 2 (bf3cf1f2) eliminó
-        //   `app.use(helmetConfig)` de `src/app.ts` (regresión de seguridad) y el
-        //   archivo quedó sin importador. Restaurar el middleware o eliminar el código
-        //   muerto requiere una decisión fuera de esta tarea.
         "src/modules/security/types.ts": ["files"],
-        "src/utils/helmet/helmet.config.ts": ["files"],
         "src/modules/settings/schemas/settings.joi.{js,ts}": ["exports"],
         "src/modules/users/dao.{js,ts}": ["exports"],
         "src/modules/users/schemas/users.joi.{js,ts}": ["exports"],

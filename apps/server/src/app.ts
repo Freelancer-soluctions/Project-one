@@ -1,3 +1,4 @@
+import { helmetConfig } from './utils/helmet/helmet.config.js';
 import cors from 'cors';
 import express from 'express';
 import corsOptions from './config/cors.js';
@@ -11,7 +12,8 @@ import { GetSecretValueCommand } from '@aws-sdk/client-secrets-manager';
 import { prisma } from './config/db.js';
 const app = express();
 
-// middleware
+// middleware (helmet PRIMERO: cabeceras de seguridad desde la primera respuesta)
+app.use(helmetConfig);
 app.use(
   express.urlencoded({ limit: '50mb', extended: true, parameterLimit: 50000 })
 );
