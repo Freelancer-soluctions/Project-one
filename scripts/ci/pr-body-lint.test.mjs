@@ -11,8 +11,9 @@ import { fileURLToPath } from 'node:url';
  * `openspec/changes/pr-metadata-workflow/specs/pr-body-lint-governance/spec.md`:
  * the six-step normalization order, the per-section R2 thresholds calibrated
  * against the repository template, R3's comment-stripped evaluation, the
- * author-based bot skip, the report schema and the tooling-vs-policy failure
- * split. The last describe is the template lockstep test (design D11).
+ * fence-aware and first-occurrence-wins section split, the author-based bot
+ * skip, the report schema and the tooling-vs-policy failure split. The last
+ * describe is the template lockstep test (design D11).
  */
 
 import {
@@ -130,6 +131,60 @@ describe('splitSections — raw split, canonical keys', () => {
       'how has this been tested'
     );
   });
+
+  it('treats `##` lines inside a fenced code block as content, never as a section boundary', () => {
+    const body = [
+      '## Summary',
+      '',
+      'Some summary text.',
+      '',
+      '```yaml',
+      '## Not a heading',
+      'key: value',
+      '```',
+      '',
+      '## Related Issue',
+      '',
+      'Closes #123',
+      '',
+    ].join('\n');
+    const sections = splitSections(body);
+    // Exactly two sections — the fenced `## Not a heading` must not become a
+    // phantom section between them.
+    expect([...sections.keys()]).toEqual(['summary', 'related issue']);
+    expect(sections.get('summary')).toContain('## Not a heading');
+    expect(sections.get('summary')).toContain('key: value');
+    expect(sections.has('not a heading')).toBe(false);
+    expect(sections.get('related issue')).toContain('Closes #123');
+  });
+
+  it('unterminated fence is forgiving: no crash, and later `##` headings remain structure (a stray backtick never swallows the document)', () => {
+    const body = [
+      '## Summary',
+      '',
+      'A summary that is long enough to clear the twenty character floor.',
+      '',
+      '```yaml',
+      '## Not a heading',
+      '',
+      '## Related Issue',
+      '',
+      'Closes #123',
+      '',
+    ].join('\n');
+    const sections = splitSections(body);
+    // Chosen behaviour: an opener with no closer never suppresses structure.
+    // The fence state simply stops at the end of the document, so EVERY
+    // heading after the stray opener — including `## Not a heading` — is
+    // structure. What matters for the author: the real sections that follow
+    // are still found (under fence-to-EOF semantics `related issue` would be
+    // swallowed and this test would go red), so a stray backtick never
+    // punishes the PR.
+    expect(sections.get('summary')).toContain('```yaml');
+    expect(sections.has('related issue')).toBe(true);
+    expect(sections.get('related issue')).toContain('Closes #123');
+    expect(sections.has('not a heading')).toBe(true);
+  });
 });
 
 describe('evaluateBody — R1..R5 with severities', () => {
@@ -181,6 +236,57 @@ describe('evaluateBody — R1..R5 with severities', () => {
     expect(r2a.section).toBe('Summary');
     expect(r2a.measured).toBe(5);
     expect(result.verdict).toBe('fail');
+  });
+
+  it('first occurrence wins: an empty second `## Summary` is ignored — R2a passes on the first one and metrics.duplicateSections reports it', () => {
+    const body = [
+      '## Summary',
+      '',
+      'A summary that is long enough to clear the twenty character floor.',
+      '',
+      '## Related Issue',
+      '',
+      'Closes #123',
+      '',
+      '## How Has This Been Tested?',
+      '',
+      '- [x] Integration tests',
+      '',
+      '## Summary',
+      '',
+    ].join('\n');
+    const result = evaluateBody({ body });
+    // Under last-wins the trailing empty `## Summary` would overwrite the
+    // first and R2a would fail with 0 characters.
+    expect(ruleIds(result.failures)).not.toContain('R2a');
+    expect(result.verdict).toBe('pass');
+    expect(result.metrics.duplicateSections).toContain('Summary');
+  });
+
+  it('first occurrence wins: with a short first `## Summary` and a long duplicate, R2a measures the FIRST (duplicates are never merged)', () => {
+    const body = [
+      '## Summary',
+      '',
+      'short',
+      '',
+      '## Summary',
+      '',
+      'A much longer second summary body that would clear the twenty character floor if duplicates were merged.',
+      '',
+      '## Related Issue',
+      '',
+      'Closes #123',
+      '',
+      '## How Has This Been Tested?',
+      '',
+      '- [x] Integration tests',
+      '',
+    ].join('\n');
+    const result = evaluateBody({ body });
+    const r2a = result.failures.find((f) => f.rule === 'R2a');
+    expect(r2a).toBeDefined();
+    expect(r2a.measured).toBe(5);
+    expect(result.metrics.duplicateSections).toContain('Summary');
   });
 
   it('recognizes heading case and punctuation variants as the same section', () => {
@@ -353,6 +459,7 @@ describe('report schema and evaluate() wrapper', () => {
         meaningfulChars: expect.any(Number),
         checkedCheckboxes: expect.any(Number),
         sectionsFound: expect.any(Array),
+        duplicateSections: expect.any(Array),
       },
       policy: {
         id: 'pr-body-lint-governance',
@@ -481,18 +588,42 @@ describe('template lockstep (design D11)', () => {
     .filter((line) => /^##\s+/.test(line))
     .map((line) => canonicalizeHeading(line.replace(/^##\s+/, '')));
 
+  // A lockstep failure must name the FIX, not only the mismatch: the template
+  // and the policy are updated in the SAME COMMIT, and adding a section
+  // touches both files plus the expected list asserted below.
+  const LOCKSTEP_FIX =
+    'Fix: `.github/PULL_REQUEST_TEMPLATE.md` and the policy ' +
+    '(`REQUIRED_SECTIONS` in scripts/ci/pr-body-lint.mjs) must be updated in ' +
+    'the SAME COMMIT. Adding a section requires touching both files plus the ' +
+    'expected list asserted by the test ' +
+    '"the policy has exactly the three required sections (no silent additions)".';
+
   it.each(REQUIRED_SECTIONS)(
     'required policy section "%s" exists as a template heading',
     (section) => {
-      expect(templateHeadings).toContain(canonicalizeHeading(section));
+      const canonical = canonicalizeHeading(section);
+      if (!templateHeadings.includes(canonical)) {
+        throw new Error(
+          `Lockstep drift: the policy requires section "${section}" ` +
+            `(canonical "${canonical}") but the pull request template ` +
+            `(.github/PULL_REQUEST_TEMPLATE.md) has no heading that ` +
+            `canonicalizes to it. Template headings: ` +
+            `[${templateHeadings.join(', ')}]. ${LOCKSTEP_FIX}`
+        );
+      }
     }
   );
 
   it('the policy has exactly the three required sections (no silent additions)', () => {
-    expect(REQUIRED_SECTIONS).toEqual([
-      'Summary',
-      'Related Issue',
-      'How Has This Been Tested?',
-    ]);
+    const expected = ['Summary', 'Related Issue', 'How Has This Been Tested?'];
+    const added = REQUIRED_SECTIONS.filter((s) => !expected.includes(s));
+    const removed = expected.filter((s) => !REQUIRED_SECTIONS.includes(s));
+    if (added.length > 0 || removed.length > 0) {
+      throw new Error(
+        `Lockstep drift: the policy section list changed — ` +
+          `added: [${added.join(', ')}], removed: [${removed.join(', ')}]. ` +
+          LOCKSTEP_FIX
+      );
+    }
   });
 });

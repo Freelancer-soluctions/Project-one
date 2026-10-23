@@ -66,21 +66,22 @@ The restored middleware SHALL NOT require new routes: CSP reports SHALL keep poi
 
 - **WHEN** the configuration is evaluated with `NODE_ENV=production`
 - **THEN** the emitted CSP SHALL contain `report-uri /api/v1/security/csp-report`
-- **AND** `POST /api/v1/security/csp-report` SHALL be handled by the existing route (not 404)
+- **AND** `POST /api/v1/security/csp-report` SHALL be handled by the existing route responding `204 No Content` (not 404, and not 403: the CSP report endpoint is CSRF-exempt because the browser cannot attach the CSRF header)
 
 ### Requirement: A regression test locks the wiring
 
-The project SHALL ship `apps/server/src/app.unit.test.ts`, a DB-free supertest suite over the real `app` that asserts
-the observable header contract, so that removing the mount line fails the unit suite.
+The project SHALL ship `apps/server/tests/smoke/security-headers.smoke.test.ts`, a DB-free supertest suite over the real
+`app` that asserts the observable header contract, so that removing the mount line fails the smoke suite
+(`npm run test:smoke --workspace=server-express`).
 
-#### Scenario: commenting the mount line turns the suite red
+#### Scenario: commenting the mount line turns the smoke suite red
 
-- **WHEN** `app.use(helmetConfig)` is commented out and `npm run test:unit --workspace=server-express` runs
+- **WHEN** `app.use(helmetConfig)` is commented out and `npm run test:smoke --workspace=server-express` runs
 - **THEN** the header tests SHALL fail
 - **AND** with the line restored they SHALL pass
 
 #### Scenario: the suite does not need a database
 
-- **WHEN** `src/app.unit.test.ts` runs under `npm run test:unit --workspace=server-express`
+- **WHEN** `tests/smoke/security-headers.smoke.test.ts` runs under `npm run test:smoke --workspace=server-express`
 - **THEN** it SHALL NOT require PostgreSQL, AWS credentials or a network listener
-- **AND** it SHALL obtain headers from an in-process request to a non-existent route served by the existing error handler
+- **AND** it SHALL obtain headers from an in-process request to POST /api/v1/security/csp-report (a real route, no DB needed; the 404 of a non-existent route is NOT valid for CSP assertions because Express finalhandler overrides the CSP with its own default-src 'none' on error responses)

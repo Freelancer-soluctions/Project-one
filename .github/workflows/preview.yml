@@ -93,6 +93,15 @@ jobs:
       # bootstrap (apps/server/src/middleware/encription-prisma-middleware.js) for module
       # import to succeed. Preview never persists or decrypts real data, so a predictable
       # dummy key is safe and keeps real AES_GCM_KEY out of CI secrets.
+      # NODE_ENV/FRONTEND_URL: exigidas en module scope por
+      # apps/server/src/utils/helmet/helmet.config.ts (requireEnv) — sin ellas el
+      # proceso aborta antes de httpServer.listen (curl exit code 7).
+      # - NODE_ENV=development (NO production): la dummy AES_GCM_KEY solo es válida
+      #   en stacks emulados — encription-prisma-middleware la rechaza bajo
+      #   NODE_ENV=production. La imagen defaulta a production (Dockerfile); este
+      #   run emulado lo sobreescribe.
+      # - FRONTEND_URL: placeholder explícito — en CI no hay navegador y la CSP solo
+      #   exige un origin sintácticamente válido (mismo origen dev que cors.ts).
       - name: Start server container
         run: |
           docker run -d \
@@ -105,6 +114,8 @@ jobs:
             -e AWS_REGION=us-east-1 \
             -e PORT=3000 \
             -e ENABLE_SMOKE_ROUTE=true \
+            -e NODE_ENV=development \
+            -e FRONTEND_URL=http://localhost:5173 \
             -e AES_GCM_KEY=AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA= \
             -e ALGORITHM=aes-256-gcm \
             preview-server

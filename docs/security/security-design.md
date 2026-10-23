@@ -15,6 +15,9 @@
 **Evidence:** Multiple overlapping security controls implemented:
 
 - Application layer: Helmet CSP, rate limiting, CSRF protection
+
+> **Nota (2026-10-21):** la Fase 2 de la migración TS (`bf3cf1f2`) eliminó accidentalmente `app.use(helmetConfig)` de `src/app.ts` — restaurado por `server-restore-helmet-middleware` como primer middleware. Limitación de helmet 8.1.0: `permissionsPolicy` y `reportingEndpoints` forman parte de las opciones pero helmet v8.1.0 NO emite los headers `Permissions-Policy` ni `Reporting-Endpoints` (el runtime los ignora — confirmado en los headers servidos).
+
 - Authentication layer: JWT with issuer/audience validation, refresh token rotation
 - Data layer: Joi validation with allowUnknown: false
 - Network layer: CORS configuration, secure cookie settings

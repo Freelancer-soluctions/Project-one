@@ -56,7 +56,17 @@ export const verifyCsrf = (
   }
 };
 // rutas excluidas
-const csrfExcludedRoutes = ['/auth/signin', '/auth/signup', '/auth/logout'];
+// `/security/csp-report` recibe POSTs AUTOMÁTICOS del navegador (reporte de
+// violación CSP): el navegador no puede adjuntar el header CSRF y el endpoint
+// no tiene estado ni autenticación — CSRF no protege nada ahí. Sin esta exención
+// el middleware devolvía 403 y `cspReportHandler` nunca veía ningún reporte
+// (change server-restore-helmet-middleware, follow-up B2).
+const csrfExcludedRoutes = [
+  '/auth/signin',
+  '/auth/signup',
+  '/auth/logout',
+  '/security/csp-report',
+];
 
 export const csrfConditional = (
   req: Request,
@@ -65,7 +75,6 @@ export const csrfConditional = (
 ) => {
   const isGet = req.method === 'GET';
   const isExcluded = csrfExcludedRoutes.includes(req.path);
-  console.log('entre aqui estoy bien csrf token');
   if (isGet || isExcluded) {
     return next(); // no aplicar CSRF
   }
