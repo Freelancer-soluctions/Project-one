@@ -56,7 +56,7 @@ jobs:
   # `ignoreLabels` actual se conserva sin cambios.
   # ═══════════════════════════════════════════════════════════════
   pr-title-lint:
-    name: PR Title Lint # frozen contract — ruleset 21227644
+    name: 'Governance: PR Title Lint' # frozen contract — ruleset 21227644
     runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions:

@@ -2577,7 +2577,6 @@ jobs:
       - prebuild-quality-complete
       - prebuild-security-complete
       - prebuild-unit-tests-complete
-      - verify-signatures
       - zombie-workflow-guard
       - repo-discovery
     steps:

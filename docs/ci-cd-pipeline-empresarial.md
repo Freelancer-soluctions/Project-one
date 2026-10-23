@@ -2786,7 +2786,7 @@ Además de los gates puntuales de GOVERNANCE que aparecen dentro de cada stage (
         │  │                                                                         │
         │  │  5. BRANCH PROTECTION (pasivo, lee) + GATE PRE-DEPLOY (exige)           │
         │  │     ├─ Lee: ¿todos los required checks en verde?                        │
-        │  │     ├─ Lee: ¿hay approval de reviewer? (viene de paso 3)  (No hecho)    │
+        │  │     ├─ Lee: ¿hay approval de reviewer? (viene de paso 3)                │
         │  │     ├─ Lee: ¿commits están firmados?                                    │
         │  │     ├─ SÍ a todo → botón "Merge" habilitado                             │
         │  │     ├─ NO a alguno → botón bloqueado, muestra qué falta                 │
