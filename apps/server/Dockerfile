@@ -55,6 +55,21 @@ EXPOSE 3000
 # tsx vive en node_modules/.bin (no en el PATH por defecto del exec-form CMD):
 ENV PATH="/app/node_modules/.bin:$PATH"
 
+# Default de imagen: production (fail-closed: CSP estricta + HSTS de helmet, sin
+# detalles dev en los errores 500). Verificado 2026-10-22 antes de fijarlo:
+# - `NODE_ENV=production` NO activa Secrets Manager en el arranque:
+#   `config/aws/secrets.ts:loadSecrets()` no tiene consumidores en `src/`
+#   (el cliente solo se instancia con región + endpoint opcional Floci).
+# - SÍ conflicta con el guard de `src/middleware/encription-prisma-middleware.ts:36-45`,
+#   que rechaza la dummy AES_GCM_KEY bajo `NODE_ENV=production` en module scope.
+#   Por eso los stacks emulados (deploy.yml Fase 1, preview.yml) sobreescriben este
+#   default con `-e NODE_ENV=development` en su `docker run` — la dummy key solo
+#   es válida fuera de producción. Las task definitions de ECS (staging/production)
+#   también fijan NODE_ENV explícitamente, así que este default no las afecta.
+# FRONTEND_URL NO va aquí: es configuración de entorno, no de imagen — un valor
+# horneado en producción sería un fallo de configuración (se inyecta por stack).
+ENV NODE_ENV=production
+
 # Comando de inicio con tsx en lugar de node
 CMD ["tsx", "src/bin/index.ts"]
 
