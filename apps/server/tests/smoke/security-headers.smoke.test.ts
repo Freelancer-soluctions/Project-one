@@ -22,11 +22,24 @@ import app from '../../src/app.js';
  * `X-Powered-By` y con las cabeceras OWASP A05 ausentes. Estos tests lo
  * capturan: comentar el `app.use(helmetConfig)` los pone en rojo.
  *
- * Ruta usada: POST /api/v1/security/csp-report (200, sin DB ni auth) — el 404 de una
+ * Ruta usada: POST /api/v1/security/csp-report (204 No Content, sin DB ni auth) — el 404 de una
  * ruta inexistente NO es válido para estas aserciones: `finalhandler` de Express
  * SOBREESCRIBE el CSP con su default `default-src 'none'` en respuestas de error.
  */
 describe('Security headers (helmet restaurado)', () => {
+  it('responde 204 al reporte CSP (ruta exenta de CSRF)', async () => {
+    // B2: sin la exención en `csrfExcludedRoutes` (verifyCsrf.ts) el middleware
+    // CSRF devolvía 403 a este POST y `cspReportHandler` nunca corría — las
+    // aserciones de cabeceras pasaban igual porque helmet corre ANTES del CSRF.
+    // El handler SIEMPRE responde 204 No Content (csp-report-handle.ts), también
+    // con un body de reporte válido.
+    const res = await request(app)
+      .post('/api/v1/security/csp-report')
+      .type('json')
+      .send({ 'csp-report': { 'document-uri': 'https://x.test/' } });
+    expect(res.status).toBe(204);
+  });
+
   it('no expone X-Powered-By', async () => {
     const res = await request(app)
       .post('/api/v1/security/csp-report')
