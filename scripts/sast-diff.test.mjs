@@ -33,6 +33,7 @@ import {
   isWorkingTreeDirty,
   diffTouchesScannedFiles,
   describeToolFailure,
+  probeImagePresent,
 } from './sast-diff.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
@@ -188,13 +189,23 @@ describe('sast-diff.mjs — timeout propio (task 2.8, RF-PP-06)', () => {
   it('el default local es la red de seguridad de 300 s (NO el objetivo de 60 s)', () => {
     // Re-medición 2026-10-20 (Windows + Docker Desktop, imagen cacheada,
     // 385 archivos / 81 reglas): 135 s (clon limpio) / 149 s (worktree) /
-    // 207 s (worktree con la máquina cargada por otro proceso). Con el viejo
-    // techo de 60 s TODO scan sano en Windows se cortaba -> tool-broken ->
-    // fail-open, es decir el gate local nunca bloqueaba. RF-PP-06 fija un
-    // objetivo de rendimiento (< 60 s), no un techo de ejecución: la red debe
-    // quedar por encima del peor caso observado (207 s), no del típico.
+    // 207 s (worktree con la máquina cargada por otro proceso). Re-medición
+    // 2026-10-23 (Windows 11, Docker Desktop 29.0.1 WSL2, imagen cacheada,
+    // linked worktree en 7e1b66b0, diff de 18 archivos, `time node
+    // scripts/sast-diff.mjs`): 65 s / 69 s (calientes), 104 s (primer run
+    // del worktree), 117 s (VM Docker en frío tras `wsl --shutdown`); el
+    // fetch de los 9 packs por sí solo: 3-6 s. Con el viejo techo de 60 s
+    // TODO scan sano en Windows se cortaba -> tool-broken -> fail-open,
+    // es decir el gate local nunca bloqueaba. RF-PP-06 fija un objetivo de
+    // rendimiento (< 60 s), no un techo de ejecución: la red debe quedar
+    // por encima del peor caso observado (207 s), no del típico. Los viajes
+    // a la red de seguridad observados en campo (2026-10-23) NO se
+    // reprodujeron con ningún arranque en frío medible, así que se eligió
+    // la opción B (viaje honesto con motivo específico) en vez de subir el
+    // presupuesto con una cifra no medida.
     expect(LOCAL_TIMEOUT_MS).toBe(300 * 1000);
     expect(LOCAL_TIMEOUT_MS).toBeGreaterThan(207 * 1000); // margen sobre el peor caso medido
+    expect(LOCAL_TIMEOUT_MS).toBeGreaterThan(117 * 1000); // margen sobre el peor caso re-medido (VM en frío)
     // El override sigue disponible y CI conserva su propio presupuesto.
     expect(CI_TIMEOUT_MS).toBe(13 * 60 * 1000);
   });
@@ -204,8 +215,54 @@ describe('sast-diff.mjs — timeout propio (task 2.8, RF-PP-06)', () => {
       { timedOut: true, code: null },
       60 * 1000
     );
-    expect(reason).toBe('scan timed out after 60s');
+    expect(reason).toMatch(/^scan timed out after 60s/);
+    expect(reason).toContain('NO output'); // sin salida: arranque en frío / fetch colgado
     expect(reason).not.toContain('null');
+  });
+
+  it('timeout con imagen ausente nombra el PULL como causa (fix B, 2026-10-23)', () => {
+    const reason = describeToolFailure(
+      { timedOut: true, code: null, imagePresent: false },
+      300 * 1000
+    );
+    expect(reason).toMatch(/^scan timed out after 300s while PULLING/);
+    expect(reason).toContain(SEMGREP_VERSION); // la imagen pineada, por su tag
+  });
+
+  it('timeout a mitad de escaneo lleva huella de la salida (dato para fijar el presupuesto)', () => {
+    const reason = describeToolFailure(
+      {
+        timedOut: true,
+        code: null,
+        stdout: '',
+        stderr: 'running 81 rules on 385 files...\nsemgrep core error',
+      },
+      300 * 1000
+    );
+    expect(reason).toMatch(/^scan timed out after 300s mid-scan/);
+    expect(reason).toContain('CPU contention');
+    expect(reason).toContain('last stderr line: semgrep core error');
+  });
+
+  it('el preflight de docker info que no contesta se distingue del daemon caído', () => {
+    expect(
+      describeToolFailure(
+        {
+          timedOut: false,
+          daemonDown: true,
+          preflightTimedOut: true,
+          dockerBin: 'docker',
+        },
+        60_000
+      )
+    ).toContain('did not answer within 30s');
+    // El caso clásico (daemon caído) conserva su mensaje exacto.
+    expect(
+      describeToolFailure(
+        { timedOut: false, daemonDown: true, dockerBin: 'docker' },
+        60_000
+      )
+    ).toContain('not reachable');
   });
 
   it('el timeout se clasifica como herramienta rota y la politica por modo aplica', () => {
@@ -230,6 +287,19 @@ describe('sast-diff.mjs — timeout propio (task 2.8, RF-PP-06)', () => {
     expect(describeToolFailure({ timedOut: false, code: 125 }, 60_000)).toBe(
       'docker run exited with code 125'
     );
+  });
+});
+
+describe('sast-diff.mjs — sonda de imagen (fix B, 2026-10-23)', () => {
+  it('sin binario docker responde null (desconocido), NUNCA false', () => {
+    // null = "no se puede saber" (docker ausente / daemon caído): reportar
+    // false culparía a un pull que jamás ocurrió.
+    expect(probeImagePresent(NO_DOCKER)).toBeNull();
+  });
+
+  it('con el docker real del entorno la respuesta es booleana o null, jamás lanza', () => {
+    const answer = probeImagePresent('docker');
+    expect([true, false, null]).toContain(answer);
   });
 });
 
@@ -584,6 +654,10 @@ describe('sast-diff.mjs — ejecución end-to-end sin Docker (tasks 2.6/2.7/2.12
     expect(res.status).toBe(0);
     expect(res.stderr).toContain('fail-open');
     expect(res.stderr).toContain('tool failure');
+    // Viaje fail-open ruidoso y específico (fix B, 2026-10-23): el operador
+    // debe ver que la capa local NO aportó nada a este push, sin leerlo como
+    // un veredicto de seguridad.
+    expect(res.stderr).toContain('LOCAL SAST CONTRIBUTED NOTHING');
     expect(baseSha).toBeTruthy();
   });
 
