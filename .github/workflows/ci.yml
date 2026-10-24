@@ -73,7 +73,7 @@ jobs:
   # Required status check in ruleset 21227644 — bound by job NAME 'Verify Commit Signatures';
   # renaming name: silently breaks ruleset binding
   verify-signatures:
-    name: Verify Commit Signatures
+    name: 'Governance: Verify Commit Signatures'
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -318,7 +318,7 @@ jobs:
     # Job-level continue-on-error for non-blocking mode
     # (removed — signature verification failures must propagate to ruleset 21227644)
   commit-lint:
-    name: Commit Lint (Conventional Commits)
+    name: 'Governance: Commit Lint (Conventional Commits)'
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -361,7 +361,7 @@ jobs:
   # dos emisores producen dos check runs con el mismo contexto y el ruleset
   # resuelve por el más reciente, enmascarando un rojo con un verde.
   dco:
-    name: DCO
+    name: 'Governance: DCO'
     runs-on: ubuntu-latest
     permissions:
       contents: read
