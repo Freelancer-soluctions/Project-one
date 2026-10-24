@@ -3,7 +3,7 @@
 /**
  * Local PR title validator (L2.5 — "shifting left").
  *
- * Canonical source of truth: .github/workflows/pr-metadata.yml → job `PR Title Lint`
+ * Canonical source of truth: .github/workflows/pr-metadata.yml → job 'Governance: PR Title Lint'
  * (amannn/action-semantic-pull-request@v6). El job emigró de `ci.yml` en el
  * change `pr-metadata-workflow` (2026-10-20): `ci.yml` YA NO contiene esa
  * configuración, así que apuntar allí sería señalar un archivo que no la tiene.

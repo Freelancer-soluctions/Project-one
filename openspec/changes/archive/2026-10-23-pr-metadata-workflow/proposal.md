@@ -35,10 +35,11 @@ So the metadata checks need their own workflow, with their own trigger set and t
 ### New workflow `.github/workflows/pr-metadata.yml`
 
 - Hosts **both** metadata jobs, created there — not moved into a pre-existing workflow:
-  - `pr-title-lint` / `name: PR Title Lint` — **moved from `ci.yml`** (job body byte-identical: same
+  - `pr-title-lint` / `name: 'Governance: PR Title Lint'` — **moved from `ci.yml`** (job body byte-identical: same
     `amannn/action-semantic-pull-request@v6`, same types incl. `ops`, `requireScope: false`, same `subjectPattern`,
-    same `ignoreLabels`). The exact `name:` is preserved because it is a required context in ruleset 21227644
-    (`integration_id=15368`).
+    same `ignoreLabels`). The `name:` migrated byte-identical as `PR Title Lint`, which was then a required context in
+    ruleset 21227644 (`integration_id=15368`); it was renamed to `Governance: PR Title Lint` in the 2026-10-23 redesign
+    that removed the four per-job contexts (see _Binding model_ in `design.md`).
   - `pr-body-lint` / `name: 'Governance: PR Body Lint'` — **new**, `Governance:`-prefixed because it is defined in a
     governance block.
 - **Trigger:** `pull_request: types: [opened, edited, synchronize, reopened]` + `merge_group: {}`.
@@ -103,12 +104,17 @@ skipped by user decision. The sequence is constrained:
 Attaching before the workflow has ever reported produces `Expected — Waiting for status to be reported` on every PR
 in the repository.
 
+**Revised 2026-10-23:** the ruleset now binds two contexts — `Governance: PR Body Lint`, still directly, and
+`Prebuild Governance Complete`, the aggregator that carries `verify-signatures`, `commit-lint` and `dco`. The four
+per-job contexts this section replaced are gone.
+
 ### `ruleset-expansion` and `commit-signing-enforcement`: no delta
 
-Both specs cite the four existing context names and `integration_id=15368`. Those strings do not change, so both
-remain accurate without a delta. `ruleset-expansion`'s enumeration of the 4 checks is not invalidated: this change
-adds a 5th context whose contract is owned by the new `pr-body-lint-governance` capability, and no existing line in
-`ruleset-expansion` becomes false.
+When this change was written both specs cited the four context names and `integration_id=15368`, and those strings did
+not change — so neither needed a delta. That premise no longer holds: those two main specs still enumerate the four old
+per-job contexts, drift introduced by the 2026-10-23 governance redesign (aggregator plus `Governance:` prefixing), not
+by this change. It is recorded as follow-up debt outside this change's scope rather than patched here, because a delta
+written here would claim ownership of a contract another change now owns.
 
 ## Capabilities
 
@@ -145,7 +151,8 @@ adds a 5th context whose contract is owned by the new `pr-body-lint-governance` 
 
 **Ruleset (admin action, ordered)**
 
-- Ruleset 21227644 gains `Governance: PR Body Lint` as a 5th required check, only after at least one real report.
+- Ruleset 21227644 gained `Governance: PR Body Lint` as a 5th required check on 2026-10-22, only after at least one
+  real report; the 2026-10-23 redesign left it bound directly alongside the `Prebuild Governance Complete` aggregator.
 
 **Scripts / tests**
 

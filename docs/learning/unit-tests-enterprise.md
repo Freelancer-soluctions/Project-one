@@ -20,7 +20,7 @@ colocados junto al source, integration centralizados por módulo, E2E top-level)
 (`scripts/ci/check-coverage.mjs` como guard). El pipeline local tiene 3 capas shift-left (pre-commit < 10s sin tests,
 pre-push ~30s con `vitest --changed origin/main`, CI completo). El pipeline CI (`.github/workflows/ci.yml`) tiene la
 topología TESTING completa de §23.3 STAGE 2 — `test-unit-client`, `test-unit-server`, `test-integration`,
-`test-smoke`, `client-coverage`, `server-coverage`, agregador `prebuild-unit-tests-complete` y merge gate único
+`test-smoke`, `client-coverage`, `server-coverage`, agregador `prebuild-tests-complete` y merge gate único
 `ci-complete` — pero los jobs de testing `test-unit-client`, `test-unit-server`, `client-coverage` y `server-coverage` están
 activados en **FASE 1 advisory** (change `coverage-tripwire-stage-2d`); `test-integration` y `test-smoke` están **activos
 pero NO advisory** (`if:` sobre repo-discovery, sin `continue-on-error`) y solo `e2e` permanece `if: false`.
@@ -223,7 +223,7 @@ Política (§23.3 regla 5, línea de análisis 520):
 | `test-integration`                                                                     | Suite integration server + service `postgres:16-alpine` + `prisma migrate deploy` + junit                                                       | **Activo, NO advisory** — `if:` L1665 sobre repo-discovery, **sin** `continue-on-error`; su fallo bloquea de forma real          |
 | `test-smoke`                                                                           | `test:smoke:ci` + postgres service                                                                                                              | **Activo, NO advisory** — `if:` L1717 sobre repo-discovery, **sin** `continue-on-error`                                          |
 | `e2e`                                                                                  | Playwright + cache de browsers + postgres                                                                                                       | **`if: false`** (L1769)                                                                                                          |
-| `prebuild-unit-tests-complete`                                                         | Agregador `needs:` los **6** jobs (2 test-unit + `test-integration` + `test-smoke` + 2 coverage) + `always()` + chequeo `failure`/`cancelled`   | **Activo** — propagando los resultados reales de los 6 jobs; L1946                                                               |
+| `prebuild-tests-complete`                                                              | Agregador `needs:` los **5** jobs tier-1 (2 test-unit + 2 coverage + `property-tests`) + `always()` + chequeo `failure`/`cancelled`             | **Activo** — propagando los resultados de los 5 jobs; L1946                                                                      |
 | `nightly-full-suite.yml` (workflow aparte)                                             | Suites completas diarias de ambos workspaces + cobertura advisory + `dorny/test-reporter`                                                       | **Activo** (advisory) — red de seguridad del TIA, sin exclusiones de cuarentena                                                  |
 | `flaky-weekly.yml` (workflow aparte)                                                   | Métrica semanal de pass-rate (14d) desde los artifacts de `ci.yml` + share de cuarentena                                                        | **Activo** (advisory) — nunca edita la lista de cuarentena                                                                       |
 | `ci-complete`                                                                          | Merge gate único (required check del ruleset) — depende de los 4 agregadores + `verify-signatures` + `zombie-workflow-guard` + `repo-discovery` | **Activo** — hoy mergea **sin ejecutar ningún test**                                                                             |
@@ -364,8 +364,8 @@ cuando el contrato importa (`toHaveBeenCalledTimes(1)`). Tabla mental: Dummy/Stu
 ## 5. Recomendación (orden de ejecución sugerido)
 
 1. ~~**P0 — Re-activar el pipeline de tests**~~ — **HECHO** (FASE 1 advisory): los 2 test-unit jobs y los 2 coverage jobs
-   corren en PR con `continue-on-error: true`; el agregador `prebuild-unit-tests-complete` los sigue incluyendo en
-   `needs` (4 → 6). **Pendiente**: ventana de calibración de 2-4 semanas y promoción a FASE 2 (quitar el
+   corren en PR con `continue-on-error: true`; el agregador `prebuild-tests-complete` los sigue incluyendo en
+   `needs` (4 → 6 en su día; 5 entradas desde `ci-stage-aggregator-topology`). **Pendiente**: ventana de calibración de 2-4 semanas y promoción a FASE 2 (quitar el
    `continue-on-error`) — mientras tanto `ci-complete` refleja el resultado pero no bloquea por fallos de test.
 2. ~~**P1 — TIA en CI**~~ — **HECHO**: scripts `test:changed:ci` en ambos workspaces + resolución de scope en los jobs
    (diff-scoped si `origin/main` resuelve, full suite si `shared` o si la base no resuelve) + guard de thresholds que

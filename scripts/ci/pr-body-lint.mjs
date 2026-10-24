@@ -1,75 +1,49 @@
 /**
- * PR body governance policy — change `pr-metadata-workflow`
+ * PR body governance policy — change `simplify-pr-body-lint-template`
  * (capability `pr-body-lint-governance`).
  *
- * Deterministic normalization + evaluation of a pull request body against the
- * repository's `.github/PULL_REQUEST_TEMPLATE.md`. Consumed by
- * `.github/workflows/pr-metadata.yml` (job `Governance: PR Body Lint`) through a
- * thin `actions/github-script` wrapper.
+ * Text in, verdict out. Consumed by `.github/workflows/pr-metadata.yml` (job
+ * `Governance: PR Body Lint`) through a thin `actions/github-script` wrapper,
+ * and by `.opencode/command/push-pr.md`, which runs the pure seam offline
+ * before `gh pr create`.
  *
- * Module contract (design D14):
- *   - `normalize(text)`            six-step pipeline, normative order (spec:
- *                                  "Normalization runs before any rule…")
- *   - `splitSections(body, opts)`  Map<canonicalHeading, rawSectionBody>; the
- *                                  split happens on the RAW body because step 3
- *                                  of the pipeline erases heading lines.
- *                                  Fence-aware (headings inside a ``` / ~~~
- *                                  block are content) and
- *                                  first-occurrence-wins (ignored duplicate
- *                                  headings are collected for
- *                                  `metrics.duplicateSections`)
- *   - `evaluateBody({body,author}) PURE seam: R1-R5, no `core`, no filesystem,
- *                                  no clock — what the tests and the offline
- *                                  calibration corpus call
- *   - `evaluate({core, context})`  impure wrapper: reads `context.payload`,
- *                                  writes the report, publishes the summary and
- *                                  calls `core.setFailed` on a policy failure
+ * Contract (design § Return-shape contract) — keys and field names are frozen:
+ *   evaluateBody({ body, author }) -> { verdict, failures, warnings }
+ *     failures: [{ rule, section, message }]
+ *     warnings: [{ rule, message }]
+ *   `warnings` is always empty: no warning-severity rule survives this policy,
+ *   but the key stays because two consumers read it.
  *
- * Rules (severity split is load-bearing):
- *   R1  normalized meaningful content >= 40 chars                  -> fail
- *   R2a `Summary` >= 20 meaningful chars                           -> fail
- *   R2b `Related Issue` >= 1 char AND (`#\d+` OR >= 20 chars)      -> fail
- *   R2c `How Has This Been Tested?` >= 1 char OR a checked box in
- *       that section                                               -> fail
- *   R3  `Closes #` never without a number (evaluated on the
- *       comment-stripped body — the template's own guidance comment
- *       contains `Closes #` and would self-fail the rule)          -> fail
- *   R4  at least one checked checkbox                              -> warning
- *   R5  at least one `#\d+` issue reference                        -> warning
+ * Rules — all failure severity, none of them a length floor:
+ *   EMPTY_BODY nothing left after stripping comments, headings and boxes
+ *   R2a        `Summary` present and non-empty
+ *   R2b        `Related Issue` present and non-empty
+ *   R2c        `How Has This Been Tested?` with content OR a checked box
+ *   R3         `Closes #` never without a number (comment-stripped body)
  *
+ * `evaluateBody` is network-free and side-effect-free (design § Pure/impure
+ * boundary): the issue lookup, if D3 ever adopts it, belongs to `evaluate`.
  * No top-level `await` (design D14: the action runtime `require()`s this ESM
  * module) and no dependency outside Node builtins.
  */
 
-import fs from 'node:fs';
-import path from 'node:path';
-
-export const POLICY_ID = 'pr-body-lint-governance';
-export const POLICY_VERSION = '1.0.0';
-export const REPORT_SCHEMA_VERSION = 1;
-export const REPORT_RELATIVE_PATH = '.tmp/pr-body-lint/report.json';
+/** The three section rules: [id, section name, satisfied by a checked box]. */
+const SECTION_RULES = [
+  ['R2a', 'Summary'],
+  ['R2b', 'Related Issue'],
+  ['R2c', 'How Has This Been Tested?', true],
+];
 
 /** Required core sections. The lockstep test asserts these exist as `##`
  *  headings in `.github/PULL_REQUEST_TEMPLATE.md`. */
-export const REQUIRED_SECTIONS = [
-  'Summary',
-  'Related Issue',
-  'How Has This Been Tested?',
-];
+export const REQUIRED_SECTIONS = SECTION_RULES.map(([, name]) => name);
 
-const MIN_MEANINGFUL_TOTAL = 40;
-const MIN_MEANINGFUL_SUMMARY = 20;
-const RELATED_ISSUE_MIN_CHARS = 1;
-const RELATED_ISSUE_MIN_CHARS_WITHOUT_REF = 20;
-
-const UNCHECKED_TASK_LINE = /^\s*(?:[-*+]\s+)?\[\s*\]/;
-const HEADING_LINE = /^\s*#{1,6}\s/;
-/** Opening/closing marker of an ATX code fence (``` or ~~~). */
-const FENCE_MARKER = /^\s*(`{3,}|~{3,})/;
-const CHECKED_TASK_LINE = /^\s*(?:[-*+]\s+)?\[[xX]\]/;
-/** Spec regex: `/Closes\s*#(?!\\s*\\d)/g` — `Closes #123` survives. */
+/** Checked task line; global so it doubles as the marker stripper. */
+const CHECKED_LINE = /^\s*(?:[-*+]\s+)?\[[xX]\]\s*/gm;
+/** Spec regex: `Closes\s*#(?!\s*\d)` — `Closes #123` survives. */
 const PLACEHOLDER_CLOSES = /Closes\s*#(?!\s*\d)/;
-const ISSUE_REF = /#\d+/;
+const EMPTY_MSG = 'Body is empty: no authored content is left';
+const CLOSES_MESSAGE = 'Closes # appears without a number';
 
 /** Canonical heading form: case/punctuation/whitespace insensitive, so
  *  `## summary`, `## SUMMARY:` and `## How Has This Been Tested?` all resolve
@@ -80,382 +54,130 @@ export const canonicalizeHeading = (heading) =>
     .replace(/[^a-z0-9]+/g, ' ')
     .trim();
 
-/** Step 1 of the normalization pipeline (also used standalone by R3). */
+/** Step 1 of the strip (also used standalone by R3, whose input must survive
+ *  step 4 untouched). */
 export const stripHtmlComments = (text) =>
   String(text ?? '').replace(/<!--[\s\S]*?-->/g, '');
 
 /**
- * Six-step normalization pipeline, in the normative order:
- * 1. strip HTML comments  2. drop unchecked task lines  3. drop heading lines
- * 4. drop digit-less `Closes #`  5. unwrap `[x]`  6. collapse whitespace.
+ * Six-step strip, in the normative order (spec: "Normalization runs before any
+ * rule is evaluated"): 1. HTML comments, 2. unchecked task lines, 3. heading
+ * lines, 4. digit-less `Closes #`, 5. `[x]` markers, 6. whitespace.
+ *
+ * It answers one question — "is anything left?" — and is never used to measure
+ * how much was written: the policy has no minimum length anywhere.
  */
-export const normalize = (text) => {
-  let out = stripHtmlComments(text);
-
-  // 2. drop unchecked task-list lines (checked ones keep their label).
-  out = out
-    .split('\n')
-    .filter((line) => !UNCHECKED_TASK_LINE.test(line))
-    .join('\n');
-
-  // 3. drop heading lines (the split on raw headings already happened).
-  out = out
-    .split('\n')
-    .filter((line) => !HEADING_LINE.test(line))
-    .join('\n');
-
-  // 4. remove `Closes #` placeholders that carry no digits.
-  out = out.replace(/Closes\s*#(?!\s*\d)/g, '');
-
-  // 5. unwrap checked checkbox markers so `[x]` does not inflate length.
-  out = out.replace(/^\s*(?:[-*+]\s+)?\[[xX]\]\s*/gm, '');
-
-  // 6. collapse whitespace.
-  return out.replace(/\s+/g, ' ').trim();
-};
+export const normalize = (text) =>
+  stripHtmlComments(text)
+    .replace(/^\s*(?:[-*+]\s+)?\[\s*\].*$/gm, '')
+    .replace(/^#{1,6}\s.*$/gm, '')
+    .replace(/Closes\s*#(?!\s*\d)/g, '')
+    .replace(CHECKED_LINE, '')
+    .replace(/\s+/g, ' ')
+    .trim();
 
 /**
- * Pre-scan pass for `splitSections`: mark every line that lies inside a
- * **matched** fence pair — opener → closer of the same marker character, at
- * least as long as the opener, with nothing but whitespace after the closer.
- * A fence never opens inside another fence. An opener with no matching closer
- * is forgivingly ignored: an unterminated fence simply stops at the end of the
- * document without ever suppressing structure, so a stray backtick cannot
- * swallow the headings that follow it.
+ * Split the RAW body on its `##` headings — one regex scan, nothing else. The
+ * split happens on the raw body because the strip deletes heading lines.
  *
- * @param {string[]} lines raw body lines
- * @returns {boolean[]} per-line mask: true = inside a matched fence
- */
-const computeFenceMask = (lines) => {
-  const mask = new Array(lines.length).fill(false);
-  let open = null;
-
-  for (let i = 0; i < lines.length; i += 1) {
-    const match = FENCE_MARKER.exec(lines[i]);
-    if (open === null) {
-      if (match) {
-        open = { char: match[1][0], length: match[1].length, start: i };
-      }
-      continue;
-    }
-    const closes =
-      match !== null &&
-      match[1][0] === open.char &&
-      match[1].length >= open.length &&
-      lines[i].slice(match[0].length).trim() === '';
-    if (closes) {
-      for (let j = open.start; j <= i; j += 1) mask[j] = true;
-      open = null;
-    }
-  }
-
-  // Unterminated opener: no lines are masked (forgiving by design).
-  return mask;
-};
-
-/**
- * Split the RAW body on its `##` headings. A section's content is the text
- * between its heading and the next heading of any level. Keyed by the
- * canonicalized heading.
- *
- * Two behaviours are normative (spec: "Core sections are located by
- * canonicalized heading"):
- * - **Fence-aware:** heading lines inside a fenced code block (``` / ~~~) are
- *   content, never structure. An unterminated fence is forgivingly ignored, so
- *   a stray backtick does not turn later real headings into content.
- * - **First occurrence wins:** a repeated canonical heading never overwrites
- *   the earlier section. The duplicate is ignored (its content is NOT merged
- *   into the first occurrence) and its raw heading text is pushed to
- *   `duplicateSections` when a collector is provided, so the report can
- *   explain why that content was not measured.
+ * - A section's content runs to the next heading of any level.
+ * - First occurrence wins: a repeated canonical heading is ignored and its
+ *   content is never merged into the first occurrence.
+ * - Fence-blind by design: a `##` line inside a code fence still splits the
+ *   document. That is the accepted regression of the reduced policy (spec:
+ *   "Core sections are located by a single `##` heading scan"); do not
+ *   reintroduce a fence mask.
  *
  * @param {string} body raw pull request body
- * @param {{ duplicateSections?: string[] }} [options] collector receiving the
- *   raw heading text of each ignored duplicate, in document order
  * @returns {Map<string, string>} canonical heading → raw section body
  */
-export const splitSections = (body, { duplicateSections = [] } = {}) => {
+export const splitSections = (body) => {
   const sections = new Map();
-  const lines = String(body ?? '').split(/\r?\n/);
-  const fenced = computeFenceMask(lines);
-  let current = null;
-  let buffer = [];
-
-  const close = () => {
-    if (current !== null) {
-      sections.set(current, buffer.join('\n'));
-    }
-    current = null;
-    buffer = [];
-  };
-
-  for (let i = 0; i < lines.length; i += 1) {
-    const line = lines[i];
-    // Inside a fenced code block every line — `## ` and `### ` included — is
-    // content, never structure.
-    if (!fenced[i]) {
-      const level2 = /^##\s+(.*)$/.exec(line);
-      if (level2) {
-        const key = canonicalizeHeading(level2[1]);
-        // First occurrence wins: a repeat of the section we are inside or of
-        // one already closed is a duplicate — ignore it, do not merge it.
-        const duplicate = key === current || sections.has(key);
-        close();
-        if (duplicate) {
-          duplicateSections.push(level2[1].trim());
-        } else {
-          current = key;
-        }
-        continue;
-      }
-      if (HEADING_LINE.test(line)) {
-        close();
-        continue;
-      }
-    }
-    if (current !== null) buffer.push(line);
+  const text = String(body ?? '');
+  const headings = [...text.matchAll(/^(#{1,6})\s+(.*)$/gm)];
+  for (const [index, [, level, title]] of headings.entries()) {
+    const key = canonicalizeHeading(title);
+    if (level !== '##' || sections.has(key)) continue;
+    const start = headings[index].index + headings[index][0].length;
+    const end = headings[index + 1]?.index ?? text.length;
+    sections.set(key, text.slice(start, end));
   }
-  close();
-
   return sections;
 };
 
-/** Count of checked task-list markers in a piece of text (R2c / R4). */
+/** Count of checked task-list markers in a piece of text (R2c). */
 export const countCheckedCheckboxes = (text) =>
-  String(text ?? '')
-    .split('\n')
-    .filter((line) => CHECKED_TASK_LINE.test(line)).length;
+  (String(text ?? '').match(CHECKED_LINE) ?? []).length;
 
 /** Bot detection keys on the PR AUTHOR (stable), never on the trigger actor
  *  (design D6). A human editing a bot PR must not shift the exemption. */
-export const isBotAuthor = (author) => {
-  const login = typeof author === 'string' ? author : (author?.login ?? '');
-  const type = typeof author === 'object' && author ? author.type : undefined;
-  return type === 'Bot' || /\[bot\]$/i.test(login);
-};
+export const isBotAuthor = (author) =>
+  (typeof author === 'object' && author?.type === 'Bot') ||
+  /\[bot\]$/i.test(String(author?.login ?? author ?? ''));
 
 /**
- * Pure evaluation seam: R1-R5 over a body string. No `core`, no filesystem, no
- * clock — same input ⇒ same output (spec: "Evaluation is deterministic").
+ * Pure evaluation seam: text in, `{ verdict, failures, warnings }` out. No
+ * `core`, no filesystem, no clock, no network.
+ *
+ * `EMPTY_BODY` is a diagnostic, not a gate of its own: R2a, R2b and R2c
+ * already fail an empty body, so it never fires alone. It names the real cause
+ * next to them, so the author sees why all three sections are missing instead
+ * of reading three lines about one problem.
  */
 export const evaluateBody = ({ body = '', author = null } = {}) => {
   const raw = String(body ?? '');
-  const commentStripped = stripHtmlComments(raw);
-  const normalized = normalize(raw);
-  const duplicateSections = [];
-  const sections = splitSections(raw, { duplicateSections });
-
-  const metrics = {
-    bodyChars: raw.length,
-    meaningfulChars: normalized.length,
-    checkedCheckboxes: countCheckedCheckboxes(raw),
-    sectionsFound: [...sections.keys()],
-    duplicateSections,
-  };
   const failures = [];
   const warnings = [];
 
-  const bot = isBotAuthor(author);
-  if (bot) {
-    // Exemption is policy, not absence of evaluation: report why.
-    return {
-      verdict: 'skipped',
-      bot: true,
-      reason: 'bot-authored pull request (exempt by policy)',
-      metrics,
-      failures,
-      warnings,
-    };
+  if (isBotAuthor(author)) {
+    const reason = 'bot-authored pull request (exempt by policy)';
+    return { verdict: 'skipped', bot: true, reason, failures, warnings };
   }
 
-  // R1 — total meaningful content.
-  if (metrics.meaningfulChars < MIN_MEANINGFUL_TOTAL) {
-    failures.push({
-      rule: 'R1',
-      message: `Meaningful content is ${metrics.meaningfulChars} characters, minimum is ${MIN_MEANINGFUL_TOTAL}`,
-      measured: metrics.meaningfulChars,
-    });
-  }
-
-  // R2a/R2b/R2c — per section, missing and empty are distinct verdicts.
-  const sectionCheck = (name) => {
+  const sections = splitSections(raw);
+  for (const [rule, name, needsBox] of SECTION_RULES) {
     const key = canonicalizeHeading(name);
-    if (!sections.has(key)) return { present: false, text: '' };
-    return { present: true, text: normalize(sections.get(key)) };
-  };
-
-  const summary = sectionCheck('Summary');
-  if (!summary.present) {
-    failures.push({
-      rule: 'R2a',
-      section: 'Summary',
-      message: 'Required section "Summary" is missing',
-    });
-  } else if (summary.text.length < MIN_MEANINGFUL_SUMMARY) {
-    failures.push({
-      rule: 'R2a',
-      section: 'Summary',
-      message: `Section "Summary" carries ${summary.text.length} meaningful characters, minimum is ${MIN_MEANINGFUL_SUMMARY}`,
-      measured: summary.text.length,
-    });
-  }
-
-  const related = sectionCheck('Related Issue');
-  if (!related.present) {
-    failures.push({
-      rule: 'R2b',
-      section: 'Related Issue',
-      message: 'Required section "Related Issue" is missing',
-    });
-  } else {
-    const chars = related.text.length;
-    const hasRef = ISSUE_REF.test(related.text);
-    const ok =
-      chars >= RELATED_ISSUE_MIN_CHARS &&
-      (hasRef || chars >= RELATED_ISSUE_MIN_CHARS_WITHOUT_REF);
-    if (!ok) {
-      failures.push({
-        rule: 'R2b',
-        section: 'Related Issue',
-        message: `Section "Related Issue" carries ${chars} meaningful characters${hasRef ? '' : ' and no #<number> reference'}, minimum is an issue reference or ${RELATED_ISSUE_MIN_CHARS_WITHOUT_REF}`,
-        measured: chars,
-      });
+    if (!sections.has(key)) {
+      failures.push({ rule, section: name, message: 'Section is missing' });
+      continue;
+    }
+    const rawSection = sections.get(key);
+    const filled = normalize(rawSection).length > 0;
+    const boxed = needsBox && countCheckedCheckboxes(rawSection) > 0;
+    if (!filled && !boxed) {
+      failures.push({ rule, section: name, message: 'Section is empty' });
     }
   }
 
-  const testingKey = canonicalizeHeading('How Has This Been Tested?');
-  const testingRaw = sections.get(testingKey);
-  const testingPresent = testingRaw !== undefined;
-  const testingText = testingPresent ? normalize(testingRaw) : '';
-  const testingChecked = testingPresent
-    ? countCheckedCheckboxes(testingRaw)
-    : 0;
-  if (!testingPresent) {
-    failures.push({
-      rule: 'R2c',
-      section: 'How Has This Been Tested?',
-      message: 'Required section "How Has This Been Tested?" is missing',
-    });
-  } else if (testingText.length < 1 && testingChecked < 1) {
-    failures.push({
-      rule: 'R2c',
-      section: 'How Has This Been Tested?',
-      message:
-        'Section "How Has This Been Tested?" carries no content and no checked checkbox',
-      measured: 0,
-    });
+  if (normalize(raw).length === 0) {
+    failures.push({ rule: 'EMPTY_BODY', section: 'body', message: EMPTY_MSG });
   }
 
-  // R3 — evaluated on the COMMENT-STRIPPED body (normative exception).
-  if (PLACEHOLDER_CLOSES.test(commentStripped)) {
-    failures.push({
-      rule: 'R3',
-      message: 'Found `Closes #` without a number (placeholder left unfilled)',
-    });
-  }
-
-  // R4 / R5 — warnings only: they must never fail the job.
-  if (metrics.checkedCheckboxes < 1) {
-    warnings.push({
-      rule: 'R4',
-      message: 'No checkbox is checked in the body',
-    });
-  }
-  if (!ISSUE_REF.test(commentStripped)) {
-    warnings.push({
-      rule: 'R5',
-      message: 'No issue reference (#<number>) found in the body',
-    });
+  // R3 reads the COMMENT-STRIPPED body, never the stripped one: step 4 deletes
+  // exactly the placeholder R3 exists to detect.
+  if (PLACEHOLDER_CLOSES.test(stripHtmlComments(raw))) {
+    failures.push({ rule: 'R3', section: 'body', message: CLOSES_MESSAGE });
   }
 
   return {
     verdict: failures.length > 0 ? 'fail' : 'pass',
     bot: false,
-    metrics,
     failures,
     warnings,
   };
 };
 
-/** Machine-readable report, schema v1 (spec: "Evaluation is deterministic and
- *  machine-readable"). `pr` carries identity only — never the body text. */
-export const buildReport = ({ pr = {}, result, now = new Date() }) => ({
-  schemaVersion: REPORT_SCHEMA_VERSION,
-  generatedAt: now.toISOString(),
-  pr: {
-    number: pr.number ?? null,
-    author: pr.author ?? null,
-    draft: pr.draft ?? null,
-    headSha: pr.headSha ?? null,
-    baseSha: pr.baseSha ?? null,
-  },
-  policy: {
-    id: POLICY_ID,
-    version: POLICY_VERSION,
-    requiredSections: REQUIRED_SECTIONS,
-    failRules: ['R1', 'R2a', 'R2b', 'R2c', 'R3'],
-    warnRules: ['R4', 'R5'],
-  },
-  metrics: result.metrics,
-  failures: result.failures,
-  warnings: result.warnings,
-  verdict: result.verdict,
-});
-
-/** Write the report under `<cwd>/.tmp/pr-body-lint/report.json`. Throws on
- *  failure — `evaluate` turns that into a TOOLING error, not a policy one. */
-export const writeReport = (report, cwd = process.cwd()) => {
-  const target = path.join(cwd, REPORT_RELATIVE_PATH);
-  fs.mkdirSync(path.dirname(target), { recursive: true });
-  fs.writeFileSync(target, `${JSON.stringify(report, null, 2)}\n`, 'utf8');
-  return target;
-};
-
-const renderSummary = (result, reportPath) => {
-  const lines = [
-    '## Governance: PR Body Lint',
-    '',
-    `**Verdict:** \`${result.verdict}\`${result.bot ? ` — ${result.reason}` : ''}`,
-    '',
-    `| Metric | Value |`,
-    `| --- | --- |`,
-    `| bodyChars | ${result.metrics.bodyChars} |`,
-    `| meaningfulChars | ${result.metrics.meaningfulChars} |`,
-    `| checkedCheckboxes | ${result.metrics.checkedCheckboxes} |`,
-    `| sectionsFound | ${result.metrics.sectionsFound.join(', ') || '—'} |`,
-    `| duplicateSections | ${result.metrics.duplicateSections.join(', ') || '—'} |`,
-    '',
-  ];
-  if (result.failures.length > 0) {
-    lines.push('### Failures', '');
-    for (const f of result.failures) {
-      lines.push(
-        `- **${f.rule}**${f.section ? ` (${f.section})` : ''}: ${f.message}`
-      );
-    }
-    lines.push('');
-  }
-  if (result.warnings.length > 0) {
-    lines.push('### Warnings (non-blocking)', '');
-    for (const w of result.warnings) {
-      lines.push(`- **${w.rule}**: ${w.message}`);
-    }
-    lines.push('');
-  }
-  lines.push(`Full report artifact: \`${reportPath}\` (14 days)`);
-  return lines.join('\n');
-};
-
 /**
  * Impure wrapper for `actions/github-script`. Reads the pull request from
  * `context.payload` — the body is NEVER interpolated into `run:` or `script:`
- * (design D12) — then writes the report, publishes the summary and fails the
- * job on a policy failure.
+ * (design D12) — then publishes the Step Summary and fails the job on a policy
+ * failure.
  *
- * Any thrown error is reported as a TOOLING failure so an operator can tell a
- * broken gate from an invalid body (spec: "Report write failure fails closed").
+ * D2 chose the summary as the only surface: there is no `report.json` and no
+ * artifact. Any thrown error is still reported as a TOOLING failure so an
+ * operator can tell a broken gate from an invalid body.
  */
-export const evaluate = async ({ core, context, cwd = process.cwd() } = {}) => {
+export const evaluate = async ({ core, context } = {}) => {
   try {
     const pr = context?.payload?.pull_request;
     if (!pr) {
@@ -470,21 +192,8 @@ export const evaluate = async ({ core, context, cwd = process.cwd() } = {}) => {
       author: pr.user ? { type: pr.user.type, login: pr.user.login } : null,
     });
 
-    const report = buildReport({
-      pr: {
-        number: pr.number,
-        author: pr.user?.login ?? null,
-        draft: pr.draft,
-        headSha: pr.head?.sha ?? null,
-        baseSha: pr.base?.sha ?? null,
-      },
-      result,
-    });
-
-    const reportPath = writeReport(report, cwd);
-
     if (core?.summary && typeof core.summary.addRaw === 'function') {
-      core.summary.addRaw(renderSummary(result, REPORT_RELATIVE_PATH));
+      core.summary.addRaw(renderSummary(result));
       if (typeof core.summary.write === 'function') await core.summary.write();
     }
 
@@ -497,7 +206,7 @@ export const evaluate = async ({ core, context, cwd = process.cwd() } = {}) => {
       core?.setFailed?.(`[pr-body-lint] policy violations — ${detail}`);
     }
 
-    return { ...result, reportPath };
+    return result;
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     core?.setFailed?.(
@@ -506,5 +215,33 @@ export const evaluate = async ({ core, context, cwd = process.cwd() } = {}) => {
     return { verdict: 'tooling-error', error: message };
   }
 };
+
+/**
+ * The Step Summary is the only reporting surface (D2). Declared below the
+ * `evaluate` seam on purpose: the policy-size metric slices at
+ * `export const evaluate `, so the summary renderer must not count as policy
+ * logic. Hoisting makes the order safe.
+ */
+function renderSummary(result) {
+  const lines = [
+    '## Governance: PR Body Lint',
+    '',
+    `**Verdict:** \`${result.verdict}\`${result.bot ? ` — ${result.reason}` : ''}`,
+    '',
+  ];
+  if (result.failures.length > 0) {
+    lines.push('### Failures', '');
+    for (const f of result.failures) {
+      lines.push(
+        `- **${f.rule}**${f.section ? ` (${f.section})` : ''}: ${f.message}`
+      );
+    }
+    lines.push('');
+  }
+  lines.push(
+    'Fix the body by **editing the pull request description**: "Re-run jobs" reuses the original payload and does not re-judge an edited body.'
+  );
+  return lines.join('\n');
+}
 
 export default { evaluate, evaluateBody, normalize, splitSections };

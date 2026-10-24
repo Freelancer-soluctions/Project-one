@@ -25,23 +25,24 @@ The CI jobs `test-unit-client`, `test-unit-server`, `test-integration`, `test-sm
 #### Scenario: PR touches neither workspace nor shared paths
 
 - **WHEN** a PR changes only documentation outside the filters
-- **THEN** all 6 jobs are skipped and `prebuild-unit-tests-complete` finalizes with success (skipped treated as passing)
+- **THEN** all 6 jobs are skipped, `prebuild-tests-complete` finalizes with success over its 5 tier-1 members and `postbuild-tests-complete` finalizes with success over its 3 members (skipped treated as passing)
+- **AND** the two aggregators are the paths by which these jobs still reach `ci-complete`: `test-unit-client`, `test-unit-server`, `client-coverage` and `server-coverage` through `prebuild-tests-complete`, and `test-integration`/`test-smoke` through `postbuild-tests-complete`
 
 #### Scenario: merge_group event skips the test jobs
 
 - **WHEN** `ci.yml` is triggered by a `merge_group` event
 - **THEN** the 6 test jobs are skipped by their `github.event_name == 'pull_request'` condition (documented decision D17, not an accident)
-- **AND** `prebuild-unit-tests-complete` finalizes with success (skipped counted as passing), while enabling tests on `merge_group` remains an explicit follow-up if the merge queue is ever enabled — no required status check is renamed
+- **AND** `prebuild-tests-complete` and `postbuild-tests-complete` finalize with success (skipped counted as passing), while enabling tests on `merge_group` remains an explicit follow-up if the merge queue is ever enabled — no required status check is renamed
 
 ### Requirement: FASE 1 advisory activation
 
-The first activation of the 6 jobs SHALL use job-level `continue-on-error: true` (the repo's FASE 1 pattern), so that test or coverage failures are reported — job log, `dorny/test-reporter` annotations, uploaded artifacts — without blocking `prebuild-unit-tests-complete` or `ci-complete`.
+The first activation of the 6 jobs SHALL use job-level `continue-on-error: true` (the repo's FASE 1 pattern), so that test or coverage failures are reported — job log, `dorny/test-reporter` annotations, uploaded artifacts — without blocking `prebuild-tests-complete`, `postbuild-tests-complete` or `ci-complete`.
 
 #### Scenario: Red test during calibration window
 
 - **WHEN** a unit test fails in `test-unit-server` while FASE 1 is active
 - **THEN** the job log and the JUnit report show the failure and the test report check is annotated
-- **AND** `prebuild-unit-tests-complete` and `ci-complete` still finalize with success (advisory state, documented in `docs/learning/quality-gates.md`)
+- **AND** `prebuild-tests-complete` and `ci-complete` still finalize with success (advisory state, documented in `docs/learning/quality-gates.md`)
 
 #### Scenario: Calibration window elapses cleanly
 
@@ -76,7 +77,7 @@ Each unit test job SHALL upload its coverage output from the directory its works
 #### Scenario: Coverage below the tripwire floor
 
 - **WHEN** measured statements/branches/functions/lines fall below the thresholds declared in the workspace config
-- **THEN** `check-coverage.mjs` exits 1, the coverage job fails, and the failure propagates to `prebuild-unit-tests-complete`
+- **THEN** `check-coverage.mjs` exits 1, the coverage job fails, and the failure propagates to `prebuild-tests-complete`
 
 #### Scenario: Diff-scoped TIA run defers threshold evaluation
 
@@ -110,12 +111,13 @@ Once the jobs are active, `ci-complete` SHALL fail whenever a non-advisory test 
 #### Scenario: All suites green
 
 - **WHEN** every activated test and coverage job succeeds or is path-skipped
-- **THEN** `prebuild-unit-tests-complete` and `ci-complete` finalize with success
+- **THEN** `prebuild-tests-complete`, `postbuild-tests-complete` and `ci-complete` finalize with success
 
 #### Scenario: Suite red after FASE 2
 
 - **WHEN** `test-integration` fails after promotion
 - **THEN** `ci-complete` fails and the PR cannot merge (the gate no longer passes without running any test)
+- **AND** the failure reaches `ci-complete` through `postbuild-tests-complete`, the aggregator that carries `test-integration` after the prebuild/post-build tier split
 
 ### Requirement: Integration test job structure (absorbed from `ci-test-pipeline`)
 

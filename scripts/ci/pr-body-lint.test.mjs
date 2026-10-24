@@ -1,19 +1,19 @@
 import { describe, it, expect, vi } from 'vitest';
 import fs from 'node:fs';
-import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 /**
- * Tests of the PR body governance policy — change `pr-metadata-workflow`.
+ * Tests of the PR body governance policy — change
+ * `simplify-pr-body-lint-template`.
  *
  * Covers the normative behaviours of
- * `openspec/changes/pr-metadata-workflow/specs/pr-body-lint-governance/spec.md`:
- * the six-step normalization order, the per-section R2 thresholds calibrated
- * against the repository template, R3's comment-stripped evaluation, the
- * fence-aware and first-occurrence-wins section split, the author-based bot
- * skip, the report schema and the tooling-vs-policy failure split. The last
- * describe is the template lockstep test (design D11).
+ * `openspec/changes/simplify-pr-body-lint-template/specs/pr-body-lint-governance/spec.md`:
+ * the six-step strip (which only answers "is anything left?"), the single `##`
+ * heading scan (fence-blind, first occurrence wins), the `EMPTY_BODY`
+ * diagnostic, R2a/R2b/R2c/R3 as the only rules, the author-based bot skip, and
+ * the tooling-vs-policy failure split. The last describe is the template
+ * lockstep test (design D11).
  */
 
 import {
@@ -24,9 +24,6 @@ import {
   stripHtmlComments,
   canonicalizeHeading,
   isBotAuthor,
-  buildReport,
-  writeReport,
-  REPORT_RELATIVE_PATH,
   REQUIRED_SECTIONS,
 } from './pr-body-lint.mjs';
 
@@ -59,12 +56,12 @@ Closes #123
 
 ## Pre-merge Checklist
 
-- [x] PR title follows Conventional Commits format
+- [x] Documentation updated (if applicable)
 `;
 
 const ruleIds = (list) => list.map((f) => f.rule);
 
-describe('normalize — six-step pipeline in normative order', () => {
+describe('normalize — the strip answers "is anything left?"', () => {
   it('drops heading lines (step 3) so headings never count as content', () => {
     expect(normalize('## Summary\n\n')).toBe('');
     expect(normalize('# Summary\n\n### Deep heading\n')).toBe('');
@@ -83,24 +80,9 @@ describe('normalize — six-step pipeline in normative order', () => {
     expect(normalize('Closes #')).toBe('');
     expect(normalize('Closes #123')).toBe('Closes #123');
   });
-
-  it('does not let step 5 re-inject checkbox markers into the measurement', () => {
-    expect(normalize('fix: something\n\n- [x] checked label')).toBe(
-      'fix: something checked label'
-    );
-  });
-
-  it('collapses whitespace (step 6)', () => {
-    expect(normalize('  a \n\t b   c  ')).toBe('a b c');
-  });
-
-  it('is deterministic: same input, identical output', () => {
-    const body = filledTemplate();
-    expect(normalize(body)).toBe(normalize(body));
-  });
 });
 
-describe('splitSections — raw split, canonical keys', () => {
+describe('splitSections — a single `##` heading scan', () => {
   it('maps canonicalized heading to the RAW section body', () => {
     const sections = splitSections(
       '## Summary\n\nRaw content here.\n\n## Next\n\nAfter\n'
@@ -132,14 +114,14 @@ describe('splitSections — raw split, canonical keys', () => {
     );
   });
 
-  it('treats `##` lines inside a fenced code block as content, never as a section boundary', () => {
+  it('is fence-blind: a `##` line inside a code fence splits the document', () => {
     const body = [
       '## Summary',
       '',
       'Some summary text.',
       '',
       '```yaml',
-      '## Not a heading',
+      '## Not a heading inside a fence',
       'key: value',
       '```',
       '',
@@ -149,66 +131,41 @@ describe('splitSections — raw split, canonical keys', () => {
       '',
     ].join('\n');
     const sections = splitSections(body);
-    // Exactly two sections — the fenced `## Not a heading` must not become a
-    // phantom section between them.
-    expect([...sections.keys()]).toEqual(['summary', 'related issue']);
-    expect(sections.get('summary')).toContain('## Not a heading');
-    expect(sections.get('summary')).toContain('key: value');
-    expect(sections.has('not a heading')).toBe(false);
+    // The accepted regression of the reduced policy: no fence mask, so the
+    // fenced line is a section boundary and the lines after it belong to it.
+    expect(sections.has('not a heading inside a fence')).toBe(true);
+    expect(sections.get('summary')).not.toContain('key: value');
+    // A later real heading still locates its own section.
     expect(sections.get('related issue')).toContain('Closes #123');
-  });
-
-  it('unterminated fence is forgiving: no crash, and later `##` headings remain structure (a stray backtick never swallows the document)', () => {
-    const body = [
-      '## Summary',
-      '',
-      'A summary that is long enough to clear the twenty character floor.',
-      '',
-      '```yaml',
-      '## Not a heading',
-      '',
-      '## Related Issue',
-      '',
-      'Closes #123',
-      '',
-    ].join('\n');
-    const sections = splitSections(body);
-    // Chosen behaviour: an opener with no closer never suppresses structure.
-    // The fence state simply stops at the end of the document, so EVERY
-    // heading after the stray opener — including `## Not a heading` — is
-    // structure. What matters for the author: the real sections that follow
-    // are still found (under fence-to-EOF semantics `related issue` would be
-    // swallowed and this test would go red), so a stray backtick never
-    // punishes the PR.
-    expect(sections.get('summary')).toContain('```yaml');
-    expect(sections.has('related issue')).toBe(true);
-    expect(sections.get('related issue')).toContain('Closes #123');
-    expect(sections.has('not a heading')).toBe(true);
   });
 });
 
-describe('evaluateBody — R1..R5 with severities', () => {
-  it('empty body fails R1 (and only R1 among the R2 rules)', () => {
+describe('evaluateBody — EMPTY_BODY, R2a, R2b, R2c and R3', () => {
+  it('empty body fails with the EMPTY_BODY diagnostic', () => {
     const result = evaluateBody({ body: '' });
     expect(result.verdict).toBe('fail');
-    expect(ruleIds(result.failures)).toContain('R1');
-    expect(result.metrics.meaningfulChars).toBe(0);
-    // R4/R5 are warnings and must not appear as failures.
-    expect(ruleIds(result.failures)).not.toContain('R4');
-    expect(ruleIds(result.failures)).not.toContain('R5');
+    expect(ruleIds(result.failures)).toContain('EMPTY_BODY');
+    expect(result.warnings).toEqual([]);
   });
 
-  it('untouched template normalizes to zero meaningful chars and fails', () => {
+  it('untouched template strips to nothing and fails with EMPTY_BODY', () => {
     const result = evaluateBody({ body: TEMPLATE });
     expect(normalize(TEMPLATE)).toBe('');
-    expect(result.metrics.meaningfulChars).toBe(0);
+    expect(ruleIds(result.failures)).toContain('EMPTY_BODY');
     expect(result.verdict).toBe('fail');
-    expect(ruleIds(result.failures)).toContain('R1');
+  });
+
+  it('one character of authored text clears the emptiness diagnostic', () => {
+    const body = `## Summary\n\nn/a\n\n## Related Issue\n\nNo linked issue: tooling work.\n\n## How Has This Been Tested?\n\nRan the scripts suite.\n`;
+    const result = evaluateBody({ body });
+    expect(ruleIds(result.failures)).not.toContain('EMPTY_BODY');
+    // No length rule exists that could fail a short Summary.
+    expect(ruleIds(result.failures)).not.toContain('R2a');
+    expect(result.verdict).toBe('pass');
   });
 
   it('the template GUIDANCE COMMENT never triggers R3 (comment-stripped input)', () => {
     expect(stripHtmlComments(TEMPLATE)).not.toContain('Closes #<number>');
-    // Only the guidance comment mentions a placeholder → R3 must not fire.
     const onlyComment = '<!-- Required. Use "Closes #<number>" to close. -->\n';
     expect(ruleIds(evaluateBody({ body: onlyComment }).failures)).not.toContain(
       'R3'
@@ -220,29 +177,28 @@ describe('evaluateBody — R1..R5 with severities', () => {
     expect(ruleIds(result.failures)).toContain('R3');
   });
 
-  it('filled template passes every failure rule', () => {
+  it('filled template passes every failure rule with no warnings', () => {
     const result = evaluateBody({ body: filledTemplate() });
     expect(result.failures).toEqual([]);
     expect(result.verdict).toBe('pass');
-    // Warnings may exist, but they never fail the job.
-    expect(result.warnings.every((w) => w.rule === 'R5')).toBe(true);
+    // `warnings` stays in the shape but no rule can populate it.
+    expect(result.warnings).toEqual([]);
   });
 
-  it('hollow Summary fails R2a with the measured value', () => {
-    const body = `## Summary\n\nshort\n\n## Related Issue\n\nCloses #123\n\n## How Has This Been Tested?\n\n- [x] Unit tests (vitest)\n`;
+  it('hollow Summary fails R2a without any character floor', () => {
+    const body = `## Summary\n\n<!-- TODO: explain the change -->\n\n## Related Issue\n\nCloses #123\n\n## How Has This Been Tested?\n\n- [x] Unit tests (vitest)\n`;
     const result = evaluateBody({ body });
     const r2a = result.failures.find((f) => f.rule === 'R2a');
     expect(r2a).toBeDefined();
     expect(r2a.section).toBe('Summary');
-    expect(r2a.measured).toBe(5);
     expect(result.verdict).toBe('fail');
   });
 
-  it('first occurrence wins: an empty second `## Summary` is ignored — R2a passes on the first one and metrics.duplicateSections reports it', () => {
+  it('first occurrence wins: a duplicated empty Summary is ignored', () => {
     const body = [
       '## Summary',
       '',
-      'A summary that is long enough to clear the twenty character floor.',
+      'A real summary of the change.',
       '',
       '## Related Issue',
       '',
@@ -256,22 +212,19 @@ describe('evaluateBody — R1..R5 with severities', () => {
       '',
     ].join('\n');
     const result = evaluateBody({ body });
-    // Under last-wins the trailing empty `## Summary` would overwrite the
-    // first and R2a would fail with 0 characters.
     expect(ruleIds(result.failures)).not.toContain('R2a');
     expect(result.verdict).toBe('pass');
-    expect(result.metrics.duplicateSections).toContain('Summary');
   });
 
-  it('first occurrence wins: with a short first `## Summary` and a long duplicate, R2a measures the FIRST (duplicates are never merged)', () => {
+  it('first occurrence wins: an empty first `## Summary` is never rescued by a long duplicate', () => {
     const body = [
       '## Summary',
       '',
-      'short',
+      '<!-- TODO -->',
       '',
       '## Summary',
       '',
-      'A much longer second summary body that would clear the twenty character floor if duplicates were merged.',
+      'A much longer second summary that would pass if duplicates were merged.',
       '',
       '## Related Issue',
       '',
@@ -283,34 +236,29 @@ describe('evaluateBody — R1..R5 with severities', () => {
       '',
     ].join('\n');
     const result = evaluateBody({ body });
-    const r2a = result.failures.find((f) => f.rule === 'R2a');
-    expect(r2a).toBeDefined();
-    expect(r2a.measured).toBe(5);
-    expect(result.metrics.duplicateSections).toContain('Summary');
+    expect(ruleIds(result.failures)).toContain('R2a');
   });
 
   it('recognizes heading case and punctuation variants as the same section', () => {
-    const body = `## SUMMARY:\n\nA summary that is long enough to clear the floor.\n\n## related issue\n\nCloses #123\n\n## How Has This Been Tested?\n\n- [x] Integration tests\n`;
+    const body = `## SUMMARY:\n\nA summary of the change.\n\n## related issue\n\nCloses #123\n\n## How Has This Been Tested?\n\n- [x] Integration tests\n`;
     expect(evaluateBody({ body }).failures).toEqual([]);
   });
 
   it('does not leak content between sections', () => {
-    const body = `## Summary\n\nA long and complete summary of the change and its motivation.\n\n## Related Issue\n\n## How Has This Been Tested?\n\n- [x] Integration tests\n`;
-    const result = evaluateBody({ body });
-    const r2b = result.failures.find((f) => f.rule === 'R2b');
+    const body = `## Summary\n\nA complete summary of the change and its motivation.\n\n## Related Issue\n\n## How Has This Been Tested?\n\n- [x] Integration tests\n`;
+    const r2b = evaluateBody({ body }).failures.find((f) => f.rule === 'R2b');
     expect(r2b).toBeDefined();
-    expect(r2b.measured).toBe(0);
+    expect(r2b.section).toBe('Related Issue');
   });
 
   it('reports a MISSING section differently from an empty one', () => {
-    const body = `## Summary\n\nA long and complete summary of the change here.\n\n## How Has This Been Tested?\n\n- [x] Integration tests\n`;
-    const result = evaluateBody({ body });
-    const r2b = result.failures.find((f) => f.rule === 'R2b');
+    const body = `## Summary\n\nA complete summary of the change here.\n\n## How Has This Been Tested?\n\n- [x] Integration tests\n`;
+    const r2b = evaluateBody({ body }).failures.find((f) => f.rule === 'R2b');
     expect(r2b.message).toMatch(/missing/i);
   });
 
-  it('Related Issue containing only `Closes #123` passes R2b (issue reference)', () => {
-    const body = `## Summary\n\nA long and complete summary of the change and why it exists.\n\n## Related Issue\n\nCloses #123\n\n## How Has This Been Tested?\n\n- [x] Integration tests\n`;
+  it('Related Issue containing only `Closes #123` passes R2b', () => {
+    const body = `## Summary\n\nA summary of the change and why it exists.\n\n## Related Issue\n\nCloses #123\n\n## How Has This Been Tested?\n\n- [x] Integration tests\n`;
     const result = evaluateBody({ body });
     expect(ruleIds(result.failures)).not.toContain('R2b');
     expect(ruleIds(result.failures)).not.toContain('R3');
@@ -318,7 +266,7 @@ describe('evaluateBody — R1..R5 with severities', () => {
   });
 
   it('Related Issue with a bare `Closes #` fails BOTH R2b and R3', () => {
-    const body = `## Summary\n\nA long and complete summary of the change and why it exists.\n\n## Related Issue\n\nCloses #\n\n## How Has This Been Tested?\n\n- [x] Integration tests\n`;
+    const body = `## Summary\n\nA summary of the change and why it exists.\n\n## Related Issue\n\nCloses #\n\n## How Has This Been Tested?\n\n- [x] Integration tests\n`;
     const result = evaluateBody({ body });
     const ids = ruleIds(result.failures);
     expect(ids).toContain('R2b');
@@ -326,44 +274,35 @@ describe('evaluateBody — R1..R5 with severities', () => {
     expect(result.verdict).toBe('fail');
   });
 
-  it('a single checked test box satisfies R2c, even though the label is short', () => {
-    const body = `## Summary\n\nA long and complete summary of the change and why it exists.\n\n## Related Issue\n\nCloses #123\n\n## How Has This Been Tested?\n\n- [x] Integration tests\n`;
+  it('a single checked test box satisfies R2c', () => {
+    const body = `## Summary\n\nA summary of the change and why it exists.\n\n## Related Issue\n\nCloses #123\n\n## How Has This Been Tested?\n\n- [x] Integration tests\n`;
+    expect(ruleIds(evaluateBody({ body }).failures)).not.toContain('R2c');
+  });
+
+  it('a bare checked box with no label satisfies R2c (raw section text, not the strip)', () => {
+    // Stripping erases a bare `- [x]` (no label survives), so R2c can only
+    // pass if the checked box is counted on the RAW section text.
+    const body = `## Summary\n\nA summary of the change and why it exists.\n\n## Related Issue\n\nCloses #123\n\n## How Has This Been Tested?\n\n- [x]\n`;
     expect(ruleIds(evaluateBody({ body }).failures)).not.toContain('R2c');
   });
 
   it('a checked box in ANOTHER section does not satisfy R2c', () => {
-    const body = `## Summary\n\nA long and complete summary of the change and why it exists.\n\n## Type / Scope\n\n- [x] CI/CD\n\n## Related Issue\n\nCloses #123\n\n## How Has This Been Tested?\n\n`;
-    const result = evaluateBody({ body });
-    const r2c = result.failures.find((f) => f.rule === 'R2c');
+    const body = `## Summary\n\nA summary of the change and why it exists.\n\n## Type / Scope\n\n- [x] CI/CD\n\n## Related Issue\n\nCloses #123\n\n## How Has This Been Tested?\n\n`;
+    const r2c = evaluateBody({ body }).failures.find((f) => f.rule === 'R2c');
     expect(r2c).toBeDefined();
     expect(r2c.section).toBe('How Has This Been Tested?');
   });
 
-  it('unchecked boxes neither satisfy R2c nor satisfy R4', () => {
-    const body = `## Summary\n\nA long and complete summary of the change and why it exists.\n\n## Related Issue\n\nCloses #123\n\n## How Has This Been Tested?\n\n- [ ] Unit tests (vitest)\n- [ ] Integration tests\n`;
+  it('unchecked boxes do not satisfy R2c', () => {
+    const body = `## Summary\n\nA summary of the change and why it exists.\n\n## Related Issue\n\nCloses #123\n\n## How Has This Been Tested?\n\n- [ ] Unit tests (vitest)\n- [ ] Integration tests\n`;
     const result = evaluateBody({ body });
     expect(ruleIds(result.failures)).toContain('R2c');
-    expect(result.warnings.map((w) => w.rule)).toContain('R4');
     expect(result.verdict).toBe('fail');
   });
 
-  it('R4 and R5 never fail a body that satisfies the failure rules', () => {
-    const body = `## Summary\n\nA long and complete summary of the change and why it exists.\n\n## Related Issue\n\nDiscussed offline, no tracker issue.\n\n## How Has This Been Tested?\n\nRan the server suite and clicked through the flow manually.\n`;
-    const result = evaluateBody({ body });
-    expect(result.verdict).toBe('pass');
-    const warnIds = result.warnings.map((w) => w.rule);
-    expect(warnIds).toContain('R4');
-    expect(warnIds).toContain('R5');
-  });
-
-  it('is deterministic: the same body yields identical verdict and metrics', () => {
+  it('is deterministic: the same body yields an identical result', () => {
     const body = filledTemplate();
-    const a = evaluateBody({ body });
-    const b = evaluateBody({ body });
-    expect({ ...a, warnings: a.warnings }).toEqual({
-      ...b,
-      warnings: b.warnings,
-    });
+    expect(evaluateBody({ body })).toEqual(evaluateBody({ body }));
   });
 });
 
@@ -417,7 +356,7 @@ describe('bot skip — by author, never by actor', () => {
   });
 });
 
-describe('report schema and evaluate() wrapper', () => {
+describe('evaluate() wrapper — the Step Summary is the only surface (D2)', () => {
   const fakeCore = () => ({
     setFailed: vi.fn(),
     summary: Object.assign(Object.create(null), {
@@ -428,62 +367,7 @@ describe('report schema and evaluate() wrapper', () => {
 
   const fakeContext = (pr) => ({ payload: { pull_request: pr } });
 
-  const tmpCwd = () => fs.mkdtempSync(path.join(os.tmpdir(), 'pr-body-lint-'));
-
-  it('buildReport carries schemaVersion 1, identity, policy, metrics and verdict', () => {
-    const result = evaluateBody({ body: filledTemplate() });
-    const report = buildReport({
-      pr: {
-        number: 7,
-        author: 'human',
-        draft: false,
-        headSha: 'aaa',
-        baseSha: 'bbb',
-      },
-      result,
-      now: new Date('2026-10-20T00:00:00.000Z'),
-    });
-    expect(report).toMatchObject({
-      schemaVersion: 1,
-      generatedAt: '2026-10-20T00:00:00.000Z',
-      pr: {
-        number: 7,
-        author: 'human',
-        draft: false,
-        headSha: 'aaa',
-        baseSha: 'bbb',
-      },
-      verdict: 'pass',
-      metrics: {
-        bodyChars: expect.any(Number),
-        meaningfulChars: expect.any(Number),
-        checkedCheckboxes: expect.any(Number),
-        sectionsFound: expect.any(Array),
-        duplicateSections: expect.any(Array),
-      },
-      policy: {
-        id: 'pr-body-lint-governance',
-        requiredSections: REQUIRED_SECTIONS,
-      },
-    });
-    // The report must never echo the body itself.
-    expect(JSON.stringify(report)).not.toContain('governance policy module');
-  });
-
-  it('writeReport creates .tmp/pr-body-lint/report.json under the given cwd', () => {
-    const cwd = tmpCwd();
-    const target = writeReport(
-      buildReport({ pr: {}, result: evaluateBody({ body: '' }) }),
-      cwd
-    );
-    expect(target).toBe(path.join(cwd, REPORT_RELATIVE_PATH));
-    const parsed = JSON.parse(fs.readFileSync(target, 'utf8'));
-    expect(parsed.schemaVersion).toBe(1);
-    fs.rmSync(cwd, { recursive: true, force: true });
-  });
-
-  it('evaluate writes the report on a PASSING evaluation and does not fail', async () => {
-    const cwd = tmpCwd();
+  it('a PASSING evaluation publishes the summary and does not fail', async () => {
     const core = fakeCore();
     const context = fakeContext({
       number: 1,
@@ -494,20 +378,16 @@ describe('report schema and evaluate() wrapper', () => {
       base: { sha: 'bbb' },
     });
 
-    const outcome = await evaluate({ core, context, cwd });
+    const outcome = await evaluate({ core, context });
 
     expect(outcome.verdict).toBe('pass');
     expect(core.setFailed).not.toHaveBeenCalled();
-    const parsed = JSON.parse(
-      fs.readFileSync(path.join(cwd, REPORT_RELATIVE_PATH), 'utf8')
-    );
-    expect(parsed.verdict).toBe('pass');
-    expect(core.summary.addRaw).toHaveBeenCalled();
-    fs.rmSync(cwd, { recursive: true, force: true });
+    // The summary is the reporting surface now: the verdict travels with it.
+    expect(core.summary.addRaw).toHaveBeenCalledOnce();
+    expect(core.summary.addRaw.mock.calls[0][0]).toMatch(/Verdict.*pass/);
   });
 
-  it('evaluate writes the report on a FAILING evaluation and calls setFailed with the rules', async () => {
-    const cwd = tmpCwd();
+  it('a FAILING evaluation calls setFailed naming the rule and shows it in the summary', async () => {
     const core = fakeCore();
     const context = fakeContext({
       number: 2,
@@ -518,22 +398,16 @@ describe('report schema and evaluate() wrapper', () => {
       base: { sha: 'bbb' },
     });
 
-    const outcome = await evaluate({ core, context, cwd });
+    const outcome = await evaluate({ core, context });
 
     expect(outcome.verdict).toBe('fail');
     expect(core.setFailed).toHaveBeenCalledOnce();
-    expect(core.setFailed.mock.calls[0][0]).toMatch(/R1/);
+    expect(core.setFailed.mock.calls[0][0]).toMatch(/EMPTY_BODY/);
     expect(core.setFailed.mock.calls[0][0]).not.toMatch(/TOOLING ERROR/);
-    const parsed = JSON.parse(
-      fs.readFileSync(path.join(cwd, REPORT_RELATIVE_PATH), 'utf8')
-    );
-    expect(parsed.verdict).toBe('fail');
-    expect(parsed.failures.map((f) => f.rule)).toContain('R1');
-    fs.rmSync(cwd, { recursive: true, force: true });
+    expect(core.summary.addRaw.mock.calls[0][0]).toMatch(/EMPTY_BODY/);
   });
 
   it('a bot author makes evaluate() succeed without failing (skip by author)', async () => {
-    const cwd = tmpCwd();
     const core = fakeCore();
     const context = fakeContext({
       number: 3,
@@ -544,19 +418,14 @@ describe('report schema and evaluate() wrapper', () => {
       base: { sha: 'bbb' },
     });
 
-    const outcome = await evaluate({ core, context, cwd });
+    const outcome = await evaluate({ core, context });
     expect(outcome.verdict).toBe('skipped');
     expect(core.setFailed).not.toHaveBeenCalled();
-    fs.rmSync(cwd, { recursive: true, force: true });
   });
 
-  it('a report WRITE error fails closed as a TOOLING error, not a policy violation', async () => {
-    // Point cwd at a path that cannot become a directory: mkdirSync throws.
-    const blocker = tmpCwd();
-    const asFile = path.join(blocker, 'not-a-dir');
-    fs.writeFileSync(asFile, 'x', 'utf8');
-
+  it('a SUMMARY write error fails closed as a TOOLING error, not a policy violation', async () => {
     const core = fakeCore();
+    core.summary.write.mockRejectedValueOnce(new Error('disk full'));
     const context = fakeContext({
       number: 4,
       body: filledTemplate(),
@@ -566,13 +435,12 @@ describe('report schema and evaluate() wrapper', () => {
       base: { sha: 'bbb' },
     });
 
-    const outcome = await evaluate({ core, context, cwd: asFile });
+    const outcome = await evaluate({ core, context });
 
     expect(outcome.verdict).toBe('tooling-error');
     expect(core.setFailed).toHaveBeenCalledOnce();
     expect(core.setFailed.mock.calls[0][0]).toMatch(/TOOLING ERROR/);
-    expect(core.setFailed.mock.calls[0][0]).not.toMatch(/R1|R2|R3/);
-    fs.rmSync(blocker, { recursive: true, force: true });
+    expect(core.setFailed.mock.calls[0][0]).not.toMatch(/EMPTY_BODY|R2|R3/);
   });
 
   it('a missing pull_request payload fails as a TOOLING error', async () => {

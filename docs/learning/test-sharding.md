@@ -187,11 +187,12 @@ Claves del patrón:
 ### 4.1 Estado actual (audit)
 
 - **0 matrix / 0 `--shard` en `.github/workflows/ci.yml`**: los jobs de test son single-runner.
-- **STAGE 2 prebuild = exactamente 6 jobs** consumidos por el agregador
-  `prebuild-unit-tests-complete`: `test-unit-client`, `test-unit-server`, `test-integration`,
-  `test-smoke`, `client-coverage`, `server-coverage` → a su vez `ci-complete` (required check
-  único). **El contrato es `needs` de 6 entradas**: añadir N shards como `needs` directos rompe
-  el contrato y ensucia el agregador.
+- **STAGE 2 prebuild = exactamente 5 jobs tier-1** consumidos por el agregador
+  `prebuild-tests-complete`: `test-unit-client`, `test-unit-server`, `client-coverage`,
+  `server-coverage`, `property-tests` → a su vez `ci-complete`. **El contrato es `needs` de 5
+  entradas**: añadir N shards como `needs` directos rompe el contrato y ensucia el agregador.
+  (`test-integration`/`test-smoke` son STAGE 4 desde `ci-stage-aggregator-topology` y los agrega
+  `postbuild-tests-complete`.)
 - **`timeout-minutes: 10`** en jobs de test unit; `continue-on-error: true` (FASE 1 advisory) en
   `test-unit-*` y `*-coverage` — ventana de calibración en [`quality-gates.md`][qg].
 - **`maxWorkers: 1` en CI** (`apps/*/vitest.config.js`, condicionado a `CI=true`) + `retry: 2` en

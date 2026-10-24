@@ -45,11 +45,13 @@ export default mergeConfig(
       coverage: {
         reportsDirectory: './tests/coverage',
         thresholds: {
-          // PISO GLOBAL — describe el conjunto del workspace (144 ficheros). Lo fija
-          // `npm run coverage:ratchet` a la cobertura medida; solo sube, nunca baja.
-          // Es un piso bajo en términos absolutos (functions ~9%) porque la mayor
-          // parte del código son DAO/servicios sin tests unitarios; la granularidad
-          // de abajo es lo que evita que ese número oculte las áreas buenas.
+          // PISO GLOBAL — describe el conjunto del workspace medido hoy: los 25
+          // ficheros que la suite unitaria realmente carga (v8 solo contabiliza
+          // archivos importados en el run). Lo fija `npm run coverage:ratchet` a
+          // la cobertura medida; solo sube, nunca baja. Es un piso intermedio
+          // (~61-65% en las cuatro métricas) porque la mayor parte del código son
+          // DAO/servicios sin tests unitarios; la granularidad de abajo es lo que
+          // evita que ese número oculte las áreas buenas.
           statements: 60.8,
           branches: 64.48,
           functions: 64.81,

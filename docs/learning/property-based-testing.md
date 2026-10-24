@@ -447,7 +447,9 @@ fc.configureGlobal({
 
 > **Nota de coordinación**: no duplicar ownership — FASE 1 de los test jobs es de
 > `ci-testing-gate-promotion`; TIA/`test:changed` es de `tia-hardening`; el job PBT nuevo se
-> encadena al agregador `prebuild-unit-tests-complete` existente sin mover los otros.
+> encadena al agregador `prebuild-tests-complete` existente sin mover los otros (el change
+> `ci-stage-aggregator-topology` ya añadió `property-tests` a su `needs`, en modo record-only por el
+> `continue-on-error: true` del job).
 
 ### 5.3 Receta mínima end-to-end (Vitest)
 

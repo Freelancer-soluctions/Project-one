@@ -471,15 +471,15 @@ client-format-check:
 
 ### Jobs de TESTING re-activados (change `coverage-tripwire-stage-2d`, 2026-10-01)
 
-| Job                          | Líneas (`if:` / COE) | Estado                                                                |
-| ---------------------------- | -------------------- | --------------------------------------------------------------------- |
-| test-unit-client             | L744 / L748          | ✅ FASE 1 advisory ACTIVADO (`continue-on-error: true`)               |
-| test-unit-server             | L843 / L847          | ✅ FASE 1 advisory ACTIVADO (`continue-on-error: true`)               |
-| client-coverage              | L1514 / L1524        | ✅ FASE 1 advisory ACTIVADO (`continue-on-error: true`)               |
-| server-coverage              | L1603 / L1610        | ✅ FASE 1 advisory ACTIVADO (`continue-on-error: true`)               |
-| test-integration             | L1665                | ✅ Activo — `if:` sobre repo-discovery, **sin** COE (bloqueante real) |
-| test-smoke                   | L1717                | ✅ Activo — `if:` sobre repo-discovery, **sin** COE (bloqueante real) |
-| prebuild-unit-tests-complete | L1946                | ✅ Agregador activo; `needs` = los 6 jobs anteriores                  |
+| Job                     | Líneas (`if:` / COE) | Estado                                                                                |
+| ----------------------- | -------------------- | ------------------------------------------------------------------------------------- |
+| test-unit-client        | L744 / L748          | ✅ FASE 1 advisory ACTIVADO (`continue-on-error: true`)                               |
+| test-unit-server        | L843 / L847          | ✅ FASE 1 advisory ACTIVADO (`continue-on-error: true`)                               |
+| client-coverage         | L1514 / L1524        | ✅ FASE 1 advisory ACTIVADO (`continue-on-error: true`)                               |
+| server-coverage         | L1603 / L1610        | ✅ FASE 1 advisory ACTIVADO (`continue-on-error: true`)                               |
+| test-integration        | L1665                | ✅ Activo — `if:` sobre repo-discovery, **sin** COE (bloqueante real)                 |
+| test-smoke              | L1717                | ✅ Activo — `if:` sobre repo-discovery, **sin** COE (bloqueante real)                 |
+| prebuild-tests-complete | L1946                | ✅ Agregador activo; `needs` = 5 jobs tier-1 (test-unit-\*, coverage, property-tests) |
 
 > **⚠️ CRÍTICO:** Estos nodos **NO están rotos**. Son diseño incremental de CI_MINIMAL=true (§3.1 de CONTEXT-CICD). Activarlos requiere un change OpenSpec que justifique el costo.
 >

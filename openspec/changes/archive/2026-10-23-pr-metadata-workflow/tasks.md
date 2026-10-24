@@ -209,3 +209,24 @@
   > ✅ Verificado estáticamente: `ci-complete.needs` intacto, sin definiciones de job ni `needs` colgantes. El
   > `grep` de `ci.yml` queda en **2 líneas de comentario** explicando la migración (intencionales: documentan que
   > el job EMIGRÓ y por qué no puede estar en el agregador) — cero apariciones como job o referencia de `needs`.
+
+## Nota de reconciliación — 2026-10-23 (al archivar; no añade tareas)
+
+El 2026-10-23 un rediseño de gobernanza (commit `99941cba` más trabajo no commiteado en `ci.yml`) cambió dos hechos
+sobre los que se escribió este change. Las notas de arriba se conservan como evidencia histórica; esta clave dice cómo
+leerlas:
+
+- **Nombres.** Los cinco jobs de gobernanza llevan hoy el prefijo `Governance:`. El job de título se llama
+  `Governance: PR Title Lint` y su id sigue siendo `pr-title-lint`. Por eso los comandos de verificación de 3.1, 3.4 y
+  6.6 (`grep -rn "name: PR Title Lint" .github/workflows/`) devuelven hoy **0 hits**: cambió el nombre, no el contrato
+  de emisor único.
+- **Binding del ruleset.** El ruleset 21227644 exige hoy **dos** contextos — `Governance: PR Body Lint` (directo) y
+  `Prebuild Governance Complete` (agregador con `needs: [verify-signatures, commit-lint, dco, sast]`) —, no cinco. Las
+  notas de 4.2, 4.4 y 4.5 describen el estado del 2026-10-22.
+- **Hallazgo, no defecto de este change.** `Governance: PR Title Lint` se emite pero no está bindeado por ninguna vía
+  (un `needs` no cruza workflows), así que hoy no bloquea nada.
+- **Deuda declarada, fuera de alcance.** `openspec/specs/ruleset-expansion` (§Required status checks) y
+  `openspec/specs/commit-signing-enforcement` siguen enumerando los cuatro contextos antiguos; su corrección pertenece
+  al change de gobernanza que introdujo el rediseño.
+
+Las specs delta se reconciliaron al archivar. El registro de decisiones es `design.md` (_Binding model_).

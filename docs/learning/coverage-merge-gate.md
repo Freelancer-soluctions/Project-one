@@ -301,9 +301,10 @@ usa modo parallel + webhook de finish (no verificado en esta ronda).
 
 - **0 matrix / 0 `--shard` en `.github/workflows/ci.yml`**: todos los jobs de test son
   single-runner. Ver [`test-sharding.md`][sh] §4.1.
-- **STAGE 2 = exactamente 6 jobs** → agregador `prebuild-unit-tests-complete` → `ci-complete`
-  (required check único): `test-unit-client`, `test-unit-server`, `test-integration`,
-  `test-smoke`, `client-coverage`, `server-coverage`.
+- **STAGE 2 tier-1 = exactamente 5 jobs** → agregador `prebuild-tests-complete` → `ci-complete`:
+  `test-unit-client`, `test-unit-server`, `client-coverage`, `server-coverage`, `property-tests`.
+  `test-integration` y `test-smoke` son STAGE 4 POST-BUILD desde `ci-stage-aggregator-topology` y los agrega
+  `postbuild-tests-complete`.
 - **Los coverage jobs YA son mini-merge-gates** (post-artifact, pre-D18) — y desde 2026-10-13
   son los **puentes del merge gate**:
   - `client-coverage` (needs `test-unit-client`) descarga **por patrón**

@@ -584,8 +584,10 @@ ci-complete:
     - prebuild-governance-complete
     - prebuild-quality-complete
     - prebuild-security-complete
-    - prebuild-unit-tests-complete
-    - verify-signatures
+    - prebuild-tests-complete
+    - build-complete
+    - postbuild-tests-complete
+    - postbuild-analysis-complete
     - zombie-workflow-guard
   steps:
     - name: Check for failures
@@ -601,10 +603,16 @@ ci-complete:
         echo "✅ All upstream jobs succeeded or were skipped"
 ```
 
-Forma actual: `ci-complete.needs` son **7 entradas** — los 4 agregadores por substage
+Forma actual: `ci-complete.needs` son **9 entradas** — los 4 agregadores por substage
 (`prebuild-governance-complete`, `prebuild-quality-complete`, `prebuild-security-complete`,
-`prebuild-unit-tests-complete`) + `verify-signatures` + `zombie-workflow-guard` + `repo-discovery`. La lista
-plana de 32 jobs de la v1 del change quedó obsoleta al consolidarse los agregadores de substage.
+`prebuild-tests-complete`) + los 3 agregadores de stage (`build-complete`, `postbuild-tests-complete`,
+`postbuild-analysis-complete`) + `zombie-workflow-guard` + `repo-discovery`. La lista plana de 32 jobs de la v1 del
+change quedó obsoleta al consolidarse los agregadores de substage.
+
+> **Corrección (change `ci-stage-aggregator-topology`):** `verify-signatures` **nunca** estuvo en
+> `ci-complete.needs`; su enforcement vive en `Prebuild Governance Complete` (substage 2A) y en la regla
+> `required_signatures` del ruleset. La versión anterior de este párrafo lo listaba por error: no debe
+> "restaurarse".
 
 - La regla **ADD-only sigue vigente**: nunca quitar ni modificar una entrada existente; solo agregar.
 - Los jobs nuevos de governance se wirean al agregador de su substage
@@ -718,6 +726,11 @@ política debe cambiar en el mismo PR (test de lockstep).
 > `if: github.event_name == 'pull_request'`, upload con `if: always()` y no-op explícito de `merge_group` (D5).
 > La ruta "FASE 1 → FASE 2" que comenta el bloque fue reemplazada por el gate duro del día 1, con las
 > mitigaciones que listaba P2.4.
+>
+> **Actualización (2026-10-23, change `simplify-pr-body-lint-template`):** la política vigente es la **reducida**
+> (sin mínimos de longitud, sin R4/R5, secciones por un solo escaneo de `##`), la plantilla tiene **2** casillas
+> manuales y el **Step Summary es la única superficie**: el `report.json` y el artefacto de 14 días se retiraron
+> (D2). Lo que sigue describe el estado de 2026-10-20.
 
 ```yaml
 # --- GOVERNANCE: PR body lint (job a implementar; FASE 1 advisory) ---
@@ -787,6 +800,12 @@ pr-body-lint:
 ---
 
 ### P2.2: Normalización y reglas (R1-R5)
+
+> **SUPERSEDIDO (2026-10-23):** la política reducida del change `simplify-pr-body-lint-template` elimina R1 (suelo
+> de 40 caracteres), R4 y R5 (advertencias) y el mínimo de 20 caracteres de R2a/R2b. Quedan `EMPTY_BODY`, R2a, R2b,
+> R2c y R3, todos failure-severity. La tabla y el pipeline de abajo se conservan como registro del diseño original;
+> la fuente normativa es el delta de `openspec/changes/simplify-pr-body-lint-template/specs/pr-body-lint-governance/spec.md`
+> y, una vez archivado el change, el spec principal.
 
 | ID                           | Regla                                                                          | Severidad | Umbral                                 | Rationale                                                               | FP esperados                                                              |
 | ---------------------------- | ------------------------------------------------------------------------------ | --------- | -------------------------------------- | ----------------------------------------------------------------------- | ------------------------------------------------------------------------- |
@@ -902,35 +921,16 @@ confiable y puede contener líneas `::` que el runner interpretaría como workfl
   comando exacto de remediación `gh pr edit <n> --body-file <archivo-con-la-descripcion>` + la
   instrucción "edita la descripción y vuelve a ejecutar el workflow (o haz push)". El mensaje **no
   promete re-ejecución automática** (no hay trigger `edited` — ver P2.5).
-- `core.warning` para R4/R5: no fallan el job, pero quedan visibles en el log y en el summary.
-- **Outputs**: `verdict` (`pass`/`fail`), `failed_rules` (CSV de ids fallidos), `report_path`
-  (`.tmp/pr-body-lint/report.json`).
+- `core.warning` para R4/R5: **ya no aplica** — la política reducida no tiene reglas de advertencia, así que el
+  array `warnings` viaja siempre vacío y nada suaviza un veredicto `pass`.
+- **Outputs**: `{ verdict, failures, warnings }` — el shape es un contrato que también consume
+  `.opencode/command/push-pr.md` en su pre-flight offline.
 
-**`report.json` — schema v1** (artifact `pr-body-lint-report`, retención 14 días):
-
-```json
-{
-  "schemaVersion": 1,
-  "generatedAt": "2026-10-20T00:00:00.000Z",
-  "pr": {
-    "number": 0,
-    "author": "login",
-    "draft": false,
-    "headSha": "…",
-    "baseSha": "…"
-  },
-  "policy": {},
-  "metrics": {
-    "bodyChars": 0,
-    "meaningfulChars": 0,
-    "checkedCheckboxes": 0,
-    "sectionsFound": []
-  },
-  "failures": [],
-  "warnings": [],
-  "verdict": "pass"
-}
-```
+**Evidencia: el Step Summary, no un reporte.** La política reducida (change `simplify-pr-body-lint-template`, D2)
+retiró `report.json` y el artefacto de 14 días: el summary del job ya nombra el veredicto y cada fallo con su regla y
+su sección, así que no hay nada que descargar para triar un rojo. El esquema v1 del reporte (con `policy`, `metrics`,
+`failures` y `warnings`) queda documentado en el archivo del change archivado como registro histórico, no como
+formato vigente.
 
 **Compliance — marco honesto**:
 
@@ -939,19 +939,18 @@ confiable y puede contener líneas `::` que el runner interpretaría como workfl
 | **ISO/IEC 27001:2022 A.8.32** (change management) y **A.8.25-A.8.28** (desarrollo seguro) | **Sí**: evidencia de **documentación del cambio** y de trazabilidad issue ↔ PR — es su caso de uso legítimo                                                                    |
 | **SOC 2 CC8.1** (autorización, diseño, test, aprobación, implementación)                  | **No es control de CC8.1**: autorización/test/aprobación ya los cubren el ruleset (1 review + CODEOWNERS + last-push) y los jobs de test; CC8.1 no exige "descripción rellena" |
 
-- El artifact de **14 días** vive dentro de la **ventana de calibración**: es evidencia operativa,
-  **no** evidencia de auditoría (14 d < ciclo de auditoría).
-- El registro primario y durable es **el PR mismo** (body + check run + review):
-  `gh pr view --json body,reviews,statusCheckRollup`. El job summary y el artifact son apoyo.
+- No hay artifact de **14 días** desde el 2026-10-23: el summary del run es evidencia **operativa**, y el
+  registro primario y durable es **el PR mismo** (body + check run + review):
+  `gh pr view --json body,reviews,statusCheckRollup`. El job summary es apoyo, no evidencia de auditoría.
 - No vender esto como "control de compliance": es **higiene de trazabilidad** + evidencia operativa.
 
 **Roadmap de fases — REEMPLAZADO por el gate duro del día 1 (change `pr-metadata-workflow`, D8)**:
 
-| Fase                | Estado vigente                                                              | Acción                                                                                                                                                |
-| ------------------- | --------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **FASE 1 advisory** | **Descartada** — decisión explícita del usuario: sin ventana de calibración | El job nace **blocking** (`continue-on-error` nunca existió en la versión vigente); el artifact de 14 d sigue como evidencia de triaje                |
-| **FASE 2 blocking** | **Alcanzada desde el 1er commit**                                           | No hay `continue-on-error` que quitar                                                                                                                 |
-| **FASE 3 required** | **COMPLETADA el 2026-10-22** (D7)                                           | `Governance: PR Body Lint` añadido al ruleset 21227644 vía GET → modify → PUT (nunca PATCH) tras ≥1 reporte real; el repo tiene **5** required checks |
+| Fase                | Estado vigente                                                              | Acción                                                                                                                                                        |
+| ------------------- | --------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **FASE 1 advisory** | **Descartada** — decisión explícita del usuario: sin ventana de calibración | El job nace **blocking** (`continue-on-error` nunca existió en la versión vigente); la evidencia de triaje es el Step Summary (sin artifact desde 2026-10-23) |
+| **FASE 2 blocking** | **Alcanzada desde el 1er commit**                                           | No hay `continue-on-error` que quitar                                                                                                                         |
+| **FASE 3 required** | **COMPLETADA el 2026-10-22** (D7)                                           | `Governance: PR Body Lint` añadido al ruleset 21227644 vía GET → modify → PUT (nunca PATCH) tras ≥1 reporte real; el repo tiene **5** required checks         |
 
 > **Gotcha exact-string (binding FASE 3, hecho 2026-10-22)**: el ruleset matchea por **cadena exacta** contra
 > el `name:` del job. El contexto a enlazar sería `Governance: PR Body Lint`; renombrar el job tras
@@ -1015,9 +1014,10 @@ El repo ya tiene el patrón de scripts testeables: `scripts/ci/*.mjs` + `scripts
 `ttff-metric`, `vitest-sequencer`).
 
 - **`scripts/ci/pr-body-lint.mjs`** — lógica pura sin dependencias de GitHub: `normalize` (pipeline
-  de P2.2), `splitSections` + `canonHeading` (tolerante a case/puntuación), `evaluate` (R1-R5) y el
+  de P2.2; desde 2026-10-23 solo responde «¿queda algo?»), `splitSections` + `canonicalizeHeading`
+  (tolerante a case/puntuación), `evaluateBody` (`EMPTY_BODY`, R2a, R2b, R2c, R3) y `evaluate`, el
   orquestador que sí toca `core`/`context`.
-- **`scripts/ci/pr-body-lint.test.mjs`** — unitarios de `normalize`/`splitSections`/`evaluate` +
+- **`scripts/ci/pr-body-lint.test.mjs`** — unitarios de `normalize`/`splitSections`/`evaluateBody` +
   el test de lockstep de abajo.
 - **Wrapper en el YAML** (P2.1): 3 líneas; requiere `actions/checkout@v5` (a diferencia de la
   variante inline, que podía prescindir de checkout).

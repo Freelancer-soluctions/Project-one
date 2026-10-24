@@ -34,8 +34,7 @@ Closes #
 
 ## Pre-merge Checklist
 
-- [ ] `Signed-off-by` present in all commits (`git commit -S -s`; the `.husky/prepare-commit-msg` hook adds it automatically — see `docs/learning/dco.md`)
-- [ ] Tests pass locally (`npm run test`)
+<!-- Sign-off is verified by the DCO check, the PR title by Governance: PR Title Lint, and the tests by CI. Do not restate them in this body. -->
+
 - [ ] Documentation updated (if applicable)
 - [ ] No breaking changes (or documented in Summary)
-- [ ] PR title follows [Conventional Commits](https://www.conventionalcommits.org/) format

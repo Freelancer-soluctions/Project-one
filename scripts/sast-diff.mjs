@@ -40,9 +40,15 @@
 // .js .jsx .cjs .mjs .ts .tsx (RF-PP-03). Both print the reason and exit 0.
 // Timeout (RF-PP-06: 60 s is the performance OBJECTIVE; the script enforces a
 // 300 s safety net - re-measured 135 s clean clone / 149 s worktree / 207 s
-// worktree under CPU contention on Windows, 2026-10-20) degrades to
-// "broken tool" and goes through the mode's failure policy; the container is
-// force-removed (design D15) so no orphan container survives between pushes.
+// worktree under CPU contention on Windows, 2026-10-20; again 65-117 s from
+// warm to cold-Docker-VM on Windows 11 + Docker Desktop 29.0.1, 2026-10-23,
+// see the block above LOCAL_TIMEOUT_MS) degrades to "broken tool" and goes
+// through the mode's failure policy; the container is force-removed (design
+// D15) so no orphan container survives between pushes. Since 2026-10-23 the
+// timeout verdict names WHICH stall hit the net (image absent / daemon cold /
+// container produced no output / mid-scan), so "the machine is slow" and "the
+// tool is broken" are distinguishable from the log alone (describeToolFailure
+// + localRemediation).
 //
 // Portability (RNF-01): Node + Docker only, no PowerShell, runs unmodified on
 // Windows (Git Bash / MSYS2) and ubuntu-latest.
@@ -113,6 +119,21 @@ export const REPORT_PATH = '.tmp/sast-report.json';
 // attained on Windows + Docker Desktop (design D17). The net is 300 s so that
 // CPU contention does not silently disable the gate; a genuinely hung
 // container still gets cut.
+// Re-measured 2026-10-23 (Windows 11, Node 22 + MSYS2 bash, Docker Desktop
+// 29.0.1 on the WSL2 backend, pinned image (SEMGREP_VERSION) cached, linked
+// worktree at 7e1b66b0, diff 91f49676..7e1b66b0 = 18 files, command
+// `time node scripts/sast-diff.mjs`): **65 s / 69 s** warm repeats, **104 s**
+// first run on a fresh worktree, **117 s** immediately after `wsl --shutdown`
+// (cold Docker VM); the 9 registry packs alone measured **3-6 s** (ephemeral
+// container cache: every run re-fetches them), so the budget is dominated by
+// the full-tree scan (tasks.md 3.4: `--baseline-commit` filters findings,
+// NOT targets). A HEALTHY scan therefore needs < 120 s here, so 300 s is NOT
+// the obstacle: the pushes reported hitting the net on 2026-10-23 were
+// stalls, not slow scans, and none of the cold-start cases above reproduce
+// them. Decision (fix B, 2026-10-23): KEEP 300 s and make the trip HONEST
+// instead of guessing a bigger budget — the timeout verdict now names the
+// stall class, so the next occurrence carries its own diagnosis and a budget
+// change can be priced from data (or measured via SAST_TIMEOUT_MS override).
 // CI stays below the job's 15-minute timeout-minutes.
 // SAST_TIMEOUT_MS overrides both (used by the tests).
 export const LOCAL_TIMEOUT_MS = 300 * 1000; // safety net (300 s), NOT the 60 s objective
@@ -596,18 +617,103 @@ export function writeReport(
 // ---------------------------------------------------------------------------
 
 /**
+ * Is the pinned Semgrep image present locally? DIAGNOSTIC ONLY (local mode):
+ * its answer never changes the verdict. `true` / `false`, or `null` when the
+ * answer is UNKNOWN (docker binary missing, daemon down, inspect error) — an
+ * unknown answer must never be reported as "image absent" (that would blame
+ * a pull that never happened).
+ */
+export function probeImagePresent(
+  dockerBin = process.env.SAST_DOCKER_BIN || 'docker',
+  image = SEMGREP_IMAGE
+) {
+  const res = spawnSync(dockerBin, ['image', 'inspect', image], {
+    encoding: 'utf8',
+    timeout: 30 * 1000,
+    stdio: ['ignore', 'pipe', 'pipe'],
+  });
+  if (!res.error && res.status === 0) return true;
+  if (!res.error && /No such (image|object)/i.test(res.stderr || ''))
+    return false;
+  return null;
+}
+
+/**
  * Human-readable reason for a broken-tool verdict (RF-FAIL-01, task 2.8).
  * A scan killed by the own timeout MUST be reported as such: "exited with
  * code null" is opaque and hides the real cause from the triage.
+ * Since 2026-10-23 the timeout reason names the STALL CLASS (fix B): a
+ * healthy scan needs < 120 s on this repo (see LOCAL_TIMEOUT_MS), so hitting
+ * the net means a stall — "image pull ate the budget" / "daemon was cold" /
+ * "container produced no output" / "mid-scan under contention" are four
+ * different problems with four different remediations, and the operator must
+ * be able to tell "my machine is slow" from "the tool is broken".
  */
 export function describeToolFailure(result, timeoutMs) {
-  if (result.timedOut)
-    return `scan timed out after ${Math.round(timeoutMs / 1000)}s`;
+  if (result.timedOut) {
+    const secs = Math.round(timeoutMs / 1000);
+    if (result.imagePresent === false)
+      return (
+        `scan timed out after ${secs}s while PULLING the Semgrep image ` +
+        `(${SEMGREP_IMAGE} was not present locally: the ~1.1 GB pull can exhaust the whole budget on its own)`
+      );
+    const stdoutBytes = (result.stdout || '').length;
+    const stderrBytes = (result.stderr || '').length;
+    if (stdoutBytes + stderrBytes === 0) {
+      const preflight =
+        result.preflightMs != null
+          ? `; docker info preflight took ${result.preflightMs} ms (warm daemon: <1 s)`
+          : '';
+      return (
+        `scan timed out after ${secs}s with NO output from the container ` +
+        `(stalled before Semgrep started: cold Docker Desktop or a hung registry fetch, NOT a slow scan${preflight})`
+      );
+    }
+    const lastStderrLine = (result.stderr || '')
+      .trim()
+      .split('\n')
+      .filter(Boolean)
+      .pop();
+    return (
+      `scan timed out after ${secs}s mid-scan (output produced, budget exhausted: slow machine / CPU contention) ` +
+      `[container output: ${stdoutBytes} stdout / ${stderrBytes} stderr bytes` +
+      (lastStderrLine
+        ? `; last stderr line: ${lastStderrLine.slice(0, 120)}]`
+        : ']')
+    );
+  }
+  if (result.daemonDown && result.preflightTimedOut)
+    return (
+      `\`${result.dockerBin || 'docker'} info\` did not answer within 30s ` +
+      '(daemon still starting: Docker Desktop cold start)'
+    );
   if (result.daemonDown)
     return `Docker daemon is not reachable (\`${result.dockerBin || 'docker'} info\` failed)`;
   if (result.launchError)
     return `could not launch "${result.dockerBin || 'docker'}": ${result.launchError}`;
   return `docker run exited with code ${result.code}`;
+}
+
+/**
+ * Reason-specific remediation for the LOCAL fail-open verdict (2026-10-23
+ * debt: one generic line hid why the gate contributed nothing, so a slow
+ * machine and a broken tool were indistinguishable). Never changes the exit
+ * code — display only.
+ */
+function localRemediation(result) {
+  if (result.daemonDown && result.preflightTimedOut)
+    return 'Docker Desktop was still starting; wait until `docker info` answers and re-run `node scripts/sast-diff.mjs`.';
+  if (result.imagePresent === false)
+    return `pre-warm the image once (\`docker pull ${SEMGREP_IMAGE}\`) and re-run \`node scripts/sast-diff.mjs\`.`;
+  if (
+    result.timedOut &&
+    !(result.stdout || '').trim() &&
+    !(result.stderr || '').trim()
+  )
+    return 'the container stalled with no output (cold Docker Desktop or a hung registry fetch); re-run `node scripts/sast-diff.mjs` once to see whether it is transient.';
+  if (result.timedOut)
+    return 'the scan exceeded the budget mid-run (slow machine / CPU contention); re-run when idle, or measure the real cost with `SAST_TIMEOUT_MS=600000 node scripts/sast-diff.mjs`.';
+  return 'start Docker (or restore network access) to restore the local gate.';
 }
 
 function runDockerScan(args, timeoutMs, containerName) {
@@ -616,11 +722,13 @@ function runDockerScan(args, timeoutMs, containerName) {
   // Pre-flight: a stopped/unreachable daemon must classify as broken tool on
   // EVERY platform. `docker run` exits 125-127 on daemon connection failure on
   // some platforms but 1 on others, and exit 1 MUST mean "finding" (RF-FAIL-01).
+  const probeStart = Date.now();
   const probe = spawnSync(dockerBin, ['info'], {
     encoding: 'utf8',
     timeout: 30 * 1000,
     stdio: ['ignore', 'pipe', 'pipe'],
   });
+  const preflightMs = Date.now() - probeStart;
   if (probe.error || probe.status !== 0) {
     return Promise.resolve({
       code: null,
@@ -628,6 +736,17 @@ function runDockerScan(args, timeoutMs, containerName) {
       stderr: `${(probe.stderr || '').trim()}\nDocker daemon not reachable (\`${dockerBin} info\` exit ${probe.status}).`,
       timedOut: false,
       daemonDown: true,
+      // spawnSync surfaces ITS timeout as an ETIMEDOUT error: the daemon
+      // socket exists but the engine never answered within 30 s — a cold,
+      // waking Docker Desktop, NOT an absent daemon. Distinct triage reason
+      // (describeToolFailure), so a cold start is never reported as "Docker
+      // is not running".
+      preflightMs,
+      preflightTimedOut: Boolean(
+        probe.error &&
+        (probe.error.code === 'ETIMEDOUT' ||
+          /ETIMEDOUT/i.test(probe.error.message || ''))
+      ),
       dockerBin,
       launchError: probe.error ? probe.error.message : null,
     });
@@ -672,6 +791,8 @@ function runDockerScan(args, timeoutMs, containerName) {
         stderr: `${stderr}\n${err.message}`,
         timedOut,
         daemonDown: false,
+        preflightMs,
+        preflightTimedOut: false,
         dockerBin,
         launchError: err.message,
       });
@@ -684,6 +805,8 @@ function runDockerScan(args, timeoutMs, containerName) {
         stderr,
         timedOut,
         daemonDown: false,
+        preflightMs,
+        preflightTimedOut: false,
         dockerBin,
         launchError: null,
       });
@@ -805,7 +928,31 @@ async function main() {
   // degrade to a silent fail-open without leaving a trace (defect B).
   console.log(`   Git strategy in container: ${gitDirs.strategy}`);
 
+  // Local-only image pre-flight (diagnostic, never changes the verdict): a
+  // missing image makes `docker run` pull ~1.1 GB, and that pull alone can
+  // exhaust the local budget (root-cause candidate of the 300 s trips
+  // reported 2026-10-23). Surface it BEFORE the (possibly long) run so the
+  // operator can pre-warm. ci mode is untouched (H-1): CI pulls by design and
+  // this probe must not alter the enforcement path.
+  const imagePresent = mode === 'local' ? probeImagePresent() : null;
+  console.log(
+    `   Semgrep image cache: ${
+      imagePresent === true
+        ? 'present'
+        : imagePresent === false
+          ? 'ABSENT (docker run will pull ~1.1 GB first)'
+          : 'unknown (probe unavailable)'
+    }`
+  );
+  if (imagePresent === false) {
+    console.warn(
+      `⚠️  The pinned image ${SEMGREP_IMAGE} is NOT present locally: the pull alone may exhaust the ${Math.round(timeoutMs / 1000)}s budget before the scan starts.`
+    );
+    console.warn(`   Pre-warm (recommended): docker pull ${SEMGREP_IMAGE}`);
+  }
+
   const result = await runDockerScan(args, timeoutMs, containerName);
+  result.imagePresent = imagePresent; // consumed by describeToolFailure/localRemediation
   const classification = classifyExitCode(result.code, result.timedOut);
 
   // -- Report first (ci mode, ALWAYS - the artifact needs its input) ----------
@@ -860,11 +1007,15 @@ async function main() {
     console.warn(`⚠️  SAST tool failure: ${reason}. No scan ran.`);
     if (detail) console.warn(`   ${detail}`);
     console.warn(
-      '   Local policy: fail-open — the push proceeds. This is a tooling problem, NOT a security verdict.'
+      '   ❗ LOCAL SAST CONTRIBUTED NOTHING TO THIS PUSH — fail-open by design (RF-FAIL-02):'
     );
     console.warn(
-      '   Remediation: start Docker (or restore network access) to restore the local gate.'
+      '   the push proceeds WITHOUT a local scan. This is a tooling problem, NOT a security verdict;'
     );
+    console.warn(
+      '   the CI `sast` job still evaluates the same diff (fail-closed there).'
+    );
+    console.warn(`   Remediation: ${localRemediation(result)}`);
     return policyExitCode(mode, 'tool-broken'); // local: 0 (fail-open)
   }
 

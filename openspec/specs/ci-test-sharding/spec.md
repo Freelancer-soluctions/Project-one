@@ -72,11 +72,11 @@ The union of the shards SHALL be exactly the suite the job would run single-runn
 #### Scenario: Failing shard fails the job id
 
 - **WHEN** a test fails inside shard 2 of 3 of `test-unit-server`
-- **THEN** the `test-unit-server` job result is `failure` and `prebuild-unit-tests-complete` observes that failure
+- **THEN** the `test-unit-server` job result is `failure` and `prebuild-tests-complete` observes that failure
 
 ### Requirement: Aggregator contract and check-name stability
 
-Enabling sharding SHALL NOT change `prebuild-unit-tests-complete.needs` (exactly the 6 job ids of
+Enabling sharding SHALL NOT change `prebuild-tests-complete.needs` (exactly the 5 job ids of
 the modified `ci-prebuild-substage-structure` contract) and SHALL NOT rename any job name or
 required status check; shards SHALL be expressed as a matrix under the existing job id, and the
 matrix SHALL be absorbed by exactly ONE fixed-name bridge/merge job per sharded workspace
@@ -89,7 +89,7 @@ SHALL propagate any shard failure to its own check, and it SHALL run
 #### Scenario: needs contract unchanged after sharding
 
 - **WHEN** a developer inspects `.github/workflows/ci.yml` with sharding enabled
-- **THEN** `prebuild-unit-tests-complete.needs` still contains exactly `[test-unit-client, test-unit-server, test-integration, test-smoke, client-coverage, server-coverage]`
+- **THEN** `prebuild-tests-complete.needs` still contains exactly `[test-unit-client, test-unit-server, client-coverage, server-coverage, property-tests]`
 - **AND** no GitHub ruleset required status check needs renaming (job ids and `name:` titles are preserved)
 
 #### Scenario: Matrix is absorbed by one bridge, never by the aggregator
@@ -180,7 +180,7 @@ shard the e2e tier (owned by `ci-shifting-left`, capability `e2e-sharding`).
 #### Scenario: Advisory shard failure does not block the merge gate
 
 - **WHEN** a shard leg fails while FASE 1 advisory mode is still in effect
-- **THEN** `prebuild-unit-tests-complete` observes the job's advisory result exactly as today (no new blocking behavior introduced by sharding)
+- **THEN** `prebuild-tests-complete` observes the job's advisory result exactly as today (no new blocking behavior introduced by sharding)
 - **AND** `continue-on-error: true` still appears on the sharded test job and on the bridge
 
 #### Scenario: Selection happens before sharding and guard D7 stays intact

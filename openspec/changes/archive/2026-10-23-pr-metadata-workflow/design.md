@@ -15,17 +15,29 @@ remaining heavy jobs carry `if: false` or an aggregator `always()` that would ha
 `always() && action != 'edited'`. The cancellation problem is a _symptom_ of the coupling, not the root
 cause: **a workflow has exactly one `on:` and one `concurrency` group**.
 
-**Aggregator (verified today):** `prebuild-governance-complete.needs` = `[verify-signatures, commit-lint,
-pr-title-lint, dco, sast]` — five entries, `sast` graduated to FASE 2 blocking on 2026-10-20. Removing the
-title job leaves **four**. `sast` stays: it is a separate governance layer, unaffected by this change.
+**Aggregator:** `prebuild-governance-complete.needs` was `[verify-signatures, commit-lint, pr-title-lint, dco, sast]`
+— five entries, `sast` having graduated to FASE 2 blocking on 2026-10-20 — when this design was written. Removing the
+title job left **four**: `[verify-signatures, commit-lint, dco, sast]`, the value verified in the repository on
+2026-10-23. `sast` stays: it is a separate governance layer, unaffected by this change.
 
 **`ci-complete`** needs only the substage aggregators plus `verify-signatures`, `zombie-workflow-guard`,
 `repo-discovery`, and treats `cancelled` as **success** (exit 0) while the substage aggregators treat it as
 failure — latent debt, recorded, not fixed here.
 
-**Ruleset 21227644** binds four required contexts by `(name, integration_id=15368)`. The integration id
-identifies the GitHub Actions app, **not** a workflow file, so a context emitted from a different workflow
-resolves identically. That is what makes the split possible without touching the ruleset for the title.
+**Ruleset 21227644** binds its required contexts by `(name, integration_id=15368)` — four per-job contexts when this
+design was written, and two contexts since the 2026-10-23 revision recorded next. The integration id identifies the
+GitHub Actions app, **not** a workflow file, so a context emitted from a different workflow resolves identically. That
+is what makes the split possible without touching the ruleset for the title.
+
+**Binding model (revised 2026-10-23, ruleset audited through the API):** the ruleset now requires exactly two contexts
+— `Governance: PR Body Lint` (bound directly) and `Prebuild Governance Complete` (the `prebuild-governance-complete`
+aggregator, whose `needs` is `[verify-signatures, commit-lint, dco, sast]`). The four per-job contexts this design was
+written against (`Verify Commit Signatures`, `Commit Lint (Conventional Commits)`, `PR Title Lint`, `DCO`) no longer
+exist as contexts, and the governance job names were prefixed with `Governance:` in the same redesign. The three
+`ci.yml` governance jobs reach the ruleset through the aggregator; `Governance: PR Title Lint` is emitted but bound by
+nothing, since a cross-workflow `needs` is impossible. The invariant this design relies on is unchanged: a required
+context is matched by exact `name:` string, so a rename without a same-operation ruleset update blocks every PR
+silently.
 
 **Guard rails:** `zombie-workflow-guard` fails the build if `pr-validation.yml`, `lint.yml`,
 `formatter.yml` or `quality.yml` reappear. `vitest.scripts.config.js` already collects
@@ -78,13 +90,13 @@ still executes the heavy pipeline on every metadata edit.
 
 **Rationale:** a check needs `edited` only if the user can fix it **without moving the SHA**.
 
-| Check                                | What turns it green             | Moves SHA | Needs `edited` |
-| ------------------------------------ | ------------------------------- | :-------: | :------------: |
-| `Verify Commit Signatures`           | a signed commit / rewrite       |    yes    |       no       |
-| `Commit Lint (Conventional Commits)` | `commit --amend` of the message |    yes    |       no       |
-| `DCO`                                | `commit --amend -s`             |    yes    |       no       |
-| `PR Title Lint`                      | `gh pr edit --title`            |  **no**   |    **yes**     |
-| `Governance: PR Body Lint`           | `gh pr edit --body-file`        |  **no**   |    **yes**     |
+| Check                                            | What turns it green             | Moves SHA | Needs `edited` |
+| ------------------------------------------------ | ------------------------------- | :-------: | :------------: |
+| `Governance: Verify Commit Signatures`           | a signed commit / rewrite       |    yes    |       no       |
+| `Governance: Commit Lint (Conventional Commits)` | `commit --amend` of the message |    yes    |       no       |
+| `Governance: DCO`                                | `commit --amend -s`             |    yes    |       no       |
+| `Governance: PR Title Lint`                      | `gh pr edit --title`            |    no     |      yes       |
+| `Governance: PR Body Lint`                       | `gh pr edit --body-file`        |    no     |      yes       |
 
 **Rejected:** moving `dco`/`commit-lint` "for symmetry". They would gain nothing and would duplicate
 `merge_group` logic that belongs to the merge queue.
@@ -174,6 +186,11 @@ at least one run.
 **Rationale:** GitHub only allows selecting a check that has reported at least once. Attaching the context
 before the emitter exists produces a repo-wide `Expected — Waiting`. The update uses `GET` → modify → `PUT`
 (`PATCH` replaces the whole `required_status_checks` array and would drop the other four).
+
+**Revised 2026-10-23:** the four per-job contexts were removed and replaced by the `Prebuild Governance Complete`
+aggregator, which now carries the enforcement of `verify-signatures`, `commit-lint` and `dco`; `Governance: PR Body
+Lint` remains bound directly (its name never changed), and `PR Title Lint` was renamed `Governance: PR Title Lint`
+without being bound. The ordering rule above still governs any future binding.
 
 The context name becomes a frozen contract: renaming the job without the ruleset leaves every PR blocked
 forever with a message that never mentions the rename.
