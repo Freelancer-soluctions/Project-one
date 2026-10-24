@@ -982,10 +982,12 @@ merge_group` es dead code (ver §3.3/§5.3).
 #### 9.3.4 `pr-body-lint` → check "Governance: PR Body Lint" (REQUIRED, uno de los 2 contextos; nuevo 2026-10-20)
 
 - **Qué hace:** valida la **descripción del PR** contra `.github/PULL_REQUEST_TEMPLATE.md` con la política versionada
-  en `scripts/ci/pr-body-lint.mjs` (R1 ≥40 chars útiles · R2a `Summary` ≥20 · R2b `Related Issue` con ref `#\d+` o
-  ≥20 · R2c sección de tests con contenido o casilla marcada · R3 `Closes #` sin número → **fallan**; R4 sin casilla
-  marcada y R5 sin ref de issue → **solo advertencia**). Botones de plantilla sin marcar, comentarios HTML y
-  encabezados no cuentan como contenido (normalización en 6 pasos).
+  en `scripts/ci/pr-body-lint.mjs` (change `simplify-pr-body-lint-template`, 2026-10-23: `EMPTY_BODY` · R2a `Summary`
+  con contenido · R2b `Related Issue` con contenido · R2c sección de tests con contenido o casilla marcada · R3
+  `Closes #` sin número → **fallan**; no hay reglas de advertencia y **no hay mínimos de longitud**). Casillas sin
+  marcar, comentarios HTML y encabezados no cuentan como contenido (strip en 6 pasos); las secciones se localizan con
+  un único escaneo de encabezados `##`, sin máscara de bloques de código (regresión aceptada: un `##` dentro de un
+  fence también corta la sección).
 - **Emisor:** job `pr-body-lint` de `.github/workflows/pr-metadata.yml`, re-valida en `edited` como el título. La
   política se lee del **base ref** (sparse-checkout de `scripts/ci` con `ref: base.sha`): un PR no puede reescribir
   el módulo que lo juzga y volver verde su propio veredicto (D9b). El módulo está en `.github/CODEOWNERS` bajo
@@ -995,8 +997,10 @@ github.event.pull_request.user.type != 'Bot'` — un maintainer editando un PR d
   autor es estable y el actor no. Los bots NO se eximen del título (§9.3.3).
 - **Sin bypass por label** (D9): no existe `skip-pr-body-lint`. El único override humano es el bypass actor del
   ruleset (`RepositoryRole id 5`, modo `pull_request`).
-- **Evidencia:** `.tmp/pr-body-lint/report.json` (schema v1, 14 días) subido con `if: always()`, + tabla en el job
-  summary. Un fallo de escritura del reporte se reporta como **error de tooling**, no como violación de política.
+- **Evidencia:** el **Step Summary** del job (veredicto + cada fallo con su regla y su sección). El `report.json` y el
+  artefacto de 14 días se retiraron con la política reducida (change `simplify-pr-body-lint-template`, D2), así que no
+  hay nada que descargar. Un fallo al publicar el summary se reporta como **error de tooling**, no como violación de
+  política.
 - **Blast radius medido (2026-10-20, `gh pr list --state all --limit 100`):** de 100 PRs históricos, 28 son de bots
   (exentos) y **los 72 humanos fallarían el gate hoy** — 49 con cuerpo vacío, 52 sin encabezados de plantilla, 18
   con `Related Issue` presente y **0** de esos 18 fallando R2b (la política no rechaza contenido sancionado por la
