@@ -1,4 +1,4 @@
-# Spec Delta — pr-metadata-workflow
+# pr-metadata-workflow Specification
 
 ## Purpose
 
@@ -7,7 +7,7 @@ and body (not only by code pushes), runs the metadata checks under a concurrency
 validation run, and guarantees that every required metadata check is emitted by exactly one place — including on
 `merge_group`, where a silently absent required check blocks the merge queue forever.
 
-## ADDED Requirements
+## Requirements
 
 ### Requirement: Metadata checks live in their own workflow
 
@@ -133,28 +133,33 @@ token against untrusted code, which is precisely the combination that turns a li
 
 ### Requirement: Both metadata jobs report under the contract names
 
-The workflow SHALL define two jobs whose display names are exactly `PR Title Lint` and `Governance: PR Body Lint`.
+The workflow SHALL define two jobs — `pr-title-lint` and `pr-body-lint` — whose display names are exactly
+`Governance: PR Title Lint` and `Governance: PR Body Lint`. Both carry the `Governance:` prefix of the block they
+belong to, per the job-naming convention.
 
-`PR Title Lint` preserves the name it already has as a required status check of ruleset 21227644
-(`integration_id=15368`): the ruleset matches required contexts as an exact string, so changing it silently detaches
-the requirement. `Governance: PR Body Lint` carries the `Governance:` prefix of the block it is defined in, per the
-job-naming convention.
+The display names are contracts: the ruleset matches required status-check contexts as an exact string, so renaming a
+job whose context is bound silently detaches the requirement. `Governance: PR Body Lint` is bound by ruleset 21227644
+(`integration_id=15368`, audited 2026-10-23) and must not be renamed without updating the ruleset in the same
+operation. `Governance: PR Title Lint` is emitted but not bound — a `needs` entry cannot span workflows and the ruleset
+does not bind it directly — so its name is a contract for any future binding rather than a current requirement.
 
 #### Scenario: Job names match the required contexts
 
 - **WHEN** the `name:` values of the two jobs are read
-- **THEN** they are exactly `PR Title Lint` and `Governance: PR Body Lint`
-- **AND** `PR Title Lint` is identical to the context already required by ruleset 21227644
+- **THEN** they are exactly `Governance: PR Title Lint` and `Governance: PR Body Lint`
+- **AND** `Governance: PR Body Lint` is identical to a context required by ruleset 21227644
+- **AND** `Governance: PR Title Lint` is emitted without a ruleset binding
 
 #### Scenario: Renaming a required context without the ruleset
 
-- **WHEN** either job's `name:` is changed and the ruleset's required contexts are not updated in the same operation
+- **WHEN** the `name:` of a job whose context the ruleset binds is changed and the ruleset's required contexts are not
+  updated in the same operation
 - **THEN** the pull requests stay blocked with `Expected — Waiting for status to be reported`
 - **AND** that state is treated as a defect, because the message does not reveal that a rename caused it
 
 ### Requirement: Each required metadata check has exactly one emitter
 
-The required status check `PR Title Lint` SHALL be emitted by exactly one job in exactly one workflow at any commit.
+The status check `Governance: PR Title Lint` SHALL be emitted by exactly one job in exactly one workflow at any commit.
 The migration of that job into this workflow SHALL add the new workflow and remove the job from
 `.github/workflows/ci.yml` atomically, so that no commit exists in which both workflows define a job with that
 display name.
@@ -171,7 +176,8 @@ can therefore be masked by a green verdict from the other.
 
 #### Scenario: Duplicate emitter is detected
 
-- **WHEN** a search for the display name `PR Title Lint` across `.github/workflows/` returns more than one definition
+- **WHEN** a search for the display name `Governance: PR Title Lint` across `.github/workflows/` returns more than one
+  definition
 - **THEN** the duplication is treated as a contract violation to fix before merge
 
 ### Requirement: Both jobs report on merge_group

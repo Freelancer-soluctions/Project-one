@@ -9,7 +9,8 @@ The `sast` entry reflects its FASE 2 graduation (2026-10-20, change `sast-shift-
 finding blocks the merge through this aggregator. The metadata checks `pr-title-lint` and `pr-body-lint` SHALL NOT be
 included: both are defined in `.github/workflows/pr-metadata.yml`, and a GitHub Actions `needs` entry can only
 reference a job in the same workflow, so listing them would make the aggregator invalid rather than more complete.
-Metadata coverage is reported by the metadata workflow's own required checks, which the ruleset binds directly.
+Metadata coverage therefore does not reach this aggregator at all: `Governance: PR Body Lint` is bound to the ruleset
+directly and `Governance: PR Title Lint` is emitted without being bound at all.
 
 #### Scenario: Governance aggregator needs resolution
 
@@ -50,7 +51,7 @@ advertises a job the file does not contain misleads exactly the reader it is mea
   - `# SUBSTAGE 2A: GOVERNANCE — verify-signatures, commit-lint, dco, sast diff`
   - `# SUBSTAGE 2B: CODE QUALITY — lint, format-check, typecheck, complexity, dead-code, import-bounds, e2e-lint, openspec-validate, docs-validation (advisory)`
   - `# SUBSTAGE 2C: SECURITY — dependency-review, secrets, scancode-license-pr-diff, lockfile-audit, checkov-iac, containerfile-lint, actionlint-advisory, zizmor-advisory, typosquat-guarddog`
-  - `# SUBSTAGE 2D: UNIT TESTING — test-unit-client, test-unit-server, test-integration, test-smoke`
+  - `# SUBSTAGE 2D: UNIT TESTING — test-unit-client, test-unit-server, test-integration, test-smoke, property-tests`
 
 #### Scenario: Metadata job is not advertised in the 2A header
 
@@ -66,19 +67,28 @@ advertises a job the file does not contain misleads exactly the reader it is mea
 
 ### Requirement: Checks bound to the ruleset are exempt from renaming
 
-The job `name:` values that the branch ruleset requires as status checks SHALL NOT be renamed without a coordinated
-update of the ruleset itself. Four are required today: `Verify Commit Signatures` (`verify-signatures`),
-`Commit Lint (Conventional Commits)` (`commit-lint`), `PR Title Lint` (`pr-title-lint`) and `DCO` (`dco`).
-`Governance: PR Body Lint` (`pr-body-lint`) joins that set when the administrator attaches it to the ruleset at its
-FASE 3 step; from then on it is bound and frozen exactly like the other four.
+The job `name:` values that the branch ruleset binds as status-check contexts SHALL NOT be renamed without a
+coordinated update of the ruleset itself, because the ruleset matches a required context against the job `name:` as an
+exact string: renaming a bound job makes the required check never be emitted and leaves pull requests blocked
+indefinitely with `Expected — Waiting for status to be reported`, a message that gives no hint that a renamed job is
+the cause.
 
-The ruleset matches required contexts against the job `name:` as an exact string. Renaming a job whose name the
-ruleset requires makes the required check never be emitted, leaving pull requests blocked indefinitely with
-`Expected — Waiting for status to be reported` — a message that gives no hint that a renamed job is the cause.
+Two contexts are bound today (ruleset 21227644 audited through the API on 2026-10-23): `Governance: PR Body Lint`
+(job `pr-body-lint`, `.github/workflows/pr-metadata.yml`) and `Prebuild Governance Complete` (job
+`prebuild-governance-complete`, `ci.yml`).
 
-The exemption follows the requirement, not the workflow: `PR Title Lint` stays exempt after moving to
-`.github/workflows/pr-metadata.yml`, and `Governance: PR Body Lint` joins the list as soon as the administrator adds
-it to the ruleset.
+The three governance jobs of `ci.yml` — `Governance: Verify Commit Signatures` (`verify-signatures`),
+`Governance: Commit Lint (Conventional Commits)` (`commit-lint`) and `Governance: DCO` (`dco`) — are not bound
+individually: they reach the ruleset through the `Prebuild Governance Complete` aggregator, which lists them in its
+`needs`. Their own names therefore carry no freeze on their own, while the aggregator's name does — renaming it
+detaches the requirement for the whole governance substage, not for a single check.
+
+`Governance: PR Title Lint` (`pr-title-lint`) is emitted by `.github/workflows/pr-metadata.yml` and is bound by neither
+path: a `needs` entry cannot reference a job in another workflow, and the ruleset does not bind it directly.
+
+The exemption follows the requirement, not the workflow: `Governance: PR Body Lint` is bound from
+`.github/workflows/pr-metadata.yml` rather than from `ci.yml`, and `Prebuild Governance Complete` is bound from
+`ci.yml`; neither is exempt because of the file it happens to live in.
 
 #### Scenario: Renaming a ruleset-bound check is a coordinated operation
 
@@ -95,6 +105,27 @@ it to the ruleset.
 
 #### Scenario: A check bound to the ruleset in another workflow keeps its exemption
 
-- **WHEN** `PR Title Lint` is defined in `.github/workflows/pr-metadata.yml` rather than in `ci.yml`
-- **THEN** it remains exempt from renaming, because the ruleset binds the context name and not the file location
-- **AND** `Governance: PR Body Lint` is exempt on the same terms once it is a required context
+- **WHEN** `Governance: PR Body Lint` is defined in `.github/workflows/pr-metadata.yml` rather than in `ci.yml`
+- **THEN** it is bound exactly as a `ci.yml` job would be, because the ruleset binds the context name and not the file
+  location
+- **AND** `Prebuild Governance Complete` carries the same binding from inside `ci.yml`
+
+### Requirement: Jobs with no block are enumerated as role exceptions
+
+The `name:` of a job that does not belong to any substage SHALL NOT be given a block prefix. The complete set of such
+jobs is enumerated here so that a future normalization change evaluates them against this list instead of reporting
+them as inconsistencies:
+
+- `repo-discovery` (`Detect Changes`) — the ENTRY path-filter; it precedes every substage and decides which jobs run.
+- `zombie-workflow-guard` (`Zombie Workflow Guard`) — a GUARD assertion about the repository itself, outside the DAG's
+  stage structure.
+- `ci-complete` (`CI Complete`) — the root aggregator; by definition it does not belong to a substage.
+
+A job outside this list and outside the ruleset exemption SHALL be reported as an inconsistency to fix.
+
+#### Scenario: An unprefixed job is judged against the exception list
+
+- **WHEN** a future change inventories job names for missing prefixes
+- **THEN** the three role-exception jobs above and the ruleset-bound contexts covered by
+  _Checks bound to the ruleset are exempt from renaming_ are treated as known, documented exceptions
+- **AND** any other unprefixed job is reported as an inconsistency to fix

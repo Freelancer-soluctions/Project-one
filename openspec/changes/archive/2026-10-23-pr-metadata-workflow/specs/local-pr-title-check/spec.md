@@ -7,8 +7,9 @@
 The `pr-title-check.js` script SHALL validate that a PR title starts with one of the allowed Conventional Commits type
 prefixes: `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `build`, `ci`, `chore`, `revert`, `ops`.
 
-The configuration mirrored by this script SHALL be that of the job `PR Title Lint` in
-`.github/workflows/pr-metadata.yml`. The script SHALL NOT name `.github/workflows/ci.yml` as its canonical source:
+The configuration mirrored by this script SHALL be that of the job `Governance: PR Title Lint` (job id
+`pr-title-lint`) in `.github/workflows/pr-metadata.yml`. The script SHALL NOT name `.github/workflows/ci.yml` as its
+canonical source:
 the `pr-title-lint` job was relocated to the metadata workflow, so a reference to the old location points at a file
 that no longer contains the configuration being mirrored.
 
@@ -30,7 +31,7 @@ that no longer contains the configuration being mirrored.
 #### Scenario: Canonical source points at the metadata workflow
 
 - **WHEN** a developer reads the script's header comment or any documentation of its canonical source
-- **THEN** the source named is `.github/workflows/pr-metadata.yml` job `PR Title Lint`
+- **THEN** the source named is `.github/workflows/pr-metadata.yml` job `Governance: PR Title Lint`
 - **AND** no reference presents `.github/workflows/ci.yml` as the location of the mirrored configuration
 
 #### Scenario: Local and CI verdicts agree after the relocation
