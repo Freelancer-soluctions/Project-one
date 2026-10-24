@@ -455,7 +455,8 @@ jobs:
     # ci-complete.needs)
 
   # ═══════════════════════════════════════════════════════════════
-  # SUBSTAGE 2D: UNIT TESTING — test-unit-client, test-unit-server, test-integration, test-smoke, property-tests
+  # SUBSTAGE 2D: UNIT TESTING — test-unit-client, test-unit-server, client-coverage, server-coverage, property-tests
+  # (jobs de testing tier-1; test-integration/test-smoke son STAGE 4 POST-BUILD, no miembros de este substage)
   # FASE 1 advisory (continue-on-error: reporta sin bloquear) → FASE 2 blocking al
   # cerrar la ventana de calibración (2-4 semanas; docs/learning/quality-gates.md en lockstep).
   # Coverage: client-coverage/server-coverage se scopean por propagación de skip de su
@@ -1043,7 +1044,7 @@ jobs:
     # PUENTE DEL COVERAGE MERGE GATE — change `coverage-merge-gate` (D1/D2). Este job ES el
     # puente de NOMBRE FIJO que fusiona la cobertura de TODAS las shards y evalúa los
     # thresholds globales UNA SOLA VEZ, post-merge. No se crea ningún job nuevo: el
-    # agregador `prebuild-unit-tests-complete` sigue viendo sus mismos 6 `needs`.
+    # agregador `prebuild-tests-complete` lo sigue viendo entre sus 5 `needs`.
     # - `!cancelled()`: el default `success()` se saltaría el gate justo cuando una shard
     #   falló (el informe importa más entonces); `always()` además correría tras una
     #   cancelación explícita del usuario, gastando un runner en un run descartado.
@@ -2048,16 +2049,16 @@ jobs:
   # STAGE 3: BUILD (compilación, empaquetado, artifact)
   # ═══════════════════════════════════════════════════════════════
   client-build:
-    if: false # Disabled for incremental CI — change to true to re-enable
+    # The four prebuild verdicts are composed INTO the condition (not documented in a comment):
+    # activation is the single-token edit `false` → `true` and the gate is already present.
+    if: false && needs.prebuild-governance-complete.result == 'success' && needs.prebuild-quality-complete.result == 'success' && needs.prebuild-security-complete.result == 'success' && needs.prebuild-tests-complete.result == 'success' # Disabled for incremental CI — change to true to re-enable
     name: 'Build: Client'
     needs:
       [
-        client-lint,
-        client-format-check,
-        client-typecheck,
-        client-complexity,
-        client-dead-code,
-        client-import-bounds,
+        prebuild-governance-complete,
+        prebuild-quality-complete,
+        prebuild-security-complete,
+        prebuild-tests-complete,
       ]
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -2073,16 +2074,15 @@ jobs:
           path: apps/client/dist/
 
   server-build:
-    if: false # Disabled for incremental CI — change to true to re-enable
+    # Same composed gate as client-build: `false` short-circuits the whole conjunction.
+    if: false && needs.prebuild-governance-complete.result == 'success' && needs.prebuild-quality-complete.result == 'success' && needs.prebuild-security-complete.result == 'success' && needs.prebuild-tests-complete.result == 'success' # Disabled for incremental CI — change to true to re-enable
     name: 'Build: Server'
     needs:
       [
-        server-lint,
-        server-format-check,
-        server-typecheck,
-        server-complexity,
-        server-dead-code,
-        server-import-bounds,
+        prebuild-governance-complete,
+        prebuild-quality-complete,
+        prebuild-security-complete,
+        prebuild-tests-complete,
       ]
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -2541,32 +2541,116 @@ jobs:
           fi
           echo "✅ Security substage succeeded or was skipped"
 
-  prebuild-unit-tests-complete:
+  # Renamed by change `ci-stage-aggregator-topology` (D9): the aggregator carries the whole tier-1
+  # testing surface, not only unit tests, so the `unit` wording became false and the id now mirrors
+  # `postbuild-tests-complete`.
+  prebuild-tests-complete:
     if: ${{ vars.CI_MINIMAL != 'true' && always() }}
-    name: Prebuild Unit Tests Complete
+    name: Prebuild Tests Complete
     runs-on: ubuntu-latest
     needs:
       - test-unit-client
       - test-unit-server
-      - test-integration
-      - test-smoke
       - client-coverage
       - server-coverage
+      # ALL 5 tier-1 members (`test-unit-client`, `test-unit-server`, `client-coverage`,
+      # `server-coverage`, `property-tests`) carry `continue-on-error: true` (FASE 1 advisory), so
+      # each individual failure is absorbed at job level and this aggregator stays green regardless:
+      # it carries NO blocking force. Only the governance / quality / security verdicts block.
+      # Promotion to blocking belongs to the `ci-testing-gate-promotion` change.
+      - property-tests
     steps:
       - name: Check for failures
         run: |
           if [[ "${{ contains(needs.*.result, 'failure') }}" == "true" ]]; then
-            echo "❌ One or more unit-test jobs failed"
+            echo "❌ One or more tier-1 testing jobs failed"
             exit 1
           fi
           if [[ "${{ contains(needs.*.result, 'cancelled') }}" == "true" ]]; then
-            echo "❌ One or more unit-test jobs were cancelled"
+            echo "❌ One or more tier-1 testing jobs were cancelled"
             exit 1
           fi
-          echo "✅ Unit-testing substage succeeded or was skipped"
+          echo "✅ Tier-1 testing substage succeeded or was skipped"
 
   # ═══════════════════════════════════════════════════════════════
-  # AGGREGATOR — CI Complete — Single required check aggregator
+  # STAGE AGGREGATORS — Build Complete + Postbuild {Tests,Analysis} Complete
+  # Stage verdicts, not substage verdicts: they carry no `Prebuild ` prefix and are
+  # siblings of the four STAGE 2 aggregators above (change `ci-stage-aggregator-topology`).
+  # Any future `name:` containing `:` MUST be single-quoted (actionlint: "Nested mappings are
+  # not allowed in compact mappings"); these three names contain no `:`, hence unquoted.
+  # ═══════════════════════════════════════════════════════════════
+  build-complete:
+    if: ${{ always() }}
+    name: Build Complete
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    needs:
+      - client-build
+      - server-build
+    steps:
+      - name: Check for failures
+        run: |
+          if [[ "${{ contains(needs.*.result, 'failure') }}" == "true" ]]; then
+            echo "❌ One or more build jobs failed"
+            exit 1
+          fi
+          if [[ "${{ contains(needs.*.result, 'cancelled') }}" == "true" ]]; then
+            echo "❌ One or more build jobs were cancelled"
+            exit 1
+          fi
+          echo "✅ Build stage succeeded or was skipped"
+
+  postbuild-tests-complete:
+    if: ${{ always() }}
+    name: Postbuild Tests Complete
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    needs:
+      - build-complete
+      - test-integration
+      - test-smoke
+      - e2e
+    steps:
+      - name: Check for failures
+        run: |
+          if [[ "${{ contains(needs.*.result, 'failure') }}" == "true" ]]; then
+            echo "❌ One or more post-build test jobs failed"
+            exit 1
+          fi
+          if [[ "${{ contains(needs.*.result, 'cancelled') }}" == "true" ]]; then
+            echo "❌ One or more post-build test jobs were cancelled"
+            exit 1
+          fi
+          echo "✅ Post-build testing stage succeeded or was skipped"
+
+  postbuild-analysis-complete:
+    if: ${{ always() }}
+    name: Postbuild Analysis Complete
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    needs:
+      - build-complete
+      - client-sonarqube
+      - server-sonarqube
+      - client-depcheck
+      - server-depcheck
+    steps:
+      - name: Check for failures
+        run: |
+          if [[ "${{ contains(needs.*.result, 'failure') }}" == "true" ]]; then
+            echo "❌ One or more post-build analysis jobs failed"
+            exit 1
+          fi
+          if [[ "${{ contains(needs.*.result, 'cancelled') }}" == "true" ]]; then
+            echo "❌ One or more post-build analysis jobs were cancelled"
+            exit 1
+          fi
+          echo "✅ Post-build analysis stage succeeded or was skipped"
+
+  # ═══════════════════════════════════════════════════════════════
+  # AGGREGATOR — CI Complete — Root verdict over every stage
+  # NOT a ruleset-required check: ruleset 21227644 binds exactly two contexts
+  # (`Governance: PR Body Lint`, `Prebuild Governance Complete`).
   # ═══════════════════════════════════════════════════════════════
   ci-complete:
     if: ${{ vars.CI_MINIMAL != 'true' && always() }}
@@ -2576,7 +2660,10 @@ jobs:
       - prebuild-governance-complete
       - prebuild-quality-complete
       - prebuild-security-complete
-      - prebuild-unit-tests-complete
+      - prebuild-tests-complete
+      - build-complete
+      - postbuild-tests-complete
+      - postbuild-analysis-complete
       - zombie-workflow-guard
       - repo-discovery
     steps:

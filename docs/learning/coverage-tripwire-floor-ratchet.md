@@ -210,7 +210,8 @@ En `apps/server/vitest.config.js` el piso global está en 42.28/21.75/8.98/42.76
 > **FASE 1 advisory** — tienen `if:` activo + `continue-on-error: true` (job-COE). **Ya no son `if: false`.**
 > Refs en `ci.yml`: `test-unit-client` L744 (`if:`) / L748 (COE) · `test-unit-server` L843 / L847 ·
 > `client-coverage` L1514 / L1524 · `server-coverage` L1603 / L1610. El agregador
-> `prebuild-unit-tests-complete` (L1946) tiene `needs` = los **6** jobs (4→6 tras este change).
+> `prebuild-tests-complete` tiene `needs` = los **5** jobs tier-1 (4→6 al activarse la cobertura; 5 desde
+> `ci-stage-aggregator-topology`, que sacó integration/smoke y añadió `property-tests`).
 >
 > **Consecuencia del job-COE:** por `actions/toolkit#581`, si un job tiene `continue-on-error: true` y falla,
 > `needs.<job>.result` reporta `success` — el agregador **no bloquea**. Por eso la FASE 1 es tal: informa pero no

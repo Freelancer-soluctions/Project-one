@@ -46,7 +46,7 @@ Define la política, la configuración y el alcance de snapshot testing en `apps
 
 ### Requirement: Snapshot tests run in the CI prebuild testing substage
 
-The snapshot suite SHALL run inside the existing STAGE 2 PRE-BUILD testing substage of `.github/workflows/ci.yml` — job `test-unit-client` (SUBSTAGE 2D, aggregated by `prebuild-unit-tests-complete`) — through the scripts that job already invokes: `test:changed:ci` for the diff-scoped run and `test:coverage:ci` for the full-suite run. No separate snapshot job SHALL be added, no job SHALL be added to or removed from any `prebuild-*-complete` aggregator's `needs`, and no CI step or CI-consumed script SHALL pass `-u`, `--update`, `--update=all` or `--update=new`. Because GitHub Actions exports `CI=true`, `test.update` resolves to `'none'` in those runs, so the committed `.snap` files and inline snapshots are validated and a missing, mismatched, or obsolete snapshot fails the Vitest step without writing anything.
+The snapshot suite SHALL run inside the existing STAGE 2 PRE-BUILD testing substage of `.github/workflows/ci.yml` — job `test-unit-client` (SUBSTAGE 2D, aggregated by `prebuild-tests-complete`) — through the scripts that job already invokes: `test:changed:ci` for the diff-scoped run and `test:coverage:ci` for the full-suite run. No separate snapshot job SHALL be added, and the snapshot wiring SHALL NOT justify adding or removing any job in any `prebuild-*-complete` aggregator's `needs`: this change adds no snapshot job, therefore removes no job from any aggregator on the snapshot's behalf, and leaves the prebuild → build → artifact order unchanged for snapshot execution. No CI step or CI-consumed script SHALL pass `-u`, `--update`, `--update=all` or `--update=new`. Because GitHub Actions exports `CI=true`, `test.update` resolves to `'none'` in those runs, so the committed `.snap` files and inline snapshots are validated and a missing, mismatched, or obsolete snapshot fails the Vitest step without writing anything.
 
 #### Scenario: A snapshot mismatch fails the prebuild test job
 
@@ -71,7 +71,7 @@ The snapshot suite SHALL run inside the existing STAGE 2 PRE-BUILD testing subst
 #### Scenario: The prebuild stage order and aggregator contracts are preserved
 
 - **WHEN** the snapshot wiring is verified against `.github/workflows/ci.yml`
-- **THEN** snapshot execution happens in the existing prebuild job (order: prebuild → build → artifact unchanged), `prebuild-unit-tests-complete.needs` still contains exactly `[test-unit-client, test-unit-server, test-integration, test-smoke, client-coverage, server-coverage]`, and no job id or display name bound to the ruleset is renamed
+- **THEN** snapshot execution happens in the existing prebuild job (order: prebuild → build → artifact unchanged), `prebuild-tests-complete.needs` still contains exactly `[test-unit-client, test-unit-server, client-coverage, server-coverage, property-tests]`, and no job id or display name bound to the ruleset is renamed
 
 #### Scenario: CI runs are deterministic for snapshots
 

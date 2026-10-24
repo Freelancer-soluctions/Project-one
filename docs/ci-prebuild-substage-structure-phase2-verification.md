@@ -12,7 +12,7 @@
 | prebuild-governance-complete | ✅ SUCCESS | All checks pass (verify-signatures, commit-lint, pr-title-lint, dco) |
 | prebuild-quality-complete    | ❌ FAILURE | Client Dead Code + Client Import Bounds (knip findings)              |
 | prebuild-security-complete   | ✅ SUCCESS | No security issues                                                   |
-| prebuild-unit-tests-complete | ✅ SUCCESS | All unit/integration/smoke tests pass                                |
+| prebuild-tests-complete      | ✅ SUCCESS | All unit/integration/smoke tests pass                                |
 | ci-complete                  | ❌ FAILURE | Blocked by quality gate failure                                      |
 
 ## Ruleset Checks (Tasks 5.1-5.2 Verified)
@@ -31,7 +31,7 @@ All 4 ruleset status checks passed with no regressions:
 - ✅ prebuild-governance-complete: All 4 dependencies (verify-signatures, commit-lint, pr-title-lint, dco) pass
 - ❌ prebuild-quality-complete: Fails on Client Dead Code + Client Import Bounds (knip findings) — requires fixing ignored files in knip.json
 - ✅ prebuild-security-complete: dependency-review pass
-- ✅ prebuild-unit-tests-complete: test-unit-client + test-unit-server pass
+- ✅ prebuild-tests-complete: test-unit-client + test-unit-server pass
 
 ## Task Tracking Status
 

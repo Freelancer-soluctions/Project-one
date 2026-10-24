@@ -584,8 +584,10 @@ ci-complete:
     - prebuild-governance-complete
     - prebuild-quality-complete
     - prebuild-security-complete
-    - prebuild-unit-tests-complete
-    - verify-signatures
+    - prebuild-tests-complete
+    - build-complete
+    - postbuild-tests-complete
+    - postbuild-analysis-complete
     - zombie-workflow-guard
   steps:
     - name: Check for failures
@@ -601,10 +603,16 @@ ci-complete:
         echo "✅ All upstream jobs succeeded or were skipped"
 ```
 
-Forma actual: `ci-complete.needs` son **7 entradas** — los 4 agregadores por substage
+Forma actual: `ci-complete.needs` son **9 entradas** — los 4 agregadores por substage
 (`prebuild-governance-complete`, `prebuild-quality-complete`, `prebuild-security-complete`,
-`prebuild-unit-tests-complete`) + `verify-signatures` + `zombie-workflow-guard` + `repo-discovery`. La lista
-plana de 32 jobs de la v1 del change quedó obsoleta al consolidarse los agregadores de substage.
+`prebuild-tests-complete`) + los 3 agregadores de stage (`build-complete`, `postbuild-tests-complete`,
+`postbuild-analysis-complete`) + `zombie-workflow-guard` + `repo-discovery`. La lista plana de 32 jobs de la v1 del
+change quedó obsoleta al consolidarse los agregadores de substage.
+
+> **Corrección (change `ci-stage-aggregator-topology`):** `verify-signatures` **nunca** estuvo en
+> `ci-complete.needs`; su enforcement vive en `Prebuild Governance Complete` (substage 2A) y en la regla
+> `required_signatures` del ruleset. La versión anterior de este párrafo lo listaba por error: no debe
+> "restaurarse".
 
 - La regla **ADD-only sigue vigente**: nunca quitar ni modificar una entrada existente; solo agregar.
 - Los jobs nuevos de governance se wirean al agregador de su substage
