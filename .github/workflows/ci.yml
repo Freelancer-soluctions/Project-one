@@ -1559,7 +1559,7 @@ jobs:
 
       - name: Run Hadolint Containerfile lint (SARIF)
         id: hadolint-sarif
-        uses: hadolint/hadolint-action@v3.1.0
+        uses: hadolint/hadolint-action@v3.5.0
         with:
           dockerfile: apps/server/Dockerfile
           config: .hadolint.yaml
