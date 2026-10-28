@@ -10,10 +10,17 @@
 
 ## 0. Preparation and baseline
 
-- [ ] 0.1 Record the baseline as a concrete artifact, not as a gesture: the test PR number, the saved
-      body snapshot path (`.tmp/pr-body-lint/baseline-body.md`) and the run id that produced it.
-      **Evidencia**: this line carries `<PR #> · <snapshot path> · <run id>` and the snapshot file exists.
-      Unchecked until those three values are written here.
+- [x] 0.1 Record the baseline as it actually exists — two measured artifacts, **no saved PR body**. The
+      behavioural baseline that matters is the **235 logic lines** measured before the rewrite
+      (`design.md` § Context: 235 logic lines, target ≤80; § The metric re-measures it with the same
+      command), plus the run evidence already recorded in 1.1/1.3 (9 runs of `pr-metadata.yml` on head
+      sha `99941cba5abeb08b7fff929795ae68e7d9ac40c7`, 2026-10-23 23:02:31–23:10:26 UTC).
+      **Evidencia**: the body snapshot was **not captured** — `.tmp/pr-body-lint/baseline-body.md` does
+      not exist, and that directory holds only the A1-A4 fixture bodies (`body-pass.md`, `body-fail.md`)
+      plus a stale `report.json`. It is also **not needed**: the change is differential against the live
+      policy, which is in `main`, and the pre/post behaviour is pinned by the delta's scenarios and the
+      42 tests in `scripts/ci/pr-body-lint.test.mjs` (42/42 green). No PR number, snapshot path or run
+      id is invented here.
 
 ## 1. Trigger `edited` — already true in production, record the evidence
 
@@ -144,36 +151,47 @@
       from the repo root with no network (`design.md` § Pure/impure boundary); grep finds neither "missing
       reference is only a warning" nor a `Signed-off-by present` box reference.
 
-## 4. Validate the Issue by API — NOT ADOPTED (D3 answered "no", 2026-10-23)
+## 4. Issue by API — not adopted (D3)
 
-> **Decisión del mantenedor:** un PR sin issue vinculado **no** es inválido, así que R2b se queda en solo
-> texto y no se consulta `closingIssuesReferences`. 4.1-4.3 quedan abiertas como registro de trabajo no
-> implementado, no como bloqueo; el pre-flight de `push-pr.md` sigue corriendo offline.
+> **Decisión del mantenedor (D3, 2026-10-23): no.** Un PR sin issue vinculado **no** es inválido, así que
+> R2b se queda en solo texto, W3 no se adopta y no se consulta `closingIssuesReferences`. 4.1-4.3 están
+> cerradas como **decisión registrada, no como trabajo completado**: `[x]` aquí significa «decidido en
+> contra», nunca «implementado». El pre-flight de `push-pr.md` sigue corriendo offline.
 
-- [ ] 4.1 Blocked by D3 (open). If D3 says an issue-less PR is invalid, replace R2b's text-only check
-      with a `github-script` step querying `closingIssuesReferences` — in the **workflow step or
-      `evaluate`**, never in `evaluateBody`, which would put network inside the offline pre-flight.
-      **Evidencia**: the query lives outside the pure seam and `push-pr.md`'s pre-flight still runs
-      offline.
-- [ ] 4.2 Blocked by D3. Two failure modes, both `TOOLING ERROR` and never a policy violation:
-  - (a) the call fails → the job fails as `TOOLING ERROR`;
-  - (b) the call succeeds but `closingIssuesReferences` is empty for a body whose `#N` is visible →
-    **retry once after a short delay** before concluding, and fail as `TOOLING ERROR` only if the
-    retry is also empty.
+- [x] 4.1 **Not adopted — closed by D3, not by implementation.** D3 answered "no" on 2026-10-23: an
+      issue-less PR stays valid, so R2b keeps its text-only check. W3 is not adopted, no
+      `closingIssuesReferences` query exists in the workflow or in `evaluate`, and there is therefore no
+      failure mode, no retry and no A5 to reproduce.
+      **Evidencia**: `design.md` § Open Decisions (D3 = "no", 2026-10-23) and the W3 row of the option
+      table ("Not adopted (D3)"); `git grep closingIssuesReferences -- .github/workflows/ scripts/ci/`
+      returns no matches — only the PRD and these change docs name it.
+      _Historical note — the constraint that made W3 worth weighing, not an instruction:_ had it been
+      adopted, the query would have had to live in the **workflow step or `evaluate`**, never in
+      `evaluateBody`, because network inside the pure seam would break the offline pre-flight of
+      `.opencode/command/push-pr.md`. That boundary is exactly why the option was cheap to write down and
+      expensive to land.
 
-    The retry is not optional polish: `edited` is in scope precisely so an author can fix a red PR by
-    editing, and a lookup that lags would keep the _fixed_ PR red — the author's only remedy would be
-    to edit again and hope. Accepting the false red would defeat the reason the trigger is in scope,
-    so the retry is the chosen resolution.
+- [x] 4.2 **Not adopted — closed by D3.** Nothing queries the API, so the two failure modes below never
+      exist: (a) a failed call, and (b) a call that succeeds but returns an empty
+      `closingIssuesReferences` for a body whose `#N` is visible. Both were specified as `TOOLING ERROR`,
+      never as a policy violation — and that distinction survives for the tooling errors the policy does
+      have (missing payload, summary write failure), which 6.1 exercises as A9.
+      **Evidencia**: no `github-script` call and no GraphQL query in `pr-metadata.yml`; the only
+      `TOOLING ERROR` paths are the two above, both offline.
+      _Historical note — why the retry mattered, not an instruction:_ `edited` is in scope precisely so
+      an author can fix a red PR by editing, and a lookup that lagged would keep the _fixed_ PR red — the
+      author's only remedy would be to edit again and hope. That is why the design chose one conditional
+      retry after a short delay instead of a single attempt. It is recorded here so a future reader
+      inherits the reasoning, not a to-do.
 
-    **Evidencia**: `TOOLING ERROR` path distinct from policy failures; the retry fires at most once
-    (no loop) and a genuinely issue-less PR still fails after it.
-
-- [ ] 4.3 **A5 is a pending external verification, not an implementation checkbox.** It needs a real
-      PR whose `#123` appears only inside a code block and which has no linked issue, checked against the
-      real API — it cannot be satisfied offline and must not be faked with a fixture. Stays open until
-      Phase 3 lands and a real PR reproduces it; excluded from 6.1.
-      **Evidencia**: a real PR number where A5 failed for the right reason.
+- [x] 4.3 **Not adopted — A5 has no meaning for this policy.** A5 was "a `#123` that appears only inside
+      a code block, on a PR with no linked issue, checked against the real API". With no API call there
+      is no A5 to reproduce: it is **not** a pending external verification and nothing is outstanding.
+      **Evidencia**: `design.md` § Open Decisions — "A5 … therefore does not apply to this policy"; 6.1
+      excludes it on that ground, not on the ground of being unverifiable.
+      _Historical note — why it could never have been closed offline, not an instruction:_ A5 required a
+      real PR, because a fixture cannot stand in for the real API's link graph. That unavailability was
+      itself part of the cost D3 weighed.
 
 ## 5. Fix Actions by SHA
 
@@ -190,8 +208,8 @@
 
 ## 6. Final Validation
 
-- [x] 6.1 Run A1-A4 and A7-A9. A5 is excluded: it is a pending external verification (4.3), not a gate
-      on this change.
+- [x] 6.1 Run A1-A4 and A7-A9. A5 is excluded because it **does not apply**: D3 answered "no", so nothing
+      queries the API and there is no A5 to reproduce (4.3) — not an outstanding verification.
       **Evidencia**: cada caso verde con el id de regla en la salida — A1/A2 `EMPTY_BODY`, A3 `R3`, A4 sin
       fallos y exit 0 en el pre-flight de `push-pr.md`, A7 `skipped`, A8 no-op. **A9** se cumple por la ruta
       `TOOLING ERROR` (payload ausente y fallo al publicar el summary), que es la única herramienta que queda:
@@ -209,3 +227,22 @@
       text-only if not.
       **Evidencia**: la política es text-only (R2b exige contenido, no un issue) y `design.md` § Open
       Decisions registra D3 = "no" con fecha 2026-10-23.
+
+## 7. Documentation lockstep
+
+- [x] 7.1 Update the three docs that describe this gate, in the same commit (`06f9cd89`). They are the
+      canonical record of the policy, so leaving them on R1-R5 would have documented a gate that no
+      longer exists. **Evidencia**: `git show --stat 06f9cd89` lists the three files; `grep` finds no
+      `R1 ≥40` and no `report_path` claim left in them as the current shape, and
+      `quality-gates.md:21` still carries the `5º contexto` phrase in the `Notas` cell.
+  - `docs/CONTEXT-CICD.md` §9.3.4 — the `pr-body-lint` paragraph now lists `EMPTY_BODY` · R2a · R2b ·
+    R2c · R3 as the only rules, states that there are no warning rules and no length floors, and
+    records the single `##` heading scan with its fence-blind regression; the evidence line moves
+    from the `report.json` artifact to the job Step Summary (D2).
+  - `docs/learning/ci-cd/05e-pr-metadata-governance.md` — a SUPERSEDED banner for the reduced policy
+    (R1, R4, R5 and the 20-character floors gone), the outputs shape `{ verdict, failures, warnings }`
+    replacing `report_path`, and the `report.json` schema v1 demoted to historical record.
+  - `docs/learning/quality-gates.md` — only the `Significado` cell of the `pr-body-lint` row changes,
+    to describe the reduced policy. The file was **not** restructured: no row was added, removed or
+    reordered, and the `5º contexto` note in that same row's `Notas` cell is pre-existing and
+    untouched (the table's column widths were re-flowed by prettier, nothing else).

@@ -172,11 +172,14 @@ would leave the PR blocked waiting for a check that never reports.
 **D2 — report and artifact: DECIDED (maintainer, 2026-10-23): drop them.** The Step Summary is the
 only surface.
 
-`buildReport`, `writeReport`, the `report.json` path and the `upload-artifact` step are gone, so the
-landed requirement is the **drop** branch of the delta's conditional (`Evaluation is deterministic and
-machine-readable`): the verdict and the failures travel in the summary alone, and no rule identifier
-is published twice. The trade, accepted: no artifact for post-hoc triage, in exchange for one surface
-that already names rule and section and one fewer action to pin by SHA. The metric now cuts at
+`buildReport`, `writeReport`, the `report.json` path and the `upload-artifact` step are gone. The delta
+records that final shape directly instead of leaving it behind a fork: the requirement that mandated
+the `schemaVersion: 1` report and the 14-day artifact — `Evaluation is deterministic and
+machine-readable` — is **REMOVED**, and the behaviour that survives is carried by the **ADDED**
+`The result is published as the job summary and fails closed on tooling errors`. The verdict and the
+failures therefore travel in the summary alone, and no rule identifier is published twice.
+The trade, accepted: no artifact for post-hoc triage, in exchange for one surface that already names
+rule and section and one fewer action to pin by SHA. The metric now cuts at
 `evaluate` (the `buildReport` marker no longer exists) and reads **78**, so D2 did not move the ≤80
 target.
 
