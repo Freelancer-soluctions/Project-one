@@ -11,9 +11,10 @@ Estado verificado en el repo (no asumido):
 - `coverage-summary.json` (reporter `json-summary`) trae una entrada por archivo **más** `total`. Las claves son
   rutas **absolutas del SO** — en esta máquina, `C:\Users\...\apps\client\src\components\404\NotFound.jsx`. Cada
   entrada tiene `lines/functions/statements/branches` con `total/covered/skipped/pct`.
-- Vitest 4.1.11 soporta de forma nativa `thresholds.perFile` y thresholds por glob, y expone el flag CLI
-  `--coverage.thresholds.autoUpdate <boolean|function>` que reescribe los thresholds en el config **solo cuando la
-  cobertura actual supera la configurada**.
+- Vitest 4.1.11 evalúa `thresholds.perFile` cuando se declara top-level y evalúa los thresholds por glob en
+  agregado; no aplica `perFile` declarado dentro de un glob. `scripts/ci/check-coverage.mjs` es el único enforcer
+  per-file para esos globs. Vitest también expone el flag CLI `--coverage.thresholds.autoUpdate <boolean|function>`
+  que reescribe los thresholds en el config **solo cuando la cobertura actual supera la configurada**.
 - Las suites son baratas: server ~5-6s, client ~14s (por eso sharding quedó `N/A`).
 - `.husky/pre-push` corre `test:changed` (TIA, diff-scoped, sin `--coverage`). `pre-commit` no menciona coverage.
 

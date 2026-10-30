@@ -16,10 +16,11 @@ implementada.
 
 Además hay dos defectos concretos que hacen que el gate actual mienta:
 
-- **El guard no ve la config granular.** `scripts/ci/check-coverage.mjs` solo lee `summary.total` y
-  thresholds planos. Vitest 4.1.11 sí soporta `thresholds.perFile` y thresholds por glob de forma
-  nativa; si alguien los configura, Vitest falla la corrida mientras el guard imprime `✅`. Dos
-  aplicaciones del mismo gate discrepando.
+- **El guard y Vitest no aplican exactamente la misma granularidad.** `scripts/ci/check-coverage.mjs` evalúa
+  umbrales globales, agregados por glob y mínimos per-file dentro de globs. Vitest 4.1.11 evalúa `perFile` solo
+  cuando se declara top-level en `thresholds`; descarta `perFile` anidado dentro de un glob. Se declara el guard
+  como enforcer per-file único y se alinean los configs con ese comportamiento, para evitar veredictos duplicados
+  y contradictorios.
 - **El ratchet —la propiedad que define a esta estrategia— no es accionable.** `autoUpdate` está
   documentado pero no hay ningún comando que lo invoque, así que los pisos solo pueden bajar.
 
