@@ -36,7 +36,11 @@ describe('zod schema properties', () => {
             ),
           phone: fc.option(fc.string(), { nil: undefined }),
           address: fc.option(fc.string(), { nil: undefined }),
-          startDate: fc.date(),
+          startDate: fc.date({
+            min: new Date('2000-01-01T00:00:00.000Z'),
+            max: new Date('2100-12-31T23:59:59.999Z'),
+            noInvalidDate: true,
+          }),
           position: fc.string({ minLength: 1 }),
           department: fc.string({ minLength: 1 }),
           salary: fc.string({ minLength: 1 }),

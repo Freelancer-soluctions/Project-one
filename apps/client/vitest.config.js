@@ -56,9 +56,10 @@ export default mergeConfig(
           // blindan por separado, para que el total siga siendo comparable entre
           // corridas (floor bajo + granularidad alta).
           //
-          // `perFile: true` en un glob significa que CADA fichero casado debe
-          // alcanzar ese umbral (no el agregado). Los globs NO heredan el `perFile`
-          // de nivel superior: hay que declararlo en cada uno.
+          // El motor Vitest 4.1.11 evalúa los umbrales de globs en agregado e
+          // ignora `perFile` dentro de cada glob. El gate local y los jobs de
+          // coverage aplican esos mínimos por fichero mediante
+          // `scripts/ci/check-coverage.mjs`, único enforcer per-file.
           //
           // Estos valores los sube `npm run coverage:ratchet` a la cobertura medida
           // de cada área. NO subirlos a mano sin añadir antes los tests que los
