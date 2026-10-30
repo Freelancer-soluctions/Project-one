@@ -2549,6 +2549,50 @@ jobs:
           fi
           echo "✅ Security substage succeeded or was skipped"
 
+  # ═══════════════════════════════════════════════════════════════
+  # QUALITY: snapshot hygiene (change `snapshot-gates`)
+  # ═══════════════════════════════════════════════════════════════
+  # G2 — grep gate de update flags. Higiene de REPO: escanea los scripts npm
+  # de todos los workspaces y los steps `run:` de TODOS los workflows, así que
+  # corre sin filtro de cliente. SIN `continue-on-error`: su rojo propaga a
+  # `prebuild-tests-complete`. Sin `setup-monorepo` a propósito: el gate es un
+  # scan de texto local (sin red ni instalación), como exige el requirement
+  # «pure local text scan (no network, no test execution)».
+  snapshot-update-gate:
+    name: 'Quality: Snapshot Update Gate'
+    needs: repo-discovery
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v5
+      - name: Reject update flags in CI-consumed scripts and workflow steps
+        run: node scripts/ci/snapshot-update-gate.mjs
+
+  # G4 + G5 — tamaño (`vitest/no-large-snapshots`) y huérfanos, advisory FASE 1.
+  # Path-scoped a PRs de cliente (mismo `if` que `client-dead-code`) y
+  # `continue-on-error: true` a NIVEL JOB: reporta findings sin teñir
+  # `prebuild-tests-complete`. FUERA de todos los `needs` (precedente
+  # `docs-validation`/`lockfile-audit`). La promoción es el PR atómico de D8.
+  client-snapshot-size:
+    if: needs.repo-discovery.outputs.client == 'true' && github.event_name == 'pull_request'
+    name: 'Quality: Client Snapshot Size (advisory, FASE 1)'
+    needs: repo-discovery
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - uses: ./.github/actions/setup-monorepo
+      - name: Check snapshot size (advisory)
+        run: npm run snapshot:size-check
+      - name: Check snapshot orphans (advisory)
+        # `success() || failure()`: el segundo veredicto queda en el log aunque
+        # el size-check falle; el job sigue siendo advisory por su COE.
+        if: success() || failure()
+        run: npm run snapshot:orphan-check
+
   # Renamed by change `ci-stage-aggregator-topology` (D9): the aggregator carries the whole tier-1
   # testing surface, not only unit tests, so the `unit` wording became false and the id now mirrors
   # `postbuild-tests-complete`.
@@ -2567,6 +2611,10 @@ jobs:
       # aggregator and, transitively, `ci-complete`. Rollback = restore the flag PER JOB with the
       # cause registered (design D9).
       - property-tests
+      # `snapshot-update-gate` (change `snapshot-gates`, G2) es el 6.º miembro: higiene de repo,
+      # SIN `continue-on-error`, así que un gate rojo también falla este agregador. El job
+      # advisory de tamaño/huérfanos (`client-snapshot-size`) NO es miembro a propósito.
+      - snapshot-update-gate
     steps:
       - name: Check for failures
         run: |
